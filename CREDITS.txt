@@ -1,0 +1,4 @@
+Sean Gillies (PCL)
+Howard Butler (PCL)
+Kai Lautaportti (PCL)
+Justin Bronn (GeoDjango) for ctypes inspiration

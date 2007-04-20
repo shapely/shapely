@@ -1,0 +1,14 @@
+
+    >>> from shapely import wkt_geometry
+
+    >>> g = wkt_geometry('POINT(0.0 0.0)')
+    >>> g.geometryType()
+    'Point'
+    >>> g.geom_type
+    'Point'
+
+    >>> g = wkt_geometry('POINT(0.0, 0.0)')
+    Traceback (most recent call last):
+    ...
+    GEOSError: Could not create geometry. Check input syntax.
+

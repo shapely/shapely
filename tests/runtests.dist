@@ -1,0 +1,4 @@
+#!/bin/sh
+#export PYTHONPATH=YOUR_CUSTOM_PATH
+python runalltests.py
+
