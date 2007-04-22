@@ -1,0 +1,38 @@
+
+    >>> from shapely import Point
+
+    # Check 3D
+    >>> p = Point(0.0, 0.0, 1.0)
+    >>> p.z
+    1.0
+    >>> str(p)
+    'POINT (0.0000000000000000 0.0000000000000000 0.0000000000000000)'
+    >>> p.wkt
+    'POINT (0.0000000000000000 0.0000000000000000 0.0000000000000000)'
+    >>> p.array
+    [[0.0, 0.0, 1.0]]
+
+    # Check that setting x doesn't affect y, z
+    >>> p = Point(0.0, 0.0, 1.0)
+    >>> p.x = -999.0
+    >>> p.y
+    0.0
+    >>> p.z
+    1.0
+
+    # Check that setting y doesn't affect x, z
+    >>> p = Point(0.0, 0.0, 1.0)
+    >>> p.y = -999.0
+    >>> p.x
+    0.0
+    >>> p.z
+    1.0
+
+    # Check that setting z doesn't affect x, y
+    >>> p = Point(0.0, 0.0, 1.0)
+    >>> p.z = -999.0
+    >>> p.x
+    0.0
+    >>> p.y
+    0.0
+

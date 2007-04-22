@@ -80,13 +80,20 @@ class Point(BaseGeometry):
         cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
 
         # First because of a GEOS C API bug, save Y
-        d = c_double()
-        lgeos.GEOSCoordSeq_getY(cs, 0, byref(d))
+        dy = c_double()
+        lgeos.GEOSCoordSeq_getY(cs, 0, byref(dy))
+        
+        if self._ndim == 3:
+            dz = c_double()
+            lgeos.GEOSCoordSeq_getZ(cs, 0, byref(dz))
         
         lgeos.GEOSCoordSeq_setX(cs, 0, c_double(x))
-        
+
         # Now, restore Y. Yuck.
-        lgeos.GEOSCoordSeq_setY(cs, 0, d)
+        lgeos.GEOSCoordSeq_setY(cs, 0, dy)
+
+        if self._ndim == 3:
+            lgeos.GEOSCoordSeq_setZ(cs, 0, dz)
     
     def getY(self):
         """Return y coordinate."""
@@ -98,8 +105,19 @@ class Point(BaseGeometry):
     def setY(self, y):
         """Set y coordinate."""
         cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
-        lgeos.GEOSCoordSeq_setY(cs, 0, c_double(y))
-    
+
+        if self._ndim == 3:
+            # First because of a GEOS C API bug, save Z
+            d = c_double()
+            lgeos.GEOSCoordSeq_getZ(cs, 0, byref(d))
+        
+            lgeos.GEOSCoordSeq_setY(cs, 0, c_double(y))
+        
+            # Now, restore Z. Yuck.
+            lgeos.GEOSCoordSeq_setZ(cs, 0, d)
+        else:
+            lgeos.GEOSCoordSeq_setY(cs, 0, c_double(y))
+
     def getZ(self):
         """Return z coordinate."""
         if self._ndim != 3:
