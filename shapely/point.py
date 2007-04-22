@@ -58,10 +58,9 @@ class Point(BaseGeometry):
         self._crs = crs
 
         cs = lgeos.GEOSCoordSeq_create(1, ndim)
-        # XXX: setting X appears to clobber Y. Watch how the doctest above
-        # fails.
-        lgeos.GEOSCoordSeq_setY(cs, 0, dy)
+        # Because of a bug in the GEOS C API, always set X before Y
         lgeos.GEOSCoordSeq_setX(cs, 0, dx)
+        lgeos.GEOSCoordSeq_setY(cs, 0, dy)
         if ndim == 3:
             lgeos.GEOSCoordSeq_setZ(cs, 0, dz)
         
@@ -79,7 +78,15 @@ class Point(BaseGeometry):
     def setX(self, x):
         """Set x coordinate."""
         cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
+
+        # First because of a GEOS C API bug, save Y
+        d = c_double()
+        lgeos.GEOSCoordSeq_getY(cs, 0, byref(d))
+        
         lgeos.GEOSCoordSeq_setX(cs, 0, c_double(x))
+        
+        # Now, restore Y. Yuck.
+        lgeos.GEOSCoordSeq_setY(cs, 0, d)
     
     def getY(self):
         """Return y coordinate."""
