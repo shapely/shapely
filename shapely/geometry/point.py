@@ -5,7 +5,7 @@ from ctypes import string_at, create_string_buffer, \
     c_char_p, c_double, c_float, c_int, c_uint, c_size_t, c_ubyte, \
     c_void_p, byref
 
-from geos import lgeos, GEOSError, DimensionError
+from shapely.geos import lgeos, DimensionError
 from base import BaseGeometry
 
 class Point(BaseGeometry):

@@ -3,7 +3,7 @@ from ctypes import string_at \
     #, c_char_p, c_double, c_float, c_int, c_uint, c_size_t, c_ubyte \
     #, c_void_p, byref
 
-from geos import lgeos
+from shapely.geos import lgeos
 
 class BaseGeometry(object):
     

@@ -1,7 +1,9 @@
 
-from geos import lgeos
-from base import BaseGeometry
-from point import Point
+from shapely.geos import lgeos, ReadingError
+from shapely.geometry.base import BaseGeometry
+from shapely.geometry.point import Point
+
+from ctypes import string_at, c_char_p
 
 CLASS_TYPE = {
     'Point': Point
@@ -27,8 +29,8 @@ def wkt_geometry(wkt, crs=None):
     """
     geom = lgeos.GEOSGeomFromWKT(c_char_p(wkt))
     if not geom:
-        raise GEOSError, \
-        "Could not create geometry. Check input syntax."
+        raise ReadingError, \
+        "Could not create geometry because of errors while reading input."
 
     ob = BaseGeometry()
     ob.__class__ = CLASS_TYPE[string_at(lgeos.GEOSGeomType(geom))]

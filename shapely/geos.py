@@ -14,7 +14,7 @@ lgeos = CDLL(dll)
 
 
 # Exceptions
-class GEOSError(Exception):
+class ReadingError(Exception):
     pass
 
 class DimensionError(Exception):
@@ -23,17 +23,12 @@ class DimensionError(Exception):
 
 # Do-nothing handlers
 def error_handler(fmt, list):
-    if not list:
-        sys.stderr.write(fmt)
-    else:
-        sys.stderr.write('ERROR: %s' % str(list))
-    #pass
+    pass
 
 error_h = CFUNCTYPE(None, c_char_p, c_char_p)(error_handler)
 
 def notice_handler(fmt, list):
-    sys.stdout.write((fmt + '\n') % list)
-    #pass
+    pass
 
 notice_h = CFUNCTYPE(None, c_char_p, c_char_p)(notice_handler)
 

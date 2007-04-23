@@ -1,5 +1,5 @@
 
-    >>> from shapely import Point
+    >>> from shapely.geometry import Point
 
     # Check 3D
     >>> p = Point(0.0, 0.0, 1.0)

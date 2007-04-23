@@ -10,5 +10,5 @@
     >>> g = wkt_geometry('POINT(0.0, 0.0)')
     Traceback (most recent call last):
     ...
-    GEOSError: Could not create geometry. Check input syntax.
+    ReadingError: Could not create geometry because of errors while reading input.
 
