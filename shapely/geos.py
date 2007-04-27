@@ -20,6 +20,9 @@ class ReadingError(Exception):
 class DimensionError(Exception):
     pass
 
+class OperationError(Exception):
+    pass
+
 
 # Do-nothing handlers
 def error_handler(fmt, list):

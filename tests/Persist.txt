@@ -1,0 +1,16 @@
+Pickling tests
+
+    >>> from shapely.geometry import Point
+    >>> import pickle
+
+Round trip using pickle
+
+    >>> p = Point(0.0, 0.0)
+    >>> data = pickle.dumps(p)
+    >>> q = pickle.loads(data)
+
+Check consistency
+
+    >>> q.equals(p)
+    True
+

@@ -43,28 +43,32 @@ class Point(BaseGeometry):
         """
         BaseGeometry.__init__(self)
 
-        # check coordinate input
-        dx = c_double(x)
-        dy = c_double(y)
-        try:
-            dz = c_double(z)
-            ndim = 3
-        except TypeError:
-            dz = None
-            ndim = 2
+        # allow creation of null points, to support unpickling
+        if x == y == z == None:
+            pass
+        else:
+            # check coordinate input
+            dx = c_double(x)
+            dy = c_double(y)
+            try:
+                dz = c_double(z)
+                ndim = 3
+            except TypeError:
+                dz = None
+                ndim = 2
     
-        self._geom = None
-        self._ndim = ndim
-        self._crs = crs
+            self._geom = None
+            self._ndim = ndim
+            self._crs = crs
 
-        cs = lgeos.GEOSCoordSeq_create(1, ndim)
-        # Because of a bug in the GEOS C API, always set X before Y
-        lgeos.GEOSCoordSeq_setX(cs, 0, dx)
-        lgeos.GEOSCoordSeq_setY(cs, 0, dy)
-        if ndim == 3:
-            lgeos.GEOSCoordSeq_setZ(cs, 0, dz)
+            cs = lgeos.GEOSCoordSeq_create(1, ndim)
+            # Because of a bug in the GEOS C API, always set X before Y
+            lgeos.GEOSCoordSeq_setX(cs, 0, dx)
+            lgeos.GEOSCoordSeq_setY(cs, 0, dy)
+            if ndim == 3:
+                lgeos.GEOSCoordSeq_setZ(cs, 0, dz)
         
-        self._geom = lgeos.GEOSGeom_createPoint(cs)
+            self._geom = lgeos.GEOSGeom_createPoint(cs)
 
     # Coordinate getters and setters
 
