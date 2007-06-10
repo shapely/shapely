@@ -145,14 +145,31 @@ class Point(BaseGeometry):
     y = property(getY, setY)
     z = property(getZ, setZ)
 
-    def toarray(self):
+    @property
+    def array(self):
         """Return a GeoJSON coordinate array."""
-        inner = [self.x, self.y]
+        array = [self.x, self.y]
         if self._ndim == 3: # TODO: use hasz
-            inner.append(self.z)
-        return [inner]
-    
-    array = property(toarray)
+            array.append(self.z)
+        return array
+
+    @property
+    def ctypes(self):
+        if self._ndim == 3: # TODO: use hasz
+            array = c_double * 3
+            return array(self.x, self.y, self.z)
+        else:
+            array = c_double * 2
+            return array(self.x, self.y)
+
+    @property
+    def __array_interface__(self):
+        return {
+        'version': 3,
+        'shape': (self._ndim,),
+        'typestr': '>f8',
+        'data': self.ctypes
+        }
 
 
 # Test runner

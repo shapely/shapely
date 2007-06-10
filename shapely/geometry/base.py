@@ -11,7 +11,7 @@ class BaseGeometry(object):
     """
 
     def __init__(self):
-        self._geom = None
+        self._geom = lgeos.GEOSGeomFromWKT(c_char_p('GEOMETRYCOLLECTION EMPTY'))
         self._ndim = None
         self._crs = None
 
@@ -34,13 +34,13 @@ class BaseGeometry(object):
         """Returns a string representing the geometry type, e.g. 'Polygon'."""
         return string_at(lgeos.GEOSGeomType(self._geom))
 
-    def towkb(self):
+    def to_wkb(self):
         """Returns a WKT string representation of the geometry."""
         size = c_int()
         bytes = lgeos.GEOSGeomToWKB_buf(self._geom, byref(size))
         return string_at(bytes, size.value)
 
-    def towkt(self):
+    def to_wkt(self):
         """Returns a WKT string representation of the geometry."""
         return string_at(lgeos.GEOSGeomToWKT(self._geom))
 
@@ -53,8 +53,8 @@ class BaseGeometry(object):
 
     # Properties
     geom_type = property(geometryType)
-    wkt = property(towkt)
-    wkb = property(towkb)
+    wkt = property(to_wkt)
+    wkb = property(to_wkb)
 
 
 
