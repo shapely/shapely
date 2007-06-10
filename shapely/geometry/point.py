@@ -31,6 +31,8 @@ class Point(BaseGeometry):
     [[1.0, 0.0]]
     """
 
+    _ctypes_data = None
+
     def __init__(self, x=None, y=None, z=None, crs=None):
         """Initialize a point.
         
@@ -155,21 +157,24 @@ class Point(BaseGeometry):
 
     @property
     def ctypes(self):
-        if self._ndim == 3: # TODO: use hasz
-            array = c_double * 3
-            return array(self.x, self.y, self.z)
-        else:
-            array = c_double * 2
-            return array(self.x, self.y)
+        if not self._ctypes_data:
+            if self._ndim == 3: # TODO: use hasz
+                array = c_double * 3
+                self._ctypes_data = array(self.x, self.y, self.z)
+            else:
+                array = c_double * 2
+                self._ctypes_data = array(self.x, self.y, self.z)
+        return self._ctypes_data
 
     @property
     def __array_interface__(self):
+        """Provide the Numpy array protocol."""
         return {
-        'version': 3,
-        'shape': (self._ndim,),
-        'typestr': '>f8',
-        'data': self.ctypes
-        }
+            'version': 3,
+            'shape': (self._ndim,),
+            'typestr': '>f8',
+            'data': self.ctypes
+            }
 
 
 # Test runner
