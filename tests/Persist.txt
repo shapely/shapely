@@ -34,3 +34,15 @@ WKT
   >>> pt.equals(p)
   True
 
+JSON
+----
+
+  >>> from shapely import json
+  >>> js = json.dumps(p)
+  >>> js
+  '{"type": "Point", "coordinates": [0.0, 0.0]}'
+  >>> pj = json.loads(js)
+  >>> pj.equals(p)
+  True
+
+
