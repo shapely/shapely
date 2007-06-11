@@ -34,4 +34,10 @@ Test implementation of array interface
   >>> b[2]
   1.0
 
+  Make a point from a Numpy array
+
+  >>> a = array([1.0, 1.0, 0.0])
+  >>> p = Point(*list(a))
+  >>> p.wkt
+  'POINT (1.0000000000000000 1.0000000000000000)'
 
