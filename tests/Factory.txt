@@ -1,14 +1,37 @@
+Tests of geometry factories
+===========================
 
-    >>> from shapely import wkt_geometry
+WKT
+---
 
-    >>> g = wkt_geometry('POINT(0.0 0.0)')
-    >>> g.geometryType()
-    'Point'
-    >>> g.geom_type
-    'Point'
+  >>> from shapely import wkt_geometry
+  >>> g = wkt_geometry('POINT(0.0 0.0)')
+  >>> g.geometryType()
+  'Point'
+  >>> g.geom_type
+  'Point'
+  >>> g.x
+  0.0
+  >>> g.y
+  0.0
 
-    >>> g = wkt_geometry('POINT(0.0, 0.0)')
-    Traceback (most recent call last):
-    ...
-    ReadingError: Could not create geometry because of errors while reading input.
+  Malformed WKT string should raise an error
+
+  >>> g = wkt_geometry('POINT(0.0, 0.0)')
+  Traceback (most recent call last):
+  ...
+  ReadingError: Could not create geometry because of errors while reading input.
+
+WKB
+---
+
+  >>> from shapely import wkb_geometry
+  >>> POINTA = "010100000000000000000000000000000000000000".decode("hex")
+  >>> g = wkb_geometry(POINTA)
+  >>> g.geom_type
+  'Point'
+  >>> g.x
+  0.0
+  >>> g.y
+  0.0
 

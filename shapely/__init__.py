@@ -1,1 +1,1 @@
-from factory import wkt_geometry
+from factory import wkb_geometry, wkt_geometry

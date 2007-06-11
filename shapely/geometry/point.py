@@ -127,8 +127,7 @@ class Point(BaseGeometry):
     def getZ(self):
         """Return z coordinate."""
         if self._ndim != 3:
-            raise DimensionError, \
-            "This point has no z coordinate."
+            raise DimensionError, "This point has no z coordinate."
         cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
         d = c_double()
         lgeos.GEOSCoordSeq_getZ(cs, 0, byref(d))
@@ -137,8 +136,7 @@ class Point(BaseGeometry):
     def setZ(self, z):
         """Set z coordinate."""
         if self._ndim != 3:
-            raise DimensionError, \
-            "This point has no z coordinate."
+            raise DimensionError, "This point has no z coordinate."
         cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
         lgeos.GEOSCoordSeq_setZ(cs, 0, c_double(z))
     
