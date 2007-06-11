@@ -1,6 +1,12 @@
 Shapely
 =======
 
+Dependencies
+------------
+
+GeoJSON
+
+
 Testing
 -------
 

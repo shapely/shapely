@@ -1,1 +1,1 @@
-from factory import wkb_geometry, wkt_geometry
+from factory import json_geometry, wkb_geometry, wkt_geometry

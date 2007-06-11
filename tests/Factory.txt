@@ -5,19 +5,19 @@ WKT
 ---
 
   >>> from shapely import wkt_geometry
-  >>> g = wkt_geometry('POINT(0.0 0.0)')
-  >>> g.geometryType()
+  >>> gt = wkt_geometry('POINT(0.0 0.0)')
+  >>> gt.geometryType()
   'Point'
-  >>> g.geom_type
+  >>> gt.geom_type
   'Point'
-  >>> g.x
+  >>> gt.x
   0.0
-  >>> g.y
+  >>> gt.y
   0.0
 
   Malformed WKT string should raise an error
 
-  >>> g = wkt_geometry('POINT(0.0, 0.0)')
+  >>> wkt_geometry('POINT(0.0, 0.0)')
   Traceback (most recent call last):
   ...
   ReadingError: Could not create geometry because of errors while reading input.
@@ -27,11 +27,23 @@ WKB
 
   >>> from shapely import wkb_geometry
   >>> POINTA = "010100000000000000000000000000000000000000".decode("hex")
-  >>> g = wkb_geometry(POINTA)
-  >>> g.geom_type
+  >>> gb = wkb_geometry(POINTA)
+  >>> gb.geom_type
   'Point'
-  >>> g.x
+  >>> gb.x
   0.0
-  >>> g.y
+  >>> gb.y
+  0.0
+
+JSON
+----
+
+  >>> from shapely import json_geometry
+  >>> gj = json_geometry('{"type": "Point", "coordinates": [0.0, 0.0]}')
+  >>> gj.geom_type
+  'Point'
+  >>> gj.x
+  0.0
+  >>> gj.y
   0.0
 
