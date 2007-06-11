@@ -174,6 +174,15 @@ class Point(BaseGeometry):
             'data': self.ctypes
             }
 
+    # Python feature protocol
+    @property
+    def type(self):
+        return self.geometryType()
+
+    @property
+    def coordinates(self):
+        return self.array
+
 
 # Test runner
 def _test():

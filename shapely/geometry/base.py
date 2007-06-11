@@ -20,10 +20,10 @@ class BaseGeometry(object):
             lgeos.GEOSGeom_destroy(self._geom)
 
     def __str__(self):
-        return self.towkt()
+        return self.to_wkt()
 
     def __reduce__(self):
-        return (self.__class__, (), self.towkb())
+        return (self.__class__, (), self.to_wkb())
 
     def __setstate__(self, state):
         self._geom = lgeos.GEOSGeomFromWKB_buf(c_char_p(state), 

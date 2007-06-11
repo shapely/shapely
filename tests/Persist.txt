@@ -1,16 +1,36 @@
-Pickling tests
+Persistence tests
+=================
 
-    >>> from shapely.geometry import Point
-    >>> import pickle
+Pickle
+------
 
-Round trip using pickle
+  >>> from shapely.geometry import Point
+  >>> import pickle
+  >>> p = Point(0.0, 0.0)
+  >>> data = pickle.dumps(p)
+  >>> q = pickle.loads(data)
+  >>> q.equals(p)
+  True
 
-    >>> p = Point(0.0, 0.0)
-    >>> data = pickle.dumps(p)
-    >>> q = pickle.loads(data)
+WKB
+---
 
-Check consistency
+  >>> from shapely import wkb
+  >>> bytes = wkb.dumps(p)
+  >>> bytes.encode("hex")
+  '010100000000000000000000000000000000000000'
+  >>> pb = wkb.loads(bytes)
+  >>> pb.equals(p)
+  True
 
-    >>> q.equals(p)
-    True
+WKT
+---
+
+  >>> from shapely import wkt
+  >>> text = wkt.dumps(p)
+  >>> text
+  'POINT (0.0000000000000000 0.0000000000000000)'
+  >>> pt = wkt.loads(text)
+  >>> pt.equals(p)
+  True
 
