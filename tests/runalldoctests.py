@@ -19,6 +19,6 @@ if __name__ == '__main__':
     except:
         pass
 
-    for file in ['Array.txt', 'Persist.txt']: #glob.glob('*.txt'):
+    for file in ['Array.txt', 'Operations.txt', 'Persist.txt']:
         doctest.testfile(file, verbose=verbosity)
     

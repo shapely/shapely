@@ -1,0 +1,60 @@
+Test GEOS operations
+====================
+
+  >>> from shapely.geometry import Point
+  >>> point = Point(0.0, 0.0)
+
+Topology operations
+-------------------
+
+  Envelope
+
+  >>> point.envelope
+  <x>
+
+  Intersection
+
+  >>> point.intersection(Point(-1,-1))
+  <x>
+  
+  Buffer
+
+  >>> point.buffer(10.0)
+  <x>
+  
+  >>> point.buffer(10.0, 32)
+  <x>
+
+  Convex Hull
+
+  >>> point.convex_hull
+  <x>
+  
+  Differences
+
+  >>> point.difference(Point(-1, 1))
+  <x>
+  
+  >>> point.sym_difference(Point(-1, 1))
+  <x>
+  
+  Boundary
+
+  >>> point.boundary
+  <x>
+  
+  Union
+
+  >>> point.union(Point(-1, 1))
+  <x>
+
+  Point on Surface (TODO?)
+
+  >>> point.centroid
+  <x>
+
+  Relate
+
+  >>> point.relate(Point(-1, -1))
+  <x>
+
