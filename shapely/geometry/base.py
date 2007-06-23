@@ -5,6 +5,21 @@ from ctypes import string_at, byref, c_int, c_size_t, c_char_p
 
 from shapely.geos import lgeos, OperationError
 
+
+def geom_factory(g):
+    ob = BaseGeometry()
+    geom_type = string_at(lgeos.GEOSGeomType(g))
+    mod = __import__(
+        'shapely.geometry', 
+        globals(), 
+        locals(), 
+        [geom_type],
+        )
+    ob.__class__ = getattr(mod, geom_type)
+    ob._geom = g
+    return ob
+
+
 class BaseGeometry(object):
     
     """Defines methods common to all geometries.
@@ -26,9 +41,10 @@ class BaseGeometry(object):
         return (self.__class__, (), self.to_wkb())
 
     def __setstate__(self, state):
-        self._geom = lgeos.GEOSGeomFromWKB_buf(c_char_p(state), 
-                                               c_size_t(len(state))
-                                               );
+        self._geom = lgeos.GEOSGeomFromWKB_buf(
+                        c_char_p(state), 
+                        c_size_t(len(state))
+                        )
 
     def geometryType(self):
         """Returns a string representing the geometry type, e.g. 'Polygon'."""
@@ -55,6 +71,15 @@ class BaseGeometry(object):
     geom_type = property(geometryType)
     wkt = property(to_wkt)
     wkb = property(to_wkb)
+
+    # Topology operations
+    
+    @property
+    def envelope(self):
+        return geom_factory(lgeos.GEOSEnvelope(self._geom))
+
+    def intersection(self, g):
+        return geom_factory(lgeos.GEOSEnvelope(self._geom, g._geom))
 
 
 

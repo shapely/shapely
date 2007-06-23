@@ -6,7 +6,7 @@ from ctypes import string_at, create_string_buffer, \
     c_void_p, byref
 
 from shapely.geos import lgeos, DimensionError
-from base import BaseGeometry
+from shapely.geometry.base import BaseGeometry
 
 class Point(BaseGeometry):
 
@@ -183,11 +183,11 @@ class Point(BaseGeometry):
     def coordinates(self):
         return self.array
 
-
 # Test runner
 def _test():
     import doctest
     doctest.testmod()
+
 
 if __name__ == "__main__":
     _test()
