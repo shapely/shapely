@@ -20,10 +20,10 @@ Topology operations
   Buffer
 
   >>> point.buffer(10.0) #doctest: +ELLIPSIS
-  <shapely.geometry.point.Point object at ...>
+  <shapely.geometry.polygon.Polygon object at ...>
   
-  >>> point.buffer(10.0, 32)
-  <x>
+  >>> point.buffer(10.0, 32) #doctest: +ELLIPSIS
+  <shapely.geometry.polygon.Polygon object at ...>
 
   Convex Hull
 

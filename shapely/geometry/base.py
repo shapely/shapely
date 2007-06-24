@@ -1,4 +1,4 @@
-from ctypes import string_at, byref, c_int, c_size_t, c_char_p
+from ctypes import string_at, byref, c_int, c_size_t, c_char_p, c_double
     #, create_string_buffer \
     #, c_char_p, c_double, c_float, c_int, c_uint, c_size_t, c_ubyte \
     #, c_void_p, byref
@@ -80,6 +80,13 @@ class BaseGeometry(object):
 
     def intersection(self, g):
         return geom_factory(lgeos.GEOSEnvelope(self._geom, g._geom))
+
+    def buffer(self, distance, quadsegs=16):
+        return geom_factory(
+            lgeos.GEOSBuffer(
+                self._geom, c_double(distance), c_int(quadsegs)
+                )
+            )
 
 
 
