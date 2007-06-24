@@ -27,16 +27,16 @@ Topology operations
 
   Convex Hull
 
-  >>> point.convex_hull
-  <x>
+  >>> point.convex_hull #doctest: +ELLIPSIS
+  <shapely.geometry.point.Point object at ...>
   
   Differences
 
-  >>> point.difference(Point(-1, 1))
-  <x>
+  >>> point.difference(Point(-1, 1)) #doctest: +ELLIPSIS
+  <shapely.geometry.point.Point object at ...>
   
-  >>> point.sym_difference(Point(-1, 1))
-  <x>
+  >>> point.symmetric_difference(Point(-1, 1)) #doctest: +ELLIPSIS
+  <shapely.geometry.multipoint.MultiPoint object at ...>
   
   Boundary
 

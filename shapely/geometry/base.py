@@ -83,10 +83,16 @@ class BaseGeometry(object):
 
     def buffer(self, distance, quadsegs=16):
         return geom_factory(
-            lgeos.GEOSBuffer(
-                self._geom, c_double(distance), c_int(quadsegs)
-                )
+            lgeos.GEOSBuffer(self._geom, c_double(distance), c_int(quadsegs))
             )
 
+    @property
+    def convex_hull(self):
+        return geom_factory(lgeos.GEOSConvexHull(self._geom))
 
+    def difference(self, g):
+        return geom_factory(lgeos.GEOSDifference(self._geom, g._geom))
+
+    def symmetric_difference(self, g):
+        return geom_factory(lgeos.GEOSSymDifference(self._geom, g._geom))
 
