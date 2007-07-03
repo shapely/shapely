@@ -40,21 +40,21 @@ Topology operations
   
   Boundary
 
-  >>> point.boundary
-  <x>
+  >>> point.boundary #doctest: +ELLIPSIS
+  <shapely.geometry.collection.GeometryCollection object at ...>
   
   Union
 
-  >>> point.union(Point(-1, 1))
-  <x>
+  >>> point.union(Point(-1, 1)) #doctest: +ELLIPSIS
+  <shapely.geometry.multipoint.MultiPoint object at ...>
 
   Point on Surface (TODO?)
 
-  >>> point.centroid
-  <x>
+  >>> point.centroid #doctest: +ELLIPSIS
+  <shapely.geometry.point.Point object at ...>
 
   Relate
 
-  >>> point.relate(Point(-1, -1))
-  <x>
+  >>> point.relate(Point(-1, -1)) #doctest: +ELLIPSIS
+  'FF0FFF0F2'
 

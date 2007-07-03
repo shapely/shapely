@@ -25,10 +25,13 @@ class BaseGeometry(object):
     """Defines methods common to all geometries.
     """
 
+    _geom = None
+    _ctypes_data = None
+    _ndim = None
+    _crs = None
+
     def __init__(self):
         self._geom = lgeos.GEOSGeomFromWKT(c_char_p('GEOMETRYCOLLECTION EMPTY'))
-        self._ndim = None
-        self._crs = None
 
     def __del__(self):
         if self._geom is not None:
@@ -45,6 +48,43 @@ class BaseGeometry(object):
                         c_char_p(state), 
                         c_size_t(len(state))
                         )
+
+    # Array and ctypes interfaces
+
+    @property
+    def array(self):
+        """Return a GeoJSON coordinate array.
+        
+        To be overridden by extension classes."""
+        raise NotImplemented
+
+    @property
+    def ctypes(self):
+        """Return a ctypes representation.
+        
+        To be overridden by extension classes."""
+        raise NotImplemented
+
+    @property
+    def __array_interface__(self):
+        """Provide the Numpy array protocol."""
+        return {
+            'version': 3,
+            'shape': (self._ndim,),
+            'typestr': '>f8',
+            'data': self.ctypes
+            }
+
+    # Python feature protocol
+
+    @property
+    def type(self):
+        return self.geometryType()
+
+    @property
+    def coordinates(self):
+        return self.array
+
 
     def geometryType(self):
         """Returns a string representing the geometry type, e.g. 'Polygon'."""
@@ -95,4 +135,20 @@ class BaseGeometry(object):
 
     def symmetric_difference(self, g):
         return geom_factory(lgeos.GEOSSymDifference(self._geom, g._geom))
+
+    @property
+    def boundary(self):
+        return geom_factory(lgeos.GEOSBoundary(self._geom))
+
+    def union(self, g):
+        return geom_factory(lgeos.GEOSUnion(self._geom, g._geom))
+
+    @property
+    def centroid(self):
+        return geom_factory(lgeos.GEOSGetCentroid(self._geom))
+
+    def relate(self, g):
+        func = lgeos.GEOSRelate
+        func.restype = c_char_p
+        return lgeos.GEOSRelate(self._geom, g._geom)
 

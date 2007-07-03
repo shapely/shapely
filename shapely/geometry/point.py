@@ -31,7 +31,7 @@ class Point(BaseGeometry):
     [[1.0, 0.0]]
     """
 
-    _ctypes_data = None
+    #_ctypes_data = None
 
     def __init__(self, x=None, y=None, z=None, crs=None):
         """Initialize a point.
@@ -164,24 +164,6 @@ class Point(BaseGeometry):
                 self._ctypes_data = array(self.x, self.y, self.z)
         return self._ctypes_data
 
-    @property
-    def __array_interface__(self):
-        """Provide the Numpy array protocol."""
-        return {
-            'version': 3,
-            'shape': (self._ndim,),
-            'typestr': '>f8',
-            'data': self.ctypes
-            }
-
-    # Python feature protocol
-    @property
-    def type(self):
-        return self.geometryType()
-
-    @property
-    def coordinates(self):
-        return self.array
 
 # Test runner
 def _test():
