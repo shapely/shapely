@@ -105,6 +105,27 @@ class BaseGeometry(object):
         """Returns a WKT string representation of the geometry."""
         return string_at(lgeos.GEOSGeomToWKT(self._geom))
 
+    @property
+    def area(self):
+        a = c_double()
+        retval =  lgeos.GEOSArea(self._geom, byref(a))
+        return a.value
+
+    @property
+    def length(self):
+        len = c_double()
+        retval =  lgeos.GEOSLength(self._geom, byref(len))
+        return len.value
+
+    def distance(self, other):
+        d = c_double()
+        retval =  lgeos.GEOSDistance(self._geom, other._geom, byref(d))
+        return d.value
+
+#extern int GEOS_DLL GEOSLength(const GEOSGeom g1, double *length);
+#extern int GEOS_DLL GEOSDistance(const GEOSGeom g1, const GEOSGeom g2,
+#	double *dist);
+
     # Properties
     geom_type = property(geometryType)
     wkt = property(to_wkt)

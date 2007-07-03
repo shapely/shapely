@@ -4,6 +4,18 @@ Test GEOS operations
   >>> from shapely.geometry import Point
   >>> point = Point(0.0, 0.0)
 
+General geometry
+----------------
+
+  >>> point.area
+  0.0
+
+  >>> point.length
+  0.0
+
+  >>> point.distance(Point(-1.0, -1.0))
+  1.4142135623730951
+
 Topology operations
 -------------------
 
