@@ -4,8 +4,8 @@ from ctypes import string_at, byref, c_int, c_size_t, c_char_p, c_double
     #, c_void_p, byref
 
 from shapely.geos import lgeos
-from shapely.geos import BinaryPredicate, UnaryPredicate
-from shapely.geos import OperationError
+from shapely.predicates import BinaryPredicate, UnaryPredicate
+from shapely.topology import BinaryTopologicalOp, UnaryTopologicalOp
 
 
 def geom_factory(g):
@@ -108,39 +108,22 @@ class BaseGeometry(object):
     wkb = property(to_wkb)
 
     # Topology operations
+   
+    envelope = UnaryTopologicalOp(lgeos.GEOSEnvelope, geom_factory)
+    intersection = BinaryTopologicalOp(lgeos.GEOSIntersection, geom_factory)
     
-    @property
-    def envelope(self):
-        return geom_factory(lgeos.GEOSEnvelope(self._geom))
-
-    def intersection(self, other):
-        return geom_factory(lgeos.GEOSEnvelope(self._geom, other._geom))
-
     def buffer(self, distance, quadsegs=16):
         return geom_factory(
             lgeos.GEOSBuffer(self._geom, c_double(distance), c_int(quadsegs))
             )
 
-    @property
-    def convex_hull(self):
-        return geom_factory(lgeos.GEOSConvexHull(self._geom))
-
-    def difference(self, other):
-        return geom_factory(lgeos.GEOSDifference(self._geom, other._geom))
-
-    def symmetric_difference(self, other):
-        return geom_factory(lgeos.GEOSSymDifference(self._geom, other._geom))
-
-    @property
-    def boundary(self):
-        return geom_factory(lgeos.GEOSBoundary(self._geom))
-
-    def union(self, other):
-        return geom_factory(lgeos.GEOSUnion(self._geom, other._geom))
-
-    @property
-    def centroid(self):
-        return geom_factory(lgeos.GEOSGetCentroid(self._geom))
+    convex_hull = UnaryTopologicalOp(lgeos.GEOSConvexHull, geom_factory)
+    difference = BinaryTopologicalOp(lgeos.GEOSDifference, geom_factory)
+    symmetric_difference = BinaryTopologicalOp(lgeos.GEOSSymDifference, 
+        geom_factory)
+    boundary = UnaryTopologicalOp(lgeos.GEOSBoundary, geom_factory)
+    union = BinaryTopologicalOp(lgeos.GEOSUnion, geom_factory)
+    centroid = UnaryTopologicalOp(lgeos.GEOSGetCentroid, geom_factory)
 
     def relate(self, other):
         func = lgeos.GEOSRelate
