@@ -1,16 +1,19 @@
+"""
+"""
+
 from ctypes import string_at, byref, c_int, c_size_t, c_char_p, c_double
-    #, create_string_buffer \
-    #, c_char_p, c_double, c_float, c_int, c_uint, c_size_t, c_ubyte \
-    #, c_void_p, byref
 
 from shapely.geos import lgeos
 from shapely.predicates import BinaryPredicate, UnaryPredicate
 from shapely.topology import BinaryTopologicalOp, UnaryTopologicalOp
 
 
+# Abstract geometry factory for use with topological methods below
+
 def geom_factory(g):
     ob = BaseGeometry()
     geom_type = string_at(lgeos.GEOSGeomType(g))
+    # TODO: check cost of dynamic import by profiling
     mod = __import__(
         'shapely.geometry', 
         globals(), 
@@ -108,29 +111,34 @@ class BaseGeometry(object):
     wkb = property(to_wkb)
 
     # Topology operations
+    #
+    # These use descriptors to reduce the amount of boilerplate.
    
     envelope = UnaryTopologicalOp(lgeos.GEOSEnvelope, geom_factory)
     intersection = BinaryTopologicalOp(lgeos.GEOSIntersection, geom_factory)
-    
+    convex_hull = UnaryTopologicalOp(lgeos.GEOSConvexHull, geom_factory)
+    difference = BinaryTopologicalOp(lgeos.GEOSDifference, geom_factory)
+    symmetric_difference = BinaryTopologicalOp(lgeos.GEOSSymDifference, 
+                                               geom_factory)
+    boundary = UnaryTopologicalOp(lgeos.GEOSBoundary, geom_factory)
+    union = BinaryTopologicalOp(lgeos.GEOSUnion, geom_factory)
+    centroid = UnaryTopologicalOp(lgeos.GEOSGetCentroid, geom_factory)
+
+    # Buffer has a unique distance argument, so not a descriptor
     def buffer(self, distance, quadsegs=16):
         return geom_factory(
             lgeos.GEOSBuffer(self._geom, c_double(distance), c_int(quadsegs))
             )
 
-    convex_hull = UnaryTopologicalOp(lgeos.GEOSConvexHull, geom_factory)
-    difference = BinaryTopologicalOp(lgeos.GEOSDifference, geom_factory)
-    symmetric_difference = BinaryTopologicalOp(lgeos.GEOSSymDifference, 
-        geom_factory)
-    boundary = UnaryTopologicalOp(lgeos.GEOSBoundary, geom_factory)
-    union = BinaryTopologicalOp(lgeos.GEOSUnion, geom_factory)
-    centroid = UnaryTopologicalOp(lgeos.GEOSGetCentroid, geom_factory)
-
+    # Relate has a unique string return value
     def relate(self, other):
         func = lgeos.GEOSRelate
         func.restype = c_char_p
         return lgeos.GEOSRelate(self._geom, other._geom)
 
     # Binary predicates
+    #
+    # These use descriptors to reduce the amount of boilerplate.
 
     # Relate Pattern (TODO?)
     disjoint = BinaryPredicate(lgeos.GEOSDisjoint)
@@ -143,6 +151,8 @@ class BaseGeometry(object):
     equals = BinaryPredicate(lgeos.GEOSEquals)
 
     # Unary predicates
+    #
+    # These use descriptors to reduce the amount of boilerplate.
 
     is_empty = UnaryPredicate(lgeos.GEOSisEmpty)
     is_valid = UnaryPredicate(lgeos.GEOSisValid)
