@@ -19,6 +19,11 @@ if __name__ == '__main__':
     except:
         pass
 
-    for file in ['Array.txt', 'Operations.txt', 'Persist.txt']:
+    for file in [
+        'Array.txt',
+        'Operations.txt',
+        'Persist.txt',
+        'Predicates.txt'
+        ]:
         doctest.testfile(file, verbose=verbosity)
     

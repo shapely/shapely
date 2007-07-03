@@ -3,7 +3,9 @@ from ctypes import string_at, byref, c_int, c_size_t, c_char_p, c_double
     #, c_char_p, c_double, c_float, c_int, c_uint, c_size_t, c_ubyte \
     #, c_void_p, byref
 
-from shapely.geos import lgeos, OperationError
+from shapely.geos import lgeos
+from shapely.geos import BinaryPredicate, UnaryPredicate
+from shapely.geos import OperationError
 
 
 def geom_factory(g):
@@ -100,13 +102,6 @@ class BaseGeometry(object):
         """Returns a WKT string representation of the geometry."""
         return string_at(lgeos.GEOSGeomToWKT(self._geom))
 
-    def equals(self, other):
-        """Return True if self and other are equivalent, coordinate-wise."""
-        result = lgeos.GEOSEquals(self._geom, other._geom)
-        if result == 2:
-            raise OperationError, "Failed to evaluate equals()"
-        return bool(result)
-
     # Properties
     geom_type = property(geometryType)
     wkt = property(to_wkt)
@@ -118,8 +113,8 @@ class BaseGeometry(object):
     def envelope(self):
         return geom_factory(lgeos.GEOSEnvelope(self._geom))
 
-    def intersection(self, g):
-        return geom_factory(lgeos.GEOSEnvelope(self._geom, g._geom))
+    def intersection(self, other):
+        return geom_factory(lgeos.GEOSEnvelope(self._geom, other._geom))
 
     def buffer(self, distance, quadsegs=16):
         return geom_factory(
@@ -130,25 +125,45 @@ class BaseGeometry(object):
     def convex_hull(self):
         return geom_factory(lgeos.GEOSConvexHull(self._geom))
 
-    def difference(self, g):
-        return geom_factory(lgeos.GEOSDifference(self._geom, g._geom))
+    def difference(self, other):
+        return geom_factory(lgeos.GEOSDifference(self._geom, other._geom))
 
-    def symmetric_difference(self, g):
-        return geom_factory(lgeos.GEOSSymDifference(self._geom, g._geom))
+    def symmetric_difference(self, other):
+        return geom_factory(lgeos.GEOSSymDifference(self._geom, other._geom))
 
     @property
     def boundary(self):
         return geom_factory(lgeos.GEOSBoundary(self._geom))
 
-    def union(self, g):
-        return geom_factory(lgeos.GEOSUnion(self._geom, g._geom))
+    def union(self, other):
+        return geom_factory(lgeos.GEOSUnion(self._geom, other._geom))
 
     @property
     def centroid(self):
         return geom_factory(lgeos.GEOSGetCentroid(self._geom))
 
-    def relate(self, g):
+    def relate(self, other):
         func = lgeos.GEOSRelate
         func.restype = c_char_p
-        return lgeos.GEOSRelate(self._geom, g._geom)
+        return lgeos.GEOSRelate(self._geom, other._geom)
+
+    # Binary predicates
+
+    # Relate Pattern (TODO?)
+    disjoint = BinaryPredicate(lgeos.GEOSDisjoint)
+    touches = BinaryPredicate(lgeos.GEOSTouches)
+    intersects = BinaryPredicate(lgeos.GEOSIntersects)
+    crosses = BinaryPredicate(lgeos.GEOSCrosses)
+    within = BinaryPredicate(lgeos.GEOSWithin)
+    contains = BinaryPredicate(lgeos.GEOSContains)
+    overlaps = BinaryPredicate(lgeos.GEOSOverlaps)
+    equals = BinaryPredicate(lgeos.GEOSEquals)
+
+    # Unary predicates
+
+    is_empty = UnaryPredicate(lgeos.GEOSisEmpty)
+    is_valid = UnaryPredicate(lgeos.GEOSisValid)
+    is_simple = UnaryPredicate(lgeos.GEOSisSimple)
+    is_ring = UnaryPredicate(lgeos.GEOSisRing)
+    has_z = UnaryPredicate(lgeos.GEOSHasZ)
 
