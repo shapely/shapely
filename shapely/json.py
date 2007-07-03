@@ -1,9 +1,23 @@
 #
 
 import geojson
+import sys
 
-from shapely.factory import json_factory
-
+def json_factory(ob):
+    try:
+        coords = ob.get('coordinates', [])
+        geom_type = str(ob.get('type'))
+        mod = __import__(
+            'shapely.geometry', 
+            globals(), 
+            locals(), 
+            [geom_type],
+            )
+        geom_class = getattr(mod, geom_type)
+        return geom_class(*coords)
+    except (KeyError, TypeError):
+        raise 
+    return ob
 
 # Pickle-like convenience functions
 

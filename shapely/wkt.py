@@ -1,7 +1,7 @@
 #
 
 from shapely.geos import lgeos, ReadingError
-from shapely.factory import factory
+from shapely.geometry.base import geom_factory
 
 from ctypes import byref, c_int, c_size_t, c_char_p, string_at
 
@@ -13,7 +13,7 @@ def loads(data):
     if not geom:
         raise ReadingError, \
         "Could not create geometry because of errors while reading input."
-    return factory(geom)
+    return geom_factory(geom)
 
 def load(fp):
     """Load a geometry from an open file."""
