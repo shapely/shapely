@@ -53,20 +53,32 @@ class Point(BaseGeometry):
             pass
         else:
             if len(args) == 1:
-                # From array protocol
-                array = args[0].__array_interface__
-                n = array['shape'][0]
-                assert n == 2 or n == 3
+                try:
+                    # From array protocol
+                    array = args[0].__array_interface__
+                    n = array['shape'][0]
+                    assert n == 2 or n == 3
 
-                cdata = array['data'][0]
-                cp = cast(cdata, POINTER(c_double))
-                dx = c_double(cp[0])
-                dy = c_double(cp[1])
-                dz = None
-                ndim = 2
-                if n == 3:
-                    dz = c_double(cp[2])
-                    ndim = 3
+                    cdata = array['data'][0]
+                    cp = cast(cdata, POINTER(c_double))
+                    dx = c_double(cp[0])
+                    dy = c_double(cp[1])
+                    dz = None
+                    ndim = 2
+                    if n == 3:
+                        dz = c_double(cp[2])
+                        ndim = 3
+                except AttributeError:
+                    # Fall back on list
+                    coords = args[0]
+                    n = len(coords)
+                    dx = c_double(coords[0])
+                    dy = c_double(coords[1])
+                    dz = None
+                    ndim = 2
+                    if n == 3:
+                        dz = c_double(coords[2])
+                        ndim = 3
             else:
                 # x, y, (z) parameters
                 dx = c_double(args[0])
