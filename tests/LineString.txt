@@ -1,0 +1,16 @@
+
+  >>> from shapely.geometry import LineString
+
+Construct from a numpy array
+
+  >>> from numpy import array
+  >>> line = LineString(array([[0.0, 0.0], [1.0, 2.0]]))
+  >>> line.wkt
+  'LINESTRING (0.0000000000000000 0.0000000000000000, 1.0000000000000000 2.0000000000000000)'
+
+From plain old Python list
+
+  >>> line = LineString([[1.0, 2.0], [3.0, 4.0]])
+  >>> line.wkt
+  'LINESTRING (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)'
+
