@@ -4,6 +4,7 @@
 from ctypes import string_at, create_string_buffer, \
     c_char_p, c_double, c_float, c_int, c_uint, c_size_t, c_ubyte, \
     c_void_p, byref
+from ctypes import cast, POINTER
 
 from shapely.geos import lgeos, DimensionError
 from shapely.geometry.base import BaseGeometry
@@ -29,39 +30,54 @@ class Point(BaseGeometry):
     1.0
     >>> p.array
     [[1.0, 0.0]]
+
+
     """
 
-    #_ctypes_data = None
-
-    def __init__(self, x=None, y=None, z=None, crs=None):
+    def __init__(self, *args):
         """Initialize a point.
         
         Parameters
         ----------
-        x, y, z : float
+        
+        There are 2 cases:
+
+        1) 1 parameter: this must satisfy the numpy array protocol.
+        2) 2 or more parameters: x, y, z : float
             Easting, northing, and elevation.
-        crs : string
-            PROJ.4 representation of a coordinate system.
         """
         BaseGeometry.__init__(self)
 
-        # allow creation of null points, to support unpickling
-        if x == y == z == None:
+        if len(args) == 0:
+            # allow creation of null points, to support unpickling
             pass
         else:
-            # check coordinate input
-            dx = c_double(x)
-            dy = c_double(y)
-            try:
-                dz = c_double(z)
-                ndim = 3
-            except TypeError:
+            if len(args) == 1:
+                # From array protocol
+                array = args[0].__array_interface__
+                n = array['shape'][0]
+                assert n == 2 or n == 3
+
+                cdata = array['data'][0]
+                cp = cast(cdata, POINTER(c_double))
+                dx = c_double(cp[0])
+                dy = c_double(cp[1])
                 dz = None
                 ndim = 2
+                if n == 3:
+                    dz = c_double(cp[2])
+                    ndim = 3
+            else:
+                # x, y, (z) parameters
+                dx = c_double(args[0])
+                dy = c_double(args[1])
+                dz = None
+                ndim = 2
+                if len(args) >= 3:
+                    dz = c_double(args[2])
+                    ndim = 3
     
-            self._geom = None
             self._ndim = ndim
-            self._crs = crs
 
             cs = lgeos.GEOSCoordSeq_create(1, ndim)
             # Because of a bug in the GEOS C API, always set X before Y
@@ -161,7 +177,7 @@ class Point(BaseGeometry):
                 self._ctypes_data = array(self.x, self.y, self.z)
             else:
                 array = c_double * 2
-                self._ctypes_data = array(self.x, self.y, self.z)
+                self._ctypes_data = array(self.x, self.y)
         return self._ctypes_data
 
 

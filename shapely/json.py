@@ -1,7 +1,6 @@
 #
 
 import geojson
-import sys
 
 def json_factory(ob):
     try:

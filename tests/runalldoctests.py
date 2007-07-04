@@ -23,6 +23,7 @@ if __name__ == '__main__':
         'Array.txt',
         'Operations.txt',
         'Persist.txt',
+        'Point.txt',
         'Predicates.txt'
         ]:
         doctest.testfile(file, verbose=verbosity)
