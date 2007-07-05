@@ -1,7 +1,7 @@
 """
 """
-
-from ctypes import c_double, cast, POINTER
+import sys
+from ctypes import byref, c_double, c_int, cast, POINTER, pointer
 
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry
@@ -98,6 +98,64 @@ class LineString(BaseGeometry):
             self._geom = lgeos.GEOSGeom_createLineString(cs)
             self._ndim = ndim
 
+    def __len__(self):
+        cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
+        cs_len = c_int(0)
+        lgeos.GEOSCoordSeq_getSize(cs, byref(cs_len))
+        return cs_len.value
+        
+    @property
+    def array(self):
+        """Return a GeoJSON coordinate array."""
+        #cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
+        #cs_len = c_int(0)
+        #lgeos.GEOSCoordSeq_getSize(cs, byref(cs_len))
+        m = len(self)
+        dx = c_double()
+        dy = c_double()
+        dz = c_double()
+        array = []
+        for i in xrange(cs_len.value):
+            lgeos.GEOSCoordSeq_getX(cs, i, byref(dx))
+            lgeos.GEOSCoordSeq_getY(cs, i, byref(dy))
+            coords = [dx.value, dy.value]
+            if self._ndim == 3: # TODO: use hasz
+                lgeos.GEOSCoordSeq_getZ(cs, i, byref(dz))
+                coords.append(dz.value)
+            array.append(coords)
+        return array
+
+    @property
+    def ctypes(self):
+        if not self._ctypes_data:
+            cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
+            cs_len = c_int(0)
+            lgeos.GEOSCoordSeq_getSize(cs, byref(cs_len))
+            temp = c_double()
+            n = self._ndim
+            m = cs_len.value
+            array_type = c_double * (m * n)
+            data = array_type()
+            for i in xrange(m):
+                lgeos.GEOSCoordSeq_getX(cs, i, byref(temp))
+                data[n*i] = temp.value
+                lgeos.GEOSCoordSeq_getY(cs, i, byref(temp))
+                data[n*i+1] = temp.value
+                if n == 3: # TODO: use hasz
+                    lgeos.GEOSCoordSeq_getZ(cs, i, byref(temp))
+                    data[n*i+2] = temp.value
+            self._ctypes_data = data
+        return self._ctypes_data
+
+    @property
+    def __array_interface__(self):
+        """Provide the Numpy array protocol."""
+        return {
+            'version': 3,
+            'shape': (len(self), self._ndim),
+            'typestr': '<f8',
+            'data': self.ctypes,
+            }
 
 # Test runner
 def _test():

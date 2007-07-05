@@ -184,13 +184,24 @@ class Point(BaseGeometry):
     @property
     def ctypes(self):
         if not self._ctypes_data:
-            if self._ndim == 3: # TODO: use hasz
-                array = c_double * 3
-                self._ctypes_data = array(self.x, self.y, self.z)
-            else:
-                array = c_double * 2
-                self._ctypes_data = array(self.x, self.y)
+            array_type = c_double * self._ndim
+            array = array_type()
+            array[0] = self.x
+            array[1] = self.y
+            if self._ndim == 3:
+                array[2] = self.z
+            self._ctypes_data = array
         return self._ctypes_data
+
+    @property
+    def __array_interface__(self):
+        """Provide the Numpy array protocol."""
+        return {
+            'version': 3,
+            'shape': (self._ndim,),
+            'typestr': '<f8',
+            'data': self.ctypes,
+            }
 
 
 # Test runner
