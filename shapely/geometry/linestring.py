@@ -1,6 +1,6 @@
 """
 """
-import sys
+
 from ctypes import byref, c_double, c_int, cast, POINTER, pointer
 
 from shapely.geos import lgeos
@@ -103,13 +103,30 @@ class LineString(BaseGeometry):
         cs_len = c_int(0)
         lgeos.GEOSCoordSeq_getSize(cs, byref(cs_len))
         return cs_len.value
-        
+       
+    def __getitem__(self, i):
+        cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
+        cs_len = c_int(0)
+        lgeos.GEOSCoordSeq_getSize(cs, byref(cs_len))
+        if i < 0 or i >= cs_len.value:
+            raise IndexError, "index out of range"
+        dx = c_double()
+        dy = c_double()
+        dz = c_double()
+        lgeos.GEOSCoordSeq_getX(cs, i, byref(dx))
+        lgeos.GEOSCoordSeq_getY(cs, i, byref(dy))
+        if self._ndim == 3: # TODO: use hasz
+            lgeos.GEOSCoordSeq_getZ(cs, i, byref(dz))
+            return (dx.value, dy.value, dz.value)
+        else:
+            return (dx.value, dy.value)
+
     @property
-    def array(self):
+    def tuple(self):
         """Return a GeoJSON coordinate array."""
-        #cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
-        #cs_len = c_int(0)
-        #lgeos.GEOSCoordSeq_getSize(cs, byref(cs_len))
+        cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
+        cs_len = c_int(0)
+        lgeos.GEOSCoordSeq_getSize(cs, byref(cs_len))
         m = len(self)
         dx = c_double()
         dy = c_double()
@@ -118,12 +135,12 @@ class LineString(BaseGeometry):
         for i in xrange(cs_len.value):
             lgeos.GEOSCoordSeq_getX(cs, i, byref(dx))
             lgeos.GEOSCoordSeq_getY(cs, i, byref(dy))
-            coords = [dx.value, dy.value]
             if self._ndim == 3: # TODO: use hasz
                 lgeos.GEOSCoordSeq_getZ(cs, i, byref(dz))
-                coords.append(dz.value)
-            array.append(coords)
-        return array
+                array.append((dx.value, dy.value, dz.value))
+            else:
+                array.append((dx.value, dy.value))
+        return tuple(array)
 
     @property
     def ctypes(self):

@@ -1,3 +1,8 @@
+LineStrings
+===========
+
+Initialization
+--------------
 
   >>> from shapely.geometry import LineString
 
@@ -10,11 +15,23 @@ Construct from a numpy array
   >>> line.wkt
   'LINESTRING (0.0000000000000000 0.0000000000000000, 1.0000000000000000 2.0000000000000000)'
 
-From plain old Python list
+From coordinate tuples
 
-  >>> line = LineString([[1.0, 2.0], [3.0, 4.0]])
+  >>> line = LineString(((1.0, 2.0), (3.0, 4.0)))
   >>> len(line)
   2
   >>> line.wkt
   'LINESTRING (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)'
+
+
+Coordinate Access
+-----------------
+
+  >>> line.tuple
+  ((1.0, 2.0), (3.0, 4.0))
+
+  >>> line[0]
+  (1.0, 2.0)
+  >>> line[1]
+  (3.0, 4.0)
 
