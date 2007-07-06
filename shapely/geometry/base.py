@@ -57,7 +57,7 @@ class BaseGeometry(object):
     # Array and ctypes interfaces
 
     @property
-    def array(self):
+    def tuple(self):
         """Return a GeoJSON coordinate array.
         
         To be overridden by extension classes."""
@@ -73,12 +73,7 @@ class BaseGeometry(object):
     @property
     def __array_interface__(self):
         """Provide the Numpy array protocol."""
-        return {
-            'version': 3,
-            'shape': (self._ndim,),
-            'typestr': '>f8',
-            'data': self.ctypes
-            }
+        raise NotImplemented
 
     # Python feature protocol
 
@@ -88,8 +83,7 @@ class BaseGeometry(object):
 
     @property
     def coordinates(self):
-        return self.array
-
+        return self.tuple
 
     def geometryType(self):
         """Returns a string representing the geometry type, e.g. 'Polygon'."""

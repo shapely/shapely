@@ -174,12 +174,12 @@ class Point(BaseGeometry):
     z = property(getZ, setZ)
 
     @property
-    def array(self):
+    def tuple(self):
         """Return a GeoJSON coordinate array."""
-        array = [self.x, self.y]
         if self._ndim == 3: # TODO: use hasz
-            array.append(self.z)
-        return array
+            return (self.x, self.y, self.z)
+        else:
+            return (self.x, self.y)
 
     @property
     def ctypes(self):

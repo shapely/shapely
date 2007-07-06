@@ -4,15 +4,15 @@ Test implementation of array interface
   >>> from shapely.geometry import Point
 
   >>> p = Point(0.0, 0.0, 1.0)
-  >>> p.array
-  [0.0, 0.0, 1.0]
+  >>> p.tuple
+  (0.0, 0.0, 1.0)
   >>> p.ctypes #doctest: +ELLIPSIS
   <shapely.geometry.point.c_double_Array_3 object at ...>
 
   Convert to Numpy array, passing through Python list
 
-  >>> from numpy import array
-  >>> a = array(p.array)
+  >>> from numpy import asarray
+  >>> a = asarray(p.tuple)
   >>> a.ndim
   1
   >>> a.size
@@ -22,7 +22,7 @@ Test implementation of array interface
 
   Convert to Numpy array, passing through a ctypes array
 
-  >>> b = array(p)
+  >>> b = asarray(p)
   >>> b.size
   3
   >>> b.shape
@@ -36,7 +36,7 @@ Test implementation of array interface
 
   Make a point from a Numpy array
 
-  >>> a = array([1.0, 1.0, 0.0])
+  >>> a = asarray([1.0, 1.0, 0.0])
   >>> p = Point(*list(a))
   >>> p.wkt
   'POINT (1.0000000000000000 1.0000000000000000)'
@@ -44,7 +44,7 @@ Test implementation of array interface
 LineString
 ----------
 
-  >>> a = array([[0.0, 0.0], [2.0, 2.0], [1.0, 1.0]])
+  >>> a = asarray([[0.0, 0.0], [2.0, 2.0], [1.0, 1.0]])
   >>> from shapely.geometry import LineString
   >>> line = LineString(a)
   >>> line.wkt
@@ -56,7 +56,7 @@ LineString
   >>> data[5]
   1.0
 
-  >>> b = array(line)
+  >>> b = asarray(line)
   >>> b.shape
   (3, 2)
   >>> b

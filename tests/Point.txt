@@ -18,8 +18,6 @@ Check 3D
   'POINT (0.0000000000000000 0.0000000000000000 0.0000000000000000)'
   >>> p.wkt
   'POINT (0.0000000000000000 0.0000000000000000 0.0000000000000000)'
-  >>> p.array
-  [0.0, 0.0, 1.0]
 
 Construct from a numpy array
 
@@ -28,10 +26,20 @@ Construct from a numpy array
   >>> p.wkt
   'POINT (1.0000000000000000 2.0000000000000000)'
 
-From plain old Python list
+From coordinate sequence
 
-  >>> p = Point([3.0, 4.0])
+  >>> p = Point((3.0, 4.0))
   >>> p.wkt
   'POINT (3.0000000000000000 4.0000000000000000)'
 
+
+Coordinate access
+-----------------
+
+  >>> p.x
+  3.0
+  >>> p.y
+  4.0
+  >>> p.tuple
+  (3.0, 4.0)
 
