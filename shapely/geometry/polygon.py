@@ -1,15 +1,16 @@
 """
 """
 
-from ctypes import byref, c_double, c_int, cast, POINTER, pointer
+from ctypes import byref, c_double, c_int, c_void_p, cast, POINTER, pointer
 
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry
+from shapely.geometry.linestring import LineString
 
-class Polygon(BaseGeometry):
 
-    """A line string, also known as a polyline.
-    
+class LinearRing(LineString):
+
+    """A linear ring.
     """
 
     _ndim = 2
@@ -19,7 +20,6 @@ class Polygon(BaseGeometry):
 
         Parameters
         ----------
-        
         coordinates : sequence or array
             This may be an object that satisfies the numpy array protocol,
             providing an M x 2 or M x 3 (with z) array, or it may be a sequence
@@ -27,11 +27,7 @@ class Polygon(BaseGeometry):
 
         Example
         -------
-
-        >>> line = LineString([[0.0, 0.0], [1.0, 2.0]])
-        >>> line = LineString(array([[0.0, 0.0], [1.0, 2.0]]))
-        
-        Each result in a line string from (0.0, 0.0) to (1.0, 2.0).
+        >>> ring = LinearRing( ((0.,0.),(0.,1.),(1.,1.),(1.,0.),(0.,0.)) )
         """
         BaseGeometry.__init__(self)
 
@@ -97,59 +93,76 @@ class Polygon(BaseGeometry):
                 ndim = n
 
             # Set geometry from coordinate string
-            self._geom = lgeos.GEOSGeom_createLineString(cs)
+            self._geom = lgeos.GEOSGeom_createLinearRing(cs)
             self._ndim = ndim
 
-    def __len__(self):
-        ring = lgeos.GEOSGetExteriorRing(self._geom)
-        cs = lgeos.GEOSGeom_getCoordSeq(ring)
-        cs_len = c_int(0)
-        lgeos.GEOSCoordSeq_getSize(cs, byref(cs_len))
-        return cs_len.value
-        
+
+class Polygon(BaseGeometry):
+
+    """A line string, also known as a polyline.
+    
+    """
+
+    _exterior = None
+    _interior = []
+    _ndim = 2
+
+    def __init__(self, exterior=None, interior=None):
+        """Initialize.
+
+        Parameters
+        ----------
+        exterior : sequence or array
+            This may be an object that satisfies the numpy array protocol,
+            providing an M x 2 or M x 3 (with z) array, or it may be a sequence
+            of x, y (,z) coordinate sequences.
+
+        Example
+        -------
+        >>> coords = ((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.))
+        >>> polygon = Polygon(coords)
+        """
+        BaseGeometry.__init__(self)
+
+        if exterior is not None:
+            self._exterior = LinearRing(exterior)
+            self._geom = lgeos.GEOSGeom_createPolygon(
+                            c_void_p(self._exterior._geom),
+                            POINTER(c_void_p)(),
+                            0
+                            )
+            # Polygon geometry takes ownership of the ring
+            self._exterior._owned = True
+        if interior is not None:
+            # TODO: interior rings. could be a pain in the neck thanks
+            # GEOSGeom_createPolygon()
+            raise NotImplementedError \
+                , "interior rings are not possible in this version"
+
     @property
-    def array(self):
+    def exterior(self):
+        if self._exterior is None:
+            # A polygon created from the abstract factory will have a null
+            # _exterior attribute.
+            ring = lgeos.GEOSGetExteriorRing(self._geom)
+            self._exterior = LinearRing()
+            self._exterior._geom = ring
+            self._exterior._owned = True
+        return self._exterior
+
+    @property
+    def interior(self):
+        return self._interior
+
+    @property
+    def tuple(self):
         """Return a GeoJSON coordinate array."""
-        ring = lgeos.GEOSGetExteriorRing(self._geom)
-        cs = lgeos.GEOSGeom_getCoordSeq(ring)
-        cs_len = c_int(0)
-        lgeos.GEOSCoordSeq_getSize(cs, byref(cs_len))
-        m = cs_len.value
-        dx = c_double()
-        dy = c_double()
-        dz = c_double()
-        array = []
-        for i in xrange(cs_len.value):
-            lgeos.GEOSCoordSeq_getX(cs, i, byref(dx))
-            lgeos.GEOSCoordSeq_getY(cs, i, byref(dy))
-            coords = [dx.value, dy.value]
-            if self._ndim == 3: # TODO: use hasz
-                lgeos.GEOSCoordSeq_getZ(cs, i, byref(dz))
-                coords.append(dz.value)
-            array.append(coords)
-        return array
+        return (self.exterior.tuple,)
 
     @property
     def ctypes(self):
         if not self._ctypes_data:
-            ring = lgeos.GEOSGetExteriorRing(self._geom)
-            cs = lgeos.GEOSGeom_getCoordSeq(ring)
-            cs_len = c_int(0)
-            lgeos.GEOSCoordSeq_getSize(cs, byref(cs_len))
-            temp = c_double()
-            n = self._ndim
-            m = cs_len.value
-            array_type = c_double * (m * n)
-            data = array_type()
-            for i in xrange(m):
-                lgeos.GEOSCoordSeq_getX(cs, i, byref(temp))
-                data[n*i] = temp.value
-                lgeos.GEOSCoordSeq_getY(cs, i, byref(temp))
-                data[n*i+1] = temp.value
-                if n == 3: # TODO: use hasz
-                    lgeos.GEOSCoordSeq_getZ(cs, i, byref(temp))
-                    data[n*i+2] = temp.value
-            self._ctypes_data = data
+            self._ctypes_data = self.exterior.ctypes
         return self._ctypes_data
 
     @property
@@ -157,7 +170,7 @@ class Polygon(BaseGeometry):
         """Provide the Numpy array protocol."""
         return {
             'version': 3,
-            'shape': (len(self), self._ndim),
+            'shape': (len(self.exterior), self._ndim),
             'typestr': '<f8',
             'data': self.ctypes,
             }

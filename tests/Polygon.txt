@@ -1,0 +1,55 @@
+Polygons and Linear Rings
+=========================
+
+Initialization
+--------------
+
+  Linear rings won't usually be created by users, but by polygons
+
+  >>> coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0))
+  >>> from shapely.geometry.polygon import LinearRing
+  >>> ring = LinearRing(coords)
+  >>> len(ring)
+  5
+  >>> ring[0] == ring[4]
+  True
+  >>> ring.is_ring
+  True
+
+  Construct a polygon, exterior ring only
+
+  >>> from shapely.geometry import Polygon
+  >>> polygon = Polygon(coords)
+  >>> polygon.tuple
+  (((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)),)
+  
+Ring Access
+-----------
+
+  >>> polygon.exterior # doctest: +ELLIPSIS
+  <shapely.geometry.polygon.LinearRing object at ...>
+  >>> ring = polygon.exterior
+  >>> len(ring)
+  5
+  >>> ring[0] == ring[4] == (0., 0.)
+  True
+  >>> ring.is_ring
+  True
+  >>> polygon.interior
+  []
+
+  Create a new polygon from WKB
+
+  >>> data = polygon.wkb
+  >>> polygon = None
+  >>> ring = None
+  >>> from shapely.wkb import loads
+  >>> polygon = loads(data)
+  >>> ring = polygon.exterior
+  >>> len(ring)
+  5
+  >>> ring[0] == ring[4] == (0., 0.)
+  True
+  >>> ring.is_ring
+  True
+

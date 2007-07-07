@@ -34,12 +34,13 @@ class BaseGeometry(object):
     _ctypes_data = None
     _ndim = None
     _crs = None
+    _owned = False
 
     def __init__(self):
         self._geom = lgeos.GEOSGeomFromWKT(c_char_p('GEOMETRYCOLLECTION EMPTY'))
 
     def __del__(self):
-        if self._geom is not None:
+        if self._geom is not None and not self._owned:
             lgeos.GEOSGeom_destroy(self._geom)
 
     def __str__(self):
