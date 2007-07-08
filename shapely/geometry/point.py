@@ -1,4 +1,5 @@
 """
+Points.
 """
 
 from ctypes import string_at, create_string_buffer, \
@@ -8,6 +9,7 @@ from ctypes import cast, POINTER
 
 from shapely.geos import lgeos, DimensionError
 from shapely.geometry.base import BaseGeometry
+
 
 class Point(BaseGeometry):
 
@@ -30,8 +32,6 @@ class Point(BaseGeometry):
     1.0
     >>> p.array
     [[1.0, 0.0]]
-
-
     """
 
     def __init__(self, *args):
@@ -208,7 +208,6 @@ class Point(BaseGeometry):
 def _test():
     import doctest
     doctest.testmod()
-
 
 if __name__ == "__main__":
     _test()

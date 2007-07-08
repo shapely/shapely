@@ -1,8 +1,16 @@
-#
+"""
+Load/dump geometries using JSON.
+
+Includes a JSON-based abstract geometry factory.
+"""
 
 import geojson
 
 def json_factory(ob):
+    """Attempts to create a geometry from JSON.
+    
+    Else, returns the original data.
+    """
     try:
         coords = ob.get('coordinates', [])
         geom_type = str(ob.get('type'))

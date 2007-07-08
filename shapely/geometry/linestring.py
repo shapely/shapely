@@ -1,10 +1,12 @@
 """
+Line strings.
 """
 
 from ctypes import byref, c_double, c_int, cast, POINTER, pointer
 
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry
+
 
 class LineString(BaseGeometry):
 

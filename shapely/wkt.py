@@ -1,9 +1,12 @@
-#
+"""
+Load/dump geometries using the well-known text (WKT) format.
+"""
+
+from ctypes import byref, c_int, c_size_t, c_char_p, string_at
 
 from shapely.geos import lgeos, ReadingError
 from shapely.geometry.base import geom_factory
 
-from ctypes import byref, c_int, c_size_t, c_char_p, string_at
 
 # Pickle-like convenience functions
 

@@ -1,4 +1,5 @@
 """
+Base geometry class and utilities.
 """
 
 from ctypes import string_at, byref, c_int, c_size_t, c_char_p, c_double
@@ -27,7 +28,7 @@ def geom_factory(g):
 
 class BaseGeometry(object):
     
-    """Defines methods common to all geometries.
+    """Provides GEOS spatial predicates and topological operations.
     """
 
     _geom = None
@@ -45,6 +46,8 @@ class BaseGeometry(object):
 
     def __str__(self):
         return self.to_wkt()
+
+    # To support pickling
 
     def __reduce__(self):
         return (self.__class__, (), self.to_wkb())
@@ -86,6 +89,8 @@ class BaseGeometry(object):
     def coordinates(self):
         return self.tuple
 
+    # Type of geometry and its representations
+
     def geometryType(self):
         """Returns a string representing the geometry type, e.g. 'Polygon'."""
         return string_at(lgeos.GEOSGeomType(self._geom))
@@ -99,6 +104,12 @@ class BaseGeometry(object):
     def to_wkt(self):
         """Returns a WKT string representation of the geometry."""
         return string_at(lgeos.GEOSGeomToWKT(self._geom))
+
+    geom_type = property(geometryType)
+    wkt = property(to_wkt)
+    wkb = property(to_wkb)
+
+    # Basic geometry properties
 
     @property
     def area(self):
@@ -116,15 +127,6 @@ class BaseGeometry(object):
         d = c_double()
         retval =  lgeos.GEOSDistance(self._geom, other._geom, byref(d))
         return d.value
-
-#extern int GEOS_DLL GEOSLength(const GEOSGeom g1, double *length);
-#extern int GEOS_DLL GEOSDistance(const GEOSGeom g1, const GEOSGeom g2,
-#	double *dist);
-
-    # Properties
-    geom_type = property(geometryType)
-    wkt = property(to_wkt)
-    wkb = property(to_wkb)
 
     # Topology operations
     #
@@ -156,7 +158,7 @@ class BaseGeometry(object):
     #
     # These use descriptors to reduce the amount of boilerplate.
 
-    # Relate Pattern (TODO?)
+    # TODO: Relate Pattern?
     disjoint = BinaryPredicate(lgeos.GEOSDisjoint)
     touches = BinaryPredicate(lgeos.GEOSTouches)
     intersects = BinaryPredicate(lgeos.GEOSIntersects)
@@ -175,4 +177,5 @@ class BaseGeometry(object):
     is_simple = UnaryPredicate(lgeos.GEOSisSimple)
     is_ring = UnaryPredicate(lgeos.GEOSisRing)
     has_z = UnaryPredicate(lgeos.GEOSHasZ)
+
 

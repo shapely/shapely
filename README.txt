@@ -4,6 +4,8 @@ Shapely
 Dependencies
 ------------
 
+libgeos_c (2.2.3)
+ctypes
 GeoJSON
 
 

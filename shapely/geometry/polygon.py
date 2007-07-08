@@ -1,4 +1,5 @@
 """
+Polygons and their linear ring components.
 """
 
 from ctypes import byref, c_double, c_int, c_void_p, cast, POINTER, pointer
@@ -100,7 +101,6 @@ class LinearRing(LineString):
 class Polygon(BaseGeometry):
 
     """A line string, also known as a polyline.
-    
     """
 
     _exterior = None
@@ -175,11 +175,11 @@ class Polygon(BaseGeometry):
             'data': self.ctypes,
             }
 
+
 # Test runner
 def _test():
     import doctest
     doctest.testmod()
-
 
 if __name__ == "__main__":
     _test()
