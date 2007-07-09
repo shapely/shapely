@@ -11,7 +11,7 @@ setup(name          = 'Shapely',
       maintainer    = 'Sean Gillies',
       maintainer_email  = 'sgillies@frii.com',
       url   = 'http://trac.gispython.org/projects/PCL/wiki/ShapeLy',
-      packages      = ['shapely'],
+      packages      = ['shapely', 'shapely.geometry'],
       classifiers   = [
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
