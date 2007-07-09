@@ -10,16 +10,19 @@ class BinaryPredicate(object):
     
     """A callable non-data descriptor.
     """
-    
+   
+    fn = None
+    context = None
+
     def __init__(self, fn):
         self.fn = fn
 
     def __get__(self, obj, objtype=None):
-        self.source = obj
+        self.context = obj
         return self
 
-    def __call__(self, target):
-        retval = self.fn(self.source._geom, target._geom)
+    def __call__(self, other):
+        retval = self.fn(self.context._geom, other._geom)
         if retval == 2:
             raise PredicateError, "Failed to evaluate %s" % repr(self.fn)
         return bool(retval)
@@ -30,6 +33,8 @@ class UnaryPredicate(object):
 
     """A data descriptor.
     """
+
+    fn = None
 
     def __init__(self, fn):
         self.fn = fn
@@ -42,6 +47,4 @@ class UnaryPredicate(object):
     
     def __set__(self, obj, value=None):
         raise AttributeError, "Attribute is read-only"
-
-
 

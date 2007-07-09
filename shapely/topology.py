@@ -13,16 +13,20 @@ class BinaryTopologicalOp(object):
     the appropriate shapely geometry class.
     """
 
+    fn = None
+    context = None
+    factory = None
+
     def __init__(self, fn, factory):
         self.fn = fn
         self.factory = factory
 
     def __get__(self, obj, objtype=None):
-        self.source = obj
+        self.context = obj
         return self
 
-    def __call__(self, target):
-        return self.factory(self.fn(self.source._geom, target._geom))
+    def __call__(self, other):
+        return self.factory(self.fn(self.context._geom, other._geom))
 
 
 class UnaryTopologicalOp(object):
@@ -32,6 +36,9 @@ class UnaryTopologicalOp(object):
     Wraps a GEOS function. The factory is a callable which wraps results in
     the appropriate shapely geometry class.
     """
+    
+    fn = None
+    factory = None
 
     def __init__(self, fn, factory):
         self.fn = fn

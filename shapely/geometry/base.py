@@ -178,4 +178,3 @@ class BaseGeometry(object):
     is_ring = UnaryPredicate(lgeos.GEOSisRing)
     has_z = UnaryPredicate(lgeos.GEOSHasZ)
 
-
