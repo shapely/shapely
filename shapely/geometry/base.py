@@ -47,6 +47,12 @@ class BaseGeometry(object):
     def __str__(self):
         return self.to_wkt()
 
+    def __eq__(self, other):
+        return self.equals(other)
+    
+    def __ne__(self, other):
+        return not self.equals(other)
+
     # To support pickling
 
     def __reduce__(self):
