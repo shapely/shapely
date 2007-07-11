@@ -1,4 +1,5 @@
 Sean Gillies (PCL)
 Howard Butler (PCL)
 Kai Lautaportti (PCL)
+Frédéric Junod (Camptocamp SA)
 Justin Bronn (GeoDjango) for ctypes inspiration
