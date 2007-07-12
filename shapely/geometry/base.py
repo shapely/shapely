@@ -71,19 +71,19 @@ class BaseGeometry(object):
         """Return a GeoJSON coordinate array.
         
         To be overridden by extension classes."""
-        raise NotImplemented
+        raise NotImplementedError
 
     @property
     def ctypes(self):
         """Return a ctypes representation.
         
         To be overridden by extension classes."""
-        raise NotImplemented
+        raise NotImplementedError
 
     @property
     def __array_interface__(self):
         """Provide the Numpy array protocol."""
-        raise NotImplemented
+        raise NotImplementedError
 
     # Python feature protocol
 
