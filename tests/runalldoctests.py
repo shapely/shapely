@@ -21,6 +21,7 @@ if __name__ == '__main__':
 
     for file in [
         'Array.txt',
+        'IterOps.txt',
         'LineString.txt',
         'Operations.txt',
         'Persist.txt',
