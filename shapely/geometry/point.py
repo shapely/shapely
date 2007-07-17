@@ -57,7 +57,7 @@ class Point(BaseGeometry):
             else:
                 self._geom, self._ndim = self._geos_from_py(tuple(args))
 
-    def _geos_from_py(ob):
+    def _geos_from_py(self, ob):
         """Create a GEOS geom from an object that is a coordinate sequence
         or that provides the array interface.
     
