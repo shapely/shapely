@@ -84,9 +84,16 @@ Adapter
   >>> pa = asPoint(coords)
   >>> pa.wkt
   'POINT (3.0000000000000000 4.0000000000000000)'
+  >>> pa.distance(p)
+  0.0
+  
+  Move the coordinates and watch the distance change
+
   >>> coords[0] = 1.0
   >>> pa.wkt
   'POINT (1.0000000000000000 4.0000000000000000)'
+  >>> pa.distance(p)
+  2.0
 
   >>> pa.__array_interface__ # doctest: +ELLIPSIS
   {'shape': (2,), 'version': 3, 'data': <shapely.geometry.point.c_double_Array_2 object at ...>, 'typestr': '<f8'}
