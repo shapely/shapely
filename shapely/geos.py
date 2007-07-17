@@ -4,12 +4,14 @@ Exports the libgeos_c shared lib, GEOS-specific exceptions, and utilities.
 
 import atexit
 from ctypes import CDLL, CFUNCTYPE, c_char_p
-import os, sys
+import sys
 
 # The GEOS shared lib
 
-if os.name == 'nt':
+if sys.platform == 'win32':
     dll = 'libgeos_c-1.dll'
+elif sys.platform == 'darwin':
+    dll = 'libgeos_c.dylib'
 else:
     dll = 'libgeos_c.so'
 lgeos = CDLL(dll)
