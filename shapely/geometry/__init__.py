@@ -1,4 +1,4 @@
-from point import Point
+from point import Point, asPoint
 from linestring import LineString
 from polygon import Polygon
 from multipoint import MultiPoint

@@ -2,6 +2,7 @@
   >>> from shapely.geometry import Point
 
 Test 2D points
+--------------
 
   >>> p = Point(0.0, 0.0)
   >>> str(p)
@@ -10,6 +11,7 @@ Test 2D points
   'POINT (0.0000000000000000 0.0000000000000000)'
     
 Check 3D
+--------
 
   >>> p = Point(0.0, 0.0, 1.0)
   >>> p.z
@@ -20,6 +22,7 @@ Check 3D
   'POINT (0.0000000000000000 0.0000000000000000 0.0000000000000000)'
 
 Construct from a numpy array
+----------------------------
 
   >>> from numpy import array
   >>> p = Point(array([1.0, 2.0]))
@@ -27,6 +30,7 @@ Construct from a numpy array
   'POINT (1.0000000000000000 2.0000000000000000)'
 
 From coordinate sequence
+------------------------
 
   >>> p = Point((3.0, 4.0))
   >>> p.wkt
@@ -40,6 +44,56 @@ Coordinate access
   3.0
   >>> p.y
   4.0
-  >>> p.tuple
+  >>> tuple(p.coords)
+  ((3.0, 4.0),)
+  >>> p.coords[0]
   (3.0, 4.0)
+
+Geo interface
+-------------
+
+  >>> p.__geo_interface__
+  {'type': 'Point', 'coordinates': (3.0, 4.0)}
+
+Adapter
+-------
+
+  >>> from shapely.geometry import asPoint
+
+  Adapt a Numpy array to a point
+
+  >>> a = array([1.0, 2.0])
+  >>> pa = asPoint(a)
+  >>> pa.context
+  array([ 1.,  2.])
+  >>> pa.wkt
+  'POINT (1.0000000000000000 2.0000000000000000)'
+
+  Now, the inverse
+
+  >>> pa.__array_interface__ == pa.context.__array_interface__
+  True
+  >>> from numpy import asarray
+  >>> as = asarray(pa)
+  >>> as
+  array([ 1.,  2.])
+
+  Adapt a coordinate list to a point
+
+  >>> coords = [3.0, 4.0]
+  >>> pa = asPoint(coords)
+  >>> pa.wkt
+  'POINT (3.0000000000000000 4.0000000000000000)'
+  >>> coords[0] = 1.0
+  >>> pa.wkt
+  'POINT (1.0000000000000000 4.0000000000000000)'
+
+  >>> pa.__array_interface__ # doctest: +ELLIPSIS
+  {'shape': (2,), 'version': 3, 'data': <shapely.geometry.point.c_double_Array_2 object at ...>, 'typestr': '<f8'}
+
+  Now, the inverse
+  
+  >>> as = asarray(pa)
+  >>> as
+  array([ 1.,  4.])
 
