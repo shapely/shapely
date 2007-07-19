@@ -26,6 +26,57 @@ def geom_factory(g):
     return ob
 
 
+class CoordinateSequence(object):
+
+    _cseq = None
+    _ndim = None
+    index = 0
+
+    def __init__(self, geom):
+        self._cseq = lgeos.GEOSGeom_getCoordSeq(geom._geom)
+        self._ndim = geom._ndim
+
+    def __iter__(self):
+        self.index = 0
+        return self
+
+    def next(self):
+        cs_len = c_int(0)
+        lgeos.GEOSCoordSeq_getSize(self._cseq, byref(cs_len))
+        dx = c_double()
+        dy = c_double()
+        dz = c_double()
+        i = self.index
+        if i < cs_len.value:
+            lgeos.GEOSCoordSeq_getX(self._cseq, i, byref(dx))
+            lgeos.GEOSCoordSeq_getY(self._cseq, i, byref(dy))
+            if self._ndim == 3: # TODO: use hasz
+                lgeos.GEOSCoordSeq_getZ(self._cseq, i, byref(dz))
+                self.index += 1
+                return (dx.value, dy.value, dz.value)
+            else:
+                self.index += 1
+                return (dx.value, dy.value)
+        else:
+            raise StopIteration 
+
+    def __getitem__(self, i):
+        cs_len = c_int(0)
+        lgeos.GEOSCoordSeq_getSize(self._cseq, byref(cs_len))
+        if i < 0 or i >= cs_len.value:
+            raise IndexError, "index out of range"
+        dx = c_double()
+        dy = c_double()
+        dz = c_double()
+        lgeos.GEOSCoordSeq_getX(self._cseq, i, byref(dx))
+        lgeos.GEOSCoordSeq_getY(self._cseq, i, byref(dy))
+        if self._ndim == 3: # TODO: use hasz
+            lgeos.GEOSCoordSeq_getZ(self._cseq, i, byref(dz))
+            return (dx.value, dy.value, dz.value)
+        else:
+            return (dx.value, dy.value)
+
+
 class BaseGeometry(object):
     
     """Provides GEOS spatial predicates and topological operations.
@@ -85,7 +136,15 @@ class BaseGeometry(object):
         """Provide the Numpy array protocol."""
         raise NotImplementedError
 
+    @property
+    def coords(self):
+        return CoordinateSequence(self)
+
     # Python feature protocol
+
+    @property
+    def __geo_interface__(self):
+        raise NotImplementedError
 
     @property
     def type(self):
