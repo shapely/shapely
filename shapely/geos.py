@@ -9,12 +9,11 @@ import sys
 # The GEOS shared lib
 
 if sys.platform == 'win32':
-    dll = 'libgeos_c-1.dll'
+    lgeos = CDLL('libgeos_c.dll')
 elif sys.platform == 'darwin':
-    dll = 'libgeos_c.dylib'
+    lgeos = CDLL(find_library('geos_c'))
 else:
-    dll = 'libgeos_c.so'
-lgeos = CDLL(dll)
+    lgeos = CDLL('libgeos_c.so')
 
 
 # Exceptions
