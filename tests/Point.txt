@@ -36,7 +36,6 @@ From coordinate sequence
   >>> p.wkt
   'POINT (3.0000000000000000 4.0000000000000000)'
 
-
 Coordinate access
 -----------------
 
@@ -44,10 +43,16 @@ Coordinate access
   3.0
   >>> p.y
   4.0
+
   >>> tuple(p.coords)
   ((3.0, 4.0),)
+
   >>> p.coords[0]
   (3.0, 4.0)
+  >>> p.coords[1] # doctest: +ELLIPSIS
+  Traceback (most recent call last):
+  ...
+  IndexError: index out of range
 
 Geo interface
 -------------

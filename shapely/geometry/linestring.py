@@ -39,66 +39,64 @@ class LineString(BaseGeometry):
             # allow creation of null lines, to support unpickling
             pass
         else:
-            try:
-                # From array protocol
-                array = coordinates.__array_interface__
-                
-                # Check for proper shape
-                m = array['shape'][0]
-                n = array['shape'][1]
-                assert m >= 2
-                assert n == 2 or n == 3
+            self._geom, self._ndim = self._geos_from_py(coordinates)
 
-                # Make pointer to the coordinate array
-                cp = cast(array['data'][0], POINTER(c_double))
+    def _geos_from_py(self, ob):
+        try:
+            # From array protocol
+            array = ob.__array_interface__
+            m = array['shape'][0]
+            n = array['shape'][1]
+            assert m >= 2
+            assert n == 2 or n == 3
 
-                # Create a coordinate sequence
-                cs = lgeos.GEOSCoordSeq_create(m, n)
+            # Make pointer to the coordinate array
+            cp = cast(array['data'][0], POINTER(c_double))
 
-                # add to coordinate sequence
-                for i in xrange(m):
-                    dx = c_double(cp[n*i])
-                    dy = c_double(cp[n*i+1])
-                    dz = None
-                    if n == 3:
-                        dz = c_double(cp[n*i+2])
-                
-                    # Because of a bug in the GEOS C API, 
-                    # always set X before Y
-                    lgeos.GEOSCoordSeq_setX(cs, i, dx)
-                    lgeos.GEOSCoordSeq_setY(cs, i, dy)
-                    if n == 3:
-                        lgeos.GEOSCoordSeq_setZ(cs, i, dz)
-                ndim = n
-            except AttributeError:
-                # Fall back on list
-                m = len(coordinates)
-                n = len(coordinates[0])
-                assert n == 2 or n == 3
+            # Create a coordinate sequence
+            cs = lgeos.GEOSCoordSeq_create(m, n)
 
-                # Create a coordinate sequence
-                cs = lgeos.GEOSCoordSeq_create(m, n)
-                
-                # add to coordinate sequence
-                for i in xrange(m):
-                    coords = coordinates[i]
-                    dx = c_double(coords[0])
-                    dy = c_double(coords[1])
-                    dz = None
-                    if n == 3:
-                        dz = c_double(coords[2])
-                
-                    # Because of a bug in the GEOS C API, 
-                    # always set X before Y
-                    lgeos.GEOSCoordSeq_setX(cs, i, dx)
-                    lgeos.GEOSCoordSeq_setY(cs, i, dy)
-                    if n == 3:
-                        lgeos.GEOSCoordSeq_setZ(cs, i, dz)
-                ndim = n
+            # add to coordinate sequence
+            for i in xrange(m):
+                dx = c_double(cp[n*i])
+                dy = c_double(cp[n*i+1])
+                dz = None
+                if n == 3:
+                    dz = c_double(cp[n*i+2])
+            
+                # Because of a bug in the GEOS C API, 
+                # always set X before Y
+                lgeos.GEOSCoordSeq_setX(cs, i, dx)
+                lgeos.GEOSCoordSeq_setY(cs, i, dy)
+                if n == 3:
+                    lgeos.GEOSCoordSeq_setZ(cs, i, dz)
 
-            # Set geometry from coordinate string
-            self._geom = lgeos.GEOSGeom_createLineString(cs)
-            self._ndim = ndim
+        except AttributeError:
+            # Fall back on list
+            m = len(ob)
+            n = len(ob[0])
+            assert n == 2 or n == 3
+
+            # Create a coordinate sequence
+            cs = lgeos.GEOSCoordSeq_create(m, n)
+            
+            # add to coordinate sequence
+            for i in xrange(m):
+                coords = ob[i]
+                dx = c_double(coords[0])
+                dy = c_double(coords[1])
+                dz = None
+                if n == 3:
+                    dz = c_double(coords[2])
+            
+                # Because of a bug in the GEOS C API, 
+                # always set X before Y
+                lgeos.GEOSCoordSeq_setX(cs, i, dx)
+                lgeos.GEOSCoordSeq_setY(cs, i, dy)
+                if n == 3:
+                    lgeos.GEOSCoordSeq_setZ(cs, i, dz)
+    
+        return (lgeos.GEOSGeom_createLineString(cs), n)
 
     def __len__(self):
         cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
@@ -122,6 +120,13 @@ class LineString(BaseGeometry):
             return (dx.value, dy.value, dz.value)
         else:
             return (dx.value, dy.value)
+
+    @property
+    def __geo_interface__(self):
+        return {
+            'type': 'LineString',
+            'coordinates': list(self.coords)
+            }
 
     @property
     def tuple(self):
@@ -176,6 +181,54 @@ class LineString(BaseGeometry):
             'data': self.ctypes,
             }
 
+
+class LineStringAdapter(LineString):
+
+    """Adapts a Python coordinate pair or a numpy array to the line string
+    interface.
+    """
+    
+    context = None
+
+    def __init__(self, context):
+        self.context = context
+
+    @property
+    def _ndim(self):
+        try:
+            # From array protocol
+            array = self.context.__array_interface__
+            n = array['shape'][1]
+            assert n == 2 or n == 3
+            return n
+        except AttributeError:
+            # Fall back on list
+            return len(self.context[0])
+
+    @property
+    def _geom(self):
+        """Keeps the GEOS geometry in synch with the context."""
+        return self._geos_from_py(self.context)[0]       
+
+    @property
+    def __array_interface__(self):
+        """Provide the Numpy array protocol."""
+        try:
+            return self.context.__array_interface__
+        except AttributeError:
+            return {
+                'version': 3,
+                'shape': (self._ndim,),
+                'typestr': '<f8',
+                'data': self.ctypes,
+                }
+
+
+def asLineString(context):
+    """Factory for PointAdapter instances."""
+    return LineStringAdapter(context)
+
+    
 # Test runner
 def _test():
     import doctest
