@@ -3,8 +3,24 @@ Test implementation of geo interface
 
   >>> from shapely.geometry import asShape
 
+  Adapt a dictionary
+
   >>> d = {"type": "Point", "coordinates": (0.0, 0.0)}
   >>> shape = asShape(d)
+  >>> shape.geom_type
+  'Point'
+  >>> tuple(shape.coords)
+  ((0.0, 0.0),)
+
+  Adapt an object that implements the geo protocol
+
+  >>> class GeoThing(object):
+  ...     def __init__(self, d):
+  ...         self.__geo_interface__ = d
+
+  >>> shape = None
+  >>> thing = GeoThing({"type": "Point", "coordinates": (0.0, 0.0)})
+  >>> shape = asShape(thing)
   >>> shape.geom_type
   'Point'
   >>> tuple(shape.coords)
