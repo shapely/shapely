@@ -1,0 +1,12 @@
+Test implementation of geo interface
+====================================
+
+  >>> from shapely.geometry import asShape
+
+  >>> d = {"type": "Point", "coordinates": (0.0, 0.0)}
+  >>> shape = asShape(d)
+  >>> shape.geom_type
+  'Point'
+  >>> tuple(shape.coords)
+  ((0.0, 0.0),)
+
