@@ -4,6 +4,7 @@ Exports the libgeos_c shared lib, GEOS-specific exceptions, and utilities.
 
 import atexit
 from ctypes import CDLL, CFUNCTYPE, c_char_p
+from ctypes.util import find_library
 import sys
 
 # The GEOS shared lib
