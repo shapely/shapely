@@ -12,6 +12,8 @@ setup(name          = 'Shapely',
       maintainer_email  = 'sgillies@frii.com',
       url   = 'http://trac.gispython.org/projects/PCL/wiki/ShapeLy',
       packages      = ['shapely', 'shapely.geometry'],
+      install_requires = ['setuptools', 'GeoJSON', 'ctypes'],
+      tests_require = ['zope.testing', 'numpy'],
       classifiers   = [
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
