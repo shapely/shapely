@@ -60,6 +60,11 @@ class CoordinateSequence(object):
         else:
             raise StopIteration 
 
+    def __len__(self):
+        cs_len = c_int(0)
+        lgeos.GEOSCoordSeq_getSize(self._cseq, byref(cs_len))
+        return cs_len.value
+    
     def __getitem__(self, i):
         cs_len = c_int(0)
         lgeos.GEOSCoordSeq_getSize(self._cseq, byref(cs_len))
@@ -118,13 +123,6 @@ class BaseGeometry(object):
     # Array and ctypes interfaces
 
     @property
-    def tuple(self):
-        """Return a GeoJSON coordinate array.
-        
-        To be overridden by extension classes."""
-        raise NotImplementedError
-
-    @property
     def ctypes(self):
         """Return a ctypes representation.
         
@@ -149,10 +147,6 @@ class BaseGeometry(object):
     @property
     def type(self):
         return self.geometryType()
-
-    @property
-    def coordinates(self):
-        return self.tuple
 
     # Type of geometry and its representations
 

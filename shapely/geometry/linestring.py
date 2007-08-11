@@ -98,56 +98,12 @@ class LineString(BaseGeometry):
     
         return (lgeos.GEOSGeom_createLineString(cs), n)
 
-    def __len__(self):
-        cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
-        cs_len = c_int(0)
-        lgeos.GEOSCoordSeq_getSize(cs, byref(cs_len))
-        return cs_len.value
-       
-    def __getitem__(self, i):
-        cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
-        cs_len = c_int(0)
-        lgeos.GEOSCoordSeq_getSize(cs, byref(cs_len))
-        if i < 0 or i >= cs_len.value:
-            raise IndexError, "index out of range"
-        dx = c_double()
-        dy = c_double()
-        dz = c_double()
-        lgeos.GEOSCoordSeq_getX(cs, i, byref(dx))
-        lgeos.GEOSCoordSeq_getY(cs, i, byref(dy))
-        if self._ndim == 3: # TODO: use hasz
-            lgeos.GEOSCoordSeq_getZ(cs, i, byref(dz))
-            return (dx.value, dy.value, dz.value)
-        else:
-            return (dx.value, dy.value)
-
     @property
     def __geo_interface__(self):
         return {
             'type': 'LineString',
-            'coordinates': list(self.coords)
+            'coordinates': tuple(self.coords)
             }
-
-    @property
-    def tuple(self):
-        """Return a GeoJSON coordinate array."""
-        cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
-        cs_len = c_int(0)
-        lgeos.GEOSCoordSeq_getSize(cs, byref(cs_len))
-        m = len(self)
-        dx = c_double()
-        dy = c_double()
-        dz = c_double()
-        array = []
-        for i in xrange(cs_len.value):
-            lgeos.GEOSCoordSeq_getX(cs, i, byref(dx))
-            lgeos.GEOSCoordSeq_getY(cs, i, byref(dy))
-            if self._ndim == 3: # TODO: use hasz
-                lgeos.GEOSCoordSeq_getZ(cs, i, byref(dz))
-                array.append((dx.value, dy.value, dz.value))
-            else:
-                array.append((dx.value, dy.value))
-        return tuple(array)
 
     @property
     def ctypes(self):
@@ -176,7 +132,7 @@ class LineString(BaseGeometry):
         """Provide the Numpy array protocol."""
         return {
             'version': 3,
-            'shape': (len(self), self._ndim),
+            'shape': (len(self.coords), self._ndim),
             'typestr': '<f8',
             'data': self.ctypes,
             }

@@ -9,9 +9,9 @@ Initialization
   >>> coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0))
   >>> from shapely.geometry.polygon import LinearRing
   >>> ring = LinearRing(coords)
-  >>> len(ring)
+  >>> len(ring.coords)
   5
-  >>> ring[0] == ring[4]
+  >>> ring.coords[0] == ring.coords[4]
   True
   >>> ring.is_ring
   True
@@ -20,8 +20,8 @@ Initialization
 
   >>> from shapely.geometry import Polygon
   >>> polygon = Polygon(coords)
-  >>> polygon.tuple
-  (((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)),)
+  >>> len(polygon.exterior.coords)
+  5
   
 Ring Access
 -----------
@@ -29,9 +29,9 @@ Ring Access
   >>> polygon.exterior # doctest: +ELLIPSIS
   <shapely.geometry.polygon.LinearRing object at ...>
   >>> ring = polygon.exterior
-  >>> len(ring)
+  >>> len(ring.coords)
   5
-  >>> ring[0] == ring[4] == (0., 0.)
+  >>> ring.coords[0] == ring.coords[4] == (0., 0.)
   True
   >>> ring.is_ring
   True
@@ -46,9 +46,9 @@ Ring Access
   >>> from shapely.wkb import loads
   >>> polygon = loads(data)
   >>> ring = polygon.exterior
-  >>> len(ring)
+  >>> len(ring.coords)
   5
-  >>> ring[0] == ring[4] == (0., 0.)
+  >>> ring.coords[0] == ring.coords[4] == (0., 0.)
   True
   >>> ring.is_ring
   True

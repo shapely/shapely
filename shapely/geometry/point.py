@@ -132,10 +132,6 @@ class Point(BaseGeometry):
             }
 
     @property
-    def tuple(self):
-        return self.coords[0]
-
-    @property
     def ctypes(self):
         if not self._ctypes_data:
             array_type = c_double * self._ndim

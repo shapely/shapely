@@ -155,11 +155,6 @@ class Polygon(BaseGeometry):
         return self._interior
 
     @property
-    def tuple(self):
-        """Return a GeoJSON coordinate array."""
-        return (self.exterior.tuple,)
-
-    @property
     def ctypes(self):
         if not self._ctypes_data:
             self._ctypes_data = self.exterior.ctypes
@@ -170,9 +165,20 @@ class Polygon(BaseGeometry):
         """Provide the Numpy array protocol."""
         return {
             'version': 3,
-            'shape': (len(self.exterior), self._ndim),
+            'shape': (len(self.exterior.coords), self._ndim),
             'typestr': '<f8',
             'data': self.ctypes,
+            }
+
+    @property
+    def coords(self):
+        raise NotImplementedError, "Component rings have coordinate sequences, but the polygon does not"
+
+    @property
+    def __geo_interface__(self):
+        return {
+            'type': 'Polygon',
+            'coordinates': tuple(self.exterior.coords)
             }
 
 

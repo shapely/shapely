@@ -10,7 +10,7 @@ Construct from a numpy array
 
   >>> from numpy import array
   >>> line = LineString(array([[0.0, 0.0], [1.0, 2.0]]))
-  >>> len(line)
+  >>> len(line.coords)
   2
   >>> line.wkt
   'LINESTRING (0.0000000000000000 0.0000000000000000, 1.0000000000000000 2.0000000000000000)'
@@ -18,7 +18,7 @@ Construct from a numpy array
 From coordinate tuples
 
   >>> line = LineString(((1.0, 2.0), (3.0, 4.0)))
-  >>> len(line)
+  >>> len(line.coords)
   2
   >>> line.wkt
   'LINESTRING (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)'
@@ -30,11 +30,11 @@ Coordinate Access
   >>> tuple(line.coords)
   ((1.0, 2.0), (3.0, 4.0))
 
-  >>> line[0]
+  >>> line.coords[0]
   (1.0, 2.0)
-  >>> line[1]
+  >>> line.coords[1]
   (3.0, 4.0)
-  >>> line[2]
+  >>> line.coords[2]
   Traceback (most recent call last):
   ...
   IndexError: index out of range
@@ -43,7 +43,7 @@ Geo interface
 -------------
 
   >>> line.__geo_interface__
-  {'type': 'LineString', 'coordinates': [(1.0, 2.0), (3.0, 4.0)]}
+  {'type': 'LineString', 'coordinates': ((1.0, 2.0), (3.0, 4.0))}
 
 Adapter
 -------

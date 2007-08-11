@@ -4,15 +4,16 @@ Test implementation of array interface
   >>> from shapely.geometry import Point
 
   >>> p = Point(0.0, 0.0, 1.0)
-  >>> p.tuple
+  >>> coords = p.coords[0]
+  >>> coords
   (0.0, 0.0, 1.0)
   >>> p.ctypes #doctest: +ELLIPSIS
   <shapely.geometry.point.c_double_Array_3 object at ...>
 
-  Convert to Numpy array, passing through Python list
+  Convert to Numpy array, passing through Python sequence
 
   >>> from numpy import asarray
-  >>> a = asarray(p.tuple)
+  >>> a = asarray(coords)
   >>> a.ndim
   1
   >>> a.size
