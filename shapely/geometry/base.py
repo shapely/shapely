@@ -82,6 +82,44 @@ class CoordinateSequence(object):
             return (dx.value, dy.value)
 
 
+class GeometrySequence(object):
+
+    _factory = None
+    _geom = None
+    _ndim = None
+    _index = 0
+
+    def __init__(self, geom, type):
+        self._factory = type
+        self._geom = geom._geom
+        self._ndim = geom._ndim
+
+    def __iter__(self):
+        self._index = 0
+        return self
+
+    def next(self):
+        if self._index < self.__len__():
+            g = self._factory()
+            g._owned = True
+            g._geom = lgeos.GEOSGetGeometryN(self._geom, self._index)
+            self._index += 1
+            return g
+        else:
+            raise StopIteration 
+
+    def __len__(self):
+        return lgeos.GEOSGetNumGeometries(self._geom)
+
+    def __getitem__(self, i):
+        if i < 0 or i >= self.__len__():
+            raise IndexError, "index out of range"
+        g = self._factory()
+        g._owned = True
+        g._geom = lgeos.GEOSGetGeometryN(self._geom, i)
+        return g
+
+
 class BaseGeometry(object):
     
     """Provides GEOS spatial predicates and topological operations.

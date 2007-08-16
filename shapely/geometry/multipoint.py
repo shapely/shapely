@@ -5,44 +5,8 @@ Multiple points.
 from ctypes import byref, c_double, c_int, c_void_p, cast, POINTER, pointer
 
 from shapely.geos import lgeos
-from shapely.geometry.base import BaseGeometry
+from shapely.geometry.base import BaseGeometry, GeometrySequence
 from shapely.geometry.point import Point
-
-
-class PointSequence(object):
-
-    _geom = None
-    _ndim = None
-    _index = 0
-
-    def __init__(self, geom):
-        self._geom = geom._geom
-        self._ndim = geom._ndim
-
-    def __iter__(self):
-        self._index = 0
-        return self
-
-    def next(self):
-        if self._index < self.__len__():
-            p = Point()
-            p._owned = True
-            p._geom = lgeos.GEOSGetGeometryN(self._geom, self._index)
-            self._index += 1
-            return p
-        else:
-            raise StopIteration 
-
-    def __len__(self):
-        return lgeos.GEOSGetNumGeometries(self._geom)
-
-    def __getitem__(self, i):
-        if i < 0 or i >= self.__len__():
-            raise IndexError, "index out of range"
-        p = Point()
-        p._owned = True
-        p._geom = lgeos.GEOSGetGeometryN(self._geom, i)
-        return p
 
 
 class MultiPoint(BaseGeometry):
@@ -157,7 +121,7 @@ class MultiPoint(BaseGeometry):
 
     @property
     def geoms(self):
-        return PointSequence(self)
+        return GeometrySequence(self, Point)
         
 
 class MultiPointAdapter(MultiPoint):
