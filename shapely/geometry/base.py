@@ -25,6 +25,48 @@ def geom_factory(g):
     ob._geom = g
     return ob
 
+def multi_geos_from_py(ob, single_factory=None):
+    try:
+        # From array protocol
+        array = ob.__array_interface__
+        assert len(array['shape']) == 3
+        l = array['shape'][0]
+        m = array['shape'][1]
+        n = array['shape'][2]
+        assert m >= 2
+        assert n == 2 or n == 3
+
+        # Make pointer to the coordinate array
+        cp = cast(array['data'][0], POINTER(c_double))
+
+        # Array of pointers to sub-geometries
+        subs = (c_void_p * m)()
+
+        for i in xrange(m):
+            geom, ndims = self._geos_factory(cp[n*i:n*i+2])
+            subs[i] = cast(geom, c_void_p)
+
+    except AttributeError:
+        # Fall back on list
+        m = len(ob)
+        n = len(ob[0])
+        assert n == 2 or n == 3
+
+        # Array of pointers to point geometries
+        subs = (c_void_p * m)()
+        
+        # add to coordinate sequence
+        for i in xrange(m):
+            coords = ob[i]
+            geom, ndims = self._geos_factory(coords)
+            subs[i] = cast(geom, c_void_p)
+            
+    return (lgeos.GEOSGeom_createCollection(4, subs, m), n)
+
+
+
+
+
 
 class CoordinateSequence(object):
 
@@ -274,4 +316,46 @@ class BaseGeometry(object):
     is_simple = UnaryPredicate(lgeos.GEOSisSimple)
     is_ring = UnaryPredicate(lgeos.GEOSisRing)
     has_z = UnaryPredicate(lgeos.GEOSHasZ)
+
+
+class BaseCollection(BaseGeometry):
+
+    _geos_factory = None
+
+    def _geos_from_py(self, ob):
+        try:
+            # From array protocol
+            array = ob.__array_interface__
+            m = array['shape'][0]
+            n = array['shape'][1]
+            assert m >= 2
+            assert n == 2 or n == 3
+
+            # Make pointer to the coordinate array
+            cp = cast(array['data'][0], POINTER(c_double))
+
+            # Array of pointers to sub-geometries
+            subs = (c_void_p * m)()
+
+            for i in xrange(m):
+                geom, ndims = self._geos_factory(cp[n*i:n*i+2])
+                subs[i] = cast(geom, c_void_p)
+
+        except AttributeError:
+            # Fall back on list
+            m = len(ob)
+            n = len(ob[0])
+            assert n == 2 or n == 3
+
+            # Array of pointers to point geometries
+            subs = (c_void_p * m)()
+            
+            # add to coordinate sequence
+            for i in xrange(m):
+                coords = ob[i]
+                geom, ndims = self._geos_factory(coords)
+                subs[i] = cast(geom, c_void_p)
+                
+        return (lgeos.GEOSGeom_createCollection(4, subs, m), n)
+
 
