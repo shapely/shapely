@@ -21,9 +21,10 @@ if __name__ == '__main__':
 
     for file in [
         'Array.txt',
-        'GeoProtocol.txt',
+        'GeoInterface.txt',
         'IterOps.txt',
         'LineString.txt',
+        'MultiPoint.txt',
         'Operations.txt',
         'Persist.txt',
         'Point.txt',
