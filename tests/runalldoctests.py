@@ -24,6 +24,7 @@ if __name__ == '__main__':
         'GeoInterface.txt',
         'IterOps.txt',
         'LineString.txt',
+        'MultiLineString.txt',
         'MultiPoint.txt',
         'Operations.txt',
         'Persist.txt',

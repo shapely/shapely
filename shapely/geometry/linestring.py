@@ -3,9 +3,73 @@ Line strings.
 """
 
 from ctypes import byref, c_double, c_int, cast, POINTER, pointer
+from ctypes import ArgumentError
 
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry
+
+
+def geos_linestring_from_py(ob):
+    try:
+        # From array protocol
+        array = ob.__array_interface__
+        assert len(array['shape']) == 2
+        m = array['shape'][0]
+        n = array['shape'][1]
+        assert m >= 2
+        assert n == 2 or n == 3
+
+        # Make pointer to the coordinate array
+        try:
+            cp = cast(array['data'][0], POINTER(c_double))
+        except ArgumentError:
+            cp = array['data']
+
+        # Create a coordinate sequence
+        cs = lgeos.GEOSCoordSeq_create(m, n)
+
+        # add to coordinate sequence
+        for i in xrange(m):
+            dx = c_double(cp[n*i])
+            dy = c_double(cp[n*i+1])
+            dz = None
+            if n == 3:
+                dz = c_double(cp[n*i+2])
+        
+            # Because of a bug in the GEOS C API, 
+            # always set X before Y
+            lgeos.GEOSCoordSeq_setX(cs, i, dx)
+            lgeos.GEOSCoordSeq_setY(cs, i, dy)
+            if n == 3:
+                lgeos.GEOSCoordSeq_setZ(cs, i, dz)
+
+    except AttributeError:
+        # Fall back on list
+        m = len(ob)
+        n = len(ob[0])
+        assert m >= 2
+        assert n == 2 or n == 3
+
+        # Create a coordinate sequence
+        cs = lgeos.GEOSCoordSeq_create(m, n)
+        
+        # add to coordinate sequence
+        for i in xrange(m):
+            coords = ob[i]
+            dx = c_double(coords[0])
+            dy = c_double(coords[1])
+            dz = None
+            if n == 3:
+                dz = c_double(coords[2])
+        
+            # Because of a bug in the GEOS C API, 
+            # always set X before Y
+            lgeos.GEOSCoordSeq_setX(cs, i, dx)
+            lgeos.GEOSCoordSeq_setY(cs, i, dy)
+            if n == 3:
+                lgeos.GEOSCoordSeq_setZ(cs, i, dz)
+
+    return (lgeos.GEOSGeom_createLineString(cs), n)
 
 
 class LineString(BaseGeometry):
@@ -39,64 +103,7 @@ class LineString(BaseGeometry):
             # allow creation of null lines, to support unpickling
             pass
         else:
-            self._geom, self._ndim = self._geos_from_py(coordinates)
-
-    def _geos_from_py(self, ob):
-        try:
-            # From array protocol
-            array = ob.__array_interface__
-            m = array['shape'][0]
-            n = array['shape'][1]
-            assert m >= 2
-            assert n == 2 or n == 3
-
-            # Make pointer to the coordinate array
-            cp = cast(array['data'][0], POINTER(c_double))
-
-            # Create a coordinate sequence
-            cs = lgeos.GEOSCoordSeq_create(m, n)
-
-            # add to coordinate sequence
-            for i in xrange(m):
-                dx = c_double(cp[n*i])
-                dy = c_double(cp[n*i+1])
-                dz = None
-                if n == 3:
-                    dz = c_double(cp[n*i+2])
-            
-                # Because of a bug in the GEOS C API, 
-                # always set X before Y
-                lgeos.GEOSCoordSeq_setX(cs, i, dx)
-                lgeos.GEOSCoordSeq_setY(cs, i, dy)
-                if n == 3:
-                    lgeos.GEOSCoordSeq_setZ(cs, i, dz)
-
-        except AttributeError:
-            # Fall back on list
-            m = len(ob)
-            n = len(ob[0])
-            assert n == 2 or n == 3
-
-            # Create a coordinate sequence
-            cs = lgeos.GEOSCoordSeq_create(m, n)
-            
-            # add to coordinate sequence
-            for i in xrange(m):
-                coords = ob[i]
-                dx = c_double(coords[0])
-                dy = c_double(coords[1])
-                dz = None
-                if n == 3:
-                    dz = c_double(coords[2])
-            
-                # Because of a bug in the GEOS C API, 
-                # always set X before Y
-                lgeos.GEOSCoordSeq_setX(cs, i, dx)
-                lgeos.GEOSCoordSeq_setY(cs, i, dy)
-                if n == 3:
-                    lgeos.GEOSCoordSeq_setZ(cs, i, dz)
-    
-        return (lgeos.GEOSGeom_createLineString(cs), n)
+            self._geom, self._ndim = geos_linestring_from_py(coordinates)
 
     @property
     def __geo_interface__(self):
@@ -164,7 +171,7 @@ class LineStringAdapter(LineString):
     @property
     def _geom(self):
         """Keeps the GEOS geometry in synch with the context."""
-        return self._geos_from_py(self.context)[0]       
+        return geos_linestring_from_py(self.context)[0]       
 
     @property
     def __array_interface__(self):
