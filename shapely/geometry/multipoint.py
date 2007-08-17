@@ -66,8 +66,8 @@ class MultiPoint(BaseGeometry):
         Example
         -------
 
-        >>> line = LineString([[0.0, 0.0], [1.0, 2.0]])
-        >>> line = LineString(array([[0.0, 0.0], [1.0, 2.0]]))
+        >>> geom = MultiPoint([[0.0, 0.0], [1.0, 2.0]])
+        >>> geom = MultiPoint(array([[0.0, 0.0], [1.0, 2.0]]))
         
         Each result in a line string from (0.0, 0.0) to (1.0, 2.0).
         """
@@ -120,7 +120,8 @@ class MultiPoint(BaseGeometry):
 
     @property
     def coords(self):
-        raise NotImplementedError
+        raise NotImplementedError, \
+        "Multipart geometries do not themselves provide coordinate sequences"
 
     @property
     def geoms(self):
@@ -172,11 +173,6 @@ class MultiPointAdapter(MultiPoint):
 def asMultiPoint(context):
     """Factory for MultiPointAdapter instances."""
     return MultiPointAdapter(context)
-
-#_point = Point()
-#
-#def geos_point_factory(ob):
-#    return _point._geos_from_py(ob)
 
 
 # Test runner

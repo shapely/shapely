@@ -26,11 +26,6 @@ def geom_factory(g):
     return ob
 
 
-class SimpleArray(object):
-    def __init__(self, d):
-        self.__array_interface__ = d
-
-
 class CoordinateSequence(object):
 
     _cseq = None
