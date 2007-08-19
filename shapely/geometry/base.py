@@ -30,6 +30,7 @@ class CoordinateSequence(object):
 
     _cseq = None
     _ndim = None
+    _length = 0
     index = 0
 
     def __init__(self, geom):
@@ -38,16 +39,15 @@ class CoordinateSequence(object):
 
     def __iter__(self):
         self.index = 0
+        self._length = self.__len__()
         return self
 
     def next(self):
-        cs_len = c_int(0)
-        lgeos.GEOSCoordSeq_getSize(self._cseq, byref(cs_len))
         dx = c_double()
         dy = c_double()
         dz = c_double()
         i = self.index
-        if i < cs_len.value:
+        if i < self._length:
             lgeos.GEOSCoordSeq_getX(self._cseq, i, byref(dx))
             lgeos.GEOSCoordSeq_getY(self._cseq, i, byref(dy))
             if self._ndim == 3: # TODO: use hasz
@@ -66,17 +66,20 @@ class CoordinateSequence(object):
         return cs_len.value
     
     def __getitem__(self, i):
-        cs_len = c_int(0)
-        lgeos.GEOSCoordSeq_getSize(self._cseq, byref(cs_len))
-        if i < 0 or i >= cs_len.value:
+        M = self.__len__()
+        if i + M < 0 or i >= M:
             raise IndexError, "index out of range"
+        if i < 0:
+            ii = M + i
+        else:
+            ii = i
         dx = c_double()
         dy = c_double()
         dz = c_double()
-        lgeos.GEOSCoordSeq_getX(self._cseq, i, byref(dx))
-        lgeos.GEOSCoordSeq_getY(self._cseq, i, byref(dy))
+        lgeos.GEOSCoordSeq_getX(self._cseq, ii, byref(dx))
+        lgeos.GEOSCoordSeq_getY(self._cseq, ii, byref(dy))
         if self._ndim == 3: # TODO: use hasz
-            lgeos.GEOSCoordSeq_getZ(self._cseq, i, byref(dz))
+            lgeos.GEOSCoordSeq_getZ(self._cseq, ii, byref(dz))
             return (dx.value, dy.value, dz.value)
         else:
             return (dx.value, dy.value)
@@ -88,6 +91,7 @@ class GeometrySequence(object):
     _geom = None
     _ndim = None
     _index = 0
+    _length = 0
 
     def __init__(self, geom, type):
         self._factory = type
@@ -96,6 +100,7 @@ class GeometrySequence(object):
 
     def __iter__(self):
         self._index = 0
+        self._length = self.__len__()
         return self
 
     def next(self):
@@ -112,11 +117,16 @@ class GeometrySequence(object):
         return lgeos.GEOSGetNumGeometries(self._geom)
 
     def __getitem__(self, i):
-        if i < 0 or i >= self.__len__():
+        M = self.__len__()
+        if i + M < 0 or i >= M:
             raise IndexError, "index out of range"
+        if i < 0:
+            ii = M + i
+        else:
+            ii = i
         g = self._factory()
         g._owned = True
-        g._geom = lgeos.GEOSGetGeometryN(self._geom, i)
+        g._geom = lgeos.GEOSGetGeometryN(self._geom, ii)
         return g
 
     @property

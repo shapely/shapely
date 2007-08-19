@@ -6,15 +6,28 @@ Initialization
 
   Linear rings won't usually be created by users, but by polygons
 
-  >>> coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0))
+  >>> coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0))
   >>> from shapely.geometry.polygon import LinearRing
   >>> ring = LinearRing(coords)
   >>> len(ring.coords)
   5
   >>> ring.coords[0] == ring.coords[4]
   True
+  >>> ring.coords[0] == ring.coords[-1]
+  True
   >>> ring.is_ring
   True
+
+  Test ring adapter
+
+  >>> coords = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]
+  >>> from shapely.geometry.polygon import asLinearRing
+  >>> ra = asLinearRing(coords)
+  >>> ra.wkt
+  'LINEARRING (0.0000000000000000 0.0000000000000000, 0.0000000000000000 1.0000000000000000, 1.0000000000000000 1.0000000000000000, 1.0000000000000000 0.0000000000000000, 0.0000000000000000 0.0000000000000000)'
+  >>> coords[3] = [2.0, -1.0]
+  >>> ra.wkt
+  'LINEARRING (0.0000000000000000 0.0000000000000000, 0.0000000000000000 1.0000000000000000, 1.0000000000000000 1.0000000000000000, 2.0000000000000000 -1.0000000000000000, 0.0000000000000000 0.0000000000000000)'
 
   Construct a polygon, exterior ring only
 
@@ -35,8 +48,8 @@ Ring Access
   True
   >>> ring.is_ring
   True
-  >>> polygon.interior
-  []
+  >>> len(polygon.interiors)
+  0
 
   Create a new polygon from WKB
 
@@ -52,4 +65,32 @@ Ring Access
   True
   >>> ring.is_ring
   True
+  >>> polygon = None
 
+Interior rings (holes)
+----------------------
+
+  >>> polygon = Polygon(coords, [((0.1,0.1), (0.1,0.2), (0.2,0.2), (0.2,0.1))])
+  >>> len(polygon.exterior.coords)
+  5
+  >>> len(polygon.interiors[0].coords)
+  5
+  >>> polygon.interiors[1] # doctest: +ELLIPSIS
+  Traceback (most recent call last):
+  ...
+  IndexError: index out of range
+
+
+Adapter
+-------
+
+  >>> hole_coords = [((0.1,0.1), (0.1,0.2), (0.2,0.2), (0.2,0.1))]
+  >>> from shapely.geometry import asPolygon
+  >>> pa = asPolygon(coords, hole_coords)
+  >>> len(pa.exterior.coords)
+  5
+  >>> len(pa.interiors)
+  1
+  >>> len(pa.interiors[0].coords)
+  5
+  
