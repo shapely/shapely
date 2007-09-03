@@ -11,7 +11,7 @@ from shapely.geos import lgeos, DimensionError
 from shapely.geometry.base import BaseGeometry, CoordinateSequence
 
 
-def geos_point_from_py(ob):
+def geos_point_from_py(ob, update_geom=None, update_ndims=0):
     """Create a GEOS geom from an object that is a coordinate sequence
     or that provides the array interface.
 
@@ -42,14 +42,28 @@ def geos_point_from_py(ob):
         if n == 3:
             dz = c_double(coords[2])
 
-    cs = lgeos.GEOSCoordSeq_create(1, n)
+    if update_geom:
+        cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
+        if n != update_ndims:
+            raise ValueError, \
+            "Wrong coordinate dimensions; this geometry has dimensions: %d" \
+            % update_ndims
+    else:
+        cs = lgeos.GEOSCoordSeq_create(1, n)
+    
     # Because of a bug in the GEOS C API, always set X before Y
     lgeos.GEOSCoordSeq_setX(cs, 0, dx)
     lgeos.GEOSCoordSeq_setY(cs, 0, dy)
     if n == 3:
         lgeos.GEOSCoordSeq_setZ(cs, 0, dz)
-    
-    return (lgeos.GEOSGeom_createPoint(cs), n)
+   
+    if update_geom:
+        return None
+    else:
+        return (lgeos.GEOSGeom_createPoint(cs), n)
+
+def update_point_from_py(geom, ob):
+    geos_point_from_py(ob, geom._geom, geom._ndim)
 
 
 class Point(BaseGeometry):
@@ -154,6 +168,13 @@ class Point(BaseGeometry):
             'typestr': '<f8',
             'data': self.ctypes,
             }
+
+    # Coordinate access
+
+    def set_coords(self, coordinates):
+        update_point_from_py(self, coordinates)
+
+    coords = property(BaseGeometry.get_coords, set_coords)
 
 
 class PointAdapter(Point):

@@ -54,11 +54,21 @@ Coordinate access
   ...
   IndexError: index out of range
 
+
 Geo interface
 -------------
 
   >>> p.__geo_interface__
   {'type': 'Point', 'coordinates': (3.0, 4.0)}
+
+
+Modify coordinates
+------------------
+
+  >>> p.coords = (0.0, 0.0)
+  >>> p.__geo_interface__
+  {'type': 'Point', 'coordinates': (0.0, 0.0)}
+
 
 Adapter
 -------
@@ -90,7 +100,7 @@ Adapter
   >>> pa.wkt
   'POINT (3.0000000000000000 4.0000000000000000)'
   >>> pa.distance(p)
-  0.0
+  5.0
   
   Move the coordinates and watch the distance change
 
@@ -98,7 +108,7 @@ Adapter
   >>> pa.wkt
   'POINT (1.0000000000000000 4.0000000000000000)'
   >>> pa.distance(p)
-  2.0
+  4.1231056256176606
 
   Now, the inverse
   

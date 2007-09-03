@@ -190,9 +190,14 @@ class BaseGeometry(object):
         """Provide the Numpy array protocol."""
         raise NotImplementedError
 
-    @property
-    def coords(self):
+    def get_coords(self):
         return CoordinateSequence(self)
+
+    def set_coords(self, ob):
+        raise NotImplementedError, \
+            "set_coords must be provided by derived classes"
+
+    coords = property(get_coords, set_coords)
 
     # Python feature protocol
 
