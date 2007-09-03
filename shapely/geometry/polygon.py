@@ -288,7 +288,8 @@ class Polygon(BaseGeometry):
         """
         BaseGeometry.__init__(self)
 
-        self._geom, self._ndims = geos_polygon_from_py(shell, holes)
+        if shell is not None:
+            self._geom, self._ndims = geos_polygon_from_py(shell, holes)
 
     @property
     def exterior(self):
@@ -323,9 +324,12 @@ class Polygon(BaseGeometry):
 
     @property
     def __geo_interface__(self):
+        coords = [tuple(self.exterior.coords)]
+        for hole in self.interiors:
+            coords.append(tuple(hole.coords))
         return {
             'type': 'Polygon',
-            'coordinates': tuple(self.exterior.coords)
+            'coordinates': tuple(coords)
             }
 
 

@@ -26,6 +26,7 @@ if __name__ == '__main__':
         'LineString.txt',
         'MultiLineString.txt',
         'MultiPoint.txt',
+        'MultiPolygon.txt',
         'Operations.txt',
         'Persist.txt',
         'Point.txt',
