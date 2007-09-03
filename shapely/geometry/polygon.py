@@ -114,9 +114,6 @@ def geos_linearring_from_py(ob):
 
     return (lgeos.GEOSGeom_createLinearRing(cs), n)
 
-def geos_polygon_from_py(ob, ob_interiors):
-    pass
-
 
 class LinearRing(LineString):
 
@@ -244,7 +241,7 @@ def geos_polygon_from_py(shell, holes=None):
             assert L >= 1
             assert N == 2 or N == 3
 
-            # Array of pointers to point geometries
+            # Array of pointers to ring geometries
             geos_holes = (c_void_p * L)()
     
             # add to coordinate sequence
