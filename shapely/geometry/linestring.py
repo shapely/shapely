@@ -9,7 +9,7 @@ from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry
 
 
-def geos_linestring_from_py(ob):
+def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
     try:
         # From array protocol
         array = ob.__array_interface__
@@ -26,7 +26,14 @@ def geos_linestring_from_py(ob):
             cp = array['data']
 
         # Create a coordinate sequence
-        cs = lgeos.GEOSCoordSeq_create(m, n)
+        if update_geom is not None:
+            cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
+            if n != update_ndim:
+                raise ValueError, \
+                "Wrong coordinate dimensions; this geometry has dimensions: %d" \
+                % update_ndim
+        else:
+            cs = lgeos.GEOSCoordSeq_create(m, n)
 
         # add to coordinate sequence
         for i in xrange(m):
@@ -51,7 +58,14 @@ def geos_linestring_from_py(ob):
         assert n == 2 or n == 3
 
         # Create a coordinate sequence
-        cs = lgeos.GEOSCoordSeq_create(m, n)
+        if update_geom is not None:
+            cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
+            if n != update_ndim:
+                raise ValueError, \
+                "Wrong coordinate dimensions; this geometry has dimensions: %d" \
+                % update_ndim
+        else:
+            cs = lgeos.GEOSCoordSeq_create(m, n)
         
         # add to coordinate sequence
         for i in xrange(m):
@@ -68,8 +82,14 @@ def geos_linestring_from_py(ob):
             lgeos.GEOSCoordSeq_setY(cs, i, dy)
             if n == 3:
                 lgeos.GEOSCoordSeq_setZ(cs, i, dz)
+    
+    if update_geom:
+        return None
+    else:
+        return (lgeos.GEOSGeom_createLineString(cs), n)
 
-    return (lgeos.GEOSGeom_createLineString(cs), n)
+def update_linestring_from_py(geom, ob):
+    geos_linestring_from_py(ob, geom._geom, geom._ndim)
 
 
 class LineString(BaseGeometry):
@@ -143,6 +163,13 @@ class LineString(BaseGeometry):
             'typestr': '<f8',
             'data': self.ctypes,
             }
+
+    # Coordinate access
+
+    def set_coords(self, coordinates):
+        update_linestring_from_py(self, coordinates)
+
+    coords = property(BaseGeometry.get_coords, set_coords)
 
 
 class LineStringAdapter(LineString):

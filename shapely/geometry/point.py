@@ -11,7 +11,7 @@ from shapely.geos import lgeos, DimensionError
 from shapely.geometry.base import BaseGeometry, CoordinateSequence
 
 
-def geos_point_from_py(ob, update_geom=None, update_ndims=0):
+def geos_point_from_py(ob, update_geom=None, update_ndim=0):
     """Create a GEOS geom from an object that is a coordinate sequence
     or that provides the array interface.
 
@@ -44,10 +44,10 @@ def geos_point_from_py(ob, update_geom=None, update_ndims=0):
 
     if update_geom:
         cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
-        if n != update_ndims:
+        if n != update_ndim:
             raise ValueError, \
             "Wrong coordinate dimensions; this geometry has dimensions: %d" \
-            % update_ndims
+            % update_ndim
     else:
         cs = lgeos.GEOSCoordSeq_create(1, n)
     
