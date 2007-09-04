@@ -11,8 +11,8 @@ http://trac.gispython.org/projects/PCL/wiki/ShapeLy
 Dependencies
 ------------
 
-libgeos_c (2.2.3)
-ctypes
+* libgeos_c (2.2.3)
+* ctypes
 
 Installation
 ------------
@@ -35,6 +35,8 @@ or by using the development buildout, which also provides libgeos_c::
 Usage
 -----
 
+Buffer a point::
+
   >>> from shapely.geometry import Point
   >>> point = Point(-106.0, 40.0) # longitude, latitude
   >>> point.buffer(10.0)
@@ -47,7 +49,7 @@ LineString.txt, etc for examples of the geometry APIs.
 Numpy integration
 -----------------
 
-All Shapely geometry instances provide the Numpy array interface: 
+All Shapely geometry instances provide the Numpy array interface::
 
   >>> from numpy import asarray
   >>> a = asarray(point)
@@ -56,7 +58,7 @@ All Shapely geometry instances provide the Numpy array interface:
   >>> a.shape
   (2,)
 
-Numpy arrays can also be adapted to Shapely points and linestrings:
+Numpy arrays can also be adapted to Shapely points and linestrings::
 
   >>> from shapely.geometry import asLineString
   >>> a = array([[1.0, 2.0], [3.0, 4.0]])
@@ -68,7 +70,7 @@ Python Geo Interface
 --------------------
 
 Any object that provides the Python geo interface can be adapted to a Shapely
-geometry with the asShape factory
+geometry with the asShape factory::
 
   >>> d = {"type": "Point", "coordinates": (0.0, 0.0)}
   >>> shape = asShape(d)

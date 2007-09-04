@@ -1,6 +1,9 @@
 
 from setuptools import setup, Extension
 
+# Get text from README.txt
+readme_text = file('README.txt', 'rb').read()
+
 setup(name          = 'Shapely',
       version       = '1.0a1',
       description   = 'Geometries, predicates, and operations',
@@ -11,6 +14,7 @@ setup(name          = 'Shapely',
       maintainer    = 'Sean Gillies',
       maintainer_email  = 'sgillies@frii.com',
       url   = 'http://trac.gispython.org/projects/PCL/wiki/ShapeLy',
+      long_description = readme_text,
       packages      = ['shapely', 'shapely.geometry'],
       install_requires = ['setuptools', 'ctypes'],
       tests_require = ['zope.testing', 'numpy'],
