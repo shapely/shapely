@@ -12,14 +12,19 @@ if __name__ == '__main__':
     import sys
     
     verbosity = 0
+    pattern = None
+
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'v')
-        if opts[0][0] == '-v':
-            verbosity = verbosity + 1
+        opts, args = getopt.getopt(sys.argv[1:], 'vt:')
+        for o, a in opts:
+            if o == '-v':
+                verbosity = verbosity + 1
+            if o == '-t':
+                pattern = a
     except:
         pass
 
-    for file in [
+    docfiles = [
         'Array.txt',
         'GeoInterface.txt',
         'IterOps.txt',
@@ -32,6 +37,13 @@ if __name__ == '__main__':
         'Point.txt',
         'Polygon.txt',
         'Predicates.txt'
-        ]:
+        ]
+        
+    if pattern:
+        tests = [f for f in docfiles if f.find(pattern) >= 0]
+    else:
+        tests = docfiles
+        
+    for file in tests:
         doctest.testfile(file, verbose=verbosity)
-    
+
