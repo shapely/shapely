@@ -40,7 +40,7 @@ if __name__ == '__main__':
         ]
         
     if pattern:
-        tests = [f for f in docfiles if f.find(pattern) >= 0]
+        tests = [f for f in docfiles if f.find(pattern) == 0]
     else:
         tests = docfiles
         

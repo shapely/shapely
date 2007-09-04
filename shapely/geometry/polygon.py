@@ -9,7 +9,7 @@ from shapely.geometry.base import BaseGeometry
 from shapely.geometry.linestring import LineString, LineStringAdapter
 
 
-def geos_linearring_from_py(ob):
+def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
     try:
         # From array protocol
         array = ob.__array_interface__
@@ -32,7 +32,14 @@ def geos_linearring_from_py(ob):
             M = m
 
         # Create a coordinate sequence
-        cs = lgeos.GEOSCoordSeq_create(M, n)
+        if update_geom is not None:
+            cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
+            if n != update_ndim:
+                raise ValueError, \
+                "Wrong coordinate dimensions; this geometry has dimensions: %d" \
+                % update_ndim
+        else:
+            cs = lgeos.GEOSCoordSeq_create(M, n)
 
         # add to coordinate sequence
         for i in xrange(m):
@@ -78,7 +85,14 @@ def geos_linearring_from_py(ob):
             M = m
 
         # Create a coordinate sequence
-        cs = lgeos.GEOSCoordSeq_create(M, n)
+        if update_geom is not None:
+            cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
+            if n != update_ndim:
+                raise ValueError, \
+                "Wrong coordinate dimensions; this geometry has dimensions: %d" \
+                % update_ndim
+        else:
+            cs = lgeos.GEOSCoordSeq_create(M, n)
         
         # add to coordinate sequence
         for i in xrange(m):
@@ -112,7 +126,13 @@ def geos_linearring_from_py(ob):
             if n == 3:
                 lgeos.GEOSCoordSeq_setZ(cs, M-1, dz)
 
-    return (lgeos.GEOSGeom_createLinearRing(cs), n)
+    if update_geom is not None:
+        return None
+    else:
+        return (lgeos.GEOSGeom_createLinearRing(cs), n)
+
+def update_linearring_from_py(geom, ob):
+    geos_linearring_from_py(ob, geom._geom, geom._ndim)
 
 
 class LinearRing(LineString):
@@ -155,6 +175,13 @@ class LinearRing(LineString):
             'type': 'LinearRing',
             'coordinates': tuple(self.coords)
             }
+
+    # Coordinate access
+
+    def set_coords(self, coordinates):
+        update_linearring_from_py(self, coordinates)
+
+    coords = property(BaseGeometry.get_coords, set_coords)
 
 
 class LinearRingAdapter(LineStringAdapter):

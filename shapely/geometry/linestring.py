@@ -83,7 +83,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
             if n == 3:
                 lgeos.GEOSCoordSeq_setZ(cs, i, dz)
     
-    if update_geom:
+    if update_geom is not None:
         return None
     else:
         return (lgeos.GEOSGeom_createLineString(cs), n)
