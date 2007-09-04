@@ -14,6 +14,24 @@ Dependencies
 libgeos_c (2.2.3)
 ctypes
 
+Installation
+------------
+
+Shapely can be installed from the Python package index::
+
+  $ sudo easy_install Shapely
+
+with the setup script::
+
+  $ sudo python setup.py install
+
+or by using the development buildout, which also provides libgeos_c::
+
+ $ svn co http://svn.gispython.org/svn/gispy/buildout/shapely.buildout/trunk shapely.buildout
+ $ cd shapely.buildout
+ $ python bootstrap.py
+ $ ./bin/buildout
+
 Usage
 -----
 
