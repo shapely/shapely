@@ -219,6 +219,7 @@ class PointAdapter(Point):
                 'data': self.ctypes,
                 }
 
+    coords = property(BaseGeometry.get_coords)
 
 def asPoint(context):
     """Factory for PointAdapter instances."""

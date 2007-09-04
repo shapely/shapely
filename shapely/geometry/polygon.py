@@ -198,6 +198,8 @@ class LinearRingAdapter(LineStringAdapter):
             'coordinates': tuple(self.coords)
             }
 
+    coords = property(BaseGeometry.get_coords)
+
 
 def asLinearRing(context):
     return LinearRingAdapter(context)

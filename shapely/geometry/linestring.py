@@ -213,6 +213,8 @@ class LineStringAdapter(LineString):
                 'data': self.ctypes,
                 }
 
+    coords = property(BaseGeometry.get_coords)
+
 
 def asLineString(context):
     """Factory for PointAdapter instances."""

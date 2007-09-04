@@ -2,7 +2,7 @@
 from setuptools import setup, Extension
 
 setup(name          = 'Shapely',
-      version       = '0.0',
+      version       = '1.0a1',
       description   = 'Geometries, predicates, and operations',
       license       = 'LGPL',
       keywords      = 'geometry topology',
@@ -12,7 +12,7 @@ setup(name          = 'Shapely',
       maintainer_email  = 'sgillies@frii.com',
       url   = 'http://trac.gispython.org/projects/PCL/wiki/ShapeLy',
       packages      = ['shapely', 'shapely.geometry'],
-      install_requires = ['setuptools', 'GeoJSON', 'ctypes'],
+      install_requires = ['setuptools', 'ctypes'],
       tests_require = ['zope.testing', 'numpy'],
       classifiers   = [
         'Development Status :: 3 - Alpha',
