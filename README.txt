@@ -63,7 +63,7 @@ Numpy arrays can also be adapted to Shapely points and linestrings::
   >>> from shapely.geometry import asLineString
   >>> a = array([[1.0, 2.0], [3.0, 4.0]])
   >>> line = asLineString(a)
-  >>> la.wkt
+  >>> line.wkt
   'LINESTRING (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)'
 
 Python Geo Interface
@@ -73,6 +73,7 @@ Any object that provides the Python geo interface can be adapted to a Shapely
 geometry with the asShape factory::
 
   >>> d = {"type": "Point", "coordinates": (0.0, 0.0)}
+  >>> from shapely.geometry import asShape
   >>> shape = asShape(d)
   >>> shape.geom_type
   'Point'
@@ -82,8 +83,6 @@ geometry with the asShape factory::
   >>> class GeoThing(object):
   ...     def __init__(self, d):
   ...         self.__geo_interface__ = d
-
-  >>> shape = None
   >>> thing = GeoThing({"type": "Point", "coordinates": (0.0, 0.0)})
   >>> shape = asShape(thing)
   >>> shape.geom_type
