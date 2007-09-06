@@ -266,7 +266,10 @@ def geos_polygon_from_py(shell, holes=None):
         if holes is not None:
             ob = holes
             L = len(ob)
-            N = len(ob[0][0])
+            try:
+                N = len(ob[0][0])
+            except:
+                import pdb; pdb.set_trace()
             assert L >= 1
             assert N == 2 or N == 3
 

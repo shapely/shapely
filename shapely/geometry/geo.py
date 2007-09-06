@@ -1,5 +1,11 @@
 
 from point import PointAdapter
+from linestring import LineStringAdapter
+from polygon import PolygonAdapter
+from multipoint import MultiPointAdapter
+from multilinestring import MultiLineStringAdapter
+from multipolygon import MultiPolygonAdapter
+
 
 def asShape(context):
     try:
@@ -7,10 +13,23 @@ def asShape(context):
             ob = context.__geo_interface__
         else:
             ob = context
-        if ob.get("type").lower() == "point":
+
+        geom_type = ob.get("type").lower()
+
+        if geom_type == "point":
             return PointAdapter(ob["coordinates"])
+        elif geom_type == "linestring":
+            return LineStringAdapter(ob["coordinates"])
+        elif geom_type == "polygon":
+            return PolygonAdapter(ob["coordinates"][0], ob["coordinates"][1:])
+        elif geom_type == "multipoint":
+            return MultiPointAdapter(ob["coordinates"])
+        elif geom_type == "multilinestring":
+            return MultiLineStringAdapter(ob["coordinates"])
+        elif geom_type == "multipolygon":
+            return MultiPolygonAdapter(ob["coordinates"])
         else:
-            raise NotImplementedError
+            raise ValueError, "Unknown geometry type: %s" % geom_type
     except:
         raise
 

@@ -61,10 +61,11 @@ class MultiPolygon(BaseGeometry):
     def __geo_interface__(self):
         allcoords = []
         for geom in self.geoms:
-            coords = [tuple(geom.exterior.coords)]
+            coords = tuple(geom.exterior.coords)
+            hole_coords = []
             for hole in geom.interiors:
-                coords.append(tuple(hole.coords))
-            allcoords.append(tuple(coords))
+                hole_coords.append(tuple(hole.coords))
+            allcoords.append((coords, hole_coords))
         return {
             'type': 'MultiPolygon',
             'coordinates': allcoords
