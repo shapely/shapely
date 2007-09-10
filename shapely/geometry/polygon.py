@@ -263,7 +263,7 @@ def geos_polygon_from_py(shell, holes=None):
         ## Polygon geometry takes ownership of the ring
         #self._exterior._owned = True
 
-        if holes is not None:
+        if holes:
             ob = holes
             L = len(ob)
             try:

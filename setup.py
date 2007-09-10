@@ -6,7 +6,7 @@ readme_text = file('README.txt', 'rb').read()
 
 setup(name          = 'Shapely',
       version       = '1.0a2',
-      description   = 'Geometries, predicates, and operations',
+      description   = 'Geospatial geometries, predicates, and operations',
       license       = 'LGPL',
       keywords      = 'geometry topology',
       author        = 'Sean Gillies',
