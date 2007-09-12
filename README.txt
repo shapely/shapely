@@ -4,9 +4,13 @@ Shapely
 Shapely is a Python package for programming with geospatial geometries. It is
 based on GEOS (http://geos.refractions.net). Shapely 1.0 is ignorant about
 coordinate and reference systems. Projection responsibility is left to specific
-applications. For more information, see
+applications. For more information, see:
 
-http://trac.gispython.org/projects/PCL/wiki/ShapeLy
+* Shapely wiki_
+* Shapely manual_
+
+.. _wiki: http://trac.gispython.org/projects/PCL/wiki/Shapely
+.. _manual: http://trac.gispython.org/projects/PCL/wiki/ShapelyManual
 
 Dependencies
 ------------

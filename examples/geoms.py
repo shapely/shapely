@@ -1,4 +1,5 @@
-
+from numpy import asarray
+import pylab
 from shapely.geometry import Point, LineString, Polygon
 
 polygon = Polygon(((-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0), (1.0, -1.0)))
@@ -18,13 +19,21 @@ def plot_line(g, o):
     a = asarray(g)
     pylab.plot(a[:,0], a[:,1], o)
 
+def fill_polygon(g, o):
+    a = asarray(g.exterior)
+    pylab.fill(a[:,0], a[:,1], o, alpha=0.5)
+
+def fill_multipolygon(g, o):
+    for g in g.geoms:
+        fill_polygon(g, o)
+
 if __name__ == "__main__":
     from numpy import asarray
     import pylab
     
     fig = pylab.figure(1, figsize=(4, 3), dpi=150)
-    pylab.axis([-2.0, 2.0, -1.5, 1.5])
-    pylab.axis('off')
+    #pylab.axis([-2.0, 2.0, -1.5, 1.5])
+    pylab.axis('tight')
 
     a = asarray(polygon.exterior)
     pylab.fill(a[:,0], a[:,1], 'c')
@@ -38,4 +47,5 @@ if __name__ == "__main__":
     plot_line(line_b, 'b')
 
     pylab.show()
+
 

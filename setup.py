@@ -5,7 +5,7 @@ from setuptools import setup, Extension
 readme_text = file('README.txt', 'rb').read()
 
 setup(name          = 'Shapely',
-      version       = '1.0a2',
+      version       = '1.0a3',
       description   = 'Geospatial geometries, predicates, and operations',
       license       = 'LGPL',
       keywords      = 'geometry topology',
