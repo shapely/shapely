@@ -23,6 +23,7 @@ def geom_factory(g):
         )
     ob.__class__ = getattr(mod, geom_type)
     ob._geom = g
+    ob._ndim = 2 # callers should be all from 2D worlds
     return ob
 
 
