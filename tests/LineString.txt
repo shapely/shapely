@@ -24,6 +24,18 @@ From coordinate tuples
   'LINESTRING (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)'
 
 
+Numpy Support
+-------------
+
+  >>> from numpy import asarray
+  >>> la = asarray(line)
+  >>> la
+  array([[ 1.,  2.],
+         [ 3.,  4.]])
+  >>> la[0]
+  array([ 1.,  2.])
+
+
 Coordinate Access
 -----------------
 
@@ -74,7 +86,6 @@ Adapter
 
   >>> la.__array_interface__ == la.context.__array_interface__
   True
-  >>> from numpy import asarray
   >>> as = asarray(la)
   >>> as
   array([[ 1.,  2.],
