@@ -7,15 +7,25 @@ from ctypes import CDLL, CFUNCTYPE, c_char_p
 from ctypes.util import find_library
 import sys
 
-# The GEOS shared lib
+# Load the GEOS shared lib, trying the major versioned name first, and falling
+# back on the unversioned name.
 
 if sys.platform == 'win32':
-    lgeos = CDLL('libgeos_c.dll')
+    try:
+        lgeos = CDLL('libgeos_c-1.dll')
+    except ImportError:
+        lgeos = CDLL('libgeos_c.dll')
+    except:
+        raise
 elif sys.platform == 'darwin':
     lgeos = CDLL(find_library('geos_c'))
 else:
-    lgeos = CDLL('libgeos_c.so')
-
+    try:
+        lgeos = CDLL('libgeos_c.so.1')
+    except ImportError:
+        lgeos = CDLL('libgeos_c.so')
+    except:
+        raise
 
 # Exceptions
 
