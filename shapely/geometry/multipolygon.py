@@ -103,6 +103,10 @@ class MultiPolygonAdapter(MultiPolygon):
     def __init__(self, context):
         self.context = context
 
+    # Override base class __del__
+    def __del__(self):
+        pass
+
     @property
     def _ndim(self):
         try:

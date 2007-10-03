@@ -52,9 +52,13 @@ def notice_handler(fmt, list):
     pass
 notice_h = CFUNCTYPE(None, c_char_p, c_char_p)(notice_handler)
 
-# Init geos, and register a cleanup function
+# Register a cleanup function
+
+def cleanup():
+    lgeos.finishGEOS()
+
+atexit.register(cleanup)
 
 lgeos.initGEOS(notice_h, error_h)
-atexit.register(lgeos.finishGEOS)
 
 
