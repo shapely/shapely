@@ -9,14 +9,19 @@ applications. For more information, see:
 * Shapely wiki_
 * Shapely manual_
 
+Shapely requires Python 2.4+. (I've also begun to port it to Python 3.0:
+http://zcologia.com/news/564/shapely-for-python-3-0/.)
+
 .. _wiki: http://trac.gispython.org/projects/PCL/wiki/Shapely
 .. _manual: http://trac.gispython.org/projects/PCL/wiki/ShapelyManual
 
 Dependencies
 ------------
 
-* libgeos_c (2.2.3)
-* ctypes
+* libgeos_c (2.2.3, also reported to work with 3.0 after small modifications.)
+* Python ctypes_ (standard in Python 2.5+)
+
+.. _ctypes: http://pypi.python.org/pypi/ctypes/
 
 Installation
 ------------
