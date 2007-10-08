@@ -217,7 +217,7 @@ class BaseGeometry(object):
         return string_at(lgeos.GEOSGeomType(self._geom))
 
     def to_wkb(self):
-        """Returns a WKT string representation of the geometry."""
+        """Returns a WKB byte string representation of the geometry."""
         size = c_int()
         bytes = lgeos.GEOSGeomToWKB_buf(self._geom, byref(size))
         return string_at(bytes, size.value)

@@ -7,19 +7,19 @@ from ctypes import CDLL, CFUNCTYPE, c_char_p
 from ctypes.util import find_library
 import sys
 
-# Load the GEOS shared lib, trying the major versioned name first, and falling
-# back on the unversioned name.
-
 if sys.platform == 'win32':
     try:
-        lgeos = CDLL('libgeos_c-1.dll')
-    except ImportError:
         lgeos = CDLL('libgeos_c.dll')
+    except (ImportError, WindowsError):
+        # Try GEOS DLL from the Windows PostGIS installer for
+        # PostgreSQL 8.2 before failing
+        lgeos = CDLL('libgeos_c-1.dll')
     except:
         raise
 elif sys.platform == 'darwin':
     lgeos = CDLL(find_library('geos_c'))
 else:
+    # Try the major versioned name first, falling back on the unversioned name.
     try:
         lgeos = CDLL('libgeos_c.so.1')
     except ImportError:
