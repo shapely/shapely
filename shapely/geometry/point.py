@@ -169,6 +169,15 @@ class Point(BaseGeometry):
             'data': self.ctypes,
             }
 
+    @property
+    def bounds(self):
+        cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
+        x = c_double()
+        y = c_double()
+        lgeos.GEOSCoordSeq_getX(cs, 0, byref(x))
+        lgeos.GEOSCoordSeq_getY(cs, 0, byref(y))
+        return (x.value, y.value, x.value, y.value)
+
     # Coordinate access
 
     def set_coords(self, coordinates):

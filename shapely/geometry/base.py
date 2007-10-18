@@ -299,3 +299,29 @@ class BaseGeometry(object):
     is_ring = UnaryPredicate(lgeos.GEOSisRing)
     has_z = UnaryPredicate(lgeos.GEOSHasZ)
 
+    @property
+    def bounds(self):
+        env = self.envelope
+        if env.geom_type != 'Polygon':
+            raise ValueError, env.wkt
+        cs = lgeos.GEOSGeom_getCoordSeq(env.exterior._geom)
+        cs_len = c_int(0)
+        lgeos.GEOSCoordSeq_getSize(cs, byref(cs_len))
+        
+        minx = 1.e+20
+        maxx = -1e+20
+        miny = 1.e+20
+        maxy = -1e+20
+        temp = c_double()
+        for i in xrange(cs_len.value):
+            lgeos.GEOSCoordSeq_getX(cs, i, byref(temp))
+            x = temp.value
+            if x < minx: minx = x
+            if x > maxx: maxx = x
+            lgeos.GEOSCoordSeq_getY(cs, i, byref(temp))
+            y = temp.value
+            if y < miny: miny = y
+            if y > maxy: maxy = y
+        
+        return (minx, miny, maxx, maxy)
+

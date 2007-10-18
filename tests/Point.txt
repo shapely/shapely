@@ -54,6 +54,11 @@ Coordinate access
   ...
   IndexError: index out of range
 
+Bounds
+------
+
+  >>> p.bounds
+  (3.0, 4.0, 3.0, 4.0)
 
 Geo interface
 -------------

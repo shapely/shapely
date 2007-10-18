@@ -35,6 +35,11 @@ Numpy Support
   >>> la[0]
   array([ 1.,  2.])
 
+Bounds
+------
+
+  >>> line.bounds
+  (1.0, 2.0, 3.0, 4.0)
 
 Coordinate Access
 -----------------
