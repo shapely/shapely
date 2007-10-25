@@ -12,9 +12,6 @@ applications. For more information, see:
 Shapely requires Python 2.4+. (I've also begun to port it to Python 3.0:
 http://zcologia.com/news/564/shapely-for-python-3-0/.)
 
-.. _wiki: http://trac.gispython.org/projects/PCL/wiki/Shapely
-.. _manual: http://trac.gispython.org/projects/PCL/wiki/ShapelyManual
-
 Dependencies
 ------------
 
@@ -112,4 +109,16 @@ Several of the modules have docstring doctests::
 
 There are also two test runners under tests/. test_doctests.py requires
 zope.testing. runalldoctests.py does not.
+
+Support
+-------
+
+For current information about this project, see the wiki_.
+
+.. _wiki: http://trac.gispython.org/projects/PCL/wiki/Shapely
+.. _manual: http://trac.gispython.org/projects/PCL/wiki/ShapelyManual
+
+If you have questions, please consider joining our community list:
+
+http://trac.gispython.org/projects/PCL/wiki/CommunityList
 
