@@ -9,11 +9,25 @@ from shapely.predicates import BinaryPredicate, UnaryPredicate
 from shapely.topology import BinaryTopologicalOp, UnaryTopologicalOp
 
 
+GEOMETRY_TYPES = [
+    'Point',
+	'LineString',
+	'LinearRing',
+	'Polygon',
+	'MultiPoint',
+	'MultiLineString',
+	'MultiPolygon',
+	'GeometryCollection'
+    ]
+
+def geometry_type_name(g):
+    return GEOMETRY_TYPES[lgeos.GEOSGeomTypeId(g)]
+
 # Abstract geometry factory for use with topological methods below
 
 def geom_factory(g):
     ob = BaseGeometry()
-    geom_type = string_at(lgeos.GEOSGeomType(g))
+    geom_type = geometry_type_name(g)
     # TODO: check cost of dynamic import by profiling
     mod = __import__(
         'shapely.geometry', 
@@ -214,7 +228,7 @@ class BaseGeometry(object):
 
     def geometryType(self):
         """Returns a string representing the geometry type, e.g. 'Polygon'."""
-        return string_at(lgeos.GEOSGeomType(self._geom))
+        return geometry_type_name(self._geom)
 
     def to_wkb(self):
         """Returns a WKB byte string representation of the geometry."""
