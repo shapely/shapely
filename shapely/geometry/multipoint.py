@@ -108,12 +108,12 @@ class MultiPoint(BaseGeometry):
             self._ctypes_data = data
         return self._ctypes_data
 
-    @property
-    def __array_interface__(self):
+    def array_interface(self):
         """Provide the Numpy array protocol."""
         ai = self.array_interface_base
         ai.update({'shape': (len(self.geoms), self._ndim)})
         return ai
+    __array_interface__ = property(array_interface)
 
     @property
     def coords(self):
@@ -163,12 +163,7 @@ class MultiPointAdapter(MultiPoint):
         try:
             return self.context.__array_interface__
         except AttributeError:
-            return {
-                'version': 3,
-                'shape': (self._ndim,),
-                'typestr': '<f8',
-                'data': self.ctypes,
-                }
+            return self.array_interface()
 
 
 def asMultiPoint(context):

@@ -74,7 +74,6 @@ Modify coordinates
   >>> p.__geo_interface__
   {'type': 'Point', 'coordinates': (0.0, 0.0)}
 
-
 Adapter
 -------
 
@@ -117,6 +116,7 @@ Adapter
 
   Now, the inverse
   
+  >>> ai = pa.__array_interface__
   >>> as = asarray(pa)
   >>> as
   array([ 1.,  4.])
