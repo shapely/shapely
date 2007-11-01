@@ -26,6 +26,7 @@ if __name__ == '__main__':
 
     docfiles = [
         'Array.txt',
+        'binascii_hex.txt',
         'GeoInterface.txt',
         'IterOps.txt',
         'LineString.txt',
