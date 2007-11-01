@@ -17,8 +17,6 @@ WKB
 
   >>> from shapely import wkb
   >>> bytes = wkb.dumps(p)
-  >>> bytes.encode("hex")
-  '010100000000000000000000000000000000000000'
   >>> pb = wkb.loads(bytes)
   >>> pb.equals(p)
   True
