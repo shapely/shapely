@@ -162,12 +162,9 @@ class Point(BaseGeometry):
     @property
     def __array_interface__(self):
         """Provide the Numpy array protocol."""
-        return {
-            'version': 3,
-            'shape': (self._ndim,),
-            'typestr': '<f8',
-            'data': self.ctypes,
-            }
+        ai = self.array_interface_base
+        ai.update({'shape': (self._ndim,)})
+        return ai
 
     @property
     def bounds(self):

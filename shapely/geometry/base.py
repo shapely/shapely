@@ -3,6 +3,7 @@ Base geometry class and utilities.
 """
 
 from ctypes import string_at, byref, c_int, c_size_t, c_char_p, c_double
+import sys
 
 from shapely.geos import lgeos
 from shapely.predicates import BinaryPredicate, UnaryPredicate
@@ -199,6 +200,20 @@ class BaseGeometry(object):
         
         To be overridden by extension classes."""
         raise NotImplementedError
+
+    @property
+    def array_interface_base(self):
+        if sys.byteorder == 'little':
+            typestr = '<f8'
+        elif sys.byteorder == 'big':
+            typestr = '>f8'
+        else:
+            raise ValueError, "Unsupported byteorder: neither little nor big-endian"
+        return {
+            'version': 3,
+            'typestr': typestr,
+            'data': self.ctypes,
+            }
 
     @property
     def __array_interface__(self):
