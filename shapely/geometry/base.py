@@ -27,6 +27,8 @@ def geometry_type_name(g):
 # Abstract geometry factory for use with topological methods below
 
 def geom_factory(g):
+    if not g:
+        raise ValueError, "No Shapely geometry can be created from this null value"
     ob = BaseGeometry()
     geom_type = geometry_type_name(g)
     # TODO: check cost of dynamic import by profiling

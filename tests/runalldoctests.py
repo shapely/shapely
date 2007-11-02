@@ -28,6 +28,7 @@ if __name__ == '__main__':
         'Array.txt',
         'binascii_hex.txt',
         'GeoInterface.txt',
+        'invalid_intersection.txt',
         'IterOps.txt',
         'LineString.txt',
         'MultiLineString.txt',

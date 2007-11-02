@@ -26,7 +26,17 @@ class BinaryTopologicalOp(object):
         return self
 
     def __call__(self, other):
-        return self.factory(self.fn(self.context._geom, other._geom))
+        product = self.fn(self.context._geom, other._geom)
+        if not product:
+            # Check validity of geometries
+            if not self.context.is_valid:
+                raise TopologicalError, \
+                "The operation '%s' produced a null geometry. Likely cause is invalidity of the geometry %s" % (self.fn.__name__, repr(self.context))
+            elif not other.is_valid:
+                raise TopologicalError, \
+                "The operation '%s' produced a null geometry. Likely cause is invalidity of the 'other' geometry %s" % (self.fn.__name__, repr(other))
+
+        return self.factory(product)
 
 
 class UnaryTopologicalOp(object):
