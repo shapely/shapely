@@ -28,3 +28,7 @@ def test_suite():
                               setUp=setUp)
          for filename
          in list_doctests()])
+
+if __name__ == "__main__":
+    runner = unittest.TextTestRunner()
+    runner.run(test_suite())
