@@ -1,8 +1,7 @@
+import doctest
 import unittest
 import glob
 import os
-
-from zope.testing import doctest
 
 optionflags = (doctest.REPORT_ONLY_FIRST_FAILURE |
                doctest.NORMALIZE_WHITESPACE |
