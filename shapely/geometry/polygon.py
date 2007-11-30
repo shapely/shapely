@@ -399,7 +399,7 @@ class PolygonAdapter(Polygon):
         return geos_polygon_from_py(self.shell, self.holes)[0]       
 
 
-def asPolygon(shell, holes):
+def asPolygon(shell, holes=None):
     """Factory for PolygonAdapter instances."""
     return PolygonAdapter(shell, holes)
 
