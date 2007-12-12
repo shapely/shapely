@@ -1,11 +1,17 @@
 
 from setuptools import setup, Extension
+from sys import version_info
+
+# Require ctypes egg only for Python < 2.5
+install_requires = ['setuptools']
+if version_info[:2] < (2,5):
+    install_requires.append('ctypes')
 
 # Get text from README.txt
 readme_text = file('README.txt', 'rb').read()
 
 setup(name          = 'Shapely',
-      version       = '1.0b2',
+      version       = '1.0b3',
       description   = 'Geospatial geometries, predicates, and operations',
       license       = 'BSD',
       keywords      = 'geometry topology',
@@ -16,7 +22,7 @@ setup(name          = 'Shapely',
       url   = 'http://trac.gispython.org/projects/PCL/wiki/Shapely',
       long_description = readme_text,
       packages      = ['shapely', 'shapely.geometry'],
-      install_requires = ['setuptools', 'ctypes'],
+      install_requires = install_requires,
       #tests_require = ['numpy'], -- not working with "tests" command
       test_suite = 'tests.test_suite',
       classifiers   = [
