@@ -1,0 +1,19 @@
+==================
+The Shapely Manual
+==================
+
+:Author: Sean Gillies
+:address: sgillies@frii.com
+    http://zcologia.com/sgillies
+
+:revision: 0
+:date: 20 December 2007
+
+:copyright: cc-by-sa
+
+:abstract: This document describes the Shapely package.
+
+.. sectnum::
+
+.. contents::
+
