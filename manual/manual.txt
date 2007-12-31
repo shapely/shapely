@@ -17,3 +17,84 @@ The Shapely Manual
 
 .. contents::
 
+Background
+==========
+
+Geometries
+==========
+
+Factories
+---------
+
+Geometries can be created in the typical Python fashion, using the geometry
+classes themselves as factories.
+
+Notation: **a** is a Cartesian *x*, *y*, and optional *z* coordinate tuple. The
+coordinates values must be numeric types.
+
+(**a**\ 1, ..., **a**\ M) and (**b**\ 1, ..., **b**\ N) are ordered tuples of
+*M* and *N* such coordinate tuples, defining lines or rings.
+
+Points
+++++++
+
+The point factory *Point* takes a coordinate tuple parameter
+
+.. code-block:: python
+
+  >>> from shapely.geometry import Point
+  >>> point = Point(a)
+
+The alternate form is to pass individual coordinate parameters
+
+.. code-block:: python
+
+  >>> point = Point(x0, y0 [, z0])
+
+LineStrings
++++++++++++
+
+.. code-block:: python
+
+  >>> from shapely.geometry import LineString
+  >>> line = LineString((a1, ..., aM))
+
+Polygons
+++++++++
+
+A polygon with only an exterior boundary and no holes is created by passing the tuple representation of a closed ring
+
+.. code-block:: python
+
+  >>> from shapely.geometry import Polygon
+  >>> polygon = Polygon((a1, ..., aM))
+
+If **a**\ 1 is not exactly equal to **a**\ M, the factory will close the ring.
+The following (unit square) polygons are therefore topologically equal
+
+.. code-block:: python
+
+  >>> polygon1 = Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
+  >>> polygon2 = Polygon(((0, 0), (0, 1), (1, 1), (1, 0)))
+  
+To create a polygon with interior boundaries pass a list of rings to the
+parameter named *holes*
+
+.. code-block:: python
+
+  >>> polygon = Polygon((a1, ..., aM), holes=[(b1, ..., bN), ...])
+
+Multipart Geometry Factories
+----------------------------
+
+MultiPoints
++++++++++++
+
+An *N*\ -point geometry is created by passing an unordered sequence of
+coordinate tuples [**c**\ 1, ..., **c**\ N]
+
+.. code-block:: python
+
+  >>> from shapely.geometry import MultiPoint
+  >>> points = MultiPoint([c1, ..., cN])
+
