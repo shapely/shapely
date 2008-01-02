@@ -13,8 +13,7 @@ The Shapely Manual
 
 .. __: http://creativecommons.org/licenses/by-sa/3.0/us/
 
-:abstract: This document describes the Shapely Python package for programming
-with geospatial geometries.
+:abstract: This document describes the Shapely Python package for programming with geospatial geometries.
 
 .. sectnum::
 
