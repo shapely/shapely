@@ -534,4 +534,174 @@ attribute of the geometry object, which is an iterator over the sub-geometries:
    <shapely.geometry.point.Point object at ...>,
    <shapely.geometry.point.Point object at ...>]
 
+The coordinate sequences of these sub-geometries can then be accessed as
+described above.
+
+Interoperation
+==============
+
+Shapely provides 4 avenues for interoperation with other Python and GIS
+software.
+
+Well-known Formats
+------------------
+
+Well-known Text (WKT)
++++++++++++++++++++++
+
+The WKT representation of any geometry object can be had via the **wkt**
+attribute:
+
+.. code-block:: python
+
+  >>> point_r.wkt
+  'POINT (-1.5000000000000000 1.2000000000000000)'
+
+Hex-encode that string and you have a value that can be conveniently inserted directly into PostGIS
+
+.. code-block:: python
+
+  >>> point_r.wkt.encode('hex')
+  '504f494e5420282d312e3530303030303030303030303030303020312e3230303030303030303030303030303029'
+
+New geometries can be created from WKT representations using the
+*shapely.wkt.loads* factory (inspired by the *pickle* module) 
+
+.. code-block:: python
+
+  >>> from shapely.wkt import loads
+  >>> loads('POINT (0 0)')
+  <shapely.geometry.point.Point object at ...>
+
+Well-known Binary (WKB)
++++++++++++++++++++++++
+
+The WKB representation of any geometry object can be had via the **wkb**
+attribute. New geometries can be created from WKB data using the
+*shapely.wkb.loads* factory. Use this format to interoperate with ogr.py:
+
+.. code-block:: python
+
+  >>> import ogr
+  >>> from shapely.wkb import loads
+  >>> source = ogr.Open("/tmp/world_borders.shp")
+  >>> borders = source.GetLayerByName("world_borders")
+  >>> feature = borders.GetNextFeature()
+  >>> loads(feature.GetGeometryRef().ExportToWkb())
+  <shapely.geometry.polygon.Polygon object at ...>
+
+Python Sequences
+----------------
+
+Python sequence data can be analyzed as Shapely geometries using the
+*shapely.geometry.as\** adapters while leaving the data in its original
+storage. A pair of float can be treated as a point with **asPoint**:
+
+.. code-block:: python
+
+  >>> from shapely.geometry import asPoint
+  >>> coords = [3.0, 4.0]
+  >>> pa = asPoint(coords)
+  >>> pa.wkt
+  'POINT (3.0000000000000000 4.0000000000000000)'
+
+Move the coordinates and watch the geometry adapter change
+
+.. code-block:: python
+
+  >>> coords[0] = 1.0
+  >>> pa.wkt
+  'POINT (1.0000000000000000 4.0000000000000000)'
+
+The **asLineString** adapter works much the same. The **asPolygon** adapter is
+used like
+
+.. code-block:: python
+
+  >>> from shapely.geometry import asPolygon
+  >>> coords = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]
+  >>> hole_coords = [((0.1,0.1), (0.1,0.2), (0.2,0.2), (0.2,0.1))]
+  >>> pa = asPolygon(coords, hole_coords)
+  >>> len(pa.exterior.coords)
+  5
+  >>> len(pa.interiors)
+  1
+  >>> len(pa.interiors[0].coords)
+  5
+
+Numpy Array Interface
+---------------------
+
+Shapely geometries provide the Numpy array interface which means that points,
+line strings, and polygon rings can be used as Numpy arrays:
+
+.. code-block:: python
+
+  >>> from numpy import array
+  >>> a = array(polygon.exterior)
+  >>> a
+  array([[-1., -1.],
+         [-1.,  1.],
+         [ 1.,  1.],
+         [ 1., -1.],
+         [-1., -1.]])
+
+The *numpy.asarray* function does not copy coordinate values at the price of
+slower numpy access to coordinates.
+
+The *shapely.geometry.as\** functions can also be used to wrap numpy arrays,
+which can then be analyzed using Shapely while maintaining their original
+storage. A 1 x 2 array can be adapted to a point
+
+.. code-block:: python
+
+  >>> a = array([1.0, 2.0])
+  >>> pa = asPoint(a)
+  >>> pa.wkt
+  'POINT (1.0000000000000000 2.0000000000000000)'
+
+and a N x 2 array can be adapted to a line string
+
+.. code-block:: python
+
+  >>> from shapely.geometry import asLineString
+  >>> a = array([[1.0, 2.0], [3.0, 4.0]])
+  >>> la = asLineString(a)
+  >>> la.wkt
+  'LINESTRING (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)'
+
+There is no Numpy array representation of a polygon.
+
+Python Geo Interface
+--------------------
+
+Any object that provides the GeoJSON-like `Python geo interface`_ can be
+treated as a Shapely geometry using the *shapely.geometry.asShape* function.
+For example, a dictionary:
+
+.. code-block:: python
+
+  >>> from shapely.geometry import asShape
+  >>> d = {"type": "Point", "coordinates": (0.0, 0.0)}
+  >>> shape = asShape(d)
+  >>> shape.geom_type
+  'Point'
+  >>> list(shape.coords)
+  [(0.0, 0.0)]
+
+Or a simple placemark-type object:
+
+.. code-block:: python
+
+  >>> class GeoThing(object):
+  ...     def __init__(self, d):
+  ...         self.__geo_interface__ = d
+  >>> thing = GeoThing({"type": "Point", "coordinates": (0.0, 0.0)})
+  >>> shape = asShape(thing)
+  >>> shape.geom_type
+  'Point'
+  >>> list(shape.coords)
+  [(0.0, 0.0)]
+
+.. _Python geo interface: http://trac.gispython.org/projects/PCL/wiki/PythonGeoInterface
 
