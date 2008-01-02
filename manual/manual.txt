@@ -20,8 +20,28 @@ The Shapely Manual
 Background
 ==========
 
+Shapely is a package for programming with geospatial geometries. It is based on
+the GEOS_ library, a port of the `Java Topology Suite`_. Please refer to the
+JTS overview for definitions and illustrations of the various geometry types,
+operations, and predicates. See also the Shapely wiki_ and Python Package Index
+record_.
+
+.. _GEOS: http://geos.refractions.net
+.. _Java Topology Suite: http://www.jump-project.org/project.php?PID=JTS&SID=OVER
+.. _record: http://pypi.python.org/pypi/Shapely
+.. _wiki: http://trac.gispython.org/projects/PCL/wiki/Shapely
+
 Geometries
 ==========
+
+The basic, standard GIS geometry model consists of single points, line strings,
+and polygons, homogeneous multi-point, multi-line string, and multi-polygon
+collections, and heterogeneous geometry collections. See the JTS illustration_.
+
+.. _illustration: http://www.jump-project.org/project.php?PID=JTS&SID=OVER#spatialdatatypes
+
+Shapely 1.0 does not provide circles, arcs, splines or the like. Shapely 1.0
+does it provide heterogeneous geometry collections.
 
 Factories
 ---------
@@ -29,16 +49,16 @@ Factories
 Geometries can be created in the typical Python fashion, using the geometry
 classes themselves as factories.
 
-Notation: **a** is a Cartesian *x*, *y*, and optional *z* coordinate tuple. The
-coordinates values must be numeric types.
-
-(**a**\ 1, ..., **a**\ M) and (**b**\ 1, ..., **b**\ N) are ordered tuples of
-*M* and *N* such coordinate tuples, defining lines or rings.
+Pseudo-code blocks in this section will use the following notation. Let **a**
+be a Cartesian *x*, *y*, and optional *z* coordinate sequence. The coordinates
+values must be numeric types. Let (**a**\ 1, ..., **a**\ M) and (**b**\ 1, ...,
+**b**\ N) be ordered sequences of *M* and *N* such coordinate sequences,
+defining lines or rings.
 
 Points
 ++++++
 
-The point factory *Point* takes a coordinate tuple parameter
+The point factory *Point* takes a coordinate sequence parameter
 
 .. code-block:: python
 
@@ -54,6 +74,8 @@ The alternate form is to pass individual coordinate parameters
 LineStrings
 +++++++++++
 
+To create a line string, pass in an ordered sequence of coordinate sequences:
+
 .. code-block:: python
 
   >>> from shapely.geometry import LineString
@@ -62,7 +84,7 @@ LineStrings
 Polygons
 ++++++++
 
-A polygon with only an exterior boundary and no holes is created by passing the tuple representation of a closed ring
+A polygon with only an exterior boundary and no holes is created by passing the sequence representation of a closed ring
 
 .. code-block:: python
 
@@ -77,12 +99,12 @@ The following (unit square) polygons are therefore topologically equal
   >>> polygon1 = Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
   >>> polygon2 = Polygon(((0, 0), (0, 1), (1, 1), (1, 0)))
   
-To create a polygon with interior boundaries pass a list of rings to the
-parameter named *holes*
+To create a polygon with interior boundaries pass a sequence of rings to the
+second parameter (*holes*)
 
 .. code-block:: python
 
-  >>> polygon = Polygon((a1, ..., aM), holes=[(b1, ..., bN), ...])
+  >>> polygon = Polygon((a1, ..., aM), [(b1, ..., bN), ...])
 
 Multipart Geometry Factories
 ----------------------------
@@ -91,10 +113,184 @@ MultiPoints
 +++++++++++
 
 An *N*\ -point geometry is created by passing an unordered sequence of
-coordinate tuples [**c**\ 1, ..., **c**\ N]
+coordinate sequences [**c**\ 1, ..., **c**\ N]
 
 .. code-block:: python
 
   >>> from shapely.geometry import MultiPoint
   >>> points = MultiPoint([c1, ..., cN])
+
+MultiLineStrings
+++++++++++++++++
+
+A multi-line geometry is created by passing a sequence of representations of
+lines
+
+.. code-block:: python
+
+  >>> from shapely.geometry import MultiLineString
+  >>> lines = MultiLineString([(a1, ..., aM), (b1, ..., bN), ...])
+
+MultiPolygons
++++++++++++++
+
+A multi-polygon geometry is created by passing a sequence of exterior ring and
+hole list tuples 
+
+.. code-block:: python
+
+  >>> from shapely.geometry import MultiPolygon
+  >>> lines = MultiPolygon([((a1, ..., aM), [(b1, ..., bN), ...]), ...])
+
+More explicit notation for the exterior and interior boundaries (or shells and
+holes) makes usage more clear
+
+.. code-block:: python
+
+  >>> shell = (a1, ..., aM)
+  >>> holes = [(b1, ..., bN), ...]
+  >>> lines = MultiPolygon([(shell, holes), ...])
+
+Constructive Spatial Analysis Methods
+-------------------------------------
+
+There are methods of geometry classes that also serve as factories for new
+geometries. It is important to note that these are topological and not
+point-wise operations, and therefore may produce results that are not what one
+might expect from operations on Python sets.
+
+See also the JTS |illustration2|_.
+
+.. |illustration2| replace:: illustration
+.. _illustration2: http://www.jump-project.org/project.php?PID=JTS&SID=OVER#spatialanalysismethods
+
+Example Geometries
+++++++++++++++++++
+
+.. code-block:: python
+
+  >>> polygon = Polygon(((-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0), (1.0, -1.0)))
+  >>> point_r = Point(-1.5, 1.2)
+  >>> point_g = Point(-1.0, 1.0)
+  >>> point_b = Point(-0.5, 0.5)
+  >>> line_r = LineString(((-0.5, 0.5), (0.5, 0.5)))
+  >>> line_g = LineString(((1.0, -1.0), (1.8, 0.5)))
+  >>> line_b = LineString(((-1.8, -1.2), (1.8, 0.5)))
+
+Buffer
+++++++
+
+.buffer(distance, quadsegs=16) : geometry
+  Buffers the geometry by a unitless *distance*. The *quadsegs* parameter is
+  the number of segments per quadrant in resulting geometries. The default
+  result of buffering a point is a 66-gon approximation of a circle:
+
+.. code-block:: python
+
+  >>> buffered = point_r.buffer(1.0)
+  >>> buffered
+  <shapely.geometry.polygon.Polygon object at ...>
+  >>> buffered.length
+  6.2806623139097271
+  >>> buffered.area
+  3.1365484905463727
+  >>> len(buffered.exterior.coords)
+  66
+
+Boundary
+++++++++
+
+.boundary : geometry
+  Returns a lower dimension geometry. The boundary of a polygon is a line, the
+  boundary of a line is a collection of points. The boundary of a point is an
+  empty (null) collection.
+
+.. code-block:: python
+
+  >>> polygon.boundary
+  <shapely.geometry.linestring.LineString object at ...>
+  >>> line_b.boundary
+  <shapely.geometry.multipoint.MultiPoint object at ...>
+  >>> point_r.boundary.is_empty
+  True
+
+Centroid
+++++++++
+
+.centroid : geometry
+  Returns the centroid, or geometric center of the polygon.
+
+.. code-block:: python
+
+  >>> centroid_point = polygon.centroid
+  >>> centroid_point.wkt
+  'POINT (-0.0000000000000000 -0.0000000000000000)'
+
+
+Convex Hull
++++++++++++
+
+.convex_hull : geometry
+  Imagine an elastic band stretched around the geometry: that's a convex hull,
+  more or less.
+
+For example, collect the three points into a multi-point geometry, and get the
+triangular polygon that is their convex hull:
+
+.. code-block:: python
+
+  >>> multi_point = point_r.union(point_g)
+  >>> multi_point = multi_point.union(point_b)
+  >>> multi_point.convex_hull
+  <shapely.geometry.polygon.Polygon object at ...>
+
+Difference
+++++++++++
+
+.difference(other) : geometry
+  Returns the difference of one geometry from the *other* geometry. Note that
+  A.difference(B) is not equal to B.difference(A).
+
+.. code-block:: python
+
+  >>> hull = multi_point.convex_hull
+  >>> polygon.difference(hull)
+  <shapely.geometry.polygon.Polygon object at ...>
+
+Intersection
+++++++++++++
+
+.intersection(other) : geometry
+  Returns the intersection of one geometry and the *other* geometry.
+
+.. code-block:: python
+
+  >>> polygon.intersection(hull)
+  <shapely.geometry.polygon.Polygon object at ...>
+
+Symmetric Difference
+++++++++++++++++++++
+
+.symmetric_difference(other) : geometry
+  Returns the symmetric difference of one geometry from the *other* geometry.
+
+.. code-block:: python
+
+  >>> polygon.symmetric_difference(hull)
+  <shapely.geometry.multipolygon.MultiPolygon object at ...>
+
+Union
++++++
+
+.union(other) : geometry
+  Returns the union of one geometry and the *other* geometry.
+
+Point unions were demonstrated above under convex hull. The union of polygons
+will be a polygon or a multi-polygon depending on whether they intersect or
+not:
+
+.. code-block:: python
+
+  >>> hull.union(polygon)
+  <shapely.geometry.polygon.Polygon object at ...>
 
