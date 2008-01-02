@@ -6,12 +6,15 @@ The Shapely Manual
 :address: sgillies@frii.com
     http://zcologia.com/sgillies
 
-:revision: 0
-:date: 20 December 2007
+:revision: 1.0
+:date: 2 January 2008
 
-:copyright: cc-by-sa
+:copyright: This work is licensed under a `Creative Commons Attribution-Share Alike 3.0 United States License`__.
 
-:abstract: This document describes the Shapely package.
+.. __: http://creativecommons.org/licenses/by-sa/3.0/us/
+
+:abstract: This document describes the Shapely Python package for programming
+with geospatial geometries.
 
 .. sectnum::
 
@@ -20,11 +23,11 @@ The Shapely Manual
 Background
 ==========
 
-Shapely is a package for programming with geospatial geometries. It is based on
-the GEOS_ library, a port of the `Java Topology Suite`_. Please refer to the
-JTS overview for definitions and illustrations of the various geometry types,
-operations, and predicates. See also the Shapely wiki_ and Python Package Index
-record_.
+Shapely is a Python package for programming with geospatial geometries. It is
+based on the GEOS_ library, a port of the `Java Topology Suite`_. Please refer
+to the JTS overview for definitions and illustrations of the various geometry
+types, operations, and predicates. See also the Shapely wiki_ and Python
+Package Index record_.
 
 .. _GEOS: http://geos.refractions.net
 .. _Java Topology Suite: http://www.jump-project.org/project.php?PID=JTS&SID=OVER
@@ -40,8 +43,7 @@ collections, and heterogeneous geometry collections. See the JTS illustration_.
 
 .. _illustration: http://www.jump-project.org/project.php?PID=JTS&SID=OVER#spatialdatatypes
 
-Shapely 1.0 does not provide circles, arcs, splines or the like. Shapely 1.0
-does it provide heterogeneous geometry collections.
+Shapely 1.0 does not provide circles, arcs, splines or the like.
 
 Factories
 ---------
@@ -676,8 +678,8 @@ Python Geo Interface
 --------------------
 
 Any object that provides the GeoJSON-like `Python geo interface`_ can be
-treated as a Shapely geometry using the *shapely.geometry.asShape* function.
-For example, a dictionary:
+adapted and used as a Shapely geometry using the *shapely.geometry.asShape*
+function. For example, a dictionary:
 
 .. code-block:: python
 
@@ -704,4 +706,47 @@ Or a simple placemark-type object:
   [(0.0, 0.0)]
 
 .. _Python geo interface: http://trac.gispython.org/projects/PCL/wiki/PythonGeoInterface
+
+Advanced Features
+=================
+
+Iterative Operations
+--------------------
+
+Shapely provides functions for efficient operations on large sets of
+geometries.
+
+Contains
+++++++++
+
+To find the subset of points that are contained within a polygon, use
+*shapely.iterops.contains*:
+
+.. code-block:: python
+
+  >>> from shapely.geometry import Polygon
+  >>> from shapely.geometry import Point
+  >>> coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0))
+  >>> polygon = Polygon(coords)
+  >>> points = [Point(0.5, 0.5), Point(2.0, 2.0)]  
+  >>> from shapely import iterops  
+  >>> list(iterops.contains(polygon, points, True))
+  [<shapely.geometry.point.Point object at ...>]
+
+The second parameter to *iterops.contains* can be any kind of iterator, even a
+generator of objects. If it yields tuples, then the second element of the tuple
+will be ultimately yielded from *iterops.contains*.
+
+.. code-block:: python
+
+  >>> list(iterops.contains(polygon, iter((p, p.wkt) for p in points)))
+  ['POINT (0.5000000000000000 0.5000000000000000)']
+
+Credits
+=======
+
+Shapely is written by Sean Gillies with contributions from Howard Butler, Kai
+Lautaportti (Hexagon IT), Frédéric Junod (Camptocamp SA), Eric Lemoine
+(Camptocamp SA) and ctypes tips from Justin Bronn (GeoDjango).
+
 
