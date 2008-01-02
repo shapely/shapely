@@ -396,7 +396,7 @@ Equals
 .equals(other) : bool
   Two geometries are topologically equal if their interiors intersect and no
   part of the interior or boundary of one geometry intersects the exterior of
-  the other [1]. Not to be confused with Python's *__equals__*.
+  the other. Not to be confused with Python's *__equals__*.
 
 Intersects
 ++++++++++
@@ -428,4 +428,110 @@ Within
 
 .within(other): bool
   The inverse of *contains*.
+
+Scalar Properties
+-----------------
+
+Area
+++++
+
+area : float
+  Area of the geometry, unitless. Non-zero only for surfaces (polygons,
+  multi-polygons).
+
+Length
+++++++
+
+length : float
+  Length of the geometry, unitless. Non-zero only for linear geometries
+  (line strings, rings, polygon boundaries)
+
+Examples
+++++++++
+
+.. code-block:: python
+
+  >>> polygon.area
+  4.0
+  >>> polygon.length
+  8.0
+  >>> line_r.length
+  1.0
+  >>> line_b.length
+  3.9812058474788765
+
+Geometry Parts and Coordinates
+==============================
+
+Coordinate Sequences
+--------------------
+
+The coordinates of points, line strings, and polygon rings can be accessed
+through the *coords* attribute of a geometry. *Coords* is an iterator over
+coordinate tuples.
+
+.. code-block:: python
+
+  >>> point_r.coords
+  <shapely.geometry.base.CoordinateSequence object at ...>
+  >>> len(point_r.coords)
+  1
+  >>> point_r.coords[0]
+  (-1.5, 1.2)
+  >>> list(point_r.coords)
+  [(-1.5, 1.2)]
+
+The coordinate sequence can be modifed by assigning a sequence (**a**\ 1, ...,
+**a**\ M) to the coords attribute.
+
+.. code-block:: python
+
+  >>> point_new = Point(0, 0)
+  >>> point_new.coords = (1, 1)
+  >>> list(point_new.coords)
+  [(1.0, 1.0)]
+
+For line strings:
+
+.. code-block:: python
+
+  >>> line_new = LineString([(0,0), (1,1)])
+  >>> line_new.coords = [(1,1), (2,2)]
+  >>> list(line_new.coords)
+  [(1.0, 1.0), (2.0, 2.0)]
+
+Polygon Rings
+-------------
+
+The exterior boundary of a polygon can be accessed through the *exterior*
+attribute of the geometry object.
+
+.. code-block:: python
+
+  >>> polygon.exterior
+  <shapely.geometry.polygon.LinearRing object at ...>
+  >>> list(polygon.exterior.coords)
+  [(-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0), (1.0, -1.0), (-1.0, -1.0)]
+
+The interior boundaries (or holes) of a polygon can be accessed through the
+*interiors* attribute, which is a list of rings.
+
+Sub-geometries
+--------------
+
+The parts of a multi-part geometry can be accessed through the *geoms*
+attribute of the geometry object, which is an iterator over the sub-geometries:
+
+.. code-block:: python
+
+  >>> multi_point.geoms
+  <shapely.geometry.base.GeometrySequence object at ...>
+  >>> len(multi_point.geoms)
+  3
+  >>> from pprint import pprint
+  >>> pprint(list(multi_point.geoms))
+  [<shapely.geometry.point.Point object at ...>,
+   <shapely.geometry.point.Point object at ...>,
+   <shapely.geometry.point.Point object at ...>]
+
 
