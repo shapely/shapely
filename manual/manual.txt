@@ -107,6 +107,10 @@ second parameter (*holes*)
 
   >>> polygon = Polygon((a1, ..., aM), [(b1, ..., bN), ...])
 
+Rings *must* be non-crossing, ordered coordinate sequences. The order may be
+clockwise or counter-clockwise. The resulting topology is independent of the
+order.
+
 Multipart Geometry Factories
 ----------------------------
 
@@ -181,10 +185,11 @@ Example Geometries
 Buffer
 ++++++
 
-.buffer(distance, quadsegs=16) : geometry
-  Buffers the geometry by a unitless *distance*. The *quadsegs* parameter is
-  the number of segments per quadrant in resulting geometries. The default
-  result of buffering a point is a 66-gon approximation of a circle:
+.buffer(width, quadsegs=16) : geometry
+  Returns a buffer region having the given width and with a specified number of
+  segments used to approximate curves.
+  
+The default result of buffering a point is an N-gon approximation of a circle:
 
 .. code-block:: python
 
@@ -249,8 +254,9 @@ Difference
 ++++++++++
 
 .difference(other) : geometry
-  Returns the difference of one geometry from the *other* geometry. Note that
-  A.difference(B) is not equal to B.difference(A).
+  Returns a geometry representing the points making up this geometry that do
+  not make up *other*. Note that A.difference(B) is not necessarily equal to
+  B.difference(A).
 
 .. code-block:: python
 
@@ -273,7 +279,8 @@ Symmetric Difference
 ++++++++++++++++++++
 
 .symmetric_difference(other) : geometry
-  Returns the symmetric difference of one geometry from the *other* geometry.
+  Returns a geometry combining the points in this geometry not in *other*, and
+  the points in *other* not in this geometry.
 
 .. code-block:: python
 
@@ -430,20 +437,35 @@ Within
 .within(other): bool
   The inverse of *contains*.
 
+General Methods
+---------------
+
+Distance
+++++++++
+
+.distance(other) : geometry
+  The minimum distance from one geometry to the other.
+
+.. code-block:: python
+
+  >>> Point(0,0).distance(Point(1,1))
+  1.4142135623730951
+
+
 Scalar Properties
 -----------------
 
 Area
 ++++
 
-area : float
+.area : float
   Area of the geometry, unitless. Non-zero only for surfaces (polygons,
   multi-polygons).
 
 Length
 ++++++
 
-length : float
+.length : float
   Length of the geometry, unitless. Non-zero only for linear geometries
   (line strings, rings, polygon boundaries)
 
