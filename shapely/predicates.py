@@ -16,16 +16,18 @@ class BinaryPredicate(object):
 
     def __init__(self, fn):
         self.fn = fn
+        def errcheck(result, func, argtuple):
+            if result == 2:
+                raise PredicateError, "Failed to evaluate %s" % repr(self.fn)
+            return result
+        self.fn.errcheck = errcheck
 
     def __get__(self, obj, objtype=None):
         self.context = obj
         return self
 
     def __call__(self, other):
-        retval = self.fn(self.context._geom, other._geom)
-        if retval == 2:
-            raise PredicateError, "Failed to evaluate %s" % repr(self.fn)
-        return bool(retval)
+        return bool(self.fn(self.context._geom, other._geom))
 
 
 # A data descriptor
@@ -38,12 +40,14 @@ class UnaryPredicate(object):
 
     def __init__(self, fn):
         self.fn = fn
+        def errcheck(result, func, argtuple):
+            if result == 2:
+                raise PredicateError, "Failed to evaluate %s" % repr(self.fn)
+            return result
+        self.fn.errcheck = errcheck
 
     def __get__(self, obj, objtype=None):
-        retval = self.fn(obj._geom)
-        if retval == 2:
-            raise PredicateError, "Failed to evaluate %s" % repr(self.fn)
-        return bool(retval)
+        return bool(self.fn(obj._geom))
     
     def __set__(self, obj, value=None):
         raise AttributeError, "Attribute is read-only"
