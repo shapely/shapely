@@ -74,6 +74,12 @@ Modify coordinates
   >>> p.__geo_interface__
   {'type': 'Point', 'coordinates': (0.0, 0.0)}
 
+Alternate method
+
+  >>> p.coords = ((0.0, 0.0),)
+  >>> p.__geo_interface__
+  {'type': 'Point', 'coordinates': (0.0, 0.0)}
+
 Adapter
 -------
 

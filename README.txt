@@ -15,7 +15,7 @@ http://zcologia.com/news/564/shapely-for-python-3-0/.)
 Dependencies
 ------------
 
-* libgeos_c (2.2.3, also reported to work with 3.0)
+* libgeos_c (2.2.3 or 3.0.0+)
 * Python ctypes_ (standard in Python 2.5+)
 
 .. _ctypes: http://pypi.python.org/pypi/ctypes/

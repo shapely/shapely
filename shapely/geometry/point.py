@@ -33,8 +33,12 @@ def geos_point_from_py(ob, update_geom=None, update_ndim=0):
             dz = c_double(cp[2])
             ndim = 3
     except AttributeError:
-        # Fall back on list
-        coords = ob
+        # Fall back on the case of Python sequence data
+        # Accept either (x, y) or [(x, y)]
+        if type(ob[0]) == type(tuple()):
+            coords = ob[0]
+        else:
+            coords = ob
         n = len(coords)
         dx = c_double(coords[0])
         dy = c_double(coords[1])
