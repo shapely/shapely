@@ -5,7 +5,7 @@ Base geometry class and utilities.
 from ctypes import string_at, byref, c_int, c_size_t, c_char_p, c_double
 import sys
 
-from shapely.geos import lgeos
+from shapely.geos import lgeos, free, allocated_c_char_p
 from shapely.predicates import BinaryPredicate, UnaryPredicate
 from shapely.topology import BinaryTopologicalOp, UnaryTopologicalOp
 
@@ -303,7 +303,12 @@ class BaseGeometry(object):
     # Relate has a unique string return value
     def relate(self, other):
         func = lgeos.GEOSRelate
-        func.restype = c_char_p
+        def errcheck(result, func, argtuple):
+            retval = result.value
+            free(result)
+            return retval
+        func.restype = allocated_c_char_p
+        func.errcheck = errcheck
         return lgeos.GEOSRelate(self._geom, other._geom)
 
     # Binary predicates

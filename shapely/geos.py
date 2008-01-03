@@ -3,7 +3,7 @@ Exports the libgeos_c shared lib, GEOS-specific exceptions, and utilities.
 """
 
 import atexit
-from ctypes import CDLL, CFUNCTYPE, c_char_p
+from ctypes import cdll, CDLL, CFUNCTYPE, c_char_p
 from ctypes.util import find_library
 import sys
 
@@ -16,8 +16,10 @@ if sys.platform == 'win32':
         lgeos = CDLL('libgeos_c-1.dll')
     except:
         raise
+    free = cdll.msvcrt.free
 elif sys.platform == 'darwin':
     lgeos = CDLL(find_library('geos_c'))
+    free = CDLL(find_library('libc')).free
 else:
     # Try the major versioned name first, falling back on the unversioned name.
     try:
@@ -26,6 +28,12 @@ else:
         lgeos = CDLL('libgeos_c.so')
     except:
         raise
+    free = CDLL('libc.so.6').free
+
+
+class allocated_c_char_p(c_char_p):
+    pass
+
 
 # Exceptions
 
