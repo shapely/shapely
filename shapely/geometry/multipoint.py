@@ -132,13 +132,11 @@ class MultiPointAdapter(MultiPoint):
     """
     
     context = None
+    __geom = None
+    _owned = False
 
     def __init__(self, context):
         self.context = context
-
-    # Override base class __del__
-    def __del__(self):
-        pass
 
     @property
     def _ndim(self):
@@ -155,7 +153,10 @@ class MultiPointAdapter(MultiPoint):
     @property
     def _geom(self):
         """Keeps the GEOS geometry in synch with the context."""
-        return geos_multipoint_from_py(self.context)[0]       
+        if self.__geom is not None:
+            lgeos.GEOSGeom_destroy(self.__geom)
+        self.__geom = geos_multipoint_from_py(self.context)[0]
+        return self.__geom
 
     @property
     def __array_interface__(self):

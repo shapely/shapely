@@ -161,18 +161,18 @@ class BaseGeometry(object):
     """Provides GEOS spatial predicates and topological operations.
     """
 
-    _geom = None
+    __geom = None # See _geom property below
     _ctypes_data = None
     _ndim = None
     _crs = None
     _owned = False
 
     def __init__(self):
-        self._geom = lgeos.GEOSGeomFromWKT(c_char_p('GEOMETRYCOLLECTION EMPTY'))
+        self.__geom = lgeos.GEOSGeomFromWKT(c_char_p('GEOMETRYCOLLECTION EMPTY'))
 
     def __del__(self):
-        if self._geom is not None and not self._owned:
-            lgeos.GEOSGeom_destroy(self._geom)
+        if self.__geom is not None and not self._owned:
+            lgeos.GEOSGeom_destroy(self.__geom)
 
     def __str__(self):
         return self.to_wkt()
@@ -189,10 +189,19 @@ class BaseGeometry(object):
         return (self.__class__, (), self.to_wkb())
 
     def __setstate__(self, state):
-        self._geom = lgeos.GEOSGeomFromWKB_buf(
+        self.__geom = lgeos.GEOSGeomFromWKB_buf(
                         c_char_p(state), 
                         c_size_t(len(state))
                         )
+
+    # _geom has been made a property with the GEOS geometry pointer stored
+    # in __geom so that geometries and geometry adapters can share __del__
+
+    def _get_geom(self):
+        return self.__geom
+    def _set_geom(self, val):
+        self.__geom = val
+    _geom = property(_get_geom, _set_geom)
 
     # Array and ctypes interfaces
 

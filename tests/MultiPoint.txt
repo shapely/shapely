@@ -12,8 +12,6 @@ Construct from a numpy array
   >>> geom = MultiPoint(array([[0.0, 0.0], [1.0, 2.0]]))
   >>> geom # doctest: +ELLIPSIS
   <shapely.geometry.multipoint.MultiPoint object at ...>
-  >>> geom._geom == geom.geoms._geom
-  True
   >>> len(geom.geoms)
   2
   >>> geom.wkt

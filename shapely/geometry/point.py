@@ -193,13 +193,11 @@ class PointAdapter(Point):
     """
 
     context = None
+    __geom = None
+    _owned = False
 
     def __init__(self, context):
         self.context = context
-
-    # Override base class __del__
-    def __del__(self):
-        pass
 
     @property
     def _ndim(self):
@@ -216,7 +214,10 @@ class PointAdapter(Point):
     @property
     def _geom(self):
         """Keeps the GEOS geometry in synch with the context."""
-        return geos_point_from_py(self.context)[0]       
+        if self.__geom is not None:
+            lgeos.GEOSGeom_destroy(self.__geom)
+        self.__geom = geos_point_from_py(self.context)[0]
+        return self.__geom
 
     # TODO: reimplement x, y, z properties without calling invoking _geom
 
