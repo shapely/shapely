@@ -249,13 +249,25 @@ class BaseGeometry(object):
 
     def to_wkb(self):
         """Returns a WKB byte string representation of the geometry."""
+        func = lgeos.GEOSGeomToWKB_buf
         size = c_int()
-        bytes = lgeos.GEOSGeomToWKB_buf(self._geom, byref(size))
-        return string_at(bytes, size.value)
+        def errcheck(result, func, argtuple):
+            retval = string_at(result, size.value)[:]
+            free(result)
+            return retval
+        func.errcheck = errcheck
+        return func(self._geom, byref(size))
 
     def to_wkt(self):
         """Returns a WKT string representation of the geometry."""
-        return string_at(lgeos.GEOSGeomToWKT(self._geom))
+        func = lgeos.GEOSGeomToWKT
+        def errcheck(result, func, argtuple):
+            retval = result.value
+            free(result)
+            return retval
+        func.restype = allocated_c_char_p
+        func.errcheck = errcheck
+        return lgeos.GEOSGeomToWKT(self._geom)
 
     geom_type = property(geometryType)
     wkt = property(to_wkt)
