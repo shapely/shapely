@@ -19,6 +19,7 @@ The Shapely Manual
 
 .. contents::
 
+
 Background
 ==========
 
@@ -33,6 +34,7 @@ Package Index record_.
 .. _record: http://pypi.python.org/pypi/Shapely
 .. _wiki: http://trac.gispython.org/projects/PCL/wiki/Shapely
 
+
 Geometries
 ==========
 
@@ -43,6 +45,7 @@ collections, and heterogeneous geometry collections. See the JTS illustration_.
 .. _illustration: http://www.jump-project.org/project.php?PID=JTS&SID=OVER#spatialdatatypes
 
 Shapely 1.0 does not provide circles, arcs, splines or the like.
+
 
 Factories
 ---------
@@ -111,6 +114,7 @@ Rings *must* be non-crossing, ordered coordinate sequences. The order may be
 clockwise or counter-clockwise. The resulting topology is independent of the
 order.
 
+
 Multipart Geometry Factories
 ----------------------------
 
@@ -155,6 +159,31 @@ holes) makes usage more clear
   >>> shell = (a1, ..., aM)
   >>> holes = [(b1, ..., bN), ...]
   >>> lines = MultiPolygon([(shell, holes), ...])
+
+
+Null Geometries
+---------------
+
+Null geometries can be created by calling the factories with no arguments, but
+almost nothing can be done with a null geometry.
+
+.. code-block:: python
+
+  >>> line_null = LineString()
+  >>> line_null.length
+  Traceback (most recent call last):
+  ...
+  ValueError: Null geometry supports no operations
+
+The coordinates of a null geometry *can* be set (see Section 3), after which
+the geometry is no longer null.
+
+.. code-block:: python
+
+  >>> l_null.coords = [(0, 0), (1, 1)]
+  >>> print l_null.length
+  1.414...
+
 
 Constructive Spatial Analysis Methods
 -------------------------------------
@@ -232,7 +261,6 @@ Centroid
   >>> centroid_point.wkt
   'POINT (-0.0000000000000000 -0.0000000000000000)'
 
-
 Convex Hull
 +++++++++++
 
@@ -262,6 +290,17 @@ Difference
 
   >>> hull = multi_point.convex_hull
   >>> polygon.difference(hull)
+  <shapely.geometry.polygon.Polygon object at ...>
+
+Envelope
+++++++++
+
+.envelope : geometry
+  Returns the geometry's rectangular polygon envelope.
+
+.. code-block:: python
+
+  >>> polygon.envelope
   <shapely.geometry.polygon.Polygon object at ...>
 
 Intersection
@@ -301,6 +340,7 @@ not:
 
   >>> hull.union(polygon)
   <shapely.geometry.polygon.Polygon object at ...>
+
 
 Unary Spatial Predicates
 ------------------------
@@ -350,9 +390,10 @@ Examples
   >>> polygon.boundary.is_ring
   True
   >>> polygon.has_z
-  True
+  False
 
-(Note: that last return value exposes a bug in GEOS 2.2.3. Should be False.)
+(Note: that last return value exposes a bug in GEOS 2.2.3.)
+
 
 Binary Spatial Predicates
 -------------------------
@@ -437,6 +478,7 @@ Within
 .within(other): bool
   The inverse of *contains*.
 
+
 General Methods
 ---------------
 
@@ -462,6 +504,12 @@ Area
   Area of the geometry, unitless. Non-zero only for surfaces (polygons,
   multi-polygons).
 
+Bounds
+++++++
+
+.bounds : tuple
+  The geometry's (minx, miny, maxx, maxy) bounding box.
+
 Length
 ++++++
 
@@ -476,12 +524,15 @@ Examples
 
   >>> polygon.area
   4.0
+  >>> polygon.bounds
+  (-1.0, -1.0, 1.0, 1.0)
   >>> polygon.length
   8.0
   >>> line_r.length
   1.0
   >>> line_b.length
   3.9812058474788765
+
 
 Geometry Parts and Coordinates
 ==============================
@@ -523,6 +574,7 @@ For line strings:
   >>> list(line_new.coords)
   [(1.0, 1.0), (2.0, 2.0)]
 
+
 Polygon Rings
 -------------
 
@@ -538,6 +590,7 @@ attribute of the geometry object.
 
 The interior boundaries (or holes) of a polygon can be accessed through the
 *interiors* attribute, which is a list of rings.
+
 
 Sub-geometries
 --------------
@@ -559,6 +612,22 @@ attribute of the geometry object, which is an iterator over the sub-geometries:
 
 The coordinate sequences of these sub-geometries can then be accessed as
 described above.
+
+
+Point Coordinates
+-----------------
+
+For the sake of convenience the coordinate values of points can be accessed
+read-only via **x**, **y**, and **z** attributes:
+
+.. code-block:: python
+
+  >>> point = Point(1.0, 1.0)
+  >>> point.x
+  1.0
+  >>> point.y
+  1.0
+
 
 Interoperation
 ==============
@@ -613,6 +682,7 @@ attribute. New geometries can be created from WKB data using the
   >>> loads(feature.GetGeometryRef().ExportToWkb())
   <shapely.geometry.polygon.Polygon object at ...>
 
+
 Python Sequences
 ----------------
 
@@ -651,6 +721,7 @@ used like
   1
   >>> len(pa.interiors[0].coords)
   5
+
 
 Numpy Array Interface
 ---------------------
@@ -695,6 +766,7 @@ and a N x 2 array can be adapted to a line string
 
 There is no Numpy array representation of a polygon.
 
+
 Python Geo Interface
 --------------------
 
@@ -727,6 +799,7 @@ Or a simple placemark-type object:
   [(0.0, 0.0)]
 
 .. _Python geo interface: http://trac.gispython.org/projects/PCL/wiki/PythonGeoInterface
+
 
 Advanced Features
 =================
@@ -762,6 +835,7 @@ will be ultimately yielded from *iterops.contains*.
 
   >>> list(iterops.contains(polygon, iter((p, p.wkt) for p in points)))
   ['POINT (0.5000000000000000 0.5000000000000000)']
+
 
 Credits
 =======
