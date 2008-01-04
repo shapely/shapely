@@ -141,6 +141,8 @@ class LinearRing(LineString):
     """
 
     _ndim = 2
+    __geom = None
+    _owned = False
 
     def __init__(self, coordinates=None):
         """Initialize.
@@ -162,7 +164,9 @@ class LinearRing(LineString):
         Produces a 1x1 square.
         """
         BaseGeometry.__init__(self)
+        self._init_geom(coordinates)
 
+    def _init_geom(self, coordinates):
         if coordinates is None:
             # allow creation of null lines, to support unpickling
             pass
@@ -179,6 +183,8 @@ class LinearRing(LineString):
     # Coordinate access
 
     def set_coords(self, coordinates):
+        if self._geom is None:
+            self._init_geom(coordinates)
         update_linearring_from_py(self, coordinates)
 
     coords = property(BaseGeometry.get_coords, set_coords)
@@ -267,9 +273,6 @@ class InteriorRingSequence(object):
 def geos_polygon_from_py(shell, holes=None):
     if shell is not None:
         geos_shell, ndims = geos_linearring_from_py(shell)
-        ## Polygon geometry takes ownership of the ring
-        #self._exterior._owned = True
-
         if holes:
             ob = holes
             L = len(ob)
@@ -309,6 +312,8 @@ class Polygon(BaseGeometry):
     _exterior = None
     _interiors = []
     _ndim = 2
+    __geom = None
+    _owned = False
 
     def __init__(self, shell=None, holes=None):
         """Initialize.

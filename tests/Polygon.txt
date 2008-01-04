@@ -108,4 +108,23 @@ Adapter
   1
   >>> len(pa.interiors[0].coords)
   5
-  
+
+Test Non-operability of Null rings
+
+  >>> r_null = LinearRing()
+  >>> r_null.wkt # doctest: +ELLIPSIS
+  Traceback (most recent call last):
+  ...
+  ValueError: Null geometry supports no operations
+
+  >>> r_null.length # doctest: +ELLIPSIS
+  Traceback (most recent call last):
+  ...
+  ValueError: Null geometry supports no operations
+
+Check that we can set coordinates of a null geometry
+
+  >>> r_null.coords = [(0, 0), (1, 1), (1, 0)]
+  >>> print r_null.length # doctest: +ELLIPSIS
+  3.414...
+

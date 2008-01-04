@@ -140,3 +140,9 @@ Test Non-operability of Null geometry
   ...
   ValueError: Null geometry supports no operations
 
+Check that we can set coordinates of a null geometry
+
+  >>> p_null.coords = (0, 0)
+  >>> p_null.wkt
+  'POINT (0.0000000000000000 0.0000000000000000)'
+

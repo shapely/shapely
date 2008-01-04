@@ -102,4 +102,23 @@ Adapter
   >>> la = asLineString(coords)
   >>> la.wkt
   'LINESTRING (5.0000000000000000 6.0000000000000000, 7.0000000000000000 8.0000000000000000)'
-  
+
+Test Non-operability of Null geometry
+
+  >>> l_null = LineString()
+  >>> l_null.wkt # doctest: +ELLIPSIS
+  Traceback (most recent call last):
+  ...
+  ValueError: Null geometry supports no operations
+
+  >>> l_null.length # doctest: +ELLIPSIS
+  Traceback (most recent call last):
+  ...
+  ValueError: Null geometry supports no operations
+
+Check that we can set coordinates of a null geometry
+
+  >>> l_null.coords = [(0, 0), (1, 1)]
+  >>> print l_null.length # doctest: +ELLIPSIS
+  1.414...
+

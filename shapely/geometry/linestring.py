@@ -118,7 +118,9 @@ class LineString(BaseGeometry):
         Each result in a line string from (0.0, 0.0) to (1.0, 2.0).
         """
         BaseGeometry.__init__(self)
+        self._init_geom(coordinates)
 
+    def _init_geom(self, coordinates):
         if coordinates is None:
             # allow creation of null lines, to support unpickling
             pass
@@ -165,6 +167,8 @@ class LineString(BaseGeometry):
     # Coordinate access
 
     def set_coords(self, coordinates):
+        if self._geom is None:
+            self._init_geom(coordinates)
         update_linestring_from_py(self, coordinates)
 
     coords = property(BaseGeometry.get_coords, set_coords)

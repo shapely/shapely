@@ -107,7 +107,9 @@ class Point(BaseGeometry):
             Easting, northing, and elevation.
         """
         BaseGeometry.__init__(self)
+        self._init_geom(*args)
 
+    def _init_geom(self, *args):
         if len(args) == 0:
             # allow creation of null points, to support unpickling
             pass
@@ -189,7 +191,10 @@ class Point(BaseGeometry):
     # Coordinate access
 
     def set_coords(self, coordinates):
-        update_point_from_py(self, coordinates)
+        if self._geom is None:
+            self._init_geom(coordinates)
+        else:
+            update_point_from_py(self, coordinates)
 
     coords = property(BaseGeometry.get_coords, set_coords)
 
