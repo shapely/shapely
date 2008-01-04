@@ -28,14 +28,17 @@ class BinaryPredicateIterator(object):
         return self
 
     def __call__(self, geom, iterator, value=True):
-        #geos_geom = geom._geom #geos_from_geometry(geom)
+        if geom._geom is None:
+            raise ValueError, "Null geometry supports no operations"
         for item in iterator:
             try:
                 this_geom, ob = item
             except TypeError:
                 this_geom = item
                 ob = this_geom
-            retval = self.fn(geom._geom, this_geom._geom) #geos_from_geometry(geom))
+            if this_geom._geom is None:
+                raise ValueError, "Null geometry supports no operations"
+            retval = self.fn(geom._geom, this_geom._geom)
             if retval == 2:
                 raise PredicateError, "Failed to evaluate %s" % repr(self.fn)
             elif bool(retval) == value:

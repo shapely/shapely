@@ -6,7 +6,7 @@ from ctypes import byref, c_double, c_int, cast, POINTER, pointer
 from ctypes import ArgumentError
 
 from shapely.geos import lgeos
-from shapely.geometry.base import BaseGeometry
+from shapely.geometry.base import BaseGeometry, exceptNull
 
 
 def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
@@ -86,7 +86,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
     if update_geom is not None:
         return None
     else:
-        return (lgeos.GEOSGeom_createLineString(cs), n)
+        return lgeos.GEOSGeom_createLineString(cs), n
 
 def update_linestring_from_py(geom, ob):
     geos_linestring_from_py(ob, geom._geom, geom._ndim)
@@ -133,6 +133,7 @@ class LineString(BaseGeometry):
             }
 
     @property
+    @exceptNull
     def ctypes(self):
         if not self._ctypes_data:
             cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
@@ -199,7 +200,7 @@ class LineStringAdapter(LineString):
         """Keeps the GEOS geometry in synch with the context."""
         if self.__geom is not None:
             lgeos.GEOSGeom_destroy(self.__geom)
-        self.__geom = geos_linestring_from_py(self.context)[0]
+        self.__geom, n = geos_linestring_from_py(self.context)
         return self.__geom
 
     @property

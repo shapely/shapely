@@ -5,7 +5,7 @@ Multiple points.
 from ctypes import byref, c_double, c_int, c_void_p, cast, POINTER, pointer
 
 from shapely.geos import lgeos
-from shapely.geometry.base import BaseGeometry, GeometrySequence
+from shapely.geometry.base import BaseGeometry, GeometrySequence, exceptNull
 from shapely.geometry.point import Point, geos_point_from_py
 
 
@@ -44,7 +44,7 @@ def geos_multipoint_from_py(ob):
             geom, ndims = geos_point_from_py(coords)
             subs[i] = cast(geom, c_void_p)
             
-    return (lgeos.GEOSGeom_createCollection(4, subs, m), n)
+    return lgeos.GEOSGeom_createCollection(4, subs, m), n
 
 
 class MultiPoint(BaseGeometry):
@@ -81,6 +81,7 @@ class MultiPoint(BaseGeometry):
 
 
     @property
+    @exceptNull
     def __geo_interface__(self):
         return {
             'type': 'MultiPoint',
@@ -88,6 +89,7 @@ class MultiPoint(BaseGeometry):
             }
 
     @property
+    @exceptNull
     def ctypes(self):
         if not self._ctypes_data:
             temp = c_double()
@@ -108,6 +110,7 @@ class MultiPoint(BaseGeometry):
             self._ctypes_data = data
         return self._ctypes_data
 
+    @exceptNull
     def array_interface(self):
         """Provide the Numpy array protocol."""
         ai = self.array_interface_base
@@ -121,6 +124,7 @@ class MultiPoint(BaseGeometry):
         "Multipart geometries do not themselves provide coordinate sequences"
 
     @property
+    @exceptNull
     def geoms(self):
         return GeometrySequence(self, Point)
         
@@ -155,7 +159,7 @@ class MultiPointAdapter(MultiPoint):
         """Keeps the GEOS geometry in synch with the context."""
         if self.__geom is not None:
             lgeos.GEOSGeom_destroy(self.__geom)
-        self.__geom = geos_multipoint_from_py(self.context)[0]
+        self.__geom, n = geos_multipoint_from_py(self.context)
         return self.__geom
 
     @property

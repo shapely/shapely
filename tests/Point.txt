@@ -127,3 +127,16 @@ Adapter
   >>> as
   array([ 1.,  4.])
 
+Test Non-operability of Null geometry
+
+  >>> p_null = Point()
+  >>> p_null.wkt # doctest: +ELLIPSIS
+  Traceback (most recent call last):
+  ...
+  ValueError: Null geometry supports no operations
+
+  >>> p_null.area # doctest: +ELLIPSIS
+  Traceback (most recent call last):
+  ...
+  ValueError: Null geometry supports no operations
+

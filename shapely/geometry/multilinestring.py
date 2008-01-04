@@ -5,7 +5,7 @@ Multi-part collection of linestrings.
 from ctypes import byref, c_double, c_int, c_void_p, cast, POINTER, pointer
 
 from shapely.geos import lgeos
-from shapely.geometry.base import BaseGeometry, GeometrySequence
+from shapely.geometry.base import BaseGeometry, GeometrySequence, exceptNull
 from shapely.geometry.linestring import LineString, geos_linestring_from_py
 
 
@@ -102,6 +102,7 @@ class MultiLineString(BaseGeometry):
         "Multi-part geometries do not provide a coordinate sequence"
 
     @property
+    @exceptNull
     def geoms(self):
         return GeometrySequence(self, LineString)
 

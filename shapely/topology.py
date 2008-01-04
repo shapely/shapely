@@ -26,6 +26,8 @@ class BinaryTopologicalOp(object):
         return self
 
     def __call__(self, other):
+        if self.context._geom is None or other._geom is None:
+            raise ValueError, "Null geometry supports no operations"
         product = self.fn(self.context._geom, other._geom)
         if not product:
             # Check validity of geometries
@@ -55,6 +57,8 @@ class UnaryTopologicalOp(object):
         self.factory = factory
 
     def __get__(self, obj, objtype=None):
+        if obj._geom is None:
+            raise ValueError, "Null geometry supports no operations"
         return self.factory(self.fn(obj._geom))
     
     def __set__(self, obj, value=None):

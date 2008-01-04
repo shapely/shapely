@@ -22,6 +22,8 @@ GEOMETRY_TYPES = [
     ]
 
 def geometry_type_name(g):
+    if g is None:
+        raise ValueError, "Null geometry has no type"
     return GEOMETRY_TYPES[lgeos.GEOSGeomTypeId(g)]
 
 # Abstract geometry factory for use with topological methods below
@@ -156,6 +158,25 @@ class GeometrySequence(object):
                 max = l
 
 
+def exceptNull(func):
+    """Decorator which helps avoid GEOS operations on null pointers."""
+    def wrapper(*args, **kwargs):
+        # self is the first arg
+        if args[0]._geom is None:
+            raise ValueError, "Null geometry supports no operations"
+        return func(*args, **kwargs)
+    return wrapper
+
+def exceptEitherNull(func):
+    """Decorator which avoids GEOS operations on one or more null pointers."""
+    def wrapper(*args, **kwargs):
+        # self is the first arg
+        if args[0]._geom is None or args[1]._geom is None:
+            raise ValueError, "Null geometry supports no operations"
+        return func(*args, **kwargs)
+    return wrapper
+
+
 class BaseGeometry(object):
     
     """Provides GEOS spatial predicates and topological operations.
@@ -168,7 +189,7 @@ class BaseGeometry(object):
     _owned = False
 
     def __init__(self):
-        self.__geom = lgeos.GEOSGeomFromWKT(c_char_p('GEOMETRYCOLLECTION EMPTY'))
+        self.__geom = None
 
     def __del__(self):
         if self.__geom is not None and not self._owned:
@@ -197,11 +218,11 @@ class BaseGeometry(object):
     # _geom has been made a property with the GEOS geometry pointer stored
     # in __geom so that geometries and geometry adapters can share __del__
 
-    def _get_geom(self):
+    def get_geom(self):
         return self.__geom
-    def _set_geom(self, val):
+    def set_geom(self, val):
         self.__geom = val
-    _geom = property(_get_geom, _set_geom)
+    _geom = property(get_geom, set_geom)
 
     # Array and ctypes interfaces
 
@@ -231,6 +252,7 @@ class BaseGeometry(object):
         """Provide the Numpy array protocol."""
         raise NotImplementedError
 
+    @exceptNull
     def get_coords(self):
         return CoordinateSequence(self)
 
@@ -252,10 +274,12 @@ class BaseGeometry(object):
 
     # Type of geometry and its representations
 
+    @exceptNull
     def geometryType(self):
         """Returns a string representing the geometry type, e.g. 'Polygon'."""
         return geometry_type_name(self._geom)
 
+    @exceptNull
     def to_wkb(self):
         """Returns a WKB byte string representation of the geometry."""
         func = lgeos.GEOSGeomToWKB_buf
@@ -267,6 +291,7 @@ class BaseGeometry(object):
         func.errcheck = errcheck
         return func(self._geom, byref(size))
 
+    @exceptNull
     def to_wkt(self):
         """Returns a WKT string representation of the geometry."""
         func = lgeos.GEOSGeomToWKT
@@ -285,17 +310,20 @@ class BaseGeometry(object):
     # Basic geometry properties
 
     @property
+    @exceptNull
     def area(self):
         a = c_double()
         retval =  lgeos.GEOSArea(self._geom, byref(a))
         return a.value
 
     @property
+    @exceptNull
     def length(self):
         len = c_double()
         retval =  lgeos.GEOSLength(self._geom, byref(len))
         return len.value
 
+    @exceptEitherNull
     def distance(self, other):
         d = c_double()
         retval =  lgeos.GEOSDistance(self._geom, other._geom, byref(d))
@@ -316,12 +344,14 @@ class BaseGeometry(object):
     centroid = UnaryTopologicalOp(lgeos.GEOSGetCentroid, geom_factory)
 
     # Buffer has a unique distance argument, so not a descriptor
+    @exceptNull
     def buffer(self, distance, quadsegs=16):
         return geom_factory(
             lgeos.GEOSBuffer(self._geom, c_double(distance), c_int(quadsegs))
             )
 
     # Relate has a unique string return value
+    @exceptNull
     def relate(self, other):
         func = lgeos.GEOSRelate
         def errcheck(result, func, argtuple):
@@ -357,6 +387,7 @@ class BaseGeometry(object):
     has_z = UnaryPredicate(lgeos.GEOSHasZ)
 
     @property
+    @exceptNull
     def bounds(self):
         env = self.envelope
         if env.geom_type != 'Polygon':

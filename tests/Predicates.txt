@@ -53,5 +53,5 @@ Unary Predicates
   False
 
   >>> point.has_z
-  True
+  False
 

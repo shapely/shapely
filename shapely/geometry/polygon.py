@@ -5,7 +5,7 @@ Polygons and their linear ring components.
 from ctypes import byref, c_double, c_int, c_void_p, cast, POINTER, pointer
 
 from shapely.geos import lgeos
-from shapely.geometry.base import BaseGeometry
+from shapely.geometry.base import BaseGeometry, exceptNull
 from shapely.geometry.linestring import LineString, LineStringAdapter
 
 
@@ -129,7 +129,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
     if update_geom is not None:
         return None
     else:
-        return (lgeos.GEOSGeom_createLinearRing(cs), n)
+        return lgeos.GEOSGeom_createLinearRing(cs), n
 
 def update_linearring_from_py(geom, ob):
     geos_linearring_from_py(ob, geom._geom, geom._ndim)
@@ -186,10 +186,17 @@ class LinearRing(LineString):
 
 class LinearRingAdapter(LineStringAdapter):
 
+    context = None
+    __geom = None
+    _owned = False
+
     @property
     def _geom(self):
         """Keeps the GEOS geometry in synch with the context."""
-        return geos_linearring_from_py(self.context)[0]       
+        if self.__geom is not None:
+            lgeos.GEOSGeom_destroy(self.__geom)
+        self.__geom, n = geos_linearring_from_py(self.context)
+        return self.__geom
 
     @property
     def __geo_interface__(self):
@@ -324,6 +331,7 @@ class Polygon(BaseGeometry):
             self._geom, self._ndims = geos_polygon_from_py(shell, holes)
 
     @property
+    @exceptNull
     def exterior(self):
         if self._exterior is None:
             # A polygon created from the abstract factory will have a null
@@ -335,6 +343,7 @@ class Polygon(BaseGeometry):
         return self._exterior
 
     @property
+    @exceptNull
     def interiors(self):
         return InteriorRingSequence(self)
 

@@ -9,6 +9,7 @@ from ctypes import cast, POINTER
 
 from shapely.geos import lgeos, DimensionError
 from shapely.geometry.base import BaseGeometry, CoordinateSequence
+from shapely.geometry.base import exceptNull
 
 
 def geos_point_from_py(ob, update_geom=None, update_ndim=0):
@@ -64,7 +65,7 @@ def geos_point_from_py(ob, update_geom=None, update_ndim=0):
     if update_geom:
         return None
     else:
-        return (lgeos.GEOSGeom_createPoint(cs), n)
+        return lgeos.GEOSGeom_createPoint(cs), n
 
 def update_point_from_py(geom, ob):
     geos_point_from_py(ob, geom._geom, geom._ndim)
@@ -119,6 +120,7 @@ class Point(BaseGeometry):
     # Coordinate getters and setters
 
     @property
+    @exceptNull
     def x(self):
         """Return x coordinate."""
         cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
@@ -127,6 +129,7 @@ class Point(BaseGeometry):
         return d.value
     
     @property
+    @exceptNull
     def y(self):
         """Return y coordinate."""
         cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
@@ -135,6 +138,7 @@ class Point(BaseGeometry):
         return d.value
     
     @property
+    @exceptNull
     def z(self):
         """Return z coordinate."""
         if self._ndim != 3:
@@ -145,6 +149,7 @@ class Point(BaseGeometry):
         return d.value
     
     @property
+    @exceptNull
     def __geo_interface__(self):
         return {
             'type': 'Point',
@@ -152,6 +157,7 @@ class Point(BaseGeometry):
             }
 
     @property
+    @exceptNull
     def ctypes(self):
         if not self._ctypes_data:
             array_type = c_double * self._ndim
@@ -171,6 +177,7 @@ class Point(BaseGeometry):
     __array_interface__ = property(array_interface)
 
     @property
+    @exceptNull
     def bounds(self):
         cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
         x = c_double()
@@ -216,7 +223,7 @@ class PointAdapter(Point):
         """Keeps the GEOS geometry in synch with the context."""
         if self.__geom is not None:
             lgeos.GEOSGeom_destroy(self.__geom)
-        self.__geom = geos_point_from_py(self.context)[0]
+        self.__geom, n = geos_point_from_py(self.context)
         return self.__geom
 
     # TODO: reimplement x, y, z properties without calling invoking _geom

@@ -27,6 +27,8 @@ class BinaryPredicate(object):
         return self
 
     def __call__(self, other):
+        if self.context._geom is None or other._geom is None:
+            raise ValueError, "Null geometry supports no operations"
         return bool(self.fn(self.context._geom, other._geom))
 
 
@@ -47,6 +49,8 @@ class UnaryPredicate(object):
         self.fn.errcheck = errcheck
 
     def __get__(self, obj, objtype=None):
+        if obj._geom is None:
+            raise ValueError, "Null geometry supports no operations"
         return bool(self.fn(obj._geom))
     
     def __set__(self, obj, value=None):
