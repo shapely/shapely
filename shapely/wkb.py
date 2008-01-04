@@ -4,7 +4,7 @@ Load/dump geometries using the well-known binary (WKB) format.
 
 from ctypes import byref, c_int, c_size_t, c_char_p, string_at
 
-from shapely.geos import lgeos, ReadingError
+from shapely.geos import lgeos, free, ReadingError
 from shapely.geometry.base import geom_factory
 
 
@@ -25,9 +25,14 @@ def load(fp):
 
 def dumps(ob):
     """Dump a WKB representation of a geometry to a byte string."""
+    func = lgeos.GEOSGeomToWKB_buf
     size = c_int()
-    bytes = lgeos.GEOSGeomToWKB_buf(ob._geom, byref(size))
-    return string_at(bytes, size.value)
+    def errcheck(result, func, argtuple):
+        retval = string_at(result, size.value)[:]
+        free(result)
+        return retval
+    func.errcheck = errcheck
+    return func(ob._geom, byref(size))
 
 def dump(ob, fp):
     """Dump a geometry to an open file."""
