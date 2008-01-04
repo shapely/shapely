@@ -2,7 +2,7 @@
 """
 
 from ctypes import c_char_p, c_size_t
-from shapely.geos import lgeos
+from shapely.geos import lgeos, free
 
 
 def geos_from_geometry(geom):
@@ -28,19 +28,18 @@ class BinaryPredicateIterator(object):
         return self
 
     def __call__(self, geom, iterator, value=True):
-        geos_geom = geos_from_geometry(geom)
+        #geos_geom = geom._geom #geos_from_geometry(geom)
         for item in iterator:
             try:
-                geom, ob = item
+                this_geom, ob = item
             except TypeError:
-                geom = item
-                ob = geom
-            retval = self.fn(geos_geom, geos_from_geometry(geom))
+                this_geom = item
+                ob = this_geom
+            retval = self.fn(geom._geom, this_geom._geom) #geos_from_geometry(geom))
             if retval == 2:
                 raise PredicateError, "Failed to evaluate %s" % repr(self.fn)
             elif bool(retval) == value:
                 yield ob
-
 
 # utilities
 disjoint = BinaryPredicateIterator(lgeos.GEOSDisjoint)
