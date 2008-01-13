@@ -5,14 +5,20 @@ Exports the libgeos_c shared lib, GEOS-specific exceptions, and utilities.
 import atexit
 from ctypes import cdll, CDLL, CFUNCTYPE, c_char_p
 from ctypes.util import find_library
+import os
 import sys
+
+import shapely
 
 if sys.platform == 'win32':
     try:
-        lgeos = CDLL('libgeos_c.dll')
+        geospath = os.path.abspath(
+            shapely.__file__ + "../../../../../DLLs/geos_c.dll"
+            )
+        lgeos = CDLL(geospath)
     except (ImportError, WindowsError):
         # Try GEOS DLL from the Windows PostGIS installer for
-        # PostgreSQL 8.2 before failing
+        # PostgreSQL 8.2 on the system path before failing
         lgeos = CDLL('libgeos_c-1.dll')
     except:
         raise
