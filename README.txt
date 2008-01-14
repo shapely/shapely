@@ -140,7 +140,7 @@ Credits
 Sean Gillies (Pleiades)
 Howard Butler (Hobu, Inc.)
 Kai Lautaportti (Hexagon IT)
-Frédéric Junod (Camptocamp SA)
+Frederic Junod (Camptocamp SA)
 Eric Lemoine (Camptocamp SA)
 Justin Bronn (GeoDjango) for ctypes inspiration
 Artem Pavlenko (Mapnik) for help with GEOS DLLs
