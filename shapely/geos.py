@@ -17,10 +17,6 @@ if sys.platform == 'win32':
             )
         lgeos = CDLL(geospath)
     except (ImportError, WindowsError):
-        # Try GEOS DLL from the Windows PostGIS installer for
-        # PostgreSQL 8.2 on the system path before failing
-        lgeos = CDLL('libgeos_c-1.dll')
-    except:
         raise
     free = cdll.msvcrt.free
 elif sys.platform == 'darwin':

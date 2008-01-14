@@ -1,8 +1,8 @@
 Shapely
 =======
 
-Shapely is a Python package for programming with geospatial geometries. It is
-based on GEOS (http://geos.refractions.net). Shapely 1.0 is ignorant about
+Shapely is a Python package for programming with 2D geospatial geometries. It
+is based on GEOS (http://geos.refractions.net). Shapely 1.0 is ignorant about
 coordinate and reference systems. Projection responsibility is left to specific
 applications. For more information, see:
 
@@ -12,6 +12,7 @@ applications. For more information, see:
 Shapely requires Python 2.4+. (I've also begun to port it to Python 3.0:
 http://zcologia.com/news/564/shapely-for-python-3-0/.)
 
+
 Dependencies
 ------------
 
@@ -19,6 +20,7 @@ Dependencies
 * Python ctypes_ (standard in Python 2.5+)
 
 .. _ctypes: http://pypi.python.org/pypi/ctypes/
+
 
 Installation
 ------------
@@ -31,26 +33,29 @@ with the setup script::
 
   $ sudo python setup.py install
 
-or by using the development buildout, which also provides libgeos_c::
+or by using the development buildout on *nix, which also provides libgeos_c::
 
- $ svn co http://svn.gispython.org/svn/gispy/buildout/shapely.buildout/trunk shapely.buildout
- $ cd shapely.buildout
- $ python bootstrap.py
- $ ./bin/buildout
+  $ svn co http://svn.gispython.org/svn/gispy/buildout/shapely.buildout/trunk shapely.buildout
+  $ cd shapely.buildout
+  $ python bootstrap.py
+  $ ./bin/buildout
+
 
 Usage
 -----
 
-Buffer a point::
+To buffer a point::
 
   >>> from shapely.geometry import Point
   >>> point = Point(-106.0, 40.0) # longitude, latitude
   >>> point.buffer(10.0)
   <shapely.geometry.polygon.Polygon object at ...>
 
-See Operations.txt and Predicates.txt under tests/ for more examples of the
-spatial operations and predicates provided by Shapely. Also see Point.txt,
-LineString.txt, etc for examples of the geometry APIs.
+See the manual_ for comprehensive examples of usage. See also Operations.txt
+and Predicates.txt under tests/ for more examples of the spatial operations and
+predicates provided by Shapely. See also Point.txt, LineString.txt, etc for
+examples of the geometry APIs.
+
 
 Numpy integration
 -----------------
@@ -71,6 +76,7 @@ Numpy arrays can also be adapted to Shapely points and linestrings::
   >>> line = asLineString(a)
   >>> line.wkt
   'LINESTRING (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)'
+
 
 Python Geo Interface
 --------------------
@@ -99,6 +105,7 @@ geometry with the asShape factory::
 See http://trac.gispython.org/projects/PCL/wiki/PythonGeoInterface for more
 details on the interface.
 
+
 Testing
 -------
 
@@ -108,7 +115,11 @@ Several of the modules have docstring doctests::
   $ python point.py
 
 There are also two test runners under tests/. test_doctests.py requires
-zope.testing. runalldoctests.py does not.
+zope.testing. runalldoctests.py does not. Perhaps the easiest way to run the 
+tests is::
+
+  $ python setup.py test
+
 
 Support
 -------
@@ -121,4 +132,19 @@ For current information about this project, see the wiki_.
 If you have questions, please consider joining our community list:
 
 http://trac.gispython.org/projects/PCL/wiki/CommunityList
+
+
+Credits
+-------
+
+Sean Gillies (Pleiades)
+Howard Butler (Hobu, Inc.)
+Kai Lautaportti (Hexagon IT)
+Frédéric Junod (Camptocamp SA)
+Eric Lemoine (Camptocamp SA)
+Justin Bronn (GeoDjango) for ctypes inspiration
+Artem Pavlenko (Mapnik) for help with GEOS DLLs
+
+Some of this work was supported by a grant (Pleiades) from the U.S. National
+Endowment for the Humanities (http://www.neh.gov).
 

@@ -1,0 +1,5 @@
+1.0 RC1: 14 January 2008
+------------------------
+
+- First release candidate
+
