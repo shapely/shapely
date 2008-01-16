@@ -11,7 +11,7 @@ if version_info[:2] < (2,5):
 readme_text = file('README.txt', 'rb').read()
 
 setup(name          = 'Shapely',
-      version       = '1.0rc1',
+      version       = '1.0rc2',
       description   = 'Geospatial geometries, predicates, and operations',
       license       = 'BSD',
       keywords      = 'geometry topology',
@@ -22,7 +22,7 @@ setup(name          = 'Shapely',
       url   = 'http://trac.gispython.org/projects/PCL/wiki/Shapely',
       long_description = readme_text,
       packages      = ['shapely', 'shapely.geometry'],
-      data_files=[('DLLs', ['DLLs/geos.dll', 'DLLs/geos_c.dll']),],
+      data_files=[('DLLs', ['DLLs/geos.dll']),],
       install_requires = install_requires,
       #tests_require = ['numpy'], -- not working with "tests" command
       test_suite = 'tests.test_suite',

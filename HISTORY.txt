@@ -1,5 +1,11 @@
+All ticket numbers are rooted at http://trac.gispython.org/projects/PCL/ticket/
+
+1.0 RC2: 16 January 2008
+------------------------
+- Added temporary solution for #149.
+
+
 1.0 RC1: 14 January 2008
 ------------------------
-
 - First release candidate
 

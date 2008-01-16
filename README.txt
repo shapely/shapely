@@ -25,7 +25,9 @@ Dependencies
 Installation
 ------------
 
-Shapely can be installed from the Python package index::
+Windows users should use the executable installer, which contains the required
+GEOS DLL. Other users should acquire libgeos_c by any means, make sure that it
+is on the system library path, and install from the Python package index::
 
   $ sudo easy_install Shapely
 
@@ -33,7 +35,7 @@ with the setup script::
 
   $ sudo python setup.py install
 
-or by using the development buildout on *nix, which also provides libgeos_c::
+or by using the development buildout on Linux, which also provides libgeos_c::
 
   $ svn co http://svn.gispython.org/svn/gispy/buildout/shapely.buildout/trunk shapely.buildout
   $ cd shapely.buildout
@@ -137,14 +139,17 @@ http://trac.gispython.org/projects/PCL/wiki/CommunityList
 Credits
 -------
 
-Sean Gillies (Pleiades)
-Howard Butler (Hobu, Inc.)
-Kai Lautaportti (Hexagon IT)
-Frederic Junod (Camptocamp SA)
-Eric Lemoine (Camptocamp SA)
-Justin Bronn (GeoDjango) for ctypes inspiration
-Artem Pavlenko (Mapnik) for help with GEOS DLLs
+* Sean Gillies (Pleiades)
+* Howard Butler (Hobu, Inc.)
+* Kai Lautaportti (Hexagon IT)
+* Fr |eaigue| d |eaigue| ric Junod (Camptocamp SA)
+* Eric Lemoine (Camptocamp SA)
+* Justin Bronn (GeoDjango) for ctypes inspiration
+* Artem Pavlenko (Mapnik) for help with GEOS DLLs
 
-Some of this work was supported by a grant (Pleiades) from the U.S. National
-Endowment for the Humanities (http://www.neh.gov).
+.. |eaigue| unicode:: U+00E9
+   :trim:
+
+Major portions of this work were supported by a grant (to Pleiades) from the
+U.S.  National Endowment for the Humanities (http://www.neh.gov).
 

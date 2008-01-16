@@ -12,13 +12,19 @@ import shapely
 
 if sys.platform == 'win32':
     try:
-        geospath = os.path.abspath(
-            shapely.__file__ + "../../../../../DLLs/geos_c.dll"
-            )
-        lgeos = CDLL(geospath)
+        local_dlls = os.path.abspath(os.__file__ + "../../../DLLs")
+        original_path = os.environ['PATH']
+        os.environ['PATH'] = "%s;%s" % (local_dlls, original_path)
+        lgeos = CDLL("geos.dll")
     except (ImportError, WindowsError):
         raise
-    free = cdll.msvcrt.free
+    def free(m):
+        try:
+            cdll.msvcrt.free(m)
+        except WindowsError:
+            # XXX: See http://trac.gispython.org/projects/PCL/ticket/149
+            pass
+
 elif sys.platform == 'darwin':
     lgeos = CDLL(find_library('geos_c'))
     free = CDLL(find_library('libc')).free
