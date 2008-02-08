@@ -31,8 +31,8 @@ elif sys.platform == 'darwin':
 else:
     # Try the major versioned name first, falling back on the unversioned name.
     try:
-        lgeos = CDLL('libgeos_c.so.1')
-    except ImportError:
+        lgeos = CDLL('libgeos_c.so.2')
+    except (OSError, ImportError):
         lgeos = CDLL('libgeos_c.so')
     except:
         raise

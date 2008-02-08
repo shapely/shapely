@@ -113,6 +113,43 @@ class CoordinateSequence(object):
         else:
             return (dx.value, dy.value)
 
+    @property
+    def ctypes(self):
+        self.update_cseq()
+        n = self._ndim
+        m = self.__len__()
+        array_type = c_double * (m * n)
+        data = array_type()
+        temp = c_double()
+
+        for i in xrange(m):
+            lgeos.GEOSCoordSeq_getX(self._cseq, i, byref(temp))
+            data[n*i] = temp.value
+            lgeos.GEOSCoordSeq_getY(self._cseq, i, byref(temp))
+            data[n*i+1] = temp.value
+            if n == 3: # TODO: use hasz
+                lgeos.GEOSCoordSeq_getZ(self._cseq, i, byref(temp))
+                data[n*i+2] = temp.value
+        return data
+
+    def array_interface(self):
+        """Provide the Numpy array protocol."""
+        if sys.byteorder == 'little':
+            typestr = '<f8'
+        elif sys.byteorder == 'big':
+            typestr = '>f8'
+        else:
+            raise ValueError, \
+            "Unsupported byteorder: neither little nor big-endian"
+        ai = {
+            'version': 3,
+            'typestr': typestr,
+            'data': self.ctypes,
+            }
+        ai.update({'shape': (len(self), self._ndim)})
+        return ai
+    __array_interface__ = property(array_interface)
+
 
 class GeometrySequence(object):
 

@@ -138,30 +138,13 @@ class LineString(BaseGeometry):
     @exceptNull
     def ctypes(self):
         if not self._ctypes_data:
-            cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
-            cs_len = c_int(0)
-            lgeos.GEOSCoordSeq_getSize(cs, byref(cs_len))
-            temp = c_double()
-            n = self._ndim
-            m = cs_len.value
-            array_type = c_double * (m * n)
-            data = array_type()
-            for i in xrange(m):
-                lgeos.GEOSCoordSeq_getX(cs, i, byref(temp))
-                data[n*i] = temp.value
-                lgeos.GEOSCoordSeq_getY(cs, i, byref(temp))
-                data[n*i+1] = temp.value
-                if n == 3: # TODO: use hasz
-                    lgeos.GEOSCoordSeq_getZ(cs, i, byref(temp))
-                    data[n*i+2] = temp.value
-            self._ctypes_data = data
+            self._ctypes_data = self.coords.ctypes
         return self._ctypes_data
 
     def array_interface(self):
         """Provide the Numpy array protocol."""
-        ai = self.array_interface_base
-        ai.update({'shape': (len(self.coords), self._ndim)})
-        return ai
+        return self.coords.array_interface()
+    
     __array_interface__ = property(array_interface)
 
     # Coordinate access

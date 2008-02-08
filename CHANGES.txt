@@ -1,0 +1,8 @@
+All ticket numbers are rooted at http://trac.gispython.org/projects/PCL/ticket/
+
+1.0.1: 8 February 2008
+----------------------
+- Allow chaining expressions involving coordinate sequences and geometry parts
+  (#151).
+- Protect against abnormal use of coordinate accessors (#152).
+- Coordinate sequences now implement the numpy array protocol (#153).
