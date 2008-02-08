@@ -12,6 +12,11 @@ applications. For more information, see:
 Shapely requires Python 2.4+. (I've also begun to port it to Python 3.0:
 http://zcologia.com/news/564/shapely-for-python-3-0/.)
 
+See also CHANGES.txt_ and HISTORY.txt_.
+
+.. _CHANGES.txt: http://trac.gispython.org/projects/PCL/browser/Shapely/trunk/CHANGES.txt
+.. _HISTROY.txt: http://trac.gispython.org/projects/PCL/browser/Shapely/trunk/HISTORY.txt
+
 
 Dependencies
 ------------
