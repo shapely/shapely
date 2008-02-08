@@ -47,18 +47,24 @@ def geom_factory(g):
 
 
 class CoordinateSequence(object):
-
+    
+    _geom = None
     _cseq = None
     _ndim = None
     _length = 0
     index = 0
 
     def __init__(self, geom):
-        self._cseq = lgeos.GEOSGeom_getCoordSeq(geom._geom)
+        self._geom = geom._geom
         self._ndim = geom._ndim
+        self.update_cseq()
 
+    def update_cseq(self):
+        self._cseq = lgeos.GEOSGeom_getCoordSeq(self._geom)
+        
     def __iter__(self):
         self.index = 0
+        self.update_cseq()
         self._length = self.__len__()
         return self
 
@@ -86,6 +92,7 @@ class CoordinateSequence(object):
         return cs_len.value
     
     def __getitem__(self, i):
+        self.update_cseq()
         M = self.__len__()
         if i + M < 0 or i >= M:
             raise IndexError, "index out of range"
@@ -218,11 +225,13 @@ class BaseGeometry(object):
     # _geom has been made a property with the GEOS geometry pointer stored
     # in __geom so that geometries and geometry adapters can share __del__
 
-    def get_geom(self):
+    def _get_geom(self):
         return self.__geom
-    def set_geom(self, val):
+
+    def _set_geom(self, val):
         self.__geom = val
-    _geom = property(get_geom, set_geom)
+    
+    _geom = property(_get_geom, _set_geom)
 
     # Array and ctypes interfaces
 
@@ -253,14 +262,14 @@ class BaseGeometry(object):
         raise NotImplementedError
 
     @exceptNull
-    def get_coords(self):
+    def _get_coords(self):
         return CoordinateSequence(self)
 
-    def set_coords(self, ob):
+    def _set_coords(self, ob):
         raise NotImplementedError, \
             "set_coords must be provided by derived classes"
 
-    coords = property(get_coords, set_coords)
+    coords = property(_get_coords, _set_coords)
 
     # Python feature protocol
 

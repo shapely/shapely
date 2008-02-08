@@ -182,12 +182,14 @@ class LinearRing(LineString):
 
     # Coordinate access
 
-    def set_coords(self, coordinates):
+    _get_coords = BaseGeometry._get_coords
+
+    def _set_coords(self, coordinates):
         if self._geom is None:
             self._init_geom(coordinates)
         update_linearring_from_py(self, coordinates)
 
-    coords = property(BaseGeometry.get_coords, set_coords)
+    coords = property(_get_coords, _set_coords)
 
 
 class LinearRingAdapter(LineStringAdapter):
@@ -211,7 +213,7 @@ class LinearRingAdapter(LineStringAdapter):
             'coordinates': tuple(self.coords)
             }
 
-    coords = property(BaseGeometry.get_coords)
+    coords = property(BaseGeometry._get_coords)
 
 
 def asLinearRing(context):
@@ -362,6 +364,14 @@ class Polygon(BaseGeometry):
     def __array_interface__(self):
         raise NotImplementedError, \
         "A polygon does not itself provide the array interface. Its rings do."
+
+    def _get_coords(self):
+        raise NotImplementedError, \
+        "Component rings have coordinate sequences, but the polygon does not"
+
+    def _set_coords(self, ob):
+        raise NotImplementedError, \
+        "Component rings have coordinate sequences, but the polygon does not"
 
     @property
     def coords(self):

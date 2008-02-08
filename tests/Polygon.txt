@@ -88,6 +88,17 @@ Interior rings (holes)
   ...
   IndexError: index out of range
 
+Coordinate getters and setters raise exceptions
+
+  >>> polygon._get_coords()
+  Traceback (most recent call last):
+  ...
+  NotImplementedError: Component rings have coordinate sequences, but the polygon does not
+  >>> polygon.coords
+  Traceback (most recent call last):
+  ...
+  NotImplementedError: Component rings have coordinate sequences, but the polygon does not
+
 
 Geo interface
 -------------
@@ -127,4 +138,5 @@ Check that we can set coordinates of a null geometry
   >>> r_null.coords = [(0, 0), (1, 1), (1, 0)]
   >>> print r_null.length # doctest: +ELLIPSIS
   3.414...
+
 

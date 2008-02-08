@@ -82,6 +82,14 @@ class MultiPolygon(BaseGeometry):
         raise NotImplementedError, \
         "Multi-part geometries do not themselves provide the array interface"
 
+    def _get_coords(self):
+        raise NotImplementedError, \
+        "Component rings have coordinate sequences, but the polygon does not"
+
+    def _set_coords(self, ob):
+        raise NotImplementedError, \
+        "Component rings have coordinate sequences, but the polygon does not"
+
     @property
     def coords(self):
         raise NotImplementedError, \

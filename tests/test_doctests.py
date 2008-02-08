@@ -30,5 +30,5 @@ def test_suite():
          in list_doctests()])
 
 if __name__ == "__main__":
-    runner = unittest.TextTestRunner()
+    runner = unittest.TextTestRunner(verbosity=1)
     runner.run(test_suite())

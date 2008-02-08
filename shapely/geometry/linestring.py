@@ -166,12 +166,12 @@ class LineString(BaseGeometry):
 
     # Coordinate access
 
-    def set_coords(self, coordinates):
+    def _set_coords(self, coordinates):
         if self._geom is None:
             self._init_geom(coordinates)
         update_linestring_from_py(self, coordinates)
 
-    coords = property(BaseGeometry.get_coords, set_coords)
+    coords = property(BaseGeometry._get_coords, _set_coords)
 
 
 class LineStringAdapter(LineString):
@@ -215,7 +215,13 @@ class LineStringAdapter(LineString):
         except AttributeError:
             return self.array_interface()
 
-    coords = property(BaseGeometry.get_coords)
+    _get_coords = BaseGeometry._get_coords
+
+    def _set_coords(self, ob):
+        raise NotImplementedError, \
+        "Component rings have coordinate sequences, but the polygon does not"
+
+    coords = property(_get_coords)
 
 
 def asLineString(context):
