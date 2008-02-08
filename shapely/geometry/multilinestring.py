@@ -122,7 +122,7 @@ class MultiLineStringAdapter(MultiLineString):
     """
     
     context = None
-    __geom = None
+    #__geom = None
     _owned = False
 
     def __init__(self, context):
@@ -143,10 +143,10 @@ class MultiLineStringAdapter(MultiLineString):
     @property
     def _geom(self):
         """Keeps the GEOS geometry in synch with the context."""
-        if self.__geom is not None:
-            lgeos.GEOSGeom_destroy(self.__geom)
-        self.__geom = geos_multilinestring_from_py(self.context)[0]
-        return self.__geom
+        if self.__geom__ is not None:
+            lgeos.GEOSGeom_destroy(self.__geom__)
+        self.__geom__ = geos_multilinestring_from_py(self.context)[0]
+        return self.__geom__
 
 
 def asMultiLineString(context):

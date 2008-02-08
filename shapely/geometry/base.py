@@ -41,7 +41,7 @@ def geom_factory(g):
         [geom_type],
         )
     ob.__class__ = getattr(mod, geom_type)
-    ob._geom = g
+    ob.__geom__ = g
     ob._ndim = 2 # callers should be all from 2D worlds
     return ob
 
@@ -53,10 +53,12 @@ class CoordinateSequence(object):
     _ndim = None
     _length = 0
     index = 0
+    __p__ = None
 
-    def __init__(self, geom):
-        self._geom = geom._geom
-        self._ndim = geom._ndim
+    def __init__(self, parent):
+        self.__p__ = parent
+        self._geom = parent._geom
+        self._ndim = parent._ndim
         self.update_cseq()
 
     def update_cseq(self):
@@ -116,14 +118,16 @@ class GeometrySequence(object):
 
     _factory = None
     _geom = None
+    __p__ = None
     _ndim = None
     _index = 0
     _length = 0
 
-    def __init__(self, geom, type):
+    def __init__(self, parent, type):
         self._factory = type
-        self._geom = geom._geom
-        self._ndim = geom._ndim
+        self.__p__ = parent
+        self._geom = parent._geom
+        self._ndim = parent._ndim
 
     def __iter__(self):
         self._index = 0
@@ -189,18 +193,18 @@ class BaseGeometry(object):
     """Provides GEOS spatial predicates and topological operations.
     """
 
-    __geom = None # See _geom property below
+    __geom__ = None # See _geom property below
     _ctypes_data = None
     _ndim = None
     _crs = None
     _owned = False
 
     def __init__(self):
-        self.__geom = None
+        self.__geom__ = None
 
     def __del__(self):
-        if self.__geom is not None and not self._owned:
-            lgeos.GEOSGeom_destroy(self.__geom)
+        if self.__geom__ is not None and not self._owned:
+            lgeos.GEOSGeom_destroy(self.__geom__)
 
     def __str__(self):
         return self.to_wkt()
@@ -217,7 +221,7 @@ class BaseGeometry(object):
         return (self.__class__, (), self.to_wkb())
 
     def __setstate__(self, state):
-        self.__geom = lgeos.GEOSGeomFromWKB_buf(
+        self.__geom__ = lgeos.GEOSGeomFromWKB_buf(
                         c_char_p(state), 
                         c_size_t(len(state))
                         )
@@ -226,10 +230,10 @@ class BaseGeometry(object):
     # in __geom so that geometries and geometry adapters can share __del__
 
     def _get_geom(self):
-        return self.__geom
+        return self.__geom__
 
     def _set_geom(self, val):
-        self.__geom = val
+        self.__geom__ = val
     
     _geom = property(_get_geom, _set_geom)
 

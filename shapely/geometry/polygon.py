@@ -141,7 +141,8 @@ class LinearRing(LineString):
     """
 
     _ndim = 2
-    __geom = None
+    __geom__ = None
+    __p__ = None
     _owned = False
 
     def __init__(self, coordinates=None):
@@ -195,13 +196,14 @@ class LinearRing(LineString):
 class LinearRingAdapter(LineStringAdapter):
 
     context = None
-    __geom = None
+    __geom__ = None
+    __p__ = None
     _owned = False
 
     @property
     def _geom(self):
         """Keeps the GEOS geometry in synch with the context."""
-        if self.__geom is not None:
+        if self.__geom__ is not None:
             lgeos.GEOSGeom_destroy(self.__geom)
         self.__geom, n = geos_linearring_from_py(self.context)
         return self.__geom
@@ -224,13 +226,15 @@ class InteriorRingSequence(object):
 
     _factory = None
     _geom = None
+    __p__ = None
     _ndim = None
     _index = 0
     _length = 0
 
-    def __init__(self, geom):
-        self._geom = geom._geom
-        self._ndim = geom._ndim
+    def __init__(self, parent):
+        self.__p__ = parent
+        self._geom = parent._geom
+        self._ndim = parent._ndim
 
     def __iter__(self):
         self._index = 0
@@ -314,7 +318,7 @@ class Polygon(BaseGeometry):
     _exterior = None
     _interiors = []
     _ndim = 2
-    __geom = None
+    __geom__ = None
     _owned = False
 
     def __init__(self, shell=None, holes=None):
@@ -346,6 +350,8 @@ class Polygon(BaseGeometry):
             ring = lgeos.GEOSGetExteriorRing(self._geom)
             self._exterior = LinearRing()
             self._exterior._geom = ring
+            # The ring needs to hold an extra ref to the polygon
+            self.__p__ = self
             self._exterior._owned = True
         return self._exterior
 
@@ -396,7 +402,7 @@ class PolygonAdapter(Polygon):
     """
     
     context = None
-    __geom = None
+    __geom__ = None
     _owned = False
 
     def __init__(self, shell, holes=None):
@@ -418,10 +424,10 @@ class PolygonAdapter(Polygon):
     @property
     def _geom(self):
         """Keeps the GEOS geometry in synch with the context."""
-        if self.__geom is not None:
-            lgeos.GEOSGeom_destroy(self.__geom)
-        self.__geom = geos_polygon_from_py(self.shell, self.holes)[0]  
-        return self.__geom
+        if self.__geom__ is not None:
+            lgeos.GEOSGeom_destroy(self.__geom__)
+        self.__geom__ = geos_polygon_from_py(self.shell, self.holes)[0]  
+        return self.__geom__
 
 
 def asPolygon(shell, holes=None):
