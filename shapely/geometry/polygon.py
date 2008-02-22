@@ -172,7 +172,7 @@ class LinearRing(LineString):
             # allow creation of null lines, to support unpickling
             pass
         else:
-            self._geom, self._ndims = geos_linearring_from_py(coordinates)
+            self._geom, self._ndim = geos_linearring_from_py(coordinates)
 
     @property
     def __geo_interface__(self):
@@ -278,7 +278,7 @@ class InteriorRingSequence(object):
 
 def geos_polygon_from_py(shell, holes=None):
     if shell is not None:
-        geos_shell, ndims = geos_linearring_from_py(shell)
+        geos_shell, ndim = geos_linearring_from_py(shell)
         if holes:
             ob = holes
             L = len(ob)
@@ -294,7 +294,7 @@ def geos_polygon_from_py(shell, holes=None):
     
             # add to coordinate sequence
             for l in xrange(L):
-                geom, ndims = geos_linearring_from_py(ob[l])
+                geom, ndim = geos_linearring_from_py(ob[l])
                 geos_holes[l] = cast(geom, c_void_p)
 
         else:
@@ -307,7 +307,7 @@ def geos_polygon_from_py(shell, holes=None):
                         geos_holes,
                         L
                         ),
-            ndims
+            ndim
             )
 
 class Polygon(BaseGeometry):
@@ -339,7 +339,7 @@ class Polygon(BaseGeometry):
         BaseGeometry.__init__(self)
 
         if shell is not None:
-            self._geom, self._ndims = geos_polygon_from_py(shell, holes)
+            self._geom, self._ndim = geos_polygon_from_py(shell, holes)
 
     @property
     @exceptNull
