@@ -1,7 +1,9 @@
 All ticket numbers are rooted at http://trac.gispython.org/projects/PCL/ticket/
 
-1.0.2: 26 February 2008
------------------------
+1.0.3 (2008-04-01)
+------------------
+- Do not release GIL when calling GEOS functions (#158).
+
+1.0.2 (2008-02-26)
+------------------
 - Fix loss of dimensionality in polygon rings (#155).
-
-

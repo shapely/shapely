@@ -3,7 +3,7 @@ Exports the libgeos_c shared lib, GEOS-specific exceptions, and utilities.
 """
 
 import atexit
-from ctypes import cdll, CDLL, CFUNCTYPE, c_char_p
+from ctypes import cdll, CDLL, pydll, PyDLL, CFUNCTYPE, c_char_p
 from ctypes.util import find_library
 import os
 import sys
@@ -15,7 +15,7 @@ if sys.platform == 'win32':
         local_dlls = os.path.abspath(os.__file__ + "../../../DLLs")
         original_path = os.environ['PATH']
         os.environ['PATH'] = "%s;%s" % (local_dlls, original_path)
-        lgeos = CDLL("geos.dll")
+        lgeos = PyDLL("geos.dll")
     except (ImportError, WindowsError):
         raise
     def free(m):
@@ -38,14 +38,14 @@ elif sys.platform == 'darwin':
                 break
             else:
                 raise ImportError, "Could not find geos_c library"
-    lgeos = CDLL(lib)
+    lgeos = PyDLL(lib)
     free = CDLL(find_library('libc')).free
 else:
     # Try the major versioned name first, falling back on the unversioned name.
     try:
-        lgeos = CDLL('libgeos_c.so.1')
+        lgeos = PyDLL('libgeos_c.so.1')
     except (OSError, ImportError):
-        lgeos = CDLL('libgeos_c.so')
+        lgeos = PyDLL('libgeos_c.so')
     except:
         raise
     free = CDLL('libc.so.6').free
