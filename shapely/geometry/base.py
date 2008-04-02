@@ -28,7 +28,7 @@ def geometry_type_name(g):
 
 # Abstract geometry factory for use with topological methods below
 
-def geom_factory(g):
+def geom_factory(g, parent=None):
     if not g:
         raise ValueError, "No Shapely geometry can be created from this null value"
     ob = BaseGeometry()
@@ -42,6 +42,7 @@ def geom_factory(g):
         )
     ob.__class__ = getattr(mod, geom_type)
     ob.__geom__ = g
+    ob.__p__ = parent
     ob._ndim = 2 # callers should be all from 2D worlds
     return ob
 
@@ -231,6 +232,7 @@ class BaseGeometry(object):
     """
 
     __geom__ = None # See _geom property below
+    __p__ = None
     _ctypes_data = None
     _ndim = None
     _crs = None

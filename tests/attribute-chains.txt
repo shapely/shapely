@@ -9,7 +9,7 @@ See also ticket #151.
     [(0.0, 0.0), (0.0, 1.0), (-1.0, 1.0), (-1.0, 0.0), (0.0, 0.0)]
 
     >>> print list(p.buffer(1).exterior.coords)
-    [(-0.99999999999999989, 2.0), (0.0, 2.0)...
+    [(0.0, -1.0), (-1.0, -1.0), ...
 
 Test chained access to interiors
 
@@ -22,6 +22,10 @@ Test chained access to interiors
     >>> print list(p.interiors[0].coords)
     [(-0.25, 0.25), (-0.25, 0.75), (-0.75, 0.75), (-0.75, 0.25), (-0.25, 0.25)]
     >>> print list(p.interiors[0].buffer(1).exterior.coords)
-    [(-0.24999999999999986, -0.75), (-0.25, -0.75)...
-    
+    [(-0.25, -0.75), (-0.75, -0.75), ...
+
+Test multiple operators, boundary of a buffer
+
+    >>> print list(p.buffer(1).boundary.coords)
+    [(0.0, -1.0), (-1.0, -1.0), ...
 

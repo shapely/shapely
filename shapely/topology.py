@@ -38,7 +38,7 @@ class BinaryTopologicalOp(object):
                 raise TopologicalError, \
                 "The operation '%s' produced a null geometry. Likely cause is invalidity of the 'other' geometry %s" % (self.fn.__name__, repr(other))
 
-        return self.factory(product)
+        return self.factory(product, self.context)
 
 
 class UnaryTopologicalOp(object):
@@ -59,7 +59,7 @@ class UnaryTopologicalOp(object):
     def __get__(self, obj, objtype=None):
         if obj._geom is None:
             raise ValueError, "Null geometry supports no operations"
-        return self.factory(self.fn(obj._geom))
+        return self.factory(self.fn(obj._geom), obj)
     
     def __set__(self, obj, value=None):
         raise AttributeError, "Attribute is read-only"
