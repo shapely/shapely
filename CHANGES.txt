@@ -1,6 +1,6 @@
-All ticket numbers are rooted at http://trac.gispython.org/projects/PCL/ticket/
+All tickets are children of http://trac.gispython.org/projects/PCL/ticket/
 
-1.0.3 (2008-04-01)
+1.0.3 (2008-04-09)
 ------------------
 - Do not release GIL when calling GEOS functions (#158).
 - Prevent faults when chaining multiple GEOS operators (#159).
