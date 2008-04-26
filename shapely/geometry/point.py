@@ -205,7 +205,7 @@ class PointAdapter(Point):
     """
 
     context = None
-    __geom = None
+    __geom__ = None
     _owned = False
 
     def __init__(self, context):
@@ -226,10 +226,10 @@ class PointAdapter(Point):
     @property
     def _geom(self):
         """Keeps the GEOS geometry in synch with the context."""
-        if self.__geom is not None:
-            lgeos.GEOSGeom_destroy(self.__geom)
-        self.__geom, n = geos_point_from_py(self.context)
-        return self.__geom
+        if self.__geom__ is not None:
+            lgeos.GEOSGeom_destroy(self.__geom__)
+        self.__geom__, n = geos_point_from_py(self.context)
+        return self.__geom__
 
     # TODO: reimplement x, y, z properties without calling invoking _geom
 

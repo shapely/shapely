@@ -1,5 +1,11 @@
 All tickets are children of http://trac.gispython.org/projects/PCL/ticket/
 
+1.0.4 (2008-04-26)
+------------------
+- Disentangle Python and topological equality (#163).
+- Implement safe predicate shortcuts for objects identical in the Python sense
+  (#163).
+
 1.0.3 (2008-04-09)
 ------------------
 - Do not release GIL when calling GEOS functions (#158).

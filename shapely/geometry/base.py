@@ -248,12 +248,6 @@ class BaseGeometry(object):
     def __str__(self):
         return self.to_wkt()
 
-    def __eq__(self, other):
-        return self.equals(other)
-    
-    def __ne__(self, other):
-        return not self.equals(other)
-
     # To support pickling
 
     def __reduce__(self):
@@ -419,14 +413,14 @@ class BaseGeometry(object):
     # These use descriptors to reduce the amount of boilerplate.
 
     # TODO: Relate Pattern?
-    disjoint = BinaryPredicate(lgeos.GEOSDisjoint)
-    touches = BinaryPredicate(lgeos.GEOSTouches)
-    intersects = BinaryPredicate(lgeos.GEOSIntersects)
-    crosses = BinaryPredicate(lgeos.GEOSCrosses)
-    within = BinaryPredicate(lgeos.GEOSWithin)
-    contains = BinaryPredicate(lgeos.GEOSContains)
-    overlaps = BinaryPredicate(lgeos.GEOSOverlaps)
-    equals = BinaryPredicate(lgeos.GEOSEquals)
+    disjoint = BinaryPredicate(lgeos.GEOSDisjoint, False)
+    touches = BinaryPredicate(lgeos.GEOSTouches, False)
+    intersects = BinaryPredicate(lgeos.GEOSIntersects, True)
+    crosses = BinaryPredicate(lgeos.GEOSCrosses, False)
+    within = BinaryPredicate(lgeos.GEOSWithin, True)
+    contains = BinaryPredicate(lgeos.GEOSContains, True)
+    overlaps = BinaryPredicate(lgeos.GEOSOverlaps, False)
+    equals = BinaryPredicate(lgeos.GEOSEquals, True)
 
     # Unary predicates
     #

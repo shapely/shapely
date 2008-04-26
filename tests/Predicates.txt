@@ -28,13 +28,7 @@ Binary Predicates
   >>> point.equals(Point(-1.0, -1.0))
   False
 
-  >>> point == Point(0.0, 0.0)
-  True
-
-  >>> point == Point(-1.0, -1.0)
-  False
-
-  >>> point != Point(-1.0, -1.0)
+  >>> point.equals(Point(0.0, 0.0))
   True
 
 Unary Predicates
