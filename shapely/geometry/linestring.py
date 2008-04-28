@@ -7,6 +7,7 @@ from ctypes import ArgumentError
 
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, exceptNull
+from shapely.geometry.proxy import CachingGeometryProxy
 
 
 def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
@@ -157,18 +158,18 @@ class LineString(BaseGeometry):
     coords = property(BaseGeometry._get_coords, _set_coords)
 
 
-class LineStringAdapter(LineString):
+class LineStringAdapter(CachingGeometryProxy, LineString):
 
     """Adapts a Python coordinate pair or a numpy array to the line string
     interface.
     """
     
     context = None
-    #__geom = None
     _owned = False
 
     def __init__(self, context):
         self.context = context
+        self.factory = geos_linestring_from_py
 
     @property
     def _ndim(self):
@@ -181,14 +182,6 @@ class LineStringAdapter(LineString):
         except AttributeError:
             # Fall back on list
             return len(self.context[0])
-
-    @property
-    def _geom(self):
-        """Keeps the GEOS geometry in synch with the context."""
-        if self.__geom__ is not None:
-            lgeos.GEOSGeom_destroy(self.__geom__)
-        self.__geom__, n = geos_linestring_from_py(self.context)
-        return self.__geom__
 
     @property
     def __array_interface__(self):
@@ -220,4 +213,3 @@ def _test():
 
 if __name__ == "__main__":
     _test()
-

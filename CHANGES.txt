@@ -1,11 +1,12 @@
 All tickets are children of http://trac.gispython.org/projects/PCL/ticket/
 
-1.0.4 (2008-04-26)
+1.0.4 (2008-04-28)
 ------------------
 - Disentangle Python and topological equality (#163).
-- Implement safe predicate shortcuts for objects identical in the Python sense
-  (#163).
 - Add shape(), a factory that copies coordinates from a geo interface provider.
+  To be used instead of asShape() unless you really need to store coordinates
+  outside shapely for efficient use in other code.
+- Cache GEOS geometries in adapters (#163).
 
 1.0.3 (2008-04-09)
 ------------------

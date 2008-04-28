@@ -7,6 +7,7 @@ from ctypes import byref, c_double, c_int, c_void_p, cast, POINTER, pointer
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, GeometrySequence, exceptNull
 from shapely.geometry.point import Point, geos_point_from_py
+from shapely.geometry.proxy import CachingGeometryProxy
 
 
 def geos_multipoint_from_py(ob):
@@ -137,18 +138,18 @@ class MultiPoint(BaseGeometry):
         return GeometrySequence(self, Point)
         
 
-class MultiPointAdapter(MultiPoint):
+class MultiPointAdapter(CachingGeometryProxy, MultiPoint):
 
     """Adapts a Python coordinate pair or a numpy array to the multipoint
     interface.
     """
     
     context = None
-    #__geom__ = None
     _owned = False
 
     def __init__(self, context):
         self.context = context
+        self.factory = geos_multipoint_from_py
 
     @property
     def _ndim(self):
@@ -161,14 +162,6 @@ class MultiPointAdapter(MultiPoint):
         except AttributeError:
             # Fall back on list
             return len(self.context[0])
-
-    @property
-    def _geom(self):
-        """Keeps the GEOS geometry in synch with the context."""
-        if self.__geom__ is not None:
-            lgeos.GEOSGeom_destroy(self.__geom__)
-        self.__geom__, n = geos_multipoint_from_py(self.context)
-        return self.__geom__
 
     @property
     def __array_interface__(self):
@@ -192,4 +185,3 @@ def _test():
 
 if __name__ == "__main__":
     _test()
-

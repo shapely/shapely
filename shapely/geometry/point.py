@@ -223,14 +223,6 @@ class PointAdapter(CachingGeometryProxy, Point):
             # Fall back on list
             return len(self.context)
 
-#    @property
-#    def _geom(self):
-#        """Keeps the GEOS geometry in synch with the context."""
-#        if self.__geom__ is not None:
-#            lgeos.GEOSGeom_destroy(self.__geom__)
-#        self.__geom__, n = geos_point_from_py(self.context)
-#        return self.__geom__
-
     # TODO: reimplement x, y, z properties without calling invoking _geom
 
     @property
@@ -262,4 +254,3 @@ def _test():
 
 if __name__ == "__main__":
     _test()
-

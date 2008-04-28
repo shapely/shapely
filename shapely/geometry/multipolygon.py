@@ -7,6 +7,7 @@ from ctypes import byref, c_double, c_int, c_void_p, cast, POINTER, pointer
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, GeometrySequence, exceptNull
 from shapely.geometry.polygon import Polygon, geos_polygon_from_py
+from shapely.geometry.proxy import CachingGeometryProxy
 
 
 def geos_multipolygon_from_py(ob):
@@ -101,18 +102,18 @@ class MultiPolygon(BaseGeometry):
         return GeometrySequence(self, Polygon)
 
 
-class MultiPolygonAdapter(MultiPolygon):
+class MultiPolygonAdapter(CachingGeometryProxy, MultiPolygon):
 
     """Adapts sequences of sequences or numpy arrays to the multipolygon
     interface.
     """
     
     context = None
-    #__geom = None
     _owned = False
 
     def __init__(self, context):
         self.context = context
+        self.factory = geos_multipolygon_from_py
 
     @property
     def _ndim(self):
@@ -125,14 +126,6 @@ class MultiPolygonAdapter(MultiPolygon):
         except AttributeError:
             # Fall back on list
             return len(self.context[0][0][0])
-
-    @property
-    def _geom(self):
-        """Keeps the GEOS geometry in synch with the context."""
-        if self.__geom__ is not None:
-            lgeos.GEOSGeom_destroy(self.__geom__)
-        self.__geom__ = geos_multipolygon_from_py(self.context)[0]
-        return self.__geom__
 
 
 def asMultiPolygon(context):
@@ -148,4 +141,3 @@ def _test():
 
 if __name__ == "__main__":
     _test()
-

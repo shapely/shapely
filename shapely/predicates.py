@@ -14,9 +14,8 @@ class BinaryPredicate(object):
     fn = None
     context = None
 
-    def __init__(self, fn, self_predicate_value):
+    def __init__(self, fn):
         self.fn = fn
-        self.self_predicate_value = self_predicate_value
         def errcheck(result, func, argtuple):
             if result == 2:
                 raise PredicateError, "Failed to evaluate %s" % repr(self.fn)
@@ -30,8 +29,6 @@ class BinaryPredicate(object):
     def __call__(self, other):
         if self.context._geom is None or other._geom is None:
             raise ValueError, "Null geometry supports no operations"
-        #elif self.context == other:
-        #    return self.self_predicate_value
         return bool(self.fn(self.context._geom, other._geom))
 
 

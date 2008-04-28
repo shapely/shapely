@@ -7,6 +7,7 @@ from ctypes import byref, c_double, c_int, c_void_p, cast, POINTER, pointer
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, exceptNull
 from shapely.geometry.linestring import LineString, LineStringAdapter
+from shapely.geometry.proxy import PolygonProxy
 
 
 def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
@@ -76,7 +77,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
         m = len(ob)
         n = len(ob[0])
         assert m >= 2
-        assert n == 2 or n == 3
+        assert (n == 2 or n == 3)
 
         # Add closing coordinates if not provided
         if ob[0][0] != ob[-1][0] or ob[0][1] != ob[-1][1]:
@@ -282,10 +283,7 @@ def geos_polygon_from_py(shell, holes=None):
         if holes:
             ob = holes
             L = len(ob)
-            try:
-                N = len(ob[0][0])
-            except:
-                import pdb; pdb.set_trace()
+            N = len(ob[0][0])
             assert L >= 1
             assert N == 2 or N == 3
 
@@ -395,7 +393,7 @@ class Polygon(BaseGeometry):
             }
 
 
-class PolygonAdapter(Polygon):
+class PolygonAdapter(PolygonProxy, Polygon):
 
     """Adapts sequences of sequences or numpy arrays to the polygon
     interface.
@@ -408,6 +406,8 @@ class PolygonAdapter(Polygon):
     def __init__(self, shell, holes=None):
         self.shell = shell
         self.holes = holes
+        self.context = (shell, holes)
+        self.factory = geos_polygon_from_py
 
     @property
     def _ndim(self):
@@ -420,14 +420,6 @@ class PolygonAdapter(Polygon):
         except AttributeError:
             # Fall back on list
             return len(self.shell[0])
-
-    @property
-    def _geom(self):
-        """Keeps the GEOS geometry in synch with the context."""
-        if self.__geom__ is not None:
-            lgeos.GEOSGeom_destroy(self.__geom__)
-        self.__geom__ = geos_polygon_from_py(self.shell, self.holes)[0]  
-        return self.__geom__
 
 
 def asPolygon(shell, holes=None):
@@ -442,4 +434,3 @@ def _test():
 
 if __name__ == "__main__":
     _test()
-
