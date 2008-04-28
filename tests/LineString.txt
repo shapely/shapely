@@ -97,8 +97,8 @@ Now, the inverse
 
     >>> la.__array_interface__ == la.context.__array_interface__
     True
-    >>> as = asarray(la)
-    >>> as
+    >>> pas = asarray(la)
+    >>> pas
     array([[ 1.,  2.],
            [ 3.,  4.]])
 

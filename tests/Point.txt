@@ -99,8 +99,8 @@ Adapter
   >>> pa.__array_interface__ == pa.context.__array_interface__
   True
   >>> from numpy import asarray
-  >>> as = asarray(pa)
-  >>> as
+  >>> pas = asarray(pa)
+  >>> pas
   array([ 1.,  2.])
 
   Adapt a coordinate list to a point
@@ -123,8 +123,8 @@ Adapter
   Now, the inverse
   
   >>> ai = pa.__array_interface__
-  >>> as = asarray(pa)
-  >>> as
+  >>> pas = asarray(pa)
+  >>> pas
   array([ 1.,  4.])
 
 Test Non-operability of Null geometry

@@ -5,6 +5,7 @@ All tickets are children of http://trac.gispython.org/projects/PCL/ticket/
 - Disentangle Python and topological equality (#163).
 - Implement safe predicate shortcuts for objects identical in the Python sense
   (#163).
+- Add shape(), a factory that copies coordinates from a geo interface provider.
 
 1.0.3 (2008-04-09)
 ------------------

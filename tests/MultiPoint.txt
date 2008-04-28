@@ -71,8 +71,8 @@ Adapter
   >>> geoma.__array_interface__ == geoma.context.__array_interface__
   True
   >>> from numpy import asarray
-  >>> as = asarray(geoma)
-  >>> as
+  >>> pas = asarray(geoma)
+  >>> pas
   array([[ 1.,  2.],
          [ 3.,  4.]])
 

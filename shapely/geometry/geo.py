@@ -1,11 +1,38 @@
+"""
+Geometry factories based on the geo interface.
+"""
 
-from point import PointAdapter
-from linestring import LineStringAdapter
-from polygon import PolygonAdapter
-from multipoint import MultiPointAdapter
-from multilinestring import MultiLineStringAdapter
-from multipolygon import MultiPolygonAdapter
+from point import Point, asPoint
+from linestring import LineString, asLineString
+from polygon import Polygon, asPolygon
+from multipoint import MultiPoint, asMultiPoint
+from multilinestring import MultiLineString, asMultiLineString
+from multipolygon import MultiPolygon, asMultiPolygon
 
+
+def shape(context):
+    """Return a new, independent geometry with coordinates *copied* from the
+    context.
+    """
+    if hasattr(context, "__geo_interface__"):
+        ob = context.__geo_interface__
+    else:
+        ob = context
+    geom_type = ob.get("type").lower()
+    if geom_type == "point":
+        return Point(ob["coordinates"])
+    elif geom_type == "linestring":
+        return LineString(ob["coordinates"])
+    elif geom_type == "polygon":
+        return Polygon(ob["coordinates"][0], ob["coordinates"][1:])
+    elif geom_type == "multipoint":
+        return MultiPoint(ob["coordinates"])
+    elif geom_type == "multilinestring":
+        return MultiLineString(ob["coordinates"])
+    elif geom_type == "multipolygon":
+        return MultiPolygon(ob["coordinates"])
+    else:
+        raise ValueError, "Unknown geometry type: %s" % geom_type
 
 def asShape(context):
     """Adapts the context to a geometry interface. The coordinates remain
@@ -19,17 +46,16 @@ def asShape(context):
     geom_type = ob.get("type").lower()
 
     if geom_type == "point":
-        return PointAdapter(ob["coordinates"])
+        return asPoint(ob["coordinates"])
     elif geom_type == "linestring":
-        return LineStringAdapter(ob["coordinates"])
+        return asLineString(ob["coordinates"])
     elif geom_type == "polygon":
-        return PolygonAdapter(ob["coordinates"][0], ob["coordinates"][1:])
+        return asPolygon(ob["coordinates"][0], ob["coordinates"][1:])
     elif geom_type == "multipoint":
-        return MultiPointAdapter(ob["coordinates"])
+        return asMultiPoint(ob["coordinates"])
     elif geom_type == "multilinestring":
-        return MultiLineStringAdapter(ob["coordinates"])
+        return asMultiLineString(ob["coordinates"])
     elif geom_type == "multipolygon":
-        return MultiPolygonAdapter(ob["coordinates"])
+        return asMultiPolygon(ob["coordinates"])
     else:
         raise ValueError, "Unknown geometry type: %s" % geom_type
-

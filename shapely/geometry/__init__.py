@@ -1,4 +1,4 @@
-from geo import asShape
+from geo import shape, asShape
 from point import Point, asPoint
 from linestring import LineString, asLineString
 from polygon import Polygon, asPolygon
