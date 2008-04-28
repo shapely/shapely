@@ -30,8 +30,8 @@ class BinaryPredicate(object):
     def __call__(self, other):
         if self.context._geom is None or other._geom is None:
             raise ValueError, "Null geometry supports no operations"
-        elif self.context == other:
-            return self.self_predicate_value
+        #elif self.context == other:
+        #    return self.self_predicate_value
         return bool(self.fn(self.context._geom, other._geom))
 
 

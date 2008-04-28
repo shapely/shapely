@@ -10,6 +10,7 @@ from ctypes import cast, POINTER
 from shapely.geos import lgeos, DimensionError
 from shapely.geometry.base import BaseGeometry, CoordinateSequence
 from shapely.geometry.base import exceptNull
+from shapely.geometry.proxy import CachingGeometryProxy
 
 
 def geos_point_from_py(ob, update_geom=None, update_ndim=0):
@@ -199,17 +200,16 @@ class Point(BaseGeometry):
     coords = property(BaseGeometry._get_coords, _set_coords)
 
 
-class PointAdapter(Point):
+class PointAdapter(CachingGeometryProxy, Point):
 
     """Adapts a Python coordinate pair or a numpy array to the point interface.
     """
 
-    context = None
-    __geom__ = None
     _owned = False
 
     def __init__(self, context):
         self.context = context
+        self.factory = geos_point_from_py
 
     @property
     def _ndim(self):
@@ -223,13 +223,13 @@ class PointAdapter(Point):
             # Fall back on list
             return len(self.context)
 
-    @property
-    def _geom(self):
-        """Keeps the GEOS geometry in synch with the context."""
-        if self.__geom__ is not None:
-            lgeos.GEOSGeom_destroy(self.__geom__)
-        self.__geom__, n = geos_point_from_py(self.context)
-        return self.__geom__
+#    @property
+#    def _geom(self):
+#        """Keeps the GEOS geometry in synch with the context."""
+#        if self.__geom__ is not None:
+#            lgeos.GEOSGeom_destroy(self.__geom__)
+#        self.__geom__, n = geos_point_from_py(self.context)
+#        return self.__geom__
 
     # TODO: reimplement x, y, z properties without calling invoking _geom
 
