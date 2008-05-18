@@ -207,6 +207,24 @@ class GeometrySequence(object):
                 max = l
 
 
+class HeterogeneousGeometrySequence(GeometrySequence):
+
+    def __init__(self, parent):
+        self.__p__ = parent
+        self._geom = parent._geom
+        self._ndim = parent._ndim
+
+    def next(self):
+        if self._index < self.__len__():
+            sub = lgeos.GEOSGetGeometryN(self._geom, self._index)
+            g = geom_factory(sub)
+            g._owned = True
+            self._index += 1
+            return g
+        else:
+            raise StopIteration 
+    
+
 def exceptNull(func):
     """Decorator which helps avoid GEOS operations on null pointers."""
     def wrapper(*args, **kwargs):
@@ -459,3 +477,29 @@ class BaseGeometry(object):
         
         return (minx, miny, maxx, maxy)
 
+
+class BaseMultiPartGeometry(BaseGeometry):
+
+    @property
+    def ctypes(self):
+        raise NotImplementedError, \
+        "Multi-part geometries have no ctypes representations"
+
+    @property
+    def __array_interface__(self):
+        """Provide the Numpy array protocol."""
+        raise NotImplementedError, \
+        "Multi-part geometries do not themselves provide the array interface"
+
+    def _get_coords(self):
+        raise NotImplementedError, \
+        "Sub-geometries may have coordinate sequences, but collections do not"
+
+    def _set_coords(self, ob):
+        raise NotImplementedError, \
+        "Sub-geometries may have coordinate sequences, but collections do not"
+
+    @property
+    def coords(self):
+        raise NotImplementedError, \
+        "Multi-part geometries do not provide a coordinate sequence"

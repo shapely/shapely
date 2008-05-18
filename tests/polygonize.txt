@@ -1,0 +1,19 @@
+Polygonizing
+============
+
+    >>> from shapely.geometry import LineString
+    >>> from shapely.geometry import polygonize
+    >>> lines = [
+    ...     LineString(((0, 0), (1, 1))),
+    ...     LineString(((0, 0), (0, 1))),
+    ...     LineString(((0, 1), (1, 1))),
+    ...     LineString(((1, 1), (1, 0))),
+    ...     LineString(((1, 0), (0, 0)))
+    ...     ]
+    >>> result = polygonize(lines)
+    >>> result
+    <shapely.geometry.collection.GeometryCollection object at ...>
+    >>> len(result.geoms)
+    2
+    >>> list(result.geoms)
+    [<shapely.geometry.polygon.Polygon object at ...>, <shapely.geometry.polygon.Polygon object at ...>]
