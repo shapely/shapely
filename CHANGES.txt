@@ -1,5 +1,9 @@
 All tickets are children of http://trac.gispython.org/projects/PCL/ticket/
 
+1.0.5
+------------------
+- Added access to GEOS polygonizer function.
+
 1.0.4 (2008-05-01)
 ------------------
 - Disentangle Python and topological equality (#163).
