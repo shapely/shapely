@@ -229,7 +229,7 @@ def exceptNull(func):
     """Decorator which helps avoid GEOS operations on null pointers."""
     def wrapper(*args, **kwargs):
         # self is the first arg
-        if args[0]._geom is None:
+        if not args[0]._geom:
             raise ValueError, "Null geometry supports no operations"
         return func(*args, **kwargs)
     return wrapper
@@ -238,7 +238,7 @@ def exceptEitherNull(func):
     """Decorator which avoids GEOS operations on one or more null pointers."""
     def wrapper(*args, **kwargs):
         # self is the first arg
-        if args[0]._geom is None or args[1]._geom is None:
+        if not args[0]._geom or not args[1]._geom:
             raise ValueError, "Null geometry supports no operations"
         return func(*args, **kwargs)
     return wrapper

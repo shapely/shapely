@@ -139,4 +139,10 @@ Check that we can set coordinates of a null geometry
   >>> print r_null.length # doctest: +ELLIPSIS
   3.414...
 
+Error handling
+--------------
 
+  >>> p = Polygon([[1,2], [2, 3]])
+  Traceback (most recent call last):
+  ...
+  ValueError: A LinearRing must have at least 3 coordinate tuples

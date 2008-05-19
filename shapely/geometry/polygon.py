@@ -17,7 +17,8 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
         assert len(array['shape']) == 2
         m = array['shape'][0]
         n = array['shape'][1]
-        assert m >= 2
+        if m < 3:
+            raise ValueError, "A LinearRing must have at least 3 coordinate tuples"
         assert n == 2 or n == 3
 
         # Make pointer to the coordinate array
@@ -76,7 +77,8 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
         # Fall back on list
         m = len(ob)
         n = len(ob[0])
-        assert m >= 2
+        if m < 3:
+            raise ValueError, "A LinearRing must have at least 3 coordinate tuples"
         assert (n == 2 or n == 3)
 
         # Add closing coordinates if not provided
