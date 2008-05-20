@@ -4,16 +4,15 @@ The Shapely Manual
 
 :Author: Sean Gillies
 :address: sgillies@frii.com
-    http://zcologia.com/sgillies
-
-:revision: 1.0
-:date: 2 January 2008
-
-:copyright: This work is licensed under a `Creative Commons Attribution 3.0 United States License`__.
+:revision: 1.0.5
+:date: 20 May 2008
+:copyright: This work is licensed under a `Creative Commons Attribution 3.0
+  United States License`__.
 
 .. __: http://creativecommons.org/licenses/by/3.0/us/
 
-:abstract: This document describes the Shapely Python package for programming with geospatial geometries.
+:abstract: This document describes the Shapely Python package for programming
+  with geospatial geometries.
 
 .. sectnum::
 
@@ -345,26 +344,27 @@ not:
 Other Operations
 ----------------
 
-Polygonize
-++++++++++
+Polygonization
+++++++++++++++
 
-polygonize
-    >>> from shapely.geometry import LineString
-    >>> from shapely.geometry import polygonize
-    >>> lines = [
-    ...     LineString(((0, 0), (1, 1))),
-    ...     LineString(((0, 0), (0, 1))),
-    ...     LineString(((0, 1), (1, 1))),
-    ...     LineString(((1, 1), (1, 0))),
-    ...     LineString(((1, 0), (0, 0)))
-    ...     ]
-    >>> result = polygonize(lines)
-    >>> result
-    <shapely.geometry.collection.GeometryCollection object at ...>
-    >>> len(result.geoms)
-    2
-    >>> list(result.geoms)
-    [<shapely.geometry.polygon.Polygon object at ...>, <shapely.geometry.polygon.Polygon object at ...>]
+shapely.ops.polygonize(lines) : iterator
+  Returns an iterator over polygons constructed from the *lines* iterator. The
+  elements of *lines* may be Shapely geometries, objects that provide the geo
+  interface, or Numpy arrays or Python sequences shaped like LineStrings.
+
+.. code-block:: python
+
+  >>> from shapely.ops import polygonize
+  >>> lines = [
+  ...     ((0, 0), (1, 1)),
+  ...     ((0, 0), (0, 1)),
+  ...     ((0, 1), (1, 1)),
+  ...     ((1, 1), (1, 0)),
+  ...     ((1, 0), (0, 0))
+  ...     ]
+  >>> result = polygonize(lines)
+  >>> list(result.geoms)
+  [<shapely.geometry.polygon.Polygon object at ...>, <shapely.geometry.polygon.Polygon object at ...>]
 
 
 Unary Spatial Predicates
@@ -822,6 +822,9 @@ Or a simple placemark-type object:
   'Point'
   >>> list(shape.coords)
   [(0.0, 0.0)]
+
+If you want to copy coordinate data to a new geometry, use the
+*shapely.geometry.shape* function instead.
 
 .. _Python geo interface: http://trac.gispython.org/projects/PCL/wiki/PythonGeoInterface
 

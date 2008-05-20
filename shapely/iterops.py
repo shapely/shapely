@@ -1,4 +1,5 @@
 """
+Iterative forms of operations.
 """
 
 from ctypes import c_char_p, c_size_t
@@ -36,7 +37,7 @@ class BinaryPredicateIterator(object):
             except TypeError:
                 this_geom = item
                 ob = this_geom
-            if this_geom._geom is None:
+            if not this_geom._geom:
                 raise ValueError, "Null geometry supports no operations"
             retval = self.fn(geom._geom, this_geom._geom)
             if retval == 2:
@@ -53,4 +54,3 @@ within = BinaryPredicateIterator(lgeos.GEOSWithin)
 contains = BinaryPredicateIterator(lgeos.GEOSContains)
 overlaps = BinaryPredicateIterator(lgeos.GEOSOverlaps)
 equals = BinaryPredicateIterator(lgeos.GEOSEquals)
-

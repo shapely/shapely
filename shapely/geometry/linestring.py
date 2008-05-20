@@ -16,8 +16,12 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
         array = ob.__array_interface__
         assert len(array['shape']) == 2
         m = array['shape'][0]
-        n = array['shape'][1]
-        assert m >= 2
+        if m < 2:
+            raise ValueError, "LineStrings must have at least 2 coordinate tuples"
+        try:
+            n = array['shape'][1]
+        except IndexError:
+            raise ValueError, "Input %s is the wrong shape for a LineString" % str(ob)
         assert n == 2 or n == 3
 
         # Make pointer to the coordinate array
@@ -42,8 +46,11 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
             dy = c_double(cp[n*i+1])
             dz = None
             if n == 3:
-                dz = c_double(cp[n*i+2])
-        
+                try:
+                    dz = c_double(cp[n*i+2])
+                except IndexError:
+                    raise ValueError, "Inconsistent coordinate dimensionality"
+
             # Because of a bug in the GEOS C API, 
             # always set X before Y
             lgeos.GEOSCoordSeq_setX(cs, i, dx)
@@ -54,8 +61,12 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
     except AttributeError:
         # Fall back on list
         m = len(ob)
-        n = len(ob[0])
-        assert m >= 2
+        if m < 2:
+            raise ValueError, "LineStrings must have at least 2 coordinate tuples"
+        try:
+            n = len(ob[0])
+        except TypeError:
+            raise ValueError, "Input %s is the wrong shape for a LineString" % str(ob)
         assert n == 2 or n == 3
 
         # Create a coordinate sequence
@@ -75,7 +86,10 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
             dy = c_double(coords[1])
             dz = None
             if n == 3:
-                dz = c_double(coords[2])
+                try:
+                    dz = c_double(coords[2])
+                except IndexError:
+                    raise ValueError, "Inconsistent coordinate dimensionality"
         
             # Because of a bug in the GEOS C API, 
             # always set X before Y

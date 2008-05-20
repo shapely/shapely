@@ -1,8 +1,10 @@
 All tickets are children of http://trac.gispython.org/projects/PCL/ticket/
 
-1.0.5
+1.0.5 (2008-05-20)
 ------------------
 - Added access to GEOS polygonizer function.
+- Raise exception when insufficient coordinate tuples are passed to LinearRing
+  constructor (#164).
 
 1.0.4 (2008-05-01)
 ------------------

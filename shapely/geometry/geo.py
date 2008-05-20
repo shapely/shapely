@@ -43,7 +43,10 @@ def asShape(context):
     else:
         ob = context
 
-    geom_type = ob.get("type").lower()
+    try:
+        geom_type = ob.get("type").lower()
+    except AttributeError:
+        raise ValueError, "Context does not provide geo interface"
 
     if geom_type == "point":
         return asPoint(ob["coordinates"])
