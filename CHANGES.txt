@@ -1,5 +1,11 @@
 All tickets are children of http://trac.gispython.org/projects/PCL/ticket/
 
+1.0.6 (2008-07-10)
+------------------
+- Fixed adaptation of multi polygon data.
+- Raise exceptions earlier from binary predicates.
+- Beginning distributing new windows DLLs (#166).
+
 1.0.5 (2008-05-20)
 ------------------
 - Added access to GEOS polygonizer function.

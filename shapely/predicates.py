@@ -23,12 +23,14 @@ class BinaryPredicate(object):
         self.fn.errcheck = errcheck
 
     def __get__(self, obj, objtype=None):
+        if not obj._geom:
+            raise ValueError, "Null geometry supports no operations"
         self.context = obj
         return self
 
     def __call__(self, other):
-        if not self.context._geom or not other._geom:
-            raise ValueError, "Null geometry supports no operations"
+        if not other._geom:
+            raise ValueError, "Null geometry can not be operated upon"
         return bool(self.fn(self.context._geom, other._geom))
 
 
