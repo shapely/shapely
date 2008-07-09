@@ -11,6 +11,20 @@ from shapely.geometry.proxy import CachingGeometryProxy
 
 
 def geos_multipolygon_from_py(ob):
+    """ob must provide Python geo interface coordinates."""
+    L = len(ob)
+    N = len(ob[0][0][0])
+    assert L >= 1
+    assert N == 2 or N == 3
+
+    subs = (c_void_p * L)()
+    for l in xrange(L):
+        geom, ndims = geos_polygon_from_py(ob[l][0], ob[l][1:])
+        subs[l] = cast(geom, c_void_p)
+            
+    return (lgeos.GEOSGeom_createCollection(6, subs, L), N)
+
+def geos_multipolygon_from_polygons(ob):
     """ob must be either a sequence or array of sequences or arrays."""
     L = len(ob)
     N = len(ob[0][0][0])
@@ -25,12 +39,13 @@ def geos_multipolygon_from_py(ob):
     return (lgeos.GEOSGeom_createCollection(6, subs, L), N)
 
 
+
 class MultiPolygon(BaseGeometry):
 
     """a multiple polygon geometry.
     """
 
-    def __init__(self, polygons=None):
+    def __init__(self, polygons=None, context_type='polygons'):
         """Initialize.
 
         Parameters
@@ -55,7 +70,9 @@ class MultiPolygon(BaseGeometry):
         if polygons is None:
             # allow creation of null collections, to support unpickling
             pass
-        else:
+        elif context_type == 'polygons':
+            self._geom, self._ndim = geos_multipolygon_from_polygons(polygons)
+        elif context_type == 'geojson':
             self._geom, self._ndim = geos_multipolygon_from_py(polygons)
 
     @property
@@ -111,9 +128,12 @@ class MultiPolygonAdapter(CachingGeometryProxy, MultiPolygon):
     context = None
     _owned = False
 
-    def __init__(self, context):
+    def __init__(self, context, context_type='polygons'):
         self.context = context
-        self.factory = geos_multipolygon_from_py
+        if context_type == 'geojson':
+            self.factory = geos_multipolygon_from_py
+        elif context_type == 'polygons':
+            self.factory = geos_multipolygon_from_polygons
 
     @property
     def _ndim(self):

@@ -7,7 +7,7 @@ from linestring import LineString, asLineString
 from polygon import Polygon, asPolygon
 from multipoint import MultiPoint, asMultiPoint
 from multilinestring import MultiLineString, asMultiLineString
-from multipolygon import MultiPolygon, asMultiPolygon
+from multipolygon import MultiPolygon, MultiPolygonAdapter, asMultiPolygon
 
 
 def shape(context):
@@ -30,7 +30,7 @@ def shape(context):
     elif geom_type == "multilinestring":
         return MultiLineString(ob["coordinates"])
     elif geom_type == "multipolygon":
-        return MultiPolygon(ob["coordinates"])
+        return MultiPolygon(ob["coordinates"], context_type='geojson')
     else:
         raise ValueError, "Unknown geometry type: %s" % geom_type
 
@@ -59,6 +59,6 @@ def asShape(context):
     elif geom_type == "multilinestring":
         return asMultiLineString(ob["coordinates"])
     elif geom_type == "multipolygon":
-        return asMultiPolygon(ob["coordinates"])
+        return MultiPolygonAdapter(ob["coordinates"], context_type='geojson')
     else:
         raise ValueError, "Unknown geometry type: %s" % geom_type

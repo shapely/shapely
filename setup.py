@@ -11,7 +11,7 @@ if version_info[:2] < (2,5):
 readme_text = file('README.txt', 'rb').read()
 
 setup(name          = 'Shapely',
-      version       = '1.0.5',
+      version       = '1.0.6',
       description   = 'Geospatial geometries, predicates, and operations',
       license       = 'BSD',
       keywords      = 'geometry topology',
