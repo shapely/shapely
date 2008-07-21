@@ -13,6 +13,10 @@ to other packages like WorldMill_ and pyproj_. For more information, see:
 Shapely requires Python 2.4+. (I've also begun to port it to Python 3.0:
 http://zcologia.com/news/564/shapely-for-python-3-0/.)
 
+.. note::
+   We've switched to Windows GEOS DLLs based on MinGW in versions >= 1.0.6.
+   Please contact us if you experience difficulties.
+
 See also CHANGES.txt_ and HISTORY.txt_.
 
 .. _CHANGES.txt: http://trac.gispython.org/projects/PCL/browser/Shapely/trunk/CHANGES.txt
@@ -153,11 +157,9 @@ Credits
 * Fr |eaigue| d |eaigue| ric Junod (Camptocamp SA)
 * Eric Lemoine (Camptocamp SA)
 * Justin Bronn (GeoDjango) for ctypes inspiration
-* Artem Pavlenko (Mapnik) for help with GEOS DLLs
 
 .. |eaigue| unicode:: U+00E9
    :trim:
 
 Major portions of this work were supported by a grant (to Pleiades) from the
 U.S.  National Endowment for the Humanities (http://www.neh.gov).
-

@@ -262,6 +262,8 @@ class BaseGeometry(object):
     def __del__(self):
         if self.__geom__ is not None and not self._owned:
             lgeos.GEOSGeom_destroy(self.__geom__)
+        self.__geom__ = None
+        self.__p__ = None
 
     def __str__(self):
         return self.to_wkt()

@@ -3,7 +3,7 @@ Polygons and their linear ring components.
 """
 
 from ctypes import byref, c_double, c_int, c_void_p, cast, POINTER, pointer
-
+import weakref
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, exceptNull
 from shapely.geometry.linestring import LineString, LineStringAdapter
@@ -278,6 +278,12 @@ class InteriorRingSequence(object):
             if l > max:
                 max = l
 
+    def _get_ring(self, i):
+        g = LinearRing()
+        g._owned = True
+        g._geom = lgeos.GEOSGetInteriorRingN(self._geom, ii)
+        return g
+        
 
 def geos_polygon_from_py(shell, holes=None):
     if shell is not None:
@@ -344,16 +350,17 @@ class Polygon(BaseGeometry):
     @property
     @exceptNull
     def exterior(self):
-        if self._exterior is None:
+        if self._exterior is None or self._exterior() is None:
             # A polygon created from the abstract factory will have a null
             # _exterior attribute.
-            ring = lgeos.GEOSGetExteriorRing(self._geom)
-            self._exterior = LinearRing()
-            self._exterior._geom = ring
+            g = lgeos.GEOSGetExteriorRing(self._geom)
+            ring = LinearRing()
+            ring.__geom__ = g
             # The ring needs to hold an extra ref to the polygon
-            self.__p__ = self
-            self._exterior._owned = True
-        return self._exterior
+            ring.__p__ = self
+            ring._owned = True
+            self._exterior = weakref.ref(ring)
+        return self._exterior()
 
     @property
     @exceptNull

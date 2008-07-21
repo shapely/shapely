@@ -4,7 +4,6 @@ Kai Lautaportti (Hexagon IT)
 Frédéric Junod (Camptocamp SA)
 Eric Lemoine (Camptocamp SA)
 Justin Bronn (GeoDjango) for ctypes inspiration
-Artem Pavlenko (Mapnik) for help with GEOS DLLs
 
 Some of this work was supported by a grant from the U.S. National Endowment for
 the Humanities (http://www.neh.gov).
