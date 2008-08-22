@@ -233,6 +233,8 @@ class InteriorRingSequence(object):
     _ndim = None
     _index = 0
     _length = 0
+    __rings__ = None
+    _gtag = None
 
     def __init__(self, parent):
         self.__p__ = parent
@@ -246,11 +248,9 @@ class InteriorRingSequence(object):
 
     def next(self):
         if self._index < self._length:
-            g = LinearRing()
-            g._owned = True
-            g._geom = lgeos.GEOSGetInteriorRingN(self._geom, self._index)
+            ring = self._get_ring(self._index)
             self._index += 1
-            return g
+            return ring
         else:
             raise StopIteration 
 
@@ -265,10 +265,7 @@ class InteriorRingSequence(object):
             ii = M + i
         else:
             ii = i
-        g = LinearRing()
-        g._owned = True
-        g._geom = lgeos.GEOSGetInteriorRingN(self._geom, ii)
-        return g
+        return self._get_ring(i)
 
     @property
     def _longest(self):
@@ -278,11 +275,21 @@ class InteriorRingSequence(object):
             if l > max:
                 max = l
 
+    def gtag(self):
+        return hash(repr(self.__p__))
+
     def _get_ring(self, i):
-        g = LinearRing()
-        g._owned = True
-        g._geom = lgeos.GEOSGetInteriorRingN(self._geom, ii)
-        return g
+        gtag = self.gtag()
+        if gtag != self._gtag:
+            self.__rings__ = {}
+        if i not in self.__rings__:
+            g = lgeos.GEOSGetInteriorRingN(self._geom, i)
+            ring = LinearRing()
+            ring.__geom__ = g
+            ring.__p__ = self
+            ring._owned = True
+            self.__rings__[i] = weakref.ref(ring)
+        return self.__rings__[i]()
         
 
 def geos_polygon_from_py(shell, holes=None):
@@ -351,12 +358,9 @@ class Polygon(BaseGeometry):
     @exceptNull
     def exterior(self):
         if self._exterior is None or self._exterior() is None:
-            # A polygon created from the abstract factory will have a null
-            # _exterior attribute.
             g = lgeos.GEOSGetExteriorRing(self._geom)
             ring = LinearRing()
             ring.__geom__ = g
-            # The ring needs to hold an extra ref to the polygon
             ring.__p__ = self
             ring._owned = True
             self._exterior = weakref.ref(ring)
