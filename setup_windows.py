@@ -1,4 +1,3 @@
-
 from setuptools import setup, Extension
 from sys import version_info
 
@@ -11,7 +10,7 @@ if version_info[:2] < (2,5):
 readme_text = file('README.txt', 'rb').read()
 
 setup(name          = 'Shapely',
-      version       = '1.0.6',
+      version       = '1.0.7',
       description   = 'Geospatial geometries, predicates, and operations',
       license       = 'BSD',
       keywords      = 'geometry topology',
@@ -19,7 +18,7 @@ setup(name          = 'Shapely',
       author_email  = 'sgillies@frii.com',
       maintainer    = 'Sean Gillies',
       maintainer_email  = 'sgillies@frii.com',
-      url   = 'http://trac.gispython.org/projects/PCL/wiki/Shapely',
+      url   = 'http://trac.gispython.org/lab/wiki/Shapely',
       long_description = readme_text,
       packages      = ['shapely', 'shapely.geometry'],
       data_files=[('DLLs', ['DLLs/geos.dll', 'DLLs/libgeos-3-0-0.dll']),],
@@ -36,4 +35,3 @@ setup(name          = 'Shapely',
         'Topic :: Scientific/Engineering :: GIS',
         ],
 )
-

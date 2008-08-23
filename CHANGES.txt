@@ -1,4 +1,9 @@
-All tickets are children of http://trac.gispython.org/projects/PCL/ticket/
+All tickets are children of http://trac.gispython.org/lab/ticket.
+
+1.0.7 (2008-08-23)
+------------------
+- Polygon rings now have the same dimensions as parent (#168).
+- Eliminated reference cycles in polygons (#169).
 
 1.0.6 (2008-07-10)
 ------------------
