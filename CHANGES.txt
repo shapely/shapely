@@ -1,6 +1,6 @@
 All tickets are children of http://trac.gispython.org/lab/ticket.
 
-1.0.7 (2008-08-23)
+1.0.7 (2008-08-22)
 ------------------
 - Polygon rings now have the same dimensions as parent (#168).
 - Eliminated reference cycles in polygons (#169).
