@@ -25,7 +25,6 @@ Initialization
   >>> ring.__geo_interface__
   {'type': 'LinearRing', 'coordinates': ((0.0, 0.0), (0.0, 2.0), (2.0, 2.0), (2.0, 0.0), (0.0, 0.0))}
 
-
   Test ring adapter
 
   >>> coords = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]

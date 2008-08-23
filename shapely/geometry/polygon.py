@@ -143,7 +143,7 @@ class LinearRing(LineString):
     """A linear ring.
     """
 
-    _ndim = 2
+    _ndim = None
     __geom__ = None
     __p__ = None
     _owned = False
@@ -288,6 +288,7 @@ class InteriorRingSequence(object):
             ring.__geom__ = g
             ring.__p__ = self
             ring._owned = True
+            ring._ndim = self._ndim
             self.__rings__[i] = weakref.ref(ring)
         return self.__rings__[i]()
         
@@ -363,6 +364,7 @@ class Polygon(BaseGeometry):
             ring.__geom__ = g
             ring.__p__ = self
             ring._owned = True
+            ring._ndim = self._ndim
             self._exterior = weakref.ref(ring)
         return self._exterior()
 

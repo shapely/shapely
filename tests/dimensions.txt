@@ -1,0 +1,17 @@
+Background: see http://trac.gispython.org/lab/ticket/168
+
+  >>> from shapely.geometry import Polygon
+  >>> coords = ((0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 1.0, 0.0), (1.0, 0.0, 0.0))
+  >>> polygon = Polygon(coords)
+  >>> polygon._ndim
+  3
+  >>> gi = polygon.__geo_interface__
+  >>> gi['coordinates']
+  (((0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 1.0, 0.0), (1.0, 0.0, 0.0), (0.0, 0.0, 0.0)),)
+
+  >>> e = polygon.exterior
+  >>> e._ndim
+  3
+  >>> gi = e.__geo_interface__
+  >>> gi['coordinates']
+  ((0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 1.0, 0.0), (1.0, 0.0, 0.0), (0.0, 0.0, 0.0))
