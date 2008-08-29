@@ -25,17 +25,14 @@ def load(fp):
 
 def dumps(ob):
     """Dump a WKB representation of a geometry to a byte string."""
-    writer = lgeos.GEOSWKTWriter_create()
-    func = lgeos.GEOSWKTWriter_write
+    func = lgeos.GEOSGeomToWKT
     def errcheck(result, func, argtuple):
         retval = result.value
         free(result)
         return retval
     func.restype = allocated_c_char_p
     func.errcheck = errcheck
-    wkt = func(writer, ob._geom)
-    lgeos.GEOSWKTWriter_destroy(writer)
-    return wkt
+    return func(ob._geom)
 
 def dump(ob, fp):
     """Dump a geometry to an open file."""
