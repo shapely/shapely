@@ -3,12 +3,10 @@ Exports the libgeos_c shared lib, GEOS-specific exceptions, and utilities.
 """
 
 import atexit
-from ctypes import cdll, CDLL, pydll, PyDLL, CFUNCTYPE, c_char_p
-from ctypes.util import find_library
 import os
 import sys
-
-import shapely
+from ctypes import cdll, CDLL, PyDLL, CFUNCTYPE, c_char_p
+from ctypes.util import find_library
 
 if sys.platform == 'win32':
     try:
@@ -51,6 +49,10 @@ else:
     free = CDLL('libc.so.6').free
 
 
+# Load the ctypes restype and argtype declarations for geos_c functions.
+_here = os.path.abspath(os.path.dirname(__file__))
+execfile(os.path.join(_here, 'ctypes_declarations.py'))
+
 class allocated_c_char_p(c_char_p):
     pass
 
@@ -83,10 +85,9 @@ notice_h = CFUNCTYPE(None, c_char_p, c_char_p)(notice_handler)
 # Register a cleanup function
 
 def cleanup():
-    lgeos.finishGEOS()
+    if lgeos is not None:
+        lgeos.finishGEOS()
 
 atexit.register(cleanup)
 
 lgeos.initGEOS(notice_h, error_h)
-
-
