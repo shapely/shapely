@@ -1,5 +1,10 @@
 All tickets are children of http://trac.gispython.org/lab/ticket.
 
+1.0.8 (2008-11-01)
+------------------
+- Fill out GEOS function result and argument types to prevent faults on a
+  64-bit arch.
+
 1.0.7 (2008-08-22)
 ------------------
 - Polygon rings now have the same dimensions as parent (#168).
