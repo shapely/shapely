@@ -29,13 +29,15 @@ elif sys.platform == 'darwin':
         lib_paths = [
             # The Framework build from Kyng Chaos:
             "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
+            # macports
+            '/opt/local/lib/libgeos_c.dylib',
         ]
         for path in lib_paths:
             if os.path.exists(path):
                 lib = path
                 break
-            else:
-                raise ImportError, "Could not find geos_c library"
+    if lib is None:
+        raise ImportError, "Could not find geos_c library"
     lgeos = PyDLL(lib)
     free = CDLL(find_library('libc')).free
 else:
