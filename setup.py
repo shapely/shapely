@@ -3,14 +3,14 @@ from sys import version_info
 
 # Require ctypes egg only for Python < 2.5
 install_requires = ['setuptools']
-#if version_info[:2] < (2,5):
-#    install_requires.append('ctypes')
+if version_info[:2] < (2,5):
+    install_requires.append('ctypes')
 
 # Get text from README.txt
 readme_text = file('README.txt', 'rb').read()
 
 setup(name          = 'Shapely',
-      version       = '1.0.8',
+      version       = '1.0.9',
       description   = 'Geospatial geometries, predicates, and operations',
       license       = 'BSD',
       keywords      = 'geometry topology',

@@ -1,5 +1,9 @@
 All tickets are children of http://trac.gispython.org/lab/ticket.
 
+1.0.9 (2008-11-16)
+------------------
+- Find and load MacPorts libgeos.
+
 1.0.8 (2008-11-01)
 ------------------
 - Fill out GEOS function result and argument types to prevent faults on a
