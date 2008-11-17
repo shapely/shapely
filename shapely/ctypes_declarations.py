@@ -14,8 +14,6 @@ lgeos.GEOSGeomFromWKT.argtypes = [ctypes.c_char_p]
 lgeos.GEOSGeomToWKT.restype = ctypes.c_char_p
 lgeos.GEOSGeomToWKT.argtypes = [ctypes.c_void_p]
 
-lgeos.GEOS_getWKBOutputDims.restype = ctypes.c_int
-
 lgeos.GEOS_setWKBOutputDims.restype = ctypes.c_int
 lgeos.GEOS_setWKBOutputDims.argtypes = [ctypes.c_int]
 
