@@ -47,3 +47,9 @@ lgeos.GEOSWKBWriter_getIncludeSRID.restype = ctypes.c_char
 lgeos.GEOSWKBWriter_getIncludeSRID.argtypes = [ctypes.c_void_p]
 lgeos.GEOSWKBWriter_setIncludeSRID.restype = None
 lgeos.GEOSWKBWriter_setIncludeSRID.argtypes = [ctypes.c_void_p, ctypes.c_char]
+
+Furthermore, the following unneeded declarations are removed to avoid problems
+with Debian's 2.2.3 package:
+
+lgeos.GEOSCoordSeq_getOrdinate.restype = ctypes.c_int
+lgeos.GEOSCoordSeq_getOrdinate.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_uint, ctypes.c_void_p]

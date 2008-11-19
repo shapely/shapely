@@ -50,9 +50,6 @@ lgeos.GEOSCoordSeq_getY.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_voi
 lgeos.GEOSCoordSeq_getZ.restype = ctypes.c_int
 lgeos.GEOSCoordSeq_getZ.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_void_p]
 
-lgeos.GEOSCoordSeq_getOrdinate.restype = ctypes.c_int
-lgeos.GEOSCoordSeq_getOrdinate.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_uint, ctypes.c_void_p]
-
 lgeos.GEOSCoordSeq_getSize.restype = ctypes.c_int
 lgeos.GEOSCoordSeq_getSize.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
 
@@ -205,4 +202,3 @@ lgeos.GEOSLength.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
 
 lgeos.GEOSDistance.restype = ctypes.c_int
 lgeos.GEOSDistance.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
-
