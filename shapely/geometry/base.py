@@ -42,7 +42,7 @@ def geom_factory(g, parent=None):
         )
     ob.__class__ = getattr(mod, geom_type)
     ob.__geom__ = g
-    # ob.__p__ = parent
+    ob.__p__ = parent
     ob._ndim = 2 # callers should be all from 2D worlds
     return ob
 
