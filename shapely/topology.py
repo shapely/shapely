@@ -6,43 +6,39 @@ from shapely.geos import TopologicalError
 
 
 class BinaryTopologicalOp(object):
-
-    """A callable non-data descriptor.
-
+    
+    """A non-data descriptor that returns a callable.
+    
     Wraps a GEOS function. The factory is a callable which wraps results in
     the appropriate shapely geometry class.
     """
-
+    
     fn = None
-    context = None
     factory = None
-
+    
     def __init__(self, fn, factory):
         self.fn = fn
         self.factory = factory
-
+    
     def __get__(self, obj, objtype=None):
-        self.context = obj
-        return self
-
-    def __call__(self, other):
-        if self.context._geom is None or other._geom is None:
-            raise ValueError, "Null geometry supports no operations"
-        product = self.fn(self.context._geom, other._geom)
-        if not product:
-            # Check validity of geometries
-            if not self.context.is_valid:
-                raise TopologicalError, \
-                "The operation '%s' produced a null geometry. Likely cause is invalidity of the geometry %s" % (self.fn.__name__, repr(self.context))
-            elif not other.is_valid:
-                raise TopologicalError, \
-                "The operation '%s' produced a null geometry. Likely cause is invalidity of the 'other' geometry %s" % (self.fn.__name__, repr(other))
-
-        return self.factory(product, self.context)
+        def opcall(other):
+            if obj._geom is None or other._geom is None:
+                raise ValueError, "Null geometry supports no operations"
+            product = self.fn(obj._geom, other._geom)
+            if not product:
+                # Check validity of geometries
+                if not obj.is_valid:
+                    raise TopologicalError, \
+                    "The operation '%s' produced a null geometry. Likely cause is invalidity of the geometry %s" % (self.fn.__name__, repr(obj))
+                elif not other.is_valid:
+                    raise TopologicalError, \
+                    "The operation '%s' produced a null geometry. Likely cause is invalidity of the 'other' geometry %s" % (self.fn.__name__, repr(other))
+            return self.factory(product)
+        return opcall
 
 
 class UnaryTopologicalOp(object):
-
+    
     """A data descriptor.
     
     Wraps a GEOS function. The factory is a callable which wraps results in
@@ -51,11 +47,11 @@ class UnaryTopologicalOp(object):
     
     fn = None
     factory = None
-
+    
     def __init__(self, fn, factory):
         self.fn = fn
         self.factory = factory
-
+    
     def __get__(self, obj, objtype=None):
         if obj._geom is None:
             raise ValueError, "Null geometry supports no operations"

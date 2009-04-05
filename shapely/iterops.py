@@ -13,23 +13,17 @@ def geos_from_geometry(geom):
                         c_size_t(len(data))
                         )
 
-class BinaryPredicateIterator(object):
+
+class IterOp(object):
     
     """A generating non-data descriptor.
     """
-   
-    fn = None
-    context = None
-
+    
     def __init__(self, fn):
         self.fn = fn
-
-    def __get__(self, obj, objtype=None):
-        self.context = obj
-        return self
-
-    def __call__(self, geom, iterator, value=True):
-        if geom._geom is None:
+    
+    def __call__(self, context, iterator, value=True):
+        if context._geom is None:
             raise ValueError, "Null geometry supports no operations"
         for item in iterator:
             try:
@@ -39,18 +33,20 @@ class BinaryPredicateIterator(object):
                 ob = this_geom
             if not this_geom._geom:
                 raise ValueError, "Null geometry supports no operations"
-            retval = self.fn(geom._geom, this_geom._geom)
+            retval = self.fn(context._geom, this_geom._geom)
             if retval == 2:
-                raise PredicateError, "Failed to evaluate %s" % repr(self.fn)
+                raise PredicateError, \
+                    "Failed to evaluate %s" % repr(self.fn)
             elif bool(retval) == value:
                 yield ob
 
+
 # utilities
-disjoint = BinaryPredicateIterator(lgeos.GEOSDisjoint)
-touches = BinaryPredicateIterator(lgeos.GEOSTouches)
-intersects = BinaryPredicateIterator(lgeos.GEOSIntersects)
-crosses = BinaryPredicateIterator(lgeos.GEOSCrosses)
-within = BinaryPredicateIterator(lgeos.GEOSWithin)
-contains = BinaryPredicateIterator(lgeos.GEOSContains)
-overlaps = BinaryPredicateIterator(lgeos.GEOSOverlaps)
-equals = BinaryPredicateIterator(lgeos.GEOSEquals)
+disjoint = IterOp(lgeos.GEOSDisjoint)
+touches = IterOp(lgeos.GEOSTouches)
+intersects = IterOp(lgeos.GEOSIntersects)
+crosses = IterOp(lgeos.GEOSCrosses)
+within = IterOp(lgeos.GEOSWithin)
+contains = IterOp(lgeos.GEOSContains)
+overlaps = IterOp(lgeos.GEOSOverlaps)
+equals = IterOp(lgeos.GEOSEquals)
