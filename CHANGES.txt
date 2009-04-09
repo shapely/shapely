@@ -1,5 +1,9 @@
 All tickets are children of http://trac.gispython.org/lab/ticket.
 
+1.0.12 (2009-04-09)
+-------------------
+- Fix for references held by topology and predicate descriptors.
+
 1.0.11 (2008-11-20)
 -------------------
 - Work around bug in GEOS 2.2.3, GEOSCoordSeq_getOrdinate not exported properly
