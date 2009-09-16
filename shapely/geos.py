@@ -3,10 +3,11 @@ Exports the libgeos_c shared lib, GEOS-specific exceptions, and utilities.
 """
 
 import atexit
-from ctypes import cdll, CDLL, PyDLL, CFUNCTYPE, c_char_p
-from ctypes.util import find_library
 import os
 import sys
+from threading import local
+from ctypes import cdll, CDLL, PyDLL, CFUNCTYPE, c_char_p, c_void_p
+from ctypes.util import find_library
 
 from ctypes_declarations import prototype
 
@@ -16,7 +17,7 @@ if sys.platform == 'win32':
         local_dlls = os.path.abspath(os.__file__ + "../../../DLLs")
         original_path = os.environ['PATH']
         os.environ['PATH'] = "%s;%s" % (local_dlls, original_path)
-        lgeos = PyDLL("geos.dll")
+        _lgeos = CDLL("geos.dll")
     except (ImportError, WindowsError):
         raise
     def free(m):
@@ -41,22 +42,21 @@ elif sys.platform == 'darwin':
                 break
     if lib is None:
         raise ImportError, "Could not find geos_c library"
-    lgeos = PyDLL(lib)
+    _lgeos = CDLL(lib)
     free = CDLL(find_library('libc')).free
 else:
     # Try the major versioned name first, falling back on the unversioned name.
     try:
-        lgeos = PyDLL('libgeos_c.so.1')
+        _lgeos = CDLL('libgeos_c.so.1')
     except (OSError, ImportError):
-        lgeos = PyDLL('libgeos_c.so')
+        _lgeos = CDLL('libgeos_c.so')
     except:
         raise
     free = CDLL('libc.so.6').free
 
 # Prototype the libgeos_c functions using new code from `tarley` in
 # http://trac.gispython.org/lab/ticket/189
-prototype(lgeos)
-
+prototype(_lgeos)
 
 class allocated_c_char_p(c_char_p):
     pass
@@ -75,8 +75,8 @@ class TopologicalError(Exception):
 class PredicateError(Exception):
     pass
 
-
-# GEOS error handlers, which currently do nothing.
+thread_data = local()
+thread_data.geos_handle = None
 
 def error_handler(fmt, list):
     pass
@@ -86,12 +86,46 @@ def notice_handler(fmt, list):
     pass
 notice_h = CFUNCTYPE(None, c_char_p, c_char_p)(notice_handler)
 
-# Register a cleanup function
-
 def cleanup():
     if lgeos is not None:
         lgeos.finishGEOS()
-
+        
 atexit.register(cleanup)
 
-lgeos.initGEOS(notice_h, error_h)
+class LGEOS(object):
+    
+    def __init__(self, dll):
+        self._lgeos = dll
+        v = self._lgeos.GEOSversion().split('-')[2]
+        self._geos_c_version = tuple(int(n) for n in v.split('.'))
+        if self._geos_c_version >= (1,5,0):
+            self._lgeos.initGEOS_r.restype = c_void_p
+            self._lgeos.initGEOS_r.argtypes = [c_void_p, c_void_p]            
+            thread_data.geos_handle = self._lgeos.initGEOS_r(notice_h, error_h)
+            
+    def __getattr__(self, name):
+        func = getattr(self._lgeos, name)
+        if self._geos_c_version >= (1,5,0):
+            ob = getattr(self._lgeos, name + '_r')
+            class wrapper(object):
+                __name__ = None
+                errcheck = None
+                restype = None
+                def __init__(self):
+                    self.func = ob
+                    self.__name__ = ob.__name__
+                    self.func.restype = func.restype
+                    if func.argtypes is None: self.func.argtypes = None
+                    else: self.func.argtypes = [c_void_p] + func.argtypes                    
+                def __call__(self, *args):
+                    if self.errcheck is not None:
+                        self.func.errcheck = self.errcheck
+                    if self.restype is not None:
+                        self.func.restype = self.restype
+                    return self.func(thread_data.geos_handle, *args)
+            attr = wrapper()
+        else:
+            attr = func
+        return attr
+        
+lgeos = LGEOS(_lgeos)

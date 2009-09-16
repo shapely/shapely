@@ -365,9 +365,8 @@ class BaseGeometry(object):
             retval = result.value
             free(result)
             return retval
-        func.restype = allocated_c_char_p
         func.errcheck = errcheck
-        return lgeos.GEOSGeomToWKT(self._geom)
+        return func(self._geom)
 
     geom_type = property(geometryType)
     wkt = property(to_wkt)
@@ -424,9 +423,8 @@ class BaseGeometry(object):
             retval = result.value
             free(result)
             return retval
-        func.restype = allocated_c_char_p
         func.errcheck = errcheck
-        return lgeos.GEOSRelate(self._geom, other._geom)
+        return func(self._geom, other._geom)
 
     # Binary predicates
     #

@@ -3,6 +3,9 @@
 
 import ctypes
 
+class allocated_c_char_p(ctypes.c_char_p):
+    pass
+
 def prototype(lgeos):
 
     lgeos.initGEOS.restype = None
@@ -14,7 +17,7 @@ def prototype(lgeos):
     lgeos.GEOSGeomFromWKT.restype = ctypes.c_void_p
     lgeos.GEOSGeomFromWKT.argtypes = [ctypes.c_char_p]
 
-    lgeos.GEOSGeomToWKT.restype = ctypes.c_char_p
+    lgeos.GEOSGeomToWKT.restype = allocated_c_char_p
     lgeos.GEOSGeomToWKT.argtypes = [ctypes.c_void_p]
 
     lgeos.GEOS_setWKBOutputDims.restype = ctypes.c_int
@@ -110,7 +113,7 @@ def prototype(lgeos):
     lgeos.GEOSGetCentroid.restype = ctypes.c_void_p
     lgeos.GEOSGetCentroid.argtypes = [ctypes.c_void_p]
 
-    lgeos.GEOSRelate.restype = ctypes.c_char_p
+    lgeos.GEOSRelate.restype = allocated_c_char_p
     lgeos.GEOSRelate.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
 
     lgeos.GEOSPolygonize.restype = ctypes.c_void_p
