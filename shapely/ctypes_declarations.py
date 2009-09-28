@@ -155,6 +155,9 @@ def prototype(lgeos, geosVersion):
     lgeos.GEOSEquals.restype = ctypes.c_int
     lgeos.GEOSEquals.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
 
+    lgeos.GEOSEqualsExact.restype = ctypes.c_int
+    lgeos.GEOSEqualsExact.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double]
+
     lgeos.GEOSisEmpty.restype = ctypes.c_int
     lgeos.GEOSisEmpty.argtypes = [ctypes.c_void_p]
 

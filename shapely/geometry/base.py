@@ -425,6 +425,13 @@ class BaseGeometry(object):
     overlaps = BinaryPredicate(lgeos.GEOSOverlaps)
     equals = BinaryPredicate(lgeos.GEOSEquals)
 
+    def equals_exact(self, other, tolerance):
+        if not self._geom:
+            raise ValueError, "Null geometry supports no operations"
+        if not other._geom:
+            raise ValueError, "Null geometry can not be operated upon"
+        return bool(lgeos.GEOSEqualsExact(self._geom, other._geom, tolerance))
+
     # Unary predicates
     #
     # These use descriptors to reduce the amount of boilerplate.
