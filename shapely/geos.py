@@ -6,6 +6,7 @@ import atexit
 import os
 import sys
 from threading import local
+import ctypes
 from ctypes import cdll, CDLL, PyDLL, CFUNCTYPE, c_char_p, c_void_p
 from ctypes.util import find_library
 
@@ -62,12 +63,42 @@ def _geos_c_version():
 
 geos_c_version = _geos_c_version()
 
+class allocated_c_char_p(c_char_p):
+    pass
+
+# If we have the new interface, then record a baseline so that we know what
+# additional functions are declared in ctypes_declarations.
+if geos_c_version >= (1,5,0):
+    start_set = set(_lgeos.__dict__)
+
 # Prototype the libgeos_c functions using new code from `tarley` in
 # http://trac.gispython.org/lab/ticket/189
 prototype(_lgeos, geos_c_version)
 
-class allocated_c_char_p(c_char_p):
-    pass
+# If we have the new interface, automatically detect all function
+# declarations, and declare their re-entrant counterpart.
+if geos_c_version >= (1,5,0):
+    end_set = set(_lgeos.__dict__)
+    new_func_names = end_set - start_set
+
+    for func_name in new_func_names:
+        new_func_name = "%s_r" % func_name
+        if hasattr(_lgeos, new_func_name):
+            new_func = getattr(_lgeos, new_func_name)
+            old_func = getattr(_lgeos, func_name)
+            new_func.restype = old_func.restype
+            if old_func.argtypes is None:
+                # Handle functions that didn't take an argument before,
+                # finishGEOS.
+                new_func.argtypes = [c_void_p]
+            else:
+                new_func.argtypes = [c_void_p] + old_func.argtypes
+            if old_func.errcheck is not None:
+                new_func.errcheck = old_func.errcheck
+    
+    # Handle special case.
+    _lgeos.initGEOS_r.restype = c_void_p
+    _lgeos.initGEOS_r.argtypes = [c_void_p, c_void_p]
 
 # Exceptions
 
@@ -83,65 +114,82 @@ class TopologicalError(Exception):
 class PredicateError(Exception):
     pass
 
-thread_data = local()
-thread_data.geos_handle = None
-
 def error_handler(fmt, list):
+    print "ERROR: '%s'" % (list)
     pass
 error_h = CFUNCTYPE(None, c_char_p, c_char_p)(error_handler)
 
 def notice_handler(fmt, list):
+    print "NOTICE: '%s'" % (list)
     pass
 notice_h = CFUNCTYPE(None, c_char_p, c_char_p)(notice_handler)
 
-if geos_c_version >= (1,5,0):
-    def cleanup():
-        if _lgeos is not None:
-            _lgeos.finishGEOS_r(thread_data.geos_handle)
-else:
-    def cleanup():
-        if _lgeos is not None:
-            _lgeos.finishGEOS()
+def cleanup():
+    if _lgeos is not None:
+        _lgeos.finishGEOS()
 atexit.register(cleanup)
 
+import time
+import functools
 
-class LGEOS(object):
+class LGEOS(local):
     
     def __init__(self, dll):
         self._lgeos = dll
-        self._geos_c_version = geos_c_version
-        # GEOS initialization
-        if self._geos_c_version >= (1,5,0):
-            self._lgeos.initGEOS_r.restype = c_void_p
-            self._lgeos.initGEOS_r.argtypes = [c_void_p, c_void_p]
-            thread_data.geos_handle = self._lgeos.initGEOS_r(notice_h, error_h)
-        else:
-            self._lgeos.initGEOS(notice_h, error_h)
-    
-    def __getattr__(self, name):
-        func = getattr(self._lgeos, name)
-        # Use GEOS reentrant API if possible
-        if self._geos_c_version >= (1,5,0):
-            ob = getattr(self._lgeos, name + '_r')
-            class wrapper(object):
-                __name__ = None
-                errcheck = None
-                restype = None
-                def __init__(self):
-                    self.func = ob
-                    self.__name__ = ob.__name__
-                    self.func.restype = func.restype
-                    if func.argtypes is None: self.func.argtypes = None
-                    else: self.func.argtypes = [c_void_p] + func.argtypes
-                def __call__(self, *args):
-                    if self.errcheck is not None:
-                        self.func.errcheck = self.errcheck
-                    if self.restype is not None:
-                        self.func.restype = self.restype
-                    return self.func(thread_data.geos_handle, *args)
-            attr = wrapper()
-        else:
-            attr = func
-        return attr
 
+    def __getattr__(self, name):
+        if 'geos_handle' == name:
+            self.geos_handle = lgeos._lgeos.initGEOS_r(notice_h, error_h)
+            return self.geos_handle
+        if name == 'GEOSFree':
+            attr = getattr(self._lgeos, name)
+            return attr
+
+        old_func = getattr(self._lgeos, name)
+        if geos_c_version >= (1,5,0):
+            real_func = getattr(self._lgeos, name + '_r')
+
+            #attr = wrapper(old_func, real_func)
+            attr = functools.partial(real_func, self.geos_handle)
+            attr.__name__ = real_func.__name__
+        else:
+            attr = old_func
+
+        # Store the function, or function wrapper in a thread specific attribute.
+        setattr(self, name, attr)
+        return attr
+        
 lgeos = LGEOS(_lgeos)
+
+func = lgeos.GEOSGeomToWKB_buf
+def errcheck_wkb(result, func, argtuple):
+   size_ref = argtuple[2]
+   size = size_ref._obj
+   retval = ctypes.string_at(result, size.value)[:]
+   lgeos.GEOSFree(result)
+   return retval
+func.func.errcheck = errcheck_wkb
+
+def errcheck_just_free(result, func, argtuple):
+   retval = result.value
+   lgeos.GEOSFree(result)
+   return retval
+
+func = lgeos.GEOSGeomToWKT
+func.func.errcheck = errcheck_just_free
+func = lgeos.GEOSRelate
+func.func.errcheck = errcheck_just_free
+
+def errcheck_predicate(result, func, argtuple):
+    if result == 2:
+        raise PredicateError, "Failed to evaluate %s" % repr(func)
+    return result
+
+for pred in [lgeos.GEOSDisjoint, lgeos.GEOSTouches, lgeos.GEOSIntersects, lgeos.GEOSCrosses,
+             lgeos.GEOSWithin, lgeos.GEOSContains, lgeos.GEOSOverlaps, lgeos.GEOSEquals,
+             lgeos.GEOSEqualsExact]:
+    pred.func.errcheck = errcheck_predicate
+
+for pred in [lgeos.GEOSisEmpty, lgeos.GEOSisValid, lgeos.GEOSisSimple,
+             lgeos.GEOSisRing, lgeos.GEOSHasZ]:
+    pred.func.errcheck = errcheck_predicate
