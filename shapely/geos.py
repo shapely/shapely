@@ -87,9 +87,8 @@ def notice_handler(fmt, list):
 notice_h = CFUNCTYPE(None, c_char_p, c_char_p)(notice_handler)
 
 def cleanup():
-    if lgeos is not None:
-        lgeos.finishGEOS()
-        
+    if _lgeos is not None:
+        _lgeos.finishGEOS_r(thread_data.geos_handle)
 atexit.register(cleanup)
 
 class LGEOS(object):
@@ -100,9 +99,9 @@ class LGEOS(object):
         self._geos_c_version = tuple(int(n) for n in v.split('.'))
         if self._geos_c_version >= (1,5,0):
             self._lgeos.initGEOS_r.restype = c_void_p
-            self._lgeos.initGEOS_r.argtypes = [c_void_p, c_void_p]            
+            self._lgeos.initGEOS_r.argtypes = [c_void_p, c_void_p]
             thread_data.geos_handle = self._lgeos.initGEOS_r(notice_h, error_h)
-            
+    
     def __getattr__(self, name):
         func = getattr(self._lgeos, name)
         if self._geos_c_version >= (1,5,0):
@@ -116,7 +115,7 @@ class LGEOS(object):
                     self.__name__ = ob.__name__
                     self.func.restype = func.restype
                     if func.argtypes is None: self.func.argtypes = None
-                    else: self.func.argtypes = [c_void_p] + func.argtypes                    
+                    else: self.func.argtypes = [c_void_p] + func.argtypes
                 def __call__(self, *args):
                     if self.errcheck is not None:
                         self.func.errcheck = self.errcheck
@@ -127,5 +126,5 @@ class LGEOS(object):
         else:
             attr = func
         return attr
-        
+
 lgeos = LGEOS(_lgeos)
