@@ -209,3 +209,12 @@ def prototype(lgeos):
     lgeos.GEOSDistance.restype = ctypes.c_int
     lgeos.GEOSDistance.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
 
+    # Prepared geometry
+    lgeos.GEOSPrepare.restype = ctypes.c_void_p
+    lgeos.GEOSPrepare.argtypes = [ctypes.c_void_p]
+
+    lgeos.GEOSPreparedGeom_destroy.restype = None
+    lgeos.GEOSPreparedGeom_destroy.argtypes = [ctypes.c_void_p]
+
+    lgeos.GEOSPreparedIntersects.restype = ctypes.c_int
+    lgeos.GEOSPreparedIntersects.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
