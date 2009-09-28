@@ -6,7 +6,7 @@ import ctypes
 class allocated_c_char_p(ctypes.c_char_p):
     pass
 
-def prototype(lgeos):
+def prototype(lgeos, geosVersion):
 
     lgeos.initGEOS.restype = None
 
@@ -209,12 +209,27 @@ def prototype(lgeos):
     lgeos.GEOSDistance.restype = ctypes.c_int
     lgeos.GEOSDistance.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
 
-    # Prepared geometry
-    lgeos.GEOSPrepare.restype = ctypes.c_void_p
-    lgeos.GEOSPrepare.argtypes = [ctypes.c_void_p]
+    if geosVersion >= (1, 5, 0):
+        # Prepared geometry, GEOS C API 1.5.0+
+        lgeos.GEOSPrepare.restype = ctypes.c_void_p
+        lgeos.GEOSPrepare.argtypes = [ctypes.c_void_p]
 
-    lgeos.GEOSPreparedGeom_destroy.restype = None
-    lgeos.GEOSPreparedGeom_destroy.argtypes = [ctypes.c_void_p]
+        lgeos.GEOSPreparedGeom_destroy.restype = None
+        lgeos.GEOSPreparedGeom_destroy.argtypes = [ctypes.c_void_p]
 
-    lgeos.GEOSPreparedIntersects.restype = ctypes.c_int
-    lgeos.GEOSPreparedIntersects.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+        lgeos.GEOSPreparedIntersects.restype = ctypes.c_int
+        lgeos.GEOSPreparedIntersects.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+
+        lgeos.GEOSPreparedContains.restype = ctypes.c_int
+        lgeos.GEOSPreparedContains.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+
+        lgeos.GEOSPreparedContainsProperly.restype = ctypes.c_int
+        lgeos.GEOSPreparedContainsProperly.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+
+        lgeos.GEOSPreparedCovers.restype = ctypes.c_int
+        lgeos.GEOSPreparedCovers.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+
+    # Other, GEOS C API 1.5.0+
+    if geosVersion >= (1, 5, 0):
+        lgeos.GEOSUnionCascaded.restype = ctypes.c_void_p
+        lgeos.GEOSUnionCascaded.argtypes = [ctypes.c_void_p]

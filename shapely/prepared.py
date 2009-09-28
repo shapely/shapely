@@ -32,6 +32,9 @@ class PreparedGeometry(object):
         return self.__geom__
         
     intersects = BinaryPredicate(lgeos.GEOSPreparedIntersects)
+    contains = BinaryPredicate(lgeos.GEOSPreparedContains)
+    contains_properly = BinaryPredicate(lgeos.GEOSPreparedContainsProperly)
+    covers = BinaryPredicate(lgeos.GEOSPreparedCovers)
 
 def prep(geom):
     return PreparedGeometry(geom)

@@ -54,9 +54,17 @@ else:
         raise
     free = CDLL('libc.so.6').free
 
+def _geos_c_version():
+    func = _lgeos.GEOSversion
+    func.restype = c_char_p
+    v = func().split('-')[2]
+    return tuple(int(n) for n in v.split('.'))
+
+geos_c_version = _geos_c_version()
+
 # Prototype the libgeos_c functions using new code from `tarley` in
 # http://trac.gispython.org/lab/ticket/189
-prototype(_lgeos)
+prototype(_lgeos, geos_c_version)
 
 class allocated_c_char_p(c_char_p):
     pass
@@ -86,24 +94,33 @@ def notice_handler(fmt, list):
     pass
 notice_h = CFUNCTYPE(None, c_char_p, c_char_p)(notice_handler)
 
-def cleanup():
-    if _lgeos is not None:
-        _lgeos.finishGEOS_r(thread_data.geos_handle)
+if geos_c_version >= (1,5,0):
+    def cleanup():
+        if _lgeos is not None:
+            _lgeos.finishGEOS_r(thread_data.geos_handle)
+else:
+    def cleanup():
+        if _lgeos is not None:
+            _lgeos.finishGEOS()
 atexit.register(cleanup)
+
 
 class LGEOS(object):
     
     def __init__(self, dll):
         self._lgeos = dll
-        v = self._lgeos.GEOSversion().split('-')[2]
-        self._geos_c_version = tuple(int(n) for n in v.split('.'))
+        self._geos_c_version = geos_c_version
+        # GEOS initialization
         if self._geos_c_version >= (1,5,0):
             self._lgeos.initGEOS_r.restype = c_void_p
             self._lgeos.initGEOS_r.argtypes = [c_void_p, c_void_p]
             thread_data.geos_handle = self._lgeos.initGEOS_r(notice_h, error_h)
+        else:
+            self._lgeos.initGEOS(notice_h, error_h)
     
     def __getattr__(self, name):
         func = getattr(self._lgeos, name)
+        # Use GEOS reentrant API if possible
         if self._geos_c_version >= (1,5,0):
             ob = getattr(self._lgeos, name + '_r')
             class wrapper(object):
