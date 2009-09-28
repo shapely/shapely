@@ -12,6 +12,9 @@ def prototype(lgeos, geosVersion):
 
     lgeos.finishGEOS.restype = None
 
+    lgeos.GEOSFree.restype = None
+    lgeos.GEOSFree.argtypes = [ctypes.c_void_p]
+
     lgeos.GEOSversion.restype = ctypes.c_char_p
 
     lgeos.GEOSGeomFromWKT.restype = ctypes.c_void_p
