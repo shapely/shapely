@@ -350,22 +350,12 @@ class BaseGeometry(object):
         """Returns a WKB byte string representation of the geometry."""
         func = lgeos.GEOSGeomToWKB_buf
         size = c_int()
-        def errcheck(result, func, argtuple):
-            retval = string_at(result, size.value)[:]
-            free(result)
-            return retval
-        func.errcheck = errcheck
         return func(self._geom, byref(size))
 
     @exceptNull
     def to_wkt(self):
         """Returns a WKT string representation of the geometry."""
         func = lgeos.GEOSGeomToWKT
-        def errcheck(result, func, argtuple):
-            retval = result.value
-            free(result)
-            return retval
-        func.errcheck = errcheck
         return func(self._geom)
 
     geom_type = property(geometryType)
@@ -419,11 +409,6 @@ class BaseGeometry(object):
     @exceptNull
     def relate(self, other):
         func = lgeos.GEOSRelate
-        def errcheck(result, func, argtuple):
-            retval = result.value
-            free(result)
-            return retval
-        func.errcheck = errcheck
         return func(self._geom, other._geom)
 
     # Binary predicates
