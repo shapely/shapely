@@ -2,7 +2,7 @@
 Base geometry class and utilities.
 """
 
-from ctypes import string_at, byref, c_int, c_size_t, c_char_p, c_double
+from ctypes import string_at, byref, c_int, c_size_t, c_char_p, c_double, c_void_p
 import sys
 
 from shapely.geos import lgeos, free, allocated_c_char_p
@@ -349,8 +349,8 @@ class BaseGeometry(object):
     def to_wkb(self):
         """Returns a WKB byte string representation of the geometry."""
         func = lgeos.GEOSGeomToWKB_buf
-        size = c_int()
-        return func(self._geom, byref(size))
+        size = c_size_t()
+        return func(c_void_p(self._geom), byref(size))
 
     @exceptNull
     def to_wkt(self):

@@ -23,14 +23,14 @@ def prototype(lgeos, geosVersion):
     lgeos.GEOSGeomToWKT.restype = allocated_c_char_p
     lgeos.GEOSGeomToWKT.argtypes = [ctypes.c_void_p]
 
-    lgeos.GEOSGeomToWKB_buf.restype = allocated_c_char_p
-    lgeos.GEOSGeomToWKB_buf.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
-
     lgeos.GEOS_setWKBOutputDims.restype = ctypes.c_int
     lgeos.GEOS_setWKBOutputDims.argtypes = [ctypes.c_int]
 
     lgeos.GEOSGeomFromWKB_buf.restype = ctypes.c_void_p
     lgeos.GEOSGeomFromWKB_buf.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
+
+    lgeos.GEOSGeomToWKB_buf.restype = allocated_c_char_p
+    lgeos.GEOSGeomToWKB_buf.argtypes = [ctypes.c_void_p , ctypes.POINTER(ctypes.c_size_t)]
 
     lgeos.GEOSCoordSeq_create.restype = ctypes.c_void_p
     lgeos.GEOSCoordSeq_create.argtypes = [ctypes.c_uint, ctypes.c_uint]

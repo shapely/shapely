@@ -45,6 +45,8 @@ elif sys.platform == 'darwin':
         raise ImportError, "Could not find geos_c library"
     _lgeos = CDLL(lib)
     free = CDLL(find_library('libc')).free
+    free.argtypes = [c_void_p]
+    free.restype = None
 else:
     # Try the major versioned name first, falling back on the unversioned name.
     try:
@@ -54,6 +56,8 @@ else:
     except:
         raise
     free = CDLL('libc.so.6').free
+    free.argtypes = [c_void_p]
+    free.restype = None
 
 def _geos_c_version():
     func = _lgeos.GEOSversion
@@ -163,6 +167,8 @@ lgeos = LGEOS(_lgeos)
 
 func = lgeos.GEOSGeomToWKB_buf
 def errcheck_wkb(result, func, argtuple):
+   if not result:
+      return None
    size_ref = argtuple[2]
    size = size_ref._obj
    retval = ctypes.string_at(result, size.value)[:]
