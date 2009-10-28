@@ -2,10 +2,10 @@
 Load/dump geometries using the well-known binary (WKB) format.
 """
 
-from ctypes import byref, c_int, c_size_t, c_char_p, string_at
+from ctypes import byref, c_size_t, c_char_p, string_at
 from ctypes import c_void_p, c_size_t
 
-from shapely.geos import lgeos, free, ReadingError
+from shapely.geos import lgeos, ReadingError
 from shapely.geometry.base import geom_factory
 
 
@@ -31,7 +31,7 @@ def dumps(ob):
     def errcheck(result, func, argtuple):
         if not result: return None
         retval = string_at(result, size.value)[:]
-        free(result)
+        lgeos.GEOSFree(result)
         return retval
     func.errcheck = errcheck
     return func(c_void_p(ob._geom), byref(size))

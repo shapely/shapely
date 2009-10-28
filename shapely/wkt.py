@@ -2,9 +2,9 @@
 Load/dump geometries using the well-known text (WKT) format.
 """
 
-from ctypes import byref, c_int, c_size_t, c_char_p, string_at
+from ctypes import c_char_p
 
-from shapely.geos import lgeos, free, allocated_c_char_p, ReadingError
+from shapely.geos import lgeos, allocated_c_char_p, ReadingError
 from shapely.geometry.base import geom_factory
 
 
@@ -28,7 +28,7 @@ def dumps(ob):
     func = lgeos.GEOSGeomToWKT
     def errcheck(result, func, argtuple):
         retval = result.value
-        free(result)
+        lgeos.GEOSFree(result)
         return retval
     func.restype = allocated_c_char_p
     func.errcheck = errcheck
