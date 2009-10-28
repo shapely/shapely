@@ -23,7 +23,7 @@ setup(name          = 'Shapely',
       packages      = ['shapely', 'shapely.geometry'],
       install_requires = install_requires,
       #tests_require = ['numpy'], -- not working with "tests" command
-      test_suite = 'tests.test_suite',
+      test_suite = 'shapely.tests.test_suite',
       classifiers   = [
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
