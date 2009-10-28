@@ -3,8 +3,10 @@ Exports the libgeos_c shared lib, GEOS-specific exceptions, and utilities.
 """
 
 import atexit
+import functools
 import os
 import sys
+import time
 from threading import local
 import ctypes
 from ctypes import cdll, CDLL, PyDLL, CFUNCTYPE, c_char_p, c_void_p
@@ -48,7 +50,8 @@ elif sys.platform == 'darwin':
     free.argtypes = [c_void_p]
     free.restype = None
 else:
-    # Try the major versioned name first, falling back on the unversioned name.
+    # Try the major versioned name first, falling back on the unversioned
+    # name.
     try:
         _lgeos = CDLL('libgeos_c.so.1')
     except (OSError, ImportError):
@@ -84,7 +87,7 @@ prototype(_lgeos, geos_c_version)
 if geos_c_version >= (1,5,0):
     end_set = set(_lgeos.__dict__)
     new_func_names = end_set - start_set
-
+    
     for func_name in new_func_names:
         new_func_name = "%s_r" % func_name
         if hasattr(_lgeos, new_func_name):
@@ -131,16 +134,15 @@ notice_h = CFUNCTYPE(None, c_char_p, c_char_p)(notice_handler)
 def cleanup():
     if _lgeos is not None:
         _lgeos.finishGEOS()
+
 atexit.register(cleanup)
 
-import time
-import functools
 
 class LGEOS(local):
     
     def __init__(self, dll):
         self._lgeos = dll
-
+    
     def __getattr__(self, name):
         if 'geos_handle' == name:
             self.geos_handle = lgeos._lgeos.initGEOS_r(notice_h, error_h)
@@ -148,21 +150,20 @@ class LGEOS(local):
         if name == 'GEOSFree':
             attr = getattr(self._lgeos, name)
             return attr
-
+        
         old_func = getattr(self._lgeos, name)
         if geos_c_version >= (1,5,0):
             real_func = getattr(self._lgeos, name + '_r')
-
-            #attr = wrapper(old_func, real_func)
             attr = functools.partial(real_func, self.geos_handle)
             attr.__name__ = real_func.__name__
         else:
             attr = old_func
-
-        # Store the function, or function wrapper in a thread specific attribute.
+        
+        # Store the function, or function wrapper in a thread specific
+        # attribute.
         setattr(self, name, attr)
         return attr
-        
+
 lgeos = LGEOS(_lgeos)
 
 func = lgeos.GEOSGeomToWKB_buf
@@ -191,11 +192,19 @@ def errcheck_predicate(result, func, argtuple):
         raise PredicateError, "Failed to evaluate %s" % repr(func)
     return result
 
-for pred in [lgeos.GEOSDisjoint, lgeos.GEOSTouches, lgeos.GEOSIntersects, lgeos.GEOSCrosses,
-             lgeos.GEOSWithin, lgeos.GEOSContains, lgeos.GEOSOverlaps, lgeos.GEOSEquals,
-             lgeos.GEOSEqualsExact]:
-    pred.func.errcheck = errcheck_predicate
-
-for pred in [lgeos.GEOSisEmpty, lgeos.GEOSisValid, lgeos.GEOSisSimple,
-             lgeos.GEOSisRing, lgeos.GEOSHasZ]:
+for pred in ( lgeos.GEOSDisjoint,
+              lgeos.GEOSTouches,
+              lgeos.GEOSIntersects,
+              lgeos.GEOSCrosses,
+              lgeos.GEOSWithin,
+              lgeos.GEOSContains,
+              lgeos.GEOSOverlaps,
+              lgeos.GEOSEquals,
+              lgeos.GEOSEqualsExact,
+              lgeos.GEOSisEmpty,
+              lgeos.GEOSisValid,
+              lgeos.GEOSisSimple,
+              lgeos.GEOSisRing,
+              lgeos.GEOSHasZ
+              ):
     pred.func.errcheck = errcheck_predicate

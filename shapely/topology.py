@@ -11,7 +11,7 @@ class OpWrapper(object):
         self.fn = fn
         self.context = context
         self.factory = factory
-        
+    
     def __call__(self, other):
         context = self.context
         if other._geom is None:
@@ -26,8 +26,8 @@ class OpWrapper(object):
                 raise TopologicalError, \
                 "The operation '%s' produced a null geometry. Likely cause is invalidity of the 'other' geometry %s" % (self.fn.__name__, repr(other))
         return self.factory(product)
-        
-                    
+
+
 class BinaryTopologicalOp(object):
     
     """A non-data descriptor that returns a callable.
@@ -71,4 +71,3 @@ class UnaryTopologicalOp(object):
     
     def __set__(self, obj, value=None):
         raise AttributeError, "Attribute is read-only"
-

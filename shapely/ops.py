@@ -1,7 +1,12 @@
+"""
+Support for various GEOS geometry operations.
+"""
+
 from shapely.geos import lgeos
 from shapely.geometry.base import geom_factory, BaseGeometry
 from shapely.geometry import asShape, asLineString
 from ctypes import byref, c_void_p
+
 
 def shapeup(ob):
     if isinstance(ob, BaseGeometry):

@@ -1,5 +1,10 @@
+"""
+Support for GEOS prepared geometry operations.
+"""
+
 from shapely.geos import lgeos
 from shapely.predicates import BinaryPredicate
+
 
 class PreparedGeometry(object):
     """
@@ -12,7 +17,6 @@ class PreparedGeometry(object):
       >>> p = prep(triangle)
       >>> p.intersects(Point(0.5, 0.5))
       True
-    
     """
     
     __geom__ = None
@@ -26,11 +30,11 @@ class PreparedGeometry(object):
             lgeos.GEOSPreparedGeom_destroy(self.__geom__)
         self.__geom__ = None
         self.context = None
-        
+    
     @property
     def _geom(self):
         return self.__geom__
-        
+    
     intersects = BinaryPredicate(lgeos.GEOSPreparedIntersects)
     contains = BinaryPredicate(lgeos.GEOSPreparedContains)
     contains_properly = BinaryPredicate(lgeos.GEOSPreparedContainsProperly)
@@ -38,3 +42,4 @@ class PreparedGeometry(object):
 
 def prep(geom):
     return PreparedGeometry(geom)
+    
