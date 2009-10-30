@@ -3,6 +3,7 @@ Polygons and their linear ring components.
 """
 
 from ctypes import byref, c_double, c_int, c_void_p, cast, POINTER, pointer
+from ctypes import ArgumentError
 import weakref
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, exceptNull
