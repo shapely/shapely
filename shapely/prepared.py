@@ -42,4 +42,3 @@ class PreparedGeometry(object):
 
 def prep(geom):
     return PreparedGeometry(geom)
-    
