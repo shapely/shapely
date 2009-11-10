@@ -37,6 +37,22 @@ Topology operations
   >>> point.buffer(10.0, 32) #doctest: +ELLIPSIS
   <shapely.geometry.polygon.Polygon object at ...>
 
+  Simplify
+
+  >>> from shapely.wkt import loads
+  >>> p = loads('POLYGON ((120 120, 121 121, 122 122, 220 120, 180 199, 160 200, 140 199, 120 120))')
+  >>> expected = loads('POLYGON ((120 120, 140 199, 160 200, 180 199, 220 120, 120 120))')
+  >>> s = p.simplify(10.0)
+  >>> s.equals_exact(expected, 0.001)
+  True
+
+  >>> from shapely.wkt import loads
+  >>> p = loads('POLYGON ((80 200, 240 200, 240 60, 80 60, 80 200),(120 120, 220 120, 180 199, 160 200, 140 199, 120 120))')
+  >>> expected = loads('POLYGON ((80 200, 240 200, 240 60, 80 60, 80 200),(120 120, 220 120, 180 199, 160 200, 140 199, 120 120))')
+  >>> s = p.topology_preserve_simplify(10.0)
+  >>> s.equals_exact(expected, 0.001)
+  True
+
   Convex Hull
 
   >>> point.convex_hull #doctest: +ELLIPSIS

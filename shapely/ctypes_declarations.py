@@ -98,6 +98,12 @@ def prototype(lgeos, geosVersion):
     lgeos.GEOSBuffer.restype = ctypes.c_void_p
     lgeos.GEOSBuffer.argtypes = [ctypes.c_void_p, ctypes.c_double, ctypes.c_int]
 
+    lgeos.GEOSSimplify.restype = ctypes.c_void_p
+    lgeos.GEOSSimplify.argtypes = [ctypes.c_void_p, ctypes.c_double]
+
+    lgeos.GEOSTopologyPreserveSimplify.restype = ctypes.c_void_p
+    lgeos.GEOSTopologyPreserveSimplify.argtypes = [ctypes.c_void_p, ctypes.c_double]
+
     lgeos.GEOSConvexHull.restype = ctypes.c_void_p
     lgeos.GEOSConvexHull.argtypes = [ctypes.c_void_p]
 
