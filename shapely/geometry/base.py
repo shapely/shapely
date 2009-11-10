@@ -407,15 +407,15 @@ class BaseGeometry(object):
 
     # Buffer has a unique tolerance argument, so not a descriptor
     @exceptNull
-    def simplify(self, tolerance):
-        return geom_factory(
-            lgeos.GEOSSimplify(self._geom, c_double(tolerance))
-            )
-
-    def topology_preserve_simplify(self, tolerance):
-        return geom_factory(
-            lgeos.GEOSTopologyPreserveSimplify(self._geom, c_double(tolerance))
-            )
+    def simplify(self, tolerance, preserve_topology = True):
+        if preserve_topology:
+            return geom_factory(
+                lgeos.GEOSTopologyPreserveSimplify(self._geom, c_double(tolerance))
+             )
+        else:
+            return geom_factory(
+                lgeos.GEOSSimplify(self._geom, c_double(tolerance))
+             )
 
     # Relate has a unique string return value
     @exceptNull

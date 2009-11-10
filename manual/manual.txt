@@ -231,6 +231,23 @@ The default result of buffering a point is an N-gon approximation of a circle:
   >>> len(buffered.exterior.coords)
   66
 
+Simplify
+++++++
+
+.simplify(width, tolerance, preserve_topology = True) : geometry
+  
+  Returns a simplified version of the given geometry. By default a slower
+  algorithm is used that preserves topology. If preserve topology is set to
+  False the much quicker Douglas-Peucker algorithm is used.
+  
+.. code-block:: python
+
+  >>> from shapely.wkt import loads
+  >>> p = loads('POLYGON ((120 120, 121 121, 122 122, 220 120, 180 199, 160 200, 140 199, 120 120))')
+  >>> simple = p.simplify(10.0, preserve_topology = False)
+  >>> simple
+  <shapely.geometry.polygon.Polygon object at ...>
+
 Boundary
 ++++++++
 
