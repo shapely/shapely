@@ -2,7 +2,7 @@ Shapely
 =======
 
 Shapely is a Python package for manipulation and analysis of 2D geospatial
-geometries. It is based on GEOS (http://geos.refractions.net).  Shapely 1.0 is
+geometries. It is based on GEOS (http://geos.refractions.net). Shapely 1.0 is
 not concerned with data formats or coordinate reference systems.
 Responsibility for reading and writing data and projecting coordinates is left
 to other packages like WorldMill_ and pyproj_. For more information, see:
@@ -12,10 +12,6 @@ to other packages like WorldMill_ and pyproj_. For more information, see:
 
 Shapely requires Python 2.4+. (I've also begun to port it to Python 3.0:
 http://zcologia.com/news/564/shapely-for-python-3-0/.)
-
-.. note::
-   We've switched to Windows GEOS DLLs based on MinGW in versions >= 1.0.6.
-   Please contact us if you experience difficulties.
 
 See also CHANGES.txt_ and HISTORY.txt_.
 
@@ -162,4 +158,4 @@ Credits
    :trim:
 
 Major portions of this work were supported by a grant (to Pleiades) from the
-U.S.  National Endowment for the Humanities (http://www.neh.gov).
+U.S. National Endowment for the Humanities (http://www.neh.gov).
