@@ -37,18 +37,11 @@ Windows users should use the executable installer, which contains the required
 GEOS DLL. Other users should acquire libgeos_c by any means, make sure that it
 is on the system library path, and install from the Python package index::
 
-  $ sudo easy_install Shapely
+  $ pip install Shapely
 
-with the setup script::
+or from a source distribution with the setup script::
 
-  $ sudo python setup.py install
-
-or by using the development buildout on Linux, which also provides libgeos_c::
-
-  $ svn co http://svn.gispython.org/svn/gispy/buildout/shapely.buildout/trunk shapely.buildout
-  $ cd shapely.buildout
-  $ python bootstrap.py
-  $ ./bin/buildout
+  $ python setup.py install
 
 
 Usage
@@ -119,16 +112,13 @@ details on the interface.
 Testing
 -------
 
-Several of the modules have docstring doctests::
-
-  $ cd shapely
-  $ python point.py
-
-There are also two test runners under tests/. test_doctests.py requires
-zope.testing. runalldoctests.py does not. Perhaps the easiest way to run the 
-tests is::
+Shapely uses a Zope-stye suite of doctests, tested like::
 
   $ python setup.py test
+
+We're debating a switch to tests run via nose::
+
+  $ python setup.py nosetests
 
 
 Support
@@ -148,6 +138,7 @@ Credits
 -------
 
 * Sean Gillies (Pleiades)
+* Aron Bierbaum
 * Howard Butler (Hobu, Inc.)
 * Kai Lautaportti (Hexagon IT)
 * Fr |eaigue| d |eaigue| ric Junod (Camptocamp SA)
