@@ -63,14 +63,14 @@ Points
 
 The point factory *Point* takes a coordinate sequence parameter
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> from shapely.geometry import Point
   >>> point = Point(a)
 
 The alternate form is to pass individual coordinate parameters
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> point = Point(x0, y0 [, z0])
 
@@ -79,7 +79,7 @@ LineStrings
 
 To create a line string, pass in an ordered sequence of coordinate sequences:
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> from shapely.geometry import LineString
   >>> line = LineString((a1, ..., aM))
@@ -89,7 +89,7 @@ Polygons
 
 A polygon with only an exterior boundary and no holes is created by passing the sequence representation of a closed ring
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> from shapely.geometry import Polygon
   >>> polygon = Polygon((a1, ..., aM))
@@ -97,7 +97,7 @@ A polygon with only an exterior boundary and no holes is created by passing the 
 If **a**\ 1 is not exactly equal to **a**\ M, the factory will close the ring.
 The following (unit square) polygons are therefore topologically equal
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> polygon1 = Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
   >>> polygon2 = Polygon(((0, 0), (0, 1), (1, 1), (1, 0)))
@@ -105,7 +105,7 @@ The following (unit square) polygons are therefore topologically equal
 To create a polygon with interior boundaries pass a sequence of rings to the
 second parameter (*holes*)
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> polygon = Polygon((a1, ..., aM), [(b1, ..., bN), ...])
 
@@ -123,7 +123,7 @@ MultiPoints
 An *N*\ -point geometry is created by passing an unordered sequence of
 coordinate sequences [**c**\ 1, ..., **c**\ N]
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> from shapely.geometry import MultiPoint
   >>> points = MultiPoint([c1, ..., cN])
@@ -134,7 +134,7 @@ MultiLineStrings
 A multi-line geometry is created by passing a sequence of representations of
 lines
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> from shapely.geometry import MultiLineString
   >>> lines = MultiLineString([(a1, ..., aM), (b1, ..., bN), ...])
@@ -145,7 +145,7 @@ MultiPolygons
 A multi-polygon geometry is created by passing a sequence of exterior ring and
 hole list tuples 
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> from shapely.geometry import MultiPolygon
   >>> lines = MultiPolygon([((a1, ..., aM), [(b1, ..., bN), ...]), ...])
@@ -153,7 +153,7 @@ hole list tuples
 More explicit notation for the exterior and interior boundaries (or shells and
 holes) makes usage more clear
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> shell = (a1, ..., aM)
   >>> holes = [(b1, ..., bN), ...]
@@ -166,7 +166,7 @@ Null Geometries
 Null geometries can be created by calling the factories with no arguments, but
 almost nothing can be done with a null geometry.
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> line_null = LineString()
   >>> line_null.length
@@ -177,7 +177,7 @@ almost nothing can be done with a null geometry.
 The coordinates of a null geometry *can* be set (see Section 3), after which
 the geometry is no longer null.
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> l_null.coords = [(0, 0), (1, 1)]
   >>> print l_null.length
@@ -200,7 +200,7 @@ See also the JTS |illustration2|_.
 Example Geometries
 ++++++++++++++++++
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> polygon = Polygon(((-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0), (1.0, -1.0)))
   >>> point_r = Point(-1.5, 1.2)
@@ -219,7 +219,7 @@ Buffer
   
 The default result of buffering a point is an N-gon approximation of a circle:
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> buffered = point_r.buffer(1.0)
   >>> buffered
@@ -232,21 +232,29 @@ The default result of buffering a point is an N-gon approximation of a circle:
   66
 
 Simplify
-++++++
+++++++++
 
-.simplify(width, tolerance, preserve_topology = True) : geometry
+.simplify(width, tolerance, preserve_topology=True) : geometry
   
-  Returns a simplified version of the given geometry. By default a slower
-  algorithm is used that preserves topology. If preserve topology is set to
-  False the much quicker Douglas-Peucker algorithm is used.
+  Returns a simplified version of the given geometry. All vertices in the
+  simplified geometry will be within the `tolerance` distance of the original
+  geometry. By default a slower algorithm is used that preserves topology. If
+  preserve topology is set to False the much quicker Douglas-Peucker algorithm
+  is used, and invalid geometries may result.
   
-.. code-block:: python
+.. sourcecode:: python
 
-  >>> from shapely.wkt import loads
-  >>> p = loads('POLYGON ((120 120, 121 121, 122 122, 220 120, 180 199, 160 200, 140 199, 120 120))')
-  >>> simple = p.simplify(10.0, preserve_topology = False)
-  >>> simple
-  <shapely.geometry.polygon.Polygon object at ...>
+  >>> p = Point(0.0, 0.0)
+  >>> x = p.buffer(1.0)
+  >>> x.area
+  3.1365484905459389
+  >>> len(x.exterior.coords)
+  66
+  >>> s = x.simplify(0.05, preserve_topology=False)
+  >>> s.area
+  3.0614674589207187
+  >>> len(s.exterior.coords)
+  17
 
 Boundary
 ++++++++
@@ -256,7 +264,7 @@ Boundary
   boundary of a line is a collection of points. The boundary of a point is an
   empty (null) collection.
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> polygon.boundary
   <shapely.geometry.linestring.LineString object at ...>
@@ -271,7 +279,7 @@ Centroid
 .centroid : geometry
   Returns the centroid, or geometric center of the polygon.
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> centroid_point = polygon.centroid
   >>> centroid_point.wkt
@@ -287,7 +295,7 @@ Convex Hull
 For example, collect the three points into a multi-point geometry, and get the
 triangular polygon that is their convex hull:
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> multi_point = point_r.union(point_g)
   >>> multi_point = multi_point.union(point_b)
@@ -302,7 +310,7 @@ Difference
   not make up *other*. Note that A.difference(B) is not necessarily equal to
   B.difference(A).
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> hull = multi_point.convex_hull
   >>> polygon.difference(hull)
@@ -314,7 +322,7 @@ Envelope
 .envelope : geometry
   Returns the geometry's rectangular polygon envelope.
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> polygon.envelope
   <shapely.geometry.polygon.Polygon object at ...>
@@ -325,7 +333,7 @@ Intersection
 .intersection(other) : geometry
   Returns the intersection of one geometry and the *other* geometry.
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> polygon.intersection(hull)
   <shapely.geometry.polygon.Polygon object at ...>
@@ -337,7 +345,7 @@ Symmetric Difference
   Returns a geometry combining the points in this geometry not in *other*, and
   the points in *other* not in this geometry.
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> polygon.symmetric_difference(hull)
   <shapely.geometry.multipolygon.MultiPolygon object at ...>
@@ -352,7 +360,7 @@ Point unions were demonstrated above under convex hull. The union of polygons
 will be a polygon or a multi-polygon depending on whether they intersect or
 not:
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> hull.union(polygon)
   <shapely.geometry.polygon.Polygon object at ...>
@@ -369,7 +377,7 @@ shapely.ops.polygonize(lines) : iterator
   elements of *lines* may be Shapely geometries, objects that provide the geo
   interface, or Numpy arrays or Python sequences shaped like LineStrings.
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> from shapely.ops import polygonize
   >>> lines = [
@@ -421,7 +429,7 @@ Has Z
 Examples
 ++++++++
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> polygon.is_empty
   False
@@ -452,7 +460,7 @@ Contains
   True if the geometry is spatially within, without touching. Applies to all
   types of geometries.
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> polygon.contains(point_b)
   True
@@ -464,7 +472,7 @@ Crosses
   Only linear geometries (lines, rings, polygon boundaries) may ever cross. No
   geometry may ever cross a point.
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> line_b.crosses(polygon)
   True
@@ -476,7 +484,7 @@ Disjoint
   True if geometries do not spatially relate in any way, else False. See the
   complementary *intersects*. 
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> polygon.disjoint(point_r)
   True
@@ -496,7 +504,7 @@ Intersects
   This predicate is the complement of *disjoint*: geometries that do not
   intersect are disjoint. Intersects is the most inclusive predicate.
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> polygon.intersects(point_b)
   True
@@ -507,7 +515,7 @@ Touches
 .touches(other) : bool
   True if geometries *only* touch. The least inclusive predicate.
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> polygon.touches(line_g)
   True
@@ -530,7 +538,7 @@ Distance
 .distance(other) : geometry
   The minimum distance from one geometry to the other.
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> Point(0,0).distance(Point(1,1))
   1.4142135623730951
@@ -562,7 +570,7 @@ Length
 Examples
 ++++++++
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> polygon.area
   4.0
@@ -586,7 +594,7 @@ The coordinates of points, line strings, and polygon rings can be accessed
 through the *coords* attribute of a geometry. *Coords* is an iterator over
 coordinate tuples.
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> point_r.coords
   <shapely.geometry.base.CoordinateSequence object at ...>
@@ -600,7 +608,7 @@ coordinate tuples.
 The coordinate sequence can be modifed by assigning a sequence (**a**\ 1, ...,
 **a**\ M) to the coords attribute.
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> point_new = Point(0, 0)
   >>> point_new.coords = (1, 1)
@@ -609,7 +617,7 @@ The coordinate sequence can be modifed by assigning a sequence (**a**\ 1, ...,
 
 For line strings:
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> line_new = LineString([(0,0), (1,1)])
   >>> line_new.coords = [(1,1), (2,2)]
@@ -623,7 +631,7 @@ Polygon Rings
 The exterior boundary of a polygon can be accessed through the *exterior*
 attribute of the geometry object.
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> polygon.exterior
   <shapely.geometry.polygon.LinearRing object at ...>
@@ -640,7 +648,7 @@ Sub-geometries
 The parts of a multi-part geometry can be accessed through the *geoms*
 attribute of the geometry object, which is an iterator over the sub-geometries:
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> multi_point.geoms
   <shapely.geometry.base.GeometrySequence object at ...>
@@ -662,7 +670,7 @@ Point Coordinates
 For the sake of convenience the coordinate values of points can be accessed
 read-only via **x**, **y**, and **z** attributes:
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> point = Point(1.0, 1.0)
   >>> point.x
@@ -686,14 +694,14 @@ Well-known Text (WKT)
 The WKT representation of any geometry object can be had via the **wkt**
 attribute:
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> point_r.wkt
   'POINT (-1.5000000000000000 1.2000000000000000)'
 
 Hex-encode that string and you have a value that can be conveniently inserted directly into PostGIS
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> point_r.wkt.encode('hex')
   '504f494e5420282d312e3530303030303030303030303030303020312e3230303030303030303030303030303029'
@@ -701,7 +709,7 @@ Hex-encode that string and you have a value that can be conveniently inserted di
 New geometries can be created from WKT representations using the
 *shapely.wkt.loads* factory (inspired by the *pickle* module) 
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> from shapely.wkt import loads
   >>> loads('POINT (0 0)')
@@ -714,7 +722,7 @@ The WKB representation of any geometry object can be had via the **wkb**
 attribute. New geometries can be created from WKB data using the
 *shapely.wkb.loads* factory. Use this format to interoperate with ogr.py:
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> import ogr
   >>> from shapely.wkb import loads
@@ -732,7 +740,7 @@ Python sequence data can be analyzed as Shapely geometries using the
 *shapely.geometry.as\** adapters while leaving the data in its original
 storage. A pair of float can be treated as a point with **asPoint**:
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> from shapely.geometry import asPoint
   >>> coords = [3.0, 4.0]
@@ -742,7 +750,7 @@ storage. A pair of float can be treated as a point with **asPoint**:
 
 Move the coordinates and watch the geometry adapter change
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> coords[0] = 1.0
   >>> pa.wkt
@@ -751,7 +759,7 @@ Move the coordinates and watch the geometry adapter change
 The **asLineString** adapter works much the same. The **asPolygon** adapter is
 used like
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> from shapely.geometry import asPolygon
   >>> coords = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]
@@ -771,7 +779,7 @@ Numpy Array Interface
 Shapely geometries provide the Numpy array interface which means that points,
 line strings, and polygon rings can be used as Numpy arrays:
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> from numpy import array
   >>> a = array(polygon.exterior)
@@ -789,7 +797,7 @@ The *shapely.geometry.as\** functions can also be used to wrap numpy arrays,
 which can then be analyzed using Shapely while maintaining their original
 storage. A 1 x 2 array can be adapted to a point
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> a = array([1.0, 2.0])
   >>> pa = asPoint(a)
@@ -798,7 +806,7 @@ storage. A 1 x 2 array can be adapted to a point
 
 and a N x 2 array can be adapted to a line string
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> from shapely.geometry import asLineString
   >>> a = array([[1.0, 2.0], [3.0, 4.0]])
@@ -816,7 +824,7 @@ Any object that provides the GeoJSON-like `Python geo interface`_ can be
 adapted and used as a Shapely geometry using the *shapely.geometry.asShape*
 function. For example, a dictionary:
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> from shapely.geometry import asShape
   >>> d = {"type": "Point", "coordinates": (0.0, 0.0)}
@@ -828,7 +836,7 @@ function. For example, a dictionary:
 
 Or a simple placemark-type object:
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> class GeoThing(object):
   ...     def __init__(self, d):
@@ -861,7 +869,7 @@ Contains
 To find the subset of points that are contained within a polygon, use
 *shapely.iterops.contains*:
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> from shapely.geometry import Polygon
   >>> from shapely.geometry import Point
@@ -876,7 +884,7 @@ The second parameter to *iterops.contains* can be any kind of iterator, even a
 generator of objects. If it yields tuples, then the second element of the tuple
 will be ultimately yielded from *iterops.contains*.
 
-.. code-block:: python
+.. sourcecode:: python
 
   >>> list(iterops.contains(polygon, iter((p, p.wkt) for p in points)))
   ['POINT (0.5000000000000000 0.5000000000000000)']
