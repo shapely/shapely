@@ -20,10 +20,18 @@ Test chained access to interiors
     ...     )
     >>> p.area
     0.75
+
+Not so much testing the exact values here, which are the responsibility of the
+geometry engine (GEOS), but that we can get chain functions and properties using
+anonymous references.
+
     >>> print list(p.interiors[0].coords)
     [(-0.25, 0.25), (-0.25, 0.75), (-0.75, 0.75), (-0.75, 0.25), (-0.25, 0.25)]
-    >>> print list(p.interiors[0].buffer(1).exterior.coords)
-    [(-0.25, -0.75), (-0.75, -0.75), ...
+    >>> xy = list(p.interiors[0].buffer(1).exterior.coords)[0]
+    >>> xy[0] + 0.25 <= 1.0e-7
+    True
+    >>> xy[1] + 0.75 <= 1.0e-7
+    True
 
 Test multiple operators, boundary of a buffer
 

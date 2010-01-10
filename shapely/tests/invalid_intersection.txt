@@ -5,7 +5,7 @@ Test recovery from operation on invalid geometries
 
   >>> from shapely.geometry import Polygon
   >>> polygon_invalid = Polygon(((0, 0), (1, 1), (1, -1), (0, 1), (0, 0)))
-  >>> polygon_invalid.is_valid
+  >>> print polygon_invalid.is_valid # doctest: +ELLIPSIS
   False
 
   Intersect with a valid polygon
@@ -18,12 +18,12 @@ Test recovery from operation on invalid geometries
   >>> result = polygon_invalid.intersection(polygon) # doctest: +ELLIPSIS
   Traceback (most recent call last):
   ...
-  TopologicalError: The operation 'GEOSIntersection' produced a null geometry. Likely cause is invalidity of the geometry <shapely.geometry.polygon.Polygon object at ...>
+  TopologicalError: The operation 'GEOSIntersection_r' produced a null geometry. Likely cause is invalidity of the geometry <shapely.geometry.polygon.Polygon object at ...>
 
   Check exception symmetry
 
   >>> result = polygon.intersection(polygon_invalid) # doctest: +ELLIPSIS
   Traceback (most recent call last):
   ...
-  TopologicalError: The operation 'GEOSIntersection' produced a null geometry. Likely cause is invalidity of the 'other' geometry <shapely.geometry.polygon.Polygon object at ...>
+  TopologicalError: The operation 'GEOSIntersection_r' produced a null geometry. Likely cause is invalidity of the 'other' geometry <shapely.geometry.polygon.Polygon object at ...>
 
