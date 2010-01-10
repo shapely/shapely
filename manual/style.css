@@ -145,16 +145,14 @@ abbr, acronym, .explain {
 q, blockquote {
 }
 
-code, pre {
+code {
   font-family: monospace;
   font-size: 1.2em;
-  display: block;
-  padding: 10px;
+  padding: 1em 1em;
   border: 1px solid #838183;
   background-color: #eee;
   color: #000;
-  overflow: auto;
-  margin: 0.5em 1em;
+  margin: auto 1em;
 }
 
 tt.docutils {
@@ -165,11 +163,13 @@ tt.docutils {
   text-align: left;
 }
 
-div.highlight {
-  margin-left: 2em ;
-  margin-right: 2em ;
-  background-color: #eeeeee
-  }
+div.highlight > pre {
+  font-family: monospace;
+  font-size: 1.2em;
+  background-color: #f7f7f7;
+  border: 1px solid #d7d7d7;
+  padding: 1em 1em;
+}
 
 .c { color: #008800; font-style: italic } /* Comment */
 .err { border: 1px solid #FF0000 } /* Error */

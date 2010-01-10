@@ -889,12 +889,16 @@ will be ultimately yielded from *iterops.contains*.
   >>> list(iterops.contains(polygon, iter((p, p.wkt) for p in points)))
   ['POINT (0.5000000000000000 0.5000000000000000)']
 
+Prepared Geometry Operations
+----------------------------
+
+TODO.
 
 Credits
 =======
 
-Shapely is written by Sean Gillies with contributions from Howard Butler, Kai
-Lautaportti (Hexagon IT), Frédéric Junod (Camptocamp SA), Eric Lemoine
-(Camptocamp SA) and ctypes tips from Justin Bronn (GeoDjango).
+Shapely is written by Sean Gillies with contributions from Aron Bierbaum,
+Howard Butler, Kai Lautaportti (Hexagon IT), Frédéric Junod (Camptocamp SA),
+Eric Lemoine (Camptocamp SA) and ctypes tips from Justin Bronn (GeoDjango).
 
 
