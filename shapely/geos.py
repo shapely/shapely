@@ -4,6 +4,7 @@ Exports the libgeos_c shared lib, GEOS-specific exceptions, and utilities.
 
 import atexit
 import functools
+import logging
 import os
 import sys
 import time
@@ -14,6 +15,12 @@ from ctypes.util import find_library
 
 from ctypes_declarations import prototype
 
+# Begin by creating a do-nothing handler and adding to this module's logger.
+class NullHandler(logging.Handler):
+    def emit(self, record):
+        pass
+LOG = logging.getLogger(__name__)
+LOG.addHandler(NullHandler())
 
 if sys.platform == 'win32':
     try:
@@ -122,13 +129,11 @@ class PredicateError(Exception):
     pass
 
 def error_handler(fmt, list):
-    print "ERROR: '%s'" % (list)
-    pass
+    LOG.error("%s", list)
 error_h = CFUNCTYPE(None, c_char_p, c_char_p)(error_handler)
 
 def notice_handler(fmt, list):
-    print "NOTICE: '%s'" % (list)
-    pass
+    LOG.warning("%s", list)
 notice_h = CFUNCTYPE(None, c_char_p, c_char_p)(notice_handler)
 
 def cleanup():

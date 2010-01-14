@@ -261,6 +261,7 @@ class BaseGeometry(object):
 
     def __del__(self):
         if self.__geom__ is not None and not self._owned:
+            from shapely.geos import lgeos
             lgeos.GEOSGeom_destroy(self.__geom__)
         self.__geom__ = None
         self.__p__ = None
