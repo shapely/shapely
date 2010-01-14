@@ -4,7 +4,7 @@ Support for various GEOS geometry operations.
 
 from shapely.geos import lgeos
 from shapely.geometry.base import geom_factory, BaseGeometry
-from shapely.geometry import asShape, asLineString
+from shapely.geometry import asShape, asLineString, asMultiLineString
 from ctypes import byref, c_void_p
 
 
@@ -32,3 +32,26 @@ def polygonize(iterator):
         g = geom_factory(clone)
         g._owned = False
         yield g
+
+def linemerge(lines): 
+    """Merges all connected lines. Returns a LineString or MultiLineString 
+    when lines are not contiguous. 
+        
+    Parameters 
+    ---------- 
+    lines : MultiLineString, sequence of lines, or sequence of coordinates
+    """ 
+    multilinestring = None 
+    if hasattr(lines, 'type') and lines.type == 'MultiLineString': 
+        multilinestring = lines 
+    elif hasattr(lines, '__iter__'): 
+        try: 
+            multilinestring = asMultiLineString([ls.coords for ls in lines]) 
+        except AttributeError: 
+            multilinestring = asMultiLineString(lines) 
+    if multilinestring is None: 
+        raise ValueError, "Cannot linemerge %s" % lines 
+         
+    result = lgeos.GEOSLineMerge(multilinestring._geom) 
+    return geom_factory(result)   
+

@@ -391,6 +391,23 @@ shapely.ops.polygonize(lines) : iterator
   >>> list(result.geoms)
   [<shapely.geometry.polygon.Polygon object at ...>, <shapely.geometry.polygon.Polygon object at ...>]
 
+Line merging
+++++++++++++
+
+shapely.ops.linemerge(lines) : iterator or MultiLineString
+  Merges all connected lines. Returns a LineString or MultiLineString when
+  lines are not contiguous. 
+
+.. sourcecode:: python
+
+  >>> lines = MultiLineString([ 
+  ...     ((0, 0), (1, 1)), 
+  ...     ((2, 0), (2, 1), (1, 1)) 
+  ...     ]) 
+  >>> result = linemerge(lines)
+  >>> result # docstring: +ELLIPSIS
+  <shapely.geometry.linestring.LineString object at 0x...>
+
 
 Unary Spatial Predicates
 ------------------------
