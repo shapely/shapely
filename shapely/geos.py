@@ -153,9 +153,10 @@ class LGEOS(local):
             self.geos_handle = lgeos._lgeos.initGEOS_r(notice_h, error_h)
             return self.geos_handle
         if name == 'GEOSFree':
-            attr = getattr(self._lgeos, name)
-            return attr
-        
+            # GEOSFree was added between CAPI ver 1.5.0 and 1.5.1
+            # fall back to free()
+            return getattr(self._lgeos, name, free)
+            
         old_func = getattr(self._lgeos, name)
         if geos_c_version >= (1,5,0):
             real_func = getattr(self._lgeos, name + '_r')

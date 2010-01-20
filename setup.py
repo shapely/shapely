@@ -19,7 +19,7 @@ readme_text = file('README.txt', 'rb').read()
 
 setup_args = dict(
     name          = 'Shapely',
-    version       = '1.2.0',
+    version       = '1.2a1',
     description   = 'Geospatial geometries, predicates, and operations',
     license       = 'BSD',
     keywords      = 'geometry topology',
