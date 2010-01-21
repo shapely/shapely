@@ -4,11 +4,12 @@ Exports the libgeos_c shared lib, GEOS-specific exceptions, and utilities.
 
 import atexit
 import functools
+from itertools import ifilter
 import logging
 import os
 import sys
 import time
-from threading import local
+import threading
 import ctypes
 from ctypes import cdll, CDLL, PyDLL, CFUNCTYPE, c_char_p, c_void_p
 from ctypes.util import find_library
@@ -142,75 +143,107 @@ def cleanup():
 
 atexit.register(cleanup)
 
-
-class LGEOS(local):
-    
-    def __init__(self, dll):
-        self._lgeos = dll
-    
-    def __getattr__(self, name):
-        if 'geos_handle' == name:
-            self.geos_handle = lgeos._lgeos.initGEOS_r(notice_h, error_h)
-            return self.geos_handle
-        if name == 'GEOSFree':
-            # GEOSFree was added between CAPI ver 1.5.0 and 1.5.1
-            # fall back to free()
-            return getattr(self._lgeos, name, free)
-            
-        old_func = getattr(self._lgeos, name)
-        if geos_c_version >= (1,5,0):
-            real_func = getattr(self._lgeos, name + '_r')
-            attr = functools.partial(real_func, self.geos_handle)
-            attr.__name__ = real_func.__name__
-        else:
-            attr = old_func
-        
-        # Store the function, or function wrapper in a thread specific
-        # attribute.
-        setattr(self, name, attr)
-        return attr
-
-lgeos = LGEOS(_lgeos)
-
-func = lgeos.GEOSGeomToWKB_buf
 def errcheck_wkb(result, func, argtuple):
-   if not result:
-      return None
-   size_ref = argtuple[2]
-   size = size_ref._obj
-   retval = ctypes.string_at(result, size.value)[:]
-   lgeos.GEOSFree(result)
-   return retval
-func.func.errcheck = errcheck_wkb
+    if not result:
+        return None
+    size_ref = argtuple[2]
+    size = size_ref._obj
+    retval = ctypes.string_at(result, size.value)[:]
+    lgeos.GEOSFree(result)
+    return retval
 
 def errcheck_just_free(result, func, argtuple):
-   retval = result.value
-   lgeos.GEOSFree(result)
-   return retval
-
-func = lgeos.GEOSGeomToWKT
-func.func.errcheck = errcheck_just_free
-func = lgeos.GEOSRelate
-func.func.errcheck = errcheck_just_free
+    retval = result.value
+    lgeos.GEOSFree(result)
+    return retval
 
 def errcheck_predicate(result, func, argtuple):
     if result == 2:
         raise PredicateError, "Failed to evaluate %s" % repr(func)
     return result
 
-for pred in ( lgeos.GEOSDisjoint,
-              lgeos.GEOSTouches,
-              lgeos.GEOSIntersects,
-              lgeos.GEOSCrosses,
-              lgeos.GEOSWithin,
-              lgeos.GEOSContains,
-              lgeos.GEOSOverlaps,
-              lgeos.GEOSEquals,
-              lgeos.GEOSEqualsExact,
-              lgeos.GEOSisEmpty,
-              lgeos.GEOSisValid,
-              lgeos.GEOSisSimple,
-              lgeos.GEOSisRing,
-              lgeos.GEOSHasZ
+
+class LGEOSBase(threading.local):
+
+    def __init__(self, dll):
+        self._lgeos = dll
+        self.geos_handle = None
+
+
+class LGEOS14(LGEOSBase):
+    
+    """Proxy for the GEOS_C DLL/SO
+    """
+    
+    def __init__(self, dll):
+        super(LGEOS14, self).__init__(dll)
+        self.geos_handle = self._lgeos.initGEOS(notice_h, error_h)
+        keys = self._lgeos.__dict__.keys()
+        for key in keys:
+            setattr(self, key, getattr(self._lgeos, key))
+        self.GEOSFree = self._lgeos.free
+        self.GEOSGeomToWKB_buf.errcheck = errcheck_wkb
+        self.GEOSGeomToWKT.errcheck = errcheck_just_free
+        self.GEOSRelate.errcheck = errcheck_just_free
+        for pred in ( self.GEOSDisjoint,
+              self.GEOSTouches,
+              self.GEOSIntersects,
+              self.GEOSCrosses,
+              self.GEOSWithin,
+              self.GEOSContains,
+              self.GEOSOverlaps,
+              self.GEOSEquals,
+              self.GEOSEqualsExact,
+              self.GEOSisEmpty,
+              self.GEOSisValid,
+              self.GEOSisSimple,
+              self.GEOSisRing,
+              self.GEOSHasZ
               ):
-    pred.func.errcheck = errcheck_predicate
+            pred.errcheck = errcheck_predicate
+
+
+class LGEOS15(LGEOSBase):
+    
+    """Proxy for the reentrant GEOS_C DLL/SO
+    """
+    
+    def __init__(self, dll):
+        super(LGEOS15, self).__init__(dll)
+        self.geos_handle = self._lgeos.initGEOS_r(notice_h, error_h)
+        keys = self._lgeos.__dict__.keys()
+        for key in ifilter(lambda x: not x.endswith('_r'), keys):
+            if key + '_r' in keys:
+                reentr_func = getattr(self._lgeos, key + '_r')
+                attr = functools.partial(reentr_func, self.geos_handle)
+                attr.__name__ = reentr_func.__name__
+                setattr(self, key, attr)
+            else:
+                setattr(self, key, getattr(self._lgeos, key))
+        if not hasattr(self, 'GEOSFree'):
+            self.GEOSFree = self._lgeos.free
+        self.GEOSGeomToWKB_buf.func.errcheck = errcheck_wkb
+        self.GEOSGeomToWKT.func.errcheck = errcheck_just_free
+        self.GEOSRelate.func.errcheck = errcheck_just_free
+        for pred in ( self.GEOSDisjoint,
+              self.GEOSTouches,
+              self.GEOSIntersects,
+              self.GEOSCrosses,
+              self.GEOSWithin,
+              self.GEOSContains,
+              self.GEOSOverlaps,
+              self.GEOSEquals,
+              self.GEOSEqualsExact,
+              self.GEOSisEmpty,
+              self.GEOSisValid,
+              self.GEOSisSimple,
+              self.GEOSisRing,
+              self.GEOSHasZ
+              ):
+            pred.func.errcheck = errcheck_predicate
+
+if geos_c_version >= (1, 5, 0):
+    lgeos = LGEOS15(_lgeos)
+else:
+    lgeos = LGEOS14(_lgeos)
+    

@@ -406,7 +406,6 @@ class BaseGeometry(object):
             lgeos.GEOSBuffer(self._geom, c_double(distance), c_int(quadsegs))
             )
 
-    # Buffer has a unique tolerance argument, so not a descriptor
     @exceptNull
     def simplify(self, tolerance, preserve_topology=True):
         if preserve_topology:
