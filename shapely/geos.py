@@ -4,7 +4,6 @@ Exports the libgeos_c shared lib, GEOS-specific exceptions, and utilities.
 
 import atexit
 import functools
-from itertools import ifilter
 import logging
 import os
 import sys
@@ -143,6 +142,8 @@ def cleanup():
 
 atexit.register(cleanup)
 
+# Errcheck functions
+
 def errcheck_wkb(result, func, argtuple):
     if not result:
         return None
@@ -212,7 +213,7 @@ class LGEOS15(LGEOSBase):
         super(LGEOS15, self).__init__(dll)
         self.geos_handle = self._lgeos.initGEOS_r(notice_h, error_h)
         keys = self._lgeos.__dict__.keys()
-        for key in ifilter(lambda x: not x.endswith('_r'), keys):
+        for key in filter(lambda x: not x.endswith('_r'), keys):
             if key + '_r' in keys:
                 reentr_func = getattr(self._lgeos, key + '_r')
                 attr = functools.partial(reentr_func, self.geos_handle)
