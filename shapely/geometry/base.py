@@ -445,6 +445,9 @@ class BaseGeometry(object):
             raise ValueError, "Null geometry can not be operated upon"
         return bool(lgeos.GEOSEqualsExact(self._geom, other._geom, tolerance))
 
+    def almost_equals(self, other, decimal=6):
+        return self.equals_exact(other, 0.5 * 10**(-decimal))
+
     # Unary predicates
     #
     # These use descriptors to reduce the amount of boilerplate.
