@@ -12,9 +12,6 @@ def prototype(lgeos, geosVersion):
 
     lgeos.finishGEOS.restype = None
 
-    lgeos.GEOSFree.restype = None
-    lgeos.GEOSFree.argtypes = [ctypes.c_void_p]
-
     lgeos.GEOSversion.restype = ctypes.c_char_p
 
     lgeos.GEOSGeomFromWKT.restype = ctypes.c_void_p
@@ -225,6 +222,11 @@ def prototype(lgeos, geosVersion):
     lgeos.GEOSDistance.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
 
     if geosVersion >= (1, 5, 0):
+
+        if hasattr(lgeos, 'GEOSFree'):
+            lgeos.GEOSFree.restype = None
+            lgeos.GEOSFree.argtypes = [ctypes.c_void_p]
+
         # Prepared geometry, GEOS C API 1.5.0+
         lgeos.GEOSPrepare.restype = ctypes.c_void_p
         lgeos.GEOSPrepare.argtypes = [ctypes.c_void_p]
