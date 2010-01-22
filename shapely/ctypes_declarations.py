@@ -250,3 +250,18 @@ def prototype(lgeos, geosVersion):
     if geosVersion >= (1, 5, 0):
         lgeos.GEOSUnionCascaded.restype = ctypes.c_void_p
         lgeos.GEOSUnionCascaded.argtypes = [ctypes.c_void_p]
+
+    # 1.6.0
+    if geosVersion >= (1, 6, 0):
+        lgeos.GEOSProject.restype = ctypes.c_double
+        lgeos.GEOSProject.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+
+        lgeos.GEOSProjectNormalized.restype = ctypes.c_double
+        lgeos.GEOSProjectNormalized.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+
+        lgeos.GEOSInterpolate.restype = ctypes.c_void_p
+        lgeos.GEOSInterpolate.argtypes = [ctypes.c_void_p, ctypes.c_double]
+
+        lgeos.GEOSInterpolateNormalized.restype = ctypes.c_void_p
+        lgeos.GEOSInterpolateNormalized.argtypes = [ctypes.c_void_p, ctypes.c_double]
+

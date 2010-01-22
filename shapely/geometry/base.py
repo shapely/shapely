@@ -243,6 +243,15 @@ def exceptEitherNull(func):
         return func(*args, **kwargs)
     return wrapper
 
+def exceptNotLinear(func):
+    """Decorator which avoids GEOS operations on non-linear geometries."""
+    def wrapper(*args, **kwargs):
+        # self is the first arg
+        if args[0].geom_type not in ['LineString', 'MultiLineString']:
+            raise TypeError, "Only linear types support this operation"
+        return func(*args, **kwargs)
+    return wrapper
+
 
 class BaseGeometry(object):
     
@@ -483,6 +492,17 @@ class BaseGeometry(object):
             if y > maxy: maxy = y
         
         return (minx, miny, maxx, maxy)
+
+    # Linear referencing
+    @exceptEitherNull
+    @exceptNotLinear
+    def project(self, other, normalized=False):
+        if normalized:
+            return lgeos.GEOSProjectNormalized(self._geom, other._geom)
+        else:    
+            return lgeos.GEOSProject(self._geom, other._geom)
+
+    # TODO: interpolate
 
 
 class BaseMultiPartGeometry(BaseGeometry):

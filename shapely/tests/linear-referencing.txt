@@ -1,0 +1,28 @@
+
+  >>> from shapely.geometry import Point, LineString, MultiLineString
+  
+  >>> point = Point(1, 1)
+  >>> line1 = LineString(([0, 0], [2, 0]))
+  >>> line1.project(point)
+  1.0
+  >>> line1.project(point, normalized=True)
+  0.5
+
+  >>> line2 = LineString(([3, 0], [3, 6]))
+  >>> line2.project(point)
+  1.0
+  >>> line2.project(point, normalized=True)
+  0.16666666666666666
+
+  >>> multiline = MultiLineString([list(line1.coords), list(line2.coords)]) 
+  >>> multiline.project(point)
+  1.0
+  >>> multiline.project(point, normalized=True)
+  0.125
+
+  >>> point.buffer(1.0).project(point) # doctest: +ELLIPSIS
+  Traceback (most recent call last):
+  ...
+  TypeError: Only linear types support this operation
+  
+
