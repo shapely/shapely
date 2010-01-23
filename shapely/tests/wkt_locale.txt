@@ -5,7 +5,7 @@ Set locale to one that uses a comma as decimal seperator`
 
   >>> import locale, sys
   >>> if sys.platform == 'win32':
-  ...     _ = locale.setlocale(locale.LC_ALL, 'portuguese-brazil')
+  ...     _ = locale.setlocale(locale.LC_ALL, 'portuguese_brazil')
   ... else:
   ...     _ = locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
