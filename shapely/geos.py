@@ -166,6 +166,11 @@ def errcheck_predicate(result, func, argtuple):
 
 class LGEOSBase(threading.local):
 
+    """Proxy for the GEOS_C DLL/SO
+
+    This is a base class. Do not instantiate.
+    """
+
     def __init__(self, dll):
         self._lgeos = dll
         self.geos_handle = None
@@ -173,9 +178,11 @@ class LGEOSBase(threading.local):
 
 class LGEOS14(LGEOSBase):
     
-    """Proxy for the GEOS_C DLL/SO
+    """Proxy for the GEOS_C DLL/SO API version 1.4
     """
     
+    geos_capi_version = (1, 4, 0)
+
     def __init__(self, dll):
         super(LGEOS14, self).__init__(dll)
         self.geos_handle = self._lgeos.initGEOS(notice_h, error_h)
@@ -206,8 +213,10 @@ class LGEOS14(LGEOSBase):
 
 class LGEOS15(LGEOSBase):
     
-    """Proxy for the reentrant GEOS_C DLL/SO
+    """Proxy for the reentrant GEOS_C DLL/SO API version 1.5
     """
+    
+    geos_capi_version = (1, 5, 0)
     
     def __init__(self, dll):
         super(LGEOS15, self).__init__(dll)
@@ -243,7 +252,21 @@ class LGEOS15(LGEOSBase):
               ):
             pred.func.errcheck = errcheck_predicate
 
-if geos_c_version >= (1, 5, 0):
+
+class LGEOS16(LGEOS15):
+    
+    """Proxy for the reentrant GEOS_C DLL/SO API version 1.6
+    """
+    
+    geos_capi_version = (1, 6, 0)
+    
+    def __init__(self, dll):
+        super(LGEOS16, self).__init__(dll)
+
+
+if geos_c_version >= (1, 6, 0):
+    lgeos = LGEOS16(_lgeos)
+elif geos_c_version >= (1, 5, 0):
     lgeos = LGEOS15(_lgeos)
 else:
     lgeos = LGEOS14(_lgeos)

@@ -496,13 +496,30 @@ class BaseGeometry(object):
     # Linear referencing
     @exceptEitherNull
     @exceptNotLinear
-    def project(self, other, normalized=False):
+    def project(self, point, normalized=False):
+        """Return the distance to a point along a linear geometry.
+        
+        If the normalized arg is True, return the distance normalized to the
+        length of the linear geometry.
+        """
         if normalized:
-            return lgeos.GEOSProjectNormalized(self._geom, other._geom)
+            return lgeos.GEOSProjectNormalized(self._geom, point._geom)
         else:    
-            return lgeos.GEOSProject(self._geom, other._geom)
+            return lgeos.GEOSProject(self._geom, point._geom)
 
-    # TODO: interpolate
+    @exceptNull
+    @exceptNotLinear
+    def interpolate(self, distance, normalized=False):
+        """Return a point at the specified distance along a linear geometry.
+        
+        If the normalized arg is True, the distance will be interpreted as a
+        fraction of the geometry's length.
+        """
+        if normalized:
+            return geom_factory(
+                        lgeos.GEOSInterpolateNormalized(self._geom, distance))
+        else:
+            return geom_factory(lgeos.GEOSInterpolate(self._geom, distance))
 
 
 class BaseMultiPartGeometry(BaseGeometry):

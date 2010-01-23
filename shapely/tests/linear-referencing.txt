@@ -1,3 +1,4 @@
+First, tests of projection
 
   >>> from shapely.geometry import Point, LineString, MultiLineString
   
@@ -24,5 +25,34 @@
   Traceback (most recent call last):
   ...
   TypeError: Only linear types support this operation
-  
+
+Points that aren't on the line project to 0.
+
+  >>> line1.project(Point(-10,-10))
+  0.0
+
+Now tests of interpolation
+
+  >>> line1.interpolate(0.5).wkt
+  'POINT (0.5000000000000000 0.0000000000000000)'
+  >>> line1.interpolate(0.5, normalized=True).wkt
+  'POINT (1.0000000000000000 0.0000000000000000)'
+
+  >>> line2.interpolate(0.5).wkt
+  'POINT (3.0000000000000000 0.5000000000000000)'
+  >>> line2.interpolate(0.5, normalized=True).wkt
+  'POINT (3.0000000000000000 3.0000000000000000)'
+
+  >>> multiline.interpolate(0.5).wkt
+  'POINT (0.5000000000000000 0.0000000000000000)'
+  >>> multiline.interpolate(0.5, normalized=True).wkt
+  'POINT (3.0000000000000000 2.0000000000000000)'
+
+Distances greater than length of the line or less than zero yield the line's
+ends.
+
+  >>> line1.interpolate(-1000.0).wkt
+  'POINT (0.0000000000000000 0.0000000000000000)'
+  >>> line1.interpolate(1000.0).wkt
+  'POINT (2.0000000000000000 0.0000000000000000)'
 
