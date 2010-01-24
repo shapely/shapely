@@ -134,46 +134,46 @@ def prototype(lgeos, geosVersion):
     lgeos.GEOSRelatePattern.restype = ctypes.c_char
     lgeos.GEOSRelatePattern.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_char_p]
 
-    lgeos.GEOSDisjoint.restype = ctypes.c_int
+    lgeos.GEOSDisjoint.restype = ctypes.c_byte
     lgeos.GEOSDisjoint.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
 
-    lgeos.GEOSTouches.restype = ctypes.c_int
+    lgeos.GEOSTouches.restype = ctypes.c_byte
     lgeos.GEOSTouches.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
 
-    lgeos.GEOSIntersects.restype = ctypes.c_int
+    lgeos.GEOSIntersects.restype = ctypes.c_byte
     lgeos.GEOSIntersects.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
 
-    lgeos.GEOSCrosses.restype = ctypes.c_int
+    lgeos.GEOSCrosses.restype = ctypes.c_byte
     lgeos.GEOSCrosses.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
 
-    lgeos.GEOSWithin.restype = ctypes.c_int
+    lgeos.GEOSWithin.restype = ctypes.c_byte
     lgeos.GEOSWithin.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
 
-    lgeos.GEOSContains.restype = ctypes.c_int
+    lgeos.GEOSContains.restype = ctypes.c_byte
     lgeos.GEOSContains.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
 
-    lgeos.GEOSOverlaps.restype = ctypes.c_int
+    lgeos.GEOSOverlaps.restype = ctypes.c_byte
     lgeos.GEOSOverlaps.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
 
-    lgeos.GEOSEquals.restype = ctypes.c_int
+    lgeos.GEOSEquals.restype = ctypes.c_byte
     lgeos.GEOSEquals.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
 
-    lgeos.GEOSEqualsExact.restype = ctypes.c_int
+    lgeos.GEOSEqualsExact.restype = ctypes.c_byte
     lgeos.GEOSEqualsExact.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double]
 
-    lgeos.GEOSisEmpty.restype = ctypes.c_int
+    lgeos.GEOSisEmpty.restype = ctypes.c_byte
     lgeos.GEOSisEmpty.argtypes = [ctypes.c_void_p]
 
-    lgeos.GEOSisValid.restype = ctypes.c_int
+    lgeos.GEOSisValid.restype = ctypes.c_byte
     lgeos.GEOSisValid.argtypes = [ctypes.c_void_p]
 
-    lgeos.GEOSisSimple.restype = ctypes.c_int
+    lgeos.GEOSisSimple.restype = ctypes.c_byte
     lgeos.GEOSisSimple.argtypes = [ctypes.c_void_p]
 
-    lgeos.GEOSisRing.restype = ctypes.c_int
+    lgeos.GEOSisRing.restype = ctypes.c_byte
     lgeos.GEOSisRing.argtypes = [ctypes.c_void_p]
 
-    lgeos.GEOSHasZ.restype = ctypes.c_int
+    lgeos.GEOSHasZ.restype = ctypes.c_byte
     lgeos.GEOSHasZ.argtypes = [ctypes.c_void_p]
 
     lgeos.GEOSGeomType.restype = ctypes.c_char_p
