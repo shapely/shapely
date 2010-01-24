@@ -909,7 +909,24 @@ will be ultimately yielded from *iterops.contains*.
 Prepared Geometry Operations
 ----------------------------
 
-TODO.
+Shapely geometries can be pre-analyzed into a state that supports more
+efficient batches of operations. To test one polygon containment against a
+large batch of points, one should first use the `prepared.prep` function:
+
+.. sourcecode:: python
+
+  >>> from shapely.geometry import Point
+  >>> from shapely.prepared import polyprep
+  >>> points = [...] # large list of points
+  >>> polygon = Point(0.0, 0.0).buffer(1.0)
+  >>> prepared_polygon = prep(polygon)
+  >>> prepared_polygon
+  <shapely.prepared.PreparedGeometry object at ...>
+  >>> hits = filter(prepared_polygon.contains, points)
+
+Prepared geometries instances have the following methods: ``contains``,
+``contains_properly``, ``covers``, and ``intersects``. All have exactly the
+same arguments and usage as their counterparts in the standard geometries.
 
 Credits
 =======
