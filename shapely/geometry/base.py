@@ -2,7 +2,8 @@
 Base geometry class and utilities.
 """
 
-from ctypes import string_at, byref, c_int, c_size_t, c_char_p, c_double, c_void_p
+from ctypes import string_at, byref, c_char_p, c_double, c_void_p
+from ctypes import c_int, c_size_t, c_uint
 import sys
 
 from shapely.geos import lgeos, free, allocated_c_char_p
@@ -30,7 +31,7 @@ def geometry_type_name(g):
 
 def geom_factory(g, parent=None):
     if not g:
-        raise ValueError, "No Shapely geometry can be created from this null value"
+        raise ValueError, "No Shapely geometry can be created from null value"
     ob = BaseGeometry()
     geom_type = geometry_type_name(g)
     # TODO: check cost of dynamic import by profiling

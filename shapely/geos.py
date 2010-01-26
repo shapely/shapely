@@ -1,5 +1,6 @@
 """
-Exports the libgeos_c shared lib, GEOS-specific exceptions, and utilities.
+Contains proxies for the libgeos_c shared lib, GEOS-specific exceptions, and
+utilities.
 """
 
 import atexit
@@ -22,6 +23,7 @@ class NullHandler(logging.Handler):
 LOG = logging.getLogger(__name__)
 LOG.addHandler(NullHandler())
 
+# Find and load the GEOS library
 if sys.platform == 'win32':
     try:
         local_dlls = os.path.abspath(os.__file__ + "../../../DLLs")
@@ -85,8 +87,7 @@ class allocated_c_char_p(c_char_p):
 if geos_c_version >= (1,5,0):
     start_set = set(_lgeos.__dict__)
 
-# Prototype the libgeos_c functions using new code from `tarley` in
-# http://trac.gispython.org/lab/ticket/189
+# Apply prototypes for the libgeos_c functions
 prototype(_lgeos, geos_c_version)
 
 # If we have the new interface, automatically detect all function

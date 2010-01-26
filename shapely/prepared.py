@@ -40,5 +40,8 @@ class PreparedGeometry(object):
     contains_properly = BinaryPredicate(lgeos.GEOSPreparedContainsProperly)
     covers = BinaryPredicate(lgeos.GEOSPreparedCovers)
 
+
 def prep(geom):
+    """Creates and returns a prepared geometry."""
     return PreparedGeometry(geom)
+
