@@ -6,7 +6,7 @@ from ctypes import string_at, byref, c_char_p, c_double, c_void_p
 from ctypes import c_int, c_size_t, c_uint
 import sys
 
-from shapely.geos import lgeos, free, allocated_c_char_p
+from shapely.geos import lgeos, allocated_c_char_p, geos_c_version
 from shapely.predicates import BinaryPredicate, UnaryPredicate
 from shapely.topology import BinaryTopologicalOp, UnaryTopologicalOp
 

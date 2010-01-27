@@ -253,15 +253,21 @@ def prototype(lgeos, geosVersion):
 
     # 1.6.0
     if geosVersion >= (1, 6, 0):
-        lgeos.GEOSProject.restype = ctypes.c_double
-        lgeos.GEOSProject.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+        # Linear referencing features aren't found in versions 1.5,
+        # but not in all libs versioned 1.6.0 either!
+        if hasattr(lgeos, 'GEOSProject'):
+            lgeos.GEOSProject.restype = ctypes.c_double
+            lgeos.GEOSProject.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
 
-        lgeos.GEOSProjectNormalized.restype = ctypes.c_double
-        lgeos.GEOSProjectNormalized.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+            lgeos.GEOSProjectNormalized.restype = ctypes.c_double
+            lgeos.GEOSProjectNormalized.argtypes = [ctypes.c_void_p, 
+                                                    ctypes.c_void_p]
 
-        lgeos.GEOSInterpolate.restype = ctypes.c_void_p
-        lgeos.GEOSInterpolate.argtypes = [ctypes.c_void_p, ctypes.c_double]
+            lgeos.GEOSInterpolate.restype = ctypes.c_void_p
+            lgeos.GEOSInterpolate.argtypes = [ctypes.c_void_p, 
+                                              ctypes.c_double]
 
-        lgeos.GEOSInterpolateNormalized.restype = ctypes.c_void_p
-        lgeos.GEOSInterpolateNormalized.argtypes = [ctypes.c_void_p, ctypes.c_double]
+            lgeos.GEOSInterpolateNormalized.restype = ctypes.c_void_p
+            lgeos.GEOSInterpolateNormalized.argtypes = [ctypes.c_void_p, 
+                                                        ctypes.c_double]
 
