@@ -49,12 +49,13 @@ def geom_factory(g, parent=None):
 
 
 class CoordinateSequence(object):
-    
+
+    """Iterative access to a sequence of coordinate tuples.
+    """
+
     _geom = None
     _cseq = None
     _ndim = None
-    _length = 0
-    index = 0
     __p__ = None
 
     def __init__(self, parent):
@@ -65,33 +66,23 @@ class CoordinateSequence(object):
 
     def update_cseq(self):
         self._cseq = lgeos.GEOSGeom_getCoordSeq(self._geom)
-        
+    
     def __iter__(self):
-        self.index = 0
         self.update_cseq()
-        self._length = self.__len__()
-        return self
-
-    def next(self):
         dx = c_double()
         dy = c_double()
         dz = c_double()
-        i = self.index
-        if i < self._length:
+        for i in range(self.__len__()):
             lgeos.GEOSCoordSeq_getX(self._cseq, i, byref(dx))
             lgeos.GEOSCoordSeq_getY(self._cseq, i, byref(dy))
             if self._ndim == 3: # TODO: use hasz
                 lgeos.GEOSCoordSeq_getZ(self._cseq, i, byref(dz))
-                self.index += 1
-                return (dx.value, dy.value, dz.value)
+                yield (dx.value, dy.value, dz.value)
             else:
-                self.index += 1
-                return (dx.value, dy.value)
-        else:
-            raise StopIteration 
+                yield (dx.value, dy.value)
 
     def __len__(self):
-        cs_len = c_int(0)
+        cs_len = c_uint(0)
         lgeos.GEOSCoordSeq_getSize(self._cseq, byref(cs_len))
         return cs_len.value
     
@@ -123,7 +114,6 @@ class CoordinateSequence(object):
         array_type = c_double * (m * n)
         data = array_type()
         temp = c_double()
-
         for i in xrange(m):
             lgeos.GEOSCoordSeq_getX(self._cseq, i, byref(temp))
             data[n*i] = temp.value
@@ -150,17 +140,19 @@ class CoordinateSequence(object):
             }
         ai.update({'shape': (len(self), self._ndim)})
         return ai
+    
     __array_interface__ = property(array_interface)
 
 
 class GeometrySequence(object):
 
+    """Iterative access to a homogeneous sequence of geometries.
+    """
+
     _factory = None
     _geom = None
     __p__ = None
     _ndim = None
-    _index = 0
-    _length = 0
 
     def __init__(self, parent, type):
         self._factory = type
@@ -168,20 +160,15 @@ class GeometrySequence(object):
         self._geom = parent._geom
         self._ndim = parent._ndim
 
-    def __iter__(self):
-        self._index = 0
-        self._length = self.__len__()
-        return self
+    def _get_geom_item(self, i):
+        g = self._factory()
+        g._owned = True
+        g._geom = lgeos.GEOSGetGeometryN(self._geom, i)
+        return g
 
-    def next(self):
-        if self._index < self.__len__():
-            g = self._factory()
-            g._owned = True
-            g._geom = lgeos.GEOSGetGeometryN(self._geom, self._index)
-            self._index += 1
-            return g
-        else:
-            raise StopIteration 
+    def __iter__(self):
+        for i in range(self.__len__()):
+            yield self._get_geom_item(i)
 
     def __len__(self):
         return lgeos.GEOSGetNumGeometries(self._geom)
@@ -194,10 +181,7 @@ class GeometrySequence(object):
             ii = M + i
         else:
             ii = i
-        g = self._factory()
-        g._owned = True
-        g._geom = lgeos.GEOSGetGeometryN(self._geom, ii)
-        return g
+        return self._get_geom_item(i)
 
     @property
     def _longest(self):
@@ -210,26 +194,24 @@ class GeometrySequence(object):
 
 class HeterogeneousGeometrySequence(GeometrySequence):
 
+    """Iterative access to a heterogeneous sequence of geometries.
+    """
+
     def __init__(self, parent):
         self.__p__ = parent
         self._geom = parent._geom
         self._ndim = parent._ndim
 
-    def next(self):
-        if self._index < self.__len__():
-            sub = lgeos.GEOSGetGeometryN(self._geom, self._index)
-            g = geom_factory(sub)
-            g._owned = True
-            self._index += 1
-            return g
-        else:
-            raise StopIteration 
-    
+    def _get_geom_item(self, i):
+        sub = lgeos.GEOSGetGeometryN(self._geom, i)
+        g = geom_factory(sub)
+        g._owned = True
+        return g
+
 
 def exceptNull(func):
     """Decorator which helps avoid GEOS operations on null pointers."""
     def wrapper(*args, **kwargs):
-        # self is the first arg
         if not args[0]._geom:
             raise ValueError, "Null geometry supports no operations"
         return func(*args, **kwargs)
@@ -238,7 +220,6 @@ def exceptNull(func):
 def exceptEitherNull(func):
     """Decorator which avoids GEOS operations on one or more null pointers."""
     def wrapper(*args, **kwargs):
-        # self is the first arg
         if not args[0]._geom or not args[1]._geom:
             raise ValueError, "Null geometry supports no operations"
         return func(*args, **kwargs)
@@ -247,7 +228,6 @@ def exceptEitherNull(func):
 def exceptNotLinear(func):
     """Decorator which avoids GEOS operations on non-linear geometries."""
     def wrapper(*args, **kwargs):
-        # self is the first arg
         if args[0].geom_type not in ['LineString', 'MultiLineString']:
             raise TypeError, "Only linear types support this operation"
         return func(*args, **kwargs)
@@ -290,9 +270,6 @@ class BaseGeometry(object):
                         c_size_t(len(state))
                         )
 
-    # _geom has been made a property with the GEOS geometry pointer stored
-    # in __geom so that geometries and geometry adapters can share __del__
-
     def _get_geom(self):
         return self.__geom__
 
@@ -317,7 +294,8 @@ class BaseGeometry(object):
         elif sys.byteorder == 'big':
             typestr = '>f8'
         else:
-            raise ValueError, "Unsupported byteorder: neither little nor big-endian"
+            raise ValueError, \
+                  "Unsupported byteorder: neither little nor big-endian"
         return {
             'version': 3,
             'typestr': typestr,
@@ -548,3 +526,4 @@ class BaseMultiPartGeometry(BaseGeometry):
     def coords(self):
         raise NotImplementedError, \
         "Multi-part geometries do not provide a coordinate sequence"
+
