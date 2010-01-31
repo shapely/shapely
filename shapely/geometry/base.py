@@ -27,9 +27,8 @@ def geometry_type_name(g):
         raise ValueError, "Null geometry has no type"
     return GEOMETRY_TYPES[lgeos.GEOSGeomTypeId(g)]
 
-# Abstract geometry factory for use with topological methods below
-
 def geom_factory(g, parent=None):
+    # Abstract geometry factory for use with topological methods below
     if not g:
         raise ValueError, "No Shapely geometry can be created from null value"
     ob = BaseGeometry()
@@ -50,25 +49,32 @@ def geom_factory(g, parent=None):
 
 class CoordinateSequence(object):
 
-    """Iterative access to a sequence of coordinate tuples.
+    """Iterative access to coordinate tuples from the parent geometry's
+    coordinate sequence.
+
+    Attributes
+    ----------
+    _cseq : c_void_p
+        Ctypes pointer to GEOS coordinate sequence
+    _ndim : int
+        Number of dimensions (2 or 3, generally)
+    __p__ : object
+        Parent (Shapely) geometry
     """
 
-    _geom = None
     _cseq = None
     _ndim = None
     __p__ = None
 
     def __init__(self, parent):
         self.__p__ = parent
-        self._geom = parent._geom
-        self._ndim = parent._ndim
-        self.update_cseq()
 
-    def update_cseq(self):
-        self._cseq = lgeos.GEOSGeom_getCoordSeq(self._geom)
+    def _update(self):
+        self._ndim = self.__p__._ndim
+        self._cseq = lgeos.GEOSGeom_getCoordSeq(self.__p__._geom)
     
     def __iter__(self):
-        self.update_cseq()
+        self._update()
         dx = c_double()
         dy = c_double()
         dz = c_double()
@@ -82,12 +88,13 @@ class CoordinateSequence(object):
                 yield (dx.value, dy.value)
 
     def __len__(self):
+        self._update()
         cs_len = c_uint(0)
         lgeos.GEOSCoordSeq_getSize(self._cseq, byref(cs_len))
         return cs_len.value
     
     def __getitem__(self, i):
-        self.update_cseq()
+        self._update()
         M = self.__len__()
         if i + M < 0 or i >= M:
             raise IndexError, "index out of range"
@@ -108,7 +115,7 @@ class CoordinateSequence(object):
 
     @property
     def ctypes(self):
-        self.update_cseq()
+        self._update()
         n = self._ndim
         m = self.__len__()
         array_type = c_double * (m * n)
@@ -146,7 +153,18 @@ class CoordinateSequence(object):
 
 class GeometrySequence(object):
 
-    """Iterative access to a homogeneous sequence of geometries.
+    """Iterative access to members of a homogeneous multipart geometry.
+
+    Attributes
+    ----------
+    _factory : callable
+        Returns instances of Shapely geometries
+    _geom : c_void_p
+        Ctypes pointer to the parent's GEOS geometry
+    _ndim : int
+        Number of dimensions (2 or 3, generally)
+    __p__ : object
+        Parent (Shapely) geometry
     """
 
     _factory = None
@@ -157,9 +175,11 @@ class GeometrySequence(object):
     def __init__(self, parent, type):
         self._factory = type
         self.__p__ = parent
-        self._geom = parent._geom
-        self._ndim = parent._ndim
 
+    def _update(self):
+        self._geom = self.__p__._geom
+        self._ndim = self.__p__._ndim
+        
     def _get_geom_item(self, i):
         g = self._factory()
         g._owned = True
@@ -167,13 +187,16 @@ class GeometrySequence(object):
         return g
 
     def __iter__(self):
+        self._update()
         for i in range(self.__len__()):
             yield self._get_geom_item(i)
 
     def __len__(self):
+        self._update()
         return lgeos.GEOSGetNumGeometries(self._geom)
 
     def __getitem__(self, i):
+        self._update()
         M = self.__len__()
         if i + M < 0 or i >= M:
             raise IndexError, "index out of range"
@@ -198,9 +221,7 @@ class HeterogeneousGeometrySequence(GeometrySequence):
     """
 
     def __init__(self, parent):
-        self.__p__ = parent
-        self._geom = parent._geom
-        self._ndim = parent._ndim
+        super(HeterogeneousGeometrySequence, self).__init__(parent, None)
 
     def _get_geom_item(self, i):
         sub = lgeos.GEOSGetGeometryN(self._geom, i)
@@ -237,6 +258,25 @@ def exceptNotLinear(func):
 class BaseGeometry(object):
     
     """Provides GEOS spatial predicates and topological operations.
+
+    Attributes
+    ----------
+    __geom__ : c_void_p
+        Cached ctypes pointer to GEOS geometry. Not to be accessed.
+    _geom : c_void_p
+        Property by which the GEOS geometry is accessed.
+    __p__ : object
+        Parent (Shapely) geometry
+    _ctypes_data : object
+        Cached ctypes data buffer
+    _ndim : int
+        Number of dimensions (2 or 3, generally)
+    _crs : object
+        Coordinate reference system. Available for Shapely extensions, but
+        not implemented here.
+    _owned : bool
+        True if this object's GEOS geometry is owned by another as in the case
+        of a multipart geometry member.
     """
 
     __geom__ = None # See _geom property below
@@ -260,7 +300,6 @@ class BaseGeometry(object):
         return self.to_wkt()
 
     # To support pickling
-
     def __reduce__(self):
         return (self.__class__, (), self.to_wkb())
 
@@ -269,17 +308,15 @@ class BaseGeometry(object):
                         c_char_p(state), 
                         c_size_t(len(state))
                         )
-
+    
+    # The _geom property
     def _get_geom(self):
         return self.__geom__
-
     def _set_geom(self, val):
         self.__geom__ = val
-    
     _geom = property(_get_geom, _set_geom)
 
     # Array and ctypes interfaces
-
     @property
     def ctypes(self):
         """Return a ctypes representation.
@@ -307,28 +344,24 @@ class BaseGeometry(object):
         """Provide the Numpy array protocol."""
         raise NotImplementedError
 
+    # Coordinate access
     @exceptNull
     def _get_coords(self):
         return CoordinateSequence(self)
-
     def _set_coords(self, ob):
         raise NotImplementedError, \
             "set_coords must be provided by derived classes"
-
     coords = property(_get_coords, _set_coords)
 
     # Python feature protocol
-
     @property
     def __geo_interface__(self):
         raise NotImplementedError
-
     @property
     def type(self):
         return self.geometryType()
 
     # Type of geometry and its representations
-
     @exceptNull
     def geometryType(self):
         """Returns a string representing the geometry type, e.g. 'Polygon'."""
@@ -352,7 +385,6 @@ class BaseGeometry(object):
     wkb = property(to_wkb)
 
     # Basic geometry properties
-
     @property
     @exceptNull
     def area(self):
@@ -398,7 +430,8 @@ class BaseGeometry(object):
     def simplify(self, tolerance, preserve_topology=True):
         if preserve_topology:
             return geom_factory(
-                lgeos.GEOSTopologyPreserveSimplify(self._geom, c_double(tolerance))
+                lgeos.GEOSTopologyPreserveSimplify(self._geom, 
+                                                   c_double(tolerance))
              )
         else:
             return geom_factory(
