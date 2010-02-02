@@ -1,3 +1,7 @@
+"""
+Geometry classes and factories
+"""
+
 from geo import shape, asShape
 from point import Point, asPoint
 from linestring import LineString, asLineString

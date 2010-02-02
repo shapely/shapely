@@ -1,5 +1,5 @@
 """
-Support for various GEOS geometry operations.
+Support for various GEOS geometry operations
 """
 
 from shapely.geos import lgeos
@@ -50,8 +50,7 @@ def linemerge(lines):
         except AttributeError: 
             multilinestring = asMultiLineString(lines) 
     if multilinestring is None: 
-        raise ValueError, "Cannot linemerge %s" % lines 
-         
+        raise ValueError("Cannot linemerge %s" % lines)
     result = lgeos.GEOSLineMerge(multilinestring._geom) 
     return geom_factory(result)   
 

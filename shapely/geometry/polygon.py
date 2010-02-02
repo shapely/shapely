@@ -1,5 +1,5 @@
 """
-Polygons and their linear ring components.
+Polygons and their linear ring components
 """
 
 from ctypes import byref, c_double, c_int, c_void_p, cast, POINTER, pointer
@@ -19,7 +19,8 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
         m = array['shape'][0]
         n = array['shape'][1]
         if m < 3:
-            raise ValueError, "A LinearRing must have at least 3 coordinate tuples"
+            raise ValueError(
+                "A LinearRing must have at least 3 coordinate tuples")
         assert n == 2 or n == 3
 
         # Make pointer to the coordinate array
@@ -38,9 +39,9 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
         if update_geom is not None:
             cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
             if n != update_ndim:
-                raise ValueError, \
+                raise ValueError(
                 "Wrong coordinate dimensions; this geometry has dimensions: %d" \
-                % update_ndim
+                % update_ndim)
         else:
             cs = lgeos.GEOSCoordSeq_create(M, n)
 
@@ -79,7 +80,8 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
         m = len(ob)
         n = len(ob[0])
         if m < 3:
-            raise ValueError, "A LinearRing must have at least 3 coordinate tuples"
+            raise ValueError(
+                "A LinearRing must have at least 3 coordinate tuples")
         assert (n == 2 or n == 3)
 
         # Add closing coordinates if not provided
@@ -92,9 +94,9 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
         if update_geom is not None:
             cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
             if n != update_ndim:
-                raise ValueError, \
+                raise ValueError(
                 "Wrong coordinate dimensions; this geometry has dimensions: %d" \
-                % update_ndim
+                % update_ndim)
         else:
             cs = lgeos.GEOSCoordSeq_create(M, n)
         
@@ -141,7 +143,7 @@ def update_linearring_from_py(geom, ob):
 
 class LinearRing(LineString):
 
-    """A linear ring.
+    """A closed one-dimensional figure comprising one or more line segments
     """
 
     _ndim = None
@@ -261,7 +263,7 @@ class InteriorRingSequence(object):
     def __getitem__(self, i):
         M = self.__len__()
         if i + M < 0 or i >= M:
-            raise IndexError, "index out of range"
+            raise IndexError("index out of range")
         if i < 0:
             ii = M + i
         else:
@@ -327,7 +329,17 @@ def geos_polygon_from_py(shell, holes=None):
 
 class Polygon(BaseGeometry):
 
-    """A line string, also known as a polyline.
+    """A two-dimensional figure bounded by a linear ring
+
+    A polygon has a non-zero area. It may have one or more negative-space
+    "holes" which are also bounded by linear rings.
+
+    Attributes
+    ----------
+    exterior : LinearRing
+        The ring which bounds the positive space of the polygon.
+    interiors : sequence
+        A sequence of rings which bound all existing holes.
     """
 
     _exterior = None
@@ -382,21 +394,21 @@ class Polygon(BaseGeometry):
 
     @property
     def __array_interface__(self):
-        raise NotImplementedError, \
-        "A polygon does not itself provide the array interface. Its rings do."
+        raise NotImplementedError(
+        "A polygon does not itself provide the array interface. Its rings do.")
 
     def _get_coords(self):
-        raise NotImplementedError, \
-        "Component rings have coordinate sequences, but the polygon does not"
+        raise NotImplementedError(
+        "Component rings have coordinate sequences, but the polygon does not")
 
     def _set_coords(self, ob):
-        raise NotImplementedError, \
-        "Component rings have coordinate sequences, but the polygon does not"
+        raise NotImplementedError(
+        "Component rings have coordinate sequences, but the polygon does not")
 
     @property
     def coords(self):
-        raise NotImplementedError, \
-        "Component rings have coordinate sequences, but the polygon does not"
+        raise NotImplementedError(
+        "Component rings have coordinate sequences, but the polygon does not")
 
     @property
     def __geo_interface__(self):

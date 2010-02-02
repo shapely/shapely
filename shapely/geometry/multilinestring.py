@@ -1,5 +1,5 @@
 """
-Multi-part collection of linestrings.
+Multi-part collections of linestrings and related utilities
 """
 
 from ctypes import byref, c_double, c_int, c_void_p, cast, POINTER, pointer
@@ -50,7 +50,14 @@ def geos_multilinestring_from_py(ob):
 
 class MultiLineString(BaseGeometry):
 
-    """a multiple linestring geometry.
+    """A one-dimensional figure comprising one or more line strings
+    
+    A MultiLineString has non-zero length and zero area.
+
+    Attributes
+    ----------
+    geoms : sequence
+        A sequence of LineStrings
     """
 
     def __init__(self, coordinates=None):
@@ -88,27 +95,27 @@ class MultiLineString(BaseGeometry):
 
     @property
     def ctypes(self):
-        raise NotImplementedError, \
-        "Multi-part geometries have no ctypes representations"
+        raise NotImplementedError(
+        "Multi-part geometries have no ctypes representations")
 
     @property
     def __array_interface__(self):
         """Provide the Numpy array protocol."""
-        raise NotImplementedError, \
-        "Multi-part geometries do not themselves provide the array interface"
+        raise NotImplementedError(
+        "Multi-part geometries do not themselves provide the array interface")
 
     def _get_coords(self):
-        raise NotImplementedError, \
-        "Component rings have coordinate sequences, but the polygon does not"
+        raise NotImplementedError(
+        "Component lines have coordinate sequences, but the parent does not")
 
     def _set_coords(self, ob):
-        raise NotImplementedError, \
-        "Component rings have coordinate sequences, but the polygon does not"
+        raise NotImplementedError(
+        "Component lines have coordinate sequences, but the parent does not")
 
     @property
     def coords(self):
-        raise NotImplementedError, \
-        "Multi-part geometries do not provide a coordinate sequence"
+        raise NotImplementedError(
+        "Multi-part geometries do not provide a coordinate sequence")
 
     @property
     @exceptNull

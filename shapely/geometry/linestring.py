@@ -1,5 +1,5 @@
 """
-Line strings.
+Line strings and related utilities
 """
 
 from ctypes import byref, c_double, c_int, cast, POINTER, pointer
@@ -17,11 +17,13 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
         assert len(array['shape']) == 2
         m = array['shape'][0]
         if m < 2:
-            raise ValueError, "LineStrings must have at least 2 coordinate tuples"
+            raise ValueError(
+                "LineStrings must have at least 2 coordinate tuples")
         try:
             n = array['shape'][1]
         except IndexError:
-            raise ValueError, "Input %s is the wrong shape for a LineString" % str(ob)
+            raise ValueError(
+                "Input %s is the wrong shape for a LineString" % str(ob))
         assert n == 2 or n == 3
 
         # Make pointer to the coordinate array
@@ -34,9 +36,9 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
         if update_geom is not None:
             cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
             if n != update_ndim:
-                raise ValueError, \
+                raise ValueError(
                 "Wrong coordinate dimensions; this geometry has dimensions: %d" \
-                % update_ndim
+                % update_ndim)
         else:
             cs = lgeos.GEOSCoordSeq_create(m, n)
 
@@ -49,7 +51,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
                 try:
                     dz = c_double(cp[n*i+2])
                 except IndexError:
-                    raise ValueError, "Inconsistent coordinate dimensionality"
+                    raise ValueError("Inconsistent coordinate dimensionality")
 
             # Because of a bug in the GEOS C API, 
             # always set X before Y
@@ -62,20 +64,22 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
         # Fall back on list
         m = len(ob)
         if m < 2:
-            raise ValueError, "LineStrings must have at least 2 coordinate tuples"
+            raise ValueError(
+                "LineStrings must have at least 2 coordinate tuples")
         try:
             n = len(ob[0])
         except TypeError:
-            raise ValueError, "Input %s is the wrong shape for a LineString" % str(ob)
+            raise ValueError(
+                "Input %s is the wrong shape for a LineString" % str(ob))
         assert n == 2 or n == 3
 
         # Create a coordinate sequence
         if update_geom is not None:
             cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
             if n != update_ndim:
-                raise ValueError, \
+                raise ValueError(
                 "Wrong coordinate dimensions; this geometry has dimensions: %d" \
-                % update_ndim
+                % update_ndim)
         else:
             cs = lgeos.GEOSCoordSeq_create(m, n)
         
@@ -89,7 +93,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
                 try:
                     dz = c_double(coords[2])
                 except IndexError:
-                    raise ValueError, "Inconsistent coordinate dimensionality"
+                    raise ValueError("Inconsistent coordinate dimensionality")
         
             # Because of a bug in the GEOS C API, 
             # always set X before Y
@@ -109,8 +113,10 @@ def update_linestring_from_py(geom, ob):
 
 class LineString(BaseGeometry):
 
-    """A line string, also known as a polyline.
+    """A one-dimensional figure comprising one or more line segments
     
+    A LineString has non-zero length and zero area. It may approximate a curve
+    and need not be straight. Unlike a LinearRing, a LineString is not closed.
     """
 
     def __init__(self, coordinates=None):
@@ -208,8 +214,8 @@ class LineStringAdapter(CachingGeometryProxy, LineString):
     _get_coords = BaseGeometry._get_coords
 
     def _set_coords(self, ob):
-        raise NotImplementedError, \
-        "Component rings have coordinate sequences, but the polygon does not"
+        raise NotImplementedError(
+        "Component rings have coordinate sequences, but the polygon does not")
 
     coords = property(_get_coords)
 

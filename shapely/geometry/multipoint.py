@@ -1,5 +1,5 @@
 """
-Multiple points.
+Multi-part collections of points and related utilities
 """
 
 from ctypes import byref, c_double, c_int, c_void_p, cast, POINTER, pointer
@@ -50,7 +50,14 @@ def geos_multipoint_from_py(ob):
 
 class MultiPoint(BaseGeometry):
 
-    """A multiple point geometry.
+    """A collection of points
+
+    A MultiPoint has zero area and zero length.
+
+    Attributes
+    ----------
+    geoms : sequence
+        A sequence of points.
     """
 
     def __init__(self, coordinates=None):
@@ -120,17 +127,17 @@ class MultiPoint(BaseGeometry):
     __array_interface__ = property(array_interface)
 
     def _get_coords(self):
-        raise NotImplementedError, \
-        "Component rings have coordinate sequences, but the polygon does not"
+        raise NotImplementedError(
+        "Component rings have coordinate sequences, but the polygon does not")
 
     def _set_coords(self, ob):
-        raise NotImplementedError, \
-        "Component rings have coordinate sequences, but the polygon does not"
+        raise NotImplementedError(
+        "Component rings have coordinate sequences, but the polygon does not")
 
     @property
     def coords(self):
-        raise NotImplementedError, \
-        "Multipart geometries do not themselves provide coordinate sequences"
+        raise NotImplementedError(
+        "Multipart geometries do not themselves provide coordinate sequences")
 
     @property
     @exceptNull

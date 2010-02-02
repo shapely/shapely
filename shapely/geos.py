@@ -1,6 +1,5 @@
 """
-Contains proxies for the libgeos_c shared lib, GEOS-specific exceptions, and
-utilities.
+Proxies for the libgeos_c shared lib, GEOS-specific exceptions, and utilities
 """
 
 import atexit
@@ -53,7 +52,7 @@ elif sys.platform == 'darwin':
                 lib = path
                 break
     if lib is None:
-        raise ImportError, "Could not find geos_c library"
+        raise ImportError("Could not find geos_c library")
     _lgeos = CDLL(lib)
     free = CDLL(find_library('libc')).free
     free.argtypes = [c_void_p]
@@ -161,7 +160,7 @@ def errcheck_just_free(result, func, argtuple):
 
 def errcheck_predicate(result, func, argtuple):
     if result == 2:
-        raise PredicateError, "Failed to evaluate %s" % repr(func)
+        raise PredicateError("Failed to evaluate %s" % repr(func))
     return result
 
 

@@ -1,5 +1,5 @@
 """
-Base geometry class and utilities.
+Base geometry class and utilities
 """
 
 from ctypes import string_at, byref, c_char_p, c_double, c_void_p
@@ -24,13 +24,13 @@ GEOMETRY_TYPES = [
 
 def geometry_type_name(g):
     if g is None:
-        raise ValueError, "Null geometry has no type"
+        raise ValueError("Null geometry has no type")
     return GEOMETRY_TYPES[lgeos.GEOSGeomTypeId(g)]
 
 def geom_factory(g, parent=None):
     # Abstract geometry factory for use with topological methods below
     if not g:
-        raise ValueError, "No Shapely geometry can be created from null value"
+        raise ValueError("No Shapely geometry can be created from null value")
     ob = BaseGeometry()
     geom_type = geometry_type_name(g)
     # TODO: check cost of dynamic import by profiling
@@ -52,16 +52,23 @@ class CoordinateSequence(object):
     """Iterative access to coordinate tuples from the parent geometry's
     coordinate sequence.
 
-    Attributes
-    ----------
-    _cseq : c_void_p
-        Ctypes pointer to GEOS coordinate sequence
-    _ndim : int
-        Number of dimensions (2 or 3, generally)
-    __p__ : object
-        Parent (Shapely) geometry
+    Example:
+
+      >>> from shapely.wkt import loads
+      >>> g = loads('POINT (0.0 0.0)')
+      >>> list(g.coords)
+      [(0.0, 0.0)]
+
     """
 
+    # Attributes
+    # ----------
+    # _cseq : c_void_p
+    #     Ctypes pointer to GEOS coordinate sequence
+    # _ndim : int
+    #     Number of dimensions (2 or 3, generally)
+    # __p__ : object
+    #     Parent (Shapely) geometry
     _cseq = None
     _ndim = None
     __p__ = None
@@ -97,7 +104,7 @@ class CoordinateSequence(object):
         self._update()
         M = self.__len__()
         if i + M < 0 or i >= M:
-            raise IndexError, "index out of range"
+            raise IndexError("index out of range")
         if i < 0:
             ii = M + i
         else:
@@ -138,8 +145,8 @@ class CoordinateSequence(object):
         elif sys.byteorder == 'big':
             typestr = '>f8'
         else:
-            raise ValueError, \
-            "Unsupported byteorder: neither little nor big-endian"
+            raise ValueError(
+                "Unsupported byteorder: neither little nor big-endian")
         ai = {
             'version': 3,
             'typestr': typestr,
@@ -153,20 +160,19 @@ class CoordinateSequence(object):
 
 class GeometrySequence(object):
 
-    """Iterative access to members of a homogeneous multipart geometry.
-
-    Attributes
-    ----------
-    _factory : callable
-        Returns instances of Shapely geometries
-    _geom : c_void_p
-        Ctypes pointer to the parent's GEOS geometry
-    _ndim : int
-        Number of dimensions (2 or 3, generally)
-    __p__ : object
-        Parent (Shapely) geometry
+    """Iterative access to members of a homogeneous multipart geometry
     """
 
+    # Attributes
+    # ----------
+    # _factory : callable
+    #     Returns instances of Shapely geometries
+    # _geom : c_void_p
+    #     Ctypes pointer to the parent's GEOS geometry
+    # _ndim : int
+    #     Number of dimensions (2 or 3, generally)
+    # __p__ : object
+    #     Parent (Shapely) geometry
     _factory = None
     _geom = None
     __p__ = None
@@ -199,7 +205,7 @@ class GeometrySequence(object):
         self._update()
         M = self.__len__()
         if i + M < 0 or i >= M:
-            raise IndexError, "index out of range"
+            raise IndexError("index out of range")
         if i < 0:
             ii = M + i
         else:
@@ -234,7 +240,7 @@ def exceptNull(func):
     """Decorator which helps avoid GEOS operations on null pointers."""
     def wrapper(*args, **kwargs):
         if not args[0]._geom:
-            raise ValueError, "Null geometry supports no operations"
+            raise ValueError("Null geometry supports no operations")
         return func(*args, **kwargs)
     return wrapper
 
@@ -242,7 +248,7 @@ def exceptEitherNull(func):
     """Decorator which avoids GEOS operations on one or more null pointers."""
     def wrapper(*args, **kwargs):
         if not args[0]._geom or not args[1]._geom:
-            raise ValueError, "Null geometry supports no operations"
+            raise ValueError("Null geometry supports no operations")
         return func(*args, **kwargs)
     return wrapper
 
@@ -250,35 +256,50 @@ def exceptNotLinear(func):
     """Decorator which avoids GEOS operations on non-linear geometries."""
     def wrapper(*args, **kwargs):
         if args[0].geom_type not in ['LineString', 'MultiLineString']:
-            raise TypeError, "Only linear types support this operation"
+            raise TypeError("Only linear types support this operation")
         return func(*args, **kwargs)
     return wrapper
 
 
 class BaseGeometry(object):
     
-    """Provides GEOS spatial predicates and topological operations.
+    """Provides GEOS spatial predicates and topological operations
 
     Attributes
     ----------
-    __geom__ : c_void_p
-        Cached ctypes pointer to GEOS geometry. Not to be accessed.
-    _geom : c_void_p
-        Property by which the GEOS geometry is accessed.
-    __p__ : object
-        Parent (Shapely) geometry
-    _ctypes_data : object
-        Cached ctypes data buffer
-    _ndim : int
-        Number of dimensions (2 or 3, generally)
-    _crs : object
-        Coordinate reference system. Available for Shapely extensions, but
-        not implemented here.
-    _owned : bool
-        True if this object's GEOS geometry is owned by another as in the case
-        of a multipart geometry member.
+    area : float
+        Area of the geometry
+    coords : CoordinateSequence
+        The geometry's coordinate sequence
+    geom_type : str
+        Geometry type name such as 'Point'
+    length : float
+        Length of the geometry
+    wkb : bytes
+        WKB representation of geometry
+    wkt : str
+        WKT representation of geometry
+
     """
 
+    # Attributes
+    # ----------
+    # __geom__ : c_void_p
+    #     Cached ctypes pointer to GEOS geometry. Not to be accessed.
+    # _geom : c_void_p
+    #     Property by which the GEOS geometry is accessed.
+    # __p__ : object
+    #     Parent (Shapely) geometry
+    # _ctypes_data : object
+    #     Cached ctypes data buffer
+    # _ndim : int
+    #     Number of dimensions (2 or 3, generally)
+    # _crs : object
+    #     Coordinate reference system. Available for Shapely extensions, but
+    #     not implemented here.
+    # _owned : bool
+    #     True if this object's GEOS geometry is owned by another as in the case
+    #     of a multipart geometry member.
     __geom__ = None # See _geom property below
     __p__ = None
     _ctypes_data = None
@@ -331,8 +352,8 @@ class BaseGeometry(object):
         elif sys.byteorder == 'big':
             typestr = '>f8'
         else:
-            raise ValueError, \
-                  "Unsupported byteorder: neither little nor big-endian"
+            raise ValueError(
+                  "Unsupported byteorder: neither little nor big-endian")
         return {
             'version': 3,
             'typestr': typestr,
@@ -349,8 +370,8 @@ class BaseGeometry(object):
     def _get_coords(self):
         return CoordinateSequence(self)
     def _set_coords(self, ob):
-        raise NotImplementedError, \
-            "set_coords must be provided by derived classes"
+        raise NotImplementedError(
+            "set_coords must be provided by derived classes")
     coords = property(_get_coords, _set_coords)
 
     # Python feature protocol
@@ -460,9 +481,9 @@ class BaseGeometry(object):
 
     def equals_exact(self, other, tolerance):
         if not self._geom:
-            raise ValueError, "Null geometry supports no operations"
+            raise ValueError("Null geometry supports no operations")
         if not other._geom:
-            raise ValueError, "Null geometry can not be operated upon"
+            raise ValueError("Null geometry can not be operated upon")
         return bool(lgeos.GEOSEqualsExact(self._geom, other._geom, tolerance))
 
     def almost_equals(self, other, decimal=6):
@@ -483,7 +504,7 @@ class BaseGeometry(object):
     def bounds(self):
         env = self.envelope
         if env.geom_type != 'Polygon':
-            raise ValueError, env.wkt
+            raise ValueError(env.wkt)
         cs = lgeos.GEOSGeom_getCoordSeq(env.exterior._geom)
         cs_len = c_int(0)
         lgeos.GEOSCoordSeq_getSize(cs, byref(cs_len))
@@ -509,14 +530,15 @@ class BaseGeometry(object):
     @exceptEitherNull
     @exceptNotLinear
     def project(self, point, normalized=False):
-        """Return the distance to a point along a linear geometry.
+        """Returns the distance along this geometry to a point nearest the 
+        specified point.
         
         If the normalized arg is True, return the distance normalized to the
         length of the linear geometry.
-        """
+        """ 
         if normalized:
-            return lgeos.GEOSProjectNormalized(self._geom, point._geom)
-        else:    
+            return lgeos.GEOSProjectNormalized(self._geom, point._geom) 
+        else:
             return lgeos.GEOSProject(self._geom, point._geom)
 
     @exceptNull
@@ -538,25 +560,33 @@ class BaseMultiPartGeometry(BaseGeometry):
 
     @property
     def ctypes(self):
-        raise NotImplementedError, \
-        "Multi-part geometries have no ctypes representations"
+        raise NotImplementedError(
+        "Multi-part geometries have no ctypes representations")
 
     @property
     def __array_interface__(self):
         """Provide the Numpy array protocol."""
-        raise NotImplementedError, \
-        "Multi-part geometries do not themselves provide the array interface"
+        raise NotImplementedError(
+        "Multi-part geometries do not themselves provide the array interface")
 
     def _get_coords(self):
-        raise NotImplementedError, \
-        "Sub-geometries may have coordinate sequences, but collections do not"
+        raise NotImplementedError(
+        "Sub-geometries may have coordinate sequences, but collections do not")
 
     def _set_coords(self, ob):
-        raise NotImplementedError, \
-        "Sub-geometries may have coordinate sequences, but collections do not"
+        raise NotImplementedError(
+        "Sub-geometries may have coordinate sequences, but collections do not")
 
     @property
     def coords(self):
-        raise NotImplementedError, \
-        "Multi-part geometries do not provide a coordinate sequence"
+        raise NotImplementedError(
+        "Multi-part geometries do not provide a coordinate sequence")
 
+
+# Test runner
+def _test():
+    import doctest
+    doctest.testmod()
+
+if __name__ == "__main__":
+    _test()

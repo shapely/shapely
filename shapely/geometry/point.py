@@ -1,5 +1,5 @@
 """
-Points.
+Points and related utilities
 """
 
 from ctypes import string_at, create_string_buffer, \
@@ -51,9 +51,9 @@ def geos_point_from_py(ob, update_geom=None, update_ndim=0):
     if update_geom:
         cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
         if n != update_ndim:
-            raise ValueError, \
+            raise ValueError(
             "Wrong coordinate dimensions; this geometry has dimensions: %d" \
-            % update_ndim
+            % update_ndim)
     else:
         cs = lgeos.GEOSCoordSeq_create(1, n)
     
@@ -74,7 +74,9 @@ def update_point_from_py(geom, ob):
 
 class Point(BaseGeometry):
 
-    """A point geometry.
+    """A zero dimensional geometry
+
+    A point has zero length and zero area. 
     
     Attributes
     ----------
@@ -145,7 +147,7 @@ class Point(BaseGeometry):
     def z(self):
         """Return z coordinate."""
         if self._ndim != 3:
-            raise DimensionError, "This point has no z coordinate."
+            raise DimensionError("This point has no z coordinate.")
         cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
         d = c_double()
         lgeos.GEOSCoordSeq_getZ(cs, 0, byref(d))
@@ -236,8 +238,8 @@ class PointAdapter(CachingGeometryProxy, Point):
     _get_coords = BaseGeometry._get_coords
 
     def _set_coords(self, ob):
-        raise NotImplementedError, \
-        "Component rings have coordinate sequences, but the polygon does not"
+        raise NotImplementedError(
+        "Component rings have coordinate sequences, but the polygon does not")
 
     coords = property(_get_coords)
 

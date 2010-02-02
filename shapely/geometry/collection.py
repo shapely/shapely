@@ -1,5 +1,5 @@
 """
-Geometry collections.
+Geometry collections
 """
 
 from shapely.geometry.base import BaseMultiPartGeometry
@@ -8,7 +8,12 @@ from shapely.geometry.base import HeterogeneousGeometrySequence, exceptNull
 
 class GeometryCollection(BaseMultiPartGeometry):
 
-    """A geometry collection.
+    """A heterogenous collection of geometries
+
+    Attributes
+    ----------
+    geoms : sequence
+        A sequence of Shapely geometry instances
     """
 
     def __init__(self):

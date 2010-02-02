@@ -1,5 +1,5 @@
 """
-Geometry factories based on the geo interface.
+Geometry factories based on the geo interface
 """
 
 from point import Point, asPoint
@@ -32,7 +32,7 @@ def shape(context):
     elif geom_type == "multipolygon":
         return MultiPolygon(ob["coordinates"], context_type='geojson')
     else:
-        raise ValueError, "Unknown geometry type: %s" % geom_type
+        raise ValueError("Unknown geometry type: %s" % geom_type)
 
 def asShape(context):
     """Adapts the context to a geometry interface. The coordinates remain
@@ -46,7 +46,7 @@ def asShape(context):
     try:
         geom_type = ob.get("type").lower()
     except AttributeError:
-        raise ValueError, "Context does not provide geo interface"
+        raise ValueError("Context does not provide geo interface")
 
     if geom_type == "point":
         return asPoint(ob["coordinates"])
@@ -61,4 +61,4 @@ def asShape(context):
     elif geom_type == "multipolygon":
         return MultiPolygonAdapter(ob["coordinates"], context_type='geojson')
     else:
-        raise ValueError, "Unknown geometry type: %s" % geom_type
+        raise ValueError("Unknown geometry type: %s" % geom_type)

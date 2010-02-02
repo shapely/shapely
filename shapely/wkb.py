@@ -1,5 +1,5 @@
 """
-Load/dump geometries using the well-known binary (WKB) format.
+Load/dump geometries using the well-known binary (WKB) format
 """
 
 from ctypes import byref, c_size_t, c_char_p, string_at
@@ -15,8 +15,8 @@ def loads(data):
     """Load a geometry from a WKB string."""
     geom = lgeos.GEOSGeomFromWKB_buf(c_char_p(data), c_size_t(len(data)));
     if not geom:
-        raise ReadingError, \
-        "Could not create geometry because of errors while reading input."
+        raise ReadingError(
+            "Could not create geometry because of errors while reading input.")
     return geom_factory(geom)
 
 def load(fp):

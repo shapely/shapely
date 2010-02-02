@@ -1,5 +1,5 @@
 """
-Support for GEOS spatial predicates.
+Support for GEOS spatial predicates
 """
 
 from shapely.geos import PredicateError
@@ -13,7 +13,7 @@ class OpWrapper(object):
     
     def __call__(self, other):
         if not other._geom:
-            raise ValueError, "Null geometry can not be operated upon"
+            raise ValueError("Null geometry can not be operated upon")
         return bool(self.fn(self.context._geom, other._geom))
 
 
@@ -29,13 +29,13 @@ class BinaryPredicate(object):
         self.fn = fn
         def errcheck(result, func, argtuple):
             if result == 2:
-                raise PredicateError, "Failed to evaluate %s" % repr(self.fn)
+                raise PredicateError("Failed to evaluate %s" % repr(self.fn))
             return result
         self.fn.errcheck = errcheck
     
     def __get__(self, obj, objtype=None):
         if not obj._geom:
-            raise ValueError, "Null geometry supports no operations"
+            raise ValueError("Null geometry supports no operations")
         return OpWrapper(self.fn, obj)
 
 
@@ -50,14 +50,14 @@ class UnaryPredicate(object):
         self.fn = fn
         def errcheck(result, func, argtuple):
             if result == 2:
-                raise PredicateError, "Failed to evaluate %s" % repr(self.fn)
+                raise PredicateError("Failed to evaluate %s" % repr(self.fn))
             return result
         self.fn.errcheck = errcheck
     
     def __get__(self, obj, objtype=None):
         if not obj._geom:
-            raise ValueError, "Null geometry supports no operations"
+            raise ValueError("Null geometry supports no operations")
         return bool(self.fn(obj._geom))
     
     def __set__(self, obj, value=None):
-        raise AttributeError, "Attribute is read-only"
+        raise AttributeError("Attribute is read-only")

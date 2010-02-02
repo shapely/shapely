@@ -1,5 +1,5 @@
 """
-Proxy for coordinates stored outside Shapely geometries.
+Proxy for coordinates stored outside Shapely geometries
 """
 
 from shapely.geos import lgeos
