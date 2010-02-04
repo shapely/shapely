@@ -1,5 +1,10 @@
 """
-Support for GEOS topological operations
+Intermediaries supporting GEOS topological operations
+
+These methods all take Shapely geometries and other Python objects and delegate
+to GEOS functions via ctypes.
+
+These methods return ctypes objects that should be recast by the caller.
 """
 
 from ctypes import byref, c_double
@@ -14,96 +19,44 @@ class Validating(object):
         except AssertionError:
             raise ValueError("Null geometry supports no operations")
 
-
-class Delegated(Validating):
-    fn = None
-    factory = None
-    context = None
-    def __init__(self, name, context, factory=None):
+class Delegating(Validating):
+    def __init__(self, name):
         self.fn = lgeos.methods[name]
-        self.factory = factory
-        self.context = context
 
-
-class RealProperty(Delegated):
-    
-    """A real-valued property of a geometry
-    
-    Wraps a GEOS function. The factory is a callable which wraps results in
-    the appropriate shapely geometry class.
-    """
-
-    def __call__(self):
-        self._validate(self.context)
-        d = c_double()
-        retval = self.fn(self.context._geom, byref(d))
-        return d.value
-
-
-class DistanceOp(Delegated):
-    
-    """A real-valued function of two geometries
-    
-    Wraps a GEOS function. The factory is a callable which wraps results in
-    the appropriate shapely geometry class.
-    """
-
-    def __call__(self, other):
-        self._validate(self.context)
+class BinaryRealProperty(Delegating):
+    def __call__(self, this, other):
+        self._validate(this)
         self._validate(other)
         d = c_double()
-        retval = self.fn(self.context._geom, other._geom, byref(d))
+        retval = self.fn(this._geom, other._geom, byref(d))
         return d.value
 
+class UnaryRealProperty(Delegating):
+    def __call__(self, this):
+        self._validate(this)
+        d = c_double()
+        retval = self.fn(this._geom, byref(d))
+        return d.value
 
-class TopologicalProperty(Delegated):
-    
-    """A topological property of a geometry
-    
-    Wraps a GEOS function. The factory is a callable which wraps results in
-    the appropriate shapely geometry class.
-    """
-
-    def __call__(self):
-        self._validate(self.context)
-        return self.factory(self.fn(self.context._geom), self.context)
-
-
-class UnaryTopologicalOp(Delegated):
-
-    """A unary topological operation
-    
-    Wraps a GEOS function. The factory is a callable which wraps results in
-    the appropriate shapely geometry class.
-    """
-
-    def __call__(self, *args):
-        self._validate(self.context)
-        return self.factory(self.fn(self.context._geom, *args), self.context)
-
-
-class BinaryTopologicalOp(Delegated):
-
-    """A binary topological operation
-    
-    Wraps a GEOS function. The factory is a callable which wraps results in
-    the appropriate shapely geometry class.
-    """
-
-    def __call__(self, other):
-        self._validate(self.context)
+class BinaryTopologicalOp(Delegating):
+    def __call__(self, this, other, *args):
+        self._validate(this)
         self._validate(other)
-        product = self.fn(self.context._geom, other._geom)
+        product = self.fn(this._geom, other._geom, *args)
         if product is None:
-            # Check validity of geometries
-            if not self.context.is_valid:
+            if not this.is_valid:
                 raise TopologicalError(
-                    "The operation '%s' produced a null geometry. Likely cause is invalidity of the geometry %s" % (self.fn.__name__, repr(self.context)))
+                    "The operation '%s' produced a null geometry. Likely cause is invalidity of the geometry %s" % (self.fn.__name__, repr(this)))
             elif not other.is_valid:
                 raise TopologicalError(
                     "The operation '%s' produced a null geometry. Likely cause is invalidity of the 'other' geometry %s" % (self.fn.__name__, repr(other)))
             else:
                 raise TopologicalError(
                     "This operation produced a null geometry. Reason: unknown")
-        return self.factory(product)
+        return product
+
+class UnaryTopologicalOp(Delegating):
+    def __call__(self, this, *args):
+        self._validate(this)
+        return self.fn(this._geom, *args)
 

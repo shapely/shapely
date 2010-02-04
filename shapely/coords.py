@@ -122,14 +122,9 @@ class CoordinateSequence(object):
 
 class BoundsOp(Validating):
 
-    def __init__(self, context):
-        self.context = context
-
-    def __call__(self):
-        self._validate(self.context)
-        env = self.context.envelope
-        # if env.geom_type != 'Polygon':
-        #     raise ValueError(env.wkt)
+    def __call__(self, this):
+        self._validate(this)
+        env = this.envelope
         cs = lgeos.GEOSGeom_getCoordSeq(env.exterior._geom)
         cs_len = c_uint(0)
         lgeos.GEOSCoordSeq_getSize(cs, byref(cs_len))

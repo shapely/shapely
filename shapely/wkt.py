@@ -5,13 +5,13 @@ Load/dump geometries using the well-known text (WKT) format.
 from ctypes import c_char_p
 
 from shapely.geos import lgeos, allocated_c_char_p, ReadingError
-from shapely.geometry.base import geom_factory
 
 
 # Pickle-like convenience functions
 
 def loads(data):
     """Load a geometry from a WKT string."""
+    from shapely.geometry.base import geom_factory
     geom = lgeos.GEOSGeomFromWKT(c_char_p(data))
     if not geom:
         raise ReadingError, \
@@ -25,6 +25,8 @@ def load(fp):
 
 def dumps(ob):
     """Dump a WKB representation of a geometry to a byte string."""
+    if ob is None or ob._geom is None:
+        raise ValueError("Null geometry supports no operations")
     func = lgeos.GEOSGeomToWKT
     def errcheck(result, func, argtuple):
         retval = result.value
