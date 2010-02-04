@@ -165,24 +165,20 @@ def errcheck_predicate(result, func, argtuple):
 
 
 class LGEOSBase(threading.local):
-
     """Proxy for the GEOS_C DLL/SO
 
     This is a base class. Do not instantiate.
     """
-
+    methods = {}
     def __init__(self, dll):
         self._lgeos = dll
         self.geos_handle = None
+        
 
-
-class LGEOS14(LGEOSBase):
-    
+class LGEOS14(LGEOSBase):    
     """Proxy for the GEOS_C DLL/SO API version 1.4
     """
-    
     geos_capi_version = (1, 4, 0)
-
     def __init__(self, dll):
         super(LGEOS14, self).__init__(dll)
         self.geos_handle = self._lgeos.initGEOS(notice_h, error_h)
@@ -210,14 +206,39 @@ class LGEOS14(LGEOSBase):
               ):
             pred.errcheck = errcheck_predicate
 
+        self.methods['area'] = self.GEOSArea
+        self.methods['boundary'] = self.GEOSBoundary
+        self.methods['buffer'] = self.GEOSBuffer
+        self.methods['centroid'] = self.GEOSGetCentroid
+        self.methods['convex_hull'] = self.GEOSConvexHull
+        self.methods['distance'] = self.GEOSDistance
+        self.methods['envelope'] = self.GEOSEnvelope
+        self.methods['length'] = self.GEOSLength
+        self.methods['has_z'] = self.GEOSHasZ
+        self.methods['is_empty'] = self.GEOSisEmpty
+        self.methods['is_ring'] = self.GEOSisRing
+        self.methods['is_simple'] = self.GEOSisSimple
+        self.methods['is_valid'] = self.GEOSisValid
+        self.methods['disjoint'] = self.GEOSDisjoint
+        self.methods['touches'] = self.GEOSTouches
+        self.methods['intersects'] = self.GEOSIntersects
+        self.methods['crosses'] = self.GEOSCrosses
+        self.methods['within'] = self.GEOSWithin
+        self.methods['contains'] = self.GEOSContains
+        self.methods['overlaps'] = self.GEOSOverlaps
+        self.methods['equals'] = self.GEOSEquals
+        self.methods['equals_exact'] = self.GEOSEqualsExact
+        self.methods['relate'] = self.GEOSRelate
+        self.methods['difference'] = self.GEOSDifference
+        self.methods['symmetric_difference'] = self.GEOSSymDifference
+        self.methods['union'] = self.GEOSUnion
+        self.methods['intersection'] = self.GEOSIntersection
 
-class LGEOS15(LGEOSBase):
-    
+
+class LGEOS15(LGEOSBase):    
     """Proxy for the reentrant GEOS_C DLL/SO API version 1.5
     """
-    
-    geos_capi_version = (1, 5, 0)
-    
+    geos_capi_version = (1, 5, 0)    
     def __init__(self, dll):
         super(LGEOS15, self).__init__(dll)
         self.geos_handle = self._lgeos.initGEOS_r(notice_h, error_h)
@@ -252,22 +273,74 @@ class LGEOS15(LGEOSBase):
               ):
             pred.func.errcheck = errcheck_predicate
 
+        self.methods['area'] = self.GEOSArea
+        self.methods['boundary'] = self.GEOSBoundary
+        self.methods['buffer'] = self.GEOSBuffer
+        self.methods['centroid'] = self.GEOSGetCentroid
+        self.methods['convex_hull'] = self.GEOSConvexHull
+        self.methods['distance'] = self.GEOSDistance
+        self.methods['envelope'] = self.GEOSEnvelope
+        self.methods['length'] = self.GEOSLength
+        self.methods['has_z'] = self.GEOSHasZ
+        self.methods['is_empty'] = self.GEOSisEmpty
+        self.methods['is_ring'] = self.GEOSisRing
+        self.methods['is_simple'] = self.GEOSisSimple
+        self.methods['is_valid'] = self.GEOSisValid
+        self.methods['disjoint'] = self.GEOSDisjoint
+        self.methods['touches'] = self.GEOSTouches
+        self.methods['intersects'] = self.GEOSIntersects
+        self.methods['crosses'] = self.GEOSCrosses
+        self.methods['within'] = self.GEOSWithin
+        self.methods['contains'] = self.GEOSContains
+        self.methods['overlaps'] = self.GEOSOverlaps
+        self.methods['equals'] = self.GEOSEquals
+        self.methods['equals_exact'] = self.GEOSEqualsExact
+        self.methods['relate'] = self.GEOSRelate
+        self.methods['difference'] = self.GEOSDifference
+        self.methods['symmetric_difference'] = self.GEOSSymDifference
+        self.methods['union'] = self.GEOSUnion
+        self.methods['intersection'] = self.GEOSIntersection
+        self.methods['prepared_intersects'] = self.GEOSPreparedIntersects
+        self.methods['prepared_contains'] = self.GEOSPreparedContains
+        self.methods['prepared_contains_properly'] = \
+            self.GEOSPreparedContainsProperly
+        self.methods['prepared_covers'] = self.GEOSPreparedCovers
 
 class LGEOS16(LGEOS15):
-    
     """Proxy for the reentrant GEOS_C DLL/SO API version 1.6
     """
-    
     geos_capi_version = (1, 6, 0)
-    
     def __init__(self, dll):
         super(LGEOS16, self).__init__(dll)
 
+        self.methods['simplify'] = self.GEOSSimplify
+        self.methods['topology_preserve_simplify'] = \
+            self.GEOSTopologyPreserveSimplify
+
+
+class LGEOS16LR(LGEOS16):    
+    """Proxy for the reentrant GEOS_C DLL/SO API version 1.6 with linear
+    referencing
+    """
+    geos_capi_version = (1, 6, 0.5)
+    def __init__(self, dll):
+        super(LGEOS16LR, self).__init__(dll)
+        
+        self.methods['project'] = self.GEOSProject
+        self.methods['project_normalized'] = self.GEOSProjectNormalized
+        self.methods['interpolate'] = self.GEOSInterpolate
+        self.methods['interpolate_normalized'] = \
+            self.GEOSInterpolateNormalized
+            
 
 if geos_c_version >= (1, 6, 0):
-    lgeos = LGEOS16(_lgeos)
+    if hasattr(_lgeos, 'GEOSProject'):
+        L = LGEOS16LR
+    else:
+        L = LGEOS16
 elif geos_c_version >= (1, 5, 0):
-    lgeos = LGEOS15(_lgeos)
+        L = LGEOS15
 else:
-    lgeos = LGEOS14(_lgeos)
-    
+        L = LGEOS14
+lgeos = L(_lgeos)
+

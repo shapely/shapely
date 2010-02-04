@@ -1,5 +1,4 @@
-"""
-Polygons and their linear ring components
+"""Polygons and their linear ring components
 """
 
 from ctypes import byref, c_double, c_int, c_void_p, cast, POINTER, pointer
@@ -10,6 +9,7 @@ from shapely.geometry.base import BaseGeometry, exceptNull
 from shapely.geometry.linestring import LineString, LineStringAdapter
 from shapely.geometry.proxy import PolygonProxy
 
+__all__ = ['Polygon', 'asPolygon', 'LinearRing', 'asLinearRing']
 
 def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
     try:
@@ -142,17 +142,17 @@ def update_linearring_from_py(geom, ob):
 
 
 class LinearRing(LineString):
-
-    """A closed one-dimensional figure comprising one or more line segments
     """
-
+    A closed one-dimensional figure comprising one or more line segments.
+    """
+    
     _ndim = None
     __geom__ = None
     __p__ = None
     _owned = False
 
     def __init__(self, coordinates=None):
-        """Initialize.
+        """Copy coordinates to a new LinearRing.
 
         Parameters
         ----------

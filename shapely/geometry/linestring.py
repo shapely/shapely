@@ -1,5 +1,4 @@
-"""
-Line strings and related utilities
+"""Line strings and related utilities.
 """
 
 from ctypes import byref, c_double, c_int, cast, POINTER, pointer
@@ -9,6 +8,7 @@ from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, exceptNull
 from shapely.geometry.proxy import CachingGeometryProxy
 
+__all__ = ['LineString', 'asLineString']
 
 def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
     try:
@@ -112,15 +112,15 @@ def update_linestring_from_py(geom, ob):
 
 
 class LineString(BaseGeometry):
-
-    """A one-dimensional figure comprising one or more line segments
+    """
+    A one-dimensional figure comprising one or more line segments.
     
     A LineString has non-zero length and zero area. It may approximate a curve
     and need not be straight. Unlike a LinearRing, a LineString is not closed.
     """
 
     def __init__(self, coordinates=None):
-        """Initialize.
+        """Copy coordinates to a new LineString.
 
         Parameters
         ----------

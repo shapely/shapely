@@ -3,7 +3,7 @@ Support for GEOS prepared geometry operations.
 """
 
 from shapely.geos import lgeos
-from shapely.predicates import BinaryPredicate
+from shapely.predicates import BinaryPredicateOp
 
 
 class PreparedGeometry(object):
@@ -35,10 +35,17 @@ class PreparedGeometry(object):
     def _geom(self):
         return self.__geom__
     
-    intersects = BinaryPredicate(lgeos.GEOSPreparedIntersects)
-    contains = BinaryPredicate(lgeos.GEOSPreparedContains)
-    contains_properly = BinaryPredicate(lgeos.GEOSPreparedContainsProperly)
-    covers = BinaryPredicate(lgeos.GEOSPreparedCovers)
+    def intersects(self, other):
+        return BinaryPredicateOp('prepared_intersects', self)(other)
+
+    def contains(self, other):
+        return BinaryPredicateOp('prepared_contains', self)(other)
+
+    def contains_properly(self, other):
+        return BinaryPredicateOp('prepared_contains_properly', self)(other)
+
+    def covers(self, other):
+        return BinaryPredicateOp('prepared_covers', self)(other)
 
 
 def prep(geom):
