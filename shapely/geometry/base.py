@@ -88,7 +88,7 @@ class BaseGeometry(object):
     _owned = False
 
     # Backend config
-    imp = DefaultImplementation
+    impl = DefaultImplementation
 
     def __init__(self):
         self.__geom__ = None
@@ -197,16 +197,16 @@ class BaseGeometry(object):
     @property
     def area(self):
         """Unitless area of the geometry (float)"""
-        return self.imp['area'](self)
+        return self.impl['area'](self)
 
     def distance(self, other):
         """Unitless distance to other geometry (float)"""
-        return self.imp['distance'](self, other)
+        return self.impl['distance'](self, other)
 
     @property
     def length(self):
         """Unitless length of the geometry (float)"""
-        return self.imp['length'](self)
+        return self.impl['length'](self)
 
     # Topological properties
     # ----------------------
@@ -219,17 +219,17 @@ class BaseGeometry(object):
         collection of points. The boundary of a point is an empty (null)
         collection.
         """
-        return geom_factory(self.imp['boundary'](self))
+        return geom_factory(self.impl['boundary'](self))
 
     @property
     def bounds(self):
         """Returns minimum bounding region (minx, miny, maxx, maxy)"""
-        return self.imp['bounds'](self)
+        return self.impl['bounds'](self)
 
     @property
     def centroid(self):
         """Returns the geometric center of the polygon"""
-        return geom_factory(self.imp['centroid'](self))
+        return geom_factory(self.impl['centroid'](self))
 
     @property
     def convex_hull(self):
@@ -239,12 +239,12 @@ class BaseGeometry(object):
         The convex hull of a three member multipoint, for example, is a
         triangular polygon.
         """ 
-        return geom_factory(self.imp['convex_hull'](self))
+        return geom_factory(self.impl['convex_hull'](self))
 
     @property
     def envelope(self):
         """A figure that envelopes the geometry"""
-        return geom_factory(self.imp['envelope'](self))
+        return geom_factory(self.impl['envelope'](self))
 
     def buffer(self, distance, quadsegs=16):
         """Returns a geometry with an envelope at a distance from the object's 
@@ -265,7 +265,7 @@ class BaseGeometry(object):
           >>> g.buffer(1.0, 3).area     # triangle approximation
           3.0
         """
-        return geom_factory(self.imp['buffer'](self, distance, quadsegs))
+        return geom_factory(self.impl['buffer'](self, distance, quadsegs))
 
     def simplify(self, tolerance, preserve_topology=True):
         """Returns a simplified geometry produced by the Douglas-Puecker 
@@ -277,9 +277,9 @@ class BaseGeometry(object):
         otherwise invalid geometries.
         """
         if preserve_topology:
-            op = self.imp['topology_preserve_simplify']
+            op = self.impl['topology_preserve_simplify']
         else:
-            op = self.imp['simplify']
+            op = self.impl['simplify']
         return geom_factory(op(self, tolerance))
 
     # Binary operations
@@ -287,20 +287,20 @@ class BaseGeometry(object):
 
     def difference(self, other):
         """Returns the difference of the geometries"""
-        return geom_factory(self.imp['difference'](self, other))
+        return geom_factory(self.impl['difference'](self, other))
     
     def intersection(self, other):
         """Returns the intersection of the geometries"""
-        return geom_factory(self.imp['intersection'](self, other))
+        return geom_factory(self.impl['intersection'](self, other))
 
     def symmetric_difference(self, other):
         """Returns the symmetric difference of the geometries 
         (Shapely geometry)"""
-        return geom_factory(self.imp['symmetric_difference'](self, other))
+        return geom_factory(self.impl['symmetric_difference'](self, other))
 
     def union(self, other):
         """Returns the union of the geometries (Shapely geometry)"""
-        return geom_factory(self.imp['union'](self, other))
+        return geom_factory(self.impl['union'](self, other))
 
     # Unary predicates
     # ----------------
@@ -309,29 +309,29 @@ class BaseGeometry(object):
     def has_z(self):
         """True if the geometry's coordinate sequence(s) have z values (are
         3-dimensional)"""
-        return bool(self.imp['has_z'](self))
+        return bool(self.impl['has_z'](self))
 
     @property
     def is_empty(self):
         """True if the set of points in this geometry is empty, else False"""
-        return bool(self.imp['is_empty'](self))
+        return bool(self.impl['is_empty'](self))
 
     @property
     def is_ring(self):
         """True if the geometry is a closed ring, else False"""
-        return bool(self.imp['is_ring'](self))
+        return bool(self.impl['is_ring'](self))
 
     @property
     def is_simple(self):
         """True if the geometry is simple, meaning that any self-intersections 
         are only at boundary points, else False"""
-        return bool(self.imp['is_simple'](self))
+        return bool(self.impl['is_simple'](self))
 
     @property
     def is_valid(self):
         """True if the geometry is valid (definition depends on sub-class), 
         else False"""
-        return bool(self.imp['is_valid'](self))
+        return bool(self.impl['is_valid'](self))
 
     # Binary predicates
     # -----------------
@@ -339,45 +339,45 @@ class BaseGeometry(object):
     def relate(self, other):
         """Returns the DE-9IM intersection matrix for the two geometries 
         (string)"""
-        return self.imp['relate'](self, other)
+        return self.impl['relate'](self, other)
 
     def contains(self, other):
         """Returns True if the geometry contains the other, else False"""
-        return bool(self.imp['contains'](self, other))
+        return bool(self.impl['contains'](self, other))
 
     def crosses(self, other):
         """Returns True if the geometries cross, else False"""
-        return bool(self.imp['crosses'](self, other))
+        return bool(self.impl['crosses'](self, other))
 
     def disjoint(self, other):
         """Returns True if geometries are disjoint, else False"""
-        return bool(self.imp['disjoint'](self, other))
+        return bool(self.impl['disjoint'](self, other))
 
     def equals(self, other):
         """Returns True if geometries are equal, else False"""
-        return bool(self.imp['equals'](self, other))
+        return bool(self.impl['equals'](self, other))
 
     def intersects(self, other):
         """Returns True if geometries intersect, else False"""
-        return bool(self.imp['intersects'](self, other))
+        return bool(self.impl['intersects'](self, other))
 
     def overlaps(self, other):
         """Returns True if geometries overlap, else False"""
-        return bool(self.imp['overlaps'](self, other))
+        return bool(self.impl['overlaps'](self, other))
 
     def touches(self, other):
         """Returns True if geometries touch, else False"""
-        return bool(self.imp['touches'](self, other))
+        return bool(self.impl['touches'](self, other))
 
     def within(self, other):
         """Returns True if geometry is within the other, else False"""
-        return bool(self.imp['within'](self, other))
+        return bool(self.impl['within'](self, other))
 
     def equals_exact(self, other, tolerance):
         """Returns True if geometries are equal to within a specified 
         tolerance"""
         # return BinaryPredicateOp('equals_exact', self)(other, tolerance)
-        return bool(self.imp['equals_exact'](self, other, tolerance))
+        return bool(self.impl['equals_exact'](self, other, tolerance))
 
     def almost_equals(self, other, decimal=6):
         """Returns True if geometries are equal at all coordinates to a 
@@ -395,9 +395,9 @@ class BaseGeometry(object):
         length of the linear geometry.
         """ 
         if normalized:
-            op = self.imp['project_normalized']
+            op = self.impl['project_normalized']
         else:
-            op = self.imp['project']
+            op = self.impl['project']
         return op(self, other)
 
     def interpolate(self, distance, normalized=False):
@@ -407,9 +407,9 @@ class BaseGeometry(object):
         fraction of the geometry's length.
         """
         if normalized:
-            op = self.imp['interpolate_normalized']
+            op = self.impl['interpolate_normalized']
         else:
-            op = self.imp['interpolate']
+            op = self.impl['interpolate']
         return geom_factory(op(self, distance))
 
 

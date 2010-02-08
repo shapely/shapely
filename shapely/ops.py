@@ -2,11 +2,11 @@
 Support for various GEOS geometry operations
 """
 
+from ctypes import byref, c_void_p
+
 from shapely.geos import lgeos
 from shapely.geometry.base import geom_factory, BaseGeometry
 from shapely.geometry import asShape, asLineString, asMultiLineString
-from ctypes import byref, c_void_p
-
 
 def shapeup(ob):
     if isinstance(ob, BaseGeometry):
@@ -53,4 +53,16 @@ def linemerge(lines):
         raise ValueError("Cannot linemerge %s" % lines)
     result = lgeos.GEOSLineMerge(multilinestring._geom) 
     return geom_factory(result)   
+
+def cascaded_union(geoms):
+    """Returns the union of a sequence of geometries
+    
+    This is the most efficient method of dissolving many polygons.
+    """
+    L = len(geoms)
+    subs = (c_void_p * L)()
+    for i, g in enumerate(geoms):
+        subs[i] = g._geom
+    collection = lgeos.GEOSGeom_createCollection(6, subs, L)
+    return geom_factory(lgeos.GEOSUnionCascaded(collection))
 

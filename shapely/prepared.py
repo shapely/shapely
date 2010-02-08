@@ -18,8 +18,8 @@ class PreparedGeometry(object):
       >>> p.intersects(Point(0.5, 0.5))
       True
     """
-    
-    __geom__ = None
+   
+    impl = DefaultImplementation
     
     def __init__(self, context):
         self.context = context
@@ -36,16 +36,16 @@ class PreparedGeometry(object):
         return self.__geom__
     
     def intersects(self, other):
-        return bool(self.im['prepared_intersects'](self, other))
+        return bool(self.impl['prepared_intersects'](self, other))
 
     def contains(self, other):
-        return bool(self.im['prepared_contains'](self, other))
+        return bool(self.impl['prepared_contains'](self, other))
 
     def contains_properly(self, other):
-        return bool(self.im['prepared_contains_properly'](self, other))
+        return bool(self.impl['prepared_contains_properly'](self, other))
 
     def covers(self, other):
-        return bool(self.im['prepared_covers'](self, other))
+        return bool(self.impl['prepared_covers'](self, other))
 
 
 def prep(geom):
