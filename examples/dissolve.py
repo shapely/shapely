@@ -32,7 +32,7 @@ for patch in patches.geoms:
     assert patch.is_valid
 
     # Adapt the patch's exterior ring to the numpy array interface
-    a = asarray(patch.exterior.coords)
+    a = asarray(patch.exterior)
 
     # and slice to get arrays of x and y values
     x, y = a[:,0], a[:,1]
@@ -43,7 +43,7 @@ for patch in patches.geoms:
 
     # Do the same for the holes of the patch
     for hole in patch.interiors:
-        b = asarray(hole.coords)
+        b = asarray(hole)
         x, y = b[:,0], b[:,1]
         pylab.fill(x, y, color='#ffffff', aa=True) 
         pylab.plot(x, y, color='#999999', aa=True, lw=1.0)

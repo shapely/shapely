@@ -37,28 +37,28 @@ pylab.figure(num=None, figsize=(4, 4), dpi=180)
 
 # Plot the misses
 for spot in misses:
-    a = asarray(spot.exterior.coords)
+    a = asarray(spot.exterior)
     x, y = a[:,0], a[:,1]
     pylab.fill(x, y, color='#cccccc', aa=True) 
     pylab.plot(x, y, color='#999999', aa=True, lw=1.0)
 
     # Do the same for the holes of the patch
     for hole in spot.interiors:
-        b = asarray(hole.coords)
+        b = asarray(hole)
         x, y = b[:,0], b[:,1]
         pylab.fill(x, y, color='#ffffff', aa=True) 
         pylab.plot(x, y, color='#999999', aa=True, lw=1.0)
 
 # Plot the intercepts
 for spot in intercepts:
-    a = asarray(spot.exterior.coords)
+    a = asarray(spot.exterior)
     x, y = a[:,0], a[:,1]
     pylab.fill(x, y, color='red', alpha=0.25, aa=True) 
     pylab.plot(x, y, color='red', alpha=0.5, aa=True, lw=1.0)
 
     # Do the same for the holes of the patch
     for hole in spot.interiors:
-        b = asarray(hole.coords)
+        b = asarray(hole)
         x, y = b[:,0], b[:,1]
         pylab.fill(x, y, color='#ffffff', aa=True) 
         pylab.plot(x, y, color='red', alpha=0.5, aa=True, lw=1.0)
@@ -79,7 +79,8 @@ for segment in intersection.geoms:
 # Write the number of patches and the total patch area to the figure
 pylab.text(-28, 25, 
     "Patches: %d/%d (%d), total length: %.1f" \
-     % (len(intercepts), len(patches.geoms), len(intersection.geoms), intersection.length))
+     % (len(intercepts), len(patches.geoms), 
+        len(intersection.geoms), intersection.length))
 
 pylab.savefig('intersect.png')
 

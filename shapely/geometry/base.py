@@ -472,6 +472,8 @@ class GeometrySequence(object):
         g = self._factory()
         g._owned = True
         g._geom = lgeos.GEOSGetGeometryN(self._geom, i)
+        g._ndim = self._ndim
+        g.__p__ = self
         return g
 
     def __iter__(self):
