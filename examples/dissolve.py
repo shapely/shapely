@@ -6,7 +6,6 @@
 from functools import partial
 import random
 
-from numpy import asarray
 import pylab
 
 from shapely.geometry import Point
@@ -31,20 +30,14 @@ for patch in patches.geoms:
     assert patch.geom_type in ['Polygon']
     assert patch.is_valid
 
-    # Adapt the patch's exterior ring to the numpy array interface
-    a = asarray(patch.exterior)
-
-    # and slice to get arrays of x and y values
-    x, y = a[:,0], a[:,1]
-    
     # Fill and outline each patch
+    x, y = patch.exterior.xy
     pylab.fill(x, y, color='#cccccc', aa=True) 
     pylab.plot(x, y, color='#666666', aa=True, lw=1.0)
 
     # Do the same for the holes of the patch
     for hole in patch.interiors:
-        b = asarray(hole)
-        x, y = b[:,0], b[:,1]
+        x, y = hole.xy
         pylab.fill(x, y, color='#ffffff', aa=True) 
         pylab.plot(x, y, color='#999999', aa=True, lw=1.0)
 

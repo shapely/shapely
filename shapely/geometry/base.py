@@ -159,6 +159,11 @@ class BaseGeometry(object):
 
     coords = property(_get_coords, _set_coords)
 
+    @property
+    def xy(self):
+        """Seperate arrays of X and Y coordinate values"""
+        raise NotImplementedError
+
     # Python feature protocol
 
     @property

@@ -1,6 +1,7 @@
 """Coordinate sequence utilities
 """
 
+from array import array
 from ctypes import string_at, byref, c_char_p, c_double, c_void_p
 from ctypes import c_int, c_size_t, c_uint
 import sys
@@ -30,7 +31,7 @@ class CoordinateSequence(object):
     # _ndim : int
     #     Number of dimensions (2 or 3, generally)
     # __p__ : object
-    #     Parent (Shapely) geometry
+    #     Parent (Shapely) geometry    
     _cseq = None
     _ndim = None
     __p__ = None
@@ -42,6 +43,12 @@ class CoordinateSequence(object):
         self._ndim = self.__p__._ndim
         self._cseq = lgeos.GEOSGeom_getCoordSeq(self.__p__._geom)
     
+    def __len__(self):
+        self._update()
+        cs_len = c_uint(0)
+        lgeos.GEOSCoordSeq_getSize(self._cseq, byref(cs_len))
+        return cs_len.value
+
     def __iter__(self):
         self._update()
         dx = c_double()
@@ -56,12 +63,6 @@ class CoordinateSequence(object):
             else:
                 yield (dx.value, dy.value)
 
-    def __len__(self):
-        self._update()
-        cs_len = c_uint(0)
-        lgeos.GEOSCoordSeq_getSize(self._cseq, byref(cs_len))
-        return cs_len.value
-    
     def __getitem__(self, i):
         self._update()
         M = self.__len__()
@@ -118,7 +119,22 @@ class CoordinateSequence(object):
         return ai
     
     __array_interface__ = property(array_interface)
-
+    
+    @property
+    def xy(self):
+        """X and Y arrays"""
+        self._update()
+        m = self.__len__()
+        x = array('d')
+        y = array('d')
+        temp = c_double()
+        for i in xrange(m):
+            lgeos.GEOSCoordSeq_getX(self._cseq, i, byref(temp))
+            x.append(temp.value)
+            lgeos.GEOSCoordSeq_getY(self._cseq, i, byref(temp))
+            y.append(temp.value)
+        return x, y
+            
 
 class BoundsOp(Validating):
 

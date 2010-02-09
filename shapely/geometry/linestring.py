@@ -177,6 +177,11 @@ class LineString(BaseGeometry):
 
     coords = property(BaseGeometry._get_coords, _set_coords)
 
+    @property
+    @exceptNull
+    def xy(self):
+        return self.coords.xy
+        
 
 class LineStringAdapter(CachingGeometryProxy, LineString):
 
