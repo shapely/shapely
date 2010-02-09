@@ -1,0 +1,3 @@
+exclude *.txt
+recursive-exclude manual *
+include CHANGES.txt CREDITS.txt LICENSE.txt README.txt

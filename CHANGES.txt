@@ -1,5 +1,22 @@
 All tickets are children of http://trac.gispython.org/lab/ticket.
 
+1.2a6 (2010-02-09)
+------------------
+- Add accessor for separate arrays of X and Y values (#210).
+
+TODO: fill gap here
+
+1.2a1 (2010-01-20)
+------------------
+- Proper prototyping of WKB writer, and avoidance of errors on 64-bit systems
+  (#191).
+- Prototype libgeos_c functions in a way that lets py2exe apps import shapely
+  (#189).
+
+=========================
+1.2 Branched (2009-09-19)
+=========================
+
 1.0.12 (2009-04-09)
 -------------------
 - Fix for references held by topology and predicate descriptors.
@@ -55,3 +72,23 @@ All tickets are children of http://trac.gispython.org/lab/ticket.
 1.0.2 (2008-02-26)
 ------------------
 - Fix loss of dimensionality in polygon rings (#155).
+
+1.0.1 (2008-02-08)
+------------------
+- Allow chaining expressions involving coordinate sequences and geometry parts
+  (#151).
+- Protect against abnormal use of coordinate accessors (#152).
+- Coordinate sequences now implement the numpy array protocol (#153).
+
+1.0 (2008-01-18)
+----------------
+- Final release.
+
+1.0 RC2 (2008-01-16)
+--------------------
+- Added temporary solution for #149.
+
+1.0 RC1 (2008-01-14)
+--------------------
+- First release candidate
+

@@ -6,7 +6,7 @@ try:
 except:
     warnings.warn("Failed to import distribute_setup", ImportWarning)
 
-from setuptools import setup, Extension
+from setuptools import setup, find_packages
 import sys
 
 # Require ctypes egg only for Python < 2.5
@@ -30,6 +30,8 @@ setup_args = dict(
     url   = 'http://trac.gispython.org/lab/wiki/Shapely',
     long_description = readme_text,
     packages      = ['shapely', 'shapely.geometry'],
+    scripts       = ['examples/dissolve.py', 'examples/intersect.py'],
+    # include_package_data=True,
     install_requires = install_requires,
     test_suite = 'shapely.tests.test_suite',
     classifiers   = [
