@@ -27,14 +27,7 @@ def dumps(ob):
     """Dump a WKB representation of a geometry to a byte string."""
     if ob is None or ob._geom is None:
         raise ValueError("Null geometry supports no operations")
-    func = lgeos.GEOSGeomToWKT
-    def errcheck(result, func, argtuple):
-        retval = result.value
-        lgeos.GEOSFree(result)
-        return retval
-    func.restype = allocated_c_char_p
-    func.errcheck = errcheck
-    return func(ob._geom)
+    return lgeos.GEOSGeomToWKT(ob._geom)
 
 def dump(ob, fp):
     """Dump a geometry to an open file."""
