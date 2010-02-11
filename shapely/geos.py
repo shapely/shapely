@@ -147,7 +147,7 @@ atexit.register(cleanup)
 def errcheck_wkb(result, func, argtuple):
     if not result:
         return None
-    size_ref = argtuple[2]
+    size_ref = argtuple[-1]
     size = size_ref._obj
     retval = ctypes.string_at(result, size.value)[:]
     lgeos.GEOSFree(result)
