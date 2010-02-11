@@ -233,6 +233,9 @@ class LGEOS14(LGEOSBase):
         self.methods['symmetric_difference'] = self.GEOSSymDifference
         self.methods['union'] = self.GEOSUnion
         self.methods['intersection'] = self.GEOSIntersection
+        self.methods['simplify'] = self.GEOSSimplify
+        self.methods['topology_preserve_simplify'] = \
+            self.GEOSTopologyPreserveSimplify
 
 
 class LGEOS15(LGEOSBase):    
@@ -305,6 +308,9 @@ class LGEOS15(LGEOSBase):
         self.methods['prepared_contains_properly'] = \
             self.GEOSPreparedContainsProperly
         self.methods['prepared_covers'] = self.GEOSPreparedCovers
+        self.methods['simplify'] = self.GEOSSimplify
+        self.methods['topology_preserve_simplify'] = \
+            self.GEOSTopologyPreserveSimplify
 
 class LGEOS16(LGEOS15):
     """Proxy for the reentrant GEOS_C DLL/SO API version 1.6
@@ -312,10 +318,6 @@ class LGEOS16(LGEOS15):
     geos_capi_version = (1, 6, 0)
     def __init__(self, dll):
         super(LGEOS16, self).__init__(dll)
-
-        self.methods['simplify'] = self.GEOSSimplify
-        self.methods['topology_preserve_simplify'] = \
-            self.GEOSTopologyPreserveSimplify
 
 
 class LGEOS16LR(LGEOS16):    
