@@ -138,6 +138,9 @@ class CoordinateSequence(object):
 
 class BoundsOp(Validating):
 
+    def __init__(self, *args):
+        pass
+
     def __call__(self, this):
         self._validate(this)
         env = this.envelope
