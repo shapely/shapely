@@ -125,18 +125,24 @@ class LineString(BaseGeometry):
         Parameters
         ----------
         
-        coordinates : sequence or array
-            This may be an object that satisfies the numpy array protocol,
-            providing an M x 2 or M x 3 (with z) array, or it may be a sequence
-            of x, y (,z) coordinate sequences.
+        coordinates : sequence
+            A sequence of (x, y [,z]) numeric coordinate pairs or triples
 
         Example
         -------
 
-        >>> line = LineString([[0.0, 0.0], [1.0, 2.0]])
-        >>> line = LineString(array([[0.0, 0.0], [1.0, 2.0]]))
-        
-        Each result in a line string from (0.0, 0.0) to (1.0, 2.0).
+        Create a line with two segments
+
+          >>> a = LineString([[0, 0], [1, 0], [1, 1]])
+          >>> a.length
+          2.0
+
+        Copy it by exploiting API symmetry
+
+          >>> b = LineString(a.coords)
+          >>> b.equals(a)
+          True
+
         """
         BaseGeometry.__init__(self)
         self._init_geom(coordinates)
@@ -156,7 +162,6 @@ class LineString(BaseGeometry):
             }
 
     @property
-    @exceptNull
     def ctypes(self):
         if not self._ctypes_data:
             self._ctypes_data = self.coords.ctypes
@@ -178,8 +183,18 @@ class LineString(BaseGeometry):
     coords = property(BaseGeometry._get_coords, _set_coords)
 
     @property
-    @exceptNull
     def xy(self):
+        """Separate arrays of X and Y coordinate values
+        
+        Example:
+        
+          >>> x, y = LineString(((0, 0), (1, 1))).xy
+          >>> list(x)
+          [0.0, 1.0]
+          >>> list(y)
+          [0.0, 1.0]
+        
+        """
         return self.coords.xy
         
 
@@ -220,7 +235,7 @@ class LineStringAdapter(CachingGeometryProxy, LineString):
 
     def _set_coords(self, ob):
         raise NotImplementedError(
-        "Component rings have coordinate sequences, but the polygon does not")
+            "Adapters can not modify their coordinate sources")
 
     coords = property(_get_coords)
 

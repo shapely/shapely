@@ -1,13 +1,11 @@
 """Base geometry class and utilities.
 """
 
-from ctypes import string_at, byref, c_char_p, c_double, c_void_p
-from ctypes import c_int, c_size_t, c_uint
 from functools import wraps
 import sys
 
-from shapely.coords import BoundsOp, CoordinateSequence
-from shapely.geos import lgeos, allocated_c_char_p, geos_c_version
+from shapely.coords import CoordinateSequence
+from shapely.geos import lgeos
 from shapely.impl import DefaultImplementation
 from shapely import wkb, wkt
 
@@ -161,7 +159,7 @@ class BaseGeometry(object):
 
     @property
     def xy(self):
-        """Seperate arrays of X and Y coordinate values"""
+        """Separate arrays of X and Y coordinate values"""
         raise NotImplementedError
 
     # Python feature protocol

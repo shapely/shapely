@@ -143,7 +143,7 @@ def update_linearring_from_py(geom, ob):
 
 class LinearRing(LineString):
     """
-    A closed one-dimensional figure comprising one or more line segments.
+    A closed one-dimensional figure comprising one or more line segments
     """
     
     _ndim = None
@@ -152,23 +152,28 @@ class LinearRing(LineString):
     _owned = False
 
     def __init__(self, coordinates=None):
-        """Copy coordinates to a new LinearRing.
+        """Initialize a linear ring
 
         Parameters
         ----------
-        coordinates : sequence or array
-            This may be an object that satisfies the numpy array protocol,
-            providing an M x 2 or M x 3 (with z) array, or it may be a sequence
-            of x, y (,z) coordinate sequences.
+        
+        coordinates : sequence
+            A sequence of (x, y [,z]) numeric coordinate pairs or triples
 
         Rings are implicitly closed. There is no need to specific a final
         coordinate pair identical to the first.
 
         Example
         -------
-        >>> ring = LinearRing( ((0.,0.), (0.,1.), (1.,1.), (1.,0.)) )
 
-        Produces a 1x1 square.
+        Create a square ring
+
+          >>> ring = LinearRing( ((0, 0), (0, 1), (1 ,1 ), (1 , 0)) )
+          >>> ring.is_closed
+          True
+          >>> ring.length
+          4.0
+
         """
         BaseGeometry.__init__(self)
         self._init_geom(coordinates)
@@ -353,15 +358,22 @@ class Polygon(BaseGeometry):
 
         Parameters
         ----------
-        exterior : sequence or array
-            This may be an object that satisfies the numpy array protocol,
-            providing an M x 2 or M x 3 (with z) array, or it may be a sequence
-            of x, y (,z) coordinate sequences.
+        shell : sequence
+            A sequence of (x, y [,z]) numeric coordinate pairs or triples
+        holes : sequence
+            A sequence of objects which satisfy the same requirements as the
+            shell parameters above
 
         Example
         -------
-        >>> coords = ((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.))
-        >>> polygon = Polygon(coords)
+
+        Create a square polygon with no holes
+
+          >>> coords = ((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.))
+          >>> polygon = Polygon(coords)
+          >>> polygon.area
+          1.0
+
         """
         BaseGeometry.__init__(self)
 

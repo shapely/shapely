@@ -1,10 +1,7 @@
-"""
-Points and related utilities
+"""Points and related utilities
 """
 
-from ctypes import string_at, create_string_buffer, \
-    c_char_p, c_double, c_float, c_int, c_uint, c_size_t, c_ubyte, \
-    c_void_p, byref
+from ctypes import c_double
 from ctypes import cast, POINTER
 
 from shapely.geos import lgeos, DimensionError
@@ -88,13 +85,10 @@ class Point(BaseGeometry):
     >>> p = Point(1.0, -1.0)
     >>> str(p)
     'POINT (1.0000000000000000 -1.0000000000000000)'
-    >>> p.y = 0.0
     >>> p.y
-    0.0
+    -1.0
     >>> p.x
     1.0
-    >>> p.array
-    [[1.0, 0.0]]
     """
 
     def __init__(self, *args):
@@ -125,36 +119,23 @@ class Point(BaseGeometry):
     # Coordinate getters and setters
 
     @property
-    @exceptNull
     def x(self):
         """Return x coordinate."""
-        cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
-        d = c_double()
-        lgeos.GEOSCoordSeq_getX(cs, 0, byref(d))
-        return d.value
+        return self.coords[0][0]
     
     @property
-    @exceptNull
     def y(self):
         """Return y coordinate."""
-        cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
-        d = c_double()
-        lgeos.GEOSCoordSeq_getY(cs, 0, byref(d))
-        return d.value
+        return self.coords[0][1]
     
     @property
-    @exceptNull
     def z(self):
         """Return z coordinate."""
         if self._ndim != 3:
             raise DimensionError("This point has no z coordinate.")
-        cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
-        d = c_double()
-        lgeos.GEOSCoordSeq_getZ(cs, 0, byref(d))
-        return d.value
+        return self.coords[0][2]
     
     @property
-    @exceptNull
     def __geo_interface__(self):
         return {
             'type': 'Point',
@@ -162,15 +143,15 @@ class Point(BaseGeometry):
             }
 
     @property
-    @exceptNull
     def ctypes(self):
         if not self._ctypes_data:
             array_type = c_double * self._ndim
             array = array_type()
-            array[0] = self.x
-            array[1] = self.y
+            xy = self.coords[0]
+            array[0] = xy[0]
+            array[1] = xy[1]
             if self._ndim == 3:
-                array[2] = self.z
+                array[2] = xy[2]
             self._ctypes_data = array
         return self._ctypes_data
 
@@ -182,14 +163,9 @@ class Point(BaseGeometry):
     __array_interface__ = property(array_interface)
 
     @property
-    @exceptNull
     def bounds(self):
-        cs = lgeos.GEOSGeom_getCoordSeq(self._geom)
-        x = c_double()
-        y = c_double()
-        lgeos.GEOSCoordSeq_getX(cs, 0, byref(x))
-        lgeos.GEOSCoordSeq_getY(cs, 0, byref(y))
-        return (x.value, y.value, x.value, y.value)
+        xy = self.coords[0]
+        return (xy[0], xy[1], xy[0], xy[1])
 
     # Coordinate access
 
@@ -200,6 +176,21 @@ class Point(BaseGeometry):
             update_point_from_py(self, coordinates)
 
     coords = property(BaseGeometry._get_coords, _set_coords)
+
+    @property
+    def xy(self):
+        """Separate arrays of X and Y coordinate values
+        
+        Example:
+        
+          >>> x, y = Point(0, 0).xy
+          >>> list(x)
+          [0.0]
+          >>> list(y)
+          [0.0]
+        
+        """
+        return self.coords.xy
 
 
 class PointAdapter(CachingGeometryProxy, Point):
@@ -225,8 +216,6 @@ class PointAdapter(CachingGeometryProxy, Point):
             # Fall back on list
             return len(self.context)
 
-    # TODO: reimplement x, y, z properties without calling invoking _geom
-
     @property
     def __array_interface__(self):
         """Provide the Numpy array protocol."""
@@ -238,8 +227,7 @@ class PointAdapter(CachingGeometryProxy, Point):
     _get_coords = BaseGeometry._get_coords
 
     def _set_coords(self, ob):
-        raise NotImplementedError(
-        "Component rings have coordinate sequences, but the polygon does not")
+        raise NotImplementedError("Adapters can not modify their sources")
 
     coords = property(_get_coords)
 
