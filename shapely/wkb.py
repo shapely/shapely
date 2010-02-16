@@ -1,5 +1,4 @@
-"""
-Load/dump geometries using the well-known binary (WKB) format
+"""Load/dump geometries using the well-known binary (WKB) format
 """
 
 from ctypes import byref, c_size_t, c_char_p, string_at

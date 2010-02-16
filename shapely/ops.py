@@ -1,5 +1,4 @@
-"""
-Support for various GEOS geometry operations
+"""Support for various GEOS geometry operations
 """
 
 from ctypes import byref, c_void_p
@@ -7,6 +6,8 @@ from ctypes import byref, c_void_p
 from shapely.geos import lgeos
 from shapely.geometry.base import geom_factory, BaseGeometry
 from shapely.geometry import asShape, asLineString, asMultiLineString
+
+__all__= ['operator', 'polygonize', 'linemerge', 'cascaded_union']
 
 
 class CollectionOperator(object):

@@ -1,4 +1,4 @@
-"""Base geometry class and utilities.
+"""Base geometry class and utilities
 """
 
 from functools import wraps
@@ -416,7 +416,11 @@ class BaseGeometry(object):
         return geom_factory(op(self, distance))
 
 
-class BaseMultiPartGeometry(BaseGeometry):
+class BaseMultipartGeometry(BaseGeometry):
+
+    def shape_factory(self, *args):
+        # Factory for part instances, usually a geometry class
+        raise NotImplementedError("To be implemented by derived classes")
 
     @property
     def ctypes(self):
@@ -442,6 +446,11 @@ class BaseMultiPartGeometry(BaseGeometry):
         raise NotImplementedError(
         "Multi-part geometries do not provide a coordinate sequence")
 
+    @property
+    @exceptNull
+    def geoms(self):
+        return GeometrySequence(self, self.shape_factory)
+
 
 class GeometrySequence(object):
     """
@@ -458,13 +467,13 @@ class GeometrySequence(object):
     #     Number of dimensions (2 or 3, generally)
     # __p__ : object
     #     Parent (Shapely) geometry
-    _factory = None
+    shape_factory = None
     _geom = None
     __p__ = None
     _ndim = None
 
     def __init__(self, parent, type):
-        self._factory = type
+        self.shape_factory = type
         self.__p__ = parent
 
     def _update(self):
@@ -472,7 +481,7 @@ class GeometrySequence(object):
         self._ndim = self.__p__._ndim
         
     def _get_geom_item(self, i):
-        g = self._factory()
+        g = self.shape_factory()
         g._owned = True
         g._geom = lgeos.GEOSGetGeometryN(self._geom, i)
         g._ndim = self._ndim

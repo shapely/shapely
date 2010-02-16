@@ -1,13 +1,14 @@
-"""
-Multi-part collections of polygons and related utilities
+"""Multi-part collections of polygons and related utilities
 """
 
-from ctypes import byref, c_double, c_int, c_void_p, cast, POINTER, pointer
+from ctypes import c_void_p, cast
 
 from shapely.geos import lgeos
-from shapely.geometry.base import BaseGeometry, GeometrySequence, exceptNull
+from shapely.geometry.base import BaseMultipartGeometry
 from shapely.geometry.polygon import Polygon, geos_polygon_from_py
 from shapely.geometry.proxy import CachingGeometryProxy
+
+__all__ = ['MultiPolygon', 'asMultiPolygon']
 
 
 def geos_multipolygon_from_py(ob):
@@ -39,8 +40,7 @@ def geos_multipolygon_from_polygons(ob):
     return (lgeos.GEOSGeom_createCollection(6, subs, L), N)
 
 
-
-class MultiPolygon(BaseGeometry):
+class MultiPolygon(BaseMultipartGeometry):
 
     """A two-dimensional figure comprising one or more polygons
     
@@ -49,11 +49,11 @@ class MultiPolygon(BaseGeometry):
     Attributes
     ----------
     geoms : sequence
-        A sequence of polygons.
+        A sequence of polygons
     """
 
     def __init__(self, polygons=None, context_type='polygons'):
-        """Initialize.
+        """Initialize a multipolygon instance
 
         Parameters
         ----------
@@ -61,18 +61,23 @@ class MultiPolygon(BaseGeometry):
         polygons : sequence
             A sequence of (shell, holes) tuples where shell is the sequence
             representation of a linear ring (see linearring.py) and holes is
-            a sequence of such linear rings.
+            a sequence of such linear rings
 
         Example
         -------
-        >>> geom = MultiPolygon( [
-        ...     (
-        ...     ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)), 
-        ...     [((0.1,0.1), (0.1,0.2), (0.2,0.2), (0.2,0.1))]
-        ...     )
-        ... ] )
+          >>> ob = MultiPolygon( [
+          ...     (
+          ...     ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)), 
+          ...     [((0.1,0.1), (0.1,0.2), (0.2,0.2), (0.2,0.1))]
+          ...     )
+          ... ] )
+          >>> len(ob.geoms)
+          1
+          >>> type(ob.geoms[0]) == Polygon
+          True
+
         """
-        BaseGeometry.__init__(self)
+        super(MultiPolygon, self).__init__()
 
         if polygons is None:
             # allow creation of null collections, to support unpickling
@@ -81,6 +86,9 @@ class MultiPolygon(BaseGeometry):
             self._geom, self._ndim = geos_multipolygon_from_polygons(polygons)
         elif context_type == 'geojson':
             self._geom, self._ndim = geos_multipolygon_from_py(polygons)
+
+    def shape_factory(self, *args):
+        return Polygon(*args)
 
     @property
     def __geo_interface__(self):
@@ -95,35 +103,6 @@ class MultiPolygon(BaseGeometry):
             'type': 'MultiPolygon',
             'coordinates': allcoords
             }
-
-    @property
-    def ctypes(self):
-        raise NotImplementedError(
-        "Multi-part geometries have no ctypes representations")
-
-    @property
-    def __array_interface__(self):
-        """Provide the Numpy array protocol."""
-        raise NotImplementedError(
-        "Multi-part geometries do not themselves provide the array interface")
-
-    def _get_coords(self):
-        raise NotImplementedError(
-        "Component rings have coordinate sequences, but the polygon does not")
-
-    def _set_coords(self, ob):
-        raise NotImplementedError(
-        "Component rings have coordinate sequences, but the polygon does not")
-
-    @property
-    def coords(self):
-        raise NotImplementedError(
-        "Multi-part geometries do not provide a coordinate sequence")
-
-    @property
-    @exceptNull
-    def geoms(self):
-        return GeometrySequence(self, Polygon)
 
 
 class MultiPolygonAdapter(CachingGeometryProxy, MultiPolygon):

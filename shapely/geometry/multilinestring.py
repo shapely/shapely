@@ -1,13 +1,14 @@
-"""
-Multi-part collections of linestrings and related utilities
+"""Multi-part collections of linestrings and related utilities
 """
 
-from ctypes import byref, c_double, c_int, c_void_p, cast, POINTER, pointer
+from ctypes import c_double, c_void_p, cast, POINTER
 
 from shapely.geos import lgeos
-from shapely.geometry.base import BaseGeometry, GeometrySequence, exceptNull
+from shapely.geometry.base import BaseMultipartGeometry
 from shapely.geometry.linestring import LineString, geos_linestring_from_py
 from shapely.geometry.proxy import CachingGeometryProxy
+
+__all__ = ['MultiLineString', 'asMultiLineString']
 
 
 def geos_multilinestring_from_py(ob):
@@ -48,7 +49,7 @@ def geos_multilinestring_from_py(ob):
     return (lgeos.GEOSGeom_createCollection(5, subs, L), N)
 
 
-class MultiLineString(BaseGeometry):
+class MultiLineString(BaseMultipartGeometry):
 
     """A one-dimensional figure comprising one or more line strings
     
@@ -78,7 +79,7 @@ class MultiLineString(BaseGeometry):
         
         Each result in a collection containing one line string.
         """
-        BaseGeometry.__init__(self)
+        super(MultiLineString, self).__init__()
 
         if coordinates is None:
             # allow creation of null lines, to support unpickling
@@ -86,41 +87,15 @@ class MultiLineString(BaseGeometry):
         else:
             self._geom, self._ndim = geos_multilinestring_from_py(coordinates)
 
+    def shape_factory(self, *args):
+        return LineString(*args)
+
     @property
     def __geo_interface__(self):
         return {
             'type': 'MultiLineString',
             'coordinates': tuple(tuple(c for c in g.coords) for g in self.geoms)
             }
-
-    @property
-    def ctypes(self):
-        raise NotImplementedError(
-        "Multi-part geometries have no ctypes representations")
-
-    @property
-    def __array_interface__(self):
-        """Provide the Numpy array protocol."""
-        raise NotImplementedError(
-        "Multi-part geometries do not themselves provide the array interface")
-
-    def _get_coords(self):
-        raise NotImplementedError(
-        "Component lines have coordinate sequences, but the parent does not")
-
-    def _set_coords(self, ob):
-        raise NotImplementedError(
-        "Component lines have coordinate sequences, but the parent does not")
-
-    @property
-    def coords(self):
-        raise NotImplementedError(
-        "Multi-part geometries do not provide a coordinate sequence")
-
-    @property
-    @exceptNull
-    def geoms(self):
-        return GeometrySequence(self, LineString)
 
 
 class MultiLineStringAdapter(CachingGeometryProxy, MultiLineString):

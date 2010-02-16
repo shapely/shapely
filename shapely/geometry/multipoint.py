@@ -1,13 +1,14 @@
-"""
-Multi-part collections of points and related utilities
+"""Multi-part collections of points and related utilities
 """
 
-from ctypes import byref, c_double, c_int, c_void_p, cast, POINTER, pointer
+from ctypes import byref, c_double, c_void_p, cast, POINTER
 
 from shapely.geos import lgeos
-from shapely.geometry.base import BaseGeometry, GeometrySequence, exceptNull
+from shapely.geometry.base import BaseMultipartGeometry, exceptNull
 from shapely.geometry.point import Point, geos_point_from_py
 from shapely.geometry.proxy import CachingGeometryProxy
+
+__all__ = ['MultiPoint', 'asMultiPoint']
 
 
 def geos_multipoint_from_py(ob):
@@ -48,7 +49,7 @@ def geos_multipoint_from_py(ob):
     return lgeos.GEOSGeom_createCollection(4, subs, m), n
 
 
-class MultiPoint(BaseGeometry):
+class MultiPoint(BaseMultipartGeometry):
 
     """A collection of points
 
@@ -57,39 +58,42 @@ class MultiPoint(BaseGeometry):
     Attributes
     ----------
     geoms : sequence
-        A sequence of points.
+        A sequence of points
     """
 
     def __init__(self, coordinates=None):
-        """Initialize.
+        """Initialize a multipoint instance
 
         Parameters
         ----------
         
-        coordinates : sequence or array
-            This may be an object that satisfies the numpy array protocol,
-            providing an M x 2 or M x 3 (with z) array, or it may be a sequence
-            of x, y (,z) coordinate sequences.
+        coordinates : sequence
+            A sequence of (x, y [,z]) numeric coordinate pairs or triples
 
         Example
         -------
 
-        >>> geom = MultiPoint([[0.0, 0.0], [1.0, 2.0]])
-        >>> geom = MultiPoint(array([[0.0, 0.0], [1.0, 2.0]]))
-        
-        Each result in a line string from (0.0, 0.0) to (1.0, 2.0).
+        Create a pair of points
+
+          >>> ob = MultiPoint([[0.0, 0.0], [1.0, 2.0]])
+          >>> len(ob.geoms)
+          2
+          >>> type(ob.geoms[0]) == Point
+          True
+
         """
-        BaseGeometry.__init__(self)
+        super(MultiPoint, self).__init__()
 
         if coordinates is None:
-            # allow creation of null lines, to support unpickling
+            # allow creation of empty multipoints, to support unpickling
             pass
         else:
             self._geom, self._ndim = geos_multipoint_from_py(coordinates)
 
+    def shape_factory(self, *args):
+        return Point(*args)
 
     @property
-    @exceptNull
     def __geo_interface__(self):
         return {
             'type': 'MultiPoint',
@@ -126,29 +130,11 @@ class MultiPoint(BaseGeometry):
         return ai
     __array_interface__ = property(array_interface)
 
-    def _get_coords(self):
-        raise NotImplementedError(
-        "Component rings have coordinate sequences, but the polygon does not")
-
-    def _set_coords(self, ob):
-        raise NotImplementedError(
-        "Component rings have coordinate sequences, but the polygon does not")
-
-    @property
-    def coords(self):
-        raise NotImplementedError(
-        "Multipart geometries do not themselves provide coordinate sequences")
-
-    @property
-    @exceptNull
-    def geoms(self):
-        return GeometrySequence(self, Point)
-        
 
 class MultiPointAdapter(CachingGeometryProxy, MultiPoint):
 
-    """Adapts a Python coordinate pair or a numpy array to the multipoint
-    interface.
+    """Adapts Python coordinate pairs or a numpy array to the multipoint
+    interface
     """
     
     context = None

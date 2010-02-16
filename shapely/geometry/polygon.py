@@ -1,7 +1,7 @@
 """Polygons and their linear ring components
 """
 
-from ctypes import byref, c_double, c_int, c_void_p, cast, POINTER, pointer
+from ctypes import c_double, c_void_p, cast, POINTER
 from ctypes import ArgumentError
 import weakref
 from shapely.geos import lgeos
@@ -10,6 +10,7 @@ from shapely.geometry.linestring import LineString, LineStringAdapter
 from shapely.geometry.proxy import PolygonProxy
 
 __all__ = ['Polygon', 'asPolygon', 'LinearRing', 'asLinearRing']
+
 
 def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
     try:

@@ -5,9 +5,10 @@ from ctypes import c_double
 from ctypes import cast, POINTER
 
 from shapely.geos import lgeos, DimensionError
-from shapely.geometry.base import BaseGeometry, CoordinateSequence
-from shapely.geometry.base import exceptNull
+from shapely.geometry.base import BaseGeometry
 from shapely.geometry.proxy import CachingGeometryProxy
+
+__all__ = ['Point', 'asPoint']
 
 
 def geos_point_from_py(ob, update_geom=None, update_ndim=0):

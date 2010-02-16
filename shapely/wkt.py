@@ -1,5 +1,4 @@
-"""
-Load/dump geometries using the well-known text (WKT) format.
+"""Load/dump geometries using the well-known text (WKT) format
 """
 
 from ctypes import c_char_p
