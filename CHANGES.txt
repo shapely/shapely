@@ -1,5 +1,11 @@
 All tickets are children of http://trac.gispython.org/lab/ticket.
 
+1.2b1 (2010-02-18)
+------------------
+- Update the README. Remove cruft from setup.py. Add some version 1.2 metadata
+  regarding required Python version (>=2.5,<3) and external dependency
+  (libgeos_c >= 3.1).
+
 1.2a6 (2010-02-09)
 ------------------
 - Add accessor for separate arrays of X and Y values (#210).
