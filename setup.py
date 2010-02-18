@@ -9,33 +9,28 @@ except:
 from setuptools import setup, find_packages
 import sys
 
-# Require ctypes egg only for Python < 2.5
-install_requires = []
-if sys.version_info[:2] < (2,5):
-    install_requires.append('ctypes')
-
-# Get text from README.txt
 readme_text = file('README.txt', 'rb').read()
 
 setup_args = dict(
-    name          = 'Shapely',
-    version       = '1.2b1',
-    description   = 'Geospatial geometries, predicates, and operations',
-    license       = 'BSD',
-    keywords      = 'geometry topology',
-    author        = 'Sean Gillies',
-    author_email  = 'sean.gillies@gmail.com',
-    maintainer    = 'Sean Gillies',
-    maintainer_email  = 'sean.gillies@gmail.com',
-    url   = 'http://trac.gispython.org/lab/wiki/Shapely',
-    long_description = readme_text,
-    packages      = ['shapely', 'shapely.geometry'],
-    scripts       = ['examples/dissolve.py', 'examples/intersect.py'],
-    # include_package_data=True,
-    install_requires = install_requires,
-    test_suite = 'shapely.tests.test_suite',
-    classifiers   = [
-        'Development Status :: 5 - Production/Stable',
+    metadata_version    = '1.2',
+    name                = 'Shapely',
+    version             = '1.2b1',
+    requires_python     = '>=2.5,<3',
+    requires_external   = 'libgeos_c (>=3.1)', 
+    description         = 'Planar geometries, predicates, and operations',
+    license             = 'BSD',
+    keywords            = 'geometry topology gis',
+    author              = 'Sean Gillies',
+    author_email        = 'sean.gillies@gmail.com',
+    maintainer          = 'Sean Gillies',
+    maintainer_email    = 'sean.gillies@gmail.com',
+    url                 = 'http://trac.gispython.org/lab/wiki/Shapely',
+    long_description    = readme_text,
+    packages            = ['shapely', 'shapely.geometry'],
+    scripts             = ['examples/dissolve.py', 'examples/intersect.py'],
+    test_suite          = 'shapely.tests.test_suite',
+    classifiers         = [
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: BSD License',

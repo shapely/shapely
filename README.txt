@@ -1,33 +1,36 @@
+
 Shapely
 =======
 
-Shapely is a Python package for manipulation and analysis of 2D geospatial
-geometries. It is based on GEOS (http://geos.refractions.net). Shapely 1.0 is
-not concerned with data formats or coordinate reference systems.
-Responsibility for reading and writing data and projecting coordinates is left
-to other packages like WorldMill_ and pyproj_. For more information, see:
+.. image:: http://trac.gispython.org/lab/raw-attachment/wiki/Examples/dissolve.png
+   :width: 400
+   :height: 400
+
+.. image:: http://trac.gispython.org/lab/raw-attachment/wiki/Examples/intersect.png
+   :width: 400
+   :height: 400
+
+Shapely is a BSD-licensed Python package for manipulation and analysis of
+planar geometries. It is not concerned with data formats or coordinate
+systems. It is based on the widely deployed GEOS_ (the engine of PostGIS_) and
+JTS_ (from which GEOS is ported) libraries. This C dependency is traded for the
+ability to analyze geometries with blazing speed.
+
+In a nutshell: Shapely lets you do PostGIS-ish stuff outside the context of a
+database using idiomatic Python. For more details, see:
 
 * Shapely wiki_
 * Shapely manual_
-
-Shapely requires Python 2.4+. (I've also begun to port it to Python 3.0:
-http://zcologia.com/news/564/shapely-for-python-3-0/.)
-
-See also CHANGES.txt_ and HISTORY.txt_.
-
-.. _CHANGES.txt: http://trac.gispython.org/projects/PCL/browser/Shapely/trunk/CHANGES.txt
-.. _HISTORY.txt: http://trac.gispython.org/projects/PCL/browser/Shapely/trunk/HISTORY.txt
-.. _WorldMill: http://pypi.python.org/pypi/WorldMill
-.. _pyproj: http://pypi.python.org/pypi/pyproj
+* Shapely `example apps`_
 
 
 Dependencies
 ------------
 
-* libgeos_c (2.2.3 or 3.0.0+)
-* Python ctypes_ (standard in Python 2.5+)
+Shapely 1.2 depends on:
 
-.. _ctypes: http://pypi.python.org/pypi/ctypes/
+* Python >=2.5,<3
+* libgeos_c >=3.1 (3.0 and below have not been tested, YMMV)
 
 
 Installation
@@ -47,87 +50,65 @@ or from a source distribution with the setup script::
 Usage
 -----
 
-To buffer a point::
+Here is the canonical example of building an approximately circular patch by
+buffering a point::
 
   >>> from shapely.geometry import Point
-  >>> point = Point(-106.0, 40.0) # longitude, latitude
-  >>> point.buffer(10.0)
-  <shapely.geometry.polygon.Polygon object at ...>
+  >>> patch = Point(0.0, 0.0).buffer(10.0)
+  >>> patch
+  <shapely.geometry.polygon.Polygon object at 0x...>
+  >>> patch.area
+  313.65484905459385
 
-See the manual_ for comprehensive examples of usage. See also Operations.txt
-and Predicates.txt under tests/ for more examples of the spatial operations and
-predicates provided by Shapely. See also Point.txt, LineString.txt, etc for
-examples of the geometry APIs.
+See the manual_ for comprehensive usage snippets and the dissolve.py and
+intersect.py `example apps`_.
 
 
 Numpy integration
 -----------------
 
-All Shapely geometry instances provide the Numpy array interface::
+All linear geometries, such as the rings of a polygon, provide the Numpy array
+interface::
 
   >>> from numpy import asarray
-  >>> a = asarray(point)
-  >>> a.size
-  3
-  >>> a.shape
-  (2,)
+  >>> ag = asarray(patch.exterior)
+  >>> ag
+  array([[  1.00000000e+01,   0.00000000e+00],
+         [  9.95184727e+00,  -9.80171403e-01],
+         [  9.80785280e+00,  -1.95090322e+00],
+         ...
+         [  1.00000000e+01,   0.00000000e+00]])
 
-Numpy arrays can also be adapted to Shapely points and linestrings::
+That yields a numpy array of [x, y] arrays. This is not exactly what one wants
+for plotting shapes with Matplotlib, so Shapely 1.2 adds a `xy` geometry
+property for getting separate arrays of coordinate x and y values::
+
+  >>> x, y = patch.exterior.xy
+  >>> ax = asarray(x)
+  >>> ax
+  array([  1.00000000e+01,   9.95184727e+00,   9.80785280e+00,  ...])
+
+Numpy arrays can also be adapted to Shapely linestrings::
 
   >>> from shapely.geometry import asLineString
-  >>> a = array([[1.0, 2.0], [3.0, 4.0]])
-  >>> line = asLineString(a)
-  >>> line.wkt
-  'LINESTRING (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)'
-
-
-Python Geo Interface
---------------------
-
-Any object that provides the Python geo interface can be adapted to a Shapely
-geometry with the asShape factory::
-
-  >>> d = {"type": "Point", "coordinates": (0.0, 0.0)}
-  >>> from shapely.geometry import asShape
-  >>> shape = asShape(d)
-  >>> shape.geom_type
-  'Point'
-  >>> tuple(shape.coords)
-  ((0.0, 0.0),)
-
-  >>> class GeoThing(object):
-  ...     def __init__(self, d):
-  ...         self.__geo_interface__ = d
-  >>> thing = GeoThing({"type": "Point", "coordinates": (0.0, 0.0)})
-  >>> shape = asShape(thing)
-  >>> shape.geom_type
-  'Point'
-  >>> tuple(shape.coords)
-  ((0.0, 0.0),)
-
-See http://trac.gispython.org/projects/PCL/wiki/PythonGeoInterface for more
-details on the interface.
+  >>> asLineString(ag).length
+  62.806623139095073
+  >>> asLineString(ag).wkt
+  'LINESTRING (10.0000000000000000 0.0000000000000000, ...)'
 
 
 Testing
 -------
 
-Shapely uses a Zope-stye suite of doctests, tested like::
+Shapely uses a Zope-stye suite of unittests and doctests, excercised like::
 
   $ python setup.py test
-
-We're debating a switch to tests run via nose::
-
-  $ python setup.py nosetests
 
 
 Support
 -------
 
 For current information about this project, see the wiki_.
-
-.. _wiki: http://trac.gispython.org/projects/PCL/wiki/Shapely
-.. _manual: http://gispython.org/shapely/manual.html
 
 If you have questions, please consider joining our community list:
 
@@ -137,16 +118,31 @@ http://trac.gispython.org/projects/PCL/wiki/CommunityList
 Credits
 -------
 
+Shapely is written by:
+
 * Sean Gillies (Pleiades)
 * Aron Bierbaum
 * Howard Butler (Hobu, Inc.)
 * Kai Lautaportti (Hexagon IT)
 * Fr |eaigue| d |eaigue| ric Junod (Camptocamp SA)
 * Eric Lemoine (Camptocamp SA)
-* Justin Bronn (GeoDjango) for ctypes inspiration
 
+with additional help from:
+
+* Justin Bronn (GeoDjango) for ctypes inspiration
+* Martin Davis (JTS)
+* Sandro Santilli, Mateusz Loskot, Paul Ramsey, et al (GEOS Project)
+
+Major portions of this work were supported by a grant (for Pleiades_) from the
+U.S. National Endowment for the Humanities (http://www.neh.gov).
+
+
+.. _JTS: http://www.vividsolutions.com/jts/jtshome.htm
+.. _PostGIS: http://postgis.org
+.. _GEOS: http://trac.osgeo.org/geos/
+.. _example apps: http://trac.gispython.org/lab/wiki/Examples
+.. _wiki: http://trac.gispython.org/projects/PCL/wiki/Shapely
+.. _manual: http://gispython.org/shapely/manual.html
 .. |eaigue| unicode:: U+00E9
    :trim:
-
-Major portions of this work were supported by a grant (to Pleiades) from the
-U.S. National Endowment for the Humanities (http://www.neh.gov).
+.. _Pleiades: http://pleiades.stoa.org
