@@ -2,13 +2,9 @@
 Shapely
 =======
 
-.. image:: http://trac.gispython.org/lab/raw-attachment/wiki/Examples/dissolve.png
-   :width: 400
-   :height: 400
-
-.. image:: http://trac.gispython.org/lab/raw-attachment/wiki/Examples/intersect.png
-   :width: 400
-   :height: 400
+.. image:: http://gispython.org/images/shapely-med.png
+   :width: 640
+   :height: 320
 
 Shapely is a BSD-licensed Python package for manipulation and analysis of
 planar geometries. It is not concerned with data formats or coordinate
@@ -141,7 +137,7 @@ U.S. National Endowment for the Humanities (http://www.neh.gov).
 .. _PostGIS: http://postgis.org
 .. _GEOS: http://trac.osgeo.org/geos/
 .. _example apps: http://trac.gispython.org/lab/wiki/Examples
-.. _wiki: http://trac.gispython.org/projects/PCL/wiki/Shapely
+.. _wiki: http://trac.gispython.org/lab/wiki/Shapely
 .. _manual: http://gispython.org/shapely/manual.html
 .. |eaigue| unicode:: U+00E9
    :trim:

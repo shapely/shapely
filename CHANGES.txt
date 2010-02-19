@@ -1,5 +1,9 @@
 All tickets are children of http://trac.gispython.org/lab/ticket.
 
+1.2b2 (2010-02-19)
+------------------
+- Fix cascaded_union bug introduced in 1.2b1 (#212).
+
 1.2b1 (2010-02-18)
 ------------------
 - Update the README. Remove cruft from setup.py. Add some version 1.2 metadata

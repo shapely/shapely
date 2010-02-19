@@ -1,0 +1,24 @@
+Cascaded Union
+==============
+
+  >>> from functools import partial
+  >>> import random
+  >>> from shapely.geometry import Point
+  >>> from shapely.ops import cascaded_union
+
+Use a partial function to make 100 points uniformly distributed in a 40x40 
+box centered on 0,0.
+
+  >>> r = partial(random.uniform, -20.0, 20.0)
+  >>> points = [Point(r(), r()) for i in range(100)]
+
+Buffer the points, producing 100 polygon spots
+
+  >>> spots = [p.buffer(2.5) for p in points]
+
+Perform a cascaded union of the polygon spots, dissolving them into a 
+collection of polygon patches
+
+  >>> cascaded_union(spots) # doctest: +ELLIPSIS
+  <shapely.geometry.multipolygon.MultiPolygon object at 0x...>
+

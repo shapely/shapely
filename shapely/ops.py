@@ -61,7 +61,7 @@ class CollectionOperator(object):
         result = lgeos.GEOSLineMerge(source._geom) 
         return geom_factory(result)   
 
-    def cascaded_union(geoms):
+    def cascaded_union(self, geoms):
         """Returns the union of a sequence of geometries
         
         This is the most efficient method of dissolving many polygons.
@@ -72,6 +72,7 @@ class CollectionOperator(object):
             subs[i] = g._geom
         collection = lgeos.GEOSGeom_createCollection(6, subs, L)
         return geom_factory(lgeos.GEOSUnionCascaded(collection))
+
 
 operator = CollectionOperator()
 polygonize = operator.polygonize
