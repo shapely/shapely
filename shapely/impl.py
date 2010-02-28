@@ -44,13 +44,12 @@ IMPL14 = {
     'touches': (BinaryPredicate, 'touches'),
     'within': (BinaryPredicate, 'within'),
     'equals_exact': (BinaryPredicate, 'equals_exact'),
-    'simplify': (UnaryTopologicalOp, 'simplify'),
-    'topology_preserve_simplify': 
-        (UnaryTopologicalOp, 'topology_preserve_simplify'),
-
     }
 
 IMPL15 = {
+    'simplify': (UnaryTopologicalOp, 'simplify'),
+    'topology_preserve_simplify': 
+        (UnaryTopologicalOp, 'topology_preserve_simplify'),
     'prepared_intersects': (BinaryPredicate, 'prepared_intersects'),
     'prepared_contains': (BinaryPredicate, 'prepared_contains'),
     'prepared_contains_properly': 

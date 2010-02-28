@@ -1,5 +1,9 @@
 All tickets are children of http://trac.gispython.org/lab/ticket.
 
+1.2b3 (2010-02-28)
+------------------
+- Only provide simplification implementations for GEOS C API >= 1.5.
+
 1.2b2 (2010-02-19)
 ------------------
 - Fix cascaded_union bug introduced in 1.2b1 (#212).
