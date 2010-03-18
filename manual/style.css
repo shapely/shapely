@@ -1,9 +1,18 @@
 /* css */
 
+html {
+  font-size: 62.5%;
+}
+
 body {
-  font: 90% 'Lucida Grande', Verdana, Geneva, Lucida, Arial, Helvetica, sans-serif;
-  background: #ffffff;
-  color: black;
+  /*font: 90% 'Lucida Grande', Verdana, Geneva, Lucida, Arial, Helvetica, sans-serif;*/
+  font-family: "Georgia", serif;
+  font-size: 1.5em;
+  color: #333;
+  background-color: #fff;
+  
+  /*background: #ffffff;
+  color: black;*/
   margin: 2em;
   padding: 2em;
 }
@@ -27,9 +36,17 @@ a.strong {
   font-weight: bold;
 }
 
-img {
-  margin: 0;
+div.figure img {
   border: 0;
+}
+
+div.figure {
+  margin-left: 1em;
+  float: left;
+}
+
+div.clear {
+  clear: both;
 }
 
 p {
@@ -56,38 +73,37 @@ p img {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color: #003a6b;
   background-color: transparent;
-  font: 100% 'Lucida Grande', Verdana, Geneva, Lucida, Arial, Helvetica, sans-serif;
+  font-family: Verdana, sans-serif;
   margin: 0;
   padding-top: 0.5em;
 }
 
 h1 {
-  font-size: 160%;
+  /*font-size: 160%;*/
   margin-bottom: 0.5em;
   border-bottom: 1px solid #fcb100;
 }
 h2 {
-  font-size: 140%;
+  /*font-size: 140%;*/
   margin-bottom: 0.5em;
   border-bottom: 1px solid #aaa;
 }
 h3 {
-  font-size: 130%;
+  /*font-size: 130%;*/
   margin-bottom: 0.5em;
-  text-decoration: underline;
+  /*text-decoration: underline;*/
 }
 h4 {
-  font-size: 110%;
+  /*font-size: 110%;*/
   font-weight: bold;
 }
 h5 {
-  font-size: 100%;
+  /*font-size: 100%;*/
   font-weight: bold;
 }
 h6 {
-  font-size: 80%;
+  /*font-size: 80%;*/
   font-weight: bold;
 }
 

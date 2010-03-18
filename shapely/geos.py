@@ -22,21 +22,15 @@ class NullHandler(logging.Handler):
 LOG = logging.getLogger(__name__)
 LOG.addHandler(NullHandler())
 
-# Find and load the GEOS library
-if sys.platform == 'win32':
-    try:
-        local_dlls = os.path.abspath(os.__file__ + "../../../DLLs")
-        original_path = os.environ['PATH']
-        os.environ['PATH'] = "%s;%s" % (local_dlls, original_path)
-        _lgeos = CDLL("geos.dll")
-    except (ImportError, WindowsError):
-        raise
-    def free(m):
-        try:
-            cdll.msvcrt.free(m)
-        except WindowsError:
-            # XXX: See http://trac.gispython.org/projects/PCL/ticket/149
-            pass
+# Find and load the GEOS and C libraries
+# If this ever gets any longer, we'll break it into separate modules
+
+if sys.platform == 'linux2':
+    _lgeos = CDLL(find_library('geos_c'))
+    free = CDLL(find_library('c')).free
+    free.argtypes = [c_void_p]
+    free.restype = None
+
 elif sys.platform == 'darwin':
     lib = find_library('geos_c')
     if lib is None:
@@ -54,9 +48,28 @@ elif sys.platform == 'darwin':
     if lib is None:
         raise ImportError("Could not find geos_c library")
     _lgeos = CDLL(lib)
-    free = CDLL(find_library('libc')).free
+    free = CDLL(find_library('c')).free
     free.argtypes = [c_void_p]
     free.restype = None
+
+elif sys.platform == 'win32':
+    try:
+        local_dlls = os.path.abspath(os.__file__ + "../../../DLLs")
+        original_path = os.environ['PATH']
+        os.environ['PATH'] = "%s;%s" % (local_dlls, original_path)
+        _lgeos = CDLL("geos.dll")
+    except (ImportError, WindowsError):
+        raise
+    def free(m):
+        try:
+            cdll.msvcrt.free(m)
+        except WindowsError:
+            # XXX: See http://trac.gispython.org/projects/PCL/ticket/149
+            pass
+
+#elif sys.platform.startswith('sunos'):
+#    pass
+
 else:
     # Try the major versioned name first, falling back on the unversioned
     # name.
@@ -344,5 +357,6 @@ elif geos_c_version >= (1, 5, 0):
         L = LGEOS15
 else:
         L = LGEOS14
+
 lgeos = L(_lgeos)
 

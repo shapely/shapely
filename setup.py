@@ -4,7 +4,9 @@ try:
     from distribute_setup import use_setuptools
     use_setuptools()
 except:
-    warnings.warn("Failed to import distribute_setup", ImportWarning)
+    warnings.warn(
+    "Failed to import distribute_setup, continuing without distribute.", 
+    Warning)
 
 from setuptools import setup, find_packages
 import sys
@@ -14,7 +16,7 @@ readme_text = file('README.txt', 'rb').read()
 setup_args = dict(
     metadata_version    = '1.2',
     name                = 'Shapely',
-    version             = '1.2b3',
+    version             = '1.2b4',
     requires_python     = '>=2.5,<3',
     requires_external   = 'libgeos_c (>=3.1)', 
     description         = 'Planar geometries, predicates, and operations',

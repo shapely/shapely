@@ -3,87 +3,127 @@ The Shapely Manual
 ==================
 
 :Author: Sean Gillies
-:address: sgillies@frii.com
+:address: sean.gillies@gmail.com
 :revision: 1.2
-:date: 16 February 2010
+:date: 1 March 2010
 :copyright: This work is licensed under a `Creative Commons Attribution 3.0
   United States License`__.
 
 .. __: http://creativecommons.org/licenses/by/3.0/us/
 
 :abstract: This document describes the Shapely Python package for programming
-  with geospatial geometries.
+  with planar geometries.
 
 .. sectnum::
 
 .. contents::
 
 
-Background
-==========
+Introduction
+============
 
-Shapely is a Python package for programming with geospatial geometries. It is
-based on the GEOS_ library, a port of the `Java Topology Suite`_. Please refer
-to the JTS overview for definitions and illustrations of the various geometry
-types, operations, and predicates. See also the Shapely wiki_ and Python
-Package Index record_.
+Shapely is a Python package for manipulating and analyzing planar geometries
+using (via Python's `ctypes` module) functions from the well known and widely
+deployed GEOS_ library. GEOS, a port of the `Java Topology Suite`_, is the
+geometry engine of the PostGIS_ spatial extension for the PostgreSQL RDBMS.
+PostGIS is one of the cornerstones of open source GIS, but isn't a solution to
+all problems in the GIS domain. Not all geographic data reside in a RDBMS or
+are best processed using SQL. Shapely aims to bring industrial strength GIS
+primitives to bear on programming problems better addressed in a
+object-oriented style. 
 
-.. _GEOS: http://geos.refractions.net
-.. _Java Topology Suite: http://www.vividsolutions.com/jts/jtshome.htm
-.. _record: http://pypi.python.org/pypi/Shapely
-.. _wiki: http://trac.gispython.org/lab/wiki/Shapely
+Imagine a situation where you'd like to find or index a substring within
+another string. Is there overlap between the strings, and if so, what is it?
+Or maybe you'd like to replace certain characters in a string with others. Now
+imagine that you're compelled to load the text strings into a relational
+database to perform these operations because such string functions aren't
+available in any other context. No knock on the RDBMS, a tremendously useful
+thing, but that's a unacceptable situation.
+
+The premise of Shapely, or one of the premises, is that Python programmers
+should be able to perform PostGIS type geometry operations outside of an RDBMS.
+Another is that Python idioms trump GIS (or Java, in this case, since the GEOS
+library is derived from JTS, a Java project) idioms. Shapely, in a nutshell
+lets you do PostGIS-y stuff outside the context of a database using idiomatic
+Python.
+
+By "PostGIS-y" we mean to say: "implements much of the Open Geospatial
+Consortium's Simple Feature Access specification [1]". Standard geometry types
+are implemented as Python classes and standard operations are implemented as
+properties or methods of those classes. Focussing strictly on planar geometry,
+Shapely isn't concerned with coordinate systems or other aspects of the
+standard GIS feature model, but neither does it stand in the way of
+applications where those concerns are important. Shapely has been designed to
+be less specific to the GIS domain to improve its potential for reuse in other
+applications such as games, image analysis, and even genomics.
+
 
 Geometries
 ==========
 
 The standard GIS geometry model consists of single points, line strings (or
 polylines), polygons, homogeneous multi-point, multi-line string, and
-multi-polygon collections, and heterogeneous geometry collections.
+multi-polygon collections, and heterogeneous geometry collections. These types
+are illustrated below.
 
-.. figure:: jts-point.png
+.. container:: figures
 
-   Point
+  .. figure:: jts-point.png
+  
+     Point
+  
+  .. figure:: jts-multipoint.png
+  
+     MultiPoint
+  
+  .. figure:: jts-linestring.png
+  
+     LineString
+  
+  .. figure:: jts-multilinestring.png
+  
+     MultiLineString
+  
+  .. figure:: jts-polygon.png
+  
+     Polygon
+  
+  .. figure:: jts-multipolygon.png
+  
+     MultiPolygon
+  
+  .. figure:: jts-geometrycollection.png
+  
+     GeometryCollection
 
-.. figure:: jts-multipoint.png
+.. container:: clear
 
-   MultiPoint
+   From: http://www.vividsolutions.com/jts/discussion.htm#spatialDataModel
 
-.. figure:: jts-linestring.png
+Shapely 1.2 does not provide circles, spline curves, or their two dimensional
+(patch-like) counterparts. Circular patches must be approximated by polygons.
 
-   LineString
-
-.. figure:: jts-multilinestring.png
-
-   MultiLineString
-
-.. figure:: jts-polygon.png
-
-   Polygon
-
-.. figure:: jts-multipolygon.png
-
-   MultiPolygon
-
-.. figure:: jts-geometrycollection.png
-
-   GeometryCollection
-
-From: http://www.vividsolutions.com/jts/discussion.htm#spatialDataModel
-
-Shapely 1.2 does not provide circles, arcs, splines or the like.
-
-
-Factories
----------
+Creating Geometries
+-------------------
 
 Geometries can be created in the typical Python fashion, using the geometry
-classes themselves as factories.
+classes themselves as factories. 
+
+Point and LineString (and LinearRing) geometries have coordinate sequences.
+Coordinate sequences are immutable. Geometries are mutable in that they can be
+assigned new coordinate sequences.
+
+A third `z` coordinate value may be used when constructing geometries, but it
+has no effect on geometry analysis. All operations are performed in the x-y
+plane.
 
 Pseudo-code blocks in this section will use the following notation. Let **a**
 be a Cartesian *x*, *y*, and optional *z* coordinate sequence. The coordinates
 values must be numeric types. Let (**a**\ 1, ..., **a**\ M) and (**b**\ 1, ...,
 **b**\ N) be ordered sequences of *M* and *N* such coordinate sequences,
 defining lines or rings.
+
+Numeric values passed to geometry factories are converted to type `float`.
 
 Points
 ++++++
@@ -101,6 +141,15 @@ The alternate form is to pass individual coordinate parameters
 
   >>> point = Point(x0, y0 [, z0])
 
+Example:
+
+.. sourcecode:: python
+
+  >>> print Point((0, 0))
+  POINT (0.0000000000000000 0.0000000000000000)
+  >>> print Point(0, 0)
+  POINT (0.0000000000000000 0.0000000000000000)
+
 LineStrings
 +++++++++++
 
@@ -110,6 +159,14 @@ To create a line string, pass in an ordered sequence of coordinate sequences:
 
   >>> from shapely.geometry import LineString
   >>> line = LineString((a1, ..., aM))
+
+Example:
+
+.. sourcecode:: python
+
+  >>> print LineString([(0, 0), (1, 1)])
+  LINESTRING (0.0000000000000000 0.0000000000000000, 1.0000000000000000 1.0000000000000000)
+
 
 Polygons
 ++++++++
@@ -962,4 +1019,9 @@ Shapely is written by Sean Gillies with contributions from Aron Bierbaum,
 Howard Butler, Kai Lautaportti (Hexagon IT), Frédéric Junod (Camptocamp SA),
 Eric Lemoine (Camptocamp SA) and ctypes tips from Justin Bronn (GeoDjango).
 
+.. _GEOS: http://geos.refractions.net
+.. _Java Topology Suite: http://www.vividsolutions.com/jts/jtshome.htm
+.. _PostGIS: http://postgis.refractions.net
+.. _record: http://pypi.python.org/pypi/Shapely
+.. _wiki: http://trac.gispython.org/lab/wiki/Shapely
 
