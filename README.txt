@@ -116,14 +116,20 @@ Credits
 
 Shapely is written by:
 
-* Sean Gillies (Pleiades)
+* Sean Gillies
 * Aron Bierbaum
-* Howard Butler (Hobu, Inc.)
-* Kai Lautaportti (Hexagon IT)
-* Fr |eaigue| d |eaigue| ric Junod (Camptocamp SA)
-* Eric Lemoine (Camptocamp SA)
+* Kai Lautaportti
 
-with additional help from:
+Patches contributed by:
+
+* Howard Butler
+* Fr |eaigue| d |eaigue| ric Junod
+* Eric Lemoine
+* Jonathan Tartley
+* Kristian Thy
+* Oliver Tonnhofer
+
+Additional help from:
 
 * Justin Bronn (GeoDjango) for ctypes inspiration
 * Martin Davis (JTS)
