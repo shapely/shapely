@@ -67,10 +67,20 @@ elif sys.platform == 'win32':
             # XXX: See http://trac.gispython.org/projects/PCL/ticket/149
             pass
 
-#elif sys.platform.startswith('sunos'):
-#    pass
+elif sys.platform == 'sunos5':
+    # Try the major versioned name first, falling back on the unversioned
+    # name.
+    try:
+        _lgeos = CDLL('libgeos_c.so.1')
+    except (OSError, ImportError):
+        _lgeos = CDLL('libgeos_c.so')
+    except:
+        raise
+    free = CDLL('libc.so.1').free
+    free.argtypes = [c_void_p]
+    free.restype = None
 
-else:
+else: # other *nix systems
     # Try the major versioned name first, falling back on the unversioned
     # name.
     try:
