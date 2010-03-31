@@ -45,6 +45,13 @@ div.figure {
   float: left;
 }
 
+img.bordered-figure {
+  border: solid black 1px;
+  display: block;
+  margin: 1em auto;
+}
+
+
 div.clear {
   clear: both;
 }
@@ -105,6 +112,14 @@ h5 {
 h6 {
   /*font-size: 80%;*/
   font-weight: bold;
+}
+
+ul.simple li {
+  margin-bottom: 1em;
+}
+
+ul.auto-toc li {
+  margin-bottom: 0;
 }
 
 ul a, ol a {

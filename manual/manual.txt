@@ -1,18 +1,19 @@
-==================
-The Shapely Manual
-==================
+======================
+The Shapely 1.2 Manual
+======================
 
-:Author: Sean Gillies
-:address: sean.gillies@gmail.com
-:revision: 1.2
-:date: 1 March 2010
-:copyright: This work is licensed under a `Creative Commons Attribution 3.0
+:Author: Sean Gillies, <sean.gillies@gmail.com>
+:Revision: 1.2
+:Date: 1 March 2010
+:Copyright: 
+  This work is licensed under a `Creative Commons Attribution 3.0
   United States License`__.
 
 .. __: http://creativecommons.org/licenses/by/3.0/us/
 
-:abstract: This document describes the Shapely Python package for programming
-  with planar geometries.
+:Abstract: 
+  This document explains how to use the Shapely Python package for
+  computational geometry.
 
 .. sectnum::
 
@@ -22,89 +23,135 @@ The Shapely Manual
 Introduction
 ============
 
-Shapely is a Python package for manipulating and analyzing planar geometries
-using (via Python's `ctypes` module) functions from the well known and widely
-deployed GEOS_ library. GEOS, a port of the `Java Topology Suite`_, is the
-geometry engine of the PostGIS_ spatial extension for the PostgreSQL RDBMS.
-PostGIS is one of the cornerstones of open source GIS, but isn't a solution to
-all problems in the GIS domain. Not all geographic data reside in a RDBMS or
-are best processed using SQL. Shapely aims to bring industrial strength GIS
-primitives to bear on programming problems better addressed in a
-object-oriented style. 
+Deterministic (non-statistical) spatial analysis is an important component of
+computational approaches to problems in agriculture, ecology, epidemiology,
+sociology, and many other fields. What is the surveyed perimeter/area ratio of
+these patches of animal habitat? Which properties in this town intersect with
+the 50-year flood contour from this new flooding model? What are the extents of
+findspots for ancient ceramic wares with maker's marks "A" and "B", and where
+do the extents overlap? These are just a few of the possible questions
+addressable using deterministic spatial analysis, and more specifically,
+computational geometry.
 
-Imagine a situation where you'd like to find or index a substring within
-another string. Is there overlap between the strings, and if so, what is it?
-Or maybe you'd like to replace certain characters in a string with others. Now
-imagine that you're compelled to load the text strings into a relational
-database to perform these operations because such string functions aren't
-available in any other context. No knock on the RDBMS, a tremendously useful
-thing, but that's a unacceptable situation.
+Shapely is a Python package for set-theoretic analysis and manipulation of
+planar features using (via Python's `ctypes` module) functions from the well
+known and widely deployed GEOS_ library. GEOS, a port of the `Java Topology
+Suite`_, is the geometry engine of the PostGIS_ spatial extension for the
+PostgreSQL RDBMS. The designs of JTS and GEOS are largely guided by the `Open
+Geospatial Consortium`_'s Simple Features Access Specification [1]_ and Shapely
+adheres mainly to the same set of standard classes and operations. Shapely is
+deeply rooted in the geographic information systems (GIS) world, but aspires to
+be equally useful to programmers working on non-tradtional problems.
+
+PostGIS is a cornerstone of open source GIS, but isn't necessarily a solution
+to all problems in the GIS domain. Not all geographic data originate or reside
+in a RDBMS or are best processed using SQL. Shapely aims to bring industrial
+strength computational geometry primitives to bear on programming problems
+better addressed in a object-oriented style. Imagine a situation where we would
+like to find or index a substring within another string. Is there overlap
+between the strings, and if so, what is it?  Or maybe we'd like to replace
+certain characters in a string with others. Now imagine that we're compelled to
+load the text strings from, say, a log file into a relational database to
+perform these operations because such string functions aren't available in a
+non-SQL context. No knock on the RDBMS, a tremendously useful thing, but if
+there's no mandate to manage (the "M" in "RDBMS") these strings over time in
+the database, we're using the wrong tool for the job in this imaginary
+scenario. Now, consider spatial entities like points, curves, and patches
+instead of character strings, and that they might originate not in the context
+of a traditional GIS, but from parsing and geocoding of texts or log files or
+from "social web" activities. If you agree that sometimes PostGIS (or another
+spatially-enabled RDBMS) is the wrong tool for your computational geometry job,
+Shapely might be for you.
 
 The premise of Shapely, or one of the premises, is that Python programmers
 should be able to perform PostGIS type geometry operations outside of an RDBMS.
 Another is that Python idioms trump GIS (or Java, in this case, since the GEOS
 library is derived from JTS, a Java project) idioms. Shapely, in a nutshell
-lets you do PostGIS-y stuff outside the context of a database using idiomatic
-Python.
+lets you do PostGIS-y stuff with geometries outside the context of a database
+using idiomatic Python. Computational geometry, with no extra baggage.
 
-By "PostGIS-y" we mean to say: "implements much of the Open Geospatial
-Consortium's Simple Feature Access specification [1]". Standard geometry types
-are implemented as Python classes and standard operations are implemented as
-properties or methods of those classes. Focussing strictly on planar geometry,
-Shapely isn't concerned with coordinate systems or other aspects of the
-standard GIS feature model, but neither does it stand in the way of
-applications where those concerns are important. Shapely has been designed to
-be less specific to the GIS domain to improve its potential for reuse in other
-applications such as games, image analysis, and even genomics.
+Spatial Data Model
+------------------
 
+The fundamental types of features implemented by Shapely are: points, curves,
+and surfaces. Each is associated with three sets of (possibly infinite) points
+in the plane. The `interior`, `boundary`, and `exterior` sets of a feature are
+mutually exclusive and their union coincides with the entire plane [2]_.
 
-Geometries
-==========
+* A `Point` has an `interior` set of exactly one point, a `boundary` set of
+  exactly no points, and an `exterior` set of all other points. A `Point` has
+  a topological dimension of 0.
 
-The standard GIS geometry model consists of single points, line strings (or
-polylines), polygons, homogeneous multi-point, multi-line string, and
-multi-polygon collections, and heterogeneous geometry collections. These types
-are illustrated below.
+* A `Curve` has an `interior` set consisting of the infinitely many points
+  along its length (imagine a `Point` dragged in space), a `boundary` set
+  consisting of its two end points, and an `exterior` set of all other points.
+  A `Curve` has a topological dimension of 1. 
 
-.. container:: figures
+* A `Surface` has an `interior` set consisting of the infinitely many points
+  within (imagine a `Curve` dragged in space to cover an area), a `boundary`
+  set consisting of one or more `Curves`, and an `exterior` set of all other
+  points including those within holes that might exist in the surface. A
+  `Surface` has a topological dimension of 2.
 
-  .. figure:: jts-point.png
-  
-     Point
-  
-  .. figure:: jts-multipoint.png
-  
-     MultiPoint
-  
-  .. figure:: jts-linestring.png
-  
-     LineString
-  
-  .. figure:: jts-multilinestring.png
-  
-     MultiLineString
-  
-  .. figure:: jts-polygon.png
-  
-     Polygon
-  
-  .. figure:: jts-multipolygon.png
-  
-     MultiPolygon
-  
-  .. figure:: jts-geometrycollection.png
-  
-     GeometryCollection
+That may seem a bit esoteric, but will help clarify the meanings of Shapely's
+spatial predicates, and it's as deep into theory as this manual will go.
+Consquences of point-set theory, including some that manifest themselves as
+"gotchas", for different classes will be discussed later in this manual.
 
-.. container:: clear
+The point type is implemented by a `Point` class; curve by the `LineString`
+and `LinearRing` classes; and surface by a `Polygon` class. Shapely implements
+no smoothly bending curves, circles, or ellipses. All curves must be
+approximated by linear splines (`LineStrings`). All rounded patches must be
+approximated by `Polygons`.
 
-   From: http://www.vividsolutions.com/jts/discussion.htm#spatialDataModel
+Collections of points are implemented by a `MultiPoint` class, collections of
+curves by a `MultiLineString` class, and collections of surfaces by a
+`MultiPolygon` class. These collections aren't computationally significant, but
+are useful for modeling certain kinds of features. A Y-shaped line feature,
+for example, is well modeled as a whole by a `MultiLineString`.
 
-Shapely 1.2 does not provide circles, spline curves, or their two dimensional
-(patch-like) counterparts. Circular patches must be approximated by polygons.
+.. image:: complex-line.png
+   :class: bordered-figure
+
+The standard data model has additional constraints specific to certain types
+of features that will be discussed in following sections of this manual.
+
+See also http://www.vividsolutions.com/jts/discussion.htm#spatialDataModel
+for more illustrations of this data model.
+
+Relationships
+-------------
+
+The spatial data model is accompanied by a group of natural language
+relationships among features – `contains`, `intersects`, `overlaps`, `touches`,
+etc – and a theoretical framework for understanding them using the 3x3 matrix
+of the mutual intersections of their component point sets [2]_: the DE-9IM. A
+comprehensive review of the relationships in terms of the DE-9IM is found in
+[4]_ and will not be reiterated in this manual.
+
+Operations
+----------
+
+Following the JTS technical specs [5]_, this manual will make a distinction
+between constructive (`buffer`, `convex hull`) and set-theoretic operations
+(`intersection`, `union`, etc). The individual operations will be fully
+described in a following section of the manual.
+
+Coordinate Systems
+------------------
+
+Even though the Earth is not flat – and for that matter not exactly spherical –
+there are many analytic problems that can be approached by transforming the
+geometries of Earth features to a Cartesian plane, applying tried and true
+algorithms, and then transforming the results back to geographic coordinates.
+This practice is as old as the tradition of accurate paper maps.
+
+Shapely does not support coordinate system transformations. All operations on
+two or more features presume that the features exist in the same unitless
+Cartesian plane.
 
 Creating Geometries
--------------------
+===================
 
 Geometries can be created in the typical Python fashion, using the geometry
 classes themselves as factories. 
@@ -126,7 +173,7 @@ defining lines or rings.
 Numeric values passed to geometry factories are converted to type `float`.
 
 Points
-++++++
+------
 
 The point factory *Point* takes a coordinate sequence parameter
 
@@ -151,7 +198,7 @@ Example:
   POINT (0.0000000000000000 0.0000000000000000)
 
 LineStrings
-+++++++++++
+-----------
 
 To create a line string, pass in an ordered sequence of coordinate sequences:
 
@@ -169,7 +216,7 @@ Example:
 
 
 Polygons
-++++++++
+--------
 
 A polygon with only an exterior boundary and no holes is created by passing the sequence representation of a closed ring
 
@@ -197,12 +244,8 @@ Rings *must* be non-crossing, ordered coordinate sequences. The order may be
 clockwise or counter-clockwise. The resulting topology is independent of the
 order.
 
-
-Multipart Geometry Factories
-----------------------------
-
 MultiPoints
-+++++++++++
+-----------
 
 An *N*\ -point geometry is created by passing an unordered sequence of
 coordinate sequences [**c**\ 1, ..., **c**\ N]
@@ -213,7 +256,7 @@ coordinate sequences [**c**\ 1, ..., **c**\ N]
   >>> points = MultiPoint([c1, ..., cN])
 
 MultiLineStrings
-++++++++++++++++
+----------------
 
 A multi-line geometry is created by passing a sequence of representations of
 lines
@@ -224,7 +267,7 @@ lines
   >>> lines = MultiLineString([(a1, ..., aM), (b1, ..., bN), ...])
 
 MultiPolygons
-+++++++++++++
+-------------
 
 A multi-polygon geometry is created by passing a sequence of exterior ring and
 hole list tuples 
@@ -242,7 +285,6 @@ holes) makes usage more clear
   >>> shell = (a1, ..., aM)
   >>> holes = [(b1, ..., bN), ...]
   >>> lines = MultiPolygon([(shell, holes), ...])
-
 
 Null Geometries
 ---------------
@@ -268,8 +310,8 @@ the geometry is no longer null.
   1.414...
 
 
-Constructive Spatial Analysis Methods
--------------------------------------
+Constructive Operations
+=======================
 
 There are methods of geometry classes that also serve as factories for new
 geometries. It is important to note that these are topological and not
@@ -282,7 +324,7 @@ See also the JTS |illustration2|_.
 .. _illustration2: http://www.jump-project.org/project.php?PID=JTS&SID=OVER#spatialanalysismethods
 
 Example Geometries
-++++++++++++++++++
+------------------
 
 .. sourcecode:: python
 
@@ -295,7 +337,7 @@ Example Geometries
   >>> line_b = LineString(((-1.8, -1.2), (1.8, 0.5)))
 
 Buffer
-++++++
+------
 
 .buffer(width, quadsegs=16) : geometry
   Returns a buffer region having the given width and with a specified number of
@@ -316,7 +358,7 @@ The default result of buffering a point is an N-gon approximation of a circle:
   66
 
 Simplify
-++++++++
+--------
 
 .simplify(width, tolerance, preserve_topology=True) : geometry
   
@@ -341,7 +383,7 @@ Simplify
   17
 
 Boundary
-++++++++
+--------
 
 .boundary : geometry
   Returns a lower dimension geometry. The boundary of a polygon is a line, the
@@ -358,7 +400,7 @@ Boundary
   True
 
 Centroid
-++++++++
+--------
 
 .centroid : geometry
   Returns the centroid, or geometric center of the polygon.
@@ -370,7 +412,7 @@ Centroid
   'POINT (-0.0000000000000000 -0.0000000000000000)'
 
 Convex Hull
-+++++++++++
+-----------
 
 .convex_hull : geometry
   Imagine an elastic band stretched around the geometry: that's a convex hull,
@@ -386,8 +428,11 @@ triangular polygon that is their convex hull:
   >>> multi_point.convex_hull
   <shapely.geometry.polygon.Polygon object at ...>
 
+Set-theoretic Operations
+========================
+
 Difference
-++++++++++
+----------
 
 .difference(other) : geometry
   Returns a geometry representing the points making up this geometry that do
@@ -401,7 +446,7 @@ Difference
   <shapely.geometry.polygon.Polygon object at ...>
 
 Envelope
-++++++++
+--------
 
 .envelope : geometry
   Returns the geometry's rectangular polygon envelope.
@@ -412,7 +457,7 @@ Envelope
   <shapely.geometry.polygon.Polygon object at ...>
 
 Intersection
-++++++++++++
+------------
 
 .intersection(other) : geometry
   Returns the intersection of one geometry and the *other* geometry.
@@ -423,7 +468,7 @@ Intersection
   <shapely.geometry.polygon.Polygon object at ...>
 
 Symmetric Difference
-++++++++++++++++++++
+--------------------
 
 .symmetric_difference(other) : geometry
   Returns a geometry combining the points in this geometry not in *other*, and
@@ -435,7 +480,7 @@ Symmetric Difference
   <shapely.geometry.multipolygon.MultiPolygon object at ...>
 
 Union
-+++++
+-----
 
 .union(other) : geometry
   Returns the union of one geometry and the *other* geometry.
@@ -451,10 +496,10 @@ not:
 
 
 Other Operations
-----------------
+================
 
 Polygonization
-++++++++++++++
+--------------
 
 shapely.ops.polygonize(lines) : iterator
   Returns an iterator over polygons constructed from the *lines* iterator. The
@@ -476,7 +521,7 @@ shapely.ops.polygonize(lines) : iterator
   [<shapely.geometry.polygon.Polygon object at ...>, <shapely.geometry.polygon.Polygon object at ...>]
 
 Line merging
-++++++++++++
+------------
 
 shapely.ops.linemerge(lines) : iterator or MultiLineString
   Merges all connected lines. Returns a LineString or MultiLineString when
@@ -494,12 +539,12 @@ shapely.ops.linemerge(lines) : iterator or MultiLineString
 
 
 Unary Spatial Predicates
-------------------------
+========================
 
 These are implemented as Python attributes.
 
 Is Empty
-++++++++
+--------
 
 .is_empty : bool
   True if the set of points in this geometry is empty, else False. For more
@@ -507,7 +552,7 @@ Is Empty
   http://geos.refractions.net/ro/doxygen_docs/html/classgeos_1_1geom_1_1Geometry.html#a17.  
 
 Is Valid
-++++++++
+--------
 
 .is_valid : bool
   True if the geometry is valid (definition depends on sub-class), else False.
@@ -515,20 +560,20 @@ Is Valid
   http://geos.refractions.net/ro/doxygen_docs/html/classgeos_1_1geom_1_1Geometry.html#a16.
 
 Is Ring
-+++++++
+-------
 
 .is_ring : bool
   True if the geometry is a closed ring, else False.
 
 Has Z
-+++++
+-----
 
 .has_z : bool
   True if the geometry's coordinate sequence(s) have z values (are
   3-dimensional)
 
 Examples
-++++++++
+--------
 
 .. sourcecode:: python
 
@@ -547,7 +592,7 @@ Examples
 
 
 Binary Spatial Predicates
--------------------------
+=========================
 
 All of these methods take a single positional argument, an *other* geometry. It
 is important to note that these are topological and not point-wise operations,
@@ -555,7 +600,7 @@ and therefore may produce results that are not what one might expect from
 operations on Python.
 
 Contains
-++++++++
+--------
 
 .contains(other) : bool
   True if the geometry is spatially within, without touching. Applies to all
@@ -567,7 +612,7 @@ Contains
   True
 
 Crosses
-+++++++
+-------
 
 .crosses(other) : bool
   Only linear geometries (lines, rings, polygon boundaries) may ever cross. No
@@ -579,7 +624,7 @@ Crosses
   True
 
 Disjoint
-++++++++
+--------
 
 .disjoint(other) : bool
   True if geometries do not spatially relate in any way, else False. See the
@@ -591,7 +636,7 @@ Disjoint
   True
 
 Equals
-++++++
+------
 
 .equals(other) : bool
   Two geometries are topologically equal if their interiors intersect and no
@@ -599,7 +644,7 @@ Equals
   the other. Not to be confused with Python's *__equals__*.
 
 Intersects
-++++++++++
+----------
 
 .intersects(other) : bool
   This predicate is the complement of *disjoint*: geometries that do not
@@ -611,7 +656,7 @@ Intersects
   True
 
 Touches
-+++++++
+-------
 
 .touches(other) : bool
   True if geometries *only* touch. The least inclusive predicate.
@@ -624,17 +669,17 @@ Touches
   False
 
 Within
-++++++
+------
 
 .within(other): bool
   The inverse of *contains*.
 
 
 General Methods
----------------
+===============
 
 Distance
-++++++++
+--------
 
 .distance(other) : geometry
   The minimum distance from one geometry to the other.
@@ -646,30 +691,30 @@ Distance
 
 
 Scalar Properties
------------------
+=================
 
 Area
-++++
+----
 
 .area : float
   Area of the geometry, unitless. Non-zero only for surfaces (polygons,
   multi-polygons).
 
 Bounds
-++++++
+------
 
 .bounds : tuple
   The geometry's (minx, miny, maxx, maxy) bounding box.
 
 Length
-++++++
+------
 
 .length : float
   Length of the geometry, unitless. Non-zero only for linear geometries
   (line strings, rings, polygon boundaries)
 
 Examples
-++++++++
+--------
 
 .. sourcecode:: python
 
@@ -1024,4 +1069,34 @@ Eric Lemoine (Camptocamp SA) and ctypes tips from Justin Bronn (GeoDjango).
 .. _PostGIS: http://postgis.refractions.net
 .. _record: http://pypi.python.org/pypi/Shapely
 .. _wiki: http://trac.gispython.org/lab/wiki/Shapely
+.. _Open Geospatial Consortium: http://wwww.opengeospatial.org/
+.. _Davis: http://lin-ear-th-inking.blogspot.com/2007/06/subtleties-of-ogc-covers-spatial.html
+.. _Understanding spatial relations: http://edndoc.esri.com/arcsde/9.1/general_topics/understand_spatial_relations.htm
+.. _Strobl-PDF: http://gis.hsr.ch/wiki/images/3/3d/9dem_springer.pdf
+.. |Strobl-PDF| replace:: PDF
+.. _JTS-PDF: http://www.vividsolutions.com/jts/bin/JTS%20Technical%20Specs.pdf
+.. |JTS-PDF| replace:: PDF
+
+References
+==========
+
+.. [1] John R. Herring, Ed.,
+   “OpenGIS Implementation Specification for Geographic information - Simple
+   feature access - Part 1: Common architecture,” Oct. 2006.
+
+.. [2] M.J. Egenhofer and John R. Herring, 
+   Categorizing Binary Topological Relations Between Regions, Lines, and Points
+   in Geographic Databases,  Orono, ME: University of Maine, 1991.
+
+.. [3] E. Clementini, P. Di Felice, and P. van OOsterom,
+   “A Small Set of Formal Topological Relationships Suitable for End-User
+   Interaction,” Third International Symposium on Large Spatial Databases
+   (SSD). Lecture Notes in Computer Science no. 692, David Abel and Beng Chin
+   Ooi, Eds.,  Singapore: Springer Verlag, 1993, pp. 277-295.
+
+.. [4] C. Strobl, “Dimensionally Extended Nine-Intersection Model (DE-9IM),”
+   Encyclopedia of GIS, S. Shekhar and H. Xiong, Eds.,
+   Springer, 2008, pp. 240-245. [|Strobl-PDF|_]
+
+.. [5] Martin Davis, “JTS Technical Specifications,” Mar. 2003. [|JTS-PDF|_]
 
