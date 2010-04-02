@@ -34,7 +34,10 @@ def geos_multipoint_from_py(ob):
     except AttributeError:
         # Fall back on list
         m = len(ob)
-        n = len(ob[0])
+        try:
+            n = len(ob[0])
+        except TypeError:
+            n = ob[0]._ndim
         assert n == 2 or n == 3
 
         # Array of pointers to point geometries

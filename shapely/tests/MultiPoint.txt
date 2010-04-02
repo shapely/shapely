@@ -4,7 +4,7 @@ MultiPoints
 Initialization
 --------------
 
-  >>> from shapely.geometry import MultiPoint
+  >>> from shapely.geometry import Point, MultiPoint
 
 Construct from a numpy array
 
@@ -24,6 +24,14 @@ From coordinate tuples
   2
   >>> geom.wkt
   'MULTIPOINT (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)'
+
+From points
+
+  >>> geom = MultiPoint((Point(1.0, 2.0), Point(3.0, 4.0)))
+  >>> len(geom.geoms)
+  2
+  >>> print geom.wkt
+  MULTIPOINT (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)
 
 
 Sub-geometry Access

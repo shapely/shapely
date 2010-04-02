@@ -100,18 +100,15 @@ Consquences of point-set theory, including some that manifest themselves as
 
 The point type is implemented by a `Point` class; curve by the `LineString`
 and `LinearRing` classes; and surface by a `Polygon` class. Shapely implements
-no smoothly bending curves, circles, or ellipses. All curves must be
-approximated by linear splines (`LineStrings`). All rounded patches must be
-approximated by `Polygons`.
+no smooth (`i.e.` having continuous tangents) curves. All curves must be
+approximated by linear splines. All rounded patches must be
+approximated by regions bounded by linear splines.
 
 Collections of points are implemented by a `MultiPoint` class, collections of
 curves by a `MultiLineString` class, and collections of surfaces by a
 `MultiPolygon` class. These collections aren't computationally significant, but
-are useful for modeling certain kinds of features. A Y-shaped line feature,
-for example, is well modeled as a whole by a `MultiLineString`.
-
-.. image:: complex-line.png
-   :class: bordered-figure
+are useful for modeling certain kinds of features. A Y-shaped line feature, for
+example, is well modeled as a whole by a `MultiLineString`.
 
 The standard data model has additional constraints specific to certain types
 of features that will be discussed in following sections of this manual.
@@ -141,119 +138,242 @@ Coordinate Systems
 ------------------
 
 Even though the Earth is not flat – and for that matter not exactly spherical –
-there are many analytic problems that can be approached by transforming the
-geometries of Earth features to a Cartesian plane, applying tried and true
-algorithms, and then transforming the results back to geographic coordinates.
-This practice is as old as the tradition of accurate paper maps.
+there are many analytic problems that can be approached by transforming Earth
+features to a Cartesian plane, applying tried and true algorithms, and then
+transforming the results back to geographic coordinates.  This practice is as
+old as the tradition of accurate paper maps.
 
 Shapely does not support coordinate system transformations. All operations on
 two or more features presume that the features exist in the same unitless
 Cartesian plane.
 
-Creating Geometries
-===================
+Geometric Features and their Properties
+=======================================
 
-Geometries can be created in the typical Python fashion, using the geometry
-classes themselves as factories. 
+Features are created in the typical Python fashion, using the classes
+themselves as instance factories. 
 
-Point and LineString (and LinearRing) geometries have coordinate sequences.
-Coordinate sequences are immutable. Geometries are mutable in that they can be
-assigned new coordinate sequences.
+Instances of `Point`, `LineString`, and `LinearRing` have coordinate sequences.
+Coordinate sequences are immutable. Their parent features are mutable in that
+they can be assigned new coordinate sequences. A third `z` coordinate value may
+be used when constructing features, but has no effect on geometric analysis.
+All operations are performed in the `x-y` plane.
 
-A third `z` coordinate value may be used when constructing geometries, but it
-has no effect on geometry analysis. All operations are performed in the x-y
-plane.
+In all constructors, numeric values are converted to type `float`. In other
+words, ``Point(0, 0)`` and ``Point(0.0, 0.0)`` produce geometrically equivalent
+instances.
 
-Pseudo-code blocks in this section will use the following notation. Let **a**
-be a Cartesian *x*, *y*, and optional *z* coordinate sequence. The coordinates
-values must be numeric types. Let (**a**\ 1, ..., **a**\ M) and (**b**\ 1, ...,
-**b**\ N) be ordered sequences of *M* and *N* such coordinate sequences,
-defining lines or rings.
-
-Numeric values passed to geometry factories are converted to type `float`.
+Pseudo-code blocks in this section will use the following notation. Let `a` be
+a point in Cartesian coordinates, represented by a Python tuple of 2 (``(x,
+y)``) or 3 (``(x, y, z)``) numerical values. Let `(a1, ..., aM)` and `(b1, ...,
+bN)` be ordered sequences of `M` and `N` such points, defining the vertices of
+a `curve`.
 
 Points
 ------
 
-The point factory *Point* takes a coordinate sequence parameter
+The `Point` constructor takes a point tuple or positional coordinate value
+parameters.
 
-.. sourcecode:: python
+.. sourcecode:: pycon
 
   >>> from shapely.geometry import Point
-  >>> point = Point(a)
+  >>> p = Point((0.0, 0.0))
+  >>> q = Point(0.0, 0.0)
 
-The alternate form is to pass individual coordinate parameters
+A `Point` has zero area and zero length.
 
-.. sourcecode:: python
+.. sourcecode:: pycon
 
-  >>> point = Point(x0, y0 [, z0])
+  >>> p.area
+  0.0
+  >>> p.length
+  0.0
 
-Example:
+Coordinate values are accessed via `coords`, `x`, `y`, and `z` properties.
 
-.. sourcecode:: python
+.. sourcecode:: pycon
 
-  >>> print Point((0, 0))
-  POINT (0.0000000000000000 0.0000000000000000)
-  >>> print Point(0, 0)
-  POINT (0.0000000000000000 0.0000000000000000)
+  >>> list(p.coords)
+  [(0.0, 0.0)]
+  >>> p.x
+  0.0
+  >>> p.y
+  0.0
 
+The `Point` constructor also accepts another `Point` instance, thereby making
+a copy.
+
+.. sourcecode:: pycon
+
+  >>> Point(p)
+  <shapely.geometry.point.Point object at 0x...>
+  
 LineStrings
 -----------
 
-To create a line string, pass in an ordered sequence of coordinate sequences:
+The `LineString` constructor takes an ordered sequence of point tuples.
 
-.. sourcecode:: python
+.. sourcecode:: pycon
 
   >>> from shapely.geometry import LineString
   >>> line = LineString((a1, ..., aM))
 
-Example:
+Repeating points in the ordered sequence are allowed, but may incur performance
+penalties and should be avoided. A `LineString` may cross itself (*i.e.* be
+`complex` and not `simple`).
 
-.. sourcecode:: python
+A `LineString` has zero area and non-zero length.
 
-  >>> print LineString([(0, 0), (1, 1)])
-  LINESTRING (0.0000000000000000 0.0000000000000000, 1.0000000000000000 1.0000000000000000)
+.. sourcecode:: pycon
 
+  >>> l = LineString([(0, 0), (1, 1)])
+  >>> l.area
+  0.0
+  >>> l.length
+  1.4142135623730951
+
+Coordinate values are accessed via the `coords` property.
+
+.. sourcecode:: pycon
+
+  >>> len(l.coords)
+  2
+  >>> list(l.coords)
+  [(0.0, 0.0), (1.0, 1.0)]
+
+The `LineString` constructor also accepts another `LineString` instance,
+thereby making a copy.
+
+.. sourcecode:: pycon
+
+  >>> LineString(l)
+  <shapely.geometry.linestring.LineString object at 0x...>
+
+A sequence of `Point` instances is not a valid constructor parameter.
+
+LinearRings
+-----------
+
+The `LinearRing` constructor takes an ordered sequence of point tuples. The
+sequence may be explicitly closed by passing identical values in the first and
+last indices. Otherwise, the sequence will be implicitly closed.
+
+.. sourcecode:: pycon
+
+  >>> from shapely.geometry.polygon import LinearRing
+  >>> ring = LinearRing((a1, ..., aM))
+
+Repeating points in the ordered sequence are allowed, but may incur performance
+penalties and should be avoided. A `LinearRing` may not cross itself, and may
+not touch itself at a single point. Note that Shapely will not prevent the
+creation of such rings, but exceptions will be raised when they are operated
+on.
+
+A `LinearRing` has zero area and non-zero length.
+
+.. sourcecode:: pycon
+
+  >>> r = LinearRing([(0, 0), (1, 1), (1, 0)])
+  >>> r.area
+  0.0
+  >>> r.length
+  3.4142135623730949
+
+Coordinate values are accessed via the `coords` property.
+
+.. sourcecode:: pycon
+
+  >>> len(r.coords)
+  4
+  >>> list(r.coords)
+  [(0.0, 0.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)]
+
+The `LinearRing` constructor also accepts another `LineString` or `LinearRing`
+instance, thereby making a copy.
+
+.. sourcecode:: pycon
+
+  >>> LinearRring(r)
+  <shapely.geometry.polygon.LinearRing object at 0x...>
+  
+A sequence of `Point` instances is not a valid constructor parameter.
 
 Polygons
 --------
 
-A polygon with only an exterior boundary and no holes is created by passing the sequence representation of a closed ring
+The `Polygon` constructor takes two positional parameters. The first is an
+ordered sequence of point tuples and is treated exactly as in the `LinearRing`
+case. The second is an optional unordered sequence of ring-like sequences
+specifying the interior boundaries or "holes" of the feature.
 
-.. sourcecode:: python
+.. sourcecode:: pycon
 
   >>> from shapely.geometry import Polygon
-  >>> polygon = Polygon((a1, ..., aM))
-
-If **a**\ 1 is not exactly equal to **a**\ M, the factory will close the ring.
-The following (unit square) polygons are therefore topologically equal
-
-.. sourcecode:: python
-
-  >>> polygon1 = Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
-  >>> polygon2 = Polygon(((0, 0), (0, 1), (1, 1), (1, 0)))
-  
-To create a polygon with interior boundaries pass a sequence of rings to the
-second parameter (*holes*)
-
-.. sourcecode:: python
-
   >>> polygon = Polygon((a1, ..., aM), [(b1, ..., bN), ...])
 
-Rings *must* be non-crossing, ordered coordinate sequences. The order may be
-clockwise or counter-clockwise. The resulting topology is independent of the
-order.
+`Polygon` rings may not cross each other, but may touch at single points.
+Again,Shapely will not prevent the creation of such features, but exceptions
+will be raised when they are operated on.
+
+A `Polygon` has non-zero area and non-zero length.
+
+.. sourcecode:: pycon
+
+  >>> p = Polygon([(0, 0), (1, 1), (1, 0)])
+  >>> p.area
+  0.5
+  >>> p.length
+  3.4142135623730949
+
+Component rings are accessed via `exterior` and `interiors` properties.
+
+.. sourcecode:: pycon
+
+  >>> list(p.exterior.coords)
+  [(0.0, 0.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)]
+  >>> list(p.interiors)
+  []
+
+The `Polygon` constructor also accepts instances of `LineString` and
+`LinearRing`.
+
+.. sourcecode:: pycon
+
+  >>> xy = [(0, 0), (1, 1), (1, 0)]
+  >>> r = LinearRing(xy)
+  >>> s = Polygon(r)
+  >>> s.area
+  0.5  
+  >>> t = Polygon(s.buffer(1.0).exterior, [r])
+  >>> t.area
+  6.5507620529190334
 
 MultiPoints
 -----------
 
-An *N*\ -point geometry is created by passing an unordered sequence of
-coordinate sequences [**c**\ 1, ..., **c**\ N]
+The `MultiPoint` constructor takes an ordered sequence of point tuples.
 
-.. sourcecode:: python
+.. sourcecode:: pycon
 
   >>> from shapely.geometry import MultiPoint
   >>> points = MultiPoint([c1, ..., cN])
+
+Members of a multi-point collection are accessed via the `geoms` property.
+
+.. sourcecode:: pycon
+
+  >>> mp = MultiPoint([(0, 0), (1, 1)])
+  >>> list(mp.geoms)
+  [<shapely.geometry.point.Point object at 0x...>, <shapely.geometry.point.Point object at 0x...>]
+
+The `MultiPoint` constructor also accepts an unordered sequence of `Point`
+instances, thereby making copies.
+
+.. sourcecode:: pycon
+
+  >>> MultiPoint([Point(0, 0), Point(1, 1)])
+  <shapely.geometry.multipoint.MultiPoint object at 0x...>
 
 MultiLineStrings
 ----------------

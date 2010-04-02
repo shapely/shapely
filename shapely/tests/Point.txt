@@ -1,8 +1,9 @@
+Testing Point
+=============
 
   >>> from shapely.geometry import Point
 
 Test 2D points
---------------
 
   >>> p = Point(0.0, 0.0)
   >>> str(p)
@@ -11,7 +12,6 @@ Test 2D points
   'POINT (0.0000000000000000 0.0000000000000000)'
     
 Check 3D
---------
 
   >>> p = Point(0.0, 0.0, 1.0)
   >>> p.z
@@ -22,7 +22,6 @@ Check 3D
   'POINT (0.0000000000000000 0.0000000000000000)'
 
 Construct from a numpy array
-----------------------------
 
   >>> from numpy import array
   >>> p = Point(array([1.0, 2.0]))
@@ -30,11 +29,16 @@ Construct from a numpy array
   'POINT (1.0000000000000000 2.0000000000000000)'
 
 From coordinate sequence
-------------------------
 
   >>> p = Point((3.0, 4.0))
   >>> p.wkt
   'POINT (3.0000000000000000 4.0000000000000000)'
+
+From another point
+
+  >>> q = Point(p)
+  >>> print p.wkt
+  POINT (3.0000000000000000 4.0000000000000000)
 
 Coordinate access
 -----------------

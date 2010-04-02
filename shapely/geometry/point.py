@@ -24,14 +24,22 @@ def geos_point_from_py(ob, update_geom=None, update_ndim=0):
         n = array['shape'][0]
         assert n == 2 or n == 3
 
-        cdata = array['data'][0]
-        cp = cast(cdata, POINTER(c_double))
-        dx = c_double(cp[0])
-        dy = c_double(cp[1])
         dz = None
-        if n == 3:
-            dz = c_double(cp[2])
-            ndim = 3
+        da = array['data']
+        if type(da) == type((0,)):
+            cdata = da[0]
+            cp = cast(cdata, POINTER(c_double))
+            dx = c_double(cp[0])
+            dy = c_double(cp[1])
+            if n == 3:
+                dz = c_double(cp[2])
+                ndim = 3
+        else:
+            dx, dy = da[0:2]
+            if n == 3:
+                dz = da[2]
+                ndim = 3
+
     except AttributeError:
         # Fall back on the case of Python sequence data
         # Accept either (x, y) or [(x, y)]
