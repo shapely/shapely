@@ -308,7 +308,11 @@ def geos_polygon_from_py(shell, holes=None):
         if holes:
             ob = holes
             L = len(ob)
-            N = len(ob[0][0])
+            exemplar = ob[0]
+            try:
+                N = len(exemplar[0])
+            except TypeError:
+                N = exemplar._ndim
             assert L >= 1
             assert N == 2 or N == 3
 
