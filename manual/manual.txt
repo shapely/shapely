@@ -151,7 +151,9 @@ Geometric Features and their Properties
 =======================================
 
 Features are created in the typical Python fashion, using the classes
-themselves as instance factories. 
+themselves as instance factories. A few of their intrinsic properties will be
+discussed in this sections, others in the following sections on operations and
+serializations. 
 
 Instances of `Point`, `LineString`, and `LinearRing` have coordinate sequences.
 Coordinate sequences are immutable. Their parent features are mutable in that
@@ -219,7 +221,7 @@ The `LineString` constructor takes an ordered sequence of point tuples.
   >>> from shapely.geometry import LineString
   >>> line = LineString((a1, ..., aM))
 
-Repeating points in the ordered sequence are allowed, but may incur performance
+Repeated points in the ordered sequence are allowed, but may incur performance
 penalties and should be avoided. A `LineString` may cross itself (*i.e.* be
 `complex` and not `simple`).
 
@@ -242,29 +244,31 @@ Coordinate values are accessed via the `coords` property.
   >>> list(l.coords)
   [(0.0, 0.0), (1.0, 1.0)]
 
-The `LineString` constructor also accepts another `LineString` instance,
-thereby making a copy.
+The constructor also accepts another `LineString` instance, thereby making a
+copy.
 
 .. sourcecode:: pycon
 
   >>> LineString(l)
   <shapely.geometry.linestring.LineString object at 0x...>
 
-A sequence of `Point` instances is not a valid constructor parameter.
+A sequence of `Point` instances is not a valid constructor parameter. A
+`LineString` is not composed of `Point` instances.
 
 LinearRings
 -----------
 
 The `LinearRing` constructor takes an ordered sequence of point tuples. The
 sequence may be explicitly closed by passing identical values in the first and
-last indices. Otherwise, the sequence will be implicitly closed.
+last indices. Otherwise, the sequence will be implicitly closed by copying the
+first tuple to the last index.
 
 .. sourcecode:: pycon
 
   >>> from shapely.geometry.polygon import LinearRing
   >>> ring = LinearRing((a1, ..., aM))
 
-Repeating points in the ordered sequence are allowed, but may incur performance
+Repeated points in the ordered sequence are allowed, but may incur performance
 penalties and should be avoided. A `LinearRing` may not cross itself, and may
 not touch itself at a single point. Note that Shapely will not prevent the
 creation of such rings, but exceptions will be raised when they are operated
@@ -297,7 +301,8 @@ instance, thereby making a copy.
   >>> LinearRring(r)
   <shapely.geometry.polygon.LinearRing object at 0x...>
   
-A sequence of `Point` instances is not a valid constructor parameter.
+As with `LineString`, a sequence of `Point` instances is not a valid
+constructor parameter.
 
 Polygons
 --------
@@ -313,7 +318,7 @@ specifying the interior boundaries or "holes" of the feature.
   >>> polygon = Polygon((a1, ..., aM), [(b1, ..., bN), ...])
 
 `Polygon` rings may not cross each other, but may touch at single points.
-Again,Shapely will not prevent the creation of such features, but exceptions
+Again, Shapely will not prevent the creation of such features, but exceptions
 will be raised when they are operated on.
 
 A `Polygon` has non-zero area and non-zero length.
@@ -359,16 +364,27 @@ The `MultiPoint` constructor takes an ordered sequence of point tuples.
   >>> from shapely.geometry import MultiPoint
   >>> points = MultiPoint([c1, ..., cN])
 
+A `MultiPoint` has zero area and zero length.
+
+.. sourcecode:: pycon
+
+  >>> points.area
+  0.0
+  >>> points.length
+  0.0
+
 Members of a multi-point collection are accessed via the `geoms` property.
 
 .. sourcecode:: pycon
 
   >>> mp = MultiPoint([(0, 0), (1, 1)])
-  >>> list(mp.geoms)
-  [<shapely.geometry.point.Point object at 0x...>, <shapely.geometry.point.Point object at 0x...>]
+  >>> import pprint
+  >>> pprint.pprint(list(mp.geoms))
+  [<shapely.geometry.point.Point object at 0x...>,
+   <shapely.geometry.point.Point object at 0x...>]
 
-The `MultiPoint` constructor also accepts an unordered sequence of `Point`
-instances, thereby making copies.
+The constructor also accepts another `MultiPoint` instance or an unordered
+sequence of `Point` instances, thereby making copies.
 
 .. sourcecode:: pycon
 
@@ -378,13 +394,44 @@ instances, thereby making copies.
 MultiLineStrings
 ----------------
 
-A multi-line geometry is created by passing a sequence of representations of
-lines
+The `MultiLineString` constructor takes an unordered sequence of line-like
+sequences.
 
-.. sourcecode:: python
+.. sourcecode:: pycon
 
   >>> from shapely.geometry import MultiLineString
   >>> lines = MultiLineString([(a1, ..., aM), (b1, ..., bN), ...])
+
+A `MultiLineString` has zero area and non-zero length.
+
+.. sourcecode:: pycon
+
+  >>> xy = [((0, 0), (1, 1)), ((-1, 0), (1, 0))]
+  >>> ml = MultiLineString(xy)
+  >>> ml.area
+  0.0
+  >>> ml.length
+  3.4142135623730949
+
+Its members are instances of `LineString` and are accessed via the `geoms`
+property.
+
+.. sourcecode:: pycon
+
+  >>> len(ml.geoms)
+  2
+  >>> pprint.pprint(list(ml.geoms))
+  [<shapely.geometry.linestring.LineString object at 0x...>,
+   <shapely.geometry.linestring.LineString object at 0x...>]
+  
+The constructor also accepts another instance of `MultiLineString` or an unordered sequence of `LineString` instances, thereby making copies.
+
+.. sourcecode:: pycon
+
+  >>> MultiLineString(ml)
+  <shapely.geometry.multilinestring.MultiLineString object at 0x...>
+  >>> MultiLineString(ml.geoms)
+  <shapely.geometry.multilinestring.MultiLineString object at 0x...>
 
 MultiPolygons
 -------------

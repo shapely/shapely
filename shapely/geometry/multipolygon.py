@@ -27,14 +27,25 @@ def geos_multipolygon_from_py(ob):
 
 def geos_multipolygon_from_polygons(ob):
     """ob must be either a sequence or array of sequences or arrays."""
-    L = len(ob)
-    N = len(ob[0][0][0])
+    obs = getattr(ob, 'geoms', None) or ob
+    L = len(obs)
+    exemplar = obs[0]
+    try:
+        N = len(exemplar[0][0])
+    except TypeError:
+        N = exemplar._ndim
     assert L >= 1
     assert N == 2 or N == 3
 
     subs = (c_void_p * L)()
     for l in xrange(L):
-        geom, ndims = geos_polygon_from_py(ob[l][0], ob[l][1])
+        shell = getattr(obs[l], 'exterior', None)
+        if shell is None:
+            shell = obs[l][0]
+        holes = getattr(obs[l], 'interiors', None)
+        if holes is None:
+            holes =  obs[l][1]
+        geom, ndims = geos_polygon_from_py(shell, holes)
         subs[l] = cast(geom, c_void_p)
             
     return (lgeos.GEOSGeom_createCollection(6, subs, L), N)

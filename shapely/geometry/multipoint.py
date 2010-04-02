@@ -2,6 +2,7 @@
 """
 
 from ctypes import byref, c_double, c_void_p, cast, POINTER
+from ctypes import ArgumentError
 
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseMultipartGeometry, exceptNull
@@ -22,7 +23,10 @@ def geos_multipoint_from_py(ob):
         assert n == 2 or n == 3
 
         # Make pointer to the coordinate array
-        cp = cast(array['data'][0], POINTER(c_double))
+        try:
+            cp = cast(array['data'][0], POINTER(c_double))
+        except ArgumentError:
+            cp = array['data']
 
         # Array of pointers to sub-geometries
         subs = (c_void_p * m)()

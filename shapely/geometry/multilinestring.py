@@ -30,11 +30,14 @@ def geos_multilinestring_from_py(ob):
             geom, ndims = geos_linestring_from_py(array['data'][l])
             subs[i] = cast(geom, c_void_p)
         N = lgeos.GEOSGeom_getDimensions(subs[0])
-
-    except AttributeError:
-        # Fall back on list
-        L = len(ob)
-        N = len(ob[0][0])
+    except (NotImplementedError, AttributeError):
+        obs = getattr(ob, 'geoms', ob)
+        L = len(obs)
+        exemplar = obs[0]
+        try:
+            N = len(exemplar[0])
+        except TypeError:
+            N = exemplar._ndim
         assert L >= 1
         assert N == 2 or N == 3
 
@@ -43,7 +46,7 @@ def geos_multilinestring_from_py(ob):
         
         # add to coordinate sequence
         for l in xrange(L):
-            geom, ndims = geos_linestring_from_py(ob[l])
+            geom, ndims = geos_linestring_from_py(obs[l])
             subs[l] = cast(geom, c_void_p)
             
     return (lgeos.GEOSGeom_createCollection(5, subs, L), N)

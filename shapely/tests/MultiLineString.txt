@@ -4,7 +4,7 @@ MultiLineStrings
 Initialization
 --------------
 
-  >>> from shapely.geometry import MultiLineString
+  >>> from shapely.geometry import LineString, MultiLineString
 
 From coordinate tuples
 
@@ -26,6 +26,23 @@ Construct from a numpy array
   1
   >>> geom.wkt
   'MULTILINESTRING ((0.0000000000000000 0.0000000000000000, 1.0000000000000000 2.0000000000000000))'
+
+From lines
+
+  >>> a = LineString(((1.0, 2.0), (3.0, 4.0)))
+  >>> ml = MultiLineString([a])
+  >>> len(ml.geoms)
+  1
+  >>> print ml.wkt
+  MULTILINESTRING ((1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000))
+
+From another multi-line
+
+  >>> ml2 = MultiLineString(ml)
+  >>> len(ml2.geoms)
+  1
+  >>> print ml2.wkt
+  MULTILINESTRING ((1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000))
 
 
 Sub-geometry Access
