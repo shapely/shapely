@@ -451,6 +451,8 @@ class BaseMultipartGeometry(BaseGeometry):
     def geoms(self):
         return GeometrySequence(self, self.shape_factory)
 
+    def __iter__(self):
+        return iter(self.geoms)
 
 class GeometrySequence(object):
     """
