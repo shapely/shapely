@@ -11,76 +11,9 @@ from shapely.geometry.proxy import CachingGeometryProxy
 __all__ = ['Point', 'asPoint']
 
 
-def geos_point_from_py(ob, update_geom=None, update_ndim=0):
-    """Create a GEOS geom from an object that is a coordinate sequence
-    or that provides the array interface.
-
-    Returns the GEOS geometry and the number of its dimensions.
-    """
-    try:
-        # From array protocol
-        array = ob.__array_interface__
-        assert len(array['shape']) == 1
-        n = array['shape'][0]
-        assert n == 2 or n == 3
-
-        dz = None
-        da = array['data']
-        if type(da) == type((0,)):
-            cdata = da[0]
-            cp = cast(cdata, POINTER(c_double))
-            dx = c_double(cp[0])
-            dy = c_double(cp[1])
-            if n == 3:
-                dz = c_double(cp[2])
-                ndim = 3
-        else:
-            dx, dy = da[0:2]
-            if n == 3:
-                dz = da[2]
-                ndim = 3
-
-    except AttributeError:
-        # Fall back on the case of Python sequence data
-        # Accept either (x, y) or [(x, y)]
-        if type(ob[0]) == type(tuple()):
-            coords = ob[0]
-        else:
-            coords = ob
-        n = len(coords)
-        dx = c_double(coords[0])
-        dy = c_double(coords[1])
-        dz = None
-        if n == 3:
-            dz = c_double(coords[2])
-
-    if update_geom:
-        cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
-        if n != update_ndim:
-            raise ValueError(
-            "Wrong coordinate dimensions; this geometry has dimensions: %d" \
-            % update_ndim)
-    else:
-        cs = lgeos.GEOSCoordSeq_create(1, n)
-    
-    # Because of a bug in the GEOS C API, always set X before Y
-    lgeos.GEOSCoordSeq_setX(cs, 0, dx)
-    lgeos.GEOSCoordSeq_setY(cs, 0, dy)
-    if n == 3:
-        lgeos.GEOSCoordSeq_setZ(cs, 0, dz)
-   
-    if update_geom:
-        return None
-    else:
-        return lgeos.GEOSGeom_createPoint(cs), n
-
-def update_point_from_py(geom, ob):
-    geos_point_from_py(ob, geom._geom, geom._ndim)
-
-
 class Point(BaseGeometry):
-
-    """A zero dimensional geometry
+    """
+    A zero dimensional feature
 
     A point has zero length and zero area. 
     
@@ -91,21 +24,20 @@ class Point(BaseGeometry):
 
     Example
     -------
-    >>> p = Point(1.0, -1.0)
-    >>> str(p)
-    'POINT (1.0000000000000000 -1.0000000000000000)'
-    >>> p.y
-    -1.0
-    >>> p.x
-    1.0
+    
+      >>> p = Point(1.0, -1.0)
+      >>> print p
+      POINT (1.0000000000000000 -1.0000000000000000)
+      >>> p.y
+      -1.0
+      >>> p.x
+      1.0
     """
 
     def __init__(self, *args):
-        """This *copies* the given data to a new GEOS geometry.
-        
+        """
         Parameters
         ----------
-        
         There are 2 cases:
 
         1) 1 parameter: this must satisfy the numpy array protocol.
@@ -179,6 +111,9 @@ class Point(BaseGeometry):
     # Coordinate access
 
     def _set_coords(self, coordinates):
+        if self.is_empty:
+            lgeos.GEOSGeom_destroy(self.__geom__)
+            self.__geom__ = None
         if self._geom is None:
             self._init_geom(coordinates)
         else:
@@ -197,15 +132,11 @@ class Point(BaseGeometry):
           [0.0]
           >>> list(y)
           [0.0]
-        
         """
         return self.coords.xy
 
 
 class PointAdapter(CachingGeometryProxy, Point):
-
-    """Adapts a Python coordinate pair or a numpy array to the point interface.
-    """
 
     _owned = False
 
@@ -242,9 +173,75 @@ class PointAdapter(CachingGeometryProxy, Point):
 
 
 def asPoint(context):
-    """Factory for PointAdapter instances."""
+    """Adapt an object to the Point interface"""
     return PointAdapter(context)
 
+
+def geos_point_from_py(ob, update_geom=None, update_ndim=0):
+    """Create a GEOS geom from an object that is a coordinate sequence
+    or that provides the array interface.
+
+    Returns the GEOS geometry and the number of its dimensions.
+    """
+    try:
+        # From array protocol
+        array = ob.__array_interface__
+        assert len(array['shape']) == 1
+        n = array['shape'][0]
+        assert n == 2 or n == 3
+
+        dz = None
+        da = array['data']
+        if type(da) == type((0,)):
+            cdata = da[0]
+            cp = cast(cdata, POINTER(c_double))
+            dx = c_double(cp[0])
+            dy = c_double(cp[1])
+            if n == 3:
+                dz = c_double(cp[2])
+                ndim = 3
+        else:
+            dx, dy = da[0:2]
+            if n == 3:
+                dz = da[2]
+                ndim = 3
+
+    except AttributeError:
+        # Fall back on the case of Python sequence data
+        # Accept either (x, y) or [(x, y)]
+        if type(ob[0]) == type(tuple()):
+            coords = ob[0]
+        else:
+            coords = ob
+        n = len(coords)
+        dx = c_double(coords[0])
+        dy = c_double(coords[1])
+        dz = None
+        if n == 3:
+            dz = c_double(coords[2])
+
+    if update_geom:
+        cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
+        if n != update_ndim:
+            raise ValueError(
+            "Wrong coordinate dimensions; this geometry has dimensions: %d" \
+            % update_ndim)
+    else:
+        cs = lgeos.GEOSCoordSeq_create(1, n)
+    
+    # Because of a bug in the GEOS C API, always set X before Y
+    lgeos.GEOSCoordSeq_setX(cs, 0, dx)
+    lgeos.GEOSCoordSeq_setY(cs, 0, dy)
+    if n == 3:
+        lgeos.GEOSCoordSeq_setZ(cs, 0, dz)
+   
+    if update_geom:
+        return None
+    else:
+        return lgeos.GEOSGeom_createPoint(cs), n
+
+def update_point_from_py(geom, ob):
+    geos_point_from_py(ob, geom._geom, geom._ndim)
 
 # Test runner
 def _test():

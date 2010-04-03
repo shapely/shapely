@@ -1,4 +1,4 @@
-"""Multi-part collections of linestrings and related utilities
+"""Collections of linestrings and related utilities
 """
 
 from ctypes import c_double, c_void_p, cast, POINTER
@@ -11,8 +11,81 @@ from shapely.geometry.proxy import CachingGeometryProxy
 __all__ = ['MultiLineString', 'asMultiLineString']
 
 
+class MultiLineString(BaseMultipartGeometry):
+    """
+    A collection of one or more line strings
+    
+    A MultiLineString has non-zero length and zero area.
+
+    Attributes
+    ----------
+    geoms : sequence
+        A sequence of LineStrings
+    """
+
+    def __init__(self, lines=None):
+        """
+        Parameters
+        ----------
+        lines : sequence
+            A sequence of line-like coordinate sequences or objects that
+            provide the numpy array interface, including instances of
+            LineString.
+
+        Example
+        -------
+        Construct a collection containing one line string.
+
+          >>> lines = MultiLineString( [[[0.0, 0.0], [1.0, 2.0]]] )
+        """
+        super(MultiLineString, self).__init__()
+
+        if lines is None:
+            # allow creation of null lines, to support unpickling
+            pass
+        else:
+            self._geom, self._ndim = geos_multilinestring_from_py(lines)
+
+    def shape_factory(self, *args):
+        return LineString(*args)
+
+    @property
+    def __geo_interface__(self):
+        return {
+            'type': 'MultiLineString',
+            'coordinates': tuple(tuple(c for c in g.coords) for g in self.geoms)
+            }
+
+
+class MultiLineStringAdapter(CachingGeometryProxy, MultiLineString):
+    
+    context = None
+    _owned = False
+
+    def __init__(self, context):
+        self.context = context
+        self.factory = geos_multilinestring_from_py
+
+    @property
+    def _ndim(self):
+        try:
+            # From array protocol
+            array = self.context[0].__array_interface__
+            n = array['shape'][1]
+            assert n == 2 or n == 3
+            return n
+        except AttributeError:
+            # Fall back on list
+            return len(self.context[0][0])
+
+
+def asMultiLineString(context):
+    """Adapts a sequence of objects to the MultiLineString interface"""
+    return MultiLineStringAdapter(context)
+
+
 def geos_multilinestring_from_py(ob):
-    """ob must be either a sequence or array of sequences or arrays."""
+    # ob must be either a sequence or array of sequences or arrays
     try:
         # From array protocol
         array = ob.__array_interface__
@@ -51,92 +124,10 @@ def geos_multilinestring_from_py(ob):
             
     return (lgeos.GEOSGeom_createCollection(5, subs, L), N)
 
-
-class MultiLineString(BaseMultipartGeometry):
-
-    """A one-dimensional figure comprising one or more line strings
-    
-    A MultiLineString has non-zero length and zero area.
-
-    Attributes
-    ----------
-    geoms : sequence
-        A sequence of LineStrings
-    """
-
-    def __init__(self, coordinates=None):
-        """Initialize.
-
-        Parameters
-        ----------
-        
-        coordinates : sequence
-            Contains coordinate sequences or objects that provide the numpy
-            array protocol, providing an M x 2 or M x 3 (with z) array.
-
-        Example
-        -------
-
-        >>> geom = MultiLineString( [[[0.0, 0.0], [1.0, 2.0]]] )
-        >>> geom = MultiLineString( [ array([[0.0, 0.0], [1.0, 2.0]]) ] )
-        
-        Each result in a collection containing one line string.
-        """
-        super(MultiLineString, self).__init__()
-
-        if coordinates is None:
-            # allow creation of null lines, to support unpickling
-            pass
-        else:
-            self._geom, self._ndim = geos_multilinestring_from_py(coordinates)
-
-    def shape_factory(self, *args):
-        return LineString(*args)
-
-    @property
-    def __geo_interface__(self):
-        return {
-            'type': 'MultiLineString',
-            'coordinates': tuple(tuple(c for c in g.coords) for g in self.geoms)
-            }
-
-
-class MultiLineStringAdapter(CachingGeometryProxy, MultiLineString):
-
-    """Adapts sequences of sequences or numpy arrays to the multilinestring
-    interface.
-    """
-    
-    context = None
-    _owned = False
-
-    def __init__(self, context):
-        self.context = context
-        self.factory = geos_multilinestring_from_py
-
-    @property
-    def _ndim(self):
-        try:
-            # From array protocol
-            array = self.context[0].__array_interface__
-            n = array['shape'][1]
-            assert n == 2 or n == 3
-            return n
-        except AttributeError:
-            # Fall back on list
-            return len(self.context[0][0])
-
-
-def asMultiLineString(context):
-    """Factory for MultiLineStringAdapter instances."""
-    return MultiLineStringAdapter(context)
-
-
 # Test runner
 def _test():
     import doctest
     doctest.testmod()
-
 
 if __name__ == "__main__":
     _test()

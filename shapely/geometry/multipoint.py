@@ -1,4 +1,4 @@
-"""Multi-part collections of points and related utilities
+"""Collections of points and related utilities
 """
 
 from ctypes import byref, c_double, c_void_p, cast, POINTER
@@ -12,90 +12,44 @@ from shapely.geometry.proxy import CachingGeometryProxy
 __all__ = ['MultiPoint', 'asMultiPoint']
 
 
-def geos_multipoint_from_py(ob):
-    try:
-        # From array protocol
-        array = ob.__array_interface__
-        assert len(array['shape']) == 2
-        m = array['shape'][0]
-        n = array['shape'][1]
-        assert m >= 1
-        assert n == 2 or n == 3
-
-        # Make pointer to the coordinate array
-        try:
-            cp = cast(array['data'][0], POINTER(c_double))
-        except ArgumentError:
-            cp = array['data']
-
-        # Array of pointers to sub-geometries
-        subs = (c_void_p * m)()
-
-        for i in xrange(m):
-            geom, ndims = geos_point_from_py(cp[n*i:n*i+2])
-            subs[i] = cast(geom, c_void_p)
-
-    except AttributeError:
-        # Fall back on list
-        m = len(ob)
-        try:
-            n = len(ob[0])
-        except TypeError:
-            n = ob[0]._ndim
-        assert n == 2 or n == 3
-
-        # Array of pointers to point geometries
-        subs = (c_void_p * m)()
-        
-        # add to coordinate sequence
-        for i in xrange(m):
-            coords = ob[i]
-            geom, ndims = geos_point_from_py(coords)
-            subs[i] = cast(geom, c_void_p)
-            
-    return lgeos.GEOSGeom_createCollection(4, subs, m), n
-
-
 class MultiPoint(BaseMultipartGeometry):
 
-    """A collection of points
+    """A collection of one or more points
 
     A MultiPoint has zero area and zero length.
 
     Attributes
     ----------
     geoms : sequence
-        A sequence of points
+        A sequence of Points
     """
 
-    def __init__(self, coordinates=None):
-        """Initialize a multipoint instance
-
+    def __init__(self, points=None):
+        """
         Parameters
         ----------
-        
-        coordinates : sequence
-            A sequence of (x, y [,z]) numeric coordinate pairs or triples
+        points : sequence
+            A sequence of (x, y [,z]) numeric coordinate pairs or triples or a
+            sequence of objects that implement the numpy array interface,
+            including instaces of Point.
 
         Example
         -------
-
-        Create a pair of points
+        Construct a 2 point collection
 
           >>> ob = MultiPoint([[0.0, 0.0], [1.0, 2.0]])
           >>> len(ob.geoms)
           2
           >>> type(ob.geoms[0]) == Point
           True
-
         """
         super(MultiPoint, self).__init__()
 
-        if coordinates is None:
+        if points is None:
             # allow creation of empty multipoints, to support unpickling
             pass
         else:
-            self._geom, self._ndim = geos_multipoint_from_py(coordinates)
+            self._geom, self._ndim = geos_multipoint_from_py(points)
 
     def shape_factory(self, *args):
         return Point(*args)
@@ -140,10 +94,6 @@ class MultiPoint(BaseMultipartGeometry):
 
 class MultiPointAdapter(CachingGeometryProxy, MultiPoint):
 
-    """Adapts Python coordinate pairs or a numpy array to the multipoint
-    interface
-    """
-    
     context = None
     _owned = False
 
@@ -173,9 +123,52 @@ class MultiPointAdapter(CachingGeometryProxy, MultiPoint):
 
 
 def asMultiPoint(context):
-    """Factory for MultiPointAdapter instances."""
+    """Adapt a sequence of objects to the MultiPoint interface"""
     return MultiPointAdapter(context)
 
+
+def geos_multipoint_from_py(ob):
+    try:
+        # From array protocol
+        array = ob.__array_interface__
+        assert len(array['shape']) == 2
+        m = array['shape'][0]
+        n = array['shape'][1]
+        assert m >= 1
+        assert n == 2 or n == 3
+
+        # Make pointer to the coordinate array
+        try:
+            cp = cast(array['data'][0], POINTER(c_double))
+        except ArgumentError:
+            cp = array['data']
+
+        # Array of pointers to sub-geometries
+        subs = (c_void_p * m)()
+
+        for i in xrange(m):
+            geom, ndims = geos_point_from_py(cp[n*i:n*i+2])
+            subs[i] = cast(geom, c_void_p)
+
+    except AttributeError:
+        # Fall back on list
+        m = len(ob)
+        try:
+            n = len(ob[0])
+        except TypeError:
+            n = ob[0]._ndim
+        assert n == 2 or n == 3
+
+        # Array of pointers to point geometries
+        subs = (c_void_p * m)()
+        
+        # add to coordinate sequence
+        for i in xrange(m):
+            coords = ob[i]
+            geom, ndims = geos_point_from_py(coords)
+            subs[i] = cast(geom, c_void_p)
+            
+    return lgeos.GEOSGeom_createCollection(4, subs, m), n
 
 # Test runner
 def _test():

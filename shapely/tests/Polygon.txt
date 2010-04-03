@@ -123,14 +123,10 @@ Test Non-operability of Null rings
 
   >>> r_null = LinearRing()
   >>> r_null.wkt # doctest: +ELLIPSIS
-  Traceback (most recent call last):
-  ...
-  ValueError: Null geometry supports no operations
+  'GEOMETRYCOLLECTION EMPTY'
 
-  >>> r_null.length # doctest: +ELLIPSIS
-  Traceback (most recent call last):
-  ...
-  ValueError: Null geometry supports no operations
+  >>> r_null.length
+  0.0
 
 Check that we can set coordinates of a null geometry
 

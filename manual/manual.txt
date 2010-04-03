@@ -19,7 +19,6 @@ The Shapely 1.2 Manual
 
 .. contents::
 
-
 Introduction
 ============
 
@@ -95,7 +94,7 @@ mutually exclusive and their union coincides with the entire plane [2]_.
 
 That may seem a bit esoteric, but will help clarify the meanings of Shapely's
 spatial predicates, and it's as deep into theory as this manual will go.
-Consquences of point-set theory, including some that manifest themselves as
+Consequences of point-set theory, including some that manifest themselves as
 "gotchas", for different classes will be discussed later in this manual.
 
 The point type is implemented by a `Point` class; curve by the `LineString`
@@ -163,7 +162,10 @@ All operations are performed in the `x-y` plane.
 
 In all constructors, numeric values are converted to type `float`. In other
 words, ``Point(0, 0)`` and ``Point(0.0, 0.0)`` produce geometrically equivalent
-instances.
+instances. Shapely does not check the topological simplicity or validity of
+features when they are constructed as the cost is unwarranted in most cases.
+Validating factories are trivially implemented, using the `is_valid` predicate,
+by users that require them.
 
 Pseudo-code blocks in this section will use the following notation. Let `a` be
 a point in Cartesian coordinates, represented by a Python tuple of 2 (``(x,
@@ -377,9 +379,9 @@ Members of a multi-point collection are accessed via the `geoms` property.
 
 .. sourcecode:: pycon
 
-  >>> mp = MultiPoint([(0, 0), (1, 1)])
+  >>> points = MultiPoint([(0, 0), (1, 1)])
   >>> import pprint
-  >>> pprint.pprint(list(mp.geoms))
+  >>> pprint.pprint(list(points.geoms))
   [<shapely.geometry.point.Point object at 0x...>,
    <shapely.geometry.point.Point object at 0x...>]
 
@@ -407,10 +409,10 @@ A `MultiLineString` has zero area and non-zero length.
 .. sourcecode:: pycon
 
   >>> xy = [((0, 0), (1, 1)), ((-1, 0), (1, 0))]
-  >>> ml = MultiLineString(xy)
-  >>> ml.area
+  >>> lines = MultiLineString(xy)
+  >>> lines.area
   0.0
-  >>> ml.length
+  >>> lines.length
   3.4142135623730949
 
 Its members are instances of `LineString` and are accessed via the `geoms`
@@ -418,9 +420,9 @@ property.
 
 .. sourcecode:: pycon
 
-  >>> len(ml.geoms)
+  >>> len(lines.geoms)
   2
-  >>> pprint.pprint(list(ml.geoms))
+  >>> pprint.pprint(list(lines.geoms))
   [<shapely.geometry.linestring.LineString object at 0x...>,
    <shapely.geometry.linestring.LineString object at 0x...>]
   
@@ -428,54 +430,109 @@ The constructor also accepts another instance of `MultiLineString` or an unorder
 
 .. sourcecode:: pycon
 
-  >>> MultiLineString(ml)
+  >>> MultiLineString(lines)
   <shapely.geometry.multilinestring.MultiLineString object at 0x...>
-  >>> MultiLineString(ml.geoms)
+  >>> MultiLineString(lines.geoms)
   <shapely.geometry.multilinestring.MultiLineString object at 0x...>
 
 MultiPolygons
 -------------
 
-A multi-polygon geometry is created by passing a sequence of exterior ring and
-hole list tuples 
+The `MultiPolygon` constructor takes a sequence of exterior ring and
+hole list tuples.
 
-.. sourcecode:: python
+.. sourcecode:: pycon
 
   >>> from shapely.geometry import MultiPolygon
-  >>> lines = MultiPolygon([((a1, ..., aM), [(b1, ..., bN), ...]), ...])
+  >>> polygons = MultiPolygon([((a1, ..., aM), [(b1, ..., bN), ...]), ...])
 
 More explicit notation for the exterior and interior boundaries (or shells and
-holes) makes usage more clear
+holes) makes usage more clear.
 
-.. sourcecode:: python
+.. sourcecode:: pycon
 
   >>> shell = (a1, ..., aM)
   >>> holes = [(b1, ..., bN), ...]
-  >>> lines = MultiPolygon([(shell, holes), ...])
+  >>> polygons = MultiPolygon([(shell, holes), ...])
 
-Null Geometries
----------------
+Perhaps even more clearly, the constructor accepts an unordered sequence of
+`Polygon` instances, thereby making copies.
 
-Null geometries can be created by calling the factories with no arguments, but
-almost nothing can be done with a null geometry.
+.. sourcecode:: pycon
 
-.. sourcecode:: python
+  >>> polygons = MultiPolygon([p, s, t])
+  >>> len(polygons.geoms)
+  3
 
-  >>> line_null = LineString()
-  >>> line_null.length
+Empty features
+--------------
+
+Empty features can be created by calling the constructors with no arguments.
+Almost no operations are supported by empty features.
+
+.. sourcecode:: pycon
+
+  >>> line = LineString()
+  >>> line.length
   Traceback (most recent call last):
   ...
   ValueError: Null geometry supports no operations
 
-The coordinates of a null geometry *can* be set (see Section 3), after which
-the geometry is no longer null.
+The coordinates of a empty feature can be set, after which the geometry is no
+longer null.
 
-.. sourcecode:: python
+.. sourcecode:: pycon
 
-  >>> l_null.coords = [(0, 0), (1, 1)]
-  >>> print l_null.length
-  1.414...
+  >>> line.coords = [(0, 0), (1, 1)]
+  >>> line.length
+  1.4142135623730951
 
+Predicates
+==========
+
+Standard unary predicates are implemented as instance properties. All return
+`True` or `False`.
+
+**is_empty**: Returns `True` if the feature's `interior` and
+`boundary` (in point set terms) coincide with the empty set.
+
+.. sourcecode:: pycon
+
+  >>> Point().is_empty
+  True
+  >>> Point(0, 0).is_empty
+  False
+
+**is_ring**: Returns `True` if the feature is closed. A closed feature's
+`boundary` coincides with the empty set. Applicable to `LineString` and
+`LinearRing`. This predicate is somewhat redundant considering that closed-ness
+is in practice a class attribute.
+
+.. sourcecode:: pycon
+
+  >>> LineString([(0, 0), (1, 1), (1, -1)]).is_ring
+  False
+  >>> LinearRing([(0, 0), (1, 1), (1, -1)]).is_ring
+  True
+
+**is_simple**: Returns `True` if the feature does not cross itself. Operations
+on non-simple `LineStrings` are fully supported by Shapely. 
+
+.. sourcecode:: pycon
+
+  >>> LineString([(0, 0), (1, 1), (1, -1), (0, 1)]).is_simple
+  False
+
+**is_valid**: Returns `True` if a feature is "valid" in the sense of [1]_. A
+valid `LinearRing` may not cross itself or touch itself at a single point. A
+valid `Polygon` may not possess any overlapping exterior or interior rings. A
+valid `MultiPolygon` may not collect any overlapping polygons. Operations on
+invalid features may fail.
+
+.. sourcecode:: pycon
+
+  >>> MultiPolygon([Point(0, 0).buffer(2.0), Point(1, 1).buffer(2.0)]).is_valid
+  False
 
 Constructive Operations
 =======================
@@ -703,59 +760,6 @@ shapely.ops.linemerge(lines) : iterator or MultiLineString
   >>> result = linemerge(lines)
   >>> result # docstring: +ELLIPSIS
   <shapely.geometry.linestring.LineString object at 0x...>
-
-
-Unary Spatial Predicates
-========================
-
-These are implemented as Python attributes.
-
-Is Empty
---------
-
-.is_empty : bool
-  True if the set of points in this geometry is empty, else False. For more
-  details, see
-  http://geos.refractions.net/ro/doxygen_docs/html/classgeos_1_1geom_1_1Geometry.html#a17.  
-
-Is Valid
---------
-
-.is_valid : bool
-  True if the geometry is valid (definition depends on sub-class), else False.
-  For more details, see
-  http://geos.refractions.net/ro/doxygen_docs/html/classgeos_1_1geom_1_1Geometry.html#a16.
-
-Is Ring
--------
-
-.is_ring : bool
-  True if the geometry is a closed ring, else False.
-
-Has Z
------
-
-.has_z : bool
-  True if the geometry's coordinate sequence(s) have z values (are
-  3-dimensional)
-
-Examples
---------
-
-.. sourcecode:: python
-
-  >>> polygon.is_empty
-  False
-  >>> polygon.is_valid
-  True
-  >>> polygon.is_ring
-  False
-  >>> polygon.boundary.is_ring
-  True
-  >>> polygon.has_z
-  False
-
-(Note: that last return value exposes a bug in GEOS 2.2.3.)
 
 
 Binary Spatial Predicates
@@ -1233,6 +1237,7 @@ Eric Lemoine (Camptocamp SA) and ctypes tips from Justin Bronn (GeoDjango).
 
 .. _GEOS: http://geos.refractions.net
 .. _Java Topology Suite: http://www.vividsolutions.com/jts/jtshome.htm
+.. _JTS: http://www.vividsolutions.com/jts/jtshome.htm
 .. _PostGIS: http://postgis.refractions.net
 .. _record: http://pypi.python.org/pypi/Shapely
 .. _wiki: http://trac.gispython.org/lab/wiki/Shapely

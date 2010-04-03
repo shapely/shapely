@@ -12,6 +12,298 @@ from shapely.geometry.proxy import PolygonProxy
 __all__ = ['Polygon', 'asPolygon', 'LinearRing', 'asLinearRing']
 
 
+class LinearRing(LineString):
+    """
+    A closed one-dimensional feature comprising one or more line segments
+
+    A LinearRing that crosses itself or touches itself at a single point is
+    invalid and operations on it may fail.
+    """
+    
+    _ndim = None
+    __geom__ = None
+    __p__ = None
+    _owned = False
+
+    def __init__(self, coordinates=None):
+        """
+        Parameters
+        ----------
+        coordinates : sequence
+            A sequence of (x, y [,z]) numeric coordinate pairs or triples
+
+        Rings are implicitly closed. There is no need to specific a final
+        coordinate pair identical to the first.
+
+        Example
+        -------
+        Construct a square ring.
+
+          >>> ring = LinearRing( ((0, 0), (0, 1), (1 ,1 ), (1 , 0)) )
+          >>> ring.is_closed
+          True
+          >>> ring.length
+          4.0
+        """
+        BaseGeometry.__init__(self)
+        self._init_geom(coordinates)
+
+    def _init_geom(self, coordinates):
+        if coordinates is None:
+            # allow creation of null lines, to support unpickling
+            pass
+        else:
+            self._geom, self._ndim = geos_linearring_from_py(coordinates)
+
+    @property
+    def __geo_interface__(self):
+        return {
+            'type': 'LinearRing',
+            'coordinates': tuple(self.coords)
+            }
+
+    # Coordinate access
+
+    _get_coords = BaseGeometry._get_coords
+
+    def _set_coords(self, coordinates):
+        if self.is_empty:
+            lgeos.GEOSGeom_destroy(self.__geom__)
+            self.__geom__ = None
+        if self._geom is None:
+            self._init_geom(coordinates)
+        update_linearring_from_py(self, coordinates)
+
+    coords = property(_get_coords, _set_coords)
+
+
+class LinearRingAdapter(LineStringAdapter):
+
+    context = None
+    __geom__ = None
+    __p__ = None
+    _owned = False
+
+    @property
+    def _geom(self):
+        """Keeps the GEOS geometry in synch with the context."""
+        if self.__geom__ is not None:
+            lgeos.GEOSGeom_destroy(self.__geom)
+        self.__geom, n = geos_linearring_from_py(self.context)
+        return self.__geom
+
+    @property
+    def __geo_interface__(self):
+        return {
+            'type': 'LinearRing',
+            'coordinates': tuple(self.coords)
+            }
+
+    coords = property(BaseGeometry._get_coords)
+
+
+def asLinearRing(context):
+    """Adapt an object to the LinearRing interface"""
+    return LinearRingAdapter(context)
+
+
+class InteriorRingSequence(object):
+
+    _factory = None
+    _geom = None
+    __p__ = None
+    _ndim = None
+    _index = 0
+    _length = 0
+    __rings__ = None
+    _gtag = None
+
+    def __init__(self, parent):
+        self.__p__ = parent
+        self._geom = parent._geom
+        self._ndim = parent._ndim
+
+    def __iter__(self):
+        self._index = 0
+        self._length = self.__len__()
+        return self
+
+    def next(self):
+        if self._index < self._length:
+            ring = self._get_ring(self._index)
+            self._index += 1
+            return ring
+        else:
+            raise StopIteration 
+
+    def __len__(self):
+        return lgeos.GEOSGetNumInteriorRings(self._geom)
+
+    def __getitem__(self, i):
+        M = self.__len__()
+        if i + M < 0 or i >= M:
+            raise IndexError("index out of range")
+        if i < 0:
+            ii = M + i
+        else:
+            ii = i
+        return self._get_ring(i)
+
+    @property
+    def _longest(self):
+        max = 0
+        for g in iter(self):
+            l = len(g.coords)
+            if l > max:
+                max = l
+
+    def gtag(self):
+        return hash(repr(self.__p__))
+
+    def _get_ring(self, i):
+        gtag = self.gtag()
+        if gtag != self._gtag:
+            self.__rings__ = {}
+        if i not in self.__rings__:
+            g = lgeos.GEOSGetInteriorRingN(self._geom, i)
+            ring = LinearRing()
+            ring.__geom__ = g
+            ring.__p__ = self
+            ring._owned = True
+            ring._ndim = self._ndim
+            self.__rings__[i] = weakref.ref(ring)
+        return self.__rings__[i]()
+        
+
+class Polygon(BaseGeometry):
+    """
+    A two-dimensional figure bounded by a linear ring
+
+    A polygon has a non-zero area. It may have one or more negative-space
+    "holes" which are also bounded by linear rings. If any rings cross each
+    other, the feature is invalid and operations on it may fail.
+
+    Attributes
+    ----------
+    exterior : LinearRing
+        The ring which bounds the positive space of the polygon.
+    interiors : sequence
+        A sequence of rings which bound all existing holes.
+    """
+
+    _exterior = None
+    _interiors = []
+    _ndim = 2
+    __geom__ = None
+    _owned = False
+
+    def __init__(self, shell=None, holes=None):
+        """
+        Parameters
+        ----------
+        shell : sequence
+            A sequence of (x, y [,z]) numeric coordinate pairs or triples
+        holes : sequence
+            A sequence of objects which satisfy the same requirements as the
+            shell parameters above
+
+        Example
+        -------
+        Create a square polygon with no holes
+
+          >>> coords = ((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.))
+          >>> polygon = Polygon(coords)
+          >>> polygon.area
+          1.0
+        """
+        BaseGeometry.__init__(self)
+
+        if shell is not None:
+            self._geom, self._ndim = geos_polygon_from_py(shell, holes)
+
+    @property
+    @exceptNull
+    def exterior(self):
+        if self._exterior is None or self._exterior() is None:
+            g = lgeos.GEOSGetExteriorRing(self._geom)
+            ring = LinearRing()
+            ring.__geom__ = g
+            ring.__p__ = self
+            ring._owned = True
+            ring._ndim = self._ndim
+            self._exterior = weakref.ref(ring)
+        return self._exterior()
+
+    @property
+    @exceptNull
+    def interiors(self):
+        return InteriorRingSequence(self)
+
+    @property
+    def ctypes(self):
+        if not self._ctypes_data:
+            self._ctypes_data = self.exterior.ctypes
+        return self._ctypes_data
+
+    @property
+    def __array_interface__(self):
+        raise NotImplementedError(
+        "A polygon does not itself provide the array interface. Its rings do.")
+
+    def _get_coords(self):
+        raise NotImplementedError(
+        "Component rings have coordinate sequences, but the polygon does not")
+
+    def _set_coords(self, ob):
+        raise NotImplementedError(
+        "Component rings have coordinate sequences, but the polygon does not")
+
+    @property
+    def coords(self):
+        raise NotImplementedError(
+        "Component rings have coordinate sequences, but the polygon does not")
+
+    @property
+    def __geo_interface__(self):
+        coords = [tuple(self.exterior.coords)]
+        for hole in self.interiors:
+            coords.append(tuple(hole.coords))
+        return {
+            'type': 'Polygon',
+            'coordinates': tuple(coords)
+            }
+
+
+class PolygonAdapter(PolygonProxy, Polygon):
+    
+    context = None
+    __geom__ = None
+    _owned = False
+
+    def __init__(self, shell, holes=None):
+        self.shell = shell
+        self.holes = holes
+        self.context = (shell, holes)
+        self.factory = geos_polygon_from_py
+
+    @property
+    def _ndim(self):
+        try:
+            # From array protocol
+            array = self.shell.__array_interface__
+            n = array['shape'][1]
+            assert n == 2 or n == 3
+            return n
+        except AttributeError:
+            # Fall back on list
+            return len(self.shell[0])
+
+
+def asPolygon(shell, holes=None):
+    """Adapt objects to the Polygon interface"""
+    return PolygonAdapter(shell, holes)
+
+
 def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
     try:
         # From array protocol
@@ -141,167 +433,6 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
 def update_linearring_from_py(geom, ob):
     geos_linearring_from_py(ob, geom._geom, geom._ndim)
 
-
-class LinearRing(LineString):
-    """
-    A closed one-dimensional figure comprising one or more line segments
-    """
-    
-    _ndim = None
-    __geom__ = None
-    __p__ = None
-    _owned = False
-
-    def __init__(self, coordinates=None):
-        """Initialize a linear ring
-
-        Parameters
-        ----------
-        
-        coordinates : sequence
-            A sequence of (x, y [,z]) numeric coordinate pairs or triples
-
-        Rings are implicitly closed. There is no need to specific a final
-        coordinate pair identical to the first.
-
-        Example
-        -------
-
-        Create a square ring
-
-          >>> ring = LinearRing( ((0, 0), (0, 1), (1 ,1 ), (1 , 0)) )
-          >>> ring.is_closed
-          True
-          >>> ring.length
-          4.0
-
-        """
-        BaseGeometry.__init__(self)
-        self._init_geom(coordinates)
-
-    def _init_geom(self, coordinates):
-        if coordinates is None:
-            # allow creation of null lines, to support unpickling
-            pass
-        else:
-            self._geom, self._ndim = geos_linearring_from_py(coordinates)
-
-    @property
-    def __geo_interface__(self):
-        return {
-            'type': 'LinearRing',
-            'coordinates': tuple(self.coords)
-            }
-
-    # Coordinate access
-
-    _get_coords = BaseGeometry._get_coords
-
-    def _set_coords(self, coordinates):
-        if self._geom is None:
-            self._init_geom(coordinates)
-        update_linearring_from_py(self, coordinates)
-
-    coords = property(_get_coords, _set_coords)
-
-
-class LinearRingAdapter(LineStringAdapter):
-
-    context = None
-    __geom__ = None
-    __p__ = None
-    _owned = False
-
-    @property
-    def _geom(self):
-        """Keeps the GEOS geometry in synch with the context."""
-        if self.__geom__ is not None:
-            lgeos.GEOSGeom_destroy(self.__geom)
-        self.__geom, n = geos_linearring_from_py(self.context)
-        return self.__geom
-
-    @property
-    def __geo_interface__(self):
-        return {
-            'type': 'LinearRing',
-            'coordinates': tuple(self.coords)
-            }
-
-    coords = property(BaseGeometry._get_coords)
-
-
-def asLinearRing(context):
-    return LinearRingAdapter(context)
-
-
-class InteriorRingSequence(object):
-
-    _factory = None
-    _geom = None
-    __p__ = None
-    _ndim = None
-    _index = 0
-    _length = 0
-    __rings__ = None
-    _gtag = None
-
-    def __init__(self, parent):
-        self.__p__ = parent
-        self._geom = parent._geom
-        self._ndim = parent._ndim
-
-    def __iter__(self):
-        self._index = 0
-        self._length = self.__len__()
-        return self
-
-    def next(self):
-        if self._index < self._length:
-            ring = self._get_ring(self._index)
-            self._index += 1
-            return ring
-        else:
-            raise StopIteration 
-
-    def __len__(self):
-        return lgeos.GEOSGetNumInteriorRings(self._geom)
-
-    def __getitem__(self, i):
-        M = self.__len__()
-        if i + M < 0 or i >= M:
-            raise IndexError("index out of range")
-        if i < 0:
-            ii = M + i
-        else:
-            ii = i
-        return self._get_ring(i)
-
-    @property
-    def _longest(self):
-        max = 0
-        for g in iter(self):
-            l = len(g.coords)
-            if l > max:
-                max = l
-
-    def gtag(self):
-        return hash(repr(self.__p__))
-
-    def _get_ring(self, i):
-        gtag = self.gtag()
-        if gtag != self._gtag:
-            self.__rings__ = {}
-        if i not in self.__rings__:
-            g = lgeos.GEOSGetInteriorRingN(self._geom, i)
-            ring = LinearRing()
-            ring.__geom__ = g
-            ring.__p__ = self
-            ring._owned = True
-            ring._ndim = self._ndim
-            self.__rings__[i] = weakref.ref(ring)
-        return self.__rings__[i]()
-        
-
 def geos_polygon_from_py(shell, holes=None):
     if shell is not None:
         geos_shell, ndim = geos_linearring_from_py(shell)
@@ -323,11 +454,9 @@ def geos_polygon_from_py(shell, holes=None):
             for l in xrange(L):
                 geom, ndim = geos_linearring_from_py(ob[l])
                 geos_holes[l] = cast(geom, c_void_p)
-
         else:
             geos_holes = POINTER(c_void_p)()
             L = 0
-
         return (
             lgeos.GEOSGeom_createPolygon(
                         c_void_p(geos_shell),
@@ -336,141 +465,6 @@ def geos_polygon_from_py(shell, holes=None):
                         ),
             ndim
             )
-
-class Polygon(BaseGeometry):
-
-    """A two-dimensional figure bounded by a linear ring
-
-    A polygon has a non-zero area. It may have one or more negative-space
-    "holes" which are also bounded by linear rings.
-
-    Attributes
-    ----------
-    exterior : LinearRing
-        The ring which bounds the positive space of the polygon.
-    interiors : sequence
-        A sequence of rings which bound all existing holes.
-    """
-
-    _exterior = None
-    _interiors = []
-    _ndim = 2
-    __geom__ = None
-    _owned = False
-
-    def __init__(self, shell=None, holes=None):
-        """Initialize.
-
-        Parameters
-        ----------
-        shell : sequence
-            A sequence of (x, y [,z]) numeric coordinate pairs or triples
-        holes : sequence
-            A sequence of objects which satisfy the same requirements as the
-            shell parameters above
-
-        Example
-        -------
-
-        Create a square polygon with no holes
-
-          >>> coords = ((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.))
-          >>> polygon = Polygon(coords)
-          >>> polygon.area
-          1.0
-
-        """
-        BaseGeometry.__init__(self)
-
-        if shell is not None:
-            self._geom, self._ndim = geos_polygon_from_py(shell, holes)
-
-    @property
-    @exceptNull
-    def exterior(self):
-        if self._exterior is None or self._exterior() is None:
-            g = lgeos.GEOSGetExteriorRing(self._geom)
-            ring = LinearRing()
-            ring.__geom__ = g
-            ring.__p__ = self
-            ring._owned = True
-            ring._ndim = self._ndim
-            self._exterior = weakref.ref(ring)
-        return self._exterior()
-
-    @property
-    @exceptNull
-    def interiors(self):
-        return InteriorRingSequence(self)
-
-    @property
-    def ctypes(self):
-        if not self._ctypes_data:
-            self._ctypes_data = self.exterior.ctypes
-        return self._ctypes_data
-
-    @property
-    def __array_interface__(self):
-        raise NotImplementedError(
-        "A polygon does not itself provide the array interface. Its rings do.")
-
-    def _get_coords(self):
-        raise NotImplementedError(
-        "Component rings have coordinate sequences, but the polygon does not")
-
-    def _set_coords(self, ob):
-        raise NotImplementedError(
-        "Component rings have coordinate sequences, but the polygon does not")
-
-    @property
-    def coords(self):
-        raise NotImplementedError(
-        "Component rings have coordinate sequences, but the polygon does not")
-
-    @property
-    def __geo_interface__(self):
-        coords = [tuple(self.exterior.coords)]
-        for hole in self.interiors:
-            coords.append(tuple(hole.coords))
-        return {
-            'type': 'Polygon',
-            'coordinates': tuple(coords)
-            }
-
-
-class PolygonAdapter(PolygonProxy, Polygon):
-
-    """Adapts sequences of sequences or numpy arrays to the polygon
-    interface.
-    """
-    
-    context = None
-    __geom__ = None
-    _owned = False
-
-    def __init__(self, shell, holes=None):
-        self.shell = shell
-        self.holes = holes
-        self.context = (shell, holes)
-        self.factory = geos_polygon_from_py
-
-    @property
-    def _ndim(self):
-        try:
-            # From array protocol
-            array = self.shell.__array_interface__
-            n = array['shape'][1]
-            assert n == 2 or n == 3
-            return n
-        except AttributeError:
-            # Fall back on list
-            return len(self.shell[0])
-
-
-def asPolygon(shell, holes=None):
-    """Factory for PolygonAdapter instances."""
-    return PolygonAdapter(shell, holes)
-
 
 # Test runner
 def _test():

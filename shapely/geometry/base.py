@@ -48,8 +48,8 @@ def exceptNull(func):
     """Decorator which helps avoid GEOS operations on null pointers."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if not args[0]._geom:
-            raise ValueError("Null geometry supports no operations")
+        if not args[0]._geom or args[0].is_empty:
+            raise ValueError("Null/empty geometry supports no operations")
         return func(*args, **kwargs)
     return wrapper
 
@@ -84,12 +84,12 @@ class BaseGeometry(object):
     _ndim = None
     _crs = None
     _owned = False
-
+    
     # Backend config
     impl = DefaultImplementation
 
     def __init__(self):
-        self.__geom__ = None
+        self.__geom__ = wkb.deserialize('010700000000000000'.decode('hex'))
 
     def __del__(self):
         if self.__geom__ is not None and not self._owned:
@@ -452,7 +452,10 @@ class BaseMultipartGeometry(BaseGeometry):
         return GeometrySequence(self, self.shape_factory)
 
     def __iter__(self):
-        return iter(self.geoms)
+        if not self.is_empty:
+            return iter(self.geoms)
+        else:
+            return iter([])
 
 class GeometrySequence(object):
     """
