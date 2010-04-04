@@ -227,8 +227,11 @@ class BaseGeometry(object):
     @property
     def bounds(self):
         """Returns minimum bounding region (minx, miny, maxx, maxy)"""
-        return self.impl['bounds'](self)
-
+        if self.is_empty:
+            return ()
+        else:
+            return self.impl['bounds'](self)
+            
     @property
     def centroid(self):
         """Returns the geometric center of the polygon"""
@@ -456,6 +459,7 @@ class BaseMultipartGeometry(BaseGeometry):
             return iter(self.geoms)
         else:
             return iter([])
+
 
 class GeometrySequence(object):
     """
