@@ -827,11 +827,11 @@ Simplification
 --------------
 
 **simplify** (tolerance, preserve_topology=True): Returns a simplified version
-of the geometric object. All control vertices in the simplified object will be
-within the `tolerance` distance of the original geometry. By default a slower
-algorithm is used that preserves topology. If preserve topology is set to False
-the much quicker Douglas-Peucker algorithm (TODO: cite) is used, and invalid
-geometries may result.
+of the geometric object. All points in the simplified object will be within the
+`tolerance` distance of the original geometry. By default a slower algorithm is
+used that preserves topology. If preserve topology is set to False the much
+quicker Douglas-Peucker algorithm (TODO: cite) is used, and invalid geometries
+may result.
 
 .. figure:: images/simplify.png
    :width: 600
@@ -857,6 +857,9 @@ geometries may result.
   >>> len(s.exterior.coords)
   17
 
+Set-Theoretic Methods
+=====================
+
 Boundary
 --------
 
@@ -873,21 +876,6 @@ Boundary
   <shapely.geometry.multipoint.MultiPoint object at ...>
   >>> point_r.boundary.is_empty
   True
-
-Centroid
---------
-
-.centroid : geometry
-  Returns the centroid, or geometric center of the polygon.
-
-.. sourcecode:: python
-
-  >>> centroid_point = polygon.centroid
-  >>> centroid_point.wkt
-  'POINT (-0.0000000000000000 -0.0000000000000000)'
-
-Set-theoretic Operations
-========================
 
 Difference
 ----------
