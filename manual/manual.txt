@@ -663,57 +663,159 @@ This might also be done using a decorator.
 Binary Predicates
 -----------------
 
-x
+Standard binary predicates are implemented as instance methods. These
+predicates evaluate topological, set-theoretic relationships. In a few cases
+the results may not be what one might expect.  All take another geometric
+object as argument and return `True` or `False`.
 
-Spatial Analytic Methods
-========================
+**contains** (other): Returns `True` if the object's `interior` contains the
+`boundary` and `interior` of the other object and their boundaries do not touch
+at all. This predicate applies to all types, and is inverse to `within`:
+``a.contains(b) == b.within(a)`` always evaluates to ``True``.
 
-Constructive Operations
------------------------
+.. sourcecode:: pycon
 
-There are methods of geometry classes that also serve as factories for new
-geometries. It is important to note that these are topological and not
-point-wise operations, and therefore may produce results that are not what one
-might expect from operations on Python sets.
+  >>> coords = [(0, 0), (1, 1)]
+  >>> LineString(coords).contains(Point(0.5, 0.5))
+  True
+  >>> Point(0.5, 0.5).within(LineString(coords))
+  True
 
-See also the JTS |illustration2|_.
+A line's endpoints are part of its `boundary` and are therefore not contained.
 
-.. |illustration2| replace:: illustration
-.. _illustration2: http://www.jump-project.org/project.php?PID=JTS&SID=OVER#spatialanalysismethods
+.. sourcecode:: pycon
 
-Example Geometries
-------------------
+  >>> LineString(coords).contains(Point(1.0, 1.0))
+  False
 
-.. sourcecode:: python
+**crosses** (other): Returns `True` if the `interior` of the object intersects
+the `interior` of the other but does not contain it, and the dimension of the
+intersection is less than the dimension of the one or the other.
 
-  >>> polygon = Polygon(((-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0), (1.0, -1.0)))
-  >>> point_r = Point(-1.5, 1.2)
-  >>> point_g = Point(-1.0, 1.0)
-  >>> point_b = Point(-0.5, 0.5)
-  >>> line_r = LineString(((-0.5, 0.5), (0.5, 0.5)))
-  >>> line_g = LineString(((1.0, -1.0), (1.8, 0.5)))
-  >>> line_b = LineString(((-1.8, -1.2), (1.8, 0.5)))
+.. sourcecode:: pycon
 
-Buffer
-------
+  >>> LineString(coords).crosses(LineString([(0, 1), (1, 0)]))
+  True
 
-.buffer(width, quadsegs=16) : geometry
-  Returns a buffer region having the given width and with a specified number of
-  segments used to approximate curves.
-  
-The default result of buffering a point is an N-gon approximation of a circle:
+A line does not cross a point that it contains.
 
-.. sourcecode:: python
+.. sourcecode:: pycon
 
-  >>> buffered = point_r.buffer(1.0)
-  >>> buffered
-  <shapely.geometry.polygon.Polygon object at ...>
-  >>> buffered.length
-  6.2806623139097271
-  >>> buffered.area
-  3.1365484905463727
-  >>> len(buffered.exterior.coords)
+  >>> LineString(coords).crosses(Point(0.5, 0.5))
+  False
+
+**disjoint** (other): Returns `True` if the `boundary` and `interior` of the
+object do not intersect at all with those of the other. This predicate applies
+to all types and is the inverse of `intersects`.
+
+.. sourcecode:: pycon
+
+  >>> Point(0, 0).disjoint(Point(1, 1))
+  True
+
+**equals** (other): Returns `True` if the set-theoretic `boundary`, `interior`,
+and `exterior` of the object coincide with those of the other. The coordinates
+passed to the object constructors are of these sets, and determine them, but
+are not the entirety of the sets. This is a potential "gotcha" for new users.
+Equivalent lines, for example, can be constructed differently:
+
+.. sourcecode:: pycon
+
+  >>> a = LineString([(0, 0), (1, 1)])
+  >>> b = LineString([(0, 0), (0.5, 0.5), (1, 1)])
+  >>> c = LineString([(0, 0), (0, 0), (1, 1)])
+  >>> a.equals(b)
+  True
+  >>> b.equals(c)
+  True
+
+This predicate should not be mistaken for Python's ``==`` or ``is``
+constructions.
+
+**intersects** (other): Returns `True` if the `boundary` and `interior` of the
+object intersect in any way with those of the other. It is the super-relation
+of `contains`, `crosses`, `equals`, `touches`, and `within`.
+
+**touches** (other): Returns `True` if the `boundary` of the object intersects
+only the `boundary` of the other, and their interiors do not intersect with any
+part of the other. Overlapping features do not therefore "touch", another
+potential "gotcha".
+
+For example, the following lines touch at `(1, 1)`, but do not overlap.
+
+.. sourcecode:: pycon
+
+  >>> a = LineString([(0, 0), (1, 1)])
+  >>> b = LineString([(1, 1), (2, 2)])
+  >>> a.touches(b)
+  True
+
+**within** (other): Returns `True` if the object's `boundary` and `interior`
+intersect only with the `interior` of the other (not its `boundary` or
+`exterior`).This applies to all types and is the inverse of `contains`.
+
+Constructive Methods
+====================
+
+Shapely geometric object have several methods that yield new objects not
+derived from their point sets. TODO: improve this.
+
+Buffering
+---------
+
+**buffer** (d, quadsegs=16): Returns a new object that contains, approximately,
+all points within a distance `d` of the original object. A positive distance
+has an effect of dilation; a negative distance, erosion. The optional
+`quadsegs` argument determines the number of segements used to approximate a
+quarter circle around a point. 
+
+.. sourcecode:: pycon
+
+  >>> line = LineString([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
+  >>> dilated = line.buffer(0.5)
+  >>> eroded = dilated.buffer(-0.3)
+
+.. figure:: buffer.png
+   :width: 750
+   :height: 300
+
+   Figure 1. Dilation of a line (left) and erosion of a polygon (right). New
+   object is shown in blue.
+
+The default buffer of a point is a polygonal patch with 99.8% of the area of
+the disk it approximates.
+
+.. sourcecode:: pycon
+
+  >>> p = Point(0, 0).buffer(10.0)
+  >>> len(p.exterior.coords)
   66
+  >>> p.area
+  313.65484905459385
+
+With a `quadsegs` value of 1, the buffer is a square patch.
+
+.. sourcecode:: pycon
+
+  >>> q = Point(0, 0).buffer(10.0, 1)
+  >>> len(q.exterior.coords)
+  5
+  >>> q.area
+  200.0
+
+Convex Hull
+-----------
+
+**convex_hull**: Returns the smallest convex `Polygon` containing all the
+points in the object unless the number of points in the object is less than
+three. For two points, the convex hull collapses to a `LineString`; for 1, a
+`Point`.
+
+.. figure:: convex-hull.png
+   :width: 750
+   :height: 300
+
+   Figure 1. Convex hull (blue) of 6 points (left) and of 2 points (right).
 
 Simplify
 --------
@@ -768,23 +870,6 @@ Centroid
   >>> centroid_point = polygon.centroid
   >>> centroid_point.wkt
   'POINT (-0.0000000000000000 -0.0000000000000000)'
-
-Convex Hull
------------
-
-.convex_hull : geometry
-  Imagine an elastic band stretched around the geometry: that's a convex hull,
-  more or less.
-
-For example, collect the three points into a multi-point geometry, and get the
-triangular polygon that is their convex hull:
-
-.. sourcecode:: python
-
-  >>> multi_point = point_r.union(point_g)
-  >>> multi_point = multi_point.union(point_b)
-  >>> multi_point.convex_hull
-  <shapely.geometry.polygon.Polygon object at ...>
 
 Set-theoretic Operations
 ========================
@@ -904,80 +989,6 @@ is important to note that these are topological and not point-wise operations,
 and therefore may produce results that are not what one might expect from
 operations on Python.
 
-Contains
---------
-
-.contains(other) : bool
-  True if the geometry is spatially within, without touching. Applies to all
-  types of geometries.
-
-.. sourcecode:: python
-
-  >>> polygon.contains(point_b)
-  True
-
-Crosses
--------
-
-.crosses(other) : bool
-  Only linear geometries (lines, rings, polygon boundaries) may ever cross. No
-  geometry may ever cross a point.
-
-.. sourcecode:: python
-
-  >>> line_b.crosses(polygon)
-  True
-
-Disjoint
---------
-
-.disjoint(other) : bool
-  True if geometries do not spatially relate in any way, else False. See the
-  complementary *intersects*. 
-
-.. sourcecode:: python
-
-  >>> polygon.disjoint(point_r)
-  True
-
-Equals
-------
-
-.equals(other) : bool
-  Two geometries are topologically equal if their interiors intersect and no
-  part of the interior or boundary of one geometry intersects the exterior of
-  the other. Not to be confused with Python's *__equals__*.
-
-Intersects
-----------
-
-.intersects(other) : bool
-  This predicate is the complement of *disjoint*: geometries that do not
-  intersect are disjoint. Intersects is the most inclusive predicate.
-
-.. sourcecode:: python
-
-  >>> polygon.intersects(point_b)
-  True
-
-Touches
--------
-
-.touches(other) : bool
-  True if geometries *only* touch. The least inclusive predicate.
-
-.. sourcecode:: python
-
-  >>> polygon.touches(line_g)
-  True
-  >>> polygon.touches(line_b)
-  False
-
-Within
-------
-
-.within(other): bool
-  The inverse of *contains*.
 
 
 General Methods
@@ -1090,7 +1101,7 @@ attribute of the geometry object.
   [(-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0), (1.0, -1.0), (-1.0, -1.0)]
 
 The interior boundaries (or holes) of a polygon can be accessed through the
-*interiors* attribute, which is a list of rings.
+*uinteriors* attribute, which is a list of rings.
 
 
 Sub-geometries

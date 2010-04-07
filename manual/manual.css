@@ -39,19 +39,8 @@ div.figure img {
   border: 0;
 }
 
-div.figure {
-  margin-left: 1em;
-  float: left;
-}
-
-img.bordered-figure {
+div.figure img.bordered-figure {
   border: solid black 1px;
-  display: block;
-  margin: 1em auto;
-}
-
-div.clear {
-  clear: both;
 }
 
 div.section {
