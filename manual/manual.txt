@@ -4,7 +4,7 @@ The Shapely 1.2 Manual
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
 :Revision: 1.2
-:Date: 1 March 2010
+:Date: 6 April 2010
 :Copyright: 
   This work is licensed under a `Creative Commons Attribution 3.0
   United States License`__.
@@ -859,6 +859,8 @@ may result.
 
 Set-Theoretic Methods
 =====================
+
+TODO: Finish sections below this.
 
 Boundary
 --------
