@@ -20,6 +20,7 @@ for p in points1:
 
 ax.set_xlim(-1, 4)
 ax.set_ylim(-1, 3)
+ax.set_aspect(1)
 ax.set_axis_off()
 
 #2
@@ -36,6 +37,7 @@ for p in points2:
 
 ax.set_xlim(-1, 4)
 ax.set_ylim(-1, 3)
+ax.set_aspect(1)
 ax.set_axis_off()
 
 fig.subplots_adjust(0.0, 0.0, 1.0, 1.0, 0.1)

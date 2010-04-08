@@ -83,59 +83,43 @@ computational geometry.</td>
 <li><a class="reference internal" href="#line-merging" id="id45">6.2&nbsp;&nbsp;&nbsp;Line merging</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#binary-spatial-predicates" id="id46">7&nbsp;&nbsp;&nbsp;Binary Spatial Predicates</a></li>
-<li><a class="reference internal" href="#general-methods" id="id47">8&nbsp;&nbsp;&nbsp;General Methods</a><ul class="auto-toc">
-<li><a class="reference internal" href="#distance" id="id48">8.1&nbsp;&nbsp;&nbsp;Distance</a></li>
+<li><a class="reference internal" href="#general-methods" id="id46">7&nbsp;&nbsp;&nbsp;General Methods</a><ul class="auto-toc">
+<li><a class="reference internal" href="#distance" id="id47">7.1&nbsp;&nbsp;&nbsp;Distance</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#scalar-properties" id="id49">9&nbsp;&nbsp;&nbsp;Scalar Properties</a><ul class="auto-toc">
-<li><a class="reference internal" href="#area" id="id50">9.1&nbsp;&nbsp;&nbsp;Area</a></li>
-<li><a class="reference internal" href="#bounds" id="id51">9.2&nbsp;&nbsp;&nbsp;Bounds</a></li>
-<li><a class="reference internal" href="#length" id="id52">9.3&nbsp;&nbsp;&nbsp;Length</a></li>
-<li><a class="reference internal" href="#examples" id="id53">9.4&nbsp;&nbsp;&nbsp;Examples</a></li>
+<li><a class="reference internal" href="#interoperation" id="id48">8&nbsp;&nbsp;&nbsp;Interoperation</a><ul class="auto-toc">
+<li><a class="reference internal" href="#well-known-formats" id="id49">8.1&nbsp;&nbsp;&nbsp;Well-known Formats</a><ul class="auto-toc">
+<li><a class="reference internal" href="#well-known-text-wkt" id="id50">8.1.1&nbsp;&nbsp;&nbsp;Well-known Text (WKT)</a></li>
+<li><a class="reference internal" href="#well-known-binary-wkb" id="id51">8.1.2&nbsp;&nbsp;&nbsp;Well-known Binary (WKB)</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#geometry-parts-and-coordinates" id="id54">10&nbsp;&nbsp;&nbsp;Geometry Parts and Coordinates</a><ul class="auto-toc">
-<li><a class="reference internal" href="#coordinate-sequences" id="id55">10.1&nbsp;&nbsp;&nbsp;Coordinate Sequences</a></li>
-<li><a class="reference internal" href="#polygon-rings" id="id56">10.2&nbsp;&nbsp;&nbsp;Polygon Rings</a></li>
-<li><a class="reference internal" href="#sub-geometries" id="id57">10.3&nbsp;&nbsp;&nbsp;Sub-geometries</a></li>
-<li><a class="reference internal" href="#point-coordinates" id="id58">10.4&nbsp;&nbsp;&nbsp;Point Coordinates</a></li>
+<li><a class="reference internal" href="#numpy-array-interface" id="id52">8.2&nbsp;&nbsp;&nbsp;Numpy Array Interface</a></li>
+<li><a class="reference internal" href="#python-geo-interface" id="id53">8.3&nbsp;&nbsp;&nbsp;Python Geo Interface</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#interoperation" id="id59">11&nbsp;&nbsp;&nbsp;Interoperation</a><ul class="auto-toc">
-<li><a class="reference internal" href="#well-known-formats" id="id60">11.1&nbsp;&nbsp;&nbsp;Well-known Formats</a><ul class="auto-toc">
-<li><a class="reference internal" href="#well-known-text-wkt" id="id61">11.1.1&nbsp;&nbsp;&nbsp;Well-known Text (WKT)</a></li>
-<li><a class="reference internal" href="#well-known-binary-wkb" id="id62">11.1.2&nbsp;&nbsp;&nbsp;Well-known Binary (WKB)</a></li>
+<li><a class="reference internal" href="#advanced-features" id="id54">9&nbsp;&nbsp;&nbsp;Advanced Features</a><ul class="auto-toc">
+<li><a class="reference internal" href="#iterative-operations" id="id55">9.1&nbsp;&nbsp;&nbsp;Iterative Operations</a><ul class="auto-toc">
+<li><a class="reference internal" href="#contains" id="id56">9.1.1&nbsp;&nbsp;&nbsp;Contains</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#python-sequences" id="id63">11.2&nbsp;&nbsp;&nbsp;Python Sequences</a></li>
-<li><a class="reference internal" href="#numpy-array-interface" id="id64">11.3&nbsp;&nbsp;&nbsp;Numpy Array Interface</a></li>
-<li><a class="reference internal" href="#python-geo-interface" id="id65">11.4&nbsp;&nbsp;&nbsp;Python Geo Interface</a></li>
+<li><a class="reference internal" href="#prepared-geometry-operations" id="id57">9.2&nbsp;&nbsp;&nbsp;Prepared Geometry Operations</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#advanced-features" id="id66">12&nbsp;&nbsp;&nbsp;Advanced Features</a><ul class="auto-toc">
-<li><a class="reference internal" href="#iterative-operations" id="id67">12.1&nbsp;&nbsp;&nbsp;Iterative Operations</a><ul class="auto-toc">
-<li><a class="reference internal" href="#contains" id="id68">12.1.1&nbsp;&nbsp;&nbsp;Contains</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#prepared-geometry-operations" id="id69">12.2&nbsp;&nbsp;&nbsp;Prepared Geometry Operations</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#credits" id="id70">13&nbsp;&nbsp;&nbsp;Credits</a></li>
-<li><a class="reference internal" href="#references" id="id71">14&nbsp;&nbsp;&nbsp;References</a></li>
+<li><a class="reference internal" href="#credits" id="id58">10&nbsp;&nbsp;&nbsp;Credits</a></li>
+<li><a class="reference internal" href="#references" id="id59">11&nbsp;&nbsp;&nbsp;References</a></li>
 </ul>
 </div>
 <div class="section" id="introduction">
 <h1><a class="toc-backref" href="#id15">1&nbsp;&nbsp;&nbsp;Introduction</a></h1>
-<p>Deterministic (non-statistical) spatial analysis is an important component of
-computational approaches to problems in agriculture, ecology, epidemiology,
-sociology, and many other fields. What is the surveyed perimeter/area ratio of
-these patches of animal habitat? Which properties in this town intersect with
-the 50-year flood contour from this new flooding model? What are the extents of
-findspots for ancient ceramic wares with maker's marks &quot;A&quot; and &quot;B&quot;, and where
-do the extents overlap? These are just a few of the possible questions
-addressable using deterministic spatial analysis, and more specifically,
-computational geometry.</p>
+<p>Deterministic spatial analysis is an important component of computational
+approaches to problems in agriculture, ecology, epidemiology, sociology, and
+many other fields. What is the surveyed perimeter/area ratio of these patches
+of animal habitat? Which properties in this town intersect with the 50-year
+flood contour from this new flooding model? What are the extents of findspots
+for ancient ceramic wares with maker's marks &quot;A&quot; and &quot;B&quot;, and where do the
+extents overlap? These are just a few of the possible questions addressable
+using non-statistical spatial analysis, and more specifically, computational
+geometry.</p>
 <p>Shapely is a Python package for set-theoretic analysis and manipulation of
 planar features using (via Python's <cite>ctypes</cite> module) functions from the well
 known and widely deployed <a class="reference external" href="http://geos.refractions.net">GEOS</a> library. GEOS, a port of the <a class="reference external" href="http://www.vividsolutions.com/jts/jtshome.htm">Java Topology
@@ -172,7 +156,7 @@ lets you do PostGIS-y stuff with geometries outside the context of a database
 using idiomatic Python. Computational geometry, with no extra baggage.</p>
 <div class="section" id="spatial-data-model">
 <h2><a class="toc-backref" href="#id16">1.1&nbsp;&nbsp;&nbsp;Spatial Data Model</a></h2>
-<p>The fundamental types of geometric objects implemented by Shapely are: points,
+<p>The fundamental types of geometric objects implemented by Shapely are points,
 curves, and surfaces. Each is associated with three sets of (possibly infinite)
 points in the plane. The <cite>interior</cite>, <cite>boundary</cite>, and <cite>exterior</cite> sets of a
 feature are mutually exclusive and their union coincides with the entire plane
@@ -496,8 +480,10 @@ holes) makes usage more clear.</p>
 </div>
 <div class="section" id="empty-features">
 <h2><a class="toc-backref" href="#id28">2.8&nbsp;&nbsp;&nbsp;Empty features</a></h2>
-<p>Empty features can be created by calling the constructors with no arguments.
-Almost no operations are supported by empty features.</p>
+<p>An &quot;empty&quot; feature is one with a point set that coincides with the empty set:
+not a <tt class="docutils literal"><span class="pre">None</span></tt>, but like <tt class="docutils literal"><span class="pre">()</span></tt>. Empty features can be created by calling the
+constructors with no arguments.  Almost no operations are supported by empty
+features.</p>
 <div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>line <span style="color: #666666">=</span> LineString()
 <span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>line<span style="color: #666666">.</span>is_empty
 <span style="color: #808080">True</span>
@@ -729,7 +715,7 @@ used that preserves topology. If preserve topology is set to False the much
 quicker Douglas-Peucker algorithm (TODO: cite) is used, and invalid geometries
 may result.</p>
 <div class="figure">
-<img alt="images/simplify.png" src="images/simplify.png" style="width: 600px; height: 300px;" />
+<img alt="images/simplify.png" src="images/simplify.png" style="width: 750px; height: 300px;" />
 <p class="caption">Figure 1. Simplification of a nearly circular polygon of radius 1 using a
 tolerance of 0.1 (left) and 0.5 (right). [<a class="reference external" href="http://github.com/sgillies/shapely/blob/master/manual/code/simplify.py">code</a>]</p>
 </div>
@@ -864,17 +850,10 @@ lines are not contiguous.</dd>
 </pre></div>
 </div>
 </div>
-<div class="section" id="binary-spatial-predicates">
-<h1><a class="toc-backref" href="#id46">7&nbsp;&nbsp;&nbsp;Binary Spatial Predicates</a></h1>
-<p>All of these methods take a single positional argument, an <em>other</em> geometry. It
-is important to note that these are topological and not point-wise operations,
-and therefore may produce results that are not what one might expect from
-operations on Python.</p>
-</div>
 <div class="section" id="general-methods">
-<h1><a class="toc-backref" href="#id47">8&nbsp;&nbsp;&nbsp;General Methods</a></h1>
+<h1><a class="toc-backref" href="#id46">7&nbsp;&nbsp;&nbsp;General Methods</a></h1>
 <div class="section" id="distance">
-<h2><a class="toc-backref" href="#id48">8.1&nbsp;&nbsp;&nbsp;Distance</a></h2>
+<h2><a class="toc-backref" href="#id47">7.1&nbsp;&nbsp;&nbsp;Distance</a></h2>
 <dl class="docutils">
 <dt>.distance(other) <span class="classifier-delimiter">:</span> <span class="classifier">geometry</span></dt>
 <dd>The minimum distance from one geometry to the other.</dd>
@@ -884,125 +863,14 @@ operations on Python.</p>
 </pre></div>
 </div>
 </div>
-<div class="section" id="scalar-properties">
-<h1><a class="toc-backref" href="#id49">9&nbsp;&nbsp;&nbsp;Scalar Properties</a></h1>
-<div class="section" id="area">
-<h2><a class="toc-backref" href="#id50">9.1&nbsp;&nbsp;&nbsp;Area</a></h2>
-<dl class="docutils">
-<dt>.area <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Area of the geometry, unitless. Non-zero only for surfaces (polygons,
-multi-polygons).</dd>
-</dl>
-</div>
-<div class="section" id="bounds">
-<h2><a class="toc-backref" href="#id51">9.2&nbsp;&nbsp;&nbsp;Bounds</a></h2>
-<dl class="docutils">
-<dt>.bounds <span class="classifier-delimiter">:</span> <span class="classifier">tuple</span></dt>
-<dd>The geometry's (minx, miny, maxx, maxy) bounding box.</dd>
-</dl>
-</div>
-<div class="section" id="length">
-<h2><a class="toc-backref" href="#id52">9.3&nbsp;&nbsp;&nbsp;Length</a></h2>
-<dl class="docutils">
-<dt>.length <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Length of the geometry, unitless. Non-zero only for linear geometries
-(line strings, rings, polygon boundaries)</dd>
-</dl>
-</div>
-<div class="section" id="examples">
-<h2><a class="toc-backref" href="#id53">9.4&nbsp;&nbsp;&nbsp;Examples</a></h2>
-<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> polygon<span style="color: #666666">.</span>area
-<span style="color: #666666">4.0</span>
-<span style="color: #666666">&gt;&gt;&gt;</span> polygon<span style="color: #666666">.</span>bounds
-(<span style="color: #666666">-1.0</span>, <span style="color: #666666">-1.0</span>, <span style="color: #666666">1.0</span>, <span style="color: #666666">1.0</span>)
-<span style="color: #666666">&gt;&gt;&gt;</span> polygon<span style="color: #666666">.</span>length
-<span style="color: #666666">8.0</span>
-<span style="color: #666666">&gt;&gt;&gt;</span> line_r<span style="color: #666666">.</span>length
-<span style="color: #666666">1.0</span>
-<span style="color: #666666">&gt;&gt;&gt;</span> line_b<span style="color: #666666">.</span>length
-<span style="color: #666666">3.9812058474788765</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="geometry-parts-and-coordinates">
-<h1><a class="toc-backref" href="#id54">10&nbsp;&nbsp;&nbsp;Geometry Parts and Coordinates</a></h1>
-<div class="section" id="coordinate-sequences">
-<h2><a class="toc-backref" href="#id55">10.1&nbsp;&nbsp;&nbsp;Coordinate Sequences</a></h2>
-<p>The coordinates of points, line strings, and polygon rings can be accessed
-through the <em>coords</em> attribute of a geometry. <em>Coords</em> is an iterator over
-coordinate tuples.</p>
-<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> point_r<span style="color: #666666">.</span>coords
-<span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>base<span style="color: #666666">.</span>CoordinateSequence <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>
-<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">len</span>(point_r<span style="color: #666666">.</span>coords)
-<span style="color: #666666">1</span>
-<span style="color: #666666">&gt;&gt;&gt;</span> point_r<span style="color: #666666">.</span>coords[<span style="color: #666666">0</span>]
-(<span style="color: #666666">-1.5</span>, <span style="color: #666666">1.2</span>)
-<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">list</span>(point_r<span style="color: #666666">.</span>coords)
-[(<span style="color: #666666">-1.5</span>, <span style="color: #666666">1.2</span>)]
-</pre></div>
-<p>The coordinate sequence can be modifed by assigning a sequence (<strong>a</strong>1, ...,
-<strong>a</strong>M) to the coords attribute.</p>
-<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> point_new <span style="color: #666666">=</span> Point(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>)
-<span style="color: #666666">&gt;&gt;&gt;</span> point_new<span style="color: #666666">.</span>coords <span style="color: #666666">=</span> (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>)
-<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">list</span>(point_new<span style="color: #666666">.</span>coords)
-[(<span style="color: #666666">1.0</span>, <span style="color: #666666">1.0</span>)]
-</pre></div>
-<p>For line strings:</p>
-<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> line_new <span style="color: #666666">=</span> LineString([(<span style="color: #666666">0</span>,<span style="color: #666666">0</span>), (<span style="color: #666666">1</span>,<span style="color: #666666">1</span>)])
-<span style="color: #666666">&gt;&gt;&gt;</span> line_new<span style="color: #666666">.</span>coords <span style="color: #666666">=</span> [(<span style="color: #666666">1</span>,<span style="color: #666666">1</span>), (<span style="color: #666666">2</span>,<span style="color: #666666">2</span>)]
-<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">list</span>(line_new<span style="color: #666666">.</span>coords)
-[(<span style="color: #666666">1.0</span>, <span style="color: #666666">1.0</span>), (<span style="color: #666666">2.0</span>, <span style="color: #666666">2.0</span>)]
-</pre></div>
-</div>
-<div class="section" id="polygon-rings">
-<h2><a class="toc-backref" href="#id56">10.2&nbsp;&nbsp;&nbsp;Polygon Rings</a></h2>
-<p>The exterior boundary of a polygon can be accessed through the <em>exterior</em>
-attribute of the geometry object.</p>
-<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> polygon<span style="color: #666666">.</span>exterior
-<span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>polygon<span style="color: #666666">.</span>LinearRing <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>
-<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">list</span>(polygon<span style="color: #666666">.</span>exterior<span style="color: #666666">.</span>coords)
-[(<span style="color: #666666">-1.0</span>, <span style="color: #666666">-1.0</span>), (<span style="color: #666666">-1.0</span>, <span style="color: #666666">1.0</span>), (<span style="color: #666666">1.0</span>, <span style="color: #666666">1.0</span>), (<span style="color: #666666">1.0</span>, <span style="color: #666666">-1.0</span>), (<span style="color: #666666">-1.0</span>, <span style="color: #666666">-1.0</span>)]
-</pre></div>
-<p>The interior boundaries (or holes) of a polygon can be accessed through the
-<em>uinteriors</em> attribute, which is a list of rings.</p>
-</div>
-<div class="section" id="sub-geometries">
-<h2><a class="toc-backref" href="#id57">10.3&nbsp;&nbsp;&nbsp;Sub-geometries</a></h2>
-<p>The parts of a multi-part geometry can be accessed through the <em>geoms</em>
-attribute of the geometry object, which is an iterator over the sub-geometries:</p>
-<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> multi_point<span style="color: #666666">.</span>geoms
-<span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>base<span style="color: #666666">.</span>GeometrySequence <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>
-<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">len</span>(multi_point<span style="color: #666666">.</span>geoms)
-<span style="color: #666666">3</span>
-<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">pprint</span> <span style="color: #008000; font-weight: bold">import</span> pprint
-<span style="color: #666666">&gt;&gt;&gt;</span> pprint(<span style="color: #008000">list</span>(multi_point<span style="color: #666666">.</span>geoms))
-[<span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>point<span style="color: #666666">.</span>Point <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>,
- <span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>point<span style="color: #666666">.</span>Point <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>,
- <span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>point<span style="color: #666666">.</span>Point <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>]
-</pre></div>
-<p>The coordinate sequences of these sub-geometries can then be accessed as
-described above.</p>
-</div>
-<div class="section" id="point-coordinates">
-<h2><a class="toc-backref" href="#id58">10.4&nbsp;&nbsp;&nbsp;Point Coordinates</a></h2>
-<p>For the sake of convenience the coordinate values of points can be accessed
-read-only via <strong>x</strong>, <strong>y</strong>, and <strong>z</strong> attributes:</p>
-<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> point <span style="color: #666666">=</span> Point(<span style="color: #666666">1.0</span>, <span style="color: #666666">1.0</span>)
-<span style="color: #666666">&gt;&gt;&gt;</span> point<span style="color: #666666">.</span>x
-<span style="color: #666666">1.0</span>
-<span style="color: #666666">&gt;&gt;&gt;</span> point<span style="color: #666666">.</span>y
-<span style="color: #666666">1.0</span>
-</pre></div>
-</div>
-</div>
 <div class="section" id="interoperation">
-<h1><a class="toc-backref" href="#id59">11&nbsp;&nbsp;&nbsp;Interoperation</a></h1>
+<h1><a class="toc-backref" href="#id48">8&nbsp;&nbsp;&nbsp;Interoperation</a></h1>
 <p>Shapely provides 4 avenues for interoperation with other Python and GIS
 software.</p>
 <div class="section" id="well-known-formats">
-<h2><a class="toc-backref" href="#id60">11.1&nbsp;&nbsp;&nbsp;Well-known Formats</a></h2>
+<h2><a class="toc-backref" href="#id49">8.1&nbsp;&nbsp;&nbsp;Well-known Formats</a></h2>
 <div class="section" id="well-known-text-wkt">
-<h3><a class="toc-backref" href="#id61">11.1.1&nbsp;&nbsp;&nbsp;Well-known Text (WKT)</a></h3>
+<h3><a class="toc-backref" href="#id50">8.1.1&nbsp;&nbsp;&nbsp;Well-known Text (WKT)</a></h3>
 <p>The WKT representation of any geometry object can be had via the <strong>wkt</strong>
 attribute:</p>
 <div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> point_r<span style="color: #666666">.</span>wkt
@@ -1020,7 +888,7 @@ attribute:</p>
 </pre></div>
 </div>
 <div class="section" id="well-known-binary-wkb">
-<h3><a class="toc-backref" href="#id62">11.1.2&nbsp;&nbsp;&nbsp;Well-known Binary (WKB)</a></h3>
+<h3><a class="toc-backref" href="#id51">8.1.2&nbsp;&nbsp;&nbsp;Well-known Binary (WKB)</a></h3>
 <p>The WKB representation of any geometry object can be had via the <strong>wkb</strong>
 attribute. New geometries can be created from WKB data using the
 <em>shapely.wkb.loads</em> factory. Use this format to interoperate with ogr.py:</p>
@@ -1034,38 +902,8 @@ attribute. New geometries can be created from WKB data using the
 </pre></div>
 </div>
 </div>
-<div class="section" id="python-sequences">
-<h2><a class="toc-backref" href="#id63">11.2&nbsp;&nbsp;&nbsp;Python Sequences</a></h2>
-<p>Python sequence data can be analyzed as Shapely geometries using the
-<em>shapely.geometry.as*</em> adapters while leaving the data in its original
-storage. A pair of float can be treated as a point with <strong>asPoint</strong>:</p>
-<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely.geometry</span> <span style="color: #008000; font-weight: bold">import</span> asPoint
-<span style="color: #666666">&gt;&gt;&gt;</span> coords <span style="color: #666666">=</span> [<span style="color: #666666">3.0</span>, <span style="color: #666666">4.0</span>]
-<span style="color: #666666">&gt;&gt;&gt;</span> pa <span style="color: #666666">=</span> asPoint(coords)
-<span style="color: #666666">&gt;&gt;&gt;</span> pa<span style="color: #666666">.</span>wkt
-<span style="color: #BA2121">&#39;POINT (3.0000000000000000 4.0000000000000000)&#39;</span>
-</pre></div>
-<p>Move the coordinates and watch the geometry adapter change</p>
-<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> coords[<span style="color: #666666">0</span>] <span style="color: #666666">=</span> <span style="color: #666666">1.0</span>
-<span style="color: #666666">&gt;&gt;&gt;</span> pa<span style="color: #666666">.</span>wkt
-<span style="color: #BA2121">&#39;POINT (1.0000000000000000 4.0000000000000000)&#39;</span>
-</pre></div>
-<p>The <strong>asLineString</strong> adapter works much the same. The <strong>asPolygon</strong> adapter is
-used like</p>
-<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely.geometry</span> <span style="color: #008000; font-weight: bold">import</span> asPolygon
-<span style="color: #666666">&gt;&gt;&gt;</span> coords <span style="color: #666666">=</span> [[<span style="color: #666666">0.0</span>, <span style="color: #666666">0.0</span>], [<span style="color: #666666">0.0</span>, <span style="color: #666666">1.0</span>], [<span style="color: #666666">1.0</span>, <span style="color: #666666">1.0</span>], [<span style="color: #666666">1.0</span>, <span style="color: #666666">0.0</span>]]
-<span style="color: #666666">&gt;&gt;&gt;</span> hole_coords <span style="color: #666666">=</span> [((<span style="color: #666666">0.1</span>,<span style="color: #666666">0.1</span>), (<span style="color: #666666">0.1</span>,<span style="color: #666666">0.2</span>), (<span style="color: #666666">0.2</span>,<span style="color: #666666">0.2</span>), (<span style="color: #666666">0.2</span>,<span style="color: #666666">0.1</span>))]
-<span style="color: #666666">&gt;&gt;&gt;</span> pa <span style="color: #666666">=</span> asPolygon(coords, hole_coords)
-<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">len</span>(pa<span style="color: #666666">.</span>exterior<span style="color: #666666">.</span>coords)
-<span style="color: #666666">5</span>
-<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">len</span>(pa<span style="color: #666666">.</span>interiors)
-<span style="color: #666666">1</span>
-<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">len</span>(pa<span style="color: #666666">.</span>interiors[<span style="color: #666666">0</span>]<span style="color: #666666">.</span>coords)
-<span style="color: #666666">5</span>
-</pre></div>
-</div>
 <div class="section" id="numpy-array-interface">
-<h2><a class="toc-backref" href="#id64">11.3&nbsp;&nbsp;&nbsp;Numpy Array Interface</a></h2>
+<h2><a class="toc-backref" href="#id52">8.2&nbsp;&nbsp;&nbsp;Numpy Array Interface</a></h2>
 <p>Shapely geometries provide the Numpy array interface which means that points,
 line strings, and polygon rings can be used as Numpy arrays:</p>
 <div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">import</span> array
@@ -1097,7 +935,7 @@ storage. A 1 x 2 array can be adapted to a point</p>
 <p>There is no Numpy array representation of a polygon.</p>
 </div>
 <div class="section" id="python-geo-interface">
-<h2><a class="toc-backref" href="#id65">11.4&nbsp;&nbsp;&nbsp;Python Geo Interface</a></h2>
+<h2><a class="toc-backref" href="#id53">8.3&nbsp;&nbsp;&nbsp;Python Geo Interface</a></h2>
 <p>Any object that provides the GeoJSON-like <a class="reference external" href="http://trac.gispython.org/projects/PCL/wiki/PythonGeoInterface">Python geo interface</a> can be
 adapted and used as a Shapely geometry using the <em>shapely.geometry.asShape</em>
 function. For example, a dictionary:</p>
@@ -1125,13 +963,13 @@ function. For example, a dictionary:</p>
 </div>
 </div>
 <div class="section" id="advanced-features">
-<h1><a class="toc-backref" href="#id66">12&nbsp;&nbsp;&nbsp;Advanced Features</a></h1>
+<h1><a class="toc-backref" href="#id54">9&nbsp;&nbsp;&nbsp;Advanced Features</a></h1>
 <div class="section" id="iterative-operations">
-<h2><a class="toc-backref" href="#id67">12.1&nbsp;&nbsp;&nbsp;Iterative Operations</a></h2>
+<h2><a class="toc-backref" href="#id55">9.1&nbsp;&nbsp;&nbsp;Iterative Operations</a></h2>
 <p>Shapely provides functions for efficient operations on large sets of
 geometries.</p>
 <div class="section" id="contains">
-<h3><a class="toc-backref" href="#id68">12.1.1&nbsp;&nbsp;&nbsp;Contains</a></h3>
+<h3><a class="toc-backref" href="#id56">9.1.1&nbsp;&nbsp;&nbsp;Contains</a></h3>
 <p>To find the subset of points that are contained within a polygon, use
 <em>shapely.iterops.contains</em>:</p>
 <div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely.geometry</span> <span style="color: #008000; font-weight: bold">import</span> Polygon
@@ -1152,7 +990,7 @@ will be ultimately yielded from <em>iterops.contains</em>.</p>
 </div>
 </div>
 <div class="section" id="prepared-geometry-operations">
-<h2><a class="toc-backref" href="#id69">12.2&nbsp;&nbsp;&nbsp;Prepared Geometry Operations</a></h2>
+<h2><a class="toc-backref" href="#id57">9.2&nbsp;&nbsp;&nbsp;Prepared Geometry Operations</a></h2>
 <p>Shapely geometries can be pre-analyzed into a state that supports more
 efficient batches of operations. To test one polygon containment against a
 large batch of points, one should first use the <cite>prepared.prep</cite> function:</p>
@@ -1171,13 +1009,13 @@ same arguments and usage as their counterparts in the standard geometries.</p>
 </div>
 </div>
 <div class="section" id="credits">
-<h1><a class="toc-backref" href="#id70">13&nbsp;&nbsp;&nbsp;Credits</a></h1>
+<h1><a class="toc-backref" href="#id58">10&nbsp;&nbsp;&nbsp;Credits</a></h1>
 <p>Shapely is written by Sean Gillies with contributions from Aron Bierbaum,
 Howard Butler, Kai Lautaportti (Hexagon IT), Frédéric Junod (Camptocamp SA),
 Eric Lemoine (Camptocamp SA) and ctypes tips from Justin Bronn (GeoDjango).</p>
 </div>
 <div class="section" id="references">
-<h1><a class="toc-backref" href="#id71">14&nbsp;&nbsp;&nbsp;References</a></h1>
+<h1><a class="toc-backref" href="#id59">11&nbsp;&nbsp;&nbsp;References</a></h1>
 <table class="docutils footnote" frame="void" id="id10" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">

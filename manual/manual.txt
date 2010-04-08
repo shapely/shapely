@@ -22,15 +22,15 @@ The Shapely 1.2 Manual
 Introduction
 ============
 
-Deterministic (non-statistical) spatial analysis is an important component of
-computational approaches to problems in agriculture, ecology, epidemiology,
-sociology, and many other fields. What is the surveyed perimeter/area ratio of
-these patches of animal habitat? Which properties in this town intersect with
-the 50-year flood contour from this new flooding model? What are the extents of
-findspots for ancient ceramic wares with maker's marks "A" and "B", and where
-do the extents overlap? These are just a few of the possible questions
-addressable using deterministic spatial analysis, and more specifically,
-computational geometry.
+Deterministic spatial analysis is an important component of computational
+approaches to problems in agriculture, ecology, epidemiology, sociology, and
+many other fields. What is the surveyed perimeter/area ratio of these patches
+of animal habitat? Which properties in this town intersect with the 50-year
+flood contour from this new flooding model? What are the extents of findspots
+for ancient ceramic wares with maker's marks "A" and "B", and where do the
+extents overlap? These are just a few of the possible questions addressable
+using non-statistical spatial analysis, and more specifically, computational
+geometry.
 
 Shapely is a Python package for set-theoretic analysis and manipulation of
 planar features using (via Python's `ctypes` module) functions from the well
@@ -72,7 +72,7 @@ using idiomatic Python. Computational geometry, with no extra baggage.
 Spatial Data Model
 ------------------
 
-The fundamental types of geometric objects implemented by Shapely are: points,
+The fundamental types of geometric objects implemented by Shapely are points,
 curves, and surfaces. Each is associated with three sets of (possibly infinite)
 points in the plane. The `interior`, `boundary`, and `exterior` sets of a
 feature are mutually exclusive and their union coincides with the entire plane
@@ -518,8 +518,10 @@ Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
 Empty features
 --------------
 
-Empty features can be created by calling the constructors with no arguments.
-Almost no operations are supported by empty features.
+An "empty" feature is one with a point set that coincides with the empty set:
+not a ``None``, but like ``()``. Empty features can be created by calling the
+constructors with no arguments.  Almost no operations are supported by empty
+features.
 
 .. sourcecode:: pycon
 
@@ -834,7 +836,7 @@ quicker Douglas-Peucker algorithm (TODO: cite) is used, and invalid geometries
 may result.
 
 .. figure:: images/simplify.png
-   :width: 600
+   :width: 750
    :height: 300
 
    Figure 1. Simplification of a nearly circular polygon of radius 1 using a
@@ -986,16 +988,6 @@ shapely.ops.linemerge(lines) : iterator or MultiLineString
   <shapely.geometry.linestring.LineString object at 0x...>
 
 
-Binary Spatial Predicates
-=========================
-
-All of these methods take a single positional argument, an *other* geometry. It
-is important to note that these are topological and not point-wise operations,
-and therefore may produce results that are not what one might expect from
-operations on Python.
-
-
-
 General Methods
 ===============
 
@@ -1009,142 +1001,6 @@ Distance
 
   >>> Point(0,0).distance(Point(1,1))
   1.4142135623730951
-
-
-Scalar Properties
-=================
-
-Area
-----
-
-.area : float
-  Area of the geometry, unitless. Non-zero only for surfaces (polygons,
-  multi-polygons).
-
-Bounds
-------
-
-.bounds : tuple
-  The geometry's (minx, miny, maxx, maxy) bounding box.
-
-Length
-------
-
-.length : float
-  Length of the geometry, unitless. Non-zero only for linear geometries
-  (line strings, rings, polygon boundaries)
-
-Examples
---------
-
-.. sourcecode:: python
-
-  >>> polygon.area
-  4.0
-  >>> polygon.bounds
-  (-1.0, -1.0, 1.0, 1.0)
-  >>> polygon.length
-  8.0
-  >>> line_r.length
-  1.0
-  >>> line_b.length
-  3.9812058474788765
-
-
-Geometry Parts and Coordinates
-==============================
-
-Coordinate Sequences
---------------------
-
-The coordinates of points, line strings, and polygon rings can be accessed
-through the *coords* attribute of a geometry. *Coords* is an iterator over
-coordinate tuples.
-
-.. sourcecode:: python
-
-  >>> point_r.coords
-  <shapely.geometry.base.CoordinateSequence object at ...>
-  >>> len(point_r.coords)
-  1
-  >>> point_r.coords[0]
-  (-1.5, 1.2)
-  >>> list(point_r.coords)
-  [(-1.5, 1.2)]
-
-The coordinate sequence can be modifed by assigning a sequence (**a**\ 1, ...,
-**a**\ M) to the coords attribute.
-
-.. sourcecode:: python
-
-  >>> point_new = Point(0, 0)
-  >>> point_new.coords = (1, 1)
-  >>> list(point_new.coords)
-  [(1.0, 1.0)]
-
-For line strings:
-
-.. sourcecode:: python
-
-  >>> line_new = LineString([(0,0), (1,1)])
-  >>> line_new.coords = [(1,1), (2,2)]
-  >>> list(line_new.coords)
-  [(1.0, 1.0), (2.0, 2.0)]
-
-
-Polygon Rings
--------------
-
-The exterior boundary of a polygon can be accessed through the *exterior*
-attribute of the geometry object.
-
-.. sourcecode:: python
-
-  >>> polygon.exterior
-  <shapely.geometry.polygon.LinearRing object at ...>
-  >>> list(polygon.exterior.coords)
-  [(-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0), (1.0, -1.0), (-1.0, -1.0)]
-
-The interior boundaries (or holes) of a polygon can be accessed through the
-*uinteriors* attribute, which is a list of rings.
-
-
-Sub-geometries
---------------
-
-The parts of a multi-part geometry can be accessed through the *geoms*
-attribute of the geometry object, which is an iterator over the sub-geometries:
-
-.. sourcecode:: python
-
-  >>> multi_point.geoms
-  <shapely.geometry.base.GeometrySequence object at ...>
-  >>> len(multi_point.geoms)
-  3
-  >>> from pprint import pprint
-  >>> pprint(list(multi_point.geoms))
-  [<shapely.geometry.point.Point object at ...>,
-   <shapely.geometry.point.Point object at ...>,
-   <shapely.geometry.point.Point object at ...>]
-
-The coordinate sequences of these sub-geometries can then be accessed as
-described above.
-
-
-Point Coordinates
------------------
-
-For the sake of convenience the coordinate values of points can be accessed
-read-only via **x**, **y**, and **z** attributes:
-
-.. sourcecode:: python
-
-  >>> point = Point(1.0, 1.0)
-  >>> point.x
-  1.0
-  >>> point.y
-  1.0
-
 
 Interoperation
 ==============
@@ -1198,47 +1054,6 @@ attribute. New geometries can be created from WKB data using the
   >>> feature = borders.GetNextFeature()
   >>> loads(feature.GetGeometryRef().ExportToWkb())
   <shapely.geometry.polygon.Polygon object at ...>
-
-
-Python Sequences
-----------------
-
-Python sequence data can be analyzed as Shapely geometries using the
-*shapely.geometry.as\** adapters while leaving the data in its original
-storage. A pair of float can be treated as a point with **asPoint**:
-
-.. sourcecode:: python
-
-  >>> from shapely.geometry import asPoint
-  >>> coords = [3.0, 4.0]
-  >>> pa = asPoint(coords)
-  >>> pa.wkt
-  'POINT (3.0000000000000000 4.0000000000000000)'
-
-Move the coordinates and watch the geometry adapter change
-
-.. sourcecode:: python
-
-  >>> coords[0] = 1.0
-  >>> pa.wkt
-  'POINT (1.0000000000000000 4.0000000000000000)'
-
-The **asLineString** adapter works much the same. The **asPolygon** adapter is
-used like
-
-.. sourcecode:: python
-
-  >>> from shapely.geometry import asPolygon
-  >>> coords = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]
-  >>> hole_coords = [((0.1,0.1), (0.1,0.2), (0.2,0.2), (0.2,0.1))]
-  >>> pa = asPolygon(coords, hole_coords)
-  >>> len(pa.exterior.coords)
-  5
-  >>> len(pa.interiors)
-  1
-  >>> len(pa.interiors[0].coords)
-  5
-
 
 Numpy Array Interface
 ---------------------
