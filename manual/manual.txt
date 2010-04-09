@@ -72,10 +72,11 @@ using idiomatic Python. Computational geometry, with no extra baggage.
 Spatial Data Model
 ------------------
 
-The fundamental types of features implemented by Shapely are: points, curves,
-and surfaces. Each is associated with three sets of (possibly infinite) points
-in the plane. The `interior`, `boundary`, and `exterior` sets of a feature are
-mutually exclusive and their union coincides with the entire plane [2]_.
+The fundamental types of geometric objects implemented by Shapely are: points,
+curves, and surfaces. Each is associated with three sets of (possibly infinite)
+points in the plane. The `interior`, `boundary`, and `exterior` sets of a
+feature are mutually exclusive and their union coincides with the entire plane
+[2]_.
 
 * A `Point` has an `interior` set of exactly one point, a `boundary` set of
   exactly no points, and an `exterior` set of all other points. A `Point` has
@@ -97,11 +98,11 @@ spatial predicates, and it's as deep into theory as this manual will go.
 Consequences of point-set theory, including some that manifest themselves as
 "gotchas", for different classes will be discussed later in this manual.
 
-The point type is implemented by a `Point` class; curve by the `LineString`
-and `LinearRing` classes; and surface by a `Polygon` class. Shapely implements
-no smooth (`i.e.` having continuous tangents) curves. All curves must be
-approximated by linear splines. All rounded patches must be
-approximated by regions bounded by linear splines.
+The point type is implemented by a `Point` class; curve by the `LineString` and
+`LinearRing` classes; and surface by a `Polygon` class. Shapely implements no
+smooth (`i.e.` having continuous tangents) curves. All curves must be
+approximated by linear splines. All rounded patches must be approximated by
+regions bounded by linear splines.
 
 Collections of points are implemented by a `MultiPoint` class, collections of
 curves by a `MultiLineString` class, and collections of surfaces by a
@@ -110,7 +111,8 @@ are useful for modeling certain kinds of features. A Y-shaped line feature, for
 example, is well modeled as a whole by a `MultiLineString`.
 
 The standard data model has additional constraints specific to certain types
-of features that will be discussed in following sections of this manual.
+of geometric objects that will be discussed in following sections of this
+manual.
 
 See also http://www.vividsolutions.com/jts/discussion.htm#spatialDataModel
 for more illustrations of this data model.
@@ -119,11 +121,11 @@ Relationships
 -------------
 
 The spatial data model is accompanied by a group of natural language
-relationships among features – `contains`, `intersects`, `overlaps`, `touches`,
-etc – and a theoretical framework for understanding them using the 3x3 matrix
-of the mutual intersections of their component point sets [2]_: the DE-9IM. A
-comprehensive review of the relationships in terms of the DE-9IM is found in
-[4]_ and will not be reiterated in this manual.
+relationships between geometric objects – `contains`, `intersects`, `overlaps`,
+`touches`, etc – and a theoretical framework for understanding them using the
+3x3 matrix of the mutual intersections of their component point sets [2]_: the
+DE-9IM. A comprehensive review of the relationships in terms of the DE-9IM is
+found in [4]_ and will not be reiterated in this manual.
 
 Operations
 ----------
@@ -143,13 +145,13 @@ transforming the results back to geographic coordinates.  This practice is as
 old as the tradition of accurate paper maps.
 
 Shapely does not support coordinate system transformations. All operations on
-two or more features presume that the features exist in the same unitless
-Cartesian plane.
+two or more features presume that the features exist in the same Cartesian
+plane.
 
-Geometric Features and their Properties
-=======================================
+Geometric Objects
+=================
 
-Features are created in the typical Python fashion, using the classes
+Geometric objects are created in the typical Python fashion, using the classes
 themselves as instance factories. A few of their intrinsic properties will be
 discussed in this sections, others in the following sections on operations and
 serializations. 
@@ -157,13 +159,13 @@ serializations.
 Instances of `Point`, `LineString`, and `LinearRing` have coordinate sequences.
 Coordinate sequences are immutable. Their parent features are mutable in that
 they can be assigned new coordinate sequences. A third `z` coordinate value may
-be used when constructing features, but has no effect on geometric analysis.
+be used when constructing instances, but has no effect on geometric analysis.
 All operations are performed in the `x-y` plane.
 
 In all constructors, numeric values are converted to type `float`. In other
 words, ``Point(0, 0)`` and ``Point(0.0, 0.0)`` produce geometrically equivalent
 instances. Shapely does not check the topological simplicity or validity of
-features when they are constructed as the cost is unwarranted in most cases.
+instances when they are constructed as the cost is unwarranted in most cases.
 Validating factories are trivially implemented, using the `is_valid` predicate,
 by users that require them.
 
@@ -176,33 +178,40 @@ a `curve`.
 Points
 ------
 
-The `Point` constructor takes a point tuple or positional coordinate value
+The `Point` constructor takes positional coordinate values or point tuple
 parameters.
 
 .. sourcecode:: pycon
 
   >>> from shapely.geometry import Point
-  >>> p = Point((0.0, 0.0))
-  >>> q = Point(0.0, 0.0)
+  >>> point = Point(0.0, 0.0)
+  >>> q = Point((0.0, 0.0))
 
 A `Point` has zero area and zero length.
 
 .. sourcecode:: pycon
 
-  >>> p.area
+  >>> point.area
   0.0
-  >>> p.length
+  >>> point.length
   0.0
+
+Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
+
+.. sourcecode:: pycon
+
+  >>> point.bounds
+  (0.0, 0.0, 0.0, 0.0)
 
 Coordinate values are accessed via `coords`, `x`, `y`, and `z` properties.
 
 .. sourcecode:: pycon
 
-  >>> list(p.coords)
+  >>> list(point.coords)
   [(0.0, 0.0)]
-  >>> p.x
+  >>> point.x
   0.0
-  >>> p.y
+  >>> point.y
   0.0
 
 The `Point` constructor also accepts another `Point` instance, thereby making
@@ -210,7 +219,7 @@ a copy.
 
 .. sourcecode:: pycon
 
-  >>> Point(p)
+  >>> Point(point)
   <shapely.geometry.point.Point object at 0x...>
   
 LineStrings
@@ -231,19 +240,26 @@ A `LineString` has zero area and non-zero length.
 
 .. sourcecode:: pycon
 
-  >>> l = LineString([(0, 0), (1, 1)])
-  >>> l.area
+  >>> line = LineString([(0, 0), (1, 1)])
+  >>> line.area
   0.0
-  >>> l.length
+  >>> line.length
   1.4142135623730951
+
+Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
+
+.. sourcecode:: pycon
+
+  >>> line.bounds
+  (0.0, 0.0, 1.0, 1.0)
 
 Coordinate values are accessed via the `coords` property.
 
 .. sourcecode:: pycon
 
-  >>> len(l.coords)
+  >>> len(line.coords)
   2
-  >>> list(l.coords)
+  >>> list(line.coords)
   [(0.0, 0.0), (1.0, 1.0)]
 
 The constructor also accepts another `LineString` instance, thereby making a
@@ -251,7 +267,7 @@ copy.
 
 .. sourcecode:: pycon
 
-  >>> LineString(l)
+  >>> LineString(line)
   <shapely.geometry.linestring.LineString object at 0x...>
 
 A sequence of `Point` instances is not a valid constructor parameter. A
@@ -280,19 +296,26 @@ A `LinearRing` has zero area and non-zero length.
 
 .. sourcecode:: pycon
 
-  >>> r = LinearRing([(0, 0), (1, 1), (1, 0)])
-  >>> r.area
+  >>> ring = LinearRing([(0, 0), (1, 1), (1, 0)])
+  >>> ring.area
   0.0
-  >>> r.length
+  >>> ring.length
   3.4142135623730949
+
+Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
+
+.. sourcecode:: pycon
+
+  >>> ring.bounds
+  (0.0, 0.0, 1.0, 1.0)
 
 Coordinate values are accessed via the `coords` property.
 
 .. sourcecode:: pycon
 
-  >>> len(r.coords)
+  >>> len(ring.coords)
   4
-  >>> list(r.coords)
+  >>> list(ring.coords)
   [(0.0, 0.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)]
 
 The `LinearRing` constructor also accepts another `LineString` or `LinearRing`
@@ -300,7 +323,7 @@ instance, thereby making a copy.
 
 .. sourcecode:: pycon
 
-  >>> LinearRring(r)
+  >>> LinearRring(ring)
   <shapely.geometry.polygon.LinearRing object at 0x...>
   
 As with `LineString`, a sequence of `Point` instances is not a valid
@@ -327,19 +350,26 @@ A `Polygon` has non-zero area and non-zero length.
 
 .. sourcecode:: pycon
 
-  >>> p = Polygon([(0, 0), (1, 1), (1, 0)])
-  >>> p.area
+  >>> polygon = Polygon([(0, 0), (1, 1), (1, 0)])
+  >>> polygon.area
   0.5
-  >>> p.length
+  >>> polygon.length
   3.4142135623730949
+
+Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
+
+.. sourcecode:: pycon
+
+  >>> polygon.bounds
+  (0.0, 0.0, 1.0, 1.0)
 
 Component rings are accessed via `exterior` and `interiors` properties.
 
 .. sourcecode:: pycon
 
-  >>> list(p.exterior.coords)
+  >>> list(polygon.exterior.coords)
   [(0.0, 0.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)]
-  >>> list(p.interiors)
+  >>> list(polygon.interiors)
   []
 
 The `Polygon` constructor also accepts instances of `LineString` and
@@ -347,8 +377,8 @@ The `Polygon` constructor also accepts instances of `LineString` and
 
 .. sourcecode:: pycon
 
-  >>> xy = [(0, 0), (1, 1), (1, 0)]
-  >>> r = LinearRing(xy)
+  >>> coords = [(0, 0), (1, 1), (1, 0)]
+  >>> r = LinearRing(coords)
   >>> s = Polygon(r)
   >>> s.area
   0.5  
@@ -370,16 +400,23 @@ A `MultiPoint` has zero area and zero length.
 
 .. sourcecode:: pycon
 
+  >>> points = MultiPoint([(0.0, 0.0), (1.0, 1.0)])
   >>> points.area
   0.0
   >>> points.length
   0.0
 
+Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
+
+.. sourcecode:: pycon
+
+  >>> points.bounds
+  (0.0, 0.0, 1.0, 1.0)
+
 Members of a multi-point collection are accessed via the `geoms` property.
 
 .. sourcecode:: pycon
 
-  >>> points = MultiPoint([(0, 0), (1, 1)])
   >>> import pprint
   >>> pprint.pprint(list(points.geoms))
   [<shapely.geometry.point.Point object at 0x...>,
@@ -408,12 +445,19 @@ A `MultiLineString` has zero area and non-zero length.
 
 .. sourcecode:: pycon
 
-  >>> xy = [((0, 0), (1, 1)), ((-1, 0), (1, 0))]
-  >>> lines = MultiLineString(xy)
+  >>> coords = [((0, 0), (1, 1)), ((-1, 0), (1, 0))]
+  >>> lines = MultiLineString(coords)
   >>> lines.area
   0.0
   >>> lines.length
   3.4142135623730949
+
+Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
+
+.. sourcecode:: pycon
+
+  >>> lines.bounds
+  (-1.0, 0.0, 1.0, 1.0)
 
 Its members are instances of `LineString` and are accessed via the `geoms`
 property.
@@ -460,9 +504,16 @@ Perhaps even more clearly, the constructor accepts an unordered sequence of
 
 .. sourcecode:: pycon
 
-  >>> polygons = MultiPolygon([p, s, t])
+  >>> polygons = MultiPolygon([polygon, s, t])
   >>> len(polygons.geoms)
   3
+
+Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
+
+.. sourcecode:: pycon
+
+  >>> polygons.bounds
+  (-1.0, -1.0, 2.0, 2.0)
 
 Empty features
 --------------
@@ -473,25 +524,46 @@ Almost no operations are supported by empty features.
 .. sourcecode:: pycon
 
   >>> line = LineString()
+  >>> line.is_empty
+  True
   >>> line.length
-  Traceback (most recent call last):
-  ...
-  ValueError: Null geometry supports no operations
+  0.0
+  >>> line.bounds
+  ()
 
 The coordinates of a empty feature can be set, after which the geometry is no
-longer null.
+longer empty.
 
 .. sourcecode:: pycon
 
   >>> line.coords = [(0, 0), (1, 1)]
+  >>> line.is_empty
+  False
   >>> line.length
   1.4142135623730951
+  >>> line.bounds
+  (0.0, 0.0, 1.0, 1.0)
 
 Predicates
 ==========
 
-Standard unary predicates are implemented as instance properties. All return
-`True` or `False`.
+Shapely features provide standard [1]_ predicate properties and methods. All
+return `True` or `False`.
+
+Unary Predicates
+----------------
+
+Standard unary predicates are implemented as instance properties.
+
+**has_z**: Returns `True` if the feature has not only `x` and `y`, but also `z`
+coordinates.
+
+.. sourcecode:: pycon
+
+  >>> Point(0, 0).has_z
+  False
+  >>> Point(0, 0, 0).has_z
+  True
 
 **is_empty**: Returns `True` if the feature's `interior` and
 `boundary` (in point set terms) coincide with the empty set.
@@ -534,8 +606,70 @@ invalid features may fail.
   >>> MultiPolygon([Point(0, 0).buffer(2.0), Point(1, 1).buffer(2.0)]).is_valid
   False
 
+The two points above are close enough that the polygons resulting from the
+buffer operations (explained in a following section) overlap.
+
+The `is_valid` predicate could be used to write a decorator that ensures only
+valid objects are returned from a function.
+
+.. sourcecode:: python
+
+  def valid_ring(coordinates):
+      ring = LinearRing(coordinates)
+      if not ring.is_valid:
+          raise TopologicalError(
+              "Given coordinates do not determine a valid LinearRing")
+      return ring
+
+An exception is raised when the function is passed the self-crossing
+coordinates from the `is_simple` example above.
+
+.. sourcecode:: pycon
+
+  >>> coords = [(0, 0), (1, 1), (1, -1), (0, 1)]
+  >>> valid_ring(coords)
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in <module>
+    File "<stdin>", line 5, in valid_ring
+  shapely.geos.TopologicalError: Given coordinates do not determine a valid LinearRing
+
+This might also be done using a decorator.
+
+.. sourcecode:: python
+
+  from functools import wraps
+  def is_valid(func):
+      @wraps(func)
+      def wrapper(*args, **kwargs):
+          ob = func(*args, **kwargs)
+          if not ob.is_valid:
+              raise TopologicalError(
+                  "Given arguments do not determine a valid geometric object")
+          return ob
+      return wrapper
+
+.. sourcecode:: pycon
+
+  >>> @is_valid
+  ... def ring(coordinates):
+  ...     return LinearRing(coordinates)
+  ... 
+  >>> ring(coords)
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in <module>
+    File "<stdin>", line 7, in wrapper
+  shapely.geos.TopologicalError: Given arguments do not determine a valid geometric object
+
+Binary Predicates
+-----------------
+
+x
+
+Spatial Analytic Methods
+========================
+
 Constructive Operations
-=======================
+-----------------------
 
 There are methods of geometry classes that also serve as factories for new
 geometries. It is important to note that these are topological and not
