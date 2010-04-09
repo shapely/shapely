@@ -1,0 +1,1235 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.5: http://docutils.sourceforge.net/" />
+<title>The Shapely 1.2 Manual</title>
+<meta name="author" content="Sean Gillies, &lt;sean.gillies&#64;gmail.com&gt;" />
+<meta name="date" content="1 March 2010" />
+<meta name="copyright" content="This work is licensed under a Creative Commons Attribution 3.0 United States License." />
+<link rel="stylesheet" href="manual.css" type="text/css" />
+</head>
+<body>
+<div class="document" id="the-shapely-1-2-manual">
+<h1 class="title">The Shapely 1.2 Manual</h1>
+<table class="docinfo" frame="void" rules="none">
+<col class="docinfo-name" />
+<col class="docinfo-content" />
+<tbody valign="top">
+<tr><th class="docinfo-name">Author:</th>
+<td>Sean Gillies, &lt;<a class="reference external" href="mailto:sean.gillies&#64;gmail.com">sean.gillies&#64;gmail.com</a>&gt;</td></tr>
+<tr><th class="docinfo-name">Revision:</th>
+<td>1.2</td></tr>
+<tr><th class="docinfo-name">Date:</th>
+<td>1 March 2010</td></tr>
+<tr><th class="docinfo-name">Copyright:</th>
+<td>This work is licensed under a <a class="reference external" href="http://creativecommons.org/licenses/by/3.0/us/">Creative Commons Attribution 3.0
+United States License</a>.</td></tr>
+</tbody>
+</table>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Abstract:</th><td class="field-body">This document explains how to use the Shapely Python package for
+computational geometry.</td>
+</tr>
+</tbody>
+</table>
+<div class="contents topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="auto-toc simple">
+<li><a class="reference internal" href="#introduction" id="id15">1&nbsp;&nbsp;&nbsp;Introduction</a><ul class="auto-toc">
+<li><a class="reference internal" href="#spatial-data-model" id="id16">1.1&nbsp;&nbsp;&nbsp;Spatial Data Model</a></li>
+<li><a class="reference internal" href="#relationships" id="id17">1.2&nbsp;&nbsp;&nbsp;Relationships</a></li>
+<li><a class="reference internal" href="#operations" id="id18">1.3&nbsp;&nbsp;&nbsp;Operations</a></li>
+<li><a class="reference internal" href="#coordinate-systems" id="id19">1.4&nbsp;&nbsp;&nbsp;Coordinate Systems</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#geometric-objects" id="id20">2&nbsp;&nbsp;&nbsp;Geometric Objects</a><ul class="auto-toc">
+<li><a class="reference internal" href="#points" id="id21">2.1&nbsp;&nbsp;&nbsp;Points</a></li>
+<li><a class="reference internal" href="#linestrings" id="id22">2.2&nbsp;&nbsp;&nbsp;LineStrings</a></li>
+<li><a class="reference internal" href="#linearrings" id="id23">2.3&nbsp;&nbsp;&nbsp;LinearRings</a></li>
+<li><a class="reference internal" href="#polygons" id="id24">2.4&nbsp;&nbsp;&nbsp;Polygons</a></li>
+<li><a class="reference internal" href="#multipoints" id="id25">2.5&nbsp;&nbsp;&nbsp;MultiPoints</a></li>
+<li><a class="reference internal" href="#multilinestrings" id="id26">2.6&nbsp;&nbsp;&nbsp;MultiLineStrings</a></li>
+<li><a class="reference internal" href="#multipolygons" id="id27">2.7&nbsp;&nbsp;&nbsp;MultiPolygons</a></li>
+<li><a class="reference internal" href="#empty-features" id="id28">2.8&nbsp;&nbsp;&nbsp;Empty features</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#predicates" id="id29">3&nbsp;&nbsp;&nbsp;Predicates</a><ul class="auto-toc">
+<li><a class="reference internal" href="#unary-predicates" id="id30">3.1&nbsp;&nbsp;&nbsp;Unary Predicates</a></li>
+<li><a class="reference internal" href="#binary-predicates" id="id31">3.2&nbsp;&nbsp;&nbsp;Binary Predicates</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#constructive-methods" id="id32">4&nbsp;&nbsp;&nbsp;Constructive Methods</a><ul class="auto-toc">
+<li><a class="reference internal" href="#buffering" id="id33">4.1&nbsp;&nbsp;&nbsp;Buffering</a></li>
+<li><a class="reference internal" href="#convex-hull" id="id34">4.2&nbsp;&nbsp;&nbsp;Convex Hull</a></li>
+<li><a class="reference internal" href="#simplification" id="id35">4.3&nbsp;&nbsp;&nbsp;Simplification</a></li>
+<li><a class="reference internal" href="#boundary" id="id36">4.4&nbsp;&nbsp;&nbsp;Boundary</a></li>
+<li><a class="reference internal" href="#centroid" id="id37">4.5&nbsp;&nbsp;&nbsp;Centroid</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#set-theoretic-operations" id="id38">5&nbsp;&nbsp;&nbsp;Set-theoretic Operations</a><ul class="auto-toc">
+<li><a class="reference internal" href="#difference" id="id39">5.1&nbsp;&nbsp;&nbsp;Difference</a></li>
+<li><a class="reference internal" href="#envelope" id="id40">5.2&nbsp;&nbsp;&nbsp;Envelope</a></li>
+<li><a class="reference internal" href="#intersection" id="id41">5.3&nbsp;&nbsp;&nbsp;Intersection</a></li>
+<li><a class="reference internal" href="#symmetric-difference" id="id42">5.4&nbsp;&nbsp;&nbsp;Symmetric Difference</a></li>
+<li><a class="reference internal" href="#union" id="id43">5.5&nbsp;&nbsp;&nbsp;Union</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#other-operations" id="id44">6&nbsp;&nbsp;&nbsp;Other Operations</a><ul class="auto-toc">
+<li><a class="reference internal" href="#polygonization" id="id45">6.1&nbsp;&nbsp;&nbsp;Polygonization</a></li>
+<li><a class="reference internal" href="#line-merging" id="id46">6.2&nbsp;&nbsp;&nbsp;Line merging</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#binary-spatial-predicates" id="id47">7&nbsp;&nbsp;&nbsp;Binary Spatial Predicates</a></li>
+<li><a class="reference internal" href="#general-methods" id="id48">8&nbsp;&nbsp;&nbsp;General Methods</a><ul class="auto-toc">
+<li><a class="reference internal" href="#distance" id="id49">8.1&nbsp;&nbsp;&nbsp;Distance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#scalar-properties" id="id50">9&nbsp;&nbsp;&nbsp;Scalar Properties</a><ul class="auto-toc">
+<li><a class="reference internal" href="#area" id="id51">9.1&nbsp;&nbsp;&nbsp;Area</a></li>
+<li><a class="reference internal" href="#bounds" id="id52">9.2&nbsp;&nbsp;&nbsp;Bounds</a></li>
+<li><a class="reference internal" href="#length" id="id53">9.3&nbsp;&nbsp;&nbsp;Length</a></li>
+<li><a class="reference internal" href="#examples" id="id54">9.4&nbsp;&nbsp;&nbsp;Examples</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#geometry-parts-and-coordinates" id="id55">10&nbsp;&nbsp;&nbsp;Geometry Parts and Coordinates</a><ul class="auto-toc">
+<li><a class="reference internal" href="#coordinate-sequences" id="id56">10.1&nbsp;&nbsp;&nbsp;Coordinate Sequences</a></li>
+<li><a class="reference internal" href="#polygon-rings" id="id57">10.2&nbsp;&nbsp;&nbsp;Polygon Rings</a></li>
+<li><a class="reference internal" href="#sub-geometries" id="id58">10.3&nbsp;&nbsp;&nbsp;Sub-geometries</a></li>
+<li><a class="reference internal" href="#point-coordinates" id="id59">10.4&nbsp;&nbsp;&nbsp;Point Coordinates</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#interoperation" id="id60">11&nbsp;&nbsp;&nbsp;Interoperation</a><ul class="auto-toc">
+<li><a class="reference internal" href="#well-known-formats" id="id61">11.1&nbsp;&nbsp;&nbsp;Well-known Formats</a><ul class="auto-toc">
+<li><a class="reference internal" href="#well-known-text-wkt" id="id62">11.1.1&nbsp;&nbsp;&nbsp;Well-known Text (WKT)</a></li>
+<li><a class="reference internal" href="#well-known-binary-wkb" id="id63">11.1.2&nbsp;&nbsp;&nbsp;Well-known Binary (WKB)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#python-sequences" id="id64">11.2&nbsp;&nbsp;&nbsp;Python Sequences</a></li>
+<li><a class="reference internal" href="#numpy-array-interface" id="id65">11.3&nbsp;&nbsp;&nbsp;Numpy Array Interface</a></li>
+<li><a class="reference internal" href="#python-geo-interface" id="id66">11.4&nbsp;&nbsp;&nbsp;Python Geo Interface</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#advanced-features" id="id67">12&nbsp;&nbsp;&nbsp;Advanced Features</a><ul class="auto-toc">
+<li><a class="reference internal" href="#iterative-operations" id="id68">12.1&nbsp;&nbsp;&nbsp;Iterative Operations</a><ul class="auto-toc">
+<li><a class="reference internal" href="#contains" id="id69">12.1.1&nbsp;&nbsp;&nbsp;Contains</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#prepared-geometry-operations" id="id70">12.2&nbsp;&nbsp;&nbsp;Prepared Geometry Operations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#credits" id="id71">13&nbsp;&nbsp;&nbsp;Credits</a></li>
+<li><a class="reference internal" href="#references" id="id72">14&nbsp;&nbsp;&nbsp;References</a></li>
+</ul>
+</div>
+<div class="section" id="introduction">
+<h1><a class="toc-backref" href="#id15">1&nbsp;&nbsp;&nbsp;Introduction</a></h1>
+<p>Deterministic (non-statistical) spatial analysis is an important component of
+computational approaches to problems in agriculture, ecology, epidemiology,
+sociology, and many other fields. What is the surveyed perimeter/area ratio of
+these patches of animal habitat? Which properties in this town intersect with
+the 50-year flood contour from this new flooding model? What are the extents of
+findspots for ancient ceramic wares with maker's marks &quot;A&quot; and &quot;B&quot;, and where
+do the extents overlap? These are just a few of the possible questions
+addressable using deterministic spatial analysis, and more specifically,
+computational geometry.</p>
+<p>Shapely is a Python package for set-theoretic analysis and manipulation of
+planar features using (via Python's <cite>ctypes</cite> module) functions from the well
+known and widely deployed <a class="reference external" href="http://geos.refractions.net">GEOS</a> library. GEOS, a port of the <a class="reference external" href="http://www.vividsolutions.com/jts/jtshome.htm">Java Topology
+Suite</a>, is the geometry engine of the <a class="reference external" href="http://postgis.refractions.net">PostGIS</a> spatial extension for the
+PostgreSQL RDBMS. The designs of JTS and GEOS are largely guided by the <a class="reference external" href="http://wwww.opengeospatial.org/">Open
+Geospatial Consortium</a>'s Simple Features Access Specification <a class="footnote-reference" href="#id10" id="id2">[1]</a> and Shapely
+adheres mainly to the same set of standard classes and operations. Shapely is
+deeply rooted in the geographic information systems (GIS) world, but aspires to
+be equally useful to programmers working on non-tradtional problems.</p>
+<p>PostGIS is a cornerstone of open source GIS, but isn't necessarily a solution
+to all problems in the GIS domain. Not all geographic data originate or reside
+in a RDBMS or are best processed using SQL. Shapely aims to bring industrial
+strength computational geometry primitives to bear on programming problems
+better addressed in a object-oriented style. Imagine a situation where we would
+like to find or index a substring within another string. Is there overlap
+between the strings, and if so, what is it?  Or maybe we'd like to replace
+certain characters in a string with others. Now imagine that we're compelled to
+load the text strings from, say, a log file into a relational database to
+perform these operations because such string functions aren't available in a
+non-SQL context. No knock on the RDBMS, a tremendously useful thing, but if
+there's no mandate to manage (the &quot;M&quot; in &quot;RDBMS&quot;) these strings over time in
+the database, we're using the wrong tool for the job in this imaginary
+scenario. Now, consider spatial entities like points, curves, and patches
+instead of character strings, and that they might originate not in the context
+of a traditional GIS, but from parsing and geocoding of texts or log files or
+from &quot;social web&quot; activities. If you agree that sometimes PostGIS (or another
+spatially-enabled RDBMS) is the wrong tool for your computational geometry job,
+Shapely might be for you.</p>
+<p>The premise of Shapely, or one of the premises, is that Python programmers
+should be able to perform PostGIS type geometry operations outside of an RDBMS.
+Another is that Python idioms trump GIS (or Java, in this case, since the GEOS
+library is derived from JTS, a Java project) idioms. Shapely, in a nutshell
+lets you do PostGIS-y stuff with geometries outside the context of a database
+using idiomatic Python. Computational geometry, with no extra baggage.</p>
+<div class="section" id="spatial-data-model">
+<h2><a class="toc-backref" href="#id16">1.1&nbsp;&nbsp;&nbsp;Spatial Data Model</a></h2>
+<p>The fundamental types of geometric objects implemented by Shapely are: points,
+curves, and surfaces. Each is associated with three sets of (possibly infinite)
+points in the plane. The <cite>interior</cite>, <cite>boundary</cite>, and <cite>exterior</cite> sets of a
+feature are mutually exclusive and their union coincides with the entire plane
+<a class="footnote-reference" href="#id11" id="id3">[2]</a>.</p>
+<ul class="simple">
+<li>A <cite>Point</cite> has an <cite>interior</cite> set of exactly one point, a <cite>boundary</cite> set of
+exactly no points, and an <cite>exterior</cite> set of all other points. A <cite>Point</cite> has
+a topological dimension of 0.</li>
+<li>A <cite>Curve</cite> has an <cite>interior</cite> set consisting of the infinitely many points
+along its length (imagine a <cite>Point</cite> dragged in space), a <cite>boundary</cite> set
+consisting of its two end points, and an <cite>exterior</cite> set of all other points.
+A <cite>Curve</cite> has a topological dimension of 1.</li>
+<li>A <cite>Surface</cite> has an <cite>interior</cite> set consisting of the infinitely many points
+within (imagine a <cite>Curve</cite> dragged in space to cover an area), a <cite>boundary</cite>
+set consisting of one or more <cite>Curves</cite>, and an <cite>exterior</cite> set of all other
+points including those within holes that might exist in the surface. A
+<cite>Surface</cite> has a topological dimension of 2.</li>
+</ul>
+<p>That may seem a bit esoteric, but will help clarify the meanings of Shapely's
+spatial predicates, and it's as deep into theory as this manual will go.
+Consequences of point-set theory, including some that manifest themselves as
+&quot;gotchas&quot;, for different classes will be discussed later in this manual.</p>
+<p>The point type is implemented by a <cite>Point</cite> class; curve by the <cite>LineString</cite> and
+<cite>LinearRing</cite> classes; and surface by a <cite>Polygon</cite> class. Shapely implements no
+smooth (<cite>i.e.</cite> having continuous tangents) curves. All curves must be
+approximated by linear splines. All rounded patches must be approximated by
+regions bounded by linear splines.</p>
+<p>Collections of points are implemented by a <cite>MultiPoint</cite> class, collections of
+curves by a <cite>MultiLineString</cite> class, and collections of surfaces by a
+<cite>MultiPolygon</cite> class. These collections aren't computationally significant, but
+are useful for modeling certain kinds of features. A Y-shaped line feature, for
+example, is well modeled as a whole by a <cite>MultiLineString</cite>.</p>
+<p>The standard data model has additional constraints specific to certain types
+of geometric objects that will be discussed in following sections of this
+manual.</p>
+<p>See also <a class="reference external" href="http://www.vividsolutions.com/jts/discussion.htm#spatialDataModel">http://www.vividsolutions.com/jts/discussion.htm#spatialDataModel</a>
+for more illustrations of this data model.</p>
+</div>
+<div class="section" id="relationships">
+<h2><a class="toc-backref" href="#id17">1.2&nbsp;&nbsp;&nbsp;Relationships</a></h2>
+<p>The spatial data model is accompanied by a group of natural language
+relationships between geometric objects – <cite>contains</cite>, <cite>intersects</cite>, <cite>overlaps</cite>,
+<cite>touches</cite>, etc – and a theoretical framework for understanding them using the
+3x3 matrix of the mutual intersections of their component point sets <a class="footnote-reference" href="#id11" id="id4">[2]</a>: the
+DE-9IM. A comprehensive review of the relationships in terms of the DE-9IM is
+found in <a class="footnote-reference" href="#id13" id="id5">[4]</a> and will not be reiterated in this manual.</p>
+</div>
+<div class="section" id="operations">
+<h2><a class="toc-backref" href="#id18">1.3&nbsp;&nbsp;&nbsp;Operations</a></h2>
+<p>Following the JTS technical specs <a class="footnote-reference" href="#id14" id="id6">[5]</a>, this manual will make a distinction
+between constructive (<cite>buffer</cite>, <cite>convex hull</cite>) and set-theoretic operations
+(<cite>intersection</cite>, <cite>union</cite>, etc). The individual operations will be fully
+described in a following section of the manual.</p>
+</div>
+<div class="section" id="coordinate-systems">
+<h2><a class="toc-backref" href="#id19">1.4&nbsp;&nbsp;&nbsp;Coordinate Systems</a></h2>
+<p>Even though the Earth is not flat –&nbsp;and for that matter not exactly spherical –
+there are many analytic problems that can be approached by transforming Earth
+features to a Cartesian plane, applying tried and true algorithms, and then
+transforming the results back to geographic coordinates.  This practice is as
+old as the tradition of accurate paper maps.</p>
+<p>Shapely does not support coordinate system transformations. All operations on
+two or more features presume that the features exist in the same Cartesian
+plane.</p>
+</div>
+</div>
+<div class="section" id="geometric-objects">
+<h1><a class="toc-backref" href="#id20">2&nbsp;&nbsp;&nbsp;Geometric Objects</a></h1>
+<p>Geometric objects are created in the typical Python fashion, using the classes
+themselves as instance factories. A few of their intrinsic properties will be
+discussed in this sections, others in the following sections on operations and
+serializations.</p>
+<p>Instances of <cite>Point</cite>, <cite>LineString</cite>, and <cite>LinearRing</cite> have coordinate sequences.
+Coordinate sequences are immutable. Their parent features are mutable in that
+they can be assigned new coordinate sequences. A third <cite>z</cite> coordinate value may
+be used when constructing instances, but has no effect on geometric analysis.
+All operations are performed in the <cite>x-y</cite> plane.</p>
+<p>In all constructors, numeric values are converted to type <cite>float</cite>. In other
+words, <tt class="docutils literal"><span class="pre">Point(0,</span> <span class="pre">0)</span></tt> and <tt class="docutils literal"><span class="pre">Point(0.0,</span> <span class="pre">0.0)</span></tt> produce geometrically equivalent
+instances. Shapely does not check the topological simplicity or validity of
+instances when they are constructed as the cost is unwarranted in most cases.
+Validating factories are trivially implemented, using the <cite>is_valid</cite> predicate,
+by users that require them.</p>
+<p>Pseudo-code blocks in this section will use the following notation. Let <cite>a</cite> be
+a point in Cartesian coordinates, represented by a Python tuple of 2 (<tt class="docutils literal"><span class="pre">(x,</span>
+<span class="pre">y)</span></tt>) or 3 (<tt class="docutils literal"><span class="pre">(x,</span> <span class="pre">y,</span> <span class="pre">z)</span></tt>) numerical values. Let <cite>(a1, ..., aM)</cite> and <cite>(b1, ...,
+bN)</cite> be ordered sequences of <cite>M</cite> and <cite>N</cite> such points, defining the vertices of
+a <cite>curve</cite>.</p>
+<div class="section" id="points">
+<h2><a class="toc-backref" href="#id21">2.1&nbsp;&nbsp;&nbsp;Points</a></h2>
+<p>The <cite>Point</cite> constructor takes positional coordinate values or point tuple
+parameters.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely.geometry</span> <span style="color: #008000; font-weight: bold">import</span> Point
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>point <span style="color: #666666">=</span> Point(<span style="color: #666666">0.0</span>, <span style="color: #666666">0.0</span>)
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>q <span style="color: #666666">=</span> Point((<span style="color: #666666">0.0</span>, <span style="color: #666666">0.0</span>))
+</pre></div>
+<p>A <cite>Point</cite> has zero area and zero length.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>point<span style="color: #666666">.</span>area
+<span style="color: #808080">0.0</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>point<span style="color: #666666">.</span>length
+<span style="color: #808080">0.0</span>
+</pre></div>
+<p>Its <cite>x-y</cite> bounding box is a <tt class="docutils literal"><span class="pre">(minx,</span> <span class="pre">miny,</span> <span class="pre">maxx,</span> <span class="pre">maxy)</span></tt> tuple.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>point<span style="color: #666666">.</span>bounds
+<span style="color: #808080">(0.0, 0.0, 0.0, 0.0)</span>
+</pre></div>
+<p>Coordinate values are accessed via <cite>coords</cite>, <cite>x</cite>, <cite>y</cite>, and <cite>z</cite> properties.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000">list</span>(point<span style="color: #666666">.</span>coords)
+<span style="color: #808080">[(0.0, 0.0)]</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>point<span style="color: #666666">.</span>x
+<span style="color: #808080">0.0</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>point<span style="color: #666666">.</span>y
+<span style="color: #808080">0.0</span>
+</pre></div>
+<p>The <cite>Point</cite> constructor also accepts another <cite>Point</cite> instance, thereby making
+a copy.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>Point(point)
+<span style="color: #808080">&lt;shapely.geometry.point.Point object at 0x...&gt;</span>
+</pre></div>
+</div>
+<div class="section" id="linestrings">
+<h2><a class="toc-backref" href="#id22">2.2&nbsp;&nbsp;&nbsp;LineStrings</a></h2>
+<p>The <cite>LineString</cite> constructor takes an ordered sequence of point tuples.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely.geometry</span> <span style="color: #008000; font-weight: bold">import</span> LineString
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>line <span style="color: #666666">=</span> LineString((a1, <span style="color: #666666">...</span>, aM))
+</pre></div>
+<p>Repeated points in the ordered sequence are allowed, but may incur performance
+penalties and should be avoided. A <cite>LineString</cite> may cross itself (<em>i.e.</em> be
+<cite>complex</cite> and not <cite>simple</cite>).</p>
+<p>A <cite>LineString</cite> has zero area and non-zero length.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>line <span style="color: #666666">=</span> LineString([(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>)])
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>line<span style="color: #666666">.</span>area
+<span style="color: #808080">0.0</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>line<span style="color: #666666">.</span>length
+<span style="color: #808080">1.4142135623730951</span>
+</pre></div>
+<p>Its <cite>x-y</cite> bounding box is a <tt class="docutils literal"><span class="pre">(minx,</span> <span class="pre">miny,</span> <span class="pre">maxx,</span> <span class="pre">maxy)</span></tt> tuple.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>line<span style="color: #666666">.</span>bounds
+<span style="color: #808080">(0.0, 0.0, 1.0, 1.0)</span>
+</pre></div>
+<p>Coordinate values are accessed via the <cite>coords</cite> property.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000">len</span>(line<span style="color: #666666">.</span>coords)
+<span style="color: #808080">2</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000">list</span>(line<span style="color: #666666">.</span>coords)
+<span style="color: #808080">[(0.0, 0.0), (1.0, 1.0)]</span>
+</pre></div>
+<p>The constructor also accepts another <cite>LineString</cite> instance, thereby making a
+copy.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>LineString(line)
+<span style="color: #808080">&lt;shapely.geometry.linestring.LineString object at 0x...&gt;</span>
+</pre></div>
+<p>A sequence of <cite>Point</cite> instances is not a valid constructor parameter. A
+<cite>LineString</cite> is not composed of <cite>Point</cite> instances.</p>
+</div>
+<div class="section" id="linearrings">
+<h2><a class="toc-backref" href="#id23">2.3&nbsp;&nbsp;&nbsp;LinearRings</a></h2>
+<p>The <cite>LinearRing</cite> constructor takes an ordered sequence of point tuples. The
+sequence may be explicitly closed by passing identical values in the first and
+last indices. Otherwise, the sequence will be implicitly closed by copying the
+first tuple to the last index.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely.geometry.polygon</span> <span style="color: #008000; font-weight: bold">import</span> LinearRing
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>ring <span style="color: #666666">=</span> LinearRing((a1, <span style="color: #666666">...</span>, aM))
+</pre></div>
+<p>Repeated points in the ordered sequence are allowed, but may incur performance
+penalties and should be avoided. A <cite>LinearRing</cite> may not cross itself, and may
+not touch itself at a single point. Note that Shapely will not prevent the
+creation of such rings, but exceptions will be raised when they are operated
+on.</p>
+<p>A <cite>LinearRing</cite> has zero area and non-zero length.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>ring <span style="color: #666666">=</span> LinearRing([(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">0</span>)])
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>ring<span style="color: #666666">.</span>area
+<span style="color: #808080">0.0</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>ring<span style="color: #666666">.</span>length
+<span style="color: #808080">3.4142135623730949</span>
+</pre></div>
+<p>Its <cite>x-y</cite> bounding box is a <tt class="docutils literal"><span class="pre">(minx,</span> <span class="pre">miny,</span> <span class="pre">maxx,</span> <span class="pre">maxy)</span></tt> tuple.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>ring<span style="color: #666666">.</span>bounds
+<span style="color: #808080">(0.0, 0.0, 1.0, 1.0)</span>
+</pre></div>
+<p>Coordinate values are accessed via the <cite>coords</cite> property.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000">len</span>(ring<span style="color: #666666">.</span>coords)
+<span style="color: #808080">4</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000">list</span>(ring<span style="color: #666666">.</span>coords)
+<span style="color: #808080">[(0.0, 0.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)]</span>
+</pre></div>
+<p>The <cite>LinearRing</cite> constructor also accepts another <cite>LineString</cite> or <cite>LinearRing</cite>
+instance, thereby making a copy.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>LinearRring(ring)
+<span style="color: #808080">&lt;shapely.geometry.polygon.LinearRing object at 0x...&gt;</span>
+</pre></div>
+<p>As with <cite>LineString</cite>, a sequence of <cite>Point</cite> instances is not a valid
+constructor parameter.</p>
+</div>
+<div class="section" id="polygons">
+<h2><a class="toc-backref" href="#id24">2.4&nbsp;&nbsp;&nbsp;Polygons</a></h2>
+<p>The <cite>Polygon</cite> constructor takes two positional parameters. The first is an
+ordered sequence of point tuples and is treated exactly as in the <cite>LinearRing</cite>
+case. The second is an optional unordered sequence of ring-like sequences
+specifying the interior boundaries or &quot;holes&quot; of the feature.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely.geometry</span> <span style="color: #008000; font-weight: bold">import</span> Polygon
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>polygon <span style="color: #666666">=</span> Polygon((a1, <span style="color: #666666">...</span>, aM), [(b1, <span style="color: #666666">...</span>, bN), <span style="color: #666666">...</span>])
+</pre></div>
+<p><cite>Polygon</cite> rings may not cross each other, but may touch at single points.
+Again, Shapely will not prevent the creation of such features, but exceptions
+will be raised when they are operated on.</p>
+<p>A <cite>Polygon</cite> has non-zero area and non-zero length.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>polygon <span style="color: #666666">=</span> Polygon([(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">0</span>)])
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>polygon<span style="color: #666666">.</span>area
+<span style="color: #808080">0.5</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>polygon<span style="color: #666666">.</span>length
+<span style="color: #808080">3.4142135623730949</span>
+</pre></div>
+<p>Its <cite>x-y</cite> bounding box is a <tt class="docutils literal"><span class="pre">(minx,</span> <span class="pre">miny,</span> <span class="pre">maxx,</span> <span class="pre">maxy)</span></tt> tuple.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>polygon<span style="color: #666666">.</span>bounds
+<span style="color: #808080">(0.0, 0.0, 1.0, 1.0)</span>
+</pre></div>
+<p>Component rings are accessed via <cite>exterior</cite> and <cite>interiors</cite> properties.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000">list</span>(polygon<span style="color: #666666">.</span>exterior<span style="color: #666666">.</span>coords)
+<span style="color: #808080">[(0.0, 0.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)]</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000">list</span>(polygon<span style="color: #666666">.</span>interiors)
+<span style="color: #808080">[]</span>
+</pre></div>
+<p>The <cite>Polygon</cite> constructor also accepts instances of <cite>LineString</cite> and
+<cite>LinearRing</cite>.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>coords <span style="color: #666666">=</span> [(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">0</span>)]
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>r <span style="color: #666666">=</span> LinearRing(coords)
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>s <span style="color: #666666">=</span> Polygon(r)
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>s<span style="color: #666666">.</span>area
+<span style="color: #808080">0.5</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>t <span style="color: #666666">=</span> Polygon(s<span style="color: #666666">.</span>buffer(<span style="color: #666666">1.0</span>)<span style="color: #666666">.</span>exterior, [r])
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>t<span style="color: #666666">.</span>area
+<span style="color: #808080">6.5507620529190334</span>
+</pre></div>
+</div>
+<div class="section" id="multipoints">
+<h2><a class="toc-backref" href="#id25">2.5&nbsp;&nbsp;&nbsp;MultiPoints</a></h2>
+<p>The <cite>MultiPoint</cite> constructor takes an ordered sequence of point tuples.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely.geometry</span> <span style="color: #008000; font-weight: bold">import</span> MultiPoint
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>points <span style="color: #666666">=</span> MultiPoint([c1, <span style="color: #666666">...</span>, cN])
+</pre></div>
+<p>A <cite>MultiPoint</cite> has zero area and zero length.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>points <span style="color: #666666">=</span> MultiPoint([(<span style="color: #666666">0.0</span>, <span style="color: #666666">0.0</span>), (<span style="color: #666666">1.0</span>, <span style="color: #666666">1.0</span>)])
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>points<span style="color: #666666">.</span>area
+<span style="color: #808080">0.0</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>points<span style="color: #666666">.</span>length
+<span style="color: #808080">0.0</span>
+</pre></div>
+<p>Its <cite>x-y</cite> bounding box is a <tt class="docutils literal"><span class="pre">(minx,</span> <span class="pre">miny,</span> <span class="pre">maxx,</span> <span class="pre">maxy)</span></tt> tuple.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>points<span style="color: #666666">.</span>bounds
+<span style="color: #808080">(0.0, 0.0, 1.0, 1.0)</span>
+</pre></div>
+<p>Members of a multi-point collection are accessed via the <cite>geoms</cite> property.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">pprint</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>pprint<span style="color: #666666">.</span>pprint(<span style="color: #008000">list</span>(points<span style="color: #666666">.</span>geoms))
+<span style="color: #808080">[&lt;shapely.geometry.point.Point object at 0x...&gt;,</span>
+<span style="color: #808080"> &lt;shapely.geometry.point.Point object at 0x...&gt;]</span>
+</pre></div>
+<p>The constructor also accepts another <cite>MultiPoint</cite> instance or an unordered
+sequence of <cite>Point</cite> instances, thereby making copies.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>MultiPoint([Point(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), Point(<span style="color: #666666">1</span>, <span style="color: #666666">1</span>)])
+<span style="color: #808080">&lt;shapely.geometry.multipoint.MultiPoint object at 0x...&gt;</span>
+</pre></div>
+</div>
+<div class="section" id="multilinestrings">
+<h2><a class="toc-backref" href="#id26">2.6&nbsp;&nbsp;&nbsp;MultiLineStrings</a></h2>
+<p>The <cite>MultiLineString</cite> constructor takes an unordered sequence of line-like
+sequences.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely.geometry</span> <span style="color: #008000; font-weight: bold">import</span> MultiLineString
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>lines <span style="color: #666666">=</span> MultiLineString([(a1, <span style="color: #666666">...</span>, aM), (b1, <span style="color: #666666">...</span>, bN), <span style="color: #666666">...</span>])
+</pre></div>
+<p>A <cite>MultiLineString</cite> has zero area and non-zero length.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>coords <span style="color: #666666">=</span> [((<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>)), ((<span style="color: #666666">-1</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">0</span>))]
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>lines <span style="color: #666666">=</span> MultiLineString(coords)
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>lines<span style="color: #666666">.</span>area
+<span style="color: #808080">0.0</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>lines<span style="color: #666666">.</span>length
+<span style="color: #808080">3.4142135623730949</span>
+</pre></div>
+<p>Its <cite>x-y</cite> bounding box is a <tt class="docutils literal"><span class="pre">(minx,</span> <span class="pre">miny,</span> <span class="pre">maxx,</span> <span class="pre">maxy)</span></tt> tuple.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>lines<span style="color: #666666">.</span>bounds
+<span style="color: #808080">(-1.0, 0.0, 1.0, 1.0)</span>
+</pre></div>
+<p>Its members are instances of <cite>LineString</cite> and are accessed via the <cite>geoms</cite>
+property.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000">len</span>(lines<span style="color: #666666">.</span>geoms)
+<span style="color: #808080">2</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>pprint<span style="color: #666666">.</span>pprint(<span style="color: #008000">list</span>(lines<span style="color: #666666">.</span>geoms))
+<span style="color: #808080">[&lt;shapely.geometry.linestring.LineString object at 0x...&gt;,</span>
+<span style="color: #808080"> &lt;shapely.geometry.linestring.LineString object at 0x...&gt;]</span>
+</pre></div>
+<p>The constructor also accepts another instance of <cite>MultiLineString</cite> or an unordered sequence of <cite>LineString</cite> instances, thereby making copies.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>MultiLineString(lines)
+<span style="color: #808080">&lt;shapely.geometry.multilinestring.MultiLineString object at 0x...&gt;</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>MultiLineString(lines<span style="color: #666666">.</span>geoms)
+<span style="color: #808080">&lt;shapely.geometry.multilinestring.MultiLineString object at 0x...&gt;</span>
+</pre></div>
+</div>
+<div class="section" id="multipolygons">
+<h2><a class="toc-backref" href="#id27">2.7&nbsp;&nbsp;&nbsp;MultiPolygons</a></h2>
+<p>The <cite>MultiPolygon</cite> constructor takes a sequence of exterior ring and
+hole list tuples.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely.geometry</span> <span style="color: #008000; font-weight: bold">import</span> MultiPolygon
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>polygons <span style="color: #666666">=</span> MultiPolygon([((a1, <span style="color: #666666">...</span>, aM), [(b1, <span style="color: #666666">...</span>, bN), <span style="color: #666666">...</span>]), <span style="color: #666666">...</span>])
+</pre></div>
+<p>More explicit notation for the exterior and interior boundaries (or shells and
+holes) makes usage more clear.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>shell <span style="color: #666666">=</span> (a1, <span style="color: #666666">...</span>, aM)
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>holes <span style="color: #666666">=</span> [(b1, <span style="color: #666666">...</span>, bN), <span style="color: #666666">...</span>]
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>polygons <span style="color: #666666">=</span> MultiPolygon([(shell, holes), <span style="color: #666666">...</span>])
+</pre></div>
+<p>Perhaps even more clearly, the constructor accepts an unordered sequence of
+<cite>Polygon</cite> instances, thereby making copies.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>polygons <span style="color: #666666">=</span> MultiPolygon([polygon, s, t])
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000">len</span>(polygons<span style="color: #666666">.</span>geoms)
+<span style="color: #808080">3</span>
+</pre></div>
+<p>Its <cite>x-y</cite> bounding box is a <tt class="docutils literal"><span class="pre">(minx,</span> <span class="pre">miny,</span> <span class="pre">maxx,</span> <span class="pre">maxy)</span></tt> tuple.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>polygons<span style="color: #666666">.</span>bounds
+<span style="color: #808080">(-1.0, -1.0, 2.0, 2.0)</span>
+</pre></div>
+</div>
+<div class="section" id="empty-features">
+<h2><a class="toc-backref" href="#id28">2.8&nbsp;&nbsp;&nbsp;Empty features</a></h2>
+<p>Empty features can be created by calling the constructors with no arguments.
+Almost no operations are supported by empty features.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>line <span style="color: #666666">=</span> LineString()
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>line<span style="color: #666666">.</span>is_empty
+<span style="color: #808080">True</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>line<span style="color: #666666">.</span>length
+<span style="color: #808080">0.0</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>line<span style="color: #666666">.</span>bounds
+<span style="color: #808080">()</span>
+</pre></div>
+<p>The coordinates of a empty feature can be set, after which the geometry is no
+longer empty.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>line<span style="color: #666666">.</span>coords <span style="color: #666666">=</span> [(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>)]
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>line<span style="color: #666666">.</span>is_empty
+<span style="color: #808080">False</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>line<span style="color: #666666">.</span>length
+<span style="color: #808080">1.4142135623730951</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>line<span style="color: #666666">.</span>bounds
+<span style="color: #808080">(0.0, 0.0, 1.0, 1.0)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="predicates">
+<h1><a class="toc-backref" href="#id29">3&nbsp;&nbsp;&nbsp;Predicates</a></h1>
+<p>Shapely features provide standard <a class="footnote-reference" href="#id10" id="id7">[1]</a> predicate properties and methods. All
+return <cite>True</cite> or <cite>False</cite>.</p>
+<div class="section" id="unary-predicates">
+<h2><a class="toc-backref" href="#id30">3.1&nbsp;&nbsp;&nbsp;Unary Predicates</a></h2>
+<p>Standard unary predicates are implemented as instance properties.</p>
+<p><strong>has_z</strong>: Returns <cite>True</cite> if the feature has not only <cite>x</cite> and <cite>y</cite>, but also <cite>z</cite>
+coordinates.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>Point(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>)<span style="color: #666666">.</span>has_z
+<span style="color: #808080">False</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>Point(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>, <span style="color: #666666">0</span>)<span style="color: #666666">.</span>has_z
+<span style="color: #808080">True</span>
+</pre></div>
+<p><strong>is_empty</strong>: Returns <cite>True</cite> if the feature's <cite>interior</cite> and
+<cite>boundary</cite> (in point set terms) coincide with the empty set.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>Point()<span style="color: #666666">.</span>is_empty
+<span style="color: #808080">True</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>Point(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>)<span style="color: #666666">.</span>is_empty
+<span style="color: #808080">False</span>
+</pre></div>
+<p><strong>is_ring</strong>: Returns <cite>True</cite> if the feature is closed. A closed feature's
+<cite>boundary</cite> coincides with the empty set. Applicable to <cite>LineString</cite> and
+<cite>LinearRing</cite>. This predicate is somewhat redundant considering that closed-ness
+is in practice a class attribute.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>LineString([(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">-1</span>)])<span style="color: #666666">.</span>is_ring
+<span style="color: #808080">False</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>LinearRing([(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">-1</span>)])<span style="color: #666666">.</span>is_ring
+<span style="color: #808080">True</span>
+</pre></div>
+<p><strong>is_simple</strong>: Returns <cite>True</cite> if the feature does not cross itself. Operations
+on non-simple <cite>LineStrings</cite> are fully supported by Shapely.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>LineString([(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">-1</span>), (<span style="color: #666666">0</span>, <span style="color: #666666">1</span>)])<span style="color: #666666">.</span>is_simple
+<span style="color: #808080">False</span>
+</pre></div>
+<p><strong>is_valid</strong>: Returns <cite>True</cite> if a feature is &quot;valid&quot; in the sense of <a class="footnote-reference" href="#id10" id="id8">[1]</a>. A
+valid <cite>LinearRing</cite> may not cross itself or touch itself at a single point. A
+valid <cite>Polygon</cite> may not possess any overlapping exterior or interior rings. A
+valid <cite>MultiPolygon</cite> may not collect any overlapping polygons. Operations on
+invalid features may fail.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>MultiPolygon([Point(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>)<span style="color: #666666">.</span>buffer(<span style="color: #666666">2.0</span>), Point(<span style="color: #666666">1</span>, <span style="color: #666666">1</span>)<span style="color: #666666">.</span>buffer(<span style="color: #666666">2.0</span>)])<span style="color: #666666">.</span>is_valid
+<span style="color: #808080">False</span>
+</pre></div>
+<p>The two points above are close enough that the polygons resulting from the
+buffer operations (explained in a following section) overlap.</p>
+<p>The <cite>is_valid</cite> predicate could be used to write a decorator that ensures only
+valid objects are returned from a function.</p>
+<div class="highlight"><pre><span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">valid_ring</span>(coordinates):
+    ring <span style="color: #666666">=</span> LinearRing(coordinates)
+    <span style="color: #008000; font-weight: bold">if</span> <span style="color: #AA22FF; font-weight: bold">not</span> ring<span style="color: #666666">.</span>is_valid:
+        <span style="color: #008000; font-weight: bold">raise</span> TopologicalError(
+            <span style="color: #BA2121">&quot;Given coordinates do not determine a valid LinearRing&quot;</span>)
+    <span style="color: #008000; font-weight: bold">return</span> ring
+</pre></div>
+<p>An exception is raised when the function is passed the self-crossing
+coordinates from the <cite>is_simple</cite> example above.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>coords <span style="color: #666666">=</span> [(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">-1</span>), (<span style="color: #666666">0</span>, <span style="color: #666666">1</span>)]
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>valid_ring(coords)
+<span style="color: #0040D0">Traceback (most recent call last):</span>
+  File <span style="color: #008000">&quot;&lt;stdin&gt;&quot;</span>, line <span style="color: #666666">1</span>, in &lt;module&gt;
+  File <span style="color: #008000">&quot;&lt;stdin&gt;&quot;</span>, line <span style="color: #666666">5</span>, in valid_ring
+<span style="color: #0000FF; font-weight: bold">shapely.geos.TopologicalError</span>: Given coordinates do not determine a valid LinearRing
+</pre></div>
+<p>This might also be done using a decorator.</p>
+<div class="highlight"><pre><span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">functools</span> <span style="color: #008000; font-weight: bold">import</span> wraps
+<span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">is_valid</span>(func):
+    <span style="color: #AA22FF">@wraps</span>(func)
+    <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">wrapper</span>(<span style="color: #666666">*</span>args, <span style="color: #666666">**</span>kwargs):
+        ob <span style="color: #666666">=</span> func(<span style="color: #666666">*</span>args, <span style="color: #666666">**</span>kwargs)
+        <span style="color: #008000; font-weight: bold">if</span> <span style="color: #AA22FF; font-weight: bold">not</span> ob<span style="color: #666666">.</span>is_valid:
+            <span style="color: #008000; font-weight: bold">raise</span> TopologicalError(
+                <span style="color: #BA2121">&quot;Given arguments do not determine a valid geometric object&quot;</span>)
+        <span style="color: #008000; font-weight: bold">return</span> ob
+    <span style="color: #008000; font-weight: bold">return</span> wrapper
+</pre></div>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #AA22FF">@is_valid</span>
+<span style="color: #000080; font-weight: bold">... </span><span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">ring</span>(coordinates):
+<span style="color: #000080; font-weight: bold">... </span>    <span style="color: #008000; font-weight: bold">return</span> LinearRing(coordinates)
+<span style="color: #000080; font-weight: bold">...</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>ring(coords)
+<span style="color: #0040D0">Traceback (most recent call last):</span>
+  File <span style="color: #008000">&quot;&lt;stdin&gt;&quot;</span>, line <span style="color: #666666">1</span>, in &lt;module&gt;
+  File <span style="color: #008000">&quot;&lt;stdin&gt;&quot;</span>, line <span style="color: #666666">7</span>, in wrapper
+<span style="color: #0000FF; font-weight: bold">shapely.geos.TopologicalError</span>: Given arguments do not determine a valid geometric object
+</pre></div>
+</div>
+<div class="section" id="binary-predicates">
+<h2><a class="toc-backref" href="#id31">3.2&nbsp;&nbsp;&nbsp;Binary Predicates</a></h2>
+<p>Standard binary predicates are implemented as instance methods. These
+predicates evaluate topological, set-theoretic relationships. In a few cases
+the results may not be what one might expect.  All take another geometric
+object as argument and return <cite>True</cite> or <cite>False</cite>.</p>
+<p><strong>contains</strong> (other): Returns <cite>True</cite> if the object's <cite>interior</cite> contains the
+<cite>boundary</cite> and <cite>interior</cite> of the other object and their boundaries do not touch
+at all. This predicate applies to all types, and is inverse to <cite>within</cite>:
+<tt class="docutils literal"><span class="pre">a.contains(b)</span> <span class="pre">==</span> <span class="pre">b.within(a)</span></tt> always evaluates to <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>coords <span style="color: #666666">=</span> [(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>)]
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>LineString(coords)<span style="color: #666666">.</span>contains(Point(<span style="color: #666666">0.5</span>, <span style="color: #666666">0.5</span>))
+<span style="color: #808080">True</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>Point(<span style="color: #666666">0.5</span>, <span style="color: #666666">0.5</span>)<span style="color: #666666">.</span>within(LineString(coords))
+<span style="color: #808080">True</span>
+</pre></div>
+<p>A line's endpoints are part of its <cite>boundary</cite> and are therefore not contained.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>LineString(coords)<span style="color: #666666">.</span>contains(Point(<span style="color: #666666">1.0</span>, <span style="color: #666666">1.0</span>))
+<span style="color: #808080">False</span>
+</pre></div>
+<p><strong>crosses</strong> (other): Returns <cite>True</cite> if the <cite>interior</cite> of the object intersects
+the <cite>interior</cite> of the other but does not contain it, and the dimension of the
+intersection is less than the dimension of the one or the other.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>LineString(coords)<span style="color: #666666">.</span>crosses(LineString([(<span style="color: #666666">0</span>, <span style="color: #666666">1</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">0</span>)]))
+<span style="color: #808080">True</span>
+</pre></div>
+<p>A line does not cross a point that it contains.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>LineString(coords)<span style="color: #666666">.</span>crosses(Point(<span style="color: #666666">0.5</span>, <span style="color: #666666">0.5</span>))
+<span style="color: #808080">False</span>
+</pre></div>
+<p><strong>disjoint</strong> (other): Returns <cite>True</cite> if the <cite>boundary</cite> and <cite>interior</cite> of the
+object do not intersect at all with those of the other. This predicate applies
+to all types and is the inverse of <cite>intersects</cite>.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>Point(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>)<span style="color: #666666">.</span>disjoint(Point(<span style="color: #666666">1</span>, <span style="color: #666666">1</span>))
+<span style="color: #808080">True</span>
+</pre></div>
+<p><strong>equals</strong> (other): Returns <cite>True</cite> if the set-theoretic <cite>boundary</cite>, <cite>interior</cite>,
+and <cite>exterior</cite> of the object coincide with those of the other. The coordinates
+passed to the object constructors are of these sets, and determine them, but
+are not the entirety of the sets. This is a potential &quot;gotcha&quot; for new users.
+Equivalent lines, for example, can be constructed differently:</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>a <span style="color: #666666">=</span> LineString([(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>)])
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>b <span style="color: #666666">=</span> LineString([(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">0.5</span>, <span style="color: #666666">0.5</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>)])
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>c <span style="color: #666666">=</span> LineString([(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>)])
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>a<span style="color: #666666">.</span>equals(b)
+<span style="color: #808080">True</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>b<span style="color: #666666">.</span>equals(c)
+<span style="color: #808080">True</span>
+</pre></div>
+<p>This predicate should not be mistaken for Python's <tt class="docutils literal"><span class="pre">==</span></tt> or <tt class="docutils literal"><span class="pre">is</span></tt>
+constructions.</p>
+<p><strong>intersects</strong> (other): Returns <cite>True</cite> if the <cite>boundary</cite> and <cite>interior</cite> of the
+object intersect in any way with those of the other. It is the super-relation
+of <cite>contains</cite>, <cite>crosses</cite>, <cite>equals</cite>, <cite>touches</cite>, and <cite>within</cite>.</p>
+<p><strong>touches</strong> (other): Returns <cite>True</cite> if the <cite>boundary</cite> of the object intersects
+only the <cite>boundary</cite> of the other, and their interiors do not intersect with any
+part of the other. Overlapping features do not therefore &quot;touch&quot;, another
+potential &quot;gotcha&quot;.</p>
+<p>For example, the following lines touch at <cite>(1, 1)</cite>, but do not overlap.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>a <span style="color: #666666">=</span> LineString([(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>)])
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>b <span style="color: #666666">=</span> LineString([(<span style="color: #666666">1</span>, <span style="color: #666666">1</span>), (<span style="color: #666666">2</span>, <span style="color: #666666">2</span>)])
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>a<span style="color: #666666">.</span>touches(b)
+<span style="color: #808080">True</span>
+</pre></div>
+<p><strong>within</strong> (other): Returns <cite>True</cite> if the object's <cite>boundary</cite> and <cite>interior</cite>
+intersect only with the <cite>interior</cite> of the other (not its <cite>boundary</cite> or
+<cite>exterior</cite>).This applies to all types and is the inverse of <cite>contains</cite>.</p>
+</div>
+</div>
+<div class="section" id="constructive-methods">
+<h1><a class="toc-backref" href="#id32">4&nbsp;&nbsp;&nbsp;Constructive Methods</a></h1>
+<p>Shapely geometric object have several methods that yield new objects not
+derived from their point sets. TODO: improve this.</p>
+<div class="section" id="buffering">
+<h2><a class="toc-backref" href="#id33">4.1&nbsp;&nbsp;&nbsp;Buffering</a></h2>
+<p><strong>buffer</strong> (distance, quadsegs=16): Returns a new object that contains,
+approximately, all points within a given <cite>distance</cite> of the original object. A
+positive distance has an effect of dilation; a negative distance, erosion. The
+optional <cite>quadsegs</cite> argument determines the number of segements used to
+approximate a quarter circle around a point.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>line <span style="color: #666666">=</span> LineString([(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>), (<span style="color: #666666">0</span>, <span style="color: #666666">2</span>), (<span style="color: #666666">2</span>, <span style="color: #666666">2</span>), (<span style="color: #666666">3</span>, <span style="color: #666666">1</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">0</span>)])
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>dilated <span style="color: #666666">=</span> line<span style="color: #666666">.</span>buffer(<span style="color: #666666">0.5</span>)
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>eroded <span style="color: #666666">=</span> dilated<span style="color: #666666">.</span>buffer(<span style="color: #666666">-0.3</span>)
+</pre></div>
+<div class="figure">
+<img alt="images/buffer.png" src="images/buffer.png" style="width: 750px; height: 300px;" />
+<p class="caption">Figure 1. Dilation of a line (left) and erosion of a polygon (right). New
+object is shown in blue. [<a class="reference external" href="http://github.com/sgillies/shapely/blob/master/manual/code/buffer.py">code</a>]</p>
+</div>
+<p>The default buffer of a point is a polygonal patch with 99.8% of the area of
+the disk it approximates.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>p <span style="color: #666666">=</span> Point(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>)<span style="color: #666666">.</span>buffer(<span style="color: #666666">10.0</span>)
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000">len</span>(p<span style="color: #666666">.</span>exterior<span style="color: #666666">.</span>coords)
+<span style="color: #808080">66</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>p<span style="color: #666666">.</span>area
+<span style="color: #808080">313.65484905459385</span>
+</pre></div>
+<p>With a <cite>quadsegs</cite> value of 1, the buffer is a square patch.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>q <span style="color: #666666">=</span> Point(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>)<span style="color: #666666">.</span>buffer(<span style="color: #666666">10.0</span>, <span style="color: #666666">1</span>)
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000">len</span>(q<span style="color: #666666">.</span>exterior<span style="color: #666666">.</span>coords)
+<span style="color: #808080">5</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>q<span style="color: #666666">.</span>area
+<span style="color: #808080">200.0</span>
+</pre></div>
+</div>
+<div class="section" id="convex-hull">
+<h2><a class="toc-backref" href="#id34">4.2&nbsp;&nbsp;&nbsp;Convex Hull</a></h2>
+<p><strong>convex_hull</strong>: Returns the smallest convex <cite>Polygon</cite> containing all the
+points in the object unless the number of points in the object is less than
+three. For two points, the convex hull collapses to a <cite>LineString</cite>; for 1, a
+<cite>Point</cite>.</p>
+<div class="figure">
+<img alt="images/convex-hull.png" src="images/convex-hull.png" style="width: 750px; height: 300px;" />
+<p class="caption">Figure 1. Convex hull (blue) of 6 points (left) and of 2 points (right). [<a class="reference external" href="http://github.com/sgillies/shapely/blob/master/manual/code/convex_hull.py">code</a>]</p>
+</div>
+</div>
+<div class="section" id="simplification">
+<h2><a class="toc-backref" href="#id35">4.3&nbsp;&nbsp;&nbsp;Simplification</a></h2>
+<p><strong>simplify</strong> (tolerance, preserve_topology=True): Returns a simplified version
+of the geometric object. All control vertices in the simplified object will be
+within the <cite>tolerance</cite> distance of the original geometry. By default a slower
+algorithm is used that preserves topology. If preserve topology is set to False
+the much quicker Douglas-Peucker algorithm is used, and invalid geometries may
+result.</p>
+<div class="figure">
+<img alt="images/simplify.png" src="images/simplify.png" style="width: 600px; height: 300px;" />
+<p class="caption">Figure 1. Simplification of a nearly circular polygon of radius 1 using a
+tolerance of 0.1 (left) and 0.5 (right). [<a class="reference external" href="http://github.com/sgillies/shapely/blob/master/manual/code/simplify.py">code</a>]</p>
+</div>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> p <span style="color: #666666">=</span> Point(<span style="color: #666666">0.0</span>, <span style="color: #666666">0.0</span>)
+<span style="color: #666666">&gt;&gt;&gt;</span> x <span style="color: #666666">=</span> p<span style="color: #666666">.</span>buffer(<span style="color: #666666">1.0</span>)
+<span style="color: #666666">&gt;&gt;&gt;</span> x<span style="color: #666666">.</span>area
+<span style="color: #666666">3.1365484905459389</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">len</span>(x<span style="color: #666666">.</span>exterior<span style="color: #666666">.</span>coords)
+<span style="color: #666666">66</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> s <span style="color: #666666">=</span> x<span style="color: #666666">.</span>simplify(<span style="color: #666666">0.05</span>, preserve_topology<span style="color: #666666">=</span><span style="color: #008000">False</span>)
+<span style="color: #666666">&gt;&gt;&gt;</span> s<span style="color: #666666">.</span>area
+<span style="color: #666666">3.0614674589207187</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">len</span>(s<span style="color: #666666">.</span>exterior<span style="color: #666666">.</span>coords)
+<span style="color: #666666">17</span>
+</pre></div>
+</div>
+<div class="section" id="boundary">
+<h2><a class="toc-backref" href="#id36">4.4&nbsp;&nbsp;&nbsp;Boundary</a></h2>
+<dl class="docutils">
+<dt>.boundary <span class="classifier-delimiter">:</span> <span class="classifier">geometry</span></dt>
+<dd>Returns a lower dimension geometry. The boundary of a polygon is a line, the
+boundary of a line is a collection of points. The boundary of a point is an
+empty (null) collection.</dd>
+</dl>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> polygon<span style="color: #666666">.</span>boundary
+<span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>linestring<span style="color: #666666">.</span>LineString <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> line_b<span style="color: #666666">.</span>boundary
+<span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>multipoint<span style="color: #666666">.</span>MultiPoint <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> point_r<span style="color: #666666">.</span>boundary<span style="color: #666666">.</span>is_empty
+<span style="color: #008000">True</span>
+</pre></div>
+</div>
+<div class="section" id="centroid">
+<h2><a class="toc-backref" href="#id37">4.5&nbsp;&nbsp;&nbsp;Centroid</a></h2>
+<dl class="docutils">
+<dt>.centroid <span class="classifier-delimiter">:</span> <span class="classifier">geometry</span></dt>
+<dd>Returns the centroid, or geometric center of the polygon.</dd>
+</dl>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> centroid_point <span style="color: #666666">=</span> polygon<span style="color: #666666">.</span>centroid
+<span style="color: #666666">&gt;&gt;&gt;</span> centroid_point<span style="color: #666666">.</span>wkt
+<span style="color: #BA2121">&#39;POINT (-0.0000000000000000 -0.0000000000000000)&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="set-theoretic-operations">
+<h1><a class="toc-backref" href="#id38">5&nbsp;&nbsp;&nbsp;Set-theoretic Operations</a></h1>
+<div class="section" id="difference">
+<h2><a class="toc-backref" href="#id39">5.1&nbsp;&nbsp;&nbsp;Difference</a></h2>
+<dl class="docutils">
+<dt>.difference(other) <span class="classifier-delimiter">:</span> <span class="classifier">geometry</span></dt>
+<dd>Returns a geometry representing the points making up this geometry that do
+not make up <em>other</em>. Note that A.difference(B) is not necessarily equal to
+B.difference(A).</dd>
+</dl>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> hull <span style="color: #666666">=</span> multi_point<span style="color: #666666">.</span>convex_hull
+<span style="color: #666666">&gt;&gt;&gt;</span> polygon<span style="color: #666666">.</span>difference(hull)
+<span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>polygon<span style="color: #666666">.</span>Polygon <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>
+</pre></div>
+</div>
+<div class="section" id="envelope">
+<h2><a class="toc-backref" href="#id40">5.2&nbsp;&nbsp;&nbsp;Envelope</a></h2>
+<dl class="docutils">
+<dt>.envelope <span class="classifier-delimiter">:</span> <span class="classifier">geometry</span></dt>
+<dd>Returns the geometry's rectangular polygon envelope.</dd>
+</dl>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> polygon<span style="color: #666666">.</span>envelope
+<span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>polygon<span style="color: #666666">.</span>Polygon <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>
+</pre></div>
+</div>
+<div class="section" id="intersection">
+<h2><a class="toc-backref" href="#id41">5.3&nbsp;&nbsp;&nbsp;Intersection</a></h2>
+<dl class="docutils">
+<dt>.intersection(other) <span class="classifier-delimiter">:</span> <span class="classifier">geometry</span></dt>
+<dd>Returns the intersection of one geometry and the <em>other</em> geometry.</dd>
+</dl>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> polygon<span style="color: #666666">.</span>intersection(hull)
+<span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>polygon<span style="color: #666666">.</span>Polygon <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>
+</pre></div>
+</div>
+<div class="section" id="symmetric-difference">
+<h2><a class="toc-backref" href="#id42">5.4&nbsp;&nbsp;&nbsp;Symmetric Difference</a></h2>
+<dl class="docutils">
+<dt>.symmetric_difference(other) <span class="classifier-delimiter">:</span> <span class="classifier">geometry</span></dt>
+<dd>Returns a geometry combining the points in this geometry not in <em>other</em>, and
+the points in <em>other</em> not in this geometry.</dd>
+</dl>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> polygon<span style="color: #666666">.</span>symmetric_difference(hull)
+<span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>multipolygon<span style="color: #666666">.</span>MultiPolygon <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>
+</pre></div>
+</div>
+<div class="section" id="union">
+<h2><a class="toc-backref" href="#id43">5.5&nbsp;&nbsp;&nbsp;Union</a></h2>
+<dl class="docutils">
+<dt>.union(other) <span class="classifier-delimiter">:</span> <span class="classifier">geometry</span></dt>
+<dd>Returns the union of one geometry and the <em>other</em> geometry.</dd>
+</dl>
+<p>Point unions were demonstrated above under convex hull. The union of polygons
+will be a polygon or a multi-polygon depending on whether they intersect or
+not:</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> hull<span style="color: #666666">.</span>union(polygon)
+<span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>polygon<span style="color: #666666">.</span>Polygon <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="other-operations">
+<h1><a class="toc-backref" href="#id44">6&nbsp;&nbsp;&nbsp;Other Operations</a></h1>
+<div class="section" id="polygonization">
+<h2><a class="toc-backref" href="#id45">6.1&nbsp;&nbsp;&nbsp;Polygonization</a></h2>
+<dl class="docutils">
+<dt>shapely.ops.polygonize(lines) <span class="classifier-delimiter">:</span> <span class="classifier">iterator</span></dt>
+<dd>Returns an iterator over polygons constructed from the <em>lines</em> iterator. The
+elements of <em>lines</em> may be Shapely geometries, objects that provide the geo
+interface, or Numpy arrays or Python sequences shaped like LineStrings.</dd>
+</dl>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely.ops</span> <span style="color: #008000; font-weight: bold">import</span> polygonize
+<span style="color: #666666">&gt;&gt;&gt;</span> lines <span style="color: #666666">=</span> [
+<span style="color: #666666">...</span>     ((<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>)),
+<span style="color: #666666">...</span>     ((<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">0</span>, <span style="color: #666666">1</span>)),
+<span style="color: #666666">...</span>     ((<span style="color: #666666">0</span>, <span style="color: #666666">1</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>)),
+<span style="color: #666666">...</span>     ((<span style="color: #666666">1</span>, <span style="color: #666666">1</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">0</span>)),
+<span style="color: #666666">...</span>     ((<span style="color: #666666">1</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">0</span>, <span style="color: #666666">0</span>))
+<span style="color: #666666">...</span>     ]
+<span style="color: #666666">&gt;&gt;&gt;</span> result <span style="color: #666666">=</span> polygonize(lines)
+<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">list</span>(result<span style="color: #666666">.</span>geoms)
+[<span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>polygon<span style="color: #666666">.</span>Polygon <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>, <span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>polygon<span style="color: #666666">.</span>Polygon <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>]
+</pre></div>
+</div>
+<div class="section" id="line-merging">
+<h2><a class="toc-backref" href="#id46">6.2&nbsp;&nbsp;&nbsp;Line merging</a></h2>
+<dl class="docutils">
+<dt>shapely.ops.linemerge(lines) <span class="classifier-delimiter">:</span> <span class="classifier">iterator or MultiLineString</span></dt>
+<dd>Merges all connected lines. Returns a LineString or MultiLineString when
+lines are not contiguous.</dd>
+</dl>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> lines <span style="color: #666666">=</span> MultiLineString([
+<span style="color: #666666">...</span>     ((<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>)),
+<span style="color: #666666">...</span>     ((<span style="color: #666666">2</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">2</span>, <span style="color: #666666">1</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>))
+<span style="color: #666666">...</span>     ])
+<span style="color: #666666">&gt;&gt;&gt;</span> result <span style="color: #666666">=</span> linemerge(lines)
+<span style="color: #666666">&gt;&gt;&gt;</span> result <span style="color: #408080; font-style: italic"># docstring: +ELLIPSIS</span>
+<span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>linestring<span style="color: #666666">.</span>LineString <span style="color: #008000">object</span> at <span style="color: #666666">0</span>x<span style="color: #666666">...&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="binary-spatial-predicates">
+<h1><a class="toc-backref" href="#id47">7&nbsp;&nbsp;&nbsp;Binary Spatial Predicates</a></h1>
+<p>All of these methods take a single positional argument, an <em>other</em> geometry. It
+is important to note that these are topological and not point-wise operations,
+and therefore may produce results that are not what one might expect from
+operations on Python.</p>
+</div>
+<div class="section" id="general-methods">
+<h1><a class="toc-backref" href="#id48">8&nbsp;&nbsp;&nbsp;General Methods</a></h1>
+<div class="section" id="distance">
+<h2><a class="toc-backref" href="#id49">8.1&nbsp;&nbsp;&nbsp;Distance</a></h2>
+<dl class="docutils">
+<dt>.distance(other) <span class="classifier-delimiter">:</span> <span class="classifier">geometry</span></dt>
+<dd>The minimum distance from one geometry to the other.</dd>
+</dl>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> Point(<span style="color: #666666">0</span>,<span style="color: #666666">0</span>)<span style="color: #666666">.</span>distance(Point(<span style="color: #666666">1</span>,<span style="color: #666666">1</span>))
+<span style="color: #666666">1.4142135623730951</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="scalar-properties">
+<h1><a class="toc-backref" href="#id50">9&nbsp;&nbsp;&nbsp;Scalar Properties</a></h1>
+<div class="section" id="area">
+<h2><a class="toc-backref" href="#id51">9.1&nbsp;&nbsp;&nbsp;Area</a></h2>
+<dl class="docutils">
+<dt>.area <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Area of the geometry, unitless. Non-zero only for surfaces (polygons,
+multi-polygons).</dd>
+</dl>
+</div>
+<div class="section" id="bounds">
+<h2><a class="toc-backref" href="#id52">9.2&nbsp;&nbsp;&nbsp;Bounds</a></h2>
+<dl class="docutils">
+<dt>.bounds <span class="classifier-delimiter">:</span> <span class="classifier">tuple</span></dt>
+<dd>The geometry's (minx, miny, maxx, maxy) bounding box.</dd>
+</dl>
+</div>
+<div class="section" id="length">
+<h2><a class="toc-backref" href="#id53">9.3&nbsp;&nbsp;&nbsp;Length</a></h2>
+<dl class="docutils">
+<dt>.length <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Length of the geometry, unitless. Non-zero only for linear geometries
+(line strings, rings, polygon boundaries)</dd>
+</dl>
+</div>
+<div class="section" id="examples">
+<h2><a class="toc-backref" href="#id54">9.4&nbsp;&nbsp;&nbsp;Examples</a></h2>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> polygon<span style="color: #666666">.</span>area
+<span style="color: #666666">4.0</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> polygon<span style="color: #666666">.</span>bounds
+(<span style="color: #666666">-1.0</span>, <span style="color: #666666">-1.0</span>, <span style="color: #666666">1.0</span>, <span style="color: #666666">1.0</span>)
+<span style="color: #666666">&gt;&gt;&gt;</span> polygon<span style="color: #666666">.</span>length
+<span style="color: #666666">8.0</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> line_r<span style="color: #666666">.</span>length
+<span style="color: #666666">1.0</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> line_b<span style="color: #666666">.</span>length
+<span style="color: #666666">3.9812058474788765</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="geometry-parts-and-coordinates">
+<h1><a class="toc-backref" href="#id55">10&nbsp;&nbsp;&nbsp;Geometry Parts and Coordinates</a></h1>
+<div class="section" id="coordinate-sequences">
+<h2><a class="toc-backref" href="#id56">10.1&nbsp;&nbsp;&nbsp;Coordinate Sequences</a></h2>
+<p>The coordinates of points, line strings, and polygon rings can be accessed
+through the <em>coords</em> attribute of a geometry. <em>Coords</em> is an iterator over
+coordinate tuples.</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> point_r<span style="color: #666666">.</span>coords
+<span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>base<span style="color: #666666">.</span>CoordinateSequence <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">len</span>(point_r<span style="color: #666666">.</span>coords)
+<span style="color: #666666">1</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> point_r<span style="color: #666666">.</span>coords[<span style="color: #666666">0</span>]
+(<span style="color: #666666">-1.5</span>, <span style="color: #666666">1.2</span>)
+<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">list</span>(point_r<span style="color: #666666">.</span>coords)
+[(<span style="color: #666666">-1.5</span>, <span style="color: #666666">1.2</span>)]
+</pre></div>
+<p>The coordinate sequence can be modifed by assigning a sequence (<strong>a</strong>1, ...,
+<strong>a</strong>M) to the coords attribute.</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> point_new <span style="color: #666666">=</span> Point(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>)
+<span style="color: #666666">&gt;&gt;&gt;</span> point_new<span style="color: #666666">.</span>coords <span style="color: #666666">=</span> (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>)
+<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">list</span>(point_new<span style="color: #666666">.</span>coords)
+[(<span style="color: #666666">1.0</span>, <span style="color: #666666">1.0</span>)]
+</pre></div>
+<p>For line strings:</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> line_new <span style="color: #666666">=</span> LineString([(<span style="color: #666666">0</span>,<span style="color: #666666">0</span>), (<span style="color: #666666">1</span>,<span style="color: #666666">1</span>)])
+<span style="color: #666666">&gt;&gt;&gt;</span> line_new<span style="color: #666666">.</span>coords <span style="color: #666666">=</span> [(<span style="color: #666666">1</span>,<span style="color: #666666">1</span>), (<span style="color: #666666">2</span>,<span style="color: #666666">2</span>)]
+<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">list</span>(line_new<span style="color: #666666">.</span>coords)
+[(<span style="color: #666666">1.0</span>, <span style="color: #666666">1.0</span>), (<span style="color: #666666">2.0</span>, <span style="color: #666666">2.0</span>)]
+</pre></div>
+</div>
+<div class="section" id="polygon-rings">
+<h2><a class="toc-backref" href="#id57">10.2&nbsp;&nbsp;&nbsp;Polygon Rings</a></h2>
+<p>The exterior boundary of a polygon can be accessed through the <em>exterior</em>
+attribute of the geometry object.</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> polygon<span style="color: #666666">.</span>exterior
+<span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>polygon<span style="color: #666666">.</span>LinearRing <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">list</span>(polygon<span style="color: #666666">.</span>exterior<span style="color: #666666">.</span>coords)
+[(<span style="color: #666666">-1.0</span>, <span style="color: #666666">-1.0</span>), (<span style="color: #666666">-1.0</span>, <span style="color: #666666">1.0</span>), (<span style="color: #666666">1.0</span>, <span style="color: #666666">1.0</span>), (<span style="color: #666666">1.0</span>, <span style="color: #666666">-1.0</span>), (<span style="color: #666666">-1.0</span>, <span style="color: #666666">-1.0</span>)]
+</pre></div>
+<p>The interior boundaries (or holes) of a polygon can be accessed through the
+<em>uinteriors</em> attribute, which is a list of rings.</p>
+</div>
+<div class="section" id="sub-geometries">
+<h2><a class="toc-backref" href="#id58">10.3&nbsp;&nbsp;&nbsp;Sub-geometries</a></h2>
+<p>The parts of a multi-part geometry can be accessed through the <em>geoms</em>
+attribute of the geometry object, which is an iterator over the sub-geometries:</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> multi_point<span style="color: #666666">.</span>geoms
+<span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>base<span style="color: #666666">.</span>GeometrySequence <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">len</span>(multi_point<span style="color: #666666">.</span>geoms)
+<span style="color: #666666">3</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">pprint</span> <span style="color: #008000; font-weight: bold">import</span> pprint
+<span style="color: #666666">&gt;&gt;&gt;</span> pprint(<span style="color: #008000">list</span>(multi_point<span style="color: #666666">.</span>geoms))
+[<span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>point<span style="color: #666666">.</span>Point <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>,
+ <span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>point<span style="color: #666666">.</span>Point <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>,
+ <span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>point<span style="color: #666666">.</span>Point <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>]
+</pre></div>
+<p>The coordinate sequences of these sub-geometries can then be accessed as
+described above.</p>
+</div>
+<div class="section" id="point-coordinates">
+<h2><a class="toc-backref" href="#id59">10.4&nbsp;&nbsp;&nbsp;Point Coordinates</a></h2>
+<p>For the sake of convenience the coordinate values of points can be accessed
+read-only via <strong>x</strong>, <strong>y</strong>, and <strong>z</strong> attributes:</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> point <span style="color: #666666">=</span> Point(<span style="color: #666666">1.0</span>, <span style="color: #666666">1.0</span>)
+<span style="color: #666666">&gt;&gt;&gt;</span> point<span style="color: #666666">.</span>x
+<span style="color: #666666">1.0</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> point<span style="color: #666666">.</span>y
+<span style="color: #666666">1.0</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="interoperation">
+<h1><a class="toc-backref" href="#id60">11&nbsp;&nbsp;&nbsp;Interoperation</a></h1>
+<p>Shapely provides 4 avenues for interoperation with other Python and GIS
+software.</p>
+<div class="section" id="well-known-formats">
+<h2><a class="toc-backref" href="#id61">11.1&nbsp;&nbsp;&nbsp;Well-known Formats</a></h2>
+<div class="section" id="well-known-text-wkt">
+<h3><a class="toc-backref" href="#id62">11.1.1&nbsp;&nbsp;&nbsp;Well-known Text (WKT)</a></h3>
+<p>The WKT representation of any geometry object can be had via the <strong>wkt</strong>
+attribute:</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> point_r<span style="color: #666666">.</span>wkt
+<span style="color: #BA2121">&#39;POINT (-1.5000000000000000 1.2000000000000000)&#39;</span>
+</pre></div>
+<p>Hex-encode that string and you have a value that can be conveniently inserted directly into PostGIS</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> point_r<span style="color: #666666">.</span>wkt<span style="color: #666666">.</span>encode(<span style="color: #BA2121">&#39;hex&#39;</span>)
+<span style="color: #BA2121">&#39;504f494e5420282d312e3530303030303030303030303030303020312e3230303030303030303030303030303029&#39;</span>
+</pre></div>
+<p>New geometries can be created from WKT representations using the
+<em>shapely.wkt.loads</em> factory (inspired by the <em>pickle</em> module)</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely.wkt</span> <span style="color: #008000; font-weight: bold">import</span> loads
+<span style="color: #666666">&gt;&gt;&gt;</span> loads(<span style="color: #BA2121">&#39;POINT (0 0)&#39;</span>)
+<span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>point<span style="color: #666666">.</span>Point <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>
+</pre></div>
+</div>
+<div class="section" id="well-known-binary-wkb">
+<h3><a class="toc-backref" href="#id63">11.1.2&nbsp;&nbsp;&nbsp;Well-known Binary (WKB)</a></h3>
+<p>The WKB representation of any geometry object can be had via the <strong>wkb</strong>
+attribute. New geometries can be created from WKB data using the
+<em>shapely.wkb.loads</em> factory. Use this format to interoperate with ogr.py:</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">ogr</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely.wkb</span> <span style="color: #008000; font-weight: bold">import</span> loads
+<span style="color: #666666">&gt;&gt;&gt;</span> source <span style="color: #666666">=</span> ogr<span style="color: #666666">.</span>Open(<span style="color: #BA2121">&quot;/tmp/world_borders.shp&quot;</span>)
+<span style="color: #666666">&gt;&gt;&gt;</span> borders <span style="color: #666666">=</span> source<span style="color: #666666">.</span>GetLayerByName(<span style="color: #BA2121">&quot;world_borders&quot;</span>)
+<span style="color: #666666">&gt;&gt;&gt;</span> feature <span style="color: #666666">=</span> borders<span style="color: #666666">.</span>GetNextFeature()
+<span style="color: #666666">&gt;&gt;&gt;</span> loads(feature<span style="color: #666666">.</span>GetGeometryRef()<span style="color: #666666">.</span>ExportToWkb())
+<span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>polygon<span style="color: #666666">.</span>Polygon <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="python-sequences">
+<h2><a class="toc-backref" href="#id64">11.2&nbsp;&nbsp;&nbsp;Python Sequences</a></h2>
+<p>Python sequence data can be analyzed as Shapely geometries using the
+<em>shapely.geometry.as*</em> adapters while leaving the data in its original
+storage. A pair of float can be treated as a point with <strong>asPoint</strong>:</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely.geometry</span> <span style="color: #008000; font-weight: bold">import</span> asPoint
+<span style="color: #666666">&gt;&gt;&gt;</span> coords <span style="color: #666666">=</span> [<span style="color: #666666">3.0</span>, <span style="color: #666666">4.0</span>]
+<span style="color: #666666">&gt;&gt;&gt;</span> pa <span style="color: #666666">=</span> asPoint(coords)
+<span style="color: #666666">&gt;&gt;&gt;</span> pa<span style="color: #666666">.</span>wkt
+<span style="color: #BA2121">&#39;POINT (3.0000000000000000 4.0000000000000000)&#39;</span>
+</pre></div>
+<p>Move the coordinates and watch the geometry adapter change</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> coords[<span style="color: #666666">0</span>] <span style="color: #666666">=</span> <span style="color: #666666">1.0</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> pa<span style="color: #666666">.</span>wkt
+<span style="color: #BA2121">&#39;POINT (1.0000000000000000 4.0000000000000000)&#39;</span>
+</pre></div>
+<p>The <strong>asLineString</strong> adapter works much the same. The <strong>asPolygon</strong> adapter is
+used like</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely.geometry</span> <span style="color: #008000; font-weight: bold">import</span> asPolygon
+<span style="color: #666666">&gt;&gt;&gt;</span> coords <span style="color: #666666">=</span> [[<span style="color: #666666">0.0</span>, <span style="color: #666666">0.0</span>], [<span style="color: #666666">0.0</span>, <span style="color: #666666">1.0</span>], [<span style="color: #666666">1.0</span>, <span style="color: #666666">1.0</span>], [<span style="color: #666666">1.0</span>, <span style="color: #666666">0.0</span>]]
+<span style="color: #666666">&gt;&gt;&gt;</span> hole_coords <span style="color: #666666">=</span> [((<span style="color: #666666">0.1</span>,<span style="color: #666666">0.1</span>), (<span style="color: #666666">0.1</span>,<span style="color: #666666">0.2</span>), (<span style="color: #666666">0.2</span>,<span style="color: #666666">0.2</span>), (<span style="color: #666666">0.2</span>,<span style="color: #666666">0.1</span>))]
+<span style="color: #666666">&gt;&gt;&gt;</span> pa <span style="color: #666666">=</span> asPolygon(coords, hole_coords)
+<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">len</span>(pa<span style="color: #666666">.</span>exterior<span style="color: #666666">.</span>coords)
+<span style="color: #666666">5</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">len</span>(pa<span style="color: #666666">.</span>interiors)
+<span style="color: #666666">1</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">len</span>(pa<span style="color: #666666">.</span>interiors[<span style="color: #666666">0</span>]<span style="color: #666666">.</span>coords)
+<span style="color: #666666">5</span>
+</pre></div>
+</div>
+<div class="section" id="numpy-array-interface">
+<h2><a class="toc-backref" href="#id65">11.3&nbsp;&nbsp;&nbsp;Numpy Array Interface</a></h2>
+<p>Shapely geometries provide the Numpy array interface which means that points,
+line strings, and polygon rings can be used as Numpy arrays:</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">numpy</span> <span style="color: #008000; font-weight: bold">import</span> array
+<span style="color: #666666">&gt;&gt;&gt;</span> a <span style="color: #666666">=</span> array(polygon<span style="color: #666666">.</span>exterior)
+<span style="color: #666666">&gt;&gt;&gt;</span> a
+array([[<span style="color: #666666">-1.</span>, <span style="color: #666666">-1.</span>],
+       [<span style="color: #666666">-1.</span>,  <span style="color: #666666">1.</span>],
+       [ <span style="color: #666666">1.</span>,  <span style="color: #666666">1.</span>],
+       [ <span style="color: #666666">1.</span>, <span style="color: #666666">-1.</span>],
+       [<span style="color: #666666">-1.</span>, <span style="color: #666666">-1.</span>]])
+</pre></div>
+<p>The <em>numpy.asarray</em> function does not copy coordinate values at the price of
+slower numpy access to coordinates.</p>
+<p>The <em>shapely.geometry.as*</em> functions can also be used to wrap numpy arrays,
+which can then be analyzed using Shapely while maintaining their original
+storage. A 1 x 2 array can be adapted to a point</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> a <span style="color: #666666">=</span> array([<span style="color: #666666">1.0</span>, <span style="color: #666666">2.0</span>])
+<span style="color: #666666">&gt;&gt;&gt;</span> pa <span style="color: #666666">=</span> asPoint(a)
+<span style="color: #666666">&gt;&gt;&gt;</span> pa<span style="color: #666666">.</span>wkt
+<span style="color: #BA2121">&#39;POINT (1.0000000000000000 2.0000000000000000)&#39;</span>
+</pre></div>
+<p>and a N x 2 array can be adapted to a line string</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely.geometry</span> <span style="color: #008000; font-weight: bold">import</span> asLineString
+<span style="color: #666666">&gt;&gt;&gt;</span> a <span style="color: #666666">=</span> array([[<span style="color: #666666">1.0</span>, <span style="color: #666666">2.0</span>], [<span style="color: #666666">3.0</span>, <span style="color: #666666">4.0</span>]])
+<span style="color: #666666">&gt;&gt;&gt;</span> la <span style="color: #666666">=</span> asLineString(a)
+<span style="color: #666666">&gt;&gt;&gt;</span> la<span style="color: #666666">.</span>wkt
+<span style="color: #BA2121">&#39;LINESTRING (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)&#39;</span>
+</pre></div>
+<p>There is no Numpy array representation of a polygon.</p>
+</div>
+<div class="section" id="python-geo-interface">
+<h2><a class="toc-backref" href="#id66">11.4&nbsp;&nbsp;&nbsp;Python Geo Interface</a></h2>
+<p>Any object that provides the GeoJSON-like <a class="reference external" href="http://trac.gispython.org/projects/PCL/wiki/PythonGeoInterface">Python geo interface</a> can be
+adapted and used as a Shapely geometry using the <em>shapely.geometry.asShape</em>
+function. For example, a dictionary:</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely.geometry</span> <span style="color: #008000; font-weight: bold">import</span> asShape
+<span style="color: #666666">&gt;&gt;&gt;</span> d <span style="color: #666666">=</span> {<span style="color: #BA2121">&quot;type&quot;</span>: <span style="color: #BA2121">&quot;Point&quot;</span>, <span style="color: #BA2121">&quot;coordinates&quot;</span>: (<span style="color: #666666">0.0</span>, <span style="color: #666666">0.0</span>)}
+<span style="color: #666666">&gt;&gt;&gt;</span> shape <span style="color: #666666">=</span> asShape(d)
+<span style="color: #666666">&gt;&gt;&gt;</span> shape<span style="color: #666666">.</span>geom_type
+<span style="color: #BA2121">&#39;Point&#39;</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">list</span>(shape<span style="color: #666666">.</span>coords)
+[(<span style="color: #666666">0.0</span>, <span style="color: #666666">0.0</span>)]
+</pre></div>
+<p>Or a simple placemark-type object:</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000; font-weight: bold">class</span> <span style="color: #0000FF; font-weight: bold">GeoThing</span>(<span style="color: #008000">object</span>):
+<span style="color: #666666">...</span>     <span style="color: #008000; font-weight: bold">def</span> <span style="color: #0000FF">__init__</span>(<span style="color: #008000">self</span>, d):
+<span style="color: #666666">...</span>         <span style="color: #008000">self</span><span style="color: #666666">.</span>__geo_interface__ <span style="color: #666666">=</span> d
+<span style="color: #666666">&gt;&gt;&gt;</span> thing <span style="color: #666666">=</span> GeoThing({<span style="color: #BA2121">&quot;type&quot;</span>: <span style="color: #BA2121">&quot;Point&quot;</span>, <span style="color: #BA2121">&quot;coordinates&quot;</span>: (<span style="color: #666666">0.0</span>, <span style="color: #666666">0.0</span>)})
+<span style="color: #666666">&gt;&gt;&gt;</span> shape <span style="color: #666666">=</span> asShape(thing)
+<span style="color: #666666">&gt;&gt;&gt;</span> shape<span style="color: #666666">.</span>geom_type
+<span style="color: #BA2121">&#39;Point&#39;</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">list</span>(shape<span style="color: #666666">.</span>coords)
+[(<span style="color: #666666">0.0</span>, <span style="color: #666666">0.0</span>)]
+</pre></div>
+<p>If you want to copy coordinate data to a new geometry, use the
+<em>shapely.geometry.shape</em> function instead.</p>
+</div>
+</div>
+<div class="section" id="advanced-features">
+<h1><a class="toc-backref" href="#id67">12&nbsp;&nbsp;&nbsp;Advanced Features</a></h1>
+<div class="section" id="iterative-operations">
+<h2><a class="toc-backref" href="#id68">12.1&nbsp;&nbsp;&nbsp;Iterative Operations</a></h2>
+<p>Shapely provides functions for efficient operations on large sets of
+geometries.</p>
+<div class="section" id="contains">
+<h3><a class="toc-backref" href="#id69">12.1.1&nbsp;&nbsp;&nbsp;Contains</a></h3>
+<p>To find the subset of points that are contained within a polygon, use
+<em>shapely.iterops.contains</em>:</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely.geometry</span> <span style="color: #008000; font-weight: bold">import</span> Polygon
+<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely.geometry</span> <span style="color: #008000; font-weight: bold">import</span> Point
+<span style="color: #666666">&gt;&gt;&gt;</span> coords <span style="color: #666666">=</span> ((<span style="color: #666666">0.0</span>, <span style="color: #666666">0.0</span>), (<span style="color: #666666">0.0</span>, <span style="color: #666666">1.0</span>), (<span style="color: #666666">1.0</span>, <span style="color: #666666">1.0</span>), (<span style="color: #666666">1.0</span>, <span style="color: #666666">0.0</span>), (<span style="color: #666666">0.0</span>, <span style="color: #666666">0.0</span>))
+<span style="color: #666666">&gt;&gt;&gt;</span> polygon <span style="color: #666666">=</span> Polygon(coords)
+<span style="color: #666666">&gt;&gt;&gt;</span> points <span style="color: #666666">=</span> [Point(<span style="color: #666666">0.5</span>, <span style="color: #666666">0.5</span>), Point(<span style="color: #666666">2.0</span>, <span style="color: #666666">2.0</span>)]
+<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely</span> <span style="color: #008000; font-weight: bold">import</span> iterops
+<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">list</span>(iterops<span style="color: #666666">.</span>contains(polygon, points, <span style="color: #008000">True</span>))
+[<span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>geometry<span style="color: #666666">.</span>point<span style="color: #666666">.</span>Point <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>]
+</pre></div>
+<p>The second parameter to <em>iterops.contains</em> can be any kind of iterator, even a
+generator of objects. If it yields tuples, then the second element of the tuple
+will be ultimately yielded from <em>iterops.contains</em>.</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000">list</span>(iterops<span style="color: #666666">.</span>contains(polygon, <span style="color: #008000">iter</span>((p, p<span style="color: #666666">.</span>wkt) <span style="color: #008000; font-weight: bold">for</span> p <span style="color: #AA22FF; font-weight: bold">in</span> points)))
+[<span style="color: #BA2121">&#39;POINT (0.5000000000000000 0.5000000000000000)&#39;</span>]
+</pre></div>
+</div>
+</div>
+<div class="section" id="prepared-geometry-operations">
+<h2><a class="toc-backref" href="#id70">12.2&nbsp;&nbsp;&nbsp;Prepared Geometry Operations</a></h2>
+<p>Shapely geometries can be pre-analyzed into a state that supports more
+efficient batches of operations. To test one polygon containment against a
+large batch of points, one should first use the <cite>prepared.prep</cite> function:</p>
+<div class="highlight"><pre><span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely.geometry</span> <span style="color: #008000; font-weight: bold">import</span> Point
+<span style="color: #666666">&gt;&gt;&gt;</span> <span style="color: #008000; font-weight: bold">from</span> <span style="color: #0000FF; font-weight: bold">shapely.prepared</span> <span style="color: #008000; font-weight: bold">import</span> polyprep
+<span style="color: #666666">&gt;&gt;&gt;</span> points <span style="color: #666666">=</span> [<span style="color: #666666">...</span>] <span style="color: #408080; font-style: italic"># large list of points</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> polygon <span style="color: #666666">=</span> Point(<span style="color: #666666">0.0</span>, <span style="color: #666666">0.0</span>)<span style="color: #666666">.</span>buffer(<span style="color: #666666">1.0</span>)
+<span style="color: #666666">&gt;&gt;&gt;</span> prepared_polygon <span style="color: #666666">=</span> prep(polygon)
+<span style="color: #666666">&gt;&gt;&gt;</span> prepared_polygon
+<span style="color: #666666">&lt;</span>shapely<span style="color: #666666">.</span>prepared<span style="color: #666666">.</span>PreparedGeometry <span style="color: #008000">object</span> at <span style="color: #666666">...&gt;</span>
+<span style="color: #666666">&gt;&gt;&gt;</span> hits <span style="color: #666666">=</span> <span style="color: #008000">filter</span>(prepared_polygon<span style="color: #666666">.</span>contains, points)
+</pre></div>
+<p>Prepared geometries instances have the following methods: <tt class="docutils literal"><span class="pre">contains</span></tt>,
+<tt class="docutils literal"><span class="pre">contains_properly</span></tt>, <tt class="docutils literal"><span class="pre">covers</span></tt>, and <tt class="docutils literal"><span class="pre">intersects</span></tt>. All have exactly the
+same arguments and usage as their counterparts in the standard geometries.</p>
+</div>
+</div>
+<div class="section" id="credits">
+<h1><a class="toc-backref" href="#id71">13&nbsp;&nbsp;&nbsp;Credits</a></h1>
+<p>Shapely is written by Sean Gillies with contributions from Aron Bierbaum,
+Howard Butler, Kai Lautaportti (Hexagon IT), Frédéric Junod (Camptocamp SA),
+Eric Lemoine (Camptocamp SA) and ctypes tips from Justin Bronn (GeoDjango).</p>
+</div>
+<div class="section" id="references">
+<h1><a class="toc-backref" href="#id72">14&nbsp;&nbsp;&nbsp;References</a></h1>
+<table class="docutils footnote" frame="void" id="id10" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[1]</td><td><em>(<a class="fn-backref" href="#id2">1</a>, <a class="fn-backref" href="#id7">2</a>, <a class="fn-backref" href="#id8">3</a>)</em> John R. Herring, Ed.,
+“OpenGIS Implementation Specification for Geographic information - Simple
+feature access - Part 1: Common architecture,” Oct. 2006.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id11" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[2]</td><td><em>(<a class="fn-backref" href="#id3">1</a>, <a class="fn-backref" href="#id4">2</a>)</em> M.J. Egenhofer and John R. Herring,
+Categorizing Binary Topological Relations Between Regions, Lines, and Points
+in Geographic Databases,  Orono, ME: University of Maine, 1991.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id12" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[3]</td><td>E. Clementini, P. Di Felice, and P. van OOsterom,
+“A Small Set of Formal Topological Relationships Suitable for End-User
+Interaction,” Third International Symposium on Large Spatial Databases
+(SSD). Lecture Notes in Computer Science no. 692, David Abel and Beng Chin
+Ooi, Eds.,  Singapore: Springer Verlag, 1993, pp. 277-295.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id13" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id5">[4]</a></td><td>C. Strobl, “Dimensionally Extended Nine-Intersection Model (DE-9IM),”
+Encyclopedia of GIS, S. Shekhar and H. Xiong, Eds.,
+Springer, 2008, pp. 240-245. [<a class="reference external" href="http://gis.hsr.ch/wiki/images/3/3d/9dem_springer.pdf">PDF</a>]</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id14" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id6">[5]</a></td><td>Martin Davis, “JTS Technical Specifications,” Mar. 2003. [<a class="reference external" href="http://www.vividsolutions.com/jts/bin/JTS%20Technical%20Specs.pdf">PDF</a>]</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</body>
+</html>
