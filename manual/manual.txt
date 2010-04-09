@@ -763,11 +763,11 @@ derived from their point sets. TODO: improve this.
 Buffering
 ---------
 
-**buffer** (d, quadsegs=16): Returns a new object that contains, approximately,
-all points within a distance `d` of the original object. A positive distance
-has an effect of dilation; a negative distance, erosion. The optional
-`quadsegs` argument determines the number of segements used to approximate a
-quarter circle around a point. 
+**buffer** (distance, quadsegs=16): Returns a new object that contains,
+approximately, all points within a given `distance` of the original object. A
+positive distance has an effect of dilation; a negative distance, erosion. The
+optional `quadsegs` argument determines the number of segements used to
+approximate a quarter circle around a point. 
 
 .. sourcecode:: pycon
 
@@ -775,12 +775,15 @@ quarter circle around a point.
   >>> dilated = line.buffer(0.5)
   >>> eroded = dilated.buffer(-0.3)
 
-.. figure:: buffer.png
+.. figure:: images/buffer.png
    :width: 750
    :height: 300
 
    Figure 1. Dilation of a line (left) and erosion of a polygon (right). New
-   object is shown in blue.
+   object is shown in blue. [|bufferscode|_]
+
+.. _bufferscode: http://github.com/sgillies/shapely/blob/master/manual/code/buffer.py
+.. |bufferscode| replace:: code
 
 The default buffer of a point is a polygonal patch with 99.8% of the area of
 the disk it approximates.
@@ -811,23 +814,35 @@ points in the object unless the number of points in the object is less than
 three. For two points, the convex hull collapses to a `LineString`; for 1, a
 `Point`.
 
-.. figure:: convex-hull.png
+.. figure:: images/convex-hull.png
    :width: 750
    :height: 300
 
-   Figure 1. Convex hull (blue) of 6 points (left) and of 2 points (right).
+   Figure 1. Convex hull (blue) of 6 points (left) and of 2 points (right). [|hullcode|_]
 
-Simplify
---------
+.. _hullcode: http://github.com/sgillies/shapely/blob/master/manual/code/convex_hull.py
+.. |hullcode| replace:: code
 
-.simplify(width, tolerance, preserve_topology=True) : geometry
-  
-  Returns a simplified version of the given geometry. All vertices in the
-  simplified geometry will be within the `tolerance` distance of the original
-  geometry. By default a slower algorithm is used that preserves topology. If
-  preserve topology is set to False the much quicker Douglas-Peucker algorithm
-  is used, and invalid geometries may result.
-  
+Simplification
+--------------
+
+**simplify** (tolerance, preserve_topology=True): Returns a simplified version
+of the geometric object. All control vertices in the simplified object will be
+within the `tolerance` distance of the original geometry. By default a slower
+algorithm is used that preserves topology. If preserve topology is set to False
+the much quicker Douglas-Peucker algorithm (TODO: cite) is used, and invalid
+geometries may result.
+
+.. figure:: images/simplify.png
+   :width: 600
+   :height: 300
+
+   Figure 1. Simplification of a nearly circular polygon of radius 1 using a
+   tolerance of 0.1 (left) and 0.5 (right). [|simplifycode|_]
+
+.. _simplifycode: http://github.com/sgillies/shapely/blob/master/manual/code/simplify.py
+.. |simplifycode| replace:: code
+
 .. sourcecode:: python
 
   >>> p = Point(0.0, 0.0)
