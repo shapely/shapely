@@ -1,5 +1,17 @@
 All tickets are children of http://trac.gispython.org/lab/ticket.
 
+1.2b5 (2010-04-09)
+------------------
+- Objects can be constructed from others of the same type, thereby making
+  copies. Collections can be constructed from sequences of objects, also making
+  copies.
+- Collections are now iterators over their component objects.
+- New code for manual figures, using the descartes package.
+
+1.2b4 (2010-03-19)
+------------------
+- Adds support for the "sunos5" platform.
+
 1.2b3 (2010-02-28)
 ------------------
 - Only provide simplification implementations for GEOS C API >= 1.5.
