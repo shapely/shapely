@@ -3,7 +3,7 @@ from shapely.geometry import MultiPoint, Point
 
 from descartes.patch import PolygonPatch
 
-fig = pyplot.figure(1, figsize=(6, 3), dpi=180)
+fig = pyplot.figure(1, figsize=(7.5, 3), dpi=180)
 fig.set_frameon(True)
 
 p = Point(0, 0).buffer(1.0)
