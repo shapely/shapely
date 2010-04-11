@@ -460,6 +460,18 @@ class BaseMultipartGeometry(BaseGeometry):
         else:
             return iter([])
 
+    def __len__(self):
+        if not self.is_empty:
+            return len(self.geoms)
+        else:
+            return 0
+
+    def __getitem__(self, index):
+        if not self.is_empty:
+            return self.geoms[index]
+        else:
+            return ()[index]
+
 
 class GeometrySequence(object):
     """

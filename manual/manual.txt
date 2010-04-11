@@ -808,6 +808,29 @@ With a `quadsegs` value of 1, the buffer is a square patch.
   >>> q.area
   200.0
 
+Passed a `distance` of 0, `buffer` can be used to "clean" self-touching
+polygons such as the classic "bowtie".
+
+.. sourcecode:: pycon
+
+  >>> coords = [(0, 0), (0, 2), (1, 1), (2, 2), (2, 0), (1, 1), (0, 0)]
+  >>> bowtie = Polygon(coords)
+  >>> bowtie.is_valid
+  False
+  >>> clean = bowtie.buffer(0)
+  >>> clean.is_valid
+  True
+  >>> clean
+  <shapely.geometry.multipolygon.MultiPolygon object at ...>
+  >>> len(clean)
+  2
+  >>> list(clean[0].exterior.coords)
+  [(0.0, 0.0), (0.0, 2.0), (1.0, 1.0), (0.0, 0.0)]
+  >>> list(clean[1].exterior.coords)
+  [(1.0, 1.0), (2.0, 2.0), (2.0, 0.0), (1.0, 1.0)]
+
+Buffering splits the polygon in two at the point where they touch.
+
 Convex Hull
 -----------
 
