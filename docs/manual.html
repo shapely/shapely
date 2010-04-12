@@ -694,6 +694,25 @@ the disk it approximates.</p>
 <span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>q<span style="color: #666666">.</span>area
 <span style="color: #808080">200.0</span>
 </pre></div>
+<p>Passed a <cite>distance</cite> of 0, <cite>buffer</cite> can be used to &quot;clean&quot; self-touching
+polygons such as the classic &quot;bowtie&quot;.</p>
+<div class="highlight"><pre><span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>coords <span style="color: #666666">=</span> [(<span style="color: #666666">0</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">0</span>, <span style="color: #666666">2</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>), (<span style="color: #666666">2</span>, <span style="color: #666666">2</span>), (<span style="color: #666666">2</span>, <span style="color: #666666">0</span>), (<span style="color: #666666">1</span>, <span style="color: #666666">1</span>), (<span style="color: #666666">0</span>, <span style="color: #666666">0</span>)]
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>bowtie <span style="color: #666666">=</span> Polygon(coords)
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>bowtie<span style="color: #666666">.</span>is_valid
+<span style="color: #808080">False</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>clean <span style="color: #666666">=</span> bowtie<span style="color: #666666">.</span>buffer(<span style="color: #666666">0</span>)
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>clean<span style="color: #666666">.</span>is_valid
+<span style="color: #808080">True</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span>clean
+<span style="color: #808080">&lt;shapely.geometry.multipolygon.MultiPolygon object at ...&gt;</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000">len</span>(clean)
+<span style="color: #808080">2</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000">list</span>(clean[<span style="color: #666666">0</span>]<span style="color: #666666">.</span>exterior<span style="color: #666666">.</span>coords)
+<span style="color: #808080">[(0.0, 0.0), (0.0, 2.0), (1.0, 1.0), (0.0, 0.0)]</span>
+<span style="color: #000080; font-weight: bold">&gt;&gt;&gt; </span><span style="color: #008000">list</span>(clean[<span style="color: #666666">1</span>]<span style="color: #666666">.</span>exterior<span style="color: #666666">.</span>coords)
+<span style="color: #808080">[(1.0, 1.0), (2.0, 2.0), (2.0, 0.0), (1.0, 1.0)]</span>
+</pre></div>
+<p>Buffering splits the polygon in two at the point where they touch.</p>
 </div>
 <div class="section" id="convex-hull">
 <h2><a class="toc-backref" href="#id34">4.2&nbsp;&nbsp;&nbsp;Convex Hull</a></h2>
