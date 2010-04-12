@@ -16,7 +16,7 @@ class GeometryCollection(BaseMultipartGeometry):
     """
 
     def __init__(self):
-        BaseMultiPartGeometry.__init__(self)
+        BaseMultipartGeometry.__init__(self)
 
     @property
     def __geo_interface__(self):

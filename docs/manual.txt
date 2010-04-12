@@ -1,9 +1,9 @@
-===========================
-The Shapely 1.2 User Manual
-===========================
+=====================================
+The Shapely 1.2 User Manual (Preview)
+=====================================
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
-:Revision: 1.2
+:Revision: 1.2b5
 :Date: 12 April 2010
 :Copyright: 
   This work is licensed under a `Creative Commons Attribution 3.0
@@ -642,7 +642,7 @@ This might also be done using a decorator.
 .. sourcecode:: python
 
   from functools import wraps
-  def is_valid(func):
+  def validate(func):
       @wraps(func)
       def wrapper(*args, **kwargs):
           ob = func(*args, **kwargs)
@@ -654,7 +654,7 @@ This might also be done using a decorator.
 
 .. sourcecode:: pycon
 
-  >>> @is_valid
+  >>> @validate
   ... def ring(coordinates):
   ...     return LinearRing(coordinates)
   ... 
