@@ -2,9 +2,9 @@
 Shapely
 =======
 
-.. image:: http://gispython.org/images/shapely-med.png
-   :width: 640
-   :height: 320
+.. image:: http://farm3.static.flickr.com/2738/4511827859_b5822043b7_o_d.png
+   :width: 800
+   :height: 400
 
 Shapely is a BSD-licensed Python package for manipulation and analysis of
 planar geometries. It is not concerned with data formats or coordinate

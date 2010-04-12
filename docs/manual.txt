@@ -1,10 +1,10 @@
-======================
-The Shapely 1.2 Manual
-======================
+===========================
+The Shapely 1.2 User Manual
+===========================
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
 :Revision: 1.2
-:Date: 6 April 2010
+:Date: 12 April 2010
 :Copyright: 
   This work is licensed under a `Creative Commons Attribution 3.0
   United States License`__.
@@ -17,7 +17,6 @@ The Shapely 1.2 Manual
 
 .. sectnum::
 
-.. contents::
 
 Introduction
 ============
@@ -156,11 +155,14 @@ themselves as instance factories. A few of their intrinsic properties will be
 discussed in this sections, others in the following sections on operations and
 serializations. 
 
-Instances of `Point`, `LineString`, and `LinearRing` have coordinate sequences.
-Coordinate sequences are immutable. Their parent features are mutable in that
-they can be assigned new coordinate sequences. A third `z` coordinate value may
-be used when constructing instances, but has no effect on geometric analysis.
-All operations are performed in the `x-y` plane.
+Instances of `Point`, `LineString`, and `LinearRing` have as their most
+important attribute a finite sequence of coordinates that determines their
+interior, boundary, and exterior point sets. A line string can be determined by
+as few as 2 points, but contains an infinite number of points. Coordinate
+sequences are immutable. Their parent features are mutable in that they can be
+assigned new coordinate sequences. A third `z` coordinate value may be used
+when constructing instances, but has no effect on geometric analysis.  All
+operations are performed in the `x-y` plane.
 
 In all constructors, numeric values are converted to type `float`. In other
 words, ``Point(0, 0)`` and ``Point(0.0, 0.0)`` produce geometrically equivalent
@@ -777,15 +779,10 @@ approximate a quarter circle around a point.
   >>> dilated = line.buffer(0.5)
   >>> eroded = dilated.buffer(-0.3)
 
-.. figure:: images/buffer.png
-   :width: 750
-   :height: 300
+.. plot:: code/buffer.py
 
-   Figure 1. Dilation of a line (left) and erosion of a polygon (right). New
-   object is shown in blue. [|bufferscode|_]
-
-.. _bufferscode: http://github.com/sgillies/shapely/blob/master/manual/code/buffer.py
-.. |bufferscode| replace:: code
+Figure 1. Dilation of a line (left) and erosion of a polygon (right). New
+object is shown in blue.
 
 The default buffer of a point is a polygonal patch with 99.8% of the area of
 the disk it approximates.

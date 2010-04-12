@@ -1,6 +1,5 @@
 from matplotlib import pyplot
 from shapely.geometry import LineString
-
 from descartes.patch import PolygonPatch
 
 line = LineString([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
@@ -46,5 +45,7 @@ ax.set_aspect(1)
 ax.set_axis_off()
 
 fig.subplots_adjust(0.0, 0.0, 1.0, 1.0, 0.1)
-fig.savefig('buffer.png')
+
+pyplot.show()
+#fig.savefig('buffer.png')
 
