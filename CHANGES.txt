@@ -1,5 +1,9 @@
 All tickets are children of http://trac.gispython.org/lab/ticket.
 
+1.2b6 (2010-04-13)
+------------------
+- Broken GeometryCollection fixed.
+
 1.2b5 (2010-04-09)
 ------------------
 - Objects can be constructed from others of the same type, thereby making
