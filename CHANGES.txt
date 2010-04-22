@@ -1,5 +1,9 @@
 All tickets are children of http://trac.gispython.org/lab/ticket.
 
+1.2b7 (2010-04-22)
+------------------
+- Memory leak associated with new empty geometry state fixed.
+
 1.2b6 (2010-04-13)
 ------------------
 - Broken GeometryCollection fixed.

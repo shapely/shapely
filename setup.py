@@ -16,7 +16,7 @@ readme_text = file('README.txt', 'rb').read()
 setup_args = dict(
     metadata_version    = '1.2',
     name                = 'Shapely',
-    version             = '1.2b6',
+    version             = '1.2b7',
     requires_python     = '>=2.5,<3',
     requires_external   = 'libgeos_c (>=3.1)', 
     description         = 'Planar geometries, predicates, and operations',
