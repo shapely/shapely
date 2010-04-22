@@ -20,11 +20,6 @@ class LinearRing(LineString):
     invalid and operations on it may fail.
     """
     
-    _ndim = None
-    __geom__ = None
-    __p__ = None
-    _owned = False
-
     def __init__(self, coordinates=None):
         """
         Parameters
@@ -46,14 +41,8 @@ class LinearRing(LineString):
           4.0
         """
         BaseGeometry.__init__(self)
-        self._init_geom(coordinates)
-
-    def _init_geom(self, coordinates):
-        if coordinates is None:
-            # allow creation of null lines, to support unpickling
-            pass
-        else:
-            self._geom, self._ndim = geos_linearring_from_py(coordinates)
+        if coordinates is not None:
+            self._set_coords(coordinates)
 
     @property
     def __geo_interface__(self):
@@ -67,30 +56,19 @@ class LinearRing(LineString):
     _get_coords = BaseGeometry._get_coords
 
     def _set_coords(self, coordinates):
-        if self.is_empty:
-            lgeos.GEOSGeom_destroy(self.__geom__)
-            self.__geom__ = None
-        if self._geom is None:
-            self._init_geom(coordinates)
-        update_linearring_from_py(self, coordinates)
+        self.empty()
+        self._geom, self._ndim = geos_linearring_from_py(coordinates)
 
     coords = property(_get_coords, _set_coords)
 
 
 class LinearRingAdapter(LineStringAdapter):
 
-    context = None
-    __geom__ = None
     __p__ = None
-    _owned = False
 
-    @property
-    def _geom(self):
-        """Keeps the GEOS geometry in synch with the context."""
-        if self.__geom__ is not None:
-            lgeos.GEOSGeom_destroy(self.__geom)
-        self.__geom, n = geos_linearring_from_py(self.context)
-        return self.__geom
+    def __init__(self, context):
+        self.context = context
+        self.factory = geos_linearring_from_py
 
     @property
     def __geo_interface__(self):
@@ -194,8 +172,6 @@ class Polygon(BaseGeometry):
     _exterior = None
     _interiors = []
     _ndim = 2
-    __geom__ = None
-    _owned = False
 
     def __init__(self, shell=None, holes=None):
         """
@@ -276,10 +252,6 @@ class Polygon(BaseGeometry):
 
 class PolygonAdapter(PolygonProxy, Polygon):
     
-    context = None
-    __geom__ = None
-    _owned = False
-
     def __init__(self, shell, holes=None):
         self.shell = shell
         self.holes = holes

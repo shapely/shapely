@@ -37,14 +37,8 @@ class LineString(BaseGeometry):
           2.0
         """
         BaseGeometry.__init__(self)
-        self._init_geom(coordinates)
-
-    def _init_geom(self, coordinates):
-        if coordinates is None:
-            # allow creation of null lines, to support unpickling
-            pass
-        else:
-            self._geom, self._ndim = geos_linestring_from_py(coordinates)
+        if coordinates is not None:
+            self._set_coords(coordinates)
 
     @property
     def __geo_interface__(self):
@@ -66,14 +60,9 @@ class LineString(BaseGeometry):
     __array_interface__ = property(array_interface)
 
     # Coordinate access
-
     def _set_coords(self, coordinates):
-        if self.is_empty:
-            lgeos.GEOSGeom_destroy(self.__geom__)
-            self.__geom__ = None
-        if self._geom is None:
-            self._init_geom(coordinates)
-        update_linestring_from_py(self, coordinates)
+        self.empty()
+        self._geom, self._ndim = geos_linestring_from_py(coordinates)
 
     coords = property(BaseGeometry._get_coords, _set_coords)
 
@@ -93,9 +82,6 @@ class LineString(BaseGeometry):
         
 
 class LineStringAdapter(CachingGeometryProxy, LineString):
-
-    context = None
-    _owned = False
 
     def __init__(self, context):
         self.context = context

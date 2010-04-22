@@ -45,17 +45,8 @@ class Point(BaseGeometry):
             Easting, northing, and elevation.
         """
         BaseGeometry.__init__(self)
-        self._init_geom(*args)
-
-    def _init_geom(self, *args):
-        if len(args) == 0:
-            # allow creation of null points, to support unpickling
-            pass
-        else:
-            if len(args) == 1:
-                self._geom, self._ndim = geos_point_from_py(args[0])
-            else:
-                self._geom, self._ndim = geos_point_from_py(tuple(args))
+        if len(args) > 0:
+            self._set_coords(*args)
 
     # Coordinate getters and setters
 
@@ -110,14 +101,12 @@ class Point(BaseGeometry):
 
     # Coordinate access
 
-    def _set_coords(self, coordinates):
-        if self.is_empty:
-            lgeos.GEOSGeom_destroy(self.__geom__)
-            self.__geom__ = None
-        if self._geom is None:
-            self._init_geom(coordinates)
+    def _set_coords(self, *args):
+        self.empty()
+        if len(args) == 1:
+            self._geom, self._ndim = geos_point_from_py(args[0])
         else:
-            update_point_from_py(self, coordinates)
+            self._geom, self._ndim = geos_point_from_py(tuple(args))
 
     coords = property(BaseGeometry._get_coords, _set_coords)
 

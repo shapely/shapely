@@ -136,6 +136,7 @@ if geos_c_version >= (1,5,0):
     # Handle special case.
     _lgeos.initGEOS_r.restype = c_void_p
     _lgeos.initGEOS_r.argtypes = [c_void_p, c_void_p]
+    _lgeos.finishGEOS_r.argtypes = [c_void_p]
 
 # Exceptions
 
@@ -160,7 +161,7 @@ def notice_handler(fmt, list):
 notice_h = CFUNCTYPE(None, c_char_p, c_char_p)(notice_handler)
 
 def cleanup():
-    if _lgeos is not None:
+    if _lgeos is not None :
         _lgeos.finishGEOS()
 
 atexit.register(cleanup)

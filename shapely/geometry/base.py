@@ -53,6 +53,7 @@ def exceptNull(func):
         return func(*args, **kwargs)
     return wrapper
 
+EMPTY = wkb.deserialize('010700000000000000'.decode('hex'))
 
 class BaseGeometry(object):
     """
@@ -78,7 +79,7 @@ class BaseGeometry(object):
     # _owned : bool
     #     True if this object's GEOS geometry is owned by another as in the case
     #     of a multipart geometry member.
-    __geom__ = None
+    __geom__ = EMPTY
     __p__ = None
     _ctypes_data = None
     _ndim = None
@@ -88,13 +89,18 @@ class BaseGeometry(object):
     # Backend config
     impl = DefaultImplementation
 
-    def __init__(self):
-        self.__geom__ = wkb.deserialize('010700000000000000'.decode('hex'))
+    @property
+    def _is_empty(self):
+        return self.__geom__ in [EMPTY, None]
 
-    def __del__(self):
-        if self.__geom__ is not None and not self._owned:
+    def empty(self):
+        if not (self._owned or self._is_empty):
             from shapely.geos import lgeos
             lgeos.GEOSGeom_destroy(self.__geom__)
+        self.__geom__ = EMPTY
+
+    def __del__(self):
+        self.empty()
         self.__geom__ = None
         self.__p__ = None
 
@@ -106,12 +112,14 @@ class BaseGeometry(object):
         return (self.__class__, (), self.to_wkb())
 
     def __setstate__(self, state):
+        self.empty()
         self.__geom__ = wkb.deserialize(state)
     
     # The _geom property
     def _get_geom(self):
         return self.__geom__
     def _set_geom(self, val):
+        self.empty()
         self.__geom__ = val
     _geom = property(_get_geom, _set_geom)
 
@@ -320,7 +328,7 @@ class BaseGeometry(object):
     @property
     def is_empty(self):
         """True if the set of points in this geometry is empty, else False"""
-        return bool(self.impl['is_empty'](self))
+        return bool(self.impl['is_empty'](self)) or (self._geom is None)
 
     @property
     def is_ring(self):
