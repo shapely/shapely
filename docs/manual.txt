@@ -61,12 +61,13 @@ from "social web" activities. If you agree that sometimes PostGIS (or another
 spatially-enabled RDBMS) is the wrong tool for your computational geometry job,
 Shapely might be for you.
 
-The premise of Shapely, or one of the premises, is that Python programmers
-should be able to perform PostGIS type geometry operations outside of an RDBMS.
-Another is that Python idioms trump GIS (or Java, in this case, since the GEOS
-library is derived from JTS, a Java project) idioms. Shapely, in a nutshell
-lets you do PostGIS-y stuff with geometries outside the context of a database
-using idiomatic Python. Computational geometry, with no extra baggage.
+One of the premises of Shapely is that Python programmers should be able to
+perform PostGIS type geometry operations outside of an RDBMS.  Another is that
+Python idioms trump GIS (or Java, in this case, since the GEOS library is
+derived from JTS, a Java project) idioms. Shapely, in a nutshell lets you do
+PostGIS-y stuff with geometries outside the context of a database using
+idiomatic Python. Computational geometry, in the cartesian plane, with no extra
+baggage.
 
 Spatial Data Model
 ------------------
@@ -227,7 +228,9 @@ a copy.
 LineStrings
 -----------
 
-The `LineString` constructor takes an ordered sequence of point tuples.
+The `LineString` constructor takes an ordered sequence of 2 or more point
+tuples. The constructed `LineString` object represents one or more connected
+linear splines between the points.
 
 .. sourcecode:: pycon
 
@@ -237,6 +240,12 @@ The `LineString` constructor takes an ordered sequence of point tuples.
 Repeated points in the ordered sequence are allowed, but may incur performance
 penalties and should be avoided. A `LineString` may cross itself (*i.e.* be
 `complex` and not `simple`).
+
+.. plot:: code/linestring.py
+
+Figure 1: a simple `LineString` on the left, a complex `LineString` on the
+right. The (`MultiPoint`) boundary of each is shown in black, the other points
+that describe the lines are shown in grey.
 
 A `LineString` has zero area and non-zero length.
 
@@ -255,7 +264,7 @@ Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
   >>> line.bounds
   (0.0, 0.0, 1.0, 1.0)
 
-Coordinate values are accessed via the `coords` property.
+The defining coordinate values are accessed via the `coords` property.
 
 .. sourcecode:: pycon
 
@@ -273,7 +282,7 @@ copy.
   <shapely.geometry.linestring.LineString object at 0x...>
 
 A sequence of `Point` instances is not a valid constructor parameter. A
-`LineString` is not composed of `Point` instances.
+`LineString` is described by points, but is not composed of `Point` instances.
 
 LinearRings
 -----------
@@ -294,6 +303,12 @@ not touch itself at a single point. Note that Shapely will not prevent the
 creation of such rings, but exceptions will be raised when they are operated
 on.
 
+.. plot:: code/linearring.py
+
+Figure 1: a valid `LinearRing` on the left, an invalid self-touching
+`LinearRing` on the right. The points that describe the rings are shown in
+grey. A ring's boundary is `empty`.
+
 A `LinearRing` has zero area and non-zero length.
 
 .. sourcecode:: pycon
@@ -311,7 +326,7 @@ Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
   >>> ring.bounds
   (0.0, 0.0, 1.0, 1.0)
 
-Coordinate values are accessed via the `coords` property.
+Defining coordinate values are accessed via the `coords` property.
 
 .. sourcecode:: pycon
 
@@ -347,6 +362,11 @@ specifying the interior boundaries or "holes" of the feature.
 `Polygon` rings may not cross each other, but may touch at single points.
 Again, Shapely will not prevent the creation of such features, but exceptions
 will be raised when they are operated on.
+
+.. plot:: code/polygon.py
+
+Figure 1: a valid `Polygon` on the left, an invalid `Polygon` on the right. The
+points that describe the rings are shown in grey.
 
 A `Polygon` has non-zero area and non-zero length.
 
