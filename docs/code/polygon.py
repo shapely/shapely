@@ -1,4 +1,5 @@
 from matplotlib import pyplot
+from matplotlib.patches import Circle
 from shapely.geometry import Polygon
 from descartes.patch import PolygonPatch
 
@@ -10,6 +11,10 @@ COLOR = {
 def v_color(ob):
     return COLOR[ob.is_valid]
 
+def plot_coords(ax, ob):
+    x, y = ob.xy
+    ax.plot(x, y, 'o', color='#999999', zorder=1)
+    
 fig = pyplot.figure(1, figsize=(7.5, 3), dpi=180)
 
 # 1: valid polygon
@@ -19,15 +24,10 @@ ext = [(0, 0), (0, 2), (2, 2), (2, 0), (0, 0)]
 int = [(1, 0), (0.5, 0.5), (1, 1), (1.5, 0.5), (1, 0)][::-1]
 polygon = Polygon(ext, [int])
 
-coords = list(polygon.interiors[0].coords)
-x, y = zip(*coords)
-ax.plot(x, y, 'o', color='#999999')
+plot_coords(ax, polygon.interiors[0])
+plot_coords(ax, polygon.exterior)
 
-coords = list(polygon.exterior.coords)
-x, y = zip(*coords)
-ax.plot(x, y, 'o', color='#999999')
-
-patch = PolygonPatch(polygon, facecolor=v_color(polygon), edgecolor=v_color(polygon), alpha=0.5)
+patch = PolygonPatch(polygon, facecolor=v_color(polygon), edgecolor=v_color(polygon), alpha=0.5, zorder=2)
 ax.add_patch(patch)
 
 ax.set_title('a) valid')
@@ -46,15 +46,10 @@ ext = [(0, 0), (0, 2), (2, 2), (2, 0), (0, 0)]
 int = [(1, 0), (0, 1), (0.5, 1.5), (1.5, 0.5), (1, 0)][::-1]
 polygon = Polygon(ext, [int])
 
-coords = list(polygon.interiors[0].coords)
-x, y = zip(*coords)
-ax.plot(x, y, 'o', color='#999999')
+plot_coords(ax, polygon.interiors[0])
+plot_coords(ax, polygon.exterior)
 
-coords = list(polygon.exterior.coords)
-x, y = zip(*coords)
-ax.plot(x, y, 'o', color='#999999')
-
-patch = PolygonPatch(polygon, facecolor=v_color(polygon), edgecolor=v_color(polygon), alpha=0.5)
+patch = PolygonPatch(polygon, facecolor=v_color(polygon), edgecolor=v_color(polygon), alpha=0.5, zorder=2)
 ax.add_patch(patch)
 
 ax.set_title('b) invalid')

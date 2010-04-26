@@ -359,14 +359,22 @@ specifying the interior boundaries or "holes" of the feature.
   >>> from shapely.geometry import Polygon
   >>> polygon = Polygon((a1, ..., aM), [(b1, ..., bN), ...])
 
-`Polygon` rings may not cross each other, but may touch at single points.
-Again, Shapely will not prevent the creation of such features, but exceptions
-will be raised when they are operated on.
+Rings of a `valid` `Polygon` may not cross each other, but may touch at a
+single point only.  Again, Shapely will not prevent the creation of invalid
+features, but exceptions will be raised when they are operated on.
 
 .. plot:: code/polygon.py
 
-Figure 1: a valid `Polygon` on the left, an invalid `Polygon` on the right. The
+Figure 1: On the left, a valid `Polygon` with one interior ring that touches
+the exterior ring at one point, and on the right a `Polygon` that is `invalid`
+because its interior ring touches the exterior ring at more than one point. The
 points that describe the rings are shown in grey.
+
+.. plot:: code/polygon2.py
+
+Figure 1: On the left, a `Polygon` that is `invalid` because its exterior and
+interior rings touch along a line, and on the right, a `Polygon` that is
+`invalid` because its interior rings touch along a line.
 
 A `Polygon` has non-zero area and non-zero length.
 
@@ -462,6 +470,11 @@ sequences.
 
   >>> from shapely.geometry import MultiLineString
   >>> lines = MultiLineString([(a1, ..., aM), (b1, ..., bN), ...])
+
+.. plot:: code/multilinestring.py
+
+Figure 1: On the left, a `simple`, disconnected `MultiLineString`, and on the
+right, a non-simple `MultiLineString`.
 
 A `MultiLineString` has zero area and non-zero length.
 
