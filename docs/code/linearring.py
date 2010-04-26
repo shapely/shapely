@@ -9,18 +9,22 @@ COLOR = {
 def v_color(ob):
     return COLOR[ob.is_valid]
 
+def plot_coords(ax, ob):
+    x, y = ob.xy
+    ax.plot(x, y, 'o', color='#999999', zorder=1)
+
+def plot_line(ax, ob):
+    x, y = ob.xy
+    ax.plot(x, y, color=v_color(ob), alpha=0.7, linewidth=3, solid_capstyle='round', zorder=2)
+
 fig = pyplot.figure(1, figsize=(7.5, 3), dpi=180)
 
 # 1: valid ring
 ax = fig.add_subplot(121)
 ring = LinearRing([(0, 0), (0, 2), (1, 1), (2, 2), (2, 0), (1, 0.8), (0, 0)])
 
-coords = list(ring.coords)
-x, y = zip(*coords)
-ax.plot(x, y, 'o', color='#999999')
-
-x, y = ring.xy
-ax.plot(x, y, color=v_color(ring), alpha=0.7, linewidth=3.0)
+plot_coords(ax, ring)
+plot_line(ax, ring)
 
 ax.set_title('a) valid')
 
@@ -36,12 +40,8 @@ ax.set_aspect(1)
 ax = fig.add_subplot(122)
 ring2 = LinearRing([(0, 0), (0, 2), (1, 1), (2, 2), (2, 0), (1, 1), (0, 0)])
 
-coords = list(ring2.coords)
-x, y = zip(*coords)
-ax.plot(x, y, 'o', color='#999999')
-
-x, y = ring2.xy
-ax.plot(x, y, color=v_color(ring2), alpha=0.7, linewidth=3.0)
+plot_coords(ax, ring2)
+plot_line(ax, ring2)
 
 ax.set_title('b) invalid')
 

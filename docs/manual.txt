@@ -543,6 +543,10 @@ Perhaps even more clearly, the constructor accepts an unordered sequence of
   >>> len(polygons.geoms)
   3
 
+.. plot:: code/multipolygon.py
+
+Figure 1: blah, blah.
+
 Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
 
 .. sourcecode:: pycon

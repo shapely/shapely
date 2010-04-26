@@ -21,7 +21,7 @@ def plot_bounds(ax, ob):
 def plot_lines(ax, ob):
     for line in ob:
         x, y = line.xy
-        ax.plot(x, y, color=v_color(ob), alpha=0.7, linewidth=3, zorder=2)
+        ax.plot(x, y, color=v_color(ob), alpha=0.7, linewidth=3, solid_capstyle='round', zorder=2)
 
 fig = pyplot.figure(1, figsize=(7.5, 3), dpi=180)
 
@@ -47,13 +47,13 @@ ax.set_aspect(1)
 #2: invalid self-touching ring
 ax = fig.add_subplot(122)
 
-mline2 = MultiLineString([((0, 0), (1.5, 1)), ((0, 2), (1, 1.5), (1.5, 1), (2, 0))])
+mline2 = MultiLineString([((0, 0), (1, 1), (1.5, 1)), ((0, 2), (1, 1.5), (1.5, 1), (2, 0))])
 
 plot_coords(ax, mline2)
 plot_bounds(ax, mline2)
 plot_lines(ax, mline2)
 
-ax.set_title('b) not simple')
+ax.set_title('b) complex')
 
 xrange = [-1, 3]
 yrange = [-1, 3]
