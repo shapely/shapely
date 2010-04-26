@@ -15,7 +15,7 @@ def plot_coords(ax, ob):
     x, y = ob.xy
     ax.plot(x, y, 'o', color='#999999', zorder=1)
     
-fig = pyplot.figure(1, figsize=(7.5, 3), dpi=180)
+fig = pyplot.figure(1, figsize=(10, 4), dpi=180)
 
 # 3: invalid polygon, ring touch along a line
 ax = fig.add_subplot(121)

@@ -1,5 +1,4 @@
 from matplotlib import pyplot
-from matplotlib.patches import Circle
 from shapely.geometry import Polygon
 from descartes.patch import PolygonPatch
 
@@ -15,7 +14,7 @@ def plot_coords(ax, ob):
     x, y = ob.xy
     ax.plot(x, y, 'o', color='#999999', zorder=1)
     
-fig = pyplot.figure(1, figsize=(7.5, 3), dpi=180)
+fig = pyplot.figure(1, figsize=(10, 4), dpi=180)
 
 # 1: valid polygon
 ax = fig.add_subplot(121)

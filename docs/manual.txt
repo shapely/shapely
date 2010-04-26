@@ -545,7 +545,9 @@ Perhaps even more clearly, the constructor accepts an unordered sequence of
 
 .. plot:: code/multipolygon.py
 
-Figure 1: blah, blah.
+Figure 1: On the right, a `valid` `MultiPolygon` with 2 members, and on the
+right, a `MultiPolygon` that is invalid because its members touch at an
+infinite number of points (along a line).
 
 Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
 

@@ -23,7 +23,7 @@ def plot_lines(ax, ob):
         x, y = line.xy
         ax.plot(x, y, color=v_color(ob), alpha=0.7, linewidth=3, solid_capstyle='round', zorder=2)
 
-fig = pyplot.figure(1, figsize=(7.5, 3), dpi=180)
+fig = pyplot.figure(1, figsize=(10, 4), dpi=180)
 
 # 1: disconnected multilinestring
 ax = fig.add_subplot(121)
