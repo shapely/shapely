@@ -3,7 +3,7 @@ from shapely.geometry import Polygon
 from descartes.patch import PolygonPatch
 
 COLOR = {
-    True:  '#6699cc',
+    True:  '#6699cc'
     False: '#ff3333'
     }
 

@@ -1,15 +1,13 @@
 from matplotlib import pyplot
 from shapely.geometry import LineString
-from descartes.patch import PolygonPatch
+from descartes import PolygonPatch
 
-COLOR = {
-    'blue':  '#6699cc',
-    'gray': '#999999'
-    }
+BLUE = '#6699cc',
+GRAY = '#999999'
 
 def plot_line(ax, ob):
     x, y = ob.xy
-    ax.plot(x, y, color=COLOR['gray'], linewidth=3, solid_capstyle='round', zorder=1)
+    ax.plot(x, y, color=GRAY, linewidth=3, solid_capstyle='round', zorder=1)
 
 line = LineString([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
 
@@ -21,7 +19,7 @@ ax = fig.add_subplot(121)
 plot_line(ax, line)
 
 dilated = line.buffer(0.5)
-patch1 = PolygonPatch(dilated, facecolor=COLOR['blue'], edgecolor=COLOR['blue'], alpha=0.5, zorder=2)
+patch1 = PolygonPatch(dilated, fc=BLUE, ec=BLUE, alpha=0.5, zorder=2)
 ax.add_patch(patch1)
 
 ax.set_title('a) dilation')
@@ -37,7 +35,7 @@ ax.set_aspect(1)
 #2
 ax = fig.add_subplot(122)
 
-patch2a = PolygonPatch(dilated, facecolor=COLOR['gray'], edgecolor=COLOR['gray'], alpha=0.5, zorder=1)
+patch2a = PolygonPatch(dilated, fc=GRAY, ec=GRAY, alpha=0.5, zorder=1)
 ax.add_patch(patch2a)
 
 eroded = dilated.buffer(-0.3)
@@ -49,7 +47,7 @@ polygon = eroded.__geo_interface__
 # 'Polygon'
 # >>> geo['coordinates'][0][:2]
 # ((0.50502525316941682, 0.78786796564403572), (0.5247963548222736, 0.8096820147509064))
-patch2b = PolygonPatch(polygon, facecolor=COLOR['blue'], edgecolor=COLOR['blue'], alpha=0.5, zorder=2)
+patch2b = PolygonPatch(polygon, fc=BLUE, ec=BLUE, alpha=0.5, zorder=2)
 ax.add_patch(patch2b)
 
 ax.set_title('b) erosion')

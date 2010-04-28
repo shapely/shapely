@@ -556,13 +556,21 @@ Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
   >>> polygons.bounds
   (-1.0, -1.0, 2.0, 2.0)
 
+GeometryCollections
+-------------------
+
+Heterogeneous collections of geometric objects may result from Shapely
+operations. They are not something to be constructed.
+
+TODO: code examples, figure.
+
 Empty features
 --------------
 
-An "empty" feature is one with a point set that coincides with the empty set:
-not a ``None``, but like ``()``. Empty features can be created by calling the
-constructors with no arguments.  Almost no operations are supported by empty
-features.
+An "empty" feature is one with a point set that coincides with the empty set;
+not ``None``, but ``[]``, or more accurately, ``set([])``. Empty features can
+be created by calling the constructors with no arguments. Almost no operations
+are supported by empty features.
 
 .. sourcecode:: pycon
 
