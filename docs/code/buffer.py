@@ -2,7 +2,9 @@ from matplotlib import pyplot
 from shapely.geometry import LineString
 from descartes import PolygonPatch
 
-BLUE = '#6699cc',
+from figures import SIZE
+
+BLUE = '#6699cc'
 GRAY = '#999999'
 
 def plot_line(ax, ob):
@@ -11,7 +13,7 @@ def plot_line(ax, ob):
 
 line = LineString([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
 
-fig = pyplot.figure(1, figsize=(10, 4), dpi=180)
+fig = pyplot.figure(1, figsize=SIZE, dpi=90)
 
 # 1
 ax = fig.add_subplot(121)

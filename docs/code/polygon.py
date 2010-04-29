@@ -2,8 +2,10 @@ from matplotlib import pyplot
 from shapely.geometry import Polygon
 from descartes.patch import PolygonPatch
 
+from figures import SIZE
+
 COLOR = {
-    True:  '#6699cc'
+    True:  '#6699cc',
     False: '#ff3333'
     }
 
@@ -14,7 +16,7 @@ def plot_coords(ax, ob):
     x, y = ob.xy
     ax.plot(x, y, 'o', color='#999999', zorder=1)
     
-fig = pyplot.figure(1, figsize=(10, 4), dpi=180)
+fig = pyplot.figure(1, figsize=SIZE, dpi=90)
 
 # 1: valid polygon
 ax = fig.add_subplot(121)

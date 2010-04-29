@@ -3,7 +3,9 @@ from shapely.geometry import MultiPoint
 
 from descartes.patch import PolygonPatch
 
-fig = pyplot.figure(1, figsize=(7.5, 3), dpi=180)
+from figures import SIZE
+
+fig = pyplot.figure(1, figsize=SIZE, dpi=90)
 fig.set_frameon(True)
 
 # 1

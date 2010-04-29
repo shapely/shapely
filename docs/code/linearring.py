@@ -1,6 +1,8 @@
 from matplotlib import pyplot
 from shapely.geometry.polygon import LinearRing
 
+from figures import SIZE
+
 COLOR = {
     True:  '#6699cc',
     False: '#ff3333'
@@ -17,7 +19,7 @@ def plot_line(ax, ob):
     x, y = ob.xy
     ax.plot(x, y, color=v_color(ob), alpha=0.7, linewidth=3, solid_capstyle='round', zorder=2)
 
-fig = pyplot.figure(1, figsize=(10, 4), dpi=180)
+fig = pyplot.figure(1, figsize=SIZE, dpi=90)
 
 # 1: valid ring
 ax = fig.add_subplot(121)

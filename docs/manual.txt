@@ -243,7 +243,7 @@ penalties and should be avoided. A `LineString` may cross itself (*i.e.* be
 
 .. plot:: code/linestring.py
 
-Figure 1: a simple `LineString` on the left, a complex `LineString` on the
+**Figure 1**: a simple `LineString` on the left, a complex `LineString` on the
 right. The (`MultiPoint`) boundary of each is shown in black, the other points
 that describe the lines are shown in grey.
 
@@ -299,15 +299,17 @@ first tuple to the last index.
 
 Repeated points in the ordered sequence are allowed, but may incur performance
 penalties and should be avoided. A `LinearRing` may not cross itself, and may
-not touch itself at a single point. Note that Shapely will not prevent the
-creation of such rings, but exceptions will be raised when they are operated
-on.
+not touch itself at a single point.
 
 .. plot:: code/linearring.py
 
-Figure 1: a valid `LinearRing` on the left, an invalid self-touching
+**Figure 1**: a valid `LinearRing` on the left, an invalid self-touching
 `LinearRing` on the right. The points that describe the rings are shown in
 grey. A ring's boundary is `empty`.
+
+.. note:: 
+   Shapely will not prevent the creation of such rings, but exceptions will be
+   raised when they are operated on.
 
 A `LinearRing` has zero area and non-zero length.
 
@@ -415,6 +417,36 @@ The `Polygon` constructor also accepts instances of `LineString` and
   >>> t = Polygon(s.buffer(1.0).exterior, [r])
   >>> t.area
   6.5507620529190334
+
+GeometryCollections
+-------------------
+
+Shapely provides tuple-like, immutable collections of geometric objects. The
+collections may be homogeneous (`MultiPoint` etc.) or heterogeneous.
+
+Heterogeneous collections of geometric objects may result from some Shapely
+operations. For example, two `LineStrings` may intersect along a line and at a
+point.
+
+.. sourcecode:: python
+
+  >>> a = LineString([(0, 0), (1, 1), (1,2), (2,2)])
+  >>> b = LineString([(0, 0), (1, 1), (2,1), (2,2)])
+  >>> x = a.intersection(b)
+  >>> x
+  <shapely.geometry.collection.GeometryCollection object at 0x...>
+  >>> from pprint import pprint
+  >>> pprint(list(x))
+  [<shapely.geometry.point.Point object at 0x...>,
+   <shapely.geometry.linestring.LineString object at 0x...>]
+
+.. plot:: code/geometrycollection.py
+   :class: figure
+
+Figure 1: x.
+
+When possible, it is better to use one of the homogeneous collection types
+described below.
 
 MultiPoints
 -----------
