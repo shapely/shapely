@@ -3,8 +3,8 @@ The Shapely 1.2 User Manual (Preview)
 =====================================
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
-:Revision: 1.2b5
-:Date: 12 April 2010
+:Revision: 1.2b7
+:Date: 2 May 2010
 :Copyright: 
   This work is licensed under a `Creative Commons Attribution 3.0
   United States License`__.
@@ -27,9 +27,10 @@ many other fields. What is the surveyed perimeter/area ratio of these patches
 of animal habitat? Which properties in this town intersect with the 50-year
 flood contour from this new flooding model? What are the extents of findspots
 for ancient ceramic wares with maker's marks "A" and "B", and where do the
-extents overlap? These are just a few of the possible questions addressable
-using non-statistical spatial analysis, and more specifically, computational
-geometry.
+extents overlap? What's the path from home to office that best skirts
+identified zones of location based spam? These are just a few of the possible
+questions addressable using non-statistical spatial analysis, and more
+specifically, computational geometry.
 
 Shapely is a Python package for set-theoretic analysis and manipulation of
 planar features using (via Python's `ctypes` module) functions from the well
@@ -38,36 +39,25 @@ Suite`_, is the geometry engine of the PostGIS_ spatial extension for the
 PostgreSQL RDBMS. The designs of JTS and GEOS are largely guided by the `Open
 Geospatial Consortium`_'s Simple Features Access Specification [1]_ and Shapely
 adheres mainly to the same set of standard classes and operations. Shapely is
-deeply rooted in the geographic information systems (GIS) world, but aspires to
-be equally useful to programmers working on non-tradtional problems.
+thereby deeply rooted in the conventions of the geographic information systems
+(GIS) world, but aspires to be equally useful to programmers working on
+non-conventional problems.
 
-PostGIS is a cornerstone of open source GIS, but isn't necessarily a solution
-to all problems in the GIS domain. Not all geographic data originate or reside
-in a RDBMS or are best processed using SQL. Shapely aims to bring industrial
-strength computational geometry primitives to bear on programming problems
-better addressed in a object-oriented style. Imagine a situation where we would
-like to find or index a substring within another string. Is there overlap
-between the strings, and if so, what is it?  Or maybe we'd like to replace
-certain characters in a string with others. Now imagine that we're compelled to
-load the text strings from, say, a log file into a relational database to
-perform these operations because such string functions aren't available in a
-non-SQL context. No knock on the RDBMS, a tremendously useful thing, but if
-there's no mandate to manage (the "M" in "RDBMS") these strings over time in
-the database, we're using the wrong tool for the job in this imaginary
-scenario. Now, consider spatial entities like points, curves, and patches
-instead of character strings, and that they might originate not in the context
-of a traditional GIS, but from parsing and geocoding of texts or log files or
-from "social web" activities. If you agree that sometimes PostGIS (or another
-spatially-enabled RDBMS) is the wrong tool for your computational geometry job,
-Shapely might be for you.
+The first premise of Shapely is that Python programmers should be able to
+perform PostGIS type geometry operations outside of an RDBMS. Not all
+geographic data originate or reside in a RDBMS or are best processed using SQL.
+We can load data into a spatial RDBMS to do work, but if there's no mandate to
+manage (the "M" in "RDBMS") the data over time in the database we're using the
+wrong tool for the job. The second premise is that the persistence,
+serialization, and map projection of features are significant, but orthogonal
+problems. You may not need a hundred GIS format readers and writers or the
+multitude of State Plane projections, and Shapely doesn't burden you with them.
+The third premise is that Python idioms trump GIS (or Java, in this case, since
+the GEOS library is derived from JTS, a Java project) idioms. 
 
-One of the premises of Shapely is that Python programmers should be able to
-perform PostGIS type geometry operations outside of an RDBMS.  Another is that
-Python idioms trump GIS (or Java, in this case, since the GEOS library is
-derived from JTS, a Java project) idioms. Shapely, in a nutshell lets you do
-PostGIS-y stuff with geometries outside the context of a database using
-idiomatic Python. Computational geometry, in the cartesian plane, with no extra
-baggage.
+If you enjoy and profit from Python idioms, appreciate packages that do one
+thing well, and agree that a spatially enabled RDBMS is often enough the wrong
+tool for your computational geometry job, Shapely might be for you.
 
 Spatial Data Model
 ------------------
@@ -181,8 +171,10 @@ a `curve`.
 Points
 ------
 
-The `Point` constructor takes positional coordinate values or point tuple
-parameters.
+.. class:: Point(coordinates)
+
+  The `Point` constructor takes positional coordinate values or point tuple
+  parameters.
 
 .. sourcecode:: pycon
 
@@ -228,18 +220,15 @@ a copy.
 LineStrings
 -----------
 
-The `LineString` constructor takes an ordered sequence of 2 or more point
-tuples. The constructed `LineString` object represents one or more connected
-linear splines between the points.
+.. class:: LineString(coordinates)
 
-.. sourcecode:: pycon
+  The `LineString` constructor takes an ordered sequence of 2 or more point
+  tuples: (a1, ..., aM).
 
-  >>> from shapely.geometry import LineString
-  >>> line = LineString((a1, ..., aM))
-
-Repeated points in the ordered sequence are allowed, but may incur performance
-penalties and should be avoided. A `LineString` may cross itself (*i.e.* be
-`complex` and not `simple`).
+The constructed `LineString` object represents one or more connected linear
+splines between the points. Repeated points in the ordered sequence are
+allowed, but may incur performance penalties and should be avoided. A
+`LineString` may cross itself (*i.e.* be `complex` and not `simple`).
 
 .. plot:: code/linestring.py
 
@@ -251,6 +240,7 @@ A `LineString` has zero area and non-zero length.
 
 .. sourcecode:: pycon
 
+  >>> from shapely.geometry import LineString
   >>> line = LineString([(0, 0), (1, 1)])
   >>> line.area
   0.0
@@ -287,19 +277,17 @@ A sequence of `Point` instances is not a valid constructor parameter. A
 LinearRings
 -----------
 
-The `LinearRing` constructor takes an ordered sequence of point tuples. The
-sequence may be explicitly closed by passing identical values in the first and
-last indices. Otherwise, the sequence will be implicitly closed by copying the
-first tuple to the last index.
+.. class:: LinearRing(coordinates)
 
-.. sourcecode:: pycon
-
-  >>> from shapely.geometry.polygon import LinearRing
-  >>> ring = LinearRing((a1, ..., aM))
-
-Repeated points in the ordered sequence are allowed, but may incur performance
-penalties and should be avoided. A `LinearRing` may not cross itself, and may
-not touch itself at a single point.
+  The `LinearRing` constructor takes an ordered sequence of point tuples: (a1,
+  ..., aM).
+  
+The sequence may be explicitly closed by passing identical values in the first
+and last indices. Otherwise, the sequence will be implicitly closed by copying
+the first tuple to the last index. As with a `LineString`, repeated points in
+the ordered sequence are allowed, but may incur performance penalties and
+should be avoided. A `LinearRing` may not cross itself, and may not touch
+itself at a single point.
 
 .. plot:: code/linearring.py
 
@@ -315,6 +303,7 @@ A `LinearRing` has zero area and non-zero length.
 
 .. sourcecode:: pycon
 
+  >>> from shapely.geometry.polygon import LinearRing
   >>> ring = LinearRing([(0, 0), (1, 1), (1, 0)])
   >>> ring.area
   0.0
@@ -351,15 +340,12 @@ constructor parameter.
 Polygons
 --------
 
-The `Polygon` constructor takes two positional parameters. The first is an
-ordered sequence of point tuples and is treated exactly as in the `LinearRing`
-case. The second is an optional unordered sequence of ring-like sequences
-specifying the interior boundaries or "holes" of the feature.
+.. class:: Polygon(exterior [,interiors=None])
 
-.. sourcecode:: pycon
-
-  >>> from shapely.geometry import Polygon
-  >>> polygon = Polygon((a1, ..., aM), [(b1, ..., bN), ...])
+  The `Polygon` constructor takes two positional parameters. The first is an
+  ordered sequence of point tuples and is treated exactly as in the
+  `LinearRing` case. The second is an optional unordered sequence of ring-like
+  sequences specifying the interior boundaries or "holes" of the feature.
 
 Rings of a `valid` `Polygon` may not cross each other, but may touch at a
 single point only.  Again, Shapely will not prevent the creation of invalid
@@ -382,6 +368,7 @@ A `Polygon` has non-zero area and non-zero length.
 
 .. sourcecode:: pycon
 
+  >>> from shapely.geometry import Polygon
   >>> polygon = Polygon([(0, 0), (1, 1), (1, 0)])
   >>> polygon.area
   0.5
@@ -418,10 +405,10 @@ The `Polygon` constructor also accepts instances of `LineString` and
   >>> t.area
   6.5507620529190334
 
-GeometryCollections
--------------------
+Geometry Collections
+--------------------
 
-Shapely provides tuple-like, immutable collections of geometric objects. The
+Shapely provides frozenset_-like, immutable collections of geometric objects. The
 collections may be homogeneous (`MultiPoint` etc.) or heterogeneous.
 
 Heterogeneous collections of geometric objects may result from some Shapely
@@ -443,25 +430,38 @@ point.
 .. plot:: code/geometrycollection.py
    :class: figure
 
-Figure 1: x.
+Figure 1: a) a green and a yellow line that intersect along a line and at a
+single point; b) the intersection (in blue) is a collection containing one
+`LineString` and one `Point`.
 
-When possible, it is better to use one of the homogeneous collection types
-described below.
-
-MultiPoints
------------
-
-The `MultiPoint` constructor takes an ordered sequence of point tuples.
+Members of a `GeometryCollection` are accessed via the `geoms` property or via
+the iterator protocol using ``in``  or ``list()``.
 
 .. sourcecode:: pycon
 
-  >>> from shapely.geometry import MultiPoint
-  >>> points = MultiPoint([c1, ..., cN])
+  >>> pprint(list(x.geoms))
+  [<shapely.geometry.point.Point object at 0x...>,
+   <shapely.geometry.linestring.LineString object at 0x...>]
+  >>> pprint(list(x))
+  [<shapely.geometry.point.Point object at 0x...>,
+   <shapely.geometry.linestring.LineString object at 0x...>]
+
+.. note::
+  When possible, it is better to use one of the homogeneous collection types
+  described below.
+
+Collections of Points
+---------------------
+
+.. class:: MultiPoint(points)
+
+  The `MultiPoint` constructor takes a sequence of point tuples: [c1, ..., cN].
 
 A `MultiPoint` has zero area and zero length.
 
 .. sourcecode:: pycon
 
+  >>> from shapely.geometry import MultiPoint
   >>> points = MultiPoint([(0.0, 0.0), (1.0, 1.0)])
   >>> points.area
   0.0
@@ -475,12 +475,16 @@ Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
   >>> points.bounds
   (0.0, 0.0, 1.0, 1.0)
 
-Members of a multi-point collection are accessed via the `geoms` property.
+Members of a multi-point collection are accessed via the ``geoms`` property or
+via the iterator protocol using ``in`` or ``list()``.
 
 .. sourcecode:: pycon
 
   >>> import pprint
   >>> pprint.pprint(list(points.geoms))
+  [<shapely.geometry.point.Point object at 0x...>,
+   <shapely.geometry.point.Point object at 0x...>]  
+  >>> pprint.pprint(list(points))
   [<shapely.geometry.point.Point object at 0x...>,
    <shapely.geometry.point.Point object at 0x...>]
 
@@ -492,16 +496,13 @@ sequence of `Point` instances, thereby making copies.
   >>> MultiPoint([Point(0, 0), Point(1, 1)])
   <shapely.geometry.multipoint.MultiPoint object at 0x...>
 
-MultiLineStrings
-----------------
+Collections of Lines
+--------------------
 
-The `MultiLineString` constructor takes an unordered sequence of line-like
-sequences.
+.. class:: MultiLineString(lines)
 
-.. sourcecode:: pycon
-
-  >>> from shapely.geometry import MultiLineString
-  >>> lines = MultiLineString([(a1, ..., aM), (b1, ..., bN), ...])
+  The `MultiLineString` constructor takes a sequence of line-like sequences:
+  [(a1, ..., aM), (b1, ..., bN), ...]
 
 .. plot:: code/multilinestring.py
 
@@ -512,6 +513,7 @@ A `MultiLineString` has zero area and non-zero length.
 
 .. sourcecode:: pycon
 
+  >>> from shapely.geometry import MultiLineString
   >>> coords = [((0, 0), (1, 1)), ((-1, 0), (1, 0))]
   >>> lines = MultiLineString(coords)
   >>> lines.area
@@ -526,8 +528,8 @@ Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
   >>> lines.bounds
   (-1.0, 0.0, 1.0, 1.0)
 
-Its members are instances of `LineString` and are accessed via the `geoms`
-property.
+Its members are instances of `LineString` and are accessed via the ``geoms``
+property or via the iterator protocol using ``in`` or ``list()``.
 
 .. sourcecode:: pycon
 
@@ -536,8 +538,12 @@ property.
   >>> pprint.pprint(list(lines.geoms))
   [<shapely.geometry.linestring.LineString object at 0x...>,
    <shapely.geometry.linestring.LineString object at 0x...>]
+  >>> pprint.pprint(list(lines))
+  [<shapely.geometry.linestring.LineString object at 0x...>,
+   <shapely.geometry.linestring.LineString object at 0x...>]
   
-The constructor also accepts another instance of `MultiLineString` or an unordered sequence of `LineString` instances, thereby making copies.
+The constructor also accepts another instance of `MultiLineString` or an
+unordered sequence of `LineString` instances, thereby making copies.
 
 .. sourcecode:: pycon
 
@@ -546,25 +552,13 @@ The constructor also accepts another instance of `MultiLineString` or an unorder
   >>> MultiLineString(lines.geoms)
   <shapely.geometry.multilinestring.MultiLineString object at 0x...>
 
-MultiPolygons
--------------
+Collections of Polygons
+-----------------------
 
-The `MultiPolygon` constructor takes a sequence of exterior ring and
-hole list tuples.
+.. class:: MultiPolygon(polygons)
 
-.. sourcecode:: pycon
-
-  >>> from shapely.geometry import MultiPolygon
-  >>> polygons = MultiPolygon([((a1, ..., aM), [(b1, ..., bN), ...]), ...])
-
-More explicit notation for the exterior and interior boundaries (or shells and
-holes) makes usage more clear.
-
-.. sourcecode:: pycon
-
-  >>> shell = (a1, ..., aM)
-  >>> holes = [(b1, ..., bN), ...]
-  >>> polygons = MultiPolygon([(shell, holes), ...])
+  The `MultiPolygon` constructor takes a sequence of exterior ring and
+  hole list tuples: [((a1, ..., aM), [(b1, ..., bN), ...]), ...].
 
 Perhaps even more clearly, the constructor accepts an unordered sequence of
 `Polygon` instances, thereby making copies.
@@ -588,21 +582,23 @@ Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
   >>> polygons.bounds
   (-1.0, -1.0, 2.0, 2.0)
 
-GeometryCollections
--------------------
+Its members are instances of `Polygon` and are accessed via the ``geoms``
+property or via the iterator protocol using ``in`` or ``list()``.
 
-Heterogeneous collections of geometric objects may result from Shapely
-operations. They are not something to be constructed.
+.. sourcecode:: pycon
 
-TODO: code examples, figure.
+  >>> len(polygons.geoms)
+  3
+  >>> len(polygons)
+  3
 
 Empty features
 --------------
 
 An "empty" feature is one with a point set that coincides with the empty set;
-not ``None``, but ``[]``, or more accurately, ``set([])``. Empty features can
-be created by calling the constructors with no arguments. Almost no operations
-are supported by empty features.
+not ``None``, but like ``set([])``. Empty features can be created by calling
+the various constructors with no arguments. Almost no operations are supported
+by empty features.
 
 .. sourcecode:: pycon
 
@@ -630,16 +626,19 @@ longer empty.
 Predicates
 ==========
 
-Shapely features provide standard [1]_ predicate properties and methods. All
-return `True` or `False`.
+Shapely features provide standard [1]_ predicate properties and methods.
+Whether unary or binary, all return ``True`` or ``False``.
 
 Unary Predicates
 ----------------
 
-Standard unary predicates are implemented as instance properties.
+Standard unary predicates are implemented as instance properties. An example
+will be shown for each.
 
-**has_z**: Returns `True` if the feature has not only `x` and `y`, but also `z`
-coordinates.
+.. attribute:: has_z
+
+  Returns ``True`` if the feature has not only `x` and `y`, but also `z`
+  coordinates.
 
 .. sourcecode:: pycon
 
@@ -648,8 +647,10 @@ coordinates.
   >>> Point(0, 0, 0).has_z
   True
 
-**is_empty**: Returns `True` if the feature's `interior` and
-`boundary` (in point set terms) coincide with the empty set.
+.. attribute:: is_empty
+
+  Returns ``True`` if the feature's `interior` and `boundary` (in point set
+  terms) coincide with the empty set.
 
 .. sourcecode:: pycon
 
@@ -658,11 +659,27 @@ coordinates.
   >>> Point(0, 0).is_empty
   False
 
-**is_ring**: Returns `True` if the feature is closed. A closed feature's
-`boundary` coincides with the empty set. Applicable to `LineString` and
-`LinearRing`. This predicate is somewhat redundant considering that closed-ness
-is in practice a class attribute.
+.. note::
 
+   With the help of the operator_ module's ``attrgetter()`` function, unary
+   predicates such as ``is_empty`` can be easily used as predicates for the
+   built in ``filter()`` or ``ifilter()`` from itertools_.
+
+.. _operator: http://docs.python.org/library/operator.html
+.. _itertools: http://docs.python.org/library/itertools.html
+
+.. sourcecode:: pycon
+
+  >>> from operator import attrgetter
+  >>> empties = filter(attrgetter('is_empty'), [Point(), Point(0, 0)])
+  >>> len(empties)
+  1
+
+.. attribute:: is_ring
+
+  Returns ``True`` if the feature is closed. A closed feature's `boundary`
+  coincides with the empty set.
+  
 .. sourcecode:: pycon
 
   >>> LineString([(0, 0), (1, 1), (1, -1)]).is_ring
@@ -670,16 +687,25 @@ is in practice a class attribute.
   >>> LinearRing([(0, 0), (1, 1), (1, -1)]).is_ring
   True
 
-**is_simple**: Returns `True` if the feature does not cross itself. Operations
-on non-simple `LineStrings` are fully supported by Shapely. 
+This property is applicable to `LineString` and `LinearRing` instances, but
+meaningless for others.
 
+.. attribute:: is_simple
+
+  Returns ``True`` if the feature does not cross itself.
+  
 .. sourcecode:: pycon
 
   >>> LineString([(0, 0), (1, 1), (1, -1), (0, 1)]).is_simple
   False
 
-**is_valid**: Returns `True` if a feature is "valid" in the sense of [1]_. A
-valid `LinearRing` may not cross itself or touch itself at a single point. A
+Operations on non-simple `LineStrings` are fully supported by Shapely. 
+
+.. attribute:: is_valid
+
+  Returns ``True`` if a feature is "valid" in the sense of [1]_.
+  
+A valid `LinearRing` may not cross itself or touch itself at a single point. A
 valid `Polygon` may not possess any overlapping exterior or interior rings. A
 valid `MultiPolygon` may not collect any overlapping polygons. Operations on
 invalid features may fail.
@@ -692,31 +718,11 @@ invalid features may fail.
 The two points above are close enough that the polygons resulting from the
 buffer operations (explained in a following section) overlap.
 
-The `is_valid` predicate could be used to write a decorator that ensures only
-valid objects are returned from a function.
+.. note::
 
-.. sourcecode:: python
-
-  def valid_ring(coordinates):
-      ring = LinearRing(coordinates)
-      if not ring.is_valid:
-          raise TopologicalError(
-              "Given coordinates do not determine a valid LinearRing")
-      return ring
-
-An exception is raised when the function is passed the self-crossing
-coordinates from the `is_simple` example above.
-
-.. sourcecode:: pycon
-
-  >>> coords = [(0, 0), (1, 1), (1, -1), (0, 1)]
-  >>> valid_ring(coords)
-  Traceback (most recent call last):
-    File "<stdin>", line 1, in <module>
-    File "<stdin>", line 5, in valid_ring
-  shapely.geos.TopologicalError: Given coordinates do not determine a valid LinearRing
-
-This might also be done using a decorator.
+  The ``is_valid`` predicate can be used to write a validating decorator that
+  could ensure that only valid objects are returned from a constructor
+  function.
 
 .. sourcecode:: python
 
@@ -736,7 +742,8 @@ This might also be done using a decorator.
   >>> @validate
   ... def ring(coordinates):
   ...     return LinearRing(coordinates)
-  ... 
+  ...
+  >>> coords = [(0, 0), (1, 1), (1, -1), (0, 1)]  
   >>> ring(coords)
   Traceback (most recent call last):
     File "<stdin>", line 1, in <module>
@@ -749,11 +756,11 @@ Binary Predicates
 Standard binary predicates are implemented as instance methods. These
 predicates evaluate topological, set-theoretic relationships. In a few cases
 the results may not be what one might expect.  All take another geometric
-object as argument and return `True` or `False`.
+object as argument and return ``True`` or ``False``.
 
-**contains** (other): Returns `True` if the object's `interior` contains the
+**contains** (other): Returns ``True`` if the object's `interior` contains the
 `boundary` and `interior` of the other object and their boundaries do not touch
-at all. This predicate applies to all types, and is inverse to `within`:
+at all. This predicate applies to all types, and is inverse to ``within()``:
 ``a.contains(b) == b.within(a)`` always evaluates to ``True``.
 
 .. sourcecode:: pycon
@@ -771,9 +778,22 @@ A line's endpoints are part of its `boundary` and are therefore not contained.
   >>> LineString(coords).contains(Point(1.0, 1.0))
   False
 
-**crosses** (other): Returns `True` if the `interior` of the object intersects
-the `interior` of the other but does not contain it, and the dimension of the
-intersection is less than the dimension of the one or the other.
+Binary predicates can often be used directly with ``filter()`` or
+``itertools.ifilter()``.
+
+.. sourcecode:: pycon
+
+  >>> line = LineString(coords)
+  >>> contained = filter(line.contains, [Point(), Point(0.5, 0.5)])
+  >>> len(contained)
+  1
+  >>> [p.wkt for p in contained]
+  ['POINT (0.5000000000000000 0.5000000000000000)']
+
+**crosses** (other): Returns ``True`` if the `interior` of the object
+intersects the `interior` of the other but does not contain it, and the
+dimension of the intersection is less than the dimension of the one or the
+other.
 
 .. sourcecode:: pycon
 
@@ -787,7 +807,7 @@ A line does not cross a point that it contains.
   >>> LineString(coords).crosses(Point(0.5, 0.5))
   False
 
-**disjoint** (other): Returns `True` if the `boundary` and `interior` of the
+**disjoint** (other): Returns ``True`` if the `boundary` and `interior` of the
 object do not intersect at all with those of the other. This predicate applies
 to all types and is the inverse of `intersects`.
 
@@ -796,11 +816,11 @@ to all types and is the inverse of `intersects`.
   >>> Point(0, 0).disjoint(Point(1, 1))
   True
 
-**equals** (other): Returns `True` if the set-theoretic `boundary`, `interior`,
-and `exterior` of the object coincide with those of the other. The coordinates
-passed to the object constructors are of these sets, and determine them, but
-are not the entirety of the sets. This is a potential "gotcha" for new users.
-Equivalent lines, for example, can be constructed differently:
+**equals** (other): Returns ``True`` if the set-theoretic `boundary`,
+`interior`, and `exterior` of the object coincide with those of the other. The
+coordinates passed to the object constructors are of these sets, and determine
+them, but are not the entirety of the sets. This is a potential "gotcha" for
+new users.  Equivalent lines, for example, can be constructed differently:
 
 .. sourcecode:: pycon
 
@@ -815,16 +835,16 @@ Equivalent lines, for example, can be constructed differently:
 This predicate should not be mistaken for Python's ``==`` or ``is``
 constructions.
 
-**intersects** (other): Returns `True` if the `boundary` and `interior` of the
-object intersect in any way with those of the other. It is the super-relation
-of `contains`, `crosses`, `equals`, `touches`, and `within`.
+**intersects** (other): Returns ``True`` if the `boundary` and `interior` of
+the object intersect in any way with those of the other. It is the
+super-relation of `contains`, `crosses`, `equals`, `touches`, and `within`.
 
-**touches** (other): Returns `True` if the `boundary` of the object intersects
-only the `boundary` of the other, and their interiors do not intersect with any
-part of the other. Overlapping features do not therefore "touch", another
-potential "gotcha".
+**touches** (other): Returns ``True`` if the `boundary` of the object
+intersects only the `boundary` of the other, and their interiors do not
+intersect with any part of the other. Overlapping features do not therefore
+"touch", another potential "gotcha".
 
-For example, the following lines touch at `(1, 1)`, but do not overlap.
+For example, the following lines touch at ``(1, 1)``, but do not overlap.
 
 .. sourcecode:: pycon
 
@@ -833,7 +853,7 @@ For example, the following lines touch at `(1, 1)`, but do not overlap.
   >>> a.touches(b)
   True
 
-**within** (other): Returns `True` if the object's `boundary` and `interior`
+**within** (other): Returns ``True`` if the object's `boundary` and `interior`
 intersect only with the `interior` of the other (not its `boundary` or
 `exterior`).This applies to all types and is the inverse of `contains`.
 
@@ -846,10 +866,10 @@ derived from their point sets. TODO: improve this.
 Buffering
 ---------
 
-**buffer** (distance, quadsegs=16): Returns a new object that contains,
+**buffer** (distance, resolution=16): Returns a new object that contains,
 approximately, all points within a given `distance` of the original object. A
 positive distance has an effect of dilation; a negative distance, erosion. The
-optional `quadsegs` argument determines the number of segements used to
+optional `resolution` argument determines the number of segments used to
 approximate a quarter circle around a point. 
 
 .. sourcecode:: pycon
@@ -874,7 +894,7 @@ the disk it approximates.
   >>> p.area
   313.65484905459385
 
-With a `quadsegs` value of 1, the buffer is a square patch.
+With a `resolution` value of 1, the buffer is a square patch.
 
 .. sourcecode:: pycon
 
@@ -1312,6 +1332,7 @@ Eric Lemoine (Camptocamp SA) and ctypes tips from Justin Bronn (GeoDjango).
 .. |Strobl-PDF| replace:: PDF
 .. _JTS-PDF: http://www.vividsolutions.com/jts/bin/JTS%20Technical%20Specs.pdf
 .. |JTS-PDF| replace:: PDF
+.. _frozenset: http://docs.python.org/library/stdtypes.html#frozenset
 
 References
 ==========
