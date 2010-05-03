@@ -1,9 +1,24 @@
-Sean Gillies (Pleiades)
-Howard Butler (Hobu, Inc.)
-Kai Lautaportti (Hexagon IT)
-Frédéric Junod (Camptocamp SA)
-Eric Lemoine (Camptocamp SA)
-Justin Bronn (GeoDjango) for ctypes inspiration
+Shapely is written by:
 
-Some of this work was supported by a grant from the U.S. National Endowment for
-the Humanities (http://www.neh.gov).
+* Sean Gillies
+* Aron Bierbaum
+* Kai Lautaportti
+
+Patches contributed by:
+
+* Howard Butler
+* Fr |eaigue| d |eaigue| ric Junod
+* Eric Lemoine
+* Jonathan Tartley
+* Kristian Thy
+* Oliver Tonnhofer
+
+Additional help from:
+
+* Justin Bronn (GeoDjango) for ctypes inspiration
+* Martin Davis (JTS)
+* Jaakko Salli for the Windows distributions
+* Sandro Santilli, Mateusz Loskot, Paul Ramsey, et al (GEOS Project)
+
+Major portions of this work were supported by a grant (for Pleiades_) from the
+U.S. National Endowment for the Humanities (http://www.neh.gov).

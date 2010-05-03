@@ -1,4 +1,4 @@
-
+=======
 Shapely
 =======
 
@@ -133,6 +133,7 @@ Additional help from:
 
 * Justin Bronn (GeoDjango) for ctypes inspiration
 * Martin Davis (JTS)
+* Jaakko Salli for the Windows distributions
 * Sandro Santilli, Mateusz Loskot, Paul Ramsey, et al (GEOS Project)
 
 Major portions of this work were supported by a grant (for Pleiades_) from the
