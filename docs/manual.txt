@@ -4,7 +4,7 @@ The Shapely 1.2 User Manual (Preview)
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
 :Revision: 1.2b7
-:Date: 2 May 2010
+:Date: 7 May 2010
 :Copyright: 
   This work is licensed under a `Creative Commons Attribution 3.0
   United States License`__.
@@ -667,7 +667,7 @@ Unary Predicates
 Standard unary predicates are implemented as read-only property attributes. An
 example will be shown for each.
 
-.. attribute:: has_z
+.. attribute:: object.has_z
 
   Returns ``True`` if the feature has not only `x` and `y`, but also `z`
   coordinates.
@@ -679,7 +679,7 @@ example will be shown for each.
   >>> Point(0, 0, 0).has_z
   True
 
-.. attribute:: is_empty
+.. attribute:: object.is_empty
 
   Returns ``True`` if the feature's `interior` and `boundary` (in point set
   terms) coincide with the empty set.
@@ -704,7 +704,7 @@ example will be shown for each.
   >>> len(empties)
   1
 
-.. attribute:: is_ring
+.. attribute:: object.is_ring
 
   Returns ``True`` if the feature is closed. A closed feature's `boundary`
   coincides with the empty set.
@@ -719,7 +719,7 @@ example will be shown for each.
 This property is applicable to `LineString` and `LinearRing` instances, but
 meaningless for others.
 
-.. attribute:: is_simple
+.. attribute:: object.is_simple
 
   Returns ``True`` if the feature does not cross itself.
   
@@ -730,7 +730,7 @@ meaningless for others.
 
 Operations on non-simple `LineStrings` are fully supported by Shapely. 
 
-.. attribute:: is_valid
+.. attribute:: object.is_valid
 
   Returns ``True`` if a feature is "valid" in the sense of [1]_.
   
@@ -789,7 +789,7 @@ evaluate topological, set-theoretic relationships. In a few cases the results
 may not be what one might expect starting from different assumptions. All take
 another geometric object as argument and return ``True`` or ``False``.
 
-.. method:: contains(other)
+.. method:: object.contains(other)
 
   Returns ``True`` if the object's `interior` contains the `boundary` and
   `interior` of the other object and their boundaries do not touch at all.
@@ -826,7 +826,7 @@ A line's endpoints are part of its `boundary` and are therefore not contained.
   >>> [p.wkt for p in contained]
   ['POINT (0.5000000000000000 0.5000000000000000)']
 
-.. method:: crosses(other)
+.. method:: object.crosses(other)
 
   Returns ``True`` if the `interior` of the object intersects the `interior` of
   the other but does not contain it, and the dimension of the intersection is
@@ -844,7 +844,7 @@ A line does not cross a point that it contains.
   >>> LineString(coords).crosses(Point(0.5, 0.5))
   False
 
-.. method:: disjoint(other)
+.. method:: object.disjoint(other)
 
   Returns ``True`` if the `boundary` and `interior` of the object do not
   intersect at all with those of the other.
@@ -856,7 +856,7 @@ A line does not cross a point that it contains.
 
 This predicate applies to all types and is the inverse of :meth:`intersects`.
 
-.. method:: equals(other)
+.. method:: object.equals(other)
 
   Returns ``True`` if the set-theoretic `boundary`, `interior`, and `exterior`
   of the object coincide with those of the other.
@@ -879,7 +879,7 @@ differently.
 This predicate should not be mistaken for Python's ``==`` or ``is``
 constructions.
 
-.. method:: intersects(other)
+.. method:: object.intersects(other)
 
   Returns ``True`` if the `boundary` and `interior` of the object intersect in
   any way with those of the other. 
@@ -887,7 +887,7 @@ constructions.
 This predicate is equivalent to the OR-ing of :meth:`contains`, :meth:`crosses`,
 :meth:`equals`, :meth:`touches`, and :meth:`within`. 
 
-.. method:: touches(other)
+.. method:: object.touches(other)
 
   Returns ``True`` if the `boundary` of the object intersects only the
   `boundary` of the other, and their interiors do not intersect with any part
@@ -903,12 +903,65 @@ example, the following lines touch at ``(1, 1)``, but do not overlap.
   >>> a.touches(b)
   True
 
-.. method:: within(other)
+.. method:: object.within(other)
 
   Returns ``True`` if the object's `boundary` and `interior` intersect only
   with the `interior` of the other (not its `boundary` or `exterior`).
 
 This applies to all types and is the inverse of :meth:`contains`.
+
+Used in a ``sorted()`` `key`, :meth:`within` makes it easy to spatially sort
+objects. Let's say we have 4 stereotypic features: a point that is contained by
+a polygon which is itself contained by another polygon, and a free spirited
+point contained by none
+
+.. sourcecode:: pycon
+
+  >>> a = Point(2, 2)
+  >>> b = Polygon([[1, 1], [1, 3], [3, 3], [3, 1]])
+  >>> c = Polygon([[0, 0], [0, 4], [4, 4], [4, 0]])
+  >>> d = Point(-1, -1)
+
+and that copies of these are collected into a list
+
+.. sourcecode:: pycon
+
+  >>> features = [c, a, d, b, c]
+
+that we'd prefer to have ordered as ``[d, c, c, b, a]`` in reverse containment
+order. As explained in the Python `Sorting HowTo`_, we can define a key
+function that operates on each list element and returns a value for comparison.
+Our key function will be a wrapper class that implements ``__lt__()`` using
+Shapely's binary :meth:`within` predicate.
+
+.. sourcecode:: python
+
+  from shapely.geometry import asShape
+  
+  class Within(object):
+      def __init__(self, o):
+          self.o = o
+      def __lt__(self, other):
+          return self.o.within(other.o)
+
+As the howto says, the `less than` comparison is guaranteed to be used in
+sorting. That's what we'll rely on to spatially sort, and the reason why we use
+:meth:`within` in reverse instead of :meth:`contains`. Trying it out on features
+`d` and `c`, we see that it works.
+
+.. sourcecode:: pycon
+
+  >>> d < c
+  True
+  >>> Within(d) < Within(c)
+  False
+
+It also works on the list of features, producing the order we want.
+
+.. sourcecode:: pycon
+
+  >>> [d, c, c, b, a] == sorted(features, key=Within, reverse=True)
+  True
 
 .. _analysis-methods:
 
@@ -927,7 +980,7 @@ Almost every binary predicate method has a counterpart that returns a new
 geometric object. In addition, the set-theoretic `boundary` of an object is
 available as a read-only attribute.
 
-.. attribute:: boundary
+.. attribute:: object.boundary
 
   Returns a lower dimensional object representing the object's set-theoretic
   `boundary`.
@@ -954,7 +1007,7 @@ points. The boundary of a point is an empty (null) collection.
 See the figures in :ref:`linestrings` and :ref:`multilinestrings` for the
 illustration of lines and their boundaries.
 
-.. method:: difference(other)
+.. method:: object.difference(other)
 
   Returns an object representing the points making up this geometry that do
   not make up *other*.
@@ -981,7 +1034,7 @@ Figure 1: differences between two approximately circular polygons.
   point) as a single object, and in these cases the difference method returns a
   copy of the object named ``self``.
 
-.. method:: intersection(other)
+.. method:: object.intersection(other)
 
   Returns an object representing the intersection with the `other` geometry.
 
@@ -994,7 +1047,7 @@ Figure 1: differences between two approximately circular polygons.
 
 See the figure under :meth:`symmetric_difference` below.
 
-.. method:: symmetric_difference(other)
+.. method:: object.symmetric_difference(other)
 
   Returns an object representing the points in this geometry not in `other`,
   and the points in `other` not in this geometry.
@@ -1008,7 +1061,7 @@ See the figure under :meth:`symmetric_difference` below.
 
 .. plot:: code/intersection-sym-difference.py
 
-.. method:: union(other)
+.. method:: object.union(other)
   
   Returns an object representing the union of points from one and points from
   the `other`.
@@ -1048,7 +1101,7 @@ Constructive Methods
 Shapely geometric object have several methods that yield new objects not
 derived from set-theoretic analysis.
 
-.. method:: buffer(distance, resolution=16)
+.. method:: object.buffer(distance, resolution=16)
 
   Returns a new object that represents, approximately, all points within a
   given `distance` of the original object.
@@ -1112,7 +1165,7 @@ or self-crossing polygons such as the classic "bowtie".
 
 Buffering splits the polygon in two at the point where they touch.
 
-.. attribute:: convex_hull
+.. attribute:: object.convex_hull
 
   Returns the smallest convex `Polygon` containing all the points in the object
   unless the number of points in the object is less than three. For two points,
@@ -1131,7 +1184,7 @@ Buffering splits the polygon in two at the point where they touch.
 
 Figure 1. Convex hull (blue) of 2 points (left) and of 6 points (right).
 
-.. attribute:: envelope
+.. attribute:: object.envelope
 
   Returns the point or smallest rectangular polygon that contains the object.
 
@@ -1142,14 +1195,14 @@ Figure 1. Convex hull (blue) of 2 points (left) and of 6 points (right).
   >>> MultiPoint([(0, 0), (1, 1)]).envelope
   <shapely.geometry.polygon.Polygon object at 0x...>
 
-.. method:: simplify(tolerance, preserve_topology=True)
+.. method:: object.simplify(tolerance, preserve_topology=True)
 
   Returns an object representing a simplified version of the geometric object.
 
 All points in the simplified object will be within the `tolerance` distance of
 the original geometry. By default a slower algorithm is used that preserves
 topology. If preserve topology is set to False the much quicker Douglas-Peucker
-algorithm (TODO: cite) is used.
+algorithm [6]_ is used.
 
 .. sourcecode:: pycon
 
@@ -1438,6 +1491,7 @@ same arguments and usage as their counterparts in the standard geometries.
 .. _JTS-PDF: http://www.vividsolutions.com/jts/bin/JTS%20Technical%20Specs.pdf
 .. |JTS-PDF| replace:: PDF
 .. _frozenset: http://docs.python.org/library/stdtypes.html#frozenset
+.. _Sorting HowTo: http://wiki.python.org/moin/HowTo/Sorting/
 
 References
 ==========
@@ -1461,4 +1515,11 @@ References
    Springer, 2008, pp. 240-245. [|Strobl-PDF|_]
 
 .. [5] Martin Davis, “JTS Technical Specifications,” Mar. 2003. [|JTS-PDF|_]
+
+.. [6] David H. Douglas and Thomas K. Peucker, 
+   “Algorithms for the Reduction of the Number of Points Required to Represent
+   a Digitized Line or its Caricature,” Cartographica: The International
+   Journal for Geographic Information and Geovisualization,  vol. 10, Dec.
+   1973, pp. 112-122.
+
 
