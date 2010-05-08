@@ -3,6 +3,7 @@
 
 from functools import wraps
 import sys
+import warnings
 
 from shapely.coords import CoordinateSequence
 from shapely.geos import lgeos
@@ -260,13 +261,15 @@ class BaseGeometry(object):
         """A figure that envelopes the geometry"""
         return geom_factory(self.impl['envelope'](self))
 
-    def buffer(self, distance, quadsegs=16):
+    def buffer(self, distance, resolution=16, quadsegs=None):
         """Returns a geometry with an envelope at a distance from the object's 
         envelope
         
         A negative distance has a "shrink" effect. A zero distance may be used
         to "tidy" a polygon. The resolution of the buffer around each vertex of
-        the object increases by increasing the quadsegs parameter.
+        the object increases by increasing the resolution keyword parameter
+        or second positional parameter. Note: the use of a `quadsegs` parameter
+        is deprecated and will be gone from the next major release.
 
         Example:
 
@@ -279,7 +282,14 @@ class BaseGeometry(object):
           >>> g.buffer(1.0, 3).area     # triangle approximation
           3.0
         """
-        return geom_factory(self.impl['buffer'](self, distance, quadsegs))
+        if quadsegs is not None:
+            warnings.warn(
+                "The `quadsegs` argument is deprecated. Use `resolution`.", 
+                DeprecationWarning)
+            res = quadsegs
+        else:
+            res = resolution
+        return geom_factory(self.impl['buffer'](self, distance, res))
 
     def simplify(self, tolerance, preserve_topology=True):
         """Returns a simplified geometry produced by the Douglas-Puecker 
