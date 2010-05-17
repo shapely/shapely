@@ -4,7 +4,7 @@ The Shapely 1.2 User Manual (Preview)
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
 :Revision: 1.2b7
-:Date: 7 May 2010
+:Date: 17 May 2010
 :Copyright: 
   This work is licensed under a `Creative Commons Attribution 3.0
   United States License`__.
@@ -1009,12 +1009,8 @@ illustration of lines and their boundaries.
 
 .. method:: object.difference(other)
 
-  Returns an object representing the points making up this geometry that do
-  not make up *other*.
-
-The :meth:`buffer` method is used to produce approximately circular polygons in
-the examples of this section; it will be explained in detail later in this
-manual.
+  Returns a representation of the points making up this geometric object that
+  do not make up the *other* object.
 
 .. sourcecode:: pycon
 
@@ -1022,6 +1018,12 @@ manual.
   >>> b = Point(2, 1).buffer(1.5)
   >>> a.difference(b)
   <shapely.geometry.polygon.Polygon object at 0x...>
+
+.. note::
+
+  The :meth:`buffer` method is used to produce approximately circular polygons
+  in the examples of this section; it will be explained in detail later in this
+  manual.
 
 .. plot:: code/difference.py
 
@@ -1036,7 +1038,8 @@ Figure 1: differences between two approximately circular polygons.
 
 .. method:: object.intersection(other)
 
-  Returns an object representing the intersection with the `other` geometry.
+  Returns a representation of the intersection of this object with the `other`
+  geometric object.
 
 .. sourcecode:: pycon
 
@@ -1049,8 +1052,8 @@ See the figure under :meth:`symmetric_difference` below.
 
 .. method:: object.symmetric_difference(other)
 
-  Returns an object representing the points in this geometry not in `other`,
-  and the points in `other` not in this geometry.
+  Returns a representation of the points in this object not in the `other`
+  geometric object, and the points in the `other` not in this geometric object.
 
 .. sourcecode:: pycon
 
@@ -1063,8 +1066,8 @@ See the figure under :meth:`symmetric_difference` below.
 
 .. method:: object.union(other)
   
-  Returns an object representing the union of points from one and points from
-  the `other`.
+  Returns a representation of the union of points from this object and the
+  `other` geometric object.
 
 The type of object returned depends on the relationship between the operands.
 The union of polygons (for example) will be a polygon or a multi-polygon
@@ -1092,8 +1095,8 @@ boundaries.
 
 .. note::
 
-  :meth:`union` is a prohibitively expensive way to find the cumulative union
-  of many objects. See :meth:`cascaded_union` for a better method.
+  :meth:`union` is an expensive way to find the cumulative union
+  of many objects. See :meth:`cascaded_union` for a more effective method.
 
 Constructive Methods
 --------------------
@@ -1103,8 +1106,8 @@ derived from set-theoretic analysis.
 
 .. method:: object.buffer(distance, resolution=16)
 
-  Returns a new object that represents, approximately, all points within a
-  given `distance` of the original object.
+  Returns an approximate representation of all points within a given `distance`
+  of the this geometric object.
 
 A positive distance has an effect of dilation; a negative distance, erosion.
 The optional `resolution` argument determines the number of segments used to
@@ -1167,9 +1170,10 @@ Buffering splits the polygon in two at the point where they touch.
 
 .. attribute:: object.convex_hull
 
-  Returns the smallest convex `Polygon` containing all the points in the object
-  unless the number of points in the object is less than three. For two points,
-  the convex hull collapses to a `LineString`; for 1, a `Point`.
+  Returns a representation of the smallest convex `Polygon` containing all the
+  points in the object unless the number of points in the object is less than
+  three. For two points, the convex hull collapses to a `LineString`; for 1, a
+  `Point`.
 
 .. sourcecode:: pycon
 
@@ -1186,7 +1190,8 @@ Figure 1. Convex hull (blue) of 2 points (left) and of 6 points (right).
 
 .. attribute:: object.envelope
 
-  Returns the point or smallest rectangular polygon that contains the object.
+  Returns a representation of the point or smallest rectangular polygon that
+  contains the object.
 
 .. sourcecode:: pycon
 
@@ -1197,7 +1202,7 @@ Figure 1. Convex hull (blue) of 2 points (left) and of 6 points (right).
 
 .. method:: object.simplify(tolerance, preserve_topology=True)
 
-  Returns an object representing a simplified version of the geometric object.
+  Returns a simplified representation of the geometric object.
 
 All points in the simplified object will be within the `tolerance` distance of
 the original geometry. By default a slower algorithm is used that preserves
@@ -1235,11 +1240,13 @@ Other Operations
 Polygonization
 --------------
 
-shapely.ops.polygonize(lines) : iterator
-  Returns an iterator over polygons constructed from the *lines* iterator. The
-  elements of *lines* may be Shapely geometries, objects that provide the geo
-  interface, or Numpy arrays or Python sequences shaped like LineStrings.
+.. function:: shapely.ops.polygonize(lines)
 
+  Returns an iterator over polygons constructed from the input `lines`.
+
+As with the :class:`MultiLineString` constructor, the input elements may be any
+line-like object.
+  
 .. sourcecode:: python
 
   >>> from shapely.ops import polygonize
@@ -1250,25 +1257,25 @@ shapely.ops.polygonize(lines) : iterator
   ...     ((1, 1), (1, 0)),
   ...     ((1, 0), (0, 0))
   ...     ]
-  >>> result = polygonize(lines)
-  >>> list(result.geoms)
-  [<shapely.geometry.polygon.Polygon object at ...>, <shapely.geometry.polygon.Polygon object at ...>]
+  >>> pprint.pprint(list(polygonize(lines)))
+  [<shapely.geometry.polygon.Polygon object at 0x...>, 
+   <shapely.geometry.polygon.Polygon object at 0x...>]
 
 Line merging
 ------------
 
-shapely.ops.linemerge(lines) : iterator or MultiLineString
-  Merges all connected lines. Returns a LineString or MultiLineString when
-  lines are not contiguous. 
+.. function:: shapely.ops.linemerge(lines)
 
+  Returns a `LineString` or `MultiLineString` representing the merger of all
+  contiguous elements of `lines`.
+  
 .. sourcecode:: python
 
   >>> lines = MultiLineString([ 
   ...     ((0, 0), (1, 1)), 
   ...     ((2, 0), (2, 1), (1, 1)) 
   ...     ]) 
-  >>> result = linemerge(lines)
-  >>> result # docstring: +ELLIPSIS
+  >>> linemerge(lines)
   <shapely.geometry.linestring.LineString object at 0x...>
 
 
