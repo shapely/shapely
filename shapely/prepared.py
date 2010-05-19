@@ -48,7 +48,7 @@ class PreparedGeometry(object):
         return bool(self.impl['prepared_covers'](self, other))
 
 
-def prep(geom):
-    """Creates and returns a prepared geometry."""
-    return PreparedGeometry(geom)
+def prep(ob):
+    """Creates and returns a prepared geometric object."""
+    return PreparedGeometry(ob)
 

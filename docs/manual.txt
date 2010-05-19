@@ -4,7 +4,7 @@ The Shapely 1.2 User Manual (Preview)
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
 :Revision: 1.2b7
-:Date: 17 May 2010
+:Date: 19 May 2010
 :Copyright: 
   This work is licensed under a `Creative Commons Attribution 3.0
   United States License`__.
@@ -652,6 +652,64 @@ longer empty.
 
 .. _predicates:
 
+General Methods
+---------------
+
+In addition to the :attr:`area`, :attr:`bounds`, and :attr:`length` attributes
+illustrated previously, the :meth:`distance` method can be used to measure the
+minimum distance between two geometric objects.
+
+.. method:: object.distance(other)
+
+  Returns the minimum distance to the `other` geometric object.
+
+.. sourcecode:: pycon
+
+  >>> Point(0,0).distance(Point(1,1))
+  1.4142135623730951
+
+Linear Referencing Methods
+--------------------------
+
+It can useful to specify position along linear features such as `LineStrings`
+and `MultiLineStrings` with a 1-dimensional referencing system. Shapely
+supports linear referencing based on length or distance, evaluating the
+distance along a geometric object to the projection of a given point, or the
+point at a given distance along the object.
+
+.. method:: object.interpolate(distance[, normalized=False])
+
+  Return a point at the specified distance along a linear geometric object.
+
+If the `normalized` arg is ``True``, the distance will be interpreted as a
+fraction of the geometric object's length.
+
+.. sourcecode:: pycon
+
+  >>> ip = LineString([(0, 0), (0, 1), (1, 1)]).interpolate(1.5)
+  >>> ip
+  <shapely.geometry.point.Point object at 0x740570>
+  >>> ip.wkt
+  'POINT (0.5000000000000000 1.0000000000000000)'
+  >>> LineString([(0, 0), (0, 1), (1, 1)]).interpolate(0.75, normalized=True).wkt
+  'POINT (0.5000000000000000 1.0000000000000000)'
+
+.. method:: object.project(other[, normalized=False])
+
+  Returns the distance along this geometric object to a point nearest the
+  `other` object`.
+
+If the `normalized` arg is ``True``, return the distance normalized to the
+length of the object. The :meth:`project` method is the inverse of
+:meth:`interpolate`.
+
+.. sourcecode:: pycon
+
+  >>> LineString([(0, 0), (0, 1), (1, 1)]).project(ip)
+  1.5
+  >>> LineString([(0, 0), (0, 1), (1, 1)]).project(ip, normalized=True)
+  0.75
+
 Predicates and Relationships
 ============================
 
@@ -788,6 +846,13 @@ Standard binary predicates are implemented as methods. These predicates
 evaluate topological, set-theoretic relationships. In a few cases the results
 may not be what one might expect starting from different assumptions. All take
 another geometric object as argument and return ``True`` or ``False``.
+
+.. method:: object.almost_equals(other[, decimal=6])
+
+  Returns ``True`` if the object is approximately equal to the `other` at all
+  points to specified `decimal` place precision.
+
+See also :meth:`equals`.
 
 .. method:: object.contains(other)
 
@@ -1233,12 +1298,13 @@ Figure 1. Simplification of a nearly circular polygon using a tolerance of 0.2
   `Invalid` geometric objects may result from simplification that does not
   preserve topology.
 
-
 Other Operations
 ================
 
-Polygonization
---------------
+Merging Linear Features
+-----------------------
+
+Sequences of touching lines can be merged into `MultiLineStrings` or `Polygons` using functions in the :mod:`shapely.ops` module.
 
 .. function:: shapely.ops.polygonize(lines)
 
@@ -1257,41 +1323,56 @@ line-like object.
   ...     ((1, 1), (1, 0)),
   ...     ((1, 0), (0, 0))
   ...     ]
-  >>> pprint.pprint(list(polygonize(lines)))
+  >>> pprint(list(polygonize(lines)))
   [<shapely.geometry.polygon.Polygon object at 0x...>, 
    <shapely.geometry.polygon.Polygon object at 0x...>]
-
-Line merging
-------------
 
 .. function:: shapely.ops.linemerge(lines)
 
   Returns a `LineString` or `MultiLineString` representing the merger of all
   contiguous elements of `lines`.
-  
+
+As with :func:`shapely.ops.polygonize`, the input elements may be any line-like
+object.
+
 .. sourcecode:: python
 
-  >>> lines = MultiLineString([ 
-  ...     ((0, 0), (1, 1)), 
-  ...     ((2, 0), (2, 1), (1, 1)) 
-  ...     ]) 
+  >>> from shapely.ops import linemerge
   >>> linemerge(lines)
-  <shapely.geometry.linestring.LineString object at 0x...>
+  <shapely.geometry.multilinestring.MultiLineString object at 0x...>
+  >>> pprint(list(linemerge(lines)))
+  [<shapely.geometry.linestring.LineString object at 0x...>,
+   <shapely.geometry.linestring.LineString object at 0x...>,
+   <shapely.geometry.linestring.LineString object at 0x...>]
 
+Prepared Geometry Operations
+----------------------------
 
-General Methods
-===============
+Shapely geometries can be processed into a state that supports more efficient
+batches of operations.
 
-Distance
---------
+.. function:: prepared.prep(ob)
 
-.distance(other) : geometry
-  The minimum distance from one geometry to the other.
+  Creates and returns a prepared geometric object.
 
-.. sourcecode:: python
+To test one polygon containment against a large batch of points, one should
+first use the :func:`prepared.prep` function.
 
-  >>> Point(0,0).distance(Point(1,1))
-  1.4142135623730951
+.. sourcecode:: pycon
+
+  >>> from shapely.geometry import Point
+  >>> from shapely.prepared import polyprep
+  >>> points = [...] # large list of points
+  >>> polygon = Point(0.0, 0.0).buffer(1.0)
+  >>> prepared_polygon = prep(polygon)
+  >>> prepared_polygon
+  <shapely.prepared.PreparedGeometry object at 0x...>
+  >>> hits = filter(prepared_polygon.contains, points)
+
+Prepared geometries instances have the following methods: ``contains``,
+``contains_properly``, ``covers``, and ``intersects``. All have exactly the
+same arguments and usage as their counterparts in non-prepared geometric
+objects.
 
 Interoperation
 ==============
@@ -1302,49 +1383,57 @@ software.
 Well-known Formats
 ------------------
 
-Well-known Text (WKT)
-+++++++++++++++++++++
+A `Well Known Text` (WKT) or `Well Known Binary` (WKB) representation of any
+geometric object can be had via its :attr:`wkt` or :attr:`wkb` attribute.
 
-The WKT representation of any geometry object can be had via the **wkt**
-attribute:
+.. sourcecode:: pycon
 
-.. sourcecode:: python
+  >>> Point(0, 0).wkt
+  'POINT (0.0000000000000000 0.0000000000000000)'
+  >>> Point(0, 0).wkb.encode('hex')
+  '010100000000000000000000000000000000000000'
 
-  >>> point_r.wkt
-  'POINT (-1.5000000000000000 1.2000000000000000)'
+The hex encoded WKB is a value that can be conveniently inserted directly into
+PostGIS.
 
-Hex-encode that string and you have a value that can be conveniently inserted directly into PostGIS
+The `shapely.wkt` and `shapely.wkb` modules provide `dumps()` and `loads()`
+functions that work almost exactly as their `pickle` and `simplejson` module
+counterparts.
 
-.. sourcecode:: python
+.. function:: shapely.wkb.dumps(ob)
 
-  >>> point_r.wkt.encode('hex')
-  '504f494e5420282d312e3530303030303030303030303030303020312e3230303030303030303030303030303029'
+  Returns a WKB representation of `ob`.
 
-New geometries can be created from WKT representations using the
-*shapely.wkt.loads* factory (inspired by the *pickle* module) 
+.. function:: shapely.wkb.loads(wkb)
 
-.. sourcecode:: python
+  Returns a geometric object from a WKB representation `wkb`.
 
-  >>> from shapely.wkt import loads
-  >>> loads('POINT (0 0)')
-  <shapely.geometry.point.Point object at ...>
+.. sourcecode:: pycon
 
-Well-known Binary (WKB)
-+++++++++++++++++++++++
+  >> from shapely.wkb import dumps, loads
+  >>> wkb = dumps(Point(0, 0))
+  >>> print wkb.encode('hex')
+  010100000000000000000000000000000000000000
+  >>> loads(wkb).wkt
+  'POINT (0.0000000000000000 0.0000000000000000)'
 
-The WKB representation of any geometry object can be had via the **wkb**
-attribute. New geometries can be created from WKB data using the
-*shapely.wkb.loads* factory. Use this format to interoperate with ogr.py:
+All of Shapely's geometry types are supported.
 
-.. sourcecode:: python
+.. function:: shapely.wkt.dumps(ob)
 
-  >>> import ogr
-  >>> from shapely.wkb import loads
-  >>> source = ogr.Open("/tmp/world_borders.shp")
-  >>> borders = source.GetLayerByName("world_borders")
-  >>> feature = borders.GetNextFeature()
-  >>> loads(feature.GetGeometryRef().ExportToWkb())
-  <shapely.geometry.polygon.Polygon object at ...>
+  Returns a WKT representation of `ob`.
+
+.. function:: shapely.wkt.loads(wkt)
+
+  Returns a geometric object from a WKT representation `wkt`.
+
+.. sourcecode:: pycon
+
+  >> wkt = dumps(Point(0, 0))
+  >>> print wkt
+  POINT (0.0000000000000000 0.0000000000000000)
+  >>> loads(wkt).wkt
+  'POINT (0.0000000000000000 0.0000000000000000)'
 
 Numpy Array Interface
 ---------------------
@@ -1427,62 +1516,6 @@ If you want to copy coordinate data to a new geometry, use the
 .. _Python geo interface: http://trac.gispython.org/projects/PCL/wiki/PythonGeoInterface
 
 
-Advanced Features
-=================
-
-Iterative Operations
---------------------
-
-Shapely provides functions for efficient operations on large sets of
-geometries.
-
-Contains
-++++++++
-
-To find the subset of points that are contained within a polygon, use
-*shapely.iterops.contains*:
-
-.. sourcecode:: python
-
-  >>> from shapely.geometry import Polygon
-  >>> from shapely.geometry import Point
-  >>> coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0))
-  >>> polygon = Polygon(coords)
-  >>> points = [Point(0.5, 0.5), Point(2.0, 2.0)]  
-  >>> from shapely import iterops  
-  >>> list(iterops.contains(polygon, points, True))
-  [<shapely.geometry.point.Point object at ...>]
-
-The second parameter to *iterops.contains* can be any kind of iterator, even a
-generator of objects. If it yields tuples, then the second element of the tuple
-will be ultimately yielded from *iterops.contains*.
-
-.. sourcecode:: python
-
-  >>> list(iterops.contains(polygon, iter((p, p.wkt) for p in points)))
-  ['POINT (0.5000000000000000 0.5000000000000000)']
-
-Prepared Geometry Operations
-----------------------------
-
-Shapely geometries can be pre-analyzed into a state that supports more
-efficient batches of operations. To test one polygon containment against a
-large batch of points, one should first use the `prepared.prep` function:
-
-.. sourcecode:: python
-
-  >>> from shapely.geometry import Point
-  >>> from shapely.prepared import polyprep
-  >>> points = [...] # large list of points
-  >>> polygon = Point(0.0, 0.0).buffer(1.0)
-  >>> prepared_polygon = prep(polygon)
-  >>> prepared_polygon
-  <shapely.prepared.PreparedGeometry object at ...>
-  >>> hits = filter(prepared_polygon.contains, points)
-
-Prepared geometries instances have the following methods: ``contains``,
-``contains_properly``, ``covers``, and ``intersects``. All have exactly the
-same arguments and usage as their counterparts in the standard geometries.
 
 .. _GEOS: http://geos.refractions.net
 .. _Java Topology Suite: http://www.vividsolutions.com/jts/jtshome.htm
