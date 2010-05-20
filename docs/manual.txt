@@ -4,7 +4,7 @@ The Shapely 1.2 User Manual (Preview)
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
 :Revision: 1.2b7
-:Date: 19 May 2010
+:Date: 20 May 2010
 :Copyright: 
   This work is licensed under a `Creative Commons Attribution 3.0
   United States License`__.
@@ -290,7 +290,7 @@ LinearRings
 
 .. class:: LinearRing(coordinates)
 
-  The `LinearRing` constructor takes an ordered sequence of ``(z, y[, z])``
+  The `LinearRing` constructor takes an ordered sequence of ``(x, y[, z])``
   point tuples.
   
 The sequence may be explicitly closed by passing identical values in the first
@@ -1377,14 +1377,15 @@ objects.
 Interoperation
 ==============
 
-Shapely provides 4 avenues for interoperation with other Python and GIS
-software.
+Shapely provides 4 avenues for interoperation with other software.
 
 Well-known Formats
 ------------------
 
-A `Well Known Text` (WKT) or `Well Known Binary` (WKB) representation of any
-geometric object can be had via its :attr:`wkt` or :attr:`wkb` attribute.
+A `Well Known Text` (WKT) or `Well Known Binary` (WKB) representation [TODO:
+add reference] of any geometric object can be had via its :attr:`wkt` or
+:attr:`wkb` attribute. These representations allow interchange with many
+GIS programs. PostGIS, for example, trades in hex-encoded WKB.
 
 .. sourcecode:: pycon
 
@@ -1393,12 +1394,11 @@ geometric object can be had via its :attr:`wkt` or :attr:`wkb` attribute.
   >>> Point(0, 0).wkb.encode('hex')
   '010100000000000000000000000000000000000000'
 
-The hex encoded WKB is a value that can be conveniently inserted directly into
-PostGIS.
-
 The `shapely.wkt` and `shapely.wkb` modules provide `dumps()` and `loads()`
 functions that work almost exactly as their `pickle` and `simplejson` module
-counterparts.
+counterparts. To serialize a geometric object to a binary or text string, use
+``dumps()``. To deserialize a string and get a new geometric object of the
+appropriate type, use ``loads()``.
 
 .. function:: shapely.wkb.dumps(ob)
 
@@ -1417,7 +1417,7 @@ counterparts.
   >>> loads(wkb).wkt
   'POINT (0.0000000000000000 0.0000000000000000)'
 
-All of Shapely's geometry types are supported.
+All of Shapely's geometry types are supported by these functions. 
 
 .. function:: shapely.wkt.dumps(ob)
 
@@ -1435,58 +1435,81 @@ All of Shapely's geometry types are supported.
   >>> loads(wkt).wkt
   'POINT (0.0000000000000000 0.0000000000000000)'
 
-Numpy Array Interface
----------------------
+Numpy and Python Arrays
+-----------------------
 
-Shapely geometries provide the Numpy array interface which means that points,
-line strings, and polygon rings can be used as Numpy arrays:
+All geometric objects with coordinate sequences (`Point`, `LinearRing`,
+`LineString`) provide the Numpy array interface [TODO: reference] and can
+thereby be converted or adapted to Numpy arrays.
 
-.. sourcecode:: python
+.. sourcecode:: pycon
 
   >>> from numpy import array
-  >>> a = array(polygon.exterior)
-  >>> a
-  array([[-1., -1.],
-         [-1.,  1.],
-         [ 1.,  1.],
-         [ 1., -1.],
-         [-1., -1.]])
+  >>> array(Point(0, 0))
+  array([ 0.,  0.])
+  >>> array(LineString([(0, 0), (1, 1)]))
+  array([[ 0.,  0.],
+         [ 1.,  1.]])
 
-The *numpy.asarray* function does not copy coordinate values at the price of
-slower numpy access to coordinates.
+The :func:`numpy.asarray` function does not copy coordinate values – at the
+price of slower numpy access to the coordinates of Shapely objects.
 
-The *shapely.geometry.as\** functions can also be used to wrap numpy arrays,
-which can then be analyzed using Shapely while maintaining their original
-storage. A 1 x 2 array can be adapted to a point
+.. note::
 
-.. sourcecode:: python
+  The Numpy array interface is provided without a dependency on Numpy itself.
 
-  >>> a = array([1.0, 2.0])
-  >>> pa = asPoint(a)
+The coordinates of the same types of geometric objects can be had as standard
+Python arrays of `x` and `y` values via the :attr:`xy` attribute.
+
+.. sourcecode:: pycon
+
+  >>> Point(0, 0).xy
+  (array('d', [0.0]), array('d', [0.0]))
+  >>> LineString([(0, 0), (1, 1)]).xy
+  (array('d', [0.0, 1.0]), array('d', [0.0, 1.0]))
+
+The :func:`shapely.geometry.asShape` family of functions can be used to wrap
+numpy coordinate arrays so that they can then be analyzed using Shapely while
+maintaining their original storage. A 1 x 2 array can be adapted to a point
+
+.. sourcecode:: pycon
+
+  >>> from shapely.geometry import asPoint
+  >>> pa = asPoint(array([0.0, 0.0]))
   >>> pa.wkt
-  'POINT (1.0000000000000000 2.0000000000000000)'
+  'POINT (0.0000000000000000 0.0000000000000000)'
 
 and a N x 2 array can be adapted to a line string
 
-.. sourcecode:: python
+.. sourcecode:: pycon
 
   >>> from shapely.geometry import asLineString
-  >>> a = array([[1.0, 2.0], [3.0, 4.0]])
-  >>> la = asLineString(a)
+  >>> la = asLineString(array([[1.0, 2.0], [3.0, 4.0]]))
   >>> la.wkt
   'LINESTRING (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)'
 
 There is no Numpy array representation of a polygon.
 
-
 Python Geo Interface
 --------------------
 
 Any object that provides the GeoJSON-like `Python geo interface`_ can be
-adapted and used as a Shapely geometry using the *shapely.geometry.asShape*
-function. For example, a dictionary:
+adapted and used as a Shapely geometry using the
+:func:`shapely.geometry.asShape` or :func:`shapely.geometry.shape` functions.
 
-.. sourcecode:: python
+.. function:: shapely.geometry.asShape(context)
+
+  Adapts the context to a geometry interface. The coordinates remain stored in
+  the context.
+
+.. function:: shapely.geometry.shape(context)
+
+   Return a new, independent geometry with coordinates `copied` from the
+   context.
+
+For example, a dictionary:
+
+.. sourcecode:: pycon
 
   >>> from shapely.geometry import asShape
   >>> d = {"type": "Point", "coordinates": (0.0, 0.0)}
@@ -1498,7 +1521,7 @@ function. For example, a dictionary:
 
 Or a simple placemark-type object:
 
-.. sourcecode:: python
+.. sourcecode:: pycon
 
   >>> class GeoThing(object):
   ...     def __init__(self, d):
@@ -1509,13 +1532,6 @@ Or a simple placemark-type object:
   'Point'
   >>> list(shape.coords)
   [(0.0, 0.0)]
-
-If you want to copy coordinate data to a new geometry, use the
-*shapely.geometry.shape* function instead.
-
-.. _Python geo interface: http://trac.gispython.org/projects/PCL/wiki/PythonGeoInterface
-
-
 
 .. _GEOS: http://geos.refractions.net
 .. _Java Topology Suite: http://www.vividsolutions.com/jts/jtshome.htm
@@ -1532,6 +1548,7 @@ If you want to copy coordinate data to a new geometry, use the
 .. |JTS-PDF| replace:: PDF
 .. _frozenset: http://docs.python.org/library/stdtypes.html#frozenset
 .. _Sorting HowTo: http://wiki.python.org/moin/HowTo/Sorting/
+.. _Python geo interface: http://trac.gispython.org/projects/PCL/wiki/PythonGeoInterface
 
 References
 ==========
