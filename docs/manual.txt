@@ -36,7 +36,7 @@ specifically, computational geometry.
 Shapely is a Python package for set-theoretic analysis and manipulation of
 planar features using (via Python's `ctypes` module) functions from the well
 known and widely deployed GEOS_ library. GEOS, a port of the `Java Topology
-Suite`_, is the geometry engine of the PostGIS_ spatial extension for the
+Suite`_ (JTS), is the geometry engine of the PostGIS_ spatial extension for the
 PostgreSQL RDBMS. The designs of JTS and GEOS are largely guided by the `Open
 Geospatial Consortium`_'s Simple Features Access Specification [1]_ and Shapely
 adheres mainly to the same set of standard classes and operations. Shapely is
@@ -709,6 +709,38 @@ length of the object. The :meth:`project` method is the inverse of
   1.5
   >>> LineString([(0, 0), (0, 1), (1, 1)]).project(ip, normalized=True)
   0.75
+
+For example, the linear referencing methods might be used to cut lines at a
+specified distance.
+
+.. sourcecode:: python
+
+  def cut(line, distance):
+      # Cuts a line in two at a distance from its starting point
+      if distance <= 0.0 or distance >= line.length:
+          return [LineString(line)]
+      coords = list(line.coords)
+      for i, p in enumerate(coords):
+          pd = line.project(Point(p))
+          if pd == distance:
+              return [
+                  LineString(coords[:i+1]),
+                  LineString(coords[i:])]
+          if pd > distance:
+              cp = line.interpolate(distance)
+              return [
+                  LineString(coords[:i] + [(cp.x, cp.y)]), 
+                  LineString([(cp.x, cp.y)] + coords[i:])]
+
+.. sourcecode:: pycon
+
+  >>> line = LineString([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0)])
+  >>> pprint([list(x.coords) for x in cut.cut(line, 1.0)])
+  [[(0.0, 0.0), (1.0, 0.0)],
+   [(1.0, 0.0), (2.0, 0.0), (3.0, 0.0), (4.0, 0.0), (5.0, 0.0)]]
+  >>> pprint([list(x.coords) for x in cut.cut(line, 2.5)])
+  [[(0.0, 0.0), (1.0, 0.0), (2.0, 0.0), (2.5, 0.0)],
+   [(2.5, 0.0), (3.0, 0.0), (4.0, 0.0), (5.0, 0.0)]]
 
 Predicates and Relationships
 ============================
@@ -1539,7 +1571,7 @@ Or a simple placemark-type object:
 .. _PostGIS: http://postgis.refractions.net
 .. _record: http://pypi.python.org/pypi/Shapely
 .. _wiki: http://trac.gispython.org/lab/wiki/Shapely
-.. _Open Geospatial Consortium: http://wwww.opengeospatial.org/
+.. _Open Geospatial Consortium: http://www.opengeospatial.org/
 .. _Davis: http://lin-ear-th-inking.blogspot.com/2007/06/subtleties-of-ogc-covers-spatial.html
 .. _Understanding spatial relations: http://edndoc.esri.com/arcsde/9.1/general_topics/understand_spatial_relations.htm
 .. _Strobl-PDF: http://gis.hsr.ch/wiki/images/3/3d/9dem_springer.pdf
