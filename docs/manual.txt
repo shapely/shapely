@@ -4,7 +4,7 @@ The Shapely 1.2 User Manual (Preview)
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
 :Revision: 1.2b7
-:Date: 20 May 2010
+:Date: 21 May 2010
 :Copyright: 
   This work is licensed under a `Creative Commons Attribution 3.0
   United States License`__.
@@ -676,6 +676,12 @@ and `MultiLineStrings` with a 1-dimensional referencing system. Shapely
 supports linear referencing based on length or distance, evaluating the
 distance along a geometric object to the projection of a given point, or the
 point at a given distance along the object.
+
+.. note:: 
+
+  Linear referencing methods require the support of GEOS version >= 3.2 or more
+  specifically, a GEOS C API version > (1, 6, 0). This version tuple is
+  surfaced in Shapely as :data:`shapely.geos.geos_capi_version`.
 
 .. method:: object.interpolate(distance[, normalized=False])
 
