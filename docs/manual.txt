@@ -4,7 +4,7 @@ The Shapely 1.2 User Manual (Preview)
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
 :Revision: 1.2b7
-:Date: 21 May 2010
+:Date: 24 May 2010
 :Copyright: 
   This work is licensed under a `Creative Commons Attribution 3.0
   United States License`__.
@@ -34,15 +34,15 @@ questions addressable using non-statistical spatial analysis, and more
 specifically, computational geometry.
 
 Shapely is a Python package for set-theoretic analysis and manipulation of
-planar features using (via Python's `ctypes` module) functions from the well
-known and widely deployed GEOS_ library. GEOS, a port of the `Java Topology
-Suite`_ (JTS), is the geometry engine of the PostGIS_ spatial extension for the
-PostgreSQL RDBMS. The designs of JTS and GEOS are largely guided by the `Open
-Geospatial Consortium`_'s Simple Features Access Specification [1]_ and Shapely
-adheres mainly to the same set of standard classes and operations. Shapely is
-thereby deeply rooted in the conventions of the geographic information systems
-(GIS) world, but aspires to be equally useful to programmers working on
-non-conventional problems.
+planar features using (via Python's :mod:`ctypes` module) functions from the
+well known and widely deployed GEOS_ library. GEOS, a port of the `Java
+Topology Suite`_ (JTS), is the geometry engine of the PostGIS_ spatial
+extension for the PostgreSQL RDBMS. The designs of JTS and GEOS are largely
+guided by the `Open Geospatial Consortium`_'s Simple Features Access
+Specification [1]_ and Shapely adheres mainly to the same set of standard
+classes and operations. Shapely is thereby deeply rooted in the conventions of
+the geographic information systems (GIS) world, but aspires to be equally
+useful to programmers working on non-conventional problems.
 
 The first premise of Shapely is that Python programmers should be able to
 perform PostGIS type geometry operations outside of an RDBMS. Not all
@@ -166,12 +166,47 @@ assigned new coordinate sequences. A third `z` coordinate value may be used
 when constructing instances, but has no effect on geometric analysis.  All
 operations are performed in the `x-y` plane.
 
-In all constructors, numeric values are converted to type `float`. In other
+In all constructors, numeric values are converted to type ``float``. In other
 words, ``Point(0, 0)`` and ``Point(0.0, 0.0)`` produce geometrically equivalent
 instances. Shapely does not check the topological simplicity or validity of
 instances when they are constructed as the cost is unwarranted in most cases.
-Validating factories are trivially implemented, using the `is_valid` predicate,
-by users that require them.
+Validating factories are trivially implemented, using the :attr:`is_valid`
+predicate, by users that require them.
+
+General Attributes and Methods
+------------------------------
+
+.. attribute:: object.area
+
+  Returns the area (``float``) of the object.
+
+.. attribute:: object.bounds
+
+  Returns a ``(minx, miny, maxx, maxy)`` tuple (``float`` values) that bounds
+  the object.
+
+.. attribute:: object.length
+
+  Returns the length (``float``) of the object.
+
+.. attribute:: object.geom_type
+
+  Returns a string specifying the `Geometry Type` of the object in accordance
+  with [1]_.
+
+.. sourcecode:: pycon
+
+  >>> print Point(0, 0).geom_type
+  Point
+
+.. method:: object.distance(other)
+
+  Returns the minimum distance (``float``) to the `other` geometric object.
+
+.. sourcecode:: pycon
+
+  >>> Point(0,0).distance(Point(1,1))
+  1.4142135623730951
 
 .. _points:
 
@@ -650,24 +685,6 @@ longer empty.
   >>> line.bounds
   (0.0, 0.0, 1.0, 1.0)
 
-.. _predicates:
-
-General Methods
----------------
-
-In addition to the :attr:`area`, :attr:`bounds`, and :attr:`length` attributes
-illustrated previously, the :meth:`distance` method can be used to measure the
-minimum distance between two geometric objects.
-
-.. method:: object.distance(other)
-
-  Returns the minimum distance to the `other` geometric object.
-
-.. sourcecode:: pycon
-
-  >>> Point(0,0).distance(Point(1,1))
-  1.4142135623730951
-
 Linear Referencing Methods
 --------------------------
 
@@ -747,6 +764,8 @@ specified distance.
   >>> pprint([list(x.coords) for x in cut.cut(line, 2.5)])
   [[(0.0, 0.0), (1.0, 0.0), (2.0, 0.0), (2.5, 0.0)],
    [(2.5, 0.0), (3.0, 0.0), (4.0, 0.0), (5.0, 0.0)]]
+
+.. _predicates:
 
 Predicates and Relationships
 ============================
@@ -1066,6 +1085,43 @@ It also works on the list of features, producing the order we want.
   >>> [d, c, c, b, a] == sorted(features, key=Within, reverse=True)
   True
 
+DE-9IM Relationships
+--------------------
+
+The :meth:`relate` method tests all the DE-9IM [4]_ relationships between
+objects, of which the named relationship predicates above are a subset.
+
+.. method:: object.relate(other)
+
+    Returns a string representation of the DE-9IM matrix of relationships
+    between an object's `interior`, `boundary`, `exterior` and those of another
+    geometric object.
+
+The named relationship predicates (:meth:`contains`, etc.) are typically
+implemented as wrappers around :meth:`relate`.
+
+Two different points have mainly ``F`` (false) values in their matrix; the
+intersection of their `external` sets (the 9th element) is a ``2`` dimensional
+object (the rest of the plane). The intersection of the `interior` of one with
+the `exterior` of the other is a ``0`` dimensional object (3rd and 7th elements
+of the matrix).
+
+.. sourcecode:: pycon
+
+  >>> Point(0, 0).relate(Point(1, 1))
+  'FF0FFF0F2'
+
+The matrix for a line and a point on the line has more "true" (not ``F``)
+elements.
+
+.. sourcecode:: pycon
+
+  >>> Point(0, 0).relate(LineString([(0, 0), (1, 1)]))
+  'F0FFFF102'
+
+Further discussion of the DE-9IM matrix is beyond the scope of this manual. See
+[4]_ and http://pypi.python.org/pypi/de9im/0.1.
+
 .. _analysis-methods:
 
 Spatial Analysis Methods
@@ -1109,6 +1165,22 @@ points. The boundary of a point is an empty (null) collection.
 
 See the figures in :ref:`linestrings` and :ref:`multilinestrings` for the
 illustration of lines and their boundaries.
+
+.. attribute:: object.centroid
+
+  Returns a representation of the object's geometric centroid (point).
+
+.. sourcecode:: pycon
+
+  >>> LineString([(0, 0), (1, 1)]).centroid
+  <shapely.geometry.point.Point object at 0x...>
+  >>> LineString([(0, 0), (1, 1)]).centroid.wkt
+  'POINT (0.5000000000000000 0.5000000000000000)'
+
+.. note:: 
+
+  The centroid of an object might be one of its points, but this is not
+  guaranteed.
 
 .. method:: object.difference(other)
 
@@ -1199,7 +1271,8 @@ boundaries.
 .. note::
 
   :meth:`union` is an expensive way to find the cumulative union
-  of many objects. See :meth:`cascaded_union` for a more effective method.
+  of many objects. See :func:`shapely.ops.cascaded_union` for a more effective
+  method.
 
 Constructive Methods
 --------------------
@@ -1383,6 +1456,35 @@ object.
    <shapely.geometry.linestring.LineString object at 0x...>,
    <shapely.geometry.linestring.LineString object at 0x...>]
 
+Cascading Unions
+----------------
+
+The :func:`cascaded_union` function in `shapely.ops` is more efficient than
+accumulating with :meth:`union`.
+
+.. plot:: code/cascaded_union.py
+
+.. function:: shapely.ops.cascaded_union(geoms)
+
+  Returns a representation of the union of the given geometric objects.
+
+.. sourcecode:: pycon
+
+  >>> from shapely.ops import cascaded_union
+  >>> polygons = [Point(i, 0).buffer(0.7) for i in range(5)]
+  >>> cascaded_union(polygons)
+  <shapely.geometry.polygon.Polygon object at 0x...>
+
+The function is particularly useful in dissolving `MultiPolygons`.
+
+.. sourcecode:: pycon
+
+  >>> m = MultiPolygon(polygons)
+  >>> m.area
+  7.6845438018375516
+  >>> cascaded_union(m).area
+  6.6103013551167971
+
 Prepared Geometry Operations
 ----------------------------
 
@@ -1420,10 +1522,10 @@ Shapely provides 4 avenues for interoperation with other software.
 Well-known Formats
 ------------------
 
-A `Well Known Text` (WKT) or `Well Known Binary` (WKB) representation [TODO:
-add reference] of any geometric object can be had via its :attr:`wkt` or
-:attr:`wkb` attribute. These representations allow interchange with many
-GIS programs. PostGIS, for example, trades in hex-encoded WKB.
+A `Well Known Text` (WKT) or `Well Known Binary` (WKB) representation [1]_ of
+any geometric object can be had via its :attr:`wkt` or :attr:`wkb` attribute.
+These representations allow interchange with many GIS programs. PostGIS, for
+example, trades in hex-encoded WKB.
 
 .. sourcecode:: pycon
 
@@ -1477,8 +1579,8 @@ Numpy and Python Arrays
 -----------------------
 
 All geometric objects with coordinate sequences (`Point`, `LinearRing`,
-`LineString`) provide the Numpy array interface [TODO: reference] and can
-thereby be converted or adapted to Numpy arrays.
+`LineString`) provide the Numpy array interface and can thereby be converted or
+adapted to Numpy arrays.
 
 .. sourcecode:: pycon
 
@@ -1571,22 +1673,14 @@ Or a simple placemark-type object:
   >>> list(shape.coords)
   [(0.0, 0.0)]
 
-.. _GEOS: http://geos.refractions.net
-.. _Java Topology Suite: http://www.vividsolutions.com/jts/jtshome.htm
-.. _JTS: http://www.vividsolutions.com/jts/jtshome.htm
-.. _PostGIS: http://postgis.refractions.net
-.. _record: http://pypi.python.org/pypi/Shapely
-.. _wiki: http://trac.gispython.org/lab/wiki/Shapely
-.. _Open Geospatial Consortium: http://www.opengeospatial.org/
-.. _Davis: http://lin-ear-th-inking.blogspot.com/2007/06/subtleties-of-ogc-covers-spatial.html
-.. _Understanding spatial relations: http://edndoc.esri.com/arcsde/9.1/general_topics/understand_spatial_relations.htm
-.. _Strobl-PDF: http://gis.hsr.ch/wiki/images/3/3d/9dem_springer.pdf
-.. |Strobl-PDF| replace:: PDF
-.. _JTS-PDF: http://www.vividsolutions.com/jts/bin/JTS%20Technical%20Specs.pdf
-.. |JTS-PDF| replace:: PDF
-.. _frozenset: http://docs.python.org/library/stdtypes.html#frozenset
-.. _Sorting HowTo: http://wiki.python.org/moin/HowTo/Sorting/
-.. _Python geo interface: http://trac.gispython.org/projects/PCL/wiki/PythonGeoInterface
+Conclusion
+==========
+
+We hope that you will enjoy and profit from using Shapely. Questions and
+comments are welcome on the GIS-Python email list_. This manual will be updated
+and improved regularly. Its source is available at
+http://github.com/sgillies/shapely/tree/master/docs/. 
+
 
 References
 ==========
@@ -1618,3 +1712,20 @@ References
    1973, pp. 112-122.
 
 
+.. _GEOS: http://geos.refractions.net
+.. _Java Topology Suite: http://www.vividsolutions.com/jts/jtshome.htm
+.. _JTS: http://www.vividsolutions.com/jts/jtshome.htm
+.. _PostGIS: http://postgis.refractions.net
+.. _record: http://pypi.python.org/pypi/Shapely
+.. _wiki: http://trac.gispython.org/lab/wiki/Shapely
+.. _Open Geospatial Consortium: http://www.opengeospatial.org/
+.. _Davis: http://lin-ear-th-inking.blogspot.com/2007/06/subtleties-of-ogc-covers-spatial.html
+.. _Understanding spatial relations: http://edndoc.esri.com/arcsde/9.1/general_topics/understand_spatial_relations.htm
+.. _Strobl-PDF: http://gis.hsr.ch/wiki/images/3/3d/9dem_springer.pdf
+.. |Strobl-PDF| replace:: PDF
+.. _JTS-PDF: http://www.vividsolutions.com/jts/bin/JTS%20Technical%20Specs.pdf
+.. |JTS-PDF| replace:: PDF
+.. _frozenset: http://docs.python.org/library/stdtypes.html#frozenset
+.. _Sorting HowTo: http://wiki.python.org/moin/HowTo/Sorting/
+.. _Python geo interface: http://trac.gispython.org/projects/PCL/wiki/PythonGeoInterface
+.. _list: http://lists.gispython.org/mailman/listinfo/community
