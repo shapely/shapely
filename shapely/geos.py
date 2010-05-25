@@ -99,7 +99,7 @@ def _geos_c_version():
     v = func().split('-')[2]
     return tuple(int(n) for n in v.split('.'))
 
-geos_c_version = _geos_c_version()
+geos_capi_version = geos_c_version = _geos_c_version()
 
 class allocated_c_char_p(c_char_p):
     pass
@@ -348,7 +348,7 @@ class LGEOS16LR(LGEOS16):
     """Proxy for the reentrant GEOS_C DLL/SO API version 1.6 with linear
     referencing
     """
-    geos_capi_version = (1, 6, 0.5)
+    geos_capi_version = geos_c_version
     def __init__(self, dll):
         super(LGEOS16LR, self).__init__(dll)
         
