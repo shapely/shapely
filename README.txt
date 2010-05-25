@@ -7,9 +7,9 @@ Shapely
    :height: 400
 
 Shapely is a BSD-licensed Python package for manipulation and analysis of
-planar geometries. It is not concerned with data formats or coordinate
-systems. It is based on the widely deployed GEOS_ (the engine of PostGIS_) and
-JTS_ (from which GEOS is ported) libraries. This C dependency is traded for the
+planar geometries. It is not concerned with data formats or coordinate systems.
+It is based on the widely deployed GEOS_ (the engine of PostGIS_) and JTS_
+(from which GEOS is ported) libraries. This C dependency is traded for the
 ability to analyze geometries with blazing speed.
 
 In a nutshell: Shapely lets you do PostGIS-ish stuff outside the context of a
@@ -19,7 +19,6 @@ database using idiomatic Python. For more details, see:
 * Shapely manual_
 * Shapely `example apps`_
 
-
 Dependencies
 ------------
 
@@ -27,7 +26,6 @@ Shapely 1.2 depends on:
 
 * Python >=2.5,<3
 * libgeos_c >=3.1 (3.0 and below have not been tested, YMMV)
-
 
 Installation
 ------------
@@ -41,7 +39,6 @@ is on the system library path, and install from the Python package index::
 or from a source distribution with the setup script::
 
   $ python setup.py install
-
 
 Usage
 -----
@@ -59,12 +56,19 @@ buffering a point::
 See the manual_ for comprehensive usage snippets and the dissolve.py and
 intersect.py `example apps`_.
 
+Integration 
+-----------
 
-Numpy integration
------------------
+Shapely does not read or write data files, but it can serialize and deserialize
+using several well known formats and protocols. The shapely.wkb and shapely.wkt
+modules provide dumpers and loaders inspired by Python's pickle module.::
 
-All linear geometries, such as the rings of a polygon, provide the Numpy array
-interface::
+  >>> from shapely.wkt import dumps, loads
+  >>> dumps(loads('POINT (0 0)'))
+  'POINT (0.0000000000000000 0.0000000000000000)'
+
+All linear geometries, such as the rings of a polygon (like ``patch`` above),
+provide the Numpy array interface.::
 
   >>> from numpy import asarray
   >>> ag = asarray(patch.exterior)
@@ -75,9 +79,9 @@ interface::
          ...
          [  1.00000000e+01,   0.00000000e+00]])
 
-That yields a numpy array of [x, y] arrays. This is not exactly what one wants
-for plotting shapes with Matplotlib, so Shapely 1.2 adds a `xy` geometry
-property for getting separate arrays of coordinate x and y values::
+That yields a numpy array of [x, y] arrays. This is not always exactly what one
+wants for plotting shapes with Matplotlib, so Shapely 1.2 adds a `xy` geometry
+property for getting separate arrays of coordinate x and y values.::
 
   >>> x, y = patch.exterior.xy
   >>> ax = asarray(x)
@@ -92,14 +96,13 @@ Numpy arrays can also be adapted to Shapely linestrings::
   >>> asLineString(ag).wkt
   'LINESTRING (10.0000000000000000 0.0000000000000000, ...)'
 
-
 Testing
 -------
 
-Shapely uses a Zope-stye suite of unittests and doctests, excercised like::
+Shapely uses a Zope-stye suite of unittests and doctests, excercised via
+setup.py.::
 
   $ python setup.py test
-
 
 Support
 -------
@@ -109,7 +112,6 @@ For current information about this project, see the wiki_.
 If you have questions, please consider joining our community list:
 
 http://trac.gispython.org/projects/PCL/wiki/CommunityList
-
 
 Credits
 -------
@@ -139,13 +141,12 @@ Additional help from:
 Major portions of this work were supported by a grant (for Pleiades_) from the
 U.S. National Endowment for the Humanities (http://www.neh.gov).
 
-
 .. _JTS: http://www.vividsolutions.com/jts/jtshome.htm
 .. _PostGIS: http://postgis.org
 .. _GEOS: http://trac.osgeo.org/geos/
 .. _example apps: http://trac.gispython.org/lab/wiki/Examples
 .. _wiki: http://trac.gispython.org/lab/wiki/Shapely
-.. _manual: http://gispython.org/shapely/manual.html
+.. _manual: http://gispython.org/shapely/docs/1.2
 .. |eaigue| unicode:: U+00E9
    :trim:
 .. _Pleiades: http://pleiades.stoa.org

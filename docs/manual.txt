@@ -3,7 +3,7 @@ The Shapely 1.2 User Manual (Preview)
 =====================================
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
-:Revision: 1.2b7
+:Revision: 1.2
 :Date: 24 May 2010
 :Copyright: 
   This work is licensed under a `Creative Commons Attribution 3.0
@@ -758,10 +758,10 @@ specified distance.
 .. sourcecode:: pycon
 
   >>> line = LineString([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0)])
-  >>> pprint([list(x.coords) for x in cut.cut(line, 1.0)])
+  >>> pprint([list(x.coords) for x in cut(line, 1.0)])
   [[(0.0, 0.0), (1.0, 0.0)],
    [(1.0, 0.0), (2.0, 0.0), (3.0, 0.0), (4.0, 0.0), (5.0, 0.0)]]
-  >>> pprint([list(x.coords) for x in cut.cut(line, 2.5)])
+  >>> pprint([list(x.coords) for x in cut(line, 2.5)])
   [[(0.0, 0.0), (1.0, 0.0), (2.0, 0.0), (2.5, 0.0)],
    [(2.5, 0.0), (3.0, 0.0), (4.0, 0.0), (5.0, 0.0)]]
 
