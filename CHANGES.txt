@@ -1,5 +1,14 @@
 All tickets are children of http://trac.gispython.org/lab/ticket.
 
+1.2 (2010-05-26)
+----------------
+- Add examples and tests to MANIFEST.in
+- Final release.
+
+1.2rc1 (2010-05-25)
+-------------------
+- Release candidate.
+
 1.2b7 (2010-04-22)
 ------------------
 - Memory leak associated with new empty geometry state fixed.

@@ -531,7 +531,7 @@ Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
   (0.0, 0.0, 1.0, 1.0)
 
 Members of a multi-point collection are accessed via the ``geoms`` property or
-via the iterator protocol using ``in`` or ``list()``.
+via the iterator protocol using ``in`` or :func:`list`.
 
 .. sourcecode:: pycon
 

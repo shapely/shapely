@@ -16,10 +16,10 @@ readme_text = file('README.txt', 'rb').read()
 setup_args = dict(
     metadata_version    = '1.2',
     name                = 'Shapely',
-    version             = '1.2rc1',
+    version             = '1.2',
     requires_python     = '>=2.5,<3',
     requires_external   = 'libgeos_c (>=3.1)', 
-    description         = 'Planar geometries, predicates, and operations',
+    description         = 'Geometric objects, predicates, and operations',
     license             = 'BSD',
     keywords            = 'geometry topology gis',
     author              = 'Sean Gillies',
