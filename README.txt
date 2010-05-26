@@ -104,6 +104,9 @@ setup.py.::
 
   $ python setup.py test
 
+Nosetests won't run the tests properly; Zope doctest suites are not currently
+supported well by nose.
+
 Support
 -------
 
