@@ -7,10 +7,17 @@ Shapely
    :height: 400
 
 Shapely is a BSD-licensed Python package for manipulation and analysis of
+<<<<<<< HEAD:README.txt
 planar geometric objects. It is not concerned with data formats or coordinate
 systems.  It is based on the widely deployed GEOS_ (the engine of PostGIS_) and
 JTS_ (from which GEOS is ported) libraries. This C dependency is traded for the
 ability to execute with blazing speed.
+=======
+planar geometries. It is not concerned with data formats or coordinate systems.
+It is based on the widely deployed GEOS_ (the engine of PostGIS_) and JTS_
+(from which GEOS is ported) libraries. This C dependency is traded for the
+ability to analyze geometries with blazing speed.
+>>>>>>> 729cc5088c6856365ea9510638a498a78ac24fe5:README.txt
 
 In a nutshell: Shapely lets you do PostGIS-ish stuff outside the context of a
 database using idiomatic Python. For more details, see:
@@ -67,7 +74,11 @@ modules provide dumpers and loaders inspired by Python's pickle module.::
   >>> dumps(loads('POINT (0 0)'))
   'POINT (0.0000000000000000 0.0000000000000000)'
 
+<<<<<<< HEAD:README.txt
 All linear objects, such as the rings of a polygon (like ``patch`` above),
+=======
+All linear geometries, such as the rings of a polygon (like ``patch`` above),
+>>>>>>> 729cc5088c6856365ea9510638a498a78ac24fe5:README.txt
 provide the Numpy array interface.::
 
   >>> from numpy import asarray
@@ -80,8 +91,13 @@ provide the Numpy array interface.::
          [  1.00000000e+01,   0.00000000e+00]])
 
 That yields a numpy array of [x, y] arrays. This is not always exactly what one
+<<<<<<< HEAD:README.txt
 wants for plotting shapes with Matplotlib, so Shapely 1.2 adds a `xy` property
 for getting separate arrays of coordinate x and y values.::
+=======
+wants for plotting shapes with Matplotlib, so Shapely 1.2 adds a `xy` geometry
+property for getting separate arrays of coordinate x and y values.::
+>>>>>>> 729cc5088c6856365ea9510638a498a78ac24fe5:README.txt
 
   >>> x, y = patch.exterior.xy
   >>> ax = asarray(x)
