@@ -144,6 +144,8 @@ class BoundsOp(Validating):
     def __call__(self, this):
         self._validate(this)
         env = this.envelope
+        if env.geom_type == 'Point':
+            return env.bounds
         cs = lgeos.GEOSGeom_getCoordSeq(env.exterior._geom)
         cs_len = c_uint(0)
         lgeos.GEOSCoordSeq_getSize(cs, byref(cs_len))

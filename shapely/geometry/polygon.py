@@ -350,7 +350,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
         assert (n == 2 or n == 3)
 
         # Add closing coordinates if not provided
-        if ob[0][0] != ob[-1][0] or ob[0][1] != ob[-1][1]:
+        if m == 3 or ob[0][0] != ob[-1][0] or ob[0][1] != ob[-1][1]:
             M = m + 1
         else:
             M = m
