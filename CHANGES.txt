@@ -1,5 +1,9 @@
 All tickets are children of http://trac.gispython.org/lab/ticket.
 
+1.2.1 (????-??-??)
+------------------
+- Fixed bounds of singular polygons.
+
 1.2 (2010-05-27)
 ----------------
 - Final release.
