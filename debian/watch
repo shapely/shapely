@@ -1,0 +1,4 @@
+# Compulsory line, this is a version 3 file
+version=3
+opts=uversionmangle=s/(a|b|rc)/~$1/ \
+http://pypi.python.org/packages/source/S/Shapely/ Shapely-(.*)\.tar\.gz
