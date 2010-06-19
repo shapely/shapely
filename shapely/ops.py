@@ -79,3 +79,9 @@ polygonize = operator.polygonize
 linemerge = operator.linemerge
 cascaded_union = operator.cascaded_union
 
+class ValidateOp(object):
+    def __call__(self, this):
+        return lgeos.GEOSisValidReason(this._geom)
+
+validate = ValidateOp()
+

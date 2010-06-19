@@ -167,6 +167,9 @@ def prototype(lgeos, geosVersion):
     lgeos.GEOSisValid.restype = ctypes.c_byte
     lgeos.GEOSisValid.argtypes = [ctypes.c_void_p]
 
+    lgeos.GEOSisValidReason.restype = allocated_c_char_p
+    lgeos.GEOSisValidReason.argtypes = [ctypes.c_void_p]
+
     lgeos.GEOSisSimple.restype = ctypes.c_byte
     lgeos.GEOSisSimple.argtypes = [ctypes.c_void_p]
 

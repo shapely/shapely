@@ -3,7 +3,7 @@
 
 from ctypes import c_char_p
 
-from shapely.geos import lgeos, allocated_c_char_p, ReadingError
+from shapely.geos import lgeos, ReadingError
 
 
 # Pickle-like convenience functions

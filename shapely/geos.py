@@ -10,7 +10,7 @@ import sys
 import time
 import threading
 import ctypes
-from ctypes import cdll, CDLL, PyDLL, CFUNCTYPE, c_char_p, c_void_p
+from ctypes import cdll, CDLL, PyDLL, CFUNCTYPE, c_char_p, c_void_p, string_at
 from ctypes.util import find_library
 
 from ctypes_declarations import prototype
@@ -101,9 +101,6 @@ def _geos_c_version():
 
 geos_capi_version = geos_c_version = _geos_c_version()
 
-class allocated_c_char_p(c_char_p):
-    pass
-
 # If we have the new interface, then record a baseline so that we know what
 # additional functions are declared in ctypes_declarations.
 if geos_c_version >= (1,5,0):
@@ -178,7 +175,7 @@ def errcheck_wkb(result, func, argtuple):
     return retval
 
 def errcheck_just_free(result, func, argtuple):
-    retval = result.value
+    retval = string_at(result)
     lgeos.GEOSFree(result)
     return retval
 
@@ -351,13 +348,15 @@ class LGEOS16LR(LGEOS16):
     geos_capi_version = geos_c_version
     def __init__(self, dll):
         super(LGEOS16LR, self).__init__(dll)
+
+        self.GEOSisValidReason.func.errcheck = errcheck_just_free
         
         self.methods['project'] = self.GEOSProject
         self.methods['project_normalized'] = self.GEOSProjectNormalized
         self.methods['interpolate'] = self.GEOSInterpolate
         self.methods['interpolate_normalized'] = \
             self.GEOSInterpolateNormalized
-            
+
 
 if geos_c_version >= (1, 6, 0):
     if hasattr(_lgeos, 'GEOSProject'):
