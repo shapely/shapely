@@ -32,7 +32,7 @@ setup_args = dict(
     scripts             = ['examples/dissolve.py', 'examples/intersect.py'],
     test_suite          = 'shapely.tests.test_suite',
     classifiers         = [
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: BSD License',

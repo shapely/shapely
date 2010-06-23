@@ -1,8 +1,9 @@
 All tickets are children of http://trac.gispython.org/lab/ticket.
 
-1.2.1 (????-??-??)
+1.2.1 (2010-06-23)
 ------------------
 - Fixed bounds of singular polygons.
+- Added shapely.validation.explain_validity function (#226).
 
 1.2 (2010-05-27)
 ----------------
