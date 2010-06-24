@@ -4,3 +4,4 @@ recursive-exclude debian *
 include CHANGES.txt CREDITS.txt LICENSE.txt README.txt
 recursive-include shapely/tests *.py *.txt
 recursive-include shapely/examples *.py
+recursive-include docs manual.txt
