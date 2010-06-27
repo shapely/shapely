@@ -3,8 +3,8 @@ The Shapely 1.2 User Manual (Preview)
 =====================================
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
-:Revision: 1.2
-:Date: 24 May 2010
+:Revision: 1.2.1
+:Date: 27 June 2010
 :Copyright: 
   This work is licensed under a `Creative Commons Attribution 3.0
   United States License`__.
