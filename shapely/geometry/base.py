@@ -247,6 +247,11 @@ class BaseGeometry(object):
         return geom_factory(self.impl['centroid'](self))
 
     @property
+    def point_on_surface(self):
+        """Returns the geometric center of the polygon"""
+        return geom_factory(self.impl['point_on_surface'](self))
+
+    @property
     def convex_hull(self):
         """Imagine an elastic band stretched around the geometry: that's a 
         convex hull, more or less
