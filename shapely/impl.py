@@ -19,6 +19,7 @@ IMPL14 = {
     'boundary': (UnaryTopologicalOp, 'boundary'),
     'bounds': (BoundsOp, None),
     'centroid': (UnaryTopologicalOp, 'centroid'),
+    'point_on_surface': (UnaryTopologicalOp, 'point_on_surface'),
     'envelope': (UnaryTopologicalOp, 'envelope'),
     'convex_hull': (UnaryTopologicalOp, 'convex_hull'),
     'buffer': (UnaryTopologicalOp, 'buffer'),

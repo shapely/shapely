@@ -231,6 +231,7 @@ class LGEOS14(LGEOSBase):
         self.methods['boundary'] = self.GEOSBoundary
         self.methods['buffer'] = self.GEOSBuffer
         self.methods['centroid'] = self.GEOSGetCentroid
+        self.methods['point_on_surface'] = self.GEOSPointOnSurface
         self.methods['convex_hull'] = self.GEOSConvexHull
         self.methods['distance'] = self.GEOSDistance
         self.methods['envelope'] = self.GEOSEnvelope
@@ -301,6 +302,7 @@ class LGEOS15(LGEOSBase):
         self.methods['boundary'] = self.GEOSBoundary
         self.methods['buffer'] = self.GEOSBuffer
         self.methods['centroid'] = self.GEOSGetCentroid
+        self.methods['point_on_surface'] = self.GEOSPointOnSurface
         self.methods['convex_hull'] = self.GEOSConvexHull
         self.methods['distance'] = self.GEOSDistance
         self.methods['envelope'] = self.GEOSEnvelope
