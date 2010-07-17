@@ -243,13 +243,12 @@ class BaseGeometry(object):
             
     @property
     def centroid(self):
-        """Returns the geometric center of the polygon"""
+        """Returns the geometric center of the object"""
         return geom_factory(self.impl['centroid'](self))
 
-    @property
-    def point_on_surface(self):
-        """Returns the geometric center of the polygon"""
-        return geom_factory(self.impl['point_on_surface'](self))
+    def representative_point(self):
+        """Returns a point guaranteed to be within the object, cheaply."""
+        return geom_factory(self.impl['representative_point'](self))
 
     @property
     def convex_hull(self):

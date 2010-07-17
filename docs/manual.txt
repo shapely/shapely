@@ -4,7 +4,7 @@ The Shapely 1.2 User Manual (Preview)
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
 :Revision: 1.2.1
-:Date: 27 June 2010
+:Date: 13 July 2010
 :Copyright: 
   This work is licensed under a `Creative Commons Attribution 3.0
   United States License`__.
@@ -207,6 +207,22 @@ General Attributes and Methods
 
   >>> Point(0,0).distance(Point(1,1))
   1.4142135623730951
+
+.. method:: object.representative_point()
+
+  Returns a cheaply computed point that is guaranteed to be within the 
+  geometric object.
+
+.. note::
+  This is not in the general the same as the centroid.
+
+.. sourcecode:: pycon
+
+  >>> donut = Point(0, 0).buffer(2.0).difference(Point(0, 0).buffer(1.0))
+  >>> donut.centroid.wkt
+  'POINT (-0.0000000000000001 -0.0000000000000000)'
+  >>> donut.representative_point().wkt
+  'POINT (-1.5000000000000000 0.0000000000000000)'
 
 .. _points:
 
@@ -1501,7 +1517,7 @@ first use the :func:`prepared.prep` function.
 .. sourcecode:: pycon
 
   >>> from shapely.geometry import Point
-  >>> from shapely.prepared import polyprep
+  >>> from shapely.prepared import prep
   >>> points = [...] # large list of points
   >>> polygon = Point(0.0, 0.0).buffer(1.0)
   >>> prepared_polygon = prep(polygon)
