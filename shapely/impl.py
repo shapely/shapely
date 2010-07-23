@@ -1,4 +1,14 @@
 """Implementation of the intermediary layer between Shapely and GEOS
+
+This is layer number 2 from the list below.
+
+1) geometric objects: the Python OO API.
+2) implementation map: an abstraction that permits different backends.
+3) backend: callable objects that take Shapely geometric objects as arguments 
+   and, with GEOS as a backend, translate them to C data structures.
+4) GEOS library: algorithms implemented in C++.
+
+Shapely 1.2 includes a GEOS backend and it is the default.
 """
 
 from shapely.coords import BoundsOp
@@ -68,15 +78,15 @@ IMPL16LR = {
     'interpolate': (InterpolateOp, 'interpolate'),
     }
 
-def build(defs):
+def impl_items(defs):
     return [(k, v[0](v[1])) for k, v in defs.items()]
 
-imp = dict(build(IMPL14))
+imp = dict(impl_items(IMPL14))
 if lgeos.geos_capi_version >= (1, 5, 0):
-    imp.update(build(IMPL15))
+    imp.update(impl_items(IMPL15))
 if lgeos.geos_capi_version >= (1, 6, 0):
-    imp.update(build(IMPL16))
+    imp.update(impl_items(IMPL16))
     if 'project' in lgeos.methods:
-        imp.update(build(IMPL16LR))
+        imp.update(impl_items(IMPL16LR))
 
 DefaultImplementation = imp

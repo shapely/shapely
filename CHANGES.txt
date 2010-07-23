@@ -1,5 +1,9 @@
 All tickets are children of http://trac.gispython.org/lab/ticket.
 
+1.2.2 (2010-07-23)
+------------------
+- Add representative_point method.
+
 1.2.1 (2010-06-23)
 ------------------
 - Fixed bounds of singular polygons.
