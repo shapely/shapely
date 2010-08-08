@@ -96,8 +96,12 @@ class BaseGeometry(object):
 
     def empty(self):
         if not (self._owned or self._is_empty):
-            from shapely.geos import lgeos
-            lgeos.GEOSGeom_destroy(self.__geom__)
+            try:
+                from shapely.geos import lgeos
+                lgeos.GEOSGeom_destroy(self.__geom__)
+            except ImportError:
+                # Most likely the interpreter is in tear-down. Oh well.
+                pass
         self.__geom__ = EMPTY
 
     def __del__(self):
