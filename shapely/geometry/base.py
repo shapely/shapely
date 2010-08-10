@@ -94,14 +94,14 @@ class BaseGeometry(object):
     def _is_empty(self):
         return self.__geom__ in [EMPTY, None]
 
+    # a reference to the so/dll proxy to preserve access during clean up
+    _lgeos = lgeos
+
     def empty(self):
+        # TODO: defer cleanup to the implementation. We shouldn't be
+        # explicitly calling a lgeos method here.
         if not (self._owned or self._is_empty):
-            try:
-                from shapely.geos import lgeos
-                lgeos.GEOSGeom_destroy(self.__geom__)
-            except ImportError:
-                # Most likely the interpreter is in tear-down. Oh well.
-                pass
+            self._lgeos.GEOSGeom_destroy(self.__geom__)
         self.__geom__ = EMPTY
 
     def __del__(self):
@@ -577,7 +577,6 @@ class HeterogeneousGeometrySequence(GeometrySequence):
         g = geom_factory(sub)
         g._owned = True
         return g
-
 
 # Test runner
 def _test():
