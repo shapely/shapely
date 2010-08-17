@@ -1,7 +1,7 @@
 """Geometry classes and factories
 """
 
-from geo import shape, asShape
+from geo import shape, asShape, mapping
 from point import Point, asPoint
 from linestring import LineString, asLineString
 from polygon import Polygon, asPolygon
@@ -14,7 +14,7 @@ __all__ = [
     'shape', 'asShape', 'Point', 'asPoint', 'LineString', 'asLineString',
     'Polygon', 'asPolygon', 'MultiPoint', 'asMultiPoint',
     'MultiLineString', 'asMultiLineString', 'MultiPolygon', 'asMultiPolygon',
-    'GeometryCollection'
+    'GeometryCollection', 'mapping'
     ]
 
 

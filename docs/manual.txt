@@ -1709,6 +1709,26 @@ Or a simple placemark-type object:
   >>> list(shape.coords)
   [(0.0, 0.0)]
 
+The GeoJSON-like mapping of a geometric object can be obtained using
+:func:`shapely.geometry.mapping`.
+
+.. function:: shapely.geometry.mapping(ob)
+
+   Return a new, independent geometry with coordinates `copied` from the
+   context.
+
+For example, using the same `GeoThing` class:
+
+.. sourcecode:: pycon
+
+  >>> from shapely.geometry import mapping
+  >>> thing = GeoThing({"type": "Point", "coordinates": (0.0, 0.0)})
+  >>> m = mapping(thing)
+  >>> m['type']
+  'Point'
+  >>> m['coordinates']
+  (0.0, 0.0)}
+
 Conclusion
 ==========
 

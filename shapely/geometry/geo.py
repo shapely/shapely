@@ -62,3 +62,7 @@ def asShape(context):
         return MultiPolygonAdapter(ob["coordinates"], context_type='geojson')
     else:
         raise ValueError("Unknown geometry type: %s" % geom_type)
+
+def mapping(ob):
+    """Returns a GeoJSON-like mapping"""
+    return ob.__geo_interface__
