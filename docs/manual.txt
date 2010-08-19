@@ -3,8 +3,8 @@ The Shapely 1.2 User Manual (Preview)
 =====================================
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
-:Revision: 1.2.2
-:Date: 10 August 2010
+:Revision: 1.2.3
+:Date: 19 August 2010
 :Copyright: 
   This work is licensed under a `Creative Commons Attribution 3.0
   United States License`__.
@@ -1716,6 +1716,8 @@ The GeoJSON-like mapping of a geometric object can be obtained using
 
    Return a new, independent geometry with coordinates `copied` from the
    context.
+
+   `New in version 1.2.3`.
 
 For example, using the same `GeoThing` class:
 
