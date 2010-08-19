@@ -1,4 +1,4 @@
-#
+# TODO: allow for implementations using other than GEOS
 
 from shapely.geos import lgeos
 

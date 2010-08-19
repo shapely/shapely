@@ -298,6 +298,8 @@ class LGEOS15(LGEOSBase):
               ):
             pred.func.errcheck = errcheck_predicate
 
+        self.GEOSisValidReason.func.errcheck = errcheck_just_free
+        
         self.methods['area'] = self.GEOSArea
         self.methods['boundary'] = self.GEOSBoundary
         self.methods['buffer'] = self.GEOSBuffer
@@ -351,8 +353,6 @@ class LGEOS16LR(LGEOS16):
     def __init__(self, dll):
         super(LGEOS16LR, self).__init__(dll)
 
-        self.GEOSisValidReason.func.errcheck = errcheck_just_free
-        
         self.methods['project'] = self.GEOSProject
         self.methods['project_normalized'] = self.GEOSProjectNormalized
         self.methods['interpolate'] = self.GEOSInterpolate

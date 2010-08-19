@@ -167,9 +167,6 @@ def prototype(lgeos, geosVersion):
     lgeos.GEOSisValid.restype = ctypes.c_byte
     lgeos.GEOSisValid.argtypes = [ctypes.c_void_p]
 
-    lgeos.GEOSisValidReason.restype = allocated_c_char_p
-    lgeos.GEOSisValidReason.argtypes = [ctypes.c_void_p]
-
     lgeos.GEOSisSimple.restype = ctypes.c_byte
     lgeos.GEOSisSimple.argtypes = [ctypes.c_void_p]
 
@@ -248,6 +245,9 @@ def prototype(lgeos, geosVersion):
 
         lgeos.GEOSPreparedCovers.restype = ctypes.c_int
         lgeos.GEOSPreparedCovers.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+
+        lgeos.GEOSisValidReason.restype = allocated_c_char_p
+        lgeos.GEOSisValidReason.argtypes = [ctypes.c_void_p]
 
     # Other, GEOS C API 1.5.0+
     if geosVersion >= (1, 5, 0):

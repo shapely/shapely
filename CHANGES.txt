@@ -3,6 +3,7 @@ All tickets are children of http://trac.gispython.org/lab/ticket.
 1.2.3 (2010-08-17)
 ------------------
 - Add mapping function.
+- Fix problem with GEOSisValidReason symbol for GEOS < 3.1.
 
 1.2.2 (2010-07-23)
 ------------------
