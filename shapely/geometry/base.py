@@ -54,14 +54,15 @@ def exceptNull(func):
         return func(*args, **kwargs)
     return wrapper
 
-def backed(func):
-    """Decorator which helps avoid GEOS operations on null pointers."""
+def delegated(func):
+    """A delegated method raises AttributeError in the absence of backend 
+    support."""
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         except KeyError:
-            raise NotImplementedError, "Method '%s' is not supported by %s" % (
+            raise AttributeError, "Method '%s' is not supported by %s" % (
                 func.__name__, repr(args[0].impl))
     return wrapper
 
@@ -430,7 +431,7 @@ class BaseGeometry(object):
     # Linear referencing
     # ------------------
 
-    @backed
+    @delegated
     def project(self, other, normalized=False):
         """Returns the distance along this geometry to a point nearest the 
         specified point
@@ -444,10 +445,7 @@ class BaseGeometry(object):
             op = self.impl['project']
         return op(self, other)
            
-    def foo(self):
-        raise NotImplementedError(
-            "%s does not implement %s" % (repr(self._lgeos), 'foo'))
-
+    @delegated
     def interpolate(self, distance, normalized=False):
         """Return a point at the specified distance along a linear geometry
         
