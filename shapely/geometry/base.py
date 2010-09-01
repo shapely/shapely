@@ -54,6 +54,17 @@ def exceptNull(func):
         return func(*args, **kwargs)
     return wrapper
 
+def backed(func):
+    """Decorator which helps avoid GEOS operations on null pointers."""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except KeyError:
+            raise NotImplementedError, "Method '%s' is not supported by %s" % (
+                func.__name__, repr(args[0].impl))
+    return wrapper
+
 EMPTY = wkb.deserialize('010700000000000000'.decode('hex'))
 
 class BaseGeometry(object):
@@ -419,6 +430,7 @@ class BaseGeometry(object):
     # Linear referencing
     # ------------------
 
+    @backed
     def project(self, other, normalized=False):
         """Returns the distance along this geometry to a point nearest the 
         specified point
@@ -431,6 +443,10 @@ class BaseGeometry(object):
         else:
             op = self.impl['project']
         return op(self, other)
+           
+    def foo(self):
+        raise NotImplementedError(
+            "%s does not implement %s" % (repr(self._lgeos), 'foo'))
 
     def interpolate(self, distance, normalized=False):
         """Return a point at the specified distance along a linear geometry

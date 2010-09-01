@@ -21,6 +21,19 @@ from shapely.topology import UnaryRealProperty, UnaryTopologicalOp
 
 # Map geometry methods to their GEOS delegates
 
+class BaseImpl(object):
+    def __init__(self, values):
+        self.map = dict(values)
+    def update(self, values):
+        self.map.update(values)
+    def __getitem__(self, key):
+        return self.map[key]
+
+class GEOSImpl(BaseImpl):
+    def __repr__(self):
+        return '<GEOSImpl object: GEOS C API version %s>' % (
+            lgeos.geos_capi_version,)
+
 IMPL14 = {
     'area': (UnaryRealProperty, 'area'),
     'distance': (BinaryRealProperty, 'distance'),
@@ -81,7 +94,7 @@ IMPL16LR = {
 def impl_items(defs):
     return [(k, v[0](v[1])) for k, v in defs.items()]
 
-imp = dict(impl_items(IMPL14))
+imp = GEOSImpl(dict(impl_items(IMPL14)))
 if lgeos.geos_capi_version >= (1, 5, 0):
     imp.update(impl_items(IMPL15))
 if lgeos.geos_capi_version >= (1, 6, 0):
