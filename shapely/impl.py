@@ -11,6 +11,8 @@ This is layer number 2 from the list below.
 Shapely 1.2 includes a GEOS backend and it is the default.
 """
 
+from functools import wraps
+
 from shapely.coords import BoundsOp
 from shapely.geos import lgeos
 from shapely.linref import ProjectOp, InterpolateOp
@@ -18,6 +20,17 @@ from shapely.predicates import BinaryPredicate, UnaryPredicate
 from shapely.topology import BinaryRealProperty, BinaryTopologicalOp
 from shapely.topology import UnaryRealProperty, UnaryTopologicalOp
 
+def delegated(func):
+    """A delegated method raises AttributeError in the absence of backend 
+    support."""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except KeyError:
+            raise AttributeError, "Method '%s' is not supported by %s" % (
+                func.__name__, repr(args[0].impl))
+    return wrapper
 
 # Map geometry methods to their GEOS delegates
 

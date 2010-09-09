@@ -3,7 +3,7 @@ Support for GEOS prepared geometry operations.
 """
 
 from shapely.geos import lgeos
-from shapely.impl import DefaultImplementation
+from shapely.impl import DefaultImplementation, delegated
 
 
 class PreparedGeometry(object):
@@ -34,16 +34,20 @@ class PreparedGeometry(object):
     @property
     def _geom(self):
         return self.__geom__
-    
+   
+    @delegated
     def intersects(self, other):
         return bool(self.impl['prepared_intersects'](self, other))
 
+    @delegated
     def contains(self, other):
         return bool(self.impl['prepared_contains'](self, other))
 
+    @delegated
     def contains_properly(self, other):
         return bool(self.impl['prepared_contains_properly'](self, other))
 
+    @delegated
     def covers(self, other):
         return bool(self.impl['prepared_covers'](self, other))
 

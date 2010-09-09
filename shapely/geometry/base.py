@@ -7,7 +7,7 @@ import warnings
 
 from shapely.coords import CoordinateSequence
 from shapely.geos import lgeos
-from shapely.impl import DefaultImplementation
+from shapely.impl import DefaultImplementation, delegated
 from shapely import wkb, wkt
 
 GEOMETRY_TYPES = [
@@ -52,18 +52,6 @@ def exceptNull(func):
         if not args[0]._geom or args[0].is_empty:
             raise ValueError("Null/empty geometry supports no operations")
         return func(*args, **kwargs)
-    return wrapper
-
-def delegated(func):
-    """A delegated method raises AttributeError in the absence of backend 
-    support."""
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except KeyError:
-            raise AttributeError, "Method '%s' is not supported by %s" % (
-                func.__name__, repr(args[0].impl))
     return wrapper
 
 EMPTY = wkb.deserialize('010700000000000000'.decode('hex'))
@@ -262,6 +250,7 @@ class BaseGeometry(object):
         """Returns the geometric center of the object"""
         return geom_factory(self.impl['centroid'](self))
 
+    @delegated
     def representative_point(self):
         """Returns a point guaranteed to be within the object, cheaply."""
         return geom_factory(self.impl['representative_point'](self))
@@ -311,6 +300,7 @@ class BaseGeometry(object):
             res = resolution
         return geom_factory(self.impl['buffer'](self, distance, res))
 
+    @delegated
     def simplify(self, tolerance, preserve_topology=True):
         """Returns a simplified geometry produced by the Douglas-Puecker 
         algorithm
