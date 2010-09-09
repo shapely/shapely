@@ -25,32 +25,32 @@ LOG.addHandler(NullHandler())
 # Find and load the GEOS and C libraries
 # If this ever gets any longer, we'll break it into separate modules
 
-if sys.platform == 'linux2':
-    _lgeos = CDLL(find_library('geos_c'))
+def load_libc(name, fallbacks=None):
+    """For systems with libc"""
     free = CDLL(find_library('c')).free
     free.argtypes = [c_void_p]
     free.restype = None
-
-elif sys.platform == 'darwin':
-    lib = find_library('geos_c')
-    if lib is None:
-        ## try a few more locations
-        lib_paths = [
-            # The Framework build from Kyng Chaos:
-            "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
-            # macports
-            '/opt/local/lib/libgeos_c.dylib',
-        ]
-        for path in lib_paths:
+    lib = find_library(name)
+    if lib is None and fallbacks is not None:
+        for path in fallbacks:
             if os.path.exists(path):
                 lib = path
                 break
     if lib is None:
-        raise ImportError("Could not find geos_c library")
-    _lgeos = CDLL(lib)
-    free = CDLL(find_library('c')).free
-    free.argtypes = [c_void_p]
-    free.restype = None
+       raise OSError("Could not find %s library" % name)
+    return CDLL(lib), free
+       
+if sys.platform == 'linux2':
+    _lgeos, free = load_libc('geos_c')
+
+elif sys.platform == 'darwin':
+    alt_paths = [
+            # The Framework build from Kyng Chaos:
+            "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
+            # macports
+            '/opt/local/lib/libgeos_c.dylib',
+    ]
+    _lgeos, free = load_libc('geos_c', fallbacks=alt_paths)
 
 elif sys.platform == 'win32':
     try:
@@ -58,7 +58,7 @@ elif sys.platform == 'win32':
         original_path = os.environ['PATH']
         os.environ['PATH'] = "%s;%s" % (local_dlls, original_path)
         _lgeos = CDLL("geos.dll")
-    except (ImportError, WindowsError):
+    except (ImportError, WindowsError, OSError):
         raise
     def free(m):
         try:
