@@ -25,23 +25,28 @@ LOG.addHandler(NullHandler())
 # Find and load the GEOS and C libraries
 # If this ever gets any longer, we'll break it into separate modules
 
-def load_libc(name, fallbacks=None):
-    """For systems with libc"""
-    free = CDLL(find_library('c')).free
-    free.argtypes = [c_void_p]
-    free.restype = None
-    lib = find_library(name)
-    if lib is None and fallbacks is not None:
-        for path in fallbacks:
-            if os.path.exists(path):
-                lib = path
-                break
-    if lib is None:
-       raise OSError("Could not find %s library" % name)
-    return CDLL(lib), free
+def load_dll(libname, fallbacks=None):
+    lib = find_library(libname)
+    if lib is not None:
+        return CDLL(lib)
+    else:
+        if fallbacks is not None:
+            for name in fallbacks:
+                try:
+                    return CDLL(name)
+                except OSError:
+                    # move on to the next fallback
+                    pass
+        # the end
+        raise OSError(
+            "Could not find library %s or load any of its variants %s" % (
+                libname, fallbacks or []))
        
 if sys.platform == 'linux2':
-    _lgeos, free = load_libc('geos_c')
+    _lgeos = load_dll('geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
+    free = load_dll('c').free
+    free.argtypes = [c_void_p]
+    free.restype = None
 
 elif sys.platform == 'darwin':
     alt_paths = [
@@ -50,7 +55,10 @@ elif sys.platform == 'darwin':
             # macports
             '/opt/local/lib/libgeos_c.dylib',
     ]
-    _lgeos, free = load_libc('geos_c', fallbacks=alt_paths)
+    _lgeos = load_dll('geos_c', fallbacks=alt_paths)
+    free = load_dll('c').free
+    free.argtypes = [c_void_p]
+    free.restype = None
 
 elif sys.platform == 'win32':
     try:
@@ -68,28 +76,14 @@ elif sys.platform == 'win32':
             pass
 
 elif sys.platform == 'sunos5':
-    # Try the major versioned name first, falling back on the unversioned
-    # name.
-    try:
-        _lgeos = CDLL('libgeos_c.so.1')
-    except (OSError, ImportError):
-        _lgeos = CDLL('libgeos_c.so')
-    except:
-        raise
+    _lgeos = load_dll('geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
     free = CDLL('libc.so.1').free
     free.argtypes = [c_void_p]
     free.restype = None
 
 else: # other *nix systems
-    # Try the major versioned name first, falling back on the unversioned
-    # name.
-    try:
-        _lgeos = CDLL('libgeos_c.so.1')
-    except (OSError, ImportError):
-        _lgeos = CDLL('libgeos_c.so')
-    except:
-        raise
-    free = CDLL('libc.so.6').free
+    _lgeos = load_dll('geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
+    free = load_dll('c', fallbacks=['libc.so.6']).free
     free.argtypes = [c_void_p]
     free.restype = None
 
