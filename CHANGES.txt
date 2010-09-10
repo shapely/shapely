@@ -1,5 +1,10 @@
 All tickets are children of http://trac.gispython.org/lab/ticket.
 
+1.2.4 (2010-09-09)
+------------------
+- Raise AttributeError when there's no backend support for a method.
+- Raise OSError if libgeos_c.so (or variants) can't be found and loaded.
+
 1.2.3 (2010-08-17)
 ------------------
 - Add mapping function.
