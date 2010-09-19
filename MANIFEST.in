@@ -1,8 +1,9 @@
 exclude *.txt
 recursive-exclude manual *
 recursive-exclude debian *
-recursive-exclude docs/_build *
+recursive-exclude docs *
 include CHANGES.txt CREDITS.txt LICENSE.txt README.txt
 recursive-include shapely/tests *.py *.txt
 recursive-include shapely/examples *.py
-recursive-include docs manual.txt
+include docs/manual.txt
+exclude MANIFEST.in
