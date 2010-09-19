@@ -1,5 +1,10 @@
 All tickets are children of http://trac.gispython.org/lab/ticket.
 
+1.2.5 (2010-09-19)
+------------------
+- Stop distributing docs/_build.
+- Include library fallbacks in test_dlls.py for linux platform.
+
 1.2.4 (2010-09-09)
 ------------------
 - Raise AttributeError when there's no backend support for a method.
