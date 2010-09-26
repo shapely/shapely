@@ -2,7 +2,7 @@ from unittest import TestSuite
 
 import test_doctests, test_prepared, test_equality, test_geomseq, test_xy
 import test_collection, test_emptiness, test_singularity, test_validation
-import test_mapping, test_delegated, test_dlls
+import test_mapping, test_delegated, test_dlls, test_linear_referencing
 
 def test_suite():
     suite = TestSuite()
@@ -18,5 +18,6 @@ def test_suite():
     suite.addTest(test_mapping.test_suite())
     suite.addTest(test_delegated.test_suite())
     suite.addTest(test_dlls.test_suite())
+    suite.addTest(test_linear_referencing.test_suite())
     return suite
 
