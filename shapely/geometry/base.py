@@ -480,8 +480,9 @@ class BaseMultipartGeometry(BaseGeometry):
         "Multi-part geometries do not provide a coordinate sequence")
 
     @property
-    @exceptNull
     def geoms(self):
+        if self.is_empty:
+            return []
         return GeometrySequence(self, self.shape_factory)
 
     def __iter__(self):

@@ -26,8 +26,9 @@ class GeometryCollection(BaseMultipartGeometry):
         return dict(type='GeometryCollection', geometries=geometries)
 
     @property
-    @exceptNull
     def geoms(self):
+        if self.is_empty:
+            return []
         return HeterogeneousGeometrySequence(self)
 
 
