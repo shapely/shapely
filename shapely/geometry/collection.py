@@ -2,7 +2,7 @@
 """
 
 from shapely.geometry.base import BaseMultipartGeometry
-from shapely.geometry.base import HeterogeneousGeometrySequence, exceptNull
+from shapely.geometry.base import HeterogeneousGeometrySequence
 
 
 class GeometryCollection(BaseMultipartGeometry):

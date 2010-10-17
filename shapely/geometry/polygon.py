@@ -5,7 +5,7 @@ from ctypes import c_double, c_void_p, cast, POINTER
 from ctypes import ArgumentError
 import weakref
 from shapely.geos import lgeos
-from shapely.geometry.base import BaseGeometry, exceptNull
+from shapely.geometry.base import BaseGeometry
 from shapely.geometry.linestring import LineString, LineStringAdapter
 from shapely.geometry.proxy import PolygonProxy
 
@@ -198,9 +198,10 @@ class Polygon(BaseGeometry):
             self._geom, self._ndim = geos_polygon_from_py(shell, holes)
 
     @property
-    @exceptNull
     def exterior(self):
-        if self._exterior is None or self._exterior() is None:
+        if self.is_empty:
+            return None
+        elif self._exterior is None or self._exterior() is None:
             g = lgeos.GEOSGetExteriorRing(self._geom)
             ring = LinearRing()
             ring.__geom__ = g
@@ -211,8 +212,9 @@ class Polygon(BaseGeometry):
         return self._exterior()
 
     @property
-    @exceptNull
     def interiors(self):
+        if self.is_empty:
+            return []
         return InteriorRingSequence(self)
 
     @property

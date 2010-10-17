@@ -2,7 +2,9 @@ All tickets are children of http://trac.gispython.org/lab/ticket.
 
 1.2.6 (2010-10-??)
 ------------------
-- geoms property of an empty collection yields [] instead of a ValueError (#3).
+- The geoms property of an empty collection yields [] instead of a ValueError
+  (#3).
+- The coords and geometry type sproperties have the same behavior as above.
 
 1.2.5 (2010-09-19)
 ------------------
