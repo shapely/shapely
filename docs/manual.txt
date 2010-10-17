@@ -1,10 +1,10 @@
-=====================================
-The Shapely 1.2 User Manual (Preview)
-=====================================
+=======================
+The Shapely User Manual
+=======================
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
-:Revision: 1.2.3
-:Date: 19 August 2010
+:Revision: 1.2.6
+:Date: 17 October 2010
 :Copyright: 
   This work is licensed under a `Creative Commons Attribution 3.0
   United States License`__.
@@ -56,7 +56,7 @@ multitude of State Plane projections, and Shapely doesn't burden you with them.
 The third premise is that Python idioms trump GIS (or Java, in this case, since
 the GEOS library is derived from JTS, a Java project) idioms. 
 
-If you enjoy and profit from Python idioms, appreciate packages that do one
+If you enjoy and profit from idiommatic Python, appreciate packages that do one
 thing well, and agree that a spatially enabled RDBMS is often enough the wrong
 tool for your computational geometry job, Shapely might be for you.
 
@@ -687,6 +687,8 @@ by empty features.
   0.0
   >>> line.bounds
   ()
+  >>> line.coords
+  []
 
 The coordinates of a empty feature can be set, after which the geometry is no
 longer empty.
