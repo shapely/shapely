@@ -1,10 +1,10 @@
-All tickets are children of http://trac.gispython.org/lab/ticket.
 
-1.2.6 (2010-10-??)
+1.2.6 (2010-10-21)
 ------------------
 - The geoms property of an empty collection yields [] instead of a ValueError
   (#3).
 - The coords and geometry type sproperties have the same behavior as above.
+- Ensure that z values carry through into products of operations (#4).
 
 1.2.5 (2010-09-19)
 ------------------
@@ -15,8 +15,8 @@ All tickets are children of http://trac.gispython.org/lab/ticket.
 ------------------
 - Raise AttributeError when there's no backend support for a method.
 - Raise OSError if libgeos_c.so (or variants) can't be found and loaded.
-- Add geos_c DLL loading support for linux platforms where find_library
-  doesn't work.
+- Add geos_c DLL loading support for linux platforms where find_library doesn't
+  work.
 
 1.2.3 (2010-08-17)
 ------------------
