@@ -62,9 +62,11 @@ elif sys.platform == 'darwin':
 
 elif sys.platform == 'win32':
     try:
-        local_dlls = os.path.abspath(os.__file__ + "../../../DLLs")
+        egg_dlls = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                     r"..\DLLs"))
+        wininst_dlls =  os.path.abspath(os.__file__ + "../../../DLLs")
         original_path = os.environ['PATH']
-        os.environ['PATH'] = "%s;%s" % (local_dlls, original_path)
+        os.environ['PATH'] = "%s;%s;%s" % (egg_dlls, wininst_dlls, original_path)
         _lgeos = CDLL("geos.dll")
     except (ImportError, WindowsError, OSError):
         raise

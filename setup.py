@@ -1,3 +1,4 @@
+import glob
 import warnings
 
 try:
@@ -16,7 +17,7 @@ readme_text = file('README.txt', 'rb').read()
 setup_args = dict(
     metadata_version    = '1.2',
     name                = 'Shapely',
-    version             = '1.2.6',
+    version             = '1.2.7',
     requires_python     = '>=2.5,<3',
     requires_external   = 'libgeos_c (>=3.1)', 
     description         = 'Geometric objects, predicates, and operations',
@@ -44,8 +45,14 @@ setup_args = dict(
 
 # Add DLLs for Windows
 if sys.platform == 'win32':
-    setup_args.update(
-        data_files=[('DLLs', ['DLLs/geos.dll', 'DLLs/libgeos-3-0-0.dll']),]
-        )
+    import glob
+    if '(AMD64)' in sys.version:
+        setup_args.update(
+            data_files=[('DLLs', glob.glob('DLLs_AMD64/*.dll'))]
+            )
+    else:
+        setup_args.update(
+            data_files=[('DLLs', glob.glob('DLLs_x86/*.dll'))]
+            )
 
 setup(**setup_args)
