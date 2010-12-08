@@ -259,6 +259,9 @@ def prototype(lgeos, geosVersion):
         # Linear referencing features aren't found in versions 1.5,
         # but not in all libs versioned 1.6.0 either!
         if hasattr(lgeos, 'GEOSProject'):
+            lgeos.GEOSSingleSidedBuffer.restype = ctypes.c_void_p
+            lgeos.GEOSSingleSidedBuffer.argtypes = [ctypes.c_void_p, ctypes.c_double, ctypes.c_int, ctypes.c_int, ctypes.c_double, ctypes.c_int]
+
             lgeos.GEOSProject.restype = ctypes.c_double
             lgeos.GEOSProject.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
 

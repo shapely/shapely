@@ -4,8 +4,8 @@
 from ctypes import c_double, cast, POINTER
 from ctypes import ArgumentError
 
-from shapely.geos import lgeos
-from shapely.geometry.base import BaseGeometry
+from shapely.geos import lgeos, TopologicalError
+from shapely.geometry.base import BaseGeometry, geom_factory
 from shapely.geometry.proxy import CachingGeometryProxy
 
 __all__ = ['LineString', 'asLineString']
@@ -79,6 +79,30 @@ class LineString(BaseGeometry):
           [0.0, 1.0]
         """
         return self.coords.xy
+    
+    #Join styles : 1=>ROUND, 2=>MITRE, 3=>BEVEL
+    def single_sided_buffer(self, distance, leftSide, resolution=16, joinStyle=1, mitreLimit=1.0):
+        """Returns a LineString or MultiLineString geometry at a distance from the object
+        on its right or its left side.
+        
+        Distance must be positive. The side is given by the leftSide parameter.
+        True => LEFT, False => RIGHT
+        The resolution of the buffer around each vertex of the object increases
+        by increasing the resolution keyword parameter or third positional parameter.
+        The join style is for outside corners between line segments.
+        Values are 1 => ROUND, 2 => MITRE, 3 => BEVEL. 
+        The mitre ratio limit is used for very sharp corners.
+        It is the ratio of the distance from the corner to the end of the mitred offset
+        corner. When two line segments meet at a sharp angle, a miter join will extend
+        far beyond the original geometry. To prevent unreasonable geometry, the mitre
+        limit allows controlling the maximum length of the join corner.
+        Corners with a ratio which exceed the limit will be beveled.
+        """
+        try:                
+            return geom_factory(self.impl['single_sided_buffer'](self, distance, resolution, joinStyle, mitreLimit, leftSide))
+        except WindowsError:
+            raise TopologicalError()
+                
         
 
 class LineStringAdapter(CachingGeometryProxy, LineString):
