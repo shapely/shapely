@@ -349,7 +349,7 @@ class LGEOS16LR(LGEOS16):
     def __init__(self, dll):
         super(LGEOS16LR, self).__init__(dll)
 
-        self.methods['single_sided_buffer'] = self.GEOSSingleSidedBuffer		
+        self.methods['semi_perimeter'] = self.GEOSSingleSidedBuffer
         self.methods['project'] = self.GEOSProject
         self.methods['project_normalized'] = self.GEOSProjectNormalized
         self.methods['interpolate'] = self.GEOSInterpolate

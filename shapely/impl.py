@@ -98,7 +98,7 @@ IMPL16 = {
     }
 
 IMPL16LR = {
-	'single_sided_buffer': (UnaryTopologicalOp, 'single_sided_buffer'),    
+	'semi_perimeter': (UnaryTopologicalOp, 'semi_perimeter'),
 	'project_normalized': (ProjectOp, 'project_normalized'),
     'project': (ProjectOp, 'project'),
     'interpolate_normalized': (InterpolateOp, 'interpolate_normalized'),

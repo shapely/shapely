@@ -80,29 +80,34 @@ class LineString(BaseGeometry):
         """
         return self.coords.xy
     
-    #Join styles : 1=>ROUND, 2=>MITRE, 3=>BEVEL
-    def single_sided_buffer(self, distance, leftSide, resolution=16, joinStyle=1, mitreLimit=1.0):
-        """Returns a LineString or MultiLineString geometry at a distance from the object
-        on its right or its left side.
+    def semi_perimeter(
+        self, distance, side, 
+        resolution=16, join_style=1, mitre_limit=1.0):
         
-        Distance must be positive. The side is given by the leftSide parameter.
-        True => LEFT, False => RIGHT
-        The resolution of the buffer around each vertex of the object increases
-        by increasing the resolution keyword parameter or third positional parameter.
-        The join style is for outside corners between line segments.
-        Values are 1 => ROUND, 2 => MITRE, 3 => BEVEL. 
-        The mitre ratio limit is used for very sharp corners.
-        It is the ratio of the distance from the corner to the end of the mitred offset
-        corner. When two line segments meet at a sharp angle, a miter join will extend
-        far beyond the original geometry. To prevent unreasonable geometry, the mitre
-        limit allows controlling the maximum length of the join corner.
-        Corners with a ratio which exceed the limit will be beveled.
-        """
-        try:                
-            return geom_factory(self.impl['single_sided_buffer'](self, distance, resolution, joinStyle, mitreLimit, leftSide))
+        """Returns a LineString or MultiLineString geometry at a distance from
+        the object on its right or its left side.
+        
+        Distance must be a positive float value. The side parameter may be
+        'left' or 'right'. The resolution of the buffer around each vertex of
+        the object increases by increasing the resolution keyword parameter or
+        third positional parameter.
+        
+        The join style is for outside corners between line segments. Accepted
+        values are 1 => ROUND, 2 => MITRE, 3 => BEVEL.
+        
+        The mitre ratio limit is used for very sharp corners. It is the ratio
+        of the distance from the corner to the end of the mitred offset corner.
+        When two line segments meet at a sharp angle, a miter join will extend
+        far beyond the original geometry. To prevent unreasonable geometry, the
+        mitre limit allows controlling the maximum length of the join corner.
+        Corners with a ratio which exceed the limit will be beveled.  """
+
+        try:
+            return geom_factory(self.impl['semi_perimeter'](
+                self, distance, resolution, join_style, mitre_limit, 
+                bool(side=='left')))
         except WindowsError:
             raise TopologicalError()
-                
         
 
 class LineStringAdapter(CachingGeometryProxy, LineString):
