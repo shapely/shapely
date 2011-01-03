@@ -1,11 +1,11 @@
 """Base geometry class and utilities
 """
 
-from functools import wraps
 import sys
 import warnings
 
 from shapely.coords import CoordinateSequence
+from shapely.ftools import wraps
 from shapely.geos import lgeos
 from shapely.impl import DefaultImplementation, delegated
 from shapely import wkb, wkt

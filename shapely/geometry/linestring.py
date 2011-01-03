@@ -80,7 +80,7 @@ class LineString(BaseGeometry):
         """
         return self.coords.xy
     
-    def semi_perimeter(
+    def parallel_offset(
         self, distance, side, 
         resolution=16, join_style=1, mitre_limit=1.0):
         
@@ -100,10 +100,10 @@ class LineString(BaseGeometry):
         When two line segments meet at a sharp angle, a miter join will extend
         far beyond the original geometry. To prevent unreasonable geometry, the
         mitre limit allows controlling the maximum length of the join corner.
-        Corners with a ratio which exceed the limit will be beveled.  """
+        Corners with a ratio which exceed the limit will be beveled."""
 
         try:
-            return geom_factory(self.impl['semi_perimeter'](
+            return geom_factory(self.impl['parallel_offset'](
                 self, distance, resolution, join_style, mitre_limit, 
                 bool(side=='left')))
         except WindowsError:

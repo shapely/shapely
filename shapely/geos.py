@@ -3,7 +3,6 @@ Proxies for the libgeos_c shared lib, GEOS-specific exceptions, and utilities
 """
 
 import atexit
-import functools
 import logging
 import os
 import sys
@@ -13,7 +12,10 @@ import ctypes
 from ctypes import cdll, CDLL, PyDLL, CFUNCTYPE, c_char_p, c_void_p, string_at
 from ctypes.util import find_library
 
+import ftools
 from ctypes_declarations import prototype
+
+
 
 # Begin by creating a do-nothing handler and adding to this module's logger.
 class NullHandler(logging.Handler):
@@ -267,7 +269,7 @@ class LGEOS15(LGEOSBase):
         for key in filter(lambda x: not x.endswith('_r'), keys):
             if key + '_r' in keys:
                 reentr_func = getattr(self._lgeos, key + '_r')
-                attr = functools.partial(reentr_func, self.geos_handle)
+                attr = ftools.partial(reentr_func, self.geos_handle)
                 attr.__name__ = reentr_func.__name__
                 setattr(self, key, attr)
             else:
@@ -349,7 +351,7 @@ class LGEOS16LR(LGEOS16):
     def __init__(self, dll):
         super(LGEOS16LR, self).__init__(dll)
 
-        self.methods['semi_perimeter'] = self.GEOSSingleSidedBuffer
+        self.methods['parallel_offset'] = self.GEOSSingleSidedBuffer
         self.methods['project'] = self.GEOSProject
         self.methods['project_normalized'] = self.GEOSProjectNormalized
         self.methods['interpolate'] = self.GEOSInterpolate

@@ -11,7 +11,7 @@ This is layer number 2 from the list below.
 Shapely 1.2 includes a GEOS backend and it is the default.
 """
 
-from functools import wraps
+from ftools import wraps
 
 from shapely.coords import BoundsOp
 from shapely.geos import lgeos
@@ -98,7 +98,7 @@ IMPL16 = {
     }
 
 IMPL16LR = {
-	'semi_perimeter': (UnaryTopologicalOp, 'semi_perimeter'),
+	'parallel_offset': (UnaryTopologicalOp, 'parallel_offset'),
 	'project_normalized': (ProjectOp, 'project_normalized'),
     'project': (ProjectOp, 'project'),
     'interpolate_normalized': (InterpolateOp, 'interpolate_normalized'),

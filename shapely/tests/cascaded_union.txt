@@ -1,7 +1,7 @@
 Cascaded Union
 ==============
 
-  >>> from functools import partial
+  >>> from shapely.ftools import partial
   >>> import random
   >>> from shapely.geometry import Point
   >>> from shapely.ops import cascaded_union
