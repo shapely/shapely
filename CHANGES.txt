@@ -1,6 +1,7 @@
 1.2.9 ()
 --------
 - Remove extra glob import.
+- Move examples to shapely.examples.
 
 1.2.8 (2011-12-03)
 ------------------
