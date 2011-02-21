@@ -1,3 +1,7 @@
+1.2.9 ()
+--------
+- Remove extra glob import.
+
 1.2.8 (2011-12-03)
 ------------------
 - New parallel_offset method (#6).

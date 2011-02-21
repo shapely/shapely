@@ -45,7 +45,6 @@ setup_args = dict(
 
 # Add DLLs for Windows
 if sys.platform == 'win32':
-    import glob
     if '(AMD64)' in sys.version:
         setup_args.update(
             data_files=[('DLLs', glob.glob('DLLs_AMD64/*.dll'))]
