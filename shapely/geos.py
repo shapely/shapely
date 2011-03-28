@@ -6,10 +6,9 @@ import atexit
 import logging
 import os
 import sys
-import time
 import threading
 import ctypes
-from ctypes import cdll, CDLL, PyDLL, CFUNCTYPE, c_char_p, c_void_p, string_at
+from ctypes import cdll, CDLL, CFUNCTYPE, c_char_p, c_void_p, string_at
 from ctypes.util import find_library
 
 import ftools

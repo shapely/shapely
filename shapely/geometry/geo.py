@@ -7,7 +7,7 @@ from linestring import LineString, asLineString
 from polygon import Polygon, asPolygon
 from multipoint import MultiPoint, asMultiPoint
 from multilinestring import MultiLineString, asMultiLineString
-from multipolygon import MultiPolygon, MultiPolygonAdapter, asMultiPolygon
+from multipolygon import MultiPolygon, MultiPolygonAdapter
 
 
 def shape(context):

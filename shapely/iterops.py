@@ -3,7 +3,7 @@ Iterative forms of operations
 """
 
 from ctypes import c_char_p, c_size_t
-from shapely.geos import lgeos, free
+from shapely.geos import lgeos, PredicateError
 
 
 def geos_from_geometry(geom):

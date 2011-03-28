@@ -1,8 +1,7 @@
 """Load/dump geometries using the well-known binary (WKB) format
 """
 
-from ctypes import byref, c_size_t, c_char_p, string_at
-from ctypes import c_void_p, c_size_t
+from ctypes import byref, c_size_t, c_char_p, c_void_p
 
 from shapely.geos import lgeos, ReadingError
 

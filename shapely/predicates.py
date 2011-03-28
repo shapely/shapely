@@ -2,7 +2,6 @@
 Support for GEOS spatial predicates
 """
 
-from shapely.geos import PredicateError, lgeos
 from shapely.topology import Delegating
 
 class BinaryPredicate(Delegating):

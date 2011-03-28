@@ -23,7 +23,6 @@ class CachingGeometryProxy(object):
 
     def empty(self):
         if not self._is_empty:
-            from shapely.geos import lgeos
             lgeos.GEOSGeom_destroy(self.__geom__)
         self.__geom__ = EMPTY
 

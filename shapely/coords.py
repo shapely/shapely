@@ -2,8 +2,7 @@
 """
 
 from array import array
-from ctypes import string_at, byref, c_char_p, c_double, c_void_p
-from ctypes import c_int, c_size_t, c_uint
+from ctypes import byref, c_double, c_uint
 import sys
 
 from shapely.geos import lgeos
