@@ -30,7 +30,7 @@ setup_args = dict(
     maintainer_email    = 'sean.gillies@gmail.com',
     url                 = 'http://trac.gispython.org/lab/wiki/Shapely',
     long_description    = readme_text + "\n" + changes_text,
-    packages            = ['shapely'],
+    packages            = ['shapely', 'shapely.geometry'],
     test_suite          = 'shapely.tests.test_suite',
     classifiers         = [
         'Development Status :: 5 - Production/Stable',
