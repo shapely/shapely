@@ -3,8 +3,8 @@ The Shapely User Manual
 =======================
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
-:Revision: 1.2.6
-:Date: 17 October 2010
+:Revision: 1.2.9
+:Date: 31 March 2011
 :Copyright: 
   This work is licensed under a `Creative Commons Attribution 3.0
   United States License`__.
@@ -469,6 +469,29 @@ The `Polygon` constructor also accepts instances of `LineString` and
   >>> t = Polygon(s.buffer(1.0).exterior, [r])
   >>> t.area
   6.5507620529190334
+
+Rectangular polygons occur commonly, and can be conveniently constructed using
+the :func:`shapely.geometry.box()` function.
+
+.. function:: shapely.geometry.box(minx, miny, maxx, maxy, ccw=True)
+
+  Makes a rectangular polygon from the provided bounding box values, with
+  counter-clockwise order by default.
+
+  `New in version 1.2.9`.
+
+For example:
+
+.. sourcecode:: pycon
+
+  >>> from shapely.geometry import box
+  >>> b = box(0.0, 0.0, 1.0, 1.0)
+  >>> b
+  <shapely.geometry.polygon.Polygon object at 0x...>
+  >>> list(b.exterior.coords)
+  [(1.0, 0.0), (1.0, 1.0), (0.0, 1.0), (0.0, 0.0), (1.0, 0.0)]
+
+This is the first appearance of an explicit polygon handedness in Shapely.
 
 .. _collections:
 

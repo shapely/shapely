@@ -1,7 +1,9 @@
-1.2.9 ()
---------
+1.2.9 (2011-03-31)
+------------------
 - Remove extra glob import.
 - Move examples to shapely.examples.
+- Add box() constructor for rectangular polygons.
+- Fix extraneous imports.
 
 1.2.8 (2011-12-03)
 ------------------

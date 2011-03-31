@@ -10,6 +10,13 @@ from multilinestring import MultiLineString, asMultiLineString
 from multipolygon import MultiPolygon, MultiPolygonAdapter
 
 
+def box(minx, miny, maxx, maxy, ccw=True):
+    """Return a rectangular polygon with configurable normal vector"""
+    coords = [(maxx, miny), (maxx, maxy), (minx, maxy), (minx, miny)]
+    if not ccw:
+        coords = coords[::-1]
+    return Polygon(coords)
+
 def shape(context):
     """Return a new, independent geometry with coordinates *copied* from the
     context.
