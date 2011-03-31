@@ -1,6 +1,6 @@
-=======
-Shapely
-=======
+======
+README
+======
 
 .. image:: http://farm3.static.flickr.com/2738/4511827859_b5822043b7_o_d.png
    :width: 800

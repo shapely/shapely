@@ -13,6 +13,7 @@ from setuptools import setup, find_packages
 import sys
 
 readme_text = file('README.txt', 'rb').read()
+changes_text = file('CHANGES.txt', 'rb').read()
 
 setup_args = dict(
     metadata_version    = '1.2',
@@ -28,7 +29,7 @@ setup_args = dict(
     maintainer          = 'Sean Gillies',
     maintainer_email    = 'sean.gillies@gmail.com',
     url                 = 'http://trac.gispython.org/lab/wiki/Shapely',
-    long_description    = readme_text,
+    long_description    = readme_text + "\n" + changes_text,
     packages            = ['shapely'],
     test_suite          = 'shapely.tests.test_suite',
     classifiers         = [
