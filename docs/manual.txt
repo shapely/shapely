@@ -3,8 +3,8 @@ The Shapely User Manual
 =======================
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
-:Revision: 1.2.9
-:Date: 31 March 2011
+:Revision: 1.2.10
+:Date: 2 May 2011
 :Copyright: 
   This work is licensed under a `Creative Commons Attribution 3.0
   United States License`__.
@@ -833,6 +833,29 @@ example will be shown for each.
   >>> Point(0, 0).has_z
   False
   >>> Point(0, 0, 0).has_z
+  True
+
+.. attribute:: object.is_ccw
+
+  Returns ``True`` if coordinates are in counter-clockwise order (bounding a region
+  with positive signed area). This method applies to `LinearRing` objects only.
+
+  `New in version 1.2.10`.
+
+.. sourcecode:: pycon
+
+  >>> LinearRing([(1,0), (1,1), (0,0)]).is_ccw
+  True
+
+A ring with an undesired orientation can be reversed like this:
+
+.. sourcecode:: pycon
+
+  >>> ring = LinearRing([(0,0), (1,1), (1,0)])
+  >>> ring.is_ccw
+  False
+  >>> ring.coords = list(ring.coords)[::-1]
+  >>> ring.is_ccw
   True
 
 .. attribute:: object.is_empty

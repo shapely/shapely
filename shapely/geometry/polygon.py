@@ -61,6 +61,11 @@ class LinearRing(LineString):
 
     coords = property(_get_coords, _set_coords)
 
+    @property
+    def is_ccw(self):
+        """Brand new"""
+        return bool(self.impl['is_ccw'](self))
+
 
 class LinearRingAdapter(LineStringAdapter):
 

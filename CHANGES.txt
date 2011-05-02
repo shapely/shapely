@@ -2,6 +2,11 @@
 CHANGES
 =======
 
+1.2.10 (2011-05-02)
+-------------------
+- Add optional Cython speedups.
+- Add is_cww predicate to LinearRing.
+
 1.2.9 (2011-03-31)
 ------------------
 - Remove extra glob import.

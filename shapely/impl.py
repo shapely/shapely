@@ -13,6 +13,7 @@ Shapely 1.2 includes a GEOS backend and it is the default.
 
 from ftools import wraps
 
+from shapely.algorithms import cga
 from shapely.coords import BoundsOp
 from shapely.geos import lgeos
 from shapely.linref import ProjectOp, InterpolateOp
@@ -81,6 +82,9 @@ IMPL14 = {
     'touches': (BinaryPredicate, 'touches'),
     'within': (BinaryPredicate, 'within'),
     'equals_exact': (BinaryPredicate, 'equals_exact'),
+    
+    # First pure Python implementation
+    'is_ccw': (cga.is_ccw_impl, 'is_ccw'),
     }
 
 IMPL15 = {
