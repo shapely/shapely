@@ -1779,6 +1779,34 @@ For example, using the same `GeoThing` class:
   >>> m['coordinates']
   (0.0, 0.0)}
 
+
+Performance
+===========
+
+Shapely uses the GEOS_ library for all operations. GEOS is written in C++ and
+used in many applications and you can expect that all operations are highly
+optimized. Only the creation of new geometries involves some overhead that
+might slow down your code, if you create lots of geometries with a large number
+of coordinates.
+
+.. versionadded:: 1.2.10
+
+The :mod:`shapely.speedups` module contains performance enhancements written
+in C. They are automaticaly installed when Python has access to a compiler
+during installation.
+
+You can check if the speedups are installed with the :attr:`available`
+attribute. To enable the speedups call :func:`enable`. You can revert to the
+default implementation with :func:`disable`.
+
+.. sourcecode:: pycon
+
+  >>> from shapely import speedups
+  >>> speedups.available
+  True
+  >>> speedups.enable()
+
+
 Conclusion
 ==========
 
