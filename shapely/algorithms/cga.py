@@ -1,3 +1,4 @@
+from itertools import islice, izip
 
 def signed_area(ring):
     """Return the signed area enclosed by a ring in linear time using the 

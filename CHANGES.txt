@@ -6,6 +6,7 @@ CHANGES
 -------------------
 - Add optional Cython speedups.
 - Add is_cww predicate to LinearRing.
+- Add function that forces orientation of Polygons.
 
 1.2.9 (2011-03-31)
 ------------------
