@@ -2,11 +2,12 @@
 CHANGES
 =======
 
-1.2.10 (2011-05-02)
+1.2.10 (2011-05-09)
 -------------------
 - Add optional Cython speedups.
 - Add is_cww predicate to LinearRing.
 - Add function that forces orientation of Polygons.
+- Disable build of speedups on Windows pending packaging work.
 
 1.2.9 (2011-03-31)
 ------------------
