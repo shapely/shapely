@@ -87,15 +87,19 @@ class ve_build_ext(build_ext):
         except ext_errors, x:
             raise BuildFailed(x)
 
+if sys.platform == 'win32':
+    ext_modules = []
+else:
+    ext_modules = [
+        Extension("shapely.speedups._speedups", 
+              ["shapely/speedups/_speedups.c"], libraries=['geos_c']),
+    ]
 
 try:
     # try building with speedups
     setup(
         cmdclass={'build_ext': ve_build_ext},
-        ext_modules = [
-            Extension("shapely.speedups._speedups", 
-                  ["shapely/speedups/_speedups.c"], libraries=['geos_c']),
-        ],
+        ext_modules=ext_modules,
         **setup_args
     )
 except BuildFailed, ex:
