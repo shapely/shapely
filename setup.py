@@ -34,7 +34,7 @@ setup_args = dict(
     maintainer_email    = 'sean.gillies@gmail.com',
     url                 = 'http://trac.gispython.org/lab/wiki/Shapely',
     long_description    = readme_text + "\n" + changes_text,
-    packages            = ['shapely', 'shapely.geometry', 'shapely.algorithms'],
+    packages            = find_packages(),
     test_suite          = 'shapely.tests.test_suite',
     classifiers         = [
         'Development Status :: 5 - Production/Stable',
@@ -113,4 +113,4 @@ except BuildFailed, ex:
 
     print BUILD_EXT_WARNING
     print "Plain-Python installation succeeded."
-    
+
