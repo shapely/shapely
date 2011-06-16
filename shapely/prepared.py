@@ -27,7 +27,10 @@ class PreparedGeometry(object):
     
     def __del__(self):
         if self.__geom__ is not None:
-            lgeos.GEOSPreparedGeom_destroy(self.__geom__)
+            try:
+                lgeos.GEOSPreparedGeom_destroy(self.__geom__)
+            except AttributeError:
+                pass # lgeos might be empty on shutdown
         self.__geom__ = None
         self.context = None
     
