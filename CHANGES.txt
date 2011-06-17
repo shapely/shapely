@@ -2,6 +2,10 @@
 CHANGES
 =======
 
+1.2.11 
+-------------------
+- Ignore AttributeError during exit.
+
 1.2.10 (2011-05-09)
 -------------------
 - Add optional Cython speedups.

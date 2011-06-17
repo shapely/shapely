@@ -22,7 +22,7 @@ changes_text = file('CHANGES.txt', 'rb').read()
 setup_args = dict(
     metadata_version    = '1.2',
     name                = 'Shapely',
-    version             = '1.2.10',
+    version             = '1.2.11',
     requires_python     = '>=2.5,<3',
     requires_external   = 'libgeos_c (>=3.1)', 
     description         = 'Geometric objects, predicates, and operations',
