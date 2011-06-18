@@ -92,6 +92,7 @@ else: # other *nix systems
 
 def _geos_c_version():
     func = _lgeos.GEOSversion
+    func.argtypes = []
     func.restype = c_char_p
     v = func().split('-')[2]
     return tuple(int(n) for n in v.split('.'))
