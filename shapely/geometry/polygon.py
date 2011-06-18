@@ -313,7 +313,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
 
         # Make pointer to the coordinate array
         try:
-            cp = cast(array['data'][0], POINTER(c_double))
+            cp = cast(array['data'], POINTER(c_double))
         except ArgumentError:
             cp = array['data']
 

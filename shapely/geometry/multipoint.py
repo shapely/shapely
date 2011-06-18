@@ -139,7 +139,7 @@ def geos_multipoint_from_py(ob):
 
         # Make pointer to the coordinate array
         try:
-            cp = cast(array['data'][0], POINTER(c_double))
+            cp = cast(array['data'], POINTER(c_double))
         except ArgumentError:
             cp = array['data']
 
