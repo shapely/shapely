@@ -12,7 +12,7 @@ from ctypes import cdll, CDLL, CFUNCTYPE, c_char_p, c_void_p, string_at
 from ctypes.util import find_library
 
 import ftools
-from ctypes_declarations import prototype
+from ctypes_declarations import prototype, EXCEPTION_HANDLER_FUNCTYPE
 
 
 
@@ -129,7 +129,7 @@ if geos_c_version >= (1,5,0):
     
     # Handle special case.
     _lgeos.initGEOS_r.restype = c_void_p
-    _lgeos.initGEOS_r.argtypes = [c_void_p, c_void_p]
+    _lgeos.initGEOS_r.argtypes = [EXCEPTION_HANDLER_FUNCTYPE, EXCEPTION_HANDLER_FUNCTYPE]
     _lgeos.finishGEOS_r.argtypes = [c_void_p]
 
 # Exceptions
@@ -148,11 +148,11 @@ class PredicateError(Exception):
 
 def error_handler(fmt, list):
     LOG.error("%s", list)
-error_h = CFUNCTYPE(None, c_char_p, c_char_p)(error_handler)
+error_h = EXCEPTION_HANDLER_FUNCTYPE(error_handler)
 
 def notice_handler(fmt, list):
     LOG.warning("%s", list)
-notice_h = CFUNCTYPE(None, c_char_p, c_char_p)(notice_handler)
+notice_h = EXCEPTION_HANDLER_FUNCTYPE(notice_handler)
 
 def cleanup():
     if _lgeos is not None :

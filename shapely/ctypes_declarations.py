@@ -6,10 +6,14 @@ import ctypes
 class allocated_c_char_p(ctypes.c_char_p):
     pass
 
+EXCEPTION_HANDLER_FUNCTYPE = ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_char_p)
+
 def prototype(lgeos, geosVersion):
 
+    lgeos.initGEOS.argtypes = [EXCEPTION_HANDLER_FUNCTYPE, EXCEPTION_HANDLER_FUNCTYPE]
     lgeos.initGEOS.restype = None
 
+    lgeos.finishGEOS.argtypes = []
     lgeos.finishGEOS.restype = None
 
     lgeos.GEOSversion.restype = ctypes.c_char_p
