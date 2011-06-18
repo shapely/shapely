@@ -166,7 +166,7 @@ def errcheck_wkb(result, func, argtuple):
     if not result:
         return None
     size_ref = argtuple[-1]
-    size = size_ref._obj
+    size = size_ref.contents
     retval = ctypes.string_at(result, size.value)[:]
     lgeos.GEOSFree(result)
     return retval
