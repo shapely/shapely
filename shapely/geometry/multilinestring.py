@@ -93,9 +93,6 @@ def geos_multilinestring_from_py(ob):
         L = array['shape'][0]
         assert L >= 1
 
-        # Make pointer to the coordinate array
-        cp = cast(array['data'][0], POINTER(c_double))
-
         # Array of pointers to sub-geometries
         subs = (c_void_p * L)()
 

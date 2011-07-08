@@ -1,7 +1,7 @@
 """Load/dump geometries using the well-known binary (WKB) format
 """
 
-from ctypes import byref, c_size_t, c_char_p, c_void_p
+from ctypes import pointer, c_size_t, c_char_p, c_void_p
 
 from shapely.geos import lgeos, ReadingError
 
@@ -30,7 +30,7 @@ def dumps(ob):
     if ob is None or ob._geom is None:
         raise ValueError("Null geometry supports no operations")
     size = c_size_t()
-    return lgeos.GEOSGeomToWKB_buf(c_void_p(ob._geom), byref(size))
+    return lgeos.GEOSGeomToWKB_buf(c_void_p(ob._geom), pointer(size))
 
 def dump(ob, fp):
     """Dump a geometry to an open file."""

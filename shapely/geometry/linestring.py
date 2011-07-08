@@ -167,9 +167,10 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
         assert n == 2 or n == 3
 
         # Make pointer to the coordinate array
-        try:
+        if isinstance(array['data'], tuple):
+            # numpy tuple (addr, read-only)
             cp = cast(array['data'][0], POINTER(c_double))
-        except ArgumentError:
+        else:
             cp = array['data']
 
         # Create a coordinate sequence
@@ -226,21 +227,15 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
         # add to coordinate sequence
         for i in xrange(m):
             coords = ob[i]
-            dx = c_double(coords[0])
-            dy = c_double(coords[1])
-            dz = None
-            if n == 3:
-                try:
-                    dz = c_double(coords[2])
-                except IndexError:
-                    raise ValueError("Inconsistent coordinate dimensionality")
-        
             # Because of a bug in the GEOS C API, 
             # always set X before Y
-            lgeos.GEOSCoordSeq_setX(cs, i, dx)
-            lgeos.GEOSCoordSeq_setY(cs, i, dy)
+            lgeos.GEOSCoordSeq_setX(cs, i, coords[0])
+            lgeos.GEOSCoordSeq_setY(cs, i, coords[1])
             if n == 3:
-                lgeos.GEOSCoordSeq_setZ(cs, i, dz)
+                try:
+                    lgeos.GEOSCoordSeq_setZ(cs, i, coords[2])
+                except IndexError:
+                    raise ValueError("Inconsistent coordinate dimensionality")
     
     if update_geom is not None:
         return None

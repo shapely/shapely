@@ -15,6 +15,7 @@ from setuptools.extension import Extension
 from setuptools.command.build_ext import build_ext
 from setuptools import setup, find_packages
 import sys
+import platform
 
 readme_text = file('README.txt', 'rb').read()
 changes_text = file('CHANGES.txt', 'rb').read()
@@ -88,6 +89,10 @@ class ve_build_ext(build_ext):
             raise BuildFailed(x)
 
 if sys.platform == 'win32':
+    ext_modules = []
+elif (hasattr(platform, 'python_implementation') 
+    and platform.python_implementation() == 'PyPy'):
+    # python_implementation >= 2.6
     ext_modules = []
 else:
     ext_modules = [
