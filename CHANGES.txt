@@ -5,6 +5,7 @@ CHANGES
 1.2.11 
 -------------------
 - Ignore AttributeError during exit.
+- Prevent operation on prepared geometry crasher (#12).
 
 1.2.10 (2011-05-09)
 -------------------

@@ -10,14 +10,12 @@ These methods return ctypes objects that should be recast by the caller.
 from ctypes import byref, c_double
 from shapely.geos import TopologicalError, lgeos
 
-
 class Validating(object):
     def _validate(self, ob):
-        try:
-            assert ob is not None
-            assert ob._geom is not None
-        except AssertionError:
+        if ob is None or ob._geom is None:
             raise ValueError("Null geometry supports no operations")
+        if not hasattr(ob, 'type'):
+            raise ValueError("Prepared geometries cannot be operated on")
 
 class Delegating(Validating):
     def __init__(self, name):
