@@ -89,7 +89,11 @@ class ve_build_ext(build_ext):
             raise BuildFailed(x)
 
 if sys.platform == 'win32':
-    ext_modules = []
+    # geos DLL is geos.dll instead of geos_c.dll on Windows
+    ext_modules = [
+        Extension("shapely.speedups._speedups",
+              ["shapely/speedups/_speedups.c"], libraries=['geos']),
+    ]
 elif (hasattr(platform, 'python_implementation') 
     and platform.python_implementation() == 'PyPy'):
     # python_implementation >= 2.6
