@@ -43,7 +43,7 @@ def load_dll(libname, fallbacks=None):
             "Could not find library %s or load any of its variants %s" % (
                 libname, fallbacks or []))
        
-if sys.platform == 'linux2':
+if sys.platform.startswith('linux'):
     _lgeos = load_dll('geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
     free = load_dll('c').free
     free.argtypes = [c_void_p]
