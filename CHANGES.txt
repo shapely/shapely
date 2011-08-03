@@ -2,10 +2,13 @@
 CHANGES
 =======
 
-1.2.11 
+1.2.11 (2011-08-03) 
 -------------------
 - Ignore AttributeError during exit.
+- PyPy 1.5 support.
 - Prevent operation on prepared geometry crasher (#12).
+- Optional Cython speedups for Windows.
+- Linux 3 platform support.
 
 1.2.10 (2011-05-09)
 -------------------
