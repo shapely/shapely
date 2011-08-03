@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-1.2.11 (2011-08-03) 
+1.2.11 (2011-08-04) 
 -------------------
 - Ignore AttributeError during exit.
 - PyPy 1.5 support.
