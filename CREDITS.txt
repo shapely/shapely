@@ -3,6 +3,7 @@ Shapely is written by:
 * Sean Gillies
 * Aron Bierbaum
 * Kai Lautaportti
+* Oliver Tonnhofer
 
 Patches contributed by:
 
@@ -11,7 +12,6 @@ Patches contributed by:
 * Eric Lemoine
 * Jonathan Tartley
 * Kristian Thy
-* Oliver Tonnhofer
 
 Additional help from:
 
@@ -22,3 +22,5 @@ Additional help from:
 
 Major portions of this work were supported by a grant (for Pleiades_) from the
 U.S. National Endowment for the Humanities (http://www.neh.gov).
+
+.. _Pleiades: http://pleiades.stoa.org
