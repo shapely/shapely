@@ -6,8 +6,11 @@ from shapely import coords
 try:
     from shapely.speedups import _speedups
     available = True
+    import_error_msg = None
 except ImportError:
+    import sys
     available = False
+    import_error_msg = tuple(sys.exc_info()[1])
 
 __all__ = ['available', 'enable', 'disable']
 _orig = {}

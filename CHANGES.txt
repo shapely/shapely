@@ -2,6 +2,11 @@
 CHANGES
 =======
 
+1.2.12 (unreleased)
+-------------------
+- Build Windows distributions with VC7 or VC9 as appropriate.
+- More verbose report on failure to speed up.
+
 1.2.11 (2011-08-04) 
 -------------------
 - Ignore AttributeError during exit.

@@ -52,11 +52,15 @@ setup_args = dict(
 if sys.platform == 'win32':
     if '(AMD64)' in sys.version:
         setup_args.update(
-            data_files=[('DLLs', glob.glob('DLLs_AMD64/*.dll'))]
+            data_files=[('DLLs', glob.glob('DLLs_AMD64_VC9/*.dll'))]
             )
+    elif platform.python_version().startswith('2.5.'):
+        setup_args.update(
+            data_files=[('DLLs', glob.glob('DLLs_x86_VC7/*.dll'))]
+            )       
     else:
         setup_args.update(
-            data_files=[('DLLs', glob.glob('DLLs_x86/*.dll'))]
+            data_files=[('DLLs', glob.glob('DLLs_x86_VC9/*.dll'))]
             )
 
 
