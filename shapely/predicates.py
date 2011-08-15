@@ -7,17 +7,13 @@ from shapely.topology import Delegating
 class BinaryPredicate(Delegating):
     def __call__(self, this, other, *args):
         self._validate(this)
-        if not hasattr(other, 'type'):
-            raise ValueError("Prepared geometries cannot be operated on")
-        self._validate(other)
+        self._validate(other, stop_prepared=True)
         return self.fn(this._geom, other._geom, *args)
 
 class RelateOp(Delegating):
     def __call__(self, this, other):
         self._validate(this)
-        if not hasattr(other, 'type'):
-            raise ValueError("Prepared geometries cannot be operated on")
-        self._validate(other)
+        self._validate(other, stop_prepared=True)
         return self.fn(this._geom, other._geom)
 
 class UnaryPredicate(Delegating):

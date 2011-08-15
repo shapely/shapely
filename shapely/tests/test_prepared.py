@@ -13,7 +13,11 @@ class PreparedGeometryTestCase(unittest.TestCase):
         self.assertTrue(p.contains(geometry.Point(0.5, 0.5)))
         self.assertFalse(p.contains(geometry.Point(0.5, 1.5)))
 
-    def test_not_allowed(self):
+    def test_op_not_allowed(self):
+        p = prepared.PreparedGeometry(geometry.Point(0.0, 0.0).buffer(1.0))
+        self.assertRaises(ValueError, geometry.Point(0.0, 0.0).union, p)
+
+    def test_predicate_not_allowed(self):
         p = prepared.PreparedGeometry(geometry.Point(0.0, 0.0).buffer(1.0))
         self.assertRaises(ValueError, geometry.Point(0.0, 0.0).contains, p)
 
