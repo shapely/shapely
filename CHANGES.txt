@@ -6,6 +6,7 @@ CHANGES
 -------------------
 - Build Windows distributions with VC7 or VC9 as appropriate.
 - More verbose report on failure to speed up.
+- Fix for prepared geometries broken in 1.2.11.
 
 1.2.11 (2011-08-04) 
 -------------------

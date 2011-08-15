@@ -11,10 +11,10 @@ from ctypes import byref, c_double
 from shapely.geos import TopologicalError, lgeos
 
 class Validating(object):
-    def _validate(self, ob):
+    def _validate(self, ob, stop_prepared=False):
         if ob is None or ob._geom is None:
             raise ValueError("Null geometry supports no operations")
-        if not hasattr(ob, 'type'):
+        if stop_prepared and not hasattr(ob, 'type'):
             raise ValueError("Prepared geometries cannot be operated on")
 
 class Delegating(Validating):
@@ -24,7 +24,7 @@ class Delegating(Validating):
 class BinaryRealProperty(Delegating):
     def __call__(self, this, other):
         self._validate(this)
-        self._validate(other)
+        self._validate(other, stop_prepared=True)
         d = c_double()
         retval = self.fn(this._geom, other._geom, byref(d))
         return d.value
@@ -39,7 +39,7 @@ class UnaryRealProperty(Delegating):
 class BinaryTopologicalOp(Delegating):
     def __call__(self, this, other, *args):
         self._validate(this)
-        self._validate(other)
+        self._validate(other, stop_prepared=True)
         product = self.fn(this._geom, other._geom, *args)
         if product is None:
             if not this.is_valid:
