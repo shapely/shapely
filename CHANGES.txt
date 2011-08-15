@@ -2,13 +2,14 @@
 CHANGES
 =======
 
-1.2.12 (unreleased)
+1.2.12 (2011-08-15)
 -------------------
 - Build Windows distributions with VC7 or VC9 as appropriate.
 - More verbose report on failure to speed up.
 - Fix for prepared geometries broken in 1.2.11.
+- DO NOT INSTALL 1.2.11
 
-1.2.11 (2011-08-04) 
+1.2.11 (2011-08-04)
 -------------------
 - Ignore AttributeError during exit.
 - PyPy 1.5 support.
