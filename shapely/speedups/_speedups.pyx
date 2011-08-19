@@ -25,13 +25,13 @@ cdef extern from "geos_c.h":
     GEOSGeometry *GEOSGeom_createLinearRing_r(GEOSContextHandle_HS *, GEOSCoordSequence *)
     void GEOSGeom_destroy_r(GEOSContextHandle_HS *, GEOSGeometry *)
 
-cdef inline GEOSGeometry *cast_geom(long geom_addr):
+cdef inline GEOSGeometry *cast_geom(unsigned long geom_addr):
     return <GEOSGeometry *>geom_addr
 
-cdef inline GEOSContextHandle_HS *cast_handle(long handle_addr):
+cdef inline GEOSContextHandle_HS *cast_handle(unsigned long handle_addr):
     return <GEOSContextHandle_HS *>handle_addr
 
-cdef inline GEOSCoordSequence *cast_seq(long handle_addr):
+cdef inline GEOSCoordSequence *cast_seq(unsigned long handle_addr):
     return <GEOSCoordSequence *>handle_addr
 
 def destroy(geom):
@@ -270,7 +270,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
 
 def coordseq_ctypes(self):
     cdef int i, n, m
-    cdef double temp
+    cdef double temp = 0
     cdef GEOSContextHandle_HS *handle = cast_handle(lgeos.geos_handle)
     cdef GEOSCoordSequence *cs
     cdef double *data_p
