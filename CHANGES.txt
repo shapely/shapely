@@ -2,6 +2,10 @@
 CHANGES
 =======
 
+1.2.13 (Unreleased)
+-------------------
+- Fixed errors in speedups on 32bit systems when GEOS references memory above 2GB.
+
 1.2.12 (2011-08-15)
 -------------------
 - Build Windows distributions with VC7 or VC9 as appropriate.
