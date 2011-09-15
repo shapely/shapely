@@ -2,10 +2,11 @@
 CHANGES
 =======
 
-1.2.13 (Unreleased)
+1.2.13 (2011-09-16)
 -------------------
 - Fixed errors in speedups on 32bit systems when GEOS references memory above 2GB.
-- Add shapely.__version__
+- Add shapely.__version__ attribute.
+- Update the manual.
 
 1.2.12 (2011-08-15)
 -------------------
