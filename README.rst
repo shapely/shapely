@@ -124,8 +124,8 @@ Shapely is written by:
 Patches contributed by:
 
 * Howard Butler
-* Fr |eaigue| d |eaigue| ric Junod
-* |Eaigue| ric Lemoine
+* Fr |eacute| d |eacute| ric Junod
+* |Eacute| ric Lemoine
 * Jonathan Tartley
 * Kristian Thy
 * Oliver Tonnhofer
@@ -146,7 +146,7 @@ U.S. National Endowment for the Humanities (http://www.neh.gov).
 .. _example apps: http://trac.gispython.org/lab/wiki/Examples
 .. _wiki: http://trac.gispython.org/lab/wiki/Shapely
 .. _manual: http://gispython.org/shapely/docs/1.2
-.. |eaigue| unicode:: U+00E9
+.. |eacute| unicode:: U+00E9
    :trim:
 .. |Eacute| unicode:: U+00C9
    :trim:
