@@ -121,8 +121,8 @@ Adapter
   >>> coords[0] = 1.0
   >>> pa.wkt
   'POINT (1.0000000000000000 4.0000000000000000)'
-  >>> pa.distance(p)
-  4.1231056256176606
+  >>> '%.10f' % pa.distance(p)
+  '4.1231056256'
 
   Now, the inverse
   
