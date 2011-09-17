@@ -17,13 +17,13 @@ from setuptools import setup, find_packages
 import sys
 import platform
 
-readme_text = file('README.txt', 'rb').read()
+readme_text = file('README.rst', 'rb').read()
 changes_text = file('CHANGES.txt', 'rb').read()
 
 setup_args = dict(
     metadata_version    = '1.2',
     name                = 'Shapely',
-    version             = '1.2.12',
+    version             = '1.2.13',
     requires_python     = '>=2.5,<3',
     requires_external   = 'libgeos_c (>=3.1)', 
     description         = 'Geometric objects, predicates, and operations',
@@ -33,7 +33,7 @@ setup_args = dict(
     author_email        = 'sean.gillies@gmail.com',
     maintainer          = 'Sean Gillies',
     maintainer_email    = 'sean.gillies@gmail.com',
-    url                 = 'http://trac.gispython.org/lab/wiki/Shapely',
+    url                 = 'https://github.com/sgillies/shapely',
     long_description    = readme_text + "\n" + changes_text,
     packages            = find_packages(),
     test_suite          = 'shapely.tests.test_suite',

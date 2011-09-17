@@ -4,7 +4,7 @@ recursive-exclude debian *
 recursive-exclude docs *
 recursive-exclude DLLs_AMD64 *
 recursive-exclude DLLs_x86 *
-include CHANGES.txt CREDITS.txt LICENSE.txt README.txt
+include CHANGES.txt CREDITS.txt LICENSE.txt README.rst
 recursive-include shapely/tests *.py *.txt
 recursive-include shapely/examples *.py
 recursive-include shapely/speedups *.pyx
