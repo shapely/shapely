@@ -1,1 +1,5 @@
 *.pyc
+Shapely.egg-info/
+build/
+dist/
+shapely/speedups/_speedups.so
