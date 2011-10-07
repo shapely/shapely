@@ -1,3 +1,5 @@
+.. _manual:
+
 =======================
 The Shapely User Manual
 =======================
@@ -14,8 +16,6 @@ The Shapely User Manual
 :Abstract: 
   This document explains how to use the Shapely Python package for
   computational geometry.
-
-.. sectnum::
 
 .. _intro:
 
@@ -1824,7 +1824,7 @@ Conclusion
 We hope that you will enjoy and profit from using Shapely. Questions and
 comments are welcome on the GIS-Python email list_. This manual will be updated
 and improved regularly. Its source is available at
-http://github.com/sgillies/shapely/tree/master/docs/. 
+http://github.com/Toblerity/Shapely/tree/master/docs/. 
 
 
 References
@@ -1857,7 +1857,7 @@ References
    1973, pp. 112-122.
 
 
-.. _GEOS: http://geos.refractions.net
+.. _GEOS: http://trac.osgeo.org/geos/
 .. _Java Topology Suite: http://www.vividsolutions.com/jts/jtshome.htm
 .. _JTS: http://www.vividsolutions.com/jts/jtshome.htm
 .. _PostGIS: http://postgis.refractions.net
