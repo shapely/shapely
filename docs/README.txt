@@ -1,1 +1,1 @@
-../README.txt
+../README.rst
