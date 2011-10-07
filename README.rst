@@ -99,7 +99,7 @@ Numpy arrays can also be adapted to Shapely linestrings::
 Testing
 =======
 
-Shapely uses a Zope-stye suite of unittests and doctests, excercised via
+Shapely uses a Zope-stye suite of unittests and doctests, exercised via
 setup.py.::
 
   $ python setup.py test
@@ -110,7 +110,7 @@ supported well by nose.
 Support
 =======
 
-Bugs may be reported and questions asked via https://github.com/sgillies/shapely.
+Bugs may be reported and questions asked via https://github.com/Toblerity/Shapely.
 
 Credits
 =======
@@ -135,7 +135,7 @@ Additional help from:
 * Justin Bronn (GeoDjango) for ctypes inspiration
 * Martin Davis (JTS)
 * Jaakko Salli for the Windows distributions
-* Sandro Santilli, Mateusz Loskot, Paul Ramsey, et al (GEOS Project)
+* Sandro Santilli, Mateusz Loskot, Paul Ramsey, et al (GEOS_ Project)
 
 Major portions of this work were supported by a grant (for Pleiades_) from the
 U.S. National Endowment for the Humanities (http://www.neh.gov).
@@ -145,7 +145,7 @@ U.S. National Endowment for the Humanities (http://www.neh.gov).
 .. _GEOS: http://trac.osgeo.org/geos/
 .. _example apps: http://trac.gispython.org/lab/wiki/Examples
 .. _wiki: http://trac.gispython.org/lab/wiki/Shapely
-.. _manual: http://gispython.org/shapely/docs/1.2
+.. _manual: http://toblerity.github.com/shapely/manual.html
 .. |eacute| unicode:: U+00E9
    :trim:
 .. |Eacute| unicode:: U+00C9
