@@ -62,7 +62,7 @@ class CoordinateSequence(object):
             else:
                 yield (dx.value, dy.value)
 
-    def __getitem__(self, i):
+    def __getitem__(self, key):
         self._update()
         M = self.__len__()
         dx = c_double()
