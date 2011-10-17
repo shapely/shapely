@@ -64,23 +64,38 @@ class CoordinateSequence(object):
 
     def __getitem__(self, i):
         self._update()
-        M = self.__len__()
-        if i + M < 0 or i >= M:
-            raise IndexError("index out of range")
-        if i < 0:
-            ii = M + i
-        else:
-            ii = i
         dx = c_double()
         dy = c_double()
         dz = c_double()
-        lgeos.GEOSCoordSeq_getX(self._cseq, ii, byref(dx))
-        lgeos.GEOSCoordSeq_getY(self._cseq, ii, byref(dy))
-        if self._ndim == 3: # TODO: use hasz
-            lgeos.GEOSCoordSeq_getZ(self._cseq, ii, byref(dz))
-            return (dx.value, dy.value, dz.value)
+        M = self.__len__()
+        if isinstance(key, int):
+            if key + M < 0 or key >= M:
+                raise IndexError("index out of range")
+            if key < 0:
+                i = M + key
+            else:
+                i = key
+            lgeos.GEOSCoordSeq_getX(self._cseq, i, byref(dx))
+            lgeos.GEOSCoordSeq_getY(self._cseq, i, byref(dy))
+            if self._ndim == 3: # TODO: use hasz
+                lgeos.GEOSCoordSeq_getZ(self._cseq, i, byref(dz))
+                return (dx.value, dy.value, dz.value)
+            else:
+                return (dx.value, dy.value)
+        elif isinstance(key, slice):
+            res = []
+            start, stop, stride = key.indices(M)
+            for i in range(start, stop, stride):
+                lgeos.GEOSCoordSeq_getX(self._cseq, i, byref(dx))
+                lgeos.GEOSCoordSeq_getY(self._cseq, i, byref(dy))
+                if self._ndim == 3: # TODO: use hasz
+                    lgeos.GEOSCoordSeq_getZ(self._cseq, i, byref(dz))
+                    res.append((dx.value, dy.value, dz.value))
+                else:
+                    res.append((dx.value, dy.value))
+            return res
         else:
-            return (dx.value, dy.value)
+            raise TypeError("key must be an index or slice")
 
     @property
     def ctypes(self):
