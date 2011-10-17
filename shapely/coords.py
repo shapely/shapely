@@ -30,7 +30,7 @@ class CoordinateSequence(object):
     # _ndim : int
     #     Number of dimensions (2 or 3, generally)
     # __p__ : object
-    #     Parent (Shapely) geometry    
+    #     Parent (Shapely) geometry
     _cseq = None
     _ndim = None
     __p__ = None
@@ -41,7 +41,7 @@ class CoordinateSequence(object):
     def _update(self):
         self._ndim = self.__p__._ndim
         self._cseq = lgeos.GEOSGeom_getCoordSeq(self.__p__._geom)
-    
+
     def __len__(self):
         self._update()
         cs_len = c_uint(0)
@@ -53,7 +53,7 @@ class CoordinateSequence(object):
         dx = c_double()
         dy = c_double()
         dz = c_double()
-        has_z = self.has_z
+        has_z = self._ndim == 3
         for i in xrange(self.__len__()):
             lgeos.GEOSCoordSeq_getX(self._cseq, i, byref(dx))
             lgeos.GEOSCoordSeq_getY(self._cseq, i, byref(dy))
@@ -69,7 +69,7 @@ class CoordinateSequence(object):
         dy = c_double()
         dz = c_double()
         m = self.__len__()
-        has_z = self.has_z
+        has_z = self._ndim == 3
         if isinstance(key, int):
             if key + m < 0 or key >= m:
                 raise IndexError("index out of range")
@@ -102,7 +102,7 @@ class CoordinateSequence(object):
     @property
     def ctypes(self):
         self._update()
-        has_z = self.has_z
+        has_z = self._ndim == 3
         n = self._ndim
         m = self.__len__()
         array_type = c_double * (m * n)
@@ -181,4 +181,3 @@ class BoundsOp(Validating):
             if y < miny: miny = y
             if y > maxy: maxy = y
         return (minx, miny, maxx, maxy)
-
