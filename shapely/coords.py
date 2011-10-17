@@ -182,4 +182,3 @@ class BoundsOp(Validating):
             if y > maxy: maxy = y
         return (minx, miny, maxx, maxy)
 
-

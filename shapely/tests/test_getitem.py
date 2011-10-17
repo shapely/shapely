@@ -30,8 +30,8 @@ class CoordsGetItemTestCase(unittest.TestCase):
         self.assertTrue(g.coords[:-1] == c[:-1])
         self.assertTrue(g.coords[::-1] == c[::-1])
         self.assertTrue(g.coords[::2] == c[::2])
-        self.assertTrue(g.coords[:5] == c[:5])
-        self.assertTrue(g.coords[5:] == c[5:] == [])
+        self.assertTrue(g.coords[:4] == c[:4])
+        self.assertTrue(g.coords[4:] == c[4:] == [])
 
     def test_slice_3d_coords(self):
         c = ([(float(x),)*3 for x in range(4)])
@@ -40,8 +40,8 @@ class CoordsGetItemTestCase(unittest.TestCase):
         self.assertTrue(g.coords[:-1] == c[:-1])
         self.assertTrue(g.coords[::-1] == c[::-1])
         self.assertTrue(g.coords[::2] == c[::2])
-        self.assertTrue(g.coords[:5] == c[:5])
-        self.assertTrue(g.coords[5:] == c[5:] == [])
+        self.assertTrue(g.coords[:4] == c[:4])
+        self.assertTrue(g.coords[4:] == c[4:] == [])
 
 class MultiGeomGetItemTestCase(unittest.TestCase):
     def test_index_multigeom(self):
@@ -64,37 +64,46 @@ class MultiGeomGetItemTestCase(unittest.TestCase):
         self.assertTrue(geometry.MultiPoint(g[:-1]).equals(geometry.MultiPoint(c[:-1])))
         self.assertTrue(geometry.MultiPoint(g[::-1]).equals(geometry.MultiPoint(c[::-1])))
         self.assertTrue(geometry.MultiPoint(g[::2]).equals(geometry.MultiPoint(c[::2])))
-        self.assertTrue(geometry.MultiPoint(g[:5]).equals(geometry.MultiPoint(c[:5])))
-        self.assertTrue(geometry.MultiPoint(g[5:]).is_empty)
+        self.assertTrue(geometry.MultiPoint(g[:4]).equals(geometry.MultiPoint(c[:4])))
+        self.assertTrue(geometry.MultiPoint(g[4:]).is_empty)
 
 class LinearRingGetItemTestCase(unittest.TestCase):
     def test_index_linearring(self):
-        shell = geometry.polygon.LinearRing([(0.0, 0.0), (70.0, 120.0), (140.0, 0.0), (0.0, 0.0)])
-        holes = [geometry.polygon.LinearRing([(60.0, 80.0), (80.0, 80.0), (70.0, 60.0), (60.0, 80.0)]),
-                 geometry.polygon.LinearRing([(30.0, 10.0), (50.0, 10.0), (40.0, 30.0), (30.0, 10.0)]),
-                 geometry.polygon.LinearRing([(90.0, 10), (110.0, 10.0), (100.0, 30.0), (90.0, 10.0)])]
+        shell = geometry.polygon.LinearRing([(0.0, 0.0), (70.0, 120.0),
+                                             (140.0, 0.0), (0.0, 0.0)])
+        holes = [geometry.polygon.LinearRing([(60.0, 80.0), (80.0, 80.0),
+                                              (70.0, 60.0), (60.0, 80.0)]),
+                 geometry.polygon.LinearRing([(30.0, 10.0), (50.0, 10.0),
+                                              (40.0, 30.0), (30.0, 10.0)]),
+                 geometry.polygon.LinearRing([(90.0, 10), (110.0, 10.0),
+                                              (100.0, 30.0), (90.0, 10.0)])]
         g = geometry.Polygon(shell, holes)
         for i in range(-3,3):
             self.assertTrue(g.interiors[i].equals(holes[i]))
-        self.assertRaises(IndexError, lambda: g.interiors[3].is_valid)
-        self.assertRaises(IndexError, lambda: g.interiors[-4].is_valid)
+        self.assertRaises(IndexError, lambda: g.interiors[3])
+        self.assertRaises(IndexError, lambda: g.interiors[-4])
 
-    def test_index_empty_linearring(self):
-        g = geometry.Polygon()
+    def test_index_linearring_misc(self):
+        g = geometry.Polygon() # empty
         self.assertRaises(IndexError, lambda: g.interiors[0])
+        self.assertRaises(TypeError, lambda: g.interiors[0.0])
 
     def test_slice_linearring(self):
-        shell = geometry.polygon.LinearRing([(0.0, 0.0), (70.0, 120.0), (140.0, 0.0), (0.0, 0.0)])
-        holes = [geometry.polygon.LinearRing([(60.0, 80.0), (80.0, 80.0), (70.0, 60.0), (60.0, 80.0)]),
-                 geometry.polygon.LinearRing([(30.0, 10.0), (50.0, 10.0), (40.0, 30.0), (30.0, 10.0)]),
-                 geometry.polygon.LinearRing([(90.0, 10), (110.0, 10.0), (100.0, 30.0), (90.0, 10.0)])]
+        shell = geometry.polygon.LinearRing([(0.0, 0.0), (70.0, 120.0),
+                                             (140.0, 0.0), (0.0, 0.0)])
+        holes = [geometry.polygon.LinearRing([(60.0, 80.0), (80.0, 80.0),
+                                              (70.0, 60.0), (60.0, 80.0)]),
+                 geometry.polygon.LinearRing([(30.0, 10.0), (50.0, 10.0),
+                                              (40.0, 30.0), (30.0, 10.0)]),
+                 geometry.polygon.LinearRing([(90.0, 10), (110.0, 10.0),
+                                              (100.0, 30.0), (90.0, 10.0)])]
         g = geometry.Polygon(shell, holes)
         self.assertTrue(all([a.equals(b) for (a, b) in zip(g.interiors[1:], holes[1:])]))
         self.assertTrue(all([a.equals(b) for (a, b) in zip(g.interiors[:-1], holes[:-1])]))
         self.assertTrue(all([a.equals(b) for (a, b) in zip(g.interiors[::-1], holes[::-1])]))
         self.assertTrue(all([a.equals(b) for (a, b) in zip(g.interiors[::2], holes[::2])]))
-        self.assertTrue(all([a.equals(b) for (a, b) in zip(g.interiors[:4], holes[:4])]))
-        self.assertTrue(g.interiors[4:] == [])
+        self.assertTrue(all([a.equals(b) for (a, b) in zip(g.interiors[:3], holes[:3])]))
+        self.assertTrue(g.interiors[3:] == [])
 
 def test_suite():
     loader = unittest.TestLoader()
