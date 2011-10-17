@@ -64,10 +64,10 @@ class CoordinateSequence(object):
 
     def __getitem__(self, i):
         self._update()
+        M = self.__len__()
         dx = c_double()
         dy = c_double()
         dz = c_double()
-        M = self.__len__()
         if isinstance(key, int):
             if key + M < 0 or key >= M:
                 raise IndexError("index out of range")
