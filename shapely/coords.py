@@ -53,10 +53,11 @@ class CoordinateSequence(object):
         dx = c_double()
         dy = c_double()
         dz = c_double()
-        for i in range(self.__len__()):
+        has_z = self.has_z
+        for i in xrange(self.__len__()):
             lgeos.GEOSCoordSeq_getX(self._cseq, i, byref(dx))
             lgeos.GEOSCoordSeq_getY(self._cseq, i, byref(dy))
-            if self._ndim == 3: # TODO: use hasz
+            if has_z:
                 lgeos.GEOSCoordSeq_getZ(self._cseq, i, byref(dz))
                 yield (dx.value, dy.value, dz.value)
             else:
@@ -64,31 +65,32 @@ class CoordinateSequence(object):
 
     def __getitem__(self, key):
         self._update()
-        M = self.__len__()
         dx = c_double()
         dy = c_double()
         dz = c_double()
+        m = self.__len__()
+        has_z = self.has_z
         if isinstance(key, int):
-            if key + M < 0 or key >= M:
+            if key + m < 0 or key >= m:
                 raise IndexError("index out of range")
             if key < 0:
-                i = M + key
+                i = m + key
             else:
                 i = key
             lgeos.GEOSCoordSeq_getX(self._cseq, i, byref(dx))
             lgeos.GEOSCoordSeq_getY(self._cseq, i, byref(dy))
-            if self._ndim == 3: # TODO: use hasz
+            if has_z:
                 lgeos.GEOSCoordSeq_getZ(self._cseq, i, byref(dz))
                 return (dx.value, dy.value, dz.value)
             else:
                 return (dx.value, dy.value)
         elif isinstance(key, slice):
             res = []
-            start, stop, stride = key.indices(M)
-            for i in range(start, stop, stride):
+            start, stop, stride = key.indices(m)
+            for i in xrange(start, stop, stride):
                 lgeos.GEOSCoordSeq_getX(self._cseq, i, byref(dx))
                 lgeos.GEOSCoordSeq_getY(self._cseq, i, byref(dy))
-                if self._ndim == 3: # TODO: use hasz
+                if has_z:
                     lgeos.GEOSCoordSeq_getZ(self._cseq, i, byref(dz))
                     res.append((dx.value, dy.value, dz.value))
                 else:
@@ -100,6 +102,7 @@ class CoordinateSequence(object):
     @property
     def ctypes(self):
         self._update()
+        has_z = self.has_z
         n = self._ndim
         m = self.__len__()
         array_type = c_double * (m * n)
@@ -110,7 +113,7 @@ class CoordinateSequence(object):
             data[n*i] = temp.value
             lgeos.GEOSCoordSeq_getY(self._cseq, i, byref(temp))
             data[n*i+1] = temp.value
-            if n == 3: # TODO: use hasz
+            if has_z:
                 lgeos.GEOSCoordSeq_getZ(self._cseq, i, byref(temp))
                 data[n*i+2] = temp.value
         return data
@@ -148,7 +151,7 @@ class CoordinateSequence(object):
             lgeos.GEOSCoordSeq_getY(self._cseq, i, byref(temp))
             y.append(temp.value)
         return x, y
-            
+
 
 class BoundsOp(Validating):
 
@@ -178,4 +181,5 @@ class BoundsOp(Validating):
             if y < miny: miny = y
             if y > maxy: maxy = y
         return (minx, miny, maxx, maxy)
+
 

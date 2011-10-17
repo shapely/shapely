@@ -548,7 +548,7 @@ class GeometrySequence(object):
 
     def __iter__(self):
         self._update()
-        for i in range(self.__len__()):
+        for i in xrange(self.__len__()):
             yield self._get_geom_item(i)
 
     def __len__(self):
@@ -557,19 +557,19 @@ class GeometrySequence(object):
 
     def __getitem__(self, key):
         self._update()
-        M = self.__len__()
+        m = self.__len__()
         if isinstance(key, int):
-            if key + M < 0 or key >= M:
+            if key + m < 0 or key >= m:
                 raise IndexError("index out of range")
             if key < 0:
-                i = M + key
+                i = m + key
             else:
                 i = key
             return self._get_geom_item(i)
         elif isinstance(key, slice):
             res = []
-            start, stop, stride = key.indices(M)
-            for i in range(start, stop, stride):
+            start, stop, stride = key.indices(m)
+            for i in xrange(start, stop, stride):
                 res.append(self._get_geom_item(i))
             return res
         else:
