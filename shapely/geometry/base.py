@@ -573,7 +573,6 @@ class GeometrySequence(object):
                 res.append(self._get_geom_item(i))
             return res
         else:
-            return (dx.value, dy.value)
             raise TypeError("key must be an index or slice")
 
     @property
