@@ -12,13 +12,13 @@ from shapely import wkb, wkt
 
 GEOMETRY_TYPES = [
     'Point',
-	'LineString',
-	'LinearRing',
-	'Polygon',
-	'MultiPoint',
-	'MultiLineString',
-	'MultiPolygon',
-	'GeometryCollection'
+    'LineString',
+    'LinearRing',
+    'Polygon',
+    'MultiPoint',
+    'MultiLineString',
+    'MultiPolygon',
+    'GeometryCollection'
     ]
 
 def geometry_type_name(g):
@@ -555,16 +555,26 @@ class GeometrySequence(object):
         self._update()
         return lgeos.GEOSGetNumGeometries(self._geom)
 
-    def __getitem__(self, i):
+    def __getitem__(self, key):
         self._update()
         M = self.__len__()
-        if i + M < 0 or i >= M:
-            raise IndexError("index out of range")
-        if i < 0:
-            ii = M + i
+        if isinstance(key, int):
+            if key + M < 0 or key >= M:
+                raise IndexError("index out of range")
+            if key < 0:
+                i = M + key
+            else:
+                i = key
+            return self._get_geom_item(i)
+        elif isinstance(key, slice):
+            res = []
+            start, stop, stride = key.indices(M)
+            for i in range(start, stop, stride):
+                res.append(self._get_geom_item(i))
+            return res
         else:
-            ii = i
-        return self._get_geom_item(i)
+            return (dx.value, dy.value)
+            raise TypeError("key must be an index or slice")
 
     @property
     def _longest(self):
