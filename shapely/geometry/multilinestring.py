@@ -40,8 +40,8 @@ class MultiLineString(BaseMultipartGeometry):
         """
         super(MultiLineString, self).__init__()
 
-        if lines is None:
-            # allow creation of null lines, to support unpickling
+        if not lines:
+            # allow creation of empty multilinestrings, to support unpickling
             pass
         else:
             self._geom, self._ndim = geos_multilinestring_from_py(lines)
