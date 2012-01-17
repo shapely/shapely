@@ -3,7 +3,7 @@ from shapely import geometry
 
 class CoordsGetItemTestCase(unittest.TestCase):
     def test_index_2d_coords(self):
-        c = ([(float(x),)*2 for x in range(4)])
+        c = [(float(x), float(-x)) for x in range(4)]
         g = geometry.LineString(c)
         for i in range(-4,4):
             self.assertTrue(g.coords[i] == c[i])
@@ -11,7 +11,7 @@ class CoordsGetItemTestCase(unittest.TestCase):
         self.assertRaises(IndexError, lambda: g.coords[-5])
 
     def test_index_3d_coords(self):
-        c = ([(float(x),)*3 for x in range(4)])
+        c = [(float(x), float(-x), float(x*2)) for x in range(4)]
         g = geometry.LineString(c)
         for i in range(-4,4):
             self.assertTrue(g.coords[i] == c[i])
@@ -24,7 +24,7 @@ class CoordsGetItemTestCase(unittest.TestCase):
         self.assertRaises(TypeError, lambda: g.coords[0.0])
 
     def test_slice_2d_coords(self):
-        c = ([(float(x),)*2 for x in range(4)])
+        c = [(float(x), float(-x)) for x in range(4)]
         g = geometry.LineString(c)
         self.assertTrue(g.coords[1:] == c[1:])
         self.assertTrue(g.coords[:-1] == c[:-1])
@@ -34,7 +34,7 @@ class CoordsGetItemTestCase(unittest.TestCase):
         self.assertTrue(g.coords[4:] == c[4:] == [])
 
     def test_slice_3d_coords(self):
-        c = ([(float(x),)*3 for x in range(4)])
+        c = [(float(x), float(-x), float(x*2)) for x in range(4)]
         g = geometry.LineString(c)
         self.assertTrue(g.coords[1:] == c[1:])
         self.assertTrue(g.coords[:-1] == c[:-1])
@@ -45,7 +45,7 @@ class CoordsGetItemTestCase(unittest.TestCase):
 
 class MultiGeomGetItemTestCase(unittest.TestCase):
     def test_index_multigeom(self):
-        c = ([(float(x),)*2 for x in range(4)])
+        c = [(float(x), float(-x)) for x in range(4)]
         g = geometry.MultiPoint(c)
         for i in range(-4,4):
             self.assertTrue(g[i].equals(geometry.Point(c[i])))
@@ -58,14 +58,14 @@ class MultiGeomGetItemTestCase(unittest.TestCase):
         self.assertRaises(TypeError, lambda: g[0.0])
 
     def test_slice_multigeom(self):
-        c = ([(float(x),)*2 for x in range(4)])
+        c = [(float(x), float(-x)) for x in range(4)]
         g = geometry.MultiPoint(c)
         self.assertTrue(geometry.MultiPoint(g[1:]).equals(geometry.MultiPoint(c[1:])))
         self.assertTrue(geometry.MultiPoint(g[:-1]).equals(geometry.MultiPoint(c[:-1])))
         self.assertTrue(geometry.MultiPoint(g[::-1]).equals(geometry.MultiPoint(c[::-1])))
         self.assertTrue(geometry.MultiPoint(g[::2]).equals(geometry.MultiPoint(c[::2])))
         self.assertTrue(geometry.MultiPoint(g[:4]).equals(geometry.MultiPoint(c[:4])))
-        self.assertTrue(geometry.MultiPoint(g[4:]).is_empty)
+        self.assertTrue(g[4:] == c[4:] == [])
 
 class LinearRingGetItemTestCase(unittest.TestCase):
     def test_index_linearring(self):
@@ -103,7 +103,7 @@ class LinearRingGetItemTestCase(unittest.TestCase):
         self.assertTrue(all([a.equals(b) for (a, b) in zip(g.interiors[::-1], holes[::-1])]))
         self.assertTrue(all([a.equals(b) for (a, b) in zip(g.interiors[::2], holes[::2])]))
         self.assertTrue(all([a.equals(b) for (a, b) in zip(g.interiors[:3], holes[:3])]))
-        self.assertTrue(g.interiors[3:] == [])
+        self.assertTrue(g.interiors[3:] == holes[3:] == [])
 
 def test_suite():
     loader = unittest.TestLoader()
