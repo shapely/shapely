@@ -17,8 +17,12 @@ from setuptools import setup, find_packages
 import sys
 import platform
 
-readme_text = file('README.rst', 'rb').read()
-changes_text = file('CHANGES.txt', 'rb').read()
+readme_text = open('README.rst', 'rb').read()
+
+# Skip the first line of the changes file to get the right header level
+f = open('CHANGES.txt', 'rb')
+f.readline()
+changes_text = f.read()
 
 setup_args = dict(
     metadata_version    = '1.2',

@@ -1,10 +1,11 @@
 =======
-CHANGES
+Changes
 =======
 
 1.2.13 (2011-09-16)
 -------------------
-- Fixed errors in speedups on 32bit systems when GEOS references memory above 2GB.
+- Fixed errors in speedups on 32bit systems when GEOS references memory above
+  2GB.
 - Add shapely.__version__ attribute.
 - Update the manual.
 
@@ -139,9 +140,7 @@ TODO: fill gap here
 - Prototype libgeos_c functions in a way that lets py2exe apps import shapely
   (#189).
 
-=========================
 1.2 Branched (2009-09-19)
-=========================
 
 1.0.12 (2009-04-09)
 -------------------
