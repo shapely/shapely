@@ -2,9 +2,15 @@
 CHANGES
 =======
 
+1.2.14 (2012-01-20)
+-------------------
+- A geometry's coords property is now sliceable, yielding a list of coordinate
+  values.
+
 1.2.13 (2011-09-16)
 -------------------
-- Fixed errors in speedups on 32bit systems when GEOS references memory above 2GB.
+- Fixed errors in speedups on 32bit systems when GEOS references memory above
+  2GB.
 - Add shapely.__version__ attribute.
 - Update the manual.
 
