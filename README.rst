@@ -121,6 +121,7 @@ Shapely is written by:
 * Sean Gillies
 * Aron Bierbaum
 * Kai Lautaportti
+* Oliver Tonnhofer
 
 Patches contributed by:
 
@@ -129,7 +130,7 @@ Patches contributed by:
 * Éric Lemoine
 * Jonathan Tartley
 * Kristian Thy
-* Oliver Tonnhofer
+* Mike Toews (https://github.com/mwtoews)
 
 Additional help from:
 
