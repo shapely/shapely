@@ -1,8 +1,9 @@
-=======
-Shapely
-=======
+======
+README
+======
 
-PostGIS-ish operations outside a database context for Pythoneers and Pythonistas
+PostGIS-ish operations outside a database context for Pythoneers and
+Pythonistas.
 
 .. image:: http://farm3.static.flickr.com/2738/4511827859_b5822043b7_o_d.png
    :width: 800
@@ -120,15 +121,16 @@ Shapely is written by:
 * Sean Gillies
 * Aron Bierbaum
 * Kai Lautaportti
+* Oliver Tonnhofer
 
 Patches contributed by:
 
 * Howard Butler
-* Fr |eacute| d |eacute| ric Junod
-* |Eacute| ric Lemoine
+* Frédéric Junod
+* Éric Lemoine
 * Jonathan Tartley
 * Kristian Thy
-* Oliver Tonnhofer
+* Mike Toews (https://github.com/mwtoews)
 
 Additional help from:
 
@@ -146,8 +148,5 @@ U.S. National Endowment for the Humanities (http://www.neh.gov).
 .. _example apps: http://trac.gispython.org/lab/wiki/Examples
 .. _wiki: http://trac.gispython.org/lab/wiki/Shapely
 .. _manual: http://toblerity.github.com/shapely/manual.html
-.. |eacute| unicode:: U+00E9
-   :trim:
-.. |Eacute| unicode:: U+00C9
-   :trim:
 .. _Pleiades: http://pleiades.stoa.org
+

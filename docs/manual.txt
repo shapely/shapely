@@ -5,8 +5,8 @@ The Shapely User Manual
 =======================
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
-:Revision: 1.2.13
-:Date: 15 September 2011
+:Revision: 1.2.14
+:Date: 21 January 2012
 :Copyright: 
   This work is licensed under a `Creative Commons Attribution 3.0
   United States License`__.
@@ -267,6 +267,13 @@ Coordinate values are accessed via `coords`, `x`, `y`, and `z` properties.
   >>> point.y
   0.0
 
+Coordinates may also be sliced. `New in version 1.2.14`.
+
+.. sourcecode:: pycon
+
+  >>> point.coords[:]
+  [(0.0, 0.0)]
+
 The `Point` constructor also accepts another `Point` instance, thereby making
 a copy.
 
@@ -322,6 +329,15 @@ The defining coordinate values are accessed via the `coords` property.
   2
   >>> list(line.coords)
   [(0.0, 0.0), (1.0, 1.0)]
+
+Coordinates may also be sliced. `New in version 1.2.14`.
+
+.. sourcecode:: pycon
+
+  >>> point.coords[:]
+  [(0.0, 0.0), (1.0, 1.0)]
+  >>> point.coords[1:]
+  [(1.0, 1.0)]
 
 The constructor also accepts another `LineString` instance, thereby making a
 copy.
@@ -509,12 +525,11 @@ To obtain a polygon with a known orientation, use
 Collections
 -----------
 
-Shapely provides frozenset_-like, immutable collections of geometric objects.
-The collections may be homogeneous (`MultiPoint` etc.) or heterogeneous.
-
 Heterogeneous collections of geometric objects may result from some Shapely
 operations. For example, two `LineStrings` may intersect along a line and at a
-point.
+point. To represent these kind of results, Shapely provides frozenset_-like,
+immutable collections of geometric objects.  The collections may be homogeneous
+(`MultiPoint` etc.) or heterogeneous.
 
 .. sourcecode:: python
 
@@ -546,6 +561,22 @@ the iterator protocol using ``in``  or ``list()``.
   >>> pprint(list(x))
   [<shapely.geometry.point.Point object at 0x...>,
    <shapely.geometry.linestring.LineString object at 0x...>]
+
+Homogeneous collections can also be sliced, resulting in a new object of the
+same type.
+
+.. sourcecode:: pycon 
+
+  >>> from shapely.geometry import MultiPoint
+  >>> m = MultiPoint([(0, 0), (1, 1), (1,2), (2,2)])
+  >>> m[:1].wkt
+  'MULTIPOINT (0.0000000000000000 0.0000000000000000)'
+  >>> m[3:].wkt
+  'MULTIPOINT (2.0000000000000000 2.0000000000000000)'
+  >>> m[4:].wkt
+  'GEOMETRYCOLLECTION EMPTY'
+
+`New in version 1.2.14`.
 
 .. note::
   

@@ -17,13 +17,17 @@ from setuptools import setup, find_packages
 import sys
 import platform
 
-readme_text = file('README.rst', 'rb').read()
-changes_text = file('CHANGES.txt', 'rb').read()
+readme_text = open('README.rst', 'rb').read()
+
+# Skip the first line of the changes file to get the right header level
+f = open('CHANGES.txt', 'rb')
+f.readline()
+changes_text = f.read()
 
 setup_args = dict(
     metadata_version    = '1.2',
     name                = 'Shapely',
-    version             = '1.2.13',
+    version             = '1.2.14',
     requires_python     = '>=2.5,<3',
     requires_external   = 'libgeos_c (>=3.1)', 
     description         = 'Geometric objects, predicates, and operations',

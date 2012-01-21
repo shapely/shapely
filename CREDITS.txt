@@ -12,6 +12,7 @@ Patches contributed by:
 * Eric Lemoine
 * Jonathan Tartley
 * Kristian Thy
+* Mike Toews (https://github.com/mwtoews)
 
 Additional help from:
 
