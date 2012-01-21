@@ -6,6 +6,8 @@ Changes
 -------------------
 - A geometry's coords property is now sliceable, yielding a list of coordinate
   values.
+- Homogeneous collections are now sliceable, yielding a new collection of the
+  same type.
 
 1.2.13 (2011-09-16)
 -------------------

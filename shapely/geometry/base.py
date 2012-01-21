@@ -567,6 +567,9 @@ class GeometrySequence(object):
                 i = key
             return self._get_geom_item(i)
         elif isinstance(key, slice):
+            if type(self) == HeterogeneousGeometrySequence:
+                raise TypeError(
+                    "Heterogenous geometry collections are not sliceable")
             res = []
             start, stop, stride = key.indices(m)
             for i in xrange(start, stop, stride):

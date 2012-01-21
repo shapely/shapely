@@ -96,8 +96,8 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
-html_theme = 'haiku'
-# html_theme = 'sphinxdoc'
+# html_theme = 'haiku'
+html_theme = 'sphinxdoc'
 # html_theme = 'shapely'
 
 # Theme options are theme-specific and customize the look and feel of a theme
