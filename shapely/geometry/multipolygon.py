@@ -51,7 +51,7 @@ class MultiPolygon(BaseMultipartGeometry):
         super(MultiPolygon, self).__init__()
 
         if polygons is None:
-            # allow creation of null collections, to support unpickling
+            # allow creation of empty multipolygons, to support unpickling
             pass
         elif context_type == 'polygons':
             self._geom, self._ndim = geos_multipolygon_from_polygons(polygons)

@@ -12,13 +12,13 @@ from shapely import wkb, wkt
 
 GEOMETRY_TYPES = [
     'Point',
-	'LineString',
-	'LinearRing',
-	'Polygon',
-	'MultiPoint',
-	'MultiLineString',
-	'MultiPolygon',
-	'GeometryCollection'
+    'LineString',
+    'LinearRing',
+    'Polygon',
+    'MultiPoint',
+    'MultiLineString',
+    'MultiPolygon',
+    'GeometryCollection'
     ]
 
 def geometry_type_name(g):
@@ -548,23 +548,35 @@ class GeometrySequence(object):
 
     def __iter__(self):
         self._update()
-        for i in range(self.__len__()):
+        for i in xrange(self.__len__()):
             yield self._get_geom_item(i)
 
     def __len__(self):
         self._update()
         return lgeos.GEOSGetNumGeometries(self._geom)
 
-    def __getitem__(self, i):
+    def __getitem__(self, key):
         self._update()
-        M = self.__len__()
-        if i + M < 0 or i >= M:
-            raise IndexError("index out of range")
-        if i < 0:
-            ii = M + i
+        m = self.__len__()
+        if isinstance(key, int):
+            if key + m < 0 or key >= m:
+                raise IndexError("index out of range")
+            if key < 0:
+                i = m + key
+            else:
+                i = key
+            return self._get_geom_item(i)
+        elif isinstance(key, slice):
+            if type(self) == HeterogeneousGeometrySequence:
+                raise TypeError(
+                    "Heterogenous geometry collections are not sliceable")
+            res = []
+            start, stop, stride = key.indices(m)
+            for i in xrange(start, stop, stride):
+                res.append(self._get_geom_item(i))
+            return type(self.__p__)(res or None)
         else:
-            ii = i
-        return self._get_geom_item(i)
+            raise TypeError("key must be an index or slice")
 
     @property
     def _longest(self):
