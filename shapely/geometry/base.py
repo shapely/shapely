@@ -571,7 +571,7 @@ class GeometrySequence(object):
             start, stop, stride = key.indices(m)
             for i in xrange(start, stop, stride):
                 res.append(self._get_geom_item(i))
-            return res
+            return type(self.__p__)(res or None)
         else:
             raise TypeError("key must be an index or slice")
 

@@ -60,12 +60,12 @@ class MultiGeomGetItemTestCase(unittest.TestCase):
     def test_slice_multigeom(self):
         c = [(float(x), float(-x)) for x in range(4)]
         g = geometry.MultiPoint(c)
-        self.assertTrue(geometry.MultiPoint(g[1:]).equals(geometry.MultiPoint(c[1:])))
-        self.assertTrue(geometry.MultiPoint(g[:-1]).equals(geometry.MultiPoint(c[:-1])))
-        self.assertTrue(geometry.MultiPoint(g[::-1]).equals(geometry.MultiPoint(c[::-1])))
-        self.assertTrue(geometry.MultiPoint(g[::2]).equals(geometry.MultiPoint(c[::2])))
-        self.assertTrue(geometry.MultiPoint(g[:4]).equals(geometry.MultiPoint(c[:4])))
-        self.assertTrue(g[4:] == c[4:] == [])
+        self.failUnlessEqual(type(g[:]), type(g))
+        self.failUnlessEqual(len(g[:]), len(g))
+        self.failUnless(g[1:].equals(geometry.MultiPoint(c[1:])))
+        self.failUnless(g[:-1].equals(geometry.MultiPoint(c[:-1])))
+        self.failUnless(g[::-1].equals(geometry.MultiPoint(c[::-1])))
+        self.failUnless(g[4:].is_empty)
 
 class LinearRingGetItemTestCase(unittest.TestCase):
     def test_index_linearring(self):
