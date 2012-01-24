@@ -2,7 +2,7 @@
 Changes
 =======
 
-1.2.14 (2012-01-20)
+1.2.14 (2012-01-23)
 -------------------
 - A geometry's coords property is now sliceable, yielding a list of coordinate
   values.
