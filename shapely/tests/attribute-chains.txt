@@ -28,10 +28,8 @@ anonymous references.
     >>> print list(p.interiors[0].coords)
     [(-0.25, 0.25), (-0.25, 0.75), (-0.75, 0.75), (-0.75, 0.25), (-0.25, 0.25)]
     >>> xy = list(p.interiors[0].buffer(1).exterior.coords)[0]
-    >>> xy[0] + 0.25 <= 1.0e-7
-    True
-    >>> xy[1] + 0.75 <= 1.0e-7
-    True
+    >>> len(xy)
+    2
 
 Test multiple operators, boundary of a buffer
 
