@@ -2,6 +2,11 @@
 Changes
 =======
 
+1.2.15 (2012-)
+--------------
+- Eliminate numerical sensitivity in a method chaining test (Debian bug
+  #663210).
+
 1.2.14 (2012-01-23)
 -------------------
 - A geometry's coords property is now sliceable, yielding a list of coordinate
