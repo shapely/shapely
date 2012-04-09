@@ -183,6 +183,9 @@ def geos_point_from_py(ob, update_geom=None, update_ndim=0):
         da = array['data']
         if type(da) == type((0,)):
             cdata = da[0]
+            # If we had numpy, we would do
+            # from numpy.ctypeslib import as_ctypes
+            # cp = as_ctypes(ob) - check that code?
             cp = cast(cdata, POINTER(c_double))
             dx = c_double(cp[0])
             dy = c_double(cp[1])
