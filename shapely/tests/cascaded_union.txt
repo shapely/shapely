@@ -19,6 +19,7 @@ Buffer the points, producing 100 polygon spots
 Perform a cascaded union of the polygon spots, dissolving them into a 
 collection of polygon patches
 
-  >>> cascaded_union(spots) # doctest: +ELLIPSIS
-  <shapely.geometry.multipolygon.MultiPolygon object at 0x...>
+  >>> u = cascaded_union(spots)
+  >>> u.geom_type in ('Polygon', 'MultiPolygon')
+  True
 
