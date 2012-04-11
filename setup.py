@@ -104,16 +104,16 @@ except ImportError:
             except ext_errors, x:
                 raise BuildFailed(x)
 
-if sys.platform == 'win32':
+if (hasattr(platform, 'python_implementation') 
+    and platform.python_implementation() == 'PyPy'):
+    # python_implementation is only available since 2.6
+    ext_modules = []
+elif sys.platform == 'win32':
     # geos DLL is geos.dll instead of geos_c.dll on Windows
     ext_modules = [
         Extension("shapely.speedups._speedups",
               ["shapely/speedups/_speedups" + build_suffix], libraries=['geos']),
     ]
-elif (hasattr(platform, 'python_implementation') 
-    and platform.python_implementation() == 'PyPy'):
-    # python_implementation >= 2.6
-    ext_modules = []
 else:
     ext_modules = [
         Extension("shapely.speedups._speedups", 
