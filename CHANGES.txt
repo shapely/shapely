@@ -8,6 +8,7 @@ Changes
   #663210).
 - Account for cascaded union of random buffered test points being a polygon
   or multipolygon (Debian bug #666655).
+- Use Cython to build speedups if it is installed.
 
 1.2.14 (2012-01-23)
 -------------------
