@@ -12,6 +12,7 @@ except:
 from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
 from setuptools.extension import Extension
+from setuptools.command.build_ext import build_ext
 from setuptools import setup, find_packages
 import sys
 import platform
@@ -80,29 +81,20 @@ else:
 class BuildFailed(Exception):
     pass
 
-try:
-    # try to use Cython if present
-    from Cython.Distutils import build_ext
-    build_suffix = '.pyx'
-except ImportError:
-    # else try to build from existing .c file
-    from setuptools.command.build_ext import build_ext as distutils_build_ext
-    build_suffix = '.c'
+class ve_build_ext(build_ext):
+    # This class allows C extension building to fail.
 
-    class build_ext(distutils_build_ext):
-        # This class allows C extension building to fail.
+    def run(self):
+        try:
+            build_ext.run(self)
+        except DistutilsPlatformError, x:
+            raise BuildFailed(x)
 
-        def run(self):
-            try:
-                distutils_build_ext.run(self)
-            except DistutilsPlatformError, x:
-                raise BuildFailed(x)
-
-        def build_extension(self, ext):
-            try:
-                distutils_build_ext.build_extension(self, ext)
-            except ext_errors, x:
-                raise BuildFailed(x)
+    def build_extension(self, ext):
+        try:
+            build_ext.build_extension(self, ext)
+        except ext_errors, x:
+            raise BuildFailed(x)
 
 if (hasattr(platform, 'python_implementation') 
     and platform.python_implementation() == 'PyPy'):
@@ -112,18 +104,18 @@ elif sys.platform == 'win32':
     # geos DLL is geos.dll instead of geos_c.dll on Windows
     ext_modules = [
         Extension("shapely.speedups._speedups",
-              ["shapely/speedups/_speedups" + build_suffix], libraries=['geos']),
+              ["shapely/speedups/_speedups.c"], libraries=['geos']),
     ]
 else:
     ext_modules = [
         Extension("shapely.speedups._speedups", 
-              ["shapely/speedups/_speedups" + build_suffix], libraries=['geos_c']),
+              ["shapely/speedups/_speedups.c"], libraries=['geos_c']),
     ]
 
 try:
     # try building with speedups
     setup(
-        cmdclass={'build_ext': build_ext},
+        cmdclass={'build_ext': ve_build_ext},
         ext_modules=ext_modules,
         **setup_args
     )
