@@ -15,6 +15,7 @@ import os
 import platform
 from setuptools.extension import Extension
 from setuptools import setup, find_packages
+from setuptools.command.build_ext import build_ext as distutils_build_ext
 import subprocess
 import sys
 
@@ -82,27 +83,20 @@ else:
 class BuildFailed(Exception):
     pass
 
-try:
-    # try to use Cython if present
-    from Cython.Distutils import build_ext
-except ImportError:
-    # else try to build from existing .c file
-    from setuptools.command.build_ext import build_ext as distutils_build_ext
+class build_ext(distutils_build_ext):
+    # This class allows C extension building to fail.
 
-    class build_ext(distutils_build_ext):
-        # This class allows C extension building to fail.
+    def run(self):
+        try:
+            distutils_build_ext.run(self)
+        except DistutilsPlatformError, x:
+            raise BuildFailed(x)
 
-        def run(self):
-            try:
-                distutils_build_ext.run(self)
-            except DistutilsPlatformError, x:
-                raise BuildFailed(x)
-
-        def build_extension(self, ext):
-            try:
-                distutils_build_ext.build_extension(self, ext)
-            except ext_errors, x:
-                raise BuildFailed(x)
+    def build_extension(self, ext):
+        try:
+            distutils_build_ext.build_extension(self, ext)
+        except ext_errors, x:
+            raise BuildFailed(x)
 
 if (hasattr(platform, 'python_implementation') 
     and platform.python_implementation() == 'PyPy'):
