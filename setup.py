@@ -1,4 +1,3 @@
-import glob
 import warnings
 
 try:
@@ -11,10 +10,13 @@ except:
 
 from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
+import glob
+import os
+import platform
 from setuptools.extension import Extension
 from setuptools import setup, find_packages
+import subprocess
 import sys
-import platform
 
 readme_text = open('README.rst', 'rb').read()
 
@@ -26,7 +28,7 @@ changes_text = f.read()
 setup_args = dict(
     metadata_version    = '1.2',
     name                = 'Shapely',
-    version             = '1.2.14',
+    version             = '1.2.15',
     requires_python     = '>=2.5,<3',
     requires_external   = 'libgeos_c (>=3.1)', 
     description         = 'Geometric objects, predicates, and operations',
@@ -83,11 +85,9 @@ class BuildFailed(Exception):
 try:
     # try to use Cython if present
     from Cython.Distutils import build_ext
-    build_suffix = '.pyx'
 except ImportError:
     # else try to build from existing .c file
     from setuptools.command.build_ext import build_ext as distutils_build_ext
-    build_suffix = '.c'
 
     class build_ext(distutils_build_ext):
         # This class allows C extension building to fail.
@@ -108,18 +108,23 @@ if (hasattr(platform, 'python_implementation')
     and platform.python_implementation() == 'PyPy'):
     # python_implementation is only available since 2.6
     ext_modules = []
-elif sys.platform == 'win32':
-    # geos DLL is geos.dll instead of geos_c.dll on Windows
-    ext_modules = [
-        Extension("shapely.speedups._speedups",
-              ["shapely/speedups/_speedups" + build_suffix], libraries=['geos']),
-    ]
-else:
-    ext_modules = [
-        Extension("shapely.speedups._speedups", 
-              ["shapely/speedups/_speedups" + build_suffix], libraries=['geos_c']),
-    ]
 
+elif sys.platform == 'win32':
+    libraries = ['geos']
+else:
+    libraries = ['geos_c']
+
+if os.path.exists("MANIFEST.in"):
+    subprocess.check_call(["cython", "shapely/speedups/_speedups.pyx"])
+    if not os.path.exists("shapely/speedups/_speedups.c"):
+        raise RuntimeError("Failed to generate C extension from PYX")
+
+ext_modules = [
+    Extension(
+        "shapely.speedups._speedups",
+        ["shapely/speedups/_speedups.c"],
+        libraries=libraries )]
+    
 try:
     # try building with speedups
     setup(

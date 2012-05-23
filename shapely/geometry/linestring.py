@@ -4,6 +4,7 @@
 from ctypes import c_double, cast, POINTER
 from ctypes import ArgumentError
 
+from shapely.coords import required
 from shapely.geos import lgeos, TopologicalError
 from shapely.geometry.base import BaseGeometry, geom_factory
 from shapely.geometry.proxy import CachingGeometryProxy
@@ -151,6 +152,9 @@ def asLineString(context):
 
 
 def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
+    # If numpy is present, we use numpy.require to ensure that we have a
+    # C-continguous array that owns its data. View data will be copied.
+    ob = required(ob)
     try:
         # From array protocol
         array = ob.__array_interface__

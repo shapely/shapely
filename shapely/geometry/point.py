@@ -4,6 +4,7 @@
 from ctypes import c_double
 from ctypes import cast, POINTER
 
+from shapely.coords import required
 from shapely.geos import lgeos, DimensionError
 from shapely.geometry.base import BaseGeometry
 from shapely.geometry.proxy import CachingGeometryProxy
@@ -172,6 +173,9 @@ def geos_point_from_py(ob, update_geom=None, update_ndim=0):
 
     Returns the GEOS geometry and the number of its dimensions.
     """
+    # If numpy is present, we use numpy.require to ensure that we have a
+    # C-continguous array that owns its data. View data will be copied.
+    ob = required(ob)
     try:
         # From array protocol
         array = ob.__array_interface__

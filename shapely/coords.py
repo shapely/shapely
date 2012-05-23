@@ -8,6 +8,21 @@ import sys
 from shapely.geos import lgeos
 from shapely.topology import Validating
 
+try:
+    import numpy
+    has_numpy = True
+except ImportError:
+    has_numpy = False
+
+def required(ob):
+    """Return an object that meets Shapely requirements for self-owned
+    C-continguous data, copying if necessary, or just return the original
+    object."""
+    if has_numpy and hasattr(ob, '__array_interface__'):
+        return numpy.require(ob, numpy.float64, ["C", "OWNDATA"])
+    else:
+        return ob
+
 
 class CoordinateSequence(object):
     """
