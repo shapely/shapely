@@ -95,6 +95,9 @@ def _geos_c_version():
     func.argtypes = []
     func.restype = c_char_p
     v = func().split('-')[2]
+    # Ditch any SVN revision numbering that may have crept in without (ftm)
+    # importing `re`.
+    v = v.split()[0]
     return tuple(int(n) for n in v.split('.'))
 
 geos_capi_version = geos_c_version = _geos_c_version()
