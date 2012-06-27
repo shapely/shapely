@@ -4,6 +4,7 @@
 from ctypes import byref, c_double, c_void_p, cast, POINTER
 from ctypes import ArgumentError
 
+from shapely.coords import required
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseMultipartGeometry, exceptNull
 from shapely.geometry.point import Point, geos_point_from_py
@@ -128,6 +129,9 @@ def asMultiPoint(context):
 
 
 def geos_multipoint_from_py(ob):
+    # If numpy is present, we use numpy.require to ensure that we have a
+    # C-continguous array that owns its data. View data will be copied.
+    ob = required(ob)
     try:
         # From array protocol
         array = ob.__array_interface__
