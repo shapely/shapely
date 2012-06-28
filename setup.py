@@ -18,6 +18,16 @@ from setuptools import setup, find_packages
 import subprocess
 import sys
 
+# Parse the version from the shapely module
+for line in open('shapely/__init__.py', 'rb'):
+    if line.find("__version__") >= 0:
+        version = line.split("=")[1].strip()
+        version = version.strip('"')
+        version = version.strip("'")
+        continue
+
+open('VERSION.txt', 'wb').write(version)
+
 readme_text = open('README.rst', 'rb').read()
 
 # Skip the first line of the changes file to get the right header level
@@ -28,7 +38,7 @@ changes_text = f.read()
 setup_args = dict(
     metadata_version    = '1.2',
     name                = 'Shapely',
-    version             = '1.2.15',
+    version             = version,
     requires_python     = '>=2.5,<3',
     requires_external   = 'libgeos_c (>=3.1)', 
     description         = 'Geometric objects, predicates, and operations',
