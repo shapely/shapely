@@ -1482,6 +1482,30 @@ Figure 1. Convex hull (blue) of 2 points (left) and of 6 points (right).
   >>> MultiPoint([(0, 0), (1, 1)]).envelope
   <shapely.geometry.polygon.Polygon object at 0x...>
 
+.. method:: object.parallel_offset(distance, side, resolution=16, join_style=1, mitre_limit=1.0)
+
+  Returns a LineString or MultiLineString geometry at a distance from
+  the object on its right or its left side.
+
+  Distance must be a positive float value. The side parameter may be
+  'left' or 'right'. The resolution of the buffer around each vertex of
+  the object increases by increasing the resolution keyword parameter or
+  third positional parameter.
+
+  The join style is for outside corners between line segments. Accepted
+  values are 1 => ROUND, 2 => MITRE, 3 => BEVEL.
+
+  The mitre ratio limit is used for very sharp corners. It is the ratio
+  of the distance from the corner to the end of the mitred offset corner.
+  When two line segments meet at a sharp angle, a miter join will extend
+  far beyond the original geometry. To prevent unreasonable geometry, the
+  mitre limit allows controlling the maximum length of the join corner.
+  Corners with a ratio which exceed the limit will be beveled.
+
+Blah blah.
+
+.. plot:: code/parallel_offset.py
+
 .. method:: object.simplify(tolerance, preserve_topology=True)
 
   Returns a simplified representation of the geometric object.
