@@ -7,7 +7,8 @@ from shapely.geos import lgeos
 from shapely.geometry.base import geom_factory, BaseGeometry
 from shapely.geometry import asShape, asLineString, asMultiLineString
 
-__all__= ['operator', 'polygonize', 'linemerge', 'cascaded_union']
+__all__= ['operator', 'polygonize', 'linemerge', 'cascaded_union',
+          'unary_union']
 
 
 class CollectionOperator(object):
@@ -73,11 +74,25 @@ class CollectionOperator(object):
         collection = lgeos.GEOSGeom_createCollection(6, subs, L)
         return geom_factory(lgeos.GEOSUnionCascaded(collection))
 
+    def unary_union(self, geoms):
+        """Returns the union of a sequence of geometries
+
+        This method replaces :meth:`cascaded_union` as the
+        prefered method for dissolving many polygons.
+
+        """
+        L = len(geoms)
+        subs = (c_void_p * L)()
+        for i, g in enumerate(geoms):
+            subs[i] = g._geom
+        collection = lgeos.GEOSGeom_createCollection(6, subs, L)
+        return geom_factory(lgeos.GEOSUnaryUnion(collection))
 
 operator = CollectionOperator()
 polygonize = operator.polygonize
 linemerge = operator.linemerge
 cascaded_union = operator.cascaded_union
+unary_union = operator.unary_union
 
 class ValidateOp(object):
     def __call__(self, this):
