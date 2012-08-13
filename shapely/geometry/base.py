@@ -34,9 +34,9 @@ def geom_factory(g, parent=None):
     geom_type = geometry_type_name(g)
     # TODO: check cost of dynamic import by profiling
     mod = __import__(
-        'shapely.geometry', 
-        globals(), 
-        locals(), 
+        'shapely.geometry',
+        globals(),
+        locals(),
         [geom_type],
         )
     ob.__class__ = getattr(mod, geom_type)
@@ -89,7 +89,7 @@ class BaseGeometry(object):
     _ndim = None
     _crs = None
     _owned = False
-    
+
     # Backend config
     impl = DefaultImplementation
 
@@ -125,7 +125,7 @@ class BaseGeometry(object):
     def __setstate__(self, state):
         self.empty()
         self.__geom__ = wkb.deserialize(state)
-    
+
     # The _geom property
     def _get_geom(self):
         return self.__geom__
@@ -194,7 +194,7 @@ class BaseGeometry(object):
 
     def geometryType(self):
         return geometry_type_name(self._geom)
-    
+
     @property
     def type(self):
         return self.geometryType()
@@ -205,7 +205,7 @@ class BaseGeometry(object):
     def to_wkt(self):
         return wkt.dumps(self)
 
-    geom_type = property(geometryType, 
+    geom_type = property(geometryType,
         doc="""Name of the geometry's type, such as 'Point'"""
         )
     wkt = property(to_wkt,
@@ -236,7 +236,7 @@ class BaseGeometry(object):
     @property
     def boundary(self):
         """Returns a lower dimension geometry that bounds the object
-        
+
         The boundary of a polygon is a line, the boundary of a line is a
         collection of points. The boundary of a point is an empty (null)
         collection.
@@ -250,7 +250,7 @@ class BaseGeometry(object):
             return ()
         else:
             return self.impl['bounds'](self)
-            
+
     @property
     def centroid(self):
         """Returns the geometric center of the object"""
@@ -263,12 +263,12 @@ class BaseGeometry(object):
 
     @property
     def convex_hull(self):
-        """Imagine an elastic band stretched around the geometry: that's a 
+        """Imagine an elastic band stretched around the geometry: that's a
         convex hull, more or less
 
         The convex hull of a three member multipoint, for example, is a
         triangular polygon.
-        """ 
+        """
         return geom_factory(self.impl['convex_hull'](self))
 
     @property
@@ -277,9 +277,9 @@ class BaseGeometry(object):
         return geom_factory(self.impl['envelope'](self))
 
     def buffer(self, distance, resolution=16, quadsegs=None):
-        """Returns a geometry with an envelope at a distance from the object's 
+        """Returns a geometry with an envelope at a distance from the object's
         envelope
-        
+
         A negative distance has a "shrink" effect. A zero distance may be used
         to "tidy" a polygon. The resolution of the buffer around each vertex of
         the object increases by increasing the resolution keyword parameter
@@ -299,7 +299,7 @@ class BaseGeometry(object):
         """
         if quadsegs is not None:
             warnings.warn(
-                "The `quadsegs` argument is deprecated. Use `resolution`.", 
+                "The `quadsegs` argument is deprecated. Use `resolution`.",
                 DeprecationWarning)
             res = quadsegs
         else:
@@ -308,7 +308,7 @@ class BaseGeometry(object):
 
     @delegated
     def simplify(self, tolerance, preserve_topology=True):
-        """Returns a simplified geometry produced by the Douglas-Puecker 
+        """Returns a simplified geometry produced by the Douglas-Puecker
         algorithm
 
         Coordinates of the simplified geometry will be no more than the
@@ -328,13 +328,13 @@ class BaseGeometry(object):
     def difference(self, other):
         """Returns the difference of the geometries"""
         return geom_factory(self.impl['difference'](self, other))
-    
+
     def intersection(self, other):
         """Returns the intersection of the geometries"""
         return geom_factory(self.impl['intersection'](self, other))
 
     def symmetric_difference(self, other):
-        """Returns the symmetric difference of the geometries 
+        """Returns the symmetric difference of the geometries
         (Shapely geometry)"""
         return geom_factory(self.impl['symmetric_difference'](self, other))
 
@@ -363,13 +363,13 @@ class BaseGeometry(object):
 
     @property
     def is_simple(self):
-        """True if the geometry is simple, meaning that any self-intersections 
+        """True if the geometry is simple, meaning that any self-intersections
         are only at boundary points, else False"""
         return bool(self.impl['is_simple'](self))
 
     @property
     def is_valid(self):
-        """True if the geometry is valid (definition depends on sub-class), 
+        """True if the geometry is valid (definition depends on sub-class),
         else False"""
         return bool(self.impl['is_valid'](self))
 
@@ -377,7 +377,7 @@ class BaseGeometry(object):
     # -----------------
 
     def relate(self, other):
-        """Returns the DE-9IM intersection matrix for the two geometries 
+        """Returns the DE-9IM intersection matrix for the two geometries
         (string)"""
         return self.impl['relate'](self, other)
 
@@ -414,13 +414,13 @@ class BaseGeometry(object):
         return bool(self.impl['within'](self, other))
 
     def equals_exact(self, other, tolerance):
-        """Returns True if geometries are equal to within a specified 
+        """Returns True if geometries are equal to within a specified
         tolerance"""
         # return BinaryPredicateOp('equals_exact', self)(other, tolerance)
         return bool(self.impl['equals_exact'](self, other, tolerance))
 
     def almost_equals(self, other, decimal=6):
-        """Returns True if geometries are equal at all coordinates to a 
+        """Returns True if geometries are equal at all coordinates to a
         specified decimal place"""
         return self.equals_exact(other, 0.5 * 10**(-decimal))
 
@@ -429,22 +429,22 @@ class BaseGeometry(object):
 
     @delegated
     def project(self, other, normalized=False):
-        """Returns the distance along this geometry to a point nearest the 
+        """Returns the distance along this geometry to a point nearest the
         specified point
-        
+
         If the normalized arg is True, return the distance normalized to the
         length of the linear geometry.
-        """ 
+        """
         if normalized:
             op = self.impl['project_normalized']
         else:
             op = self.impl['project']
         return op(self, other)
-           
+
     @delegated
     def interpolate(self, distance, normalized=False):
         """Return a point at the specified distance along a linear geometry
-        
+
         If the normalized arg is True, the distance will be interpreted as a
         fraction of the geometry's length.
         """
@@ -537,7 +537,7 @@ class GeometrySequence(object):
     def _update(self):
         self._geom = self.__p__._geom
         self._ndim = self.__p__._ndim
-        
+
     def _get_geom_item(self, i):
         g = self.shape_factory()
         g._owned = True
@@ -597,7 +597,7 @@ class HeterogeneousGeometrySequence(GeometrySequence):
 
     def _get_geom_item(self, i):
         sub = lgeos.GEOSGetGeometryN(self._geom, i)
-        g = geom_factory(sub)
+        g = geom_factory(sub, parent=self)
         g._owned = True
         return g
 
