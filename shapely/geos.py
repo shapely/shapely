@@ -361,8 +361,19 @@ class LGEOS16LR(LGEOS16):
         self.methods['interpolate_normalized'] = \
             self.GEOSInterpolateNormalized
 
+class LGEOS17(LGEOS16LR):    
+    """Proxy for the reentrant GEOS_C DLL/SO API version 1.7
+    """
+    geos_capi_version = (1, 6, 0)
+    def __init__(self, dll):
+        super(LGEOS17, self).__init__(dll)
 
-if geos_c_version >= (1, 6, 0):
+        self.methods['unary_union'] = self.GEOSUnaryUnion
+
+
+if geos_c_version >= (1, 7, 0):
+    L = LGEOS17
+elif geos_c_version >= (1, 6, 0):
     if hasattr(_lgeos, 'GEOSProject'):
         L = LGEOS16LR
     else:

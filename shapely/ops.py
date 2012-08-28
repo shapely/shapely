@@ -86,7 +86,7 @@ class CollectionOperator(object):
         for i, g in enumerate(geoms):
             subs[i] = g._geom
         collection = lgeos.GEOSGeom_createCollection(6, subs, L)
-        return geom_factory(lgeos.GEOSUnaryUnion(collection))
+        return geom_factory(lgeos.methods['unary_union'](collection))
 
 operator = CollectionOperator()
 polygonize = operator.polygonize
