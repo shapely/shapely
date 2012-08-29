@@ -364,7 +364,7 @@ class LGEOS16LR(LGEOS16):
 class LGEOS17(LGEOS16LR):    
     """Proxy for the reentrant GEOS_C DLL/SO API version 1.7
     """
-    geos_capi_version = (1, 6, 0)
+    geos_capi_version = (1, 7, 0)
     def __init__(self, dll):
         super(LGEOS17, self).__init__(dll)
 
