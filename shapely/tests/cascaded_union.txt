@@ -23,3 +23,4 @@ collection of polygon patches
   >>> u.geom_type in ('Polygon', 'MultiPolygon')
   True
 
+
