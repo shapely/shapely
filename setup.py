@@ -5,7 +5,7 @@ try:
     use_setuptools()
 except:
     warnings.warn(
-    "Failed to import distribute_setup, continuing without distribute.", 
+    "Failed to import distribute_setup, continuing without distribute.",
     Warning)
 
 from distutils.errors import CCompilerError, DistutilsExecError, \
@@ -40,7 +40,7 @@ setup_args = dict(
     name                = 'Shapely',
     version             = version,
     requires_python     = '>=2.5,<3',
-    requires_external   = 'libgeos_c (>=3.1)', 
+    requires_external   = 'libgeos_c (>=3.1)',
     description         = 'Geometric objects, predicates, and operations',
     license             = 'BSD',
     keywords            = 'geometry topology gis',
@@ -48,7 +48,7 @@ setup_args = dict(
     author_email        = 'sean.gillies@gmail.com',
     maintainer          = 'Sean Gillies',
     maintainer_email    = 'sean.gillies@gmail.com',
-    url                 = 'https://github.com/sgillies/shapely',
+    url                 = 'https://github.com/Toblerity/Shapely',
     long_description    = readme_text + "\n" + changes_text,
     packages            = find_packages(),
     test_suite          = 'shapely.tests.test_suite',
@@ -72,7 +72,7 @@ if sys.platform == 'win32':
     elif platform.python_version().startswith('2.5.'):
         setup_args.update(
             data_files=[('DLLs', glob.glob('DLLs_x86_VC7/*.dll'))]
-            )       
+            )
     else:
         setup_args.update(
             data_files=[('DLLs', glob.glob('DLLs_x86_VC9/*.dll'))]
@@ -114,7 +114,7 @@ except ImportError:
             except ext_errors, x:
                 raise BuildFailed(x)
 
-if (hasattr(platform, 'python_implementation') 
+if (hasattr(platform, 'python_implementation')
     and platform.python_implementation() == 'PyPy'):
     # python_implementation is only available since 2.6
     ext_modules = []
@@ -134,7 +134,7 @@ ext_modules = [
         "shapely.speedups._speedups",
         ["shapely/speedups/_speedups.c"],
         libraries=libraries )]
-    
+
 try:
     # try building with speedups
     setup(
