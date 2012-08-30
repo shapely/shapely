@@ -122,9 +122,9 @@ if os.path.exists("MANIFEST.in"):
     try:
         subprocess.check_call(["cython", "shapely/speedups/_speedups.pyx"])
     except (subprocess.CalledProcessError, OSError):
-        print "Warning: Could not recreate C extension with Cython."
+        print >>sys.stderr, "Warning: Could not (re)create C extension with Cython."
     if not os.path.exists("shapely/speedups/_speedups.c"):
-        raise RuntimeError("Failed to generate C extension from PYX")
+        print >>sys.stderr, "Warning: speedup extension not found")
 
 ext_modules = [
     Extension(
