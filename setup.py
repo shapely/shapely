@@ -121,13 +121,20 @@ else:
 if os.path.exists("MANIFEST.in"):
     pyx_file = "shapely/speedups/_speedups.pyx"
     c_file = "shapely/speedups/_speedups.c"
+
+    force_cython = False
+    if 'sdist' in sys.argv:
+        force_cython = True
+
     try:
-        if (not os.path.exists(c_file)
+        if (force_cython or not os.path.exists(c_file)
             or os.path.getmtime(pyx_file) > os.path.getmtime(c_file)):
             print >>sys.stderr, "Updating C extension with Cython."
             subprocess.check_call(["cython", "shapely/speedups/_speedups.pyx"])
     except (subprocess.CalledProcessError, OSError):
         print >>sys.stderr, "Warning: Could not (re)create C extension with Cython."
+        if force_cython:
+            raise
     if not os.path.exists("shapely/speedups/_speedups.c"):
         print >>sys.stderr, "Warning: speedup extension not found"
 
