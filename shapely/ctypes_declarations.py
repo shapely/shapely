@@ -282,3 +282,7 @@ def prototype(lgeos, geosVersion):
             lgeos.GEOSInterpolateNormalized.argtypes = [ctypes.c_void_p, 
                                                         ctypes.c_double]
 
+    # TODO: Find out what version of geos_c came with geos 3.3.0
+    if geosVersion >= (1, 6, 3):
+        lgeos.GEOSUnaryUnion.restype = ctypes.c_void_p
+        lgeos.GEOSUnaryUnion.argtypes = [ctypes.c_void_p]

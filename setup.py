@@ -5,7 +5,7 @@ try:
     use_setuptools()
 except:
     warnings.warn(
-    "Failed to import distribute_setup, continuing without distribute.", 
+    "Failed to import distribute_setup, continuing without distribute.",
     Warning)
 
 from distutils.errors import CCompilerError, DistutilsExecError, \
@@ -19,6 +19,16 @@ from setuptools.command.build_ext import build_ext as distutils_build_ext
 import subprocess
 import sys
 
+# Parse the version from the shapely module
+for line in open('shapely/__init__.py', 'rb'):
+    if line.find("__version__") >= 0:
+        version = line.split("=")[1].strip()
+        version = version.strip('"')
+        version = version.strip("'")
+        continue
+
+open('VERSION.txt', 'wb').write(version)
+
 readme_text = open('README.rst', 'rb').read()
 
 # Skip the first line of the changes file to get the right header level
@@ -29,9 +39,9 @@ changes_text = f.read()
 setup_args = dict(
     metadata_version    = '1.2',
     name                = 'Shapely',
-    version             = '1.2.14',
+    version             = version,
     requires_python     = '>=2.5,<3',
-    requires_external   = 'libgeos_c (>=3.1)', 
+    requires_external   = 'libgeos_c (>=3.1)',
     description         = 'Geometric objects, predicates, and operations',
     license             = 'BSD',
     keywords            = 'geometry topology gis',
@@ -63,7 +73,7 @@ if sys.platform == 'win32':
     elif platform.python_version().startswith('2.5.'):
         setup_args.update(
             data_files=[('DLLs', glob.glob('DLLs_x86_VC7/*.dll'))]
-            )       
+            )
     else:
         setup_args.update(
             data_files=[('DLLs', glob.glob('DLLs_x86_VC9/*.dll'))]
@@ -98,7 +108,7 @@ class build_ext(distutils_build_ext):
         except ext_errors, x:
             raise BuildFailed(x)
 
-if (hasattr(platform, 'python_implementation') 
+if (hasattr(platform, 'python_implementation')
     and platform.python_implementation() == 'PyPy'):
     # python_implementation is only available since 2.6
     ext_modules = []
@@ -121,7 +131,7 @@ ext_modules = [
         "shapely.speedups._speedups",
         ["shapely/speedups/_speedups.c"],
         libraries=libraries )]
-    
+
 try:
     # try building with speedups
     setup(

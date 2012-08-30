@@ -95,6 +95,9 @@ def _geos_c_version():
     func.argtypes = []
     func.restype = c_char_p
     v = func().split('-')[2]
+    # Ditch any SVN revision numbering that may have crept in without (ftm)
+    # importing `re`.
+    v = v.split()[0]
     return tuple(int(n) for n in v.split('.'))
 
 geos_capi_version = geos_c_version = _geos_c_version()
@@ -358,8 +361,19 @@ class LGEOS16LR(LGEOS16):
         self.methods['interpolate_normalized'] = \
             self.GEOSInterpolateNormalized
 
+class LGEOS17(LGEOS16LR):    
+    """Proxy for the reentrant GEOS_C DLL/SO API version 1.7
+    """
+    geos_capi_version = (1, 6, 0)
+    def __init__(self, dll):
+        super(LGEOS17, self).__init__(dll)
 
-if geos_c_version >= (1, 6, 0):
+        self.methods['unary_union'] = self.GEOSUnaryUnion
+
+
+if geos_c_version >= (1, 7, 0):
+    L = LGEOS17
+elif geos_c_version >= (1, 6, 0):
     if hasattr(_lgeos, 'GEOSProject'):
         L = LGEOS16LR
     else:

@@ -6,6 +6,7 @@ from ctypes import ArgumentError
 import weakref
 
 from shapely.algorithms.cga import signed_area
+from shapely.coords import required
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry
 from shapely.geometry.linestring import LineString, LineStringAdapter
@@ -309,6 +310,9 @@ def orient(polygon, sign=1.0):
     return Polygon(rings[0], rings[1:])
 
 def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
+    # If numpy is present, we use numpy.require to ensure that we have a
+    # C-continguous array that owns its data. View data will be copied.
+    ob = required(ob)
     try:
         # From array protocol
         array = ob.__array_interface__
