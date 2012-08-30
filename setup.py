@@ -119,12 +119,17 @@ else:
     libraries = ['geos_c']
 
 if os.path.exists("MANIFEST.in"):
+    pyx_file = "shapely/speedups/_speedups.pyx"
+    c_file = "shapely/speedups/_speedups.c"
     try:
-        subprocess.check_call(["cython", "shapely/speedups/_speedups.pyx"])
+        if (not os.path.exists(c_file)
+            or os.path.getmtime(pyx_file) > os.path.getmtime(c_file)):
+            print >>sys.stderr, "Updating C extension with Cython."
+            subprocess.check_call(["cython", "shapely/speedups/_speedups.pyx"])
     except (subprocess.CalledProcessError, OSError):
         print >>sys.stderr, "Warning: Could not (re)create C extension with Cython."
     if not os.path.exists("shapely/speedups/_speedups.c"):
-        print >>sys.stderr, "Warning: speedup extension not found")
+        print >>sys.stderr, "Warning: speedup extension not found"
 
 ext_modules = [
     Extension(
