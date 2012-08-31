@@ -2,8 +2,8 @@
 Changes
 =======
 
-1.2.15 (2012-)
---------------
+1.2.15 (2012-06-27)
+-------------------
 - Eliminate numerical sensitivity in a method chaining test (Debian bug
   #663210).
 - Account for cascaded union of random buffered test points being a polygon

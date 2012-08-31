@@ -5,8 +5,8 @@ The Shapely User Manual
 =======================
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
-:Revision: 1.2.14
-:Date: 21 January 2012
+:Revision: 1.2.15
+:Date: 8 July 2012
 :Copyright: 
   This work is licensed under a `Creative Commons Attribution 3.0
   United States License`__.
@@ -1484,27 +1484,37 @@ Figure 1. Convex hull (blue) of 2 points (left) and of 6 points (right).
 
 .. method:: object.parallel_offset(distance, side, resolution=16, join_style=1, mitre_limit=1.0)
 
-  Returns a LineString or MultiLineString geometry at a distance from
-  the object on its right or its left side.
+  Returns a LineString or MultiLineString geometry at a distance from the
+  object on its right or its left side.
 
-  Distance must be a positive float value. The side parameter may be
-  'left' or 'right'. The resolution of the buffer around each vertex of
-  the object increases by increasing the resolution keyword parameter or
-  third positional parameter.
+  Distance must be a positive float value. The side parameter may be 'left' or
+  'right'. The resolution of the offset around each vertex of the object is
+  parameterized as in the buffer method.
 
-  The join style is for outside corners between line segments. Accepted
-  values are 1 => ROUND, 2 => MITRE, 3 => BEVEL.
+  The styles of joins between offset segments are: 1 (round, the default),
+  2 (mitre or miter), and 3 (bevel).
 
-  The mitre ratio limit is used for very sharp corners. It is the ratio
-  of the distance from the corner to the end of the mitred offset corner.
-  When two line segments meet at a sharp angle, a miter join will extend
-  far beyond the original geometry. To prevent unreasonable geometry, the
-  mitre limit allows controlling the maximum length of the join corner.
-  Corners with a ratio which exceed the limit will be beveled.
+  Severely mitered corners can be controlled by the mitre_limit parameter
+  (spelled in British English, en-gb). The ratio of the distance from the
+  corner to the end of the mitred offset corner is the miter ratio. Corners
+  with a ratio which exceed the limit will be beveled.
+  
+.. note::
 
-Blah blah.
+  This method is only available for `LinearRing`, `LineString`, and
+  `MultiLineString` objects.
 
 .. plot:: code/parallel_offset.py
+
+Figure 1. Three styles of parallel offset lines on the left side of a simple
+line string (its starting point shown as a circle) and one offset on the right
+side, a multipart.
+
+The effect of the `mitre_limit` parameter is shown below.
+
+.. plot:: code/parallel_offset_mitre.py
+
+Figure 1. Large and small mitre_limit values for left and right offsets.
 
 .. method:: object.simplify(tolerance, preserve_topology=True)
 
