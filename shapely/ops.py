@@ -72,7 +72,7 @@ class CollectionOperator(object):
         for i, g in enumerate(geoms):
             subs[i] = g._geom
         collection = lgeos.GEOSGeom_createCollection(6, subs, L)
-        return geom_factory(lgeos.GEOSUnionCascaded(collection))
+        return geom_factory(lgeos.methods['cascaded_union'](collection))
 
     def unary_union(self, geoms):
         """Returns the union of a sequence of geometries
