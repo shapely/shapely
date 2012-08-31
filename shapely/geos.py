@@ -262,6 +262,8 @@ class LGEOS14(LGEOSBase):
         self.methods['topology_preserve_simplify'] = \
             self.GEOSTopologyPreserveSimplify
 
+        self.methods['cascaded_union'] = self.GEOSUnionCascaded
+
 
 class LGEOS15(LGEOSBase):
     """Proxy for the reentrant GEOS_C DLL/SO API version 1.5
@@ -362,7 +364,7 @@ class LGEOS16LR(LGEOS16):
         self.methods['interpolate'] = self.GEOSInterpolate
         self.methods['interpolate_normalized'] = \
             self.GEOSInterpolateNormalized
-
+        
 class LGEOS17(LGEOS16LR):
     """Proxy for the reentrant GEOS_C DLL/SO API version 1.7
     """
@@ -371,6 +373,7 @@ class LGEOS17(LGEOS16LR):
         super(LGEOS17, self).__init__(dll)
 
         self.methods['unary_union'] = self.GEOSUnaryUnion
+        self.methods['cascaded_union'] = self.methods['unary_union']
 
 
 if geos_c_version >= (1, 7, 0):
