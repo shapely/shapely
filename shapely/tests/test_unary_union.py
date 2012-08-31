@@ -32,4 +32,9 @@ class UnionTestCase(unittest.TestCase):
         self.failUnlessAlmostEqual(u.area, 0.71857254056)
 
 def test_suite():
+    try:
+        patches = [Point((0, 0)).buffer(0.05)]
+        unary_union(patches)
+    except KeyError:
+        return lambda x: None
     return unittest.TestLoader().loadTestsFromTestCase(UnionTestCase)
