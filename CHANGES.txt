@@ -1,9 +1,8 @@
-=======
 Changes
 =======
 
-1.2.16 ()
----------
+1.2.16 (xxxx-xx-xx)
+-------------------
 - Add ops.unary_union function.
 - Alias ops.cascaded_union to ops.unary_union when GEOS CAPI >= (1,7,0).
 - Add geos_version_string attribute to shapely.geos.
