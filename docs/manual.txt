@@ -943,7 +943,11 @@ meaningless for others.
 .. attribute:: object.is_simple
 
   Returns ``True`` if the feature does not cross itself.
-  
+
+.. note:: 
+
+   The simplicity test is meaningful only for `LineStrings` and `LinearRings`.
+
 .. sourcecode:: pycon
 
   >>> LineString([(0, 0), (1, 1), (1, -1), (0, 1)]).is_simple
@@ -1624,6 +1628,17 @@ The function is particularly useful in dissolving `MultiPolygons`.
   7.6845438018375516
   >>> cascaded_union(m).area
   6.6103013551167971
+
+.. note::
+
+   In 1.2.16 :func:`shapely.ops.cascaded_union` is superceded by
+   :func:`shapely.ops.unary_union` if GEOS 3.2+ is used. The unary union
+   function can operate on different geometry types, not only polygons as is
+   the case for the older cascaded unions.
+
+.. function:: shapely.ops.unary_union(geoms)
+
+  Returns a representation of the union of the given geometric objects.
 
 Prepared Geometry Operations
 ----------------------------
