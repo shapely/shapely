@@ -5,7 +5,7 @@ README
 PostGIS-ish operations outside a database context for Pythoneers and
 Pythonistas.
 
-.. image:: http://farm3.static.flickr.com/2738/4511827859_b5822043b7_o_d.png
+.. image:: images/4511827859_b5822043b7_o.png
    :width: 800
    :height: 400
 
@@ -113,34 +113,7 @@ Support
 
 Bugs may be reported and questions asked via https://github.com/Toblerity/Shapely.
 
-Credits
-=======
-
-Shapely is written by:
-
-* Sean Gillies
-* Aron Bierbaum
-* Kai Lautaportti
-* Oliver Tonnhofer
-
-Patches contributed by:
-
-* Howard Butler
-* Frédéric Junod
-* Éric Lemoine
-* Jonathan Tartley
-* Kristian Thy
-* Mike Toews (https://github.com/mwtoews)
-
-Additional help from:
-
-* Justin Bronn (GeoDjango) for ctypes inspiration
-* Martin Davis (JTS)
-* Jaakko Salli for the Windows distributions
-* Sandro Santilli, Mateusz Loskot, Paul Ramsey, et al (GEOS_ Project)
-
-Major portions of this work were supported by a grant (for Pleiades_) from the
-U.S. National Endowment for the Humanities (http://www.neh.gov).
+.. include:: CREDITS.txt
 
 .. _JTS: http://www.vividsolutions.com/jts/jtshome.htm
 .. _PostGIS: http://postgis.org

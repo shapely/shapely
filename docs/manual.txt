@@ -943,7 +943,11 @@ meaningless for others.
 .. attribute:: object.is_simple
 
   Returns ``True`` if the feature does not cross itself.
-  
+
+.. note:: 
+
+   The simplicity test is meaningful only for `LineStrings` and `LinearRings`.
+
 .. sourcecode:: pycon
 
   >>> LineString([(0, 0), (1, 1), (1, -1), (0, 1)]).is_simple
@@ -1625,6 +1629,17 @@ The function is particularly useful in dissolving `MultiPolygons`.
   >>> cascaded_union(m).area
   6.6103013551167971
 
+.. note::
+
+   In 1.2.16 :func:`shapely.ops.cascaded_union` is superceded by
+   :func:`shapely.ops.unary_union` if GEOS 3.2+ is used. The unary union
+   function can operate on different geometry types, not only polygons as is
+   the case for the older cascaded unions.
+
+.. function:: shapely.ops.unary_union(geoms)
+
+  Returns a representation of the union of the given geometric objects.
+
 Prepared Geometry Operations
 ----------------------------
 
@@ -1666,13 +1681,30 @@ Diagnostics
 The messages may or may not have a representation of a problem point that can
 be parsed out.
 
-.. sourcecode:: python
+.. sourcecode:: pycon
 
   >>> coords = [(0, 0), (0, 2), (1, 1), (2, 2), (2, 0), (1, 1), (0, 0)]
   >>> p = Polygon(coords)
   >>> from shapely.validation import explain_validity
   >>> explain_validity(p)
   'Ring Self-intersection[1 1]'
+
+The Shapely version, GEOS library version, and GEOS C API version are
+accessible via :attr:`shapely.__version__`,
+:attr:`shapely.geos.geos_version_string`, and
+:attr:`shapely.geos.geos_capi_version`.
+
+.. sourcecode:: pycon
+
+  >>> import shapely
+  >>> shapely.__version__
+  '1.2.16'
+  >>> import shapely.geos
+  >>> shapely.geos.geos_version_string
+  '3.3.0-CAPI-1.7.0'
+  >>> shapely.geos.geos_capi_version
+  (1, 7, 0)
+
 
 Interoperation
 ==============
