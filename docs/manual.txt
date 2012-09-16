@@ -1681,13 +1681,30 @@ Diagnostics
 The messages may or may not have a representation of a problem point that can
 be parsed out.
 
-.. sourcecode:: python
+.. sourcecode:: pycon
 
   >>> coords = [(0, 0), (0, 2), (1, 1), (2, 2), (2, 0), (1, 1), (0, 0)]
   >>> p = Polygon(coords)
   >>> from shapely.validation import explain_validity
   >>> explain_validity(p)
   'Ring Self-intersection[1 1]'
+
+The Shapely version, GEOS library version, and GEOS C API version are
+accessible via :attr:`shapely.__version__`,
+:attr:`shapely.geos.geos_version_string`, and
+:attr:`shapely.geos.geos_capi_version`.
+
+.. sourcecode:: pycon
+
+  >>> import shapely
+  >>> shapely.__version__
+  '1.2.16'
+  >>> import shapely.geos
+  >>> shapely.geos.geos_version_string
+  '3.3.0-CAPI-1.7.0'
+  >>> shapely.geos.geos_capi_version
+  (1, 7, 0)
+
 
 Interoperation
 ==============
