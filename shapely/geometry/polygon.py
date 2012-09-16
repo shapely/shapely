@@ -66,8 +66,14 @@ class LinearRing(LineString):
 
     @property
     def is_ccw(self):
-        """Brand new"""
+        """True is the ring is oriented counter clock-wise"""
         return bool(self.impl['is_ccw'](self))
+
+    @property
+    def is_simple(self):
+        """True if the geometry is simple, meaning that any self-intersections
+        are only at boundary points, else False"""
+        return LineString(self).is_simple
 
 
 class LinearRingAdapter(LineStringAdapter):
