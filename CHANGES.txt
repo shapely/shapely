@@ -1,7 +1,7 @@
 Changes
 =======
 
-1.2.16 (xxxx-xx-xx)
+1.2.16 (2012-09-18)
 -------------------
 - Add ops.unary_union function.
 - Alias ops.cascaded_union to ops.unary_union when GEOS CAPI >= (1,7,0).
@@ -9,6 +9,8 @@ Changes
 - Ensure parent is set when child geometry is accessed.
 - Generate _speedups.c using Cython when building from repo when missing,
   stale, or the build target is "sdist".
+- Remove VERSION.txt from repo, it's now written by the distutils setup
+  script with value of shapely.__version__.
 
 1.2.15 (2012-06-27)
 -------------------
