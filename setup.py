@@ -30,10 +30,12 @@ for line in open('shapely/__init__.py', 'rb'):
 open('VERSION.txt', 'wb').write(version)
 
 readme_text = open('README.rst', 'rb').read()
+readme_text = readme_text.replace(".. include:: CREDITS.txt", "")
 
-# Skip the first line of the changes file to get the right header level
+f = open('CREDITS.txt', 'rb')
+credits = f.read()
+
 f = open('CHANGES.txt', 'rb')
-f.readline()
 changes_text = f.read()
 
 setup_args = dict(
@@ -50,7 +52,7 @@ setup_args = dict(
     maintainer          = 'Sean Gillies',
     maintainer_email    = 'sean.gillies@gmail.com',
     url                 = 'https://github.com/Toblerity/Shapely',
-    long_description    = readme_text + "\n" + changes_text,
+    long_description    = readme_text + "\n" + credits + "\n" + changes_text,
     packages            = find_packages(),
     test_suite          = 'shapely.tests.test_suite',
     classifiers         = [

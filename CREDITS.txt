@@ -11,7 +11,7 @@ Shapely is written by:
 Patches contributed by:
 
 * Howard Butler
-* Frédéric Junod
+* Fr |eaigue| d |eaigue| ric Junod
 * Eric Lemoine
 * Jonathan Tartley
 * Kristian Thy
@@ -27,4 +27,6 @@ Additional help from:
 Major portions of this work were supported by a grant (for Pleiades_) from the
 U.S. National Endowment for the Humanities (http://www.neh.gov).
 
+.. |eaigue| unicode:: U+00E9
+   :trim:
 .. _Pleiades: http://pleiades.stoa.org
