@@ -5,7 +5,7 @@ README
 PostGIS-ish operations outside a database context for Pythoneers and
 Pythonistas.
 
-.. image:: images/4511827859_b5822043b7_o.png
+.. image:: http://farm3.staticflickr.com/2738/4511827859_b5822043b7_o_d.png
    :width: 800
    :height: 400
 
