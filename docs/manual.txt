@@ -646,7 +646,7 @@ Collections of Lines
 
 Figure 1: On the left, a `simple`, disconnected `MultiLineString`, and on the
 right, a non-simple `MultiLineString`. The points defining the objects are
-shownb in gray, the boundaries of the objects in black.
+shown in gray, the boundaries of the objects in black.
 
 A `MultiLineString` has zero area and non-zero length.
 
