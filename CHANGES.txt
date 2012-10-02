@@ -1,6 +1,11 @@
 Changes
 =======
 
+1.2.17 (xxxx-xx-xx)
+-------------------
+- Remove function-level import in wkt.py and avoid circular import problems by
+  using module only import between wkt.py and geometry/base.py.
+
 1.2.16 (2012-09-18)
 -------------------
 - Add ops.unary_union function.

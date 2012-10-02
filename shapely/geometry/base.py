@@ -8,7 +8,8 @@ from shapely.coords import CoordinateSequence
 from shapely.ftools import wraps
 from shapely.geos import lgeos
 from shapely.impl import DefaultImplementation, delegated
-from shapely import wkb, wkt
+import shapely.wkb
+import shapely.wkt
 
 GEOMETRY_TYPES = [
     'Point',
@@ -57,7 +58,7 @@ def exceptNull(func):
         return func(*args, **kwargs)
     return wrapper
 
-EMPTY = wkb.deserialize('010700000000000000'.decode('hex'))
+EMPTY = shapely.wkb.deserialize('010700000000000000'.decode('hex'))
 
 class BaseGeometry(object):
     """
@@ -124,7 +125,7 @@ class BaseGeometry(object):
 
     def __setstate__(self, state):
         self.empty()
-        self.__geom__ = wkb.deserialize(state)
+        self.__geom__ = shapely.wkb.deserialize(state)
 
     # The _geom property
     def _get_geom(self):
@@ -200,10 +201,10 @@ class BaseGeometry(object):
         return self.geometryType()
 
     def to_wkb(self):
-        return wkb.dumps(self)
+        return shapely.wkb.dumps(self)
 
     def to_wkt(self):
-        return wkt.dumps(self)
+        return shapely.wkt.dumps(self)
 
     geom_type = property(geometryType,
         doc="""Name of the geometry's type, such as 'Point'"""

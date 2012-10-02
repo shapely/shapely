@@ -3,19 +3,18 @@
 
 from ctypes import c_char_p
 
+import shapely.geometry.base
 from shapely.geos import lgeos, ReadingError
-
 
 # Pickle-like convenience functions
 
 def loads(data):
     """Load a geometry from a WKT string."""
-    from shapely.geometry.base import geom_factory
     geom = lgeos.GEOSGeomFromWKT(c_char_p(data))
     if not geom:
         raise ReadingError, \
         "Could not create geometry because of errors while reading input."
-    return geom_factory(geom)
+    return shapely.geometry.base.geom_factory(geom)
 
 def load(fp):
     """Load a geometry from an open file."""
