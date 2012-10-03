@@ -1,10 +1,8 @@
 """Proxy for coordinates stored outside Shapely geometries
 """
 
+from shapely.geometry.base import deserialize_wkb, EMPTY
 from shapely.geos import lgeos
-from shapely import wkb
-
-EMPTY = wkb.deserialize('010700000000000000'.decode('hex'))
 
 
 class CachingGeometryProxy(object):

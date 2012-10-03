@@ -1,15 +1,14 @@
 """Base geometry class and utilities
 """
 
+from ctypes import pointer, c_size_t, c_char_p, c_void_p
 import sys
 import warnings
 
 from shapely.coords import CoordinateSequence
 from shapely.ftools import wraps
-from shapely.geos import lgeos
+from shapely.geos import lgeos, ReadingError
 from shapely.impl import DefaultImplementation, delegated
-import shapely.wkb
-import shapely.wkt
 
 GEOMETRY_TYPES = [
     'Point',
@@ -49,6 +48,34 @@ def geom_factory(g, parent=None):
         ob._ndim = 2
     return ob
 
+def geom_from_wkt(data):
+    geom = lgeos.GEOSGeomFromWKT(c_char_p(data))
+    if not geom:
+        raise ReadingError, \
+        "Could not create geometry because of errors while reading input."
+    return geom_factory(geom)
+
+def geom_to_wkt(ob):
+    if ob is None or ob._geom is None:
+        raise ValueError("Null geometry supports no operations")
+    return lgeos.GEOSGeomToWKT(ob._geom)
+
+def deserialize_wkb(data):
+    geom = lgeos.GEOSGeomFromWKB_buf(c_char_p(data), c_size_t(len(data)));
+    if not geom:
+        raise ReadingError(
+            "Could not create geometry because of errors while reading input.")
+    return geom
+
+def geom_from_wkb(data):
+    return geom_factory(deserialize_wkb(data))
+
+def geom_to_wkb(ob):
+    if ob is None or ob._geom is None:
+        raise ValueError("Null geometry supports no operations")
+    size = c_size_t()
+    return lgeos.GEOSGeomToWKB_buf(c_void_p(ob._geom), pointer(size))
+
 def exceptNull(func):
     """Decorator which helps avoid GEOS operations on null pointers."""
     @wraps(func)
@@ -58,7 +85,7 @@ def exceptNull(func):
         return func(*args, **kwargs)
     return wrapper
 
-EMPTY = shapely.wkb.deserialize('010700000000000000'.decode('hex'))
+EMPTY = deserialize_wkb('010700000000000000'.decode('hex'))
 
 class BaseGeometry(object):
     """
@@ -125,7 +152,7 @@ class BaseGeometry(object):
 
     def __setstate__(self, state):
         self.empty()
-        self.__geom__ = shapely.wkb.deserialize(state)
+        self.__geom__ = deserialize_wkb(state)
 
     # The _geom property
     def _get_geom(self):
@@ -201,10 +228,10 @@ class BaseGeometry(object):
         return self.geometryType()
 
     def to_wkb(self):
-        return shapely.wkb.dumps(self)
+        return geom_to_wkb(self)
 
     def to_wkt(self):
-        return shapely.wkt.dumps(self)
+        return geom_to_wkt(self)
 
     geom_type = property(geometryType,
         doc="""Name of the geometry's type, such as 'Point'"""
