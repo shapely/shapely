@@ -5,6 +5,7 @@ Changes
 -------------------
 - Avoid circular import between wkt/wkb and geometry.base by moving calls
   to GEOS serializers to the latter module.
+- Set _ndim when unpickling (issue #6).
 
 1.2.16 (2012-09-18)
 -------------------
