@@ -1,6 +1,6 @@
-======
-README
-======
+=======
+Shapely
+=======
 
 PostGIS-ish operations outside a database context for Pythoneers and
 Pythonistas.
