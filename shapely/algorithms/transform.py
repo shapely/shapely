@@ -75,7 +75,7 @@ def rotate(geom, angle, origin=None, use_degrees=True):
 
     The angle of rotation can be specified in either degrees (default) or
     radians by setting `use_degrees=False`. Positive rotations are
-    clockwise.
+    anticlockwise and negative are clockwise.
 
     The point of origin can be specified as a Point, otherwise the default
     origin is the centroid of the geometry.
