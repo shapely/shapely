@@ -152,8 +152,8 @@ def skew(geom, xs=0.0, ys=0.0, origin=None, use_degrees=True):
         | tan(ys)  1     | yoff |
         \   0      0     |   1  /
     where the offsets are calculated from the origin Point(x0, y0):
-        xoff = -x0 * tan(xs)
-        yoff = -y0 * tan(ys)
+        xoff = -y0 * tan(xs)
+        yoff = -x0 * tan(ys)
     """
     if use_degrees:
         xs *= pi/180.0
@@ -172,7 +172,7 @@ def skew(geom, xs=0.0, ys=0.0, origin=None, use_degrees=True):
     matrix = (1.0, tanx, 0.0,
               tany, 1.0, 0.0,
               0.0,  0.0, 1.0,
-              -x0 * tanx, -y0 * tany, 0.0)
+              -y0 * tanx, -x0 * tany, 0.0)
     return affine(geom, matrix)
 
 def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
