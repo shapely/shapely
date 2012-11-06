@@ -44,7 +44,9 @@ def affine(geom, matrix):
             matrix = a, b, d, e, xoff, yoff
     else:
         raise ValueError("'matrix' expects either 6 or 12 coefficients")
-    def affine_pts(pts): # internal function
+
+    def affine_pts(pts):
+        """Internal function to yield affine transform of coordinate tuples"""
         if ndim == 2:
             for x, y in pts:
                 xp = a * x + b * y + xoff
@@ -56,6 +58,8 @@ def affine(geom, matrix):
                 yp = d * x + e * y + f * z + yoff
                 zp = g * x + h * y + i * z + zoff
                 yield (xp, yp, zp)
+
+    # Process coordinates from each supported geometry type
     if geom.type in ('Point', 'LineString'):
         return type(geom)(list(affine_pts(geom.coords)))
     elif geom.type == 'Polygon':
@@ -66,19 +70,54 @@ def affine(geom, matrix):
             holes[pos] = type(ring)(list(affine_pts(ring.coords)))
         return type(geom)(shell, holes)
     elif geom.type.startswith('Multi') or geom.type == 'GeometryCollection':
+        # Recursive call
         return type(geom)([affine(part, matrix) for part in geom.geoms])
     else:
         raise ValueError('Type %r not recognized'%geom.type)
 
-def rotate(geom, angle, origin=None, use_degrees=True):
+def interpret_origin(geom, origin, ndim):
+    """Return interpreted coordinate tuple for origin parameter
+
+    This is a helper function for other transform functions.
+
+    The point of origin can be a keyword 'centre' for the 2D bounding box
+    centre, 'centroid' for the geometry's 2D centroid, a Point object or a
+    coordinate tuple (x0, y0, z0).
+    """
+    # get coordinate tuple from `origin` from keyword or Point type
+    if origin == 'center':
+        # bounding box center
+        minx, miny, maxx, maxy = geom.bounds
+        origin = ((maxx + minx)/2.0, (maxy + miny)/2.0)
+    elif origin == 'centroid':
+        origin = geom.centroid.coords[0]
+    elif isinstance(origin, str):
+        raise ValueError('`origin` keyword %r is not recognized'%origin)
+    elif hasattr(origin, 'type') and origin.type == 'Point':
+        origin = origin.coords[0]
+
+    # origin should be tuple-like
+    if len(origin) not in (2, 3):
+        raise ValueError('Expected number of items in `origin` to be '\
+                         'either 2 or 3')
+    if ndim == 2:
+        return origin[0:2]
+    else: # 3D coordinate
+        if len(origin) == 2:
+            return origin + (0.0,)
+        else:
+            return origin
+
+def rotate(geom, angle, origin='center', use_radians=False):
     """Return a rotated geometry on a 2D plane
 
     The angle of rotation can be specified in either degrees (default) or
-    radians by setting `use_degrees=False`. Positive rotations are
-    anticlockwise and negative are clockwise.
+    radians by setting `use_radians=True`. Positive angles are
+    counter-clockwise and negative are clockwise.
 
-    The point of origin can be specified as a Point, otherwise the default
-    origin is the centroid of the geometry.
+    The point of origin can be a keyword 'centre' for the bounding box
+    centre (default), 'centroid' for the geometry's centroid, a Point object
+    or a coordinate tuple (x0, y0).
 
     The transformation matrix for 2D rotation is:
         / cos(r) -sin(r) | xoff \ 
@@ -88,7 +127,7 @@ def rotate(geom, angle, origin=None, use_degrees=True):
         xoff = x0 - cos(r) * x0 + sin(r) * y0
         yoff = y0 - sin(r) * x0 - cos(r) * y0
     """
-    if use_degrees:
+    if not use_radians: # convert from degrees
         angle *= pi/180.0
     cosp = cos(angle)
     sinp = sin(angle)
@@ -96,22 +135,20 @@ def rotate(geom, angle, origin=None, use_degrees=True):
         cosp = 0.0
     if abs(sinp) < 2e-16:
         sinp = 0.0
-    if origin is None:
-        origin = geom.centroid
-    elif not (hasattr(origin, 'type') and origin.type == 'Point'):
-        raise TypeError("'origin' must be either 'None' or a 'Point' of origin")
-    x0, y0 = origin.coords[0][0:2]
+    x0, y0 = interpret_origin(geom, origin, 2)
+
     matrix = (cosp, -sinp, 0.0,
               sinp,  cosp, 0.0,
               0.0,    0.0, 1.0,
-              x0 - cosp * x0 + sinp * y0, y0 - sinp * x0 - cosp * y0, 0)
+              x0 - cosp * x0 + sinp * y0, y0 - sinp * x0 - cosp * y0, 0.0)
     return affine(geom, matrix)
 
-def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin=None):
+def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center'):
     """Return a scaled geometry, scaled by factors along each dimension
 
-    The point of origin can be specified as a Point, otherwise the default
-    origin is the centroid of the geometry.
+    The point of origin can be a keyword 'centre' for the 2D bounding box
+    centre (default), 'centroid' for the geometry's 2D centroid, a Point
+    object or a coordinate tuple (x0, y0, z0).
 
     The general 3D affine transformation matrix for scaling is:
         / xfact  0    0   | xoff \ 
@@ -123,29 +160,23 @@ def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin=None):
         yoff = y0 - y0 * yfact
         zoff = z0 - z0 * zfact
     """
-    if origin is None:
-        origin = geom.centroid
-    elif not (hasattr(origin, 'type') and origin.type == 'Point'):
-        raise TypeError("'origin' must be either 'None' or a 'Point' of origin")
-    if geom.has_z and origin.has_z:
-        x0, y0, z0 = origin.coords[0]
-    else:
-        x0, y0 = origin.coords[0][0:2]
-        z0 = 0.0
+    x0, y0, z0 = interpret_origin(geom, origin, 3)
+
     matrix = (xfact, 0.0, 0.0,
               0.0, yfact, 0.0,
               0.0, 0.0, zfact,
               x0 - x0 * xfact, y0 - y0 * yfact, z0 - z0 * zfact)
     return affine(geom, matrix)
 
-def skew(geom, xs=0.0, ys=0.0, origin=None, use_degrees=True):
+def skew(geom, xs=0.0, ys=0.0, origin='center', use_radians=False):
     """Return a skewed geometry, sheared by angles along x and y dimensions
 
     The shear angle can be specified in either degrees (default) or radians
-    by setting `use_degrees=False`.
+    by setting `use_radians=True`.
 
-    The point of origin can be specified as a Point, otherwise the default
-    origin is the centroid of the geometry.
+    The point of origin can be a keyword 'centre' for the bounding box
+    centre (default), 'centroid' for the geometry's centroid, a Point object
+    or a coordinate tuple (x0, y0).
 
     The general 2D affine transformation matrix for skewing is:
         /   1    tan(xs) | xoff \ 
@@ -155,7 +186,7 @@ def skew(geom, xs=0.0, ys=0.0, origin=None, use_degrees=True):
         xoff = -y0 * tan(xs)
         yoff = -x0 * tan(ys)
     """
-    if use_degrees:
+    if not use_radians: # convert from degrees
         xs *= pi/180.0
         ys *= pi/180.0
     tanx = tan(xs)
@@ -164,11 +195,8 @@ def skew(geom, xs=0.0, ys=0.0, origin=None, use_degrees=True):
         tanx = 0.0
     if abs(tany) < 2e-16:
         tany = 0.0
-    if origin is None:
-        origin = geom.centroid
-    elif not (hasattr(origin, 'type') and origin.type == 'Point'):
-        raise TypeError("'origin' must be either 'None' or a 'Point' of origin")
-    x0, y0 = origin.coords[0][0:2]
+    x0, y0 = interpret_origin(geom, origin, 2)
+
     matrix = (1.0, tanx, 0.0,
               tany, 1.0, 0.0,
               0.0,  0.0, 1.0,
@@ -176,6 +204,16 @@ def skew(geom, xs=0.0, ys=0.0, origin=None, use_degrees=True):
     return affine(geom, matrix)
 
 def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
-    """Return a translated geometry shifted by offsets along each dimension"""
-    matrix = (1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, xoff, yoff, zoff)
+    """Return a translated geometry shifted by offsets along each dimension
+
+    The general 3D affine transformation matrix for translation is:
+        / 1  0  0 | xoff \ 
+        | 0  1  0 | yoff |
+        | 0  0  1 | zoff |
+        \ 0  0  0 |   1  /
+    """
+    matrix = (1.0, 0.0, 0.0,
+              0.0, 1.0, 0.0,
+              0.0, 0.0, 1.0,
+              xoff, yoff, zoff)
     return affine(geom, matrix)
