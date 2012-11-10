@@ -11,21 +11,21 @@ def affine(geom, matrix):
     For 2D affine transformations, the 6 parameter matrix is:
         [a, b, d, e, xoff, yoff]
     which represents the augmented matrix:
-        / a  b | xoff \ 
-        | d  e | yoff |
-        \ 0  0 |   1  /
-    where the vertices are transformed as follows:
+                            / a  b xoff \ 
+        [x' y' 1] = [x y 1] | d  e yoff |
+                            \ 0  0   1  /
+    or the equations:
         x' = a*x + b*y + xoff
         y' = d*x + e*y + yoff
 
     For 3D affine transformations, the 12 parameter matrix is:
         [a, b, c, d, e, f, g, h, i, xoff, yoff, zoff]
     which represents the augmented matrix:
-        / a  b  c | xoff \ 
-        | d  e  f | yoff |
-        | g  h  i | zoff |
-        \ 0  0  0 |   1  /
-    where the vertices are transformed as follows:
+                                 / a  b  c xoff \ 
+        [x' y' z' 1] = [x y z 1] | d  e  f yoff |
+                                 | g  h  i zoff |
+                                 \ 0  0  0   1  /
+    or the equations:
         x' = a*x + b*y + c*z + xoff
         y' = d*x + e*y + f*z + yoff
         z' = g*x + h*y + i*z + zoff
@@ -34,8 +34,10 @@ def affine(geom, matrix):
         ndim = 2
         a, b, d, e, xoff, yoff = matrix
         if geom.has_z:
-            c = f = g = h = i = 1.0
-            zoff = 0.0
+            ndim = 3
+            i = 1.0
+            c = f = g = h = zoff = 0.0
+            matrix = a, b, c, d, e, f, g, h, i, xoff, yoff, zoff
     elif len(matrix) == 12:
         ndim = 3
         a, b, c, d, e, f, g, h, i, xoff, yoff, zoff = matrix
@@ -43,7 +45,7 @@ def affine(geom, matrix):
             ndim = 2
             matrix = a, b, d, e, xoff, yoff
     else:
-        raise ValueError("'matrix' expects either 6 or 12 coefficients")
+        raise ValueError("`matrix` expects either 6 or 12 coefficients")
 
     def affine_pts(pts):
         """Internal function to yield affine transform of coordinate tuples"""
@@ -113,16 +115,16 @@ def rotate(geom, angle, origin='center', use_radians=False):
 
     The angle of rotation can be specified in either degrees (default) or
     radians by setting `use_radians=True`. Positive angles are
-    counter-clockwise and negative are clockwise.
+    counter-clockwise and negative are clockwise rotations.
 
     The point of origin can be a keyword 'centre' for the bounding box
     centre (default), 'centroid' for the geometry's centroid, a Point object
     or a coordinate tuple (x0, y0).
 
     The transformation matrix for 2D rotation is:
-        / cos(r) -sin(r) | xoff \ 
-        | sin(r)  cos(r) | yoff |
-        \   0       0    |   1  /
+        / cos(r) -sin(r) xoff \ 
+        | sin(r)  cos(r) yoff |
+        \   0       0      1  /
     where the offsets are calculated from the origin Point(x0, y0):
         xoff = x0 - cos(r) * x0 + sin(r) * y0
         yoff = y0 - sin(r) * x0 - cos(r) * y0
@@ -151,10 +153,10 @@ def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center'):
     object or a coordinate tuple (x0, y0, z0).
 
     The general 3D affine transformation matrix for scaling is:
-        / xfact  0    0   | xoff \ 
-        |   0  yfact  0   | yoff |
-        |   0    0  zfact | zoff |
-        \   0    0    0   |   1  /
+        / xfact  0    0   xoff \ 
+        |   0  yfact  0   yoff |
+        |   0    0  zfact zoff |
+        \   0    0    0     1  /
     where the offsets are calculated from the origin Point(x0, y0, z0):
         xoff = x0 - x0 * xfact
         yoff = y0 - y0 * yfact
@@ -179,9 +181,9 @@ def skew(geom, xs=0.0, ys=0.0, origin='center', use_radians=False):
     or a coordinate tuple (x0, y0).
 
     The general 2D affine transformation matrix for skewing is:
-        /   1    tan(xs) | xoff \ 
-        | tan(ys)  1     | yoff |
-        \   0      0     |   1  /
+        /   1    tan(xs) xoff \ 
+        | tan(ys)  1     yoff |
+        \   0      0       1  /
     where the offsets are calculated from the origin Point(x0, y0):
         xoff = -y0 * tan(xs)
         yoff = -x0 * tan(ys)
@@ -207,10 +209,10 @@ def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
     """Return a translated geometry shifted by offsets along each dimension
 
     The general 3D affine transformation matrix for translation is:
-        / 1  0  0 | xoff \ 
-        | 0  1  0 | yoff |
-        | 0  0  1 | zoff |
-        \ 0  0  0 |   1  /
+        / 1  0  0 xoff \ 
+        | 0  1  0 yoff |
+        | 0  0  1 zoff |
+        \ 0  0  0   1  /
     """
     matrix = (1.0, 0.0, 0.0,
               0.0, 1.0, 0.0,
