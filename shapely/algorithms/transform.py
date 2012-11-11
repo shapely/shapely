@@ -14,7 +14,7 @@ def affine(geom, matrix):
                             / a  b xoff \ 
         [x' y' 1] = [x y 1] | d  e yoff |
                             \ 0  0   1  /
-    or the equations:
+    or the equations for the transformed coordinates:
         x' = a*x + b*y + xoff
         y' = d*x + e*y + yoff
 
@@ -25,7 +25,7 @@ def affine(geom, matrix):
         [x' y' z' 1] = [x y z 1] | d  e  f yoff |
                                  | g  h  i zoff |
                                  \ 0  0  0   1  /
-    or the equations:
+    or the equations for the transformed coordinates:
         x' = a*x + b*y + c*z + xoff
         y' = d*x + e*y + f*z + yoff
         z' = g*x + h*y + i*z + zoff
@@ -73,6 +73,7 @@ def affine(geom, matrix):
         return type(geom)(shell, holes)
     elif geom.type.startswith('Multi') or geom.type == 'GeometryCollection':
         # Recursive call
+        # TODO: fix GeometryCollection constructor
         return type(geom)([affine(part, matrix) for part in geom.geoms])
     else:
         raise ValueError('Type %r not recognized'%geom.type)
@@ -98,7 +99,7 @@ def interpret_origin(geom, origin, ndim):
     elif hasattr(origin, 'type') and origin.type == 'Point':
         origin = origin.coords[0]
 
-    # origin should be tuple-like
+    # origin should now be tuple-like
     if len(origin) not in (2, 3):
         raise ValueError('Expected number of items in `origin` to be '\
                          'either 2 or 3')
@@ -133,9 +134,9 @@ def rotate(geom, angle, origin='center', use_radians=False):
         angle *= pi/180.0
     cosp = cos(angle)
     sinp = sin(angle)
-    if abs(cosp) < 2e-16:
+    if abs(cosp) < 2.5e-16:
         cosp = 0.0
-    if abs(sinp) < 2e-16:
+    if abs(sinp) < 2.5e-16:
         sinp = 0.0
     x0, y0 = interpret_origin(geom, origin, 2)
 
@@ -151,6 +152,8 @@ def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center'):
     The point of origin can be a keyword 'centre' for the 2D bounding box
     centre (default), 'centroid' for the geometry's 2D centroid, a Point
     object or a coordinate tuple (x0, y0, z0).
+
+    Negative scale factors will mirror or reflect coordinates.
 
     The general 3D affine transformation matrix for scaling is:
         / xfact  0    0   xoff \ 
@@ -193,9 +196,9 @@ def skew(geom, xs=0.0, ys=0.0, origin='center', use_radians=False):
         ys *= pi/180.0
     tanx = tan(xs)
     tany = tan(ys)
-    if abs(tanx) < 2e-16:
+    if abs(tanx) < 2.5e-16:
         tanx = 0.0
-    if abs(tany) < 2e-16:
+    if abs(tany) < 2.5e-16:
         tany = 0.0
     x0, y0 = interpret_origin(geom, origin, 2)
 
