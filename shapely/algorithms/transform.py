@@ -1,6 +1,7 @@
 from math import sin, cos, tan, pi
 
-__all__ = ['affine', 'rotate', 'scale', 'skew', 'translate']
+__all__ = ['affine', 'rotate', 'scale', 'skew', 'translate',
+           'scalerotatetranslate']
 
 def affine(geom, matrix):
     """Return a transformed geometry using an affine transformation matrix
