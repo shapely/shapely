@@ -228,6 +228,44 @@ class TransformOpsTestCase(unittest.TestCase):
         tls = transform.translate(geom=ls, xoff=100, yoff=400, zoff=-10)
         self.assertTrue(tls.equals(els))
 
+    def test_scalerotatetranslate(self):
+        ls = load_wkt('LINESTRING(240 400 10, 240 300 30, 300 300 20)')
+        # test defaults
+        tls = transform.translate(ls)
+        self.assertTrue(tls.equals(ls))
+        # test all three
+        tls = transform.scalerotatetranslate(ls, 2, 3, 0.5, 30,
+                                             100, 400, -10)
+        els = load_wkt('LINESTRING(243.03847577293368 849.9038105676659 -5, '\
+                       '393.0384757729336200 590.0961894323343100 5, '\
+                       '496.9615242270662600 650.0961894323343100 0)')
+        self.assertTrue(tls.almost_equals(els))
+        # Do explicit 3D check of coordinate values
+        for a, b in zip(tls.coords, els.coords):
+            for ap, bp in zip(a, b):
+                self.assertEqual(ap, bp)
+        # recheck with named parameters
+        tls = transform.scalerotatetranslate(geom=ls, xfact=2, yfact=3,
+                                             zfact=0.5, angle=30,
+                                             xoff=100, yoff=400, zoff=-10,
+                                             origin='center', use_radians=False)
+        self.assertTrue(tls.almost_equals(els))
+        # test scale and rotate in radians
+        tls = transform.scalerotatetranslate(ls, 2, 3, 0.5, pi/6,
+                                             use_radians=True)
+        els = load_wkt('LINESTRING(143.03847577293368 449.90381056766591, '\
+                       '293.0384757729336200 190.0961894323343100, '\
+                       '396.9615242270662600 250.0961894323343100)')
+        self.assertTrue(tls.almost_equals(els))
+        # test offsets only
+        tls = transform.scalerotatetranslate(ls, xoff=100, yoff=400, zoff=-10)
+        els = load_wkt('LINESTRING(340 800, 340 700, 400 700)')
+        self.assertTrue(tls.almost_equals(els))
+        # Do explicit 3D check of coordinate values
+        for a, b in zip(tls.coords, els.coords):
+            for ap, bp in zip(a, b):
+                self.assertEqual(ap, bp)
+
 def test_suite():
     loader = unittest.TestLoader()
     return unittest.TestSuite([

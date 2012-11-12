@@ -15,8 +15,8 @@ def affine(geom, matrix):
         [x' y' 1] = [x y 1] | d  e yoff |
                             \ 0  0   1  /
     or the equations for the transformed coordinates:
-        x' = a*x + b*y + xoff
-        y' = d*x + e*y + yoff
+        x' = a * x + b * y + xoff
+        y' = d * x + e * y + yoff
 
     For 3D affine transformations, the 12 parameter matrix is:
         [a, b, c, d, e, f, g, h, i, xoff, yoff, zoff]
@@ -26,9 +26,9 @@ def affine(geom, matrix):
                                  | g  h  i zoff |
                                  \ 0  0  0   1  /
     or the equations for the transformed coordinates:
-        x' = a*x + b*y + c*z + xoff
-        y' = d*x + e*y + f*z + yoff
-        z' = g*x + h*y + i*z + zoff
+        x' = a * x + b * y + c * z + xoff
+        y' = d * x + e * y + f * z + yoff
+        z' = g * x + h * y + i * z + zoff
     """
     if len(matrix) == 6:
         ndim = 2
@@ -127,8 +127,8 @@ def rotate(geom, angle, origin='center', use_radians=False):
         | sin(r)  cos(r) yoff |
         \   0       0      1  /
     where the offsets are calculated from the origin Point(x0, y0):
-        xoff = x0 - cos(r) * x0 + sin(r) * y0
-        yoff = y0 - sin(r) * x0 - cos(r) * y0
+        xoff = x0 - x0 * cos(r) + y0 * sin(r)
+        yoff = y0 - x0 * sin(r) - y0 * cos(r)
     """
     if not use_radians: # convert from degrees
         angle *= pi/180.0
@@ -143,7 +143,7 @@ def rotate(geom, angle, origin='center', use_radians=False):
     matrix = (cosp, -sinp, 0.0,
               sinp,  cosp, 0.0,
               0.0,    0.0, 1.0,
-              x0 - cosp * x0 + sinp * y0, y0 - sinp * x0 - cosp * y0, 0.0)
+              x0 - x0 * cosp + y0 * sinp, y0 - x0 * sinp - y0 * cosp, 0.0)
     return affine(geom, matrix)
 
 def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center'):
@@ -221,4 +221,50 @@ def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
               0.0, 1.0, 0.0,
               0.0, 0.0, 1.0,
               xoff, yoff, zoff)
+    return affine(geom, matrix)
+
+def scalerotatetranslate(geom, xfact=1.0, yfact=1.0, zfact=1.0,
+                         angle=0.0, xoff=0.0, yoff=0.0, zoff=0.0,
+                         origin='center', use_radians=False):
+    """Return a transformed geometry from scale, rotate and/or translate
+
+    This hybrid transform operator applies three different transforms
+    in one affine transform matrix. The order of the operators is scale,
+    rotate and/or transform. Only the rotate operator is on the 2D plane.
+
+    The point of origin can be a keyword 'centre' for the 2D bounding box
+    centre (default), 'centroid' for the geometry's 2D centroid, a Point
+    object or a coordinate tuple (x0, y0, z0).
+
+    The general 3D affine transformation matrix for this operator is
+    from the matrix multiplication for scale and rotate (in that order):
+        / xfact*cos(r)  yfact*-sin(r)   0    xoff \ 
+        | xfact*sin(r)  yfact*cos(r)    0    yoff |
+        |      0             0        zfact  zoff |
+        \      0             0          0      1  /
+    where the offsets are calculated from the origin Point(x0, y0, z0):
+        xoff = x0 - x0 * xfact * cos(r) + y0 * yfact * sin(r)
+        yoff = y0 - x0 * xfact * sin(r) - y0 * yfact * cos(r)
+        zoff = z0 - z0 * zfact
+    and lastly, any additional supplied offsets for translate are added
+    to xoff, yoff and zoff.
+    """
+    if not use_radians: # convert from degrees
+        angle *= pi/180.0
+    cosp = cos(angle)
+    sinp = sin(angle)
+    if abs(cosp) < 2.5e-16:
+        cosp = 0.0
+    if abs(sinp) < 2.5e-16:
+        sinp = 0.0
+    x0, y0, z0 = interpret_origin(geom, origin, 3)
+
+    # add offsets from transformation to supplied offsets
+    xoff += x0 - x0 * xfact * cosp + y0 * yfact * sinp
+    yoff += y0 - x0 * xfact * sinp - y0 * yfact * cosp
+    zoff += z0 - z0 * zfact
+    matrix = (cosp * xfact, -sinp * yfact, 0.0,
+              sinp * xfact,  cosp * yfact, 0.0,
+              0.0,           0.0,        zfact,
+              xoff,         yoff,        zoff)
     return affine(geom, matrix)
