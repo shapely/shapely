@@ -84,8 +84,8 @@ def interpret_origin(geom, origin, ndim):
 
     This is a helper function for other transform functions.
 
-    The point of origin can be a keyword 'centre' for the 2D bounding box
-    centre, 'centroid' for the geometry's 2D centroid, a Point object or a
+    The point of origin can be a keyword 'center' for the 2D bounding box
+    center, 'centroid' for the geometry's 2D centroid, a Point object or a
     coordinate tuple (x0, y0, z0).
     """
     # get coordinate tuple from `origin` from keyword or Point type
@@ -119,8 +119,8 @@ def rotate(geom, angle, origin='center', use_radians=False):
     radians by setting `use_radians=True`. Positive angles are
     counter-clockwise and negative are clockwise rotations.
 
-    The point of origin can be a keyword 'centre' for the bounding box
-    centre (default), 'centroid' for the geometry's centroid, a Point object
+    The point of origin can be a keyword 'center' for the bounding box
+    center (default), 'centroid' for the geometry's centroid, a Point object
     or a coordinate tuple (x0, y0).
 
     The transformation matrix for 2D rotation is:
@@ -150,8 +150,8 @@ def rotate(geom, angle, origin='center', use_radians=False):
 def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center'):
     """Return a scaled geometry, scaled by factors along each dimension
 
-    The point of origin can be a keyword 'centre' for the 2D bounding box
-    centre (default), 'centroid' for the geometry's 2D centroid, a Point
+    The point of origin can be a keyword 'center' for the 2D bounding box
+    center (default), 'centroid' for the geometry's 2D centroid, a Point
     object or a coordinate tuple (x0, y0, z0).
 
     Negative scale factors will mirror or reflect coordinates.
@@ -180,8 +180,8 @@ def skew(geom, xs=0.0, ys=0.0, origin='center', use_radians=False):
     The shear angle can be specified in either degrees (default) or radians
     by setting `use_radians=True`.
 
-    The point of origin can be a keyword 'centre' for the bounding box
-    centre (default), 'centroid' for the geometry's centroid, a Point object
+    The point of origin can be a keyword 'center' for the bounding box
+    center (default), 'centroid' for the geometry's centroid, a Point object
     or a coordinate tuple (x0, y0).
 
     The general 2D affine transformation matrix for skewing is:
@@ -233,8 +233,8 @@ def scalerotatetranslate(geom, xfact=1.0, yfact=1.0, zfact=1.0,
     in one affine transform matrix. The order of the operators is scale,
     rotate and/or transform. Only the rotate operator is on the 2D plane.
 
-    The point of origin can be a keyword 'centre' for the 2D bounding box
-    centre (default), 'centroid' for the geometry's 2D centroid, a Point
+    The point of origin can be a keyword 'center' for the 2D bounding box
+    center (default), 'centroid' for the geometry's 2D centroid, a Point
     object or a coordinate tuple (x0, y0, z0).
 
     The general 3D affine transformation matrix for this operator is
