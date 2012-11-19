@@ -16,6 +16,7 @@ Patches contributed by:
 * Jonathan Tartley
 * Kristian Thy
 * Mike Toews (https://github.com/mwtoews)
+* Phil Elson (https://github.com/pelson)
 
 Additional help from:
 
