@@ -14,6 +14,11 @@ class EmptinessTestCase(unittest.TestCase):
         self.failIf(p._is_empty, False)
         p.empty()
         self.failUnless(p._is_empty, True)
+    def test_none_geom(self):
+        p = BaseGeometry()
+        p._geom = None
+        self.failUnless(p.is_empty, True)
+
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(EmptinessTestCase)
