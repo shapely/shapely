@@ -386,7 +386,7 @@ class BaseGeometry(object):
     @property
     def is_empty(self):
         """True if the set of points in this geometry is empty, else False"""
-        return bool(self.impl['is_empty'](self)) or (self._geom is None)
+        return (self._geom is None) or bool(self.impl['is_empty'](self))
 
     @property
     def is_ring(self):
