@@ -1,32 +1,43 @@
+"""Affine transforms, both in general and specific, named transforms."""
+
 from math import sin, cos, tan, pi
 
-__all__ = ['affine', 'rotate', 'scale', 'skew', 'translate',
-           'scalerotatetranslate']
+__all__ = ['affine_transform', 'rotate', 'scale', 'skew', 'translate']
 
-def affine(geom, matrix):
-    """Return a transformed geometry using an affine transformation matrix
+def affine_transform(geom, matrix):
+    """Return a transformed geometry using an affine transformation matrix.
 
     The coefficient matrix is provided as a list or tuple with 6 or 12 items
     for 2D or 3D transformations, respectively.
 
     For 2D affine transformations, the 6 parameter matrix is:
+
         [a, b, d, e, xoff, yoff]
+
     which represents the augmented matrix:
+
                             / a  b xoff \ 
         [x' y' 1] = [x y 1] | d  e yoff |
                             \ 0  0   1  /
+
     or the equations for the transformed coordinates:
+
         x' = a * x + b * y + xoff
         y' = d * x + e * y + yoff
 
     For 3D affine transformations, the 12 parameter matrix is:
+
         [a, b, c, d, e, f, g, h, i, xoff, yoff, zoff]
+
     which represents the augmented matrix:
+
                                  / a  b  c xoff \ 
         [x' y' z' 1] = [x y z 1] | d  e  f yoff |
                                  | g  h  i zoff |
                                  \ 0  0  0   1  /
+
     or the equations for the transformed coordinates:
+
         x' = a * x + b * y + c * z + xoff
         y' = d * x + e * y + f * z + yoff
         z' = g * x + h * y + i * z + zoff
@@ -75,12 +86,12 @@ def affine(geom, matrix):
     elif geom.type.startswith('Multi') or geom.type == 'GeometryCollection':
         # Recursive call
         # TODO: fix GeometryCollection constructor
-        return type(geom)([affine(part, matrix) for part in geom.geoms])
+        return type(geom)([affine_transform(part, matrix) for part in geom.geoms])
     else:
         raise ValueError('Type %r not recognized'%geom.type)
 
 def interpret_origin(geom, origin, ndim):
-    """Return interpreted coordinate tuple for origin parameter
+    """Return interpreted coordinate tuple for origin parameter.
 
     This is a helper function for other transform functions.
 
@@ -113,7 +124,7 @@ def interpret_origin(geom, origin, ndim):
             return origin
 
 def rotate(geom, angle, origin='center', use_radians=False):
-    """Return a rotated geometry on a 2D plane
+    """Return a rotated geometry on a 2D plane.
 
     The angle of rotation can be specified in either degrees (default) or
     radians by setting `use_radians=True`. Positive angles are
@@ -124,10 +135,13 @@ def rotate(geom, angle, origin='center', use_radians=False):
     or a coordinate tuple (x0, y0).
 
     The transformation matrix for 2D rotation is:
-        / cos(r) -sin(r) xoff \ 
-        | sin(r)  cos(r) yoff |
-        \   0       0      1  /
+
+      / cos(r) -sin(r) xoff \ 
+      | sin(r)  cos(r) yoff |
+      \   0       0      1  /
+    
     where the offsets are calculated from the origin Point(x0, y0):
+
         xoff = x0 - x0 * cos(r) + y0 * sin(r)
         yoff = y0 - x0 * sin(r) - y0 * cos(r)
     """
@@ -145,10 +159,10 @@ def rotate(geom, angle, origin='center', use_radians=False):
               sinp,  cosp, 0.0,
               0.0,    0.0, 1.0,
               x0 - x0 * cosp + y0 * sinp, y0 - x0 * sinp - y0 * cosp, 0.0)
-    return affine(geom, matrix)
+    return affine_transform(geom, matrix)
 
 def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center'):
-    """Return a scaled geometry, scaled by factors along each dimension
+    """Return a scaled geometry, scaled by factors along each dimension.
 
     The point of origin can be a keyword 'center' for the 2D bounding box
     center (default), 'centroid' for the geometry's 2D centroid, a Point
@@ -157,11 +171,14 @@ def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center'):
     Negative scale factors will mirror or reflect coordinates.
 
     The general 3D affine transformation matrix for scaling is:
+
         / xfact  0    0   xoff \ 
         |   0  yfact  0   yoff |
         |   0    0  zfact zoff |
         \   0    0    0     1  /
+
     where the offsets are calculated from the origin Point(x0, y0, z0):
+
         xoff = x0 - x0 * xfact
         yoff = y0 - y0 * yfact
         zoff = z0 - z0 * zfact
@@ -172,10 +189,10 @@ def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center'):
               0.0, yfact, 0.0,
               0.0, 0.0, zfact,
               x0 - x0 * xfact, y0 - y0 * yfact, z0 - z0 * zfact)
-    return affine(geom, matrix)
+    return affine_transform(geom, matrix)
 
 def skew(geom, xs=0.0, ys=0.0, origin='center', use_radians=False):
-    """Return a skewed geometry, sheared by angles along x and y dimensions
+    """Return a skewed geometry, sheared by angles along x and y dimensions.
 
     The shear angle can be specified in either degrees (default) or radians
     by setting `use_radians=True`.
@@ -185,10 +202,13 @@ def skew(geom, xs=0.0, ys=0.0, origin='center', use_radians=False):
     or a coordinate tuple (x0, y0).
 
     The general 2D affine transformation matrix for skewing is:
+
         /   1    tan(xs) xoff \ 
         | tan(ys)  1     yoff |
         \   0      0       1  /
+
     where the offsets are calculated from the origin Point(x0, y0):
+
         xoff = -y0 * tan(xs)
         yoff = -x0 * tan(ys)
     """
@@ -207,12 +227,13 @@ def skew(geom, xs=0.0, ys=0.0, origin='center', use_radians=False):
               tany, 1.0, 0.0,
               0.0,  0.0, 1.0,
               -y0 * tanx, -x0 * tany, 0.0)
-    return affine(geom, matrix)
+    return affine_transform(geom, matrix)
 
 def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
-    """Return a translated geometry shifted by offsets along each dimension
+    """Return a translated geometry shifted by offsets along each dimension.
 
     The general 3D affine transformation matrix for translation is:
+
         / 1  0  0 xoff \ 
         | 0  1  0 yoff |
         | 0  0  1 zoff |
@@ -222,50 +243,6 @@ def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
               0.0, 1.0, 0.0,
               0.0, 0.0, 1.0,
               xoff, yoff, zoff)
-    return affine(geom, matrix)
+    return affine_transform(geom, matrix)
 
-def scalerotatetranslate(geom, xfact=1.0, yfact=1.0, zfact=1.0,
-                         angle=0.0, xoff=0.0, yoff=0.0, zoff=0.0,
-                         origin='center', use_radians=False):
-    """Return a transformed geometry from scale, rotate and/or translate
 
-    This hybrid transform operator applies three different transforms
-    in one affine transform matrix. The order of the operators is scale,
-    rotate and/or transform. Only the rotate operator is on the 2D plane.
-
-    The point of origin can be a keyword 'center' for the 2D bounding box
-    center (default), 'centroid' for the geometry's 2D centroid, a Point
-    object or a coordinate tuple (x0, y0, z0).
-
-    The general 3D affine transformation matrix for this operator is
-    from the matrix multiplication for scale and rotate (in that order):
-        / xfact*cos(r)  yfact*-sin(r)   0    xoff \ 
-        | xfact*sin(r)  yfact*cos(r)    0    yoff |
-        |      0             0        zfact  zoff |
-        \      0             0          0      1  /
-    where the offsets are calculated from the origin Point(x0, y0, z0):
-        xoff = x0 - x0 * xfact * cos(r) + y0 * yfact * sin(r)
-        yoff = y0 - x0 * xfact * sin(r) - y0 * yfact * cos(r)
-        zoff = z0 - z0 * zfact
-    and lastly, any additional supplied offsets for translate are added
-    to xoff, yoff and zoff.
-    """
-    if not use_radians: # convert from degrees
-        angle *= pi/180.0
-    cosp = cos(angle)
-    sinp = sin(angle)
-    if abs(cosp) < 2.5e-16:
-        cosp = 0.0
-    if abs(sinp) < 2.5e-16:
-        sinp = 0.0
-    x0, y0, z0 = interpret_origin(geom, origin, 3)
-
-    # add offsets from transformation to supplied offsets
-    xoff += x0 - x0 * xfact * cosp + y0 * yfact * sinp
-    yoff += y0 - x0 * xfact * sinp - y0 * yfact * cosp
-    zoff += z0 - z0 * zfact
-    matrix = (cosp * xfact, -sinp * yfact, 0.0,
-              sinp * xfact,  cosp * yfact, 0.0,
-              0.0,           0.0,        zfact,
-              xoff,         yoff,        zoff)
-    return affine(geom, matrix)

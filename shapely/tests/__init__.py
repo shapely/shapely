@@ -4,7 +4,7 @@ import test_doctests, test_prepared, test_equality, test_geomseq, test_xy
 import test_collection, test_emptiness, test_singularity, test_validation
 import test_mapping, test_delegated, test_dlls, test_linear_referencing
 import test_products_z, test_box, test_speedups, test_cga, test_getitem
-import test_ndarrays, test_unary_union, test_pickle, test_transform
+import test_ndarrays, test_unary_union, test_pickle, test_affinity
 
 def test_suite():
     suite = TestSuite()
@@ -29,6 +29,6 @@ def test_suite():
     suite.addTest(test_ndarrays.test_suite())
     suite.addTest(test_unary_union.test_suite())
     suite.addTest(test_pickle.test_suite())
-    suite.addTest(test_transform.test_suite())
+    suite.addTest(test_affinity.test_suite())
     return suite
 
