@@ -16,6 +16,7 @@ import platform
 from setuptools.extension import Extension
 from setuptools import setup, find_packages
 from setuptools.command.build_ext import build_ext as distutils_build_ext
+import shutil
 import subprocess
 import sys
 
@@ -53,7 +54,8 @@ setup_args = dict(
     maintainer_email    = 'sean.gillies@gmail.com',
     url                 = 'https://github.com/Toblerity/Shapely',
     long_description    = readme_text + "\n" + credits + "\n" + changes_text,
-    packages            = find_packages(),
+    packages            = ['shapely'],
+    package_dir         = {'shapely': 'shapely'},
     test_suite          = 'shapely.tests.test_suite',
     classifiers         = [
         'Development Status :: 5 - Production/Stable',
@@ -68,19 +70,17 @@ setup_args = dict(
 
 # Add DLLs for Windows
 if sys.platform == 'win32':
+    os.mkdir('shapely/DLLs')
     if '(AMD64)' in sys.version:
-        setup_args.update(
-            data_files=[('DLLs', glob.glob('DLLs_AMD64_VC9/*.dll'))]
-            )
+        for dll in glob.glob('DLLs_AMD64_VC9/*.dll'):
+            shutil.copy(dll, 'shapely/DLLs')
     elif platform.python_version().startswith('2.5.'):
-        setup_args.update(
-            data_files=[('DLLs', glob.glob('DLLs_x86_VC7/*.dll'))]
-            )
+        for dll in glob.glob('DLLs_x86_VC7/*.dll'):
+            shutil.copy(dll, 'shapely/DLLs')
     else:
-        setup_args.update(
-            data_files=[('DLLs', glob.glob('DLLs_x86_VC9/*.dll'))]
-            )
-
+        for dll in glob.glob('DLLs_x86_VC9/*.dll'):
+            shutil.copy(dll, 'shapely/DLLs')
+    setup_args.update(package_data={'shapely': ['shapely/DLLs/*.dll']})
 
 # Optional compilation of speedups
 # setuptools stuff from Bob Ippolito's simplejson project
