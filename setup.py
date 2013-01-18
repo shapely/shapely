@@ -10,6 +10,7 @@ except:
 
 from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
+import errno
 import glob
 import os
 import platform
@@ -70,7 +71,10 @@ setup_args = dict(
 
 # Add DLLs for Windows
 if sys.platform == 'win32':
-    os.mkdir('shapely/DLLs')
+    try:
+        os.mkdir('shapely/DLLs')
+    except OSError, ex:
+        if ex.errno != errno.EEXIST: raise
     if '(AMD64)' in sys.version:
         for dll in glob.glob('DLLs_AMD64_VC9/*.dll'):
             shutil.copy(dll, 'shapely/DLLs')
