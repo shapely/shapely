@@ -56,7 +56,6 @@ setup_args = dict(
     url                 = 'https://github.com/Toblerity/Shapely',
     long_description    = readme_text + "\n" + credits + "\n" + changes_text,
     packages            = find_packages(),
-    package_dir         = {'shapely': 'shapely'},
     test_suite          = 'shapely.tests.test_suite',
     classifiers         = [
         'Development Status :: 5 - Production/Stable',
@@ -84,7 +83,11 @@ if sys.platform == 'win32':
     else:
         for dll in glob.glob('DLLs_x86_VC9/*.dll'):
             shutil.copy(dll, 'shapely/DLLs')
-    setup_args.update(package_data={'shapely': ['shapely/DLLs/*.dll']})
+    setup_args.update(
+        package_data={'shapely': ['shapely/DLLs/*.dll']},
+        include_package_data=True,
+    )
+
 
 # Optional compilation of speedups
 # setuptools stuff from Bob Ippolito's simplejson project
