@@ -121,7 +121,7 @@ if (hasattr(platform, 'python_implementation')
     and platform.python_implementation() == 'PyPy'):
     # python_implementation is only available since 2.6
     ext_modules = []
-
+    libraries = []
 elif sys.platform == 'win32':
     libraries = ['geos']
 else:
