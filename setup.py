@@ -10,6 +10,7 @@ except:
 
 from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
+import errno
 import glob
 import os
 import platform
@@ -55,7 +56,6 @@ setup_args = dict(
     url                 = 'https://github.com/Toblerity/Shapely',
     long_description    = readme_text + "\n" + credits + "\n" + changes_text,
     packages            = find_packages(),
-    package_dir         = {'shapely': 'shapely'},
     test_suite          = 'shapely.tests.test_suite',
     classifiers         = [
         'Development Status :: 5 - Production/Stable',
@@ -70,7 +70,10 @@ setup_args = dict(
 
 # Add DLLs for Windows
 if sys.platform == 'win32':
-    os.mkdir('shapely/DLLs')
+    try:
+        os.mkdir('shapely/DLLs')
+    except OSError, ex:
+        if ex.errno != errno.EEXIST: raise
     if '(AMD64)' in sys.version:
         for dll in glob.glob('DLLs_AMD64_VC9/*.dll'):
             shutil.copy(dll, 'shapely/DLLs')
@@ -80,7 +83,11 @@ if sys.platform == 'win32':
     else:
         for dll in glob.glob('DLLs_x86_VC9/*.dll'):
             shutil.copy(dll, 'shapely/DLLs')
-    setup_args.update(package_data={'shapely': ['shapely/DLLs/*.dll']})
+    setup_args.update(
+        package_data={'shapely': ['shapely/DLLs/*.dll']},
+        include_package_data=True,
+    )
+
 
 # Optional compilation of speedups
 # setuptools stuff from Bob Ippolito's simplejson project
