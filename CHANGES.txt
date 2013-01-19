@@ -1,13 +1,14 @@
 Changes
 =======
 
-1.2.17 (2013-01-18)
+1.2.17 (2013-01-19)
 -------------------
 - Avoid circular import between wkt/wkb and geometry.base by moving calls
   to GEOS serializers to the latter module.
 - Set _ndim when unpickling (issue #6).
 - Don't install DLLs to Python's DLL directory (#37).
 - Add affinity module of affine transformation (#31).
+- Fix NameError that blocked installation with PyPy (#40, #41).
 
 1.2.16 (2012-09-18)
 -------------------
