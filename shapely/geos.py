@@ -64,7 +64,7 @@ elif sys.platform == 'darwin':
 elif sys.platform == 'win32':
     try:
         egg_dlls = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                     r"..\DLLs"))
+                                     r"DLLs"))
         wininst_dlls =  os.path.abspath(os.__file__ + "../../../DLLs")
         original_path = os.environ['PATH']
         os.environ['PATH'] = "%s;%s;%s" % (egg_dlls, wininst_dlls, original_path)
