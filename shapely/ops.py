@@ -2,6 +2,7 @@
 """
 
 from ctypes import byref, c_void_p
+from itertools import izip
 
 from shapely.geos import lgeos
 from shapely.geometry.base import geom_factory, BaseGeometry
@@ -99,4 +100,75 @@ class ValidateOp(object):
         return lgeos.GEOSisValidReason(this._geom)
 
 validate = ValidateOp()
+
+def transform(func, geom):
+    """Applies `func` to all coordinates of `geom` and returns a new 
+    geometry of the same type from the transformed coordinates.
+
+    `func` maps x, y, and optionally z to output xp, yp, zp. The input
+    parameters may iterable types like lists or arrays or single values.
+    The output shall be of the same type. Scalars in, scalars out. 
+    Lists in, lists out.
+
+    For example, here is an identity function applicable to both types
+    of input.
+    
+      def id_func(x, y, z=None):
+          return tuple(filter(None, [x, y, z]))
+      
+      g2 = transform(id_func, g1)
+
+    A partially applied transform function from pyproj satisfies the
+    requirements for `func`.
+
+      from functools import partial
+      import pyproj
+
+      project = partial(
+          pyproj.transform, 
+          pyproj.Proj(init='espg:4326'), 
+          pyproj.Proj(init='epsg:26913'))
+
+      g2 = transform(project, g1)
+    
+    Lambda expressions such as the one in
+
+      g2 = transform(lambda x, y, z=None: (x+1.0, y+1.0), g1)
+
+    also satisfy the requirements for `func`.
+    """
+
+    if geom.type in ('Point', 'LineString', 'Polygon'):
+        
+        # First we try to apply func to x, y, z sequences. When func is
+        # optimized for sequences, this is the fastest, though zipping
+        # the results up to go back into the geometry constructors adds
+        # extra cost.
+        try:
+            if geom.type in ('Point', 'LineString'):
+                return type(geom)(zip(*func(*zip(*geom.coords))))
+            elif geom.type == 'Polygon':
+                shell = type(geom.exterior)(
+                    zip(*func(*zip(*geom.exterior.coords))))
+                holes = list(type(ring)(zip(*func(*zip(*ring.coords)))) for 
+                    ring in geom.interiors)
+                return type(geom)(shell, holes)
+        
+        # A func that assumes x, y, z are single values will likely raise a
+        # TypeError, in which case we'll try again.
+        except TypeError:
+            if geom.type in ('Point', 'LineString'):
+                return type(geom)([func(*c) for c in geom.coords])
+            elif geom.type == 'Polygon':
+                shell = type(geom.exterior)(
+                    [func(*c) for c in geom.exterior.coords])
+                holes = list(type(ring)(
+                    [func(*c) for c in ring.coords]) for 
+                        ring in geom.interiors)
+                return type(geom)(shell, holes)
+    
+    elif geom.type.startswith('Multi') or geom.type == 'GeometryCollection':
+        return type(geom)([transform(func, part) for part in geom.geoms])
+    else:
+        raise ValueError('Type %r not recognized' % geom.type)
 

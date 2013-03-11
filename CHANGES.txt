@@ -1,6 +1,10 @@
 Changes
 =======
 
+1.2.18 ()
+---------
+- Add shapely.ops.transform.
+
 1.2.17 (2013-01-27)
 -------------------
 - Avoid circular import between wkt/wkb and geometry.base by moving calls
