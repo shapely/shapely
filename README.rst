@@ -41,6 +41,12 @@ or from a source distribution with the setup script::
 
   $ python setup.py install
 
+.. warning:: Windows users:
+   do not under any circumstances use pip (or easy_install) to uninstall
+   Shapely versions < 1.2.17. Due to the way Shapely used to install its GEOS
+   DLL and a distribute or setuptools bug, your Python installation may be
+   broken by an uninstall command. Shapely 1.2.17 will uninstall safely.
+
 Usage
 =====
 
@@ -111,7 +117,10 @@ supported well by nose.
 Support
 =======
 
-Bugs may be reported and questions asked via https://github.com/Toblerity/Shapely.
+Please discuss Shapely with us at
+http://lists.gispython.org/mailman/listinfo/community.
+
+Bugs may be reported at https://github.com/Toblerity/Shapely.
 
 .. include:: CREDITS.txt
 

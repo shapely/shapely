@@ -22,7 +22,7 @@ import subprocess
 import sys
 
 # Parse the version from the shapely module
-for line in open('shapely/__init__.py', 'rb'):
+for line in open('shapely/__init__.py', 'r'):
     if line.find("__version__") >= 0:
         version = line.split("=")[1].strip()
         version = version.strip('"')
@@ -31,13 +31,13 @@ for line in open('shapely/__init__.py', 'rb'):
 
 open('VERSION.txt', 'wb').write(version)
 
-readme_text = open('README.rst', 'rb').read()
+readme_text = open('README.rst', 'r').read()
 readme_text = readme_text.replace(".. include:: CREDITS.txt", "")
 
-f = open('CREDITS.txt', 'rb')
+f = open('CREDITS.txt', 'r')
 credits = f.read()
 
-f = open('CHANGES.txt', 'rb')
+f = open('CHANGES.txt', 'r')
 changes_text = f.read()
 
 setup_args = dict(
