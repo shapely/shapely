@@ -1603,7 +1603,7 @@ object.
 Cascading Unions
 ----------------
 
-The :func:`cascaded_union` function in `shapely.ops` is more efficient than
+The :func:`~shapely.ops.cascaded_union` function in `shapely.ops` is more efficient than
 accumulating with :meth:`union`.
 
 .. plot:: code/cascaded_union.py
