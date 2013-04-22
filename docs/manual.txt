@@ -5,15 +5,15 @@ The Shapely User Manual
 =======================
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
-:Revision: 1.2.15
+:Revision: 1.2.16
 :Date: 8 July 2012
-:Copyright: 
+:Copyright:
   This work is licensed under a `Creative Commons Attribution 3.0
   United States License`__.
 
 .. __: http://creativecommons.org/licenses/by/3.0/us/
 
-:Abstract: 
+:Abstract:
   This document explains how to use the Shapely Python package for
   computational geometry.
 
@@ -54,9 +54,9 @@ serialization, and map projection of features are significant, but orthogonal
 problems. You may not need a hundred GIS format readers and writers or the
 multitude of State Plane projections, and Shapely doesn't burden you with them.
 The third premise is that Python idioms trump GIS (or Java, in this case, since
-the GEOS library is derived from JTS, a Java project) idioms. 
+the GEOS library is derived from JTS, a Java project) idioms.
 
-If you enjoy and profit from idiommatic Python, appreciate packages that do one
+If you enjoy and profit from idiomatic Python, appreciate packages that do one
 thing well, and agree that a spatially enabled RDBMS is often enough the wrong
 tool for your computational geometry job, Shapely might be for you.
 
@@ -78,7 +78,7 @@ feature are mutually exclusive and their union coincides with the entire plane
 * A `Curve` has an `interior` set consisting of the infinitely many points
   along its length (imagine a `Point` dragged in space), a `boundary` set
   consisting of its two end points, and an `exterior` set of all other points.
-  A `Curve` has a topological dimension of 1. 
+  A `Curve` has a topological dimension of 1.
 
 * A `Surface` has an `interior` set consisting of the infinitely many points
   within (imagine a `Curve` dragged in space to cover an area), a `boundary`
@@ -117,7 +117,7 @@ Relationships
 
 The spatial data model is accompanied by a group of natural language
 relationships between geometric objects – `contains`, `intersects`, `overlaps`,
-`touches`, etc – and a theoretical framework for understanding them using the
+`touches`, etc. – and a theoretical framework for understanding them using the
 3x3 matrix of the mutual intersections of their component point sets [2]_: the
 DE-9IM. A comprehensive review of the relationships in terms of the DE-9IM is
 found in [4]_ and will not be reiterated in this manual.
@@ -129,7 +129,7 @@ Operations
 
 Following the JTS technical specs [5]_, this manual will make a distinction
 between constructive (`buffer`, `convex hull`) and set-theoretic operations
-(`intersection`, `union`, etc). The individual operations will be fully
+(`intersection`, `union`, etc.). The individual operations will be fully
 described in a following section of the manual.
 
 .. _intro-coordinate-systems:
@@ -155,7 +155,7 @@ Geometric Objects
 Geometric objects are created in the typical Python fashion, using the classes
 themselves as instance factories. A few of their intrinsic properties will be
 discussed in this sections, others in the following sections on operations and
-serializations. 
+serializations.
 
 Instances of `Point`, `LineString`, and `LinearRing` have as their most
 important attribute a finite sequence of coordinates that determines their
@@ -210,7 +210,7 @@ General Attributes and Methods
 
 .. method:: object.representative_point()
 
-  Returns a cheaply computed point that is guaranteed to be within the 
+  Returns a cheaply computed point that is guaranteed to be within the
   geometric object.
 
 .. note::
@@ -289,7 +289,7 @@ LineStrings
 
 .. class:: LineString(coordinates)
 
-  The `LineString` constructor takes an ordered sequence of 2 or more 
+  The `LineString` constructor takes an ordered sequence of 2 or more
   ``(x, y[, z])`` point tuples.
 
 The constructed `LineString` object represents one or more connected linear
@@ -359,7 +359,7 @@ LinearRings
 
   The `LinearRing` constructor takes an ordered sequence of ``(x, y[, z])``
   point tuples.
-  
+
 The sequence may be explicitly closed by passing identical values in the first
 and last indices. Otherwise, the sequence will be implicitly closed by copying
 the first tuple to the last index. As with a `LineString`, repeated points in
@@ -373,7 +373,7 @@ Figure 1: a valid `LinearRing` on the left, an invalid self-touching
 `LinearRing` on the right. The points that describe the rings are shown in
 grey. A ring's boundary is `empty`.
 
-.. note:: 
+.. note::
    Shapely will not prevent the creation of such rings, but exceptions will be
    raised when they are operated on.
 
@@ -481,7 +481,7 @@ The `Polygon` constructor also accepts instances of `LineString` and
   >>> r = LinearRing(coords)
   >>> s = Polygon(r)
   >>> s.area
-  0.5  
+  0.5
   >>> t = Polygon(s.buffer(1.0).exterior, [r])
   >>> t.area
   6.5507620529190334
@@ -509,14 +509,14 @@ For example:
 
 This is the first appearance of an explicit polygon handedness in Shapely.
 
-To obtain a polygon with a known orientation, use 
+To obtain a polygon with a known orientation, use
 :func:`shapely.geometry.polygon.orient()`:
 
 .. function:: shapely.geometry.polygon.orient(polygon, sign=1.0)
 
   Returns a properly oriented copy of the given polygon. The signed area of the
-  result will have the given sign. A sign of 1.0 means that the coordinates of the
-  product's exterior ring will be oriented counter-clockwise.
+  result will have the given sign. A sign of 1.0 means that the coordinates of
+  the product's exterior ring will be oriented counter-clockwise.
 
   `New in version 1.2.10`.
 
@@ -565,7 +565,7 @@ the iterator protocol using ``in``  or ``list()``.
 Homogeneous collections can also be sliced, resulting in a new object of the
 same type.
 
-.. sourcecode:: pycon 
+.. sourcecode:: pycon
 
   >>> from shapely.geometry import MultiPoint
   >>> m = MultiPoint([(0, 0), (1, 1), (1,2), (2,2)])
@@ -579,7 +579,7 @@ same type.
 `New in version 1.2.14`.
 
 .. note::
-  
+
   When possible, it is better to use one of the homogeneous collection types
   described below.
 
@@ -590,7 +590,7 @@ Collections of Points
 
 .. class:: MultiPoint(points)
 
-  The `MultiPoint` constructor takes a sequence of ``(x, y[,z ])`` point
+  The `MultiPoint` constructor takes a sequence of ``(x, y[, z ])`` point
   tuples.
 
 A `MultiPoint` has zero area and zero length.
@@ -619,7 +619,7 @@ via the iterator protocol using ``in`` or :func:`list`.
   >>> import pprint
   >>> pprint.pprint(list(points.geoms))
   [<shapely.geometry.point.Point object at 0x...>,
-   <shapely.geometry.point.Point object at 0x...>]  
+   <shapely.geometry.point.Point object at 0x...>]
   >>> pprint.pprint(list(points))
   [<shapely.geometry.point.Point object at 0x...>,
    <shapely.geometry.point.Point object at 0x...>]
@@ -680,7 +680,7 @@ property or via the iterator protocol using ``in`` or ``list()``.
   >>> pprint.pprint(list(lines))
   [<shapely.geometry.linestring.LineString object at 0x...>,
    <shapely.geometry.linestring.LineString object at 0x...>]
-  
+
 The constructor also accepts another instance of `MultiLineString` or an
 unordered sequence of `LineString` instances, thereby making copies.
 
@@ -868,7 +868,7 @@ example will be shown for each.
 .. attribute:: object.has_z
 
   Returns ``True`` if the feature has not only `x` and `y`, but also `z`
-  coordinates.
+  coordinates for 3D (or so-called, 2.5D) geometries.
 
 .. sourcecode:: pycon
 
@@ -879,8 +879,9 @@ example will be shown for each.
 
 .. attribute:: object.is_ccw
 
-  Returns ``True`` if coordinates are in counter-clockwise order (bounding a region
-  with positive signed area). This method applies to `LinearRing` objects only.
+  Returns ``True`` if coordinates are in counter-clockwise order (bounding a
+  region with positive signed area). This method applies to `LinearRing`
+  objects only.
 
   `New in version 1.2.10`.
 
@@ -929,7 +930,7 @@ A ring with an undesired orientation can be reversed like this:
 
   Returns ``True`` if the feature is closed. A closed feature's `boundary`
   coincides with the empty set.
-  
+
 .. sourcecode:: pycon
 
   >>> LineString([(0, 0), (1, 1), (1, -1)]).is_ring
@@ -944,7 +945,7 @@ meaningless for others.
 
   Returns ``True`` if the feature does not cross itself.
 
-.. note:: 
+.. note::
 
    The simplicity test is meaningful only for `LineStrings` and `LinearRings`.
 
@@ -953,12 +954,12 @@ meaningless for others.
   >>> LineString([(0, 0), (1, 1), (1, -1), (0, 1)]).is_simple
   False
 
-Operations on non-simple `LineStrings` are fully supported by Shapely. 
+Operations on non-simple `LineStrings` are fully supported by Shapely.
 
 .. attribute:: object.is_valid
 
   Returns ``True`` if a feature is "valid" in the sense of [1]_.
-  
+
 A valid `LinearRing` may not cross itself or touch itself at a single point. A
 valid `Polygon` may not possess any overlapping exterior or interior rings. A
 valid `MultiPolygon` may not collect any overlapping polygons. Operations on
@@ -997,7 +998,7 @@ buffer operations (explained in a following section) overlap.
   ... def ring(coordinates):
   ...     return LinearRing(coordinates)
   ...
-  >>> coords = [(0, 0), (1, 1), (1, -1), (0, 1)]  
+  >>> coords = [(0, 0), (1, 1), (1, -1), (0, 1)]
   >>> ring(coords)
   Traceback (most recent call last):
     File "<stdin>", line 1, in <module>
@@ -1044,7 +1045,7 @@ A line's endpoints are part of its `boundary` and are therefore not contained.
   >>> LineString(coords).contains(Point(1.0, 1.0))
   False
 
-.. note:: 
+.. note::
 
   Binary predicates can be used directly as predicates for ``filter()`` or
   ``itertools.ifilter()``.
@@ -1240,7 +1241,7 @@ Spatial Analysis Methods
 As well as boolean attributes and methods, Shapely provides analysis methods
 that return new geometric objects.
 
-.. _set-theortic-methods:
+.. _set-theoretic-methods:
 
 Set-theoretic Methods
 ---------------------
@@ -1253,7 +1254,7 @@ available as a read-only attribute.
 
   Returns a lower dimensional object representing the object's set-theoretic
   `boundary`.
-  
+
 The boundary of a polygon is a line, the boundary of a line is a collection of
 points. The boundary of a point is an empty (null) collection.
 
@@ -1397,7 +1398,7 @@ derived from set-theoretic analysis.
 
 A positive distance has an effect of dilation; a negative distance, erosion.
 The optional `resolution` argument determines the number of segments used to
-approximate a quarter circle around a point. 
+approximate a quarter circle around a point.
 
 .. sourcecode:: pycon
 
@@ -1526,8 +1527,8 @@ Figure 1. Large and small mitre_limit values for left and right offsets.
 
 All points in the simplified object will be within the `tolerance` distance of
 the original geometry. By default a slower algorithm is used that preserves
-topology. If preserve topology is set to False the much quicker Douglas-Peucker
-algorithm [6]_ is used.
+topology. If preserve topology is set to ``False`` the much quicker
+Douglas-Peucker algorithm [6]_ is used.
 
 .. sourcecode:: pycon
 
@@ -1553,13 +1554,77 @@ Figure 1. Simplification of a nearly circular polygon using a tolerance of 0.2
   `Invalid` geometric objects may result from simplification that does not
   preserve topology.
 
+
+Affine Transformations
+======================
+
+A collection of affine transform functions are in the :mod:`shapely.affinity`
+module, which return transformed geometries by either directly supplying
+coefficients to an affine transformation matrix, or by using the helper
+functions `rotate`, `scale` and `transform`. The functions can be used with all
+geometry types (except `GeometryCollection`), and 3D types are either
+preserved or supported by 3D affine transformations.
+
+.. function:: shapely.affinity.affine_transform(geom, matrix)
+
+  Returns a transformed geometry using an affine transformation matrix.
+
+  The coefficient matrix is provided as a list or tuple with 6 or 12 items
+  for 2D or 3D transformations, respectively.
+
+  For 2D affine transformations, the 6 parameter ``matrix`` is:
+
+    [a, b, d, e, xoff, yoff]
+
+  which represents the augmented matrix:
+
+  .. math::
+    \begin{bmatrix} x' & y' & 1 \end{bmatrix} =
+    \begin{bmatrix} x  & y  & 1 \end{bmatrix}
+    \begin{bmatrix}
+     a & b & x_\mathrm{off} \\
+     d & e & y_\mathrm{off} \\
+     0 & 0 & 1
+    \end{bmatrix}
+
+  or the equations for the transformed coordinates:
+
+  .. math::
+    x' &= a x + b y + x_\mathrm{off} \\
+    y' &= d x + e y + y_\mathrm{off}.
+
+  For 3D affine transformations, the 12 parameter ``matrix`` is:
+
+    [a, b, c, d, e, f, g, h, i, xoff, yoff, zoff]
+
+  which represents the augmented matrix:
+
+  .. math::
+    \begin{bmatrix} x' & y' & z' & 1 \end{bmatrix} =
+    \begin{bmatrix} x  & y  & z  & 1 \end{bmatrix}
+    \begin{bmatrix}
+     a & b & c & x_\mathrm{off} \\
+     d & e & f & y_\mathrm{off} \\
+     g & h & i & z_\mathrm{off} \\
+     0 & 0 & 0 & 1
+    \end{bmatrix}
+
+
+  or the equations for the transformed coordinates:
+
+  .. math::
+      x' &= a x + b y + c z + x_\mathrm{off} \\
+      y' &= d x + e y + f z + y_\mathrm{off} \\
+      z' &= g x + h y + i z + z_\mathrm{off}.
+
 Other Operations
 ================
 
 Merging Linear Features
 -----------------------
 
-Sequences of touching lines can be merged into `MultiLineStrings` or `Polygons` using functions in the :mod:`shapely.ops` module.
+Sequences of touching lines can be merged into `MultiLineStrings` or `Polygons`
+using functions in the :mod:`shapely.ops` module.
 
 .. function:: shapely.ops.polygonize(lines)
 
@@ -1567,7 +1632,7 @@ Sequences of touching lines can be merged into `MultiLineStrings` or `Polygons` 
 
 As with the :class:`MultiLineString` constructor, the input elements may be any
 line-like object.
-  
+
 .. sourcecode:: python
 
   >>> from shapely.ops import polygonize
@@ -1579,7 +1644,7 @@ line-like object.
   ...     ((1, 0), (0, 0))
   ...     ]
   >>> pprint(list(polygonize(lines)))
-  [<shapely.geometry.polygon.Polygon object at 0x...>, 
+  [<shapely.geometry.polygon.Polygon object at 0x...>,
    <shapely.geometry.polygon.Polygon object at 0x...>]
 
 .. function:: shapely.ops.linemerge(lines)
@@ -1603,8 +1668,8 @@ object.
 Cascading Unions
 ----------------
 
-The :func:`~shapely.ops.cascaded_union` function in `shapely.ops` is more efficient than
-accumulating with :meth:`union`.
+The :func:`~shapely.ops.cascaded_union` function in `shapely.ops` is more
+efficient than accumulating with :meth:`union`.
 
 .. plot:: code/cascaded_union.py
 
@@ -1711,7 +1776,7 @@ Interoperation
 
 Shapely provides 4 avenues for interoperation with other software.
 
-Well-known Formats
+Well-Known Formats
 ------------------
 
 A `Well Known Text` (WKT) or `Well Known Binary` (WKB) representation [1]_ of
@@ -1784,7 +1849,7 @@ adapted to Numpy arrays.
          [ 1.,  1.]])
 
 The :func:`numpy.asarray` function does not copy coordinate values – at the
-price of slower numpy access to the coordinates of Shapely objects.
+price of slower Numpy access to the coordinates of Shapely objects.
 
 .. note::
 
@@ -1801,7 +1866,7 @@ Python arrays of `x` and `y` values via the :attr:`xy` attribute.
   (array('d', [0.0, 1.0]), array('d', [0.0, 1.0]))
 
 The :func:`shapely.geometry.asShape` family of functions can be used to wrap
-numpy coordinate arrays so that they can then be analyzed using Shapely while
+Numpy coordinate arrays so that they can then be analyzed using Shapely while
 maintaining their original storage. A 1 x 2 array can be adapted to a point
 
 .. sourcecode:: pycon
@@ -1836,7 +1901,7 @@ adapted and used as a Shapely geometry using the
 
 .. function:: shapely.geometry.shape(context)
 
-   Return a new, independent geometry with coordinates `copied` from the
+   Returns a new, independent geometry with coordinates `copied` from the
    context.
 
 For example, a dictionary:
@@ -1899,7 +1964,7 @@ involves some overhead that might slow down your code.
 .. versionadded:: 1.2.10
 
 The :mod:`shapely.speedups` module contains performance enhancements written in
-C. They are automaticaly installed when Python has access to a compiler during
+C. They are automatically installed when Python has access to a compiler during
 installation.
 
 You can check if the speedups are installed with the :attr:`available`
@@ -1921,7 +1986,7 @@ Conclusion
 We hope that you will enjoy and profit from using Shapely. Questions and
 comments are welcome on the GIS-Python email list_. This manual will be updated
 and improved regularly. Its source is available at
-http://github.com/Toblerity/Shapely/tree/master/docs/. 
+http://github.com/Toblerity/Shapely/tree/master/docs/.
 
 
 References
@@ -1931,11 +1996,11 @@ References
    “OpenGIS Implementation Specification for Geographic information - Simple
    feature access - Part 1: Common architecture,” Oct. 2006.
 
-.. [2] M.J. Egenhofer and John R. Herring, 
+.. [2] M.J. Egenhofer and John R. Herring,
    Categorizing Binary Topological Relations Between Regions, Lines, and Points
    in Geographic Databases,  Orono, ME: University of Maine, 1991.
 
-.. [3] E. Clementini, P. Di Felice, and P. van OOsterom,
+.. [3] E. Clementini, P. Di Felice, and P. van Oosterom,
    “A Small Set of Formal Topological Relationships Suitable for End-User
    Interaction,” Third International Symposium on Large Spatial Databases
    (SSD). Lecture Notes in Computer Science no. 692, David Abel and Beng Chin
@@ -1947,7 +2012,7 @@ References
 
 .. [5] Martin Davis, “JTS Technical Specifications,” Mar. 2003. [|JTS-PDF|_]
 
-.. [6] David H. Douglas and Thomas K. Peucker, 
+.. [6] David H. Douglas and Thomas K. Peucker,
    “Algorithms for the Reduction of the Number of Points Required to Represent
    a Digitized Line or its Caricature,” Cartographica: The International
    Journal for Geographic Information and Geovisualization,  vol. 10, Dec.
