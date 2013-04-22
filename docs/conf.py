@@ -47,7 +47,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Shapely'
-copyright = u'2011, Sean Gillies, Aron Bierbaum, Kai Lautaportti and others'
+copyright = u'2011-2013, Sean Gillies, Aron Bierbaum, Kai Lautaportti and others'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

@@ -5,8 +5,8 @@ The Shapely User Manual
 =======================
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
-:Revision: 1.2.16
-:Date: 8 July 2012
+:Revision: |release|
+:Date: |today|
 :Copyright:
   This work is licensed under a `Creative Commons Attribution 3.0
   United States License`__.
@@ -411,7 +411,7 @@ instance, thereby making a copy.
 
   >>> LinearRring(ring)
   <shapely.geometry.polygon.LinearRing object at 0x...>
-  
+
 As with `LineString`, a sequence of `Point` instances is not a valid
 constructor parameter.
 
@@ -777,7 +777,7 @@ supports linear referencing based on length or distance, evaluating the
 distance along a geometric object to the projection of a given point, or the
 point at a given distance along the object.
 
-.. note:: 
+.. note::
 
   Linear referencing methods require the support of GEOS version >= 3.2 or more
   specifically, a GEOS C API version > (1, 6, 0). This version tuple is
@@ -835,7 +835,7 @@ specified distance.
           if pd > distance:
               cp = line.interpolate(distance)
               return [
-                  LineString(coords[:i] + [(cp.x, cp.y)]), 
+                  LineString(coords[:i] + [(cp.x, cp.y)]),
                   LineString([(cp.x, cp.y)] + coords[i:])]
 
 .. sourcecode:: pycon
@@ -1115,16 +1115,16 @@ constructions.
 .. method:: object.intersects(other)
 
   Returns ``True`` if the `boundary` and `interior` of the object intersect in
-  any way with those of the other. 
+  any way with those of the other.
 
 This predicate is equivalent to the OR-ing of :meth:`contains`, :meth:`crosses`,
-:meth:`equals`, :meth:`touches`, and :meth:`within`. 
+:meth:`equals`, :meth:`touches`, and :meth:`within`.
 
 .. method:: object.touches(other)
 
   Returns ``True`` if the `boundary` of the object intersects only the
   `boundary` of the other, and their interiors do not intersect with any part
-  of the other. 
+  of the other.
 
 Overlapping features do not therefore `touch`, another potential "gotcha". For
 example, the following lines touch at ``(1, 1)``, but do not overlap.
@@ -1170,7 +1170,7 @@ Shapely's binary :meth:`within` predicate.
 .. sourcecode:: python
 
   from shapely.geometry import asShape
-  
+
   class Within(object):
       def __init__(self, o):
           self.o = o
@@ -1288,7 +1288,7 @@ illustration of lines and their boundaries.
   >>> LineString([(0, 0), (1, 1)]).centroid.wkt
   'POINT (0.5000000000000000 0.5000000000000000)'
 
-.. note:: 
+.. note::
 
   The centroid of an object might be one of its points, but this is not
   guaranteed.
@@ -1351,7 +1351,7 @@ See the figure under :meth:`symmetric_difference` below.
 .. plot:: code/intersection-sym-difference.py
 
 .. method:: object.union(other)
-  
+
   Returns a representation of the union of points from this object and the
   `other` geometric object.
 
@@ -1503,7 +1503,7 @@ Figure 1. Convex hull (blue) of 2 points (left) and of 6 points (right).
   (spelled in British English, en-gb). The ratio of the distance from the
   corner to the end of the mitred offset corner is the miter ratio. Corners
   with a ratio which exceed the limit will be beveled.
-  
+
 .. note::
 
   This method is only available for `LinearRing`, `LineString`, and
@@ -1569,7 +1569,7 @@ preserved or supported by 3D affine transformations.
 
   Returns a transformed geometry using an affine transformation matrix.
 
-  The coefficient matrix is provided as a list or tuple with 6 or 12 items
+  The coefficient ``matrix`` is provided as a list or tuple with 6 or 12 items
   for 2D or 3D transformations, respectively.
 
   For 2D affine transformations, the 6 parameter ``matrix`` is:
@@ -1582,9 +1582,9 @@ preserved or supported by 3D affine transformations.
     \begin{bmatrix} x' & y' & 1 \end{bmatrix} =
     \begin{bmatrix} x  & y  & 1 \end{bmatrix}
     \begin{bmatrix}
-     a & b & x_\mathrm{off} \\
-     d & e & y_\mathrm{off} \\
-     0 & 0 & 1
+      a & b & x_\mathrm{off} \\
+      d & e & y_\mathrm{off} \\
+      0 & 0 & 1
     \end{bmatrix}
 
   or the equations for the transformed coordinates:
@@ -1603,19 +1603,114 @@ preserved or supported by 3D affine transformations.
     \begin{bmatrix} x' & y' & z' & 1 \end{bmatrix} =
     \begin{bmatrix} x  & y  & z  & 1 \end{bmatrix}
     \begin{bmatrix}
-     a & b & c & x_\mathrm{off} \\
-     d & e & f & y_\mathrm{off} \\
-     g & h & i & z_\mathrm{off} \\
-     0 & 0 & 0 & 1
+      a & b & c & x_\mathrm{off} \\
+      d & e & f & y_\mathrm{off} \\
+      g & h & i & z_\mathrm{off} \\
+      0 & 0 & 0 & 1
     \end{bmatrix}
-
 
   or the equations for the transformed coordinates:
 
   .. math::
-      x' &= a x + b y + c z + x_\mathrm{off} \\
-      y' &= d x + e y + f z + y_\mathrm{off} \\
-      z' &= g x + h y + i z + z_\mathrm{off}.
+    x' &= a x + b y + c z + x_\mathrm{off} \\
+    y' &= d x + e y + f z + y_\mathrm{off} \\
+    z' &= g x + h y + i z + z_\mathrm{off}.
+
+.. function:: shapely.affinity.rotate(geom, angle, origin='center', use_radians=False)
+
+  Returns a rotated geometry on a 2D plane.
+
+  The angle of rotation can be specified in either degrees (default) or
+  radians by setting ``use_radians=True``. Positive angles are
+  counter-clockwise and negative are clockwise rotations.
+
+  The point of origin can be a keyword ``'center'`` for the bounding box
+  center (default), ``'centroid'`` for the geometry's centroid, a `Point` object
+  or a coordinate tuple ``(x0, y0)``.
+
+  The affine transformation matrix for 2D rotation with angle :math:`\theta` is:
+
+  .. math::
+    \begin{bmatrix}
+      \cos{\theta} & -\sin{\theta} & x_\mathrm{off} \\
+      \sin{\theta} &  \cos{\theta} & y_\mathrm{off} \\
+      0 & 0 & 1
+    \end{bmatrix}
+
+  where the offsets are calculated from the origin :math:`(x_0, y_0)`:
+
+  .. math::
+    x_\mathrm{off} &= x_0 - x_0 \cos{\theta} + y_0 \sin{\theta} \\
+    y_\mathrm{off} &= y_0 - x_0 \sin{\theta} - y_0 \cos{\theta}
+
+.. function:: shapely.affinity.scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center')
+
+  Returns a scaled geometry, scaled by factors along each dimension.
+
+  The point of origin can be a keyword ``'center'`` for the 2D bounding box
+  center (default), ``'centroid'`` for the geometry's 2D centroid, a `Point`
+  object or a coordinate tuple ``(x0, y0, z0)``.
+
+  Negative scale factors will mirror or reflect coordinates.
+
+  The general 3D affine transformation matrix for scaling is:
+
+  .. math::
+    \begin{bmatrix}
+      x_\mathrm{fact} & 0 & 0 & x_\mathrm{off} \\
+      0 & y_\mathrm{fact} & 0 & y_\mathrm{off} \\
+      0 & 0 & z_\mathrm{fact} & z_\mathrm{off} \\
+      0 & 0 & 0 & 1
+    \end{bmatrix}
+
+  where the offsets are calculated from the origin :math:`(x_0, y_0, z_0)`:
+
+  .. math::
+    x_\mathrm{off} &= x_0 - x_0 x_\mathrm{fact} \\
+    y_\mathrm{off} &= y_0 - y_0 y_\mathrm{fact} \\
+    z_\mathrm{off} &= z_0 - z_0 z_\mathrm{fact}
+
+
+.. function:: shapely.affinity.skew(geom, xs=0.0, ys=0.0, origin='center', use_radians=False)
+
+  Returns a skewed geometry, sheared by angles along x and y dimensions.
+
+  The shear angle can be specified in either degrees (default) or radians
+  by setting ``use_radians=True``.
+
+  The point of origin can be a keyword ``'center'`` for the bounding box
+  center (default), ``'centroid'`` for the geometry's centroid, a `Point` object
+  or a coordinate tuple ``(x0, y0)``.
+
+  The general 2D affine transformation matrix for skewing is:
+
+  .. math::
+    \begin{bmatrix}
+      1 & \tan{x_s} & x_\mathrm{off} \\
+      \tan{y_s} & 1 & y_\mathrm{off} \\
+      0 & 0 & 1
+    \end{bmatrix}
+
+  where the offsets are calculated from the origin :math:`(x_0, y_0)`:
+
+  .. math::
+    x_\mathrm{off} &= -y_0 \tan{x_s} \\
+    y_\mathrm{off} &= -x_0 \tan{y_s}
+
+.. function:: shapely.affinity.translate(geom, xoff=0.0, yoff=0.0, zoff=0.0)
+
+  Returns a translated geometry shifted by offsets along each dimension.
+
+  The general 3D affine transformation matrix for translation is:
+
+  .. math::
+    \begin{bmatrix}
+      1 & 0 & 0 & x_\mathrm{off} \\
+      0 & 1 & 0 & y_\mathrm{off} \\
+      0 & 0 & 1 & z_\mathrm{off} \\
+      0 & 0 & 0 & 1
+    \end{bmatrix}
+
 
 Other Operations
 ================

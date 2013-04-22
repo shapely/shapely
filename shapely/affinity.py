@@ -108,10 +108,10 @@ def interpret_origin(geom, origin, ndim):
         origin = ((maxx + minx)/2.0, (maxy + miny)/2.0)
     elif origin == 'centroid':
         origin = geom.centroid.coords[0]
-    elif isinstance(origin, str):
-        raise ValueError("'origin' keyword %r is not recognized" % origin)
     elif hasattr(origin, 'type') and origin.type == 'Point':
         origin = origin.coords[0]
+    else:
+        raise ValueError("'origin' %r is not recognized" % origin)
 
     # origin should now be tuple-like
     if len(origin) not in (2, 3):
@@ -119,7 +119,7 @@ def interpret_origin(geom, origin, ndim):
                          "either 2 or 3")
     if ndim == 2:
         return origin[0:2]
-    else: # 3D coordinate
+    else:  # 3D coordinate
         if len(origin) == 2:
             return origin + (0.0,)
         else:
@@ -148,7 +148,7 @@ def rotate(geom, angle, origin='center', use_radians=False):
         xoff = x0 - x0 * cos(r) + y0 * sin(r)
         yoff = y0 - x0 * sin(r) - y0 * cos(r)
     """
-    if not use_radians: # convert from degrees
+    if not use_radians:  # convert from degrees
         angle *= pi/180.0
     cosp = cos(angle)
     sinp = sin(angle)
@@ -163,6 +163,7 @@ def rotate(geom, angle, origin='center', use_radians=False):
               0.0,    0.0, 1.0,
               x0 - x0 * cosp + y0 * sinp, y0 - x0 * sinp - y0 * cosp, 0.0)
     return affine_transform(geom, matrix)
+
 
 def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center'):
     """Returns a scaled geometry, scaled by factors along each dimension.
@@ -194,6 +195,7 @@ def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center'):
               x0 - x0 * xfact, y0 - y0 * yfact, z0 - z0 * zfact)
     return affine_transform(geom, matrix)
 
+
 def skew(geom, xs=0.0, ys=0.0, origin='center', use_radians=False):
     """Returns a skewed geometry, sheared by angles along x and y dimensions.
 
@@ -215,7 +217,7 @@ def skew(geom, xs=0.0, ys=0.0, origin='center', use_radians=False):
         xoff = -y0 * tan(xs)
         yoff = -x0 * tan(ys)
     """
-    if not use_radians: # convert from degrees
+    if not use_radians:  # convert from degrees
         xs *= pi/180.0
         ys *= pi/180.0
     tanx = tan(xs)
@@ -232,6 +234,7 @@ def skew(geom, xs=0.0, ys=0.0, origin='center', use_radians=False):
               -y0 * tanx, -x0 * tany, 0.0)
     return affine_transform(geom, matrix)
 
+
 def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
     """Returns a translated geometry shifted by offsets along each dimension.
 
@@ -247,4 +250,3 @@ def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
               0.0, 0.0, 1.0,
               xoff, yoff, zoff)
     return affine_transform(geom, matrix)
-
