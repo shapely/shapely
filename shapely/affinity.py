@@ -108,10 +108,10 @@ def interpret_origin(geom, origin, ndim):
         origin = ((maxx + minx)/2.0, (maxy + miny)/2.0)
     elif origin == 'centroid':
         origin = geom.centroid.coords[0]
+    elif isinstance(origin, str):
+        raise ValueError("'origin' keyword %r is not recognized" % origin)
     elif hasattr(origin, 'type') and origin.type == 'Point':
         origin = origin.coords[0]
-    else:
-        raise ValueError("'origin' %r is not recognized" % origin)
 
     # origin should now be tuple-like
     if len(origin) not in (2, 3):
@@ -250,3 +250,4 @@ def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
               0.0, 0.0, 1.0,
               xoff, yoff, zoff)
     return affine_transform(geom, matrix)
+
