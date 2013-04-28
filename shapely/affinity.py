@@ -250,4 +250,3 @@ def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
               0.0, 0.0, 1.0,
               xoff, yoff, zoff)
     return affine_transform(geom, matrix)
-

@@ -1644,9 +1644,16 @@ where the offsets are calculated from the origin :math:`(x_0, y_0)`:
   x_\mathrm{off} &= x_0 - x_0 \cos{\theta} + y_0 \sin{\theta} \\
   y_\mathrm{off} &= y_0 - x_0 \sin{\theta} - y_0 \cos{\theta}
 
+.. sourcecode:: pycon
+
+  >>> from shapely import affinity
+  >>> line = LineString([(1, 3), (1, 1), (4, 1)])
+  >>> rotated_a = affinity.rotate(line, 90)
+  >>> rotated_b = affinity.rotate(line, 90, origin='centroid')
+
 .. plot:: code/rotate.py
 
-Figure 14. Rotation of a `LineString` (gray) by an angle of 30°
+Figure 14. Rotation of a `LineString` (gray) by an angle of 90°
 counter-clockwise (blue) using different origins.
 
 .. function:: shapely.affinity.scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center')
@@ -1675,6 +1682,16 @@ where the offsets are calculated from the origin :math:`(x_0, y_0, z_0)`:
   x_\mathrm{off} &= x_0 - x_0 x_\mathrm{fact} \\
   y_\mathrm{off} &= y_0 - y_0 y_\mathrm{fact} \\
   z_\mathrm{off} &= z_0 - z_0 z_\mathrm{fact}
+
+.. sourcecode:: pycon
+
+  >>> triangle = Polygon([(1, 1), (2, 3), (3, 1)])
+  >>> triangle_a = affinity.scale(triangle, xfact=1.5, yfact=-1)
+  >>> triangle_a.exterior.coords[:]
+  [(0.5, 3.0), (2.0, 1.0), (3.5, 3.0), (0.5, 3.0)]
+  >>> triangle_b = affinity.scale(triangle, xfact=2, origin=(1,1))
+  >>> triangle_b.exterior.coords[:]
+  [(1.0, 1.0), (3.0, 3.0), (5.0, 1.0), (1.0, 1.0)]
 
 .. plot:: code/scale.py
 
@@ -1711,8 +1728,8 @@ where the offsets are calculated from the origin :math:`(x_0, y_0)`:
 .. plot:: code/skew.py
 
 Figure 16. Skewing of a gray "R" to blue result: a) by a shear angle of 20°
-along the x-direction and an origin at (1, 1); b) by a shear angle of -15°
-along the y-direction.
+along the x-direction and an origin at (1, 1); b) by a shear angle of 30°
+along the y-direction, using default origin.
 
 .. function:: shapely.affinity.translate(geom, xoff=0.0, yoff=0.0, zoff=0.0)
 
@@ -2140,11 +2157,11 @@ References
 .. _Open Geospatial Consortium: http://www.opengeospatial.org/
 .. _Davis: http://lin-ear-th-inking.blogspot.com/2007/06/subtleties-of-ogc-covers-spatial.html
 .. _Understanding spatial relations: http://edndoc.esri.com/arcsde/9.1/general_topics/understand_spatial_relations.htm
-.. _Strobl-PDF: http://gis.hsr.ch/wiki/images/3/3d/9dem_springer.pdf
+.. _Strobl-PDF: http://giswiki.hsr.ch/images/3/3d/9dem_springer.pdf
 .. |Strobl-PDF| replace:: PDF
 .. _JTS-PDF: http://www.vividsolutions.com/jts/bin/JTS%20Technical%20Specs.pdf
 .. |JTS-PDF| replace:: PDF
 .. _frozenset: http://docs.python.org/library/stdtypes.html#frozenset
 .. _Sorting HowTo: http://wiki.python.org/moin/HowTo/Sorting/
-.. _Python geo interface: http://trac.gispython.org/projects/PCL/wiki/PythonGeoInterface
+.. _Python geo interface: http://gist.github.com/2217756
 .. _list: http://lists.gispython.org/mailman/listinfo/community

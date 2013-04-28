@@ -4,11 +4,13 @@ from shapely import affinity
 
 from figures import SIZE, BLUE, GRAY
 
+
 def add_origin(ax, geom, origin):
     x, y = xy = affinity.interpret_origin(geom, origin, 2)
     ax.plot(x, y, 'o', color=GRAY, zorder=1)
     ax.annotate(str(xy), xy=xy, ha='center',
                 textcoords='offset points', xytext=(0, 8))
+
 
 def plot_line(ax, ob, color):
     x, y = ob.xy
@@ -26,10 +28,10 @@ yrange = [0, 4]
 ax = fig.add_subplot(121)
 
 plot_line(ax, line, GRAY)
-plot_line(ax, affinity.rotate(line, 30, 'center'), BLUE)
+plot_line(ax, affinity.rotate(line, 90, 'center'), BLUE)
 add_origin(ax, line, 'center')
 
-ax.set_title("origin='center' (default)")
+ax.set_title(u"90\N{DEGREE SIGN}, default origin (center)")
 
 ax.set_xlim(*xrange)
 ax.set_xticks(range(*xrange) + [xrange[-1]])
@@ -41,10 +43,10 @@ ax.set_aspect(1)
 ax = fig.add_subplot(122)
 
 plot_line(ax, line, GRAY)
-plot_line(ax, affinity.rotate(line, 30, 'centroid'), BLUE)
+plot_line(ax, affinity.rotate(line, 90, 'centroid'), BLUE)
 add_origin(ax, line, 'centroid')
 
-ax.set_title("origin='centroid'")
+ax.set_title(u"90\N{DEGREE SIGN}, origin='centroid'")
 
 ax.set_xlim(*xrange)
 ax.set_xticks(range(*xrange) + [xrange[-1]])
@@ -53,4 +55,3 @@ ax.set_yticks(range(*yrange) + [yrange[-1]])
 ax.set_aspect(1)
 
 pyplot.show()
-

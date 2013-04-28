@@ -16,7 +16,6 @@ is traded for the ability to execute with blazing speed. Shapely is not
 concerned with data formats or coordinate systems, but can be readily
 integrated with packages that are. For more details, see:
 
-* Shapely wiki_
 * Shapely manual_
 * Shapely `example apps`_
 
@@ -63,7 +62,7 @@ buffering a point::
 See the manual_ for comprehensive usage snippets and the dissolve.py and
 intersect.py `example apps`_.
 
-Integration 
+Integration
 ===========
 
 Shapely does not read or write data files, but it can serialize and deserialize
@@ -86,7 +85,7 @@ provide the Numpy array interface.::
          ...
          [  1.00000000e+01,   0.00000000e+00]])
 
-That yields a numpy array of [x, y] arrays. This is not always exactly what one
+That yields a Numpy array of [x, y] arrays. This is not always exactly what one
 wants for plotting shapes with Matplotlib (for example), so Shapely 1.2 adds
 a `xy` property for obtaining separate arrays of coordinate x and y values.::
 
@@ -127,8 +126,7 @@ Bugs may be reported at https://github.com/Toblerity/Shapely.
 .. _JTS: http://www.vividsolutions.com/jts/jtshome.htm
 .. _PostGIS: http://postgis.org
 .. _GEOS: http://trac.osgeo.org/geos/
-.. _example apps: http://trac.gispython.org/lab/wiki/Examples
-.. _wiki: http://trac.gispython.org/lab/wiki/Shapely
+.. _example apps: https://github.com/sgillies/shapely/tree/master/shapely/examples
 .. _manual: http://toblerity.github.com/shapely/manual.html
 .. _Pleiades: http://pleiades.stoa.org
 
