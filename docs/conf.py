@@ -27,7 +27,12 @@ from shapely import *
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['matplotlib.sphinxext.only_directives', 'matplotlib.sphinxext.plot_directive']
+extensions = [
+    'matplotlib.sphinxext.only_directives',
+    'matplotlib.sphinxext.plot_directive',
+    'sphinx.ext.pngmath',
+    #'sphinx.ext.mathjax',
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -43,7 +48,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Shapely'
-copyright = u'2011, Sean Gillies, Aron Bierbaum, Kai Lautaportti and others'
+copyright = u'2011-2013, Sean Gillies, Aron Bierbaum, Kai Lautaportti and others'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
