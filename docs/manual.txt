@@ -1565,185 +1565,186 @@ transform (`rotate`, `scale`, etc.). The functions can be used with all
 geometry types (except `GeometryCollection`), and 3D types are either
 preserved or supported by 3D affine transformations.
 
+`New in version 1.2.17`.
 
 .. function:: shapely.affinity.affine_transform(geom, matrix)
 
   Returns a transformed geometry using an affine transformation matrix.
 
-The coefficient ``matrix`` is provided as a list or tuple with 6 or 12 items
-for 2D or 3D transformations, respectively.
+  The coefficient ``matrix`` is provided as a list or tuple with 6 or 12 items
+  for 2D or 3D transformations, respectively.
 
-For 2D affine transformations, the 6 parameter ``matrix`` is:
+  For 2D affine transformations, the 6 parameter ``matrix`` is:
 
-  ``[a, b, d, e, xoff, yoff]``
+    ``[a, b, d, e, xoff, yoff]``
 
-which represents the augmented matrix:
+  which represents the augmented matrix:
 
-.. math::
-  \begin{bmatrix} x' & y' & 1 \end{bmatrix} =
-  \begin{bmatrix} x  & y  & 1 \end{bmatrix}
-  \begin{bmatrix}
-    a & b & x_\mathrm{off} \\
-    d & e & y_\mathrm{off} \\
-    0 & 0 & 1
-  \end{bmatrix}
+  .. math::
+    \begin{bmatrix} x' & y' & 1 \end{bmatrix} =
+    \begin{bmatrix} x  & y  & 1 \end{bmatrix}
+    \begin{bmatrix}
+      a & b & x_\mathrm{off} \\
+      d & e & y_\mathrm{off} \\
+      0 & 0 & 1
+    \end{bmatrix}
 
-or the equations for the transformed coordinates:
+  or the equations for the transformed coordinates:
 
-.. math::
-  x' &= a x + b y + x_\mathrm{off} \\
-  y' &= d x + e y + y_\mathrm{off}.
+  .. math::
+    x' &= a x + b y + x_\mathrm{off} \\
+    y' &= d x + e y + y_\mathrm{off}.
 
-For 3D affine transformations, the 12 parameter ``matrix`` is:
+  For 3D affine transformations, the 12 parameter ``matrix`` is:
 
-  ``[a, b, c, d, e, f, g, h, i, xoff, yoff, zoff]``
+    ``[a, b, c, d, e, f, g, h, i, xoff, yoff, zoff]``
 
-which represents the augmented matrix:
+  which represents the augmented matrix:
 
-.. math::
-  \begin{bmatrix} x' & y' & z' & 1 \end{bmatrix} =
-  \begin{bmatrix} x  & y  & z  & 1 \end{bmatrix}
-  \begin{bmatrix}
-    a & b & c & x_\mathrm{off} \\
-    d & e & f & y_\mathrm{off} \\
-    g & h & i & z_\mathrm{off} \\
-    0 & 0 & 0 & 1
-  \end{bmatrix}
+  .. math::
+    \begin{bmatrix} x' & y' & z' & 1 \end{bmatrix} =
+    \begin{bmatrix} x  & y  & z  & 1 \end{bmatrix}
+    \begin{bmatrix}
+      a & b & c & x_\mathrm{off} \\
+      d & e & f & y_\mathrm{off} \\
+      g & h & i & z_\mathrm{off} \\
+      0 & 0 & 0 & 1
+    \end{bmatrix}
 
-or the equations for the transformed coordinates:
+  or the equations for the transformed coordinates:
 
-.. math::
-  x' &= a x + b y + c z + x_\mathrm{off} \\
-  y' &= d x + e y + f z + y_\mathrm{off} \\
-  z' &= g x + h y + i z + z_\mathrm{off}.
+  .. math::
+    x' &= a x + b y + c z + x_\mathrm{off} \\
+    y' &= d x + e y + f z + y_\mathrm{off} \\
+    z' &= g x + h y + i z + z_\mathrm{off}.
 
 .. function:: shapely.affinity.rotate(geom, angle, origin='center', use_radians=False)
 
   Returns a rotated geometry on a 2D plane.
 
-The angle of rotation can be specified in either degrees (default) or
-radians by setting ``use_radians=True``. Positive angles are
-counter-clockwise and negative are clockwise rotations.
+  The angle of rotation can be specified in either degrees (default) or
+  radians by setting ``use_radians=True``. Positive angles are
+  counter-clockwise and negative are clockwise rotations.
 
-The point of origin can be a keyword ``'center'`` for the bounding box
-center (default), ``'centroid'`` for the geometry's centroid, a `Point` object
-or a coordinate tuple ``(x0, y0)``.
+  The point of origin can be a keyword ``'center'`` for the bounding box
+  center (default), ``'centroid'`` for the geometry's centroid, a `Point` object
+  or a coordinate tuple ``(x0, y0)``.
 
-The affine transformation matrix for 2D rotation with angle :math:`\theta` is:
+  The affine transformation matrix for 2D rotation with angle :math:`\theta` is:
 
-.. math::
-  \begin{bmatrix}
-    \cos{\theta} & -\sin{\theta} & x_\mathrm{off} \\
-    \sin{\theta} &  \cos{\theta} & y_\mathrm{off} \\
-          0      &        0      & 1
-  \end{bmatrix}
+  .. math::
+    \begin{bmatrix}
+      \cos{\theta} & -\sin{\theta} & x_\mathrm{off} \\
+      \sin{\theta} &  \cos{\theta} & y_\mathrm{off} \\
+            0      &        0      & 1
+    \end{bmatrix}
 
-where the offsets are calculated from the origin :math:`(x_0, y_0)`:
+  where the offsets are calculated from the origin :math:`(x_0, y_0)`:
 
-.. math::
-  x_\mathrm{off} &= x_0 - x_0 \cos{\theta} + y_0 \sin{\theta} \\
-  y_\mathrm{off} &= y_0 - x_0 \sin{\theta} - y_0 \cos{\theta}
+  .. math::
+    x_\mathrm{off} &= x_0 - x_0 \cos{\theta} + y_0 \sin{\theta} \\
+    y_\mathrm{off} &= y_0 - x_0 \sin{\theta} - y_0 \cos{\theta}
 
-.. sourcecode:: pycon
+  .. sourcecode:: pycon
 
-  >>> from shapely import affinity
-  >>> line = LineString([(1, 3), (1, 1), (4, 1)])
-  >>> rotated_a = affinity.rotate(line, 90)
-  >>> rotated_b = affinity.rotate(line, 90, origin='centroid')
+    >>> from shapely import affinity
+    >>> line = LineString([(1, 3), (1, 1), (4, 1)])
+    >>> rotated_a = affinity.rotate(line, 90)
+    >>> rotated_b = affinity.rotate(line, 90, origin='centroid')
 
-.. plot:: code/rotate.py
+  .. plot:: code/rotate.py
 
-Figure 14. Rotation of a `LineString` (gray) by an angle of 90°
-counter-clockwise (blue) using different origins.
+  Figure 14. Rotation of a `LineString` (gray) by an angle of 90°
+  counter-clockwise (blue) using different origins.
 
 .. function:: shapely.affinity.scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center')
 
   Returns a scaled geometry, scaled by factors along each dimension.
 
-The point of origin can be a keyword ``'center'`` for the 2D bounding box
-center (default), ``'centroid'`` for the geometry's 2D centroid, a `Point`
-object or a coordinate tuple ``(x0, y0, z0)``.
+  The point of origin can be a keyword ``'center'`` for the 2D bounding box
+  center (default), ``'centroid'`` for the geometry's 2D centroid, a `Point`
+  object or a coordinate tuple ``(x0, y0, z0)``.
 
-Negative scale factors will mirror or reflect coordinates.
+  Negative scale factors will mirror or reflect coordinates.
 
-The general 3D affine transformation matrix for scaling is:
+  The general 3D affine transformation matrix for scaling is:
 
-.. math::
-  \begin{bmatrix}
-    x_\mathrm{fact} & 0               & 0               & x_\mathrm{off} \\
-    0               & y_\mathrm{fact} & 0               & y_\mathrm{off} \\
-    0               & 0               & z_\mathrm{fact} & z_\mathrm{off} \\
-    0               & 0               & 0               & 1
-  \end{bmatrix}
+  .. math::
+    \begin{bmatrix}
+      x_\mathrm{fact} & 0               & 0               & x_\mathrm{off} \\
+      0               & y_\mathrm{fact} & 0               & y_\mathrm{off} \\
+      0               & 0               & z_\mathrm{fact} & z_\mathrm{off} \\
+      0               & 0               & 0               & 1
+    \end{bmatrix}
 
-where the offsets are calculated from the origin :math:`(x_0, y_0, z_0)`:
+  where the offsets are calculated from the origin :math:`(x_0, y_0, z_0)`:
 
-.. math::
-  x_\mathrm{off} &= x_0 - x_0 x_\mathrm{fact} \\
-  y_\mathrm{off} &= y_0 - y_0 y_\mathrm{fact} \\
-  z_\mathrm{off} &= z_0 - z_0 z_\mathrm{fact}
+  .. math::
+    x_\mathrm{off} &= x_0 - x_0 x_\mathrm{fact} \\
+    y_\mathrm{off} &= y_0 - y_0 y_\mathrm{fact} \\
+    z_\mathrm{off} &= z_0 - z_0 z_\mathrm{fact}
 
-.. sourcecode:: pycon
+  .. sourcecode:: pycon
 
-  >>> triangle = Polygon([(1, 1), (2, 3), (3, 1)])
-  >>> triangle_a = affinity.scale(triangle, xfact=1.5, yfact=-1)
-  >>> triangle_a.exterior.coords[:]
-  [(0.5, 3.0), (2.0, 1.0), (3.5, 3.0), (0.5, 3.0)]
-  >>> triangle_b = affinity.scale(triangle, xfact=2, origin=(1,1))
-  >>> triangle_b.exterior.coords[:]
-  [(1.0, 1.0), (3.0, 3.0), (5.0, 1.0), (1.0, 1.0)]
+    >>> triangle = Polygon([(1, 1), (2, 3), (3, 1)])
+    >>> triangle_a = affinity.scale(triangle, xfact=1.5, yfact=-1)
+    >>> triangle_a.exterior.coords[:]
+    [(0.5, 3.0), (2.0, 1.0), (3.5, 3.0), (0.5, 3.0)]
+    >>> triangle_b = affinity.scale(triangle, xfact=2, origin=(1,1))
+    >>> triangle_b.exterior.coords[:]
+    [(1.0, 1.0), (3.0, 3.0), (5.0, 1.0), (1.0, 1.0)]
 
-.. plot:: code/scale.py
+  .. plot:: code/scale.py
 
-Figure 15. Scaling of a gray triangle to blue result: a) by a factor of 1.5
-along x-direction, with reflection across y-axis; b) by a factor of 2 along
-x-direction with custom origin at (1, 1).
+  Figure 15. Scaling of a gray triangle to blue result: a) by a factor of 1.5
+  along x-direction, with reflection across y-axis; b) by a factor of 2 along
+  x-direction with custom origin at (1, 1).
 
 .. function:: shapely.affinity.skew(geom, xs=0.0, ys=0.0, origin='center', use_radians=False)
 
   Returns a skewed geometry, sheared by angles along x and y dimensions.
 
-The shear angle can be specified in either degrees (default) or radians
-by setting ``use_radians=True``.
+  The shear angle can be specified in either degrees (default) or radians
+  by setting ``use_radians=True``.
 
-The point of origin can be a keyword ``'center'`` for the bounding box
-center (default), ``'centroid'`` for the geometry's centroid, a `Point` object
-or a coordinate tuple ``(x0, y0)``.
+  The point of origin can be a keyword ``'center'`` for the bounding box
+  center (default), ``'centroid'`` for the geometry's centroid, a `Point`
+  object or a coordinate tuple ``(x0, y0)``.
 
-The general 2D affine transformation matrix for skewing is:
+  The general 2D affine transformation matrix for skewing is:
 
-.. math::
-  \begin{bmatrix}
-    1 & \tan{x_s} & x_\mathrm{off} \\
-    \tan{y_s} & 1 & y_\mathrm{off} \\
-    0 & 0 & 1
-  \end{bmatrix}
+  .. math::
+    \begin{bmatrix}
+      1 & \tan{x_s} & x_\mathrm{off} \\
+      \tan{y_s} & 1 & y_\mathrm{off} \\
+      0 & 0 & 1
+    \end{bmatrix}
 
-where the offsets are calculated from the origin :math:`(x_0, y_0)`:
+  where the offsets are calculated from the origin :math:`(x_0, y_0)`:
 
-.. math::
-  x_\mathrm{off} &= -y_0 \tan{x_s} \\
-  y_\mathrm{off} &= -x_0 \tan{y_s}
+  .. math::
+    x_\mathrm{off} &= -y_0 \tan{x_s} \\
+    y_\mathrm{off} &= -x_0 \tan{y_s}
 
-.. plot:: code/skew.py
+  .. plot:: code/skew.py
 
-Figure 16. Skewing of a gray "R" to blue result: a) by a shear angle of 20°
-along the x-direction and an origin at (1, 1); b) by a shear angle of 30°
-along the y-direction, using default origin.
+  Figure 16. Skewing of a gray "R" to blue result: a) by a shear angle of 20°
+  along the x-direction and an origin at (1, 1); b) by a shear angle of 30°
+  along the y-direction, using default origin.
 
 .. function:: shapely.affinity.translate(geom, xoff=0.0, yoff=0.0, zoff=0.0)
 
   Returns a translated geometry shifted by offsets along each dimension.
 
-The general 3D affine transformation matrix for translation is:
+  The general 3D affine transformation matrix for translation is:
 
-.. math::
-  \begin{bmatrix}
-    1 & 0 & 0 & x_\mathrm{off} \\
-    0 & 1 & 0 & y_\mathrm{off} \\
-    0 & 0 & 1 & z_\mathrm{off} \\
-    0 & 0 & 0 & 1
-  \end{bmatrix}
+  .. math::
+    \begin{bmatrix}
+      1 & 0 & 0 & x_\mathrm{off} \\
+      0 & 1 & 0 & y_\mathrm{off} \\
+      0 & 0 & 1 & z_\mathrm{off} \\
+      0 & 0 & 0 & 1
+    \end{bmatrix}
 
 
 Other Operations
@@ -1759,40 +1760,40 @@ using functions in the :mod:`shapely.ops` module.
 
   Returns an iterator over polygons constructed from the input `lines`.
 
-As with the :class:`MultiLineString` constructor, the input elements may be any
-line-like object.
+  As with the :class:`MultiLineString` constructor, the input elements may be
+  any line-like object.
 
-.. sourcecode:: python
+  .. sourcecode:: python
 
-  >>> from shapely.ops import polygonize
-  >>> lines = [
-  ...     ((0, 0), (1, 1)),
-  ...     ((0, 0), (0, 1)),
-  ...     ((0, 1), (1, 1)),
-  ...     ((1, 1), (1, 0)),
-  ...     ((1, 0), (0, 0))
-  ...     ]
-  >>> pprint(list(polygonize(lines)))
-  [<shapely.geometry.polygon.Polygon object at 0x...>,
-   <shapely.geometry.polygon.Polygon object at 0x...>]
+    >>> from shapely.ops import polygonize
+    >>> lines = [
+    ...     ((0, 0), (1, 1)),
+    ...     ((0, 0), (0, 1)),
+    ...     ((0, 1), (1, 1)),
+    ...     ((1, 1), (1, 0)),
+    ...     ((1, 0), (0, 0))
+    ...     ]
+    >>> pprint(list(polygonize(lines)))
+    [<shapely.geometry.polygon.Polygon object at 0x...>,
+     <shapely.geometry.polygon.Polygon object at 0x...>]
 
 .. function:: shapely.ops.linemerge(lines)
 
   Returns a `LineString` or `MultiLineString` representing the merger of all
   contiguous elements of `lines`.
 
-As with :func:`shapely.ops.polygonize`, the input elements may be any line-like
-object.
+  As with :func:`shapely.ops.polygonize`, the input elements may be any
+  line-like object.
 
-.. sourcecode:: python
+  .. sourcecode:: python
 
-  >>> from shapely.ops import linemerge
-  >>> linemerge(lines)
-  <shapely.geometry.multilinestring.MultiLineString object at 0x...>
-  >>> pprint(list(linemerge(lines)))
-  [<shapely.geometry.linestring.LineString object at 0x...>,
-   <shapely.geometry.linestring.LineString object at 0x...>,
-   <shapely.geometry.linestring.LineString object at 0x...>]
+    >>> from shapely.ops import linemerge
+    >>> linemerge(lines)
+    <shapely.geometry.multilinestring.MultiLineString object at 0x...>
+    >>> pprint(list(linemerge(lines)))
+    [<shapely.geometry.linestring.LineString object at 0x...>,
+     <shapely.geometry.linestring.LineString object at 0x...>,
+     <shapely.geometry.linestring.LineString object at 0x...>]
 
 Cascading Unions
 ----------------
@@ -1806,29 +1807,29 @@ efficient than accumulating with :meth:`union`.
 
   Returns a representation of the union of the given geometric objects.
 
-.. sourcecode:: pycon
+  .. sourcecode:: pycon
 
-  >>> from shapely.ops import cascaded_union
-  >>> polygons = [Point(i, 0).buffer(0.7) for i in range(5)]
-  >>> cascaded_union(polygons)
-  <shapely.geometry.polygon.Polygon object at 0x...>
+    >>> from shapely.ops import cascaded_union
+    >>> polygons = [Point(i, 0).buffer(0.7) for i in range(5)]
+    >>> cascaded_union(polygons)
+    <shapely.geometry.polygon.Polygon object at 0x...>
 
-The function is particularly useful in dissolving `MultiPolygons`.
+  The function is particularly useful in dissolving `MultiPolygons`.
 
-.. sourcecode:: pycon
+  .. sourcecode:: pycon
 
-  >>> m = MultiPolygon(polygons)
-  >>> m.area
-  7.6845438018375516
-  >>> cascaded_union(m).area
-  6.6103013551167971
+    >>> m = MultiPolygon(polygons)
+    >>> m.area
+    7.6845438018375516
+    >>> cascaded_union(m).area
+    6.6103013551167971
 
-.. note::
+  .. note::
 
-   In 1.2.16 :func:`shapely.ops.cascaded_union` is superceded by
-   :func:`shapely.ops.unary_union` if GEOS 3.2+ is used. The unary union
-   function can operate on different geometry types, not only polygons as is
-   the case for the older cascaded unions.
+     In 1.2.16 :func:`shapely.ops.cascaded_union` is superceded by
+     :func:`shapely.ops.unary_union` if GEOS 3.2+ is used. The unary union
+     function can operate on different geometry types, not only polygons as is
+     the case for the older cascaded unions.
 
 .. function:: shapely.ops.unary_union(geoms)
 
@@ -1943,7 +1944,7 @@ appropriate type, use ``loads()``.
   >>> loads(wkb).wkt
   'POINT (0.0000000000000000 0.0000000000000000)'
 
-All of Shapely's geometry types are supported by these functions. 
+All of Shapely's geometry types are supported by these functions.
 
 .. function:: shapely.wkt.dumps(ob)
 
@@ -2064,12 +2065,12 @@ The GeoJSON-like mapping of a geometric object can be obtained using
 
 .. function:: shapely.geometry.mapping(ob)
 
-   Returns a new, independent geometry with coordinates `copied` from the
-   context.
+  Returns a new, independent geometry with coordinates `copied` from the
+  context.
 
-   `New in version 1.2.3`.
+  `New in version 1.2.3`.
 
-For example, using the same `GeoThing` class:
+  For example, using the same `GeoThing` class:
 
 .. sourcecode:: pycon
 
