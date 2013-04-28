@@ -31,6 +31,7 @@ extensions = [
     'matplotlib.sphinxext.only_directives',
     'matplotlib.sphinxext.plot_directive',
     'sphinx.ext.pngmath',
+    #'sphinx.ext.mathjax',
 ]
 
 # Add any paths that contain templates here, relative to this directory.

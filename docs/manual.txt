@@ -299,7 +299,7 @@ allowed, but may incur performance penalties and should be avoided. A
 
 .. plot:: code/linestring.py
 
-Figure 1: a simple `LineString` on the left, a complex `LineString` on the
+Figure 1. A simple `LineString` on the left, a complex `LineString` on the
 right. The (`MultiPoint`) boundary of each is shown in black, the other points
 that describe the lines are shown in grey.
 
@@ -369,7 +369,7 @@ itself at a single point.
 
 .. plot:: code/linearring.py
 
-Figure 1: a valid `LinearRing` on the left, an invalid self-touching
+Figure 2. A valid `LinearRing` on the left, an invalid self-touching
 `LinearRing` on the right. The points that describe the rings are shown in
 grey. A ring's boundary is `empty`.
 
@@ -434,14 +434,14 @@ features, but exceptions will be raised when they are operated on.
 
 .. plot:: code/polygon.py
 
-Figure 1: On the left, a valid `Polygon` with one interior ring that touches
+Figure 3. On the left, a valid `Polygon` with one interior ring that touches
 the exterior ring at one point, and on the right a `Polygon` that is `invalid`
 because its interior ring touches the exterior ring at more than one point. The
 points that describe the rings are shown in grey.
 
 .. plot:: code/polygon2.py
 
-Figure 1: On the left, a `Polygon` that is `invalid` because its exterior and
+Figure 4. On the left, a `Polygon` that is `invalid` because its exterior and
 interior rings touch along a line, and on the right, a `Polygon` that is
 `invalid` because its interior rings touch along a line.
 
@@ -546,7 +546,7 @@ immutable collections of geometric objects.  The collections may be homogeneous
 .. plot:: code/geometrycollection.py
    :class: figure
 
-Figure 1: a) a green and a yellow line that intersect along a line and at a
+Figure 5. a) a green and a yellow line that intersect along a line and at a
 single point; b) the intersection (in blue) is a collection containing one
 `LineString` and one `Point`.
 
@@ -644,7 +644,7 @@ Collections of Lines
 
 .. plot:: code/multilinestring.py
 
-Figure 1: On the left, a `simple`, disconnected `MultiLineString`, and on the
+Figure 6. On the left, a `simple`, disconnected `MultiLineString`, and on the
 right, a non-simple `MultiLineString`. The points defining the objects are
 shown in gray, the boundaries of the objects in black.
 
@@ -712,7 +712,7 @@ instances, thereby making copies.
 
 .. plot:: code/multipolygon.py
 
-Figure 1: On the right, a `valid` `MultiPolygon` with 2 members, and on the
+Figure 7. On the right, a `valid` `MultiPolygon` with 2 members, and on the
 right, a `MultiPolygon` that is invalid because its members touch at an
 infinite number of points (along a line).
 
@@ -803,7 +803,7 @@ fraction of the geometric object's length.
 .. method:: object.project(other[, normalized=False])
 
   Returns the distance along this geometric object to a point nearest the
-  `other` object`.
+  `other` object.
 
 If the `normalized` arg is ``True``, return the distance normalized to the
 length of the object. The :meth:`project` method is the inverse of
@@ -1231,7 +1231,7 @@ elements.
   'F0FFFF102'
 
 Further discussion of the DE-9IM matrix is beyond the scope of this manual. See
-[4]_ and http://pypi.python.org/pypi/de9im/0.1.
+[4]_ and http://pypi.python.org/pypi/de9im.
 
 .. _analysis-methods:
 
@@ -1313,7 +1313,7 @@ illustration of lines and their boundaries.
 
 .. plot:: code/difference.py
 
-Figure 1: differences between two approximately circular polygons.
+Figure 8. Differences between two approximately circular polygons.
 
 .. note::
 
@@ -1408,7 +1408,7 @@ approximate a quarter circle around a point.
 
 .. plot:: code/buffer.py
 
-Figure 1. Dilation of a line (left) and erosion of a polygon (right). New
+Figure 9. Dilation of a line (left) and erosion of a polygon (right). New
 object is shown in blue.
 
 The default (`resolution` of 16) buffer of a point is a polygonal patch with
@@ -1473,7 +1473,7 @@ Buffering splits the polygon in two at the point where they touch.
 
 .. plot:: code/convex_hull.py
 
-Figure 1. Convex hull (blue) of 2 points (left) and of 6 points (right).
+Figure 10. Convex hull (blue) of 2 points (left) and of 6 points (right).
 
 .. attribute:: object.envelope
 
@@ -1511,7 +1511,7 @@ Figure 1. Convex hull (blue) of 2 points (left) and of 6 points (right).
 
 .. plot:: code/parallel_offset.py
 
-Figure 1. Three styles of parallel offset lines on the left side of a simple
+Figure 11. Three styles of parallel offset lines on the left side of a simple
 line string (its starting point shown as a circle) and one offset on the right
 side, a multipart.
 
@@ -1519,7 +1519,7 @@ The effect of the `mitre_limit` parameter is shown below.
 
 .. plot:: code/parallel_offset_mitre.py
 
-Figure 1. Large and small mitre_limit values for left and right offsets.
+Figure 12. Large and small mitre_limit values for left and right offsets.
 
 .. method:: object.simplify(tolerance, preserve_topology=True)
 
@@ -1546,7 +1546,7 @@ Douglas-Peucker algorithm [6]_ is used.
 
 .. plot:: code/simplify.py
 
-Figure 1. Simplification of a nearly circular polygon using a tolerance of 0.2
+Figure 13. Simplification of a nearly circular polygon using a tolerance of 0.2
 (left) and 0.5 (right).
 
 .. note::
@@ -1560,156 +1560,173 @@ Affine Transformations
 
 A collection of affine transform functions are in the :mod:`shapely.affinity`
 module, which return transformed geometries by either directly supplying
-coefficients to an affine transformation matrix, or by using the helper
-functions `rotate`, `scale` and `transform`. The functions can be used with all
+coefficients to an affine transformation matrix, or by using a specific, named
+transform (`rotate`, `scale`, etc.). The functions can be used with all
 geometry types (except `GeometryCollection`), and 3D types are either
 preserved or supported by 3D affine transformations.
+
 
 .. function:: shapely.affinity.affine_transform(geom, matrix)
 
   Returns a transformed geometry using an affine transformation matrix.
 
-  The coefficient ``matrix`` is provided as a list or tuple with 6 or 12 items
-  for 2D or 3D transformations, respectively.
+The coefficient ``matrix`` is provided as a list or tuple with 6 or 12 items
+for 2D or 3D transformations, respectively.
 
-  For 2D affine transformations, the 6 parameter ``matrix`` is:
+For 2D affine transformations, the 6 parameter ``matrix`` is:
 
-    [a, b, d, e, xoff, yoff]
+  ``[a, b, d, e, xoff, yoff]``
 
-  which represents the augmented matrix:
+which represents the augmented matrix:
 
-  .. math::
-    \begin{bmatrix} x' & y' & 1 \end{bmatrix} =
-    \begin{bmatrix} x  & y  & 1 \end{bmatrix}
-    \begin{bmatrix}
-      a & b & x_\mathrm{off} \\
-      d & e & y_\mathrm{off} \\
-      0 & 0 & 1
-    \end{bmatrix}
+.. math::
+  \begin{bmatrix} x' & y' & 1 \end{bmatrix} =
+  \begin{bmatrix} x  & y  & 1 \end{bmatrix}
+  \begin{bmatrix}
+    a & b & x_\mathrm{off} \\
+    d & e & y_\mathrm{off} \\
+    0 & 0 & 1
+  \end{bmatrix}
 
-  or the equations for the transformed coordinates:
+or the equations for the transformed coordinates:
 
-  .. math::
-    x' &= a x + b y + x_\mathrm{off} \\
-    y' &= d x + e y + y_\mathrm{off}.
+.. math::
+  x' &= a x + b y + x_\mathrm{off} \\
+  y' &= d x + e y + y_\mathrm{off}.
 
-  For 3D affine transformations, the 12 parameter ``matrix`` is:
+For 3D affine transformations, the 12 parameter ``matrix`` is:
 
-    [a, b, c, d, e, f, g, h, i, xoff, yoff, zoff]
+  ``[a, b, c, d, e, f, g, h, i, xoff, yoff, zoff]``
 
-  which represents the augmented matrix:
+which represents the augmented matrix:
 
-  .. math::
-    \begin{bmatrix} x' & y' & z' & 1 \end{bmatrix} =
-    \begin{bmatrix} x  & y  & z  & 1 \end{bmatrix}
-    \begin{bmatrix}
-      a & b & c & x_\mathrm{off} \\
-      d & e & f & y_\mathrm{off} \\
-      g & h & i & z_\mathrm{off} \\
-      0 & 0 & 0 & 1
-    \end{bmatrix}
+.. math::
+  \begin{bmatrix} x' & y' & z' & 1 \end{bmatrix} =
+  \begin{bmatrix} x  & y  & z  & 1 \end{bmatrix}
+  \begin{bmatrix}
+    a & b & c & x_\mathrm{off} \\
+    d & e & f & y_\mathrm{off} \\
+    g & h & i & z_\mathrm{off} \\
+    0 & 0 & 0 & 1
+  \end{bmatrix}
 
-  or the equations for the transformed coordinates:
+or the equations for the transformed coordinates:
 
-  .. math::
-    x' &= a x + b y + c z + x_\mathrm{off} \\
-    y' &= d x + e y + f z + y_\mathrm{off} \\
-    z' &= g x + h y + i z + z_\mathrm{off}.
+.. math::
+  x' &= a x + b y + c z + x_\mathrm{off} \\
+  y' &= d x + e y + f z + y_\mathrm{off} \\
+  z' &= g x + h y + i z + z_\mathrm{off}.
 
 .. function:: shapely.affinity.rotate(geom, angle, origin='center', use_radians=False)
 
   Returns a rotated geometry on a 2D plane.
 
-  The angle of rotation can be specified in either degrees (default) or
-  radians by setting ``use_radians=True``. Positive angles are
-  counter-clockwise and negative are clockwise rotations.
+The angle of rotation can be specified in either degrees (default) or
+radians by setting ``use_radians=True``. Positive angles are
+counter-clockwise and negative are clockwise rotations.
 
-  The point of origin can be a keyword ``'center'`` for the bounding box
-  center (default), ``'centroid'`` for the geometry's centroid, a `Point` object
-  or a coordinate tuple ``(x0, y0)``.
+The point of origin can be a keyword ``'center'`` for the bounding box
+center (default), ``'centroid'`` for the geometry's centroid, a `Point` object
+or a coordinate tuple ``(x0, y0)``.
 
-  The affine transformation matrix for 2D rotation with angle :math:`\theta` is:
+The affine transformation matrix for 2D rotation with angle :math:`\theta` is:
 
-  .. math::
-    \begin{bmatrix}
-      \cos{\theta} & -\sin{\theta} & x_\mathrm{off} \\
-      \sin{\theta} &  \cos{\theta} & y_\mathrm{off} \\
-      0 & 0 & 1
-    \end{bmatrix}
+.. math::
+  \begin{bmatrix}
+    \cos{\theta} & -\sin{\theta} & x_\mathrm{off} \\
+    \sin{\theta} &  \cos{\theta} & y_\mathrm{off} \\
+          0      &        0      & 1
+  \end{bmatrix}
 
-  where the offsets are calculated from the origin :math:`(x_0, y_0)`:
+where the offsets are calculated from the origin :math:`(x_0, y_0)`:
 
-  .. math::
-    x_\mathrm{off} &= x_0 - x_0 \cos{\theta} + y_0 \sin{\theta} \\
-    y_\mathrm{off} &= y_0 - x_0 \sin{\theta} - y_0 \cos{\theta}
+.. math::
+  x_\mathrm{off} &= x_0 - x_0 \cos{\theta} + y_0 \sin{\theta} \\
+  y_\mathrm{off} &= y_0 - x_0 \sin{\theta} - y_0 \cos{\theta}
+
+.. plot:: code/rotate.py
+
+Figure 14. Rotation of a `LineString` (gray) by an angle of 30°
+counter-clockwise (blue) using different origins.
 
 .. function:: shapely.affinity.scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center')
 
   Returns a scaled geometry, scaled by factors along each dimension.
 
-  The point of origin can be a keyword ``'center'`` for the 2D bounding box
-  center (default), ``'centroid'`` for the geometry's 2D centroid, a `Point`
-  object or a coordinate tuple ``(x0, y0, z0)``.
+The point of origin can be a keyword ``'center'`` for the 2D bounding box
+center (default), ``'centroid'`` for the geometry's 2D centroid, a `Point`
+object or a coordinate tuple ``(x0, y0, z0)``.
 
-  Negative scale factors will mirror or reflect coordinates.
+Negative scale factors will mirror or reflect coordinates.
 
-  The general 3D affine transformation matrix for scaling is:
+The general 3D affine transformation matrix for scaling is:
 
-  .. math::
-    \begin{bmatrix}
-      x_\mathrm{fact} & 0 & 0 & x_\mathrm{off} \\
-      0 & y_\mathrm{fact} & 0 & y_\mathrm{off} \\
-      0 & 0 & z_\mathrm{fact} & z_\mathrm{off} \\
-      0 & 0 & 0 & 1
-    \end{bmatrix}
+.. math::
+  \begin{bmatrix}
+    x_\mathrm{fact} & 0               & 0               & x_\mathrm{off} \\
+    0               & y_\mathrm{fact} & 0               & y_\mathrm{off} \\
+    0               & 0               & z_\mathrm{fact} & z_\mathrm{off} \\
+    0               & 0               & 0               & 1
+  \end{bmatrix}
 
-  where the offsets are calculated from the origin :math:`(x_0, y_0, z_0)`:
+where the offsets are calculated from the origin :math:`(x_0, y_0, z_0)`:
 
-  .. math::
-    x_\mathrm{off} &= x_0 - x_0 x_\mathrm{fact} \\
-    y_\mathrm{off} &= y_0 - y_0 y_\mathrm{fact} \\
-    z_\mathrm{off} &= z_0 - z_0 z_\mathrm{fact}
+.. math::
+  x_\mathrm{off} &= x_0 - x_0 x_\mathrm{fact} \\
+  y_\mathrm{off} &= y_0 - y_0 y_\mathrm{fact} \\
+  z_\mathrm{off} &= z_0 - z_0 z_\mathrm{fact}
 
+.. plot:: code/scale.py
+
+Figure 15. Scaling of a gray triangle to blue result: a) by a factor of 1.5
+along x-direction, with reflection across y-axis; b) by a factor of 2 along
+x-direction with custom origin at (1, 1).
 
 .. function:: shapely.affinity.skew(geom, xs=0.0, ys=0.0, origin='center', use_radians=False)
 
   Returns a skewed geometry, sheared by angles along x and y dimensions.
 
-  The shear angle can be specified in either degrees (default) or radians
-  by setting ``use_radians=True``.
+The shear angle can be specified in either degrees (default) or radians
+by setting ``use_radians=True``.
 
-  The point of origin can be a keyword ``'center'`` for the bounding box
-  center (default), ``'centroid'`` for the geometry's centroid, a `Point` object
-  or a coordinate tuple ``(x0, y0)``.
+The point of origin can be a keyword ``'center'`` for the bounding box
+center (default), ``'centroid'`` for the geometry's centroid, a `Point` object
+or a coordinate tuple ``(x0, y0)``.
 
-  The general 2D affine transformation matrix for skewing is:
+The general 2D affine transformation matrix for skewing is:
 
-  .. math::
-    \begin{bmatrix}
-      1 & \tan{x_s} & x_\mathrm{off} \\
-      \tan{y_s} & 1 & y_\mathrm{off} \\
-      0 & 0 & 1
-    \end{bmatrix}
+.. math::
+  \begin{bmatrix}
+    1 & \tan{x_s} & x_\mathrm{off} \\
+    \tan{y_s} & 1 & y_\mathrm{off} \\
+    0 & 0 & 1
+  \end{bmatrix}
 
-  where the offsets are calculated from the origin :math:`(x_0, y_0)`:
+where the offsets are calculated from the origin :math:`(x_0, y_0)`:
 
-  .. math::
-    x_\mathrm{off} &= -y_0 \tan{x_s} \\
-    y_\mathrm{off} &= -x_0 \tan{y_s}
+.. math::
+  x_\mathrm{off} &= -y_0 \tan{x_s} \\
+  y_\mathrm{off} &= -x_0 \tan{y_s}
+
+.. plot:: code/skew.py
+
+Figure 16. Skewing of a gray "R" to blue result: a) by a shear angle of 20°
+along the x-direction and an origin at (1, 1); b) by a shear angle of -15°
+along the y-direction.
 
 .. function:: shapely.affinity.translate(geom, xoff=0.0, yoff=0.0, zoff=0.0)
 
   Returns a translated geometry shifted by offsets along each dimension.
 
-  The general 3D affine transformation matrix for translation is:
+The general 3D affine transformation matrix for translation is:
 
-  .. math::
-    \begin{bmatrix}
-      1 & 0 & 0 & x_\mathrm{off} \\
-      0 & 1 & 0 & y_\mathrm{off} \\
-      0 & 0 & 1 & z_\mathrm{off} \\
-      0 & 0 & 0 & 1
-    \end{bmatrix}
+.. math::
+  \begin{bmatrix}
+    1 & 0 & 0 & x_\mathrm{off} \\
+    0 & 1 & 0 & y_\mathrm{off} \\
+    0 & 0 & 1 & z_\mathrm{off} \\
+    0 & 0 & 0 & 1
+  \end{bmatrix}
 
 
 Other Operations
@@ -2030,7 +2047,7 @@ The GeoJSON-like mapping of a geometric object can be obtained using
 
 .. function:: shapely.geometry.mapping(ob)
 
-   Return a new, independent geometry with coordinates `copied` from the
+   Returns a new, independent geometry with coordinates `copied` from the
    context.
 
    `New in version 1.2.3`.

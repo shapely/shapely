@@ -1,5 +1,7 @@
 *.pyc
+VERSION.txt
 Shapely.egg-info/
 build/
 dist/
-shapely/speedups/_speedups.so
+docs/_build/
+shapely/speedups/_speedups.*

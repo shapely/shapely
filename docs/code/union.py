@@ -2,10 +2,7 @@ from matplotlib import pyplot
 from shapely.geometry import Point
 from descartes import PolygonPatch
 
-from figures import SIZE
-
-BLUE = '#6699cc'
-GRAY = '#999999'
+from figures import SIZE, BLUE, GRAY
 
 fig = pyplot.figure(1, figsize=SIZE, dpi=90)
 
