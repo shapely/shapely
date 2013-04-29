@@ -18,10 +18,14 @@ import sys, os
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.append(os.path.abspath('sphinxext'))
 
-sys.path.append('../')
+# Load latest source tree
+sys.path.insert(0, '..')
 
 import shapely
-from shapely import *
+
+# For pyplots in code/, load functions here first, so they are visible
+from shapely import geometry, affinity, wkt, wkb
+from shapely.ops import cascaded_union
 
 # -- General configuration -----------------------------------------------------
 
@@ -30,12 +34,12 @@ from shapely import *
 extensions = [
     'matplotlib.sphinxext.only_directives',
     'matplotlib.sphinxext.plot_directive',
-    'sphinx.ext.pngmath',
-    #'sphinx.ext.mathjax',
+    'sphinx.ext.pngmath', # <----- pick one, not both
+    #'sphinx.ext.mathjax', # <--/
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+#templates_path = ['_templates']
 
 # The suffix of source filenames.
 source_suffix = '.txt'
@@ -47,8 +51,9 @@ source_suffix = '.txt'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Shapely'
-copyright = u'2011-2013, Sean Gillies, Aron Bierbaum, Kai Lautaportti and others'
+project = 'Shapely'
+copyright = '2011-2013, Sean Gillies, Aron Bierbaum, Kai Lautaportti ' \
+            'and others'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -132,7 +137,7 @@ html_theme_path = ['themes']
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+#html_static_path = ['_static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -184,8 +189,8 @@ htmlhelp_basename = 'Shapelydoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'Shapely.tex', u'Shapely Documentation',
-   u'Sean Gillies', 'manual'),
+  ('index', 'Shapely.tex', 'Shapely Documentation',
+   'Sean Gillies', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
