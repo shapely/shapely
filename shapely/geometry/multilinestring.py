@@ -40,7 +40,7 @@ class MultiLineString(BaseMultipartGeometry):
         """
         super(MultiLineString, self).__init__()
 
-        if lines is None:
+        if not lines:
             # allow creation of empty multilinestrings, to support unpickling
             pass
         else:
