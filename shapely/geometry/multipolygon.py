@@ -50,7 +50,7 @@ class MultiPolygon(BaseMultipartGeometry):
         """
         super(MultiPolygon, self).__init__()
 
-        if polygons is None:
+        if not polygons:
             # allow creation of empty multipolygons, to support unpickling
             pass
         elif context_type == 'polygons':
@@ -109,8 +109,9 @@ def asMultiPolygon(context):
 def geos_multipolygon_from_py(ob):
     """ob must provide Python geo interface coordinates."""
     L = len(ob)
-    N = len(ob[0][0][0])
     assert L >= 1
+    
+    N = len(ob[0][0][0])
     assert N == 2 or N == 3
 
     subs = (c_void_p * L)()
@@ -124,12 +125,14 @@ def geos_multipolygon_from_polygons(ob):
     """ob must be either a sequence or array of sequences or arrays."""
     obs = getattr(ob, 'geoms', None) or ob
     L = len(obs)
+    assert L >= 1
+    
     exemplar = obs[0]
     try:
         N = len(exemplar[0][0])
     except TypeError:
         N = exemplar._ndim
-    assert L >= 1
+    
     assert N == 2 or N == 3
 
     subs = (c_void_p * L)()
