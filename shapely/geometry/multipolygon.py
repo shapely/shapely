@@ -69,7 +69,7 @@ class MultiPolygon(BaseMultipartGeometry):
             coords.append(tuple(geom.exterior.coords))
             for hole in geom.interiors:
                 coords.append(tuple(hole.coords))
-            allcoords.append(coords)
+            allcoords.append(tuple(coords))
         return {
             'type': 'MultiPolygon',
             'coordinates': allcoords

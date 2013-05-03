@@ -5,6 +5,8 @@ Changes
 --------------------
 - Add shapely.ops.transform.
 - Permit empty sequences in collection constructors (#49, #50).
+- Individual polygons in MultiPolygon.__geo_interface__ are changed to tuples
+  to match Polygon.__geo_interface__ (#51).
 
 1.2.17 (2013-01-27)
 -------------------
