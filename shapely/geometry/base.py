@@ -308,7 +308,8 @@ class BaseGeometry(object):
         """A figure that envelopes the geometry"""
         return geom_factory(self.impl['envelope'](self))
 
-    def buffer(self, distance, resolution=16, quadsegs=None):
+    def buffer(self, distance, resolution=16, quadsegs=None, cap_style='round',
+               join_style='round', mitre_limit=0):
         """Returns a geometry with an envelope at a distance from the object's
         envelope
 
@@ -317,6 +318,9 @@ class BaseGeometry(object):
         the object increases by increasing the resolution keyword parameter
         or second positional parameter. Note: the use of a `quadsegs` parameter
         is deprecated and will be gone from the next major release.
+
+        Cap styles: 'round', 'flat' and 'square'
+        Join styles: 'round', 'mitre' and 'bevel'
 
         Example:
 
@@ -329,6 +333,18 @@ class BaseGeometry(object):
           >>> g.buffer(1.0, 3).area     # triangle approximation
           3.0
         """
+
+        CAP_STYLES = {
+            'round': 1,
+            'flat': 2,
+            'square': 3
+        }
+        JOIN_STYLES = {
+            'round': 1,
+            'mitre': 2,
+            'bevel': 3
+        }
+
         if quadsegs is not None:
             warnings.warn(
                 "The `quadsegs` argument is deprecated. Use `resolution`.",
@@ -336,7 +352,13 @@ class BaseGeometry(object):
             res = quadsegs
         else:
             res = resolution
-        return geom_factory(self.impl['buffer'](self, distance, res))
+
+        cap_style = CAP_STYLES.get(cap_style.lower(), 1)
+        join_style = JOIN_STYLES.get(join_style.lower(), 1)
+
+        return geom_factory(self.impl['buffer'](self, distance, res,
+                                                cap_style, join_style,
+                                                mitre_limit))
 
     @delegated
     def simplify(self, tolerance, preserve_topology=True):

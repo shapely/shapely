@@ -100,6 +100,11 @@ def prototype(lgeos, geosVersion):
     lgeos.GEOSBuffer.restype = ctypes.c_void_p
     lgeos.GEOSBuffer.argtypes = [ctypes.c_void_p, ctypes.c_double, ctypes.c_int]
 
+    lgeos.GEOSBufferWithStyle.restype = ctypes.c_void_p
+    lgeos.GEOSBufferWithStyle.argtypes = [ctypes.c_void_p, ctypes.c_double,
+                                          ctypes.c_int, ctypes.c_int,
+                                          ctypes.c_int, ctypes.c_double]
+
     lgeos.GEOSSimplify.restype = ctypes.c_void_p
     lgeos.GEOSSimplify.argtypes = [ctypes.c_void_p, ctypes.c_double]
 
@@ -271,15 +276,15 @@ def prototype(lgeos, geosVersion):
             lgeos.GEOSProject.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
 
             lgeos.GEOSProjectNormalized.restype = ctypes.c_double
-            lgeos.GEOSProjectNormalized.argtypes = [ctypes.c_void_p, 
+            lgeos.GEOSProjectNormalized.argtypes = [ctypes.c_void_p,
                                                     ctypes.c_void_p]
 
             lgeos.GEOSInterpolate.restype = ctypes.c_void_p
-            lgeos.GEOSInterpolate.argtypes = [ctypes.c_void_p, 
+            lgeos.GEOSInterpolate.argtypes = [ctypes.c_void_p,
                                               ctypes.c_double]
 
             lgeos.GEOSInterpolateNormalized.restype = ctypes.c_void_p
-            lgeos.GEOSInterpolateNormalized.argtypes = [ctypes.c_void_p, 
+            lgeos.GEOSInterpolateNormalized.argtypes = [ctypes.c_void_p,
                                                         ctypes.c_double]
 
     # TODO: Find out what version of geos_c came with geos 3.3.0

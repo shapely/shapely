@@ -232,7 +232,7 @@ class LGEOS14(LGEOSBase):
 
         self.methods['area'] = self.GEOSArea
         self.methods['boundary'] = self.GEOSBoundary
-        self.methods['buffer'] = self.GEOSBuffer
+        self.methods['buffer'] = self.GEOSBufferWithStyle
         self.methods['centroid'] = self.GEOSGetCentroid
         self.methods['representative_point'] = self.GEOSPointOnSurface
         self.methods['convex_hull'] = self.GEOSConvexHull
@@ -306,7 +306,7 @@ class LGEOS15(LGEOSBase):
 
         self.methods['area'] = self.GEOSArea
         self.methods['boundary'] = self.GEOSBoundary
-        self.methods['buffer'] = self.GEOSBuffer
+        self.methods['buffer'] = self.GEOSBufferWithStyle
         self.methods['centroid'] = self.GEOSGetCentroid
         self.methods['representative_point'] = self.GEOSPointOnSurface
         self.methods['convex_hull'] = self.GEOSConvexHull
