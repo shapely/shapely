@@ -308,8 +308,8 @@ class BaseGeometry(object):
         """A figure that envelopes the geometry"""
         return geom_factory(self.impl['envelope'](self))
 
-    def buffer(self, distance, resolution=16, quadsegs=None, cap_style=None,
-               join_style=None, mitre_limit=0):
+    def buffer(self, distance, resolution=16, quadsegs=None, cap_style=1,
+               join_style=1, mitre_limit=0):
         """Returns a geometry with an envelope at a distance from the object's
         envelope
 
@@ -319,8 +319,11 @@ class BaseGeometry(object):
         or second positional parameter. Note: the use of a `quadsegs` parameter
         is deprecated and will be gone from the next major release.
 
-        Cap styles: 'round' (default), 'flat' and 'square'
-        Join styles: 'round' (default), 'mitre' and 'bevel'
+        The styles of caps are: 1 (round, the default), 2 (flat)
+        and 3 (square).
+
+        The styles of joins between offset segments are:
+        1 (round, the default), 2 (mitre or miter), and 3 (bevel).
 
         The mitre limit ratio is used for very sharp corners. The mitre ratio
         is the ratio of the distance from the corner to the end of the mitred
@@ -346,17 +349,6 @@ class BaseGeometry(object):
           4.0
         """
 
-        CAP_STYLES = {
-            'round': 1,
-            'flat': 2,
-            'square': 3
-        }
-        JOIN_STYLES = {
-            'round': 1,
-            'mitre': 2,
-            'bevel': 3
-        }
-
         if quadsegs is not None:
             warnings.warn(
                 "The `quadsegs` argument is deprecated. Use `resolution`.",
@@ -365,20 +357,12 @@ class BaseGeometry(object):
         else:
             res = resolution
 
-        if cap_style is None and join_style is None:
+        if cap_style == 1 and join_style == 1:
             return geom_factory(self.impl['buffer'](self, distance, res))
 
         if 'buffer_with_style' not in self.impl:
             raise NotImplementedError("Styled buffering not available for "
                                       "GEOS versions < 3.2.")
-
-        if cap_style is None:
-            cap_style = 'round'
-        if join_style is None:
-            join_style = 'round'
-
-        cap_style = CAP_STYLES.get(cap_style.lower(), 1)
-        join_style = JOIN_STYLES.get(join_style.lower(), 1)
 
         return geom_factory(self.impl['buffer_with_style'](self, distance, res,
                                                            cap_style,
