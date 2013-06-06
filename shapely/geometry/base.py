@@ -319,8 +319,16 @@ class BaseGeometry(object):
         or second positional parameter. Note: the use of a `quadsegs` parameter
         is deprecated and will be gone from the next major release.
 
-        Cap styles: 'round', 'flat' and 'square'
-        Join styles: 'round', 'mitre' and 'bevel'
+        Cap styles: 'round' (default), 'flat' and 'square'
+        Join styles: 'round' (default), 'mitre' and 'bevel'
+
+        The mitre limit ratio is used for very sharp corners. The mitre ratio
+        is the ratio of the distance from the corner to the end of the mitred
+        offset corner. When two line segments meet at a sharp angle, a miter
+        join will extend the original geometry. To prevent unreasonable
+        geometry, the mitre limit allows controlling the maximum length of the
+        join corner. Corners with a ratio which exceed the limit will be
+        beveled.
 
         Example:
 
