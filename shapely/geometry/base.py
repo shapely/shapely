@@ -340,6 +340,10 @@ class BaseGeometry(object):
           3.1415138011443009
           >>> g.buffer(1.0, 3).area     # triangle approximation
           3.0
+          >>> list(g.buffer(1.0, cap_style='square').exterior.coords)
+          [(1.0, 1.0), (1.0, -1.0), (-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0)]
+          >>> g.buffer(1.0, cap_style='square').area
+          4.0
         """
 
         CAP_STYLES = {
