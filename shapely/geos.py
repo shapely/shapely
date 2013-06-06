@@ -232,7 +232,7 @@ class LGEOS14(LGEOSBase):
 
         self.methods['area'] = self.GEOSArea
         self.methods['boundary'] = self.GEOSBoundary
-        self.methods['buffer'] = self.GEOSBufferWithStyle
+        self.methods['buffer'] = self.GEOSBuffer
         self.methods['centroid'] = self.GEOSGetCentroid
         self.methods['representative_point'] = self.GEOSPointOnSurface
         self.methods['convex_hull'] = self.GEOSConvexHull
@@ -306,7 +306,7 @@ class LGEOS15(LGEOSBase):
 
         self.methods['area'] = self.GEOSArea
         self.methods['boundary'] = self.GEOSBoundary
-        self.methods['buffer'] = self.GEOSBufferWithStyle
+        self.methods['buffer'] = self.GEOSBuffer
         self.methods['centroid'] = self.GEOSGetCentroid
         self.methods['representative_point'] = self.GEOSPointOnSurface
         self.methods['convex_hull'] = self.GEOSConvexHull
@@ -349,6 +349,8 @@ class LGEOS16(LGEOS15):
     geos_capi_version = (1, 6, 0)
     def __init__(self, dll):
         super(LGEOS16, self).__init__(dll)
+
+        self.methods['buffer_with_style'] = self.GEOSBufferWithStyle
 
 
 class LGEOS16LR(LGEOS16):

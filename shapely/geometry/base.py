@@ -308,8 +308,8 @@ class BaseGeometry(object):
         """A figure that envelopes the geometry"""
         return geom_factory(self.impl['envelope'](self))
 
-    def buffer(self, distance, resolution=16, quadsegs=None, cap_style='round',
-               join_style='round', mitre_limit=0):
+    def buffer(self, distance, resolution=16, quadsegs=None, cap_style=None,
+               join_style=None, mitre_limit=0):
         """Returns a geometry with an envelope at a distance from the object's
         envelope
 
@@ -353,12 +353,25 @@ class BaseGeometry(object):
         else:
             res = resolution
 
+        if cap_style is None and join_style is None:
+            return geom_factory(self.impl['buffer'](self, distance, res))
+
+        if 'buffer_with_style' not in self.impl:
+            raise NotImplementedError("Styled buffering not available for "
+                                      "GEOS versions < 3.2.")
+
+        if cap_style is None:
+            cap_style = 'round'
+        if join_style is None:
+            join_style = 'round'
+
         cap_style = CAP_STYLES.get(cap_style.lower(), 1)
         join_style = JOIN_STYLES.get(join_style.lower(), 1)
 
-        return geom_factory(self.impl['buffer'](self, distance, res,
-                                                cap_style, join_style,
-                                                mitre_limit))
+        return geom_factory(self.impl['buffer_with_style'](self, distance, res,
+                                                           cap_style,
+                                                           join_style,
+                                                           mitre_limit))
 
     @delegated
     def simplify(self, tolerance, preserve_topology=True):
