@@ -1391,10 +1391,15 @@ Constructive Methods
 Shapely geometric object have several methods that yield new objects not
 derived from set-theoretic analysis.
 
-.. method:: object.buffer(distance, resolution=16)
+.. method:: object.buffer(distance, resolution=16, cap_style=1, join_style=1, mitre_limit=1.0)
 
   Returns an approximate representation of all points within a given `distance`
   of the this geometric object.
+
+  The styles of caps are: 1 (round, the default), 2 (flat), and 3 (square).
+
+  The styles of joins between offset segments are: 1 (round, the default),
+  2 (mitre or miter), and 3 (bevel).
 
 A positive distance has an effect of dilation; a negative distance, erosion.
 The optional `resolution` argument determines the number of segments used to
