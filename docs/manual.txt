@@ -1122,9 +1122,8 @@ This predicate is equivalent to the OR-ing of :meth:`contains`, :meth:`crosses`,
 
 .. method:: object.touches(other)
 
-  Returns ``True`` if the `boundary` of the object intersects only the
-  `boundary` of the other, and their interiors do not intersect with any part
-  of the other.
+  Returns ``True`` if the objects have at least one point in common and their
+  interiors do not intersect with any part of the other.
 
 Overlapping features do not therefore `touch`, another potential "gotcha". For
 example, the following lines touch at ``(1, 1)``, but do not overlap.
