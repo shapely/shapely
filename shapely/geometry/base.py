@@ -1,14 +1,18 @@
 """Base geometry class and utilities
 """
 
-from ctypes import pointer, c_size_t, c_char_p, c_void_p
 import sys
 import warnings
+from binascii import a2b_hex
+from ctypes import pointer, c_size_t, c_char_p, c_void_p
 
 from shapely.coords import CoordinateSequence
 from shapely.ftools import wraps
 from shapely.geos import lgeos, ReadingError
 from shapely.impl import DefaultImplementation, delegated
+
+if sys.version_info[0] < 3:
+    range = xrange
 
 GEOMETRY_TYPES = [
     'Point',
@@ -49,16 +53,23 @@ def geom_factory(g, parent=None):
     return ob
 
 def geom_from_wkt(data):
+    if sys.version_info[0] >= 3:
+        data = data.encode('ascii')
     geom = lgeos.GEOSGeomFromWKT(c_char_p(data))
     if not geom:
-        raise ReadingError, \
-        "Could not create geometry because of errors while reading input."
+        raise ReadingError(
+        "Could not create geometry because of errors while reading input.")
     return geom_factory(geom)
 
 def geom_to_wkt(ob):
     if ob is None or ob._geom is None:
         raise ValueError("Null geometry supports no operations")
-    return lgeos.GEOSGeomToWKT(ob._geom)
+    wkt = lgeos.GEOSGeomToWKT(ob._geom)
+    if sys.version_info[0] < 3:
+        return wkt
+    else:
+        return wkt.decode('ascii')
+
 
 def deserialize_wkb(data):
     geom = lgeos.GEOSGeomFromWKB_buf(c_char_p(data), c_size_t(len(data)));
@@ -85,7 +96,7 @@ def exceptNull(func):
         return func(*args, **kwargs)
     return wrapper
 
-EMPTY = deserialize_wkb('010700000000000000'.decode('hex'))
+EMPTY = deserialize_wkb(a2b_hex(b'010700000000000000'))
 
 class BaseGeometry(object):
     """
@@ -411,7 +422,11 @@ class BaseGeometry(object):
     def relate(self, other):
         """Returns the DE-9IM intersection matrix for the two geometries
         (string)"""
-        return self.impl['relate'](self, other)
+        r = self.impl['relate'](self, other)
+        if sys.version_info[0] < 3:
+            return r
+        else:
+            return r.decode('ascii')
 
     def contains(self, other):
         """Returns True if the geometry contains the other, else False"""
@@ -580,7 +595,7 @@ class GeometrySequence(object):
 
     def __iter__(self):
         self._update()
-        for i in xrange(self.__len__()):
+        for i in range(self.__len__()):
             yield self._get_geom_item(i)
 
     def __len__(self):
@@ -604,7 +619,7 @@ class GeometrySequence(object):
                     "Heterogenous geometry collections are not sliceable")
             res = []
             start, stop, stride = key.indices(m)
-            for i in xrange(start, stop, stride):
+            for i in range(start, stop, stride):
                 res.append(self._get_geom_item(i))
             return type(self.__p__)(res or None)
         else:

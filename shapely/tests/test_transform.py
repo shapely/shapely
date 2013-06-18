@@ -5,7 +5,7 @@ from shapely.ops import transform
 class IdentityTestCase(unittest.TestCase):
     """New geometry/coordseq method 'xy' makes numpy interop easier"""
     def func(self, x, y, z=None):
-        return tuple(filter(None, [x, y, z]))
+        return tuple([c for c in [x, y, z] if c])
     def test_point(self):
         g = geometry.Point(0, 1)
         h = transform(self.func, g)

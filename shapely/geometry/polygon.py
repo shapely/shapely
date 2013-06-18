@@ -1,6 +1,11 @@
 """Polygons and their linear ring components
 """
 
+import sys
+
+if sys.version_info[0] < 3:
+    range = xrange
+
 from ctypes import c_double, c_void_p, cast, POINTER
 from ctypes import ArgumentError
 import weakref
@@ -120,13 +125,16 @@ class InteriorRingSequence(object):
         self._length = self.__len__()
         return self
 
-    def next(self):
+    def __next__(self):
         if self._index < self._length:
             ring = self._get_ring(self._index)
             self._index += 1
             return ring
         else:
             raise StopIteration 
+
+    if sys.version_info[0] < 3:
+        next = __next__
 
     def __len__(self):
         return lgeos.GEOSGetNumInteriorRings(self._geom)
@@ -144,7 +152,7 @@ class InteriorRingSequence(object):
         elif isinstance(key, slice):
             res = []
             start, stop, stride = key.indices(m)
-            for i in xrange(start, stop, stride):
+            for i in range(start, stop, stride):
                 res.append(self._get_ring(i))
             return res
         else:
@@ -354,7 +362,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
             cs = lgeos.GEOSCoordSeq_create(M, n)
 
         # add to coordinate sequence
-        for i in xrange(m):
+        for i in range(m):
             # Because of a bug in the GEOS C API, 
             # always set X before Y
             lgeos.GEOSCoordSeq_setX(cs, i, cp[n*i])
@@ -397,7 +405,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
             cs = lgeos.GEOSCoordSeq_create(M, n)
         
         # add to coordinate sequence
-        for i in xrange(m):
+        for i in range(m):
             coords = ob[i]
             # Because of a bug in the GEOS C API, 
             # always set X before Y
@@ -445,7 +453,7 @@ def geos_polygon_from_py(shell, holes=None):
             geos_holes = (c_void_p * L)()
     
             # add to coordinate sequence
-            for l in xrange(L):
+            for l in range(L):
                 geom, ndim = geos_linearring_from_py(ob[l])
                 geos_holes[l] = cast(geom, c_void_p)
         else:

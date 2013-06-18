@@ -1,35 +1,51 @@
-import warnings
+#!/usr/bin/env python
 
-try:
-    from distribute_setup import use_setuptools
-    use_setuptools()
-except:
-    warnings.warn(
-    "Failed to import distribute_setup, continuing without distribute.",
-    Warning)
+from __future__ import print_function
 
+import os
+import sys
+import glob
+import errno
+import shutil
+import platform
+import subprocess
+from distutils.core import setup
+from distutils.cmd import Command
+from distutils.extension import Extension
 from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
-import errno
-import glob
-import os
-import platform
-from setuptools.extension import Extension
-from setuptools import setup, find_packages
-from setuptools.command.build_ext import build_ext as distutils_build_ext
-import shutil
-import subprocess
-import sys
+from distutils.command.build_ext import build_ext as distutils_build_ext
+from unittest import TextTestRunner, TestLoader
+
+
+class test(Command):
+    """Run unit tests after in-place build"""
+    description = __doc__
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        try:
+            import shapely.tests
+        except ImportError:
+            self.run_command('build_ext')
+            import shapely.tests
+        tests = TestLoader().loadTestsFromName('test_suite', shapely.tests)
+        t = TextTestRunner(verbosity=2)
+        t.run(tests)
 
 # Parse the version from the shapely module
 for line in open('shapely/__init__.py', 'r'):
-    if line.find("__version__") >= 0:
-        version = line.split("=")[1].strip()
-        version = version.strip('"')
-        version = version.strip("'")
-        continue
+    if "__version__" in line:
+        exec(line.replace('_', ''))
+        break
 
-open('VERSION.txt', 'wb').write(version)
+open('VERSION.txt', 'w').write(version)
 
 readme_text = open('README.rst', 'r').read()
 readme_text = readme_text.replace(".. include:: CREDITS.txt", "")
@@ -41,11 +57,9 @@ f = open('CHANGES.txt', 'r')
 changes_text = f.read()
 
 setup_args = dict(
-    metadata_version    = '1.2',
     name                = 'Shapely',
     version             = version,
-    requires_python     = '>=2.5,<3',
-    requires_external   = 'libgeos_c (>=3.1)',
+    requires            = ['Python (>=2.6)', 'libgeos_c (>=3.1)'],
     description         = 'Geometric objects, predicates, and operations',
     license             = 'BSD',
     keywords            = 'geometry topology gis',
@@ -55,8 +69,15 @@ setup_args = dict(
     maintainer_email    = 'sean.gillies@gmail.com',
     url                 = 'https://github.com/Toblerity/Shapely',
     long_description    = readme_text + "\n" + credits + "\n" + changes_text,
-    packages            = find_packages(),
-    test_suite          = 'shapely.tests.test_suite',
+    packages            = [
+        'shapely',
+        'shapely.geometry',
+        'shapely.algorithms',
+        'shapely.examples',
+        'shapely.speedups',
+        'shapely.tests',
+    ],
+    cmdclass            = {'test': test},
     classifiers         = [
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
@@ -65,19 +86,19 @@ setup_args = dict(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Topic :: Scientific/Engineering :: GIS',
-        ],
-    )
+    ],
+)
 
 # Add DLLs for Windows
 if sys.platform == 'win32':
     try:
         os.mkdir('shapely/DLLs')
-    except OSError, ex:
+    except OSError as ex:
         if ex.errno != errno.EEXIST: raise
     if '(AMD64)' in sys.version:
         for dll in glob.glob('DLLs_AMD64_VC9/*.dll'):
             shutil.copy(dll, 'shapely/DLLs')
-    elif platform.python_version().startswith('2.5.'):
+    elif sys.version_info[0:2] == (2, 5):
         for dll in glob.glob('DLLs_x86_VC7/*.dll'):
             shutil.copy(dll, 'shapely/DLLs')
     else:
@@ -108,19 +129,20 @@ class build_ext(distutils_build_ext):
     def run(self):
         try:
             distutils_build_ext.run(self)
-        except DistutilsPlatformError, x:
+        except DistutilsPlatformError as x:
             raise BuildFailed(x)
 
     def build_extension(self, ext):
         try:
             distutils_build_ext.build_extension(self, ext)
-        except ext_errors, x:
+        except ext_errors as x:
             raise BuildFailed(x)
 
 if (hasattr(platform, 'python_implementation')
-    and platform.python_implementation() == 'PyPy'):
+        and platform.python_implementation() == 'PyPy'):
     # python_implementation is only available since 2.6
     ext_modules = []
+    print('What is this case for, and what about "libraries"??')
     libraries = []
 elif sys.platform == 'win32':
     libraries = ['geos']
@@ -138,14 +160,15 @@ if os.path.exists("MANIFEST.in"):
     try:
         if (force_cython or not os.path.exists(c_file)
             or os.path.getmtime(pyx_file) > os.path.getmtime(c_file)):
-            print >>sys.stderr, "Updating C extension with Cython."
+            print("Updating C extension with Cython.", file=sys.stderr)
             subprocess.check_call(["cython", "shapely/speedups/_speedups.pyx"])
     except (subprocess.CalledProcessError, OSError):
-        print >>sys.stderr, "Warning: Could not (re)create C extension with Cython."
+        print("Warning: Could not (re)create C extension with Cython.",
+              file=sys.stderr)
         if force_cython:
             raise
     if not os.path.exists("shapely/speedups/_speedups.c"):
-        print >>sys.stderr, "Warning: speedup extension not found"
+        print("Warning: speedup extension not found", file=sys.stderr)
 
 ext_modules = [
     Extension(
@@ -155,20 +178,20 @@ ext_modules = [
 
 try:
     # try building with speedups
+    setup_args['cmdclass']['build_ext'] = build_ext
     setup(
-        cmdclass={'build_ext': build_ext},
         ext_modules=ext_modules,
         **setup_args
     )
-except BuildFailed, ex:
+except BuildFailed as ex:
     BUILD_EXT_WARNING = "Warning: The C extension could not be compiled, speedups are not enabled."
-    print ex
-    print BUILD_EXT_WARNING
-    print "Failure information, if any, is above."
-    print "I'm retrying the build without the C extension now."
+    print(ex)
+    print(BUILD_EXT_WARNING)
+    print("Failure information, if any, is above.")
+    print("I'm retrying the build without the C extension now.")
 
     setup(**setup_args)
 
-    print BUILD_EXT_WARNING
-    print "Plain-Python installation succeeded."
+    print(BUILD_EXT_WARNING)
+    print("Plain-Python installation succeeded.")
 

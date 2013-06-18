@@ -23,9 +23,9 @@ class UnionTestCase(unittest.TestCase):
     def test_1(self):
         # Instead of random points, use deterministic, pseudo-random Halton
         # sequences for repeatability sake.
-        coords = zip(
+        coords = list(zip(
             list(islice(halton(5), 20, 120)),
-            list(islice(halton(7), 20, 120)) )
+            list(islice(halton(7), 20, 120)) ))
         patches = [Point(xy).buffer(0.05) for xy in coords]
         u = unary_union(patches)
         self.failUnlessEqual(u.geom_type, 'MultiPolygon')

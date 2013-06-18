@@ -1,6 +1,11 @@
 """Line strings and related utilities
 """
 
+import sys
+
+if sys.version_info[0] < 3:
+    range = xrange
+
 from ctypes import c_double, cast, POINTER
 from ctypes import ArgumentError
 
@@ -188,7 +193,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
             cs = lgeos.GEOSCoordSeq_create(m, n)
 
         # add to coordinate sequence
-        for i in xrange(m):
+        for i in range(m):
             dx = c_double(cp[n*i])
             dy = c_double(cp[n*i+1])
             dz = None
@@ -229,7 +234,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
             cs = lgeos.GEOSCoordSeq_create(m, n)
         
         # add to coordinate sequence
-        for i in xrange(m):
+        for i in range(m):
             coords = ob[i]
             # Because of a bug in the GEOS C API, 
             # always set X before Y

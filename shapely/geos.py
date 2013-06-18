@@ -2,17 +2,17 @@
 Proxies for the libgeos_c shared lib, GEOS-specific exceptions, and utilities
 """
 
-import atexit
-import logging
 import os
 import sys
-import threading
+import atexit
 import ctypes
+import logging
+import threading
 from ctypes import cdll, CDLL, CFUNCTYPE, c_char_p, c_void_p, string_at
 from ctypes.util import find_library
 
-import ftools
-from ctypes_declarations import prototype, EXCEPTION_HANDLER_FUNCTYPE
+from . import ftools
+from .ctypes_declarations import prototype, EXCEPTION_HANDLER_FUNCTYPE
 
 
 
@@ -95,6 +95,8 @@ def _geos_c_version():
     func.argtypes = []
     func.restype = c_char_p
     v = func()
+    if sys.version_info[0] >= 3:
+        v = v.decode('ascii')
     c_ver = v.split('-')[2]
     # Ditch any SVN revision numbering that may have crept in without (ftm)
     # importing `re`.
@@ -206,7 +208,7 @@ class LGEOS14(LGEOSBase):
     def __init__(self, dll):
         super(LGEOS14, self).__init__(dll)
         self.geos_handle = self._lgeos.initGEOS(notice_h, error_h)
-        keys = self._lgeos.__dict__.keys()
+        keys = list(self._lgeos.__dict__.keys())
         for key in keys:
             setattr(self, key, getattr(self._lgeos, key))
         self.GEOSFree = self._lgeos.free
@@ -271,8 +273,8 @@ class LGEOS15(LGEOSBase):
     def __init__(self, dll):
         super(LGEOS15, self).__init__(dll)
         self.geos_handle = self._lgeos.initGEOS_r(notice_h, error_h)
-        keys = self._lgeos.__dict__.keys()
-        for key in filter(lambda x: not x.endswith('_r'), keys):
+        keys = list(self._lgeos.__dict__.keys())
+        for key in [x for x in keys if not x.endswith('_r')]:
             if key + '_r' in keys:
                 reentr_func = getattr(self._lgeos, key + '_r')
                 attr = ftools.partial(reentr_func, self.geos_handle)

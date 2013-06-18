@@ -5,7 +5,7 @@ Test recovery from operation on invalid geometries
 
   >>> from shapely.geometry import Polygon
   >>> polygon_invalid = Polygon(((0, 0), (1, 1), (1, -1), (0, 1), (0, 0)))
-  >>> print polygon_invalid.is_valid # doctest: +ELLIPSIS
+  >>> print(polygon_invalid.is_valid)  # doctest: +ELLIPSIS
   False
 
   Intersect with a valid polygon

@@ -30,7 +30,7 @@ From points
   >>> geom = MultiPoint((Point(1.0, 2.0), Point(3.0, 4.0)))
   >>> len(geom.geoms)
   2
-  >>> print geom.wkt
+  >>> print(geom.wkt)
   MULTIPOINT (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)
 
 From another multi-point
@@ -38,7 +38,7 @@ From another multi-point
   >>> geom2 = MultiPoint(geom)
   >>> len(geom2.geoms)
   2
-  >>> print geom2.wkt
+  >>> print(geom2.wkt)
   MULTIPOINT (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)
 
 

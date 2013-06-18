@@ -37,7 +37,7 @@ From coordinate sequence
 From another point
 
   >>> q = Point(p)
-  >>> print p.wkt
+  >>> print(p.wkt)
   POINT (3.0000000000000000 4.0000000000000000)
 
 Coordinate access

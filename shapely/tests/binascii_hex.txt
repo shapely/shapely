@@ -9,10 +9,10 @@ Point
 
   >>> from shapely.geometry import Point
   >>> point = Point(0.0, 0.0)
-  >>> import binascii
-  >>> x = binascii.b2a_hex(point.wkb)
+  >>> from binascii import a2b_hex, b2a_hex
+  >>> x = b2a_hex(point.wkb)
   >>> from shapely import wkb
-  >>> shape = wkb.loads(binascii.a2b_hex(x))
+  >>> shape = wkb.loads(a2b_hex(x))
   >>> shape # doctest: +ELLIPSIS
   <shapely.geometry.point.Point object at ...>
 
@@ -21,8 +21,8 @@ LineString
 
   >>> from shapely.geometry import LineString
   >>> line = LineString(((0.0, 0.0), (1.0, 1.0)))
-  >>> x = binascii.b2a_hex(line.wkb)
-  >>> shape = wkb.loads(binascii.a2b_hex(x))
+  >>> x = b2a_hex(line.wkb)
+  >>> shape = wkb.loads(a2b_hex(x))
   >>> shape # doctest: +ELLIPSIS
   <shapely.geometry.linestring.LineString object at ...>
 
@@ -31,8 +31,8 @@ Polygon
 
   >>> from shapely.geometry import Polygon
   >>> polygon = Polygon(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)))
-  >>> x = binascii.b2a_hex(polygon.wkb)
-  >>> shape = wkb.loads(binascii.a2b_hex(x))
+  >>> x = b2a_hex(polygon.wkb)
+  >>> shape = wkb.loads(a2b_hex(x))
   >>> shape # doctest: +ELLIPSIS
   <shapely.geometry.polygon.Polygon object at ...>
 
@@ -40,8 +40,8 @@ Polygon with hole
 -----------------
 
   >>> polygon = Polygon(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)), [((0.1,0.1), (0.1,0.2), (0.2,0.2), (0.2,0.1))])
-  >>> x = binascii.b2a_hex(polygon.wkb)
-  >>> shape = wkb.loads(binascii.a2b_hex(x))
+  >>> x = b2a_hex(polygon.wkb)
+  >>> shape = wkb.loads(a2b_hex(x))
   >>> shape # doctest: +ELLIPSIS
   <shapely.geometry.polygon.Polygon object at ...>
 

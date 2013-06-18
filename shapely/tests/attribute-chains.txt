@@ -9,7 +9,7 @@ See also ticket #151.
     [(0.0, 0.0), (0.0, 1.0), (-1.0, 1.0), (-1.0, 0.0), (0.0, 0.0)]
 
     >>> from shapely.geometry import Point
-    >>> print list(Point(0.0, 0.0).buffer(1.0, 1).exterior.coords)
+    >>> print(list(Point(0.0, 0.0).buffer(1.0, 1).exterior.coords))
     [(1.0, 0.0), ..., (1.0, 0.0)]
 
 Test chained access to interiors
@@ -25,7 +25,7 @@ Not so much testing the exact values here, which are the responsibility of the
 geometry engine (GEOS), but that we can get chain functions and properties using
 anonymous references.
 
-    >>> print list(p.interiors[0].coords)
+    >>> print(list(p.interiors[0].coords))
     [(-0.25, 0.25), (-0.25, 0.75), (-0.75, 0.75), (-0.75, 0.25), (-0.25, 0.25)]
     >>> xy = list(p.interiors[0].buffer(1).exterior.coords)[0]
     >>> len(xy)
@@ -33,6 +33,6 @@ anonymous references.
 
 Test multiple operators, boundary of a buffer
 
-    >>> print list(p.buffer(1).boundary.coords)
+    >>> print(list(p.buffer(1).boundary.coords))
     [(0.0, -1.0), (-1.0, -1.0), ...
 
