@@ -34,6 +34,7 @@ from shapely.ops import cascaded_union
 extensions = [
     'matplotlib.sphinxext.only_directives',
     'matplotlib.sphinxext.plot_directive',
+    'sphinx.ext.autodoc',
     'sphinx.ext.pngmath', # <----- pick one, not both
     #'sphinx.ext.mathjax', # <--/
 ]

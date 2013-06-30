@@ -102,6 +102,19 @@ Numpy arrays can also be adapted to Shapely linestrings::
   >>> asLineString(ag).wkt
   'LINESTRING (10.0000000000000000 0.0000000000000000, ...)'
 
+Shapely can also integrate with other Python GIS packages using data modeled
+after GeoJSON.
+
+.. sourcecode:: pycon
+
+  >>> import json
+  >>> from shapely.geometry import mapping, shape
+  >>> s = shape(json.loads('{"type": "Point", "coordinates": [0.0, 0.0]}'))
+  >>> s
+  <shapely.geometry.point.Point object at 0x...>
+  >>> print(json.dumps(mapping(s)))
+  {"type": "Point", "coordinates": [0.0, 0.0]}
+
 Testing
 =======
 

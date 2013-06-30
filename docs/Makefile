@@ -87,3 +87,9 @@ doctest:
 	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDDIR)/doctest
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(BUILDDIR)/doctest/output.txt."
+
+apidocs:
+	sphinx-apidoc -f -s txt -o . ../shapely
+	@echo
+	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+

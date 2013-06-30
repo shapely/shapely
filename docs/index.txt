@@ -1,13 +1,12 @@
-Welcome to Shapely's documentation!
-===================================
-
-Contents:
+Shapely Documentation Contents
+==============================
 
 .. toctree::
    :maxdepth: 2
 
    The Project <project>
-   manual
+   User Manual <manual>
+   API Documentation <modules>
 
 Indices and tables
 ==================
