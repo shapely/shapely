@@ -1,0 +1,69 @@
+Test implementation of geo interface
+====================================
+
+  >>> from shapely.geometry import asShape
+
+  Adapt a dictionary
+
+  >>> d = {"type": "Point", "coordinates": (0.0, 0.0)}
+  >>> shape = asShape(d)
+  >>> shape.geom_type
+  'Point'
+  >>> tuple(shape.coords)
+  ((0.0, 0.0),)
+
+  Adapt an object that implements the geo protocol
+
+  >>> class GeoThing(object):
+  ...     def __init__(self, d):
+  ...         self.__geo_interface__ = d
+
+  >>> shape = None
+  >>> thing = GeoThing({"type": "Point", "coordinates": (0.0, 0.0)})
+  >>> shape = asShape(thing)
+  >>> shape.geom_type
+  'Point'
+  >>> tuple(shape.coords)
+  ((0.0, 0.0),)
+
+  Check line string
+
+  >>> shape = asShape({'type': 'LineString', 'coordinates': ((-1.0, -1.0), (1.0, 1.0))})
+  >>> shape # doctest: +ELLIPSIS
+  <shapely.geometry.linestring.LineStringAdapter object at ...>
+  >>> tuple(shape.coords)
+  ((-1.0, -1.0), (1.0, 1.0))
+
+  polygon
+
+  >>> shape = asShape({'type': 'Polygon', 'coordinates': (((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (2.0, -1.0), (0.0, 0.0)), ((0.10000000000000001, 0.10000000000000001), (0.10000000000000001, 0.20000000000000001), (0.20000000000000001, 0.20000000000000001), (0.20000000000000001, 0.10000000000000001), (0.10000000000000001, 0.10000000000000001)))})
+  >>> shape # doctest: +ELLIPSIS
+  <shapely.geometry.polygon.PolygonAdapter object at ...>
+  >>> tuple(shape.exterior.coords)
+  ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (2.0, -1.0), (0.0, 0.0))
+  >>> len(shape.interiors)
+  1
+
+  multi point
+  >>> shape = asShape({'type': 'MultiPoint', 'coordinates': ((1.0, 2.0), (3.0, 4.0))})
+  >>> shape # doctest: +ELLIPSIS
+  <shapely.geometry.multipoint.MultiPointAdapter object at ...>
+  >>> len(shape.geoms)
+  2
+
+  multi line string
+
+  >>> shape = asShape({'type': 'MultiLineString', 'coordinates': (((0.0, 0.0), (1.0, 2.0)),)})
+  >>> shape # doctest: +ELLIPSIS
+  <shapely.geometry.multilinestring.MultiLineStringAdapter object at ...>
+  >>> len(shape.geoms)
+  1
+
+  multi polygon
+
+  >>> shape = asShape({'type': 'MultiPolygon', 'coordinates': [(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)), ((0.10000000000000001, 0.10000000000000001), (0.10000000000000001, 0.20000000000000001), (0.20000000000000001, 0.20000000000000001), (0.20000000000000001, 0.10000000000000001), (0.10000000000000001, 0.10000000000000001)))]})
+  >>> shape # doctest: +ELLIPSIS
+  <shapely.geometry.multipolygon.MultiPolygonAdapter object at ...>
+  >>> len(shape.geoms)
+  1
+

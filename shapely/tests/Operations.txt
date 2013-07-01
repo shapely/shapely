@@ -1,0 +1,89 @@
+Test GEOS operations
+====================
+
+  >>> from shapely.geometry import Point
+  >>> point = Point(0.0, 0.0)
+
+General geometry
+----------------
+
+  >>> point.area
+  0.0
+
+  >>> point.length
+  0.0
+
+  >>> point.distance(Point(-1.0, -1.0))
+  1.4142135623730951
+
+Topology operations
+-------------------
+
+  Envelope
+
+  >>> point.envelope #doctest: +ELLIPSIS
+  <shapely.geometry.point.Point object at ...>
+
+  Intersection
+
+  >>> point.intersection(Point(-1,-1)) #doctest: +ELLIPSIS
+  <shapely.geometry.collection.GeometryCollection object at ...>
+  
+  Buffer
+
+  >>> point.buffer(10.0) #doctest: +ELLIPSIS
+  <shapely.geometry.polygon.Polygon object at ...>
+  
+  >>> point.buffer(10.0, 32) #doctest: +ELLIPSIS
+  <shapely.geometry.polygon.Polygon object at ...>
+
+  Simplify
+
+  >>> from shapely.wkt import loads
+  >>> p = loads('POLYGON ((120 120, 121 121, 122 122, 220 120, 180 199, 160 200, 140 199, 120 120))')
+  >>> expected = loads('POLYGON ((120 120, 140 199, 160 200, 180 199, 220 120, 120 120))')
+  >>> s = p.simplify(10.0, preserve_topology = False)
+  >>> s.equals_exact(expected, 0.001)
+  True
+
+  >>> from shapely.wkt import loads
+  >>> p = loads('POLYGON ((80 200, 240 200, 240 60, 80 60, 80 200),(120 120, 220 120, 180 199, 160 200, 140 199, 120 120))')
+  >>> expected = loads('POLYGON ((80 200, 240 200, 240 60, 80 60, 80 200),(120 120, 220 120, 180 199, 160 200, 140 199, 120 120))')
+  >>> s = p.simplify(10.0, preserve_topology = True)
+  >>> s.equals_exact(expected, 0.001)
+  True
+
+  Convex Hull
+
+  >>> point.convex_hull #doctest: +ELLIPSIS
+  <shapely.geometry.point.Point object at ...>
+  
+  Differences
+
+  >>> point.difference(Point(-1, 1)) #doctest: +ELLIPSIS
+  <shapely.geometry.point.Point object at ...>
+  
+  >>> point.symmetric_difference(Point(-1, 1)) #doctest: +ELLIPSIS
+  <shapely.geometry.multipoint.MultiPoint object at ...>
+  
+  Boundary
+
+  >>> point.boundary #doctest: +ELLIPSIS
+  <shapely.geometry.collection.GeometryCollection object at ...>
+  
+  Union
+
+  >>> point.union(Point(-1, 1)) #doctest: +ELLIPSIS
+  <shapely.geometry.multipoint.MultiPoint object at ...>
+
+  >>> point.representative_point() #doctest: +ELLIPSIS
+  <shapely.geometry.point.Point object at ...>
+
+  >>> point.centroid #doctest: +ELLIPSIS
+  <shapely.geometry.point.Point object at ...>
+
+  Relate
+
+  >>> point.relate(Point(-1, -1)) #doctest: +ELLIPSIS
+  'FF0FFF0F2'
+

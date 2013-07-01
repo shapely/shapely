@@ -1,0 +1,143 @@
+Polygons and Linear Rings
+=========================
+
+Initialization
+--------------
+
+  Linear rings won't usually be created by users, but by polygons
+
+  >>> coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0))
+  >>> from shapely.geometry.polygon import LinearRing
+  >>> ring = LinearRing(coords)
+  >>> len(ring.coords)
+  5
+  >>> ring.coords[0] == ring.coords[4]
+  True
+  >>> ring.coords[0] == ring.coords[-1]
+  True
+  >>> ring.is_ring
+  True
+
+  Coordinate modification
+  -----------------------
+
+  >>> ring.coords = ((0.0, 0.0), (0.0, 2.0), (2.0, 2.0), (2.0, 0.0))
+  >>> ring.__geo_interface__
+  {'type': 'LinearRing', 'coordinates': ((0.0, 0.0), (0.0, 2.0), (2.0, 2.0), (2.0, 0.0), (0.0, 0.0))}
+
+  Test ring adapter
+
+  >>> coords = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]
+  >>> from shapely.geometry.polygon import asLinearRing
+  >>> ra = asLinearRing(coords)
+  >>> ra.wkt
+  'LINEARRING (0.0000000000000000 0.0000000000000000, 0.0000000000000000 1.0000000000000000, 1.0000000000000000 1.0000000000000000, 1.0000000000000000 0.0000000000000000, 0.0000000000000000 0.0000000000000000)'
+  >>> coords[3] = [2.0, -1.0]
+  >>> ra.wkt
+  'LINEARRING (0.0000000000000000 0.0000000000000000, 0.0000000000000000 1.0000000000000000, 1.0000000000000000 1.0000000000000000, 2.0000000000000000 -1.0000000000000000, 0.0000000000000000 0.0000000000000000)'
+
+  Construct a polygon, exterior ring only
+
+  >>> from shapely.geometry import Polygon
+  >>> polygon = Polygon(coords)
+  >>> len(polygon.exterior.coords)
+  5
+  
+Ring Access
+-----------
+
+  >>> polygon.exterior # doctest: +ELLIPSIS
+  <shapely.geometry.polygon.LinearRing object at ...>
+  >>> ring = polygon.exterior
+  >>> len(ring.coords)
+  5
+  >>> ring.coords[0] == ring.coords[4] == (0., 0.)
+  True
+  >>> ring.is_ring
+  True
+  >>> len(polygon.interiors)
+  0
+
+  Create a new polygon from WKB
+
+  >>> data = polygon.wkb
+  >>> polygon = None
+  >>> ring = None
+  >>> from shapely.wkb import loads
+  >>> polygon = loads(data)
+  >>> ring = polygon.exterior
+  >>> len(ring.coords)
+  5
+  >>> ring.coords[0] == ring.coords[4] == (0., 0.)
+  True
+  >>> ring.is_ring
+  True
+  >>> polygon = None
+
+Interior rings (holes)
+----------------------
+
+  >>> polygon = Polygon(coords, [((0.25,0.25), (0.25,0.5), (0.5,0.5), (0.5,0.25))])
+  >>> len(polygon.exterior.coords)
+  5
+  >>> len(polygon.interiors[0].coords)
+  5
+  >>> polygon.interiors[1] # doctest: +ELLIPSIS
+  Traceback (most recent call last):
+  ...
+  IndexError: index out of range
+
+Coordinate getters and setters raise exceptions
+
+  >>> polygon._get_coords()
+  Traceback (most recent call last):
+  ...
+  NotImplementedError: Component rings have coordinate sequences, but the polygon does not
+  >>> polygon.coords
+  Traceback (most recent call last):
+  ...
+  NotImplementedError: Component rings have coordinate sequences, but the polygon does not
+
+
+Geo interface
+-------------
+
+  >>> polygon.__geo_interface__
+  {'type': 'Polygon', 'coordinates': (((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (2.0, -1.0), (0.0, 0.0)), ((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25), (0.25, 0.25)))}
+
+
+Adapter
+-------
+
+  >>> hole_coords = [((0.25,0.25), (0.25,0.5), (0.5,0.5), (0.5,0.25))]
+  >>> from shapely.geometry import asPolygon
+  >>> pa = asPolygon(coords, hole_coords)
+  >>> len(pa.exterior.coords)
+  5
+  >>> len(pa.interiors)
+  1
+  >>> len(pa.interiors[0].coords)
+  5
+
+Test Non-operability of Null rings
+
+  >>> r_null = LinearRing()
+  >>> r_null.wkt # doctest: +ELLIPSIS
+  'GEOMETRYCOLLECTION EMPTY'
+
+  >>> r_null.length
+  0.0
+
+Check that we can set coordinates of a null geometry
+
+  >>> r_null.coords = [(0, 0), (1, 1), (1, 0)]
+  >>> print r_null.length # doctest: +ELLIPSIS
+  3.414...
+
+Error handling
+--------------
+
+  >>> p = Polygon([[1,2], [2, 3]])
+  Traceback (most recent call last):
+  ...
+  ValueError: A LinearRing must have at least 3 coordinate tuples

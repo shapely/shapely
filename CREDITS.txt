@@ -1,0 +1,34 @@
+Credits
+=======
+
+Shapely is written by:
+
+* Sean Gillies
+* Aron Bierbaum
+* Kai Lautaportti
+* Oliver Tonnhofer
+
+Patches contributed by:
+
+* Howard Butler
+* Fr |eaigue| d |eaigue| ric Junod
+* Eric Lemoine
+* Jonathan Tartley
+* Kristian Thy
+* Mike Toews (https://github.com/mwtoews)
+* Phil Elson (https://github.com/pelson)
+* Jeethu Rao (https://github.com/jeethu)
+
+Additional help from:
+
+* Justin Bronn (GeoDjango) for ctypes inspiration
+* Martin Davis (JTS)
+* Jaakko Salli for the Windows distributions
+* Sandro Santilli, Mateusz Loskot, Paul Ramsey, et al (GEOS Project)
+
+Major portions of this work were supported by a grant (for Pleiades_) from the
+U.S. National Endowment for the Humanities (http://www.neh.gov).
+
+.. |eaigue| unicode:: U+00E9
+   :trim:
+.. _Pleiades: http://pleiades.stoa.org

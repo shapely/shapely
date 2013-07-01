@@ -1,0 +1,101 @@
+MultiPoints
+===========
+
+Initialization
+--------------
+
+  >>> from shapely.geometry import Point, MultiPoint
+
+Construct from a numpy array
+
+  >>> from numpy import array
+  >>> geom = MultiPoint(array([[0.0, 0.0], [1.0, 2.0]]))
+  >>> geom # doctest: +ELLIPSIS
+  <shapely.geometry.multipoint.MultiPoint object at ...>
+  >>> len(geom.geoms)
+  2
+  >>> geom.wkt
+  'MULTIPOINT (0.0000000000000000 0.0000000000000000, 1.0000000000000000 2.0000000000000000)'
+
+From coordinate tuples
+
+  >>> geom = MultiPoint(((1.0, 2.0), (3.0, 4.0)))
+  >>> len(geom.geoms)
+  2
+  >>> geom.wkt
+  'MULTIPOINT (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)'
+
+From points
+
+  >>> geom = MultiPoint((Point(1.0, 2.0), Point(3.0, 4.0)))
+  >>> len(geom.geoms)
+  2
+  >>> print geom.wkt
+  MULTIPOINT (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)
+
+From another multi-point
+
+  >>> geom2 = MultiPoint(geom)
+  >>> len(geom2.geoms)
+  2
+  >>> print geom2.wkt
+  MULTIPOINT (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)
+
+
+Sub-geometry Access
+-------------------
+
+  >>> geom.geoms[0] # doctest: +ELLIPSIS
+  <shapely.geometry.point.Point object at ...>
+  >>> geom.geoms[0].x
+  1.0
+  >>> geom.geoms[0].y
+  2.0
+  >>> geom.geoms[2]
+  Traceback (most recent call last):
+  ...
+  IndexError: index out of range
+
+Geo interface
+-------------
+
+  >>> geom.__geo_interface__
+  {'type': 'MultiPoint', 'coordinates': ((1.0, 2.0), (3.0, 4.0))}
+
+  >>> array(geom)
+  array([[ 1.,  2.],
+         [ 3.,  4.]])
+
+Adapter
+-------
+
+  >>> from shapely.geometry import asMultiPoint
+
+  Adapt a Numpy array to a multipoint
+
+  >>> a = array([[1.0, 2.0], [3.0, 4.0]])
+  >>> geoma = asMultiPoint(a)
+  >>> geoma.context
+  array([[ 1.,  2.],
+         [ 3.,  4.]])
+
+  >>> geoma.wkt
+  'MULTIPOINT (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)'
+
+  Now, the inverse
+
+  >>> geoma.__array_interface__ == geoma.context.__array_interface__
+  True
+  >>> from numpy import asarray
+  >>> pas = asarray(geoma)
+  >>> pas
+  array([[ 1.,  2.],
+         [ 3.,  4.]])
+
+  Adapt a coordinate list to a line string
+
+  >>> coords = [[5.0, 6.0], [7.0, 8.0]]
+  >>> geoma = asMultiPoint(coords)
+  >>> geoma.wkt
+  'MULTIPOINT (5.0000000000000000 6.0000000000000000, 7.0000000000000000 8.0000000000000000)'
+  

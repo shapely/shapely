@@ -1,0 +1,4 @@
+#!/bin/sh
+#export PYTHONPATH=YOUR_CUSTOM_PATH
+valgrind --tool=memcheck --leak-check=yes --suppressions=valgrind-python.supp python test_doctests.py
+

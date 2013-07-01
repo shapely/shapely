@@ -1,0 +1,28 @@
+Test locale independence of WKT
+===============================
+
+Set locale to one that uses a comma as decimal seperator`
+
+  >>> import locale, sys
+  >>> if sys.platform == 'win32':
+  ...     _ = locale.setlocale(locale.LC_ALL, 'portuguese_brazil')
+  ... else:
+  ...     _ = locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+
+Test reading and writing`
+
+  >>> from shapely.wkt import loads
+  >>> p = loads('POINT (0.0 0.0)')
+  >>> p.x == 0.0
+  True
+  >>> p.y == 0.0
+  True
+  >>> p.wkt
+  'POINT (0.0...)'
+  >>> from shapely.wkt import dumps
+  >>> dumps(p)
+  'POINT (0.0...)'
+
+Reset locale
+
+  >>> _ = locale.setlocale(locale.LC_ALL, '')

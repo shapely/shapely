@@ -1,0 +1,35 @@
+Persistence tests
+=================
+
+Pickle
+------
+
+  >>> from shapely.geometry import Point
+  >>> import pickle
+  >>> p = Point(0.0, 0.0)
+  >>> data = pickle.dumps(p)
+  >>> q = pickle.loads(data)
+  >>> q.equals(p)
+  True
+
+WKB
+---
+
+  >>> from shapely import wkb
+  >>> bytes = wkb.dumps(p)
+  >>> pb = wkb.loads(bytes)
+  >>> pb.equals(p)
+  True
+
+WKT
+---
+
+  >>> from shapely import wkt
+  >>> text = wkt.dumps(p)
+  >>> text
+  'POINT (0.0000000000000000 0.0000000000000000)'
+  >>> pt = wkt.loads(text)
+  >>> pt.equals(p)
+  True
+
+

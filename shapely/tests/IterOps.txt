@@ -1,0 +1,31 @@
+Test operator iterations
+========================
+
+  >>> from shapely.geometry import Polygon
+  >>> from shapely.geometry import Point
+  >>> coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0))
+  >>> polygon = Polygon(coords)
+  >>> points = [Point(0.5, 0.5), Point(2.0, 2.0)]
+  
+  >>> from shapely import iterops
+  
+  List of the points contained by the polygon
+  >>> list(iterops.contains(polygon, points, True)) # doctest: +ELLIPSIS
+  [<shapely.geometry.point.Point object at ...>]
+
+  'True' is the default value
+  >>> list(iterops.contains(polygon, points)) # doctest: +ELLIPSIS
+  [<shapely.geometry.point.Point object at ...>]
+
+  Test a false value
+  >>> list(iterops.contains(polygon, points, False)) # doctest: +ELLIPSIS
+  [<shapely.geometry.point.Point object at ...>]
+
+  If the provided iterator yields tuples, the second value will be yielded
+  >>> list(iterops.contains(polygon, [(p, p.wkt) for p in points], False))
+  ['POINT (2.0000000000000000 2.0000000000000000)']
+
+  Just to demonstrate that the important thing is that the second parameter
+  is an iterator:
+  >>> list(iterops.contains(polygon, iter((p, p.wkt) for p in points)))
+  ['POINT (0.5000000000000000 0.5000000000000000)']

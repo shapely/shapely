@@ -1,0 +1,148 @@
+Testing Point
+=============
+
+  >>> from shapely.geometry import Point
+
+Test 2D points
+
+  >>> p = Point(0.0, 0.0)
+  >>> str(p)
+  'POINT (0.0000000000000000 0.0000000000000000)'
+  >>> p.wkt
+  'POINT (0.0000000000000000 0.0000000000000000)'
+    
+Check 3D
+
+  >>> p = Point(0.0, 0.0, 1.0)
+  >>> p.z
+  1.0
+  >>> str(p)
+  'POINT (0.0000000000000000 0.0000000000000000)'
+  >>> p.wkt
+  'POINT (0.0000000000000000 0.0000000000000000)'
+
+Construct from a numpy array
+
+  >>> from numpy import array
+  >>> p = Point(array([1.0, 2.0]))
+  >>> p.wkt
+  'POINT (1.0000000000000000 2.0000000000000000)'
+
+From coordinate sequence
+
+  >>> p = Point((3.0, 4.0))
+  >>> p.wkt
+  'POINT (3.0000000000000000 4.0000000000000000)'
+
+From another point
+
+  >>> q = Point(p)
+  >>> print p.wkt
+  POINT (3.0000000000000000 4.0000000000000000)
+
+Coordinate access
+-----------------
+
+  >>> p.x
+  3.0
+  >>> p.y
+  4.0
+
+  >>> tuple(p.coords)
+  ((3.0, 4.0),)
+
+  >>> p.coords[0]
+  (3.0, 4.0)
+  >>> p.coords[1] # doctest: +ELLIPSIS
+  Traceback (most recent call last):
+  ...
+  IndexError: index out of range
+
+Bounds
+------
+
+  >>> p.bounds
+  (3.0, 4.0, 3.0, 4.0)
+
+Geo interface
+-------------
+
+  >>> p.__geo_interface__
+  {'type': 'Point', 'coordinates': (3.0, 4.0)}
+
+
+Modify coordinates
+------------------
+
+  >>> p.coords = (0.0, 0.0)
+  >>> p.__geo_interface__
+  {'type': 'Point', 'coordinates': (0.0, 0.0)}
+
+Alternate method
+
+  >>> p.coords = ((0.0, 0.0),)
+  >>> p.__geo_interface__
+  {'type': 'Point', 'coordinates': (0.0, 0.0)}
+
+Adapter
+-------
+
+  >>> from shapely.geometry import asPoint
+
+  Adapt a Numpy array to a point
+
+  >>> a = array([1.0, 2.0])
+  >>> pa = asPoint(a)
+  >>> pa.context
+  array([ 1.,  2.])
+  >>> pa.wkt
+  'POINT (1.0000000000000000 2.0000000000000000)'
+
+  Now, the inverse
+
+  >>> pa.__array_interface__ == pa.context.__array_interface__
+  True
+  >>> from numpy import asarray
+  >>> pas = asarray(pa)
+  >>> pas
+  array([ 1.,  2.])
+
+  Adapt a coordinate list to a point
+
+  >>> coords = [3.0, 4.0]
+  >>> pa = asPoint(coords)
+  >>> pa.wkt
+  'POINT (3.0000000000000000 4.0000000000000000)'
+  >>> pa.distance(p)
+  5.0
+  
+  Move the coordinates and watch the distance change
+
+  >>> coords[0] = 1.0
+  >>> pa.wkt
+  'POINT (1.0000000000000000 4.0000000000000000)'
+  >>> '%.10f' % pa.distance(p)
+  '4.1231056256'
+
+  Now, the inverse
+  
+  >>> ai = pa.__array_interface__
+  >>> pas = asarray(pa)
+  >>> pas
+  array([ 1.,  4.])
+
+Test Non-operability of Null geometry
+
+  >>> p_null = Point()
+  >>> p_null.wkt # doctest: +ELLIPSIS
+  'GEOMETRYCOLLECTION EMPTY'
+
+  >>> p_null.area # doctest: +ELLIPSIS
+  0.0
+
+Check that we can set coordinates of a null geometry
+
+  >>> p_null.coords = (0, 0)
+  >>> p_null.wkt
+  'POINT (0.0000000000000000 0.0000000000000000)'
+

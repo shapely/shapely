@@ -1,0 +1,51 @@
+Test GEOS predicates
+====================
+
+  >>> from shapely.geometry import Point
+  >>> point = Point(0.0, 0.0)
+
+Binary Predicates
+-----------------
+
+  >>> point.disjoint(Point(-1.0, -1.0))
+  True
+
+  >>> point.touches(Point(-1.0, -1.0))
+  False
+
+  >>> point.crosses(Point(-1.0, -1.0))
+  False
+
+  >>> point.within(Point(-1.0, -1.0))
+  False
+
+  >>> point.contains(Point(-1.0, -1.0))
+  False
+
+  >>> point.overlaps(Point(-1.0, -1.0))
+  False
+
+  >>> point.equals(Point(-1.0, -1.0))
+  False
+
+  >>> point.equals(Point(0.0, 0.0))
+  True
+
+Unary Predicates
+----------------
+
+  >>> point.is_empty
+  False
+
+  >>> point.is_valid
+  True
+  
+  >>> point.is_simple
+  True
+
+  >>> point.is_ring
+  False
+
+  >>> point.has_z
+  False
+
