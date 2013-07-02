@@ -381,7 +381,12 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
             
     except AttributeError:
         # Fall back on list
-        m = len(ob)
+        try:
+            m = len(ob)
+        except TypeError:  # Iterators, e.g. Python 3 zip
+            ob = list(ob)
+            m = len(ob)
+
         n = len(ob[0])
         if m < 3:
             raise ValueError(

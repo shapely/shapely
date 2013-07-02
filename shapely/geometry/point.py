@@ -205,6 +205,9 @@ def geos_point_from_py(ob, update_geom=None, update_ndim=0):
     except AttributeError:
         # Fall back on the case of Python sequence data
         # Accept either (x, y) or [(x, y)]
+        if not hasattr(ob, '__getitem__'):  # Iterators, e.g. Python 3 zip
+            ob = list(ob)
+
         if type(ob[0]) == type(tuple()):
             coords = ob[0]
         else:
