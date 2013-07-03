@@ -15,5 +15,4 @@ Test operators
   True
 
   >>> point.symmetric_difference(point2).equals(point ^ point2)
-  False
-
+  True
