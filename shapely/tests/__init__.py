@@ -5,7 +5,7 @@ from . import test_doctests, test_prepared, test_equality, test_geomseq, \
     test_validation, test_mapping, test_delegated, test_dlls, \
     test_linear_referencing, test_products_z, test_box, test_speedups, \
     test_cga, test_getitem, test_unary_union, test_pickle, test_affinity, \
-    test_transform
+    test_transform, test_invalid_geometries
 
 try:
     import numpy
@@ -39,5 +39,6 @@ def test_suite():
     suite.addTest(test_pickle.test_suite())
     suite.addTest(test_affinity.test_suite())
     suite.addTest(test_transform.test_suite())
+    suite.addTest(test_invalid_geometries.test_suite())
     return suite
 

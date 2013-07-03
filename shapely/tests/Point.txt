@@ -67,22 +67,23 @@ Bounds
 Geo interface
 -------------
 
-  >>> p.__geo_interface__
-  {'type': 'Point', 'coordinates': (3.0, 4.0)}
+  >>> from pprint import pprint
+  >>> pprint(p.__geo_interface__)
+  {'coordinates': (3.0, 4.0), 'type': 'Point'}
 
 
 Modify coordinates
 ------------------
 
   >>> p.coords = (0.0, 0.0)
-  >>> p.__geo_interface__
-  {'type': 'Point', 'coordinates': (0.0, 0.0)}
+  >>> pprint(p.__geo_interface__)
+  {'coordinates': (0.0, 0.0), 'type': 'Point'}
 
 Alternate method
 
   >>> p.coords = ((0.0, 0.0),)
-  >>> p.__geo_interface__
-  {'type': 'Point', 'coordinates': (0.0, 0.0)}
+  >>> pprint(p.__geo_interface__)
+  {'coordinates': (0.0, 0.0), 'type': 'Point'}
 
 Adapter
 -------

@@ -73,16 +73,17 @@ Coordinate Access
 Geo interface
 -------------
 
-    >>> line.__geo_interface__
-    {'type': 'LineString', 'coordinates': ((1.0, 2.0), (3.0, 4.0))}
+    >>> from pprint import pprint
+    >>> pprint(line.__geo_interface__)
+    {'coordinates': ((1.0, 2.0), (3.0, 4.0)), 'type': 'LineString'}
 
 
 Coordinate modification
 -----------------------
 
     >>> line.coords = ((-1.0, -1.0), (1.0, 1.0))
-    >>> line.__geo_interface__
-    {'type': 'LineString', 'coordinates': ((-1.0, -1.0), (1.0, 1.0))}
+    >>> pprint(line.__geo_interface__)
+    {'coordinates': ((-1.0, -1.0), (1.0, 1.0)), 'type': 'LineString'}
 
 
 Adapter

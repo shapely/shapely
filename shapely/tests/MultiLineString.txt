@@ -60,8 +60,9 @@ Sub-geometry Access
 Geo interface
 -------------
 
-  >>> geom.__geo_interface__
-  {'type': 'MultiLineString', 'coordinates': (((0.0, 0.0), (1.0, 2.0)),)}
+  >>> from pprint import pprint
+  >>> pprint(geom.__geo_interface__)
+  {'coordinates': (((0.0, 0.0), (1.0, 2.0)),), 'type': 'MultiLineString'}
 
 Adapter
 -------
