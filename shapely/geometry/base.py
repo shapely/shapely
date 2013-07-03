@@ -166,6 +166,21 @@ class BaseGeometry(object):
         self.__geom__ = val
     _geom = property(_get_geom, _set_geom)
 
+    # Operators
+    # ---------
+
+    def __and__(self, other):
+        return self.intersection(other)
+
+    def __or__(self, other):
+        return self.union(other)
+
+    def __sub__(self, other):
+        return self.difference(other)
+
+    def __xor__(self, other):
+        return self.symmetric_difference(other)
+
     # Array and ctypes interfaces
     # ---------------------------
 
