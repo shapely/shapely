@@ -180,9 +180,14 @@ def errcheck_wkb(result, func, argtuple):
     return retval
 
 def errcheck_just_free(result, func, argtuple):
+    '''Returns Python str from an allocated_c_char_p C type'''
     retval = string_at(result)
     lgeos.GEOSFree(result)
-    return retval
+    if sys.version_info[0] >= 3:
+        return retval.decode('ascii')
+    else:
+        return retval
+
 
 def errcheck_predicate(result, func, argtuple):
     if result == 2:

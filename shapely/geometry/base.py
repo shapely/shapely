@@ -64,12 +64,7 @@ def geom_from_wkt(data):
 def geom_to_wkt(ob):
     if ob is None or ob._geom is None:
         raise ValueError("Null geometry supports no operations")
-    wkt = lgeos.GEOSGeomToWKT(ob._geom)
-    if sys.version_info[0] < 3:
-        return wkt
-    else:
-        return wkt.decode('ascii')
-
+    return lgeos.GEOSGeomToWKT(ob._geom)
 
 def deserialize_wkb(data):
     geom = lgeos.GEOSGeomFromWKB_buf(c_char_p(data), c_size_t(len(data)));
@@ -422,11 +417,7 @@ class BaseGeometry(object):
     def relate(self, other):
         """Returns the DE-9IM intersection matrix for the two geometries
         (string)"""
-        r = self.impl['relate'](self, other)
-        if sys.version_info[0] < 3:
-            return r
-        else:
-            return r.decode('ascii')
+        return self.impl['relate'](self, other)
 
     def contains(self, other):
         """Returns True if the geometry contains the other, else False"""
