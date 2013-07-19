@@ -286,3 +286,7 @@ def prototype(lgeos, geosVersion):
     if geosVersion >= (1, 6, 3):
         lgeos.GEOSUnaryUnion.restype = ctypes.c_void_p
         lgeos.GEOSUnaryUnion.argtypes = [ctypes.c_void_p]
+    
+        lgeos.GEOSPolygonize_full.restype = ctypes.c_void_p
+        lgeos.GEOSPolygonize_full.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
+
