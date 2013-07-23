@@ -9,7 +9,7 @@ from shapely.geometry.base import geom_factory, BaseGeometry
 from shapely.geometry import asShape, asLineString, asMultiLineString
 
 __all__= ['cascaded_union', 'linemerge', 'operator', 'polygonize', 
-          'polygonize_full','unary_union']
+          'polygonize_full', 'transform', 'unary_union']
 
 class CollectionOperator(object):
 
@@ -68,7 +68,8 @@ class CollectionOperator(object):
         dangles = c_void_p()
         cuts = c_void_p()
         invalids = c_void_p()
-        product = lgeos.GEOSPolygonize_full(collection, byref(dangles), byref(cuts), byref(invalids))
+        product = lgeos.GEOSPolygonize_full(
+            collection, byref(dangles), byref(cuts), byref(invalids))
         return (
             geom_factory(product),
             geom_factory(dangles),

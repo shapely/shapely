@@ -161,9 +161,8 @@ Instances of `Point`, `LineString`, and `LinearRing` have as their most
 important attribute a finite sequence of coordinates that determines their
 interior, boundary, and exterior point sets. A line string can be determined by
 as few as 2 points, but contains an infinite number of points. Coordinate
-sequences are immutable. Their parent features are mutable in that they can be
-assigned new coordinate sequences. A third `z` coordinate value may be used
-when constructing instances, but has no effect on geometric analysis.  All
+sequences are immutable. A third `z` coordinate value may be used when
+constructing instances, but has no effect on geometric analysis.  All
 operations are performed in the `x-y` plane.
 
 In all constructors, numeric values are converted to type ``float``. In other
@@ -1746,6 +1745,57 @@ preserved or supported by 3D affine transformations.
     \end{bmatrix}
 
 
+Other Transformations
+=====================
+
+Shapely supports map projections and other arbitrary transformations of geometric objects.
+
+.. function:: shapely.ops.transform(func, geom)
+  
+  Applies `func` to all coordinates of `geom` and returns a new 
+  geometry of the same type from the transformed coordinates.
+  
+  `func` maps x, y, and optionally z to output xp, yp, zp. The input
+  parameters may iterable types like lists or arrays or single values.
+  The output shall be of the same type: scalars in, scalars out;
+  lists in, lists out.
+  
+  `New in version 1.2.18`.
+
+For example, here is an identity function applicable to both types of input
+(scalar or array).
+
+.. sourcecode:: python
+
+    def id_func(x, y, z=None):
+        return tuple(filter(None, [x, y, z]))
+    
+    g2 = transform(id_func, g1)
+
+A partially applied transform function from pyproj satisfies the requirements
+for `func`.
+
+.. sourcecode:: python
+
+    from functools import partial
+    import pyproj
+
+    project = partial(
+        pyproj.transform, 
+        pyproj.Proj(init='espg:4326'), 
+        pyproj.Proj(init='epsg:26913'))
+
+    g2 = transform(project, g1)
+  
+Lambda expressions such as the one in
+
+.. sourcecode:: python
+
+    g2 = transform(lambda x, y, z=None: (x+1.0, y+1.0), g1)
+
+also satisfy the requirements for `func`.
+
+
 Other Operations
 ================
 
@@ -1762,7 +1812,7 @@ using functions in the :mod:`shapely.ops` module.
   As with the :class:`MultiLineString` constructor, the input elements may be
   any line-like object.
 
-  .. sourcecode:: python
+  .. sourcecode:: pycon
 
     >>> from shapely.ops import polygonize
     >>> lines = [
@@ -1776,6 +1826,43 @@ using functions in the :mod:`shapely.ops` module.
     [<shapely.geometry.polygon.Polygon object at 0x...>,
      <shapely.geometry.polygon.Polygon object at 0x...>]
 
+.. function:: shapely.ops.polygonize_full(lines)
+
+  Creates polygons from a source of lines, returning the polygons
+  and leftover geometries.
+  
+  The source may be a MultiLineString, a sequence of LineString objects,
+  or a sequence of objects than can be adapted to LineStrings.
+  
+  Returns a tuple of objects: (polygons, dangles, cut edges, invalid ring
+  lines). Each are a geometry collection.
+  
+  Dangles are edges which have one or both ends which are not incident on
+  another edge endpoint. Cut edges are connected at both ends but do not
+  form part of polygon. Invalid ring lines form rings which are invalid
+  (bowties, etc).
+  
+  `New in version 1.2.18.`
+
+  .. sourcecode:: pycon
+
+    >>> lines = [
+    ...     ((0, 0), (1, 1)),
+    ...     ((0, 0), (0, 1)),
+    ...     ((0, 1), (1, 1)),
+    ...     ((1, 1), (1, 0)),
+    ...     ((1, 0), (0, 0)),
+    ...     ((5, 5), (6, 6)),
+    ...     ((1, 1), (100, 100)),
+    ...     ]
+    >>> result, dangles, cuts, invalids = polygonize_full(lines)
+    >>> len(result)
+    2
+    >>> list(result.geoms)
+    [<shapely.geometry.polygon.Polygon object at ...>, <shapely.geometry.polygon.Polygon object at ...>]
+    >>> list(cuts.geoms)
+    [<shapely.geometry.linestring.LineString object at ...>, <shapely.geometry.linestring.LineString object at ...>]
+
 .. function:: shapely.ops.linemerge(lines)
 
   Returns a `LineString` or `MultiLineString` representing the merger of all
@@ -1784,7 +1871,7 @@ using functions in the :mod:`shapely.ops` module.
   As with :func:`shapely.ops.polygonize`, the input elements may be any
   line-like object.
 
-  .. sourcecode:: python
+.. sourcecode:: python
 
     >>> from shapely.ops import linemerge
     >>> linemerge(lines)
