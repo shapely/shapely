@@ -8,10 +8,13 @@ python:
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -qq libgeos-dev
+  - sudo apt-get install -qq libgeos-c1
   - pip install cython numpy
 
 install:
   - python setup.py build
 
 script: "python setup.py test"
+
+notifications:
+    email: false
