@@ -779,9 +779,7 @@ point at a given distance along the object.
 
 .. note::
 
-  Linear referencing methods require the support of GEOS version >= 3.2 or more
-  specifically, a GEOS C API version > (1, 6, 0). This version tuple is
-  surfaced in Shapely as :data:`shapely.geos.geos_capi_version`.
+  Linear referencing methods require GEOS 3.2.0 or later.
 
 .. method:: object.interpolate(distance[, normalized=False])
 
@@ -1892,12 +1890,12 @@ accessible via :attr:`shapely.__version__`,
 
   >>> import shapely
   >>> shapely.__version__
-  '1.2.16'
+  '1.3.0'
   >>> import shapely.geos
+  >>> shapely.geos.geos_version
+  (3, 3, 0)
   >>> shapely.geos.geos_version_string
   '3.3.0-CAPI-1.7.0'
-  >>> shapely.geos.geos_capi_version
-  (1, 7, 0)
 
 
 Interoperation

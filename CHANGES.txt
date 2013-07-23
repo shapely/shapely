@@ -1,6 +1,13 @@
 Changes
 =======
 
+1.3.0 (Coming soon)
+-------------------
+- Include support for Python 3.2 and 3.3 (#56), minimum version is now 2.6.
+- Replace setuptools with distutils for setup.
+- Use GEOS version instead of GEOS C API version to determine library
+  capabilities (#65).
+
 1.2.18 (Coming Soon)
 --------------------
 - Add shapely.ops.transform.

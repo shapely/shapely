@@ -1,5 +1,7 @@
-# Prototyping of libgeos_c functions, now using a function written by
-# `tartley`: http://trac.gispython.org/lab/ticket/189
+'''Prototyping of the GEOS C API
+
+See header file: geos-x.y.z/capi/geos_c.h
+'''
 
 from ctypes import CFUNCTYPE, POINTER, c_void_p, c_char_p, \
     c_size_t, c_byte, c_char, c_uint, c_int, c_double
@@ -11,7 +13,11 @@ class allocated_c_char_p(c_char_p):
 EXCEPTION_HANDLER_FUNCTYPE = CFUNCTYPE(None, c_char_p, c_char_p)
 
 
-def prototype(lgeos, geosVersion):
+def prototype(lgeos, geos_version):
+    '''Protype functions in geos_c.h for different version of GEOS
+
+    Use the GEOS version, not the C API version.
+    '''
 
     lgeos.initGEOS.restype = None
     lgeos.initGEOS.argtypes = [EXCEPTION_HANDLER_FUNCTYPE, EXCEPTION_HANDLER_FUNCTYPE]
@@ -229,13 +235,13 @@ def prototype(lgeos, geosVersion):
     lgeos.GEOSDistance.restype = c_int
     lgeos.GEOSDistance.argtypes = [c_void_p, c_void_p, c_void_p]
 
-    if geosVersion >= (1, 5, 0):
+    if geos_version >= (3, 1, 1):
+        lgeos.GEOSFree.restype = None
+        lgeos.GEOSFree.argtypes = [c_void_p]
 
-        if hasattr(lgeos, 'GEOSFree'):
-            lgeos.GEOSFree.restype = None
-            lgeos.GEOSFree.argtypes = [c_void_p]
+    if geos_version >= (3, 1, 0):
 
-        # Prepared geometry, GEOS C API 1.5.0+
+        # Prepared geometry, GEOS 3.1.0
         lgeos.GEOSPrepare.restype = c_void_p
         lgeos.GEOSPrepare.argtypes = [c_void_p]
 
@@ -257,32 +263,28 @@ def prototype(lgeos, geosVersion):
         lgeos.GEOSisValidReason.restype = allocated_c_char_p
         lgeos.GEOSisValidReason.argtypes = [c_void_p]
 
-    # Other, GEOS C API 1.5.0+
-    if geosVersion >= (1, 5, 0):
+    # Other, GEOS 3.1.0
+    if geos_version >= (3, 1, 0):
         lgeos.GEOSUnionCascaded.restype = c_void_p
         lgeos.GEOSUnionCascaded.argtypes = [c_void_p]
 
-    # 1.6.0
-    if geosVersion >= (1, 6, 0):
-        # Linear referencing features aren't found in versions 1.5,
-        # but not in all libs versioned 1.6.0 either!
-        if hasattr(lgeos, 'GEOSProject'):
-            lgeos.GEOSSingleSidedBuffer.restype = c_void_p
-            lgeos.GEOSSingleSidedBuffer.argtypes = [c_void_p, c_double, c_int, c_int, c_double, c_int]
+    # 3.2.0
+    if geos_version >= (3, 2, 0):
+        lgeos.GEOSSingleSidedBuffer.restype = c_void_p
+        lgeos.GEOSSingleSidedBuffer.argtypes = [c_void_p, c_double, c_int, c_int, c_double, c_int]
 
-            lgeos.GEOSProject.restype = c_double
-            lgeos.GEOSProject.argtypes = [c_void_p, c_void_p]
+        lgeos.GEOSProject.restype = c_double
+        lgeos.GEOSProject.argtypes = [c_void_p, c_void_p]
 
-            lgeos.GEOSProjectNormalized.restype = c_double
-            lgeos.GEOSProjectNormalized.argtypes = [c_void_p, c_void_p]
+        lgeos.GEOSProjectNormalized.restype = c_double
+        lgeos.GEOSProjectNormalized.argtypes = [c_void_p, c_void_p]
 
-            lgeos.GEOSInterpolate.restype = c_void_p
-            lgeos.GEOSInterpolate.argtypes = [c_void_p, c_double]
+        lgeos.GEOSInterpolate.restype = c_void_p
+        lgeos.GEOSInterpolate.argtypes = [c_void_p, c_double]
 
-            lgeos.GEOSInterpolateNormalized.restype = c_void_p
-            lgeos.GEOSInterpolateNormalized.argtypes = [c_void_p, c_double]
+        lgeos.GEOSInterpolateNormalized.restype = c_void_p
+        lgeos.GEOSInterpolateNormalized.argtypes = [c_void_p, c_double]
 
-    # TODO: Find out what version of geos_c came with geos 3.3.0
-    if geosVersion >= (1, 6, 3):
+    if geos_version >= (3, 3, 0):
         lgeos.GEOSUnaryUnion.restype = c_void_p
         lgeos.GEOSUnaryUnion.argtypes = [c_void_p]

@@ -48,7 +48,7 @@ class GEOSImpl(BaseImpl):
         return '<GEOSImpl object: GEOS C API version %s>' % (
             lgeos.geos_capi_version,)
 
-IMPL14 = {
+IMPL300 = {
     'area': (UnaryRealProperty, 'area'),
     'distance': (BinaryRealProperty, 'distance'),
     'length': (UnaryRealProperty, 'length'),
@@ -87,7 +87,7 @@ IMPL14 = {
     'is_ccw': (cga.is_ccw_impl, 'is_ccw'),
     }
 
-IMPL15 = {
+IMPL310 = {
     'simplify': (UnaryTopologicalOp, 'simplify'),
     'topology_preserve_simplify': 
         (UnaryTopologicalOp, 'topology_preserve_simplify'),
@@ -98,10 +98,10 @@ IMPL15 = {
     'prepared_covers': (BinaryPredicate, 'prepared_covers'),
     }
 
-IMPL16 = {
+IMPL311 = {
     }
 
-IMPL16LR = {
+IMPL320 = {
 	'parallel_offset': (UnaryTopologicalOp, 'parallel_offset'),
 	'project_normalized': (ProjectOp, 'project_normalized'),
     'project': (ProjectOp, 'project'),
@@ -112,12 +112,12 @@ IMPL16LR = {
 def impl_items(defs):
     return [(k, v[0](v[1])) for k, v in list(defs.items())]
 
-imp = GEOSImpl(dict(impl_items(IMPL14)))
-if lgeos.geos_capi_version >= (1, 5, 0):
-    imp.update(impl_items(IMPL15))
-if lgeos.geos_capi_version >= (1, 6, 0):
-    imp.update(impl_items(IMPL16))
-    if 'project' in lgeos.methods:
-        imp.update(impl_items(IMPL16LR))
+imp = GEOSImpl(dict(impl_items(IMPL300)))
+if lgeos.geos_version >= (3, 1, 0):
+    imp.update(impl_items(IMPL310))
+if lgeos.geos_version >= (3, 1, 1):
+    imp.update(impl_items(IMPL311))
+if lgeos.geos_version >= (3, 2, 0):
+    imp.update(impl_items(IMPL320))
 
 DefaultImplementation = imp

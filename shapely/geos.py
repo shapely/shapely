@@ -3,6 +3,7 @@ Proxies for the libgeos_c shared lib, GEOS-specific exceptions, and utilities
 """
 
 import os
+import re
 import sys
 import atexit
 import ctypes
@@ -90,33 +91,34 @@ else: # other *nix systems
     free.argtypes = [c_void_p]
     free.restype = None
 
-def _geos_c_version():
-    func = _lgeos.GEOSversion
-    func.argtypes = []
-    func.restype = c_char_p
-    v = func()
+def _geos_version():
+    # extern const char GEOS_DLL *GEOSversion();
+    GEOSversion = _lgeos.GEOSversion
+    GEOSversion.restype = c_char_p
+    GEOSversion.argtypes = []
+    #define GEOS_CAPI_VERSION "@VERSION@-CAPI-@CAPI_VERSION@"
+    geos_version_string = GEOSversion()
     if sys.version_info[0] >= 3:
-        v = v.decode('ascii')
-    c_ver = v.split('-')[2]
-    # Ditch any SVN revision numbering that may have crept in without (ftm)
-    # importing `re`.
-    c_ver = c_ver.split()[0]
-    return tuple(int(n) for n in c_ver.split('.')), v
+        geos_version_string = geos_version_string.decode('ascii')
+    res = re.findall(r'(\d+)\.(\d+)\.(\d+)', geos_version_string)
+    assert len(res) == 2, res
+    geos_version = tuple(int(x) for x in res[0])
+    capi_version = tuple(int(x) for x in res[1])
+    return geos_version_string, geos_version, capi_version
 
-geos_capi_version, geos_version_string = _geos_c_version()
-geos_c_version = geos_capi_version
+geos_version_string, geos_version, geos_capi_version = _geos_version()
 
 # If we have the new interface, then record a baseline so that we know what
 # additional functions are declared in ctypes_declarations.
-if geos_c_version >= (1,5,0):
+if geos_version >= (3, 1, 0):
     start_set = set(_lgeos.__dict__)
 
 # Apply prototypes for the libgeos_c functions
-prototype(_lgeos, geos_c_version)
+prototype(_lgeos, geos_version)
 
 # If we have the new interface, automatically detect all function
 # declarations, and declare their re-entrant counterpart.
-if geos_c_version >= (1,5,0):
+if geos_version >= (3, 1, 0):
     end_set = set(_lgeos.__dict__)
     new_func_names = end_set - start_set
 
@@ -196,7 +198,7 @@ def errcheck_predicate(result, func, argtuple):
 
 
 class LGEOSBase(threading.local):
-    """Proxy for the GEOS_C DLL/SO
+    """Proxy for GEOS C API
 
     This is a base class. Do not instantiate.
     """
@@ -206,12 +208,13 @@ class LGEOSBase(threading.local):
         self.geos_handle = None
 
 
-class LGEOS14(LGEOSBase):
-    """Proxy for the GEOS_C DLL/SO API version 1.4
+class LGEOS300(LGEOSBase):
+    """Proxy for GEOS 3.0.0-CAPI-1.4.1
     """
+    geos_version = (3, 0, 0)
     geos_capi_version = (1, 4, 0)
     def __init__(self, dll):
-        super(LGEOS14, self).__init__(dll)
+        super(LGEOS300, self).__init__(dll)
         self.geos_handle = self._lgeos.initGEOS(notice_h, error_h)
         keys = list(self._lgeos.__dict__.keys())
         for key in keys:
@@ -271,12 +274,13 @@ class LGEOS14(LGEOSBase):
         self.methods['cascaded_union'] = self.GEOSUnionCascaded
 
 
-class LGEOS15(LGEOSBase):
-    """Proxy for the reentrant GEOS_C DLL/SO API version 1.5
+class LGEOS310(LGEOSBase):
+    """Proxy for GEOS 3.1.0-CAPI-1.5.0
     """
+    geos_version = (3, 1, 0)
     geos_capi_version = (1, 5, 0)
     def __init__(self, dll):
-        super(LGEOS15, self).__init__(dll)
+        super(LGEOS310, self).__init__(dll)
         self.geos_handle = self._lgeos.initGEOS_r(notice_h, error_h)
         keys = list(self._lgeos.__dict__.keys())
         for key in [x for x in keys if not x.endswith('_r')]:
@@ -350,21 +354,22 @@ class LGEOS15(LGEOSBase):
         self.methods['cascaded_union'] = self.GEOSUnionCascaded
 
 
-class LGEOS16(LGEOS15):
-    """Proxy for the reentrant GEOS_C DLL/SO API version 1.6
+class LGEOS311(LGEOS310):
+    """Proxy for GEOS 3.1.1-CAPI-1.6.0
     """
+    geos_version = (3, 1, 1)
     geos_capi_version = (1, 6, 0)
     def __init__(self, dll):
-        super(LGEOS16, self).__init__(dll)
+        super(LGEOS311, self).__init__(dll)
 
 
-class LGEOS16LR(LGEOS16):
-    """Proxy for the reentrant GEOS_C DLL/SO API version 1.6 with linear
-    referencing
+class LGEOS320(LGEOS311):
+    """Proxy for GEOS 3.2.0-CAPI-1.6.0
     """
-    geos_capi_version = geos_c_version
+    geos_version = (3, 2, 0)
+    geos_capi_version = (1, 6, 0)
     def __init__(self, dll):
-        super(LGEOS16LR, self).__init__(dll)
+        super(LGEOS320, self).__init__(dll)
 
         self.methods['parallel_offset'] = self.GEOSSingleSidedBuffer
         self.methods['project'] = self.GEOSProject
@@ -374,28 +379,28 @@ class LGEOS16LR(LGEOS16):
             self.GEOSInterpolateNormalized
 
 
-class LGEOS17(LGEOS16LR):
-    """Proxy for the reentrant GEOS_C DLL/SO API version 1.7
+class LGEOS330(LGEOS320):
+    """Proxy for GEOS 3.3.0-CAPI-1.7.0
     """
+    geos_version = (3, 3, 0)
     geos_capi_version = (1, 7, 0)
     def __init__(self, dll):
-        super(LGEOS17, self).__init__(dll)
+        super(LGEOS330, self).__init__(dll)
 
         self.methods['unary_union'] = self.GEOSUnaryUnion
         self.methods['cascaded_union'] = self.methods['unary_union']
 
 
-if geos_c_version >= (1, 7, 0):
-    L = LGEOS17
-elif geos_c_version >= (1, 6, 0):
-    if hasattr(_lgeos, 'GEOSProject'):
-        L = LGEOS16LR
-    else:
-        L = LGEOS16
-elif geos_c_version >= (1, 5, 0):
-        L = LGEOS15
+if geos_version >= (3, 3, 0):
+    L = LGEOS330
+elif geos_version >= (3, 2, 0):
+    L = LGEOS320
+elif geos_version >= (3, 1, 1):
+    L = LGEOS311
+elif geos_version >= (3, 1, 0):
+    L = LGEOS310
 else:
-        L = LGEOS14
+    L = LGEOS300
 
 lgeos = L(_lgeos)
 
