@@ -350,6 +350,8 @@ class LGEOS16(LGEOS15):
     def __init__(self, dll):
         super(LGEOS16, self).__init__(dll)
 
+        self.methods['buffer_with_style'] = self.GEOSBufferWithStyle
+
 
 class LGEOS16LR(LGEOS16):
     """Proxy for the reentrant GEOS_C DLL/SO API version 1.6 with linear
