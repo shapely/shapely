@@ -170,9 +170,10 @@ def cleanup():
 
 atexit.register(cleanup)
 
-# Errcheck functions
+# Errcheck functions for ctypes
 
 def errcheck_wkb(result, func, argtuple):
+    '''Returns bytes from a C pointer'''
     if not result:
         return None
     size_ref = argtuple[-1]
@@ -182,14 +183,13 @@ def errcheck_wkb(result, func, argtuple):
     return retval
 
 def errcheck_just_free(result, func, argtuple):
-    '''Returns Python str from an allocated_c_char_p C type'''
+    '''Returns string from a C pointer'''
     retval = string_at(result)
     lgeos.GEOSFree(result)
     if sys.version_info[0] >= 3:
         return retval.decode('ascii')
     else:
         return retval
-
 
 def errcheck_predicate(result, func, argtuple):
     if result == 2:
@@ -271,7 +271,6 @@ class LGEOS300(LGEOSBase):
         self.methods['simplify'] = self.GEOSSimplify
         self.methods['topology_preserve_simplify'] = \
             self.GEOSTopologyPreserveSimplify
-        self.methods['cascaded_union'] = self.GEOSUnionCascaded
 
 
 class LGEOS310(LGEOSBase):
@@ -292,6 +291,7 @@ class LGEOS310(LGEOSBase):
             else:
                 setattr(self, key, getattr(self._lgeos, key))
         if not hasattr(self, 'GEOSFree'):
+            # GEOS < 3.1.1
             self.GEOSFree = self._lgeos.free
         self.GEOSGeomToWKB_buf.func.errcheck = errcheck_wkb
         self.GEOSGeomToWKT.func.errcheck = errcheck_just_free

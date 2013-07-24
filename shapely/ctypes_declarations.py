@@ -19,6 +19,10 @@ def prototype(lgeos, geos_version):
     Use the GEOS version, not the C API version.
     '''
 
+    '''
+    Initialization, cleanup, version
+    '''
+
     lgeos.initGEOS.restype = None
     lgeos.initGEOS.argtypes = [EXCEPTION_HANDLER_FUNCTYPE, EXCEPTION_HANDLER_FUNCTYPE]
 
@@ -27,6 +31,11 @@ def prototype(lgeos, geos_version):
 
     lgeos.GEOSversion.restype = c_char_p
     lgeos.GEOSversion.argtypes = []
+
+    '''
+    NOTE - These functions are DEPRECATED.  Please use the new Reader and
+    writer APIS!
+    '''
 
     lgeos.GEOSGeomFromWKT.restype = c_void_p
     lgeos.GEOSGeomFromWKT.argtypes = [c_char_p]
@@ -42,6 +51,10 @@ def prototype(lgeos, geos_version):
 
     lgeos.GEOSGeomToWKB_buf.restype = allocated_c_char_p
     lgeos.GEOSGeomToWKB_buf.argtypes = [c_void_p, POINTER(c_size_t)]
+
+    '''
+    Coordinate sequence
+    '''
 
     lgeos.GEOSCoordSeq_create.restype = c_void_p
     lgeos.GEOSCoordSeq_create.argtypes = [c_uint, c_uint]
@@ -79,6 +92,40 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSCoordSeq_getDimensions.restype = c_int
     lgeos.GEOSCoordSeq_getDimensions.argtypes = [c_void_p, c_void_p]
 
+    '''
+    Linear refeferencing
+    '''
+
+    if geos_version >= (3, 2, 0):
+
+        lgeos.GEOSProject.restype = c_double
+        lgeos.GEOSProject.argtypes = [c_void_p, c_void_p]
+
+        lgeos.GEOSInterpolate.restype = c_void_p
+        lgeos.GEOSInterpolate.argtypes = [c_void_p, c_double]
+
+        lgeos.GEOSProjectNormalized.restype = c_double
+        lgeos.GEOSProjectNormalized.argtypes = [c_void_p, c_void_p]
+
+        lgeos.GEOSInterpolateNormalized.restype = c_void_p
+        lgeos.GEOSInterpolateNormalized.argtypes = [c_void_p, c_double]
+
+    '''
+    Buffer related
+    '''
+
+    lgeos.GEOSBuffer.restype = c_void_p
+    lgeos.GEOSBuffer.argtypes = [c_void_p, c_double, c_int]
+
+    if geos_version >= (3, 2, 0):
+
+        lgeos.GEOSSingleSidedBuffer.restype = c_void_p
+        lgeos.GEOSSingleSidedBuffer.argtypes = [c_void_p, c_double, c_int, c_int, c_double, c_int]
+
+    '''
+    Geometry constructors
+    '''
+
     lgeos.GEOSGeom_createPoint.restype = c_void_p
     lgeos.GEOSGeom_createPoint.argtypes = [c_void_p]
 
@@ -97,23 +144,23 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSGeom_clone.restype = c_void_p
     lgeos.GEOSGeom_clone.argtypes = [c_void_p]
 
+    '''
+    Memory management
+    '''
+
     lgeos.GEOSGeom_destroy.restype = None
     lgeos.GEOSGeom_destroy.argtypes = [c_void_p]
+
+    '''
+    Topology operations
+    Return NULL on exception
+    '''
 
     lgeos.GEOSEnvelope.restype = c_void_p
     lgeos.GEOSEnvelope.argtypes = [c_void_p]
 
     lgeos.GEOSIntersection.restype = c_void_p
     lgeos.GEOSIntersection.argtypes = [c_void_p, c_void_p]
-
-    lgeos.GEOSBuffer.restype = c_void_p
-    lgeos.GEOSBuffer.argtypes = [c_void_p, c_double, c_int]
-
-    lgeos.GEOSSimplify.restype = c_void_p
-    lgeos.GEOSSimplify.argtypes = [c_void_p, c_double]
-
-    lgeos.GEOSTopologyPreserveSimplify.restype = c_void_p
-    lgeos.GEOSTopologyPreserveSimplify.argtypes = [c_void_p, c_double]
 
     lgeos.GEOSConvexHull.restype = c_void_p
     lgeos.GEOSConvexHull.argtypes = [c_void_p]
@@ -130,14 +177,20 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSUnion.restype = c_void_p
     lgeos.GEOSUnion.argtypes = [c_void_p, c_void_p]
 
+    if geos_version >= (3, 3, 0):
+        lgeos.GEOSUnaryUnion.restype = c_void_p
+        lgeos.GEOSUnaryUnion.argtypes = [c_void_p]
+
+    if geos_version >= (3, 1, 0):
+        '''deprecated in 3.3.0: use GEOSUnaryUnion instead'''
+        lgeos.GEOSUnionCascaded.restype = c_void_p
+        lgeos.GEOSUnionCascaded.argtypes = [c_void_p]
+
     lgeos.GEOSPointOnSurface.restype = c_void_p
     lgeos.GEOSPointOnSurface.argtypes = [c_void_p]
 
     lgeos.GEOSGetCentroid.restype = c_void_p
     lgeos.GEOSGetCentroid.argtypes = [c_void_p]
-
-    lgeos.GEOSRelate.restype = allocated_c_char_p
-    lgeos.GEOSRelate.argtypes = [c_void_p, c_void_p]
 
     lgeos.GEOSPolygonize.restype = c_void_p
     lgeos.GEOSPolygonize.argtypes = [c_void_p, c_uint]
@@ -145,8 +198,16 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSLineMerge.restype = c_void_p
     lgeos.GEOSLineMerge.argtypes = [c_void_p]
 
-    lgeos.GEOSRelatePattern.restype = c_char
-    lgeos.GEOSRelatePattern.argtypes = [c_void_p, c_void_p, c_char_p]
+    lgeos.GEOSSimplify.restype = c_void_p
+    lgeos.GEOSSimplify.argtypes = [c_void_p, c_double]
+
+    lgeos.GEOSTopologyPreserveSimplify.restype = c_void_p
+    lgeos.GEOSTopologyPreserveSimplify.argtypes = [c_void_p, c_double]
+
+    '''
+    Binary predicates
+    Return 2 on exception, 1 on true, 0 on false
+    '''
 
     lgeos.GEOSDisjoint.restype = c_byte
     lgeos.GEOSDisjoint.argtypes = [c_void_p, c_void_p]
@@ -175,11 +236,20 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSEqualsExact.restype = c_byte
     lgeos.GEOSEqualsExact.argtypes = [c_void_p, c_void_p, c_double]
 
+    '''
+    Unary predicate
+    Return 2 on exception, 1 on true, 0 on false
+    '''
+
     lgeos.GEOSisEmpty.restype = c_byte
     lgeos.GEOSisEmpty.argtypes = [c_void_p]
 
     lgeos.GEOSisValid.restype = c_byte
     lgeos.GEOSisValid.argtypes = [c_void_p]
+
+    if geos_version >= (3, 1, 0):
+        lgeos.GEOSisValidReason.restype = allocated_c_char_p
+        lgeos.GEOSisValidReason.argtypes = [c_void_p]
 
     lgeos.GEOSisSimple.restype = c_byte
     lgeos.GEOSisSimple.argtypes = [c_void_p]
@@ -189,6 +259,45 @@ def prototype(lgeos, geos_version):
 
     lgeos.GEOSHasZ.restype = c_byte
     lgeos.GEOSHasZ.argtypes = [c_void_p]
+
+    '''
+    Dimensionally Extended 9 Intersection Model related
+    '''
+
+    lgeos.GEOSRelatePattern.restype = c_char
+    lgeos.GEOSRelatePattern.argtypes = [c_void_p, c_void_p, c_char_p]
+
+    lgeos.GEOSRelate.restype = allocated_c_char_p
+    lgeos.GEOSRelate.argtypes = [c_void_p, c_void_p]
+
+    '''
+    Prepared Geometry Binary predicates
+    Return 2 on exception, 1 on true, 0 on false
+    '''
+
+    if geos_version >= (3, 1, 0):
+
+        lgeos.GEOSPrepare.restype = c_void_p
+        lgeos.GEOSPrepare.argtypes = [c_void_p]
+
+        lgeos.GEOSPreparedGeom_destroy.restype = None
+        lgeos.GEOSPreparedGeom_destroy.argtypes = [c_void_p]
+
+        lgeos.GEOSPreparedContains.restype = c_int
+        lgeos.GEOSPreparedContains.argtypes = [c_void_p, c_void_p]
+
+        lgeos.GEOSPreparedContainsProperly.restype = c_int
+        lgeos.GEOSPreparedContainsProperly.argtypes = [c_void_p, c_void_p]
+
+        lgeos.GEOSPreparedCovers.restype = c_int
+        lgeos.GEOSPreparedCovers.argtypes = [c_void_p, c_void_p]
+
+        lgeos.GEOSPreparedIntersects.restype = c_int
+        lgeos.GEOSPreparedIntersects.argtypes = [c_void_p, c_void_p]
+
+    '''
+    Geometry info
+    '''
 
     lgeos.GEOSGeomType.restype = c_char_p
     lgeos.GEOSGeomType.argtypes = [c_void_p]
@@ -226,6 +335,10 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSGeom_getDimensions.restype = c_int
     lgeos.GEOSGeom_getDimensions.argtypes = [c_void_p]
 
+    '''
+    Misc functions
+    '''
+
     lgeos.GEOSArea.restype = c_double
     lgeos.GEOSArea.argtypes = [c_void_p, c_void_p]
 
@@ -236,55 +349,11 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSDistance.argtypes = [c_void_p, c_void_p, c_void_p]
 
     if geos_version >= (3, 1, 1):
+
+        '''
+        Free buffers returned by stuff like GEOSWKBWriter_write(),
+        GEOSWKBWriter_writeHEX() and GEOSWKTWriter_write()
+        '''
+
         lgeos.GEOSFree.restype = None
         lgeos.GEOSFree.argtypes = [c_void_p]
-
-    if geos_version >= (3, 1, 0):
-
-        # Prepared geometry, GEOS 3.1.0
-        lgeos.GEOSPrepare.restype = c_void_p
-        lgeos.GEOSPrepare.argtypes = [c_void_p]
-
-        lgeos.GEOSPreparedGeom_destroy.restype = None
-        lgeos.GEOSPreparedGeom_destroy.argtypes = [c_void_p]
-
-        lgeos.GEOSPreparedIntersects.restype = c_int
-        lgeos.GEOSPreparedIntersects.argtypes = [c_void_p, c_void_p]
-
-        lgeos.GEOSPreparedContains.restype = c_int
-        lgeos.GEOSPreparedContains.argtypes = [c_void_p, c_void_p]
-
-        lgeos.GEOSPreparedContainsProperly.restype = c_int
-        lgeos.GEOSPreparedContainsProperly.argtypes = [c_void_p, c_void_p]
-
-        lgeos.GEOSPreparedCovers.restype = c_int
-        lgeos.GEOSPreparedCovers.argtypes = [c_void_p, c_void_p]
-
-        lgeos.GEOSisValidReason.restype = allocated_c_char_p
-        lgeos.GEOSisValidReason.argtypes = [c_void_p]
-
-    # Other, GEOS 3.1.0
-    if geos_version >= (3, 1, 0):
-        lgeos.GEOSUnionCascaded.restype = c_void_p
-        lgeos.GEOSUnionCascaded.argtypes = [c_void_p]
-
-    # 3.2.0
-    if geos_version >= (3, 2, 0):
-        lgeos.GEOSSingleSidedBuffer.restype = c_void_p
-        lgeos.GEOSSingleSidedBuffer.argtypes = [c_void_p, c_double, c_int, c_int, c_double, c_int]
-
-        lgeos.GEOSProject.restype = c_double
-        lgeos.GEOSProject.argtypes = [c_void_p, c_void_p]
-
-        lgeos.GEOSProjectNormalized.restype = c_double
-        lgeos.GEOSProjectNormalized.argtypes = [c_void_p, c_void_p]
-
-        lgeos.GEOSInterpolate.restype = c_void_p
-        lgeos.GEOSInterpolate.argtypes = [c_void_p, c_double]
-
-        lgeos.GEOSInterpolateNormalized.restype = c_void_p
-        lgeos.GEOSInterpolateNormalized.argtypes = [c_void_p, c_double]
-
-    if geos_version >= (3, 3, 0):
-        lgeos.GEOSUnaryUnion.restype = c_void_p
-        lgeos.GEOSUnaryUnion.argtypes = [c_void_p]
