@@ -1,3 +1,9 @@
+from shapely.geos import lgeos
+if lgeos.geos_version >= (3, 3, 0):
+    # Redefine WKT writer defaults to pass tests without modification
+    lgeos.wkt_writer.trim = False
+    lgeos.wkt_writer.output_dimension = 2
+
 from unittest import TestSuite
 
 from . import test_doctests, test_prepared, test_equality, test_geomseq, \

@@ -6,8 +6,12 @@ See header file: geos-x.y.z/capi/geos_c.h
 from ctypes import CFUNCTYPE, POINTER, c_void_p, c_char_p, \
     c_size_t, c_byte, c_char, c_uint, c_int, c_double
 
+# Derived pointer types
+c_size_t_p = POINTER(c_size_t)
+
 
 class allocated_c_char_p(c_char_p):
+    '''char pointer return type'''
     pass
 
 EXCEPTION_HANDLER_FUNCTYPE = CFUNCTYPE(None, c_char_p, c_char_p)
@@ -50,7 +54,7 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSGeomFromWKB_buf.argtypes = [c_void_p, c_size_t]
 
     lgeos.GEOSGeomToWKB_buf.restype = allocated_c_char_p
-    lgeos.GEOSGeomToWKB_buf.argtypes = [c_void_p, POINTER(c_size_t)]
+    lgeos.GEOSGeomToWKB_buf.argtypes = [c_void_p, c_size_t_p]
 
     '''
     Coordinate sequence
@@ -347,6 +351,91 @@ def prototype(lgeos, geos_version):
 
     lgeos.GEOSDistance.restype = c_int
     lgeos.GEOSDistance.argtypes = [c_void_p, c_void_p, c_void_p]
+
+    '''
+    Reader and Writer APIs
+    '''
+
+    '''WKT Reader'''
+    lgeos.GEOSWKTReader_create.restype = c_void_p
+    lgeos.GEOSWKTReader_create.argtypes = []
+
+    lgeos.GEOSWKTReader_destroy.restype = None
+    lgeos.GEOSWKTReader_destroy.argtypes = [c_void_p]
+
+    lgeos.GEOSWKTReader_read.restype = c_void_p
+    lgeos.GEOSWKTReader_read.argtypes = [c_void_p, c_char_p]
+
+    '''WKT Writer'''
+    lgeos.GEOSWKTWriter_create.restype = c_void_p
+    lgeos.GEOSWKTWriter_create.argtypes = []
+
+    lgeos.GEOSWKTWriter_destroy.restype = None
+    lgeos.GEOSWKTWriter_destroy.argtypes = [c_void_p]
+
+    lgeos.GEOSWKTWriter_write.restype = allocated_c_char_p
+    lgeos.GEOSWKTWriter_write.argtypes = [c_void_p, c_void_p]
+
+    if geos_version >= (3, 3, 0):
+
+        lgeos.GEOSWKTWriter_setTrim.restype = None
+        lgeos.GEOSWKTWriter_setTrim.argtypes = [c_void_p, c_int]
+
+        lgeos.GEOSWKTWriter_setRoundingPrecision.restype = None
+        lgeos.GEOSWKTWriter_setRoundingPrecision.argtypes = [c_void_p, c_int]
+
+        lgeos.GEOSWKTWriter_setOutputDimension.restype = None
+        lgeos.GEOSWKTWriter_setOutputDimension.argtypes = [c_void_p, c_int]
+
+        lgeos.GEOSWKTWriter_getOutputDimension.restype = c_int
+        lgeos.GEOSWKTWriter_getOutputDimension.argtypes = [c_void_p]
+
+        lgeos.GEOSWKTWriter_setOld3D.restype = None
+        lgeos.GEOSWKTWriter_setOld3D.argtypes = [c_void_p, c_int]
+
+    '''WKB Reader'''
+    lgeos.GEOSWKBReader_create.restype = c_void_p
+    lgeos.GEOSWKBReader_create.argtypes = []
+
+    lgeos.GEOSWKBReader_destroy.restype = None
+    lgeos.GEOSWKBReader_destroy.argtypes = [c_void_p]
+
+    lgeos.GEOSWKBReader_read.restype = c_void_p
+    lgeos.GEOSWKBReader_read.argtypes = [c_void_p, c_char_p, c_size_t]
+
+    lgeos.GEOSWKBReader_readHEX.restype = c_void_p
+    lgeos.GEOSWKBReader_readHEX.argtypes = [c_void_p, c_char_p, c_size_t]
+
+    '''WKB Writer'''
+    lgeos.GEOSWKBWriter_create.restype = c_void_p
+    lgeos.GEOSWKBWriter_create.argtypes = []
+
+    lgeos.GEOSWKBWriter_destroy.restype = None
+    lgeos.GEOSWKBWriter_destroy.argtypes = [c_void_p]
+
+    lgeos.GEOSWKBWriter_write.restype = allocated_c_char_p
+    lgeos.GEOSWKBWriter_write.argtypes = [c_void_p, c_void_p, c_size_t_p]
+
+    lgeos.GEOSWKBWriter_writeHEX.restype = allocated_c_char_p
+    lgeos.GEOSWKBWriter_writeHEX.argtypes = [c_void_p, c_void_p, c_size_t_p]
+
+    lgeos.GEOSWKBWriter_getOutputDimension.restype = c_int
+    lgeos.GEOSWKBWriter_getOutputDimension.argtypes = [c_void_p]
+
+    lgeos.GEOSWKBWriter_setOutputDimension.restype = None
+    lgeos.GEOSWKBWriter_setOutputDimension.argtypes = [c_void_p, c_int]
+
+    lgeos.GEOSWKBWriter_getByteOrder.restype = c_int
+    lgeos.GEOSWKBWriter_getByteOrder.argtypes = [c_void_p]
+
+    lgeos.GEOSWKBWriter_setByteOrder.restype = None
+    lgeos.GEOSWKBWriter_setByteOrder.argtypes = [c_void_p, c_int]
+
+    lgeos.GEOSWKBWriter_getIncludeSRID.restype = c_int
+    lgeos.GEOSWKBWriter_getIncludeSRID.argtypes = [c_void_p]
+
+    lgeos.GEOSWKBWriter_setIncludeSRID.restype = None
+    lgeos.GEOSWKBWriter_setIncludeSRID.argtypes = [c_void_p, c_int]
 
     if geos_version >= (3, 1, 1):
 

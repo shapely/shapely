@@ -2,7 +2,7 @@
 """
 
 import sys
-import warnings
+from warnings import warn
 from binascii import a2b_hex
 from ctypes import pointer, c_size_t, c_char_p, c_void_p
 
@@ -53,6 +53,8 @@ def geom_factory(g, parent=None):
     return ob
 
 def geom_from_wkt(data):
+    warn("`geom_from_wkt` is deprecated. Use `geos.wkt_reader.read(data)`.",
+         DeprecationWarning)
     if sys.version_info[0] >= 3:
         data = data.encode('ascii')
     geom = lgeos.GEOSGeomFromWKT(c_char_p(data))
@@ -62,21 +64,27 @@ def geom_from_wkt(data):
     return geom_factory(geom)
 
 def geom_to_wkt(ob):
+    warn("`geom_to_wkt` is deprecated. Use `geos.wkt_writer.write(ob)`.",
+         DeprecationWarning)
     if ob is None or ob._geom is None:
         raise ValueError("Null geometry supports no operations")
     return lgeos.GEOSGeomToWKT(ob._geom)
 
 def deserialize_wkb(data):
-    geom = lgeos.GEOSGeomFromWKB_buf(c_char_p(data), c_size_t(len(data)));
+    geom = lgeos.GEOSGeomFromWKB_buf(c_char_p(data), c_size_t(len(data)))
     if not geom:
         raise ReadingError(
             "Could not create geometry because of errors while reading input.")
     return geom
 
 def geom_from_wkb(data):
+    warn("`geom_from_wkb` is deprecated. Use `geos.wkb_reader.read(data)`.",
+         DeprecationWarning)
     return geom_factory(deserialize_wkb(data))
 
 def geom_to_wkb(ob):
+    warn("`geom_to_wkb` is deprecated. Use `geos.wkb_writer.write(ob)`.",
+         DeprecationWarning)
     if ob is None or ob._geom is None:
         raise ValueError("Null geometry supports no operations")
     size = c_size_t()
@@ -238,18 +246,33 @@ class BaseGeometry(object):
         return self.geometryType()
 
     def to_wkb(self):
+        warn("`to_wkb` is deprecated. Use the `wkb` property.",
+             DeprecationWarning)
         return geom_to_wkb(self)
 
     def to_wkt(self):
+        warn("`to_wkt` is deprecated. Use the `wkt` property.",
+             DeprecationWarning)
         return geom_to_wkt(self)
+
+    @property
+    def wkt(self):
+        """WKT representation of the geometry"""
+        return lgeos.wkt_writer.write(self)
+
+    @property
+    def wkb(self):
+        """WKB representation of the geometry"""
+        return lgeos.wkb_writer.write(self)
+
+    @property
+    def wkb_hex(self):
+        """WKB hex representation of the geometry"""
+        return lgeos.wkb_writer.write_hex(self)
 
     geom_type = property(geometryType,
         doc="""Name of the geometry's type, such as 'Point'"""
         )
-    wkt = property(to_wkt,
-        doc="""WKT representation of the geometry""")
-    wkb = property(to_wkb,
-        doc="""WKB representation of the geometry""")
 
     # Real-valued properties and methods
     # ----------------------------------
@@ -336,7 +359,7 @@ class BaseGeometry(object):
           3.0
         """
         if quadsegs is not None:
-            warnings.warn(
+            warn(
                 "The `quadsegs` argument is deprecated. Use `resolution`.",
                 DeprecationWarning)
             res = quadsegs
