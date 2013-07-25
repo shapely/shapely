@@ -1,6 +1,7 @@
 """Geometry classes and factories
 """
 
+from base import CAP_STYLE, JOIN_STYLE
 from geo import box, shape, asShape, mapping
 from point import Point, asPoint
 from linestring import LineString, asLineString
@@ -14,7 +15,7 @@ __all__ = [
     'box', 'shape', 'asShape', 'Point', 'asPoint', 'LineString', 'asLineString',
     'Polygon', 'asPolygon', 'MultiPoint', 'asMultiPoint',
     'MultiLineString', 'asMultiLineString', 'MultiPolygon', 'asMultiPolygon',
-    'GeometryCollection', 'mapping'
+    'GeometryCollection', 'mapping', 'CAP_STYLE', 'JOIN_STYLE'
     ]
 
 
