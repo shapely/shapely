@@ -85,6 +85,16 @@ def exceptNull(func):
         return func(*args, **kwargs)
     return wrapper
 
+class CAP_STYLE(object):
+    ROUND = 1
+    FLAT = 2
+    SQUARE = 3
+
+class JOIN_STYLE(object):
+    ROUND = 1
+    MITRE = 2
+    BEVEL = 3
+
 EMPTY = deserialize_wkb('010700000000000000'.decode('hex'))
 
 class BaseGeometry(object):
@@ -308,8 +318,9 @@ class BaseGeometry(object):
         """A figure that envelopes the geometry"""
         return geom_factory(self.impl['envelope'](self))
 
-    def buffer(self, distance, resolution=16, quadsegs=None, cap_style=1,
-               join_style=1, mitre_limit=0):
+    def buffer(self, distance, resolution=16, quadsegs=None,
+               cap_style=CAP_STYLE.ROUND, join_style=JOIN_STYLE.ROUND,
+               mitre_limit=0):
         """Returns a geometry with an envelope at a distance from the object's
         envelope
 
@@ -357,7 +368,7 @@ class BaseGeometry(object):
         else:
             res = resolution
 
-        if cap_style == 1 and join_style == 1:
+        if cap_style == CAP_STYLE.ROUND and join_style == JOIN_STYLE.ROUND:
             return geom_factory(self.impl['buffer'](self, distance, res))
 
         if 'buffer_with_style' not in self.impl:
