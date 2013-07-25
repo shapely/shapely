@@ -83,7 +83,7 @@ class LineString(BaseGeometry):
 
     def parallel_offset(
         self, distance, side,
-        resolution=16, join_style=JOIN_STYLE.ROUND, mitre_limit=1.0):
+        resolution=16, join_style=JOIN_STYLE.round, mitre_limit=1.0):
 
         """Returns a LineString or MultiLineString geometry at a distance from
         the object on its right or its left side.
@@ -94,7 +94,8 @@ class LineString(BaseGeometry):
         third positional parameter.
 
         The join style is for outside corners between line segments. Accepted
-        values are 1 => ROUND, 2 => MITRE, 3 => BEVEL.
+        values are JOIN_STYLE.round (1), JOIN_STYLE.mitre (2), and
+        JOIN_STYLE.bevel (3).
 
         The mitre ratio limit is used for very sharp corners. It is the ratio
         of the distance from the corner to the end of the mitred offset corner.
