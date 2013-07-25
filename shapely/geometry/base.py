@@ -345,11 +345,11 @@ class BaseGeometry(object):
         or second positional parameter. Note: the use of a `quadsegs` parameter
         is deprecated and will be gone from the next major release.
 
-        The styles of caps are: 1 (round, the default), 2 (flat)
-        and 3 (square).
+        The styles of caps are: CAP_STYLE.round (1), CAP_STYLE.flat (2), and
+        CAP_STYLE.square (3).
 
-        The styles of joins between offset segments are:
-        1 (round, the default), 2 (mitre or miter), and 3 (bevel).
+        The styles of joins between offset segments are: JOIN_STYLE.round (1),
+        JOIN_STYLE.mitre (2), and JOIN_STYLE.bevel (3).
 
         The mitre limit ratio is used for very sharp corners. The mitre ratio
         is the ratio of the distance from the corner to the end of the mitred

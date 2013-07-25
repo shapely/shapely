@@ -1,6 +1,10 @@
 Changes
 =======
 
+Next
+----
+- Add buffering style options (#55).
+
 1.2.18 (2013-07-23)
 --------------------
 - Add shapely.ops.transform.

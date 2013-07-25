@@ -1394,10 +1394,41 @@ derived from set-theoretic analysis.
   Returns an approximate representation of all points within a given `distance`
   of the this geometric object.
 
-  The styles of caps are: 1 (round, the default), 2 (flat), and 3 (square).
+  The styles of caps are specified by integer values: 1 (round), 2 (flat),
+  3 (square). These values are also enumerated by the object
+  :class:`shapely.geometry.CAP_STYLE` (see below).
+  
+  The styles of joins between offset segments are specified by integer values:
+  1 (round), 2 (mitre), and 3 (bevel). These values are also enumerated by the
+  object :class:`shapely.geometry.JOIN_STYLE` (see below).
 
-  The styles of joins between offset segments are: 1 (round, the default),
-  2 (mitre or miter), and 3 (bevel).
+.. data:: shapely.geometry.CAP_STYLE
+
+   ========= =====
+   Attribute Value
+   ========= =====
+   round        1
+   flat         2
+   square       3
+   ========= =====
+
+.. data:: shapely.geometry.JOIN_STYLE
+
+   ========= =====
+   Attribute Value
+   ========= =====
+   round         1
+   mitre         2
+   bevel         3
+   ========= =====
+
+.. sourcecode:: pycon
+
+  >>> from shapely.geometry import CAP_STYLE, JOIN_STYLE
+  >>> CAP_STYLE.flat
+  2
+  >>> JOIN_STYLE.bevel
+  3
 
 A positive distance has an effect of dilation; a negative distance, erosion.
 The optional `resolution` argument determines the number of segments used to
@@ -1499,8 +1530,9 @@ Figure 10. Convex hull (blue) of 2 points (left) and of 6 points (right).
   'right'. The resolution of the offset around each vertex of the object is
   parameterized as in the buffer method.
 
-  The styles of joins between offset segments are: 1 (round, the default),
-  2 (mitre or miter), and 3 (bevel).
+  The join style is for outside corners between line segments. Accepted integer
+  values are 1 (round), 2 (mitre), and 3 (bevel). See also
+  :data:`shapely.geometry.JOIN_STYLE`.
 
   Severely mitered corners can be controlled by the mitre_limit parameter
   (spelled in British English, en-gb). The ratio of the distance from the
