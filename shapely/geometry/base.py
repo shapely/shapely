@@ -85,6 +85,16 @@ def exceptNull(func):
         return func(*args, **kwargs)
     return wrapper
 
+class CAP_STYLE(object):
+    ROUND = 1
+    FLAT = 2
+    SQUARE = 3
+
+class JOIN_STYLE(object):
+    ROUND = 1
+    MITRE = 2
+    BEVEL = 3
+
 EMPTY = deserialize_wkb('010700000000000000'.decode('hex'))
 
 class BaseGeometry(object):
@@ -323,7 +333,9 @@ class BaseGeometry(object):
         """A figure that envelopes the geometry"""
         return geom_factory(self.impl['envelope'](self))
 
-    def buffer(self, distance, resolution=16, quadsegs=None):
+    def buffer(self, distance, resolution=16, quadsegs=None,
+               cap_style=CAP_STYLE.ROUND, join_style=JOIN_STYLE.ROUND,
+               mitre_limit=0):
         """Returns a geometry with an envelope at a distance from the object's
         envelope
 
@@ -332,6 +344,20 @@ class BaseGeometry(object):
         the object increases by increasing the resolution keyword parameter
         or second positional parameter. Note: the use of a `quadsegs` parameter
         is deprecated and will be gone from the next major release.
+
+        The styles of caps are: 1 (round, the default), 2 (flat)
+        and 3 (square).
+
+        The styles of joins between offset segments are:
+        1 (round, the default), 2 (mitre or miter), and 3 (bevel).
+
+        The mitre limit ratio is used for very sharp corners. The mitre ratio
+        is the ratio of the distance from the corner to the end of the mitred
+        offset corner. When two line segments meet at a sharp angle, a miter
+        join will extend the original geometry. To prevent unreasonable
+        geometry, the mitre limit allows controlling the maximum length of the
+        join corner. Corners with a ratio which exceed the limit will be
+        beveled.
 
         Example:
 
@@ -343,7 +369,12 @@ class BaseGeometry(object):
           3.1415138011443009
           >>> g.buffer(1.0, 3).area     # triangle approximation
           3.0
+          >>> list(g.buffer(1.0, cap_style='square').exterior.coords)
+          [(1.0, 1.0), (1.0, -1.0), (-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0)]
+          >>> g.buffer(1.0, cap_style='square').area
+          4.0
         """
+
         if quadsegs is not None:
             warnings.warn(
                 "The `quadsegs` argument is deprecated. Use `resolution`.",
@@ -351,7 +382,18 @@ class BaseGeometry(object):
             res = quadsegs
         else:
             res = resolution
-        return geom_factory(self.impl['buffer'](self, distance, res))
+
+        if cap_style == CAP_STYLE.ROUND and join_style == JOIN_STYLE.ROUND:
+            return geom_factory(self.impl['buffer'](self, distance, res))
+
+        if 'buffer_with_style' not in self.impl:
+            raise NotImplementedError("Styled buffering not available for "
+                                      "GEOS versions < 3.2.")
+
+        return geom_factory(self.impl['buffer_with_style'](self, distance, res,
+                                                           cap_style,
+                                                           join_style,
+                                                           mitre_limit))
 
     @delegated
     def simplify(self, tolerance, preserve_topology=True):
