@@ -14,9 +14,8 @@ from shapely.geos import lgeos
 from shapely.geometry.base import geom_factory, BaseGeometry
 from shapely.geometry import asShape, asLineString, asMultiLineString
 
-__all__= ['operator', 'polygonize', 'linemerge', 'cascaded_union',
-          'unary_union']
-
+__all__= ['cascaded_union', 'linemerge', 'operator', 'polygonize',
+          'polygonize_full', 'transform', 'unary_union']
 
 class CollectionOperator(object):
 
@@ -31,7 +30,7 @@ class CollectionOperator(object):
 
     def polygonize(self, lines):
         """Creates polygons from a source of lines
-        
+
         The source may be a MultiLineString, a sequence of LineString objects,
         or a sequence of objects than can be adapted to LineStrings.
         """
@@ -49,29 +48,64 @@ class CollectionOperator(object):
             g._owned = False
             yield g
 
-    def linemerge(self, lines): 
+    def polygonize_full(self, lines):
+        """Creates polygons from a source of lines, returning the polygons
+        and leftover geometries.
+
+        The source may be a MultiLineString, a sequence of LineString objects,
+        or a sequence of objects than can be adapted to LineStrings.
+
+        Returns a tuple of objects: (polygons, dangles, cut edges, invalid ring
+        lines). Each are a geometry collection.
+
+        Dangles are edges which have one or both ends which are not incident on
+        another edge endpoint. Cut edges are connected at both ends but do not
+        form part of polygon. Invalid ring lines form rings which are invalid
+        (bowties, etc).
+        """
+        source = getattr(lines, 'geoms', None) or lines
+        obs = [self.shapeup(l) for l in source]
+
+        L = len(obs)
+        subs = (c_void_p * L)()
+        for i, g in enumerate(obs):
+            subs[i] = g._geom
+        collection = lgeos.GEOSGeom_createCollection(5, subs, L)
+        dangles = c_void_p()
+        cuts = c_void_p()
+        invalids = c_void_p()
+        product = lgeos.GEOSPolygonize_full(
+            collection, byref(dangles), byref(cuts), byref(invalids))
+        return (
+            geom_factory(product),
+            geom_factory(dangles),
+            geom_factory(cuts),
+            geom_factory(invalids)
+            )
+
+    def linemerge(self, lines):
         """Merges all connected lines from a source
-        
+
         The source may be a MultiLineString, a sequence of LineString objects,
         or a sequence of objects than can be adapted to LineStrings.  Returns a
-        LineString or MultiLineString when lines are not contiguous. 
-        """ 
-        source = None 
-        if hasattr(lines, 'type') and lines.type == 'MultiLineString': 
-            source = lines 
-        elif hasattr(lines, '__iter__'): 
-            try: 
-                source = asMultiLineString([ls.coords for ls in lines]) 
-            except AttributeError: 
-                source = asMultiLineString(lines) 
-        if source is None: 
+        LineString or MultiLineString when lines are not contiguous.
+        """
+        source = None
+        if hasattr(lines, 'type') and lines.type == 'MultiLineString':
+            source = lines
+        elif hasattr(lines, '__iter__'):
+            try:
+                source = asMultiLineString([ls.coords for ls in lines])
+            except AttributeError:
+                source = asMultiLineString(lines)
+        if source is None:
             raise ValueError("Cannot linemerge %s" % lines)
-        result = lgeos.GEOSLineMerge(source._geom) 
-        return geom_factory(result)   
+        result = lgeos.GEOSLineMerge(source._geom)
+        return geom_factory(result)
 
     def cascaded_union(self, geoms):
         """Returns the union of a sequence of geometries
-        
+
         This is the most efficient method of dissolving many polygons.
         """
         L = len(geoms)
@@ -97,6 +131,7 @@ class CollectionOperator(object):
 
 operator = CollectionOperator()
 polygonize = operator.polygonize
+polygonize_full = operator.polygonize_full
 linemerge = operator.linemerge
 cascaded_union = operator.cascaded_union
 unary_union = operator.unary_union

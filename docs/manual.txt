@@ -5,7 +5,7 @@ The Shapely User Manual
 =======================
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
-:Revision: |release|
+:Version: |release|
 :Date: |today|
 :Copyright:
   This work is licensed under a `Creative Commons Attribution 3.0
@@ -161,9 +161,8 @@ Instances of `Point`, `LineString`, and `LinearRing` have as their most
 important attribute a finite sequence of coordinates that determines their
 interior, boundary, and exterior point sets. A line string can be determined by
 as few as 2 points, but contains an infinite number of points. Coordinate
-sequences are immutable. Their parent features are mutable in that they can be
-assigned new coordinate sequences. A third `z` coordinate value may be used
-when constructing instances, but has no effect on geometric analysis.  All
+sequences are immutable. A third `z` coordinate value may be used when
+constructing instances, but has no effect on geometric analysis.  All
 operations are performed in the `x-y` plane.
 
 In all constructors, numeric values are converted to type ``float``. In other
@@ -1388,10 +1387,46 @@ Constructive Methods
 Shapely geometric object have several methods that yield new objects not
 derived from set-theoretic analysis.
 
-.. method:: object.buffer(distance, resolution=16)
+.. method:: object.buffer(distance, resolution=16, cap_style=1, join_style=1, mitre_limit=1.0)
 
   Returns an approximate representation of all points within a given `distance`
   of the this geometric object.
+
+  The styles of caps are specified by integer values: 1 (round), 2 (flat),
+  3 (square). These values are also enumerated by the object
+  :class:`shapely.geometry.CAP_STYLE` (see below).
+  
+  The styles of joins between offset segments are specified by integer values:
+  1 (round), 2 (mitre), and 3 (bevel). These values are also enumerated by the
+  object :class:`shapely.geometry.JOIN_STYLE` (see below).
+
+.. data:: shapely.geometry.CAP_STYLE
+
+   ========= =====
+   Attribute Value
+   ========= =====
+   round        1
+   flat         2
+   square       3
+   ========= =====
+
+.. data:: shapely.geometry.JOIN_STYLE
+
+   ========= =====
+   Attribute Value
+   ========= =====
+   round         1
+   mitre         2
+   bevel         3
+   ========= =====
+
+.. sourcecode:: pycon
+
+  >>> from shapely.geometry import CAP_STYLE, JOIN_STYLE
+  >>> CAP_STYLE.flat
+  2
+  >>> JOIN_STYLE.bevel
+  3
 
 A positive distance has an effect of dilation; a negative distance, erosion.
 The optional `resolution` argument determines the number of segments used to
@@ -1493,8 +1528,9 @@ Figure 10. Convex hull (blue) of 2 points (left) and of 6 points (right).
   'right'. The resolution of the offset around each vertex of the object is
   parameterized as in the buffer method.
 
-  The styles of joins between offset segments are: 1 (round, the default),
-  2 (mitre or miter), and 3 (bevel).
+  The join style is for outside corners between line segments. Accepted integer
+  values are 1 (round), 2 (mitre), and 3 (bevel). See also
+  :data:`shapely.geometry.JOIN_STYLE`.
 
   Severely mitered corners can be controlled by the mitre_limit parameter
   (spelled in British English, en-gb). The ratio of the distance from the
@@ -1744,6 +1780,57 @@ preserved or supported by 3D affine transformations.
     \end{bmatrix}
 
 
+Other Transformations
+=====================
+
+Shapely supports map projections and other arbitrary transformations of geometric objects.
+
+.. function:: shapely.ops.transform(func, geom)
+
+  Applies `func` to all coordinates of `geom` and returns a new
+  geometry of the same type from the transformed coordinates.
+
+  `func` maps x, y, and optionally z to output xp, yp, zp. The input
+  parameters may iterable types like lists or arrays or single values.
+  The output shall be of the same type: scalars in, scalars out;
+  lists in, lists out.
+
+  `New in version 1.2.18`.
+
+For example, here is an identity function applicable to both types of input
+(scalar or array).
+
+.. sourcecode:: python
+
+    def id_func(x, y, z=None):
+        return tuple(filter(None, [x, y, z]))
+
+    g2 = transform(id_func, g1)
+
+A partially applied transform function from pyproj satisfies the requirements
+for `func`.
+
+.. sourcecode:: python
+
+    from functools import partial
+    import pyproj
+
+    project = partial(
+        pyproj.transform,
+        pyproj.Proj(init='espg:4326'),
+        pyproj.Proj(init='epsg:26913'))
+
+    g2 = transform(project, g1)
+
+Lambda expressions such as the one in
+
+.. sourcecode:: python
+
+    g2 = transform(lambda x, y, z=None: (x+1.0, y+1.0), g1)
+
+also satisfy the requirements for `func`.
+
+
 Other Operations
 ================
 
@@ -1760,7 +1847,7 @@ using functions in the :mod:`shapely.ops` module.
   As with the :class:`MultiLineString` constructor, the input elements may be
   any line-like object.
 
-  .. sourcecode:: python
+  .. sourcecode:: pycon
 
     >>> from shapely.ops import polygonize
     >>> lines = [
@@ -1774,6 +1861,43 @@ using functions in the :mod:`shapely.ops` module.
     [<shapely.geometry.polygon.Polygon object at 0x...>,
      <shapely.geometry.polygon.Polygon object at 0x...>]
 
+.. function:: shapely.ops.polygonize_full(lines)
+
+  Creates polygons from a source of lines, returning the polygons
+  and leftover geometries.
+
+  The source may be a MultiLineString, a sequence of LineString objects,
+  or a sequence of objects than can be adapted to LineStrings.
+
+  Returns a tuple of objects: (polygons, dangles, cut edges, invalid ring
+  lines). Each are a geometry collection.
+
+  Dangles are edges which have one or both ends which are not incident on
+  another edge endpoint. Cut edges are connected at both ends but do not
+  form part of polygon. Invalid ring lines form rings which are invalid
+  (bowties, etc).
+
+  `New in version 1.2.18.`
+
+  .. sourcecode:: pycon
+
+    >>> lines = [
+    ...     ((0, 0), (1, 1)),
+    ...     ((0, 0), (0, 1)),
+    ...     ((0, 1), (1, 1)),
+    ...     ((1, 1), (1, 0)),
+    ...     ((1, 0), (0, 0)),
+    ...     ((5, 5), (6, 6)),
+    ...     ((1, 1), (100, 100)),
+    ...     ]
+    >>> result, dangles, cuts, invalids = polygonize_full(lines)
+    >>> len(result)
+    2
+    >>> list(result.geoms)
+    [<shapely.geometry.polygon.Polygon object at ...>, <shapely.geometry.polygon.Polygon object at ...>]
+    >>> list(cuts.geoms)
+    [<shapely.geometry.linestring.LineString object at ...>, <shapely.geometry.linestring.LineString object at ...>]
+
 .. function:: shapely.ops.linemerge(lines)
 
   Returns a `LineString` or `MultiLineString` representing the merger of all
@@ -1782,7 +1906,7 @@ using functions in the :mod:`shapely.ops` module.
   As with :func:`shapely.ops.polygonize`, the input elements may be any
   line-like object.
 
-  .. sourcecode:: python
+.. sourcecode:: python
 
     >>> from shapely.ops import linemerge
     >>> linemerge(lines)
@@ -2091,8 +2215,8 @@ involves some overhead that might slow down your code.
 .. versionadded:: 1.2.10
 
 The :mod:`shapely.speedups` module contains performance enhancements written in
-C. They are automatically installed when Python has access to a compiler during
-installation.
+C. They are automaticaly installed when Python has access to a compiler and
+GEOS development headers during installation.
 
 You can check if the speedups are installed with the :attr:`available`
 attribute. The constructor speedups are disabled by default. To enable the

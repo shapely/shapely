@@ -1,0 +1,18 @@
+Test operators
+==============
+
+  >>> from shapely.geometry import Point
+  >>> point = Point(0, 0)
+  >>> point2 = Point(-1, 1)
+
+  >>> point.union(point2).equals(point | point2)
+  True
+
+  >>> (point & point2).is_empty
+  True
+
+  >>> point.equals(point - point2)
+  True
+
+  >>> point.symmetric_difference(point2).equals(point ^ point2)
+  True

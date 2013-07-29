@@ -653,7 +653,6 @@ class LGEOS310(LGEOSBase):
             self.GEOSTopologyPreserveSimplify
         self.methods['cascaded_union'] = self.GEOSUnionCascaded
 
-
 class LGEOS311(LGEOS310):
     """Proxy for GEOS 3.1.1-CAPI-1.6.0
     """
@@ -661,7 +660,6 @@ class LGEOS311(LGEOS310):
     geos_capi_version = (1, 6, 0)
     def __init__(self, dll):
         super(LGEOS311, self).__init__(dll)
-
 
 class LGEOS320(LGEOS311):
     """Proxy for GEOS 3.2.0-CAPI-1.6.0
@@ -677,6 +675,7 @@ class LGEOS320(LGEOS311):
         self.methods['interpolate'] = self.GEOSInterpolate
         self.methods['interpolate_normalized'] = \
             self.GEOSInterpolateNormalized
+        self.methods['buffer_with_style'] = self.GEOSBufferWithStyle
 
 
 class LGEOS330(LGEOS320):
@@ -686,6 +685,14 @@ class LGEOS330(LGEOS320):
     geos_capi_version = (1, 7, 0)
     def __init__(self, dll):
         super(LGEOS330, self).__init__(dll)
+
+        # GEOS 3.3.8 from homebrew has, but doesn't advertise
+        # GEOSPolygonize_full. We patch it in explicitly here.
+        key = 'GEOSPolygonize_full'
+        func = getattr(self._lgeos, key + '_r')
+        attr = ftools.partial(func, self.geos_handle)
+        attr.__name__ = func.__name__
+        setattr(self, key, attr)
 
         self.methods['unary_union'] = self.GEOSUnaryUnion
         self.methods['cascaded_union'] = self.methods['unary_union']

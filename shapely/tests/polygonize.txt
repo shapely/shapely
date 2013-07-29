@@ -2,7 +2,7 @@ Polygonizing
 ============
 
     >>> from shapely.geometry import LineString, Point
-    >>> from shapely.ops import polygonize
+    >>> from shapely.ops import polygonize, polygonize_full
     >>> lines = [
     ...     LineString(((0, 0), (1, 1))),
     ...     LineString(((0, 0), (0, 1))),
@@ -23,7 +23,18 @@ Polygonizing
     ...     ((1, 1), (1, 0)),
     ...     ((1, 0), (0, 0)),
     ...     ((5, 5), (6, 6)),
+    ...     ((1, 1), (100, 100)),
     ...     ]
-    >>> result2 = polygonize(lines2)
-    >>> list(result2)
+    >>> result2, dangles, cuts, invalids = polygonize_full(lines2)
+    >>> len(result2)
+    2
+    >>> list(result2.geoms)
     [<shapely.geometry.polygon.Polygon object at ...>, <shapely.geometry.polygon.Polygon object at ...>]
+    >>> list(dangles.geoms)
+    []
+    >>> list(cuts.geoms)
+    [<shapely.geometry.linestring.LineString object at ...>, <shapely.geometry.linestring.LineString object at ...>]
+    >>> print(cuts.wkt)
+    GEOMETRYCOLLECTION (LINESTRING (1.0000000000000000 1.0000000000000000, 100.0000000000000000 100.0000000000000000), LINESTRING (5.0000000000000000 5.0000000000000000, 6.0000000000000000 6.0000000000000000))
+    >>> list(invalids.geoms)
+    []

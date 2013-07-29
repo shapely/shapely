@@ -7,13 +7,15 @@ Changes
 - Replace setuptools with distutils for setup.
 - Use GEOS version instead of GEOS C API version to determine library
   capabilities (#65).
+- Add buffering style options (#55).
 
-1.2.18 (Coming Soon)
+1.2.18 (2013-07-23)
 --------------------
 - Add shapely.ops.transform.
 - Permit empty sequences in collection constructors (#49, #50).
 - Individual polygons in MultiPolygon.__geo_interface__ are changed to tuples
   to match Polygon.__geo_interface__ (#51).
+- Add shapely.ops.polygonize_full (#57).
 
 1.2.17 (2013-01-27)
 -------------------

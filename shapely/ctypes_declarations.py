@@ -123,6 +123,9 @@ def prototype(lgeos, geos_version):
 
     if geos_version >= (3, 2, 0):
 
+        lgeos.GEOSBufferWithStyle.restype = c_void_p
+        lgeos.GEOSBufferWithStyle.argtypes = [c_void_p, c_double, c_int, c_int, c_int, c_double]
+
         lgeos.GEOSSingleSidedBuffer.restype = c_void_p
         lgeos.GEOSSingleSidedBuffer.argtypes = [c_void_p, c_double, c_int, c_int, c_double, c_int]
 
@@ -198,6 +201,10 @@ def prototype(lgeos, geos_version):
 
     lgeos.GEOSPolygonize.restype = c_void_p
     lgeos.GEOSPolygonize.argtypes = [c_void_p, c_uint]
+
+    if geos_version >= (3, 3, 0):
+        lgeos.GEOSPolygonize_full.restype = c_void_p
+        lgeos.GEOSPolygonize_full.argtypes = [c_void_p, c_void_p, c_void_p, c_void_p]
 
     lgeos.GEOSLineMerge.restype = c_void_p
     lgeos.GEOSLineMerge.argtypes = [c_void_p]
