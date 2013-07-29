@@ -6,7 +6,6 @@ import os
 import re
 import sys
 import atexit
-import ctypes
 import logging
 import threading
 from ctypes import CDLL, cdll, pointer, c_void_p, c_size_t, c_char_p, string_at
@@ -16,13 +15,19 @@ from . import ftools
 from .ctypes_declarations import prototype, EXCEPTION_HANDLER_FUNCTYPE
 
 
-
-# Begin by creating a do-nothing handler and adding to this module's logger.
-class NullHandler(logging.Handler):
-    def emit(self, record):
-        pass
+# Add message handler to this module's logger
 LOG = logging.getLogger(__name__)
-LOG.addHandler(NullHandler())
+
+if 'all' in sys.warnoptions:
+    # show GEOS messages in console with: python -W all
+    logging.basicConfig()
+else:
+    # no handler messages shown
+    class NullHandler(logging.Handler):
+        def emit(self, record):
+            pass
+
+    LOG.addHandler(NullHandler())
 
 # Find and load the GEOS and C libraries
 # If this ever gets any longer, we'll break it into separate modules
@@ -156,16 +161,26 @@ class TopologicalError(Exception):
 class PredicateError(Exception):
     pass
 
-def error_handler(fmt, list):
-    LOG.error("%s", list)
-error_h = EXCEPTION_HANDLER_FUNCTYPE(error_handler)
+def error_handler(fmt, *args):
+    if sys.version_info[0] >= 3:
+        fmt = fmt.decode('ascii')
+        args = [arg.decode('ascii') for arg in args]
+    LOG.error(fmt, *args)
 
-def notice_handler(fmt, list):
-    LOG.warning("%s", list)
+def notice_handler(fmt, args):
+    if sys.version_info[0] >= 3:
+        fmt = fmt.decode('ascii')
+        args = args.decode('ascii')
+    LOG.warning(fmt, args)
+
+error_h = EXCEPTION_HANDLER_FUNCTYPE(error_handler)
 notice_h = EXCEPTION_HANDLER_FUNCTYPE(notice_handler)
 
 
 class WKTReader(object):
+
+    _lgeos = None
+    __reader__ = None
 
     def __init__(self, lgeos):
         """Create WKT Reader"""
@@ -188,58 +203,32 @@ class WKTReader(object):
             raise ReadingError("Could not create geometry because of errors "
                                "while reading input.")
         # avoid circular import dependency
-        from shapely import geometry
-        return geometry.base.geom_factory(geom)
+        from shapely.geometry.base import geom_factory
+        return geom_factory(geom)
 
 
 class WKTWriter(object):
 
-    def __init__(self, lgeos):
-        """Create WKT Writer
+    _lgeos = None
+    __writer__ = None
 
-        Note: writer defaults are set differently for GEOS 3.3.0 and up.
-        For example, with 'POINT Z (1 2 3)':
-
-            newer: POINT Z (1 2 3)
-            older: POINT (1.0000000000000000 2.0000000000000000)
-
-        The older formatting can be achieved for GEOS 3.3.0 and up by setting
-        the properties:
-            trim = False
-            output_dimension = 2
-        """
-        self._lgeos = lgeos
-        self.__writer__ = self._lgeos.GEOSWKTWriter_create()
-        if self._lgeos.geos_version >= (3, 3, 0):
-            # Establish defaults
-            self.trim = True
-            self.output_dimension = 3
-
-    def __del__(self):
-        """Destroy WKT Writer"""
-        if self._lgeos is not None:
-            self._lgeos.GEOSWKTWriter_destroy(self.__writer__)
-            self.__writer__ = None
-            self._lgeos = None
-
-    def write(self, geom):
-        """Returns WKT for geometry"""
-        if geom is None or geom._geom is None:
-            raise ValueError("Null geometry supports no operations")
-        result = self._lgeos.GEOSWKTWriter_write(self.__writer__, geom._geom)
-        text = string_at(result)
-        lgeos.GEOSFree(result)
-        if sys.version_info[0] >= 3:
-            return text.decode('ascii')
-        else:
-            return text
+    # Establish default output settings
+    defaults = {}
 
     if geos_version >= (3, 3, 0):
+
+        defaults['trim'] = True
+        defaults['output_dimension'] = 3
+
+        # GEOS' defaults for methods without "get"
+        _trim = False
+        _rounding_precision = -1
+        _old_3d = False
 
         @property
         def trim(self):
             """Trimming of unnecessary decimals (default: True)"""
-            return getattr(self, '_trim', False)
+            return getattr(self, '_trim')
 
         @trim.setter
         def trim(self, value):
@@ -250,7 +239,7 @@ class WKTWriter(object):
         def rounding_precision(self):
             """Rounding precision when writing the WKT.
             A precision of -1 (default) disables it."""
-            return getattr(self, '_rounding_precision', -1)
+            return getattr(self, '_rounding_precision')
 
         @rounding_precision.setter
         def rounding_precision(self, value):
@@ -268,9 +257,70 @@ class WKTWriter(object):
         def output_dimension(self, value):
             self._lgeos.GEOSWKTWriter_setOutputDimension(
                                 self.__writer__, int(value))
+        @property
+        def old_3d(self):
+            """Show older style for 3D WKT, without 'Z' (default: False)"""
+            return getattr(self, '_old_3d')
+
+        @old_3d.setter
+        def old_3d(self, value):
+            self._old_3d = bool(value)
+            self._lgeos.GEOSWKTWriter_setOld3D(self.__writer__, self._old_3d)
+
+    def __init__(self, lgeos, **settings):
+        """Create WKT Writer
+
+        Note: writer defaults are set differently for GEOS 3.3.0 and up.
+        For example, with 'POINT Z (1 2 3)':
+
+            newer: POINT Z (1 2 3)
+            older: POINT (1.0000000000000000 2.0000000000000000)
+
+        The older formatting can be achieved for GEOS 3.3.0 and up by setting
+        the properties:
+            trim = False
+            output_dimension = 2
+        """
+        self._lgeos = lgeos
+        self.__writer__ = self._lgeos.GEOSWKTWriter_create()
+
+        applied_settings = self.defaults.copy()
+        applied_settings.update(settings)
+        for name in applied_settings:
+            setattr(self, name, applied_settings[name])
+
+    def __setattr__(self, name, value):
+        """Limit setting attributes"""
+        if hasattr(self, name):
+            object.__setattr__(self, name, value)
+        else:
+            raise AttributeError('%r object has no attribute %r' %
+                                 (self.__class__.__name__, name))
+
+    def __del__(self):
+        """Destroy WKT Writer"""
+        if self._lgeos is not None:
+            self._lgeos.GEOSWKTWriter_destroy(self.__writer__)
+            self.__writer__ = None
+            self._lgeos = None
+
+    def write(self, geom):
+        """Returns WKT string for geometry"""
+        if geom is None or geom._geom is None:
+            raise ValueError("Null geometry supports no operations")
+        result = self._lgeos.GEOSWKTWriter_write(self.__writer__, geom._geom)
+        text = string_at(result)
+        lgeos.GEOSFree(result)
+        if sys.version_info[0] >= 3:
+            return text.decode('ascii')
+        else:
+            return text
 
 
 class WKBReader(object):
+
+    _lgeos = None
+    __reader__ = None
 
     def __init__(self, lgeos):
         """Create WKB Reader"""
@@ -311,44 +361,11 @@ class WKBReader(object):
 
 class WKBWriter(object):
 
-    def __init__(self, lgeos):
-        """Create WKB Writer"""
-        self._lgeos = lgeos
-        self.__writer__ = self._lgeos.GEOSWKBWriter_create()
-        # Establish defaults
-        self.output_dimension = 3
+    _lgeos = None
+    __writer__ = None
 
-    def __del__(self):
-        """Destroy WKB Writer"""
-        if self._lgeos is not None:
-            self._lgeos.GEOSWKBWriter_destroy(self.__writer__)
-            self.__writer__ = None
-            self._lgeos = None
-
-    def write(self, geom):
-        """Returns WKB for geometry"""
-        if geom is None or geom._geom is None:
-            raise ValueError("Null geometry supports no operations")
-        size = c_size_t()
-        result = self._lgeos.GEOSWKBWriter_write(
-                        self.__writer__, geom._geom, pointer(size))
-        data = string_at(result, size.value)
-        lgeos.GEOSFree(result)
-        return data
-
-    def write_hex(self, geom):
-        """Returns WKB hex for geometry"""
-        if geom is None or geom._geom is None:
-            raise ValueError("Null geometry supports no operations")
-        size = c_size_t()
-        result = self._lgeos.GEOSWKBWriter_writeHEX(
-                        self.__writer__, geom._geom, pointer(size))
-        data = string_at(result, size.value)
-        lgeos.GEOSFree(result)
-        if sys.version_info[0] >= 3:
-            return data.decode('ascii')
-        else:
-            return data
+    # Establish default output setting
+    defaults = {'output_dimension': 3}
 
     @property
     def output_dimension(self):
@@ -378,6 +395,56 @@ class WKBWriter(object):
     def include_srid(self, value):
         self._lgeos.GEOSWKBWriter_setIncludeSRID(self.__writer__, bool(value))
 
+    def __init__(self, lgeos, **settings):
+        """Create WKB Writer"""
+        self._lgeos = lgeos
+        self.__writer__ = self._lgeos.GEOSWKBWriter_create()
+
+        applied_settings = self.defaults.copy()
+        applied_settings.update(settings)
+        for name in applied_settings:
+            setattr(self, name, applied_settings[name])
+
+    def __setattr__(self, name, value):
+        """Limit setting attributes"""
+        if hasattr(self, name):
+            object.__setattr__(self, name, value)
+        else:
+            raise AttributeError('%r object has no attribute %r' %
+                                 (self.__class__.__name__, name))
+
+    def __del__(self):
+        """Destroy WKB Writer"""
+        if self._lgeos is not None:
+            self._lgeos.GEOSWKBWriter_destroy(self.__writer__)
+            self.__writer__ = None
+            self._lgeos = None
+
+    def write(self, geom):
+        """Returns WKB byte string for geometry"""
+        if geom is None or geom._geom is None:
+            raise ValueError("Null geometry supports no operations")
+        size = c_size_t()
+        result = self._lgeos.GEOSWKBWriter_write(
+                        self.__writer__, geom._geom, pointer(size))
+        data = string_at(result, size.value)
+        lgeos.GEOSFree(result)
+        return data
+
+    def write_hex(self, geom):
+        """Returns WKB hex string for geometry"""
+        if geom is None or geom._geom is None:
+            raise ValueError("Null geometry supports no operations")
+        size = c_size_t()
+        result = self._lgeos.GEOSWKBWriter_writeHEX(
+                        self.__writer__, geom._geom, pointer(size))
+        data = string_at(result, size.value)
+        lgeos.GEOSFree(result)
+        if sys.version_info[0] >= 3:
+            return data.decode('ascii')
+        else:
+            return data
+
 
 # Errcheck functions for ctypes
 
@@ -387,7 +454,7 @@ def errcheck_wkb(result, func, argtuple):
         return None
     size_ref = argtuple[-1]
     size = size_ref.contents
-    retval = ctypes.string_at(result, size.value)[:]
+    retval = string_at(result, size.value)[:]
     lgeos.GEOSFree(result)
     return retval
 
