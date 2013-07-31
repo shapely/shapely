@@ -35,26 +35,38 @@ class test(Command):
         except ImportError:
             self.run_command('build_ext')
             import shapely.tests
+
         tests = TestLoader().loadTestsFromName('test_suite', shapely.tests)
-        t = TextTestRunner(verbosity=2)
-        t.run(tests)
+        runner = TextTestRunner(verbosity=2)
+        result = runner.run(tests)
 
-# Parse the version from the shapely module
-for line in open('shapely/__init__.py', 'r'):
-    if "__version__" in line:
-        exec(line.replace('_', ''))
-        break
+        if result.wasSuccessful():
+            sys.exit(0)
+        else:
+            sys.exit(1)
 
-open('VERSION.txt', 'w').write(version)
+# Get the version from the shapely module
+version = None
+with open('shapely/__init__.py', 'r') as fp:
+    for line in fp:
+        if "__version__" in line:
+            exec(line.replace('_', ''))
+            break
+if version is None:
+    raise ValueError("Could not determine Shapely's version")
 
-readme_text = open('README.rst', 'r').read()
+with open('VERSION.txt', 'w') as fp:
+    fp.write(version)
+
+with open('README.rst', 'r') as fp:
+    readme_text = fp.read()
 readme_text = readme_text.replace(".. include:: CREDITS.txt", "")
 
-f = open('CREDITS.txt', 'r')
-credits = f.read()
+with open('CREDITS.txt', 'r') as fp:
+    credits = fp.read()
 
-f = open('CHANGES.txt', 'r')
-changes_text = f.read()
+with open('CHANGES.txt', 'r') as fp:
+    changes_text = fp.read()
 
 setup_args = dict(
     name                = 'Shapely',
@@ -94,7 +106,8 @@ if sys.platform == 'win32':
     try:
         os.mkdir('shapely/DLLs')
     except OSError as ex:
-        if ex.errno != errno.EEXIST: raise
+        if ex.errno != errno.EEXIST:
+            raise
     if '(AMD64)' in sys.version:
         for dll in glob.glob('DLLs_AMD64_VC9/*.dll'):
             shutil.copy(dll, 'shapely/DLLs')
@@ -113,15 +126,17 @@ if sys.platform == 'win32':
 # Optional compilation of speedups
 # setuptools stuff from Bob Ippolito's simplejson project
 if sys.platform == 'win32' and sys.version_info > (2, 6):
-   # 2.6's distutils.msvc9compiler can raise an IOError when failing to
-   # find the compiler
-   ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError,
-                 IOError)
+    # 2.6's distutils.msvc9compiler can raise an IOError when failing to
+    # find the compiler
+    ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError,
+                  IOError)
 else:
-   ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError)
+    ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError)
+
 
 class BuildFailed(Exception):
     pass
+
 
 class build_ext(distutils_build_ext):
     # This class allows C extension building to fail.
@@ -142,7 +157,6 @@ if (hasattr(platform, 'python_implementation')
         and platform.python_implementation() == 'PyPy'):
     # python_implementation is only available since 2.6
     ext_modules = []
-    print('What is this case for, and what about "libraries"??')
     libraries = []
 elif sys.platform == 'win32':
     libraries = ['geos']
@@ -159,7 +173,7 @@ if os.path.exists("MANIFEST.in"):
 
     try:
         if (force_cython or not os.path.exists(c_file)
-            or os.path.getmtime(pyx_file) > os.path.getmtime(c_file)):
+                or os.path.getmtime(pyx_file) > os.path.getmtime(c_file)):
             print("Updating C extension with Cython.", file=sys.stderr)
             subprocess.check_call(["cython", "shapely/speedups/_speedups.pyx"])
     except (subprocess.CalledProcessError, OSError):
@@ -174,7 +188,8 @@ ext_modules = [
     Extension(
         "shapely.speedups._speedups",
         ["shapely/speedups/_speedups.c"],
-        libraries=libraries )]
+        libraries=libraries)
+]
 
 try:
     # try building with speedups
@@ -184,7 +199,8 @@ try:
         **setup_args
     )
 except BuildFailed as ex:
-    BUILD_EXT_WARNING = "Warning: The C extension could not be compiled, speedups are not enabled."
+    BUILD_EXT_WARNING = "Warning: The C extension could not be compiled, " \
+                        "speedups are not enabled."
     print(ex)
     print(BUILD_EXT_WARNING)
     print("Failure information, if any, is above.")
@@ -194,4 +210,3 @@ except BuildFailed as ex:
 
     print(BUILD_EXT_WARNING)
     print("Plain-Python installation succeeded.")
-

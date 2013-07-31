@@ -1,12 +1,14 @@
 """
 Iterative forms of operations
 """
-
+from warnings import warn
 from ctypes import c_char_p, c_size_t
 from shapely.geos import lgeos, PredicateError
 
 
 def geos_from_geometry(geom):
+    warn("`geos_from_geometry` is deprecated. Use geometry's `wkb` property "
+         "instead.", DeprecationWarning)
     data = geom.to_wkb()
     return lgeos.GEOSGeomFromWKB_buf(
                         c_char_p(data),

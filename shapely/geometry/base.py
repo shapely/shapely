@@ -168,11 +168,11 @@ class BaseGeometry(object):
         self.__p__ = None
 
     def __str__(self):
-        return self.to_wkt()
+        return self.wkt
 
     # To support pickling
     def __reduce__(self):
-        return (self.__class__, (), self.to_wkb())
+        return (self.__class__, (), self.wkb)
 
     def __setstate__(self, state):
         self.empty()

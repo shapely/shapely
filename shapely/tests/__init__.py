@@ -1,4 +1,11 @@
-from shapely.geos import lgeos, WKTWriter
+from shapely.geos import geos_version_string, lgeos, WKTWriter
+from shapely import speedups
+
+# Show some diagnostic information
+print('GEOS version: ' + geos_version_string)
+print('Cython speedups: ' + str(speedups.available))
+
+
 if lgeos.geos_version >= (3, 3, 0):
     # Redefine WKT writer defaults to pass tests without modification
     lgeos.wkt_writer.trim = False
@@ -50,4 +57,3 @@ def test_suite():
     suite.addTest(test_invalid_geometries.test_suite())
     suite.addTest(test_styles.test_suite())
     return suite
-

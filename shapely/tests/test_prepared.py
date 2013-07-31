@@ -4,7 +4,7 @@ from shapely import geometry
 
 
 class PreparedGeometryTestCase(unittest.TestCase):
-    
+
     def test_prepared(self):
         polygon = geometry.Polygon([
             (0, 0), (1, 0), (1, 1), (0, 1)
@@ -23,6 +23,5 @@ class PreparedGeometryTestCase(unittest.TestCase):
 
 
 def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(
-                                    PreparedGeometryTestCase
-                                    )
+    loader = unittest.TestLoader()
+    return loader.loadTestsFromTestCase(PreparedGeometryTestCase)

@@ -1,26 +1,27 @@
+import os
 import doctest
 import unittest
-import glob
-import os
+from glob import glob
 
 optionflags = (doctest.REPORT_ONLY_FIRST_FAILURE |
                doctest.NORMALIZE_WHITESPACE |
                doctest.ELLIPSIS)
 
+
 def list_doctests():
     print(__file__)
-    return [filename
-            for filename
-            in glob.glob(os.path.join(os.path.dirname(__file__), '*.txt'))]
+    source_files = glob(os.path.join(os.path.dirname(__file__), '*.txt'))
+    return [filename for filename in source_files]
+
 
 def open_file(filename, mode='r'):
     """Helper function to open files from within the tests package."""
     return open(os.path.join(os.path.dirname(__file__), filename), mode)
 
+
 def setUp(test):
-    test.globs.update(dict(
-            open_file = open_file,
-            ))
+    test.globs.update(dict(open_file=open_file,))
+
 
 def test_suite():
     return unittest.TestSuite(

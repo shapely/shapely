@@ -3,13 +3,14 @@ import unittest
 from shapely import speedups
 from shapely.geometry import LineString, Polygon
 
+
 class SpeedupsTestCase(unittest.TestCase):
-    
+
     def setUp(self):
         self.assertFalse(speedups._orig)
         speedups.enable()
         self.assertTrue(speedups._orig)
-        
+
     def tearDown(self):
         self.assertTrue(speedups._orig)
         speedups.disable()

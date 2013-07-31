@@ -5,6 +5,7 @@ from shapely.geometry.polygon import LinearRing
 
 
 class EmptinessTestCase(unittest.TestCase):
+
     def test_empty_base(self):
         g = BaseGeometry()
         self.assertTrue(g._is_empty)
@@ -22,7 +23,7 @@ class EmptinessTestCase(unittest.TestCase):
 
     def test_empty_point(self):
         self.assertTrue(sgeom.Point().is_empty)
-        
+
     def test_empty_multipoint(self):
         self.assertTrue(sgeom.MultiPoint().is_empty)
 
