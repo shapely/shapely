@@ -50,12 +50,16 @@ if sys.platform.startswith('linux'):
     free.restype = None
 
 elif sys.platform == 'darwin':
-    alt_paths = [
+    if hasattr(sys, 'frozen'):
+        # .app file from py2app
+        alt_paths = [os.path.join(os.environ['RESOURCEPATH'], '..', 'Frameworks', 'libgeos_c.dylib')]
+    else:
+        alt_paths = [
             # The Framework build from Kyng Chaos:
             "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
             # macports
             '/opt/local/lib/libgeos_c.dylib',
-    ]
+        ]
     _lgeos = load_dll('geos_c', fallbacks=alt_paths)
     free = load_dll('c').free
     free.argtypes = [c_void_p]
@@ -357,6 +361,8 @@ class LGEOS16(LGEOS15):
     def __init__(self, dll):
         super(LGEOS16, self).__init__(dll)
 
+        self.methods['buffer_with_style'] = self.GEOSBufferWithStyle
+
 
 class LGEOS16LR(LGEOS16):
     """Proxy for the reentrant GEOS_C DLL/SO API version 1.6 with linear
@@ -380,6 +386,14 @@ class LGEOS17(LGEOS16LR):
     geos_capi_version = (1, 7, 0)
     def __init__(self, dll):
         super(LGEOS17, self).__init__(dll)
+        
+        # GEOS 3.3.8 from homebrew has, but doesn't advertise 
+        # GEOSPolygonize_full. We patch it in explicitly here.
+        key = 'GEOSPolygonize_full'
+        func = getattr(self._lgeos, key + '_r')
+        attr = ftools.partial(func, self.geos_handle)
+        attr.__name__ = func.__name__
+        setattr(self, key, attr)
 
         self.methods['unary_union'] = self.GEOSUnaryUnion
         self.methods['cascaded_union'] = self.methods['unary_union']

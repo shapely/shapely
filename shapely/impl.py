@@ -4,7 +4,7 @@ This is layer number 2 from the list below.
 
 1) geometric objects: the Python OO API.
 2) implementation map: an abstraction that permits different backends.
-3) backend: callable objects that take Shapely geometric objects as arguments 
+3) backend: callable objects that take Shapely geometric objects as arguments
    and, with GEOS as a backend, translate them to C data structures.
 4) GEOS library: algorithms implemented in C++.
 
@@ -22,7 +22,7 @@ from shapely.topology import BinaryRealProperty, BinaryTopologicalOp
 from shapely.topology import UnaryRealProperty, UnaryTopologicalOp
 
 def delegated(func):
-    """A delegated method raises AttributeError in the absence of backend 
+    """A delegated method raises AttributeError in the absence of backend
     support."""
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -42,6 +42,8 @@ class BaseImpl(object):
         self.map.update(values)
     def __getitem__(self, key):
         return self.map[key]
+    def __contains__(self, key):
+        return key in self.map
 
 class GEOSImpl(BaseImpl):
     def __repr__(self):
@@ -82,23 +84,24 @@ IMPL14 = {
     'touches': (BinaryPredicate, 'touches'),
     'within': (BinaryPredicate, 'within'),
     'equals_exact': (BinaryPredicate, 'equals_exact'),
-    
+
     # First pure Python implementation
     'is_ccw': (cga.is_ccw_impl, 'is_ccw'),
     }
 
 IMPL15 = {
     'simplify': (UnaryTopologicalOp, 'simplify'),
-    'topology_preserve_simplify': 
+    'topology_preserve_simplify':
         (UnaryTopologicalOp, 'topology_preserve_simplify'),
     'prepared_intersects': (BinaryPredicate, 'prepared_intersects'),
     'prepared_contains': (BinaryPredicate, 'prepared_contains'),
-    'prepared_contains_properly': 
+    'prepared_contains_properly':
         (BinaryPredicate, 'prepared_contains_properly'),
     'prepared_covers': (BinaryPredicate, 'prepared_covers'),
     }
 
 IMPL16 = {
+    'buffer_with_style': (UnaryTopologicalOp, 'buffer_with_style'),
     }
 
 IMPL16LR = {

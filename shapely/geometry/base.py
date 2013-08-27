@@ -91,7 +91,17 @@ def exceptNull(func):
         return func(*args, **kwargs)
     return wrapper
 
-EMPTY = deserialize_wkb(a2b_hex(b'010700000000000000'))
+EMPTY = deserialize_wkb(a2b_hex('010700000000000000'))
+
+class CAP_STYLE(object):
+    round = 1
+    flat = 2
+    square = 3
+
+class JOIN_STYLE(object):
+    round = 1
+    mitre = 2
+    bevel = 3
 
 class BaseGeometry(object):
     """
@@ -171,6 +181,21 @@ class BaseGeometry(object):
         self.empty()
         self.__geom__ = val
     _geom = property(_get_geom, _set_geom)
+
+    # Operators
+    # ---------
+
+    def __and__(self, other):
+        return self.intersection(other)
+
+    def __or__(self, other):
+        return self.union(other)
+
+    def __sub__(self, other):
+        return self.difference(other)
+
+    def __xor__(self, other):
+        return self.symmetric_difference(other)
 
     # Array and ctypes interfaces
     # ---------------------------
@@ -314,7 +339,9 @@ class BaseGeometry(object):
         """A figure that envelopes the geometry"""
         return geom_factory(self.impl['envelope'](self))
 
-    def buffer(self, distance, resolution=16, quadsegs=None):
+    def buffer(self, distance, resolution=16, quadsegs=None,
+               cap_style=CAP_STYLE.round, join_style=JOIN_STYLE.round,
+               mitre_limit=0):
         """Returns a geometry with an envelope at a distance from the object's
         envelope
 
@@ -323,6 +350,20 @@ class BaseGeometry(object):
         the object increases by increasing the resolution keyword parameter
         or second positional parameter. Note: the use of a `quadsegs` parameter
         is deprecated and will be gone from the next major release.
+
+        The styles of caps are: CAP_STYLE.round (1), CAP_STYLE.flat (2), and
+        CAP_STYLE.square (3).
+
+        The styles of joins between offset segments are: JOIN_STYLE.round (1),
+        JOIN_STYLE.mitre (2), and JOIN_STYLE.bevel (3).
+
+        The mitre limit ratio is used for very sharp corners. The mitre ratio
+        is the ratio of the distance from the corner to the end of the mitred
+        offset corner. When two line segments meet at a sharp angle, a miter
+        join will extend the original geometry. To prevent unreasonable
+        geometry, the mitre limit allows controlling the maximum length of the
+        join corner. Corners with a ratio which exceed the limit will be
+        beveled.
 
         Example:
 
@@ -334,7 +375,12 @@ class BaseGeometry(object):
           3.1415138011443009
           >>> g.buffer(1.0, 3).area     # triangle approximation
           3.0
+          >>> list(g.buffer(1.0, cap_style='square').exterior.coords)
+          [(1.0, 1.0), (1.0, -1.0), (-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0)]
+          >>> g.buffer(1.0, cap_style='square').area
+          4.0
         """
+
         if quadsegs is not None:
             warnings.warn(
                 "The `quadsegs` argument is deprecated. Use `resolution`.",
@@ -342,7 +388,18 @@ class BaseGeometry(object):
             res = quadsegs
         else:
             res = resolution
-        return geom_factory(self.impl['buffer'](self, distance, res))
+
+        if cap_style == CAP_STYLE.round and join_style == JOIN_STYLE.round:
+            return geom_factory(self.impl['buffer'](self, distance, res))
+
+        if 'buffer_with_style' not in self.impl:
+            raise NotImplementedError("Styled buffering not available for "
+                                      "GEOS versions < 3.2.")
+
+        return geom_factory(self.impl['buffer_with_style'](self, distance, res,
+                                                           cap_style,
+                                                           join_style,
+                                                           mitre_limit))
 
     @delegated
     def simplify(self, tolerance, preserve_topology=True):
