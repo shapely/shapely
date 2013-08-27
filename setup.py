@@ -36,14 +36,22 @@ class test(Command):
             self.run_command('build_ext')
             import shapely.tests
         tests = TestLoader().loadTestsFromName('test_suite', shapely.tests)
-        t = TextTestRunner(verbosity=2)
-        t.run(tests)
+        runner = TextTestRunner(verbosity=2)
+        result = runner.run(tests)
+
+        if result.wasSuccessful():
+            sys.exit(0)
+        else:
+            sys.exit(1)
 
 # Parse the version from the shapely module
+version = None
 for line in open('shapely/__init__.py', 'r'):
     if "__version__" in line:
         exec(line.replace('_', ''))
         break
+
+assert version is not None
 
 open('VERSION.txt', 'w').write(version)
 
@@ -142,7 +150,6 @@ if (hasattr(platform, 'python_implementation')
         and platform.python_implementation() == 'PyPy'):
     # python_implementation is only available since 2.6
     ext_modules = []
-    print('What is this case for, and what about "libraries"??')
     libraries = []
 elif sys.platform == 'win32':
     libraries = ['geos']
