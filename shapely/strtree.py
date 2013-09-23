@@ -19,10 +19,21 @@ class STRtree:
     True
     >>> polys[2] in result
     False
+    >>> # Test empty tree
+    >>> s = STRtree([])
+    >>> s.query(query_geom)
+    []
+    >>> # Test tree with one object
+    >>> s = STRtree([polys[0]])
+    >>> result = s.query(query_geom)
+    >>> polys[0] in result
+    True
     """
 
     def __init__(self, geoms):
-        self._tree_handle = lgeos.GEOSSTRtree_create(len(geoms))
+        self._n_geoms = len(geoms)
+        # GEOS STRtree capacity has to be > 1
+        self._tree_handle = lgeos.GEOSSTRtree_create(max(2, len(geoms)))
         for geom in geoms:
             lgeos.GEOSSTRtree_insert(self._tree_handle, geom._geom, ctypes.py_object(geom))
 
@@ -30,6 +41,9 @@ class STRtree:
         lgeos.GEOSSTRtree_destroy(self._tree_handle)
 
     def query(self, geom):
+        if self._n_geoms == 0:
+            return []
+
         result = []
 
         def callback(item, userdata):
