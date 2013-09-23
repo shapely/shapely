@@ -295,3 +295,21 @@ def prototype(lgeos, geosVersion):
         lgeos.GEOSPolygonize_full.restype = ctypes.c_void_p
         lgeos.GEOSPolygonize_full.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p]
 
+    if geosVersion >= (1, 8, 2):
+        lgeos.GEOSQueryCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.c_void_p)
+
+        lgeos.GEOSSTRtree_query.argtypes = [ctypes.c_void_p, ctypes.c_void_p, lgeos.GEOSQueryCallback, ctypes.py_object]
+        lgeos.GEOSSTRtree_query.restype = None
+
+        lgeos.GEOSSTRtree_create.argtypes = [ctypes.c_int]
+        lgeos.GEOSSTRtree_create.restype = ctypes.c_void_p
+
+        lgeos.GEOSSTRtree_insert.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.py_object]
+        lgeos.GEOSSTRtree_insert.restype = None
+
+        lgeos.GEOSSTRtree_remove.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.py_object]
+        lgeos.GEOSSTRtree_remove.restype = None
+
+        lgeos.GEOSSTRtree_destroy.argtypes = [ctypes.c_void_p]
+        lgeos.GEOSSTRtree_destroy.restype = None
+
