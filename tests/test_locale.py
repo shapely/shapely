@@ -34,7 +34,10 @@ def setUpModule():
 
 
 def tearDownModule():
-    locale.resetlocale()
+    if sys.platform == 'win32':
+        locale.setlocale(locale.LC_ALL, "")
+    else:
+        locale.resetlocale()
 
 
 class LocaleTestCase(unittest.TestCase):
