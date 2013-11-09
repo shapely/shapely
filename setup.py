@@ -1,8 +1,7 @@
 import warnings
 
 try:
-    from distribute_setup import use_setuptools
-    use_setuptools()
+    import setuptools
 except:
     warnings.warn(
     "Failed to import distribute_setup, continuing without distribute.",
@@ -123,7 +122,7 @@ if (hasattr(platform, 'python_implementation')
     ext_modules = []
     libraries = []
 elif sys.platform == 'win32':
-    libraries = ['geos']
+    libraries = ['geos_c']
 else:
     libraries = ['geos_c']
 
