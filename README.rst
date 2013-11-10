@@ -134,7 +134,7 @@ http://lists.gispython.org/mailman/listinfo/community.
 
 Bugs may be reported at https://github.com/Toblerity/Shapely.
 
-.. include:: CREDITS.txt
+.. include:: ../CREDITS.txt
 
 .. _JTS: http://www.vividsolutions.com/jts/jtshome.htm
 .. _PostGIS: http://postgis.org

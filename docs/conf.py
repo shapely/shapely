@@ -19,7 +19,7 @@ import sys, os
 sys.path.append(os.path.abspath('sphinxext'))
 
 # Load latest source tree
-sys.path.insert(0, '..')
+sys.path.insert(0, os.path.abspath('..'))
 
 import shapely
 
