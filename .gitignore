@@ -5,3 +5,6 @@ build/
 dist/
 docs/_build/
 shapely/speedups/_speedups.*
+docs/shapely.*.txt
+docs/shapely.txt
+docs/modules.txt
