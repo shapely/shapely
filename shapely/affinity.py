@@ -43,6 +43,8 @@ def affine_transform(geom, matrix):
         y' = d * x + e * y + f * z + yoff
         z' = g * x + h * y + i * z + zoff
     """
+    if geom.is_empty:
+        return geom
     if len(matrix) == 6:
         ndim = 2
         a, b, d, e, xoff, yoff = matrix
