@@ -28,7 +28,7 @@ From lines
     >>> copy = LineString(line)
     >>> len(copy.coords)
     2
-    >>> print copy.wkt
+    >>> print(copy.wkt)
     LINESTRING (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)
 
 
@@ -73,16 +73,17 @@ Coordinate Access
 Geo interface
 -------------
 
-    >>> line.__geo_interface__
-    {'type': 'LineString', 'coordinates': ((1.0, 2.0), (3.0, 4.0))}
+    >>> from pprint import pprint
+    >>> pprint(line.__geo_interface__)
+    {'coordinates': ((1.0, 2.0), (3.0, 4.0)), 'type': 'LineString'}
 
 
 Coordinate modification
 -----------------------
 
     >>> line.coords = ((-1.0, -1.0), (1.0, 1.0))
-    >>> line.__geo_interface__
-    {'type': 'LineString', 'coordinates': ((-1.0, -1.0), (1.0, 1.0))}
+    >>> pprint(line.__geo_interface__)
+    {'coordinates': ((-1.0, -1.0), (1.0, 1.0)), 'type': 'LineString'}
 
 
 Adapter
@@ -129,6 +130,6 @@ Test Non-operability of Null geometry
 Check that we can set coordinates of a null geometry
 
     >>> l_null.coords = [(0, 0), (1, 1)]
-    >>> print l_null.length # doctest: +ELLIPSIS
+    >>> print(l_null.length)  # doctest: +ELLIPSIS
     1.414...
 

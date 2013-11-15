@@ -1,6 +1,11 @@
 """Collections of points and related utilities
 """
 
+import sys
+
+if sys.version_info[0] < 3:
+    range = xrange
+
 from ctypes import byref, c_double, c_void_p, cast, POINTER
 from ctypes import ArgumentError
 
@@ -71,7 +76,7 @@ class MultiPoint(BaseMultipartGeometry):
             m = len(self.geoms)
             array_type = c_double * (m * n)
             data = array_type()
-            for i in xrange(m):
+            for i in range(m):
                 g = self.geoms[i]._geom    
                 cs = lgeos.GEOSGeom_getCoordSeq(g)
                 lgeos.GEOSCoordSeq_getX(cs, 0, byref(temp))
@@ -151,7 +156,7 @@ def geos_multipoint_from_py(ob):
         # Array of pointers to sub-geometries
         subs = (c_void_p * m)()
 
-        for i in xrange(m):
+        for i in range(m):
             geom, ndims = geos_point_from_py(cp[n*i:n*i+2])
             subs[i] = cast(geom, c_void_p)
 
@@ -168,7 +173,7 @@ def geos_multipoint_from_py(ob):
         subs = (c_void_p * m)()
         
         # add to coordinate sequence
-        for i in xrange(m):
+        for i in range(m):
             coords = ob[i]
             geom, ndims = geos_point_from_py(coords)
             subs[i] = cast(geom, c_void_p)

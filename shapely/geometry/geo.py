@@ -2,12 +2,12 @@
 Geometry factories based on the geo interface
 """
 
-from point import Point, asPoint
-from linestring import LineString, asLineString
-from polygon import Polygon, asPolygon
-from multipoint import MultiPoint, asMultiPoint
-from multilinestring import MultiLineString, asMultiLineString
-from multipolygon import MultiPolygon, MultiPolygonAdapter
+from .point import Point, asPoint
+from .linestring import LineString, asLineString
+from .polygon import Polygon, asPolygon
+from .multipoint import MultiPoint, asMultiPoint
+from .multilinestring import MultiLineString, asMultiLineString
+from .multipolygon import MultiPolygon, MultiPolygonAdapter
 
 
 def box(minx, miny, maxx, maxy, ccw=True):

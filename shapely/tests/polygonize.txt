@@ -34,7 +34,7 @@ Polygonizing
     []
     >>> list(cuts.geoms)
     [<shapely.geometry.linestring.LineString object at ...>, <shapely.geometry.linestring.LineString object at ...>]
-    >>> print cuts.wkt
+    >>> print(cuts.wkt)
     GEOMETRYCOLLECTION (LINESTRING (1.0000000000000000 1.0000000000000000, 100.0000000000000000 100.0000000000000000), LINESTRING (5.0000000000000000 5.0000000000000000, 6.0000000000000000 6.0000000000000000))
     >>> list(invalids.geoms)
     []

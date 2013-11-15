@@ -10,7 +10,8 @@ try:
 except ImportError:
     import sys
     available = False
-    import_error_msg = tuple(sys.exc_info()[1])
+    # TODO: This does not appear to do anything useful
+    import_error_msg = sys.exc_info()[1]
 
 __all__ = ['available', 'enable', 'disable']
 _orig = {}

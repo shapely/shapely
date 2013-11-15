@@ -1,14 +1,18 @@
 """Base geometry class and utilities
 """
 
-from ctypes import pointer, c_size_t, c_char_p, c_void_p
 import sys
 import warnings
+from binascii import a2b_hex
+from ctypes import pointer, c_size_t, c_char_p, c_void_p
 
 from shapely.coords import CoordinateSequence
 from shapely.ftools import wraps
 from shapely.geos import lgeos, ReadingError
 from shapely.impl import DefaultImplementation, delegated
+
+if sys.version_info[0] < 3:
+    range = xrange
 
 GEOMETRY_TYPES = [
     'Point',
@@ -49,10 +53,12 @@ def geom_factory(g, parent=None):
     return ob
 
 def geom_from_wkt(data):
+    if sys.version_info[0] >= 3:
+        data = data.encode('ascii')
     geom = lgeos.GEOSGeomFromWKT(c_char_p(data))
     if not geom:
-        raise ReadingError, \
-        "Could not create geometry because of errors while reading input."
+        raise ReadingError(
+        "Could not create geometry because of errors while reading input.")
     return geom_factory(geom)
 
 def geom_to_wkt(ob):
@@ -85,6 +91,8 @@ def exceptNull(func):
         return func(*args, **kwargs)
     return wrapper
 
+EMPTY = deserialize_wkb(a2b_hex('010700000000000000'))
+
 class CAP_STYLE(object):
     round = 1
     flat = 2
@@ -94,8 +102,6 @@ class JOIN_STYLE(object):
     round = 1
     mitre = 2
     bevel = 3
-
-EMPTY = deserialize_wkb('010700000000000000'.decode('hex'))
 
 class BaseGeometry(object):
     """
@@ -637,7 +643,7 @@ class GeometrySequence(object):
 
     def __iter__(self):
         self._update()
-        for i in xrange(self.__len__()):
+        for i in range(self.__len__()):
             yield self._get_geom_item(i)
 
     def __len__(self):
@@ -661,7 +667,7 @@ class GeometrySequence(object):
                     "Heterogenous geometry collections are not sliceable")
             res = []
             start, stop, stride = key.indices(m)
-            for i in xrange(start, stop, stride):
+            for i in range(start, stop, stride):
                 res.append(self._get_geom_item(i))
             return type(self.__p__)(res or None)
         else:

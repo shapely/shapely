@@ -33,7 +33,7 @@ From lines
   >>> ml = MultiLineString([a])
   >>> len(ml.geoms)
   1
-  >>> print ml.wkt
+  >>> print(ml.wkt)
   MULTILINESTRING ((1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000))
 
 From another multi-line
@@ -41,7 +41,7 @@ From another multi-line
   >>> ml2 = MultiLineString(ml)
   >>> len(ml2.geoms)
   1
-  >>> print ml2.wkt
+  >>> print(ml2.wkt)
   MULTILINESTRING ((1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000))
 
 
@@ -60,8 +60,9 @@ Sub-geometry Access
 Geo interface
 -------------
 
-  >>> geom.__geo_interface__
-  {'type': 'MultiLineString', 'coordinates': (((0.0, 0.0), (1.0, 2.0)),)}
+  >>> from pprint import pprint
+  >>> pprint(geom.__geo_interface__)
+  {'coordinates': (((0.0, 0.0), (1.0, 2.0)),), 'type': 'MultiLineString'}
 
 Adapter
 -------

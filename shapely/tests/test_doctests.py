@@ -8,7 +8,7 @@ optionflags = (doctest.REPORT_ONLY_FIRST_FAILURE |
                doctest.ELLIPSIS)
 
 def list_doctests():
-    print __file__
+    print(__file__)
     return [filename
             for filename
             in glob.glob(os.path.join(os.path.dirname(__file__), '*.txt'))]

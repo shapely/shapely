@@ -1,4 +1,10 @@
-from cPickle import dumps, loads, HIGHEST_PROTOCOL
+import sys
+
+if sys.version_info[0] >= 3:
+    from pickle import dumps, loads, HIGHEST_PROTOCOL
+else:
+    from cPickle import dumps, loads, HIGHEST_PROTOCOL
+
 import unittest
 from shapely import geometry
 

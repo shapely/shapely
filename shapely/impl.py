@@ -11,7 +11,7 @@ This is layer number 2 from the list below.
 Shapely 1.2 includes a GEOS backend and it is the default.
 """
 
-from ftools import wraps
+from .ftools import wraps
 
 from shapely.algorithms import cga
 from shapely.coords import BoundsOp
@@ -29,8 +29,8 @@ def delegated(func):
         try:
             return func(*args, **kwargs)
         except KeyError:
-            raise AttributeError, "Method '%s' is not supported by %s" % (
-                func.__name__, repr(args[0].impl))
+            raise AttributeError("Method %r is not supported by %r" %
+                                 (func.__name__, args[0].impl))
     return wrapper
 
 # Map geometry methods to their GEOS delegates
@@ -113,7 +113,7 @@ IMPL16LR = {
     }
 
 def impl_items(defs):
-    return [(k, v[0](v[1])) for k, v in defs.items()]
+    return [(k, v[0](v[1])) for k, v in list(defs.items())]
 
 imp = GEOSImpl(dict(impl_items(IMPL14)))
 if lgeos.geos_capi_version >= (1, 5, 0):

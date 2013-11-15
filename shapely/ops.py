@@ -1,8 +1,14 @@
 """Support for various GEOS geometry operations
 """
 
+import sys
+
+if sys.version_info[0] < 3:
+    from itertools import izip
+else:
+    izip = zip
+
 from ctypes import byref, c_void_p
-from itertools import izip
 
 from shapely.geos import lgeos
 from shapely.geometry.base import geom_factory, BaseGeometry
