@@ -91,7 +91,7 @@ def exceptNull(func):
         return func(*args, **kwargs)
     return wrapper
 
-EMPTY = deserialize_wkb(a2b_hex('010700000000000000'))
+EMPTY = deserialize_wkb(a2b_hex(bytes('010700000000000000')))
 
 class CAP_STYLE(object):
     round = 1
