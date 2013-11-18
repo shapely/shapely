@@ -29,6 +29,7 @@ else:
 
     LOG.addHandler(NullHandler())
 
+
 # Find and load the GEOS and C libraries
 # If this ever gets any longer, we'll break it into separate modules
 
@@ -58,7 +59,8 @@ if sys.platform.startswith('linux'):
 elif sys.platform == 'darwin':
     if hasattr(sys, 'frozen'):
         # .app file from py2app
-        alt_paths = [os.path.join(os.environ['RESOURCEPATH'], '..', 'Frameworks', 'libgeos_c.dylib')]
+        alt_paths = [os.path.join(os.environ['RESOURCEPATH'],
+                     '..', 'Frameworks', 'libgeos_c.dylib')]
     else:
         alt_paths = [
             # The Framework build from Kyng Chaos:
@@ -74,13 +76,15 @@ elif sys.platform == 'darwin':
 elif sys.platform == 'win32':
     try:
         egg_dlls = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                     r"DLLs"))
-        wininst_dlls =  os.path.abspath(os.__file__ + "../../../DLLs")
+                                   "DLLs"))
+        wininst_dlls = os.path.abspath(os.__file__ + "../../../DLLs")
         original_path = os.environ['PATH']
-        os.environ['PATH'] = "%s;%s;%s" % (egg_dlls, wininst_dlls, original_path)
+        os.environ['PATH'] = "%s;%s;%s" % \
+            (egg_dlls, wininst_dlls, original_path)
         _lgeos = CDLL("geos.dll")
     except (ImportError, WindowsError, OSError):
         raise
+
     def free(m):
         try:
             cdll.msvcrt.free(m)
@@ -93,12 +97,12 @@ elif sys.platform == 'sunos5':
     free = CDLL('libc.so.1').free
     free.argtypes = [c_void_p]
     free.restype = None
-
-else: # other *nix systems
+else:  # other *nix systems
     _lgeos = load_dll('geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
     free = load_dll('c', fallbacks=['libc.so.6']).free
     free.argtypes = [c_void_p]
     free.restype = None
+
 
 def _geos_version():
     # extern const char GEOS_DLL *GEOSversion();
@@ -148,28 +152,35 @@ if geos_version >= (3, 1, 0):
 
     # Handle special case.
     _lgeos.initGEOS_r.restype = c_void_p
-    _lgeos.initGEOS_r.argtypes = [EXCEPTION_HANDLER_FUNCTYPE, EXCEPTION_HANDLER_FUNCTYPE]
+    _lgeos.initGEOS_r.argtypes = \
+        [EXCEPTION_HANDLER_FUNCTYPE, EXCEPTION_HANDLER_FUNCTYPE]
     _lgeos.finishGEOS_r.argtypes = [c_void_p]
 
 # Exceptions
 
+
 class ReadingError(Exception):
     pass
+
 
 class DimensionError(Exception):
     pass
 
+
 class TopologicalError(Exception):
     pass
 
+
 class PredicateError(Exception):
     pass
+
 
 def error_handler(fmt, *args):
     if sys.version_info[0] >= 3:
         fmt = fmt.decode('ascii')
         args = [arg.decode('ascii') for arg in args]
     LOG.error(fmt, *args)
+
 
 def notice_handler(fmt, args):
     if sys.version_info[0] >= 3:
@@ -249,18 +260,19 @@ class WKTWriter(object):
         def rounding_precision(self, value):
             self._rounding_precision = int(value)
             self._lgeos.GEOSWKTWriter_setRoundingPrecision(
-                                self.__writer__, self._rounding_precision)
+                self.__writer__, self._rounding_precision)
 
         @property
         def output_dimension(self):
             """Output dimension, either 2 or 3 (default)"""
             return self._lgeos.GEOSWKTWriter_getOutputDimension(
-                                self.__writer__)
+                self.__writer__)
 
         @output_dimension.setter
         def output_dimension(self, value):
             self._lgeos.GEOSWKTWriter_setOutputDimension(
-                                self.__writer__, int(value))
+                self.__writer__, int(value))
+
         @property
         def old_3d(self):
             """Show older style for 3D WKT, without 'Z' (default: False)"""
@@ -341,7 +353,7 @@ class WKBReader(object):
     def read(self, data):
         """Returns geometry from WKB"""
         geom = self._lgeos.GEOSWKBReader_read(
-                        self.__reader__, c_char_p(data), c_size_t(len(data)))
+            self.__reader__, c_char_p(data), c_size_t(len(data)))
         if not geom:
             raise ReadingError("Could not create geometry because of errors "
                                "while reading input.")
@@ -354,7 +366,7 @@ class WKBReader(object):
         if sys.version_info[0] >= 3:
             data = data.encode('ascii')
         geom = self._lgeos.GEOSWKBReader_readHEX(
-                        self.__reader__, c_char_p(data), c_size_t(len(data)))
+            self.__reader__, c_char_p(data), c_size_t(len(data)))
         if not geom:
             raise ReadingError("Could not create geometry because of errors "
                                "while reading input.")
@@ -379,7 +391,7 @@ class WKBWriter(object):
     @output_dimension.setter
     def output_dimension(self, value):
         self._lgeos.GEOSWKBWriter_setOutputDimension(
-                            self.__writer__, int(value))
+            self.__writer__, int(value))
 
     @property
     def big_endian(self):
@@ -430,7 +442,7 @@ class WKBWriter(object):
             raise ValueError("Null geometry supports no operations")
         size = c_size_t()
         result = self._lgeos.GEOSWKBWriter_write(
-                        self.__writer__, geom._geom, pointer(size))
+            self.__writer__, geom._geom, pointer(size))
         data = string_at(result, size.value)
         lgeos.GEOSFree(result)
         return data
@@ -441,7 +453,7 @@ class WKBWriter(object):
             raise ValueError("Null geometry supports no operations")
         size = c_size_t()
         result = self._lgeos.GEOSWKBWriter_writeHEX(
-                        self.__writer__, geom._geom, pointer(size))
+            self.__writer__, geom._geom, pointer(size))
         data = string_at(result, size.value)
         lgeos.GEOSFree(result)
         if sys.version_info[0] >= 3:
@@ -462,6 +474,7 @@ def errcheck_wkb(result, func, argtuple):
     lgeos.GEOSFree(result)
     return retval
 
+
 def errcheck_just_free(result, func, argtuple):
     '''Returns string from a C pointer'''
     retval = string_at(result)
@@ -470,6 +483,7 @@ def errcheck_just_free(result, func, argtuple):
         return retval.decode('ascii')
     else:
         return retval
+
 
 def errcheck_predicate(result, func, argtuple):
     '''Result is 2 on exception, 1 on True, 0 on False'''
@@ -484,6 +498,7 @@ class LGEOSBase(threading.local):
     This is a base class. Do not instantiate.
     """
     methods = {}
+
     def __init__(self, dll):
         self._lgeos = dll
         self.geos_handle = None
@@ -505,6 +520,7 @@ class LGEOS300(LGEOSBase):
     """
     geos_version = (3, 0, 0)
     geos_capi_version = (1, 4, 0)
+
     def __init__(self, dll):
         super(LGEOS300, self).__init__(dll)
         self.geos_handle = self._lgeos.initGEOS(notice_h, error_h)
@@ -521,21 +537,21 @@ class LGEOS300(LGEOSBase):
         self.wkb_reader = WKBReader(self)
         self.wkb_writer = WKBWriter(self)
         self.GEOSRelate.errcheck = errcheck_just_free
-        for pred in ( self.GEOSDisjoint,
-              self.GEOSTouches,
-              self.GEOSIntersects,
-              self.GEOSCrosses,
-              self.GEOSWithin,
-              self.GEOSContains,
-              self.GEOSOverlaps,
-              self.GEOSEquals,
-              self.GEOSEqualsExact,
-              self.GEOSisEmpty,
-              self.GEOSisValid,
-              self.GEOSisSimple,
-              self.GEOSisRing,
-              self.GEOSHasZ
-              ):
+        for pred in (
+                self.GEOSDisjoint,
+                self.GEOSTouches,
+                self.GEOSIntersects,
+                self.GEOSCrosses,
+                self.GEOSWithin,
+                self.GEOSContains,
+                self.GEOSOverlaps,
+                self.GEOSEquals,
+                self.GEOSEqualsExact,
+                self.GEOSisEmpty,
+                self.GEOSisValid,
+                self.GEOSisSimple,
+                self.GEOSisRing,
+                self.GEOSHasZ):
             pred.errcheck = errcheck_predicate
 
         self.methods['area'] = self.GEOSArea
@@ -576,6 +592,7 @@ class LGEOS310(LGEOSBase):
     """
     geos_version = (3, 1, 0)
     geos_capi_version = (1, 5, 0)
+
     def __init__(self, dll):
         super(LGEOS310, self).__init__(dll)
         self.geos_handle = self._lgeos.initGEOS_r(notice_h, error_h)
@@ -600,21 +617,21 @@ class LGEOS310(LGEOSBase):
         self.wkb_reader = WKBReader(self)
         self.wkb_writer = WKBWriter(self)
         self.GEOSRelate.func.errcheck = errcheck_just_free
-        for pred in ( self.GEOSDisjoint,
-              self.GEOSTouches,
-              self.GEOSIntersects,
-              self.GEOSCrosses,
-              self.GEOSWithin,
-              self.GEOSContains,
-              self.GEOSOverlaps,
-              self.GEOSEquals,
-              self.GEOSEqualsExact,
-              self.GEOSisEmpty,
-              self.GEOSisValid,
-              self.GEOSisSimple,
-              self.GEOSisRing,
-              self.GEOSHasZ
-              ):
+        for pred in (
+                self.GEOSDisjoint,
+                self.GEOSTouches,
+                self.GEOSIntersects,
+                self.GEOSCrosses,
+                self.GEOSWithin,
+                self.GEOSContains,
+                self.GEOSOverlaps,
+                self.GEOSEquals,
+                self.GEOSEqualsExact,
+                self.GEOSisEmpty,
+                self.GEOSisValid,
+                self.GEOSisSimple,
+                self.GEOSisRing,
+                self.GEOSHasZ):
             pred.func.errcheck = errcheck_predicate
 
         self.GEOSisValidReason.func.errcheck = errcheck_just_free
@@ -657,19 +674,23 @@ class LGEOS310(LGEOSBase):
             self.GEOSTopologyPreserveSimplify
         self.methods['cascaded_union'] = self.GEOSUnionCascaded
 
+
 class LGEOS311(LGEOS310):
     """Proxy for GEOS 3.1.1-CAPI-1.6.0
     """
     geos_version = (3, 1, 1)
     geos_capi_version = (1, 6, 0)
+
     def __init__(self, dll):
         super(LGEOS311, self).__init__(dll)
+
 
 class LGEOS320(LGEOS311):
     """Proxy for GEOS 3.2.0-CAPI-1.6.0
     """
     geos_version = (3, 2, 0)
     geos_capi_version = (1, 6, 0)
+
     def __init__(self, dll):
         super(LGEOS320, self).__init__(dll)
 
@@ -687,6 +708,7 @@ class LGEOS330(LGEOS320):
     """
     geos_version = (3, 3, 0)
     geos_capi_version = (1, 7, 0)
+
     def __init__(self, dll):
         super(LGEOS330, self).__init__(dll)
 

@@ -7,13 +7,18 @@ import sys
 if sys.version_info[0] >= 3:
     from functools import reduce
 
-import unittest
+from . import unittest
 from shapely import geometry
-import numpy
+
+try:
+    import numpy
+except ImportError:
+    numpy = False
 
 
 class TransposeTestCase(unittest.TestCase):
 
+    @unittest.skipIf(not numpy, 'numpy not installed')
     def test_multipoint(self):
         a = numpy.array([[1.0, 1.0, 2.0, 2.0, 1.0], [3.0, 4.0, 4.0, 3.0, 3.0]])
         t = a.T
@@ -24,6 +29,7 @@ class TransposeTestCase(unittest.TestCase):
             [(1.0, 3.0), (1.0, 4.0), (2.0, 4.0), (2.0, 3.0), (1.0, 3.0)]
         )
 
+    @unittest.skipIf(not numpy, 'numpy not installed')
     def test_linestring(self):
         a = numpy.array([[1.0, 1.0, 2.0, 2.0, 1.0], [3.0, 4.0, 4.0, 3.0, 3.0]])
         t = a.T
@@ -33,6 +39,7 @@ class TransposeTestCase(unittest.TestCase):
             [(1.0, 3.0), (1.0, 4.0), (2.0, 4.0), (2.0, 3.0), (1.0, 3.0)]
         )
 
+    @unittest.skipIf(not numpy, 'numpy not installed')
     def test_polygon(self):
         a = numpy.array([[1.0, 1.0, 2.0, 2.0, 1.0], [3.0, 4.0, 4.0, 3.0, 3.0]])
         t = a.T

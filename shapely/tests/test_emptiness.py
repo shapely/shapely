@@ -1,4 +1,4 @@
-import unittest
+from . import unittest
 from shapely.geometry.base import BaseGeometry
 import shapely.geometry as sgeom
 from shapely.geometry.polygon import LinearRing

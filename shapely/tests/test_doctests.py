@@ -1,6 +1,6 @@
 import os
 import doctest
-import unittest
+from . import unittest
 from glob import glob
 
 optionflags = (doctest.REPORT_ONLY_FIRST_FAILURE |

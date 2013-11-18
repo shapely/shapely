@@ -1,7 +1,7 @@
-import sys
-import unittest
+from . import unittest
 from shapely import geometry
 
+import sys
 if sys.version_info[0] >= 3:
     from pickle import dumps, loads, HIGHEST_PROTOCOL
 else:

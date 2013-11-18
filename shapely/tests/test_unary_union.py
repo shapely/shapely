@@ -1,5 +1,6 @@
+from . import unittest
+from shapely.geos import geos_version
 from itertools import islice
-import unittest
 from shapely.geometry import MultiPolygon
 from shapely.geometry import Point
 from shapely.ops import unary_union
@@ -23,34 +24,30 @@ def halton(base):
 
 
 class UnionTestCase(unittest.TestCase):
-    coords = zip(
+    # Instead of random points, use deterministic, pseudo-random Halton
+    # sequences for repeatability sake.
+    coords = list(zip(
         list(islice(halton(5), 20, 120)),
-        list(islice(halton(7), 20, 120)) )
+        list(islice(halton(7), 20, 120)),
+    ))
 
+    @unittest.skipIf(geos_version < (3, 3, 0), 'GEOS 3.3.0 required')
     def test_1(self):
-        # Instead of random points, use deterministic, pseudo-random Halton
-        # sequences for repeatability sake.
-        coords = list(zip(
-            list(islice(halton(5), 20, 120)),
-            list(islice(halton(7), 20, 120))
-        ))
-        patches = [Point(xy).buffer(0.05) for xy in coords]
+        patches = [Point(xy).buffer(0.05) for xy in self.coords]
         u = unary_union(patches)
         self.assertEqual(u.geom_type, 'MultiPolygon')
         self.assertAlmostEqual(u.area, 0.71857254056)
 
-
+    @unittest.skipIf(geos_version < (3, 3, 0), 'GEOS 3.3.0 required')
     def test_multi(self):
         # Test of multipart input based on comment by @schwehr at
         # https://github.com/Toblerity/Shapely/issues/47#issuecomment-21809308
         patches = MultiPolygon([Point(xy).buffer(0.05) for xy in self.coords])
-        self.failUnlessAlmostEqual(unary_union(patches).area, 0.71857254056)
-        self.failUnlessAlmostEqual(unary_union([patches, patches]).area, 0.71857254056)
+        self.assertAlmostEqual(unary_union(patches).area,
+                               0.71857254056)
+        self.assertAlmostEqual(unary_union([patches, patches]).area,
+                               0.71857254056)
+
 
 def test_suite():
-    try:
-        patches = [Point((0, 0)).buffer(0.05)]
-        unary_union(patches)
-    except KeyError:
-        return lambda x: None
     return unittest.TestLoader().loadTestsFromTestCase(UnionTestCase)

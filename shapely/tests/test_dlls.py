@@ -1,4 +1,4 @@
-import unittest
+from . import unittest
 
 from shapely.geos import load_dll
 

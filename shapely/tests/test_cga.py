@@ -1,4 +1,4 @@
-import unittest
+from . import unittest
 from shapely.geometry.polygon import LinearRing, orient, Polygon
 
 

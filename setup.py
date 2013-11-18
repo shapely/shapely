@@ -2,6 +2,15 @@
 
 from __future__ import print_function
 
+try:
+    # If possible, use setuptools
+    from setuptools import setup
+    from setuptools.extension import Extension
+    from setuptools.command.build_ext import build_ext as distutils_build_ext
+except ImportError:
+    from distutils.core import setup
+    from distutils.extension import Extension
+    from distutils.command.build_ext import build_ext as distutils_build_ext
 from distutils.cmd import Command
 from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
@@ -9,13 +18,13 @@ import errno
 import glob
 import os
 import platform
-from setuptools.extension import Extension
-from setuptools import setup, find_packages
-from setuptools.command.build_ext import build_ext as distutils_build_ext
 import shutil
 import subprocess
 import sys
-from unittest import TextTestRunner, TestLoader
+if sys.version_info[0:2] <= (2, 6):
+    from unittest2 import TextTestRunner, TestLoader
+else:
+    from unittest import TextTestRunner, TestLoader
 
 
 class test(Command):

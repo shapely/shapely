@@ -1,4 +1,4 @@
-import unittest
+from . import unittest
 from math import pi
 from shapely import affinity
 from shapely.wkt import loads as load_wkt

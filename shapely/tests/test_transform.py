@@ -1,4 +1,4 @@
-import unittest
+from . import unittest
 from shapely import geometry
 from shapely.ops import transform
 

@@ -8,7 +8,8 @@ python:
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -qq libgeos-c1
+  - sudo apt-get install -qq libgeos-dev
+  - if [[ $TRAVIS_PYTHON_VERSION == "2.6" ]]; then pip install unittest2; fi
   - pip install cython numpy
 
 install:
