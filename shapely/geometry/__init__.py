@@ -12,11 +12,9 @@ from .multipolygon import MultiPolygon, asMultiPolygon
 from .collection import GeometryCollection
 
 __all__ = [
-    'box', 'shape', 'asShape', 'Point', 'asPoint',
-    'LineString', 'asLineString',
-    'Polygon', 'asPolygon', 'MultiPoint', 'asMultiPoint',
-    'MultiLineString', 'asMultiLineString',
-    'MultiPolygon', 'asMultiPolygon',
+    'box', 'shape', 'asShape', 'Point', 'asPoint', 'LineString',
+    'asLineString', 'Polygon', 'asPolygon', 'MultiPoint', 'asMultiPoint',
+    'MultiLineString', 'asMultiLineString', 'MultiPolygon', 'asMultiPolygon',
     'GeometryCollection', 'mapping', 'LinearRing', 'asLinearRing',
-    'CAP_STYLE', 'JOIN_STYLE'
+    'CAP_STYLE', 'JOIN_STYLE',
 ]

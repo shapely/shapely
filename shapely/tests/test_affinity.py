@@ -1,8 +1,9 @@
-import unittest
+from . import unittest
 from math import pi
 from shapely import affinity
 from shapely.wkt import loads as load_wkt
 from shapely.geometry import Point
+
 
 class AffineTestCase(unittest.TestCase):
 
@@ -12,12 +13,14 @@ class AffineTestCase(unittest.TestCase):
             TypeError, affinity.affine_transform, g, None)
         self.assertRaises(
             TypeError, affinity.affine_transform, g, '123456')
-        self.assertRaises(ValueError, 
-            affinity.affine_transform, g, [1,2,3,4,5,6,7,8,9])
-        self.assertRaises(AttributeError, 
-            affinity.affine_transform, None, [1,2,3,4,5,6])
+        self.assertRaises(ValueError, affinity.affine_transform, g,
+                          [1, 2, 3, 4, 5, 6, 7, 8, 9])
+        self.assertRaises(AttributeError, affinity.affine_transform, None,
+                          [1, 2, 3, 4, 5, 6])
 
     def test_affine_geom_types(self):
+
+        # identity matrices, which should result with no transformation
         matrix2d = (1, 0,
                     0, 1,
                     0, 0)
@@ -25,6 +28,7 @@ class AffineTestCase(unittest.TestCase):
                     0, 1, 0,
                     0, 0, 1,
                     0, 0, 0)
+
         def test_geom(g2, g3=None):
             self.assertFalse(g2.has_z)
             a2 = affinity.affine_transform(g2, matrix2d)
@@ -36,27 +40,29 @@ class AffineTestCase(unittest.TestCase):
                 self.assertTrue(a3.has_z)
                 self.assertTrue(g3.equals(a3))
             return
+
         pt2d = load_wkt('POINT(12.3 45.6)')
         pt3d = load_wkt('POINT(12.3 45.6 7.89)')
         test_geom(pt2d, pt3d)
         ls2d = load_wkt('LINESTRING(0.9 3.4, 0.7 2, 2.5 2.7)')
         ls3d = load_wkt('LINESTRING(0.9 3.4 3.3, 0.7 2 2.3, 2.5 2.7 5.5)')
         test_geom(ls2d, ls3d)
-        test_geom(load_wkt('POLYGON((0.9 2.3, 0.5 1.1, 2.4 0.8, 0.9 2.3), '\
-                           '(1.1 1.7, 0.9 1.3, 1.4 1.2, 1.1 1.7), '\
+        test_geom(load_wkt('POLYGON((0.9 2.3, 0.5 1.1, 2.4 0.8, 0.9 2.3), '
+                           '(1.1 1.7, 0.9 1.3, 1.4 1.2, 1.1 1.7), '
                            '(1.6 1.3, 1.7 1, 1.9 1.1, 1.6 1.3))'))
-        test_geom(load_wkt('MULTIPOINT ((-300 300), (700 300), '\
-                           '(-800 -1100), (200 -300))'))
-        test_geom(load_wkt('MULTILINESTRING((0 0, -0.7 -0.7, 0.6 -1), '\
-                           '(-0.5 0.5, 0.7 0.6, 0 -0.6))'))
-        test_geom(load_wkt('MULTIPOLYGON(((900 4300, -1100 -400, '\
-                           '900 -800, 900 4300)), '\
-                           '((1200 4300, 2300 4400, 1900 1000, 1200 4300)))'))
+        test_geom(load_wkt(
+            'MULTIPOINT ((-300 300), (700 300), (-800 -1100), (200 -300))'))
+        test_geom(load_wkt(
+            'MULTILINESTRING((0 0, -0.7 -0.7, 0.6 -1), '
+            '(-0.5 0.5, 0.7 0.6, 0 -0.6))'))
+        test_geom(load_wkt(
+            'MULTIPOLYGON(((900 4300, -1100 -400, 900 -800, 900 4300)), '
+            '((1200 4300, 2300 4400, 1900 1000, 1200 4300)))'))
         # GeometryCollection fails, since it does not have a good constructor
-        gc = load_wkt('GEOMETRYCOLLECTION(POINT(20 70),'\
-                      ' POLYGON((60 70, 13 35, 60 -30, 60 70)),'\
+        gc = load_wkt('GEOMETRYCOLLECTION(POINT(20 70),'
+                      ' POLYGON((60 70, 13 35, 60 -30, 60 70)),'
                       ' LINESTRING(60 70, 50 100, 80 100))')
-        self.assertRaises(TypeError, test_geom, gc) # TODO: fix this
+        self.assertRaises(TypeError, test_geom, gc)  # TODO: fix this
 
     def test_affine_2d(self):
         g = load_wkt('LINESTRING(2.4 4.1, 2.4 3, 3 3)')
@@ -100,9 +106,9 @@ class AffineTestCase(unittest.TestCase):
         self.assertTrue(a33.has_z)
         # 2D equality checks
         expected2d = load_wkt('LINESTRING(-0.2 14.35, -0.2 11.6, 1 11.6)')
-        expected3d = load_wkt('LINESTRING(-0.2 14.35 130.54096, '\
+        expected3d = load_wkt('LINESTRING(-0.2 14.35 130.54096, '
                               '-0.2 11.6 140.47744, 1 11.6 139.19728)')
-        expected32 = load_wkt('LINESTRING(-0.2 14.35 100.2, '\
+        expected32 = load_wkt('LINESTRING(-0.2 14.35 100.2, '
                               '-0.2 11.6 132.8, 1 11.6 128.6)')
         self.assertTrue(a22.almost_equals(expected2d))
         self.assertTrue(a23.almost_equals(expected2d))
@@ -113,6 +119,7 @@ class AffineTestCase(unittest.TestCase):
         for a, e in zip(a33.coords, expected3d.coords):
             for ap, ep in zip(a, e):
                 self.assertAlmostEqual(ap, ep)
+
 
 class TransformOpsTestCase(unittest.TestCase):
 
@@ -139,7 +146,7 @@ class TransformOpsTestCase(unittest.TestCase):
         els = load_wkt('LINESTRING(140 300, 240 300, 240 360)')
         self.assertTrue(rls.equals(els))
         # around the absolute Point of origin
-        rls = affinity.rotate(ls, 90, origin=Point(0,0))
+        rls = affinity.rotate(ls, 90, origin=Point(0, 0))
         els = load_wkt('LINESTRING(-400 240, -300 240, -300 300)')
         self.assertTrue(rls.equals(els))
 
@@ -158,7 +165,7 @@ class TransformOpsTestCase(unittest.TestCase):
                 self.assertEqual(ap, bp)
         # retest with named parameters for the same result
         sls = affinity.scale(geom=ls, xfact=2, yfact=3, zfact=0.5,
-                              origin='center')
+                             origin='center')
         self.assertTrue(sls.equals(els))
         ## other `origin` parameters
         # around the centroid
@@ -185,8 +192,8 @@ class TransformOpsTestCase(unittest.TestCase):
         self.assertTrue(sls.equals(ls))
         # different shearing in x- and y-directions
         sls = affinity.skew(ls, 15, -30)
-        els = load_wkt('LINESTRING (253.39745962155615 417.3205080756888, '\
-                       '226.60254037844385 317.3205080756888, '\
+        els = load_wkt('LINESTRING (253.39745962155615 417.3205080756888, '
+                       '226.60254037844385 317.3205080756888, '
                        '286.60254037844385 282.67949192431126)')
         self.assertTrue(sls.almost_equals(els))
         # retest with radians for the same result
@@ -194,24 +201,24 @@ class TransformOpsTestCase(unittest.TestCase):
         self.assertTrue(sls.almost_equals(els))
         # retest with named parameters for the same result
         sls = affinity.skew(geom=ls, xs=15, ys=-30,
-                             origin='center', use_radians=False)
+                            origin='center', use_radians=False)
         self.assertTrue(sls.almost_equals(els))
         ## other `origin` parameters
         # around the centroid
         sls = affinity.skew(ls, 15, -30, origin='centroid')
-        els = load_wkt('LINESTRING(258.42150697963973 406.49519052838332, '\
-                       '231.6265877365273980 306.4951905283833185, '\
+        els = load_wkt('LINESTRING(258.42150697963973 406.49519052838332, '
+                       '231.6265877365273980 306.4951905283833185, '
                        '291.6265877365274264 271.8541743770057337)')
         self.assertTrue(sls.almost_equals(els))
         # around the second coordinate tuple
         sls = affinity.skew(ls, 15, -30, origin=ls.coords[1])
-        els = load_wkt('LINESTRING(266.7949192431123038 400, 240 300, '\
+        els = load_wkt('LINESTRING(266.7949192431123038 400, 240 300, '
                        '300 265.3589838486224153)')
         self.assertTrue(sls.almost_equals(els))
         # around the absolute Point of origin
-        sls = affinity.skew(ls, 15, -30, origin=Point(0,0))
-        els = load_wkt('LINESTRING(347.179676972449101 261.435935394489832, '\
-                       '320.3847577293367976 161.4359353944898317, '\
+        sls = affinity.skew(ls, 15, -30, origin=Point(0, 0))
+        els = load_wkt('LINESTRING(347.179676972449101 261.435935394489832, '
+                       '320.3847577293367976 161.4359353944898317, '
                        '380.3847577293367976 126.7949192431122754)')
         self.assertTrue(sls.almost_equals(els))
 
@@ -232,8 +239,9 @@ class TransformOpsTestCase(unittest.TestCase):
         tls = affinity.translate(geom=ls, xoff=100, yoff=400, zoff=-10)
         self.assertTrue(tls.equals(els))
 
+
 def test_suite():
     loader = unittest.TestLoader()
     return unittest.TestSuite([
-        unittest.TestLoader().loadTestsFromTestCase(AffineTestCase),
-        unittest.TestLoader().loadTestsFromTestCase(TransformOpsTestCase)])
+        loader.loadTestsFromTestCase(AffineTestCase),
+        loader.loadTestsFromTestCase(TransformOpsTestCase)])

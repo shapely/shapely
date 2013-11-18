@@ -4,6 +4,10 @@ Changes
 1.3.0 (Coming soon)
 -------------------
 - Include support for Python 3.2 and 3.3 (#56), minimum version is now 2.6.
+- Switch to GEOS WKT/WKB Reader/Writer API, with defaults changed to enable 3D
+  output dimensions, and to 'trim' WKT output for GEOS >=3.3.0.
+- Use GEOS version instead of GEOS C API version to determine library
+  capabilities (#65).
 - Add buffering style options (#55).
 
 1.2.18 (2013-07-23)

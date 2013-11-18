@@ -1,11 +1,13 @@
 '''Test recovery from operation on invalid geometries
 '''
 
-import unittest
+from . import unittest
 from shapely.geometry import Polygon
 from shapely.topology import TopologicalError
 
+
 class InvalidGeometriesTestCase(unittest.TestCase):
+
     def test_invalid_intersection(self):
         # Make a self-intersecting polygon
         polygon_invalid = Polygon(((0, 0), (1, 1), (1, -1), (0, 1), (0, 0)))
@@ -21,8 +23,8 @@ class InvalidGeometriesTestCase(unittest.TestCase):
                           polygon.intersection, polygon_invalid)
         return
 
+
 def test_suite():
     loader = unittest.TestLoader()
     return unittest.TestSuite([
         loader.loadTestsFromTestCase(InvalidGeometriesTestCase)])
-

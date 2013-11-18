@@ -14,7 +14,7 @@ from shapely.geos import lgeos
 from shapely.geometry.base import geom_factory, BaseGeometry
 from shapely.geometry import asShape, asLineString, asMultiLineString
 
-__all__= ['cascaded_union', 'linemerge', 'operator', 'polygonize', 
+__all__= ['cascaded_union', 'linemerge', 'operator', 'polygonize',
           'polygonize_full', 'transform', 'unary_union']
 
 class CollectionOperator(object):
@@ -30,7 +30,7 @@ class CollectionOperator(object):
 
     def polygonize(self, lines):
         """Creates polygons from a source of lines
-        
+
         The source may be a MultiLineString, a sequence of LineString objects,
         or a sequence of objects than can be adapted to LineStrings.
         """
@@ -51,13 +51,13 @@ class CollectionOperator(object):
     def polygonize_full(self, lines):
         """Creates polygons from a source of lines, returning the polygons
         and leftover geometries.
-        
+
         The source may be a MultiLineString, a sequence of LineString objects,
         or a sequence of objects than can be adapted to LineStrings.
-        
+
         Returns a tuple of objects: (polygons, dangles, cut edges, invalid ring
         lines). Each are a geometry collection.
-        
+
         Dangles are edges which have one or both ends which are not incident on
         another edge endpoint. Cut edges are connected at both ends but do not
         form part of polygon. Invalid ring lines form rings which are invalid
@@ -83,29 +83,29 @@ class CollectionOperator(object):
             geom_factory(invalids)
             )
 
-    def linemerge(self, lines): 
+    def linemerge(self, lines):
         """Merges all connected lines from a source
-        
+
         The source may be a MultiLineString, a sequence of LineString objects,
         or a sequence of objects than can be adapted to LineStrings.  Returns a
-        LineString or MultiLineString when lines are not contiguous. 
-        """ 
-        source = None 
-        if hasattr(lines, 'type') and lines.type == 'MultiLineString': 
-            source = lines 
-        elif hasattr(lines, '__iter__'): 
-            try: 
-                source = asMultiLineString([ls.coords for ls in lines]) 
-            except AttributeError: 
-                source = asMultiLineString(lines) 
-        if source is None: 
+        LineString or MultiLineString when lines are not contiguous.
+        """
+        source = None
+        if hasattr(lines, 'type') and lines.type == 'MultiLineString':
+            source = lines
+        elif hasattr(lines, '__iter__'):
+            try:
+                source = asMultiLineString([ls.coords for ls in lines])
+            except AttributeError:
+                source = asMultiLineString(lines)
+        if source is None:
             raise ValueError("Cannot linemerge %s" % lines)
-        result = lgeos.GEOSLineMerge(source._geom) 
-        return geom_factory(result)   
+        result = lgeos.GEOSLineMerge(source._geom)
+        return geom_factory(result)
 
     def cascaded_union(self, geoms):
         """Returns the union of a sequence of geometries
-        
+
         This is the most efficient method of dissolving many polygons.
         """
         L = len(geoms)

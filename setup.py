@@ -2,6 +2,15 @@
 
 from __future__ import print_function
 
+try:
+    # If possible, use setuptools
+    from setuptools import setup
+    from setuptools.extension import Extension
+    from setuptools.command.build_ext import build_ext as distutils_build_ext
+except ImportError:
+    from distutils.core import setup
+    from distutils.extension import Extension
+    from distutils.command.build_ext import build_ext as distutils_build_ext
 from distutils.cmd import Command
 from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
@@ -9,13 +18,13 @@ import errno
 import glob
 import os
 import platform
-from setuptools.extension import Extension
-from setuptools import setup, find_packages
-from setuptools.command.build_ext import build_ext as distutils_build_ext
 import shutil
 import subprocess
 import sys
-from unittest import TextTestRunner, TestLoader
+if sys.version_info[0:2] <= (2, 6):
+    from unittest2 import TextTestRunner, TestLoader
+else:
+    from unittest import TextTestRunner, TestLoader
 
 
 class test(Command):
@@ -35,6 +44,7 @@ class test(Command):
         except ImportError:
             self.run_command('build_ext')
             import shapely.tests
+
         tests = TestLoader().loadTestsFromName('test_suite', shapely.tests)
         runner = TextTestRunner(verbosity=2)
         result = runner.run(tests)
@@ -44,25 +54,28 @@ class test(Command):
         else:
             sys.exit(1)
 
-# Parse the version from the shapely module
+# Get the version from the shapely module
 version = None
-for line in open('shapely/__init__.py', 'r'):
-    if "__version__" in line:
-        exec(line.replace('_', ''))
-        break
+with open('shapely/__init__.py', 'r') as fp:
+    for line in fp:
+        if "__version__" in line:
+            exec(line.replace('_', ''))
+            break
+if version is None:
+    raise ValueError("Could not determine Shapely's version")
 
-assert version is not None
+with open('VERSION.txt', 'w') as fp:
+    fp.write(version)
 
-open('VERSION.txt', 'w').write(version)
-
-readme_text = open('README.rst', 'r').read()
+with open('README.rst', 'r') as fp:
+    readme_text = fp.read()
 readme_text = readme_text.replace(".. include:: CREDITS.txt", "")
 
-f = open('CREDITS.txt', 'r')
-credits = f.read()
+with open('CREDITS.txt', 'r') as fp:
+    credits = fp.read()
 
-f = open('CHANGES.txt', 'r')
-changes_text = f.read()
+with open('CHANGES.txt', 'r') as fp:
+    changes_text = fp.read()
 
 setup_args = dict(
     name                = 'Shapely',
@@ -102,7 +115,8 @@ if sys.platform == 'win32':
     try:
         os.mkdir('shapely/DLLs')
     except OSError as ex:
-        if ex.errno != errno.EEXIST: raise
+        if ex.errno != errno.EEXIST:
+            raise
     if '(AMD64)' in sys.version:
         for dll in glob.glob('DLLs_AMD64_VC9/*.dll'):
             shutil.copy(dll, 'shapely/DLLs')
@@ -121,15 +135,17 @@ if sys.platform == 'win32':
 # Optional compilation of speedups
 # setuptools stuff from Bob Ippolito's simplejson project
 if sys.platform == 'win32' and sys.version_info > (2, 6):
-   # 2.6's distutils.msvc9compiler can raise an IOError when failing to
-   # find the compiler
-   ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError,
-                 IOError)
+    # 2.6's distutils.msvc9compiler can raise an IOError when failing to
+    # find the compiler
+    ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError,
+                  IOError)
 else:
-   ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError)
+    ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError)
+
 
 class BuildFailed(Exception):
     pass
+
 
 class build_ext(distutils_build_ext):
     # This class allows C extension building to fail.
@@ -166,7 +182,7 @@ if os.path.exists("MANIFEST.in"):
 
     try:
         if (force_cython or not os.path.exists(c_file)
-            or os.path.getmtime(pyx_file) > os.path.getmtime(c_file)):
+                or os.path.getmtime(pyx_file) > os.path.getmtime(c_file)):
             print("Updating C extension with Cython.", file=sys.stderr)
             subprocess.check_call(["cython", "shapely/speedups/_speedups.pyx"])
     except (subprocess.CalledProcessError, OSError):
@@ -181,7 +197,8 @@ ext_modules = [
     Extension(
         "shapely.speedups._speedups",
         ["shapely/speedups/_speedups.c"],
-        libraries=libraries )]
+        libraries=libraries)
+]
 
 try:
     # try building with speedups
@@ -191,7 +208,8 @@ try:
         **setup_args
     )
 except BuildFailed as ex:
-    BUILD_EXT_WARNING = "Warning: The C extension could not be compiled, speedups are not enabled."
+    BUILD_EXT_WARNING = "Warning: The C extension could not be compiled, " \
+                        "speedups are not enabled."
     print(ex)
     print(BUILD_EXT_WARNING)
     print("Failure information, if any, is above.")
@@ -201,4 +219,3 @@ except BuildFailed as ex:
 
     print(BUILD_EXT_WARNING)
     print("Plain-Python installation succeeded.")
-

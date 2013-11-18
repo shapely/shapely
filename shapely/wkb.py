@@ -1,24 +1,36 @@
 """Load/dump geometries using the well-known binary (WKB) format
 """
 
-from shapely.geometry.base import geom_from_wkb, geom_to_wkb
+from shapely import geos
 
 # Pickle-like convenience functions
 
-def loads(data):
-    """Load a geometry from a WKB string."""
-    return geom_from_wkb(data)
+def loads(data, hex=False):
+    """Load a geometry from a WKB byte string, or hex-encoded string if
+    ``hex=True``.
+    """
+    if hex:
+        return geos.lgeos.wkb_reader.read_hex(data)
+    else:
+        return geos.lgeos.wkb_reader.read(data)
 
-def load(fp):
+def load(fp, hex=False):
     """Load a geometry from an open file."""
     data = fp.read()
-    return loads(data)
+    return loads(data, hex=hex)
 
-def dumps(ob):
-    """Dump a WKB representation of a geometry to a byte string."""
-    return geom_to_wkb(ob)
+def dumps(ob, hex=False, **settings):
+    """Dump a WKB representation of a geometry to a byte string, or a
+    hex-encoded string if ``hex=True``.
 
-def dump(ob, fp):
+    See available keyword output settings in ``shapely.geos.WKBWriter``."""
+    writer = geos.WKBWriter(geos.lgeos, **settings)
+    if hex:
+        return writer.write_hex(ob)
+    else:
+        return writer.write(ob)
+
+
+def dump(ob, fp, hex=False, **settings):
     """Dump a geometry to an open file."""
-    fp.write(dumps(ob))
-
+    fp.write(dumps(ob, hex=hex, **settings))
