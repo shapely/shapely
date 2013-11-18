@@ -22,13 +22,15 @@ GEOMETRY_TYPES = [
     'MultiPoint',
     'MultiLineString',
     'MultiPolygon',
-    'GeometryCollection'
-    ]
+    'GeometryCollection',
+]
+
 
 def geometry_type_name(g):
     if g is None:
         raise ValueError("Null geometry has no type")
     return GEOMETRY_TYPES[lgeos.GEOSGeomTypeId(g)]
+
 
 def geom_factory(g, parent=None):
     # Abstract geometry factory for use with topological methods below
@@ -52,6 +54,7 @@ def geom_factory(g, parent=None):
         ob._ndim = 2
     return ob
 
+
 def geom_from_wkt(data):
     warn("`geom_from_wkt` is deprecated. Use `geos.wkt_reader.read(data)`.",
          DeprecationWarning)
@@ -60,8 +63,9 @@ def geom_from_wkt(data):
     geom = lgeos.GEOSGeomFromWKT(c_char_p(data))
     if not geom:
         raise ReadingError(
-        "Could not create geometry because of errors while reading input.")
+            "Could not create geometry because of errors while reading input.")
     return geom_factory(geom)
+
 
 def geom_to_wkt(ob):
     warn("`geom_to_wkt` is deprecated. Use `geos.wkt_writer.write(ob)`.",
@@ -70,6 +74,7 @@ def geom_to_wkt(ob):
         raise ValueError("Null geometry supports no operations")
     return lgeos.GEOSGeomToWKT(ob._geom)
 
+
 def deserialize_wkb(data):
     geom = lgeos.GEOSGeomFromWKB_buf(c_char_p(data), c_size_t(len(data)))
     if not geom:
@@ -77,10 +82,12 @@ def deserialize_wkb(data):
             "Could not create geometry because of errors while reading input.")
     return geom
 
+
 def geom_from_wkb(data):
     warn("`geom_from_wkb` is deprecated. Use `geos.wkb_reader.read(data)`.",
          DeprecationWarning)
     return geom_factory(deserialize_wkb(data))
+
 
 def geom_to_wkb(ob):
     warn("`geom_to_wkb` is deprecated. Use `geos.wkb_writer.write(ob)`.",
@@ -89,6 +96,7 @@ def geom_to_wkb(ob):
         raise ValueError("Null geometry supports no operations")
     size = c_size_t()
     return lgeos.GEOSGeomToWKB_buf(c_void_p(ob._geom), pointer(size))
+
 
 def exceptNull(func):
     """Decorator which helps avoid GEOS operations on null pointers."""
@@ -99,10 +107,12 @@ def exceptNull(func):
         return func(*args, **kwargs)
     return wrapper
 
+
 class CAP_STYLE(object):
     round = 1
     flat = 2
     square = 3
+
 
 class JOIN_STYLE(object):
     round = 1
@@ -110,6 +120,7 @@ class JOIN_STYLE(object):
     bevel = 3
 
 EMPTY = deserialize_wkb(a2b_hex(b'010700000000000000'))
+
 
 class BaseGeometry(object):
     """
@@ -133,8 +144,8 @@ class BaseGeometry(object):
     #     Coordinate reference system. Available for Shapely extensions, but
     #     not implemented here.
     # _owned : bool
-    #     True if this object's GEOS geometry is owned by another as in the case
-    #     of a multipart geometry member.
+    #     True if this object's GEOS geometry is owned by another as in the
+    #     case of a multipart geometry member.
     __geom__ = EMPTY
     __p__ = None
     _ctypes_data = None
@@ -159,7 +170,7 @@ class BaseGeometry(object):
             try:
                 self._lgeos.GEOSGeom_destroy(self.__geom__)
             except AttributeError:
-                pass # _lgeos might be empty on shutdown
+                pass  # _lgeos might be empty on shutdown
         self.__geom__ = EMPTY
 
     def __del__(self):
@@ -182,13 +193,14 @@ class BaseGeometry(object):
         else:
             self._ndim = 2
 
-    # The _geom property
-    def _get_geom(self):
+    @property
+    def _geom(self):
         return self.__geom__
-    def _set_geom(self, val):
+
+    @_geom.setter
+    def _geom(self, val):
         self.empty()
         self.__geom__ = val
-    _geom = property(_get_geom, _set_geom)
 
     # Operators
     # ---------
@@ -221,7 +233,7 @@ class BaseGeometry(object):
             typestr = '>f8'
         else:
             raise ValueError(
-                  "Unsupported byteorder: neither little nor big-endian")
+                "Unsupported byteorder: neither little nor big-endian")
         return {
             'version': 3,
             'typestr': typestr,
@@ -295,9 +307,10 @@ class BaseGeometry(object):
         """WKB hex representation of the geometry"""
         return lgeos.wkb_writer.write_hex(self)
 
-    geom_type = property(geometryType,
-        doc="""Name of the geometry's type, such as 'Point'"""
-        )
+    @property
+    def geom_type(self):
+        """Name of the geometry's type, such as 'Point'"""
+        return self.geometryType()
 
     # Real-valued properties and methods
     # ----------------------------------
@@ -582,26 +595,26 @@ class BaseMultipartGeometry(BaseGeometry):
     @property
     def ctypes(self):
         raise NotImplementedError(
-        "Multi-part geometries have no ctypes representations")
+            "Multi-part geometries have no ctypes representations")
 
     @property
     def __array_interface__(self):
         """Provide the Numpy array protocol."""
-        raise NotImplementedError(
-        "Multi-part geometries do not themselves provide the array interface")
+        raise NotImplementedError("Multi-part geometries do not themselves "
+                                  "provide the array interface")
 
     def _get_coords(self):
-        raise NotImplementedError(
-        "Sub-geometries may have coordinate sequences, but collections do not")
+        raise NotImplementedError("Sub-geometries may have coordinate "
+                                  "sequences, but collections do not")
 
     def _set_coords(self, ob):
-        raise NotImplementedError(
-        "Sub-geometries may have coordinate sequences, but collections do not")
+        raise NotImplementedError("Sub-geometries may have coordinate "
+                                  "sequences, but collections do not")
 
     @property
     def coords(self):
         raise NotImplementedError(
-        "Multi-part geometries do not provide a coordinate sequence")
+            "Multi-part geometries do not provide a coordinate sequence")
 
     @property
     def geoms(self):
@@ -719,8 +732,9 @@ class HeterogeneousGeometrySequence(GeometrySequence):
         g._owned = True
         return g
 
-# Test runner
+
 def _test():
+    """Test runner"""
     import doctest
     doctest.testmod()
 

@@ -1,5 +1,6 @@
 from itertools import islice
 import unittest
+from shapely.geometry import MultiPolygon
 from shapely.geometry import Point
 from shapely.ops import unary_union
 
@@ -22,6 +23,10 @@ def halton(base):
 
 
 class UnionTestCase(unittest.TestCase):
+    coords = zip(
+        list(islice(halton(5), 20, 120)),
+        list(islice(halton(7), 20, 120)) )
+
     def test_1(self):
         # Instead of random points, use deterministic, pseudo-random Halton
         # sequences for repeatability sake.
@@ -34,6 +39,13 @@ class UnionTestCase(unittest.TestCase):
         self.assertEqual(u.geom_type, 'MultiPolygon')
         self.assertAlmostEqual(u.area, 0.71857254056)
 
+
+    def test_multi(self):
+        # Test of multipart input based on comment by @schwehr at
+        # https://github.com/Toblerity/Shapely/issues/47#issuecomment-21809308
+        patches = MultiPolygon([Point(xy).buffer(0.05) for xy in self.coords])
+        self.failUnlessAlmostEqual(unary_union(patches).area, 0.71857254056)
+        self.failUnlessAlmostEqual(unary_union([patches, patches]).area, 0.71857254056)
 
 def test_suite():
     try:

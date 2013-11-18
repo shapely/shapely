@@ -115,13 +115,22 @@ after GeoJSON.
   >>> print(json.dumps(mapping(s)))
   {"type": "Point", "coordinates": [0.0, 0.0]}
 
-Testing
-=======
+Development and Testing
+=======================
+
+Dependecies for developing Shapely are listed in requirements-dev.txt. Cython
+and Numpy are not required for production installations, only for development.
+Use of a virtual environment is strongly recommended.::
+
+  $ virtualenv .
+  $ source bin/activate
+  (env)$ pip install -r requirements-dev.txt
+  (env)$ python setup.py develop
 
 Shapely uses a Zope-stye suite of unittests and doctests, exercised via
 setup.py.::
 
-  $ python setup.py test
+  (env)$ python setup.py test
 
 Nosetests won't run the tests properly; Zope doctest suites are not currently
 supported well by nose.
@@ -134,7 +143,7 @@ http://lists.gispython.org/mailman/listinfo/community.
 
 Bugs may be reported at https://github.com/Toblerity/Shapely.
 
-.. include:: CREDITS.txt
+.. include:: ../CREDITS.txt
 
 .. _JTS: http://www.vividsolutions.com/jts/jtshome.htm
 .. _PostGIS: http://postgis.org
