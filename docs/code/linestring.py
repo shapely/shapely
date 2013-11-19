@@ -39,7 +39,7 @@ xrange = [-1, 4]
 yrange = [-1, 3]
 ax.set_xlim(*xrange)
 ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
+ax.set_yticks(list(range(*yrange)) + [yrange[-1]])
 ax.set_aspect(1)
 
 #2: complex line
@@ -56,7 +56,7 @@ xrange = [-2, 3]
 yrange = [-1, 3]
 ax.set_xlim(*xrange)
 ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
+ax.set_yticks(list(range(*yrange)) + [yrange[-1]])
 ax.set_aspect(1)
 
 pyplot.show()

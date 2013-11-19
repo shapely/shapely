@@ -10,8 +10,8 @@ print('Cython speedups: ' + str(speedups.available))
 
 if lgeos.geos_version >= (3, 3, 0):
     # Redefine WKT writer defaults to pass tests without modification
-    lgeos.wkt_writer.trim = False
-    lgeos.wkt_writer.output_dimension = 2
+    #lgeos.wkt_writer.trim = False
+    #lgeos.wkt_writer.output_dimension = 2
     WKTWriter.defaults = {}
 
 if sys.version_info[0:2] <= (2, 6):

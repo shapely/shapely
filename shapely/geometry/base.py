@@ -9,6 +9,7 @@ from ctypes import pointer, c_size_t, c_char_p, c_void_p
 from shapely.coords import CoordinateSequence
 from shapely.ftools import wraps
 from shapely.geos import lgeos, ReadingError
+from shapely.geos import WKBWriter, WKTWriter
 from shapely.impl import DefaultImplementation, delegated
 
 if sys.version_info[0] < 3:
@@ -293,19 +294,19 @@ class BaseGeometry(object):
         return geom_to_wkt(self)
 
     @property
-    def wkt(self):
+    def wkt(self, **kw):
         """WKT representation of the geometry"""
-        return lgeos.wkt_writer.write(self)
+        return WKTWriter(lgeos, **kw).write(self)
 
     @property
     def wkb(self):
         """WKB representation of the geometry"""
-        return lgeos.wkb_writer.write(self)
+        return WKBWriter(lgeos).write(self)
 
     @property
     def wkb_hex(self):
         """WKB hex representation of the geometry"""
-        return lgeos.wkb_writer.write_hex(self)
+        return WKBWriter(lgeos).write_hex(self)
 
     @property
     def geom_type(self):
