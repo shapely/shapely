@@ -9,6 +9,11 @@ class IdentityTestCase(unittest.TestCase):
     def func(self, x, y, z=None):
         return tuple([c for c in [x, y, z] if c])
 
+    def test_empty(self):
+        g = geometry.Point()
+        h = transform(self.func, g)
+        self.assertTrue(h.is_empty)
+
     def test_point(self):
         g = geometry.Point(0, 1)
         h = transform(self.func, g)

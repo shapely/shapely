@@ -89,7 +89,8 @@ def affine_transform(geom, matrix):
     elif geom.type.startswith('Multi') or geom.type == 'GeometryCollection':
         # Recursive call
         # TODO: fix GeometryCollection constructor
-        return type(geom)([affine_transform(part, matrix) for part in geom.geoms])
+        return type(geom)([affine_transform(part, matrix)
+                           for part in geom.geoms])
     else:
         raise ValueError('Type %r not recognized' % geom.type)
 

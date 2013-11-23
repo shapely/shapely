@@ -29,6 +29,12 @@ class AffineTestCase(unittest.TestCase):
                     0, 0, 1,
                     0, 0, 0)
 
+        # empty in, empty out
+        empty2d = load_wkt('MULTIPOLYGON EMPTY')
+        empty3d = load_wkt('POINT Z EMPTY')
+        self.assertTrue(affinity.affine_transform(empty2d, matrix2d).is_empty)
+        self.assertTrue(affinity.affine_transform(empty3d, matrix3d).is_empty)
+
         def test_geom(g2, g3=None):
             self.assertFalse(g2.has_z)
             a2 = affinity.affine_transform(g2, matrix2d)
