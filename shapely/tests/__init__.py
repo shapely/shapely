@@ -27,7 +27,7 @@ else:
     import unittest
 
 from . import test_doctests, test_prepared, test_equality, test_geomseq, \
-    test_linestring, \
+    test_point, test_linestring, \
     test_xy, test_collection, test_emptiness, test_singularity, \
     test_validation, test_mapping, test_delegated, test_dlls, \
     test_linear_referencing, test_products_z, test_box, test_speedups, \
@@ -38,6 +38,7 @@ from . import test_doctests, test_prepared, test_equality, test_geomseq, \
 
 def test_suite():
     suite = unittest.TestSuite()
+    suite.addTest(test_point.test_suite())
     suite.addTest(test_linestring.test_suite())
     suite.addTest(test_doctests.test_suite())
     suite.addTest(test_prepared.test_suite())

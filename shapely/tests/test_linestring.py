@@ -94,7 +94,7 @@ class LineStringTestCase(unittest.TestCase):
         self.assertEqual(data[5], 1.0)
 
         b = asarray(line)
-        assert_array_equal(b, array([[0., 0.],[2., 2.], [1., 1.]]))
+        assert_array_equal(b, array([[0., 0.], [2., 2.], [1., 1.]]))
 
 
 def test_suite():
