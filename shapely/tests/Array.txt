@@ -42,29 +42,6 @@ Test implementation of array interface
   >>> p.wkt
   'POINT (1.0000000000000000 1.0000000000000000)'
 
-LineString
-----------
-
-  >>> a = asarray([[0.0, 0.0], [2.0, 2.0], [1.0, 1.0]])
-  >>> from shapely.geometry import LineString
-  >>> line = LineString(a)
-  >>> line.wkt
-  'LINESTRING (0.0000000000000000 0.0000000000000000, 2.0000000000000000 2.0000000000000000, 1.0000000000000000 1.0000000000000000)'
-
-  >>> data = line.ctypes
-  >>> data[0]
-  0.0
-  >>> data[5]
-  1.0
-
-  >>> b = asarray(line)
-  >>> b.shape
-  (3, 2)
-  >>> b
-  array([[ 0.,  0.],
-         [ 2.,  2.],
-         [ 1.,  1.]])
-
 Polygon
 -------
 
