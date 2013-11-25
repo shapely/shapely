@@ -10,15 +10,13 @@ except ImportError:
     numpy_version = 'not available'
 
 # Show some diagnostic information; handy for Travis CI
-print('Python version: ' + sys.version)
+print('Python version: ' + sys.version.replace('\n', ' '))
 print('GEOS version: ' + geos_version_string)
 print('Numpy version: ' + numpy_version)
 print('Cython speedups: ' + str(speedups.available))
 
 if lgeos.geos_version >= (3, 3, 0):
-    # Redefine WKT writer defaults to pass tests without modification
-    #lgeos.wkt_writer.trim = False
-    #lgeos.wkt_writer.output_dimension = 2
+    # Remove any WKT writer defaults to pass tests for all versions of GEOS
     WKTWriter.defaults = {}
 
 if sys.version_info[0:2] <= (2, 6):
@@ -27,7 +25,8 @@ else:
     import unittest
 
 from . import test_doctests, test_prepared, test_equality, test_geomseq, \
-    test_point, test_linestring, \
+    test_point, test_linestring, test_polygon, \
+    test_multipoint, test_multilinestring, test_multipolygon, \
     test_xy, test_collection, test_emptiness, test_singularity, \
     test_validation, test_mapping, test_delegated, test_dlls, \
     test_linear_referencing, test_products_z, test_box, test_speedups, \
@@ -35,11 +34,14 @@ from . import test_doctests, test_prepared, test_equality, test_geomseq, \
     test_affinity, test_transform, test_invalid_geometries, test_styles, \
     test_operators
 
-
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(test_point.test_suite())
     suite.addTest(test_linestring.test_suite())
+    suite.addTest(test_polygon.test_suite())
+    suite.addTest(test_multipoint.test_suite())
+    suite.addTest(test_multilinestring.test_suite())
+    suite.addTest(test_multipolygon.test_suite())
     suite.addTest(test_doctests.test_suite())
     suite.addTest(test_prepared.test_suite())
     suite.addTest(test_emptiness.test_suite())

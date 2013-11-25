@@ -27,6 +27,22 @@ GEOMETRY_TYPES = [
 ]
 
 
+def dump_coords(geom):
+    """Dump coordinates of a geometry in the same order as data packing"""
+    if not isinstance(geom, BaseGeometry):
+        raise ValueError('Must be instance of a geometry class; found ' +
+                         geom.__class__.__name__)
+    elif geom.type in ('Point', 'LineString', 'LinearRing'):
+        return geom.coords[:]
+    elif geom.type == 'Polygon':
+        return geom.exterior.coords[:] + [i.coords[:] for i in geom.interiors]
+    elif geom.type.startswith('Multi') or geom.type == 'GeometryCollection':
+        # Recursive call
+        return [dump_coords(part) for part in geom]
+    else:
+        raise ValueError('Unhandled geometry type: ' + repr(geom.type))
+
+
 def geometry_type_name(g):
     if g is None:
         raise ValueError("Null geometry has no type")
