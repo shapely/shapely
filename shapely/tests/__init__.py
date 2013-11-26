@@ -32,7 +32,7 @@ from . import test_doctests, test_prepared, test_equality, test_geomseq, \
     test_linear_referencing, test_products_z, test_box, test_speedups, \
     test_cga, test_getitem, test_ndarrays, test_unary_union, test_pickle, \
     test_affinity, test_transform, test_invalid_geometries, test_styles, \
-    test_operators
+    test_operators, test_polygonize
 
 def test_suite():
     suite = unittest.TestSuite()
@@ -68,4 +68,5 @@ def test_suite():
     suite.addTest(test_invalid_geometries.test_suite())
     suite.addTest(test_styles.test_suite())
     suite.addTest(test_operators.test_suite())
+    suite.addTest(test_polygonize.test_suite())
     return suite
