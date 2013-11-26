@@ -21,11 +21,6 @@ import platform
 import shutil
 import subprocess
 import sys
-if sys.version_info[0:2] <= (2, 6):
-    from unittest2 import TextTestRunner, TestLoader
-else:
-    from unittest import TextTestRunner, TestLoader
-
 
 class test(Command):
     """Run unit tests after in-place build"""
@@ -39,6 +34,11 @@ class test(Command):
         pass
 
     def run(self):
+        if sys.version_info[0:2] <= (2, 6):
+            from unittest2 import TextTestRunner, TestLoader
+        else:
+            from unittest import TextTestRunner, TestLoader
+
         try:
             import shapely.tests
         except ImportError:
