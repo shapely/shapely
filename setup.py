@@ -205,8 +205,6 @@ ext_modules = [
         libraries=libraries)
 ]
 
-
-
 try:
     # try building with speedups
     setup_args['cmdclass']['build_ext'] = build_ext

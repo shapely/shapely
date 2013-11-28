@@ -2,7 +2,7 @@
 """
 from . import unittest, numpy
 from shapely.wkb import loads as load_wkb
-from shapely.geometry import Polygon, asPolygon
+from shapely.geometry import Point, Polygon, asPolygon
 from shapely.geometry.polygon import LinearRing, asLinearRing
 from shapely.geometry.base import dump_coords
 
@@ -123,6 +123,63 @@ class PolygonTestCase(unittest.TestCase):
         self.assertEqual(b.shape, (5, 2))
         assert_array_equal(
             b, array([(0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.)]))
+
+    def test_dimensions(self):
+
+        # Background: see http://trac.gispython.org/lab/ticket/168
+    # http://lists.gispython.org/pipermail/community/2008-August/001859.html
+
+        coords = ((0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 1.0, 0.0),
+                  (1.0, 0.0, 0.0))
+        polygon = Polygon(coords)
+        self.assertEqual(polygon._ndim, 3)
+        gi = polygon.__geo_interface__
+        self.assertEqual(
+            gi['coordinates'],
+            (((0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 1.0, 0.0),
+              (1.0, 0.0, 0.0), (0.0, 0.0, 0.0)),))
+
+        e = polygon.exterior
+        self.assertEqual(e._ndim, 3)
+        gi = e.__geo_interface__
+        self.assertEqual(
+            gi['coordinates'],
+            ((0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 1.0, 0.0),
+             (1.0, 0.0, 0.0), (0.0, 0.0, 0.0)))
+
+    def test_attribute_chains(self):
+
+        # Attribute Chaining
+        # See also ticket #151.
+        p = Polygon(((0.0, 0.0), (0.0, 1.0), (-1.0, 1.0), (-1.0, 0.0)))
+        self.assertEqual(
+            list(p.boundary.coords),
+            [(0.0, 0.0), (0.0, 1.0), (-1.0, 1.0), (-1.0, 0.0), (0.0, 0.0)])
+
+        ec = list(Point(0.0, 0.0).buffer(1.0, 1).exterior.coords)
+        self.assertIsInstance(ec, list)  # TODO: this is a poor test
+
+        # Test chained access to interiors
+        p = Polygon(
+            ((0.0, 0.0), (0.0, 1.0), (-1.0, 1.0), (-1.0, 0.0)),
+            [((-0.25, 0.25), (-0.25, 0.75), (-0.75, 0.75), (-0.75, 0.25))]
+        )
+        self.assertEqual(p.area, 0.75)
+
+        """Not so much testing the exact values here, which are the
+        responsibility of the geometry engine (GEOS), but that we can get
+        chain functions and properties using anonymous references.
+        """
+        self.assertEqual(
+            list(p.interiors[0].coords),
+            [(-0.25, 0.25), (-0.25, 0.75), (-0.75, 0.75), (-0.75, 0.25),
+             (-0.25, 0.25)])
+        xy = list(p.interiors[0].buffer(1).exterior.coords)[0]
+        self.assertEqual(len(xy), 2)
+
+        # Test multiple operators, boundary of a buffer
+        ec = list(p.buffer(1).boundary.coords)
+        self.assertIsInstance(ec, list)  # TODO: this is a poor test
 
 
 def test_suite():

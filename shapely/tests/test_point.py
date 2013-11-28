@@ -66,7 +66,6 @@ class LineStringTestCase(unittest.TestCase):
         # Move the coordinates and watch the distance change
         coords[0] = 1.0
         self.assertEqual(pa.coords[0], (1.0, 4.0))
-        print(repr(pa.distance(p)))
         self.assertAlmostEqual(pa.distance(p), 4.123105625617661)
 
         # Test Non-operability of Null geometry
