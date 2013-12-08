@@ -443,7 +443,7 @@ def update_linearring_from_py(geom, ob):
 def geos_polygon_from_py(shell, holes=None):
     if shell is not None:
         geos_shell, ndim = geos_linearring_from_py(shell)
-        if holes:
+        if holes is not None and len(holes) > 0:
             ob = holes
             L = len(ob)
             exemplar = ob[0]
@@ -451,8 +451,10 @@ def geos_polygon_from_py(shell, holes=None):
                 N = len(exemplar[0])
             except TypeError:
                 N = exemplar._ndim
-            assert L >= 1
-            assert N == 2 or N == 3
+            if not L >= 1:
+                raise ValueError("number of holes must be non zero")
+            if not N in (2, 3):
+                raise ValueError("insufficiant coordinate dimension")
 
             # Array of pointers to ring geometries
             geos_holes = (c_void_p * L)()
