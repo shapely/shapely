@@ -7,7 +7,6 @@ if sys.version_info[0] < 3:
     range = xrange
 
 from ctypes import c_double, cast, POINTER
-from ctypes import ArgumentError
 
 from shapely.coords import required
 from shapely.geos import lgeos, TopologicalError
@@ -31,8 +30,8 @@ class LineString(BaseGeometry):
         ----------
         coordinates : sequence
             A sequence of (x, y [,z]) numeric coordinate pairs or triples or
-            an object that provides the numpy array interface, including another
-            instance of LineString.
+            an object that provides the numpy array interface, including
+            another instance of LineString.
 
         Example
         -------
@@ -87,8 +86,8 @@ class LineString(BaseGeometry):
         return self.coords.xy
 
     def parallel_offset(
-        self, distance, side,
-        resolution=16, join_style=JOIN_STYLE.round, mitre_limit=1.0):
+            self, distance, side,
+            resolution=16, join_style=JOIN_STYLE.round, mitre_limit=1.0):
 
         """Returns a LineString or MultiLineString geometry at a distance from
         the object on its right or its left side.
@@ -112,7 +111,7 @@ class LineString(BaseGeometry):
         try:
             return geom_factory(self.impl['parallel_offset'](
                 self, distance, resolution, join_style, mitre_limit,
-                bool(side=='left')))
+                bool(side == 'left')))
         except WindowsError:
             raise TopologicalError()
 
@@ -188,8 +187,8 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
             cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
             if n != update_ndim:
                 raise ValueError(
-                "Wrong coordinate dimensions; this geometry has dimensions: %d" \
-                % update_ndim)
+                    "Wrong coordinate dimensions; this geometry has "
+                    "dimensions: %d" % update_ndim)
         else:
             cs = lgeos.GEOSCoordSeq_create(m, n)
 
@@ -234,8 +233,8 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
             cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
             if n != update_ndim:
                 raise ValueError(
-                "Wrong coordinate dimensions; this geometry has dimensions: %d" \
-                % update_ndim)
+                    "Wrong coordinate dimensions; this geometry has "
+                    "dimensions: %d" % update_ndim)
         else:
             cs = lgeos.GEOSCoordSeq_create(m, n)
 
@@ -257,8 +256,10 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
     else:
         return lgeos.GEOSGeom_createLineString(cs), n
 
+
 def update_linestring_from_py(geom, ob):
     geos_linestring_from_py(ob, geom._geom, geom._ndim)
+
 
 # Test runner
 def _test():

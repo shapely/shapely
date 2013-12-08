@@ -34,24 +34,27 @@ class test(Command):
         pass
 
     def run(self):
+        # Force an in-place build for testing speedups
+        cmd = self.reinitialize_command('build_ext')
+        setattr(cmd, 'inplace', 1)
+        self.run_command('build_ext')
+
         if sys.version_info[0:2] <= (2, 6):
-            from unittest2 import TextTestRunner, TestLoader
+            try:
+                from unittest2 import TextTestRunner, TestLoader
+            except ImportError:
+                raise ImportError(
+                    "unittest2 is required to run tests with python-%d.%d" %
+                    sys.version_info[0:2])
         else:
             from unittest import TextTestRunner, TestLoader
 
-        try:
-            import shapely.tests
-        except ImportError:
-            self.run_command('build_ext')
-            import shapely.tests
-
+        import shapely.tests
         tests = TestLoader().loadTestsFromName('test_suite', shapely.tests)
         runner = TextTestRunner(verbosity=2)
         result = runner.run(tests)
 
-        if result.wasSuccessful():
-            sys.exit(0)
-        else:
+        if not result.wasSuccessful():
             sys.exit(1)
 
 # Get the version from the shapely module
