@@ -17,11 +17,11 @@ ax = fig.add_subplot(121)
 
 plot_line(ax, line)
 
-dilated = line.buffer(0.5)
+dilated = line.buffer(0.5, cap_style=3)
 patch1 = PolygonPatch(dilated, fc=BLUE, ec=BLUE, alpha=0.5, zorder=2)
 ax.add_patch(patch1)
 
-ax.set_title('a) dilation')
+ax.set_title('a) dilation, cap_style=3')
 
 xrange = [-1, 4]
 yrange = [-1, 3]
@@ -49,7 +49,7 @@ polygon = eroded.__geo_interface__
 patch2b = PolygonPatch(polygon, fc=BLUE, ec=BLUE, alpha=0.5, zorder=2)
 ax.add_patch(patch2b)
 
-ax.set_title('b) erosion')
+ax.set_title('b) erosion, join_style=1')
 
 xrange = [-1, 4]
 yrange = [-1, 3]
