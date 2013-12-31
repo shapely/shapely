@@ -5,7 +5,7 @@ The Shapely User Manual
 =======================
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
-:Version: |release|
+:Version: 1.2 and 1.3
 :Date: |today|
 :Copyright:
   This work is licensed under a `Creative Commons Attribution 3.0

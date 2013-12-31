@@ -2,8 +2,7 @@
 Shapely
 =======
 
-PostGIS-ish operations outside a database context for Pythoneers and
-Pythonistas.
+Manipulation and analysis of geometric objects in the Cartesian plane.
 
 .. image:: http://farm3.staticflickr.com/2738/4511827859_b5822043b7_o_d.png
    :width: 800
@@ -11,20 +10,19 @@ Pythonistas.
 
 Shapely is a BSD-licensed Python package for manipulation and analysis of
 planar geometric objects. It is based on the widely deployed GEOS_ (the engine
-of PostGIS_) and JTS_ (from which GEOS is ported) libraries. This C dependency
-is traded for the ability to execute with blazing speed. Shapely is not
+of PostGIS_) and JTS_ (from which GEOS is ported) libraries. Shapely is not
 concerned with data formats or coordinate systems, but can be readily
 integrated with packages that are. For more details, see:
 
 * Shapely manual_
 * Shapely `example apps`_
 
-Dependencies
+Requirements
 ============
 
-Shapely 1.2 depends on:
+Shapely 1.3 requires
 
-* Python >=2.5,<3
+* Python >=2.6 (including Python 3.x)
 * libgeos_c >=3.1 (3.0 and below have not been tested, YMMV)
 
 Installation

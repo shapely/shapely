@@ -10,14 +10,29 @@ Shapely is written by:
 
 Patches contributed by:
 
+* Allan Adair (https://github.com/allanadair)
 * Howard Butler
+* Gabi Davar (https://github.com/mindw)
+* Phil Elson (https://github.com/pelson)
+* Johan Euphrosine (https://github.com/proppy)
+* Bertrand Gervais (https://github.com/BertrandGervais)
+* Marc Jansen (https://github.com/marcjansen)
+* Kelsey Jordahl (https://github.com/kjordahl)
 * Fr |eaigue| d |eaigue| ric Junod
+* Thomas Kluyver (https://github.com/takluyver)
 * Eric Lemoine
+* Naveen Michaud-Agrawal (https://github.com/nmichaud)
+* psagers https://github.com/psagers
+* Jeethu Rao (https://github.com/jeethu)
+* Benjamin Root (https://github.com/WeatherGod)
+* Jason Sanford (https://github.com/JasonSanford)
+* Johannes Schönberger (https://github.com/ahojnnes)
 * Jonathan Tartley
 * Kristian Thy
 * Mike Toews (https://github.com/mwtoews)
-* Phil Elson (https://github.com/pelson)
-* Jeethu Rao (https://github.com/jeethu)
+* Maarten Vermeyen (https://github.com/maarten-vermeyen)
+
+See also: https://github.com/Toblerity/Shapely/graphs/contributors.
 
 Additional help from:
 
