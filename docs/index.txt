@@ -1,5 +1,9 @@
-Shapely Documentation Contents
-==============================
+=======
+Shapely
+=======
+
+Documentation Contents
+======================
 
 .. toctree::
    :maxdepth: 2
