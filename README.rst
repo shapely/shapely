@@ -116,7 +116,7 @@ after GeoJSON.
 Development and Testing
 =======================
 
-Dependecies for developing Shapely are listed in requirements-dev.txt. Cython
+Dependencies for developing Shapely are listed in requirements-dev.txt. Cython
 and Numpy are not required for production installations, only for development.
 Use of a virtual environment is strongly recommended.::
 
