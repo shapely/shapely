@@ -2082,6 +2082,21 @@ All of Shapely's geometry types are supported by these functions.
   >>> loads(wkt).wkt
   'POINT (0.0000000000000000 0.0000000000000000)'
 
+As of version 1.3.1, you can also use GeoPackageBinary format (as
+defined in OGC 12-128r9) in the same way.
+
+.. sourcecode:: pycon
+
+  >> from shapely.geopackagebinary import dumps, loads
+  >>> gpb = dumps(Point(0, 0))
+  >>> print gpb.encode('hex')
+  4750000100000000010100000000000000000000000000000000000000
+  >>> gpb = dumps(Point(149.1244, -35.3075))
+  >>> print gpb.encode('hex')
+  47500001000000000101000000eb73b515fba362408fc2f5285ca741c0
+  >>> print loads(gpb)
+  POINT (149.1244 -35.3075)
+
 Numpy and Python Arrays
 -----------------------
 
