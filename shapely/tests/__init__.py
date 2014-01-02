@@ -33,7 +33,7 @@ from . import test_doctests, test_prepared, test_equality, test_geomseq, \
     test_cga, test_getitem, test_ndarrays, test_pickle, \
     test_affinity, test_transform, test_invalid_geometries, test_styles, \
     test_operations, test_operators, test_iterops, test_predicates, \
-    test_linemerge, test_polygonize, test_union
+    test_linemerge, test_polygonize, test_union, test_geopackagebinary
 
 
 def test_suite():
@@ -78,4 +78,5 @@ def test_suite():
     suite.addTest(test_linemerge.test_suite())
     suite.addTest(test_polygonize.test_suite())
     suite.addTest(test_union.test_suite())
+    suite.addTest(test_geopackagebinary.test_suite())
     return suite

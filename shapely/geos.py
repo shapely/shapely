@@ -6,7 +6,9 @@ import os
 import re
 import sys
 import atexit
+import binascii
 import logging
+import struct
 import threading
 from ctypes import CDLL, cdll, pointer, c_void_p, c_size_t, c_char_p, string_at
 from ctypes.util import find_library
@@ -333,7 +335,7 @@ class WKTWriter(object):
             return text
 
 
-class WKBReader(object):
+class AbstractReader(object):
 
     _lgeos = None
     _reader = None
@@ -350,7 +352,7 @@ class WKBReader(object):
             self._reader = None
             self._lgeos = None
 
-    def read(self, data):
+    def read_wkb(self, data):
         """Returns geometry from WKB"""
         geom = self._lgeos.GEOSWKBReader_read(
             self._reader, c_char_p(data), c_size_t(len(data)))
@@ -361,7 +363,7 @@ class WKBReader(object):
         from shapely import geometry
         return geometry.base.geom_factory(geom)
 
-    def read_hex(self, data):
+    def read_wkb_hex(self, data):
         """Returns geometry from WKB hex"""
         if sys.version_info[0] >= 3:
             data = data.encode('ascii')
@@ -374,8 +376,92 @@ class WKBReader(object):
         from shapely import geometry
         return geometry.base.geom_factory(geom)
 
+class WKBReader(AbstractReader):
+    def read(self, data):
+        return self.read_wkb(data)
+      
+    def read_hex(self, data):
+        return self.read_wkb_hex(data)
 
-class WKBWriter(object):
+class GeoPackageConstants(object):
+    _GEOPACKAGE_MAGIC1 = 0x47
+    _GEOPACKAGE_MAGIC2 = 0x50
+    _GEOPACKAGE_VERSION1 = 0x00
+    _GEOPACKAGE_FLAGS_LITTLEENDIAN_NOENVELOPE = 0x01
+    _GEOPACKAGE_HEADER_LEN = 8
+    _GEOPACKAGE_NO_ENVELOPE_LEN = 0
+    _GEOPACKAGE_2D_ENVELOPE_LEN = 32
+    _GEOPACKAGE_3D_ENVELOPE_LEN = 48
+    _GEOPACKAGE_4D_ENVELOPE_LEN = 64
+    
+class GPBReader(AbstractReader, GeoPackageConstants):
+
+    def getFlags(self, data):
+        return struct.unpack("<B", data[3])[0]
+
+    def getEnvelopeIndicatorCode(self, data):
+        envelope_indicator = (self.getFlags(data) >> 1) & 0x07
+        return envelope_indicator
+
+    def isValidGeoPackage(self, data):
+        geopackage_header = struct.unpack("<BBBB", data[0:4])
+        if (geopackage_header[0] != self._GEOPACKAGE_MAGIC1) or (geopackage_header[1] != self._GEOPACKAGE_MAGIC2):
+            return False
+        if geopackage_header[2] != self._GEOPACKAGE_VERSION1:
+            return False
+        envelope_indicator = self.getEnvelopeIndicatorCode(data)
+        if (envelope_indicator < 0) or (envelope_indicator > 4):
+            return False
+        return True
+
+    def getWKBoffset(self, data):
+        envelope_indicator = self.getEnvelopeIndicatorCode(data)
+        if envelope_indicator == 0:
+            return self._GEOPACKAGE_HEADER_LEN
+        elif envelope_indicator == 1:
+            return self._GEOPACKAGE_HEADER_LEN + self._GEOPACKAGE_2D_ENVELOPE_LEN
+        elif envelope_indicator in (2, 3):
+            return self._GEOPACKAGE_HEADER_LEN + self._GEOPACKAGE_3D_ENVELOPE_LEN
+        elif envelope_indicator == 4:
+            return self._GEOPACKAGE_HEADER_LEN + self._GEOPACKAGE_4D_ENVELOPE_LEN
+        else:
+            # this should be prevented by the check is isValidGeoPackage, just defensive coding
+            raise ReadingError("Huh: Could not create geometry because of errors "
+                               "while reading geopackage input.")
+
+    def check_is_valid(self, data):
+        if not self.isValidGeoPackage(data):
+            raise ReadingError("Could not create geometry because of errors "
+                               "while reading geopackage input.")
+
+    def geopackageHeaderIsLittleEndian(self, data):
+        return self.getFlags(data) & 0x01
+          
+    def getSRID(self, data):
+        if self.geopackageHeaderIsLittleEndian(data):
+            (srid,) = struct.unpack("<I", data[4:8])
+        else:
+            (srid,) = struct.unpack(">I", data[4:8])
+        return srid
+
+    def read(self, data):
+        self.check_is_valid(data)
+        byteOffsetForWKB = self.getWKBoffset(data)
+        geom =  self.read_wkb(data[byteOffsetForWKB:])
+        srid = self.getSRID(data)
+        self._lgeos.GEOSSetSRID(geom._geom, srid)
+        return geom
+      
+    def read_hex(self, hexdata):
+        data = binascii.unhexlify(hexdata[0:16])
+        self.check_is_valid(data)
+        byteOffsetForWKB = self.getWKBoffset(data)
+        geom = self.read_wkb_hex(hexdata[2*byteOffsetForWKB:])
+        srid = self.getSRID(data)
+        self._lgeos.GEOSSetSRID(geom._geom, srid)
+        return geom
+
+class AbstractWriter(object):
 
     _lgeos = None
     _writer = None
@@ -402,6 +488,23 @@ class WKBWriter(object):
     def big_endian(self, value):
         self._lgeos.GEOSWKBWriter_setByteOrder(self._writer, bool(value))
 
+    def __setattr__(self, name, value):
+        """Limit setting attributes"""
+        if hasattr(self, name):
+            object.__setattr__(self, name, value)
+        else:
+            raise AttributeError('%r object has no attribute %r' %
+                                 (self.__class__.__name__, name))
+
+    def __del__(self):
+        """Destroy WKB Writer"""
+        if self._lgeos is not None:
+            self._lgeos.GEOSWKBWriter_destroy(self._writer)
+            self._writer = None
+            self._lgeos = None
+
+class WKBWriter(AbstractWriter):
+
     @property
     def include_srid(self):
         """Include SRID, True or False (default)"""
@@ -420,21 +523,6 @@ class WKBWriter(object):
         applied_settings.update(settings)
         for name in applied_settings:
             setattr(self, name, applied_settings[name])
-
-    def __setattr__(self, name, value):
-        """Limit setting attributes"""
-        if hasattr(self, name):
-            object.__setattr__(self, name, value)
-        else:
-            raise AttributeError('%r object has no attribute %r' %
-                                 (self.__class__.__name__, name))
-
-    def __del__(self):
-        """Destroy WKB Writer"""
-        if self._lgeos is not None:
-            self._lgeos.GEOSWKBWriter_destroy(self._writer)
-            self._writer = None
-            self._lgeos = None
 
     def write(self, geom):
         """Returns WKB byte string for geometry"""
@@ -461,6 +549,48 @@ class WKBWriter(object):
         else:
             return data
 
+class GPBWriter(AbstractWriter, GeoPackageConstants):
+
+    def __init__(self, lgeos, **settings):
+        """Create WKB Writer"""
+        self._lgeos = lgeos
+        self._writer = self._lgeos.GEOSWKBWriter_create()
+        self._lgeos.GEOSWKBWriter_setIncludeSRID(self._writer, False)
+
+        applied_settings = self.defaults.copy()
+        applied_settings.update(settings)
+        for name in applied_settings:
+            setattr(self, name, applied_settings[name])
+
+    def write(self, geom):
+        """Returns GPB byte string for geometry"""
+        if geom is None or geom._geom is None:
+            raise ValueError("Null geometry supports no operations")
+        size = c_size_t()
+        result = self._lgeos.GEOSWKBWriter_write(
+            self._writer, geom._geom, pointer(size))
+        geopackage_header =  self.generate_gpb_header(geom)
+        data = geopackage_header + string_at(result, size.value)
+        lgeos.GEOSFree(result)
+        return data
+
+    def generate_gpb_header(self, geom):
+        return struct.pack("<BBBBI", self._GEOPACKAGE_MAGIC1, self._GEOPACKAGE_MAGIC2, self._GEOPACKAGE_VERSION1, self._GEOPACKAGE_FLAGS_LITTLEENDIAN_NOENVELOPE, self._lgeos.GEOSGetSRID(geom._geom))
+
+    def write_hex(self, geom):
+        """Returns GPB hex string for geometry"""
+        if geom is None or geom._geom is None:
+            raise ValueError("Null geometry supports no operations")
+        size = c_size_t()
+        result = self._lgeos.GEOSWKBWriter_writeHEX(
+            self._writer, geom._geom, pointer(size))
+        geopackage_header =  self.generate_gpb_header(geom)
+        data = binascii.hexlify(geopackage_header) + string_at(result, size.value)
+        lgeos.GEOSFree(result)
+        if sys.version_info[0] >= 3:
+            return data.decode('ascii')
+        else:
+            return data
 
 # Errcheck functions for ctypes
 
@@ -490,6 +620,7 @@ def errcheck_predicate(result, func, argtuple):
     if result == 2:
         raise PredicateError("Failed to evaluate %s" % repr(func))
     return result
+
 
 
 class LGEOSBase(threading.local):
