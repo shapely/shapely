@@ -1,5 +1,5 @@
 from . import unittest, numpy
-from shapely.geometry import LineString, asLineString
+from shapely.geometry import LineString, asLineString, Point
 
 
 class LineStringTestCase(unittest.TestCase):
@@ -10,6 +10,16 @@ class LineStringTestCase(unittest.TestCase):
         line = LineString(((1.0, 2.0), (3.0, 4.0)))
         self.assertEqual(len(line.coords), 2)
         self.assertEqual(line.coords[:], [(1.0, 2.0), (3.0, 4.0)])
+
+        # From Points
+        line2 = LineString((Point(1.0, 2.0), Point(3.0, 4.0)))
+        self.assertEqual(len(line2.coords), 2)
+        self.assertEqual(line2.coords[:], [(1.0, 2.0), (3.0, 4.0)])
+
+        # From mix of tuples and Points
+        line3 = LineString((Point(1.0, 2.0), (2.0, 3.0), Point(3.0, 4.0)))
+        self.assertEqual(len(line3.coords), 3)
+        self.assertEqual(line3.coords[:], [(1.0, 2.0), (2.0, 3.0), (3.0, 4.0)])
 
         # From lines
         copy = LineString(line)

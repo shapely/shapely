@@ -12,6 +12,7 @@ from shapely.coords import required
 from shapely.geos import lgeos, TopologicalError
 from shapely.geometry.base import BaseGeometry, geom_factory, JOIN_STYLE
 from shapely.geometry.proxy import CachingGeometryProxy
+from shapely.geometry.point import Point
 
 __all__ = ['LineString', 'asLineString']
 
@@ -221,8 +222,15 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
         if m < 2:
             raise ValueError(
                 "LineStrings must have at least 2 coordinate tuples")
+
+        def _coords(o):
+            if isinstance(o, Point):
+                return o.coords[0]
+            else:
+                return o
+
         try:
-            n = len(ob[0])
+            n = len(_coords(ob[0]))
         except TypeError:
             raise ValueError(
                 "Input %s is the wrong shape for a LineString" % str(ob))
@@ -240,7 +248,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
 
         # add to coordinate sequence
         for i in range(m):
-            coords = ob[i]
+            coords = _coords(ob[i])
             # Because of a bug in the GEOS C API,
             # always set X before Y
             lgeos.GEOSCoordSeq_setX(cs, i, coords[0])
