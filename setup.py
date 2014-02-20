@@ -4,23 +4,22 @@ from __future__ import print_function
 
 try:
     # If possible, use setuptools
-    from setuptools import setup
+    from setuptools import Command, setup
     from setuptools.extension import Extension
     from setuptools.command.build_ext import build_ext as distutils_build_ext
 except ImportError:
-    from distutils.core import setup
+    from distutils.core import Command, setup
     from distutils.extension import Extension
     from distutils.command.build_ext import build_ext as distutils_build_ext
-from distutils.cmd import Command
 from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
-import errno
-import glob
+from ctypes.util import find_library
 import os
 import platform
 import shutil
 import subprocess
 import sys
+
 
 class test(Command):
     """Run unit tests after in-place build"""
@@ -57,6 +56,33 @@ class test(Command):
         if not result.wasSuccessful():
             sys.exit(1)
 
+
+class CustomGeos(Command):
+    """Optionally force a specific GEOS shared library"""
+    description = __doc__
+    user_options = [('geos-dir=', None,
+                     'Optionally force a specific GEOS shared library.')]
+
+    def initialize_options(self):
+        self.geos_dir = None
+
+    def finalize_options(self):
+        self.geos_dir = os.path.join(self.geos_dir, 'src')
+
+    def run(self):
+        for lib in self.libs:
+            if lib:
+                print('Using custom GEOS library: {0}'.format(lib))
+                shutil.copy(lib, 'shapely')
+
+    @property
+    def libs(self):
+        """yields GEOS shared libraries within provided library directory"""
+        libnames = ['geos', 'geos_c']
+        for name in libnames:
+            yield find_library(os.path.join(self.geos_dir, name))
+
+
 # Get the version from the shapely module
 version = None
 with open('shapely/__init__.py', 'r') as fp:
@@ -80,62 +106,37 @@ with open('CREDITS.txt', 'r') as fp:
 with open('CHANGES.txt', 'r') as fp:
     changes_text = fp.read()
 
-setup_args = dict(
-    name                = 'Shapely',
-    version             = version,
-    requires            = ['Python (>=2.6)', 'libgeos_c (>=3.1)'],
-    description         = 'Geometric objects, predicates, and operations',
-    license             = 'BSD',
-    keywords            = 'geometry topology gis',
-    author              = 'Sean Gillies',
-    author_email        = 'sean.gillies@gmail.com',
-    maintainer          = 'Sean Gillies',
-    maintainer_email    = 'sean.gillies@gmail.com',
-    url                 = 'https://github.com/Toblerity/Shapely',
-    long_description    = readme_text + "\n" + credits + "\n" + changes_text,
-    packages            = [
-        'shapely',
-        'shapely.geometry',
-        'shapely.algorithms',
-        'shapely.examples',
-        'shapely.speedups',
-        'shapely.tests',
-    ],
-    cmdclass            = {'test': test},
-    classifiers         = [
-        'Development Status :: 5 - Production/Stable',
-        'Intended Audience :: Developers',
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: BSD License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Topic :: Scientific/Engineering :: GIS',
-    ],
-)
-
-# Add DLLs for Windows
-if sys.platform == 'win32':
-    try:
-        os.mkdir('shapely/DLLs')
-    except OSError as ex:
-        if ex.errno != errno.EEXIST:
-            raise
-    if '(AMD64)' in sys.version:
-        for dll in glob.glob('DLLs_AMD64_VC9/*.dll'):
-            shutil.copy(dll, 'shapely/DLLs')
-    elif sys.version_info[0:2] == (2, 5):
-        for dll in glob.glob('DLLs_x86_VC7/*.dll'):
-            shutil.copy(dll, 'shapely/DLLs')
-    else:
-        for dll in glob.glob('DLLs_x86_VC9/*.dll'):
-            shutil.copy(dll, 'shapely/DLLs')
-    setup_args.update(
-        package_data={'shapely': ['shapely/DLLs/*.dll']},
-        include_package_data=True,
-    )
-
+setup_args = dict(name='Shapely',
+                  version=version,
+                  requires=['Python (>=2.6)', 'libgeos_c (>=3.1)'],
+                  description='Geometric objects, predicates, and operations',
+                  license='BSD',
+                  keywords='geometry topology gis',
+                  author='Sean Gillies',
+                  author_email='sean.gillies@gmail.com',
+                  maintainer='Sean Gillies',
+                  maintainer_email='sean.gillies@gmail.com',
+                  url='https://github.com/Toblerity/Shapely',
+                  long_description=readme_text + "\n" + credits + "\n" +
+                                   changes_text,
+                  packages=['shapely',
+                            'shapely.geometry',
+                            'shapely.algorithms',
+                            'shapely.examples',
+                            'shapely.speedups',
+                            'shapely.tests'],
+                  package_data={'shapely': ['*.dll', '*.so', '*.dylib']},
+                  cmdclass={'test': test,
+                            'custom_geos': CustomGeos},
+                  classifiers=['Development Status :: 5 - Production/Stable',
+                               'Intended Audience :: Developers',
+                               'Intended Audience :: Science/Research',
+                               'License :: OSI Approved :: BSD License',
+                               'Operating System :: OS Independent',
+                               'Programming Language :: Python :: 2.6',
+                               'Programming Language :: Python :: 2.7',
+                               'Programming Language :: Python :: 3',
+                               'Topic :: Scientific/Engineering :: GIS'])
 
 # Optional compilation of speedups
 # setuptools stuff from Bob Ippolito's simplejson project
@@ -208,10 +209,7 @@ ext_modules = [
 try:
     # try building with speedups
     setup_args['cmdclass']['build_ext'] = build_ext
-    setup(
-        ext_modules=ext_modules,
-        **setup_args
-    )
+    setup(ext_modules=ext_modules, **setup_args)
 except BuildFailed as ex:
     BUILD_EXT_WARNING = "Warning: The C extension could not be compiled, " \
                         "speedups are not enabled."
