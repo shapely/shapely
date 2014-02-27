@@ -183,14 +183,14 @@ def transform(func, geom):
     """
     if geom.is_empty:
         return geom
-    if geom.type in ('Point', 'LineString', 'Polygon'):
+    if geom.type in ('Point', 'LineString', 'LinearRing', 'Polygon'):
 
         # First we try to apply func to x, y, z sequences. When func is
         # optimized for sequences, this is the fastest, though zipping
         # the results up to go back into the geometry constructors adds
         # extra cost.
         try:
-            if geom.type in ('Point', 'LineString'):
+            if geom.type in ('Point', 'LineString', 'LinearRing'):
                 return type(geom)(zip(*func(*izip(*geom.coords))))
             elif geom.type == 'Polygon':
                 shell = type(geom.exterior)(
@@ -202,7 +202,7 @@ def transform(func, geom):
         # A func that assumes x, y, z are single values will likely raise a
         # TypeError, in which case we'll try again.
         except TypeError:
-            if geom.type in ('Point', 'LineString'):
+            if geom.type in ('Point', 'LineString', 'LinearRing'):
                 return type(geom)([func(*c) for c in geom.coords])
             elif geom.type == 'Polygon':
                 shell = type(geom.exterior)(
