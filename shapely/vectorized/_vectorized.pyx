@@ -9,7 +9,7 @@ import shapely.prepared
 
 ctypedef np.double_t float64
 
-include "_geos.pxi"
+include "../_geos.pxi"
 
 
 @cython.boundscheck(False)
@@ -35,6 +35,8 @@ def contains(geometry not None,
         np.float64 and it must be 2 dimensional.
     
     """
+    # Note: This has not been written with maximal efficiency in mind - 
+    # the GIL really could be released within this function's for loop.
     cdef int i, j, ni, nj
     ni, nj = x.shape[0], x.shape[1]
     result = np.empty([ni, nj], dtype=np.bool)
@@ -49,8 +51,8 @@ def contains(geometry not None,
     # N.B. The point and associated CS must be constructed for each point.
     # I'm not certain why the coordinate sequence can't be updated as we go,
     # but that results in incorrect results (the tests will fail).
-    for i in range(ni):
-        for j in range(nj):
+    for j in range(nj):
+        for i in range(ni):
             # Construct a coordinate sequence with our x, y values.
             cs = <GEOSCoordSequence *> GEOSCoordSeq_create_r(geos_handle, 1, 2)
             GEOSCoordSeq_setX_r(geos_handle, cs, 0, x[i, j])
