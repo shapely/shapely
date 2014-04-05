@@ -1,11 +1,11 @@
 import cython
+cimport cpython.array
 import numpy as np
 cimport numpy as np
 
 from shapely.geometry import Point
 from shapely.geos import lgeos
 import shapely.prepared
-
 
 ctypedef np.double_t float64
 
@@ -14,12 +14,65 @@ include "../_geos.pxi"
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def contains(geometry not None,
+def contains(geometry, float64[:] x, float64[:] y):
+    """
+    Vectorized (element-wise) version of "contains" for multiple points within
+    a single geometry.
+
+    Parameters
+    ----------
+    geometry : PreparedGeometry or subclass of BaseGeometry
+        The geometry which is to be checked to see whether each point is
+        contained within. The geometry will be "prepared" if it is not already
+        a PreparedGeometry instance.
+    x : array
+        The x coordinates of the points to check. 
+    y : array
+        The y coordinates of the points to check.
+
+    Returns
+    -------
+    Boolean mask of points contained within the given `geometry`
+
+    See Also
+    --------
+    vectorized.contains2d
+    
+    """
+    cdef int i
+    result = np.empty(len(x), dtype=np.bool)
+
+    # Prepare the geometry if it hasn't already been prepared.
+    if not isinstance(geometry, shapely.prepared.PreparedGeometry):
+        geometry = shapely.prepared.prep(geometry)
+
+    geos_handle = <GEOSContextHandle_t> get_geos_context_handle()
+    geos_prepared_geom = <GEOSPreparedGeometry *> geos_from_prepared(geometry)
+
+    for i in xrange(len(x)):
+        # Construct a coordinate sequence with our x, y values.
+        cs = <GEOSCoordSequence *> GEOSCoordSeq_create_r(geos_handle, 1, 2)
+        GEOSCoordSeq_setX_r(geos_handle, cs, 0, x[i])
+        GEOSCoordSeq_setY_r(geos_handle, cs, 0, y[i])
+        
+        # Construct a point with this sequence.
+        point = <GEOSGeometry *> GEOSGeom_createPoint_r(geos_handle, cs)
+        
+        # Put the result of whether the point is "contained" by the
+        # prepared geometry into the result array. 
+        result[i] = <char> GEOSPreparedContains_r(geos_handle, geos_prepared_geom, point)
+        GEOSGeom_destroy_r(geos_handle, point)
+    return result
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def contains2d(geometry not None,
              np.ndarray[float64, ndim=2] x,
              np.ndarray[float64, ndim=2] y):
     """
     Vectorized (element-wise) version of "contains" for multiple points within
-    a single geometry.
+    a single geometry given a 2-dimensional mesh of points.
 
     Parameters
     ----------
@@ -33,6 +86,10 @@ def contains(geometry not None,
     y : np.array
         The y coordinates of the points to check. The array's dtype must be
         np.float64 and it must be 2 dimensional.
+
+    See Also
+    --------
+    vecotrized.contains
     
     """
     # Note: This has not been written with maximal efficiency in mind - 
