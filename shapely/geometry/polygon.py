@@ -282,6 +282,26 @@ class Polygon(BaseGeometry):
             'coordinates': tuple(coords)
             }
 
+    def svg(self, scale_factor=1.):
+        """
+        SVG representation of the geometry. Scale factor is multiplied by
+        the size of the SVG symbol so it can be scaled consistently for a
+        consistent appearance based on the canvas size.
+        """
+        exterior_coords = [["{0},{1}".format(*c) for c in self.exterior.coords]]
+        interior_coords = [
+            ["{0},{1}".format(*c) for c in interior.coords]
+            for interior in self.interiors
+        ]
+        path = " ".join([
+            "M {0} L {1} z".format(coords[0], " L ".join(coords[1:]))
+            for coords in exterior_coords + interior_coords
+        ])
+        return """
+            <g fill-rule="evenodd" fill="{2}" stroke="#555555" stroke-width="{0}" opacity="0.6">
+            <path d="{1}" />
+            </g>""".format(2. * scale_factor, path, "#6699cc" if self.is_valid else "#ff3333")
+
 
 class PolygonAdapter(PolygonProxy, Polygon):
     
