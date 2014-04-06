@@ -52,6 +52,22 @@ class LineString(BaseGeometry):
             'coordinates': tuple(self.coords)
             }
 
+    def svg(self, scale_factor=1.):
+        """
+        SVG representation of the geometry. Scale factor is multiplied by
+        the size of the SVG symbol so it can be scaled consistently for a
+        consistent appearance based on the canvas size.
+        """
+        pnt_format = " ".join(["{0},{1}".format(*c) for c in self.coords])
+        return """<polyline
+            fill="none"
+            stroke="#555555"
+            stroke-width={1}
+            points="{0}"
+            opacity=".6"
+            />""".format(pnt_format, 2. * scale_factor)
+
+
     @property
     def ctypes(self):
         if not self._ctypes_data:
