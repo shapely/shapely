@@ -61,11 +61,11 @@ class LineString(BaseGeometry):
         pnt_format = " ".join(["{0},{1}".format(*c) for c in self.coords])
         return """<polyline
             fill="none"
-            stroke="#555555"
+            stroke="{2}"
             stroke-width={1}
             points="{0}"
-            opacity=".6"
-            />""".format(pnt_format, 2. * scale_factor)
+            opacity=".8"
+            />""".format(pnt_format, 2. * scale_factor, "#6699cc" if self.is_valid else "#ff3333")
 
 
     @property

@@ -86,9 +86,9 @@ class Point(BaseGeometry):
             r="{1}"
             stroke="#555555"
             stroke-width="{2}"
-            fill="#6699cc"
+            fill="{3}"
             opacity=".6"
-            />""".format(self, 3 * scale_factor, 1 * scale_factor)
+            />""".format(self, 3 * scale_factor, 1 * scale_factor, "#6699cc" if self.is_valid else "#ff3333")
 
 
     @property

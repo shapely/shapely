@@ -298,9 +298,9 @@ class Polygon(BaseGeometry):
             for coords in exterior_coords + interior_coords
         ])
         return """
-            <g fill-rule="evenodd" fill="#6699cc" stroke="#555555" stroke-width="{0}" opacity="0.6">
+            <g fill-rule="evenodd" fill="{2}" stroke="#555555" stroke-width="{0}" opacity="0.6">
             <path d="{1}" />
-            </g>""".format(2. * scale_factor, path)
+            </g>""".format(2. * scale_factor, path, "#6699cc" if self.is_valid else "#ff3333")
 
 
 class PolygonAdapter(PolygonProxy, Polygon):
