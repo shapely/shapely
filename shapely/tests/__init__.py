@@ -78,4 +78,5 @@ def test_suite():
     suite.addTest(test_linemerge.test_suite())
     suite.addTest(test_polygonize.test_suite())
     suite.addTest(test_union.test_suite())
+    suite.addTest(test_vectorized.test_suite())
     return suite

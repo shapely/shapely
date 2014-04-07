@@ -23,9 +23,11 @@ def contains(geometry, np.double_t[:] x, np.double_t[:] y):
         contained within. The geometry will be "prepared" if it is not already
         a PreparedGeometry instance.
     x : array
-        The x coordinates of the points to check. 
+        The x coordinates of the points to check. The array's dtype must be
+        `np.double_t`.
     y : array
-        The y coordinates of the points to check.
+        The y coordinates of the points to check. The array's dtype must be
+        `np.double_t`.
 
     Returns
     -------
