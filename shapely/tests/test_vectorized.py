@@ -1,6 +1,6 @@
 from . import unittest, numpy
-from shapely.geometry import Point, LineString, Polygon, box, MultiPolygon
-from shapely.vectorized import contains
+from shapely.geometry import Point, box, MultiPolygon
+from shapely.vectorized import contains, touches
 
 try:
     import numpy as np
@@ -12,14 +12,20 @@ except ImportError:
 class VectorizedContainsTestCase(unittest.TestCase):
     def assertContainsResults(self, geom, x, y):
         result = contains(geom, x, y)
+        x = np.asanyarray(x)
+        y = np.asanyarray(y) 
 
         self.assertIsInstance(result, np.ndarray)
         self.assertEqual(result.dtype, np.bool)
 
+        result_flat = result.flat
+        x_flat, y_flat = x.flat, y.flat
+
         # Do the equivalent operation, only slowly, comparing the result
         # as we go.
-        for idx in range(len(x)):
-            self.assertEqual(result[idx], geom.contains(Point(x[idx], y[idx])))
+        for idx in range(x.size):
+            self.assertEqual(result_flat[idx], geom.contains(Point(x_flat[idx],
+                                                                   y_flat[idx])))
         return result
 
     def construct_torus(self):
@@ -46,29 +52,55 @@ class VectorizedContainsTestCase(unittest.TestCase):
         self.assertIsInstance(geom, MultiPolygon)
         self.assertContainsResults(geom, x, y)
 
-    def test_array_order(self):
-        y, x = np.mgrid[-10:10:5j], np.mgrid[-5:15:5j]
+    def test_y_array_order(self):
+        y, x = np.mgrid[-10:10:5j, -5:15:5j]
         y = y.copy(order='f')
         self.assertContainsResults(self.construct_torus(), x, y)
+    
+    def test_x_array_order(self):
+        y, x = np.mgrid[-10:10:5j, -5:15:5j]
+        x = x.copy(order='f')
+        self.assertContainsResults(self.construct_torus(), x, y)
+    
+    def test_xy_array_order(self):
+        y, x = np.mgrid[-10:10:5j, -5:15:5j]
+        x = x.copy(order='f')
+        y = y.copy(order='f')
+        result = self.assertContainsResults(self.construct_torus(), x, y)
+        # We always return a C_CONTIGUOUS array.
+        self.assertTrue(result.flags['C_CONTIGUOUS'])
     
     def test_array_dtype(self):
         y, x = np.mgrid[-10:10:5j], np.mgrid[-5:15:5j]
         x = x.astype(np.int16)
-        msg = "Buffer dtype mismatch *"
-        with self.assertRaisesRegexp(ValueError, msg):
-            self.assertContainsResults(self.construct_torus(), x, y)
+        self.assertContainsResults(self.construct_torus(), x, y)
     
-    def test_array_ndim(self):
+    def test_array_2d(self):
         y, x = np.mgrid[-10:10:15j, -5:15:16j]
-        msg = "Buffer has wrong number of dimensions \(expected 1, got 2\)"
-        with self.assertRaisesRegexp(ValueError, msg):
-            self.assertContainsResults(self.construct_torus(), x, y)
+        result = self.assertContainsResults(self.construct_torus(), x, y)
+        self.assertEqual(result.shape, x.shape)
 
     def test_shapely_xy_attr_contains(self):
         g = Point(0, 0).buffer(10.0)
         self.assertContainsResults(self.construct_torus(), *g.exterior.xy)
-        x, y = g.exterior.xy
-        self.assertContainsResults(self.construct_torus(), x, y)
+
+
+@unittest.skipIf(not numpy, 'numpy required')
+class VectorizedTouchesTestCase(unittest.TestCase):
+    def test_touches(self):
+        y, x = np.mgrid[-2:3:6j, -1:3:5j]
+        geom = box(0, -1, 2, 2)
+        result = touches(geom, x, y)
+        expected = np.array([[False, False, False, False, False],
+                             [False,  True,  True,  True, False],
+                             [False,  True, False,  True, False],
+                             [False,  True, False,  True, False],
+                             [False,  True,  True,  True, False],
+                             [False, False, False, False, False]], dtype=bool)
+        from numpy.testing import assert_array_equal
+        assert_array_equal(result, expected)
+        
+        
 
 
 def test_suite():
