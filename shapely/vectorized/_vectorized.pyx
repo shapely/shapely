@@ -1,24 +1,19 @@
 import cython
+cimport cpython.array
 import numpy as np
 cimport numpy as np
 
-from shapely.geometry import Point
 from shapely.geos import lgeos
 import shapely.prepared
-
-
-ctypedef np.double_t float64
 
 include "../_geos.pxi"
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def contains(geometry not None,
-             np.ndarray[float64, ndim=2] x,
-             np.ndarray[float64, ndim=2] y):
+def contains(geometry, np.double_t[:] x, np.double_t[:] y):
     """
-    Vectorized (element-wise) version of "contains" for multiple points within
+    Vectorized (element-wise) version of `contains` for multiple points within
     a single geometry.
 
     Parameters
@@ -27,42 +22,46 @@ def contains(geometry not None,
         The geometry which is to be checked to see whether each point is
         contained within. The geometry will be "prepared" if it is not already
         a PreparedGeometry instance.
-    x : np.array
+    x : array
         The x coordinates of the points to check. The array's dtype must be
-        np.float64 and it must be 2 dimensional.
-    y : np.array
+        `np.double_t`.
+    y : array
         The y coordinates of the points to check. The array's dtype must be
-        np.float64 and it must be 2 dimensional.
-    
+        `np.double_t`.
+
+    Returns
+    -------
+    Mask of points contained within the given `geometry`
     """
-    # Note: This has not been written with maximal efficiency in mind - 
-    # the GIL really could be released within this function's for loop.
-    cdef int i, j, ni, nj
-    ni, nj = x.shape[0], x.shape[1]
-    result = np.empty([ni, nj], dtype=np.bool)
+    cdef size_t idx
+    cdef unsigned int n = x.shape[0]
+    cdef np.ndarray[np.uint8_t, ndim=1, cast=True] result = np.empty(n, dtype=np.bool)
+
+    cdef GEOSContextHandle_t geos_handle
+    cdef GEOSPreparedGeometry *geos_prepared_geom
+    cdef GEOSCoordSequence *cs
+    cdef GEOSGeometry *point
 
     # Prepare the geometry if it hasn't already been prepared.
     if not isinstance(geometry, shapely.prepared.PreparedGeometry):
         geometry = shapely.prepared.prep(geometry)
 
-    geos_handle = <GEOSContextHandle_t> get_geos_context_handle()
-    geos_prepared_geom = <GEOSPreparedGeometry *> geos_from_prepared(geometry)
+    geos_h = get_geos_context_handle()
+    geos_geom = geos_from_prepared(geometry)
 
-    # N.B. The point and associated CS must be constructed for each point.
-    # I'm not certain why the coordinate sequence can't be updated as we go,
-    # but that results in incorrect results (the tests will fail).
-    for j in range(nj):
-        for i in range(ni):
-            # Construct a coordinate sequence with our x, y values.
-            cs = <GEOSCoordSequence *> GEOSCoordSeq_create_r(geos_handle, 1, 2)
-            GEOSCoordSeq_setX_r(geos_handle, cs, 0, x[i, j])
-            GEOSCoordSeq_setY_r(geos_handle, cs, 0, y[i, j])
-            
-            # Construct a point with this sequence.
-            point = <GEOSGeometry *> GEOSGeom_createPoint_r(geos_handle, cs)
-            
-            # Put the result of whether the point is "contained" by the
-            # prepared geometry into the result array. 
-            result[i, j] = <char> GEOSPreparedContains_r(geos_handle, geos_prepared_geom, point)
-            GEOSGeom_destroy_r(geos_handle, point)
+    for idx in xrange(n):
+        # Construct a coordinate sequence with our x, y values.
+        cs = GEOSCoordSeq_create_r(geos_h, 1, 2)
+        GEOSCoordSeq_setX_r(geos_h, cs, 0, x[idx])
+        GEOSCoordSeq_setY_r(geos_h, cs, 0, y[idx])
+        
+        # Construct a point with this sequence.
+        p = GEOSGeom_createPoint_r(geos_h, cs)
+        
+        # Put the result of whether the point is "contained" by the
+        # prepared geometry into the result array. 
+        result[idx] = GEOSPreparedContains_r(geos_h, geos_geom, p)
+        GEOSGeom_destroy_r(geos_h, p)
+
     return result
+
