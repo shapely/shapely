@@ -10,28 +10,38 @@ cdef extern from "geos_c.h":
     ctypedef struct GEOSCoordSequence
     ctypedef struct GEOSPreparedGeometry
     
-    GEOSCoordSequence *GEOSCoordSeq_create_r(GEOSContextHandle_t, unsigned int, unsigned int)
-    GEOSCoordSequence *GEOSGeom_getCoordSeq_r(GEOSContextHandle_t, GEOSGeometry *)
+    GEOSCoordSequence *GEOSCoordSeq_create_r(GEOSContextHandle_t, unsigned int, unsigned int) nogil
+    GEOSCoordSequence *GEOSGeom_getCoordSeq_r(GEOSContextHandle_t, GEOSGeometry *) nogil
 
-    int GEOSCoordSeq_getSize_r(GEOSContextHandle_t, GEOSCoordSequence *, int *)
-    int GEOSCoordSeq_setX_r(GEOSContextHandle_t, GEOSCoordSequence *, int, double)
-    int GEOSCoordSeq_setY_r(GEOSContextHandle_t, GEOSCoordSequence *, int, double)
-    int GEOSCoordSeq_setZ_r(GEOSContextHandle_t, GEOSCoordSequence *, int, double)
-    int GEOSCoordSeq_getX_r(GEOSContextHandle_t, GEOSCoordSequence *, int, double *)
-    int GEOSCoordSeq_getY_r(GEOSContextHandle_t, GEOSCoordSequence *, int, double *)
-    int GEOSCoordSeq_getZ_r(GEOSContextHandle_t, GEOSCoordSequence *, int, double *)
+    int GEOSCoordSeq_getSize_r(GEOSContextHandle_t, GEOSCoordSequence *, int *) nogil
+    int GEOSCoordSeq_setX_r(GEOSContextHandle_t, GEOSCoordSequence *, int, double) nogil
+    int GEOSCoordSeq_setY_r(GEOSContextHandle_t, GEOSCoordSequence *, int, double) nogil
+    int GEOSCoordSeq_setZ_r(GEOSContextHandle_t, GEOSCoordSequence *, int, double) nogil
+    int GEOSCoordSeq_getX_r(GEOSContextHandle_t, GEOSCoordSequence *, int, double *) nogil
+    int GEOSCoordSeq_getY_r(GEOSContextHandle_t, GEOSCoordSequence *, int, double *) nogil
+    int GEOSCoordSeq_getZ_r(GEOSContextHandle_t, GEOSCoordSequence *, int, double *) nogil
 
-    GEOSGeometry *GEOSGeom_createPoint_r(GEOSContextHandle_t, GEOSCoordSequence *)
-    GEOSGeometry *GEOSGeom_createLineString_r(GEOSContextHandle_t, GEOSCoordSequence *)
-    GEOSGeometry *GEOSGeom_createLinearRing_r(GEOSContextHandle_t, GEOSCoordSequence *)
+    GEOSGeometry *GEOSGeom_createPoint_r(GEOSContextHandle_t, GEOSCoordSequence *) nogil
+    GEOSGeometry *GEOSGeom_createLineString_r(GEOSContextHandle_t, GEOSCoordSequence *) nogil
+    GEOSGeometry *GEOSGeom_createLinearRing_r(GEOSContextHandle_t, GEOSCoordSequence *) nogil
 
-    void GEOSGeom_destroy_r(GEOSContextHandle_t, GEOSGeometry *)
+    void GEOSGeom_destroy_r(GEOSContextHandle_t, GEOSGeometry *) nogil
 
-    char GEOSPreparedContains_r(GEOSContextHandle_t, const GEOSPreparedGeometry *,
-                                const GEOSGeometry *)
+    char GEOSPreparedContains_r(GEOSContextHandle_t, const GEOSPreparedGeometry*, const GEOSGeometry*) nogil
+    char GEOSPreparedContainsProperly_r(GEOSContextHandle_t, const GEOSPreparedGeometry*, const GEOSGeometry*) nogil
+    char GEOSPreparedCoveredBy_r(GEOSContextHandle_t, const GEOSPreparedGeometry*, const GEOSGeometry*) nogil
+    char GEOSPreparedCovers_r(GEOSContextHandle_t, const GEOSPreparedGeometry*, const GEOSGeometry*) nogil
+    char GEOSPreparedCrosses_r(GEOSContextHandle_t, const GEOSPreparedGeometry*, const GEOSGeometry*) nogil
+    char GEOSPreparedDisjoint_r(GEOSContextHandle_t, const GEOSPreparedGeometry*, const GEOSGeometry*) nogil
+    char GEOSPreparedIntersects_r(GEOSContextHandle_t, const GEOSPreparedGeometry*, const GEOSGeometry*) nogil
+    char GEOSPreparedOverlaps_r(GEOSContextHandle_t, const GEOSPreparedGeometry*, const GEOSGeometry*) nogil
+    char GEOSPreparedTouches_r(GEOSContextHandle_t, const GEOSPreparedGeometry*, const GEOSGeometry*) nogil
+    char GEOSPreparedWithin_r(GEOSContextHandle_t, const GEOSPreparedGeometry*, const GEOSGeometry*) nogil
 
 
 cdef GEOSContextHandle_t get_geos_context_handle():
+    # Note: This requires that lgeos is defined, so needs to be imported as:
+    from shapely.geos import lgeos
     cdef ptr handle = lgeos.geos_handle
     return <GEOSContextHandle_t>handle
 
