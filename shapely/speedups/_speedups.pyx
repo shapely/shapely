@@ -8,28 +8,14 @@
 import ctypes
 from shapely.geos import lgeos
 
-cdef extern from "geos_c.h":
-    ctypedef struct GEOSCoordSequence
-    ctypedef struct GEOSGeometry
-    cdef struct GEOSContextHandle_HS
-    GEOSCoordSequence *GEOSCoordSeq_create_r(GEOSContextHandle_HS *,double, double)
-    GEOSCoordSequence *GEOSGeom_getCoordSeq_r(GEOSContextHandle_HS *, GEOSGeometry *)
-    int GEOSCoordSeq_getSize_r(GEOSContextHandle_HS *, GEOSCoordSequence *, int *)
-    int GEOSCoordSeq_setX_r(GEOSContextHandle_HS *, GEOSCoordSequence *, int, double)
-    int GEOSCoordSeq_setY_r(GEOSContextHandle_HS *, GEOSCoordSequence *, int, double)
-    int GEOSCoordSeq_setZ_r(GEOSContextHandle_HS *, GEOSCoordSequence *, int, double)
-    int GEOSCoordSeq_getX_r(GEOSContextHandle_HS *, GEOSCoordSequence *, int, double *)
-    int GEOSCoordSeq_getY_r(GEOSContextHandle_HS *, GEOSCoordSequence *, int, double *)
-    int GEOSCoordSeq_getZ_r(GEOSContextHandle_HS *, GEOSCoordSequence *, int, double *)
-    GEOSGeometry *GEOSGeom_createLineString_r(GEOSContextHandle_HS *, GEOSCoordSequence *)
-    GEOSGeometry *GEOSGeom_createLinearRing_r(GEOSContextHandle_HS *, GEOSCoordSequence *)
-    void GEOSGeom_destroy_r(GEOSContextHandle_HS *, GEOSGeometry *)
+include "../_geos.pxi"
+    
 
 cdef inline GEOSGeometry *cast_geom(unsigned long geom_addr):
     return <GEOSGeometry *>geom_addr
 
-cdef inline GEOSContextHandle_HS *cast_handle(unsigned long handle_addr):
-    return <GEOSContextHandle_HS *>handle_addr
+cdef inline GEOSContextHandle_t cast_handle(unsigned long handle_addr):
+    return <GEOSContextHandle_t>handle_addr
 
 cdef inline GEOSCoordSequence *cast_seq(unsigned long handle_addr):
     return <GEOSCoordSequence *>handle_addr
@@ -39,7 +25,7 @@ def destroy(geom):
 
 def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
     cdef double *cp
-    cdef GEOSContextHandle_HS *handle = cast_handle(lgeos.geos_handle)
+    cdef GEOSContextHandle_t handle = cast_handle(lgeos.geos_handle)
     cdef GEOSCoordSequence *cs
     cdef double dx, dy, dz
     cdef int i, n, m
@@ -138,7 +124,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
 
 def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
     cdef double *cp
-    cdef GEOSContextHandle_HS *handle = cast_handle(lgeos.geos_handle)
+    cdef GEOSContextHandle_t handle = cast_handle(lgeos.geos_handle)
     cdef GEOSCoordSequence *cs
     cdef double dx, dy, dz
     cdef int i, n, m, M
@@ -271,7 +257,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
 def coordseq_ctypes(self):
     cdef int i, n, m
     cdef double temp = 0
-    cdef GEOSContextHandle_HS *handle = cast_handle(lgeos.geos_handle)
+    cdef GEOSContextHandle_t handle = cast_handle(lgeos.geos_handle)
     cdef GEOSCoordSequence *cs
     cdef double *data_p
     self._update()
