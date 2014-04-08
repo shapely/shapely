@@ -291,16 +291,16 @@ class Polygon(BaseGeometry):
         exterior_coords = [["{0},{1}".format(*c) for c in self.exterior.coords]]
         interior_coords = [
             ["{0},{1}".format(*c) for c in interior.coords]
-            for interior in self.interiors
-        ]
+            for interior in self.interiors ]
         path = " ".join([
             "M {0} L {1} z".format(coords[0], " L ".join(coords[1:]))
-            for coords in exterior_coords + interior_coords
-        ])
+            for coords in exterior_coords + interior_coords ])
         return """
-            <g fill-rule="evenodd" fill="{2}" stroke="#555555" stroke-width="{0}" opacity="0.6">
+            <g fill-rule="evenodd" fill="{2}" stroke="#555555" 
+            stroke-width="{0}" opacity="0.6">
             <path d="{1}" />
-            </g>""".format(2. * scale_factor, path, "#6699cc" if self.is_valid else "#ff3333")
+            </g>""".format(
+                2.*scale_factor, path, "#66cc99" if self.is_valid else "#ff3333")
 
 
 class PolygonAdapter(PolygonProxy, Polygon):

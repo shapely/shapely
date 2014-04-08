@@ -61,6 +61,27 @@ class MultiLineString(BaseMultipartGeometry):
             'coordinates': tuple(tuple(c for c in g.coords) for g in self.geoms)
             }
 
+    def svg(self, scale_factor=1.):
+        """
+        SVG representation of the geometry. Scale factor is multiplied by
+        the size of the SVG symbol so it can be scaled consistently for a
+        consistent appearance based on the canvas size.
+        """
+        parts = []
+        for part in self.geoms:
+            pnt_format = " ".join(["{0},{1}".format(*c) for c in part.coords])
+            parts.append("""<polyline
+                fill="none"
+                stroke="{2}"
+                stroke-width={1}
+                points="{0}"
+                opacity=".8"
+                />""".format(
+                    pnt_format,
+                    2.*scale_factor,
+                    "#66cc99" if self.is_valid else "#ff3333"))
+        return "\n".join(parts)
+
 
 class MultiLineStringAdapter(CachingGeometryProxy, MultiLineString):
     

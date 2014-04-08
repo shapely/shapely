@@ -80,6 +80,30 @@ class MultiPolygon(BaseMultipartGeometry):
             'coordinates': allcoords
             }
 
+    def svg(self, scale_factor=1.):
+        """
+        SVG representation of the geometry. Scale factor is multiplied by
+        the size of the SVG symbol so it can be scaled consistently for a
+        consistent appearance based on the canvas size.
+        """
+        parts = []
+        for part in self.geoms:
+            exterior_coords = [["{0},{1}".format(*c) for c in part.exterior.coords]]
+            interior_coords = [
+                ["{0},{1}".format(*c) for c in interior.coords]
+                for interior in part.interiors ]
+            path = " ".join([
+                "M {0} L {1} z".format(coords[0], " L ".join(coords[1:]))
+                for coords in exterior_coords + interior_coords ])
+            parts.append(
+                """<g fill-rule="evenodd" fill="{2}" stroke="#555555"
+                stroke-width="{0}" opacity="0.6">
+                <path d="{1}" /></g>""".format(
+                    2. * scale_factor,
+                    path,
+                    "#66cc99" if self.is_valid else "#ff3333"))
+        return "\n".join(parts)
+
 
 class MultiPolygonAdapter(CachingGeometryProxy, MultiPolygon):
     

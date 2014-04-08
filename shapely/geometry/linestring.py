@@ -66,8 +66,10 @@ class LineString(BaseGeometry):
             stroke-width={1}
             points="{0}"
             opacity=".8"
-            />""".format(pnt_format, 2. * scale_factor, "#6699cc" if self.is_valid else "#ff3333")
-
+            />""".format(
+                pnt_format,
+                2.*scale_factor, 
+                "#66cc99" if self.is_valid else "#ff3333")
 
     @property
     def ctypes(self):
