@@ -1,25 +1,24 @@
 import cython
+cimport cpython.array
+
 import numpy as np
 cimport numpy as np
 
-from shapely.geometry import Point
-from shapely.geos import lgeos
 import shapely.prepared
 
-
-ctypedef np.double_t float64
 
 include "../_geos.pxi"
 
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def contains(geometry not None,
-             np.ndarray[float64, ndim=2] x,
-             np.ndarray[float64, ndim=2] y):
+# Define the predicate function, which returns True/False from functions such as GEOSPreparedContains_r
+# and GEOSPreparedWithin_r.
+ctypedef char (* predicate)(GEOSContextHandle_t, const GEOSPreparedGeometry *, const GEOSGeometry *) nogil
+
+
+def contains(geometry, x, y):
     """
-    Vectorized (element-wise) version of "contains" for multiple points within
-    a single geometry.
+    Vectorized (element-wise) version of `contains` which checks whether
+    multiple points are contained by a single geometry.
 
     Parameters
     ----------
@@ -27,42 +26,95 @@ def contains(geometry not None,
         The geometry which is to be checked to see whether each point is
         contained within. The geometry will be "prepared" if it is not already
         a PreparedGeometry instance.
-    x : np.array
-        The x coordinates of the points to check. The array's dtype must be
-        np.float64 and it must be 2 dimensional.
-    y : np.array
-        The y coordinates of the points to check. The array's dtype must be
-        np.float64 and it must be 2 dimensional.
-    
+    x : array
+        The x coordinates of the points to check. 
+    y : array
+        The y coordinates of the points to check.
+
+    Returns
+    -------
+    Mask of points contained by the given `geometry`.
+
     """
-    # Note: This has not been written with maximal efficiency in mind - 
-    # the GIL really could be released within this function's for loop.
-    cdef int i, j, ni, nj
-    ni, nj = x.shape[0], x.shape[1]
-    result = np.empty([ni, nj], dtype=np.bool)
+    return _predicated_elementwise(geometry, x, y, GEOSPreparedContains_r)
+
+
+def touches(geometry, x, y):
+    """
+    Vectorized (element-wise) version of `touches` which checks whether
+    multiple points touch the exterior of a single geometry.
+
+    Parameters
+    ----------
+    geometry : PreparedGeometry or subclass of BaseGeometry
+        The geometry which is to be checked to see whether each point is
+        contained within. The geometry will be "prepared" if it is not already
+        a PreparedGeometry instance.
+    x : array
+        The x coordinates of the points to check. 
+    y : array
+        The y coordinates of the points to check.
+
+    Returns
+    -------
+    Mask of points which touch the exterior of the given `geometry`.
+
+    """
+    return _predicated_elementwise(geometry, x, y, GEOSPreparedTouches_r)
+
+
+cdef _predicated_elementwise(geometry, x, y, predicate fn):
+    """
+    Implements elementwise True/False testing, given a predicate function
+    such as "contains" or "touches". x and y arrays can be of any type, order
+    and dtype, and will be cast for appropriate calling to "_predicated_1d".
+
+    """
+    # Support coordinate sequences and other array like objects.
+    x, y = np.asanyarray(x), np.asanyarray(y)
+    if x.shape != y.shape:
+        raise ValueError('X and Y shapes must be equivalent.')
+
+    x_1d = x.astype(np.float64, copy=False).ravel()
+    y_1d = y.astype(np.float64, copy=False).ravel()
+
+    result = _predicated_1d(geometry, x_1d, y_1d, fn)
+    return result.reshape(x.shape)
+
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef _predicated_1d(geometry, np.double_t[:] x, np.double_t[:] y, predicate fn):
+    
+    cdef Py_ssize_t idx
+    cdef unsigned int n = x.size
+    cdef np.ndarray[np.uint8_t, ndim=1, cast=True] result = np.empty(n, dtype=np.bool)
+    cdef GEOSContextHandle_t geos_handle
+    cdef GEOSPreparedGeometry *geos_prepared_geom
+    cdef GEOSCoordSequence *cs
+    cdef GEOSGeometry *point
 
     # Prepare the geometry if it hasn't already been prepared.
     if not isinstance(geometry, shapely.prepared.PreparedGeometry):
         geometry = shapely.prepared.prep(geometry)
 
-    geos_handle = <GEOSContextHandle_t> get_geos_context_handle()
-    geos_prepared_geom = <GEOSPreparedGeometry *> geos_from_prepared(geometry)
+    geos_h = get_geos_context_handle()
+    geos_geom = geos_from_prepared(geometry)
 
-    # N.B. The point and associated CS must be constructed for each point.
-    # I'm not certain why the coordinate sequence can't be updated as we go,
-    # but that results in incorrect results (the tests will fail).
-    for j in range(nj):
-        for i in range(ni):
+    with nogil:
+        for idx in xrange(n):
             # Construct a coordinate sequence with our x, y values.
-            cs = <GEOSCoordSequence *> GEOSCoordSeq_create_r(geos_handle, 1, 2)
-            GEOSCoordSeq_setX_r(geos_handle, cs, 0, x[i, j])
-            GEOSCoordSeq_setY_r(geos_handle, cs, 0, y[i, j])
+            cs = GEOSCoordSeq_create_r(geos_h, 1, 2)
+            GEOSCoordSeq_setX_r(geos_h, cs, 0, x[idx])
+            GEOSCoordSeq_setY_r(geos_h, cs, 0, y[idx])
             
             # Construct a point with this sequence.
-            point = <GEOSGeometry *> GEOSGeom_createPoint_r(geos_handle, cs)
+            p = GEOSGeom_createPoint_r(geos_h, cs)
             
             # Put the result of whether the point is "contained" by the
             # prepared geometry into the result array. 
-            result[i, j] = <char> GEOSPreparedContains_r(geos_handle, geos_prepared_geom, point)
-            GEOSGeom_destroy_r(geos_handle, point)
+            result[idx] = <np.uint8_t> fn(geos_h, geos_geom, p)
+            GEOSGeom_destroy_r(geos_h, p)
+
     return result
