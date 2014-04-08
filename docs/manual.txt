@@ -1811,12 +1811,13 @@ for `func`.
 
 .. sourcecode:: python
 
+    from shapely.ops import transform
     from functools import partial
     import pyproj
 
     project = partial(
         pyproj.transform,
-        pyproj.Proj(init='espg:4326'),
+        pyproj.Proj(init='epsg:4326'),
         pyproj.Proj(init='epsg:26913'))
 
     g2 = transform(project, g1)

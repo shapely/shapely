@@ -26,6 +26,12 @@ class IdentityTestCase(unittest.TestCase):
         self.assertEqual(h.geom_type, 'LineString')
         self.assertEqual(list(h.coords), [(0, 1), (2, 3)])
 
+    def test_linearring(self):
+        g = geometry.LinearRing(((0, 1), (2, 3), (2, 2), (0, 1)))
+        h = transform(self.func, g)
+        self.assertEqual(h.geom_type, 'LinearRing')
+        self.assertEqual(list(h.coords), [(0, 1), (2, 3), (2, 2), (0, 1)])
+
     def test_polygon(self):
         g = geometry.Point(0, 1).buffer(1.0)
         h = transform(self.func, g)

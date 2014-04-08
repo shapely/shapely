@@ -77,7 +77,7 @@ def affine_transform(geom, matrix):
                 yield (xp, yp, zp)
 
     # Process coordinates from each supported geometry type
-    if geom.type in ('Point', 'LineString'):
+    if geom.type in ('Point', 'LineString', 'LinearRing'):
         return type(geom)(list(affine_pts(geom.coords)))
     elif geom.type == 'Polygon':
         ring = geom.exterior

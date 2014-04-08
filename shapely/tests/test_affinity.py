@@ -51,6 +51,10 @@ class AffineTestCase(unittest.TestCase):
         ls2d = load_wkt('LINESTRING(0.9 3.4, 0.7 2, 2.5 2.7)')
         ls3d = load_wkt('LINESTRING(0.9 3.4 3.3, 0.7 2 2.3, 2.5 2.7 5.5)')
         test_geom(ls2d, ls3d)
+        lr2d = load_wkt('LINEARRING(0.9 3.4, 0.7 2, 2.5 2.7, 0.9 3.4)')
+        lr3d = load_wkt(
+            'LINEARRING(0.9 3.4 3.3, 0.7 2 2.3, 2.5 2.7 5.5, 0.9 3.4 3.3)')
+        test_geom(lr2d, lr3d)
         test_geom(load_wkt('POLYGON((0.9 2.3, 0.5 1.1, 2.4 0.8, 0.9 2.3), '
                            '(1.1 1.7, 0.9 1.3, 1.4 1.2, 1.1 1.7), '
                            '(1.6 1.3, 1.7 1, 1.9 1.1, 1.6 1.3))'))
