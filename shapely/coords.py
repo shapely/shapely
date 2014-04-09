@@ -21,8 +21,13 @@ def required(ob):
     """Return an object that meets Shapely requirements for self-owned
     C-continguous data, copying if necessary, or just return the original
     object."""
-    if has_numpy and hasattr(ob, '__array_interface__'):
-        return numpy.require(ob, numpy.float64, ["C", "OWNDATA"])
+    if (hasattr(ob, '__array_interface__')
+            and ob.__array_interface__.get('strides')):
+        if has_numpy:
+            return numpy.require(ob, numpy.float64, ["C", "OWNDATA"])
+        else:
+            # raise an error if strided. See issue #52.
+            raise ValueError("C-contiguous data is required")
     else:
         return ob
 
