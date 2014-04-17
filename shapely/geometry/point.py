@@ -146,7 +146,7 @@ class Point(BaseGeometry):
 
 class PointAdapter(CachingGeometryProxy, Point):
 
-    _owned = False
+    _other_owned = False
 
     def __init__(self, context):
         self.context = context

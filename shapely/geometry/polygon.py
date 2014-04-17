@@ -178,7 +178,7 @@ class InteriorRingSequence(object):
             ring = LinearRing()
             ring.__geom__ = g
             ring.__p__ = self
-            ring._owned = True
+            ring._other_owned = True
             ring._ndim = self._ndim
             self.__rings__[i] = weakref.ref(ring)
         return self.__rings__[i]()
@@ -237,7 +237,7 @@ class Polygon(BaseGeometry):
             ring = LinearRing()
             ring.__geom__ = g
             ring.__p__ = self
-            ring._owned = True
+            ring._other_owned = True
             ring._ndim = self._ndim
             self._exterior = weakref.ref(ring)
         return self._exterior()

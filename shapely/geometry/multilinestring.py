@@ -86,7 +86,7 @@ class MultiLineString(BaseMultipartGeometry):
 class MultiLineStringAdapter(CachingGeometryProxy, MultiLineString):
     
     context = None
-    _owned = False
+    _other_owned = False
 
     def __init__(self, context):
         self.context = context

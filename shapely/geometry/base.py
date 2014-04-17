@@ -160,7 +160,7 @@ class BaseGeometry(object):
     # _crs : object
     #     Coordinate reference system. Available for Shapely extensions, but
     #     not implemented here.
-    # _owned : bool
+    # _other_owned : bool
     #     True if this object's GEOS geometry is owned by another as in the
     #     case of a multipart geometry member.
     __geom__ = EMPTY
@@ -168,7 +168,7 @@ class BaseGeometry(object):
     _ctypes_data = None
     _ndim = None
     _crs = None
-    _owned = False
+    _other_owned = False
 
     # Backend config
     impl = DefaultImplementation
@@ -183,7 +183,7 @@ class BaseGeometry(object):
     def empty(self):
         # TODO: defer cleanup to the implementation. We shouldn't be
         # explicitly calling a lgeos method here.
-        if not (self._owned or self._is_empty):
+        if not self._is_empty and not self._other_owned:
             try:
                 self._lgeos.GEOSGeom_destroy(self.__geom__)
             except AttributeError:
@@ -726,7 +726,7 @@ class GeometrySequence(object):
 
     def _get_geom_item(self, i):
         g = self.shape_factory()
-        g._owned = True
+        g._other_owned = True
         g._geom = lgeos.GEOSGetGeometryN(self._geom, i)
         g._ndim = self._ndim
         g.__p__ = self
@@ -784,7 +784,7 @@ class HeterogeneousGeometrySequence(GeometrySequence):
     def _get_geom_item(self, i):
         sub = lgeos.GEOSGetGeometryN(self._geom, i)
         g = geom_factory(sub, parent=self)
-        g._owned = True
+        g._other_owned = True
         return g
 
 

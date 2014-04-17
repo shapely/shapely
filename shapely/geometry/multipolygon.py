@@ -108,7 +108,7 @@ class MultiPolygon(BaseMultipartGeometry):
 class MultiPolygonAdapter(CachingGeometryProxy, MultiPolygon):
     
     context = None
-    _owned = False
+    _other_owned = False
 
     def __init__(self, context, context_type='polygons'):
         self.context = context
