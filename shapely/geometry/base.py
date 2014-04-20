@@ -180,19 +180,19 @@ class BaseGeometry(object):
     # a reference to the so/dll proxy to preserve access during clean up
     _lgeos = lgeos
 
-    def empty(self):
+    def empty(self, val=EMPTY):
         # TODO: defer cleanup to the implementation. We shouldn't be
         # explicitly calling a lgeos method here.
         if not self._is_empty and not self._other_owned:
             try:
-                self._lgeos.GEOSGeom_destroy(self.__geom__)
+                if self.__geom__:
+                    self._lgeos.GEOSGeom_destroy(self.__geom__)
             except AttributeError:
                 pass  # _lgeos might be empty on shutdown
-        self.__geom__ = EMPTY
+        self.__geom__ = val
 
     def __del__(self):
-        self.empty()
-        self.__geom__ = None
+        self.empty(val=None)
         self.__p__ = None
 
     def __str__(self):
