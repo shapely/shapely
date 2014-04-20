@@ -19,10 +19,10 @@ class CachingGeometryProxy(object):
     def _is_empty(self):
         return self.__geom__ in [EMPTY, None]
 
-    def empty(self):
-        if not self._is_empty:
+    def empty(self, val=EMPTY):
+        if not self._is_empty and self.__geom__:
             lgeos.GEOSGeom_destroy(self.__geom__)
-        self.__geom__ = EMPTY
+        self.__geom__ = val
 
     @property
     def _geom(self):
