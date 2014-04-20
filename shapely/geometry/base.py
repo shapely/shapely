@@ -183,10 +183,9 @@ class BaseGeometry(object):
     def empty(self, val=EMPTY):
         # TODO: defer cleanup to the implementation. We shouldn't be
         # explicitly calling a lgeos method here.
-        if not self._is_empty and not self._other_owned:
+        if not self._is_empty and not self._other_owned and self.__geom__:
             try:
-                if self.__geom__:
-                    self._lgeos.GEOSGeom_destroy(self.__geom__)
+                self._lgeos.GEOSGeom_destroy(self.__geom__)
             except AttributeError:
                 pass  # _lgeos might be empty on shutdown
         self.__geom__ = val
