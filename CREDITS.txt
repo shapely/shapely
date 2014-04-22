@@ -20,6 +20,7 @@ Patches contributed by:
 * Kelsey Jordahl (https://github.com/kjordahl)
 * Fr |eaigue| d |eaigue| ric Junod
 * Thomas Kluyver (https://github.com/takluyver)
+* William Kyngesburye (https://github.com/kyngchaos)
 * Eric Lemoine
 * Naveen Michaud-Agrawal (https://github.com/nmichaud)
 * psagers https://github.com/psagers
