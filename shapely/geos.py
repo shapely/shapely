@@ -512,6 +512,7 @@ class LGEOSBase(threading.local):
             self._lgeos.finishGEOS()
             self._lgeos = None
             self.geos_handle = None
+        LOG.debug("GEOS Finished")
 
 
 class LGEOS300(LGEOSBase):
@@ -726,7 +727,7 @@ else:
 
 lgeos = L(_lgeos)
 
+def cleanup(proxy):
+    del proxy
 
-@atexit.register
-def cleanup():
-    del lgeos
+atexit.register(cleanup, lgeos)
