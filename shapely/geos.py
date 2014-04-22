@@ -729,4 +729,4 @@ lgeos = L(_lgeos)
 
 @atexit.register
 def cleanup():
-    lgeos.__del__()
+    del lgeos
