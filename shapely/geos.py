@@ -726,7 +726,7 @@ else:
 
 lgeos = L(_lgeos)
 
+def cleanup(proxy):
+    del proxy
 
-@atexit.register
-def cleanup():
-    lgeos.__del__()
+atexit.register(cleanup, lgeos)
