@@ -36,19 +36,22 @@ else:
 def load_dll(libname, fallbacks=None):
     lib = find_library(libname)
     if lib is not None:
-        return CDLL(lib)
-    else:
-        if fallbacks is not None:
-            for name in fallbacks:
-                try:
-                    return CDLL(name)
-                except OSError:
-                    # move on to the next fallback
-                    pass
-        # the end
-        raise OSError(
-            "Could not find library %s or load any of its variants %s" % (
-                libname, fallbacks or []))
+        try:
+            return CDLL(lib)
+        except OSError:
+            pass
+    if fallbacks is not None:
+        for name in fallbacks:
+            try:
+                return CDLL(name)
+            except OSError:
+                # move on to the next fallback
+                pass
+    # No shared library was loaded. Raise OSError.
+    raise OSError(
+        "Could not find library %s or load any of its variants %s" % (
+            libname, fallbacks or []))
+
 
 if sys.platform.startswith('linux'):
     _lgeos = load_dll('geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
