@@ -512,7 +512,6 @@ class LGEOSBase(threading.local):
             self._lgeos.finishGEOS()
             self._lgeos = None
             self.geos_handle = None
-        LOG.debug("GEOS Finished")
 
 
 class LGEOS300(LGEOSBase):
