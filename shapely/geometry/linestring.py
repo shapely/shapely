@@ -131,7 +131,7 @@ class LineString(BaseGeometry):
             return geom_factory(self.impl['parallel_offset'](
                 self, distance, resolution, join_style, mitre_limit,
                 bool(side == 'left')))
-        except WindowsError:
+        except (OSError, WindowsError):
             raise TopologicalError()
 
 
