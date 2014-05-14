@@ -214,6 +214,11 @@ class WKTReader(object):
 
     def read(self, text):
         """Returns geometry from WKT"""
+        if hasattr(text, 'upper') and text.upper().startswith('SRID='):
+            srid = int(text[(text.index('=') + 1):text.index(';')])
+            text = text[(text.index(';') + 1):]
+        else:
+            srid = 0
         if sys.version_info[0] >= 3:
             text = text.encode('ascii')
         geom = self._lgeos.GEOSWKTReader_read(self._reader, c_char_p(text))
@@ -222,7 +227,10 @@ class WKTReader(object):
                                "while reading input.")
         # avoid circular import dependency
         from shapely.geometry.base import geom_factory
-        return geom_factory(geom)
+        geom = geom_factory(geom)
+        if srid:
+            geom.srid = srid
+        return geom
 
 
 class WKTWriter(object):
@@ -231,7 +239,18 @@ class WKTWriter(object):
     _writer = None
 
     # Establish default output settings
-    defaults = {}
+    defaults = {'include_srid': True}
+
+    _include_srid = True
+
+    @property
+    def include_srid(self):
+        """Include SRID, True (default) or False"""
+        return getattr(self, '_include_srid')
+
+    @include_srid.setter
+    def include_srid(self, value):
+        setattr(self, '_include_srid', value)
 
     if geos_version >= (3, 3, 0):
 
@@ -327,13 +346,18 @@ class WKTWriter(object):
         """Returns WKT string for geometry"""
         if geom is None or geom._geom is None:
             raise ValueError("Null geometry supports no operations")
+        srid = geom.srid
+        if self.include_srid and srid:
+            pre = 'SRID=' + str(srid) + ';'
+        else:
+            pre = ''
         result = self._lgeos.GEOSWKTWriter_write(self._writer, geom._geom)
-        text = string_at(result)
+        wkt = string_at(result)
         lgeos.GEOSFree(result)
         if sys.version_info[0] >= 3:
-            return text.decode('ascii')
+            return pre + wkt.decode('ascii')
         else:
-            return text
+            return pre + wkt
 
 
 class WKBReader(object):
@@ -384,7 +408,7 @@ class WKBWriter(object):
     _writer = None
 
     # Establish default output setting
-    defaults = {'output_dimension': 3}
+    defaults = {'output_dimension': 3, 'include_srid': True}
 
     @property
     def output_dimension(self):
@@ -407,7 +431,7 @@ class WKBWriter(object):
 
     @property
     def include_srid(self):
-        """Include SRID, True or False (default)"""
+        """Include SRID, True (default) or False"""
         return bool(self._lgeos.GEOSWKBWriter_getIncludeSRID(self._writer))
 
     @include_srid.setter
