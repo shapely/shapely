@@ -346,8 +346,14 @@ copy.
   >>> LineString(line)
   <shapely.geometry.linestring.LineString object at 0x...>
 
-A sequence of `Point` instances is not a valid constructor parameter. A
-`LineString` is described by points, but is not composed of `Point` instances.
+A `LineString` may also be constructed using a a sequence of mixed `Point`
+instances or coordinate tuples. The individual coordinates are copied into
+the new object.
+
+.. sourcecode:: pycon
+
+  >>> LineString([Point(0.0, 1.0), (2.0, 3.0), Point(4.0, 5.0)])
+  <shapely.geometry.linestring.LineString object at 0x...>
 
 .. _linearrings:
 
