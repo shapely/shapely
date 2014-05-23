@@ -15,7 +15,7 @@ from shapely.geometry.base import geom_factory, BaseGeometry
 from shapely.geometry import asShape, asLineString, asMultiLineString
 
 __all__ = ['cascaded_union', 'linemerge', 'operator', 'polygonize',
-           'polygonize_full', 'transform', 'unary_union']
+           'polygonize_full', 'transform', 'unary_union', 'triangulate']
 
 
 class CollectionOperator(object):
@@ -137,6 +137,25 @@ linemerge = operator.linemerge
 cascaded_union = operator.cascaded_union
 unary_union = operator.unary_union
 
+
+def triangulate(geom, tolerance=0.0, edges=False):
+    """Creates the Delaunay triangulation and returns a list of geometries
+
+    The source may be any geometry type. All vertices of the geometry will be
+    used as the points of the triangulation.
+
+    From the GEOS documentation:
+    tolerance is the snapping tolerance used to improve the robustness of
+    the triangulation computation. A tolerance of 0.0 specifies that no
+    snapping will take place.
+
+    If edges is False, a list of Polygons (triangles) will be returned.
+    Otherwise the list of LineString edges is returned.
+
+    """
+    func = lgeos.methods['delaunay_triangulation']
+    gc = geom_factory(func(geom._geom, tolerance, int(edges)))
+    return [g for g in gc.geoms]
 
 class ValidateOp(object):
     def __call__(self, this):

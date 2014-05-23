@@ -711,6 +711,7 @@ class LGEOS330(LGEOS320):
 
         self.methods['unary_union'] = self.GEOSUnaryUnion
         self.methods['cascaded_union'] = self.methods['unary_union']
+        self.methods['delaunay_triangulation'] = self.GEOSDelaunayTriangulation
 
 
 if geos_version >= (3, 3, 0):
