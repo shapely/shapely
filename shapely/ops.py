@@ -187,7 +187,7 @@ def transform(func, geom):
 
       project = partial(
           pyproj.transform,
-          pyproj.Proj(init='espg:4326'),
+          pyproj.Proj(init='epsg:4326'),
           pyproj.Proj(init='epsg:26913'))
 
       g2 = transform(project, g1)
