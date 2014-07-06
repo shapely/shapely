@@ -53,6 +53,24 @@ class LineString(BaseGeometry):
             'coordinates': tuple(self.coords)
             }
 
+    def svg(self, scale_factor=1.):
+        """
+        SVG representation of the geometry. Scale factor is multiplied by
+        the size of the SVG symbol so it can be scaled consistently for a
+        consistent appearance based on the canvas size.
+        """
+        pnt_format = " ".join(["{0},{1}".format(*c) for c in self.coords])
+        return """<polyline
+            fill="none"
+            stroke="{2}"
+            stroke-width={1}
+            points="{0}"
+            opacity=".8"
+            />""".format(
+                pnt_format,
+                2.*scale_factor, 
+                "#66cc99" if self.is_valid else "#ff3333")
+
     @property
     def ctypes(self):
         if not self._ctypes_data:
@@ -113,7 +131,7 @@ class LineString(BaseGeometry):
             return geom_factory(self.impl['parallel_offset'](
                 self, distance, resolution, join_style, mitre_limit,
                 bool(side == 'left')))
-        except WindowsError:
+        except OSError:
             raise TopologicalError()
 
 

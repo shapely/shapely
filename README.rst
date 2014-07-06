@@ -125,13 +125,27 @@ Use of a virtual environment is strongly recommended.::
   (env)$ pip install -r requirements-dev.txt
   (env)$ python setup.py develop
 
-Shapely uses a Zope-stye suite of unittests and doctests, exercised via
+Shapely's suite of unittests and doctests, exercised via
 setup.py.::
 
   (env)$ python setup.py test
 
 Nosetests won't run the tests properly; Zope doctest suites are not currently
 supported well by nose.
+
+Roadmap and Maintenance
+=======================
+
+Shapely 1.2.x is a maintenance-only branch which supports Python 2.4-2.6, but
+not Python 3+. There will be no new features in Shapely 1.2.x and only fixes
+for major bugs.
+
+Shapely 1.3.x is a maintenance-only branch supporting Pythons 2.7 and 3+.
+
+"Shapely 3000" is the name of the next milestone. New features will include
+vectorized operations, better integration with IPython Notebook, support for
+fixed precision models, and more. Less ctypes and more Cython is another theme
+in this branch. A 1.4 release should come out of this by Summer, 2014.
 
 Support
 =======

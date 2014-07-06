@@ -36,7 +36,12 @@ class CollectionOperator(object):
         or a sequence of objects than can be adapted to LineStrings.
         """
         source = getattr(lines, 'geoms', None) or lines
-        obs = [self.shapeup(l) for l in source]
+        try:
+            source = iter(source)
+        except TypeError:
+            source = [source]
+        finally:
+            obs = [self.shapeup(l) for l in source]
         geom_array_type = c_void_p * len(obs)
         geom_array = geom_array_type()
         for i, line in enumerate(obs):
@@ -65,8 +70,12 @@ class CollectionOperator(object):
         (bowties, etc).
         """
         source = getattr(lines, 'geoms', None) or lines
-        obs = [self.shapeup(l) for l in source]
-
+        try:
+            source = iter(source)
+        except TypeError:
+            source = [source]
+        finally:
+            obs = [self.shapeup(l) for l in source]
         L = len(obs)
         subs = (c_void_p * L)()
         for i, g in enumerate(obs):
@@ -109,7 +118,11 @@ class CollectionOperator(object):
 
         This is the most efficient method of dissolving many polygons.
         """
-        L = len(geoms)
+        try:
+            L = len(geoms)
+        except TypeError:
+            geoms = [geoms]
+            L = 1
         subs = (c_void_p * L)()
         for i, g in enumerate(geoms):
             subs[i] = g._geom
@@ -123,7 +136,11 @@ class CollectionOperator(object):
         prefered method for dissolving many polygons.
 
         """
-        L = len(geoms)
+        try:
+            L = len(geoms)
+        except TypeError:
+            geoms = [geoms]
+            L = 1
         subs = (c_void_p * L)()
         for i, g in enumerate(geoms):
             subs[i] = g._geom
@@ -170,7 +187,7 @@ def transform(func, geom):
 
       project = partial(
           pyproj.transform,
-          pyproj.Proj(init='espg:4326'),
+          pyproj.Proj(init='epsg:4326'),
           pyproj.Proj(init='epsg:26913'))
 
       g2 = transform(project, g1)
@@ -183,14 +200,14 @@ def transform(func, geom):
     """
     if geom.is_empty:
         return geom
-    if geom.type in ('Point', 'LineString', 'Polygon'):
+    if geom.type in ('Point', 'LineString', 'LinearRing', 'Polygon'):
 
         # First we try to apply func to x, y, z sequences. When func is
         # optimized for sequences, this is the fastest, though zipping
         # the results up to go back into the geometry constructors adds
         # extra cost.
         try:
-            if geom.type in ('Point', 'LineString'):
+            if geom.type in ('Point', 'LineString', 'LinearRing'):
                 return type(geom)(zip(*func(*izip(*geom.coords))))
             elif geom.type == 'Polygon':
                 shell = type(geom.exterior)(
@@ -202,7 +219,7 @@ def transform(func, geom):
         # A func that assumes x, y, z are single values will likely raise a
         # TypeError, in which case we'll try again.
         except TypeError:
-            if geom.type in ('Point', 'LineString'):
+            if geom.type in ('Point', 'LineString', 'LinearRing'):
                 return type(geom)([func(*c) for c in geom.coords])
             elif geom.type == 'Polygon':
                 shell = type(geom.exterior)(
