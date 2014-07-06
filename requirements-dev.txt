@@ -1,4 +1,4 @@
-setuptools >= 0.9.8
+setuptools
 Numpy==1.8.0
 Cython==0.19.2
 descartes==1.0.1

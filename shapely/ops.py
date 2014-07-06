@@ -36,7 +36,12 @@ class CollectionOperator(object):
         or a sequence of objects than can be adapted to LineStrings.
         """
         source = getattr(lines, 'geoms', None) or lines
-        obs = [self.shapeup(l) for l in source]
+        try:
+            source = iter(source)
+        except TypeError:
+            source = [source]
+        finally:
+            obs = [self.shapeup(l) for l in source]
         geom_array_type = c_void_p * len(obs)
         geom_array = geom_array_type()
         for i, line in enumerate(obs):
@@ -65,8 +70,12 @@ class CollectionOperator(object):
         (bowties, etc).
         """
         source = getattr(lines, 'geoms', None) or lines
-        obs = [self.shapeup(l) for l in source]
-
+        try:
+            source = iter(source)
+        except TypeError:
+            source = [source]
+        finally:
+            obs = [self.shapeup(l) for l in source]
         L = len(obs)
         subs = (c_void_p * L)()
         for i, g in enumerate(obs):
@@ -109,7 +118,11 @@ class CollectionOperator(object):
 
         This is the most efficient method of dissolving many polygons.
         """
-        L = len(geoms)
+        try:
+            L = len(geoms)
+        except TypeError:
+            geoms = [geoms]
+            L = 1
         subs = (c_void_p * L)()
         for i, g in enumerate(geoms):
             subs[i] = g._geom
@@ -123,7 +136,11 @@ class CollectionOperator(object):
         prefered method for dissolving many polygons.
 
         """
-        L = len(geoms)
+        try:
+            L = len(geoms)
+        except TypeError:
+            geoms = [geoms]
+            L = 1
         subs = (c_void_p * L)()
         for i, g in enumerate(geoms):
             subs[i] = g._geom
@@ -170,7 +187,7 @@ def transform(func, geom):
 
       project = partial(
           pyproj.transform,
-          pyproj.Proj(init='espg:4326'),
+          pyproj.Proj(init='epsg:4326'),
           pyproj.Proj(init='epsg:26913'))
 
       g2 = transform(project, g1)
