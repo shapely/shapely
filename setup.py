@@ -16,6 +16,7 @@ from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
 from distutils.sysconfig import get_config_var
 import errno
+import codecs
 import glob
 import os
 import platform
@@ -73,14 +74,14 @@ if version is None:
 with open('VERSION.txt', 'w') as fp:
     fp.write(version)
 
-with open('README.rst', 'r') as fp:
+with codecs.open('README.rst', 'r', encoding='utf-8') as fp:
     readme_text = fp.read()
 readme_text = readme_text.replace(".. include:: CREDITS.txt", "")
 
-with open('CREDITS.txt', 'r') as fp:
+with codecs.open('CREDITS.txt', 'r', encoding='utf-8') as fp:
     credits = fp.read()
 
-with open('CHANGES.txt', 'r') as fp:
+with codecs.open('CHANGES.txt', 'r', encoding='utf-8') as fp:
     changes_text = fp.read()
 
 setup_args = dict(
