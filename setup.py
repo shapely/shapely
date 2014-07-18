@@ -77,7 +77,7 @@ with open('README.rst', 'r') as fp:
     readme_text = fp.read()
 readme_text = readme_text.replace(".. include:: CREDITS.txt", "")
 
-with open('CREDITS.txt', 'r') as fp:
+with open('CREDITS.txt', 'r', encoding='utf-8') as fp:
     credits = fp.read()
 
 with open('CHANGES.txt', 'r') as fp:
