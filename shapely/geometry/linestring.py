@@ -106,7 +106,7 @@ class LineString(BaseGeometry):
 
     def parallel_offset(
             self, distance, side,
-            resolution=16, join_style=JOIN_STYLE.round, mitre_limit=1.0):
+            resolution=16, join_style=JOIN_STYLE.round, mitre_limit=5.0):
 
         """Returns a LineString or MultiLineString geometry at a distance from
         the object on its right or its left side.
@@ -126,7 +126,9 @@ class LineString(BaseGeometry):
         far beyond the original geometry. To prevent unreasonable geometry, the
         mitre limit allows controlling the maximum length of the join corner.
         Corners with a ratio which exceed the limit will be beveled."""
-
+        if mitre_limit == 0.0:
+            raise ValueError(
+                'Cannot compute offset from zero-length line segment')
         try:
             return geom_factory(self.impl['parallel_offset'](
                 self, distance, resolution, join_style, mitre_limit,

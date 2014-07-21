@@ -1393,7 +1393,7 @@ Constructive Methods
 Shapely geometric object have several methods that yield new objects not
 derived from set-theoretic analysis.
 
-.. method:: object.buffer(distance, resolution=16, cap_style=1, join_style=1, mitre_limit=1.0)
+.. method:: object.buffer(distance, resolution=16, cap_style=1, join_style=1, mitre_limit=5.0)
 
   Returns an approximate representation of all points within a given `distance`
   of the this geometric object.
@@ -1525,7 +1525,7 @@ Figure 10. Convex hull (blue) of 2 points (left) and of 6 points (right).
   >>> MultiPoint([(0, 0), (1, 1)]).envelope
   <shapely.geometry.polygon.Polygon object at 0x...>
 
-.. method:: object.parallel_offset(distance, side, resolution=16, join_style=1, mitre_limit=1.0)
+.. method:: object.parallel_offset(distance, side, resolution=16, join_style=1, mitre_limit=5.0)
 
   Returns a LineString or MultiLineString geometry at a distance from the
   object on its right or its left side.
