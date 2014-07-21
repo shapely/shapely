@@ -423,7 +423,7 @@ class BaseGeometry(object):
 
     def buffer(self, distance, resolution=16, quadsegs=None,
                cap_style=CAP_STYLE.round, join_style=JOIN_STYLE.round,
-               mitre_limit=0):
+               mitre_limit=5.0):
         """Returns a geometry with an envelope at a distance from the object's
         envelope
 
@@ -462,7 +462,6 @@ class BaseGeometry(object):
           >>> g.buffer(1.0, cap_style='square').area
           4.0
         """
-
         if quadsegs is not None:
             warn(
                 "The `quadsegs` argument is deprecated. Use `resolution`.",
@@ -470,7 +469,9 @@ class BaseGeometry(object):
             res = quadsegs
         else:
             res = resolution
-
+        if mitre_limit == 0.0:
+            raise ValueError(
+                'Cannot compute offset from zero-length line segment')
         if cap_style == CAP_STYLE.round and join_style == JOIN_STYLE.round:
             return geom_factory(self.impl['buffer'](self, distance, res))
 
