@@ -70,17 +70,22 @@ with open('shapely/__init__.py', 'r') as fp:
 if version is None:
     raise ValueError("Could not determine Shapely's version")
 
-with open('VERSION.txt', 'w') as fp:
+# Handle UTF-8 encoding of certain text files.
+open_kwds = {}
+if sys.version_info > (3,):
+    open_kwds['encoding'] = 'utf-8'
+
+with open('VERSION.txt', 'w', **open_kwds) as fp:
     fp.write(version)
 
-with open('README.rst', 'r') as fp:
+with open('README.rst', 'r', **open_kwds) as fp:
     readme_text = fp.read()
 readme_text = readme_text.replace(".. include:: CREDITS.txt", "")
 
-with open('CREDITS.txt', 'r') as fp:
+with open('CREDITS.txt', 'r', **open_kwds) as fp:
     credits = fp.read()
 
-with open('CHANGES.txt', 'r') as fp:
+with open('CHANGES.txt', 'r', **open_kwds) as fp:
     changes_text = fp.read()
 
 setup_args = dict(
