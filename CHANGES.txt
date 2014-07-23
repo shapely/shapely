@@ -5,8 +5,21 @@ Next (?)
 ---------
 - SVG representations for IPython's inline image protocol.
 - Efficient and fast vectorized contains().
-- Allow single-part geometries as argument to ops.cascaded_union() (#135).
 - Change mitre_limit default to 5.0; raise ValueError with 0.0 (#139).
+
+1.3.3 (2014-07-23)
+------------------
+- Allow single-part geometries as argument to ops.cacaded_union() (#135).
+- Support affine transformations of LinearRings (#112).
+
+1.3.2 (2014-05-13)
+------------------
+- Let LineString() take a sequence of Points (#130).
+
+1.3.1 (2014-04-22)
+------------------
+- More reliable proxy cleanup on exit (#106).
+- More robust DLL loading on all platforms (#114).
 
 1.3.0 (2013-12-31)
 ------------------
