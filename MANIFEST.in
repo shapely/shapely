@@ -10,4 +10,3 @@ recursive-include shapely/examples *.py
 recursive-exclude shapely/speedups *.pyx
 include docs/manual.txt
 exclude MANIFEST.in
-include shapely/_geos.pxi
