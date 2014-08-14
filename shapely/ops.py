@@ -8,11 +8,11 @@ if sys.version_info[0] < 3:
 else:
     izip = zip
 
-from ctypes import byref, c_void_p
+from ctypes import byref, c_void_p, c_double
 
 from shapely.geos import lgeos
 from shapely.geometry.base import geom_factory, BaseGeometry
-from shapely.geometry import asShape, asLineString, asMultiLineString
+from shapely.geometry import asShape, asLineString, asMultiLineString, Point
 
 __all__ = ['cascaded_union', 'linemerge', 'operator', 'polygonize',
            'polygonize_full', 'transform', 'unary_union']
@@ -232,3 +232,26 @@ def transform(func, geom):
         return type(geom)([transform(func, part) for part in geom.geoms])
     else:
         raise ValueError('Type %r not recognized' % geom.type)
+
+def nearest_points(g1, g2):
+    """Returns the calculated nearest points in the input geometries
+    
+    The points are returned in the same order as the input geometries.
+    """
+    seq = lgeos.GEOSNearestPoints(g1._geom, g2._geom)
+    if seq is None:
+        if g1.is_empty:
+            raise ValueError('The first input geometry is empty')
+        else:
+            raise ValueError('The second input geometry is empty')
+    x1 = c_double()
+    y1 = c_double()
+    x2 = c_double()
+    y2 = c_double()
+    lgeos.GEOSCoordSeq_getX(seq, 0, byref(x1))
+    lgeos.GEOSCoordSeq_getY(seq, 0, byref(y1))
+    lgeos.GEOSCoordSeq_getX(seq, 1, byref(x2))
+    lgeos.GEOSCoordSeq_getY(seq, 1, byref(y2))
+    p1 = Point(x1.value, y1.value)
+    p2 = Point(x2.value, y2.value)
+    return (p1, p2)
