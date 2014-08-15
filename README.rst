@@ -160,7 +160,7 @@ Bugs may be reported at https://github.com/Toblerity/Shapely.
 .. _JTS: http://www.vividsolutions.com/jts/jtshome.htm
 .. _PostGIS: http://postgis.org
 .. _GEOS: http://trac.osgeo.org/geos/
-.. _example apps: https://github.com/sgillies/shapely/tree/master/shapely/examples
+.. _example apps: https://github.com/Toblerity/shapely/tree/master/shapely/examples
 .. _manual: http://toblerity.github.com/shapely/manual.html
 .. _Pleiades: http://pleiades.stoa.org
 
