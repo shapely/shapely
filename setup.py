@@ -51,6 +51,14 @@ class test(Command):
         else:
             from unittest import TextTestRunner, TestLoader
 
+        speedups_enabled = os.environ.get('SHAPELY_SPEEDUPS_ENABLED', None)
+        if speedups_enabled is not None:
+            import shapely.speedups
+            if speedups_enabled == 'TRUE' and shapely.speedups.available:
+                shapely.speedups.enable()
+            elif speedups_enabled == 'FALSE':
+                shapely.speedups.available = False
+                shapely.speedups.disable()
         import shapely.tests
         tests = TestLoader().loadTestsFromName('test_suite', shapely.tests)
         runner = TextTestRunner(verbosity=2)
