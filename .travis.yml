@@ -7,8 +7,8 @@ python:
   - "3.3"
 
 env:
-  - SHAPELY_SPEEDUPS_ENABLED=TRUE
-  - SHAPELY_SPEEDUPS_ENABLED=FALSE
+  - TRAVIS_SPEEDUPS_ENABLED=true
+  - TRAVIS_SPEEDUPS_ENABLED=false
 
 before_install:
   - sudo add-apt-repository -y ppa:ubuntugis/ppa
@@ -20,7 +20,7 @@ before_install:
 install:
   - python setup.py build
 
-script: "python setup.py test"
+script: "python setup.py test --speedups=${TRAVIS_SPEEDUPS_ENABLED}"
 
 notifications:
     email: false
