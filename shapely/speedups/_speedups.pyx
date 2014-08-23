@@ -7,6 +7,7 @@
 
 import ctypes
 from shapely.geos import lgeos
+from shapely.geometry import Point
 
 include "../_geos.pxi"
     
@@ -81,8 +82,15 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
         if m < 2:
             raise ValueError(
                 "LineStrings must have at least 2 coordinate tuples")
+
+        def _coords(o):
+            if isinstance(o, Point):
+                return o.coords[0]
+            else:
+                return o
+
         try:
-            n = len(ob[0])
+            n = len(_coords(ob[0]))
         except TypeError:
             raise ValueError(
                 "Input %s is the wrong shape for a LineString" % str(ob))
@@ -100,7 +108,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
 
         # add to coordinate sequence
         for i in xrange(m):
-            coords = ob[i]
+            coords = _coords(ob[i])
             dx = coords[0]
             dy = coords[1]
             dz = 0

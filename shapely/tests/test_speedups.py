@@ -1,9 +1,10 @@
 from . import unittest
 
 from shapely import speedups
-from shapely.geometry import LineString, Polygon
+from shapely.geometry import Point, LineString, Polygon
 
 
+@unittest.skipIf(not speedups.available, 'speedups not available')
 class SpeedupsTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -18,17 +19,18 @@ class SpeedupsTestCase(unittest.TestCase):
         speedups.disable()
         self.assertFalse(speedups._orig)
 
-    @unittest.skipIf(not speedups.available, 'speedups not available')
     def test_create_linestring(self):
         ls = LineString([(0, 0), (1, 0), (1, 2)])
         self.assertEqual(ls.length, 3)
 
-    @unittest.skipIf(not speedups.available, 'speedups not available')
+    def test_create_linestring_point(self):
+        ls = LineString([Point(0, 0), (1, 0), Point(1, 2)])
+        self.assertEqual(ls.length, 3)
+
     def test_create_polygon(self):
         p = Polygon([(0, 0), (2, 0), (2, 2), (0, 2)])
         self.assertEqual(p.length, 8)
 
-    @unittest.skipIf(not speedups.available, 'speedups not available')
     def test_create_polygon_from_linestring(self):
         ls = LineString([(0, 0), (2, 0), (2, 2), (0, 2)])
         p = Polygon(ls)
