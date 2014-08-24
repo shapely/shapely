@@ -27,10 +27,12 @@ import sys
 class test(Command):
     """Run unit tests after in-place build"""
     description = __doc__
-    user_options = []
+    user_options = [
+        ('speedups=', None, 'Specify whether to force speedups: true or false'),
+    ]
 
     def initialize_options(self):
-        pass
+        self.speedups = None
 
     def finalize_options(self):
         pass
@@ -51,6 +53,20 @@ class test(Command):
         else:
             from unittest import TextTestRunner, TestLoader
 
+        # Handle if --speedups={true|false} specified on command line
+        if self.speedups is not None:
+            import shapely.speedups
+            if self.speedups == 'true':
+                if not shapely.speedups.available:
+                    print("speedups are forced but unavailable")
+                    sys.exit(1)
+                shapely.speedups.enable()
+            elif self.speedups == 'false':
+                shapely.speedups.available = False
+                shapely.speedups.disable()
+            else:
+                print("Unrecognized speedups value: {}".format(self.speedups))
+                sys.exit(1)
         import shapely.tests
         tests = TestLoader().loadTestsFromName('test_suite', shapely.tests)
         runner = TextTestRunner(verbosity=2)

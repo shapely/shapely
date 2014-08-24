@@ -29,7 +29,7 @@ from . import test_doctests, test_prepared, test_equality, test_geomseq, \
     test_multilinestring, test_multipolygon, test_geointerface, test_locale, \
     test_xy, test_persist, test_collection, test_emptiness, test_singularity, \
     test_validation, test_mapping, test_delegated, test_dlls, \
-    test_linear_referencing, test_products_z, test_box, test_speedups, \
+    test_linear_referencing, test_products_z, test_box, \
     test_cga, test_getitem, test_ndarrays, test_pickle, \
     test_affinity, test_transform, test_invalid_geometries, test_styles, \
     test_operations, test_operators, test_iterops, test_predicates, \
@@ -62,7 +62,6 @@ def test_suite():
     suite.addTest(test_linear_referencing.test_suite())
     suite.addTest(test_products_z.test_suite())
     suite.addTest(test_box.test_suite())
-    suite.addTest(test_speedups.test_suite())
     suite.addTest(test_cga.test_suite())
     suite.addTest(test_getitem.test_suite())
     suite.addTest(test_ndarrays.test_suite())
