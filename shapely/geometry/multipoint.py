@@ -12,7 +12,7 @@ from ctypes import ArgumentError
 from shapely.coords import required
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseMultipartGeometry, exceptNull
-from shapely.geometry.point import Point, geos_point_from_py
+from shapely.geometry import point
 from shapely.geometry.proxy import CachingGeometryProxy
 
 __all__ = ['MultiPoint', 'asMultiPoint']
@@ -58,7 +58,7 @@ class MultiPoint(BaseMultipartGeometry):
             self._geom, self._ndim = geos_multipoint_from_py(points)
 
     def shape_factory(self, *args):
-        return Point(*args)
+        return point.Point(*args)
 
     @property
     def __geo_interface__(self):
@@ -180,7 +180,7 @@ def geos_multipoint_from_py(ob):
         subs = (c_void_p * m)()
 
         for i in range(m):
-            geom, ndims = geos_point_from_py(cp[n*i:n*i+2])
+            geom, ndims = point.geos_point_from_py(cp[n*i:n*i+2])
             subs[i] = cast(geom, c_void_p)
 
     except AttributeError:
@@ -198,7 +198,7 @@ def geos_multipoint_from_py(ob):
         # add to coordinate sequence
         for i in range(m):
             coords = ob[i]
-            geom, ndims = geos_point_from_py(coords)
+            geom, ndims = point.geos_point_from_py(coords)
             subs[i] = cast(geom, c_void_p)
             
     return lgeos.GEOSGeom_createCollection(4, subs, m), n

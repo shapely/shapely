@@ -10,7 +10,7 @@ from ctypes import c_double, c_void_p, cast, POINTER
 
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseMultipartGeometry
-from shapely.geometry.linestring import LineString, geos_linestring_from_py
+from shapely.geometry import linestring
 from shapely.geometry.proxy import CachingGeometryProxy
 
 __all__ = ['MultiLineString', 'asMultiLineString']
@@ -52,7 +52,7 @@ class MultiLineString(BaseMultipartGeometry):
             self._geom, self._ndim = geos_multilinestring_from_py(lines)
 
     def shape_factory(self, *args):
-        return LineString(*args)
+        return linestring.LineString(*args)
 
     @property
     def __geo_interface__(self):
@@ -123,7 +123,7 @@ def geos_multilinestring_from_py(ob):
         subs = (c_void_p * L)()
 
         for l in range(L):
-            geom, ndims = geos_linestring_from_py(array['data'][l])
+            geom, ndims = linestring.geos_linestring_from_py(array['data'][l])
             subs[i] = cast(geom, c_void_p)
         N = lgeos.GEOSGeom_getDimensions(subs[0])
     except (NotImplementedError, AttributeError):
@@ -142,7 +142,7 @@ def geos_multilinestring_from_py(ob):
         
         # add to coordinate sequence
         for l in range(L):
-            geom, ndims = geos_linestring_from_py(obs[l])
+            geom, ndims = linestring.geos_linestring_from_py(obs[l])
             subs[l] = cast(geom, c_void_p)
             
     return (lgeos.GEOSGeom_createCollection(5, subs, L), N)
