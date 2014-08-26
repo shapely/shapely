@@ -53,6 +53,8 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
 
         # Use strides to properly index into cp
         # ob[i, j] == cp[sm*i + sn*j]
+        # Just to avoid a referenced before assignment warning.
+        dx = 0
         if array.get('strides', None):
             sm = array['strides'][0]/sizeof(dx)
             sn = array['strides'][1]/sizeof(dx)
@@ -168,6 +170,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
 
         # Use strides to properly index into cp
         # ob[i, j] == cp[sm*i + sn*j]
+        dx = 0  # Just to avoid a referenced before assignment warning.
         if array.get('strides', None):
             sm = array['strides'][0]/sizeof(dx)
             sn = array['strides'][1]/sizeof(dx)
