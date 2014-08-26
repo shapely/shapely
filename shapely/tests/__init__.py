@@ -34,7 +34,7 @@ from . import test_doctests, test_prepared, test_equality, test_geomseq, \
     test_affinity, test_transform, test_invalid_geometries, test_styles, \
     test_operations, test_operators, test_iterops, test_predicates, \
     test_linemerge, test_polygonize, test_union, test_vectorized, \
-    test_delaunay
+    test_delaunay, test_nearest, test_strtree
 
 
 def test_suite():
@@ -79,4 +79,6 @@ def test_suite():
     suite.addTest(test_polygonize.test_suite())
     suite.addTest(test_union.test_suite())
     suite.addTest(test_delaunay.test_suite())
+    suite.addTest(test_nearest.test_suite())
+    suite.addTest(test_strtree.test_suite())
     return suite
