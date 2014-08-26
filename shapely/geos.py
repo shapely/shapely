@@ -713,7 +713,20 @@ class LGEOS330(LGEOS320):
         self.methods['cascaded_union'] = self.methods['unary_union']
 
 
-if geos_version >= (3, 3, 0):
+class LGEOS340(LGEOS330):
+    """Proxy for GEOS 3.4.0-CAPI-1.8.0
+    """
+    geos_version = (3, 4, 0)
+    geos_capi_version = (1, 8, 0)
+
+    def __init__(self, dll):
+        super(LGEOS340, self).__init__(dll)
+        self.methods['delaunay_triangulation'] = self.GEOSDelaunayTriangulation
+
+
+if geos_version >= (3, 4, 0):
+    L = LGEOS340
+elif geos_version >= (3, 3, 0):
     L = LGEOS330
 elif geos_version >= (3, 2, 0):
     L = LGEOS320

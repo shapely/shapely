@@ -206,6 +206,11 @@ def prototype(lgeos, geos_version):
         lgeos.GEOSPolygonize_full.restype = c_void_p
         lgeos.GEOSPolygonize_full.argtypes = [c_void_p, c_void_p, c_void_p, c_void_p]
 
+    if geos_version >= (3, 4, 0):
+        lgeos.GEOSDelaunayTriangulation.restype = c_void_p
+        lgeos.GEOSDelaunayTriangulation.argtypes = [c_void_p, c_double, c_int]
+
+
     lgeos.GEOSLineMerge.restype = c_void_p
     lgeos.GEOSLineMerge.argtypes = [c_void_p]
 
