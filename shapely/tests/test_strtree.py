@@ -1,4 +1,4 @@
-import unittest
+from . import unittest
 
 from shapely.strtree import STRtree
 from shapely.geometry import Point

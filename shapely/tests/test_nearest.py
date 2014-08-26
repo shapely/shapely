@@ -1,4 +1,4 @@
-import unittest
+from . import unittest
 
 from shapely.geometry import Point
 from shapely.geos import geos_version
