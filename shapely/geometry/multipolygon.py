@@ -10,7 +10,7 @@ from ctypes import c_void_p, cast
 
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseMultipartGeometry
-from shapely.geometry.polygon import Polygon, geos_polygon_from_py
+from shapely.geometry import polygon
 from shapely.geometry.proxy import CachingGeometryProxy
 
 __all__ = ['MultiPolygon', 'asMultiPolygon']
@@ -64,7 +64,7 @@ class MultiPolygon(BaseMultipartGeometry):
             self._geom, self._ndim = geos_multipolygon_from_py(polygons)
 
     def shape_factory(self, *args):
-        return Polygon(*args)
+        return polygon.Polygon(*args)
 
     @property
     def __geo_interface__(self):
@@ -145,7 +145,7 @@ def geos_multipolygon_from_py(ob):
 
     subs = (c_void_p * L)()
     for l in range(L):
-        geom, ndims = geos_polygon_from_py(ob[l][0], ob[l][1:])
+        geom, ndims = polygon.geos_polygon_from_py(ob[l][0], ob[l][1:])
         subs[l] = cast(geom, c_void_p)
             
     return (lgeos.GEOSGeom_createCollection(6, subs, L), N)
@@ -172,7 +172,7 @@ def geos_multipolygon_from_polygons(ob):
         holes = getattr(obs[l], 'interiors', None)
         if holes is None:
             holes =  obs[l][1]
-        geom, ndims = geos_polygon_from_py(shell, holes)
+        geom, ndims = polygon.geos_polygon_from_py(shell, holes)
         subs[l] = cast(geom, c_void_p)
             
     return (lgeos.GEOSGeom_createCollection(6, subs, L), N)
