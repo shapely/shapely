@@ -9,6 +9,8 @@ import ctypes
 from shapely.geos import lgeos
 from shapely.geometry import Point
 
+import cython
+
 include "../_geos.pxi"
     
 
@@ -29,7 +31,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
     cdef GEOSContextHandle_t handle = cast_handle(lgeos.geos_handle)
     cdef GEOSCoordSequence *cs
     cdef double dx, dy, dz
-    cdef int i, n, m
+    cdef int i, n, m, sm, sn
     try:
         # From array protocol
         array = ob.__array_interface__
@@ -51,6 +53,15 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
         else:
             cp = <double *><unsigned long>array['data'][0]
 
+        # Use strides to properly index into cp
+        # ob[i, j] == cp[sm*i + sn*j]
+        if array.get('strides', None):
+            sm = array['strides'][0] / cython.sizeof(dx)
+            sn = array['strides'][1] / cython.sizeof(dx)
+        else:
+            sm = n
+            sn = 1
+
         # Create a coordinate sequence
         if update_geom is not None:
             cs = GEOSGeom_getCoordSeq_r(handle, cast_geom(update_geom))
@@ -63,11 +74,11 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
 
         # add to coordinate sequence
         for i in xrange(m):
-            dx = cp[n*i]
-            dy = cp[n*i+1]
+            dx = cp[sm*i]
+            dy = cp[sm*i+sn]
             dz = 0
             if n == 3:
-                dz = cp[n*i+2]
+                dz = cp[sm*i+2*sn]
                 
             # Because of a bug in the GEOS C API, 
             # always set X before Y
@@ -75,7 +86,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
             GEOSCoordSeq_setY_r(handle, cs, i, dy)
             if n == 3:
                 GEOSCoordSeq_setZ_r(handle, cs, i, dz)
-    
+
     except AttributeError:
         # Fall back on list
         m = len(ob)
@@ -135,7 +146,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
     cdef GEOSContextHandle_t handle = cast_handle(lgeos.geos_handle)
     cdef GEOSCoordSequence *cs
     cdef double dx, dy, dz
-    cdef int i, n, m, M
+    cdef int i, n, m, M, sm, sn
     try:
         # From array protocol
         array = ob.__array_interface__
@@ -153,8 +164,20 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
         else:
             cp = <double *><unsigned long>array['data'][0]
 
+        # Use strides to properly index into cp
+        # ob[i, j] == cp[sm*i + sn*j]
+        if array.get('strides', None):
+            sm = array['strides'][0] / cython.sizeof(dx)
+            sn = array['strides'][1] / cython.sizeof(dx)
+        else:
+            sm = n
+            sn = 1
+
         # Add closing coordinates to sequence?
-        if cp[0] != cp[m*n-n] or cp[1] != cp[m*n-n+1]:
+        # Check whether the first set of coordinates matches the last.
+        # If not, we'll have to close the ring later
+        if (cp[0] != cp[sm*(m-1)] or cp[sn] != cp[sm*(m-1)+sn] or
+            (n == 3 and cp[2*sn] != cp[sm*(m-1)+2*sn])):
             M = m + 1
         else:
             M = m
@@ -171,11 +194,11 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
 
         # add to coordinate sequence
         for i in xrange(m):
-            dx = cp[n*i]
-            dy = cp[n*i+1]
+            dx = cp[sm*i]
+            dy = cp[sm*i+sn]
             dz = 0
             if n == 3:
-                dz = cp[n*i+2]
+                dz = cp[sm*i+2*sn]
         
             # Because of a bug in the GEOS C API, 
             # always set X before Y
@@ -187,10 +210,10 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
         # Add closing coordinates to sequence?
         if M > m:
             dx = cp[0]
-            dy = cp[1]
+            dy = cp[sn]
             dz = 0
             if n == 3:
-                dz = cp[2]
+                dz = cp[2*sn]
         
             # Because of a bug in the GEOS C API, 
             # always set X before Y
