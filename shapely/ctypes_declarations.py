@@ -4,7 +4,7 @@ See header file: geos-x.y.z/capi/geos_c.h
 '''
 
 from ctypes import CFUNCTYPE, POINTER, c_void_p, c_char_p, \
-    c_size_t, c_byte, c_char, c_uint, c_int, c_double
+    c_size_t, c_byte, c_char, c_uint, c_int, c_double, py_object
 
 # Derived pointer types
 c_size_t_p = POINTER(c_size_t)
@@ -453,3 +453,22 @@ def prototype(lgeos, geos_version):
 
         lgeos.GEOSFree.restype = None
         lgeos.GEOSFree.argtypes = [c_void_p]
+    
+    if geos_version >= (3, 4, 2):
+        lgeos.GEOSQueryCallback = CFUNCTYPE(None, c_void_p, c_void_p)
+
+        lgeos.GEOSSTRtree_query.argtypes = [c_void_p, c_void_p, lgeos.GEOSQueryCallback, py_object]
+        lgeos.GEOSSTRtree_query.restype = None
+
+        lgeos.GEOSSTRtree_create.argtypes = [c_int]
+        lgeos.GEOSSTRtree_create.restype = c_void_p
+
+        lgeos.GEOSSTRtree_insert.argtypes = [c_void_p, c_void_p, py_object]
+        lgeos.GEOSSTRtree_insert.restype = None
+
+        lgeos.GEOSSTRtree_remove.argtypes = [c_void_p, c_void_p, py_object]
+        lgeos.GEOSSTRtree_remove.restype = None
+
+        lgeos.GEOSSTRtree_destroy.argtypes = [c_void_p]
+        lgeos.GEOSSTRtree_destroy.restype = None
+

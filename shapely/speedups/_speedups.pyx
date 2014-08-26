@@ -9,8 +9,6 @@ import ctypes
 from shapely.geos import lgeos
 from shapely.geometry import Point
 
-import cython
-
 include "../_geos.pxi"
     
 
@@ -56,8 +54,8 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
         # Use strides to properly index into cp
         # ob[i, j] == cp[sm*i + sn*j]
         if array.get('strides', None):
-            sm = array['strides'][0] / cython.sizeof(dx)
-            sn = array['strides'][1] / cython.sizeof(dx)
+            sm = array['strides'][0]/sizeof(dx)
+            sn = array['strides'][1]/sizeof(dx)
         else:
             sm = n
             sn = 1
@@ -171,8 +169,8 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
         # Use strides to properly index into cp
         # ob[i, j] == cp[sm*i + sn*j]
         if array.get('strides', None):
-            sm = array['strides'][0] / cython.sizeof(dx)
-            sn = array['strides'][1] / cython.sizeof(dx)
+            sm = array['strides'][0]/sizeof(dx)
+            sn = array['strides'][1]/sizeof(dx)
         else:
             sm = n
             sn = 1
