@@ -252,12 +252,13 @@ def transform(func, geom):
     else:
         raise ValueError('Type %r not recognized' % geom.type)
 
+
 def nearest_points(g1, g2):
     """Returns the calculated nearest points in the input geometries
     
     The points are returned in the same order as the input geometries.
     """
-    seq = lgeos.GEOSNearestPoints(g1._geom, g2._geom)
+    seq = lgeos.methods['nearest_points'](g1._geom, g2._geom)
     if seq is None:
         if g1.is_empty:
             raise ValueError('The first input geometry is empty')

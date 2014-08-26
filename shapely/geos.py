@@ -722,6 +722,7 @@ class LGEOS340(LGEOS330):
     def __init__(self, dll):
         super(LGEOS340, self).__init__(dll)
         self.methods['delaunay_triangulation'] = self.GEOSDelaunayTriangulation
+        self.methods['nearest_points'] = self.GEOSNearestPoints
 
 
 if geos_version >= (3, 4, 0):
