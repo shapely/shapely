@@ -11,6 +11,7 @@ Shapely is written by:
 Patches contributed by:
 
 * Allan Adair (https://github.com/allanadair)
+* Joshua Arnott (https://github.com/snorfalorpagus)
 * Howard Butler
 * Gabi Davar (https://github.com/mindw)
 * Phil Elson (https://github.com/pelson)
@@ -23,6 +24,7 @@ Patches contributed by:
 * William Kyngesburye (https://github.com/kyngchaos)
 * Eric Lemoine
 * Naveen Michaud-Agrawal (https://github.com/nmichaud)
+* om-henners (https://github.com/om-henners)
 * psagers https://github.com/psagers
 * Jeethu Rao (https://github.com/jeethu)
 * Benjamin Root (https://github.com/WeatherGod)
@@ -32,6 +34,8 @@ Patches contributed by:
 * Kristian Thy
 * Mike Toews (https://github.com/mwtoews)
 * Maarten Vermeyen (https://github.com/maarten-vermeyen)
+* Jacob Wasserman (https://github.com/jwass)
+* Brandon Wood (https://github.com/woodb)
 
 See also: https://github.com/Toblerity/Shapely/graphs/contributors.
 
