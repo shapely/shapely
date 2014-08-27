@@ -1171,8 +1171,6 @@ Shapely's binary :meth:`within` predicate.
 
 .. sourcecode:: python
 
-  from shapely.geometry import asShape
-
   class Within(object):
       def __init__(self, o):
           self.o = o
@@ -2165,12 +2163,12 @@ For example, a dictionary:
 
 .. sourcecode:: pycon
 
-  >>> from shapely.geometry import asShape
-  >>> d = {"type": "Point", "coordinates": (0.0, 0.0)}
-  >>> shape = asShape(d)
-  >>> shape.geom_type
+  >>> from shapely.geometry import shape
+  >>> data = {"type": "Point", "coordinates": (0.0, 0.0)}
+  >>> geom = shape(data)
+  >>> geom.geom_type
   'Point'
-  >>> list(shape.coords)
+  >>> list(geom.coords)
   [(0.0, 0.0)]
 
 Or a simple placemark-type object:
@@ -2181,10 +2179,10 @@ Or a simple placemark-type object:
   ...     def __init__(self, d):
   ...         self.__geo_interface__ = d
   >>> thing = GeoThing({"type": "Point", "coordinates": (0.0, 0.0)})
-  >>> shape = asShape(thing)
-  >>> shape.geom_type
+  >>> geom = shape(thing)
+  >>> geom.geom_type
   'Point'
-  >>> list(shape.coords)
+  >>> list(geom.coords)
   [(0.0, 0.0)]
 
 The GeoJSON-like mapping of a geometric object can be obtained using
