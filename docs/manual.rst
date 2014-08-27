@@ -2033,7 +2033,7 @@ Shapely provides an interface to the query-only GEOS R-tree packed using the
 Sort-Tile-Recursive algorithm. Pass a list of geometry objects to the STRtree
 constructor to create an R-tree that you can query with another geometric object.
 
-.. class:: strtree.STRtree(geometries):
+.. class:: strtree.STRtree(geometries)
 
   The `STRtree` constructor takes a sequence of geometric objects.
   
