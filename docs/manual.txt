@@ -2026,6 +2026,37 @@ accessible via :attr:`shapely.__version__`,
   '3.3.0-CAPI-1.7.0'
 
 
+STR-packed R-tree
+=================
+
+Shapely provides an interface to the query-only GEOS R-tree packed using the
+Sort-Tile-Recursive algorithm. Pass a list of geometry objects to the STRtree
+constructor to create an R-tree that you can query with another geometric object.
+
+.. class:: strtree.STRtree(geometries):
+
+  The `STRtree` constructor takes a sequence of geometric objects.
+  
+  These are copied and stored in the R-tree.
+  
+  `New in version 1.4.0`.
+
+Query-only means in this case that the R-tree, once created, is immutable. You
+cannot add or remove geometries.
+
+.. code-block:: pycon
+
+  >>> from shapely.geometry import Point
+  >>> from shapely.strtree import STRtree
+  >>> points = [Point(i, i) for i in range(10)]
+  >>> tree = STRtree(points)
+  >>> tree.query(Point(2,2).buffer(0.99))
+  >>> [o.wkt for o in tree.query(Point(2,2).buffer(0.99))]
+  ['POINT (2 2)']
+  >>> [o.wkt for o in tree.query(Point(2,2).buffer(1.0))]
+  ['POINT (1 1)', 'POINT (2 2)', 'POINT (3 3)']
+
+
 Interoperation
 ==============
 
