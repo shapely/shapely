@@ -19,7 +19,7 @@ def dumps(ob, trim=False, **kw):
 
     See available keyword output settings in ``shapely.geos.WKTWriter``.
     """
-    return geos.WKTWriter(geos.lgeos, trim=False, **kw).write(ob)
+    return geos.WKTWriter(geos.lgeos, trim=trim, **kw).write(ob)
 
 def dump(ob, fp, **settings):
     """Dump a geometry to an open file."""
