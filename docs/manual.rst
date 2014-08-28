@@ -1399,7 +1399,7 @@ derived from set-theoretic analysis.
   The styles of caps are specified by integer values: 1 (round), 2 (flat),
   3 (square). These values are also enumerated by the object
   :class:`shapely.geometry.CAP_STYLE` (see below).
-  
+
   The styles of joins between offset segments are specified by integer values:
   1 (round), 2 (mitre), and 3 (bevel). These values are also enumerated by the
   object :class:`shapely.geometry.JOIN_STYLE` (see below).
@@ -1960,6 +1960,25 @@ efficient than accumulating with :meth:`union`.
 
   Returns a representation of the union of the given geometric objects.
 
+Nearest points
+--------------
+
+The :func:`~shapely.ops.nearest_points` function in `shapely.ops` calculates the nearest points in a pair of geometries.
+
+.. function:: shapely.ops.nearest_points(geom1, geom2)
+
+  Returns a tuple of the nearest points in the input geometries. The points are returned in the same order as the input geometries.
+
+.. code-block:: pycon
+
+  >>> from shapely.ops import nearest_points
+  >>> triangle = Polygon([(0, 0), (1, 0), (0.5, 1), (0, 0)])
+  >>> square = Polygon([(0, 2), (1, 2), (1, 3), (0, 3), (0, 2)])
+  >>> [o.wkt for o in nearest_points(triangle, square)]
+  ['POINT (0.5 1)', 'POINT (0.5 2)']
+
+Note that the nearest points may not be existing vertices in the geometries.
+
 Prepared Geometry Operations
 ----------------------------
 
@@ -2036,9 +2055,9 @@ constructor to create an R-tree that you can query with another geometric object
 .. class:: strtree.STRtree(geometries)
 
   The `STRtree` constructor takes a sequence of geometric objects.
-  
+
   These are copied and stored in the R-tree.
-  
+
   `New in version 1.4.0`.
 
 Query-only means in this case that the R-tree, once created, is immutable. You
