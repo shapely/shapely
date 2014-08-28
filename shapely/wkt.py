@@ -14,12 +14,12 @@ def load(fp):
     data = fp.read()
     return loads(data)
 
-def dumps(ob, **kw):
+def dumps(ob, trim=False, **kw):
     """Dump a WKT representation of a geometry to a string.
 
     See available keyword output settings in ``shapely.geos.WKTWriter``.
     """
-    return geos.WKTWriter(geos.lgeos, **kw).write(ob)
+    return geos.WKTWriter(geos.lgeos, trim=False, **kw).write(ob)
 
 def dump(ob, fp, **settings):
     """Dump a geometry to an open file."""
