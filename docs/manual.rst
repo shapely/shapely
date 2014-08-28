@@ -1963,11 +1963,15 @@ efficient than accumulating with :meth:`union`.
 Nearest points
 --------------
 
-The :func:`~shapely.ops.nearest_points` function in `shapely.ops` calculates the nearest points in a pair of geometries.
+The :func:`~shapely.ops.nearest_points` function in `shapely.ops` calculates
+the nearest points in a pair of geometries.
 
 .. function:: shapely.ops.nearest_points(geom1, geom2)
 
-  Returns a tuple of the nearest points in the input geometries. The points are returned in the same order as the input geometries.
+   Returns a tuple of the nearest points in the input geometries. The points are
+   returned in the same order as the input geometries.
+
+   `New in version 1.4.0`.
 
 .. code-block:: pycon
 
