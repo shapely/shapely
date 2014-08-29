@@ -1960,6 +1960,42 @@ efficient than accumulating with :meth:`union`.
 
   Returns a representation of the union of the given geometric objects.
 
+Delaunay triangulation
+----------------------
+
+The :func:`~shapely.ops.triangulate` function in `shapely.ops` calculates a
+Delaunay triangulation from a collection of points.
+
+.. plot:: code/triangulate.py
+
+.. function:: shapely.ops.triangulate(geom, tolerance=0.0, edges=False)
+
+   Returns a Delaunary triangulation of the vertices of the input geometry.
+
+   The source may be any geometry type. All vertices of the geometry will be
+   used as the points of the triangulation.
+
+   The `tolerance` keyword argument sets the snapping tolerance used to improve
+   the robustness of the triangulation computation. A tolerance of 0.0 specifies
+   that no snapping will take place.
+
+   If the `edges` keyword argument is `False` a list of `Polygon` triangles
+   will be returned. Otherwise a list of `LineString` edges is returned.
+
+   `New in version  1.4.0`
+
+.. code-block:: pycon
+
+  >>> from shapely.ops import triangulate
+  >>> points = MultiPoint([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
+  >>> triangles = triangulate(points)
+  >>> pprint([triangle.wkt for triangle in triangles])
+  ['POLYGON ((0 2, 0 0, 1 1, 0 2))',
+   'POLYGON ((0 2, 1 1, 2 2, 0 2))',
+   'POLYGON ((2 2, 1 1, 3 1, 2 2))',
+   'POLYGON ((3 1, 1 1, 1 0, 3 1))',
+   'POLYGON ((1 0, 1 1, 0 0, 1 0))']
+
 Nearest points
 --------------
 
