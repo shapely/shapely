@@ -14,8 +14,11 @@ except ImportError:
     # TODO: This does not appear to do anything useful
     import_error_msg = sys.exc_info()[1]
 
-if sys.version_info < (3, 0):
-    from types import MethodType
+from functools import wraps
+def method_wrapper(f):
+    def wrapper(*args, **kwargs):
+        return f(*args, **kwargs)
+    return wraps(f)(wrapper)
 
 __all__ = ['available', 'enable', 'disable']
 _orig = {}
@@ -32,10 +35,7 @@ def enable():
     coords.CoordinateSequence.ctypes = property(_speedups.coordseq_ctypes)
     
     _orig['CoordinateSequence.__iter__'] = coords.CoordinateSequence.__iter__
-    if sys.version_info < (3, 0):
-        coords.CoordinateSequence.__iter__ = MethodType(_speedups.coordseq_iter, None, coords.CoordinateSequence)
-    else:
-        coords.CoordinateSequence.__iter__ = _speedups.coordseq_iter
+    coords.CoordinateSequence.__iter__ = method_wrapper(_speedups.coordseq_iter)
 
     _orig['geos_linestring_from_py'] = linestring.geos_linestring_from_py
     linestring.geos_linestring_from_py = _speedups.geos_linestring_from_py
