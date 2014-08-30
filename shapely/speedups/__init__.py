@@ -14,7 +14,7 @@ except ImportError:
     # TODO: This does not appear to do anything useful
     import_error_msg = sys.exc_info()[1]
 
-from functools import wraps
+from ..ftools import wraps
 def method_wrapper(f):
     def wrapper(*args, **kwargs):
         return f(*args, **kwargs)
