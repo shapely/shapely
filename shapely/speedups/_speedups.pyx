@@ -319,3 +319,25 @@ def coordseq_ctypes(self):
             data_p[n*i+2] = temp
     return data
 
+def coordseq_iter(self):
+    cdef int i
+    cdef double dx
+    cdef double dy
+    cdef double dz
+    cdef int has_z
+
+    self._update()
+
+    cdef GEOSContextHandle_t handle = cast_handle(lgeos.geos_handle)
+    cdef GEOSCoordSequence *cs
+    cs = cast_seq(self._cseq)
+
+    has_z = self._ndim == 3
+    for i in range(self.__len__()):
+        GEOSCoordSeq_getX_r(handle, cs, i, &dx)
+        GEOSCoordSeq_getY_r(handle, cs, i, &dy)
+        if has_z == 1:
+            GEOSCoordSeq_getZ_r(handle, cs, i, &dz)
+            yield (dx, dy, dy)
+        else:
+            yield (dx, dy)

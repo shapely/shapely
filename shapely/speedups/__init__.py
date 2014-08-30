@@ -13,6 +13,8 @@ except ImportError:
     # TODO: This does not appear to do anything useful
     import_error_msg = sys.exc_info()[1]
 
+from types import MethodType
+
 __all__ = ['available', 'enable', 'disable']
 _orig = {}
 
@@ -27,6 +29,9 @@ def enable():
     _orig['CoordinateSequence.ctypes'] = coords.CoordinateSequence.ctypes
     coords.CoordinateSequence.ctypes = property(_speedups.coordseq_ctypes)
     
+    _orig['CoordinateSequence.__iter__'] = coords.CoordinateSequence.__iter__
+    coords.CoordinateSequence.__iter__ = MethodType(_speedups.coordseq_iter, None, coords.CoordinateSequence)
+
     _orig['geos_linestring_from_py'] = linestring.geos_linestring_from_py
     linestring.geos_linestring_from_py = _speedups.geos_linestring_from_py
 
@@ -38,6 +43,7 @@ def disable():
         return
 
     coords.CoordinateSequence.ctypes = _orig['CoordinateSequence.ctypes']
+    coords.CoordinateSequence.__iter__ = _orig['CoordinateSequence.__iter__']
     linestring.geos_linestring_from_py = _orig['geos_linestring_from_py']
     polygon.geos_linearring_from_py = _orig['geos_linearring_from_py']
     _orig.clear()
