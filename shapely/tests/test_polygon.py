@@ -73,6 +73,13 @@ class PolygonTestCase(unittest.TestCase):
         with self.assertRaises(IndexError):  # index out of range
             polygon.interiors[1]
 
+        # Test from another Polygon
+        copy = Polygon(polygon)
+        self.assertEqual(len(polygon.exterior.coords), 5)
+        self.assertEqual(len(polygon.interiors[0].coords), 5)
+        with self.assertRaises(IndexError):  # index out of range
+            polygon.interiors[1]
+
         # Coordinate getters and setters raise exceptions
         self.assertRaises(NotImplementedError, polygon._get_coords)
         with self.assertRaises(NotImplementedError):
