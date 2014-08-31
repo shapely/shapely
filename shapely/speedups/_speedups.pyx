@@ -7,18 +7,18 @@
 
 import ctypes
 from shapely.geos import lgeos
-from shapely.geometry import Point
+from shapely.geometry import Point, LineString, LinearRing
 
 include "../_geos.pxi"
-    
+from libc.stdint cimport uintptr_t
 
-cdef inline GEOSGeometry *cast_geom(unsigned long geom_addr):
+cdef inline GEOSGeometry *cast_geom(uintptr_t geom_addr):
     return <GEOSGeometry *>geom_addr
 
-cdef inline GEOSContextHandle_t cast_handle(unsigned long handle_addr):
+cdef inline GEOSContextHandle_t cast_handle(uintptr_t handle_addr):
     return <GEOSContextHandle_t>handle_addr
 
-cdef inline GEOSCoordSequence *cast_seq(unsigned long handle_addr):
+cdef inline GEOSCoordSequence *cast_seq(uintptr_t handle_addr):
     return <GEOSCoordSequence *>handle_addr
 
 def destroy(geom):
@@ -30,6 +30,14 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
     cdef GEOSCoordSequence *cs
     cdef double dx, dy, dz
     cdef int i, n, m, sm, sn
+
+    if isinstance(ob, LineString):
+        return <uintptr_t>GEOSGeom_clone_r(handle, cast_geom(ob._geom)), ob._ndim
+    elif isinstance(ob, LinearRing):
+        cs = GEOSGeom_getCoordSeq_r(handle, cast_geom(ob._geom))
+        cs = GEOSCoordSeq_clone_r(handle, cs)
+        return <uintptr_t>GEOSGeom_createLineString_r(handle, cs), ob._ndim
+
     try:
         # From array protocol
         array = ob.__array_interface__
@@ -47,9 +55,9 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
 
         # Make pointer to the coordinate array
         if isinstance(array['data'], ctypes.Array):
-            cp = <double *><unsigned long>ctypes.addressof(array['data'])
+            cp = <double *><uintptr_t>ctypes.addressof(array['data'])
         else:
-            cp = <double *><unsigned long>array['data'][0]
+            cp = <double *><uintptr_t>array['data'][0]
 
         # Use strides to properly index into cp
         # ob[i, j] == cp[sm*i + sn*j]
@@ -142,7 +150,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
     if update_geom is not None:
         return None
     else:
-        return <unsigned long>GEOSGeom_createLineString_r(handle, cs), n
+        return <uintptr_t>GEOSGeom_createLineString_r(handle, cs), n
 
 
 def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
@@ -151,6 +159,14 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
     cdef GEOSCoordSequence *cs
     cdef double dx, dy, dz
     cdef int i, n, m, M, sm, sn
+
+    if isinstance(ob, LinearRing):
+        return <uintptr_t>GEOSGeom_clone_r(handle, cast_geom(ob._geom)), ob._ndim
+    elif isinstance(ob, LineString):
+        cs = GEOSGeom_getCoordSeq_r(handle, cast_geom(ob._geom))
+        cs = GEOSCoordSeq_clone_r(handle, cs)
+        return <uintptr_t>GEOSGeom_createLinearRing_r(handle, cs), ob._ndim
+
     try:
         # From array protocol
         array = ob.__array_interface__
@@ -164,9 +180,9 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
 
         # Make pointer to the coordinate array
         if isinstance(array['data'], ctypes.Array):
-            cp = <double *><unsigned long>ctypes.addressof(array['data'])
+            cp = <double *><uintptr_t>ctypes.addressof(array['data'])
         else:
-            cp = <double *><unsigned long>array['data'][0]
+            cp = <double *><uintptr_t>array['data'][0]
 
         # Use strides to properly index into cp
         # ob[i, j] == cp[sm*i + sn*j]
@@ -291,7 +307,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
     if update_geom is not None:
         return None
     else:
-        return <unsigned long>GEOSGeom_createLinearRing_r(handle, cs), n
+        return <uintptr_t>GEOSGeom_createLinearRing_r(handle, cs), n
 
 
 def coordseq_ctypes(self):
@@ -307,7 +323,7 @@ def coordseq_ctypes(self):
     data = array_type()
     
     cs = cast_seq(self._cseq)
-    data_p = <double *><unsigned long>ctypes.addressof(data)
+    data_p = <double *><uintptr_t>ctypes.addressof(data)
     
     for i in xrange(m):
         GEOSCoordSeq_getX_r(handle, cs, i, &temp)
