@@ -66,6 +66,9 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSCoordSeq_clone.restype = c_void_p
     lgeos.GEOSCoordSeq_clone.argtypes = [c_void_p]
 
+    lgeos.GEOSGeom_clone.restype = c_void_p
+    lgeos.GEOSGeom_clone.argtypes = [c_void_p]
+
     lgeos.GEOSCoordSeq_destroy.restype = None
     lgeos.GEOSCoordSeq_destroy.argtypes = [c_void_p]
 
@@ -350,6 +353,9 @@ def prototype(lgeos, geos_version):
 
     lgeos.GEOSGeom_getDimensions.restype = c_int
     lgeos.GEOSGeom_getDimensions.argtypes = [c_void_p]
+
+    lgeos.GEOSGeom_getCoordinateDimension.restype = c_int
+    lgeos.GEOSGeom_getCoordinateDimension.argtypes = [c_void_p]
 
     '''
     Misc functions

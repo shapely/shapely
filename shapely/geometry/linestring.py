@@ -10,7 +10,9 @@ from ctypes import c_double, cast, POINTER
 
 from shapely.coords import required
 from shapely.geos import lgeos, TopologicalError
-from shapely.geometry.base import BaseGeometry, geom_factory, JOIN_STYLE
+from shapely.geometry.base import (
+    BaseGeometry, geom_factory, JOIN_STYLE, geos_geom_from_py
+)
 from shapely.geometry.proxy import CachingGeometryProxy
 from shapely.geometry.point import Point
 
@@ -178,6 +180,10 @@ def asLineString(context):
 
 
 def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
+    # If a LineString is passed in, clone it and return
+    if isinstance(ob, LineString):
+        return geos_geom_from_py(ob)
+
     # If numpy is present, we use numpy.require to ensure that we have a
     # C-continguous array that owns its data. View data will be copied.
     ob = required(ob)

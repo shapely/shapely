@@ -115,6 +115,13 @@ def geom_to_wkb(ob):
     return lgeos.GEOSGeomToWKB_buf(c_void_p(ob._geom), pointer(size))
 
 
+def geos_geom_from_py(ob):
+    """ Helper function for geos_*_from_py functions in each geom type. """
+    geom = lgeos.GEOSGeom_clone(ob._geom)
+    N = lgeos.GEOSGeom_getCoordinateDimension(geom)
+    return geom, N
+
+
 def exceptNull(func):
     """Decorator which helps avoid GEOS operations on null pointers."""
     @wraps(func)

@@ -24,6 +24,8 @@ cdef extern from "geos_c.h":
     GEOSGeometry *GEOSGeom_createPoint_r(GEOSContextHandle_t, GEOSCoordSequence *) nogil
     GEOSGeometry *GEOSGeom_createLineString_r(GEOSContextHandle_t, GEOSCoordSequence *) nogil
     GEOSGeometry *GEOSGeom_createLinearRing_r(GEOSContextHandle_t, GEOSCoordSequence *) nogil
+    GEOSGeometry *GEOSGeom_clone_r(GEOSContextHandle_t, GEOSGeometry *) nogil
+    int GEOSGeom_getCoordinateDimension_r(GEOSContextHandle_t, GEOSGeometry *) nogil
 
     void GEOSGeom_destroy_r(GEOSContextHandle_t, GEOSGeometry *) nogil
 

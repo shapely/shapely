@@ -9,7 +9,7 @@ if sys.version_info[0] < 3:
 from ctypes import c_void_p, cast
 
 from shapely.geos import lgeos
-from shapely.geometry.base import BaseMultipartGeometry
+from shapely.geometry.base import BaseMultipartGeometry, geos_geom_from_py
 from shapely.geometry import polygon
 from shapely.geometry.proxy import CachingGeometryProxy
 
@@ -150,8 +150,16 @@ def geos_multipolygon_from_py(ob):
             
     return (lgeos.GEOSGeom_createCollection(6, subs, L), N)
 
+
 def geos_multipolygon_from_polygons(ob):
-    """ob must be either a sequence or array of sequences or arrays."""
+    """
+    ob must be either a MultiPolygon, sequence or array of sequences 
+    or arrays.
+    
+    """
+    if isinstance(ob, MultiPolygon):
+        return geos_geom_from_py(ob)
+
     obs = getattr(ob, 'geoms', None) or ob
     L = len(obs)
     assert L >= 1

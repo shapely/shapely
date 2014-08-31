@@ -11,7 +11,9 @@ from ctypes import ArgumentError
 
 from shapely.coords import required
 from shapely.geos import lgeos
-from shapely.geometry.base import BaseMultipartGeometry, exceptNull
+from shapely.geometry.base import (
+    BaseMultipartGeometry, exceptNull, geos_geom_from_py
+)
 from shapely.geometry import point
 from shapely.geometry.proxy import CachingGeometryProxy
 
@@ -157,6 +159,9 @@ def asMultiPoint(context):
 
 
 def geos_multipoint_from_py(ob):
+    if isinstance(ob, MultiPoint):
+        return geos_geom_from_py(ob)
+
     # If numpy is present, we use numpy.require to ensure that we have a
     # C-continguous array that owns its data. View data will be copied.
     ob = required(ob)

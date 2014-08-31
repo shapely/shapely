@@ -7,7 +7,7 @@
 
 import ctypes
 from shapely.geos import lgeos
-from shapely.geometry import Point
+from shapely.geometry import Point, LineString, LinearRing
 
 include "../_geos.pxi"
     
@@ -28,8 +28,17 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
     cdef double *cp
     cdef GEOSContextHandle_t handle = cast_handle(lgeos.geos_handle)
     cdef GEOSCoordSequence *cs
+    cdef GEOSGeometry *g
     cdef double dx, dy, dz
     cdef int i, n, m, sm, sn
+
+    # If a LineString is passed in, just clone it and return
+    if isinstance(ob, LineString):
+        g = cast_geom(ob._geom)
+        n = GEOSGeom_getCoordinateDimension_r(handle, g)
+        g = GEOSGeom_clone_r(handle, g)
+        return <unsigned long>GEOSGeom_clone_r(handle, g), n
+
     try:
         # From array protocol
         array = ob.__array_interface__
@@ -148,9 +157,17 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
 def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
     cdef double *cp
     cdef GEOSContextHandle_t handle = cast_handle(lgeos.geos_handle)
+    cdef GEOSGeometry *g
     cdef GEOSCoordSequence *cs
     cdef double dx, dy, dz
     cdef int i, n, m, M, sm, sn
+
+    # If a LinearRing is passed in, just clone it and return
+    if isinstance(ob, LinearRing):
+        g = cast_geom(ob._geom)
+        n = GEOSGeom_getCoordinateDimension_r(handle, g)
+        return <unsigned long>GEOSGeom_clone_r(handle, g), n
+
     try:
         # From array protocol
         array = ob.__array_interface__
