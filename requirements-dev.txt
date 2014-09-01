@@ -2,3 +2,4 @@ setuptools
 Numpy>=1.8.0
 Cython>=0.19
 descartes==1.0.1
+pytest

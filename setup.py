@@ -24,58 +24,6 @@ import subprocess
 import sys
 
 
-class test(Command):
-    """Run unit tests after in-place build"""
-    description = __doc__
-    user_options = [
-        ('speedups=', None, 'Specify whether to force speedups: true or false'),
-    ]
-
-    def initialize_options(self):
-        self.speedups = None
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        # Force an in-place build for testing speedups
-        cmd = self.reinitialize_command('build_ext')
-        setattr(cmd, 'inplace', 1)
-        self.run_command('build_ext')
-
-        if sys.version_info[0:2] <= (2, 6):
-            try:
-                from unittest2 import TextTestRunner, TestLoader
-            except ImportError:
-                raise ImportError(
-                    "unittest2 is required to run tests with python-%d.%d" %
-                    sys.version_info[0:2])
-        else:
-            from unittest import TextTestRunner, TestLoader
-
-        # Handle if --speedups={true|false} specified on command line
-        if self.speedups is not None:
-            import shapely.speedups
-            if self.speedups == 'true':
-                if not shapely.speedups.available:
-                    print("speedups are forced but unavailable")
-                    sys.exit(1)
-                shapely.speedups.enable()
-            elif self.speedups == 'false':
-                shapely.speedups.available = False
-                shapely.speedups.disable()
-            else:
-                print("Unrecognized speedups value: {}".format(self.speedups))
-                sys.exit(1)
-        import shapely.tests
-        tests = TestLoader().loadTestsFromName('test_suite', shapely.tests)
-        runner = TextTestRunner(verbosity=2)
-        result = runner.run(tests)
-
-        if not result.wasSuccessful():
-            sys.exit(1)
-
-
 # Get the version from the shapely module
 version = None
 with open('shapely/__init__.py', 'r') as fp:
@@ -126,7 +74,6 @@ setup_args = dict(
         'shapely.tests',
         'shapely.vectorized',
     ],
-    cmdclass            = {'test': test},
     classifiers         = [
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
