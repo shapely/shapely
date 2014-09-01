@@ -9,7 +9,7 @@ if sys.version_info[0] < 3:
 from ctypes import c_double, c_void_p, cast, POINTER
 
 from shapely.geos import lgeos
-from shapely.geometry.base import BaseMultipartGeometry
+from shapely.geometry.base import BaseMultipartGeometry, geos_geom_from_py
 from shapely.geometry import linestring
 from shapely.geometry.proxy import CachingGeometryProxy
 
@@ -111,7 +111,12 @@ def asMultiLineString(context):
 
 
 def geos_multilinestring_from_py(ob):
-    # ob must be either a sequence or array of sequences or arrays
+    # ob must be either a MultiLineString, a sequence, or 
+    # array of sequences or arrays
+    
+    if isinstance(ob, MultiLineString):
+         return geos_geom_from_py(ob)
+
     try:
         # From array protocol
         array = ob.__array_interface__
@@ -125,7 +130,7 @@ def geos_multilinestring_from_py(ob):
         for l in range(L):
             geom, ndims = linestring.geos_linestring_from_py(array['data'][l])
             subs[i] = cast(geom, c_void_p)
-        N = lgeos.GEOSGeom_getDimensions(subs[0])
+        N = lgeos.GEOSGeom_getCoordinateDimension(subs[0])
     except (NotImplementedError, AttributeError):
         obs = getattr(ob, 'geoms', ob)
         L = len(obs)

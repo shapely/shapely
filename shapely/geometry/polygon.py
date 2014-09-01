@@ -13,7 +13,7 @@ import weakref
 from shapely.algorithms.cga import signed_area
 from shapely.coords import required
 from shapely.geos import lgeos
-from shapely.geometry.base import BaseGeometry
+from shapely.geometry.base import BaseGeometry, geos_geom_from_py
 from shapely.geometry.linestring import LineString, LineStringAdapter
 from shapely.geometry.proxy import PolygonProxy
 
@@ -344,6 +344,10 @@ def orient(polygon, sign=1.0):
     return Polygon(rings[0], rings[1:])
 
 def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
+    # If a LinearRing is passed in, clone it and return
+    if isinstance(ob, LinearRing):
+        return geos_geom_from_py(ob)
+
     # If numpy is present, we use numpy.require to ensure that we have a
     # C-continguous array that owns its data. View data will be copied.
     ob = required(ob)
@@ -461,6 +465,9 @@ def update_linearring_from_py(geom, ob):
     geos_linearring_from_py(ob, geom._geom, geom._ndim)
 
 def geos_polygon_from_py(shell, holes=None):
+    if isinstance(shell, Polygon):
+        return geos_geom_from_py(shell)
+
     if shell is not None:
         geos_shell, ndim = geos_linearring_from_py(shell)
         if holes is not None and len(holes) > 0:
