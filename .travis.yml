@@ -18,7 +18,7 @@ before_install:
   - pip install -r requirements-dev.txt
 
 install:
-  - python setup.py build
+  - pip install -e .
 
 script: "py.test ${TRAVIS_SPEEDUP_OPTS}"
 
