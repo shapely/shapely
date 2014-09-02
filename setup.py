@@ -71,7 +71,6 @@ setup_args = dict(
         'shapely.algorithms',
         'shapely.examples',
         'shapely.speedups',
-        'shapely.tests',
         'shapely.vectorized',
     ],
     classifiers         = [

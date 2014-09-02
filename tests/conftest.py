@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 
 def pytest_addoption(parser):
