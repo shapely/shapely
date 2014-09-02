@@ -142,18 +142,13 @@ Use of a virtual environment is strongly recommended.
   $ virtualenv .
   $ source bin/activate
   (env)$ pip install -r requirements-dev.txt
-  (env)$ python setup.py develop
+  (env)$ pip install -e .
 
-Shapely's suite of unittests and doctests, exercised via
-setup.py or py.test.
+We use py.test to run Shapely's suite of unittests and doctests.
 
 .. code-block:: console
 
-  (env)$ python setup.py test
-  (env)$ py.test
-
-Nosetests won't run the tests properly; Zope doctest suites are not currently
-supported well by nose.
+  (env)$ py.test tests
 
 Roadmap and Maintenance
 =======================
