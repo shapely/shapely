@@ -33,10 +33,16 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
     cdef int i, n, m, sm, sn
 
     # If a LineString is passed in, just clone it and return
+    # If a LinearRing is passed in, clone the coord seq and return a LineString
     if isinstance(ob, LineString):
         g = cast_geom(ob._geom)
         n = GEOSGeom_getCoordinateDimension_r(handle, g)
-        return <unsigned long>GEOSGeom_clone_r(handle, g), n
+        if type(ob) == LineString:
+            return <unsigned long>GEOSGeom_clone_r(handle, g), n
+        else:
+            cs = GEOSGeom_getCoordSeq_r(handle, g)
+            cs = GEOSCoordSeq_clone_r(handle, cs)
+            return <unsigned long>GEOSGeom_createLineString_r(handle, cs), n
 
     try:
         # From array protocol
@@ -162,10 +168,16 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
     cdef int i, n, m, M, sm, sn
 
     # If a LinearRing is passed in, just clone it and return
-    if isinstance(ob, LinearRing):
+    # If a LineString is passed in, clone the coord seq and return a LinearRing
+    if isinstance(ob, LineString):
         g = cast_geom(ob._geom)
         n = GEOSGeom_getCoordinateDimension_r(handle, g)
-        return <unsigned long>GEOSGeom_clone_r(handle, g), n
+        if type(ob) == LinearRing:
+            return <unsigned long>GEOSGeom_clone_r(handle, g), n
+        else:
+            cs = GEOSGeom_getCoordSeq_r(handle, g)
+            cs = GEOSCoordSeq_clone_r(handle, cs)
+            return <unsigned long>GEOSGeom_createLinearRing_r(handle, cs), n
 
     try:
         # From array protocol

@@ -181,8 +181,12 @@ def asLineString(context):
 
 def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
     # If a LineString is passed in, clone it and return
+    # If a LinearRing is passed in, clone the coord seq and return a LineString
     if isinstance(ob, LineString):
-        return geos_geom_from_py(ob)
+        if type(ob) == LineString:
+            return geos_geom_from_py(ob)
+        else:
+            return geos_geom_from_py(ob, lgeos.GEOSGeom_createLineString)
 
     # If numpy is present, we use numpy.require to ensure that we have a
     # C-continguous array that owns its data. View data will be copied.

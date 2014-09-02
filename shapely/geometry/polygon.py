@@ -345,8 +345,12 @@ def orient(polygon, sign=1.0):
 
 def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
     # If a LinearRing is passed in, clone it and return
-    if isinstance(ob, LinearRing):
-        return geos_geom_from_py(ob)
+    # If a LineString is passed in, clone the coord seq and return a LinearRing
+    if isinstance(ob, LineString):
+        if type(ob) == LinearRing:
+            return geos_geom_from_py(ob)
+        else:
+            return geos_geom_from_py(ob, lgeos.GEOSGeom_createLinearRing)
 
     # If numpy is present, we use numpy.require to ensure that we have a
     # C-continguous array that owns its data. View data will be copied.

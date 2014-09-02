@@ -115,12 +115,22 @@ def geom_to_wkb(ob):
     return lgeos.GEOSGeomToWKB_buf(c_void_p(ob._geom), pointer(size))
 
 
-def geos_geom_from_py(ob):
-    """ Helper function for geos_*_from_py functions in each geom type. """
-    geom = lgeos.GEOSGeom_clone(ob._geom)
+def geos_geom_from_py(ob, create_func=None):
+    """Helper function for geos_*_from_py functions in each geom type.
+
+    If a create_func is specified the coodinate sequence is cloned and a new
+    geometry is created with it, otherwise the geometry is cloned directly.
+    This behaviour is useful for converting between LineString and LinearRing
+    objects.
+    """
+    if create_func is None:
+        geom = lgeos.GEOSGeom_clone(ob._geom)
+    else:
+        cs = lgeos.GEOSGeom_getCoordSeq(ob._geom)
+        cs = lgeos.GEOSCoordSeq_clone(cs)
+        geom = create_func(cs)
     N = lgeos.GEOSGeom_getCoordinateDimension(geom)
     return geom, N
-
 
 def exceptNull(func):
     """Decorator which helps avoid GEOS operations on null pointers."""
