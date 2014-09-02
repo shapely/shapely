@@ -5,7 +5,7 @@ recursive-exclude docs *
 recursive-exclude DLLs_AMD64 *
 recursive-exclude DLLs_x86 *
 include CHANGES.txt CREDITS.txt LICENSE.txt README.rst VERSION.txt
-recursive-include shapely/tests *.py *.txt
+recursive-include tests *.py *.txt
 recursive-include shapely/examples *.py
 recursive-exclude shapely/speedups *.pyx
 include docs/manual.txt

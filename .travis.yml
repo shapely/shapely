@@ -20,7 +20,7 @@ before_install:
 install:
   - pip install -e .
 
-script: "py.test ${TRAVIS_SPEEDUP_OPTS}"
+script: "py.test tests ${TRAVIS_SPEEDUP_OPTS}"
 
 notifications:
     email: false

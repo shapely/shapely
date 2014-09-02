@@ -127,13 +127,13 @@ class BuildFailed(Exception):
 def construct_build_ext(build_ext):
     class WrappedBuildExt(build_ext):
         # This class allows C extension building to fail.
-    
+
         def run(self):
             try:
                 build_ext.run(self)
             except DistutilsPlatformError as x:
                 raise BuildFailed(x)
-    
+
         def build_extension(self, ext):
             try:
                 build_ext.build_extension(self, ext)
@@ -196,7 +196,8 @@ try:
     ext_modules.append(DistutilsExtension("shapely.vectorized._vectorized",
                                  sources=["shapely/vectorized/_vectorized.pyx"],
                                  libraries=libraries + [np.get_include()],
-                                 include_dirs=[get_config_var('INCLUDEDIR'), np.get_include()],
+                                 include_dirs=[get_config_var('INCLUDEDIR'),
+                                               np.get_include()],
                                  ))
 except ImportError:
     print("Numpy or Cython not available, shapely.vectorized submodule not "
