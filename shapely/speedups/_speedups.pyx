@@ -36,7 +36,6 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
     if isinstance(ob, LineString):
         g = cast_geom(ob._geom)
         n = GEOSGeom_getCoordinateDimension_r(handle, g)
-        g = GEOSGeom_clone_r(handle, g)
         return <unsigned long>GEOSGeom_clone_r(handle, g), n
 
     try:
