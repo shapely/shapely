@@ -41,6 +41,9 @@ cdef extern from "geos_c.h":
     char GEOSPreparedTouches_r(GEOSContextHandle_t, const GEOSPreparedGeometry*, const GEOSGeometry*) nogil
     char GEOSPreparedWithin_r(GEOSContextHandle_t, const GEOSPreparedGeometry*, const GEOSGeometry*) nogil
 
+    char GEOSisRing_r(GEOSContextHandle_t, GEOSGeometry *) nogil
+    char GEOSisClosed_r(GEOSContextHandle_t, GEOSGeometry *) nogil
+
 
 cdef GEOSContextHandle_t get_geos_context_handle():
     # Note: This requires that lgeos is defined, so needs to be imported as:

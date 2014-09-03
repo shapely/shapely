@@ -545,6 +545,7 @@ class LGEOS300(LGEOSBase):
                 self.GEOSisValid,
                 self.GEOSisSimple,
                 self.GEOSisRing,
+                self.GEOSisClosed,
                 self.GEOSHasZ):
             pred.errcheck = errcheck_predicate
 
@@ -560,6 +561,7 @@ class LGEOS300(LGEOSBase):
         self.methods['has_z'] = self.GEOSHasZ
         self.methods['is_empty'] = self.GEOSisEmpty
         self.methods['is_ring'] = self.GEOSisRing
+        self.methods['is_closed'] = self.GEOSisClosed
         self.methods['is_simple'] = self.GEOSisSimple
         self.methods['is_valid'] = self.GEOSisValid
         self.methods['disjoint'] = self.GEOSDisjoint
@@ -620,6 +622,7 @@ class LGEOS310(LGEOSBase):
                 self.GEOSisValid,
                 self.GEOSisSimple,
                 self.GEOSisRing,
+                self.GEOSisClosed,
                 self.GEOSHasZ):
             pred.func.errcheck = errcheck_predicate
 
@@ -637,6 +640,7 @@ class LGEOS310(LGEOSBase):
         self.methods['has_z'] = self.GEOSHasZ
         self.methods['is_empty'] = self.GEOSisEmpty
         self.methods['is_ring'] = self.GEOSisRing
+        self.methods['is_closed'] = self.GEOSisClosed
         self.methods['is_simple'] = self.GEOSisSimple
         self.methods['is_valid'] = self.GEOSisValid
         self.methods['disjoint'] = self.GEOSDisjoint
