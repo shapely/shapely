@@ -71,6 +71,7 @@ IMPL300 = {
     'has_z': (UnaryPredicate, 'has_z'),
     'is_empty': (UnaryPredicate, 'is_empty'),
     'is_ring': (UnaryPredicate, 'is_ring'),
+    'is_closed': (UnaryPredicate, 'is_closed'),
     'is_simple': (UnaryPredicate, 'is_simple'),
     'is_valid': (UnaryPredicate, 'is_valid'),
     #

@@ -175,8 +175,9 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
         if type(ob) == LinearRing:
             return <unsigned long>GEOSGeom_clone_r(handle, g), n
         else:
-            if GEOSisRing_r(handle, g):
-                cs = GEOSGeom_getCoordSeq_r(handle, g)
+            cs = GEOSGeom_getCoordSeq_r(handle, g)
+            GEOSCoordSeq_getSize_r(handle, cs, &m)
+            if GEOSisClosed_r(handle, g) and m >= 4:
                 cs = GEOSCoordSeq_clone_r(handle, cs)
                 return <unsigned long>GEOSGeom_createLinearRing_r(handle, cs), n
 

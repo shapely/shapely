@@ -557,6 +557,11 @@ class BaseGeometry(object):
         return bool(self.impl['is_ring'](self))
 
     @property
+    def is_closed(self):
+        """True if the geometry is closed, else False"""
+        return bool(self.impl['is_closed'](self))
+
+    @property
     def is_simple(self):
         """True if the geometry is simple, meaning that any self-intersections
         are only at boundary points, else False"""
