@@ -8,5 +8,5 @@ include CHANGES.txt CREDITS.txt LICENSE.txt README.rst VERSION.txt
 recursive-include tests *.py *.txt
 recursive-include shapely/examples *.py
 recursive-exclude shapely/speedups *.pyx
-include docs/manual.txt
+include docs/*.rst
 exclude MANIFEST.in

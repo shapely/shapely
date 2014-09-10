@@ -73,6 +73,7 @@ setup_args = dict(
         'shapely.speedups',
         'shapely.vectorized',
     ],
+    cmdclass = {},
     classifiers         = [
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
