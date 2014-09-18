@@ -717,7 +717,7 @@ instances, thereby making copies.
 
 .. plot:: code/multipolygon.py
 
-Figure 7. On the right, a `valid` `MultiPolygon` with 2 members, and on the
+Figure 7. On the left, a `valid` `MultiPolygon` with 2 members, and on the
 right, a `MultiPolygon` that is invalid because its members touch at an
 infinite number of points (along a line).
 
