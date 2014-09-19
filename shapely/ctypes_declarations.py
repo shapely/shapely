@@ -276,8 +276,9 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSisRing.restype = c_byte
     lgeos.GEOSisRing.argtypes = [c_void_p]
 
-    lgeos.GEOSisClosed.restype = c_byte
-    lgeos.GEOSisClosed.argtypes = [c_void_p]
+    if geos_version >= (3, 3, 0):
+        lgeos.GEOSisClosed.restype = c_byte
+        lgeos.GEOSisClosed.argtypes = [c_void_p]
 
     lgeos.GEOSHasZ.restype = c_byte
     lgeos.GEOSHasZ.argtypes = [c_void_p]
