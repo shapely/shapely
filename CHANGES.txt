@@ -1,6 +1,10 @@
 Changes
 =======
 
+1.4.1 
+-------
+- Remove is_closed from impl with GEOS < 3.3 (#176).
+
 1.4.0 (2014-09-08)
 ------------------
 - SVG representations for IPython's inline image protocol.
