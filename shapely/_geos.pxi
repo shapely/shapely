@@ -26,7 +26,6 @@ cdef extern from "geos_c.h":
     GEOSGeometry *GEOSGeom_createLinearRing_r(GEOSContextHandle_t, GEOSCoordSequence *) nogil
     GEOSGeometry *GEOSGeom_clone_r(GEOSContextHandle_t, GEOSGeometry *) nogil
     GEOSCoordSequence *GEOSCoordSeq_clone_r(GEOSContextHandle_t, GEOSCoordSequence *) nogil
-    int GEOSGeom_getCoordinateDimension_r(GEOSContextHandle_t, GEOSGeometry *) nogil
 
     void GEOSGeom_destroy_r(GEOSContextHandle_t, GEOSGeometry *) nogil
 
@@ -41,6 +40,7 @@ cdef extern from "geos_c.h":
     char GEOSPreparedTouches_r(GEOSContextHandle_t, const GEOSPreparedGeometry*, const GEOSGeometry*) nogil
     char GEOSPreparedWithin_r(GEOSContextHandle_t, const GEOSPreparedGeometry*, const GEOSGeometry*) nogil
 
+    char GEOSHasZ_r(GEOSContextHandle_t, GEOSGeometry *) nogil
     char GEOSisRing_r(GEOSContextHandle_t, GEOSGeometry *) nogil
     char GEOSisClosed_r(GEOSContextHandle_t, GEOSGeometry *) nogil
 

@@ -67,6 +67,16 @@ class LineStringTestCase(unittest.TestCase):
                          lgeos.GEOSGeomType(copy._geom).decode('ascii'))
 
 
+    def test_from_linestring_z(self):
+        coords = [(1.0, 2.0, 3.0), (4.0, 5.0, 6.0)]
+        line = LineString(coords)
+        copy = LineString(line)
+        self.assertEqual(len(copy.coords), 2)
+        self.assertEqual(copy.coords[:], coords)
+        self.assertEqual('LineString',
+                         lgeos.GEOSGeomType(copy._geom).decode('ascii'))
+
+
     def test_from_linearring(self):
         coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
         ring = LinearRing(coords)
