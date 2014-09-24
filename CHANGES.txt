@@ -1,6 +1,10 @@
 Changes
 =======
 
+1.4.1 (2014-09-23)
+------------------
+- Return of support for GEOS 3.2 (#176, #178).
+
 1.4.0 (2014-09-08)
 ------------------
 - SVG representations for IPython's inline image protocol.
