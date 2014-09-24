@@ -1,11 +1,12 @@
 from . import unittest, numpy
+from shapely.geos import lgeos
 from shapely.geometry import LineString, MultiLineString, asMultiLineString
 from shapely.geometry.base import dump_coords
 
 
 class MultiLineStringTestCase(unittest.TestCase):
 
-    def test_multipoint(self):
+    def test_multilinestring(self):
 
         # From coordinate tuples
         geom = MultiLineString((((1.0, 2.0), (3.0, 4.0)),))
@@ -35,6 +36,22 @@ class MultiLineStringTestCase(unittest.TestCase):
         self.assertEqual(geom.__geo_interface__,
                          {'type': 'MultiLineString',
                           'coordinates': (((0.0, 0.0), (1.0, 2.0)),)})
+
+
+    def test_from_multilinestring_z(self):
+        coords1 = [(0.0, 1.0, 2.0), (3.0, 4.0, 5.0)]
+        coords2 = [(6.0, 7.0, 8.0), (9.0, 10.0, 11.0)]
+
+        # From coordinate tuples
+        ml = MultiLineString([coords1, coords2])
+        copy = MultiLineString(ml)
+        self.assertIsInstance(copy, MultiLineString)
+        self.assertEqual('MultiLineString',
+                         lgeos.GEOSGeomType(copy._geom).decode('ascii'))
+        self.assertEqual(len(copy.geoms), 2)
+        self.assertEqual(dump_coords(copy.geoms[0]), coords1)
+        self.assertEqual(dump_coords(copy.geoms[1]), coords2)
+
 
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy(self):
