@@ -383,6 +383,10 @@ class WKBWriter(object):
     _lgeos = None
     _writer = None
 
+    # EndianType enum in ByteOrderValues.h
+    _ENDIAN_BIG = 0
+    _ENDIAN_LITTLE = 1
+
     # Establish default output setting
     defaults = {'output_dimension': 3}
 
@@ -399,11 +403,13 @@ class WKBWriter(object):
     @property
     def big_endian(self):
         """Byte order is big endian, True (default) or False"""
-        return bool(self._lgeos.GEOSWKBWriter_getByteOrder(self._writer))
+        return (self._lgeos.GEOSWKBWriter_getByteOrder(self._writer) ==
+            self._ENDIAN_BIG)
 
     @big_endian.setter
     def big_endian(self, value):
-        self._lgeos.GEOSWKBWriter_setByteOrder(self._writer, bool(value))
+        self._lgeos.GEOSWKBWriter_setByteOrder(
+            self._writer, self._ENDIAN_BIG if value else self._ENDIAN_LITTLE)
 
     @property
     def include_srid(self):
