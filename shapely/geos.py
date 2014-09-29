@@ -620,7 +620,6 @@ class LGEOS310(LGEOSBase):
                 self.GEOSisValid,
                 self.GEOSisSimple,
                 self.GEOSisRing,
-                self.GEOSisClosed,
                 self.GEOSHasZ):
             pred.func.errcheck = errcheck_predicate
 
