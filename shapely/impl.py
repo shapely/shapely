@@ -71,7 +71,6 @@ IMPL300 = {
     'has_z': (UnaryPredicate, 'has_z'),
     'is_empty': (UnaryPredicate, 'is_empty'),
     'is_ring': (UnaryPredicate, 'is_ring'),
-    'is_closed': (UnaryPredicate, 'is_closed'),
     'is_simple': (UnaryPredicate, 'is_simple'),
     'is_valid': (UnaryPredicate, 'is_valid'),
     #
@@ -113,6 +112,9 @@ IMPL320 = {
     'buffer_with_style': (UnaryTopologicalOp, 'buffer_with_style'),
     }
 
+IMPL330 = {
+    'is_closed': (UnaryPredicate, 'is_closed')}
+
 def impl_items(defs):
     return [(k, v[0](v[1])) for k, v in list(defs.items())]
 
@@ -123,5 +125,7 @@ if lgeos.geos_version >= (3, 1, 1):
     imp.update(impl_items(IMPL311))
 if lgeos.geos_version >= (3, 2, 0):
     imp.update(impl_items(IMPL320))
+if lgeos.geos_version >= (3, 3, 0):
+    imp.update(impl_items(IMPL330))
 
 DefaultImplementation = imp

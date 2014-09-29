@@ -560,8 +560,18 @@ class BaseGeometry(object):
 
     @property
     def is_closed(self):
-        """True if the geometry is closed, else False"""
-        return bool(self.impl['is_closed'](self))
+        """True if the geometry is closed, else False
+        
+        Applicable only to 1-D geometries."""
+        if self.geom_type == 'LinearRing':
+            return True
+        elif self.geom_type == 'LineString':
+            if 'is_closed' in self.impl:
+                return bool(self.impl['is_closed'](self))
+            else:
+                return self.coords[0] == self.coords[-1]
+        else:
+            return False
 
     @property
     def is_simple(self):
