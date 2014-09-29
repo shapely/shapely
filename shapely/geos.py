@@ -560,7 +560,6 @@ class LGEOS300(LGEOSBase):
         self.methods['has_z'] = self.GEOSHasZ
         self.methods['is_empty'] = self.GEOSisEmpty
         self.methods['is_ring'] = self.GEOSisRing
-        self.methods['is_closed'] = self.GEOSisClosed
         self.methods['is_simple'] = self.GEOSisSimple
         self.methods['is_valid'] = self.GEOSisValid
         self.methods['disjoint'] = self.GEOSDisjoint
