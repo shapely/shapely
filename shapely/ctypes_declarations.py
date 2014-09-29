@@ -358,9 +358,6 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSGeom_getDimensions.restype = c_int
     lgeos.GEOSGeom_getDimensions.argtypes = [c_void_p]
 
-    lgeos.GEOSGeom_getCoordinateDimension.restype = c_int
-    lgeos.GEOSGeom_getCoordinateDimension.argtypes = [c_void_p]
-
     '''
     Misc functions
     '''

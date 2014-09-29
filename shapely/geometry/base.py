@@ -129,7 +129,9 @@ def geos_geom_from_py(ob, create_func=None):
         cs = lgeos.GEOSGeom_getCoordSeq(ob._geom)
         cs = lgeos.GEOSCoordSeq_clone(cs)
         geom = create_func(cs)
-    N = lgeos.GEOSGeom_getCoordinateDimension(geom)
+
+    N = ob._ndim
+
     return geom, N
 
 def exceptNull(func):

@@ -1,9 +1,9 @@
 Changes
 =======
 
-1.4.1 
--------
-- Remove is_closed from impl with GEOS < 3.3 (#176).
+1.4.1 (2014-09-23)
+------------------
+- Return of support for GEOS 3.2 (#176, #178).
 
 1.4.0 (2014-09-08)
 ------------------

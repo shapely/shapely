@@ -130,7 +130,12 @@ def geos_multilinestring_from_py(ob):
         for l in range(L):
             geom, ndims = linestring.geos_linestring_from_py(array['data'][l])
             subs[i] = cast(geom, c_void_p)
-        N = lgeos.GEOSGeom_getCoordinateDimension(subs[0])
+
+        if lgeos.GEOSHasZ(subs[0]):
+            N = 3
+        else:
+            N = 2
+
     except (NotImplementedError, AttributeError):
         obs = getattr(ob, 'geoms', ob)
         L = len(obs)
