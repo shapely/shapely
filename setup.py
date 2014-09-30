@@ -43,14 +43,15 @@ with open('VERSION.txt', 'w', **open_kwds) as fp:
     fp.write(version)
 
 with open('README.rst', 'r', **open_kwds) as fp:
-    readme_text = fp.read()
-readme_text = readme_text.replace(".. include:: CREDITS.txt", "")
+    readme = fp.read()
 
 with open('CREDITS.txt', 'r', **open_kwds) as fp:
     credits = fp.read()
 
 with open('CHANGES.txt', 'r', **open_kwds) as fp:
-    changes_text = fp.read()
+    changes = fp.read()
+
+long_description = readme + '\n\n' + credits + '\n\n' + changes
 
 setup_args = dict(
     name                = 'Shapely',
@@ -64,7 +65,7 @@ setup_args = dict(
     maintainer          = 'Sean Gillies',
     maintainer_email    = 'sean.gillies@gmail.com',
     url                 = 'https://github.com/Toblerity/Shapely',
-    long_description    = readme_text + "\n" + credits + "\n" + changes_text,
+    long_description    = long_description,
     packages            = [
         'shapely',
         'shapely.geometry',

@@ -19,7 +19,7 @@ Patches contributed by:
 * Bertrand Gervais (https://github.com/BertrandGervais)
 * Marc Jansen (https://github.com/marcjansen)
 * Kelsey Jordahl (https://github.com/kjordahl)
-* Fr |eaigue| d |eaigue| ric Junod
+* Frédéric Junod
 * Thomas Kluyver (https://github.com/takluyver)
 * William Kyngesburye (https://github.com/kyngchaos)
 * Eric Lemoine
@@ -49,6 +49,4 @@ Additional help from:
 Major portions of this work were supported by a grant (for Pleiades_) from the
 U.S. National Endowment for the Humanities (http://www.neh.gov).
 
-.. |eaigue| unicode:: U+00E9
-   :trim:
 .. _Pleiades: http://pleiades.stoa.org
