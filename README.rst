@@ -19,8 +19,8 @@ planar geometric objects. It is based on the widely deployed `GEOS
 libraries. Shapely is not concerned with data formats or coordinate systems,
 but can be readily integrated with packages that are. For more details, see:
 
-* Shapely `manual <http://toblerity.github.com/shapely/manual.html>`__
-* Shapely `examples <https://github.com/Toblerity/shapely/tree/master/shapely/examples>`__
+* Shapely on `GitHub <https://github.com/Toblerity/Shapely>`__
+* The Shapely `manual <http://toblerity.github.com/shapely/manual.html>`__
 
 Requirements
 ============
@@ -161,4 +161,4 @@ Support
 Please discuss Shapely with us at
 http://lists.gispython.org/mailman/listinfo/community.
 
-Bugs may be reported at https://github.com/ $ pip install shapely
+Bugs may be reported at https://github.com/Toblerity/Shapely/issues.
