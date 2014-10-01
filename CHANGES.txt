@@ -1,6 +1,10 @@
 Changes
 =======
 
+1.4.3 (2014-10-01)
+------------------
+- Fix for endianness bug in WKB writer (#174).
+
 1.4.2 (2014-09-29)
 ------------------
 - Fix bungled 1.4.1 release (#176).
