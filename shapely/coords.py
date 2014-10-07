@@ -26,7 +26,8 @@ def required(ob):
             # raise an error if strided. See issue #52.
             raise ValueError("C-contiguous data is required")
         else:
-            # numpy.require will just return (ob) if it is already float64 and well-behaved.
+            # numpy.require will just return (ob) if it is already
+            # float64 and well-behaved.
             return numpy.require(ob, numpy.float64, ["C", "OWNDATA"])
     else:
         return ob
