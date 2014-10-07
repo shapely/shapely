@@ -6,6 +6,8 @@
 # Transcription to cython: Copyright (c) 2011, Oliver Tonnhofer
 
 import ctypes
+
+from shapely.coords import required
 from shapely.geos import lgeos
 from shapely.geometry import Point, LineString, LinearRing
 
@@ -15,14 +17,18 @@ include "../_geos.pxi"
 cdef inline GEOSGeometry *cast_geom(unsigned long geom_addr):
     return <GEOSGeometry *>geom_addr
 
+
 cdef inline GEOSContextHandle_t cast_handle(unsigned long handle_addr):
     return <GEOSContextHandle_t>handle_addr
+
 
 cdef inline GEOSCoordSequence *cast_seq(unsigned long handle_addr):
     return <GEOSCoordSequence *>handle_addr
 
+
 def destroy(geom):
     GEOSGeom_destroy_r(cast_handle(lgeos.geos_handle), cast_geom(geom))
+
 
 def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
     cdef double *cp
@@ -48,6 +54,9 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
             cs = GEOSCoordSeq_clone_r(handle, cs)
             return <unsigned long>GEOSGeom_createLineString_r(handle, cs), n
 
+    # If numpy is present, we use numpy.require to ensure that we have a
+    # C-continguous array that owns its data. View data will be copied.
+    ob = required(ob)
     try:
         # From array protocol
         array = ob.__array_interface__
@@ -189,6 +198,9 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
                 cs = GEOSCoordSeq_clone_r(handle, cs)
                 return <unsigned long>GEOSGeom_createLinearRing_r(handle, cs), n
 
+    # If numpy is present, we use numpy.require to ensure that we have a
+    # C-continguous array that owns its data. View data will be copied.
+    ob = required(ob)
     try:
         # From array protocol
         array = ob.__array_interface__
