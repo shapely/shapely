@@ -28,7 +28,7 @@ Requirements
 Shapely 1.4 requires
 
 * Python >=2.6 (including Python 3.x)
-* libgeos_c >=3.1 (3.0 and below have not been tested, YMMV)
+* libgeos_c >=3.3 (Shapely 1.2 requires only libgeos_c 3.1 but YMMV)
 
 Installation
 ============
