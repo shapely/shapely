@@ -1,6 +1,10 @@
 Changes
 =======
 
+1.4.4 (2014-11-02)
+------------------
+- Proper conversion of numpy float32 vals to coords (#186).
+
 1.4.3 (2014-10-01)
 ------------------
 - Fix for endianness bug in WKB writer (#174).
