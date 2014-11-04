@@ -1018,12 +1018,39 @@ evaluate topological, set-theoretic relationships. In a few cases the results
 may not be what one might expect starting from different assumptions. All take
 another geometric object as argument and return ``True`` or ``False``.
 
+.. method:: object.__eq__(other)
+
+  Returns ``True`` if the two objects are of the same geometric type, and
+  the coordinates of the two objects match precisely.
+
+.. method:: object.equals(other)
+
+  Returns ``True`` if the set-theoretic `boundary`, `interior`, and `exterior`
+  of the object coincide with those of the other.
+
+The coordinates passed to the object constructors are of these sets, and
+determine them, but are not the entirety of the sets. This is a potential
+"gotcha" for new users.  Equivalent lines, for example, can be constructed
+differently.
+
+.. code-block:: pycon
+
+  >>> a = LineString([(0, 0), (1, 1)])
+  >>> b = LineString([(0, 0), (0.5, 0.5), (1, 1)])
+  >>> c = LineString([(0, 0), (0, 0), (1, 1)])
+  >>> a.equals(b)
+  True
+  >>> a == b
+  False
+  >>> b.equals(c)
+  True
+  >>> b == c
+  False
+
 .. method:: object.almost_equals(other[, decimal=6])
 
   Returns ``True`` if the object is approximately equal to the `other` at all
   points to specified `decimal` place precision.
-
-See also :meth:`equals`.
 
 .. method:: object.contains(other)
 
@@ -1091,29 +1118,6 @@ A line does not cross a point that it contains.
   True
 
 This predicate applies to all types and is the inverse of :meth:`intersects`.
-
-.. method:: object.equals(other)
-
-  Returns ``True`` if the set-theoretic `boundary`, `interior`, and `exterior`
-  of the object coincide with those of the other.
-
-The coordinates passed to the object constructors are of these sets, and
-determine them, but are not the entirety of the sets. This is a potential
-"gotcha" for new users.  Equivalent lines, for example, can be constructed
-differently.
-
-.. code-block:: pycon
-
-  >>> a = LineString([(0, 0), (1, 1)])
-  >>> b = LineString([(0, 0), (0.5, 0.5), (1, 1)])
-  >>> c = LineString([(0, 0), (0, 0), (1, 1)])
-  >>> a.equals(b)
-  True
-  >>> b.equals(c)
-  True
-
-This predicate should not be mistaken for Python's ``==`` or ``is``
-constructions.
 
 .. method:: object.intersects(other)
 
