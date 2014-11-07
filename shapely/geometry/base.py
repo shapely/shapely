@@ -252,6 +252,15 @@ class BaseGeometry(object):
     def __xor__(self, other):
         return self.symmetric_difference(other)
 
+    def __eq__(self, other):
+        return (
+            isinstance(other, self.__class__) and
+            tuple(self.coords) == tuple(other.coords)
+        )
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     # Array and ctypes interfaces
     # ---------------------------
 
@@ -561,7 +570,7 @@ class BaseGeometry(object):
     @property
     def is_closed(self):
         """True if the geometry is closed, else False
-        
+
         Applicable only to 1-D geometries."""
         if self.geom_type == 'LinearRing':
             return True
@@ -720,6 +729,16 @@ class BaseMultipartGeometry(BaseGeometry):
             return self.geoms[index]
         else:
             return ()[index]
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, self.__class__) and
+            len(self) == len(other) and
+            all(x == y for x, y in zip(self, other))
+        )
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def svg(self, scale_factor=1.):
         """
