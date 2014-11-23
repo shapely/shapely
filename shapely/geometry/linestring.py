@@ -9,7 +9,7 @@ if sys.version_info[0] < 3:
 from ctypes import c_double, cast, POINTER
 
 from shapely.coords import required
-from shapely.geos import lgeos, TopologicalError
+from shapely.geos import lgeos, TopologicalError, DimensionError, ShapeError
 from shapely.geometry.base import (
     BaseGeometry, geom_factory, JOIN_STYLE, geos_geom_from_py
 )
@@ -197,12 +197,12 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
         assert len(array['shape']) == 2
         m = array['shape'][0]
         if m < 2:
-            raise ValueError(
+            raise TopologicalError(
                 "LineStrings must have at least 2 coordinate tuples")
         try:
             n = array['shape'][1]
         except IndexError:
-            raise ValueError(
+            raise ShapeError(
                 "Input %s is the wrong shape for a LineString" % str(ob))
         assert n == 2 or n == 3
 
@@ -217,7 +217,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
         if update_geom is not None:
             cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
             if n != update_ndim:
-                raise ValueError(
+                raise DimensionError(
                     "Wrong coordinate dimensions; this geometry has "
                     "dimensions: %d" % update_ndim)
         else:
@@ -232,7 +232,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
                 try:
                     dz = c_double(cp[n*i+2])
                 except IndexError:
-                    raise ValueError("Inconsistent coordinate dimensionality")
+                    raise DimensionError("Inconsistent coordinate dimensionality")
 
             # Because of a bug in the GEOS C API,
             # always set X before Y
@@ -250,7 +250,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
             m = len(ob)
 
         if m < 2:
-            raise ValueError(
+            raise TopologicalError(
                 "LineStrings must have at least 2 coordinate tuples")
 
         def _coords(o):
@@ -262,7 +262,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
         try:
             n = len(_coords(ob[0]))
         except TypeError:
-            raise ValueError(
+            raise ShapeError(
                 "Input %s is the wrong shape for a LineString" % str(ob))
         assert n == 2 or n == 3
 
@@ -270,7 +270,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
         if update_geom is not None:
             cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
             if n != update_ndim:
-                raise ValueError(
+                raise DimensionError(
                     "Wrong coordinate dimensions; this geometry has "
                     "dimensions: %d" % update_ndim)
         else:
@@ -287,7 +287,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
                 try:
                     lgeos.GEOSCoordSeq_setZ(cs, i, coords[2])
                 except IndexError:
-                    raise ValueError("Inconsistent coordinate dimensionality")
+                    raise DimensionError("Inconsistent coordinate dimensionality")
 
     if update_geom is not None:
         return None
