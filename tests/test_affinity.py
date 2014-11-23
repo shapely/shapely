@@ -66,11 +66,9 @@ class AffineTestCase(unittest.TestCase):
         test_geom(load_wkt(
             'MULTIPOLYGON(((900 4300, -1100 -400, 900 -800, 900 4300)), '
             '((1200 4300, 2300 4400, 1900 1000, 1200 4300)))'))
-        # GeometryCollection fails, since it does not have a good constructor
-        gc = load_wkt('GEOMETRYCOLLECTION(POINT(20 70),'
+        test_geom(load_wkt('GEOMETRYCOLLECTION(POINT(20 70),'
                       ' POLYGON((60 70, 13 35, 60 -30, 60 70)),'
-                      ' LINESTRING(60 70, 50 100, 80 100))')
-        self.assertRaises(TypeError, test_geom, gc)  # TODO: fix this
+                      ' LINESTRING(60 70, 50 100, 80 100))'))
 
     def test_affine_2d(self):
         g = load_wkt('LINESTRING(2.4 4.1, 2.4 3, 3 3)')
