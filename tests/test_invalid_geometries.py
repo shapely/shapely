@@ -2,7 +2,8 @@
 '''
 
 from . import unittest
-from shapely.geometry import Polygon
+from shapely.geos import TopologicalError, DimensionError
+from shapely.geometry import Polygon, LineString, asPolygon, asLineString
 from shapely.topology import TopologicalError
 
 
@@ -23,6 +24,33 @@ class InvalidGeometriesTestCase(unittest.TestCase):
                           polygon.intersection, polygon_invalid)
         return
 
+    def test_polygon_inconsistent_dimensionality(self):
+        invalid_arr = [(0, 0, 0), (1, 1), (2, 2)]
+        with self.assertRaises(DimensionError):
+            Polygon(invalid_arr)
+        p = asPolygon(invalid_arr)
+        self.assertFalse(p.is_valid)
+
+    def test_polygon_missing_coordinates(self):
+        invalid_arr = [(0, 0), (1, 1)]
+        with self.assertRaises(TopologicalError):
+            Polygon(invalid_arr)
+        p = asPolygon(invalid_arr)
+        self.assertFalse(p.is_valid)
+
+    def test_linestring_inconsistent_dimensionality(self):
+        invalid_arr = [(0, 0, 0), (1, 1)]
+        with self.assertRaises(DimensionError):
+            LineString(invalid_arr)
+        l = asLineString(invalid_arr)
+        self.assertFalse(l.is_valid)
+
+    def test_linestring_missing_coordinates(self):
+        invalid_arr = [(0, 0)]
+        with self.assertRaises(TopologicalError):
+            LineString(invalid_arr)
+        l = asLineString(invalid_arr)
+        self.assertFalse(l.is_valid)
 
 def test_suite():
     loader = unittest.TestLoader()

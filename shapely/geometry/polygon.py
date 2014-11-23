@@ -12,7 +12,7 @@ import weakref
 
 from shapely.algorithms.cga import signed_area
 from shapely.coords import required
-from shapely.geos import lgeos
+from shapely.geos import lgeos, DimensionError, TopologicalError
 from shapely.geometry.base import BaseGeometry, geos_geom_from_py
 from shapely.geometry.linestring import LineString, LineStringAdapter
 from shapely.geometry.proxy import PolygonProxy
@@ -379,7 +379,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
         m = array['shape'][0]
         n = array['shape'][1]
         if m < 3:
-            raise ValueError(
+            raise TopologicalError(
                 "A LinearRing must have at least 3 coordinate tuples")
         assert n == 2 or n == 3
 
@@ -400,7 +400,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
         if update_geom is not None:
             cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
             if n != update_ndim:
-                raise ValueError(
+                raise DimensionError(
                 "Wrong coordinate dimensions; this geometry has dimensions: %d" \
                 % update_ndim)
         else:
@@ -434,7 +434,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
 
         n = len(ob[0])
         if m < 3:
-            raise ValueError(
+            raise TopologicalError(
                 "A LinearRing must have at least 3 coordinate tuples")
         assert (n == 2 or n == 3)
 
@@ -448,7 +448,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
         if update_geom is not None:
             cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
             if n != update_ndim:
-                raise ValueError(
+                raise DimensionError(
                 "Wrong coordinate dimensions; this geometry has dimensions: %d" \
                 % update_ndim)
         else:
@@ -465,7 +465,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
                 try:
                     lgeos.GEOSCoordSeq_setZ(cs, i, coords[2])
                 except IndexError:
-                    raise ValueError("Inconsistent coordinate dimensionality")
+                    raise DimensionError("Inconsistent coordinate dimensionality")
 
         # Add closing coordinates to sequence?
         if M > m:
@@ -502,7 +502,7 @@ def geos_polygon_from_py(shell, holes=None):
             if not L >= 1:
                 raise ValueError("number of holes must be non zero")
             if not N in (2, 3):
-                raise ValueError("insufficiant coordinate dimension")
+                raise DimensionError("insufficiant coordinate dimension")
 
             # Array of pointers to ring geometries
             geos_holes = (c_void_p * L)()

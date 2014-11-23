@@ -8,7 +8,7 @@ from ctypes import pointer, c_size_t, c_char_p, c_void_p
 
 from shapely.coords import CoordinateSequence
 from shapely.ftools import wraps
-from shapely.geos import lgeos, ReadingError
+from shapely.geos import lgeos, ReadingError, GeometryValueError
 from shapely.geos import WKBWriter, WKTWriter
 from shapely.impl import DefaultImplementation, delegated
 
@@ -592,7 +592,10 @@ class BaseGeometry(object):
     def is_valid(self):
         """True if the geometry is valid (definition depends on sub-class),
         else False"""
-        return bool(self.impl['is_valid'](self))
+        try:
+            return bool(self.impl['is_valid'](self))
+        except GeometryValueError as e:
+            return False
 
     # Binary predicates
     # -----------------

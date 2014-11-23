@@ -241,7 +241,7 @@ def geos_point_from_py(ob, update_geom=None, update_ndim=0):
     if update_geom:
         cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
         if n != update_ndim:
-            raise ValueError(
+            raise DimensionError(
                 "Wrong coordinate dimensions; this geometry has dimensions: "
                 "%d" % update_ndim)
     else:

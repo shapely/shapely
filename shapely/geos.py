@@ -166,11 +166,17 @@ class ReadingError(Exception):
     pass
 
 
-class DimensionError(Exception):
+class GeometryValueError(ValueError):
+    #Base error for invalid geometries
     pass
 
+class ShapeError(GeometryValueError):
+    pass
 
-class TopologicalError(Exception):
+class DimensionError(GeometryValueError):
+    pass
+
+class TopologicalError(GeometryValueError):
     pass
 
 
