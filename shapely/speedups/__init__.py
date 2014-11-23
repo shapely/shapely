@@ -2,6 +2,7 @@ import warnings
 
 from shapely.geometry import linestring, polygon
 from shapely import coords
+import shapely.affinity
 
 try:
     from shapely.speedups import _speedups
@@ -41,6 +42,9 @@ def enable():
 
     _orig['geos_linearring_from_py']  = polygon.geos_linearring_from_py
     polygon.geos_linearring_from_py = _speedups.geos_linearring_from_py
+    
+    _orig['affine_transform'] = shapely.affinity.affine_transform
+    shapely.affinity.affine_transform = _speedups.affine_transform
 
 def disable():
     if not _orig:
@@ -50,4 +54,5 @@ def disable():
     coords.CoordinateSequence.__iter__ = _orig['CoordinateSequence.__iter__']
     linestring.geos_linestring_from_py = _orig['geos_linestring_from_py']
     polygon.geos_linearring_from_py = _orig['geos_linearring_from_py']
+    affinity.affine_transform = _orig['affine_transform']
     _orig.clear()
