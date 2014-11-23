@@ -438,43 +438,6 @@ cdef GEOSCoordSequence* transform(GEOSCoordSequence* cs,
     return cs_t
 
 cpdef affine_transform(geom, matrix):
-    """Returns a transformed geometry using an affine transformation matrix.
-
-    The coefficient matrix is provided as a list or tuple with 6 or 12 items
-    for 2D or 3D transformations, respectively.
-
-    For 2D affine transformations, the 6 parameter matrix is:
-
-    [a, b, d, e, xoff, yoff]
-
-    which represents the augmented matrix:
-
-    / a  b xoff \ 
-    [x' y' 1] = [x y 1] | d  e yoff |
-    \ 0  0   1  /
-
-    or the equations for the transformed coordinates:
-
-    x' = a * x + b * y + xoff
-    y' = d * x + e * y + yoff
-
-    For 3D affine transformations, the 12 parameter matrix is:
-
-    [a, b, c, d, e, f, g, h, i, xoff, yoff, zoff]
-
-    which represents the augmented matrix:
-
-    / a  b  c xoff \ 
-    [x' y' z' 1] = [x y z 1] | d  e  f yoff |
-    | g  h  i zoff |
-    \ 0  0  0   1  /
-
-    or the equations for the transformed coordinates:
-
-    x' = a * x + b * y + c * z + xoff
-    y' = d * x + e * y + f * z + yoff
-    z' = g * x + h * y + i * z + zoff
-    """
     cdef double a, b, c, d, e, f, g, h, i, xoff, yoff, zoff
     if geom.is_empty:
         return geom

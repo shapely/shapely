@@ -44,7 +44,11 @@ def enable():
     polygon.geos_linearring_from_py = _speedups.geos_linearring_from_py
     
     _orig['affine_transform'] = shapely.affinity.affine_transform
-    shapely.affinity.affine_transform = _speedups.affine_transform
+    # copy docstring from original function
+    def affine_transform(geom, matrix):
+        return _speedups.affine_transform(geom, matrix)
+    affine_transform.__doc__ = shapely.affinity.affine_transform.__doc__
+    shapely.affinity.affine_transform = affine_transform
 
 def disable():
     if not _orig:
