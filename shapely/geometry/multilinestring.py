@@ -117,45 +117,27 @@ def geos_multilinestring_from_py(ob):
     if isinstance(ob, MultiLineString):
          return geos_geom_from_py(ob)
 
+    obs = getattr(ob, 'geoms', ob)
+    L = len(obs)
+    assert L >= 1
+    exemplar = obs[0]
     try:
-        # From array protocol
-        array = ob.__array_interface__
-        assert len(array['shape']) == 1
-        L = array['shape'][0]
-        assert L >= 1
+        N = len(exemplar[0])
+    except TypeError:
+        N = exemplar._ndim
+    if N not in (2, 3):
+        raise ValueError("Invalid coordinate dimensionality")
 
-        # Array of pointers to sub-geometries
-        subs = (c_void_p * L)()
-
-        for l in range(L):
-            geom, ndims = linestring.geos_linestring_from_py(array['data'][l])
-            subs[i] = cast(geom, c_void_p)
-
-        if lgeos.GEOSHasZ(subs[0]):
-            N = 3
-        else:
-            N = 2
-
-    except (NotImplementedError, AttributeError):
-        obs = getattr(ob, 'geoms', ob)
-        L = len(obs)
-        exemplar = obs[0]
-        try:
-            N = len(exemplar[0])
-        except TypeError:
-            N = exemplar._ndim
-        assert L >= 1
-        assert N == 2 or N == 3
-
-        # Array of pointers to point geometries
-        subs = (c_void_p * L)()
-        
-        # add to coordinate sequence
-        for l in range(L):
-            geom, ndims = linestring.geos_linestring_from_py(obs[l])
-            subs[l] = cast(geom, c_void_p)
+    # Array of pointers to point geometries
+    subs = (c_void_p * L)()
+    
+    # add to coordinate sequence
+    for l in range(L):
+        geom, ndims = linestring.geos_linestring_from_py(obs[l])
+        subs[l] = cast(geom, c_void_p)
             
     return (lgeos.GEOSGeom_createCollection(5, subs, L), N)
+
 
 # Test runner
 def _test():
