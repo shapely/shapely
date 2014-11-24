@@ -2023,6 +2023,31 @@ the nearest points in a pair of geometries.
 
 Note that the nearest points may not be existing vertices in the geometries.
 
+Snapping
+--------
+
+The :func:`~shapely.ops.snap` function in `shapely.ops` snaps the vertices in
+one geometry to the vertices in a second geometry with a given tolerance.
+
+.. function:: shapely.ops.snap(geom1, geom2, tolerance)
+
+   Snaps vertices in `geom1` to vertices in the `geom2`. A copy of the snapped
+   geometry is returned. The input geometries are not modified.
+
+   The `tolerance` argument specifies the minimum distance between vertices for
+   them to be snapped.
+
+   `New in version 1.4.5`
+
+.. code-block:: pycon
+
+  >>> from shapely.ops import snap
+  >>> square = Polygon([(1,1), (2, 1), (2, 2), (1, 2), (1, 1)])
+  >>> line = LineString([(0,0), (0.8, 0.8), (1.8, 0.95), (2.6, 0.5)])
+  >>> result = snap(line, square, 0.5)
+  >>> result.wkt
+  'LINESTRING (0 0, 1 1, 2 1, 2.6 0.5)'
+
 Prepared Geometry Operations
 ----------------------------
 
