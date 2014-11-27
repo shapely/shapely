@@ -275,3 +275,29 @@ def nearest_points(g1, g2):
     p1 = Point(x1.value, y1.value)
     p2 = Point(x2.value, y2.value)
     return (p1, p2)
+
+def snap(g1, g2, tolerance):
+    """Snap one geometry to another with a given tolerance
+
+    Vertices of the first geometry are snapped to vertices of the second
+    geometry. The resulting snapped geometry is returned. The input geometries
+    are not modified.
+
+    Parameters
+    ----------
+    g1 : geometry
+        The first geometry
+    g2 : geometry
+        The second geometry
+    tolerence : float
+        The snapping tolerance
+
+    Example
+    -------
+    >>> square = Polygon([(1,1), (2, 1), (2, 2), (1, 2), (1, 1)])
+    >>> line = LineString([(0,0), (0.8, 0.8), (1.8, 0.95), (2.6, 0.5)])
+    >>> result = snap(line, square, 0.5)
+    >>> result.wkt
+    'LINESTRING (0 0, 1 1, 2 1, 2.6 0.5)'
+    """
+    return(geom_factory(lgeos.methods['snap'](g1._geom, g2._geom, tolerance)))

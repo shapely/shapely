@@ -721,6 +721,7 @@ class LGEOS330(LGEOS320):
         self.methods['unary_union'] = self.GEOSUnaryUnion
         self.methods['is_closed'] = self.GEOSisClosed
         self.methods['cascaded_union'] = self.methods['unary_union']
+        self.methods['snap'] = self.GEOSSnap
 
 
 class LGEOS340(LGEOS330):

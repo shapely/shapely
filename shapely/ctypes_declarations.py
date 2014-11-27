@@ -466,6 +466,10 @@ def prototype(lgeos, geos_version):
         lgeos.GEOSFree.restype = None
         lgeos.GEOSFree.argtypes = [c_void_p]
 
+    if geos_version >= (3, 3, 0):
+        lgeos.GEOSSnap.restype = c_void_p
+        lgeos.GEOSSnap.argtypes = [c_void_p, c_void_p, c_double]
+
     if geos_version >= (3, 4, 0):
         lgeos.GEOSNearestPoints.restype = c_void_p
         lgeos.GEOSNearestPoints.argtypes = [c_void_p, c_void_p]
