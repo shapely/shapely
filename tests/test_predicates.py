@@ -1,7 +1,8 @@
 """Test GEOS predicates
 """
 from . import unittest
-from shapely.geometry import Point
+from shapely.geometry import Point, Polygon
+from shapely.geos import TopologicalError
 
 
 class PredicatesTestCase(unittest.TestCase):
@@ -28,6 +29,15 @@ class PredicatesTestCase(unittest.TestCase):
         self.assertTrue(point.is_simple)
         self.assertFalse(point.is_ring)
         self.assertFalse(point.has_z)
+
+    def test_binary_predicate_exceptions(self):
+
+        p1 = [(339, 346), (459,346), (399,311), (340, 277), (399, 173),
+              (280, 242), (339, 415), (280, 381), (460, 207), (339, 346)]
+        p2 = [(339, 207), (280, 311), (460, 138), (399, 242), (459, 277),
+              (459, 415), (399, 381), (519, 311), (520, 242), (519, 173),
+              (399, 450), (339, 207)]
+        self.assertRaises(TopologicalError, Polygon(p1).within, Polygon(p2))
 
 
 def test_suite():
