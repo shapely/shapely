@@ -12,6 +12,7 @@ Patches contributed by:
 
 * Allan Adair (https://github.com/allanadair)
 * Joshua Arnott (https://github.com/snorfalorpagus)
+* David Baumgold (https://github.com/singingwolfboy)
 * Howard Butler
 * Gabi Davar (https://github.com/mindw)
 * Phil Elson (https://github.com/pelson)

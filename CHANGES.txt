@@ -1,6 +1,14 @@
 Changes
 =======
 
+1.5.0 (2014-12-02)
+------------------
+- Affine transformation speedups (#197).
+- New `==` rich comparison (#195).
+- Geometry collection constructor (#200).
+- ops.snap() backed by GEOSSnap (#201).
+- Clearer exceptions in cases of topological invalidity (#203).
+
 1.4.4 (2014-11-02)
 ------------------
 - Proper conversion of numpy float32 vals to coords (#186).
