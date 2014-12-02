@@ -25,21 +25,24 @@ but can be readily integrated with packages that are. For more details, see:
 Requirements
 ============
 
-Shapely 1.4 requires
+Shapely 1.5 requires
 
 * Python >=2.6 (including Python 3.x)
-* libgeos_c >=3.3 (Shapely 1.2 requires only libgeos_c 3.1 but YMMV)
+* GEOS >=3.3 (Shapely 1.2 requires only GEOS 3.1 but YMMV)
 
-Installation
-============
+Installing Shapely 1.5.0
+========================
 
-Windows users should use the executable installer, which contains the required
-GEOS DLL. Other users should acquire libgeos_c by any means, make sure that it
-is on the system library path, and install from the Python package index.
+Windows users should download an executable installer from
+http://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely or PyPI (if available).
+
+On other systems, acquire the GEOS by any means (`brew install geos` on OS X or
+`apt-get install libgeos-dev` on Debian/Ubuntu), make sure that it is on the
+system library path, and install Shapely 1.5.0 from the Python package index.
 
 .. code-block:: console
 
-    $ pip install shapely
+    $ pip install -U shapely
 
 Shapely is also provided by popular Python distributions like Canopy (Enthought)
 and Anaconda (Continuum Analytics).
@@ -75,46 +78,8 @@ modules provide dumpers and loaders inspired by Python's pickle module.
     >>> dumps(loads('POINT (0 0)'))
     'POINT (0.0000000000000000 0.0000000000000000)'
 
-All linear objects, such as the rings of a polygon (like ``patch`` above),
-provide the Numpy array interface.
-
-.. code-block:: pycon
-
-    >>> import numpy as np
-    >>> np.array(patch.exterior)
-    array([[  1.00000000e+01,   0.00000000e+00],
-           [  9.95184727e+00,  -9.80171403e-01],
-           [  9.80785280e+00,  -1.95090322e+00],
-           ...
-           [  1.00000000e+01,   0.00000000e+00]])
-
-That yields a Numpy array of ``[x, y]`` arrays. This is not always exactly what one
-wants for plotting shapes with Matplotlib (for example), so Shapely adds
-a ``xy`` property for obtaining separate arrays of coordinate x and y values.
-
-.. code-block:: pycon
-
-    >>> x, y = patch.exterior.xy
-    >>> np.array(x)
-    array([  1.00000000e+01,   9.95184727e+00,   9.80785280e+00,  ...])
-
-Numpy arrays of ``[x, y]`` arrays can also be adapted to Shapely linestrings.
-
-.. code-block:: pycon
-
-    >>> from shapely.geometry import LineString
-    >>> LineString(np.array(patch.exterior)).length
-    62.806623139095073
-
-Numpy arrays of x and y must be transposed.
-
-.. code-block:: pycon
-
-    >>> LineString(np.transpose(np.array(patch.exterior.xy))).length
-    62.80662313909507
-
-Shapely can also integrate with other Python GIS packages using data modeled
-after GeoJSON.
+Shapely can also integrate with other Python GIS packages using GeoJSON-like
+dicts.
 
 .. code-block:: pycon
 
