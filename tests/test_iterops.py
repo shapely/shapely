@@ -43,5 +43,17 @@ class IterOpsTestCase(unittest.TestCase):
             [[(0.5, 0.5)]])
 
 
+    def test_err(self):
+        # bowtie polygon.
+        coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0))
+        polygon = Polygon(coords)
+        self.assertFalse(polygon.is_valid)
+        points = [Point(0.5, 0.5).buffer(2.0), Point(2.0, 2.0).buffer(3.0)]
+        # List of the points contained by the polygon
+        self.assertTrue(
+            all([isinstance(x, Polygon)
+                 for x in iterops.intersects(polygon, points, True)]))
+
+
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(IterOpsTestCase)
