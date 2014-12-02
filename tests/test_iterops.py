@@ -50,7 +50,6 @@ class IterOpsTestCase(unittest.TestCase):
         self.assertFalse(polygon.is_valid)
         points = [Point(0.5, 0.5).buffer(2.0), Point(2.0, 2.0).buffer(3.0)]
         # List of the points contained by the polygon
-        print list(iterops.overlaps(polygon, points, True))
         self.assertTrue(
             all([isinstance(x, Polygon)
                  for x in iterops.intersects(polygon, points, True)]))
