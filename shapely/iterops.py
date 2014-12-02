@@ -22,12 +22,11 @@ class IterOp(Delegating):
                 ob = this_geom
             if not this_geom._geom:
                 raise ValueError("Null geometry supports no operations")
-            retval = self.fn(context._geom, this_geom._geom)
-            if retval == 2:
-                err = PredicateError(
-                    "Failed to evaluate %s" % repr(self.fn))
+            try:
+                retval = self.fn(context._geom, this_geom._geom)
+            except Exception as err:
                 self._check_topology(err, context, this_geom)
-            elif bool(retval) == value:
+            if bool(retval) == value:
                 yield ob
 
 
