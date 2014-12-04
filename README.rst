@@ -30,15 +30,15 @@ Shapely 1.5 requires
 * Python >=2.6 (including Python 3.x)
 * GEOS >=3.3 (Shapely 1.2 requires only GEOS 3.1 but YMMV)
 
-Installing Shapely 1.5.0
-========================
+Installing Shapely
+==================
 
 Windows users should download an executable installer from
 http://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely or PyPI (if available).
 
 On other systems, acquire the GEOS by any means (`brew install geos` on OS X or
 `apt-get install libgeos-dev` on Debian/Ubuntu), make sure that it is on the
-system library path, and install Shapely 1.5.0 from the Python package index.
+system library path, and install Shapely from the Python package index.
 
 .. code-block:: console
 
