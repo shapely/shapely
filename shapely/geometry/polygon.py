@@ -264,6 +264,8 @@ class Polygon(BaseGeometry):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    __hash__ = object.__hash__
+
     @property
     def ctypes(self):
         if not self._ctypes_data:
