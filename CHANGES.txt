@@ -1,6 +1,10 @@
 Changes
 =======
 
+1.5.1 (2014-12-04)
+------------------
+- Restore geometry hashing (#209).
+
 1.5.0 (2014-12-02)
 ------------------
 - Affine transformation speedups (#197).
