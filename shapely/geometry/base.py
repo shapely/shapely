@@ -742,6 +742,8 @@ class BaseMultipartGeometry(BaseGeometry):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    __hash__ = object.__hash__
+
     def svg(self, scale_factor=1.):
         """
         SVG representation of the geometry. Scale factor is multiplied by
