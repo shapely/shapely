@@ -2,15 +2,19 @@
 
 from __future__ import print_function
 
+import ctypes
+import ctypes.util
 try:
     # If possible, use setuptools
     from setuptools import setup
     from setuptools.extension import Extension
     from setuptools.command.build_ext import build_ext as distutils_build_ext
+    from setuptools.command.install import install
 except ImportError:
     from distutils.core import setup
     from distutils.extension import Extension
     from distutils.command.build_ext import build_ext as distutils_build_ext
+    from distutils.command.install import install
 from distutils.cmd import Command
 from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
@@ -19,6 +23,7 @@ import errno
 import glob
 import os
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -53,6 +58,74 @@ with open('CHANGES.txt', 'r', **open_kwds) as fp:
 
 long_description = readme + '\n\n' + credits + '\n\n' + changes
 
+# Fail installation if we can't find a GEOS shared library with the right
+# version. We ship it with Shapely for Windows, so no need to check on that
+# platform. Code below copied from shapely/geos.py.
+class InstallCommand(install):
+
+    def run(self):
+        def load_dll(libname, fallbacks=None):
+            lib = ctypes.util.find_library(libname)
+            if lib is not None:
+                try:
+                    return ctypes.CDLL(lib)
+                except OSError:
+                    pass
+            if fallbacks is not None:
+                for name in fallbacks:
+                    try:
+                        return ctypes.CDLL(name)
+                    except OSError:
+                        # move on to the next fallback
+                        pass
+            # No shared library was loaded. Raise OSError.
+            raise OSError(
+                "Could not find library %s or load any of its variants %s" % (
+                    libname, fallbacks or []))
+
+        if sys.platform.startswith('linux'):
+            _lgeos = load_dll(
+                'geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
+        elif sys.platform == 'darwin':
+            if hasattr(sys, 'frozen'):
+                # .app file from py2app
+                alt_paths = [os.path.join(os.environ['RESOURCEPATH'],
+                             '..', 'Frameworks', 'libgeos_c.dylib')]
+            else:
+                alt_paths = [
+                    # The Framework build from Kyng Chaos:
+                    "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
+                    # macports
+                    '/opt/local/lib/libgeos_c.dylib',
+                ]
+            _lgeos = load_dll('geos_c', fallbacks=alt_paths)
+        elif sys.platform == 'sunos5':
+            _lgeos = load_dll(
+                'geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
+        else:  # other *nix systems
+            _lgeos = load_dll(
+                'geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
+
+        GEOSversion = _lgeos.GEOSversion
+        GEOSversion.restype = ctypes.c_char_p
+        GEOSversion.argtypes = []
+        geos_version_string = GEOSversion()
+        if sys.version_info[0] >= 3:
+            geos_version_string = geos_version_string.decode('ascii')
+        res = re.findall(r'(\d+)\.(\d+)\.(\d+)', geos_version_string)
+        assert len(res) == 2, res
+        geos_version = tuple(int(x) for x in res[0])
+        shapely_version = tuple(int(x) for x in version.split('.'))
+
+        if shapely_version >= (1, 3):
+            if geos_version >= (3, 3):
+                install.run(self)
+            else:
+                print(
+                    "Shapely >= 1.3 requires GEOS >= 3.3. "
+                    "Install GEOS 3.3+ and reinstall Shapely.")
+                sys.exit(1)
+
 setup_args = dict(
     name                = 'Shapely',
     version             = version,
@@ -74,7 +147,7 @@ setup_args = dict(
         'shapely.speedups',
         'shapely.vectorized',
     ],
-    cmdclass = {},
+    cmdclass = {'install': InstallCommand},
     classifiers         = [
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
@@ -89,7 +162,7 @@ setup_args = dict(
     data_files         = [('shapely', ['shapely/_geos.pxi'])]
 )
 
-# Add DLLs for Windows
+# Add DLLs to Windows packages.
 if sys.platform == 'win32':
     try:
         os.mkdir('shapely/DLLs')
