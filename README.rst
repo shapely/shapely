@@ -25,10 +25,10 @@ but can be readily integrated with packages that are. For more details, see:
 Requirements
 ============
 
-Shapely 1.5 requires
+Shapely 1.5.x requires
 
 * Python >=2.6 (including Python 3.x)
-* GEOS >=3.3 (Shapely 1.2 requires only GEOS 3.1 but YMMV)
+* GEOS >=3.3 (Shapely 1.2.x requires only GEOS 3.1 but YMMV)
 
 Installing Shapely
 ==================
@@ -42,7 +42,27 @@ system library path, and install Shapely from the Python package index.
 
 .. code-block:: console
 
-    $ pip install -U shapely
+    $ pip install shapely
+
+If you've installed GEOS to a non-standard location, you can use the
+geos-config program to find compiler and linker options.
+
+.. code-block:: console
+
+    $ CFLAGS=`geos-config --cflags` LDFLAGS=`geos-config --clibs` pip install shapely
+
+If your system's GEOS version is < 3.3.0 you cannot use Shapely 1.3+ and must
+stick to 1.2.x as shown below.
+
+.. code-block:: console
+
+    $ pip install shapely<1.3
+
+Or, if you're using pip 6+
+
+.. code-block:: console
+
+    $ pip install shapely~=1.2
 
 Shapely is also provided by popular Python distributions like Canopy (Enthought)
 and Anaconda (Continuum Analytics).
