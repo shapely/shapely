@@ -60,18 +60,25 @@ if sys.platform.startswith('linux'):
     free.restype = None
 
 elif sys.platform == 'darwin':
-    if hasattr(sys, 'frozen'):
-        # .app file from py2app
-        alt_paths = [os.path.join(os.environ['RESOURCEPATH'],
-                     '..', 'Frameworks', 'libgeos_c.dylib')]
+    # First test to see if this is a delocated wheel with a GEOS dylib.
+    geos_whl_dylib = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), '.dylibs/GEOS'))
+    if os.path.exists(geos_whl_dylib):
+        _lgeos = CDLL(geos_whl_dylib)
     else:
-        alt_paths = [
-            # The Framework build from Kyng Chaos:
-            "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
-            # macports
-            '/opt/local/lib/libgeos_c.dylib',
-        ]
-    _lgeos = load_dll('geos_c', fallbacks=alt_paths)
+        if hasattr(sys, 'frozen'):
+            # .app file from py2app
+            alt_paths = [os.path.join(os.environ['RESOURCEPATH'],
+                         '..', 'Frameworks', 'libgeos_c.dylib')]
+        else:
+            alt_paths = [
+                # The Framework build from Kyng Chaos
+                "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
+                # macports
+                '/opt/local/lib/libgeos_c.dylib',
+            ]
+        _lgeos = load_dll('geos_c', fallbacks=alt_paths)
+
     free = load_dll('c').free
     free.argtypes = [c_void_p]
     free.restype = None
