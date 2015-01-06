@@ -1,6 +1,11 @@
 Changes
 =======
 
+1.5.2 (2015-01-04)
+------------------
+- Fail installation if GEOS dependency is not met, preventing update breakage
+  (#218, #219).
+
 1.5.1 (2014-12-04)
 ------------------
 - Restore geometry hashing (#209).
