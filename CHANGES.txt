@@ -1,6 +1,11 @@
 Changes
 =======
 
+1.5.3 (2015-01-12)
+------------------
+- Fixed ownership and potential memory leak in polygonize (#223).
+- Wider release of binary wheels for OS X.
+
 1.5.2 (2015-01-04)
 ------------------
 - Fail installation if GEOS dependency is not met, preventing update breakage
