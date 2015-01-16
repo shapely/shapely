@@ -295,6 +295,9 @@ except BuildFailed as ex:
     print("Failure information, if any, is above.")
     print("I'm retrying the build without the C extension now.")
 
+    if 'build_ext' in cmd_classes:
+        del cmd_classes['build_ext']
+
     setup(**setup_args)
 
     print(BUILD_EXT_WARNING)
