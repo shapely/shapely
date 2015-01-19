@@ -62,7 +62,7 @@ if sys.platform.startswith('linux'):
 elif sys.platform == 'darwin':
     # First test to see if this is a delocated wheel with a GEOS dylib.
     geos_whl_dylib = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), '.dylibs/GEOS'))
+            os.path.join(os.path.dirname(__file__), '.dylibs/libgeos_c.1.dylib'))
     if os.path.exists(geos_whl_dylib):
         _lgeos = CDLL(geos_whl_dylib)
     else:
