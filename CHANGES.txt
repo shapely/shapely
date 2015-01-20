@@ -3,7 +3,7 @@ Changes
 
 1.5.5 (2015-01-20)
 ------------------
-- MANIFEST changes to exclude _geox.pxi (#231).
+- MANIFEST changes to restore _geox.pxi (#231).
 
 1.5.4 (2015-01-19)
 ------------------
