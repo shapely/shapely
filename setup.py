@@ -257,12 +257,13 @@ ext_modules = [
         include_dirs=[get_config_var('INCLUDEDIR')],),
 ]
 
+cmd_classes = setup_args.setdefault('cmdclass', {})
+
 try:
     import numpy as np
     from Cython.Distutils import build_ext as cython_build_ext
     from distutils.extension import Extension as DistutilsExtension
 
-    cmd_classes = setup_args.setdefault('cmdclass', {})
     if 'build_ext' in cmd_classes:
         raise ValueError('We need to put the Cython build_ext in '
                          'cmd_classes, but it is already defined.')
