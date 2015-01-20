@@ -3,10 +3,12 @@ prune debian
 prune docs
 prune DLLs_AMD64
 prune DLLs_x86
-global-exclude *.pyx *.pxi *.pxd
 exclude *.txt
 exclude MANIFEST.in
 include CHANGES.txt CREDITS.txt LICENSE.txt README.rst VERSION.txt
 recursive-include tests *.py *.txt
 recursive-include shapely/examples *.py
+recursive-include shapely/speedups *.pyx
+recursive-include shapely/vectorized *.pyx
+include shapely/_geos.pxi
 include docs/*.rst
