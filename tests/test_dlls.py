@@ -1,6 +1,6 @@
 from . import unittest
 
-from shapely.geos import load_dll
+from shapely.libgeos import load_dll
 
 
 class LoadingTestCase(unittest.TestCase):
