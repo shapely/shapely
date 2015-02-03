@@ -159,7 +159,10 @@ def get_geos_config(option):
             'Could not find geos-config %r: %s' % (geos_config, ex))
     if stderr and not stdout:
         raise ValueError(stderr.strip())
-    result = stdout.strip()
+    if sys.version_info[0] >= 3:
+        result = stdout.decode('ascii').strip()
+    else:
+        result = stdout.strip()
     log.debug('%s %s: %s', geos_config, option, result)
     return result
 
