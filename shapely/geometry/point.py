@@ -74,25 +74,25 @@ class Point(BaseGeometry):
             'coordinates': self.coords[0]
             }
 
-    def svg(self, scale_factor=1.):
+    def svg(self, scale_factor=1., fill_color=None):
+        """Returns SVG circle element for the Point geometry.
+
+        Parameters
+        ==========
+        scale_factor : float
+            Multiplication factor for the SVG circle diameter.  Default is 1.
+        fill_color : str, optional
+            Hex string for fill color. Default is to use "#66cc99" if
+            geometry is valid, and "#ff3333" if invalid.
         """
-        SVG representation of the geometry. Scale factor is multiplied by
-        the size of the SVG symbol so it can be scaled consistently for a
-        consistent appearance based on the canvas size.
-        """
-        return """<circle
-            cx="{0.x}"
-            cy="{0.y}"
-            r="{1}"
-            stroke="#555555"
-            stroke-width="{2}"
-            fill="{3}"
-            opacity=".6"
-            />""".format(
-                self,
-                3 * scale_factor,
-                1 * scale_factor,
-                "#66cc99" if self.is_valid else "#ff3333")
+        if self.is_empty:
+            return '<g />'
+        if fill_color is None:
+            fill_color = "#66cc99" if self.is_valid else "#ff3333"
+        return (
+            '<circle cx="{0.x}" cy="{0.y}" r="{1}" '
+            'stroke="#555555" stroke-width="{2}" fill="{3}" opacity="0.6" />'
+            ).format(self, 3. * scale_factor, 1. * scale_factor, fill_color)
 
     @property
     def ctypes(self):

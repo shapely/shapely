@@ -300,25 +300,33 @@ class Polygon(BaseGeometry):
             'coordinates': tuple(coords)
             }
 
-    def svg(self, scale_factor=1.):
+    def svg(self, scale_factor=1., fill_color=None):
+        """Returns SVG path element for the Polygon geometry.
+
+        Parameters
+        ==========
+        scale_factor : float
+            Multiplication factor for the SVG stroke-width.  Default is 1.
+        fill_color : str, optional
+            Hex string for fill color. Default is to use "#66cc99" if
+            geometry is valid, and "#ff3333" if invalid.
         """
-        SVG representation of the geometry. Scale factor is multiplied by
-        the size of the SVG symbol so it can be scaled consistently for a
-        consistent appearance based on the canvas size.
-        """
-        exterior_coords = [["{0},{1}".format(*c) for c in self.exterior.coords]]
+        if self.is_empty:
+            return '<g />'
+        if fill_color is None:
+            fill_color = "#66cc99" if self.is_valid else "#ff3333"
+        exterior_coords = [
+            ["{0},{1}".format(*c) for c in self.exterior.coords]]
         interior_coords = [
             ["{0},{1}".format(*c) for c in interior.coords]
-            for interior in self.interiors ]
+            for interior in self.interiors]
         path = " ".join([
             "M {0} L {1} z".format(coords[0], " L ".join(coords[1:]))
-            for coords in exterior_coords + interior_coords ])
-        return """
-            <g fill-rule="evenodd" fill="{2}" stroke="#555555"
-            stroke-width="{0}" opacity="0.6">
-            <path d="{1}" />
-            </g>""".format(
-                2.*scale_factor, path, "#66cc99" if self.is_valid else "#ff3333")
+            for coords in exterior_coords + interior_coords])
+        return (
+            '<path fill-rule="evenodd" fill="{2}" stroke="#555555" '
+            'stroke-width="{0}" opacity="0.6" d="{1}" />'
+            ).format(2. * scale_factor, path, fill_color)
 
 
 class PolygonAdapter(PolygonProxy, Polygon):
