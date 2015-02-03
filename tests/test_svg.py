@@ -13,7 +13,6 @@ class SvgTestCase(unittest.TestCase):
     def assertSVG(self, geom, expected, **kwrds):
         """Helper function to check XML and debug SVG"""
         svg_elem = geom.svg(**kwrds)
-        self.assertEqual(svg_elem, expected)
         try:
             parse_xml_string(svg_elem)
         except:
@@ -26,7 +25,7 @@ class SvgTestCase(unittest.TestCase):
             raise AssertionError(
                 'XML is not valid for SVG doucment: ' + str(svg_doc))
         svg_output_dir = None
-        # svg_output_dir = '.'
+        # svg_output_dir = '.'  # useful for debugging SVG files
         if svg_output_dir:
             fname = geom.type
             if geom.is_empty:
@@ -39,6 +38,7 @@ class SvgTestCase(unittest.TestCase):
             svg_path = os.path.join(svg_output_dir, fname + '.svg')
             with open(svg_path, 'w') as fp:
                 fp.write(doc.toprettyxml())
+        self.assertEqual(svg_elem, expected)
 
     def test_point(self):
         # Empty
@@ -78,15 +78,15 @@ class SvgTestCase(unittest.TestCase):
         # Empty
         self.assertSVG(LineString(), '<g />')
         # Valid
-        g = LineString([(6, 7), (3, 4)])
+        g = LineString([(5, 8), (496, -6), (530, 20)])
         self.assertSVG(
             g,
             '<polyline fill="none" stroke="#66cc99" stroke-width="2.0" '
-            'points="6.0,7.0 3.0,4.0" opacity="0.8" />')
+            'points="5.0,8.0 496.0,-6.0 530.0,20.0" opacity="0.8" />')
         self.assertSVG(
             g,
             '<polyline fill="none" stroke="#66cc99" stroke-width="10.0" '
-            'points="6.0,7.0 3.0,4.0" opacity="0.8" />',
+            'points="5.0,8.0 496.0,-6.0 530.0,20.0" opacity="0.8" />',
             scale_factor=5)
         # Invalid
         self.assertSVG(
@@ -159,12 +159,12 @@ class SvgTestCase(unittest.TestCase):
         # Invalid
         self.assertSVG(
             MultiPolygon([
-                Polygon([(40, 40), (20, 45), (45, 30), (40, 40)]),
+                Polygon([(140, 140), (120, 145), (145, 130), (140, 140)]),
                 Polygon([(0, 40), (0, 0), (40, 40), (40, 0), (0, 40)])
             ]),
             '<g><path fill-rule="evenodd" fill="#ff3333" stroke="#555555" '
-            'stroke-width="2.0" opacity="0.6" d="M 40.0,40.0 L 20.0,45.0 L '
-            '45.0,30.0 L 40.0,40.0 z" />'
+            'stroke-width="2.0" opacity="0.6" d="M 140.0,140.0 L '
+            '120.0,145.0 L 145.0,130.0 L 140.0,140.0 z" />'
             '<path fill-rule="evenodd" fill="#ff3333" stroke="#555555" '
             'stroke-width="2.0" opacity="0.6" d="M 0.0,40.0 L 0.0,0.0 L '
             '40.0,40.0 L 40.0,0.0 L 0.0,40.0 z" /></g>')

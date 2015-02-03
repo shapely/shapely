@@ -359,28 +359,41 @@ class BaseGeometry(object):
 
     def _repr_svg_(self):
         """SVG representation for iPython notebook"""
+        svg_top = '<svg xmlns="http://www.w3.org/2000/svg" ' \
+            'xmlns:xlink="http://www.w3.org/1999/xlink" '
         if self.is_empty:
-            return '<svg xmlns="http://www.w3.org/2000/svg" ' \
-                'xmlns:xlink="http://www.w3.org/1999/xlink" />'
+            return svg_top + '/>'
         else:
-            # Pick an arbitrary size for the SVG canvas
-            xmin, ymin, xmax, ymax = self.buffer(1).bounds
-            x_size = min([max([100., xmax - xmin]), 300])
-            y_size = min([max([100., ymax - ymin]), 300])
+            # Establish SVG canvas that will fit all the data + small space
+            xmin, ymin, xmax, ymax = self.bounds
+            if xmin == xmax and ymin == ymax:
+                # This is a point; buffer using an arbitrary size
+                xmin, ymin, xmax, ymax = self.buffer(1).bounds
+            else:
+                # Expand bounds by a fraction of the data ranges
+                expand = 0.04  # or 4%, same as R plots
+                widest_part = max([xmax - xmin, ymax - ymin])
+                expand_amount = widest_part * expand
+                xmin -= expand_amount
+                ymin -= expand_amount
+                xmax += expand_amount
+                ymax += expand_amount
+            dx = xmax - xmin
+            dy = ymax - ymin
+            width = min([max([100., dx]), 300])
+            height = min([max([100., dy]), 300])
             try:
-                scale_factor = \
-                    max([xmax - xmin, ymax - ymin]) / max([x_size, y_size])
+                scale_factor = max([dx, dy]) / max([width, height])
             except ZeroDivisionError:
-                scale_factor = 1
-            buffered_box = "{0} {1} {2} {3}".\
-                format(xmin, ymin, xmax - xmin, ymax - ymin)
-            return (
-                '<svg xmlns="http://www.w3.org/2000/svg" '
-                'xmlns:xlink="http://www.w3.org/1999/xlink" '
-                'preserveAspectRatio="xMinYMin meet" viewBox="{0}" '
-                'width="{1}" height="{2}" '
-                'transform="translate(0, {1}),scale(1, -1)">{3}</svg>'
-                ).format(buffered_box, x_size, y_size, self.svg(scale_factor))
+                scale_factor = 1.
+            view_box = "{0} {1} {2} {3}".format(xmin, ymin, dx, dy)
+            transform = "matrix(1,0,0,-1,0,{0})".format(ymax + ymin)
+            return svg_top + (
+                'width="{1}" height="{2}" viewBox="{0}" '
+                'preserveAspectRatio="xMinYMin meet">'
+                '<g transform="{3}">{4}</g></svg>'
+                ).format(view_box, width, height, transform,
+                         self.svg(scale_factor))
 
     @property
     def geom_type(self):
