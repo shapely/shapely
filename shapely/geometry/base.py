@@ -360,7 +360,8 @@ class BaseGeometry(object):
     def _repr_svg_(self):
         """SVG representation for iPython notebook"""
         if self.is_empty:
-            return '<svg />'
+            return '<svg xmlns="http://www.w3.org/2000/svg" ' \
+                'xmlns:xlink="http://www.w3.org/1999/xlink" />'
         else:
             # Pick an arbitrary size for the SVG canvas
             xmin, ymin, xmax, ymax = self.buffer(1).bounds
@@ -374,7 +375,9 @@ class BaseGeometry(object):
             buffered_box = "{0} {1} {2} {3}".\
                 format(xmin, ymin, xmax - xmin, ymax - ymin)
             return (
-                '<svg preserveAspectRatio="xMinYMin meet" viewBox="{0}" '
+                '<svg xmlns="http://www.w3.org/2000/svg" '
+                'xmlns:xlink="http://www.w3.org/1999/xlink" '
+                'preserveAspectRatio="xMinYMin meet" viewBox="{0}" '
                 'width="{1}" height="{2}" '
                 'transform="translate(0, {1}),scale(1, -1)">{3}</svg>'
                 ).format(buffered_box, x_size, y_size, self.svg(scale_factor))
