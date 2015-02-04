@@ -353,35 +353,47 @@ class BaseGeometry(object):
         """WKB hex representation of the geometry"""
         return WKBWriter(lgeos).write_hex(self)
 
-    def svg(self, scale_factor=1.):
-        """
-        SVG representation of the geometry. Scale factor is multiplied by
-        the size of the SVG symbol so it can be scaled consistently for a
-        consistent appearance based on the canvas size.
-        """
+    def svg(self, scale_factor=1., **kwargs):
+        """Raises NotImplementedError"""
         raise NotImplementedError
 
     def _repr_svg_(self):
         """SVG representation for iPython notebook"""
-        #Pick an arbitrary size for the SVG canvas
-
-
-        xmin, ymin, xmax, ymax = self.buffer(1).bounds
-        x_size = min([max([100., xmax - xmin]), 300])
-        y_size = min([max([100., ymax - ymin]), 300])
-        try:
-            scale_factor = max([xmax - xmin, ymax - ymin]) / max([x_size, y_size])
-        except ZeroDivisionError:
-            scale_factor = 1
-        buffered_box = "{0} {1} {2} {3}".format(xmin, ymin, xmax - xmin, ymax - ymin)
-        return """<svg
-            preserveAspectRatio="xMinYMin meet"
-            viewBox="{0}"
-            width="{1}"
-            height="{2}"
-            transform="translate(0, {1}),scale(1, -1)">
-            {3}
-            </svg>""".format(buffered_box, x_size, y_size, self.svg(scale_factor))
+        svg_top = '<svg xmlns="http://www.w3.org/2000/svg" ' \
+            'xmlns:xlink="http://www.w3.org/1999/xlink" '
+        if self.is_empty:
+            return svg_top + '/>'
+        else:
+            # Establish SVG canvas that will fit all the data + small space
+            xmin, ymin, xmax, ymax = self.bounds
+            if xmin == xmax and ymin == ymax:
+                # This is a point; buffer using an arbitrary size
+                xmin, ymin, xmax, ymax = self.buffer(1).bounds
+            else:
+                # Expand bounds by a fraction of the data ranges
+                expand = 0.04  # or 4%, same as R plots
+                widest_part = max([xmax - xmin, ymax - ymin])
+                expand_amount = widest_part * expand
+                xmin -= expand_amount
+                ymin -= expand_amount
+                xmax += expand_amount
+                ymax += expand_amount
+            dx = xmax - xmin
+            dy = ymax - ymin
+            width = min([max([100., dx]), 300])
+            height = min([max([100., dy]), 300])
+            try:
+                scale_factor = max([dx, dy]) / max([width, height])
+            except ZeroDivisionError:
+                scale_factor = 1.
+            view_box = "{0} {1} {2} {3}".format(xmin, ymin, dx, dy)
+            transform = "matrix(1,0,0,-1,0,{0})".format(ymax + ymin)
+            return svg_top + (
+                'width="{1}" height="{2}" viewBox="{0}" '
+                'preserveAspectRatio="xMinYMin meet">'
+                '<g transform="{3}">{4}</g></svg>'
+                ).format(view_box, width, height, transform,
+                         self.svg(scale_factor))
 
     @property
     def geom_type(self):
@@ -744,13 +756,24 @@ class BaseMultipartGeometry(BaseGeometry):
 
     __hash__ = object.__hash__
 
-    def svg(self, scale_factor=1.):
+    def svg(self, scale_factor=1., color=None):
+        """Returns a group of SVG elements for the multipart geometry.
+
+        Parameters
+        ==========
+        scale_factor : float
+            Multiplication factor for the SVG stroke-width.  Default is 1.
+        color : str, optional
+            Hex string for stroke or fill color. Default is to use "#66cc99"
+            if geometry is valid, and "#ff3333" if invalid.
         """
-        SVG representation of the geometry. Scale factor is multiplied by
-        the size of the SVG symbol so it can be scaled consistently for a
-        consistent appearance based on the canvas size.
-        """
-        return "\n".join([g.svg(scale_factor) for g in self])
+        if self.is_empty:
+            return '<g />'
+        if color is None:
+            color = "#66cc99" if self.is_valid else "#ff3333"
+        return '<g>' + \
+            ''.join(p.svg(scale_factor, color) for p in self) + \
+            '</g>'
 
 
 class GeometrySequence(object):
