@@ -1,12 +1,14 @@
+prune manual
+prune debian
+prune docs
+prune DLLs_AMD64
+prune DLLs_x86
 exclude *.txt
-recursive-exclude manual *
-recursive-exclude debian *
-recursive-exclude docs *
-recursive-exclude DLLs_AMD64 *
-recursive-exclude DLLs_x86 *
+exclude MANIFEST.in
 include CHANGES.txt CREDITS.txt LICENSE.txt README.rst VERSION.txt
 recursive-include tests *.py *.txt
 recursive-include shapely/examples *.py
-recursive-exclude shapely/speedups *.pyx
+recursive-include shapely/speedups *.pyx
+recursive-include shapely/vectorized *.pyx
+include shapely/_geos.pxi
 include docs/*.rst
-exclude MANIFEST.in

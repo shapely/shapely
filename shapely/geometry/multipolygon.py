@@ -80,29 +80,24 @@ class MultiPolygon(BaseMultipartGeometry):
             'coordinates': allcoords
             }
 
-    def svg(self, scale_factor=1.):
+    def svg(self, scale_factor=1., fill_color=None):
+        """Returns group of SVG path elements for the MultiPolygon geometry.
+
+        Parameters
+        ==========
+        scale_factor : float
+            Multiplication factor for the SVG stroke-width.  Default is 1.
+        fill_color : str, optional
+            Hex string for fill color. Default is to use "#66cc99" if
+            geometry is valid, and "#ff3333" if invalid.
         """
-        SVG representation of the geometry. Scale factor is multiplied by
-        the size of the SVG symbol so it can be scaled consistently for a
-        consistent appearance based on the canvas size.
-        """
-        parts = []
-        for part in self.geoms:
-            exterior_coords = [["{0},{1}".format(*c) for c in part.exterior.coords]]
-            interior_coords = [
-                ["{0},{1}".format(*c) for c in interior.coords]
-                for interior in part.interiors ]
-            path = " ".join([
-                "M {0} L {1} z".format(coords[0], " L ".join(coords[1:]))
-                for coords in exterior_coords + interior_coords ])
-            parts.append(
-                """<g fill-rule="evenodd" fill="{2}" stroke="#555555"
-                stroke-width="{0}" opacity="0.6">
-                <path d="{1}" /></g>""".format(
-                    2. * scale_factor,
-                    path,
-                    "#66cc99" if self.is_valid else "#ff3333"))
-        return "\n".join(parts)
+        if self.is_empty:
+            return '<g />'
+        if fill_color is None:
+            fill_color = "#66cc99" if self.is_valid else "#ff3333"
+        return '<g>' + \
+            ''.join(p.svg(scale_factor, fill_color) for p in self) + \
+            '</g>'
 
 
 class MultiPolygonAdapter(CachingGeometryProxy, MultiPolygon):

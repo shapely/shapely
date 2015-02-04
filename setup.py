@@ -115,7 +115,7 @@ setup_args = dict(
     cmdclass           = {},
 )
 
-# Add DLLs to Windows packages.
+# Add DLLs for Windows
 if sys.platform == 'win32':
     try:
         os.mkdir('shapely/DLLs')
@@ -272,6 +272,8 @@ ext_modules = [
     ),
 ]
 
+cmd_classes = setup_args.setdefault('cmdclass', {})
+
 try:
     import numpy
     from Cython.Distutils import build_ext as cython_build_ext
@@ -316,6 +318,9 @@ except BuildFailed as ex:
     # Remove any previously defined build_ext command class.
     if 'build_ext' in setup_args['cmdclass']:
         del setup_args['cmdclass']['build_ext']
+
+    if 'build_ext' in cmd_classes:
+        del cmd_classes['build_ext']
 
     setup(**setup_args)
 

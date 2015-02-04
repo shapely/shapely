@@ -1,6 +1,24 @@
 Changes
 =======
 
+1.5.6 (2015-02-02)
+------------------
+- Fix setup regression (#232, #234).
+- SVG representation improvements (#233, #237).
+
+1.5.5 (2015-01-20)
+------------------
+- MANIFEST changes to restore _geox.pxi (#231).
+
+1.5.4 (2015-01-19)
+------------------
+- Fixed OS X binary wheel library load path (#224).
+
+1.5.3 (2015-01-12)
+------------------
+- Fixed ownership and potential memory leak in polygonize (#223).
+- Wider release of binary wheels for OS X.
+
 1.5.2 (2015-01-04)
 ------------------
 - Fail installation if GEOS dependency is not met, preventing update breakage
