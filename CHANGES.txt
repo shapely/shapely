@@ -1,6 +1,11 @@
 Changes
 =======
 
+1.5.6 (2015-02-02)
+------------------
+- Fix setup regression (#232, #234).
+- SVG representation improvements (#233, #237).
+
 1.5.5 (2015-01-20)
 ------------------
 - MANIFEST changes to restore _geox.pxi (#231).
