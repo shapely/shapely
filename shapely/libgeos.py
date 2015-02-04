@@ -72,7 +72,19 @@ elif sys.platform == 'win32':
         original_path = os.environ['PATH']
         os.environ['PATH'] = "%s;%s;%s" % \
             (egg_dlls, wininst_dlls, original_path)
-        lgeos = CDLL("geos.dll")
+        try:
+            lgeos = CDLL("geos.dll")
+        except (ImportError, WindowsError, OSError):
+            pass
+        try:
+            lgeos = CDLL("geos_c.dll")
+        except (ImportError, WindowsError, OSError):
+            pass
+        if not lgeos and os.environ.get("GEOS_LIBRARY_PATH", None):
+            lgeos = CDLL(os.environ.get("GEOS_LIBRARY_PATH"))
+        if not lgeos:
+            raise ImportError('geos has not been found.  Try setting GEOS_LIBRARY_PATH \
+                in your environment variables')
     except (ImportError, WindowsError, OSError):
         raise
 
