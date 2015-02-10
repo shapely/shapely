@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-# One environment variable influence this script.
+# Two environment variables influence this script.
+#
+# GEOS_LIBRARY_PATH: a path to a GEOS C shared library.
 #
 # GEOS_CONFIG: the path to a geos-config program that points to GEOS version,
 # headers, and libraries.
@@ -27,9 +29,10 @@ from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
 from distutils.sysconfig import get_config_var
 
-# Get geos_version from GEOS dynamic library
-# TODO: find a way to load a specific dynamic library
-from shapely.libgeos import geos_version_string, geos_version
+# Get geos_version from GEOS dynamic library, which depends on
+# GEOS_LIBRARY_PATH and/or GEOS_CONFIG environment variables
+from shapely.libgeos import geos_version_string, geos_version, \
+    geos_config, get_geos_config
 
 logging.basicConfig()
 log = logging.getLogger(__file__)
@@ -142,29 +145,6 @@ library_dirs = []
 libraries = []
 extra_link_args = []
 
-# Use geos-config utility to get development parameters
-# (Note: not available for Windows, since it is a shell script)
-geos_config = os.environ.get('GEOS_CONFIG', 'geos-config')
-log.debug('geos_config: %s', geos_config)
-
-
-def get_geos_config(option):
-    try:
-        stdout, stderr = subprocess.Popen(
-            [geos_config, option],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-    except OSError as ex:
-        # e.g., [Errno 2] No such file or directory
-        raise OSError(
-            'Could not find geos-config %r: %s' % (geos_config, ex))
-    if stderr and not stdout:
-        raise ValueError(stderr.strip())
-    if sys.version_info[0] >= 3:
-        result = stdout.decode('ascii').strip()
-    else:
-        result = stdout.strip()
-    log.debug('%s %s: %s', geos_config, option, result)
-    return result
 
 try:
     # Get the version from geos-config. Show error if this version tuple is

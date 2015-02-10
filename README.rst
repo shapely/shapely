@@ -44,12 +44,13 @@ system library path, and install Shapely from the Python package index.
 
     $ pip install shapely
 
-If you've installed GEOS to a non-standard location, you can use the
-geos-config program to find compiler and linker options.
+If you've installed GEOS to a non-standard location, the geos-config program
+will be used to get compiler and linker options. If it is not on the PATH,
+it can be specified with a GEOS_CONFIG environment variable, e.g.:
 
 .. code-block:: console
 
-    $ CFLAGS=`geos-config --cflags` LDFLAGS=`geos-config --clibs` pip install shapely
+    $ GEOS_CONFIG=/path/to/geos-config pip install shapely
 
 If your system's GEOS version is < 3.3.0 you cannot use Shapely 1.3+ and must
 stick to 1.2.x as shown below.
