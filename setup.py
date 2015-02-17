@@ -1,11 +1,52 @@
 #!/usr/bin/env python
 
-# Two environment variables influence this script.
+# Build or install Shapely distributions
 #
-# GEOS_LIBRARY_PATH: a path to a GEOS C shared library.
+# This script has two different uses.
 #
-# GEOS_CONFIG: the path to a geos-config program that points to GEOS version,
-# headers, and libraries.
+# 1) Installing from a source distribution, whether via
+#
+#      ``python setup.py install``
+#
+#    after downloading a source distribution, or
+#
+#      ``pip install shapely``
+#
+#    on a platform for which pip cannot find a wheel. This will most
+#    often be the case for Linux, since the project is not yet
+#    publishing Linux wheels. This will never be the case on Windows and
+#    rarely the case on OS X; both are wheels-first platforms.
+#
+# 2) Building distributions (source or wheel) from a repository. This
+#    includes using Cython to generate C source for the speedups and
+#    vectorize modules from Shapely's .pyx files.
+#
+# On import, Shapely loads a GEOS shared library. GEOS is a run time
+# requirement. Additionally, the speedups and vectorized C extension
+# modules need GEOS headers and libraries to be built. Shapely versions
+# >=1.3 require GEOS >= 3.3.
+#
+# For the first use case (see 1, above), we aim to treat GEOS as if it
+# were a Python requirement listed in ``install_requires``. That is, in
+# an environment with Shapely 1.2.x and GEOS 3.2, the command ``pip
+# install shapely >=1.3 --no-use-wheel`` (whether wheels are explicitly
+# opted against or are not published for the platform) should fail with
+# a warning and advice to upgrade GEOS to >=3.3.
+#
+# In case 1, the environment's GEOS version is determined by executing
+# the geos-config script. If the GEOS version returned by that script is
+# incompatible with the Shapely source distribution, this setup script
+# will fail.
+#
+# For the second use case (see 2, distribution building, above), we
+# allow the requirements to be loosened. If this script finds that the
+# environment variable NO_GEOS_CHECK is set, geos-config will not be
+# executed and no attempt will be made to enforce requirements as in the
+# second case.
+#
+# For both cases, a geos-config not in the environment's $PATH may be
+# used by setting the environment variable GEOS_CONFIG to the path to
+# a geos-config script.
 
 import errno
 import glob
@@ -29,10 +70,6 @@ from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
 from distutils.sysconfig import get_config_var
 
-# Get geos_version from GEOS dynamic library, which depends on
-# GEOS_LIBRARY_PATH and/or GEOS_CONFIG environment variables
-from shapely.libgeos import geos_version_string, geos_version, \
-    geos_config, get_geos_config
 
 logging.basicConfig()
 log = logging.getLogger(__file__)
@@ -40,6 +77,32 @@ log = logging.getLogger(__file__)
 # python -W all setup.py ...
 if 'all' in sys.warnoptions:
     log.level = logging.DEBUG
+
+
+class GEOSConfig(object):
+    """Interface to config options from the `geos-config` utility
+    """
+
+    def __init__(self, cmd):
+        self.cmd = cmd
+
+    def get(self, option):
+        try:
+            output = subprocess.check_output([self.cmd, option])
+        except OSError as ex:
+            # e.g., [Errno 2] No such file or directory
+            raise OSError(
+                'Could not find geos-config %r: %s' % (self.cmd, ex))
+        if sys.version_info[0] >= 3:
+            result = output.decode('ascii').strip()
+        else:
+            result = output.strip()
+        log.debug('%s %s: %r', self.cmd, option, result)
+        return result
+
+    def version(self):
+        return tuple(map(int, self.get('--version').strip().split('.')))
+
 
 # Get the version from the shapely module
 version = None
@@ -55,13 +118,25 @@ shapely_version = tuple(int(x) for x in version.split('.'))
 # Fail installation if the GEOS shared library does not meet the minimum
 # version. We ship it with Shapely for Windows, so no need to check on
 # that platform.
-log.debug('GEOS shared library: %s %s', geos_version_string, geos_version)
-if (set(sys.argv).intersection(['install', 'build', 'build_ext']) and
-        shapely_version >= (1, 3) and geos_version < (3, 3)):
-    log.critical(
-        "Shapely >= 1.3 requires GEOS >= 3.3. "
-        "Install GEOS 3.3+ and reinstall Shapely.")
-    sys.exit(1)
+
+geos_version = None
+geos_config = GEOSConfig(os.environ.get('GEOS_CONFIG', 'geos-config'))
+
+if not os.environ.get('NO_GEOS_CHECK'):
+    try:
+        geos_version = geos_config.version()
+    except Exception as exc:
+        log.critical("Failed to determine system's GEOS version: %s", exc)
+        sys.exit(1)
+
+    log.debug("GEOS shared library: %", geos_version)
+
+    if (set(sys.argv).intersection(['install', 'build', 'build_ext']) and
+            shapely_version >= (1, 3) and geos_version < (3, 3)):
+        log.critical(
+            "Shapely >= 1.3 requires GEOS >= 3.3. "
+            "Install GEOS 3.3+ and reinstall Shapely.")
+        sys.exit(1)
 
 # Handle UTF-8 encoding of certain text files.
 open_kwds = {}
@@ -85,7 +160,7 @@ long_description = readme + '\n\n' + credits + '\n\n' + changes
 setup_args = dict(
     name                = 'Shapely',
     version             = version,
-    requires            = ['Python (>=2.6)', 'libgeos_c (>=3.3)'],
+    requires            = ['Python (>=2.6)', 'GEOS (>=3.3)'],
     description         = 'Geometric objects, predicates, and operations',
     license             = 'BSD',
     keywords            = 'geometry topology gis',
@@ -118,7 +193,7 @@ setup_args = dict(
     cmdclass           = {},
 )
 
-# Add DLLs for Windows
+# Add DLLs for Windows.
 if sys.platform == 'win32':
     try:
         os.mkdir('shapely/DLLs')
@@ -145,33 +220,12 @@ library_dirs = []
 libraries = []
 extra_link_args = []
 
-
-try:
-    # Get the version from geos-config. Show error if this version tuple is
-    # different to the GEOS version loaded from the dynamic library.
-    geos_config_version_string = get_geos_config('--version')
-    res = re.findall(r'(\d+)\.(\d+)\.(\d+)', geos_config_version_string)
-    geos_config_version = tuple(int(x) for x in res[0])
-    if geos_config_version != geos_version:
-        log.error("The GEOS dynamic library version is %s %s,",
-                  geos_version_string, geos_version)
-        log.error("but the version reported by %s is %s %s.", geos_config,
-                  geos_config_version_string, geos_config_version)
-        sys.exit(1)
-except OSError as ex:
-    log.error(ex)
-    log.error('Cannot find geos-config to get headers and check version.')
-    log.error('If available, specify a path to geos-config with a '
-              'GEOS_CONFIG environment variable')
-    geos_config = None
-
-
-if geos_config:
-    # Collect other options from GEOS
-    for item in get_geos_config('--cflags').split():
+if geos_version and geos_config:
+    # Collect other options from GEOS configuration.
+    for item in geos_config.get('--cflags').split():
         if item.startswith("-I"):
             include_dirs.extend(item[2:].split(":"))
-    for item in get_geos_config('--clibs').split():
+    for item in geos_config.get('--clibs').split():
         if item.startswith("-L"):
             library_dirs.extend(item[2:].split(":"))
         elif item.startswith("-l"):
