@@ -35,8 +35,8 @@
 #
 # In case 1, the environment's GEOS version is determined by executing
 # the geos-config script. If the GEOS version returned by that script is
-# incompatible with the Shapely source distribution, this setup script
-# will fail.
+# incompatible with the Shapely source distribution or no geos-config
+# script can be found, this setup script will fail.
 #
 # For the second use case (see 2, distribution building, above), we
 # allow the requirements to be loosened. If this script finds that the
@@ -88,20 +88,25 @@ class GEOSConfig(object):
 
     def get(self, option):
         try:
-            output = subprocess.check_output([self.cmd, option])
+            stdout, stderr = subprocess.Popen(
+                [self.cmd, option],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         except OSError as ex:
             # e.g., [Errno 2] No such file or directory
             raise OSError(
-                'Could not find geos-config %r: %s' % (self.cmd, ex))
+                'Could not find geos-config %r: %s' % (geos_config, ex))
+        if stderr and not stdout:
+            raise ValueError(stderr.strip())
         if sys.version_info[0] >= 3:
-            result = output.decode('ascii').strip()
+            result = stdout.decode('ascii').strip()
         else:
-            result = output.strip()
+            result = stdout.strip()
         log.debug('%s %s: %r', self.cmd, option, result)
         return result
 
     def version(self):
-        return tuple(map(int, self.get('--version').strip().split('.')))
+        match = re.match(r'(\d+)\.(\d+)\.(\d+)', self.get('--version').strip())
+        return tuple(map(int, match.groups()))
 
 
 # Get the version from the shapely module
