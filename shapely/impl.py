@@ -21,6 +21,13 @@ from shapely.predicates import BinaryPredicate, UnaryPredicate
 from shapely.topology import BinaryRealProperty, BinaryTopologicalOp
 from shapely.topology import UnaryRealProperty, UnaryTopologicalOp
 
+
+class ImplementationError(
+        AttributeError, KeyError, NotImplementedError):
+    """To be raised when the implementation does not support the 
+    requested method."""
+
+
 def delegated(func):
     """A delegated method raises AttributeError in the absence of backend
     support."""
@@ -29,11 +36,13 @@ def delegated(func):
         try:
             return func(*args, **kwargs)
         except KeyError:
-            raise AttributeError("Method %r is not supported by %r" %
-                                 (func.__name__, args[0].impl))
+            raise ImplementationError(
+                "Method '%s' not provided by "
+                "implementation '%s'" % (func.__name__, args[0].impl))
     return wrapper
 
 # Map geometry methods to their GEOS delegates
+
 
 class BaseImpl(object):
     def __init__(self, values):
@@ -41,7 +50,13 @@ class BaseImpl(object):
     def update(self, values):
         self.map.update(values)
     def __getitem__(self, key):
-        return self.map[key]
+        try:
+            return self.map[key]
+        except KeyError:
+            raise ImplementationError(
+                "Method '%s' not provided by "
+                "implementation '%s'" % (key, self.map))
+
     def __contains__(self, key):
         return key in self.map
 
