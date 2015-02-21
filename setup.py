@@ -68,6 +68,7 @@ except ImportError:
     from distutils.command.build_ext import build_ext as distutils_build_ext
 from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
+from distutils import log
 from distutils.sysconfig import get_config_var
 
 
@@ -93,8 +94,7 @@ class GEOSConfig(object):
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         except OSError as ex:
             # e.g., [Errno 2] No such file or directory
-            raise OSError(
-                'Could not find geos-config %r: %s' % (geos_config, ex))
+            raise OSError("Could not find geos-config script")
         if stderr and not stdout:
             raise ValueError(stderr.strip())
         if sys.version_info[0] >= 3:
@@ -127,21 +127,24 @@ shapely_version = tuple(int(x) for x in version.split('.'))
 geos_version = None
 geos_config = GEOSConfig(os.environ.get('GEOS_CONFIG', 'geos-config'))
 
-if not os.environ.get('NO_GEOS_CHECK'):
+if not os.environ.get('NO_GEOS_CHECK') or sys.platform == 'win32':
     try:
-        geos_version = geos_config.version()
-    except Exception as exc:
-        log.critical("Failed to determine system's GEOS version: %s", exc)
-        sys.exit(1)
-
-    log.debug("GEOS shared library: %s", geos_version)
-
-    if (set(sys.argv).intersection(['install', 'build', 'build_ext']) and
-            shapely_version >= (1, 3) and geos_version < (3, 3)):
-        log.critical(
+        log.info(
             "Shapely >= 1.3 requires GEOS >= 3.3. "
-            "Install GEOS 3.3+ and reinstall Shapely.")
-        sys.exit(1)
+            "Checking for GEOS version...")
+        geos_version = geos_config.version()
+        log.info("Found GEOS version: %s", geos_version)
+        if (set(sys.argv).intersection(['install', 'build', 'build_ext']) and
+                shapely_version >= (1, 3) and geos_version < (3, 3)):
+            log.critical(
+                "Shapely >= 1.3 requires GEOS >= 3.3. "
+                "Install GEOS 3.3+ and reinstall Shapely.")
+            sys.exit(1)
+    except OSError as exc:
+        log.warn(
+            "Failed to determine system's GEOS version: %s. "
+            "Installation continuing. GEOS version will be "
+            "checked on import of shapely.", exc)
 
 # Handle UTF-8 encoding of certain text files.
 open_kwds = {}
