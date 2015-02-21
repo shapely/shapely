@@ -134,7 +134,7 @@ if not os.environ.get('NO_GEOS_CHECK'):
         log.critical("Failed to determine system's GEOS version: %s", exc)
         sys.exit(1)
 
-    log.debug("GEOS shared library: %", geos_version)
+    log.debug("GEOS shared library: %s", geos_version)
 
     if (set(sys.argv).intersection(['install', 'build', 'build_ext']) and
             shapely_version >= (1, 3) and geos_version < (3, 3)):
