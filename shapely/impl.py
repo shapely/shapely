@@ -21,6 +21,13 @@ from shapely.predicates import BinaryPredicate, UnaryPredicate
 from shapely.topology import BinaryRealProperty, BinaryTopologicalOp
 from shapely.topology import UnaryRealProperty, UnaryTopologicalOp
 
+
+class ImplementationError(
+        AttributeError, KeyError, NotImplementedError):
+    """To be raised when the registered implementation does not
+    support the requested method."""
+
+
 def delegated(func):
     """A delegated method raises AttributeError in the absence of backend
     support."""
@@ -29,26 +36,42 @@ def delegated(func):
         try:
             return func(*args, **kwargs)
         except KeyError:
-            raise AttributeError("Method %r is not supported by %r" %
-                                 (func.__name__, args[0].impl))
+            raise ImplementationError(
+                "Method '%s' not provided by registered "
+                "implementation '%s'" % (func.__name__, args[0].impl))
     return wrapper
 
 # Map geometry methods to their GEOS delegates
 
+
 class BaseImpl(object):
+    """Base class for registrable implementations."""
+
     def __init__(self, values):
         self.map = dict(values)
+
     def update(self, values):
         self.map.update(values)
+
     def __getitem__(self, key):
-        return self.map[key]
+        try:
+            return self.map[key]
+        except KeyError:
+            raise ImplementationError(
+                "Method '%s' not provided by registered "
+                "implementation '%s'" % (key, self.map))
+
     def __contains__(self, key):
         return key in self.map
 
+
 class GEOSImpl(BaseImpl):
+    """GEOS implementation"""
+
     def __repr__(self):
         return '<GEOSImpl object: GEOS C API version %s>' % (
             lgeos.geos_capi_version,)
+
 
 IMPL300 = {
     'area': (UnaryRealProperty, 'area'),
@@ -114,6 +137,7 @@ IMPL320 = {
 
 IMPL330 = {
     'is_closed': (UnaryPredicate, 'is_closed')}
+
 
 def impl_items(defs):
     return [(k, v[0](v[1])) for k, v in list(defs.items())]
