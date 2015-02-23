@@ -186,16 +186,16 @@ class PredicateError(Exception):
 
 
 def error_handler(fmt, *args):
-    if sys.version_info[0] >= 3:
-        fmt = fmt.decode('ascii')
-        args = [arg.decode('ascii') for arg in args]
+    fmt = fmt.decode('ascii')
+    conversions = re.findall(r'%.', fmt)
+    args = [arg.decode('ascii') for spec, arg in zip(conversions, args)]
     LOG.error(fmt, *args)
 
 
 def notice_handler(fmt, args):
-    if sys.version_info[0] >= 3:
-        fmt = fmt.decode('ascii')
-        args = args.decode('ascii')
+    fmt = fmt.decode('ascii')
+    conversions = re.findall(r'%.', fmt)
+    args = [arg.decode('ascii') for spec, arg in zip(conversions, args)]
     LOG.warning(fmt, args)
 
 error_h = EXCEPTION_HANDLER_FUNCTYPE(error_handler)
