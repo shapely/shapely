@@ -195,32 +195,23 @@ class PredicateError(Exception):
 # to the error handler. We can deal with this, but when if that changes,
 # Shapely may break.
 
-def error_handler(fmt, *args):
-    fmt = fmt.decode('ascii')
-    conversions = re.findall(r'%.', fmt)
-    log_vals = []
-    for spec, arg in zip(conversions, args):
-        if spec == '%s' and arg is not None:
-            log_vals.append(string_at(arg).decode('ascii'))
-        else:
-            LOG.error("An error occurred, but the format string "
-                      "'%s' could not be converted.", fmt)
-            return
-    LOG.error(fmt, *log_vals)
+def handler(level):
+    def callback(fmt, *args):
+        fmt = fmt.decode('ascii')
+        conversions = re.findall(r'%.', fmt)
+        log_vals = []
+        for spec, arg in zip(conversions, args):
+            if spec == '%s' and arg is not None:
+                log_vals.append(string_at(arg).decode('ascii'))
+            else:
+                LOG.error("An error occurred, but the format string "
+                          "'%s' could not be converted.", fmt)
+                return
+        getattr(LOG, level)(fmt, *log_vals)
+    return callback
 
-
-def notice_handler(fmt, args):
-    fmt = fmt.decode('ascii')
-    conversions = re.findall(r'%.', fmt)
-    log_vals = []
-    for spec, arg in zip(conversions, args):
-        if spec == '%s' and arg is not None:
-            log_vals.append(string_at(arg).decode('ascii'))
-        else:
-            LOG.error("An error occurred, but the format string "
-                      "'%s' could not be converted.", fmt)
-            return
-    LOG.warning(fmt, args)
+error_handler = handler('error')
+notice_handler = handler('warning')
 
 error_h = EXCEPTION_HANDLER_FUNCTYPE(error_handler)
 notice_h = EXCEPTION_HANDLER_FUNCTYPE(notice_handler)

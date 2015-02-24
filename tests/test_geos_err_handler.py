@@ -24,6 +24,10 @@ def test_error_handler(tmpdir):
     with pytest.raises(ReadingError):
         loads('POINT (LOLWUT)')
 
+    g = loads('MULTIPOLYGON (((10 20, 10 120, 60 70, 30 70, 30 40, 60 40, 60 70, 90 20, 10 20)))')
+    assert g.is_valid == False
+
     log = open(logfile).read()
     assert "third argument of GEOSProject_r must be Point*" in log
     assert "Expected number but encountered word: 'LOLWUT'" in log
+    assert "Ring Self-intersection at or near point 60 70" in log
