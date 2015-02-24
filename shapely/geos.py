@@ -185,12 +185,6 @@ class TopologicalError(Exception):
 class PredicateError(Exception):
     pass
 
-#def error_handler(fmt, *args):
-#    if sys.version_info[0] >= 3:
-#        fmt = fmt.decode('')
-#        args = [arg.decode('ascii') for arg in args]
-#    LOG.error(fmt, *args)
-
 # While this function can take any number of positional arguments when
 # called from Python and GEOS expects its error handler to accept any
 # number of arguments (like printf), I'm unable to get ctypes to make
