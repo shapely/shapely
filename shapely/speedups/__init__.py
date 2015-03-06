@@ -20,10 +20,29 @@ def method_wrapper(f):
         return f(*args, **kwargs)
     return wraps(f)(wrapper)
 
-__all__ = ['available', 'enable', 'disable']
+__all__ = ['available', 'enable', 'disable', 'enabled']
 _orig = {}
 
+# keep track of whether speedups are enabled
+enabled = False
+
 def enable():
+    """Enable Cython speedups
+
+    The shapely.speedups module contains performance enhancements written in C.
+    They are automaticaly installed when Python has access to a compiler and
+    GEOS development headers during installation, and are enabled by default.
+
+    You can check if speedups are installed with the `available` attribute, and
+    check if they have been enabled with the `enabled` attribute.
+
+    >>> from shapely import speedups
+    >>> speedups.available
+    True
+    >>> speedups.enable()
+    >>> speedups.enabled
+    True
+    """
     if not available:
         warnings.warn("shapely.speedups not available", RuntimeWarning)
         return
@@ -50,7 +69,12 @@ def enable():
     affine_transform.__doc__ = shapely.affinity.affine_transform.__doc__
     shapely.affinity.affine_transform = affine_transform
 
+    global enabled
+    enabled = True
+
 def disable():
+    """Disable Cython speedups
+    """
     if not _orig:
         return
 
@@ -60,3 +84,10 @@ def disable():
     polygon.geos_linearring_from_py = _orig['geos_linearring_from_py']
     shapely.affinity.affine_transform = _orig['affine_transform']
     _orig.clear()
+
+    global enabled
+    enabled = False
+
+# if cython speedups are available, use them by default
+if available:
+    enable()

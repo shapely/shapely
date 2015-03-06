@@ -659,3 +659,5 @@ def cleanup(proxy):
     del proxy
 
 atexit.register(cleanup, lgeos)
+
+import shapely.speedups
