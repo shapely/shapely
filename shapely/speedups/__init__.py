@@ -58,5 +58,5 @@ def disable():
     coords.CoordinateSequence.__iter__ = _orig['CoordinateSequence.__iter__']
     linestring.geos_linestring_from_py = _orig['geos_linestring_from_py']
     polygon.geos_linearring_from_py = _orig['geos_linearring_from_py']
-    affinity.affine_transform = _orig['affine_transform']
+    shapely.affinity.affine_transform = _orig['affine_transform']
     _orig.clear()
