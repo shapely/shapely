@@ -2,11 +2,14 @@
 Proxies for libgeos, GEOS-specific exceptions, and utilities
 """
 
+import re
 import sys
 import atexit
 import logging
 import threading
-from ctypes import pointer, c_void_p, c_size_t, c_char_p, string_at
+from ctypes import CDLL, cdll, pointer, string_at, cast, POINTER
+from ctypes import c_void_p, c_size_t, c_char_p, c_int, c_float
+from ctypes.util import find_library
 
 from .ctypes_declarations import prototype, EXCEPTION_HANDLER_FUNCTYPE
 from .libgeos import lgeos as _lgeos, geos_version
@@ -80,19 +83,33 @@ class TopologicalError(Exception):
 class PredicateError(Exception):
     pass
 
+# While this function can take any number of positional arguments when
+# called from Python and GEOS expects its error handler to accept any
+# number of arguments (like printf), I'm unable to get ctypes to make
+# a callback object from this function that will accept any number of
+# arguments.
+#
+# At the moment, functions in the GEOS C API only pass 0 or 1 arguments
+# to the error handler. We can deal with this, but when if that changes,
+# Shapely may break.
 
-def error_handler(fmt, *args):
-    if sys.version_info[0] >= 3:
+def handler(level):
+    def callback(fmt, *args):
         fmt = fmt.decode('ascii')
-        args = [arg.decode('ascii') for arg in args]
-    LOG.error(fmt, *args)
+        conversions = re.findall(r'%.', fmt)
+        log_vals = []
+        for spec, arg in zip(conversions, args):
+            if spec == '%s' and arg is not None:
+                log_vals.append(string_at(arg).decode('ascii'))
+            else:
+                LOG.error("An error occurred, but the format string "
+                          "'%s' could not be converted.", fmt)
+                return
+        getattr(LOG, level)(fmt, *log_vals)
+    return callback
 
-
-def notice_handler(fmt, args):
-    if sys.version_info[0] >= 3:
-        fmt = fmt.decode('ascii')
-        args = args.decode('ascii')
-    LOG.warning(fmt, args)
+error_handler = handler('error')
+notice_handler = handler('warning')
 
 error_h = EXCEPTION_HANDLER_FUNCTYPE(error_handler)
 notice_h = EXCEPTION_HANDLER_FUNCTYPE(notice_handler)

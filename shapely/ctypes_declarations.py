@@ -14,7 +14,7 @@ class allocated_c_char_p(c_char_p):
     '''char pointer return type'''
     pass
 
-EXCEPTION_HANDLER_FUNCTYPE = CFUNCTYPE(None, c_char_p, c_char_p)
+EXCEPTION_HANDLER_FUNCTYPE = CFUNCTYPE(None, c_char_p, c_void_p)
 
 
 def prototype(lgeos, geos_version):
