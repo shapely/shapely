@@ -36,7 +36,7 @@ if version is None:
 
 # Handle UTF-8 encoding of certain text files.
 open_kwds = {}
-if sys.version_info > (3,):
+if sys.version_info >= (3,):
     open_kwds['encoding'] = 'utf-8'
 
 with open('VERSION.txt', 'w', **open_kwds) as fp:
