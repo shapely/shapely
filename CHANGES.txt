@@ -1,6 +1,14 @@
 Changes
 =======
 
+1.5.8 (2015-03-17)
+------------------
+- Setup file encofing bug fix (#254).
+
+1.5.7 (2015-03-16)
+------------------
+- Test and fix buggy error and notice handlers (#249).
+
 1.5.6 (2015-02-02)
 ------------------
 - Fix setup regression (#232, #234).
