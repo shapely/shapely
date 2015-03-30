@@ -68,9 +68,13 @@ elif sys.platform == 'darwin':
         _lgeos = CDLL(geos_whl_dylib)
     else:
         if hasattr(sys, 'frozen'):
-            # .app file from py2app
-            alt_paths = [os.path.join(os.environ['RESOURCEPATH'],
-                         '..', 'Frameworks', 'libgeos_c.dylib')]
+            try:
+                # .app file from py2app
+                alt_paths = [os.path.join(os.environ['RESOURCEPATH'],
+                            '..', 'Frameworks', 'libgeos_c.dylib')]
+            except KeyError:
+                # binary from pyinstaller
+                alt_paths = [os.path.join(sys.executable, 'libgeos_c.dylib')]
         else:
             alt_paths = [
                 # The Framework build from Kyng Chaos
