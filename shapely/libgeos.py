@@ -171,7 +171,7 @@ elif sys.platform == 'darwin':
                 ]
             lgeos = load_dll('geos_c', fallbacks=alt_paths)
 
-    free = load_dll('c').free
+    free = load_dll('c', fallbacks=['/usr/lib/libc.dylib']).free
     free.argtypes = [c_void_p]
     free.restype = None
 
