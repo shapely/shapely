@@ -63,7 +63,7 @@ def geom_factory(g, parent=None):
         [geom_type],
         )
     ob.__class__ = getattr(mod, geom_type)
-    ob.__geom__ = g
+    ob._geom = g
     ob.__p__ = parent
     if lgeos.methods['has_z'](g):
         ob._ndim = 3
