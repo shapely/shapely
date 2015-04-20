@@ -68,6 +68,15 @@ class MultiPointTestCase(unittest.TestCase):
         pas = asarray(geoma)
         assert_array_equal(pas, array([[1., 2.], [3., 4.]]))
 
+    @unittest.skipIf(not numpy, 'Numpy required')
+    def test_numpy_subgeom_access(self):
+        import numpy as np
+
+        p0 = Point(1.0, 2.0)
+        p1 = Point(3.0, 4.0)
+        geom = MultiPoint([p0, p1])
+
+        self.assertEqual(geom[np.int64(0)], p0)
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(MultiPointTestCase)

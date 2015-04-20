@@ -5,6 +5,7 @@ import sys
 from warnings import warn
 from binascii import a2b_hex
 from ctypes import pointer, c_size_t, c_char_p, c_void_p
+import numbers
 
 from shapely.coords import CoordinateSequence
 from shapely.ftools import wraps
@@ -824,7 +825,7 @@ class GeometrySequence(object):
     def __getitem__(self, key):
         self._update()
         m = self.__len__()
-        if isinstance(key, int):
+        if isinstance(key, numbers.Integral):
             if key + m < 0 or key >= m:
                 raise IndexError("index out of range")
             if key < 0:

@@ -73,6 +73,17 @@ class MultiLineStringTestCase(unittest.TestCase):
 
         # TODO: is there an inverse?
 
+    @unittest.skipIf(not numpy, 'Numpy required')
+    def test_numpy_subgeom_access(self):
+        import numpy as np
+
+        line0 = LineString([(0.0, 1.0), (2.0, 3.0)])
+        line1 = LineString([(4.0, 5.0), (6.0, 7.0)])
+        geom = MultiLineString([line0, line1])
+
+        self.assertEqual(geom[np.int64(0)], line0)
+
+
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(MultiLineStringTestCase)
