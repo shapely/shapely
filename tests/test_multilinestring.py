@@ -1,4 +1,4 @@
-from . import unittest, numpy
+from . import unittest, numpy, integer_types
 from shapely.geos import lgeos
 from shapely.geometry import LineString, MultiLineString, asMultiLineString
 from shapely.geometry.base import dump_coords
@@ -75,13 +75,12 @@ class MultiLineStringTestCase(unittest.TestCase):
 
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy_subgeom_access(self):
-        import numpy as np
+        for t in integer_types:
+            line0 = LineString([(0.0, 1.0), (2.0, 3.0)])
+            line1 = LineString([(4.0, 5.0), (6.0, 7.0)])
+            geom = MultiLineString([line0, line1])
 
-        line0 = LineString([(0.0, 1.0), (2.0, 3.0)])
-        line1 = LineString([(4.0, 5.0), (6.0, 7.0)])
-        geom = MultiLineString([line0, line1])
-
-        self.assertEqual(geom[np.int64(0)], line0)
+            self.assertEqual(geom[t(0)], line0)
 
 
 

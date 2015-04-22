@@ -1,4 +1,4 @@
-from . import unittest, numpy
+from . import unittest, numpy, integer_types
 from shapely.geometry import Polygon, MultiPolygon, asMultiPolygon
 from shapely.geometry.base import dump_coords
 
@@ -69,13 +69,12 @@ class MultiPolygonTestCase(unittest.TestCase):
 
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy_subgeom_access(self):
-        import numpy as np
+        for t in integer_types:
+            poly0 = Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)])
+            poly1 = Polygon([(0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25)])
+            geom = MultiPolygon([poly0, poly1])
 
-        poly0 = Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)])
-        poly1 = Polygon([(0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25)])
-        geom = MultiPolygon([poly0, poly1])
-
-        self.assertEqual(geom[np.int64(0)], poly0)
+            self.assertEqual(geom[t(0)], poly0)
 
 
 def test_suite():
