@@ -5,7 +5,6 @@ import sys
 from warnings import warn
 from binascii import a2b_hex
 from ctypes import pointer, c_size_t, c_char_p, c_void_p
-import numbers
 
 from shapely.coords import CoordinateSequence
 from shapely.ftools import wraps
@@ -15,6 +14,16 @@ from shapely.impl import DefaultImplementation, delegated
 
 if sys.version_info[0] < 3:
     range = xrange
+    integer_types = (int, long)
+else:
+    integer_types = (int,)
+
+try:
+    import numpy as np
+    integer_types = integer_types + (np.integer,)
+except ImportError:
+    pass
+
 
 GEOMETRY_TYPES = [
     'Point',
@@ -825,7 +834,7 @@ class GeometrySequence(object):
     def __getitem__(self, key):
         self._update()
         m = self.__len__()
-        if isinstance(key, numbers.Integral):
+        if isinstance(key, integer_types):
             if key + m < 0 or key >= m:
                 raise IndexError("index out of range")
             if key < 0:
