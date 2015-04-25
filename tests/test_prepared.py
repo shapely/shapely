@@ -25,6 +25,15 @@ class PreparedGeometryTestCase(unittest.TestCase):
         p = prepared.PreparedGeometry(geometry.Point(0.0, 0.0).buffer(1.0))
         self.assertRaises(ValueError, geometry.Point(0.0, 0.0).contains, p)
 
+    @unittest.skipIf(geos_version < (3, 1, 0), 'GEOS 3.1.0 required')
+    def test_empty_geometry(self):
+        polygon = geometry.Polygon([
+            (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)
+        ])
+        polygon_prepared = prepared.PreparedGeometry(polygon)
+        polygon_empty = geometry.Polygon()
+        self.assertTrue(polygon.contains(polygon_empty) is False)
+        self.assertTrue(polygon_prepared.contains(polygon_empty) is False)
 
 def test_suite():
     loader = unittest.TestLoader()
