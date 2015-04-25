@@ -306,16 +306,16 @@ def prototype(lgeos, geos_version):
         lgeos.GEOSPreparedGeom_destroy.restype = None
         lgeos.GEOSPreparedGeom_destroy.argtypes = [c_void_p]
 
-        lgeos.GEOSPreparedContains.restype = c_int
+        lgeos.GEOSPreparedContains.restype = c_byte
         lgeos.GEOSPreparedContains.argtypes = [c_void_p, c_void_p]
 
-        lgeos.GEOSPreparedContainsProperly.restype = c_int
+        lgeos.GEOSPreparedContainsProperly.restype = c_byte
         lgeos.GEOSPreparedContainsProperly.argtypes = [c_void_p, c_void_p]
 
-        lgeos.GEOSPreparedCovers.restype = c_int
+        lgeos.GEOSPreparedCovers.restype = c_byte
         lgeos.GEOSPreparedCovers.argtypes = [c_void_p, c_void_p]
 
-        lgeos.GEOSPreparedIntersects.restype = c_int
+        lgeos.GEOSPreparedIntersects.restype = c_byte
         lgeos.GEOSPreparedIntersects.argtypes = [c_void_p, c_void_p]
 
     '''
