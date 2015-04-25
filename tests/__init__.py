@@ -3,14 +3,14 @@ from shapely.libgeos import geos_version_string
 from shapely.geos import lgeos, WKTWriter
 from shapely import speedups
 
+test_int_types = [int]
 try:
     import numpy
     numpy_version = numpy.version.version
-    integer_types = [int, numpy.int16, numpy.int32, numpy.int64]
+    test_int_types.extend([int, numpy.int16, numpy.int32, numpy.int64])
 except ImportError:
     numpy = False
     numpy_version = 'not available'
-    integer_types = None
 
 # Show some diagnostic information; handy for Travis CI
 print('Python version: ' + sys.version.replace('\n', ' '))

@@ -1,4 +1,4 @@
-from . import unittest, numpy, integer_types
+from . import unittest, numpy, test_int_types
 from shapely.geometry import Point, MultiPoint, asMultiPoint
 from shapely.geometry.base import dump_coords
 
@@ -68,9 +68,8 @@ class MultiPointTestCase(unittest.TestCase):
         pas = asarray(geoma)
         assert_array_equal(pas, array([[1., 2.], [3., 4.]]))
 
-    @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy_subgeom_access(self):
-        for t in integer_types:
+    def test_subgeom_access(self):
+        for t in test_int_types:
             p0 = Point(1.0, 2.0)
             p1 = Point(3.0, 4.0)
             geom = MultiPoint([p0, p1])

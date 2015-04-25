@@ -1,4 +1,4 @@
-from . import unittest, numpy, integer_types
+from . import unittest, numpy, test_int_types
 from shapely.geos import lgeos
 from shapely.geometry import LineString, MultiLineString, asMultiLineString
 from shapely.geometry.base import dump_coords
@@ -73,9 +73,8 @@ class MultiLineStringTestCase(unittest.TestCase):
 
         # TODO: is there an inverse?
 
-    @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy_subgeom_access(self):
-        for t in integer_types:
+    def test_subgeom_access(self):
+        for t in test_int_types:
             line0 = LineString([(0.0, 1.0), (2.0, 3.0)])
             line1 = LineString([(4.0, 5.0), (6.0, 7.0)])
             geom = MultiLineString([line0, line1])
