@@ -1,9 +1,10 @@
 from . import unittest, numpy, test_int_types
+from .test_multi import MultiGeometryTestCase
 from shapely.geometry import Polygon, MultiPolygon, asMultiPolygon
 from shapely.geometry.base import dump_coords
 
 
-class MultiPolygonTestCase(unittest.TestCase):
+class MultiPolygonTestCase(MultiGeometryTestCase):
 
     def test_multipolygon(self):
 
@@ -68,12 +69,9 @@ class MultiPolygonTestCase(unittest.TestCase):
         self.assertEqual(len(mpa.geoms[0].interiors[0].coords), 5)
 
     def test_subgeom_access(self):
-        for t in test_int_types:
-            poly0 = Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)])
-            poly1 = Polygon([(0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25)])
-            geom = MultiPolygon([poly0, poly1])
-
-            self.assertEqual(geom[t(0)], poly0)
+        poly0 = Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)])
+        poly1 = Polygon([(0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25)])
+        self.subgeom_access_test(MultiPolygon, [poly0, poly1])
 
 
 def test_suite():
