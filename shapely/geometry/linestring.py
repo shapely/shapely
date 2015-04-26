@@ -110,16 +110,18 @@ class LineString(BaseGeometry):
         return self.coords.xy
 
     def parallel_offset(
-            self, distance, side,
+            self, distance, side='left',
             resolution=16, join_style=JOIN_STYLE.round, mitre_limit=5.0):
 
         """Returns a LineString or MultiLineString geometry at a distance from
         the object on its right or its left side.
 
-        Distance must be a positive float value. The side parameter may be
-        'left' or 'right'. The resolution of the buffer around each vertex of
-        the object increases by increasing the resolution keyword parameter or
-        third positional parameter.
+        The side parameter may be 'left' or 'right' (default is 'left'). The
+        resolution of the buffer around each vertex of the object increases by
+        increasing the resolution keyword parameter or third positional
+        parameter. If the distance parameter is negative the side is inverted,
+        e.g. distance=5.0, side='left' is the same as distance=-5.0,
+        side='right'.
 
         The join style is for outside corners between line segments. Accepted
         values are JOIN_STYLE.round (1), JOIN_STYLE.mitre (2), and
@@ -136,8 +138,7 @@ class LineString(BaseGeometry):
                 'Cannot compute offset from zero-length line segment')
         try:
             return geom_factory(self.impl['parallel_offset'](
-                self, distance, resolution, join_style, mitre_limit,
-                bool(side == 'left')))
+                self, distance, resolution, join_style, mitre_limit, side))
         except OSError:
             raise TopologicalError()
 

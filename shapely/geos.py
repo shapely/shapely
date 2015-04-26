@@ -625,7 +625,15 @@ class LGEOS320(LGEOS311):
     def __init__(self, dll):
         super(LGEOS320, self).__init__(dll)
 
-        self.methods['parallel_offset'] = self.GEOSSingleSidedBuffer
+        if geos_version == (3, 2, 0):
+            def parallel_offset(geom, distance, side, resolution=16, join_style=1, mitre_limit=5.0):
+                side = side == 'left'
+                if distance < 0:
+                    distance = abs(distance)
+                    side = not side
+                return self.GEOSSingleSidedBuffer(geom, distance, resolution, join_style, mitre_limit, side)
+            self.methods['parallel_offset'] = parallel_offset
+
         self.methods['project'] = self.GEOSProject
         self.methods['project_normalized'] = self.GEOSProjectNormalized
         self.methods['interpolate'] = self.GEOSInterpolate
@@ -653,6 +661,12 @@ class LGEOS330(LGEOS320):
 
         for pred in (self.GEOSisClosed,):
             pred.func.errcheck = errcheck_predicate
+
+        def parallel_offset(geom, distance, resolution=16, join_style=1, mitre_limit=5.0, side='right'):
+            if side == 'right':
+                distance *= -1
+            return self.GEOSOffsetCurve(geom, distance, resolution, join_style, mitre_limit)
+        self.methods['parallel_offset'] = parallel_offset
 
         self.methods['unary_union'] = self.GEOSUnaryUnion
         self.methods['is_closed'] = self.GEOSisClosed
