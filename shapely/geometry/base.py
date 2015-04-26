@@ -14,6 +14,16 @@ from shapely.impl import DefaultImplementation, delegated
 
 if sys.version_info[0] < 3:
     range = xrange
+    integer_types = (int, long)
+else:
+    integer_types = (int,)
+
+try:
+    import numpy as np
+    integer_types = integer_types + (np.integer,)
+except ImportError:
+    pass
+
 
 GEOMETRY_TYPES = [
     'Point',
@@ -828,7 +838,7 @@ class GeometrySequence(object):
     def __getitem__(self, key):
         self._update()
         m = self.__len__()
-        if isinstance(key, int):
+        if isinstance(key, integer_types):
             if key + m < 0 or key >= m:
                 raise IndexError("index out of range")
             if key < 0:
