@@ -73,7 +73,7 @@ def geom_factory(g, parent=None):
         [geom_type],
         )
     ob.__class__ = getattr(mod, geom_type)
-    ob.__geom__ = g
+    ob._geom = g
     ob.__p__ = parent
     if lgeos.methods['has_z'](g):
         ob._ndim = 3
@@ -198,13 +198,10 @@ class BaseGeometry(object):
     _ndim = None
     _crs = None
     _other_owned = False
+    _is_empty = True
 
     # Backend config
     impl = DefaultImplementation
-
-    @property
-    def _is_empty(self):
-        return self.__geom__ in [EMPTY, None]
 
     # a reference to the so/dll proxy to preserve access during clean up
     _lgeos = lgeos
@@ -217,6 +214,7 @@ class BaseGeometry(object):
                 self._lgeos.GEOSGeom_destroy(self.__geom__)
             except AttributeError:
                 pass  # _lgeos might be empty on shutdown
+        self._is_empty = True
         self.__geom__ = val
 
     def __del__(self):
@@ -245,6 +243,7 @@ class BaseGeometry(object):
     @_geom.setter
     def _geom(self, val):
         self.empty()
+        self._is_empty = val in [EMPTY, None]
         self.__geom__ = val
 
     # Operators
