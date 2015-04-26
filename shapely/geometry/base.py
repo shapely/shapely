@@ -616,6 +616,10 @@ class BaseGeometry(object):
         (string)"""
         return self.impl['relate'](self, other)
 
+    def covers(self, other):
+        """Returns True if the geometry covers the other, else False"""
+        return bool(self.impl['covers'](self, other))
+
     def contains(self, other):
         """Returns True if the geometry contains the other, else False"""
         return bool(self.impl['contains'](self, other))
