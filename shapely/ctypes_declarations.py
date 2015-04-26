@@ -249,6 +249,9 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSOverlaps.restype = c_byte
     lgeos.GEOSOverlaps.argtypes = [c_void_p, c_void_p]
 
+    lgeos.GEOSCovers.restype = c_byte
+    lgeos.GEOSCovers.argtypes = [c_void_p, c_void_p]
+
     lgeos.GEOSEquals.restype = c_byte
     lgeos.GEOSEquals.argtypes = [c_void_p, c_void_p]
 
@@ -306,17 +309,33 @@ def prototype(lgeos, geos_version):
         lgeos.GEOSPreparedGeom_destroy.restype = None
         lgeos.GEOSPreparedGeom_destroy.argtypes = [c_void_p]
 
-        lgeos.GEOSPreparedContains.restype = c_int
+        lgeos.GEOSPreparedDisjoint.restype = c_byte
+        lgeos.GEOSPreparedDisjoint.argtypes = [c_void_p, c_void_p]
+
+        lgeos.GEOSPreparedTouches.restype = c_byte
+        lgeos.GEOSPreparedTouches.argtypes = [c_void_p, c_void_p]
+
+        lgeos.GEOSPreparedIntersects.restype = c_byte
+        lgeos.GEOSPreparedIntersects.argtypes = [c_void_p, c_void_p]
+
+        lgeos.GEOSPreparedCrosses.restype = c_byte
+        lgeos.GEOSPreparedCrosses.argtypes = [c_void_p, c_void_p]
+
+        lgeos.GEOSPreparedWithin.restype = c_byte
+        lgeos.GEOSPreparedWithin.argtypes = [c_void_p, c_void_p]
+
+        lgeos.GEOSPreparedContains.restype = c_byte
         lgeos.GEOSPreparedContains.argtypes = [c_void_p, c_void_p]
 
-        lgeos.GEOSPreparedContainsProperly.restype = c_int
+        lgeos.GEOSPreparedContainsProperly.restype = c_byte
         lgeos.GEOSPreparedContainsProperly.argtypes = [c_void_p, c_void_p]
 
-        lgeos.GEOSPreparedCovers.restype = c_int
+        lgeos.GEOSPreparedOverlaps.restype = c_byte
+        lgeos.GEOSPreparedOverlaps.argtypes = [c_void_p, c_void_p]
+
+        lgeos.GEOSPreparedCovers.restype = c_byte
         lgeos.GEOSPreparedCovers.argtypes = [c_void_p, c_void_p]
 
-        lgeos.GEOSPreparedIntersects.restype = c_int
-        lgeos.GEOSPreparedIntersects.argtypes = [c_void_p, c_void_p]
 
     '''
     Geometry info

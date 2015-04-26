@@ -540,8 +540,18 @@ class LGEOS310(LGEOSBase):
                 self.GEOSWithin,
                 self.GEOSContains,
                 self.GEOSOverlaps,
+                self.GEOSCovers,
                 self.GEOSEquals,
                 self.GEOSEqualsExact,
+                self.GEOSPreparedDisjoint,
+                self.GEOSPreparedTouches,
+                self.GEOSPreparedCrosses,
+                self.GEOSPreparedWithin,
+                self.GEOSPreparedOverlaps,
+                self.GEOSPreparedContains,
+                self.GEOSPreparedContainsProperly,
+                self.GEOSPreparedCovers,
+                self.GEOSPreparedIntersects,
                 self.GEOSisEmpty,
                 self.GEOSisValid,
                 self.GEOSisSimple,
@@ -572,6 +582,7 @@ class LGEOS310(LGEOSBase):
         self.methods['within'] = self.GEOSWithin
         self.methods['contains'] = self.GEOSContains
         self.methods['overlaps'] = self.GEOSOverlaps
+        self.methods['covers'] = self.GEOSCovers
         self.methods['equals'] = self.GEOSEquals
         self.methods['equals_exact'] = self.GEOSEqualsExact
         self.methods['relate'] = self.GEOSRelate
@@ -579,10 +590,15 @@ class LGEOS310(LGEOSBase):
         self.methods['symmetric_difference'] = self.GEOSSymDifference
         self.methods['union'] = self.GEOSUnion
         self.methods['intersection'] = self.GEOSIntersection
+        self.methods['prepared_disjoint'] = self.GEOSPreparedDisjoint
+        self.methods['prepared_touches'] = self.GEOSPreparedTouches
         self.methods['prepared_intersects'] = self.GEOSPreparedIntersects
+        self.methods['prepared_crosses'] = self.GEOSPreparedCrosses
+        self.methods['prepared_within'] = self.GEOSPreparedWithin
         self.methods['prepared_contains'] = self.GEOSPreparedContains
         self.methods['prepared_contains_properly'] = \
             self.GEOSPreparedContainsProperly
+        self.methods['prepared_overlaps'] = self.GEOSPreparedOverlaps
         self.methods['prepared_covers'] = self.GEOSPreparedCovers
         self.methods['simplify'] = self.GEOSSimplify
         self.methods['topology_preserve_simplify'] = \

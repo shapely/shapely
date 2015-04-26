@@ -19,6 +19,8 @@ class PredicatesTestCase(unittest.TestCase):
         self.assertFalse(point.equals(Point(-1.0, -1.0)))
         self.assertFalse(point.touches(Point(-1.0, -1.0)))
         self.assertTrue(point.equals(Point(0.0, 0.0)))
+        self.assertTrue(point.covers(Point(0.0, 0.0)))
+        self.assertFalse(point.covers(Point(-1.0, -1.0)))
 
     def test_unary_predicates(self):
 
