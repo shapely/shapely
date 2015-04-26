@@ -83,6 +83,7 @@ IMPL300 = {
     'overlaps': (BinaryPredicate, 'overlaps'),
     'touches': (BinaryPredicate, 'touches'),
     'within': (BinaryPredicate, 'within'),
+    'covers': (BinaryPredicate, 'covers'),
     'equals_exact': (BinaryPredicate, 'equals_exact'),
 
     # First pure Python implementation
@@ -93,6 +94,11 @@ IMPL310 = {
     'simplify': (UnaryTopologicalOp, 'simplify'),
     'topology_preserve_simplify':
         (UnaryTopologicalOp, 'topology_preserve_simplify'),
+    'prepared_disjoint': (BinaryPredicate, 'prepared_disjoint'),
+    'prepared_touches': (BinaryPredicate, 'prepared_touches'),
+    'prepared_crosses': (BinaryPredicate, 'prepared_crosses'),
+    'prepared_within': (BinaryPredicate, 'prepared_within'),
+    'prepared_overlaps': (BinaryPredicate, 'prepared_overlaps'),
     'prepared_intersects': (BinaryPredicate, 'prepared_intersects'),
     'prepared_contains': (BinaryPredicate, 'prepared_contains'),
     'prepared_contains_properly':

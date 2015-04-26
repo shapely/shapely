@@ -37,23 +37,51 @@ class PreparedGeometry(object):
     @property
     def _geom(self):
         return self.__geom__
-   
-    @delegated
-    def intersects(self, other):
-        return bool(self.impl['prepared_intersects'](self, other))
 
     @delegated
     def contains(self, other):
+        """Returns True if the geometry contains the other, else False"""
         return bool(self.impl['prepared_contains'](self, other))
 
     @delegated
     def contains_properly(self, other):
+        """Returns True if the geometry properly contains the other, else False"""
         return bool(self.impl['prepared_contains_properly'](self, other))
 
     @delegated
     def covers(self, other):
+        """Returns True if the geometry covers the other, else False"""
         return bool(self.impl['prepared_covers'](self, other))
 
+    @delegated
+    def crosses(self, other):
+        """Returns True if the geometries cross, else False"""
+        return bool(self.impl['prepared_crosses'](self, other))
+
+    @delegated
+    def disjoint(self, other):
+        """Returns True if geometries are disjoint, else False"""
+        return bool(self.impl['prepared_disjoint'](self, other))
+
+    @delegated
+    def intersects(self, other):
+        """Returns True if geometries intersect, else False"""
+        return bool(self.impl['prepared_intersects'](self, other))
+
+    @delegated
+    def overlaps(self, other):
+        """Returns True if geometries overlap, else False"""
+        return bool(self.impl['prepared_overlaps'](self, other))
+
+    @delegated
+    def touches(self, other):
+        """Returns True if geometries touch, else False"""
+        return bool(self.impl['prepared_touches'](self, other))
+
+    @delegated
+    def within(self, other):
+        """Returns True if geometry is within the other, else False"""
+        return bool(self.impl['prepared_within'](self, other))
 
 def prep(ob):
     """Creates and returns a prepared geometric object."""
