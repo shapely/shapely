@@ -129,8 +129,16 @@ def prototype(lgeos, geos_version):
         lgeos.GEOSBufferWithStyle.restype = c_void_p
         lgeos.GEOSBufferWithStyle.argtypes = [c_void_p, c_double, c_int, c_int, c_int, c_double]
 
-        lgeos.GEOSSingleSidedBuffer.restype = c_void_p
-        lgeos.GEOSSingleSidedBuffer.argtypes = [c_void_p, c_double, c_int, c_int, c_double, c_int]
+        if geos_version >= (3, 3, 0):
+
+            lgeos.GEOSOffsetCurve.restype = c_void_p
+            lgeos.GEOSOffsetCurve.argtypes = [c_void_p, c_double, c_int, c_int, c_double]
+        
+        else:
+
+            # deprecated in GEOS 3.3.0 in favour of GEOSOffsetCurve
+            lgeos.GEOSSingleSidedBuffer.restype = c_void_p
+            lgeos.GEOSSingleSidedBuffer.argtypes = [c_void_p, c_double, c_int, c_int, c_double, c_int]
 
     '''
     Geometry constructors
