@@ -625,8 +625,8 @@ class LGEOS320(LGEOS311):
     def __init__(self, dll):
         super(LGEOS320, self).__init__(dll)
 
-        if geos_version == (3, 2, 0):
-            def parallel_offset(geom, distance, side, resolution=16, join_style=1, mitre_limit=5.0):
+        if geos_version >= (3, 2, 0):
+            def parallel_offset(geom, distance, resolution=16, join_style=1, mitre_limit=5.0, side='right'):
                 side = side == 'left'
                 if distance < 0:
                     distance = abs(distance)

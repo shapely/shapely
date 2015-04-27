@@ -110,13 +110,13 @@ class LineString(BaseGeometry):
         return self.coords.xy
 
     def parallel_offset(
-            self, distance, side='left',
+            self, distance, side='right',
             resolution=16, join_style=JOIN_STYLE.round, mitre_limit=5.0):
 
         """Returns a LineString or MultiLineString geometry at a distance from
         the object on its right or its left side.
 
-        The side parameter may be 'left' or 'right' (default is 'left'). The
+        The side parameter may be 'left' or 'right' (default is 'right'). The
         resolution of the buffer around each vertex of the object increases by
         increasing the resolution keyword parameter or third positional
         parameter. If the distance parameter is negative the side is inverted,

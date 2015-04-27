@@ -16,6 +16,9 @@ class OperationsTestCase(unittest.TestCase):
         left = line1.parallel_offset(-5, 'right')
         self.assertEqual(left, LineString([(0, 5), (10, 5)]))
 
+        # by default, parallel_offset is right-handed
+        self.assertEqual(line1.parallel_offset(5), right)
+
         line2 = LineString([(0, 0), (5, 0), (5, -5)])
         self.assertEqual(line2.parallel_offset(2, 'left', resolution=1),
                          LineString([(0, 2), (5, 2), (7, 0), (7, -5)]))
