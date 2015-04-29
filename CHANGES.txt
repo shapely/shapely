@@ -1,9 +1,12 @@
 Changes
 =======
 
-1.5.8 (?)
+1.5.8 (2015-04-29)
 ------------------
-- Setup file encofing bug fix (#254).
+- Setup file encoding bug fix (#254).
+- Support for pyinstaller (#261).
+- Major prepared geometry operation fix for Windows (#268, #269).
+- Major fix for OS X binary wheel (#262).
 
 1.5.7 (2015-03-16)
 ------------------
