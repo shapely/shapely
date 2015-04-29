@@ -15,6 +15,7 @@ from .ctypes_declarations import prototype, EXCEPTION_HANDLER_FUNCTYPE
 from .libgeos import lgeos as _lgeos, geos_version
 from . import ftools
 
+
 # Add message handler to this module's logger
 LOG = logging.getLogger(__name__)
 
