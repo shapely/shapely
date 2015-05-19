@@ -15,15 +15,15 @@ from shapely.geometry.base import geom_factory
 include "../_geos.pxi"
     
 
-cdef inline GEOSGeometry *cast_geom(unsigned long geom_addr):
+cdef inline GEOSGeometry *cast_geom(unsigned long long geom_addr):
     return <GEOSGeometry *>geom_addr
 
 
-cdef inline GEOSContextHandle_t cast_handle(unsigned long handle_addr):
+cdef inline GEOSContextHandle_t cast_handle(unsigned long long handle_addr):
     return <GEOSContextHandle_t>handle_addr
 
 
-cdef inline GEOSCoordSequence *cast_seq(unsigned long handle_addr):
+cdef inline GEOSCoordSequence *cast_seq(unsigned long long handle_addr):
     return <GEOSCoordSequence *>handle_addr
 
 
