@@ -180,7 +180,8 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
     cdef GEOSGeometry *g
     cdef GEOSCoordSequence *cs
     cdef double dx, dy, dz
-    cdef int i, n, m, M, sm, sn
+    cdef unsigned int m
+    cdef int i, n, M, sm, sn
 
     # If a LinearRing is passed in, just clone it and return
     # If a LineString is passed in, clone the coord seq and return a LinearRing
@@ -413,7 +414,7 @@ cdef GEOSCoordSequence* transform(GEOSCoordSequence* cs,
     Returns the transformed coordinate sequence
     """
     cdef GEOSContextHandle_t handle = cast_handle(lgeos.geos_handle)
-    cdef int m
+    cdef unsigned int m
     cdef GEOSCoordSequence *cs_t
     cdef double x, y, z
     cdef double x_t, y_t, z_t
