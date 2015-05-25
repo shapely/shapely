@@ -52,7 +52,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
         if type(ob) == LineString:
             return <uintptr_t>GEOSGeom_clone_r(handle, g), n
         else:
-            cs = GEOSGeom_getCoordSeq_r(handle, g)
+            cs = <GEOSCoordSequence*>GEOSGeom_getCoordSeq_r(handle, g)
             cs = GEOSCoordSeq_clone_r(handle, cs)
             return <uintptr_t>GEOSGeom_createLineString_r(handle, cs), n
 
@@ -93,7 +93,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
 
         # Create a coordinate sequence
         if update_geom is not None:
-            cs = GEOSGeom_getCoordSeq_r(handle, cast_geom(update_geom))
+            cs = <GEOSCoordSequence*>GEOSGeom_getCoordSeq_r(handle, cast_geom(update_geom))
             if n != update_ndim:
                 raise ValueError(
                 "Wrong coordinate dimensions; this geometry has dimensions: %d" \
@@ -142,7 +142,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
 
         # Create a coordinate sequence
         if update_geom is not None:
-            cs = GEOSGeom_getCoordSeq_r(handle, cast_geom(update_geom))
+            cs = <GEOSCoordSequence*>GEOSGeom_getCoordSeq_r(handle, cast_geom(update_geom))
             if n != update_ndim:
                 raise ValueError(
                 "Wrong coordinate dimensions; this geometry has dimensions: %d" \
@@ -195,7 +195,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
         if type(ob) == LinearRing:
             return <uintptr_t>GEOSGeom_clone_r(handle, g), n
         else:
-            cs = GEOSGeom_getCoordSeq_r(handle, g)
+            cs = <GEOSCoordSequence*>GEOSGeom_getCoordSeq_r(handle, g)
             GEOSCoordSeq_getSize_r(handle, cs, &m)
             if GEOSisClosed_r(handle, g) and m >= 4:
                 cs = GEOSCoordSeq_clone_r(handle, cs)
@@ -242,7 +242,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
 
         # Create a coordinate sequence
         if update_geom is not None:
-            cs = GEOSGeom_getCoordSeq_r(handle, cast_geom(update_geom))
+            cs = <GEOSCoordSequence*>GEOSGeom_getCoordSeq_r(handle, cast_geom(update_geom))
             if n != update_ndim:
                 raise ValueError(
                 "Wrong coordinate dimensions; this geometry has dimensions: %d" \
@@ -301,7 +301,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
 
         # Create a coordinate sequence
         if update_geom is not None:
-            cs = GEOSGeom_getCoordSeq_r(handle, cast_geom(update_geom))
+            cs = <GEOSCoordSequence*>GEOSGeom_getCoordSeq_r(handle, cast_geom(update_geom))
             if n != update_ndim:
                 raise ValueError(
                 "Wrong coordinate dimensions; this geometry has dimensions: %d" \
@@ -472,7 +472,7 @@ cpdef affine_transform(geom, matrix):
     # Process coordinates from each supported geometry type
     if geom.type in ('Point', 'LineString', 'LinearRing'):
         the_geom = cast_geom(geom._geom)
-        cs = GEOSGeom_getCoordSeq_r(handle, the_geom)
+        cs = <GEOSCoordSequence*>GEOSGeom_getCoordSeq_r(handle, the_geom)
         
         # perform the transformation
         cs_t = transform(cs, ndim, a, b, c, d, e, f, g, h, i, xoff, yoff, zoff)
