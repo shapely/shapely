@@ -2037,7 +2037,7 @@ one geometry to the vertices in a second geometry with a given tolerance.
    The `tolerance` argument specifies the minimum distance between vertices for
    them to be snapped.
 
-   `New in version 1.4.5`
+   `New in version 1.5.0`
 
 .. code-block:: pycon
 

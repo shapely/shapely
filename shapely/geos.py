@@ -1,8 +1,7 @@
 """
-Proxies for the libgeos_c shared lib, GEOS-specific exceptions, and utilities
+Proxies for libgeos, GEOS-specific exceptions, and utilities
 """
 
-import os
 import re
 import sys
 import atexit
@@ -12,8 +11,9 @@ from ctypes import CDLL, cdll, pointer, string_at, cast, POINTER
 from ctypes import c_void_p, c_size_t, c_char_p, c_int, c_float
 from ctypes.util import find_library
 
-from . import ftools
 from .ctypes_declarations import prototype, EXCEPTION_HANDLER_FUNCTYPE
+from .libgeos import lgeos as _lgeos, geos_version
+from . import ftools
 
 
 # Add message handler to this module's logger
@@ -30,111 +30,6 @@ else:
 
     LOG.addHandler(NullHandler())
 
-
-# Find and load the GEOS and C libraries
-# If this ever gets any longer, we'll break it into separate modules
-
-def load_dll(libname, fallbacks=None):
-    lib = find_library(libname)
-    if lib is not None:
-        try:
-            return CDLL(lib)
-        except OSError:
-            pass
-    if fallbacks is not None:
-        for name in fallbacks:
-            try:
-                return CDLL(name)
-            except OSError:
-                # move on to the next fallback
-                pass
-    # No shared library was loaded. Raise OSError.
-    raise OSError(
-        "Could not find library %s or load any of its variants %s" % (
-            libname, fallbacks or []))
-
-
-if sys.platform.startswith('linux'):
-    _lgeos = load_dll('geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
-    free = load_dll('c').free
-    free.argtypes = [c_void_p]
-    free.restype = None
-
-elif sys.platform == 'darwin':
-    # First test to see if this is a delocated wheel with a GEOS dylib.
-    geos_whl_dylib = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), '.dylibs/libgeos_c.1.dylib'))
-    if os.path.exists(geos_whl_dylib):
-        _lgeos = CDLL(geos_whl_dylib)
-    else:
-        if hasattr(sys, 'frozen'):
-            try:
-                # .app file from py2app
-                alt_paths = [os.path.join(os.environ['RESOURCEPATH'],
-                            '..', 'Frameworks', 'libgeos_c.dylib')]
-            except KeyError:
-                # binary from pyinstaller
-                alt_paths = [os.path.join(sys.executable, 'libgeos_c.dylib')]
-        else:
-            alt_paths = [
-                # The Framework build from Kyng Chaos
-                "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
-                # macports
-                '/opt/local/lib/libgeos_c.dylib',
-            ]
-        _lgeos = load_dll('geos_c', fallbacks=alt_paths)
-
-    free = load_dll('c').free
-    free.argtypes = [c_void_p]
-    free.restype = None
-
-elif sys.platform == 'win32':
-    try:
-        egg_dlls = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                   "DLLs"))
-        wininst_dlls = os.path.abspath(os.__file__ + "../../../DLLs")
-        original_path = os.environ['PATH']
-        os.environ['PATH'] = "%s;%s;%s" % \
-            (egg_dlls, wininst_dlls, original_path)
-        _lgeos = CDLL("geos.dll")
-    except (ImportError, WindowsError, OSError):
-        raise
-
-    def free(m):
-        try:
-            cdll.msvcrt.free(m)
-        except WindowsError:
-            # XXX: See http://trac.gispython.org/projects/PCL/ticket/149
-            pass
-
-elif sys.platform == 'sunos5':
-    _lgeos = load_dll('geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
-    free = CDLL('libc.so.1').free
-    free.argtypes = [c_void_p]
-    free.restype = None
-else:  # other *nix systems
-    _lgeos = load_dll('geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
-    free = load_dll('c', fallbacks=['libc.so.6']).free
-    free.argtypes = [c_void_p]
-    free.restype = None
-
-
-def _geos_version():
-    # extern const char GEOS_DLL *GEOSversion();
-    GEOSversion = _lgeos.GEOSversion
-    GEOSversion.restype = c_char_p
-    GEOSversion.argtypes = []
-    #define GEOS_CAPI_VERSION "@VERSION@-CAPI-@CAPI_VERSION@"
-    geos_version_string = GEOSversion()
-    if sys.version_info[0] >= 3:
-        geos_version_string = geos_version_string.decode('ascii')
-    res = re.findall(r'(\d+)\.(\d+)\.(\d+)', geos_version_string)
-    assert len(res) == 2, res
-    geos_version = tuple(int(x) for x in res[0])
-    capi_version = tuple(int(x) for x in res[1])
-    return geos_version_string, geos_version, capi_version
-
-geos_version_string, geos_version, geos_capi_version = _geos_version()
 
 # If we have the new interface, then record a baseline so that we know what
 # additional functions are declared in ctypes_declarations.
@@ -430,7 +325,7 @@ class WKBWriter(object):
     def big_endian(self):
         """Byte order is big endian, True (default) or False"""
         return (self._lgeos.GEOSWKBWriter_getByteOrder(self._writer) ==
-            self._ENDIAN_BIG)
+                self._ENDIAN_BIG)
 
     @big_endian.setter
     def big_endian(self, value):
@@ -731,7 +626,15 @@ class LGEOS320(LGEOS311):
     def __init__(self, dll):
         super(LGEOS320, self).__init__(dll)
 
-        self.methods['parallel_offset'] = self.GEOSSingleSidedBuffer
+        if geos_version >= (3, 2, 0):
+            def parallel_offset(geom, distance, resolution=16, join_style=1, mitre_limit=5.0, side='right'):
+                side = side == 'left'
+                if distance < 0:
+                    distance = abs(distance)
+                    side = not side
+                return self.GEOSSingleSidedBuffer(geom, distance, resolution, join_style, mitre_limit, side)
+            self.methods['parallel_offset'] = parallel_offset
+
         self.methods['project'] = self.GEOSProject
         self.methods['project_normalized'] = self.GEOSProjectNormalized
         self.methods['interpolate'] = self.GEOSInterpolate
@@ -759,6 +662,12 @@ class LGEOS330(LGEOS320):
 
         for pred in (self.GEOSisClosed,):
             pred.func.errcheck = errcheck_predicate
+
+        def parallel_offset(geom, distance, resolution=16, join_style=1, mitre_limit=5.0, side='right'):
+            if side == 'right':
+                distance *= -1
+            return self.GEOSOffsetCurve(geom, distance, resolution, join_style, mitre_limit)
+        self.methods['parallel_offset'] = parallel_offset
 
         self.methods['unary_union'] = self.GEOSUnaryUnion
         self.methods['is_closed'] = self.GEOSisClosed
@@ -792,6 +701,7 @@ else:
     L = LGEOS300
 
 lgeos = L(_lgeos)
+
 
 def cleanup(proxy):
     del proxy

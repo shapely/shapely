@@ -1,7 +1,21 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+# Two environment variables influence this script.
+#
+# GEOS_LIBRARY_PATH: a path to a GEOS C shared library.
+#
+# GEOS_CONFIG: the path to a geos-config program that points to GEOS version,
+# headers, and libraries.
 
+import errno
+import glob
+import logging
+import os
+import platform
+import re
+import shutil
+import subprocess
+import sys
 try:
     # If possible, use setuptools
     from setuptools import setup
@@ -11,28 +25,43 @@ except ImportError:
     from distutils.core import setup
     from distutils.extension import Extension
     from distutils.command.build_ext import build_ext as distutils_build_ext
-from distutils.cmd import Command
 from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
 from distutils.sysconfig import get_config_var
-import errno
-import glob
-import os
-import platform
-import shutil
-import subprocess
-import sys
 
+# Get geos_version from GEOS dynamic library, which depends on
+# GEOS_LIBRARY_PATH and/or GEOS_CONFIG environment variables
+from shapely.libgeos import geos_version_string, geos_version, \
+    geos_config, get_geos_config
+
+logging.basicConfig()
+log = logging.getLogger(__file__)
+
+# python -W all setup.py ...
+if 'all' in sys.warnoptions:
+    log.level = logging.DEBUG
 
 # Get the version from the shapely module
 version = None
 with open('shapely/__init__.py', 'r') as fp:
     for line in fp:
-        if "__version__" in line:
-            exec(line.replace('_', ''))
+        if line.startswith("__version__"):
+            version = line.split("=")[1].strip().strip("\"'")
             break
-if version is None:
+if not version:
     raise ValueError("Could not determine Shapely's version")
+shapely_version = tuple(int(x) for x in version.split('.'))
+
+# Fail installation if the GEOS shared library does not meet the minimum
+# version. We ship it with Shapely for Windows, so no need to check on
+# that platform.
+log.debug('GEOS shared library: %s %s', geos_version_string, geos_version)
+if (set(sys.argv).intersection(['install', 'build', 'build_ext']) and
+        shapely_version >= (1, 3) and geos_version < (3, 3)):
+    log.critical(
+        "Shapely >= 1.3 requires GEOS >= 3.3. "
+        "Install GEOS 3.3+ and reinstall Shapely.")
+    sys.exit(1)
 
 # Handle UTF-8 encoding of certain text files.
 open_kwds = {}
@@ -56,7 +85,7 @@ long_description = readme + '\n\n' + credits + '\n\n' + changes
 setup_args = dict(
     name                = 'Shapely',
     version             = version,
-    requires            = ['Python (>=2.6)', 'libgeos_c (>=3.1)'],
+    requires            = ['Python (>=2.6)', 'libgeos_c (>=3.3)'],
     description         = 'Geometric objects, predicates, and operations',
     license             = 'BSD',
     keywords            = 'geometry topology gis',
@@ -74,7 +103,6 @@ setup_args = dict(
         'shapely.speedups',
         'shapely.vectorized',
     ],
-    cmdclass = {},
     classifiers         = [
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
@@ -86,7 +114,8 @@ setup_args = dict(
         'Programming Language :: Python :: 3',
         'Topic :: Scientific/Engineering :: GIS',
     ],
-    data_files         = [('shapely', ['shapely/_geos.pxi'])]
+    data_files         = [('shapely', ['shapely/_geos.pxi'])],
+    cmdclass           = {},
 )
 
 # Add DLLs for Windows
@@ -109,6 +138,47 @@ if sys.platform == 'win32':
         package_data={'shapely': ['shapely/DLLs/*.dll']},
         include_package_data=True,
     )
+
+# Build cython extensions, which require development parameters
+include_dirs = [get_config_var('INCLUDEDIR')]
+library_dirs = []
+libraries = []
+extra_link_args = []
+
+
+try:
+    # Get the version from geos-config. Show error if this version tuple is
+    # different to the GEOS version loaded from the dynamic library.
+    geos_config_version_string = get_geos_config('--version')
+    res = re.findall(r'(\d+)\.(\d+)\.(\d+)', geos_config_version_string)
+    geos_config_version = tuple(int(x) for x in res[0])
+    if geos_config_version != geos_version:
+        log.error("The GEOS dynamic library version is %s %s,",
+                  geos_version_string, geos_version)
+        log.error("but the version reported by %s is %s %s.", geos_config,
+                  geos_config_version_string, geos_config_version)
+        sys.exit(1)
+except OSError as ex:
+    log.error(ex)
+    log.error('Cannot find geos-config to get headers and check version.')
+    log.error('If available, specify a path to geos-config with a '
+              'GEOS_CONFIG environment variable')
+    geos_config = None
+
+
+if geos_config:
+    # Collect other options from GEOS
+    for item in get_geos_config('--cflags').split():
+        if item.startswith("-I"):
+            include_dirs.extend(item[2:].split(":"))
+    for item in get_geos_config('--clibs').split():
+        if item.startswith("-L"):
+            library_dirs.extend(item[2:].split(":"))
+        elif item.startswith("-l"):
+            libraries.append(item[2:])
+        else:
+            # e.g. -framework GEOS
+            extra_link_args.append(item)
 
 
 # Optional compilation of speedups
@@ -149,10 +219,6 @@ if (hasattr(platform, 'python_implementation')
     # python_implementation is only available since 2.6
     ext_modules = []
     libraries = []
-elif sys.platform == 'win32':
-    libraries = ['geos']
-else:
-    libraries = ['geos_c']
 
 
 if os.path.exists("MANIFEST.in"):
@@ -166,67 +232,77 @@ if os.path.exists("MANIFEST.in"):
     try:
         if (force_cython or not os.path.exists(c_file)
                 or os.path.getmtime(pyx_file) > os.path.getmtime(c_file)):
-            print("Updating C extension with Cython.", file=sys.stderr)
+            log.info("Updating C extension with Cython.")
             subprocess.check_call(["cython", "shapely/speedups/_speedups.pyx"])
     except (subprocess.CalledProcessError, OSError):
-        print("Warning: Could not (re)create C extension with Cython.",
-              file=sys.stderr)
+        log.warn("Could not (re)create C extension with Cython.")
         if force_cython:
             raise
-    if not os.path.exists("shapely/speedups/_speedups.c"):
-        print("Warning: speedup extension not found", file=sys.stderr)
+    if not os.path.exists(c_file):
+        log.warn("speedup extension not found")
 
 ext_modules = [
     Extension(
         "shapely.speedups._speedups",
         ["shapely/speedups/_speedups.c"],
+        include_dirs=include_dirs,
+        library_dirs=library_dirs,
         libraries=libraries,
-        include_dirs=[get_config_var('INCLUDEDIR')],),
+        extra_link_args=extra_link_args,
+    ),
 ]
 
 cmd_classes = setup_args.setdefault('cmdclass', {})
 
 try:
-    import numpy as np
+    import numpy
     from Cython.Distutils import build_ext as cython_build_ext
     from distutils.extension import Extension as DistutilsExtension
 
-    if 'build_ext' in cmd_classes:
+    if 'build_ext' in setup_args['cmdclass']:
         raise ValueError('We need to put the Cython build_ext in '
                          'cmd_classes, but it is already defined.')
-    cmd_classes['build_ext'] = cython_build_ext
+    setup_args['cmdclass']['build_ext'] = cython_build_ext
 
-    ext_modules.append(DistutilsExtension("shapely.vectorized._vectorized",
-                                 sources=["shapely/vectorized/_vectorized.pyx"],
-                                 libraries=libraries + [np.get_include()],
-                                 include_dirs=[get_config_var('INCLUDEDIR'),
-                                               np.get_include()],
-                                 ))
+    include_dirs.append(numpy.get_include())
+    libraries.append(numpy.get_include())
+
+    ext_modules.append(DistutilsExtension(
+        "shapely.vectorized._vectorized",
+        sources=["shapely/vectorized/_vectorized.pyx"],
+        include_dirs=include_dirs,
+        library_dirs=library_dirs,
+        libraries=libraries,
+        extra_link_args=extra_link_args,
+    ))
 except ImportError:
-    print("Numpy or Cython not available, shapely.vectorized submodule not "
-          "being built.")
+    log.info("Numpy or Cython not available, shapely.vectorized submodule "
+             "not being built.")
 
 
 try:
     # try building with speedups
-    existing_build_ext = setup_args['cmdclass'].get('build_ext', distutils_build_ext)
-    setup_args['cmdclass']['build_ext'] = construct_build_ext(existing_build_ext)
-    setup(
-        ext_modules=ext_modules,
-        **setup_args
-    )
+    existing_build_ext = setup_args['cmdclass'].\
+        get('build_ext', distutils_build_ext)
+    setup_args['cmdclass']['build_ext'] = \
+        construct_build_ext(existing_build_ext)
+    setup(ext_modules=ext_modules, **setup_args)
 except BuildFailed as ex:
-    BUILD_EXT_WARNING = "Warning: The C extension could not be compiled, " \
+    BUILD_EXT_WARNING = "The C extension could not be compiled, " \
                         "speedups are not enabled."
-    print(ex)
-    print(BUILD_EXT_WARNING)
-    print("Failure information, if any, is above.")
-    print("I'm retrying the build without the C extension now.")
+    log.warn(ex)
+    log.warn(BUILD_EXT_WARNING)
+    log.warn("Failure information, if any, is above.")
+    log.warn("I'm retrying the build without the C extension now.")
+
+    # Remove any previously defined build_ext command class.
+    if 'build_ext' in setup_args['cmdclass']:
+        del setup_args['cmdclass']['build_ext']
 
     if 'build_ext' in cmd_classes:
         del cmd_classes['build_ext']
 
     setup(**setup_args)
 
-    print(BUILD_EXT_WARNING)
-    print("Plain-Python installation succeeded.")
+    log.warn(BUILD_EXT_WARNING)
+    log.info("Plain-Python installation succeeded.")

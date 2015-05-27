@@ -1,10 +1,13 @@
 import sys
-from shapely.geos import geos_version_string, lgeos, WKTWriter
+from shapely.libgeos import geos_version_string
+from shapely.geos import lgeos, WKTWriter
 from shapely import speedups
 
+test_int_types = [int]
 try:
     import numpy
     numpy_version = numpy.version.version
+    test_int_types.extend([int, numpy.int16, numpy.int32, numpy.int64])
 except ImportError:
     numpy = False
     numpy_version = 'not available'
