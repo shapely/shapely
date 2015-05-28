@@ -1,6 +1,10 @@
 Changes
 =======
 
+1.5.9 (2015-05-27)
+------------------
+- Fix for 64 bit speedups compatibility (#274).
+
 1.5.8 (2015-04-29)
 ------------------
 - Setup file encoding bug fix (#254).
