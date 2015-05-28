@@ -13,7 +13,7 @@ cdef extern from "geos_c.h":
     GEOSCoordSequence *GEOSCoordSeq_create_r(GEOSContextHandle_t, unsigned int, unsigned int) nogil
     GEOSCoordSequence *GEOSGeom_getCoordSeq_r(GEOSContextHandle_t, GEOSGeometry *) nogil
 
-    int GEOSCoordSeq_getSize_r(GEOSContextHandle_t, GEOSCoordSequence *, int *) nogil
+    int GEOSCoordSeq_getSize_r(GEOSContextHandle_t, GEOSCoordSequence *, unsigned int *) nogil
     int GEOSCoordSeq_setX_r(GEOSContextHandle_t, GEOSCoordSequence *, int, double) nogil
     int GEOSCoordSeq_setY_r(GEOSContextHandle_t, GEOSCoordSequence *, int, double) nogil
     int GEOSCoordSeq_setZ_r(GEOSContextHandle_t, GEOSCoordSequence *, int, double) nogil
