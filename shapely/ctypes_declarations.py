@@ -6,6 +6,9 @@ See header file: geos-x.y.z/capi/geos_c.h
 from ctypes import CFUNCTYPE, POINTER, c_void_p, c_char_p, \
     c_size_t, c_byte, c_char, c_uint, c_int, c_double, py_object
 
+from packaging.version import Version
+
+
 # Derived pointer types
 c_size_t_p = POINTER(c_size_t)
 
@@ -103,7 +106,7 @@ def prototype(lgeos, geos_version):
     Linear refeferencing
     '''
 
-    if geos_version >= (3, 2, 0):
+    if geos_version >= Version('3.2.0'):
 
         lgeos.GEOSProject.restype = c_double
         lgeos.GEOSProject.argtypes = [c_void_p, c_void_p]
@@ -124,12 +127,12 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSBuffer.restype = c_void_p
     lgeos.GEOSBuffer.argtypes = [c_void_p, c_double, c_int]
 
-    if geos_version >= (3, 2, 0):
+    if geos_version >= Version('3.2.0'):
 
         lgeos.GEOSBufferWithStyle.restype = c_void_p
         lgeos.GEOSBufferWithStyle.argtypes = [c_void_p, c_double, c_int, c_int, c_int, c_double]
 
-        if geos_version >= (3, 3, 0):
+        if geos_version >= Version('3.3.0'):
 
             lgeos.GEOSOffsetCurve.restype = c_void_p
             lgeos.GEOSOffsetCurve.argtypes = [c_void_p, c_double, c_int, c_int, c_double]
@@ -195,11 +198,11 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSUnion.restype = c_void_p
     lgeos.GEOSUnion.argtypes = [c_void_p, c_void_p]
 
-    if geos_version >= (3, 3, 0):
+    if geos_version >= Version('3.3.0'):
         lgeos.GEOSUnaryUnion.restype = c_void_p
         lgeos.GEOSUnaryUnion.argtypes = [c_void_p]
 
-    if geos_version >= (3, 1, 0):
+    if geos_version >= Version('3.1.0'):
         '''deprecated in 3.3.0: use GEOSUnaryUnion instead'''
         lgeos.GEOSUnionCascaded.restype = c_void_p
         lgeos.GEOSUnionCascaded.argtypes = [c_void_p]
@@ -213,11 +216,11 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSPolygonize.restype = c_void_p
     lgeos.GEOSPolygonize.argtypes = [c_void_p, c_uint]
 
-    if geos_version >= (3, 3, 0):
+    if geos_version >= Version('3.3.0'):
         lgeos.GEOSPolygonize_full.restype = c_void_p
         lgeos.GEOSPolygonize_full.argtypes = [c_void_p, c_void_p, c_void_p, c_void_p]
 
-    if geos_version >= (3, 4, 0):
+    if geos_version >= Version('3.4.0'):
         lgeos.GEOSDelaunayTriangulation.restype = c_void_p
         lgeos.GEOSDelaunayTriangulation.argtypes = [c_void_p, c_double, c_int]
 
@@ -277,7 +280,7 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSisValid.restype = c_byte
     lgeos.GEOSisValid.argtypes = [c_void_p]
 
-    if geos_version >= (3, 1, 0):
+    if geos_version >= Version('3.1.0'):
         lgeos.GEOSisValidReason.restype = allocated_c_char_p
         lgeos.GEOSisValidReason.argtypes = [c_void_p]
 
@@ -287,7 +290,7 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSisRing.restype = c_byte
     lgeos.GEOSisRing.argtypes = [c_void_p]
 
-    if geos_version >= (3, 3, 0):
+    if geos_version >= Version('3.3.0'):
         lgeos.GEOSisClosed.restype = c_byte
         lgeos.GEOSisClosed.argtypes = [c_void_p]
 
@@ -309,7 +312,7 @@ def prototype(lgeos, geos_version):
     Return 2 on exception, 1 on true, 0 on false
     '''
 
-    if geos_version >= (3, 1, 0):
+    if geos_version >= Version('3.1.0'):
 
         lgeos.GEOSPrepare.restype = c_void_p
         lgeos.GEOSPrepare.argtypes = [c_void_p]
@@ -422,7 +425,7 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSWKTWriter_write.restype = allocated_c_char_p
     lgeos.GEOSWKTWriter_write.argtypes = [c_void_p, c_void_p]
 
-    if geos_version >= (3, 3, 0):
+    if geos_version >= Version('3.3.0'):
 
         lgeos.GEOSWKTWriter_setTrim.restype = None
         lgeos.GEOSWKTWriter_setTrim.argtypes = [c_void_p, c_int]
@@ -483,7 +486,7 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSWKBWriter_setIncludeSRID.restype = None
     lgeos.GEOSWKBWriter_setIncludeSRID.argtypes = [c_void_p, c_int]
 
-    if geos_version >= (3, 1, 1):
+    if geos_version >= Version('3.1.1'):
 
         '''
         Free buffers returned by stuff like GEOSWKBWriter_write(),
@@ -493,15 +496,15 @@ def prototype(lgeos, geos_version):
         lgeos.GEOSFree.restype = None
         lgeos.GEOSFree.argtypes = [c_void_p]
 
-    if geos_version >= (3, 3, 0):
+    if geos_version >= Version('3.3.0'):
         lgeos.GEOSSnap.restype = c_void_p
         lgeos.GEOSSnap.argtypes = [c_void_p, c_void_p, c_double]
 
-    if geos_version >= (3, 4, 0):
+    if geos_version >= Version('3.4.0'):
         lgeos.GEOSNearestPoints.restype = c_void_p
         lgeos.GEOSNearestPoints.argtypes = [c_void_p, c_void_p]
 
-    if geos_version >= (3, 4, 2):
+    if geos_version >= Version('3.4.2'):
         lgeos.GEOSQueryCallback = CFUNCTYPE(None, c_void_p, c_void_p)
 
         lgeos.GEOSSTRtree_query.argtypes = [c_void_p, c_void_p, lgeos.GEOSQueryCallback, py_object]

@@ -230,6 +230,7 @@ def _geos_version():
     geos_version, capi_version = geos_version_string.split()[0].split('-CAPI-')
     geos_version = Version(geos_version)
     capi_version = Version(capi_version)
+
     return geos_version_string, geos_version, capi_version
 
 geos_version_string, geos_version, geos_capi_version = _geos_version()
