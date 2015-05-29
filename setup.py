@@ -93,6 +93,7 @@ setup_args = dict(
     name                = 'Shapely',
     version             = str(shapely_version),
     requires            = ['Python (>=2.6)', 'libgeos_c (>=3.3)'],
+    install_requires    = ['packaging'],
     description         = 'Geometric objects, predicates, and operations',
     license             = 'BSD',
     keywords            = 'geometry topology gis',
