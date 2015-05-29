@@ -6,6 +6,9 @@
 #
 # GEOS_CONFIG: the path to a geos-config program that points to GEOS version,
 # headers, and libraries.
+#
+# NB: within this setup scripts, software versions are evaluated according
+# to https://www.python.org/dev/peps/pep-0440/.
 
 import errno
 import glob
@@ -29,10 +32,12 @@ from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
 from distutils.sysconfig import get_config_var
 
+from packaging.version import Version
+
 # Get geos_version from GEOS dynamic library, which depends on
 # GEOS_LIBRARY_PATH and/or GEOS_CONFIG environment variables
 from shapely.libgeos import geos_version_string, geos_version, \
-    geos_config, get_geos_config
+        geos_config, get_geos_config
 
 logging.basicConfig()
 log = logging.getLogger(__file__)
@@ -42,22 +47,24 @@ if 'all' in sys.warnoptions:
     log.level = logging.DEBUG
 
 # Get the version from the shapely module
-version = None
+shapely_version = None
 with open('shapely/__init__.py', 'r') as fp:
     for line in fp:
         if line.startswith("__version__"):
-            version = line.split("=")[1].strip().strip("\"'")
+            shapely_version = Version(
+                line.split("=")[1].strip().strip("\"'"))
             break
-if not version:
+
+if not shapely_version:
     raise ValueError("Could not determine Shapely's version")
-shapely_version = tuple(int(x) for x in version.split('.'))
 
 # Fail installation if the GEOS shared library does not meet the minimum
 # version. We ship it with Shapely for Windows, so no need to check on
 # that platform.
 log.debug('GEOS shared library: %s %s', geos_version_string, geos_version)
 if (set(sys.argv).intersection(['install', 'build', 'build_ext']) and
-        shapely_version >= (1, 3) and geos_version < (3, 3)):
+        shapely_version >= Version('1.3') and
+        geos_version < Version('3.3')):
     log.critical(
         "Shapely >= 1.3 requires GEOS >= 3.3. "
         "Install GEOS 3.3+ and reinstall Shapely.")
@@ -69,7 +76,7 @@ if sys.version_info >= (3,):
     open_kwds['encoding'] = 'utf-8'
 
 with open('VERSION.txt', 'w', **open_kwds) as fp:
-    fp.write(version)
+    fp.write(str(shapely_version))
 
 with open('README.rst', 'r', **open_kwds) as fp:
     readme = fp.read()
@@ -84,7 +91,7 @@ long_description = readme + '\n\n' + credits + '\n\n' + changes
 
 setup_args = dict(
     name                = 'Shapely',
-    version             = version,
+    version             = str(shapely_version),
     requires            = ['Python (>=2.6)', 'libgeos_c (>=3.3)'],
     description         = 'Geometric objects, predicates, and operations',
     license             = 'BSD',
@@ -150,8 +157,10 @@ try:
     # Get the version from geos-config. Show error if this version tuple is
     # different to the GEOS version loaded from the dynamic library.
     geos_config_version_string = get_geos_config('--version')
-    res = re.findall(r'(\d+)\.(\d+)\.(\d+)', geos_config_version_string)
-    geos_config_version = tuple(int(x) for x in res[0])
+
+    geos_config_version = geos_config_version_string.split()[0].split('-CAPI-')[0]
+    geos_config_version = Version(geos_config_version)
+
     if geos_config_version != geos_version:
         log.error("The GEOS dynamic library version is %s %s,",
                   geos_version_string, geos_version)
