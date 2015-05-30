@@ -3,7 +3,11 @@ from shapely.libgeos import geos_version_string
 from shapely.geos import lgeos, WKTWriter
 from shapely import speedups
 
+from packaging.version import Version
+
+
 test_int_types = [int]
+
 try:
     import numpy
     numpy_version = numpy.version.version
