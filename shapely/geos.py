@@ -15,7 +15,6 @@ from .ctypes_declarations import prototype, EXCEPTION_HANDLER_FUNCTYPE
 from .libgeos import lgeos as _lgeos, geos_version
 from . import ftools
 
-from packaging.version import Version
 
 # Add message handler to this module's logger
 LOG = logging.getLogger(__name__)
@@ -34,7 +33,7 @@ else:
 
 # If we have the new interface, then record a baseline so that we know what
 # additional functions are declared in ctypes_declarations.
-if geos_version >= Version('3.1.0'):
+if geos_version >= (3, 1, 0):
     start_set = set(_lgeos.__dict__)
 
 # Apply prototypes for the libgeos_c functions
@@ -42,7 +41,7 @@ prototype(_lgeos, geos_version)
 
 # If we have the new interface, automatically detect all function
 # declarations, and declare their re-entrant counterpart.
-if geos_version >= Version('3.1.0'):
+if geos_version >= (3, 1, 0):
     end_set = set(_lgeos.__dict__)
     new_func_names = end_set - start_set
 
@@ -155,7 +154,7 @@ class WKTWriter(object):
     # Establish default output settings
     defaults = {}
 
-    if geos_version >= Version('3.3.0'):
+    if geos_version >= (3, 3, 0):
 
         defaults['trim'] = True
         defaults['output_dimension'] = 3
@@ -445,8 +444,8 @@ class LGEOSBase(threading.local):
 class LGEOS300(LGEOSBase):
     """Proxy for GEOS 3.0.0-CAPI-1.4.1
     """
-    geos_version = Version('3.0.0')
-    geos_capi_version = Version('1.4.0')
+    geos_version = (3, 0, 0)
+    geos_capi_version = (1, 4, 0)
 
     def __init__(self, dll):
         super(LGEOS300, self).__init__(dll)
@@ -512,8 +511,8 @@ class LGEOS300(LGEOSBase):
 class LGEOS310(LGEOSBase):
     """Proxy for GEOS 3.1.0-CAPI-1.5.0
     """
-    geos_version = Version('3.1.0')
-    geos_capi_version = Version('1.5.0')
+    geos_version = (3, 1, 0)
+    geos_capi_version = (1, 5, 0)
 
     def __init__(self, dll):
         super(LGEOS310, self).__init__(dll)
@@ -611,8 +610,8 @@ class LGEOS310(LGEOSBase):
 class LGEOS311(LGEOS310):
     """Proxy for GEOS 3.1.1-CAPI-1.6.0
     """
-    geos_version = Version('3.1.1')
-    geos_capi_version = Version('1.6.0')
+    geos_version = (3, 1, 1)
+    geos_capi_version = (1, 6, 0)
 
     def __init__(self, dll):
         super(LGEOS311, self).__init__(dll)
@@ -621,13 +620,13 @@ class LGEOS311(LGEOS310):
 class LGEOS320(LGEOS311):
     """Proxy for GEOS 3.2.0-CAPI-1.6.0
     """
-    geos_version = Version('3.2.0')
-    geos_capi_version = Version('1.6.0')
+    geos_version = (3, 2, 0)
+    geos_capi_version = (1, 6, 0)
 
     def __init__(self, dll):
         super(LGEOS320, self).__init__(dll)
 
-        if geos_version >= Version('3.2.0'):
+        if geos_version >= (3, 2, 0):
             def parallel_offset(geom, distance, resolution=16, join_style=1, mitre_limit=5.0, side='right'):
                 side = side == 'left'
                 if distance < 0:
@@ -647,8 +646,8 @@ class LGEOS320(LGEOS311):
 class LGEOS330(LGEOS320):
     """Proxy for GEOS 3.3.0-CAPI-1.7.0
     """
-    geos_version = Version('3.3.0')
-    geos_capi_version = Version('1.7.0')
+    geos_version = (3, 3, 0)
+    geos_capi_version = (1, 7, 0)
 
     def __init__(self, dll):
         super(LGEOS330, self).__init__(dll)
@@ -679,8 +678,8 @@ class LGEOS330(LGEOS320):
 class LGEOS340(LGEOS330):
     """Proxy for GEOS 3.4.0-CAPI-1.8.0
     """
-    geos_version = Version('3.4.0')
-    geos_capi_version = Version('1.8.0')
+    geos_version = (3, 4, 0)
+    geos_capi_version = (1, 8, 0)
 
     def __init__(self, dll):
         super(LGEOS340, self).__init__(dll)
@@ -688,15 +687,15 @@ class LGEOS340(LGEOS330):
         self.methods['nearest_points'] = self.GEOSNearestPoints
 
 
-if geos_version >= Version('3.4.0'):
+if geos_version >= (3, 4, 0):
     L = LGEOS340
-elif geos_version >= Version('3.3.0'):
+elif geos_version >= (3, 3, 0):
     L = LGEOS330
-elif geos_version >= Version('3.2.0'):
+elif geos_version >= (3, 2, 0):
     L = LGEOS320
-elif geos_version >= Version('3.1.1'):
+elif geos_version >= (3, 1, 1):
     L = LGEOS311
-elif geos_version >= Version('3.1.0'):
+elif geos_version >= (3, 1, 0):
     L = LGEOS310
 else:
     L = LGEOS300

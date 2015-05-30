@@ -21,8 +21,6 @@ from shapely.predicates import BinaryPredicate, UnaryPredicate
 from shapely.topology import BinaryRealProperty, BinaryTopologicalOp
 from shapely.topology import UnaryRealProperty, UnaryTopologicalOp
 
-from packaging.version import Version
-
 
 class ImplementationError(
         AttributeError, KeyError, NotImplementedError):
@@ -151,13 +149,13 @@ def impl_items(defs):
     return [(k, v[0](v[1])) for k, v in list(defs.items())]
 
 imp = GEOSImpl(dict(impl_items(IMPL300)))
-if lgeos.geos_version >= Version('3.1.0'):
+if lgeos.geos_version >= (3, 1, 0):
     imp.update(impl_items(IMPL310))
-if lgeos.geos_version >= Version('3.1.1'):
+if lgeos.geos_version >= (3, 1, 1):
     imp.update(impl_items(IMPL311))
-if lgeos.geos_version >= Version('3.2.0'):
+if lgeos.geos_version >= (3, 2, 0):
     imp.update(impl_items(IMPL320))
-if lgeos.geos_version >= Version('3.3.0'):
+if lgeos.geos_version >= (3, 3, 0):
     imp.update(impl_items(IMPL330))
 
 DefaultImplementation = imp
