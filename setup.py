@@ -30,7 +30,6 @@ except ImportError:
     from distutils.command.build_ext import build_ext as distutils_build_ext
 from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
-from distutils.sysconfig import get_config_var
 
 from packaging.version import Version
 
@@ -146,12 +145,12 @@ if sys.platform == 'win32':
         include_package_data=True,
     )
 
-# Build cython extensions, which require development parameters
-include_dirs = [get_config_var('INCLUDEDIR')]
+
+# Prepare build opts and args for the speedups extension module.
+include_dirs = []
 library_dirs = []
 libraries = []
 extra_link_args = []
-
 
 try:
     # Get the version from geos-config. Show error if this version tuple is
@@ -172,7 +171,6 @@ except OSError as ex:
     log.error('If available, specify a path to geos-config with a '
               'GEOS_CONFIG environment variable')
     geos_config = None
-
 
 if geos_config:
     # Collect other options from GEOS
