@@ -1054,8 +1054,9 @@ differently.
 
 .. method:: object.contains(other)
 
-  Returns ``True`` if the object's `interior` contains the `boundary` and
-  `interior` of the other object and their boundaries do not touch at all.
+  Returns ``True`` if no points of `other` lie in the exterior of the `object`
+  and at least one point of the interior of `other` lies in the interior of
+  `object`.
 
 This predicate applies to all types, and is inverse to :meth:`within`. The
 expression ``a.contains(b) == b.within(a)`` always evaluates to ``True``.
