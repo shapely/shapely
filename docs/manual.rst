@@ -1125,8 +1125,8 @@ This predicate applies to all types and is the inverse of :meth:`intersects`.
   Returns ``True`` if the `boundary` and `interior` of the object intersect in
   any way with those of the other.
 
-This predicate is equivalent to the OR-ing of :meth:`contains`, :meth:`crosses`,
-:meth:`equals`, :meth:`touches`, and :meth:`within`.
+In other words, geometric objects intersect if they have any boundary or 
+interior point in common.
 
 .. method:: object.touches(other)
 
