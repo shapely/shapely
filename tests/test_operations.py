@@ -1,7 +1,8 @@
 from . import unittest
+import pytest
 from shapely.geometry import Point, Polygon, MultiPoint, GeometryCollection
 from shapely.wkt import loads
-
+from shapely.geos import TopologicalError
 
 class OperationsTestCase(unittest.TestCase):
 
@@ -62,9 +63,15 @@ class OperationsTestCase(unittest.TestCase):
 
         self.assertIsInstance(point.centroid, Point)
 
+    def test_relate(self):
         # Relate
-        self.assertEqual(point.relate(Point(-1, -1)), 'FF0FFF0F2')
+        self.assertEqual(Point(0, 0).relate(Point(-1, -1)), 'FF0FFF0F2')
 
+        # issue #294: should raise TopologicalError on exception
+        invalid_polygon = loads('POLYGON ((40 100, 80 100, 80 60, 40 60, 40 100), (60 60, 80 60, 80 40, 60 40, 60 60))')
+        assert(not invalid_polygon.is_valid)
+        with pytest.raises(TopologicalError):
+            invalid_polygon.relate(invalid_polygon)
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(OperationsTestCase)
