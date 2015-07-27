@@ -417,7 +417,7 @@ def errcheck_just_free(result, func, argtuple):
 def errcheck_null_exception(result, func, argtuple):
     '''Wraps errcheck_just_free, raising a TopologicalError if result is NULL'''
     if not result:
-        raise TopologicalError("The operation '{}' could not be performed. \
+        raise TopologicalError("The operation '{0}' could not be performed. \
 Likely cause is invalidity of the geometry.".format(func.__name__))
     return errcheck_just_free(result, func, argtuple)
 
