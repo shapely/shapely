@@ -468,6 +468,7 @@ class LGEOS300(LGEOSBase):
                 self.GEOSOverlaps,
                 self.GEOSEquals,
                 self.GEOSEqualsExact,
+                self.GEOSRelatePattern,
                 self.GEOSisEmpty,
                 self.GEOSisValid,
                 self.GEOSisSimple,
@@ -503,6 +504,7 @@ class LGEOS300(LGEOSBase):
         self.methods['symmetric_difference'] = self.GEOSSymDifference
         self.methods['union'] = self.GEOSUnion
         self.methods['intersection'] = self.GEOSIntersection
+        self.methods['relate_pattern'] = self.GEOSRelatePattern
         self.methods['simplify'] = self.GEOSSimplify
         self.methods['topology_preserve_simplify'] = \
             self.GEOSTopologyPreserveSimplify
@@ -553,6 +555,7 @@ class LGEOS310(LGEOSBase):
                 self.GEOSPreparedContainsProperly,
                 self.GEOSPreparedCovers,
                 self.GEOSPreparedIntersects,
+                self.GEOSRelatePattern,
                 self.GEOSisEmpty,
                 self.GEOSisValid,
                 self.GEOSisSimple,
@@ -601,6 +604,7 @@ class LGEOS310(LGEOSBase):
             self.GEOSPreparedContainsProperly
         self.methods['prepared_overlaps'] = self.GEOSPreparedOverlaps
         self.methods['prepared_covers'] = self.GEOSPreparedCovers
+        self.methods['relate_pattern'] = self.GEOSRelatePattern
         self.methods['simplify'] = self.GEOSSimplify
         self.methods['topology_preserve_simplify'] = \
             self.GEOSTopologyPreserveSimplify
