@@ -537,7 +537,7 @@ class BaseGeometry(object):
 
     @delegated
     def simplify(self, tolerance, preserve_topology=True):
-        """Returns a simplified geometry produced by the Douglas-Puecker
+        """Returns a simplified geometry produced by the Douglas-Peucker
         algorithm
 
         Coordinates of the simplified geometry will be no more than the
