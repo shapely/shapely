@@ -8,7 +8,7 @@ python:
 
 env:
   - "TRAVIS_SPEEDUP_OPTS=--with-speedups"
-  - "TRAVIS_SPEEDUP_OPTS="
+  - "TRAVIS_SPEEDUP_OPTS=--without-speedups"
 
 before_install:
   - sudo add-apt-repository -y ppa:ubuntugis/ppa

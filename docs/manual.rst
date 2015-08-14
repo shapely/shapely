@@ -2339,13 +2339,12 @@ involves some overhead that might slow down your code.
 .. versionadded:: 1.2.10
 
 The :mod:`shapely.speedups` module contains performance enhancements written in
-C. They are automaticaly installed when Python has access to a compiler and
-GEOS development headers during installation.
+C. They are automatically installed when Python has access to a compiler and
+GEOS development headers during installation. 
 
 You can check if the speedups are installed with the :attr:`available`
-attribute. The constructor speedups are disabled by default. To enable the
-speedups call :func:`enable`. You can revert to the default implementation with
-:func:`disable`.
+attribute. To enable the speedups call :func:`enable`. You can revert to the
+default implementation with :func:`disable`.
 
 .. code-block:: pycon
 
@@ -2354,6 +2353,16 @@ speedups call :func:`enable`. You can revert to the default implementation with
   True
   >>> speedups.enable()
 
+.. versionadded:: 1.6.0
+
+Speedups are now enabled by default if they are available. You can check if
+speedups are enabled with the :attr:`enabled` attribute.
+
+.. code-block:: pycon
+
+  >>> from shapely import speedups
+  >>> speedups.enabled
+  True
 
 Conclusion
 ==========

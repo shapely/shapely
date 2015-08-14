@@ -18,3 +18,6 @@ __all__ = [
     'GeometryCollection', 'mapping', 'LinearRing', 'asLinearRing',
     'CAP_STYLE', 'JOIN_STYLE',
 ]
+
+# This needs to be called here to avoid circular references
+import shapely.speedups
