@@ -1,6 +1,10 @@
 Changes
 =======
 
+1.5.10 (2015-??-??)
+-------------------
+- Monkey patch affinity module by absolute reference (#299).
+
 1.5.9 (2015-05-27)
 ------------------
 - Fix for 64 bit speedups compatibility (#274).
