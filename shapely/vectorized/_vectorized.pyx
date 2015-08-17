@@ -75,10 +75,12 @@ cdef _predicated_elementwise(geometry, x, y, predicate fn):
     if x.shape != y.shape:
         raise ValueError('X and Y shapes must be equivalent.')
 
-    x_1d = x.astype(np.float64, copy=False).ravel()
-    y_1d = y.astype(np.float64, copy=False).ravel()
+    if x.dtype != np.float64:
+        x = x.astype(np.float64)
+    if y.dtype != np.float64:
+        y = y.astype(np.float64)
 
-    result = _predicated_1d(geometry, x_1d, y_1d, fn)
+    result = _predicated_1d(geometry, x.ravel(), y.ravel(), fn)
     return result.reshape(x.shape)
 
 
@@ -89,7 +91,7 @@ cdef _predicated_1d(geometry, np.double_t[:] x, np.double_t[:] y, predicate fn):
     
     cdef Py_ssize_t idx
     cdef unsigned int n = x.size
-    cdef np.ndarray[np.uint8_t, ndim=1, cast=True] result = np.empty(n, dtype=np.bool)
+    cdef np.ndarray[np.uint8_t, ndim=1, cast=True] result = np.empty(n, dtype=np.uint8)
     cdef GEOSContextHandle_t geos_handle
     cdef GEOSPreparedGeometry *geos_prepared_geom
     cdef GEOSCoordSequence *cs
@@ -117,4 +119,4 @@ cdef _predicated_1d(geometry, np.double_t[:] x, np.double_t[:] y, predicate fn):
             result[idx] = <np.uint8_t> fn(geos_h, geos_geom, p)
             GEOSGeom_destroy_r(geos_h, p)
 
-    return result
+    return result.view(dtype=np.bool)
