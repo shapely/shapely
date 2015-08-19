@@ -54,18 +54,18 @@ class VectorizedContainsTestCase(unittest.TestCase):
 
     def test_y_array_order(self):
         y, x = np.mgrid[-10:10:5j, -5:15:5j]
-        y = y.copy(order='f')
+        y = y.copy('f')
         self.assertContainsResults(self.construct_torus(), x, y)
     
     def test_x_array_order(self):
         y, x = np.mgrid[-10:10:5j, -5:15:5j]
-        x = x.copy(order='f')
+        x = x.copy('f')
         self.assertContainsResults(self.construct_torus(), x, y)
     
     def test_xy_array_order(self):
         y, x = np.mgrid[-10:10:5j, -5:15:5j]
-        x = x.copy(order='f')
-        y = y.copy(order='f')
+        x = x.copy('f')
+        y = y.copy('f')
         result = self.assertContainsResults(self.construct_torus(), x, y)
         # We always return a C_CONTIGUOUS array.
         self.assertTrue(result.flags['C_CONTIGUOUS'])
