@@ -672,6 +672,12 @@ class BaseGeometry(object):
         specified decimal place"""
         return self.equals_exact(other, 0.5 * 10**(-decimal))
 
+    def relate_pattern(self, other, pattern):
+        """Returns True if the DE-9IM string code for the relationship between
+        the geometries satisfies the pattern, else False"""
+        pattern = c_char_p(pattern.encode('ascii'))
+        return bool(self.impl['relate_pattern'](self, other, pattern))
+
     # Linear referencing
     # ------------------
 
