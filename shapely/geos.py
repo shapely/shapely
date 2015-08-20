@@ -395,7 +395,7 @@ class WKBWriter(object):
 # Errcheck functions for ctypes
 
 def errcheck_wkb(result, func, argtuple):
-    '''Returns bytes from a C pointer'''
+    """Returns bytes from a C pointer"""
     if not result:
         return None
     size_ref = argtuple[-1]
@@ -406,7 +406,7 @@ def errcheck_wkb(result, func, argtuple):
 
 
 def errcheck_just_free(result, func, argtuple):
-    '''Returns string from a C pointer'''
+    """Returns string from a C pointer"""
     retval = string_at(result)
     lgeos.GEOSFree(result)
     if sys.version_info[0] >= 3:
@@ -414,9 +414,15 @@ def errcheck_just_free(result, func, argtuple):
     else:
         return retval
 
+def errcheck_null_exception(result, func, argtuple):
+    """Wraps errcheck_just_free, raising a TopologicalError if result is NULL"""
+    if not result:
+        raise TopologicalError("The operation '{0}' could not be performed."
+            "Likely cause is invalidity of the geometry.".format(func.__name__))
+    return errcheck_just_free(result, func, argtuple)
 
 def errcheck_predicate(result, func, argtuple):
-    '''Result is 2 on exception, 1 on True, 0 on False'''
+    """Result is 2 on exception, 1 on True, 0 on False"""
     if result == 2:
         raise PredicateError("Failed to evaluate %s" % repr(func))
     return result
@@ -457,7 +463,7 @@ class LGEOS300(LGEOSBase):
         # Deprecated
         self.GEOSGeomToWKB_buf.errcheck = errcheck_wkb
         self.GEOSGeomToWKT.errcheck = errcheck_just_free
-        self.GEOSRelate.errcheck = errcheck_just_free
+        self.GEOSRelate.errcheck = errcheck_null_exception
         for pred in (
                 self.GEOSDisjoint,
                 self.GEOSTouches,
@@ -532,7 +538,7 @@ class LGEOS310(LGEOSBase):
         # Deprecated
         self.GEOSGeomToWKB_buf.func.errcheck = errcheck_wkb
         self.GEOSGeomToWKT.func.errcheck = errcheck_just_free
-        self.GEOSRelate.func.errcheck = errcheck_just_free
+        self.GEOSRelate.func.errcheck = errcheck_null_exception
         for pred in (
                 self.GEOSDisjoint,
                 self.GEOSTouches,
