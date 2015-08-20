@@ -1235,6 +1235,37 @@ elements.
   >>> Point(0, 0).relate(LineString([(0, 0), (1, 1)]))
   'F0FFFF102'
 
+.. method:: object.relate_pattern(other, pattern)
+
+    Returns True if the DE-9IM string code for the relationship between the
+    geometries satisfies the pattern, otherwise False.
+
+The :meth:`relate_pattern` compares the DE-9IM code string for two geometries
+against a specified pattern. If the string matches the pattern then ``True`` is
+returned, otherwise ``False``. The pattern specified can be an exact match
+(``0``, ``1`` or ``2``), a boolean match (``T`` or ``F``), or a wildcard
+(``*``). For example, the pattern for the `within` predicate is ``T*****FF*``.
+
+.. code-block:: pycon
+
+  >> point = Point(0.5, 0.5)
+  >> square = Polygon([(0, 0), (0, 1), (1, 1), (1, 0)])
+  >> square.relate_pattern(point, 'T*****FF*')
+  True
+  >> point.within(square)
+  True
+
+Note that the order or the geometries is significant, as demonstrated below.
+In this example the square contains the point, but the point does not contain
+the square.
+
+.. code-block:: pycon
+
+  >>> point.relate(square)
+  '0FFFFF212'
+  >>> square.relate(point)
+  '0F2FF1FF2'
+
 Further discussion of the DE-9IM matrix is beyond the scope of this manual. See
 [4]_ and http://pypi.python.org/pypi/de9im.
 
