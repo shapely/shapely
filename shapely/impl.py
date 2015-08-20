@@ -108,6 +108,7 @@ IMPL300 = {
     'within': (BinaryPredicate, 'within'),
     'covers': (BinaryPredicate, 'covers'),
     'equals_exact': (BinaryPredicate, 'equals_exact'),
+    'relate_pattern': (BinaryPredicate, 'relate_pattern'),
 
     # First pure Python implementation
     'is_ccw': (cga.is_ccw_impl, 'is_ccw'),

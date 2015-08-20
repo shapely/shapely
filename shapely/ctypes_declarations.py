@@ -298,11 +298,15 @@ def prototype(lgeos, geos_version):
     Dimensionally Extended 9 Intersection Model related
     '''
 
-    lgeos.GEOSRelatePattern.restype = c_char
-    lgeos.GEOSRelatePattern.argtypes = [c_void_p, c_void_p, c_char_p]
-
     lgeos.GEOSRelate.restype = allocated_c_char_p
     lgeos.GEOSRelate.argtypes = [c_void_p, c_void_p]
+
+    lgeos.GEOSRelatePattern.restype = c_byte
+    lgeos.GEOSRelatePattern.argtypes = [c_void_p, c_void_p, c_char_p]
+
+    if geos_version >= (3, 3, 0):
+        lgeos.GEOSRelatePatternMatch.restype = c_byte
+        lgeos.GEOSRelatePatternMatch.argtypes = [c_char_p, c_char_p]
 
     '''
     Prepared Geometry Binary predicates
