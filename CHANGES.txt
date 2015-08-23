@@ -1,9 +1,10 @@
 Changes
 =======
 
-1.5.10 (2015-??-??)
+1.5.10 (2015-08-22)
 -------------------
 - Monkey patch affinity module by absolute reference (#299).
+- Raise TopologicalError in relate() instead of crashing (#294, #295, #303).
 
 1.5.9 (2015-05-27)
 ------------------
