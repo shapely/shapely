@@ -1,6 +1,11 @@
 Changes
 =======
 
+1.5.11 (2015-08-23)
+-------------------
+- Remove packaging module requirement added in 1.5.10 (#305). Distutils can't 
+  parse versions using 'rc', but if we stick to 'a' and 'b' we will be fine.
+
 1.5.10 (2015-08-22)
 -------------------
 - Monkey patch affinity module by absolute reference (#299).
