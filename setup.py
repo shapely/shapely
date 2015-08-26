@@ -31,7 +31,7 @@ except ImportError:
 from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
 
-from distutils.version import StrictVersion as Version
+from packaging.version import Version
 
 # Get geos_version from GEOS dynamic library, which depends on
 # GEOS_LIBRARY_PATH and/or GEOS_CONFIG environment variables
