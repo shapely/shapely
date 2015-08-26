@@ -10,16 +10,15 @@ used. Otherwise GEOS_CONFIG can be set to a path to `geos-config`. If
 be used to help better guess the name for the GEOS C dynamic library.
 """
 
+from ctypes import CDLL, cdll, c_void_p, c_char_p
+from ctypes.util import find_library
 import os
 import logging
 import re
 import subprocess
 import sys
-from ctypes import CDLL, cdll, c_void_p, c_char_p
-from ctypes.util import find_library
 
 
-logging.basicConfig()
 log = logging.getLogger(__name__)
 if 'all' in sys.warnoptions:
     log.level = logging.DEBUG
