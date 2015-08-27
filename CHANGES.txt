@@ -1,6 +1,15 @@
 Changes
 =======
 
+1.5.12 (2015-08-27)
+-------------------
+- Remove configuration of root logger from libgeos.py (#312).
+- Skip test_fallbacks on Windows (#308).
+- Call setlocale(locale.LC_ALL, "") instead of resetlocale() on Windows when
+  tearing down the locale test (#308).
+- Fix for Sphinx warnings (#309).
+- Addition of .cache, .idea, .pyd, .pdb to .gitignore (#310).
+
 1.5.11 (2015-08-23)
 -------------------
 - Remove packaging module requirement added in 1.5.10 (#305). Distutils can't 
