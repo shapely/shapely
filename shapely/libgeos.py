@@ -10,15 +10,15 @@ used. Otherwise GEOS_CONFIG can be set to a path to `geos-config`. If
 be used to help better guess the name for the GEOS C dynamic library.
 """
 
+from ctypes import CDLL, cdll, c_void_p, c_char_p
+from ctypes.util import find_library
 import os
 import logging
 import re
 import subprocess
 import sys
-from ctypes import CDLL, cdll, c_void_p, c_char_p
-from ctypes.util import find_library
 
-logging.basicConfig()
+
 log = logging.getLogger(__name__)
 if 'all' in sys.warnoptions:
     log.level = logging.DEBUG
@@ -171,7 +171,7 @@ elif sys.platform == 'darwin':
                 ]
             lgeos = load_dll('geos_c', fallbacks=alt_paths)
 
-    free = load_dll('c').free
+    free = load_dll('c', fallbacks=['/usr/lib/libc.dylib']).free
     free.argtypes = [c_void_p]
     free.restype = None
 
@@ -224,10 +224,12 @@ def _geos_version():
     geos_version_string = GEOSversion()
     if sys.version_info[0] >= 3:
         geos_version_string = geos_version_string.decode('ascii')
+
     res = re.findall(r'(\d+)\.(\d+)\.(\d+)', geos_version_string)
     assert len(res) == 2, res
     geos_version = tuple(int(x) for x in res[0])
     capi_version = tuple(int(x) for x in res[1])
+
     return geos_version_string, geos_version, capi_version
 
 geos_version_string, geos_version, geos_capi_version = _geos_version()

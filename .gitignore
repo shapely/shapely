@@ -1,4 +1,5 @@
 *.pyc
+*.pyo
 *.c
 *.so
 
@@ -10,3 +11,7 @@ docs/_build/
 docs/shapely.*.txt
 docs/shapely.txt
 docs/modules.txt
+.cache/
+.idea/
+*.pyd
+*.pdb

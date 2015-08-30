@@ -13,17 +13,18 @@ from shapely.geometry import Point, LineString, LinearRing
 from shapely.geometry.base import geom_factory
 
 include "../_geos.pxi"
-    
 
-cdef inline GEOSGeometry *cast_geom(unsigned long geom_addr):
+from libc.stdint cimport uintptr_t
+
+cdef inline GEOSGeometry *cast_geom(uintptr_t geom_addr):
     return <GEOSGeometry *>geom_addr
 
 
-cdef inline GEOSContextHandle_t cast_handle(unsigned long handle_addr):
+cdef inline GEOSContextHandle_t cast_handle(uintptr_t handle_addr):
     return <GEOSContextHandle_t>handle_addr
 
 
-cdef inline GEOSCoordSequence *cast_seq(unsigned long handle_addr):
+cdef inline GEOSCoordSequence *cast_seq(uintptr_t handle_addr):
     return <GEOSCoordSequence *>handle_addr
 
 
@@ -49,11 +50,11 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
             n = 2
 
         if type(ob) == LineString:
-            return <unsigned long>GEOSGeom_clone_r(handle, g), n
+            return <uintptr_t>GEOSGeom_clone_r(handle, g), n
         else:
-            cs = GEOSGeom_getCoordSeq_r(handle, g)
+            cs = <GEOSCoordSequence*>GEOSGeom_getCoordSeq_r(handle, g)
             cs = GEOSCoordSeq_clone_r(handle, cs)
-            return <unsigned long>GEOSGeom_createLineString_r(handle, cs), n
+            return <uintptr_t>GEOSGeom_createLineString_r(handle, cs), n
 
     # If numpy is present, we use numpy.require to ensure that we have a
     # C-continguous array that owns its data. View data will be copied.
@@ -75,9 +76,9 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
 
         # Make pointer to the coordinate array
         if isinstance(array['data'], ctypes.Array):
-            cp = <double *><unsigned long>ctypes.addressof(array['data'])
+            cp = <double *><uintptr_t>ctypes.addressof(array['data'])
         else:
-            cp = <double *><unsigned long>array['data'][0]
+            cp = <double *><uintptr_t>array['data'][0]
 
         # Use strides to properly index into cp
         # ob[i, j] == cp[sm*i + sn*j]
@@ -92,7 +93,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
 
         # Create a coordinate sequence
         if update_geom is not None:
-            cs = GEOSGeom_getCoordSeq_r(handle, cast_geom(update_geom))
+            cs = <GEOSCoordSequence*>GEOSGeom_getCoordSeq_r(handle, cast_geom(update_geom))
             if n != update_ndim:
                 raise ValueError(
                 "Wrong coordinate dimensions; this geometry has dimensions: %d" \
@@ -141,7 +142,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
 
         # Create a coordinate sequence
         if update_geom is not None:
-            cs = GEOSGeom_getCoordSeq_r(handle, cast_geom(update_geom))
+            cs = <GEOSCoordSequence*>GEOSGeom_getCoordSeq_r(handle, cast_geom(update_geom))
             if n != update_ndim:
                 raise ValueError(
                 "Wrong coordinate dimensions; this geometry has dimensions: %d" \
@@ -170,7 +171,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
     if update_geom is not None:
         return None
     else:
-        return <unsigned long>GEOSGeom_createLineString_r(handle, cs), n
+        return <uintptr_t>GEOSGeom_createLineString_r(handle, cs), n
 
 
 def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
@@ -179,7 +180,8 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
     cdef GEOSGeometry *g
     cdef GEOSCoordSequence *cs
     cdef double dx, dy, dz
-    cdef int i, n, m, M, sm, sn
+    cdef unsigned int m
+    cdef int i, n, M, sm, sn
 
     # If a LinearRing is passed in, just clone it and return
     # If a LineString is passed in, clone the coord seq and return a LinearRing
@@ -191,13 +193,13 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
             n = 2
 
         if type(ob) == LinearRing:
-            return <unsigned long>GEOSGeom_clone_r(handle, g), n
+            return <uintptr_t>GEOSGeom_clone_r(handle, g), n
         else:
-            cs = GEOSGeom_getCoordSeq_r(handle, g)
+            cs = <GEOSCoordSequence*>GEOSGeom_getCoordSeq_r(handle, g)
             GEOSCoordSeq_getSize_r(handle, cs, &m)
             if GEOSisClosed_r(handle, g) and m >= 4:
                 cs = GEOSCoordSeq_clone_r(handle, cs)
-                return <unsigned long>GEOSGeom_createLinearRing_r(handle, cs), n
+                return <uintptr_t>GEOSGeom_createLinearRing_r(handle, cs), n
 
     # If numpy is present, we use numpy.require to ensure that we have a
     # C-continguous array that owns its data. View data will be copied.
@@ -215,9 +217,9 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
 
         # Make pointer to the coordinate array
         if isinstance(array['data'], ctypes.Array):
-            cp = <double *><unsigned long>ctypes.addressof(array['data'])
+            cp = <double *><uintptr_t>ctypes.addressof(array['data'])
         else:
-            cp = <double *><unsigned long>array['data'][0]
+            cp = <double *><uintptr_t>array['data'][0]
 
         # Use strides to properly index into cp
         # ob[i, j] == cp[sm*i + sn*j]
@@ -240,7 +242,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
 
         # Create a coordinate sequence
         if update_geom is not None:
-            cs = GEOSGeom_getCoordSeq_r(handle, cast_geom(update_geom))
+            cs = <GEOSCoordSequence*>GEOSGeom_getCoordSeq_r(handle, cast_geom(update_geom))
             if n != update_ndim:
                 raise ValueError(
                 "Wrong coordinate dimensions; this geometry has dimensions: %d" \
@@ -299,7 +301,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
 
         # Create a coordinate sequence
         if update_geom is not None:
-            cs = GEOSGeom_getCoordSeq_r(handle, cast_geom(update_geom))
+            cs = <GEOSCoordSequence*>GEOSGeom_getCoordSeq_r(handle, cast_geom(update_geom))
             if n != update_ndim:
                 raise ValueError(
                 "Wrong coordinate dimensions; this geometry has dimensions: %d" \
@@ -342,7 +344,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
     if update_geom is not None:
         return None
     else:
-        return <unsigned long>GEOSGeom_createLinearRing_r(handle, cs), n
+        return <uintptr_t>GEOSGeom_createLinearRing_r(handle, cs), n
 
 
 def coordseq_ctypes(self):
@@ -358,7 +360,7 @@ def coordseq_ctypes(self):
     data = array_type()
     
     cs = cast_seq(self._cseq)
-    data_p = <double *><unsigned long>ctypes.addressof(data)
+    data_p = <double *><uintptr_t>ctypes.addressof(data)
     
     for i in xrange(m):
         GEOSCoordSeq_getX_r(handle, cs, i, &temp)
@@ -412,7 +414,7 @@ cdef GEOSCoordSequence* transform(GEOSCoordSequence* cs,
     Returns the transformed coordinate sequence
     """
     cdef GEOSContextHandle_t handle = cast_handle(lgeos.geos_handle)
-    cdef int m
+    cdef unsigned int m
     cdef GEOSCoordSequence *cs_t
     cdef double x, y, z
     cdef double x_t, y_t, z_t
@@ -470,7 +472,7 @@ cpdef affine_transform(geom, matrix):
     # Process coordinates from each supported geometry type
     if geom.type in ('Point', 'LineString', 'LinearRing'):
         the_geom = cast_geom(geom._geom)
-        cs = GEOSGeom_getCoordSeq_r(handle, the_geom)
+        cs = <GEOSCoordSequence*>GEOSGeom_getCoordSeq_r(handle, the_geom)
         
         # perform the transformation
         cs_t = transform(cs, ndim, a, b, c, d, e, f, g, h, i, xoff, yoff, zoff)
@@ -484,7 +486,7 @@ cpdef affine_transform(geom, matrix):
             the_geom_t = GEOSGeom_createLinearRing_r(handle, cs_t)
         
         # return the geometry as a Python object
-        return geom_factory(<unsigned long>the_geom_t)
+        return geom_factory(<uintptr_t>the_geom_t)
     elif geom.type == 'Polygon':
         ring = geom.exterior
         shell = affine_transform(ring, matrix)

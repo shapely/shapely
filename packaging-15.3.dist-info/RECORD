@@ -1,0 +1,13 @@
+packaging/__about__.py,sha256=YzdrW-1lWmyCBDyrcNkZbJo4tiDWXpoiqPjfyCYMzIE,1073
+packaging/__init__.py,sha256=2V8n-eEpSgBuXlV8hlMmhU7ZklpsrrusWMZNp2gC4Hs,906
+packaging/_compat.py,sha256=wofog8iYo_zudt_10i6JiXKHDs5GhCuXC09hCuSJiv4,1253
+packaging/_structures.py,sha256=93YvgrEE2HgFp8AdXy0pwCRVnZeutRHO_-puJ7T0cPw,1809
+packaging/specifiers.py,sha256=UV9T01_kKloA8PSeMI3HTYBSJ_4KLs00yLvrlciZ3yU,28079
+packaging/version.py,sha256=dEGrWZJZ6sef1xMxSfDCego2hS3Q86by0hUIFVk-AGc,11949
+packaging-15.3.dist-info/DESCRIPTION.rst,sha256=Gd817S15Dv8sdxUJ9pM4t5Gq_ZYflsJYB64gItd9vM8,3108
+packaging-15.3.dist-info/METADATA,sha256=VV19NM69tso91JP9TM8Pdq3CDomcP6bdn-0q3YUeNvE,3854
+packaging-15.3.dist-info/metadata.json,sha256=RpvEfDwiZ5KQreMlvUvsqF-u5MCqXRNIVml3neejEj0,859
+packaging-15.3.dist-info/pbr.json,sha256=8NuqguCaMTQfH_1HqSV4DBKcPE0Uy_lxkONIfDvWT7Y,46
+packaging-15.3.dist-info/RECORD,,
+packaging-15.3.dist-info/top_level.txt,sha256=zFdHrhWnPslzsiP455HutQsqPB6v0KCtNUMtUtrefDw,10
+packaging-15.3.dist-info/WHEEL,sha256=AvR0WeTpDaxT645bl5FQxUK6NPsTls2ttpcGJg3j1Xg,110

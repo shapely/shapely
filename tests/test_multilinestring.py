@@ -1,10 +1,11 @@
-from . import unittest, numpy
+from . import unittest, numpy, test_int_types
+from .test_multi import MultiGeometryTestCase
 from shapely.geos import lgeos
 from shapely.geometry import LineString, MultiLineString, asMultiLineString
 from shapely.geometry.base import dump_coords
 
 
-class MultiLineStringTestCase(unittest.TestCase):
+class MultiLineStringTestCase(MultiGeometryTestCase):
 
     def test_multilinestring(self):
 
@@ -72,6 +73,11 @@ class MultiLineStringTestCase(unittest.TestCase):
         self.assertEqual(dump_coords(geoma), [[(1.0, 2.0), (3.0, 4.0)]])
 
         # TODO: is there an inverse?
+
+    def test_subgeom_access(self):
+        line0 = LineString([(0.0, 1.0), (2.0, 3.0)])
+        line1 = LineString([(4.0, 5.0), (6.0, 7.0)])
+        self.subgeom_access_test(MultiLineString, [line0, line1])
 
 
 def test_suite():

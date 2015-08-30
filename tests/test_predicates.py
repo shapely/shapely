@@ -2,8 +2,8 @@
 """
 from . import unittest
 from shapely.geometry import Point, Polygon
-from shapely.geos import TopologicalError
-
+from shapely.geos import TopologicalError, PredicateError
+import pytest
 
 class PredicatesTestCase(unittest.TestCase):
 
@@ -19,6 +19,8 @@ class PredicatesTestCase(unittest.TestCase):
         self.assertFalse(point.equals(Point(-1.0, -1.0)))
         self.assertFalse(point.touches(Point(-1.0, -1.0)))
         self.assertTrue(point.equals(Point(0.0, 0.0)))
+        self.assertTrue(point.covers(Point(0.0, 0.0)))
+        self.assertFalse(point.covers(Point(-1.0, -1.0)))
 
     def test_unary_predicates(self):
 
@@ -39,6 +41,25 @@ class PredicatesTestCase(unittest.TestCase):
               (399, 450), (339, 207)]
         self.assertRaises(TopologicalError, Polygon(p1).within, Polygon(p2))
 
+    def test_relate_pattern(self):
+
+        # a pair of partially overlapping polygons, and a nearby point
+        g1 = Polygon([(0, 0), (0, 1), (3, 1), (3, 0), (0, 0)])
+        g2 = Polygon([(1, -1), (1, 2), (2, 2), (2, -1), (1, -1)])
+        g3 = Point(5, 5)
+
+        assert(g1.relate(g2) == '212101212')
+        assert(g1.relate_pattern(g2, '212101212'))
+        assert(g1.relate_pattern(g2, '*********'))
+        assert(g1.relate_pattern(g2, '2********'))
+        assert(g1.relate_pattern(g2, 'T********'))
+        assert(not g1.relate_pattern(g2, '112101212'))
+        assert(not g1.relate_pattern(g2, '1********'))
+        assert(g1.relate_pattern(g3, 'FF2FF10F2'))
+
+        # an invalid pattern should raise an exception
+        with pytest.raises(PredicateError):
+            g1.relate_pattern(g2, 'fail')
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(PredicatesTestCase)

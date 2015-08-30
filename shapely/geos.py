@@ -2,15 +2,19 @@
 Proxies for libgeos, GEOS-specific exceptions, and utilities
 """
 
+import re
 import sys
 import atexit
 import logging
 import threading
-from ctypes import pointer, c_void_p, c_size_t, c_char_p, string_at
+from ctypes import CDLL, cdll, pointer, string_at, cast, POINTER
+from ctypes import c_void_p, c_size_t, c_char_p, c_int, c_float
+from ctypes.util import find_library
 
 from .ctypes_declarations import prototype, EXCEPTION_HANDLER_FUNCTYPE
 from .libgeos import lgeos as _lgeos, geos_version
 from . import ftools
+
 
 # Add message handler to this module's logger
 LOG = logging.getLogger(__name__)
@@ -80,19 +84,33 @@ class TopologicalError(Exception):
 class PredicateError(Exception):
     pass
 
+# While this function can take any number of positional arguments when
+# called from Python and GEOS expects its error handler to accept any
+# number of arguments (like printf), I'm unable to get ctypes to make
+# a callback object from this function that will accept any number of
+# arguments.
+#
+# At the moment, functions in the GEOS C API only pass 0 or 1 arguments
+# to the error handler. We can deal with this, but when if that changes,
+# Shapely may break.
 
-def error_handler(fmt, *args):
-    if sys.version_info[0] >= 3:
+def handler(level):
+    def callback(fmt, *args):
         fmt = fmt.decode('ascii')
-        args = [arg.decode('ascii') for arg in args]
-    LOG.error(fmt, *args)
+        conversions = re.findall(r'%.', fmt)
+        log_vals = []
+        for spec, arg in zip(conversions, args):
+            if spec == '%s' and arg is not None:
+                log_vals.append(string_at(arg).decode('ascii'))
+            else:
+                LOG.error("An error occurred, but the format string "
+                          "'%s' could not be converted.", fmt)
+                return
+        getattr(LOG, level)(fmt, *log_vals)
+    return callback
 
-
-def notice_handler(fmt, args):
-    if sys.version_info[0] >= 3:
-        fmt = fmt.decode('ascii')
-        args = args.decode('ascii')
-    LOG.warning(fmt, args)
+error_handler = handler('error')
+notice_handler = handler('warning')
 
 error_h = EXCEPTION_HANDLER_FUNCTYPE(error_handler)
 notice_h = EXCEPTION_HANDLER_FUNCTYPE(notice_handler)
@@ -377,7 +395,7 @@ class WKBWriter(object):
 # Errcheck functions for ctypes
 
 def errcheck_wkb(result, func, argtuple):
-    '''Returns bytes from a C pointer'''
+    """Returns bytes from a C pointer"""
     if not result:
         return None
     size_ref = argtuple[-1]
@@ -388,7 +406,7 @@ def errcheck_wkb(result, func, argtuple):
 
 
 def errcheck_just_free(result, func, argtuple):
-    '''Returns string from a C pointer'''
+    """Returns string from a C pointer"""
     retval = string_at(result)
     lgeos.GEOSFree(result)
     if sys.version_info[0] >= 3:
@@ -396,9 +414,15 @@ def errcheck_just_free(result, func, argtuple):
     else:
         return retval
 
+def errcheck_null_exception(result, func, argtuple):
+    """Wraps errcheck_just_free, raising a TopologicalError if result is NULL"""
+    if not result:
+        raise TopologicalError("The operation '{0}' could not be performed."
+            "Likely cause is invalidity of the geometry.".format(func.__name__))
+    return errcheck_just_free(result, func, argtuple)
 
 def errcheck_predicate(result, func, argtuple):
-    '''Result is 2 on exception, 1 on True, 0 on False'''
+    """Result is 2 on exception, 1 on True, 0 on False"""
     if result == 2:
         raise PredicateError("Failed to evaluate %s" % repr(func))
     return result
@@ -439,7 +463,7 @@ class LGEOS300(LGEOSBase):
         # Deprecated
         self.GEOSGeomToWKB_buf.errcheck = errcheck_wkb
         self.GEOSGeomToWKT.errcheck = errcheck_just_free
-        self.GEOSRelate.errcheck = errcheck_just_free
+        self.GEOSRelate.errcheck = errcheck_null_exception
         for pred in (
                 self.GEOSDisjoint,
                 self.GEOSTouches,
@@ -450,6 +474,7 @@ class LGEOS300(LGEOSBase):
                 self.GEOSOverlaps,
                 self.GEOSEquals,
                 self.GEOSEqualsExact,
+                self.GEOSRelatePattern,
                 self.GEOSisEmpty,
                 self.GEOSisValid,
                 self.GEOSisSimple,
@@ -485,6 +510,7 @@ class LGEOS300(LGEOSBase):
         self.methods['symmetric_difference'] = self.GEOSSymDifference
         self.methods['union'] = self.GEOSUnion
         self.methods['intersection'] = self.GEOSIntersection
+        self.methods['relate_pattern'] = self.GEOSRelatePattern
         self.methods['simplify'] = self.GEOSSimplify
         self.methods['topology_preserve_simplify'] = \
             self.GEOSTopologyPreserveSimplify
@@ -514,7 +540,7 @@ class LGEOS310(LGEOSBase):
         # Deprecated
         self.GEOSGeomToWKB_buf.func.errcheck = errcheck_wkb
         self.GEOSGeomToWKT.func.errcheck = errcheck_just_free
-        self.GEOSRelate.func.errcheck = errcheck_just_free
+        self.GEOSRelate.func.errcheck = errcheck_null_exception
         for pred in (
                 self.GEOSDisjoint,
                 self.GEOSTouches,
@@ -523,8 +549,19 @@ class LGEOS310(LGEOSBase):
                 self.GEOSWithin,
                 self.GEOSContains,
                 self.GEOSOverlaps,
+                self.GEOSCovers,
                 self.GEOSEquals,
                 self.GEOSEqualsExact,
+                self.GEOSPreparedDisjoint,
+                self.GEOSPreparedTouches,
+                self.GEOSPreparedCrosses,
+                self.GEOSPreparedWithin,
+                self.GEOSPreparedOverlaps,
+                self.GEOSPreparedContains,
+                self.GEOSPreparedContainsProperly,
+                self.GEOSPreparedCovers,
+                self.GEOSPreparedIntersects,
+                self.GEOSRelatePattern,
                 self.GEOSisEmpty,
                 self.GEOSisValid,
                 self.GEOSisSimple,
@@ -555,6 +592,7 @@ class LGEOS310(LGEOSBase):
         self.methods['within'] = self.GEOSWithin
         self.methods['contains'] = self.GEOSContains
         self.methods['overlaps'] = self.GEOSOverlaps
+        self.methods['covers'] = self.GEOSCovers
         self.methods['equals'] = self.GEOSEquals
         self.methods['equals_exact'] = self.GEOSEqualsExact
         self.methods['relate'] = self.GEOSRelate
@@ -562,11 +600,17 @@ class LGEOS310(LGEOSBase):
         self.methods['symmetric_difference'] = self.GEOSSymDifference
         self.methods['union'] = self.GEOSUnion
         self.methods['intersection'] = self.GEOSIntersection
+        self.methods['prepared_disjoint'] = self.GEOSPreparedDisjoint
+        self.methods['prepared_touches'] = self.GEOSPreparedTouches
         self.methods['prepared_intersects'] = self.GEOSPreparedIntersects
+        self.methods['prepared_crosses'] = self.GEOSPreparedCrosses
+        self.methods['prepared_within'] = self.GEOSPreparedWithin
         self.methods['prepared_contains'] = self.GEOSPreparedContains
         self.methods['prepared_contains_properly'] = \
             self.GEOSPreparedContainsProperly
+        self.methods['prepared_overlaps'] = self.GEOSPreparedOverlaps
         self.methods['prepared_covers'] = self.GEOSPreparedCovers
+        self.methods['relate_pattern'] = self.GEOSRelatePattern
         self.methods['simplify'] = self.GEOSSimplify
         self.methods['topology_preserve_simplify'] = \
             self.GEOSTopologyPreserveSimplify
@@ -592,7 +636,15 @@ class LGEOS320(LGEOS311):
     def __init__(self, dll):
         super(LGEOS320, self).__init__(dll)
 
-        self.methods['parallel_offset'] = self.GEOSSingleSidedBuffer
+        if geos_version >= (3, 2, 0):
+            def parallel_offset(geom, distance, resolution=16, join_style=1, mitre_limit=5.0, side='right'):
+                side = side == 'left'
+                if distance < 0:
+                    distance = abs(distance)
+                    side = not side
+                return self.GEOSSingleSidedBuffer(geom, distance, resolution, join_style, mitre_limit, side)
+            self.methods['parallel_offset'] = parallel_offset
+
         self.methods['project'] = self.GEOSProject
         self.methods['project_normalized'] = self.GEOSProjectNormalized
         self.methods['interpolate'] = self.GEOSInterpolate
@@ -620,6 +672,12 @@ class LGEOS330(LGEOS320):
 
         for pred in (self.GEOSisClosed,):
             pred.func.errcheck = errcheck_predicate
+
+        def parallel_offset(geom, distance, resolution=16, join_style=1, mitre_limit=5.0, side='right'):
+            if side == 'right':
+                distance *= -1
+            return self.GEOSOffsetCurve(geom, distance, resolution, join_style, mitre_limit)
+        self.methods['parallel_offset'] = parallel_offset
 
         self.methods['unary_union'] = self.GEOSUnaryUnion
         self.methods['is_closed'] = self.GEOSisClosed

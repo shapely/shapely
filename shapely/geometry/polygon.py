@@ -176,7 +176,7 @@ class InteriorRingSequence(object):
         if i not in self.__rings__:
             g = lgeos.GEOSGetInteriorRingN(self._geom, i)
             ring = LinearRing()
-            ring.__geom__ = g
+            ring._geom = g
             ring.__p__ = self
             ring._other_owned = True
             ring._ndim = self._ndim
@@ -235,7 +235,7 @@ class Polygon(BaseGeometry):
         elif self._exterior is None or self._exterior() is None:
             g = lgeos.GEOSGetExteriorRing(self._geom)
             ring = LinearRing()
-            ring.__geom__ = g
+            ring._geom = g
             ring.__p__ = self
             ring._other_owned = True
             ring._ndim = self._ndim

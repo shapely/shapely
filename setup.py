@@ -47,6 +47,9 @@
 # For both cases, a geos-config not in the environment's $PATH may be
 # used by setting the environment variable GEOS_CONFIG to the path to
 # a geos-config script.
+#
+# NB: within this setup scripts, software versions are evaluated according
+# to https://www.python.org/dev/peps/pep-0440/.
 
 import errno
 import glob
@@ -68,9 +71,13 @@ except ImportError:
     from distutils.command.build_ext import build_ext as distutils_build_ext
 from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
-from distutils import log
-from distutils.sysconfig import get_config_var
 
+from packaging.version import Version
+
+# Get geos_version from GEOS dynamic library, which depends on
+# GEOS_LIBRARY_PATH and/or GEOS_CONFIG environment variables
+from shapely.libgeos import geos_version_string, geos_version, \
+        geos_config, get_geos_config
 
 logging.basicConfig()
 log = logging.getLogger(__file__)
@@ -110,15 +117,16 @@ class GEOSConfig(object):
 
 
 # Get the version from the shapely module
-version = None
+shapely_version = None
 with open('shapely/__init__.py', 'r') as fp:
     for line in fp:
         if line.startswith("__version__"):
-            version = line.split("=")[1].strip().strip("\"'")
+            shapely_version = Version(
+                line.split("=")[1].strip().strip("\"'"))
             break
-if not version:
+
+if not shapely_version:
     raise ValueError("Could not determine Shapely's version")
-shapely_version = tuple(int(x) for x in version.split('.'))
 
 # Fail installation if the GEOS shared library does not meet the minimum
 # version. We ship it with Shapely for Windows, so no need to check on
@@ -148,11 +156,11 @@ if not os.environ.get('NO_GEOS_CHECK') or sys.platform == 'win32':
 
 # Handle UTF-8 encoding of certain text files.
 open_kwds = {}
-if sys.version_info[0] > 3:
+if sys.version_info >= (3,):
     open_kwds['encoding'] = 'utf-8'
 
 with open('VERSION.txt', 'w', **open_kwds) as fp:
-    fp.write(version)
+    fp.write(str(shapely_version))
 
 with open('README.rst', 'r', **open_kwds) as fp:
     readme = fp.read()
@@ -167,8 +175,8 @@ long_description = readme + '\n\n' + credits + '\n\n' + changes
 
 setup_args = dict(
     name                = 'Shapely',
-    version             = version,
-    requires            = ['Python (>=2.6)', 'GEOS (>=3.3)'],
+    version             = str(shapely_version),
+    requires            = ['Python (>=2.6)', 'libgeos_c (>=3.3)'],
     description         = 'Geometric objects, predicates, and operations',
     license             = 'BSD',
     keywords            = 'geometry topology gis',
@@ -222,8 +230,9 @@ if sys.platform == 'win32':
         include_package_data=True,
     )
 
-# Build cython extensions, which require development parameters
-include_dirs = [get_config_var('INCLUDEDIR')]
+
+# Prepare build opts and args for the speedups extension module.
+include_dirs = []
 library_dirs = []
 libraries = []
 extra_link_args = []

@@ -14,7 +14,7 @@ class allocated_c_char_p(c_char_p):
     '''char pointer return type'''
     pass
 
-EXCEPTION_HANDLER_FUNCTYPE = CFUNCTYPE(None, c_char_p, c_char_p)
+EXCEPTION_HANDLER_FUNCTYPE = CFUNCTYPE(None, c_char_p, c_void_p)
 
 
 def prototype(lgeos, geos_version):
@@ -129,8 +129,16 @@ def prototype(lgeos, geos_version):
         lgeos.GEOSBufferWithStyle.restype = c_void_p
         lgeos.GEOSBufferWithStyle.argtypes = [c_void_p, c_double, c_int, c_int, c_int, c_double]
 
-        lgeos.GEOSSingleSidedBuffer.restype = c_void_p
-        lgeos.GEOSSingleSidedBuffer.argtypes = [c_void_p, c_double, c_int, c_int, c_double, c_int]
+        if geos_version >= (3, 3, 0):
+
+            lgeos.GEOSOffsetCurve.restype = c_void_p
+            lgeos.GEOSOffsetCurve.argtypes = [c_void_p, c_double, c_int, c_int, c_double]
+        
+        else:
+
+            # deprecated in GEOS 3.3.0 in favour of GEOSOffsetCurve
+            lgeos.GEOSSingleSidedBuffer.restype = c_void_p
+            lgeos.GEOSSingleSidedBuffer.argtypes = [c_void_p, c_double, c_int, c_int, c_double, c_int]
 
     '''
     Geometry constructors
@@ -249,6 +257,9 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSOverlaps.restype = c_byte
     lgeos.GEOSOverlaps.argtypes = [c_void_p, c_void_p]
 
+    lgeos.GEOSCovers.restype = c_byte
+    lgeos.GEOSCovers.argtypes = [c_void_p, c_void_p]
+
     lgeos.GEOSEquals.restype = c_byte
     lgeos.GEOSEquals.argtypes = [c_void_p, c_void_p]
 
@@ -287,11 +298,15 @@ def prototype(lgeos, geos_version):
     Dimensionally Extended 9 Intersection Model related
     '''
 
-    lgeos.GEOSRelatePattern.restype = c_char
-    lgeos.GEOSRelatePattern.argtypes = [c_void_p, c_void_p, c_char_p]
-
     lgeos.GEOSRelate.restype = allocated_c_char_p
     lgeos.GEOSRelate.argtypes = [c_void_p, c_void_p]
+
+    lgeos.GEOSRelatePattern.restype = c_byte
+    lgeos.GEOSRelatePattern.argtypes = [c_void_p, c_void_p, c_char_p]
+
+    if geos_version >= (3, 3, 0):
+        lgeos.GEOSRelatePatternMatch.restype = c_byte
+        lgeos.GEOSRelatePatternMatch.argtypes = [c_char_p, c_char_p]
 
     '''
     Prepared Geometry Binary predicates
@@ -306,17 +321,33 @@ def prototype(lgeos, geos_version):
         lgeos.GEOSPreparedGeom_destroy.restype = None
         lgeos.GEOSPreparedGeom_destroy.argtypes = [c_void_p]
 
-        lgeos.GEOSPreparedContains.restype = c_int
+        lgeos.GEOSPreparedDisjoint.restype = c_byte
+        lgeos.GEOSPreparedDisjoint.argtypes = [c_void_p, c_void_p]
+
+        lgeos.GEOSPreparedTouches.restype = c_byte
+        lgeos.GEOSPreparedTouches.argtypes = [c_void_p, c_void_p]
+
+        lgeos.GEOSPreparedIntersects.restype = c_byte
+        lgeos.GEOSPreparedIntersects.argtypes = [c_void_p, c_void_p]
+
+        lgeos.GEOSPreparedCrosses.restype = c_byte
+        lgeos.GEOSPreparedCrosses.argtypes = [c_void_p, c_void_p]
+
+        lgeos.GEOSPreparedWithin.restype = c_byte
+        lgeos.GEOSPreparedWithin.argtypes = [c_void_p, c_void_p]
+
+        lgeos.GEOSPreparedContains.restype = c_byte
         lgeos.GEOSPreparedContains.argtypes = [c_void_p, c_void_p]
 
-        lgeos.GEOSPreparedContainsProperly.restype = c_int
+        lgeos.GEOSPreparedContainsProperly.restype = c_byte
         lgeos.GEOSPreparedContainsProperly.argtypes = [c_void_p, c_void_p]
 
-        lgeos.GEOSPreparedCovers.restype = c_int
+        lgeos.GEOSPreparedOverlaps.restype = c_byte
+        lgeos.GEOSPreparedOverlaps.argtypes = [c_void_p, c_void_p]
+
+        lgeos.GEOSPreparedCovers.restype = c_byte
         lgeos.GEOSPreparedCovers.argtypes = [c_void_p, c_void_p]
 
-        lgeos.GEOSPreparedIntersects.restype = c_int
-        lgeos.GEOSPreparedIntersects.argtypes = [c_void_p, c_void_p]
 
     '''
     Geometry info

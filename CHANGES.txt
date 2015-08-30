@@ -1,6 +1,31 @@
 Changes
 =======
 
+1.5.11 (2015-08-23)
+-------------------
+- Remove packaging module requirement added in 1.5.10 (#305). Distutils can't 
+  parse versions using 'rc', but if we stick to 'a' and 'b' we will be fine.
+
+1.5.10 (2015-08-22)
+-------------------
+- Monkey patch affinity module by absolute reference (#299).
+- Raise TopologicalError in relate() instead of crashing (#294, #295, #303).
+
+1.5.9 (2015-05-27)
+------------------
+- Fix for 64 bit speedups compatibility (#274).
+
+1.5.8 (2015-04-29)
+------------------
+- Setup file encoding bug fix (#254).
+- Support for pyinstaller (#261).
+- Major prepared geometry operation fix for Windows (#268, #269).
+- Major fix for OS X binary wheel (#262).
+
+1.5.7 (2015-03-16)
+------------------
+- Test and fix buggy error and notice handlers (#249).
+
 1.5.6 (2015-02-02)
 ------------------
 - Fix setup regression (#232, #234).

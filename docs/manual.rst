@@ -1054,8 +1054,9 @@ differently.
 
 .. method:: object.contains(other)
 
-  Returns ``True`` if the object's `interior` contains the `boundary` and
-  `interior` of the other object and their boundaries do not touch at all.
+  Returns ``True`` if no points of `other` lie in the exterior of the `object`
+  and at least one point of the interior of `other` lies in the interior of
+  `object`.
 
 This predicate applies to all types, and is inverse to :meth:`within`. The
 expression ``a.contains(b) == b.within(a)`` always evaluates to ``True``.
@@ -1124,8 +1125,8 @@ This predicate applies to all types and is the inverse of :meth:`intersects`.
   Returns ``True`` if the `boundary` and `interior` of the object intersect in
   any way with those of the other.
 
-This predicate is equivalent to the OR-ing of :meth:`contains`, :meth:`crosses`,
-:meth:`equals`, :meth:`touches`, and :meth:`within`.
+In other words, geometric objects intersect if they have any boundary or 
+interior point in common.
 
 .. method:: object.touches(other)
 
@@ -1233,6 +1234,37 @@ elements.
 
   >>> Point(0, 0).relate(LineString([(0, 0), (1, 1)]))
   'F0FFFF102'
+
+.. method:: object.relate_pattern(other, pattern)
+
+    Returns True if the DE-9IM string code for the relationship between the
+    geometries satisfies the pattern, otherwise False.
+
+The :meth:`relate_pattern` compares the DE-9IM code string for two geometries
+against a specified pattern. If the string matches the pattern then ``True`` is
+returned, otherwise ``False``. The pattern specified can be an exact match
+(``0``, ``1`` or ``2``), a boolean match (``T`` or ``F``), or a wildcard
+(``*``). For example, the pattern for the `within` predicate is ``T*****FF*``.
+
+.. code-block:: pycon
+
+  >> point = Point(0.5, 0.5)
+  >> square = Polygon([(0, 0), (0, 1), (1, 1), (1, 0)])
+  >> square.relate_pattern(point, 'T*****FF*')
+  True
+  >> point.within(square)
+  True
+
+Note that the order or the geometries is significant, as demonstrated below.
+In this example the square contains the point, but the point does not contain
+the square.
+
+.. code-block:: pycon
+
+  >>> point.relate(square)
+  '0FFFFF212'
+  >>> square.relate(point)
+  '0F2FF1FF2'
 
 Further discussion of the DE-9IM matrix is beyond the scope of this manual. See
 [4]_ and http://pypi.python.org/pypi/de9im.
@@ -2338,13 +2370,12 @@ involves some overhead that might slow down your code.
 .. versionadded:: 1.2.10
 
 The :mod:`shapely.speedups` module contains performance enhancements written in
-C. They are automaticaly installed when Python has access to a compiler and
-GEOS development headers during installation.
+C. They are automatically installed when Python has access to a compiler and
+GEOS development headers during installation. 
 
 You can check if the speedups are installed with the :attr:`available`
-attribute. The constructor speedups are disabled by default. To enable the
-speedups call :func:`enable`. You can revert to the default implementation with
-:func:`disable`.
+attribute. To enable the speedups call :func:`enable`. You can revert to the
+default implementation with :func:`disable`.
 
 .. code-block:: pycon
 
@@ -2353,6 +2384,16 @@ speedups call :func:`enable`. You can revert to the default implementation with
   True
   >>> speedups.enable()
 
+.. versionadded:: 1.6.0
+
+Speedups are now enabled by default if they are available. You can check if
+speedups are enabled with the :attr:`enabled` attribute.
+
+.. code-block:: pycon
+
+  >>> from shapely import speedups
+  >>> speedups.enabled
+  True
 
 Conclusion
 ==========
