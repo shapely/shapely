@@ -270,7 +270,7 @@ class BaseGeometry(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    __hash__ = object.__hash__
+    __hash__ = None
 
     # Array and ctypes interfaces
     # ---------------------------
@@ -773,7 +773,7 @@ class BaseMultipartGeometry(BaseGeometry):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    __hash__ = object.__hash__
+    __hash__ = None
 
     def svg(self, scale_factor=1., color=None):
         """Returns a group of SVG elements for the multipart geometry.
