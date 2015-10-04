@@ -124,20 +124,21 @@ if not lgeos and geos_config:
 
 # Platform-specific attempts, and build `free` object
 
-def load_dll(libname, fallbacks=[]):
-    '''Load GEOS dynamic library'''
+def load_dll(libname, fallbacks=None):
+    """Load GEOS dynamic library"""
     lib = find_library(libname)
     if lib is not None:
         try:
             return CDLL(lib)
         except OSError:
             pass
-    for name in fallbacks:
-        try:
-            return CDLL(name)
-        except OSError:
-            # move on to the next fallback
-            pass
+    if fallbacks:
+        for name in fallbacks:
+            try:
+                return CDLL(name)
+            except OSError:
+                # move on to the next fallback
+                pass
     raise OSError(
         "Could not find library %s or load any of its variants %s" % (
             libname, fallbacks))
@@ -152,24 +153,18 @@ if sys.platform.startswith('linux'):
 
 elif sys.platform == 'darwin':
     if not lgeos:
-        # First test to see if this is a delocated wheel with a GEOS dylib.
-        geos_whl_dylib = os.path.abspath(os.path.join(
-            os.path.dirname(__file__), '.dylibs/libgeos_c.1.dylib'))
-        if os.path.exists(geos_whl_dylib):
-            lgeos = CDLL(geos_whl_dylib)
+        if hasattr(sys, 'frozen'):
+            # .app file from py2app
+            alt_paths = [os.path.join(os.environ['RESOURCEPATH'],
+                         '..', 'Frameworks', 'libgeos_c.dylib')]
         else:
-            if hasattr(sys, 'frozen'):
-                # .app file from py2app
-                alt_paths = [os.path.join(os.environ['RESOURCEPATH'],
-                             '..', 'Frameworks', 'libgeos_c.dylib')]
-            else:
-                alt_paths = [
-                    # The Framework build from Kyng Chaos
-                    "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
-                    # macports
-                    '/opt/local/lib/libgeos_c.dylib',
-                ]
-            lgeos = load_dll('geos_c', fallbacks=alt_paths)
+            alt_paths = [
+                # The Framework build from Kyng Chaos
+                "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
+                # macports
+                '/opt/local/lib/libgeos_c.dylib',
+            ]
+        lgeos = load_dll('geos_c', fallbacks=alt_paths)
 
     free = load_dll('c', fallbacks=['/usr/lib/libc.dylib']).free
     free.argtypes = [c_void_p]
