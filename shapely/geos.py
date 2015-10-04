@@ -74,7 +74,7 @@ elif sys.platform == 'darwin':
     if os.path.exists(geos_whl_dylib):
         _lgeos = CDLL(geos_whl_dylib)
         if _lgeos:
-            log.debug("CDLL: %r from path: %r", _lgeos, geos_whl_dylib)
+            LOG.debug("CDLL: %r from path: %r", _lgeos, geos_whl_dylib)
     else:
         if hasattr(sys, 'frozen'):
             try:
