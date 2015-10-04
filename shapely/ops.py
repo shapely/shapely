@@ -147,6 +147,7 @@ class CollectionOperator(object):
         collection = lgeos.GEOSGeom_createCollection(6, subs, L)
         return geom_factory(lgeos.methods['unary_union'](collection))
 
+
 operator = CollectionOperator()
 polygonize = operator.polygonize
 polygonize_full = operator.polygonize_full

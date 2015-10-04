@@ -1,7 +1,10 @@
+import logging
+import sys
+
 from shapely.geometry import Point, MultiPoint, Polygon, GeometryCollection
 
 
-def test_point():
+def test_point(caplog):
     g = Point(0, 0)
     try:
         assert hash(g)

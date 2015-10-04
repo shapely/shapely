@@ -23,6 +23,10 @@ log = logging.getLogger(__name__)
 if 'all' in sys.warnoptions:
     log.level = logging.DEBUG
 
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+log.addHandler(ch)
+
 
 # The main point of this module is to load a dynamic library to this variable
 lgeos = None
@@ -110,11 +114,11 @@ if not lgeos and geos_config:
             guesses.append(geos_library_path)
     if lgeos:
         if hasattr(lgeos, 'GEOSversion'):
-            log.debug('found GEOS C library using geos-config')
+            log.debug("found GEOS C library using geos-config: %r",
+                geos_library_path)
         else:
-            raise OSError(
-                'shared object found by geos-config is not a GEOS C library: '
-                + str(geos_library_path))
+            raise OSError("shared object found by geos-config is not a "
+                          "GEOS C library: {0}".format(geos_library_path))
     else:
         log.warn("cannot open shared object from '%s --clibs': %r",
                  geos_config, clibs)
@@ -126,21 +130,27 @@ if not lgeos and geos_config:
 
 def load_dll(libname, fallbacks=[]):
     '''Load GEOS dynamic library'''
+    cdll = None
     lib = find_library(libname)
     if lib is not None:
         try:
-            return CDLL(lib)
+            cdll = CDLL(lib)
         except OSError:
             pass
     for name in fallbacks:
         try:
-            return CDLL(name)
+            cdll = CDLL(name)
         except OSError:
             # move on to the next fallback
             pass
-    raise OSError(
-        "Could not find library %s or load any of its variants %s" % (
-            libname, fallbacks))
+    if cdll:
+        log.debug("Library: %r", lib)
+        log.debug("CDLL: %r", cdll)
+        return cdll
+    else:
+        raise OSError(
+            "Could not find library %s or load any of its variants %s" % (
+                libname, fallbacks))
 
 if sys.platform.startswith('linux'):
     if not lgeos:
@@ -157,6 +167,12 @@ elif sys.platform == 'darwin':
             os.path.dirname(__file__), '.dylibs/libgeos_c.1.dylib'))
         if os.path.exists(geos_whl_dylib):
             lgeos = CDLL(geos_whl_dylib)
+            if lgeos:
+                log.debug("GEOS dylib loaded from wheel: %r", geos_whl_dylib)
+            else:
+                raise OSError(
+                    "GEOS dylib NOT loaded from wheel: {0}".format(
+                        geos_whl_dylib))
         else:
             if hasattr(sys, 'frozen'):
                 # .app file from py2app
@@ -170,6 +186,11 @@ elif sys.platform == 'darwin':
                     '/opt/local/lib/libgeos_c.dylib',
                 ]
             lgeos = load_dll('geos_c', fallbacks=alt_paths)
+            if lgeos:
+                log.debug("GEOS dylib loaded from system or alt paths")
+            else:
+                raise OSError(
+                    "GEOS dylib NOT loaded from system or alt paths")
 
     free = load_dll('c', fallbacks=['/usr/lib/libc.dylib']).free
     free.argtypes = [c_void_p]
