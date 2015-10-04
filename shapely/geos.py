@@ -19,10 +19,12 @@ from . import ftools
 
 # Add message handler to this module's logger
 LOG = logging.getLogger(__name__)
+ch = logging.StreamHandler()
+LOG.addHandler(ch)
 
 if 'all' in sys.warnoptions:
     # show GEOS messages in console with: python -W all
-    LOG.level = logging.DEBUG
+    LOG.setLevel(logging.DEBUG)
 
 
 # Find and load the GEOS and C libraries
@@ -30,22 +32,34 @@ if 'all' in sys.warnoptions:
 
 def load_dll(libname, fallbacks=None):
     lib = find_library(libname)
+    dll = None
     if lib is not None:
         try:
-            return CDLL(lib)
+            LOG.debug("Trying `CDLL(%s)`", lib)
+            dll = CDLL(lib)
         except OSError:
+            LOG.warn("Failed `CDLL(%s)`", lib)
             pass
-    if fallbacks is not None:
+
+    if not dll and fallbacks is not None:
         for name in fallbacks:
             try:
-                return CDLL(name)
+                LOG.debug("Trying `CDLL(%s)`", name)
+                dll = CDLL(name)
             except OSError:
                 # move on to the next fallback
+                LOG.warn("Failed `CDLL(%s)`", name)
                 pass
-    # No shared library was loaded. Raise OSError.
-    raise OSError(
-        "Could not find library %s or load any of its variants %s" % (
-            libname, fallbacks or []))
+
+    if dll:
+        LOG.debug("Library path: %r", lib or name)
+        LOG.debug("DLL: %r", dll)
+        return dll
+    else:
+        # No shared library was loaded. Raise OSError.
+        raise OSError(
+            "Could not find library {0} or load any of its variants {1}".format(
+                libname, fallbacks or []))
 
 
 if sys.platform.startswith('linux'):

@@ -20,8 +20,6 @@ import sys
 
 
 log = logging.getLogger(__name__)
-if 'all' in sys.warnoptions:
-    log.level = logging.DEBUG
 
 
 # The main point of this module is to load a dynamic library to this variable
@@ -125,23 +123,36 @@ if not lgeos and geos_config:
 # Platform-specific attempts, and build `free` object
 
 def load_dll(libname, fallbacks=None):
-    """Load GEOS dynamic library"""
     lib = find_library(libname)
+    dll = None
     if lib is not None:
         try:
-            return CDLL(lib)
+            log.debug("Trying `CDLL(%s)`", lib)
+            dll = CDLL(lib)
         except OSError:
+            log.warn("Failed `CDLL(%s)`", lib)
             pass
-    if fallbacks:
+
+    if not dll and fallbacks is not None:
         for name in fallbacks:
             try:
-                return CDLL(name)
+                log.debug("Trying `CDLL(%s)`", name)
+                dll = CDLL(name)
             except OSError:
                 # move on to the next fallback
+                log.warn("Failed `CDLL(%s)`", name)
                 pass
-    raise OSError(
-        "Could not find library %s or load any of its variants %s" % (
-            libname, fallbacks))
+
+    if dll:
+        log.debug("Library path: %r", lib or name)
+        log.debug("DLL: %r", dll)
+        return dll
+    else:
+        # No shared library was loaded. Raise OSError.
+        raise OSError(
+            "Could not find library {0} or load any of its variants {1}".format(
+                libname, fallbacks or []))
+
 
 if sys.platform.startswith('linux'):
     if not lgeos:
