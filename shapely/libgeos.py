@@ -47,6 +47,8 @@ if 'GEOS_LIBRARY_PATH' in os.environ:
                 'shared object GEOS_LIBRARY_PATH is not a GEOS C library: '
                 + str(geos_library_path))
 
+global geos_config
+
 # Second try: use GEOS_CONFIG environment variable
 if 'GEOS_CONFIG' in os.environ:
     geos_config = os.environ['GEOS_CONFIG']
