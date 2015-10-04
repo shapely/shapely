@@ -19,7 +19,14 @@ import subprocess
 import sys
 
 
+# Add message handler to this module's logger
 log = logging.getLogger(__name__)
+ch = logging.StreamHandler()
+log.addHandler(ch)
+
+if 'all' in sys.warnoptions:
+    # show GEOS messages in console with: python -W all
+    log.setLevel(logging.DEBUG)
 
 
 # The main point of this module is to load a dynamic library to this variable

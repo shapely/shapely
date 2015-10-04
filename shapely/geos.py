@@ -13,7 +13,6 @@ from ctypes import c_void_p, c_size_t, c_char_p, c_int, c_float
 from ctypes.util import find_library
 
 from .ctypes_declarations import prototype, EXCEPTION_HANDLER_FUNCTYPE
-#from .libgeos import lgeos as _lgeos, geos_version
 from . import ftools
 
 
@@ -74,6 +73,8 @@ elif sys.platform == 'darwin':
             os.path.join(os.path.dirname(__file__), '.dylibs/libgeos_c.1.dylib'))
     if os.path.exists(geos_whl_dylib):
         _lgeos = CDLL(geos_whl_dylib)
+        if _lgeos:
+            log.debug("CDLL: %r from path: %r", _lgeos, geos_whl_dylib)
     else:
         if hasattr(sys, 'frozen'):
             try:
