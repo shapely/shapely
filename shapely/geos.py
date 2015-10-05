@@ -8,7 +8,7 @@ import sys
 import atexit
 import logging
 import threading
-from ctypes import CDLL, cdll, pointer, string_at, cast, POINTER
+from ctypes import CDLL, cdll, pointer, string_at, cast, POINTER, RTLD_LOCAL
 from ctypes import c_void_p, c_size_t, c_char_p, c_int, c_float
 from ctypes.util import find_library
 
@@ -74,11 +74,11 @@ elif sys.platform == 'darwin':
     if os.path.exists(geos_whl_dylib):
         # First: have we already loaded GEOS through Fiona or Rasterio?
         try:
-            _lgeos = CDLL(geos_whl_dylib, mode=(ctypes.RTLD_LOCAL | 16))
+            _lgeos = CDLL(geos_whl_dylib, mode=(RTLD_LOCAL | 16))
             LOG.debug("Found DLL: %r already loaded", _lgeos)
         except OSError:
             # not already loaded.
-            _lgeos = CDLL(geos_whl_dylib, ctypes.RTLD_LOCAL)
+            _lgeos = CDLL(geos_whl_dylib, RTLD_LOCAL)
             LOG.debug("Found DLL: %r NOT already loaded", _lgeos)
         if _lgeos:
             LOG.debug("CDLL: %r from path: %r", _lgeos, geos_whl_dylib)
