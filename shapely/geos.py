@@ -72,7 +72,14 @@ elif sys.platform == 'darwin':
     geos_whl_dylib = os.path.abspath(
             os.path.join(os.path.dirname(__file__), '.dylibs/libgeos_c.1.dylib'))
     if os.path.exists(geos_whl_dylib):
-        _lgeos = CDLL(geos_whl_dylib)
+        # First: have we already loaded GEOS through Fiona or Rasterio?
+        try:
+            _lgeos = CDLL(geos_whl_dylib, mode=(ctypes.DEFAULT_MODE | 16))
+            LOG.debug("Found DLL: %r already loaded", _lgeos)
+        except OSError:
+            # not already loaded.
+            _lgeos = CDLL(geos_whl_dylib)
+            LOG.debug("Found DLL: %r NOT already loaded", _lgeos)
         if _lgeos:
             LOG.debug("CDLL: %r from path: %r", _lgeos, geos_whl_dylib)
     else:
