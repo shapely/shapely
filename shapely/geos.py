@@ -80,7 +80,6 @@ elif sys.platform == 'darwin':
             'libgeos_c.1.dylib')
         try:
             _lgeos = CDLL(dll_path, mode=(DEFAULT_MODE | 16))
-            LOG.debug("Found %r already loaded, using it.", _lgeos)
         except OSError:
             LOG.debug("GEOS DLL in fiona or rasterio .dylibs not found.")
             alt_paths = [
