@@ -29,13 +29,13 @@ if 'all' in sys.warnoptions:
 # Find and load the GEOS and C libraries
 # If this ever gets any longer, we'll break it into separate modules
 
-def load_dll(libname, fallbacks=None):
+def load_dll(libname, fallbacks=None, mode=DEFAULT_MODE):
     lib = find_library(libname)
     dll = None
     if lib is not None:
         try:
             LOG.debug("Trying `CDLL(%s)`", lib)
-            dll = CDLL(lib)
+            dll = CDLL(lib, mode=mode)
         except OSError:
             LOG.warn("Failed `CDLL(%s)`", lib)
             pass
@@ -44,7 +44,7 @@ def load_dll(libname, fallbacks=None):
         for name in fallbacks:
             try:
                 LOG.debug("Trying `CDLL(%s)`", name)
-                dll = CDLL(name)
+                dll = CDLL(name, mode=mode)
             except OSError:
                 # move on to the next fallback
                 LOG.warn("Failed `CDLL(%s)`", name)
@@ -86,7 +86,17 @@ elif sys.platform == 'darwin':
                 _lgeos = CDLL(dll_path, mode=(DEFAULT_MODE | 16))
                 LOG.debug("Found %r already loaded, using it.", _lgeos)
             except OSError:
-                LOG.debug("GEOS DLL not already loaded.")
+                LOG.debug("GEOS DLL in fiona or rasterio .dylibs not found.")
+                alt_paths = [
+                    # The Framework build from Kyng Chaos
+                    "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
+                    # macports
+                    '/opt/local/lib/libgeos_c.dylib',
+                ]
+                _lgeos = load_dll('geos_c', fallbacks=alt_paths,
+                                  mode=(DEFAULT_MODE | 16))
+            if _lgeos:
+                LOG.debug("Found %r already loaded, using it.", _lgeos)
 
         # If neither fiona nor rasterio have been imported, or if the block
         # above failed to assign _lgeos, we will load this module's copy of
