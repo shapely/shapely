@@ -69,59 +69,60 @@ if sys.platform.startswith('linux'):
     free.restype = None
 
 elif sys.platform == 'darwin':
-    # First test to see if this is a delocated wheel with a GEOS dylib.
-    geos_whl_dylib = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '.dylibs/libgeos_c.1.dylib'))
-    if os.path.exists(geos_whl_dylib):
-        # First: have we already loaded GEOS through a Fiona or Rasterio
-        # binary wheel? If so, let's obtain a handle to it instead of 
-        # loading this module's copy7 to side step the mysterious issue
-        # described at https://github.com/Toblerity/Shapely/issues/324.
-        geos_mod = sys.modules.get('fiona') or sys.modules.get('rasterio')
-        if geos_mod:
-            dll_path = os.path.join(
-                os.path.dirname(geos_mod.__file__), '.dylibs',
-                'libgeos_c.1.dylib')
-            try:
-                _lgeos = CDLL(dll_path, mode=(DEFAULT_MODE | 16))
-                LOG.debug("Found %r already loaded, using it.", _lgeos)
-            except OSError:
-                LOG.debug("GEOS DLL in fiona or rasterio .dylibs not found.")
-                alt_paths = [
-                    # The Framework build from Kyng Chaos
-                    "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
-                    # macports
-                    '/opt/local/lib/libgeos_c.dylib',
-                ]
-                _lgeos = load_dll('geos_c', fallbacks=alt_paths,
-                                  mode=(DEFAULT_MODE | 16))
-            if _lgeos:
-                LOG.debug("Found %r already loaded, using it.", _lgeos)
-
-        # If neither fiona nor rasterio have been imported, or if the block
-        # above failed to assign _lgeos, we will load this module's copy of
-        # the GEOS DLL.
-        if not _lgeos:
-            _lgeos = CDLL(geos_whl_dylib)
-            LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
-
-    else:
-        if hasattr(sys, 'frozen'):
-            try:
-                # .app file from py2app
-                alt_paths = [os.path.join(os.environ['RESOURCEPATH'],
-                            '..', 'Frameworks', 'libgeos_c.dylib')]
-            except KeyError:
-                # binary from pyinstaller
-                alt_paths = [os.path.join(sys.executable, 'libgeos_c.dylib')]
-        else:
+    # First: have we already loaded GEOS through a Fiona or Rasterio?
+    # If so, let's obtain a handle to it instead of loading this module's
+    # copy to side step the mysterious issue described at
+    # https://github.com/Toblerity/Shapely/issues/324.
+    geos_mod = sys.modules.get('fiona') or sys.modules.get('rasterio')
+    if geos_mod:
+        dll_path = os.path.join(
+            os.path.dirname(geos_mod.__file__), '.dylibs',
+            'libgeos_c.1.dylib')
+        try:
+            _lgeos = CDLL(dll_path, mode=(DEFAULT_MODE | 16))
+            LOG.debug("Found %r already loaded, using it.", _lgeos)
+        except OSError:
+            LOG.debug("GEOS DLL in fiona or rasterio .dylibs not found.")
             alt_paths = [
                 # The Framework build from Kyng Chaos
                 "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
                 # macports
                 '/opt/local/lib/libgeos_c.dylib',
             ]
-        _lgeos = load_dll('geos_c', fallbacks=alt_paths)
+            _lgeos = load_dll('geos_c', fallbacks=alt_paths,
+                              mode=(DEFAULT_MODE | 16))
+        if _lgeos:
+            LOG.debug("Found %r already loaded, using it.", _lgeos)
+
+    # If neither fiona nor rasterio have been imported, or if the block
+    # above failed to assign _lgeos, we will locate and load the GEOS
+    # DLL.
+    if not _lgeos:
+        # Test to see if we have a delocated wheel with a GEOS dylib.
+        geos_whl_dylib = os.path.abspath(os.path.join(os.path.dirname(
+            __file__), '.dylibs/libgeos_c.1.dylib'))
+        if os.path.exists(geos_whl_dylib):
+            _lgeos = CDLL(geos_whl_dylib)
+            LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
+
+        else:
+            if hasattr(sys, 'frozen'):
+                try:
+                    # .app file from py2app
+                    alt_paths = [os.path.join(os.environ['RESOURCEPATH'],
+                                '..', 'Frameworks', 'libgeos_c.dylib')]
+                except KeyError:
+                    # binary from pyinstaller
+                    alt_paths = [
+                        os.path.join(sys.executable, 'libgeos_c.dylib')]
+            else:
+                alt_paths = [
+                    # The Framework build from Kyng Chaos
+                    "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
+                    # macports
+                    '/opt/local/lib/libgeos_c.dylib',
+                ]
+            _lgeos = load_dll('geos_c', fallbacks=alt_paths)
 
     free = load_dll('c').free
     free.argtypes = [c_void_p]
