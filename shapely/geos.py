@@ -8,7 +8,7 @@ import sys
 import atexit
 import logging
 import threading
-from ctypes import CDLL, cdll, pointer, string_at, cast, POINTER, RTLD_LOCAL
+from ctypes import CDLL, cdll, pointer, string_at, cast, POINTER, DEFAULT_MODE
 from ctypes import c_void_p, c_size_t, c_char_p, c_int, c_float
 from ctypes.util import find_library
 
@@ -83,7 +83,7 @@ elif sys.platform == 'darwin':
                 os.path.dirname(geos_mod.__file__), '.dylibs',
                 'libgeos_c.1.dylib')
             try:
-                _lgeos = CDLL(dll_path, mode=(ctypes.DEFAULT_MODE | 16))
+                _lgeos = CDLL(dll_path, mode=(DEFAULT_MODE | 16))
                 LOG.debug("Found %r already loaded, using it.", _lgeos)
             except OSError:
                 LOG.debug("GEOS DLL not already loaded.")
