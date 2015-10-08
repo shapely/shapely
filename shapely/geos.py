@@ -57,7 +57,7 @@ def load_dll(libname, fallbacks=None):
     else:
         # No shared library was loaded. Raise OSError.
         raise OSError(
-            "Could not find library {0} or load any of its variants {1}".format(
+            "Could not find lib {0} or load any of its variants {1}.".format(
                 libname, fallbacks or []))
 
 _lgeos = None
@@ -71,7 +71,7 @@ if sys.platform.startswith('linux'):
 elif sys.platform == 'darwin':
     # First test to see if this is a delocated wheel with a GEOS dylib.
     geos_whl_dylib = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), '.dylibs/libgeos_c.1.dylib'))
+        os.path.join(os.path.dirname(__file__), '.dylibs/libgeos_c.1.dylib'))
     if os.path.exists(geos_whl_dylib):
         # First: have we already loaded GEOS through a Fiona or Rasterio
         # binary wheel? If so, let's obtain a handle to it instead of 
@@ -80,11 +80,11 @@ elif sys.platform == 'darwin':
         geos_mod = sys.modules.get('fiona') or sys.modules.get('rasterio')
         if geos_mod:
             dll_path = os.path.join(
-                os.path.dirname(geos_mod__file__), '.dylibs',
+                os.path.dirname(geos_mod.__file__), '.dylibs',
                 'libgeos_c.1.dylib')
             try:
                 _lgeos = CDLL(dll_path, mode=(ctypes.DEFAULT_MODE | 16))
-                LOG.debug("Found GEOS DLL: %r already loaded, using it.", _lgeos)
+                LOG.debug("Found %r already loaded, using it.", _lgeos)
             except OSError:
                 LOG.debug("GEOS DLL not already loaded.")
 
