@@ -60,6 +60,7 @@ def load_dll(libname, fallbacks=None):
             "Could not find library {0} or load any of its variants {1}".format(
                 libname, fallbacks or []))
 
+_lgeos = None
 
 if sys.platform.startswith('linux'):
     _lgeos = load_dll('geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
@@ -72,16 +73,28 @@ elif sys.platform == 'darwin':
     geos_whl_dylib = os.path.abspath(
             os.path.join(os.path.dirname(__file__), '.dylibs/libgeos_c.1.dylib'))
     if os.path.exists(geos_whl_dylib):
-        # First: have we already loaded GEOS through Fiona or Rasterio?
-        try:
-            _lgeos = CDLL(geos_whl_dylib, mode=(RTLD_LOCAL | 16))
-            LOG.debug("Found DLL: %r already loaded", _lgeos)
-        except OSError:
-            # not already loaded.
-            _lgeos = CDLL(geos_whl_dylib, RTLD_LOCAL)
-            LOG.debug("Found DLL: %r NOT already loaded", _lgeos)
-        if _lgeos:
-            LOG.debug("CDLL: %r from path: %r", _lgeos, geos_whl_dylib)
+        # First: have we already loaded GEOS through a Fiona or Rasterio
+        # binary wheel? If so, let's obtain a handle to it instead of 
+        # loading this module's copy7 to side step the mysterious issue
+        # described at https://github.com/Toblerity/Shapely/issues/324.
+        geos_mod = sys.modules.get('fiona') or sys.modules.get('rasterio')
+        if geos_mod:
+            dll_path = os.path.join(
+                os.path.dirname(geos_mod__file__), '.dylibs',
+                'libgeos_c.1.dylib')
+            try:
+                _lgeos = CDLL(dll_path, mode=(ctypes.DEFAULT_MODE | 16))
+                LOG.debug("Found GEOS DLL: %r already loaded, using it.", _lgeos)
+            except OSError:
+                LOG.debug("GEOS DLL not already loaded.")
+
+        # If neither fiona nor rasterio have been imported, or if the block
+        # above failed to assign _lgeos, we will load this module's copy of
+        # the GEOS DLL.
+        if not _lgeos:
+            _lgeos = CDLL(geos_whl_dylib)
+            LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
+
     else:
         if hasattr(sys, 'frozen'):
             try:
