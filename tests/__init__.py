@@ -1,6 +1,6 @@
 import sys
-from shapely.libgeos import geos_version_string
-from shapely.geos import lgeos, WKTWriter
+
+from shapely.geos import geos_version_string, lgeos, WKTWriter
 from shapely import speedups
 
 
