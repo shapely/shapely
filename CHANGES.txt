@@ -1,6 +1,14 @@
 Changes
 =======
 
+1.5.13 (2015-10-09)
+-------------------
+- Restore setup and runtime discovery and loading of GEOS shared library to
+  state at version 1.5.9 (#326).
+- On OS X we try to reuse any GEOS shared library that may have been loaded
+  via import of Fiona or Rasterio in order to avoid a bug involving the
+  GEOS AbstractSTRtree (#324, #327).
+
 1.5.12 (2015-08-27)
 -------------------
 - Remove configuration of root logger from libgeos.py (#312).
