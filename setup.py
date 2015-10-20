@@ -143,7 +143,7 @@ if not os.environ.get('NO_GEOS_CHECK') or sys.platform == 'win32':
         geos_version = geos_config.version()
         log.info("Found GEOS version: %s", geos_version)
         if (set(sys.argv).intersection(['install', 'build', 'build_ext']) and
-                shapely_version >= (1, 3) and geos_version < (3, 3)):
+                shapely_version >= Version("1.3") and geos_version < (3, 3)):
             log.critical(
                 "Shapely >= 1.3 requires GEOS >= 3.3. "
                 "Install GEOS 3.3+ and reinstall Shapely.")
