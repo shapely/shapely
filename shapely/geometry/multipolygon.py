@@ -146,19 +146,24 @@ def geos_multipolygon_from_py(ob):
     return (lgeos.GEOSGeom_createCollection(6, subs, L), N)
 
 
-def geos_multipolygon_from_polygons(ob):
+def geos_multipolygon_from_polygons(arg):
     """
     ob must be either a MultiPolygon, sequence or array of sequences 
     or arrays.
     
     """
-    if isinstance(ob, MultiPolygon):
-        return geos_geom_from_py(ob)
+    if isinstance(arg, MultiPolygon):
+        return geos_geom_from_py(arg)
 
-    obs = getattr(ob, 'geoms', None) or ob
+    obs = getattr(arg, 'geoms', arg)
+    obs = [ob for ob in obs
+           if ob and not (isinstance(ob, polygon.Polygon) and ob.is_empty)]
     L = len(obs)
-    assert L >= 1
-    
+
+    # Bail immediately if we have no input points.
+    if L <= 0:
+        return (lgeos.GEOSGeom_createEmptyCollection(6), 3)
+
     exemplar = obs[0]
     try:
         N = len(exemplar[0][0])
@@ -168,16 +173,18 @@ def geos_multipolygon_from_polygons(ob):
     assert N == 2 or N == 3
 
     subs = (c_void_p * L)()
-    for l in range(L):
-        shell = getattr(obs[l], 'exterior', None)
-        if shell is None:
-            shell = obs[l][0]
-        holes = getattr(obs[l], 'interiors', None)
-        if holes is None:
-            holes =  obs[l][1]
+
+    for i, ob in enumerate(obs):
+        if isinstance(ob, polygon.Polygon):
+            shell = ob.exterior
+            holes = ob.interiors
+        else:
+            shell = ob[0]
+            holes = ob[1]
+
         geom, ndims = polygon.geos_polygon_from_py(shell, holes)
-        subs[l] = cast(geom, c_void_p)
-            
+        subs[i] = cast(geom, c_void_p)
+
     return (lgeos.GEOSGeom_createCollection(6, subs, L), N)
 
 # Test runner
