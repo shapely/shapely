@@ -131,7 +131,7 @@ elif sys.platform == 'win32':
     try:
         egg_dlls = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                    "DLLs"))
-        wininst_dlls = os.path.abspath(os.__file__ + "../../../DLLs")
+        wininst_dlls = os.path.normpath(os.path.abspath(sys.executable+'../../DLLS'))
         original_path = os.environ['PATH']
         os.environ['PATH'] = "%s;%s;%s" % \
             (egg_dlls, wininst_dlls, original_path)
