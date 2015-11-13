@@ -159,6 +159,9 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSGeom_createCollection.restype = c_void_p
     lgeos.GEOSGeom_createCollection.argtypes = [c_int, c_void_p, c_uint]
 
+    lgeos.GEOSGeom_createEmptyCollection.restype = c_void_p
+    lgeos.GEOSGeom_createEmptyCollection.argtypes = [c_int]
+
     lgeos.GEOSGeom_clone.restype = c_void_p
     lgeos.GEOSGeom_clone.argtypes = [c_void_p]
 
