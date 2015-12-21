@@ -21,7 +21,7 @@ before_install:
 install:
   - pip install -e .
   - cd cxfreeze_example
-  - python setup.py build
+  - python setup.py build_exe --excludes=Tkinter
   - cd ..
 
 script:
