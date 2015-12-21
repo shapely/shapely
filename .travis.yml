@@ -20,8 +20,13 @@ before_install:
 
 install:
   - pip install -e .
+  - cd cxfreeze_example
+  - python setup.py build_exe --excludes=Tkinter
+  - cd ..
 
-script: "py.test tests ${TRAVIS_SPEEDUP_OPTS}"
+script:
+  - py.test tests ${TRAVIS_SPEEDUP_OPTS}
+  - ./cxfreeze_example/build/*/./example
 
 notifications:
     email: false
