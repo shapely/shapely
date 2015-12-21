@@ -21,7 +21,9 @@ before_install:
 install:
   - pip install -e .
 
-script: "py.test tests ${TRAVIS_SPEEDUP_OPTS}"
+script:
+  - py.test tests ${TRAVIS_SPEEDUP_OPTS}
+  - pushd cxfreeze_example; python setup.py build; ./build/*/./example; popd
 
 notifications:
     email: false
