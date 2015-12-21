@@ -17,12 +17,12 @@ before_install:
   - if [[ $TRAVIS_PYTHON_VERSION == "2.6" ]]; then pip install unittest2; fi
   - pip install --install-option="--no-cython-compile" cython
   - pip install -r requirements-dev.txt
-  - cd cxfreeze_example
-  - python setup.py build
-  - cd ..
 
 install:
   - pip install -e .
+  - cd cxfreeze_example
+  - python setup.py build
+  - cd ..
 
 script:
   - py.test tests ${TRAVIS_SPEEDUP_OPTS}
