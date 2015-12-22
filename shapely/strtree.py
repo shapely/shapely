@@ -31,6 +31,8 @@ class STRtree:
     """
 
     def __init__(self, geoms):
+        # filter empty geometries out of the input
+        geoms = [geom for geom in geoms if not geom.is_empty]
         self._n_geoms = len(geoms)
         # GEOS STRtree capacity has to be > 1
         self._tree_handle = lgeos.GEOSSTRtree_create(max(2, len(geoms)))
