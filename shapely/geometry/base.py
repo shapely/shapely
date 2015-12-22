@@ -263,7 +263,7 @@ class BaseGeometry(object):
 
     def __eq__(self, other):
         return (
-            isinstance(other, self.__class__) and
+            type(other) == type(self) and
             tuple(self.coords) == tuple(other.coords)
         )
 
@@ -765,7 +765,7 @@ class BaseMultipartGeometry(BaseGeometry):
 
     def __eq__(self, other):
         return (
-            isinstance(other, self.__class__) and
+            type(other) == type(self) and
             len(self) == len(other) and
             all(x == y for x, y in zip(self, other))
         )
