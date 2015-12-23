@@ -13,7 +13,8 @@ import weakref
 from shapely.algorithms.cga import signed_area
 from shapely.coords import required
 from shapely.geos import lgeos
-from shapely.geometry.base import BaseGeometry, geos_geom_from_py
+from shapely.geometry.base import BaseGeometry, geos_geom_from_py, \
+                                  EMPTY_LINESTRING, EMPTY_POLYGON
 from shapely.geometry.linestring import LineString, LineStringAdapter
 from shapely.geometry.proxy import PolygonProxy
 
@@ -51,6 +52,9 @@ class LinearRing(LineString):
         BaseGeometry.__init__(self)
         if coordinates is not None:
             self._set_coords(coordinates)
+        else:
+            # LINESTRING is closest to LinearRing in WKT/WKB
+            self.__geom__ = EMPTY_LINESTRING
 
     @property
     def __geo_interface__(self):
@@ -227,6 +231,8 @@ class Polygon(BaseGeometry):
 
         if shell is not None:
             self._geom, self._ndim = geos_polygon_from_py(shell, holes)
+        else:
+            self.__geom__ = EMPTY_POLYGON
 
     @property
     def exterior(self):
@@ -250,6 +256,11 @@ class Polygon(BaseGeometry):
 
     def __eq__(self, other):
         if not isinstance(other, Polygon):
+            return False
+        count_empty = sum([self.is_empty, other.is_empty])
+        if count_empty == 2:
+            return True
+        elif count_empty == 1:
             return False
         my_coords = [
             tuple(self.exterior.coords),

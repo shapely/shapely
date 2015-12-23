@@ -165,7 +165,13 @@ class JOIN_STYLE(object):
     mitre = 2
     bevel = 3
 
-EMPTY = deserialize_wkb(a2b_hex(b'010700000000000000'))
+EMPTY_LINESTRING = deserialize_wkb(a2b_hex(b'010200000000000000'))
+EMPTY_POLYGON = deserialize_wkb(a2b_hex(b'010300000000000000'))
+EMPTY_MULTIPOINT = deserialize_wkb(a2b_hex(b'010400000000000000'))
+EMPTY_MULTILINESTRING = deserialize_wkb(a2b_hex(b'010500000000000000'))
+EMPTY_MULTIPOLYGON = deserialize_wkb(a2b_hex(b'010600000000000000'))
+EMPTY_GEOMETRYCOLLECTION = deserialize_wkb(a2b_hex(b'010700000000000000'))
+EMPTY = EMPTY_GEOMETRYCOLLECTION
 
 
 class BaseGeometry(object):

@@ -50,7 +50,7 @@ class LineStringTestCase(unittest.TestCase):
 
         # Test Non-operability of Null geometry
         l_null = LineString()
-        self.assertEqual(l_null.wkt, 'GEOMETRYCOLLECTION EMPTY')
+        self.assertEqual(l_null.wkt, 'LINESTRING EMPTY')
         self.assertEqual(l_null.length, 0.0)
 
         # Check that we can set coordinates of a null geometry

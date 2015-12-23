@@ -9,7 +9,8 @@ if sys.version_info[0] < 3:
 from ctypes import c_void_p, cast
 
 from shapely.geos import lgeos
-from shapely.geometry.base import BaseMultipartGeometry, geos_geom_from_py
+from shapely.geometry.base import BaseMultipartGeometry, geos_geom_from_py, \
+                                  EMPTY_MULTIPOLYGON
 from shapely.geometry import polygon
 from shapely.geometry.proxy import CachingGeometryProxy
 
@@ -57,7 +58,7 @@ class MultiPolygon(BaseMultipartGeometry):
 
         if not polygons:
             # allow creation of empty multipolygons, to support unpickling
-            pass
+            self.__geom__ = EMPTY_MULTIPOLYGON
         elif context_type == 'polygons':
             self._geom, self._ndim = geos_multipolygon_from_polygons(polygons)
         elif context_type == 'geojson':

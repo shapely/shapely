@@ -12,7 +12,7 @@ from ctypes import ArgumentError
 from shapely.coords import required
 from shapely.geos import lgeos
 from shapely.geometry.base import (
-    BaseMultipartGeometry, exceptNull, geos_geom_from_py
+    BaseMultipartGeometry, exceptNull, geos_geom_from_py, EMPTY_MULTIPOINT
 )
 from shapely.geometry import point
 from shapely.geometry.proxy import CachingGeometryProxy
@@ -55,7 +55,7 @@ class MultiPoint(BaseMultipartGeometry):
 
         if points is None or len(points) == 0:
             # allow creation of empty multipoints, to support unpickling
-            pass
+            self.__geom__ = EMPTY_MULTIPOINT
         else:
             self._geom, self._ndim = geos_multipoint_from_py(points)
 

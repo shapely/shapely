@@ -11,7 +11,7 @@ from ctypes import c_double, cast, POINTER
 from shapely.coords import required
 from shapely.geos import lgeos, TopologicalError
 from shapely.geometry.base import (
-    BaseGeometry, geom_factory, JOIN_STYLE, geos_geom_from_py
+    BaseGeometry, geom_factory, JOIN_STYLE, geos_geom_from_py, EMPTY_LINESTRING
 )
 from shapely.geometry.proxy import CachingGeometryProxy
 from shapely.geometry.point import Point
@@ -47,6 +47,8 @@ class LineString(BaseGeometry):
         BaseGeometry.__init__(self)
         if coordinates is not None:
             self._set_coords(coordinates)
+        else:
+            self.__geom__ = EMPTY_LINESTRING
 
     @property
     def __geo_interface__(self):

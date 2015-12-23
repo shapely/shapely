@@ -70,7 +70,7 @@ class LineStringTestCase(unittest.TestCase):
 
         # Test Non-operability of Null geometry
         p_null = Point()
-        self.assertEqual(p_null.wkt, 'GEOMETRYCOLLECTION EMPTY')
+        self.assertEqual(p_null.wkt, 'MULTIPOINT EMPTY')
         self.assertEqual(p_null.coords[:], [])
         self.assertEqual(p_null.area, 0.0)
 
