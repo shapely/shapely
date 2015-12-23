@@ -103,7 +103,7 @@ class PolygonTestCase(unittest.TestCase):
 
         # Test Non-operability of Null rings
         r_null = LinearRing()
-        self.assertEqual(r_null.wkt, 'GEOMETRYCOLLECTION EMPTY')
+        self.assertEqual(r_null.wkt, 'LINESTRING EMPTY')
         self.assertEqual(r_null.length, 0.0)
 
         # Check that we can set coordinates of a null geometry
@@ -209,6 +209,22 @@ class PolygonTestCase(unittest.TestCase):
         # Test multiple operators, boundary of a buffer
         ec = list(p.buffer(1).boundary.coords)
         self.assertIsInstance(ec, list)  # TODO: this is a poor test
+
+    def test_empty_equality(self):
+        # Test equals operator, including empty geometries
+        # see issue #338
+        
+        point1 = Point(0, 0)
+        polygon1 = Polygon(((0.0, 0.0), (0.0, 1.0), (-1.0, 1.0), (-1.0, 0.0)))
+        polygon2 = Polygon(((0.0, 0.0), (0.0, 1.0), (-1.0, 1.0), (-1.0, 0.0)))
+        polygon_empty1 = Polygon()
+        polygon_empty2 = Polygon()
+        
+        self.assertNotEqual(point1, polygon1)
+        self.assertEqual(polygon_empty1, polygon_empty2)
+        self.assertNotEqual(polygon1, polygon_empty1)
+        self.assertEqual(polygon1, polygon2)
+        self.assertNotEqual(None, polygon_empty1)
 
 
 def test_suite():

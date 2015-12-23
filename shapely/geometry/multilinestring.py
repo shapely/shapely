@@ -9,7 +9,8 @@ if sys.version_info[0] < 3:
 from ctypes import c_double, c_void_p, cast, POINTER
 
 from shapely.geos import lgeos
-from shapely.geometry.base import BaseMultipartGeometry, geos_geom_from_py
+from shapely.geometry.base import BaseMultipartGeometry, geos_geom_from_py, \
+                                  EMPTY_MULTILINESTRING
 from shapely.geometry import linestring
 from shapely.geometry.proxy import CachingGeometryProxy
 
@@ -47,7 +48,7 @@ class MultiLineString(BaseMultipartGeometry):
 
         if not lines:
             # allow creation of empty multilinestrings, to support unpickling
-            pass
+            self.__geom__ = EMPTY_MULTILINESTRING
         else:
             self._geom, self._ndim = geos_multilinestring_from_py(lines)
 

@@ -18,5 +18,24 @@ class TwoDeeTestCase(unittest.TestCase):
         self.assertEqual(t._ndim, 2)
 
 
+GEOMETRY_TYPES = [
+    geometry.Point,
+    geometry.LineString,
+    geometry.Polygon,
+    geometry.LinearRing,
+    geometry.MultiPoint,
+    geometry.MultiLineString,
+    geometry.MultiPolygon,
+    geometry.GeometryCollection,
+]
+class RoundTripTestCase(unittest.TestCase):
+    def test_roundtrip_empty(self):
+        for GEOMETRY_TYPE in GEOMETRY_TYPES:
+            geom = GEOMETRY_TYPE()
+            data = dumps(geom)
+            result = loads(data)
+            self.assertEqual(geom.wkt, result.wkt)
+            self.assertEqual(geom, result)
+
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(TwoDeeTestCase)

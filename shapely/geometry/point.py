@@ -6,7 +6,8 @@ from ctypes import cast, POINTER
 
 from shapely.coords import required
 from shapely.geos import lgeos, DimensionError
-from shapely.geometry.base import BaseGeometry, geos_geom_from_py
+from shapely.geometry.base import BaseGeometry, geos_geom_from_py, \
+                                  EMPTY_MULTIPOINT
 from shapely.geometry.proxy import CachingGeometryProxy
 
 __all__ = ['Point', 'asPoint']
@@ -47,6 +48,9 @@ class Point(BaseGeometry):
         BaseGeometry.__init__(self)
         if len(args) > 0:
             self._set_coords(*args)
+        else:
+            # avoid issue with WKB and 'POINT EMPTY'
+            self.__geom__ = EMPTY_MULTIPOINT
 
     # Coordinate getters and setters
 
