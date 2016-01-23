@@ -251,6 +251,11 @@ class Polygon(BaseGeometry):
     def __eq__(self, other):
         if not isinstance(other, Polygon):
             return False
+        check_empty = (self.is_empty, other.is_empty)
+        if all(check_empty):
+            return True
+        elif any(check_empty):
+            return False
         my_coords = [
             tuple(self.exterior.coords),
             [tuple(interior.coords) for interior in self.interiors]
