@@ -57,6 +57,28 @@ class LineStringTestCase(unittest.TestCase):
         l_null.coords = [(0, 0), (1, 1)]
         self.assertAlmostEqual(l_null.length, 1.4142135623730951)
 
+    def test_equals_argument_order(self):
+        """
+        Test equals predicate functions correctly regardless of the order
+        of the inputs. See issue #317. 
+        """
+        coords = ((0, 0), (1, 0), (1, 1), (0, 0))
+        ls = LineString(coords)
+        lr = LinearRing(coords)
+        
+        self.assertFalse(ls.__eq__(lr))  # previously incorrectly returned True
+        self.assertFalse(lr.__eq__(ls))
+        self.assertFalse(ls == lr)
+        self.assertFalse(lr == ls)
+        
+        ls_clone = LineString(coords)
+        lr_clone = LinearRing(coords)
+
+        self.assertTrue(ls.__eq__(ls_clone))
+        self.assertTrue(lr.__eq__(lr_clone))
+        self.assertTrue(ls == ls_clone)
+        self.assertTrue(lr == lr_clone)
+
 
     def test_from_linestring(self):
         line = LineString(((1.0, 2.0), (3.0, 4.0)))
