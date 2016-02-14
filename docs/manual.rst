@@ -1122,7 +1122,7 @@ This predicate applies to all types and is the inverse of :meth:`intersects`.
 
 .. method:: object.intersects(other)
 
-  Returns ``True`` if the `boundary` and `interior` of the object intersect in
+  Returns ``True`` if the `boundary` or `interior` of the object intersect in
   any way with those of the other.
 
 In other words, geometric objects intersect if they have any boundary or 
