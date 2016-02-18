@@ -2080,6 +2080,35 @@ one geometry to the vertices in a second geometry with a given tolerance.
   >>> result.wkt
   'LINESTRING (0 0, 1 1, 2 1, 2.6 0.5)'
 
+Shared paths
+------------
+
+The :func:`~shapely.ops.shared_paths` function in `shapely.ops` finds the shared
+paths between two lineal geometries.
+
+.. function:: shapely.ops.shared_paths(geom1, geom2)
+
+   Finds the shared paths between `geom1` and `geom2`, where both geometries
+   are `LineStrings`.
+   
+   A `GeometryCollection` is returned with two elements. The first element is a
+   `MultiLineString` containing shared paths with the same direction for both
+   inputs. The second element is a MultiLineString containing shared paths with
+   the opposite direction for the two inputs.
+   
+   `New in version 1.6.0`
+
+.. code-block:: pycon
+
+  >>> from shapely.ops import shared_paths
+  >>> g1 = LineString([(0, 0), (10, 0), (10, 5), (20, 5)])
+  >>> g2 = LineString([(5, 0), (30, 0), (30, 5), (0, 5)])
+  >>> forward, backward = shared_paths(g1, g2)
+  >>> forward.wkt
+  'MULTILINESTRING ((5 0, 10 0))'
+  >>> backward.wkt
+  'MULTILINESTRING ((10 5, 20 5))'
+
 Prepared Geometry Operations
 ----------------------------
 

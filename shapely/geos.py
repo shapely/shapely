@@ -683,6 +683,7 @@ class LGEOS330(LGEOS320):
         self.methods['is_closed'] = self.GEOSisClosed
         self.methods['cascaded_union'] = self.methods['unary_union']
         self.methods['snap'] = self.GEOSSnap
+        self.methods['shared_paths'] = self.GEOSSharedPaths
 
 
 class LGEOS340(LGEOS330):

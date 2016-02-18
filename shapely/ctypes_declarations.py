@@ -501,6 +501,9 @@ def prototype(lgeos, geos_version):
         lgeos.GEOSSnap.restype = c_void_p
         lgeos.GEOSSnap.argtypes = [c_void_p, c_void_p, c_double]
 
+        lgeos.GEOSSharedPaths.restype = c_void_p
+        lgeos.GEOSSharedPaths.argtypes = [c_void_p, c_void_p]
+
     if geos_version >= (3, 4, 0):
         lgeos.GEOSNearestPoints.restype = c_void_p
         lgeos.GEOSNearestPoints.argtypes = [c_void_p, c_void_p]
