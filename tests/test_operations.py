@@ -1,8 +1,9 @@
 from . import unittest
 import pytest
-from shapely.geometry import Point, Polygon, MultiPoint, GeometryCollection
+from shapely.geometry import Point, LineString, Polygon, MultiPoint, \
+                             GeometryCollection
 from shapely.wkt import loads
-from shapely.geos import TopologicalError
+from shapely.geos import TopologicalError, geos_version
 
 class OperationsTestCase(unittest.TestCase):
 
@@ -72,6 +73,14 @@ class OperationsTestCase(unittest.TestCase):
         assert(not invalid_polygon.is_valid)
         with pytest.raises(TopologicalError):
             invalid_polygon.relate(invalid_polygon)
+
+    @unittest.skipIf(geos_version < (3, 2, 0), 'GEOS 3.2.0 required')
+    def test_hausdorff_distance(self):
+        point = Point(1, 1)
+        line = LineString([(2, 0), (2, 4), (3, 4)])
+
+        distance = point.hausdorff_distance(line)
+        self.assertEqual(distance, point.distance(Point(3, 4)))
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(OperationsTestCase)

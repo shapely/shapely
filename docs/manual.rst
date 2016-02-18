@@ -207,6 +207,23 @@ General Attributes and Methods
   >>> Point(0,0).distance(Point(1,1))
   1.4142135623730951
 
+.. method:: object.hausdorff_distance(other)
+
+  Returns the Hausdorff distance (``float``) to the `other` geometric object.
+  The Hausdorff distance is the furthest distance from any point on the first
+  geometry to any point on the second geometry.
+
+  `New in Shapely 1.6.0`
+
+.. code-block:: pycon
+
+  >>> point = Point(1, 1)
+  >>> line = LineString([(2, 0), (2, 4), (3, 4)])
+  >>> point.hausdorff_distance(line)
+  3.605551275463989
+  >>> point.distance(Point(3, 4))
+  3.605551275463989
+
 .. method:: object.representative_point()
 
   Returns a cheaply computed point that is guaranteed to be within the

@@ -651,6 +651,7 @@ class LGEOS320(LGEOS311):
         self.methods['interpolate_normalized'] = \
             self.GEOSInterpolateNormalized
         self.methods['buffer_with_style'] = self.GEOSBufferWithStyle
+        self.methods['hausdorff_distance'] = self.GEOSHausdorffDistance
 
 
 class LGEOS330(LGEOS320):

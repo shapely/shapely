@@ -402,6 +402,10 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSDistance.restype = c_int
     lgeos.GEOSDistance.argtypes = [c_void_p, c_void_p, c_void_p]
 
+    if geos_version >= (3, 2, 0):
+        lgeos.GEOSHausdorffDistance.restype = c_int
+        lgeos.GEOSHausdorffDistance.argtypes = [c_void_p, c_void_p, c_void_p]
+
     '''
     Reader and Writer APIs
     '''
