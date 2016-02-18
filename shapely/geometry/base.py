@@ -424,6 +424,10 @@ class BaseGeometry(object):
         """Unitless distance to other geometry (float)"""
         return self.impl['distance'](self, other)
 
+    def hausdorff_distance(self, other):
+        """Unitless hausdorff distance to other geometry (float)"""
+        return self.impl['hausdorff_distance'](self, other)
+
     @property
     def length(self):
         """Unitless length of the geometry (float)"""

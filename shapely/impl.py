@@ -140,6 +140,7 @@ IMPL320 = {
     'interpolate_normalized': (InterpolateOp, 'interpolate_normalized'),
     'interpolate': (InterpolateOp, 'interpolate'),
     'buffer_with_style': (UnaryTopologicalOp, 'buffer_with_style'),
+    'hausdorff_distance': (BinaryRealProperty, 'hausdorff_distance'),
     }
 
 IMPL330 = {
