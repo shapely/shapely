@@ -12,7 +12,8 @@ from ctypes import byref, c_void_p, c_double
 
 from shapely.geos import lgeos
 from shapely.geometry.base import geom_factory, BaseGeometry
-from shapely.geometry import asShape, asLineString, asMultiLineString, Point
+from shapely.geometry import asShape, asLineString, asMultiLineString, Point, \
+                             LineString
 
 __all__ = ['cascaded_union', 'linemerge', 'operator', 'polygonize',
            'polygonize_full', 'transform', 'unary_union', 'triangulate']
@@ -301,3 +302,25 @@ def snap(g1, g2, tolerance):
     'LINESTRING (0 0, 1 1, 2 1, 2.6 0.5)'
     """
     return(geom_factory(lgeos.methods['snap'](g1._geom, g2._geom, tolerance)))
+
+def shared_paths(g1, g2):
+    """Find paths shared between the two given lineal geometries
+
+    Returns a GeometryCollection with two elements:
+     - First element is a MultiLineString containing shared paths with the
+       same direction for both inputs.
+     - Second element is a MultiLineString containing shared paths with the
+       opposite direction for the two inputs.
+
+    Parameters
+    ----------
+    g1 : geometry
+        The first geometry
+    g2 : geometry
+        The second geometry
+    """
+    if not isinstance(g1, LineString):
+        raise TypeError("First geometry must be a LineString")
+    if not isinstance(g2, LineString):
+        raise TypeError("Second geometry must be a LineString")
+    return(geom_factory(lgeos.methods['shared_paths'](g1._geom, g2._geom)))
