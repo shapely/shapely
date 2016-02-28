@@ -1576,6 +1576,22 @@ Figure 10. Convex hull (blue) of 2 points (left) and of 6 points (right).
   >>> MultiPoint([(0, 0), (1, 1)]).envelope
   <shapely.geometry.polygon.Polygon object at 0x...>
 
+.. attribute:: object.minimum_rotated_rectangle 
+  
+  Returns the general minimum bounding rectangle that contains the object. 
+  Unlike envelope this rectangle is not constrained to be parallel to the 
+  coordinate axes. If the convex hull of the object is a degenerate (line or point) 
+  this degenerate is returned.
+
+  `New in Shapely 1.6.0`
+
+.. code-block:: pycon
+  
+  >>> Point(0, 0).minimum_rotated_rectangle
+  <shapely.geometry.point.Point object at 0x7f5cc62b1828>
+  >>> MultiPoint([(0,0),(1,1),(2,0.5)]).minimum_rotated_rectangle
+  <shapely.geometry.polygon.Polygon object at 0x7f5cc11f9dd8>
+
 .. method:: object.parallel_offset(distance, side, resolution=16, join_style=1, mitre_limit=5.0)
 
   Returns a LineString or MultiLineString geometry at a distance from the
