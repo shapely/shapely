@@ -1576,7 +1576,7 @@ Figure 10. Convex hull (blue) of 2 points (left) and of 6 points (right).
   >>> MultiPoint([(0, 0), (1, 1)]).envelope
   <shapely.geometry.polygon.Polygon object at 0x...>
 
-.. attribute:: object.minimum_rotated_rectangle 
+.. attribute:: object.minimum_rotated_rectangle
   
   Returns the general minimum bounding rectangle that contains the object. 
   Unlike envelope this rectangle is not constrained to be parallel to the 
@@ -1588,9 +1588,14 @@ Figure 10. Convex hull (blue) of 2 points (left) and of 6 points (right).
 .. code-block:: pycon
   
   >>> Point(0, 0).minimum_rotated_rectangle
-  <shapely.geometry.point.Point object at 0x7f5cc62b1828>
+  <shapely.geometry.point.Point object at 0x...>
   >>> MultiPoint([(0,0),(1,1),(2,0.5)]).minimum_rotated_rectangle
-  <shapely.geometry.polygon.Polygon object at 0x7f5cc11f9dd8>
+  <shapely.geometry.polygon.Polygon object at 0x...>
+
+.. plot:: code/minimum_rotated_rectangle.py
+
+Figure 11. Minimum rotated rectangle for a multipoint feature (left) and a 
+linestring feature (right).
 
 .. method:: object.parallel_offset(distance, side, resolution=16, join_style=1, mitre_limit=5.0)
 
