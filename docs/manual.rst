@@ -1621,7 +1621,7 @@ linestring feature (right).
 
 .. plot:: code/parallel_offset.py
 
-Figure 11. Three styles of parallel offset lines on the left side of a simple
+Figure 12. Three styles of parallel offset lines on the left side of a simple
 line string (its starting point shown as a circle) and one offset on the right
 side, a multipart.
 
@@ -1629,7 +1629,7 @@ The effect of the `mitre_limit` parameter is shown below.
 
 .. plot:: code/parallel_offset_mitre.py
 
-Figure 12. Large and small mitre_limit values for left and right offsets.
+Figure 13. Large and small mitre_limit values for left and right offsets.
 
 .. method:: object.simplify(tolerance, preserve_topology=True)
 
@@ -1656,7 +1656,7 @@ Douglas-Peucker algorithm [6]_ is used.
 
 .. plot:: code/simplify.py
 
-Figure 13. Simplification of a nearly circular polygon using a tolerance of 0.2
+Figure 14. Simplification of a nearly circular polygon using a tolerance of 0.2
 (left) and 0.5 (right).
 
 .. note::
@@ -1764,7 +1764,7 @@ preserved or supported by 3D affine transformations.
 
   .. plot:: code/rotate.py
 
-  Figure 14. Rotation of a `LineString` (gray) by an angle of 90°
+  Figure 15. Rotation of a `LineString` (gray) by an angle of 90°
   counter-clockwise (blue) using different origins.
 
 .. function:: shapely.affinity.scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center')
@@ -1806,7 +1806,7 @@ preserved or supported by 3D affine transformations.
 
   .. plot:: code/scale.py
 
-  Figure 15. Scaling of a gray triangle to blue result: a) by a factor of 1.5
+  Figure 16. Scaling of a gray triangle to blue result: a) by a factor of 1.5
   along x-direction, with reflection across y-axis; b) by a factor of 2 along
   x-direction with custom origin at (1, 1).
 
@@ -1838,7 +1838,7 @@ preserved or supported by 3D affine transformations.
 
   .. plot:: code/skew.py
 
-  Figure 16. Skewing of a gray "R" to blue result: a) by a shear angle of 20°
+  Figure 17. Skewing of a gray "R" to blue result: a) by a shear angle of 20°
   along the x-direction and an origin at (1, 1); b) by a shear angle of 30°
   along the y-direction, using default origin.
 
