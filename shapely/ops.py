@@ -14,9 +14,11 @@ from shapely.geos import lgeos
 from shapely.geometry.base import geom_factory, BaseGeometry
 from shapely.geometry import asShape, asLineString, asMultiLineString, Point, \
                              LineString
+from shapely import postgis
+
 
 __all__ = ['cascaded_union', 'linemerge', 'operator', 'polygonize',
-           'polygonize_full', 'transform', 'unary_union', 'triangulate']
+           'polygonize_full', 'transform', 'unary_union', 'triangulate', 'split']
 
 
 class CollectionOperator(object):
@@ -324,3 +326,6 @@ def shared_paths(g1, g2):
     if not isinstance(g2, LineString):
         raise TypeError("Second geometry must be a LineString")
     return(geom_factory(lgeos.methods['shared_paths'](g1._geom, g2._geom)))
+
+
+split = postgis.split.split_impl
