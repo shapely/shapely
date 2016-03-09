@@ -418,7 +418,34 @@ class SplitOp(object):
     
     @staticmethod
     def split(geom, splitter):
-        """Split a geometry with another geometry"""
+        """
+        Splits a geometry by another geometry and returns a collection of geometries. This function is the theoretical
+        opposite of the union of the split geometry parts. If the splitter does not split the geometry, a collection
+        with a single geometry equal to the input geometry is returned.
+        The function supports:
+          - Splitting a (Multi)LineString by a (Multi)Point or (Multi)LineString or (Multi)Polygon
+          - Splitting a (Multi)Polygon by a LineString
+
+        It may be convenient to snap the splitter with low tolerance to the geometry. For example in the case
+        of splitting a line by a point, the point must be exactly on the line, for the line to be correctly split.
+        When splitting a line by a polygon, the boundary of the polygon is used for the operation.
+        When splitting a line by another line, a ValueError is raised if the two overlap at some segment.
+
+        Parameters
+        ----------
+        geom : geometry
+            The geometry to be split
+        splitter : geometry
+            The geometry that will split the input geom
+
+        Example
+        -------
+        >>> pt = Point((1, 1))
+        >>> line = LineString([(0,0), (2,2)])
+        >>> result = split(line, pt)
+        >>> result.wkt
+        'GEOMETRYCOLLECTION (LINESTRING (0 0, 1 1), LINESTRING (1 1, 2 2))'
+        """
 
         if geom.type in ('MultiLineString', 'MultiPolygon'):
              return GeometryCollection([i for part in geom.geoms for i in SplitOp.split(part, splitter).geoms])
