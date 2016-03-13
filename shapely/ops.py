@@ -12,11 +12,11 @@ from ctypes import byref, c_void_p, c_double
 
 from shapely.geos import lgeos
 from shapely.geometry.base import geom_factory, BaseGeometry
-from shapely.geometry import asShape, asLineString, asMultiLineString, Point, \
-                             LineString
+from shapely.geometry import asShape, asLineString, asMultiLineString, Point, MultiPoint,\
+                             LineString, MultiLineString, Polygon, MultiPolygon, GeometryCollection
 
 __all__ = ['cascaded_union', 'linemerge', 'operator', 'polygonize',
-           'polygonize_full', 'transform', 'unary_union', 'triangulate']
+           'polygonize_full', 'transform', 'unary_union', 'triangulate', 'split']
 
 
 class CollectionOperator(object):
@@ -324,3 +324,151 @@ def shared_paths(g1, g2):
     if not isinstance(g2, LineString):
         raise TypeError("Second geometry must be a LineString")
     return(geom_factory(lgeos.methods['shared_paths'](g1._geom, g2._geom)))
+
+
+class SplitOp(object):
+
+    @staticmethod
+    def _split_polygon_with_line(poly, splitter):
+        """Split a Polygon with a LineString"""
+
+        assert(isinstance(poly, Polygon))
+        assert(isinstance(splitter, LineString))
+
+        union = poly.boundary.union(splitter)
+
+        # some polygonized geometries may be holes, we do not want them
+        # that's why we test if the original polygon (poly) contains 
+        # an inner point of polygonized geometry (pg)
+        return [pg for pg in polygonize(union) if poly.contains(pg.representative_point())]
+
+    @staticmethod
+    def _split_line_with_line(line, splitter):
+        """Split a LineString with another (Multi)LineString or (Multi)Polygon"""
+        
+        # if splitter is a polygon, pick it's boundary
+        if splitter.type in ('Polygon', 'MultiPolygon'):
+            splitter = splitter.boundary
+
+        assert(isinstance(line, LineString))
+        assert(isinstance(splitter, LineString) or isinstance(splitter, MultiLineString))
+        
+        if splitter.crosses(line):
+            # The lines cross --> return multilinestring from the split
+            return line.difference(splitter)
+        elif splitter.relate_pattern(line, '1********'):
+            # The lines overlap at some segment (linear intersection of interiors)
+            raise ValueError('Input geometry segment overlaps with the splitter.')
+        else:
+            # The lines do not cross --> return collection with identity line
+            return [line]
+
+    @staticmethod  
+    def _split_line_with_point(line, splitter):
+        """Split a LineString with a Point"""
+
+        assert(isinstance(line, LineString))
+        assert(isinstance(splitter, Point))
+
+        # check if point is in the interior of the line
+        if not line.relate_pattern(splitter, '0********'):
+            # point not on line interior --> return collection with single identity line
+            # (REASONING: Returning a list with the input line reference and creating a 
+            # GeometryCollection at the general split function prevents unnecessary copying 
+            # of linestrings in multipoint splitting function)
+            return [line]
+
+        # point is on line, get the distance from the first point on line
+        distance_on_line = line.project(splitter)
+        coords = list(line.coords)
+        # split the line at the point and create two new lines
+        # TODO: can optimize this by accumulating the computed point-to-point distances
+        for i, p in enumerate(coords):
+            pd = line.project(Point(p))
+            if pd == distance_on_line:
+                return [
+                    LineString(coords[:i+1]), 
+                    LineString(coords[i:])
+                ]
+            elif distance_on_line < pd:
+                # we must interpolate here because the line might use 3D points
+                cp = line.interpolate(distance_on_line)
+                ls1_coords = coords[:i]
+                ls1_coords.append(cp.coords[0])
+                ls2_coords = [cp.coords[0]]
+                ls2_coords.extend(coords[i:])
+                return [LineString(ls1_coords), LineString(ls2_coords)]
+
+    @staticmethod
+    def _split_line_with_multipoint(line, splitter):
+        """Split a LineString with a MultiPoint"""
+
+        assert(isinstance(line, LineString))
+        assert(isinstance(splitter, MultiPoint))
+        
+        chunks = [line]
+        for pt in splitter.geoms:
+            new_chunks = []
+            for chunk in chunks:
+                # add the newly split 2 lines or the same line if not split
+                new_chunks.extend(SplitOp._split_line_with_point(chunk, pt))
+            chunks = new_chunks
+        
+        return chunks
+    
+    @staticmethod
+    def split(geom, splitter):
+        """
+        Splits a geometry by another geometry and returns a collection of geometries. This function is the theoretical
+        opposite of the union of the split geometry parts. If the splitter does not split the geometry, a collection
+        with a single geometry equal to the input geometry is returned.
+        The function supports:
+          - Splitting a (Multi)LineString by a (Multi)Point or (Multi)LineString or (Multi)Polygon
+          - Splitting a (Multi)Polygon by a LineString
+
+        It may be convenient to snap the splitter with low tolerance to the geometry. For example in the case
+        of splitting a line by a point, the point must be exactly on the line, for the line to be correctly split.
+        When splitting a line by a polygon, the boundary of the polygon is used for the operation.
+        When splitting a line by another line, a ValueError is raised if the two overlap at some segment.
+
+        Parameters
+        ----------
+        geom : geometry
+            The geometry to be split
+        splitter : geometry
+            The geometry that will split the input geom
+
+        Example
+        -------
+        >>> pt = Point((1, 1))
+        >>> line = LineString([(0,0), (2,2)])
+        >>> result = split(line, pt)
+        >>> result.wkt
+        'GEOMETRYCOLLECTION (LINESTRING (0 0, 1 1), LINESTRING (1 1, 2 2))'
+        """
+
+        if geom.type in ('MultiLineString', 'MultiPolygon'):
+             return GeometryCollection([i for part in geom.geoms for i in SplitOp.split(part, splitter).geoms])
+
+        elif geom.type == 'LineString':
+            if splitter.type in ('LineString', 'MultiLineString', 'Polygon', 'MultiPolygon'):
+                split_func = SplitOp._split_line_with_line
+            elif splitter.type in ('Point'):
+                split_func = SplitOp._split_line_with_point
+            elif splitter.type in ('MultiPoint'):
+                split_func =  SplitOp._split_line_with_multipoint
+            else:
+                raise ValueError("Splitting a LineString with a %s is not supported" % splitter.type)
+
+        elif geom.type == 'Polygon':
+            if splitter.type == 'LineString':
+                split_func = SplitOp._split_polygon_with_line
+            else:
+                raise ValueError("Splitting a Polygon with a %s is not supported" % splitter.type)
+
+        else:
+            raise ValueError("Splitting %s geometry is not supported" % geom.type)
+
+        return GeometryCollection(split_func(geom, splitter))
+
+split = SplitOp.split
