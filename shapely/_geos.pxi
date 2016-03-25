@@ -1,7 +1,7 @@
 # The beginnings of a Cython definition of GEOS. In the future much of this
 # could be auto-generated.
 
-ctypedef long ptr
+from libc.stdint cimport uintptr_t
 
 
 cdef extern from "geos_c.h":
@@ -9,7 +9,7 @@ cdef extern from "geos_c.h":
     ctypedef struct GEOSGeometry
     ctypedef struct GEOSCoordSequence
     ctypedef struct GEOSPreparedGeometry
-    
+
     GEOSCoordSequence *GEOSCoordSeq_create_r(GEOSContextHandle_t, unsigned int, unsigned int) nogil
     GEOSCoordSequence *GEOSGeom_getCoordSeq_r(GEOSContextHandle_t, GEOSGeometry *) nogil
 
@@ -48,11 +48,11 @@ cdef extern from "geos_c.h":
 cdef GEOSContextHandle_t get_geos_context_handle():
     # Note: This requires that lgeos is defined, so needs to be imported as:
     from shapely.geos import lgeos
-    cdef ptr handle = lgeos.geos_handle
+    cdef uintptr_t handle = lgeos.geos_handle
     return <GEOSContextHandle_t>handle
 
 
 cdef GEOSPreparedGeometry *geos_from_prepared(shapely_geom) except *:
     """Get the Prepared GEOS geometry pointer from the given shapely geometry."""
-    cdef ptr geos_geom = shapely_geom._geom
+    cdef uintptr_t geos_geom = shapely_geom._geom
     return <GEOSPreparedGeometry *>geos_geom
