@@ -1,6 +1,35 @@
 Changes
 =======
 
+1.5.15 (2016-03-29)
+-------------------
+- Bug fix: use uintptr_t to store pointers instead of long in _geos.pxi,
+  preventing an overflow error (#372, #373). Note that this bug fix was
+  erroneously reported to have been made in 1.5.14, but was not.
+
+1.5.14 (2016-03-27)
+-------------------
+- Bug fix: use ``type()`` instead of ``isinstance()`` when evaluating geometry
+  equality, preventing instances of base and derived classes from 
+  being mistaken for equals (#317).
+- Bug fix: ensure that empty geometries are created when constructors have no
+  args (#332, #333).
+- Bug fix: support app "freezing" better on Windows by not relying on the
+  ``__file__`` attribute (#342, #377).
+- Bug fix: ensure that empty polygons evaluate to be ``==`` (#355).
+- Bug fix: filter out empty geometries that can cause segfaults when creating
+  and loading STRtrees (#345, #348).
+- Bug fix: no longer attempt to reuse GEOS DLLs already loaded by Rasterio
+  or Fiona on OS X (#374, #375).
+
+1.5.13 (2015-10-09)
+-------------------
+- Restore setup and runtime discovery and loading of GEOS shared library to
+  state at version 1.5.9 (#326).
+- On OS X we try to reuse any GEOS shared library that may have been loaded
+  via import of Fiona or Rasterio in order to avoid a bug involving the
+  GEOS AbstractSTRtree (#324, #327).
+
 1.5.12 (2015-08-27)
 -------------------
 - Remove configuration of root logger from libgeos.py (#312).
