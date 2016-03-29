@@ -1,6 +1,12 @@
 Changes
 =======
 
+1.5.15 (2016-03-29)
+-------------------
+- Bug fix: use uintptr_t to store pointers instead of long in _geos.pxi,
+  preventing an overflow error (#372, #373). Note that this bug fix was
+  erroneously reported to have been made in 1.5.14, but was not.
+
 1.5.14 (2016-03-27)
 -------------------
 - Bug fix: use ``type()`` instead of ``isinstance()`` when evaluating geometry
@@ -11,8 +17,6 @@ Changes
 - Bug fix: support app "freezing" better on Windows by not relying on the
   ``__file__`` attribute (#342, #377).
 - Bug fix: ensure that empty polygons evaluate to be ``==`` (#355).
-- Bug fix: use uintptr_t to store pointers instead of long in _geos.pxi,
-  preventing an overflow error (#372, #373).
 - Bug fix: filter out empty geometries that can cause segfaults when creating
   and loading STRtrees (#345, #348).
 - Bug fix: no longer attempt to reuse GEOS DLLs already loaded by Rasterio
