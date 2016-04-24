@@ -86,6 +86,8 @@ elif sys.platform == 'darwin':
                 # binary from pyinstaller
                 alt_paths = [
                     os.path.join(sys.executable, 'libgeos_c.dylib')]
+                if hasattr(sys, '_MEIPASS'):
+                    alt_paths.append(os.path.join(sys._MEIPASS, 'libgeos_c.1.dylib'))
         else:
             alt_paths = [
                 # The Framework build from Kyng Chaos
