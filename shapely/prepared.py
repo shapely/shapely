@@ -4,6 +4,7 @@ Support for GEOS prepared geometry operations.
 
 from shapely.geos import lgeos
 from shapely.impl import DefaultImplementation, delegated
+from pickle import PicklingError
 
 
 class PreparedGeometry(object):
@@ -82,6 +83,9 @@ class PreparedGeometry(object):
     def within(self, other):
         """Returns True if geometry is within the other, else False"""
         return bool(self.impl['prepared_within'](self, other))
+
+    def __reduce__(self):
+        raise PicklingError("Prepared geometries cannot be pickled.")
 
 def prep(ob):
     """Creates and returns a prepared geometric object."""
