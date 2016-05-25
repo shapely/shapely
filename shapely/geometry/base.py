@@ -234,6 +234,7 @@ class BaseGeometry(object):
     def __setstate__(self, state):
         self.empty()
         self.__geom__ = deserialize_wkb(state)
+        self._is_empty = False
         if lgeos.methods['has_z'](self.__geom__):
             self._ndim = 3
         else:
