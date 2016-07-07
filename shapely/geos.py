@@ -2,6 +2,7 @@
 Proxies for libgeos, GEOS-specific exceptions, and utilities
 """
 
+import glob
 import os
 import re
 import sys
@@ -63,7 +64,15 @@ def load_dll(libname, fallbacks=None, mode=DEFAULT_MODE):
 _lgeos = None
 
 if sys.platform.startswith('linux'):
-    _lgeos = load_dll('geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
+    # Test to see if we have a wheel repaired by 'auditwheel' containing its
+    # own libgeos_c
+    geos_whl_so = glob.glob(os.path.abspath(os.path.join(os.path.dirname(
+        __file__), '.libs/libgeos_c-*.so.*')))
+    if len(geos_whl_so) == 1:
+        _lgeos = CDLL(geos_whl_so[0])
+        LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
+    else:
+        _lgeos = load_dll('geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
     free = load_dll('c').free
     free.argtypes = [c_void_p]
     free.restype = None
