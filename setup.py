@@ -53,6 +53,7 @@
 
 import errno
 import glob
+import itertools as it
 import logging
 import os
 import platform
@@ -173,6 +174,13 @@ with open('CHANGES.txt', 'r', **open_kwds) as fp:
 
 long_description = readme + '\n\n' + credits + '\n\n' + changes
 
+
+extra_reqs = {
+    'test': ['pytest', 'pytest-cov', 'numpy>=1.4.1', 'packaging']
+}
+extra_reqs['all'] = list(it.chain.from_iterable(extra_reqs.values()))
+
+
 setup_args = dict(
     name                = 'Shapely',
     version             = str(shapely_version),
@@ -207,6 +215,7 @@ setup_args = dict(
     ],
     data_files         = [('shapely', ['shapely/_geos.pxi'])],
     cmdclass           = {},
+    extras_require     = extra_reqs
 )
 
 # Add DLLs for Windows.
