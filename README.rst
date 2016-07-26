@@ -7,6 +7,9 @@ Manipulation and analysis of geometric objects in the Cartesian plane.
 .. image:: https://travis-ci.org/Toblerity/Shapely.png?branch=master
    :target: https://travis-ci.org/Toblerity/Shapely
 
+.. image:: https://coveralls.io/repos/github/Toblerity/Fiona/badge.svg?branch=master
+   :target: https://coveralls.io/github/Toblerity/Fiona?branch=master
+
 .. image:: http://farm3.staticflickr.com/2738/4511827859_b5822043b7_o_d.png
    :width: 800
    :height: 400
