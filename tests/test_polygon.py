@@ -226,5 +226,17 @@ class PolygonTestCase(unittest.TestCase):
         self.assertEqual(polygon1, polygon2)
         self.assertNotEqual(None, polygon_empty1)
 
+    def test_from_bounds(self):
+        xmin, ymin, xmax, ymax = -180, -90, 180, 90
+        coords = [
+            (xmin, ymin),
+            (xmin, ymax),
+            (xmax, ymax),
+            (xmax, ymin)]
+        self.assertEqual(
+            Polygon(coords),
+            Polygon.from_bounds(xmin, ymin, xmax, ymax))
+
+
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(PolygonTestCase)

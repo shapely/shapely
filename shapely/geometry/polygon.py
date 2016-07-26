@@ -333,6 +333,15 @@ class Polygon(BaseGeometry):
             'stroke-width="{0}" opacity="0.6" d="{1}" />'
             ).format(2. * scale_factor, path, fill_color)
 
+    @classmethod
+    def from_bounds(cls, xmin, ymin, xmax, ymax):
+        """Construct a `Polygon()` from spatial bounds."""
+        return cls([
+            (xmin, ymin),
+            (xmin, ymax),
+            (xmax, ymax),
+            (xmax, ymin)])
+
 
 class PolygonAdapter(PolygonProxy, Polygon):
 
