@@ -26,8 +26,12 @@ before_install:
 
 install:
   - pip install -e .[test]
+  - pip install coveralls
 
 script: "py.test --cov shapely --cov-report term-missing ${TRAVIS_SPEEDUP_OPTS}"
 
+after_success:
+  - coveralls || echo "!! intermittent coveralls failure"
+  
 notifications:
     email: false
