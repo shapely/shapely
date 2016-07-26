@@ -16,3 +16,7 @@ docs/modules.txt
 *.pyd
 *.pdb
 wheels/
+.coverage
+ignore/
+
+venv/
