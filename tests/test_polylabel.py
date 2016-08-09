@@ -1,27 +1,51 @@
 from . import unittest
-from shapely.algorithms.polylabel import polylabel
-from shapely.geometry import asShape, Point
-import json
-import os
+from shapely.algorithms.polylabel import polylabel, Cell
+from shapely.geometry import LineString, Point, Polygon
+from shapely.geos import TopologicalError
 
 
 class PolylabelTestCase(unittest.TestCase):
-    def setUp(self):
-        with open(os.path.join(os.path.dirname(__file__),
-                  'polylabel_lake_superior.json'), 'r') as f:
-            self.lake_superior_polygon = asShape(json.load(f))
-
     def test_polylabel(self):
         """
-        finds pole of inaccessibility for polygons with varying levels of
-        precision.
+        Finds pole of inaccessibility for a polygon with a precision of 10
 
         """
-        # Find the polylabel for the lake superior polygon with 10000 meter
-        # precision
-        ls_polylabel = polylabel(self.lake_superior_polygon, precision=10000)
-        expected = Point(918926.3475031244, 5311759.390540625)
-        self.assertEqual(ls_polylabel, expected)
+        polygon = LineString([(0, 0), (50, 200), (100, 100), (20, 50),
+                              (-100, -20), (-150, -200)]).buffer(100)
+        label = polylabel(polygon, precision=10)
+        expected = Point(59.35615556364569, 121.8391962974644)
+        self.assertTrue(expected.almost_equals(label))
+
+    def test_invalid_polygon(self):
+        """
+        Makes sure that the polylabel function throws an exception when provided
+        an invalid polygon.
+
+        """
+        bowtie_polygon = Polygon([(0, 0), (0, 20), (10, 10), (20, 20),
+                                  (20, 0), (10, 10), (0, 0)])
+        self.assertRaises(TopologicalError, polylabel, bowtie_polygon)
+
+    def test_cell_sorting(self):
+        """
+        Tests rich comparison operators of Cells for use in the polylabel
+        minimum priority queue.
+
+        """
+        polygon = Point(0, 0).buffer(100)
+        cell1 = Cell(0, 0, 50, polygon)  # closest
+        cell2 = Cell(50, 50, 50, polygon)  # furthest
+        self.assertLess(cell1, cell2)
+        self.assertLessEqual(cell1, cell2)
+        self.assertFalse(cell2 <= cell1)
+        self.assertEqual(cell1, cell1)
+        self.assertFalse(cell1 == cell2)
+        self.assertNotEqual(cell1, cell2)
+        self.assertFalse(cell1 != cell1)
+        self.assertGreater(cell2, cell1)
+        self.assertFalse(cell1 > cell2)
+        self.assertGreaterEqual(cell2, cell1)
+        self.assertFalse(cell1 >= cell2)
 
 
 def test_suite():
