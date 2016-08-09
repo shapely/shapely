@@ -110,4 +110,4 @@ def polylabel(polygon, precision=1.0):
         heappush(cell_queue, Cell(cell.x - h, cell.y + h, h, polygon))
         heappush(cell_queue, Cell(cell.x + h, cell.y + h, h, polygon))
 
-    return Point(best_cell.x, best_cell.y)
+    return best_cell.point
