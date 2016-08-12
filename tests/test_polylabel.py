@@ -47,6 +47,17 @@ class PolylabelTestCase(unittest.TestCase):
         self.assertGreaterEqual(cell2, cell1)
         self.assertFalse(cell1 >= cell2)
 
+    def test_concave_polygon(self):
+        """
+        Finds pole of inaccessibility for a concave polygon and ensures that
+        the point is inside.
+
+        """
+        concave_polygon = LineString([(500, 0), (0, 0), (0, 500),
+                                      (500, 500)]).buffer(100)
+        label = polylabel(concave_polygon)
+        self.assertTrue(concave_polygon.contains(label))
+
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(PolylabelTestCase)
