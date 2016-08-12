@@ -14,6 +14,7 @@ from shapely.geos import lgeos
 from shapely.geometry.base import geom_factory, BaseGeometry
 from shapely.geometry import asShape, asLineString, asMultiLineString, Point, MultiPoint,\
                              LineString, MultiLineString, Polygon, MultiPolygon, GeometryCollection
+from shapely.algorithms.polylabel import polylabel
 
 __all__ = ['cascaded_union', 'linemerge', 'operator', 'polygonize',
            'polygonize_full', 'transform', 'unary_union', 'triangulate', 'split']
