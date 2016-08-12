@@ -5,10 +5,8 @@ from heapq import heappush, heappop
 
 class Cell(object):
     def __init__(self, x, y, h, polygon):
-        self.point = Point(x, y)  # cell centroid
-        self.x = x
-        self.y = y
-        self.h = h
+        self.centroid = Point(x, y)  # cell centroid
+        self.h = h  # half of cell size
 
         # distance from cell centroid to polygon exterior
         self.distance = self._dist(polygon)
@@ -57,8 +55,8 @@ class Cell(object):
         (negative if point is outside)
 
         """
-        inside = polygon.contains(self.point)
-        distance = self.point.distance(LineString(polygon.exterior.coords))
+        inside = polygon.contains(self.centroid)
+        distance = self.centroid.distance(LineString(polygon.exterior.coords))
         if inside:
             return distance
         return -distance
@@ -105,9 +103,13 @@ def polylabel(polygon, precision=1.0):
 
         # split the cell into quadrants
         h = cell.h / 2.0
-        heappush(cell_queue, Cell(cell.x - h, cell.y - h, h, polygon))
-        heappush(cell_queue, Cell(cell.x + h, cell.y - h, h, polygon))
-        heappush(cell_queue, Cell(cell.x - h, cell.y + h, h, polygon))
-        heappush(cell_queue, Cell(cell.x + h, cell.y + h, h, polygon))
+        heappush(cell_queue,
+                 Cell(cell.centroid.x - h, cell.centroid.y - h, h, polygon))
+        heappush(cell_queue,
+                 Cell(cell.centroid.x + h, cell.centroid.y - h, h, polygon))
+        heappush(cell_queue,
+                 Cell(cell.centroid.x - h, cell.centroid.y + h, h, polygon))
+        heappush(cell_queue,
+                 Cell(cell.centroid.x + h, cell.centroid.y + h, h, polygon))
 
-    return best_cell.point
+    return best_cell.centroid
