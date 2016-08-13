@@ -197,7 +197,7 @@ elif sys.platform == 'win32':
             original_path = os.environ['PATH']
             os.environ['PATH'] = "%s;%s;%s" % \
                 (egg_dlls, wininst_dlls, original_path)
-            lgeos = CDLL("geos.dll")
+            lgeos = CDLL("geos_c.dll")
         except (ImportError, WindowsError, OSError):
             raise
 
