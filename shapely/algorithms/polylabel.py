@@ -16,38 +16,22 @@ class Cell(object):
 
     # rich comparison operators for sorting in minimum priority queue
     def __lt__(self, other):
-        # inverted for minimum priority queue
-        if self.max_distance < other.max_distance:
-            return False
-        return True
+        return self.max_distance > other.max_distance
 
     def __le__(self, other):
-        # inverted for minimum priority queue
-        if self.max_distance <= other.max_distance:
-            return False
-        return True
+        return self.max_distance >= other.max_distance
 
     def __eq__(self, other):
-        if self.max_distance == other.max_distance:
-            return True
-        return False
+        return self.max_distance == other.max_distance
 
     def __ne__(self, other):
-        if self.max_distance != other.max_distance:
-            return True
-        return False
+        return self.max_distance != other.max_distance
 
     def __gt__(self, other):
-        # inverted for minimum priority queue
-        if self.max_distance > other.max_distance:
-            return False
-        return True
+        return self.max_distance < other.max_distance
 
     def __ge__(self, other):
-        # inverted for minimum priority queue
-        if self.max_distance >= other.max_distance:
-            return False
-        return True
+        return self.max_distance <= other.max_distance
 
     def _dist(self, polygon):
         """
