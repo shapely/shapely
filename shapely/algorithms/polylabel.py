@@ -61,7 +61,8 @@ def polylabel(polygon, precision=1.0):
 
     # First best cell approximation is one constructed from the centroid
     # of the polygon
-    best_cell = Cell(polygon.centroid.x, polygon.centroid.y, 0, polygon)
+    x, y = polygon.centroid.coords[0]
+    best_cell = Cell(x, y, 0, polygon)
 
     # build a regular square grid covering the polygon
     x = minx
