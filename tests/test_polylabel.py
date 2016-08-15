@@ -7,12 +7,12 @@ from shapely.geos import TopologicalError
 class PolylabelTestCase(unittest.TestCase):
     def test_polylabel(self):
         """
-        Finds pole of inaccessibility for a polygon with a precision of 10
+        Finds pole of inaccessibility for a polygon with a tolerance of 10
 
         """
         polygon = LineString([(0, 0), (50, 200), (100, 100), (20, 50),
                               (-100, -20), (-150, -200)]).buffer(100)
-        label = polylabel(polygon, precision=10)
+        label = polylabel(polygon, tolerance=10)
         expected = Point(59.35615556364569, 121.8391962974644)
         self.assertTrue(expected.almost_equals(label))
 

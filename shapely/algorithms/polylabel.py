@@ -46,7 +46,7 @@ class Cell(object):
         return -distance
 
 
-def polylabel(polygon, precision=1.0):
+def polylabel(polygon, tolerance=1.0):
     """
     Finds pole of inaccessibility for a polygon. Based on
     https://github.com/mapbox/polylabel
@@ -82,8 +82,8 @@ def polylabel(polygon, precision=1.0):
             best_cell = cell
 
         # continue to the next iteration if we cant find a better solution
-        # based on precision
-        if cell.max_distance - best_cell.distance <= precision:
+        # based on tolerance
+        if cell.max_distance - best_cell.distance <= tolerance:
             continue
 
         # split the cell into quadrants
