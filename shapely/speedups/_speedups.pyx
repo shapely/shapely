@@ -123,9 +123,9 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
         except TypeError:  # Iterators, e.g. Python 3 zip
             ob = list(ob)
             m = len(ob)
-        if m < 2:
-            raise ValueError(
-                "LineStrings must have at least 2 coordinate tuples")
+
+        if m == 0:
+            return None
 
         def _coords(o):
             if isinstance(o, Point):
@@ -287,6 +287,10 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
         except TypeError:  # Iterators, e.g. Python 3 zip
             ob = list(ob)
             m = len(ob)
+
+        if m == 0:
+            return None
+
         n = len(ob[0])
         if m < 3:
             raise ValueError(

@@ -91,7 +91,9 @@ class LineString(BaseGeometry):
     # Coordinate access
     def _set_coords(self, coordinates):
         self.empty()
-        self._geom, self._ndim = geos_linestring_from_py(coordinates)
+        ret = geos_linestring_from_py(coordinates)
+        if ret is not None:
+            self._geom, self._ndim = ret
 
     coords = property(BaseGeometry._get_coords, _set_coords)
 
@@ -253,9 +255,8 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
             ob = list(ob)
             m = len(ob)
 
-        if m < 2:
-            raise ValueError(
-                "LineStrings must have at least 2 coordinate tuples")
+        if m == 0:
+            return None
 
         def _coords(o):
             if isinstance(o, Point):
