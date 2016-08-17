@@ -3,6 +3,7 @@ from shapely.geometry.base import BaseGeometry
 import shapely.geometry as sgeom
 from shapely.geometry.polygon import LinearRing
 
+empty_generator = lambda: iter([])
 
 class EmptinessTestCase(unittest.TestCase):
 
@@ -32,18 +33,27 @@ class EmptinessTestCase(unittest.TestCase):
 
     def test_empty_linestring(self):
         self.assertTrue(sgeom.LineString().is_empty)
+        self.assertTrue(sgeom.LineString(None).is_empty)
+        self.assertTrue(sgeom.LineString([]).is_empty)
+        self.assertTrue(sgeom.LineString(empty_generator()).is_empty)
 
     def test_empty_multilinestring(self):
         self.assertTrue(sgeom.MultiLineString([]).is_empty)
 
     def test_empty_polygon(self):
         self.assertTrue(sgeom.Polygon().is_empty)
+        self.assertTrue(sgeom.Polygon(None).is_empty)
+        self.assertTrue(sgeom.Polygon([]).is_empty)
+        self.assertTrue(sgeom.Polygon(empty_generator()).is_empty)
 
     def test_empty_multipolygon(self):
         self.assertTrue(sgeom.MultiPolygon([]).is_empty)
 
     def test_empty_linear_ring(self):
         self.assertTrue(LinearRing().is_empty)
+        self.assertTrue(LinearRing(None).is_empty)
+        self.assertTrue(LinearRing([]).is_empty)
+        self.assertTrue(LinearRing(empty_generator()).is_empty)
 
 
 def test_suite():

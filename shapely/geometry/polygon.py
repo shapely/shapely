@@ -65,7 +65,9 @@ class LinearRing(LineString):
 
     def _set_coords(self, coordinates):
         self.empty()
-        self._geom, self._ndim = geos_linearring_from_py(coordinates)
+        ret = geos_linearring_from_py(coordinates)
+        if ret is not None:
+            self._geom, self._ndim = ret
 
     coords = property(_get_coords, _set_coords)
 
@@ -226,7 +228,11 @@ class Polygon(BaseGeometry):
         BaseGeometry.__init__(self)
 
         if shell is not None:
-            self._geom, self._ndim = geos_polygon_from_py(shell, holes)
+            ret = geos_polygon_from_py(shell, holes)
+            if ret is not None:
+                self._geom, self._ndim = ret
+            else:
+                self.empty()
 
     @property
     def exterior(self):
@@ -456,6 +462,9 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
             ob = list(ob)
             m = len(ob)
 
+        if m == 0:
+            return None
+
         n = len(ob[0])
         if m < 3:
             raise ValueError(
@@ -514,7 +523,10 @@ def geos_polygon_from_py(shell, holes=None):
         return geos_geom_from_py(shell)
 
     if shell is not None:
-        geos_shell, ndim = geos_linearring_from_py(shell)
+        ret = geos_linearring_from_py(shell)
+        if ret is None:
+            return None
+        geos_shell, ndim = ret
         if holes is not None and len(holes) > 0:
             ob = holes
             L = len(ob)
