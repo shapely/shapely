@@ -2,16 +2,16 @@
 Proxies for libgeos, GEOS-specific exceptions, and utilities
 """
 
+import atexit
+from ctypes import (
+    CDLL, cdll, pointer, string_at, DEFAULT_MODE, c_void_p, c_size_t, c_char_p)
+from ctypes.util import find_library
 import glob
+import logging
 import os
 import re
 import sys
-import atexit
-import logging
 import threading
-from ctypes import CDLL, cdll, pointer, string_at, cast, POINTER, DEFAULT_MODE
-from ctypes import c_void_p, c_size_t, c_char_p, c_int, c_float
-from ctypes.util import find_library
 
 from .ctypes_declarations import prototype, EXCEPTION_HANDLER_FUNCTYPE
 from . import ftools
@@ -72,7 +72,8 @@ if sys.platform.startswith('linux'):
         _lgeos = CDLL(geos_whl_so[0])
         LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
     else:
-        _lgeos = load_dll('geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
+        _lgeos = load_dll(
+            'geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
     free = load_dll('c').free
     free.argtypes = [c_void_p]
     free.restype = None
@@ -89,14 +90,16 @@ elif sys.platform == 'darwin':
         if hasattr(sys, 'frozen'):
             try:
                 # .app file from py2app
-                alt_paths = [os.path.join(os.environ['RESOURCEPATH'],
-                            '..', 'Frameworks', 'libgeos_c.dylib')]
+                alt_paths = [os.path.join(
+                    os.environ['RESOURCEPATH'], '..', 'Frameworks',
+                    'libgeos_c.dylib')]
             except KeyError:
                 # binary from pyinstaller
                 alt_paths = [
                     os.path.join(sys.executable, 'libgeos_c.dylib')]
                 if hasattr(sys, '_MEIPASS'):
-                    alt_paths.append(os.path.join(sys._MEIPASS, 'libgeos_c.1.dylib'))
+                    alt_paths.append(
+                        os.path.join(sys._MEIPASS, 'libgeos_c.1.dylib'))
         else:
             alt_paths = [
                 # The Framework build from Kyng Chaos
@@ -146,11 +149,9 @@ else:  # other *nix systems
 
 
 def _geos_version():
-    # extern const char GEOS_DLL *GEOSversion();
     GEOSversion = _lgeos.GEOSversion
     GEOSversion.restype = c_char_p
     GEOSversion.argtypes = []
-    #define GEOS_CAPI_VERSION "@VERSION@-CAPI-@CAPI_VERSION@"
     geos_version_string = GEOSversion()
     if sys.version_info[0] >= 3:
         geos_version_string = geos_version_string.decode('ascii')
@@ -216,17 +217,20 @@ class TopologicalError(Exception):
 class PredicateError(Exception):
     pass
 
-# While this function can take any number of positional arguments when
-# called from Python and GEOS expects its error handler to accept any
-# number of arguments (like printf), I'm unable to get ctypes to make
-# a callback object from this function that will accept any number of
-# arguments.
-#
-# At the moment, functions in the GEOS C API only pass 0 or 1 arguments
-# to the error handler. We can deal with this, but when if that changes,
-# Shapely may break.
 
 def handler(level):
+    """Error handler
+
+    While this function can take any number of positional arguments when
+    called from Python and GEOS expects its error handler to accept any
+    number of arguments (like printf), I'm unable to get ctypes to make
+    a callback object from this function that will accept any number of
+    arguments.
+
+    At the moment, functions in the GEOS C API only pass 0 or
+    1 arguments to the error handler. We can deal with this, but when if
+    that changes, Shapely may break.
+    """
     def callback(fmt, *args):
         fmt = fmt.decode('ascii')
         conversions = re.findall(r'%.', fmt)
@@ -546,12 +550,19 @@ def errcheck_just_free(result, func, argtuple):
     else:
         return retval
 
+
 def errcheck_null_exception(result, func, argtuple):
-    """Wraps errcheck_just_free, raising a TopologicalError if result is NULL"""
+    """Wraps errcheck_just_free
+
+    Raises TopologicalError if result is NULL.
+    """
     if not result:
-        raise TopologicalError("The operation '{0}' could not be performed."
-            "Likely cause is invalidity of the geometry.".format(func.__name__))
+        raise TopologicalError(
+            "The operation '{0}' could not be performed."
+            "Likely cause is invalidity of the geometry.".format(
+                func.__name__))
     return errcheck_just_free(result, func, argtuple)
+
 
 def errcheck_predicate(result, func, argtuple):
     """Result is 2 on exception, 1 on True, 0 on False"""
@@ -769,12 +780,16 @@ class LGEOS320(LGEOS311):
         super(LGEOS320, self).__init__(dll)
 
         if geos_version >= (3, 2, 0):
-            def parallel_offset(geom, distance, resolution=16, join_style=1, mitre_limit=5.0, side='right'):
+
+            def parallel_offset(geom, distance, resolution=16, join_style=1,
+                                mitre_limit=5.0, side='right'):
                 side = side == 'left'
                 if distance < 0:
                     distance = abs(distance)
                     side = not side
-                return self.GEOSSingleSidedBuffer(geom, distance, resolution, join_style, mitre_limit, side)
+                return self.GEOSSingleSidedBuffer(
+                    geom, distance, resolution, join_style, mitre_limit, side)
+
             self.methods['parallel_offset'] = parallel_offset
 
         self.methods['project'] = self.GEOSProject
@@ -806,12 +821,14 @@ class LGEOS330(LGEOS320):
         for pred in (self.GEOSisClosed,):
             pred.func.errcheck = errcheck_predicate
 
-        def parallel_offset(geom, distance, resolution=16, join_style=1, mitre_limit=5.0, side='right'):
+        def parallel_offset(geom, distance, resolution=16, join_style=1,
+                            mitre_limit=5.0, side='right'):
             if side == 'right':
                 distance *= -1
-            return self.GEOSOffsetCurve(geom, distance, resolution, join_style, mitre_limit)
-        self.methods['parallel_offset'] = parallel_offset
+            return self.GEOSOffsetCurve(
+                geom, distance, resolution, join_style, mitre_limit)
 
+        self.methods['parallel_offset'] = parallel_offset
         self.methods['unary_union'] = self.GEOSUnaryUnion
         self.methods['is_closed'] = self.GEOSisClosed
         self.methods['cascaded_union'] = self.methods['unary_union']

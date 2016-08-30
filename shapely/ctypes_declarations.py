@@ -4,7 +4,10 @@ See header file: geos-x.y.z/capi/geos_c.h
 '''
 
 from ctypes import CFUNCTYPE, POINTER, c_void_p, c_char_p, \
-    c_size_t, c_byte, c_char, c_uint, c_int, c_double, py_object
+    c_size_t, c_byte, c_uint, c_int, c_double, py_object
+
+
+EXCEPTION_HANDLER_FUNCTYPE = CFUNCTYPE(None, c_char_p, c_void_p)
 
 # Derived pointer types
 c_size_t_p = POINTER(c_size_t)
@@ -14,21 +17,21 @@ class allocated_c_char_p(c_char_p):
     '''char pointer return type'''
     pass
 
-EXCEPTION_HANDLER_FUNCTYPE = CFUNCTYPE(None, c_char_p, c_void_p)
-
 
 def prototype(lgeos, geos_version):
-    '''Protype functions in geos_c.h for different version of GEOS
+    """Protype functions in geos_c.h for different version of GEOS
 
     Use the GEOS version, not the C API version.
-    '''
+    """
 
-    '''
-    Initialization, cleanup, version
-    '''
+    if not geos_version >= (3, 3, 0):
+        raise RuntimeError("Shapely requires GEOS version 3.3.0 or newer.")
+
+    # Initialization, cleanup, version.
 
     lgeos.initGEOS.restype = None
-    lgeos.initGEOS.argtypes = [EXCEPTION_HANDLER_FUNCTYPE, EXCEPTION_HANDLER_FUNCTYPE]
+    lgeos.initGEOS.argtypes = [
+        EXCEPTION_HANDLER_FUNCTYPE, EXCEPTION_HANDLER_FUNCTYPE]
 
     lgeos.finishGEOS.restype = None
     lgeos.finishGEOS.argtypes = []
@@ -36,10 +39,8 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSversion.restype = c_char_p
     lgeos.GEOSversion.argtypes = []
 
-    '''
-    NOTE - These functions are DEPRECATED.  Please use the new Reader and
-    writer APIS!
-    '''
+    # These functions are DEPRECATED.  Please use the new Reader and
+    # writer APIS!
 
     lgeos.GEOSGeomFromWKT.restype = c_void_p
     lgeos.GEOSGeomFromWKT.argtypes = [c_char_p]
@@ -56,9 +57,7 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSGeomToWKB_buf.restype = allocated_c_char_p
     lgeos.GEOSGeomToWKB_buf.argtypes = [c_void_p, c_size_t_p]
 
-    '''
-    Coordinate sequence
-    '''
+    # Coordinate sequence
 
     lgeos.GEOSCoordSeq_create.restype = c_void_p
     lgeos.GEOSCoordSeq_create.argtypes = [c_uint, c_uint]
@@ -82,7 +81,8 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSCoordSeq_setZ.argtypes = [c_void_p, c_uint, c_double]
 
     lgeos.GEOSCoordSeq_setOrdinate.restype = c_int
-    lgeos.GEOSCoordSeq_setOrdinate.argtypes = [c_void_p, c_uint, c_uint, c_double]
+    lgeos.GEOSCoordSeq_setOrdinate.argtypes = [
+        c_void_p, c_uint, c_uint, c_double]
 
     lgeos.GEOSCoordSeq_getX.restype = c_int
     lgeos.GEOSCoordSeq_getX.argtypes = [c_void_p, c_uint, c_void_p]
@@ -99,9 +99,7 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSCoordSeq_getDimensions.restype = c_int
     lgeos.GEOSCoordSeq_getDimensions.argtypes = [c_void_p, c_void_p]
 
-    '''
-    Linear refeferencing
-    '''
+    # Linear refeferencing
 
     if geos_version >= (3, 2, 0):
 
@@ -117,9 +115,7 @@ def prototype(lgeos, geos_version):
         lgeos.GEOSInterpolateNormalized.restype = c_void_p
         lgeos.GEOSInterpolateNormalized.argtypes = [c_void_p, c_double]
 
-    '''
-    Buffer related
-    '''
+    # Buffer related
 
     lgeos.GEOSBuffer.restype = c_void_p
     lgeos.GEOSBuffer.argtypes = [c_void_p, c_double, c_int]
@@ -127,22 +123,23 @@ def prototype(lgeos, geos_version):
     if geos_version >= (3, 2, 0):
 
         lgeos.GEOSBufferWithStyle.restype = c_void_p
-        lgeos.GEOSBufferWithStyle.argtypes = [c_void_p, c_double, c_int, c_int, c_int, c_double]
+        lgeos.GEOSBufferWithStyle.argtypes = [
+            c_void_p, c_double, c_int, c_int, c_int, c_double]
 
         if geos_version >= (3, 3, 0):
 
             lgeos.GEOSOffsetCurve.restype = c_void_p
-            lgeos.GEOSOffsetCurve.argtypes = [c_void_p, c_double, c_int, c_int, c_double]
-        
+            lgeos.GEOSOffsetCurve.argtypes = [
+                c_void_p, c_double, c_int, c_int, c_double]
+
         else:
 
             # deprecated in GEOS 3.3.0 in favour of GEOSOffsetCurve
             lgeos.GEOSSingleSidedBuffer.restype = c_void_p
-            lgeos.GEOSSingleSidedBuffer.argtypes = [c_void_p, c_double, c_int, c_int, c_double, c_int]
+            lgeos.GEOSSingleSidedBuffer.argtypes = [
+                c_void_p, c_double, c_int, c_int, c_double, c_int]
 
-    '''
-    Geometry constructors
-    '''
+    # Geometry constructors
 
     lgeos.GEOSGeom_createPoint.restype = c_void_p
     lgeos.GEOSGeom_createPoint.argtypes = [c_void_p]
@@ -159,23 +156,20 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSGeom_createCollection.restype = c_void_p
     lgeos.GEOSGeom_createCollection.argtypes = [c_int, c_void_p, c_uint]
 
-    lgeos.GEOSGeom_createEmptyCollection.restype = c_void_p
-    lgeos.GEOSGeom_createEmptyCollection.argtypes = [c_int]
+    if geos_version >= (3, 3, 0):
+        lgeos.GEOSGeom_createEmptyCollection.restype = c_void_p
+        lgeos.GEOSGeom_createEmptyCollection.argtypes = [c_int]
 
     lgeos.GEOSGeom_clone.restype = c_void_p
     lgeos.GEOSGeom_clone.argtypes = [c_void_p]
 
-    '''
-    Memory management
-    '''
+    # Memory management
 
     lgeos.GEOSGeom_destroy.restype = None
     lgeos.GEOSGeom_destroy.argtypes = [c_void_p]
 
-    '''
-    Topology operations
-    Return NULL on exception
-    '''
+    # Topology operations
+    # Return NULL on exception
 
     lgeos.GEOSEnvelope.restype = c_void_p
     lgeos.GEOSEnvelope.argtypes = [c_void_p]
@@ -203,7 +197,7 @@ def prototype(lgeos, geos_version):
         lgeos.GEOSUnaryUnion.argtypes = [c_void_p]
 
     if geos_version >= (3, 1, 0):
-        '''deprecated in 3.3.0: use GEOSUnaryUnion instead'''
+        # deprecated in 3.3.0: use GEOSUnaryUnion instead
         lgeos.GEOSUnionCascaded.restype = c_void_p
         lgeos.GEOSUnionCascaded.argtypes = [c_void_p]
 
@@ -218,12 +212,12 @@ def prototype(lgeos, geos_version):
 
     if geos_version >= (3, 3, 0):
         lgeos.GEOSPolygonize_full.restype = c_void_p
-        lgeos.GEOSPolygonize_full.argtypes = [c_void_p, c_void_p, c_void_p, c_void_p]
+        lgeos.GEOSPolygonize_full.argtypes = [
+            c_void_p, c_void_p, c_void_p, c_void_p]
 
     if geos_version >= (3, 4, 0):
         lgeos.GEOSDelaunayTriangulation.restype = c_void_p
         lgeos.GEOSDelaunayTriangulation.argtypes = [c_void_p, c_double, c_int]
-
 
     lgeos.GEOSLineMerge.restype = c_void_p
     lgeos.GEOSLineMerge.argtypes = [c_void_p]
@@ -234,10 +228,8 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSTopologyPreserveSimplify.restype = c_void_p
     lgeos.GEOSTopologyPreserveSimplify.argtypes = [c_void_p, c_double]
 
-    '''
-    Binary predicates
-    Return 2 on exception, 1 on true, 0 on false
-    '''
+    # Binary predicates
+    # Return 2 on exception, 1 on true, 0 on false
 
     lgeos.GEOSDisjoint.restype = c_byte
     lgeos.GEOSDisjoint.argtypes = [c_void_p, c_void_p]
@@ -269,10 +261,8 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSEqualsExact.restype = c_byte
     lgeos.GEOSEqualsExact.argtypes = [c_void_p, c_void_p, c_double]
 
-    '''
-    Unary predicate
-    Return 2 on exception, 1 on true, 0 on false
-    '''
+    # Unary predicate
+    # Return 2 on exception, 1 on true, 0 on false
 
     lgeos.GEOSisEmpty.restype = c_byte
     lgeos.GEOSisEmpty.argtypes = [c_void_p]
@@ -297,9 +287,7 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSHasZ.restype = c_byte
     lgeos.GEOSHasZ.argtypes = [c_void_p]
 
-    '''
-    Dimensionally Extended 9 Intersection Model related
-    '''
+    # Dimensionally Extended 9 Intersection Model related
 
     lgeos.GEOSRelate.restype = allocated_c_char_p
     lgeos.GEOSRelate.argtypes = [c_void_p, c_void_p]
@@ -311,10 +299,8 @@ def prototype(lgeos, geos_version):
         lgeos.GEOSRelatePatternMatch.restype = c_byte
         lgeos.GEOSRelatePatternMatch.argtypes = [c_char_p, c_char_p]
 
-    '''
-    Prepared Geometry Binary predicates
-    Return 2 on exception, 1 on true, 0 on false
-    '''
+    # Prepared Geometry Binary predicates
+    # Return 2 on exception, 1 on true, 0 on false
 
     if geos_version >= (3, 1, 0):
 
@@ -351,10 +337,7 @@ def prototype(lgeos, geos_version):
         lgeos.GEOSPreparedCovers.restype = c_byte
         lgeos.GEOSPreparedCovers.argtypes = [c_void_p, c_void_p]
 
-
-    '''
-    Geometry info
-    '''
+    # Geometry info
 
     lgeos.GEOSGeomType.restype = c_char_p
     lgeos.GEOSGeomType.argtypes = [c_void_p]
@@ -392,9 +375,7 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSGeom_getDimensions.restype = c_int
     lgeos.GEOSGeom_getDimensions.argtypes = [c_void_p]
 
-    '''
-    Misc functions
-    '''
+    # Misc functions
 
     lgeos.GEOSArea.restype = c_double
     lgeos.GEOSArea.argtypes = [c_void_p, c_void_p]
@@ -409,11 +390,8 @@ def prototype(lgeos, geos_version):
         lgeos.GEOSHausdorffDistance.restype = c_int
         lgeos.GEOSHausdorffDistance.argtypes = [c_void_p, c_void_p, c_void_p]
 
-    '''
-    Reader and Writer APIs
-    '''
+    # Reader and Writer APIs
 
-    '''WKT Reader'''
     lgeos.GEOSWKTReader_create.restype = c_void_p
     lgeos.GEOSWKTReader_create.argtypes = []
 
@@ -423,7 +401,6 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSWKTReader_read.restype = c_void_p
     lgeos.GEOSWKTReader_read.argtypes = [c_void_p, c_char_p]
 
-    '''WKT Writer'''
     lgeos.GEOSWKTWriter_create.restype = c_void_p
     lgeos.GEOSWKTWriter_create.argtypes = []
 
@@ -450,7 +427,6 @@ def prototype(lgeos, geos_version):
         lgeos.GEOSWKTWriter_setOld3D.restype = None
         lgeos.GEOSWKTWriter_setOld3D.argtypes = [c_void_p, c_int]
 
-    '''WKB Reader'''
     lgeos.GEOSWKBReader_create.restype = c_void_p
     lgeos.GEOSWKBReader_create.argtypes = []
 
@@ -463,7 +439,6 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSWKBReader_readHEX.restype = c_void_p
     lgeos.GEOSWKBReader_readHEX.argtypes = [c_void_p, c_char_p, c_size_t]
 
-    '''WKB Writer'''
     lgeos.GEOSWKBWriter_create.restype = c_void_p
     lgeos.GEOSWKBWriter_create.argtypes = []
 
@@ -495,12 +470,6 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSWKBWriter_setIncludeSRID.argtypes = [c_void_p, c_int]
 
     if geos_version >= (3, 1, 1):
-
-        '''
-        Free buffers returned by stuff like GEOSWKBWriter_write(),
-        GEOSWKBWriter_writeHEX() and GEOSWKTWriter_write()
-        '''
-
         lgeos.GEOSFree.restype = None
         lgeos.GEOSFree.argtypes = [c_void_p]
 
@@ -518,7 +487,8 @@ def prototype(lgeos, geos_version):
     if geos_version >= (3, 4, 2):
         lgeos.GEOSQueryCallback = CFUNCTYPE(None, c_void_p, c_void_p)
 
-        lgeos.GEOSSTRtree_query.argtypes = [c_void_p, c_void_p, lgeos.GEOSQueryCallback, py_object]
+        lgeos.GEOSSTRtree_query.argtypes = [
+            c_void_p, c_void_p, lgeos.GEOSQueryCallback, py_object]
         lgeos.GEOSSTRtree_query.restype = None
 
         lgeos.GEOSSTRtree_create.argtypes = [c_int]
@@ -532,4 +502,3 @@ def prototype(lgeos, geos_version):
 
         lgeos.GEOSSTRtree_destroy.argtypes = [c_void_p]
         lgeos.GEOSSTRtree_destroy.restype = None
-
