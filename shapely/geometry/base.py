@@ -1,25 +1,32 @@
 """Base geometry class and utilities
+
+Note: a third, z, coordinate value may be used when constructing
+geometry objects, but has no effect on geometric analysis. All
+operations are performed in the x-y plane. Thus, geometries with
+different z values may intersect or be equal.
 """
 
-import sys
-import math
-from warnings import warn
 from binascii import a2b_hex
 from ctypes import pointer, c_size_t, c_char_p, c_void_p
 from itertools import islice
+import math
+import sys
+from warnings import warn
 
+from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
 from shapely.ftools import wraps
-from shapely.geos import lgeos, ReadingError
 from shapely.geos import WKBWriter, WKTWriter
+from shapely.geos import lgeos, ReadingError
 from shapely.impl import DefaultImplementation, delegated
-from shapely.affinity import affine_transform
+
 
 if sys.version_info[0] < 3:
     range = xrange
     integer_types = (int, long)
 else:
     integer_types = (int,)
+
 
 try:
     import numpy as np
@@ -146,6 +153,7 @@ def geos_geom_from_py(ob, create_func=None):
     N = ob._ndim
 
     return geom, N
+
 
 def exceptNull(func):
     """Decorator which helps avoid GEOS operations on null pointers."""
@@ -482,38 +490,42 @@ class BaseGeometry(object):
 
     @property
     def minimum_rotated_rectangle(self):
-        """Returns the general minimum bounding rectangle of 
+        """Returns the general minimum bounding rectangle of
         the geometry. Can possibly be rotated. If the convex hull
-        of the object is a degenerate (line or point) this same degenerate 
+        of the object is a degenerate (line or point) this same degenerate
         is returned.
         """
         # first compute the convex hull
         hull = self.convex_hull
         try:
             coords = hull.exterior.coords
-        except AttributeError: # may be a Point or a LineString
+        except AttributeError:  # may be a Point or a LineString
             return hull
         # generate the edge vectors between the convex hull's coords
-        edges = ((pt2[0]-pt1[0], pt2[1]-pt1[1]) for pt1, pt2 in zip(coords, islice(coords, 1, None)))
+        edges = ((pt2[0] - pt1[0], pt2[1] - pt1[1]) for pt1, pt2 in zip(
+            coords, islice(coords, 1, None)))
 
         def _transformed_rects():
             for dx, dy in edges:
-                # compute the normalized direction vector of the edge vector
-                length = math.sqrt(dx**2 + dy**2)
-                ux, uy = dx/length, dy/length
+                # compute the normalized direction vector of the edge
+                # vector.
+                length = math.sqrt(dx ** 2 + dy ** 2)
+                ux, uy = dx / length, dy / length
                 # compute the normalized perpendicular vector
                 vx, vy = -uy, ux
-                # transform hull from the original coordinate system to the coordinate system 
-                # defined by the edge and compute the axes-parallel bounding rectangle
-                transf_rect = affine_transform(hull, (ux,uy,vx,vy,0,0)).envelope
-                # yield the transformed rectangle and a matrix to transform it back
-                # to the original coordinate system
-                yield (transf_rect, (ux,vx,uy,vy,0,0))
+                # transform hull from the original coordinate system to
+                # the coordinate system defined by the edge and compute
+                # the axes-parallel bounding rectangle.
+                transf_rect = affine_transform(
+                    hull, (ux, uy, vx, vy, 0, 0)).envelope
+                # yield the transformed rectangle and a matrix to
+                # transform it back to the original coordinate system.
+                yield (transf_rect, (ux, vx, uy, vy, 0, 0))
 
         # check for the minimum area rectangle and return it
-        transf_rect, inv_matrix = min(_transformed_rects(), key=lambda r : r[0].area)
+        transf_rect, inv_matrix = min(
+            _transformed_rects(), key=lambda r: r[0].area)
         return affine_transform(transf_rect, inv_matrix)
-
 
     def buffer(self, distance, resolution=16, quadsegs=None,
                cap_style=CAP_STYLE.round, join_style=JOIN_STYLE.round,
@@ -707,7 +719,6 @@ class BaseGeometry(object):
     def equals_exact(self, other, tolerance):
         """Returns True if geometries are equal to within a specified
         tolerance"""
-        # return BinaryPredicateOp('equals_exact', self)(other, tolerance)
         return bool(self.impl['equals_exact'](self, other, tolerance))
 
     def almost_equals(self, other, decimal=6):
