@@ -1,6 +1,10 @@
 Changes
 =======
 
+1.5.17 (2016-08-31)
+-------------------
+- Bug fix: eliminate memory leak in geom_factory() (#408).
+
 1.5.16 (2016-05-26)
 -------------------
 - Bug fix: eliminate memory leak when unpickling geometry objects (#384, #385).
