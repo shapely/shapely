@@ -213,9 +213,11 @@ setup_args = dict(
         'Programming Language :: Python :: 3',
         'Topic :: Scientific/Engineering :: GIS',
     ],
-    data_files         = [('shapely', ['shapely/_geos.pxi'])],
     cmdclass           = {},
-    extras_require     = extra_reqs
+    extras_require     = extra_reqs,
+    package_data={
+        'shapely': ['shapely/_geos.pxi']},
+    include_package_data=True
 )
 
 # Add DLLs for Windows.
@@ -234,11 +236,7 @@ if sys.platform == 'win32':
     else:
         for dll in glob.glob('DLLs_x86_VC9/*.dll'):
             shutil.copy(dll, 'shapely/DLLs')
-    setup_args.update(
-        package_data={'shapely': ['shapely/DLLs/*.dll']},
-        include_package_data=True,
-    )
-
+    setup_args['package_data']['shapely'].append('shapely/DLLs/*.dll')
 
 # Prepare build opts and args for the speedups extension module.
 include_dirs = []

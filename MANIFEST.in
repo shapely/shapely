@@ -12,5 +12,5 @@ recursive-include tests *.py *.txt
 recursive-include shapely/examples *.py
 recursive-include shapely/speedups *.pyx
 recursive-include shapely/vectorized *.pyx
-include shapely/_geos.pxi
+recursive-include shapely *.pxi
 include docs/*.rst
