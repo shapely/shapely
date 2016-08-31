@@ -4,6 +4,8 @@ Changes
 1.5.17 (2016-08-31)
 -------------------
 - Bug fix: eliminate memory leak in geom_factory() (#408).
+- Bug fix: remove mention of negative distances in parallel_offset and note
+  that vertices of right hand offset lines are reversed (#284).
 
 1.5.16 (2016-05-26)
 -------------------

@@ -119,7 +119,8 @@ class LineString(BaseGeometry):
         The side parameter may be 'left' or 'right' (default is 'right'). The
         resolution of the buffer around each vertex of the object increases by
         increasing the resolution keyword parameter or third positional
-        parameter.
+        parameter. Vertices of right hand offset lines will be ordered in
+        reverse.
 
         The join style is for outside corners between line segments. Accepted
         values are JOIN_STYLE.round (1), JOIN_STYLE.mitre (2), and
