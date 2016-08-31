@@ -89,6 +89,7 @@ def geom_factory(g, parent=None):
         ob._ndim = 3
     else:
         ob._ndim = 2
+    ob._is_empty = False
     return ob
 
 

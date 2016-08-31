@@ -121,9 +121,8 @@ class LineString(BaseGeometry):
         The side parameter may be 'left' or 'right' (default is 'right'). The
         resolution of the buffer around each vertex of the object increases by
         increasing the resolution keyword parameter or third positional
-        parameter. If the distance parameter is negative the side is inverted,
-        e.g. distance=5.0, side='left' is the same as distance=-5.0,
-        side='right'.
+        parameter. Vertices of right hand offset lines will be ordered in
+        reverse.
 
         The join style is for outside corners between line segments. Accepted
         values are JOIN_STYLE.round (1), JOIN_STYLE.mitre (2), and
@@ -134,7 +133,8 @@ class LineString(BaseGeometry):
         When two line segments meet at a sharp angle, a miter join will extend
         far beyond the original geometry. To prevent unreasonable geometry, the
         mitre limit allows controlling the maximum length of the join corner.
-        Corners with a ratio which exceed the limit will be beveled."""
+        Corners with a ratio which exceed the limit will be beveled.
+        """
         if mitre_limit == 0.0:
             raise ValueError(
                 'Cannot compute offset from zero-length line segment')

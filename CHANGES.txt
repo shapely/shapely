@@ -1,6 +1,21 @@
 Changes
 =======
 
+1.5.17 (2016-08-31)
+-------------------
+- Bug fix: eliminate memory leak in geom_factory() (#408).
+- Bug fix: remove mention of negative distances in parallel_offset and note
+  that vertices of right hand offset lines are reversed (#284).
+
+1.5.16 (2016-05-26)
+-------------------
+- Bug fix: eliminate memory leak when unpickling geometry objects (#384, #385).
+- Bug fix: prevent crashes when attempting to pickle a prepared geometry,
+  raising ``PicklingError`` instead (#386).
+- Packaging: extension modules in the OS X wheels uploaded to PyPI link only
+  libgeos_c.dylib now (you can verify and compare to previous releases with
+  ``otool -L shapely/vectorized/_vectorized.so``).
+
 1.5.15 (2016-03-29)
 -------------------
 - Bug fix: use uintptr_t to store pointers instead of long in _geos.pxi,
