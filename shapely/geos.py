@@ -72,8 +72,13 @@ if sys.platform.startswith('linux'):
         _lgeos = CDLL(geos_whl_so[0])
         LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
     else:
-        _lgeos = load_dll(
-            'geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
+        alt_paths = [
+            'libgeos_c.so.1',
+            'libgeos_c.so',
+            # anaconda
+            os.path.join(sys.prefix, "lib", "libgeos_c.so"),
+        ]
+        _lgeos = load_dll('geos_c', fallbacks=alt_paths)
     free = load_dll('c').free
     free.argtypes = [c_void_p]
     free.restype = None
@@ -102,6 +107,8 @@ elif sys.platform == 'darwin':
                         os.path.join(sys._MEIPASS, 'libgeos_c.1.dylib'))
         else:
             alt_paths = [
+                # anaconda
+                os.path.join(sys.prefix, "lib", "libgeos_c.dylib"),
                 # The Framework build from Kyng Chaos
                 "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
                 # macports
@@ -125,7 +132,9 @@ elif sys.platform == 'win32':
         original_path = os.environ['PATH']
         os.environ['PATH'] = "%s;%s;%s" % \
             (egg_dlls, wininst_dlls, original_path)
-        _lgeos = CDLL("geos_c.dll")
+        _lgeos = load_dll("geos_c.dll", fallbacks=[
+            os.path.join(sys.prefix, "Library", "lib", "geos_c.dll"),
+        ])
     except (ImportError, WindowsError, OSError):
         raise
 
