@@ -27,7 +27,7 @@ Refactoring:
 
 - Switch from ``SingleSidedBuffer()`` to ``OffsetCurve()`` for GEOS >= 3.3
   (#270).
-- Cython speedups are now enabled by defualt (#252).
+- Cython speedups are now enabled by default (#252).
 
 Packaging:
 
