@@ -6,6 +6,8 @@ See header file: geos-x.y.z/capi/geos_c.h
 from ctypes import CFUNCTYPE, POINTER, c_void_p, c_char_p, \
     c_size_t, c_byte, c_uint, c_int, c_double, py_object
 
+from .errors import UnsupportedGEOSVersionError
+
 
 EXCEPTION_HANDLER_FUNCTYPE = CFUNCTYPE(None, c_char_p, c_void_p)
 
@@ -25,7 +27,8 @@ def prototype(lgeos, geos_version):
     """
 
     if not geos_version >= (3, 3, 0):
-        raise RuntimeError("Shapely requires GEOS version 3.3.0 or newer.")
+        raise UnsupportedGEOSVersionError(
+            "Shapely requires GEOS version 3.3.0 or newer.")
 
     # Initialization, cleanup, version.
 

@@ -1,6 +1,6 @@
 from . import unittest, numpy
 from shapely.geometry import Point, asPoint
-from shapely.geos import DimensionError
+from shapely.errors import DimensionError
 
 
 class LineStringTestCase(unittest.TestCase):

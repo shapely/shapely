@@ -5,7 +5,8 @@ from ctypes import c_double
 from ctypes import cast, POINTER
 
 from shapely.coords import required
-from shapely.geos import lgeos, DimensionError
+from shapely.errors import DimensionError
+from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, geos_geom_from_py
 from shapely.geometry.proxy import CachingGeometryProxy
 

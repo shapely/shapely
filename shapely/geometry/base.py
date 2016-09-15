@@ -15,9 +15,10 @@ from warnings import warn
 
 from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
+from shapely.errors import WKBReadingError, WKTReadingError
 from shapely.ftools import wraps
 from shapely.geos import WKBWriter, WKTWriter
-from shapely.geos import lgeos, ReadingError
+from shapely.geos import lgeos
 from shapely.impl import DefaultImplementation, delegated
 
 
@@ -100,7 +101,7 @@ def geom_from_wkt(data):
         data = data.encode('ascii')
     geom = lgeos.GEOSGeomFromWKT(c_char_p(data))
     if not geom:
-        raise ReadingError(
+        raise WKTReadingError(
             "Could not create geometry because of errors while reading input.")
     return geom_factory(geom)
 
@@ -116,7 +117,7 @@ def geom_to_wkt(ob):
 def deserialize_wkb(data):
     geom = lgeos.GEOSGeomFromWKB_buf(c_char_p(data), c_size_t(len(data)))
     if not geom:
-        raise ReadingError(
+        raise WKBReadingError(
             "Could not create geometry because of errors while reading input.")
     return geom
 

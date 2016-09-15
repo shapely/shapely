@@ -14,6 +14,7 @@ import sys
 import threading
 
 from .ctypes_declarations import prototype, EXCEPTION_HANDLER_FUNCTYPE
+from .errors import WKBReadingError, WKTReadingError, TopologicalError, PredicateError
 from . import ftools
 
 
@@ -208,24 +209,6 @@ if geos_version >= (3, 1, 0):
         [EXCEPTION_HANDLER_FUNCTYPE, EXCEPTION_HANDLER_FUNCTYPE]
     _lgeos.finishGEOS_r.argtypes = [c_void_p]
 
-# Exceptions
-
-
-class ReadingError(Exception):
-    pass
-
-
-class DimensionError(Exception):
-    pass
-
-
-class TopologicalError(Exception):
-    pass
-
-
-class PredicateError(Exception):
-    pass
-
 
 def handler(level):
     """Error handler
@@ -284,8 +267,9 @@ class WKTReader(object):
             text = text.encode('ascii')
         geom = self._lgeos.GEOSWKTReader_read(self._reader, c_char_p(text))
         if not geom:
-            raise ReadingError("Could not create geometry because of errors "
-                               "while reading input.")
+            raise WKTReadingError(
+                "Could not create geometry because of errors "
+                "while reading input.")
         # avoid circular import dependency
         from shapely.geometry.base import geom_factory
         return geom_factory(geom)
@@ -424,8 +408,9 @@ class WKBReader(object):
         geom = self._lgeos.GEOSWKBReader_read(
             self._reader, c_char_p(data), c_size_t(len(data)))
         if not geom:
-            raise ReadingError("Could not create geometry because of errors "
-                               "while reading input.")
+            raise WKBReadingError(
+                "Could not create geometry because of errors "
+                "while reading input.")
         # avoid circular import dependency
         from shapely import geometry
         return geometry.base.geom_factory(geom)
@@ -437,8 +422,9 @@ class WKBReader(object):
         geom = self._lgeos.GEOSWKBReader_readHEX(
             self._reader, c_char_p(data), c_size_t(len(data)))
         if not geom:
-            raise ReadingError("Could not create geometry because of errors "
-                               "while reading input.")
+            raise WKBReadingError(
+                "Could not create geometry because of errors "
+                "while reading input.")
         # avoid circular import dependency
         from shapely import geometry
         return geometry.base.geom_factory(geom)

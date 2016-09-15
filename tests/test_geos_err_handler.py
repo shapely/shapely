@@ -3,7 +3,7 @@ import logging
 import pytest
 
 from shapely.geometry import LineString
-from shapely.geos import ReadingError
+from shapely.errors import ReadingError
 from shapely.wkt import loads
 
 
