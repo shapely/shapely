@@ -19,13 +19,6 @@ from . import ftools
 
 # Add message handler to this module's logger
 LOG = logging.getLogger(__name__)
-ch = logging.StreamHandler()
-LOG.addHandler(ch)
-
-if 'all' in sys.warnoptions:
-    # show GEOS messages in console with: python -W all
-    LOG.setLevel(logging.DEBUG)
-
 
 # Find and load the GEOS and C libraries
 # If this ever gets any longer, we'll break it into separate modules
@@ -119,7 +112,7 @@ elif sys.platform == 'win32':
             os.path.join(os.path.dirname(__file__), 'DLLs'))
         if hasattr(sys, "frozen"):
             wininst_dlls = os.path.normpath(
-                os.path.abspath(sys.executable+'../../DLLS'))
+                os.path.abspath(sys.executable + '../../DLLS'))
         else:
             wininst_dlls = os.path.abspath(os.__file__ + "../../../DLLs")
         original_path = os.environ['PATH']
