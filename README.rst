@@ -36,20 +36,43 @@ Shapely 1.5.x requires
 Installing Shapely
 ==================
 
-Windows users should download an executable installer from
-http://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely or PyPI (if available).
+Windows users have two good installation options: the wheels at
+http://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely and the 
+Anaconda platform's [conda-forge](https://conda-forge.github.io/)
+channel.
 
-On other systems, acquire the GEOS by any means (`brew install geos` on OS X or
-`apt-get install libgeos-dev` on Debian/Ubuntu), make sure that it is on the
-system library path, and install Shapely from the Python package index.
+OS X users can get Shapely wheels with GEOS included from the 
+Python Package Index with pip:
 
 .. code-block:: console
 
     $ pip install shapely
 
-If you've installed GEOS to a non-standard location, the geos-config program
-will be used to get compiler and linker options. If it is not on the PATH,
-it can be specified with a GEOS_CONFIG environment variable, e.g.:
+If you want to build Shapely from source for compatibility with
+other modules that depend on GEOS (such as cartopy or osgeo.ogr)
+you may ignore the binary wheels.
+
+.. code-block:: console
+
+    $ pip install shapely --no-binary shapely
+
+Experimental binary wheels are also available for Linux. To get them,
+use `pip --pre shapely`. To avoid them, use 
+`pip install --pre shapely --no-binary shapely`.
+
+In other situations, install `geos_c` libs and headers by any means 
+(for example, `brew install geos` on OS X or
+`apt-get install libgeos-dev` on Debian/Ubuntu) and install Shapely
+from the Python package index.
+
+.. code-block:: console
+
+    $ pip install shapely
+
+If you've installed GEOS to a standard location, the geos-config program
+will be used to get compiler and linker options. If geos-config is not on
+your executable, it can be specified with a GEOS_CONFIG environment
+variable, e.g.:
 
 .. code-block:: console
 
@@ -67,9 +90,6 @@ Or, if you're using pip 6+
 .. code-block:: console
 
     $ pip install shapely~=1.2
-
-Shapely is also provided by popular Python distributions like Canopy (Enthought)
-and Anaconda (Continuum Analytics).
 
 Usage
 =====
