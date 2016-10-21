@@ -40,9 +40,7 @@ def shape(context):
     elif geom_type == "multipolygon":
         return MultiPolygon(ob["coordinates"], context_type='geojson')
     elif geom_type == "geometrycollection":
-        geoms = []
-        for g in ob.get("geometries", []):
-            geoms.append(shape(g))
+        geoms = [shape(g) for g in ob.get("geometries", [])]
         return GeometryCollection(geoms)
     else:
         raise ValueError("Unknown geometry type: %s" % geom_type)
@@ -74,9 +72,7 @@ def asShape(context):
     elif geom_type == "multipolygon":
         return MultiPolygonAdapter(ob["coordinates"], context_type='geojson')
     elif geom_type == "geometrycollection":
-        geoms = []
-        for g in ob.get("geometries", []):
-            geoms.append(asShape(g))
+        geoms = [asShape(g) for g in ob.get("geometries", [])]
         return GeometryCollection(geoms)
     else:
         raise ValueError("Unknown geometry type: %s" % geom_type)
