@@ -8,6 +8,7 @@ from .polygon import Polygon, asPolygon
 from .multipoint import MultiPoint, asMultiPoint
 from .multilinestring import MultiLineString, asMultiLineString
 from .multipolygon import MultiPolygon, MultiPolygonAdapter
+from .collection import GeometryCollection
 
 
 def box(minx, miny, maxx, maxy, ccw=True):
@@ -38,6 +39,9 @@ def shape(context):
         return MultiLineString(ob["coordinates"])
     elif geom_type == "multipolygon":
         return MultiPolygon(ob["coordinates"], context_type='geojson')
+    elif geom_type == "geometrycollection":
+        geoms = [shape(g) for g in ob.get("geometries", [])]
+        return GeometryCollection(geoms)
     else:
         raise ValueError("Unknown geometry type: %s" % geom_type)
 
@@ -67,6 +71,9 @@ def asShape(context):
         return asMultiLineString(ob["coordinates"])
     elif geom_type == "multipolygon":
         return MultiPolygonAdapter(ob["coordinates"], context_type='geojson')
+    elif geom_type == "geometrycollection":
+        geoms = [asShape(g) for g in ob.get("geometries", [])]
+        return GeometryCollection(geoms)
     else:
         raise ValueError("Unknown geometry type: %s" % geom_type)
 
