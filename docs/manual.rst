@@ -2329,6 +2329,7 @@ All of Shapely's geometry types are supported by these functions.
 
 .. code-block:: pycon
 
+  >> from shapely.wkt import dumps, loads
   >> wkt = dumps(Point(0, 0))
   >>> print wkt
   POINT (0.0000000000000000 0.0000000000000000)
