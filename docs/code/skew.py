@@ -3,14 +3,7 @@ from shapely.wkt import loads as load_wkt
 from shapely import affinity
 from descartes.patch import PolygonPatch
 
-from figures import SIZE, BLUE, GRAY, set_limits
-
-
-def add_origin(ax, geom, origin):
-    x, y = xy = affinity.interpret_origin(geom, origin, 2)
-    ax.plot(x, y, 'o', color=GRAY, zorder=1)
-    ax.annotate(str(xy), xy=xy, ha='center',
-                textcoords='offset points', xytext=(0, 8))
+from figures import SIZE, BLUE, GRAY, set_limits, add_origin
 
 fig = pyplot.figure(1, figsize=SIZE, dpi=90)
 

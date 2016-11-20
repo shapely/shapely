@@ -2,11 +2,7 @@ from matplotlib import pyplot
 from shapely.geometry import LineString
 from descartes import PolygonPatch
 
-from figures import SIZE, BLUE, GRAY, set_limits
-
-def plot_line(ax, ob):
-    x, y = ob.xy
-    ax.plot(x, y, color=GRAY, linewidth=3, solid_capstyle='round', zorder=1)
+from figures import SIZE, BLUE, GRAY, set_limits, plot_line
 
 line = LineString([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
 

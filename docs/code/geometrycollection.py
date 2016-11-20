@@ -1,15 +1,6 @@
 from matplotlib import pyplot
 from shapely.geometry import LineString
-from figures import SIZE, set_limits
-
-BLUE =   '#6699cc'
-YELLOW = '#ffcc33'
-GREEN =  '#339933'
-GRAY =   '#999999'
-
-def plot_coords(ax, ob):
-    x, y = ob.xy
-    ax.plot(x, y, 'o', color=GRAY, zorder=1)
+from figures import BLUE, GRAY, YELLOW, GREEN, SIZE, set_limits, plot_coords
 
 fig = pyplot.figure(1, figsize=SIZE, dpi=90) #1, figsize=(10, 4), dpi=180)
 

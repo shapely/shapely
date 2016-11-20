@@ -1,7 +1,8 @@
 from matplotlib import pyplot
 from shapely.geometry import MultiLineString
 
-from figures import SIZE, set_limits
+from figures import SIZE, set_limits, plot_line_issimple, plot_bounds
+from figures import plot_coords as _plot_coords
 
 COLOR = {
     True:  '#6699cc',
@@ -13,17 +14,11 @@ def v_color(ob):
 
 def plot_coords(ax, ob):
     for line in ob:
-        x, y = line.xy
-        ax.plot(x, y, 'o', color='#999999', zorder=1)
-
-def plot_bounds(ax, ob):
-    x, y = zip(*list((p.x, p.y) for p in ob.boundary))
-    ax.plot(x, y, 'o', color='#000000', zorder=1)
+        _plot_coords(ax, line, zorder=1)
 
 def plot_lines(ax, ob):
     for line in ob:
-        x, y = line.xy
-        ax.plot(x, y, color=v_color(ob), alpha=0.7, linewidth=3, solid_capstyle='round', zorder=2)
+        plot_line_issimple(ax, line, alpha=0.7, zorder=2)
 
 fig = pyplot.figure(1, figsize=SIZE, dpi=90)
 
