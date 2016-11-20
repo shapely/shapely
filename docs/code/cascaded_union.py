@@ -3,7 +3,7 @@ from shapely.geometry import Point
 from shapely.ops import cascaded_union
 from descartes import PolygonPatch
 
-from figures import SIZE, BLUE, GRAY
+from figures import SIZE, BLUE, GRAY, set_limits
 
 polygons = [Point(i, 0).buffer(0.7) for i in range(5)]
 
@@ -18,13 +18,7 @@ for ob in polygons:
 
 ax.set_title('a) polygons')
 
-xrange = [-2, 6]
-yrange = [-2, 2]
-ax.set_xlim(*xrange)
-ax.set_xticks(range(*xrange) + [xrange[-1]])
-ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, -2, 6, -2, 2)
 
 #2
 ax = fig.add_subplot(122)
@@ -35,13 +29,7 @@ ax.add_patch(patch2b)
 
 ax.set_title('b) union')
 
-xrange = [-2, 6]
-yrange = [-2, 2]
-ax.set_xlim(*xrange)
-ax.set_xticks(range(*xrange) + [xrange[-1]])
-ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, -2, 6, -2, 2)
 
 pyplot.show()
 

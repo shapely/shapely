@@ -1,7 +1,7 @@
 from matplotlib import pyplot
 from shapely.geometry.polygon import LinearRing
 
-from figures import SIZE
+from figures import SIZE, set_limits
 
 COLOR = {
     True:  '#6699cc',
@@ -30,13 +30,7 @@ plot_line(ax, ring)
 
 ax.set_title('a) valid')
 
-xrange = [-1, 3]
-yrange = [-1, 3]
-ax.set_xlim(*xrange)
-ax.set_xticks(range(*xrange) + [xrange[-1]])
-ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, -1, 3, -1, 3)
 
 #2: invalid self-touching ring
 ax = fig.add_subplot(122)
@@ -47,13 +41,7 @@ plot_line(ax, ring2)
 
 ax.set_title('b) invalid')
 
-xrange = [-1, 3]
-yrange = [-1, 3]
-ax.set_xlim(*xrange)
-ax.set_xticks(range(*xrange) + [xrange[-1]])
-ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, -1, 3, -1, 3)
 
 pyplot.show()
 

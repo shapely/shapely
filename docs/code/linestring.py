@@ -1,7 +1,7 @@
 from matplotlib import pyplot
 from shapely.geometry import LineString
 
-from figures import SIZE
+from figures import SIZE, set_limits
 
 COLOR = {
     True:  '#6699cc',
@@ -35,16 +35,11 @@ plot_line(ax, line)
 
 ax.set_title('a) simple')
 
-xrange = [-1, 4]
-yrange = [-1, 3]
-ax.set_xlim(*xrange)
-ax.set_ylim(*yrange)
-ax.set_yticks(list(range(*yrange)) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, -1, 4, -1, 3)
 
 #2: complex line
 ax = fig.add_subplot(122)
-line2 = LineString([(0, 0), (1, 1), (0, 2), (2, 2), (-1, 1), (1, 0)])
+line2 = LineString([(0, 0), (1, 1), (0, 2), (2, 2), (0, 1), (1, 0)])
 
 plot_coords(ax, line2)
 plot_bounds(ax, line2)
@@ -52,12 +47,7 @@ plot_line(ax, line2)
 
 ax.set_title('b) complex')
 
-xrange = [-2, 3]
-yrange = [-1, 3]
-ax.set_xlim(*xrange)
-ax.set_ylim(*yrange)
-ax.set_yticks(list(range(*yrange)) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, -1, 4, -1, 3)
 
 pyplot.show()
 

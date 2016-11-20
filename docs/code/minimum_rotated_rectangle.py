@@ -2,7 +2,7 @@ from shapely.geometry import MultiPoint, Polygon, LineString
 import matplotlib.pyplot as plt
 from descartes.patch import PolygonPatch
 
-from figures import SIZE
+from figures import SIZE, set_limits
 
 fig = plt.figure(1, figsize=SIZE, dpi=90)
 fig.set_frameon(True)
@@ -19,13 +19,7 @@ patch = PolygonPatch(rect, facecolor='#6699cc', edgecolor='#6699cc', alpha=0.5, 
 ax.add_patch(patch)
 ax.set_title('a) MultiPoint')
 
-xr = [-1, 2]
-yr = [-1, 2]
-ax.set_xlim(*xr)
-ax.set_xticks(range(*xr) + [xr[-1]])
-ax.set_ylim(*yr)
-ax.set_yticks(range(*yr) + [yr[-1]])
-ax.set_aspect(1)
+set_limits(ax, -1, 2, -1, 2)
 
 # 2
 ax = fig.add_subplot(122)
@@ -36,13 +30,7 @@ ax.plot(*ls.xy, color='#333333', linewidth=3, alpha=0.5, zorder=2)
 patch = PolygonPatch(rect, facecolor='#6699cc', edgecolor='#6699cc', alpha=0.5, zorder=2)
 ax.add_patch(patch)
 
-xr = [-1, 2]
-yr = [-1, 2]
-ax.set_xlim(*xr)
-ax.set_xticks(range(*xr) + [xr[-1]])
-ax.set_ylim(*yr)
-ax.set_yticks(range(*yr) + [yr[-1]])
-ax.set_aspect(1)
+set_limits(ax, -1, 2, -1, 2)
 
 ax.set_title('b) LineString')
 

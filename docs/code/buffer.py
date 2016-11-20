@@ -2,7 +2,7 @@ from matplotlib import pyplot
 from shapely.geometry import LineString
 from descartes import PolygonPatch
 
-from figures import SIZE, BLUE, GRAY
+from figures import SIZE, BLUE, GRAY, set_limits
 
 def plot_line(ax, ob):
     x, y = ob.xy
@@ -23,13 +23,7 @@ ax.add_patch(patch1)
 
 ax.set_title('a) dilation, cap_style=3')
 
-xrange = [-1, 4]
-yrange = [-1, 3]
-ax.set_xlim(*xrange)
-ax.set_xticks(range(*xrange) + [xrange[-1]])
-ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, -1, 4, -1, 3)
 
 #2
 ax = fig.add_subplot(122)
@@ -51,13 +45,7 @@ ax.add_patch(patch2b)
 
 ax.set_title('b) erosion, join_style=1')
 
-xrange = [-1, 4]
-yrange = [-1, 3]
-ax.set_xlim(*xrange)
-ax.set_xticks(range(*xrange) + [xrange[-1]])
-ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, -1, 4, -1, 3)
 
 pyplot.show()
 

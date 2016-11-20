@@ -3,7 +3,7 @@ from matplotlib.patches import Circle
 from shapely.geometry import Polygon
 from descartes.patch import PolygonPatch
 
-from figures import SIZE
+from figures import SIZE, set_limits
 
 COLOR = {
     True:  '#6699cc',
@@ -34,13 +34,7 @@ ax.add_patch(patch)
 
 ax.set_title('c) invalid')
 
-xrange = [-1, 3]
-yrange = [-1, 3]
-ax.set_xlim(*xrange)
-ax.set_xticks(range(*xrange) + [xrange[-1]])
-ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, -1, 3, -1, 3)
 
 #4: invalid self-touching ring
 ax = fig.add_subplot(122)
@@ -59,13 +53,7 @@ ax.add_patch(patch)
 
 ax.set_title('d) invalid')
 
-xrange = [-1, 3]
-yrange = [-1, 3]
-ax.set_xlim(*xrange)
-ax.set_xticks(range(*xrange) + [xrange[-1]])
-ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, -1, 3, -1, 3)
 
 pyplot.show()
 

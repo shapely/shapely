@@ -3,7 +3,7 @@ from shapely.geometry import MultiPoint
 
 from descartes.patch import PolygonPatch
 
-from figures import SIZE
+from figures import SIZE, set_limits
 
 fig = pyplot.figure(1, figsize=SIZE, dpi=90)
 fig.set_frameon(True)
@@ -20,13 +20,7 @@ ax.plot(x, y, color='#6699cc', linewidth=3, alpha=0.5, zorder=2)
 
 ax.set_title('a) N = 2')
 
-xrange = [-1, 4]
-yrange = [-1, 3]
-ax.set_xlim(*xrange)
-ax.set_xticks(range(*xrange) + [xrange[-1]])
-ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, -1, 4, -1, 3)
 
 #2
 ax = fig.add_subplot(122)
@@ -41,13 +35,7 @@ ax.add_patch(patch1)
 
 ax.set_title('b) N > 2')
 
-xrange = [-1, 4]
-yrange = [-1, 3]
-ax.set_xlim(*xrange)
-ax.set_xticks(range(*xrange) + [xrange[-1]])
-ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, -1, 4, -1, 3)
 
 pyplot.show()
 

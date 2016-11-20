@@ -2,7 +2,7 @@ from matplotlib import pyplot
 from shapely.geometry import MultiPolygon
 from descartes.patch import PolygonPatch
 
-from figures import SIZE
+from figures import SIZE, set_limits
 
 COLOR = {
     True:  '#6699cc',
@@ -33,13 +33,7 @@ for polygon in multi1:
 
 ax.set_title('a) valid')
 
-xrange = [-1, 3]
-yrange = [-1, 3]
-ax.set_xlim(*xrange)
-ax.set_xticks(range(*xrange) + [xrange[-1]])
-ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, -1, 3, -1, 3)
 
 #2: invalid self-touching ring
 ax = fig.add_subplot(122)
@@ -56,13 +50,7 @@ for polygon in multi2:
 
 ax.set_title('b) invalid')
 
-xrange = [-1, 3]
-yrange = [-1, 3]
-ax.set_xlim(*xrange)
-ax.set_xticks(range(*xrange) + [xrange[-1]])
-ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, -1, 3, -1, 3)
 
 pyplot.show()
 
