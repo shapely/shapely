@@ -27,7 +27,7 @@ def plot_coords(ax, ob, color=GRAY, zorder=1, alpha=1):
     x, y = ob.xy
     ax.plot(x, y, 'o', color=color, zorder=zorder, alpha=alpha)
 
-def color_isvalid(ob, valid=GRAY, invalid=RED):
+def color_isvalid(ob, valid=BLUE, invalid=RED):
     if ob.is_valid:
         return valid
     else:

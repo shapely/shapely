@@ -39,7 +39,7 @@ set_limits(ax, -1, 4, -1, 3)
 
 #2: complex line
 ax = fig.add_subplot(122)
-line2 = LineString([(0, 0), (1, 1), (0, 2), (2, 2), (0, 1), (1, 0)])
+line2 = LineString([(0, 0), (1, 1), (0, 2), (2, 2), (-1, 1), (1, 0)])
 
 plot_coords(ax, line2)
 plot_bounds(ax, line2)
@@ -47,7 +47,7 @@ plot_line_issimple(ax, line2, alpha=0.7)
 
 ax.set_title('b) complex')
 
-set_limits(ax, -1, 4, -1, 3)
+set_limits(ax, -2, 3, -1, 3)
 
 pyplot.show()
 

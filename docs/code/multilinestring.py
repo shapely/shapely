@@ -1,24 +1,17 @@
 from matplotlib import pyplot
 from shapely.geometry import MultiLineString
 
-from figures import SIZE, set_limits, plot_line_issimple, plot_bounds
+from figures import SIZE, set_limits, plot_line, plot_bounds, color_issimple
 from figures import plot_coords as _plot_coords
-
-COLOR = {
-    True:  '#6699cc',
-    False: '#ffcc33'
-    }
-
-def v_color(ob):
-    return COLOR[ob.is_simple]
 
 def plot_coords(ax, ob):
     for line in ob:
         _plot_coords(ax, line, zorder=1)
 
 def plot_lines(ax, ob):
+    color = color_issimple(ob)
     for line in ob:
-        plot_line_issimple(ax, line, alpha=0.7, zorder=2)
+        plot_line(ax, line, color=color, alpha=0.7, zorder=2)
 
 fig = pyplot.figure(1, figsize=SIZE, dpi=90)
 

@@ -1,7 +1,7 @@
 from matplotlib import pyplot
 from shapely.geometry.polygon import LinearRing
 
-from figures import GRAY, RED, SIZE, set_limits, plot_coords, plot_line_isvalid
+from figures import SIZE, set_limits, plot_coords, plot_line_isvalid
 
 fig = pyplot.figure(1, figsize=SIZE, dpi=90)
 
