@@ -3,7 +3,7 @@ from shapely.ops import triangulate
 
 from matplotlib import pyplot
 from descartes.patch import PolygonPatch
-from figures import SIZE, BLUE, GRAY
+from figures import SIZE, BLUE, GRAY, set_limits
 
 points = MultiPoint([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
 triangles = triangulate(points)
@@ -19,6 +19,6 @@ for triangle in triangles:
 for point in points:
     pyplot.plot(point.x, point.y, 'o', color=GRAY)
 
-pyplot.xlim(-0.5, 3.5)
-pyplot.ylim(-0.5, 2.5)
+set_limits(ax, -1, 4, -1, 3)
+
 pyplot.show()
