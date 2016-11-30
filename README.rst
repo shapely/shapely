@@ -55,9 +55,8 @@ you may ignore the binary wheels.
 
     $ pip install shapely --no-binary shapely
 
-Experimental binary wheels are also available for Linux. To get them,
-use `pip --pre shapely`. To avoid them, use 
-`pip install --pre shapely --no-binary shapely`.
+Binary wheels are also available for Linux. To get them,
+use `pip shapely`. To avoid them, use `pip install shapely --no-binary shapely`.
 
 In other situations, install `geos_c` libs and headers by any means 
 (for example, `brew install geos` on OS X or
