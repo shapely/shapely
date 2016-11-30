@@ -2,13 +2,13 @@
 Shapely
 =======
 
-Manipulation and analysis of geometric objects in the Cartesian plane.
-
 .. image:: https://travis-ci.org/Toblerity/Shapely.png?branch=master
    :target: https://travis-ci.org/Toblerity/Shapely
 
 .. image:: https://coveralls.io/repos/github/Toblerity/Shapely/badge.svg?branch=master
    :target: https://coveralls.io/github/Toblerity/Shapely?branch=master
+
+Manipulation and analysis of geometric objects in the Cartesian plane.
 
 .. image:: https://c2.staticflickr.com/6/5560/31301790086_b3472ea4e9_c.jpg
    :width: 800
