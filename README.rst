@@ -10,9 +10,9 @@ Manipulation and analysis of geometric objects in the Cartesian plane.
 .. image:: https://coveralls.io/repos/github/Toblerity/Shapely/badge.svg?branch=master
    :target: https://coveralls.io/github/Toblerity/Shapely?branch=master
 
-.. image:: http://farm3.staticflickr.com/2738/4511827859_b5822043b7_o_d.png
+.. image:: https://c2.staticflickr.com/6/5560/31301790086_b3472ea4e9_c.jpg
    :width: 800
-   :height: 400
+   :height: 378
 
 Shapely is a BSD-licensed Python package for manipulation and analysis of
 planar geometric objects. It is based on the widely deployed `GEOS
@@ -133,21 +133,13 @@ We use py.test to run Shapely's suite of unittests and doctests.
 
 .. code-block:: console
 
-    (env)$ py.test tests
-
-Roadmap and Maintenance
-=======================
-
-Shapely 1.2.x is a maintenance-only branch which supports Python 2.4-2.6, but
-not Python 3+. There will be no new features in Shapely 1.2.x and only fixes
-for major bugs.
-
-Shapely 1.4.x is a maintenance-only branch supporting Pythons 2.7 and 3.3+.
+    (env)$ python -m pytest
 
 Support
 =======
 
-Please discuss Shapely with us at
-http://lists.gispython.org/mailman/listinfo/community.
+Questions about using Shapely may be asked on the `GIS StackExchange 
+<http://gis.stackexchange.com/questions/tagged/shapely>`__ using the "shapely"
+tag.
 
 Bugs may be reported at https://github.com/Toblerity/Shapely/issues.
