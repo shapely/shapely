@@ -1,6 +1,17 @@
 Changes
 =======
 
+1.6a3 (2016-12-01)
+------------------
+
+Bug fixes:
+
+- Remove accidental hard requirement of Numpy (#431).
+
+Packaging:
+
+- Put Numpy in an optional requirement set named "vectorized" (#431).
+
 1.6a2 (2016-11-09)
 ------------------
 

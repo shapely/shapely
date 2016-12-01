@@ -178,8 +178,9 @@ with open('CHANGES.txt', 'r', **open_kwds) as fp:
 long_description = readme + '\n\n' + credits + '\n\n' + changes
 
 extra_reqs = {
-    'test': ['pytest', 'pytest-cov', 'numpy>=1.4.1', 'packaging']
-}
+    'test': ['pytest', 'pytest-cov', 'packaging'],
+    'vectorized': ['numpy']}
+
 extra_reqs['all'] = list(it.chain.from_iterable(extra_reqs.values()))
 
 # Make a dict of setup arguments. Some items will be updated as
@@ -302,15 +303,14 @@ def construct_build_ext(build_ext):
                 build_ext.build_extension(self, ext)
             except ext_errors as x:
                 raise BuildFailed(x)
-    return WrappedBuildExt
 
+    return WrappedBuildExt
 
 if (hasattr(platform, 'python_implementation')
         and platform.python_implementation() == 'PyPy'):
     # python_implementation is only available since 2.6
     ext_modules = []
     libraries = []
-
 
 if os.path.exists("MANIFEST.in"):
     pyx_file = "shapely/speedups/_speedups.pyx"
@@ -333,15 +333,9 @@ if os.path.exists("MANIFEST.in"):
         log.warn("speedup extension not found")
 
 ext_modules = [
-    Extension(
-        "shapely.speedups._speedups",
-        ["shapely/speedups/_speedups.c"],
-        include_dirs=include_dirs,
-        library_dirs=library_dirs,
-        libraries=libraries,
-        extra_link_args=extra_link_args,
-    ),
-]
+    Extension("shapely.speedups._speedups", ["shapely/speedups/_speedups.c"],
+        include_dirs=include_dirs, library_dirs=library_dirs,
+        libraries=libraries, extra_link_args=extra_link_args)]
 
 cmd_classes = setup_args.setdefault('cmdclass', {})
 
@@ -369,7 +363,6 @@ try:
 except ImportError:
     log.info("Numpy or Cython not available, shapely.vectorized submodule "
              "not being built.")
-
 
 try:
     # try building with speedups
