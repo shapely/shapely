@@ -11,7 +11,7 @@ from ctypes import ArgumentError
 import weakref
 
 from shapely.algorithms.cga import signed_area
-from shapely.coords import required
+#from shapely.coords import required
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, geos_geom_from_py
 from shapely.geometry.linestring import LineString, LineStringAdapter
@@ -374,6 +374,7 @@ def asPolygon(shell, holes=None):
     """Adapt objects to the Polygon interface"""
     return PolygonAdapter(shell, holes)
 
+
 def orient(polygon, sign=1.0):
     s = float(sign)
     rings = []
@@ -389,136 +390,92 @@ def orient(polygon, sign=1.0):
             rings.append(list(ring.coords)[::-1])
     return Polygon(rings[0], rings[1:])
 
+
 def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
     # If a LinearRing is passed in, clone it and return
-    # If a LineString is passed in, clone the coord seq and return a LinearRing
+    # If a LineString is passed in, clone the coord seq and return a
+    # LinearRing.
+    #
+    # NB: access to coordinates using the array protocol has been moved
+    # entirely to the speedups module.
+
     if isinstance(ob, LineString):
         if type(ob) == LinearRing:
             return geos_geom_from_py(ob)
+        elif ob.is_closed and len(ob.coords) >= 4:
+            return geos_geom_from_py(ob, lgeos.GEOSGeom_createLinearRing)
         else:
-            if ob.is_closed and len(ob.coords) >= 4:
-                return geos_geom_from_py(ob, lgeos.GEOSGeom_createLinearRing)
+            ob = list(ob.coords)
 
-    # If numpy is present, we use numpy.require to ensure that we have a
-    # C-continguous array that owns its data. View data will be copied.
-    ob = required(ob)
     try:
-        # From array protocol
-        array = ob.__array_interface__
-        assert len(array['shape']) == 2
-        m = array['shape'][0]
-        n = array['shape'][1]
-        if m < 3:
+        m = len(ob)
+    except TypeError:  # Iterators, e.g. Python 3 zip
+        ob = list(ob)
+        m = len(ob)
+
+    if m == 0:
+        return None
+
+    n = len(ob[0])
+    if m < 3:
+        raise ValueError(
+            "A LinearRing must have at least 3 coordinate tuples")
+    assert (n == 2 or n == 3)
+
+    # Add closing coordinates if not provided
+    if m == 3 or ob[0][0] != ob[-1][0] or ob[0][1] != ob[-1][1]:
+        M = m + 1
+    else:
+        M = m
+
+    # Create a coordinate sequence
+    if update_geom is not None:
+        if n != update_ndim:
             raise ValueError(
-                "A LinearRing must have at least 3 coordinate tuples")
-        assert n == 2 or n == 3
+                "Coordinate dimensions mismatch: target geom has {} dims, "
+                "update geom has {} dims".format(n, update_ndim))
+        cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
+    else:
+        cs = lgeos.GEOSCoordSeq_create(M, n)
 
-        # Make pointer to the coordinate array
-        if isinstance(array['data'], tuple):
-            # numpy tuple (addr, read-only)
-            cp = cast(array['data'][0], POINTER(c_double))
-        else:
-            cp = array['data']
+    # add to coordinate sequence
+    for i in range(m):
+        coords = ob[i]
+        # Because of a bug in the GEOS C API,
+        # always set X before Y
+        lgeos.GEOSCoordSeq_setX(cs, i, coords[0])
+        lgeos.GEOSCoordSeq_setY(cs, i, coords[1])
+        if n == 3:
+            try:
+                lgeos.GEOSCoordSeq_setZ(cs, i, coords[2])
+            except IndexError:
+                raise ValueError("Inconsistent coordinate dimensionality")
 
-        # Add closing coordinates to sequence?
-        if cp[0] != cp[m*n-n] or cp[1] != cp[m*n-n+1]:
-            M = m + 1
-        else:
-            M = m
-
-        # Create a coordinate sequence
-        if update_geom is not None:
-            cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
-            if n != update_ndim:
-                raise ValueError(
-                "Wrong coordinate dimensions; this geometry has dimensions: %d" \
-                % update_ndim)
-        else:
-            cs = lgeos.GEOSCoordSeq_create(M, n)
-
-        # add to coordinate sequence
-        for i in range(m):
-            # Because of a bug in the GEOS C API,
-            # always set X before Y
-            lgeos.GEOSCoordSeq_setX(cs, i, cp[n*i])
-            lgeos.GEOSCoordSeq_setY(cs, i, cp[n*i+1])
-            if n == 3:
-                lgeos.GEOSCoordSeq_setZ(cs, i, cp[n*i+2])
-
-        # Add closing coordinates to sequence?
-        if M > m:
-            # Because of a bug in the GEOS C API,
-            # always set X before Y
-            lgeos.GEOSCoordSeq_setX(cs, M-1, cp[0])
-            lgeos.GEOSCoordSeq_setY(cs, M-1, cp[1])
-            if n == 3:
-                lgeos.GEOSCoordSeq_setZ(cs, M-1, cp[2])
-
-    except AttributeError:
-        # Fall back on list
-        try:
-            m = len(ob)
-        except TypeError:  # Iterators, e.g. Python 3 zip
-            ob = list(ob)
-            m = len(ob)
-
-        if m == 0:
-            return None
-
-        n = len(ob[0])
-        if m < 3:
-            raise ValueError(
-                "A LinearRing must have at least 3 coordinate tuples")
-        assert (n == 2 or n == 3)
-
-        # Add closing coordinates if not provided
-        if m == 3 or ob[0][0] != ob[-1][0] or ob[0][1] != ob[-1][1]:
-            M = m + 1
-        else:
-            M = m
-
-        # Create a coordinate sequence
-        if update_geom is not None:
-            cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
-            if n != update_ndim:
-                raise ValueError(
-                "Wrong coordinate dimensions; this geometry has dimensions: %d" \
-                % update_ndim)
-        else:
-            cs = lgeos.GEOSCoordSeq_create(M, n)
-
-        # add to coordinate sequence
-        for i in range(m):
-            coords = ob[i]
-            # Because of a bug in the GEOS C API,
-            # always set X before Y
-            lgeos.GEOSCoordSeq_setX(cs, i, coords[0])
-            lgeos.GEOSCoordSeq_setY(cs, i, coords[1])
-            if n == 3:
-                try:
-                    lgeos.GEOSCoordSeq_setZ(cs, i, coords[2])
-                except IndexError:
-                    raise ValueError("Inconsistent coordinate dimensionality")
-
-        # Add closing coordinates to sequence?
-        if M > m:
-            coords = ob[0]
-            # Because of a bug in the GEOS C API,
-            # always set X before Y
-            lgeos.GEOSCoordSeq_setX(cs, M-1, coords[0])
-            lgeos.GEOSCoordSeq_setY(cs, M-1, coords[1])
-            if n == 3:
-                lgeos.GEOSCoordSeq_setZ(cs, M-1, coords[2])
+    # Add closing coordinates to sequence?
+    if M > m:
+        coords = ob[0]
+        # Because of a bug in the GEOS C API,
+        # always set X before Y
+        lgeos.GEOSCoordSeq_setX(cs, M-1, coords[0])
+        lgeos.GEOSCoordSeq_setY(cs, M-1, coords[1])
+        if n == 3:
+            lgeos.GEOSCoordSeq_setZ(cs, M-1, coords[2])
 
     if update_geom is not None:
         return None
     else:
         return lgeos.GEOSGeom_createLinearRing(cs), n
 
+
 def update_linearring_from_py(geom, ob):
     geos_linearring_from_py(ob, geom._geom, geom._ndim)
 
+
 def geos_polygon_from_py(shell, holes=None):
+
+    if shell is None:
+        return None
+
     if isinstance(shell, Polygon):
         return geos_geom_from_py(shell)
 
@@ -526,6 +483,7 @@ def geos_polygon_from_py(shell, holes=None):
         ret = geos_linearring_from_py(shell)
         if ret is None:
             return None
+
         geos_shell, ndim = ret
         if holes is not None and len(holes) > 0:
             ob = holes
@@ -550,19 +508,7 @@ def geos_polygon_from_py(shell, holes=None):
         else:
             geos_holes = POINTER(c_void_p)()
             L = 0
+
         return (
             lgeos.GEOSGeom_createPolygon(
-                        c_void_p(geos_shell),
-                        geos_holes,
-                        L
-                        ),
-            ndim
-            )
-
-# Test runner
-def _test():
-    import doctest
-    doctest.testmod()
-
-if __name__ == "__main__":
-    _test()
+                c_void_p(geos_shell), geos_holes, L), ndim)

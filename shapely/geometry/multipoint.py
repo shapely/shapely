@@ -9,11 +9,9 @@ if sys.version_info[0] < 3:
 from ctypes import byref, c_double, c_void_p, cast, POINTER
 from ctypes import ArgumentError
 
-from shapely.coords import required
 from shapely.geos import lgeos
 from shapely.geometry.base import (
-    BaseMultipartGeometry, exceptNull, geos_geom_from_py
-)
+    BaseMultipartGeometry, exceptNull, geos_geom_from_py)
 from shapely.geometry import point
 from shapely.geometry.proxy import CachingGeometryProxy
 
@@ -98,7 +96,7 @@ class MultiPoint(BaseMultipartGeometry):
             array_type = c_double * (m * n)
             data = array_type()
             for i in range(m):
-                g = self.geoms[i]._geom    
+                g = self.geoms[i]._geom
                 cs = lgeos.GEOSGeom_getCoordSeq(g)
                 lgeos.GEOSCoordSeq_getX(cs, 0, byref(temp))
                 data[n*i] = temp.value
@@ -158,57 +156,20 @@ def geos_multipoint_from_py(ob):
     if isinstance(ob, MultiPoint):
         return geos_geom_from_py(ob)
 
-    # If numpy is present, we use numpy.require to ensure that we have a
-    # C-continguous array that owns its data. View data will be copied.
-    ob = required(ob)
+    m = len(ob)
     try:
-        # From array protocol
-        array = ob.__array_interface__
-        assert len(array['shape']) == 2
-        m = array['shape'][0]
-        n = array['shape'][1]
-        assert m >= 1
-        assert n == 2 or n == 3
+        n = len(ob[0])
+    except TypeError:
+        n = ob[0]._ndim
+    assert n == 2 or n == 3
 
-        # Make pointer to the coordinate array
-        if isinstance(array['data'], tuple):
-            # numpy tuple (addr, read-only)
-            cp = cast(array['data'][0], POINTER(c_double))
-        else:
-            cp = array['data']
+    # Array of pointers to point geometries
+    subs = (c_void_p * m)()
 
-        # Array of pointers to sub-geometries
-        subs = (c_void_p * m)()
+    # add to coordinate sequence
+    for i in range(m):
+        coords = ob[i]
+        geom, ndims = point.geos_point_from_py(coords)
+        subs[i] = cast(geom, c_void_p)
 
-        for i in range(m):
-            geom, ndims = point.geos_point_from_py(cp[n*i:n*i+2])
-            subs[i] = cast(geom, c_void_p)
-
-    except AttributeError:
-        # Fall back on list
-        m = len(ob)
-        try:
-            n = len(ob[0])
-        except TypeError:
-            n = ob[0]._ndim
-        assert n == 2 or n == 3
-
-        # Array of pointers to point geometries
-        subs = (c_void_p * m)()
-        
-        # add to coordinate sequence
-        for i in range(m):
-            coords = ob[i]
-            geom, ndims = point.geos_point_from_py(coords)
-            subs[i] = cast(geom, c_void_p)
-            
     return lgeos.GEOSGeom_createCollection(4, subs, m), n
-
-# Test runner
-def _test():
-    import doctest
-    doctest.testmod()
-
-
-if __name__ == "__main__":
-    _test()
