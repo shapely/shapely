@@ -11,27 +11,6 @@ from shapely.topology import Validating
 if sys.version_info[0] < 3:
     range = xrange
 
-try:
-    import numpy
-    has_numpy = True
-except ImportError:
-    has_numpy = False
-
-def required(ob):
-    """Return an object that meets Shapely requirements for self-owned
-    C-continguous data, copying if necessary, or just return the original
-    object."""
-    if hasattr(ob, '__array_interface__') and has_numpy:
-        if ob.__array_interface__.get('strides'):
-            # raise an error if strided. See issue #52.
-            raise ValueError("C-contiguous data is required")
-        else:
-            # numpy.require will just return (ob) if it is already
-            # float64 and well-behaved.
-            return numpy.require(ob, numpy.float64, ["C", "OWNDATA"])
-    else:
-        return ob
-
 
 class CoordinateSequence(object):
     """

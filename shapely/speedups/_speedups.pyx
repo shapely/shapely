@@ -6,8 +6,8 @@
 # Transcription to cython: Copyright (c) 2011, Oliver Tonnhofer
 
 import ctypes
+import numpy
 
-from shapely.coords import required
 from shapely.geos import lgeos
 from shapely.geometry import Point, LineString, LinearRing
 from shapely.geometry.base import geom_factory
@@ -30,6 +30,16 @@ cdef inline GEOSCoordSequence *cast_seq(uintptr_t handle_addr):
 
 def destroy(geom):
     GEOSGeom_destroy_r(cast_handle(lgeos.geos_handle), cast_geom(geom))
+
+
+def required(ob):
+    """Return an object that meets Shapely requirements for self-owned
+    C-continguous data, copying if necessary, or just return the original
+    object."""
+    if hasattr(ob, '__array_interface__'):
+        return numpy.require(ob, numpy.float64, ["C", "OWNDATA"])
+    else:
+        return ob
 
 
 def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
