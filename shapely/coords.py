@@ -21,6 +21,8 @@ def required(ob):
     """Return an object that meets Shapely requirements for self-owned
     C-continguous data, copying if necessary, or just return the original
     object."""
+    if not has_numpy:
+        return ob
     if hasattr(ob, '__array_interface__'):
         if ob.__array_interface__.get('strides') and not has_numpy:
             # raise an error if strided. See issue #52.

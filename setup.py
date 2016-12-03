@@ -176,7 +176,8 @@ long_description = readme + '\n\n' + credits + '\n\n' + changes
 
 
 extra_reqs = {
-    'test': ['pytest', 'pytest-cov', 'numpy>=1.4.1', 'packaging']
+    'test': ['pytest', 'pytest-cov', 'packaging'],
+    'vectorized': ['numpy>=1.4.1'],
 }
 extra_reqs['all'] = list(it.chain.from_iterable(extra_reqs.values()))
 
