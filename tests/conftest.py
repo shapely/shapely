@@ -22,3 +22,13 @@ def pytest_runtest_setup(item):
         shapely.speedups.disable()
         assert(shapely.speedups.enabled is False)
         print("Speedups disabled for %s." % item.name)
+
+def pytest_report_header(config):
+    headers = []
+    try:
+        import numpy
+    except ImportError:
+        headers.append("numpy: not available")
+    else:
+        headers.append("numpy: {}".format(numpy.__version__))
+    return '\n'.join(headers)
