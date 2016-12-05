@@ -393,8 +393,8 @@ affine_matrix_builder._compatable_combinations = {
 
 def square_matrix_size(matrix):
     size = len(matrix)**.5
-    if size != int(size):
-        ValueError('Not a square matrix')
+    if size != int(size) or size < 1:
+        raise ValueError('Not a square matrix')
     return int(size)
 
 def row_iter(matrix):
@@ -417,7 +417,7 @@ def multiply_matrices(a, b):
     for row in row_iter(a):
         for col in column_iter(b):
             result.append(sum(r*c for r, c in zip(row, col)))
-    return result
+    return tuple(result)
 
 
 

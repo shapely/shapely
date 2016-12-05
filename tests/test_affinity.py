@@ -308,6 +308,26 @@ class affine_matrix_builderTestCase(unittest.TestCase):
             self.assertEqual(a, b)
 
 
+class MatrixMathTestCase(unittest.TestCase):
+    def test_math_functions(self):
+        square_matrix_size = affinity.square_matrix_size
+        row_iter = affinity.row_iter
+        get_column = affinity.get_column
+        column_iter = affinity.column_iter
+        multiply_matrices = affinity.multiply_matrices
+
+        self.assertEqual(square_matrix_size((0,)*4), 2)
+        with self.assertRaises(ValueError):
+            square_matrix_size((0,)*5)
+
+        self.assertEqual(tuple(row_iter((1,2,3,4))), ((1,2),(3,4)))
+
+        self.assertEqual(tuple(get_column((1,2,3,4), 1)), (2,4))
+
+        self.assertEqual(tuple(tuple(col) for col in column_iter((1,2,3,4))), ((1,3),(2,4)))
+
+        self.assertEqual(multiply_matrices((1,2,3,4), (5,6,7,8)), (19, 22, 43, 50))
+
 
 def test_suite():
     loader = unittest.TestLoader()
