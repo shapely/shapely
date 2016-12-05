@@ -9,6 +9,11 @@ __all__ = ['affine_transform', 'rotate', 'scale', 'skew', 'translate']
 
 
 class affine_matrix_builder:
+    """
+    Class for building affine transformation matrices.
+    Reduces the number of transformations needed by combining the
+    affine matrices when appropriate.
+    """
     def __init__(self, geom, matrix=None):
         self.geom = geom
 
@@ -331,9 +336,13 @@ class affine_matrix_builder:
     _transform_log = namedtuple('_transform_log', ('transform', 'inputs'))
 
     def _combine_matrices(self):
+        """
+        Returns true if the affine if the last and current matrices can
+        be safely combined to get the expected output.
+        """
         # this can be optimized more to look at inputs/matrix too but has not been done yet
         return (self.last_transform.transform, self.current_transform.transform) \
-            in self._copatable_combinations
+            in self._compatable_combinations
 
     @staticmethod
     def _interpret_origin(geom, origin, ndim):
@@ -369,7 +378,8 @@ class affine_matrix_builder:
             else:
                 return origin
 
-affine_matrix_builder._copatable_combinations = {
+# Holds the safe relationships of when two affine matricies can be combined.
+affine_matrix_builder._compatable_combinations = {
     (affine_matrix_builder.affine_transform,    affine_matrix_builder.translate),
     (affine_matrix_builder.rotate,              affine_matrix_builder.rotate),
     (affine_matrix_builder.rotate,              affine_matrix_builder.translate),
@@ -379,7 +389,7 @@ affine_matrix_builder._copatable_combinations = {
     (affine_matrix_builder.translate,           affine_matrix_builder.translate)
 }
 
-
+# for backwards compatability
 def affine_transform(geom, matrix):
     return affine_matrix_builder(geom, matrix).transform()
 

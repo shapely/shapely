@@ -284,7 +284,7 @@ class affine_matrix_builderTestCase(unittest.TestCase):
             },
         }
 
-        for transforms in permutations(transform_functions, 2):
+        for transforms in permutations(transform_functions):
             a = amb(Point(1,1))
             b = Point(1,1)
             for t in transforms:

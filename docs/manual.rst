@@ -1856,6 +1856,41 @@ preserved or supported by 3D affine transformations.
       0 & 0 & 0 & 1
     \end{bmatrix}
 
+.. class:: shapely.affinity.affine_matrix_builder(geom, matrix=None)
+
+  Class for building affine transformation matrices. Can speed up transformations because it can reduces the number of transformations needed by combining the affine matrices when appropriate.
+
+.. method:: shapely.affinity.affine_matrix_builder.affine_transform(matrix)
+  Look applies what is described in function shapely.affinity.affine_transform above.
+  Returns the modified shapely.affinity.affine_matrix_builder instance.
+
+.. method:: shapely.affinity.affine_matrix_builder.rotate(angle, origin='center', use_radians=False)
+  Look applies what is described in function shapely.affinity.rotate above.
+  Returns the modified shapely.affinity.affine_matrix_builder instance.
+
+.. method:: shapely.affinity.affine_matrix_builder.scale(xfact=1.0, yfact=1.0, zfact=1.0, origin='center')
+  Look applies what is described in function shapely.affinity.scale above.
+  Returns the modified shapely.affinity.affine_matrix_builder instance.
+
+.. method:: shapely.affinity.affine_matrix_builder.skew(xs=0.0, ys=0.0, origin='center', use_radians=False)
+  Look applies what is described in function shapely.affinity.skew above.
+  Returns the modified shapely.affinity.affine_matrix_builder instance.
+
+.. method:: shapely.affinity.affine_matrix_builder.translate(xoff=0.0, yoff=0.0, zoff=0.0)
+  Look applies what is described in function shapely.affinity.translate above.
+  Returns the modified shapely.affinity.affine_matrix_builder instance.
+
+.. method:: shapely.affinity.affine_matrix_builder.transform()
+  Returns affine transformed geom.
+
+.. code-block:: pycon
+  >>> from shapely.geometry import Point
+  >>> from shapely.affinity import affine_matrix_builder as amb
+  >>> geom = Point(1,1)
+  >>> geom_transformed = amb(geom).rotate(90,(0,0)).translate(20, 30).transform()
+  >>> print(geom_transformed)
+  POINT (19 31)
+
 
 Other Transformations
 =====================
