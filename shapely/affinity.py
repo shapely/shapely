@@ -13,6 +13,7 @@ class affine_matrix_builder:
     Class for building affine transformation matrices.
     Reduces the number of transformations needed by combining the
     affine matrices when appropriate.
+    Class implemented by William Rusnack, github.com/BebeSparkelSparkel, williamrusnack@gmail.com
     """
     def __init__(self, geom, matrix=None):
         self.geom = geom
