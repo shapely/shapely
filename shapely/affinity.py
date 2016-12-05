@@ -18,12 +18,11 @@ class affine_matrix_builder:
     def __init__(self, geom, matrix=None):
         self.geom = geom
 
-        self.matrix = None
-        if matrix is not None: self.affine_transform(matrix)
-
         self.last_transform = None
         self.current_transform = None
 
+        self.matrix = None
+        if matrix is not None: self.affine_transform(matrix)
 
     def affine_transform(self, matrix):
         """
