@@ -281,7 +281,7 @@ class affine_matrix_builder:
             z' = g * x + h * y + i * z + zoff
         """
         if self.matrix is None:
-            raise ValueError('Affine matrix not defined.')
+            raise TypeError('Affine matrix not defined.')
 
         if self.geom.is_empty:
             return self.geom
