@@ -1,5 +1,11 @@
-from . import unittest
+if __name__ == '__main__':
+    import unittest
+else:
+    from . import unittest
+
 from math import pi
+from itertools import permutations
+
 from shapely import affinity
 from shapely.wkt import loads as load_wkt
 from shapely.geometry import Point
@@ -246,8 +252,70 @@ class TransformOpsTestCase(unittest.TestCase):
         self.assertTrue(tls.equals(els))
 
 
+class affine_matrix_builderTestCase(unittest.TestCase):
+    def test_combining_matrices(self):
+        amb = affinity.affine_matrix_builder
+
+        transform_functions = {
+            amb.affine_transform: {
+                'first': ((1,2,3,4,5,6,7,8,9,10,11,12),),
+                'different': ((2,3,4,5,6,7,8,9,10,11,12,13),),
+                'same_affine_matrix':((1,2,3,4,5,6,7,8,.9,.10,.11,.12),)
+            },
+            amb.rotate: {
+                'first': (90, (0,0)),
+                'different': (55, (.5, 7)),
+                'same_affine_matrix': (90, (.5, 7))
+            },
+            amb.scale: {
+                'first': (2, 3, 4, (0,0)),
+                'different': (4, 2, 3, (.5, 7)),
+                'same_affine_matrix': (2, 3, 4, (.5, 7))
+            },
+            amb.skew: {
+                'first': (2, 3, (0,0)),
+                'different': (4, 5, (.5, 7)),
+                'same_affine_matrix': (2, 3, (.5, 7))
+            },
+            amb.translate: {
+                'first': (1, 2, 3),
+                'different': (2, 3, 4),
+                'same_affine_matrix': (1, 2, 3)
+            },
+        }
+
+        for transforms in permutations(transform_functions, 2):
+            a = amb(Point(1,1))
+            b = Point(1,1)
+            for t in transforms:
+                a = t(a, *transform_functions[t]['first'])
+                b = t(amb(b), *transform_functions[t]['first']).transform()
+            a = a.transform()
+
+            self.assertEqual(a, b)
+
+
+        for t in transform_functions:
+            transforms = (t,)*2
+
+            a = amb(Point(1,1))
+            b = Point(1,1)
+            for t, input_index in zip(transforms, ('first', 'different')):
+                a = t(a, *transform_functions[t][input_index])
+                b = t(amb(b), *transform_functions[t][input_index]).transform()
+            a = a.transform()
+
+            self.assertEqual(a, b)
+
+
+
 def test_suite():
     loader = unittest.TestLoader()
     return unittest.TestSuite([
         loader.loadTestsFromTestCase(AffineTestCase),
         loader.loadTestsFromTestCase(TransformOpsTestCase)])
+
+
+if __name__ == '__main__':
+    unittest.main()
+
