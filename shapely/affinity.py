@@ -1,7 +1,7 @@
 """Affine transforms, both in general and specific, named transforms."""
 
 from math import sin, cos, tan, pi
-import numpy
+# import numpy
 from collections import namedtuple
 
 
@@ -73,11 +73,15 @@ class affine_matrix_builder:
             if self._combine_matrices():
                 num_elem = 9
                 matrix_size = int(num_elem**.5)
-                self.matrix = (
-                    numpy.matrix(self.matrix[:num_elem]).reshape((matrix_size,)*2) * \
-                    numpy.matrix(matrix[:num_elem]).reshape((matrix_size,)*2)
-                ).reshape((1, num_elem)).tolist()[0] + \
-                [e1 + e2 for e1, e2 in zip(self.matrix[num_elem:], matrix[num_elem:])]
+
+                self.matrix = multiply_matrices(self.matrix[:num_elem], matrix[:num_elem]) + \
+                    [e1 + e2 for e1, e2 in zip(self.matrix[num_elem:], matrix[num_elem:])]
+
+                # self.matrix = (
+                #     numpy.matrix(self.matrix[:num_elem]).reshape((matrix_size,)*2) * \
+                #     numpy.matrix(matrix[:num_elem]).reshape((matrix_size,)*2)
+                # ).reshape((1, num_elem)).tolist()[0] + \
+                # [e1 + e2 for e1, e2 in zip(self.matrix[num_elem:], matrix[num_elem:])]
 
             else:
                 self.geom = self.transform()
@@ -389,6 +393,37 @@ affine_matrix_builder._compatable_combinations = {
     (affine_matrix_builder.skew,                affine_matrix_builder.translate),
     (affine_matrix_builder.translate,           affine_matrix_builder.translate)
 }
+
+
+def square_matrix_size(matrix):
+    size = len(matrix)**.5
+    if size != int(size):
+        ValueError('Not a square matrix')
+    return int(size)
+
+def row_iter(matrix):
+    square_size = square_matrix_size(matrix)
+
+    for i in range(0, len(matrix), square_size):
+        yield matrix[i:i + square_size]
+
+def get_column(matrix, column_index):
+    return (row[column_index] for row in row_iter(matrix))
+
+def column_iter(matrix):
+    square_size = square_matrix_size(matrix)
+
+    for i in range(square_size):
+        yield get_column(matrix, i)
+
+def multiply_matrices(a, b):
+    result = []
+    for row in row_iter(a):
+        for col in column_iter(b):
+            result.append(sum(r*c for r, c in zip(row, col)))
+    return result
+
+
 
 # for backwards compatability
 def affine_transform(geom, matrix):
