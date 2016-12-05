@@ -14,7 +14,7 @@ class affine_matrix_builder:
     Class implemented by William Rusnack, github.com/BebeSparkelSparkel, williamrusnack@gmail.com
     """
     def __init__(self, geom, matrix=None):
-        if 'BaseGeometry' not in (s.__name__ for s in geom.__class__.__bases__):
+        if not {'BaseGeometry', 'BaseMultipartGeometry'} & set(s.__name__ for s in geom.__class__.__bases__):
             raise AttributeError("geom is not the right type: %s" % str(type(geom)))
         self.geom = geom
 
