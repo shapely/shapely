@@ -181,7 +181,7 @@ def geos_multipoint_from_py(ob):
         subs = (c_void_p * m)()
 
         for i in range(m):
-            geom, ndims = point.geos_point_from_py(cp[n*i:n*i+2])
+            geom, ndims = point.geos_point_from_py(cp[n*i:n*i+n])
             subs[i] = cast(geom, c_void_p)
 
     except AttributeError:
