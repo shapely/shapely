@@ -1,7 +1,6 @@
 """Affine transforms, both in general and specific, named transforms."""
 
 from math import sin, cos, tan, pi
-# import numpy
 from collections import namedtuple
 
 
@@ -75,12 +74,6 @@ class affine_matrix_builder:
 
                 self.matrix = multiply_matrices(self.matrix[:num_elem], matrix[:num_elem]) + \
                     [e1 + e2 for e1, e2 in zip(self.matrix[num_elem:], matrix[num_elem:])]
-
-                # self.matrix = (
-                #     numpy.matrix(self.matrix[:num_elem]).reshape((matrix_size,)*2) * \
-                #     numpy.matrix(matrix[:num_elem]).reshape((matrix_size,)*2)
-                # ).reshape((1, num_elem)).tolist()[0] + \
-                # [e1 + e2 for e1, e2 in zip(self.matrix[num_elem:], matrix[num_elem:])]
 
             else:
                 self.geom = self.transform()
