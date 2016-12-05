@@ -1859,6 +1859,7 @@ preserved or supported by 3D affine transformations.
 .. class:: shapely.affinity.affine_matrix_builder(geom, matrix=None)
 
   Class for building affine transformation matrices. Can speed up transformations because it can reduces the number of transformations needed by combining the affine matrices when appropriate.
+  Class implemented by William Rusnack, github.com/BebeSparkelSparkel, williamrusnack@gmail.com
 
 .. method:: shapely.affinity.affine_matrix_builder.affine_transform(matrix)
   Look applies what is described in function shapely.affinity.affine_transform above.
