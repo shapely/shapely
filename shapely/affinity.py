@@ -3,8 +3,7 @@
 from math import sin, cos, tan, pi
 from collections import namedtuple
 
-
-__all__ = ['affine_transform', 'rotate', 'scale', 'skew', 'translate']
+__all__ = ['affine_matrix_builder', 'affine_transform', 'rotate', 'scale', 'skew', 'translate']
 
 
 class affine_matrix_builder:
@@ -15,6 +14,8 @@ class affine_matrix_builder:
     Class implemented by William Rusnack, github.com/BebeSparkelSparkel, williamrusnack@gmail.com
     """
     def __init__(self, geom, matrix=None):
+        if 'BaseGeometry' not in (s.__name__ for s in geom.__class__.__bases__):
+            raise AttributeError("geom is not the right type: %s" % str(type(geom)))
         self.geom = geom
 
         self.last_transform = None
@@ -62,6 +63,9 @@ class affine_matrix_builder:
             y' = d * x + e * y + f * z + yoff
             z' = g * x + h * y + i * z + zoff
         """
+        if not isinstance(matrix, (tuple, list)): raise TypeError('Matrix must be a tuple or list.')
+        if len(matrix) not in (6, 12): raise ValueError('Wrong size matrix.')
+
         if self.current_transform is None:
             self.current_transform = self._transform_log(self.affine_transform, {'matrix': matrix})
 
