@@ -15,7 +15,7 @@ class affine_matrix_builder:
     """
     def __init__(self, geom, matrix=None):
         if not {'BaseGeometry', 'BaseMultipartGeometry'} & set(s.__name__ for s in geom.__class__.__bases__):
-            raise AttributeError("geom is not the right type: %s" % str(type(geom)))
+            raise AttributeError("geom is not the right type: %s, bases are: %s" % (str(type(geom)), str(geom.__class__.__bases__)))
         self.geom = geom
 
         self.last_transform = None
