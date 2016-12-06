@@ -63,11 +63,12 @@ class affine_matrix_builder:
             y' = d * x + e * y + f * z + yoff
             z' = g * x + h * y + i * z + zoff
         """
+
         if not isinstance(matrix, (tuple, list)): raise TypeError('Matrix must be a tuple or list.')
         if len(matrix) not in (6, 12): raise ValueError('Wrong size matrix.')
 
         if self.current_transform is None:
-            self.current_transform = self._transform_log(self.affine_transform, {'matrix': matrix})
+            self.current_transform = self._transform_log(affine_matrix_builder.affine_transform, {'matrix': matrix})
 
         if self.matrix is None:
             self.matrix = matrix
@@ -77,7 +78,7 @@ class affine_matrix_builder:
                 matrix_size = int(num_elem**.5)
 
                 self.matrix = multiply_matrices(self.matrix[:num_elem], matrix[:num_elem]) + \
-                    [e1 + e2 for e1, e2 in zip(self.matrix[num_elem:], matrix[num_elem:])]
+                    tuple(e1 + e2 for e1, e2 in zip(self.matrix[num_elem:], matrix[num_elem:]))
 
             else:
                 self.geom = self.transform()
@@ -111,7 +112,8 @@ class affine_matrix_builder:
             xoff = x0 - x0 * cos(r) + y0 * sin(r)
             yoff = y0 - x0 * sin(r) - y0 * cos(r)
         """
-        self.current_transform = self._transform_log(self.rotate, {'angle': angle, 'origin': origin, 'use_radians': use_radians})
+
+        self.current_transform = self._transform_log(affine_matrix_builder.rotate, {'angle': angle, 'origin': origin, 'use_radians': use_radians})
 
         if not use_radians:  # convert from degrees
             angle *= pi/180.0
@@ -127,10 +129,6 @@ class affine_matrix_builder:
                   sinp,  cosp, 0.0,
                   0.0,    0.0, 1.0,
                   x0 - x0 * cosp + y0 * sinp, y0 - x0 * sinp - y0 * cosp, 0.0)
-
-        # if self.matrix is None: self.matrix = matrix
-        # else: self.matrix = self.matmult(self.matrix, matrix)
-        # return self
 
         return self.affine_transform(matrix)
 
@@ -157,7 +155,7 @@ class affine_matrix_builder:
             yoff = y0 - y0 * yfact
             zoff = z0 - z0 * zfact
         """
-        self.current_transform = self._transform_log(self.scale, {'xfact': xfact, 'yfact': yfact, 'zfact': zfact, 'origin': origin})
+        self.current_transform = self._transform_log(affine_matrix_builder.scale, {'xfact': xfact, 'yfact': yfact, 'zfact': zfact, 'origin': origin})
 
         x0, y0, z0 = self._interpret_origin(self.geom, origin, 3)
 
@@ -165,10 +163,6 @@ class affine_matrix_builder:
                   0.0, yfact, 0.0,
                   0.0, 0.0, zfact,
                   x0 - x0 * xfact, y0 - y0 * yfact, z0 - z0 * zfact)
-
-        # if self.matrix is None: self.matrix = matrix
-        # else: self.matrix = self.matmult(self.matrix, matrix)
-        # return self
 
         return self.affine_transform(matrix)
 
@@ -194,7 +188,7 @@ class affine_matrix_builder:
             xoff = -y0 * tan(xs)
             yoff = -x0 * tan(ys)
         """
-        self.current_transform = self._transform_log(self.skew, {'xs': xs, 'ys': ys, 'origin': origin, 'use_radians': use_radians})
+        self.current_transform = self._transform_log(affine_matrix_builder.skew, {'xs': xs, 'ys': ys, 'origin': origin, 'use_radians': use_radians})
 
         if not use_radians:  # convert from degrees
             xs *= pi/180.0
@@ -212,10 +206,6 @@ class affine_matrix_builder:
                   0.0,  0.0, 1.0,
                   -y0 * tanx, -x0 * tany, 0.0)
 
-        # if self.matrix is None: self.matrix = matrix
-        # else: self.matrix = self.matmult(self.matrix, matrix)
-        # return self
-
         return self.affine_transform(matrix)
 
     def translate(self, xoff=0.0, yoff=0.0, zoff=0.0):
@@ -229,16 +219,13 @@ class affine_matrix_builder:
             | 0  0  1 zoff |
             \ 0  0  0   1  /
         """
-        self.current_transform = self._transform_log(self.translate, {'xoff': xoff, 'yoff': yoff, 'zoff': zoff})
+
+        self.current_transform = self._transform_log(affine_matrix_builder.translate, {'xoff': xoff, 'yoff': yoff, 'zoff': zoff})
 
         matrix = (1.0, 0.0, 0.0,
                   0.0, 1.0, 0.0,
                   0.0, 0.0, 1.0,
                   xoff, yoff, zoff)
-
-        # if self.matrix is None: self.matrix = matrix
-        # else: self.matrix = self.matmult(self.matrix, matrix)
-        # return self
 
         return self.affine_transform(matrix)
 
