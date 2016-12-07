@@ -327,8 +327,13 @@ class affine_matrix_builder:
         """
         Returns true if the affine if the last and current matrices can
         be safely combined to get the expected output.
+
+        IMPROVEMENT
+        this can be optimized more to look at inputs/matrix too but has not been done yet
+        it seems like transfromations with the same origin can be combined but that should be proven true
+        inputs are also saved in self.last_transform and self.current_transform which will allow origin comparisons
+        I am also not sure if the total history matters in combining affine matrices or if only the last affine transform matters
         """
-        # this can be optimized more to look at inputs/matrix too but has not been done yet
         return (self.last_transform.transform, self.current_transform.transform) \
             in self._compatable_combinations
 
