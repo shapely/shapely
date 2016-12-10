@@ -134,6 +134,11 @@ class LineStringTestCase(unittest.TestCase):
         p = Point(*list(a))
         self.assertEqual(p.coords[:], [(1.0, 1.0, 0.0)])
 
+        # Test array interface of empty geometry
+        pe = Point()
+        a = asarray(pe)
+        self.assertEqual(a.shape[0], 0)
+
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(LineStringTestCase)

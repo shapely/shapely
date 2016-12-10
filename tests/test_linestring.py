@@ -154,6 +154,11 @@ class LineStringTestCase(unittest.TestCase):
         b = asarray(line)
         assert_array_equal(b, array([[0., 0.], [2., 2.], [1., 1.]]))
 
+        # Test array interface of empty linestring
+        le = LineString()
+        a = asarray(le)
+        assert(a.shape[0], 0)
+
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(LineStringTestCase)
