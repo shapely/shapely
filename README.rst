@@ -2,17 +2,17 @@
 Shapely
 =======
 
-Manipulation and analysis of geometric objects in the Cartesian plane.
-
 .. image:: https://travis-ci.org/Toblerity/Shapely.png?branch=master
    :target: https://travis-ci.org/Toblerity/Shapely
 
 .. image:: https://coveralls.io/repos/github/Toblerity/Shapely/badge.svg?branch=master
    :target: https://coveralls.io/github/Toblerity/Shapely?branch=master
 
-.. image:: http://farm3.staticflickr.com/2738/4511827859_b5822043b7_o_d.png
+Manipulation and analysis of geometric objects in the Cartesian plane.
+
+.. image:: https://c2.staticflickr.com/6/5560/31301790086_b3472ea4e9_c.jpg
    :width: 800
-   :height: 400
+   :height: 378
 
 Shapely is a BSD-licensed Python package for manipulation and analysis of
 planar geometric objects. It is based on the widely deployed `GEOS
@@ -28,13 +28,13 @@ but can be readily integrated with packages that are. For more details, see:
 Requirements
 ============
 
-Shapely 1.5.x requires
+Shapely 1.6.x requires
 
 * Python >=2.6 (including Python 3.x)
-* GEOS >=3.3 (Shapely 1.2.x requires only GEOS 3.1 but YMMV)
+* GEOS >=3.3 
 
-Installing Shapely
-==================
+Installing Shapely (1.6b2)
+==========================
 
 Windows users have two good installation options: the wheels at
 http://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely and the 
@@ -42,11 +42,17 @@ Anaconda platform's [conda-forge](https://conda-forge.github.io/)
 channel.
 
 OS X users can get Shapely wheels with GEOS included from the 
-Python Package Index with pip:
+Python Package Index with a recent version of pip (8+):
 
 .. code-block:: console
 
-    $ pip install shapely
+    $ pip install shapely==1.6b2
+
+A few extra speedups that require Numpy can be had by running
+
+.. code-block:: console
+
+    $ pip install shapely[vectorized]==1.6b2
 
 If you want to build Shapely from source for compatibility with
 other modules that depend on GEOS (such as cartopy or osgeo.ogr)
@@ -56,9 +62,9 @@ you may ignore the binary wheels.
 
     $ pip install shapely --no-binary shapely
 
-Experimental binary wheels are also available for Linux. To get them,
-use `pip --pre shapely`. To avoid them, use 
-`pip install --pre shapely --no-binary shapely`.
+Binary wheels are also available for Linux. To get them, use `pip shapely
+shapely==1.6b2`. To avoid them, use `pip install shapely --no-binary
+shapely==1.6b2`.
 
 In other situations, install `geos_c` libs and headers by any means 
 (for example, `brew install geos` on OS X or
@@ -78,18 +84,8 @@ variable, e.g.:
 
     $ GEOS_CONFIG=/path/to/geos-config pip install shapely
 
-If your system's GEOS version is < 3.3.0 you cannot use Shapely 1.3+ and must
-stick to 1.2.x as shown below.
-
-.. code-block:: console
-
-    $ pip install shapely<1.3
-
-Or, if you're using pip 6+
-
-.. code-block:: console
-
-    $ pip install shapely~=1.2
+Shapely is also provided by popular Python distributions like Canopy
+(Enthought) and Anaconda (Continuum Analytics).
 
 Usage
 =====
@@ -153,21 +149,13 @@ We use py.test to run Shapely's suite of unittests and doctests.
 
 .. code-block:: console
 
-    (env)$ py.test tests
-
-Roadmap and Maintenance
-=======================
-
-Shapely 1.2.x is a maintenance-only branch which supports Python 2.4-2.6, but
-not Python 3+. There will be no new features in Shapely 1.2.x and only fixes
-for major bugs.
-
-Shapely 1.4.x is a maintenance-only branch supporting Pythons 2.7 and 3.3+.
+    (env)$ python -m pytest
 
 Support
 =======
 
-Please discuss Shapely with us at
-http://lists.gispython.org/mailman/listinfo/community.
+Questions about using Shapely may be asked on the `GIS StackExchange 
+<http://gis.stackexchange.com/questions/tagged/shapely>`__ using the "shapely"
+tag.
 
 Bugs may be reported at https://github.com/Toblerity/Shapely/issues.

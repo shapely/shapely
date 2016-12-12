@@ -116,8 +116,7 @@ class GEOSConfig(object):
         match = re.match(r'(\d+)\.(\d+)\.(\d+)', self.get('--version').strip())
         return tuple(map(int, match.groups()))
 
-
-# Get the version from the shapely module
+# Get the version from the shapely module.
 shapely_version = None
 with open('shapely/__init__.py', 'r') as fp:
     for line in fp:
@@ -129,14 +128,18 @@ with open('shapely/__init__.py', 'r') as fp:
 if not shapely_version:
     raise ValueError("Could not determine Shapely's version")
 
+# Allow GEOS_CONFIG to be bypassed in favor of CFLAGS and LDFLAGS
+# vars set by build environment.
+if os.environ.get('NO_GEOS_CONFIG'):
+    geos_config = None
+else:
+    geos_config = GEOSConfig(os.environ.get('GEOS_CONFIG', 'geos-config'))
+
 # Fail installation if the GEOS shared library does not meet the minimum
 # version. We ship it with Shapely for Windows, so no need to check on
 # that platform.
-
 geos_version = None
-geos_config = GEOSConfig(os.environ.get('GEOS_CONFIG', 'geos-config'))
-
-if not os.environ.get('NO_GEOS_CHECK') or sys.platform == 'win32':
+if geos_config and not os.environ.get('NO_GEOS_CHECK') or sys.platform == 'win32':
     try:
         log.info(
             "Shapely >= 1.3 requires GEOS >= 3.3. "
@@ -174,14 +177,14 @@ with open('CHANGES.txt', 'r', **open_kwds) as fp:
 
 long_description = readme + '\n\n' + credits + '\n\n' + changes
 
-
 extra_reqs = {
     'test': ['pytest', 'pytest-cov', 'packaging'],
-    'vectorized': ['numpy>=1.4.1'],
-}
+    'vectorized': ['numpy']}
+
 extra_reqs['all'] = list(it.chain.from_iterable(extra_reqs.values()))
 
-
+# Make a dict of setup arguments. Some items will be updated as
+# the script progresses.
 setup_args = dict(
     name                = 'Shapely',
     version             = str(shapely_version),
@@ -245,6 +248,16 @@ library_dirs = []
 libraries = []
 extra_link_args = []
 
+# If NO_GEOS_CONFIG is set in the environment, geos-config will not
+# be called and CFLAGS and LDFLAGS environment variables must be set
+# instead like
+#
+# CFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib -lgeos_c"
+#
+# Or, equivalently:
+#
+# CFLAGS="$(geos-config --cflags)" LDFLAGS="$(geos-config --clibs)"
+
 if geos_version and geos_config:
     # Collect other options from GEOS configuration.
     for item in geos_config.get('--cflags').split():
@@ -290,15 +303,14 @@ def construct_build_ext(build_ext):
                 build_ext.build_extension(self, ext)
             except ext_errors as x:
                 raise BuildFailed(x)
-    return WrappedBuildExt
 
+    return WrappedBuildExt
 
 if (hasattr(platform, 'python_implementation')
         and platform.python_implementation() == 'PyPy'):
     # python_implementation is only available since 2.6
     ext_modules = []
     libraries = []
-
 
 if os.path.exists("MANIFEST.in"):
     pyx_file = "shapely/speedups/_speedups.pyx"
@@ -321,15 +333,9 @@ if os.path.exists("MANIFEST.in"):
         log.warn("speedup extension not found")
 
 ext_modules = [
-    Extension(
-        "shapely.speedups._speedups",
-        ["shapely/speedups/_speedups.c"],
-        include_dirs=include_dirs,
-        library_dirs=library_dirs,
-        libraries=libraries,
-        extra_link_args=extra_link_args,
-    ),
-]
+    Extension("shapely.speedups._speedups", ["shapely/speedups/_speedups.c"],
+        include_dirs=include_dirs, library_dirs=library_dirs,
+        libraries=libraries, extra_link_args=extra_link_args)]
 
 cmd_classes = setup_args.setdefault('cmdclass', {})
 
@@ -357,7 +363,6 @@ try:
 except ImportError:
     log.info("Numpy or Cython not available, shapely.vectorized submodule "
              "not being built.")
-
 
 try:
     # try building with speedups

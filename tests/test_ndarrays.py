@@ -20,10 +20,10 @@ class TransposeTestCase(unittest.TestCase):
 
     @unittest.skipIf(not numpy, 'numpy not installed')
     def test_multipoint(self):
-        a = numpy.array([[1.0, 1.0, 2.0, 2.0, 1.0], [3.0, 4.0, 4.0, 3.0, 3.0]])
-        t = a.T
-        s = geometry.asMultiPoint(t)
-        coords = reduce(lambda x, y: x + y, [list(g.coords) for g in s])
+        arr = numpy.array([[1.0, 1.0, 2.0, 2.0, 1.0], [3.0, 4.0, 4.0, 3.0, 3.0]])
+        tarr = arr.T
+        shape = geometry.asMultiPoint(tarr)
+        coords = reduce(lambda x, y: x + y, [list(g.coords) for g in shape])
         self.assertEqual(
             coords,
             [(1.0, 3.0), (1.0, 4.0), (2.0, 4.0), (2.0, 3.0), (1.0, 3.0)]

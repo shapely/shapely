@@ -4,8 +4,8 @@
 from ctypes import c_double
 from ctypes import cast, POINTER
 
-from shapely.coords import required
-from shapely.geos import lgeos, DimensionError
+from shapely.errors import DimensionError
+from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, geos_geom_from_py
 from shapely.geometry.proxy import CachingGeometryProxy
 
@@ -109,8 +109,11 @@ class Point(BaseGeometry):
 
     def array_interface(self):
         """Provide the Numpy array protocol."""
-        ai = self.array_interface_base
-        ai.update({'shape': (self._ndim,)})
+        if self.is_empty:
+            ai = {'version': 3, 'typestr': '<f8', 'shape': (0,), 'data': (c_double * 0)()}
+        else:
+            ai = self.array_interface_base
+            ai.update({'shape': (self._ndim,)})
         return ai
     __array_interface__ = property(array_interface)
 
@@ -194,49 +197,20 @@ def geos_point_from_py(ob, update_geom=None, update_ndim=0):
     if isinstance(ob, Point):
         return geos_geom_from_py(ob)
 
-    # If numpy is present, we use numpy.require to ensure that we have a
-    # C-continguous array that owns its data. View data will be copied.
-    ob = required(ob)
-    try:
-        # From array protocol
-        array = ob.__array_interface__
-        assert len(array['shape']) == 1
-        n = array['shape'][0]
-        assert n == 2 or n == 3
+    # Accept either (x, y) or [(x, y)]
+    if not hasattr(ob, '__getitem__'):  # Iterators, e.g. Python 3 zip
+        ob = list(ob)
 
-        dz = None
-        da = array['data']
-        if isinstance(da, tuple):
-            cdata = da[0]
-            # If we had numpy, we would do
-            # from numpy.ctypeslib import as_ctypes
-            # cp = as_ctypes(ob) - check that code?
-            cp = cast(cdata, POINTER(c_double))
-            dx = c_double(cp[0])
-            dy = c_double(cp[1])
-            if n == 3:
-                dz = c_double(cp[2])
-        else:
-            dx, dy = da[0:2]
-            if n == 3:
-                dz = da[2]
-
-    except AttributeError:
-        # Fall back on the case of Python sequence data
-        # Accept either (x, y) or [(x, y)]
-        if not hasattr(ob, '__getitem__'):  # Iterators, e.g. Python 3 zip
-            ob = list(ob)
-
-        if isinstance(ob[0], tuple):
-            coords = ob[0]
-        else:
-            coords = ob
-        n = len(coords)
-        dx = c_double(coords[0])
-        dy = c_double(coords[1])
-        dz = None
-        if n == 3:
-            dz = c_double(coords[2])
+    if isinstance(ob[0], tuple):
+        coords = ob[0]
+    else:
+        coords = ob
+    n = len(coords)
+    dx = c_double(coords[0])
+    dy = c_double(coords[1])
+    dz = None
+    if n == 3:
+        dz = c_double(coords[2])
 
     if update_geom:
         cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
@@ -261,12 +235,3 @@ def geos_point_from_py(ob, update_geom=None, update_ndim=0):
 
 def update_point_from_py(geom, ob):
     geos_point_from_py(ob, geom._geom, geom._ndim)
-
-
-# Test runner
-def _test():
-    import doctest
-    doctest.testmod()
-
-if __name__ == "__main__":
-    _test()

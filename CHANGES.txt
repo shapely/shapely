@@ -1,6 +1,87 @@
 Changes
 =======
 
+1.6b2 (2016-12-12)
+------------------
+
+New features:
+
+- Add support for GeometryCollection to shape and asShape functions (#422).
+
+1.6b1 (2016-12-12)
+------------------
+
+Bug fixes:
+
+- Implemented __array_interface__ for empty Points and LineStrings (#403).
+
+1.6a3 (2016-12-01)
+------------------
+
+Bug fixes:
+
+- Remove accidental hard requirement of Numpy (#431).
+
+Packaging:
+
+- Put Numpy in an optional requirement set named "vectorized" (#431).
+
+1.6a2 (2016-11-09)
+------------------
+
+Bug fixes:
+
+- Shapely no longer configures logging in ``geos.py`` (#415).
+
+Refactoring:
+
+- Consolidation of exceptions in ``shapely.errors``.
+- ``UnsupportedGEOSVersionError`` is raised when GEOS < 3.3.0 (#407).
+
+Packaging:
+
+- Added new library search paths to assist Anaconda (#413).
+- geos-config will now be bypassed when NO_GEOS_CONFIG env var is set. This
+  allows configuration of Shapely builds on Linux systems that for whatever
+  reasons do not include the geos-config program (#322).
+
+1.6a1 (2016-09-14)
+------------------
+
+New features:
+
+- A new error derived from NotImplementedError, with a more useful message, is
+  raised when the GEOS backend doesn't support a called method (#216).
+- The ``project()`` method of LineString has been extended to LinearRing
+  geometries (#286).
+- A new ``minimum_rotated_rectangle`` attribute has been added to the base
+  geometry class (#354).
+- A new ``shapely.ops.polylabel()`` function has been added. It
+  computes a point suited for labeling concave polygons (#395).
+- A new ``shapely.ops.split()`` function has been added. It splits a
+  geometry by another geometry of lesser dimension: polygon by line, line by
+  point (#293, #371).
+- ``Polygon.from_bounds()`` constructs a Polygon from bounding coordinates
+  (#392).
+- Support for testing with Numpy 1.4.1 has been added (#301).
+- Support creating all kinds of empty geometries from empty lists of Python
+  objects (#397, #404).
+
+Refactoring:
+
+- Switch from ``SingleSidedBuffer()`` to ``OffsetCurve()`` for GEOS >= 3.3
+  (#270).
+- Cython speedups are now enabled by default (#252).
+
+Packaging:
+
+- Packaging 16.7, a setup dependency, is vendorized (#314).
+- Infrastructure for building manylinux1 wheels has been added (#391).
+- The system's ``geos-config`` program is now only checked when ``setup.py``
+  is executed, never during normal use of the module (#244).
+- Added new library search paths to assist PyInstaller (#382) and Windows
+  (#343).
+
 1.5.17 (2016-08-31)
 -------------------
 - Bug fix: eliminate memory leak in geom_factory() (#408).

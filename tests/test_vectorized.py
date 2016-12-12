@@ -1,22 +1,17 @@
 from . import unittest, numpy
 from shapely.geometry import Point, box, MultiPolygon
 
-requirements_ok = True
-
 try:
-    from shapely.vectorized import contains, touches
+    import numpy as np
+    has_numpy = True
 except ImportError:
-    requirements_ok = False
-
-if numpy:
-    np = numpy
-else:
-    requirements_ok = False
+    has_numpy = False
 
 
-@unittest.skipIf(not requirements_ok, 'requirements not met (numpy and cython)')
+@unittest.skipIf(not has_numpy, 'numpy required')
 class VectorizedContainsTestCase(unittest.TestCase):
     def assertContainsResults(self, geom, x, y):
+        from shapely.vectorized import contains
         result = contains(geom, x, y)
         x = np.asanyarray(x)
         y = np.asanyarray(y) 
@@ -91,9 +86,10 @@ class VectorizedContainsTestCase(unittest.TestCase):
         self.assertContainsResults(self.construct_torus(), *g.exterior.xy)
 
 
-@unittest.skipIf(not requirements_ok, 'requirements not met (numpy and cython)')
+@unittest.skipIf(not has_numpy, 'numpy required')
 class VectorizedTouchesTestCase(unittest.TestCase):
     def test_touches(self):
+        from shapely.vectorized import touches
         y, x = np.mgrid[-2:3:6j, -1:3:5j]
         geom = box(0, -1, 2, 2)
         result = touches(geom, x, y)
@@ -105,8 +101,6 @@ class VectorizedTouchesTestCase(unittest.TestCase):
                              [False, False, False, False, False]], dtype=bool)
         from numpy.testing import assert_array_equal
         assert_array_equal(result, expected)
-        
-        
 
 
 def test_suite():

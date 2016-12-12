@@ -14,18 +14,12 @@ import sys
 import threading
 
 from .ctypes_declarations import prototype, EXCEPTION_HANDLER_FUNCTYPE
+from .errors import WKBReadingError, WKTReadingError, TopologicalError, PredicateError
 from . import ftools
 
 
 # Add message handler to this module's logger
 LOG = logging.getLogger(__name__)
-ch = logging.StreamHandler()
-LOG.addHandler(ch)
-
-if 'all' in sys.warnoptions:
-    # show GEOS messages in console with: python -W all
-    LOG.setLevel(logging.DEBUG)
-
 
 # Find and load the GEOS and C libraries
 # If this ever gets any longer, we'll break it into separate modules
@@ -72,8 +66,13 @@ if sys.platform.startswith('linux'):
         _lgeos = CDLL(geos_whl_so[0])
         LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
     else:
-        _lgeos = load_dll(
-            'geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
+        alt_paths = [
+            'libgeos_c.so.1',
+            'libgeos_c.so',
+            # anaconda
+            os.path.join(sys.prefix, "lib", "libgeos_c.so"),
+        ]
+        _lgeos = load_dll('geos_c', fallbacks=alt_paths)
     free = load_dll('c').free
     free.argtypes = [c_void_p]
     free.restype = None
@@ -102,6 +101,8 @@ elif sys.platform == 'darwin':
                         os.path.join(sys._MEIPASS, 'libgeos_c.1.dylib'))
         else:
             alt_paths = [
+                # anaconda
+                os.path.join(sys.prefix, "lib", "libgeos_c.dylib"),
                 # The Framework build from Kyng Chaos
                 "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
                 # macports
@@ -119,13 +120,15 @@ elif sys.platform == 'win32':
             os.path.join(os.path.dirname(__file__), 'DLLs'))
         if hasattr(sys, "frozen"):
             wininst_dlls = os.path.normpath(
-                os.path.abspath(sys.executable+'../../DLLS'))
+                os.path.abspath(sys.executable + '../../DLLS'))
         else:
             wininst_dlls = os.path.abspath(os.__file__ + "../../../DLLs")
         original_path = os.environ['PATH']
         os.environ['PATH'] = "%s;%s;%s" % \
             (egg_dlls, wininst_dlls, original_path)
-        _lgeos = CDLL("geos_c.dll")
+        _lgeos = load_dll("geos_c.dll", fallbacks=[
+            os.path.join(sys.prefix, "Library", "lib", "geos_c.dll"),
+        ])
     except (ImportError, WindowsError, OSError):
         raise
 
@@ -199,24 +202,6 @@ if geos_version >= (3, 1, 0):
         [EXCEPTION_HANDLER_FUNCTYPE, EXCEPTION_HANDLER_FUNCTYPE]
     _lgeos.finishGEOS_r.argtypes = [c_void_p]
 
-# Exceptions
-
-
-class ReadingError(Exception):
-    pass
-
-
-class DimensionError(Exception):
-    pass
-
-
-class TopologicalError(Exception):
-    pass
-
-
-class PredicateError(Exception):
-    pass
-
 
 def handler(level):
     """Error handler
@@ -275,8 +260,9 @@ class WKTReader(object):
             text = text.encode('ascii')
         geom = self._lgeos.GEOSWKTReader_read(self._reader, c_char_p(text))
         if not geom:
-            raise ReadingError("Could not create geometry because of errors "
-                               "while reading input.")
+            raise WKTReadingError(
+                "Could not create geometry because of errors "
+                "while reading input.")
         # avoid circular import dependency
         from shapely.geometry.base import geom_factory
         return geom_factory(geom)
@@ -415,8 +401,9 @@ class WKBReader(object):
         geom = self._lgeos.GEOSWKBReader_read(
             self._reader, c_char_p(data), c_size_t(len(data)))
         if not geom:
-            raise ReadingError("Could not create geometry because of errors "
-                               "while reading input.")
+            raise WKBReadingError(
+                "Could not create geometry because of errors "
+                "while reading input.")
         # avoid circular import dependency
         from shapely import geometry
         return geometry.base.geom_factory(geom)
@@ -428,8 +415,9 @@ class WKBReader(object):
         geom = self._lgeos.GEOSWKBReader_readHEX(
             self._reader, c_char_p(data), c_size_t(len(data)))
         if not geom:
-            raise ReadingError("Could not create geometry because of errors "
-                               "while reading input.")
+            raise WKBReadingError(
+                "Could not create geometry because of errors "
+                "while reading input.")
         # avoid circular import dependency
         from shapely import geometry
         return geometry.base.geom_factory(geom)

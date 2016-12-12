@@ -1,6 +1,6 @@
 from . import unittest, numpy
 from shapely.geometry import Point, asPoint
-from shapely.geos import DimensionError
+from shapely.errors import DimensionError
 
 
 class LineStringTestCase(unittest.TestCase):
@@ -133,6 +133,11 @@ class LineStringTestCase(unittest.TestCase):
         a = asarray([1.0, 1.0, 0.0])
         p = Point(*list(a))
         self.assertEqual(p.coords[:], [(1.0, 1.0, 0.0)])
+
+        # Test array interface of empty geometry
+        pe = Point()
+        a = asarray(pe)
+        self.assertEqual(a.shape[0], 0)
 
 
 def test_suite():

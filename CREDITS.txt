@@ -5,44 +5,50 @@ Shapely is written by:
 
 * Sean Gillies <sean.gillies@gmail.com>
 * Oliver Tonnhofer <olt@bogosoft.com>
-* Mike Toews <mwtoews@gmail.com>
 * Joshua Arnott <josh@snorfalorpagus.net>
+* Mike Toews <mwtoews@gmail.com>
 * Jacob Wasserman <jwasserman@gmail.com>
-* Aron Bierbaum <aronbierbaum@gmail.com>
+* aronbierbaum <aronbierbaum@b426a367-1105-0410-b9ff-cdf4ab011145>
+* Allan Adair <allan@rfspot.com>
 * Johannes Schönberger <jschoenberger@demuc.de>
+* georgeouzou <geothrock@gmail.com>
 * Phil Elson <pelson.pub@gmail.com>
 * Howard Butler <hobu.inc@gmail.com>
 * dokai <dokai@b426a367-1105-0410-b9ff-cdf4ab011145>
 * Gabi Davar <grizzly.nyo@gmail.com>
+* Kevin Wurster <kevin@skytruth.org>
 * Kelsey Jordahl <kjordahl@enthought.com>
 * Dave Collins <dave@hopest.net>
+* fredj <frederic.junod@camptocamp.com>
+* Brad Hards <bradh@frogmouth.net>
+* David Baumgold <david@davidbaumgold.com>
+* Henry Walshaw <henry.walshaw@gmail.com>
 * Jinkun Wang <mejkunw@gmail.com>
 * Marc Jansen <jansen@terrestris.de>
-* Henry Walshaw <henry.walshaw@gmail.com>
-* David Baumgold <david@davidbaumgold.com>
 * Sampo Syrjanen <sampo.syrjanen@here.com>
 * Steve M. Kim <steve@climate.com>
 * Thomas Kluyver <takowl@gmail.com>
-* Brad Hards <bradh@frogmouth.net>
-* Allan Adair <allan.m.adair@gmail.com>
-* fredj <frederic.junod@camptocamp.com>
+* Morris Tweed <tweed.morris@gmail.com>
 * Naveen Michaud-Agrawal <naveen.michaudagrawal@gmail.com>
-* Peter Sagerson <psagers.github@ignorare.net>
-* BertrandGervais <bertrand.gervais.pro@gmail.com>
 * Jeethu Rao <jeethu@jeethurao.com>
+* Peter Sagerson <psagers.github@ignorare.net>
 * Jason Sanford <jason.sanford@mapmyfitness.com>
-* Brandon Wood <btwood@geometeor.com>
-* Stephan Hügel <urschrei@gmail.com>
-* Johan Euphrosine <proppy@aminche.com>
-* mindw <grizzly.nyo@gmail.com>
+* Jamie Hall <jamie1212@gmail.com>
 * James Spencer <james.s.spencer@gmail.com>
+* Stephan Hügel <urschrei@gmail.com>
 * Benjamin Root <ben.v.root@gmail.com>
+* Tobias Sauerwein <tobias.sauerwein@camptocamp.com>
+* WANG Aiyong <gepcelway@gmail.com>
+* James Douglass <jamesdouglassusa@gmail.com>
+* Brandon Wood <btwood@geometeor.com>
+* Andy Freeland <andy@andyfreeland.net>
+* BertrandGervais <bertrand.gervais.pro@gmail.com>
+* giumas <gmasetti@ccom.unh.edu>
 * Leandro Lima <leandro@limaesilva.com.br>
 * Maarten Vermeyen <maarten.vermeyen@rwo.vlaanderen.be>
-* Tobias Sauerwein <tobias.sauerwein@camptocamp.com>
-* James Douglass <jamesdouglassusa@gmail.com>
-* Morris Tweed <tweed.morris@gmail.com>]
-* WANG Aiyong <gepcelway@gmail.com>
+* joelostblom <joelostblom@users.noreply.github.com>
+* Marco De Nadai <me@marcodena.it>
+* Johan Euphrosine <proppy@aminche.com>
 
 See also: https://github.com/Toblerity/Shapely/graphs/contributors.
 
