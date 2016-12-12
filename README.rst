@@ -5,6 +5,7 @@ Shapely
 .. image:: https://travis-ci.org/Toblerity/Shapely.png?branch=master
    :target: https://travis-ci.org/Toblerity/Shapely
 
+.. image:: https://coveralls.io/repos/github/Toblerity/Shapely/badge.svg?branch=master
    :target: https://coveralls.io/github/Toblerity/Shapely?branch=master
 
 Manipulation and analysis of geometric objects in the Cartesian plane.
@@ -82,8 +83,9 @@ variable, e.g.:
 .. code-block:: console
 
     $ GEOS_CONFIG=/path/to/geos-config pip install shapely
-Shapely is also provided by popular Python distributions like Canopy (Enthought)
-and Anaconda (Continuum Analytics).
+
+Shapely is also provided by popular Python distributions like Canopy
+(Enthought) and Anaconda (Continuum Analytics).
 
 Usage
 =====
