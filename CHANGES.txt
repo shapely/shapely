@@ -1,6 +1,13 @@
 Changes
 =======
 
+1.6b2 (2016-12-12)
+------------------
+
+New features:
+
+- Add support for GeometryCollection to shape and asShape functions (#422).
+
 1.6b1 (2016-12-12)
 ------------------
 
