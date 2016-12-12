@@ -1,6 +1,13 @@
 Changes
 =======
 
+1.6b1 (2016-12-12)
+------------------
+
+Bug fixes:
+
+- Implemented __array_interface__ for empty Points and LineStrings (#403).
+
 1.6a3 (2016-12-01)
 ------------------
 

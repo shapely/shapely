@@ -32,8 +32,8 @@ Shapely 1.6.x requires
 * Python >=2.6 (including Python 3.x)
 * GEOS >=3.3 
 
-Installing Shapely
-==================
+Installing Shapely (1.6b1)
+==========================
 
 Windows users have two good installation options: the wheels at
 http://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely and the 
@@ -41,11 +41,17 @@ Anaconda platform's [conda-forge](https://conda-forge.github.io/)
 channel.
 
 OS X users can get Shapely wheels with GEOS included from the 
-Python Package Index with pip:
+Python Package Index with a recent version of pip (8+):
 
 .. code-block:: console
 
-    $ pip install shapely
+    $ pip install shapely==1.6b1
+
+A few extra speedups that require Numpy can be had by running
+
+.. code-block:: console
+
+    $ pip install shapely[vectorized]==1.6b1
 
 If you want to build Shapely from source for compatibility with
 other modules that depend on GEOS (such as cartopy or osgeo.ogr)
@@ -55,8 +61,9 @@ you may ignore the binary wheels.
 
     $ pip install shapely --no-binary shapely
 
-Binary wheels are also available for Linux. To get them,
-use `pip shapely`. To avoid them, use `pip install shapely --no-binary shapely`.
+Binary wheels are also available for Linux. To get them, use `pip shapely
+shapely==1.6b1`. To avoid them, use `pip install shapely --no-binary
+shapely==1.6b1`.
 
 In other situations, install `geos_c` libs and headers by any means 
 (for example, `brew install geos` on OS X or
