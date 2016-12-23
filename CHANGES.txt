@@ -3,8 +3,8 @@ Changes
 
 1.5.17.post1 (2016-12-23)
 -------------------------
-- New binary wheels using version 1.1.0 of sgillies/frs-wheel-builds. See
-  https://github.com/sgillies/frs-wheel-builds/blob/master/CHANGES.txt#L4.
+- New binary wheels using version 1.2.0 of sgillies/frs-wheel-builds. See
+  https://github.com/sgillies/frs-wheel-builds/blob/master/CHANGES.txt.
 
   1.5.17 (2016-08-31)
 -------------------
