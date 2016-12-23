@@ -6,6 +6,7 @@ prune DLLs_x86
 exclude *.txt
 exclude MANIFEST.in
 include CHANGES.txt CREDITS.txt LICENSE.txt README.rst VERSION.txt
+recursive-include packaging *.py
 recursive-include tests *.py *.txt
 recursive-include shapely/examples *.py
 recursive-include shapely/speedups *.pyx

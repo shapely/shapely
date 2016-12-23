@@ -1,0 +1,14 @@
+include CHANGELOG.rst CONTRIBUTING.rst README.rst
+include LICENSE LICENSE.APACHE LICENSE.BSD
+
+include .coveragerc
+include tox.ini
+
+recursive-include docs *
+recursive-include tests *.py
+
+exclude .travis.yml
+exclude dev-requirements.txt
+
+prune docs/_build
+prune tasks

@@ -5,8 +5,9 @@ Changes
 -------------------------
 - New binary wheels using version 1.2.0 of sgillies/frs-wheel-builds. See
   https://github.com/sgillies/frs-wheel-builds/blob/master/CHANGES.txt.
+- Vendorize packaging (for post-release version support).
 
-  1.5.17 (2016-08-31)
+1.5.17 (2016-08-31)
 -------------------
 - Bug fix: eliminate memory leak in geom_factory() (#408).
 - Bug fix: remove mention of negative distances in parallel_offset and note
