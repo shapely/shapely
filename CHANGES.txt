@@ -1,6 +1,14 @@
 Changes
 =======
 
+1.6b3 (soon)
+------------
+
+Bug fixes:
+
+- Level for log messages originating from the GEOS notice handler reduced from
+  WARNING to INFO (#447).
+
 1.6b2 (2016-12-12)
 ------------------
 
