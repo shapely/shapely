@@ -203,35 +203,25 @@ if geos_version >= (3, 1, 0):
     _lgeos.finishGEOS_r.argtypes = [c_void_p]
 
 
-def handler(level):
-    """Error handler
+def make_logging_callback(func):
+    """Error or notice handler callback producr
 
-    While this function can take any number of positional arguments when
-    called from Python and GEOS expects its error handler to accept any
-    number of arguments (like printf), I'm unable to get ctypes to make
-    a callback object from this function that will accept any number of
-    arguments.
-
-    At the moment, functions in the GEOS C API only pass 0 or
-    1 arguments to the error handler. We can deal with this, but when if
-    that changes, Shapely may break.
+    Wraps a logger method, func, as a GEOS callback.
     """
-    def callback(fmt, *args):
+    def callback(fmt, *fmt_args):
         fmt = fmt.decode('ascii')
         conversions = re.findall(r'%.', fmt)
-        log_vals = []
-        for spec, arg in zip(conversions, args):
-            if spec == '%s' and arg is not None:
-                log_vals.append(string_at(arg).decode('ascii'))
-            else:
-                LOG.error("An error occurred, but the format string "
-                          "'%s' could not be converted.", fmt)
-                return
-        getattr(LOG, level)(fmt, *log_vals)
+        args = [
+            string_at(arg).decode('ascii')
+            for spec, arg in zip(conversions, fmt_args)
+            if spec == '%s' and arg is not None]
+
+        func(fmt, *args)
+
     return callback
 
-error_handler = handler('error')
-notice_handler = handler('warning')
+error_handler = make_logging_callback(LOG.error)
+notice_handler = make_logging_callback(LOG.info)
 
 error_h = EXCEPTION_HANDLER_FUNCTYPE(error_handler)
 notice_h = EXCEPTION_HANDLER_FUNCTYPE(notice_handler)
