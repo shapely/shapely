@@ -8,6 +8,7 @@ Bug fixes:
 
 - Level for log messages originating from the GEOS notice handler reduced from
   WARNING to INFO (#447).
+- Permit speedups to be imported again without Numpy (#444).
 
 1.6b2 (2016-12-12)
 ------------------

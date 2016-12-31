@@ -4,6 +4,9 @@ from shapely.geometry import linestring, polygon
 from shapely import coords
 import shapely.affinity
 
+from ..ftools import wraps
+
+
 try:
     from shapely.speedups import _speedups
     available = True
@@ -14,7 +17,7 @@ except ImportError:
     # TODO: This does not appear to do anything useful
     import_error_msg = sys.exc_info()[1]
 
-from ..ftools import wraps
+
 def method_wrapper(f):
     def wrapper(*args, **kwargs):
         return f(*args, **kwargs)
@@ -25,6 +28,7 @@ _orig = {}
 
 # keep track of whether speedups are enabled
 enabled = False
+
 
 def enable():
     """Enable Cython speedups
@@ -46,23 +50,25 @@ def enable():
     if not available:
         warnings.warn("shapely.speedups not available", RuntimeWarning)
         return
-    
+
     if _orig:
         return
-    
+
     _orig['CoordinateSequence.ctypes'] = coords.CoordinateSequence.ctypes
     coords.CoordinateSequence.ctypes = property(_speedups.coordseq_ctypes)
-    
+
     _orig['CoordinateSequence.__iter__'] = coords.CoordinateSequence.__iter__
-    coords.CoordinateSequence.__iter__ = method_wrapper(_speedups.coordseq_iter)
+    coords.CoordinateSequence.__iter__ = method_wrapper(
+        _speedups.coordseq_iter)
 
     _orig['geos_linestring_from_py'] = linestring.geos_linestring_from_py
     linestring.geos_linestring_from_py = _speedups.geos_linestring_from_py
 
-    _orig['geos_linearring_from_py']  = polygon.geos_linearring_from_py
+    _orig['geos_linearring_from_py'] = polygon.geos_linearring_from_py
     polygon.geos_linearring_from_py = _speedups.geos_linearring_from_py
-    
+
     _orig['affine_transform'] = shapely.affinity.affine_transform
+
     # copy docstring from original function
     def affine_transform(geom, matrix):
         return _speedups.affine_transform(geom, matrix)
@@ -71,6 +77,7 @@ def enable():
 
     global enabled
     enabled = True
+
 
 def disable():
     """Disable Cython speedups

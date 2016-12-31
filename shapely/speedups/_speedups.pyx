@@ -6,7 +6,7 @@
 # Transcription to cython: Copyright (c) 2011, Oliver Tonnhofer
 
 import ctypes
-import numpy
+import logging
 
 from shapely.geos import lgeos
 from shapely.geometry import Point, LineString, LinearRing
@@ -15,6 +15,18 @@ from shapely.geometry.base import geom_factory
 include "../_geos.pxi"
 
 from libc.stdint cimport uintptr_t
+
+
+log = logging.getLogger(__name__)
+
+try:
+    import numpy
+    has_numpy = True
+except ImportError:
+    log.info("Numpy was not imported, continuing without requires()")
+    has_numpy = False
+    numpy = None
+
 
 cdef inline GEOSGeometry *cast_geom(uintptr_t geom_addr):
     return <GEOSGeometry *>geom_addr
@@ -36,7 +48,7 @@ def required(ob):
     """Return an object that meets Shapely requirements for self-owned
     C-continguous data, copying if necessary, or just return the original
     object."""
-    if hasattr(ob, '__array_interface__'):
+    if has_numpy and hasattr(ob, '__array_interface__'):
         return numpy.require(ob, numpy.float64, ["C", "OWNDATA"])
     else:
         return ob
