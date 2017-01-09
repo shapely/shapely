@@ -42,13 +42,6 @@ class GeometryCollection(BaseMultipartGeometry):
             self._geom, self._ndim = geos_geometrycollection_from_py(geoms)
 
     @property
-    def __geo_interface__(self):
-        geometries = []
-        for geom in self.geoms:
-            geometries.append(geom.__geo_interface__)
-        return dict(type='GeometryCollection', geometries=geometries)
-
-    @property
     def geoms(self):
         if self.is_empty:
             return []
