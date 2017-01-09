@@ -54,13 +54,6 @@ class MultiLineString(BaseMultipartGeometry):
     def shape_factory(self, *args):
         return linestring.LineString(*args)
 
-    @property
-    def __geo_interface__(self):
-        return {
-            'type': 'MultiLineString',
-            'coordinates': tuple(tuple(c for c in g.coords) for g in self.geoms)
-            }
-
     def svg(self, scale_factor=1., stroke_color=None):
         """Returns a group of SVG polyline elements for the LineString geometry.
 
