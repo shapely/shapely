@@ -53,13 +53,16 @@ def dump_coords(geom):
     if not isinstance(geom, BaseGeometry):
         raise ValueError('Must be instance of a geometry class; found ' +
                          geom.__class__.__name__)
-    elif geom.type in ('Point', 'LineString', 'LinearRing'):
-        return geom.coords[:]
+    elif geom.type == 'Point':
+        return tuple(*geom.coords)
+    elif geom.type in ('LineString', 'LinearRing'):
+        return tuple(geom.coords)
     elif geom.type == 'Polygon':
-        return geom.exterior.coords[:] + [i.coords[:] for i in geom.interiors]
-    elif geom.type.startswith('Multi') or geom.type == 'GeometryCollection':
+        return tuple(tuple(geom.exterior.coords) if geom.exterior else () +
+                     tuple(tuple(i.coords) for i in geom.interiors))
+    elif isinstance(geom, BaseMultipartGeometry):
         # Recursive call
-        return [dump_coords(part) for part in geom]
+        return tuple(dump_coords(part) for part in geom)
     else:
         raise ValueError('Unhandled geometry type: ' + repr(geom.type))
 
@@ -339,7 +342,16 @@ class BaseGeometry(object):
     @property
     def __geo_interface__(self):
         """Dictionary representation of the geometry"""
-        raise NotImplementedError
+        if self.geom_type == 'GeometryCollection':
+            return{
+                'type': self.geom_type,
+                'geometries': tuple(g.__geo_interface__ for g in self)
+            }
+        else:
+            return{
+                'type': self.geom_type,
+                'coordinates': dump_coords(self)
+            }
 
     # Type of geometry and its representations
     # ----------------------------------------
