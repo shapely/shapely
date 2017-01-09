@@ -67,13 +67,6 @@ class Point(BaseGeometry):
             raise DimensionError("This point has no z coordinate.")
         return self.coords[0][2]
 
-    @property
-    def __geo_interface__(self):
-        return {
-            'type': 'Point',
-            'coordinates': self.coords[0]
-            }
-
     def svg(self, scale_factor=1., fill_color=None):
         """Returns SVG circle element for the Point geometry.
 
