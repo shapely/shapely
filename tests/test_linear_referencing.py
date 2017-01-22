@@ -43,8 +43,11 @@ class LinearReferencingTestCase(unittest.TestCase):
     @unittest.skipIf(geos_version < (3, 2, 0), 'GEOS 3.2.0 required')
     def test_line1_interpolate(self):
         self.assertTrue(self.line1.interpolate(0.5).equals(Point(0.5, 0.0)))
+        self.assertTrue(self.line1.interpolate(-0.5).equals(Point(1.5, 0.0)))
         self.assertTrue(
             self.line1.interpolate(0.5, normalized=True).equals(Point(1, 0)))
+        self.assertTrue(
+            self.line1.interpolate(-0.5, normalized=True).equals(Point(1, 0)))
 
     @unittest.skipIf(geos_version < (3, 2, 0), 'GEOS 3.2.0 required')
     def test_line2_interpolate(self):
