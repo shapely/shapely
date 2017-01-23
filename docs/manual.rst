@@ -2177,6 +2177,31 @@ The :func:`~shapely.ops.split` function in `shapely.ops` splits a geometry by an
   >>> result.wkt
   'GEOMETRYCOLLECTION (LINESTRING (0 0, 1 1), LINESTRING (1 1, 2 2))'
 
+Substring
+---------
+
+The :func:`~shapely.ops.substring` function in `shapely.ops` returns a line segment between specified distances along a linear geometry.
+
+.. function:: shapely.ops.substring(geom, start_dist, end_dist[, normalized=False])
+
+    Negative distance values are taken as measured in the reverse
+    direction from the end of the geometry. Out-of-range index
+    values are handled by clamping them to the valid range of values.
+    
+    If the start distance equals the end distance, a point is being returned.
+    
+    If the normalized arg is True, the distance will be interpreted as a
+    fraction of the geometry's length.
+
+   `New in version 1.6.0`
+
+.. code-block:: pycon
+
+  >>> line = LineString(([0, 0], [2, 0]))
+  >>> result = substring(line, 0.5, 0.6)
+  >>> result.wkt
+  'LINESTRING (0.5 0, 0.6 0)'
+
 Prepared Geometry Operations
 ----------------------------
 

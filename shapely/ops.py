@@ -479,12 +479,12 @@ split = SplitOp.split
 def substring(geom, start_dist, end_dist, normalized=False):
     """Return a line segment between specified distances along a linear geometry.
 
-    Negative length values are taken as measured in the reverse
+    Negative distance values are taken as measured in the reverse
     direction from the end of the geometry. Out-of-range index
     values are handled by clamping them to the valid range of values.
     If the start distances equals the end distance, a point is being returned.
     If the normalized arg is True, the distance will be interpreted as a
-    fraction of the geometry's length.      
+    fraction of the geometry's length.
     """
 
     assert(isinstance(geom, LineString))
