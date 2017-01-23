@@ -476,7 +476,7 @@ class SplitOp(object):
 split = SplitOp.split
 
 
-def section(geom, start_dist, end_dist, normalized=False):
+def substring(geom, start_dist, end_dist, normalized=False):
     """Return a line segment between specified distances along a linear geometry.
 
     Negative length values are taken as measured in the reverse
