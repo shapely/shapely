@@ -64,7 +64,7 @@ before_install:
   - if [ "$SPEEDUPS" == "1" ]; then SPEEDUPS_FLAG=--with-speedups; else SPEEDUPS_FLAG=--without-speedups; fi
 
 install:
-  - pip install -e .[test]
+  - pip install -e .[all]
   - pip install coveralls
 
 script:
