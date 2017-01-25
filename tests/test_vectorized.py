@@ -2,13 +2,14 @@ from . import unittest, numpy
 from shapely.geometry import Point, box, MultiPolygon
 
 try:
+    import shapely.vectorized
     import numpy as np
-    has_numpy = True
+    has_vectorized = True
 except ImportError:
-    has_numpy = False
+    has_vectorized = False
 
 
-@unittest.skipIf(not has_numpy, 'numpy required')
+@unittest.skipIf(not has_vectorized, 'shapely.vectorized required')
 class VectorizedContainsTestCase(unittest.TestCase):
     def assertContainsResults(self, geom, x, y):
         from shapely.vectorized import contains
@@ -86,7 +87,7 @@ class VectorizedContainsTestCase(unittest.TestCase):
         self.assertContainsResults(self.construct_torus(), *g.exterior.xy)
 
 
-@unittest.skipIf(not has_numpy, 'numpy required')
+@unittest.skipIf(not has_vectorized, 'shapely.vectorized required')
 class VectorizedTouchesTestCase(unittest.TestCase):
     def test_touches(self):
         from shapely.vectorized import touches
