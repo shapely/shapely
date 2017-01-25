@@ -178,7 +178,7 @@ with open('CHANGES.txt', 'r', **open_kwds) as fp:
 long_description = readme + '\n\n' + credits + '\n\n' + changes
 
 extra_reqs = {
-    'test': ['pytest', 'pytest-cov', 'packaging'],
+    'test': ['pytest', 'pytest-cov'],
     'vectorized': ['numpy']}
 
 extra_reqs['all'] = list(it.chain.from_iterable(extra_reqs.values()))
