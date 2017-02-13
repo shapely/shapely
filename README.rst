@@ -2,7 +2,7 @@
 Shapely
 =======
 
-.. image:: https://travis-ci.org/Toblerity/Shapely.png?branch=master
+.. image:: https://travis-ci.org/Toblerity/Shapely.svg?branch=master
    :target: https://travis-ci.org/Toblerity/Shapely
 
 .. image:: https://coveralls.io/repos/github/Toblerity/Shapely/badge.svg?branch=master
