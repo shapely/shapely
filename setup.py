@@ -73,7 +73,7 @@ except ImportError:
 from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
 
-from packaging.version import Version
+from _vendor.packaging.version import Version
 
 # Get geos_version from GEOS dynamic library, which depends on
 # GEOS_LIBRARY_PATH and/or GEOS_CONFIG environment variables
@@ -178,7 +178,7 @@ with open('CHANGES.txt', 'r', **open_kwds) as fp:
 long_description = readme + '\n\n' + credits + '\n\n' + changes
 
 extra_reqs = {
-    'test': ['pytest', 'pytest-cov', 'packaging'],
+    'test': ['pytest', 'pytest-cov'],
     'vectorized': ['numpy']}
 
 extra_reqs['all'] = list(it.chain.from_iterable(extra_reqs.values()))
