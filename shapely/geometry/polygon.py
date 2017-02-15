@@ -52,13 +52,6 @@ class LinearRing(LineString):
         if coordinates is not None:
             self._set_coords(coordinates)
 
-    @property
-    def __geo_interface__(self):
-        return {
-            'type': 'LinearRing',
-            'coordinates': tuple(self.coords)
-            }
-
     # Coordinate access
 
     _get_coords = BaseGeometry._get_coords
@@ -300,16 +293,6 @@ class Polygon(BaseGeometry):
     def coords(self):
         raise NotImplementedError(
         "Component rings have coordinate sequences, but the polygon does not")
-
-    @property
-    def __geo_interface__(self):
-        coords = [tuple(self.exterior.coords)]
-        for hole in self.interiors:
-            coords.append(tuple(hole.coords))
-        return {
-            'type': 'Polygon',
-            'coordinates': tuple(coords)
-            }
 
     def svg(self, scale_factor=1., fill_color=None):
         """Returns SVG path element for the Polygon geometry.

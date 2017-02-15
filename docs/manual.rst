@@ -572,7 +572,7 @@ Figure 5. a) a green and a yellow line that intersect along a line and at a
 single point; b) the intersection (in blue) is a collection containing one
 `LineString` and one `Point`.
 
-Members of a `GeometryCollection` are accessed via the `geoms` property or via
+Members of a `GeometryCollection` are accessed via the ``geoms`` property or via
 the iterator protocol using ``in``  or ``list()``.
 
 .. code-block:: pycon
@@ -634,7 +634,7 @@ Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
   (0.0, 0.0, 1.0, 1.0)
 
 Members of a multi-point collection are accessed via the ``geoms`` property or
-via the iterator protocol using ``in`` or :func:`list`.
+via the iterator protocol using ``in`` or ``list()``.
 
 .. code-block:: pycon
 
@@ -2329,6 +2329,7 @@ All of Shapely's geometry types are supported by these functions.
 
 .. code-block:: pycon
 
+  >> from shapely.wkt import dumps, loads
   >> wkt = dumps(Point(0, 0))
   >>> print wkt
   POINT (0.0000000000000000 0.0000000000000000)

@@ -1,15 +1,6 @@
 from matplotlib import pyplot
 from shapely.geometry import LineString
-from figures import SIZE
-
-BLUE =   '#6699cc'
-YELLOW = '#ffcc33'
-GREEN =  '#339933'
-GRAY =   '#999999'
-
-def plot_coords(ax, ob):
-    x, y = ob.xy
-    ax.plot(x, y, 'o', color=GRAY, zorder=1)
+from figures import BLUE, GRAY, YELLOW, GREEN, SIZE, set_limits, plot_coords
 
 fig = pyplot.figure(1, figsize=SIZE, dpi=90) #1, figsize=(10, 4), dpi=180)
 
@@ -30,13 +21,7 @@ ax.plot(x, y, color=GREEN, alpha=0.5, linewidth=3, solid_capstyle='round', zorde
 
 ax.set_title('a) lines')
 
-xrange = [-1, 3]
-yrange = [-1, 3]
-ax.set_xlim(*xrange)
-ax.set_xticks(range(*xrange) + [xrange[-1]])
-ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, -1, 3, -1, 3)
 
 #2: invalid self-touching ring
 ax = fig.add_subplot(122)
@@ -55,13 +40,7 @@ for ob in a.intersection(b):
 
 ax.set_title('b) collection')
 
-xrange = [-1, 3]
-yrange = [-1, 3]
-ax.set_xlim(*xrange)
-ax.set_xticks(range(*xrange) + [xrange[-1]])
-ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, -1, 3, -1, 3)
 
 pyplot.show()
 

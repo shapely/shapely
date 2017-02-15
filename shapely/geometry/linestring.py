@@ -47,13 +47,6 @@ class LineString(BaseGeometry):
         if coordinates is not None:
             self._set_coords(coordinates)
 
-    @property
-    def __geo_interface__(self):
-        return {
-            'type': 'LineString',
-            'coordinates': tuple(self.coords)
-            }
-
     def svg(self, scale_factor=1., stroke_color=None):
         """Returns SVG polyline element for the LineString geometry.
 

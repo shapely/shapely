@@ -60,13 +60,6 @@ class MultiPoint(BaseMultipartGeometry):
     def shape_factory(self, *args):
         return point.Point(*args)
 
-    @property
-    def __geo_interface__(self):
-        return {
-            'type': 'MultiPoint',
-            'coordinates': tuple([g.coords[0] for g in self.geoms])
-            }
-
     def svg(self, scale_factor=1., fill_color=None):
         """Returns a group of SVG circle elements for the MultiPoint geometry.
 

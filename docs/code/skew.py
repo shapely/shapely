@@ -3,14 +3,7 @@ from shapely.wkt import loads as load_wkt
 from shapely import affinity
 from descartes.patch import PolygonPatch
 
-from figures import SIZE, BLUE, GRAY
-
-
-def add_origin(ax, geom, origin):
-    x, y = xy = affinity.interpret_origin(geom, origin, 2)
-    ax.plot(x, y, 'o', color=GRAY, zorder=1)
-    ax.annotate(str(xy), xy=xy, ha='center',
-                textcoords='offset points', xytext=(0, 8))
+from figures import SIZE, BLUE, GRAY, set_limits, add_origin
 
 fig = pyplot.figure(1, figsize=SIZE, dpi=90)
 
@@ -29,9 +22,6 @@ POLYGON((2.218 2.204, 2.273 2.18, 2.328 2.144, 2.435 2.042, 2.541 1.895,
   2.259 3.025, 2.219 3.103, 2.163 3.167, 2.091 3.217, 2.004 3.253, 1.902 3.275,
   1.784 3.282, 1.347 3.282))''')
 
-xrange = [0, 5]
-yrange = [0, 4]
-
 # 1
 ax = fig.add_subplot(121)
 
@@ -47,11 +37,7 @@ add_origin(ax, R, (1, 1))
 
 ax.set_title("a) xs=20, origin(1, 1)")
 
-ax.set_xlim(*xrange)
-ax.set_xticks(range(*xrange) + [xrange[-1]])
-ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, 0, 5, 0, 4)
 
 # 2
 ax = fig.add_subplot(122)
@@ -68,10 +54,6 @@ add_origin(ax, R, 'center')
 
 ax.set_title("b) ys=30")
 
-ax.set_xlim(*xrange)
-ax.set_xticks(range(*xrange) + [xrange[-1]])
-ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, 0, 5, 0, 4)
 
 pyplot.show()

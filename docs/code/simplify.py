@@ -2,7 +2,7 @@ from matplotlib import pyplot
 from shapely.geometry import MultiPoint, Point
 from descartes.patch import PolygonPatch
 
-from figures import SIZE, BLUE, GRAY
+from figures import SIZE, BLUE, GRAY, set_limits
 
 fig = pyplot.figure(1, figsize=SIZE, dpi=90) #1, figsize=SIZE, dpi=90)
 
@@ -21,13 +21,7 @@ ax.add_patch(patch1b)
 
 ax.set_title('a) tolerance 0.2')
 
-xrange = [-1, 3]
-yrange = [-1, 3]
-ax.set_xlim(*xrange)
-ax.set_xticks(range(*xrange) + [xrange[-1]])
-ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, -1, 3, -1, 3)
 
 #2
 ax = fig.add_subplot(122)
@@ -42,13 +36,7 @@ ax.add_patch(patch2b)
 
 ax.set_title('b) tolerance 0.5')
 
-xrange = [-1, 3]
-yrange = [-1, 3]
-ax.set_xlim(*xrange)
-ax.set_xticks(range(*xrange) + [xrange[-1]])
-ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, -1, 3, -1, 3)
 
 pyplot.show()
 

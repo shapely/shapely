@@ -2,19 +2,7 @@ from matplotlib import pyplot
 from shapely.geometry import MultiPolygon
 from descartes.patch import PolygonPatch
 
-from figures import SIZE
-
-COLOR = {
-    True:  '#6699cc',
-    False: '#ff3333'
-    }
-
-def v_color(ob):
-    return COLOR[ob.is_valid]
-
-def plot_coords(ax, ob):
-    x, y = ob.xy
-    ax.plot(x, y, 'o', color='#999999', zorder=1)
+from figures import BLUE, SIZE, set_limits, plot_coords, color_isvalid
     
 fig = pyplot.figure(1, figsize=SIZE, dpi=90)
 
@@ -28,18 +16,12 @@ multi1 = MultiPolygon([[a, []], [b, []]])
 
 for polygon in multi1:
     plot_coords(ax, polygon.exterior)
-    patch = PolygonPatch(polygon, facecolor=v_color(multi1), edgecolor=v_color(multi1), alpha=0.5, zorder=2)
+    patch = PolygonPatch(polygon, facecolor=color_isvalid(multi1), edgecolor=color_isvalid(multi1, valid=BLUE), alpha=0.5, zorder=2)
     ax.add_patch(patch)
 
 ax.set_title('a) valid')
 
-xrange = [-1, 3]
-yrange = [-1, 3]
-ax.set_xlim(*xrange)
-ax.set_xticks(range(*xrange) + [xrange[-1]])
-ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, -1, 3, -1, 3)
 
 #2: invalid self-touching ring
 ax = fig.add_subplot(122)
@@ -51,18 +33,12 @@ multi2 = MultiPolygon([[c, []], [d, []]])
 
 for polygon in multi2:
     plot_coords(ax, polygon.exterior)
-    patch = PolygonPatch(polygon, facecolor=v_color(multi2), edgecolor=v_color(multi2), alpha=0.5, zorder=2)
+    patch = PolygonPatch(polygon, facecolor=color_isvalid(multi2), edgecolor=color_isvalid(multi2, valid=BLUE), alpha=0.5, zorder=2)
     ax.add_patch(patch)
 
 ax.set_title('b) invalid')
 
-xrange = [-1, 3]
-yrange = [-1, 3]
-ax.set_xlim(*xrange)
-ax.set_xticks(range(*xrange) + [xrange[-1]])
-ax.set_ylim(*yrange)
-ax.set_yticks(range(*yrange) + [yrange[-1]])
-ax.set_aspect(1)
+set_limits(ax, -1, 3, -1, 3)
 
 pyplot.show()
 

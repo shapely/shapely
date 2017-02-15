@@ -1,7 +1,6 @@
 from . import unittest, numpy
 from shapely.geometry import Point, box, MultiPolygon
 
-
 try:
     import numpy as np
     has_numpy = True

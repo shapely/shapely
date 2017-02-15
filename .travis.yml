@@ -2,33 +2,73 @@ language: python
 sudo: false
 cache: pip
 
-python:
-  - "2.6"
-  - "2.7"
-  - "3.3"
-  - "3.4"
-  - "3.5"
+matrix:
+  include:
+    - python: "2.7"
+      env:
+        - SPEEDUPS=1
+        - NUMPY=1
+    - python: "2.7"
+      env:
+        - SPEEDUPS=0
+        - NUMPY=1
+    - python: "2.7"
+      env:
+        - SPEEDUPS=0
+        - NUMPY=0
 
-env:
-  - "TRAVIS_SPEEDUP_OPTS=--with-speedups"
-  - "TRAVIS_SPEEDUP_OPTS=--without-speedups"
+    - python: "3.3"
+      env:
+        - SPEEDUPS=1
+        - NUMPY=1
+    - python: "3.3"
+      env:
+        - SPEEDUPS=0
+        - NUMPY=1
+
+    - python: "3.4"
+      env:
+        - SPEEDUPS=1
+        - NUMPY=1
+    - python: "3.4"
+      env:
+        - SPEEDUPS=0
+        - NUMPY=1
+
+    - python: "3.5"
+      env:
+        - SPEEDUPS=1
+        - NUMPY=1
+    - python: "3.5"
+      env:
+        - SPEEDUPS=0
+        - NUMPY=1
+    - python: "3.5"
+      env:
+        - SPEEDUPS=0
+        - NUMPY=0
 
 addons:
   apt:
     packages:
       - libgeos-dev
-      - python-numpy
 
 before_install:
   - if [[ $TRAVIS_PYTHON_VERSION == "2.6" ]]; then pip install unittest2; fi
   - pip install pip setuptools --upgrade
-  - pip install --install-option="--no-cython-compile" cython
+  # if building with speedups install cython
+  - if [ "$SPEEDUPS" == "1" ]; then pip install --install-option="--no-cython-compile" cython; fi
+  # if testing without numpy explicitly remove it
+  - if [ "$NUMPY" == "0" ]; then pip uninstall --yes numpy; fi
+  # convert SPEEDUPS to --with-speedups/--without-speedups
+  - if [ "$SPEEDUPS" == "1" ]; then SPEEDUPS_FLAG=--with-speedups; else SPEEDUPS_FLAG=--without-speedups; fi
 
 install:
   - pip install -e .[test]
   - pip install coveralls
 
-script: "py.test --cov shapely --cov-report term-missing ${TRAVIS_SPEEDUP_OPTS}"
+script:
+  - "py.test --cov shapely --cov-report term-missing ${SPEEDUPS_FLAG}"
 
 after_success:
   - coveralls || echo "!! intermittent coveralls failure"
