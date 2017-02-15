@@ -406,11 +406,11 @@ class SplitOp(object):
 
         assert(isinstance(line, LineString))
         assert(isinstance(splitter, MultiPoint))
-        
+
         chunks = [line]
         for pt in splitter.geoms:
             new_chunks = []
-            for chunk in chunks:
+            for chunk in filter(lambda x: not x.is_empty, chunks):
                 # add the newly split 2 lines or the same line if not split
                 new_chunks.extend(SplitOp._split_line_with_point(chunk, pt))
             chunks = new_chunks

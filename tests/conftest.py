@@ -4,9 +4,9 @@ import pytest
 
 def pytest_addoption(parser):
     parser.addoption("--with-speedups", action="store_true", default=False,
-        help="Run tests with speedups.")
+                     help="Run tests with speedups.")
     parser.addoption("--without-speedups", action="store_true", default=False,
-        help="Run tests without speedups.")
+                     help="Run tests without speedups.")
 
 def pytest_runtest_setup(item):
     if item.config.getoption("--with-speedups"):
