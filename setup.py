@@ -73,7 +73,7 @@ except ImportError:
 from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
 
-from _vendor.packaging.version import Version
+from shapely._vendor.packaging.version import Version
 
 # Get geos_version from GEOS dynamic library, which depends on
 # GEOS_LIBRARY_PATH and/or GEOS_CONFIG environment variables
