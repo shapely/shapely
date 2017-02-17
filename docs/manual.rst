@@ -2389,7 +2389,19 @@ and a N x 2 array can be adapted to a line string
   >>> la.wkt
   'LINESTRING (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)'
 
-There is no Numpy array representation of a polygon.
+Polygon and MultiPoint can also be created from N x 2 arrays:
+
+.. code-block:: pycon
+
+  >>> from shapely.geometry import asMultiPoint
+  >>> ma = asMultiPoint(np.array([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6]]))
+  >>> ma.wkt
+  'MULTIPOINT (1.1 2.2, 3.3 4.4, 5.5 6.6)'
+
+  >>> from shapely.geometry import asPolygon
+  >>> pa = asPolygon(np.array([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6]]))
+  >>> pa.wkt
+  'POLYGON ((1.1 2.2, 3.3 4.4, 5.5 6.6, 1.1 2.2))'
 
 Python Geo Interface
 --------------------
