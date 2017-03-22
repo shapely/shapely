@@ -27,10 +27,13 @@ class CollectionTestCase(unittest.TestCase):
         self.assertIsNotNone(child.wkt)
 
     def test_geointerface(self):
-        d = {"type": "GeometryCollection","geometries": [
-                {"type": "Point", "coordinates": (0, 3)},
-                {"type": "LineString", "coordinates": ((2, 0), (1, 0))}
-            ]}
+        crs_obj = {"type": "name", "properties": {"name": "epsg:4326"}}
+        d = {"type": "GeometryCollection",
+             "geometries": [
+                 {"type": "Point", "coordinates": (0, 3)},
+                 {"type": "LineString", "coordinates": ((2, 0), (1, 0))},
+             ],
+             'crs': crs_obj}
 
         # asShape
         m = asShape(d)
@@ -39,6 +42,8 @@ class CollectionTestCase(unittest.TestCase):
         geom_types = [g.geom_type for g in m.geoms]
         self.assertIn("Point", geom_types)
         self.assertIn("LineString", geom_types)
+        self.assertEqual(m.crs, crs_obj)
+        self.assertEqual(m.__geo_interface__, d)
 
         # shape
         m = shape(d)

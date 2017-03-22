@@ -15,11 +15,13 @@ class PolygonTestCase(unittest.TestCase):
         # Initialization
         # Linear rings won't usually be created by users, but by polygons
         coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0))
-        ring = LinearRing(coords)
+        crs_obj = {"type": "name", "properties": {"name": "epsg:4326"}}
+        ring = LinearRing(coords, crs=crs_obj)
         self.assertEqual(len(ring.coords), 5)
         self.assertEqual(ring.coords[0], ring.coords[4])
         self.assertEqual(ring.coords[0], ring.coords[-1])
         self.assertTrue(ring.is_ring)
+        self.assertEqual(ring.crs, crs_obj)
 
         # Coordinate modification
         ring.coords = ((0.0, 0.0), (0.0, 2.0), (2.0, 2.0), (2.0, 0.0))
@@ -27,7 +29,9 @@ class PolygonTestCase(unittest.TestCase):
             ring.__geo_interface__,
             {'type': 'LinearRing',
              'coordinates': ((0.0, 0.0), (0.0, 2.0), (2.0, 2.0), (2.0, 0.0),
-                             (0.0, 0.0))})
+                             (0.0, 0.0)),
+             'crs': crs_obj,
+             })
 
         # Test ring adapter
         coords = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]
@@ -42,8 +46,10 @@ class PolygonTestCase(unittest.TestCase):
                           (0.0, 0.0)])
 
         # Construct a polygon, exterior ring only
-        polygon = Polygon(coords)
+        crs_obj = {"type": "name", "properties": {"name": "epsg:4326"}}
+        polygon = Polygon(coords, crs=crs_obj)
         self.assertEqual(len(polygon.exterior.coords), 5)
+        self.assertEqual(polygon.crs, crs_obj)
 
         # Ring Access
         self.assertIsInstance(polygon.exterior, LinearRing)
@@ -92,7 +98,8 @@ class PolygonTestCase(unittest.TestCase):
             {'type': 'Polygon',
              'coordinates': (((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (2.0, -1.0),
                              (0.0, 0.0)), ((0.25, 0.25), (0.25, 0.5),
-                             (0.5, 0.5), (0.5, 0.25), (0.25, 0.25)))})
+                             (0.5, 0.5), (0.5, 0.25), (0.25, 0.25))),
+             })
 
         # Adapter
         hole_coords = [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))]

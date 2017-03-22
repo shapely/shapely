@@ -28,7 +28,7 @@ class LinearRing(LineString):
     invalid and operations on it may fail.
     """
 
-    def __init__(self, coordinates=None):
+    def __init__(self, coordinates=None, crs=None):
         """
         Parameters
         ----------
@@ -48,16 +48,19 @@ class LinearRing(LineString):
           >>> ring.length
           4.0
         """
-        BaseGeometry.__init__(self)
+        BaseGeometry.__init__(self, crs=crs)
         if coordinates is not None:
             self._set_coords(coordinates)
 
     @property
     def __geo_interface__(self):
-        return {
+        geom = {
             'type': 'LinearRing',
             'coordinates': tuple(self.coords)
-            }
+        }
+        if self.crs is not None:
+            geom['crs'] = self.crs
+        return geom
 
     # Coordinate access
 
@@ -206,7 +209,7 @@ class Polygon(BaseGeometry):
     _interiors = []
     _ndim = 2
 
-    def __init__(self, shell=None, holes=None):
+    def __init__(self, shell=None, holes=None, crs=None):
         """
         Parameters
         ----------
@@ -215,6 +218,7 @@ class Polygon(BaseGeometry):
         holes : sequence
             A sequence of objects which satisfy the same requirements as the
             shell parameters above
+        crs : dict
 
         Example
         -------
@@ -225,7 +229,7 @@ class Polygon(BaseGeometry):
           >>> polygon.area
           1.0
         """
-        BaseGeometry.__init__(self)
+        BaseGeometry.__init__(self, crs=crs)
 
         if shell is not None:
             ret = geos_polygon_from_py(shell, holes)
@@ -306,10 +310,13 @@ class Polygon(BaseGeometry):
         coords = [tuple(self.exterior.coords)]
         for hole in self.interiors:
             coords.append(tuple(hole.coords))
-        return {
+        geom = {
             'type': 'Polygon',
-            'coordinates': tuple(coords)
-            }
+            'coordinates': tuple(coords),
+        }
+        if self.crs is not None:
+            geom['crs'] = self.crs
+        return geom
 
     def svg(self, scale_factor=1., fill_color=None):
         """Returns SVG path element for the Polygon geometry.
@@ -479,36 +486,35 @@ def geos_polygon_from_py(shell, holes=None):
     if isinstance(shell, Polygon):
         return geos_geom_from_py(shell)
 
-    if shell is not None:
-        ret = geos_linearring_from_py(shell)
-        if ret is None:
-            return None
+    ret = geos_linearring_from_py(shell)
+    if ret is None:
+        return None
 
-        geos_shell, ndim = ret
-        if holes is not None and len(holes) > 0:
-            ob = holes
-            L = len(ob)
-            exemplar = ob[0]
-            try:
-                N = len(exemplar[0])
-            except TypeError:
-                N = exemplar._ndim
-            if not L >= 1:
-                raise ValueError("number of holes must be non zero")
-            if not N in (2, 3):
-                raise ValueError("insufficiant coordinate dimension")
+    geos_shell, ndim = ret
+    if holes is not None and len(holes) > 0:
+        ob = holes
+        L = len(ob)
+        exemplar = ob[0]
+        try:
+            N = len(exemplar[0])
+        except TypeError:
+            N = exemplar._ndim
+        if not L >= 1:
+            raise ValueError("number of holes must be non zero")
+        if not N in (2, 3):
+            raise ValueError("insufficiant coordinate dimension")
 
-            # Array of pointers to ring geometries
-            geos_holes = (c_void_p * L)()
+        # Array of pointers to ring geometries
+        geos_holes = (c_void_p * L)()
 
-            # add to coordinate sequence
-            for l in range(L):
-                geom, ndim = geos_linearring_from_py(ob[l])
-                geos_holes[l] = cast(geom, c_void_p)
-        else:
-            geos_holes = POINTER(c_void_p)()
-            L = 0
+        # add to coordinate sequence
+        for l in range(L):
+            geom, ndim = geos_linearring_from_py(ob[l])
+            geos_holes[l] = cast(geom, c_void_p)
+    else:
+        geos_holes = POINTER(c_void_p)()
+        L = 0
 
-        return (
-            lgeos.GEOSGeom_createPolygon(
-                c_void_p(geos_shell), geos_holes, L), ndim)
+    return (
+        lgeos.GEOSGeom_createPolygon(
+            c_void_p(geos_shell), geos_holes, L), ndim)

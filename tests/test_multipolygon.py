@@ -9,9 +9,10 @@ class MultiPolygonTestCase(MultiGeometryTestCase):
     def test_multipolygon(self):
 
         # From coordinate tuples
+        crs_obj = {"type": "name", "properties": {"name": "epsg:4326"}}
         geom = MultiPolygon(
             [(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)),
-              [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))])])
+              [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))])], crs=crs_obj)
         self.assertIsInstance(geom, MultiPolygon)
         self.assertEqual(len(geom.geoms), 1)
         self.assertEqual(
@@ -19,11 +20,12 @@ class MultiPolygonTestCase(MultiGeometryTestCase):
             [[(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0),
               [(0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25),
                (0.25, 0.25)]]])
+        self.assertEqual(geom.crs, crs_obj)
 
         # Or from polygons
         p = Polygon(((0, 0), (0, 1), (1, 1), (1, 0)),
                     [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))])
-        geom = MultiPolygon([p])
+        geom = MultiPolygon([p], crs=crs_obj)
         self.assertEqual(len(geom.geoms), 1)
         self.assertEqual(
             dump_coords(geom),
@@ -57,7 +59,9 @@ class MultiPolygonTestCase(MultiGeometryTestCase):
              'coordinates': [(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0),
                                (1.0, 0.0), (0.0, 0.0)),
                               ((0.25, 0.25), (0.25, 0.5), (0.5, 0.5),
-                               (0.5, 0.25), (0.25, 0.25)))]})
+                               (0.5, 0.25), (0.25, 0.25)))],
+             'crs': crs_obj
+             })
 
         # Adapter
         coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0))

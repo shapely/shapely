@@ -30,7 +30,7 @@ class MultiPoint(BaseMultipartGeometry):
         A sequence of Points
     """
 
-    def __init__(self, points=None):
+    def __init__(self, points=None, crs=None):
         """
         Parameters
         ----------
@@ -38,6 +38,8 @@ class MultiPoint(BaseMultipartGeometry):
             A sequence of (x, y [,z]) numeric coordinate pairs or triples or a
             sequence of objects that implement the numpy array interface,
             including instaces of Point.
+        crs : dict
+            Optional dict containing coordinate reference system
 
         Example
         -------
@@ -49,7 +51,7 @@ class MultiPoint(BaseMultipartGeometry):
           >>> type(ob.geoms[0]) == Point
           True
         """
-        super(MultiPoint, self).__init__()
+        super(MultiPoint, self).__init__(crs=crs)
 
         if points is None or len(points) == 0:
             # allow creation of empty multipoints, to support unpickling
@@ -62,10 +64,13 @@ class MultiPoint(BaseMultipartGeometry):
 
     @property
     def __geo_interface__(self):
-        return {
+        geom = {
             'type': 'MultiPoint',
             'coordinates': tuple([g.coords[0] for g in self.geoms])
-            }
+        }
+        if self.crs is not None:
+            geom['crs'] = self.crs
+        return geom
 
     def svg(self, scale_factor=1., fill_color=None):
         """Returns a group of SVG circle elements for the MultiPoint geometry.

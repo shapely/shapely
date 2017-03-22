@@ -10,10 +10,12 @@ class MultiLineStringTestCase(MultiGeometryTestCase):
     def test_multilinestring(self):
 
         # From coordinate tuples
-        geom = MultiLineString((((1.0, 2.0), (3.0, 4.0)),))
+        crs_obj = {"type": "name", "properties": {"name": "epsg:4326"}}
+        geom = MultiLineString((((1.0, 2.0), (3.0, 4.0)),), crs=crs_obj)
         self.assertIsInstance(geom, MultiLineString)
         self.assertEqual(len(geom.geoms), 1)
         self.assertEqual(dump_coords(geom), [[(1.0, 2.0), (3.0, 4.0)]])
+        self.assertEqual(geom.crs, crs_obj)
 
         # From lines
         a = LineString(((1.0, 2.0), (3.0, 4.0)))

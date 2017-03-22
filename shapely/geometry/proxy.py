@@ -1,7 +1,7 @@
 """Proxy for coordinates stored outside Shapely geometries
 """
 
-from shapely.geometry.base import deserialize_wkb, EMPTY
+from shapely.geometry.base import EMPTY
 from shapely.geos import lgeos
 
 

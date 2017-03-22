@@ -20,13 +20,15 @@ class GeometryCollection(BaseMultipartGeometry):
         A sequence of Shapely geometry instances
     """
 
-    def __init__(self, geoms=None):
+    def __init__(self, geoms=None, crs=None):
         """
         Parameters
         ----------
         geoms : list
             A list of shapely geometry instances, which may be heterogenous.
-        
+        crs : dict
+            Optional dict containing coordinate reference system
+
         Example
         -------
         Create a GeometryCollection with a Point and a LineString
@@ -35,7 +37,7 @@ class GeometryCollection(BaseMultipartGeometry):
           >>> l = LineString([(52, -1), (49, 2)])
           >>> gc = GeometryCollection([p, l])
         """
-        BaseMultipartGeometry.__init__(self)
+        BaseMultipartGeometry.__init__(self, crs=crs)
         if not geoms:
             pass
         else:
@@ -46,7 +48,13 @@ class GeometryCollection(BaseMultipartGeometry):
         geometries = []
         for geom in self.geoms:
             geometries.append(geom.__geo_interface__)
-        return dict(type='GeometryCollection', geometries=geometries)
+        geom = {
+            'type': 'GeometryCollection',
+            'geometries': geometries
+        }
+        if self.crs is not None:
+            geom['crs'] = self.crs
+        return geom
 
     @property
     def geoms(self):
