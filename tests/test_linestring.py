@@ -60,17 +60,17 @@ class LineStringTestCase(unittest.TestCase):
     def test_equals_argument_order(self):
         """
         Test equals predicate functions correctly regardless of the order
-        of the inputs. See issue #317. 
+        of the inputs. See issue #317.
         """
         coords = ((0, 0), (1, 0), (1, 1), (0, 0))
         ls = LineString(coords)
         lr = LinearRing(coords)
-        
+
         self.assertFalse(ls.__eq__(lr))  # previously incorrectly returned True
         self.assertFalse(lr.__eq__(ls))
         self.assertFalse(ls == lr)
         self.assertFalse(lr == ls)
-        
+
         ls_clone = LineString(coords)
         lr_clone = LinearRing(coords)
 
