@@ -157,7 +157,7 @@ class LineStringTestCase(unittest.TestCase):
         # Test array interface of empty linestring
         le = LineString()
         a = asarray(le)
-        assert(a.shape[0], 0)
+        self.assertEqual(a.shape[0], 0)
 
 
 def test_suite():
