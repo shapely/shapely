@@ -490,7 +490,7 @@ def geos_polygon_from_py(shell, holes=None):
             L = len(ob)
             exemplar = ob[0]
             try:
-                N = len(exemplar[0])
+                N = len(exemplar)
             except TypeError:
                 N = exemplar._ndim
             if not L >= 1:
