@@ -14,7 +14,7 @@ def pytest_configure(config):
     if config.getoption("--with-gevent"):
         from gevent import monkey
         monkey.patch_all()
-        print("Gevent monkey patching enabled for %s." % item.name)
+        print("Gevent monkey patching enabled")
 
 def pytest_runtest_setup(item):
     if item.config.getoption("--with-speedups"):
