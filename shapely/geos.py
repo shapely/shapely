@@ -556,18 +556,12 @@ def errcheck_predicate(result, func, argtuple):
 def _get_lgeos_base():
     """Get the class that should be used as a base class for LGEOSBase.
 
-    Gevent is a popular coroutine based networking library that uses greenlets
-    to provide users a synchronous API while allowing for cooperative
-    multitasking.  Gevent accomplishes this through monkey patching the stdlib
-    to swap out blocking functions with non-blocking variants, including
-    threading.
-
-    If monkey patched, Gevent will replace `threading.local` with an
-    implementation that makes all thread local variables greenlet local
-    instead.  In the context of shapely, this means all objects that inherit
-    from LGEOSBase will become greenlet local instead of thread local.
-    Effectively, this causes servers that utilize both gevent and shapely to
-    re-initialize the geos bindings every request.
+    Gevent will replace `threading.local` with an implementation that makes all
+    thread local variables greenlet local instead.  In the context of shapely,
+    this means all objects that inherit from LGEOSBase will become greenlet
+    local instead of thread local. Effectively, this causes servers that
+    utilize both gevent and shapely to re-initialize the geos bindings every
+    request.
 
     Since LGEOSBase inherits from `threading.local` to prevent concurrent
     access to the GEOS C API, this is not relevant in a monkey patched gevent

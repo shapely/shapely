@@ -83,21 +83,21 @@ before_install:
   - pip install pip setuptools --upgrade
   # if building with speedups install cython
   - if [ "$SPEEDUPS" == "1" ]; then pip install --install-option="--no-cython-compile" cython; fi
-  # if building with speedups install cython
+  # if runnign with gevent installed
   - if [ "$GEVENT" == "1" ]; then pip install gevent; fi
   # if testing without numpy explicitly remove it
   - if [ "$NUMPY" == "0" ]; then pip uninstall --yes numpy; fi
   # convert SPEEDUPS to --with-speedups/--without-speedups
   - if [ "$SPEEDUPS" == "1" ]; then SPEEDUPS_FLAG=--with-speedups; else SPEEDUPS_FLAG=--without-speedups; fi
   # convert GEVENT to --with-gevent/--without-gevent
-  - if [[ "$GEVENT_PATCHED" == "1" ]]; then printf '\n[run]\nconcurrency = gevent\n' >> .coveragerc; printf '\nfrom gevent import monkey\nmonkey.patch_all()\n' >> shapely/__init__.py; else GEVENT_FLAG=''; fi
+  - if [[ "$GEVENT_PATCHED" == "1" ]]; then printf '\n[run]\nconcurrency = gevent\n' >> .coveragerc; printf '\nfrom gevent import monkey\nmonkey.patch_all()\n' >> shapely/__init__.py; fi
 
 install:
   - pip install -e .[all]
   - pip install coveralls
 
 script:
-  - "py.test --cov shapely --cov-report term-missing ${SPEEDUPS_FLAG} ${GEVENT_FLAG}"
+  - "py.test --cov shapely --cov-report term-missing ${SPEEDUPS_FLAG}"
 
 after_success:
   - coveralls || echo "!! intermittent coveralls failure"
