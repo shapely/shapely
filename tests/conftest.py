@@ -7,6 +7,14 @@ def pytest_addoption(parser):
                      help="Run tests with speedups.")
     parser.addoption("--without-speedups", action="store_true", default=False,
                      help="Run tests without speedups.")
+    parser.addoption("--with-gevent", action="store_true", default=False,
+                     help="Run tests with gevent.")
+
+def pytest_configure(config):
+    if config.getoption("--with-gevent"):
+        from gevent import monkey
+        monkey.patch_all()
+        print("Gevent monkey patching enabled for %s." % item.name)
 
 def pytest_runtest_setup(item):
     if item.config.getoption("--with-speedups"):

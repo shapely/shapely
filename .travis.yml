@@ -8,45 +8,70 @@ matrix:
       env:
         - SPEEDUPS=1
         - NUMPY=1
+        - GEVENT=0
+        - GEVENT_PATCHED=0
+    - python: "2.7"
+      env:
+        - SPEEDUPS=1
+        - NUMPY=1
+        - GEVENT=1
+        - GEVENT_PATCHED=1
     - python: "2.7"
       env:
         - SPEEDUPS=0
         - NUMPY=1
+        - GEVENT=0
+        - GEVENT_PATCHED=0
     - python: "2.7"
       env:
         - SPEEDUPS=0
         - NUMPY=0
+        - GEVENT=0
+        - GEVENT_PATCHED=0
 
     - python: "3.3"
       env:
         - SPEEDUPS=1
         - NUMPY=1
+        - GEVENT=0
+        - GEVENT_PATCHED=0
     - python: "3.3"
       env:
         - SPEEDUPS=0
         - NUMPY=1
+        - GEVENT=0
+        - GEVENT_PATCHED=0
 
     - python: "3.4"
       env:
         - SPEEDUPS=1
         - NUMPY=1
+        - GEVENT=0
     - python: "3.4"
       env:
         - SPEEDUPS=0
         - NUMPY=1
+        - GEVENT=0
+        - GEVENT_PATCHED=0
 
     - python: "3.5"
       env:
         - SPEEDUPS=1
         - NUMPY=1
+        - GEVENT=0
+        - GEVENT_PATCHED=0
     - python: "3.5"
       env:
         - SPEEDUPS=0
         - NUMPY=1
+        - GEVENT=0
+        - GEVENT_PATCHED=0
     - python: "3.5"
       env:
         - SPEEDUPS=0
         - NUMPY=0
+        - GEVENT=0
+        - GEVENT_PATCHED=0
 
 addons:
   apt:
@@ -58,20 +83,24 @@ before_install:
   - pip install pip setuptools --upgrade
   # if building with speedups install cython
   - if [ "$SPEEDUPS" == "1" ]; then pip install --install-option="--no-cython-compile" cython; fi
+  # if building with speedups install cython
+  - if [ "$GEVENT" == "1" ]; then pip install gevent; fi
   # if testing without numpy explicitly remove it
   - if [ "$NUMPY" == "0" ]; then pip uninstall --yes numpy; fi
   # convert SPEEDUPS to --with-speedups/--without-speedups
   - if [ "$SPEEDUPS" == "1" ]; then SPEEDUPS_FLAG=--with-speedups; else SPEEDUPS_FLAG=--without-speedups; fi
+  # convert GEVENT to --with-gevent/--without-gevent
+  - if [ "$GEVENT_PATCHED" == "1" ]; then GEVENT_FLAG=--with-gevent; else GEVENT_FLAG=''; fi
 
 install:
   - pip install -e .[all]
   - pip install coveralls
 
 script:
-  - "py.test --cov shapely --cov-report term-missing ${SPEEDUPS_FLAG}"
+  - "py.test --cov shapely --cov-report term-missing ${SPEEDUPS_FLAG} ${GEVENT_FLAG}"
 
 after_success:
   - coveralls || echo "!! intermittent coveralls failure"
-  
+
 notifications:
     email: false
