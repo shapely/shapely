@@ -1,7 +1,6 @@
 """
 Proxies for libgeos, GEOS-specific exceptions, and utilities
 """
-
 import atexit
 from ctypes import (
     CDLL, cdll, pointer, string_at, DEFAULT_MODE, c_void_p, c_size_t, c_char_p)

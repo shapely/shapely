@@ -90,7 +90,7 @@ before_install:
   # convert SPEEDUPS to --with-speedups/--without-speedups
   - if [ "$SPEEDUPS" == "1" ]; then SPEEDUPS_FLAG=--with-speedups; else SPEEDUPS_FLAG=--without-speedups; fi
   # convert GEVENT to --with-gevent/--without-gevent
-  - if [ "$GEVENT_PATCHED" == "1" ]; then GEVENT_FLAG=--with-gevent; else GEVENT_FLAG=''; fi
+  - if [[ "$GEVENT_PATCHED" == "1" ]]; then printf '\n[run]\nconcurrency = gevent\n' >> .coveragerc; printf '\nfrom gevent import monkey\nmonkey.patch_all()\n' >> shapely/__init__.py; else GEVENT_FLAG=''; fi
 
 install:
   - pip install -e .[all]
