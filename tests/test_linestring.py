@@ -1,4 +1,5 @@
 from . import unittest, numpy
+import pytest
 from shapely.geos import lgeos
 from shapely.geometry import LineString, asLineString, Point, LinearRing
 
@@ -107,6 +108,13 @@ class LineStringTestCase(unittest.TestCase):
         self.assertEqual(copy.coords[:], coords)
         self.assertEqual('LineString',
                          lgeos.GEOSGeomType(copy._geom).decode('ascii'))
+
+    def test_from_single_coordinate(self):
+        """Test for issue #486"""
+        coords = [[-122.185933073564, 37.3629353839073]]
+        with pytest.raises(ValueError):
+            ls = LineString(coords)
+            ls.geom_type # caused segfault before fix
 
 
     @unittest.skipIf(not numpy, 'Numpy required')

@@ -211,6 +211,10 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
     if m == 0:
         return None
 
+    if m < 2:
+        raise ValueError(
+            "LineStrings must have at least 2 coordinate tuples")
+
     def _coords(o):
         if isinstance(o, Point):
             return o.coords[0]
@@ -250,7 +254,10 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
     if update_geom is not None:
         return None
     else:
-        return lgeos.GEOSGeom_createLineString(cs), n
+        ptr = lgeos.GEOSGeom_createLineString(cs)
+        if not ptr:
+            raise ValueError("GEOSGeom_createLineString returned a NULL pointer")
+        return ptr, n
 
 
 def update_linestring_from_py(geom, ob):

@@ -149,6 +149,10 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
         if m == 0:
             return None
 
+        if m < 2:
+            raise ValueError(
+                "LineStrings must have at least 2 coordinate tuples")
+
         def _coords(o):
             if isinstance(o, Point):
                 return o.coords[0]
@@ -193,7 +197,10 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
     if update_geom is not None:
         return None
     else:
-        return <uintptr_t>GEOSGeom_createLineString_r(handle, cs), n
+        g = GEOSGeom_createLineString_r(handle, cs);
+        if not g:
+            raise ValueError("GEOSGeom_createLineString_r returned a NULL pointer")
+        return <uintptr_t>g, n
 
 
 def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
@@ -370,7 +377,10 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
     if update_geom is not None:
         return None
     else:
-        return <uintptr_t>GEOSGeom_createLinearRing_r(handle, cs), n
+        g = GEOSGeom_createLinearRing_r(handle, cs)
+        if not g:
+            raise ValueError("GEOSGeom_createLinearRing_r returned a NULL pointer")
+        return <uintptr_t>g, n
 
 
 def coordseq_ctypes(self):
