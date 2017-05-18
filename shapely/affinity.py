@@ -1,7 +1,8 @@
 """Affine transforms, both in general and specific, named transforms."""
 
-from math import sin, cos, tan, pi
 from collections import namedtuple
+import numpy as np
+from more_itertools import first
 
 __all__ = ['affine_matrix_builder', 'affine_transform', 'rotate', 'scale', 'skew', 'translate']
 
@@ -13,16 +14,13 @@ class affine_matrix_builder:
     affine matrices when appropriate.
     Class implemented by William Rusnack, github.com/BebeSparkelSparkel, williamrusnack@gmail.com
     """
-    def __init__(self, geom, matrix=None):
-        if not {'BaseGeometry', 'BaseMultipartGeometry'} & set(s.__name__ for s in (geom.__mro__ if hasattr(geom, '__mro__') else geom.__class__.__mro__)):
-            raise AttributeError("geom is not the right type: %s, bases are: %s" % (str(type(geom)), str(geom.__class__.__bases__)))
+    def __init__(self, geom):
         self.geom = geom
 
-        self.last_transform = None
-        self.current_transform = None
+        self.transforms_to_apply = list()
 
-        self.matrix = None
-        if matrix is not None: self.affine_transform(matrix)
+    _transform_log = namedtuple('_transform_log',
+        ('transform', 'inputs', 'matrix', 'offsets'))
 
     def affine_transform(self, matrix):
         """
@@ -63,29 +61,16 @@ class affine_matrix_builder:
             y' = d * x + e * y + f * z + yoff
             z' = g * x + h * y + i * z + zoff
         """
+        if not isinstance(matrix, (tuple, list)):
+            raise TypeError('Matrix must be a tuple or list.')
+        if len(matrix) not in (6, 12):
+            raise ValueError('Wrong size matrix.')
 
-        if not isinstance(matrix, (tuple, list)): raise TypeError('Matrix must be a tuple or list.')
-        if len(matrix) not in (6, 12): raise ValueError('Wrong size matrix.')
-
-        if self.current_transform is None:
-            self.current_transform = self._transform_log(affine_matrix_builder.affine_transform, {'matrix': matrix})
-
-        if self.matrix is None:
-            self.matrix = matrix
-        else:
-            if self._combine_matrices():
-                num_elem = 9
-                matrix_size = int(num_elem**.5)
-
-                self.matrix = multiply_matrices(self.matrix[:num_elem], matrix[:num_elem]) + \
-                    tuple(e1 + e2 for e1, e2 in zip(self.matrix[num_elem:], matrix[num_elem:]))
-
-            else:
-                self.geom = self.transform()
-                self.matrix = matrix
-
-        self.last_transform = self.current_transform
-        self.current_transform = None
+        self.transforms_to_apply.append(self._transform_log(
+                affine_matrix_builder.affine_transform,
+                dict(matrix=matrix),
+                *_to_np_matrix(matrix)
+            ))
 
         return self
 
@@ -112,25 +97,29 @@ class affine_matrix_builder:
             xoff = x0 - x0 * cos(r) + y0 * sin(r)
             yoff = y0 - x0 * sin(r) - y0 * cos(r)
         """
-
-        self.current_transform = self._transform_log(affine_matrix_builder.rotate, {'angle': angle, 'origin': origin, 'use_radians': use_radians})
-
         if not use_radians:  # convert from degrees
-            angle *= pi/180.0
-        cosp = cos(angle)
-        sinp = sin(angle)
-        if abs(cosp) < 2.5e-16:
-            cosp = 0.0
-        if abs(sinp) < 2.5e-16:
-            sinp = 0.0
-        x0, y0 = self._interpret_origin(self.geom, origin, 2)
+            angle *= np.pi / 180.0
 
-        matrix = (cosp, -sinp, 0.0,
-                  sinp,  cosp, 0.0,
-                  0.0,    0.0, 1.0,
-                  x0 - x0 * cosp + y0 * sinp, y0 - x0 * sinp - y0 * cosp, 0.0)
+        cosp = np.cos(angle)
+        if abs(cosp) < 2.5e-16: cosp = 0.0
+        sinp = np.sin(angle)
+        if abs(sinp) < 2.5e-16: sinp = 0.0
 
-        return self.affine_transform(matrix)
+        x0, y0, extra = self._interpret_origin(origin)
+
+        self.transforms_to_apply.append(self._transform_log(
+                transform = affine_matrix_builder.rotate,
+                inputs = dict(angle=angle, origin=origin, use_radians=use_radians),
+                matrix = np.mat(((cosp, -sinp, 0.0),
+                                    (sinp,  cosp, 0.0),
+                                    (0.0,    0.0, 1.0)), dtype=np.float),
+                offsets = np.array((
+                    x0 - x0 * cosp + y0 * sinp,
+                    y0 - x0 * sinp - y0 * cosp,
+                    0.0), dtype=np.float),
+            ))
+
+        return self
 
     def scale(self, xfact=1.0, yfact=1.0, zfact=1.0, origin='center'):
         """
@@ -155,16 +144,23 @@ class affine_matrix_builder:
             yoff = y0 - y0 * yfact
             zoff = z0 - z0 * zfact
         """
-        self.current_transform = self._transform_log(affine_matrix_builder.scale, {'xfact': xfact, 'yfact': yfact, 'zfact': zfact, 'origin': origin})
+        x0, y0, z0 = self._interpret_origin(origin)
 
-        x0, y0, z0 = self._interpret_origin(self.geom, origin, 3)
+        self.transforms_to_apply.append(self._transform_log(
+                transform = affine_matrix_builder.scale,
+                inputs = dict(xfact=xfact, yfact=yfact, zfact=zfact, origin=origin),
+                matrix = np.mat(((xfact, 0.0, 0.0),
+                                    (0.0, yfact, 0.0),
+                                    (0.0, 0.0, zfact)),
+                                dtype=np.float),
+                offsets = np.array((
+                    x0 - x0 * xfact,
+                    y0 - y0 * yfact,
+                    z0 - z0 * zfact),
+                    dtype=np.float),
+            ))
 
-        matrix = (xfact, 0.0, 0.0,
-                  0.0, yfact, 0.0,
-                  0.0, 0.0, zfact,
-                  x0 - x0 * xfact, y0 - y0 * yfact, z0 - z0 * zfact)
-
-        return self.affine_transform(matrix)
+        return self
 
     def skew(self, xs=0.0, ys=0.0, origin='center', use_radians=False):
         """
@@ -188,25 +184,30 @@ class affine_matrix_builder:
             xoff = -y0 * tan(xs)
             yoff = -x0 * tan(ys)
         """
-        self.current_transform = self._transform_log(affine_matrix_builder.skew, {'xs': xs, 'ys': ys, 'origin': origin, 'use_radians': use_radians})
-
         if not use_radians:  # convert from degrees
-            xs *= pi/180.0
-            ys *= pi/180.0
-        tanx = tan(xs)
-        tany = tan(ys)
-        if abs(tanx) < 2.5e-16:
-            tanx = 0.0
-        if abs(tany) < 2.5e-16:
-            tany = 0.0
-        x0, y0 = self._interpret_origin(self.geom, origin, 2)
+            xs *= np.pi / 180.0
+            ys *= np.pi / 180.0
 
-        matrix = (1.0, tanx, 0.0,
-                  tany, 1.0, 0.0,
-                  0.0,  0.0, 1.0,
-                  -y0 * tanx, -x0 * tany, 0.0)
+        tanx = np.tan(xs)
+        if abs(tanx) < 2.5e-16: tanx = 0.0
+        tany = np.tan(ys)
+        if abs(tany) < 2.5e-16: tany = 0.0
 
-        return self.affine_transform(matrix)
+        x0, y0, extra = self._interpret_origin(origin)
+
+        self.transforms_to_apply.append(self._transform_log(
+                transform = affine_matrix_builder.skew,
+                inputs = dict(xs=xs, ys=ys, origin=origin, use_radians=use_radians),
+                matrix = np.mat(((1.0, tanx, 0.0),
+                                    (tany, 1.0, 0.0),
+                                    (0.0,  0.0, 1.0)), dtype=np.float),
+                offsets = np.array((
+                    -y0 * tanx,
+                    -x0 * tany,
+                    0.0), dtype=np.float),
+            ))
+
+        return self
 
     def translate(self, xoff=0.0, yoff=0.0, zoff=0.0):
         """
@@ -219,15 +220,19 @@ class affine_matrix_builder:
             | 0  0  1 zoff |
             \ 0  0  0   1  /
         """
+        # matrix = (1.0, 0.0, 0.0,
+        #           0.0, 1.0, 0.0,
+        #           0.0, 0.0, 1.0,
+        #           xoff, yoff, zoff)
 
-        self.current_transform = self._transform_log(affine_matrix_builder.translate, {'xoff': xoff, 'yoff': yoff, 'zoff': zoff})
+        self.transforms_to_apply.append(self._transform_log(
+                transform = affine_matrix_builder.translate,
+                inputs = dict(xoff=xoff, yoff=yoff, zoff=zoff),
+                matrix = np.mat(np.identity(3, dtype=np.float)),
+                offsets = np.array((xoff, yoff, zoff), dtype=np.float),
+            ))
 
-        matrix = (1.0, 0.0, 0.0,
-                  0.0, 1.0, 0.0,
-                  0.0, 0.0, 1.0,
-                  xoff, yoff, zoff)
-
-        return self.affine_transform(matrix)
+        return self
 
     def transform(self):
         """Returns a transformed geometry using an affine transformation matrix.
@@ -267,78 +272,61 @@ class affine_matrix_builder:
             y' = d * x + e * y + f * z + yoff
             z' = g * x + h * y + i * z + zoff
         """
-        if self.matrix is None:
-            raise TypeError('Affine matrix not defined.')
+        if not self.transforms_to_apply:
+            raise TypeError('No transforms to apply.')
 
         if self.geom.is_empty:
             return self.geom
-        if len(self.matrix) == 6:
-            ndim = 2
-            a, b, d, e, xoff, yoff = self.matrix
-            if self.geom.has_z:
-                ndim = 3
-                i = 1.0
-                c = f = g = h = zoff = 0.0
-                self.matrix = a, b, c, d, e, f, g, h, i, xoff, yoff, zoff
-        elif len(self.matrix) == 12:
-            ndim = 3
-            a, b, c, d, e, f, g, h, i, xoff, yoff, zoff = self.matrix
-            if not self.geom.has_z:
-                ndim = 2
-                self.matrix = a, b, d, e, xoff, yoff
-        else:
-            raise ValueError("'matrix' expects either 6 or 12 coefficients")
+        # import pdb; pdb.set_trace();
+        to_apply = iter(self.transforms_to_apply)
+        current_trans = next(to_apply)
+        matrix = np.matrix(current_trans.matrix)
+        offsets = np.array(current_trans.offsets)
+        assert isinstance(matrix, np.matrix)
+        assert isinstance(offsets, np.ndarray)
+        geom = self.geom
+        for next_trans in to_apply:
+            if (current_trans.transform, next_trans.transform) in self._compatable_combinations:
+                assert isinstance(next_trans.matrix, np.matrix)
+                assert isinstance(next_trans.offsets, np.ndarray)
+                # print('combine matrix')
+                # print('matrix\n', matrix, np.result_type(matrix))
+                assert np.array_equal(matrix, current_trans.matrix) and np.result_type(matrix) == np.result_type(current_trans.matrix)
+                # print('next.matrix\n', next_trans.matrix, np.result_type(next_trans.matrix), type(next_trans.matrix))
+                # print('multiplied\n', matrix * next_trans.matrix, np.result_type(matrix * next_trans.matrix), type(matrix * next_trans.matrix))
+                assert isinstance(matrix, np.matrix)
+                assert isinstance(offsets, np.ndarray)
+                matrix *= np.mat(next_trans.matrix)
+                # print('combined\n', matrix, np.result_type(matrix))
+                offsets += next_trans.offsets
+                assert isinstance(matrix, np.matrix)
+                assert isinstance(offsets, np.ndarray)
+            else:
+                geom = _apply_matrix(geom, matrix, offsets)
+                assert geom != self.geom
+                matrix = np.matrix(next_trans.matrix)
+                offsets = np.array(next_trans.offsets)
 
-        def affine_pts(pts):
-            """Internal function to yield affine transform of coordinate tuples"""
-            if ndim == 2:
-                for x, y in pts:
-                    xp = a * x + b * y + xoff
-                    yp = d * x + e * y + yoff
-                    yield (xp, yp)
-            elif ndim == 3:
-                for x, y, z in pts:
-                    xp = a * x + b * y + c * z + xoff
-                    yp = d * x + e * y + f * z + yoff
-                    zp = g * x + h * y + i * z + zoff
-                    yield (xp, yp, zp)
+            current_trans = next_trans
 
-        # Process coordinates from each supported geometry type
-        if self.geom.type in ('Point', 'LineString', 'LinearRing'):
-            return type(self.geom)(list(affine_pts(self.geom.coords)))
-        elif self.geom.type == 'Polygon':
-            ring = self.geom.exterior
-            shell = type(ring)(list(affine_pts(ring.coords)))
-            holes = list(self.geom.interiors)
-            for pos, ring in enumerate(holes):
-                holes[pos] = type(ring)(list(affine_pts(ring.coords)))
-            return type(self.geom)(shell, holes)
-        elif self.geom.type.startswith('Multi') or self.geom.type == 'GeometryCollection':
-            # Recursive call
-            # TODO: fix GeometryCollection constructor
-            return type(self.geom)([affine_transform(part, self.matrix)
-                               for part in self.geom.geoms])
-        else:
-            raise ValueError('Type %r not recognized' % self.geom.type)
+        return _apply_matrix(geom, matrix, offsets)
 
-    _transform_log = namedtuple('_transform_log', ('transform', 'inputs'))
 
-    def _combine_matrices(self):
-        """
-        Returns true if the affine if the last and current matrices can
-        be safely combined to get the expected output.
+    # def _combine_matrices(self):
+    #     """
+    #     Returns true if the affine if the last and current matrices can
+    #     be safely combined to get the expected output.
 
-        IMPROVEMENT
-        this can be optimized more to look at inputs/matrix too but has not been done yet
-        it seems like transfromations with the same origin can be combined but that should be proven true
-        inputs are also saved in self.last_transform and self.current_transform which will allow origin comparisons
-        I am also not sure if the total history matters in combining affine matrices or if only the last affine transform matters
-        """
-        return (self.last_transform.transform, self.current_transform.transform) \
-            in self._compatable_combinations
+    #     IMPROVEMENT
+    #     this can be optimized more to look at inputs/matrix too but has not been done yet
+    #     it seems like transfromations with the same origin can be combined but that should be proven true
+    #     inputs are also saved in self.last_transform and self.current_transform which will allow origin comparisons
+    #     I am also not sure if the total history matters in combining affine matrices or if only the last affine transform matters
+    #     """
+    #     return (self.last_transform.transform, self.current_transform.transform) \
+    #         in self._compatable_combinations
 
-    @staticmethod
-    def _interpret_origin(geom, origin, ndim):
+    def _interpret_origin(self, origin):
         """Returns interpreted coordinate tuple for origin parameter.
 
         This is a helper function for other transform functions.
@@ -347,29 +335,40 @@ class affine_matrix_builder:
         center, 'centroid' for the geometry's 2D centroid, a Point object or a
         coordinate tuple (x0, y0, z0).
         """
-        # get coordinate tuple from 'origin' from keyword or Point type
-        if origin == 'center':
-            # bounding box center
-            minx, miny, maxx, maxy = geom.bounds
-            origin = ((maxx + minx)/2.0, (maxy + miny)/2.0)
-        elif origin == 'centroid':
-            origin = geom.centroid.coords[0]
-        elif isinstance(origin, str):
-            raise ValueError("'origin' keyword %r is not recognized" % origin)
-        elif hasattr(origin, 'type') and origin.type == 'Point':
-            origin = origin.coords[0]
+        try:
+            # get coordinate tuple from 'origin' from keyword or Point type
+            if origin == 'center':
+                # bounding box center
+                minx, miny, maxx, maxy = self.geom.bounds
+                origin = ((maxx + minx)/2.0, (maxy + miny)/2.0)
 
-        # origin should now be tuple-like
-        if len(origin) not in (2, 3):
-            raise ValueError("Expected number of items in 'origin' to be "
-                             "either 2 or 3")
-        if ndim == 2:
-            return origin[0:2]
-        else:  # 3D coordinate
+            elif origin == 'centroid':
+                origin = self.geom.centroid.coords[0]
+
+            elif isinstance(origin, str):
+                raise ValueError("'origin' keyword %r is not recognized" % origin)
+
+            elif isinstance(origin, sg.Point):
+                origin = origin.coords[0]
+
+            # origin should now be tuple-like
+            if len(origin) not in (2, 3):
+                raise ValueError("Expected number of items in 'origin' to be "
+                                 "either 2 or 3")
+
             if len(origin) == 2:
                 return origin + (0.0,)
-            else:
+            if len(origin) == 3:
                 return origin
+
+            raise ValueError("Expected number of items in 'origin' to be either 2 or 3")
+
+        except NameError:
+            global sg
+            import shapely.geometry as sg
+
+            return self._interpret_origin(origin)
+
 
 # Holds the safe relationships of when two affine matricies can be combined.
 affine_matrix_builder._compatable_combinations = {
@@ -383,33 +382,118 @@ affine_matrix_builder._compatable_combinations = {
 }
 
 
-def square_matrix_size(matrix):
-    size = len(matrix)**.5
-    if size != int(size) or size < 1:
-        raise ValueError('Not a square matrix')
-    return int(size)
+def _apply_matrix(geom, matrix, offsets):
+    if not geom.has_z:
+        # print('not geom.has_z')
+        matrix = np.mat(matrix[:2,:2])
+        offsets = offsets[:2]
+        # print('offsets no z = ', offsets, type(offsets))
+    # else:
+        # print('has zzzzzzz')
 
-def row_iter(matrix):
-    square_size = square_matrix_size(matrix)
+    def affine_pts(pts):
+        """Internal function to yield affine transform of coordinate tuples"""
+        for pt in pts:
+            assert isinstance(matrix, np.matrix)
+            assert isinstance(offsets, np.ndarray)
+            # print('matrix\n', matrix)
+            # print('np.mat(pt, dtype=float).transpose()', np.mat(pt, dtype=float).transpose())
+            # print('offsets', offsets)
+            yield (matrix * np.mat(pt, dtype=float).transpose()).A1 + offsets
 
-    for i in range(0, len(matrix), square_size):
-        yield matrix[i:i + square_size]
+    try:
+        # Process coordinates from each supported geometry type
+        if isinstance(geom, sg.Point):
+            return type(geom)(first(affine_pts(geom.coords)))
+        if isinstance(geom, (sg.Point, sg.LineString, sg.LinearRing)):
+            return type(geom)(tuple(affine_pts(geom.coords)))
 
-def get_column(matrix, column_index):
-    return (row[column_index] for row in row_iter(matrix))
+        elif isinstance(geom, Polygon):
+            return sg.Polygon(
+                    exterior = sg.LinearRing(tuple(
+                            affine_pts(geom.exterior.coords)
+                        )),
+                    interiors = tuple(
+                            sg.LinearRing(tuple(affine_pts(ring.coords)))
+                            for ring in geom.interiors
+                        ),
+                )
 
-def column_iter(matrix):
-    square_size = square_matrix_size(matrix)
+        elif isinstance(geom, sg.base.BaseMultipartGeometry):
+            # Recursive call
+            # TODO: fix GeometryCollection constructor
+            return type(geom)(tuple(
+                    affine_transform(part, self.matrix)
+                    for part in geom.geoms
+                ))
 
-    for i in range(square_size):
-        yield get_column(matrix, i)
+        else:
+            raise ValueError('Type {} not recognized'.format(geom.type))
 
-def multiply_matrices(a, b):
-    result = []
-    for row in row_iter(a):
-        for col in column_iter(b):
-            result.append(sum(r*c for r, c in zip(row, col)))
-    return tuple(result)
+    except NameError:
+        global sg
+        import shapely.geometry as sg
+        return _apply_matrix(geom, matrix, offsets)
+
+
+def _to_np_matrix(matrix):
+    '''
+    Converts the matrix to a numpy 3x3 matrix and an array of offsets.
+    If matrix is None returns identity matrix and offsets are zero.
+    '''
+    if matrix is None:
+        matrix_out = np.mat(np.identity(3, dtype=np.float))
+        offsets = np.zeros(3, dtype=np.float)
+        return matrix_out, offsets
+
+    matrix = tuple(matrix)
+
+    if len(matrix) == 6:
+        # creating a 3x3 matrix. Undefined values are set to zero
+        matrix_out = np.mat([
+                matrix[:2] + (0,),
+                matrix[2:4] + (0,),
+                (0, 0, 1)
+            ], dtype=np.float)
+        offsets = np.array(matrix[4:] + (0,), dtype=np.float)
+
+    elif len(matrix) == 12:
+        matrix_out = np.array(matrix[:9], dtype=np.float).reshape(3,3)
+        offsets = np.array(matrix[9:], dtype=np.float)
+
+    else:
+        raise ValueError('Affine transform matrix must have len of 6 or 9 but has len of ' + str(len(matrix)))
+
+    return matrix_out, offsets
+
+
+# def square_matrix_size(matrix):
+#     size = len(matrix)**.5
+#     if size != int(size) or size < 1:
+#         raise ValueError('Not a square matrix')
+#     return int(size)
+
+# def row_iter(matrix):
+#     square_size = square_matrix_size(matrix)
+
+#     for i in range(0, len(matrix), square_size):
+#         yield matrix[i:i + square_size]
+
+# def get_column(matrix, column_index):
+#     return (row[column_index] for row in row_iter(matrix))
+
+# def column_iter(matrix):
+#     square_size = square_matrix_size(matrix)
+
+#     for i in range(square_size):
+#         yield get_column(matrix, i)
+
+# def multiply_matrices(a, b):
+#     result = []
+#     for row in row_iter(a):
+#         for col in column_iter(b):
+#             result.append(sum(r*c for r, c in zip(row, col)))
+#     return tuple(result)
 
 
 
@@ -497,10 +581,4 @@ def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
 #         same.add(tuple(trans.__name__ for trans in transforms))
 #     else:
 #         different.add(tuple(trans.__name__ for trans in transforms))
-
-
-# print('same')
-# pprint(same)
-# print('different')
-# pprint(different)
 
