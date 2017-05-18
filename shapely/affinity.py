@@ -289,15 +289,10 @@ class affine_matrix_builder:
             if (current_trans.transform, next_trans.transform) in self._compatable_combinations:
                 assert isinstance(next_trans.matrix, np.matrix)
                 assert isinstance(next_trans.offsets, np.ndarray)
-                # print('combine matrix')
-                # print('matrix\n', matrix, np.result_type(matrix))
                 assert np.array_equal(matrix, current_trans.matrix) and np.result_type(matrix) == np.result_type(current_trans.matrix)
-                # print('next.matrix\n', next_trans.matrix, np.result_type(next_trans.matrix), type(next_trans.matrix))
-                # print('multiplied\n', matrix * next_trans.matrix, np.result_type(matrix * next_trans.matrix), type(matrix * next_trans.matrix))
                 assert isinstance(matrix, np.matrix)
                 assert isinstance(offsets, np.ndarray)
                 matrix *= np.mat(next_trans.matrix)
-                # print('combined\n', matrix, np.result_type(matrix))
                 offsets += next_trans.offsets
                 assert isinstance(matrix, np.matrix)
                 assert isinstance(offsets, np.ndarray)
@@ -384,21 +379,14 @@ affine_matrix_builder._compatable_combinations = {
 
 def _apply_matrix(geom, matrix, offsets):
     if not geom.has_z:
-        # print('not geom.has_z')
         matrix = np.mat(matrix[:2,:2])
         offsets = offsets[:2]
-        # print('offsets no z = ', offsets, type(offsets))
-    # else:
-        # print('has zzzzzzz')
 
     def affine_pts(pts):
         """Internal function to yield affine transform of coordinate tuples"""
         for pt in pts:
             assert isinstance(matrix, np.matrix)
             assert isinstance(offsets, np.ndarray)
-            # print('matrix\n', matrix)
-            # print('np.mat(pt, dtype=float).transpose()', np.mat(pt, dtype=float).transpose())
-            # print('offsets', offsets)
             yield (matrix * np.mat(pt, dtype=float).transpose()).A1 + offsets
 
     try:
@@ -520,7 +508,6 @@ def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
 # from shapely.geometry import Point
 # from shapely.affinity import affine_matrix_builder as amb
 
-# from pprint import pprint
 
 # transform_functions = {
 #     amb.affine_transform: {
