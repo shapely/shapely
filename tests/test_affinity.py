@@ -261,90 +261,52 @@ class affine_matrix_builderTestCase(unittest.TestCase):
             (amb.affine_transform, dict(
                 first = ((1,2,3,4,5,6,7,8,9,10,11,12),),
                 different = ((2,3,4,5,6,7,8,9,10,11,12,13),),
-                # same_affine_matrix =((1,2,3,4,5,6,7,8,.9,.10,.11,.12),),
             )),
             (amb.affine_transform, dict(
                 first = ((1,2,3,4,5,6),),
                 different = ((2,3,4,5,6,7),),
-                # same_affine_matrix =((1,2,3,4,5,6,7,8,.9,.10,.11,.12),),
             )),
             (amb.rotate, dict(
                 first = (90, (0,0)),
                 different = (55, (.5, 7)),
-                # same_affine_matrix = (90, (.5, 7)),
             )),
             (amb.scale, dict(
                 first = (2, 3, 4, (0,0)),
                 different = (4, 2, 3, (.5, 7)),
-                # same_affine_matrix = (2, 3, 4, (.5, 7)),
             )),
             (amb.skew, dict(
                 first = (2, 3, (0,0)),
                 different = (4, 5, (.5, 7)),
-                # same_affine_matrix = (2, 3, (.5, 7)),
             )),
             (amb.translate, dict(
                 first = (1, 2, 3),
                 different = (2, 3, 4),
-                # same_affine_matrix = (1, 2, 3),
             )),
         )
 
-        intersections = {t[0].__name__ for t in transform_functions}
         for transforms in permutations(transform_functions):
             a = amb(Point(1,1))
-            a_track = []
             a_geom = a.geom
             b = Point(1,1)
-            b_track = []
             for t, props in transforms:
                 a = t(a, *props['first'])
-                # print('b' * 30)
                 b = t(amb(b), *props['first']).transform()
-                # print('1' * 30)
                 trans_1 = a.transform()
-                # print('2' * 30)
                 trans_2 = a.transform()
-                # print('f' * 30)
-                a_track.append(str(trans_1))
-                b_track.append(str(b))
 
-                # if trans_1 != b or trans_2 != b:
-                if trans_1 != trans_2 or trans_1 != b:
-                    functions = tuple(t[0].__name__ for t in transforms)
-                    error_function = t.__name__
-                    # print()
-                    print(functions)
-                    print(error_function)
-                    if error_function != 'affine_transform':
-                        intersections &= set(functions[:functions.index(error_function) + 1])
-                    print(intersections)
-                    # print(a.geom, a_geom)
-                    print('trans_1', trans_1)
-                    print('trans_2', trans_2)
-                    print('a_track', a_track)
-                    print('b_track', b_track)
-                    # print(a.transform())
-                    # print(a.transform())
-                    # print(a.transform())
-                    # print(a.transform())
-                    # print(a.transform())
-                    print('b', b)
-                    # print()
-                    # break
                 self.assertTrue(a.geom is a_geom)
                 self.assertEqual(trans_1, b)
                 self.assertEqual(trans_1, trans_2)
 
 
-        for t in transform_functions:
-            transforms = (t,)*2
+        for function, inputs in transform_functions:
+            transforms = (function,)*2
 
             a = amb(Point(1,1))
             b = Point(1,1)
-            for t, input_index in zip(transforms, ('first', 'different')):
-                a = t(a, *transform_functions[t][input_index])
-                b = t(amb(b), *transform_functions[t][input_index]).transform()
+            for input_index in ('first', 'different'):
+                a = function(a, *inputs[input_index])
+                b = function(amb(b), *inputs[input_index]).transform()
             a = a.transform()
 
             self.assertEqual(a, b)
