@@ -1,8 +1,11 @@
 """Affine transforms, both in general and specific, named transforms."""
-
 from collections import namedtuple
 import numpy as np
+from itertools import chain
 from more_itertools import first
+import numba
+
+sg = None  # shapely.geometry will be put here
 
 __all__ = ['affine_matrix_builder', 'affine_transform', 'rotate', 'scale', 'skew', 'translate']
 
@@ -14,10 +17,20 @@ class affine_matrix_builder:
     affine matrices when appropriate.
     Class implemented by William Rusnack, github.com/BebeSparkelSparkel, williamrusnack@gmail.com
     """
+    # import shapely.geometry as sg
+
     def __init__(self, geom):
+        global sg
+
         self.geom = geom
 
         self.transforms_to_apply = list()
+
+        try:
+            sg.base
+        except AttributeError:
+            import shapely.geometry
+            sg = shapely.geometry
 
     _transform_log = namedtuple('_transform_log',
         ('transform', 'inputs', 'matrix', 'offsets'))
@@ -282,29 +295,21 @@ class affine_matrix_builder:
         current_trans = next(to_apply)
         matrix = np.matrix(current_trans.matrix)
         offsets = np.array(current_trans.offsets)
-        assert isinstance(matrix, np.matrix)
-        assert isinstance(offsets, np.ndarray)
         geom = self.geom
         for next_trans in to_apply:
             if (current_trans.transform, next_trans.transform) in self._compatable_combinations:
-                assert isinstance(next_trans.matrix, np.matrix)
-                assert isinstance(next_trans.offsets, np.ndarray)
-                assert np.array_equal(matrix, current_trans.matrix) and np.result_type(matrix) == np.result_type(current_trans.matrix)
-                assert isinstance(matrix, np.matrix)
-                assert isinstance(offsets, np.ndarray)
                 matrix *= np.mat(next_trans.matrix)
                 offsets += next_trans.offsets
-                assert isinstance(matrix, np.matrix)
-                assert isinstance(offsets, np.ndarray)
             else:
-                geom = _apply_matrix(geom, matrix, offsets)
-                assert geom != self.geom
+                geom = affine_transform(geom,
+                    np.concatenate((matrix.A1, offsets)))
                 matrix = np.matrix(next_trans.matrix)
                 offsets = np.array(next_trans.offsets)
 
             current_trans = next_trans
 
-        return _apply_matrix(geom, matrix, offsets)
+        return affine_transform(geom,
+            np.concatenate((matrix.A1, offsets)))
 
 
     # def _combine_matrices(self):
@@ -330,39 +335,31 @@ class affine_matrix_builder:
         center, 'centroid' for the geometry's 2D centroid, a Point object or a
         coordinate tuple (x0, y0, z0).
         """
-        try:
-            # get coordinate tuple from 'origin' from keyword or Point type
+
+        # get coordinate tuple from 'origin' from keyword or Point type
+        if isinstance(origin, str):
             if origin == 'center':
                 # bounding box center
                 minx, miny, maxx, maxy = self.geom.bounds
-                origin = ((maxx + minx)/2.0, (maxy + miny)/2.0)
+                origin = np.array(((maxx + minx) / 2.0, (maxy + miny) / 2.0, 0.0))
 
             elif origin == 'centroid':
                 origin = self.geom.centroid.coords[0]
 
-            elif isinstance(origin, str):
+            else:
                 raise ValueError("'origin' keyword %r is not recognized" % origin)
 
-            elif isinstance(origin, sg.Point):
-                origin = origin.coords[0]
+        elif isinstance(origin, sg.Point):
+            origin = origin.coords[0]
 
-            # origin should now be tuple-like
-            if len(origin) not in (2, 3):
-                raise ValueError("Expected number of items in 'origin' to be "
-                                 "either 2 or 3")
-
-            if len(origin) == 2:
-                return origin + (0.0,)
-            if len(origin) == 3:
-                return origin
-
+        if len(origin) == 3:
+            origin = np.array(origin)
+        elif len(origin) == 2:
+            origin = np.array(tuple(chain(origin, (0.0,))))
+        else:
             raise ValueError("Expected number of items in 'origin' to be either 2 or 3")
 
-        except NameError:
-            global sg
-            import shapely.geometry as sg
-
-            return self._interpret_origin(origin)
+        return origin
 
 
 # Holds the safe relationships of when two affine matricies can be combined.
@@ -377,51 +374,44 @@ affine_matrix_builder._compatable_combinations = {
 }
 
 
-def _apply_matrix(geom, matrix, offsets):
-    if not geom.has_z:
-        matrix = np.mat(matrix[:2,:2])
-        offsets = offsets[:2]
+# def _apply_matrix(geom, matrix, offsets):
+#     if not geom.has_z:
+#         matrix = np.mat(matrix[:2,:2])
+#         offsets = offsets[:2]
 
-    def affine_pts(pts):
-        """Internal function to yield affine transform of coordinate tuples"""
-        for pt in pts:
-            assert isinstance(matrix, np.matrix)
-            assert isinstance(offsets, np.ndarray)
-            yield (matrix * np.mat(pt, dtype=float).transpose()).A1 + offsets
+#     # Process coordinates from each supported geometry type
+#     if isinstance(geom, sg.Point):
+#         return type(geom)(first(affine_pts(np.array(geom.coords), matrix, offsets)))
+#     if isinstance(geom, (sg.Point, sg.LineString, sg.LinearRing)):
+#         return type(geom)(tuple(affine_pts(np.array(geom.coords), matrix, offsets)))
 
-    try:
-        # Process coordinates from each supported geometry type
-        if isinstance(geom, sg.Point):
-            return type(geom)(first(affine_pts(geom.coords)))
-        if isinstance(geom, (sg.Point, sg.LineString, sg.LinearRing)):
-            return type(geom)(tuple(affine_pts(geom.coords)))
+#     elif isinstance(geom, sg.Polygon):
+#         return sg.Polygon(
+#                 sg.LinearRing(tuple(
+#                         affine_pts(np.array(geom.exterior.coords), matrix, offsets)
+#                     )),
+#                 tuple(
+#                         sg.LinearRing(tuple(affine_pts(np.array(ring.coords), matrix, offsets)))
+#                         for ring in geom.interiors
+#                     ),
+#             )
 
-        elif isinstance(geom, Polygon):
-            return sg.Polygon(
-                    exterior = sg.LinearRing(tuple(
-                            affine_pts(geom.exterior.coords)
-                        )),
-                    interiors = tuple(
-                            sg.LinearRing(tuple(affine_pts(ring.coords)))
-                            for ring in geom.interiors
-                        ),
-                )
+#     elif isinstance(geom, sg.base.BaseMultipartGeometry):
+#         # Recursive call
+#         # TODO: fix GeometryCollection constructor
+#         return type(geom)(tuple(
+#                 affine_transform(part, self.matrix)
+#                 for part in geom.geoms
+#             ))
 
-        elif isinstance(geom, sg.base.BaseMultipartGeometry):
-            # Recursive call
-            # TODO: fix GeometryCollection constructor
-            return type(geom)(tuple(
-                    affine_transform(part, self.matrix)
-                    for part in geom.geoms
-                ))
+#     else:
+#         raise ValueError('Type {} not recognized'.format(geom.type))
 
-        else:
-            raise ValueError('Type {} not recognized'.format(geom.type))
-
-    except NameError:
-        global sg
-        import shapely.geometry as sg
-        return _apply_matrix(geom, matrix, offsets)
+# @numba.jit(nopython=True)
+# def affine_pts(pts, matrix, offsets):
+#     """Internal function to yield affine transform of coordinate tuples"""
+#     for pt in pts:
+#         yield (matrix * np.mat(pt, dtype=float).transpose()).A1 + offsets
 
 
 def _to_np_matrix(matrix):
@@ -486,9 +476,6 @@ def _to_np_matrix(matrix):
 
 
 # for backwards compatability
-def affine_transform(geom, matrix):
-    return affine_matrix_builder(geom, matrix).transform()
-
 def rotate(geom, angle, origin='center', use_radians=False):
     return affine_matrix_builder(geom).rotate(angle, origin, use_radians).transform()# def rotate(geom, angle, origin='center', use_radians=False):
 
@@ -500,6 +487,112 @@ def skew(geom, xs=0.0, ys=0.0, origin='center', use_radians=False):
 
 def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
     return affine_matrix_builder(geom).translate(xoff, yoff, zoff).transform()
+
+# def affine_transform(geom, matrix):
+#     return affine_matrix_builder(geom, matrix).transform()
+def affine_transform(geom, matrix):
+    """Returns a transformed geometry using an affine transformation matrix.
+    The coefficient matrix is provided as a list or tuple with 6 or 12 items
+    for 2D or 3D transformations, respectively.
+    For 2D affine transformations, the 6 parameter matrix is::
+        [a, b, d, e, xoff, yoff]
+    which represents the augmented matrix::
+                            / a  b xoff \
+        [x' y' 1] = [x y 1] | d  e yoff |
+                            \ 0  0   1  /
+    or the equations for the transformed coordinates::
+        x' = a * x + b * y + xoff
+        y' = d * x + e * y + yoff
+    For 3D affine transformations, the 12 parameter matrix is::
+        [a, b, c, d, e, f, g, h, i, xoff, yoff, zoff]
+    which represents the augmented matrix::
+                                 / a  b  c xoff \
+        [x' y' z' 1] = [x y z 1] | d  e  f yoff |
+                                 | g  h  i zoff |
+                                 \ 0  0  0   1  /
+    or the equations for the transformed coordinates::
+        x' = a * x + b * y + c * z + xoff
+        y' = d * x + e * y + f * z + yoff
+        z' = g * x + h * y + i * z + zoff
+    """
+    if geom.is_empty:
+        return geom
+
+    if len(matrix) == 6:
+        ndim = 2
+        a, b, d, e, xoff, yoff = matrix
+        if geom.has_z:
+            ndim = 3
+            i = 1.0
+            c = f = g = h = zoff = 0.0
+            matrix = a, b, c, d, e, f, g, h, i, xoff, yoff, zoff
+    elif len(matrix) == 12:
+        ndim = 3
+        a, b, c, d, e, f, g, h, i, xoff, yoff, zoff = matrix
+        if not geom.has_z:
+            ndim = 2
+            matrix = a, b, d, e, xoff, yoff
+    else:
+        raise ValueError("'matrix' expects either 6 or 12 coefficients")
+
+    def affine_pts(pts):
+        """Internal function to yield affine transform of coordinate tuples"""
+        if ndim == 2:
+            for x, y in pts:
+                xp = a * x + b * y + xoff
+                yp = d * x + e * y + yoff
+                yield (xp, yp)
+        elif ndim == 3:
+            for x, y, z in pts:
+                xp = a * x + b * y + c * z + xoff
+                yp = d * x + e * y + f * z + yoff
+                zp = g * x + h * y + i * z + zoff
+                yield (xp, yp, zp)
+
+    # # Process coordinates from each supported geometry type
+    # if geom.type in ('Point', 'LineString', 'LinearRing'):
+    #     return type(geom)(list(affine_pts(geom.coords)))
+    # elif geom.type == 'Polygon':
+    #     ring = geom.exterior
+    #     shell = type(ring)(list(affine_pts(ring.coords)))
+    #     holes = list(geom.interiors)
+    #     for pos, ring in enumerate(holes):
+    #         holes[pos] = type(ring)(list(affine_pts(ring.coords)))
+    #     return type(geom)(shell, holes)
+    # elif geom.type.startswith('Multi') or geom.type == 'GeometryCollection':
+    #     # Recursive call
+    #     # TODO: fix GeometryCollection constructor
+    #     return type(geom)([affine_transform(part, matrix)
+    #                        for part in geom.geoms])
+    # else:
+    #     raise ValueError('Type %r not recognized' % geom.type)
+    # Process coordinates from each supported geometry type
+    if isinstance(geom, sg.Point):
+        return type(geom)(first(affine_pts(np.array(geom.coords), matrix, offsets)))
+    if isinstance(geom, (sg.Point, sg.LineString, sg.LinearRing)):
+        return type(geom)(tuple(affine_pts(np.array(geom.coords), matrix, offsets)))
+
+    elif isinstance(geom, sg.Polygon):
+        return sg.Polygon(
+                sg.LinearRing(tuple(
+                        affine_pts(np.array(geom.exterior.coords), matrix, offsets)
+                    )),
+                tuple(
+                        sg.LinearRing(tuple(affine_pts(np.array(ring.coords), matrix, offsets)))
+                        for ring in geom.interiors
+                    ),
+            )
+
+    elif isinstance(geom, sg.base.BaseMultipartGeometry):
+        # Recursive call
+        # TODO: fix GeometryCollection constructor
+        return type(geom)(tuple(
+                affine_transform(part, self.matrix)
+                for part in geom.geoms
+            ))
+
+    else:
+        raise ValueError('Type {} not recognized'.format(geom.type))
 
 
 # # code used to determine how affine matrices can be combined
@@ -568,4 +661,5 @@ def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
 #         same.add(tuple(trans.__name__ for trans in transforms))
 #     else:
 #         different.add(tuple(trans.__name__ for trans in transforms))
+
 
