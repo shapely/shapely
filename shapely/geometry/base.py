@@ -423,6 +423,15 @@ class BaseGeometry(object):
         """Name of the geometry's type, such as 'Point'"""
         return self.geometryType()
 
+    @property
+    def srid(self):
+        """Spatial reference ID"""
+        return lgeos.GEOSGetSRID(self._geom)
+
+    @srid.setter
+    def srid(self, value):
+        lgeos.GEOSSetSRID(self._geom, int(value))
+
     # Real-valued properties and methods
     # ----------------------------------
 
