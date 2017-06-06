@@ -38,7 +38,7 @@ Installing Shapely (1.6b2)
 
 Windows users have two good installation options: the wheels at
 http://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely and the 
-Anaconda platform's `conda-forge https://conda-forge.github.io/`__
+Anaconda platform's `conda-forge <https://conda-forge.github.io/>`__
 channel.
 
 OS X users can get Shapely wheels with GEOS included from the 
