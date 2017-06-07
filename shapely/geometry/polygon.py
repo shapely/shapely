@@ -340,8 +340,19 @@ class Polygon(BaseGeometry):
             ).format(2. * scale_factor, path, fill_color)
 
     @classmethod
-    def from_bounds(cls, xmin, ymin, xmax, ymax):
-        """Construct a `Polygon()` from spatial bounds."""
+    def from_bounds(cls, bounds):
+        """Construct a ``Polygon()`` from spatial bounds.
+
+        Parameters
+        ----------
+        bounds : tuple
+            Spatial extent like ``(xmin, ymin, xmax, ymax)``.
+
+        Returns
+        -------
+        Polygon
+        """
+        xmin, ymin, xmax, ymax = bounds
         return cls([
             (xmin, ymin),
             (xmin, ymax),
