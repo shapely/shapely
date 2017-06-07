@@ -9,12 +9,14 @@ class MultiPointTestCase(MultiGeometryTestCase):
     def test_multipoint(self):
 
         # From coordinate tuples
-        geom = MultiPoint(((1.0, 2.0), (3.0, 4.0)))
+        crs_obj = {"type": "name", "properties": {"name": "epsg:4326"}}
+        geom = MultiPoint(((1.0, 2.0), (3.0, 4.0)), crs=crs_obj)
         self.assertEqual(len(geom.geoms), 2)
         self.assertEqual(dump_coords(geom), [[(1.0, 2.0)], [(3.0, 4.0)]])
+        self.assertEqual(geom.crs, crs_obj)
 
         # From points
-        geom = MultiPoint((Point(1.0, 2.0), Point(3.0, 4.0)))
+        geom = MultiPoint((Point(1.0, 2.0), Point(3.0, 4.0)), crs=crs_obj)
         self.assertEqual(len(geom.geoms), 2)
         self.assertEqual(dump_coords(geom), [[(1.0, 2.0)], [(3.0, 4.0)]])
 
@@ -33,7 +35,9 @@ class MultiPointTestCase(MultiGeometryTestCase):
         # Geo interface
         self.assertEqual(geom.__geo_interface__,
                          {'type': 'MultiPoint',
-                          'coordinates': ((1.0, 2.0), (3.0, 4.0))})
+                          'coordinates': ((1.0, 2.0), (3.0, 4.0)),
+                          'crs': crs_obj,
+                          })
 
         # Adapt a coordinate list to a line string
         coords = [[5.0, 6.0], [7.0, 8.0]]

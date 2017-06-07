@@ -29,7 +29,7 @@ class MultiPolygon(BaseMultipartGeometry):
         A sequence of `Polygon` instances
     """
 
-    def __init__(self, polygons=None, context_type='polygons'):
+    def __init__(self, polygons=None, context_type='polygons', crs=None):
         """
         Parameters
         ----------
@@ -37,6 +37,8 @@ class MultiPolygon(BaseMultipartGeometry):
             A sequence of (shell, holes) tuples where shell is the sequence
             representation of a linear ring (see linearring.py) and holes is
             a sequence of such linear rings
+        crs : dict
+            Optional dict containing coordinate reference system
 
         Example
         -------
@@ -53,7 +55,7 @@ class MultiPolygon(BaseMultipartGeometry):
           >>> type(ob.geoms[0]) == Polygon
           True
         """
-        super(MultiPolygon, self).__init__()
+        super(MultiPolygon, self).__init__(crs=crs)
 
         if not polygons:
             # allow creation of empty multipolygons, to support unpickling
@@ -70,15 +72,17 @@ class MultiPolygon(BaseMultipartGeometry):
     def __geo_interface__(self):
         allcoords = []
         for geom in self.geoms:
-            coords = []
-            coords.append(tuple(geom.exterior.coords))
+            coords = [tuple(geom.exterior.coords)]
             for hole in geom.interiors:
                 coords.append(tuple(hole.coords))
             allcoords.append(tuple(coords))
-        return {
+        geom = {
             'type': 'MultiPolygon',
             'coordinates': allcoords
-            }
+        }
+        if self.crs is not None:
+            geom['crs'] = self.crs
+        return geom
 
     def svg(self, scale_factor=1., fill_color=None):
         """Returns group of SVG path elements for the MultiPolygon geometry.

@@ -28,7 +28,7 @@ class MultiLineString(BaseMultipartGeometry):
         A sequence of LineStrings
     """
 
-    def __init__(self, lines=None):
+    def __init__(self, lines=None, crs=None):
         """
         Parameters
         ----------
@@ -36,6 +36,8 @@ class MultiLineString(BaseMultipartGeometry):
             A sequence of line-like coordinate sequences or objects that
             provide the numpy array interface, including instances of
             LineString.
+        crs : dict
+            Optional dict containing coordinate reference system
 
         Example
         -------
@@ -43,7 +45,7 @@ class MultiLineString(BaseMultipartGeometry):
 
           >>> lines = MultiLineString( [[[0.0, 0.0], [1.0, 2.0]]] )
         """
-        super(MultiLineString, self).__init__()
+        super(MultiLineString, self).__init__(crs=crs)
 
         if not lines:
             # allow creation of empty multilinestrings, to support unpickling
@@ -56,10 +58,13 @@ class MultiLineString(BaseMultipartGeometry):
 
     @property
     def __geo_interface__(self):
-        return {
+        geom = {
             'type': 'MultiLineString',
             'coordinates': tuple(tuple(c for c in g.coords) for g in self.geoms)
-            }
+        }
+        if self.crs is not None:
+            geom['crs'] = self.crs
+        return geom
 
     def svg(self, scale_factor=1., stroke_color=None):
         """Returns a group of SVG polyline elements for the LineString geometry.

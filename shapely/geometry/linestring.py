@@ -26,7 +26,7 @@ class LineString(BaseGeometry):
     and need not be straight. Unlike a LinearRing, a LineString is not closed.
     """
 
-    def __init__(self, coordinates=None):
+    def __init__(self, coordinates=None, crs=None):
         """
         Parameters
         ----------
@@ -34,6 +34,8 @@ class LineString(BaseGeometry):
             A sequence of (x, y [,z]) numeric coordinate pairs or triples or
             an object that provides the numpy array interface, including
             another instance of LineString.
+        crs : dict
+            Optional dict containing coordinate reference system
 
         Example
         -------
@@ -43,16 +45,19 @@ class LineString(BaseGeometry):
           >>> a.length
           2.0
         """
-        BaseGeometry.__init__(self)
+        BaseGeometry.__init__(self, crs=crs)
         if coordinates is not None:
             self._set_coords(coordinates)
 
     @property
     def __geo_interface__(self):
-        return {
+        geom = {
             'type': 'LineString',
             'coordinates': tuple(self.coords)
-            }
+        }
+        if self.crs is not None:
+            geom['crs'] = self.crs
+        return geom
 
     def svg(self, scale_factor=1., stroke_color=None):
         """Returns SVG polyline element for the LineString geometry.

@@ -34,7 +34,7 @@ class Point(BaseGeometry):
       1.0
     """
 
-    def __init__(self, *args):
+    def __init__(self, *args, **kwargs):
         """
         Parameters
         ----------
@@ -43,8 +43,11 @@ class Point(BaseGeometry):
         1) 1 parameter: this must satisfy the numpy array protocol.
         2) 2 or more parameters: x, y, z : float
             Easting, northing, and elevation.
+
+        crs : dict
+            Optional dict containing coordinate reference system
         """
-        BaseGeometry.__init__(self)
+        BaseGeometry.__init__(self, **kwargs)
         if len(args) > 0:
             self._set_coords(*args)
 
@@ -69,10 +72,13 @@ class Point(BaseGeometry):
 
     @property
     def __geo_interface__(self):
-        return {
+        geom = {
             'type': 'Point',
             'coordinates': self.coords[0]
-            }
+        }
+        if self.crs is not None:
+            geom['crs'] = self.crs
+        return geom
 
     def svg(self, scale_factor=1., fill_color=None):
         """Returns SVG circle element for the Point geometry.

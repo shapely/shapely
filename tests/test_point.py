@@ -8,7 +8,8 @@ class LineStringTestCase(unittest.TestCase):
     def test_point(self):
 
         # Test 2D points
-        p = Point(1.0, 2.0)
+        crs_obj = {"type": "name", "properties": {"name": "epsg:4326"}}
+        p = Point(1.0, 2.0, crs=crs_obj)
         self.assertEqual(p.x, 1.0)
         self.assertEqual(p.y, 2.0)
         self.assertEqual(p.coords[:], [(1.0, 2.0)])
@@ -16,6 +17,7 @@ class LineStringTestCase(unittest.TestCase):
         self.assertFalse(p.has_z)
         with self.assertRaises(DimensionError):
             p.z
+        self.assertEqual(p.crs, crs_obj)
 
         # Check 3D
         p = Point(1.0, 2.0, 3.0)

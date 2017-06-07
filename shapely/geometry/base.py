@@ -219,6 +219,22 @@ class BaseGeometry(object):
     # a reference to the so/dll proxy to preserve access during clean up
     _lgeos = lgeos
 
+    def __init__(self, *args, **kwargs):
+        # set the crs if there is one.
+        try:
+            self.crs = kwargs['crs']
+        except KeyError:
+            # it's optional
+            pass
+
+    @property
+    def crs(self):
+        return self._crs
+
+    @crs.setter
+    def crs(self, value):
+        self._crs = value
+
     def empty(self, val=EMPTY):
         # TODO: defer cleanup to the implementation. We shouldn't be
         # explicitly calling a lgeos method here.
