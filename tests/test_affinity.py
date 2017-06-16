@@ -1,8 +1,15 @@
-from . import unittest
+if __name__ == '__main__':
+    import unittest
+else:
+    from . import unittest
+
 from math import pi
+from itertools import permutations
+
+import shapely
 from shapely import affinity
 from shapely.wkt import loads as load_wkt
-from shapely.geometry import Point
+from shapely.geometry import Point, Polygon, LineString, LinearRing, box
 
 
 class AffineTestCase(unittest.TestCase):
@@ -246,8 +253,102 @@ class TransformOpsTestCase(unittest.TestCase):
         self.assertTrue(tls.equals(els))
 
 
+class affine_matrix_builderTestCase(unittest.TestCase):
+    def test_combining_matrices(self):
+        amb = affinity.affine_matrix_builder
+
+        transform_functions = (
+            (amb.affine_transform, dict(
+                first = ((1,2,3,4,5,6,7,8,9,10,11,12),),
+                different = ((2,3,4,5,6,7,8,9,10,11,12,13),),
+            )),
+            (amb.affine_transform, dict(
+                first = ((1,2,3,4,5,6),),
+                different = ((2,3,4,5,6,7),),
+            )),
+            (amb.rotate, dict(
+                first = (90, (0,0)),
+                different = (55, (.5, 7)),
+            )),
+            (amb.scale, dict(
+                first = (2, 3, 4, (0,0)),
+                different = (4, 2, 3, (.5, 7)),
+            )),
+            (amb.skew, dict(
+                first = (2, 3, (0,0)),
+                different = (4, 5, (.5, 7)),
+            )),
+            (amb.translate, dict(
+                first = (1, 2, 3),
+                different = (2, 3, 4),
+            )),
+        )
+
+        # test all combinations of transformations
+        for transforms in permutations(transform_functions):
+            a = amb(Point(1,1))
+            a_geom = a.geom
+            b = Point(1,1)
+            for t, props in transforms:
+                a = t(a, *props['first'])
+                b = t(amb(b), *props['first']).transform()
+                trans_1 = a.transform()
+                trans_2 = a.transform()
+
+                self.assertTrue(a.geom is a_geom)
+                self.assertEqual(trans_1, b)
+                self.assertEqual(trans_1, trans_2)
+
+
+        geometries = (Point(1,1),
+                      LineString(((1,1),(2,2),(-1,1))),
+                      LinearRing(((1,1),(2,2),(-1,1))),
+                      Polygon(((1,1),(2,2),(-1,1))),
+                      Polygon(box(0,0,5,5), (box(1,1,2,2), box(3,3,4,4))),
+                    )
+
+        for geom in geometries:
+            for function, inputs in transform_functions:
+                transforms = (function,)*2
+
+                a = amb(geom)
+                b = geom
+                for input_index in ('first', 'different'):
+                    a = function(a, *inputs[input_index])
+                    b = function(amb(b), *inputs[input_index]).transform()
+                a = a.transform()
+
+                self.assertEqual(a, b)
+
+
+# class MatrixMathTestCase(unittest.TestCase):
+#     def test_math_functions(self):
+#         square_matrix_size = affinity.square_matrix_size
+#         row_iter = affinity.row_iter
+#         get_column = affinity.get_column
+#         column_iter = affinity.column_iter
+#         multiply_matrices = affinity.multiply_matrices
+
+#         self.assertEqual(square_matrix_size((0,)*4), 2)
+#         with self.assertRaises(ValueError):
+#             square_matrix_size((0,)*5)
+
+#         self.assertEqual(tuple(row_iter((1,2,3,4))), ((1,2),(3,4)))
+
+#         self.assertEqual(tuple(get_column((1,2,3,4), 1)), (2,4))
+
+#         self.assertEqual(tuple(tuple(col) for col in column_iter((1,2,3,4))), ((1,3),(2,4)))
+
+#         self.assertEqual(multiply_matrices((1,2,3,4), (5,6,7,8)), (19, 22, 43, 50))
+
+
 def test_suite():
     loader = unittest.TestLoader()
     return unittest.TestSuite([
         loader.loadTestsFromTestCase(AffineTestCase),
         loader.loadTestsFromTestCase(TransformOpsTestCase)])
+
+
+if __name__ == '__main__':
+    unittest.main()
+

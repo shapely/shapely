@@ -20,3 +20,4 @@ wheels/
 ignore/
 
 venv/
+*.DS_Store
