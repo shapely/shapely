@@ -460,17 +460,24 @@ cdef GEOSCoordSequence* transform(GEOSCoordSequence* cs,
     cs_t = GEOSCoordSeq_create_r(handle, m, ndim)
     
     # perform the transform
-    for n in range(0, m):
-        GEOSCoordSeq_getX_r(handle, cs, n, &x)
-        GEOSCoordSeq_getY_r(handle, cs, n, &y)
-        x_t = a * x + b * y + xoff
-        y_t = d * x + e * y + yoff
-        GEOSCoordSeq_setX_r(handle, cs_t, n, x_t)
-        GEOSCoordSeq_setY_r(handle, cs_t, n, y_t)
+    if ndim == 2:
+        for n in range(0, m):
+            GEOSCoordSeq_getX_r(handle, cs, n, &x)
+            GEOSCoordSeq_getY_r(handle, cs, n, &y)
+            x_t = a * x + b * y + xoff
+            y_t = d * x + e * y + yoff
+            GEOSCoordSeq_setX_r(handle, cs_t, n, x_t)
+            GEOSCoordSeq_setY_r(handle, cs_t, n, y_t)
     if ndim == 3:
         for n in range(0, m):
+            GEOSCoordSeq_getX_r(handle, cs, n, &x)
+            GEOSCoordSeq_getY_r(handle, cs, n, &y)
             GEOSCoordSeq_getZ_r(handle, cs, n, &z)
+            x_t = a * x + b * y + c * z + xoff
+            y_t = d * x + e * y + f * z + yoff
             z_t = g * x + h * y + i * z + zoff
+            GEOSCoordSeq_setX_r(handle, cs_t, n, x_t)
+            GEOSCoordSeq_setY_r(handle, cs_t, n, y_t)
             GEOSCoordSeq_setZ_r(handle, cs_t, n, z_t)
     
     return cs_t
