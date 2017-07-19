@@ -28,6 +28,10 @@ class GeoInterfaceTestCase(unittest.TestCase):
         self.assertEqual(shape.geom_type, 'Point')
         self.assertEqual(tuple(shape.coords), ((0.0, 0.0),))
 
+        for func in [str, repr]:
+            assert '0' in func(shape)
+            assert 'point' in func(shape).lower()
+
         # Check line string
         shape = asShape(
             {'type': 'LineString', 'coordinates': ((-1.0, -1.0), (1.0, 1.0))})
