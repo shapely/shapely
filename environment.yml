@@ -1,0 +1,9 @@
+name: _shapely
+channels:
+- defaults
+- conda-forge
+dependencies:
+- python>=3.5
+- cython
+- geos>=3.3
+- numpy>=1.9
