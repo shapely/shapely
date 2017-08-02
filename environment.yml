@@ -6,4 +6,5 @@ dependencies:
 - python>=3.5
 - cython
 - geos>=3.3
+- matplotlib
 - numpy>=1.9
