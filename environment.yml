@@ -5,6 +5,7 @@ channels:
 dependencies:
 - python>=3.5
 - cython
+- descartes
 - geos>=3.3
 - matplotlib
 - numpy>=1.9
