@@ -1521,8 +1521,10 @@ With a `resolution` of 1, the buffer is a square patch.
   >>> q.area
   200.0
 
-Passed a `distance` of 0, :meth:`buffer` can be used to "clean" self-touching
-or self-crossing polygons such as the classic "bowtie".
+Passed a `distance` of 0, :meth:`buffer` can sometimes be used to "clean" self-touching
+or self-crossing polygons such as the classic "bowtie". Users have reported 
+that very small distance values sometimes produce cleaner results than 0. Your
+mileage may vary when cleaning surfaces.
 
 .. code-block:: pycon
 
