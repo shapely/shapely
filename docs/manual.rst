@@ -1664,7 +1664,9 @@ Figure 14. Simplification of a nearly circular polygon using a tolerance of 0.2
 .. note::
 
   `Invalid` geometric objects may result from simplification that does not
-  preserve topology.
+  preserve topology and simplification may be sensitive to the order of
+  coordinates: two geometries differing only in order of coordinates may be
+  simplified differently.
 
 
 Affine Transformations
