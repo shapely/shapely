@@ -1,6 +1,12 @@
 Changes
 =======
 
+1.6.0 (2017-08-21)
+------------------
+
+- Project documentation is now hosted at 
+  https://shapely.readthedocs.io/en/latest/.
+
 1.6b5 (2017-08-18)
 ------------------
 

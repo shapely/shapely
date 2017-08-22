@@ -22,8 +22,8 @@ planar geometric objects. It is based on the widely deployed `GEOS
 libraries. Shapely is not concerned with data formats or coordinate systems,
 but can be readily integrated with packages that are. For more details, see:
 
-* Shapely on `GitHub <https://github.com/Toblerity/Shapely>`__
-* The Shapely `manual <http://toblerity.github.com/shapely/manual.html>`__
+* `Shapely GitHub repository <https://github.com/Toblerity/Shapely>`__
+* `Shapely documentation and manual <https://shapely.readthedocs.io/en/latest/>`__
 
 Requirements
 ============
