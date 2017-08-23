@@ -22,58 +22,61 @@ planar geometric objects. It is based on the widely deployed `GEOS
 libraries. Shapely is not concerned with data formats or coordinate systems,
 but can be readily integrated with packages that are. For more details, see:
 
-* Shapely on `GitHub <https://github.com/Toblerity/Shapely>`__
-* The Shapely `manual <http://toblerity.github.com/shapely/manual.html>`__
+* `Shapely GitHub repository <https://github.com/Toblerity/Shapely>`__
+* `Shapely documentation and manual <https://shapely.readthedocs.io/en/latest/>`__
 
 Requirements
 ============
 
-Shapely 1.6.x requires
+Shapely 1.6 requires
 
 * Python >=2.6 (including Python 3.x)
 * GEOS >=3.3 
 
-Installing Shapely (1.6b2)
-==========================
+Installing Shapely 1.6
+======================
+
+Shapely may be installed from a source distribution or one of several kinds
+of built distribution.
+
+Built distributions
+-------------------
 
 Windows users have two good installation options: the wheels at
 http://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely and the 
 Anaconda platform's `conda-forge <https://conda-forge.github.io/>`__
 channel.
 
-OS X users can get Shapely wheels with GEOS included from the 
+OS X and Linux users can get Shapely wheels with GEOS included from the 
 Python Package Index with a recent version of pip (8+):
 
 .. code-block:: console
 
-    $ pip install shapely==1.6b2
+    $ pip install shapely
 
 A few extra speedups that require Numpy can be had by running
 
 .. code-block:: console
 
-    $ pip install shapely[vectorized]==1.6b2
+    $ pip install shapely[vectorized]
+
+Shapely is available via system package management tools like apt, yum, and
+Homebrew, and is also provided by popular Python distributions like Canopy and
+Anaconda.
+
+Source distributions
+--------------------
 
 If you want to build Shapely from source for compatibility with
-other modules that depend on GEOS (such as cartopy or osgeo.ogr)
-you may ignore the binary wheels.
+other modules that depend on GEOS (such as cartopy or osgeo.ogr) or want to
+use a different version of GEOS than the one included in the project wheels
+you should first install the GEOS library, Cython, and Numpy on your system
+(using apt, yum, brew, or other means) and then direct pip to ignore the binary
+wheels.
 
 .. code-block:: console
 
     $ pip install shapely --no-binary shapely
-
-Binary wheels are also available for Linux. To get them, use `pip shapely
-shapely==1.6b2`. To avoid them, use `pip install shapely --no-binary
-shapely==1.6b2`.
-
-In other situations, install `geos_c` libs and headers by any means 
-(for example, `brew install geos` on OS X or
-`apt-get install libgeos-dev` on Debian/Ubuntu) and install Shapely
-from the Python package index.
-
-.. code-block:: console
-
-    $ pip install shapely
 
 If you've installed GEOS to a standard location, the geos-config program
 will be used to get compiler and linker options. If geos-config is not on
@@ -83,9 +86,6 @@ variable, e.g.:
 .. code-block:: console
 
     $ GEOS_CONFIG=/path/to/geos-config pip install shapely
-
-Shapely is also provided by popular Python distributions like Canopy
-(Enthought) and Anaconda (Continuum Analytics).
 
 Usage
 =====

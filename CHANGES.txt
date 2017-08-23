@@ -1,6 +1,37 @@
 Changes
 =======
 
+1.6.0 (2017-08-21)
+------------------
+
+Shapely 1.6.0 adds new attributes to existing geometry classes and new
+functions (``split()`` and ``polylabel()``) to the shapely.ops module.
+Exceptions are consolidated in a shapely.errors module and logging practices
+have been improved. Shapely's optional features depending on Numpy are now
+gathered into a requirements set named "vectorized" and these may be installed
+like ``pip install shapely[vectorized]``.
+
+Much of the work on 1.6.0 was aimed to improve the project's build and
+packaging scripts and to minimize run-time dependencies. Shapely now vendorizes
+packaging to use during builds only and never again invokes the geos-config
+utility at run-time.
+
+In addition to the changes listed under the alpha and beta pre-releases below,
+the following change has been made to the project:
+
+- Project documentation is now hosted at 
+  https://shapely.readthedocs.io/en/latest/.
+
+Thank you all for using, promoting, and contributing to the Shapely project.
+
+1.6b5 (2017-08-18)
+------------------
+
+Bug fixes:
+
+- Passing a single coordinate to ``LineString()`` with speedups disabled now
+  raises a ValueError as happens with speedups enabled. This resolves #509.
+
 1.6b4 (2017-02-15)
 ------------------
 

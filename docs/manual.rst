@@ -5,7 +5,7 @@ The Shapely User Manual
 =======================
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
-:Version: 1.2 and 1.3
+:Version: 1.6
 :Date: |today|
 :Copyright:
   This work is licensed under a `Creative Commons Attribution 3.0
@@ -1521,8 +1521,10 @@ With a `resolution` of 1, the buffer is a square patch.
   >>> q.area
   200.0
 
-Passed a `distance` of 0, :meth:`buffer` can be used to "clean" self-touching
-or self-crossing polygons such as the classic "bowtie".
+Passed a `distance` of 0, :meth:`buffer` can sometimes be used to "clean" self-touching
+or self-crossing polygons such as the classic "bowtie". Users have reported 
+that very small distance values sometimes produce cleaner results than 0. Your
+mileage may vary when cleaning surfaces.
 
 .. code-block:: pycon
 
@@ -1662,7 +1664,9 @@ Figure 14. Simplification of a nearly circular polygon using a tolerance of 0.2
 .. note::
 
   `Invalid` geometric objects may result from simplification that does not
-  preserve topology.
+  preserve topology and simplification may be sensitive to the order of
+  coordinates: two geometries differing only in order of coordinates may be
+  simplified differently.
 
 
 Affine Transformations
