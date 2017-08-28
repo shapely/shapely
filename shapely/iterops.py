@@ -2,7 +2,6 @@
 Iterative forms of operations
 """
 
-from shapely.geos import PredicateError
 from shapely.topology import Delegating
 
 

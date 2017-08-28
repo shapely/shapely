@@ -6,8 +6,7 @@ import sys
 if sys.version_info[0] < 3:
     range = xrange
 
-from ctypes import byref, c_double, c_void_p, cast, POINTER
-from ctypes import ArgumentError
+from ctypes import byref, c_double, c_void_p, cast
 
 from shapely.geos import lgeos
 from shapely.geometry.base import (

@@ -13,7 +13,7 @@ from ctypes import byref, c_void_p, c_double
 from shapely.geos import lgeos
 from shapely.geometry.base import geom_factory, BaseGeometry
 from shapely.geometry import asShape, asLineString, asMultiLineString, Point, MultiPoint,\
-                             LineString, MultiLineString, Polygon, MultiPolygon, GeometryCollection
+                             LineString, MultiLineString, Polygon, GeometryCollection
 from shapely.algorithms.polylabel import polylabel
 
 __all__ = ['cascaded_union', 'linemerge', 'operator', 'polygonize',
