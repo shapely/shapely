@@ -2,7 +2,6 @@
 """
 
 from ctypes import c_double
-from ctypes import cast, POINTER
 
 from shapely.errors import DimensionError
 from shapely.geos import lgeos

@@ -6,8 +6,7 @@ import sys
 if sys.version_info[0] < 3:
     range = xrange
 
-from ctypes import c_double, c_void_p, cast, POINTER
-from ctypes import ArgumentError
+from ctypes import c_void_p, cast, POINTER
 import weakref
 
 from shapely.algorithms.cga import signed_area
