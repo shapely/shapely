@@ -1,11 +1,15 @@
 from . import unittest
-from shapely.geometry.base import BaseGeometry
+from shapely.geometry.base import BaseGeometry, EmptyGeometry
 import shapely.geometry as sgeom
 from shapely.geometry.polygon import LinearRing
 
 empty_generator = lambda: iter([])
 
 class EmptinessTestCase(unittest.TestCase):
+
+    def test_empty_class(self):
+        g = EmptyGeometry()
+        self.assertTrue(g._is_empty)
 
     def test_empty_base(self):
         g = BaseGeometry()
