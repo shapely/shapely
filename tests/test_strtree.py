@@ -1,3 +1,5 @@
+import gc
+
 from . import unittest
 
 from shapely.strtree import STRtree
@@ -41,6 +43,23 @@ class STRTestCase(unittest.TestCase):
         results = tree.query(query)
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0], point)
+
+    def test_references(self):
+        """Don't crash due to dangling references"""
+        empty = Polygon()
+        point = Point(1, 0.5)
+        geoms = [empty, point]
+        tree = STRtree(geoms)
+        assert(tree._n_geoms == 1)
+
+        empty = None
+        point = None
+        gc.collect()
+
+        query = Polygon([(0,0),(1,1),(2,0),(0,0)])
+        results = tree.query(query)
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0], Point(1, 0.5))
 
 
 def test_suite():
