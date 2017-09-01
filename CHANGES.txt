@@ -1,6 +1,12 @@
 Changes
 =======
 
+1.6.1 (2017-09-01)
+------------------
+
+- Reduce log level to debug when reporting on calls to ctypes ``CDLL()`` that
+  don't succeed and are retried (#515).
+
 1.6.0 (2017-08-21)
 ------------------
 
