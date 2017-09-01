@@ -39,6 +39,9 @@ class STRtree:
         for geom in geoms:
             lgeos.GEOSSTRtree_insert(self._tree_handle, geom._geom, ctypes.py_object(geom))
 
+        # Keep references to geoms.
+        self._geoms = list(geoms)
+
     def __del__(self):
         lgeos.GEOSSTRtree_destroy(self._tree_handle)
 
