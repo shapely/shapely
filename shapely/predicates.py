@@ -2,7 +2,7 @@
 Support for GEOS spatial predicates
 """
 
-from shapely.geos import PredicateError, TopologicalError
+from shapely.geos import PredicateError
 from shapely.topology import Delegating
 
 
