@@ -32,7 +32,7 @@ def load_dll(libname, fallbacks=None, mode=DEFAULT_MODE):
             LOG.debug("Trying `CDLL(%s)`", lib)
             dll = CDLL(lib, mode=mode)
         except OSError:
-            LOG.warn("Failed `CDLL(%s)`", lib)
+            LOG.debug("Failed `CDLL(%s)`", lib)
             pass
 
     if not dll and fallbacks is not None:
@@ -42,7 +42,7 @@ def load_dll(libname, fallbacks=None, mode=DEFAULT_MODE):
                 dll = CDLL(name, mode=mode)
             except OSError:
                 # move on to the next fallback
-                LOG.warn("Failed `CDLL(%s)`", name)
+                LOG.debug("Failed `CDLL(%s)`", name)
                 pass
 
     if dll:
