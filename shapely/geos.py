@@ -129,7 +129,9 @@ elif sys.platform == 'win32':
         try:
             egg_dlls = os.path.abspath(
                 os.path.join(os.path.dirname(__file__), 'DLLs'))
-            if hasattr(sys, "frozen"):
+            if hasattr(sys, '_MEIPASS'):
+                wininst_dlls = sys._MEIPASS
+            elif hasattr(sys, "frozen"):
                 wininst_dlls = os.path.normpath(
                     os.path.abspath(sys.executable + '../../DLLS'))
             else:
