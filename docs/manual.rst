@@ -442,7 +442,7 @@ constructor parameter.
 Polygons
 --------
 
-.. class:: Polygon(exterior [,interiors=None])
+.. class:: Polygon(shell [,holes=None])
 
   The `Polygon` constructor takes two positional parameters. The first is an
   ordered sequence of ``(x, y[, z])`` point tuples and is treated exactly as in
