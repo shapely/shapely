@@ -225,7 +225,7 @@ class BaseGeometry(object):
         if not self._is_empty and not self._other_owned and self.__geom__:
             try:
                 self._lgeos.GEOSGeom_destroy(self.__geom__)
-            except AttributeError:
+            except (AttributeError, TypeError):
                 pass  # _lgeos might be empty on shutdown
         self._is_empty = True
         self.__geom__ = val
