@@ -1,7 +1,6 @@
 """
 Proxies for libgeos, GEOS-specific exceptions, and utilities
 """
-
 import atexit
 from ctypes import (
     CDLL, cdll, pointer, string_at, DEFAULT_MODE, c_void_p, c_size_t, c_char_p)
@@ -16,7 +15,6 @@ import threading
 from .ctypes_declarations import prototype, EXCEPTION_HANDLER_FUNCTYPE
 from .errors import WKBReadingError, WKTReadingError, TopologicalError, PredicateError
 from . import ftools
-
 
 # Add message handler to this module's logger
 LOG = logging.getLogger(__name__)
@@ -558,7 +556,32 @@ def errcheck_predicate(result, func, argtuple):
     return result
 
 
-class LGEOSBase(threading.local):
+def _get_lgeos_base():
+    """Get the class that should be used as a base class for LGEOSBase.
+
+    Gevent will replace `threading.local` with an implementation that makes all
+    thread local variables greenlet local instead.  In the context of shapely,
+    this means all objects that inherit from LGEOSBase will become greenlet
+    local instead of thread local. Effectively, this causes servers that
+    utilize both gevent and shapely to re-initialize the geos bindings every
+    request.
+
+    Since LGEOSBase inherits from `threading.local` to prevent concurrent
+    access to the GEOS C API, this is not relevant in a monkey patched gevent
+    process which will only ever run one thread at a time.  In this case, we
+    inherit from `object` instead of `threading.local`
+    """
+    result = threading.local
+    try:
+        from gevent import monkey
+        if 'threading' in monkey.saved:
+            result = object
+    except Exception:
+        pass
+    return result
+
+
+class LGEOSBase(_get_lgeos_base()):
     """Proxy for GEOS C API
 
     This is a base class. Do not instantiate.
