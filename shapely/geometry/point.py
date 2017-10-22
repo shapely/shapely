@@ -127,6 +127,8 @@ class Point(BaseGeometry):
         self.empty()
         if len(args) == 1:
             self._geom, self._ndim = geos_point_from_py(args[0])
+        elif len(args) > 3:
+            raise TypeError("Point() takes at most 3 arguments ({} given)".format(len(args)))
         else:
             self._geom, self._ndim = geos_point_from_py(tuple(args))
 

@@ -78,6 +78,10 @@ class LineStringTestCase(unittest.TestCase):
         p_null.coords = (1, 2)
         self.assertEqual(p_null.coords[:], [(1.0, 2.0)])
 
+        # Passing > 3 arguments to Point is erroneous
+        with self.assertRaises(TypeError):
+            Point(1.0, 2.0, 3.0, 4.0)
+
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy(self):
 
