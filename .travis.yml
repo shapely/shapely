@@ -35,15 +35,15 @@ matrix:
         - SPEEDUPS=0
         - NUMPY=1
 
-    - python: "3.5"
+    - python: "3.6"
       env:
         - SPEEDUPS=1
         - NUMPY=1
-    - python: "3.5"
+    - python: "3.6"
       env:
         - SPEEDUPS=0
         - NUMPY=1
-    - python: "3.5"
+    - python: "3.6"
       env:
         - SPEEDUPS=0
         - NUMPY=0
@@ -72,6 +72,6 @@ script:
 
 after_success:
   - coveralls || echo "!! intermittent coveralls failure"
-  
+
 notifications:
     email: false
