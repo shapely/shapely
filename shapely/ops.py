@@ -257,7 +257,7 @@ def transform(func, geom):
 
 def nearest_points(g1, g2):
     """Returns the calculated nearest points in the input geometries
-    
+
     The points are returned in the same order as the input geometries.
     """
     seq = lgeos.methods['nearest_points'](g1._geom, g2._geom)
@@ -339,21 +339,21 @@ class SplitOp(object):
         union = poly.boundary.union(splitter)
 
         # some polygonized geometries may be holes, we do not want them
-        # that's why we test if the original polygon (poly) contains 
+        # that's why we test if the original polygon (poly) contains
         # an inner point of polygonized geometry (pg)
         return [pg for pg in polygonize(union) if poly.contains(pg.representative_point())]
 
     @staticmethod
     def _split_line_with_line(line, splitter):
         """Split a LineString with another (Multi)LineString or (Multi)Polygon"""
-        
+
         # if splitter is a polygon, pick it's boundary
         if splitter.type in ('Polygon', 'MultiPolygon'):
             splitter = splitter.boundary
 
         assert(isinstance(line, LineString))
         assert(isinstance(splitter, LineString) or isinstance(splitter, MultiLineString))
-        
+
         if splitter.crosses(line):
             # The lines cross --> return multilinestring from the split
             return line.difference(splitter)
@@ -364,7 +364,7 @@ class SplitOp(object):
             # The lines do not cross --> return collection with identity line
             return [line]
 
-    @staticmethod  
+    @staticmethod
     def _split_line_with_point(line, splitter):
         """Split a LineString with a Point"""
 
@@ -374,9 +374,12 @@ class SplitOp(object):
         # check if point is in the interior of the line
         if not line.relate_pattern(splitter, '0********'):
             # point not on line interior --> return collection with single identity line
-            # (REASONING: Returning a list with the input line reference and creating a 
-            # GeometryCollection at the general split function prevents unnecessary copying 
+            # (REASONING: Returning a list with the input line reference and creating a
+            # GeometryCollection at the general split function prevents unnecessary copying
             # of linestrings in multipoint splitting function)
+            return [line]
+        elif line.coords[0] == splitter.coords[0]:
+            # if line is a closed ring the previous test doesn't behave as desired
             return [line]
 
         # point is on line, get the distance from the first point on line
@@ -388,7 +391,7 @@ class SplitOp(object):
             pd = line.project(Point(p))
             if pd == distance_on_line:
                 return [
-                    LineString(coords[:i+1]), 
+                    LineString(coords[:i+1]),
                     LineString(coords[i:])
                 ]
             elif distance_on_line < pd:
@@ -414,9 +417,9 @@ class SplitOp(object):
                 # add the newly split 2 lines or the same line if not split
                 new_chunks.extend(SplitOp._split_line_with_point(chunk, pt))
             chunks = new_chunks
-        
+
         return chunks
-    
+
     @staticmethod
     def split(geom, splitter):
         """
