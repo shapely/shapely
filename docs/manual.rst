@@ -790,6 +790,54 @@ longer empty.
   >>> line.bounds
   (0.0, 0.0, 1.0, 1.0)
 
+Coordinate sequences
+--------------------
+
+The list of coordinates that describe a geometry are represented as the
+``CoordinateSequence`` object. These sequences should not be initialised
+directly, but can be accessed from an existing geometry as the
+``Geometry.coords`` property.
+
+.. code-block:: pycon
+
+  >>> line = LineString([(0, 1), (2, 3), (4, 5)])
+  >>> line.coords
+  <shapely.coords.CoordinateSequence object at 0x00000276EED1C7F0>
+
+Coordinate sequences can be indexed, sliced and iterated over as if they were a
+list of coordinate tuples.
+
+.. code-block:: pycon
+
+  >>> line.coords[0]
+  (0.0, 1.0)
+  >>> line.coords[1:]
+  [(2.0, 3.0), (4.0, 5.0)]
+  >>> for x, y in line.coords:
+  ...     print("x={}, y={}".format(x, y))
+  ...
+  x=0.0, y=1.0
+  x=2.0, y=3.0
+  x=4.0, y=5.0
+
+Polygons have a coordinate sequence for their exterior and each of their
+interior rings.
+
+.. code-block:: pycon
+
+  >>> poly = Polygon([(0, 0), (0, 1), (1, 1), (0, 0)])
+  >>> poly.exterior.coords
+  <shapely.coords.CoordinateSequence object at 0x00000276EED1C048>
+
+Multipart geometries do not have a coordinate sequence. Instead the coordinate
+sequences are stored on their component geometries.
+
+.. code-block:: pycon
+
+  >>> p = MultiPoint([(0, 0), (1, 1), (2, 2)])
+  >>> p[2].coords
+  <shapely.coords.CoordinateSequence object at 0x00000276EFB9B320>
+
 Linear Referencing Methods
 --------------------------
 
@@ -1142,7 +1190,7 @@ This predicate applies to all types and is the inverse of :meth:`intersects`.
   Returns ``True`` if the `boundary` or `interior` of the object intersect in
   any way with those of the other.
 
-In other words, geometric objects intersect if they have any boundary or 
+In other words, geometric objects intersect if they have any boundary or
 interior point in common.
 
 .. method:: object.touches(other)
@@ -1522,7 +1570,7 @@ With a `resolution` of 1, the buffer is a square patch.
   200.0
 
 Passed a `distance` of 0, :meth:`buffer` can sometimes be used to "clean" self-touching
-or self-crossing polygons such as the classic "bowtie". Users have reported 
+or self-crossing polygons such as the classic "bowtie". Users have reported
 that very small distance values sometimes produce cleaner results than 0. Your
 mileage may vary when cleaning surfaces.
 
@@ -1579,16 +1627,16 @@ Figure 10. Convex hull (blue) of 2 points (left) and of 6 points (right).
   <shapely.geometry.polygon.Polygon object at 0x...>
 
 .. attribute:: object.minimum_rotated_rectangle
-  
-  Returns the general minimum bounding rectangle that contains the object. 
-  Unlike envelope this rectangle is not constrained to be parallel to the 
-  coordinate axes. If the convex hull of the object is a degenerate (line or point) 
+
+  Returns the general minimum bounding rectangle that contains the object.
+  Unlike envelope this rectangle is not constrained to be parallel to the
+  coordinate axes. If the convex hull of the object is a degenerate (line or point)
   this degenerate is returned.
 
   `New in Shapely 1.6.0`
 
 .. code-block:: pycon
-  
+
   >>> Point(0, 0).minimum_rotated_rectangle
   <shapely.geometry.point.Point object at 0x...>
   >>> MultiPoint([(0,0),(1,1),(2,0.5)]).minimum_rotated_rectangle
@@ -1596,7 +1644,7 @@ Figure 10. Convex hull (blue) of 2 points (left) and of 6 points (right).
 
 .. plot:: code/minimum_rotated_rectangle.py
 
-Figure 11. Minimum rotated rectangle for a multipoint feature (left) and a 
+Figure 11. Minimum rotated rectangle for a multipoint feature (left) and a
 linestring feature (right).
 
 .. method:: object.parallel_offset(distance, side, resolution=16, join_style=1, mitre_limit=5.0)
@@ -2132,12 +2180,12 @@ paths between two lineal geometries.
 
    Finds the shared paths between `geom1` and `geom2`, where both geometries
    are `LineStrings`.
-   
+
    A `GeometryCollection` is returned with two elements. The first element is a
    `MultiLineString` containing shared paths with the same direction for both
    inputs. The second element is a MultiLineString containing shared paths with
    the opposite direction for the two inputs.
-   
+
    `New in version 1.6.0`
 
 .. code-block:: pycon
@@ -2160,11 +2208,11 @@ The :func:`~shapely.ops.split` function in `shapely.ops` splits a geometry by an
 
    Splits a geometry by another geometry and returns a collection of geometries. This function is the theoretical
    opposite of the union of the split geometry parts. If the splitter does not split the geometry, a  collection with a single geometry equal to the input geometry is returned.
-  
+
    The function supports:
 
    * Splitting a (Multi)LineString by a (Multi)Point or (Multi)LineString or (Multi)Polygon boundary
-   
+
    * Splitting a (Multi)Polygon by a LineString
 
    It may be convenient to snap the splitter with low tolerance to the geometry. For example in the case of splitting a line by a point, the point must be exactly on the line, for the line to be correctly split.
@@ -2485,7 +2533,7 @@ involves some overhead that might slow down your code.
 
 The :mod:`shapely.speedups` module contains performance enhancements written in
 C. They are automatically installed when Python has access to a compiler and
-GEOS development headers during installation. 
+GEOS development headers during installation.
 
 You can check if the speedups are installed with the :attr:`available`
 attribute. To enable the speedups call :func:`enable`. You can revert to the
