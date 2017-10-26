@@ -1,6 +1,16 @@
 Changes
 =======
 
+1.6.2 (2017-10-26)
+------------------
+
+- Handle a ``TypeError`` that can occur when geometries are torn down (#473,
+  #528).
+- Splitting a linestring by one of its end points will now succeed instead of
+  failing with a ``ValueError`` (#524, #533).
+- Missing documentation of a geometry's ``overlaps`` predicate has been added
+  (#522).
+
 1.6.1 (2017-09-01)
 ------------------
 

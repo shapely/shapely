@@ -1193,6 +1193,11 @@ This predicate applies to all types and is the inverse of :meth:`intersects`.
 In other words, geometric objects intersect if they have any boundary or
 interior point in common.
 
+.. method:: object.overlaps(other)
+
+  Returns ``True`` if the objects intersect (see above) but neither contains
+  the other.
+
 .. method:: object.touches(other)
 
   Returns ``True`` if the objects have at least one point in common and their
