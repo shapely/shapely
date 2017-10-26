@@ -699,7 +699,11 @@ class BaseGeometry(object):
         return bool(self.impl['disjoint'](self, other))
 
     def equals(self, other):
-        """Returns True if geometries are equal, else False"""
+        """Returns True if geometries are equal, else False
+        
+        Refers to point-set equality (or topological equality), and is equivalent to
+        (self.within(other) & self.contains(other))
+        """
         return bool(self.impl['equals'](self, other))
 
     def intersects(self, other):
@@ -720,12 +724,20 @@ class BaseGeometry(object):
 
     def equals_exact(self, other, tolerance):
         """Returns True if geometries are equal to within a specified
-        tolerance"""
+        tolerance
+        
+        Refers to coordinate equality, which requires coordinates to be equal 
+        and in the same order for all components of a geometry
+        """
         return bool(self.impl['equals_exact'](self, other, tolerance))
 
     def almost_equals(self, other, decimal=6):
         """Returns True if geometries are equal at all coordinates to a
-        specified decimal place"""
+        specified decimal place
+
+        Refers to approximate coordinate equality, which requires coordinates be
+        approximately equal and in the same order for all components of a geometry.
+        """
         return self.equals_exact(other, 0.5 * 10**(-decimal))
 
     def relate_pattern(self, other, pattern):
