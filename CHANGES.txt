@@ -1,8 +1,8 @@
 Changes
 =======
 
-1.6.2 (?)
----------
+1.6.2 (2017-10-26)
+------------------
 
 - Handle a ``TypeError`` that can occur when geometries are torn down (#473,
   #528).
