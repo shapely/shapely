@@ -38,7 +38,9 @@ class STRtree:
             lgeos.GEOSSTRtree_insert(self._tree_handle, geom._geom, ctypes.py_object(geom))
 
     def __del__(self):
-        lgeos.GEOSSTRtree_destroy(self._tree_handle)
+        if self._tree_handle is not None:
+            lgeos.GEOSSTRtree_destroy(self._tree_handle)
+            self._tree_handle = None
 
     def query(self, geom):
         if self._n_geoms == 0:
