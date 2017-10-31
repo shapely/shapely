@@ -1,6 +1,12 @@
 Changes
 =======
 
+1.6.2 (2017-10-30)
+------------------
+
+- A 1.6.2.post1 release has been made to fix a problem with macosx wheels
+  uploaded to PyPI.
+
 1.6.2 (2017-10-26)
 ------------------
 
