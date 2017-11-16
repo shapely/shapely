@@ -1356,6 +1356,13 @@ Almost every binary predicate method has a counterpart that returns a new
 geometric object. In addition, the set-theoretic `boundary` of an object is
 available as a read-only attribute.
 
+.. note::
+
+  These methods will `always` return a geometric object. An intersection of
+  disjoint geometries for example will return an empty `GeometryCollection`,
+  not `None` or `False`. To test for a non-empty result, use the geometry's
+  :ref:`is_empty` property.
+
 .. attribute:: object.boundary
 
   Returns a lower dimensional object representing the object's set-theoretic
