@@ -70,10 +70,10 @@ class GeometryCollection(BaseMultipartGeometry):
         """
         if self.is_empty:
             return '<g />'
-        if not self.colors:
-            return super(GeometryCollection, self).svg(scale_factor, color)
-        return '<g>' + ''.join(p.svg(scale_factor, c) for p, c in zip(
-            self, self.colors)) + '</g>'
+        if hasattr(self, 'colors') and self.colors:
+            return '<g>' + ''.join(p.svg(scale_factor, c) for p, c in zip(
+                self, self.colors)) + '</g>'
+        return super(GeometryCollection, self).svg(scale_factor, color)
 
 
 def geos_geometrycollection_from_py(ob):
