@@ -57,6 +57,24 @@ class GeometryCollection(BaseMultipartGeometry):
             return []
         return HeterogeneousGeometrySequence(self)
 
+    def svg(self, scale_factor=1., color=None):
+        """Returns a group of SVG elements for the multipart geometry.
+
+        Parameters
+        ==========
+        scale_factor : float
+            Multiplication factor for the SVG stroke-width.  Default is 1.
+        color : str, optional
+            Hex string for stroke or fill color. Default is to use "#66cc99"
+            if geometry is valid, and "#ff3333" if invalid.
+        """
+        if self.is_empty:
+            return '<g />'
+        if not self.colors:
+            return super(GeometryCollection, self).svg(scale_factor, color)
+        return '<g>' + ''.join(p.svg(scale_factor, c) for p, c in zip(
+            self, self.colors)) + '</g>'
+
 
 def geos_geometrycollection_from_py(ob):
     """Creates a GEOS GeometryCollection from a list of geometries"""

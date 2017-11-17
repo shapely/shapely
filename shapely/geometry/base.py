@@ -856,9 +856,6 @@ class BaseMultipartGeometry(BaseGeometry):
         """
         if self.is_empty:
             return '<g />'
-        if hasattr(self, 'colors') and self.colors:
-            return '<g>' + ''.join(p.svg(scale_factor, c) for p, c in zip(
-                self, self.colors)) + '</g>'
         if color is None:
             color = "#66cc99" if self.is_valid else "#ff3333"
         return '<g>' + ''.join(p.svg(
