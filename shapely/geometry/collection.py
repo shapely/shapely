@@ -20,17 +20,19 @@ class GeometryCollection(BaseMultipartGeometry):
         A sequence of Shapely geometry instances
     """
 
-    def __init__(self, geoms=None):
+    def __init__(self, geoms=None, colors=None):
         """
         Parameters
         ----------
         geoms : list
             A list of shapely geometry instances, which may be heterogenous.
-        
+        colors : list
+            A list of html colors.
+
         Example
         -------
         Create a GeometryCollection with a Point and a LineString
-        
+
           >>> p = Point(51, -1)
           >>> l = LineString([(52, -1), (49, 2)])
           >>> gc = GeometryCollection([p, l])
@@ -40,6 +42,7 @@ class GeometryCollection(BaseMultipartGeometry):
             pass
         else:
             self._geom, self._ndim = geos_geometrycollection_from_py(geoms)
+        self.colors = colors or []
 
     @property
     def __geo_interface__(self):
@@ -54,6 +57,7 @@ class GeometryCollection(BaseMultipartGeometry):
             return []
         return HeterogeneousGeometrySequence(self)
 
+
 def geos_geometrycollection_from_py(ob):
     """Creates a GEOS GeometryCollection from a list of geometries"""
     L = len(ob)
@@ -65,8 +69,9 @@ def geos_geometrycollection_from_py(ob):
             N = 3
         geom, n = geos_geom_from_py(ob[l])
         subs[l] = geom
-    
+
     return (lgeos.GEOSGeom_createCollection(7, subs, L), N)
+
 
 # Test runner
 def _test():
@@ -76,4 +81,3 @@ def _test():
 
 if __name__ == "__main__":
     _test()
-
