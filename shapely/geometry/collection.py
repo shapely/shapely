@@ -27,7 +27,7 @@ class GeometryCollection(BaseMultipartGeometry):
         geoms : list
             A list of shapely geometry instances, which may be heterogenous.
         colors : list
-            A list of html colors.
+            A list of html colors to render the geometries in Jupyter Notebook.
 
         Example
         -------
