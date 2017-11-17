@@ -186,6 +186,16 @@ class SvgTestCase(unittest.TestCase):
             'stroke-width="1.0" fill="#ff3333" opacity="0.6" />'
             '<polyline fill="none" stroke="#ff3333" stroke-width="2.0" '
             'points="4.0,2.0 4.0,2.0" opacity="0.8" /></g>')
+        # Colorful
+        self.assertSVG(
+            GeometryCollection([
+                Point(7, 3),
+                LineString([(4, 2), (4, 2)]),
+            ], colors=['red', 'blue']),
+            '<g><circle cx="7.0" cy="3.0" r="3.0" stroke="#555555" '
+            'stroke-width="1.0" fill="red" opacity="0.6" />'
+            '<polyline fill="none" stroke="blue" stroke-width="2.0" '
+            'points="4.0,2.0 4.0,2.0" opacity="0.8" /></g>')
 
 
 def test_suite():
