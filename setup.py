@@ -354,7 +354,7 @@ try:
 
     ext_modules.append(DistutilsExtension(
         "shapely.vectorized._vectorized",
-        sources=["shapely/vectorized/_vectorized.pyx"],
+        sources=["shapely/vectorized/_vectorized.pyx", "shapely/trace.pyx"],
         include_dirs=include_dirs,
         library_dirs=library_dirs,
         libraries=libraries,
