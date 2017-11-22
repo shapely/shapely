@@ -13,6 +13,7 @@ class LineStringTestCase(unittest.TestCase):
         self.assertEqual(p.y, 2.0)
         self.assertEqual(p.coords[:], [(1.0, 2.0)])
         self.assertEqual(str(p), p.wkt)
+        self.assertEqual(repr(p), '<Point object representing %s>' % p.wkt)
         self.assertFalse(p.has_z)
         with self.assertRaises(DimensionError):
             p.z
@@ -21,6 +22,7 @@ class LineStringTestCase(unittest.TestCase):
         p = Point(1.0, 2.0, 3.0)
         self.assertEqual(p.coords[:], [(1.0, 2.0, 3.0)])
         self.assertEqual(str(p), p.wkt)
+        self.assertEqual(repr(p), '<Point object representing %s>' % p.wkt)
         self.assertTrue(p.has_z)
         self.assertEqual(p.z, 3.0)
 

@@ -237,6 +237,10 @@ class BaseGeometry(object):
     def __str__(self):
         return self.wkt
 
+    def __repr__(self):
+        name = getattr(self.__class__, '__qualname__', self.__class__.__name__)
+        return '<{} object representing {}>'.format(name, self.wkt)
+
     # To support pickling
     def __reduce__(self):
         return (self.__class__, (), self.wkb)
