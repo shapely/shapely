@@ -70,6 +70,15 @@ class LinearRing(LineString):
 
     coords = property(_get_coords, _set_coords)
 
+    def __setstate__(self, state):
+        """WKB doesn't differentiate between LineString and LinearRing so we
+        need to move the coordinate sequence into the correct geometry type"""
+        super(LinearRing, self).__setstate__(state)
+        cs = lgeos.GEOSGeom_getCoordSeq(self.__geom__)
+        cs_clone = lgeos.GEOSCoordSeq_clone(cs)
+        lgeos.GEOSGeom_destroy(self.__geom__)
+        self.__geom__ = lgeos.GEOSGeom_createLinearRing(cs_clone)
+
     @property
     def is_ccw(self):
         """True is the ring is oriented counter clock-wise"""
@@ -302,13 +311,15 @@ class Polygon(BaseGeometry):
 
     @property
     def __geo_interface__(self):
-        coords = [tuple(self.exterior.coords)]
-        for hole in self.interiors:
-            coords.append(tuple(hole.coords))
+        if not self.exterior:
+            coords = []
+        else:
+            coords = [tuple(self.exterior.coords)]
+            for hole in self.interiors:
+                coords.append(tuple(hole.coords))
         return {
             'type': 'Polygon',
-            'coordinates': tuple(coords)
-            }
+            'coordinates': tuple(coords)}
 
     def svg(self, scale_factor=1., fill_color=None):
         """Returns SVG path element for the Polygon geometry.

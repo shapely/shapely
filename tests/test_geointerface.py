@@ -1,10 +1,12 @@
 from . import unittest
+
 from shapely.geometry import asShape
 from shapely.geometry.multipoint import MultiPointAdapter
 from shapely.geometry.linestring import LineStringAdapter
 from shapely.geometry.multilinestring import MultiLineStringAdapter
-from shapely.geometry.polygon import PolygonAdapter
+from shapely.geometry.polygon import Polygon, PolygonAdapter
 from shapely.geometry.multipolygon import MultiPolygonAdapter
+from shapely import wkt
 
 
 class GeoThing(object):
@@ -68,6 +70,20 @@ class GeoInterfaceTestCase(unittest.TestCase):
                   )]})
         self.assertIsInstance(shape, MultiPolygonAdapter)
         self.assertEqual(len(shape.geoms), 1)
+
+
+def test_empty_wkt_polygon():
+    """Confirm fix for issue #450"""
+    g = wkt.loads('POLYGON EMPTY')
+    assert g.__geo_interface__['type'] == 'Polygon'
+    assert g.__geo_interface__['coordinates'] == ()
+
+
+def test_empty_polygon():
+    """Confirm fix for issue #450"""
+    g = Polygon()
+    assert g.__geo_interface__['type'] == 'Polygon'
+    assert g.__geo_interface__['coordinates'] == ()
 
 
 def test_suite():
