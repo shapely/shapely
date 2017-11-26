@@ -1,6 +1,12 @@
 Changes
 =======
 
+1.6.3 (Upcoming)
+----------------
+
+- AttributeError is no longer raised when accessing __geo_interface__ of an
+  empty polygon (#450).
+
 1.6.2 (2017-10-30)
 ------------------
 

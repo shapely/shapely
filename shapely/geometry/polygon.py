@@ -312,13 +312,15 @@ class Polygon(BaseGeometry):
 
     @property
     def __geo_interface__(self):
-        coords = [tuple(self.exterior.coords)]
-        for hole in self.interiors:
-            coords.append(tuple(hole.coords))
+        if not self.exterior:
+            coords = []
+        else:
+            coords = [tuple(self.exterior.coords)]
+            for hole in self.interiors:
+                coords.append(tuple(hole.coords))
         return {
             'type': 'Polygon',
-            'coordinates': tuple(coords)
-            }
+            'coordinates': tuple(coords)}
 
     def svg(self, scale_factor=1., fill_color=None):
         """Returns SVG path element for the Polygon geometry.
