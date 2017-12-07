@@ -17,7 +17,8 @@ from shapely.geometry import asShape, asLineString, asMultiLineString, Point, Mu
 from shapely.algorithms.polylabel import polylabel
 
 __all__ = ['cascaded_union', 'linemerge', 'operator', 'polygonize',
-           'polygonize_full', 'transform', 'unary_union', 'triangulate', 'split']
+           'polygonize_full', 'transform', 'unary_union', 'triangulate',
+           'split', 'section']
 
 
 class CollectionOperator(object):
@@ -476,3 +477,56 @@ class SplitOp(object):
         return GeometryCollection(split_func(geom, splitter))
 
 split = SplitOp.split
+
+
+def substring(geom, start_dist, end_dist, normalized=False):
+    """Return a line segment between specified distances along a linear geometry.
+
+    Negative distance values are taken as measured in the reverse
+    direction from the end of the geometry. Out-of-range index
+    values are handled by clamping them to the valid range of values.
+    If the start distances equals the end distance, a point is being returned.
+    If the normalized arg is True, the distance will be interpreted as a
+    fraction of the geometry's length.
+    """
+
+    assert(isinstance(geom, LineString))
+    
+    # Filter out cases in which to return a point
+    if start_dist == end_dist:
+        return geom.interpolate(start_dist, normalized)
+    elif not normalized and start_dist >= geom.length and end_dist >= geom.length:
+        return geom.interpolate(geom.length, normalized)
+    elif not normalized and -start_dist >= geom.length and -end_dist >= geom.length:
+        return geom.interpolate(0, normalized)                    
+    elif normalized and start_dist >= 1 and end_dist >= 1:
+        return geom.interpolate(1, normalized)  
+    elif normalized and -start_dist >= 1 and -end_dist >= 1:
+        return geom.interpolate(0, normalized)
+
+    start_point = geom.interpolate(start_dist, normalized)
+    end_point = geom.interpolate(end_dist, normalized)
+    
+    min_dist = min(start_dist, end_dist)
+    max_dist = max(start_dist, end_dist)
+    if normalized:
+        min_dist *= geom.length
+        max_dist *= geom.length
+    
+    vertex_list = [(start_point.x, start_point.y)]
+    coords = list(geom.coords)
+    for i, p in enumerate(coords):
+        pd = geom.project(Point(p))
+        if pd < min_dist:
+            pass
+        elif min_dist < pd < max_dist:
+            vertex_list.append(p)
+        else:
+            break
+    vertex_list.append((end_point.x, end_point.y))
+
+    # reverse direction of section
+    if start_dist > end_dist:
+        vertex_list = reversed(vertex_list)
+
+    return LineString(vertex_list)
