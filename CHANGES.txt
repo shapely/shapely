@@ -9,6 +9,8 @@ Changes
 - ``asShape`` now handles empty coordinates in mappings as ``shape`` does
   (#542). Please note that ``asShape`` is likely to be deprecated in a future
   version of Shapely.
+- Check for length of LineString coordinates in speed mode, preventing crashes
+  when using LineStrings with only one coordinate (#546).
 
 1.6.2 (2017-10-30)
 ------------------
