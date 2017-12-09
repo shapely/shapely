@@ -157,7 +157,7 @@ themselves as instance factories. A few of their intrinsic properties will be
 discussed in this sections, others in the following sections on operations and
 serializations.
 
-Instances of `Point`, `LineString`, and `LinearRing` have as their most
+Instances of ``Point``, ``LineString``, and ``LinearRing`` have as their most
 important attribute a finite sequence of coordinates that determines their
 interior, boundary, and exterior point sets. A line string can be determined by
 as few as 2 points, but contains an infinite number of points. Coordinate
@@ -169,8 +169,20 @@ In all constructors, numeric values are converted to type ``float``. In other
 words, ``Point(0, 0)`` and ``Point(0.0, 0.0)`` produce geometrically equivalent
 instances. Shapely does not check the topological simplicity or validity of
 instances when they are constructed as the cost is unwarranted in most cases.
-Validating factories are trivially implemented, using the :attr:`is_valid`
-predicate, by users that require them.
+Validating factories are easily implemented using the :attr:``is_valid``
+predicate by users that require them.
+
+.. note::
+
+   Shapely is a planar geometry library and `z`, the height
+   above or below the plane, is ignored in geometric analysis. There is
+   a potential pitfall for users here: coordinate tuples that differ only in
+   `z` are not distinguished from each other and their application can result
+   in suprisingly invalid geometry objects. For example, ``LineString([(0, 0,
+   0), (0, 0, 1)])`` does not return a vertical line of unit length, but an invalid line
+   in the plane with zero length. Similarly, ``Polygon([(0, 0, 0), (0, 0, 1),
+   (1, 1, 1)])`` is not bounded by a closed ring and is invalid.
+
 
 General Attributes and Methods
 ------------------------------
