@@ -6,6 +6,9 @@ Changes
 
 - AttributeError is no longer raised when accessing __geo_interface__ of an
   empty polygon (#450).
+- ``asShape`` now handles empty coordinates in mappings as ``shape`` does
+  (#542). Please note that ``asShape`` is likely to be deprecated in a future
+  version of Shapely.
 
 1.6.2 (2017-10-30)
 ------------------
