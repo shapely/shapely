@@ -2359,8 +2359,14 @@ constructor to create an R-tree that you can query with another geometric object
 
   `New in version 1.4.0`.
 
-Query-only means in this case that the R-tree, once created, is immutable. You
-cannot add or remove geometries.
+The `query` method on `STRtree` returns a list of all geometries in the tree that
+intersect the provided geometry argument. If you want to match geometries of a
+more specific spatial relationship (eg. crosses, contains, overlaps), consider
+performing the query on the R-tree, followed by a manual search through the
+returned subset using the desired binary predicate.
+
+Query-only means that once created, the R-tree is immutable. You cannot 
+add or remove geometries.
 
 .. code-block:: pycon
 
