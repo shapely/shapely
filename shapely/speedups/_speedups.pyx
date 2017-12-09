@@ -148,6 +148,9 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
 
         if m == 0:
             return None
+        elif m < 2:
+            raise ValueError(
+                "LineStrings must have at least 2 coordinate tuples")
 
         if m < 2:
             raise ValueError(

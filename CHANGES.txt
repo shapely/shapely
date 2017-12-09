@@ -1,11 +1,16 @@
 Changes
 =======
 
-1.6.3 (Upcoming)
-----------------
+1.6.3 (2017-12-09)
+------------------
 
 - AttributeError is no longer raised when accessing __geo_interface__ of an
   empty polygon (#450).
+- ``asShape`` now handles empty coordinates in mappings as ``shape`` does
+  (#542). Please note that ``asShape`` is likely to be deprecated in a future
+  version of Shapely.
+- Check for length of LineString coordinates in speed mode, preventing crashes
+  when using LineStrings with only one coordinate (#546).
 
 1.6.2 (2017-10-30)
 ------------------
