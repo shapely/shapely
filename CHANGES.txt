@@ -1,6 +1,14 @@
 Changes
 =======
 
+Next
+-----
+
+New features:
+
+- Use DLLs indicated in sys._MEIPASS' to support PyInstaller frozen apps
+  (#523).
+
 1.6.3 (2017-12-09)
 ------------------
 
