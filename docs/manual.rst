@@ -2652,8 +2652,8 @@ References
 
 
 .. _GEOS: http://trac.osgeo.org/geos/
-.. _Java Topology Suite: http://www.vividsolutions.com/jts/jtshome.htm
-.. _JTS: http://www.vividsolutions.com/jts/jtshome.htm
+.. _Java Topology Suite: https://www.locationtech.org/projects/technology.jts
+.. _JTS: https://www.locationtech.org/projects/technology.jts
 .. _PostGIS: http://postgis.refractions.net
 .. _record: http://pypi.python.org/pypi/Shapely
 .. _wiki: http://trac.gispython.org/lab/wiki/Shapely
