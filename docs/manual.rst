@@ -2269,7 +2269,7 @@ The :func:`~shapely.ops.substring` function in `shapely.ops` returns a line segm
     If the normalized arg is True, the distance will be interpreted as a
     fraction of the geometry's length.
 
-   `New in version 1.6.0`
+   `New in version 1.7.0`
 
 .. code-block:: pycon
 
