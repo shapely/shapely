@@ -7,7 +7,7 @@ Changes
 - Handle a ``TypeError`` that can occur when geometries are torn down (#473,
   #528).
 
-- 
+
 1.6.3 (2017-12-09)
 ------------------
 
