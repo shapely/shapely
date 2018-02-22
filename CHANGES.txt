@@ -1,13 +1,13 @@
 Changes
 =======
 
-1.6.4.post1 (2017-01-24)
+1.6.4.post1 (2018-01-24)
 ------------------------
 
 - Fix broken markup in this change log, which restores our nicely formatted
   readme on PyPI.
 
-1.6.4 (2017-01-24)
+1.6.4 (2018-01-24)
 ------------------
 
 - Handle a ``TypeError`` that can occur when geometries are torn down (#473,
