@@ -16,6 +16,7 @@ from shapely.geometry import asShape, asLineString, asMultiLineString, Point, Mu
                              LineString, MultiLineString, Polygon, GeometryCollection
 from shapely.algorithms.polylabel import polylabel
 
+
 __all__ = ['cascaded_union', 'linemerge', 'operator', 'polygonize',
            'polygonize_full', 'transform', 'unary_union', 'triangulate',
            'split', 'section']

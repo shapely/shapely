@@ -9,6 +9,19 @@ New features:
 - Use DLLs indicated in sys._MEIPASS' to support PyInstaller frozen apps
   (#523).
 
+1.6.4.post1 (2018-01-24)
+------------------------
+
+- Fix broken markup in this change log, which restores our nicely formatted
+  readme on PyPI.
+
+1.6.4 (2018-01-24)
+------------------
+
+- Handle a ``TypeError`` that can occur when geometries are torn down (#473,
+  #528).
+
+
 1.6.3 (2017-12-09)
 ------------------
 
@@ -29,8 +42,6 @@ New features:
 1.6.2 (2017-10-26)
 ------------------
 
-- Handle a ``TypeError`` that can occur when geometries are torn down (#473,
-  #528).
 - Splitting a linestring by one of its end points will now succeed instead of
   failing with a ``ValueError`` (#524, #533).
 - Missing documentation of a geometry's ``overlaps`` predicate has been added
