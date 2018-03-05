@@ -1,7 +1,4 @@
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest
 
 from shapely.geometry import Polygon, LineString, Point
 from shapely.ops import triangulate
