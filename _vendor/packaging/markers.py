@@ -149,7 +149,7 @@ def _format_marker(marker, first=True):
         else:
             return "(" + " ".join(inner) + ")"
     elif isinstance(marker, tuple):
-        return '{0} {1} "{2}"'.format(*marker)
+        return '{} {} "{}"'.format(*marker)
     else:
         return marker
 

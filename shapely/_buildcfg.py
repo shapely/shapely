@@ -157,7 +157,7 @@ def load_dll(libname, fallbacks=None):
     else:
         # No shared library was loaded. Raise OSError.
         raise OSError(
-            "Could not find library {0} or load any of its variants {1}".format(
+            "Could not find library {} or load any of its variants {}".format(
                 libname, fallbacks or []))
 
 
