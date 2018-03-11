@@ -1,4 +1,5 @@
 import sys
+import unittest
 
 from shapely.geos import geos_version_string, lgeos, WKTWriter
 from shapely import speedups
@@ -23,8 +24,3 @@ print('Cython speedups: ' + str(speedups.available))
 if lgeos.geos_version >= (3, 3, 0):
     # Remove any WKT writer defaults to pass tests for all versions of GEOS
     WKTWriter.defaults = {}
-
-if sys.version_info[0:2] <= (2, 6):
-    import unittest2 as unittest
-else:
-    import unittest

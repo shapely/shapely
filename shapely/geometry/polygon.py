@@ -337,12 +337,12 @@ class Polygon(BaseGeometry):
         if fill_color is None:
             fill_color = "#66cc99" if self.is_valid else "#ff3333"
         exterior_coords = [
-            ["{0},{1}".format(*c) for c in self.exterior.coords]]
+            ["{},{}".format(*c) for c in self.exterior.coords]]
         interior_coords = [
-            ["{0},{1}".format(*c) for c in interior.coords]
+            ["{},{}".format(*c) for c in interior.coords]
             for interior in self.interiors]
         path = " ".join([
-            "M {0} L {1} z".format(coords[0], " L ".join(coords[1:]))
+            "M {} L {} z".format(coords[0], " L ".join(coords[1:]))
             for coords in exterior_coords + interior_coords])
         return (
             '<path fill-rule="evenodd" fill="{2}" stroke="#555555" '

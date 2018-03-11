@@ -82,7 +82,7 @@ class _IndividualSpecifier(BaseSpecifier):
     def __init__(self, spec="", prereleases=None):
         match = self._regex.search(spec)
         if not match:
-            raise InvalidSpecifier("Invalid specifier: '{0}'".format(spec))
+            raise InvalidSpecifier("Invalid specifier: '{}'".format(spec))
 
         self._spec = (
             match.group("operator").strip(),
@@ -106,7 +106,7 @@ class _IndividualSpecifier(BaseSpecifier):
         )
 
     def __str__(self):
-        return "{0}{1}".format(*self._spec)
+        return "{}{}".format(*self._spec)
 
     def __hash__(self):
         return hash(self._spec)
@@ -134,7 +134,7 @@ class _IndividualSpecifier(BaseSpecifier):
         return self._spec != other._spec
 
     def _get_operator(self, op):
-        return getattr(self, "_compare_{0}".format(self._operators[op]))
+        return getattr(self, "_compare_{}".format(self._operators[op]))
 
     def _coerce_version(self, version):
         if not isinstance(version, (LegacyVersion, Version)):

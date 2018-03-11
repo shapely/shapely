@@ -409,8 +409,8 @@ class BaseGeometry(object):
                 scale_factor = max([dx, dy]) / max([width, height])
             except ZeroDivisionError:
                 scale_factor = 1.
-            view_box = "{0} {1} {2} {3}".format(xmin, ymin, dx, dy)
-            transform = "matrix(1,0,0,-1,0,{0})".format(ymax + ymin)
+            view_box = "{} {} {} {}".format(xmin, ymin, dx, dy)
+            transform = "matrix(1,0,0,-1,0,{})".format(ymax + ymin)
             return svg_top + (
                 'width="{1}" height="{2}" viewBox="{0}" '
                 'preserveAspectRatio="xMinYMin meet">'

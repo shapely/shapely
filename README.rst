@@ -30,7 +30,7 @@ Requirements
 
 Shapely 1.6 requires
 
-* Python >=2.6 (including Python 3.x)
+* Python 2.7, >=3.4
 * GEOS >=3.3 
 
 Installing Shapely 1.6

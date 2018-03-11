@@ -110,16 +110,16 @@ class Requirement(object):
         parts = [self.name]
 
         if self.extras:
-            parts.append("[{0}]".format(",".join(sorted(self.extras))))
+            parts.append("[{}]".format(",".join(sorted(self.extras))))
 
         if self.specifier:
             parts.append(str(self.specifier))
 
         if self.url:
-            parts.append("@ {0}".format(self.url))
+            parts.append("@ {}".format(self.url))
 
         if self.marker:
-            parts.append("; {0}".format(self.marker))
+            parts.append("; {}".format(self.marker))
 
         return "".join(parts)
 

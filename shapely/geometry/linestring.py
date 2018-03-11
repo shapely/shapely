@@ -69,7 +69,7 @@ class LineString(BaseGeometry):
             return '<g />'
         if stroke_color is None:
             stroke_color = "#66cc99" if self.is_valid else "#ff3333"
-        pnt_format = " ".join(["{0},{1}".format(*c) for c in self.coords])
+        pnt_format = " ".join(["{},{}".format(*c) for c in self.coords])
         return (
             '<polyline fill="none" stroke="{2}" stroke-width="{1}" '
             'points="{0}" opacity="0.8" />'

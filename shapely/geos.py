@@ -52,7 +52,7 @@ def load_dll(libname, fallbacks=None, mode=DEFAULT_MODE):
     else:
         # No shared library was loaded. Raise OSError.
         raise OSError(
-            "Could not find lib {0} or load any of its variants {1}.".format(
+            "Could not find lib {} or load any of its variants {}.".format(
                 libname, fallbacks or []))
 
 _lgeos = None
@@ -547,7 +547,7 @@ def errcheck_null_exception(result, func, argtuple):
     """
     if not result:
         raise TopologicalError(
-            "The operation '{0}' could not be performed."
+            "The operation '{}' could not be performed."
             "Likely cause is invalidity of the geometry.".format(
                 func.__name__))
     return errcheck_just_free(result, func, argtuple)

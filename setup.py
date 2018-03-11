@@ -212,9 +212,12 @@ setup_args = dict(
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Scientific/Engineering :: GIS',
     ],
     cmdclass           = {},
@@ -233,9 +236,6 @@ if sys.platform == 'win32':
             raise
     if '(AMD64)' in sys.version:
         for dll in glob.glob('DLLs_AMD64_VC9/*.dll'):
-            shutil.copy(dll, 'shapely/DLLs')
-    elif sys.version_info[0:2] == (2, 5):
-        for dll in glob.glob('DLLs_x86_VC7/*.dll'):
             shutil.copy(dll, 'shapely/DLLs')
     else:
         for dll in glob.glob('DLLs_x86_VC9/*.dll'):
@@ -275,8 +275,8 @@ if geos_version and geos_config:
 
 # Optional compilation of speedups
 # setuptools stuff from Bob Ippolito's simplejson project
-if sys.platform == 'win32' and sys.version_info > (2, 6):
-    # 2.6's distutils.msvc9compiler can raise an IOError when failing to
+if sys.platform == 'win32':
+    # distutils.msvc9compiler can raise an IOError when failing to
     # find the compiler
     ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError,
                   IOError)
@@ -306,9 +306,7 @@ def construct_build_ext(build_ext):
 
     return WrappedBuildExt
 
-if (hasattr(platform, 'python_implementation')
-        and platform.python_implementation() == 'PyPy'):
-    # python_implementation is only available since 2.6
+if (platform.python_implementation() == 'PyPy'):
     ext_modules = []
     libraries = []
 
