@@ -443,7 +443,7 @@ instance, thereby making a copy.
 
 .. code-block:: pycon
 
-  >>> LinearRring(ring)
+  >>> LinearRing(ring)
   <shapely.geometry.polygon.LinearRing object at 0x...>
 
 As with `LineString`, a sequence of `Point` instances is not a valid
