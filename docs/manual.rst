@@ -2615,10 +2615,9 @@ speedups are enabled with the :attr:`enabled` attribute.
 Conclusion
 ==========
 
-We hope that you will enjoy and profit from using Shapely. Questions and
-comments are welcome on the GIS-Python email list_. This manual will be updated
-and improved regularly. Its source is available at
-http://github.com/Toblerity/Shapely/tree/master/docs/.
+We hope that you will enjoy and profit from using Shapely. This manual will
+be updated and improved regularly. Its source is available at
+https://github.com/Toblerity/Shapely/tree/master/docs/.
 
 
 References
@@ -2656,7 +2655,6 @@ References
 .. _JTS: https://www.locationtech.org/projects/technology.jts
 .. _PostGIS: http://postgis.refractions.net
 .. _record: http://pypi.python.org/pypi/Shapely
-.. _wiki: http://trac.gispython.org/lab/wiki/Shapely
 .. _Open Geospatial Consortium: http://www.opengeospatial.org/
 .. _Davis: http://lin-ear-th-inking.blogspot.com/2007/06/subtleties-of-ogc-covers-spatial.html
 .. _Understanding spatial relations: http://edndoc.esri.com/arcsde/9.1/general_topics/understand_spatial_relations.htm
@@ -2667,4 +2665,3 @@ References
 .. _frozenset: http://docs.python.org/library/stdtypes.html#frozenset
 .. _Sorting HowTo: http://wiki.python.org/moin/HowTo/Sorting/
 .. _Python geo interface: http://gist.github.com/2217756
-.. _list: http://lists.gispython.org/mailman/listinfo/community
