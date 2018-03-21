@@ -5,7 +5,7 @@ The Shapely User Manual
 =======================
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
-:Version: 1.6
+:Version: 1.6.4
 :Date: |today|
 :Copyright:
   This work is licensed under a `Creative Commons Attribution 3.0
@@ -596,8 +596,7 @@ the iterator protocol using ``in``  or ``list()``.
   [<shapely.geometry.point.Point object at 0x...>,
    <shapely.geometry.linestring.LineString object at 0x...>]
 
-Homogeneous collections can also be sliced, resulting in a new object of the
-same type.
+Collections can also be sliced.
 
 .. code-block:: pycon
 
