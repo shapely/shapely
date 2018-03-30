@@ -8,7 +8,7 @@ class MappingTestCase(unittest.TestCase):
         self.assertEqual(m['type'], 'Point')
         self.assertEqual(m['coordinates'], (0.0, 0.0))
         
-    def test_empty_polygon():
+    def test_empty_polygon(self):
         """Empty polygons will round trip without error"""
         self.assertIsNotNone(mapping(Polygon()))
 
