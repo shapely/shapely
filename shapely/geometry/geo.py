@@ -32,7 +32,10 @@ def shape(context):
     elif geom_type == "linestring":
         return LineString(ob["coordinates"])
     elif geom_type == "polygon":
-        return Polygon(ob["coordinates"][0], ob["coordinates"][1:])
+        if not ob["coordinates"]:
+            return Polygon()
+        else:
+            return Polygon(ob["coordinates"][0], ob["coordinates"][1:])
     elif geom_type == "multipoint":
         return MultiPoint(ob["coordinates"])
     elif geom_type == "multilinestring":
