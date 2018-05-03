@@ -531,3 +531,13 @@ def substring(geom, start_dist, end_dist, normalized=False):
         vertex_list = reversed(vertex_list)
 
     return LineString(vertex_list)
+
+
+def clip_by_rect(geom, xmin, ymin, xmax, ymax):
+    """
+    TODO: docstring
+    """
+    if geom.is_empty:
+        return geom
+    result = geom_factory(lgeos.methods['clip_by_rect'](geom._geom, xmin, ymin, xmax, ymax))
+    return result
