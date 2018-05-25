@@ -531,3 +531,34 @@ def substring(geom, start_dist, end_dist, normalized=False):
         vertex_list = reversed(vertex_list)
 
     return LineString(vertex_list)
+
+
+def clip_by_rect(geom, xmin, ymin, xmax, ymax):
+    """Returns the portion of a geometry within a rectangle
+
+    The geometry is clipped in a fast but possibly dirty way. The output is
+    not guaranteed to be valid. No exceptions will be raised for topological
+    errors.
+
+    Parameters
+    ----------
+    geom : geometry
+        The geometry to be clipped
+    xmin : float
+        Minimum x value of the rectangle
+    ymin : float
+        Minimum y value of the rectangle
+    xmax : float
+        Maximum x value of the rectangle
+    ymax : float
+        Maximum y value of the rectangle
+
+    Notes
+    -----
+    Requires GEOS >= 3.5.0
+    New in 1.7.
+    """
+    if geom.is_empty:
+        return geom
+    result = geom_factory(lgeos.methods['clip_by_rect'](geom._geom, xmin, ymin, xmax, ymax))
+    return result

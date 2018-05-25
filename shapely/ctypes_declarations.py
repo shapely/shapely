@@ -210,6 +210,10 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSGetCentroid.restype = c_void_p
     lgeos.GEOSGetCentroid.argtypes = [c_void_p]
 
+    if geos_version >= (3, 5, 0):
+        lgeos.GEOSClipByRect.restype = c_void_p
+        lgeos.GEOSClipByRect.argtypes = [c_void_p, c_double, c_double, c_double, c_double]
+
     lgeos.GEOSPolygonize.restype = c_void_p
     lgeos.GEOSPolygonize.argtypes = [c_void_p, c_uint]
 
