@@ -8,6 +8,8 @@ New features:
 
 - Use DLLs indicated in sys._MEIPASS' to support PyInstaller frozen apps
   (#523).
+- `shapely.wkb.dumps` now accepts an `srid` integer keyword argument to write
+  WKB data including a spatial reference ID in the output data (#593)
 
 1.6.4.post1 (2018-01-24)
 ------------------------
@@ -614,4 +616,3 @@ TODO: fill gap here
 1.0 RC1 (2008-01-14)
 --------------------
 - First release candidate
-
