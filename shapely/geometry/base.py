@@ -362,9 +362,9 @@ class BaseGeometry(object):
         return geom_to_wkt(self)
 
     @property
-    def wkt(self, **kw):
+    def wkt(self):
         """WKT representation of the geometry"""
-        return WKTWriter(lgeos, **kw).write(self)
+        return WKTWriter(lgeos).write(self)
 
     @property
     def wkb(self):
