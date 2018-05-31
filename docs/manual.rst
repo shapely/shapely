@@ -446,7 +446,7 @@ instance, thereby making a copy.
   >>> LinearRing(ring)
   <shapely.geometry.polygon.LinearRing object at 0x...>
 
-As with `LineString`, a sequence of `Point` instances is not a valid
+Unlike for `LineString`, a sequence of `Point` instances is not a valid
 constructor parameter.
 
 .. _polygons:
