@@ -31,7 +31,3 @@ class TopologicalError(ShapelyError):
 
 class PredicateError(ShapelyError):
     """A geometric predicate has failed to return True/False."""
-
-
-class GeometryAlreadyPreparedError(ShapelyError):
-    """Attempted to prepare an already prepared geometry"""

@@ -4,7 +4,6 @@ Support for GEOS prepared geometry operations.
 
 from shapely.geos import lgeos
 from shapely.impl import DefaultImplementation, delegated
-from shapely.errors import GeometryAlreadyPreparedError
 from pickle import PicklingError
 
 
@@ -25,8 +24,9 @@ class PreparedGeometry(object):
     
     def __init__(self, context):
         if isinstance(context, PreparedGeometry):
-            raise GeometryAlreadyPreparedError("Attempted to prepare an already prepared geometry")
-        self.context = context
+            self.context = context.context
+        else:
+            self.context = context
         self.__geom__ = lgeos.GEOSPrepare(self.context._geom)
     
     def __del__(self):

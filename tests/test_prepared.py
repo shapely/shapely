@@ -2,7 +2,6 @@ import pytest
 from shapely.geos import geos_version
 from shapely.geometry import Point, Polygon
 from shapely.prepared import PreparedGeometry, prep
-from shapely.errors import GeometryAlreadyPreparedError
 
 
 pytestmark = pytest.mark.skipif(geos_version < (3, 1, 0), reason="GEOS 3.1.0 required")
@@ -58,5 +57,11 @@ def test_prepared_predicates():
 def test_prepare_already_prepared():
     polygon = Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])
     prepared = prep(polygon)
-    with pytest.raises(GeometryAlreadyPreparedError):
-        prep(prepared)
+    # attempt to prepare an already prepared geometry with `prep`
+    result = prep(prepared)
+    assert isinstance(result, PreparedGeometry)
+    assert result.context is polygon
+    # attempt to prepare an already prepared geometry with `PreparedGeometry`
+    result = PreparedGeometry(prepared)
+    assert isinstance(result, PreparedGeometry)
+    assert result.context is polygon
