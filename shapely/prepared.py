@@ -23,7 +23,10 @@ class PreparedGeometry(object):
     impl = DefaultImplementation
     
     def __init__(self, context):
-        self.context = context
+        if isinstance(context, PreparedGeometry):
+            self.context = context.context
+        else:
+            self.context = context
         self.__geom__ = lgeos.GEOSPrepare(self.context._geom)
     
     def __del__(self):
@@ -90,4 +93,3 @@ class PreparedGeometry(object):
 def prep(ob):
     """Creates and returns a prepared geometric object."""
     return PreparedGeometry(ob)
-
