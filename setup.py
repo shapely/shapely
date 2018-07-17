@@ -75,6 +75,11 @@ from distutils.errors import CCompilerError, DistutilsExecError, \
 
 from _vendor.packaging.version import Version
 
+# Ensure minimum version of Python is running
+py_version = sys.version_info[0:2]
+if not (py_version == (2, 7) or py_version >= (3, 4)):
+    raise RuntimeError('Shapely requires Python 2.7, >=3.4')
+
 # Get geos_version from GEOS dynamic library, which depends on
 # GEOS_LIBRARY_PATH and/or GEOS_CONFIG environment variables
 from shapely._buildcfg import geos_version_string, geos_version, \
