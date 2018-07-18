@@ -1,6 +1,12 @@
 Changes
 =======
 
+1.6.4.post2 (2018-07-18)
+------------------------
+
+This release provides macosx and manylinux1 wheels for Python 3.7. There are no
+changes from the previous version.
+
 1.6.4.post1 (2018-01-24)
 ------------------------
 
