@@ -403,7 +403,7 @@ def orient(polygon, sign=1.0):
 
 def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
     # If a LinearRing is passed in, clone it and return
-    # If a LineString is passed in, clone the coord seq and return a
+    # If a valid LineString is passed in, clone the coord seq and return a
     # LinearRing.
     #
     # NB: access to coordinates using the array protocol has been moved
@@ -412,6 +412,8 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
     if isinstance(ob, LineString):
         if type(ob) == LinearRing:
             return geos_geom_from_py(ob)
+        elif not ob.is_valid:
+            raise ValueError('A LineString must be valid')
         elif ob.is_closed and len(ob.coords) >= 4:
             return geos_geom_from_py(ob, lgeos.GEOSGeom_createLinearRing)
         else:

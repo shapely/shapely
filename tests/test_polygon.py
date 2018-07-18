@@ -135,6 +135,13 @@ class PolygonTestCase(unittest.TestCase):
         self.assertEqual('LinearRing',
                          lgeos.GEOSGeomType(ring._geom).decode('ascii'))
 
+    def test_linearring_from_invalid(self):
+        coords = [(0.0, 0.0), (0.0, 0.0), (0.0, 0.0)]
+        line = LineString(coords)
+        self.assertFalse(line.is_valid)
+        with self.assertRaises(ValueError):
+            ring = LinearRing(line)
+
 
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy(self):
