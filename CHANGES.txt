@@ -6,10 +6,24 @@ Next
 
 New features:
 
+- A Python version check is made by the package setup script. Shapely 1.7
+  supports only Python versions 2.7 and 3.4+ (#610).
+- Added a new `EmptyGeometry` class to support GeoPandas (#514).
+- Added new `shapely.ops.substring` function (#459).
+- Added new `shapely.ops.clip_by_rect` function (#583).
 - Use DLLs indicated in sys._MEIPASS' to support PyInstaller frozen apps
   (#523).
 - `shapely.wkb.dumps` now accepts an `srid` integer keyword argument to write
-  WKB data including a spatial reference ID in the output data (#593)
+  WKB data including a spatial reference ID in the output data (#593).
+
+Bug fixes:
+
+- `shapely.geometry.shape` can now marshal empty GeoJSON representations
+  (#573).
+- An exception is raised when an attempt is made to `prepare`
+  a `PreparedGeometry` (#577, #595).
+- Keyword arguments have been removed from a geometry object's `wkt` property
+  getter (#581, #594).
 
 1.6.4.post1 (2018-01-24)
 ------------------------
