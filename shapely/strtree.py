@@ -7,10 +7,8 @@ class STRtree:
     Sort-Tile-Recursive algorithm.
     
     STRtree takes a sequence of geometry objects as initialization
-    parameter. After initialization the query method can be used to make a
-    spatial query over those objects.
-    
-    This spatial index is immutable once created.
+    parameter. Once created, it is immutable. The query method can
+    be used to make spatial queries over the objects on the index.
 
     >>> from shapely.geometry import Polygon
     >>> polys = [ Polygon(((0, 0), (1, 0), (1, 1))), Polygon(((0, 1), (0, 0), (1, 0))), Polygon(((100, 100), (101, 100), (101, 101))) ]
