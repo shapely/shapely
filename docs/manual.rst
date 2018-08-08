@@ -2348,7 +2348,8 @@ STR-packed R-tree
 
 Shapely provides an interface to the query-only GEOS R-tree packed using the
 Sort-Tile-Recursive algorithm. Pass a list of geometry objects to the STRtree
-constructor to create an R-tree that you can query with another geometric object.
+constructor to create a spatial index that you can query with another geometric
+object.
 
 .. class:: strtree.STRtree(geometries)
 
@@ -2358,13 +2359,13 @@ constructor to create an R-tree that you can query with another geometric object
 
   `New in version 1.4.0`.
 
-The `query` method on `STRtree` returns a list of all geometries in the tree that
-intersect the provided geometry argument. If you want to match geometries of a
-more specific spatial relationship (eg. crosses, contains, overlaps), consider
-performing the query on the R-tree, followed by a manual search through the
-returned subset using the desired binary predicate.
+The `query` method on `STRtree` returns a list of all geometries in the tree whose
+extents intersect the extents of the provided geometry argument. This means that a
+subsequent search through the returned subset using the desired binary predicate
+(eg. intersects, crosses, contains, overlaps) may be necessary to further filter
+the results according to their specific spatial relationships.
 
-Query-only means that once created, the R-tree is immutable. You cannot 
+Query-only means that once created, the STRtree is immutable. You cannot 
 add or remove geometries.
 
 .. code-block:: pycon
