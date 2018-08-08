@@ -4,9 +4,13 @@ import ctypes
 class STRtree:
     """
     STRtree is an R-tree that is created using the Sort-Tile-Recursive
-    algorithm. STRtree takes a sequence of geometry objects as initialization
+    algorithm.
+    
+    STRtree takes a sequence of geometry objects as initialization
     parameter. After initialization the query method can be used to make a
     spatial query over those objects.
+    
+    This spatial index is immutable once created.
 
     >>> from shapely.geometry import Polygon
     >>> polys = [ Polygon(((0, 0), (1, 0), (1, 1))), Polygon(((0, 1), (0, 0), (1, 0))), Polygon(((100, 100), (101, 100), (101, 101))) ]
