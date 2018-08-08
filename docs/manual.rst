@@ -2374,12 +2374,15 @@ add or remove geometries.
   >>> from shapely.strtree import STRtree
   >>> points = [Point(i, i) for i in range(10)]
   >>> tree = STRtree(points)
-  >>> tree.query(Point(2,2).buffer(0.99))
-  >>> [o.wkt for o in tree.query(Point(2,2).buffer(0.99))]
+  >>> query_geom = Point(2,2).buffer(0.99)
+  >>> tree.query(query_geom)
+  >>> [o.wkt for o in tree.query(query_geom)]
   ['POINT (2 2)']
-  >>> [o.wkt for o in tree.query(Point(2,2).buffer(1.0))]
+  >>> query_geom = Point(2,2).buffer(1.0)
+  >>> [o.wkt for o in tree.query(query_geom)]
   ['POINT (1 1)', 'POINT (2 2)', 'POINT (3 3)']
-
+  >>> [o.wkt for o in tree.query(query_geom) if o.intersects(query_geom)]
+  ['POINT (2 2)']
 
 Interoperation
 ==============
