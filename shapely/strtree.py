@@ -48,6 +48,9 @@ class STRtree:
             self._tree_handle = None
 
     def query(self, geom):
+        """Returns a list of objects on the index whose extents
+        intersect the given geometry's extents.
+        """
         if self._n_geoms == 0:
             return []
 
