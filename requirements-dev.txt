@@ -3,3 +3,5 @@ Numpy>=1.4.1
 Cython>=0.19
 descartes==1.0.1
 pytest
+pytest-cov
+wheel

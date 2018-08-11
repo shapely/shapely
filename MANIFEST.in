@@ -12,4 +12,5 @@ recursive-include shapely/examples *.py
 recursive-include shapely/speedups *.pyx
 recursive-include shapely/vectorized *.pyx
 recursive-include shapely *.pxi
+recursive-include shapely/DLLs *.dll *.rst *.txt
 include docs/*.rst
