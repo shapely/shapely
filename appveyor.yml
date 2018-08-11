@@ -1,0 +1,123 @@
+# Based on appveyor.yml from https://github.com/PDAL/PDAL and https://github.com/ogrisel/python-appveyor-demo
+#
+
+platform: x64
+
+
+environment:
+
+    global:
+        # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
+        # /E:ON and /V:ON options are not enabled in the batch script intepreter
+        # See: http://stackoverflow.com/a/13751649/163740
+        CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\appveyor\\run_with_env.cmd"
+        GDAL_HOME: "C:\\gdal"
+
+    matrix:
+        - PYTHON: "C:\\Python27-x64"
+          PYTHON_VERSION: "2.7.14"
+          PYTHON_ARCH: "64"
+          GDAL_VERSION: "2.3.0"
+          GIS_INTERNALS: "release-1911-x64-gdal-mapserver.zip"
+          GIS_INTERNALS_LIBS: "release-1911-x64-gdal-mapserver-libs.zip"
+
+        - PYTHON: "C:\\Python36-x64"
+          PYTHON_VERSION: "3.6.4"
+          PYTHON_ARCH: "64"
+          GDAL_VERSION: "2.3.0"
+          GIS_INTERNALS: "release-1911-x64-gdal-mapserver.zip"
+          GIS_INTERNALS_LIBS: "release-1911-x64-gdal-mapserver-libs.zip"
+
+install:
+
+  - ECHO "Filesystem root:"
+  - ps: "ls \"C:/\""
+
+  - ECHO "Installed SDKs:"
+  - ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
+
+  # Install Python (from the official .msi of http://python.org) and pip when
+  # not already installed.
+  # - ps: if (-not(Test-Path($env:PYTHON))) { & appveyor\install.ps1 }
+
+  # Prepend newly installed Python to the PATH of this build (this cannot be
+  # done from inside the powershell script as it would require to restart
+  # the parent CMD process).
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - "SET PYTHONPATH=%PYTHON%\\Lib\\site-packages;%PYTHONPATH%"
+
+  # Check that we have the expected version and architecture for Python
+  - "python --version"
+  - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
+
+  - ps: mkdir C:\build | out-null
+  - ps: mkdir C:\gdal | out-null
+  
+  - curl http://download.gisinternals.com/sdk/downloads/%GIS_INTERNALS% --output gdalbin.zip
+  - 7z x gdalbin.zip -oC:\gdal
+  - curl http://download.gisinternals.com/sdk/downloads/%GIS_INTERNALS_LIBS% --output gdallibs.zip  
+  - 7z x gdallibs.zip -oC:\gdal
+  - "SET PATH=C:\\gdal;C:\\gdal\\bin;C:\\gdal\\data;C:\\gdal\\bin\\gdal\\apps;%PATH%"
+  - "SET GDAL_DATA=C:\\gdal\\bin\\gdal-data"
+  - "SET PACKAGE_DATA=1"
+
+  - ECHO "Filesystem C:/GDAL:"
+  - ps: "ls \"C:/GDAL\""
+  
+  
+  - cd C:\projects\shapely
+  - dir
+  # Upgrade to the latest version of pip to avoid it displaying warnings
+  # about it being out of date.
+  # - "python -m pip install --disable-pip-version-check --user --upgrade pip"
+  
+  - pip --version
+ 
+  # Install the build dependencies of the project. If some dependencies contain
+  # compiled extensions and are not provided as pre-built wheel packages,
+  # pip will build them from source using the MSVC compiler matching the
+  # target Python version and architecture
+  - "%CMD_IN_ENV% pip install -r requirements-dev.txt"
+  
+
+build_script:
+  # Build the compiled extension
+  - cmd: echo %PATH%
+
+  - cmd: echo %PYTHONPATH%
+
+  # copy gisinternal gdal librarys into .libs
+  - cmd: xcopy C:\gdal\bin\geos.dll shapely\DLLs\
+  - cmd: xcopy C:\gdal\bin\geos_c.dll shapely\DLLs\
+  - cmd: xcopy C:\gdal\bin\msvcp140.dll shapely\DLLs\
+  - cmd: xcopy C:\gdal\bin\vcruntime140.dll shapely\DLLs\
+  - cmd: xcopy C:\gdal\*.rtf shapely\DLLs\licenses\
+  - cmd: dir shapely\DLLs
+
+  # build shapely and create a wheel
+  - "%CMD_IN_ENV% python setup.py build_ext -IC:\\gdal\\include -lgeos_c -LC:\\gdal\\lib bdist_wheel"
+
+  # install the wheel
+  - ps: python -m pip install --upgrade pip
+  - ps: pip install --force-reinstall --ignore-installed (gci dist\*.whl | % { "$_" })
+  
+  # ensure we are testing the wheel and packaged binaries
+  - ps: move shapely shapely.build
+  - ps: rm -r -fo C:\GDAL
+
+
+test_script:
+  # Run the project tests
+  - cmd: SET
+
+  - ps: python -c "import shapely"
+
+  - "%CMD_IN_ENV% python -m pytest --cov shapely --cov-report term-missing"
+
+matrix:
+  allow_failures:
+    - GDAL_VERSION: 2.4.0
+
+artifacts:
+  - path: dist\*.whl
+    name: wheel
