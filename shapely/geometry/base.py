@@ -12,11 +12,11 @@ from itertools import islice
 import math
 import sys
 from warnings import warn
+from functools import wraps
 
 from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
 from shapely.errors import WKBReadingError, WKTReadingError
-from shapely.ftools import wraps
 from shapely.geos import WKBWriter, WKTWriter
 from shapely.geos import lgeos
 from shapely.impl import DefaultImplementation, delegated

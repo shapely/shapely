@@ -12,10 +12,10 @@ import os
 import re
 import sys
 import threading
+from functools import partial
 
 from .ctypes_declarations import prototype, EXCEPTION_HANDLER_FUNCTYPE
 from .errors import WKBReadingError, WKTReadingError, TopologicalError, PredicateError
-from . import ftools
 
 
 # Add message handler to this module's logger
@@ -661,7 +661,7 @@ class LGEOS310(LGEOSBase):
         for key in [x for x in keys if not x.endswith('_r')]:
             if key + '_r' in keys:
                 reentr_func = getattr(self._lgeos, key + '_r')
-                attr = ftools.partial(reentr_func, self.geos_handle)
+                attr = partial(reentr_func, self.geos_handle)
                 attr.__name__ = reentr_func.__name__
                 setattr(self, key, attr)
             else:
@@ -803,7 +803,7 @@ class LGEOS330(LGEOS320):
         # GEOSPolygonize_full. We patch it in explicitly here.
         key = 'GEOSPolygonize_full'
         func = getattr(self._lgeos, key + '_r')
-        attr = ftools.partial(func, self.geos_handle)
+        attr = partial(func, self.geos_handle)
         attr.__name__ = func.__name__
         setattr(self, key, attr)
 

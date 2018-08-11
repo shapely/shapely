@@ -11,7 +11,7 @@ This is layer number 2 from the list below.
 Shapely 1.2 includes a GEOS backend and it is the default.
 """
 
-from .ftools import wraps
+from functools import wraps
 
 from shapely.algorithms import cga
 from shapely.coords import BoundsOp
