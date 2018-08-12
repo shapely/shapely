@@ -1,6 +1,12 @@
 Changes
 =======
 
+Master
+------
+
+- Removed vendorized `functools` functions previously used to support
+  Python 2.5.
+
 1.7a1 (2018-07-29)
 ------------------
 

@@ -1,8 +1,8 @@
 from . import unittest
 import random
 from itertools import islice
+from functools import partial
 from shapely.geos import geos_version
-from shapely.ftools import partial
 from shapely.geometry import Point, MultiPolygon
 from shapely.ops import cascaded_union, unary_union
 
