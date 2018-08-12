@@ -1,7 +1,9 @@
-from . import unittest, numpy, test_int_types
-from .test_multi import MultiGeometryTestCase
+import pytest
+
 from shapely.geometry import Polygon, MultiPolygon, asMultiPolygon
 from shapely.geometry.base import dump_coords
+from . import unittest, numpy, test_int_types
+from .test_multi import MultiGeometryTestCase
 
 
 class MultiPolygonTestCase(MultiGeometryTestCase):
@@ -76,3 +78,12 @@ class MultiPolygonTestCase(MultiGeometryTestCase):
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(MultiPolygonTestCase)
+
+
+def test_fail_list_of_multipolygons():
+    """A list of multipolygons is not a valid multipolygon ctor argument"""
+    multi = MultiPolygon([(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)), [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))])])
+    with pytest.raises(ValueError):
+        MultiPolygon([multi])
+
+

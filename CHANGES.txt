@@ -4,6 +4,8 @@ Changes
 Master
 ------
 
+- Disallow sequences of MultiPolygons as arguments to the MultiPolygon
+  constructor, resolving #588.
 - Removed vendorized `functools` functions previously used to support
   Python 2.5.
 

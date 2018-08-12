@@ -142,15 +142,22 @@ def geos_multipolygon_from_py(ob):
     for l in range(L):
         geom, ndims = polygon.geos_polygon_from_py(ob[l][0], ob[l][1:])
         subs[l] = cast(geom, c_void_p)
-            
+
     return (lgeos.GEOSGeom_createCollection(6, subs, L), N)
 
 
 def geos_multipolygon_from_polygons(arg):
-    """
-    ob must be either a MultiPolygon, sequence or array of sequences 
-    or arrays.
-    
+    """Creates a GEOS multipolygon from a sequence of polygon-like objects.
+
+    Parameters
+    ----------
+    arg : sequence or MultiPolygon
+
+    Returns
+    -------
+    int
+        Pointer to a GEOS multipolygon.
+
     """
     if isinstance(arg, MultiPolygon):
         return geos_geom_from_py(arg)
@@ -163,6 +170,11 @@ def geos_multipolygon_from_polygons(arg):
     # Bail immediately if we have no input points.
     if L <= 0:
         return (lgeos.GEOSGeom_createEmptyCollection(6), 3)
+
+    # This function does not accept sequences of MultiPolygons: there is
+    # no implicit flattening.
+    if isinstance(obs[0], MultiPolygon):
+        raise ValueError("Sequences of multi-polygons are not valid arguments")
 
     exemplar = obs[0]
     try:
