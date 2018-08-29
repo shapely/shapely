@@ -16,7 +16,7 @@ class Validating(object):
     def _validate(self, ob, stop_prepared=False):
         if ob is None or ob._geom is None:
             raise ValueError("Null geometry supports no operations")
-        if stop_prepared and not hasattr(ob, 'type'):
+        if stop_prepared and hasattr(ob, 'prepared'):
             raise ValueError("Prepared geometries cannot be operated on")
 
 

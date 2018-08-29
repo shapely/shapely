@@ -10,34 +10,37 @@ from pickle import PicklingError
 class PreparedGeometry(object):
     """
     A geometry prepared for efficient comparison to a set of other geometries.
-    
+
     Example:
-      
+
       >>> from shapely.geometry import Point, Polygon
       >>> triangle = Polygon(((0.0, 0.0), (1.0, 1.0), (1.0, -1.0)))
       >>> p = prep(triangle)
       >>> p.intersects(Point(0.5, 0.5))
       True
     """
-   
+
     impl = DefaultImplementation
-    
+
     def __init__(self, context):
         if isinstance(context, PreparedGeometry):
             self.context = context.context
         else:
             self.context = context
         self.__geom__ = lgeos.GEOSPrepare(self.context._geom)
-    
+        self.prepared = True
+
     def __del__(self):
         if self.__geom__ is not None:
             try:
                 lgeos.GEOSPreparedGeom_destroy(self.__geom__)
             except AttributeError:
-                pass # lgeos might be empty on shutdown
+                pass  # lgeos might be empty on shutdown.
+
         self.__geom__ = None
         self.context = None
-    
+        self.prepared = False
+
     @property
     def _geom(self):
         return self.__geom__
@@ -89,6 +92,7 @@ class PreparedGeometry(object):
 
     def __reduce__(self):
         raise PicklingError("Prepared geometries cannot be pickled.")
+
 
 def prep(ob):
     """Creates and returns a prepared geometric object."""
