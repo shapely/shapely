@@ -136,6 +136,26 @@ class PolygonTestCase(unittest.TestCase):
                          lgeos.GEOSGeomType(ring._geom).decode('ascii'))
 
 
+    def test_linearring_from_short_closed_linestring(self):
+        # Create linearring from linestring where the coordinate sequence is
+        # too short but appears to be closed (first and last coordinates
+        # are the same)
+        coords = [(0.0, 0.0), (0.0, 0.0), (0.0, 0.0)]
+        line = LineString(coords)
+        ring1 = LinearRing(coords)
+        ring2 = LinearRing(line)
+        assert ring1.coords[:] == ring2.coords[:]
+
+
+    def test_linearring_from_too_short_linestring(self):
+        # Creation of LinearRing request at least 3 coordinates (unclosed) or
+        # 4 coordinates (closed)
+        coords = [(0.0, 0.0), (0.0, 0.0)]
+        line = LineString(coords)
+        with self.assertRaises(ValueError):
+            LinearRing(line)
+
+
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy(self):
 
