@@ -267,7 +267,8 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
         # Check whether the first set of coordinates matches the last.
         # If not, we'll have to close the ring later
         if (cp[0] != cp[sm*(m-1)] or cp[sn] != cp[sm*(m-1)+sn] or
-            (n == 3 and cp[2*sn] != cp[sm*(m-1)+2*sn])):
+            (n == 3 and cp[2*sn] != cp[sm*(m-1)+2*sn]) or
+            m == 3):
             M = m + 1
         else:
             M = m
