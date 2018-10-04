@@ -100,8 +100,6 @@ def polylabel(polygon, tolerance=1.0):
 
     # Special case for rectangular polygons avoiding floating point error
     bbox_cell = Cell(minx + width / 2.0, miny + height / 2, 0, polygon)
-    print(best_cell.centroid.coords[:], best_cell.distance)
-    print(bbox_cell.centroid.coords[:], bbox_cell.distance)
     if bbox_cell.distance > best_cell.distance:
         best_cell = bbox_cell
 
