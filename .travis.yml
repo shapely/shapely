@@ -26,18 +26,6 @@ matrix:
       env:
         - SPEEDUPS=0
         - NUMPY=1
-    - python: "3.6"
-      env:
-        - SPEEDUPS=1
-        - NUMPY=1
-    - python: "3.6"
-      env:
-        - SPEEDUPS=0
-        - NUMPY=1
-    - python: "3.6"
-      env:
-        - SPEEDUPS=0
-        - NUMPY=0
     - python: "3.7"
       sudo: required
       dist: xenial
