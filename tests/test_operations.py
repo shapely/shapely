@@ -91,8 +91,7 @@ class OperationsTestCase(unittest.TestCase):
         self.assertEqual(interpolated_point, known_point)
         
         # Issue #653; should raise ValueError on exception
-        test_line = LineString(((0,0), (1,1), (2,1)))
-        empty_line = test_line.parallel_offset(10., side='right')
+        empty_line = loads('LINESTRING EMPTY')
         assert(empty_line.is_empty)
         with pytest.raises(ValueError):
             empty_line.interpolate(.5, normalized=True)
