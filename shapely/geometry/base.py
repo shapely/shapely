@@ -764,6 +764,7 @@ class BaseGeometry(object):
         return op(self, other)
 
     @delegated
+    @exceptNull
     def interpolate(self, distance, normalized=False):
         """Return a point at the specified distance along a linear geometry
 
