@@ -52,6 +52,7 @@ Shapely is written by:
 * joelostblom <joelostblom@users.noreply.github.com>
 * Marco De Nadai <me@marcodena.it>
 * Johan Euphrosine <proppy@aminche.com>
+* James Gaboardi <jgaboardi@gmail.com>
 
 See also: https://github.com/Toblerity/Shapely/graphs/contributors.
 
