@@ -19,13 +19,13 @@ class DelaunayTriangulation(unittest.TestCase):
         polys = triangulate(self.p)
         self.assertEqual(len(polys), 2)
         for p in polys:
-            self.assert_(isinstance(p, Polygon))
+            self.assertTrue(isinstance(p, Polygon))
 
     def test_lines(self):
         polys = triangulate(self.p, edges=True)
         self.assertEqual(len(polys), 5)
         for p in polys:
-            self.assert_(isinstance(p, LineString))
+            self.assertTrue(isinstance(p, LineString))
 
     def test_point(self):
         p = Point(1,1)

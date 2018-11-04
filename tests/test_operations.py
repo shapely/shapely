@@ -81,6 +81,20 @@ class OperationsTestCase(unittest.TestCase):
 
         distance = point.hausdorff_distance(line)
         self.assertEqual(distance, point.distance(Point(3, 4)))
-
+    
+    @unittest.skipIf(geos_version < (3, 2, 0), 'GEOS 3.2.0 required')
+    def test_interpolate(self):
+        # successful interpolation
+        test_line = LineString(((1,1),(1,2)))
+        known_point = Point(1,1.5)
+        interpolated_point = test_line.interpolate(.5, normalized=True)
+        self.assertEqual(interpolated_point, known_point)
+        
+        # Issue #653; should raise ValueError on exception
+        empty_line = loads('LINESTRING EMPTY')
+        assert(empty_line.is_empty)
+        with pytest.raises(ValueError):
+            empty_line.interpolate(.5, normalized=True)
+        
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(OperationsTestCase)
