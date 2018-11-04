@@ -9,6 +9,11 @@ Master
 - Removed vendorized `functools` functions previously used to support
   Python 2.5.
 
+Bug fixes:
+
+- Attempting to interpolate an empty geometry no longer results in a
+  segmentation fault, raising `ValueError` instead (#653).
+
 1.7a1 (2018-07-29)
 ------------------
 
