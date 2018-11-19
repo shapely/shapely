@@ -516,7 +516,7 @@ def substring(geom, start_dist, end_dist, normalized=False):
     
     vertex_list = [(start_point.x, start_point.y)]
     coords = list(geom.coords)
-    for i, p in coords:
+    for p in coords:
         pd = geom.project(Point(p))
         if pd <= min_dist:
             pass
