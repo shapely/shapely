@@ -2591,7 +2591,7 @@ GEOS development headers during installation.
 
 You can check if the speedups are installed with the :attr:`available`
 attribute. To enable the speedups call :func:`enable`. You can revert to the
-default implementation with :func:`disable`.
+slow implementation with :func:`disable`.
 
 .. code-block:: pycon
 
