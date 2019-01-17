@@ -1506,7 +1506,7 @@ boundaries.
 .. note::
 
   :meth:`union` is an expensive way to find the cumulative union
-  of many objects. See :func:`shapely.ops.cascaded_union` for a more effective
+  of many objects. See :func:`shapely.ops.unary_union` for a more effective
   method.
 
 Constructive Methods
@@ -2072,20 +2072,20 @@ using functions in the :mod:`shapely.ops` module.
 Cascading Unions
 ----------------
 
-The :func:`~shapely.ops.cascaded_union` function in `shapely.ops` is more
+The :func:`~shapely.ops.unary_union` function in `shapely.ops` is more
 efficient than accumulating with :meth:`union`.
 
 .. plot:: code/cascaded_union.py
 
-.. function:: shapely.ops.cascaded_union(geoms)
+.. function:: shapely.ops.unary_union(geoms)
 
   Returns a representation of the union of the given geometric objects.
 
   .. code-block:: pycon
 
-    >>> from shapely.ops import cascaded_union
+    >>> from shapely.ops import unary_union
     >>> polygons = [Point(i, 0).buffer(0.7) for i in range(5)]
-    >>> cascaded_union(polygons)
+    >>> unary_union(polygons)
     <shapely.geometry.polygon.Polygon object at 0x...>
 
   The function is particularly useful in dissolving `MultiPolygons`.
@@ -2095,19 +2095,19 @@ efficient than accumulating with :meth:`union`.
     >>> m = MultiPolygon(polygons)
     >>> m.area
     7.6845438018375516
-    >>> cascaded_union(m).area
+    >>> unary_union(m).area
     6.6103013551167971
+
+.. function:: shapely.ops.cascaded_union(geoms)
+
+  Returns a representation of the union of the given geometric objects.
 
   .. note::
 
-     In 1.2.16 :func:`shapely.ops.cascaded_union` is superceded by
+     Since 1.2.16 :func:`shapely.ops.cascaded_union` is superceded by
      :func:`shapely.ops.unary_union` if GEOS 3.2+ is used. The unary union
      function can operate on different geometry types, not only polygons as is
      the case for the older cascaded unions.
-
-.. function:: shapely.ops.unary_union(geoms)
-
-  Returns a representation of the union of the given geometric objects.
 
 Delaunay triangulation
 ----------------------
