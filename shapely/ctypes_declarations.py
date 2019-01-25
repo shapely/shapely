@@ -509,3 +509,10 @@ def prototype(lgeos, geos_version):
 
         lgeos.GEOSSTRtree_destroy.argtypes = [c_void_p]
         lgeos.GEOSSTRtree_destroy.restype = None
+    
+    if geos_version >= (3, 6, 0):
+        lgeos.GEOSDistanceCallback = CFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p, c_void_p)
+
+        lgeos.GEOSSTRtree_nearest_generic.argtypes = [
+            c_void_p, py_object, c_void_p, lgeos.GEOSDistanceCallback, py_object]
+        lgeos.GEOSSTRtree_nearest_generic.restype = c_void_p
