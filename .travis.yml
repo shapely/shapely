@@ -63,7 +63,8 @@ addons:
       - libgeos-dev
 
 before_install:
-  - pip install pip setuptools --upgrade
+  - python -m pip install -U pip
+  - python -m pip --version
   # if building with speedups install cython
   - if [ "$SPEEDUPS" == "1" ]; then pip install --install-option="--no-cython-compile" cython; fi
   # if testing without numpy explicitly remove it
@@ -72,11 +73,11 @@ before_install:
   - if [ "$SPEEDUPS" == "1" ]; then SPEEDUPS_FLAG=--with-speedups; else SPEEDUPS_FLAG=--without-speedups; fi
 
 install:
-  - pip install -e .[all]
-  - pip install coveralls
+  - python -m pip install coveralls pytest-cov pytest>=3.8
+  - python -m pip install -e .[all]
 
 script:
-  - "py.test --cov shapely --cov-report term-missing ${SPEEDUPS_FLAG}"
+  - python -m pytest --cov shapely --cov-report term-missing "${SPEEDUPS_FLAG}"
 
 after_success:
   - coveralls || echo "!! intermittent coveralls failure"
