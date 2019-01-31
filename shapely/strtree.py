@@ -61,6 +61,28 @@ class STRtree:
 
         return result
 
+    def nearest(self, geom):
+        if self._n_geoms == 0:
+            return None
+        
+        envelope = geom.envelope
+
+        def callback(item1, item2, distance, userdata):
+            try:
+                geom1 = ctypes.cast(item1, ctypes.py_object).value
+                geom2 = ctypes.cast(item2, ctypes.py_object).value
+                dist = ctypes.cast(distance, ctypes.POINTER(ctypes.c_double))
+                lgeos.GEOSDistance(geom1._geom, geom2._geom, dist)
+                return 1
+            except:
+                return 0 
+        
+        item = lgeos.GEOSSTRtree_nearest_generic(self._tree_handle, ctypes.py_object(geom), envelope._geom, \
+            lgeos.GEOSDistanceCallback(callback), None)
+        result = ctypes.cast(item, ctypes.py_object).value
+        
+        return result
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
