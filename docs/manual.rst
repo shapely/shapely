@@ -1766,12 +1766,20 @@ preserved or supported by 3D affine transformations.
   which represents the augmented matrix:
 
   .. math::
-    \begin{bmatrix} x' & y' & 1 \end{bmatrix} =
-    \begin{bmatrix} x  & y  & 1 \end{bmatrix}
+    \begin{bmatrix}
+      x' \\
+      y' \\
+      1
+    \end{bmatrix} =
     \begin{bmatrix}
       a & b & x_\mathrm{off} \\
       d & e & y_\mathrm{off} \\
       0 & 0 & 1
+    \end{bmatrix}
+    \begin{bmatrix}
+      x \\
+      y \\
+      1
     \end{bmatrix}
 
   or the equations for the transformed coordinates:
@@ -1787,13 +1795,23 @@ preserved or supported by 3D affine transformations.
   which represents the augmented matrix:
 
   .. math::
-    \begin{bmatrix} x' & y' & z' & 1 \end{bmatrix} =
-    \begin{bmatrix} x  & y  & z  & 1 \end{bmatrix}
+    \begin{bmatrix}
+      x' \\
+      y' \\
+      z' \\
+      1
+    \end{bmatrix} =
     \begin{bmatrix}
       a & b & c & x_\mathrm{off} \\
       d & e & f & y_\mathrm{off} \\
       g & h & i & z_\mathrm{off} \\
       0 & 0 & 0 & 1
+    \end{bmatrix}
+    \begin{bmatrix}
+      x \\
+      y \\
+      z \\
+      1
     \end{bmatrix}
 
   or the equations for the transformed coordinates:
