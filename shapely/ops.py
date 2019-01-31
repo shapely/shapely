@@ -388,22 +388,28 @@ class SplitOp(object):
         distance_on_line = line.project(splitter)
         coords = list(line.coords)
         # split the line at the point and create two new lines
-        # TODO: can optimize this by accumulating the computed point-to-point distances
-        for i, p in enumerate(coords):
-            pd = line.project(Point(p))
-            if pd == distance_on_line:
+        current_position = 0.0
+        for i in range(len(coords)-1):
+            point1 = coords[i]
+            point2 = coords[i+1]
+            dx = point1[0] - point2[0]
+            dy = point1[1] - point2[1]
+            segment_length = (dx ** 2 + dy ** 2) ** 0.5
+            current_position += segment_length
+            if distance_on_line == current_position:
+                # splitter is exactly on a vertex
                 return [
-                    LineString(coords[:i+1]),
-                    LineString(coords[i:])
+                    LineString(coords[:i+2]),
+                    LineString(coords[i+1:])
                 ]
-            elif distance_on_line < pd:
-                # we must interpolate here because the line might use 3D points
-                cp = line.interpolate(distance_on_line)
-                ls1_coords = coords[:i]
-                ls1_coords.append(cp.coords[0])
-                ls2_coords = [cp.coords[0]]
-                ls2_coords.extend(coords[i:])
-                return [LineString(ls1_coords), LineString(ls2_coords)]
+            elif distance_on_line < current_position:
+                # splitter is between two vertices
+                return [
+                    LineString(coords[:i+1] + [splitter.coords[0]]),
+                    LineString([splitter.coords[0]] + coords[i+1:])
+                ]
+        return [line]
+
 
     @staticmethod
     def _split_line_with_multipoint(line, splitter):
