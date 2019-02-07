@@ -36,7 +36,7 @@ class MultiPoint(BaseMultipartGeometry):
         points : sequence
             A sequence of (x, y [,z]) numeric coordinate pairs or triples or a
             sequence of objects that implement the numpy array interface,
-            including instaces of Point.
+            including instances of Point.
 
         Example
         -------
