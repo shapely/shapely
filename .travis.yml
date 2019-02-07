@@ -73,7 +73,7 @@ before_install:
   - if [ "$SPEEDUPS" == "1" ]; then SPEEDUPS_FLAG=--with-speedups; else SPEEDUPS_FLAG=--without-speedups; fi
 
 install:
-  - python -m pip install coveralls pytest-cov pytest>=3.8
+  - python -m pip install --upgrade coveralls pytest-cov pytest>=3.8
   - python -m pip install -e .[all]
 
 script:
