@@ -1,5 +1,4 @@
 language: python
-sudo: false
 cache:
   - pip
   - apt
@@ -18,11 +17,11 @@ matrix:
       env:
         - SPEEDUPS=0
         - NUMPY=0
-    - python: "3.4"
+    - python: "3.5"
       env:
         - SPEEDUPS=1
         - NUMPY=1
-    - python: "3.4"
+    - python: "3.5"
       env:
         - SPEEDUPS=0
         - NUMPY=1
