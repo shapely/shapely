@@ -520,7 +520,10 @@ def substring(geom, start_dist, end_dist, normalized=False):
         min_dist *= geom.length
         max_dist *= geom.length
     
-    vertex_list = [(start_point.x, start_point.y)]
+    if start_dist < end_dist:
+        vertex_list = [(start_point.x, start_point.y)]
+    else:
+        vertex_list = [(end_point.x, end_point.y)]
     coords = list(geom.coords)
     for p in coords:
         pd = geom.project(Point(p))
@@ -530,10 +533,11 @@ def substring(geom, start_dist, end_dist, normalized=False):
             vertex_list.append(p)
         else:
             break
-    vertex_list.append((end_point.x, end_point.y))
-
-    # reverse direction of section
-    if start_dist > end_dist:
+    if start_dist < end_dist:
+        vertex_list.append((end_point.x, end_point.y))
+    else:
+        vertex_list.append((start_point.x, start_point.y))
+        # reverse direction result
         vertex_list = reversed(vertex_list)
 
     return LineString(vertex_list)
