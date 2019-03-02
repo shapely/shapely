@@ -527,11 +527,9 @@ def substring(geom, start_dist, end_dist, normalized=False):
     coords = list(geom.coords)
     for p in coords:
         pd = geom.project(Point(p))
-        if pd <= min_dist:
-            pass
-        elif min_dist < pd < max_dist:
+        if min_dist < pd < max_dist:
             vertex_list.append(p)
-        else:
+        elif pd >= max_dist:
             break
     if start_dist < end_dist:
         vertex_list.append((end_point.x, end_point.y))
