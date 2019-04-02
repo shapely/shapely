@@ -1676,8 +1676,9 @@ linestring feature (right).
   object on its right or its left side.
 
   Distance must be a positive float value. The side parameter may be 'left' or
-  'right'. The resolution of the offset around each vertex of the object is
-  parameterized as in the buffer method.
+  'right'. Left and right is determined by following the direction of given 
+  geometric points of the LineString. The resolution of the offset around 
+  each vertex of the object is parameterized as in the buffer method.
 
   The join style is for outside corners between line segments. Accepted integer
   values are 1 (round), 2 (mitre), and 3 (bevel). See also
