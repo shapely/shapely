@@ -17,9 +17,9 @@ def affine_transform(geom, matrix):
 
     which represents the augmented matrix::
 
-                    / a  b xoff \ 
-        [x' y' 1] = | d  e yoff | [x y 1]
-                    \ 0  0   1  /
+        [x']   / a  b xoff \ [x]
+        [y'] = | d  e yoff | [y]
+        [1 ]   \ 0  0   1  / [1]
 
     or the equations for the transformed coordinates::
 
@@ -32,10 +32,10 @@ def affine_transform(geom, matrix):
 
     which represents the augmented matrix::
 
-                       / a  b  c xoff \ 
-        [x' y' z' 1] = | d  e  f yoff | [x y z 1]
-                       | g  h  i zoff |
-                       \ 0  0  0   1  /
+        [x']   / a  b  c xoff \ [x]
+        [y'] = | d  e  f yoff | [y]
+        [z']   | g  h  i zoff | [z]
+        [1 ]   \ 0  0  0   1  / [1]
 
     or the equations for the transformed coordinates::
 
