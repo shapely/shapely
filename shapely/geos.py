@@ -21,6 +21,11 @@ from .errors import WKBReadingError, WKTReadingError, TopologicalError, Predicat
 # Add message handler to this module's logger
 LOG = logging.getLogger(__name__)
 
+if sys.version_info[0] >= 3:
+    text_types = str
+else:
+    text_types = (str, unicode)
+
 # Find and load the GEOS and C libraries
 # If this ever gets any longer, we'll break it into separate modules
 
@@ -257,9 +262,12 @@ class WKTReader(object):
 
     def read(self, text):
         """Returns geometry from WKT"""
+        if not isinstance(text, text_types):
+            raise TypeError("Only str is accepted.")
         if sys.version_info[0] >= 3:
-            text = text.encode('ascii')
-        geom = self._lgeos.GEOSWKTReader_read(self._reader, c_char_p(text))
+             text = text.encode()
+        c_string = c_char_p(text)
+        geom = self._lgeos.GEOSWKTReader_read(self._reader, c_string)
         if not geom:
             raise WKTReadingError(
                 "Could not create geometry because of errors "
