@@ -19,7 +19,7 @@ __all__ = ['MultiLineString', 'asMultiLineString']
 class MultiLineString(BaseMultipartGeometry):
     """
     A collection of one or more line strings
-    
+
     A MultiLineString has non-zero length and zero area.
 
     Attributes
@@ -45,11 +45,11 @@ class MultiLineString(BaseMultipartGeometry):
         """
         super(MultiLineString, self).__init__()
 
-        if not lines:
-            # allow creation of empty multilinestrings, to support unpickling
-            pass
-        else:
+        try:
             self._geom, self._ndim = geos_multilinestring_from_py(lines)
+        except IndexError:
+            # Empty linestring
+            pass
 
     def shape_factory(self, *args):
         return linestring.LineString(*args)
@@ -82,7 +82,7 @@ class MultiLineString(BaseMultipartGeometry):
 
 
 class MultiLineStringAdapter(CachingGeometryProxy, MultiLineString):
-    
+
     context = None
     _other_owned = False
 
@@ -109,9 +109,9 @@ def asMultiLineString(context):
 
 
 def geos_multilinestring_from_py(ob):
-    # ob must be either a MultiLineString, a sequence, or 
+    # ob must be either a MultiLineString, a sequence, or
     # array of sequences or arrays
-    
+
     if isinstance(ob, MultiLineString):
          return geos_geom_from_py(ob)
 
@@ -128,12 +128,12 @@ def geos_multilinestring_from_py(ob):
 
     # Array of pointers to point geometries
     subs = (c_void_p * L)()
-    
+
     # add to coordinate sequence
     for l in range(L):
         geom, ndims = linestring.geos_linestring_from_py(obs[l])
         subs[l] = cast(geom, c_void_p)
-            
+
     return (lgeos.GEOSGeom_createCollection(5, subs, L), N)
 
 
