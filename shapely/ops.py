@@ -120,7 +120,7 @@ class CollectionOperator(object):
     def cascaded_union(self, geoms):
         """Returns the union of a sequence of geometries
 
-        This is the most efficient method of dissolving many polygons.
+        This method was superseded by :meth:`unary_union`.
         """
         try:
             L = len(geoms)
@@ -138,7 +138,6 @@ class CollectionOperator(object):
 
         This method replaces :meth:`cascaded_union` as the
         prefered method for dissolving many polygons.
-
         """
         try:
             L = len(geoms)

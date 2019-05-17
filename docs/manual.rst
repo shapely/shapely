@@ -2089,17 +2089,20 @@ using functions in the :mod:`shapely.ops` module.
      <shapely.geometry.linestring.LineString object at 0x...>,
      <shapely.geometry.linestring.LineString object at 0x...>]
 
-Cascading Unions
+Efficient Unions
 ----------------
 
 The :func:`~shapely.ops.unary_union` function in `shapely.ops` is more
 efficient than accumulating with :meth:`union`.
 
-.. plot:: code/cascaded_union.py
+.. plot:: code/unary_union.py
 
 .. function:: shapely.ops.unary_union(geoms)
 
   Returns a representation of the union of the given geometric objects.
+
+  Areas of overlapping `Polygons` will get merged. `LineStrings` will
+  get fully dissolved and noded. Duplicate `Points` will get merged.
 
   .. code-block:: pycon
 
@@ -2108,15 +2111,21 @@ efficient than accumulating with :meth:`union`.
     >>> unary_union(polygons)
     <shapely.geometry.polygon.Polygon object at 0x...>
 
-  The function is particularly useful in dissolving `MultiPolygons`.
+  Because the union merges the areas of overlapping `Polygons` it can be
+  used in an attempt to fix invalid `MultiPolygons`. As with the zero
+  distance :meth:`buffer` trick, your mileage may vary when using this.
 
   .. code-block:: pycon
 
     >>> m = MultiPolygon(polygons)
     >>> m.area
     7.6845438018375516
+    >>> m.is_valid
+    False
     >>> unary_union(m).area
     6.6103013551167971
+    >>> unary_union(m).is_valid
+    True
 
 .. function:: shapely.ops.cascaded_union(geoms)
 
@@ -2124,10 +2133,10 @@ efficient than accumulating with :meth:`union`.
 
   .. note::
 
-     Since 1.2.16 :func:`shapely.ops.cascaded_union` is superceded by
-     :func:`shapely.ops.unary_union` if GEOS 3.2+ is used. The unary union
+     In 1.2.16 :func:`shapely.ops.cascaded_union` was transparently superseded by
+     :func:`shapely.ops.unary_union` if GEOS 3.3+ is used. The unary union
      function can operate on different geometry types, not only polygons as is
-     the case for the older cascaded unions.
+     the case for the older cascaded union.
 
 Delaunay triangulation
 ----------------------
