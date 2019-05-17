@@ -9,13 +9,13 @@ import random
 import pylab
 
 from shapely.geometry import LineString, Point
-from shapely.ops import cascaded_union
+from shapely.ops import unary_union
 
 # Build patches as in dissolved.py
 r = partial(random.uniform, -20.0, 20.0)
 points = [Point(r(), r()) for i in range(100)]
 spots = [p.buffer(2.5) for p in points]
-patches = cascaded_union(spots)
+patches = unary_union(spots)
 
 # Represent the following geolocation parameters
 #

@@ -9,7 +9,7 @@ import random
 import pylab
 
 from shapely.geometry import Point
-from shapely.ops import cascaded_union
+from shapely.ops import unary_union
 
 # Use a partial function to make 100 points uniformly distributed in a 40x40 
 # box centered on 0,0.
@@ -19,9 +19,9 @@ points = [Point(r(), r()) for i in range(100)]
 # Buffer the points, producing 100 polygon spots
 spots = [p.buffer(2.5) for p in points]
 
-# Perform a cascaded union of the polygon spots, dissolving them into a 
+# Perform a unary union of the polygon spots, dissolving them into a
 # collection of polygon patches
-patches = cascaded_union(spots)
+patches = unary_union(spots)
 
 if __name__ == "__main__":
     # Illustrate the results using matplotlib's pylab interface
