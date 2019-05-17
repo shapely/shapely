@@ -2148,7 +2148,7 @@ Delaunay triangulation from a collection of points.
 
 .. function:: shapely.ops.triangulate(geom, tolerance=0.0, edges=False)
 
-   Returns a Delaunary triangulation of the vertices of the input geometry.
+   Returns a Delaunay triangulation of the vertices of the input geometry.
 
    The source may be any geometry type. All vertices of the geometry will be
    used as the points of the triangulation.
