@@ -144,5 +144,11 @@ class LineStringTestCase(unittest.TestCase):
         self.assertEqual(a.shape[0], 0)
 
 
+def test_empty_point_bounds():
+    """The bounds of an empty point is an empty tuple"""
+    p = Point()
+    assert p.bounds == ()
+
+
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(LineStringTestCase)
