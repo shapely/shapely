@@ -1,7 +1,7 @@
 
 def signed_area(ring):
-    """Return the signed area enclosed by a ring in linear time using the 
-    algorithm at: http://www.cgafaq.info/wiki/Polygon_Area.
+    """Return the signed area enclosed by a ring in linear time using the
+    algorithm at: https://web.archive.org/web/20080209143651/http://cgafaq.info:80/wiki/Polygon_Area
     """
     xs, ys = ring.coords.xy
     xs.append(xs[1])
