@@ -120,3 +120,78 @@ cdef _predicated_1d(geometry, np.double_t[:] x, np.double_t[:] y, predicate fn):
             GEOSGeom_destroy_r(geos_h, p)
 
     return result.view(dtype=np.bool)
+
+
+def array_transform(func, geom):
+    """Applies `func` to all coordinates of `geom` and returns a new
+    geometry of the same type from the transformed coordinates.
+
+    `func` maps x, y, and optionally z to output xp, yp, zp. The input
+    parameters may iterable types like lists or arrays or single values.
+    The output shall be of the same type. Scalars in, scalars out.
+    Lists in, lists out.
+
+    For example, here is an identity function applicable to both types
+    of input.
+
+      def id_func(x, y, z=None):
+          return tuple(filter(None, [x, y, z]))
+
+      g2 = transform(id_func, g1)
+
+    A partially applied transform function from pyproj satisfies the
+    requirements for `func`.
+
+      from functools import partial
+      from pyproj import Transformer
+
+      transformer = Transformer.from_crs("epsg:4326", "epsg:26913")
+      g2 = transform(transformer.transform, g1)
+
+    Lambda expressions such as the one in
+
+      g2 = transform(lambda x, y, z=None: (x+1.0, y+1.0), g1)
+
+    also satisfy the requirements for `func`.
+    """
+    if geom.is_empty:
+        return geom
+
+    if geom.type in ("Point", "LineString", "LinearRing", "Polygon"):
+
+        def transform_line(line_geom):
+            geom_array = np.asarray(geom)
+            if geom_array.shape[-1] == 2:
+                geom_array[:, 0], geom_array[:, 1] = func(
+                    geom_array[:, 0], geom_array[:, 1]
+                )
+            else:
+                geom_array[:, 0], geom_array[:, 1], geom_array[
+                    :, 2
+                ] = func(
+                    geom_array[:, 0], geom_array[:, 1], geom_array[:, 2]
+                )
+            return type(line_geom)(geom_array)
+
+        if geom.type == "Point":
+            geom_array = np.asarray(geom)
+            if geom_array.shape == (2,):
+                geom_array[0], geom_array[1] = func(
+                    geom_array[0], geom_array[1]
+                )
+            else:
+                geom_array[0], geom_array[1], geom_array[2] = func(
+                    geom_array[0], geom_array[1], geom_array[2]
+                )
+            return type(geom)(geom_array)
+        elif geom.type in ("LineString", "LinearRing"):
+            return transform_line(geom)
+        elif geom.type == "Polygon":
+            shell = transform_line(geom.exterior)
+            holes = list(transform_line(ring) for ring in geom.interiors)
+            return type(geom)(shell, holes)
+
+    elif geom.type.startswith("Multi") or geom.type == "GeometryCollection":
+        return type(geom)([array_transform(part) for part in geom.geoms])
+    else:
+        raise ValueError("Type %r not recognized" % geom.type)
