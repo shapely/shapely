@@ -45,7 +45,7 @@ Compare an grid of points with a polygon:
 
 Compute the area of all possible intersections of two lists of polygons:
 
- .. code:: python
+.. code:: python
 
   >>> from pygeos import area, intersection
   >>> from shapely.geometry import box
