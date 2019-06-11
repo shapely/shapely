@@ -177,6 +177,52 @@ static void PyUFuncGEOS_G_G(char **args, npy_intp *dimensions,
         return;
 }
 
+
+/* This defines the ufunc for vector, double -> vector functions from GEOS. */
+typedef void *FuncGEOS_Gd_G(void *context, void *a, double *b);
+static void PyUFuncGEOS_Gd_G(char **args, npy_intp *dimensions,
+                             npy_intp* steps, void* data)
+{
+    npy_intp i;
+    npy_intp n = dimensions[0];
+    char *in1 = args[0], *in2 = args[1], *out = args[2];
+    npy_intp in1_step = steps[0], in2_step = steps[1], out_step = steps[2];
+    void *context_handle;
+    GeomArrayValue *a, *c;
+
+    FuncGEOS_Gd_G *f = (FuncGEOS_Gd_G *)data;
+    context_handle = GEOS_init_r();
+
+    for (i = 0; i < n; i++) {
+        a = (GeomArrayValue *)in1;
+        c = (GeomArrayValue *)out;
+        c->obj = Py_None;
+
+        if (a->_ptr == NULL) {
+            c->_ptr = NULL;
+        } else {
+            c->_ptr = f(context_handle, a->_ptr, *in2);
+            if (c->_ptr == NULL) {
+                goto fail;
+            }
+        }
+
+        in1 += in1_step;
+        in2 += in2_step;
+        out += out_step;
+
+    }
+
+    GEOS_finish_r(context_handle);
+
+    return;
+
+    fail:
+        PyErr_Format(PyExc_RuntimeError, "GEOS Operation failed");
+        GEOS_finish_r(context_handle);
+        return;
+}
+
 /* This defines the ufunc for vector, vector -> vector functions from GEOS. */
 typedef void *FuncGEOS_GG_G(void *context, void *a, void *b);
 static void PyUFuncGEOS_GG_G(char **args, npy_intp *dimensions,
@@ -408,6 +454,24 @@ static void RegisterPyUFuncGEOS_G_G(
     Py_DECREF(pyufunc);
 };
 
+static void RegisterPyUFuncGEOS_Gd_G(
+        char *name, void *geos_func, PyArray_Descr *geom_dtype, PyObject *d) {
+    PyObject *pyufunc;
+    pyufunc = PyUFunc_FromFuncAndData(
+        NULL, NULL, NULL, 0, 2, 1, PyUFunc_None, name, "", 0);
+
+    PyArray_Descr *dtypes[3];
+    dtypes[0] = geom_dtype;
+    dtypes[1] = PyArray_DescrFromType(NPY_DOUBLE);
+    dtypes[2] = geom_dtype;
+
+    PyUFunc_RegisterLoopForDescr(
+        pyufunc, geom_dtype, &PyUFuncGEOS_Gd_G, dtypes, geos_func
+    );
+    PyDict_SetItemString(d, name, pyufunc);
+    Py_DECREF(pyufunc);
+};
+
 static void RegisterPyUFuncGEOS_GG_G(
         char *name, void *geos_func, PyArray_Descr *geom_dtype, PyObject *d) {
     PyObject *pyufunc;
@@ -518,6 +582,13 @@ PyMODINIT_FUNC PyInit_geos_ufuncs(void)
     RegisterPyUFuncGEOS_G_G("point_on_surface", GEOSPointOnSurface_r, dt, d);
     RegisterPyUFuncGEOS_G_G("get_centroid", GEOSGetCentroid_r, dt, d);
     RegisterPyUFuncGEOS_G_G("node", GEOSNode_r, dt, d);
+    RegisterPyUFuncGEOS_G_G("line_merge", GEOSLineMerge_r, dt, d);
+    RegisterPyUFuncGEOS_G_G("extract_unique_points", GEOSGeom_extractUniquePoints_r, dt, d);
+    RegisterPyUFuncGEOS_Gd_G("minimum_clearance", GEOSMinimumClearance_r, dt, d);
+    RegisterPyUFuncGEOS_Gd_G("interpolate", GEOSInterpolate_r, dt, d);
+    RegisterPyUFuncGEOS_Gd_G("interpolate_normalized", GEOSInterpolateNormalized_r, dt, d);
+    RegisterPyUFuncGEOS_Gd_G("simplify", GEOSSimplify_r, dt, d);
+    RegisterPyUFuncGEOS_Gd_G("topology_preserve_simplify", GEOSTopologyPreserveSimplify_r, dt, d);
     RegisterPyUFuncGEOS_GG_b("contains", GEOSContains_r, dt, d);
     RegisterPyUFuncGEOS_GG_b("covered_by", GEOSCoveredBy_r, dt, d);
     RegisterPyUFuncGEOS_GG_b("covers", GEOSCovers_r, dt, d);
@@ -532,6 +603,7 @@ PyMODINIT_FUNC PyInit_geos_ufuncs(void)
     RegisterPyUFuncGEOS_GG_G("symmetric_difference", GEOSSymDifference_r, dt, d);
     RegisterPyUFuncGEOS_GG_G("intersection", GEOSIntersection_r, dt, d);
     RegisterPyUFuncGEOS_GG_G("union", GEOSUnion_r, dt, d);
+    RegisterPyUFuncGEOS_GG_G("shared_paths", GEOSSharedPaths_r, dt, d);
     RegisterPyUFuncGEOS_G_d("area", GEOSArea_r, dt, d);
     RegisterPyUFuncGEOS_G_d("length", GEOSLength_r, dt, d);
     RegisterPyUFuncGEOS_GG_d("distance", GEOSDistance_r, dt, d);

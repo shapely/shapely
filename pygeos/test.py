@@ -33,7 +33,7 @@ point_polygon_testdata = (
 unary_testdata = ((
     Point(2, 2),
     LineString([[0, 0], [1, 0], [1, 1]]),
-    LinearRing(((0, 0), (0, 1), (1 ,1 ), (1 , 0))),
+    LinearRing(((0, 0), (0, 1), (1, 1), (1, 0))),
     Polygon(((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.))),
     MultiPoint([[0.0, 0.0], [1.0, 2.0]]),
     MultiLineString([[[0.0, 0.0], [1.0, 2.0]]]),
@@ -107,6 +107,15 @@ def test_G_G(a, b):
             np.atleast_1d(actual), _shp_to_arr(a)
     ):
         assert _actual.equals(_a.centroid)
+
+
+@pytest.mark.parametrize("a, b", slider_testdata)
+def test_Gd_G(a, b):
+    actual = pygeos.simplify(a, 1.)['obj']
+    for _actual, _a in zip(
+            np.atleast_1d(actual), _shp_to_arr(a)
+    ):
+        assert _actual.equals(_a.simplify(1.))
 
 
 @pytest.mark.parametrize("a, b", slider_testdata)
