@@ -257,6 +257,10 @@ class PolygonTestCase(unittest.TestCase):
             Polygon(coords),
             Polygon.from_bounds(xmin, ymin, xmax, ymax))
 
+    def test_empty_polygon_exterior(self):
+        p = Polygon()
+        assert p.exterior == LinearRing()
+
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(PolygonTestCase)
