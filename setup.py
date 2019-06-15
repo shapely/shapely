@@ -1,5 +1,5 @@
 import os
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 import geosconfig
 
 module_geos_ufuncs = Extension(
@@ -32,7 +32,7 @@ setup(
     ext_modules=[module_geos_ufuncs],
     classifiers=[
         'Programming Language :: Python :: 3',
-        'Development Status :: 1 - Planning'
+        'Development Status :: 1 - Planning',
         'Topic :: Scientific/Engineering :: Mathematics',
         'Topic :: Scientific/Engineering :: GIS',
         'Operating System :: Unix',
