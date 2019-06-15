@@ -324,14 +324,24 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
         if m == 0:
             return None
 
-        n = len(ob[0])
+        def _coords(o):
+            if isinstance(o, Point):
+                return o.coords[0]
+            else:
+                return o
+
+        n = len(_coords(ob[0]))
         if m < 3:
             raise ValueError(
                 "A LinearRing must have at least 3 coordinate tuples")
         assert (n == 2 or n == 3)
 
         # Add closing coordinates if not provided
-        if m == 3 or ob[0][0] != ob[-1][0] or ob[0][1] != ob[-1][1]:
+        if (
+            m == 3
+            or _coords(ob[0])[0] != _coords(ob[-1])[0]
+            or _coords(ob[0])[1] != _coords(ob[-1])[1]
+        ):
             M = m + 1
         else:
             M = m
@@ -348,7 +358,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
         
         # add to coordinate sequence
         for i in xrange(m):
-            coords = ob[i]
+            coords = _coords(ob[i])
             dx = coords[0]
             dy = coords[1]
             dz = 0
@@ -364,7 +374,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
 
         # Add closing coordinates to sequence?
         if M > m:
-            coords = ob[0]
+            coords = _coords(ob[0])
             dx = coords[0]
             dy = coords[1]
             dz = 0

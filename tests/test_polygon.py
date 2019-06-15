@@ -21,6 +21,9 @@ class PolygonTestCase(unittest.TestCase):
         self.assertEqual(ring.coords[0], ring.coords[-1])
         self.assertTrue(ring.is_ring)
 
+        # Ring from sequence of Points
+        self.assertEqual(LinearRing((map(Point, coords))), ring)
+
         # Coordinate modification
         ring.coords = ((0.0, 0.0), (0.0, 2.0), (2.0, 2.0), (2.0, 0.0))
         self.assertEqual(
