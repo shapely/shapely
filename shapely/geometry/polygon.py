@@ -245,7 +245,7 @@ class Polygon(BaseGeometry):
     @property
     def exterior(self):
         if self.is_empty:
-            return None
+            return LinearRing()
         elif self._exterior is None or self._exterior() is None:
             g = lgeos.GEOSGetExteriorRing(self._geom)
             ring = LinearRing()
@@ -311,7 +311,7 @@ class Polygon(BaseGeometry):
 
     @property
     def __geo_interface__(self):
-        if not self.exterior:
+        if self.exterior == LinearRing():
             coords = []
         else:
             coords = [tuple(self.exterior.coords)]
