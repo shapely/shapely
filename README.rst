@@ -64,9 +64,18 @@ Compute the area of all possible intersections of two lists of polygons:
 Installation
 ------------
 
+Pygeos uses shapely's installing scripts. If you have libgeos at a standard
+location, the following should work::
+
+    $ pip install pygeos
+
+
+Installation for developers
+---------------------------
+
 Clone the package::
 
-    $ git clone git@github.com:caspervdw/pygeos.git
+    $ git clone https://github.com/caspervdw/pygeos.git
 
 Install it using `pip`::
 
