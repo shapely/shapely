@@ -2,6 +2,11 @@ import os
 from setuptools import setup, Extension
 import geosconfig
 
+module_geometry = Extension(
+    'pygeos.geometry',
+    sources=['src/geometry.c'],
+)
+
 module_geos_ufuncs = Extension(
     'pygeos.geos_ufuncs',
     sources=['src/geos_ufuncs.c'],
@@ -29,7 +34,7 @@ setup(
     install_requires=['numpy', 'shapely'],
     test_requires=['pytest'],
     python_requires='>=3',
-    ext_modules=[module_geos_ufuncs],
+    ext_modules=[module_geometry, module_geos_ufuncs],
     classifiers=[
         'Programming Language :: Python :: 3',
         'Development Status :: 1 - Planning',
