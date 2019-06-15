@@ -563,52 +563,75 @@ PyMODINIT_FUNC PyInit_geos_ufuncs(void)
     );
     PyArray_DescrConverter(dtype_dict, &dt);
 
-    /* Register the GEOS functions. */
+    /* Register the GEOS functions. List is based on CAPI 3.3.0 */
+    /* TODO GG -> d function GEOSProject_r */
+    RegisterPyUFuncGEOS_Gd_G("interpolate", GEOSInterpolate_r, dt, d);
+    /* TODO GG -> d function GEOSProjectNormalized_r */
+    RegisterPyUFuncGEOS_Gd_G("interpolate_normalized", GEOSInterpolateNormalized_r, dt, d);
+    /* TODO buffer functions */
+    /* TODO possibly implement some creation functions */
+    RegisterPyUFuncGEOS_G_G("clone", GEOSGeom_clone_r, dt, d);
+    /* TODO G -> void function GEOSGeom_destroy_r */
+    RegisterPyUFuncGEOS_G_G("envelope", GEOSEnvelope_r, dt, d);
+    RegisterPyUFuncGEOS_GG_G("intersection", GEOSIntersection_r, dt, d);
+    RegisterPyUFuncGEOS_G_G("convex_hull", GEOSConvexHull_r, dt, d);
+    RegisterPyUFuncGEOS_GG_G("difference", GEOSDifference_r, dt, d);
+    RegisterPyUFuncGEOS_GG_G("symmetric_difference", GEOSSymDifference_r, dt, d);
+    RegisterPyUFuncGEOS_G_G("boundary", GEOSBoundary_r, dt, d);
+    RegisterPyUFuncGEOS_GG_G("union", GEOSUnion_r, dt, d);
+    RegisterPyUFuncGEOS_G_G("unary_union", GEOSUnaryUnion_r, dt, d);
+    RegisterPyUFuncGEOS_G_G("point_on_surface", GEOSPointOnSurface_r, dt, d);
+    RegisterPyUFuncGEOS_G_G("get_centroid", GEOSGetCentroid_r, dt, d);
+    /* TODO polygonizer functions */
+    RegisterPyUFuncGEOS_G_G("line_merge", GEOSLineMerge_r, dt, d);
+    RegisterPyUFuncGEOS_Gd_G("simplify", GEOSSimplify_r, dt, d);
+    RegisterPyUFuncGEOS_Gd_G("topology_preserve_simplify", GEOSTopologyPreserveSimplify_r, dt, d);
+    RegisterPyUFuncGEOS_G_G("extract_unique_points", GEOSGeom_extractUniquePoints_r, dt, d);
+    RegisterPyUFuncGEOS_GG_G("shared_paths", GEOSSharedPaths_r, dt, d);
+    /* TODO GGd -> G function GEOSSnap_r */
+    RegisterPyUFuncGEOS_GG_b("disjoint", GEOSDisjoint_r, dt, d);
+    RegisterPyUFuncGEOS_GG_b("touches", GEOSTouches_r, dt, d);
+    RegisterPyUFuncGEOS_GG_b("intersects", GEOSIntersects_r, dt, d);
+    RegisterPyUFuncGEOS_GG_b("crosses", GEOSCrosses_r, dt, d);
+    RegisterPyUFuncGEOS_GG_b("within", GEOSWithin_r, dt, d);
+    RegisterPyUFuncGEOS_GG_b("contains", GEOSContains_r, dt, d);
+    RegisterPyUFuncGEOS_GG_b("overlaps", GEOSOverlaps_r, dt, d);
+    RegisterPyUFuncGEOS_GG_b("equals", GEOSEquals_r, dt, d);
+    /* TODO GGd -> b function GEOSEqualsExact_r */
+    RegisterPyUFuncGEOS_GG_b("covers", GEOSCovers_r, dt, d);
+    RegisterPyUFuncGEOS_GG_b("covered_by", GEOSCoveredBy_r, dt, d);
+    /* TODO prepared geometry predicate functions */
     RegisterPyUFuncGEOS_G_b("is_empty", GEOSisEmpty_r, dt, d);
     RegisterPyUFuncGEOS_G_b("is_simple", GEOSisSimple_r, dt, d);
     RegisterPyUFuncGEOS_G_b("is_ring", GEOSisRing_r, dt, d);
     RegisterPyUFuncGEOS_G_b("has_z", GEOSHasZ_r, dt, d);
     RegisterPyUFuncGEOS_G_b("is_closed", GEOSisClosed_r, dt, d);
+    /* TODO relate functions */
     RegisterPyUFuncGEOS_G_b("is_valid", GEOSisValid_r, dt, d);
-    RegisterPyUFuncGEOS_G_G("clone", GEOSGeom_clone_r, dt, d);
-    RegisterPyUFuncGEOS_G_G("envelope", GEOSEnvelope_r, dt, d);
-    RegisterPyUFuncGEOS_G_G("convex_hull", GEOSConvexHull_r, dt, d);
-    RegisterPyUFuncGEOS_G_G("minimum_rotated_rectangle", GEOSMinimumRotatedRectangle_r, dt, d);
-    RegisterPyUFuncGEOS_G_G("minimum_width", GEOSMinimumWidth_r, dt, d);
-    RegisterPyUFuncGEOS_G_G("minimum_clearance_line", GEOSMinimumClearanceLine_r, dt, d);
-    RegisterPyUFuncGEOS_G_G("boundary", GEOSBoundary_r, dt, d);
-    RegisterPyUFuncGEOS_G_G("unary_union", GEOSUnaryUnion_r, dt, d);
-    RegisterPyUFuncGEOS_G_G("union_cascaded", GEOSUnionCascaded_r, dt, d);
-    RegisterPyUFuncGEOS_G_G("point_on_surface", GEOSPointOnSurface_r, dt, d);
-    RegisterPyUFuncGEOS_G_G("get_centroid", GEOSGetCentroid_r, dt, d);
-    RegisterPyUFuncGEOS_G_G("node", GEOSNode_r, dt, d);
-    RegisterPyUFuncGEOS_G_G("line_merge", GEOSLineMerge_r, dt, d);
-    RegisterPyUFuncGEOS_G_G("extract_unique_points", GEOSGeom_extractUniquePoints_r, dt, d);
-    RegisterPyUFuncGEOS_Gd_G("minimum_clearance", GEOSMinimumClearance_r, dt, d);
-    RegisterPyUFuncGEOS_Gd_G("interpolate", GEOSInterpolate_r, dt, d);
-    RegisterPyUFuncGEOS_Gd_G("interpolate_normalized", GEOSInterpolateNormalized_r, dt, d);
-    RegisterPyUFuncGEOS_Gd_G("simplify", GEOSSimplify_r, dt, d);
-    RegisterPyUFuncGEOS_Gd_G("topology_preserve_simplify", GEOSTopologyPreserveSimplify_r, dt, d);
-    RegisterPyUFuncGEOS_GG_b("contains", GEOSContains_r, dt, d);
-    RegisterPyUFuncGEOS_GG_b("covered_by", GEOSCoveredBy_r, dt, d);
-    RegisterPyUFuncGEOS_GG_b("covers", GEOSCovers_r, dt, d);
-    RegisterPyUFuncGEOS_GG_b("crosses", GEOSCrosses_r, dt, d);
-    RegisterPyUFuncGEOS_GG_b("disjoint", GEOSDisjoint_r, dt, d);
-    RegisterPyUFuncGEOS_GG_b("equals", GEOSEquals_r, dt, d);
-    RegisterPyUFuncGEOS_GG_b("intersects", GEOSIntersects_r, dt, d);
-    RegisterPyUFuncGEOS_GG_b("overlaps", GEOSOverlaps_r, dt, d);
-    RegisterPyUFuncGEOS_GG_b("touches", GEOSTouches_r, dt, d);
-    RegisterPyUFuncGEOS_GG_b("within", GEOSWithin_r, dt, d);
-    RegisterPyUFuncGEOS_GG_G("difference", GEOSDifference_r, dt, d);
-    RegisterPyUFuncGEOS_GG_G("symmetric_difference", GEOSSymDifference_r, dt, d);
-    RegisterPyUFuncGEOS_GG_G("intersection", GEOSIntersection_r, dt, d);
-    RegisterPyUFuncGEOS_GG_G("union", GEOSUnion_r, dt, d);
-    RegisterPyUFuncGEOS_GG_G("shared_paths", GEOSSharedPaths_r, dt, d);
+    /* TODO G -> char function GEOSisValidReason_r */
+    RegisterPyUFuncGEOS_G_u1("geom_type_id", GEOSGeomTypeId_r, dt, d);
+    /* TODO G -> i function GEOSGetSRID_r */
+    /* TODO Gi -> void function GEOSSetSRID_r */
+    /* TODO G -> i function GEOSGetNumGeometries_r */
+    /* TODO G -> void function GEOSNormalize_r */
+    /* TODO G -> i function GEOSGetNumInteriorRings_r */
+    /* TODO G -> i function GEOSGeomGetNumPoints_r */
+    RegisterPyUFuncGEOS_G_d("get_x", GEOSGeomGetX_r, dt, d);
+    RegisterPyUFuncGEOS_G_d("get_y", GEOSGeomGetY_r, dt, d);
+    /* TODO Gi -> G function GEOSGetInteriorRingN_r */
+    RegisterPyUFuncGEOS_G_G("get_exterior_ring", GEOSGetExteriorRing_r, dt, d);
+    /* TODO G -> i function GEOSGetNumCoordinates_r */
+    /* TODO G -> i function GEOSGeom_getDimensions_r */
+    /* TODO G -> i function GEOSGeom_getCoordinateDimension_r */
+    /* TODO G -> i function GEOSGeomGetPointN_r */
+    RegisterPyUFuncGEOS_G_G("get_start_point", GEOSGeomGetStartPoint_r, dt, d);
+    RegisterPyUFuncGEOS_G_G("get_end_point", GEOSGeomGetEndPoint_r, dt, d);
     RegisterPyUFuncGEOS_G_d("area", GEOSArea_r, dt, d);
     RegisterPyUFuncGEOS_G_d("length", GEOSLength_r, dt, d);
     RegisterPyUFuncGEOS_GG_d("distance", GEOSDistance_r, dt, d);
     RegisterPyUFuncGEOS_GG_d("hausdorff_distance", GEOSHausdorffDistance_r, dt, d);
-    RegisterPyUFuncGEOS_G_u1("geom_type_id", GEOSGeomTypeId_r, dt, d);
+    /* TODO GGd -> d function GEOSHausdorffDistanceDensify_r */
+    RegisterPyUFuncGEOS_G_d("get_length", GEOSGeomGetLength_r, dt, d);
 
     Py_DECREF(dtype_dict);
     Py_DECREF(dt);
