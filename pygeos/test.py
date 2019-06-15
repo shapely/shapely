@@ -73,6 +73,15 @@ def test_G_u1(a):
         assert _actual == pygeos.GEOM_CLASSES.index(_a.__class__)
 
 
+@pytest.mark.parametrize("n_range", (range(2, 10), range(2, 5)))
+def test_G_u4(n_range):
+    geoms = [LineString(np.array([[i, i] for i in range(n)]))
+             for n in n_range]
+    actual = pygeos.get_num_points(geoms)
+    for _actual, _expected in zip(actual, n_range):
+        assert _actual == _expected
+
+
 @pytest.mark.parametrize("a, b", slider_testdata)
 def test_G_d(a, b):
     actual = pygeos.area(a)

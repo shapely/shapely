@@ -380,10 +380,55 @@ static void PyUFuncGEOS_G_u1(char **args, npy_intp *dimensions,
             *out = 255;
         } else {
             b = f(context_handle, a->_ptr);
-            if ((b < 0) | (b > 255)) {
+            if ((b < 0) | (b > UINT8_MAX)) {
                 goto fail;
             } else {
                 *out = (npy_uint8) b;
+            }
+        }
+
+        in += in_step;
+        out += out_step;
+
+    }
+
+    GEOS_finish_r(context_handle);
+
+    return;
+
+    fail:
+        PyErr_Format(PyExc_RuntimeError, "GEOS Operation failed");
+        GEOS_finish_r(context_handle);
+        return;
+}
+
+
+/* This defines the ufunc for vector -> uint32 functions from GEOS. */
+static void PyUFuncGEOS_G_u4(char **args, npy_intp *dimensions,
+                             npy_intp* steps, void* data)
+{
+    npy_intp i;
+    npy_intp n = dimensions[0];
+    char *in = args[0], *out = args[1];
+    npy_intp in_step = steps[0], out_step = steps[1];
+    void *context_handle;
+    GeomArrayValue *a;
+    int b;
+
+    FuncGEOS_G_i *f = (FuncGEOS_G_i *)data;
+    context_handle = GEOS_init_r();
+
+    for (i = 0; i < n; i++) {
+        a = (GeomArrayValue *)in;
+
+        if (a->_ptr == NULL) {
+            *out = UINT32_MAX;
+        } else {
+            b = f(context_handle, a->_ptr);
+            if ((b < 0) | (b > UINT32_MAX)) {
+                goto fail;
+            } else {
+                *out = (npy_uint32) b;
             }
         }
 
@@ -543,6 +588,23 @@ static void RegisterPyUFuncGEOS_G_u1(
     Py_DECREF(pyufunc);
 };
 
+static void RegisterPyUFuncGEOS_G_u4(
+        char *name, void *geos_func, PyArray_Descr *geom_dtype, PyObject *d) {
+    PyObject *pyufunc;
+    pyufunc = PyUFunc_FromFuncAndData(
+        NULL, NULL, NULL, 0, 1, 1, PyUFunc_None, name, "", 0);
+
+    PyArray_Descr *dtypes[2];
+    dtypes[0] = geom_dtype;
+    dtypes[1] = PyArray_DescrFromType(NPY_UINT32);
+
+    PyUFunc_RegisterLoopForDescr(
+        pyufunc, geom_dtype, &PyUFuncGEOS_G_u4, dtypes, geos_func
+    );
+    PyDict_SetItemString(d, name, pyufunc);
+    Py_DECREF(pyufunc);
+};
+
 PyMODINIT_FUNC PyInit_geos_ufuncs(void)
 {
     PyObject *m, *d, *dtype_dict;
@@ -610,20 +672,20 @@ PyMODINIT_FUNC PyInit_geos_ufuncs(void)
     RegisterPyUFuncGEOS_G_b("is_valid", GEOSisValid_r, dt, d);
     /* TODO G -> char function GEOSisValidReason_r */
     RegisterPyUFuncGEOS_G_u1("geom_type_id", GEOSGeomTypeId_r, dt, d);
-    /* TODO G -> i function GEOSGetSRID_r */
+    RegisterPyUFuncGEOS_G_u4("get_srid", GEOSGetSRID_r, dt, d);
     /* TODO Gi -> void function GEOSSetSRID_r */
-    /* TODO G -> i function GEOSGetNumGeometries_r */
+    RegisterPyUFuncGEOS_G_u4("get_num_geometries", GEOSGetNumGeometries_r, dt, d);
     /* TODO G -> void function GEOSNormalize_r */
-    /* TODO G -> i function GEOSGetNumInteriorRings_r */
-    /* TODO G -> i function GEOSGeomGetNumPoints_r */
+    RegisterPyUFuncGEOS_G_u4("get_num_interior_rings", GEOSGetNumInteriorRings_r, dt, d);
+    RegisterPyUFuncGEOS_G_u4("get_num_points", GEOSGeomGetNumPoints_r, dt, d);
     RegisterPyUFuncGEOS_G_d("get_x", GEOSGeomGetX_r, dt, d);
     RegisterPyUFuncGEOS_G_d("get_y", GEOSGeomGetY_r, dt, d);
     /* TODO Gi -> G function GEOSGetInteriorRingN_r */
     RegisterPyUFuncGEOS_G_G("get_exterior_ring", GEOSGetExteriorRing_r, dt, d);
-    /* TODO G -> i function GEOSGetNumCoordinates_r */
-    /* TODO G -> i function GEOSGeom_getDimensions_r */
-    /* TODO G -> i function GEOSGeom_getCoordinateDimension_r */
-    /* TODO G -> i function GEOSGeomGetPointN_r */
+    RegisterPyUFuncGEOS_G_u4("get_num_coordinates", GEOSGetNumCoordinates_r, dt, d);
+    RegisterPyUFuncGEOS_G_u1("get_dimensions", GEOSGeom_getDimensions_r, dt, d);
+    RegisterPyUFuncGEOS_G_u1("get_coordinate_dimensions", GEOSGeom_getCoordinateDimension_r, dt, d);
+    /* TODO Gi -> i function GEOSGeomGetPointN_r */
     RegisterPyUFuncGEOS_G_G("get_start_point", GEOSGeomGetStartPoint_r, dt, d);
     RegisterPyUFuncGEOS_G_G("get_end_point", GEOSGeomGetEndPoint_r, dt, d);
     RegisterPyUFuncGEOS_G_d("area", GEOSArea_r, dt, d);
