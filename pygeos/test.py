@@ -44,6 +44,12 @@ unary_testdata = ((
     GeometryCollection([Point(51, -1), LineString([(52, -1), (49, 2)])])
 ),)
 
+linestring_testdata = (
+    LineString([[0, 0], [1, 0], [1, 1]]),
+    LineString([[i, i] for i in range(100)]),
+)
+
+
 distance_testdata = (
     (Point(1, 1), Point(2, 1)),
 )
@@ -73,13 +79,22 @@ def test_G_u1(a):
         assert _actual == pygeos.GEOM_CLASSES.index(_a.__class__)
 
 
-@pytest.mark.parametrize("n_range", (range(2, 10), range(2, 5)))
-def test_G_u4(n_range):
-    geoms = [LineString(np.array([[i, i] for i in range(n)]))
-             for n in n_range]
-    actual = pygeos.get_num_points(geoms)
-    for _actual, _expected in zip(actual, n_range):
-        assert _actual == _expected
+@pytest.mark.parametrize("a", linestring_testdata)
+def test_G_i(a):
+    actual = pygeos.get_num_points(a)
+    for _actual, _a in zip(
+            np.atleast_1d(actual), _shp_to_arr(a),
+    ):
+        assert _actual == len(_a.coords)
+
+
+@pytest.mark.parametrize("a", linestring_testdata)
+def test_Gi_G(a):
+    inds = [2, 1]
+    actual = pygeos.get_point_n(a, inds)
+    for _actual, ind in zip(np.atleast_1d(actual), inds):
+        expected = a.coords[ind]
+        assert list(_actual['obj'].coords[0]) == list(expected)
 
 
 @pytest.mark.parametrize("a, b", slider_testdata)
@@ -134,6 +149,15 @@ def test_GG_G(a, b):
             np.atleast_1d(actual), _shp_to_arr(a), _shp_to_arr(b)
     ):
         assert _actual.equals(_a.intersection(_b))
+
+
+@pytest.mark.parametrize("a", unary_testdata)
+def test_buffer(a):
+    actual = pygeos.buffer(a, 1.4, 8)
+    for _actual, _a in zip(
+            np.atleast_1d(actual), _shp_to_arr(a),
+    ):
+        assert _actual['obj'].equals(_a.buffer(1.4, 8))
 
 
 def test_garr_from_shapely():
