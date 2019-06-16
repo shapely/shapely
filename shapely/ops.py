@@ -14,7 +14,7 @@ from shapely.geos import lgeos
 from shapely.geometry.base import geom_factory, BaseGeometry, BaseMultipartGeometry
 from shapely.geometry import asShape, asLineString, asMultiLineString, Point, MultiPoint,\
                              LineString, MultiLineString, Polygon, GeometryCollection
-from shapely.algorithms.cga import signed_area
+from shapely.geometry.polygon import orient as orient_
 from shapely.algorithms.polylabel import polylabel
 
 
@@ -581,17 +581,5 @@ def orient(geom, sign=1.0):
             )
         )
     if isinstance(geom, (Polygon,)):
-        s = float(sign)
-        rings = []
-        ring = geom.exterior
-        if signed_area(ring) / s >= 0.0:
-            rings.append(ring)
-        else:
-            rings.append(list(ring.coords)[::-1])
-        for ring in geom.interiors:
-            if signed_area(ring) / s <= 0.0:
-                rings.append(ring)
-            else:
-                rings.append(list(ring.coords)[::-1])
-        return geom.__class__(rings[0], rings[1:])
+        return orient_(geom, sign)
     return geom
