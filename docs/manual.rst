@@ -545,9 +545,9 @@ For example:
 This is the first appearance of an explicit polygon handedness in Shapely.
 
 To obtain a polygon with a known orientation, use
-:func:`shapely.geometry.polygon.orient()`:
+:func:`shapely.ops.orient()`:
 
-.. function:: shapely.geometry.polygon.orient(polygon, sign=1.0)
+.. function:: shapely.ops.orient(polygon, sign=1.0)
 
   Returns a properly oriented copy of the given polygon. The signed area of the
   result will have the given sign. A sign of 1.0 means that the coordinates of
