@@ -9,7 +9,6 @@ if sys.version_info[0] < 3:
 from ctypes import c_void_p, cast, POINTER
 import weakref
 
-from shapely.algorithms.cga import signed_area
 #from shapely.coords import required
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, geos_geom_from_py
@@ -386,22 +385,6 @@ class PolygonAdapter(PolygonProxy, Polygon):
 def asPolygon(shell, holes=None):
     """Adapt objects to the Polygon interface"""
     return PolygonAdapter(shell, holes)
-
-
-def orient(polygon, sign=1.0):
-    s = float(sign)
-    rings = []
-    ring = polygon.exterior
-    if signed_area(ring)/s >= 0.0:
-        rings.append(ring)
-    else:
-        rings.append(list(ring.coords)[::-1])
-    for ring in polygon.interiors:
-        if signed_area(ring)/s <= 0.0:
-            rings.append(ring)
-        else:
-            rings.append(list(ring.coords)[::-1])
-    return Polygon(rings[0], rings[1:])
 
 
 def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):

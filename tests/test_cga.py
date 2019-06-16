@@ -1,5 +1,6 @@
 from . import unittest
-from shapely.geometry.polygon import LinearRing, orient, Polygon
+from shapely.geometry.polygon import LinearRing, Polygon
+from shapely.ops import orient
 
 
 class RingOrientationTestCase(unittest.TestCase):

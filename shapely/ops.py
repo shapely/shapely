@@ -11,9 +11,10 @@ else:
 from ctypes import byref, c_void_p, c_double
 
 from shapely.geos import lgeos
-from shapely.geometry.base import geom_factory, BaseGeometry
+from shapely.geometry.base import geom_factory, BaseGeometry, BaseMultipartGeometry
 from shapely.geometry import asShape, asLineString, asMultiLineString, Point, MultiPoint,\
                              LineString, MultiLineString, Polygon, GeometryCollection
+from shapely.algorithms.cga import signed_area
 from shapely.algorithms.polylabel import polylabel
 
 
@@ -567,3 +568,30 @@ def clip_by_rect(geom, xmin, ymin, xmax, ymax):
         return geom
     result = geom_factory(lgeos.methods['clip_by_rect'](geom._geom, xmin, ymin, xmax, ymax))
     return result
+
+
+def orient(geom, sign=1.0):
+    if isinstance(geom, BaseMultipartGeometry):
+        return geom.__class__(
+            list(
+                map(
+                    lambda geom: orient(geom, sign),
+                    geom.geoms,
+                )
+            )
+        )
+    if isinstance(geom, (Polygon,)):
+        s = float(sign)
+        rings = []
+        ring = geom.exterior
+        if signed_area(ring) / s >= 0.0:
+            rings.append(ring)
+        else:
+            rings.append(list(ring.coords)[::-1])
+        for ring in geom.interiors:
+            if signed_area(ring) / s <= 0.0:
+                rings.append(ring)
+            else:
+                rings.append(list(ring.coords)[::-1])
+        return geom.__class__(rings[0], rings[1:])
+    return geom
