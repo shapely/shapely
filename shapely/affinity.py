@@ -6,7 +6,7 @@ __all__ = ['affine_transform', 'rotate', 'scale', 'skew', 'translate']
 
 
 def affine_transform(geom, matrix):
-    """Returns a transformed geometry using an affine transformation matrix.
+    r"""Returns a transformed geometry using an affine transformation matrix.
 
     The coefficient matrix is provided as a list or tuple with 6 or 12 items
     for 2D or 3D transformations, respectively.
@@ -130,7 +130,7 @@ def interpret_origin(geom, origin, ndim):
 
 
 def rotate(geom, angle, origin='center', use_radians=False):
-    """Returns a rotated geometry on a 2D plane.
+    r"""Returns a rotated geometry on a 2D plane.
 
     The angle of rotation can be specified in either degrees (default) or
     radians by setting ``use_radians=True``. Positive angles are
@@ -169,7 +169,7 @@ def rotate(geom, angle, origin='center', use_radians=False):
 
 
 def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center'):
-    """Returns a scaled geometry, scaled by factors along each dimension.
+    r"""Returns a scaled geometry, scaled by factors along each dimension.
 
     The point of origin can be a keyword 'center' for the 2D bounding box
     center (default), 'centroid' for the geometry's 2D centroid, a Point
@@ -200,7 +200,7 @@ def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center'):
 
 
 def skew(geom, xs=0.0, ys=0.0, origin='center', use_radians=False):
-    """Returns a skewed geometry, sheared by angles along x and y dimensions.
+    r"""Returns a skewed geometry, sheared by angles along x and y dimensions.
 
     The shear angle can be specified in either degrees (default) or radians
     by setting ``use_radians=True``.
@@ -239,7 +239,7 @@ def skew(geom, xs=0.0, ys=0.0, origin='center', use_radians=False):
 
 
 def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
-    """Returns a translated geometry shifted by offsets along each dimension.
+    r"""Returns a translated geometry shifted by offsets along each dimension.
 
     The general 3D affine transformation matrix for translation is:
 
