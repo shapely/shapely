@@ -5,6 +5,10 @@ import geosconfig
 module_geometry = Extension(
     'pygeos.geometry',
     sources=['src/geometry.c'],
+    include_dirs=geosconfig.include_dirs,
+    library_dirs=geosconfig.library_dirs,
+    libraries=geosconfig.libraries,
+    extra_link_args=geosconfig.extra_link_args
 )
 
 module_geos_ufuncs = Extension(
