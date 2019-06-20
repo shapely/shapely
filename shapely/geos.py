@@ -26,6 +26,7 @@ if sys.version_info[0] >= 3:
 else:
     text_types = (str, unicode)
 
+
 # Find and load the GEOS and C libraries
 # If this ever gets any longer, we'll break it into separate modules
 
@@ -71,8 +72,7 @@ if sys.platform.startswith('linux'):
         _lgeos = CDLL(geos_whl_so[0])
         LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
     elif hasattr(sys, 'frozen'):
-        geos_pyinstaller_so = glob.glob(os.path.join(sys.prefix,
-                                                    'libgeos_c-*.so.*'))
+        geos_pyinstaller_so = glob.glob(os.path.join(sys.prefix, 'libgeos_c-*.so.*'))
         if len(geos_pyinstaller_so) == 1:
             _lgeos = CDLL(geos_pyinstaller_so[0])
             LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
@@ -93,9 +93,16 @@ elif sys.platform == 'darwin':
     # Test to see if we have a delocated wheel with a GEOS dylib.
     geos_whl_dylib = os.path.abspath(os.path.join(os.path.dirname(
         __file__), '.dylibs/libgeos_c.1.dylib'))
+
     if os.path.exists(geos_whl_dylib):
-        _lgeos = CDLL(geos_whl_dylib)
-        LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
+        handle = CDLL(None)
+        if hasattr(handle, "initGEOS_r"):
+            LOG.debug("GEOS already loaded")
+            _lgeos = handle
+        else:
+            _lgeos = CDLL(geos_whl_dylib)
+            LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
+
     elif os.getenv('CONDA_PREFIX', ''):
         # conda package.
         _lgeos = CDLL(os.path.join(sys.prefix, 'lib', 'libgeos_c.dylib'))
@@ -265,7 +272,7 @@ class WKTReader(object):
         if not isinstance(text, text_types):
             raise TypeError("Only str is accepted.")
         if sys.version_info[0] >= 3:
-             text = text.encode()
+            text = text.encode()
         c_string = c_char_p(text)
         geom = self._lgeos.GEOSWKTReader_read(self._reader, c_string)
         if not geom:
@@ -848,7 +855,7 @@ class LGEOS340(LGEOS330):
 class LGEOS350(LGEOS340):
     """Proxy for GEOS 3.5.0-CAPI-1.9.0
     """
-    
+
     def __init__(self, dll):
         super(LGEOS350, self).__init__(dll)
         self.methods['clip_by_rect'] = self.GEOSClipByRect
