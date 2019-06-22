@@ -37,6 +37,35 @@ typedef struct {
     char has_z;
 } GeometryObject;
 
+
+static PyObject *GeometryObject_new_from_ptr(
+    PyTypeObject *type, void *context_handle, void *ptr)
+{
+    GeometryObject *self;
+    int geos_result;
+    self = (GeometryObject *) type->tp_alloc(type, 0);
+
+    if (self != NULL) {
+        self->ptr = ptr;
+        geos_result = GEOSGeomTypeId_r(context_handle, ptr);
+        if ((geos_result < 0) | (geos_result > 255)) {
+            goto fail;
+        }
+        self->geom_type_id = geos_result;
+        geos_result = GEOSHasZ_r(context_handle, ptr);
+        if ((geos_result < 0) | (geos_result > 1)) {
+            goto fail;
+        }
+        self->has_z = geos_result;
+    }
+    return (PyObject *) self;
+    fail:
+        PyErr_Format(PyExc_RuntimeError, "Geometry initialization failed");
+        Py_DECREF(self);
+        return NULL;
+}
+
+
 static PyObject *GeometryObject_new(PyTypeObject *type, PyObject *args,
                                     PyObject *kwds)
 {
@@ -44,30 +73,21 @@ static PyObject *GeometryObject_new(PyTypeObject *type, PyObject *args,
     GeometryObject *self;
     long arg;
     int geos_result;
-    self = (GeometryObject *) type->tp_alloc(type, 0);
-    if (self != NULL) {
-        context_handle = GEOS_init_r();
-        if (!PyArg_ParseTuple(args, "l", &arg)) {
-            goto fail;
-        }
-        self->ptr = (void *) arg;
-        geos_result = GEOSGeomTypeId_r(context_handle, self->ptr);
-        if ((geos_result < 0) | (geos_result > 255)) {
-            goto fail;
-        }
-        self->geom_type_id = geos_result;
-        geos_result = GEOSHasZ_r(context_handle, self->ptr);
-        if ((geos_result < 0) | (geos_result > 1)) {
-            goto fail;
-        }
-        self->has_z = geos_result;
-        GEOS_finish_r(context_handle);
+    if (!PyArg_ParseTuple(args, "l", &arg)) {
+        goto fail;
     }
-    return (PyObject *) self;
-    fail:
-        PyErr_Format(PyExc_RuntimeError, "Geometry initialization failed");
+    context_handle = GEOS_init_r();
+    ptr = GEOSGeom_clone_r(context_handle, arg);
+    if (ptr == NULL) {
         GEOS_finish_r(context_handle);
-        Py_DECREF(self);
+        goto fail;
+    }
+    self = GeometryObject_new_from_ptr(type, context_handle, ptr);
+    GEOS_finish_r(context_handle);
+    return (PyObject *) self;
+
+    fail:
+        PyErr_Format(PyExc_ValueError, "Please provide a C pointer to a GEOSGeometry");
         return NULL;
 }
 
@@ -486,6 +506,54 @@ static void PyUFuncGEOS_YY_Y(char **args, npy_intp *dimensions,
         GEOS_finish_r(context_handle);
         return;
 }
+
+
+static char PyUFuncGEOS_YY_Y_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
+static void PyUFuncGEOS_YY_Y_func(char **args, npy_intp *dimensions,
+                                   npy_intp* steps, void* data)
+{
+
+    npy_intp i;
+    npy_intp n = dimensions[0];
+    char *in1 = args[0], *in2 = args[1], *out = args[2];
+    npy_intp in1_step = steps[0], in2_step = steps[1], out_step = steps[2];
+    void *context_handle, *ptr;
+    GeometryObject *a, *b;
+    GeometryObject **c;
+
+    FuncGEOS_YY_Y *f = (FuncGEOS_YY_Y *)data;
+    context_handle = GEOS_init_r();
+
+    for (i = 0; i < n; i++) {
+        GeometryObject *a = *(GeometryObject **)in1;
+        GeometryObject *b = *(GeometryObject **)in2;
+        if ((a->ptr == NULL) || (b->ptr == NULL)) {
+            goto fail;
+        } else {
+            ptr = f(context_handle, a->ptr, b->ptr);
+            if (ptr == NULL) {
+                goto fail;
+            }
+        }
+
+
+        in1 += in1_step;
+        in2 += in2_step;
+        out += out_step;
+
+    }
+
+    GEOS_finish_r(context_handle);
+
+    return;
+
+    fail:
+        PyErr_Format(PyExc_RuntimeError, "GEOS Operation failed");
+        GEOS_finish_r(context_handle);
+        return;
+}
+static PyUFuncGenericFunction PyUFuncGEOS_YY_Y_funcs[1] = {&PyUFuncGEOS_YY_Y_func};
+static void (*GEOSIntersection_data[1]) = {GEOSIntersection_r};
 
 
 
