@@ -518,8 +518,8 @@ static void PyUFuncGEOS_YY_Y_func(char **args, npy_intp *dimensions,
     char *in1 = args[0], *in2 = args[1], *out = args[2];
     npy_intp in1_step = steps[0], in2_step = steps[1], out_step = steps[2];
     void *context_handle, *ptr;
-    GeometryObject *a, *b;
-    GeometryObject **c;
+    GeometryObject *a, *b, *c;
+    PyObject **out2;
 
     FuncGEOS_YY_Y *f = (FuncGEOS_YY_Y *)data;
     context_handle = GEOS_init_r();
@@ -527,6 +527,7 @@ static void PyUFuncGEOS_YY_Y_func(char **args, npy_intp *dimensions,
     for (i = 0; i < n; i++) {
         GeometryObject *a = *(GeometryObject **)in1;
         GeometryObject *b = *(GeometryObject **)in2;
+        PyObject **out2 = (PyObject **)out;
         if ((a->ptr == NULL) || (b->ptr == NULL)) {
             goto fail;
         } else {
@@ -535,12 +536,17 @@ static void PyUFuncGEOS_YY_Y_func(char **args, npy_intp *dimensions,
                 goto fail;
             }
         }
-
+        GeometryObject *c = (GeometryObject *) GeometryObject_new_from_ptr(&GeometryType, context_handle, ptr);
+        if (c == NULL) {
+            goto fail;
+        } else {
+            Py_XDECREF(*out);
+            *out2 = c;
+        }
 
         in1 += in1_step;
         in2 += in2_step;
         out += out_step;
-
     }
 
     GEOS_finish_r(context_handle);
@@ -1033,6 +1039,16 @@ PyMODINIT_FUNC PyInit_geos_ufuncs(void)
         1, 2, 1, PyUFunc_None, "contains2", "", 0
     );
     PyDict_SetItemString(d, "contains2", ufunc);
+
+
+    ufunc = PyUFunc_FromFuncAndData(
+        PyUFuncGEOS_YY_Y_funcs,
+        GEOSIntersection_data,
+        PyUFuncGEOS_YY_Y_dtypes,
+        1, 2, 1, PyUFunc_None, "intersection2", "", 0
+    );
+    PyDict_SetItemString(d, "intersection2", ufunc);
+
     Py_DECREF(ufunc);
 
     Py_DECREF(dtype_dict);
