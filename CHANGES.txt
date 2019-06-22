@@ -1,9 +1,10 @@
 Changes
 =======
 
-Master
-------
+1.7a2 (2019-06-21)
+------------------
 
+- Nearest neighbor search has been added to STRtree (#668).
 - Disallow sequences of MultiPolygons as arguments to the MultiPolygon
   constructor, resolving #588.
 - Removed vendorized `functools` functions previously used to support
@@ -11,6 +12,26 @@ Master
 
 Bug fixes:
 
+- Avoid reloading the GEOS shared library when using an installed binary wheel
+  on OS X (#735), resolving issue #553.
+- The shapely.ops.orient function can now orient multi polygons and geometry
+  collections as well as polygons (#733).
+- Polygons can now be constructed from sequences of point objects as well as
+  sequences of x, y sequences (#732).
+- The exterior of an empty polygon is now equal to an empty linear ring (#731).
+- The bounds property of an empty point object now returns an empty tuple,
+  consistent with other geometry types (#723).
+- Segmentation faults when non-string values are passed to the WKT loader are
+  avoided by #700.
+- Failure of ops.substring when the sub linestring coincides with the beginning
+  of the linestring has been fixed (#658).
+- Segmentation faults from interpolating on an empty linestring are prevented
+  by #655.
+- A missing special case for rectangular polygons has been added to the
+  polylabel algorithm (#644).
+- LinearRing can be created from a LineString (#638).
+- The prepared geoemtry validation condition has been tightened in #632 to fix
+  the bug reported in #631.
 - Attempting to interpolate an empty geometry no longer results in a
   segmentation fault, raising `ValueError` instead (#653).
 
