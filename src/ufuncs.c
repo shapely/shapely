@@ -120,13 +120,14 @@ static PyTypeObject GeometryType = {
     .tp_members = GeometryObject_members,
 };
 
+#define IS_GEOM(GEOM) PyObject_IsInstance((PyObject *) GEOM, (PyObject *) &GeometryType)
 #define RAISE_NO_GEOMETRY_TYPE PyErr_Format(PyExc_TypeError, "One of the arguments is of incorrect type. Please provide only Geometry objects.")
 #define RAISE_EMPTY_GEOMETRY PyErr_Format(PyExc_ValueError, "A geometry object is empty")
 #define RAISE_ILLEGAL_GEOS PyErr_Format(PyExc_RuntimeError, "GEOS Operation failed")
 
 #define INPUT_Y\
     GeometryObject *in1 = *(GeometryObject **)ip1;\
-    if (!PyObject_IsInstance(in1, &GeometryType)) {\
+    if (!IS_GEOM(in1)) {\
         RAISE_NO_GEOMETRY_TYPE;\
         goto finish;\
     }\
@@ -138,7 +139,7 @@ static PyTypeObject GeometryType = {
 #define INPUT_YY\
     GeometryObject *in1 = *(GeometryObject **)ip1;\
     GeometryObject *in2 = *(GeometryObject **)ip2;\
-    if (!PyObject_IsInstance(in1, &GeometryType) || !PyObject_IsInstance(in2, &GeometryType)) {\
+    if ((!IS_GEOM(in1)) || (!IS_GEOM(in2))) {\
         RAISE_NO_GEOMETRY_TYPE;\
         goto finish;\
     }\
@@ -260,6 +261,31 @@ static void Y_Y_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction Y_Y_funcs[1] = {&Y_Y_func};
 
+/* Define the geom, double -> geom functions (Yd_Y) */
+static void *interpolate_data[1] = {GEOSInterpolate_r};
+static void *interpolate_normalized_data[1] = {GEOSInterpolateNormalized_r};
+static void *simplify_data[1] = {GEOSSimplify_r};
+static void *topology_preserve_simplify_data[1] = {GEOSTopologyPreserveSimplify_r};
+typedef void *FuncGEOS_Yd_Y(void *context, void *a, double *b);
+static char Yd_Y_dtypes[3] = {NPY_OBJECT, NPY_DOUBLE, NPY_OBJECT};
+static void Yd_Y_func(char **args, npy_intp *dimensions,
+                      npy_intp* steps, void* data)
+{
+    FuncGEOS_Yd_Y *func = (FuncGEOS_Yd_Y *)data;
+    void *context_handle = GEOS_init_r();
+
+    BINARY_LOOP {
+        INPUT_Y;
+        GEOSGeometry *ret_ptr = func(context_handle, in1->ptr, (double *) ip2);
+        OUTPUT_Y;
+    }
+
+    finish:
+        GEOS_finish_r(context_handle);
+        return;
+}
+static PyUFuncGenericFunction Yd_Y_funcs[1] = {&Yd_Y_func};
+
 
 /* Define the geom, geom -> geom functions (YY_Y) */
 static void *intersection_data[1] = {GEOSIntersection_r};
@@ -303,7 +329,7 @@ static void Y_d_func(char **args, npy_intp *dimensions,
 
     UNARY_LOOP {
         INPUT_Y;
-        if (func(context_handle, in1->ptr, op1) == 0) {
+        if (func(context_handle, in1->ptr, (npy_double *) op1) == 0) {
             RAISE_ILLEGAL_GEOS;
             goto finish;
         }
@@ -388,7 +414,7 @@ static void YY_d_func(char **args, npy_intp *dimensions,
 
     BINARY_LOOP {
         INPUT_YY;
-        if (func(context_handle, in1->ptr, in2->ptr, op1) == 0) {
+        if (func(context_handle, in1->ptr, in2->ptr, (npy_double *) op1) == 0) {
             RAISE_ILLEGAL_GEOS;
             goto finish;
         }
@@ -401,16 +427,15 @@ static void YY_d_func(char **args, npy_intp *dimensions,
 static PyUFuncGenericFunction YY_d_funcs[1] = {&YY_d_func};
 
 /* TODO GG -> d function GEOSProject_r
-RegisterPyUFuncGEOS_Yd_Y("interpolate", GEOSInterpolate_r, dt, d);
+
 TODO GG -> d function GEOSProjectNormalized_r
-RegisterPyUFuncGEOS_Yd_Y("interpolate_normalized", GEOSInterpolateNormalized_r, dt, d);
+
 RegisterPyUFuncGEOS_Ydl_Y("buffer", GEOSBuffer_r, dt, d);
 TODO custom buffer functions
 TODO possibly implement some creation functions
 TODO G -> void function GEOSGeom_destroy_r
 TODO polygonizer functions
-RegisterPyUFuncGEOS_Yd_Y("simplify", GEOSSimplify_r, dt, d);
-RegisterPyUFuncGEOS_Yd_Y("topology_preserve_simplify", GEOSTopologyPreserveSimplify_r, dt, d);
+
 TODO GGd -> G function GEOSSnap_r
 TODO GGd -> b function GEOSEqualsExact_r
 TODO prepared geometry predicate functions
@@ -437,6 +462,10 @@ TODO GGd -> d function GEOSHausdorffDistanceDensify_r
 
 #define DEFINE_Y_Y(NAME)\
     ufunc = PyUFunc_FromFuncAndData(Y_Y_funcs, NAME ##_data, Y_Y_dtypes, 1, 1, 1, PyUFunc_None, # NAME, "", 0);\
+    PyDict_SetItemString(d, # NAME, ufunc)
+
+#define DEFINE_Yd_Y(NAME)\
+    ufunc = PyUFunc_FromFuncAndData(Yd_Y_funcs, NAME ##_data, Yd_Y_dtypes, 1, 2, 1, PyUFunc_None, # NAME, "", 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
 #define DEFINE_YY_Y(NAME)\
@@ -508,6 +537,11 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_Y_Y (get_start_point);
     DEFINE_Y_Y (get_end_point);
     DEFINE_Y_Y (get_exterior_ring);
+
+    DEFINE_Yd_Y (interpolate);
+    DEFINE_Yd_Y (interpolate_normalized);
+    DEFINE_Yd_Y (simplify);
+    DEFINE_Yd_Y (topology_preserve_simplify);
 
     DEFINE_YY_Y (intersection);
     DEFINE_YY_Y (difference);

@@ -57,8 +57,16 @@ def test_get_centroid():
     expected = Point(5, 5)
     assert pygeos.equals(actual, expected)
 
+# Yd_Y
+
+
+def test_simplify():
+    line = LineString([[0, 0], [1, 1], [2, 1]])
+    actual = pygeos.simplify(line, [0.1, 2.])
+    assert pygeos.get_num_points(actual).tolist() == [3, 2]
 
 # YY_Y
+
 
 def test_intersection():
     poly1, poly2 = box(0, 0, 10, 10), box(5, 5, 20, 20)
