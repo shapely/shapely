@@ -227,6 +227,39 @@ static void YY_b_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction YY_b_funcs[1] = {&YY_b_func};
 
+/* Define the geom -> geom functions (Y_Y) */
+static void *clone_data[1] = {GEOSGeom_clone_r};
+static void *envelope_data[1] = {GEOSEnvelope_r};
+static void *convex_hull_data[1] = {GEOSConvexHull_r};
+static void *boundary_data[1] = {GEOSBoundary_r};
+static void *unary_union_data[1] = {GEOSUnaryUnion_r};
+static void *point_on_surface_data[1] = {GEOSPointOnSurface_r};
+static void *get_centroid_data[1] = {GEOSGetCentroid_r};
+static void *line_merge_data[1] = {GEOSLineMerge_r};
+static void *extract_unique_points_data[1] = {GEOSGeom_extractUniquePoints_r};
+static void *get_start_point_data[1] = {GEOSGeomGetStartPoint_r};
+static void *get_end_point_data[1] = {GEOSGeomGetEndPoint_r};
+typedef void *FuncGEOS_Y_Y(void *context, void *a);
+static char Y_Y_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
+static void Y_Y_func(char **args, npy_intp *dimensions,
+                     npy_intp* steps, void* data)
+{
+    FuncGEOS_Y_Y *func = (FuncGEOS_Y_Y *)data;
+    void *context_handle = GEOS_init_r();
+
+    UNARY_LOOP {
+        INPUT_Y;
+        GEOSGeometry *ret_ptr = func(context_handle, in1->ptr);
+        OUTPUT_Y;
+    }
+
+    finish:
+        GEOS_finish_r(context_handle);
+        return;
+}
+static PyUFuncGenericFunction Y_Y_funcs[1] = {&Y_Y_func};
+
+
 /* Define the geom, geom -> geom functions (YY_Y) */
 static void *intersection_data[1] = {GEOSIntersection_r};
 static void *difference_data[1] = {GEOSDifference_r};
@@ -314,6 +347,10 @@ RegisterPyUFuncGEOS_Y_d("get_length", GEOSGeomGetLength_r, dt, d); */
     ufunc = PyUFunc_FromFuncAndData(YY_b_funcs, NAME ##_data, YY_b_dtypes, 1, 2, 1, PyUFunc_None, # NAME, "", 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
+#define DEFINE_Y_Y(NAME)\
+    ufunc = PyUFunc_FromFuncAndData(Y_Y_funcs, NAME ##_data, Y_Y_dtypes, 1, 1, 1, PyUFunc_None, # NAME, "", 0);\
+    PyDict_SetItemString(d, # NAME, ufunc)
+
 #define DEFINE_YY_Y(NAME)\
     ufunc = PyUFunc_FromFuncAndData(YY_Y_funcs, NAME ##_data, YY_Y_dtypes, 1, 2, 1, PyUFunc_None, # NAME, "", 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
@@ -354,6 +391,18 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_YY_b (equals);
     DEFINE_YY_b (covers);
     DEFINE_YY_b (covered_by);
+
+    DEFINE_Y_Y (clone);
+    DEFINE_Y_Y (envelope);
+    DEFINE_Y_Y (convex_hull);
+    DEFINE_Y_Y (boundary);
+    DEFINE_Y_Y (unary_union);
+    DEFINE_Y_Y (point_on_surface);
+    DEFINE_Y_Y (get_centroid);
+    DEFINE_Y_Y (line_merge);
+    DEFINE_Y_Y (extract_unique_points);
+    DEFINE_Y_Y (get_start_point);
+    DEFINE_Y_Y (get_end_point);
 
     DEFINE_YY_Y (intersection);
     DEFINE_YY_Y (difference);
