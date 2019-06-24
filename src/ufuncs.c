@@ -110,7 +110,7 @@ static PyMemberDef GeometryObject_members[] = {
 
 static PyTypeObject GeometryType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "pygeos.ufuncs.Geometry",
+    .tp_name = "pygeos.ufuncs.BaseGeometry",
     .tp_doc = "Geometry type",
     .tp_basicsize = sizeof(GeometryObject),
     .tp_itemsize = 0,
@@ -119,6 +119,41 @@ static PyTypeObject GeometryType = {
     .tp_dealloc = (destructor) GeometryObject_dealloc,
     .tp_members = GeometryObject_members,
 };
+
+#define RAISE_ILLEGAL_GEOS PyErr_Format(PyExc_RuntimeError, "GEOS Operation failed")
+
+#define INPUT_YY\
+    GeometryObject *in1 = *(GeometryObject **)ip1;\
+    GeometryObject *in2 = *(GeometryObject **)ip2;\
+    if (!PyObject_IsInstance(in1, &GeometryType) || !PyObject_IsInstance(in2, &GeometryType)) {\
+        PyErr_Format(PyExc_TypeError, "One of the arguments is of incorrect type. Please provide only Geometry objects.");\
+        goto finish;\
+    }\
+    if ((in1->ptr == NULL) || (in2->ptr == NULL)) {\
+        PyErr_Format(PyExc_ValueError, "A geometry object is empty");\
+        goto finish;\
+    }
+
+#define OUTPUT_b\
+    if (! ((ret == 0) || (ret == 1))) {\
+        RAISE_ILLEGAL_GEOS;\
+        goto finish;\
+    }\
+    *(npy_bool *)op1 = ret
+
+#define OUTPUT_Y\
+    if (ret_ptr == NULL) {\
+        RAISE_ILLEGAL_GEOS;\
+        goto finish;\
+    }\
+    PyObject *ret = GeometryObject_new_from_ptr(&GeometryType, context_handle, ret_ptr);\
+    if (ret == NULL) {\
+        PyErr_Format(PyExc_RuntimeError, "Could not instantiate a new Geometry object");\
+        goto finish;\
+    }\
+    PyObject **out = (PyObject **)op1;\
+    Py_XDECREF(*out);\
+    *out = ret
 
 typedef char FuncGEOS_YY_b(void *context, void *a, void *b);
 static char YY_b_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_BOOL};
@@ -129,12 +164,9 @@ static void YY_b_func(char **args, npy_intp *dimensions,
     void *context_handle = GEOS_init_r();
 
     BINARY_LOOP {
-        GeometryObject *in1 = *(GeometryObject **)ip1;
-        GeometryObject *in2 = *(GeometryObject **)ip2;
-        if ((in1->ptr == NULL) || (in2->ptr == NULL)) {  goto finish;  }
+        INPUT_YY;
         npy_bool ret = func(context_handle, in1->ptr, in2->ptr);
-        if (ret == 2) {  goto finish;  }
-        *(npy_bool *)op1 = ret;
+        OUTPUT_b;
     }
 
     finish:
@@ -152,16 +184,9 @@ static void YY_Y_func(char **args, npy_intp *dimensions,
     void *context_handle = GEOS_init_r();
 
     BINARY_LOOP {
-        GeometryObject *in1 = *(GeometryObject **)ip1;
-        GeometryObject *in2 = *(GeometryObject **)ip2;
-        PyObject **out = (PyObject **)op1;
-        if ((in1->ptr == NULL) || (in2->ptr == NULL)) { goto finish; }
+        INPUT_YY;
         GEOSGeometry *ret_ptr = func(context_handle, in1->ptr, in2->ptr);
-        if (ret_ptr == NULL) {  goto finish;  }
-        PyObject *ret = GeometryObject_new_from_ptr(&GeometryType, context_handle, ret_ptr);
-        if (ret == NULL) { goto finish;  }
-        Py_XDECREF(*out);
-        *out = ret;
+        OUTPUT_Y;
     }
 
     finish:
@@ -261,7 +286,7 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
         return NULL;
 
     Py_INCREF(&GeometryType);
-    PyModule_AddObject(m, "Geometry", (PyObject *) &GeometryType);
+    PyModule_AddObject(m, "BaseGeometry", (PyObject *) &GeometryType);
 
     d = PyModule_GetDict(m);
 
