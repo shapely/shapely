@@ -286,6 +286,29 @@ static void Yd_Y_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction Yd_Y_funcs[1] = {&Yd_Y_func};
 
+/* Define the geom, long int -> geom functions (Yl_Y) */
+static void *get_interior_ring_n_data[1] = {GEOSGetInteriorRingN_r};
+static void *get_point_n_data[1] = {GEOSGeomGetPointN_r};
+typedef void *FuncGEOS_Yl_Y(void *context, void *a, int b);
+static char Yl_Y_dtypes[3] = {NPY_OBJECT, NPY_LONG, NPY_OBJECT};
+static void Yl_Y_func(char **args, npy_intp *dimensions,
+                      npy_intp* steps, void* data)
+{
+    FuncGEOS_Yl_Y *func = (FuncGEOS_Yl_Y *)data;
+    void *context_handle = GEOS_init_r();
+
+    BINARY_LOOP {
+        INPUT_Y;
+        GEOSGeometry *ret_ptr = func(context_handle, in1->ptr, (int) *ip2);
+        OUTPUT_Y;
+    }
+
+    finish:
+        GEOS_finish_r(context_handle);
+        return;
+}
+static PyUFuncGenericFunction Yl_Y_funcs[1] = {&Yl_Y_func};
+
 
 /* Define the geom, geom -> geom functions (YY_Y) */
 static void *intersection_data[1] = {GEOSIntersection_r};
@@ -445,8 +468,6 @@ TODO relate functions
 TODO G -> char function GEOSisValidReason_r
 TODO Gi -> void function GEOSSetSRID_r
 TODO G -> void function GEOSNormalize_r
-RegisterPyUFuncGEOS_Yl_Y("get_interior_ring_n", GEOSGetInteriorRingN_r, dt, d);
-RegisterPyUFuncGEOS_Yl_Y("get_point_n", GEOSGeomGetPointN_r, dt, d);
 TODO GGd -> d function GEOSHausdorffDistanceDensify_r
 
 */
@@ -462,6 +483,10 @@ TODO GGd -> d function GEOSHausdorffDistanceDensify_r
 
 #define DEFINE_Y_Y(NAME)\
     ufunc = PyUFunc_FromFuncAndData(Y_Y_funcs, NAME ##_data, Y_Y_dtypes, 1, 1, 1, PyUFunc_None, # NAME, "", 0);\
+    PyDict_SetItemString(d, # NAME, ufunc)
+
+#define DEFINE_Yl_Y(NAME)\
+    ufunc = PyUFunc_FromFuncAndData(Yl_Y_funcs, NAME ##_data, Yl_Y_dtypes, 1, 2, 1, PyUFunc_None, # NAME, "", 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
 #define DEFINE_Yd_Y(NAME)\
@@ -537,6 +562,9 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_Y_Y (get_start_point);
     DEFINE_Y_Y (get_end_point);
     DEFINE_Y_Y (get_exterior_ring);
+
+    DEFINE_Yl_Y (get_interior_ring_n);
+    DEFINE_Yl_Y (get_point_n);
 
     DEFINE_Yd_Y (interpolate);
     DEFINE_Yd_Y (interpolate_normalized);

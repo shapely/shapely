@@ -57,6 +57,17 @@ def test_get_centroid():
     expected = Point(5, 5)
     assert pygeos.equals(actual, expected)
 
+
+# Yl_Y
+
+
+def test_get_point_n():
+    line = LineString([[0, 0], [1, 1], [2, 1]])
+    actual = pygeos.get_point_n(line, np.int64(1))
+    expected = Point(1, 1)
+    assert pygeos.equals(actual, expected)
+
+
 # Yd_Y
 
 
