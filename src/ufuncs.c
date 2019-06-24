@@ -239,6 +239,7 @@ static void *line_merge_data[1] = {GEOSLineMerge_r};
 static void *extract_unique_points_data[1] = {GEOSGeom_extractUniquePoints_r};
 static void *get_start_point_data[1] = {GEOSGeomGetStartPoint_r};
 static void *get_end_point_data[1] = {GEOSGeomGetEndPoint_r};
+static void *get_exterior_ring_data[1] = {GEOSGetExteriorRing_r};
 typedef void *FuncGEOS_Y_Y(void *context, void *a);
 static char Y_Y_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
 static void Y_Y_func(char **args, npy_intp *dimensions,
@@ -286,8 +287,6 @@ static void YY_Y_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction YY_Y_funcs[1] = {&YY_Y_func};
 
-
-
 /* Define the geom -> double functions (Y_d) */
 static void *get_x_data[1] = {GEOSGeomGetX_r};
 static void *get_y_data[1] = {GEOSGeomGetY_r};
@@ -316,6 +315,37 @@ static void Y_d_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction Y_d_funcs[1] = {&Y_d_func};
 
+/* Define the geom -> long int functions (Y_l) */
+static void *get_srid_data[1] = {GEOSGetSRID_r};
+static void *get_num_geometries_data[1] = {GEOSGetNumGeometries_r};
+static void *get_num_interior_rings_data[1] = {GEOSGetNumInteriorRings_r};
+static void *get_num_points_data[1] = {GEOSGeomGetNumPoints_r};
+static void *get_num_coordinates_data[1] = {GEOSGetNumCoordinates_r};
+typedef int FuncGEOS_Y_l(void *context, void *a);
+static char Y_l_dtypes[2] = {NPY_OBJECT, NPY_LONG};
+static void Y_l_func(char **args, npy_intp *dimensions,
+                     npy_intp* steps, void* data)
+{
+    FuncGEOS_Y_l *func = (FuncGEOS_Y_l *)data;
+    void *context_handle = GEOS_init_r();
+    int ret;
+
+    UNARY_LOOP {
+        INPUT_Y;
+        ret = func(context_handle, in1->ptr);
+        if ((ret < 0) | (ret > NPY_MAX_LONG)) {
+            RAISE_ILLEGAL_GEOS;
+            goto finish;
+        }
+        *(npy_long *)op1 = ret;
+    }
+
+    finish:
+        GEOS_finish_r(context_handle);
+        return;
+}
+static PyUFuncGenericFunction Y_l_funcs[1] = {&Y_l_func};
+
 /* TODO GG -> d function GEOSProject_r
 RegisterPyUFuncGEOS_Yd_Y("interpolate", GEOSInterpolate_r, dt, d);
 TODO GG -> d function GEOSProjectNormalized_r
@@ -335,15 +365,9 @@ TODO relate functions
 
 TODO G -> char function GEOSisValidReason_r
 RegisterPyUFuncGEOS_Y_B("geom_type_id", GEOSGeomTypeId_r, dt, d);
-RegisterPyUFuncGEOS_Y_l("get_srid", GEOSGetSRID_r, dt, d);
 TODO Gi -> void function GEOSSetSRID_r
-RegisterPyUFuncGEOS_Y_l("get_num_geometries", GEOSGetNumGeometries_r, dt, d);
 TODO G -> void function GEOSNormalize_r
-RegisterPyUFuncGEOS_Y_l("get_num_interior_rings", GEOSGetNumInteriorRings_r, dt, d);
-RegisterPyUFuncGEOS_Y_l("get_num_points", GEOSGeomGetNumPoints_r, dt, d);
 RegisterPyUFuncGEOS_Yl_Y("get_interior_ring_n", GEOSGetInteriorRingN_r, dt, d);
-RegisterPyUFuncGEOS_Y_Y("get_exterior_ring", GEOSGetExteriorRing_r, dt, d);
-RegisterPyUFuncGEOS_Y_l("get_num_coordinates", GEOSGetNumCoordinates_r, dt, d);
 RegisterPyUFuncGEOS_Y_B("get_dimensions", GEOSGeom_getDimensions_r, dt, d);
 RegisterPyUFuncGEOS_Y_B("get_coordinate_dimensions", GEOSGeom_getCoordinateDimension_r, dt, d);
 RegisterPyUFuncGEOS_Yl_Y("get_point_n", GEOSGeomGetPointN_r, dt, d);
@@ -372,6 +396,10 @@ TODO GGd -> d function GEOSHausdorffDistanceDensify_r
 
 #define DEFINE_Y_d(NAME)\
     ufunc = PyUFunc_FromFuncAndData(Y_d_funcs, NAME ##_data, Y_d_dtypes, 1, 1, 1, PyUFunc_None, # NAME, "", 0);\
+    PyDict_SetItemString(d, # NAME, ufunc)
+
+#define DEFINE_Y_l(NAME)\
+    ufunc = PyUFunc_FromFuncAndData(Y_l_funcs, NAME ##_data, Y_l_dtypes, 1, 1, 1, PyUFunc_None, # NAME, "", 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
 
@@ -422,6 +450,7 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_Y_Y (extract_unique_points);
     DEFINE_Y_Y (get_start_point);
     DEFINE_Y_Y (get_end_point);
+    DEFINE_Y_Y (get_exterior_ring);
 
     DEFINE_YY_Y (intersection);
     DEFINE_YY_Y (difference);
@@ -434,6 +463,12 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_Y_d (area);
     DEFINE_Y_d (length);
     DEFINE_Y_d (get_length);
+
+    DEFINE_Y_l (get_srid);
+    DEFINE_Y_l (get_num_geometries);
+    DEFINE_Y_l (get_num_interior_rings);
+    DEFINE_Y_l (get_num_points);
+    DEFINE_Y_l (get_num_coordinates);
 
     Py_DECREF(ufunc);
     return m;

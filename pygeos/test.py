@@ -1,6 +1,6 @@
 import numpy as np
 import pygeos
-from pygeos import Point, box
+from pygeos import Point, LineString, box
 
 point_polygon_testdata = [Point(i, i) for i in range(6)], box(2, 2, 4, 4)
 
@@ -73,8 +73,17 @@ def test_union():
     expected = box(0, 0, 20, 10)
     assert pygeos.equals(actual, expected)
 
-# YY_d
+# Y_d
+
 
 def test_area():
     poly = box(0, 0, 10, 10)
     assert pygeos.area(poly) == 100.
+
+
+# Y_l
+
+
+def test_get_num_points():
+    line = LineString([[0, 0], [1, 1], [2, 1]])
+    assert pygeos.get_num_points(line) == 3
