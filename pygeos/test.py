@@ -94,3 +94,13 @@ def test_geom_type_id():
 def test_get_num_points():
     line = LineString([[0, 0], [1, 1], [2, 1]])
     assert pygeos.get_num_points(line) == 3
+
+
+# Y_l
+
+
+def test_distance():
+    points, polygon = point_polygon_testdata
+    actual = pygeos.distance(points, polygon)
+    expected = [2 * 2**0.5, 2**0.5, 0, 0, 0, 2**0.5]
+    np.testing.assert_allclose(actual, expected)

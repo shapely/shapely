@@ -375,6 +375,31 @@ static void Y_l_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction Y_l_funcs[1] = {&Y_l_func};
 
+/* Define the geom, geom -> double functions (YY_d) */
+static void *distance_data[1] = {GEOSDistance_r};
+static void *hausdorff_distance_data[1] = {GEOSHausdorffDistance_r};
+typedef int FuncGEOS_YY_d(void *context, void *a,  void *b, double *c);
+static char YY_d_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE};
+static void YY_d_func(char **args, npy_intp *dimensions,
+                      npy_intp* steps, void* data)
+{
+    FuncGEOS_YY_d *func = (FuncGEOS_YY_d *)data;
+    void *context_handle = GEOS_init_r();
+
+    BINARY_LOOP {
+        INPUT_YY;
+        if (func(context_handle, in1->ptr, in2->ptr, op1) == 0) {
+            RAISE_ILLEGAL_GEOS;
+            goto finish;
+        }
+    }
+
+    finish:
+        GEOS_finish_r(context_handle);
+        return;
+}
+static PyUFuncGenericFunction YY_d_funcs[1] = {&YY_d_func};
+
 /* TODO GG -> d function GEOSProject_r
 RegisterPyUFuncGEOS_Yd_Y("interpolate", GEOSInterpolate_r, dt, d);
 TODO GG -> d function GEOSProjectNormalized_r
@@ -397,8 +422,6 @@ TODO Gi -> void function GEOSSetSRID_r
 TODO G -> void function GEOSNormalize_r
 RegisterPyUFuncGEOS_Yl_Y("get_interior_ring_n", GEOSGetInteriorRingN_r, dt, d);
 RegisterPyUFuncGEOS_Yl_Y("get_point_n", GEOSGeomGetPointN_r, dt, d);
-RegisterPyUFuncGEOS_YY_d("distance", GEOSDistance_r, dt, d);
-RegisterPyUFuncGEOS_YY_d("hausdorff_distance", GEOSHausdorffDistance_r, dt, d);
 TODO GGd -> d function GEOSHausdorffDistanceDensify_r
 
 */
@@ -430,6 +453,10 @@ TODO GGd -> d function GEOSHausdorffDistanceDensify_r
 
 #define DEFINE_Y_l(NAME)\
     ufunc = PyUFunc_FromFuncAndData(Y_l_funcs, NAME ##_data, Y_l_dtypes, 1, 1, 1, PyUFunc_None, # NAME, "", 0);\
+    PyDict_SetItemString(d, # NAME, ufunc)
+
+#define DEFINE_YY_d(NAME)\
+    ufunc = PyUFunc_FromFuncAndData(YY_d_funcs, NAME ##_data, YY_d_dtypes, 1, 2, 1, PyUFunc_None, # NAME, "", 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
 
@@ -503,6 +530,9 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_Y_l (get_num_interior_rings);
     DEFINE_Y_l (get_num_points);
     DEFINE_Y_l (get_num_coordinates);
+
+    DEFINE_YY_d (distance);
+    DEFINE_YY_d (hausdorff_distance);
 
     Py_DECREF(ufunc);
     return m;
