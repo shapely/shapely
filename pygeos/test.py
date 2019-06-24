@@ -73,3 +73,8 @@ def test_union():
     expected = box(0, 0, 20, 10)
     assert pygeos.equals(actual, expected)
 
+# YY_d
+
+def test_area():
+    poly = box(0, 0, 10, 10)
+    assert pygeos.area(poly) == 100.

@@ -287,6 +287,35 @@ static void YY_Y_func(char **args, npy_intp *dimensions,
 static PyUFuncGenericFunction YY_Y_funcs[1] = {&YY_Y_func};
 
 
+
+/* Define the geom -> double functions (Y_d) */
+static void *get_x_data[1] = {GEOSGeomGetX_r};
+static void *get_y_data[1] = {GEOSGeomGetY_r};
+static void *area_data[1] = {GEOSArea_r};
+static void *length_data[1] = {GEOSLength_r};
+static void *get_length_data[1] = {GEOSGeomGetLength_r};
+typedef int FuncGEOS_Y_d(void *context, void *a, double *b);
+static char Y_d_dtypes[2] = {NPY_OBJECT, NPY_DOUBLE};
+static void Y_d_func(char **args, npy_intp *dimensions,
+                     npy_intp* steps, void* data)
+{
+    FuncGEOS_Y_d *func = (FuncGEOS_Y_d *)data;
+    void *context_handle = GEOS_init_r();
+
+    UNARY_LOOP {
+        INPUT_Y;
+        if (func(context_handle, in1->ptr, op1) == 0) {
+            RAISE_ILLEGAL_GEOS;
+            goto finish;
+        }
+    }
+
+    finish:
+        GEOS_finish_r(context_handle);
+        return;
+}
+static PyUFuncGenericFunction Y_d_funcs[1] = {&Y_d_func};
+
 /* TODO GG -> d function GEOSProject_r
 RegisterPyUFuncGEOS_Yd_Y("interpolate", GEOSInterpolate_r, dt, d);
 TODO GG -> d function GEOSProjectNormalized_r
@@ -294,23 +323,14 @@ RegisterPyUFuncGEOS_Yd_Y("interpolate_normalized", GEOSInterpolateNormalized_r, 
 RegisterPyUFuncGEOS_Ydl_Y("buffer", GEOSBuffer_r, dt, d);
 TODO custom buffer functions
 TODO possibly implement some creation functions
-RegisterPyUFuncGEOS_Y_Y("clone", GEOSGeom_clone_r, dt, d);
 TODO G -> void function GEOSGeom_destroy_r
-RegisterPyUFuncGEOS_Y_Y("envelope", GEOSEnvelope_r, dt, d); */
-/* RegisterPyUFuncGEOS_Y_Y("convex_hull", GEOSConvexHull_r, dt, d); */
-/* RegisterPyUFuncGEOS_Y_Y("boundary", GEOSBoundary_r, dt, d); */
-/* RegisterPyUFuncGEOS_Y_Y("unary_union", GEOSUnaryUnion_r, dt, d);
-RegisterPyUFuncGEOS_Y_Y("point_on_surface", GEOSPointOnSurface_r, dt, d);
-RegisterPyUFuncGEOS_Y_Y("get_centroid", GEOSGetCentroid_r, dt, d);
 TODO polygonizer functions
-RegisterPyUFuncGEOS_Y_Y("line_merge", GEOSLineMerge_r, dt, d);
 RegisterPyUFuncGEOS_Yd_Y("simplify", GEOSSimplify_r, dt, d);
 RegisterPyUFuncGEOS_Yd_Y("topology_preserve_simplify", GEOSTopologyPreserveSimplify_r, dt, d);
-RegisterPyUFuncGEOS_Y_Y("extract_unique_points", GEOSGeom_extractUniquePoints_r, dt, d); */
-/* TODO GGd -> G function GEOSSnap_r */
-/* TODO GGd -> b function GEOSEqualsExact_r */
-/* TODO prepared geometry predicate functions */
-/*
+TODO GGd -> G function GEOSSnap_r
+TODO GGd -> b function GEOSEqualsExact_r
+TODO prepared geometry predicate functions
+
 TODO relate functions
 
 TODO G -> char function GEOSisValidReason_r
@@ -321,22 +341,17 @@ RegisterPyUFuncGEOS_Y_l("get_num_geometries", GEOSGetNumGeometries_r, dt, d);
 TODO G -> void function GEOSNormalize_r
 RegisterPyUFuncGEOS_Y_l("get_num_interior_rings", GEOSGetNumInteriorRings_r, dt, d);
 RegisterPyUFuncGEOS_Y_l("get_num_points", GEOSGeomGetNumPoints_r, dt, d);
-RegisterPyUFuncGEOS_Y_d("get_x", GEOSGeomGetX_r, dt, d);
-RegisterPyUFuncGEOS_Y_d("get_y", GEOSGeomGetY_r, dt, d);
 RegisterPyUFuncGEOS_Yl_Y("get_interior_ring_n", GEOSGetInteriorRingN_r, dt, d);
 RegisterPyUFuncGEOS_Y_Y("get_exterior_ring", GEOSGetExteriorRing_r, dt, d);
 RegisterPyUFuncGEOS_Y_l("get_num_coordinates", GEOSGetNumCoordinates_r, dt, d);
 RegisterPyUFuncGEOS_Y_B("get_dimensions", GEOSGeom_getDimensions_r, dt, d);
 RegisterPyUFuncGEOS_Y_B("get_coordinate_dimensions", GEOSGeom_getCoordinateDimension_r, dt, d);
 RegisterPyUFuncGEOS_Yl_Y("get_point_n", GEOSGeomGetPointN_r, dt, d);
-RegisterPyUFuncGEOS_Y_Y("get_start_point", GEOSGeomGetStartPoint_r, dt, d);
-RegisterPyUFuncGEOS_Y_Y("get_end_point", GEOSGeomGetEndPoint_r, dt, d);
-RegisterPyUFuncGEOS_Y_d("area", GEOSArea_r, dt, d);
-RegisterPyUFuncGEOS_Y_d("length", GEOSLength_r, dt, d);
 RegisterPyUFuncGEOS_YY_d("distance", GEOSDistance_r, dt, d);
 RegisterPyUFuncGEOS_YY_d("hausdorff_distance", GEOSHausdorffDistance_r, dt, d);
 TODO GGd -> d function GEOSHausdorffDistanceDensify_r
-RegisterPyUFuncGEOS_Y_d("get_length", GEOSGeomGetLength_r, dt, d); */
+
+*/
 
 
 #define DEFINE_Y_b(NAME)\
@@ -353,6 +368,10 @@ RegisterPyUFuncGEOS_Y_d("get_length", GEOSGeomGetLength_r, dt, d); */
 
 #define DEFINE_YY_Y(NAME)\
     ufunc = PyUFunc_FromFuncAndData(YY_Y_funcs, NAME ##_data, YY_Y_dtypes, 1, 2, 1, PyUFunc_None, # NAME, "", 0);\
+    PyDict_SetItemString(d, # NAME, ufunc)
+
+#define DEFINE_Y_d(NAME)\
+    ufunc = PyUFunc_FromFuncAndData(Y_d_funcs, NAME ##_data, Y_d_dtypes, 1, 1, 1, PyUFunc_None, # NAME, "", 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
 
@@ -409,6 +428,12 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_YY_Y (symmetric_difference);
     DEFINE_YY_Y (union);
     DEFINE_YY_Y (shared_paths);
+
+    DEFINE_Y_d (get_x);
+    DEFINE_Y_d (get_y);
+    DEFINE_Y_d (area);
+    DEFINE_Y_d (length);
+    DEFINE_Y_d (get_length);
 
     Py_DECREF(ufunc);
     return m;
