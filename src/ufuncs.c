@@ -120,17 +120,30 @@ static PyTypeObject GeometryType = {
     .tp_members = GeometryObject_members,
 };
 
+#define RAISE_NO_GEOMETRY_TYPE PyErr_Format(PyExc_TypeError, "One of the arguments is of incorrect type. Please provide only Geometry objects.")
+#define RAISE_EMPTY_GEOMETRY PyErr_Format(PyExc_ValueError, "A geometry object is empty")
 #define RAISE_ILLEGAL_GEOS PyErr_Format(PyExc_RuntimeError, "GEOS Operation failed")
+
+#define INPUT_Y\
+    GeometryObject *in1 = *(GeometryObject **)ip1;\
+    if (!PyObject_IsInstance(in1, &GeometryType)) {\
+        RAISE_NO_GEOMETRY_TYPE;\
+        goto finish;\
+    }\
+    if (in1->ptr == NULL) {\
+        RAISE_EMPTY_GEOMETRY;\
+        goto finish;\
+    }
 
 #define INPUT_YY\
     GeometryObject *in1 = *(GeometryObject **)ip1;\
     GeometryObject *in2 = *(GeometryObject **)ip2;\
     if (!PyObject_IsInstance(in1, &GeometryType) || !PyObject_IsInstance(in2, &GeometryType)) {\
-        PyErr_Format(PyExc_TypeError, "One of the arguments is of incorrect type. Please provide only Geometry objects.");\
+        RAISE_NO_GEOMETRY_TYPE;\
         goto finish;\
     }\
     if ((in1->ptr == NULL) || (in2->ptr == NULL)) {\
-        PyErr_Format(PyExc_ValueError, "A geometry object is empty");\
+        RAISE_EMPTY_GEOMETRY;\
         goto finish;\
     }
 
@@ -155,6 +168,45 @@ static PyTypeObject GeometryType = {
     Py_XDECREF(*out);\
     *out = ret
 
+/* Define the geom -> bool functions (YY_b) */
+static void *is_empty_data[1] = {GEOSisEmpty_r};
+static void *is_simple_data[1] = {GEOSisSimple_r};
+static void *is_ring_data[1] = {GEOSisRing_r};
+static void *has_z_data[1] = {GEOSHasZ_r};
+static void *is_closed_data[1] = {GEOSisClosed_r};
+static void *is_valid_data[1] = {GEOSisValid_r};
+typedef char FuncGEOS_Y_b(void *context, void *a);
+static char Y_b_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
+static void Y_b_func(char **args, npy_intp *dimensions,
+                     npy_intp* steps, void* data)
+{
+    FuncGEOS_Y_b *func = (FuncGEOS_Y_b *)data;
+    void *context_handle = GEOS_init_r();
+
+    UNARY_LOOP {
+        INPUT_Y;
+        npy_bool ret = func(context_handle, in1->ptr);
+        OUTPUT_b;
+    }
+
+    finish:
+        GEOS_finish_r(context_handle);
+        return;
+}
+static PyUFuncGenericFunction Y_b_funcs[1] = {&Y_b_func};
+
+
+/* Define the geom, geom -> bool functions (YY_b) */
+static void *disjoint_data[1] = {GEOSDisjoint_r};
+static void *touches_data[1] = {GEOSTouches_r};
+static void *intersects_data[1] = {GEOSIntersects_r};
+static void *crosses_data[1] = {GEOSCrosses_r};
+static void *within_data[1] = {GEOSWithin_r};
+static void *contains_data[1] = {GEOSContains_r};
+static void *overlaps_data[1] = {GEOSOverlaps_r};
+static void *equals_data[1] = {GEOSEquals_r};
+static void *covers_data[1] = {GEOSCovers_r};
+static void *covered_by_data[1] = {GEOSCoveredBy_r};
 typedef char FuncGEOS_YY_b(void *context, void *a, void *b);
 static char YY_b_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_BOOL};
 static void YY_b_func(char **args, npy_intp *dimensions,
@@ -175,6 +227,12 @@ static void YY_b_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction YY_b_funcs[1] = {&YY_b_func};
 
+/* Define the geom, geom -> geom functions (YY_Y) */
+static void *intersection_data[1] = {GEOSIntersection_r};
+static void *difference_data[1] = {GEOSDifference_r};
+static void *symmetric_difference_data[1] = {GEOSSymDifference_r};
+static void *union_data[1] = {GEOSUnion_r};
+static void *shared_paths_data[1] = {GEOSSharedPaths_r};
 typedef void *FuncGEOS_YY_Y(void *context, void *a, void *b);
 static char YY_Y_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
 static void YY_Y_func(char **args, npy_intp *dimensions,
@@ -206,12 +264,8 @@ TODO possibly implement some creation functions
 RegisterPyUFuncGEOS_Y_Y("clone", GEOSGeom_clone_r, dt, d);
 TODO G -> void function GEOSGeom_destroy_r
 RegisterPyUFuncGEOS_Y_Y("envelope", GEOSEnvelope_r, dt, d); */
-static void *intersection_data[1] = {GEOSIntersection_r};
 /* RegisterPyUFuncGEOS_Y_Y("convex_hull", GEOSConvexHull_r, dt, d); */
-static void *difference_data[1] = {GEOSDifference_r};
-static void *symmetric_difference_data[1] = {GEOSSymDifference_r};
 /* RegisterPyUFuncGEOS_Y_Y("boundary", GEOSBoundary_r, dt, d); */
-static void *union_data[1] = {GEOSUnion_r};
 /* RegisterPyUFuncGEOS_Y_Y("unary_union", GEOSUnaryUnion_r, dt, d);
 RegisterPyUFuncGEOS_Y_Y("point_on_surface", GEOSPointOnSurface_r, dt, d);
 RegisterPyUFuncGEOS_Y_Y("get_centroid", GEOSGetCentroid_r, dt, d);
@@ -220,27 +274,12 @@ RegisterPyUFuncGEOS_Y_Y("line_merge", GEOSLineMerge_r, dt, d);
 RegisterPyUFuncGEOS_Yd_Y("simplify", GEOSSimplify_r, dt, d);
 RegisterPyUFuncGEOS_Yd_Y("topology_preserve_simplify", GEOSTopologyPreserveSimplify_r, dt, d);
 RegisterPyUFuncGEOS_Y_Y("extract_unique_points", GEOSGeom_extractUniquePoints_r, dt, d); */
-static void *shared_paths_data[1] = {GEOSSharedPaths_r};
 /* TODO GGd -> G function GEOSSnap_r */
-static void *disjoint_data[1] = {GEOSDisjoint_r};
-static void *touches_data[1] = {GEOSTouches_r};
-static void *intersects_data[1] = {GEOSIntersects_r};
-static void *crosses_data[1] = {GEOSCrosses_r};
-static void *within_data[1] = {GEOSWithin_r};
-static void *contains_data[1] = {GEOSContains_r};
-static void *overlaps_data[1] = {GEOSOverlaps_r};
-static void *equals_data[1] = {GEOSEquals_r};
 /* TODO GGd -> b function GEOSEqualsExact_r */
-static void *covers_data[1] = {GEOSCovers_r};
-static void *covered_by_data[1] = {GEOSCoveredBy_r};
 /* TODO prepared geometry predicate functions */
-/* RegisterPyUFuncGEOS_Y_b("is_empty", GEOSisEmpty_r, dt, d);
-RegisterPyUFuncGEOS_Y_b("is_simple", GEOSisSimple_r, dt, d);
-RegisterPyUFuncGEOS_Y_b("is_ring", GEOSisRing_r, dt, d);
-RegisterPyUFuncGEOS_Y_b("has_z", GEOSHasZ_r, dt, d);
-RegisterPyUFuncGEOS_Y_b("is_closed", GEOSisClosed_r, dt, d);
+/*
 TODO relate functions
-RegisterPyUFuncGEOS_Y_b("is_valid", GEOSisValid_r, dt, d);
+
 TODO G -> char function GEOSisValidReason_r
 RegisterPyUFuncGEOS_Y_B("geom_type_id", GEOSGeomTypeId_r, dt, d);
 RegisterPyUFuncGEOS_Y_l("get_srid", GEOSGetSRID_r, dt, d);
@@ -265,6 +304,11 @@ RegisterPyUFuncGEOS_YY_d("distance", GEOSDistance_r, dt, d);
 RegisterPyUFuncGEOS_YY_d("hausdorff_distance", GEOSHausdorffDistance_r, dt, d);
 TODO GGd -> d function GEOSHausdorffDistanceDensify_r
 RegisterPyUFuncGEOS_Y_d("get_length", GEOSGeomGetLength_r, dt, d); */
+
+
+#define DEFINE_Y_b(NAME)\
+    ufunc = PyUFunc_FromFuncAndData(Y_b_funcs, NAME ##_data, Y_b_dtypes, 1, 1, 1, PyUFunc_None, # NAME, "", 0);\
+    PyDict_SetItemString(d, # NAME, ufunc)
 
 #define DEFINE_YY_b(NAME)\
     ufunc = PyUFunc_FromFuncAndData(YY_b_funcs, NAME ##_data, YY_b_dtypes, 1, 2, 1, PyUFunc_None, # NAME, "", 0);\
@@ -293,13 +337,13 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     import_array();
     import_umath();
 
-    /* Define the geometry structured dtype (see pygeos.GEOM_DTYPE) */
+    DEFINE_Y_b (is_empty);
+    DEFINE_Y_b (is_simple);
+    DEFINE_Y_b (is_ring);
+    DEFINE_Y_b (has_z);
+    DEFINE_Y_b (is_closed);
+    DEFINE_Y_b (is_valid);
 
-    DEFINE_YY_Y (intersection);
-    DEFINE_YY_Y (difference);
-    DEFINE_YY_Y (symmetric_difference);
-    DEFINE_YY_Y (union);
-    DEFINE_YY_Y (shared_paths);
     DEFINE_YY_b (disjoint);
     DEFINE_YY_b (touches);
     DEFINE_YY_b (intersects);
@@ -311,7 +355,11 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_YY_b (covers);
     DEFINE_YY_b (covered_by);
 
-
+    DEFINE_YY_Y (intersection);
+    DEFINE_YY_Y (difference);
+    DEFINE_YY_Y (symmetric_difference);
+    DEFINE_YY_Y (union);
+    DEFINE_YY_Y (shared_paths);
 
     Py_DECREF(ufunc);
     return m;
