@@ -315,6 +315,35 @@ static void Y_d_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction Y_d_funcs[1] = {&Y_d_func};
 
+/* Define the geom -> unsigned byte functions (Y_B) */
+static void *geom_type_id_data[1] = {GEOSGeomTypeId_r};
+static void *get_dimensions_data[1] = {GEOSGeom_getDimensions_r};
+static void *get_coordinate_dimensions_data[1] = {GEOSGeom_getCoordinateDimension_r};
+typedef int FuncGEOS_Y_B(void *context, void *a);
+static char Y_B_dtypes[2] = {NPY_OBJECT, NPY_UBYTE};
+static void Y_B_func(char **args, npy_intp *dimensions,
+                     npy_intp* steps, void* data)
+{
+    FuncGEOS_Y_B *func = (FuncGEOS_Y_B *)data;
+    void *context_handle = GEOS_init_r();
+    int ret;
+
+    UNARY_LOOP {
+        INPUT_Y;
+        ret = func(context_handle, in1->ptr);
+        if ((ret < 0) | (ret > NPY_MAX_UBYTE)) {
+            RAISE_ILLEGAL_GEOS;
+            goto finish;
+        }
+        *(npy_long *)op1 = ret;
+    }
+
+    finish:
+        GEOS_finish_r(context_handle);
+        return;
+}
+static PyUFuncGenericFunction Y_B_funcs[1] = {&Y_B_func};
+
 /* Define the geom -> long int functions (Y_l) */
 static void *get_srid_data[1] = {GEOSGetSRID_r};
 static void *get_num_geometries_data[1] = {GEOSGetNumGeometries_r};
@@ -364,12 +393,9 @@ TODO prepared geometry predicate functions
 TODO relate functions
 
 TODO G -> char function GEOSisValidReason_r
-RegisterPyUFuncGEOS_Y_B("geom_type_id", GEOSGeomTypeId_r, dt, d);
 TODO Gi -> void function GEOSSetSRID_r
 TODO G -> void function GEOSNormalize_r
 RegisterPyUFuncGEOS_Yl_Y("get_interior_ring_n", GEOSGetInteriorRingN_r, dt, d);
-RegisterPyUFuncGEOS_Y_B("get_dimensions", GEOSGeom_getDimensions_r, dt, d);
-RegisterPyUFuncGEOS_Y_B("get_coordinate_dimensions", GEOSGeom_getCoordinateDimension_r, dt, d);
 RegisterPyUFuncGEOS_Yl_Y("get_point_n", GEOSGeomGetPointN_r, dt, d);
 RegisterPyUFuncGEOS_YY_d("distance", GEOSDistance_r, dt, d);
 RegisterPyUFuncGEOS_YY_d("hausdorff_distance", GEOSHausdorffDistance_r, dt, d);
@@ -396,6 +422,10 @@ TODO GGd -> d function GEOSHausdorffDistanceDensify_r
 
 #define DEFINE_Y_d(NAME)\
     ufunc = PyUFunc_FromFuncAndData(Y_d_funcs, NAME ##_data, Y_d_dtypes, 1, 1, 1, PyUFunc_None, # NAME, "", 0);\
+    PyDict_SetItemString(d, # NAME, ufunc)
+
+#define DEFINE_Y_B(NAME)\
+    ufunc = PyUFunc_FromFuncAndData(Y_B_funcs, NAME ##_data, Y_B_dtypes, 1, 1, 1, PyUFunc_None, # NAME, "", 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
 #define DEFINE_Y_l(NAME)\
@@ -463,6 +493,10 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_Y_d (area);
     DEFINE_Y_d (length);
     DEFINE_Y_d (get_length);
+
+    DEFINE_Y_B (geom_type_id);
+    DEFINE_Y_B (get_dimensions);
+    DEFINE_Y_B (get_coordinate_dimensions);
 
     DEFINE_Y_l (get_srid);
     DEFINE_Y_l (get_num_geometries);

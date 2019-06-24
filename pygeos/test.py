@@ -80,6 +80,13 @@ def test_area():
     poly = box(0, 0, 10, 10)
     assert pygeos.area(poly) == 100.
 
+# Y_B
+
+
+def test_geom_type_id():
+    line = LineString([[0, 0], [1, 1], [2, 1]])
+    poly = box(0, 0, 10, 10)
+    assert pygeos.geom_type_id([line, poly]).tolist() == [1, 3]
 
 # Y_l
 
