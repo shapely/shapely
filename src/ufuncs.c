@@ -16,6 +16,7 @@ static PyMethodDef GeosModule[] = {
     {NULL, NULL, 0, NULL}
 };
 
+
 static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
     "ufuncs",
@@ -266,7 +267,7 @@ static void *interpolate_data[1] = {GEOSInterpolate_r};
 static void *interpolate_normalized_data[1] = {GEOSInterpolateNormalized_r};
 static void *simplify_data[1] = {GEOSSimplify_r};
 static void *topology_preserve_simplify_data[1] = {GEOSTopologyPreserveSimplify_r};
-typedef void *FuncGEOS_Yd_Y(void *context, void *a, double *b);
+typedef void *FuncGEOS_Yd_Y(void *context, void *a, double b);
 static char Yd_Y_dtypes[3] = {NPY_OBJECT, NPY_DOUBLE, NPY_OBJECT};
 static void Yd_Y_func(char **args, npy_intp *dimensions,
                       npy_intp* steps, void* data)
@@ -276,7 +277,8 @@ static void Yd_Y_func(char **args, npy_intp *dimensions,
 
     BINARY_LOOP {
         INPUT_Y;
-        GEOSGeometry *ret_ptr = func(context_handle, in1->ptr, (double *) ip2);
+        double in2 = *(double *)ip2;
+        GEOSGeometry *ret_ptr = func(context_handle, in1->ptr, in2);
         OUTPUT_Y;
     }
 
@@ -286,20 +288,21 @@ static void Yd_Y_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction Yd_Y_funcs[1] = {&Yd_Y_func};
 
-/* Define the geom, long int -> geom functions (Yl_Y) */
+/* Define the geom, int -> geom functions (Yl_Y) */
 static void *get_interior_ring_n_data[1] = {GEOSGetInteriorRingN_r};
 static void *get_point_n_data[1] = {GEOSGeomGetPointN_r};
-typedef void *FuncGEOS_Yl_Y(void *context, void *a, int b);
-static char Yl_Y_dtypes[3] = {NPY_OBJECT, NPY_LONG, NPY_OBJECT};
-static void Yl_Y_func(char **args, npy_intp *dimensions,
+typedef void *FuncGEOS_Yi_Y(void *context, void *a, int b);
+static char Yi_Y_dtypes[3] = {NPY_OBJECT, NPY_INT, NPY_OBJECT};
+static void Yi_Y_func(char **args, npy_intp *dimensions,
                       npy_intp* steps, void* data)
 {
-    FuncGEOS_Yl_Y *func = (FuncGEOS_Yl_Y *)data;
+    FuncGEOS_Yi_Y *func = (FuncGEOS_Yi_Y *)data;
     void *context_handle = GEOS_init_r();
 
     BINARY_LOOP {
         INPUT_Y;
-        GEOSGeometry *ret_ptr = func(context_handle, in1->ptr, (int) *ip2);
+        int in2 = *(int *)ip2;
+        GEOSGeometry *ret_ptr = func(context_handle, in1->ptr, in2);
         OUTPUT_Y;
     }
 
@@ -307,8 +310,7 @@ static void Yl_Y_func(char **args, npy_intp *dimensions,
         GEOS_finish_r(context_handle);
         return;
 }
-static PyUFuncGenericFunction Yl_Y_funcs[1] = {&Yl_Y_func};
-
+static PyUFuncGenericFunction Yi_Y_funcs[1] = {&Yi_Y_func};
 
 /* Define the geom, geom -> geom functions (YY_Y) */
 static void *intersection_data[1] = {GEOSIntersection_r};
@@ -384,7 +386,7 @@ static void Y_B_func(char **args, npy_intp *dimensions,
             RAISE_ILLEGAL_GEOS;
             goto finish;
         }
-        *(npy_long *)op1 = ret;
+        *(npy_ubyte *)op1 = ret;
     }
 
     finish:
@@ -393,36 +395,36 @@ static void Y_B_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction Y_B_funcs[1] = {&Y_B_func};
 
-/* Define the geom -> long int functions (Y_l) */
+/* Define the geom -> int functions (Y_i) */
 static void *get_srid_data[1] = {GEOSGetSRID_r};
 static void *get_num_geometries_data[1] = {GEOSGetNumGeometries_r};
 static void *get_num_interior_rings_data[1] = {GEOSGetNumInteriorRings_r};
 static void *get_num_points_data[1] = {GEOSGeomGetNumPoints_r};
 static void *get_num_coordinates_data[1] = {GEOSGetNumCoordinates_r};
-typedef int FuncGEOS_Y_l(void *context, void *a);
-static char Y_l_dtypes[2] = {NPY_OBJECT, NPY_LONG};
-static void Y_l_func(char **args, npy_intp *dimensions,
+typedef int FuncGEOS_Y_i(void *context, void *a);
+static char Y_i_dtypes[2] = {NPY_OBJECT, NPY_INT};
+static void Y_i_func(char **args, npy_intp *dimensions,
                      npy_intp* steps, void* data)
 {
-    FuncGEOS_Y_l *func = (FuncGEOS_Y_l *)data;
+    FuncGEOS_Y_i *func = (FuncGEOS_Y_i *)data;
     void *context_handle = GEOS_init_r();
     int ret;
 
     UNARY_LOOP {
         INPUT_Y;
         ret = func(context_handle, in1->ptr);
-        if ((ret < 0) | (ret > NPY_MAX_LONG)) {
+        if ((ret < 0) | (ret > NPY_MAX_INT)) {
             RAISE_ILLEGAL_GEOS;
             goto finish;
         }
-        *(npy_long *)op1 = ret;
+        *(npy_int *)op1 = ret;
     }
 
     finish:
         GEOS_finish_r(context_handle);
         return;
 }
-static PyUFuncGenericFunction Y_l_funcs[1] = {&Y_l_func};
+static PyUFuncGenericFunction Y_i_funcs[1] = {&Y_i_func};
 
 /* Define the geom, geom -> double functions (YY_d) */
 static void *distance_data[1] = {GEOSDistance_r};
@@ -437,7 +439,7 @@ static void YY_d_func(char **args, npy_intp *dimensions,
 
     BINARY_LOOP {
         INPUT_YY;
-        if (func(context_handle, in1->ptr, in2->ptr, (npy_double *) op1) == 0) {
+        if (func(context_handle, in1->ptr, in2->ptr, (double *) op1) == 0) {
             RAISE_ILLEGAL_GEOS;
             goto finish;
         }
@@ -449,11 +451,34 @@ static void YY_d_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction YY_d_funcs[1] = {&YY_d_func};
 
+/* Define functions with unique call signatures */
+static void *null_data[1] = {NULL};
+static char buffer_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_INT, NPY_OBJECT};
+static void buffer_func(char **args, npy_intp *dimensions,
+                        npy_intp* steps, void* data)
+{
+    void *context_handle = GEOS_init_r();
+
+    printf("Before LOOP");
+
+    TERNARY_LOOP {
+        INPUT_Y;
+        double in2 = *(double *) ip2;
+        int in3 = *(int *) ip3;
+        GEOSGeometry *ret_ptr = GEOSBuffer_r(context_handle, in1->ptr, in2, in3);
+        OUTPUT_Y;
+    }
+
+    finish:
+        GEOS_finish_r(context_handle);
+        return;
+}
+static PyUFuncGenericFunction buffer_funcs[1] = {&buffer_func};
+
 /* TODO GG -> d function GEOSProject_r
 
 TODO GG -> d function GEOSProjectNormalized_r
 
-RegisterPyUFuncGEOS_Ydl_Y("buffer", GEOSBuffer_r, dt, d);
 TODO custom buffer functions
 TODO possibly implement some creation functions
 TODO G -> void function GEOSGeom_destroy_r
@@ -485,8 +510,8 @@ TODO GGd -> d function GEOSHausdorffDistanceDensify_r
     ufunc = PyUFunc_FromFuncAndData(Y_Y_funcs, NAME ##_data, Y_Y_dtypes, 1, 1, 1, PyUFunc_None, # NAME, "", 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
-#define DEFINE_Yl_Y(NAME)\
-    ufunc = PyUFunc_FromFuncAndData(Yl_Y_funcs, NAME ##_data, Yl_Y_dtypes, 1, 2, 1, PyUFunc_None, # NAME, "", 0);\
+#define DEFINE_Yi_Y(NAME)\
+    ufunc = PyUFunc_FromFuncAndData(Yi_Y_funcs, NAME ##_data, Yi_Y_dtypes, 1, 2, 1, PyUFunc_None, # NAME, "", 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
 #define DEFINE_Yd_Y(NAME)\
@@ -505,8 +530,8 @@ TODO GGd -> d function GEOSHausdorffDistanceDensify_r
     ufunc = PyUFunc_FromFuncAndData(Y_B_funcs, NAME ##_data, Y_B_dtypes, 1, 1, 1, PyUFunc_None, # NAME, "", 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
-#define DEFINE_Y_l(NAME)\
-    ufunc = PyUFunc_FromFuncAndData(Y_l_funcs, NAME ##_data, Y_l_dtypes, 1, 1, 1, PyUFunc_None, # NAME, "", 0);\
+#define DEFINE_Y_i(NAME)\
+    ufunc = PyUFunc_FromFuncAndData(Y_i_funcs, NAME ##_data, Y_i_dtypes, 1, 1, 1, PyUFunc_None, # NAME, "", 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
 #define DEFINE_YY_d(NAME)\
@@ -563,8 +588,8 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_Y_Y (get_end_point);
     DEFINE_Y_Y (get_exterior_ring);
 
-    DEFINE_Yl_Y (get_interior_ring_n);
-    DEFINE_Yl_Y (get_point_n);
+    DEFINE_Yi_Y (get_interior_ring_n);
+    DEFINE_Yi_Y (get_point_n);
 
     DEFINE_Yd_Y (interpolate);
     DEFINE_Yd_Y (interpolate_normalized);
@@ -587,14 +612,17 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_Y_B (get_dimensions);
     DEFINE_Y_B (get_coordinate_dimensions);
 
-    DEFINE_Y_l (get_srid);
-    DEFINE_Y_l (get_num_geometries);
-    DEFINE_Y_l (get_num_interior_rings);
-    DEFINE_Y_l (get_num_points);
-    DEFINE_Y_l (get_num_coordinates);
+    DEFINE_Y_i (get_srid);
+    DEFINE_Y_i (get_num_geometries);
+    DEFINE_Y_i (get_num_interior_rings);
+    DEFINE_Y_i (get_num_points);
+    DEFINE_Y_i (get_num_coordinates);
 
     DEFINE_YY_d (distance);
     DEFINE_YY_d (hausdorff_distance);
+
+    ufunc = PyUFunc_FromFuncAndData(buffer_funcs, null_data, buffer_dtypes, 1, 3, 1, PyUFunc_None, "buffer", "", 0);
+    PyDict_SetItemString(d, "buffer", ufunc);
 
     Py_DECREF(ufunc);
     return m;

@@ -1,6 +1,7 @@
 import numpy as np
 import pygeos
 from pygeos import Point, LineString, box
+import pytest
 
 point_polygon_testdata = [Point(i, i) for i in range(6)], box(2, 2, 4, 4)
 
@@ -58,12 +59,12 @@ def test_get_centroid():
     assert pygeos.equals(actual, expected)
 
 
-# Yl_Y
+# Yi_Y
 
 
 def test_get_point_n():
     line = LineString([[0, 0], [1, 1], [2, 1]])
-    actual = pygeos.get_point_n(line, np.int64(1))
+    actual = pygeos.get_point_n(line, np.int16(1))
     expected = Point(1, 1)
     assert pygeos.equals(actual, expected)
 
@@ -72,8 +73,8 @@ def test_get_point_n():
 
 
 def test_simplify():
-    line = LineString([[0, 0], [1, 1], [2, 1]])
-    actual = pygeos.simplify(line, [0.1, 2.])
+    line = LineString([[0, 0], [0.1, 1], [0, 2]])
+    actual = pygeos.simplify(line, [0, 1.])
     assert pygeos.get_num_points(actual).tolist() == [3, 2]
 
 # YY_Y
@@ -107,7 +108,7 @@ def test_geom_type_id():
     poly = box(0, 0, 10, 10)
     assert pygeos.geom_type_id([line, poly]).tolist() == [1, 3]
 
-# Y_l
+# Y_i
 
 
 def test_get_num_points():
@@ -115,7 +116,7 @@ def test_get_num_points():
     assert pygeos.get_num_points(line) == 3
 
 
-# Y_l
+# YY_d
 
 
 def test_distance():
@@ -123,3 +124,11 @@ def test_distance():
     actual = pygeos.distance(points, polygon)
     expected = [2 * 2**0.5, 2**0.5, 0, 0, 0, 2**0.5]
     np.testing.assert_allclose(actual, expected)
+
+# specials
+
+
+def test_buffer():
+    radii = np.array([1., 2.])
+    actual = pygeos.buffer(Point(1, 1), radii, np.int16(16))
+    assert pygeos.area(actual) == pytest.approx(np.pi * radii**2, rel=0.01)
