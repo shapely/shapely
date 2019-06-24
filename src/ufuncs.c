@@ -487,8 +487,6 @@ static void buffer_func(char **args, npy_intp *dimensions,
 {
     void *context_handle = GEOS_init_r();
 
-    printf("Before LOOP");
-
     TERNARY_LOOP {
         INPUT_Y;
         double in2 = *(double *) ip2;
@@ -503,12 +501,49 @@ static void buffer_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction buffer_funcs[1] = {&buffer_func};
 
+static char snap_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_OBJECT};
+static void snap_func(char **args, npy_intp *dimensions,
+                      npy_intp* steps, void* data)
+{
+    void *context_handle = GEOS_init_r();
+
+    TERNARY_LOOP {
+        INPUT_YY;
+        double in3 = *(double *) ip3;
+        GEOSGeometry *ret_ptr = GEOSSnap_r(context_handle, in1->ptr, in2->ptr, in3);
+        OUTPUT_Y;
+    }
+
+    finish:
+        GEOS_finish_r(context_handle);
+        return;
+}
+static PyUFuncGenericFunction snap_funcs[1] = {&snap_func};
+
+static char equals_exact_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_BOOL};
+static void equals_exact_func(char **args, npy_intp *dimensions,
+                      npy_intp* steps, void* data)
+{
+    void *context_handle = GEOS_init_r();
+
+    TERNARY_LOOP {
+        INPUT_YY;
+        double in3 = *(double *) ip3;
+        npy_bool ret = GEOSEqualsExact_r(context_handle, in1->ptr, in2->ptr, in3);
+        OUTPUT_b;
+    }
+
+    finish:
+        GEOS_finish_r(context_handle);
+        return;
+}
+static PyUFuncGenericFunction equals_exact_funcs[1] = {&equals_exact_func};
+
 /*
 TODO custom buffer functions
 TODO possibly implement some creation functions
 TODO polygonizer functions
 
-TODO GGd -> G function GEOSSnap_r
 TODO GGd -> b function GEOSEqualsExact_r
 TODO prepared geometry predicate functions
 
@@ -566,6 +601,9 @@ TODO GGd -> d function GEOSHausdorffDistanceDensify_r
     ufunc = PyUFunc_FromFuncAndData(YY_d_2_funcs, NAME ##_data, YY_d_2_dtypes, 1, 2, 1, PyUFunc_None, # NAME, "", 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
+#define DEFINE_CUSTOM(NAME)\
+    ufunc = PyUFunc_FromFuncAndData(NAME ##_funcs, null_data, NAME ##_dtypes, 1, 3, 1, PyUFunc_None, # NAME, "", 0);\
+    PyDict_SetItemString(d, # NAME, ufunc)
 
 
 PyMODINIT_FUNC PyInit_ufuncs(void)
@@ -653,8 +691,9 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_YY_d_2 (project);
     DEFINE_YY_d_2 (project_normalized);
 
-    ufunc = PyUFunc_FromFuncAndData(buffer_funcs, null_data, buffer_dtypes, 1, 3, 1, PyUFunc_None, "buffer", "", 0);
-    PyDict_SetItemString(d, "buffer", ufunc);
+    DEFINE_CUSTOM (buffer);
+    DEFINE_CUSTOM (snap);
+    DEFINE_CUSTOM (equals_exact);
 
     Py_DECREF(ufunc);
     return m;

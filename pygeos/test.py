@@ -143,3 +143,19 @@ def test_buffer():
     radii = np.array([1., 2.])
     actual = pygeos.buffer(Point(1, 1), radii, np.int16(16))
     assert pygeos.area(actual) == pytest.approx(np.pi * radii**2, rel=0.01)
+
+
+def test_snap():
+    line = LineString([[0, 0], [1, 0], [2, 0]])
+    points = [Point(0, 1), Point(1, 0.1)]
+    actual = pygeos.snap(points, line, 0.5)
+    expected = [Point(0, 1), Point(1, 0)]
+    assert pygeos.equals(actual, expected).all()
+
+
+def test_equals_exact():
+    point1 = Point(0, 0)
+    point2 = Point(0, 0.1)
+    actual = pygeos.equals_exact(point1, point2, [0.01, 1.])
+    expected = [False, True]
+    np.testing.assert_equal(actual, expected)
