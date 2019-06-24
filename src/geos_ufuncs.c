@@ -30,97 +30,6 @@ typedef struct GeomArrayValue {
    void *_ptr;
 } GeomArrayValue;
 
-typedef struct {
-    PyObject_HEAD;
-    void *ptr;
-    char geom_type_id;
-    char has_z;
-} GeometryObject;
-
-
-static PyObject *GeometryObject_new_from_ptr(
-    PyTypeObject *type, void *context_handle, void *ptr)
-{
-    GeometryObject *self;
-    int geos_result;
-    self = (GeometryObject *) type->tp_alloc(type, 0);
-
-    if (self != NULL) {
-        self->ptr = ptr;
-        geos_result = GEOSGeomTypeId_r(context_handle, ptr);
-        if ((geos_result < 0) | (geos_result > 255)) {
-            goto fail;
-        }
-        self->geom_type_id = geos_result;
-        geos_result = GEOSHasZ_r(context_handle, ptr);
-        if ((geos_result < 0) | (geos_result > 1)) {
-            goto fail;
-        }
-        self->has_z = geos_result;
-    }
-    return (PyObject *) self;
-    fail:
-        PyErr_Format(PyExc_RuntimeError, "Geometry initialization failed");
-        Py_DECREF(self);
-        return NULL;
-}
-
-
-static PyObject *GeometryObject_new(PyTypeObject *type, PyObject *args,
-                                    PyObject *kwds)
-{
-    void *context_handle, *ptr;
-    GeometryObject *self;
-    long arg;
-    int geos_result;
-    if (!PyArg_ParseTuple(args, "l", &arg)) {
-        goto fail;
-    }
-    context_handle = GEOS_init_r();
-    ptr = GEOSGeom_clone_r(context_handle, arg);
-    if (ptr == NULL) {
-        GEOS_finish_r(context_handle);
-        goto fail;
-    }
-    self = GeometryObject_new_from_ptr(type, context_handle, ptr);
-    GEOS_finish_r(context_handle);
-    return (PyObject *) self;
-
-    fail:
-        PyErr_Format(PyExc_ValueError, "Please provide a C pointer to a GEOSGeometry");
-        return NULL;
-}
-
-static void GeometryObject_dealloc(GeometryObject *self)
-{
-    void *context_handle;
-    if (self->ptr != NULL) {
-        context_handle = GEOS_init_r();
-        GEOSGeom_destroy_r(context_handle, self->ptr);
-        GEOS_finish_r(context_handle);
-    }
-    Py_TYPE(self)->tp_free((PyObject *) self);
-}
-
-static PyMemberDef GeometryObject_members[] = {
-    {"ptr", T_INT, offsetof(GeometryObject, ptr), 0, "pointer to GEOSGeometry"},
-    {"geom_type_id", T_INT, offsetof(GeometryObject, geom_type_id), 0, "geometry type ID"},
-    {"has_z", T_INT, offsetof(GeometryObject, has_z), 0, "has Z"},
-    {NULL}  /* Sentinel */
-};
-
-static PyTypeObject GeometryType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "pygeos.geos_ufuncs.Geometry",
-    .tp_doc = "Geometry type",
-    .tp_basicsize = sizeof(GeometryObject),
-    .tp_itemsize = 0,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_new = GeometryObject_new,
-    .tp_dealloc = (destructor) GeometryObject_dealloc,
-    .tp_members = GeometryObject_members,
-};
-
 
 /* This defines the ufunc for vector -> bool functions from GEOS. */
 typedef char FuncGEOS_Y_b(void *context, void *a);
@@ -224,59 +133,6 @@ static void PyUFuncGEOS_YY_b(char **args, npy_intp *dimensions,
         GEOS_finish_r(context_handle);
         return;
 }
-
-static char PyUFuncGEOS_YY_b_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_BOOL};
-static void PyUFuncGEOS_YY_b_func(char **args, npy_intp *dimensions,
-                                  npy_intp* steps, void* data)
-{
-    npy_intp i;
-    npy_intp n = dimensions[0];
-    char *in1 = args[0], *in2 = args[1], *out = args[2];
-    npy_intp in1_step = steps[0], in2_step = steps[1], out_step = steps[2];
-    void *context_handle;
-    GeometryObject *a, *b;
-    npy_bool c;
-
-    FuncGEOS_YY_b *f = (FuncGEOS_YY_b *)data;
-    context_handle = GEOS_init_r();
-
-    for (i = 0; i < n; i++) {
-        GeometryObject *a = *(GeometryObject **)in1;
-        GeometryObject *b = *(GeometryObject **)in2;
-        if ((a->ptr == NULL) || (b->ptr == NULL)) {
-            goto fail_hasnull;
-        } else {
-            f(context_handle, a->ptr, b->ptr);
-            if (c == 2) {
-                goto fail;
-            }
-        }
-
-        *out = (npy_bool) c;
-
-        in1 += in1_step;
-        in2 += in2_step;
-        out += out_step;
-
-    }
-
-    GEOS_finish_r(context_handle);
-
-    return;
-
-    fail_hasnull:
-        PyErr_Format(PyExc_ValueError, "Cannot apply binary predicate to NULL geometries");
-        GEOS_finish_r(context_handle);
-        return -1;
-
-    fail:
-        PyErr_Format(PyExc_RuntimeError, "GEOS Operation failed");
-        GEOS_finish_r(context_handle);
-        return;
-}
-static PyUFuncGenericFunction PyUFuncGEOS_YY_b_funcs[1] = {&PyUFuncGEOS_YY_b_func};
-static void (*GEOSContains_data[1]) = {GEOSContains_r};
-
 
 /* This defines the ufunc for vector -> vector functions from GEOS. */
 typedef void *FuncGEOS_Y_Y(void *context, void *a);
@@ -506,61 +362,6 @@ static void PyUFuncGEOS_YY_Y(char **args, npy_intp *dimensions,
         GEOS_finish_r(context_handle);
         return;
 }
-
-
-static char PyUFuncGEOS_YY_Y_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
-static void PyUFuncGEOS_YY_Y_func(char **args, npy_intp *dimensions,
-                                   npy_intp* steps, void* data)
-{
-
-    npy_intp i;
-    npy_intp n = dimensions[0];
-    char *in1 = args[0], *in2 = args[1], *out = args[2];
-    npy_intp in1_step = steps[0], in2_step = steps[1], out_step = steps[2];
-    void *context_handle, *ptr;
-    GeometryObject *a, *b, *c;
-    PyObject **out2;
-
-    FuncGEOS_YY_Y *f = (FuncGEOS_YY_Y *)data;
-    context_handle = GEOS_init_r();
-
-    for (i = 0; i < n; i++) {
-        GeometryObject *a = *(GeometryObject **)in1;
-        GeometryObject *b = *(GeometryObject **)in2;
-        PyObject **out2 = (PyObject **)out;
-        if ((a->ptr == NULL) || (b->ptr == NULL)) {
-            goto fail;
-        } else {
-            ptr = f(context_handle, a->ptr, b->ptr);
-            if (ptr == NULL) {
-                goto fail;
-            }
-        }
-        GeometryObject *c = (GeometryObject *) GeometryObject_new_from_ptr(&GeometryType, context_handle, ptr);
-        if (c == NULL) {
-            goto fail;
-        } else {
-            Py_XDECREF(*out);
-            *out2 = c;
-        }
-
-        in1 += in1_step;
-        in2 += in2_step;
-        out += out_step;
-    }
-
-    GEOS_finish_r(context_handle);
-
-    return;
-
-    fail:
-        PyErr_Format(PyExc_RuntimeError, "GEOS Operation failed");
-        GEOS_finish_r(context_handle);
-        return;
-}
-static PyUFuncGenericFunction PyUFuncGEOS_YY_Y_funcs[1] = {&PyUFuncGEOS_YY_Y_func};
-static void (*GEOSIntersection_data[1]) = {GEOSIntersection_r};
-
 
 
 /* This defines the ufunc for vector -> double functions from GEOS. */
@@ -934,18 +735,12 @@ static void RegisterPyUFuncGEOS_Y_l(
 
 PyMODINIT_FUNC PyInit_geos_ufuncs(void)
 {
-    PyObject *m, *d, *dtype_dict, *ufunc;
+    PyObject *m, *d, *dtype_dict;
     PyArray_Descr *dt;
     m = PyModule_Create(&moduledef);
     if (!m) {
         return NULL;
     }
-    if (PyType_Ready(&GeometryType) < 0)
-        return NULL;
-
-    Py_INCREF(&GeometryType);
-    PyModule_AddObject(m, "Geometry", (PyObject *) &GeometryType);
-
     d = PyModule_GetDict(m);
 
     import_array();
@@ -1029,27 +824,6 @@ PyMODINIT_FUNC PyInit_geos_ufuncs(void)
     RegisterPyUFuncGEOS_YY_d("hausdorff_distance", GEOSHausdorffDistance_r, dt, d);
     /* TODO GGd -> d function GEOSHausdorffDistanceDensify_r */
     RegisterPyUFuncGEOS_Y_d("get_length", GEOSGeomGetLength_r, dt, d);
-
-
-
-    ufunc = PyUFunc_FromFuncAndData(
-        PyUFuncGEOS_YY_b_funcs,
-        GEOSContains_data,
-        PyUFuncGEOS_YY_b_dtypes,
-        1, 2, 1, PyUFunc_None, "contains2", "", 0
-    );
-    PyDict_SetItemString(d, "contains2", ufunc);
-
-
-    ufunc = PyUFunc_FromFuncAndData(
-        PyUFuncGEOS_YY_Y_funcs,
-        GEOSIntersection_data,
-        PyUFuncGEOS_YY_Y_dtypes,
-        1, 2, 1, PyUFunc_None, "intersection2", "", 0
-    );
-    PyDict_SetItemString(d, "intersection2", ufunc);
-
-    Py_DECREF(ufunc);
 
     Py_DECREF(dtype_dict);
     Py_DECREF(dt);
