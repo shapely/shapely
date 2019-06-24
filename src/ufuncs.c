@@ -451,6 +451,34 @@ static void YY_d_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction YY_d_funcs[1] = {&YY_d_func};
 
+/* Define the geom, geom -> double functions that have different GEOS call signature (YY_d_2) */
+static void *project_data[1] = {GEOSProject_r};
+static void *project_normalized_data[1] = {GEOSProjectNormalized_r};
+typedef double FuncGEOS_YY_d_2(void *context, void *a, void *b);
+static char YY_d_2_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE};
+static void YY_d_2_func(char **args, npy_intp *dimensions,
+                        npy_intp* steps, void* data)
+{
+    FuncGEOS_YY_d_2 *func = (FuncGEOS_YY_d_2 *)data;
+    void *context_handle = GEOS_init_r();
+    double ret;
+
+    BINARY_LOOP {
+        INPUT_YY;
+        ret = func(context_handle, in1->ptr, in2->ptr);
+        if (ret == -1.0) {
+            RAISE_ILLEGAL_GEOS;
+            goto finish;
+        }
+        *(npy_double *) op1 = ret;
+    }
+
+    finish:
+        GEOS_finish_r(context_handle);
+        return;
+}
+static PyUFuncGenericFunction YY_d_2_funcs[1] = {&YY_d_2_func};
+
 /* Define functions with unique call signatures */
 static void *null_data[1] = {NULL};
 static char buffer_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_INT, NPY_OBJECT};
@@ -475,13 +503,9 @@ static void buffer_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction buffer_funcs[1] = {&buffer_func};
 
-/* TODO GG -> d function GEOSProject_r
-
-TODO GG -> d function GEOSProjectNormalized_r
-
+/*
 TODO custom buffer functions
 TODO possibly implement some creation functions
-TODO G -> void function GEOSGeom_destroy_r
 TODO polygonizer functions
 
 TODO GGd -> G function GEOSSnap_r
@@ -537,6 +561,11 @@ TODO GGd -> d function GEOSHausdorffDistanceDensify_r
 #define DEFINE_YY_d(NAME)\
     ufunc = PyUFunc_FromFuncAndData(YY_d_funcs, NAME ##_data, YY_d_dtypes, 1, 2, 1, PyUFunc_None, # NAME, "", 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
+
+#define DEFINE_YY_d_2(NAME)\
+    ufunc = PyUFunc_FromFuncAndData(YY_d_2_funcs, NAME ##_data, YY_d_2_dtypes, 1, 2, 1, PyUFunc_None, # NAME, "", 0);\
+    PyDict_SetItemString(d, # NAME, ufunc)
+
 
 
 PyMODINIT_FUNC PyInit_ufuncs(void)
@@ -620,6 +649,9 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
 
     DEFINE_YY_d (distance);
     DEFINE_YY_d (hausdorff_distance);
+
+    DEFINE_YY_d_2 (project);
+    DEFINE_YY_d_2 (project_normalized);
 
     ufunc = PyUFunc_FromFuncAndData(buffer_funcs, null_data, buffer_dtypes, 1, 3, 1, PyUFunc_None, "buffer", "", 0);
     PyDict_SetItemString(d, "buffer", ufunc);

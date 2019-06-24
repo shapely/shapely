@@ -125,6 +125,17 @@ def test_distance():
     expected = [2 * 2**0.5, 2**0.5, 0, 0, 0, 2**0.5]
     np.testing.assert_allclose(actual, expected)
 
+# YY_d_2
+
+
+def test_project():
+    line = LineString([[0, 0], [1, 1], [2, 2]])
+    points = [Point(1, 0), Point(3, 3)]
+    actual = pygeos.project(line, points)
+    expected = [0.5 * 2**0.5, 2 * 2**0.5]
+    np.testing.assert_allclose(actual, expected)
+
+
 # specials
 
 
