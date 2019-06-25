@@ -242,6 +242,18 @@ static void *extract_unique_points_data[1] = {GEOSGeom_extractUniquePoints_r};
 static void *get_start_point_data[1] = {GEOSGeomGetStartPoint_r};
 static void *get_end_point_data[1] = {GEOSGeomGetEndPoint_r};
 static void *get_exterior_ring_data[1] = {GEOSGetExteriorRing_r};
+/* the normalize funcion acts inplace */
+static void *GEOSNormalize_r_with_clone(void *context, void *geom) {
+    void *ret = GEOSGeom_clone_r(context, geom);
+    if (ret == NULL) {
+        return;
+    }
+    if (GEOSNormalize_r(context, geom) == -1) {
+        return;
+    }
+    return ret;
+}
+static void *normalize_data[1] = {GEOSNormalize_r_with_clone};
 typedef void *FuncGEOS_Y_Y(void *context, void *a);
 static char Y_Y_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
 static void Y_Y_func(char **args, npy_intp *dimensions,
@@ -291,6 +303,7 @@ static PyUFuncGenericFunction Yd_Y_funcs[1] = {&Yd_Y_func};
 /* Define the geom, int -> geom functions (Yl_Y) */
 static void *get_interior_ring_n_data[1] = {GEOSGetInteriorRingN_r};
 static void *get_point_n_data[1] = {GEOSGeomGetPointN_r};
+static void *get_geometry_n_data[1] = {GEOSGetGeometryN_r};
 typedef void *FuncGEOS_Yi_Y(void *context, void *a, int b);
 static char Yi_Y_dtypes[3] = {NPY_OBJECT, NPY_INT, NPY_OBJECT};
 static void Yi_Y_func(char **args, npy_intp *dimensions,
@@ -543,12 +556,8 @@ static PyUFuncGenericFunction equals_exact_funcs[1] = {&equals_exact_func};
 TODO custom buffer functions
 TODO possibly implement some creation functions
 TODO polygonizer functions
-
-TODO GGd -> b function GEOSEqualsExact_r
 TODO prepared geometry predicate functions
-
 TODO relate functions
-
 TODO G -> char function GEOSisValidReason_r
 TODO Gi -> void function GEOSSetSRID_r
 TODO G -> void function GEOSNormalize_r
@@ -654,9 +663,11 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_Y_Y (get_start_point);
     DEFINE_Y_Y (get_end_point);
     DEFINE_Y_Y (get_exterior_ring);
+    DEFINE_Y_Y (normalize);
 
     DEFINE_Yi_Y (get_interior_ring_n);
     DEFINE_Yi_Y (get_point_n);
+    DEFINE_Yi_Y (get_geometry_n);
 
     DEFINE_Yd_Y (interpolate);
     DEFINE_Yd_Y (interpolate_normalized);

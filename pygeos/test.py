@@ -1,6 +1,6 @@
 import numpy as np
 import pygeos
-from pygeos import Point, LineString, box
+from pygeos import Point, LineString, MultiPoint, box
 import pytest
 
 point_polygon_testdata = [Point(i, i) for i in range(6)], box(2, 2, 4, 4)
@@ -51,6 +51,7 @@ def test_contains():
     np.testing.assert_equal(actual, expected)
 
 # Y_Y
+
 
 def test_get_centroid():
     poly = box(0, 0, 10, 10)
