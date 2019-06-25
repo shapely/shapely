@@ -315,25 +315,18 @@ if (platform.python_implementation() == 'PyPy'):
     ext_modules = []
     libraries = []
 
-if os.path.exists("MANIFEST.in"):
-    pyx_file = "shapely/speedups/_speedups.pyx"
-    c_file = "shapely/speedups/_speedups.c"
 
-    force_cython = False
-    if 'sdist' in sys.argv:
+pyx_file = "shapely/speedups/_speedups.pyx"
+c_file = "shapely/speedups/_speedups.c"
+
+force_cython = False
+# Always regenerate for sdist or absent c file
+if 'sdist' in sys.argv or not os.path.exists(c_file):
+    force_cython = True
+# Also regenerate if pyx_file is outdated.
+elif os.path.exists(c_file):
+    if os.path.getmtime(pyx_file) > os.path.getmtime(c_file):
         force_cython = True
-
-    try:
-        if (force_cython or not os.path.exists(c_file)
-                or os.path.getmtime(pyx_file) > os.path.getmtime(c_file)):
-            log.info("Updating C extension with Cython.")
-            subprocess.check_call(["cython", "shapely/speedups/_speedups.pyx"])
-    except (subprocess.CalledProcessError, OSError):
-        log.warn("Could not (re)create C extension with Cython.")
-        if force_cython:
-            raise
-    if not os.path.exists(c_file):
-        log.warn("speedup extension not found")
 
 ext_modules = [
     Extension("shapely.speedups._speedups", ["shapely/speedups/_speedups.c"],
@@ -366,6 +359,19 @@ try:
 except ImportError:
     log.info("Numpy or Cython not available, shapely.vectorized submodule "
              "not being built.")
+    force_cython = False
+
+try:
+    if force_cython:
+        log.info("Updating C extension with Cython.")
+        subprocess.check_call(["cython", "shapely/speedups/_speedups.pyx"])
+except (subprocess.CalledProcessError, OSError):
+    log.warn("Could not (re)create C extension with Cython.")
+    if force_cython:
+        raise
+
+if not os.path.exists(c_file):
+    log.warn("speedup extension not found")
 
 try:
     # try building with speedups
