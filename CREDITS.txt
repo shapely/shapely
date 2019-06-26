@@ -6,12 +6,12 @@ Shapely is written by:
 * Sean Gillies <sean.gillies@gmail.com>
 * Oliver Tonnhofer <olt@bogosoft.com>
 * Joshua Arnott <josh@snorfalorpagus.net>
-* Mike Toews <mwtoews@gmail.com>
+* Mike Taves <mwtoews@gmail.com>
 * Jacob Wasserman <jwasserman@gmail.com>
 * Aron Bierbaum <aronbierbaum@gmail.com>
 * Allan Adair <allan@rfspot.com>
 * Johannes Schönberger <jschoenberger@demuc.de>
-* georgeouzou <geothrock@gmail.com>
+* George Ouzounoudis <geothrock@gmail.com>
 * Phil Elson <pelson.pub@gmail.com>
 * Howard Butler <hobu.inc@gmail.com>
 * Kelsey Jordahl <kjordahl@enthought.com>
@@ -20,7 +20,7 @@ Shapely is written by:
 * Gabi Davar <grizzly.nyo@gmail.com>
 * Thibault Deutsch <thibault.deutsch@gmail.com>
 * Dave Collins <dave@hopest.net>
-* fredj <frederic.junod@camptocamp.com>
+* Frédéric Junod <frederic.junod@camptocamp.com>
 * Brad Hards <bradh@frogmouth.net>
 * David Baumgold <david@davidbaumgold.com>
 * Henry Walshaw <henry.walshaw@gmail.com>
@@ -49,10 +49,15 @@ Shapely is written by:
 * giumas <gmasetti@ccom.unh.edu>
 * Leandro Lima <leandro@limaesilva.com.br>
 * Maarten Vermeyen <maarten.vermeyen@rwo.vlaanderen.be>
-* joelostblom <joelostblom@users.noreply.github.com>
+* Joel Ostblom <joelostblom@users.noreply.github.com>
 * Marco De Nadai <me@marcodena.it>
 * Johan Euphrosine <proppy@aminche.com>
 * James Gaboardi <jgaboardi@gmail.com>
+* Denis Rykov <rykovd@gmail.com>
+* Zachary Ware <zachary.ware@gmail.com>
+* Pierre PACI <villerupt@gmail.com>
+* Hugo van Kemenade (@hugovk)
+* Juan Luis Cano Rodríguez <juanlu@satellogic.com>
 
 See also: https://github.com/Toblerity/Shapely/graphs/contributors.
 
