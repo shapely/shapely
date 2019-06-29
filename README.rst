@@ -25,7 +25,7 @@ that we can safely deallocate it once `point` is garbage collected:
   >>> pointer_to_point = Point(i, j)._geom
   >>> point = GEOSGeometry(pointer_to_point)
 
- Or simply:
+Or simply:
 
 .. code:: python
 

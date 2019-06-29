@@ -554,7 +554,7 @@ static PyUFuncGenericFunction equals_exact_funcs[1] = {&equals_exact_func};
 
 /* define construction functions */
 
-static char Point_dtypes[4] = {NPY_DOUBLE, NPY_DOUBLE, NPY_OBJECT};
+static char Point_dtypes[3] = {NPY_DOUBLE, NPY_DOUBLE, NPY_OBJECT};
 static void Point_func(char **args, npy_intp *dimensions,
                        npy_intp* steps, void* data)
 {
