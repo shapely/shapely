@@ -2,9 +2,9 @@ import os
 from setuptools import setup, Extension
 import geosconfig
 
-module_geos_ufuncs = Extension(
-    'pygeos.geos_ufuncs',
-    sources=['src/geos_ufuncs.c'],
+module_ufuncs = Extension(
+    'pygeos.ufuncs',
+    sources=['src/ufuncs.c'],
     include_dirs=geosconfig.include_dirs,
     library_dirs=geosconfig.library_dirs,
     libraries=geosconfig.libraries,
@@ -19,7 +19,7 @@ except IOError:
 
 setup(
     name='pygeos',
-    version='0.1',
+    version='0.2',
     description='GEOS wrapped in numpy ufuncs',
     long_description=descr,
     url='https://github.com/caspervdw/pygeos',
@@ -29,7 +29,7 @@ setup(
     install_requires=['numpy', 'shapely'],
     test_requires=['pytest'],
     python_requires='>=3',
-    ext_modules=[module_geos_ufuncs],
+    ext_modules=[module_ufuncs],
     classifiers=[
         'Programming Language :: Python :: 3',
         'Development Status :: 1 - Planning',

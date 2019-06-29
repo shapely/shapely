@@ -5,22 +5,31 @@ PyGEOS
 This is a C/Python library that wraps geometry functions in GEOS in numpy ufuncs.
 This project is still in a mock-up phase: the API will most likely change.
 
-The Geometry Array dtype
-------------------------
+The Geometry object
+-------------------
 
-Shapely geometries are stored in structured numpy arrays with the following
-structure:
+GEOS geometry objects are stored in a Python extension type `pygeos.BaseGeometry`,
+that keeps the python interpreter out of the numpy ufunc inner loop. This
+ object calls the GEOS `destroy` function to deallocate memory
+just before the wrapping `Geometry` object is deallocated.
+
+Ufuncs only act on these `pygeos.BaseGeometry` objects.
+Construct these as follows::
 
 .. code:: python
 
-  np.dtype([("obj", "O"), ("_ptr", "intp")])
+  >>> from pygeos import BaseGeometry
+  >>> from shapely.geometry import Point
 
-In this way, we enable fast C-access to the geometries, while keeping a python
-object close to keep track of the memory allocation/deallocation.
+  >>> point = BaseGeometry(Point(i, j))
 
-The ufuncs automatically converts a (iterable of) shapely geometry to this
-Geometry Array dtype. Functions that return geometries will return this custom
-dtype.
+Or simply:
+
+.. code:: python
+
+  >>> from pygeos import Point
+
+  >>> point = Point(5.2, 52.1)
 
 Examples
 --------
@@ -29,8 +38,7 @@ Compare an grid of points with a polygon:
 
 .. code:: python
 
-  >>> from pygeos import contains
-  >>> from shapely.geometry import box, Point
+  >>> from pygeos import contains, box, Point
 
   >>> points = [[Point(i, j) for i in range(4)] for j in range(4)]
   >>> polygon = box(0, 0, 2, 2)
@@ -47,8 +55,7 @@ Compute the area of all possible intersections of two lists of polygons:
 
 .. code:: python
 
-  >>> from pygeos import area, intersection
-  >>> from shapely.geometry import box
+  >>> from pygeos import box, area, intersection
 
   >>> polygons_x = [[box(0 + i, 0, 10 + i, 10) for i in range(5)]]
   >>> polygons_y = [[box(0, 0 + j, 10, 10 + j)] for j in range(5)]
