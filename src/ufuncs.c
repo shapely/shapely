@@ -552,6 +552,82 @@ static void equals_exact_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction equals_exact_funcs[1] = {&equals_exact_func};
 
+/* define construction functions */
+
+static char Point_dtypes[4] = {NPY_DOUBLE, NPY_DOUBLE, NPY_OBJECT};
+static void Point_func(char **args, npy_intp *dimensions,
+                       npy_intp* steps, void* data)
+{
+    void *context_handle = GEOS_init_r();
+
+    BINARY_LOOP {
+        double in1 = *(double *) ip1;
+        double in2 = *(double *) ip2;
+        void *coord_seq = GEOSCoordSeq_create_r(context_handle, 1, 2);
+        if (coord_seq == NULL) {
+            RAISE_ILLEGAL_GEOS;
+            goto finish;
+        }
+        if (!GEOSCoordSeq_setX_r(context_handle, coord_seq, 0, in1)) {
+            GEOSCoordSeq_destroy_r(context_handle, coord_seq);
+            RAISE_ILLEGAL_GEOS;
+            goto finish;
+        }
+        if (!GEOSCoordSeq_setY_r(context_handle, coord_seq, 0, in2)) {
+            GEOSCoordSeq_destroy_r(context_handle, coord_seq);
+            RAISE_ILLEGAL_GEOS;
+            goto finish;
+        }
+        GEOSGeometry *ret_ptr = GEOSGeom_createPoint_r(context_handle, coord_seq);
+        OUTPUT_Y;
+    }
+
+    finish:
+        GEOS_finish_r(context_handle);
+        return;
+}
+static PyUFuncGenericFunction Point_funcs[1] = {&Point_func};
+
+static char PointZ_dtypes[4] = {NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_OBJECT};
+static void PointZ_func(char **args, npy_intp *dimensions,
+                        npy_intp* steps, void* data)
+{
+    void *context_handle = GEOS_init_r();
+
+    TERNARY_LOOP {
+        double in1 = *(double *) ip1;
+        double in2 = *(double *) ip2;
+        double in3 = *(double *) ip3;
+        void *coord_seq = GEOSCoordSeq_create_r(context_handle, 1, 3);
+        if (coord_seq == NULL) {
+            RAISE_ILLEGAL_GEOS;
+            goto finish;
+        }
+        if (!GEOSCoordSeq_setX_r(context_handle, coord_seq, 0, in1)) {
+            GEOSCoordSeq_destroy_r(context_handle, coord_seq);
+            RAISE_ILLEGAL_GEOS;
+            goto finish;
+        }
+        if (!GEOSCoordSeq_setY_r(context_handle, coord_seq, 0, in2)) {
+            GEOSCoordSeq_destroy_r(context_handle, coord_seq);
+            RAISE_ILLEGAL_GEOS;
+            goto finish;
+        }
+        if (!GEOSCoordSeq_setZ_r(context_handle, coord_seq, 0, in3)) {
+            GEOSCoordSeq_destroy_r(context_handle, coord_seq);
+            RAISE_ILLEGAL_GEOS;
+            goto finish;
+        }
+        GEOSGeometry *ret_ptr = GEOSGeom_createPoint_r(context_handle, coord_seq);
+        OUTPUT_Y;
+    }
+
+    finish:
+        GEOS_finish_r(context_handle);
+        return;
+}
+static PyUFuncGenericFunction PointZ_funcs[1] = {&PointZ_func};
+
 /*
 TODO custom buffer functions
 TODO possibly implement some creation functions
@@ -610,8 +686,8 @@ TODO GGd -> d function GEOSHausdorffDistanceDensify_r
     ufunc = PyUFunc_FromFuncAndData(YY_d_2_funcs, NAME ##_data, YY_d_2_dtypes, 1, 2, 1, PyUFunc_None, # NAME, "", 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
-#define DEFINE_CUSTOM(NAME)\
-    ufunc = PyUFunc_FromFuncAndData(NAME ##_funcs, null_data, NAME ##_dtypes, 1, 3, 1, PyUFunc_None, # NAME, "", 0);\
+#define DEFINE_CUSTOM(NAME, N_IN)\
+    ufunc = PyUFunc_FromFuncAndData(NAME ##_funcs, null_data, NAME ##_dtypes, 1, N_IN, 1, PyUFunc_None, # NAME, "", 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
 
@@ -702,9 +778,11 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_YY_d_2 (project);
     DEFINE_YY_d_2 (project_normalized);
 
-    DEFINE_CUSTOM (buffer);
-    DEFINE_CUSTOM (snap);
-    DEFINE_CUSTOM (equals_exact);
+    DEFINE_CUSTOM (buffer, 3);
+    DEFINE_CUSTOM (snap, 3);
+    DEFINE_CUSTOM (equals_exact, 3);
+    DEFINE_CUSTOM (Point, 2);
+    DEFINE_CUSTOM (PointZ, 3);
 
     Py_DECREF(ufunc);
     return m;

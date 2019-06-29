@@ -1,4 +1,5 @@
 from functools import wraps
+from . import ufuncs
 from .ufuncs import GEOSGeometry
 from .ufuncs import *  # NoQA
 from shapely import geometry as sg
@@ -28,7 +29,6 @@ def wrap_shapely_constructor(func):
 
 
 box = wrap_shapely_constructor(sg.box)
-Point = wrap_shapely_constructor(sg.Point)
 LineString = wrap_shapely_constructor(sg.LineString)
 LinearRing = wrap_shapely_constructor(sg.LinearRing)
 Polygon = wrap_shapely_constructor(sg.Polygon)
@@ -36,3 +36,10 @@ MultiPoint = wrap_shapely_constructor(sg.MultiPoint)
 MultiLineString = wrap_shapely_constructor(sg.MultiLineString)
 MultiPolygon = wrap_shapely_constructor(sg.MultiPolygon)
 GeometryCollection = wrap_shapely_constructor(sg.GeometryCollection)
+
+
+def Point(*args):
+    if len(args) == 2:
+        return ufuncs.Point(*args)
+    else:
+        return ufuncs.PointZ(*args)

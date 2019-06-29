@@ -173,3 +173,15 @@ def test_equals_exact():
     actual = pygeos.equals_exact(point1, point2, [0.01, 1.])
     expected = [False, True]
     np.testing.assert_equal(actual, expected)
+
+
+# construction
+
+def test_construct_point():
+    actual = pygeos.Point(2, [0, 1, 2])
+    assert pygeos.equals(actual[2], point)
+
+
+def test_construct_point_z():
+    actual = pygeos.PointZ(1, 1, [0, 1, 2])
+    assert pygeos.equals(actual[1], point_z)
