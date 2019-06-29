@@ -111,7 +111,7 @@ static PyMemberDef GeometryObject_members[] = {
 
 static PyTypeObject GeometryType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "pygeos.ufuncs.BaseGeometry",
+    .tp_name = "pygeos.ufuncs.GEOSGeometry",
     .tp_doc = "Geometry type",
     .tp_basicsize = sizeof(GeometryObject),
     .tp_itemsize = 0,
@@ -626,7 +626,7 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
         return NULL;
 
     Py_INCREF(&GeometryType);
-    PyModule_AddObject(m, "BaseGeometry", (PyObject *) &GeometryType);
+    PyModule_AddObject(m, "GEOSGeometry", (PyObject *) &GeometryType);
 
     d = PyModule_GetDict(m);
 

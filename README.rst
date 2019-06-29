@@ -8,22 +8,24 @@ This project is still in a mock-up phase: the API will most likely change.
 The Geometry object
 -------------------
 
-GEOS geometry objects are stored in a Python extension type `pygeos.BaseGeometry`,
-that keeps the python interpreter out of the numpy ufunc inner loop. This
- object calls the GEOS `destroy` function to deallocate memory
-just before the wrapping `Geometry` object is deallocated.
+GEOS geometry objects are stored in a Python extension type `pygeos.GEOSGeometry`,
+that keeps the python interpreter out of the numpy ufunc inner loop. This object
+calls the GEOS `destroy` function to deallocate memory just before the
+wrapping `GEOSGeometry` object is deallocated.
 
-Ufuncs only act on these `pygeos.BaseGeometry` objects.
-Construct these as follows::
+Ufuncs only act on these `pygeos.GEOSGeometry` objects.
+Construct these as follows. This operation copies the underlying C object so
+that we can safely deallocate it once `point` is garbage collected:
 
 .. code:: python
 
-  >>> from pygeos import BaseGeometry
+  >>> from pygeos import GEOSGeometry
   >>> from shapely.geometry import Point
 
-  >>> point = BaseGeometry(Point(i, j))
+  >>> pointer_to_point = Point(i, j)._geom
+  >>> point = GEOSGeometry(pointer_to_point)
 
-Or simply:
+ Or simply:
 
 .. code:: python
 
