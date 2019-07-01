@@ -39,10 +39,22 @@ MultiPolygon = wrap_shapely_constructor(sg.MultiPolygon)
 GeometryCollection = wrap_shapely_constructor(sg.GeometryCollection)
 
 
-def points(*args):
-    if len(args) == 1:
-        args = np.asarray(args).T
-    if len(args) == 2:
-        return ufuncs.points(*args)
+def points(coords, y=None, z=None):
+    """Create an array of points.
+
+    Attributes
+    ----------
+    coords : array_like
+        An array of coordinate tuples (2- or 3-dimensional) or, if `y` is
+        provided the x coordinates
+    y : array_like
+    z : array_like
+    """
+    if y is None:
+        return ufuncs.points(coords)
+    x = coords
+    if z is None:
+        coords = np.broadcast_arrays(x, y)
     else:
-        return ufuncs.points_z(*args)
+        coords = np.broadcast_arrays(x, y, z)
+    return ufuncs.points(np.stack(coords, axis=-1))
