@@ -22,16 +22,16 @@ that we can safely deallocate it once `point` is garbage collected:
   >>> from pygeos import GEOSGeometry
   >>> from shapely.geometry import Point
 
-  >>> pointer_to_point = Point(i, j)._geom
-  >>> point = GEOSGeometry(pointer_to_point)
+  >>> pointer_to_geometry = Point(i, j)._geom
+  >>> geometry = GEOSGeometry(pointer_to_geometry)
 
 Or simply:
 
 .. code:: python
 
-  >>> from pygeos import Point
+  >>> from pygeos import points
 
-  >>> point = Point(5.2, 52.1)
+  >>> point = points(5.2, 52.1)
 
 Examples
 --------
@@ -40,12 +40,10 @@ Compare an grid of points with a polygon:
 
 .. code:: python
 
-  >>> from pygeos import contains, box, Point
-
-  >>> points = [[Point(i, j) for i in range(4)] for j in range(4)]
+  >>> geoms = points(*np.indices((4, 4)))
   >>> polygon = box(0, 0, 2, 2)
 
-  >>> contains(polygon, points)
+  >>> contains(polygon, geoms)
 
     array([[False, False, False, False],
            [False,  True, False, False],
@@ -59,10 +57,10 @@ Compute the area of all possible intersections of two lists of polygons:
 
   >>> from pygeos import box, area, intersection
 
-  >>> polygons_x = [[box(0 + i, 0, 10 + i, 10) for i in range(5)]]
-  >>> polygons_y = [[box(0, 0 + j, 10, 10 + j)] for j in range(5)]
+  >>> polygons_x = box(range(5), 0, range(10, 15), 10)
+  >>> polygons_y = box(0, range(5), 10, range(10, 15))
 
-  >>> area(intersection(polygons_x, polygons_y))
+  >>> area(intersection(polygons_x[:, np.newaxis], polygons_y[np.newaxis, :]))
 
   array([[100.,  90.,  80.,  70.,  60.],
        [ 90.,  81.,  72.,  63.,  54.],
