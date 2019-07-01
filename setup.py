@@ -29,6 +29,7 @@ setup(
     install_requires=['numpy', 'shapely'],
     test_requires=['pytest'],
     python_requires='>=3',
+    include_package_data=True,
     ext_modules=[module_ufuncs],
     classifiers=[
         'Programming Language :: Python :: 3',
