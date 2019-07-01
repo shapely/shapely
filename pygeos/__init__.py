@@ -89,7 +89,8 @@ def linestrings(coords, y=None, z=None):
 def linearrings(coords, y=None, z=None):
     """Create an array of linearrings.
 
-    The rings are not closed automatically.
+    If the provided coords do not constitute a closed linestring, the first
+    coordinate is duplicated at the end to close the ring.
 
     Attributes
     ----------

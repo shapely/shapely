@@ -20,11 +20,11 @@ static PyMethodDef GeosModule[] = {
 /* This initializes a global GEOS Context */
 static void *geos_context[1] = {NULL};
 
-static void *HandleGEOSError(const char *message, void *userdata) {
+static void HandleGEOSError(const char *message, void *userdata) {
     PyErr_SetString(userdata, message);
 }
 
-static void *HandleGEOSNotice(const char *message, void *userdata) {
+static void HandleGEOSNotice(const char *message, void *userdata) {
     PyErr_WarnEx(PyExc_Warning, message, 1);
 }
 
@@ -566,11 +566,29 @@ static void linearrings_func(char **args, npy_intp *dimensions,
 {
     void *context_handle = geos_context[0];
     DOUBLE_COREDIM_LOOP_OUTER {
-        CREATE_COORDSEQ(n_c1, n_c2);
+        /* check if first and last coords are equal; duplicate if necessary */
+        char ring_closure = 0;
+        DOUBLE_COREDIM_LOOP_INNER_2 {
+            double first_coord = *(double *) (ip1 + i_c2 * cs2);
+            double last_coord = *(double *) (ip1 + (n_c1 - 1) * cs1 + i_c2 * cs2);
+            if (first_coord != last_coord) {
+                ring_closure = 1;
+                break;
+            }
+        }
+        /* fill the coordinate sequence */
+        CREATE_COORDSEQ(n_c1 + ring_closure, n_c2);
         DOUBLE_COREDIM_LOOP_INNER_1 {
             DOUBLE_COREDIM_LOOP_INNER_2 {
                 double coord = *(double *) cp2;
                 SET_COORD(i_c1, i_c2);
+            }
+        }
+        /* add the closing coordinate if necessary */
+        if (ring_closure) {
+            DOUBLE_COREDIM_LOOP_INNER_2 {
+                double coord = *(double *) (ip1 + i_c2 * cs2);
+                SET_COORD(n_c1, i_c2);
             }
         }
         GEOSGeometry *ret_ptr = GEOSGeom_createLinearRing_r(context_handle, coord_seq);

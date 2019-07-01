@@ -224,11 +224,16 @@ def test_linestrings_from_xyz():
     assert to_wkt(actual) == "LINESTRING Z (0 2 0, 1 3 0)"
 
 
-def test_linearrings_from_coords():
+def test_linearrings():
     actual = pygeos.linearrings([[0, 0], [1, 1], [1, 0], [0, 0]])
     assert to_wkt(actual) == "LINEARRING (0 0, 1 1, 1 0, 0 0)"
 
 
+def test_linearrings_from_xy():
+    actual = pygeos.linearrings([0, 1, 2, 0], [3, 4, 5, 3])
+    assert to_wkt(actual) == "LINEARRING (0 3, 1 4, 2 5, 0 3)"
+
+
 def test_linearrings_unclosed():
-    with pytest.raises(pygeos.GEOSException):
-        pygeos.linearrings([[0, 0], [1, 1], [1, 0]])
+    actual = pygeos.linearrings([[0, 0], [1, 1], [1, 0]])
+    assert to_wkt(actual) == "LINEARRING (0 0, 1 1, 1 0, 0 0)"
