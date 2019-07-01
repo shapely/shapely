@@ -177,6 +177,11 @@ def test_equals_exact():
 
 # construction
 
+def test_construct_from_tuples():
+    actual = pygeos.points([[0, 0], [2, 2]])
+    assert pygeos.equals(actual[1], point)
+
+
 def test_construct_point():
     actual = pygeos.points(2, [0, 1, 2])
     assert pygeos.equals(actual[2], point)

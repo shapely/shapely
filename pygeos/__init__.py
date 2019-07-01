@@ -1,3 +1,4 @@
+import numpy as np
 from functools import wraps
 from . import ufuncs
 from .ufuncs import GEOSGeometry
@@ -39,6 +40,8 @@ GeometryCollection = wrap_shapely_constructor(sg.GeometryCollection)
 
 
 def points(*args):
+    if len(args) == 1:
+        args = np.asarray(args).T
     if len(args) == 2:
         return ufuncs.points(*args)
     else:
