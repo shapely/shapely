@@ -1,13 +1,13 @@
 import numpy as np
 import pygeos
 from pygeos import \
-    Point, LineString, LinearRing, Polygon, MultiPoint, MultiLineString,\
+    LineString, LinearRing, Polygon, MultiPoint, MultiLineString,\
     MultiPolygon, GeometryCollection, box
 import pytest
 
-point_polygon_testdata = [Point(i, i) for i in range(6)], box(2, 2, 4, 4)
+point_polygon_testdata = pygeos.points(np.arange(6), np.arange(6)), box(2, 2, 4, 4)
 
-point = Point(2, 2)
+point = pygeos.points(2, 2)
 line_string = LineString([[0, 0], [1, 0], [1, 1]])
 linear_ring = LinearRing(((0, 0), (0, 1), (1, 1), (1, 0)))
 polygon = Polygon(((0., 0.), (0., 2.), (2., 2.), (2., 0.), (0., 0.)))
@@ -18,9 +18,9 @@ multi_polygon = MultiPolygon([
         Polygon(((0.1, 0.1), (0.1, 0.2), (0.2, 0.2), (0.2, 0.1))),
     ])
 geometry_collection = GeometryCollection(
-    [Point(51, -1), LineString([(52, -1), (49, 2)])]
+    [pygeos.points(51, -1), LineString([(52, -1), (49, 2)])]
 )
-point_z = Point(1.0, 1.0, 1.0)
+point_z = pygeos.points(1.0, 1.0, 1.0)
 
 # Y_b
 
@@ -67,7 +67,7 @@ def test_contains():
 
 def test_get_centroid():
     actual = pygeos.get_centroid(polygon)
-    assert pygeos.equals(actual, Point(1, 1))
+    assert pygeos.equals(actual, pygeos.points(1, 1))
 
 
 # Yi_Y
@@ -75,7 +75,7 @@ def test_get_centroid():
 
 def test_get_point_n():
     actual = pygeos.get_point_n(line_string, np.int16(1))
-    assert pygeos.equals(actual, Point(1, 0))
+    assert pygeos.equals(actual, pygeos.points(1, 0))
 
 
 # Yd_Y
@@ -144,7 +144,7 @@ def test_distance():
 
 def test_project():
     line = LineString([[0, 0], [1, 1], [2, 2]])
-    points = [Point(1, 0), Point(3, 3)]
+    points = pygeos.points([1, 3], [0, 3])
     actual = pygeos.project(line, points)
     expected = [0.5 * 2**0.5, 2 * 2**0.5]
     np.testing.assert_allclose(actual, expected)
@@ -161,15 +161,15 @@ def test_buffer():
 
 def test_snap():
     line = LineString([[0, 0], [1, 0], [2, 0]])
-    points = [Point(0, 1), Point(1, 0.1)]
+    points = pygeos.points([0, 1], [1, 0.1])
     actual = pygeos.snap(points, line, 0.5)
-    expected = [Point(0, 1), Point(1, 0)]
+    expected = pygeos.points([0, 1], [1, 0])
     assert pygeos.equals(actual, expected).all()
 
 
 def test_equals_exact():
-    point1 = Point(0, 0)
-    point2 = Point(0, 0.1)
+    point1 = pygeos.points(0, 0)
+    point2 = pygeos.points(0, 0.1)
     actual = pygeos.equals_exact(point1, point2, [0.01, 1.])
     expected = [False, True]
     np.testing.assert_equal(actual, expected)
@@ -178,10 +178,10 @@ def test_equals_exact():
 # construction
 
 def test_construct_point():
-    actual = pygeos.Point(2, [0, 1, 2])
+    actual = pygeos.points(2, [0, 1, 2])
     assert pygeos.equals(actual[2], point)
 
 
 def test_construct_point_z():
-    actual = pygeos.PointZ(1, 1, [0, 1, 2])
+    actual = pygeos.points(1, 1, [0, 1, 2])
     assert pygeos.equals(actual[1], point_z)

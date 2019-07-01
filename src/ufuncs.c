@@ -554,9 +554,9 @@ static PyUFuncGenericFunction equals_exact_funcs[1] = {&equals_exact_func};
 
 /* define construction functions */
 
-static char Point_dtypes[3] = {NPY_DOUBLE, NPY_DOUBLE, NPY_OBJECT};
-static void Point_func(char **args, npy_intp *dimensions,
-                       npy_intp* steps, void* data)
+static char points_dtypes[3] = {NPY_DOUBLE, NPY_DOUBLE, NPY_OBJECT};
+static void points_func(char **args, npy_intp *dimensions,
+                        npy_intp* steps, void* data)
 {
     void *context_handle = GEOS_init_r();
 
@@ -586,11 +586,11 @@ static void Point_func(char **args, npy_intp *dimensions,
         GEOS_finish_r(context_handle);
         return;
 }
-static PyUFuncGenericFunction Point_funcs[1] = {&Point_func};
+static PyUFuncGenericFunction points_funcs[1] = {&points_func};
 
-static char PointZ_dtypes[4] = {NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_OBJECT};
-static void PointZ_func(char **args, npy_intp *dimensions,
-                        npy_intp* steps, void* data)
+static char points_z_dtypes[4] = {NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_OBJECT};
+static void points_z_func(char **args, npy_intp *dimensions,
+                          npy_intp* steps, void* data)
 {
     void *context_handle = GEOS_init_r();
 
@@ -626,7 +626,7 @@ static void PointZ_func(char **args, npy_intp *dimensions,
         GEOS_finish_r(context_handle);
         return;
 }
-static PyUFuncGenericFunction PointZ_funcs[1] = {&PointZ_func};
+static PyUFuncGenericFunction points_z_funcs[1] = {&points_z_func};
 
 /*
 TODO custom buffer functions
@@ -781,8 +781,8 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_CUSTOM (buffer, 3);
     DEFINE_CUSTOM (snap, 3);
     DEFINE_CUSTOM (equals_exact, 3);
-    DEFINE_CUSTOM (Point, 2);
-    DEFINE_CUSTOM (PointZ, 3);
+    DEFINE_CUSTOM (points, 2);
+    DEFINE_CUSTOM (points_z, 3);
 
     Py_DECREF(ufunc);
     return m;

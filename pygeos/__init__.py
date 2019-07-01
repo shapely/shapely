@@ -38,8 +38,8 @@ MultiPolygon = wrap_shapely_constructor(sg.MultiPolygon)
 GeometryCollection = wrap_shapely_constructor(sg.GeometryCollection)
 
 
-def Point(*args):
+def points(*args):
     if len(args) == 2:
-        return ufuncs.Point(*args)
+        return ufuncs.points(*args)
     else:
-        return ufuncs.PointZ(*args)
+        return ufuncs.points_z(*args)
