@@ -1,23 +1,22 @@
 import numpy as np
 import pygeos
-from pygeos import \
-    MultiPoint, MultiLineString,\
-    MultiPolygon, GeometryCollection, to_wkt, box
+from pygeos import to_wkt
 import pytest
 
-point_polygon_testdata = pygeos.points(np.arange(6), np.arange(6)), pygeos.box(2, 2, 4, 4)
+point_polygon_testdata = \
+    pygeos.points(np.arange(6), np.arange(6)), pygeos.box(2, 2, 4, 4)
 
 point = pygeos.points(2, 2)
 line_string = pygeos.linestrings([[0, 0], [1, 0], [1, 1]])
 linear_ring = pygeos.linearrings(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
 polygon = pygeos.polygons(((0., 0.), (0., 2.), (2., 2.), (2., 0.), (0., 0.)))
-multi_point = MultiPoint([[0.0, 0.0], [1.0, 2.0]])
-multi_line_string = MultiLineString([[[0.0, 0.0], [1.0, 2.0]]])
-multi_polygon = MultiPolygon([
-        pygeos.polygons(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0))),
-        pygeos.polygons(((0.1, 0.1), (0.1, 0.2), (0.2, 0.2), (0.2, 0.1))),
+multi_point = pygeos.multipoints([[0.0, 0.0], [1.0, 2.0]])
+multi_line_string = pygeos.multilinestrings([[[0.0, 0.0], [1.0, 2.0]]])
+multi_polygon = pygeos.multipolygons([
+        ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)),
+        ((0.1, 0.1), (0.1, 0.2), (0.2, 0.2), (0.2, 0.1)),
     ])
-geometry_collection = GeometryCollection(
+geometry_collection = pygeos.geometrycollections(
     [pygeos.points(51, -1), pygeos.linestrings([(52, -1), (49, 2)])]
 )
 point_z = pygeos.points(1.0, 1.0, 1.0)
@@ -96,14 +95,14 @@ def test_simplify():
 def test_intersection():
     poly1, poly2 = pygeos.box(0, 0, 10, 10), pygeos.box(5, 5, 20, 20)
     actual = pygeos.intersection(poly1, poly2)
-    expected = box(5, 5, 10, 10)
+    expected = pygeos.box(5, 5, 10, 10)
     assert pygeos.equals(actual, expected)
 
 
 def test_union():
     poly1, poly2 = pygeos.box(0, 0, 10, 10), pygeos.box(10, 0, 20, 10)
     actual = pygeos.union(poly1, poly2)
-    expected = box(0, 0, 20, 10)
+    expected = pygeos.box(0, 0, 20, 10)
     assert pygeos.equals(actual, expected)
 
 # Y_d

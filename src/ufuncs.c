@@ -608,23 +608,19 @@ static void polygons_with_holes_func(char **args, npy_intp *dimensions,
 {
     void *context_handle = geos_context[0];
     void *shell;
-    char *ip1 = args[0], *ip2 = args[1], *op1 = args[2], *cp1;
-    npy_intp is1 = steps[0], is2 = steps[1], os1 = steps[2], cs1 = steps[3];
-    npy_intp n = dimensions[0], n_c1 = dimensions[1];
-    npy_intp i, i_c1;
-    for(i = 0; i < n; i++, ip1 += is1, ip2 += is2, op1 += os1) {
+    BINARY_SINGLE_COREDIM_LOOP_OUTER {
         GeometryObject *g = *(GeometryObject **)ip1;
         CHECK_GEOM(g);
         shell = GEOSGeom_clone_r(context_handle, g->ptr);
         if (shell == NULL) {
             return;
         }
-        void** holes[n_c1];
+        GEOSGeometry *holes[n_c1];
         cp1 = ip2;
-        for(i_c1 = 0; i_c1 < n_c1; i_c1++, cp1 += cs1) {
+        BINARY_SINGLE_COREDIM_LOOP_INNER {
             GeometryObject *g = *(GeometryObject **)cp1;
             CHECK_GEOM(g);
-            void *hole = GEOSGeom_clone_r(context_handle, g->ptr);
+            GEOSGeometry *hole = GEOSGeom_clone_r(context_handle, g->ptr);
             if (hole == NULL) {
                 return;
             }
@@ -635,6 +631,30 @@ static void polygons_with_holes_func(char **args, npy_intp *dimensions,
     }
 }
 static PyUFuncGenericFunction polygons_with_holes_funcs[1] = {&polygons_with_holes_func};
+
+
+static char create_collection_dtypes[3] = {NPY_OBJECT, NPY_INT, NPY_OBJECT};
+static void create_collection_func(char **args, npy_intp *dimensions,
+                                   npy_intp *steps, void *data)
+{
+    void *context_handle = geos_context[0];
+    BINARY_SINGLE_COREDIM_LOOP_OUTER {
+        GEOSGeometry *geoms[n_c1];
+        int type = *(int *) ip2;
+        cp1 = ip1;
+        BINARY_SINGLE_COREDIM_LOOP_INNER {
+            GeometryObject *g = *(GeometryObject **)cp1;
+            CHECK_GEOM(g);
+            geoms[i_c1] = GEOSGeom_clone_r(context_handle, g->ptr);
+            if (geoms[i_c1] == NULL) {
+                return;
+            }
+        }
+        GEOSGeometry *ret_ptr = GEOSGeom_createCollection_r(context_handle, type, geoms, n_c1);
+        OUTPUT_Y;
+    }
+}
+static PyUFuncGenericFunction create_collection_funcs[1] = {&create_collection_func};
 
 /*
 TODO custom buffer functions
@@ -805,6 +825,7 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_GENERALIZED(linearrings, 1, "(i, d)->()");
     DEFINE_Y_Y (polygons_without_holes);
     DEFINE_GENERALIZED(polygons_with_holes, 2, "(),(i)->()");
+    DEFINE_GENERALIZED(create_collection, 2, "(i),()->()");
 
     Py_DECREF(ufunc);
     return m;

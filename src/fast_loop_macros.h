@@ -65,3 +65,14 @@
 #define DOUBLE_COREDIM_LOOP_INNER_2\
     cp2 = cp1;\
     for(i_c2 = 0; i_c2 < n_c2; i_c2++, cp2 += cs2)
+
+/** (ip1, ip2, cp1) -> (op1) */
+#define BINARY_SINGLE_COREDIM_LOOP_OUTER\
+    char *ip1 = args[0], *ip2 = args[1], *op1 = args[2], *cp1;\
+    npy_intp is1 = steps[0], is2 = steps[1], os1 = steps[2], cs1 = steps[3];\
+    npy_intp n = dimensions[0], n_c1 = dimensions[1];\
+    npy_intp i, i_c1;\
+    for(i = 0; i < n; i++, ip1 += is1, ip2 += is2, op1 += os1)
+
+#define BINARY_SINGLE_COREDIM_LOOP_INNER\
+    for(i_c1 = 0; i_c1 < n_c1; i_c1++, cp1 += cs1)
