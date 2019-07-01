@@ -38,9 +38,6 @@ def wrap_shapely_constructor(func):
 
 
 box = wrap_shapely_constructor(sg.box)
-LineString = wrap_shapely_constructor(sg.LineString)
-LinearRing = wrap_shapely_constructor(sg.LinearRing)
-Polygon = wrap_shapely_constructor(sg.Polygon)
 MultiPoint = wrap_shapely_constructor(sg.MultiPoint)
 MultiLineString = wrap_shapely_constructor(sg.MultiLineString)
 MultiPolygon = wrap_shapely_constructor(sg.MultiPolygon)
@@ -101,3 +98,45 @@ def linearrings(coords, y=None, z=None):
     z : array_like
     """
     return _wrap_construct_ufunc(ufuncs.linearrings, coords, y, z)
+
+
+def polygons(shells, holes=None):
+    """Create an array of polygons.
+
+    Attributes
+    ----------
+    shell : array_like
+        An array of linearrings that constitute the out shell of the polygons.
+        Coordinates can also be passed, see linearrings.
+    holes : array_like
+        An array of lists of linearrings that constitute holes for each shell.
+    """
+    shells = np.asarray(shells)
+    if not isinstance(shells, GEOSGeometry) and \
+            np.issubdtype(shells.dtype, np.number):
+        shells = linearrings(shells)
+
+    if holes is None:
+        return ufuncs.polygons_without_holes(shells)
+
+    holes = np.asarray(holes)
+    if not isinstance(holes, GEOSGeometry) and \
+            np.issubdtype(holes.dtype, np.number):
+        holes = linearrings(holes)
+    return ufuncs.polygons_with_holes(shells, holes)
+
+
+def box(x1, y1, x2, y2):
+    """Create box polygons.
+
+    Attributes
+    ----------
+    x1 : array_like
+    y2 : array_like
+    x1 : array_like
+    y2 : array_like
+    """
+    x1, y1, x2, y2 = np.broadcast_arrays(x1, y1, x2, y2)
+    rings = np.array(((x2, y1), (x2, y2), (x1, y2), (x1, y1)))
+    rings = np.moveaxis(rings, (0, 1), (-2, -1))
+    return polygons(rings)

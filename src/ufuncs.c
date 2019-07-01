@@ -133,9 +133,6 @@ static PyTypeObject GeometryType = {
     .tp_members = GeometryObject_members,
 };
 
-#define IS_GEOM(GEOM) PyObject_IsInstance((PyObject *) GEOM, (PyObject *) &GeometryType)
-#define RAISE_NO_GEOMETRY_TYPE PyErr_Format(PyExc_TypeError, "One of the arguments is of incorrect type. Please provide only Geometry objects.")
-#define RAISE_EMPTY_GEOMETRY PyErr_Format(PyExc_ValueError, "A geometry object is empty")
 #define RAISE_ILLEGAL_GEOS  /* PyErr_Format(PyExc_RuntimeError, "GEOS Operation failed") */
 #define CREATE_COORDSEQ(SIZE, NDIM)\
     void *coord_seq = GEOSCoordSeq_create_r(context_handle, SIZE, NDIM);\
@@ -150,28 +147,26 @@ static PyTypeObject GeometryType = {
         return;\
     }
 
-#define INPUT_Y\
-    GeometryObject *in1 = *(GeometryObject **)ip1;\
-    if (!IS_GEOM(in1)) {\
-        RAISE_NO_GEOMETRY_TYPE;\
+#define CHECK_GEOM(GEOM)\
+    if (!PyObject_IsInstance((PyObject *) GEOM, (PyObject *) &GeometryType)) {\
+        PyErr_Format(PyExc_TypeError, "One of the arguments is of incorrect type. Please provide only Geometry objects.");\
         return;\
     }\
-    if (in1->ptr == NULL) {\
-        RAISE_EMPTY_GEOMETRY;\
+    if (GEOM->ptr == NULL) {\
+        PyErr_Format(PyExc_ValueError, "A geometry object is empty");\
         return;\
     }
+
+
+#define INPUT_Y\
+    GeometryObject *in1 = *(GeometryObject **)ip1;\
+    CHECK_GEOM(in1)
 
 #define INPUT_YY\
     GeometryObject *in1 = *(GeometryObject **)ip1;\
     GeometryObject *in2 = *(GeometryObject **)ip2;\
-    if ((!IS_GEOM(in1)) || (!IS_GEOM(in2))) {\
-        RAISE_NO_GEOMETRY_TYPE;\
-        return;\
-    }\
-    if ((in1->ptr == NULL) || (in2->ptr == NULL)) {\
-        RAISE_EMPTY_GEOMETRY;\
-        return;\
-    }
+    CHECK_GEOM(in1);\
+    CHECK_GEOM(in2)
 
 #define OUTPUT_b\
     if (! ((ret == 0) || (ret == 1))) {\
@@ -270,6 +265,15 @@ static void *GEOSNormalize_r_with_clone(void *context, void *geom) {
     return ret;
 }
 static void *normalize_data[1] = {GEOSNormalize_r_with_clone};
+/* a linear-ring to polygon conversion function */
+static void *GEOSLinearRingToPolygon(void *context, void *geom) {
+    void *shell = GEOSGeom_clone_r(context, geom);
+    if (shell == NULL) {
+        return NULL;
+    }
+    return GEOSGeom_createPolygon_r(context, shell, NULL, 0);
+}
+static void *polygons_without_holes_data[1] = {GEOSLinearRingToPolygon};
 typedef void *FuncGEOS_Y_Y(void *context, void *a);
 static char Y_Y_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
 static void Y_Y_func(char **args, npy_intp *dimensions,
@@ -597,6 +601,41 @@ static void linearrings_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction linearrings_funcs[1] = {&linearrings_func};
 
+
+static char polygons_with_holes_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
+static void polygons_with_holes_func(char **args, npy_intp *dimensions,
+                                     npy_intp *steps, void *data)
+{
+    void *context_handle = geos_context[0];
+    void *shell;
+    char *ip1 = args[0], *ip2 = args[1], *op1 = args[2], *cp1;
+    npy_intp is1 = steps[0], is2 = steps[1], os1 = steps[2], cs1 = steps[3];
+    npy_intp n = dimensions[0], n_c1 = dimensions[1];
+    npy_intp i, i_c1;
+    for(i = 0; i < n; i++, ip1 += is1, ip2 += is2, op1 += os1) {
+        GeometryObject *g = *(GeometryObject **)ip1;
+        CHECK_GEOM(g);
+        shell = GEOSGeom_clone_r(context_handle, g->ptr);
+        if (shell == NULL) {
+            return;
+        }
+        void** holes[n_c1];
+        cp1 = ip2;
+        for(i_c1 = 0; i_c1 < n_c1; i_c1++, cp1 += cs1) {
+            GeometryObject *g = *(GeometryObject **)cp1;
+            CHECK_GEOM(g);
+            void *hole = GEOSGeom_clone_r(context_handle, g->ptr);
+            if (hole == NULL) {
+                return;
+            }
+            holes[i_c1] = hole;
+        }
+        GEOSGeometry *ret_ptr = GEOSGeom_createPolygon_r(context_handle, shell, holes, n_c1);
+        OUTPUT_Y;
+    }
+}
+static PyUFuncGenericFunction polygons_with_holes_funcs[1] = {&polygons_with_holes_func};
+
 /*
 TODO custom buffer functions
 TODO possibly implement some creation functions
@@ -659,8 +698,8 @@ TODO GGd -> d function GEOSHausdorffDistanceDensify_r
     ufunc = PyUFunc_FromFuncAndData(NAME ##_funcs, null_data, NAME ##_dtypes, 1, N_IN, 1, PyUFunc_None, # NAME, "", 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
-#define DEFINE_GENERALIZED(NAME, SIGNATURE)\
-    ufunc = PyUFunc_FromFuncAndDataAndSignature(NAME ##_funcs, null_data, NAME ##_dtypes, 1, 1, 1, PyUFunc_None, # NAME, "", 0, SIGNATURE);\
+#define DEFINE_GENERALIZED(NAME, N_IN, SIGNATURE)\
+    ufunc = PyUFunc_FromFuncAndDataAndSignature(NAME ##_funcs, null_data, NAME ##_dtypes, 1, N_IN, 1, PyUFunc_None, # NAME, "", 0, SIGNATURE);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
 
@@ -761,9 +800,11 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_CUSTOM (buffer, 3);
     DEFINE_CUSTOM (snap, 3);
     DEFINE_CUSTOM (equals_exact, 3);
-    DEFINE_GENERALIZED(points, "(d)->()");
-    DEFINE_GENERALIZED(linestrings, "(i, d)->()");
-    DEFINE_GENERALIZED(linearrings, "(i, d)->()");
+    DEFINE_GENERALIZED(points, 1, "(d)->()");
+    DEFINE_GENERALIZED(linestrings, 1, "(i, d)->()");
+    DEFINE_GENERALIZED(linearrings, 1, "(i, d)->()");
+    DEFINE_Y_Y (polygons_without_holes);
+    DEFINE_GENERALIZED(polygons_with_holes, 2, "(),(i)->()");
 
     Py_DECREF(ufunc);
     return m;

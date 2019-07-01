@@ -1,26 +1,30 @@
 import numpy as np
 import pygeos
 from pygeos import \
-    Polygon, MultiPoint, MultiLineString,\
-    MultiPolygon, GeometryCollection, box, to_wkt
+    MultiPoint, MultiLineString,\
+    MultiPolygon, GeometryCollection, to_wkt, box
 import pytest
 
-point_polygon_testdata = pygeos.points(np.arange(6), np.arange(6)), box(2, 2, 4, 4)
+point_polygon_testdata = pygeos.points(np.arange(6), np.arange(6)), pygeos.box(2, 2, 4, 4)
 
 point = pygeos.points(2, 2)
 line_string = pygeos.linestrings([[0, 0], [1, 0], [1, 1]])
 linear_ring = pygeos.linearrings(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
-polygon = Polygon(((0., 0.), (0., 2.), (2., 2.), (2., 0.), (0., 0.)))
+polygon = pygeos.polygons(((0., 0.), (0., 2.), (2., 2.), (2., 0.), (0., 0.)))
 multi_point = MultiPoint([[0.0, 0.0], [1.0, 2.0]])
 multi_line_string = MultiLineString([[[0.0, 0.0], [1.0, 2.0]]])
 multi_polygon = MultiPolygon([
-        Polygon(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0))),
-        Polygon(((0.1, 0.1), (0.1, 0.2), (0.2, 0.2), (0.2, 0.1))),
+        pygeos.polygons(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0))),
+        pygeos.polygons(((0.1, 0.1), (0.1, 0.2), (0.2, 0.2), (0.2, 0.1))),
     ])
 geometry_collection = GeometryCollection(
     [pygeos.points(51, -1), pygeos.linestrings([(52, -1), (49, 2)])]
 )
 point_z = pygeos.points(1.0, 1.0, 1.0)
+
+
+def box_tpl(x1, y1, x2, y2):
+    return (x2, y1), (x2, y2), (x1, y2), (x1, y1), (x2, y1)
 
 # Y_b
 
@@ -90,14 +94,14 @@ def test_simplify():
 
 
 def test_intersection():
-    poly1, poly2 = box(0, 0, 10, 10), box(5, 5, 20, 20)
+    poly1, poly2 = pygeos.box(0, 0, 10, 10), pygeos.box(5, 5, 20, 20)
     actual = pygeos.intersection(poly1, poly2)
     expected = box(5, 5, 10, 10)
     assert pygeos.equals(actual, expected)
 
 
 def test_union():
-    poly1, poly2 = box(0, 0, 10, 10), box(10, 0, 20, 10)
+    poly1, poly2 = pygeos.box(0, 0, 10, 10), pygeos.box(10, 0, 20, 10)
     actual = pygeos.union(poly1, poly2)
     expected = box(0, 0, 20, 10)
     assert pygeos.equals(actual, expected)
@@ -225,8 +229,8 @@ def test_linestrings_from_xyz():
 
 
 def test_linearrings():
-    actual = pygeos.linearrings([[0, 0], [1, 1], [1, 0], [0, 0]])
-    assert to_wkt(actual) == "LINEARRING (0 0, 1 1, 1 0, 0 0)"
+    actual = pygeos.linearrings(box_tpl(0, 0, 1, 1))
+    assert to_wkt(actual) == "LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)"
 
 
 def test_linearrings_from_xy():
@@ -235,5 +239,68 @@ def test_linearrings_from_xy():
 
 
 def test_linearrings_unclosed():
-    actual = pygeos.linearrings([[0, 0], [1, 1], [1, 0]])
-    assert to_wkt(actual) == "LINEARRING (0 0, 1 1, 1 0, 0 0)"
+    actual = pygeos.linearrings(box_tpl(0, 0, 1, 1)[:-1])
+    assert to_wkt(actual) == "LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)"
+
+
+def test_polygon_from_linearring():
+    actual = pygeos.polygons(pygeos.linearrings(box_tpl(0, 0, 1, 1)))
+    assert to_wkt(actual) == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
+
+
+def test_polygons():
+    actual = pygeos.polygons(box_tpl(0, 0, 1, 1))
+    assert to_wkt(actual) == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
+
+
+def test_polygon_no_hole_list_raises():
+    with pytest.raises(ValueError):
+        pygeos.polygons(box_tpl(0, 0, 10, 10), box_tpl(1, 1, 2, 2))
+
+
+def test_polygon_with_1_hole():
+    actual = pygeos.polygons(box_tpl(0, 0, 10, 10), [box_tpl(1, 1, 2, 2)])
+    assert pygeos.area(actual) == 99.
+
+
+def test_polygon_with_2_holes():
+    actual = pygeos.polygons(
+        box_tpl(0, 0, 10, 10),
+        [box_tpl(1, 1, 2, 2), box_tpl(3, 3, 4, 4)]
+    )
+    assert pygeos.area(actual) == 98.
+
+
+def test_2_polygons_with_same_hole():
+    actual = pygeos.polygons(
+        [box_tpl(0, 0, 10, 10), box_tpl(0, 0, 5, 5)],
+        [box_tpl(1, 1, 2, 2)]
+    )
+    assert pygeos.area(actual).tolist() == [99., 24.]
+
+
+def test_2_polygons_with_2_same_holes():
+    actual = pygeos.polygons(
+        [box_tpl(0, 0, 10, 10), box_tpl(0, 0, 5, 5)],
+        [box_tpl(1, 1, 2, 2), box_tpl(3, 3, 4, 4)]
+    )
+    assert pygeos.area(actual).tolist() == [98., 23.]
+
+
+def test_2_polygons_with_different_holes():
+    actual = pygeos.polygons(
+        [box_tpl(0, 0, 10, 10), box_tpl(0, 0, 5, 5)],
+        [[box_tpl(1, 1, 3, 3)], [box_tpl(1, 1, 2, 2)]]
+    )
+    assert pygeos.area(actual).tolist() == [96., 24.]
+
+
+def test_box():
+    actual = pygeos.box(0, 0, 1, 1)
+    assert to_wkt(actual) == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
+
+
+def test_box_multiple():
+    actual = pygeos.box(0, 0, [1, 2], [1, 2])
+    assert to_wkt(actual[0]) == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
+    assert to_wkt(actual[1]) == "POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))"
