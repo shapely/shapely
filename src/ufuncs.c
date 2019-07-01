@@ -13,8 +13,20 @@
 
 /* This tells Python what methods this module has. */
 static PyMethodDef GeosModule[] = {
+    {NULL, NULL, 0, NULL},
     {NULL, NULL, 0, NULL}
 };
+
+/* This initializes a global GEOS Context */
+static void *geos_context[1] = {NULL};
+
+static void *HandleGEOSError(const char *message, void *userdata) {
+    PyErr_SetString(userdata, message);
+}
+
+static void *HandleGEOSNotice(const char *message, void *userdata) {
+    PyErr_WarnEx(PyExc_Warning, message, 1);
+}
 
 
 static struct PyModuleDef moduledef = {
@@ -59,7 +71,7 @@ static PyObject *GeometryObject_new_from_ptr(
     }
     return (PyObject *) self;
     fail:
-        PyErr_Format(PyExc_RuntimeError, "Geometry initialization failed");
+        PyErr_SetString(PyExc_RuntimeError, "Geometry initialization failed");
         Py_DECREF(self);
         return NULL;
 }
@@ -76,18 +88,18 @@ static PyObject *GeometryObject_new(PyTypeObject *type, PyObject *args,
     if (!PyArg_ParseTuple(args, "l", &arg)) {
         goto fail;
     }
-    context_handle = GEOS_init_r();
+    context_handle = geos_context[0];
     ptr = GEOSGeom_clone_r(context_handle, (GEOSGeometry *) arg);
     if (ptr == NULL) {
-        GEOS_finish_r(context_handle);
+        /* GEOS_finish_r(context_handle); */
         goto fail;
     }
     self = GeometryObject_new_from_ptr(type, context_handle, ptr);
-    GEOS_finish_r(context_handle);
+    /* GEOS_finish_r(context_handle); */
     return (PyObject *) self;
 
     fail:
-        PyErr_Format(PyExc_ValueError, "Please provide a C pointer to a GEOSGeometry");
+        PyErr_SetString(PyExc_ValueError, "Please provide a C pointer to a GEOSGeometry");
         return NULL;
 }
 
@@ -95,9 +107,9 @@ static void GeometryObject_dealloc(GeometryObject *self)
 {
     void *context_handle;
     if (self->ptr != NULL) {
-        context_handle = GEOS_init_r();
+        context_handle = geos_context[0];
         GEOSGeom_destroy_r(context_handle, self->ptr);
-        GEOS_finish_r(context_handle);
+        /* GEOS_finish_r(context_handle); */
     }
     Py_TYPE(self)->tp_free((PyObject *) self);
 }
@@ -124,17 +136,29 @@ static PyTypeObject GeometryType = {
 #define IS_GEOM(GEOM) PyObject_IsInstance((PyObject *) GEOM, (PyObject *) &GeometryType)
 #define RAISE_NO_GEOMETRY_TYPE PyErr_Format(PyExc_TypeError, "One of the arguments is of incorrect type. Please provide only Geometry objects.")
 #define RAISE_EMPTY_GEOMETRY PyErr_Format(PyExc_ValueError, "A geometry object is empty")
-#define RAISE_ILLEGAL_GEOS PyErr_Format(PyExc_RuntimeError, "GEOS Operation failed")
+#define RAISE_ILLEGAL_GEOS  /* PyErr_Format(PyExc_RuntimeError, "GEOS Operation failed") */
+#define CREATE_COORDSEQ(SIZE, NDIM)\
+    void *coord_seq = GEOSCoordSeq_create_r(context_handle, SIZE, NDIM);\
+    if (coord_seq == NULL) {\
+        return;\
+    }
+
+#define SET_COORD(N, DIM)\
+    if (!GEOSCoordSeq_setOrdinate_r(context_handle, coord_seq, N, DIM, coord)) {\
+        GEOSCoordSeq_destroy_r(context_handle, coord_seq);\
+        RAISE_ILLEGAL_GEOS;\
+        return;\
+    }
 
 #define INPUT_Y\
     GeometryObject *in1 = *(GeometryObject **)ip1;\
     if (!IS_GEOM(in1)) {\
         RAISE_NO_GEOMETRY_TYPE;\
-        goto finish;\
+        return;\
     }\
     if (in1->ptr == NULL) {\
         RAISE_EMPTY_GEOMETRY;\
-        goto finish;\
+        return;\
     }
 
 #define INPUT_YY\
@@ -142,29 +166,29 @@ static PyTypeObject GeometryType = {
     GeometryObject *in2 = *(GeometryObject **)ip2;\
     if ((!IS_GEOM(in1)) || (!IS_GEOM(in2))) {\
         RAISE_NO_GEOMETRY_TYPE;\
-        goto finish;\
+        return;\
     }\
     if ((in1->ptr == NULL) || (in2->ptr == NULL)) {\
         RAISE_EMPTY_GEOMETRY;\
-        goto finish;\
+        return;\
     }
 
 #define OUTPUT_b\
     if (! ((ret == 0) || (ret == 1))) {\
         RAISE_ILLEGAL_GEOS;\
-        goto finish;\
+        return;\
     }\
     *(npy_bool *)op1 = ret
 
 #define OUTPUT_Y\
     if (ret_ptr == NULL) {\
         RAISE_ILLEGAL_GEOS;\
-        goto finish;\
+        return;\
     }\
     PyObject *ret = GeometryObject_new_from_ptr(&GeometryType, context_handle, ret_ptr);\
     if (ret == NULL) {\
         PyErr_Format(PyExc_RuntimeError, "Could not instantiate a new Geometry object");\
-        goto finish;\
+        return;\
     }\
     PyObject **out = (PyObject **)op1;\
     Py_XDECREF(*out);\
@@ -183,17 +207,13 @@ static void Y_b_func(char **args, npy_intp *dimensions,
                      npy_intp *steps, void *data)
 {
     FuncGEOS_Y_b *func = (FuncGEOS_Y_b *)data;
-    void *context_handle = GEOS_init_r();
+    void *context_handle = geos_context[0];
 
     UNARY_LOOP {
         INPUT_Y;
         npy_bool ret = func(context_handle, in1->ptr);
         OUTPUT_b;
     }
-
-    finish:
-        GEOS_finish_r(context_handle);
-        return;
 }
 static PyUFuncGenericFunction Y_b_funcs[1] = {&Y_b_func};
 
@@ -215,17 +235,13 @@ static void YY_b_func(char **args, npy_intp *dimensions,
                       npy_intp *steps, void *data)
 {
     FuncGEOS_YY_b *func = (FuncGEOS_YY_b *)data;
-    void *context_handle = GEOS_init_r();
+    void *context_handle = geos_context[0];
 
     BINARY_LOOP {
         INPUT_YY;
         npy_bool ret = func(context_handle, in1->ptr, in2->ptr);
         OUTPUT_b;
     }
-
-    finish:
-        GEOS_finish_r(context_handle);
-        return;
 }
 static PyUFuncGenericFunction YY_b_funcs[1] = {&YY_b_func};
 
@@ -260,17 +276,13 @@ static void Y_Y_func(char **args, npy_intp *dimensions,
                      npy_intp *steps, void *data)
 {
     FuncGEOS_Y_Y *func = (FuncGEOS_Y_Y *)data;
-    void *context_handle = GEOS_init_r();
+    void *context_handle = geos_context[0];
 
     UNARY_LOOP {
         INPUT_Y;
         GEOSGeometry *ret_ptr = func(context_handle, in1->ptr);
         OUTPUT_Y;
     }
-
-    finish:
-        GEOS_finish_r(context_handle);
-        return;
 }
 static PyUFuncGenericFunction Y_Y_funcs[1] = {&Y_Y_func};
 
@@ -285,7 +297,7 @@ static void Yd_Y_func(char **args, npy_intp *dimensions,
                       npy_intp *steps, void *data)
 {
     FuncGEOS_Yd_Y *func = (FuncGEOS_Yd_Y *)data;
-    void *context_handle = GEOS_init_r();
+    void *context_handle = geos_context[0];
 
     BINARY_LOOP {
         INPUT_Y;
@@ -293,10 +305,6 @@ static void Yd_Y_func(char **args, npy_intp *dimensions,
         GEOSGeometry *ret_ptr = func(context_handle, in1->ptr, in2);
         OUTPUT_Y;
     }
-
-    finish:
-        GEOS_finish_r(context_handle);
-        return;
 }
 static PyUFuncGenericFunction Yd_Y_funcs[1] = {&Yd_Y_func};
 
@@ -310,7 +318,7 @@ static void Yi_Y_func(char **args, npy_intp *dimensions,
                       npy_intp *steps, void *data)
 {
     FuncGEOS_Yi_Y *func = (FuncGEOS_Yi_Y *)data;
-    void *context_handle = GEOS_init_r();
+    void *context_handle = geos_context[0];
 
     BINARY_LOOP {
         INPUT_Y;
@@ -318,10 +326,6 @@ static void Yi_Y_func(char **args, npy_intp *dimensions,
         GEOSGeometry *ret_ptr = func(context_handle, in1->ptr, in2);
         OUTPUT_Y;
     }
-
-    finish:
-        GEOS_finish_r(context_handle);
-        return;
 }
 static PyUFuncGenericFunction Yi_Y_funcs[1] = {&Yi_Y_func};
 
@@ -337,17 +341,13 @@ static void YY_Y_func(char **args, npy_intp *dimensions,
                       npy_intp *steps, void *data)
 {
     FuncGEOS_YY_Y *func = (FuncGEOS_YY_Y *)data;
-    void *context_handle = GEOS_init_r();
+    void *context_handle = geos_context[0];
 
     BINARY_LOOP {
         INPUT_YY;
         GEOSGeometry *ret_ptr = func(context_handle, in1->ptr, in2->ptr);
         OUTPUT_Y;
     }
-
-    finish:
-        GEOS_finish_r(context_handle);
-        return;
 }
 static PyUFuncGenericFunction YY_Y_funcs[1] = {&YY_Y_func};
 
@@ -363,19 +363,15 @@ static void Y_d_func(char **args, npy_intp *dimensions,
                      npy_intp *steps, void *data)
 {
     FuncGEOS_Y_d *func = (FuncGEOS_Y_d *)data;
-    void *context_handle = GEOS_init_r();
+    void *context_handle = geos_context[0];
 
     UNARY_LOOP {
         INPUT_Y;
         if (func(context_handle, in1->ptr, (npy_double *) op1) == 0) {
             RAISE_ILLEGAL_GEOS;
-            goto finish;
+            return;
         }
     }
-
-    finish:
-        GEOS_finish_r(context_handle);
-        return;
 }
 static PyUFuncGenericFunction Y_d_funcs[1] = {&Y_d_func};
 
@@ -389,7 +385,7 @@ static void Y_B_func(char **args, npy_intp *dimensions,
                      npy_intp *steps, void *data)
 {
     FuncGEOS_Y_B *func = (FuncGEOS_Y_B *)data;
-    void *context_handle = GEOS_init_r();
+    void *context_handle = geos_context[0];
     int ret;
 
     UNARY_LOOP {
@@ -397,14 +393,10 @@ static void Y_B_func(char **args, npy_intp *dimensions,
         ret = func(context_handle, in1->ptr);
         if ((ret < 0) | (ret > NPY_MAX_UBYTE)) {
             RAISE_ILLEGAL_GEOS;
-            goto finish;
+            return;
         }
         *(npy_ubyte *)op1 = ret;
     }
-
-    finish:
-        GEOS_finish_r(context_handle);
-        return;
 }
 static PyUFuncGenericFunction Y_B_funcs[1] = {&Y_B_func};
 
@@ -420,7 +412,7 @@ static void Y_i_func(char **args, npy_intp *dimensions,
                      npy_intp *steps, void *data)
 {
     FuncGEOS_Y_i *func = (FuncGEOS_Y_i *)data;
-    void *context_handle = GEOS_init_r();
+    void *context_handle = geos_context[0];
     int ret;
 
     UNARY_LOOP {
@@ -428,14 +420,10 @@ static void Y_i_func(char **args, npy_intp *dimensions,
         ret = func(context_handle, in1->ptr);
         if ((ret < 0) | (ret > NPY_MAX_INT)) {
             RAISE_ILLEGAL_GEOS;
-            goto finish;
+            return;
         }
         *(npy_int *)op1 = ret;
     }
-
-    finish:
-        GEOS_finish_r(context_handle);
-        return;
 }
 static PyUFuncGenericFunction Y_i_funcs[1] = {&Y_i_func};
 
@@ -448,19 +436,15 @@ static void YY_d_func(char **args, npy_intp *dimensions,
                       npy_intp *steps, void *data)
 {
     FuncGEOS_YY_d *func = (FuncGEOS_YY_d *)data;
-    void *context_handle = GEOS_init_r();
+    void *context_handle = geos_context[0];
 
     BINARY_LOOP {
         INPUT_YY;
         if (func(context_handle, in1->ptr, in2->ptr, (double *) op1) == 0) {
             RAISE_ILLEGAL_GEOS;
-            goto finish;
+            return;
         }
     }
-
-    finish:
-        GEOS_finish_r(context_handle);
-        return;
 }
 static PyUFuncGenericFunction YY_d_funcs[1] = {&YY_d_func};
 
@@ -473,7 +457,7 @@ static void YY_d_2_func(char **args, npy_intp *dimensions,
                         npy_intp *steps, void *data)
 {
     FuncGEOS_YY_d_2 *func = (FuncGEOS_YY_d_2 *)data;
-    void *context_handle = GEOS_init_r();
+    void *context_handle = geos_context[0];
     double ret;
 
     BINARY_LOOP {
@@ -481,14 +465,10 @@ static void YY_d_2_func(char **args, npy_intp *dimensions,
         ret = func(context_handle, in1->ptr, in2->ptr);
         if (ret == -1.0) {
             RAISE_ILLEGAL_GEOS;
-            goto finish;
+            return;
         }
         *(npy_double *) op1 = ret;
     }
-
-    finish:
-        GEOS_finish_r(context_handle);
-        return;
 }
 static PyUFuncGenericFunction YY_d_2_funcs[1] = {&YY_d_2_func};
 
@@ -498,7 +478,7 @@ static char buffer_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_INT, NPY_OBJECT};
 static void buffer_func(char **args, npy_intp *dimensions,
                         npy_intp *steps, void *data)
 {
-    void *context_handle = GEOS_init_r();
+    void *context_handle = geos_context[0];
 
     TERNARY_LOOP {
         INPUT_Y;
@@ -507,10 +487,6 @@ static void buffer_func(char **args, npy_intp *dimensions,
         GEOSGeometry *ret_ptr = GEOSBuffer_r(context_handle, in1->ptr, in2, in3);
         OUTPUT_Y;
     }
-
-    finish:
-        GEOS_finish_r(context_handle);
-        return;
 }
 static PyUFuncGenericFunction buffer_funcs[1] = {&buffer_func};
 
@@ -518,7 +494,7 @@ static char snap_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_OBJECT};
 static void snap_func(char **args, npy_intp *dimensions,
                       npy_intp *steps, void *data)
 {
-    void *context_handle = GEOS_init_r();
+    void *context_handle = geos_context[0];
 
     TERNARY_LOOP {
         INPUT_YY;
@@ -526,10 +502,6 @@ static void snap_func(char **args, npy_intp *dimensions,
         GEOSGeometry *ret_ptr = GEOSSnap_r(context_handle, in1->ptr, in2->ptr, in3);
         OUTPUT_Y;
     }
-
-    finish:
-        GEOS_finish_r(context_handle);
-        return;
 }
 static PyUFuncGenericFunction snap_funcs[1] = {&snap_func};
 
@@ -537,7 +509,7 @@ static char equals_exact_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_BO
 static void equals_exact_func(char **args, npy_intp *dimensions,
                       npy_intp *steps, void *data)
 {
-    void *context_handle = GEOS_init_r();
+    void *context_handle = geos_context[0];
 
     TERNARY_LOOP {
         INPUT_YY;
@@ -545,44 +517,67 @@ static void equals_exact_func(char **args, npy_intp *dimensions,
         npy_bool ret = GEOSEqualsExact_r(context_handle, in1->ptr, in2->ptr, in3);
         OUTPUT_b;
     }
-
-    finish:
-        GEOS_finish_r(context_handle);
-        return;
 }
 static PyUFuncGenericFunction equals_exact_funcs[1] = {&equals_exact_func};
 
-/* define construction functions */
+/* define double -> geometry construction functions */
 
 static char points_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
 static void points_func(char **args, npy_intp *dimensions,
                         npy_intp *steps, void *data)
 {
-    void *context_handle = GEOS_init_r();
-    char *ip1 = args[0], *op1 = args[1], *cp1 = args[0];
-    npy_intp is1 = steps[0], os1 = steps[1], cs1 = steps[2];
-    npy_intp n = dimensions[0], n_c1 = dimensions[1];
-    npy_intp i, i_c1;
-    for(i = 0; i < n; i++, ip1 += is1, op1 += os1) {
-        void *coord_seq = GEOSCoordSeq_create_r(context_handle, 1, n_c1);
-        cp1 = ip1;
-        for(i_c1 = 0; i_c1 < n_c1; i_c1++, cp1 += cs1) {
+    void *context_handle = geos_context[0];
+    SINGLE_COREDIM_LOOP_OUTER {
+        CREATE_COORDSEQ(1, n_c1);
+        SINGLE_COREDIM_LOOP_INNER {
             double coord = *(double *) cp1;
-            if (!GEOSCoordSeq_setOrdinate_r(context_handle, coord_seq, 0, i_c1, coord)) {
-                GEOSCoordSeq_destroy_r(context_handle, coord_seq);
-                RAISE_ILLEGAL_GEOS;
-                goto finish;
-            }
+            SET_COORD(0, i_c1);
         }
         GEOSGeometry *ret_ptr = GEOSGeom_createPoint_r(context_handle, coord_seq);
         OUTPUT_Y;
     }
-
-    finish:
-        GEOS_finish_r(context_handle);
-        return;
 }
 static PyUFuncGenericFunction points_funcs[1] = {&points_func};
+
+
+static char linestrings_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
+static void linestrings_func(char **args, npy_intp *dimensions,
+                              npy_intp *steps, void *data)
+{
+    void *context_handle = geos_context[0];
+    DOUBLE_COREDIM_LOOP_OUTER {
+        CREATE_COORDSEQ(n_c1, n_c2);
+        DOUBLE_COREDIM_LOOP_INNER_1 {
+            DOUBLE_COREDIM_LOOP_INNER_2 {
+                double coord = *(double *) cp2;
+                SET_COORD(i_c1, i_c2);
+            }
+        }
+        GEOSGeometry *ret_ptr = GEOSGeom_createLineString_r(context_handle, coord_seq);
+        OUTPUT_Y;
+    }
+}
+static PyUFuncGenericFunction linestrings_funcs[1] = {&linestrings_func};
+
+
+static char linearrings_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
+static void linearrings_func(char **args, npy_intp *dimensions,
+                             npy_intp *steps, void *data)
+{
+    void *context_handle = geos_context[0];
+    DOUBLE_COREDIM_LOOP_OUTER {
+        CREATE_COORDSEQ(n_c1, n_c2);
+        DOUBLE_COREDIM_LOOP_INNER_1 {
+            DOUBLE_COREDIM_LOOP_INNER_2 {
+                double coord = *(double *) cp2;
+                SET_COORD(i_c1, i_c2);
+            }
+        }
+        GEOSGeometry *ret_ptr = GEOSGeom_createLinearRing_r(context_handle, coord_seq);
+        OUTPUT_Y;
+    }
+}
+static PyUFuncGenericFunction linearrings_funcs[1] = {&linearrings_func};
 
 /*
 TODO custom buffer functions
@@ -646,6 +641,10 @@ TODO GGd -> d function GEOSHausdorffDistanceDensify_r
     ufunc = PyUFunc_FromFuncAndData(NAME ##_funcs, null_data, NAME ##_dtypes, 1, N_IN, 1, PyUFunc_None, # NAME, "", 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
+#define DEFINE_GENERALIZED(NAME, SIGNATURE)\
+    ufunc = PyUFunc_FromFuncAndDataAndSignature(NAME ##_funcs, null_data, NAME ##_dtypes, 1, 1, 1, PyUFunc_None, # NAME, "", 0, SIGNATURE);\
+    PyDict_SetItemString(d, # NAME, ufunc)
+
 
 PyMODINIT_FUNC PyInit_ufuncs(void)
 {
@@ -664,6 +663,13 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
 
     import_array();
     import_umath();
+
+    void *context_handle = GEOS_init_r();
+    PyObject* GEOSException = PyErr_NewException("pygeos.GEOSException", NULL, NULL);
+    PyModule_AddObject(m, "GEOSException", GEOSException);
+    GEOSContext_setErrorMessageHandler_r(context_handle, HandleGEOSError, GEOSException);
+    GEOSContext_setNoticeMessageHandler_r(context_handle, HandleGEOSNotice, NULL);
+    geos_context[0] = context_handle;  /* for global access */
 
     DEFINE_Y_b (is_empty);
     DEFINE_Y_b (is_simple);
@@ -737,10 +743,9 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_CUSTOM (buffer, 3);
     DEFINE_CUSTOM (snap, 3);
     DEFINE_CUSTOM (equals_exact, 3);
-
-
-    ufunc = PyUFunc_FromFuncAndDataAndSignature(points_funcs, null_data, points_dtypes, 1, 1, 1, PyUFunc_None, "points", "", 0, "(d)->()");
-    PyDict_SetItemString(d, "points", ufunc);
+    DEFINE_GENERALIZED(points, "(d)->()");
+    DEFINE_GENERALIZED(linestrings, "(i, d)->()");
+    DEFINE_GENERALIZED(linearrings, "(i, d)->()");
 
     Py_DECREF(ufunc);
     return m;

@@ -1,15 +1,15 @@
 import numpy as np
 import pygeos
 from pygeos import \
-    LineString, LinearRing, Polygon, MultiPoint, MultiLineString,\
-    MultiPolygon, GeometryCollection, box
+    Polygon, MultiPoint, MultiLineString,\
+    MultiPolygon, GeometryCollection, box, to_wkt
 import pytest
 
 point_polygon_testdata = pygeos.points(np.arange(6), np.arange(6)), box(2, 2, 4, 4)
 
 point = pygeos.points(2, 2)
-line_string = LineString([[0, 0], [1, 0], [1, 1]])
-linear_ring = LinearRing(((0, 0), (0, 1), (1, 1), (1, 0)))
+line_string = pygeos.linestrings([[0, 0], [1, 0], [1, 1]])
+linear_ring = pygeos.linearrings(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
 polygon = Polygon(((0., 0.), (0., 2.), (2., 2.), (2., 0.), (0., 0.)))
 multi_point = MultiPoint([[0.0, 0.0], [1.0, 2.0]])
 multi_line_string = MultiLineString([[[0.0, 0.0], [1.0, 2.0]]])
@@ -18,7 +18,7 @@ multi_polygon = MultiPolygon([
         Polygon(((0.1, 0.1), (0.1, 0.2), (0.2, 0.2), (0.2, 0.1))),
     ])
 geometry_collection = GeometryCollection(
-    [pygeos.points(51, -1), LineString([(52, -1), (49, 2)])]
+    [pygeos.points(51, -1), pygeos.linestrings([(52, -1), (49, 2)])]
 )
 point_z = pygeos.points(1.0, 1.0, 1.0)
 
@@ -82,7 +82,7 @@ def test_get_point_n():
 
 
 def test_simplify():
-    line = LineString([[0, 0], [0.1, 1], [0, 2]])
+    line = pygeos.linestrings([[0, 0], [0.1, 1], [0, 2]])
     actual = pygeos.simplify(line, [0, 1.])
     assert pygeos.get_num_points(actual).tolist() == [3, 2]
 
@@ -143,7 +143,7 @@ def test_distance():
 
 
 def test_project():
-    line = LineString([[0, 0], [1, 1], [2, 2]])
+    line = pygeos.linestrings([[0, 0], [1, 1], [2, 2]])
     points = pygeos.points([1, 3], [0, 3])
     actual = pygeos.project(line, points)
     expected = [0.5 * 2**0.5, 2 * 2**0.5]
@@ -160,7 +160,7 @@ def test_buffer():
 
 
 def test_snap():
-    line = LineString([[0, 0], [1, 0], [2, 0]])
+    line = pygeos.linestrings([[0, 0], [1, 0], [2, 0]])
     points = pygeos.points([0, 1], [1, 0.1])
     actual = pygeos.snap(points, line, 0.5)
     expected = pygeos.points([0, 1], [1, 0])
@@ -177,21 +177,58 @@ def test_equals_exact():
 
 # construction
 
-def test_construct_from_tuples():
+def test_points_from_coords():
     actual = pygeos.points([[0, 0], [2, 2]])
-    assert pygeos.equals(actual[1], point)
+    assert to_wkt(actual[0]) == "POINT (0 0)"
+    assert to_wkt(actual[1]) == "POINT (2 2)"
 
 
-def test_construct_point():
-    actual = pygeos.points(2, [0, 1, 2])
-    assert pygeos.equals(actual[2], point)
+def test_points_from_xy():
+    actual = pygeos.points(2, [0, 1])
+    assert to_wkt(actual[0]) == "POINT (2 0)"
+    assert to_wkt(actual[1]) == "POINT (2 1)"
 
 
-def test_construct_point_z():
-    actual = pygeos.points(1, 1, [0, 1, 2])
-    assert pygeos.equals(actual[1], point_z)
+def test_points_from_xyz():
+    actual = pygeos.points(1, 1, [0, 1])
+    assert to_wkt(actual[0]) == "POINT Z (1 1 0)"
+    assert to_wkt(actual[1]) == "POINT Z (1 1 1)"
 
 
-def test_construct_point_invalid_dim():
-    with pytest.raises(RuntimeError):
+def test_points_invalid_ndim():
+    with pytest.raises(pygeos.GEOSException):
         pygeos.points([0, 1, 2, 3])
+
+
+def test_linestrings_from_coords():
+    actual = pygeos.linestrings([[[0, 0], [1, 1]], [[0, 0], [2, 2]]])
+    assert to_wkt(actual[0]) == "LINESTRING (0 0, 1 1)"
+    assert to_wkt(actual[1]) == "LINESTRING (0 0, 2 2)"
+
+
+def test_linestrings_from_xy():
+    actual = pygeos.linestrings([0, 1], [2, 3])
+    assert to_wkt(actual) == "LINESTRING (0 2, 1 3)"
+
+
+def test_linestrings_from_xy_broadcast():
+    x = [0, 1]  # the same X coordinates for both linestrings
+    y = [2, 3], [4, 5]  # each linestring has a different set of Y coordinates
+    actual = pygeos.linestrings(x, y)
+    assert to_wkt(actual[0]) == "LINESTRING (0 2, 1 3)"
+    assert to_wkt(actual[1]) == "LINESTRING (0 4, 1 5)"
+
+
+def test_linestrings_from_xyz():
+    actual = pygeos.linestrings([0, 1], [2, 3], 0)
+    assert to_wkt(actual) == "LINESTRING Z (0 2 0, 1 3 0)"
+
+
+def test_linearrings_from_coords():
+    actual = pygeos.linearrings([[0, 0], [1, 1], [1, 0], [0, 0]])
+    assert to_wkt(actual) == "LINEARRING (0 0, 1 1, 1 0, 0 0)"
+
+
+def test_linearrings_unclosed():
+    with pytest.raises(pygeos.GEOSException):
+        pygeos.linearrings([[0, 0], [1, 1], [1, 0]])
