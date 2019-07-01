@@ -1,7 +1,13 @@
-from functools import wraps
-from .ufuncs import GEOSGeometry
-from .ufuncs import *  # NoQA
 from shapely import geometry as sg
+
+GEOS_POINT = 0
+GEOS_LINESTRING = 1
+GEOS_LINEARRING = 2
+GEOS_POLYGON = 3
+GEOS_MULTIPOINT = 4
+GEOS_MULTILINESTRING = 5
+GEOS_MULTIPOLYGON = 6
+GEOS_GEOMETRYCOLLECTION = 7
 
 
 def to_shapely(obj):
@@ -10,29 +16,76 @@ def to_shapely(obj):
     return shapely_geometry
 
 
-def to_shapely_recurse(obj):
-    if isinstance(obj, GEOSGeometry):
-        return to_shapely(obj)
-    elif hasattr(obj, '__iter__'):
-        return [to_shapely_recurse(x) for x in obj]
-    else:
-        return obj
+def to_wkt(obj):
+    return to_shapely(obj).wkt
 
 
-def wrap_shapely_constructor(func):
-    @wraps(func)
-    def f(*args, **kwargs):
-        geom = func(*to_shapely_recurse(args), **kwargs)
-        return GEOSGeometry(sg.base.geos_geom_from_py(geom)[0])
-    return f
+def to_wkb(obj):
+    return to_shapely(obj).wkb
 
 
-box = wrap_shapely_constructor(sg.box)
-Point = wrap_shapely_constructor(sg.Point)
-LineString = wrap_shapely_constructor(sg.LineString)
-LinearRing = wrap_shapely_constructor(sg.LinearRing)
-Polygon = wrap_shapely_constructor(sg.Polygon)
-MultiPoint = wrap_shapely_constructor(sg.MultiPoint)
-MultiLineString = wrap_shapely_constructor(sg.MultiLineString)
-MultiPolygon = wrap_shapely_constructor(sg.MultiPolygon)
-GeometryCollection = wrap_shapely_constructor(sg.GeometryCollection)
+from .ufuncs import GEOSGeometry  # NOQA
+from .ufuncs import GEOSException  # NOQA
+from .ufuncs import is_empty  # NOQA
+from .ufuncs import is_simple  # NOQA
+from .ufuncs import is_ring  # NOQA
+from .ufuncs import has_z  # NOQA
+from .ufuncs import is_closed  # NOQA
+from .ufuncs import is_valid  # NOQA
+from .ufuncs import disjoint  # NOQA
+from .ufuncs import touches  # NOQA
+from .ufuncs import intersects  # NOQA
+from .ufuncs import crosses  # NOQA
+from .ufuncs import within  # NOQA
+from .ufuncs import contains  # NOQA
+from .ufuncs import overlaps  # NOQA
+from .ufuncs import equals  # NOQA
+from .ufuncs import covers  # NOQA
+from .ufuncs import covered_by  # NOQA
+from .ufuncs import clone  # NOQA
+from .ufuncs import envelope  # NOQA
+from .ufuncs import convex_hull  # NOQA
+from .ufuncs import boundary  # NOQA
+from .ufuncs import unary_union  # NOQA
+from .ufuncs import point_on_surface  # NOQA
+from .ufuncs import get_centroid  # NOQA
+from .ufuncs import line_merge  # NOQA
+from .ufuncs import extract_unique_points  # NOQA
+from .ufuncs import get_start_point  # NOQA
+from .ufuncs import get_end_point  # NOQA
+from .ufuncs import get_exterior_ring  # NOQA
+from .ufuncs import normalize  # NOQA
+from .ufuncs import get_interior_ring_n  # NOQA
+from .ufuncs import get_point_n  # NOQA
+from .ufuncs import get_geometry_n  # NOQA
+from .ufuncs import interpolate  # NOQA
+from .ufuncs import interpolate_normalized  # NOQA
+from .ufuncs import simplify  # NOQA
+from .ufuncs import topology_preserve_simplify  # NOQA
+from .ufuncs import intersection  # NOQA
+from .ufuncs import difference  # NOQA
+from .ufuncs import symmetric_difference  # NOQA
+from .ufuncs import union  # NOQA
+from .ufuncs import shared_paths  # NOQA
+from .ufuncs import get_x  # NOQA
+from .ufuncs import get_y  # NOQA
+from .ufuncs import area  # NOQA
+from .ufuncs import length  # NOQA
+from .ufuncs import get_length  # NOQA
+from .ufuncs import geom_type_id  # NOQA
+from .ufuncs import get_dimensions  # NOQA
+from .ufuncs import get_coordinate_dimensions  # NOQA
+from .ufuncs import get_srid  # NOQA
+from .ufuncs import get_num_geometries  # NOQA
+from .ufuncs import get_num_interior_rings  # NOQA
+from .ufuncs import get_num_points  # NOQA
+from .ufuncs import get_num_coordinates  # NOQA
+from .ufuncs import distance  # NOQA
+from .ufuncs import hausdorff_distance  # NOQA
+from .ufuncs import project  # NOQA
+from .ufuncs import project_normalized  # NOQA
+from .ufuncs import buffer  # NOQA
+from .ufuncs import snap  # NOQA
+from .ufuncs import equals_exact  # NOQA
+from .construction import points, linestrings, linearrings, polygons, box, \
+    multipoints, multilinestrings, multipolygons, geometrycollections  # NOQA
