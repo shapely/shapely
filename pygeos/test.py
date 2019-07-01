@@ -190,3 +190,8 @@ def test_construct_point():
 def test_construct_point_z():
     actual = pygeos.points(1, 1, [0, 1, 2])
     assert pygeos.equals(actual[1], point_z)
+
+
+def test_construct_point_invalid_dim():
+    with pytest.raises(RuntimeError):
+        pygeos.points([0, 1, 2, 3])
