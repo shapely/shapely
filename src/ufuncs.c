@@ -201,7 +201,7 @@ static PyTypeObject GeometryType = {
     *out = PyFloat_FromDouble(NPY_NAN)
 
 
-/* Define the geom -> bool functions (YY_b) */
+/* Define the geom -> bool functions (Y_b) */
 static void *is_empty_data[1] = {GEOSisEmpty_r};
 static void *is_simple_data[1] = {GEOSisSimple_r};
 static void *is_ring_data[1] = {GEOSisRing_r};
@@ -217,6 +217,14 @@ static void Y_b_func(char **args, npy_intp *dimensions,
     void *context_handle = geos_context[0];
 
     UNARY_LOOP {
+        if GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) {
+            if (func == GEOSisEmpty_r) {
+                *(npy_bool *)op1 = 1;
+            } else {
+                *(npy_bool *)op1 = 0;
+            }
+            continue;
+        }
         INPUT_Y;
         npy_bool ret = func(context_handle, in1->ptr);
         OUTPUT_b;
@@ -245,6 +253,14 @@ static void YY_b_func(char **args, npy_intp *dimensions,
     void *context_handle = geos_context[0];
 
     BINARY_LOOP {
+        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | GEOM_ISNAN_OR_NONE(*(PyObject **)ip2)) {
+            if (func == GEOSDisjoint_r) {
+                *(npy_bool *)op1 = 1;
+            } else {
+                *(npy_bool *)op1 = 0;
+            }
+            continue;
+        }
         INPUT_YY;
         npy_bool ret = func(context_handle, in1->ptr, in2->ptr);
         OUTPUT_b;

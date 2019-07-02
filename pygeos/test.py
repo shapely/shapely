@@ -21,6 +21,28 @@ geometry_collection = pygeos.geometrycollections(
 )
 point_z = pygeos.points(1.0, 1.0, 1.0)
 
+UNARY_PREDICATES = (
+    pygeos.is_empty,
+    pygeos.is_simple,
+    pygeos.is_ring,
+    pygeos.has_z,
+    pygeos.is_closed,
+    pygeos.is_valid,
+)
+
+BINARY_PREDICATES = (
+    pygeos.disjoint,
+    pygeos.touches,
+    pygeos.intersects,
+    pygeos.crosses,
+    pygeos.within,
+    pygeos.contains,
+    pygeos.overlaps,
+    pygeos.equals,
+    pygeos.covers,
+    pygeos.covered_by,
+)
+
 
 def box_tpl(x1, y1, x2, y2):
     return (x2, y1), (x2, y2), (x1, y2), (x1, y1), (x2, y1)
@@ -307,36 +329,40 @@ def test_box_multiple():
 
 # NaN / None handling
 
-def test_nan_geometry_raises_valueerror():
-    with pytest.raises(ValueError):
-        pygeos.is_valid(np.array([point, np.nan]))
+def test_Y_b_nan():
+    for func in UNARY_PREDICATES:
+        actual = func(np.array([np.nan, None]))
+        if func is pygeos.is_empty:
+            assert actual.all()
+        else:
+            assert (~actual).all()
 
+def test_YY_b_nan():
+    for func in BINARY_PREDICATES:
+        actual = func(
+            np.array([point, np.nan, np.nan, point, None, None]),
+            np.array([np.nan, point, np.nan, None, point, None])
+        )
+        if func is pygeos.disjoint:
+            assert actual.all()
+        else:
+            assert (~actual).all()
 
-def test_none_geometry_raises_valueerror():
-    with pytest.raises(ValueError):
-        pygeos.is_valid(np.array([point, None]))
-
-
-def test_no_geometry_type_raises_typeerror():
-    with pytest.raises(TypeError):
-        pygeos.is_valid(np.array([point, 'abc']))
-
-
-def test_Y_Y_propagates_nan():
+def test_Y_Y_nan():
     actual = pygeos.clone(np.array([point, np.nan, None]))
     assert pygeos.equals(actual[0], point)
     assert np.isnan(actual[1])
     assert np.isnan(actual[2])
 
 
-def test_Y_d_propagates_nan():
+def test_Y_d_nan():
     actual = pygeos.area(np.array([polygon, np.nan, None]))
     assert actual[0] == pygeos.area(polygon)
     assert np.isnan(actual[1])
     assert np.isnan(actual[2])
 
 
-def test_YY_Y_propagates_nan():
+def test_YY_Y_nan():
     actual = pygeos.intersection(
         np.array([point, np.nan, np.nan, point, None, None, point]),
         np.array([np.nan, point, np.nan, None, point, None, point])
@@ -345,7 +371,7 @@ def test_YY_Y_propagates_nan():
     assert np.isnan(actual[:-1].astype(np.float)).all()
 
 
-def test_Yd_Y_propagates_nan():
+def test_Yd_Y_nan():
     actual = pygeos.simplify(
         np.array([point, np.nan, np.nan, None, point]),
         np.array([np.nan, 1.0, np.nan, 1.0, 1.0])
@@ -354,7 +380,7 @@ def test_Yd_Y_propagates_nan():
     assert np.isnan(actual[:-1].astype(np.float)).all()
 
 
-def test_YY_d_propagates_nan():
+def test_YY_d_nan():
     actual = pygeos.distance(
         np.array([point, np.nan, np.nan, point, None, None, point]),
         np.array([np.nan, point, np.nan, None, point, None, point])
