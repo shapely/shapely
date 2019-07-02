@@ -147,9 +147,15 @@ static PyTypeObject GeometryType = {
         return;\
     }
 
+#define GEOM_ISNAN_OR_NONE(GEOM) (npy_isnan(PyFloat_AS_DOUBLE((PyObject *) GEOM)) | ((PyObject *) GEOM == Py_None))
+
 #define CHECK_GEOM(GEOM)\
     if (!PyObject_IsInstance((PyObject *) GEOM, (PyObject *) &GeometryType)) {\
-        PyErr_Format(PyExc_TypeError, "One of the arguments is of incorrect type. Please provide only Geometry objects.");\
+        if (GEOM_ISNAN_OR_NONE(GEOM)) {\
+            PyErr_Format(PyExc_ValueError, "NaN and None cannot be handled by this function.");\
+        } else { \
+            PyErr_Format(PyExc_TypeError, "One of the arguments is of incorrect type. Please provide only Geometry objects.");\
+        }\
         return;\
     }\
     if (GEOM->ptr == NULL) {\
@@ -188,6 +194,12 @@ static PyTypeObject GeometryType = {
     PyObject **out = (PyObject **)op1;\
     Py_XDECREF(*out);\
     *out = ret
+
+#define OUTPUT_Y_NAN\
+    PyObject **out = (PyObject **)op1;\
+    Py_XDECREF(*out);\
+    *out = PyFloat_FromDouble(NPY_NAN)
+
 
 /* Define the geom -> bool functions (YY_b) */
 static void *is_empty_data[1] = {GEOSisEmpty_r};
@@ -283,6 +295,10 @@ static void Y_Y_func(char **args, npy_intp *dimensions,
     void *context_handle = geos_context[0];
 
     UNARY_LOOP {
+        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1)) {
+            OUTPUT_Y_NAN;
+            continue;
+        }
         INPUT_Y;
         GEOSGeometry *ret_ptr = func(context_handle, in1->ptr);
         OUTPUT_Y;
@@ -304,15 +320,19 @@ static void Yd_Y_func(char **args, npy_intp *dimensions,
     void *context_handle = geos_context[0];
 
     BINARY_LOOP {
-        INPUT_Y;
         double in2 = *(double *)ip2;
+        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | npy_isnan(in2)) {
+            OUTPUT_Y_NAN;
+            continue;
+        }
+        INPUT_Y;
         GEOSGeometry *ret_ptr = func(context_handle, in1->ptr, in2);
         OUTPUT_Y;
     }
 }
 static PyUFuncGenericFunction Yd_Y_funcs[1] = {&Yd_Y_func};
 
-/* Define the geom, int -> geom functions (Yl_Y) */
+/* Define the geom, int -> geom functions (Yi_Y) */
 static void *get_interior_ring_n_data[1] = {GEOSGetInteriorRingN_r};
 static void *get_point_n_data[1] = {GEOSGeomGetPointN_r};
 static void *get_geometry_n_data[1] = {GEOSGetGeometryN_r};
@@ -325,6 +345,10 @@ static void Yi_Y_func(char **args, npy_intp *dimensions,
     void *context_handle = geos_context[0];
 
     BINARY_LOOP {
+        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1)) {
+            OUTPUT_Y_NAN;
+            continue;
+        }
         INPUT_Y;
         int in2 = *(int *)ip2;
         GEOSGeometry *ret_ptr = func(context_handle, in1->ptr, in2);
@@ -348,6 +372,10 @@ static void YY_Y_func(char **args, npy_intp *dimensions,
     void *context_handle = geos_context[0];
 
     BINARY_LOOP {
+        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | GEOM_ISNAN_OR_NONE(*(PyObject **)ip2)) {
+            OUTPUT_Y_NAN;
+            continue;
+        }
         INPUT_YY;
         GEOSGeometry *ret_ptr = func(context_handle, in1->ptr, in2->ptr);
         OUTPUT_Y;
@@ -370,6 +398,10 @@ static void Y_d_func(char **args, npy_intp *dimensions,
     void *context_handle = geos_context[0];
 
     UNARY_LOOP {
+        if GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) {
+            *(npy_double *) op1 = NPY_NAN;
+            continue;
+        }
         INPUT_Y;
         if (func(context_handle, in1->ptr, (npy_double *) op1) == 0) {
             RAISE_ILLEGAL_GEOS;
@@ -443,6 +475,10 @@ static void YY_d_func(char **args, npy_intp *dimensions,
     void *context_handle = geos_context[0];
 
     BINARY_LOOP {
+        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | GEOM_ISNAN_OR_NONE(*(PyObject **)ip2)) {
+            *(npy_double *) op1 = NPY_NAN;
+            continue;
+        }
         INPUT_YY;
         if (func(context_handle, in1->ptr, in2->ptr, (double *) op1) == 0) {
             RAISE_ILLEGAL_GEOS;
@@ -465,6 +501,10 @@ static void YY_d_2_func(char **args, npy_intp *dimensions,
     double ret;
 
     BINARY_LOOP {
+        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | GEOM_ISNAN_OR_NONE(*(PyObject **)ip2)) {
+            *(npy_double *) op1 = NPY_NAN;
+            continue;
+        }
         INPUT_YY;
         ret = func(context_handle, in1->ptr, in2->ptr);
         if (ret == -1.0) {

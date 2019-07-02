@@ -303,3 +303,61 @@ def test_box_multiple():
     actual = pygeos.box(0, 0, [1, 2], [1, 2])
     assert to_wkt(actual[0]) == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
     assert to_wkt(actual[1]) == "POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))"
+
+
+# NaN / None handling
+
+def test_nan_geometry_raises_valueerror():
+    with pytest.raises(ValueError):
+        pygeos.is_valid(np.array([point, np.nan]))
+
+
+def test_none_geometry_raises_valueerror():
+    with pytest.raises(ValueError):
+        pygeos.is_valid(np.array([point, None]))
+
+
+def test_no_geometry_type_raises_typeerror():
+    with pytest.raises(TypeError):
+        pygeos.is_valid(np.array([point, 'abc']))
+
+
+def test_Y_Y_propagates_nan():
+    actual = pygeos.clone(np.array([point, np.nan, None]))
+    assert pygeos.equals(actual[0], point)
+    assert np.isnan(actual[1])
+    assert np.isnan(actual[2])
+
+
+def test_Y_d_propagates_nan():
+    actual = pygeos.area(np.array([polygon, np.nan, None]))
+    assert actual[0] == pygeos.area(polygon)
+    assert np.isnan(actual[1])
+    assert np.isnan(actual[2])
+
+
+def test_YY_Y_propagates_nan():
+    actual = pygeos.intersection(
+        np.array([point, np.nan, np.nan, point, None, None, point]),
+        np.array([np.nan, point, np.nan, None, point, None, point])
+    )
+    assert pygeos.equals(actual[-1], point)
+    assert np.isnan(actual[:-1].astype(np.float)).all()
+
+
+def test_Yd_Y_propagates_nan():
+    actual = pygeos.simplify(
+        np.array([point, np.nan, np.nan, None, point]),
+        np.array([np.nan, 1.0, np.nan, 1.0, 1.0])
+    )
+    assert pygeos.equals(actual[-1], point)
+    assert np.isnan(actual[:-1].astype(np.float)).all()
+
+
+def test_YY_d_propagates_nan():
+    actual = pygeos.distance(
+        np.array([point, np.nan, np.nan, point, None, None, point]),
+        np.array([np.nan, point, np.nan, None, point, None, point])
+    )
+    assert actual[-1] == 0.
+    assert np.isnan(actual[:-1].astype(np.float)).all()
