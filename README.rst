@@ -2,11 +2,11 @@
 Shapely
 =======
 
-.. image:: https://travis-ci.org/Toblerity/Shapely.png?branch=master
+.. image:: https://travis-ci.org/Toblerity/Shapely.png?branch=maint-1.6
    :target: https://travis-ci.org/Toblerity/Shapely
 
-.. image:: https://coveralls.io/repos/github/Toblerity/Shapely/badge.svg?branch=master
-   :target: https://coveralls.io/github/Toblerity/Shapely?branch=master
+.. image:: https://coveralls.io/repos/github/Toblerity/Shapely/badge.svg?branch=maint-1.6
+   :target: https://coveralls.io/github/Toblerity/Shapely?branch=maint-1.6
 
 Manipulation and analysis of geometric objects in the Cartesian plane.
 
