@@ -23,6 +23,7 @@ before_install:
   - if [[ $TRAVIS_PYTHON_VERSION == "2.6" ]]; then pip install unittest2; fi
   - pip install pip setuptools --upgrade
   - pip install --install-option="--no-cython-compile" cython
+  - pip install --upgrade coveralls pytest-cov pytest>=3.8
 
 install:
   - pip install -e .[test]
