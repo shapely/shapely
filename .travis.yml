@@ -1,7 +1,6 @@
 language: python
-cache:
-  - pip
-  - apt
+cache: pip
+dist: xenial
 
 matrix:
   include:
@@ -38,20 +37,14 @@ matrix:
         - SPEEDUPS=0
         - NUMPY=0
     - python: "3.7"
-      sudo: required
-      dist: xenial
       env:
         - SPEEDUPS=1
         - NUMPY=1
     - python: "3.7"
-      sudo: required
-      dist: xenial
       env:
         - SPEEDUPS=0
         - NUMPY=1
     - python: "3.7"
-      sudo: required
-      dist: xenial
       env:
         - SPEEDUPS=0
         - NUMPY=0
