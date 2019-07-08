@@ -14,9 +14,8 @@ n-dimensional arrays in an element-by-element fashion, supporting array
 broadcasting. The for-loops that are involved are fully implmemented in C,
 diminishing the overhead of the python interpreter.
 
-Pygeos aims to expose the geometry functions from GEOS into python. By using
-ufuncs, it minimizes the Python interpreter overhead. This is especially
-useful when working with large sets of geometries.
+Pygeos aims to expose the geometry functions from GEOS into python to provide
+a fast and flexible means to work with large sets of geometries from python.
 
 
 The GEOSGeometry object
