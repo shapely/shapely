@@ -5,25 +5,36 @@ PyGEOS
 This is a C/Python library that wraps geometry functions in GEOS in numpy ufuncs.
 This project is still in a mock-up phase: the API will most likely change.
 
-The Geometry object
--------------------
 
-GEOS geometry objects are stored in a Python extension type `pygeos.GEOSGeometry`,
-that keeps the python interpreter out of the numpy ufunc inner loop. This object
-calls the GEOS `destroy` function to deallocate memory just before the
-wrapping `GEOSGeometry` object is deallocated.
+Why ufuncs?
+-----------
 
-Ufuncs only act on these `pygeos.GEOSGeometry` objects.
-Construct these as follows. This operation copies the underlying C object so
-that we can safely deallocate it once `point` is garbage collected:
+A universal function (or ufunc for short) is a function that operates on
+n-dimensional arrays in an element-by-element fashion, supporting array
+broadcasting. The for-loops that are involved are fully implmemented in C,
+diminishing the overhead of the python interpreter.
+
+Pygeos aims to expose the geometry functions from GEOS into python. By using
+ufuncs, it minimizes the Python interpreter overhead. This is especially
+useful when working with large sets of geometries.
+
+
+The GEOSGeometry object
+-----------------------
+
+GEOS geometry objects are stored in a static attribute of the Python extension
+type `pygeos.GEOSGeometry`. This keeps the python interpreter out of the ufunc
+inner loop. The GEOSGeometry object keeps track of the underlying geometry and
+allows the python garbage collector to free memory when the geometry is not
+used anymore.
+
+`GEOSGeometry` objects are immutable. Construct them as follows:
 
 .. code:: python
 
   >>> from pygeos import GEOSGeometry
-  >>> from shapely.geometry import Point
 
-  >>> pointer_to_geometry = Point(i, j)._geom
-  >>> geometry = GEOSGeometry(pointer_to_geometry)
+  >>> geometry = GEOSGeometry.from_wkt("POINT (5.2 52.1)")
 
 Or simply:
 

@@ -405,6 +405,34 @@ def test_create_collection_skips_nan():
     assert actual.to_wkt() == 'MULTIPOINT (2 2, 2 2)'
 
 
+# GEOSGeometry
+
+
+def test_new_from_wkt():
+    geom = point
+    actual = pygeos.GEOSGeometry(geom.to_wkt())
+    assert pygeos.equals(actual, geom)
+
+
+def test_new_from_wkb():
+    geom = point
+    actual = pygeos.GEOSGeometry(geom.to_wkb())
+    assert pygeos.equals(actual, geom)
+
+
+def test_new_from_ptr():
+    geom = point
+    actual = pygeos.GEOSGeometry(geom._ptr)
+    assert pygeos.equals(actual, geom)
+    assert actual._ptr != geom._ptr
+
+
+def test_adapt_ptr_raises():
+    geom = pygeos.clone(point)
+    with pytest.raises(AttributeError):
+        geom._ptr += 1
+
+
 # wkt/wkb io
 
 def test_to_wkt():

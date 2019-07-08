@@ -11,6 +11,74 @@
 
 #include "fast_loop_macros.h"
 
+
+#define RAISE_ILLEGAL_GEOS if (!PyErr_Occurred()) {PyErr_Format(PyExc_RuntimeError, "Uncaught GEOS exception");}
+#define CREATE_COORDSEQ(SIZE, NDIM)\
+    void *coord_seq = GEOSCoordSeq_create_r(context_handle, SIZE, NDIM);\
+    if (coord_seq == NULL) {\
+        return;\
+    }
+
+#define SET_COORD(N, DIM)\
+    if (!GEOSCoordSeq_setOrdinate_r(context_handle, coord_seq, N, DIM, coord)) {\
+        GEOSCoordSeq_destroy_r(context_handle, coord_seq);\
+        RAISE_ILLEGAL_GEOS;\
+        return;\
+    }
+
+#define GEOM_ISNAN_OR_NONE(GEOM) (npy_isnan(PyFloat_AS_DOUBLE((PyObject *) GEOM)) | ((PyObject *) GEOM == Py_None))
+
+#define CHECK_GEOM(GEOM)\
+    if (!PyObject_IsInstance((PyObject *) GEOM, (PyObject *) &GeometryType)) {\
+        if (GEOM_ISNAN_OR_NONE(GEOM)) {\
+            PyErr_Format(PyExc_ValueError, "NaN and None cannot be handled by this function.");\
+        } else { \
+            PyErr_Format(PyExc_TypeError, "One of the arguments is of incorrect type. Please provide only Geometry objects.");\
+        }\
+        return;\
+    }\
+    if (GEOM->ptr == NULL) {\
+        PyErr_Format(PyExc_ValueError, "A geometry object is empty");\
+        return;\
+    }
+
+
+#define INPUT_Y\
+    GeometryObject *in1 = *(GeometryObject **)ip1;\
+    CHECK_GEOM(in1)
+
+#define INPUT_YY\
+    GeometryObject *in1 = *(GeometryObject **)ip1;\
+    GeometryObject *in2 = *(GeometryObject **)ip2;\
+    CHECK_GEOM(in1);\
+    CHECK_GEOM(in2)
+
+#define OUTPUT_b\
+    if (! ((ret == 0) || (ret == 1))) {\
+        RAISE_ILLEGAL_GEOS;\
+        return;\
+    }\
+    *(npy_bool *)op1 = ret
+
+#define OUTPUT_Y\
+    if (ret_ptr == NULL) {\
+        RAISE_ILLEGAL_GEOS;\
+        return;\
+    }\
+    PyObject *ret = GeometryObject_new_from_ptr(&GeometryType, ret_ptr);\
+    if (ret == NULL) {\
+        PyErr_Format(PyExc_RuntimeError, "Could not instantiate a new Geometry object");\
+        return;\
+    }\
+    PyObject **out = (PyObject **)op1;\
+    Py_XDECREF(*out);\
+    *out = ret
+
+#define OUTPUT_Y_NAN\
+    PyObject **out = (PyObject **)op1;\
+    Py_XDECREF(*out);\
+    *out = PyFloat_FromDouble(NPY_NAN)
+
 /* This tells Python what methods this module has. */
 static PyMethodDef GeosModule[] = {
     {NULL, NULL, 0, NULL},
@@ -44,60 +112,16 @@ static struct PyModuleDef moduledef = {
 typedef struct {
     PyObject_HEAD;
     void *ptr;
-    char geom_type_id;
-    char has_z;
 } GeometryObject;
 
 
 static PyObject *GeometryObject_new_from_ptr(PyTypeObject *type, GEOSGeometry *ptr)
 {
-    void *context_handle = geos_context[0];
-    GeometryObject *self;
-    int geos_result;
-    self = (GeometryObject *) type->tp_alloc(type, 0);
-
+    GeometryObject *self = (GeometryObject *) type->tp_alloc(type, 0);
     if (self != NULL) {
         self->ptr = ptr;
-        geos_result = GEOSGeomTypeId_r(context_handle, ptr);
-        if ((geos_result < 0) | (geos_result > 255)) {
-            goto fail;
-        }
-        self->geom_type_id = geos_result;
-        geos_result = GEOSHasZ_r(context_handle, ptr);
-        if ((geos_result < 0) | (geos_result > 1)) {
-            goto fail;
-        }
-        self->has_z = geos_result;
     }
     return (PyObject *) self;
-    fail:
-        PyErr_SetString(PyExc_RuntimeError, "Geometry initialization failed");
-        Py_DECREF(self);
-        return NULL;
-}
-
-
-static PyObject *GeometryObject_new(PyTypeObject *type, PyObject *args,
-                                    PyObject *kwds)
-{
-    void *context_handle = geos_context[0];
-    GEOSGeometry *ptr;
-    PyObject *self;
-    long arg;
-
-    if (!PyArg_ParseTuple(args, "l", &arg)) {
-        goto fail;
-    }
-    ptr = GEOSGeom_clone_r(context_handle, (GEOSGeometry *) arg);
-    if (ptr == NULL) {
-        goto fail;
-    }
-    self = GeometryObject_new_from_ptr(type, ptr);
-    return (PyObject *) self;
-
-    fail:
-        PyErr_SetString(PyExc_ValueError, "Please provide a C pointer to a GEOSGeometry");
-        return NULL;
 }
 
 static void GeometryObject_dealloc(GeometryObject *self)
@@ -112,9 +136,7 @@ static void GeometryObject_dealloc(GeometryObject *self)
 }
 
 static PyMemberDef GeometryObject_members[] = {
-    {"ptr", T_INT, offsetof(GeometryObject, ptr), 0, "pointer to GEOSGeometry"},
-    {"geom_type_id", T_INT, offsetof(GeometryObject, geom_type_id), 0, "geometry type ID"},
-    {"has_z", T_INT, offsetof(GeometryObject, has_z), 0, "has Z"},
+    {"_ptr", T_PYSSIZET, offsetof(GeometryObject, ptr), READONLY, "pointer to GEOSGeometry"},
     {NULL}  /* Sentinel */
 };
 
@@ -280,6 +302,41 @@ static PyObject *GeometryObject_FromWKB(PyTypeObject *type, PyObject *value)
 }
 
 
+static PyObject *GeometryObject_new(PyTypeObject *type, PyObject *args,
+                                    PyObject *kwds)
+{
+    void *context_handle = geos_context[0];
+    GEOSGeometry *arg;
+    GEOSGeometry *ptr;
+    PyObject *self;
+    PyObject *value;
+
+    if (!PyArg_ParseTuple(args, "O", &value)) {
+        return NULL;
+    }
+
+    if (PyBytes_Check(value)) {
+        return GeometryObject_FromWKB(type, value);
+    }
+    else if (PyUnicode_Check(value)) {
+        return GeometryObject_FromWKT(type, value);
+    }
+    else if (PyLong_Check(value)) {
+        arg = PyLong_AsLong(value);
+    }
+    else {
+        PyErr_Format(PyExc_TypeError, "Expected string, bytes or int, found %s", value->ob_type->tp_name);
+        return NULL;
+    }
+    ptr = GEOSGeom_clone_r(context_handle, arg);
+    if (ptr == NULL) {
+        RAISE_ILLEGAL_GEOS;
+        return NULL;
+    }
+    self = GeometryObject_new_from_ptr(type, ptr);
+    return (PyObject *) self;
+}
+
 static PyMethodDef GeometryObject_methods[] = {
     {"to_wkt", (PyCFunctionWithKeywords) GeometryObject_ToWKT, METH_VARARGS | METH_KEYWORDS,
      "Write the geometry to Well-Known Text (WKT) format"
@@ -308,74 +365,6 @@ static PyTypeObject GeometryType = {
     .tp_members = GeometryObject_members,
     .tp_methods = GeometryObject_methods,
 };
-
-#define RAISE_ILLEGAL_GEOS if (!PyErr_Occurred()) {PyErr_Format(PyExc_RuntimeError, "Uncaught GEOS exception");}
-#define CREATE_COORDSEQ(SIZE, NDIM)\
-    void *coord_seq = GEOSCoordSeq_create_r(context_handle, SIZE, NDIM);\
-    if (coord_seq == NULL) {\
-        return;\
-    }
-
-#define SET_COORD(N, DIM)\
-    if (!GEOSCoordSeq_setOrdinate_r(context_handle, coord_seq, N, DIM, coord)) {\
-        GEOSCoordSeq_destroy_r(context_handle, coord_seq);\
-        RAISE_ILLEGAL_GEOS;\
-        return;\
-    }
-
-#define GEOM_ISNAN_OR_NONE(GEOM) (npy_isnan(PyFloat_AS_DOUBLE((PyObject *) GEOM)) | ((PyObject *) GEOM == Py_None))
-
-#define CHECK_GEOM(GEOM)\
-    if (!PyObject_IsInstance((PyObject *) GEOM, (PyObject *) &GeometryType)) {\
-        if (GEOM_ISNAN_OR_NONE(GEOM)) {\
-            PyErr_Format(PyExc_ValueError, "NaN and None cannot be handled by this function.");\
-        } else { \
-            PyErr_Format(PyExc_TypeError, "One of the arguments is of incorrect type. Please provide only Geometry objects.");\
-        }\
-        return;\
-    }\
-    if (GEOM->ptr == NULL) {\
-        PyErr_Format(PyExc_ValueError, "A geometry object is empty");\
-        return;\
-    }
-
-
-#define INPUT_Y\
-    GeometryObject *in1 = *(GeometryObject **)ip1;\
-    CHECK_GEOM(in1)
-
-#define INPUT_YY\
-    GeometryObject *in1 = *(GeometryObject **)ip1;\
-    GeometryObject *in2 = *(GeometryObject **)ip2;\
-    CHECK_GEOM(in1);\
-    CHECK_GEOM(in2)
-
-#define OUTPUT_b\
-    if (! ((ret == 0) || (ret == 1))) {\
-        RAISE_ILLEGAL_GEOS;\
-        return;\
-    }\
-    *(npy_bool *)op1 = ret
-
-#define OUTPUT_Y\
-    if (ret_ptr == NULL) {\
-        RAISE_ILLEGAL_GEOS;\
-        return;\
-    }\
-    PyObject *ret = GeometryObject_new_from_ptr(&GeometryType, ret_ptr);\
-    if (ret == NULL) {\
-        PyErr_Format(PyExc_RuntimeError, "Could not instantiate a new Geometry object");\
-        return;\
-    }\
-    PyObject **out = (PyObject **)op1;\
-    Py_XDECREF(*out);\
-    *out = ret
-
-#define OUTPUT_Y_NAN\
-    PyObject **out = (PyObject **)op1;\
-    Py_XDECREF(*out);\
-    *out = PyFloat_FromDouble(NPY_NAN)
-
 
 /* Define the geom -> bool functions (Y_b) */
 static void *is_empty_data[1] = {GEOSisEmpty_r};
