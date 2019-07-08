@@ -1,6 +1,5 @@
 import numpy as np
 import pygeos
-from pygeos import to_wkt
 import pytest
 
 point_polygon_testdata = \
@@ -79,6 +78,12 @@ def test_get_centroid():
 def test_get_point_n():
     actual = pygeos.get_point_n(line_string, np.int16(1))
     assert pygeos.equals(actual, pygeos.points(1, 0))
+
+
+def test_set_srid():
+    actual = pygeos.set_srid(point, np.int16(4326))
+    assert pygeos.get_srid(point) == 0
+    assert pygeos.get_srid(actual) == 4326
 
 
 # Yd_Y
@@ -182,20 +187,20 @@ def test_equals_exact():
 
 def test_points_from_coords():
     actual = pygeos.points([[0, 0], [2, 2]])
-    assert to_wkt(actual[0]) == "POINT (0 0)"
-    assert to_wkt(actual[1]) == "POINT (2 2)"
+    assert actual[0].to_wkt() == "POINT (0 0)"
+    assert actual[1].to_wkt() == "POINT (2 2)"
 
 
 def test_points_from_xy():
     actual = pygeos.points(2, [0, 1])
-    assert to_wkt(actual[0]) == "POINT (2 0)"
-    assert to_wkt(actual[1]) == "POINT (2 1)"
+    assert actual[0].to_wkt() == "POINT (2 0)"
+    assert actual[1].to_wkt() == "POINT (2 1)"
 
 
 def test_points_from_xyz():
     actual = pygeos.points(1, 1, [0, 1])
-    assert to_wkt(actual[0]) == "POINT Z (1 1 0)"
-    assert to_wkt(actual[1]) == "POINT Z (1 1 1)"
+    assert actual[0].to_wkt() == "POINT Z (1 1 0)"
+    assert actual[1].to_wkt() == "POINT Z (1 1 1)"
 
 
 def test_points_invalid_ndim():
@@ -205,51 +210,51 @@ def test_points_invalid_ndim():
 
 def test_linestrings_from_coords():
     actual = pygeos.linestrings([[[0, 0], [1, 1]], [[0, 0], [2, 2]]])
-    assert to_wkt(actual[0]) == "LINESTRING (0 0, 1 1)"
-    assert to_wkt(actual[1]) == "LINESTRING (0 0, 2 2)"
+    assert actual[0].to_wkt() == "LINESTRING (0 0, 1 1)"
+    assert actual[1].to_wkt() == "LINESTRING (0 0, 2 2)"
 
 
 def test_linestrings_from_xy():
     actual = pygeos.linestrings([0, 1], [2, 3])
-    assert to_wkt(actual) == "LINESTRING (0 2, 1 3)"
+    assert actual.to_wkt() == "LINESTRING (0 2, 1 3)"
 
 
 def test_linestrings_from_xy_broadcast():
     x = [0, 1]  # the same X coordinates for both linestrings
     y = [2, 3], [4, 5]  # each linestring has a different set of Y coordinates
     actual = pygeos.linestrings(x, y)
-    assert to_wkt(actual[0]) == "LINESTRING (0 2, 1 3)"
-    assert to_wkt(actual[1]) == "LINESTRING (0 4, 1 5)"
+    assert actual[0].to_wkt() == "LINESTRING (0 2, 1 3)"
+    assert actual[1].to_wkt() == "LINESTRING (0 4, 1 5)"
 
 
 def test_linestrings_from_xyz():
     actual = pygeos.linestrings([0, 1], [2, 3], 0)
-    assert to_wkt(actual) == "LINESTRING Z (0 2 0, 1 3 0)"
+    assert actual.to_wkt() == "LINESTRING Z (0 2 0, 1 3 0)"
 
 
 def test_linearrings():
     actual = pygeos.linearrings(box_tpl(0, 0, 1, 1))
-    assert to_wkt(actual) == "LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)"
+    assert actual.to_wkt() == "LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)"
 
 
 def test_linearrings_from_xy():
     actual = pygeos.linearrings([0, 1, 2, 0], [3, 4, 5, 3])
-    assert to_wkt(actual) == "LINEARRING (0 3, 1 4, 2 5, 0 3)"
+    assert actual.to_wkt() == "LINEARRING (0 3, 1 4, 2 5, 0 3)"
 
 
 def test_linearrings_unclosed():
     actual = pygeos.linearrings(box_tpl(0, 0, 1, 1)[:-1])
-    assert to_wkt(actual) == "LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)"
+    assert actual.to_wkt() == "LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)"
 
 
 def test_polygon_from_linearring():
     actual = pygeos.polygons(pygeos.linearrings(box_tpl(0, 0, 1, 1)))
-    assert to_wkt(actual) == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
+    assert actual.to_wkt() == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
 
 
 def test_polygons():
     actual = pygeos.polygons(box_tpl(0, 0, 1, 1))
-    assert to_wkt(actual) == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
+    assert actual.to_wkt() == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
 
 
 def test_polygon_no_hole_list_raises():
@@ -296,10 +301,48 @@ def test_2_polygons_with_different_holes():
 
 def test_box():
     actual = pygeos.box(0, 0, 1, 1)
-    assert to_wkt(actual) == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
+    assert actual.to_wkt() == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
 
 
 def test_box_multiple():
     actual = pygeos.box(0, 0, [1, 2], [1, 2])
-    assert to_wkt(actual[0]) == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
-    assert to_wkt(actual[1]) == "POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))"
+    assert actual[0].to_wkt() == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
+    assert actual[1].to_wkt() == "POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))"
+
+
+# geometry object
+
+def test_wkt():
+    assert point.to_wkt() == "POINT (2 2)"
+    assert point.to_wkt(trim=False) == "POINT (2.000000 2.000000)"
+    assert point.to_wkt(trim=False, precision=3) == "POINT (2.000 2.000)"
+    assert point_z.to_wkt(dimension=2) == "POINT (1 1)"
+    assert point_z.to_wkt(dimension=3) == "POINT Z (1 1 1)"
+    assert point_z.to_wkt(dimension=3, use_old_3d=True) == "POINT (1 1 1)"
+
+
+def test_wkb():
+    be = b'\x00'
+    le = b'\x01'
+    point_type = b'\x01\x00\x00\x00'  # 1 as 32-bit uint (LE)
+    point_type_3d = b'\x01\x00\x00\x80'
+    coord = b'\x00\x00\x00\x00\x00\x00\xf0?'  # 1.0 as double (LE)
+
+    assert point_z.to_wkb(dimension=2) == le + point_type + 2 * coord
+    assert point_z.to_wkb(dimension=3) == le + point_type_3d + 3 * coord
+    assert point_z.to_wkb(dimension=2, byte_order=0) == \
+        be + point_type[::-1] + 2 * coord[::-1]
+
+
+def test_wkb_with_srid():
+    point_with_srid = pygeos.set_srid(point, np.int32(4326))
+    result = point_with_srid.to_wkb(include_srid=True)
+    assert np.frombuffer(result[5:9], '<u4').item() == 4326
+
+
+def test_wkb_hex():
+    le = b'01'
+    point_type = b'01000000'
+    coord = b'000000000000F03F'  # 1.0 as double (LE)
+
+    assert point_z.to_wkb(hex=True, dimension=2) == le + point_type + 2 * coord

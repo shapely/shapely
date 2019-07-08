@@ -121,6 +121,84 @@ static PyMemberDef GeometryObject_members[] = {
     {NULL}  /* Sentinel */
 };
 
+
+static PyObject *GeometryObject_ToWKT(GeometryObject *self, PyObject *args, PyObject *kw)
+{
+    void *context_handle;
+    char *wkt;
+    PyObject *result;
+    char trim = 1;
+    int precision = 6;
+    int dimension = 3;
+    int use_old_3d = 0;
+    static char *kwlist[] = {"precision", "trim", "dimension", "use_old_3d", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "|ibib", kwlist,
+                                     &precision, &trim, &dimension, &use_old_3d))
+    {
+        return NULL;
+    }
+    if (self->ptr == NULL) {
+         Py_INCREF(Py_None);
+         return Py_None;
+    }
+    context_handle = geos_context[0];
+    GEOSWKTWriter *writer = GEOSWKTWriter_create_r(context_handle);
+    GEOSWKTWriter_setRoundingPrecision_r(context_handle, writer, precision);
+    GEOSWKTWriter_setTrim_r(context_handle, writer, trim);
+    GEOSWKTWriter_setOutputDimension_r(context_handle, writer, dimension);
+    GEOSWKTWriter_setOld3D_r(context_handle, writer, use_old_3d);
+    wkt = GEOSWKTWriter_write_r(context_handle, writer, self->ptr);
+    result = PyUnicode_FromString(wkt);
+    GEOSWKTWriter_destroy_r(context_handle, writer);
+    return result;
+}
+
+
+static PyObject *GeometryObject_ToWKB(GeometryObject *self, PyObject *args, PyObject *kw)
+{
+    void *context_handle;
+    unsigned char *wkb;
+    size_t size;
+    PyObject *result;
+    int dimension = 3;
+    int byte_order = 1;
+    char include_srid = 0;
+    char hex = 0;
+    static char *kwlist[] = {"dimension", "byte_order", "include_srid", "hex", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "|ibbb", kwlist,
+                                     &dimension, &byte_order, &include_srid, &hex))
+    {
+        return NULL;
+    }
+    if (self->ptr == NULL) {
+         Py_INCREF(Py_None);
+         return Py_None;
+    }
+    context_handle = geos_context[0];
+    GEOSWKBWriter *writer = GEOSWKBWriter_create_r(context_handle);
+    GEOSWKBWriter_setOutputDimension_r(context_handle, writer, dimension);
+    GEOSWKBWriter_setByteOrder_r(context_handle, writer, byte_order);
+    GEOSWKBWriter_setIncludeSRID_r(context_handle, writer, include_srid);
+    if (hex) {
+        wkb = GEOSWKBWriter_writeHEX_r(context_handle, writer, self->ptr, &size);
+    } else {
+        wkb = GEOSWKBWriter_write_r(context_handle, writer, self->ptr, &size);
+    }
+    result = PyBytes_FromStringAndSize(wkb, size);
+    GEOSWKBWriter_destroy_r(context_handle, writer);
+    return result;
+}
+
+static PyMethodDef GeometryObject_methods[] = {
+    {"to_wkt", (PyCFunctionWithKeywords) GeometryObject_ToWKT, METH_VARARGS | METH_KEYWORDS,
+     "Write the geometry to Well-Known Text (WKT) format"
+    },
+    {"to_wkb", (PyCFunctionWithKeywords) GeometryObject_ToWKB, METH_VARARGS | METH_KEYWORDS,
+     "Write the geometry to Well-Known Binary (WKB) format"
+    },
+    {NULL}  /* Sentinel */
+};
+
 static PyTypeObject GeometryType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "pygeos.ufuncs.GEOSGeometry",
@@ -131,6 +209,7 @@ static PyTypeObject GeometryType = {
     .tp_new = GeometryObject_new,
     .tp_dealloc = (destructor) GeometryObject_dealloc,
     .tp_members = GeometryObject_members,
+    .tp_methods = GeometryObject_methods,
 };
 
 #define RAISE_ILLEGAL_GEOS  /* PyErr_Format(PyExc_RuntimeError, "GEOS Operation failed") */
@@ -316,6 +395,16 @@ static PyUFuncGenericFunction Yd_Y_funcs[1] = {&Yd_Y_func};
 static void *get_interior_ring_n_data[1] = {GEOSGetInteriorRingN_r};
 static void *get_point_n_data[1] = {GEOSGeomGetPointN_r};
 static void *get_geometry_n_data[1] = {GEOSGetGeometryN_r};
+/* the set srid funcion acts inplace */
+static void *GEOSSetSRID_r_with_clone(void *context, void *geom, int srid) {
+    void *ret = GEOSGeom_clone_r(context, geom);
+    if (ret == NULL) {
+        return NULL;
+    }
+    GEOSSetSRID_r(context, ret, srid);
+    return ret;
+}
+static void *set_srid_data[1] = {GEOSSetSRID_r_with_clone};
 typedef void *FuncGEOS_Yi_Y(void *context, void *a, int b);
 static char Yi_Y_dtypes[3] = {NPY_OBJECT, NPY_INT, NPY_OBJECT};
 static void Yi_Y_func(char **args, npy_intp *dimensions,
@@ -783,6 +872,7 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_Yi_Y (get_interior_ring_n);
     DEFINE_Yi_Y (get_point_n);
     DEFINE_Yi_Y (get_geometry_n);
+    DEFINE_Yi_Y (set_srid);
 
     DEFINE_Yd_Y (interpolate);
     DEFINE_Yd_Y (interpolate_normalized);
