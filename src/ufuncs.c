@@ -134,6 +134,7 @@ static PyTypeObject GeometryType = {
 };
 
 #define RAISE_ILLEGAL_GEOS  /* PyErr_Format(PyExc_RuntimeError, "GEOS Operation failed") */
+#define RAISE_NAN_CONSTRUCTION  PyErr_Format(PyExc_ValueError, "Cannot construct geometries from NaN coordinates") */
 #define CREATE_COORDSEQ(SIZE, NDIM)\
     void *coord_seq = GEOSCoordSeq_create_r(context_handle, SIZE, NDIM);\
     if (coord_seq == NULL) {\
@@ -542,6 +543,10 @@ static void buffer_func(char **args, npy_intp *dimensions,
 
     TERNARY_LOOP {
         INPUT_Y;
+        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1)) {
+            OUTPUT_Y_NAN;
+            continue;
+        }
         double in2 = *(double *) ip2;
         int in3 = *(int *) ip3;
         GEOSGeometry *ret_ptr = GEOSBuffer_r(context_handle, in1->ptr, in2, in3);
@@ -558,6 +563,10 @@ static void snap_func(char **args, npy_intp *dimensions,
 
     TERNARY_LOOP {
         INPUT_YY;
+        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | GEOM_ISNAN_OR_NONE(*(PyObject **)ip2)) {
+            OUTPUT_Y_NAN;
+            continue;
+        }
         double in3 = *(double *) ip3;
         GEOSGeometry *ret_ptr = GEOSSnap_r(context_handle, in1->ptr, in2->ptr, in3);
         OUTPUT_Y;
@@ -573,6 +582,10 @@ static void equals_exact_func(char **args, npy_intp *dimensions,
 
     TERNARY_LOOP {
         INPUT_YY;
+        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | GEOM_ISNAN_OR_NONE(*(PyObject **)ip2)) {
+            *(npy_bool *)op1 = 0;
+            continue;
+        }
         double in3 = *(double *) ip3;
         npy_bool ret = GEOSEqualsExact_r(context_handle, in1->ptr, in2->ptr, in3);
         OUTPUT_b;
@@ -694,19 +707,27 @@ static void create_collection_func(char **args, npy_intp *dimensions,
                                    npy_intp *steps, void *data)
 {
     void *context_handle = geos_context[0];
+    int n_geoms;
+
+
     BINARY_SINGLE_COREDIM_LOOP_OUTER {
         GEOSGeometry *geoms[n_c1];
         int type = *(int *) ip2;
+        n_geoms = 0;
         cp1 = ip1;
         BINARY_SINGLE_COREDIM_LOOP_INNER {
             GeometryObject *g = *(GeometryObject **)cp1;
+            if GEOM_ISNAN_OR_NONE(g) {
+                continue;
+            }
             CHECK_GEOM(g);
-            geoms[i_c1] = GEOSGeom_clone_r(context_handle, g->ptr);
-            if (geoms[i_c1] == NULL) {
+            geoms[n_geoms] = GEOSGeom_clone_r(context_handle, g->ptr);
+            if (geoms[n_geoms] == NULL) {
                 return;
             }
+            n_geoms++;
         }
-        GEOSGeometry *ret_ptr = GEOSGeom_createCollection_r(context_handle, type, geoms, n_c1);
+        GEOSGeometry *ret_ptr = GEOSGeom_createCollection_r(context_handle, type, geoms, n_geoms);
         OUTPUT_Y;
     }
 }

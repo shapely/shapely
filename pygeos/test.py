@@ -387,3 +387,13 @@ def test_YY_d_nan():
     )
     assert actual[-1] == 0.
     assert np.isnan(actual[:-1].astype(np.float)).all()
+
+
+def test_create_collection_only_nan():
+    actual = pygeos.multipoints(np.array([np.nan], dtype=object))
+    assert to_wkt(actual) == 'MULTIPOINT EMPTY'
+
+
+def test_create_collection_skips_nan():
+    actual = pygeos.multipoints([point, np.nan, np.nan, point])
+    assert to_wkt(actual) == 'MULTIPOINT (2 2, 2 2)'
