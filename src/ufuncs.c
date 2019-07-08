@@ -133,8 +133,7 @@ static PyTypeObject GeometryType = {
     .tp_members = GeometryObject_members,
 };
 
-#define RAISE_ILLEGAL_GEOS  /* PyErr_Format(PyExc_RuntimeError, "GEOS Operation failed") */
-#define RAISE_NAN_CONSTRUCTION  PyErr_Format(PyExc_ValueError, "Cannot construct geometries from NaN coordinates") */
+#define RAISE_ILLEGAL_GEOS if (!PyErr_Occurred()) {PyErr_Format(PyExc_RuntimeError, "Uncaught GEOS exception");}
 #define CREATE_COORDSEQ(SIZE, NDIM)\
     void *coord_seq = GEOSCoordSeq_create_r(context_handle, SIZE, NDIM);\
     if (coord_seq == NULL) {\
@@ -203,7 +202,7 @@ static PyTypeObject GeometryType = {
 
 
 /* Define the geom -> bool functions (Y_b) */
-static void *is_empty_data[1] = {GEOSisEmpty_r};
+static void *is_empty_data[2] = {GEOSisEmpty_r};
 static void *is_simple_data[1] = {GEOSisSimple_r};
 static void *is_ring_data[1] = {GEOSisRing_r};
 static void *has_z_data[1] = {GEOSHasZ_r};
@@ -216,14 +215,12 @@ static void Y_b_func(char **args, npy_intp *dimensions,
 {
     FuncGEOS_Y_b *func = (FuncGEOS_Y_b *)data;
     void *context_handle = geos_context[0];
+    npy_bool nanvalue = 0;
+    if (func == GEOSisEmpty_r) { nanvalue = 1; }
 
     UNARY_LOOP {
         if GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) {
-            if (func == GEOSisEmpty_r) {
-                *(npy_bool *)op1 = 1;
-            } else {
-                *(npy_bool *)op1 = 0;
-            }
+            *(npy_bool *) op1 = nanvalue;
             continue;
         }
         INPUT_Y;
@@ -252,14 +249,12 @@ static void YY_b_func(char **args, npy_intp *dimensions,
 {
     FuncGEOS_YY_b *func = (FuncGEOS_YY_b *)data;
     void *context_handle = geos_context[0];
+    npy_bool nanvalue = 0;
+    if (func == GEOSDisjoint_r) { nanvalue = 1; }
 
     BINARY_LOOP {
         if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | GEOM_ISNAN_OR_NONE(*(PyObject **)ip2)) {
-            if (func == GEOSDisjoint_r) {
-                *(npy_bool *)op1 = 1;
-            } else {
-                *(npy_bool *)op1 = 0;
-            }
+            *(npy_bool *)op1 = nanvalue;
             continue;
         }
         INPUT_YY;
