@@ -49,9 +49,9 @@ typedef struct {
 } GeometryObject;
 
 
-static PyObject *GeometryObject_new_from_ptr(
-    PyTypeObject *type, void *context_handle, GEOSGeometry *ptr)
+static PyObject *GeometryObject_new_from_ptr(PyTypeObject *type, GEOSGeometry *ptr)
 {
+    void *context_handle = geos_context[0];
     GeometryObject *self;
     int geos_result;
     self = (GeometryObject *) type->tp_alloc(type, 0);
@@ -80,7 +80,7 @@ static PyObject *GeometryObject_new_from_ptr(
 static PyObject *GeometryObject_new(PyTypeObject *type, PyObject *args,
                                     PyObject *kwds)
 {
-    void *context_handle;
+    void *context_handle = geos_context[0];
     GEOSGeometry *ptr;
     PyObject *self;
     long arg;
@@ -88,14 +88,11 @@ static PyObject *GeometryObject_new(PyTypeObject *type, PyObject *args,
     if (!PyArg_ParseTuple(args, "l", &arg)) {
         goto fail;
     }
-    context_handle = geos_context[0];
     ptr = GEOSGeom_clone_r(context_handle, (GEOSGeometry *) arg);
     if (ptr == NULL) {
-        /* GEOS_finish_r(context_handle); */
         goto fail;
     }
-    self = GeometryObject_new_from_ptr(type, context_handle, ptr);
-    /* GEOS_finish_r(context_handle); */
+    self = GeometryObject_new_from_ptr(type, ptr);
     return (PyObject *) self;
 
     fail:
@@ -124,7 +121,7 @@ static PyMemberDef GeometryObject_members[] = {
 
 static PyObject *GeometryObject_ToWKT(GeometryObject *self, PyObject *args, PyObject *kw)
 {
-    void *context_handle;
+    void *context_handle = geos_context[0];
     char *wkt;
     PyObject *result;
     char trim = 1;
@@ -141,8 +138,10 @@ static PyObject *GeometryObject_ToWKT(GeometryObject *self, PyObject *args, PyOb
          Py_INCREF(Py_None);
          return Py_None;
     }
-    context_handle = geos_context[0];
     GEOSWKTWriter *writer = GEOSWKTWriter_create_r(context_handle);
+    if (writer == NULL) {
+        return NULL;
+    }
     GEOSWKTWriter_setRoundingPrecision_r(context_handle, writer, precision);
     GEOSWKTWriter_setTrim_r(context_handle, writer, trim);
     GEOSWKTWriter_setOutputDimension_r(context_handle, writer, dimension);
@@ -156,7 +155,7 @@ static PyObject *GeometryObject_ToWKT(GeometryObject *self, PyObject *args, PyOb
 
 static PyObject *GeometryObject_ToWKB(GeometryObject *self, PyObject *args, PyObject *kw)
 {
-    void *context_handle;
+    void *context_handle = geos_context[0];
     unsigned char *wkb;
     size_t size;
     PyObject *result;
@@ -174,8 +173,10 @@ static PyObject *GeometryObject_ToWKB(GeometryObject *self, PyObject *args, PyOb
          Py_INCREF(Py_None);
          return Py_None;
     }
-    context_handle = geos_context[0];
     GEOSWKBWriter *writer = GEOSWKBWriter_create_r(context_handle);
+    if (writer == NULL) {
+        return NULL;
+    }
     GEOSWKBWriter_setOutputDimension_r(context_handle, writer, dimension);
     GEOSWKBWriter_setByteOrder_r(context_handle, writer, byte_order);
     GEOSWKBWriter_setIncludeSRID_r(context_handle, writer, include_srid);
@@ -189,12 +190,108 @@ static PyObject *GeometryObject_ToWKB(GeometryObject *self, PyObject *args, PyOb
     return result;
 }
 
+static PyObject *GeometryObject_FromWKT(PyTypeObject *type, PyObject *value)
+{
+    void *context_handle = geos_context[0];
+    PyObject *result = NULL;
+    char *wkt;
+    GEOSGeometry *geom;
+    GEOSWKTReader *reader;
+
+    /* Cast the PyObject (bytes or str) to char* */
+    if (PyBytes_Check(value)) {
+        wkt = PyBytes_AsString(value);
+        if (wkt == NULL) { return NULL; }
+    }
+    else if (PyUnicode_Check(value)) {
+        wkt = PyUnicode_AsUTF8(value);
+        if (wkt == NULL) { return NULL; }
+    } else {
+        PyErr_Format(PyExc_TypeError, "Expected bytes, found %s", value->ob_type->tp_name);
+        return NULL;
+    }
+
+
+    reader = GEOSWKTReader_create_r(context_handle);
+    if (reader == NULL) {
+        return NULL;
+    }
+    geom = GEOSWKTReader_read_r(context_handle, reader, wkt);
+    GEOSWKTReader_destroy_r(context_handle, reader);
+    if (geom == NULL) {
+        return NULL;
+    }
+    result = GeometryObject_new_from_ptr(type, geom);
+    if (result == NULL) {
+        GEOSGeom_destroy_r(context_handle, geom);
+        PyErr_Format(PyExc_RuntimeError, "Could not instantiate a new Geometry object");
+    }
+    return result;
+}
+
+static PyObject *GeometryObject_FromWKB(PyTypeObject *type, PyObject *value)
+{
+    void *context_handle = geos_context[0];
+    PyObject *result = NULL;
+    GEOSGeometry *geom;
+    GEOSWKBReader *reader;
+    char *wkb;
+    Py_ssize_t size;
+    char is_hex;
+
+    /* Cast the PyObject (only bytes) to char* */
+    if (!PyBytes_Check(value)) {
+        PyErr_Format(PyExc_TypeError, "Expected bytes, found %s", value->ob_type->tp_name);
+        return NULL;
+    }
+    size = PyBytes_Size(value);
+    wkb = PyBytes_AsString(value);
+    if (wkb == NULL) {
+        return NULL;
+    }
+
+    /* Check if this is a HEX WKB */
+    if (size != 0) {
+        is_hex = ((wkb[0] == 48) | (wkb[0] == 49));
+    } else {
+        is_hex = 0;
+    }
+
+    /* Create the reader and read the WKB */
+    reader = GEOSWKBReader_create_r(context_handle);
+    if (reader == NULL) {
+        return NULL;
+    }
+    if (is_hex) {
+        geom = GEOSWKBReader_readHEX_r(context_handle, reader, wkb, size);
+    } else {
+        geom = GEOSWKBReader_read_r(context_handle, reader, wkb, size);
+    }
+    GEOSWKBReader_destroy_r(context_handle, reader);
+    if (geom == NULL) {
+        return NULL;
+    }
+    result = GeometryObject_new_from_ptr(type, geom);
+    if (result == NULL) {
+        GEOSGeom_destroy_r(context_handle, geom);
+        PyErr_Format(PyExc_RuntimeError, "Could not instantiate a new Geometry object");
+    }
+    return result;
+}
+
+
 static PyMethodDef GeometryObject_methods[] = {
     {"to_wkt", (PyCFunctionWithKeywords) GeometryObject_ToWKT, METH_VARARGS | METH_KEYWORDS,
      "Write the geometry to Well-Known Text (WKT) format"
     },
     {"to_wkb", (PyCFunctionWithKeywords) GeometryObject_ToWKB, METH_VARARGS | METH_KEYWORDS,
      "Write the geometry to Well-Known Binary (WKB) format"
+    },
+    {"from_wkt", (PyCFunction) GeometryObject_FromWKT, METH_CLASS | METH_O,
+     "Read the geometry from Well-Known Text (WKT) format"
+    },
+    {"from_wkb", (PyCFunction) GeometryObject_FromWKB, METH_CLASS | METH_O,
+     "Read the geometry from Well-Known Binary (WKB) format"
     },
     {NULL}  /* Sentinel */
 };
@@ -259,7 +356,7 @@ static PyTypeObject GeometryType = {
         RAISE_ILLEGAL_GEOS;\
         return;\
     }\
-    PyObject *ret = GeometryObject_new_from_ptr(&GeometryType, context_handle, ret_ptr);\
+    PyObject *ret = GeometryObject_new_from_ptr(&GeometryType, ret_ptr);\
     if (ret == NULL) {\
         PyErr_Format(PyExc_RuntimeError, "Could not instantiate a new Geometry object");\
         return;\

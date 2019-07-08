@@ -20,6 +20,17 @@ geometry_collection = pygeos.geometrycollections(
 )
 point_z = pygeos.points(1.0, 1.0, 1.0)
 
+all_types = (
+    point,
+    line_string,
+    linear_ring,
+    polygon,
+    multi_point,
+    multi_line_string,
+    multi_polygon,
+    geometry_collection,
+)
+
 
 def box_tpl(x1, y1, x2, y2):
     return (x2, y1), (x2, y2), (x1, y2), (x1, y1), (x2, y1)
@@ -120,16 +131,6 @@ def test_area():
 
 
 def test_geom_type_id():
-    all_types = (
-        point,
-        line_string,
-        linear_ring,
-        polygon,
-        multi_point,
-        multi_line_string,
-        multi_polygon,
-        geometry_collection,
-    )
     assert pygeos.geom_type_id(all_types).tolist() == list(range(8))
 
 # Y_i
@@ -310,9 +311,9 @@ def test_box_multiple():
     assert actual[1].to_wkt() == "POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))"
 
 
-# geometry object
+# wkt/wkb io
 
-def test_wkt():
+def test_to_wkt():
     assert point.to_wkt() == "POINT (2 2)"
     assert point.to_wkt(trim=False) == "POINT (2.000000 2.000000)"
     assert point.to_wkt(trim=False, precision=3) == "POINT (2.000 2.000)"
@@ -321,7 +322,7 @@ def test_wkt():
     assert point_z.to_wkt(dimension=3, use_old_3d=True) == "POINT (1 1 1)"
 
 
-def test_wkb():
+def test_to_wkb():
     be = b'\x00'
     le = b'\x01'
     point_type = b'\x01\x00\x00\x00'  # 1 as 32-bit uint (LE)
@@ -334,15 +335,56 @@ def test_wkb():
         be + point_type[::-1] + 2 * coord[::-1]
 
 
-def test_wkb_with_srid():
+def test_to_wkb_with_srid():
     point_with_srid = pygeos.set_srid(point, np.int32(4326))
     result = point_with_srid.to_wkb(include_srid=True)
     assert np.frombuffer(result[5:9], '<u4').item() == 4326
 
 
-def test_wkb_hex():
+def test_to_wkb_hex():
     le = b'01'
     point_type = b'01000000'
     coord = b'000000000000F03F'  # 1.0 as double (LE)
 
     assert point_z.to_wkb(hex=True, dimension=2) == le + point_type + 2 * coord
+
+
+@pytest.mark.parametrize("geom", all_types)
+def test_from_wkt(geom):
+    wkt = geom.to_wkt()
+    actual = pygeos.GEOSGeometry.from_wkt(wkt)
+    assert pygeos.equals(actual, geom)
+
+
+def test_from_wkt_bytes():
+    actual = pygeos.GEOSGeometry.from_wkt(b'POINT (2 2)')
+    assert pygeos.equals(actual, point)
+
+
+def test_from_wkt_exceptions():
+    with pytest.raises(TypeError):
+        pygeos.GEOSGeometry.from_wkt(list("POINT (2 2)"))
+    with pytest.raises(TypeError):
+        pygeos.GEOSGeometry.from_wkt(None)
+    with pytest.raises(pygeos.GEOSException):
+        pygeos.GEOSGeometry.from_wkt('')
+    with pytest.raises(pygeos.GEOSException):
+        pygeos.GEOSGeometry.from_wkt('NOT A WKT STRING')
+
+
+@pytest.mark.parametrize("geom", all_types)
+@pytest.mark.parametrize("use_hex", [False, True])
+@pytest.mark.parametrize("byte_order", [0, 1])
+def test_from_wkb(geom, use_hex, byte_order):
+    wkb = geom.to_wkb(hex=use_hex, byte_order=byte_order)
+    actual = pygeos.GEOSGeometry.from_wkb(wkb)
+    assert pygeos.equals(actual, geom)
+
+
+def test_from_wkb_typeerror():
+    with pytest.raises(TypeError):
+        pygeos.GEOSGeometry.from_wkb("\x01")
+    with pytest.raises(TypeError):
+        pygeos.GEOSGeometry.from_wkb(None)
+    with pytest.raises(pygeos.GEOSException):
+        pygeos.GEOSGeometry.from_wkb(b'POINT (2 2)')
