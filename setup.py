@@ -26,7 +26,7 @@ setup(
     author='Casper van der Wel',
     license='BSD 3-Clause',
     packages=['pygeos'],
-    install_requires=['numpy', 'shapely'],
+    install_requires=['numpy'],
     test_requires=['pytest'],
     python_requires='>=3',
     include_package_data=True,

@@ -1,5 +1,3 @@
-from shapely import geometry as sg
-
 GEOS_POINT = 0
 GEOS_LINESTRING = 1
 GEOS_LINEARRING = 2
@@ -8,20 +6,6 @@ GEOS_MULTIPOINT = 4
 GEOS_MULTILINESTRING = 5
 GEOS_MULTIPOLYGON = 6
 GEOS_GEOMETRYCOLLECTION = 7
-
-
-def to_shapely(obj):
-    shapely_geometry = sg.base.geom_factory(obj.ptr)
-    shapely_geometry.__geom__ = sg.base.geos_geom_from_py(shapely_geometry)[0]
-    return shapely_geometry
-
-
-def to_wkt(obj):
-    return to_shapely(obj).wkt
-
-
-def to_wkb(obj):
-    return to_shapely(obj).wkb
 
 
 from .ufuncs import GEOSGeometry  # NOQA
@@ -58,6 +42,7 @@ from .ufuncs import normalize  # NOQA
 from .ufuncs import get_interior_ring_n  # NOQA
 from .ufuncs import get_point_n  # NOQA
 from .ufuncs import get_geometry_n  # NOQA
+from .ufuncs import set_srid  # NOQA
 from .ufuncs import interpolate  # NOQA
 from .ufuncs import interpolate_normalized  # NOQA
 from .ufuncs import simplify  # NOQA
