@@ -378,7 +378,7 @@ static PyTypeObject GeometryType = {
 
 
 /* Define the geom -> bool functions (Y_b) */
-static void *is_empty_data[2] = {GEOSisEmpty_r};
+static void *is_empty_data[1] = {GEOSisEmpty_r};
 static void *is_simple_data[1] = {GEOSisSimple_r};
 static void *is_ring_data[1] = {GEOSisRing_r};
 static void *has_z_data[1] = {GEOSHasZ_r};
