@@ -251,6 +251,13 @@ def _geos_version():
     geos_version = tuple(int(x) for x in res[0])
     capi_version = tuple(int(x) for x in res[1])
 
+    if geos_version[0] < 3 or geos_version[1] < 5:
+        raise ValueError(
+            "PyGEOS requires GEOS version 3.5 or later, {} was found".format(
+                geos_version_string
+            )
+        )
+
     return geos_version_string, geos_version, capi_version
 
 

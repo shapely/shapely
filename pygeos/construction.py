@@ -117,7 +117,8 @@ def box(x1, y1, x2, y2):
     """
     x1, y1, x2, y2 = np.broadcast_arrays(x1, y1, x2, y2)
     rings = np.array(((x2, y1), (x2, y2), (x1, y2), (x1, y1)))
-    rings = np.moveaxis(rings, (0, 1), (-2, -1))
+    # bring first two axes to the last two positions
+    rings = rings.transpose(list(range(2, rings.ndim)) + [0, 1])
     return polygons(rings)
 
 

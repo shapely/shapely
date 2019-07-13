@@ -1,7 +1,18 @@
 ======
 PyGEOS
 ======
-[![build status](https://travis-ci.org/caspervdw/pygeos.svg?branch=master)](https://travis-ci.org/caspervdw/pygeos)
+
+.. Travis CI status — https://travis-ci.org
+
+.. image:: https://travis-ci.org/caspervdw/pygeos.svg?branch=master
+	:alt: Travis CI status
+	:target: https://travis-ci.org/caspervdw/pygeos
+
+.. Appveyor CI status — https://ci.appveyor.com
+
+.. image:: https://ci.appveyor.com/api/projects/status/yx6nmovs0wq8eg9n?svg=true
+	:alt: Appveyor CI status
+	:target: https://ci.appveyor.com/project/caspervdw/pygeos
 
 This is a C/Python library that wraps geometry functions in GEOS in numpy ufuncs.
 This project is still in a mock-up phase: the API will most likely change.
@@ -82,7 +93,7 @@ Compute the area of all possible intersections of two lists of polygons:
 Installation
 ------------
 
-Pygeos uses shapely's installing scripts. If you have libgeos at a standard
+Pygeos uses shapely's installing scripts. If you have libgeos >= 3.5 at a standard
 location, the following should work::
 
     $ pip install pygeos

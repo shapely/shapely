@@ -1,12 +1,23 @@
 import os
 from setuptools import setup, Extension
+from setuptools.command.build_ext import build_ext as _build_ext
 import geosconfig
-import numpy
+
+# https://stackoverflow.com/questions/19919905/how-to-bootstrap-numpy-installation-in-setup-py/21621689#21621689
+class build_ext(_build_ext):
+    def finalize_options(self):
+        _build_ext.finalize_options(self)
+        # Prevent numpy from thinking it is still in its setup process:
+        __builtins__.__NUMPY_SETUP__ = False
+        import numpy
+
+        self.include_dirs.append(numpy.get_include())
+
 
 module_ufuncs = Extension(
     "pygeos.ufuncs",
     sources=["src/ufuncs.c"],
-    include_dirs=geosconfig.include_dirs + [numpy.get_include()],
+    include_dirs=geosconfig.include_dirs,
     library_dirs=geosconfig.library_dirs,
     libraries=geosconfig.libraries,
     extra_link_args=geosconfig.extra_link_args,
@@ -27,8 +38,9 @@ setup(
     author="Casper van der Wel",
     license="BSD 3-Clause",
     packages=["pygeos"],
-    install_requires=["numpy"],
-    extras_require={"test": ["pytest", "pytest-black"]},
+    setup_requires=["numpy"],
+    install_requires=["numpy>=1.10"],
+    extras_require={"test": ["pytest"]},
     python_requires=">=3",
     include_package_data=True,
     ext_modules=[module_ufuncs],
@@ -39,4 +51,5 @@ setup(
         "Topic :: Scientific/Engineering :: GIS",
         "Operating System :: Unix",
     ],
+    cmdclass={"build_ext": build_ext},
 )
