@@ -10,7 +10,11 @@ addons:
     packages:
     - libgeos-dev
 
+before_install:
+  - pip install numpy
+
 install:
+  - python setup.py build_ext --inplace
   - pip install .[test]
 
 script: pytest --black
