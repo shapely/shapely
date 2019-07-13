@@ -19,7 +19,7 @@ except IOError:
 
 setup(
     name="pygeos",
-    version="0.3",
+    version="0.3.dev0",
     description="GEOS wrapped in numpy ufuncs",
     long_description=descr,
     url="https://github.com/caspervdw/pygeos",
