@@ -26,7 +26,7 @@ setup(
     url="https://github.com/caspervdw/pygeos",
     author="Casper van der Wel",
     license="BSD 3-Clause",
-    packages=["pygeos"],
+    packages=["pygeos", "pygeos.ufuncs"],
     install_requires=["numpy"],
     extras_require={"test": ["pytest", "pytest-black"]},
     python_requires=">=3",
