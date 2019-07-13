@@ -1,11 +1,12 @@
 import os
 from setuptools import setup, Extension
 import geosconfig
+import numpy
 
 module_ufuncs = Extension(
     "pygeos.ufuncs",
     sources=["src/ufuncs.c"],
-    include_dirs=geosconfig.include_dirs,
+    include_dirs=geosconfig.include_dirs + [numpy.get_include()],
     library_dirs=geosconfig.library_dirs,
     libraries=geosconfig.libraries,
     extra_link_args=geosconfig.extra_link_args,
