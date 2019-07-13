@@ -72,5 +72,4 @@ from .ufuncs import project_normalized  # NOQA
 from .ufuncs import buffer  # NOQA
 from .ufuncs import snap  # NOQA
 from .ufuncs import equals_exact  # NOQA
-from .construction import points, linestrings, linearrings, polygons, box, \
-    multipoints, multilinestrings, multipolygons, geometrycollections  # NOQA
+from .construction import *  # NOQA

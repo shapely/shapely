@@ -1,0 +1,20 @@
+dist: xenial
+language: python
+python:
+  - "3.5"
+  - "3.6"
+  - "3.7"
+
+addons:
+  apt:
+    packages:
+    - libgeos-dev
+
+before_install:
+  - pip install numpy
+
+install:
+  - python setup.py build_ext --inplace
+  - pip install .[test]
+
+script: pytest --black
