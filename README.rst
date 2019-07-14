@@ -102,13 +102,13 @@ your `PATH` variable if necessary. If not possible, you may also set `GEOS_INCLU
 and `GEOS_LIBRARY_PATH` variables directly. Finally::
 
     $ export GEOS_INCLUDE_PATH=$CONDA_PREFIX/Library/include
-    $ export GEOS_LIBRARY_PATH=$CONDA_PREFIX/Library/bin
+    $ export GEOS_LIBRARY_PATH=$CONDA_PREFIX/Library/lib
     $ pip install pygeos
 
 Or, on windows (assuming you have setup the correct VC compiler)::
 
     $ set GEOS_INCLUDE_PATH=%CONDA_PREFIX%\Library\include
-    $ set GEOS_LIBRARY_PATH=%CONDA_PREFIX%\Library\bin
+    $ set GEOS_LIBRARY_PATH=%CONDA_PREFIX%\Library\lib
     $ pip install pygeos
 
 

@@ -32,7 +32,7 @@ install:
 build: false
 
 before_test:
-  - "set GEOS_LIBRARY_PATH=%CONDA_PREFIX%\\Library\\bin"
+  - "set GEOS_LIBRARY_PATH=%CONDA_PREFIX%\\Library\\lib"
   - "set GEOS_INCLUDE_PATH=%CONDA_PREFIX%\\Library\\include"
   - "%CMD_IN_ENV% python setup.py build_ext --inplace"
 

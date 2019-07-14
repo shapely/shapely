@@ -110,7 +110,7 @@ static struct PyModuleDef moduledef = {
 };
 
 typedef struct {
-    PyObject_HEAD;
+    PyObject_HEAD
     void *ptr;
 } GeometryObject;
 
@@ -321,11 +321,8 @@ static PyObject *GeometryObject_new(PyTypeObject *type, PyObject *args,
     else if (PyUnicode_Check(value)) {
         return GeometryObject_FromWKT(type, value);
     }
-    else if (PyLong_Check(value)) {
-        arg = PyLong_AsLong(value);
-    }
     else {
-        PyErr_Format(PyExc_TypeError, "Expected string, bytes or int, found %s", value->ob_type->tp_name);
+        PyErr_Format(PyExc_TypeError, "Expected string or bytes, found %s", value->ob_type->tp_name);
         return NULL;
     }
     ptr = GEOSGeom_clone_r(context_handle, arg);
@@ -847,6 +844,8 @@ static void polygons_with_holes_func(char **args, npy_intp *dimensions,
 {
     void *context_handle = geos_context[0];
     void *shell;
+    GEOSGeometry **holes;
+
     BINARY_SINGLE_COREDIM_LOOP_OUTER {
         GeometryObject *g = *(GeometryObject **)ip1;
         CHECK_GEOM(g);
@@ -854,7 +853,7 @@ static void polygons_with_holes_func(char **args, npy_intp *dimensions,
         if (shell == NULL) {
             return;
         }
-        GEOSGeometry *holes[n_c1];
+        holes = malloc(n_c1 * sizeof(void *));
         cp1 = ip2;
         BINARY_SINGLE_COREDIM_LOOP_INNER {
             GeometryObject *g = *(GeometryObject **)cp1;
@@ -877,12 +876,14 @@ static void create_collection_func(char **args, npy_intp *dimensions,
                                    npy_intp *steps, void *data)
 {
     void *context_handle = geos_context[0];
+    GEOSGeometry **geoms;
     int n_geoms;
+    int type;
 
 
     BINARY_SINGLE_COREDIM_LOOP_OUTER {
-        GEOSGeometry *geoms[n_c1];
-        int type = *(int *) ip2;
+        geoms = malloc(n_c1 * sizeof(void *));
+        type = *(int *) ip2;
         n_geoms = 0;
         cp1 = ip1;
         BINARY_SINGLE_COREDIM_LOOP_INNER {
