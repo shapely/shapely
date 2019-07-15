@@ -379,7 +379,7 @@ static void Y_b_func(char **args, npy_intp *dimensions,
     FuncGEOS_Y_b *func = (FuncGEOS_Y_b *)data;
     void *context_handle = geos_context[0];
     npy_bool nanvalue = 0;
-    if (data == GEOSisEmpty_r) { nanvalue = 1; }
+    if (data == is_empty_data[0]) { nanvalue = 1; }
 
     UNARY_LOOP {
         if GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) {
@@ -413,7 +413,7 @@ static void YY_b_func(char **args, npy_intp *dimensions,
     FuncGEOS_YY_b *func = (FuncGEOS_YY_b *)data;
     void *context_handle = geos_context[0];
     npy_bool nanvalue = 0;
-    if (data == GEOSDisjoint_r) { nanvalue = 1; }
+    if (data == disjoint_data[0]) { nanvalue = 1; }
 
     BINARY_LOOP {
         if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | GEOM_ISNAN_OR_NONE(*(PyObject **)ip2)) {
