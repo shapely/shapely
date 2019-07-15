@@ -10,7 +10,7 @@ PyGEOS
 
 .. Appveyor CI status — https://ci.appveyor.com
 
-.. image:: https://ci.appveyor.com/api/projects/status/yx6nmovs0wq8eg9n?svg=true
+.. image:: https://ci.appveyor.com/api/projects/status/yx6nmovs0wq8eg9n/branch/master?svg=true
 	:alt: Appveyor CI status
 	:target: https://ci.appveyor.com/project/caspervdw/pygeos
 
