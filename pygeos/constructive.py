@@ -32,13 +32,13 @@ class BufferJoinStyles(IntEnum):
 
 
 @wraps(ufuncs.boundary)
-def boundary(geoms):
-    return ufuncs.boundary(geoms)
+def boundary(geometries):
+    return ufuncs.boundary(geometries)
 
 
 @wraps(ufuncs.buffer)
 def buffer(
-    geoms,
+    geometries,
     width,
     quadsegs=8,
     cap_style="round",
@@ -67,7 +67,7 @@ def buffer(
 
     Parameters
     ----------
-    geoms : Geometry
+    geometries : Geometry
     width : float
     quadsegs : int
     cap_style : {'round', 'flat', 'square'}
@@ -90,7 +90,7 @@ def buffer(
     if not np.isscalar(single_sided):
         raise TypeError("single_sided only accepts scalar values")
     return ufuncs.buffer(
-        geoms,
+        geometries,
         width,
         np.intc(quadsegs),
         np.intc(cap_style),
@@ -101,37 +101,37 @@ def buffer(
 
 
 @wraps(ufuncs.centroid)
-def centroid(geoms):
-    return ufuncs.centroid(geoms)
+def centroid(geometries):
+    return ufuncs.centroid(geometries)
 
 
 @wraps(ufuncs.clone)
-def clone(geoms):
-    return ufuncs.clone(geoms)
+def clone(geometries):
+    return ufuncs.clone(geometries)
 
 
 @wraps(ufuncs.convex_hull)
-def convex_hull(geoms):
-    return ufuncs.convex_hull(geoms)
+def convex_hull(geometries):
+    return ufuncs.convex_hull(geometries)
 
 
 @wraps(ufuncs.envelope)
-def envelope(geoms):
-    return ufuncs.envelope(geoms)
+def envelope(geometries):
+    return ufuncs.envelope(geometries)
 
 
 @wraps(ufuncs.point_on_surface)
-def point_on_surface(geoms):
-    return ufuncs.point_on_surface(geoms)
+def point_on_surface(geometries):
+    return ufuncs.point_on_surface(geometries)
 
 
 @wraps(ufuncs.simplify)
-def simplify(geoms, tolerance, preserve_topology=False):
+def simplify(geometries, tolerance, preserve_topology=False):
     if preserve_topology:
-        return simplify_preserve_toplogy(geoms, tolerance)
-    return ufuncs.simplify(geoms, tolerance)
+        return simplify_preserve_toplogy(geometries, tolerance)
+    return ufuncs.simplify(geometries, tolerance)
 
 
 @wraps(ufuncs.simplify_preserve_topology)
-def simplify_preserve_topology(geoms, tolerance):
-    return ufuncs.simplify_preserve_topology(geoms, tolerance)
+def simplify_preserve_topology(geometries, tolerance):
+    return ufuncs.simplify_preserve_topology(geometries, tolerance)

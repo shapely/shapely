@@ -48,7 +48,7 @@ def _wrap_construct_ufunc(func, coords, y=None, z=None):
 def points(coords, y=None, z=None):
     """Create an array of points.
 
-    Attributes
+    Parameters
     ----------
     coords : array_like
         An array of coordinate tuples (2- or 3-dimensional) or, if `y` is
@@ -62,7 +62,7 @@ def points(coords, y=None, z=None):
 def linestrings(coords, y=None, z=None):
     """Create an array of linestrings.
 
-    Attributes
+    Parameters
     ----------
     coords : array_like
         An array of lists of coordinate tuples (2- or 3-dimensional) or, if `y`
@@ -79,7 +79,7 @@ def linearrings(coords, y=None, z=None):
     If the provided coords do not constitute a closed linestring, the first
     coordinate is duplicated at the end to close the ring.
 
-    Attributes
+    Parameters
     ----------
     coords : array_like
         An array of lists of coordinate tuples (2- or 3-dimensional) or, if `y`
@@ -93,7 +93,7 @@ def linearrings(coords, y=None, z=None):
 def polygons(shells, holes=None):
     """Create an array of polygons.
 
-    Attributes
+    Parameters
     ----------
     shell : array_like
         An array of linearrings that constitute the out shell of the polygons.
@@ -117,7 +117,7 @@ def polygons(shells, holes=None):
 def box(x1, y1, x2, y2):
     """Create box polygons.
 
-    Attributes
+    Parameters
     ----------
     x1 : array_like
     y2 : array_like
@@ -134,7 +134,7 @@ def box(x1, y1, x2, y2):
 def multipoints(geometries):
     """Create multipoints from arrays of points
 
-    Attributes
+    Parameters
     ----------
     geometries : array_like
         An array of points or coordinates (see points).
@@ -150,7 +150,7 @@ def multipoints(geometries):
 def multilinestrings(geometries):
     """Create multilinestrings from arrays of linestrings
 
-    Attributes
+    Parameters
     ----------
     geometries : array_like
         An array of linestrings or coordinates (see linestrings).
@@ -166,7 +166,7 @@ def multilinestrings(geometries):
 def multipolygons(geometries):
     """Create multipolygons from arrays of polygons
 
-    Attributes
+    Parameters
     ----------
     geometries : array_like
         An array of polygons or coordinates (see polygons).
@@ -182,7 +182,7 @@ def multipolygons(geometries):
 def geometrycollections(geometries):
     """Create geometrycollections from arrays of geometries
 
-    Attributes
+    Parameters
     ----------
     geometries : array_like
         An array of geometries
