@@ -90,30 +90,29 @@ Compute the area of all possible intersections of two lists of polygons:
        [ 70.,  63.,  56.,  49.,  42.],
        [ 60.,  54.,  48.,  42.,  36.]])
 
-Installation from source using conda
-------------------------------------
+Installation using conda
+------------------------
 
-Pygeos requires the presence of GEOS >= 3.5. Easiest is to use Anaconda::
+Pygeos requires the presence of NumPy and GEOS >= 3.5. It is recommended to obtain
+these using Anaconda::
 
     $ conda install numpy geos
 
-Pygeos' installation script assumes that the command `geos-config` is available. Append
-your `PATH` variable if necessary. If not possible, you may also set `GEOS_INCLUDE_PATH`
-and `GEOS_LIBRARY_PATH` variables directly. Finally::
+On Linux / OSX::
 
     $ export GEOS_INCLUDE_PATH=$CONDA_PREFIX/Library/include
     $ export GEOS_LIBRARY_PATH=$CONDA_PREFIX/Library/lib
     $ pip install pygeos
 
-Or, on windows (assuming you have setup the correct VC compiler)::
+On windows (assuming you are in a Visual C++ shell)::
 
     $ set GEOS_INCLUDE_PATH=%CONDA_PREFIX%\Library\include
     $ set GEOS_LIBRARY_PATH=%CONDA_PREFIX%\Library\lib
     $ pip install pygeos
 
 
-Installation for developers
----------------------------
+Installation using system GEOS
+------------------------------
 
 On Linux::
 
@@ -123,7 +122,14 @@ On OSX::
 
     $ brew install geos
 
-Make sure `geos-config` is available from you shell; append PATH if necessary.
+Make sure `geos-config` is available from you shell; append PATH if necessary::
+
+    $ export PATH=$PATH:/path/to/dir/having/geos-config
+    $ pip install pygeos
+
+
+Installation for developers
+---------------------------
 
 Clone the package::
 
@@ -131,7 +137,7 @@ Clone the package::
 
 Install it using `pip`::
 
-    $ pip install -e .
+    $ pip install -e .[test]
 
 Run the unittests::
 
