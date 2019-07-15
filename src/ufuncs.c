@@ -1045,7 +1045,7 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
         return NULL;
 
     Py_INCREF(&GeometryType);
-    PyModule_AddObject(m, "GEOSGeometry", (PyObject *) &GeometryType);
+    PyModule_AddObject(m, "Geometry", (PyObject *) &GeometryType);
 
     d = PyModule_GetDict(m);
 

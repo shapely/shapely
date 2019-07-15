@@ -1,14 +1,3 @@
-GEOS_POINT = 0
-GEOS_LINESTRING = 1
-GEOS_LINEARRING = 2
-GEOS_POLYGON = 3
-GEOS_MULTIPOINT = 4
-GEOS_MULTILINESTRING = 5
-GEOS_MULTIPOLYGON = 6
-GEOS_GEOMETRYCOLLECTION = 7
-
-
-from .ufuncs import GEOSGeometry  # NOQA
 from .ufuncs import GEOSException  # NOQA
 from .ufuncs import is_empty  # NOQA
 from .ufuncs import is_simple  # NOQA
@@ -74,4 +63,4 @@ from .ufuncs import snap  # NOQA
 from .ufuncs import equals_exact  # NOQA
 from .ufuncs import haussdorf_distance_densify  # NOQA
 from .ufuncs import buffer_with_style  # NOQA
-from .construction import *  # NOQA
+from .geometry import *  # NOQA

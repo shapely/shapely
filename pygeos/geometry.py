@@ -1,14 +1,11 @@
+from enum import IntEnum
 import numpy as np
-from . import (
-    ufuncs,
-    GEOS_MULTIPOINT,
-    GEOS_MULTIPOLYGON,
-    GEOS_MULTILINESTRING,
-    GEOS_GEOMETRYCOLLECTION,
-)
-
+from . import ufuncs
+from .ufuncs import Geometry
 
 __all__ = [
+    "Geometry",
+    "GeometryType",
     "points",
     "linestrings",
     "linearrings",
@@ -19,6 +16,17 @@ __all__ = [
     "geometrycollections",
     "box",
 ]
+
+
+class GeometryType(IntEnum):
+    POINT = 0
+    LINESTRING = 1
+    LINEARRING = 2
+    POLYGON = 3
+    MULTIPOINT = 4
+    MULTILINESTRING = 5
+    MULTIPOLYGON = 6
+    GEOMETRYCOLLECTION = 7
 
 
 def _wrap_construct_ufunc(func, coords, y=None, z=None):
@@ -89,7 +97,7 @@ def polygons(shells, holes=None):
         An array of lists of linearrings that constitute holes for each shell.
     """
     shells = np.asarray(shells)
-    if not isinstance(shells, ufuncs.GEOSGeometry) and np.issubdtype(
+    if not isinstance(shells, Geometry) and np.issubdtype(
         shells.dtype, np.number
     ):
         shells = linearrings(shells)
@@ -98,7 +106,7 @@ def polygons(shells, holes=None):
         return ufuncs.polygons_without_holes(shells)
 
     holes = np.asarray(holes)
-    if not isinstance(holes, ufuncs.GEOSGeometry) and np.issubdtype(
+    if not isinstance(holes, Geometry) and np.issubdtype(
         holes.dtype, np.number
     ):
         holes = linearrings(holes)
@@ -131,11 +139,11 @@ def multipoints(geometries):
         An array of points or coordinates (see points).
     """
     geometries = np.asarray(geometries)
-    if not isinstance(geometries, ufuncs.GEOSGeometry) and np.issubdtype(
+    if not isinstance(geometries, Geometry) and np.issubdtype(
         geometries.dtype, np.number
     ):
         geometries = points(geometries)
-    return ufuncs.create_collection(geometries, GEOS_MULTIPOINT)
+    return ufuncs.create_collection(geometries, GeometryType.MULTIPOINT)
 
 
 def multilinestrings(geometries):
@@ -147,11 +155,11 @@ def multilinestrings(geometries):
         An array of linestrings or coordinates (see linestrings).
     """
     geometries = np.asarray(geometries)
-    if not isinstance(geometries, ufuncs.GEOSGeometry) and np.issubdtype(
+    if not isinstance(geometries, Geometry) and np.issubdtype(
         geometries.dtype, np.number
     ):
         geometries = linestrings(geometries)
-    return ufuncs.create_collection(geometries, GEOS_MULTILINESTRING)
+    return ufuncs.create_collection(geometries, GeometryType.MULTILINESTRING)
 
 
 def multipolygons(geometries):
@@ -163,11 +171,11 @@ def multipolygons(geometries):
         An array of polygons or coordinates (see polygons).
     """
     geometries = np.asarray(geometries)
-    if not isinstance(geometries, ufuncs.GEOSGeometry) and np.issubdtype(
+    if not isinstance(geometries, Geometry) and np.issubdtype(
         geometries.dtype, np.number
     ):
         geometries = polygons(geometries)
-    return ufuncs.create_collection(geometries, GEOS_MULTIPOLYGON)
+    return ufuncs.create_collection(geometries, GeometryType.MULTIPOLYGON)
 
 
 def geometrycollections(geometries):
@@ -178,4 +186,4 @@ def geometrycollections(geometries):
     geometries : array_like
         An array of geometries
     """
-    return ufuncs.create_collection(geometries, GEOS_GEOMETRYCOLLECTION)
+    return ufuncs.create_collection(geometries, GeometryType.GEOMETRYCOLLECTION)
