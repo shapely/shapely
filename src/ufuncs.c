@@ -13,7 +13,7 @@
 
 
 #define RAISE_ILLEGAL_GEOS if (!PyErr_Occurred()) {PyErr_Format(PyExc_RuntimeError, "Uncaught GEOS exception");}
-#define RAISE_NO_MALLOC if (!PyErr_Occurred()) {PyErr_Format(PyExc_MemoryError, "Could not allocate memory");}
+#define RAISE_NO_MALLOC PyErr_Format(PyExc_MemoryError, "Could not allocate memory")
 #define CREATE_COORDSEQ(SIZE, NDIM)\
     void *coord_seq = GEOSCoordSeq_create_r(context_handle, SIZE, NDIM);\
     if (coord_seq == NULL) {\
@@ -208,7 +208,7 @@ static PyObject *GeometryObject_ToWKB(GeometryObject *self, PyObject *args, PyOb
     } else {
         wkb = GEOSWKBWriter_write_r(context_handle, writer, self->ptr, &size);
     }
-    result = PyBytes_FromStringAndSize(wkb, size);
+    result = PyBytes_FromStringAndSize((char *) wkb, size);
     GEOSWKBWriter_destroy_r(context_handle, writer);
     return result;
 }
@@ -286,9 +286,9 @@ static PyObject *GeometryObject_FromWKB(PyTypeObject *type, PyObject *value)
         return NULL;
     }
     if (is_hex) {
-        geom = GEOSWKBReader_readHEX_r(context_handle, reader, wkb, size);
+        geom = GEOSWKBReader_readHEX_r(context_handle, reader, (unsigned char *) wkb, size);
     } else {
-        geom = GEOSWKBReader_read_r(context_handle, reader, wkb, size);
+        geom = GEOSWKBReader_read_r(context_handle, reader, (unsigned char *) wkb, size);
     }
     GEOSWKBReader_destroy_r(context_handle, reader);
     if (geom == NULL) {
@@ -336,10 +336,10 @@ static PyObject *GeometryObject_new(PyTypeObject *type, PyObject *args,
 }
 
 static PyMethodDef GeometryObject_methods[] = {
-    {"to_wkt", (PyCFunctionWithKeywords) GeometryObject_ToWKT, METH_VARARGS | METH_KEYWORDS,
+    {"to_wkt", (PyCFunction) GeometryObject_ToWKT, METH_VARARGS | METH_KEYWORDS,
      "Write the geometry to Well-Known Text (WKT) format"
     },
-    {"to_wkb", (PyCFunctionWithKeywords) GeometryObject_ToWKB, METH_VARARGS | METH_KEYWORDS,
+    {"to_wkb", (PyCFunction) GeometryObject_ToWKB, METH_VARARGS | METH_KEYWORDS,
      "Write the geometry to Well-Known Binary (WKB) format"
     },
     {"from_wkt", (PyCFunction) GeometryObject_FromWKT, METH_CLASS | METH_O,
@@ -379,7 +379,7 @@ static void Y_b_func(char **args, npy_intp *dimensions,
     FuncGEOS_Y_b *func = (FuncGEOS_Y_b *)data;
     void *context_handle = geos_context[0];
     npy_bool nanvalue = 0;
-    if (func == GEOSisEmpty_r) { nanvalue = 1; }
+    if (data == GEOSisEmpty_r) { nanvalue = 1; }
 
     UNARY_LOOP {
         if GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) {
@@ -413,7 +413,7 @@ static void YY_b_func(char **args, npy_intp *dimensions,
     FuncGEOS_YY_b *func = (FuncGEOS_YY_b *)data;
     void *context_handle = geos_context[0];
     npy_bool nanvalue = 0;
-    if (func == GEOSDisjoint_r) { nanvalue = 1; }
+    if (data == GEOSDisjoint_r) { nanvalue = 1; }
 
     BINARY_LOOP {
         if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | GEOM_ISNAN_OR_NONE(*(PyObject **)ip2)) {
@@ -847,9 +847,9 @@ static void polygons_with_holes_func(char **args, npy_intp *dimensions,
     void *shell;
     int n_holes;
     GEOSGeometry **holes = malloc(sizeof(void *) * dimensions[1]);
-    if (holes == NULL) (
+    if (holes == NULL) {
         RAISE_NO_MALLOC;
-    )
+    }
 
     BINARY_SINGLE_COREDIM_LOOP_OUTER {
         GeometryObject *g = *(GeometryObject **)ip1;
@@ -890,9 +890,9 @@ static void create_collection_func(char **args, npy_intp *dimensions,
     void *context_handle = geos_context[0];
     int n_geoms;
     GEOSGeometry **geoms = malloc(sizeof(void *) * dimensions[1]);
-    if (holes == NULL) (
+    if (geoms == NULL) {
         RAISE_NO_MALLOC;
-    )
+    }
     int type;
 
     BINARY_SINGLE_COREDIM_LOOP_OUTER {
