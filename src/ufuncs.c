@@ -522,7 +522,7 @@ static void *GEOSSetSRID_r_with_clone(void *context, void *geom, int srid) {
 }
 static void *set_srid_data[1] = {GEOSSetSRID_r_with_clone};
 typedef void *FuncGEOS_Yi_Y(void *context, void *a, int b);
-static char Yi_Y_dtypes[3] = {NPY_OBJECT, NPY_INT, NPY_OBJECT};
+static char Yi_Y_dtypes[3] = {NPY_OBJECT, NPY_LONG, NPY_OBJECT};
 static void Yi_Y_func(char **args, npy_intp *dimensions,
                       npy_intp *steps, void *data)
 {
@@ -535,7 +535,7 @@ static void Yi_Y_func(char **args, npy_intp *dimensions,
             continue;
         }
         INPUT_Y;
-        int in2 = *(int *)ip2;
+        int in2 = *(npy_long *) ip2;
         GEOSGeometry *ret_ptr = func(context_handle, in1->ptr, in2);
         OUTPUT_Y;
     }
@@ -703,7 +703,7 @@ static PyUFuncGenericFunction YY_d_2_funcs[1] = {&YY_d_2_func};
 
 /* Define functions with unique call signatures */
 static void *null_data[1] = {NULL};
-static char buffer_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_INT, NPY_OBJECT};
+static char buffer_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_LONG, NPY_OBJECT};
 static void buffer_func(char **args, npy_intp *dimensions,
                         npy_intp *steps, void *data)
 {
@@ -716,7 +716,7 @@ static void buffer_func(char **args, npy_intp *dimensions,
             continue;
         }
         double in2 = *(double *) ip2;
-        int in3 = *(int *) ip3;
+        int in3 = *(npy_long *) ip3;
         GEOSGeometry *ret_ptr = GEOSBuffer_r(context_handle, in1->ptr, in2, in3);
         OUTPUT_Y;
     }
@@ -783,6 +783,33 @@ static void haussdorf_distance_densify_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction haussdorf_distance_densify_funcs[1] = {&haussdorf_distance_densify_func};
 
+
+static char buffer_with_style_dtypes[7] = {NPY_OBJECT, NPY_DOUBLE, NPY_LONG, NPY_LONG, NPY_LONG, NPY_DOUBLE, NPY_OBJECT};
+static void buffer_with_style_func(char **args, npy_intp *dimensions,
+                                   npy_intp *steps, void *data)
+{
+    void *context_handle = geos_context[0];
+
+    char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2], *ip4 = args[3], *ip5 = args[4], *ip6 = args[5], *op1 = args[6];
+    npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2], is4 = steps[3], is5 = steps[4], is6 = steps[5], os1 = steps[6];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    for(i = 0; i < n; i++, ip1 += is1, ip2 += is2, ip3 += is3, ip4 += is4, ip5 += is5, ip6 += is6, op1 += os1) {
+        INPUT_Y;
+        double in2 = *(double *) ip2;
+        int in3 = *(npy_long *) ip3;
+        int in4 = *(npy_long *) ip4;
+        int in5 = *(npy_long *) ip5;
+        double in6 = *(double *) ip6;
+        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | npy_isnan(in2) | npy_isnan(in6)) {
+            *(npy_double *) op1 = NPY_NAN;
+            continue;
+        }
+        GEOSGeometry *ret_ptr = GEOSBufferWithStyle_r(context_handle, in1->ptr, in2, in3, in4, in5, in6);
+        OUTPUT_Y;
+    }
+}
+static PyUFuncGenericFunction buffer_with_style_funcs[1] = {&buffer_with_style_func};
 
 /* define double -> geometry construction functions */
 
@@ -947,13 +974,10 @@ static PyUFuncGenericFunction create_collection_funcs[1] = {&create_collection_f
 
 /*
 TODO custom buffer functions
-TODO possibly implement some creation functions
 TODO polygonizer functions
 TODO prepared geometry predicate functions
 TODO relate functions
 TODO G -> char function GEOSisValidReason_r
-TODO GGd -> d function GEOSHausdorffDistanceDensify_r
-
 */
 
 
@@ -1109,6 +1133,7 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_CUSTOM (snap, 3);
     DEFINE_CUSTOM (equals_exact, 3);
     DEFINE_CUSTOM (haussdorf_distance_densify, 3);
+    DEFINE_CUSTOM (buffer_with_style, 6);
     DEFINE_GENERALIZED(points, 1, "(d)->()");
     DEFINE_GENERALIZED(linestrings, 1, "(i, d)->()");
     DEFINE_GENERALIZED(linearrings, 1, "(i, d)->()");

@@ -66,12 +66,12 @@ def test_get_centroid():
 
 
 def test_get_point_n():
-    actual = pygeos.get_point_n(line_string, np.int16(1))
+    actual = pygeos.get_point_n(line_string, 1)
     assert pygeos.equals(actual, pygeos.points(1, 0))
 
 
 def test_set_srid():
-    actual = pygeos.set_srid(point, np.int16(4326))
+    actual = pygeos.set_srid(point, 4326)
     assert pygeos.get_srid(point) == 0
     assert pygeos.get_srid(actual) == 4326
 
@@ -156,7 +156,13 @@ def test_project():
 
 def test_buffer():
     radii = np.array([1.0, 2.0])
-    actual = pygeos.buffer(point, radii, np.int16(16))
+    actual = pygeos.buffer(point, radii, 16)
+    assert pygeos.area(actual) == pytest.approx(np.pi * radii ** 2, rel=0.01)
+
+
+def test_buffer_with_style():
+    radii = np.array([1.0, 2.0])
+    actual = pygeos.buffer_with_style(point, radii, 16, 1, 1, 5)
     assert pygeos.area(actual) == pytest.approx(np.pi * radii ** 2, rel=0.01)
 
 

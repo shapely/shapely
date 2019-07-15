@@ -73,4 +73,5 @@ from .ufuncs import buffer  # NOQA
 from .ufuncs import snap  # NOQA
 from .ufuncs import equals_exact  # NOQA
 from .ufuncs import haussdorf_distance_densify  # NOQA
+from .ufuncs import buffer_with_style  # NOQA
 from .construction import *  # NOQA
