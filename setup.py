@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 ch = logging.StreamHandler()
 log.addHandler(ch)
 
-MIN_GEOS_VERSION = '3.5'
+MIN_GEOS_VERSION = "3.5"
 
 if "all" in sys.warnoptions:
     # show GEOS messages in console with: python -W all
@@ -24,7 +24,7 @@ def get_geos_config(option):
     """
     try:
         stdout, stderr = subprocess.Popen(
-            ['geos-config', option], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            ["geos-config", option], stdout=subprocess.PIPE, stderr=subprocess.PIPE
         ).communicate()
     except OSError:
         return
@@ -54,20 +54,22 @@ def get_geos_paths():
         return {
             "include_dirs": [include_dir],
             "library_dirs": [library_dir],
-            "libraries": ['geos_c'],
+            "libraries": ["geos_c"],
         }
-    geos_version = get_geos_config('--version')
+    geos_version = get_geos_config("--version")
     if not geos_version:
         log.warning(
             "Could not find geos-config executable. Either append the path to geos-config"
             " to PATH or manually provide the include_dirs, library_dirs, libraries and "
             "other link args for compiling against a GEOS version >=%s.",
-            MIN_GEOS_VERSION
+            MIN_GEOS_VERSION,
         )
         return {}
     if LooseVersion(geos_version) < LooseVersion(MIN_GEOS_VERSION):
         raise ImportError(
-            "GEOS version should be >={}, found {}".format(MIN_GEOS_VERSION, geos_version)
+            "GEOS version should be >={}, found {}".format(
+                MIN_GEOS_VERSION, geos_version
+            )
         )
     libraries = []
     library_dirs = []
@@ -76,10 +78,10 @@ def get_geos_paths():
     for item in get_geos_config("--cflags").split():
         if item.startswith("-I"):
             include_dirs.extend(item[2:].split(":"))
-    for item in get_geos_config('--clibs').split():
-        if item.startswith('-L'):
+    for item in get_geos_config("--clibs").split():
+        if item.startswith("-L"):
             library_dirs.extend(item[2:].split(":"))
-        elif item.startswith('-l'):
+        elif item.startswith("-l"):
             libraries.append(item[2:])
         else:
             extra_link_args.append(item)
@@ -104,11 +106,7 @@ class build_ext(_build_ext):
         self.include_dirs.append(numpy.get_include())
 
 
-module_ufuncs = Extension(
-    "pygeos.ufuncs",
-    sources=["src/ufuncs.c"],
-    **get_geos_paths(),
-)
+module_ufuncs = Extension("pygeos.ufuncs", sources=["src/ufuncs.c"], **get_geos_paths())
 
 try:
     descr = open(os.path.join(os.path.dirname(__file__), "README.rst")).read()

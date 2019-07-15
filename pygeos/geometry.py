@@ -1,5 +1,6 @@
 from enum import IntEnum
 import numpy as np
+from functools import wraps
 from . import ufuncs
 from .ufuncs import Geometry
 
@@ -15,6 +16,10 @@ __all__ = [
     "multipolygons",
     "geometrycollections",
     "box",
+    "get_point_n",
+    "get_geometry_n",
+    "get_interior_ring_n",
+    "set_srid",
 ]
 
 
@@ -97,18 +102,14 @@ def polygons(shells, holes=None):
         An array of lists of linearrings that constitute holes for each shell.
     """
     shells = np.asarray(shells)
-    if not isinstance(shells, Geometry) and np.issubdtype(
-        shells.dtype, np.number
-    ):
+    if not isinstance(shells, Geometry) and np.issubdtype(shells.dtype, np.number):
         shells = linearrings(shells)
 
     if holes is None:
         return ufuncs.polygons_without_holes(shells)
 
     holes = np.asarray(holes)
-    if not isinstance(holes, Geometry) and np.issubdtype(
-        holes.dtype, np.number
-    ):
+    if not isinstance(holes, Geometry) and np.issubdtype(holes.dtype, np.number):
         holes = linearrings(holes)
     return ufuncs.polygons_with_holes(shells, holes)
 
@@ -187,3 +188,23 @@ def geometrycollections(geometries):
         An array of geometries
     """
     return ufuncs.create_collection(geometries, GeometryType.GEOMETRYCOLLECTION)
+
+
+@wraps(ufuncs.get_geometry_n)
+def get_geometry_n(geoms, index):
+    return ufuncs.get_geometry_n(geoms, np.intc(index))
+
+
+@wraps(ufuncs.get_interior_ring_n)
+def get_interior_ring_n(geoms, index):
+    return ufuncs.get_interior_ring_n(geoms, np.intc(index))
+
+
+@wraps(ufuncs.get_point_n)
+def get_point_n(geoms, index):
+    return ufuncs.get_point_n(geoms, np.intc(index))
+
+
+@wraps(ufuncs.set_srid)
+def set_srid(geoms, srid):
+    return ufuncs.set_srid(geoms, np.intc(srid))

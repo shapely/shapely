@@ -2,9 +2,21 @@ import numpy as np
 import pygeos
 import pytest
 
+from .common import line_string
 from .common import point
 from .common import point_z
 from .common import all_types
+
+
+def test_get_point_n():
+    actual = pygeos.get_point_n(line_string, 1)
+    assert pygeos.equals(actual, pygeos.points(1, 0))
+
+
+def test_set_srid():
+    actual = pygeos.set_srid(point, 4326)
+    assert pygeos.get_srid(point) == 0
+    assert pygeos.get_srid(actual) == 4326
 
 
 def box_tpl(x1, y1, x2, y2):

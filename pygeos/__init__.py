@@ -1,3 +1,7 @@
+from .geometry import *
+from .constructive import *
+
+
 from .ufuncs import GEOSException  # NOQA
 from .ufuncs import is_empty  # NOQA
 from .ufuncs import is_simple  # NOQA
@@ -15,27 +19,15 @@ from .ufuncs import overlaps  # NOQA
 from .ufuncs import equals  # NOQA
 from .ufuncs import covers  # NOQA
 from .ufuncs import covered_by  # NOQA
-from .ufuncs import clone  # NOQA
-from .ufuncs import envelope  # NOQA
-from .ufuncs import convex_hull  # NOQA
-from .ufuncs import boundary  # NOQA
 from .ufuncs import unary_union  # NOQA
-from .ufuncs import point_on_surface  # NOQA
-from .ufuncs import get_centroid  # NOQA
 from .ufuncs import line_merge  # NOQA
 from .ufuncs import extract_unique_points  # NOQA
 from .ufuncs import get_start_point  # NOQA
 from .ufuncs import get_end_point  # NOQA
 from .ufuncs import get_exterior_ring  # NOQA
 from .ufuncs import normalize  # NOQA
-from .ufuncs import get_interior_ring_n  # NOQA
-from .ufuncs import get_point_n  # NOQA
-from .ufuncs import get_geometry_n  # NOQA
-from .ufuncs import set_srid  # NOQA
 from .ufuncs import interpolate  # NOQA
 from .ufuncs import interpolate_normalized  # NOQA
-from .ufuncs import simplify  # NOQA
-from .ufuncs import topology_preserve_simplify  # NOQA
 from .ufuncs import intersection  # NOQA
 from .ufuncs import difference  # NOQA
 from .ufuncs import symmetric_difference  # NOQA
@@ -58,9 +50,6 @@ from .ufuncs import distance  # NOQA
 from .ufuncs import hausdorff_distance  # NOQA
 from .ufuncs import project  # NOQA
 from .ufuncs import project_normalized  # NOQA
-from .ufuncs import buffer  # NOQA
 from .ufuncs import snap  # NOQA
 from .ufuncs import equals_exact  # NOQA
 from .ufuncs import haussdorf_distance_densify  # NOQA
-from .ufuncs import buffer_with_style  # NOQA
-from .geometry import *  # NOQA

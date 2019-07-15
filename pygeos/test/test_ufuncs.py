@@ -54,37 +54,6 @@ def test_contains():
     np.testing.assert_equal(actual, expected)
 
 
-# Y_Y
-
-
-def test_get_centroid():
-    actual = pygeos.get_centroid(polygon)
-    assert pygeos.equals(actual, pygeos.points(1, 1))
-
-
-# Yi_Y
-
-
-def test_get_point_n():
-    actual = pygeos.get_point_n(line_string, 1)
-    assert pygeos.equals(actual, pygeos.points(1, 0))
-
-
-def test_set_srid():
-    actual = pygeos.set_srid(point, 4326)
-    assert pygeos.get_srid(point) == 0
-    assert pygeos.get_srid(actual) == 4326
-
-
-# Yd_Y
-
-
-def test_simplify():
-    line = pygeos.linestrings([[0, 0], [0.1, 1], [0, 2]])
-    actual = pygeos.simplify(line, [0, 1.0])
-    assert pygeos.get_num_points(actual).tolist() == [3, 2]
-
-
 # YY_Y
 
 
@@ -154,18 +123,6 @@ def test_project():
 # specials
 
 
-def test_buffer():
-    radii = np.array([1.0, 2.0])
-    actual = pygeos.buffer(point, radii, 16)
-    assert pygeos.area(actual) == pytest.approx(np.pi * radii ** 2, rel=0.01)
-
-
-def test_buffer_with_style():
-    radii = np.array([1.0, 2.0])
-    actual = pygeos.buffer_with_style(point, radii, 16, 1, 1, 5)
-    assert pygeos.area(actual) == pytest.approx(np.pi * radii ** 2, rel=0.01)
-
-
 def test_snap():
     line = pygeos.linestrings([[0, 0], [1, 0], [2, 0]])
     points = pygeos.points([0, 1], [1, 0.1])
@@ -189,6 +146,7 @@ def test_haussdorf_distance_densify():
     actual = pygeos.haussdorf_distance_densify(a, b, 0.001)
     assert actual == pytest.approx(47.8, abs=0.1)
 
+
 # NaN / None handling
 
 
@@ -199,6 +157,7 @@ def test_Y_b_nan(func):
         assert actual.all()
     else:
         assert (~actual).all()
+
 
 @pytest.mark.parametrize("func", BINARY_PREDICATES)
 def test_YY_b_nan(func):
@@ -212,13 +171,6 @@ def test_YY_b_nan(func):
         assert (~actual).all()
 
 
-def test_Y_Y_nan():
-    actual = pygeos.clone(np.array([point, np.nan, None]))
-    assert pygeos.equals(actual[0], point)
-    assert np.isnan(actual[1])
-    assert np.isnan(actual[2])
-
-
 def test_Y_d_nan():
     actual = pygeos.area(np.array([polygon, np.nan, None]))
     assert actual[0] == pygeos.area(polygon)
@@ -230,15 +182,6 @@ def test_YY_Y_nan():
     actual = pygeos.intersection(
         np.array([point, np.nan, np.nan, point, None, None, point]),
         np.array([np.nan, point, np.nan, None, point, None, point]),
-    )
-    assert pygeos.equals(actual[-1], point)
-    assert np.isnan(actual[:-1].astype(np.float)).all()
-
-
-def test_Yd_Y_nan():
-    actual = pygeos.simplify(
-        np.array([point, np.nan, np.nan, None, point]),
-        np.array([np.nan, 1.0, np.nan, 1.0, 1.0]),
     )
     assert pygeos.equals(actual[-1], point)
     assert np.isnan(actual[:-1].astype(np.float)).all()
