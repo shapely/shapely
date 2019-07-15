@@ -849,6 +849,7 @@ static void polygons_with_holes_func(char **args, npy_intp *dimensions,
     GEOSGeometry **holes = malloc(sizeof(void *) * dimensions[1]);
     if (holes == NULL) {
         RAISE_NO_MALLOC;
+        goto finish;
     }
 
     BINARY_SINGLE_COREDIM_LOOP_OUTER {
@@ -878,7 +879,7 @@ static void polygons_with_holes_func(char **args, npy_intp *dimensions,
     }
 
     finish:
-        free(holes);
+        if (holes != NULL) { free(holes); }
 }
 static PyUFuncGenericFunction polygons_with_holes_funcs[1] = {&polygons_with_holes_func};
 
@@ -892,6 +893,7 @@ static void create_collection_func(char **args, npy_intp *dimensions,
     GEOSGeometry **geoms = malloc(sizeof(void *) * dimensions[1]);
     if (geoms == NULL) {
         RAISE_NO_MALLOC;
+        goto finish;
     }
     int type;
 
@@ -916,7 +918,7 @@ static void create_collection_func(char **args, npy_intp *dimensions,
     }
 
     finish:
-        free(geoms);
+        if (geoms != NULL) { free(geoms); }
 }
 static PyUFuncGenericFunction create_collection_funcs[1] = {&create_collection_func};
 
