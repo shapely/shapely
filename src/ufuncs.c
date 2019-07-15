@@ -13,6 +13,7 @@
 
 
 #define RAISE_ILLEGAL_GEOS if (!PyErr_Occurred()) {PyErr_Format(PyExc_RuntimeError, "Uncaught GEOS exception");}
+#define RAISE_NO_MALLOC if (!PyErr_Occurred()) {PyErr_Format(PyExc_MemoryError, "Could not allocate memory");}
 #define CREATE_COORDSEQ(SIZE, NDIM)\
     void *coord_seq = GEOSCoordSeq_create_r(context_handle, SIZE, NDIM);\
     if (coord_seq == NULL) {\
@@ -844,29 +845,40 @@ static void polygons_with_holes_func(char **args, npy_intp *dimensions,
 {
     void *context_handle = geos_context[0];
     void *shell;
-    GEOSGeometry **holes;
+    int n_holes;
+    GEOSGeometry **holes = malloc(sizeof(void *) * dimensions[1]);
+    if (holes == NULL) (
+        RAISE_NO_MALLOC;
+    )
 
     BINARY_SINGLE_COREDIM_LOOP_OUTER {
         GeometryObject *g = *(GeometryObject **)ip1;
         CHECK_GEOM(g);
         shell = GEOSGeom_clone_r(context_handle, g->ptr);
         if (shell == NULL) {
-            return;
+            goto finish;
         }
-        holes = malloc(n_c1 * sizeof(void *));
+        n_holes = 0;
         cp1 = ip2;
         BINARY_SINGLE_COREDIM_LOOP_INNER {
             GeometryObject *g = *(GeometryObject **)cp1;
+            if GEOM_ISNAN_OR_NONE(g) {
+                continue;
+            }
             CHECK_GEOM(g);
             GEOSGeometry *hole = GEOSGeom_clone_r(context_handle, g->ptr);
             if (hole == NULL) {
-                return;
+                goto finish;
             }
             holes[i_c1] = hole;
+            n_holes++;
         }
-        GEOSGeometry *ret_ptr = GEOSGeom_createPolygon_r(context_handle, shell, holes, n_c1);
+        GEOSGeometry *ret_ptr = GEOSGeom_createPolygon_r(context_handle, shell, holes, n_holes);
         OUTPUT_Y;
     }
+
+    finish:
+        free(holes);
 }
 static PyUFuncGenericFunction polygons_with_holes_funcs[1] = {&polygons_with_holes_func};
 
@@ -876,13 +888,14 @@ static void create_collection_func(char **args, npy_intp *dimensions,
                                    npy_intp *steps, void *data)
 {
     void *context_handle = geos_context[0];
-    GEOSGeometry **geoms;
     int n_geoms;
+    GEOSGeometry **geoms = malloc(sizeof(void *) * dimensions[1]);
+    if (holes == NULL) (
+        RAISE_NO_MALLOC;
+    )
     int type;
 
-
     BINARY_SINGLE_COREDIM_LOOP_OUTER {
-        geoms = malloc(n_c1 * sizeof(void *));
         type = *(int *) ip2;
         n_geoms = 0;
         cp1 = ip1;
@@ -894,13 +907,16 @@ static void create_collection_func(char **args, npy_intp *dimensions,
             CHECK_GEOM(g);
             geoms[n_geoms] = GEOSGeom_clone_r(context_handle, g->ptr);
             if (geoms[n_geoms] == NULL) {
-                return;
+                goto finish;
             }
             n_geoms++;
         }
         GEOSGeometry *ret_ptr = GEOSGeom_createCollection_r(context_handle, type, geoms, n_geoms);
         OUTPUT_Y;
     }
+
+    finish:
+        free(geoms);
 }
 static PyUFuncGenericFunction create_collection_funcs[1] = {&create_collection_func};
 
