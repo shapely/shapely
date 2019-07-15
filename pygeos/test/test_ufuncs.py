@@ -81,8 +81,8 @@ def test_area():
 # Y_B
 
 
-def test_geom_type_id():
-    assert pygeos.geom_type_id(all_types).tolist() == list(range(8))
+def test_get_type_id():
+    assert pygeos.get_type_id(all_types).tolist() == list(range(8))
 
 
 # Y_i
@@ -143,7 +143,7 @@ def test_haussdorf_distance_densify():
     # example from GEOS docs
     a = pygeos.linestrings([[0, 0], [100, 0], [10, 100], [10, 100]])
     b = pygeos.linestrings([[0, 100], [0, 10], [80, 10]])
-    actual = pygeos.haussdorf_distance_densify(a, b, 0.001)
+    actual = pygeos.hausdorff_distance(a, b, densify=0.001)
     assert actual == pytest.approx(47.8, abs=0.1)
 
 

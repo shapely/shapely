@@ -508,9 +508,9 @@ static void Yd_Y_func(char **args, npy_intp *dimensions,
 static PyUFuncGenericFunction Yd_Y_funcs[1] = {&Yd_Y_func};
 
 /* Define the geom, int -> geom functions (Yi_Y) */
-static void *get_interior_ring_n_data[1] = {GEOSGetInteriorRingN_r};
-static void *get_point_n_data[1] = {GEOSGeomGetPointN_r};
-static void *get_geometry_n_data[1] = {GEOSGetGeometryN_r};
+static void *get_interior_ring_data[1] = {GEOSGetInteriorRingN_r};
+static void *get_point_data[1] = {GEOSGeomGetPointN_r};
+static void *get_geometry_data[1] = {GEOSGetGeometryN_r};
 /* the set srid funcion acts inplace */
 static void *GEOSSetSRID_r_with_clone(void *context, void *geom, int srid) {
     void *ret = GEOSGeom_clone_r(context, geom);
@@ -573,7 +573,6 @@ static void *get_x_data[1] = {GEOSGeomGetX_r};
 static void *get_y_data[1] = {GEOSGeomGetY_r};
 static void *area_data[1] = {GEOSArea_r};
 static void *length_data[1] = {GEOSLength_r};
-static void *get_length_data[1] = {GEOSGeomGetLength_r};
 typedef int FuncGEOS_Y_d(void *context, void *a, double *b);
 static char Y_d_dtypes[2] = {NPY_OBJECT, NPY_DOUBLE};
 static void Y_d_func(char **args, npy_intp *dimensions,
@@ -597,7 +596,7 @@ static void Y_d_func(char **args, npy_intp *dimensions,
 static PyUFuncGenericFunction Y_d_funcs[1] = {&Y_d_func};
 
 /* Define the geom -> unsigned byte functions (Y_B) */
-static void *geom_type_id_data[1] = {GEOSGeomTypeId_r};
+static void *get_type_id_data[1] = {GEOSGeomTypeId_r};
 static void *get_dimensions_data[1] = {GEOSGeom_getDimensions_r};
 static void *get_coordinate_dimensions_data[1] = {GEOSGeom_getCoordinateDimension_r};
 typedef int FuncGEOS_Y_B(void *context, void *a);
@@ -1110,9 +1109,9 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_Y_Y (get_exterior_ring);
     DEFINE_Y_Y (normalize);
 
-    DEFINE_Yi_Y (get_interior_ring_n);
-    DEFINE_Yi_Y (get_point_n);
-    DEFINE_Yi_Y (get_geometry_n);
+    DEFINE_Yi_Y (get_interior_ring);
+    DEFINE_Yi_Y (get_point);
+    DEFINE_Yi_Y (get_geometry);
     DEFINE_Yi_Y (set_srid);
 
     DEFINE_Yd_Y (interpolate);
@@ -1130,9 +1129,8 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_Y_d (get_y);
     DEFINE_Y_d (area);
     DEFINE_Y_d (length);
-    DEFINE_Y_d (get_length);
 
-    DEFINE_Y_B (geom_type_id);
+    DEFINE_Y_B (get_type_id);
     DEFINE_Y_B (get_dimensions);
     DEFINE_Y_B (get_coordinate_dimensions);
 

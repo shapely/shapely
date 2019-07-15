@@ -1,7 +1,6 @@
 from enum import IntEnum
 import numpy as np
 from . import ufuncs
-from functools import wraps
 
 
 __all__ = [
@@ -13,9 +12,10 @@ __all__ = [
     "clone",
     "convex_hull",
     "envelope",
+    "extract_unique_points",
     "point_on_surface",
     "simplify",
-    "simplify_preserve_topology",
+    "snap",
 ]
 
 
@@ -31,12 +31,10 @@ class BufferJoinStyles(IntEnum):
     BEVEL = 3
 
 
-@wraps(ufuncs.boundary)
 def boundary(geometries):
     return ufuncs.boundary(geometries)
 
 
-@wraps(ufuncs.buffer)
 def buffer(
     geometries,
     width,
@@ -100,38 +98,36 @@ def buffer(
     )
 
 
-@wraps(ufuncs.centroid)
 def centroid(geometries):
     return ufuncs.centroid(geometries)
 
 
-@wraps(ufuncs.clone)
 def clone(geometries):
     return ufuncs.clone(geometries)
 
 
-@wraps(ufuncs.convex_hull)
 def convex_hull(geometries):
     return ufuncs.convex_hull(geometries)
 
 
-@wraps(ufuncs.envelope)
 def envelope(geometries):
     return ufuncs.envelope(geometries)
 
 
-@wraps(ufuncs.point_on_surface)
+def extract_unique_points(geometries):
+    return ufuncs.extract_unique_points(geometries)
+
+
 def point_on_surface(geometries):
     return ufuncs.point_on_surface(geometries)
 
 
-@wraps(ufuncs.simplify)
 def simplify(geometries, tolerance, preserve_topology=False):
     if preserve_topology:
-        return simplify_preserve_toplogy(geometries, tolerance)
-    return ufuncs.simplify(geometries, tolerance)
+        return ufuncs.simplify_preserve_topology(geometries, tolerance)
+    else:
+        return ufuncs.simplify(geometries, tolerance)
 
 
-@wraps(ufuncs.simplify_preserve_topology)
-def simplify_preserve_topology(geometries, tolerance):
-    return ufuncs.simplify_preserve_topology(geometries, tolerance)
+def snap(geometries, reference, tolerance):
+    return ufuncs.snap(geometries, reference, tolerance)

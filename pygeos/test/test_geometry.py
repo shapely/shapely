@@ -8,8 +8,8 @@ from .common import point_z
 from .common import all_types
 
 
-def test_get_point_n():
-    actual = pygeos.get_point_n(line_string, 1)
+def test_get_point():
+    actual = pygeos.get_point(line_string, 1)
     assert pygeos.equals(actual, pygeos.points(1, 0))
 
 
