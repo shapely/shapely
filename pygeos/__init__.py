@@ -72,4 +72,5 @@ from .ufuncs import project_normalized  # NOQA
 from .ufuncs import buffer  # NOQA
 from .ufuncs import snap  # NOQA
 from .ufuncs import equals_exact  # NOQA
+from .ufuncs import haussdorf_distance_densify  # NOQA
 from .construction import *  # NOQA

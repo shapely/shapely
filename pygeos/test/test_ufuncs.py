@@ -132,6 +132,14 @@ def test_distance():
     np.testing.assert_allclose(actual, expected)
 
 
+def test_haussdorf_distance():
+    # example from GEOS docs
+    a = pygeos.linestrings([[0, 0], [100, 0], [10, 100], [10, 100]])
+    b = pygeos.linestrings([[0, 100], [0, 10], [80, 10]])
+    actual = pygeos.hausdorff_distance(a, b)
+    assert actual == pytest.approx(22.360679775, abs=1e-7)
+
+
 # YY_d_2
 
 
@@ -167,6 +175,13 @@ def test_equals_exact():
     expected = [False, True]
     np.testing.assert_equal(actual, expected)
 
+
+def test_haussdorf_distance_densify():
+    # example from GEOS docs
+    a = pygeos.linestrings([[0, 0], [100, 0], [10, 100], [10, 100]])
+    b = pygeos.linestrings([[0, 100], [0, 10], [80, 10]])
+    actual = pygeos.haussdorf_distance_densify(a, b, 0.001)
+    assert actual == pytest.approx(47.8, abs=0.1)
 
 # NaN / None handling
 

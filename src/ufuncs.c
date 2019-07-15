@@ -761,6 +761,29 @@ static void equals_exact_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction equals_exact_funcs[1] = {&equals_exact_func};
 
+
+static char haussdorf_distance_densify_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_DOUBLE};
+static void haussdorf_distance_densify_func(char **args, npy_intp *dimensions,
+                                            npy_intp *steps, void *data)
+{
+    void *context_handle = geos_context[0];
+
+    TERNARY_LOOP {
+        INPUT_YY;
+        double in3 = *(double *) ip3;
+        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | GEOM_ISNAN_OR_NONE(*(PyObject **)ip2) | npy_isnan(in3)) {
+            *(npy_double *) op1 = NPY_NAN;
+            continue;
+        }
+        if (GEOSHausdorffDistanceDensify_r(context_handle, in1->ptr, in2->ptr, in3, (double *) op1) == 0) {
+            RAISE_ILLEGAL_GEOS;
+            return;
+        }
+    }
+}
+static PyUFuncGenericFunction haussdorf_distance_densify_funcs[1] = {&haussdorf_distance_densify_func};
+
+
 /* define double -> geometry construction functions */
 
 static char points_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
@@ -929,8 +952,6 @@ TODO polygonizer functions
 TODO prepared geometry predicate functions
 TODO relate functions
 TODO G -> char function GEOSisValidReason_r
-TODO Gi -> void function GEOSSetSRID_r
-TODO G -> void function GEOSNormalize_r
 TODO GGd -> d function GEOSHausdorffDistanceDensify_r
 
 */
@@ -1087,6 +1108,7 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_CUSTOM (buffer, 3);
     DEFINE_CUSTOM (snap, 3);
     DEFINE_CUSTOM (equals_exact, 3);
+    DEFINE_CUSTOM (haussdorf_distance_densify, 3);
     DEFINE_GENERALIZED(points, 1, "(d)->()");
     DEFINE_GENERALIZED(linestrings, 1, "(i, d)->()");
     DEFINE_GENERALIZED(linearrings, 1, "(i, d)->()");
