@@ -55,7 +55,3 @@ all_types = (
     multi_polygon,
     geometry_collection,
 )
-
-
-def box_tpl(x1, y1, x2, y2):
-    return (x2, y1), (x2, y2), (x1, y2), (x1, y1), (x2, y1)

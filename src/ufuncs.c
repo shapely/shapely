@@ -434,7 +434,7 @@ static void *convex_hull_data[1] = {GEOSConvexHull_r};
 static void *boundary_data[1] = {GEOSBoundary_r};
 static void *unary_union_data[1] = {GEOSUnaryUnion_r};
 static void *point_on_surface_data[1] = {GEOSPointOnSurface_r};
-static void *get_centroid_data[1] = {GEOSGetCentroid_r};
+static void *centroid_data[1] = {GEOSGetCentroid_r};
 static void *line_merge_data[1] = {GEOSLineMerge_r};
 static void *extract_unique_points_data[1] = {GEOSGeom_extractUniquePoints_r};
 static void *get_start_point_data[1] = {GEOSGeomGetStartPoint_r};
@@ -485,7 +485,7 @@ static PyUFuncGenericFunction Y_Y_funcs[1] = {&Y_Y_func};
 static void *interpolate_data[1] = {GEOSInterpolate_r};
 static void *interpolate_normalized_data[1] = {GEOSInterpolateNormalized_r};
 static void *simplify_data[1] = {GEOSSimplify_r};
-static void *topology_preserve_simplify_data[1] = {GEOSTopologyPreserveSimplify_r};
+static void *simplify_preserve_topology_data[1] = {GEOSTopologyPreserveSimplify_r};
 typedef void *FuncGEOS_Yd_Y(void *context, void *a, double b);
 static char Yd_Y_dtypes[3] = {NPY_OBJECT, NPY_DOUBLE, NPY_OBJECT};
 static void Yd_Y_func(char **args, npy_intp *dimensions,
@@ -535,7 +535,7 @@ static void Yi_Y_func(char **args, npy_intp *dimensions,
             continue;
         }
         INPUT_Y;
-        int in2 = *(int *)ip2;
+        int in2 = *(int *) ip2;
         GEOSGeometry *ret_ptr = func(context_handle, in1->ptr, in2);
         OUTPUT_Y;
     }
@@ -703,25 +703,72 @@ static PyUFuncGenericFunction YY_d_2_funcs[1] = {&YY_d_2_func};
 
 /* Define functions with unique call signatures */
 static void *null_data[1] = {NULL};
-static char buffer_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_INT, NPY_OBJECT};
+static void buffer_inner(void *context_handle, GEOSBufferParams *params, void *ip1, void *ip2, void *op1, char *status) {
+    *status = 0;
+    double in2 = *(double *) ip2;
+    if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | npy_isnan(in2)) {
+        OUTPUT_Y_NAN;
+    } else {
+        INPUT_Y;
+        GEOSGeometry *ret_ptr = GEOSBufferWithParams_r(context_handle, in1->ptr, params, in2);
+        OUTPUT_Y;
+    }
+    *status = 1;
+}
+
+static char buffer_dtypes[8] = {NPY_OBJECT, NPY_DOUBLE, NPY_INT, NPY_INT, NPY_INT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
 static void buffer_func(char **args, npy_intp *dimensions,
                         npy_intp *steps, void *data)
 {
     void *context_handle = geos_context[0];
+    char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2], *ip4 = args[3], *ip5 = args[4], *ip6 = args[5], *ip7 = args[6], *op1 = args[7];
+    npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2], is4 = steps[3], is5 = steps[4], is6 = steps[5], is7 = steps[6], os1 = steps[7];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+    char status;
 
-    TERNARY_LOOP {
-        INPUT_Y;
-        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1)) {
-            OUTPUT_Y_NAN;
-            continue;
-        }
-        double in2 = *(double *) ip2;
-        int in3 = *(int *) ip3;
-        GEOSGeometry *ret_ptr = GEOSBuffer_r(context_handle, in1->ptr, in2, in3);
-        OUTPUT_Y;
+    if ((is3 != 0) | (is4 != 0) | (is5 != 0) | (is6 != 0) | (is7 != 0)) {
+        PyErr_Format(PyExc_ValueError, "Buffer function called with non-scalar parameters");
+        return;
     }
+
+    GEOSBufferParams *params = GEOSBufferParams_create_r(context_handle);
+    if (params == 0) {
+        RAISE_ILLEGAL_GEOS;
+        return;
+    }
+    if (!GEOSBufferParams_setQuadrantSegments_r(context_handle, params, *(int *) ip3)) {
+        goto fail;
+    }
+    if (!GEOSBufferParams_setEndCapStyle_r(context_handle, params, *(int *) ip4)) {
+        goto fail;
+    }
+    if (!GEOSBufferParams_setJoinStyle_r(context_handle, params, *(int *) ip5)) {
+        goto fail;
+    }
+    if (!GEOSBufferParams_setMitreLimit_r(context_handle, params, *(double *) ip6)) {
+        goto fail;
+    }
+    if (!GEOSBufferParams_setSingleSided_r(context_handle, params, *(npy_bool *) ip7)) {
+        goto fail;
+    }
+
+    for(i = 0; i < n; i++, ip1 += is1, ip2 += is2, op1 += os1) {
+        buffer_inner(context_handle, params, ip1, ip2, op1, &status);
+        if (!status) {
+            goto fail;
+        }
+    }
+
+    GEOSBufferParams_destroy_r(context_handle, params);
+    return;
+
+    fail:
+        RAISE_ILLEGAL_GEOS;
+        GEOSBufferParams_destroy_r(context_handle, params);
 }
 static PyUFuncGenericFunction buffer_funcs[1] = {&buffer_func};
+
 
 static char snap_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_OBJECT};
 static void snap_func(char **args, npy_intp *dimensions,
@@ -760,6 +807,29 @@ static void equals_exact_func(char **args, npy_intp *dimensions,
     }
 }
 static PyUFuncGenericFunction equals_exact_funcs[1] = {&equals_exact_func};
+
+
+static char haussdorf_distance_densify_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_DOUBLE};
+static void haussdorf_distance_densify_func(char **args, npy_intp *dimensions,
+                                            npy_intp *steps, void *data)
+{
+    void *context_handle = geos_context[0];
+
+    TERNARY_LOOP {
+        INPUT_YY;
+        double in3 = *(double *) ip3;
+        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | GEOM_ISNAN_OR_NONE(*(PyObject **)ip2) | npy_isnan(in3)) {
+            *(npy_double *) op1 = NPY_NAN;
+            continue;
+        }
+        if (GEOSHausdorffDistanceDensify_r(context_handle, in1->ptr, in2->ptr, in3, (double *) op1) == 0) {
+            RAISE_ILLEGAL_GEOS;
+            return;
+        }
+    }
+}
+static PyUFuncGenericFunction haussdorf_distance_densify_funcs[1] = {&haussdorf_distance_densify_func};
+
 
 /* define double -> geometry construction functions */
 
@@ -923,16 +993,10 @@ static void create_collection_func(char **args, npy_intp *dimensions,
 static PyUFuncGenericFunction create_collection_funcs[1] = {&create_collection_func};
 
 /*
-TODO custom buffer functions
-TODO possibly implement some creation functions
 TODO polygonizer functions
 TODO prepared geometry predicate functions
 TODO relate functions
 TODO G -> char function GEOSisValidReason_r
-TODO Gi -> void function GEOSSetSRID_r
-TODO G -> void function GEOSNormalize_r
-TODO GGd -> d function GEOSHausdorffDistanceDensify_r
-
 */
 
 
@@ -1000,7 +1064,7 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
         return NULL;
 
     Py_INCREF(&GeometryType);
-    PyModule_AddObject(m, "GEOSGeometry", (PyObject *) &GeometryType);
+    PyModule_AddObject(m, "Geometry", (PyObject *) &GeometryType);
 
     d = PyModule_GetDict(m);
 
@@ -1038,7 +1102,7 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_Y_Y (boundary);
     DEFINE_Y_Y (unary_union);
     DEFINE_Y_Y (point_on_surface);
-    DEFINE_Y_Y (get_centroid);
+    DEFINE_Y_Y (centroid);
     DEFINE_Y_Y (line_merge);
     DEFINE_Y_Y (extract_unique_points);
     DEFINE_Y_Y (get_start_point);
@@ -1054,7 +1118,7 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_Yd_Y (interpolate);
     DEFINE_Yd_Y (interpolate_normalized);
     DEFINE_Yd_Y (simplify);
-    DEFINE_Yd_Y (topology_preserve_simplify);
+    DEFINE_Yd_Y (simplify_preserve_topology);
 
     DEFINE_YY_Y (intersection);
     DEFINE_YY_Y (difference);
@@ -1084,9 +1148,10 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_YY_d_2 (project);
     DEFINE_YY_d_2 (project_normalized);
 
-    DEFINE_CUSTOM (buffer, 3);
+    DEFINE_CUSTOM (buffer, 7);
     DEFINE_CUSTOM (snap, 3);
     DEFINE_CUSTOM (equals_exact, 3);
+    DEFINE_CUSTOM (haussdorf_distance_densify, 3);
     DEFINE_GENERALIZED(points, 1, "(d)->()");
     DEFINE_GENERALIZED(linestrings, 1, "(i, d)->()");
     DEFINE_GENERALIZED(linearrings, 1, "(i, d)->()");

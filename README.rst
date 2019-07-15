@@ -30,22 +30,22 @@ Pygeos aims to expose the geometry functions from GEOS into python to provide
 a fast and flexible means to work with large sets of geometries from python.
 
 
-The GEOSGeometry object
------------------------
+The Geometry object
+-------------------
 
 GEOS geometry objects are stored in a static attribute of the Python extension
-type `pygeos.GEOSGeometry`. This keeps the python interpreter out of the ufunc
-inner loop. The GEOSGeometry object keeps track of the underlying geometry and
+type `pygeos.Geometry`. This keeps the python interpreter out of the ufunc
+inner loop. The Geometry object keeps track of the underlying geometry and
 allows the python garbage collector to free memory when the geometry is not
 used anymore.
 
-`GEOSGeometry` objects are immutable. Construct them as follows:
+`Geometry` objects are immutable. Construct them as follows:
 
 .. code:: python
 
-  >>> from pygeos import GEOSGeometry
+  >>> from pygeos import Geometry
 
-  >>> geometry = GEOSGeometry.from_wkt("POINT (5.2 52.1)")
+  >>> geometry = Geometry.from_wkt("POINT (5.2 52.1)")
 
 Or simply:
 
