@@ -37,4 +37,4 @@ before_test:
   - "%CMD_IN_ENV% python setup.py build_ext --inplace"
 
 test_script:
-  - "%CMD_IN_ENV% pytest"
+  - pytest
