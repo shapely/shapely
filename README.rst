@@ -10,7 +10,7 @@ PyGEOS
 
 .. Appveyor CI status — https://ci.appveyor.com
 
-.. image:: https://ci.appveyor.com/api/projects/status/yx6nmovs0wq8eg9n?svg=true
+.. image:: https://ci.appveyor.com/api/projects/status/yx6nmovs0wq8eg9n/branch/master?svg=true
 	:alt: Appveyor CI status
 	:target: https://ci.appveyor.com/project/caspervdw/pygeos
 
@@ -90,17 +90,40 @@ Compute the area of all possible intersections of two lists of polygons:
        [ 70.,  63.,  56.,  49.,  42.],
        [ 60.,  54.,  48.,  42.,  36.]])
 
-Installation
-------------
+Installation from source using conda
+------------------------------------
 
-Pygeos uses shapely's installing scripts. If you have libgeos >= 3.5 at a standard
-location, the following should work::
+Pygeos requires the presence of GEOS >= 3.5. Easiest is to use Anaconda::
 
+    $ conda install numpy geos
+
+Pygeos' installation script assumes that the command `geos-config` is available. Append
+your `PATH` variable if necessary. If not possible, you may also set `GEOS_INCLUDE_PATH`
+and `GEOS_LIBRARY_PATH` variables directly. Finally::
+
+    $ export GEOS_INCLUDE_PATH=$CONDA_PREFIX/Library/include
+    $ export GEOS_LIBRARY_PATH=$CONDA_PREFIX/Library/lib
+    $ pip install pygeos
+
+Or, on windows (assuming you have setup the correct VC compiler)::
+
+    $ set GEOS_INCLUDE_PATH=%CONDA_PREFIX%\Library\include
+    $ set GEOS_LIBRARY_PATH=%CONDA_PREFIX%\Library\lib
     $ pip install pygeos
 
 
 Installation for developers
 ---------------------------
+
+On Linux::
+
+    $ sudo apt install libgeos-dev
+
+On OSX::
+
+    $ brew install geos
+
+Make sure `geos-config` is available from you shell; append PATH if necessary.
 
 Clone the package::
 
@@ -112,7 +135,7 @@ Install it using `pip`::
 
 Run the unittests::
 
-    $ python -m pytest pygeos/test.py
+    $ pytest
 
 References
 ----------

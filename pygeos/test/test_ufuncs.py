@@ -171,25 +171,24 @@ def test_equals_exact():
 # NaN / None handling
 
 
-def test_Y_b_nan():
-    for func in UNARY_PREDICATES:
-        actual = func(np.array([np.nan, None]))
-        if func is pygeos.is_empty:
-            assert actual.all()
-        else:
-            assert (~actual).all()
+@pytest.mark.parametrize("func", UNARY_PREDICATES)
+def test_Y_b_nan(func):
+    actual = func(np.array([np.nan, None]))
+    if func is pygeos.is_empty:
+        assert actual.all()
+    else:
+        assert (~actual).all()
 
-
-def test_YY_b_nan():
-    for func in BINARY_PREDICATES:
-        actual = func(
-            np.array([point, np.nan, np.nan, point, None, None]),
-            np.array([np.nan, point, np.nan, None, point, None]),
-        )
-        if func is pygeos.disjoint:
-            assert actual.all()
-        else:
-            assert (~actual).all()
+@pytest.mark.parametrize("func", BINARY_PREDICATES)
+def test_YY_b_nan(func):
+    actual = func(
+        np.array([point, np.nan, np.nan, point, None, None]),
+        np.array([np.nan, point, np.nan, None, point, None]),
+    )
+    if func is pygeos.disjoint:
+        assert actual.all()
+    else:
+        assert (~actual).all()
 
 
 def test_Y_Y_nan():

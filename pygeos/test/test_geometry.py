@@ -19,13 +19,6 @@ def test_new_from_wkb():
     assert pygeos.equals(actual, geom)
 
 
-def test_new_from_ptr():
-    geom = point
-    actual = pygeos.GEOSGeometry(geom._ptr)
-    assert pygeos.equals(actual, geom)
-    assert actual._ptr != geom._ptr
-
-
 def test_adapt_ptr_raises():
     geom = pygeos.clone(point)
     with pytest.raises(AttributeError):

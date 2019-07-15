@@ -13,6 +13,7 @@
 
 
 #define RAISE_ILLEGAL_GEOS if (!PyErr_Occurred()) {PyErr_Format(PyExc_RuntimeError, "Uncaught GEOS exception");}
+#define RAISE_NO_MALLOC PyErr_Format(PyExc_MemoryError, "Could not allocate memory")
 #define CREATE_COORDSEQ(SIZE, NDIM)\
     void *coord_seq = GEOSCoordSeq_create_r(context_handle, SIZE, NDIM);\
     if (coord_seq == NULL) {\
@@ -110,7 +111,7 @@ static struct PyModuleDef moduledef = {
 };
 
 typedef struct {
-    PyObject_HEAD;
+    PyObject_HEAD
     void *ptr;
 } GeometryObject;
 
@@ -207,7 +208,7 @@ static PyObject *GeometryObject_ToWKB(GeometryObject *self, PyObject *args, PyOb
     } else {
         wkb = GEOSWKBWriter_write_r(context_handle, writer, self->ptr, &size);
     }
-    result = PyBytes_FromStringAndSize(wkb, size);
+    result = PyBytes_FromStringAndSize((char *) wkb, size);
     GEOSWKBWriter_destroy_r(context_handle, writer);
     return result;
 }
@@ -285,9 +286,9 @@ static PyObject *GeometryObject_FromWKB(PyTypeObject *type, PyObject *value)
         return NULL;
     }
     if (is_hex) {
-        geom = GEOSWKBReader_readHEX_r(context_handle, reader, wkb, size);
+        geom = GEOSWKBReader_readHEX_r(context_handle, reader, (unsigned char *) wkb, size);
     } else {
-        geom = GEOSWKBReader_read_r(context_handle, reader, wkb, size);
+        geom = GEOSWKBReader_read_r(context_handle, reader, (unsigned char *) wkb, size);
     }
     GEOSWKBReader_destroy_r(context_handle, reader);
     if (geom == NULL) {
@@ -321,11 +322,8 @@ static PyObject *GeometryObject_new(PyTypeObject *type, PyObject *args,
     else if (PyUnicode_Check(value)) {
         return GeometryObject_FromWKT(type, value);
     }
-    else if (PyLong_Check(value)) {
-        arg = PyLong_AsLong(value);
-    }
     else {
-        PyErr_Format(PyExc_TypeError, "Expected string, bytes or int, found %s", value->ob_type->tp_name);
+        PyErr_Format(PyExc_TypeError, "Expected string or bytes, found %s", value->ob_type->tp_name);
         return NULL;
     }
     ptr = GEOSGeom_clone_r(context_handle, arg);
@@ -338,10 +336,10 @@ static PyObject *GeometryObject_new(PyTypeObject *type, PyObject *args,
 }
 
 static PyMethodDef GeometryObject_methods[] = {
-    {"to_wkt", (PyCFunctionWithKeywords) GeometryObject_ToWKT, METH_VARARGS | METH_KEYWORDS,
+    {"to_wkt", (PyCFunction) GeometryObject_ToWKT, METH_VARARGS | METH_KEYWORDS,
      "Write the geometry to Well-Known Text (WKT) format"
     },
-    {"to_wkb", (PyCFunctionWithKeywords) GeometryObject_ToWKB, METH_VARARGS | METH_KEYWORDS,
+    {"to_wkb", (PyCFunction) GeometryObject_ToWKB, METH_VARARGS | METH_KEYWORDS,
      "Write the geometry to Well-Known Binary (WKB) format"
     },
     {"from_wkt", (PyCFunction) GeometryObject_FromWKT, METH_CLASS | METH_O,
@@ -381,7 +379,7 @@ static void Y_b_func(char **args, npy_intp *dimensions,
     FuncGEOS_Y_b *func = (FuncGEOS_Y_b *)data;
     void *context_handle = geos_context[0];
     npy_bool nanvalue = 0;
-    if (func == GEOSisEmpty_r) { nanvalue = 1; }
+    if (data == is_empty_data[0]) { nanvalue = 1; }
 
     UNARY_LOOP {
         if GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) {
@@ -415,7 +413,7 @@ static void YY_b_func(char **args, npy_intp *dimensions,
     FuncGEOS_YY_b *func = (FuncGEOS_YY_b *)data;
     void *context_handle = geos_context[0];
     npy_bool nanvalue = 0;
-    if (func == GEOSDisjoint_r) { nanvalue = 1; }
+    if (data == disjoint_data[0]) { nanvalue = 1; }
 
     BINARY_LOOP {
         if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | GEOM_ISNAN_OR_NONE(*(PyObject **)ip2)) {
@@ -847,27 +845,41 @@ static void polygons_with_holes_func(char **args, npy_intp *dimensions,
 {
     void *context_handle = geos_context[0];
     void *shell;
+    int n_holes;
+    GEOSGeometry **holes = malloc(sizeof(void *) * dimensions[1]);
+    if (holes == NULL) {
+        RAISE_NO_MALLOC;
+        goto finish;
+    }
+
     BINARY_SINGLE_COREDIM_LOOP_OUTER {
         GeometryObject *g = *(GeometryObject **)ip1;
         CHECK_GEOM(g);
         shell = GEOSGeom_clone_r(context_handle, g->ptr);
         if (shell == NULL) {
-            return;
+            goto finish;
         }
-        GEOSGeometry *holes[n_c1];
+        n_holes = 0;
         cp1 = ip2;
         BINARY_SINGLE_COREDIM_LOOP_INNER {
             GeometryObject *g = *(GeometryObject **)cp1;
+            if GEOM_ISNAN_OR_NONE(g) {
+                continue;
+            }
             CHECK_GEOM(g);
             GEOSGeometry *hole = GEOSGeom_clone_r(context_handle, g->ptr);
             if (hole == NULL) {
-                return;
+                goto finish;
             }
             holes[i_c1] = hole;
+            n_holes++;
         }
-        GEOSGeometry *ret_ptr = GEOSGeom_createPolygon_r(context_handle, shell, holes, n_c1);
+        GEOSGeometry *ret_ptr = GEOSGeom_createPolygon_r(context_handle, shell, holes, n_holes);
         OUTPUT_Y;
     }
+
+    finish:
+        if (holes != NULL) { free(holes); }
 }
 static PyUFuncGenericFunction polygons_with_holes_funcs[1] = {&polygons_with_holes_func};
 
@@ -878,11 +890,15 @@ static void create_collection_func(char **args, npy_intp *dimensions,
 {
     void *context_handle = geos_context[0];
     int n_geoms;
-
+    GEOSGeometry **geoms = malloc(sizeof(void *) * dimensions[1]);
+    if (geoms == NULL) {
+        RAISE_NO_MALLOC;
+        goto finish;
+    }
+    int type;
 
     BINARY_SINGLE_COREDIM_LOOP_OUTER {
-        GEOSGeometry *geoms[n_c1];
-        int type = *(int *) ip2;
+        type = *(int *) ip2;
         n_geoms = 0;
         cp1 = ip1;
         BINARY_SINGLE_COREDIM_LOOP_INNER {
@@ -893,13 +909,16 @@ static void create_collection_func(char **args, npy_intp *dimensions,
             CHECK_GEOM(g);
             geoms[n_geoms] = GEOSGeom_clone_r(context_handle, g->ptr);
             if (geoms[n_geoms] == NULL) {
-                return;
+                goto finish;
             }
             n_geoms++;
         }
         GEOSGeometry *ret_ptr = GEOSGeom_createCollection_r(context_handle, type, geoms, n_geoms);
         OUTPUT_Y;
     }
+
+    finish:
+        if (geoms != NULL) { free(geoms); }
 }
 static PyUFuncGenericFunction create_collection_funcs[1] = {&create_collection_func};
 
