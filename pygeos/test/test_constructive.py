@@ -2,7 +2,8 @@ import pygeos
 import numpy as np
 import pytest
 
-from .common import point, polygon
+from .common import polygon
+from .common import point
 
 
 def test_buffer_default():
@@ -50,3 +51,11 @@ def test_simplify_nan():
     )
     assert pygeos.equals(actual[-1], point)
     assert np.isnan(actual[:-1].astype(np.float)).all()
+
+
+def test_snap():
+    line = pygeos.linestrings([[0, 0], [1, 0], [2, 0]])
+    points = pygeos.points([0, 1], [1, 0.1])
+    actual = pygeos.snap(points, line, 0.5)
+    expected = pygeos.points([0, 1], [1, 0])
+    assert pygeos.equals(actual, expected).all()
