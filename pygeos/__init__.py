@@ -1,5 +1,6 @@
 from .ufuncs import GEOSException  # NOQA
 from .geometry import *
+from .creation import *
 from .constructive import *
 from .predicates import *
 from .measurements import *
