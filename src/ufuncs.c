@@ -131,7 +131,6 @@ static void GeometryObject_dealloc(GeometryObject *self)
     if (self->ptr != NULL) {
         context_handle = geos_context[0];
         GEOSGeom_destroy_r(context_handle, self->ptr);
-        /* GEOS_finish_r(context_handle); */
     }
     Py_TYPE(self)->tp_free((PyObject *) self);
 }
@@ -171,6 +170,7 @@ static PyObject *GeometryObject_ToWKT(GeometryObject *self, PyObject *args, PyOb
     GEOSWKTWriter_setOld3D_r(context_handle, writer, use_old_3d);
     wkt = GEOSWKTWriter_write_r(context_handle, writer, self->ptr);
     result = PyUnicode_FromString(wkt);
+    GEOSFree_r(context_handle, wkt);
     GEOSWKTWriter_destroy_r(context_handle, writer);
     return result;
 }
@@ -209,6 +209,7 @@ static PyObject *GeometryObject_ToWKB(GeometryObject *self, PyObject *args, PyOb
         wkb = GEOSWKBWriter_write_r(context_handle, writer, self->ptr, &size);
     }
     result = PyBytes_FromStringAndSize((char *) wkb, size);
+    GEOSFree_r(context_handle, wkb);
     GEOSWKBWriter_destroy_r(context_handle, writer);
     return result;
 }
