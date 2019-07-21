@@ -11,11 +11,13 @@ __all__ = [
     "centroid",
     "clone",
     "convex_hull",
+    "delaunay_triangles",
     "envelope",
     "extract_unique_points",
     "point_on_surface",
     "simplify",
     "snap",
+    "voronoi_polygons",
 ]
 
 
@@ -110,6 +112,10 @@ def convex_hull(geometries):
     return ufuncs.convex_hull(geometries)
 
 
+def delaunay_triangles(geometry, tolerance=0., only_edges=False):
+    return ufuncs.delaunay_triangles(geometry, tolerance, only_edges)
+
+
 def envelope(geometries):
     return ufuncs.envelope(geometries)
 
@@ -131,3 +137,7 @@ def simplify(geometries, tolerance, preserve_topology=False):
 
 def snap(geometries, reference, tolerance):
     return ufuncs.snap(geometries, reference, tolerance)
+
+
+def voronoi_polygons(geometry, envelope=None, tolerance=0., only_edges=False):
+    return ufuncs.voronoi_polygons(geometry, envelope, tolerance, only_edges)

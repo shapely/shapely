@@ -21,6 +21,7 @@ __all__ = [
     "get_exterior_ring",
     "get_num_interior_rings",
     "get_interior_ring",
+    "get_num_geometries",
     "get_geometry",
 ]
 
@@ -42,32 +43,32 @@ class GeometryType(IntEnum):
 # generic
 
 
-def get_type_id(geometries):
-    return ufuncs.get_type_id(geometries)
+def get_type_id(geometry):
+    return ufuncs.get_type_id(geometry)
 
 
-def get_dimensions(geometries):
-    return ufuncs.get_dimensions(geometries)
+def get_dimensions(geometry):
+    return ufuncs.get_dimensions(geometry)
 
 
-def get_coordinate_dimensions(geometries):
-    return ufuncs.get_coordinate_dimensions(geometries)
+def get_coordinate_dimensions(geometry):
+    return ufuncs.get_coordinate_dimensions(geometry)
 
 
-def get_num_coordinates(geometries):
-    return ufuncs.get_num_coordinates(geometries)
+def get_num_coordinates(geometry):
+    return ufuncs.get_num_coordinates(geometry)
 
 
-def normalize(geometries):
-    return ufuncs.normalize(geometries)
+def normalize(geometry):
+    return ufuncs.normalize(geometry)
 
 
-def get_srid(geometries):
-    return ufuncs.get_srid(geometries)
+def get_srid(geometry):
+    return ufuncs.get_srid(geometry)
 
 
-def set_srid(geometries, srid):
-    return ufuncs.set_srid(geometries, np.intc(srid))
+def set_srid(geometry, srid):
+    return ufuncs.set_srid(geometry, np.intc(srid))
 
 
 # points
@@ -118,5 +119,9 @@ def get_interior_ring(polygon, index):
 # collections
 
 
-def get_geometry(geometries, index):
-    return ufuncs.get_geometry(geometries, np.intc(index))
+def get_num_geometries(collection):
+    return ufuncs.get_num_geometries(collection)
+
+
+def get_geometry(collection, index):
+    return ufuncs.get_geometry(collection, np.intc(index))
