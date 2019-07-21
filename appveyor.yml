@@ -1,9 +1,11 @@
 environment:
   matrix:
-    - PYTHON: "C:\\Miniconda3"
+    - PYTHON_PATH: "C:\\Miniconda37"
+      PYTHON_VERSION: 3.7
       DEPS: "numpy geos"
 
-    - PYTHON: "C:\\Miniconda3-x64"
+    - PYTHON_PATH: "C:\\Miniconda37-x64"
+      PYTHON_VERSION: 3.7
       DEPS: "numpy geos"
 
 init:
@@ -21,13 +23,17 @@ install:
           throw "There are newer queued builds for this pull request, failing early." }
 
   # Prepend to the PATH of this build
-  - "set PATH=%PYTHON%;%PYTHON%\\Scripts;%CONDA_ROOT%\\Library\\bin;%PATH%"
+  - "set PATH=%PYTHON_PATH%;%PYTHON_PATH%\\Scripts;%CONDA_ROOT%\\Library\\bin;%PATH%"
+  - conda config --set always_yes true
+  - conda update --quiet conda
 
-  # Install dependencies
-  - conda update --yes conda
-  - conda create -n testenv --yes %DEPS% pytest
+  # See https://github.com/conda/conda/issues/8836 ("yes, this is insane")
+  - activate
+  - conda info --all
+  - conda create -n testenv --yes python=%PYTHON_VERSION% %DEPS% pytest
+
+  # Do this. Don't "conda activate testenv".
   - activate testenv
-
 
 build: false
 
