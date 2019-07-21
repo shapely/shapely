@@ -1056,8 +1056,8 @@ TODO G -> char function GEOSisValidReason_r
 */
 
 
-#define DEFINE_Y_b(NAME)\
-    ufunc = PyUFunc_FromFuncAndData(Y_b_funcs, NAME ##_data, Y_b_dtypes, 1, 1, 1, PyUFunc_None, # NAME, "", 0);\
+#define DEFINE_Y_b(NAME, DOC)\
+    ufunc = PyUFunc_FromFuncAndData(Y_b_funcs, NAME ##_data, Y_b_dtypes, 1, 1, 1, PyUFunc_None, # NAME, DOC, 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
 #define DEFINE_YY_b(NAME)\
@@ -1134,12 +1134,12 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     GEOSContext_setNoticeMessageHandler_r(context_handle, HandleGEOSNotice, NULL);
     geos_context[0] = context_handle;  /* for global access */
 
-    DEFINE_Y_b (is_empty);
-    DEFINE_Y_b (is_simple);
-    DEFINE_Y_b (is_ring);
-    DEFINE_Y_b (has_z);
-    DEFINE_Y_b (is_closed);
-    DEFINE_Y_b (is_valid);
+    DEFINE_Y_b (is_empty, "Returns True if a geometry is an empty geometrycolletion, polygon, point, etc.");
+    DEFINE_Y_b (is_simple, "Returns True if a Geometry has no anomalous geometric points, such as self-intersections or self tangency.");
+    DEFINE_Y_b (is_ring, "Returns True if a linestring is closed and simple.");
+    DEFINE_Y_b (has_z, "Returns True if a geometry has a Z coordinate.");
+    DEFINE_Y_b (is_closed, "Returns True if a linestring's first and last points are equal.");
+    DEFINE_Y_b (is_valid, "Returns True if a geometry is well formed. For geometries that are invalid, is_valid_reason will provide details.");
 
     DEFINE_YY_b (disjoint);
     DEFINE_YY_b (touches);

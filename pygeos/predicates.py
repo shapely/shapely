@@ -21,29 +21,12 @@ __all__ = [
     "within",
 ]
 
-
-def has_z(geometries):
-    return ufuncs.has_z(geometries)
-
-
-def is_closed(geometries):
-    return ufuncs.is_closed(geometries)
-
-
-def is_empty(geometries):
-    return ufuncs.is_empty(geometries)
-
-
-def is_ring(geometries):
-    return ufuncs.is_ring(geometries)
-
-
-def is_simple(geometries):
-    return ufuncs.is_simple(geometries)
-
-
-def is_valid(geometries):
-    return ufuncs.is_valid(geometries)
+from .ufuncs import has_z  # NOQA
+from .ufuncs import is_valid  # NOQA
+from .ufuncs import is_closed  # NOQA
+from .ufuncs import is_empty  # NOQA
+from .ufuncs import is_ring  # NOQA
+from .ufuncs import is_simple  # NOQA
 
 
 def crosses(a, b):

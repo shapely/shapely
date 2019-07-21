@@ -112,7 +112,7 @@ def convex_hull(geometries):
     return ufuncs.convex_hull(geometries)
 
 
-def delaunay_triangles(geometry, tolerance=0., only_edges=False):
+def delaunay_triangles(geometry, tolerance=0.0, only_edges=False):
     return ufuncs.delaunay_triangles(geometry, tolerance, only_edges)
 
 
@@ -139,5 +139,5 @@ def snap(geometries, reference, tolerance):
     return ufuncs.snap(geometries, reference, tolerance)
 
 
-def voronoi_polygons(geometry, envelope=None, tolerance=0., only_edges=False):
+def voronoi_polygons(geometry, envelope=None, tolerance=0.0, only_edges=False):
     return ufuncs.voronoi_polygons(geometry, envelope, tolerance, only_edges)
