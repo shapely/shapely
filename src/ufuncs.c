@@ -131,7 +131,6 @@ static void GeometryObject_dealloc(GeometryObject *self)
     if (self->ptr != NULL) {
         context_handle = geos_context[0];
         GEOSGeom_destroy_r(context_handle, self->ptr);
-        /* GEOS_finish_r(context_handle); */
     }
     Py_TYPE(self)->tp_free((PyObject *) self);
 }
@@ -171,6 +170,7 @@ static PyObject *GeometryObject_ToWKT(GeometryObject *self, PyObject *args, PyOb
     GEOSWKTWriter_setOld3D_r(context_handle, writer, use_old_3d);
     wkt = GEOSWKTWriter_write_r(context_handle, writer, self->ptr);
     result = PyUnicode_FromString(wkt);
+    GEOSFree_r(context_handle, wkt);
     GEOSWKTWriter_destroy_r(context_handle, writer);
     return result;
 }
@@ -209,6 +209,7 @@ static PyObject *GeometryObject_ToWKB(GeometryObject *self, PyObject *args, PyOb
         wkb = GEOSWKBWriter_write_r(context_handle, writer, self->ptr, &size);
     }
     result = PyBytes_FromStringAndSize((char *) wkb, size);
+    GEOSFree_r(context_handle, wkb);
     GEOSWKBWriter_destroy_r(context_handle, writer);
     return result;
 }
@@ -830,6 +831,62 @@ static void haussdorf_distance_densify_func(char **args, npy_intp *dimensions,
 static PyUFuncGenericFunction haussdorf_distance_densify_funcs[1] = {&haussdorf_distance_densify_func};
 
 
+static char delaunay_triangles_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
+static void delaunay_triangles_func(char **args, npy_intp *dimensions,
+                                    npy_intp *steps, void *data)
+{
+    void *context_handle = geos_context[0];
+
+    TERNARY_LOOP {
+        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1)) {
+            OUTPUT_Y_NAN;
+            continue;
+        }
+        INPUT_Y;
+        double in2 = *(double *) ip2;
+        if (npy_isnan(in2)) {
+            in2 = 0.0;
+        }
+        npy_bool in3 = *(npy_bool *) ip3;
+
+        GEOSGeometry *ret_ptr = GEOSDelaunayTriangulation_r(context_handle, in1->ptr, in2, (int) in3);
+        OUTPUT_Y;
+    }
+}
+static PyUFuncGenericFunction delaunay_triangles_funcs[1] = {&delaunay_triangles_func};
+
+
+static char voronoi_polygons_dtypes[5] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
+static void voronoi_polygons_func(char **args, npy_intp *dimensions,
+                                  npy_intp *steps, void *data)
+{
+    void *context_handle = geos_context[0];
+    void *envelope_ptr;
+
+    QUATERNARY_LOOP {
+        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1)) {
+            OUTPUT_Y_NAN;
+            continue;
+        }
+        INPUT_Y;
+        GeometryObject *in2 = *(PyObject **)ip2;
+        if (GEOM_ISNAN_OR_NONE(in2)) {
+            envelope_ptr = NULL;
+        } else {
+            CHECK_GEOM(in2);
+            envelope_ptr = in2->ptr;
+        }
+        double in3 = *(double *) ip3;
+        if (npy_isnan(in3)) {
+            in3 = 0.0;
+        }
+        npy_bool in4 = *(npy_bool *) ip4;
+        GEOSGeometry *ret_ptr = GEOSVoronoiDiagram_r(context_handle, in1->ptr, envelope_ptr, in3, (int) in4);
+        OUTPUT_Y;
+    }
+}
+static PyUFuncGenericFunction voronoi_polygons_funcs[1] = {&voronoi_polygons_func};
+
 /* define double -> geometry construction functions */
 
 static char points_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
@@ -1150,6 +1207,8 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_CUSTOM (snap, 3);
     DEFINE_CUSTOM (equals_exact, 3);
     DEFINE_CUSTOM (haussdorf_distance_densify, 3);
+    DEFINE_CUSTOM (delaunay_triangles, 3);
+    DEFINE_CUSTOM (voronoi_polygons, 4);
     DEFINE_GENERALIZED(points, 1, "(d)->()");
     DEFINE_GENERALIZED(linestrings, 1, "(i, d)->()");
     DEFINE_GENERALIZED(linearrings, 1, "(i, d)->()");

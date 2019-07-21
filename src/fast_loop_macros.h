@@ -37,6 +37,15 @@
     for(i = 0; i < n; i++, ip1 += is1, ip2 += is2, ip3 += is3, op1 += os1)
 
 
+/** (ip1, ip2, ip3, ip4) -> (op1) */
+#define QUATERNARY_LOOP\
+    char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2], *ip4 = args[3], *op1 = args[4];\
+    npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2], is4 = steps[3], os1 = steps[4];\
+    npy_intp n = dimensions[0];\
+    npy_intp i;\
+    for(i = 0; i < n; i++, ip1 += is1, ip2 += is2, ip3 += is3, ip4 += is4, op1 += os1)
+
+
 /** (ip1, cp1) -> (op1) */
 #define SINGLE_COREDIM_LOOP_OUTER\
     char *ip1 = args[0], *op1 = args[1], *cp1;\
