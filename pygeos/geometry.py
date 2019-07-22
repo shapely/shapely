@@ -4,6 +4,7 @@ from . import ufuncs
 
 __all__ = [
     "Geometry",
+    "Empty",
     "GeometryType",
     "get_type_id",
     "get_dimensions",
@@ -28,6 +29,7 @@ __all__ = [
 
 
 Geometry = ufuncs.Geometry
+Empty = ufuncs.Empty
 
 
 class GeometryType(IntEnum):

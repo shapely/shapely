@@ -127,7 +127,7 @@ setup(
     install_requires=["numpy>=1.10"],
     extras_require={
         "test": ["pytest"],
-        "docs": ["sphinx", "napoleon", "sphinx_rtd_theme"]
+        "docs": ["sphinx", "numpydoc"]
     },
     python_requires=">=3",
     include_package_data=True,

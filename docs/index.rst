@@ -10,6 +10,7 @@ Welcome to pygeos's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   predicates
 
 
 Indices and tables

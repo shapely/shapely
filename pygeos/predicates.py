@@ -2,6 +2,7 @@ import warnings
 
 from . import ufuncs
 from .geometry import Geometry
+from .ufuncs import Empty  # NOQA
 
 __all__ = [
     "is_closed",
@@ -9,13 +10,13 @@ __all__ = [
     "is_ring",
     "is_simple",
     "is_valid",
+    "is_valid_reason",
     "crosses",
     "contains",
     "covered_by",
     "covers",
     "disjoint",
     "equals",
-    "equals_exact",
     "intersects",
     "overlaps",
     "touches",
@@ -61,6 +62,8 @@ def is_empty(geometry, **kwargs):
     True
     >>> is_empty(Geometry("POINT (0 0)"))
     False
+    >>> is_empty(Empty)
+    True
     """
     return ufuncs.is_empty(geometry, **kwargs)
 
@@ -114,6 +117,8 @@ def is_simple(geometry, **kwargs):
     True
     >>> is_simple(Geometry("LINESTRING(0 0, 1 1, 0 1, 1 0, 0 0)"))
     False
+    >>> is_simple(Empty)
+    False
     """
     return ufuncs.is_simple(geometry, **kwargs)
 
@@ -136,6 +141,8 @@ def is_valid(geometry, **kwargs):
     True
     >>> is_valid(Geometry("POLYGON((0 0, 1 1, 1 2, 1 1, 0 0))"))
     False
+    >>> is_valid(Empty)
+    True
     """
     # GEOS is valid will emit warnings for invalid geometries. Suppress them.
     with warnings.catch_warnings():
@@ -154,7 +161,7 @@ def is_valid_reason(geometry, **kwargs):
 
     See also
     --------
-    - is_valid : returns True or False
+    is_valid : returns True or False
 
     Examples
     --------
@@ -166,7 +173,7 @@ def is_valid_reason(geometry, **kwargs):
     return ufuncs.is_valid_reason(geometry, **kwargs)
 
 
-def crosses(a, b):
+def crosses(a, b, **kwargs):
     """Returns True if the intersection of two geometries spatially crosses.
 
     That is: the geometries have some, but not all interior points in common.
@@ -177,8 +184,7 @@ def crosses(a, b):
 
     Parameters
     ----------
-    a : Geometry or array_like
-    b : Geometry or array_like
+    a, b : Geometry or array_like
 
     Examples
     --------
@@ -201,74 +207,312 @@ def crosses(a, b):
     >>> crosses(area, Geometry("MULTIPOINT ((2 2), (0.5 0.5))"))
     True
     """
-    return ufuncs.crosses(a, b)
+    return ufuncs.crosses(a, b, **kwargs)
 
 
-def contains(a, b):
-    """Returns True when geometry B contains geometry A.
+def contains(a, b, **kwargs):
+    """Returns True if geometry B is completely inside geometry A.
 
-    A contains B if no points of B lie in the exterior of A and at  least one
+    A contains B if no points of B lie in the exterior of A and at least one
     point of the interior of B lies in the interior of A.
 
     Parameters
     ----------
-    a : Geometry or array_like
-    b : Geometry or array_like
+    a, b : Geometry or array_like
 
     See also
     --------
-    - within : Contains is the inverse of within (except when dealing with
-      invalid geometries).
+    within : ``contains(A, B) == within(B, A)``
 
     Examples
     --------
     >>> line = Geometry("LINESTRING(0 0, 1 1)")
-    >>> contains(line, Geometry("POINT (0.5 0.5)"))
-    True
     >>> contains(line, Geometry("POINT (0 0)"))
+    False
+    >>> contains(line, Geometry("POINT (0.5 0.5)"))
     True
     >>> area = Geometry("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))")
     >>> contains(area, Geometry("POINT (0 0)"))
     False
-    >>> contains(area, Geometry("POINT (0.5 0.5)"))
+    >>> contains(area, line)
     True
-    >>> contains(area, Geometry("POINT (0.5 0.5)"))
+    >>> contains(area, Geometry("LINESTRING(0 0, 2 2)"))
+    False
+    >>> polygon_with_hole = Geometry("POLYGON((0 0, 10 0, 10 10, 0 10, 0 0), (2 2, 4 2, 4 4, 2 4, 2 2))")  # NOQA
+    >>> contains(polygon_with_hole, Geometry("POINT(1 1)"))
+    True
+    >>> contains(polygon_with_hole, Geometry("POINT(2 2)"))
+    False
+    >>> contains(polygon_with_hole, Geometry("LINESTRING(1 1, 5 5)"))
+    False
+    >>> contains(area, area)
+    True
+    >>> contains(area, Empty)
+    False
+    """
+    return ufuncs.contains(a, b, **kwargs)
+
+
+def covered_by(a, b, **kwargs):
+    """Returns True if no point in geometry A is outside geometry B.
+
+    Parameters
+    ----------
+    a, b : Geometry or array_like
+
+    See also
+    --------
+    covers : ``covered_by(A, B) == covers(B, A)``
+
+    Examples
+    --------
+    >>> line = Geometry("LINESTRING(0 0, 1 1)")
+    >>> covered_by(Geometry("POINT (0 0)"), line)
+    True
+    >>> covered_by(Geometry("POINT (0.5 0.5)"), line)
+    True
+    >>> area = Geometry("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))")
+    >>> covered_by(Geometry("POINT (0 0)"), area)
+    True
+    >>> covered_by(line, area)
+    True
+    >>> covered_by(Geometry("LINESTRING(0 0, 2 2)"), area)
+    False
+    >>> polygon_with_hole = Geometry("POLYGON((0 0, 10 0, 10 10, 0 10, 0 0), (2 2, 4 2, 4 4, 2 4, 2 2))")  # NOQA
+    >>> covered_by(Geometry("POINT(1 1)"), polygon_with_hole)
+    True
+    >>> covered_by(Geometry("POINT(2 2)"), polygon_with_hole)
+    True
+    >>> covered_by(Geometry("LINESTRING(1 1, 5 5)"), polygon_with_hole)
+    False
+    >>> covered_by(area, area)
+    True
+    >>> covered_by(Empty, area)
+    False
+    """
+    return ufuncs.covered_by(a, b, **kwargs)
+
+
+def covers(a, b, **kwargs):
+    """Returns True if no point in geometry B is outside geometry A.
+
+    Parameters
+    ----------
+    a, b : Geometry or array_like
+
+    See also
+    --------
+    covered_by : ``covers(A, B) == covered_by(B, A)``
+
+    Examples
+    --------
+    >>> line = Geometry("LINESTRING(0 0, 1 1)")
+    >>> covers(line, Geometry("POINT (0 0)"))
+    True
+    >>> covers(line, Geometry("POINT (0.5 0.5)"))
+    True
+    >>> area = Geometry("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))")
+    >>> covers(area, Geometry("POINT (0 0)"))
+    True
+    >>> covers(area, line)
+    True
+    >>> covers(area, Geometry("LINESTRING(0 0, 2 2)"))
+    False
+    >>> polygon_with_hole = Geometry("POLYGON((0 0, 10 0, 10 10, 0 10, 0 0), (2 2, 4 2, 4 4, 2 4, 2 2))")  # NOQA
+    >>> covers(polygon_with_hole, Geometry("POINT(1 1)"))
+    True
+    >>> covers(polygon_with_hole, Geometry("POINT(2 2)"))
+    True
+    >>> covers(polygon_with_hole, Geometry("LINESTRING(1 1, 5 5)"))
+    False
+    >>> covers(area, area)
+    True
+    >>> covers(area, Empty)
+    False
+    """
+    return ufuncs.covers(a, b, **kwargs)
+
+
+def disjoint(a, b, **kwargs):
+    """Returns True if A and B do not share any point in space.
+
+    Disjoint implies that overlaps, touches, within, and intersects are False.
+
+    Parameters
+    ----------
+    a, b : Geometry or array_like
+
+    See also
+    --------
+    intersects : ``disjoint(A, B) == ~intersects(A, B)``
+
+    Examples
+    --------
+    >>> line = Geometry("LINESTRING(0 0, 1 1)")
+    >>> disjoint(line, Geometry("POINT (0 0)"))
+    False
+    >>> disjoint(line, Geometry("POINT (0 1)"))
+    True
+    >>> disjoint(line, Geometry("LINESTRING(0 2, 2 0)"))
+    False
+    >>> disjoint(Empty, Empty)
     True
     """
-    return ufuncs.contains(a, b)
+    return ufuncs.disjoint(a, b, **kwargs)
 
 
-def covered_by(a, b):
-    return ufuncs.covered_by(a, b)
+def equals(a, b, tolerance=0.0, **kwargs):
+    """Returns True if A and B are spatially equal.
+
+    If A is within B and B is within A, A and B are considered equal. The
+    ordering of points can be different. Optionally, a tolerance can be
+    provided for comparing vertices.
+
+    Parameters
+    ----------
+    a, b : Geometry or array_like
+    tolerance : float or array_like
 
 
-def covers(a, b):
-    return ufuncs.covers(a, b)
+    Examples
+    --------
+    >>> line = Geometry("LINESTRING(0 0, 5 5, 10 10)")
+    >>> equals(line, Geometry("LINESTRING(0 0, 10 10)"))
+    True
+    >>> equals(Geometry("POINT (5 5)"), Geometry("POINT (5.1 5)"), tolerance=0.1)
+    True
+    >>> equals(Empty, Empty)
+    True
+    """
+    if tolerance > 0.0:
+        return ufuncs.equals_exact(a, b, tolerance, **kwargs)
+    else:
+        return ufuncs.equals(a, b, **kwargs)
 
 
-def disjoint(a, b):
-    return ufuncs.disjoint(a, b)
+def intersects(a, b, **kwargs):
+    """Returns True if A and B share any portion of space.
+
+    Intersects implies that overlaps, touches and within are True.
+
+    Parameters
+    ----------
+    a, b : Geometry or array_like
+
+    See also
+    --------
+    disjoint : ``intersects(A, B) == ~disjoint(A, B)``
+
+    Examples
+    --------
+    >>> line = Geometry("LINESTRING(0 0, 1 1)")
+    >>> intersects(line, Geometry("POINT (0 0)"))
+    True
+    >>> intersects(line, Geometry("POINT (0 1)"))
+    False
+    >>> intersects(line, Geometry("LINESTRING(0 2, 2 0)"))
+    True
+    >>> intersects(Empty, Empty)
+    False
+    """
+    return ufuncs.intersects(a, b, **kwargs)
 
 
-def equals(a, b):
-    return ufuncs.equals(a, b)
+def overlaps(a, b, **kwargs):
+    """Returns True if A and B intersect, but one does not completely contain
+    the other.
+
+    Parameters
+    ----------
+    a, b : Geometry or array_like
+
+    Examples
+    --------
+    >>> line = Geometry("LINESTRING(0 0, 1 1)")
+    >>> overlaps(line, line)
+    False
+    >>> overlaps(line, Geometry("LINESTRING(0 0, 2 2)"))
+    False
+    >>> overlaps(line, Geometry("LINESTRING(0.5 0.5, 2 2)"))
+    True
+    >>> overlaps(line, Geometry("POINT (0.5 0.5)"))
+    False
+    >>> overlaps(Empty, Empty)
+    False
+    """
+    return ufuncs.overlaps(a, b, **kwargs)
 
 
-def equals_exact(a, b, tolerance):
-    return ufuncs.equals_exact(a, b, tolerance)
+def touches(a, b, **kwargs):
+    """Returns True if the only points shared between A and B are on the
+    boundary of A and B.
+
+    Parameters
+    ----------
+    a, b: Geometry or array_like
+
+    Examples
+    --------
+    >>> line = Geometry("LINESTRING(0 2, 2 0)")
+    >>> touches(line, Geometry("POINT(0 2)"))
+    True
+    >>> touches(line, Geometry("POINT(1 1)"))
+    False
+    >>> touches(line, Geometry("LINESTRING(0 0, 1 1)"))
+    True
+    >>> touches(line, Geometry("LINESTRING(0 0, 2 2)"))
+    False
+    >>> area = Geometry("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))")
+    >>> touches(area, Geometry("POINT(0.5 0)"))
+    True
+    >>> touches(area, Geometry("POINT(0.5 0.5)"))
+    False
+    >>> touches(area, line)
+    True
+    >>> touches(area, Geometry("POLYGON((0 1, 1 1, 1 2, 0 2, 0 1))"))
+    True
+    """
+    return ufuncs.touches(a, b, **kwargs)
 
 
-def intersects(a, b):
-    return ufuncs.intersects(a, b)
+def within(a, b, **kwargs):
+    """Returns True if geometry A is completely inside geometry B.
 
+    A is within B if no points of A lie in the exterior of B and at least one
+    point of the interior of A lies in the interior of B.
 
-def overlaps(a, b):
-    return ufuncs.overlaps(a, b)
+    Parameters
+    ----------
+    a, b : Geometry or array_like
 
+    See also
+    --------
+    contains : ``within(A, B) == contains(B, A)``
 
-def touches(a, b):
-    return ufuncs.touches(a, b)
-
-
-def within(a, b):
-    return ufuncs.within(a, b)
+    Examples
+    --------
+    >>> line = Geometry("LINESTRING(0 0, 1 1)")
+    >>> within(Geometry("POINT (0 0)"), line)
+    False
+    >>> within(Geometry("POINT (0.5 0.5)"), line)
+    True
+    >>> area = Geometry("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))")
+    >>> within(Geometry("POINT (0 0)"), area)
+    False
+    >>> within(line, area)
+    True
+    >>> within(Geometry("LINESTRING(0 0, 2 2)"), area)
+    False
+    >>> polygon_with_hole = Geometry("POLYGON((0 0, 10 0, 10 10, 0 10, 0 0), (2 2, 4 2, 4 4, 2 4, 2 2))")  # NOQA
+    >>> within(Geometry("POINT(1 1)"), polygon_with_hole)
+    True
+    >>> within(Geometry("POINT(2 2)"), polygon_with_hole)
+    False
+    >>> within(Geometry("LINESTRING(1 1, 5 5)"), polygon_with_hole)
+    False
+    >>> within(area, area)
+    True
+    >>> within(Empty, area)
+    False
+    """
+    return ufuncs.within(a, b, **kwargs)

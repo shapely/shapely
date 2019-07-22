@@ -31,4 +31,5 @@ all_types = (
     multi_line_string,
     multi_polygon,
     geometry_collection,
+    pygeos.Empty,
 )
