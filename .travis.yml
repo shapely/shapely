@@ -31,4 +31,4 @@ install:
   - python setup.py build_ext --inplace
   - pip install . --no-deps
 
-script: pytest
+script: pytest --doctest-modules

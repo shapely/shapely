@@ -2,13 +2,12 @@ import pytest
 import pygeos
 import numpy as np
 
-from .common import point, point_z, point_polygon_testdata
+from .common import point, line_string, point_polygon_testdata
 
 UNARY_PREDICATES = (
     pygeos.is_empty,
     pygeos.is_simple,
     pygeos.is_ring,
-    pygeos.has_z,
     pygeos.is_closed,
     pygeos.is_valid,
 )
@@ -25,12 +24,6 @@ BINARY_PREDICATES = (
     pygeos.covers,
     pygeos.covered_by,
 )
-
-
-def test_has_z():
-    actual = pygeos.has_z([point, point_z])
-    expected = [False, True]
-    np.testing.assert_equal(actual, expected)
 
 
 def test_disjoint():
@@ -69,6 +62,13 @@ def test_equals_exact():
     actual = pygeos.equals_exact(point1, point2, [0.01, 1.0])
     expected = [False, True]
     np.testing.assert_equal(actual, expected)
+
+
+@pytest.mark.parametrize("func", UNARY_PREDICATES)
+def test_unary_broadcasting(func):
+    actual = func([line_string, line_string])
+    assert actual.shape == (2,)
+    assert actual.dtype == np.bool
 
 
 @pytest.mark.parametrize("func", UNARY_PREDICATES)

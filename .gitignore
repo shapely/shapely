@@ -55,3 +55,7 @@ coverage.xml
 .venv
 Pipfile
 Pipfile.lock
+
+
+# Documentation
+docs/_build

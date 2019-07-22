@@ -9,6 +9,7 @@ __all__ = [
     "get_dimensions",
     "get_coordinate_dimensions",
     "get_num_coordinates",
+    "has_z",
     "normalize",
     "get_srid",
     "set_srid",
@@ -57,6 +58,30 @@ def get_coordinate_dimensions(geometry):
 
 def get_num_coordinates(geometry):
     return ufuncs.get_num_coordinates(geometry)
+
+
+def has_z(geometry, **kwargs):
+    """Returns True if a geometry has a Z coordinate.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+
+    Notes
+    -----
+    Keyword arguments (``**kwargs``) are passed into the underlying ufunc. To
+    use methods such as ``.at``, import the underlying ufunc from
+    ``pygeos.ufuncs``. See the
+    `NumPy docs <https://docs.scipy.org/doc/numpy/reference/ufuncs.html>`_.
+
+    Examples
+    --------
+    >>> has_z(Geometry("POINT (0 0)"))
+    False
+    >>> has_z([Geometry("POINT (0 0)"), Geometry("POINT Z (0 0 0)")])
+    array([False,  True])
+    """
+    return ufuncs.has_z(geometry, **kwargs)
 
 
 def normalize(geometry):

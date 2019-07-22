@@ -887,6 +887,34 @@ static void voronoi_polygons_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction voronoi_polygons_funcs[1] = {&voronoi_polygons_func};
 
+static char is_valid_reason_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
+static void is_valid_reason_func(char **args, npy_intp *dimensions,
+                                 npy_intp *steps, void *data)
+{
+    void *context_handle = geos_context[0];
+    char *reason;
+
+    UNARY_LOOP {
+        PyObject **out = (PyObject **)op1;
+        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1)) {
+            Py_XDECREF(*out);
+            Py_INCREF(Py_None);
+            *out = Py_None;
+            continue;
+        }
+        INPUT_Y;
+        reason = GEOSisValidReason_r(context_handle, in1->ptr);
+        if (reason == NULL) {
+            RAISE_ILLEGAL_GEOS;
+            return;
+        }
+        Py_XDECREF(*out);
+        *out = PyUnicode_FromString(reason);
+        GEOSFree_r(context_handle, reason);
+    }
+}
+static PyUFuncGenericFunction is_valid_reason_funcs[1] = {&is_valid_reason_func};
+
 /* define double -> geometry construction functions */
 
 static char points_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
@@ -1056,8 +1084,8 @@ TODO G -> char function GEOSisValidReason_r
 */
 
 
-#define DEFINE_Y_b(NAME, DOC)\
-    ufunc = PyUFunc_FromFuncAndData(Y_b_funcs, NAME ##_data, Y_b_dtypes, 1, 1, 1, PyUFunc_None, # NAME, DOC, 0);\
+#define DEFINE_Y_b(NAME)\
+    ufunc = PyUFunc_FromFuncAndData(Y_b_funcs, NAME ##_data, Y_b_dtypes, 1, 1, 1, PyUFunc_None, # NAME, NULL, 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
 #define DEFINE_YY_b(NAME)\
@@ -1134,12 +1162,12 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     GEOSContext_setNoticeMessageHandler_r(context_handle, HandleGEOSNotice, NULL);
     geos_context[0] = context_handle;  /* for global access */
 
-    DEFINE_Y_b (is_empty, "Returns True if a geometry is an empty geometrycolletion, polygon, point, etc.");
-    DEFINE_Y_b (is_simple, "Returns True if a Geometry has no anomalous geometric points, such as self-intersections or self tangency.");
-    DEFINE_Y_b (is_ring, "Returns True if a linestring is closed and simple.");
-    DEFINE_Y_b (has_z, "Returns True if a geometry has a Z coordinate.");
-    DEFINE_Y_b (is_closed, "Returns True if a linestring's first and last points are equal.");
-    DEFINE_Y_b (is_valid, "Returns True if a geometry is well formed. For geometries that are invalid, is_valid_reason will provide details.");
+    DEFINE_Y_b (is_empty);
+    DEFINE_Y_b (is_simple);
+    DEFINE_Y_b (is_ring);
+    DEFINE_Y_b (has_z);
+    DEFINE_Y_b (is_closed);
+    DEFINE_Y_b (is_valid);
 
     DEFINE_YY_b (disjoint);
     DEFINE_YY_b (touches);
@@ -1209,6 +1237,7 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_CUSTOM (haussdorf_distance_densify, 3);
     DEFINE_CUSTOM (delaunay_triangles, 3);
     DEFINE_CUSTOM (voronoi_polygons, 4);
+    DEFINE_CUSTOM (is_valid_reason, 1);
     DEFINE_GENERALIZED(points, 1, "(d)->()");
     DEFINE_GENERALIZED(linestrings, 1, "(i, d)->()");
     DEFINE_GENERALIZED(linearrings, 1, "(i, d)->()");
