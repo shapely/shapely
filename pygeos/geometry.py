@@ -78,8 +78,8 @@ def has_z(geometry, **kwargs):
     --------
     >>> has_z(Geometry("POINT (0 0)"))
     False
-    >>> has_z([Geometry("POINT (0 0)"), Geometry("POINT Z (0 0 0)")])
-    array([False,  True])
+    >>> has_z(Geometry("POINT Z (0 0 0)"))
+    True
     """
     return ufuncs.has_z(geometry, **kwargs)
 

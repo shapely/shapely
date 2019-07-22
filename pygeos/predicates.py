@@ -77,8 +77,8 @@ def is_empty(geometry, **kwargs):
     --------
     >>> is_empty(Geometry("POINT EMPTY"))
     True
-    >>> is_empty([Geometry("POINT EMPTY"), Geometry("POINT (0 0)")])
-    array([ True, False])
+    >>> is_empty(Geometry("POINT (0 0)"))
+    False
     """
     return ufuncs.is_empty(geometry, **kwargs)
 
