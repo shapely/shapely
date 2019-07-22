@@ -48,8 +48,8 @@ def test_centroid():
 def test_clone_nan():
     actual = pygeos.clone(np.array([point, np.nan, None]))
     assert pygeos.equals(actual[0], point)
-    assert np.isnan(actual[1])
-    assert np.isnan(actual[2])
+    assert pygeos.is_empty(actual[1])
+    assert pygeos.is_empty(actual[2])
 
 
 def test_simplify():
@@ -64,7 +64,7 @@ def test_simplify_nan():
         np.array([np.nan, 1.0, np.nan, 1.0, 1.0]),
     )
     assert pygeos.equals(actual[-1], point)
-    assert np.isnan(actual[:-1].astype(np.float)).all()
+    assert pygeos.is_empty(actual[:-1]).all()
 
 
 def test_snap():

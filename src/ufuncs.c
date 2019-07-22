@@ -27,32 +27,11 @@
         return;\
     }
 
-#define GEOM_ISNAN_OR_NONE(GEOM) (npy_isnan(PyFloat_AS_DOUBLE((PyObject *) GEOM)) | ((PyObject *) GEOM == Py_None))
-
-#define CHECK_GEOM(GEOM)\
-    if (!PyObject_IsInstance((PyObject *) GEOM, (PyObject *) &GeometryType)) {\
-        if (GEOM_ISNAN_OR_NONE(GEOM)) {\
-            PyErr_Format(PyExc_ValueError, "NaN and None cannot be handled by this function.");\
-        } else { \
-            PyErr_Format(PyExc_TypeError, "One of the arguments is of incorrect type. Please provide only Geometry objects.");\
-        }\
-        return;\
-    }\
-    if (GEOM->ptr == NULL) {\
-        PyErr_Format(PyExc_ValueError, "A geometry object is empty");\
-        return;\
-    }
-
-
-#define INPUT_Y\
-    GeometryObject *in1 = *(GeometryObject **)ip1;\
-    CHECK_GEOM(in1)
+#define INPUT_Y if (!get_geom(*(GeometryObject **)ip1, &in1)) { return; }
 
 #define INPUT_YY\
-    GeometryObject *in1 = *(GeometryObject **)ip1;\
-    GeometryObject *in2 = *(GeometryObject **)ip2;\
-    CHECK_GEOM(in1);\
-    CHECK_GEOM(in2)
+    if (!get_geom(*(GeometryObject **)ip1, &in1)) { return; }\
+    if (!get_geom(*(GeometryObject **)ip2, &in2)) { return; }
 
 #define OUTPUT_b\
     if (! ((ret == 0) || (ret == 1))) {\
@@ -78,7 +57,8 @@
 #define OUTPUT_Y_NAN\
     PyObject **out = (PyObject **)op1;\
     Py_XDECREF(*out);\
-    *out = PyFloat_FromDouble(NPY_NAN)
+    Py_INCREF(Geom_Empty);\
+    *out = (PyObject *) Geom_Empty;
 
 /* This tells Python what methods this module has. */
 static PyMethodDef GeosModule[] = {
@@ -115,6 +95,8 @@ typedef struct {
     void *ptr;
 } GeometryObject;
 
+/* This initializes a pointer to a NULL geometry */
+static GeometryObject *Geom_Empty = NULL;
 
 static PyObject *GeometryObject_new_from_ptr(PyTypeObject *type, GEOSGeometry *ptr)
 {
@@ -139,7 +121,6 @@ static PyMemberDef GeometryObject_members[] = {
     {"_ptr", T_PYSSIZET, offsetof(GeometryObject, ptr), READONLY, "pointer to GEOSGeometry"},
     {NULL}  /* Sentinel */
 };
-
 
 static PyObject *GeometryObject_ToWKT(GeometryObject *self, PyObject *args, PyObject *kw)
 {
@@ -365,12 +346,60 @@ static PyTypeObject GeometryType = {
     .tp_methods = GeometryObject_methods,
 };
 
+
+static char get_geom(GeometryObject *obj, GEOSGeometry **out) {
+    if (!PyObject_IsInstance((PyObject *) obj, (PyObject *) &GeometryType)) {
+        if ((PyObject *) obj == Py_None) {
+            *out = Geom_Empty->ptr;
+            return 1;
+        } else if (npy_isnan(PyFloat_AS_DOUBLE((PyObject *) obj))) {
+            *out = Geom_Empty->ptr;
+            return 1;
+        } else {
+            PyErr_Format(PyExc_TypeError, "One of the arguments is of incorrect type. Please provide only Geometry objects.");
+            return 0;
+        }
+    } else {
+        *out = obj->ptr;
+        if (*out == NULL) {
+            PyErr_Format(PyExc_RuntimeError, "NULL pointer found in Geometry object");
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+}
+
 /* Define the geom -> bool functions (Y_b) */
 static void *is_empty_data[1] = {GEOSisEmpty_r};
-static void *is_simple_data[1] = {GEOSisSimple_r};
+/* the GEOSisSimple_r function fails on geometrycollections */
+static char GEOSisSimpleAllTypes_r(void *context, void *geom) {
+    int type = GEOSGeomTypeId_r(context, geom);
+    if (type == -1) {
+        RAISE_ILLEGAL_GEOS;
+        return 2;
+    } else if (type == 7) {
+        return 0;
+    } else {
+        return GEOSisSimple_r(context, geom);
+    }
+}
+static void *is_simple_data[1] = {GEOSisSimpleAllTypes_r};
 static void *is_ring_data[1] = {GEOSisRing_r};
 static void *has_z_data[1] = {GEOSHasZ_r};
-static void *is_closed_data[1] = {GEOSisClosed_r};
+/* the GEOSisClosed_r function fails on non-linestrings */
+static char GEOSisClosedAllTypes_r(void *context, void *geom) {
+    int type = GEOSGeomTypeId_r(context, geom);
+    if (type == -1) {
+        RAISE_ILLEGAL_GEOS;
+        return 2;
+    } else if ((type == 1) | (type == 5)) {
+        return GEOSisClosed_r(context, geom);
+    } else {
+        return 0;
+    }
+}
+static void *is_closed_data[1] = {GEOSisClosedAllTypes_r};
 static void *is_valid_data[1] = {GEOSisValid_r};
 typedef char FuncGEOS_Y_b(void *context, void *a);
 static char Y_b_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
@@ -379,16 +408,11 @@ static void Y_b_func(char **args, npy_intp *dimensions,
 {
     FuncGEOS_Y_b *func = (FuncGEOS_Y_b *)data;
     void *context_handle = geos_context[0];
-    npy_bool nanvalue = 0;
-    if (data == is_empty_data[0]) { nanvalue = 1; }
+    GEOSGeometry *in1;
 
     UNARY_LOOP {
-        if GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) {
-            *(npy_bool *) op1 = nanvalue;
-            continue;
-        }
         INPUT_Y;
-        npy_bool ret = func(context_handle, in1->ptr);
+        npy_bool ret = func(context_handle, in1);
         OUTPUT_b;
     }
 }
@@ -413,16 +437,11 @@ static void YY_b_func(char **args, npy_intp *dimensions,
 {
     FuncGEOS_YY_b *func = (FuncGEOS_YY_b *)data;
     void *context_handle = geos_context[0];
-    npy_bool nanvalue = 0;
-    if (data == disjoint_data[0]) { nanvalue = 1; }
+    GEOSGeometry *in1, *in2;
 
     BINARY_LOOP {
-        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | GEOM_ISNAN_OR_NONE(*(PyObject **)ip2)) {
-            *(npy_bool *)op1 = nanvalue;
-            continue;
-        }
         INPUT_YY;
-        npy_bool ret = func(context_handle, in1->ptr, in2->ptr);
+        npy_bool ret = func(context_handle, in1, in2);
         OUTPUT_b;
     }
 }
@@ -469,14 +488,11 @@ static void Y_Y_func(char **args, npy_intp *dimensions,
 {
     FuncGEOS_Y_Y *func = (FuncGEOS_Y_Y *)data;
     void *context_handle = geos_context[0];
+    GEOSGeometry *in1;
 
     UNARY_LOOP {
-        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1)) {
-            OUTPUT_Y_NAN;
-            continue;
-        }
         INPUT_Y;
-        GEOSGeometry *ret_ptr = func(context_handle, in1->ptr);
+        GEOSGeometry *ret_ptr = func(context_handle, in1);
         OUTPUT_Y;
     }
 }
@@ -494,15 +510,16 @@ static void Yd_Y_func(char **args, npy_intp *dimensions,
 {
     FuncGEOS_Yd_Y *func = (FuncGEOS_Yd_Y *)data;
     void *context_handle = geos_context[0];
+    GEOSGeometry *in1;
 
     BINARY_LOOP {
         double in2 = *(double *)ip2;
-        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | npy_isnan(in2)) {
+        if (npy_isnan(in2)) {
             OUTPUT_Y_NAN;
             continue;
         }
         INPUT_Y;
-        GEOSGeometry *ret_ptr = func(context_handle, in1->ptr, in2);
+        GEOSGeometry *ret_ptr = func(context_handle, in1, in2);
         OUTPUT_Y;
     }
 }
@@ -529,15 +546,12 @@ static void Yi_Y_func(char **args, npy_intp *dimensions,
 {
     FuncGEOS_Yi_Y *func = (FuncGEOS_Yi_Y *)data;
     void *context_handle = geos_context[0];
+    GEOSGeometry *in1;
 
     BINARY_LOOP {
-        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1)) {
-            OUTPUT_Y_NAN;
-            continue;
-        }
         INPUT_Y;
         int in2 = *(int *) ip2;
-        GEOSGeometry *ret_ptr = func(context_handle, in1->ptr, in2);
+        GEOSGeometry *ret_ptr = func(context_handle, in1, in2);
         OUTPUT_Y;
     }
 }
@@ -556,14 +570,11 @@ static void YY_Y_func(char **args, npy_intp *dimensions,
 {
     FuncGEOS_YY_Y *func = (FuncGEOS_YY_Y *)data;
     void *context_handle = geos_context[0];
+    GEOSGeometry *in1, *in2;
 
     BINARY_LOOP {
-        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | GEOM_ISNAN_OR_NONE(*(PyObject **)ip2)) {
-            OUTPUT_Y_NAN;
-            continue;
-        }
         INPUT_YY;
-        GEOSGeometry *ret_ptr = func(context_handle, in1->ptr, in2->ptr);
+        GEOSGeometry *ret_ptr = func(context_handle, in1, in2);
         OUTPUT_Y;
     }
 }
@@ -581,14 +592,15 @@ static void Y_d_func(char **args, npy_intp *dimensions,
 {
     FuncGEOS_Y_d *func = (FuncGEOS_Y_d *)data;
     void *context_handle = geos_context[0];
+    GEOSGeometry *in1;
 
     UNARY_LOOP {
-        if GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) {
-            *(npy_double *) op1 = NPY_NAN;
+        INPUT_Y;
+        if (GEOSisEmpty_r(context_handle, in1)) {
+            *(double *)op1 = NPY_NAN;
             continue;
         }
-        INPUT_Y;
-        if (func(context_handle, in1->ptr, (npy_double *) op1) == 0) {
+        if (func(context_handle, in1, (npy_double *) op1) == 0) {
             RAISE_ILLEGAL_GEOS;
             return;
         }
@@ -608,10 +620,11 @@ static void Y_B_func(char **args, npy_intp *dimensions,
     FuncGEOS_Y_B *func = (FuncGEOS_Y_B *)data;
     void *context_handle = geos_context[0];
     int ret;
+    GEOSGeometry *in1;
 
     UNARY_LOOP {
         INPUT_Y;
-        ret = func(context_handle, in1->ptr);
+        ret = func(context_handle, in1);
         if ((ret < 0) | (ret > NPY_MAX_UBYTE)) {
             RAISE_ILLEGAL_GEOS;
             return;
@@ -635,10 +648,11 @@ static void Y_i_func(char **args, npy_intp *dimensions,
     FuncGEOS_Y_i *func = (FuncGEOS_Y_i *)data;
     void *context_handle = geos_context[0];
     int ret;
+    GEOSGeometry *in1;
 
     UNARY_LOOP {
         INPUT_Y;
-        ret = func(context_handle, in1->ptr);
+        ret = func(context_handle, in1);
         if ((ret < 0) | (ret > NPY_MAX_INT)) {
             RAISE_ILLEGAL_GEOS;
             return;
@@ -658,14 +672,15 @@ static void YY_d_func(char **args, npy_intp *dimensions,
 {
     FuncGEOS_YY_d *func = (FuncGEOS_YY_d *)data;
     void *context_handle = geos_context[0];
+    GEOSGeometry *in1, *in2;
 
     BINARY_LOOP {
-        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | GEOM_ISNAN_OR_NONE(*(PyObject **)ip2)) {
-            *(npy_double *) op1 = NPY_NAN;
+        INPUT_YY;
+        if (GEOSisEmpty_r(context_handle, in1) | GEOSisEmpty_r(context_handle, in2)) {
+            *(double *)op1 = NPY_NAN;
             continue;
         }
-        INPUT_YY;
-        if (func(context_handle, in1->ptr, in2->ptr, (double *) op1) == 0) {
+        if (func(context_handle, in1, in2, (double *) op1) == 0) {
             RAISE_ILLEGAL_GEOS;
             return;
         }
@@ -684,14 +699,11 @@ static void YY_d_2_func(char **args, npy_intp *dimensions,
     FuncGEOS_YY_d_2 *func = (FuncGEOS_YY_d_2 *)data;
     void *context_handle = geos_context[0];
     double ret;
+    GEOSGeometry *in1, *in2;
 
     BINARY_LOOP {
-        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | GEOM_ISNAN_OR_NONE(*(PyObject **)ip2)) {
-            *(npy_double *) op1 = NPY_NAN;
-            continue;
-        }
         INPUT_YY;
-        ret = func(context_handle, in1->ptr, in2->ptr);
+        ret = func(context_handle, in1, in2);
         if (ret == -1.0) {
             RAISE_ILLEGAL_GEOS;
             return;
@@ -705,14 +717,11 @@ static PyUFuncGenericFunction YY_d_2_funcs[1] = {&YY_d_2_func};
 static void *null_data[1] = {NULL};
 static void buffer_inner(void *context_handle, GEOSBufferParams *params, void *ip1, void *ip2, void *op1, char *status) {
     *status = 0;
+    GEOSGeometry *in1;
     double in2 = *(double *) ip2;
-    if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | npy_isnan(in2)) {
-        OUTPUT_Y_NAN;
-    } else {
-        INPUT_Y;
-        GEOSGeometry *ret_ptr = GEOSBufferWithParams_r(context_handle, in1->ptr, params, in2);
-        OUTPUT_Y;
-    }
+    INPUT_Y;
+    GEOSGeometry *ret_ptr = GEOSBufferWithParams_r(context_handle, in1, params, in2);
+    OUTPUT_Y;
     *status = 1;
 }
 
@@ -775,15 +784,16 @@ static void snap_func(char **args, npy_intp *dimensions,
                       npy_intp *steps, void *data)
 {
     void *context_handle = geos_context[0];
+    GEOSGeometry *in1, *in2;
 
     TERNARY_LOOP {
         INPUT_YY;
-        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | GEOM_ISNAN_OR_NONE(*(PyObject **)ip2)) {
+        double in3 = *(double *) ip3;
+        if (npy_isnan(in3)) {
             OUTPUT_Y_NAN;
             continue;
         }
-        double in3 = *(double *) ip3;
-        GEOSGeometry *ret_ptr = GEOSSnap_r(context_handle, in1->ptr, in2->ptr, in3);
+        GEOSGeometry *ret_ptr = GEOSSnap_r(context_handle, in1, in2, in3);
         OUTPUT_Y;
     }
 }
@@ -794,15 +804,16 @@ static void equals_exact_func(char **args, npy_intp *dimensions,
                       npy_intp *steps, void *data)
 {
     void *context_handle = geos_context[0];
+    GEOSGeometry *in1, *in2;
 
     TERNARY_LOOP {
         INPUT_YY;
-        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | GEOM_ISNAN_OR_NONE(*(PyObject **)ip2)) {
+        double in3 = *(double *) ip3;
+        if (npy_isnan(in3)) {
             *(npy_bool *)op1 = 0;
             continue;
         }
-        double in3 = *(double *) ip3;
-        npy_bool ret = GEOSEqualsExact_r(context_handle, in1->ptr, in2->ptr, in3);
+        npy_bool ret = GEOSEqualsExact_r(context_handle, in1, in2, in3);
         OUTPUT_b;
     }
 }
@@ -814,15 +825,16 @@ static void haussdorf_distance_densify_func(char **args, npy_intp *dimensions,
                                             npy_intp *steps, void *data)
 {
     void *context_handle = geos_context[0];
+    GEOSGeometry *in1, *in2;
 
     TERNARY_LOOP {
         INPUT_YY;
         double in3 = *(double *) ip3;
-        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1) | GEOM_ISNAN_OR_NONE(*(PyObject **)ip2) | npy_isnan(in3)) {
-            *(npy_double *) op1 = NPY_NAN;
+        if (npy_isnan(in3)) {
+            *(double *)op1 = NPY_NAN;
             continue;
         }
-        if (GEOSHausdorffDistanceDensify_r(context_handle, in1->ptr, in2->ptr, in3, (double *) op1) == 0) {
+        if (GEOSHausdorffDistanceDensify_r(context_handle, in1, in2, in3, (double *) op1) == 0) {
             RAISE_ILLEGAL_GEOS;
             return;
         }
@@ -836,12 +848,9 @@ static void delaunay_triangles_func(char **args, npy_intp *dimensions,
                                     npy_intp *steps, void *data)
 {
     void *context_handle = geos_context[0];
+    GEOSGeometry *in1;
 
     TERNARY_LOOP {
-        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1)) {
-            OUTPUT_Y_NAN;
-            continue;
-        }
         INPUT_Y;
         double in2 = *(double *) ip2;
         if (npy_isnan(in2)) {
@@ -849,7 +858,7 @@ static void delaunay_triangles_func(char **args, npy_intp *dimensions,
         }
         npy_bool in3 = *(npy_bool *) ip3;
 
-        GEOSGeometry *ret_ptr = GEOSDelaunayTriangulation_r(context_handle, in1->ptr, in2, (int) in3);
+        GEOSGeometry *ret_ptr = GEOSDelaunayTriangulation_r(context_handle, in1, in2, (int) in3);
         OUTPUT_Y;
     }
 }
@@ -861,27 +870,19 @@ static void voronoi_polygons_func(char **args, npy_intp *dimensions,
                                   npy_intp *steps, void *data)
 {
     void *context_handle = geos_context[0];
-    void *envelope_ptr;
+    GEOSGeometry *in1, *in2;
 
     QUATERNARY_LOOP {
-        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1)) {
-            OUTPUT_Y_NAN;
-            continue;
-        }
         INPUT_Y;
-        GeometryObject *in2 = *(PyObject **)ip2;
-        if (GEOM_ISNAN_OR_NONE(in2)) {
-            envelope_ptr = NULL;
-        } else {
-            CHECK_GEOM(in2);
-            envelope_ptr = in2->ptr;
+        if (!get_geom(*(GeometryObject **)ip2, &in2)) {
+            in2 = NULL;
         }
         double in3 = *(double *) ip3;
         if (npy_isnan(in3)) {
             in3 = 0.0;
         }
         npy_bool in4 = *(npy_bool *) ip4;
-        GEOSGeometry *ret_ptr = GEOSVoronoiDiagram_r(context_handle, in1->ptr, envelope_ptr, in3, (int) in4);
+        GEOSGeometry *ret_ptr = GEOSVoronoiDiagram_r(context_handle, in1, in2, in3, (int) in4);
         OUTPUT_Y;
     }
 }
@@ -893,17 +894,12 @@ static void is_valid_reason_func(char **args, npy_intp *dimensions,
 {
     void *context_handle = geos_context[0];
     char *reason;
+    GEOSGeometry *in1;
 
     UNARY_LOOP {
         PyObject **out = (PyObject **)op1;
-        if (GEOM_ISNAN_OR_NONE(*(PyObject **)ip1)) {
-            Py_XDECREF(*out);
-            Py_INCREF(Py_None);
-            *out = Py_None;
-            continue;
-        }
         INPUT_Y;
-        reason = GEOSisValidReason_r(context_handle, in1->ptr);
+        reason = GEOSisValidReason_r(context_handle, in1);
         if (reason == NULL) {
             RAISE_ILLEGAL_GEOS;
             return;
@@ -998,7 +994,7 @@ static void polygons_with_holes_func(char **args, npy_intp *dimensions,
                                      npy_intp *steps, void *data)
 {
     void *context_handle = geos_context[0];
-    void *shell;
+    GEOSGeometry *hole, *shell, *hole_copy, *shell_copy;
     int n_holes;
     GEOSGeometry **holes = malloc(sizeof(void *) * dimensions[1]);
     if (holes == NULL) {
@@ -1007,28 +1003,20 @@ static void polygons_with_holes_func(char **args, npy_intp *dimensions,
     }
 
     BINARY_SINGLE_COREDIM_LOOP_OUTER {
-        GeometryObject *g = *(GeometryObject **)ip1;
-        CHECK_GEOM(g);
-        shell = GEOSGeom_clone_r(context_handle, g->ptr);
-        if (shell == NULL) {
-            goto finish;
-        }
+        if (!get_geom(*(GeometryObject **)ip1, &shell)) { goto finish; }
+        shell_copy = GEOSGeom_clone_r(context_handle, shell);
+        if (shell_copy == NULL) { goto finish; }
         n_holes = 0;
         cp1 = ip2;
         BINARY_SINGLE_COREDIM_LOOP_INNER {
-            GeometryObject *g = *(GeometryObject **)cp1;
-            if GEOM_ISNAN_OR_NONE(g) {
-                continue;
-            }
-            CHECK_GEOM(g);
-            GEOSGeometry *hole = GEOSGeom_clone_r(context_handle, g->ptr);
-            if (hole == NULL) {
-                goto finish;
-            }
-            holes[i_c1] = hole;
+            if (!get_geom(*(GeometryObject **)cp1, &hole)) { goto finish; }
+            if (GEOSisEmpty_r(context_handle, hole)) { continue; }
+            hole_copy = GEOSGeom_clone_r(context_handle, hole);
+            if (hole_copy == NULL) { goto finish; }
+            holes[n_holes] = hole_copy;
             n_holes++;
         }
-        GEOSGeometry *ret_ptr = GEOSGeom_createPolygon_r(context_handle, shell, holes, n_holes);
+        GEOSGeometry *ret_ptr = GEOSGeom_createPolygon_r(context_handle, shell_copy, holes, n_holes);
         OUTPUT_Y;
     }
 
@@ -1043,6 +1031,7 @@ static void create_collection_func(char **args, npy_intp *dimensions,
                                    npy_intp *steps, void *data)
 {
     void *context_handle = geos_context[0];
+    GEOSGeometry *g, *g_copy;
     int n_geoms;
     GEOSGeometry **geoms = malloc(sizeof(void *) * dimensions[1]);
     if (geoms == NULL) {
@@ -1056,15 +1045,11 @@ static void create_collection_func(char **args, npy_intp *dimensions,
         n_geoms = 0;
         cp1 = ip1;
         BINARY_SINGLE_COREDIM_LOOP_INNER {
-            GeometryObject *g = *(GeometryObject **)cp1;
-            if GEOM_ISNAN_OR_NONE(g) {
-                continue;
-            }
-            CHECK_GEOM(g);
-            geoms[n_geoms] = GEOSGeom_clone_r(context_handle, g->ptr);
-            if (geoms[n_geoms] == NULL) {
-                goto finish;
-            }
+            if (!get_geom(*(GeometryObject **)cp1, &g)) { goto finish; }
+            if (GEOSisEmpty_r(context_handle, g)) { continue; }
+            g_copy = GEOSGeom_clone_r(context_handle, g);
+            if (g_copy == NULL) { goto finish; }
+            geoms[n_geoms] = g_copy;
             n_geoms++;
         }
         GEOSGeometry *ret_ptr = GEOSGeom_createCollection_r(context_handle, type, geoms, n_geoms);
@@ -1080,7 +1065,6 @@ static PyUFuncGenericFunction create_collection_funcs[1] = {&create_collection_f
 TODO polygonizer functions
 TODO prepared geometry predicate functions
 TODO relate functions
-TODO G -> char function GEOSisValidReason_r
 */
 
 
@@ -1161,6 +1145,11 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     GEOSContext_setErrorMessageHandler_r(context_handle, HandleGEOSError, GEOSException);
     GEOSContext_setNoticeMessageHandler_r(context_handle, HandleGEOSNotice, NULL);
     geos_context[0] = context_handle;  /* for global access */
+
+    /* create the empty geometry (a singleton like Py_None) */
+    void* null_geosgeom = GEOSGeom_createEmptyCollection_r(context_handle, 7);
+    Geom_Empty = (GeometryObject *) GeometryObject_new_from_ptr(&GeometryType, null_geosgeom);
+    PyModule_AddObject(m, "Empty", (PyObject *) Geom_Empty);
 
     DEFINE_Y_b (is_empty);
     DEFINE_Y_b (is_simple);

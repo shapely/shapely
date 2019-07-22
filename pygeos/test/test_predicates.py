@@ -2,7 +2,7 @@ import pytest
 import pygeos
 import numpy as np
 
-from .common import point, line_string, point_polygon_testdata
+from .common import point, all_types, point_polygon_testdata
 
 UNARY_PREDICATES = (
     pygeos.is_empty,
@@ -64,9 +64,10 @@ def test_equals_exact():
     np.testing.assert_equal(actual, expected)
 
 
+@pytest.mark.parametrize("geometry", all_types)
 @pytest.mark.parametrize("func", UNARY_PREDICATES)
-def test_unary_broadcasting(func):
-    actual = func([line_string, line_string])
+def test_unary_broadcasting(geometry, func):
+    actual = func([geometry, geometry])
     assert actual.shape == (2,)
     assert actual.dtype == np.bool
 
@@ -74,7 +75,7 @@ def test_unary_broadcasting(func):
 @pytest.mark.parametrize("func", UNARY_PREDICATES)
 def test_unary_nan(func):
     actual = func(np.array([np.nan, None]))
-    if func is pygeos.is_empty:
+    if func in [pygeos.is_empty, pygeos.is_valid]:
         assert actual.all()
     else:
         assert (~actual).all()
@@ -88,5 +89,9 @@ def test_binary_nan(func):
     )
     if func is pygeos.disjoint:
         assert actual.all()
+    elif func is pygeos.equals:
+        # an empty set equals an empty set. behaviour is different from NaN
+        expected = [False, False, True, False, False, True]
+        np.testing.assert_equal(actual, expected)
     else:
         assert (~actual).all()

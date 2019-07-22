@@ -1,5 +1,7 @@
+import warnings
+
 from . import ufuncs
-from .geometry import Geometry  # NOQA
+from .geometry import Geometry
 
 __all__ = [
     "is_closed",
@@ -27,7 +29,7 @@ def is_closed(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
-        The geometry has to be of (multi)linestring type.
+        This function will return False for non-linestrings.
 
     See also
     --------
@@ -47,9 +49,7 @@ def is_closed(geometry, **kwargs):
     >>> is_closed(Geometry("LINESTRING(0 0, 0 1, 1 1, 0 0)"))
     True
     >>> is_closed(Geometry("POINT (0 0)"))
-    Traceback (most recent call last):
-        ...
-    pygeos.GEOSException: Argument is not a LineString or MultiLineString
+    False
     """
     return ufuncs.is_closed(geometry, **kwargs)
 
@@ -128,7 +128,7 @@ def is_simple(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
-        Any geometry type is accepted.
+        This function will return False for geometrycollections.
 
     See also
     --------
@@ -178,7 +178,11 @@ def is_valid(geometry, **kwargs):
     >>> is_valid(Geometry("POLYGON((0 0, 1 1, 1 2, 1 1, 0 0))"))
     False
     """
-    return ufuncs.is_valid(geometry, **kwargs)
+    # GEOS is valid will emit warnings for invalid geometries. Suppress them.
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        result = ufuncs.is_valid(geometry, **kwargs)
+    return result
 
 
 def is_valid_reason(geometry, **kwargs):
