@@ -2371,6 +2371,29 @@ accessible via :attr:`shapely.__version__`,
   >>> shapely.geos.geos_version_string
   '3.3.0-CAPI-1.7.0'
 
+Polylabel
+---------
+
+.. function:: shapely.ops.polylabel(polygon, tolerance)
+
+  Finds the approximate location of the pole of inaccessibility for a given
+  polygon. Based on Vladimir Agafonkin's https://github.com/mapbox/polylabel.
+
+  `New in version 1.6.0`
+
+.. note::
+
+  Prior to 1.7 `polylabel` must be imported from `shapely.algorithms.polylabel`
+  instead of `shapely.ops`.
+
+.. code-block:: pycon
+
+  >>> from shapely.ops import polylabel
+  >>> polygon = LineString([(0, 0), (50, 200), (100, 100), (20, 50),
+  ... (-100, -20), (-150, -200)]).buffer(100)
+  >>> label = polylabel(polygon, tolerance=10)
+  >>> label.wkt
+  'POINT (59.35615556364569 121.8391962974644)'
 
 STR-packed R-tree
 =================
