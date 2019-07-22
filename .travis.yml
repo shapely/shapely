@@ -3,13 +3,13 @@ language: minimal
 matrix:
   include:
   - os: linux  # 2015
-    env: DEPS="python=3.5 numpy=1.10 geos=3.5"
+    env: PYTHON_VERSION="3.5" DEPS="numpy=1.10 geos=3.5"
   - os: linux  # 2017
-    env: DEPS="python=3.6 numpy=1.13 geos=3.6"
+    env: PYTHON_VERSION="3.6" DEPS="numpy=1.13 geos=3.6"
   - os: linux  # now
-    env: DEPS="python=3.7 numpy geos"
+    env: PYTHON_VERSION="3.7" DEPS="numpy geos"
   - os: osx
-    env: DEPS="python=3.7 numpy geos"
+    env: PYTHON_VERSION="3.7" DEPS="numpy geos"
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
@@ -25,10 +25,14 @@ install:
   - hash -r;
   - conda update --yes conda;
   - conda config --set changeps1 no --set restore_free_channel true;
-  - conda create -n testenv --yes pytest $DEPS;
+  - conda create -n testenv --yes python=$PYTHON_VERSION $DEPS pytest;
   - conda activate testenv;
   - conda --version ; python --version ; pip --version;
   - python setup.py build_ext --inplace
   - pip install . --no-deps
 
-script: pytest
+script
+  - if [[ "$PYTHON_VERSION" == "3.5" ]];
+    then pytest;
+    else pytest --doctest-modules;
+    fi

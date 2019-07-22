@@ -14,6 +14,12 @@ PyGEOS
 	:alt: Appveyor CI status
 	:target: https://ci.appveyor.com/project/caspervdw/pygeos
 
+.. PyPI
+
+.. image:: https://badge.fury.io/py/pygeos.svg
+	:alt: PyPI
+	:target: https://badge.fury.io/py/pygeos
+
 This is a C/Python library that wraps geometry functions in GEOS in numpy ufuncs.
 This project is still in a mock-up phase: the API will most likely change.
 

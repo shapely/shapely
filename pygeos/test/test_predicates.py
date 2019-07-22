@@ -2,13 +2,14 @@ import pytest
 import pygeos
 import numpy as np
 
-from .common import point, point_z, point_polygon_testdata
+from pygeos import Empty
+
+from .common import point, all_types
 
 UNARY_PREDICATES = (
     pygeos.is_empty,
     pygeos.is_simple,
     pygeos.is_ring,
-    pygeos.has_z,
     pygeos.is_closed,
     pygeos.is_valid,
 )
@@ -27,66 +28,60 @@ BINARY_PREDICATES = (
 )
 
 
-def test_has_z():
-    actual = pygeos.has_z([point, point_z])
-    expected = [False, True]
-    np.testing.assert_equal(actual, expected)
-
-
-def test_disjoint():
-    actual = pygeos.disjoint(*point_polygon_testdata)
-    expected = [True, True, False, False, False, True]
-    np.testing.assert_equal(actual, expected)
-
-
-def test_touches():
-    actual = pygeos.touches(*point_polygon_testdata)
-    expected = [False, False, True, False, True, False]
-    np.testing.assert_equal(actual, expected)
-
-
-def test_intersects():
-    actual = pygeos.intersects(*point_polygon_testdata)
-    expected = [False, False, True, True, True, False]
-    np.testing.assert_equal(actual, expected)
-
-
-def test_within():
-    actual = pygeos.within(*point_polygon_testdata)
-    expected = [False, False, False, True, False, False]
-    np.testing.assert_equal(actual, expected)
-
-
-def test_contains():
-    actual = pygeos.contains(*reversed(point_polygon_testdata))
-    expected = [False, False, False, True, False, False]
-    np.testing.assert_equal(actual, expected)
-
-
-def test_equals_exact():
-    point1 = pygeos.points(0, 0)
-    point2 = pygeos.points(0, 0.1)
-    actual = pygeos.equals_exact(point1, point2, [0.01, 1.0])
-    expected = [False, True]
-    np.testing.assert_equal(actual, expected)
+@pytest.mark.parametrize("geometry", all_types)
+@pytest.mark.parametrize("func", UNARY_PREDICATES)
+def test_unary_array(geometry, func):
+    actual = func([geometry, geometry])
+    assert actual.shape == (2,)
+    assert actual.dtype == np.bool
 
 
 @pytest.mark.parametrize("func", UNARY_PREDICATES)
-def test_unary_nan(func):
-    actual = func(np.array([np.nan, None]))
-    if func is pygeos.is_empty:
-        assert actual.all()
+def test_unary_with_kwargs(func):
+    out = np.empty((), dtype=np.uint8)
+    actual = func(point, out=out)
+    assert actual is out
+    assert actual.dtype == np.uint8
+
+
+@pytest.mark.parametrize("none", [None, np.nan, Empty])
+@pytest.mark.parametrize("func", UNARY_PREDICATES)
+def test_unary_nan(none, func):
+    actual = func(none)
+    if func in [pygeos.is_empty, pygeos.is_valid]:
+        assert actual
     else:
-        assert (~actual).all()
+        assert not actual
+
+
+@pytest.mark.parametrize("a", all_types)
+@pytest.mark.parametrize("func", BINARY_PREDICATES)
+def test_binary_array(a, func):
+    actual = func([a, a], point)
+    assert actual.shape == (2,)
+    assert actual.dtype == np.bool
 
 
 @pytest.mark.parametrize("func", BINARY_PREDICATES)
-def test_binary_nan(func):
+def test_binary_with_kwargs(func):
+    out = np.empty((), dtype=np.uint8)
+    actual = func(point, point, out=out)
+    assert actual is out
+    assert actual.dtype == np.uint8
+
+
+@pytest.mark.parametrize("none", [None, np.nan, Empty])
+@pytest.mark.parametrize("func", BINARY_PREDICATES)
+def test_binary_nan(none, func):
     actual = func(
-        np.array([point, np.nan, np.nan, point, None, None]),
-        np.array([np.nan, point, np.nan, None, point, None]),
+        np.array([point, none, none]),
+        np.array([none, point, none]),
     )
     if func is pygeos.disjoint:
         assert actual.all()
+    elif func is pygeos.equals:
+        # an empty set equals an empty set. behaviour is different from NaN
+        expected = [False, False, True]
+        np.testing.assert_equal(actual, expected)
     else:
         assert (~actual).all()

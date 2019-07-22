@@ -24,4 +24,4 @@ def test_intersection_nan():
         np.array([np.nan, point, np.nan, None, point, None, point]),
     )
     assert pygeos.equals(actual[-1], point)
-    assert np.isnan(actual[:-1].astype(np.float)).all()
+    assert pygeos.is_empty(actual[:-1]).all()

@@ -9,7 +9,7 @@ from .common import all_types
 
 
 def test_get_type_id():
-    assert pygeos.get_type_id(all_types).tolist() == list(range(8))
+    assert pygeos.get_type_id(all_types).tolist()[:-1] == list(range(8))
 
 
 def test_get_num_points():
