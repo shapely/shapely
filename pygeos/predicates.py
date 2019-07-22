@@ -33,14 +33,7 @@ def is_closed(geometry, **kwargs):
 
     See also
     --------
-    `ST_IsClosed <https://postgis.net/docs/ST_IsClosed.html>`_
-
-    Notes
-    -----
-    Keyword arguments (``**kwargs``) are passed into the underlying ufunc. To
-    use methods such as ``.at``, import the underlying ufunc from
-    ``pygeos.ufuncs``. See the
-    `NumPy docs <https://docs.scipy.org/doc/numpy/reference/ufuncs.html>`_.
+    is_ring : Checks additionally if the geometry is simple.
 
     Examples
     --------
@@ -62,17 +55,6 @@ def is_empty(geometry, **kwargs):
     geometry : Geometry or array_like
         Any geometry type is accepted.
 
-    See also
-    --------
-    `ST_IsEmpty <https://postgis.net/docs/ST_IsEmpty.html>`_
-
-    Notes
-    -----
-    Keyword arguments (``**kwargs``) are passed into the underlying ufunc. To
-    use methods such as ``.at``, import the underlying ufunc from
-    ``pygeos.ufuncs``. See the
-    `NumPy docs <https://docs.scipy.org/doc/numpy/reference/ufuncs.html>`_.
-
     Examples
     --------
     >>> is_empty(Geometry("POINT EMPTY"))
@@ -93,16 +75,8 @@ def is_ring(geometry, **kwargs):
 
     See also
     --------
-    is_closed
-    is_simple
-    `ST_IsRing <https://postgis.net/docs/ST_IsRing.html>`_
-
-    Notes
-    -----
-    Keyword arguments (``**kwargs``) are passed into the underlying ufunc. To
-    use methods such as ``.at``, import the underlying ufunc from
-    ``pygeos.ufuncs``. See the
-    `NumPy docs <https://docs.scipy.org/doc/numpy/reference/ufuncs.html>`_.
+    is_closed : Checks only if the geometry is closed.
+    is_simple : Checks only if the geometry is simple.
 
     Examples
     --------
@@ -132,14 +106,7 @@ def is_simple(geometry, **kwargs):
 
     See also
     --------
-    `ST_IsSimple <https://postgis.net/docs/ST_IsSimple.html>`_
-
-    Notes
-    -----
-    Keyword arguments (``**kwargs``) are passed into the underlying ufunc. To
-    use methods such as ``.at``, import the underlying ufunc from
-    ``pygeos.ufuncs``. See the
-    `NumPy docs <https://docs.scipy.org/doc/numpy/reference/ufuncs.html>`_.
+    is_ring : Checks additionally if the geometry is closed.
 
     Examples
     --------
@@ -161,15 +128,7 @@ def is_valid(geometry, **kwargs):
 
     See also
     --------
-    is_valid_reason
-    `ST_IsValid <https://postgis.net/docs/ST_IsValid.html>`_
-
-    Notes
-    -----
-    Keyword arguments (``**kwargs``) are passed into the underlying ufunc. To
-    use methods such as ``.at``, import the underlying ufunc from
-    ``pygeos.ufuncs``. See the
-    `NumPy docs <https://docs.scipy.org/doc/numpy/reference/ufuncs.html>`_.
+    is_valid_reason : Returns the reason in case of invalid.
 
     Examples
     --------
@@ -195,15 +154,7 @@ def is_valid_reason(geometry, **kwargs):
 
     See also
     --------
-    is_valid
-    `ST_IsValidReason <https://postgis.net/docs/ST_IsValidReason.html>`_
-
-    Notes
-    -----
-    Keyword arguments (``**kwargs``) are passed into the underlying ufunc. To
-    use methods such as ``.at``, import the underlying ufunc from
-    ``pygeos.ufuncs``. See the
-    `NumPy docs <https://docs.scipy.org/doc/numpy/reference/ufuncs.html>`_.
+    - is_valid : returns True or False
 
     Examples
     --------
@@ -216,10 +167,74 @@ def is_valid_reason(geometry, **kwargs):
 
 
 def crosses(a, b):
+    """Returns True if the intersection of two geometries spatially crosses.
+
+    That is: the geometries have some, but not all interior points in common.
+    The geometries must intersect and the intersection must have a
+    dimensionality less than the maximum dimension of the two input geometries.
+    Additionally, the intersection of the two geometries must not equal either
+    of the source geometries.
+
+    Parameters
+    ----------
+    a : Geometry or array_like
+    b : Geometry or array_like
+
+    Examples
+    --------
+    >>> line = Geometry("LINESTRING(0 0, 1 1)")
+    >>> crosses(line, Geometry("POINT (0.5 0.5)"))
+    False
+    >>> crosses(line, Geometry("MULTIPOINT ((0 1), (0.5 0.5))"))
+    True
+    >>> crosses(line, Geometry("LINESTRING(0 1, 1 0)"))
+    True
+    >>> crosses(line, Geometry("LINESTRING(0 0, 2 2)"))
+    False
+    >>> area = Geometry("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))")
+    >>> crosses(area, line)
+    False
+    >>> crosses(area, Geometry("LINESTRING(0 0, 2 2)"))
+    True
+    >>> crosses(area, Geometry("POINT (0.5 0.5)"))
+    False
+    >>> crosses(area, Geometry("MULTIPOINT ((2 2), (0.5 0.5))"))
+    True
+    """
     return ufuncs.crosses(a, b)
 
 
 def contains(a, b):
+    """Returns True when geometry B contains geometry A.
+
+    A contains B if no points of B lie in the exterior of A and at  least one
+    point of the interior of B lies in the interior of A.
+
+    Parameters
+    ----------
+    a : Geometry or array_like
+    b : Geometry or array_like
+
+    See also
+    --------
+    - within : Contains is the inverse of within (except when dealing with
+      invalid geometries).
+
+    Examples
+    --------
+    >>> line = Geometry("LINESTRING(0 0, 1 1)")
+    >>> contains(line, Geometry("POINT (0.5 0.5)"))
+    True
+    >>> contains(line, Geometry("POINT (0 0)"))
+    True
+    >>> area = Geometry("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))")
+    >>> contains(area, Geometry("POINT (0 0)"))
+    False
+    >>> contains(area, Geometry("POINT (0.5 0.5)"))
+    True
+    >>> contains(area, Geometry("POINT (0.5 0.5)"))
+    True
+    """
     return ufuncs.contains(a, b)
 
 
