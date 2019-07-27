@@ -26,20 +26,18 @@ PyGEOS
 	:alt: PyPI
 	:target: https://badge.fury.io/py/pygeos
 
-This is a C/Python library that wraps geometry functions in GEOS in numpy ufuncs.
-This project is still in a mock-up phase: the API will most likely change.
-
+Pygeos is a C/Python library that implements vectorized versions of the
+geometry functions from GEOS. By wrapping the GEOS operations in Numpy
+"universal functions", pygeos provides a significant performance improvement
+when working with large sets of geometries.
 
 Why ufuncs?
 -----------
 
 A universal function (or ufunc for short) is a function that operates on
 n-dimensional arrays in an element-by-element fashion, supporting array
-broadcasting. The for-loops that are involved are fully implmemented in C,
+broadcasting. The for-loops that are involved are fully implmemented in C
 diminishing the overhead of the python interpreter.
-
-Pygeos aims to expose the geometry functions from GEOS into python to provide
-a fast and flexible means to work with large sets of geometries from python.
 
 
 The Geometry object
@@ -47,7 +45,7 @@ The Geometry object
 
 GEOS geometry objects are stored in a static attribute of the Python extension
 type `pygeos.Geometry`. This keeps the python interpreter out of the ufunc
-inner loop. The Geometry object keeps track of the underlying geometry and
+inner loop. The Geometry object keeps track of the underlying GEOSGeometry and
 allows the python garbage collector to free memory when the geometry is not
 used anymore.
 
@@ -59,7 +57,7 @@ used anymore.
 
   >>> geometry = Geometry.from_wkt("POINT (5.2 52.1)")
 
-Or simply:
+Or using one of the provided (vectorized) functions:
 
 .. code:: python
 
