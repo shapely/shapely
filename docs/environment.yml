@@ -2,7 +2,5 @@ name: pygeos
 channels:
   - conda-forge
 dependencies:
-  - _libgcc_mutex=0.1=main
-  - geos=3.7.1=he6710b0_0
-  - libgcc-ng=9.1.0=hdf63c60_0
-  - libstdcxx-ng=9.1.0=hdf63c60_0
+  - geos
+  - numpydoc
