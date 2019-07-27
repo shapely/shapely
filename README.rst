@@ -2,6 +2,12 @@
 PyGEOS
 ======
 
+.. Documentation at RTD — https://readthedocs.org
+
+.. image:: https://readthedocs.org/projects/pygeos/badge/?version=latest
+	:alt: Documentation Status
+	:target: https://pygeos.readthedocs.io/en/latest/?badge=latest
+
 .. Travis CI status — https://travis-ci.org
 
 .. image:: https://travis-ci.org/caspervdw/pygeos.svg?branch=master
