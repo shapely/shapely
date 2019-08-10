@@ -26,27 +26,28 @@ PyGEOS
 	:alt: PyPI
 	:target: https://badge.fury.io/py/pygeos
 
-Pygeos is a C/Python library that implements vectorized versions of the
-geometry functions from GEOS. By wrapping the GEOS operations in Numpy
-"universal functions", pygeos provides a significant performance improvement
-when working with large sets of geometries.
+PyGEOS is a C/Python library with vectorized geometry functions. The geometry
+operations are done in the open-source geometry library GEOS. PyGEOS wraps
+these operations in NumPy ufuncs providing a performance improvement when
+operating on arrays of geometries.
 
 Why ufuncs?
 -----------
 
 A universal function (or ufunc for short) is a function that operates on
 n-dimensional arrays in an element-by-element fashion, supporting array
-broadcasting. The for-loops that are involved are fully implmemented in C
-diminishing the overhead of the python interpreter.
+broadcasting. The for-loops that are involved are fully implemented in C
+diminishing the overhead of the Python interpreter.
 
 
 The Geometry object
 -------------------
 
-GEOS geometry objects are stored in a static attribute of the Python extension
-type `pygeos.Geometry`. This keeps the python interpreter out of the ufunc
-inner loop. The Geometry object keeps track of the underlying GEOSGeometry and
-allows the python garbage collector to free memory when the geometry is not
+The `pygeos.Geometry` object is a container of the actual GEOSGeometry object.
+A C pointer to this object is stored in a static attribute of the `Geometry`
+object. This keeps the python interpreter out of the ufunc inner loop. The
+Geometry object keeps track of the underlying GEOSGeometry and
+allows the python garbage collector to free memory when it is not
 used anymore.
 
 `Geometry` objects are immutable. Construct them as follows:

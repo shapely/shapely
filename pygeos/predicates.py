@@ -449,7 +449,7 @@ def touches(a, b, **kwargs):
 
     Parameters
     ----------
-    a, b: Geometry or array_like
+    a, b : Geometry or array_like
 
     Examples
     --------
