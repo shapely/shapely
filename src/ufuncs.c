@@ -495,7 +495,6 @@ static void YY_b_func(char **args, npy_intp *dimensions,
 static PyUFuncGenericFunction YY_b_funcs[1] = {&YY_b_func};
 
 /* Define the geom -> geom functions (Y_Y) */
-static void *clone_data[1] = {GEOSGeom_clone_r};
 static void *envelope_data[1] = {GEOSEnvelope_r};
 static void *convex_hull_data[1] = {GEOSConvexHull_r};
 /* the GEOSBoundary_r function fails on geometrycollections */
@@ -1228,7 +1227,6 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_YY_b (covers);
     DEFINE_YY_b (covered_by);
 
-    DEFINE_Y_Y (clone);
     DEFINE_Y_Y (envelope);
     DEFINE_Y_Y (convex_hull);
     DEFINE_Y_Y (boundary);

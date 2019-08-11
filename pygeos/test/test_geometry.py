@@ -40,9 +40,9 @@ def test_new_from_wkb():
 
 
 def test_adapt_ptr_raises():
-    geom = pygeos.clone(point)
+    point = pygeos.Geometry.from_wkt("POINT (2 2)")
     with pytest.raises(AttributeError):
-        geom._ptr += 1
+        point._ptr += 1
 
 
 def test_to_wkt():

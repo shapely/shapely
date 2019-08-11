@@ -10,7 +10,6 @@ __all__ = [
     "boundary",
     "buffer",
     "centroid",
-    "clone",
     "convex_hull",
     "delaunay_triangles",
     "envelope",
@@ -154,11 +153,29 @@ def buffer(
 
 
 def centroid(geometries):
+    """Computes the geometric center (center-of-mass) of a geometry.
+
+    For multipoints this is computed as the mean of the input coordinates.
+    For multilinestrings the centroid is weighted by the length of each
+    line segment. For multipolygons the centroid is weighted by the area of
+    each polygon.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+
+    Examples
+    --------
+    >>> centroid(Geometry("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))"))
+    <pygeos.Geometry POINT (5 5)>
+    >>> centroid(Geometry("LINESTRING (0 0, 2 2, 10 10)"))
+    <pygeos.Geometry POINT (5 5)>
+    >>> centroid(Geometry("MULTIPOINT (0 0, 10 10)"))
+    <pygeos.Geometry POINT (5 5)>
+    >>> centroid(Empty)
+    <pygeos.Empty>
+    """
     return ufuncs.centroid(geometries)
-
-
-def clone(geometries):
-    return ufuncs.clone(geometries)
 
 
 def convex_hull(geometries):

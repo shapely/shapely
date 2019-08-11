@@ -45,13 +45,6 @@ def test_centroid():
     assert pygeos.equals(actual, pygeos.points(1, 1))
 
 
-def test_clone_nan():
-    actual = pygeos.clone(np.array([point, np.nan, None]))
-    assert pygeos.equals(actual[0], point)
-    assert pygeos.is_empty(actual[1])
-    assert pygeos.is_empty(actual[2])
-
-
 def test_simplify():
     line = pygeos.linestrings([[0, 0], [0.1, 1], [0, 2]])
     actual = pygeos.simplify(line, [0, 1.0])
