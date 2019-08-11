@@ -238,7 +238,7 @@ def contains(a, b, **kwargs):
     True
     >>> contains(area, Geometry("LINESTRING(0 0, 2 2)"))
     False
-    >>> polygon_with_hole = Geometry("POLYGON((0 0, 10 0, 10 10, 0 10, 0 0), (2 2, 4 2, 4 4, 2 4, 2 2))")  # NOQA
+    >>> polygon_with_hole = Geometry("POLYGON((0 0, 10 0, 10 10, 0 10, 0 0), (2 2, 4 2, 4 4, 2 4, 2 2))")
     >>> contains(polygon_with_hole, Geometry("POINT(1 1)"))
     True
     >>> contains(polygon_with_hole, Geometry("POINT(2 2)"))

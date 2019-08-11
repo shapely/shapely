@@ -197,8 +197,8 @@ def convex_hull(geometry, **kwargs):
     return ufuncs.convex_hull(geometry, **kwargs)
 
 
-def delaunay_triangles(geometry, tolerance=0.0, only_edges=False):
-    return ufuncs.delaunay_triangles(geometry, tolerance, only_edges)
+def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
+    return ufuncs.delaunay_triangles(geometry, tolerance, only_edges, **kwargs)
 
 
 def envelope(geometry, **kwargs):
@@ -222,24 +222,95 @@ def envelope(geometry, **kwargs):
     return ufuncs.envelope(geometry, **kwargs)
 
 
-def extract_unique_points(geometries):
-    return ufuncs.extract_unique_points(geometries)
+def extract_unique_points(geometry, **kwargs):
+    return ufuncs.extract_unique_points(geometry, **kwargs)
 
 
-def point_on_surface(geometries):
-    return ufuncs.point_on_surface(geometries)
+def point_on_surface(geometry, **kwargs):
+    """Returns a point that intersects an input geometry.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+
+    Examples
+    --------
+    >>> point_on_surface(Geometry("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))"))
+    <pygeos.Geometry POINT (5 5)>
+    >>> point_on_surface(Geometry("LINESTRING (0 0, 2 2, 10 10)"))
+    <pygeos.Geometry POINT (2 2)>
+    >>> point_on_surface(Geometry("MULTIPOINT (0 0, 10 10)"))
+    <pygeos.Geometry POINT (0 0)>
+    >>> point_on_surface(Empty)
+    <pygeos.Empty>
+    """
+    return ufuncs.point_on_surface(geometry, **kwargs)
 
 
-def simplify(geometries, tolerance, preserve_topology=False):
+def simplify(geometry, tolerance, preserve_topology=False, **kwargs):
+    """Returns a simplified version of an input geometry using the
+    Douglas-Peucker algorithm.
+
+    If preserve_topology is True (default), this function will avoid creating
+    invalid geometries.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    tolerance : float or array_like
+    preserve_topology : bool
+
+    Examples
+    --------
+    >>> line = Geometry("LINESTRING (0 0, 1 10, 0 20)")
+    >>> simplify(line, tolerance=0.9)
+    <pygeos.Geometry LINESTRING (0 0, 1 10, 0 20)>
+    >>> simplify(line, tolerance=1)
+    <pygeos.Geometry LINESTRING (0 0, 0 20)>
+    >>> polygon_with_hole = Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))")
+    >>> simplify(polygon_with_hole, tolerance=4, preserve_topology=True)
+    <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))>
+    >>> simplify(polygon_with_hole, tolerance=4, preserve_topology=False)
+    <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
+    >>> simplify(Empty, tolerance=1)
+    <pygeos.Empty>
+    """
     if preserve_topology:
-        return ufuncs.simplify_preserve_topology(geometries, tolerance)
+        return ufuncs.simplify_preserve_topology(geometry, tolerance, **kwargs)
     else:
-        return ufuncs.simplify(geometries, tolerance)
+        return ufuncs.simplify(geometry, tolerance, **kwargs)
 
 
-def snap(geometries, reference, tolerance):
-    return ufuncs.snap(geometries, reference, tolerance)
+def snap(geometry, reference, tolerance, **kwargs):
+    """Snaps an input geometry to reference geometry's vertices.
+
+    The tolerance is used to control where snapping is performed.
+    The result geometry is the input geometry with the vertices snapped.
+    If no snapping occurs then the input geometry is returned unchanged.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    reference : Geometry or array_like
+    tolerance : float or array_like
+
+    Examples
+    --------
+    >>> point = Geometry("POINT (0 2)")
+    >>> snap(Geometry("POINT (0.5 2.5)"), point, tolerance=1)
+    <pygeos.Geometry POINT (0 2)>
+    >>> snap(Geometry("POINT (0.5 2.5)"), point, tolerance=0.49)
+    <pygeos.Geometry POINT (0.5 2.5)>
+    >>> polygon = Geometry("POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))")
+    >>> snap(polygon, Geometry("POINT (8 10)"), tolerance=5)
+    <pygeos.Geometry POLYGON ((0 0, 0 10, 8 10, 10 0, 0 0))>
+    >>> snap(polygon, Geometry("LINESTRING (8 10, 8 0)"), tolerance=5)
+    <pygeos.Geometry POLYGON ((0 0, 0 10, 8 10, 8 0, 0 0))>
+    """
+    return ufuncs.snap(geometry, reference, tolerance, **kwargs)
 
 
-def voronoi_polygons(geometry, envelope=None, tolerance=0.0, only_edges=False):
-    return ufuncs.voronoi_polygons(geometry, envelope, tolerance, only_edges)
+def voronoi_polygons(
+    geometry, envelope=None, tolerance=0.0, only_edges=False, **kwargs
+):
+    return ufuncs.voronoi_polygons(geometry, envelope, tolerance, only_edges, **kwargs)
