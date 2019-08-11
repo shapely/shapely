@@ -201,8 +201,25 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False):
     return ufuncs.delaunay_triangles(geometry, tolerance, only_edges)
 
 
-def envelope(geometries):
-    return ufuncs.envelope(geometries)
+def envelope(geometry, **kwargs):
+    """Computes the minimum bounding box that encloses an input geometry.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+
+    Examples
+    --------
+    >>> envelope(Geometry("LINESTRING (0 0, 10 10)"))
+    <pygeos.Geometry POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))>
+    >>> envelope(Geometry("MULTIPOINT (0 0, 10 0, 10 10)"))
+    <pygeos.Geometry POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))>
+    >>> envelope(Geometry("POINT (0 0)"))
+    <pygeos.Geometry POINT (0 0)>
+    >>> envelope(Empty)
+    <pygeos.Empty>
+    """
+    return ufuncs.envelope(geometry, **kwargs)
 
 
 def extract_unique_points(geometries):
