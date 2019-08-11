@@ -57,6 +57,7 @@ API Reference
    :maxdepth: 2
    :caption: Contents:
 
+   constructive
    predicates
 
 
