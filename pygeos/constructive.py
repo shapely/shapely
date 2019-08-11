@@ -69,6 +69,7 @@ def buffer(
     join_style="round",
     mitre_limit=5.0,
     single_sided=False,
+    **kwargs,
 ):
     """
     Computes the buffer of a geometry for positive and negative buffer radius.
@@ -149,10 +150,11 @@ def buffer(
         np.intc(join_style),
         mitre_limit,
         np.bool(single_sided),
+        **kwargs,
     )
 
 
-def centroid(geometries):
+def centroid(geometry, **kwargs):
     """Computes the geometric center (center-of-mass) of a geometry.
 
     For multipoints this is computed as the mean of the input coordinates.
@@ -175,11 +177,24 @@ def centroid(geometries):
     >>> centroid(Empty)
     <pygeos.Empty>
     """
-    return ufuncs.centroid(geometries)
+    return ufuncs.centroid(geometry, **kwargs)
 
 
-def convex_hull(geometries):
-    return ufuncs.convex_hull(geometries)
+def convex_hull(geometry, **kwargs):
+    """Computes the minimum convex geometry that encloses an input geometry.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+
+    Examples
+    --------
+    >>> convex_hull(Geometry("MULTIPOINT (0 0, 10 0, 10 10)"))
+    <pygeos.Geometry POLYGON ((0 0, 10 10, 10 0, 0 0))>
+    >>> convex_hull(Empty)
+    <pygeos.Empty>
+    """
+    return ufuncs.convex_hull(geometry, **kwargs)
 
 
 def delaunay_triangles(geometry, tolerance=0.0, only_edges=False):
