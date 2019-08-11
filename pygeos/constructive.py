@@ -1,5 +1,6 @@
 from enum import IntEnum
 import numpy as np
+from .geometry import Empty, Geometry  # NOQA
 from . import ufuncs
 
 
@@ -33,8 +34,32 @@ class BufferJoinStyles(IntEnum):
     BEVEL = 3
 
 
-def boundary(geometries):
-    return ufuncs.boundary(geometries)
+def boundary(geometry, **kwargs):
+    """Returns the topological boundary of a geometry.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+        This function will raise for non-empty geometrycollections.
+
+    Examples
+    --------
+    >>> boundary(Geometry("POINT (0 0)"))
+    <pygeos.Empty>
+    >>> boundary(Geometry("LINESTRING(0 0, 1 1, 1 2)"))
+    <pygeos.Geometry MULTIPOINT (0 0, 1 2)>
+    >>> boundary(Geometry("LINEARRING (0 0, 1 0, 1 1, 0 1, 0 0)"))
+    <pygeos.Empty>
+    >>> boundary(Geometry("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))"))
+    <pygeos.Geometry LINESTRING (0 0, 1 0, 1 1, 0 1, 0 0)>
+    >>> boundary(Geometry("MULTIPOINT (0 0, 1 2)"))
+    <pygeos.Empty>
+    >>> boundary(Geometry("MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))"))
+    <pygeos.Geometry MULTIPOINT (0 0, 1 1, 2 2, 3 3)>
+    >>> boundary(Empty)
+    <pygeos.Empty>
+    """
+    return ufuncs.boundary(geometry, **kwargs)
 
 
 def buffer(

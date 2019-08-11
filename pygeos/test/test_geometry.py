@@ -90,6 +90,13 @@ def test_from_wkt(geom):
     assert pygeos.equals(actual, geom)
 
 
+@pytest.mark.parametrize(
+    "wkt", ("POINT EMPTY", "LINESTRING EMPTY", "GEOMETRYCOLLECTION EMPTY")
+)
+def test_from_wkt_empty(wkt):
+    assert pygeos.Geometry.from_wkt(wkt) is pygeos.Empty
+
+
 def test_from_wkt_bytes():
     actual = pygeos.Geometry.from_wkt(b"POINT (2 2)")
     assert pygeos.equals(actual, point)

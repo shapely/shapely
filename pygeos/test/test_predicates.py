@@ -73,10 +73,7 @@ def test_binary_with_kwargs(func):
 @pytest.mark.parametrize("none", [None, np.nan, Empty])
 @pytest.mark.parametrize("func", BINARY_PREDICATES)
 def test_binary_nan(none, func):
-    actual = func(
-        np.array([point, none, none]),
-        np.array([none, point, none]),
-    )
+    actual = func(np.array([point, none, none]), np.array([none, point, none]))
     if func is pygeos.disjoint:
         assert actual.all()
     elif func is pygeos.equals:

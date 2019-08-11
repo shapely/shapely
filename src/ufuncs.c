@@ -45,7 +45,7 @@
         RAISE_ILLEGAL_GEOS;\
         return;\
     }\
-    PyObject *ret = GeometryObject_new_from_ptr(&GeometryType, ret_ptr);\
+    PyObject *ret = GeometryObject_FromGEOS(&GeometryType, ret_ptr);\
     if (ret == NULL) {\
         PyErr_Format(PyExc_RuntimeError, "Could not instantiate a new Geometry object");\
         return;\
@@ -98,20 +98,48 @@ typedef struct {
 /* This initializes a pointer to a NULL geometry */
 static GeometryObject *Geom_Empty = NULL;
 
-static PyObject *GeometryObject_new_from_ptr(PyTypeObject *type, GEOSGeometry *ptr)
+/* Initializes a new geometry object, without Empty check */
+static PyObject *GeometryObject_FROMGEOS(PyTypeObject *type, GEOSGeometry *ptr)
 {
-    GeometryObject *self = (GeometryObject *) type->tp_alloc(type, 0);
-    if (self != NULL) {
-        self->ptr = ptr;
+    if (ptr == NULL) {
+        Py_INCREF(Geom_Empty);
+        return (PyObject *) Geom_Empty;
     }
-    return (PyObject *) self;
+    GeometryObject *self = (GeometryObject *) type->tp_alloc(type, 0);
+    if (self == NULL) {
+        return NULL;
+    } else {
+        self->ptr = ptr;
+        return (PyObject *) self;
+    }
+}
+
+/* Initializes a new geometry object, with Empty check */
+static PyObject *GeometryObject_FromGEOS(PyTypeObject *type, GEOSGeometry *ptr)
+{
+    void *context_handle = geos_context[0];
+    char empty;
+    if (ptr == NULL) {
+        return GeometryObject_FROMGEOS(type, ptr);
+    } else if (ptr == Geom_Empty->ptr) {
+        return GeometryObject_FROMGEOS(type, NULL);
+    } else {
+        empty = GEOSisEmpty_r(context_handle, ptr);
+        if (empty == 2) {
+            return NULL;
+        } else if (empty == 1) {
+            GEOSGeom_destroy_r(context_handle, ptr);
+            return GeometryObject_FROMGEOS(type, NULL);
+        } else {
+            return GeometryObject_FROMGEOS(type, ptr);
+        }
+    }
 }
 
 static void GeometryObject_dealloc(GeometryObject *self)
 {
-    void *context_handle;
+    void *context_handle = geos_context[0];
     if (self->ptr != NULL) {
-        context_handle = geos_context[0];
         GEOSGeom_destroy_r(context_handle, self->ptr);
     }
     Py_TYPE(self)->tp_free((PyObject *) self);
@@ -122,11 +150,35 @@ static PyMemberDef GeometryObject_members[] = {
     {NULL}  /* Sentinel */
 };
 
-static PyObject *GeometryObject_ToWKT(GeometryObject *self, PyObject *args, PyObject *kw)
+
+static PyObject *to_wkt(GeometryObject *obj, char *format, char trim,
+                        int precision, int dimension, int use_old_3d)
 {
     void *context_handle = geos_context[0];
     char *wkt;
     PyObject *result;
+    if (obj->ptr == NULL) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+    GEOSWKTWriter *writer = GEOSWKTWriter_create_r(context_handle);
+    if (writer == NULL) {
+        return NULL;
+    }
+    GEOSWKTWriter_setRoundingPrecision_r(context_handle, writer, precision);
+    GEOSWKTWriter_setTrim_r(context_handle, writer, trim);
+    GEOSWKTWriter_setOutputDimension_r(context_handle, writer, dimension);
+    GEOSWKTWriter_setOld3D_r(context_handle, writer, use_old_3d);
+    wkt = GEOSWKTWriter_write_r(context_handle, writer, obj->ptr);
+    result = PyUnicode_FromFormat(format, wkt);
+    GEOSFree_r(context_handle, wkt);
+    GEOSWKTWriter_destroy_r(context_handle, writer);
+    return result;
+}
+
+
+static PyObject *GeometryObject_ToWKT(GeometryObject *self, PyObject *args, PyObject *kw)
+{
     char trim = 1;
     int precision = 6;
     int dimension = 3;
@@ -137,25 +189,19 @@ static PyObject *GeometryObject_ToWKT(GeometryObject *self, PyObject *args, PyOb
     {
         return NULL;
     }
-    if (self->ptr == NULL) {
-         Py_INCREF(Py_None);
-         return Py_None;
-    }
-    GEOSWKTWriter *writer = GEOSWKTWriter_create_r(context_handle);
-    if (writer == NULL) {
-        return NULL;
-    }
-    GEOSWKTWriter_setRoundingPrecision_r(context_handle, writer, precision);
-    GEOSWKTWriter_setTrim_r(context_handle, writer, trim);
-    GEOSWKTWriter_setOutputDimension_r(context_handle, writer, dimension);
-    GEOSWKTWriter_setOld3D_r(context_handle, writer, use_old_3d);
-    wkt = GEOSWKTWriter_write_r(context_handle, writer, self->ptr);
-    result = PyUnicode_FromString(wkt);
-    GEOSFree_r(context_handle, wkt);
-    GEOSWKTWriter_destroy_r(context_handle, writer);
-    return result;
+    return to_wkt(self, "%s", trim, precision, dimension, use_old_3d);
 }
 
+static PyObject *GeometryObject_repr(GeometryObject *self)
+{
+    if (self->ptr == NULL) {
+        return PyUnicode_FromString("<pygeos.Geometry NULL>");
+    } else if (self == Geom_Empty) {
+        return PyUnicode_FromString("<pygeos.Empty>");
+    } else {
+        return to_wkt(self, "<pygeos.Geometry %s>", 1, 3, 3, 0);
+    }
+}
 
 static PyObject *GeometryObject_ToWKB(GeometryObject *self, PyObject *args, PyObject *kw)
 {
@@ -226,7 +272,7 @@ static PyObject *GeometryObject_FromWKT(PyTypeObject *type, PyObject *value)
     if (geom == NULL) {
         return NULL;
     }
-    result = GeometryObject_new_from_ptr(type, geom);
+    result = GeometryObject_FromGEOS(type, geom);
     if (result == NULL) {
         GEOSGeom_destroy_r(context_handle, geom);
         PyErr_Format(PyExc_RuntimeError, "Could not instantiate a new Geometry object");
@@ -276,7 +322,7 @@ static PyObject *GeometryObject_FromWKB(PyTypeObject *type, PyObject *value)
     if (geom == NULL) {
         return NULL;
     }
-    result = GeometryObject_new_from_ptr(type, geom);
+    result = GeometryObject_FromGEOS(type, geom);
     if (result == NULL) {
         GEOSGeom_destroy_r(context_handle, geom);
         PyErr_Format(PyExc_RuntimeError, "Could not instantiate a new Geometry object");
@@ -313,7 +359,7 @@ static PyObject *GeometryObject_new(PyTypeObject *type, PyObject *args,
         RAISE_ILLEGAL_GEOS;
         return NULL;
     }
-    self = GeometryObject_new_from_ptr(type, ptr);
+    self = GeometryObject_FromGEOS(type, ptr);
     return (PyObject *) self;
 }
 
@@ -344,6 +390,7 @@ static PyTypeObject GeometryType = {
     .tp_dealloc = (destructor) GeometryObject_dealloc,
     .tp_members = GeometryObject_members,
     .tp_methods = GeometryObject_methods,
+    .tp_repr = (reprfunc) GeometryObject_repr,
 };
 
 
@@ -451,7 +498,19 @@ static PyUFuncGenericFunction YY_b_funcs[1] = {&YY_b_func};
 static void *clone_data[1] = {GEOSGeom_clone_r};
 static void *envelope_data[1] = {GEOSEnvelope_r};
 static void *convex_hull_data[1] = {GEOSConvexHull_r};
-static void *boundary_data[1] = {GEOSBoundary_r};
+/* the GEOSBoundary_r function fails on geometrycollections */
+static void *GEOSBoundaryAllTypes_r(void *context, void *geom) {
+    char empty = GEOSisEmpty_r(context, geom);
+    if (empty == 2) {
+        RAISE_ILLEGAL_GEOS;
+        return NULL;
+    } else if (empty == 1) {
+        return Geom_Empty->ptr;
+    } else {
+        return GEOSBoundary_r(context, geom);
+    }
+}
+static void *boundary_data[1] = {GEOSBoundaryAllTypes_r};
 static void *unary_union_data[1] = {GEOSUnaryUnion_r};
 static void *point_on_surface_data[1] = {GEOSPointOnSurface_r};
 static void *centroid_data[1] = {GEOSGetCentroid_r};
@@ -460,7 +519,7 @@ static void *extract_unique_points_data[1] = {GEOSGeom_extractUniquePoints_r};
 static void *get_start_point_data[1] = {GEOSGeomGetStartPoint_r};
 static void *get_end_point_data[1] = {GEOSGeomGetEndPoint_r};
 static void *get_exterior_ring_data[1] = {GEOSGetExteriorRing_r};
-/* the normalize funcion acts inplace */
+/* GEOSNormalize_r acts inplace */
 static void *GEOSNormalize_r_with_clone(void *context, void *geom) {
     void *ret = GEOSGeom_clone_r(context, geom);
     if (ret == NULL) {
@@ -1147,8 +1206,8 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     geos_context[0] = context_handle;  /* for global access */
 
     /* create the empty geometry (a singleton like Py_None) */
-    void* null_geosgeom = GEOSGeom_createEmptyCollection_r(context_handle, 7);
-    Geom_Empty = (GeometryObject *) GeometryObject_new_from_ptr(&GeometryType, null_geosgeom);
+    void *null_geosgeom = GEOSGeom_createEmptyCollection_r(context_handle, 7);
+    Geom_Empty = (GeometryObject *) GeometryObject_FROMGEOS(&GeometryType, null_geosgeom);
     PyModule_AddObject(m, "Empty", (PyObject *) Geom_Empty);
 
     DEFINE_Y_b (is_empty);
