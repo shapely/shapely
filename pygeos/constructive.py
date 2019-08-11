@@ -63,8 +63,8 @@ def boundary(geometry, **kwargs):
 
 
 def buffer(
-    geometries,
-    width,
+    geometry,
+    radius,
     quadsegs=8,
     cap_style="round",
     join_style="round",
@@ -72,18 +72,14 @@ def buffer(
     single_sided=False,
 ):
     """
-    Computes the buffer of a geometry, for both positive and negative
-    buffer distances.
+    Computes the buffer of a geometry for positive and negative buffer radius.
 
-    In GIS, the positive (or negative) buffer of a geometry is defined
-    as the Minkowski sum (or difference) of the geometry with a circle
-    with radius equal to the absolute value of the buffer distance. In
-    the CAD/CAM world buffers are known as offset curves. In
-    morphological analysis the operation of positive and negative
-    buffering is referred to as erosion and dilation.
+    The buffer of a geometry is defined as the Minkowski sum (or difference,
+    for negative width) of the geometry with a circle with radius equal to the
+    absolute value of the buffer radius.
 
     The buffer operation always returns a polygonal result. The negative
-    or zero-distance buffer of lines and points is always an empty Polygon.
+    or zero-distance buffer of lines and points is always empty.
 
     Since true buffer curves may contain circular arcs, computed buffer
     polygons can only be approximations to the true geometry. The user
@@ -92,13 +88,45 @@ def buffer(
 
     Parameters
     ----------
-    geometries : Geometry
-    width : float
+    geometry : Geometry or array_like
+    width : float or array_like
     quadsegs : int
     cap_style : {'round', 'flat', 'square'}
     join_style : {'round', 'mitre', 'bevel'}
     mitre_limit : float
     single_sided : bool
+
+    Examples
+    --------
+    >>> buffer(Geometry("POINT (10 10)"), 2, quadsegs=1)
+    <pygeos.Geometry POLYGON ((12 10, 10 8, 8 10, 10 12, 12 10))>
+    >>> buffer(Geometry("POINT (10 10)"), 2, quadsegs=2)
+    <pygeos.Geometry POLYGON ((12 10, 11.4 8.59, 10 8, 8.59 8.59, 8 10, 8.59 11.4, 10 12, 11.4 11.4, 12 10))>
+    >>> buffer(Geometry("POINT (10 10)"), -2, quadsegs=1)
+    <pygeos.Empty>
+    >>> line = Geometry("LINESTRING (10 10, 20 10)")
+    >>> buffer(line, 2, cap_style="square")
+    <pygeos.Geometry POLYGON ((20 12, 22 12, 22 8, 10 8, 8 8, 8 12, 20 12))>
+    >>> buffer(line, 2, cap_style="flat")
+    <pygeos.Geometry POLYGON ((20 12, 20 8, 10 8, 10 12, 20 12))>
+    >>> buffer(line, 2, single_sided=True, cap_style="flat")
+    <pygeos.Geometry POLYGON ((20 10, 10 10, 10 12, 20 12, 20 10))>
+    >>> line2 = Geometry("LINESTRING (10 10, 20 10, 20 20)")
+    >>> buffer(line2, 2, cap_style="flat", join_style="bevel")
+    <pygeos.Geometry POLYGON ((18 12, 18 20, 22 20, 22 10, 20 8, 10 8, 10 12, 18 12))>
+    >>> buffer(line2, 2, cap_style="flat", join_style="mitre")
+    <pygeos.Geometry POLYGON ((18 12, 18 20, 22 20, 22 8, 10 8, 10 12, 18 12))>
+    >>> buffer(line2, 2, cap_style="flat", join_style="mitre", mitre_limit=1)
+    <pygeos.Geometry POLYGON ((18 12, 18 20, 22 20, 21.8 9, 21 8.17, 10 8, 10 12, 18 12))>
+    >>> square = Geometry("POLYGON((0 0, 10 0, 10 10, 0 10, 0 0))")
+    >>> buffer(square, 2, join_style="mitre")
+    <pygeos.Geometry POLYGON ((-2 -2, -2 12, 12 12, 12 -2, -2 -2))>
+    >>> buffer(square, -2, join_style="mitre")
+    <pygeos.Geometry POLYGON ((2 2, 2 8, 8 8, 8 2, 2 2))>
+    >>> buffer(square, -5, join_style="mitre")
+    <pygeos.Empty>
+    >>> buffer(Empty, 1)
+    <pygeos.Empty>
     """
     if isinstance(cap_style, str):
         cap_style = BufferCapStyles[cap_style.upper()].value
@@ -115,8 +143,8 @@ def buffer(
     if not np.isscalar(single_sided):
         raise TypeError("single_sided only accepts scalar values")
     return ufuncs.buffer(
-        geometries,
-        width,
+        geometry,
+        radius,
         np.intc(quadsegs),
         np.intc(cap_style),
         np.intc(join_style),
