@@ -3,4 +3,4 @@ channels:
   - conda-forge
 dependencies:
   - geos
-  - numpydoc
+  - numpydoc=0.7.0
