@@ -777,9 +777,13 @@ static void buffer_inner(void *context_handle, GEOSBufferParams *params, void *i
     *status = 0;
     GEOSGeometry *in1;
     double in2 = *(double *) ip2;
-    INPUT_Y;
-    GEOSGeometry *ret_ptr = GEOSBufferWithParams_r(context_handle, in1, params, in2);
-    OUTPUT_Y;
+    if (npy_isnan(in2)) {
+        OUTPUT_Y_NAN;
+    } else {
+        INPUT_Y;
+        GEOSGeometry *ret_ptr = GEOSBufferWithParams_r(context_handle, in1, params, in2);
+        OUTPUT_Y;
+    }
     *status = 1;
 }
 
@@ -912,7 +916,8 @@ static void delaunay_triangles_func(char **args, npy_intp *dimensions,
         INPUT_Y;
         double in2 = *(double *) ip2;
         if (npy_isnan(in2)) {
-            in2 = 0.0;
+            OUTPUT_Y_NAN;
+            continue;
         }
         npy_bool in3 = *(npy_bool *) ip3;
 
@@ -923,24 +928,25 @@ static void delaunay_triangles_func(char **args, npy_intp *dimensions,
 static PyUFuncGenericFunction delaunay_triangles_funcs[1] = {&delaunay_triangles_func};
 
 
-static char voronoi_polygons_dtypes[5] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
+static char voronoi_polygons_dtypes[5] = {NPY_OBJECT, NPY_DOUBLE, NPY_OBJECT, NPY_BOOL, NPY_OBJECT};
 static void voronoi_polygons_func(char **args, npy_intp *dimensions,
                                   npy_intp *steps, void *data)
 {
     void *context_handle = geos_context[0];
-    GEOSGeometry *in1, *in2;
+    GEOSGeometry *in1, *in3;
 
     QUATERNARY_LOOP {
         INPUT_Y;
-        if (!get_geom(*(GeometryObject **)ip2, &in2)) {
-            in2 = NULL;
+        double in2 = *(double *) ip2;
+        if (npy_isnan(in2)) {
+            OUTPUT_Y_NAN;
+            continue;
         }
-        double in3 = *(double *) ip3;
-        if (npy_isnan(in3)) {
-            in3 = 0.0;
+        if (!get_geom(*(GeometryObject **)ip3, &in3)) {
+            in3 = NULL;
         }
         npy_bool in4 = *(npy_bool *) ip4;
-        GEOSGeometry *ret_ptr = GEOSVoronoiDiagram_r(context_handle, in1, in2, in3, (int) in4);
+        GEOSGeometry *ret_ptr = GEOSVoronoiDiagram_r(context_handle, in1, in3, in2, (int) in4);
         OUTPUT_Y;
     }
 }

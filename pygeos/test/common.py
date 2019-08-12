@@ -6,15 +6,15 @@ point_polygon_testdata = (
     pygeos.box(2, 2, 4, 4),
 )
 point = pygeos.points(2, 2)
-line_string = pygeos.linestrings([[0, 0], [1, 0], [1, 1]])
-linear_ring = pygeos.linearrings(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
-polygon = pygeos.polygons(((0.0, 0.0), (0.0, 2.0), (2.0, 2.0), (2.0, 0.0), (0.0, 0.0)))
-multi_point = pygeos.multipoints([[0.0, 0.0], [1.0, 2.0]])
-multi_line_string = pygeos.multilinestrings([[[0.0, 0.0], [1.0, 2.0]]])
+line_string = pygeos.linestrings([(0, 0), (1, 0), (1, 1)])
+linear_ring = pygeos.linearrings([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
+polygon = pygeos.polygons([(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)])
+multi_point = pygeos.multipoints([(0, 0), (1, 2)])
+multi_line_string = pygeos.multilinestrings([[(0, 0), (1, 2)]])
 multi_polygon = pygeos.multipolygons(
     [
-        ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)),
-        ((0.1, 0.1), (0.1, 0.2), (0.2, 0.2), (0.2, 0.1)),
+        [(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)],
+        [(2.1, 2.1), (2.2, 2.1), (2.2, 2.2), (2.1, 2.2), (2.1, 2.1)],
     ]
 )
 geometry_collection = pygeos.geometrycollections(

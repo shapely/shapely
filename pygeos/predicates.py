@@ -113,7 +113,7 @@ def is_simple(geometry, **kwargs):
 
     Examples
     --------
-    >>> is_simple(Geometry("POLYGON((1 2, 3 4, 5 6, 1 2))"))
+    >>> is_simple(Geometry("POLYGON((1 1, 2 1, 2 2, 1 1))"))
     True
     >>> is_simple(Geometry("LINESTRING(0 0, 1 1, 0 1, 1 0, 0 0)"))
     False

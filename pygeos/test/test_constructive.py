@@ -2,41 +2,83 @@ import pygeos
 import numpy as np
 import pytest
 
-from .common import point
+from pygeos import Geometry, Empty, GEOSException
+
+from .common import point, all_types, geometry_collection
+
+CONSTRUCTIVE_NO_ARGS = (
+    pygeos.boundary,
+    pygeos.centroid,
+    pygeos.convex_hull,
+    pygeos.envelope,
+    pygeos.extract_unique_points,
+    pygeos.point_on_surface,
+)
+
+CONSTRUCTIVE_FLOAT_ARG = (
+    pygeos.buffer,
+    pygeos.delaunay_triangles,
+    pygeos.simplify,
+    pygeos.voronoi_polygons,
+)
 
 
-def test_buffer_default():
-    # buffer a point to a circle
-    radii = np.array([1.0, 2.0])
-    actual = pygeos.buffer(point, radii, quadsegs=16)
-    assert pygeos.area(actual) == pytest.approx(np.pi * radii ** 2, rel=0.01)
+@pytest.mark.parametrize("geometry", all_types)
+@pytest.mark.parametrize("func", CONSTRUCTIVE_NO_ARGS)
+def test_no_args_array(geometry, func):
+    if func is pygeos.boundary and geometry is geometry_collection:
+        with pytest.raises(GEOSException):
+            func([geometry, geometry])
+    else:
+        actual = func([geometry, geometry])
+        assert actual.shape == (2,)
+        assert isinstance(actual[0], Geometry)
 
 
-def test_buffer_square():
-    # buffer a point to a square
-    actual = pygeos.buffer(point, 1.0, cap_style="square")
-    assert pygeos.area(actual) == pytest.approx(2 ** 2, abs=0.01)
+@pytest.mark.parametrize("geometry", all_types)
+@pytest.mark.parametrize("func", CONSTRUCTIVE_FLOAT_ARG)
+def test_float_arg_array(geometry, func):
+    actual = func([geometry, geometry], 0.0)
+    assert actual.shape == (2,)
+    assert isinstance(actual[0], Geometry)
 
 
-def test_buffer_single_sided():
-    # buffer a line on one side
-    line = pygeos.linestrings([[0, 0], [10, 0]])
-    actual = pygeos.buffer(line, 0.1, cap_style="square", single_sided=True)
-    assert pygeos.area(actual) == pytest.approx(0.1 * 10, abs=0.01)
+@pytest.mark.parametrize("geometry", all_types)
+@pytest.mark.parametrize("reference", all_types)
+def test_snap_array(geometry, reference):
+    actual = pygeos.snap([geometry, geometry], [reference, reference], tolerance=1.0)
+    assert actual.shape == (2,)
+    assert isinstance(actual[0], Geometry)
 
 
-def test_simplify_nan():
-    actual = pygeos.simplify(
-        np.array([point, np.nan, np.nan, None, point]),
-        np.array([np.nan, 1.0, np.nan, 1.0, 1.0]),
-    )
-    assert pygeos.equals(actual[-1], point)
-    assert pygeos.is_empty(actual[:-1]).all()
+@pytest.mark.parametrize("none", [None, np.nan, Empty])
+@pytest.mark.parametrize("func", CONSTRUCTIVE_NO_ARGS)
+def test_no_args_empty(none, func):
+    actual = func(none)
+    assert actual is Empty
 
 
-def test_snap():
-    line = pygeos.linestrings([[0, 0], [1, 0], [2, 0]])
-    points = pygeos.points([0, 1], [1, 0.1])
-    actual = pygeos.snap(points, line, 0.5)
-    expected = pygeos.points([0, 1], [1, 0])
-    assert pygeos.equals(actual, expected).all()
+@pytest.mark.parametrize("none", [None, np.nan, Empty])
+@pytest.mark.parametrize("func", CONSTRUCTIVE_FLOAT_ARG)
+def test_float_arg_empty(none, func):
+    actual = func(none, 1.0)
+    assert actual is Empty
+
+
+@pytest.mark.parametrize("geometry", all_types)
+@pytest.mark.parametrize("func", CONSTRUCTIVE_FLOAT_ARG)
+def test_float_arg_nan(geometry, func):
+    actual = func(geometry, np.nan)
+    assert actual is Empty
+
+
+@pytest.mark.parametrize("none", [None, np.nan, Empty])
+def test_snap_empty(none):
+    actual = pygeos.snap(none, point, tolerance=1.0)
+    assert actual is Empty
+
+
+@pytest.mark.parametrize("geometry", all_types)
+def test_snap_nan_float(geometry):
+    actual = pygeos.snap(geometry, point, tolerance=np.nan)
+    assert actual is Empty
