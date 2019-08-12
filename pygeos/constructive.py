@@ -69,7 +69,7 @@ def buffer(
     join_style="round",
     mitre_limit=5.0,
     single_sided=False,
-    **kwargs,
+    **kwargs
 ):
     """
     Computes the buffer of a geometry for positive and negative buffer radius.
@@ -159,7 +159,7 @@ def buffer(
         np.intc(join_style),
         mitre_limit,
         np.bool(single_sided),
-        **kwargs,
+        **kwargs
     )
 
 
