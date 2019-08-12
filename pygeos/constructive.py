@@ -374,7 +374,7 @@ def snap(geometry, reference, tolerance, **kwargs):
 
 
 def voronoi_polygons(
-    geometry, extend_to=None, tolerance=0.0, only_edges=False, **kwargs
+    geometry, tolerance=0.0, extend_to=None, only_edges=False, **kwargs
 ):
     """Computes a Voronoi diagram from the vertices of an input geometry.
 
@@ -385,11 +385,11 @@ def voronoi_polygons(
     Parameters
     ----------
     geometry : Geometry or array_like
+    tolerance : float or array_like
+        Snap input vertices together if their distance is less than this value.
     extend_to : Geometry or array_like
         If provided, the diagram will be extended to cover the envelope of this
         geometry (unless this envelope is smaller than the input geometry).
-    tolerance : float or array_like
-        Snap input vertices together if their distance is less than this value.
     only_edges : bool or array_like
         If set to True, the triangulation will return a collection of
         linestrings instead of polygons.
@@ -401,7 +401,7 @@ def voronoi_polygons(
     <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((3 0, 0 0, 0 4, 3 4, 3 0)), POLYGON ((3 4, 6 4, 6 0, 3 0, 3 4)))>
     >>> voronoi_polygons(points, only_edges=True)
     <pygeos.Geometry LINESTRING (3 4, 3 0)>
-    >>> voronoi_polygons(Geometry("MULTIPOINT (2 2, 4 2, 4.2 2)"), tolerance=0.5, only_edges=True)
+    >>> voronoi_polygons(Geometry("MULTIPOINT (2 2, 4 2, 4.2 2)"), 0.5, only_edges=True)
     <pygeos.Geometry LINESTRING (3 4.2, 3 -0.2)>
     >>> voronoi_polygons(points, extend_to=Geometry("LINESTRING (0 0, 10 10)"), only_edges=True)
     <pygeos.Geometry LINESTRING (3 10, 3 0)>
@@ -410,4 +410,4 @@ def voronoi_polygons(
     >>> voronoi_polygons(Empty)
     <pygeos.Empty>
     """
-    return ufuncs.voronoi_polygons(geometry, extend_to, tolerance, only_edges, **kwargs)
+    return ufuncs.voronoi_polygons(geometry, tolerance, extend_to, only_edges, **kwargs)
