@@ -2,9 +2,6 @@ import pygeos
 import numpy as np
 import pytest
 
-from pygeos import Geometry
-
-from .common import polygon
 from .common import point
 
 
@@ -28,29 +25,6 @@ def test_buffer_single_sided():
     assert pygeos.area(actual) == pytest.approx(0.1 * 10, abs=0.01)
 
 
-def test_delaunay_triangles():
-    original = Geometry("MULTIPOINT (50 30, 60 30, 100 100, 10 150, 110 120)")
-    actual = pygeos.delaunay_triangles(original)
-    assert pygeos.get_num_geometries(actual) == 3
-
-
-def test_delaunay_triangles_only_edges():
-    original = Geometry("MULTIPOINT (50 30, 60 30, 100 100, 10 150, 110 120)")
-    actual = pygeos.delaunay_triangles(original, only_edges=True)
-    assert pygeos.get_num_geometries(actual) == 7
-
-
-def test_centroid():
-    actual = pygeos.centroid(polygon)
-    assert pygeos.equals(actual, pygeos.points(1, 1))
-
-
-def test_simplify():
-    line = pygeos.linestrings([[0, 0], [0.1, 1], [0, 2]])
-    actual = pygeos.simplify(line, [0, 1.0])
-    assert pygeos.get_num_points(actual).tolist() == [3, 2]
-
-
 def test_simplify_nan():
     actual = pygeos.simplify(
         np.array([point, np.nan, np.nan, None, point]),
@@ -66,16 +40,3 @@ def test_snap():
     actual = pygeos.snap(points, line, 0.5)
     expected = pygeos.points([0, 1], [1, 0])
     assert pygeos.equals(actual, expected).all()
-
-
-def test_voronoi_polygons():
-    original = Geometry("MULTIPOINT (50 30, 60 30, 100 100, 10 150, 110 120)")
-    actual = pygeos.voronoi_polygons(original)
-    assert pygeos.get_num_geometries(actual) == 5
-
-
-def test_voronoi_polygons_only_edges():
-    # example from PostGIS docs
-    original = Geometry("MULTIPOINT (50 30, 60 30, 100 100, 10 150, 110 120)")
-    actual = pygeos.voronoi_polygons(original, only_edges=True)
-    assert pygeos.get_num_geometries(actual) == 7

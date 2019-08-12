@@ -81,20 +81,29 @@ def buffer(
     The buffer operation always returns a polygonal result. The negative
     or zero-distance buffer of lines and points is always empty.
 
-    Since true buffer curves may contain circular arcs, computed buffer
-    polygons can only be approximations to the true geometry. The user
-    can control the accuracy of the curve approximation by specifying
-    the number of linear segments with which to approximate a curve.
-
     Parameters
     ----------
     geometry : Geometry or array_like
     width : float or array_like
+        Specifies the circle radius in the Minkowski sum (or difference).
     quadsegs : int
-    cap_style : {'round', 'flat', 'square'}
-    join_style : {'round', 'mitre', 'bevel'}
+        Specifies the number of linear segments in a quarter circle in the
+        approximation of circular arcs.
+    cap_style : {'round', 'square', 'flat'}
+        Specifies the shape of buffered line endings. 'round' results in
+        circular line endings (see ``quadsegs``). Both 'square' and 'flat'
+        result in rectangular line endings, only 'flat' will end at the
+        original vertex, while 'square' involves adding the buffer width.
+    join_style : {'round', 'bevel', 'sharp'}
+        Specifies the shape of buffered line midpoints. 'round' results in
+        rounded shapes. 'bevel' results in a beveled edge that touches the
+        original vertex. 'mitre' results in a single vertex that is beveled
+        depending on the ``mitre_limit`` parameter.
     mitre_limit : float
+        Crops of 'mitre'-style joins if the point is displaced from the
+        buffered vertex by more than this limit.
     single_sided : bool
+        Only buffer at one side of the geometry.
 
     Examples
     --------
@@ -198,6 +207,38 @@ def convex_hull(geometry, **kwargs):
 
 
 def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
+    """Computes a Delaunay triangulation around the vertices of an input
+    geometry.
+
+    The output is a geometrycollection containing polygons (default)
+    or linestrings (see only_edges). Returns an Empty if the input geometry
+    contains less than 3 vertices.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    tolerance : float or array_like
+        Snap input vertices together if their distance is less than this value.
+    only_edges : bool or array_like
+        If set to True, the triangulation will return a collection of
+        linestrings instead of polygons.
+
+    Examples
+    --------
+    >>> points = Geometry("MULTIPOINT (50 30, 60 30, 100 100)")
+    >>> delaunay_triangles(points)
+    <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
+    >>> delaunay_triangles(points, only_edges=True)
+    <pygeos.Geometry MULTILINESTRING ((50 30, 100 100), (50 30, 60 30), (60 30, 100 100))>
+    >>> delaunay_triangles(Geometry("MULTIPOINT (50 30, 51 30, 60 30, 100 100)"), tolerance=2)
+    <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
+    >>> delaunay_triangles(Geometry("POLYGON ((50 30, 60 30, 100 100, 50 30))"))
+    <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
+    >>> delaunay_triangles(Geometry("LINESTRING (50 30, 60 30, 100 100)"))
+    <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
+    >>> delaunay_triangles(Empty)
+    <pygeos.Empty>
+    """
     return ufuncs.delaunay_triangles(geometry, tolerance, only_edges, **kwargs)
 
 
@@ -223,6 +264,28 @@ def envelope(geometry, **kwargs):
 
 
 def extract_unique_points(geometry, **kwargs):
+    """Returns all distinct vertices of an input geometry as a multipoint.
+
+    Note that only 2 dimensions of the vertices are considered when testing
+    for equality.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+
+    Examples
+    --------
+    >>> extract_unique_points(Geometry("POINT (0 0)"))
+    <pygeos.Geometry MULTIPOINT (0 0)>
+    >>> extract_unique_points(Geometry("LINESTRING(0 0, 1 1, 1 1)"))
+    <pygeos.Geometry MULTIPOINT (0 0, 1 1)>
+    >>> extract_unique_points(Geometry("POLYGON((0 0, 1 0, 1 1, 0 0))"))
+    <pygeos.Geometry MULTIPOINT (0 0, 1 0, 1 1)>
+    >>> extract_unique_points(Geometry("MULTIPOINT (0 0, 1 1, 0 0)"))
+    <pygeos.Geometry MULTIPOINT (0 0, 1 1)>
+    >>> extract_unique_points(Empty)
+    <pygeos.Empty>
+    """
     return ufuncs.extract_unique_points(geometry, **kwargs)
 
 
@@ -251,14 +314,14 @@ def simplify(geometry, tolerance, preserve_topology=False, **kwargs):
     """Returns a simplified version of an input geometry using the
     Douglas-Peucker algorithm.
 
-    If preserve_topology is True (default), this function will avoid creating
-    invalid geometries.
-
     Parameters
     ----------
     geometry : Geometry or array_like
     tolerance : float or array_like
+        The maximum allowed geometry displacement. The higher this value, the
+        smaller the number of vertices in the resulting geometry.
     preserve_topology : bool
+        If set to True, the operation will avoid creating invalid geometries.
 
     Examples
     --------
@@ -311,6 +374,40 @@ def snap(geometry, reference, tolerance, **kwargs):
 
 
 def voronoi_polygons(
-    geometry, envelope=None, tolerance=0.0, only_edges=False, **kwargs
+    geometry, extend_to=None, tolerance=0.0, only_edges=False, **kwargs
 ):
-    return ufuncs.voronoi_polygons(geometry, envelope, tolerance, only_edges, **kwargs)
+    """Computes a Voronoi diagram from the vertices of an input geometry.
+
+    The output is a geometrycollection containing polygons (default)
+    or linestrings (see only_edges). Returns Empty if an input geometry
+    contains less than 2 vertices or if the provided extent has zero area.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    extend_to : Geometry or array_like
+        If provided, the diagram will be extended to cover the envelope of this
+        geometry (unless this envelope is smaller than the input geometry).
+    tolerance : float or array_like
+        Snap input vertices together if their distance is less than this value.
+    only_edges : bool or array_like
+        If set to True, the triangulation will return a collection of
+        linestrings instead of polygons.
+
+    Examples
+    --------
+    >>> points = Geometry("MULTIPOINT (2 2, 4 2)")
+    >>> voronoi_polygons(points)
+    <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((3 0, 0 0, 0 4, 3 4, 3 0)), POLYGON ((3 4, 6 4, 6 0, 3 0, 3 4)))>
+    >>> voronoi_polygons(points, only_edges=True)
+    <pygeos.Geometry LINESTRING (3 4, 3 0)>
+    >>> voronoi_polygons(Geometry("MULTIPOINT (2 2, 4 2, 4.2 2)"), tolerance=0.5, only_edges=True)
+    <pygeos.Geometry LINESTRING (3 4.2, 3 -0.2)>
+    >>> voronoi_polygons(points, extend_to=Geometry("LINESTRING (0 0, 10 10)"), only_edges=True)
+    <pygeos.Geometry LINESTRING (3 10, 3 0)>
+    >>> voronoi_polygons(Geometry("LINESTRING (2 2, 4 2)"), only_edges=True)
+    <pygeos.Geometry LINESTRING (3 4, 3 0)>
+    >>> voronoi_polygons(Empty)
+    <pygeos.Empty>
+    """
+    return ufuncs.voronoi_polygons(geometry, extend_to, tolerance, only_edges, **kwargs)
