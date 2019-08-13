@@ -31,8 +31,8 @@ install:
   - python setup.py build_ext --inplace
   - pip install . --no-deps
 
-script
+script:
   - if [[ "$PYTHON_VERSION" == "3.5" ]];
     then pytest;
     else pytest --doctest-modules;
-    fi
+    fi;
