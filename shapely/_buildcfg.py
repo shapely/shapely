@@ -165,7 +165,7 @@ if sys.platform.startswith('linux'):
     if not lgeos:
         lgeos = load_dll('geos_c',
                          fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
-    free = load_dll('c').free
+    free = load_dll('c', fallbacks=['libc.so.6']).free
     free.argtypes = [c_void_p]
     free.restype = None
 
