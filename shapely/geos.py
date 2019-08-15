@@ -862,13 +862,28 @@ class LGEOS340(LGEOS330):
 class LGEOS350(LGEOS340):
     """Proxy for GEOS 3.5.0-CAPI-1.9.0
     """
+    geos_version = (3, 5, 0)
+    geos_capi_version = (1, 9, 0)
 
     def __init__(self, dll):
         super(LGEOS350, self).__init__(dll)
         self.methods['clip_by_rect'] = self.GEOSClipByRect
 
 
-if geos_version >= (3, 5, 0):
+class LGEOS360(LGEOS350):
+    """Proxy for GEOS 3.6.0-CAPI-1.10.0
+    """
+    geos_version = (3, 6, 0)
+    geos_capi_version = (1, 10, 0)
+
+    def __init__(self, dll):
+        super(LGEOS360, self).__init__(dll)
+        self.methods['minimum_clearance'] = self.GEOSMinimumClearance
+
+
+if geos_version >= (3, 6, 0):
+    L = LGEOS360
+elif geos_version >= (3, 5, 0):
     L = LGEOS350
 elif geos_version >= (3, 4, 0):
     L = LGEOS340
