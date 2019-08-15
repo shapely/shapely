@@ -516,3 +516,6 @@ def prototype(lgeos, geos_version):
         lgeos.GEOSSTRtree_nearest_generic.argtypes = [
             c_void_p, py_object, c_void_p, lgeos.GEOSDistanceCallback, py_object]
         lgeos.GEOSSTRtree_nearest_generic.restype = c_void_p
+
+        lgeos.GEOSMinimumClearance.argtypes = [c_void_p]
+        lgeos.GEOSMinimumClearance.restype = c_double
