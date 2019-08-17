@@ -59,6 +59,7 @@ API Reference
 
    constructive
    predicates
+   set_operations
 
 
 Indices and tables
