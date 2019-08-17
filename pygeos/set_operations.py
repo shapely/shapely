@@ -1,3 +1,4 @@
+import numpy as np
 from . import ufuncs, Empty, Geometry, GeometryType
 
 __all__ = [
@@ -189,9 +190,18 @@ def union_all(geometries, axis=0, **kwargs):
     >>> union_all([[line_1, line_2, Empty]], axis=1).tolist()
     [<pygeos.Geometry MULTILINESTRING ((0 0, 2 2), (2 2, 3 3))>]
     """
+    if axis != 0:
+        geometries = np.rollaxis(np.asarray(geometries), axis=axis)
     # for union_all, GEOS provides an efficient route through first creating
     # GeometryCollections
-    collections = ufuncs.create_collection(
-        geometries, GeometryType.GEOMETRYCOLLECTION, axis=axis
-    )
+    try:
+        collections = ufuncs.create_collection(
+            geometries, GeometryType.GEOMETRYCOLLECTION, axis=axis
+        )
+    except TypeError:  # earlier numpy versions do not support the axis kwarg
+        if axis != 0:
+            geometries = np.rollaxis(np.asarray(geometries), axis=axis)
+        collections = ufuncs.create_collection(
+            geometries, GeometryType.GEOMETRYCOLLECTION
+        )
     return ufuncs.unary_union(collections, **kwargs)
