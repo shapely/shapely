@@ -192,8 +192,15 @@ def union_all(geometries, axis=0, **kwargs):
     """
     # for union_all, GEOS provides an efficient route through first creating
     # GeometryCollections
-    if axis != 0:
-        geometries = np.rollaxis(geometries, axis=axis)
+    # first roll the aggregation axis backwards
+    geometries = np.asarray(geometries)
+    if axis is None:
+        geometries = geometries.ravel()
+    else:
+        geometries = np.rollaxis(
+            np.asarray(geometries), axis=axis, start=geometries.ndim
+        )
+    # create_collection acts on the inner axis
     collections = ufuncs.create_collection(
         geometries, GeometryType.GEOMETRYCOLLECTION
     )
