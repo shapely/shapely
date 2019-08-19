@@ -62,13 +62,11 @@ def intersection_all(geometries, axis=0, **kwargs):
     Parameters
     ----------
     geometries : array_like
-    axis : int, tuple or None
-        Axis or axes along which the operation is performed. The default
+    axis : int
+        Axis along which the operation is performed. The default (zero)
         performs the operation over the first dimension of the input array.
         axis may be negative, in which case it counts from the last to the
-        first axis. If axis is None, the operation is performed over all the
-        axes. If it is a tuple of ints, a reduction is performed on multiple
-        axes.
+        first axis.
 
     See also
     --------
@@ -116,13 +114,11 @@ def symmetric_difference_all(geometries, axis=0, **kwargs):
     Parameters
     ----------
     geometries : array_like
-    axis : int, tuple or None
-        Axis or axes along which the operation is performed. The default
+    axis : int
+        Axis along which the operation is performed. The default (zero)
         performs the operation over the first dimension of the input array.
         axis may be negative, in which case it counts from the last to the
-        first axis. If axis is None, the operation is performed over all the
-        axes. If it is a tuple of ints, a reduction is performed on multiple
-        axes.
+        first axis.
 
     See also
     --------
@@ -132,10 +128,10 @@ def symmetric_difference_all(geometries, axis=0, **kwargs):
     --------
     >>> line_1 = Geometry("LINESTRING(0 0, 2 2)")
     >>> line_2 = Geometry("LINESTRING(1 1, 3 3)")
-    >>> intersection_all([line_1, line_2])
-    <pygeos.Geometry LINESTRING (1 1, 2 2)>
-    >>> intersection_all([[line_1, line_2, Empty]], axis=1).tolist()
-    [<pygeos.Empty>]
+    >>> symmetric_difference_all([line_1, line_2])
+    <pygeos.Geometry MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>
+    >>> symmetric_difference_all([[line_1, line_2, Empty]], axis=1).tolist()
+    [<pygeos.Geometry MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>]
     """
     return ufuncs.symmetric_difference.reduce(geometries, axis=axis, **kwargs)
 
@@ -169,13 +165,11 @@ def union_all(geometries, axis=0, **kwargs):
     Parameters
     ----------
     geometries : array_like
-    axis : int, tuple or None
-        Axis or axes along which the operation is performed. The default
+    axis : int
+        Axis along which the operation is performed. The default (zero)
         performs the operation over the first dimension of the input array.
         axis may be negative, in which case it counts from the last to the
-        first axis. If axis is None, the operation is performed over all the
-        axes. If it is a tuple of ints, a reduction is performed on multiple
-        axes.
+        first axis.
 
     See also
     --------
@@ -201,7 +195,5 @@ def union_all(geometries, axis=0, **kwargs):
             np.asarray(geometries), axis=axis, start=geometries.ndim
         )
     # create_collection acts on the inner axis
-    collections = ufuncs.create_collection(
-        geometries, GeometryType.GEOMETRYCOLLECTION
-    )
+    collections = ufuncs.create_collection(geometries, GeometryType.GEOMETRYCOLLECTION)
     return ufuncs.unary_union(collections, **kwargs)
