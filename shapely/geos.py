@@ -85,7 +85,11 @@ if sys.platform.startswith('linux'):
             'libgeos_c.so',
         ]
         _lgeos = load_dll('geos_c', fallbacks=alt_paths)
-    free = load_dll('c').free
+    # Necessary for environments with only libc.musl
+    c_alt_paths = [
+        'libc.musl-x86_64.so.1'
+    ]
+    free = load_dll('c', fallbacks=c_alt_paths).free
     free.argtypes = [c_void_p]
     free.restype = None
 
