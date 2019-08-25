@@ -12,12 +12,12 @@ def test_get_type_id():
     assert pygeos.get_type_id(all_types).tolist()[:-1] == list(range(8))
 
 
-def test_get_num_points():
-    assert pygeos.get_num_points(line_string) == 3
+def test_get_num_elements():
+    assert pygeos.get_num_elements(line_string) == 3
 
 
-def test_get_point():
-    actual = pygeos.get_point(line_string, 1)
+def test_get_element():
+    actual = pygeos.get_element(line_string, 1)
     assert pygeos.equals(actual, pygeos.points(1, 0))
 
 
