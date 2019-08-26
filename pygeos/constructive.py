@@ -1,6 +1,6 @@
 from enum import IntEnum
 import numpy as np
-from .geometry import Empty, Geometry  # NOQA
+from . import Empty, Geometry  # NOQA
 from . import ufuncs
 
 

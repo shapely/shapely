@@ -1,7 +1,6 @@
 import numpy as np
 from . import ufuncs
-
-from .geometry import Geometry, GeometryType
+from . import Geometry, GeometryType
 
 __all__ = [
     "points",

@@ -515,21 +515,19 @@ static void *point_on_surface_data[1] = {GEOSPointOnSurface_r};
 static void *centroid_data[1] = {GEOSGetCentroid_r};
 static void *line_merge_data[1] = {GEOSLineMerge_r};
 static void *extract_unique_points_data[1] = {GEOSGeom_extractUniquePoints_r};
-static void *get_start_point_data[1] = {GEOSGeomGetStartPoint_r};
-static void *get_end_point_data[1] = {GEOSGeomGetEndPoint_r};
-static void *get_exterior_ring_data[1] = {GEOSGetExteriorRing_r};
-/* GEOSNormalize_r acts inplace */
-static void *GEOSNormalize_r_with_clone(void *context, void *geom) {
-    void *ret = GEOSGeom_clone_r(context, geom);
-    if (ret == NULL) {
-        return NULL;
+static void *GetExteriorRing(void *context, void *geom) {
+    char typ = GEOSGeomTypeId_r(context, geom);
+    if (typ != 3) {
+        return Geom_Empty->ptr;
     }
-    if (GEOSNormalize_r(context, geom) == -1) {
-        return NULL;
+    void *ret = (void *) GEOSGetExteriorRing_r(context, geom);
+    /* Create a copy of the obtained geometry */
+    if (ret != NULL) {
+        ret = GEOSGeom_clone_r(context, ret);
     }
     return ret;
 }
-static void *normalize_data[1] = {GEOSNormalize_r_with_clone};
+static void *get_exterior_ring_data[1] = {GetExteriorRing};
 /* a linear-ring to polygon conversion function */
 static void *GEOSLinearRingToPolygon(void *context, void *geom) {
     void *shell = GEOSGeom_clone_r(context, geom);
@@ -584,9 +582,82 @@ static void Yd_Y_func(char **args, npy_intp *dimensions,
 static PyUFuncGenericFunction Yd_Y_funcs[1] = {&Yd_Y_func};
 
 /* Define the geom, int -> geom functions (Yi_Y) */
-static void *get_interior_ring_data[1] = {GEOSGetInteriorRingN_r};
-static void *get_point_data[1] = {GEOSGeomGetPointN_r};
-static void *get_geometry_data[1] = {GEOSGetGeometryN_r};
+/* We add bound and type checking to the various indexing functions */
+static void *GetPointN(void *context, void *geom, int n) {
+    char typ = GEOSGeomTypeId_r(context, geom);
+    int size, i;
+    if ((typ != 1) & (typ != 2)) {
+        return Geom_Empty->ptr;
+    }
+    size = GEOSGeomGetNumPoints_r(context, geom);
+    if (size == -1) {
+        return Geom_Empty->ptr;
+    }
+    if (n < 0) {
+        /* Negative indexing: we get it for free */
+        i = size + n;
+    } else {
+        i = n;
+    }
+    if ((i < 0) | (i >= size)) {
+        /* Important, could give segfaults else */
+        return Geom_Empty->ptr;
+    }
+    return GEOSGeomGetPointN_r(context, geom, i);
+}
+static void *get_point_data[1] = {GetPointN};
+static void *GetInteriorRingN(void *context, void *geom, int n) {
+    char typ = GEOSGeomTypeId_r(context, geom);
+    int size, i;
+    if (typ != 3) {
+        return Geom_Empty->ptr;
+    }
+    size = GEOSGetNumInteriorRings_r(context, geom);
+    if (size == -1) {
+        return NULL;
+    }
+    if (n < 0) {
+        /* Negative indexing: we get it for free */
+        i = size + n;
+    } else {
+        i = n;
+    }
+    if ((i < 0) | (i >= size)) {
+        /* Important, could give segfaults else */
+        return Geom_Empty->ptr;
+    }
+    void *ret = (void *) GEOSGetInteriorRingN_r(context, geom, i);
+    /* Create a copy of the obtained geometry */
+    if (ret != NULL) {
+        ret = GEOSGeom_clone_r(context, ret);
+    }
+    return ret;
+}
+static void *get_interior_ring_data[1] = {GetInteriorRingN};
+static void *GetGeometryN(void *context, void *geom, int n) {
+    int size, i;
+    size = GEOSGetNumGeometries_r(context, geom);
+    if (size == -1) {
+        return NULL;
+    }
+    if (n < 0) {
+        /* Negative indexing: we get it for free */
+        i = size + n;
+    } else {
+        i = n;
+    }
+    if ((i < 0) | (i >= size)) {
+        /* Important, could give segfaults else */
+        return Geom_Empty->ptr;
+    }
+    void *ret = (void *) GEOSGetGeometryN_r(context, geom, i);
+    /* Create a copy of the obtained geometry */
+    if (ret != NULL) {
+        ret = GEOSGeom_clone_r(context, ret);
+    }
+    return ret;
+}
+static void *get_geometry_data[1] = {GetGeometryN};
 /* the set srid funcion acts inplace */
 static void *GEOSSetSRID_r_with_clone(void *context, void *geom, int srid) {
     void *ret = GEOSGeom_clone_r(context, geom);
@@ -639,8 +710,26 @@ static void YY_Y_func(char **args, npy_intp *dimensions,
 static PyUFuncGenericFunction YY_Y_funcs[1] = {&YY_Y_func};
 
 /* Define the geom -> double functions (Y_d) */
-static void *get_x_data[1] = {GEOSGeomGetX_r};
-static void *get_y_data[1] = {GEOSGeomGetY_r};
+static int GetX(void *context, void *a, double *b) {
+    char typ = GEOSGeomTypeId_r(context, a);
+    if (typ != 0) {
+        *(double *)b = NPY_NAN;
+        return 1;
+    } else {
+        return GEOSGeomGetX_r(context, a, b);
+    }
+}
+static void *get_x_data[1] = {GetX};
+static int GetY(void *context, void *a, double *b) {
+    char typ = GEOSGeomTypeId_r(context, a);
+    if (typ != 0) {
+        *(double *)b = NPY_NAN;
+        return 1;
+    } else {
+        return GEOSGeomGetY_r(context, a, b);
+    }
+}
+static void *get_y_data[1] = {GetY};
 static void *area_data[1] = {GEOSArea_r};
 static void *length_data[1] = {GEOSLength_r};
 typedef int FuncGEOS_Y_d(void *context, void *a, double *b);
@@ -668,7 +757,15 @@ static PyUFuncGenericFunction Y_d_funcs[1] = {&Y_d_func};
 
 /* Define the geom -> unsigned byte functions (Y_B) */
 static void *get_type_id_data[1] = {GEOSGeomTypeId_r};
-static void *get_dimensions_data[1] = {GEOSGeom_getDimensions_r};
+static int GetDimensions(void *context, void *a) {
+    int empty = GEOSisEmpty_r(context, a);
+    if (empty == 1) {
+        return 0;
+    } else {
+        return GEOSGeom_getDimensions_r(context, a);
+    }
+}
+static void *get_dimensions_data[1] = {GetDimensions};
 static void *get_coordinate_dimensions_data[1] = {GEOSGeom_getCoordinateDimension_r};
 typedef int FuncGEOS_Y_B(void *context, void *a);
 static char Y_B_dtypes[2] = {NPY_OBJECT, NPY_UBYTE};
@@ -683,7 +780,7 @@ static void Y_B_func(char **args, npy_intp *dimensions,
     UNARY_LOOP {
         INPUT_Y;
         ret = func(context_handle, in1);
-        if ((ret < 0) | (ret > NPY_MAX_UBYTE)) {
+        if (ret == -1) {
             RAISE_ILLEGAL_GEOS;
             return;
         }
@@ -694,9 +791,25 @@ static PyUFuncGenericFunction Y_B_funcs[1] = {&Y_B_func};
 
 /* Define the geom -> int functions (Y_i) */
 static void *get_srid_data[1] = {GEOSGetSRID_r};
+static int GetNumPoints(void *context, void *geom, int n) {
+    char typ = GEOSGeomTypeId_r(context, geom);
+    if ((typ == 1) | (typ == 2)) {  /* Linestring & Linearring */
+        return GEOSGeomGetNumPoints_r(context, geom);
+    } else {
+        return 0;
+    }
+}
+static void *get_num_points_data[1] = {GetNumPoints};
+static int GetNumInteriorRings(void *context, void *geom, int n) {
+    char typ = GEOSGeomTypeId_r(context, geom);
+    if (typ == 3) {   /* Polygon */
+        return GEOSGetNumInteriorRings_r(context, geom);
+    } else {
+        return 0;
+    }
+}
+static void *get_num_interior_rings_data[1] = {GetNumInteriorRings};
 static void *get_num_geometries_data[1] = {GEOSGetNumGeometries_r};
-static void *get_num_interior_rings_data[1] = {GEOSGetNumInteriorRings_r};
-static void *get_num_points_data[1] = {GEOSGeomGetNumPoints_r};
 static void *get_num_coordinates_data[1] = {GEOSGetNumCoordinates_r};
 typedef int FuncGEOS_Y_i(void *context, void *a);
 static char Y_i_dtypes[2] = {NPY_OBJECT, NPY_INT};
@@ -1241,13 +1354,10 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_Y_Y (centroid);
     DEFINE_Y_Y (line_merge);
     DEFINE_Y_Y (extract_unique_points);
-    DEFINE_Y_Y (get_start_point);
-    DEFINE_Y_Y (get_end_point);
     DEFINE_Y_Y (get_exterior_ring);
-    DEFINE_Y_Y (normalize);
 
-    DEFINE_Yi_Y (get_interior_ring);
     DEFINE_Yi_Y (get_point);
+    DEFINE_Yi_Y (get_interior_ring);
     DEFINE_Yi_Y (get_geometry);
     DEFINE_Yi_Y (set_srid);
 
@@ -1272,9 +1382,9 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_Y_B (get_coordinate_dimensions);
 
     DEFINE_Y_i (get_srid);
-    DEFINE_Y_i (get_num_geometries);
-    DEFINE_Y_i (get_num_interior_rings);
     DEFINE_Y_i (get_num_points);
+    DEFINE_Y_i (get_num_interior_rings);
+    DEFINE_Y_i (get_num_geometries);
     DEFINE_Y_i (get_num_coordinates);
 
     DEFINE_YY_d (distance);
