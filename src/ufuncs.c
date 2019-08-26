@@ -515,8 +515,6 @@ static void *point_on_surface_data[1] = {GEOSPointOnSurface_r};
 static void *centroid_data[1] = {GEOSGetCentroid_r};
 static void *line_merge_data[1] = {GEOSLineMerge_r};
 static void *extract_unique_points_data[1] = {GEOSGeom_extractUniquePoints_r};
-static void *get_start_point_data[1] = {GEOSGeomGetStartPoint_r};
-static void *get_end_point_data[1] = {GEOSGeomGetEndPoint_r};
 static void *get_exterior_ring_data[1] = {GEOSGetExteriorRing_r};
 /* GEOSNormalize_r acts inplace */
 static void *GEOSNormalize_r_with_clone(void *context, void *geom) {
@@ -584,27 +582,17 @@ static void Yd_Y_func(char **args, npy_intp *dimensions,
 static PyUFuncGenericFunction Yd_Y_funcs[1] = {&Yd_Y_func};
 
 /* Define the geom, int -> geom functions (Yi_Y) */
-/* Various get element functions are combined, adding a bound check and negative indexing */
-static void *GetElement(void *context, void *geom, int n) {
+/* We add bound and type checking to the various indexing functions */
+static void *GetPointN(void *context, void *geom, int n) {
     char typ = GEOSGeomTypeId_r(context, geom);
     int size, i;
     void *ret = NULL;
-    if (typ == -1) {
-        return NULL;
-    } else if (typ == 0) {  /* Point */
-        size = 1;
-    } else if ((typ == 1) | (typ == 2)) {  /* Linestring & Linearring */
-        size = GEOSGeomGetNumPoints_r(context, geom);
-    } else if (typ == 3) {   /* Polygon */
-        size = GEOSGetNumInteriorRings_r(context, geom);
-    } else if ((typ >= 4) & (typ <= 7)) {   /* Collections */
-        size = GEOSGetNumGeometries_r(context, geom);
-    } else {
-        PyErr_Format(PyExc_TypeError, "Geometry of type %d cannot be indexed", typ);
-        return NULL;
+    if (!((typ == 1) | (typ == 2))) {
+        return Geom_Empty->ptr;
     }
+    size = GEOSGeomGetNumPoints_r(context, geom);
     if (size == -1) {
-        return NULL;
+        return Geom_Empty->ptr;
     }
     if (n < 0) {
         /* Negative indexing: we get it for free */
@@ -614,27 +602,65 @@ static void *GetElement(void *context, void *geom, int n) {
     }
     if ((i < 0) | (i >= size)) {
         /* Important, could give segfaults else */
-        PyErr_Format(PyExc_IndexError, "Index %d out of bounds for geometry of size %d", n, i);
-        return NULL;
+        return Geom_Empty->ptr;
     }
-    if (typ == 0) {  /* Point */
-        ret = geom;
+    return GEOSGeomGetPointN_r(context, geom, i);
+}
+static void *get_point_data[1] = {GetPointN};
+static void *GetInteriorRingN(void *context, void *geom, int n) {
+    char typ = GEOSGeomTypeId_r(context, geom);
+    int size, i;
+    void *ret = NULL;
+    if (!(typ == 3)) {
+        return Geom_Empty->ptr;
     }
-    else if ((typ == 1) | (typ == 2)) {  /* Linestring & Linearring */
-        /* This function already copies: return right away */
-        return GEOSGeomGetPointN_r(context, geom, i);
-    } else if (typ == 3) {   /* Polygon */
-        ret = GEOSGetInteriorRingN_r(context, geom, i);
-    } else if ((typ >= 4) & (typ <= 7)) {   /* Collections */
-        ret = GEOSGetGeometryN_r(context, geom, i);
+    size = GEOSGetNumInteriorRings_r(context, geom);
+    if (size == -1) {
+        return Geom_Empty->ptr;
     }
+    if (n < 0) {
+        /* Negative indexing: we get it for free */
+        i = size + n;
+    } else {
+        i = n;
+    }
+    if ((i < 0) | (i >= size)) {
+        /* Important, could give segfaults else */
+        return Geom_Empty->ptr;
+    }
+    ret = GEOSGetInteriorRingN_r(context, geom, i);
     /* Create a copy of the obtained geometry */
     if (ret != NULL) {
         ret = GEOSGeom_clone_r(context, ret);
     }
     return ret;
 }
-static void *get_element_data[1] = {GetElement};
+static void *get_interior_ring_data[1] = {GetInteriorRingN};
+static void *GetGeometryN(void *context, void *geom, int n) {
+    int size, i;
+    void *ret = NULL;
+    size = GEOSGetNumGeometries_r(context, geom);
+    if (size == -1) {
+        return Geom_Empty->ptr;
+    }
+    if (n < 0) {
+        /* Negative indexing: we get it for free */
+        i = size + n;
+    } else {
+        i = n;
+    }
+    if ((i < 0) | (i >= size)) {
+        /* Important, could give segfaults else */
+        return Geom_Empty->ptr;
+    }
+    ret = GEOSGetGeometryN_r(context, geom, i);
+    /* Create a copy of the obtained geometry */
+    if (ret != NULL) {
+        ret = GEOSGeom_clone_r(context, ret);
+    }
+    return ret;
+}
+static void *get_geometry_data[1] = {GetGeometryN};
 /* the set srid funcion acts inplace */
 static void *GEOSSetSRID_r_with_clone(void *context, void *geom, int srid) {
     void *ret = GEOSGeom_clone_r(context, geom);
@@ -742,21 +768,25 @@ static PyUFuncGenericFunction Y_B_funcs[1] = {&Y_B_func};
 
 /* Define the geom -> int functions (Y_i) */
 static void *get_srid_data[1] = {GEOSGetSRID_r};
-static int GetNumElements(void *context, void *geom, int n) {
+static int GetNumPoints(void *context, void *geom, int n) {
     char typ = GEOSGeomTypeId_r(context, geom);
-    if (typ == 0) {  /* Point */
-        return 1;
-    } else if ((typ == 1) | (typ == 2)) {  /* Linestring & Linearring */
+    if ((typ == 1) | (typ == 2)) {  /* Linestring & Linearring */
         return GEOSGeomGetNumPoints_r(context, geom);
-    } else if (typ == 3) {   /* Polygon */
-        return GEOSGetNumInteriorRings_r(context, geom);
-    } else if ((typ >= 4) & (typ <= 7)) {   /* Collections */
-        return GEOSGetNumGeometries_r(context, geom);
     } else {
-        return -1;
+        return 0;
     }
 }
-static void *get_num_elements_data[1] = {GetNumElements};
+static void *get_num_points_data[1] = {GetNumPoints};
+static int GetNumInteriorRings(void *context, void *geom, int n) {
+    char typ = GEOSGeomTypeId_r(context, geom);
+    if (typ == 3) {   /* Polygon */
+        return GEOSGetNumInteriorRings_r(context, geom);
+    } else {
+        return 0;
+    }
+}
+static void *get_num_interior_rings_data[1] = {GetNumInteriorRings};
+static void *get_num_geometries_data[1] = {GEOSGetNumGeometries_r};
 static void *get_num_coordinates_data[1] = {GEOSGetNumCoordinates_r};
 typedef int FuncGEOS_Y_i(void *context, void *a);
 static char Y_i_dtypes[2] = {NPY_OBJECT, NPY_INT};
@@ -1301,12 +1331,12 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_Y_Y (centroid);
     DEFINE_Y_Y (line_merge);
     DEFINE_Y_Y (extract_unique_points);
-    DEFINE_Y_Y (get_start_point);
-    DEFINE_Y_Y (get_end_point);
     DEFINE_Y_Y (get_exterior_ring);
     DEFINE_Y_Y (normalize);
 
-    DEFINE_Yi_Y (get_element);
+    DEFINE_Yi_Y (get_point);
+    DEFINE_Yi_Y (get_interior_ring);
+    DEFINE_Yi_Y (get_geometry);
     DEFINE_Yi_Y (set_srid);
 
     DEFINE_Yd_Y (interpolate);
@@ -1330,7 +1360,9 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_Y_B (get_coordinate_dimensions);
 
     DEFINE_Y_i (get_srid);
-    DEFINE_Y_i (get_num_elements);
+    DEFINE_Y_i (get_num_points);
+    DEFINE_Y_i (get_num_interior_rings);
+    DEFINE_Y_i (get_num_geometries);
     DEFINE_Y_i (get_num_coordinates);
 
     DEFINE_YY_d (distance);

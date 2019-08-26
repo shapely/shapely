@@ -2,8 +2,15 @@ import numpy as np
 import pygeos
 import pytest
 
-from .common import line_string
 from .common import point
+from .common import line_string
+from .common import linear_ring
+from .common import polygon
+from .common import polygon_with_hole
+from .common import multi_point
+from .common import multi_line_string
+from .common import multi_polygon
+from .common import geometry_collection
 from .common import point_z
 from .common import all_types
 
@@ -12,13 +19,83 @@ def test_get_type_id():
     assert pygeos.get_type_id(all_types).tolist()[:-1] == list(range(8))
 
 
-def test_get_num_elements():
-    assert pygeos.get_num_elements(line_string) == 3
+def test_get_num_points():
+    actual = pygeos.get_num_points(all_types).tolist()
+    assert actual == [0, 3, 5, 0, 0, 0, 0, 0, 0]
 
 
-def test_get_element():
-    actual = pygeos.get_element(line_string, 1)
-    assert pygeos.equals(actual, pygeos.points(1, 0))
+def test_get_num_interior_rings():
+    actual = pygeos.get_num_interior_rings(all_types + (polygon_with_hole,)).tolist()
+    assert actual == [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+
+
+def test_get_num_geometries():
+    actual = pygeos.get_num_geometries(all_types).tolist()
+    assert actual == [1, 1, 1, 1, 2, 1, 2, 2, 0]
+
+
+@pytest.mark.parametrize(
+    "geom",
+    [
+        point,
+        polygon,
+        multi_point,
+        multi_line_string,
+        multi_polygon,
+        geometry_collection,
+    ],
+)
+def test_get_point_non_linestring(geom):
+    actual = pygeos.get_point(geom, [0, 2, -1])
+    assert pygeos.is_empty(actual).all()
+
+
+@pytest.mark.parametrize("geom", [line_string, linear_ring])
+def test_get_point(geom):
+    n = pygeos.get_num_points(geom)
+    actual = pygeos.get_point(geom, [0, -n, n, -(n + 1)])
+    assert pygeos.equals(actual[0], actual[1]).all()
+    assert pygeos.is_empty(actual[2:4]).all()
+
+
+@pytest.mark.parametrize(
+    "geom",
+    [
+        point,
+        line_string,
+        linear_ring,
+        multi_point,
+        multi_line_string,
+        multi_polygon,
+        geometry_collection,
+    ],
+)
+def test_get_interior_ring_non_polygon(geom):
+    actual = pygeos.get_interior_ring(geom, [0, 2, -1])
+    assert pygeos.is_empty(actual).all()
+
+
+def test_get_interior_ring():
+    actual = pygeos.get_interior_ring(polygon_with_hole, [0, -1, 1, -2])
+    assert pygeos.equals(actual[0], actual[1]).all()
+    assert pygeos.is_empty(actual[2:4]).all()
+
+
+@pytest.mark.parametrize("geom", [point, line_string, linear_ring, polygon])
+def test_get_geometry_simple(geom):
+    actual = pygeos.get_geometry(geom, [0, -1, 1, -2])
+    assert pygeos.equals(actual[0], actual[1]).all()
+    assert pygeos.is_empty(actual[2:4]).all()
+
+
+@pytest.mark.parametrize(
+    "geom", [multi_point, multi_line_string, multi_polygon, geometry_collection]
+)
+def test_get_geometry_collection(geom):
+    n = pygeos.get_num_geometries(geom)
+    actual = pygeos.get_geometry(geom, [0, -n, n, -(n + 1)])
+    assert pygeos.equals(actual[0], actual[1]).all()
+    assert pygeos.is_empty(actual[2:4]).all()
 
 
 def test_get_set_srid():

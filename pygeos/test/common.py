@@ -21,6 +21,9 @@ geometry_collection = pygeos.geometrycollections(
     [pygeos.points(51, -1), pygeos.linestrings([(52, -1), (49, 2)])]
 )
 point_z = pygeos.points(1.0, 1.0, 1.0)
+polygon_with_hole = pygeos.Geometry(
+    "POLYGON((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))"
+)
 
 all_types = (
     point,

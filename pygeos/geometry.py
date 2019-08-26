@@ -16,11 +16,13 @@ __all__ = [
     "set_srid",
     "get_x",
     "get_y",
-    "get_start_point",
-    "get_end_point",
     "get_exterior_ring",
-    "get_num_elements",
-    "get_element",
+    "get_num_points",
+    "get_num_interior_rings",
+    "get_num_geometries",
+    "get_point",
+    "get_interior_ring",
+    "get_geometry",
 ]
 
 
@@ -105,17 +107,6 @@ def get_y(point):
     return ufuncs.get_y(point)
 
 
-# linestrings
-
-
-def get_start_point(linestring):
-    return ufuncs.get_start_point(linestring)
-
-
-def get_end_point(linestring):
-    return ufuncs.get_end_point(linestring)
-
-
 # polygons
 
 
@@ -123,49 +114,169 @@ def get_exterior_ring(polygon):
     return ufuncs.get_exterior_ring(polygon)
 
 
-# collections
+def get_num_points(geometry):
+    """Returns number of points in a linestring or linearring.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+        The number of points in geometries other than linestring or linearring
+        equals zero.
+
+    See also
+    --------
+    get_point
+    get_num_geometries
+
+    Examples
+    --------
+    >>> line = Geometry("LINESTRING (0 0, 1 1, 2 2, 3 3)")
+    >>> get_num_points(line)
+    4
+    >>> get_num_points(Geometry("MULTIPOINT (0 0, 1 1, 2 2, 3 3)"))
+    0
+    """
+    return ufuncs.get_num_points(geometry)
 
 
-def get_num_elements(collection):
-    return ufuncs.get_num_elements(collection)
+def get_num_interior_rings(geometry):
+    """Returns number of internal rings in a polygon
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+        The number of interior rings in non-polygons equals zero.
+
+    See also
+    --------
+    get_exterior_ring
+    get_interior_ring
+
+    Examples
+    --------
+    >>> polygon = Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))")
+    >>> get_num_interior_rings(polygon)
+    0
+    >>> polygon_with_hole = Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))")
+    >>> get_num_interior_rings(polygon_with_hole)
+    1
+    >>> get_num_interior_rings(Geometry("POINT (1 1)"))
+    0
+    """
+    return ufuncs.get_num_interior_rings(geometry)
 
 
-def get_element(geometry, index):
-    """Returns the nth sub-element from a geometry.
+def get_num_geometries(geometry):
+    """Returns number of geometries in a collection.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+        The number of geometries in points, linestrings, linearrings and
+        polygons equals one.
+
+    See also
+    --------
+    get_num_points
+    get_geometry
+
+    Examples
+    --------
+    >>> get_num_geometries(Geometry("MULTIPOINT (0 0, 1 1, 2 2, 3 3)"))
+    4
+    >>> get_num_geometries(Geometry("POINT (1 1)"))
+    1
+    """
+    return ufuncs.get_num_geometries(geometry)
+
+
+def get_point(geometry, index):
+    """Returns the nth point of a linestring or linearring.
 
     Parameters
     ----------
     geometry : Geometry or array_like
     index : int or array_like
-
-    Notes
-    -----
-    - points are indexed as length-1 collections
-    - elements of linestrings and linearrings are points
-    - elements of polygons are the interior linearrings
+        Negative values count from the end of the linestring backwards.
 
     See also
     --------
-    get_exterior_ring
-    get_num_elements
+    get_num_points
 
     Examples
     --------
     >>> line = Geometry("LINESTRING (0 0, 1 1, 2 2, 3 3)")
-    >>> get_element(line, 1)
+    >>> get_point(line, 1)
     <pygeos.Geometry POINT (1 1)>
-    >>> get_element(line, -2)
+    >>> get_point(line, -2)
     <pygeos.Geometry POINT (2 2)>
-    >>> get_element(line, [0, 3]).tolist()
+    >>> get_point(line, [0, 3]).tolist()
     [<pygeos.Geometry POINT (0 0)>, <pygeos.Geometry POINT (3 3)>]
-    >>> get_element(Geometry("LINEARRING (0 0, 1 1, 2 2, 0 0)"), 1)
+    >>> get_point(Geometry("LINEARRING (0 0, 1 1, 2 2, 0 0)"), 1)
     <pygeos.Geometry POINT (1 1)>
-    >>> get_element(Geometry("MULTIPOINT (0 0, 1 1, 2 2, 3 3)"), 1)
-    <pygeos.Geometry POINT (1 1)>
-    >>> polygon_with_hole = Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))")
-    >>> get_element(polygon_with_hole, 0)
-    <pygeos.Geometry LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>
-    >>> get_element(Geometry("POINT (1 1)"), 0)
-    <pygeos.Geometry POINT (1 1)>
+    >>> get_point(Geometry("MULTIPOINT (0 0, 1 1, 2 2, 3 3)"), 1)
+    <pygeos.Empty>
+    >>> get_point(Geometry("POINT (1 1)"), 0)
+    <pygeos.Empty>
     """
-    return ufuncs.get_element(geometry, np.intc(index))
+    return ufuncs.get_point(geometry, np.intc(index))
+
+
+def get_interior_ring(geometry, index):
+    """Returns the nth interior ring of a polygon.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    index : int or array_like
+        Negative values count from the end of the interior rings backwards.
+
+    See also
+    --------
+    get_exterior_ring
+    get_num_interior_rings
+
+    Examples
+    --------
+    >>> polygon_with_hole = Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))")
+    >>> get_interior_ring(polygon_with_hole, 0)
+    <pygeos.Geometry LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>
+    >>> get_interior_ring(Geometry("POINT (1 1)"), 0)
+    <pygeos.Empty>
+    """
+    return ufuncs.get_interior_ring(geometry, np.intc(index))
+
+
+def get_geometry(geometry, index):
+    """Returns the nth geometry from a collection of geometries.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    index : int or array_like
+        Negative values count from the end of the collection backwards.
+
+    Notes
+    -----
+    - simple geometries act as length-1 collections
+    - out-of-range values return Empty
+
+    See also
+    --------
+    get_num_geometries
+
+    Examples
+    --------
+    >>> multipoint = Geometry("MULTIPOINT (0 0, 1 1, 2 2, 3 3)")
+    >>> get_geometry(multipoint, 1)
+    <pygeos.Geometry POINT (1 1)>
+    >>> get_geometry(multipoint, -1)
+    <pygeos.Geometry POINT (3 3)>
+    >>> get_geometry(multipoint, 5)
+    <pygeos.Empty>
+    >>> get_geometry(Geometry("POINT (1 1)"), 0)
+    <pygeos.Geometry POINT (1 1)>
+    >>> get_geometry(Geometry("POINT (1 1)"), 1)
+    <pygeos.Empty>
+    """
+    return ufuncs.get_geometry(geometry, np.intc(index))

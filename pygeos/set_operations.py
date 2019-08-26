@@ -201,7 +201,5 @@ def union_all(geometries, axis=0, **kwargs):
             np.asarray(geometries), axis=axis, start=geometries.ndim
         )
     # create_collection acts on the inner axis
-    collections = ufuncs.create_collection(
-        geometries, GeometryType.GEOMETRYCOLLECTION
-    )
+    collections = ufuncs.create_collection(geometries, GeometryType.GEOMETRYCOLLECTION)
     return ufuncs.unary_union(collections, **kwargs)
