@@ -58,6 +58,7 @@ API Reference
    :caption: Contents:
 
    constructive
+   geometry
    predicates
    set_operations
 

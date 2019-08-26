@@ -7,7 +7,6 @@ __all__ = [
     "GeometryType",
     "get_type_id",
     "get_dimensions",
-    "get_coordinate_dimensions",
     "get_num_coordinates",
     "get_srid",
     "set_srid",
@@ -24,6 +23,8 @@ __all__ = [
 
 
 class GeometryType(IntEnum):
+    """The enumeration of GEOS geometry types"""
+
     POINT = 0
     LINESTRING = 1
     LINEARRING = 2
@@ -38,26 +39,144 @@ class GeometryType(IntEnum):
 
 
 def get_type_id(geometry):
+    """Returns the type ID of a geometry.
+
+    - POINT is 0
+    - LINESTRING is 1
+    - LINEARRING is 2
+    - POLYGON is 3
+    - MULTIPOINT is 4
+    - MULTILINESTRING is 5
+    - MULTIPOLYGON is 6
+    - GEOMETRYCOLLECTION is 7
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+
+    See also
+    --------
+    GeometryType
+
+    Examples
+    --------
+    >>> get_type_id(Geometry("LINESTRING (0 0, 1 1, 2 2, 3 3)"))
+    1
+    >>> get_type_id([Geometry("POINT (1 2)"), Geometry("POINT (1 2)")]).tolist()
+    [0, 0]
+    """
     return ufuncs.get_type_id(geometry)
 
 
 def get_dimensions(geometry):
+    """Returns the inherent dimensionality of a geometry.
+
+    The inherent dimension is 0 for points, 1 for linestrings and linearrings,
+    and 2 for polygons. For geometrycollections it is the max of the containing
+    elements.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+
+    Examples
+    --------
+    >>> get_dimensions(Geometry("POINT (0 0)"))
+    0
+    >>> get_dimensions(Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))"))
+    2
+    >>> get_dimensions(Geometry("GEOMETRYCOLLECTION (POINT(0 0), LINESTRING(0 0, 1 1))"))
+    1
+    >>> get_dimensions(Empty)
+    0
+    """
     return ufuncs.get_dimensions(geometry)
 
 
 def get_coordinate_dimensions(geometry):
+    """Returns the dimensionality of the coordinates in a geometry (2 or 3).
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+
+    Examples
+    --------
+    >>> get_coordinate_dimensions(Geometry("POINT (0 0)"))
+    2
+    >>> get_coordinate_dimensions(Geometry("POINT Z (0 0 0)"))
+    3
+    >>> get_coordinate_dimensions(Empty).tolist()
+    2
+    """
     return ufuncs.get_coordinate_dimensions(geometry)
 
 
 def get_num_coordinates(geometry):
+    """Returns the total number of coordinates in a geometry.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+
+    Examples
+    --------
+    >>> get_num_coordinates(Geometry("POINT (0 0)"))
+    1
+    >>> get_num_coordinates(Geometry("POINT Z (0 0 0)"))
+    1
+    >>> get_num_coordinates(Geometry("GEOMETRYCOLLECTION (POINT(0 0), LINESTRING(0 0, 1 1))"))
+    3
+    >>> get_num_coordinates(Empty)
+    0
+    """
     return ufuncs.get_num_coordinates(geometry)
 
 
 def get_srid(geometry):
+    """Returns the SRID of a geometry.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+
+    See also
+    --------
+    set_srid
+
+    Examples
+    --------
+    >>> point = Geometry("POINT (0 0)")
+    >>> with_srid = set_srid(point, 4326)
+    >>> get_srid(point)
+    0
+    >>> get_srid(with_srid)
+    4326
+    """
     return ufuncs.get_srid(geometry)
 
 
 def set_srid(geometry, srid):
+    """Returns a geometry with its SRID set.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    srid : int
+
+    See also
+    --------
+    get_srid
+
+    Examples
+    --------
+    >>> point = Geometry("POINT (0 0)")
+    >>> with_srid = set_srid(point, 4326)
+    >>> get_srid(point)
+    0
+    >>> get_srid(with_srid)
+    4326
+    """
     return ufuncs.set_srid(geometry, np.intc(srid))
 
 

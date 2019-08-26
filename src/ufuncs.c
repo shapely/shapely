@@ -517,11 +517,10 @@ static void *line_merge_data[1] = {GEOSLineMerge_r};
 static void *extract_unique_points_data[1] = {GEOSGeom_extractUniquePoints_r};
 static void *GetExteriorRing(void *context, void *geom) {
     char typ = GEOSGeomTypeId_r(context, geom);
-    void *ret = NULL;
     if (typ != 3) {
         return Geom_Empty->ptr;
     }
-    ret = GEOSGetExteriorRing_r(context, geom);
+    void *ret = (void *) GEOSGetExteriorRing_r(context, geom);
     /* Create a copy of the obtained geometry */
     if (ret != NULL) {
         ret = GEOSGeom_clone_r(context, ret);
@@ -587,7 +586,6 @@ static PyUFuncGenericFunction Yd_Y_funcs[1] = {&Yd_Y_func};
 static void *GetPointN(void *context, void *geom, int n) {
     char typ = GEOSGeomTypeId_r(context, geom);
     int size, i;
-    void *ret = NULL;
     if ((typ != 1) & (typ != 2)) {
         return Geom_Empty->ptr;
     }
@@ -611,7 +609,6 @@ static void *get_point_data[1] = {GetPointN};
 static void *GetInteriorRingN(void *context, void *geom, int n) {
     char typ = GEOSGeomTypeId_r(context, geom);
     int size, i;
-    void *ret = NULL;
     if (typ != 3) {
         return Geom_Empty->ptr;
     }
@@ -629,7 +626,7 @@ static void *GetInteriorRingN(void *context, void *geom, int n) {
         /* Important, could give segfaults else */
         return Geom_Empty->ptr;
     }
-    ret = GEOSGetInteriorRingN_r(context, geom, i);
+    void *ret = (void *) GEOSGetInteriorRingN_r(context, geom, i);
     /* Create a copy of the obtained geometry */
     if (ret != NULL) {
         ret = GEOSGeom_clone_r(context, ret);
@@ -639,7 +636,6 @@ static void *GetInteriorRingN(void *context, void *geom, int n) {
 static void *get_interior_ring_data[1] = {GetInteriorRingN};
 static void *GetGeometryN(void *context, void *geom, int n) {
     int size, i;
-    void *ret = NULL;
     size = GEOSGetNumGeometries_r(context, geom);
     if (size == -1) {
         return NULL;
@@ -654,7 +650,7 @@ static void *GetGeometryN(void *context, void *geom, int n) {
         /* Important, could give segfaults else */
         return Geom_Empty->ptr;
     }
-    ret = GEOSGetGeometryN_r(context, geom, i);
+    void *ret = (void *) GEOSGetGeometryN_r(context, geom, i);
     /* Create a copy of the obtained geometry */
     if (ret != NULL) {
         ret = GEOSGeom_clone_r(context, ret);
@@ -761,7 +757,15 @@ static PyUFuncGenericFunction Y_d_funcs[1] = {&Y_d_func};
 
 /* Define the geom -> unsigned byte functions (Y_B) */
 static void *get_type_id_data[1] = {GEOSGeomTypeId_r};
-static void *get_dimensions_data[1] = {GEOSGeom_getDimensions_r};
+static int GetDimensions(void *context, void *a) {
+    int empty = GEOSisEmpty_r(context, a);
+    if (empty == 1) {
+        return 0;
+    } else {
+        return GEOSGeom_getDimensions_r(context, a);
+    }
+}
+static void *get_dimensions_data[1] = {GetDimensions};
 static void *get_coordinate_dimensions_data[1] = {GEOSGeom_getCoordinateDimension_r};
 typedef int FuncGEOS_Y_B(void *context, void *a);
 static char Y_B_dtypes[2] = {NPY_OBJECT, NPY_UBYTE};
@@ -776,7 +780,7 @@ static void Y_B_func(char **args, npy_intp *dimensions,
     UNARY_LOOP {
         INPUT_Y;
         ret = func(context_handle, in1);
-        if ((ret < 0) | (ret > NPY_MAX_UBYTE)) {
+        if (ret == -1) {
             RAISE_ILLEGAL_GEOS;
             return;
         }
