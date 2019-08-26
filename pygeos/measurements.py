@@ -85,8 +85,8 @@ def hausdorff_distance(a, b, densify=None):
     --------
     >>> line_1 = Geometry("LINESTRING (130 0, 0 0, 0 150)")
     >>> line_2 = Geometry("LINESTRING (10 10, 10 150, 130 10)")
-    >>> round(hausdorff_distance(line_1, line_2), 2)
-    14.14
+    >>> hausdorff_distance(line_1, line_2)  # doctest: +ELLIPSIS
+    14.14...
     >>> hausdorff_distance(line_1, line_2, densify=0.5)
     70.0
     >>> hausdorff_distance(line_1, Empty)
