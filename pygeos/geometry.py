@@ -7,6 +7,7 @@ __all__ = [
     "GeometryType",
     "get_type_id",
     "get_dimensions",
+    "get_coordinate_dimensions",
     "get_num_coordinates",
     "get_srid",
     "set_srid",

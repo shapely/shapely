@@ -128,7 +128,7 @@ def test_create_collection_only_nan():
 
 def test_create_collection_skips_nan():
     actual = pygeos.multipoints([point, np.nan, np.nan, point])
-    assert actual.to_wkt() == "MULTIPOINT (2 2, 2 2)"
+    assert actual.to_wkt() == "MULTIPOINT (2 3, 2 3)"
 
 
 def test_box():

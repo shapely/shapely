@@ -117,13 +117,43 @@ def test_get_geometry_collection(geom):
 
 
 def test_get_type_id():
-    assert pygeos.get_type_id(all_types).tolist()[:-1] == list(range(8))
+    actual = pygeos.get_type_id(all_types).tolist()
+    assert actual == [0, 1, 2, 3, 4, 5, 6, 7, 7]
+
+
+def test_get_dimensions():
+    actual = pygeos.get_dimensions(all_types).tolist()
+    assert actual == [0, 1, 1, 2, 0, 1, 2, 1, 0]
+
+
+def test_get_coordinate_dimensions():
+    actual = pygeos.get_coordinate_dimensions([point, point_z]).tolist()
+    assert actual == [2, 3]
+
+
+def test_get_num_coordinates():
+    actual = pygeos.get_num_coordinates(all_types).tolist()
+    assert actual == [1, 3, 5, 5, 2, 2, 10, 3, 0]
 
 
 def test_get_set_srid():
     actual = pygeos.set_srid(point, 4326)
     assert pygeos.get_srid(point) == 0
     assert pygeos.get_srid(actual) == 4326
+
+
+@pytest.mark.parametrize("func", [pygeos.get_x, pygeos.get_y])
+@pytest.mark.parametrize("geom", all_types[1:])
+def test_get_xy_no_point(func, geom):
+    assert np.isnan(func(geom))
+
+
+def test_get_x():
+    assert pygeos.get_x([point, point_z]).tolist() == [2.0, 1.0]
+
+
+def test_get_y():
+    assert pygeos.get_y([point, point_z]).tolist() == [3.0, 1.0]
 
 
 def test_new_from_wkt():
@@ -145,9 +175,9 @@ def test_adapt_ptr_raises():
 
 
 def test_to_wkt():
-    assert point.to_wkt() == "POINT (2 2)"
-    assert point.to_wkt(trim=False) == "POINT (2.000000 2.000000)"
-    assert point.to_wkt(trim=False, precision=3) == "POINT (2.000 2.000)"
+    assert point.to_wkt() == "POINT (2 3)"
+    assert point.to_wkt(trim=False) == "POINT (2.000000 3.000000)"
+    assert point.to_wkt(trim=False, precision=3) == "POINT (2.000 3.000)"
     assert point_z.to_wkt(dimension=2) == "POINT (1 1)"
     assert point_z.to_wkt(dimension=3) == "POINT Z (1 1 1)"
     assert point_z.to_wkt(dimension=3, use_old_3d=True) == "POINT (1 1 1)"
@@ -197,7 +227,7 @@ def test_from_wkt_empty(wkt):
 
 
 def test_from_wkt_bytes():
-    actual = pygeos.Geometry.from_wkt(b"POINT (2 2)")
+    actual = pygeos.Geometry.from_wkt(b"POINT (2 3)")
     assert pygeos.equals(actual, point)
 
 

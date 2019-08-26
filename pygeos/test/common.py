@@ -5,7 +5,7 @@ point_polygon_testdata = (
     pygeos.points(np.arange(6), np.arange(6)),
     pygeos.box(2, 2, 4, 4),
 )
-point = pygeos.points(2, 2)
+point = pygeos.points(2, 3)
 line_string = pygeos.linestrings([(0, 0), (1, 0), (1, 1)])
 linear_ring = pygeos.linearrings([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
 polygon = pygeos.polygons([(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)])
