@@ -15,10 +15,6 @@ from .common import point_z
 from .common import all_types
 
 
-def test_get_type_id():
-    assert pygeos.get_type_id(all_types).tolist()[:-1] == list(range(8))
-
-
 def test_get_num_points():
     actual = pygeos.get_num_points(all_types).tolist()
     assert actual == [0, 3, 5, 0, 0, 0, 0, 0, 0]
@@ -70,6 +66,28 @@ def test_get_point(geom):
         geometry_collection,
     ],
 )
+def test_get_exterior_ring_non_polygon(geom):
+    actual = pygeos.get_exterior_ring(geom)
+    assert pygeos.is_empty(actual).all()
+
+
+def test_get_exterior_ring():
+    actual = pygeos.get_exterior_ring([polygon, polygon_with_hole])
+    assert (pygeos.get_type_id(actual) == 2).all()
+
+
+@pytest.mark.parametrize(
+    "geom",
+    [
+        point,
+        line_string,
+        linear_ring,
+        multi_point,
+        multi_line_string,
+        multi_polygon,
+        geometry_collection,
+    ],
+)
 def test_get_interior_ring_non_polygon(geom):
     actual = pygeos.get_interior_ring(geom, [0, 2, -1])
     assert pygeos.is_empty(actual).all()
@@ -96,6 +114,10 @@ def test_get_geometry_collection(geom):
     actual = pygeos.get_geometry(geom, [0, -n, n, -(n + 1)])
     assert pygeos.equals(actual[0], actual[1]).all()
     assert pygeos.is_empty(actual[2:4]).all()
+
+
+def test_get_type_id():
+    assert pygeos.get_type_id(all_types).tolist()[:-1] == list(range(8))
 
 
 def test_get_set_srid():

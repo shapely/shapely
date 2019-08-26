@@ -515,7 +515,20 @@ static void *point_on_surface_data[1] = {GEOSPointOnSurface_r};
 static void *centroid_data[1] = {GEOSGetCentroid_r};
 static void *line_merge_data[1] = {GEOSLineMerge_r};
 static void *extract_unique_points_data[1] = {GEOSGeom_extractUniquePoints_r};
-static void *get_exterior_ring_data[1] = {GEOSGetExteriorRing_r};
+static void *GetExteriorRing(void *context, void *geom) {
+    char typ = GEOSGeomTypeId_r(context, geom);
+    void *ret = NULL;
+    if (!(typ == 3)) {
+        return Geom_Empty->ptr;
+    }
+    ret = GEOSGetExteriorRing_r(context, geom);
+    /* Create a copy of the obtained geometry */
+    if (ret != NULL) {
+        ret = GEOSGeom_clone_r(context, ret);
+    }
+    return ret;
+}
+static void *get_exterior_ring_data[1] = {GetExteriorRing};
 /* GEOSNormalize_r acts inplace */
 static void *GEOSNormalize_r_with_clone(void *context, void *geom) {
     void *ret = GEOSGeom_clone_r(context, geom);
@@ -616,7 +629,7 @@ static void *GetInteriorRingN(void *context, void *geom, int n) {
     }
     size = GEOSGetNumInteriorRings_r(context, geom);
     if (size == -1) {
-        return Geom_Empty->ptr;
+        return NULL;
     }
     if (n < 0) {
         /* Negative indexing: we get it for free */
@@ -641,7 +654,7 @@ static void *GetGeometryN(void *context, void *geom, int n) {
     void *ret = NULL;
     size = GEOSGetNumGeometries_r(context, geom);
     if (size == -1) {
-        return Geom_Empty->ptr;
+        return NULL;
     }
     if (n < 0) {
         /* Negative indexing: we get it for free */
