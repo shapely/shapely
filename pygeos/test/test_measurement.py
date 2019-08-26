@@ -47,6 +47,26 @@ def test_distance_empty():
     assert np.isnan(actual)
 
 
+def test_length():
+    actual = pygeos.length(
+        [
+            point,
+            line_string,
+            linear_ring,
+            polygon,
+            polygon_with_hole,
+            multi_point,
+            multi_polygon,
+        ]
+    )
+    assert actual.tolist() == [0.0, 2.0, 4.0, 8.0, 48.0, 0.0, 4.4]
+
+
+def test_length_empty():
+    actual = pygeos.length(Empty)
+    assert np.isnan(actual)
+
+
 def test_haussdorf_distance():
     # example from GEOS docs
     a = pygeos.linestrings([[0, 0], [100, 0], [10, 100], [10, 100]])
