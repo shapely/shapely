@@ -1,10 +1,10 @@
 import warnings
 
 from . import ufuncs
-from .geometry import Geometry
-from .ufuncs import Empty  # NOQA
+from . import Empty, Geometry  # NOQA
 
 __all__ = [
+    "has_z",
     "is_closed",
     "is_empty",
     "is_ring",
@@ -22,6 +22,23 @@ __all__ = [
     "touches",
     "within",
 ]
+
+
+def has_z(geometry, **kwargs):
+    """Returns True if a geometry has a Z coordinate.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+
+    Examples
+    --------
+    >>> has_z(Geometry("POINT (0 0)"))
+    False
+    >>> has_z(Geometry("POINT Z (0 0 0)"))
+    True
+    """
+    return ufuncs.has_z(geometry, **kwargs)
 
 
 def is_closed(geometry, **kwargs):

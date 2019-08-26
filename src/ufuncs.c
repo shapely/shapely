@@ -518,7 +518,7 @@ static void *extract_unique_points_data[1] = {GEOSGeom_extractUniquePoints_r};
 static void *GetExteriorRing(void *context, void *geom) {
     char typ = GEOSGeomTypeId_r(context, geom);
     void *ret = NULL;
-    if (!(typ == 3)) {
+    if (typ != 3) {
         return Geom_Empty->ptr;
     }
     ret = GEOSGetExteriorRing_r(context, geom);
@@ -529,18 +529,6 @@ static void *GetExteriorRing(void *context, void *geom) {
     return ret;
 }
 static void *get_exterior_ring_data[1] = {GetExteriorRing};
-/* GEOSNormalize_r acts inplace */
-static void *GEOSNormalize_r_with_clone(void *context, void *geom) {
-    void *ret = GEOSGeom_clone_r(context, geom);
-    if (ret == NULL) {
-        return NULL;
-    }
-    if (GEOSNormalize_r(context, geom) == -1) {
-        return NULL;
-    }
-    return ret;
-}
-static void *normalize_data[1] = {GEOSNormalize_r_with_clone};
 /* a linear-ring to polygon conversion function */
 static void *GEOSLinearRingToPolygon(void *context, void *geom) {
     void *shell = GEOSGeom_clone_r(context, geom);
@@ -600,7 +588,7 @@ static void *GetPointN(void *context, void *geom, int n) {
     char typ = GEOSGeomTypeId_r(context, geom);
     int size, i;
     void *ret = NULL;
-    if (!((typ == 1) | (typ == 2))) {
+    if ((typ != 1) & (typ != 2)) {
         return Geom_Empty->ptr;
     }
     size = GEOSGeomGetNumPoints_r(context, geom);
@@ -624,7 +612,7 @@ static void *GetInteriorRingN(void *context, void *geom, int n) {
     char typ = GEOSGeomTypeId_r(context, geom);
     int size, i;
     void *ret = NULL;
-    if (!(typ == 3)) {
+    if (typ != 3) {
         return Geom_Empty->ptr;
     }
     size = GEOSGetNumInteriorRings_r(context, geom);
@@ -726,8 +714,26 @@ static void YY_Y_func(char **args, npy_intp *dimensions,
 static PyUFuncGenericFunction YY_Y_funcs[1] = {&YY_Y_func};
 
 /* Define the geom -> double functions (Y_d) */
-static void *get_x_data[1] = {GEOSGeomGetX_r};
-static void *get_y_data[1] = {GEOSGeomGetY_r};
+static int GetX(void *context, void *a, double *b) {
+    char typ = GEOSGeomTypeId_r(context, a);
+    if (typ != 0) {
+        *(double *)b = NPY_NAN;
+        return 1;
+    } else {
+        return GEOSGeomGetX_r(context, a, b);
+    }
+}
+static void *get_x_data[1] = {GetX};
+static int GetY(void *context, void *a, double *b) {
+    char typ = GEOSGeomTypeId_r(context, a);
+    if (typ != 0) {
+        *(double *)b = NPY_NAN;
+        return 1;
+    } else {
+        return GEOSGeomGetY_r(context, a, b);
+    }
+}
+static void *get_y_data[1] = {GetY};
 static void *area_data[1] = {GEOSArea_r};
 static void *length_data[1] = {GEOSLength_r};
 typedef int FuncGEOS_Y_d(void *context, void *a, double *b);
@@ -1345,7 +1351,6 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_Y_Y (line_merge);
     DEFINE_Y_Y (extract_unique_points);
     DEFINE_Y_Y (get_exterior_ring);
-    DEFINE_Y_Y (normalize);
 
     DEFINE_Yi_Y (get_point);
     DEFINE_Yi_Y (get_interior_ring);

@@ -1,17 +1,14 @@
 from enum import IntEnum
 import numpy as np
 from . import ufuncs
+from . import Empty, Geometry  # NOQA
 
 __all__ = [
-    "Geometry",
-    "Empty",
     "GeometryType",
     "get_type_id",
     "get_dimensions",
     "get_coordinate_dimensions",
     "get_num_coordinates",
-    "has_z",
-    "normalize",
     "get_srid",
     "set_srid",
     "get_x",
@@ -24,10 +21,6 @@ __all__ = [
     "get_interior_ring",
     "get_geometry",
 ]
-
-
-Geometry = ufuncs.Geometry
-Empty = ufuncs.Empty
 
 
 class GeometryType(IntEnum):
@@ -60,34 +53,6 @@ def get_num_coordinates(geometry):
     return ufuncs.get_num_coordinates(geometry)
 
 
-def has_z(geometry, **kwargs):
-    """Returns True if a geometry has a Z coordinate.
-
-    Parameters
-    ----------
-    geometry : Geometry or array_like
-
-    Notes
-    -----
-    Keyword arguments (``**kwargs``) are passed into the underlying ufunc. To
-    use methods such as ``.at``, import the underlying ufunc from
-    ``pygeos.ufuncs``. See the
-    `NumPy docs <https://docs.scipy.org/doc/numpy/reference/ufuncs.html>`_.
-
-    Examples
-    --------
-    >>> has_z(Geometry("POINT (0 0)"))
-    False
-    >>> has_z(Geometry("POINT Z (0 0 0)"))
-    True
-    """
-    return ufuncs.has_z(geometry, **kwargs)
-
-
-def normalize(geometry):
-    return ufuncs.normalize(geometry)
-
-
 def get_srid(geometry):
     return ufuncs.get_srid(geometry)
 
@@ -100,10 +65,46 @@ def set_srid(geometry, srid):
 
 
 def get_x(point):
+    """Returns the x-coordinate of a point
+
+    Parameters
+    ----------
+    point : Geometry or array_like
+        Non-point geometries will result in NaN being returned.
+
+    See also
+    --------
+    get_y
+
+    Examples
+    --------
+    >>> get_x(Geometry("POINT (1 2)"))
+    1.0
+    >>> get_x(Geometry("MULTIPOINT (1 1, 1 2)"))
+    nan
+    """
     return ufuncs.get_x(point)
 
 
 def get_y(point):
+    """Returns the y-coordinate of a point
+
+    Parameters
+    ----------
+    point : Geometry or array_like
+        Non-point geometries will result in NaN being returned.
+
+    See also
+    --------
+    get_x
+
+    Examples
+    --------
+    >>> get_y(Geometry("POINT (1 2)"))
+    2.0
+    >>> get_y(Geometry("MULTIPOINT (1 1, 1 2)"))
+    nan
+    """
     return ufuncs.get_y(point)
 
 
@@ -183,7 +184,7 @@ def get_exterior_ring(geometry):
 
     Examples
     --------
-    >>> get_exterior_ring(Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0)"))
+    >>> get_exterior_ring(Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))"))
     <pygeos.Geometry LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>
     >>> get_exterior_ring(Geometry("POINT (1 1)"))
     <pygeos.Empty>
