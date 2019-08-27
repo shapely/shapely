@@ -246,10 +246,6 @@ static PyObject *GeometryObject_FromWKB(PyTypeObject *type, PyObject *value)
 static PyObject *GeometryObject_new(PyTypeObject *type, PyObject *args,
                                     PyObject *kwds)
 {
-    void *context_handle = geos_context[0];
-    GEOSGeometry *arg;
-    GEOSGeometry *ptr;
-    PyObject *self;
     PyObject *value;
 
     if (!PyArg_ParseTuple(args, "O", &value)) {
@@ -266,13 +262,6 @@ static PyObject *GeometryObject_new(PyTypeObject *type, PyObject *args,
         PyErr_Format(PyExc_TypeError, "Expected string or bytes, found %s", value->ob_type->tp_name);
         return NULL;
     }
-    ptr = GEOSGeom_clone_r(context_handle, arg);
-    if (ptr == NULL) {
-        RAISE_ILLEGAL_GEOS;
-        return NULL;
-    }
-    self = GeometryObject_FromGEOS(type, ptr);
-    return (PyObject *) self;
 }
 
 static PyMethodDef GeometryObject_methods[] = {
@@ -309,8 +298,9 @@ int
 init_geom_type(PyObject *m)
 {
     if (PyType_Ready(&GeometryType) < 0)
-        return NULL;
+        return -1;
 
     Py_INCREF(&GeometryType);
     PyModule_AddObject(m, "Geometry", (PyObject *) &GeometryType);
+    return 0;
 }

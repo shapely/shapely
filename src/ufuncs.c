@@ -996,12 +996,15 @@ static struct PyModuleDef moduledef = {
 PyMODINIT_FUNC PyInit_ufuncs(void)
 {
     PyObject *m, *d, *ufunc;
+
     m = PyModule_Create(&moduledef);
     if (!m) {
         return NULL;
     }
 
-    init_geom_type(m);
+    if (init_geom_type(m) < 0){
+        return NULL;
+    };
 
     d = PyModule_GetDict(m);
 
