@@ -106,7 +106,9 @@ class build_ext(_build_ext):
         self.include_dirs.append(numpy.get_include())
 
 
-module_ufuncs = Extension("pygeos.ufuncs", sources=["src/ufuncs.c"], **get_geos_paths())
+module_ufuncs = Extension(
+    "pygeos.ufuncs", sources=["src/ufuncs.c", "src/pygeom.c"], **get_geos_paths())
+
 
 try:
     descr = open(os.path.join(os.path.dirname(__file__), "README.rst")).read()
