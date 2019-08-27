@@ -59,6 +59,7 @@ API Reference
 
    constructive
    geometry
+   measurement
    predicates
    set_operations
 
