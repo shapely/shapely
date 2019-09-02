@@ -25,10 +25,10 @@ def difference(a, b, **kwargs):
     >>> line = Geometry("LINESTRING (0 0, 2 2)")
     >>> difference(line, Geometry("LINESTRING (1 1, 3 3)"))
     <pygeos.Geometry LINESTRING (0 0, 1 1)>
-    >>> difference(NaG, line)
-    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
-    >>> difference(line, NaG)
+    >>> difference(line, Geometry("LINESTRING EMPTY"))
     <pygeos.Geometry LINESTRING (0 0, 2 2)>
+    >>> difference(line, NaG)
+    <pygeos.NaG>
     """
     return ufuncs.difference(a, b, **kwargs)
 
@@ -50,8 +50,6 @@ def intersection(a, b, **kwargs):
     >>> line = Geometry("LINESTRING(0 0, 2 2)")
     >>> intersection(line, Geometry("LINESTRING(1 1, 3 3)"))
     <pygeos.Geometry LINESTRING (1 1, 2 2)>
-    >>> intersection(NaG, line)
-    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
     """
     return ufuncs.intersection(a, b, **kwargs)
 
@@ -79,7 +77,7 @@ def intersection_all(geometries, axis=0, **kwargs):
     >>> intersection_all([line_1, line_2])
     <pygeos.Geometry LINESTRING (1 1, 2 2)>
     >>> intersection_all([[line_1, line_2, NaG]], axis=1).tolist()
-    [<pygeos.Geometry GEOMETRYCOLLECTION EMPTY>]
+    [<pygeos.NaG>]
     """
     return ufuncs.intersection.reduce(geometries, axis=axis, **kwargs)
 
@@ -102,8 +100,6 @@ def symmetric_difference(a, b, **kwargs):
     >>> line = Geometry("LINESTRING(0 0, 2 2)")
     >>> symmetric_difference(line, Geometry("LINESTRING(1 1, 3 3)"))
     <pygeos.Geometry MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>
-    >>> symmetric_difference(line, NaG)
-    <pygeos.Geometry LINESTRING (0 0, 2 2)>
     """
     return ufuncs.symmetric_difference(a, b, **kwargs)
 
@@ -131,7 +127,7 @@ def symmetric_difference_all(geometries, axis=0, **kwargs):
     >>> symmetric_difference_all([line_1, line_2])
     <pygeos.Geometry MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>
     >>> symmetric_difference_all([[line_1, line_2, NaG]], axis=1).tolist()
-    [<pygeos.Geometry MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>]
+    [<pygeos.NaG>]
     """
     return ufuncs.symmetric_difference.reduce(geometries, axis=axis, **kwargs)
 
@@ -154,7 +150,7 @@ def union(a, b, **kwargs):
     >>> union(line, Geometry("LINESTRING(2 2, 3 3)"))
     <pygeos.Geometry MULTILINESTRING ((0 0, 2 2), (2 2, 3 3))>
     >>> union(line, NaG)
-    <pygeos.Geometry LINESTRING (0 0, 2 2)>
+    <pygeos.NaG>
     """
     return ufuncs.union(a, b, **kwargs)
 

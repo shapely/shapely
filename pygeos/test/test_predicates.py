@@ -12,6 +12,8 @@ UNARY_PREDICATES = (
     pygeos.is_ring,
     pygeos.is_closed,
     pygeos.is_valid,
+    pygeos.is_null,
+    pygeos.is_geometry,
 )
 
 BINARY_PREDICATES = (
@@ -46,12 +48,11 @@ def test_unary_with_kwargs(func):
 
 @pytest.mark.parametrize("none", [None, np.nan, NaG])
 @pytest.mark.parametrize("func", UNARY_PREDICATES)
-def test_unary_empty(none, func):
-    actual = func(none)
-    if func in [pygeos.is_empty, pygeos.is_valid]:
-        assert actual
+def test_unary_missing(none, func):
+    if func is pygeos.is_null:
+        assert func(none)
     else:
-        assert not actual
+        assert not func(none)
 
 
 @pytest.mark.parametrize("a", all_types)
@@ -72,13 +73,6 @@ def test_binary_with_kwargs(func):
 
 @pytest.mark.parametrize("none", [None, np.nan, NaG])
 @pytest.mark.parametrize("func", BINARY_PREDICATES)
-def test_binary_empty(none, func):
+def test_binary_missing(none, func):
     actual = func(np.array([point, none, none]), np.array([none, point, none]))
-    if func is pygeos.disjoint:
-        assert actual.all()
-    elif func is pygeos.equals:
-        # an empty set equals an empty set. behaviour is different from NaN
-        expected = [False, False, True]
-        np.testing.assert_equal(actual, expected)
-    else:
-        assert (~actual).all()
+    assert (~actual).all()

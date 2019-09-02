@@ -112,7 +112,7 @@ def is_geometry(geometry, **kwargs):
     False
     >>> is_geometry(float("nan"))
     False
-    >>> is_geometry(pygeos.NaG)
+    >>> is_geometry(NaG)
     False
     """
     return ufuncs.is_geometry(geometry, **kwargs)
@@ -140,10 +140,10 @@ def is_null(geometry, **kwargs):
     True
     >>> is_null(float("nan"))
     True
-    >>> is_null(pygeos.NaG)
+    >>> is_null(NaG)
     True
     """
-    return ~ufuncs.is_geometry(geometry, **kwargs)
+    return ufuncs.is_null(geometry, **kwargs)
 
 
 def is_ring(geometry, **kwargs):
@@ -207,7 +207,7 @@ def is_valid(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
-        Any geometry type is accepted.
+        Any geometry type is accepted. Returns False for missing values.
 
     See also
     --------
@@ -219,8 +219,10 @@ def is_valid(geometry, **kwargs):
     True
     >>> is_valid(Geometry("POLYGON((0 0, 1 1, 1 2, 1 1, 0 0))"))
     False
-    >>> is_valid(NaG)
+    >>> is_valid(Geometry("GEOMETRYCOLLECTION EMPTY"))
     True
+    >>> is_valid(NaG)
+    False
     """
     # GEOS is valid will emit warnings for invalid geometries. Suppress them.
     with warnings.catch_warnings():
@@ -235,7 +237,7 @@ def is_valid_reason(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
-        Any geometry type is accepted.
+        Any geometry type is accepted. Returns None for missing values.
 
     See also
     --------
@@ -247,6 +249,7 @@ def is_valid_reason(geometry, **kwargs):
     'Valid Geometry'
     >>> is_valid_reason(Geometry("POLYGON((0 0, 1 1, 1 2, 1 1, 0 0))"))
     'Self-intersection[0 0]'
+    >>> is_valid_reason(NaG)
     """
     return ufuncs.is_valid_reason(geometry, **kwargs)
 
@@ -433,8 +436,15 @@ def disjoint(a, b, **kwargs):
     True
     >>> disjoint(line, Geometry("LINESTRING(0 2, 2 0)"))
     False
-    >>> disjoint(NaG, NaG)
+    >>> empty = Geometry("GEOMETRYCOLLECTION EMPTY")
+    >>> disjoint(line, empty)
     True
+    >>> disjoint(empty, empty)
+    True
+    >>> disjoint(empty, NaG)
+    False
+    >>> disjoint(NaG, NaG)
+    False
     """
     return ufuncs.disjoint(a, b, **kwargs)
 
@@ -459,8 +469,10 @@ def equals(a, b, tolerance=0.0, **kwargs):
     True
     >>> equals(Geometry("POINT (5 5)"), Geometry("POINT (5.1 5)"), tolerance=0.1)
     True
-    >>> equals(NaG, NaG)
+    >>> equals(Geometry("POLYGON EMPTY"), Geometry("GEOMETRYCOLLECTION EMPTY"))
     True
+    >>> equals(NaG, NaG)
+    False
     """
     if tolerance > 0.0:
         return ufuncs.equals_exact(a, b, tolerance, **kwargs)

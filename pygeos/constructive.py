@@ -53,8 +53,6 @@ def boundary(geometry, **kwargs):
     <pygeos.Geometry LINESTRING (0 0, 1 0, 1 1, 0 1, 0 0)>
     >>> boundary(Geometry("MULTIPOINT (0 0, 1 2)"))
     <pygeos.NaG>
-    >>> boundary(NaG)
-    <pygeos.NaG>
     """
     return ufuncs.boundary(geometry, **kwargs)
 
@@ -132,8 +130,8 @@ def buffer(
     <pygeos.Geometry POLYGON ((2 2, 2 8, 8 8, 8 2, 2 2))>
     >>> buffer(square, -5, join_style="mitre")
     <pygeos.Geometry POLYGON EMPTY>
-    >>> buffer(NaG, 1)
-    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
+    >>> buffer(line, float("nan"))
+    <pygeos.NaG>
     """
     if isinstance(cap_style, str):
         cap_style = BufferCapStyles[cap_style.upper()].value
@@ -181,8 +179,6 @@ def centroid(geometry, **kwargs):
     <pygeos.Geometry POINT (5 5)>
     >>> centroid(Geometry("MULTIPOINT (0 0, 10 10)"))
     <pygeos.Geometry POINT (5 5)>
-    >>> centroid(NaG)
-    <pygeos.NaG>
     """
     return ufuncs.centroid(geometry, **kwargs)
 
@@ -198,10 +194,8 @@ def convex_hull(geometry, **kwargs):
     --------
     >>> convex_hull(Geometry("MULTIPOINT (0 0, 10 0, 10 10)"))
     <pygeos.Geometry POLYGON ((0 0, 10 10, 10 0, 0 0))>
-    >>> convex_hull(Geometry("GEOMETRYCOLLECTION EMPTY"))
-    <pygeos.Geometry POLYGON EMPTY>
-    >>> convex_hull(NaG)
-    <pygeos.NaG>
+    >>> convex_hull(Geometry("POLYGON EMPTY"))
+    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
     """
     return ufuncs.convex_hull(geometry, **kwargs)
 
@@ -238,8 +232,6 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
     >>> delaunay_triangles(Geometry("GEOMETRYCOLLECTION EMPTY"))
     <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
-    >>> delaunay_triangles(NaG)
-    <pygeos.NaG>
     """
     return ufuncs.delaunay_triangles(geometry, tolerance, only_edges, **kwargs)
 
@@ -260,9 +252,7 @@ def envelope(geometry, **kwargs):
     >>> envelope(Geometry("POINT (0 0)"))
     <pygeos.Geometry POINT (0 0)>
     >>> envelope(Geometry("GEOMETRYCOLLECTION EMPTY"))
-    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
-    >>> envelope(NaG)
-    <pygeos.NaG>
+    <pygeos.Geometry POINT EMPTY>
     """
     return ufuncs.envelope(geometry, **kwargs)
 
@@ -287,8 +277,8 @@ def extract_unique_points(geometry, **kwargs):
     <pygeos.Geometry MULTIPOINT (0 0, 1 0, 1 1)>
     >>> extract_unique_points(Geometry("MULTIPOINT (0 0, 1 1, 0 0)"))
     <pygeos.Geometry MULTIPOINT (0 0, 1 1)>
-    >>> extract_unique_points(NaG)
-    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
+    >>> extract_unique_points(Geometry("LINESTRING EMPTY"))
+    <pygeos.Geometry MULTIPOINT EMPTY>
     """
     return ufuncs.extract_unique_points(geometry, **kwargs)
 
@@ -308,8 +298,8 @@ def point_on_surface(geometry, **kwargs):
     <pygeos.Geometry POINT (2 2)>
     >>> point_on_surface(Geometry("MULTIPOINT (0 0, 10 10)"))
     <pygeos.Geometry POINT (0 0)>
-    >>> point_on_surface(NaG)
-    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
+    >>> point_on_surface(Geometry("POLYGON EMPTY"))
+    <pygeos.Geometry POINT EMPTY>
     """
     return ufuncs.point_on_surface(geometry, **kwargs)
 
@@ -339,8 +329,6 @@ def simplify(geometry, tolerance, preserve_topology=False, **kwargs):
     <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))>
     >>> simplify(polygon_with_hole, tolerance=4, preserve_topology=False)
     <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
-    >>> simplify(NaG, tolerance=1)
-    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
     """
     if preserve_topology:
         return ufuncs.simplify_preserve_topology(geometry, tolerance, **kwargs)
@@ -411,7 +399,5 @@ def voronoi_polygons(
     <pygeos.Geometry LINESTRING (3 10, 3 0)>
     >>> voronoi_polygons(Geometry("LINESTRING (2 2, 4 2)"), only_edges=True)
     <pygeos.Geometry LINESTRING (3 4, 3 0)>
-    >>> voronoi_polygons(NaG)
-    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
     """
     return ufuncs.voronoi_polygons(geometry, tolerance, extend_to, only_edges, **kwargs)
