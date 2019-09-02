@@ -1,13 +1,15 @@
 import warnings
 
 from . import ufuncs
-from . import Empty, Geometry  # NOQA
+from . import NaG, Geometry  # NOQA
 
 __all__ = [
     "has_z",
     "is_closed",
     "is_empty",
+    "is_geometry",
     "is_ring",
+    "is_null",
     "is_simple",
     "is_valid",
     "is_valid_reason",
@@ -73,16 +75,75 @@ def is_empty(geometry, **kwargs):
     geometry : Geometry or array_like
         Any geometry type is accepted.
 
+    See also
+    --------
+    is_null : checks if the object is a geometry
+
     Examples
     --------
     >>> is_empty(Geometry("POINT EMPTY"))
     True
     >>> is_empty(Geometry("POINT (0 0)"))
     False
-    >>> is_empty(Empty)
-    True
+    >>> is_empty(NaG)
+    False
     """
     return ufuncs.is_empty(geometry, **kwargs)
+
+
+def is_geometry(geometry, **kwargs):
+    """Returns True if the object is a geometry
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+
+    See also
+    --------
+    is_null : the inverse of is_geometry.
+
+    Examples
+    --------
+    >>> is_geometry(Geometry("POINT (0 0)"))
+    True
+    >>> is_geometry(Geometry("GEOMETRYCOLLECTION EMPTY"))
+    True
+    >>> is_geometry(None)
+    False
+    >>> is_geometry(float("nan"))
+    False
+    >>> is_geometry(pygeos.NaG)
+    False
+    """
+    return ufuncs.is_geometry(geometry, **kwargs)
+
+
+def is_null(geometry, **kwargs):
+    """Returns True if the object is not a geometry (NaG)
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+
+    See also
+    --------
+    is_geometry : the inverse of is_null.
+    is_empty : checks if the object is an empty geometry
+
+    Examples
+    --------
+    >>> is_null(Geometry("POINT (0 0)"))
+    False
+    >>> is_null(Geometry("GEOMETRYCOLLECTION EMPTY"))
+    False
+    >>> is_null(None)
+    True
+    >>> is_null(float("nan"))
+    True
+    >>> is_null(pygeos.NaG)
+    True
+    """
+    return ~ufuncs.is_geometry(geometry, **kwargs)
 
 
 def is_ring(geometry, **kwargs):
@@ -134,7 +195,7 @@ def is_simple(geometry, **kwargs):
     True
     >>> is_simple(Geometry("LINESTRING(0 0, 1 1, 0 1, 1 0, 0 0)"))
     False
-    >>> is_simple(Empty)
+    >>> is_simple(NaG)
     False
     """
     return ufuncs.is_simple(geometry, **kwargs)
@@ -158,7 +219,7 @@ def is_valid(geometry, **kwargs):
     True
     >>> is_valid(Geometry("POLYGON((0 0, 1 1, 1 2, 1 1, 0 0))"))
     False
-    >>> is_valid(Empty)
+    >>> is_valid(NaG)
     True
     """
     # GEOS is valid will emit warnings for invalid geometries. Suppress them.
@@ -264,7 +325,7 @@ def contains(a, b, **kwargs):
     False
     >>> contains(area, area)
     True
-    >>> contains(area, Empty)
+    >>> contains(area, NaG)
     False
     """
     return ufuncs.contains(a, b, **kwargs)
@@ -304,7 +365,7 @@ def covered_by(a, b, **kwargs):
     False
     >>> covered_by(area, area)
     True
-    >>> covered_by(Empty, area)
+    >>> covered_by(NaG, area)
     False
     """
     return ufuncs.covered_by(a, b, **kwargs)
@@ -344,7 +405,7 @@ def covers(a, b, **kwargs):
     False
     >>> covers(area, area)
     True
-    >>> covers(area, Empty)
+    >>> covers(area, NaG)
     False
     """
     return ufuncs.covers(a, b, **kwargs)
@@ -372,7 +433,7 @@ def disjoint(a, b, **kwargs):
     True
     >>> disjoint(line, Geometry("LINESTRING(0 2, 2 0)"))
     False
-    >>> disjoint(Empty, Empty)
+    >>> disjoint(NaG, NaG)
     True
     """
     return ufuncs.disjoint(a, b, **kwargs)
@@ -398,7 +459,7 @@ def equals(a, b, tolerance=0.0, **kwargs):
     True
     >>> equals(Geometry("POINT (5 5)"), Geometry("POINT (5.1 5)"), tolerance=0.1)
     True
-    >>> equals(Empty, Empty)
+    >>> equals(NaG, NaG)
     True
     """
     if tolerance > 0.0:
@@ -429,7 +490,7 @@ def intersects(a, b, **kwargs):
     False
     >>> intersects(line, Geometry("LINESTRING(0 2, 2 0)"))
     True
-    >>> intersects(Empty, Empty)
+    >>> intersects(NaG, NaG)
     False
     """
     return ufuncs.intersects(a, b, **kwargs)
@@ -454,7 +515,7 @@ def overlaps(a, b, **kwargs):
     True
     >>> overlaps(line, Geometry("POINT (0.5 0.5)"))
     False
-    >>> overlaps(Empty, Empty)
+    >>> overlaps(NaG, NaG)
     False
     """
     return ufuncs.overlaps(a, b, **kwargs)
@@ -529,7 +590,7 @@ def within(a, b, **kwargs):
     False
     >>> within(area, area)
     True
-    >>> within(Empty, area)
+    >>> within(NaG, area)
     False
     """
     return ufuncs.within(a, b, **kwargs)

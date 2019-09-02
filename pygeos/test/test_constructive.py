@@ -2,7 +2,7 @@ import pygeos
 import numpy as np
 import pytest
 
-from pygeos import Geometry, Empty, GEOSException
+from pygeos import Geometry, NaG, GEOSException
 
 from .common import point, all_types, geometry_collection
 
@@ -26,13 +26,9 @@ CONSTRUCTIVE_FLOAT_ARG = (
 @pytest.mark.parametrize("geometry", all_types)
 @pytest.mark.parametrize("func", CONSTRUCTIVE_NO_ARGS)
 def test_no_args_array(geometry, func):
-    if func is pygeos.boundary and geometry is geometry_collection:
-        with pytest.raises(GEOSException):
-            func([geometry, geometry])
-    else:
-        actual = func([geometry, geometry])
-        assert actual.shape == (2,)
-        assert isinstance(actual[0], Geometry)
+    actual = func([geometry, geometry])
+    assert actual.shape == (2,)
+    assert isinstance(actual[0], Geometry)
 
 
 @pytest.mark.parametrize("geometry", all_types)
@@ -51,34 +47,34 @@ def test_snap_array(geometry, reference):
     assert isinstance(actual[0], Geometry)
 
 
-@pytest.mark.parametrize("none", [None, np.nan, Empty])
+@pytest.mark.parametrize("none", [None, np.nan, NaG])
 @pytest.mark.parametrize("func", CONSTRUCTIVE_NO_ARGS)
 def test_no_args_empty(none, func):
     actual = func(none)
-    assert actual is Empty
+    assert actual is NaG
 
 
-@pytest.mark.parametrize("none", [None, np.nan, Empty])
+@pytest.mark.parametrize("none", [None, np.nan, NaG])
 @pytest.mark.parametrize("func", CONSTRUCTIVE_FLOAT_ARG)
 def test_float_arg_empty(none, func):
     actual = func(none, 1.0)
-    assert actual is Empty
+    assert actual is NaG
 
 
 @pytest.mark.parametrize("geometry", all_types)
 @pytest.mark.parametrize("func", CONSTRUCTIVE_FLOAT_ARG)
 def test_float_arg_nan(geometry, func):
     actual = func(geometry, np.nan)
-    assert actual is Empty
+    assert actual is NaG
 
 
-@pytest.mark.parametrize("none", [None, np.nan, Empty])
+@pytest.mark.parametrize("none", [None, np.nan, NaG])
 def test_snap_empty(none):
     actual = pygeos.snap(none, point, tolerance=1.0)
-    assert actual is Empty
+    assert actual is NaG
 
 
 @pytest.mark.parametrize("geometry", all_types)
 def test_snap_nan_float(geometry):
     actual = pygeos.snap(geometry, point, tolerance=np.nan)
-    assert actual is Empty
+    assert actual is NaG

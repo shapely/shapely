@@ -24,6 +24,7 @@ point_z = pygeos.points(1.0, 1.0, 1.0)
 polygon_with_hole = pygeos.Geometry(
     "POLYGON((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))"
 )
+empty = pygeos.Geometry("GEOMETRYCOLLECTION EMPTY")
 
 all_types = (
     point,
@@ -34,5 +35,5 @@ all_types = (
     multi_line_string,
     multi_polygon,
     geometry_collection,
-    pygeos.Empty,
+    empty,
 )

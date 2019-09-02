@@ -9,14 +9,20 @@
 
 
 /* This initializes a pointer to a NULL geometry */
-GeometryObject *Geom_Empty = NULL;
+GeometryObject *NaG = NULL;
 
-/* Initializes a new geometry object, without Empty check */
-PyObject *GeometryObject_FROMGEOS(PyTypeObject *type, GEOSGeometry *ptr)
+/* Initializes a new geometry object */
+PyObject *GeometryObject_FromGEOS(PyTypeObject *type, GEOSGeometry *ptr)
 {
     if (ptr == NULL) {
-        Py_INCREF(Geom_Empty);
-        return (PyObject *) Geom_Empty;
+        if (NaG == NULL) {
+            /* First time: initialize the NaG object */
+            NaG = (GeometryObject *) type->tp_alloc(type, 0);
+            NaG->ptr = ptr;
+        } else {
+            Py_INCREF(NaG);
+        }
+        return (PyObject *) NaG;
     }
     GeometryObject *self = (GeometryObject *) type->tp_alloc(type, 0);
     if (self == NULL) {
@@ -24,28 +30,6 @@ PyObject *GeometryObject_FROMGEOS(PyTypeObject *type, GEOSGeometry *ptr)
     } else {
         self->ptr = ptr;
         return (PyObject *) self;
-    }
-}
-
-/* Initializes a new geometry object, with Empty check */
-PyObject *GeometryObject_FromGEOS(PyTypeObject *type, GEOSGeometry *ptr)
-{
-    void *context_handle = geos_context[0];
-    char empty;
-    if (ptr == NULL) {
-        return GeometryObject_FROMGEOS(type, ptr);
-    } else if (ptr == Geom_Empty->ptr) {
-        return GeometryObject_FROMGEOS(type, NULL);
-    } else {
-        empty = GEOSisEmpty_r(context_handle, ptr);
-        if (empty == 2) {
-            return NULL;
-        } else if (empty == 1) {
-            GEOSGeom_destroy_r(context_handle, ptr);
-            return GeometryObject_FROMGEOS(type, NULL);
-        } else {
-            return GeometryObject_FROMGEOS(type, ptr);
-        }
     }
 }
 
@@ -108,9 +92,7 @@ static PyObject *GeometryObject_ToWKT(GeometryObject *self, PyObject *args, PyOb
 static PyObject *GeometryObject_repr(GeometryObject *self)
 {
     if (self->ptr == NULL) {
-        return PyUnicode_FromString("<pygeos.Geometry NULL>");
-    } else if (self == Geom_Empty) {
-        return PyUnicode_FromString("<pygeos.Empty>");
+        return PyUnicode_FromString("<pygeos.NaG>");
     } else {
         return to_wkt(self, "<pygeos.Geometry %s>", 1, 3, 3, 0);
     }

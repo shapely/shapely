@@ -123,7 +123,7 @@ def test_2_polygons_with_different_holes():
 
 def test_create_collection_only_nan():
     actual = pygeos.multipoints(np.array([np.nan], dtype=object))
-    assert actual.to_wkt() == "GEOMETRYCOLLECTION EMPTY"
+    assert actual.to_wkt() == "MULTIPOINT EMPTY"
 
 
 def test_create_collection_skips_nan():

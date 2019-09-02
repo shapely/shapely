@@ -2,7 +2,7 @@ import pytest
 import pygeos
 import numpy as np
 
-from pygeos import Empty
+from pygeos import NaG
 
 from .common import point, all_types
 
@@ -44,7 +44,7 @@ def test_unary_with_kwargs(func):
     assert actual.dtype == np.uint8
 
 
-@pytest.mark.parametrize("none", [None, np.nan, Empty])
+@pytest.mark.parametrize("none", [None, np.nan, NaG])
 @pytest.mark.parametrize("func", UNARY_PREDICATES)
 def test_unary_empty(none, func):
     actual = func(none)
@@ -70,7 +70,7 @@ def test_binary_with_kwargs(func):
     assert actual.dtype == np.uint8
 
 
-@pytest.mark.parametrize("none", [None, np.nan, Empty])
+@pytest.mark.parametrize("none", [None, np.nan, NaG])
 @pytest.mark.parametrize("func", BINARY_PREDICATES)
 def test_binary_empty(none, func):
     actual = func(np.array([point, none, none]), np.array([none, point, none]))

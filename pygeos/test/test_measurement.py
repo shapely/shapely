@@ -2,7 +2,7 @@ import pygeos
 import pytest
 import numpy as np
 
-from pygeos import Empty
+from pygeos import NaG
 
 from .common import point_polygon_testdata
 from .common import point
@@ -43,7 +43,7 @@ def test_distance():
 
 
 def test_distance_empty():
-    actual = pygeos.distance(point, Empty)
+    actual = pygeos.distance(point, NaG)
     assert np.isnan(actual)
 
 
@@ -63,7 +63,7 @@ def test_length():
 
 
 def test_length_empty():
-    actual = pygeos.length(Empty)
+    actual = pygeos.length(NaG)
     assert np.isnan(actual)
 
 
@@ -84,7 +84,7 @@ def test_haussdorf_distance_densify():
 
 
 def test_haussdorf_distance_empty():
-    actual = pygeos.hausdorff_distance(point, Empty)
+    actual = pygeos.hausdorff_distance(point, NaG)
     assert np.isnan(actual)
 
 

@@ -223,7 +223,7 @@ def test_from_wkt(geom):
     "wkt", ("POINT EMPTY", "LINESTRING EMPTY", "GEOMETRYCOLLECTION EMPTY")
 )
 def test_from_wkt_empty(wkt):
-    assert pygeos.Geometry.from_wkt(wkt) is pygeos.Empty
+    assert pygeos.Geometry.from_wkt(wkt) is pygeos.NaG
 
 
 def test_from_wkt_bytes():
