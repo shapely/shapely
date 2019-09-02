@@ -371,7 +371,7 @@ def voronoi_polygons(
     """Computes a Voronoi diagram from the vertices of an input geometry.
 
     The output is a geometrycollection containing polygons (default)
-    or linestrings (see only_edges). Returns NaG if an input geometry
+    or linestrings (see only_edges). Returns empty if an input geometry
     contains less than 2 vertices or if the provided extent has zero area.
 
     Parameters
@@ -399,5 +399,7 @@ def voronoi_polygons(
     <pygeos.Geometry LINESTRING (3 10, 3 0)>
     >>> voronoi_polygons(Geometry("LINESTRING (2 2, 4 2)"), only_edges=True)
     <pygeos.Geometry LINESTRING (3 4, 3 0)>
+    >>> voronoi_polygons(Geometry("POINT (2 2)"))
+    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
     """
     return ufuncs.voronoi_polygons(geometry, tolerance, extend_to, only_edges, **kwargs)

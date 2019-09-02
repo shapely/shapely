@@ -418,6 +418,7 @@ def disjoint(a, b, **kwargs):
     """Returns True if A and B do not share any point in space.
 
     Disjoint implies that overlaps, touches, within, and intersects are False.
+    Note missing (NaG) values are never disjoint.
 
     Parameters
     ----------

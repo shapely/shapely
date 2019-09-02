@@ -49,14 +49,14 @@ def test_snap_array(geometry, reference):
 
 @pytest.mark.parametrize("none", [None, np.nan, NaG])
 @pytest.mark.parametrize("func", CONSTRUCTIVE_NO_ARGS)
-def test_no_args_empty(none, func):
+def test_no_args_missing(none, func):
     actual = func(none)
     assert actual is NaG
 
 
 @pytest.mark.parametrize("none", [None, np.nan, NaG])
 @pytest.mark.parametrize("func", CONSTRUCTIVE_FLOAT_ARG)
-def test_float_arg_empty(none, func):
+def test_float_arg_missing(none, func):
     actual = func(none, 1.0)
     assert actual is NaG
 
@@ -69,7 +69,7 @@ def test_float_arg_nan(geometry, func):
 
 
 @pytest.mark.parametrize("none", [None, np.nan, NaG])
-def test_snap_empty(none):
+def test_snap_missing(none):
     actual = pygeos.snap(none, point, tolerance=1.0)
     assert actual is NaG
 

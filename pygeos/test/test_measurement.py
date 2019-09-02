@@ -42,7 +42,7 @@ def test_distance():
     np.testing.assert_allclose(actual, expected)
 
 
-def test_distance_empty():
+def test_distance_missing():
     actual = pygeos.distance(point, NaG)
     assert np.isnan(actual)
 
@@ -62,7 +62,7 @@ def test_length():
     assert actual.tolist() == [0.0, 2.0, 4.0, 8.0, 48.0, 0.0, 4.4]
 
 
-def test_length_empty():
+def test_length_missing():
     actual = pygeos.length(NaG)
     assert np.isnan(actual)
 
@@ -83,7 +83,7 @@ def test_haussdorf_distance_densify():
     assert actual == pytest.approx(47.8, abs=0.1)
 
 
-def test_haussdorf_distance_empty():
+def test_haussdorf_distance_missing():
     actual = pygeos.hausdorff_distance(point, NaG)
     assert np.isnan(actual)
 
