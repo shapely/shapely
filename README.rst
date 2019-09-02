@@ -157,11 +157,11 @@ Run the unittests::
 References
 ----------
 
- - GEOS: http://trac.osgeo.org/geos
- - Shapely: https://shapely.readthedocs.io/en/latest/
- - Numpy ufuncs: https://docs.scipy.org/doc/numpy/reference/ufuncs.html
- - Joris van den Bossche's blogpost: https://jorisvandenbossche.github.io/blog/2017/09/19/geopandas-cython/
- - Matthew Rocklin's blogpost: http://matthewrocklin.com/blog/work/2017/09/21/accelerating-geopandas-1
+- GEOS: http://trac.osgeo.org/geos
+- Shapely: https://shapely.readthedocs.io/en/latest/
+- Numpy ufuncs: https://docs.scipy.org/doc/numpy/reference/ufuncs.html
+- Joris van den Bossche's blogpost: https://jorisvandenbossche.github.io/blog/2017/09/19/geopandas-cython/
+- Matthew Rocklin's blogpost: http://matthewrocklin.com/blog/work/2017/09/21/accelerating-geopandas-1
 
 
 Copyright & License
