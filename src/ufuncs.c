@@ -56,9 +56,6 @@ static char get_geom(GeometryObject *obj, GEOSGeometry **out) {
         if ((PyObject *) obj == Py_None) {
             *out = NULL;
             return 1;
-        } else if (npy_isnan(PyFloat_AS_DOUBLE((PyObject *) obj))) {
-            *out = NULL;
-            return 1;
         } else {
             PyErr_Format(PyExc_TypeError, "One of the arguments is of incorrect type. Please provide only Geometry objects.");
             return 0;
@@ -89,12 +86,7 @@ static char IsGeometry(void *context, void *geom) {
     /* this code is only reached if the geometry is not null */
     return 1;
 }
-static char IsNull(void *context, void *geom) {
-    /* there is an exception in the inner loop to reach this code */
-    return geom == NULL;
-}
 static void *is_geometry_data[1] = {IsGeometry};
-static void *is_null_data[1] = {IsNull};
 static void *has_z_data[1] = {GEOSHasZ_r};
 /* the GEOSisClosed_r function fails on non-linestrings */
 static char GEOSisClosedAllTypes_r(void *context, void *geom) {
@@ -123,7 +115,7 @@ static void Y_b_func(char **args, npy_intp *dimensions,
     UNARY_LOOP {
         /* get the geometry; return on error */
         if (!get_geom(*(GeometryObject **)ip1, &in1)) { return; }
-        if ((func != IsNull) & (in1 == NULL)) {
+        if (in1 == NULL) {
             /* in case of a missing value: return 0 (False) */
             ret = 0;
         } else {
@@ -170,7 +162,7 @@ static void YY_b_func(char **args, npy_intp *dimensions,
             /* call the GEOS function */
             ret = func(context_handle, in1, in2);
             /* return for illegal values (trust HandleGEOSError for SetErr) */
-            if ((ret < 0) | (ret > 1)) { return; }
+            if ((ret != 0) & (ret != 1)) { return; }
         }
         *(npy_bool *)op1 = ret;
     }
@@ -643,7 +635,7 @@ static void equals_exact_func(char **args, npy_intp *dimensions,
         } else {
             ret = GEOSEqualsExact_r(context_handle, in1, in2, in3);
             /* return for illegal values (trust HandleGEOSError for SetErr) */
-            if ((ret < 0) | (ret > 1)) { return; }
+            if ((ret != 0) & (ret != 1)) { return; }
         }
         *(npy_bool *)op1 = ret;
     }
@@ -1007,7 +999,6 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_Y_b (is_empty);
     DEFINE_Y_b (is_simple);
     DEFINE_Y_b (is_geometry);
-    DEFINE_Y_b (is_null);
     DEFINE_Y_b (is_ring);
     DEFINE_Y_b (has_z);
     DEFINE_Y_b (is_closed);

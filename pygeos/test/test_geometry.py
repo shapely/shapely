@@ -43,7 +43,7 @@ def test_get_num_geometries():
 )
 def test_get_point_non_linestring(geom):
     actual = pygeos.get_point(geom, [0, 2, -1])
-    assert pygeos.is_null(actual).all()
+    assert pygeos.is_missing(actual).all()
 
 
 @pytest.mark.parametrize("geom", [line_string, linear_ring])
@@ -51,7 +51,7 @@ def test_get_point(geom):
     n = pygeos.get_num_points(geom)
     actual = pygeos.get_point(geom, [0, -n, n, -(n + 1)])
     assert pygeos.equals(actual[0], actual[1]).all()
-    assert pygeos.is_null(actual[2:4]).all()
+    assert pygeos.is_missing(actual[2:4]).all()
 
 
 @pytest.mark.parametrize(
@@ -68,7 +68,7 @@ def test_get_point(geom):
 )
 def test_get_exterior_ring_non_polygon(geom):
     actual = pygeos.get_exterior_ring(geom)
-    assert pygeos.is_null(actual).all()
+    assert pygeos.is_missing(actual).all()
 
 
 def test_get_exterior_ring():
@@ -90,20 +90,20 @@ def test_get_exterior_ring():
 )
 def test_get_interior_ring_non_polygon(geom):
     actual = pygeos.get_interior_ring(geom, [0, 2, -1])
-    assert pygeos.is_null(actual).all()
+    assert pygeos.is_missing(actual).all()
 
 
 def test_get_interior_ring():
     actual = pygeos.get_interior_ring(polygon_with_hole, [0, -1, 1, -2])
     assert pygeos.equals(actual[0], actual[1]).all()
-    assert pygeos.is_null(actual[2:4]).all()
+    assert pygeos.is_missing(actual[2:4]).all()
 
 
 @pytest.mark.parametrize("geom", [point, line_string, linear_ring, polygon])
 def test_get_geometry_simple(geom):
     actual = pygeos.get_geometry(geom, [0, -1, 1, -2])
     assert pygeos.equals(actual[0], actual[1]).all()
-    assert pygeos.is_null(actual[2:4]).all()
+    assert pygeos.is_missing(actual[2:4]).all()
 
 
 @pytest.mark.parametrize(
@@ -113,7 +113,7 @@ def test_get_geometry_collection(geom):
     n = pygeos.get_num_geometries(geom)
     actual = pygeos.get_geometry(geom, [0, -n, n, -(n + 1)])
     assert pygeos.equals(actual[0], actual[1]).all()
-    assert pygeos.is_null(actual[2:4]).all()
+    assert pygeos.is_missing(actual[2:4]).all()
 
 
 def test_get_type_id():

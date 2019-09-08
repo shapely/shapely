@@ -7,22 +7,12 @@
 #include "pygeom.h"
 #include "geos.h"
 
-
-/* This initializes a pointer to a NULL geometry */
-GeometryObject *NaG = NULL;
-
 /* Initializes a new geometry object */
 PyObject *GeometryObject_FromGEOS(PyTypeObject *type, GEOSGeometry *ptr)
 {
     if (ptr == NULL) {
-        if (NaG == NULL) {
-            /* First time: initialize the NaG object */
-            NaG = (GeometryObject *) type->tp_alloc(type, 0);
-            NaG->ptr = ptr;
-        } else {
-            Py_INCREF(NaG);
-        }
-        return (PyObject *) NaG;
+        Py_INCREF(Py_None);
+        return Py_None;
     }
     GeometryObject *self = (GeometryObject *) type->tp_alloc(type, 0);
     if (self == NULL) {

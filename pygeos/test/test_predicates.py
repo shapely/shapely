@@ -2,8 +2,6 @@ import pytest
 import pygeos
 import numpy as np
 
-from pygeos import NaG
-
 from .common import point, all_types
 
 UNARY_PREDICATES = (
@@ -12,7 +10,7 @@ UNARY_PREDICATES = (
     pygeos.is_ring,
     pygeos.is_closed,
     pygeos.is_valid,
-    pygeos.is_null,
+    pygeos.is_missing,
     pygeos.is_geometry,
 )
 
@@ -46,13 +44,12 @@ def test_unary_with_kwargs(func):
     assert actual.dtype == np.uint8
 
 
-@pytest.mark.parametrize("none", [None, np.nan, NaG])
 @pytest.mark.parametrize("func", UNARY_PREDICATES)
-def test_unary_missing(none, func):
-    if func is pygeos.is_null:
-        assert func(none)
+def test_unary_missing(func):
+    if func is pygeos.is_missing:
+        assert func(None)
     else:
-        assert not func(none)
+        assert not func(None)
 
 
 @pytest.mark.parametrize("a", all_types)
@@ -71,8 +68,7 @@ def test_binary_with_kwargs(func):
     assert actual.dtype == np.uint8
 
 
-@pytest.mark.parametrize("none", [None, np.nan, NaG])
 @pytest.mark.parametrize("func", BINARY_PREDICATES)
-def test_binary_missing(none, func):
-    actual = func(np.array([point, none, none]), np.array([none, point, none]))
+def test_binary_missing(func):
+    actual = func(np.array([point, None, None]), np.array([None, point, None]))
     assert (~actual).all()

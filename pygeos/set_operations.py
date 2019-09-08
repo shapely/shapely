@@ -1,5 +1,5 @@
 import numpy as np
-from . import ufuncs, NaG, Geometry, GeometryType
+from . import ufuncs, Geometry, GeometryType
 
 __all__ = [
     "difference",
@@ -27,8 +27,8 @@ def difference(a, b, **kwargs):
     <pygeos.Geometry LINESTRING (0 0, 1 1)>
     >>> difference(line, Geometry("LINESTRING EMPTY"))
     <pygeos.Geometry LINESTRING (0 0, 2 2)>
-    >>> difference(line, NaG)
-    <pygeos.NaG>
+    >>> difference(line, None) is None
+    True
     """
     return ufuncs.difference(a, b, **kwargs)
 
@@ -76,8 +76,8 @@ def intersection_all(geometries, axis=0, **kwargs):
     >>> line_2 = Geometry("LINESTRING(1 1, 3 3)")
     >>> intersection_all([line_1, line_2])
     <pygeos.Geometry LINESTRING (1 1, 2 2)>
-    >>> intersection_all([[line_1, line_2, NaG]], axis=1).tolist()
-    [<pygeos.NaG>]
+    >>> intersection_all([[line_1, line_2, None]], axis=1).tolist()
+    [None]
     """
     return ufuncs.intersection.reduce(geometries, axis=axis, **kwargs)
 
@@ -126,8 +126,8 @@ def symmetric_difference_all(geometries, axis=0, **kwargs):
     >>> line_2 = Geometry("LINESTRING(1 1, 3 3)")
     >>> symmetric_difference_all([line_1, line_2])
     <pygeos.Geometry MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>
-    >>> symmetric_difference_all([[line_1, line_2, NaG]], axis=1).tolist()
-    [<pygeos.NaG>]
+    >>> symmetric_difference_all([[line_1, line_2, None]], axis=1).tolist()
+    [None]
     """
     return ufuncs.symmetric_difference.reduce(geometries, axis=axis, **kwargs)
 
@@ -149,8 +149,8 @@ def union(a, b, **kwargs):
     >>> line = Geometry("LINESTRING(0 0, 2 2)")
     >>> union(line, Geometry("LINESTRING(2 2, 3 3)"))
     <pygeos.Geometry MULTILINESTRING ((0 0, 2 2), (2 2, 3 3))>
-    >>> union(line, NaG)
-    <pygeos.NaG>
+    >>> union(line, None) is None
+    True
     """
     return ufuncs.union(a, b, **kwargs)
 
@@ -177,7 +177,7 @@ def union_all(geometries, axis=0, **kwargs):
     >>> line_2 = Geometry("LINESTRING(2 2, 3 3)")
     >>> union_all([line_1, line_2])
     <pygeos.Geometry MULTILINESTRING ((0 0, 2 2), (2 2, 3 3))>
-    >>> union_all([[line_1, line_2, NaG]], axis=1).tolist()
+    >>> union_all([[line_1, line_2, None]], axis=1).tolist()
     [<pygeos.Geometry MULTILINESTRING ((0 0, 2 2), (2 2, 3 3))>]
     """
     # for union_all, GEOS provides an efficient route through first creating

@@ -121,13 +121,13 @@ def test_2_polygons_with_different_holes():
     assert pygeos.area(actual).tolist() == [96.0, 24.0]
 
 
-def test_create_collection_only_nan():
-    actual = pygeos.multipoints(np.array([np.nan], dtype=object))
+def test_create_collection_only_none():
+    actual = pygeos.multipoints(np.array([None], dtype=object))
     assert actual.to_wkt() == "MULTIPOINT EMPTY"
 
 
-def test_create_collection_skips_nan():
-    actual = pygeos.multipoints([point, np.nan, np.nan, point])
+def test_create_collection_skips_none():
+    actual = pygeos.multipoints([point, None, None, point])
     assert actual.to_wkt() == "MULTIPOINT (2 3, 2 3)"
 
 

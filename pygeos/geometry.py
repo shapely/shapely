@@ -1,7 +1,7 @@
 from enum import IntEnum
 import numpy as np
 from . import ufuncs
-from . import NaG, Geometry  # NOQA
+from . import Geometry  # NOQA
 
 __all__ = [
     "GeometryType",
@@ -43,7 +43,7 @@ class GeometryType(IntEnum):
 def get_type_id(geometry):
     """Returns the type ID of a geometry.
 
-    - NaG is -1
+    - None is -1
     - POINT is 0
     - LINESTRING is 1
     - LINEARRING is 2
@@ -76,7 +76,7 @@ def get_dimensions(geometry):
 
     The inherent dimension is 0 for points, 1 for linestrings and linearrings,
     and 2 for polygons. For geometrycollections it is the max of the containing
-    elements. Empty and NaG geometries return -1.
+    elements. Empty and None geometries return -1.
 
     Parameters
     ----------
@@ -92,7 +92,7 @@ def get_dimensions(geometry):
     1
     >>> get_dimensions(Geometry("GEOMETRYCOLLECTION EMPTY"))
     -1
-    >>> get_dimensions(NaG)
+    >>> get_dimensions(None)
     -1
     """
     return ufuncs.get_dimensions(geometry)
@@ -113,7 +113,7 @@ def get_coordinate_dimensions(geometry):
     2
     >>> get_coordinate_dimensions(Geometry("POINT Z (0 0 0)"))
     3
-    >>> get_coordinate_dimensions(NaG)
+    >>> get_coordinate_dimensions(None)
     -1
     """
     return ufuncs.get_coordinate_dimensions(geometry)
@@ -136,7 +136,7 @@ def get_num_coordinates(geometry):
     1
     >>> get_num_coordinates(Geometry("GEOMETRYCOLLECTION (POINT(0 0), LINESTRING(0 0, 1 1))"))
     3
-    >>> get_num_coordinates(NaG)
+    >>> get_num_coordinates(None)
     -1
     """
     return ufuncs.get_num_coordinates(geometry)
@@ -265,10 +265,10 @@ def get_point(geometry, index):
     [<pygeos.Geometry POINT (0 0)>, <pygeos.Geometry POINT (3 3)>]
     >>> get_point(Geometry("LINEARRING (0 0, 1 1, 2 2, 0 0)"), 1)
     <pygeos.Geometry POINT (1 1)>
-    >>> get_point(Geometry("MULTIPOINT (0 0, 1 1, 2 2, 3 3)"), 1)
-    <pygeos.NaG>
-    >>> get_point(Geometry("POINT (1 1)"), 0)
-    <pygeos.NaG>
+    >>> get_point(Geometry("MULTIPOINT (0 0, 1 1, 2 2, 3 3)"), 1) is None
+    True
+    >>> get_point(Geometry("POINT (1 1)"), 0) is None
+    True
     """
     return ufuncs.get_point(geometry, np.intc(index))
 
@@ -316,8 +316,8 @@ def get_exterior_ring(geometry):
     --------
     >>> get_exterior_ring(Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))"))
     <pygeos.Geometry LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>
-    >>> get_exterior_ring(Geometry("POINT (1 1)"))
-    <pygeos.NaG>
+    >>> get_exterior_ring(Geometry("POINT (1 1)")) is None
+    True
     """
     return ufuncs.get_exterior_ring(geometry)
 
@@ -341,8 +341,8 @@ def get_interior_ring(geometry, index):
     >>> polygon_with_hole = Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))")
     >>> get_interior_ring(polygon_with_hole, 0)
     <pygeos.Geometry LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>
-    >>> get_interior_ring(Geometry("POINT (1 1)"), 0)
-    <pygeos.NaG>
+    >>> get_interior_ring(Geometry("POINT (1 1)"), 0) is None
+    True
     """
     return ufuncs.get_interior_ring(geometry, np.intc(index))
 
@@ -389,7 +389,7 @@ def get_geometry(geometry, index):
     Notes
     -----
     - simple geometries act as length-1 collections
-    - out-of-range values return NaG
+    - out-of-range values return None
 
     See also
     --------
@@ -402,12 +402,12 @@ def get_geometry(geometry, index):
     <pygeos.Geometry POINT (1 1)>
     >>> get_geometry(multipoint, -1)
     <pygeos.Geometry POINT (3 3)>
-    >>> get_geometry(multipoint, 5)
-    <pygeos.NaG>
+    >>> get_geometry(multipoint, 5) is None
+    True
     >>> get_geometry(Geometry("POINT (1 1)"), 0)
     <pygeos.Geometry POINT (1 1)>
-    >>> get_geometry(Geometry("POINT (1 1)"), 1)
-    <pygeos.NaG>
+    >>> get_geometry(Geometry("POINT (1 1)"), 1) is None
+    True
     """
     return ufuncs.get_geometry(geometry, np.intc(index))
 

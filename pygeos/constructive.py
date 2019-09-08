@@ -1,6 +1,6 @@
 from enum import IntEnum
 import numpy as np
-from . import NaG, Geometry  # NOQA
+from . import Geometry  # NOQA
 from . import ufuncs
 
 
@@ -51,8 +51,8 @@ def boundary(geometry, **kwargs):
     <pygeos.Geometry MULTIPOINT EMPTY>
     >>> boundary(Geometry("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))"))
     <pygeos.Geometry LINESTRING (0 0, 1 0, 1 1, 0 1, 0 0)>
-    >>> boundary(Geometry("MULTIPOINT (0 0, 1 2)"))
-    <pygeos.NaG>
+    >>> boundary(Geometry("MULTIPOINT (0 0, 1 2)")) is None
+    True
     """
     return ufuncs.boundary(geometry, **kwargs)
 
@@ -130,8 +130,8 @@ def buffer(
     <pygeos.Geometry POLYGON ((2 2, 2 8, 8 8, 8 2, 2 2))>
     >>> buffer(square, -5, join_style="mitre")
     <pygeos.Geometry POLYGON EMPTY>
-    >>> buffer(line, float("nan"))
-    <pygeos.NaG>
+    >>> buffer(line, float("nan")) is None
+    True
     """
     if isinstance(cap_style, str):
         cap_style = BufferCapStyles[cap_style.upper()].value
@@ -205,7 +205,7 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     geometry.
 
     The output is a geometrycollection containing polygons (default)
-    or linestrings (see only_edges). Returns an NaG if the input geometry
+    or linestrings (see only_edges). Returns an None if an input geometry
     contains less than 3 vertices.
 
     Parameters

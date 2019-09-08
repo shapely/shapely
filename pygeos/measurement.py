@@ -1,5 +1,5 @@
 from . import ufuncs
-from . import Geometry, NaG  # NOQA
+from . import Geometry  # NOQA
 
 __all__ = ["area", "distance", "length", "hausdorff_distance"]
 
@@ -17,7 +17,9 @@ def area(geometry):
     100.0
     >>> area(Geometry("MULTIPOLYGON (((0 0, 0 10, 10 10, 0 0)), ((0 0, 0 10, 10 10, 0 0)))"))
     100.0
-    >>> area(NaG)
+    >>> area(Geometry("POLYGON EMPTY"))
+    0.0
+    >>> area(None)
     nan
     """
     return ufuncs.area(geometry)
@@ -39,7 +41,9 @@ def distance(a, b):
     1.0
     >>> distance(Geometry("POLYGON ((3 0, 5 0, 5 5, 3 5, 3 0))"), point)
     3.0
-    >>> distance(NaG, point)
+    >>> distance(Geometry("POINT EMPTY"), point)
+    0.0
+    >>> distance(None, point)
     nan
     """
     return ufuncs.distance(a, b)
@@ -60,7 +64,9 @@ def length(geometry):
     2.0
     >>> length(Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))"))
     40.0
-    >>> length(NaG)
+    >>> length(Geometry("LINESTRING EMPTY"))
+    0.0
+    >>> length(None)
     nan
     """
     return ufuncs.length(geometry)
@@ -89,7 +95,9 @@ def hausdorff_distance(a, b, densify=None):
     14.14...
     >>> hausdorff_distance(line_1, line_2, densify=0.5)
     70.0
-    >>> hausdorff_distance(line_1, NaG)
+    >>> hausdorff_distance(line_1, Geometry("LINESTRING EMPTY"))
+    0.0
+    >>> hausdorff_distance(line_1, None)
     nan
     """
     if densify is None:
