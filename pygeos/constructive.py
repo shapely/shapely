@@ -1,6 +1,6 @@
 from enum import IntEnum
 import numpy as np
-from . import Empty, Geometry  # NOQA
+from . import Geometry  # NOQA
 from . import ufuncs
 
 
@@ -44,19 +44,15 @@ def boundary(geometry, **kwargs):
     Examples
     --------
     >>> boundary(Geometry("POINT (0 0)"))
-    <pygeos.Empty>
+    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
     >>> boundary(Geometry("LINESTRING(0 0, 1 1, 1 2)"))
     <pygeos.Geometry MULTIPOINT (0 0, 1 2)>
     >>> boundary(Geometry("LINEARRING (0 0, 1 0, 1 1, 0 1, 0 0)"))
-    <pygeos.Empty>
+    <pygeos.Geometry MULTIPOINT EMPTY>
     >>> boundary(Geometry("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))"))
     <pygeos.Geometry LINESTRING (0 0, 1 0, 1 1, 0 1, 0 0)>
-    >>> boundary(Geometry("MULTIPOINT (0 0, 1 2)"))
-    <pygeos.Empty>
-    >>> boundary(Geometry("MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))"))
-    <pygeos.Geometry MULTIPOINT (0 0, 1 1, 2 2, 3 3)>
-    >>> boundary(Empty)
-    <pygeos.Empty>
+    >>> boundary(Geometry("MULTIPOINT (0 0, 1 2)")) is None
+    True
     """
     return ufuncs.boundary(geometry, **kwargs)
 
@@ -112,7 +108,7 @@ def buffer(
     >>> buffer(Geometry("POINT (10 10)"), 2, quadsegs=2)
     <pygeos.Geometry POLYGON ((12 10, 11.4 8.59, 10 8, 8.59 8.59, 8 10, 8.59 11.4, 10 12, 11.4 11.4, 12 10))>
     >>> buffer(Geometry("POINT (10 10)"), -2, quadsegs=1)
-    <pygeos.Empty>
+    <pygeos.Geometry POLYGON EMPTY>
     >>> line = Geometry("LINESTRING (10 10, 20 10)")
     >>> buffer(line, 2, cap_style="square")
     <pygeos.Geometry POLYGON ((20 12, 22 12, 22 8, 10 8, 8 8, 8 12, 20 12))>
@@ -133,9 +129,9 @@ def buffer(
     >>> buffer(square, -2, join_style="mitre")
     <pygeos.Geometry POLYGON ((2 2, 2 8, 8 8, 8 2, 2 2))>
     >>> buffer(square, -5, join_style="mitre")
-    <pygeos.Empty>
-    >>> buffer(Empty, 1)
-    <pygeos.Empty>
+    <pygeos.Geometry POLYGON EMPTY>
+    >>> buffer(line, float("nan")) is None
+    True
     """
     if isinstance(cap_style, str):
         cap_style = BufferCapStyles[cap_style.upper()].value
@@ -183,8 +179,6 @@ def centroid(geometry, **kwargs):
     <pygeos.Geometry POINT (5 5)>
     >>> centroid(Geometry("MULTIPOINT (0 0, 10 10)"))
     <pygeos.Geometry POINT (5 5)>
-    >>> centroid(Empty)
-    <pygeos.Empty>
     """
     return ufuncs.centroid(geometry, **kwargs)
 
@@ -200,8 +194,8 @@ def convex_hull(geometry, **kwargs):
     --------
     >>> convex_hull(Geometry("MULTIPOINT (0 0, 10 0, 10 10)"))
     <pygeos.Geometry POLYGON ((0 0, 10 10, 10 0, 0 0))>
-    >>> convex_hull(Empty)
-    <pygeos.Empty>
+    >>> convex_hull(Geometry("POLYGON EMPTY"))
+    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
     """
     return ufuncs.convex_hull(geometry, **kwargs)
 
@@ -211,7 +205,7 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     geometry.
 
     The output is a geometrycollection containing polygons (default)
-    or linestrings (see only_edges). Returns an Empty if the input geometry
+    or linestrings (see only_edges). Returns an None if an input geometry
     contains less than 3 vertices.
 
     Parameters
@@ -236,8 +230,8 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
     >>> delaunay_triangles(Geometry("LINESTRING (50 30, 60 30, 100 100)"))
     <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
-    >>> delaunay_triangles(Empty)
-    <pygeos.Empty>
+    >>> delaunay_triangles(Geometry("GEOMETRYCOLLECTION EMPTY"))
+    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
     """
     return ufuncs.delaunay_triangles(geometry, tolerance, only_edges, **kwargs)
 
@@ -257,8 +251,8 @@ def envelope(geometry, **kwargs):
     <pygeos.Geometry POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))>
     >>> envelope(Geometry("POINT (0 0)"))
     <pygeos.Geometry POINT (0 0)>
-    >>> envelope(Empty)
-    <pygeos.Empty>
+    >>> envelope(Geometry("GEOMETRYCOLLECTION EMPTY"))
+    <pygeos.Geometry POINT EMPTY>
     """
     return ufuncs.envelope(geometry, **kwargs)
 
@@ -283,8 +277,8 @@ def extract_unique_points(geometry, **kwargs):
     <pygeos.Geometry MULTIPOINT (0 0, 1 0, 1 1)>
     >>> extract_unique_points(Geometry("MULTIPOINT (0 0, 1 1, 0 0)"))
     <pygeos.Geometry MULTIPOINT (0 0, 1 1)>
-    >>> extract_unique_points(Empty)
-    <pygeos.Empty>
+    >>> extract_unique_points(Geometry("LINESTRING EMPTY"))
+    <pygeos.Geometry MULTIPOINT EMPTY>
     """
     return ufuncs.extract_unique_points(geometry, **kwargs)
 
@@ -304,8 +298,8 @@ def point_on_surface(geometry, **kwargs):
     <pygeos.Geometry POINT (2 2)>
     >>> point_on_surface(Geometry("MULTIPOINT (0 0, 10 10)"))
     <pygeos.Geometry POINT (0 0)>
-    >>> point_on_surface(Empty)
-    <pygeos.Empty>
+    >>> point_on_surface(Geometry("POLYGON EMPTY"))
+    <pygeos.Geometry POINT EMPTY>
     """
     return ufuncs.point_on_surface(geometry, **kwargs)
 
@@ -335,8 +329,6 @@ def simplify(geometry, tolerance, preserve_topology=False, **kwargs):
     <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))>
     >>> simplify(polygon_with_hole, tolerance=4, preserve_topology=False)
     <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
-    >>> simplify(Empty, tolerance=1)
-    <pygeos.Empty>
     """
     if preserve_topology:
         return ufuncs.simplify_preserve_topology(geometry, tolerance, **kwargs)
@@ -379,7 +371,7 @@ def voronoi_polygons(
     """Computes a Voronoi diagram from the vertices of an input geometry.
 
     The output is a geometrycollection containing polygons (default)
-    or linestrings (see only_edges). Returns Empty if an input geometry
+    or linestrings (see only_edges). Returns empty if an input geometry
     contains less than 2 vertices or if the provided extent has zero area.
 
     Parameters
@@ -407,7 +399,7 @@ def voronoi_polygons(
     <pygeos.Geometry LINESTRING (3 10, 3 0)>
     >>> voronoi_polygons(Geometry("LINESTRING (2 2, 4 2)"), only_edges=True)
     <pygeos.Geometry LINESTRING (3 4, 3 0)>
-    >>> voronoi_polygons(Empty)
-    <pygeos.Empty>
+    >>> voronoi_polygons(Geometry("POINT (2 2)"))
+    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
     """
     return ufuncs.voronoi_polygons(geometry, tolerance, extend_to, only_edges, **kwargs)

@@ -2,8 +2,6 @@ import pygeos
 import pytest
 import numpy as np
 
-from pygeos import Empty
-
 from .common import point_polygon_testdata
 from .common import point
 from .common import line_string
@@ -14,6 +12,7 @@ from .common import multi_point
 from .common import multi_line_string
 from .common import multi_polygon
 from .common import geometry_collection
+from .common import empty
 
 
 @pytest.mark.parametrize(
@@ -42,8 +41,8 @@ def test_distance():
     np.testing.assert_allclose(actual, expected)
 
 
-def test_distance_empty():
-    actual = pygeos.distance(point, Empty)
+def test_distance_missing():
+    actual = pygeos.distance(point, None)
     assert np.isnan(actual)
 
 
@@ -62,8 +61,8 @@ def test_length():
     assert actual.tolist() == [0.0, 2.0, 4.0, 8.0, 48.0, 0.0, 4.4]
 
 
-def test_length_empty():
-    actual = pygeos.length(Empty)
+def test_length_missing():
+    actual = pygeos.length(None)
     assert np.isnan(actual)
 
 
@@ -83,11 +82,26 @@ def test_haussdorf_distance_densify():
     assert actual == pytest.approx(47.8, abs=0.1)
 
 
-def test_haussdorf_distance_empty():
-    actual = pygeos.hausdorff_distance(point, Empty)
+def test_haussdorf_distance_missing():
+    actual = pygeos.hausdorff_distance(point, None)
     assert np.isnan(actual)
 
 
 def test_haussdorf_densify_nan():
     actual = pygeos.hausdorff_distance(point, point, densify=np.nan)
+    assert np.isnan(actual)
+
+
+def test_distance_empty():
+    actual = pygeos.distance(point, empty)
+    assert np.isnan(actual)
+
+
+def test_haussdorf_distance_empty():
+    actual = pygeos.hausdorff_distance(point, empty)
+    assert np.isnan(actual)
+
+
+def test_haussdorf_distance_densify_empty():
+    actual = pygeos.hausdorff_distance(point, empty, densify=0.2)
     assert np.isnan(actual)

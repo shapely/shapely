@@ -11,12 +11,11 @@ typedef struct {
 } GeometryObject;
 
 
-GeometryObject *Geom_Empty;
+GeometryObject *NaG;
 
 PyTypeObject GeometryType;
 
 /* Initializes a new geometry object */
-PyObject *GeometryObject_FROMGEOS(PyTypeObject *type, GEOSGeometry *ptr);
 PyObject *GeometryObject_FromGEOS(PyTypeObject *type, GEOSGeometry *ptr);
 
 int init_geom_type(PyObject *m);
