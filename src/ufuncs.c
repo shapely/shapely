@@ -526,6 +526,12 @@ static void YY_d_func(char **args, npy_intp *dimensions,
         } else {
             /* let the GEOS function  set op1; return on error */
             if (func(context_handle, in1, in2, (double *) op1) == 0) { return; }
+            /* incase the outcome is 0.0, check the inputs for emptyness */
+            if (*op1 == 0.0) {
+                if (GEOSisEmpty_r(context_handle, in1) | GEOSisEmpty_r(context_handle, in2)) {
+                    *(double *)op1 = NPY_NAN;
+                }
+            }
         }
     }
 }
@@ -660,6 +666,11 @@ static void haussdorf_distance_densify_func(char **args, npy_intp *dimensions,
         } else {
             /* let the GEOS function set op1; return on error */
             if (GEOSHausdorffDistanceDensify_r(context_handle, in1, in2, in3, (double *) op1) == 0) { return ; }
+            if (*op1 == 0.0) {
+                if (GEOSisEmpty_r(context_handle, in1) | GEOSisEmpty_r(context_handle, in2)) {
+                    *(double *)op1 = NPY_NAN;
+                }
+            }
         }
     }
 }

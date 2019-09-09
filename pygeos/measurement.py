@@ -42,7 +42,7 @@ def distance(a, b):
     >>> distance(Geometry("POLYGON ((3 0, 5 0, 5 5, 3 5, 3 0))"), point)
     3.0
     >>> distance(Geometry("POINT EMPTY"), point)
-    0.0
+    nan
     >>> distance(None, point)
     nan
     """
@@ -96,7 +96,7 @@ def hausdorff_distance(a, b, densify=None):
     >>> hausdorff_distance(line_1, line_2, densify=0.5)
     70.0
     >>> hausdorff_distance(line_1, Geometry("LINESTRING EMPTY"))
-    0.0
+    nan
     >>> hausdorff_distance(line_1, None)
     nan
     """

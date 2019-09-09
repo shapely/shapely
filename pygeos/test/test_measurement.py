@@ -12,6 +12,7 @@ from .common import multi_point
 from .common import multi_line_string
 from .common import multi_polygon
 from .common import geometry_collection
+from .common import empty
 
 
 @pytest.mark.parametrize(
@@ -88,4 +89,19 @@ def test_haussdorf_distance_missing():
 
 def test_haussdorf_densify_nan():
     actual = pygeos.hausdorff_distance(point, point, densify=np.nan)
+    assert np.isnan(actual)
+
+
+def test_distance_empty():
+    actual = pygeos.distance(point, empty)
+    assert np.isnan(actual)
+
+
+def test_haussdorf_distance_empty():
+    actual = pygeos.hausdorff_distance(point, empty)
+    assert np.isnan(actual)
+
+
+def test_haussdorf_distance_densify_empty():
+    actual = pygeos.hausdorff_distance(point, empty, densify=0.2)
     assert np.isnan(actual)
