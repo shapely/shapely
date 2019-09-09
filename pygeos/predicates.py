@@ -97,11 +97,12 @@ def is_geometry(geometry, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : any object or array_like
 
     See also
     --------
-    is_missing : the inverse of is_geometry.
+    is_missing : check if an object is missing (None)
+    is_valid_input : check if an object is a geometry or None
 
     Examples
     --------
@@ -110,6 +111,8 @@ def is_geometry(geometry, **kwargs):
     >>> is_geometry(Geometry("GEOMETRYCOLLECTION EMPTY"))
     True
     >>> is_geometry(None)
+    False
+    >>> is_geometry("text")
     False
     """
     return ufuncs.is_geometry(geometry, **kwargs)
@@ -120,11 +123,12 @@ def is_missing(geometry, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : any object or array_like
 
     See also
     --------
-    is_geometry : the inverse of is_missing.
+    is_geometry : check if an object is a geometry
+    is_valid_input : check if an object is a geometry or None
     is_empty : checks if the object is an empty geometry
 
     Examples
@@ -135,6 +139,8 @@ def is_missing(geometry, **kwargs):
     False
     >>> is_missing(None)
     True
+    >>> is_missing("text")
+    False
     """
     return ufuncs.is_missing(geometry, **kwargs)
 
@@ -144,7 +150,7 @@ def is_valid_input(geometry, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : any object or array_like
 
     See also
     --------
