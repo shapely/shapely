@@ -1,6 +1,12 @@
 Changes
 =======
 
+Next
+----
+
+- Remove assertion on the number of version-like strings found in the GEOS
+  version string. It could be 2 or 3.
+
 1.7a2 (2019-06-21)
 ------------------
 

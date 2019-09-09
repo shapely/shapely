@@ -239,7 +239,6 @@ def _geos_version():
         geos_version_string = geos_version_string.decode('ascii')
 
     res = re.findall(r'(\d+)\.(\d+)\.(\d+)', geos_version_string)
-    assert len(res) == 2, res
     geos_version = tuple(int(x) for x in res[0])
     capi_version = tuple(int(x) for x in res[1])
 
