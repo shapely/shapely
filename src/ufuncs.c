@@ -82,11 +82,6 @@ static char GEOSisSimpleAllTypes_r(void *context, void *geom) {
 }
 static void *is_simple_data[1] = {GEOSisSimpleAllTypes_r};
 static void *is_ring_data[1] = {GEOSisRing_r};
-static char IsGeometry(void *context, void *geom) {
-    /* this code is only reached if the geometry is not null */
-    return 1;
-}
-static void *is_geometry_data[1] = {IsGeometry};
 static void *has_z_data[1] = {GEOSHasZ_r};
 /* the GEOSisClosed_r function fails on non-linestrings */
 static char GEOSisClosedAllTypes_r(void *context, void *geom) {
@@ -129,6 +124,33 @@ static void Y_b_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction Y_b_funcs[1] = {&Y_b_func};
 
+/* Define the object -> bool functions (O_b) which do not raise on non-geom objects*/
+static char IsMissing(void *context, PyObject *obj) {
+    return ((PyObject *) obj == Py_None);
+}
+static void *is_missing_data[1] = {IsMissing};
+static char IsGeometry(void *context, PyObject *obj) {
+    return (PyObject_IsInstance(obj, (PyObject *) &GeometryType));
+}
+static void *is_geometry_data[1] = {IsGeometry};
+static char IsValidInput(void *context, PyObject *obj) {
+    return (IsGeometry(context, obj) | IsMissing(context, obj));
+}
+static void *is_valid_input_data[1] = {IsValidInput};
+typedef char FuncGEOS_O_b(void *context, PyObject *obj);
+static char O_b_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
+static void O_b_func(char **args, npy_intp *dimensions,
+                     npy_intp *steps, void *data)
+{
+    FuncGEOS_O_b *func = (FuncGEOS_O_b *)data;
+    void *context_handle = geos_context[0];
+
+    UNARY_LOOP {
+        *(npy_bool *)op1 = func(context_handle, *(PyObject **)ip1);
+    }
+}
+static PyUFuncGenericFunction O_b_funcs[1] = {&O_b_func};
+
 
 /* Define the geom, geom -> bool functions (YY_b) */
 static void *disjoint_data[1] = {GEOSDisjoint_r};
@@ -162,7 +184,7 @@ static void YY_b_func(char **args, npy_intp *dimensions,
             /* call the GEOS function */
             ret = func(context_handle, in1, in2);
             /* return for illegal values (trust HandleGEOSError for SetErr) */
-            if ((ret != 0) & (ret != 1)) { return; }
+            if (ret == 2) { return; }
         }
         *(npy_bool *)op1 = ret;
     }
@@ -758,7 +780,6 @@ static void is_valid_reason_func(char **args, npy_intp *dimensions,
 static PyUFuncGenericFunction is_valid_reason_funcs[1] = {&is_valid_reason_func};
 
 /* define double -> geometry construction functions */
-
 static char points_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
 static void points_func(char **args, npy_intp *dimensions,
                         npy_intp *steps, void *data)
@@ -918,6 +939,10 @@ TODO relate functions
     ufunc = PyUFunc_FromFuncAndData(Y_b_funcs, NAME ##_data, Y_b_dtypes, 1, 1, 1, PyUFunc_None, # NAME, NULL, 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
+#define DEFINE_O_b(NAME)\
+    ufunc = PyUFunc_FromFuncAndData(O_b_funcs, NAME ##_data, O_b_dtypes, 1, 1, 1, PyUFunc_None, # NAME, NULL, 0);\
+    PyDict_SetItemString(d, # NAME, ufunc)
+
 #define DEFINE_YY_b(NAME)\
     ufunc = PyUFunc_FromFuncAndData(YY_b_funcs, NAME ##_data, YY_b_dtypes, 1, 2, 1, PyUFunc_None, # NAME, "", 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
@@ -952,10 +977,6 @@ TODO relate functions
 
 #define DEFINE_YY_d(NAME)\
     ufunc = PyUFunc_FromFuncAndData(YY_d_funcs, NAME ##_data, YY_d_dtypes, 1, 2, 1, PyUFunc_None, # NAME, "", 0);\
-    PyDict_SetItemString(d, # NAME, ufunc)
-
-#define DEFINE_YY_d_2(NAME)\
-    ufunc = PyUFunc_FromFuncAndData(YY_d_2_funcs, NAME ##_data, YY_d_2_dtypes, 1, 2, 1, PyUFunc_None, # NAME, "", 0);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
 #define DEFINE_CUSTOM(NAME, N_IN)\
@@ -1014,6 +1035,10 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_Y_b (has_z);
     DEFINE_Y_b (is_closed);
     DEFINE_Y_b (is_valid);
+
+    DEFINE_O_b (is_geometry);
+    DEFINE_O_b (is_missing);
+    DEFINE_O_b (is_valid_input);
 
     DEFINE_YY_b (disjoint);
     DEFINE_YY_b (touches);

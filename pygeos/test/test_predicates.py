@@ -12,6 +12,7 @@ UNARY_PREDICATES = (
     pygeos.is_valid,
     pygeos.is_missing,
     pygeos.is_geometry,
+    pygeos.is_valid_input,
 )
 
 BINARY_PREDICATES = (
@@ -46,7 +47,7 @@ def test_unary_with_kwargs(func):
 
 @pytest.mark.parametrize("func", UNARY_PREDICATES)
 def test_unary_missing(func):
-    if func is pygeos.is_missing:
+    if func in (pygeos.is_valid_input, pygeos.is_missing):
         assert func(None)
     else:
         assert not func(None)

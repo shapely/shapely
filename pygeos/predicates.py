@@ -1,5 +1,4 @@
 import warnings
-import numpy as np
 
 from . import ufuncs
 from . import Geometry  # NOQA
@@ -13,6 +12,7 @@ __all__ = [
     "is_ring",
     "is_simple",
     "is_valid",
+    "is_valid_input",
     "is_valid_reason",
     "crosses",
     "contains",
@@ -136,7 +136,35 @@ def is_missing(geometry, **kwargs):
     >>> is_missing(None)
     True
     """
-    return np.equal(geometry, None, **kwargs)
+    return ufuncs.is_missing(geometry, **kwargs)
+
+
+def is_valid_input(geometry, **kwargs):
+    """Returns True if the object is a geometry or None
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+
+    See also
+    --------
+    is_geometry : checks if an object is a geometry
+    is_missing : checks if an object is None
+
+    Examples
+    --------
+    >>> is_valid_input(Geometry("POINT (0 0)"))
+    True
+    >>> is_valid_input(Geometry("GEOMETRYCOLLECTION EMPTY"))
+    True
+    >>> is_valid_input(None)
+    True
+    >>> is_valid_input(1.0)
+    False
+    >>> is_valid_input("text")
+    False
+    """
+    return ufuncs.is_valid_input(geometry, **kwargs)
 
 
 def is_ring(geometry, **kwargs):
