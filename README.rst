@@ -104,23 +104,11 @@ Compute the area of all possible intersections of two lists of polygons:
 Installation using conda
 ------------------------
 
-Pygeos requires the presence of NumPy and GEOS >= 3.5. It is recommended to obtain
-these using Anaconda::
+Pygeos requires the presence of NumPy and GEOS >= 3.5. It is recommended to install
+these using Anaconda from the conda-forge channel (which provides pre-compiled
+binaries)::
 
-    $ conda install numpy geos
-
-On Linux / OSX::
-
-    $ export GEOS_INCLUDE_PATH=$CONDA_PREFIX/Library/include
-    $ export GEOS_LIBRARY_PATH=$CONDA_PREFIX/Library/lib
-    $ pip install pygeos
-
-On windows (assuming you are in a Visual C++ shell)::
-
-    $ set GEOS_INCLUDE_PATH=%CONDA_PREFIX%\Library\include
-    $ set GEOS_LIBRARY_PATH=%CONDA_PREFIX%\Library\lib
-    $ pip install pygeos
-
+    $ conda install numpy geos pygeos --channel conda-forge
 
 Installation using system GEOS
 ------------------------------
@@ -142,6 +130,9 @@ Make sure `geos-config` is available from you shell; append PATH if necessary::
 Installation for developers
 ---------------------------
 
+Ensure you have numpy and GEOS installed (either using conda or using system
+GEOS, see above).
+
 Clone the package::
 
     $ git clone https://github.com/caspervdw/pygeos.git
@@ -153,6 +144,21 @@ Install it using `pip`::
 Run the unittests::
 
     $ pytest
+
+If GEOS is installed, normally the ``geos-config`` command line utility
+will be available, and ``pip install`` will find GEOS automatically.
+But if needed, you can specify where PyGEOS should look for the GEOS library
+before installing it:
+
+On Linux / OSX::
+
+    $ export GEOS_INCLUDE_PATH=$CONDA_PREFIX/Library/include
+    $ export GEOS_LIBRARY_PATH=$CONDA_PREFIX/Library/lib
+
+On windows (assuming you are in a Visual C++ shell)::
+
+    $ set GEOS_INCLUDE_PATH=%CONDA_PREFIX%\Library\include
+    $ set GEOS_LIBRARY_PATH=%CONDA_PREFIX%\Library\lib
 
 References
 ----------
