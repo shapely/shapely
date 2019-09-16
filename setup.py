@@ -5,6 +5,7 @@ from distutils.version import LooseVersion
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext as _build_ext
 import logging
+import versioneer
 
 log = logging.getLogger(__name__)
 ch = logging.StreamHandler()
@@ -116,9 +117,13 @@ except IOError:
     descr = ""
 
 
+version = versioneer.get_version()
+cmdclass = versioneer.get_cmdclass()
+cmdclass['build_ext'] = build_ext
+
 setup(
     name="pygeos",
-    version="0.3.dev0",
+    version=version,
     description="GEOS wrapped in numpy ufuncs",
     long_description=descr,
     url="https://github.com/caspervdw/pygeos",
@@ -138,5 +143,5 @@ setup(
         "Topic :: Scientific/Engineering :: GIS",
         "Operating System :: Unix",
     ],
-    cmdclass={"build_ext": build_ext},
+    cmdclass=cmdclass,
 )
