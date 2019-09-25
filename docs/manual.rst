@@ -207,8 +207,8 @@ General Attributes and Methods
 
 .. code-block:: pycon
 
-  >>> print Point(0, 0).geom_type
-  Point
+  >>> Point(0, 0).geom_type
+  'Point'
 
 .. method:: object.distance(other)
 
@@ -2470,8 +2470,8 @@ appropriate type, use ``loads()``.
 
   >> from shapely.wkb import dumps, loads
   >>> wkb = dumps(Point(0, 0))
-  >>> print wkb.encode('hex')
-  010100000000000000000000000000000000000000
+  >>> wkb.encode('hex')
+  '010100000000000000000000000000000000000000'
   >>> loads(wkb).wkt
   'POINT (0.0000000000000000 0.0000000000000000)'
 
@@ -2489,10 +2489,10 @@ All of Shapely's geometry types are supported by these functions.
 
   >> from shapely.wkt import dumps, loads
   >> wkt = dumps(Point(0, 0))
-  >>> print wkt
-  POINT (0.0000000000000000 0.0000000000000000)
-  >>> loads(wkt).wkt
+  >>> wkt
   'POINT (0.0000000000000000 0.0000000000000000)'
+  >>> loads(wkt).wkt
+  'POINT (0 0)'
 
 Numpy and Python Arrays
 -----------------------
