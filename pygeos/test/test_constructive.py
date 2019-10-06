@@ -4,7 +4,7 @@ import pytest
 
 from pygeos import Geometry, GEOSException
 
-from .common import point, all_types, geometry_collection
+from .common import point, all_types
 
 CONSTRUCTIVE_NO_ARGS = (
     pygeos.boundary,

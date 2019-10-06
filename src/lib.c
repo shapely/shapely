@@ -11,12 +11,15 @@
 
 #include "geos.h"
 #include "pygeom.h"
+#include "coords.h"
 #include "ufuncs.h"
 
 
 /* This tells Python what methods this module has. */
 static PyMethodDef GeosModule[] = {
-    {NULL, NULL, 0, NULL},
+    {"count_coordinates", PyCountCoords, METH_VARARGS, "Counts the total amount of coordinates in a array with geometry objects"},
+    {"get_coordinates", PyGetCoords, METH_VARARGS, "Gets the coordinates as an (N, 2) shaped ndarray of floats"},
+    {"set_coordinates", PySetCoords, METH_VARARGS, "Sets coordinates to a geometry array"},
     {NULL, NULL, 0, NULL}
 };
 

@@ -62,6 +62,7 @@ API Reference
    measurement
    predicates
    set_operations
+   coordinates
 
 
 Indices and tables
