@@ -4,6 +4,10 @@
 #include <Python.h>
 #include <math.h>
 
+#define NO_IMPORT_ARRAY
+#define NO_IMPORT_UFUNC
+#define PY_ARRAY_UNIQUE_SYMBOL pygeos_ARRAY_API
+#define PY_UFUNC_UNIQUE_SYMBOL pygeos_UFUNC_API
 #include <numpy/ndarraytypes.h>
 #include <numpy/ufuncobject.h>
 #include <numpy/npy_3kcompat.h>
@@ -32,39 +36,6 @@
     PyObject **out = (PyObject **)op1;\
     Py_XDECREF(*out);\
     *out = ret
-
-/* This tells Python what methods this module has. */
-static PyMethodDef GeosModule[] = {
-    {NULL, NULL, 0, NULL},
-    {NULL, NULL, 0, NULL}
-};
-
-/* This initializes a global GEOS Context */
-void *geos_context[1] = {NULL};
-
-static void HandleGEOSError(const char *message, void *userdata) {
-    PyErr_SetString(userdata, message);
-}
-
-static void HandleGEOSNotice(const char *message, void *userdata) {
-    PyErr_WarnEx(PyExc_Warning, message, 1);
-}
-
-
-static char get_geom(GeometryObject *obj, GEOSGeometry **out) {
-    if (!PyObject_IsInstance((PyObject *) obj, (PyObject *) &GeometryType)) {
-        if ((PyObject *) obj == Py_None) {
-            *out = NULL;
-            return 1;
-        } else {
-            PyErr_Format(PyExc_TypeError, "One of the arguments is of incorrect type. Please provide only Geometry objects.");
-            return 0;
-        }
-    } else {
-        *out = obj->ptr;
-        return 1;
-    }
-}
 
 /* Define the geom -> bool functions (Y_b) */
 static void *is_empty_data[1] = {GEOSisEmpty_r};
@@ -987,45 +958,9 @@ TODO relate functions
     ufunc = PyUFunc_FromFuncAndDataAndSignature(NAME ##_funcs, null_data, NAME ##_dtypes, 1, N_IN, 1, PyUFunc_None, # NAME, "", 0, SIGNATURE);\
     PyDict_SetItemString(d, # NAME, ufunc)
 
-static struct PyModuleDef moduledef = {
-    PyModuleDef_HEAD_INIT,
-    "ufuncs",
-    NULL,
-    -1,
-    GeosModule,
-    NULL,
-    NULL,
-    NULL,
-    NULL
-};
-
-PyMODINIT_FUNC PyInit_ufuncs(void)
+int init_ufuncs(PyObject *m, PyObject *d)
 {
-    PyObject *m, *d, *ufunc;
-
-    m = PyModule_Create(&moduledef);
-    if (!m) {
-        return NULL;
-    }
-
-    if (init_geom_type(m) < 0){
-        return NULL;
-    };
-
-    d = PyModule_GetDict(m);
-
-    import_array();
-    import_umath();
-
-    void *context_handle = GEOS_init_r();
-    PyObject* GEOSException = PyErr_NewException("pygeos.GEOSException", NULL, NULL);
-    PyModule_AddObject(m, "GEOSException", GEOSException);
-    GEOSContext_setErrorMessageHandler_r(context_handle, HandleGEOSError, GEOSException);
-    GEOSContext_setNoticeMessageHandler_r(context_handle, HandleGEOSNotice, NULL);
-    geos_context[0] = context_handle;  /* for global access */
-
-    /* export the version as a python string */
-    PyModule_AddObject(m, "geos_version", PyUnicode_FromString(GEOS_VERSION));
+    PyObject *ufunc;
 
     DEFINE_Y_b (is_empty);
     DEFINE_Y_b (is_simple);
@@ -1110,5 +1045,5 @@ PyMODINIT_FUNC PyInit_ufuncs(void)
     DEFINE_GENERALIZED(create_collection, 2, "(i),()->()");
 
     Py_DECREF(ufunc);
-    return m;
+    return 0;
 }

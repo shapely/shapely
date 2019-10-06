@@ -1,6 +1,6 @@
 from enum import IntEnum
 import numpy as np
-from . import ufuncs
+from . import lib
 from . import Geometry  # NOQA
 
 __all__ = [
@@ -68,7 +68,7 @@ def get_type_id(geometry):
     >>> get_type_id([Geometry("POINT (1 2)"), Geometry("POINT (1 2)")]).tolist()
     [0, 0]
     """
-    return ufuncs.get_type_id(geometry)
+    return lib.get_type_id(geometry)
 
 
 def get_dimensions(geometry):
@@ -95,7 +95,7 @@ def get_dimensions(geometry):
     >>> get_dimensions(None)
     -1
     """
-    return ufuncs.get_dimensions(geometry)
+    return lib.get_dimensions(geometry)
 
 
 def get_coordinate_dimensions(geometry):
@@ -116,7 +116,7 @@ def get_coordinate_dimensions(geometry):
     >>> get_coordinate_dimensions(None)
     -1
     """
-    return ufuncs.get_coordinate_dimensions(geometry)
+    return lib.get_coordinate_dimensions(geometry)
 
 
 def get_num_coordinates(geometry):
@@ -139,7 +139,7 @@ def get_num_coordinates(geometry):
     >>> get_num_coordinates(None)
     -1
     """
-    return ufuncs.get_num_coordinates(geometry)
+    return lib.get_num_coordinates(geometry)
 
 
 def get_srid(geometry):
@@ -164,7 +164,7 @@ def get_srid(geometry):
     >>> get_srid(with_srid)
     4326
     """
-    return ufuncs.get_srid(geometry)
+    return lib.get_srid(geometry)
 
 
 def set_srid(geometry, srid):
@@ -188,7 +188,7 @@ def set_srid(geometry, srid):
     >>> get_srid(with_srid)
     4326
     """
-    return ufuncs.set_srid(geometry, np.intc(srid))
+    return lib.set_srid(geometry, np.intc(srid))
 
 
 # points
@@ -213,7 +213,7 @@ def get_x(point):
     >>> get_x(Geometry("MULTIPOINT (1 1, 1 2)"))
     nan
     """
-    return ufuncs.get_x(point)
+    return lib.get_x(point)
 
 
 def get_y(point):
@@ -235,7 +235,7 @@ def get_y(point):
     >>> get_y(Geometry("MULTIPOINT (1 1, 1 2)"))
     nan
     """
-    return ufuncs.get_y(point)
+    return lib.get_y(point)
 
 
 # linestrings
@@ -270,7 +270,7 @@ def get_point(geometry, index):
     >>> get_point(Geometry("POINT (1 1)"), 0) is None
     True
     """
-    return ufuncs.get_point(geometry, np.intc(index))
+    return lib.get_point(geometry, np.intc(index))
 
 
 def get_num_points(geometry):
@@ -295,7 +295,7 @@ def get_num_points(geometry):
     >>> get_num_points(Geometry("MULTIPOINT (0 0, 1 1, 2 2, 3 3)"))
     0
     """
-    return ufuncs.get_num_points(geometry)
+    return lib.get_num_points(geometry)
 
 
 # polygons
@@ -319,7 +319,7 @@ def get_exterior_ring(geometry):
     >>> get_exterior_ring(Geometry("POINT (1 1)")) is None
     True
     """
-    return ufuncs.get_exterior_ring(geometry)
+    return lib.get_exterior_ring(geometry)
 
 
 def get_interior_ring(geometry, index):
@@ -344,7 +344,7 @@ def get_interior_ring(geometry, index):
     >>> get_interior_ring(Geometry("POINT (1 1)"), 0) is None
     True
     """
-    return ufuncs.get_interior_ring(geometry, np.intc(index))
+    return lib.get_interior_ring(geometry, np.intc(index))
 
 
 def get_num_interior_rings(geometry):
@@ -371,7 +371,7 @@ def get_num_interior_rings(geometry):
     >>> get_num_interior_rings(Geometry("POINT (1 1)"))
     0
     """
-    return ufuncs.get_num_interior_rings(geometry)
+    return lib.get_num_interior_rings(geometry)
 
 
 # collections
@@ -409,7 +409,7 @@ def get_geometry(geometry, index):
     >>> get_geometry(Geometry("POINT (1 1)"), 1) is None
     True
     """
-    return ufuncs.get_geometry(geometry, np.intc(index))
+    return lib.get_geometry(geometry, np.intc(index))
 
 
 def get_num_geometries(geometry):
@@ -433,4 +433,4 @@ def get_num_geometries(geometry):
     >>> get_num_geometries(Geometry("POINT (1 1)"))
     1
     """
-    return ufuncs.get_num_geometries(geometry)
+    return lib.get_num_geometries(geometry)

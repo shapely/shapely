@@ -1,6 +1,6 @@
 import warnings
 
-from . import ufuncs
+from . import lib
 from . import Geometry  # NOQA
 
 __all__ = [
@@ -41,7 +41,7 @@ def has_z(geometry, **kwargs):
     >>> has_z(Geometry("POINT Z (0 0 0)"))
     True
     """
-    return ufuncs.has_z(geometry, **kwargs)
+    return lib.has_z(geometry, **kwargs)
 
 
 def is_closed(geometry, **kwargs):
@@ -65,7 +65,7 @@ def is_closed(geometry, **kwargs):
     >>> is_closed(Geometry("POINT (0 0)"))
     False
     """
-    return ufuncs.is_closed(geometry, **kwargs)
+    return lib.is_closed(geometry, **kwargs)
 
 
 def is_empty(geometry, **kwargs):
@@ -89,7 +89,7 @@ def is_empty(geometry, **kwargs):
     >>> is_empty(None)
     False
     """
-    return ufuncs.is_empty(geometry, **kwargs)
+    return lib.is_empty(geometry, **kwargs)
 
 
 def is_geometry(geometry, **kwargs):
@@ -115,7 +115,7 @@ def is_geometry(geometry, **kwargs):
     >>> is_geometry("text")
     False
     """
-    return ufuncs.is_geometry(geometry, **kwargs)
+    return lib.is_geometry(geometry, **kwargs)
 
 
 def is_missing(geometry, **kwargs):
@@ -142,7 +142,7 @@ def is_missing(geometry, **kwargs):
     >>> is_missing("text")
     False
     """
-    return ufuncs.is_missing(geometry, **kwargs)
+    return lib.is_missing(geometry, **kwargs)
 
 
 def is_valid_input(geometry, **kwargs):
@@ -170,7 +170,7 @@ def is_valid_input(geometry, **kwargs):
     >>> is_valid_input("text")
     False
     """
-    return ufuncs.is_valid_input(geometry, **kwargs)
+    return lib.is_valid_input(geometry, **kwargs)
 
 
 def is_ring(geometry, **kwargs):
@@ -200,7 +200,7 @@ def is_ring(geometry, **kwargs):
     >>> is_closed(geom), is_simple(geom), is_ring(geom)
     (True, False, False)
     """
-    return ufuncs.is_ring(geometry, **kwargs)
+    return lib.is_ring(geometry, **kwargs)
 
 
 def is_simple(geometry, **kwargs):
@@ -225,7 +225,7 @@ def is_simple(geometry, **kwargs):
     >>> is_simple(None)
     False
     """
-    return ufuncs.is_simple(geometry, **kwargs)
+    return lib.is_simple(geometry, **kwargs)
 
 
 def is_valid(geometry, **kwargs):
@@ -254,7 +254,7 @@ def is_valid(geometry, **kwargs):
     # GEOS is valid will emit warnings for invalid geometries. Suppress them.
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        result = ufuncs.is_valid(geometry, **kwargs)
+        result = lib.is_valid(geometry, **kwargs)
     return result
 
 
@@ -279,7 +279,7 @@ def is_valid_reason(geometry, **kwargs):
     >>> is_valid_reason(None) is None
     True
     """
-    return ufuncs.is_valid_reason(geometry, **kwargs)
+    return lib.is_valid_reason(geometry, **kwargs)
 
 
 def crosses(a, b, **kwargs):
@@ -316,7 +316,7 @@ def crosses(a, b, **kwargs):
     >>> crosses(area, Geometry("MULTIPOINT ((2 2), (0.5 0.5))"))
     True
     """
-    return ufuncs.crosses(a, b, **kwargs)
+    return lib.crosses(a, b, **kwargs)
 
 
 def contains(a, b, **kwargs):
@@ -359,7 +359,7 @@ def contains(a, b, **kwargs):
     >>> contains(area, None)
     False
     """
-    return ufuncs.contains(a, b, **kwargs)
+    return lib.contains(a, b, **kwargs)
 
 
 def covered_by(a, b, **kwargs):
@@ -399,7 +399,7 @@ def covered_by(a, b, **kwargs):
     >>> covered_by(None, area)
     False
     """
-    return ufuncs.covered_by(a, b, **kwargs)
+    return lib.covered_by(a, b, **kwargs)
 
 
 def covers(a, b, **kwargs):
@@ -439,7 +439,7 @@ def covers(a, b, **kwargs):
     >>> covers(area, None)
     False
     """
-    return ufuncs.covers(a, b, **kwargs)
+    return lib.covers(a, b, **kwargs)
 
 
 def disjoint(a, b, **kwargs):
@@ -475,7 +475,7 @@ def disjoint(a, b, **kwargs):
     >>> disjoint(None, None)
     False
     """
-    return ufuncs.disjoint(a, b, **kwargs)
+    return lib.disjoint(a, b, **kwargs)
 
 
 def equals(a, b, tolerance=0.0, **kwargs):
@@ -504,9 +504,9 @@ def equals(a, b, tolerance=0.0, **kwargs):
     False
     """
     if tolerance > 0.0:
-        return ufuncs.equals_exact(a, b, tolerance, **kwargs)
+        return lib.equals_exact(a, b, tolerance, **kwargs)
     else:
-        return ufuncs.equals(a, b, **kwargs)
+        return lib.equals(a, b, **kwargs)
 
 
 def intersects(a, b, **kwargs):
@@ -534,7 +534,7 @@ def intersects(a, b, **kwargs):
     >>> intersects(None, None)
     False
     """
-    return ufuncs.intersects(a, b, **kwargs)
+    return lib.intersects(a, b, **kwargs)
 
 
 def overlaps(a, b, **kwargs):
@@ -559,7 +559,7 @@ def overlaps(a, b, **kwargs):
     >>> overlaps(None, None)
     False
     """
-    return ufuncs.overlaps(a, b, **kwargs)
+    return lib.overlaps(a, b, **kwargs)
 
 
 def touches(a, b, **kwargs):
@@ -591,7 +591,7 @@ def touches(a, b, **kwargs):
     >>> touches(area, Geometry("POLYGON((0 1, 1 1, 1 2, 0 2, 0 1))"))
     True
     """
-    return ufuncs.touches(a, b, **kwargs)
+    return lib.touches(a, b, **kwargs)
 
 
 def within(a, b, **kwargs):
@@ -634,4 +634,4 @@ def within(a, b, **kwargs):
     >>> within(None, area)
     False
     """
-    return ufuncs.within(a, b, **kwargs)
+    return lib.within(a, b, **kwargs)

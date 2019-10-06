@@ -1,6 +1,6 @@
-from .ufuncs import GEOSException  # NOQA
-from .ufuncs import Geometry  # NOQA
-from .ufuncs import geos_version  # NOQA
+from .lib import GEOSException  # NOQA
+from .lib import Geometry  # NOQA
+from .lib import geos_version  # NOQA
 from .geometry import *
 from .creation import *
 from .constructive import *

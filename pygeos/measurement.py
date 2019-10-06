@@ -1,4 +1,4 @@
-from . import ufuncs
+from . import lib
 from . import Geometry  # NOQA
 
 __all__ = ["area", "distance", "length", "hausdorff_distance"]
@@ -22,7 +22,7 @@ def area(geometry):
     >>> area(None)
     nan
     """
-    return ufuncs.area(geometry)
+    return lib.area(geometry)
 
 
 def distance(a, b):
@@ -46,7 +46,7 @@ def distance(a, b):
     >>> distance(None, point)
     nan
     """
-    return ufuncs.distance(a, b)
+    return lib.distance(a, b)
 
 
 def length(geometry):
@@ -69,7 +69,7 @@ def length(geometry):
     >>> length(None)
     nan
     """
-    return ufuncs.length(geometry)
+    return lib.length(geometry)
 
 
 def hausdorff_distance(a, b, densify=None):
@@ -101,6 +101,6 @@ def hausdorff_distance(a, b, densify=None):
     nan
     """
     if densify is None:
-        return ufuncs.hausdorff_distance(a, b)
+        return lib.hausdorff_distance(a, b)
     else:
-        return ufuncs.haussdorf_distance_densify(a, b, densify)
+        return lib.haussdorf_distance_densify(a, b, densify)

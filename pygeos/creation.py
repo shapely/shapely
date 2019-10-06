@@ -1,5 +1,5 @@
 import numpy as np
-from . import ufuncs
+from . import lib
 from . import Geometry, GeometryType
 
 __all__ = [
@@ -37,7 +37,7 @@ def points(coords, y=None, z=None):
     y : array_like
     z : array_like
     """
-    return _wrap_construct_ufunc(ufuncs.points, coords, y, z)
+    return _wrap_construct_ufunc(lib.points, coords, y, z)
 
 
 def linestrings(coords, y=None, z=None):
@@ -51,7 +51,7 @@ def linestrings(coords, y=None, z=None):
     y : array_like
     z : array_like
     """
-    return _wrap_construct_ufunc(ufuncs.linestrings, coords, y, z)
+    return _wrap_construct_ufunc(lib.linestrings, coords, y, z)
 
 
 def linearrings(coords, y=None, z=None):
@@ -68,7 +68,7 @@ def linearrings(coords, y=None, z=None):
     y : array_like
     z : array_like
     """
-    return _wrap_construct_ufunc(ufuncs.linearrings, coords, y, z)
+    return _wrap_construct_ufunc(lib.linearrings, coords, y, z)
 
 
 def polygons(shells, holes=None):
@@ -87,12 +87,12 @@ def polygons(shells, holes=None):
         shells = linearrings(shells)
 
     if holes is None:
-        return ufuncs.polygons_without_holes(shells)
+        return lib.polygons_without_holes(shells)
 
     holes = np.asarray(holes)
     if not isinstance(holes, Geometry) and np.issubdtype(holes.dtype, np.number):
         holes = linearrings(holes)
-    return ufuncs.polygons_with_holes(shells, holes)
+    return lib.polygons_with_holes(shells, holes)
 
 
 def box(x1, y1, x2, y2):
@@ -125,7 +125,7 @@ def multipoints(geometries):
         geometries.dtype, np.number
     ):
         geometries = points(geometries)
-    return ufuncs.create_collection(geometries, GeometryType.MULTIPOINT)
+    return lib.create_collection(geometries, GeometryType.MULTIPOINT)
 
 
 def multilinestrings(geometries):
@@ -141,7 +141,7 @@ def multilinestrings(geometries):
         geometries.dtype, np.number
     ):
         geometries = linestrings(geometries)
-    return ufuncs.create_collection(geometries, GeometryType.MULTILINESTRING)
+    return lib.create_collection(geometries, GeometryType.MULTILINESTRING)
 
 
 def multipolygons(geometries):
@@ -157,7 +157,7 @@ def multipolygons(geometries):
         geometries.dtype, np.number
     ):
         geometries = polygons(geometries)
-    return ufuncs.create_collection(geometries, GeometryType.MULTIPOLYGON)
+    return lib.create_collection(geometries, GeometryType.MULTIPOLYGON)
 
 
 def geometrycollections(geometries):
@@ -168,4 +168,4 @@ def geometrycollections(geometries):
     geometries : array_like
         An array of geometries
     """
-    return ufuncs.create_collection(geometries, GeometryType.GEOMETRYCOLLECTION)
+    return lib.create_collection(geometries, GeometryType.GEOMETRYCOLLECTION)

@@ -1,5 +1,5 @@
 import numpy as np
-from . import ufuncs, Geometry, GeometryType
+from . import lib, Geometry, GeometryType
 
 __all__ = [
     "difference",
@@ -30,7 +30,7 @@ def difference(a, b, **kwargs):
     >>> difference(line, None) is None
     True
     """
-    return ufuncs.difference(a, b, **kwargs)
+    return lib.difference(a, b, **kwargs)
 
 
 def intersection(a, b, **kwargs):
@@ -51,7 +51,7 @@ def intersection(a, b, **kwargs):
     >>> intersection(line, Geometry("LINESTRING(1 1, 3 3)"))
     <pygeos.Geometry LINESTRING (1 1, 2 2)>
     """
-    return ufuncs.intersection(a, b, **kwargs)
+    return lib.intersection(a, b, **kwargs)
 
 
 def intersection_all(geometries, axis=0, **kwargs):
@@ -79,7 +79,7 @@ def intersection_all(geometries, axis=0, **kwargs):
     >>> intersection_all([[line_1, line_2, None]], axis=1).tolist()
     [None]
     """
-    return ufuncs.intersection.reduce(geometries, axis=axis, **kwargs)
+    return lib.intersection.reduce(geometries, axis=axis, **kwargs)
 
 
 def symmetric_difference(a, b, **kwargs):
@@ -101,7 +101,7 @@ def symmetric_difference(a, b, **kwargs):
     >>> symmetric_difference(line, Geometry("LINESTRING(1 1, 3 3)"))
     <pygeos.Geometry MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>
     """
-    return ufuncs.symmetric_difference(a, b, **kwargs)
+    return lib.symmetric_difference(a, b, **kwargs)
 
 
 def symmetric_difference_all(geometries, axis=0, **kwargs):
@@ -129,7 +129,7 @@ def symmetric_difference_all(geometries, axis=0, **kwargs):
     >>> symmetric_difference_all([[line_1, line_2, None]], axis=1).tolist()
     [None]
     """
-    return ufuncs.symmetric_difference.reduce(geometries, axis=axis, **kwargs)
+    return lib.symmetric_difference.reduce(geometries, axis=axis, **kwargs)
 
 
 def union(a, b, **kwargs):
@@ -152,7 +152,7 @@ def union(a, b, **kwargs):
     >>> union(line, None) is None
     True
     """
-    return ufuncs.union(a, b, **kwargs)
+    return lib.union(a, b, **kwargs)
 
 
 def union_all(geometries, axis=0, **kwargs):
@@ -191,5 +191,5 @@ def union_all(geometries, axis=0, **kwargs):
             np.asarray(geometries), axis=axis, start=geometries.ndim
         )
     # create_collection acts on the inner axis
-    collections = ufuncs.create_collection(geometries, GeometryType.GEOMETRYCOLLECTION)
-    return ufuncs.unary_union(collections, **kwargs)
+    collections = lib.create_collection(geometries, GeometryType.GEOMETRYCOLLECTION)
+    return lib.unary_union(collections, **kwargs)

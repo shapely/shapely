@@ -1,7 +1,7 @@
 from enum import IntEnum
 import numpy as np
 from . import Geometry  # NOQA
-from . import ufuncs
+from . import lib
 
 
 __all__ = [
@@ -54,7 +54,7 @@ def boundary(geometry, **kwargs):
     >>> boundary(Geometry("MULTIPOINT (0 0, 1 2)")) is None
     True
     """
-    return ufuncs.boundary(geometry, **kwargs)
+    return lib.boundary(geometry, **kwargs)
 
 
 def buffer(
@@ -147,7 +147,7 @@ def buffer(
         raise TypeError("mitre_limit only accepts scalar values")
     if not np.isscalar(single_sided):
         raise TypeError("single_sided only accepts scalar values")
-    return ufuncs.buffer(
+    return lib.buffer(
         geometry,
         radius,
         np.intc(quadsegs),
@@ -180,7 +180,7 @@ def centroid(geometry, **kwargs):
     >>> centroid(Geometry("MULTIPOINT (0 0, 10 10)"))
     <pygeos.Geometry POINT (5 5)>
     """
-    return ufuncs.centroid(geometry, **kwargs)
+    return lib.centroid(geometry, **kwargs)
 
 
 def convex_hull(geometry, **kwargs):
@@ -197,7 +197,7 @@ def convex_hull(geometry, **kwargs):
     >>> convex_hull(Geometry("POLYGON EMPTY"))
     <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
     """
-    return ufuncs.convex_hull(geometry, **kwargs)
+    return lib.convex_hull(geometry, **kwargs)
 
 
 def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
@@ -233,7 +233,7 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     >>> delaunay_triangles(Geometry("GEOMETRYCOLLECTION EMPTY"))
     <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
     """
-    return ufuncs.delaunay_triangles(geometry, tolerance, only_edges, **kwargs)
+    return lib.delaunay_triangles(geometry, tolerance, only_edges, **kwargs)
 
 
 def envelope(geometry, **kwargs):
@@ -254,7 +254,7 @@ def envelope(geometry, **kwargs):
     >>> envelope(Geometry("GEOMETRYCOLLECTION EMPTY"))
     <pygeos.Geometry POINT EMPTY>
     """
-    return ufuncs.envelope(geometry, **kwargs)
+    return lib.envelope(geometry, **kwargs)
 
 
 def extract_unique_points(geometry, **kwargs):
@@ -280,7 +280,7 @@ def extract_unique_points(geometry, **kwargs):
     >>> extract_unique_points(Geometry("LINESTRING EMPTY"))
     <pygeos.Geometry MULTIPOINT EMPTY>
     """
-    return ufuncs.extract_unique_points(geometry, **kwargs)
+    return lib.extract_unique_points(geometry, **kwargs)
 
 
 def point_on_surface(geometry, **kwargs):
@@ -301,7 +301,7 @@ def point_on_surface(geometry, **kwargs):
     >>> point_on_surface(Geometry("POLYGON EMPTY"))
     <pygeos.Geometry POINT EMPTY>
     """
-    return ufuncs.point_on_surface(geometry, **kwargs)
+    return lib.point_on_surface(geometry, **kwargs)
 
 
 def simplify(geometry, tolerance, preserve_topology=False, **kwargs):
@@ -331,9 +331,9 @@ def simplify(geometry, tolerance, preserve_topology=False, **kwargs):
     <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
     """
     if preserve_topology:
-        return ufuncs.simplify_preserve_topology(geometry, tolerance, **kwargs)
+        return lib.simplify_preserve_topology(geometry, tolerance, **kwargs)
     else:
-        return ufuncs.simplify(geometry, tolerance, **kwargs)
+        return lib.simplify(geometry, tolerance, **kwargs)
 
 
 def snap(geometry, reference, tolerance, **kwargs):
@@ -362,7 +362,7 @@ def snap(geometry, reference, tolerance, **kwargs):
     >>> snap(polygon, Geometry("LINESTRING (8 10, 8 0)"), tolerance=5)
     <pygeos.Geometry POLYGON ((0 0, 0 10, 8 10, 8 0, 0 0))>
     """
-    return ufuncs.snap(geometry, reference, tolerance, **kwargs)
+    return lib.snap(geometry, reference, tolerance, **kwargs)
 
 
 def voronoi_polygons(
@@ -402,4 +402,4 @@ def voronoi_polygons(
     >>> voronoi_polygons(Geometry("POINT (2 2)"))
     <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
     """
-    return ufuncs.voronoi_polygons(geometry, tolerance, extend_to, only_edges, **kwargs)
+    return lib.voronoi_polygons(geometry, tolerance, extend_to, only_edges, **kwargs)
