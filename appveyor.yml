@@ -30,6 +30,7 @@ install:
   # See https://github.com/conda/conda/issues/8836 ("yes, this is insane")
   - activate
   - conda info --all
+  - conda config --append channels conda-forge
   - conda create -n testenv --yes python=%PYTHON_VERSION% %DEPS% pytest
 
   # Do this. Don't "conda activate testenv".

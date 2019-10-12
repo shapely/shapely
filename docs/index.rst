@@ -19,9 +19,6 @@ n-dimensional arrays in an element-by-element fashion, supporting array
 broadcasting. The for-loops that are involved are fully implemented in C
 diminishing the overhead of the Python interpreter.
 
-.. note::
-   This documentation is still work in progress: only a part of the API has
-   been documented.
 
 The Geometry object
 -------------------
@@ -58,11 +55,12 @@ API Reference
    :caption: Contents:
 
    constructive
+   coordinates
    geometry
+   linear
    measurement
    predicates
    set_operations
-   coordinates
 
 
 Indices and tables

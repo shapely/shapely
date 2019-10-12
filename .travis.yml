@@ -6,8 +6,10 @@ matrix:
     env: PYTHON_VERSION="3.5" DEPS="numpy=1.10 geos=3.5"
   - os: linux  # 2017
     env: PYTHON_VERSION="3.6" DEPS="numpy=1.13 geos=3.6"
+  - os: linux  # 2018
+    env: PYTHON_VERSION="3.7" DEPS="numpy=1.15 geos=3.7"
   - os: linux  # now
-    env: PYTHON_VERSION="3.7" DEPS="numpy geos"
+    env: PYTHON_VERSION="3.7" DEPS="numpy geos=3.8"
   - os: osx
     env: PYTHON_VERSION="3.7" DEPS="numpy geos"
 
@@ -25,6 +27,7 @@ install:
   - hash -r;
   - conda update --yes conda;
   - conda config --set changeps1 no --set restore_free_channel true;
+  - conda config --append channels conda-forge
   - conda create -n testenv --yes python=$PYTHON_VERSION $DEPS pytest;
   - conda activate testenv;
   - conda --version ; python --version ; pip --version;

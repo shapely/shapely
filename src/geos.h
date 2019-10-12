@@ -5,7 +5,10 @@
 #include <geos_c.h>
 
 #define RAISE_ILLEGAL_GEOS if (!PyErr_Occurred()) {PyErr_Format(PyExc_RuntimeError, "Uncaught GEOS exception");}
-
+#define GEOS_SINCE_350 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 5))
+#define GEOS_SINCE_360 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 6))
+#define GEOS_SINCE_370 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 7))
+#define GEOS_SINCE_380 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 8))
 /* This declares a global GEOS Context */
 extern void *geos_context[1];
 

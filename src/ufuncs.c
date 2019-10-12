@@ -16,7 +16,6 @@
 #include "pygeom.h"
 #include "fast_loop_macros.h"
 
-
 #define RAISE_NO_MALLOC PyErr_Format(PyExc_MemoryError, "Could not allocate memory")
 #define CREATE_COORDSEQ(SIZE, NDIM)\
     void *coord_seq = GEOSCoordSeq_create_r(context_handle, SIZE, NDIM);\
@@ -225,8 +224,33 @@ static void Y_Y_func(char **args, npy_intp *dimensions,
 static PyUFuncGenericFunction Y_Y_funcs[1] = {&Y_Y_func};
 
 /* Define the geom, double -> geom functions (Yd_Y) */
-static void *interpolate_data[1] = {GEOSInterpolate_r};
-static void *interpolate_normalized_data[1] = {GEOSInterpolateNormalized_r};
+
+/* GEOS < 3.8 gives segfault for empty linestrings, this is fixed since
+   https://github.com/libgeos/geos/commit/18505af1103cdafb2178f2f0eb8e1a10cfa16d2d */
+#if GEOS_SINCE_380
+    static void *line_interpolate_point_data[1] = {GEOSInterpolate_r};
+    static void *line_interpolate_point_normalized_data[1] = {GEOSInterpolateNormalized_r};
+#else
+    static void *GEOSInterpolateProtectEmpty_r(void *context, void *geom, double d) {
+        int n = GEOSGeomGetNumPoints_r(context, geom);
+        if (n < 2) {
+            return GEOSGeom_createEmptyPoint_r(context);
+        } else {
+            return GEOSInterpolate_r(context, geom, d);
+        }
+    }
+    static void *line_interpolate_point_data[1] = {GEOSInterpolateProtectEmpty_r};
+    static void *GEOSInterpolateNormalizedProtectEmpty_r(void *context, void *geom, double d) {
+        int n = GEOSGeomGetNumPoints_r(context, geom);
+        if (n < 2) {
+            return GEOSGeom_createEmptyPoint_r(context);
+        } else {
+            return GEOSInterpolateNormalized_r(context, geom, d);
+        }
+    }
+    static void *line_interpolate_point_normalized_data[1] = {GEOSInterpolateNormalizedProtectEmpty_r};
+#endif
+
 static void *simplify_data[1] = {GEOSSimplify_r};
 static void *simplify_preserve_topology_data[1] = {GEOSTopologyPreserveSimplify_r};
 typedef void *FuncGEOS_Yd_Y(void *context, void *a, double b);
@@ -367,7 +391,6 @@ static void *intersection_data[1] = {GEOSIntersection_r};
 static void *difference_data[1] = {GEOSDifference_r};
 static void *symmetric_difference_data[1] = {GEOSSymDifference_r};
 static void *union_data[1] = {GEOSUnion_r};
-static void *shared_paths_data[1] = {GEOSSharedPaths_r};
 typedef void *FuncGEOS_YY_Y(void *context, void *a, void *b);
 static char YY_Y_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
 static void YY_Y_func(char **args, npy_intp *dimensions,
@@ -491,15 +514,26 @@ static void *distance_data[1] = {GEOSDistance_r};
 static void *hausdorff_distance_data[1] = {GEOSHausdorffDistance_r};
 /* Project and ProjectNormalize don't return error codes. wrap them. */
 static int GEOSProjectWrapped_r(void *context, void *a,  void *b, double *c) {
-    *c = GEOSProject_r(context, a, b);
+    /* Handle empty points (they give segfaults) */
+    if (GEOSisEmpty_r(context, b)) {
+        *c = NPY_NAN;
+    } else {
+        *c = GEOSProject_r(context, a, b);
+    }
     return 1;
 }
-static void *project_data[1] = {GEOSProjectWrapped_r};
+static void *line_locate_point_data[1] = {GEOSProjectWrapped_r};
 static int GEOSProjectNormalizedWrapped_r(void *context, void *a,  void *b, double *c) {
+    /* Handle empty points (they give segfaults) */
+    if (GEOSisEmpty_r(context, b)) {
+        *c = NPY_NAN;
+    } else {
+        *c = GEOSProject_r(context, a, b);
+    }
     *c = GEOSProjectNormalized_r(context, a, b);
     return 1;
 }
-static void *project_normalized_data[1] = {GEOSProjectNormalizedWrapped_r};
+static void *line_locate_point_normalized_data[1] = {GEOSProjectNormalizedWrapped_r};
 typedef int FuncGEOS_YY_d(void *context, void *a,  void *b, double *c);
 static char YY_d_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE};
 static void YY_d_func(char **args, npy_intp *dimensions,
@@ -1000,8 +1034,8 @@ int init_ufuncs(PyObject *m, PyObject *d)
     DEFINE_Yi_Y (get_geometry);
     DEFINE_Yi_Y (set_srid);
 
-    DEFINE_Yd_Y (interpolate);
-    DEFINE_Yd_Y (interpolate_normalized);
+    DEFINE_Yd_Y (line_interpolate_point);
+    DEFINE_Yd_Y (line_interpolate_point_normalized);
     DEFINE_Yd_Y (simplify);
     DEFINE_Yd_Y (simplify_preserve_topology);
 
@@ -1009,7 +1043,6 @@ int init_ufuncs(PyObject *m, PyObject *d)
     DEFINE_YY_Y (difference);
     DEFINE_YY_Y (symmetric_difference);
     DEFINE_YY_Y (union);
-    DEFINE_YY_Y (shared_paths);
 
     DEFINE_Y_d (get_x);
     DEFINE_Y_d (get_y);
@@ -1027,8 +1060,8 @@ int init_ufuncs(PyObject *m, PyObject *d)
 
     DEFINE_YY_d (distance);
     DEFINE_YY_d (hausdorff_distance);
-    DEFINE_YY_d (project);
-    DEFINE_YY_d (project_normalized);
+    DEFINE_YY_d (line_locate_point);
+    DEFINE_YY_d (line_locate_point_normalized);
 
     DEFINE_CUSTOM (buffer, 7);
     DEFINE_CUSTOM (snap, 3);

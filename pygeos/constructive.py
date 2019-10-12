@@ -179,6 +179,8 @@ def centroid(geometry, **kwargs):
     <pygeos.Geometry POINT (5 5)>
     >>> centroid(Geometry("MULTIPOINT (0 0, 10 10)"))
     <pygeos.Geometry POINT (5 5)>
+    >>> centroid(Geometry("POLYGON EMPTY"))
+    <pygeos.Geometry POINT EMPTY>
     """
     return lib.centroid(geometry, **kwargs)
 
