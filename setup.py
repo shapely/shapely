@@ -129,7 +129,7 @@ setup(
     version=version,
     description="GEOS wrapped in numpy ufuncs",
     long_description=descr,
-    url="https://github.com/caspervdw/pygeos",
+    url="https://github.com/pygeos/pygeos",
     author="Casper van der Wel",
     license="BSD 3-Clause",
     packages=["pygeos"],

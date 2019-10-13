@@ -10,15 +10,15 @@ PyGEOS
 
 .. Travis CI status — https://travis-ci.org
 
-.. image:: https://travis-ci.org/caspervdw/pygeos.svg?branch=master
+.. image:: https://travis-ci.org/pygeos/pygeos.svg?branch=master
 	:alt: Travis CI status
-	:target: https://travis-ci.org/caspervdw/pygeos
+	:target: https://travis-ci.org/pygeos/pygeos
 
 .. Appveyor CI status — https://ci.appveyor.com
 
-.. image:: https://ci.appveyor.com/api/projects/status/yx6nmovs0wq8eg9n/branch/master?svg=true
+.. image:: https://ci.appveyor.com/api/projects/status/jw48gpd88f188av6?svg=true
 	:alt: Appveyor CI status
-	:target: https://ci.appveyor.com/project/caspervdw/pygeos
+	:target: https://ci.appveyor.com/project/caspervdw/pygeos-3e5cu
 
 .. PyPI
 
