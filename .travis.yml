@@ -3,34 +3,25 @@ language: minimal
 matrix:
   include:
   - os: linux  # 2015
-    env: PYTHON_VERSION="3.5" DEPS="numpy=1.10 geos=3.5"
+    env: PYTHON_VERSION="3.5" RESTORE_FREE_CHANNEL=1 DEPS="numpy=1.10 geos=3.5"
   - os: linux  # 2017
     env: PYTHON_VERSION="3.6" DEPS="numpy=1.13 geos=3.6"
   - os: linux  # 2018
     env: PYTHON_VERSION="3.7" DEPS="numpy=1.15 geos=3.7"
   - os: linux  # now
-    env: PYTHON_VERSION="3.7" DEPS="numpy geos=3.8"
+    env: PYTHON_VERSION="3.7" CONDA_FORGE=1 DEPS="numpy geos"
   - os: osx
     env: PYTHON_VERSION="3.7" DEPS="numpy geos"
 
-before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    elif  [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
-    fi;
-
 install:
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda:$HOME/miniconda/bin:$PATH"
-  - source $HOME/miniconda/etc/profile.d/conda.sh
-  - hash -r;
-  - conda update --yes conda;
-  - conda config --set changeps1 no --set restore_free_channel true;
-  - conda config --append channels conda-forge
-  - conda create -n testenv --yes python=$PYTHON_VERSION $DEPS pytest;
-  - conda activate testenv;
-  - conda --version ; python --version ; pip --version;
+  - wget https://repo.anaconda.com/pkgs/misc/conda-execs/conda-latest-$TRAVIS_OS_NAME-64.exe -O conda.exe
+  - chmod +x conda.exe
+  - export CONDA_ALWAYS_YES=1
+  - if [ $RESTORE_FREE_CHANNEL ]; then ./conda.exe config --set restore_free_channel true; fi
+  - if [ $CONDA_FORGE ]; then ./conda.exe config --add channels conda-forge; fi
+  - ./conda.exe create --prefix $HOME/miniconda python=$PYTHON_VERSION conda pytest $DEPS
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
   - python setup.py build_ext --inplace
   - pip install . --no-deps
 
