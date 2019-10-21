@@ -24,6 +24,7 @@ __all__ = [
     "overlaps",
     "touches",
     "within",
+    "equals_exact",
 ]
 
 
@@ -478,35 +479,32 @@ def disjoint(a, b, **kwargs):
     return lib.disjoint(a, b, **kwargs)
 
 
-def equals(a, b, tolerance=0.0, **kwargs):
+def equals(a, b, **kwargs):
     """Returns True if A and B are spatially equal.
 
     If A is within B and B is within A, A and B are considered equal. The
-    ordering of points can be different. Optionally, a tolerance can be
-    provided for comparing vertices.
+    ordering of points can be different.
 
     Parameters
     ----------
     a, b : Geometry or array_like
-    tolerance : float or array_like
 
+    See Also
+    --------
+    equals_exact : Check if A and B are structurally equal given a specified
+        tolerance.
 
     Examples
     --------
     >>> line = Geometry("LINESTRING(0 0, 5 5, 10 10)")
     >>> equals(line, Geometry("LINESTRING(0 0, 10 10)"))
     True
-    >>> equals(Geometry("POINT (5 5)"), Geometry("POINT (5.1 5)"), tolerance=0.1)
-    True
     >>> equals(Geometry("POLYGON EMPTY"), Geometry("GEOMETRYCOLLECTION EMPTY"))
     True
     >>> equals(None, None)
     False
     """
-    if tolerance > 0.0:
-        return lib.equals_exact(a, b, tolerance, **kwargs)
-    else:
-        return lib.equals(a, b, **kwargs)
+    return lib.equals(a, b, **kwargs)
 
 
 def intersects(a, b, **kwargs):
@@ -635,3 +633,43 @@ def within(a, b, **kwargs):
     False
     """
     return lib.within(a, b, **kwargs)
+
+
+def equals_exact(a, b, tolerance=0.0, **kwargs):
+    """Returns True if A and B are structurally equal.
+
+    This method uses exact coordinate equality, which requires coordinates
+    to be equal (within specified tolerance) and and in the same order for all
+    components of a geometry. This is in contrast with the `equals` function
+    which uses spatial (topological) equality.
+
+    Parameters
+    ----------
+    a, b : Geometry or array_like
+    tolerance : float or array_like
+
+    See Also
+    --------
+    equals : Check if A and B are spatially equal.
+
+    Examples
+    --------
+    >>> point1 = Geometry("POINT(50 50)")
+    >>> point2 = Geometry("POINT(50.1 50.1)")
+    >>> equals_exact(point1, point2)
+    False
+    >>> equals_exact(point1, point2, tolerance=0.2)
+    True
+    >>> equals_exact(point1, None, tolerance=0.2)
+    False
+
+    Difference between structucal and spatial equality:
+
+    >>> polygon1 = Geometry("POLYGON((0 0, 1 1, 0 1, 0 0))")
+    >>> polygon2 = Geometry("POLYGON((0 0, 0 1, 1 1, 0 0))")
+    >>> equals_exact(polygon1, polygon2)
+    False
+    >>> equals(polygon1, polygon2)
+    True
+    """
+    return lib.equals_exact(a, b, tolerance, **kwargs)

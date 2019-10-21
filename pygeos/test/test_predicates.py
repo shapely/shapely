@@ -26,6 +26,7 @@ BINARY_PREDICATES = (
     pygeos.equals,
     pygeos.covers,
     pygeos.covered_by,
+    pygeos.equals_exact,
 )
 
 
@@ -73,3 +74,19 @@ def test_binary_with_kwargs(func):
 def test_binary_missing(func):
     actual = func(np.array([point, None, None]), np.array([None, point, None]))
     assert (~actual).all()
+
+
+def test_equals_exact_tolerance():
+    # specifying tolerance
+    p1 = pygeos.points(50, 4)
+    p2 = pygeos.points(50.1, 4.1)
+    actual = pygeos.equals_exact([p1, p2, None], p1, tolerance=0.05)
+    np.testing.assert_allclose(actual, [True, False, False])
+    assert actual.dtype == np.bool
+    actual = pygeos.equals_exact([p1, p2, None], p1, tolerance=0.2)
+    np.testing.assert_allclose(actual, [True, True, False])
+    assert actual.dtype == np.bool
+
+    # default value for tolerance
+    assert pygeos.equals_exact(p1, p1).item() is True
+    assert pygeos.equals_exact(p1, p2).item() is False
