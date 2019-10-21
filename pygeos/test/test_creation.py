@@ -11,20 +11,20 @@ def box_tpl(x1, y1, x2, y2):
 
 def test_points_from_coords():
     actual = pygeos.points([[0, 0], [2, 2]])
-    assert actual[0].to_wkt() == "POINT (0 0)"
-    assert actual[1].to_wkt() == "POINT (2 2)"
+    assert str(actual[0]) == "POINT (0 0)"
+    assert str(actual[1])  == "POINT (2 2)"
 
 
 def test_points_from_xy():
     actual = pygeos.points(2, [0, 1])
-    assert actual[0].to_wkt() == "POINT (2 0)"
-    assert actual[1].to_wkt() == "POINT (2 1)"
+    assert str(actual[0]) == "POINT (2 0)"
+    assert str(actual[1]) == "POINT (2 1)"
 
 
 def test_points_from_xyz():
     actual = pygeos.points(1, 1, [0, 1])
-    assert actual[0].to_wkt() == "POINT Z (1 1 0)"
-    assert actual[1].to_wkt() == "POINT Z (1 1 1)"
+    assert str(actual[0]) == "POINT Z (1 1 0)"
+    assert str(actual[1]) == "POINT Z (1 1 1)"
 
 
 def test_points_invalid_ndim():
@@ -34,51 +34,51 @@ def test_points_invalid_ndim():
 
 def test_linestrings_from_coords():
     actual = pygeos.linestrings([[[0, 0], [1, 1]], [[0, 0], [2, 2]]])
-    assert actual[0].to_wkt() == "LINESTRING (0 0, 1 1)"
-    assert actual[1].to_wkt() == "LINESTRING (0 0, 2 2)"
+    assert str(actual[0]) == "LINESTRING (0 0, 1 1)"
+    assert str(actual[1]) == "LINESTRING (0 0, 2 2)"
 
 
 def test_linestrings_from_xy():
     actual = pygeos.linestrings([0, 1], [2, 3])
-    assert actual.to_wkt() == "LINESTRING (0 2, 1 3)"
+    assert str(actual) == "LINESTRING (0 2, 1 3)"
 
 
 def test_linestrings_from_xy_broadcast():
     x = [0, 1]  # the same X coordinates for both linestrings
     y = [2, 3], [4, 5]  # each linestring has a different set of Y coordinates
     actual = pygeos.linestrings(x, y)
-    assert actual[0].to_wkt() == "LINESTRING (0 2, 1 3)"
-    assert actual[1].to_wkt() == "LINESTRING (0 4, 1 5)"
+    assert str(actual[0]) == "LINESTRING (0 2, 1 3)"
+    assert str(actual[1]) == "LINESTRING (0 4, 1 5)"
 
 
 def test_linestrings_from_xyz():
     actual = pygeos.linestrings([0, 1], [2, 3], 0)
-    assert actual.to_wkt() == "LINESTRING Z (0 2 0, 1 3 0)"
+    assert str(actual) == "LINESTRING Z (0 2 0, 1 3 0)"
 
 
 def test_linearrings():
     actual = pygeos.linearrings(box_tpl(0, 0, 1, 1))
-    assert actual.to_wkt() == "LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)"
+    assert str(actual) == "LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)"
 
 
 def test_linearrings_from_xy():
     actual = pygeos.linearrings([0, 1, 2, 0], [3, 4, 5, 3])
-    assert actual.to_wkt() == "LINEARRING (0 3, 1 4, 2 5, 0 3)"
+    assert str(actual) == "LINEARRING (0 3, 1 4, 2 5, 0 3)"
 
 
 def test_linearrings_unclosed():
     actual = pygeos.linearrings(box_tpl(0, 0, 1, 1)[:-1])
-    assert actual.to_wkt() == "LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)"
+    assert str(actual) == "LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)"
 
 
 def test_polygon_from_linearring():
     actual = pygeos.polygons(pygeos.linearrings(box_tpl(0, 0, 1, 1)))
-    assert actual.to_wkt() == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
+    assert str(actual) == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
 
 
 def test_polygons():
     actual = pygeos.polygons(box_tpl(0, 0, 1, 1))
-    assert actual.to_wkt() == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
+    assert str(actual) == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
 
 
 def test_polygon_no_hole_list_raises():
@@ -123,20 +123,20 @@ def test_2_polygons_with_different_holes():
 
 def test_create_collection_only_none():
     actual = pygeos.multipoints(np.array([None], dtype=object))
-    assert actual.to_wkt() == "MULTIPOINT EMPTY"
+    assert str(actual) == "MULTIPOINT EMPTY"
 
 
 def test_create_collection_skips_none():
     actual = pygeos.multipoints([point, None, None, point])
-    assert actual.to_wkt() == "MULTIPOINT (2 3, 2 3)"
+    assert str(actual) == "MULTIPOINT (2 3, 2 3)"
 
 
 def test_box():
     actual = pygeos.box(0, 0, 1, 1)
-    assert actual.to_wkt() == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
+    assert str(actual) == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
 
 
 def test_box_multiple():
     actual = pygeos.box(0, 0, [1, 2], [1, 2])
-    assert actual[0].to_wkt() == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
-    assert actual[1].to_wkt() == "POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))"
+    assert str(actual[0]) == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
+    assert str(actual[1]) == "POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))"

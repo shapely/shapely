@@ -933,6 +933,256 @@ static void create_collection_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction create_collection_funcs[1] = {&create_collection_func};
 
+
+
+/* Define the object -> geom functions (O_Y) */
+
+static char from_wkb_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
+static void from_wkb_func(char **args, npy_intp *dimensions,
+                          npy_intp *steps, void *data)
+{
+    void *context_handle = geos_context[0];
+    GEOSGeometry *ret_ptr;
+    PyObject *in1;
+
+    GEOSWKBReader *reader;
+    unsigned char *wkb;
+    Py_ssize_t size;
+    char is_hex;
+
+    /* Create the WKB reader */
+    reader = GEOSWKBReader_create_r(context_handle);
+    if (reader == NULL) {
+        return;
+    }
+
+    UNARY_LOOP {
+        /* ip1 is pointer to array element PyObject* */
+        in1 = *(PyObject **)ip1;
+
+        if (in1 == Py_None) {
+            /* None in the input propagates to the output */
+            ret_ptr = NULL;
+        }
+        else {
+            /* Cast the PyObject (only bytes) to char* */
+            if (PyBytes_Check(in1)) {
+                size = PyBytes_Size(in1);
+                wkb = (unsigned char *)PyBytes_AsString(in1);
+                if (wkb == NULL) {
+                    goto finish;
+                }
+            } else if (PyUnicode_Check(in1)) {
+                wkb = (unsigned char *)PyUnicode_AsUTF8AndSize(in1, &size);
+                if (wkb == NULL) {
+                    goto finish;
+                }
+            } else {
+                PyErr_Format(PyExc_TypeError, "Expected bytes, got %s", Py_TYPE(in1)->tp_name);
+                goto finish;
+            }
+
+            /* Check if this is a HEX WKB */
+            if (size != 0) {
+                is_hex = ((wkb[0] == 48) | (wkb[0] == 49));
+            } else {
+                is_hex = 0;
+            }
+
+            /* Read the WKB */
+            if (is_hex) {
+                ret_ptr = GEOSWKBReader_readHEX_r(context_handle, reader, wkb, size);
+            } else {
+                ret_ptr = GEOSWKBReader_read_r(context_handle, reader, wkb, size);
+            }
+            if (ret_ptr == NULL) {
+                goto finish;
+            }
+        }
+        OUTPUT_Y;
+    }
+    goto finish;
+
+    finish: GEOSWKBReader_destroy_r(context_handle, reader);
+}
+static PyUFuncGenericFunction from_wkb_funcs[1] = {&from_wkb_func};
+
+
+
+static char from_wkt_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
+static void from_wkt_func(char **args, npy_intp *dimensions,
+                          npy_intp *steps, void *data)
+{
+    void *context_handle = geos_context[0];
+    GEOSGeometry *ret_ptr;
+    PyObject *in1;
+
+    GEOSWKTReader *reader;
+    const char *wkt;
+
+    /* Create the WKB reader */
+    reader = GEOSWKTReader_create_r(context_handle);
+    if (reader == NULL) {
+        return;
+    }
+
+    UNARY_LOOP {
+        /* ip1 is pointer to array element PyObject* */
+        in1 = *(PyObject **)ip1;
+
+        if (in1 == Py_None) {
+            /* None in the input propagates to the output */
+            ret_ptr = NULL;
+        }
+        else {
+            /* Cast the PyObject (bytes or str) to char* */
+            if (PyBytes_Check(in1)) {
+                wkt = PyBytes_AsString(in1);
+                if (wkt == NULL) { goto finish; }
+            }
+            else if (PyUnicode_Check(in1)) {
+                wkt = PyUnicode_AsUTF8(in1);
+                if (wkt == NULL) { goto finish; }
+            } else {
+                PyErr_Format(PyExc_TypeError, "Expected bytes, got %s", Py_TYPE(in1)->tp_name);
+                goto finish;
+            }
+
+            /* Read the WKT */
+            ret_ptr = GEOSWKTReader_read_r(context_handle, reader, wkt);
+            if (ret_ptr == NULL) {
+                goto finish;
+            }
+        }
+        OUTPUT_Y;
+    }
+    goto finish;
+
+    finish: GEOSWKTReader_destroy_r(context_handle, reader);
+}
+static PyUFuncGenericFunction from_wkt_funcs[1] = {&from_wkt_func};
+
+static char to_wkb_dtypes[6] = {NPY_OBJECT, NPY_BOOL, NPY_INT, NPY_INT, NPY_BOOL, NPY_OBJECT};
+static void to_wkb_func(char **args, npy_intp *dimensions,
+                        npy_intp *steps, void *data)
+{
+    void *context_handle = geos_context[0];
+    char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2], *ip4 = args[3], *ip5 = args[4], *op1 = args[5];
+    npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2], is4 = steps[3], is5 = steps[4], os1 = steps[5];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+
+    GEOSGeometry *in1;
+    GEOSWKBWriter *writer;
+    unsigned char *wkb;
+    size_t size;
+
+    if ((is2 != 0) | (is3 != 0) | (is4 != 0) | (is5 != 0)) {
+        PyErr_Format(PyExc_ValueError, "to_wkb function called with non-scalar parameters");
+        return;
+    }
+
+    /* Create the WKB writer */
+    writer = GEOSWKBWriter_create_r(context_handle);
+    if (writer == NULL) {
+        return;
+    }
+
+    char hex = *(npy_bool *) ip2;
+    GEOSWKBWriter_setOutputDimension_r(context_handle, writer, *(int *) ip3);
+    int byte_order = *(int *) ip4;
+    if (byte_order != -1) {
+        GEOSWKBWriter_setByteOrder_r(context_handle, writer, *(int *) ip4);
+    }
+    GEOSWKBWriter_setIncludeSRID_r(context_handle, writer, *(npy_bool *) ip5);
+
+    for(i = 0; i < n; i++, ip1 += is1, op1 += os1) {
+        if (!get_geom(*(GeometryObject **)ip1, &in1)) { goto finish; }
+        PyObject **out = (PyObject **)op1;
+
+        if (in1 == NULL) {  
+            Py_XDECREF(*out);
+            Py_INCREF(Py_None);
+            *out = Py_None;
+        } else {
+            if (hex) {
+                wkb = GEOSWKBWriter_writeHEX_r(context_handle, writer, in1, &size);
+            } else {
+                wkb = GEOSWKBWriter_write_r(context_handle, writer, in1, &size);
+            }
+            if (wkb == NULL) {
+                goto finish;
+            }
+            Py_XDECREF(*out);
+            if (hex) {
+                *out = PyUnicode_FromStringAndSize((char *) wkb, size);
+            } else {
+                *out = PyBytes_FromStringAndSize((char *) wkb, size);
+            }
+            GEOSFree_r(context_handle, wkb);
+        }
+    }
+    goto finish;
+
+    finish: GEOSWKBWriter_destroy_r(context_handle, writer);
+}
+static PyUFuncGenericFunction to_wkb_funcs[1] = {&to_wkb_func};
+
+static char to_wkt_dtypes[6] = {NPY_OBJECT, NPY_INT, NPY_BOOL, NPY_INT, NPY_BOOL, NPY_OBJECT};
+static void to_wkt_func(char **args, npy_intp *dimensions,
+                        npy_intp *steps, void *data)
+{
+    void *context_handle = geos_context[0];
+    char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2], *ip4 = args[3], *ip5 = args[4], *op1 = args[5];
+    npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2], is4 = steps[3], is5 = steps[4], os1 = steps[5];
+    npy_intp n = dimensions[0];
+    npy_intp i;
+
+    GEOSGeometry *in1;
+    GEOSWKTWriter *writer;
+    char *wkt;
+
+    if ((is2 != 0) | (is3 != 0) | (is4 != 0) | (is5 != 0)) {
+        PyErr_Format(PyExc_ValueError, "to_wkt function called with non-scalar parameters");
+        return;
+    }
+
+    /* Create the WKT writer */
+    writer = GEOSWKTWriter_create_r(context_handle);
+    if (writer == NULL) {
+        return;
+    }
+    GEOSWKTWriter_setRoundingPrecision_r(context_handle, writer, *(int *) ip2);
+    GEOSWKTWriter_setTrim_r(context_handle, writer, *(npy_bool *) ip3);
+    GEOSWKTWriter_setOutputDimension_r(context_handle, writer, *(int *) ip4);
+    GEOSWKTWriter_setOld3D_r(context_handle, writer, *(npy_bool *) ip5);
+
+    for(i = 0; i < n; i++, ip1 += is1, op1 += os1) {
+        if (!get_geom(*(GeometryObject **)ip1, &in1)) { goto finish; }
+        PyObject **out = (PyObject **)op1;
+
+        if (in1 == NULL) {  
+            Py_XDECREF(*out);
+            Py_INCREF(Py_None);
+            *out = Py_None;
+        } else {
+            wkt = GEOSWKTWriter_write_r(context_handle, writer, in1);
+            if (wkt == NULL) {
+                goto finish;
+            }
+            Py_XDECREF(*out);
+            *out = PyUnicode_FromString(wkt);
+            GEOSFree_r(context_handle, wkt);
+        }
+    }
+    goto finish;
+
+    finish: GEOSWKTWriter_destroy_r(context_handle, writer);
+}
+static PyUFuncGenericFunction to_wkt_funcs[1] = {&to_wkt_func};
+
+
+
 /*
 TODO polygonizer functions
 TODO prepared geometry predicate functions
@@ -1076,6 +1326,11 @@ int init_ufuncs(PyObject *m, PyObject *d)
     DEFINE_Y_Y (polygons_without_holes);
     DEFINE_GENERALIZED(polygons_with_holes, 2, "(),(i)->()");
     DEFINE_GENERALIZED(create_collection, 2, "(i),()->()");
+
+    DEFINE_CUSTOM (from_wkb, 1);
+    DEFINE_CUSTOM (from_wkt, 1);
+    DEFINE_CUSTOM (to_wkb, 5);
+    DEFINE_CUSTOM (to_wkt, 5);
 
     Py_DECREF(ufunc);
     return 0;
