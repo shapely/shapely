@@ -2,6 +2,10 @@
 #define _GEOS_H
 
 #include <Python.h>
+
+/* To avoid accidental use of non reentrant GEOS API. */
+#define GEOS_USE_ONLY_R_API
+
 #include <geos_c.h>
 
 #define RAISE_ILLEGAL_GEOS if (!PyErr_Occurred()) {PyErr_Format(PyExc_RuntimeError, "Uncaught GEOS exception");}
