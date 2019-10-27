@@ -1988,12 +1988,21 @@ for `func`.
     from functools import partial
     import pyproj
 
+    proj_in = pyproj.Proj(init='epsg:4326')
+    proj_out = pyproj.Proj(init='epsg:26913')
+
     project = partial(
         pyproj.transform,
-        pyproj.Proj(init='epsg:4326'),
-        pyproj.Proj(init='epsg:26913'))
+        proj_in,
+        proj_out)
 
     g2 = transform(project, g1)
+
+If using `pyproj>=2.1.0` a more performant method would be
+
+.. code-block:: python
+
+    project = pyproj.Transformer.from_proj(proj_in, proj_out).transform
 
 Lambda expressions such as the one in
 
