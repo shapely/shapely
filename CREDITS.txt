@@ -68,6 +68,6 @@ Additional help from:
 * Sandro Santilli, Mateusz Loskot, Paul Ramsey, et al (GEOS Project)
 
 Major portions of this work were supported by a grant (for Pleiades_) from the
-U.S. National Endowment for the Humanities (http://www.neh.gov).
+U.S. National Endowment for the Humanities (https://www.neh.gov).
 
-.. _Pleiades: http://pleiades.stoa.org
+.. _Pleiades: https://pleiades.stoa.org
