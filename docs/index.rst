@@ -36,7 +36,7 @@ used anymore.
 
   >>> from pygeos import Geometry
 
-  >>> geometry = Geometry.from_wkt("POINT (5.2 52.1)")
+  >>> geometry = Geometry("POINT (5.2 52.1)")
 
 Or using one of the provided (vectorized) functions:
 

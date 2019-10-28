@@ -31,6 +31,10 @@ operations are done in the open-source geometry library GEOS. PyGEOS wraps
 these operations in NumPy ufuncs providing a performance improvement when
 operating on arrays of geometries.
 
+Note: PyGEOS is a very young package. While the available functionality should
+be stable and working correctly, it's still possible that APIs change in upcoming
+releases. But we would love for you to try it out, give feedback or contribute!
+
 Why ufuncs?
 -----------
 
@@ -56,7 +60,7 @@ used anymore.
 
   >>> from pygeos import Geometry
 
-  >>> geometry = Geometry.from_wkt("POINT (5.2 52.1)")
+  >>> geometry = Geometry("POINT (5.2 52.1)")
 
 Or using one of the provided (vectorized) functions:
 
@@ -101,6 +105,8 @@ Compute the area of all possible intersections of two lists of polygons:
        [ 70.,  63.,  56.,  49.,  42.],
        [ 60.,  54.,  48.,  42.,  36.]])
 
+See the documentation for more: https://pygeos.readthedocs.io
+
 Installation using conda
 ------------------------
 
@@ -135,7 +141,7 @@ GEOS, see above).
 
 Clone the package::
 
-    $ git clone https://github.com/caspervdw/pygeos.git
+    $ git clone https://github.com/pygeos/pygeos.git
 
 Install it using `pip`::
 
@@ -159,6 +165,18 @@ On windows (assuming you are in a Visual C++ shell)::
 
     $ set GEOS_INCLUDE_PATH=%CONDA_PREFIX%\Library\include
     $ set GEOS_LIBRARY_PATH=%CONDA_PREFIX%\Library\lib
+
+Relationship to Shapely
+-----------------------
+
+Both Shapely and PyGEOS are exposing the functionality of the GEOS C++ library
+to Python. While Shapely only deals with single geometries, PyGEOS provides
+vectorized functions to work with arrays of geometries, giving better
+performance and convenience for such usecases.
+
+There is still discussion of integrating PyGEOS into Shapely
+(https://github.com/Toblerity/Shapely/issues/782), but for now PyGEOS is
+developed as a separate project.
 
 References
 ----------
