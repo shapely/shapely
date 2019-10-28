@@ -118,7 +118,7 @@ Relationships
 The spatial data model is accompanied by a group of natural language
 relationships between geometric objects – `contains`, `intersects`, `overlaps`,
 `touches`, etc. – and a theoretical framework for understanding them using the
-3x3 matrix of the mutual intersections of their component point sets [2]_: the
+3x3 matrix of the mutual intersections of their component point sets [3]_: the
 DE-9IM. A comprehensive review of the relationships in terms of the DE-9IM is
 found in [4]_ and will not be reiterated in this manual.
 
