@@ -155,6 +155,10 @@ class TransformOpsTestCase(unittest.TestCase):
         rls = affinity.rotate(ls, 90, origin=Point(0, 0))
         els = load_wkt('LINESTRING(-400 240, -300 240, -300 300)')
         self.assertTrue(rls.equals(els))
+        # empty
+        ls = load_wkt('LINESTRING EMPTY')
+        rls = affinity.rotate(ls, 90)
+        self.assertTrue(rls.is_empty)
 
     def test_scale(self):
         ls = load_wkt('LINESTRING(240 400 10, 240 300 30, 300 300 20)')
@@ -190,6 +194,10 @@ class TransformOpsTestCase(unittest.TestCase):
         for a, b in zip(sls.coords, els.coords):
             for ap, bp in zip(a, b):
                 self.assertEqual(ap, bp)
+        # empty
+        ls = load_wkt('LINESTRING EMPTY')
+        sls = affinity.scale(ls)
+        self.assertTrue(sls.is_empty)
 
     def test_skew(self):
         ls = load_wkt('LINESTRING(240 400 10, 240 300 30, 300 300 20)')
@@ -227,6 +235,10 @@ class TransformOpsTestCase(unittest.TestCase):
                        '320.3847577293367976 161.4359353944898317, '
                        '380.3847577293367976 126.7949192431122754)')
         self.assertTrue(sls.almost_equals(els))
+        # empty
+        ls = load_wkt('LINESTRING EMPTY')
+        sls = affinity.skew(ls)
+        self.assertTrue(sls.is_empty)
 
     def test_translate(self):
         ls = load_wkt('LINESTRING(240 400 10, 240 300 30, 300 300 20)')
@@ -244,6 +256,10 @@ class TransformOpsTestCase(unittest.TestCase):
         # retest with named parameters for the same result
         tls = affinity.translate(geom=ls, xoff=100, yoff=400, zoff=-10)
         self.assertTrue(tls.equals(els))
+        # empty
+        ls = load_wkt('LINESTRING EMPTY')
+        tls = affinity.translate(ls)
+        self.assertTrue(tls.is_empty)
 
 
 def test_suite():
