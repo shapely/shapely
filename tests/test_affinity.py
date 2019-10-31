@@ -156,9 +156,9 @@ class TransformOpsTestCase(unittest.TestCase):
         els = load_wkt('LINESTRING(-400 240, -300 240, -300 300)')
         self.assertTrue(rls.equals(els))
         # empty
-        ls = load_wkt('LINESTRING EMPTY')
-        rls = affinity.rotate(ls, 90)
-        self.assertTrue(rls.is_empty)
+        rls = affinity.rotate(load_wkt('LINESTRING EMPTY'), 90)
+        els = load_wkt('LINESTRING EMPTY')
+        self.assertTrue(rls.equals(els))
 
     def test_scale(self):
         ls = load_wkt('LINESTRING(240 400 10, 240 300 30, 300 300 20)')
@@ -195,9 +195,9 @@ class TransformOpsTestCase(unittest.TestCase):
             for ap, bp in zip(a, b):
                 self.assertEqual(ap, bp)
         # empty
-        ls = load_wkt('LINESTRING EMPTY')
-        sls = affinity.scale(ls)
-        self.assertTrue(sls.is_empty)
+        sls = affinity.scale(load_wkt('LINESTRING EMPTY'))
+        els = load_wkt('LINESTRING EMPTY')
+        self.assertTrue(sls.equals(els))
 
     def test_skew(self):
         ls = load_wkt('LINESTRING(240 400 10, 240 300 30, 300 300 20)')
@@ -236,9 +236,9 @@ class TransformOpsTestCase(unittest.TestCase):
                        '380.3847577293367976 126.7949192431122754)')
         self.assertTrue(sls.almost_equals(els))
         # empty
-        ls = load_wkt('LINESTRING EMPTY')
-        sls = affinity.skew(ls)
-        self.assertTrue(sls.is_empty)
+        sls = affinity.skew(load_wkt('LINESTRING EMPTY'))
+        els = load_wkt('LINESTRING EMPTY')
+        self.assertTrue(sls.equals(els))
 
     def test_translate(self):
         ls = load_wkt('LINESTRING(240 400 10, 240 300 30, 300 300 20)')
@@ -257,9 +257,9 @@ class TransformOpsTestCase(unittest.TestCase):
         tls = affinity.translate(geom=ls, xoff=100, yoff=400, zoff=-10)
         self.assertTrue(tls.equals(els))
         # empty
-        ls = load_wkt('LINESTRING EMPTY')
-        tls = affinity.translate(ls)
-        self.assertTrue(tls.is_empty)
+        tls = affinity.translate(load_wkt('LINESTRING EMPTY'))
+        els = load_wkt('LINESTRING EMPTY')
+        self.assertTrue(tls.equals(els))
 
 
 def test_suite():
