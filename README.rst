@@ -16,7 +16,7 @@ Manipulation and analysis of geometric objects in the Cartesian plane.
 
 Shapely is a BSD-licensed Python package for manipulation and analysis of
 planar geometric objects. It is based on the widely deployed `GEOS
-<http://trac.osgeo.org/geos/>`__ (the engine of `PostGIS
+<https://trac.osgeo.org/geos/>`__ (the engine of `PostGIS
 <http://postgis.org>`__) and `JTS
 <https://locationtech.github.io/jts/>`__ (from which GEOS is ported)
 libraries. Shapely is not concerned with data formats or coordinate systems,
@@ -43,8 +43,8 @@ Built distributions
 -------------------
 
 Windows users have two good installation options: the wheels at
-http://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely and the 
-Anaconda platform's `conda-forge <https://conda-forge.github.io/>`__
+https://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely and the 
+Anaconda platform's `conda-forge <https://conda-forge.org/>`__
 channel.
 
 OS X and Linux users can get Shapely wheels with GEOS included from the 
@@ -155,7 +155,7 @@ Support
 =======
 
 Questions about using Shapely may be asked on the `GIS StackExchange 
-<http://gis.stackexchange.com/questions/tagged/shapely>`__ using the "shapely"
+<https://gis.stackexchange.com/questions/tagged/shapely>`__ using the "shapely"
 tag.
 
 Bugs may be reported at https://github.com/Toblerity/Shapely/issues.

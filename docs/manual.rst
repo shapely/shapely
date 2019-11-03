@@ -118,7 +118,7 @@ Relationships
 The spatial data model is accompanied by a group of natural language
 relationships between geometric objects – `contains`, `intersects`, `overlaps`,
 `touches`, etc. – and a theoretical framework for understanding them using the
-3x3 matrix of the mutual intersections of their component point sets [2]_: the
+3x3 matrix of the mutual intersections of their component point sets [3]_: the
 DE-9IM. A comprehensive review of the relationships in terms of the DE-9IM is
 found in [4]_ and will not be reiterated in this manual.
 
@@ -2386,7 +2386,7 @@ Polylabel
 .. function:: shapely.ops.polylabel(polygon, tolerance)
 
   Finds the approximate location of the pole of inaccessibility for a given
-  polygon. Based on Vladimir Agafonkin's https://github.com/mapbox/polylabel.
+  polygon. Based on Vladimir Agafonkin's polylabel_.
 
   `New in version 1.6.0`
 
@@ -2712,12 +2712,8 @@ References
 
 .. _GEOS: https://trac.osgeo.org/geos/
 .. _Java Topology Suite: https://projects.eclipse.org/projects/locationtech.jts
-.. _JTS: https://projects.eclipse.org/projects/locationtech.jts
 .. _PostGIS: http://postgis.refractions.net
-.. _record: https://pypi.org/project/Shapely/
-.. _Open Geospatial Consortium: http://www.opengeospatial.org/
-.. _Davis: https://lin-ear-th-inking.blogspot.com/2007/06/subtleties-of-ogc-covers-spatial.html
-.. _Understanding spatial relations: http://edndoc.esri.com/arcsde/9.1/general_topics/understand_spatial_relations.htm
+.. _Open Geospatial Consortium: https://www.opengeospatial.org/
 .. _Strobl-PDF: https://giswiki.hsr.ch/images/3/3d/9dem_springer.pdf
 .. |Strobl-PDF| replace:: PDF
 .. _JTS-PDF: https://github.com/locationtech/jts/raw/master/doc/JTS%20Technical%20Specs.pdf
@@ -2725,3 +2721,4 @@ References
 .. _frozenset: https://docs.python.org/library/stdtypes.html#frozenset
 .. _Sorting HowTo: https://wiki.python.org/moin/HowTo/Sorting/
 .. _Python geo interface: https://gist.github.com/2217756
+.. _polylabel: https://github.com/mapbox/polylabel
