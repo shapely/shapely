@@ -254,6 +254,8 @@ def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
         | 0  0  1 zoff |
         \ 0  0  0   1  /
     """
+    if geom.is_empty:
+        return geom
     matrix = (1.0, 0.0, 0.0,
               0.0, 1.0, 0.0,
               0.0, 0.0, 1.0,
