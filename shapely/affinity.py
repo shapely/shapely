@@ -151,6 +151,8 @@ def rotate(geom, angle, origin='center', use_radians=False):
         xoff = x0 - x0 * cos(r) + y0 * sin(r)
         yoff = y0 - x0 * sin(r) - y0 * cos(r)
     """
+    if geom.is_empty:
+        return geom
     if not use_radians:  # convert from degrees
         angle *= pi/180.0
     cosp = cos(angle)
@@ -190,6 +192,8 @@ def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center'):
         yoff = y0 - y0 * yfact
         zoff = z0 - z0 * zfact
     """
+    if geom.is_empty:
+        return geom
     x0, y0, z0 = interpret_origin(geom, origin, 3)
 
     matrix = (xfact, 0.0, 0.0,
@@ -220,6 +224,8 @@ def skew(geom, xs=0.0, ys=0.0, origin='center', use_radians=False):
         xoff = -y0 * tan(xs)
         yoff = -x0 * tan(ys)
     """
+    if geom.is_empty:
+        return geom
     if not use_radians:  # convert from degrees
         xs *= pi/180.0
         ys *= pi/180.0
@@ -248,6 +254,8 @@ def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
         | 0  0  1 zoff |
         \ 0  0  0   1  /
     """
+    if geom.is_empty:
+        return geom
     matrix = (1.0, 0.0, 0.0,
               0.0, 1.0, 0.0,
               0.0, 0.0, 1.0,
