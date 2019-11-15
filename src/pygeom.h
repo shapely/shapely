@@ -11,13 +11,13 @@ typedef struct {
 } GeometryObject;
 
 
-PyTypeObject GeometryType;
+extern PyTypeObject GeometryType;
 
 /* Initializes a new geometry object */
-PyObject *GeometryObject_FromGEOS(PyTypeObject *type, GEOSGeometry *ptr);
+extern PyObject *GeometryObject_FromGEOS(PyTypeObject *type, GEOSGeometry *ptr);
 /* Get a GEOSGeometry from a GeometryObject */
 extern char get_geom(GeometryObject *obj, GEOSGeometry **out);
 
-int init_geom_type(PyObject *m);
+extern int init_geom_type(PyObject *m);
 
 #endif
