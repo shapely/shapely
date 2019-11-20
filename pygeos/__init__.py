@@ -9,6 +9,7 @@ from .measurement import *
 from .set_operations import *
 from .linear import *
 from .coordinates import *
+from .strtree import *
 from .io import *
 
 from ._version import get_versions

@@ -109,7 +109,7 @@ class build_ext(_build_ext):
 
 module_lib = Extension(
     "pygeos.lib",
-    sources=["src/lib.c", "src/geos.c", "src/pygeom.c", "src/ufuncs.c", "src/coords.c"],
+    sources=["src/lib.c", "src/geos.c", "src/pygeom.c", "src/ufuncs.c", "src/coords.c", "src/strtree.c"],
     **get_geos_paths()
 )
 

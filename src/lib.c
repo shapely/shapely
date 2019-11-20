@@ -13,6 +13,7 @@
 #include "pygeom.h"
 #include "coords.h"
 #include "ufuncs.h"
+#include "strtree.h"
 
 
 /* This tells Python what methods this module has. */
@@ -49,6 +50,10 @@ PyMODINIT_FUNC PyInit_lib(void)
     };
 
     if (init_geom_type(m) < 0) {
+        return NULL;
+    };
+
+    if (init_strtree_type(m) < 0) {
         return NULL;
     };
 

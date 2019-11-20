@@ -61,6 +61,7 @@ API Reference
    measurement
    predicates
    set_operations
+   strtree
 
 
 Indices and tables

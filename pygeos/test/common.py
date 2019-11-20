@@ -1,5 +1,7 @@
 import numpy as np
 import pygeos
+import sys
+from contextlib import contextmanager
 
 point_polygon_testdata = (
     pygeos.points(np.arange(6), np.arange(6)),
@@ -39,3 +41,17 @@ all_types = (
     geometry_collection,
     empty,
 )
+
+
+@contextmanager
+def assert_increases_refcount(obj):
+    before = sys.getrefcount(obj)
+    yield
+    assert sys.getrefcount(obj) == before + 1
+
+
+@contextmanager
+def assert_decreases_refcount(obj):
+    before = sys.getrefcount(obj)
+    yield
+    assert sys.getrefcount(obj) == before - 1
