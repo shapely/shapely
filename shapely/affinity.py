@@ -154,7 +154,7 @@ def rotate(geom, angle, origin='center', use_radians=False):
     if geom.is_empty:
         return geom
     if not use_radians:  # convert from degrees
-        angle *= pi/180.0
+        angle = angle * pi/180.0
     cosp = cos(angle)
     sinp = sin(angle)
     if abs(cosp) < 2.5e-16:
@@ -227,8 +227,8 @@ def skew(geom, xs=0.0, ys=0.0, origin='center', use_radians=False):
     if geom.is_empty:
         return geom
     if not use_radians:  # convert from degrees
-        xs *= pi/180.0
-        ys *= pi/180.0
+        xs = xs * pi/180.0
+        ys = ys * pi/180.0
     tanx = tan(xs)
     tany = tan(ys)
     if abs(tanx) < 2.5e-16:

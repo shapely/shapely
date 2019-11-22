@@ -4,6 +4,11 @@ from shapely import affinity
 from shapely.wkt import loads as load_wkt
 from shapely.geometry import Point
 
+try:
+    import numpy
+except ImportError:
+    numpy = False
+
 
 class AffineTestCase(unittest.TestCase):
 
@@ -161,6 +166,21 @@ class TransformOpsTestCase(unittest.TestCase):
         els = load_wkt('LINESTRING EMPTY')
         self.assertTrue(rls.equals(els))
 
+    @unittest.skipIf(not numpy, 'numpy not installed')
+    def test_rotate_angle_array(self):
+        ls = load_wkt('LINESTRING(240 400, 240 300, 300 300)')
+        els = load_wkt('LINESTRING(220 320, 320 320, 320 380)')
+        # check with degrees
+        theta = numpy.array([90.0])
+        rls = affinity.rotate(ls, theta)
+        self.assertEqual(theta[0], 90.0)
+        self.assertTrue(rls.equals(els))
+        # check with radians
+        theta = numpy.array([pi/2])
+        rls = affinity.rotate(ls, theta, use_radians=True)
+        self.assertEqual(theta[0], pi/2)
+        self.assertTrue(rls.equals(els))
+
     def test_scale(self):
         ls = load_wkt('LINESTRING(240 400 10, 240 300 30, 300 300 20)')
         # test defaults of 1.0
@@ -242,6 +262,25 @@ class TransformOpsTestCase(unittest.TestCase):
         sls = affinity.skew(load_wkt('LINESTRING EMPTY'))
         els = load_wkt('LINESTRING EMPTY')
         self.assertTrue(sls.equals(els))
+
+    @unittest.skipIf(not numpy, 'numpy not installed')
+    def test_skew_xs_ys_array(self):
+        ls = load_wkt('LINESTRING(240 400 10, 240 300 30, 300 300 20)')
+        els = load_wkt('LINESTRING (253.39745962155615 417.3205080756888, '
+                       '226.60254037844385 317.3205080756888, '
+                       '286.60254037844385 282.67949192431126)')
+        # check with degrees
+        xs_ys = numpy.array([15.0, -30.0])
+        sls = affinity.skew(ls, xs_ys[0:1], xs_ys[1:2])
+        self.assertEqual(xs_ys[0], 15.0)
+        self.assertEqual(xs_ys[1], -30.0)
+        self.assertTrue(sls.almost_equals(els))
+        # check with radians
+        xs_ys = numpy.array([pi/12, -pi/6])
+        sls = affinity.skew(ls, xs_ys[0:1], xs_ys[1:2], use_radians=True)
+        self.assertEqual(xs_ys[0], pi/12)
+        self.assertEqual(xs_ys[1], -pi/6)
+        self.assertTrue(sls.almost_equals(els))
 
     def test_translate(self):
         ls = load_wkt('LINESTRING(240 400 10, 240 300 30, 300 300 20)')
