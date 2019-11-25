@@ -46,6 +46,37 @@ def test_distance_missing():
     assert np.isnan(actual)
 
 
+@pytest.mark.parametrize(
+    "geom,expected",
+    [
+        (point, [2.0, 3.0, 2.0, 3.0]),
+        (pygeos.linestrings([[0, 0], [0, 1]]), [0.0, 0.0, 0.0, 1.0]),
+        (pygeos.linestrings([[0, 0], [1, 0]]), [0.0, 0.0, 1.0, 0.0]),
+        (multi_point, [0.0, 0.0, 1.0, 2.0]),
+        (multi_polygon, [0.0, 0.0, 2.2, 2.2]),
+        (geometry_collection, [49.0, -1.0, 52.0, 2.0]),
+    ],
+)
+def test_bounds(geom, expected):
+    actual = pygeos.bounds(geom)
+    assert actual.tolist() == expected
+
+
+def test_bounds_array():
+    actual = pygeos.bounds([[point, multi_point], [polygon, None]])
+    assert actual.shape == (2, 2, 4)
+
+
+def test_bounds_missing():
+    actual = pygeos.bounds(None)
+    assert np.isnan(actual).all()
+
+
+def test_bounds_empty():
+    actual = pygeos.bounds(empty)
+    assert np.isnan(actual).all()
+
+
 def test_length():
     actual = pygeos.length(
         [

@@ -934,6 +934,71 @@ static void create_collection_func(char **args, npy_intp *dimensions,
 static PyUFuncGenericFunction create_collection_funcs[1] = {&create_collection_func};
 
 
+static char bounds_dtypes[2] = {NPY_OBJECT, NPY_DOUBLE};
+static void bounds_func(char **args, npy_intp *dimensions,
+                        npy_intp *steps, void *data)
+{
+    void *context = geos_context[0];
+    GEOSGeometry *envelope, *in1;
+    const GEOSGeometry *ring;
+    const GEOSCoordSequence *coord_seq;
+    int size;
+    char *ip1 = args[0], *op1 = args[1];
+    double *x1, *y1, *x2, *y2;
+
+    npy_intp is1 = steps[0], os1 = steps[1], cs1 = steps[2];
+    npy_intp n = dimensions[0], i;
+
+    for(i = 0; i < n; i++, ip1 += is1, op1 += os1) {
+        if (!get_geom(*(GeometryObject **)ip1, &in1)) { return; }
+
+        /* get the 4 (pointers to) the bbox values from the "core stride 1" (cs1) */
+        x1 = (double *)(op1);
+        y1 = (double *)(op1 + cs1);
+        x2 = (double *)(op1 + 2 * cs1);
+        y2 = (double *)(op1 + 3 * cs1);
+
+        if (in1 == NULL) {  /* no geometry => bbox becomes (nan, nan, nan, nan) */
+            *x1 = *y1 = *x2 = *y2 = NPY_NAN;
+        } else {
+            /* construct the envelope */
+            envelope = GEOSEnvelope_r(context, in1);
+            if (envelope == NULL) { return; }
+            size = GEOSGetNumCoordinates_r(context, envelope);
+
+            /* get the bbox depending on the number of coordinates in the envelope */
+            if (size == 0) {  /* Envelope is empty */
+                *x1 = *y1 = *x2 = *y2 = NPY_NAN;
+            } else if (size == 1) {  /* Envelope is a point */
+                if (!GEOSGeomGetX_r(context, envelope, x1)) { goto fail; }
+                if (!GEOSGeomGetY_r(context, envelope, y1)) { goto fail; }
+                *x2 = *x1;
+                *y2 = *y1;
+            } else if (size == 5) {  /* Envelope is a box */
+                ring = GEOSGetExteriorRing_r(context, envelope);
+                if (ring == NULL) { goto fail; }
+                coord_seq = GEOSGeom_getCoordSeq_r(context, ring);
+                if (coord_seq == NULL) { goto fail; }
+                if (!GEOSCoordSeq_getX_r(context, coord_seq, 0, x1)) { goto fail; }
+                if (!GEOSCoordSeq_getY_r(context, coord_seq, 0, y1)) { goto fail; }
+                if (!GEOSCoordSeq_getX_r(context, coord_seq, 2, x2)) { goto fail; }
+                if (!GEOSCoordSeq_getY_r(context, coord_seq, 2, y2)) { goto fail; }
+            } else {
+                PyErr_Format(PyExc_ValueError, "Could not determine bounds from an envelope with %d coordinate pairs", size);
+                goto fail;
+            }
+            GEOSGeom_destroy_r(context, envelope);
+        }
+    }
+
+    return;
+    fail:
+        GEOSGeom_destroy_r(context, envelope);
+        return;
+}
+static PyUFuncGenericFunction bounds_funcs[1] = {&bounds_func};
+
+
 
 /* Define the object -> geom functions (O_Y) */
 
@@ -1323,6 +1388,7 @@ int init_ufuncs(PyObject *m, PyObject *d)
     DEFINE_GENERALIZED(points, 1, "(d)->()");
     DEFINE_GENERALIZED(linestrings, 1, "(i, d)->()");
     DEFINE_GENERALIZED(linearrings, 1, "(i, d)->()");
+    DEFINE_GENERALIZED(bounds, 1, "()->(n)");
     DEFINE_Y_Y (polygons_without_holes);
     DEFINE_GENERALIZED(polygons_with_holes, 2, "(),(i)->()");
     DEFINE_GENERALIZED(create_collection, 2, "(i),()->()");

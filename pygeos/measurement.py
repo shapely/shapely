@@ -1,10 +1,12 @@
+import numpy as np
+
 from . import lib
 from . import Geometry  # NOQA
 
-__all__ = ["area", "distance", "length", "hausdorff_distance"]
+__all__ = ["area", "distance", "bounds", "length", "hausdorff_distance"]
 
 
-def area(geometry):
+def area(geometry, **kwargs):
     """Computes the area of a (multi)polygon.
 
     Parameters
@@ -22,10 +24,10 @@ def area(geometry):
     >>> area(None)
     nan
     """
-    return lib.area(geometry)
+    return lib.area(geometry, **kwargs)
 
 
-def distance(a, b):
+def distance(a, b, **kwargs):
     """Computes the Cartesian distance between two geometries.
 
     Parameters
@@ -46,10 +48,37 @@ def distance(a, b):
     >>> distance(None, point)
     nan
     """
-    return lib.distance(a, b)
+    return lib.distance(a, b, **kwargs)
 
 
-def length(geometry):
+def bounds(geometry, **kwargs):
+    """Computes the bounds (extent) of a geometry.
+
+    For each geometry these 4 numbers are returned: min x, min y, max x, max y.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+
+    Examples
+    --------
+    >>> bounds(Geometry("POINT (2 3)")).tolist()
+    [2.0, 3.0, 2.0, 3.0]
+    >>> bounds(Geometry("LINESTRING (0 0, 0 2, 3 2)")).tolist()
+    [0.0, 0.0, 3.0, 2.0]
+    >>> bounds(Geometry("POLYGON EMPTY")).tolist()
+    [nan, nan, nan, nan]
+    >>> bounds(None).tolist()
+    [nan, nan, nan, nan]
+    """
+    # We need to provide the `out` argument here for compatibility with
+    # numpy < 1.16. See https://github.com/numpy/numpy/issues/14949
+    geometry_arr = np.asarray(geometry, dtype=np.object)
+    out = np.empty(geometry_arr.shape + (4,), dtype="float64")
+    return lib.bounds(geometry_arr, out=out, **kwargs)
+
+
+def length(geometry, **kwargs):
     """Computes the length of a (multi)linestring or polygon perimeter.
 
     Parameters
@@ -69,10 +98,10 @@ def length(geometry):
     >>> length(None)
     nan
     """
-    return lib.length(geometry)
+    return lib.length(geometry, **kwargs)
 
 
-def hausdorff_distance(a, b, densify=None):
+def hausdorff_distance(a, b, densify=None, **kwargs):
     """Compute the discrete Haussdorf distance between two geometries.
 
     The Haussdorf distance is a measure of similarity: it is the greatest
@@ -101,6 +130,6 @@ def hausdorff_distance(a, b, densify=None):
     nan
     """
     if densify is None:
-        return lib.hausdorff_distance(a, b)
+        return lib.hausdorff_distance(a, b, **kwargs)
     else:
-        return lib.haussdorf_distance_densify(a, b, densify)
+        return lib.haussdorf_distance_densify(a, b, densify, **kwargs)
