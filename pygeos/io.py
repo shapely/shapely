@@ -2,9 +2,17 @@ import numpy as np
 
 from . import Geometry  # noqa
 from . import lib
+from . import geos_capi_version_string
+
+try:
+    from shapely.geos import geos_version_string as shapely_geos_version
+    from shapely.geometry.base import BaseGeometry as ShapelyGeometry
+except ImportError:
+    shapely_geos_version = None
+    ShapelyGeometry = None
 
 
-__all__ = ["from_wkb", "from_wkt", "to_wkb", "to_wkt"]
+__all__ = ["from_shapely", "from_wkb", "from_wkt", "to_wkb", "to_wkt"]
 
 
 def to_wkt(
@@ -80,7 +88,9 @@ def to_wkt(
     )
 
 
-def to_wkb(geometry, hex=False, output_dimension=3, byte_order=-1, include_srid=False, **kwargs):
+def to_wkb(
+    geometry, hex=False, output_dimension=3, byte_order=-1, include_srid=False, **kwargs
+):
     r"""
     Converts to the Well-Known Binary (WKB) representation of a Geometry.
 
@@ -172,3 +182,42 @@ def from_wkb(geometry, **kwargs):
     # of array elements)
     geometry = np.asarray(geometry, dtype=object)
     return lib.from_wkb(geometry, **kwargs)
+
+
+def from_shapely(geometry, **kwargs):
+    """Creates geometries from shapely Geometry objects.
+
+    This function requires the GEOS version of PyGEOS and shapely to be equal.
+
+    Parameters
+    ----------
+    geometry : shapely Geometry object or array_like
+
+    Examples
+    --------
+    >>> from shapely.geometry import Point   # doctest: +SKIP
+    >>> from_shapely(Point(1, 2))   # doctest: +SKIP
+    <pygeos.Geometry POINT (1 2)>
+    """
+    if shapely_geos_version is None:
+        raise ImportError("This function requires shapely")
+
+    # shapely has something like: "3.6.2-CAPI-1.10.2 4d2925d6"
+    # pygeos has something like: "3.6.2-CAPI-1.10.2"
+    if not shapely_geos_version.startswith(geos_capi_version_string):
+        raise ImportError(
+            "The shapely GEOS version ({}) is incompatible with the GEOS "
+            "version PyGEOS was compiled with ({})".format(
+                shapely_geos_version, geos_capi_version_string
+            )
+        )
+
+    if isinstance(geometry, ShapelyGeometry):
+        # this so that the __array_interface__ of the shapely geometry is not
+        # used, converting the Geometry to its coordinates
+        arr = np.empty(1, dtype=object)
+        arr[0] = geometry
+        arr.shape = ()
+    else:
+        arr = np.asarray(geometry, dtype=object)
+    return lib.from_shapely(arr, **kwargs)

@@ -84,12 +84,8 @@ static PyObject *GeometryObject_FromWKT(PyTypeObject *type, PyObject *value)
     GEOSGeometry *geom;
     GEOSWKTReader *reader;
 
-    /* Cast the PyObject (bytes or str) to char* */
-    if (PyBytes_Check(value)) {
-        wkt = PyBytes_AsString(value);
-        if (wkt == NULL) { return NULL; }
-    }
-    else if (PyUnicode_Check(value)) {
+    /* Cast the PyObject str to char* */
+    if (PyUnicode_Check(value)) {
         wkt = PyUnicode_AsUTF8(value);
         if (wkt == NULL) { return NULL; }
     } else {

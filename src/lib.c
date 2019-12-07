@@ -62,8 +62,20 @@ PyMODINIT_FUNC PyInit_lib(void)
     import_array();
     import_umath();
 
-    /* export the version as a python string */
-    PyModule_AddObject(m, "geos_version", PyUnicode_FromString(GEOS_VERSION));
+    /* export the GEOS versions as python tuple and string */
+    PyModule_AddObject(m, "geos_version", PyTuple_Pack(3,
+        PyLong_FromLong((long) GEOS_VERSION_MAJOR),
+        PyLong_FromLong((long) GEOS_VERSION_MINOR),
+        PyLong_FromLong((long) GEOS_VERSION_PATCH)
+    ));
+    PyModule_AddObject(m, "geos_capi_version", PyTuple_Pack(3,
+        PyLong_FromLong((long) GEOS_CAPI_VERSION_MAJOR),
+        PyLong_FromLong((long) GEOS_CAPI_VERSION_MINOR),
+        PyLong_FromLong((long) GEOS_CAPI_VERSION_PATCH)
+    ));
+
+    PyModule_AddObject(m, "geos_version_string", PyUnicode_FromString(GEOS_VERSION));
+    PyModule_AddObject(m, "geos_capi_version_string", PyUnicode_FromString(GEOS_CAPI_VERSION));
 
     if (init_ufuncs(m, d) < 0) {
         return NULL;
