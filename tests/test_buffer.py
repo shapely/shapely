@@ -32,7 +32,6 @@ class BufferSideParamsCase(unittest.TestCase):
         g = geometry.LineString([[0, 0], [0, 1]])
         h = g.buffer(1, resolution=1)
         self.assertEqual(h.geom_type, 'Polygon')
-        print(list(h.exterior.coords))
         expected_coord = [(-1.0, 1.0), (0, 2.0), (1.0, 1.0), (1.0, 0.0), (0, -1.0), (-1.0, 0.0),
                           (-1.0, 1.0)]
         for index, coord in enumerate(h.exterior.coords):
@@ -43,7 +42,6 @@ class BufferSideParamsCase(unittest.TestCase):
         g = geometry.LineString([[0, 0], [0, 1]])
         h = g.buffer(1, resolution=1, single_side=1)
         self.assertEqual(h.geom_type, 'Polygon')
-        print(list(h.exterior.coords))
         expected_coord = [(0.0, 1.0), (0.0, 0.0), (-1.0, 0.0), (-1.0, 1.0), (0.0, 1.0)]
         for index, coord in enumerate(h.exterior.coords):
             self.assertAlmostEqual(coord[0], expected_coord[index][0])
@@ -53,7 +51,6 @@ class BufferSideParamsCase(unittest.TestCase):
         g = geometry.Polygon([[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]])
         h = g.buffer(1, resolution=1)
         self.assertEqual(h.geom_type, 'Polygon')
-        print(list(h.exterior.coords))
         expected_coord = [(-1.0, 0.0), (-1.0, 1.0), (0.0, 2.0), (1.0, 2.0), (2.0, 1.0), (2.0, 0.0),
                           (1.0, -1.0), (0.0, -1.0), (-1.0, 0.0)]
         for index, coord in enumerate(h.exterior.coords):
@@ -64,7 +61,6 @@ class BufferSideParamsCase(unittest.TestCase):
         g = geometry.Polygon([[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]])
         h = g.buffer(1, resolution=1, single_side=1)
         self.assertEqual(h.geom_type, 'Polygon')
-        print(list(h.exterior.coords))
         expected_coord = [(-1.0, 0.0), (-1.0, 1.0), (0.0, 2.0), (1.0, 2.0), (2.0, 1.0), (2.0, 0.0),
                           (1.0, -1.0), (0.0, -1.0), (-1.0, 0.0)]
         for index, coord in enumerate(h.exterior.coords):
