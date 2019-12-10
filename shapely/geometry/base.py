@@ -531,7 +531,7 @@ class BaseGeometry(object):
 
     def buffer(self, distance, resolution=16, quadsegs=None,
                cap_style=CAP_STYLE.round, join_style=JOIN_STYLE.round,
-               mitre_limit=5.0):
+               mitre_limit=5.0, single_side=0):
         """Returns a geometry with an envelope at a distance from the object's
         envelope
 
@@ -580,6 +580,16 @@ class BaseGeometry(object):
         if mitre_limit == 0.0:
             raise ValueError(
                 'Cannot compute offset from zero-length line segment')
+
+        if 'buffer_with_params' in self.impl:
+            params = self._lgeos.GEOSBufferParams_create()
+            self._lgeos.GEOSBufferParams_setEndCapStyle(params, cap_style)
+            self._lgeos.GEOSBufferParams_setJoinStyle(params, join_style)
+            self._lgeos.GEOSBufferParams_setMitreLimit(params, mitre_limit)
+            self._lgeos.GEOSBufferParams_setQuadrantSegments(params, res)
+            self._lgeos.GEOSBufferParams_setSingleSided(params, single_side)
+            return geom_factory(self.impl['buffer_with_params'](self, params, distance))
+
         if cap_style == CAP_STYLE.round and join_style == JOIN_STYLE.round:
             return geom_factory(self.impl['buffer'](self, distance, res))
 
@@ -700,7 +710,7 @@ class BaseGeometry(object):
 
     def equals(self, other):
         """Returns True if geometries are equal, else False
-        
+
         Refers to point-set equality (or topological equality), and is equivalent to
         (self.within(other) & self.contains(other))
         """
@@ -725,8 +735,8 @@ class BaseGeometry(object):
     def equals_exact(self, other, tolerance):
         """Returns True if geometries are equal to within a specified
         tolerance
-        
-        Refers to coordinate equality, which requires coordinates to be equal 
+
+        Refers to coordinate equality, which requires coordinates to be equal
         and in the same order for all components of a geometry
         """
         return bool(self.impl['equals_exact'](self, other, tolerance))
