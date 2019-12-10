@@ -35,7 +35,7 @@ def test_error_handler(tmpdir):
     LineString([(0, 0), (2, 2)]).project(LineString([(1, 1), (1.5, 1.5)]))
 
     log = open(logfile).read()
-    assert "third argument of GEOSProject_r must be Point*" in log
+    assert "third argument of GEOSProject_r must be Point" in log
 
 
 def test_error_handler_wrong_type():
