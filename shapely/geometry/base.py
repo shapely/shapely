@@ -535,25 +535,34 @@ class BaseGeometry(object):
         """Returns a geometry with an envelope at a distance from the object's
         envelope
 
-        A negative distance has a "shrink" effect. A zero distance may be used
-        to "tidy" a polygon. The resolution of the buffer around each vertex of
-        the object increases by increasing the resolution keyword parameter
-        or second positional parameter. Note: the use of a `quadsegs` parameter
-        is deprecated and will be gone from the next major release.
-
-        The styles of caps are: CAP_STYLE.round (1), CAP_STYLE.flat (2), and
-        CAP_STYLE.square (3).
-
-        The styles of joins between offset segments are: JOIN_STYLE.round (1),
-        JOIN_STYLE.mitre (2), and JOIN_STYLE.bevel (3).
-
-        The mitre limit ratio is used for very sharp corners. The mitre ratio
-        is the ratio of the distance from the corner to the end of the mitred
-        offset corner. When two line segments meet at a sharp angle, a miter
-        join will extend the original geometry. To prevent unreasonable
-        geometry, the mitre limit allows controlling the maximum length of the
-        join corner. Corners with a ratio which exceed the limit will be
-        beveled.
+        Parameters
+        ==========
+        distance: float
+            The distance to buffer around the object. A negative distance has a "shrink" effect.
+            A zero distance may be used to "tidy" a polygon.
+        resolution: int, optional
+            The resolution of the buffer around each vertex of the object.
+        quadsegs: int, optional
+            Sets the number of line segments used to approximate an angle fillet.
+            Note: the use of a `quadsegs` parameter is deprecated and will be gone from
+            the next major release.
+        cap_style: int, optional
+            The styles of caps are: CAP_STYLE.round (1), CAP_STYLE.flat (2), and
+            CAP_STYLE.square (3).
+        join_style: int, optional
+            The styles of joins between offset segments are: JOIN_STYLE.round (1),
+            JOIN_STYLE.mitre (2), and JOIN_STYLE.bevel (3).
+        mitre_limit: float, optional
+            The mitre limit ratio is used for very sharp corners. The mitre ratio
+            is the ratio of the distance from the corner to the end of the mitred
+            offset corner. When two line segments meet at a sharp angle, a miter
+            join will extend the original geometry. To prevent unreasonable
+            geometry, the mitre limit allows controlling the maximum length of the
+            join corner. Corners with a ratio which exceed the limit will be
+            beveled.
+        single_side: int, optional
+            A single-sided buffer is constructed on only one side of each input line.
+            The side used is determined by the sign of the buffer distance, positive being left.
 
         Example:
 
