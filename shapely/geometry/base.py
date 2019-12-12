@@ -531,7 +531,7 @@ class BaseGeometry(object):
 
     def buffer(self, distance, resolution=16, quadsegs=None,
                cap_style=CAP_STYLE.round, join_style=JOIN_STYLE.round,
-               mitre_limit=5.0, single_side=0):
+               mitre_limit=5.0, single_sided=False):
         """Returns a geometry with an envelope at a distance from the object's
         envelope
 
@@ -560,9 +560,13 @@ class BaseGeometry(object):
             geometry, the mitre limit allows controlling the maximum length of the
             join corner. Corners with a ratio which exceed the limit will be
             beveled.
-        single_side: int, optional
-            A single-sided buffer is constructed on only one side of each input line.
-            The side used is determined by the sign of the buffer distance, positive being left.
+        single_side: bool, optional
+            The side used is determined by the sign of the buffer distance:
+                a positive distance indicates the left-hand side
+                a negative distance indicates the right-hand side
+            The single-sided buffer of point geometries is the same as the regular buffer.
+            The End Cap Style for single-sided buffers is always ignored, and forced to the
+            equivalent of CAP_FLAT.
 
         Example:
 
@@ -596,7 +600,7 @@ class BaseGeometry(object):
             self._lgeos.GEOSBufferParams_setJoinStyle(params, join_style)
             self._lgeos.GEOSBufferParams_setMitreLimit(params, mitre_limit)
             self._lgeos.GEOSBufferParams_setQuadrantSegments(params, res)
-            self._lgeos.GEOSBufferParams_setSingleSided(params, single_side)
+            self._lgeos.GEOSBufferParams_setSingleSided(params, single_sided)
             return geom_factory(self.impl['buffer_with_params'](self, params, distance))
 
         if cap_style == CAP_STYLE.round and join_style == JOIN_STYLE.round:
