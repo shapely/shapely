@@ -144,7 +144,9 @@ IMPL320 = {
     }
 
 IMPL330 = {
-    'is_closed': (UnaryPredicate, 'is_closed')}
+    'is_closed': (UnaryPredicate, 'is_closed'),
+    'buffer_with_params': (UnaryTopologicalOp, 'buffer_with_params'),
+}
 
 
 def impl_items(defs):

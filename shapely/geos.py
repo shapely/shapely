@@ -842,6 +842,7 @@ class LGEOS330(LGEOS320):
         self.methods['cascaded_union'] = self.methods['unary_union']
         self.methods['snap'] = self.GEOSSnap
         self.methods['shared_paths'] = self.GEOSSharedPaths
+        self.methods['buffer_with_params'] = self.GEOSBufferWithParams
 
 
 class LGEOS340(LGEOS330):

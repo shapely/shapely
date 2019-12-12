@@ -531,29 +531,42 @@ class BaseGeometry(object):
 
     def buffer(self, distance, resolution=16, quadsegs=None,
                cap_style=CAP_STYLE.round, join_style=JOIN_STYLE.round,
-               mitre_limit=5.0):
+               mitre_limit=5.0, single_sided=False):
         """Returns a geometry with an envelope at a distance from the object's
         envelope
 
-        A negative distance has a "shrink" effect. A zero distance may be used
-        to "tidy" a polygon. The resolution of the buffer around each vertex of
-        the object increases by increasing the resolution keyword parameter
-        or second positional parameter. Note: the use of a `quadsegs` parameter
-        is deprecated and will be gone from the next major release.
-
-        The styles of caps are: CAP_STYLE.round (1), CAP_STYLE.flat (2), and
-        CAP_STYLE.square (3).
-
-        The styles of joins between offset segments are: JOIN_STYLE.round (1),
-        JOIN_STYLE.mitre (2), and JOIN_STYLE.bevel (3).
-
-        The mitre limit ratio is used for very sharp corners. The mitre ratio
-        is the ratio of the distance from the corner to the end of the mitred
-        offset corner. When two line segments meet at a sharp angle, a miter
-        join will extend the original geometry. To prevent unreasonable
-        geometry, the mitre limit allows controlling the maximum length of the
-        join corner. Corners with a ratio which exceed the limit will be
-        beveled.
+        Parameters
+        ==========
+        distance: float
+            The distance to buffer around the object. A negative distance has a "shrink" effect.
+            A zero distance may be used to "tidy" a polygon.
+        resolution: int, optional
+            The resolution of the buffer around each vertex of the object.
+        quadsegs: int, optional
+            Sets the number of line segments used to approximate an angle fillet.
+            Note: the use of a `quadsegs` parameter is deprecated and will be gone from
+            the next major release.
+        cap_style: int, optional
+            The styles of caps are: CAP_STYLE.round (1), CAP_STYLE.flat (2), and
+            CAP_STYLE.square (3).
+        join_style: int, optional
+            The styles of joins between offset segments are: JOIN_STYLE.round (1),
+            JOIN_STYLE.mitre (2), and JOIN_STYLE.bevel (3).
+        mitre_limit: float, optional
+            The mitre limit ratio is used for very sharp corners. The mitre ratio
+            is the ratio of the distance from the corner to the end of the mitred
+            offset corner. When two line segments meet at a sharp angle, a miter
+            join will extend the original geometry. To prevent unreasonable
+            geometry, the mitre limit allows controlling the maximum length of the
+            join corner. Corners with a ratio which exceed the limit will be
+            beveled.
+        single_side: bool, optional
+            The side used is determined by the sign of the buffer distance:
+                a positive distance indicates the left-hand side
+                a negative distance indicates the right-hand side
+            The single-sided buffer of point geometries is the same as the regular buffer.
+            The End Cap Style for single-sided buffers is always ignored, and forced to the
+            equivalent of CAP_FLAT.
 
         Example:
 
@@ -580,6 +593,16 @@ class BaseGeometry(object):
         if mitre_limit == 0.0:
             raise ValueError(
                 'Cannot compute offset from zero-length line segment')
+
+        if 'buffer_with_params' in self.impl:
+            params = self._lgeos.GEOSBufferParams_create()
+            self._lgeos.GEOSBufferParams_setEndCapStyle(params, cap_style)
+            self._lgeos.GEOSBufferParams_setJoinStyle(params, join_style)
+            self._lgeos.GEOSBufferParams_setMitreLimit(params, mitre_limit)
+            self._lgeos.GEOSBufferParams_setQuadrantSegments(params, res)
+            self._lgeos.GEOSBufferParams_setSingleSided(params, single_sided)
+            return geom_factory(self.impl['buffer_with_params'](self, params, distance))
+
         if cap_style == CAP_STYLE.round and join_style == JOIN_STYLE.round:
             return geom_factory(self.impl['buffer'](self, distance, res))
 
@@ -700,7 +723,7 @@ class BaseGeometry(object):
 
     def equals(self, other):
         """Returns True if geometries are equal, else False
-        
+
         Refers to point-set equality (or topological equality), and is equivalent to
         (self.within(other) & self.contains(other))
         """
@@ -725,8 +748,8 @@ class BaseGeometry(object):
     def equals_exact(self, other, tolerance):
         """Returns True if geometries are equal to within a specified
         tolerance
-        
-        Refers to coordinate equality, which requires coordinates to be equal 
+
+        Refers to coordinate equality, which requires coordinates to be equal
         and in the same order for all components of a geometry
         """
         return bool(self.impl['equals_exact'](self, other, tolerance))
