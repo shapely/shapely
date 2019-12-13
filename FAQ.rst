@@ -1,8 +1,6 @@
 Frequently asked questions and answers
 ======================================
 
-.. contents::
-
 Are there references for the algorithms are used by shapely?
 ------------------------------------------------------------
 
