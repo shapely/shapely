@@ -4,3 +4,4 @@
 
 .. include:: ../CHANGES.txt
 
+.. include:: ../FAQ.rst
