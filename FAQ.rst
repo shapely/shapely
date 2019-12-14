@@ -1,7 +1,7 @@
 Frequently asked questions and answers
 ======================================
 
-Are there references for the algorithms are used by shapely?
+Are there references for the algorithms used by shapely?
 ------------------------------------------------------------
 
 Generally speaking, shapely's predicates and operations are derived from
