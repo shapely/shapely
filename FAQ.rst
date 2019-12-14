@@ -2,7 +2,7 @@ Frequently asked questions and answers
 ======================================
 
 Are there references for the algorithms used by shapely?
-------------------------------------------------------------
+--------------------------------------------------------
 
 Generally speaking, shapely's predicates and operations are derived from
 methods of the same name from the `JTS Topology Suite
