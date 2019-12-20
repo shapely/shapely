@@ -391,6 +391,7 @@ static void *intersection_data[1] = {GEOSIntersection_r};
 static void *difference_data[1] = {GEOSDifference_r};
 static void *symmetric_difference_data[1] = {GEOSSymDifference_r};
 static void *union_data[1] = {GEOSUnion_r};
+static void *shared_paths_data[1] = {GEOSSharedPaths_r};
 typedef void *FuncGEOS_YY_Y(void *context, void *a, void *b);
 static char YY_Y_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
 static void YY_Y_func(char **args, npy_intp *dimensions,
@@ -1399,6 +1400,7 @@ int init_ufuncs(PyObject *m, PyObject *d)
     DEFINE_YY_Y (difference);
     DEFINE_YY_Y (symmetric_difference);
     DEFINE_YY_Y (union);
+    DEFINE_YY_Y (shared_paths);
 
     DEFINE_Y_d (get_x);
     DEFINE_Y_d (get_y);
