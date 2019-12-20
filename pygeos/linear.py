@@ -89,20 +89,20 @@ def line_merge(line):
     return lib.line_merge(line)
 
 
-def shared_paths(geom1, geom2):
+def shared_paths(a, b, **kwargs):
     """Returns the shared paths between geom1 and geom2.
 
     Both geometries should be linestrings or arrays of linestrings.
     A geometrycollection or array of geometrycollections is returned
-    with each geometrycollection two elements. The first element is a
+    with two elements in each geometrycollection. The first element is a
     multilinestring containing shared paths with the same direction
     for both inputs. The second element is a multilinestring containing
     shared paths with the opposite direction for the two inputs.
 
     Parameters
     ----------
-    geom1 : Geometry or array_like
-    geom2 : Geometry or array_like
+    a : Geometry or array_like
+    b : Geometry or array_like
 
     Examples
     --------
@@ -111,4 +111,4 @@ def shared_paths(geom1, geom2):
     >>> shared_paths(geom1, geom2)
     <pygeos.Geometry GEOMETRYCOLLECTION (MULTILINESTRING EMPTY, MULTILINESTRING ((1 0, 1 1)))>
     """
-    return lib.shared_paths(geom1, geom2)
+    return lib.shared_paths(a, b, **kwargs)

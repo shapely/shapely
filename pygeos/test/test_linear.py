@@ -1,5 +1,6 @@
 import pygeos
 import numpy as np
+import pytest
 
 from .common import empty_point
 from .common import empty_line_string
@@ -7,8 +8,6 @@ from .common import point
 from .common import line_string
 from .common import linear_ring
 from .common import multi_line_string
-
-pygeos.linestrings([(0, 0), (1, 0), (1, 1)])
 
 
 def test_line_interpolate_point_geom_array():
@@ -77,3 +76,10 @@ def test_shared_paths_none():
     assert pygeos.shared_paths(line_string, None) is None
     assert pygeos.shared_paths(None, line_string) is None
     assert pygeos.shared_paths(None, None) is None
+
+
+def test_shared_paths_non_linestring():
+    g1 = pygeos.linestrings([(0, 0), (1, 0), (1, 1)])
+    g2 = pygeos.points(0, 1)
+    with pytest.raises(pygeos.GEOSException):
+        pygeos.shared_paths(g1, g2)
