@@ -230,6 +230,9 @@ class BaseGeometry(object):
         self._is_empty = True
         self.__geom__ = val
 
+    def __bool__(self):
+        return self.is_empty is False
+
     def __del__(self):
         self.empty(val=None)
         self.__p__ = None
@@ -839,6 +842,9 @@ class BaseMultipartGeometry(BaseGeometry):
         if self.is_empty:
             return []
         return GeometrySequence(self, self.shape_factory)
+
+    def __bool__(self):
+        return self.is_empty is False
 
     def __iter__(self):
         if not self.is_empty:
