@@ -1,8 +1,8 @@
 Changes
 =======
 
-Next
-----
+1.7a3 (2019-12-30)
+------------------
 
 - Implement ``__bool__()`` for geometry base classes so that ``bool(geom)``
   returns the logical complement of ``geom.is_empty`` (#754).

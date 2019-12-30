@@ -10,12 +10,13 @@ from ctypes import c_void_p, cast, POINTER
 import weakref
 
 from shapely.algorithms.cga import signed_area
-#from shapely.coords import required
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, geos_geom_from_py
 from shapely.geometry.linestring import LineString, LineStringAdapter
 from shapely.geometry.point import Point
 from shapely.geometry.proxy import PolygonProxy
+from shapely.errors import TopologicalError
+
 
 __all__ = ['Polygon', 'asPolygon', 'LinearRing', 'asLinearRing']
 
@@ -416,7 +417,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
         if type(ob) == LinearRing:
             return geos_geom_from_py(ob)
         elif not ob.is_valid:
-            raise ValueError('A LineString must be valid')
+            raise TopologicalError("An input LineString must be valid.")
         elif ob.is_closed and len(ob.coords) >= 4:
             return geos_geom_from_py(ob, lgeos.GEOSGeom_createLinearRing)
         else:
@@ -520,7 +521,7 @@ def geos_polygon_from_py(shell, holes=None):
                 N = exemplar._ndim
             if not L >= 1:
                 raise ValueError("number of holes must be non zero")
-            if not N in (2, 3):
+            if N not in (2, 3):
                 raise ValueError("insufficiant coordinate dimension")
 
             # Array of pointers to ring geometries

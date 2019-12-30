@@ -11,6 +11,8 @@ import logging
 from shapely.geos import lgeos
 from shapely.geometry import Point, LineString, LinearRing
 from shapely.geometry.base import geom_factory
+from shapely.errors import TopologicalError
+
 
 include "../_geos.pxi"
 
@@ -230,10 +232,11 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
             cs = <GEOSCoordSequence*>GEOSGeom_getCoordSeq_r(handle, g)
             GEOSCoordSeq_getSize_r(handle, cs, &m)
             if not GEOSisValid_r(handle, g):
-                raise ValueError("A LineString must be valid")
+                raise TopologicalError("A LineString must be valid.")
             elif GEOSisClosed_r(handle, g) and m >= 4:
                 cs = GEOSCoordSeq_clone_r(handle, cs)
                 return <uintptr_t>GEOSGeom_createLinearRing_r(handle, cs), n
+            # else continue below.
 
     # If numpy is present, we use numpy.require to ensure that we have a
     # C-continguous array that owns its data. View data will be copied.
