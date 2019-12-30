@@ -4,6 +4,8 @@ Changes
 Next
 ----
 
+- Implement ``__bool__()`` for geometry base classes so that ``bool(geom)``
+  returns the logical complement of ``geom.is_empty`` (#754).
 - Remove assertion on the number of version-like strings found in the GEOS
   version string. It could be 2 or 3.
 
