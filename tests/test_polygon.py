@@ -138,6 +138,13 @@ class PolygonTestCase(unittest.TestCase):
         self.assertEqual('LinearRing',
                          lgeos.GEOSGeomType(ring._geom).decode('ascii'))
 
+    def test_linearring_from_invalid(self):
+        coords = [(0.0, 0.0), (0.0, 0.0), (0.0, 0.0)]
+        line = LineString(coords)
+        self.assertFalse(line.is_valid)
+        with self.assertRaises(ValueError):
+            ring = LinearRing(line)
+
 
     def test_linearring_from_short_closed_linestring(self):
         # Create linearring from linestring where the coordinate sequence is
