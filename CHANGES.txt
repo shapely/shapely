@@ -1,11 +1,13 @@
 Changes
 =======
 
-1.7a3 (2019-12-30)
+1.7a3 (2019-12-31)
 ------------------
 
 Bug fixes:
 
+- Add /usr/local/lib to the list of directories to be searched for the GEOS
+  shared library (#795).
 - ops.substring now returns a line with coords in end-to-front order when given
   a start position that is greater than the end position (#628).
 - Implement ``__bool__()`` for geometry base classes so that ``bool(geom)``
