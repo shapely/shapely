@@ -158,7 +158,7 @@ if geos_config and not os.environ.get('NO_GEOS_CHECK') or sys.platform == 'win32
                 "Install GEOS 3.3+ and reinstall Shapely.")
             sys.exit(1)
     except OSError as exc:
-        log.warn(
+        log.warning(
             "Failed to determine system's GEOS version: %s. "
             "Installation continuing. GEOS version will be "
             "checked on import of shapely.", exc)
@@ -367,12 +367,12 @@ try:
         log.info("Updating C extension with Cython.")
         subprocess.check_call(["cython", "shapely/speedups/_speedups.pyx"])
 except (subprocess.CalledProcessError, OSError):
-    log.warn("Could not (re)create C extension with Cython.")
+    log.warning("Could not (re)create C extension with Cython.")
     if force_cython:
         raise
 
 if not os.path.exists(c_file):
-    log.warn("speedup extension not found")
+    log.warning("speedup extension not found")
 
 try:
     # try building with speedups
@@ -384,10 +384,10 @@ try:
 except BuildFailed as ex:
     BUILD_EXT_WARNING = "The C extension could not be compiled, " \
                         "speedups are not enabled."
-    log.warn(ex)
-    log.warn(BUILD_EXT_WARNING)
-    log.warn("Failure information, if any, is above.")
-    log.warn("I'm retrying the build without the C extension now.")
+    log.warning(ex)
+    log.warning(BUILD_EXT_WARNING)
+    log.warning("Failure information, if any, is above.")
+    log.warning("I'm retrying the build without the C extension now.")
 
     # Remove any previously defined build_ext command class.
     if 'build_ext' in setup_args['cmdclass']:
@@ -398,5 +398,5 @@ except BuildFailed as ex:
 
     setup(**setup_args)
 
-    log.warn(BUILD_EXT_WARNING)
+    log.warning(BUILD_EXT_WARNING)
     log.info("Plain-Python installation succeeded.")
