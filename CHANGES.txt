@@ -1,8 +1,17 @@
 Changes
 =======
 
+1.7b1 (2019-01-13)
+------------------
+
+First beta release.
+
 1.7a3 (2019-12-31)
 ------------------
+
+New features:
+
+- The buffer operation can now be single-sides (#806, #727).
 
 Bug fixes:
 
