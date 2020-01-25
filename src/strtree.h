@@ -19,8 +19,8 @@ typedef struct
     npy_intp *a;
 } npy_intp_vec;
 
-PyTypeObject STRtreeType;
+extern PyTypeObject STRtreeType;
 
-int init_strtree_type(PyObject *m);
+extern int init_strtree_type(PyObject *m);
 
 #endif
