@@ -193,7 +193,7 @@ extra_reqs['all'] = list(it.chain.from_iterable(extra_reqs.values()))
 setup_args = dict(
     name                = 'Shapely',
     version             = str(shapely_version),
-    requires            = ['Python (>=2.6)', 'libgeos_c (>=3.3)'],
+    requires            = ['Python (>=2.7)', 'libgeos_c (>=3.3)'],
     description         = 'Geometric objects, predicates, and operations',
     license             = 'BSD',
     keywords            = 'geometry topology gis',
