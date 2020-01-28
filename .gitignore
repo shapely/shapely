@@ -15,8 +15,11 @@ docs/modules.txt
 .idea/
 *.pyd
 *.pdb
+
 wheels/
 .coverage
 ignore/
 
 venv/
+.ipynb_checkpoints
+.DS_Store

@@ -233,6 +233,9 @@ class BaseGeometry(object):
     def __bool__(self):
         return self.is_empty is False
 
+    def __nonzero__(self):
+        return self.__bool__()
+
     def __del__(self):
         self.empty(val=None)
         self.__p__ = None

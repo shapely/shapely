@@ -1,6 +1,11 @@
 Changes
 =======
 
+1.7.0 (2019-01-28)
+------------------
+
+This is the final 1.7.0 release. There have been no changes since 1.7b1.
+
 1.7b1 (2019-01-13)
 ------------------
 
