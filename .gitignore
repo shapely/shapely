@@ -15,6 +15,7 @@ docs/modules.txt
 .idea/
 *.pyd
 *.pdb
+*.whl
 
 wheels/
 .coverage
