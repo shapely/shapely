@@ -13,6 +13,10 @@ env:
   - "TRAVIS_SPEEDUP_OPTS=--with-speedups"
   - "TRAVIS_SPEEDUP_OPTS=--without-speedups"
 
+jobs:
+  allow_failures:
+    - python: "2.6"
+
 addons:
   apt:
     packages:
