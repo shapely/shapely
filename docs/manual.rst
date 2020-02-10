@@ -1008,7 +1008,7 @@ A ring with an undesired orientation can be reversed like this:
 
 .. attribute:: object.is_ring
 
-  Returns ``True`` if the feature is closed. A closed feature's `boundary`
+  Returns ``True`` if the feature is a closed and simple ``LineString``. A closed feature's `boundary`
   coincides with the empty set.
 
 .. code-block:: pycon
