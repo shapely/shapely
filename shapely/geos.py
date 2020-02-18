@@ -140,7 +140,7 @@ elif sys.platform == 'darwin':
     free.restype = None
 
 elif sys.platform == 'win32':
-    if os.getenv('CONDA_PREFIX', ''):
+    if os.getenv('CONDA_PREFIX', '') and os.path.exists(os.path.join(sys.prefix, 'conda-meta')):
         # conda package.
         _lgeos = CDLL(os.path.join(sys.prefix, 'Library', 'bin', 'geos_c.dll'))
     else:
