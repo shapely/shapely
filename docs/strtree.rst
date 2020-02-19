@@ -2,8 +2,5 @@
 =====================
 
 .. automodule:: pygeos.strtree
-   :members:
-   :exclude-members:
-   :special-members:
-   :inherited-members:
-   :show-inheritance:
+   :members: STRtree
+   :exclude-members: BinaryPredicate
