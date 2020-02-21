@@ -573,6 +573,25 @@ def clip_by_rect(geom, xmin, ymin, xmax, ymax):
 
 
 def orient(geom, sign=1.0):
+    """A properly oriented copy of the given geometry.
+
+    The signed area of the result will have the given sign. A sign of
+    1.0 means that the coordinates of the product’s exterior rings will
+    be oriented counter-clockwise.
+
+    Parameters
+    ----------
+    geom : Geometry
+        The original geometry. May be a Polygon, MultiPolygon, or
+        GeometryCollection.
+    sign : float, optional.
+        The sign of the result's signed area.
+
+    Returns
+    -------
+    Geometry
+
+    """
     if isinstance(geom, BaseMultipartGeometry):
         return geom.__class__(
             list(
