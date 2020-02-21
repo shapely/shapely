@@ -32,7 +32,9 @@ def shape(context):
     elif geom_type == "linestring":
         return LineString(ob["coordinates"])
     elif geom_type == "polygon":
-        if len(ob["coordinates"]) == 0:
+        if ob["coordinates"] is None:
+            return Polygon()
+        elif len(ob["coordinates"]) == 0:
             return Polygon()
         else:
             return Polygon(ob["coordinates"][0], ob["coordinates"][1:])
