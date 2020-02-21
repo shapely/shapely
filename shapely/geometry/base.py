@@ -538,56 +538,75 @@ class BaseGeometry(object):
     def buffer(self, distance, resolution=16, quadsegs=None,
                cap_style=CAP_STYLE.round, join_style=JOIN_STYLE.round,
                mitre_limit=5.0, single_sided=False):
-        """Returns a geometry with an envelope at a distance from the object's
-        envelope
+        """Get a geometry that represents all points within a distance
+        of this geometry.
+
+        A positive distance produces a dilation, a negative distance an
+        erosion. A very small or zero distance may sometimes be used to
+        "tidy" a polygon.
 
         Parameters
-        ==========
-        distance: float
-            The distance to buffer around the object. A negative distance has a "shrink" effect.
-            A zero distance may be used to "tidy" a polygon.
-        resolution: int, optional
-            The resolution of the buffer around each vertex of the object.
-        quadsegs: int, optional
-            Sets the number of line segments used to approximate an angle fillet.
-            Note: the use of a `quadsegs` parameter is deprecated and will be gone from
-            the next major release.
-        cap_style: int, optional
-            The styles of caps are: CAP_STYLE.round (1), CAP_STYLE.flat (2), and
-            CAP_STYLE.square (3).
-        join_style: int, optional
-            The styles of joins between offset segments are: JOIN_STYLE.round (1),
-            JOIN_STYLE.mitre (2), and JOIN_STYLE.bevel (3).
-        mitre_limit: float, optional
-            The mitre limit ratio is used for very sharp corners. The mitre ratio
-            is the ratio of the distance from the corner to the end of the mitred
-            offset corner. When two line segments meet at a sharp angle, a miter
-            join will extend the original geometry. To prevent unreasonable
-            geometry, the mitre limit allows controlling the maximum length of the
-            join corner. Corners with a ratio which exceed the limit will be
-            beveled.
-        single_side: bool, optional
-            The side used is determined by the sign of the buffer distance:
+        ----------
+        distance : float
+            The distance to buffer around the object.
+        resolution : int, optional
+            The resolution of the buffer around each vertex of the
+            object.
+        quadsegs : int, optional
+            Sets the number of line segments used to approximate an
+            angle fillet.  Note: the use of a `quadsegs` parameter is
+            deprecated and will be gone from the next major release.
+        cap_style : int, optional
+            The styles of caps are: CAP_STYLE.round (1), CAP_STYLE.flat
+            (2), and CAP_STYLE.square (3).
+        join_style : int, optional
+            The styles of joins between offset segments are:
+            JOIN_STYLE.round (1), JOIN_STYLE.mitre (2), and
+            JOIN_STYLE.bevel (3).
+        mitre_limit : float, optional
+            The mitre limit ratio is used for very sharp corners. The
+            mitre ratio is the ratio of the distance from the corner to
+            the end of the mitred offset corner. When two line segments
+            meet at a sharp angle, a miter join will extend the original
+            geometry. To prevent unreasonable geometry, the mitre limit
+            allows controlling the maximum length of the join corner.
+            Corners with a ratio which exceed the limit will be beveled.
+        single_side : bool, optional
+            The side used is determined by the sign of the buffer
+            distance:
+
                 a positive distance indicates the left-hand side
                 a negative distance indicates the right-hand side
-            The single-sided buffer of point geometries is the same as the regular buffer.
-            The End Cap Style for single-sided buffers is always ignored, and forced to the
-            equivalent of CAP_FLAT.
 
-        Example:
+            The single-sided buffer of point geometries is the same as
+            the regular buffer.  The End Cap Style for single-sided
+            buffers is always ignored, and forced to the equivalent of
+            CAP_FLAT.
 
-          >>> from shapely.wkt import loads
-          >>> g = loads('POINT (0.0 0.0)')
-          >>> g.buffer(1.0).area        # 16-gon approx of a unit radius circle
-          3.1365484905459389
-          >>> g.buffer(1.0, 128).area   # 128-gon approximation
-          3.1415138011443009
-          >>> g.buffer(1.0, 3).area     # triangle approximation
-          3.0
-          >>> list(g.buffer(1.0, cap_style=CAP_STYLE.square).exterior.coords)
-          [(1.0, 1.0), (1.0, -1.0), (-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0)]
-          >>> g.buffer(1.0, cap_style=CAP_STYLE.square).area
-          4.0
+        Returns
+        -------
+        Geometry
+
+        Notes
+        -----
+        The return value is a strictly two-dimensional geometry. All
+        Z coordinates of the original geometry will be ignored.
+
+        Examples
+        --------
+        >>> from shapely.wkt import loads
+        >>> g = loads('POINT (0.0 0.0)')
+        >>> g.buffer(1.0).area        # 16-gon approx of a unit radius circle
+        3.1365484905459389
+        >>> g.buffer(1.0, 128).area   # 128-gon approximation
+        3.1415138011443009
+        >>> g.buffer(1.0, 3).area     # triangle approximation
+        3.0
+        >>> list(g.buffer(1.0, cap_style=CAP_STYLE.square).exterior.coords)
+        [(1.0, 1.0), (1.0, -1.0), (-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0)]
+        >>> g.buffer(1.0, cap_style=CAP_STYLE.square).area
+        4.0
+
         """
         if quadsegs is not None:
             warn(
@@ -596,6 +615,7 @@ class BaseGeometry(object):
             res = quadsegs
         else:
             res = resolution
+
         if mitre_limit == 0.0:
             raise ValueError(
                 'Cannot compute offset from zero-length line segment')
