@@ -47,7 +47,9 @@ class Cell(object):
         boundary.
         """
         inside = polygon.contains(self.centroid)
-        distance = self.centroid.distance(LineString(polygon.exterior.coords))
+        distance = self.centroid.distance(polygon.exterior)
+        for interior in polygon.interiors:
+            distance = min(distance, self.centroid.distance(interior))
         if inside:
             return distance
         return -distance
