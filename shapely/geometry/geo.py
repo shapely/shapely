@@ -14,7 +14,7 @@ from .collection import GeometryCollection
 def _is_coordinates_empty(coordinates):
     """Helper to identify if list or all nested lists of coordinates are empty"""
     if isinstance(coordinates, (list, tuple)):
-        if not coordinates:
+        if len(coordinates) == 0:
             return True
         for sub_coordinates in coordinates:
             return _is_coordinates_empty(sub_coordinates)
