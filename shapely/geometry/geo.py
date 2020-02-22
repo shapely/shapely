@@ -11,12 +11,42 @@ from .multipolygon import MultiPolygon, MultiPolygonAdapter
 from .collection import GeometryCollection
 
 
+def _is_coordinates_empty(coordinates):
+    """Helper to identify if list or all nested lists of coordinates are empty"""
+    if isinstance(coordinates, (list, tuple)):
+        if not coordinates:
+            return True
+        for sub_coordinates in coordinates:
+            return _is_coordinates_empty(sub_coordinates)
+    else:
+        return False
+
+
+def _empty_shape_for_no_coordinates(geom_type):
+    """Return empty counterpart for geom_type"""
+    if geom_type == 'point':
+        return Point()
+    elif geom_type == 'multipoint':
+        return MultiPoint()
+    elif geom_type == 'linestring':
+        return LineString()
+    elif geom_type == 'multilinestring':
+        return MultiLineString()
+    elif geom_type == 'polygon':
+        return Polygon()
+    elif geom_type == 'multipolygon':
+        return MultiPolygon()
+    else:
+        raise ValueError("Unknown geometry type: %s" % geom_type)
+
+
 def box(minx, miny, maxx, maxy, ccw=True):
     """Returns a rectangular polygon with configurable normal vector"""
     coords = [(maxx, miny), (maxx, maxy), (minx, maxy), (minx, miny)]
     if not ccw:
         coords = coords[::-1]
     return Polygon(coords)
+
 
 def shape(context):
     """Returns a new, independent geometry with coordinates *copied* from the
@@ -27,15 +57,14 @@ def shape(context):
     else:
         ob = context
     geom_type = ob.get("type").lower()
-    if geom_type == "point":
+    if 'coordinates' in ob and _is_coordinates_empty(ob['coordinates']):
+        return _empty_shape_for_no_coordinates(geom_type)
+    elif geom_type == "point":
         return Point(ob["coordinates"])
     elif geom_type == "linestring":
         return LineString(ob["coordinates"])
     elif geom_type == "polygon":
-        if not ob["coordinates"]:
-            return Polygon()
-        else:
-            return Polygon(ob["coordinates"][0], ob["coordinates"][1:])
+        return Polygon(ob["coordinates"][0], ob["coordinates"][1:])
     elif geom_type == "multipoint":
         return MultiPoint(ob["coordinates"])
     elif geom_type == "multilinestring":
