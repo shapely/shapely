@@ -1,7 +1,7 @@
 """
 Geometry factories based on the geo interface
 """
-
+import numpy as np
 from .point import Point, asPoint
 from .linestring import LineString, asLineString
 from .polygon import Polygon, asPolygon
@@ -13,10 +13,12 @@ from .collection import GeometryCollection
 
 def _is_coordinates_empty(coordinates):
     """Helper to identify if list or all nested lists of coordinates are empty"""
-    if isinstance(coordinates, (list, tuple)):
+    if isinstance(coordinates, (list, tuple, np.ndarray)):
         if len(coordinates) == 0:
             return True
         return all(map(_is_coordinates_empty, coordinates))
+    elif coordinates is None:
+        return True
     else:
         return False
 
