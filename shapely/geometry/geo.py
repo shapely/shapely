@@ -16,8 +16,7 @@ def _is_coordinates_empty(coordinates):
     if isinstance(coordinates, (list, tuple)):
         if len(coordinates) == 0:
             return True
-        for sub_coordinates in coordinates:
-            return _is_coordinates_empty(sub_coordinates)
+        return all(map(_is_coordinates_empty, coordinates))
     else:
         return False
 
