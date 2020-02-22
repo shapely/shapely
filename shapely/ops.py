@@ -533,7 +533,7 @@ def substring(geom, start_dist, end_dist, normalized=False):
         elif current_distance >= max_dist:
             break
 
-        current_distance += LineString([p1, p2]).length
+        current_distance += ((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2) ** 0.5
 
     if start_dist < end_dist:
         vertex_list.append((end_point.x, end_point.y))
