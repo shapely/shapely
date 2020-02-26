@@ -576,7 +576,7 @@ def orient(geom, sign=1.0):
     """A properly oriented copy of the given geometry.
 
     The signed area of the result will have the given sign. A sign of
-    1.0 means that the coordinates of the product’s exterior rings will
+    1.0 means that the coordinates of the product's exterior rings will
     be oriented counter-clockwise.
 
     Parameters
