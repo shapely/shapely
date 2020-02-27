@@ -19,7 +19,7 @@ else:
 
 
 def _is_coordinates_empty(coordinates):
-    """Helper to identify if list or all nested lists of coordinates are empty"""
+    """Helper to identify if coordinates or subset of coordinates are empty"""
 
     if coordinates is None:
         return True
