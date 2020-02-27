@@ -88,6 +88,7 @@ def shape(context):
     else:
         raise ValueError("Unknown geometry type: %s" % geom_type)
 
+
 def asShape(context):
     """Adapts the context to a geometry interface. The coordinates remain
     stored in the context.
@@ -119,6 +120,7 @@ def asShape(context):
         return GeometryCollection(geoms)
     else:
         raise ValueError("Unknown geometry type: %s" % geom_type)
+
 
 def mapping(ob):
     """Returns a GeoJSON-like mapping"""
