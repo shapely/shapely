@@ -1,6 +1,13 @@
 from . import unittest
 from shapely.geometry import shape, Polygon
-import numpy as np
+
+# numpy is an optional dependency
+try:
+    import numpy as np
+except ImportError:
+    _has_numpy = False
+else:
+    _has_numpy = True
 
 
 class ShapeTestCase(unittest.TestCase):
@@ -28,11 +35,12 @@ class ShapeTestCase(unittest.TestCase):
         self.assertEqual(p, Polygon([(5, 10), (10, 10), (10, 5)]))
 
         # numpy array
-        d = {"type": "Polygon", "coordinates": np.array([[[5, 10],
-                                                          [10, 10],
-                                                          [10, 5]]])}
-        p = shape(d)
-        self.assertEqual(p, Polygon([(5, 10), (10, 10), (10, 5)]))
+        if _has_numpy:
+            d = {"type": "Polygon", "coordinates": np.array([[[5, 10],
+                                                              [10, 10],
+                                                              [10, 5]]])}
+            p = shape(d)
+            self.assertEqual(p, Polygon([(5, 10), (10, 10), (10, 5)]))
 
 
 def test_suite():
