@@ -2431,40 +2431,41 @@ object. The returned geometries are the originals, not copies.
   overlaps) may be necessary to further filter the results according to their
   specific spatial relationships.
 
-.. code-block:: pycon
-
-  >>> from shapely.strtree import STRtree
-  >>> points = [Point(i, i) for i in range(10)]
-  >>> tree = STRtree(points)
-  >>> query_geom = Point(2,2).buffer(0.99)
-  >>> [o.wkt for o in tree.query(query_geom)]
-  ['POINT (2 2)']
-  >>> query_geom = Point(2, 2).buffer(1.0)
-  >>> [o.wkt for o in tree.query(query_geom)]
-  ['POINT (1 1)', 'POINT (2 2)', 'POINT (3 3)']
-  >>> [o.wkt for o in tree.query(query_geom) if o.intersects(query_geom)]
-  ['POINT (2 2)']
-
-.. note::
-  To get the original indexes of the query results, create an auxiliary
-  dictionary. But use the geometry `ids` as keys since the shapely geometries
-  themselves are not hashable.
-
   .. code-block:: pycon
 
-    >>> index_by_id = dict((id(pt), i) for i, pt in enumerate(points))
-    >>> [(index_by_id[id(pt)], pt.wkt) for pt in tree.query(Point(2,2).buffer(1.0))]
-    [(1, 'POINT (1 1)'), (2, 'POINT (2 2)'), (3, 'POINT (3 3)')]
+    >>> from shapely.strtree import STRtree
+    >>> points = [Point(i, i) for i in range(10)]
+    >>> tree = STRtree(points)
+    >>> query_geom = Point(2,2).buffer(0.99)
+    >>> [o.wkt for o in tree.query(query_geom)]
+    ['POINT (2 2)']
+    >>> query_geom = Point(2, 2).buffer(1.0)
+    >>> [o.wkt for o in tree.query(query_geom)]
+    ['POINT (1 1)', 'POINT (2 2)', 'POINT (3 3)']
+    >>> [o.wkt for o in tree.query(query_geom) if o.intersects(query_geom)]
+    ['POINT (2 2)']
+
+  .. note::
+    To get the original indexes of the query results, create an auxiliary
+    dictionary. But use the geometry `ids` as keys since the shapely geometries
+    themselves are not hashable.
+
+    .. code-block:: pycon
+
+      >>> index_by_id = dict((id(pt), i) for i, pt in enumerate(points))
+      >>> [(index_by_id[id(pt)], pt.wkt) for pt in tree.query(Point(2,2).buffer(1.0))]
+      [(1, 'POINT (1 1)'), (2, 'POINT (2 2)'), (3, 'POINT (3 3)')]
 
 
 .. method:: strtree.nearest(geom)
 
   Returns the nearest goemetry in `strtree` to `geom`.
 
-.. code-block:: pycon
-  >>> tree = STRtree([Point(i, i) for i in range(10)])
-  >>> tree.nearest(Point(2.2, 2.2)).wkt
-  'Point (2 2)'
+  .. code-block:: pycon
+
+    >>> tree = STRtree([Point(i, i) for i in range(10)])
+    >>> tree.nearest(Point(2.2, 2.2)).wkt
+    'Point (2 2)'
 
 Interoperation
 ==============
