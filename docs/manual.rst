@@ -2420,18 +2420,19 @@ object. The returned geometries are the originals, not copies.
 
   `New in version 1.4.0`.
 
-The `query` method on `STRtree` returns a list of all geometries in the tree that
-intersect the provided geometry argument. If you want to match geometries of a
-more specific spatial relationship (eg. crosses, contains, overlaps), consider
-performing the query on the R-tree, followed by a manual search through the
-returned subset using the desired binary predicate.
+  Query-only means that once created, the `STRtree` is immutable. You cannot
+  add or remove geometries.
 
-Query-only means that once created, the STRtree is immutable. You cannot
-add or remove geometries.
+.. method:: strtree.query(goem)
+
+  Returns a list of all geometries in the `strtree` whose extents intersect the
+  extents of `goem`. This means that a subsequent search through the returned
+  subset using the desired binary predicate (eg. intersects, crosses, contains,
+  overlaps) may be necessary to further filter the results according to their
+  specific spatial relationships.
 
 .. code-block:: pycon
 
-  >>> from shapely.geometry import Point
   >>> from shapely.strtree import STRtree
   >>> points = [Point(i, i) for i in range(10)]
   >>> tree = STRtree(points)
@@ -2451,9 +2452,19 @@ add or remove geometries.
 
   .. code-block:: pycon
 
-  >>> index_by_id = dict((id(pt), i) for i, pt in enumerate(points))
-  >>> [(index_by_id[id(pt)], pt.wkt) for pt in tree.query(Point(2,2).buffer(1.0))]
-  [(1, 'POINT (1 1)'), (2, 'POINT (2 2)'), (3, 'POINT (3 3)')]
+    >>> index_by_id = dict((id(pt), i) for i, pt in enumerate(points))
+    >>> [(index_by_id[id(pt)], pt.wkt) for pt in tree.query(Point(2,2).buffer(1.0))]
+    [(1, 'POINT (1 1)'), (2, 'POINT (2 2)'), (3, 'POINT (3 3)')]
+
+
+.. method:: strtree.nearest(geom)
+
+  Returns the nearest goemetry in `strtree` to `geom`.
+
+.. code-block:: pycon
+  >>> tree = STRtree([Point(i, i) for i in range(10)])
+  >>> tree.nearest(Point(2.2, 2.2)).wkt
+  'Point (2 2)'
 
 Interoperation
 ==============
