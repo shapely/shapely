@@ -2727,9 +2727,6 @@ References
 .. _GEOS: https://trac.osgeo.org/geos/
 .. _Java Topology Suite: https://projects.eclipse.org/projects/locationtech.jts
 .. _PostGIS: http://postgis.refractions.net
-.. _record: https://pypi.org/project/Shapely/
-:: _rtree: http://toblerity.org/rtree/
-:: _monkey patching: https://en.wikipedia.org/wiki/Monkey_patch
 .. _Open Geospatial Consortium: https://www.opengeospatial.org/
 .. _Strobl-PDF: https://giswiki.hsr.ch/images/3/3d/9dem_springer.pdf
 .. |Strobl-PDF| replace:: PDF
