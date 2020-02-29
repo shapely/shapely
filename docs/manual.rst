@@ -2409,7 +2409,8 @@ STR-packed R-tree
 
 Shapely provides an interface to the query-only GEOS R-tree packed using the
 Sort-Tile-Recursive algorithm. Pass a list of geometry objects to the STRtree
-constructor to create an R-tree that you can query with another geometric object.
+constructor to create a spatial index that you can query with another geometric
+object. The returned geometries are the originals, not copies.
 
 .. class:: strtree.STRtree(geometries)
 
@@ -2419,19 +2420,13 @@ constructor to create an R-tree that you can query with another geometric object
 
   `New in version 1.4.0`.
 
-The `query` method on `STRtree` returns a list of all geometries in the tree whose
-extents intersect the extents of the provided geometry argument. This means that a
-subsequent search through the returned subset using the desired binary predicate
-(eg. intersects, crosses, contains, overlaps) may be necessary to further filter
-the results according to their specific spatial relationships.
-
 The `query` method on `STRtree` returns a list of all geometries in the tree that
 intersect the provided geometry argument. If you want to match geometries of a
 more specific spatial relationship (eg. crosses, contains, overlaps), consider
 performing the query on the R-tree, followed by a manual search through the
 returned subset using the desired binary predicate.
 
-Query-only means that once created, the R-tree is immutable. You cannot
+Query-only means that once created, the STRtree is immutable. You cannot
 add or remove geometries.
 
 .. code-block:: pycon
@@ -2440,29 +2435,25 @@ add or remove geometries.
   >>> from shapely.strtree import STRtree
   >>> points = [Point(i, i) for i in range(10)]
   >>> tree = STRtree(points)
-  >>> tree.query(Point(2,2).buffer(0.99))
-  >>> [o.wkt for o in tree.query(Point(2,2).buffer(0.99))]
+  >>> query_geom = Point(2,2).buffer(0.99)
+  >>> [o.wkt for o in tree.query(query_geom)]
   ['POINT (2 2)']
-  >>> [o.wkt for o in tree.query(Point(2,2).buffer(1.0))]
+  >>> query_geom = Point(2, 2).buffer(1.0)
+  >>> [o.wkt for o in tree.query(query_geom)]
   ['POINT (1 1)', 'POINT (2 2)', 'POINT (3 3)']
+  >>> [o.wkt for o in tree.query(query_geom) if o.intersects(query_geom)]
+  ['POINT (2 2)']
 
 .. note::
-  STRtree does not allow the storage of e.g. a list index number referencing the
-  position of the geometry-to-be-added in a list, along-side the geometry objects
-  like the `rtree`_ module would do. You can however, as a workaround, use
-  `monkey patching`_ to add attributes to the geometry objects themselves before
-  adding them to the STRtree.
+  To get the original indexes of the query results, create an auxiliary
+  dictionary. But use the geometry `ids` as keys since the shapely geometries
+  themselves are not hashable.
 
-      >>> from copy import deepcopy
-      >>> points_numbered = []
-      >>> for i, point in enumerate(points):
-      >>>     point = deepcopy(point)  # let's not mutate the originals
-      >>>     point.i = i
-      >>>     points_numbered.append(point)
-      >>> tree = STRtree(points_numbered)
-      >>> result = tree.query(query_geometry)
-      >>> [(o.i, o.wkt) for o in result]
-      [(1, 'POINT (1 1)'), (2, 'POINT (2 2)'), (3, 'POINT (3 3)')]
+  .. code-block:: pycon
+
+  >>> index_by_id = dict((id(pt), i) for i, pt in enumerate(points))
+  >>> [(index_by_id[id(pt)], pt.wkt) for pt in tree.query(Point(2,2).buffer(1.0))]
+  [(1, 'POINT (1 1)'), (2, 'POINT (2 2)'), (3, 'POINT (3 3)')]
 
 Interoperation
 ==============
