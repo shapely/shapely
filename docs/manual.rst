@@ -1677,8 +1677,8 @@ linestring feature (right).
   object on its right or its left side.
 
   Distance must be a positive float value. The side parameter may be 'left' or
-  'right'. Left and right is determined by following the direction of given 
-  geometric points of the LineString. The resolution of the offset around 
+  'right'. Left and right is determined by following the direction of given
+  geometric points of the LineString. The resolution of the offset around
   each vertex of the object is parameterized as in the buffer method.
 
   The join style is for outside corners between line segments. Accepted integer
@@ -2300,9 +2300,9 @@ The :func:`~shapely.ops.substring` function in `shapely.ops` returns a line segm
     Negative distance values are taken as measured in the reverse
     direction from the end of the geometry. Out-of-range index
     values are handled by clamping them to the valid range of values.
-    
+
     If the start distance equals the end distance, a point is being returned.
-    
+
     If the normalized arg is True, the distance will be interpreted as a
     fraction of the geometry's length.
 
@@ -2419,13 +2419,19 @@ constructor to create an R-tree that you can query with another geometric object
 
   `New in version 1.4.0`.
 
+The `query` method on `STRtree` returns a list of all geometries in the tree whose
+extents intersect the extents of the provided geometry argument. This means that a
+subsequent search through the returned subset using the desired binary predicate
+(eg. intersects, crosses, contains, overlaps) may be necessary to further filter
+the results according to their specific spatial relationships.
+
 The `query` method on `STRtree` returns a list of all geometries in the tree that
 intersect the provided geometry argument. If you want to match geometries of a
 more specific spatial relationship (eg. crosses, contains, overlaps), consider
 performing the query on the R-tree, followed by a manual search through the
 returned subset using the desired binary predicate.
 
-Query-only means that once created, the R-tree is immutable. You cannot 
+Query-only means that once created, the R-tree is immutable. You cannot
 add or remove geometries.
 
 .. code-block:: pycon
@@ -2440,6 +2446,23 @@ add or remove geometries.
   >>> [o.wkt for o in tree.query(Point(2,2).buffer(1.0))]
   ['POINT (1 1)', 'POINT (2 2)', 'POINT (3 3)']
 
+.. note::
+  STRtree does not allow the storage of e.g. a list index number referencing the
+  position of the geometry-to-be-added in a list, along-side the geometry objects
+  like the `rtree`_ module would do. You can however, as a workaround, use
+  `monkey patching`_ to add attributes to the geometry objects themselves before
+  adding them to the STRtree.
+
+      >>> from copy import deepcopy
+      >>> points_numbered = []
+      >>> for i, point in enumerate(points):
+      >>>     point = deepcopy(point)  # let's not mutate the originals
+      >>>     point.i = i
+      >>>     points_numbered.append(point)
+      >>> tree = STRtree(points_numbered)
+      >>> result = tree.query(query_geometry)
+      >>> [(o.i, o.wkt) for o in result]
+      [(1, 'POINT (1 1)'), (2, 'POINT (2 2)'), (3, 'POINT (3 3)')]
 
 Interoperation
 ==============
@@ -2713,6 +2736,9 @@ References
 .. _GEOS: https://trac.osgeo.org/geos/
 .. _Java Topology Suite: https://projects.eclipse.org/projects/locationtech.jts
 .. _PostGIS: http://postgis.refractions.net
+.. _record: https://pypi.org/project/Shapely/
+:: _rtree: http://toblerity.org/rtree/
+:: _monkey patching: https://en.wikipedia.org/wiki/Monkey_patch
 .. _Open Geospatial Consortium: https://www.opengeospatial.org/
 .. _Strobl-PDF: https://giswiki.hsr.ch/images/3/3d/9dem_springer.pdf
 .. |Strobl-PDF| replace:: PDF
