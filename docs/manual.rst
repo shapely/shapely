@@ -2458,7 +2458,7 @@ cannot add or remove geometries.
 
   .. method:: strtree.nearest(geom)
 
-    Returns the nearest goemetry in `strtree` to `geom`.
+    Returns the nearest geometry in `strtree` to `geom`.
 
     .. code-block:: pycon
 
