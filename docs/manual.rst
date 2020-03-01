@@ -1677,8 +1677,8 @@ linestring feature (right).
   object on its right or its left side.
 
   Distance must be a positive float value. The side parameter may be 'left' or
-  'right'. Left and right is determined by following the direction of given 
-  geometric points of the LineString. The resolution of the offset around 
+  'right'. Left and right is determined by following the direction of given
+  geometric points of the LineString. The resolution of the offset around
   each vertex of the object is parameterized as in the buffer method.
 
   The join style is for outside corners between line segments. Accepted integer
@@ -2300,9 +2300,9 @@ The :func:`~shapely.ops.substring` function in `shapely.ops` returns a line segm
     Negative distance values are taken as measured in the reverse
     direction from the end of the geometry. Out-of-range index
     values are handled by clamping them to the valid range of values.
-    
+
     If the start distance equals the end distance, a point is being returned.
-    
+
     If the normalized arg is True, the distance will be interpreted as a
     fraction of the geometry's length.
 
@@ -2409,37 +2409,61 @@ STR-packed R-tree
 
 Shapely provides an interface to the query-only GEOS R-tree packed using the
 Sort-Tile-Recursive algorithm. Pass a list of geometry objects to the STRtree
-constructor to create an R-tree that you can query with another geometric object.
+constructor to create a spatial index that you can query with another geometric
+object. Query-only means that once created, the `STRtree` is immutable. You
+cannot add or remove geometries.
 
 .. class:: strtree.STRtree(geometries)
 
   The `STRtree` constructor takes a sequence of geometric objects.
 
-  These are copied and stored in the R-tree.
+  References to these geometric objects are kept and stored in the R-tree.
 
   `New in version 1.4.0`.
 
-The `query` method on `STRtree` returns a list of all geometries in the tree that
-intersect the provided geometry argument. If you want to match geometries of a
-more specific spatial relationship (eg. crosses, contains, overlaps), consider
-performing the query on the R-tree, followed by a manual search through the
-returned subset using the desired binary predicate.
+  .. method:: strtree.query(goem)
 
-Query-only means that once created, the R-tree is immutable. You cannot 
-add or remove geometries.
+    Returns a list of all geometries in the `strtree` whose extents intersect the
+    extent of `geom`. This means that a subsequent search through the returned
+    subset using the desired binary predicate (eg. intersects, crosses, contains,
+    overlaps) may be necessary to further filter the results according to their
+    specific spatial relationships.
 
-.. code-block:: pycon
+    .. code-block:: pycon
 
-  >>> from shapely.geometry import Point
-  >>> from shapely.strtree import STRtree
-  >>> points = [Point(i, i) for i in range(10)]
-  >>> tree = STRtree(points)
-  >>> tree.query(Point(2,2).buffer(0.99))
-  >>> [o.wkt for o in tree.query(Point(2,2).buffer(0.99))]
-  ['POINT (2 2)']
-  >>> [o.wkt for o in tree.query(Point(2,2).buffer(1.0))]
-  ['POINT (1 1)', 'POINT (2 2)', 'POINT (3 3)']
+      >>> from shapely.strtree import STRtree
+      >>> points = [Point(i, i) for i in range(10)]
+      >>> tree = STRtree(points)
+      >>> query_geom = Point(2,2).buffer(0.99)
+      >>> [o.wkt for o in tree.query(query_geom)]
+      ['POINT (2 2)']
+      >>> query_geom = Point(2, 2).buffer(1.0)
+      >>> [o.wkt for o in tree.query(query_geom)]
+      ['POINT (1 1)', 'POINT (2 2)', 'POINT (3 3)']
+      >>> [o.wkt for o in tree.query(query_geom) if o.intersects(query_geom)]
+      ['POINT (2 2)']
 
+    .. note::
+      To get the original indexes of the query results, create an auxiliary
+      dictionary. But use the geometry `ids` as keys since the shapely geometries
+      themselves are not hashable.
+
+      .. code-block:: pycon
+
+        >>> index_by_id = dict((id(pt), i) for i, pt in enumerate(points))
+        >>> [(index_by_id[id(pt)], pt.wkt) for pt in tree.query(Point(2,2).buffer(1.0))]
+        [(1, 'POINT (1 1)'), (2, 'POINT (2 2)'), (3, 'POINT (3 3)')]
+
+
+  .. method:: strtree.nearest(geom)
+
+    Returns the nearest geometry in `strtree` to `geom`.
+
+    .. code-block:: pycon
+
+      >>> tree = STRtree([Point(i, i) for i in range(10)])
+      >>> tree.nearest(Point(2.2, 2.2)).wkt
+      'Point (2 2)'
 
 Interoperation
 ==============
