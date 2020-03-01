@@ -1,6 +1,13 @@
 Changes
 =======
 
+1.7.1 (TBD)
+-----------
+
+- Improved documentation of STRtree usage (#857).
+- Improved handling for empty list or list of lists in GeoJSON coordinates
+  (#852).
+
 1.7.0 (2020-01-28)
 ------------------
 
