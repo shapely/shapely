@@ -2417,8 +2417,7 @@ cannot add or remove geometries.
 
   The `STRtree` constructor takes a sequence of geometric objects.
 
-  These are copied and stored in the R-tree. However, references are kept to
-  the original geometries and queries return these, not copies.
+  References to these geometric objects are kept and stored in the R-tree.
 
   `New in version 1.4.0`.
 
