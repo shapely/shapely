@@ -1,8 +1,77 @@
 Changes
 =======
 
-Next
------
+1.7.1 (TBD)
+-----------
+
+- Improved documentation of STRtree usage (#857).
+- Improved handling for empty list or list of lists in GeoJSON coordinates
+  (#852).
+
+1.7.0 (2020-01-28)
+------------------
+
+This is the final 1.7.0 release. There have been no changes since 1.7b1.
+
+1.7b1 (2020-01-13)
+------------------
+
+First beta release.
+
+1.7a3 (2019-12-31)
+------------------
+
+New features:
+
+- The buffer operation can now be single-sides (#806, #727).
+
+Bug fixes:
+
+- Add /usr/local/lib to the list of directories to be searched for the GEOS
+  shared library (#795).
+- ops.substring now returns a line with coords in end-to-front order when given
+  a start position that is greater than the end position (#628).
+- Implement ``__bool__()`` for geometry base classes so that ``bool(geom)``
+  returns the logical complement of ``geom.is_empty`` (#754).
+- Remove assertion on the number of version-like strings found in the GEOS
+  version string. It could be 2 or 3.
+
+1.7a2 (2019-06-21)
+------------------
+
+- Nearest neighbor search has been added to STRtree (#668).
+- Disallow sequences of MultiPolygons as arguments to the MultiPolygon
+  constructor, resolving #588.
+- Removed vendorized `functools` functions previously used to support
+  Python 2.5.
+
+Bug fixes:
+
+- Avoid reloading the GEOS shared library when using an installed binary wheel
+  on OS X (#735), resolving issue #553.
+- The shapely.ops.orient function can now orient multi polygons and geometry
+  collections as well as polygons (#733).
+- Polygons can now be constructed from sequences of point objects as well as
+  sequences of x, y sequences (#732).
+- The exterior of an empty polygon is now equal to an empty linear ring (#731).
+- The bounds property of an empty point object now returns an empty tuple,
+  consistent with other geometry types (#723).
+- Segmentation faults when non-string values are passed to the WKT loader are
+  avoided by #700.
+- Failure of ops.substring when the sub linestring coincides with the beginning
+  of the linestring has been fixed (#658).
+- Segmentation faults from interpolating on an empty linestring are prevented
+  by #655.
+- A missing special case for rectangular polygons has been added to the
+  polylabel algorithm (#644).
+- LinearRing can be created from a LineString (#638).
+- The prepared geoemtry validation condition has been tightened in #632 to fix
+  the bug reported in #631.
+- Attempting to interpolate an empty geometry no longer results in a
+  segmentation fault, raising `ValueError` instead (#653).
+
+1.7a1 (2018-07-29)
+------------------
 
 New features:
 

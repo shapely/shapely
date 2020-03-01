@@ -158,7 +158,7 @@ if geos_config and not os.environ.get('NO_GEOS_CHECK') or sys.platform == 'win32
                 "Install GEOS 3.3+ and reinstall Shapely.")
             sys.exit(1)
     except OSError as exc:
-        log.warn(
+        log.warning(
             "Failed to determine system's GEOS version: %s. "
             "Installation continuing. GEOS version will be "
             "checked on import of shapely.", exc)
@@ -193,7 +193,7 @@ extra_reqs['all'] = list(it.chain.from_iterable(extra_reqs.values()))
 setup_args = dict(
     name                = 'Shapely',
     version             = str(shapely_version),
-    requires            = ['Python (>=2.6)', 'libgeos_c (>=3.3)'],
+    requires            = ['Python (>=2.7)', 'libgeos_c (>=3.3)'],
     description         = 'Geometric objects, predicates, and operations',
     license             = 'BSD',
     keywords            = 'geometry topology gis',
@@ -220,9 +220,10 @@ setup_args = dict(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Scientific/Engineering :: GIS',
     ],
     cmdclass           = {},
@@ -315,25 +316,18 @@ if (platform.python_implementation() == 'PyPy'):
     ext_modules = []
     libraries = []
 
-if os.path.exists("MANIFEST.in"):
-    pyx_file = "shapely/speedups/_speedups.pyx"
-    c_file = "shapely/speedups/_speedups.c"
 
-    force_cython = False
-    if 'sdist' in sys.argv:
+pyx_file = "shapely/speedups/_speedups.pyx"
+c_file = "shapely/speedups/_speedups.c"
+
+force_cython = False
+# Always regenerate for sdist or absent c file
+if 'sdist' in sys.argv or not os.path.exists(c_file):
+    force_cython = True
+# Also regenerate if pyx_file is outdated.
+elif os.path.exists(c_file):
+    if os.path.getmtime(pyx_file) > os.path.getmtime(c_file):
         force_cython = True
-
-    try:
-        if (force_cython or not os.path.exists(c_file)
-                or os.path.getmtime(pyx_file) > os.path.getmtime(c_file)):
-            log.info("Updating C extension with Cython.")
-            subprocess.check_call(["cython", "shapely/speedups/_speedups.pyx"])
-    except (subprocess.CalledProcessError, OSError):
-        log.warn("Could not (re)create C extension with Cython.")
-        if force_cython:
-            raise
-    if not os.path.exists(c_file):
-        log.warn("speedup extension not found")
 
 ext_modules = [
     Extension("shapely.speedups._speedups", ["shapely/speedups/_speedups.c"],
@@ -366,6 +360,19 @@ try:
 except ImportError:
     log.info("Numpy or Cython not available, shapely.vectorized submodule "
              "not being built.")
+    force_cython = False
+
+try:
+    if force_cython:
+        log.info("Updating C extension with Cython.")
+        subprocess.check_call(["cython", "shapely/speedups/_speedups.pyx"])
+except (subprocess.CalledProcessError, OSError):
+    log.warning("Could not (re)create C extension with Cython.")
+    if force_cython:
+        raise
+
+if not os.path.exists(c_file):
+    log.warning("speedup extension not found")
 
 try:
     # try building with speedups
@@ -377,10 +384,10 @@ try:
 except BuildFailed as ex:
     BUILD_EXT_WARNING = "The C extension could not be compiled, " \
                         "speedups are not enabled."
-    log.warn(ex)
-    log.warn(BUILD_EXT_WARNING)
-    log.warn("Failure information, if any, is above.")
-    log.warn("I'm retrying the build without the C extension now.")
+    log.warning(ex)
+    log.warning(BUILD_EXT_WARNING)
+    log.warning("Failure information, if any, is above.")
+    log.warning("I'm retrying the build without the C extension now.")
 
     # Remove any previously defined build_ext command class.
     if 'build_ext' in setup_args['cmdclass']:
@@ -391,5 +398,5 @@ except BuildFailed as ex:
 
     setup(**setup_args)
 
-    log.warn(BUILD_EXT_WARNING)
+    log.warning(BUILD_EXT_WARNING)
     log.info("Plain-Python installation succeeded.")

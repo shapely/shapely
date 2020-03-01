@@ -11,9 +11,10 @@ else:
 from ctypes import byref, c_void_p, c_double
 
 from shapely.geos import lgeos
-from shapely.geometry.base import geom_factory, BaseGeometry
+from shapely.geometry.base import geom_factory, BaseGeometry, BaseMultipartGeometry
 from shapely.geometry import asShape, asLineString, asMultiLineString, Point, MultiPoint,\
                              LineString, MultiLineString, Polygon, GeometryCollection
+from shapely.geometry.polygon import orient as orient_
 from shapely.algorithms.polylabel import polylabel
 
 
@@ -120,7 +121,7 @@ class CollectionOperator(object):
     def cascaded_union(self, geoms):
         """Returns the union of a sequence of geometries
 
-        This is the most efficient method of dissolving many polygons.
+        This method was superseded by :meth:`unary_union`.
         """
         try:
             L = len(geoms)
@@ -138,7 +139,6 @@ class CollectionOperator(object):
 
         This method replaces :meth:`cascaded_union` as the
         prefered method for dissolving many polygons.
-
         """
         try:
             L = len(geoms)
@@ -388,22 +388,28 @@ class SplitOp(object):
         distance_on_line = line.project(splitter)
         coords = list(line.coords)
         # split the line at the point and create two new lines
-        # TODO: can optimize this by accumulating the computed point-to-point distances
-        for i, p in enumerate(coords):
-            pd = line.project(Point(p))
-            if pd == distance_on_line:
+        current_position = 0.0
+        for i in range(len(coords)-1):
+            point1 = coords[i]
+            point2 = coords[i+1]
+            dx = point1[0] - point2[0]
+            dy = point1[1] - point2[1]
+            segment_length = (dx ** 2 + dy ** 2) ** 0.5
+            current_position += segment_length
+            if distance_on_line == current_position:
+                # splitter is exactly on a vertex
                 return [
-                    LineString(coords[:i+1]),
-                    LineString(coords[i:])
+                    LineString(coords[:i+2]),
+                    LineString(coords[i+1:])
                 ]
-            elif distance_on_line < pd:
-                # we must interpolate here because the line might use 3D points
-                cp = line.interpolate(distance_on_line)
-                ls1_coords = coords[:i]
-                ls1_coords.append(cp.coords[0])
-                ls2_coords = [cp.coords[0]]
-                ls2_coords.extend(coords[i:])
-                return [LineString(ls1_coords), LineString(ls2_coords)]
+            elif distance_on_line < current_position:
+                # splitter is between two vertices
+                return [
+                    LineString(coords[:i+1] + [splitter.coords[0]]),
+                    LineString([splitter.coords[0]] + coords[i+1:])
+                ]
+        return [line]
+
 
     @staticmethod
     def _split_line_with_multipoint(line, splitter):
@@ -514,20 +520,22 @@ def substring(geom, start_dist, end_dist, normalized=False):
         min_dist *= geom.length
         max_dist *= geom.length
     
-    vertex_list = [(start_point.x, start_point.y)]
+    if start_dist < end_dist:
+        vertex_list = [(start_point.x, start_point.y)]
+    else:
+        vertex_list = [(end_point.x, end_point.y)]
     coords = list(geom.coords)
-    for i, p in enumerate(coords):
+    for p in coords:
         pd = geom.project(Point(p))
-        if pd < min_dist:
-            pass
-        elif min_dist < pd < max_dist:
+        if min_dist < pd < max_dist:
             vertex_list.append(p)
-        else:
+        elif pd >= max_dist:
             break
-    vertex_list.append((end_point.x, end_point.y))
-
-    # reverse direction of section
-    if start_dist > end_dist:
+    if start_dist < end_dist:
+        vertex_list.append((end_point.x, end_point.y))
+    else:
+        vertex_list.append((start_point.x, start_point.y))
+        # reverse direction result
         vertex_list = reversed(vertex_list)
 
     return LineString(vertex_list)
@@ -562,3 +570,37 @@ def clip_by_rect(geom, xmin, ymin, xmax, ymax):
         return geom
     result = geom_factory(lgeos.methods['clip_by_rect'](geom._geom, xmin, ymin, xmax, ymax))
     return result
+
+
+def orient(geom, sign=1.0):
+    """A properly oriented copy of the given geometry.
+
+    The signed area of the result will have the given sign. A sign of
+    1.0 means that the coordinates of the product's exterior rings will
+    be oriented counter-clockwise.
+
+    Parameters
+    ----------
+    geom : Geometry
+        The original geometry. May be a Polygon, MultiPolygon, or
+        GeometryCollection.
+    sign : float, optional.
+        The sign of the result's signed area.
+
+    Returns
+    -------
+    Geometry
+
+    """
+    if isinstance(geom, BaseMultipartGeometry):
+        return geom.__class__(
+            list(
+                map(
+                    lambda geom: orient(geom, sign),
+                    geom.geoms,
+                )
+            )
+        )
+    if isinstance(geom, (Polygon,)):
+        return orient_(geom, sign)
+    return geom

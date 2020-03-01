@@ -38,8 +38,9 @@ if 'GEOS_LIBRARY_PATH' in os.environ:
     try:
         lgeos = CDLL(geos_library_path)
     except:
-        log.warn('cannot open shared object from GEOS_LIBRARY_PATH: %s',
-                 geos_library_path)
+        log.warning(
+            'cannot open shared object from GEOS_LIBRARY_PATH: %s',
+            geos_library_path)
     if lgeos:
         if hasattr(lgeos, 'GEOSversion'):
             log.debug('found GEOS C library using GEOS_LIBRARY_PATH')
@@ -121,10 +122,12 @@ if not lgeos and geos_config:
                 'shared object found by geos-config is not a GEOS C library: '
                 + str(geos_library_path))
     else:
-        log.warn("cannot open shared object from '%s --clibs': %r",
-                 geos_config, clibs)
-        log.warn("there were %d guess(es) for this path:\n\t%s",
-                 len(guesses), '\n\t'.join(guesses))
+        log.warning(
+            "cannot open shared object from '%s --clibs': %r",
+            geos_config, clibs)
+        log.warning(
+            "there were %d guess(es) for this path:\n\t%s",
+            len(guesses), '\n\t'.join(guesses))
 
 
 # Platform-specific attempts, and build `free` object
@@ -137,7 +140,7 @@ def load_dll(libname, fallbacks=None):
             log.debug("Trying `CDLL(%s)`", lib)
             dll = CDLL(lib)
         except OSError:
-            log.warn("Failed `CDLL(%s)`", lib)
+            log.warning("Failed `CDLL(%s)`", lib)
             pass
 
     if not dll and fallbacks is not None:
@@ -147,7 +150,7 @@ def load_dll(libname, fallbacks=None):
                 dll = CDLL(name)
             except OSError:
                 # move on to the next fallback
-                log.warn("Failed `CDLL(%s)`", name)
+                log.warning("Failed `CDLL(%s)`", name)
                 pass
 
     if dll:
@@ -165,7 +168,7 @@ if sys.platform.startswith('linux'):
     if not lgeos:
         lgeos = load_dll('geos_c',
                          fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
-    free = load_dll('c').free
+    free = load_dll('c', fallbacks=['libc.so.6']).free
     free.argtypes = [c_void_p]
     free.restype = None
 
@@ -181,6 +184,8 @@ elif sys.platform == 'darwin':
                 "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
                 # macports
                 '/opt/local/lib/libgeos_c.dylib',
+                # homebrew
+                '/usr/local/lib/libgeos_c.dylib',
             ]
         lgeos = load_dll('geos_c', fallbacks=alt_paths)
 
@@ -239,7 +244,6 @@ def _geos_version():
         geos_version_string = geos_version_string.decode('ascii')
 
     res = re.findall(r'(\d+)\.(\d+)\.(\d+)', geos_version_string)
-    assert len(res) == 2, res
     geos_version = tuple(int(x) for x in res[0])
     capi_version = tuple(int(x) for x in res[1])
 

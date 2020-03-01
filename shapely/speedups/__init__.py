@@ -1,10 +1,9 @@
 import warnings
+from functools import wraps
 
 from shapely.geometry import linestring, polygon
 from shapely import coords
 import shapely.affinity
-
-from ..ftools import wraps
 
 
 try:

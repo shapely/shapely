@@ -165,6 +165,30 @@ class TestSplitLine(TestSplitGeometry):
 		splitter = MultiPolygon([poly1, poly2, poly3])
 		self.helper(self.ls, splitter, 4)
 
+class TestSplitClosedRing(TestSplitGeometry):
+	ls = LineString([[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]])
+
+	def test_split_closed_ring_with_point(self):
+		splitter = Point([0.0, 0.0])
+		self.helper(self.ls, splitter, 1)
+
+		splitter = Point([0.0, 0.5])
+		self.helper(self.ls, splitter, 2)
+		result = split(self.ls, splitter)
+		assert result[0].coords[:] == [(0, 0), (0.0, 0.5)]
+		assert result[1].coords[:] == [(0.0, 0.5), (0, 1), (1, 1), (1, 0), (0, 0)]
+
+		# previously failed, see GH#585
+		splitter = Point([0.5, 0.0])
+		self.helper(self.ls, splitter, 2)
+		result = split(self.ls, splitter)
+		assert result[0].coords[:] == [(0, 0), (0, 1), (1, 1), (1, 0), (0.5, 0)]
+		assert result[1].coords[:] == [(0.5, 0), (0, 0)]
+
+		splitter = Point([2.0, 2.0])
+		self.helper(self.ls, splitter, 1)
+
+
 class TestSplitMulti(TestSplitGeometry):
 
 	def test_split_multiline_with_point(self):

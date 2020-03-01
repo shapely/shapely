@@ -135,6 +135,28 @@ def prototype(lgeos, geos_version):
             lgeos.GEOSOffsetCurve.argtypes = [
                 c_void_p, c_double, c_int, c_int, c_double]
 
+            lgeos.GEOSBufferParams_create.restype = c_void_p
+            lgeos.GEOSBufferParams_create.argtypes = None
+
+            lgeos.GEOSBufferParams_setEndCapStyle.restype = c_int
+            lgeos.GEOSBufferParams_setEndCapStyle.argtypes = [c_void_p, c_int]
+
+            lgeos.GEOSBufferParams_setJoinStyle.restype = c_int
+            lgeos.GEOSBufferParams_setJoinStyle.argtypes = [c_void_p, c_int]
+
+            lgeos.GEOSBufferParams_setMitreLimit.restype = c_int
+            lgeos.GEOSBufferParams_setMitreLimit.argtypes = [c_void_p, c_double]
+
+            lgeos.GEOSBufferParams_setQuadrantSegments.restype = c_int
+            lgeos.GEOSBufferParams_setQuadrantSegments.argtypes = [c_void_p, c_int]
+
+            lgeos.GEOSBufferParams_setSingleSided.restype = c_int
+            lgeos.GEOSBufferParams_setSingleSided.argtypes = [c_void_p, c_int]
+
+            lgeos.GEOSBufferWithParams.restype = c_void_p
+            lgeos.GEOSBufferWithParams.argtypes = [
+                c_void_p, c_void_p, c_double]
+
         else:
 
             # deprecated in GEOS 3.3.0 in favour of GEOSOffsetCurve
@@ -509,3 +531,10 @@ def prototype(lgeos, geos_version):
 
         lgeos.GEOSSTRtree_destroy.argtypes = [c_void_p]
         lgeos.GEOSSTRtree_destroy.restype = None
+
+    if geos_version >= (3, 6, 0):
+        lgeos.GEOSDistanceCallback = CFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p, c_void_p)
+
+        lgeos.GEOSSTRtree_nearest_generic.argtypes = [
+            c_void_p, py_object, c_void_p, lgeos.GEOSDistanceCallback, py_object]
+        lgeos.GEOSSTRtree_nearest_generic.restype = c_void_p

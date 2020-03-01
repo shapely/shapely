@@ -6,7 +6,7 @@ __all__ = ['affine_transform', 'rotate', 'scale', 'skew', 'translate']
 
 
 def affine_transform(geom, matrix):
-    """Returns a transformed geometry using an affine transformation matrix.
+    r"""Returns a transformed geometry using an affine transformation matrix.
 
     The coefficient matrix is provided as a list or tuple with 6 or 12 items
     for 2D or 3D transformations, respectively.
@@ -17,9 +17,9 @@ def affine_transform(geom, matrix):
 
     which represents the augmented matrix::
 
-                            / a  b xoff \ 
-        [x' y' 1] = [x y 1] | d  e yoff |
-                            \ 0  0   1  /
+        [x']   / a  b xoff \ [x]
+        [y'] = | d  e yoff | [y]
+        [1 ]   \ 0  0   1  / [1]
 
     or the equations for the transformed coordinates::
 
@@ -32,10 +32,10 @@ def affine_transform(geom, matrix):
 
     which represents the augmented matrix::
 
-                                 / a  b  c xoff \ 
-        [x' y' z' 1] = [x y z 1] | d  e  f yoff |
-                                 | g  h  i zoff |
-                                 \ 0  0  0   1  /
+        [x']   / a  b  c xoff \ [x]
+        [y'] = | d  e  f yoff | [y]
+        [z']   | g  h  i zoff | [z]
+        [1 ]   \ 0  0  0   1  / [1]
 
     or the equations for the transformed coordinates::
 
@@ -130,7 +130,7 @@ def interpret_origin(geom, origin, ndim):
 
 
 def rotate(geom, angle, origin='center', use_radians=False):
-    """Returns a rotated geometry on a 2D plane.
+    r"""Returns a rotated geometry on a 2D plane.
 
     The angle of rotation can be specified in either degrees (default) or
     radians by setting ``use_radians=True``. Positive angles are
@@ -151,8 +151,10 @@ def rotate(geom, angle, origin='center', use_radians=False):
         xoff = x0 - x0 * cos(r) + y0 * sin(r)
         yoff = y0 - x0 * sin(r) - y0 * cos(r)
     """
+    if geom.is_empty:
+        return geom
     if not use_radians:  # convert from degrees
-        angle *= pi/180.0
+        angle = angle * pi/180.0
     cosp = cos(angle)
     sinp = sin(angle)
     if abs(cosp) < 2.5e-16:
@@ -169,7 +171,7 @@ def rotate(geom, angle, origin='center', use_radians=False):
 
 
 def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center'):
-    """Returns a scaled geometry, scaled by factors along each dimension.
+    r"""Returns a scaled geometry, scaled by factors along each dimension.
 
     The point of origin can be a keyword 'center' for the 2D bounding box
     center (default), 'centroid' for the geometry's 2D centroid, a Point
@@ -190,6 +192,8 @@ def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center'):
         yoff = y0 - y0 * yfact
         zoff = z0 - z0 * zfact
     """
+    if geom.is_empty:
+        return geom
     x0, y0, z0 = interpret_origin(geom, origin, 3)
 
     matrix = (xfact, 0.0, 0.0,
@@ -200,7 +204,7 @@ def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center'):
 
 
 def skew(geom, xs=0.0, ys=0.0, origin='center', use_radians=False):
-    """Returns a skewed geometry, sheared by angles along x and y dimensions.
+    r"""Returns a skewed geometry, sheared by angles along x and y dimensions.
 
     The shear angle can be specified in either degrees (default) or radians
     by setting ``use_radians=True``.
@@ -220,9 +224,11 @@ def skew(geom, xs=0.0, ys=0.0, origin='center', use_radians=False):
         xoff = -y0 * tan(xs)
         yoff = -x0 * tan(ys)
     """
+    if geom.is_empty:
+        return geom
     if not use_radians:  # convert from degrees
-        xs *= pi/180.0
-        ys *= pi/180.0
+        xs = xs * pi/180.0
+        ys = ys * pi/180.0
     tanx = tan(xs)
     tany = tan(ys)
     if abs(tanx) < 2.5e-16:
@@ -239,7 +245,7 @@ def skew(geom, xs=0.0, ys=0.0, origin='center', use_radians=False):
 
 
 def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
-    """Returns a translated geometry shifted by offsets along each dimension.
+    r"""Returns a translated geometry shifted by offsets along each dimension.
 
     The general 3D affine transformation matrix for translation is:
 
@@ -248,6 +254,8 @@ def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
         | 0  0  1 zoff |
         \ 0  0  0   1  /
     """
+    if geom.is_empty:
+        return geom
     matrix = (1.0, 0.0, 0.0,
               0.0, 1.0, 0.0,
               0.0, 0.0, 1.0,

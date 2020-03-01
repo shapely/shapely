@@ -32,7 +32,6 @@ from shapely.ops import cascaded_union
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
-    'matplotlib.sphinxext.only_directives',
     'matplotlib.sphinxext.plot_directive',
     'sphinx.ext.autodoc',
     #'sphinx.ext.pngmath', # <----- pick one, not both
@@ -121,7 +120,7 @@ html_theme_path = ['themes']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = "Shapely 1.6 documentation"
+# html_title = "Shapely 1.6 documentation"
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None

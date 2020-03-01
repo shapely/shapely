@@ -58,6 +58,31 @@ class PolylabelTestCase(unittest.TestCase):
         label = polylabel(concave_polygon)
         self.assertTrue(concave_polygon.contains(label))
 
+    def test_rectangle_special_case(self):
+        """
+        The centroid algorithm used is vulnerable to floating point errors
+        and can give unexpected results for rectangular polygons. Test
+        that this special case is handled correctly.
+        https://github.com/mapbox/polylabel/issues/3
+        """
+        polygon = Polygon([(32.71997,-117.19310), (32.71997,-117.21065),
+                           (32.72408,-117.21065), (32.72408,-117.19310)])
+        label = polylabel(polygon)
+        self.assertEqual(label.coords[:], [(32.722025, -117.201875)])
+
+    def test_polygon_with_hole(self):
+        """
+        Finds pole of inaccessibility for a polygon with a hole
+        https://github.com/Toblerity/Shapely/issues/817
+        """
+        polygon = Polygon(
+            shell=[(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)],
+            holes=[[(2, 2), (6, 2), (6, 6), (2, 6), (2, 2)]],
+        )
+        label = polylabel(polygon, 0.05)
+        self.assertAlmostEqual(label.x, 7.65625)
+        self.assertAlmostEqual(label.y, 7.65625)
+
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(PolylabelTestCase)

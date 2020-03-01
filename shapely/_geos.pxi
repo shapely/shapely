@@ -43,6 +43,8 @@ cdef extern from "geos_c.h":
     char GEOSHasZ_r(GEOSContextHandle_t, GEOSGeometry *) nogil
     char GEOSisRing_r(GEOSContextHandle_t, GEOSGeometry *) nogil
     char GEOSisClosed_r(GEOSContextHandle_t, GEOSGeometry *) nogil
+    char GEOSisValid_r(GEOSContextHandle_t, GEOSGeometry *) nogil
+    char GEOSisSimple_r(GEOSContextHandle_t, GEOSGeometry *) nogil
 
 
 cdef GEOSContextHandle_t get_geos_context_handle():

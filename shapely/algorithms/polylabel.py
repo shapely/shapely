@@ -47,7 +47,9 @@ class Cell(object):
         boundary.
         """
         inside = polygon.contains(self.centroid)
-        distance = self.centroid.distance(LineString(polygon.exterior.coords))
+        distance = self.centroid.distance(polygon.exterior)
+        for interior in polygon.interiors:
+            distance = min(distance, self.centroid.distance(interior))
         if inside:
             return distance
         return -distance
@@ -87,7 +89,9 @@ def polylabel(polygon, tolerance=1.0):
     if not polygon.is_valid:
         raise TopologicalError('Invalid polygon')
     minx, miny, maxx, maxy = polygon.bounds
-    cell_size = min(maxx - minx, maxy - miny)
+    width = maxx - minx
+    height = maxy - miny
+    cell_size = min(width, height)
     h = cell_size / 2.0
     cell_queue = []
 
@@ -95,6 +99,11 @@ def polylabel(polygon, tolerance=1.0):
     # of the polygon
     x, y = polygon.centroid.coords[0]
     best_cell = Cell(x, y, 0, polygon)
+
+    # Special case for rectangular polygons avoiding floating point error
+    bbox_cell = Cell(minx + width / 2.0, miny + height / 2, 0, polygon)
+    if bbox_cell.distance > best_cell.distance:
+        best_cell = bbox_cell
 
     # build a regular square grid covering the polygon
     x = minx
