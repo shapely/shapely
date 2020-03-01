@@ -1,7 +1,6 @@
 """
 Geometry factories based on the geo interface
 """
-
 from .point import Point, asPoint
 from .linestring import LineString, asLineString
 from .polygon import Polygon, asPolygon
@@ -10,6 +9,47 @@ from .multilinestring import MultiLineString, asMultiLineString
 from .multipolygon import MultiPolygon, MultiPolygonAdapter
 from .collection import GeometryCollection
 
+# numpy is an optional dependency
+try:
+    import numpy as np
+except ImportError:
+    _has_numpy = False
+else:
+    _has_numpy = True
+
+
+def _is_coordinates_empty(coordinates):
+    """Helper to identify if coordinates or subset of coordinates are empty"""
+
+    if coordinates is None:
+        return True
+
+    is_numpy_array = _has_numpy and isinstance(coordinates, np.ndarray)
+    if isinstance(coordinates, (list, tuple)) or is_numpy_array:
+        if len(coordinates) == 0:
+            return True
+        return all(map(_is_coordinates_empty, coordinates))
+    else:
+        return False
+
+
+def _empty_shape_for_no_coordinates(geom_type):
+    """Return empty counterpart for geom_type"""
+    if geom_type == 'point':
+        return Point()
+    elif geom_type == 'multipoint':
+        return MultiPoint()
+    elif geom_type == 'linestring':
+        return LineString()
+    elif geom_type == 'multilinestring':
+        return MultiLineString()
+    elif geom_type == 'polygon':
+        return Polygon()
+    elif geom_type == 'multipolygon':
+        return MultiPolygon()
+    else:
+        raise ValueError("Unknown geometry type: %s" % geom_type)
+
 
 def box(minx, miny, maxx, maxy, ccw=True):
     """Returns a rectangular polygon with configurable normal vector"""
@@ -17,6 +57,7 @@ def box(minx, miny, maxx, maxy, ccw=True):
     if not ccw:
         coords = coords[::-1]
     return Polygon(coords)
+
 
 def shape(context):
     """Returns a new, independent geometry with coordinates *copied* from the
@@ -27,15 +68,14 @@ def shape(context):
     else:
         ob = context
     geom_type = ob.get("type").lower()
-    if geom_type == "point":
+    if 'coordinates' in ob and _is_coordinates_empty(ob['coordinates']):
+        return _empty_shape_for_no_coordinates(geom_type)
+    elif geom_type == "point":
         return Point(ob["coordinates"])
     elif geom_type == "linestring":
         return LineString(ob["coordinates"])
     elif geom_type == "polygon":
-        if not ob["coordinates"]:
-            return Polygon()
-        else:
-            return Polygon(ob["coordinates"][0], ob["coordinates"][1:])
+        return Polygon(ob["coordinates"][0], ob["coordinates"][1:])
     elif geom_type == "multipoint":
         return MultiPoint(ob["coordinates"])
     elif geom_type == "multilinestring":
@@ -47,6 +87,7 @@ def shape(context):
         return GeometryCollection(geoms)
     else:
         raise ValueError("Unknown geometry type: %s" % geom_type)
+
 
 def asShape(context):
     """Adapts the context to a geometry interface. The coordinates remain
@@ -79,6 +120,7 @@ def asShape(context):
         return GeometryCollection(geoms)
     else:
         raise ValueError("Unknown geometry type: %s" % geom_type)
+
 
 def mapping(ob):
     """Returns a GeoJSON-like mapping"""

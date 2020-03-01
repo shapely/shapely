@@ -63,6 +63,19 @@ class CollectionTestCase(unittest.TestCase):
         self.assertEqual(len(m), 0)
         self.assertEqual(m.geoms, [])
 
+    def test_empty_coordinates(self):
+
+        d = {"type": "GeometryCollection", "geometries": [
+            {"type": "Point", "coordinates": ()},
+            {"type": "LineString", "coordinates": (())}
+        ]}
+
+        # shape
+        m = shape(d)
+        self.assertEqual(m.geom_type, "GeometryCollection")
+        self.assertEqual(len(m), 0)
+        self.assertEqual(m.geoms, [])
+
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(CollectionTestCase)
