@@ -2425,7 +2425,7 @@ cannot add or remove geometries.
   .. method:: strtree.query(goem)
 
     Returns a list of all geometries in the `strtree` whose extents intersect the
-    extents of `goem`. This means that a subsequent search through the returned
+    extent of `geom`. This means that a subsequent search through the returned
     subset using the desired binary predicate (eg. intersects, crosses, contains,
     overlaps) may be necessary to further filter the results according to their
     specific spatial relationships.
