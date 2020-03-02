@@ -62,7 +62,9 @@ def load_dll(libname, fallbacks=None, mode=DEFAULT_MODE):
                 libname, fallbacks or []))
 
 _lgeos = None
-is_conda = os.path.exists(os.path.join(sys.prefix, 'conda-meta'))
+def exists_conda_env():
+    """Does this module exist in a conda environment?"""
+    return os.path.exists(os.path.join(sys.prefix, 'conda-meta'))
 
 
 if sys.platform.startswith('linux'):
