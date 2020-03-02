@@ -1,11 +1,8 @@
 name: _shapely
 channels:
 - defaults
-- conda-forge
 dependencies:
-- python>=3.5
-- cython
-- descartes
-- geos>=3.3
+- python==3.6.*
+- geos==3.8.*
 - matplotlib
-- numpy>=1.9
+- descartes
