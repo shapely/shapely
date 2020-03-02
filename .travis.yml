@@ -8,10 +8,12 @@ matrix:
     env: PYTHON_VERSION="3.6" DEPS="numpy=1.13 geos=3.6"
   - os: linux  # 2018
     env: PYTHON_VERSION="3.7" DEPS="numpy=1.15 geos=3.7"
+  - os: linux  # 2019
+    env: PYTHON_VERSION="3.8" DEPS="numpy=1.17 geos=3.8"
   - os: linux  # now
-    env: PYTHON_VERSION="3.7" CONDA_FORGE=1 DEPS="numpy geos"
+    env: PYTHON_VERSION="3.8" CONDA_FORGE=1 DEPS="numpy geos"
   - os: osx
-    env: PYTHON_VERSION="3.7" DEPS="numpy geos"
+    env: PYTHON_VERSION="3.8" DEPS="numpy geos"
 
 install:
   - wget https://repo.anaconda.com/pkgs/misc/conda-execs/conda-latest-$TRAVIS_OS_NAME-64.exe -O conda.exe
