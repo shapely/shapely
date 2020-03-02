@@ -62,7 +62,8 @@ def load_dll(libname, fallbacks=None, mode=DEFAULT_MODE):
                 libname, fallbacks or []))
 
 _lgeos = None
-def exists_conda_env():
+def 
+:
     """Does this module exist in a conda environment?"""
     return os.path.exists(os.path.join(sys.prefix, 'conda-meta'))
 
@@ -80,7 +81,7 @@ if sys.platform.startswith('linux'):
         if len(geos_pyinstaller_so) == 1:
             _lgeos = CDLL(geos_pyinstaller_so[0])
             LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
-    elif is_conda:
+    elif exists_conda_env():
         # conda package.
         _lgeos = CDLL(os.path.join(sys.prefix, 'lib', 'libgeos_c.so'))
     else:
@@ -111,7 +112,7 @@ elif sys.platform == 'darwin':
             _lgeos = CDLL(geos_whl_dylib)
             LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
 
-    elif is_conda:
+    elif exists_conda_env():
         # conda package.
         _lgeos = CDLL(os.path.join(sys.prefix, 'lib', 'libgeos_c.dylib'))
     else:
@@ -144,7 +145,7 @@ elif sys.platform == 'darwin':
     free.restype = None
 
 elif sys.platform == 'win32':
-    if is_conda:
+    if exists_conda_env():
         # conda package.
         _lgeos = CDLL(os.path.join(sys.prefix, 'Library', 'bin', 'geos_c.dll'))
     else:
