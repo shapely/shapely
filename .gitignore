@@ -61,4 +61,6 @@ Pipfile.lock
 
 # Documentation
 docs/_build
+
+# Benchmarks
 .asv
