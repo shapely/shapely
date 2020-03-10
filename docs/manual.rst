@@ -1691,9 +1691,10 @@ linestring feature (right).
   :data:`shapely.geometry.JOIN_STYLE`.
 
   Severely mitered corners can be controlled by the `mitre_limit` parameter
-  (spelled in British English, en-gb). The ratio of the `distance` parameter
-  and the distance from the corner to the end of the mitred offset corner is
-  the miter ratio. Corners with a ratio which exceed the limit will be beveled.
+  (spelled in British English, en-gb). The corners of a parallel line will
+  be further from the original than most places with the mitre join style. The
+  ratio of this further distance to the specified `distance` is the miter ratio.
+  Corners with a ratio which exceed the limit will be beveled.
 
 .. note::
 
