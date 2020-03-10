@@ -131,6 +131,16 @@ def test_create_collection_skips_none():
     assert str(actual) == "MULTIPOINT (2 3, 2 3)"
 
 
+def test_create_collection_wrong_collection_type():
+    with pytest.raises(TypeError):
+        pygeos.lib.create_collection([point], 2)
+
+
+def test_create_collection_wrong_geom_type():
+    with pytest.raises(TypeError):
+        pygeos.multipolygons([point])
+
+
 def test_box():
     actual = pygeos.box(0, 0, 1, 1)
     assert str(actual) == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"

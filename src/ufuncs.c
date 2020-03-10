@@ -912,14 +912,40 @@ static void create_collection_func(char **args, npy_intp *dimensions,
         goto finish;
     }
     int type;
+    char actual_type, expected_type;
 
     BINARY_SINGLE_COREDIM_LOOP_OUTER {
         type = *(int *) ip2;
+        switch (type) {
+            case GEOS_MULTIPOINT:
+                expected_type = GEOS_POINT;
+                break;
+            case GEOS_MULTILINESTRING:
+                expected_type = GEOS_LINESTRING;
+                break;
+            case GEOS_MULTIPOLYGON:
+                expected_type = GEOS_POLYGON;
+                break;
+            case GEOS_GEOMETRYCOLLECTION:
+                expected_type = -1;
+                break;
+        default:
+            PyErr_Format(PyExc_TypeError, "Only %d, %d, %d, and %d are valid geometry collection types (got: %d).", GEOS_MULTIPOINT, GEOS_MULTILINESTRING, GEOS_MULTIPOLYGON, GEOS_GEOMETRYCOLLECTION, type);
+            goto finish;
+        }
         n_geoms = 0;
         cp1 = ip1;
         BINARY_SINGLE_COREDIM_LOOP_INNER {
             if (!get_geom(*(GeometryObject **)cp1, &g)) { goto finish; }
             if (g == NULL) { continue; }
+            if (expected_type != -1) {
+                actual_type = GEOSGeomTypeId_r(context_handle, g);
+                if (actual_type == -1) { goto finish; }
+                if (actual_type != expected_type) {
+                    PyErr_Format(PyExc_TypeError, "One of the input geometries is of incorrect type (expected: %d, got: %d).", actual_type, expected_type);
+                    goto finish;
+                };
+            }
             g_copy = GEOSGeom_clone_r(context_handle, g);
             if (g_copy == NULL) { goto finish; }
             geoms[n_geoms] = g_copy;
@@ -1207,7 +1233,7 @@ static void to_wkb_func(char **args, npy_intp *dimensions,
         if (!get_geom(*(GeometryObject **)ip1, &in1)) { goto finish; }
         PyObject **out = (PyObject **)op1;
 
-        if (in1 == NULL) {  
+        if (in1 == NULL) {
             Py_XDECREF(*out);
             Py_INCREF(Py_None);
             *out = Py_None;
@@ -1268,7 +1294,7 @@ static void to_wkt_func(char **args, npy_intp *dimensions,
         if (!get_geom(*(GeometryObject **)ip1, &in1)) { goto finish; }
         PyObject **out = (PyObject **)op1;
 
-        if (in1 == NULL) {  
+        if (in1 == NULL) {
             Py_XDECREF(*out);
             Py_INCREF(Py_None);
             *out = Py_None;
