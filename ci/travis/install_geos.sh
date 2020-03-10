@@ -13,17 +13,9 @@ function build_geos {
     echo "Building geos-$GEOSVERSION"
     mkdir build
     cd build
-    # disable building tests to speed up compilation
-    if [ "$GEOSVERSION" = "master" ] || dpkg --compare-versions "$GEOSVERSION" "gt" "3.8.0"; then
-        BUILD_TESTING=BUILD_TESTING
-    else
-        # cmake variable used for older GEOS releases
-        BUILD_TESTING=GEOS_ENABLE_TESTS
-        # note that this intentially also catches GEOS "3.8.0"
-        # see https://trac.osgeo.org/geos/ticket/1006
-    fi
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$GEOSINSTVERSION -D$BUILD_TESTING=OFF ..
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$GEOSINSTVERSION ..
     make -j 2
+    ctest .
     make install
 }
 

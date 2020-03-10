@@ -3,7 +3,7 @@ platform: x64
 
 environment:
   global:
-    GEOSVERSION: "3.8.0"
+    GEOSVERSION: "3.8.1"
 
   matrix:
 #    - PYTHON: "C:\\Python27"
