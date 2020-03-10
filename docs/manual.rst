@@ -1676,19 +1676,24 @@ linestring feature (right).
   Returns a LineString or MultiLineString geometry at a distance from the
   object on its right or its left side.
 
-  Distance must be a positive float value. The side parameter may be 'left' or
-  'right'. Left and right is determined by following the direction of given
-  geometric points of the LineString. The resolution of the offset around
-  each vertex of the object is parameterized as in the buffer method.
+  The `distance` parameter must be a positive float value.
 
-  The join style is for outside corners between line segments. Accepted integer
+  The `side` parameter may be 'left' or 'right'. Left and right are determined
+  by following the direction of the given geometric points of the LineString.
+  Right side offsets are returned in the reverse direction of the original
+  LineString or LineRing, while left side offsets flow in the same direction.
+
+  The `resolution` of the offset around each vertex of the object is
+  parameterized as in the :meth:`buffer` method.
+
+  The `join_style` is for outside corners between line segments. Accepted integer
   values are 1 (round), 2 (mitre), and 3 (bevel). See also
   :data:`shapely.geometry.JOIN_STYLE`.
 
-  Severely mitered corners can be controlled by the mitre_limit parameter
-  (spelled in British English, en-gb). The ratio of the distance from the
-  corner to the end of the mitred offset corner is the miter ratio. Corners
-  with a ratio which exceed the limit will be beveled.
+  Severely mitered corners can be controlled by the `mitre_limit` parameter
+  (spelled in British English, en-gb). The ratio of the `distance` parameter
+  and the distance from the corner to the end of the mitred offset corner is
+  the miter ratio. Corners with a ratio which exceed the limit will be beveled.
 
 .. note::
 
