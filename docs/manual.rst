@@ -1680,7 +1680,7 @@ linestring feature (right).
 
   The `side` parameter may be 'left' or 'right'. Left and right are determined
   by following the direction of the given geometric points of the LineString.
-  Right side offsets are returned in the reverse direction of the original
+  Right hand offsets are returned in the reverse direction of the original
   LineString or LineRing, while left side offsets flow in the same direction.
 
   The `resolution` of the offset around each vertex of the object is
