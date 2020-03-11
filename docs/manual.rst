@@ -1696,15 +1696,15 @@ linestring feature (right).
   ratio of this further distance to the specified `distance` is the miter ratio.
   Corners with a ratio which exceed the limit will be beveled.
 
-  .. warning::
+  .. note::
 
     This method may sometimes return a `MultiLineString` where a simple
     `LineString` was expected; for example, an offset to a slightly
     curved LineString.
 
-.. note::
+  .. note::
 
-  This method is only available for `LinearRing` and `LineString`  objects.
+    This method is only available for `LinearRing` and `LineString`  objects.
 
 .. plot:: code/parallel_offset.py
 
