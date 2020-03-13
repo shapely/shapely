@@ -3,7 +3,7 @@ import numpy as np
 from . import lib
 from . import Geometry  # NOQA
 
-__all__ = ["area", "distance", "bounds", "length", "hausdorff_distance"]
+__all__ = ["area", "distance", "bounds", "total_bounds", "length", "hausdorff_distance"]
 
 
 def area(geometry, **kwargs):
@@ -76,6 +76,45 @@ def bounds(geometry, **kwargs):
     geometry_arr = np.asarray(geometry, dtype=np.object)
     out = np.empty(geometry_arr.shape + (4,), dtype="float64")
     return lib.bounds(geometry_arr, out=out, **kwargs)
+
+
+def total_bounds(geometry, **kwargs):
+    """Computes the total bounds (extent) of the geometry.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+
+    Returns
+    -------
+    numpy ndarray of [xmin, ymin, xmax, ymax]
+
+
+    >>> total_bounds(Geometry("POINT (2 3)")).tolist()
+    [2.0, 3.0, 2.0, 3.0]
+    >>> total_bounds([Geometry("POINT (2 3)"), Geometry("POINT (4 5)")]).tolist()
+    [2.0, 3.0, 4.0, 5.0]
+    >>> total_bounds([Geometry("LINESTRING (0 1, 0 2, 3 2)"),Geometry("LINESTRING (4 4, 4 6, 6 7)")]).tolist()
+    [0.0, 1.0, 6.0, 7.0]
+    >>> total_bounds(Geometry("POLYGON EMPTY")).tolist()
+    [nan, nan, nan, nan]
+    >>> total_bounds([Geometry("POLYGON EMPTY"), Geometry("POINT (2 3)")]).tolist()
+    [2.0, 3.0, 2.0, 3.0]
+    >>> total_bounds(None).tolist()
+    [nan, nan, nan, nan]
+    """
+    b = bounds(geometry, **kwargs)
+    if b.ndim == 1:
+        return b
+
+    return np.array(
+        [
+            np.nanmin(b[..., 0]),
+            np.nanmin(b[..., 1]),
+            np.nanmax(b[..., 2]),
+            np.nanmax(b[..., 3]),
+        ]
+    )
 
 
 def length(geometry, **kwargs):

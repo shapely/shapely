@@ -1,6 +1,7 @@
 import pygeos
 import pytest
 import numpy as np
+from numpy.testing import assert_array_equal
 
 from .common import point_polygon_testdata
 from .common import point
@@ -49,32 +50,70 @@ def test_distance_missing():
 @pytest.mark.parametrize(
     "geom,expected",
     [
-        (point, [2.0, 3.0, 2.0, 3.0]),
-        (pygeos.linestrings([[0, 0], [0, 1]]), [0.0, 0.0, 0.0, 1.0]),
-        (pygeos.linestrings([[0, 0], [1, 0]]), [0.0, 0.0, 1.0, 0.0]),
-        (multi_point, [0.0, 0.0, 1.0, 2.0]),
-        (multi_polygon, [0.0, 0.0, 2.2, 2.2]),
-        (geometry_collection, [49.0, -1.0, 52.0, 2.0]),
+        (point, [2, 3, 2, 3]),
+        ([point, multi_point], [[2, 3, 2, 3], [0, 0, 1, 2]]),
+        (pygeos.linestrings([[0, 0], [0, 1]]), [0, 0, 0, 1]),
+        (pygeos.linestrings([[0, 0], [1, 0]]), [0, 0, 1, 0]),
+        (multi_point, [0, 0, 1, 2]),
+        (multi_polygon, [0, 0, 2.2, 2.2]),
+        (geometry_collection, [49, -1, 52, 2]),
+        (empty, [np.nan, np.nan, np.nan, np.nan]),
+        (None, [np.nan, np.nan, np.nan, np.nan]),
     ],
 )
 def test_bounds(geom, expected):
-    actual = pygeos.bounds(geom)
-    assert actual.tolist() == expected
+    assert_array_equal(pygeos.bounds(geom), expected)
 
 
-def test_bounds_array():
-    actual = pygeos.bounds([[point, multi_point], [polygon, None]])
-    assert actual.shape == (2, 2, 4)
+@pytest.mark.parametrize(
+    "geom,shape",
+    [
+        (point, (4,)),
+        (None, (4,)),
+        ([point, multi_point], (2, 4)),
+        ([[point, multi_point], [polygon, point]], (2, 2, 4)),
+        ([[[point, multi_point]], [[polygon, point]]], (2, 1, 2, 4)),
+    ],
+)
+def test_bounds_dimensions(geom, shape):
+    assert pygeos.bounds(geom).shape == shape
 
 
-def test_bounds_missing():
-    actual = pygeos.bounds(None)
-    assert np.isnan(actual).all()
+@pytest.mark.parametrize(
+    "geom,expected",
+    [
+        (point, [2, 3, 2, 3]),
+        (pygeos.linestrings([[0, 0], [0, 1]]), [0, 0, 0, 1]),
+        (pygeos.linestrings([[0, 0], [1, 0]]), [0, 0, 1, 0]),
+        (multi_point, [0, 0, 1, 2]),
+        (multi_polygon, [0, 0, 2.2, 2.2]),
+        (geometry_collection, [49, -1, 52, 2]),
+        (empty, [np.nan, np.nan, np.nan, np.nan]),
+        (None, [np.nan, np.nan, np.nan, np.nan]),
+        ([empty, empty, None], [np.nan, np.nan, np.nan, np.nan]),
+        # mixed missing and non-missing coordinates
+        ([point, None], [2, 3, 2, 3]),
+        ([point, empty], [2, 3, 2, 3]),
+        ([point, empty, None], [2, 3, 2, 3]),
+        ([point, empty, None, multi_point], [0, 0, 2, 3]),
+    ],
+)
+def test_total_bounds(geom, expected):
+    assert_array_equal(pygeos.total_bounds(geom), expected)
 
 
-def test_bounds_empty():
-    actual = pygeos.bounds(empty)
-    assert np.isnan(actual).all()
+@pytest.mark.parametrize(
+    "geom",
+    [
+        point,
+        None,
+        [point, multi_point],
+        [[point, multi_point], [polygon, point]],
+        [[[point, multi_point]], [[polygon, point]]],
+    ],
+)
+def test_total_bounds_dimensions(geom):
+    assert pygeos.total_bounds(geom).shape == (4,)
 
 
 def test_length():
