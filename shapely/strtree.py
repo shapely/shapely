@@ -1,8 +1,14 @@
 """
+strtree
+=======
+
 Index geometry objects for efficient lookup of nearby or
 nearest neighbors. Home of the `STRtree` class which is
 an interface to the query-only GEOS R-tree packed using
-the Sort-Tile-Recursive algorithm [1]_. 
+the Sort-Tile-Recursive algorithm [1]_.
+
+.. autoclass:: STRtree
+    :members:
 
 References
 ----------
@@ -18,14 +24,14 @@ import ctypes
 class STRtree:
     """
     An STRtree is a spatial index; specifically, an R-tree created
-    using the Sort-Tile-Recursive algorithm [1]_.
+    using the Sort-Tile-Recursive algorithm.
 
     Pass a list of geometry objects to the `STRtree` constructor to
     create a spatial index. References to these indexed objects are
-    kept and stored in the R-tree. You can query with another geometric
-    object.
+    kept and stored in the R-tree. You can query them with another
+    geometric object.
 
-    The `STRtree` is *query-only*, meaning that once created
+    The `STRtree` is query-only, meaning that once created
     you cannot add or remove geometries.
 
     *New in version 1.4.0*.
@@ -40,13 +46,15 @@ class STRtree:
 
     Creating an index of pologons:
 
+    >>> from shapely.strtree import STRtree
     >>> from shapely.geometry import Polygon, Point
+    >>>
     >>> polys = [Polygon(((0, 0), (1, 0), (1, 1))),
     ...          Polygon(((0, 1), (0, 0), (1, 0))),
     ...          Polygon(((100, 100), (101, 100), (101, 101)))]
-    >>> s = STRtree(polys)
+    >>> tree = STRtree(polys)
     >>> query_geom = Polygon(((-1, -1), (2, 0), (2, 2), (-1, 2)))
-    >>> result = s.query(query_geom)
+    >>> result = tree.query(query_geom)
     >>> polys[0] in result
     True
     >>> polys[1] in result
@@ -54,20 +62,13 @@ class STRtree:
     >>> polys[2] in result
     False
 
-    Bahavior if STRtree is created empty:
+    Bahavior if an `STRtree` is created empty:
 
-    >>> s = STRtree([])
-    >>> s.query(Point(0, 0))
+    >>> tree = STRtree([])
+    >>> tree.query(Point(0, 0))
     []
-    >>> print(s.nearest(Point(0, 0)))
+    >>> print(tree.nearest(Point(0, 0)))
     None
-
-    References
-    ----------
-    .. [1]  Leutenegger, Scott & Lopez, Mario & Edgington, Jeffrey. (1997).
-       "STR: A Simple and Efficient Algorithm for R-Tree Packing." Proc.
-       VLDB Conf. 497-506. 10.1109/ICDE.1997.582015.
-       https://www.cs.odu.edu/~mln/ltrs-pdfs/icase-1997-14.pdf
     """
 
     def __init__(self, geoms):
@@ -161,13 +162,16 @@ class STRtree:
         Parameters
         ----------
         geom: geometry object
+            The query geometry
 
         Returns
         -------
         geometry object
             The nearest geometry object in the index to `geom`.
+
             Will always only return *one* object even if several
             in the index are the minimum distance away.
+
             `None` if the index is empty.
 
         Examples
