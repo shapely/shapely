@@ -49,7 +49,8 @@ class STRtree:
     """
 
     def __init__(self, geometries, leafsize=5):
-        self._tree = lib.STRtree(np.asarray(geometries, dtype=np.object), leafsize)
+        self.geometries = np.asarray(geometries, dtype=np.object)
+        self._tree = lib.STRtree(self.geometries, leafsize)
 
     def __len__(self):
         return self._tree.count
@@ -92,8 +93,3 @@ class STRtree:
             predicate = BinaryPredicate[predicate].value
 
         return self._tree.query(geometry, predicate)
-
-    @property
-    def geometries(self):
-        """Return the array_like of geometries used to construct the STRtree."""
-        return self._tree.geometries
