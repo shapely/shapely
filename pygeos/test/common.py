@@ -29,6 +29,7 @@ polygon_with_hole = pygeos.Geometry(
 empty_point = pygeos.Geometry("POINT EMPTY")
 empty_line_string = pygeos.Geometry("LINESTRING EMPTY")
 empty = pygeos.Geometry("GEOMETRYCOLLECTION EMPTY")
+point_nan = pygeos.points(np.nan, np.nan)
 
 all_types = (
     point,

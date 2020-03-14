@@ -3,6 +3,7 @@ import pygeos
 import pytest
 
 from .common import point
+from .common import point_nan
 from .common import line_string
 from .common import linear_ring
 from .common import polygon
@@ -166,3 +167,51 @@ def test_adapt_ptr_raises():
     point = pygeos.Geometry("POINT (2 2)")
     with pytest.raises(AttributeError):
         point._ptr += 1
+
+
+@pytest.mark.parametrize("geom", all_types + (pygeos.points(np.nan, np.nan),))
+def test_hash_same_equal(geom):
+    assert hash(geom) == hash(pygeos.apply(geom, lambda x: x))
+
+
+@pytest.mark.parametrize("geom", all_types[:-1])
+def test_hash_same_not_equal(geom):
+    assert hash(geom) != hash(pygeos.apply(geom, lambda x: x + 1))
+
+
+@pytest.mark.parametrize("geom", all_types)
+def test_eq(geom):
+    assert geom == pygeos.apply(geom, lambda x: x)
+
+
+@pytest.mark.parametrize("geom", all_types[:-1])
+def test_neq(geom):
+    assert geom != pygeos.apply(geom, lambda x: x + 1)
+
+
+@pytest.mark.parametrize("geom", all_types)
+def test_set_unique(geom):
+    a = {geom, pygeos.apply(geom, lambda x: x)}
+    assert len(a) == 1
+
+
+def test_eq_nan():
+    assert point_nan != point_nan
+
+
+def test_neq_nan():
+    assert not (point_nan == point_nan)
+
+
+def test_set_nan():
+    # As NaN != NaN, you can have multiple "NaN" points in a set
+    # set([float("nan"), float("nan")]) also returns a set with 2 elements
+    a = set(pygeos.points([[np.nan, np.nan]] * 10))
+    assert len(a) == 10  # different objects: NaN != NaN
+
+
+def test_set_nan_same_objects():
+    # You can't put identical objects in a set.
+    # x = float("nan"); set([x, x]) also retuns a set with 1 element
+    a = set([point_nan] * 10)
+    assert len(a) == 1

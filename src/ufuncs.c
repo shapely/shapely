@@ -1112,7 +1112,7 @@ static void from_wkt_func(char **args, npy_intp *dimensions,
     GEOSWKTReader *reader;
     const char *wkt;
 
-    /* Create the WKB reader */
+    /* Create the WKT reader */
     reader = GEOSWKTReader_create_r(context_handle);
     if (reader == NULL) {
         return;

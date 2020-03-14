@@ -76,6 +76,70 @@ static PyObject *GeometryObject_str(GeometryObject *self)
     return GeometryObject_ToWKT(self, "%s");
 }
 
+static Py_hash_t GeometryObject_hash(GeometryObject *self)
+{
+    void *context = geos_context[0];
+    unsigned char *wkb;
+    size_t size;
+    Py_hash_t x;
+
+    if (self->ptr == NULL) {
+        return -1;
+    }
+    GEOSWKBWriter *writer = GEOSWKBWriter_create_r(context);
+    if (writer == NULL) {
+        return -1;
+    }
+
+    GEOSWKBWriter_setOutputDimension_r(context, writer, 3);
+    GEOSWKBWriter_setIncludeSRID_r(context, writer, 1);
+    wkb = GEOSWKBWriter_write_r(context, writer, self->ptr, &size);
+    GEOSWKBWriter_destroy_r(context, writer);
+    if (wkb == NULL) {
+        return -1;
+    }
+    x = PyHash_GetFuncDef()->hash(wkb, size);
+    if (x == -1) {
+        x = -2;
+    } else {
+        x ^= 374761393UL;  // to make the result distinct from the actual WKB hash //
+    }
+    GEOSFree_r(context, wkb);
+    return x;
+}
+
+static PyObject *GeometryObject_richcompare(GeometryObject *self, PyObject *other, int op) {
+  PyObject *result = NULL;
+  void *context = geos_context[0];
+  if (Py_TYPE(self)->tp_richcompare != Py_TYPE(other)->tp_richcompare) {
+      result = Py_NotImplemented;
+  } else {
+      GeometryObject *other_geom = (GeometryObject *) other;
+      switch (op) {
+      case Py_LT:
+        result = Py_NotImplemented;
+        break;
+      case Py_LE:
+        result = Py_NotImplemented;
+        break;
+      case Py_EQ:
+        result = GEOSEqualsExact_r(context, self->ptr, other_geom->ptr, 0) ? Py_True : Py_False;
+        break;
+      case Py_NE:
+        result = GEOSEqualsExact_r(context, self->ptr, other_geom->ptr, 0) ? Py_False : Py_True;
+        break;
+      case Py_GT:
+        result = Py_NotImplemented;
+        break;
+      case Py_GE:
+        result = Py_NotImplemented;
+        break;
+    }
+  }
+  Py_XINCREF(result);
+  return result;
+}
+
 static PyObject *GeometryObject_FromWKT(PyTypeObject *type, PyObject *value)
 {
     void *context_handle = geos_context[0];
@@ -143,6 +207,8 @@ PyTypeObject GeometryType = {
     .tp_members = GeometryObject_members,
     .tp_methods = GeometryObject_methods,
     .tp_repr = (reprfunc) GeometryObject_repr,
+    .tp_hash = (hashfunc) GeometryObject_hash,
+    .tp_richcompare = (richcmpfunc) GeometryObject_richcompare,
     .tp_str = (reprfunc) GeometryObject_str,
 };
 
