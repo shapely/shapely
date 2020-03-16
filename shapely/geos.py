@@ -221,7 +221,7 @@ if geos_version >= (3, 1, 0):
                 # finishGEOS.
                 new_func.argtypes = [c_void_p]
             else:
-                new_func.argtypes = [c_void_p] + old_func.argtypes
+                new_func.argtypes = [c_void_p] + list(old_func.argtypes)
             if old_func.errcheck is not None:
                 new_func.errcheck = old_func.errcheck
 
