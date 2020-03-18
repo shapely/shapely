@@ -10,6 +10,7 @@ else:
 
 from ctypes import byref, c_void_p, c_double
 
+from shapely.prepared import prep
 from shapely.geos import lgeos
 from shapely.geometry.base import geom_factory, BaseGeometry, BaseMultipartGeometry
 from shapely.geometry import asShape, asLineString, asMultiLineString, Point, MultiPoint,\
@@ -339,6 +340,11 @@ class SplitOp(object):
         assert(isinstance(splitter, LineString))
 
         union = poly.boundary.union(splitter)
+
+        # greatly improves split performance for big geometries with many
+        # holes (the following contains checks) with minimal overhead
+        # for common cases
+        poly = prep(poly)
 
         # some polygonized geometries may be holes, we do not want them
         # that's why we test if the original polygon (poly) contains
