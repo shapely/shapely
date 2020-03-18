@@ -14,18 +14,18 @@ typedef struct
 } npy_intp_vec;
 
 
-/* A resizable vector with pointers */
+/* A resizable vector with pointers to pygeos GeometryObjects */
 typedef struct
 {
     size_t n, m;
     GeometryObject **a;
-} geom_obj_vec;
+} pg_geom_obj_vec;
 
 typedef struct {
     PyObject_HEAD
     void *ptr;
     npy_intp count;
-    geom_obj_vec _geoms;
+    pg_geom_obj_vec _geoms;
 } STRtreeObject;
 
 
