@@ -767,7 +767,7 @@ static void is_valid_reason_func(char **args, npy_intp *dimensions,
         PyObject **out = (PyObject **)op1;
         /* get the geometry return on error */
         if (!get_geom(*(GeometryObject **)ip1, &in1)) { return; }
-        if ((in1 == NULL)) {
+        if (in1 == NULL) {
             /* Missing geometries give None */
             Py_XDECREF(*out);
             Py_INCREF(Py_None);

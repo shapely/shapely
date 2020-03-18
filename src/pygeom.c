@@ -144,7 +144,7 @@ static PyObject *GeometryObject_FromWKT(PyTypeObject *type, PyObject *value)
 {
     void *context_handle = geos_context[0];
     PyObject *result = NULL;
-    char *wkt;
+    const char *wkt;
     GEOSGeometry *geom;
     GEOSWKTReader *reader;
 
