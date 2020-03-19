@@ -76,6 +76,7 @@ Shapely is written by:
 * Taro Matsuzawa aka. btm <btm@tech.email.ne.jp>
 * Thibault Deutsch <thibault.deutsch@gmail.com>
 * Thomas Kluyver <takowl@gmail.com>
+* Tom Caruso <carusot42@gmail.com>
 * Tobias Sauerwein <tobias.sauerwein@camptocamp.com>
 * Tom Clancy <17627475+clncy@users.noreply.github.com>
 * WANG Aiyong <gepcelway@gmail.com>
