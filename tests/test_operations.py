@@ -22,8 +22,7 @@ class OperationsTestCase(unittest.TestCase):
         self.assertIsInstance(point.envelope, Point)
 
         # Intersection
-        self.assertIsInstance(point.intersection(Point(-1, -1)),
-                              GeometryCollection)
+        self.assertTrue(point.intersection(Point(-1, -1)).is_empty)
 
         # Buffer
         self.assertIsInstance(point.buffer(10.0), Polygon)

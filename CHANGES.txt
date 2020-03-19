@@ -1,6 +1,42 @@
 Changes
 =======
 
+1.7.1 (TBD)
+-----------
+
+- Fix bug in concatenation of function argtypes (#866).
+- Improved documentation of STRtree usage (#857).
+- Improved handling for empty list or list of lists in GeoJSON coordinates
+  (#852).
+
+1.7.0 (2020-01-28)
+------------------
+
+This is the final 1.7.0 release. There have been no changes since 1.7b1.
+
+1.7b1 (2020-01-13)
+------------------
+
+First beta release.
+
+1.7a3 (2019-12-31)
+------------------
+
+New features:
+
+- The buffer operation can now be single-sides (#806, #727).
+
+Bug fixes:
+
+- Add /usr/local/lib to the list of directories to be searched for the GEOS
+  shared library (#795).
+- ops.substring now returns a line with coords in end-to-front order when given
+  a start position that is greater than the end position (#628).
+- Implement ``__bool__()`` for geometry base classes so that ``bool(geom)``
+  returns the logical complement of ``geom.is_empty`` (#754).
+- Remove assertion on the number of version-like strings found in the GEOS
+  version string. It could be 2 or 3.
+
 1.7a2 (2019-06-21)
 ------------------
 

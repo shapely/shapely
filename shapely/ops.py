@@ -520,20 +520,22 @@ def substring(geom, start_dist, end_dist, normalized=False):
         min_dist *= geom.length
         max_dist *= geom.length
     
-    vertex_list = [(start_point.x, start_point.y)]
+    if start_dist < end_dist:
+        vertex_list = [(start_point.x, start_point.y)]
+    else:
+        vertex_list = [(end_point.x, end_point.y)]
     coords = list(geom.coords)
     for p in coords:
         pd = geom.project(Point(p))
-        if pd <= min_dist:
-            pass
-        elif min_dist < pd < max_dist:
+        if min_dist < pd < max_dist:
             vertex_list.append(p)
-        else:
+        elif pd >= max_dist:
             break
-    vertex_list.append((end_point.x, end_point.y))
-
-    # reverse direction of section
-    if start_dist > end_dist:
+    if start_dist < end_dist:
+        vertex_list.append((end_point.x, end_point.y))
+    else:
+        vertex_list.append((start_point.x, start_point.y))
+        # reverse direction result
         vertex_list = reversed(vertex_list)
 
     return LineString(vertex_list)
@@ -571,6 +573,25 @@ def clip_by_rect(geom, xmin, ymin, xmax, ymax):
 
 
 def orient(geom, sign=1.0):
+    """A properly oriented copy of the given geometry.
+
+    The signed area of the result will have the given sign. A sign of
+    1.0 means that the coordinates of the product's exterior rings will
+    be oriented counter-clockwise.
+
+    Parameters
+    ----------
+    geom : Geometry
+        The original geometry. May be a Polygon, MultiPolygon, or
+        GeometryCollection.
+    sign : float, optional.
+        The sign of the result's signed area.
+
+    Returns
+    -------
+    Geometry
+
+    """
     if isinstance(geom, BaseMultipartGeometry):
         return geom.__class__(
             list(

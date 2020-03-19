@@ -5,7 +5,7 @@ The Shapely User Manual
 =======================
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
-:Version: 1.6.4
+:Version: 1.7.0
 :Date: |today|
 :Copyright:
   This work is licensed under a `Creative Commons Attribution 3.0
@@ -118,7 +118,7 @@ Relationships
 The spatial data model is accompanied by a group of natural language
 relationships between geometric objects – `contains`, `intersects`, `overlaps`,
 `touches`, etc. – and a theoretical framework for understanding them using the
-3x3 matrix of the mutual intersections of their component point sets [2]_: the
+3x3 matrix of the mutual intersections of their component point sets [3]_: the
 DE-9IM. A comprehensive review of the relationships in terms of the DE-9IM is
 found in [4]_ and will not be reiterated in this manual.
 
@@ -207,8 +207,8 @@ General Attributes and Methods
 
 .. code-block:: pycon
 
-  >>> print Point(0, 0).geom_type
-  Point
+  >>> Point(0, 0).geom_type
+  'Point'
 
 .. method:: object.distance(other)
 
@@ -1008,7 +1008,7 @@ A ring with an undesired orientation can be reversed like this:
 
 .. attribute:: object.is_ring
 
-  Returns ``True`` if the feature is closed. A closed feature's `boundary`
+  Returns ``True`` if the feature is a closed and simple ``LineString``. A closed feature's `boundary`
   coincides with the empty set.
 
 .. code-block:: pycon
@@ -1676,23 +1676,35 @@ linestring feature (right).
   Returns a LineString or MultiLineString geometry at a distance from the
   object on its right or its left side.
 
-  Distance must be a positive float value. The side parameter may be 'left' or
-  'right'. Left and right is determined by following the direction of given 
-  geometric points of the LineString. The resolution of the offset around 
-  each vertex of the object is parameterized as in the buffer method.
+  The `distance` parameter must be a positive float value.
 
-  The join style is for outside corners between line segments. Accepted integer
+  The `side` parameter may be 'left' or 'right'. Left and right are determined
+  by following the direction of the given geometric points of the LineString.
+  Right hand offsets are returned in the reverse direction of the original
+  LineString or LineRing, while left side offsets flow in the same direction.
+
+  The `resolution` of the offset around each vertex of the object is
+  parameterized as in the :meth:`buffer` method.
+
+  The `join_style` is for outside corners between line segments. Accepted integer
   values are 1 (round), 2 (mitre), and 3 (bevel). See also
   :data:`shapely.geometry.JOIN_STYLE`.
 
-  Severely mitered corners can be controlled by the mitre_limit parameter
-  (spelled in British English, en-gb). The ratio of the distance from the
-  corner to the end of the mitred offset corner is the miter ratio. Corners
-  with a ratio which exceed the limit will be beveled.
+  Severely mitered corners can be controlled by the `mitre_limit` parameter
+  (spelled in British English, en-gb). The corners of a parallel line will
+  be further from the original than most places with the mitre join style. The
+  ratio of this further distance to the specified `distance` is the miter ratio.
+  Corners with a ratio which exceed the limit will be beveled.
 
-.. note::
+  .. note::
 
-  This method is only available for `LinearRing` and `LineString`  objects.
+    This method may sometimes return a `MultiLineString` where a simple
+    `LineString` was expected; for example, an offset to a slightly
+    curved LineString.
+
+  .. note::
+
+    This method is only available for `LinearRing` and `LineString`  objects.
 
 .. plot:: code/parallel_offset.py
 
@@ -1988,12 +2000,21 @@ for `func`.
     from functools import partial
     import pyproj
 
+    proj_in = pyproj.Proj(init='epsg:4326')
+    proj_out = pyproj.Proj(init='epsg:26913')
+
     project = partial(
         pyproj.transform,
-        pyproj.Proj(init='epsg:4326'),
-        pyproj.Proj(init='epsg:26913'))
+        proj_in,
+        proj_out)
 
     g2 = transform(project, g1)
+
+If using `pyproj>=2.1.0` a more performant method would be
+
+.. code-block:: python
+
+    project = pyproj.Transformer.from_proj(proj_in, proj_out).transform
 
 Lambda expressions such as the one in
 
@@ -2291,9 +2312,9 @@ The :func:`~shapely.ops.substring` function in `shapely.ops` returns a line segm
     Negative distance values are taken as measured in the reverse
     direction from the end of the geometry. Out-of-range index
     values are handled by clamping them to the valid range of values.
-    
+
     If the start distance equals the end distance, a point is being returned.
-    
+
     If the normalized arg is True, the distance will be interpreted as a
     fraction of the geometry's length.
 
@@ -2377,7 +2398,7 @@ Polylabel
 .. function:: shapely.ops.polylabel(polygon, tolerance)
 
   Finds the approximate location of the pole of inaccessibility for a given
-  polygon. Based on Vladimir Agafonkin's https://github.com/mapbox/polylabel.
+  polygon. Based on Vladimir Agafonkin's polylabel_.
 
   `New in version 1.6.0`
 
@@ -2400,37 +2421,61 @@ STR-packed R-tree
 
 Shapely provides an interface to the query-only GEOS R-tree packed using the
 Sort-Tile-Recursive algorithm. Pass a list of geometry objects to the STRtree
-constructor to create an R-tree that you can query with another geometric object.
+constructor to create a spatial index that you can query with another geometric
+object. Query-only means that once created, the `STRtree` is immutable. You
+cannot add or remove geometries.
 
 .. class:: strtree.STRtree(geometries)
 
   The `STRtree` constructor takes a sequence of geometric objects.
 
-  These are copied and stored in the R-tree.
+  References to these geometric objects are kept and stored in the R-tree.
 
   `New in version 1.4.0`.
 
-The `query` method on `STRtree` returns a list of all geometries in the tree that
-intersect the provided geometry argument. If you want to match geometries of a
-more specific spatial relationship (eg. crosses, contains, overlaps), consider
-performing the query on the R-tree, followed by a manual search through the
-returned subset using the desired binary predicate.
+  .. method:: strtree.query(goem)
 
-Query-only means that once created, the R-tree is immutable. You cannot 
-add or remove geometries.
+    Returns a list of all geometries in the `strtree` whose extents intersect the
+    extent of `geom`. This means that a subsequent search through the returned
+    subset using the desired binary predicate (eg. intersects, crosses, contains,
+    overlaps) may be necessary to further filter the results according to their
+    specific spatial relationships.
 
-.. code-block:: pycon
+    .. code-block:: pycon
 
-  >>> from shapely.geometry import Point
-  >>> from shapely.strtree import STRtree
-  >>> points = [Point(i, i) for i in range(10)]
-  >>> tree = STRtree(points)
-  >>> tree.query(Point(2,2).buffer(0.99))
-  >>> [o.wkt for o in tree.query(Point(2,2).buffer(0.99))]
-  ['POINT (2 2)']
-  >>> [o.wkt for o in tree.query(Point(2,2).buffer(1.0))]
-  ['POINT (1 1)', 'POINT (2 2)', 'POINT (3 3)']
+      >>> from shapely.strtree import STRtree
+      >>> points = [Point(i, i) for i in range(10)]
+      >>> tree = STRtree(points)
+      >>> query_geom = Point(2,2).buffer(0.99)
+      >>> [o.wkt for o in tree.query(query_geom)]
+      ['POINT (2 2)']
+      >>> query_geom = Point(2, 2).buffer(1.0)
+      >>> [o.wkt for o in tree.query(query_geom)]
+      ['POINT (1 1)', 'POINT (2 2)', 'POINT (3 3)']
+      >>> [o.wkt for o in tree.query(query_geom) if o.intersects(query_geom)]
+      ['POINT (2 2)']
 
+    .. note::
+      To get the original indexes of the query results, create an auxiliary
+      dictionary. But use the geometry `ids` as keys since the shapely geometries
+      themselves are not hashable.
+
+      .. code-block:: pycon
+
+        >>> index_by_id = dict((id(pt), i) for i, pt in enumerate(points))
+        >>> [(index_by_id[id(pt)], pt.wkt) for pt in tree.query(Point(2,2).buffer(1.0))]
+        [(1, 'POINT (1 1)'), (2, 'POINT (2 2)'), (3, 'POINT (3 3)')]
+
+
+  .. method:: strtree.nearest(geom)
+
+    Returns the nearest geometry in `strtree` to `geom`.
+
+    .. code-block:: pycon
+
+      >>> tree = STRtree([Point(i, i) for i in range(10)])
+      >>> tree.nearest(Point(2.2, 2.2)).wkt
+      'Point (2 2)'
 
 Interoperation
 ==============
@@ -2470,8 +2515,8 @@ appropriate type, use ``loads()``.
 
   >> from shapely.wkb import dumps, loads
   >>> wkb = dumps(Point(0, 0))
-  >>> print wkb.encode('hex')
-  010100000000000000000000000000000000000000
+  >>> wkb.encode('hex')
+  '010100000000000000000000000000000000000000'
   >>> loads(wkb).wkt
   'POINT (0.0000000000000000 0.0000000000000000)'
 
@@ -2489,10 +2534,10 @@ All of Shapely's geometry types are supported by these functions.
 
   >> from shapely.wkt import dumps, loads
   >> wkt = dumps(Point(0, 0))
-  >>> print wkt
-  POINT (0.0000000000000000 0.0000000000000000)
-  >>> loads(wkt).wkt
+  >>> wkt
   'POINT (0.0000000000000000 0.0000000000000000)'
+  >>> loads(wkt).wkt
+  'POINT (0 0)'
 
 Numpy and Python Arrays
 -----------------------
@@ -2703,12 +2748,8 @@ References
 
 .. _GEOS: https://trac.osgeo.org/geos/
 .. _Java Topology Suite: https://projects.eclipse.org/projects/locationtech.jts
-.. _JTS: https://projects.eclipse.org/projects/locationtech.jts
 .. _PostGIS: http://postgis.refractions.net
-.. _record: https://pypi.org/project/Shapely/
-.. _Open Geospatial Consortium: http://www.opengeospatial.org/
-.. _Davis: https://lin-ear-th-inking.blogspot.com/2007/06/subtleties-of-ogc-covers-spatial.html
-.. _Understanding spatial relations: http://edndoc.esri.com/arcsde/9.1/general_topics/understand_spatial_relations.htm
+.. _Open Geospatial Consortium: https://www.opengeospatial.org/
 .. _Strobl-PDF: https://giswiki.hsr.ch/images/3/3d/9dem_springer.pdf
 .. |Strobl-PDF| replace:: PDF
 .. _JTS-PDF: https://github.com/locationtech/jts/raw/master/doc/JTS%20Technical%20Specs.pdf
@@ -2716,3 +2757,4 @@ References
 .. _frozenset: https://docs.python.org/library/stdtypes.html#frozenset
 .. _Sorting HowTo: https://wiki.python.org/moin/HowTo/Sorting/
 .. _Python geo interface: https://gist.github.com/2217756
+.. _polylabel: https://github.com/mapbox/polylabel

@@ -85,7 +85,11 @@ if sys.platform.startswith('linux'):
             'libgeos_c.so',
         ]
         _lgeos = load_dll('geos_c', fallbacks=alt_paths)
-    free = load_dll('c').free
+    # Necessary for environments with only libc.musl
+    c_alt_paths = [
+        'libc.musl-x86_64.so.1'
+    ]
+    free = load_dll('c', fallbacks=c_alt_paths).free
     free.argtypes = [c_void_p]
     free.restype = None
 
@@ -126,6 +130,8 @@ elif sys.platform == 'darwin':
                 "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
                 # macports
                 '/opt/local/lib/libgeos_c.dylib',
+                # homebrew
+                '/usr/local/lib/libgeos_c.dylib',
             ]
         _lgeos = load_dll('geos_c', fallbacks=alt_paths)
 
@@ -215,7 +221,7 @@ if geos_version >= (3, 1, 0):
                 # finishGEOS.
                 new_func.argtypes = [c_void_p]
             else:
-                new_func.argtypes = [c_void_p] + old_func.argtypes
+                new_func.argtypes = [c_void_p] + list(old_func.argtypes)
             if old_func.errcheck is not None:
                 new_func.errcheck = old_func.errcheck
 
@@ -838,6 +844,7 @@ class LGEOS330(LGEOS320):
         self.methods['cascaded_union'] = self.methods['unary_union']
         self.methods['snap'] = self.GEOSSnap
         self.methods['shared_paths'] = self.GEOSSharedPaths
+        self.methods['buffer_with_params'] = self.GEOSBufferWithParams
 
 
 class LGEOS340(LGEOS330):

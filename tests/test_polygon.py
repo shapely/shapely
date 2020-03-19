@@ -1,7 +1,9 @@
 """Polygons and Linear Rings
 """
+
 from . import unittest, numpy
 from shapely.wkb import loads as load_wkb
+from shapely.errors import TopologicalError
 from shapely.geos import lgeos
 from shapely.geometry import Point, Polygon, asPolygon
 from shapely.geometry.polygon import LinearRing, LineString, asLinearRing
@@ -138,26 +140,20 @@ class PolygonTestCase(unittest.TestCase):
         self.assertEqual('LinearRing',
                          lgeos.GEOSGeomType(ring._geom).decode('ascii'))
 
-
-    def test_linearring_from_short_closed_linestring(self):
-        # Create linearring from linestring where the coordinate sequence is
-        # too short but appears to be closed (first and last coordinates
-        # are the same)
+    def test_linearring_from_invalid(self):
         coords = [(0.0, 0.0), (0.0, 0.0), (0.0, 0.0)]
         line = LineString(coords)
-        ring1 = LinearRing(coords)
-        ring2 = LinearRing(line)
-        assert ring1.coords[:] == ring2.coords[:]
-
+        self.assertFalse(line.is_valid)
+        with self.assertRaises(TopologicalError):
+            ring = LinearRing(line)
 
     def test_linearring_from_too_short_linestring(self):
         # Creation of LinearRing request at least 3 coordinates (unclosed) or
         # 4 coordinates (closed)
         coords = [(0.0, 0.0), (0.0, 0.0)]
         line = LineString(coords)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TopologicalError):
             LinearRing(line)
-
 
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy(self):
