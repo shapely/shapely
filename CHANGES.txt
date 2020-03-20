@@ -4,6 +4,8 @@ Changes
 1.7.1 (TBD)
 -----------
 
+- Extracting substrings from complex lines has been made more correct (#848,
+  #849).
 - Splitting of complex geometries has been sped up by preparing the input
   geometry (#871).
 - Fix bug in concatenation of function argtypes (#866).
