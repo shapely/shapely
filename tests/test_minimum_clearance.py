@@ -10,7 +10,7 @@ from shapely.wkt import loads as load_wkt
 from shapely.geos import geos_version
 
 
-@unittest.skipIf(geos_version < (3, 9, 0),
+@unittest.skipIf(geos_version < (3, 6, 0),
                  "GEOS > 3.6.0 is required.")
 class TestMinimumClearance(unittest.TestCase):
 
