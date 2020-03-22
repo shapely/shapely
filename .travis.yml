@@ -108,7 +108,6 @@ before_install:
 
 install:
   - export GEOS_CONFIG=$HOME/geosinstall/geos-$GEOSVERSION/bin/geos-config
-  - echo "geos-config version is $($GEOS_CONFIG --version)"
   - pip install -v -e .[all]
 
 script:
