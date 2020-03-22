@@ -139,6 +139,7 @@ if os.environ.get('NO_GEOS_CONFIG'):
     geos_config = None
 else:
     geos_config = GEOSConfig(os.environ.get('GEOS_CONFIG', 'geos-config'))
+    log.warning("Using geos-config located at %s", geos_config.cmd)
 
 # Fail installation if the GEOS shared library does not meet the minimum
 # version. We ship it with Shapely for Windows, so no need to check on
@@ -150,7 +151,7 @@ if geos_config and not os.environ.get('NO_GEOS_CHECK') or sys.platform == 'win32
             "Shapely >= 1.3 requires GEOS >= 3.3. "
             "Checking for GEOS version...")
         geos_version = geos_config.version()
-        log.info("Found GEOS version: %s", geos_version)
+        log.warning("Found GEOS version: %s", geos_version)
         if (set(sys.argv).intersection(['install', 'build', 'build_ext']) and
                 shapely_version >= Version("1.3") and geos_version < (3, 3)):
             log.critical(
