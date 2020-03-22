@@ -9,6 +9,8 @@ CACHEGEOSINST=$HOME/geosinstall
 GEOSINSTVERSION=$CACHEGEOSINST/geos-$GEOSVERSION
 mkdir -p $GEOSINSTVERSION
 
+$HOME/geosinstall/geos-$GEOSVERSION/
+
 function build_geos {
     echo "Building geos-$GEOSVERSION"
     mkdir build
@@ -40,6 +42,7 @@ if [ "$GEOSVERSION" = "master" ]; then
 else
     if [ -d "$GEOSINSTVERSION/include/geos" ]; then
         echo "Using cached install $GEOSINSTVERSION"
+        echo "geos-config version: $($HOME/geosinstall/geos-$GEOSVERSION/bin/geos-config --version)"
     else
         wget -q http://download.osgeo.org/geos/geos-$GEOSVERSION.tar.bz2
         tar xfj geos-$GEOSVERSION.tar.bz2
