@@ -9,7 +9,6 @@ CACHEGEOSINST=$HOME/geosinstall
 GEOSINSTVERSION=$CACHEGEOSINST/geos-$GEOSVERSION
 mkdir -p $GEOSINSTVERSION
 
-$HOME/geosinstall/geos-$GEOSVERSION/
 
 function build_geos {
     echo "Building geos-$GEOSVERSION"
