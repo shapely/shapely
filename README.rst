@@ -191,4 +191,5 @@ References
 Copyright & License
 -------------------
 
-Copyright (c) 2019, Casper van der Wel. BSD 3-Clause license.
+PyGEOS is licensed under BSD 3-Clause license. Copyright (c) 2019, Casper van der Wel.
+GEOS is available under the terms of ​GNU Lesser General Public License (LGPL) 2.1 at https://trac.osgeo.org/geos.
