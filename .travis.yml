@@ -111,7 +111,7 @@ install:
   - pip install -v -e .[all]
 
 script:
-  - python -m pytest --cov shapely --cov-report term-missing "${SPEEDUPS_FLAG}"
+  - python -m pytest -s --cov shapely --cov-report term-missing "${SPEEDUPS_FLAG}"
 
 after_success:
   - coveralls || echo "!! intermittent coveralls failure"
