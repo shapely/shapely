@@ -199,6 +199,9 @@ static void *GEOSLinearRingToPolygon(void *context, void *geom) {
     return GEOSGeom_createPolygon_r(context, shell, NULL, 0);
 }
 static void *polygons_without_holes_data[1] = {GEOSLinearRingToPolygon};
+#if GEOS_SINCE_380
+  static void *make_valid_data[1] = {GEOSMakeValid_r};
+#endif
 typedef void *FuncGEOS_Y_Y(void *context, void *a);
 static char Y_Y_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
 static void Y_Y_func(char **args, npy_intp *dimensions,
@@ -1467,6 +1470,10 @@ int init_ufuncs(PyObject *m, PyObject *d)
     DEFINE_CUSTOM (to_wkb, 5);
     DEFINE_CUSTOM (to_wkt, 5);
     DEFINE_CUSTOM (from_shapely, 1);
+
+    #if GEOS_SINCE_380
+      DEFINE_Y_Y (make_valid);
+    #endif
 
     Py_DECREF(ufunc);
     return 0;

@@ -1,4 +1,13 @@
 import pygeos
+from pygeos.geos import requires_geos
+from unittest import mock
+import pytest
+
+
+@pytest.fixture
+def mocked_geos_version():
+    with mock.patch.object(pygeos.lib, "geos_version", new=(3, 7, 1)):
+        yield "3.7.1"
 
 
 def test_version():
@@ -15,3 +24,22 @@ def test_geos_capi_version():
         *(pygeos.geos_version + pygeos.geos_capi_version)
     )
     assert pygeos.geos_capi_version_string == expected
+
+
+@pytest.mark.parametrize("version", ["3.7.0", "3.7.1", "3.6.2"])
+def test_requires_geos_ok(version, mocked_geos_version):
+    @requires_geos(version)
+    def foo():
+        return "bar"
+
+    assert foo() == "bar"
+
+
+@pytest.mark.parametrize("version", ["3.7.2", "3.8.0", "3.8.1"])
+def test_requires_geos_not_ok(version, mocked_geos_version):
+    @requires_geos(version)
+    def foo():
+        return "bar"
+
+    with pytest.raises(pygeos.UnsupportedGEOSOperation):
+        foo()
