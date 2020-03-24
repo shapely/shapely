@@ -113,6 +113,7 @@ install:
 script:
   - export LD_LIBRARY_PATH=$HOME/geosinstall/geos-$GEOSVERSION/lib
   - export DYLD_LIBRARY_PATH=$HOME/geosinstall/geos-$GEOSVERSION/lib
+  - python -c "from shapely.geos import geos_version; print(geos_version)"
   - python -m pytest --cov shapely --cov-report term-missing "${SPEEDUPS_FLAG}"
 
 after_success:
