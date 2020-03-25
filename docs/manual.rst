@@ -200,6 +200,22 @@ General Attributes and Methods
 
   Returns the length (``float``) of the object.
 
+.. attribute:: object.minimum_clearance
+
+  Returns the smallest distance by which a node could be moved to produce an invalid geometry.
+
+  This can be thought of as a measure of the robustness of a geometry, where larger values of
+  minimum clearance indicate a more robust geometry. If no minimum clearance exists for a geometry,
+  such as a point, this will return `math.infinity`.
+
+  Requires GEOS 3.6 or higher.
+
+.. code-block:: pycon
+
+  >>> from shapely.geometry import Polygon
+  >>> Polygon([[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]).minimum_clearance
+  1.0
+
 .. attribute:: object.geom_type
 
   Returns a string specifying the `Geometry Type` of the object in accordance
