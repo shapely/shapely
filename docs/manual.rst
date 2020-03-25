@@ -206,7 +206,7 @@ General Attributes and Methods
 
   This can be thought of as a measure of the robustness of a geometry, where larger values of
   minimum clearance indicate a more robust geometry. If no minimum clearance exists for a geometry,
-  this will return `math.infinity`.
+  such as a point, this will return `math.infinity`.
 
   Requires GEOS 3.6 or higher.
 
