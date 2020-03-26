@@ -76,15 +76,15 @@ def shape(context):
     -------
     Create a Point from GeoJSON, and then create a copy using __geo_interface__.
 
-      >>> context = {'type': 'Point', 'coordinates': [0, 1]}
-      >>> geom = shape(context)
-      >>> geom.type == 'Point'
-      True
-      >>> geom.wkt
-      'POINT (0 1)'
-      >>> geom2 = shape(geom)
-      >>> geom == geom2
-      True
+    >>> context = {'type': 'Point', 'coordinates': [0, 1]}
+    >>> geom = shape(context)
+    >>> geom.type == 'Point'
+    True
+    >>> geom.wkt
+    'POINT (0 1)'
+    >>> geom2 = shape(geom)
+    >>> geom == geom2
+    True
     """
     if hasattr(context, "__geo_interface__"):
         ob = context.__geo_interface__
@@ -129,14 +129,14 @@ def asShape(context):
     -------
     Create a Point from GeoJSON, and then create a copy using __geo_interface__.
 
-      >>> point_context = {'type': 'Point', 'coordinates': [0.5, 0.5]}
-      >>> poly_context = {'type': 'Polygon', 'coordinates': [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]}
-      >>> point, poly = asShape(point_context), asShape(poly_context)
-      >>> poly.intersects(point)
-      True
-      >>> point_context['coordinates'][0] = 1.5
-      >>> poly.intersects(point)
-      False
+    >>> point_context = {'type': 'Point', 'coordinates': [0.5, 0.5]}
+    >>> poly_context = {'type': 'Polygon', 'coordinates': [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]}
+    >>> point, poly = asShape(point_context), asShape(poly_context)
+    >>> poly.intersects(point)
+    True
+    >>> point_context['coordinates'][0] = 1.5
+    >>> poly.intersects(point)
+    False
     """
     if hasattr(context, "__geo_interface__"):
         ob = context.__geo_interface__
@@ -169,8 +169,8 @@ def asShape(context):
 
 def mapping(ob):
     """
-    Returns a GeoJSON-like mapping from an object which
-    implements __geo_interface__
+    Returns a GeoJSON-like mapping from a Geometry or any
+    object which implements __geo_interface__
 
     Parameters
     ----------
@@ -179,8 +179,8 @@ def mapping(ob):
 
     Example
     -------
-      >>> pt = Point(0, 0)
-      >>> mapping(p)
-      {'type': 'Point', 'coordinates': (0.0, 0.0)}
+    >>> pt = Point(0, 0)
+    >>> mapping(p)
+    {'type': 'Point', 'coordinates': (0.0, 0.0)}
     """
     return ob.__geo_interface__
