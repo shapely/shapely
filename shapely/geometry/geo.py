@@ -60,8 +60,31 @@ def box(minx, miny, maxx, maxy, ccw=True):
 
 
 def shape(context):
-    """Returns a new, independent geometry with coordinates *copied* from the
-    context.
+    """
+    Returns a new, independent geometry with coordinates *copied* from the
+    context. Changes to the original context will not be reflected in the
+    geometry object.
+
+    Parameters
+    ----------
+    context :
+        a GeoJSON-like dict, which provides a "type" member describing the type
+        of the geometry and "coordinates" member providing a list of coordinates,
+        or an object which implements __geo_interface__.
+
+    Example
+    -------
+    Create a Point from GeoJSON, and then create a copy using __geo_interface__.
+
+      >>> context = {'type': 'Point', 'coordinates': [0, 1]}
+      >>> geom = shape(context)
+      >>> geom.type == 'Point'
+      True
+      >>> geom.wkt
+      'POINT (0 1)'
+      >>> geom2 = shape(geom)
+      >>> geom == geom2
+      True
     """
     if hasattr(context, "__geo_interface__"):
         ob = context.__geo_interface__
@@ -90,8 +113,30 @@ def shape(context):
 
 
 def asShape(context):
-    """Adapts the context to a geometry interface. The coordinates remain
-    stored in the context.
+    """
+    Adapts the context to a geometry interface. The coordinates remain
+    stored in the context, and changes to them will be reflected in the
+    returned geometry object.
+
+    Parameters
+    ----------
+    context :
+        a GeoJSON-like dict, which provides a "type" member describing the type
+        of the geometry and "coordinates" member providing a list of coordinates,
+        or an object which implements __geo_interface__.
+
+    Example
+    -------
+    Create a Point from GeoJSON, and then create a copy using __geo_interface__.
+
+        >>> point_context = {'type': 'Point', 'coordinates': [0.5, 0.5]}
+        >>> poly_context = {'type': 'Polygon', 'coordinates': [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]}
+        >>> point, poly = asShape(point_context), asShape(poly_context)
+        >>> poly.intersects(point)
+        True
+        >>> point_context['coordinates'][0] = 1.5
+        >>> poly.intersects(point)
+        False
     """
     if hasattr(context, "__geo_interface__"):
         ob = context.__geo_interface__
@@ -123,5 +168,20 @@ def asShape(context):
 
 
 def mapping(ob):
-    """Returns a GeoJSON-like mapping"""
+    """
+    Returns a GeoJSON-like mapping from an object which
+    implements __geo_interface__
+
+    Parameters
+    ----------
+    ob :
+        An object which implements __geo_interface__.
+
+    Example
+    -------
+    >>> pt = Point(0, 0)
+    >>> mapping(p)
+    {'type': 'Point', 'coordinates': (0.0, 0.0)}
+
+    """
     return ob.__geo_interface__
