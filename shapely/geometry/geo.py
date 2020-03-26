@@ -127,7 +127,8 @@ def asShape(context):
 
     Example
     -------
-    Create a Point from GeoJSON, and then create a copy using __geo_interface__.
+    Create a Point and Polygon from GeoJSON, change the coordinates of the Point's
+    context and show that the corresponding geometry is changed, as well.
 
     >>> point_context = {'type': 'Point', 'coordinates': [0.5, 0.5]}
     >>> poly_context = {'type': 'Polygon', 'coordinates': [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]}
