@@ -62,7 +62,7 @@ class STRtree:
     >>> polys[2] in result
     False
 
-    Bahavior if an `STRtree` is created empty:
+    Behavior if an `STRtree` is created empty:
 
     >>> tree = STRtree([])
     >>> tree.query(Point(0, 0))
