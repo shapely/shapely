@@ -95,7 +95,7 @@ class STRtree:
 
         Parameters
         ----------
-        geom: geometry object
+        geom : geometry object
             The query geometry
 
         Returns
@@ -161,7 +161,7 @@ class STRtree:
 
         Parameters
         ----------
-        geom: geometry object
+        geom : geometry object
             The query geometry
 
         Returns
