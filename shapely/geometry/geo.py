@@ -125,6 +125,10 @@ def asShape(context):
         of the geometry and "coordinates" member providing a list of coordinates,
         or an object which implements __geo_interface__.
 
+Notes
+-----
+The Adapter classes returned by this function trade performance for reduced storage of coordinate values. In general, the shape() function should be used instead.
+
     Example
     -------
     Create a Point and Polygon from GeoJSON, change the coordinates of the Point's
