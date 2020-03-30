@@ -72,6 +72,10 @@ def shape(context):
         of the geometry and "coordinates" member providing a list of coordinates,
         or an object which implements __geo_interface__.
 
+    Returns
+    -------
+    Geometry object
+
     Example
     -------
     Create a Point from GeoJSON, and then create a copy using __geo_interface__.
@@ -125,9 +129,15 @@ def asShape(context):
         of the geometry and "coordinates" member providing a list of coordinates,
         or an object which implements __geo_interface__.
 
-Notes
------
-The Adapter classes returned by this function trade performance for reduced storage of coordinate values. In general, the shape() function should be used instead.
+    Returns
+    -------
+    Geometry object
+
+    Notes
+    -----
+    The Adapter classes returned by this function trade performance for
+    reduced storage of coordinate values. In general, the shape() function
+    should be used instead.
 
     Example
     -------
@@ -181,6 +191,10 @@ def mapping(ob):
     ----------
     ob :
         An object which implements __geo_interface__.
+
+    Returns
+    -------
+    dict
 
     Example
     -------
