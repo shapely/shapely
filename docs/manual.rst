@@ -2217,7 +2217,11 @@ Voronoi diagram from a collection points, or the vertices of any geometry.
 
    The `tolerance` keyword argument sets the snapping tolerance used to improve
    the robustness of the computation. A tolerance of 0.0 specifies
-   that no snapping will take place.
+   that no snapping will take place. The tolerance `argument` can be
+   finicky and is known to cause the
+   algorithm to fail in several cases. If you're using `tolerance`
+   and getting a failure, try removing it. The test cases in
+   `tests/test_voronoi_diagram.py` show more details.
 
    If the `edges` keyword argument is `False` a list of `Polygon`s
    will be returned. Otherwise a list of `LineString` edges is returned.
