@@ -248,6 +248,10 @@ def prototype(lgeos, geos_version):
         lgeos.GEOSDelaunayTriangulation.restype = c_void_p
         lgeos.GEOSDelaunayTriangulation.argtypes = [c_void_p, c_double, c_int]
 
+    if geos_version >= (3, 5, 0):
+        lgeos.GEOSVoronoiDiagram.restype = c_void_p
+        lgeos.GEOSVoronoiDiagram.argtypes = [c_void_p, c_void_p, c_double, c_int]
+
     lgeos.GEOSLineMerge.restype = c_void_p
     lgeos.GEOSLineMerge.argtypes = [c_void_p]
 

@@ -172,6 +172,14 @@ def triangulate(geom, tolerance=0.0, edges=False):
     gc = geom_factory(func(geom._geom, tolerance, int(edges)))
     return [g for g in gc.geoms]
 
+
+def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
+    func = lgeos.methods['voronoi_diagram']
+    e = envelope._geom if envelope else None
+    gc = geom_factory(func(geom._geom, e, tolerance, int(edges)))
+    return gc
+
+
 class ValidateOp(object):
     def __call__(self, this):
         return lgeos.GEOSisValidReason(this._geom)
