@@ -180,14 +180,18 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
 
     Parameters
     ----------
-        geom: the input geometry whose vertex will be used as sites.
+        geom: the input geometry whose vertices will be used to calculate
+            the final diagram.
         env: clipping envelope for the returned diagram, automatically
-            determined if NoneL. The diagram will be clipped to the larger
+            determined if None. The diagram will be clipped to the larger
             of this envelope or an envelope surrounding the sites.
-        tolerance: snapping tolerance to use for improved robustness
-        edges: whether to return only edges of the Voronoi cells
+        tolerance: sets the snapping tolerance used to improve the robustness
+            of the computation. A tolerance of 0.0 specifies that no
+            snapping will take place.
+        edges: If False (default), return Polygon regions. Else, return only
+            edges e.g. LineStrings.
 
-    GEOS documentation can be found in [2]
+    GEOS documentation can be found at [2]
 
     Returns
     -------

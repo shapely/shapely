@@ -2195,6 +2195,48 @@ Delaunay triangulation from a collection of points.
    'POLYGON ((3 1, 1 1, 1 0, 3 1))',
    'POLYGON ((1 0, 1 1, 0 0, 1 0))']
 
+Voronoi Diagram creation
+------------------------
+
+The :func:`~shapely.ops.voronoi_diagram` function in `shapely.ops` constructs a
+Voronoi diagram from a collection points, or the vertices of any geometry.
+
+.. plot:: code/voronoi_diagram.py
+
+.. function:: shapely.ops.voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False)
+
+   Constructs a Voronoi diagram from the vertices of the input geometry.
+
+   The source may be any geometry type. All vertices of the geometry will be
+   used as the points of the diagram.
+
+   The `envelope` keyword argument provides an envelope to use to clip the
+   resulting diagram. If `None`, it will be calculated automatically.
+   The diagram will be clipped to the *larger* of the provided envelope
+   or an envelope surrounding the sites.
+
+   The `tolerance` keyword argument sets the snapping tolerance used to improve
+   the robustness of the computation. A tolerance of 0.0 specifies
+   that no snapping will take place.
+
+   If the `edges` keyword argument is `False` a list of `Polygon`s
+   will be returned. Otherwise a list of `LineString` edges is returned.
+
+
+.. code-block:: pycon
+
+  >>> from shapely.ops import voronoi_diagram
+  >>> points = MultiPoint([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
+  >>> regions = voronoi_diagram(points)
+  >>> pprint([region.wkt for region in regions])
+  ['POLYGON ((2 1, 2 0.5, 0.5 0.5, 0 1, 1 2, 2 1))',
+   'POLYGON ((6 5, 6 -3, 3.75 -3, 2 0.5, 2 1, 6 5))',
+   'POLYGON ((0.5 -3, -3 -3, -3 1, 0 1, 0.5 0.5, 0.5 -3))',
+   'POLYGON ((3.75 -3, 0.5 -3, 0.5 0.5, 2 0.5, 3.75 -3))',
+   'POLYGON ((-3 1, -3 5, 1 5, 1 2, 0 1, -3 1))',
+   'POLYGON ((1 5, 6 5, 2 1, 1 2, 1 5))']
+
+
 Nearest points
 --------------
 
