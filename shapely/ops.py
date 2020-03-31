@@ -197,6 +197,14 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
     -------
         List of geometries representing the Voronoi regions.
 
+    Notes
+    -----
+        The tolerance `argument` can be finicky and is known to cause the
+        algorithm to fail in several cases. If you're using `tolerance`
+        and getting a failure, try removing it. The test cases in
+        tests/test_voronoi_diagram.py show more details.
+
+
     References
     ----------
     [1] https://en.wikipedia.org/wiki/Voronoi_diagram
@@ -204,7 +212,14 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
     """
     func = lgeos.methods['voronoi_diagram']
     envelope = envelope._geom if envelope else None
-    result = geom_factory(func(geom._geom, envelope, tolerance, int(edges)))
+    try:
+        result = geom_factory(func(geom._geom, envelope, tolerance, int(edges)))
+    except ValueError:
+        errstr = "Could not create Voronoi Diagram with the specified inputs."
+        if tolerance:
+            errstr += " Try running again with default tolerance value."
+        raise ValueError(errstr)
+
     try:
         return [g for g in result.geoms]
     except AttributeError:
