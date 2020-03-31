@@ -204,8 +204,14 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
     """
     func = lgeos.methods['voronoi_diagram']
     envelope = envelope._geom if envelope else None
-    gc = geom_factory(func(geom._geom, envelope, tolerance, int(edges)))
-    return [g for g in gc.geoms]
+    result = geom_factory(func(geom._geom, envelope, tolerance, int(edges)))
+    try:
+        return [g for g in result.geoms]
+    except AttributeError:
+        # if the returned result is just one geometry (e.g. if your
+        # source has two points and you ask for edges-only)
+        # then we'll get back a single geom instead of a collection.
+        return [result]
 
 
 class ValidateOp(object):
