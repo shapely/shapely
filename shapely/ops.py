@@ -174,6 +174,29 @@ def triangulate(geom, tolerance=0.0, edges=False):
 
 
 def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
+    """
+    Constructs a Voronoi Diagram [1] from the given geometry. Returns a list of geometries.
+
+    Parameters
+    ----------
+        geom: the input geometry whose vertex will be used as sites.
+        env: clipping envelope for the returned diagram, automatically
+            determined if NULL. The diagram will be clipped to the larger
+            of this envelope or an envelope surrounding the sites.
+        tolerance: snapping tolerance to use for improved robustness
+        edges: whether to return only edges of the Voronoi cells
+
+    GEOS documentation can be found in [2]
+
+    Returns
+    -------
+        List of geometries representing the Voronoi regions.
+
+    References
+    ----------
+    [1] https://en.wikipedia.org/wiki/Voronoi_diagram
+    [2] https://geos.osgeo.org/doxygen/geos__c_8h_source.html  (line 730)
+    """
     func = lgeos.methods['voronoi_diagram']
     e = envelope._geom if envelope else None
     gc = geom_factory(func(geom._geom, e, tolerance, int(edges)))
