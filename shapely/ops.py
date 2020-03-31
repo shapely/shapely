@@ -180,20 +180,20 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
 
     Parameters
     ----------
-        geom: geometry
-            the input geometry whose vertices will be used to calculate
-            the final diagram.
-        env: geometry, None
-            clipping envelope for the returned diagram, automatically
-            determined if None. The diagram will be clipped to the larger
-            of this envelope or an envelope surrounding the sites.
-        tolerance: float, 0.0
-            sets the snapping tolerance used to improve the robustness
-            of the computation. A tolerance of 0.0 specifies that no
-            snapping will take place.
-        edges: bool, False
-            If False, return regions as polygons. Else, return only
-            edges e.g. LineStrings.
+    geom: geometry
+        the input geometry whose vertices will be used to calculate
+        the final diagram.
+    envelope: geometry, None
+        clipping envelope for the returned diagram, automatically
+        determined if None. The diagram will be clipped to the larger
+        of this envelope or an envelope surrounding the sites.
+    tolerance: float, 0.0
+        sets the snapping tolerance used to improve the robustness
+        of the computation. A tolerance of 0.0 specifies that no
+        snapping will take place.
+    edges: bool, False
+        If False, return regions as polygons. Else, return only
+        edges e.g. LineStrings.
 
     GEOS documentation can be found at [2]
 
