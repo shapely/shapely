@@ -2,44 +2,24 @@ image: Visual Studio 2017
 platform: x64
 
 environment:
-  global:
-    GEOSVERSION: "3.8.1"
-
   matrix:
-#    - PYTHON: "C:\\Python27"
-#      ARCH: x86
-#      COMPILER: msvc90
-#      GEOSVERSION: "3.5.2"
-#      image: Visual Studio 2015
-#    - PYTHON: "C:\\Python27-x64"
-#      ARCH: x64
-#      COMPILER: msvc90
-#      GEOSVERSION: "3.5.2"
-#      image: Visual Studio 2015
+    # Interleave PYTHON, ARCH and GEOSVERSION
     - PYTHON: "C:\\Python35"
       ARCH: x86
       COMPILER: msvc2017
-    - PYTHON: "C:\\Python35-x64"
-      ARCH: x64
-      COMPILER: msvc2017
-    - PYTHON: "C:\\Python36"
-      ARCH: x86
-      COMPILER: msvc2017
+      GEOSVERSION: "3.5.2"
     - PYTHON: "C:\\Python36-x64"
       ARCH: x64
       COMPILER: msvc2017
+      GEOSVERSION: "3.6.4"
     - PYTHON: "C:\\Python37"
       ARCH: x86
       COMPILER: msvc2017
-    - PYTHON: "C:\\Python37-x64"
-      ARCH: x64
-      COMPILER: msvc2017
-    - PYTHON: "C:\\Python38"
-      ARCH: x86
-      COMPILER: msvc2017
+      GEOSVERSION: "3.7.3"
     - PYTHON: "C:\\Python38-x64"
       ARCH: x64
       COMPILER: msvc2017
+      GEOSVERSION: "3.8.1"
 
 
 install:
@@ -55,67 +35,36 @@ install:
 
 
 build_script:
-  - set _INITPATH=%PATH%
-
-  - ps: 'Write-Host "Configuring PATH with $env:PYTHON" -ForegroundColor Magenta'
-  - set PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
-
-  - ps: 'Write-Host "Configuring MSVC compiler $env:COMPILER" -ForegroundColor Magenta'
-  - if %COMPILER%==msvc90 ( call "C:\Users\appveyor\AppData\Local\Programs\Common\Microsoft\Visual C++ for Python\9.0\vcvarsall.bat" %ARCH% )
-  - if %COMPILER%==msvc2017 ( call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" %ARCH% )
-
-  - ps: 'Write-Host "Cached dependency folder" -ForegroundColor Magenta'
-  - if not exist C:\projects\deps mkdir C:\projects\deps
-  - dir C:\projects\deps
-
   - set GEOSINSTALL=C:\projects\deps\geos-%GEOSVERSION%-%COMPILER%-%ARCH%
   - set CYTHONPF=C:\\projects\\deps\\geos-%GEOSVERSION%-%COMPILER%-%ARCH%
+  - set GEOS_LIBRARY_PATH=%GEOSINSTALL%\bin\geos_c.dll
+
+  - ps: 'Write-Host "Configuring MSVC compiler $env:COMPILER" -ForegroundColor Magenta'
+  - if %COMPILER%==msvc2017 ( call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" %ARCH% )
+
+  - ps: 'Write-Host "Configuring PATH with $env:PYTHON and $env:GEOSINSTALL\bin" -ForegroundColor Magenta'
+  - set PATH=%PYTHON%;%PYTHON%\Scripts;%GEOSINSTALL%\bin;%PATH%
+  - python -m pip install --disable-pip-version-check --upgrade pip
+
   - ps: 'Write-Host "Checking GEOS build $env:GEOSINSTALL" -ForegroundColor Magenta'
+  - if not exist C:\projects\deps mkdir C:\projects\deps
   - call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\build_geos.cmd
 
-  # - ps: 'Push-AppveyorArtifact $env:GEOSINSTALL\bin\geos.dll'
-  # - ps: 'Push-AppveyorArtifact $env:GEOSINSTALL\bin\geos_c.dll'
-
-  - ps: 'Write-Host "Copying and checking geos_c.dll" -ForegroundColor Magenta'
-  - cd %APPVEYOR_BUILD_FOLDER%
-  - dir
-  - if %ARCH%==x86 ( set CPDIR=DLLs_x86_VC9 )
-  - if %ARCH%==x64 ( set CPDIR=DLLs_AMD64_VC9 )
-  - xcopy %GEOSINSTALL%\bin\geos*.dll %CPDIR%
-  - cd %CPDIR%
-  - dir
-  - dumpbin /dependents geos_c.dll
-  - dumpbin /dependents %PYTHON%\python.exe
+  - ps: 'Write-Host "Checking geos_c.dll" -ForegroundColor Magenta'
   - python -c "import sys; print('Python ' + sys.version)"
-  - python -c "import ctypes; print(ctypes.CDLL('./geos_c.dll'))"
-  - cd ..
+  - python -c "import ctypes, os; print(ctypes.CDLL(os.environ['GEOS_LIBRARY_PATH']))"
 
-  - ps: 'Write-Host "Building wheel" -ForegroundColor Magenta'
+  - ps: 'Write-Host "Building extension" -ForegroundColor Magenta'
+  - cd %APPVEYOR_BUILD_FOLDER%
   - pip install -r requirements-dev.txt
-  - set GEOS_LIBRARY_PATH=%GEOSINSTALL%\bin\geos_c.dll
-  - set PATH=%GEOSINSTALL%\bin;%PATH%
-  - python setup.py build_ext -I%CYTHONPF%\\include -lgeos_c -L%CYTHONPF%\\lib bdist_wheel
+  - python setup.py build_ext --inplace -I%CYTHONPF%\\include -lgeos_c -L%CYTHONPF%\\lib
 
-  - ps: 'Write-Host "Checking pip install in a new environment" -ForegroundColor Magenta'
-  - set PATH=%_INITPATH%
-  - set GEOS_LIBRARY_PATH=
-  - '%PYTHON%\python.exe -m venv C:\projects\test'
-  - call C:\projects\test\Scripts\activate.bat
-  - pip install -r requirements-dev.txt
-  - cd dist
-  - pip install --no-index --find-links . --no-cache-dir shapely
+  - ps: 'Write-Host "Running pytest" -ForegroundColor Magenta'
+  - pytest
   - python -c "import shapely; print(shapely.__version__)"
   - python -c "from shapely.geos import geos_version_string; print(geos_version_string)"
   - python -c "from shapely import speedups; assert speedups.enabled"
 
-  - ps: 'Write-Host "Running pytest" -ForegroundColor Magenta'
-  - xcopy ..\tests tests\
-  - pytest
-
 
 cache:
-  - C:\projects\deps
-
-artifacts:
-  - path: dist\*.whl
-    name: wheel
+  - C:\projects\deps -> %APPVEYOR_BUILD_FOLDER%\ci\appveyor\build_geos.cmd
