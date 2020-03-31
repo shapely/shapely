@@ -2208,7 +2208,7 @@ Voronoi diagram from a collection points, or the vertices of any geometry.
    Constructs a Voronoi diagram from the vertices of the input geometry.
 
    The source may be any geometry type. All vertices of the geometry will be
-   used as the points of the diagram.
+   used as the input points to the diagram.
 
    The `envelope` keyword argument provides an envelope to use to clip the
    resulting diagram. If `None`, it will be calculated automatically.
