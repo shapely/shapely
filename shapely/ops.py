@@ -175,13 +175,14 @@ def triangulate(geom, tolerance=0.0, edges=False):
 
 def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
     """
-    Constructs a Voronoi Diagram [1] from the given geometry. Returns a list of geometries.
+    Constructs a Voronoi Diagram [1] from the given geometry.
+    Returns a list of geometries.
 
     Parameters
     ----------
         geom: the input geometry whose vertex will be used as sites.
         env: clipping envelope for the returned diagram, automatically
-            determined if NULL. The diagram will be clipped to the larger
+            determined if NoneL. The diagram will be clipped to the larger
             of this envelope or an envelope surrounding the sites.
         tolerance: snapping tolerance to use for improved robustness
         edges: whether to return only edges of the Voronoi cells
