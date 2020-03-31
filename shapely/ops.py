@@ -198,8 +198,8 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
     [2] https://geos.osgeo.org/doxygen/geos__c_8h_source.html  (line 730)
     """
     func = lgeos.methods['voronoi_diagram']
-    e = envelope._geom if envelope else None
-    gc = geom_factory(func(geom._geom, e, tolerance, int(edges)))
+    envelope = envelope._geom if envelope else None
+    gc = geom_factory(func(geom._geom, envelope, tolerance, int(edges)))
     return [g for g in gc.geoms]
 
 
