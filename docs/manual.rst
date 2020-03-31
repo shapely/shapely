@@ -2195,8 +2195,8 @@ Delaunay triangulation from a collection of points.
    'POLYGON ((3 1, 1 1, 1 0, 3 1))',
    'POLYGON ((1 0, 1 1, 0 0, 1 0))']
 
-Voronoi Diagram creation
-------------------------
+Voronoi Diagram
+---------------
 
 The :func:`~shapely.ops.voronoi_diagram` function in `shapely.ops` constructs a
 Voronoi diagram from a collection points, or the vertices of any geometry.
