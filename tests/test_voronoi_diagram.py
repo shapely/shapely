@@ -55,7 +55,7 @@ def test_smaller_envelope():
 
 @requires_geos_35
 def test_larger_envelope():
-    """When the envelope we specify if larger than the
+    """When the envelope we specify is larger than the
     area of the input feature, the created regions should
     expand to fill that area."""
     mp = MultiPoint(points=[(0.5, 0.5), (1.0, 1.0)])
