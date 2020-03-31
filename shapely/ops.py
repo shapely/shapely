@@ -180,29 +180,34 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
 
     Parameters
     ----------
-        geom: the input geometry whose vertices will be used to calculate
+        geom: geometry
+            the input geometry whose vertices will be used to calculate
             the final diagram.
-        env: clipping envelope for the returned diagram, automatically
+        env: geometry, None
+            clipping envelope for the returned diagram, automatically
             determined if None. The diagram will be clipped to the larger
             of this envelope or an envelope surrounding the sites.
-        tolerance: sets the snapping tolerance used to improve the robustness
+        tolerance: float, 0.0
+            sets the snapping tolerance used to improve the robustness
             of the computation. A tolerance of 0.0 specifies that no
             snapping will take place.
-        edges: If False (default), return Polygon regions. Else, return only
+        edges: bool, False
+            If False, return regions as polygons. Else, return only
             edges e.g. LineStrings.
 
     GEOS documentation can be found at [2]
 
     Returns
     -------
-        List of geometries representing the Voronoi regions.
+    list
+        geometries representing the Voronoi regions.
 
     Notes
     -----
-        The tolerance `argument` can be finicky and is known to cause the
-        algorithm to fail in several cases. If you're using `tolerance`
-        and getting a failure, try removing it. The test cases in
-        tests/test_voronoi_diagram.py show more details.
+    The tolerance `argument` can be finicky and is known to cause the
+    algorithm to fail in several cases. If you're using `tolerance`
+    and getting a failure, try removing it. The test cases in
+    tests/test_voronoi_diagram.py show more details.
 
 
     References
