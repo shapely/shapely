@@ -86,8 +86,8 @@ def test_from_polygon_with_enough_tolerance():
 @requires_geos_35
 def test_from_polygon_without_enough_tolerance():
     poly = load_wkt('POLYGON ((0 0, 0.5 0, 0.5 0.5, 0 0.5, 0 0))')
-    with pytest.raises(Exception) as exc:
-        voronoi_diagram(poly, tolerance=0.5)
+    with pytest.raises(ValueError) as exc:
+        voronoi_diagram(poly, tolerance=0.6)
 
     assert exc.match("No Shapely geometry can be created from null value")
 
@@ -95,7 +95,7 @@ def test_from_polygon_without_enough_tolerance():
 @requires_geos_35
 def test_from_polygon_without_floating_point_coordinates():
     poly = load_wkt('POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))')
-    with pytest.raises(Exception) as exc:
+    with pytest.raises(ValueError) as exc:
         voronoi_diagram(poly, tolerance=0.1)
 
     assert exc.match("No Shapely geometry can be created from null value")
