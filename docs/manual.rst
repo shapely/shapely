@@ -2049,7 +2049,7 @@ for `func`.
 It is important to note that in the two examples above, the `always_xy` kwarg is required as Shapely only supports coordinates in X,Y
 order, and in PROJ 6 the WGS84 CRS uses the EPSG-defined Lat/Lon coordinate order instead of the expected Lon/Lat.
 
-If using `pyproj < 2.1`, use syntax like:
+If using `pyproj < 2.1`, then the canonical example is:
 
 .. code-block:: python
 
