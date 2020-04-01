@@ -2018,10 +2018,10 @@ If using `pyproj>=2.1.0`, the preferred method to project geometries is:
     from shapely.geometry import Point
     from shapely.ops import transform
 
-    wgs84_pt = Point(-70, 42)
+    wgs84_pt = Point(-72.2495, 43.886)
 
     wgs84 = pyproj.crs.CRS('epsg:4326')
-    utm = pyproj.crs.CRS('epsg:26913')
+    utm = pyproj.crs.CRS('epsg:32618')
 
     project = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True).transform
     utm_point = transform(project, wgs84_pt)
@@ -2037,7 +2037,7 @@ for `func`.
     from shapely.ops import transform
 
     wgs84 = pyproj.Proj('epsg:4326', always_xy=True)
-    utm = pyproj.Proj('epsg:26913', always_xy=True)
+    utm = pyproj.Proj('epsg:32618', always_xy=True)
 
     project = partial(
         pyproj.transform,
@@ -2059,7 +2059,7 @@ If using `pyproj < 2.1`, use syntax like:
     from shapely.ops import transform
 
     wgs84 = pyproj.Proj(init='epsg:4326')
-    utm = pyproj.Proj(init='epsg:26913')
+    utm = pyproj.Proj(init='epsg:32618')
 
     project = partial(
         pyproj.transform,
