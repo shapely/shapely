@@ -2024,7 +2024,7 @@ If using `pyproj>=2.1.0`, the preferred method to project geometries is:
     utm = pyproj.crs.CRS('epsg:26913')
 
     project = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True).transform
-    utm_point = transform(project, wgs84_point)
+    utm_point = transform(project, wgs84_pt)
 
 Otherwise, a partially applied transform function from pyproj also satisfies the requirements
 for `func`.
@@ -2044,7 +2044,7 @@ for `func`.
         wgs84,
         utm)
 
-    utm_point = transform(project, wgs84_point)
+    utm_point = transform(project, wgs84_pt)
 
 It is important to note that in the two examples above, the `always_xy` kwarg is required as Shapely only supports coordinates in X,Y
 order, and in PROJ 6 the WGS84 CRS uses the EPSG-defined Lat/Lon coordinate order instead of the expected Lon/Lat.
@@ -2066,7 +2066,7 @@ If using `pyproj < 2.1`, use syntax like:
         wgs84,
         utm)
 
-    utm_point = transform(project, wgs84_point)
+    utm_point = transform(project, wgs84_pt)
 
 Lambda expressions such as the one in
 
