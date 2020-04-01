@@ -1,5 +1,4 @@
 import logging
-import sys
 
 import pytest
 
@@ -43,7 +42,6 @@ def test_error_handler_wrong_type():
         loads(1)
 
 
-@pytest.mark.skipif(sys.version_info[0] < 3, reason='accept str and unicode for python2 and str for python3')
 def test_error_handler_for_bytes():
     with pytest.raises(TypeError):
         loads(b'POINT (10 10)')

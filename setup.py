@@ -61,24 +61,13 @@ import re
 import shutil
 import subprocess
 import sys
-try:
-    # If possible, use setuptools
-    from setuptools import setup
-    from setuptools.extension import Extension
-    from setuptools.command.build_ext import build_ext as distutils_build_ext
-except ImportError:
-    from distutils.core import setup
-    from distutils.extension import Extension
-    from distutils.command.build_ext import build_ext as distutils_build_ext
+from setuptools import setup
+from setuptools.extension import Extension
+from setuptools.command.build_ext import build_ext as distutils_build_ext
 from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
 
 from _vendor.packaging.version import Version
-
-# Ensure minimum version of Python is running
-py_version = sys.version_info[0:2]
-if not (py_version == (2, 7) or py_version >= (3, 4)):
-    raise RuntimeError('Shapely requires Python 2.7, >=3.4')
 
 # Get geos_version from GEOS dynamic library, which depends on
 # GEOS_LIBRARY_PATH and/or GEOS_CONFIG environment variables
@@ -110,10 +99,7 @@ class GEOSConfig(object):
             raise OSError("Could not find geos-config script")
         if stderr and not stdout:
             raise ValueError(stderr.strip())
-        if sys.version_info[0] >= 3:
-            result = stdout.decode('ascii').strip()
-        else:
-            result = stdout.strip()
+        result = stdout.decode('ascii').strip()
         log.debug('%s %s: %r', self.cmd, option, result)
         return result
 
@@ -163,21 +149,16 @@ if geos_config and not os.environ.get('NO_GEOS_CHECK') or sys.platform == 'win32
             "Installation continuing. GEOS version will be "
             "checked on import of shapely.", exc)
 
-# Handle UTF-8 encoding of certain text files.
-open_kwds = {}
-if sys.version_info >= (3,):
-    open_kwds['encoding'] = 'utf-8'
-
-with open('VERSION.txt', 'w', **open_kwds) as fp:
+with open('VERSION.txt', 'w') as fp:
     fp.write(str(shapely_version))
 
-with open('README.rst', 'r', **open_kwds) as fp:
+with open('README.rst', 'r') as fp:
     readme = fp.read()
 
-with open('CREDITS.txt', 'r', **open_kwds) as fp:
+with open('CREDITS.txt', 'r', encoding='utf-8') as fp:
     credits = fp.read()
 
-with open('CHANGES.txt', 'r', **open_kwds) as fp:
+with open('CHANGES.txt', 'r') as fp:
     changes = fp.read()
 
 long_description = readme + '\n\n' + credits + '\n\n' + changes
@@ -185,7 +166,6 @@ long_description = readme + '\n\n' + credits + '\n\n' + changes
 extra_reqs = {
     'test': ['pytest', 'pytest-cov'],
     'vectorized': ['numpy']}
-
 extra_reqs['all'] = list(it.chain.from_iterable(extra_reqs.values()))
 
 # Make a dict of setup arguments. Some items will be updated as
@@ -193,7 +173,6 @@ extra_reqs['all'] = list(it.chain.from_iterable(extra_reqs.values()))
 setup_args = dict(
     name                = 'Shapely',
     version             = str(shapely_version),
-    requires            = ['Python (>=2.7)', 'libgeos_c (>=3.3)'],
     description         = 'Geometric objects, predicates, and operations',
     license             = 'BSD',
     keywords            = 'geometry topology gis',
@@ -217,8 +196,6 @@ setup_args = dict(
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
@@ -227,6 +204,7 @@ setup_args = dict(
         'Topic :: Scientific/Engineering :: GIS',
     ],
     cmdclass           = {},
+    python_requires    = '>=3.5',
     extras_require     = extra_reqs,
     package_data={
         'shapely': ['shapely/_geos.pxi']},

@@ -3,9 +3,6 @@
 
 import sys
 
-if sys.version_info[0] < 3:
-    range = xrange
-
 from ctypes import c_void_p, cast, POINTER
 import weakref
 
@@ -145,9 +142,6 @@ class InteriorRingSequence(object):
             return ring
         else:
             raise StopIteration
-
-    if sys.version_info[0] < 3:
-        next = __next__
 
     def __len__(self):
         return lgeos.GEOSGetNumInteriorRings(self._geom)
@@ -425,7 +419,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
 
     try:
         m = len(ob)
-    except TypeError:  # Iterators, e.g. Python 3 zip
+    except TypeError:  # generators
         ob = list(ob)
         m = len(ob)
 

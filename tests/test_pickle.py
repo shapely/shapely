@@ -1,11 +1,7 @@
 import pytest
 from shapely.geometry import Point, LineString, LinearRing, Polygon, MultiPoint
 
-import sys
-if sys.version_info[0] >= 3:
-    from pickle import dumps, loads, HIGHEST_PROTOCOL
-else:
-    from cPickle import dumps, loads, HIGHEST_PROTOCOL
+from pickle import dumps, loads, HIGHEST_PROTOCOL
 
 TEST_DATA = {
     "point2d": (Point, [(1.0, 2.0)]),

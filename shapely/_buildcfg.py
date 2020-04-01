@@ -76,10 +76,7 @@ def get_geos_config(option):
             'Could not find geos-config %r: %s' % (geos_config, ex))
     if stderr and not stdout:
         raise ValueError(stderr.strip())
-    if sys.version_info[0] >= 3:
-        result = stdout.decode('ascii').strip()
-    else:
-        result = stdout.strip()
+    result = stdout.decode('ascii').strip()
     log.debug('%s %s: %r', geos_config, option, result)
     return result
 
@@ -239,9 +236,7 @@ def _geos_version():
     GEOSversion.restype = c_char_p
     GEOSversion.argtypes = []
     # #define GEOS_CAPI_VERSION "@VERSION@-CAPI-@CAPI_VERSION@"
-    geos_version_string = GEOSversion()
-    if sys.version_info[0] >= 3:
-        geos_version_string = geos_version_string.decode('ascii')
+    geos_version_string = GEOSversion().decode('ascii')
 
     res = re.findall(r'(\d+)\.(\d+)\.(\d+)', geos_version_string)
     geos_version = tuple(int(x) for x in res[0])

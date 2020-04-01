@@ -1,3 +1,5 @@
+# cython: language_level=3
+
 import cython
 cimport cpython.array
 
@@ -105,7 +107,7 @@ cdef _predicated_1d(geometry, np.double_t[:] x, np.double_t[:] y, predicate fn):
     geos_geom = geos_from_prepared(geometry)
 
     with nogil:
-        for idx in xrange(n):
+        for idx in range(n):
             # Construct a coordinate sequence with our x, y values.
             cs = GEOSCoordSeq_create_r(geos_h, 1, 2)
             GEOSCoordSeq_setX_r(geos_h, cs, 0, x[idx])

@@ -203,7 +203,7 @@ def geos_point_from_py(ob, update_geom=None, update_ndim=0):
         return geos_geom_from_py(ob)
 
     # Accept either (x, y) or [(x, y)]
-    if not hasattr(ob, '__getitem__'):  # Iterators, e.g. Python 3 zip
+    if not hasattr(ob, '__getitem__'):  # generators
         ob = list(ob)
 
     if isinstance(ob[0], tuple):

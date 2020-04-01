@@ -1,13 +1,6 @@
 """Support for various GEOS geometry operations
 """
 
-import sys
-
-if sys.version_info[0] < 3:
-    from itertools import izip
-else:
-    izip = zip
-
 from ctypes import byref, c_void_p, c_double
 
 from shapely.prepared import prep
@@ -232,11 +225,11 @@ def transform(func, geom):
         # extra cost.
         try:
             if geom.type in ('Point', 'LineString', 'LinearRing'):
-                return type(geom)(zip(*func(*izip(*geom.coords))))
+                return type(geom)(zip(*func(*zip(*geom.coords))))
             elif geom.type == 'Polygon':
                 shell = type(geom.exterior)(
-                    zip(*func(*izip(*geom.exterior.coords))))
-                holes = list(type(ring)(zip(*func(*izip(*ring.coords))))
+                    zip(*func(*zip(*geom.exterior.coords))))
+                holes = list(type(ring)(zip(*func(*zip(*ring.coords))))
                              for ring in geom.interiors)
                 return type(geom)(shell, holes)
 

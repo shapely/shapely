@@ -1,11 +1,6 @@
 """Collections of linestrings and related utilities
 """
 
-import sys
-
-if sys.version_info[0] < 3:
-    range = xrange
-
 from ctypes import c_void_p, cast
 
 from shapely.geos import lgeos

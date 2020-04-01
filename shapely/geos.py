@@ -21,12 +21,6 @@ from .errors import WKBReadingError, WKTReadingError, TopologicalError, Predicat
 # Add message handler to this module's logger
 LOG = logging.getLogger(__name__)
 
-if sys.version_info[0] >= 3:
-    text_types = str
-else:
-    text_types = (str, unicode)
-
-
 # Find and load the GEOS and C libraries
 # If this ever gets any longer, we'll break it into separate modules
 
@@ -184,9 +178,7 @@ def _geos_version():
     GEOSversion = _lgeos.GEOSversion
     GEOSversion.restype = c_char_p
     GEOSversion.argtypes = []
-    geos_version_string = GEOSversion()
-    if sys.version_info[0] >= 3:
-        geos_version_string = geos_version_string.decode('ascii')
+    geos_version_string = GEOSversion().decode('ascii')
     res = re.findall(r'(\d+)\.(\d+)\.(\d+)', geos_version_string)
     assert len(res) == 2, res
     geos_version = tuple(int(x) for x in res[0])
@@ -275,10 +267,9 @@ class WKTReader(object):
 
     def read(self, text):
         """Returns geometry from WKT"""
-        if not isinstance(text, text_types):
+        if not isinstance(text, str):
             raise TypeError("Only str is accepted.")
-        if sys.version_info[0] >= 3:
-            text = text.encode()
+        text = text.encode()
         c_string = c_char_p(text)
         geom = self._lgeos.GEOSWKTReader_read(self._reader, c_string)
         if not geom:
@@ -395,10 +386,7 @@ class WKTWriter(object):
         result = self._lgeos.GEOSWKTWriter_write(self._writer, geom._geom)
         text = string_at(result)
         lgeos.GEOSFree(result)
-        if sys.version_info[0] >= 3:
-            return text.decode('ascii')
-        else:
-            return text
+        return text.decode('ascii')
 
 
 class WKBReader(object):
@@ -432,8 +420,7 @@ class WKBReader(object):
 
     def read_hex(self, data):
         """Returns geometry from WKB hex"""
-        if sys.version_info[0] >= 3:
-            data = data.encode('ascii')
+        data = data.encode('ascii')
         geom = self._lgeos.GEOSWKBReader_readHEX(
             self._reader, c_char_p(data), c_size_t(len(data)))
         if not geom:
@@ -532,10 +519,7 @@ class WKBWriter(object):
             self._writer, geom._geom, pointer(size))
         data = string_at(result, size.value)
         lgeos.GEOSFree(result)
-        if sys.version_info[0] >= 3:
-            return data.decode('ascii')
-        else:
-            return data
+        return data.decode('ascii')
 
 
 # Errcheck functions for ctypes
@@ -555,10 +539,7 @@ def errcheck_just_free(result, func, argtuple):
     """Returns string from a C pointer"""
     retval = string_at(result)
     lgeos.GEOSFree(result)
-    if sys.version_info[0] >= 3:
-        return retval.decode('ascii')
-    else:
-        return retval
+    return retval.decode('ascii')
 
 
 def errcheck_null_exception(result, func, argtuple):
