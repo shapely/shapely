@@ -203,16 +203,14 @@ def transform(func, geom):
 
       g2 = transform(id_func, g1)
 
-    A partially applied transform function from pyproj satisfies the
-    requirements for `func`.
+    Using pyproj >= 2.1, this example will accurately project Shapely geometries:
 
-      from functools import partial
       import pyproj
 
-      project = partial(
-          pyproj.transform,
-          pyproj.Proj('epsg:4326', always_xy=True),
-          pyproj.Proj('epsg:26913', always_xy=True))
+      wgs84 = pyproj.CRS('epsg:4326')
+      utm = pyproj.CRS('epsg:32618')
+
+      project = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True).transform
 
       g2 = transform(project, g1)
 
