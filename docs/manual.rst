@@ -2007,30 +2007,66 @@ For example, here is an identity function applicable to both types of input
 
     g2 = transform(id_func, g1)
 
-A partially applied transform function from pyproj satisfies the requirements
+
+If using `pyproj>=2.1.0`, the preferred method to project geometries is:
+
+.. code-block:: python
+
+    import pyproj
+    import pyproj.crs
+
+    from shapely.geometry import Point
+    from shapely.ops import transform
+
+    wgs84_pt = Point(-70, 42)
+
+    wgs84 = pyproj.crs.CRS('epsg:4326')
+    utm = pyproj.crs.CRS('epsg:26913')
+
+    project = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True).transform
+    utm_point = transform(project, wgs84_point)
+
+Otherwise, a partially applied transform function from pyproj also satisfies the requirements
 for `func`.
 
 .. code-block:: python
 
-    from shapely.ops import transform
     from functools import partial
     import pyproj
 
-    proj_in = pyproj.Proj(init='epsg:4326')
-    proj_out = pyproj.Proj(init='epsg:26913')
+    from shapely.ops import transform
+
+    wgs84 = pyproj.Proj('epsg:4326', always_xy=True)
+    utm = pyproj.Proj('epsg:26913', always_xy=True)
 
     project = partial(
         pyproj.transform,
-        proj_in,
-        proj_out)
+        wgs84,
+        utm)
 
-    g2 = transform(project, g1)
+    utm_point = transform(project, wgs84_point)
 
-If using `pyproj>=2.1.0` a more performant method would be
+It is important to note that in the two examples above, the `always_xy` kwarg is required as Shapely only supports coordinates in X,Y
+order, and in PROJ 6 the WGS84 CRS uses the EPSG-defined Lat/Lon coordinate order instead of the expected Lon/Lat.
+
+If using `pyproj < 2.1`, use syntax like:
 
 .. code-block:: python
 
-    project = pyproj.Transformer.from_proj(proj_in, proj_out).transform
+    from functools import partial
+    import pyproj
+
+    from shapely.ops import transform
+
+    wgs84 = pyproj.Proj(init='epsg:4326')
+    utm = pyproj.Proj(init='epsg:26913')
+
+    project = partial(
+        pyproj.transform,
+        wgs84,
+        utm)
+
+    utm_point = transform(project, wgs84_point)
 
 Lambda expressions such as the one in
 

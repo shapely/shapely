@@ -211,10 +211,13 @@ def transform(func, geom):
 
       project = partial(
           pyproj.transform,
-          pyproj.Proj(init='epsg:4326'),
-          pyproj.Proj(init='epsg:26913'))
+          pyproj.Proj('epsg:4326', always_xy=True),
+          pyproj.Proj('epsg:26913', always_xy=True))
 
       g2 = transform(project, g1)
+
+    Note that the always_xy kwarg is required here as Shapely geometries only support
+    X,Y coordinate ordering.
 
     Lambda expressions such as the one in
 
