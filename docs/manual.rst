@@ -1991,9 +1991,16 @@ Shapely supports map projections and other arbitrary transformations of geometri
   geometry of the same type from the transformed coordinates.
 
   `func` maps x, y, and optionally z to output xp, yp, zp. The input
-  parameters may iterable types like lists or arrays or single values.
+  parameters may be iterable types like lists or arrays or single values.
   The output shall be of the same type: scalars in, scalars out;
   lists in, lists out.
+
+  `transform` tries to determine which kind of function was passed in
+  by calling `func` first with n iterables of coordinates, where n
+  is the dimensionality of the input geometry. If `func` raises
+  a `TypeError` when called with iterables as arguments,
+  then it will instead call `func` on each individual coordinate
+  in the geometry.
 
   `New in version 1.2.18`.
 
