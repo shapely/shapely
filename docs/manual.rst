@@ -2019,8 +2019,8 @@ If using `pyproj>=2.1.0`, the preferred method to project geometries is:
 
     wgs84_pt = Point(-72.2495, 43.886)
 
-    wgs84 = pyproj.CRS('epsg:4326')
-    utm = pyproj.CRS('epsg:32618')
+    wgs84 = pyproj.CRS('EPSG:4326')
+    utm = pyproj.CRS('EPSG:32618')
 
     project = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True).transform
     utm_point = transform(project, wgs84_pt)

@@ -207,8 +207,8 @@ def transform(func, geom):
 
       import pyproj
 
-      wgs84 = pyproj.CRS('epsg:4326')
-      utm = pyproj.CRS('epsg:32618')
+      wgs84 = pyproj.CRS('EPSG:4326')
+      utm = pyproj.CRS('EPSG:32618')
 
       project = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True).transform
 
