@@ -8,7 +8,7 @@ import functools
 import itertools
 import re
 
-from ._compat import string_types, with_metaclass
+from ._compat import with_metaclass
 from .version import Version, LegacyVersion, parse
 
 
@@ -112,7 +112,7 @@ class _IndividualSpecifier(BaseSpecifier):
         return hash(self._spec)
 
     def __eq__(self, other):
-        if isinstance(other, string_types):
+        if isinstance(other, str):
             try:
                 other = self.__class__(other)
             except InvalidSpecifier:
@@ -123,7 +123,7 @@ class _IndividualSpecifier(BaseSpecifier):
         return self._spec == other._spec
 
     def __ne__(self, other):
-        if isinstance(other, string_types):
+        if isinstance(other, str):
             try:
                 other = self.__class__(other)
             except InvalidSpecifier:
@@ -625,7 +625,7 @@ class SpecifierSet(BaseSpecifier):
         return hash(self._specs)
 
     def __and__(self, other):
-        if isinstance(other, string_types):
+        if isinstance(other, str):
             other = SpecifierSet(other)
         elif not isinstance(other, SpecifierSet):
             return NotImplemented
@@ -648,7 +648,7 @@ class SpecifierSet(BaseSpecifier):
         return specifier
 
     def __eq__(self, other):
-        if isinstance(other, string_types):
+        if isinstance(other, str):
             other = SpecifierSet(other)
         elif isinstance(other, _IndividualSpecifier):
             other = SpecifierSet(str(other))
@@ -658,7 +658,7 @@ class SpecifierSet(BaseSpecifier):
         return self._specs == other._specs
 
     def __ne__(self, other):
-        if isinstance(other, string_types):
+        if isinstance(other, str):
             other = SpecifierSet(other)
         elif isinstance(other, _IndividualSpecifier):
             other = SpecifierSet(str(other))

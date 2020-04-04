@@ -22,18 +22,11 @@ from shapely.geos import lgeos
 from shapely.impl import DefaultImplementation, delegated
 
 
-if sys.version_info[0] < 3:
-    range = xrange
-    integer_types = (int, long)
-else:
-    integer_types = (int,)
-
-
 try:
     import numpy as np
-    integer_types = integer_types + (np.integer,)
+    integer_types = (int, np.integer)
 except ImportError:
-    pass
+    integer_types = (int,)
 
 
 GEOMETRY_TYPES = [
@@ -97,8 +90,7 @@ def geom_factory(g, parent=None):
 def geom_from_wkt(data):
     warn("`geom_from_wkt` is deprecated. Use `geos.wkt_reader.read(data)`.",
          DeprecationWarning)
-    if sys.version_info[0] >= 3:
-        data = data.encode('ascii')
+    data = data.encode('ascii')
     geom = lgeos.GEOSGeomFromWKT(c_char_p(data))
     if not geom:
         raise WKTReadingError(

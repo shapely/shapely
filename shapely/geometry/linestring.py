@@ -1,11 +1,6 @@
 """Line strings and related utilities
 """
 
-import sys
-
-if sys.version_info[0] < 3:
-    range = xrange
-
 from ctypes import c_double
 
 from shapely.geos import lgeos, TopologicalError
@@ -204,7 +199,7 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
 
     try:
         m = len(ob)
-    except TypeError:  # Iterators, e.g. Python 3 zip
+    except TypeError:  # generators
         ob = list(ob)
         m = len(ob)
 

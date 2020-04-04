@@ -9,14 +9,6 @@ import struct
 
 class PersistTestCase(unittest.TestCase):
 
-    @staticmethod
-    def _byte(i):
-        """Convert an integer in the range [0, 256) to a byte."""
-        if bytes == str: # Python 2
-            return chr(i)
-        else: # Python 3
-            return int(i)
-
     def test_pickle(self):
 
         p = Point(0.0, 0.0)
@@ -44,8 +36,8 @@ class PersistTestCase(unittest.TestCase):
         # Simple Features Specification for SQL, revision 1.1, the
         # first byte of a WKB representation indicates byte order.
         # Big-endian is 0, little-endian is 1.
-        self.assertEqual(wkb_big_endian[0], self._byte(0))
-        self.assertEqual(wkb_little_endian[0], self._byte(1))
+        self.assertEqual(wkb_big_endian[0], 0)
+        self.assertEqual(wkb_little_endian[0], 1)
         # Check that the doubles (0.5, 2.0) are in correct byte order
         double_size = struct.calcsize('d')
         self.assertEqual(

@@ -8,9 +8,6 @@ from ctypes import byref, c_double, c_uint
 from shapely.geos import lgeos
 from shapely.topology import Validating
 
-if sys.version_info[0] < 3:
-    range = xrange
-
 
 class CoordinateSequence(object):
     """

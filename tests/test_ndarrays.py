@@ -2,10 +2,7 @@
 # https://github.com/sgillies/shapely/issues/26 for discussion.
 # Requires numpy.
 
-import sys
-
-if sys.version_info[0] >= 3:
-    from functools import reduce
+from functools import reduce
 
 from . import unittest
 from shapely import geometry

@@ -12,7 +12,6 @@ from pyparsing import ParseException, ParseResults, stringStart, stringEnd
 from pyparsing import ZeroOrMore, Group, Forward, QuotedString
 from pyparsing import Literal as L  # noqa
 
-from ._compat import string_types
 from .specifiers import Specifier, InvalidSpecifier
 
 
@@ -132,7 +131,7 @@ def _coerce_parse_result(results):
 
 
 def _format_marker(marker, first=True):
-    assert isinstance(marker, (list, tuple, string_types))
+    assert isinstance(marker, (list, tuple, str))
 
     # Sometimes we have a structure like [[...]] which is a single item list
     # where the single item is itself it's own list. In that case we want skip
@@ -201,7 +200,7 @@ def _evaluate_markers(markers, environment):
     groups = [[]]
 
     for marker in markers:
-        assert isinstance(marker, (list, tuple, string_types))
+        assert isinstance(marker, (list, tuple, str))
 
         if isinstance(marker, list):
             groups[-1].append(_evaluate_markers(marker, environment))
