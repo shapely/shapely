@@ -1991,9 +1991,16 @@ Shapely supports map projections and other arbitrary transformations of geometri
   geometry of the same type from the transformed coordinates.
 
   `func` maps x, y, and optionally z to output xp, yp, zp. The input
-  parameters may iterable types like lists or arrays or single values.
+  parameters may be iterable types like lists or arrays or single values.
   The output shall be of the same type: scalars in, scalars out;
   lists in, lists out.
+
+  `transform` tries to determine which kind of function was passed in
+  by calling `func` first with n iterables of coordinates, where n
+  is the dimensionality of the input geometry. If `func` raises
+  a `TypeError` when called with iterables as arguments,
+  then it will instead call `func` on each individual coordinate
+  in the geometry.
 
   `New in version 1.2.18`.
 
@@ -2007,30 +2014,45 @@ For example, here is an identity function applicable to both types of input
 
     g2 = transform(id_func, g1)
 
-A partially applied transform function from pyproj satisfies the requirements
-for `func`.
+
+If using `pyproj>=2.1.0`, the preferred method to project geometries is:
 
 .. code-block:: python
 
+    import pyproj
+
+    from shapely.geometry import Point
     from shapely.ops import transform
+
+    wgs84_pt = Point(-72.2495, 43.886)
+
+    wgs84 = pyproj.CRS('EPSG:4326')
+    utm = pyproj.CRS('EPSG:32618')
+
+    project = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True).transform
+    utm_point = transform(project, wgs84_pt)
+
+It is important to note that in the example above, the `always_xy` kwarg is required as Shapely only supports coordinates in X,Y
+order, and in PROJ 6 the WGS84 CRS uses the EPSG-defined Lat/Lon coordinate order instead of the expected Lon/Lat.
+
+If using `pyproj < 2.1`, then the canonical example is:
+
+.. code-block:: python
+
     from functools import partial
     import pyproj
 
-    proj_in = pyproj.Proj(init='epsg:4326')
-    proj_out = pyproj.Proj(init='epsg:26913')
+    from shapely.ops import transform
+
+    wgs84 = pyproj.Proj(init='epsg:4326')
+    utm = pyproj.Proj(init='epsg:32618')
 
     project = partial(
         pyproj.transform,
-        proj_in,
-        proj_out)
+        wgs84,
+        utm)
 
-    g2 = transform(project, g1)
-
-If using `pyproj>=2.1.0` a more performant method would be
-
-.. code-block:: python
-
-    project = pyproj.Transformer.from_proj(proj_in, proj_out).transform
+    utm_point = transform(project, wgs84_pt)
 
 Lambda expressions such as the one in
 
