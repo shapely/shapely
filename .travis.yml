@@ -6,6 +6,9 @@ cache:
     - $HOME/geosinstall
     - ~/.cache/pip
 
+os:
+  - linux
+
 matrix:
   include:
     - python: "2.7"
@@ -92,6 +95,13 @@ matrix:
     - python: "3.8-dev"
       env:
         GEOSVERSION="master"
+        SPEEDUPS=1
+        NUMPY=1
+    - python: "3.8"
+      os: osx
+      language: python
+      env:
+        GEOSVERSION="3.8.1"
         SPEEDUPS=1
         NUMPY=1
 
