@@ -104,7 +104,7 @@ matrix:
         GEOSVERSION="master"
         SPEEDUPS=1
         NUMPY=1
-    - python: "3.7"
+    - python: "3.6"
       os: osx
       language: python
       env:
@@ -117,7 +117,7 @@ matrix:
         GEOSVERSION="master"
         SPEEDUPS=1
         NUMPY=1
-    - python: "3.7"
+    - python: "3.6"
       os: osx
       language: python
       env:
