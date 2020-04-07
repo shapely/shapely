@@ -1,6 +1,13 @@
 Changes
 =======
 
+1.8.0 (TBD)
+-----------
+
+New features:
+
+- shapely.ops.voronoi_diagram() computes the Voronoi Diagram of a geometry or geometry collection (#833, #851).
+
 1.7.1 (TBD)
 -----------
 
