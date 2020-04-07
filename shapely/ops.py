@@ -199,7 +199,7 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
 
     Returns
     -------
-    list
+    GeometryCollection
         geometries representing the Voronoi regions.
 
     Notes
