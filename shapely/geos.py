@@ -847,6 +847,7 @@ class LGEOS350(LGEOS340):
     def __init__(self, dll):
         super(LGEOS350, self).__init__(dll)
         self.methods['clip_by_rect'] = self.GEOSClipByRect
+        self.methods['voronoi_diagram'] = self.GEOSVoronoiDiagram
 
 
 if geos_version >= (3, 5, 0):

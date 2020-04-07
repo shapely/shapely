@@ -14,7 +14,7 @@ from shapely.algorithms.polylabel import polylabel
 
 __all__ = ['cascaded_union', 'linemerge', 'operator', 'polygonize',
            'polygonize_full', 'transform', 'unary_union', 'triangulate',
-           'split', 'section']
+           'voronoi_diagram', 'split', 'section']
 
 
 class CollectionOperator(object):
@@ -171,6 +171,64 @@ def triangulate(geom, tolerance=0.0, edges=False):
     func = lgeos.methods['delaunay_triangulation']
     gc = geom_factory(func(geom._geom, tolerance, int(edges)))
     return [g for g in gc.geoms]
+
+
+def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
+    """
+    Constructs a Voronoi Diagram [1] from the given geometry.
+    Returns a list of geometries.
+
+    Parameters
+    ----------
+    geom: geometry
+        the input geometry whose vertices will be used to calculate
+        the final diagram.
+    envelope: geometry, None
+        clipping envelope for the returned diagram, automatically
+        determined if None. The diagram will be clipped to the larger
+        of this envelope or an envelope surrounding the sites.
+    tolerance: float, 0.0
+        sets the snapping tolerance used to improve the robustness
+        of the computation. A tolerance of 0.0 specifies that no
+        snapping will take place.
+    edges: bool, False
+        If False, return regions as polygons. Else, return only
+        edges e.g. LineStrings.
+
+    GEOS documentation can be found at [2]
+
+    Returns
+    -------
+    GeometryCollection
+        geometries representing the Voronoi regions.
+
+    Notes
+    -----
+    The tolerance `argument` can be finicky and is known to cause the
+    algorithm to fail in several cases. If you're using `tolerance`
+    and getting a failure, try removing it. The test cases in
+    tests/test_voronoi_diagram.py show more details.
+
+
+    References
+    ----------
+    [1] https://en.wikipedia.org/wiki/Voronoi_diagram
+    [2] https://geos.osgeo.org/doxygen/geos__c_8h_source.html  (line 730)
+    """
+    func = lgeos.methods['voronoi_diagram']
+    envelope = envelope._geom if envelope else None
+    try:
+        result = geom_factory(func(geom._geom, envelope, tolerance, int(edges)))
+    except ValueError:
+        errstr = "Could not create Voronoi Diagram with the specified inputs."
+        if tolerance:
+            errstr += " Try running again with default tolerance value."
+        raise ValueError(errstr)
+
+    if result.type != 'GeometryCollection':
+        return GeometryCollection([result])
+    return result
+
 
 class ValidateOp(object):
     def __call__(self, this):
