@@ -225,13 +225,9 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
             errstr += " Try running again with default tolerance value."
         raise ValueError(errstr)
 
-    try:
-        return [g for g in result.geoms]
-    except AttributeError:
-        # if the returned result is just one geometry (e.g. if your
-        # source has two points and you ask for edges-only)
-        # then we'll get back a single geom instead of a collection.
-        return [result]
+    if result.type != 'GeometryCollection':
+        return GeometryCollection([result])
+    return result
 
 
 class ValidateOp(object):
