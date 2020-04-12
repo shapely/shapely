@@ -2,6 +2,8 @@
 from shapely.geometry.base import geom_factory
 from shapely.geos import lgeos
 
+__all__ = ['explain_validity', 'make_valid']
+
 
 def explain_validity(ob):
     """
