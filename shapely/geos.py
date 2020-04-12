@@ -850,7 +850,17 @@ class LGEOS350(LGEOS340):
         self.methods['voronoi_diagram'] = self.GEOSVoronoiDiagram
 
 
-if geos_version >= (3, 5, 0):
+class LGEOS380(LGEOS350):
+    """Proxy for GEOS 3.8.0-CAPI-1.13.0"""
+
+    def __init__(self, dll):
+        super(LGEOS380, self).__init__(dll)
+        self.methods['make_valid'] = self.GEOSMakeValid
+
+
+if geos_version >= (3, 8, 0):
+    L = LGEOS380
+elif geos_version >= (3, 5, 0):
     L = LGEOS350
 elif geos_version >= (3, 4, 0):
     L = LGEOS340
