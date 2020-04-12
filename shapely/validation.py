@@ -27,6 +27,8 @@ def make_valid(ob):
     """
     Make the input geometry valid according to the GEOS MakeValid algorithm.
     If the input geometry is already valid, then it will be returned.
+    If the geometry must be split into multiple parts to be made valid, then
+    a GeometryCollection will be returned.
 
     Parameters
     ----------
