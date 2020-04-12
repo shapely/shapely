@@ -2421,6 +2421,47 @@ be parsed out.
   >>> explain_validity(p)
   'Ring Self-intersection[1 1]'
 
+.. function:: validation.make_valid(ob)
+
+  Returns a valid representation of the geometry, if it is invalid.
+  If it is valid, the input geometry will be returned.
+
+  In many cases, in order to create a valid geometry, the input geometry
+  must be split into multiple parts or multiple geometries. If the geometry
+  must be split into multiple parts of the same geometry type, then a multi-part
+  geometry (e.g. a MultiPolygon) will be returned. if the geometry must be split
+  into multiple parts of different types, then a GeometryCollection will be returned.
+
+  For example, this operation on a geometry with a bow-tie structure:
+
+.. code-block:: pycon
+
+  >>> from shapely.validation import make_valid
+  >>> coords = [(0, 0), (0, 2), (1, 1), (2, 2), (2, 0), (1, 1), (0, 0)]
+  >>> p = Polygon(coords)
+  >>> str(make_valid(p))
+  'MULTIPOLYGON (((0 0, 0 2, 1 1, 0 0)), ((1 1, 2 2, 2 0, 1 1)))'
+
+  Yields a MultiPolygon with two parts:
+
+.. plot:: code/make_valid_multipolygon.py
+
+  While this operation:
+
+.. code-block:: pycon
+
+  >>> from shapely.validation import make_valid
+  >>> coords = [(0, 2), (0, 1), (2, 0), (0, 0), (0, 2)]
+  >>> p = Polygon(coords)
+  >>> str(make_valid(p))
+
+  Yields a GeometryCollection with a Polygon and a LineString:
+
+.. plot:: code/make_valid_geometrycollection.py
+
+  `New in version 1.8`
+  `Requires GEOS > 3.8`
+
 The Shapely version, GEOS library version, and GEOS C API version are
 accessible via :attr:`shapely.__version__`,
 :attr:`shapely.geos.geos_version_string`, and
