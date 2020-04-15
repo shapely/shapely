@@ -50,6 +50,7 @@ class STRtree:
                 lgeos.GEOSSTRtree_destroy(self._tree_handle)
             except AttributeError:
                 pass  # lgeos might be empty on shutdown.
+
             self._tree_handle = None
 
     def query(self, geom):
