@@ -45,8 +45,11 @@ class STRtree:
         self._geoms = list(geoms)
 
     def __del__(self):
-        if self._tree_handle is not None and lgeos is not None:
-            lgeos.GEOSSTRtree_destroy(self._tree_handle)
+        if self._tree_handle is not None:
+            try:
+                lgeos.GEOSSTRtree_destroy(self._tree_handle)
+            except AttributeError:
+                pass  # lgeos might be empty on shutdown.
             self._tree_handle = None
 
     def query(self, geom):
