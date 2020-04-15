@@ -16,6 +16,7 @@ __all__ = [
     "envelope",
     "extract_unique_points",
     "make_valid",
+    "normalize",
     "point_on_surface",
     "simplify",
     "snap",
@@ -303,6 +304,26 @@ def make_valid(geometry, **kwargs):
     <pygeos.Geometry MULTILINESTRING ((0 0, 1 1), (1 1, 1 2))>
     """
     return lib.make_valid(geometry, **kwargs)
+
+
+def normalize(geometry, **kwargs):
+    """Converts Geometry to normal form (or canonical form).
+
+    This method orders the coordinates, rings of a polygon and parts of
+    multi geometries consistently. Typically useful for testing purposes
+    (for example in combination with `equals_exact`).
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+
+    Examples
+    --------
+    >>> p = Geometry("MULTILINESTRING((0 0, 1 1),(2 2, 3 3))")
+    >>> normalize(p)
+    <pygeos.Geometry MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))>
+    """
+    return lib.normalize(geometry, **kwargs)
 
 
 def point_on_surface(geometry, **kwargs):

@@ -12,6 +12,7 @@ CONSTRUCTIVE_NO_ARGS = (
     pygeos.convex_hull,
     pygeos.envelope,
     pygeos.extract_unique_points,
+    pygeos.normalize,
     pygeos.point_on_surface,
 )
 
@@ -131,3 +132,19 @@ def test_make_valid(geom, expected):
 def test_make_valid_1d(geom, expected):
     actual = pygeos.make_valid(geom)
     assert np.all(actual == expected)
+
+
+@pytest.mark.parametrize(
+    "geom,expected",
+    [
+        (point, point),  # a point is always in normalized form
+        # order coordinates of linestrings and parts of multi-linestring
+        (
+            Geometry("MULTILINESTRING ((1 1, 0 0), (1 1, 1 2))"),
+            Geometry("MULTILINESTRING ((1 1, 1 2), (0 0, 1 1))"),
+        ),
+    ],
+)
+def test_normalize(geom, expected):
+    actual = pygeos.normalize(geom)
+    assert actual == expected

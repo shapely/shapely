@@ -192,6 +192,19 @@ static void *GetExteriorRing(void *context, void *geom) {
     return ret;
 }
 static void *get_exterior_ring_data[1] = {GetExteriorRing};
+/* the normalize funcion acts inplace */
+static void *GEOSNormalize_r_with_clone(void *context, void *geom) {
+    int ret;
+    void *new_geom = GEOSGeom_clone_r(context, geom);
+    if (new_geom == NULL) { return NULL; }
+    ret = GEOSNormalize_r(context, new_geom);
+    if (ret == -1) {
+        GEOSGeom_destroy_r(context, new_geom);
+        return NULL;
+    }
+    return new_geom;
+}
+static void *normalize_data[1] = {GEOSNormalize_r_with_clone};
 /* a linear-ring to polygon conversion function */
 static void *GEOSLinearRingToPolygon(void *context, void *geom) {
     void *shell = GEOSGeom_clone_r(context, geom);
@@ -1414,6 +1427,7 @@ int init_ufuncs(PyObject *m, PyObject *d)
     DEFINE_Y_Y (line_merge);
     DEFINE_Y_Y (extract_unique_points);
     DEFINE_Y_Y (get_exterior_ring);
+    DEFINE_Y_Y (normalize);
 
     DEFINE_Yi_Y (get_point);
     DEFINE_Yi_Y (get_interior_ring);
