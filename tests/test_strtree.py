@@ -2,7 +2,8 @@ import gc
 
 from shapely.strtree import STRtree
 from shapely.geometry import Point, Polygon
-from shapely import geos
+
+from shapely import strtree
 
 from tests.conftest import requires_geos_342
 
@@ -72,9 +73,9 @@ def test_references():
 def test_safe_delete():
     tree = STRtree([])
 
-    _lgeos = geos.lgeos
-    geos.lgeos = None
+    _lgeos = strtree.lgeos
+    strtree.lgeos = None
 
     del tree
 
-    geos.lgeos = _lgeos
+    strtree.lgeos = _lgeos
