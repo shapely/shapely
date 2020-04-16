@@ -1,4 +1,4 @@
-from . import unittest, numpy
+from . import unittest, numpy, test_int_types
 from .test_multi import MultiGeometryTestCase
 from shapely.geometry import Point, MultiPoint, asMultiPoint
 from shapely.geometry.base import dump_coords
