@@ -1,12 +1,7 @@
-import pytest
-
-from shapely.geos import geos_version
-from shapely.wkt import loads as load_wkt
 from shapely.geometry import Polygon
-
 from shapely.validation import make_valid
 
-requires_geos_38 = pytest.mark.skipif(geos_version < (3, 8, 0), reason='GEOS >= 3.8.0 is required.')
+from tests.conftest import requires_geos_38
 
 
 @requires_geos_38
