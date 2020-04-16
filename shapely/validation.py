@@ -8,8 +8,9 @@ __all__ = ['explain_validity', 'make_valid']
 def explain_validity(ob):
     """
     Explain the validity of the input geometry, if it is invalid.
-    This will describe why the geometry is invalid, including a location
-    if there is a self-intersection or a ring self-intersection.
+    This will describe why the geometry is invalid, and might
+    include a location if there is a self-intersection or a
+    ring self-intersection.
 
     Parameters
     ----------
