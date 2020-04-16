@@ -169,6 +169,10 @@ def geos_multipoint_from_py(ob):
     for i in range(m):
         coords = ob[i]
         geom, ndims = point.geos_point_from_py(coords)
+
+        if lgeos.GEOSisEmpty(geom):
+            raise ValueError("Can't create MultiPoint with empty component")
+
         subs[i] = cast(geom, c_void_p)
 
     return lgeos.GEOSGeom_createCollection(4, subs, m), n

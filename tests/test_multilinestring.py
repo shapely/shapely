@@ -79,6 +79,15 @@ class MultiLineStringTestCase(MultiGeometryTestCase):
         line1 = LineString([(4.0, 5.0), (6.0, 7.0)])
         self.subgeom_access_test(MultiLineString, [line0, line1])
 
+    def test_create_multi_with_empty_component(self):
+        with self.assertRaises(ValueError) as exc:
+            wkt = MultiLineString([
+                LineString([(0, 0), (1, 1), (2, 2)]),
+                LineString()
+            ]).wkt
+
+        self.assertRegex(str(exc.exception), "Can't create MultiLineString with empty component")
+
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(MultiLineStringTestCase)

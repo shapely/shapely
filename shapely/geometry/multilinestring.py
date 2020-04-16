@@ -132,6 +132,10 @@ def geos_multilinestring_from_py(ob):
     # add to coordinate sequence
     for l in range(L):
         geom, ndims = linestring.geos_linestring_from_py(obs[l])
+
+        if lgeos.GEOSisEmpty(geom):
+            raise ValueError("Can't create MultiLineString with empty component")
+
         subs[l] = cast(geom, c_void_p)
             
     return (lgeos.GEOSGeom_createCollection(5, subs, L), N)
