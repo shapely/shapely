@@ -4,17 +4,17 @@
 from shapely.geos import WKBReader, WKBWriter, lgeos
 from shapely.geometry.base import geom_factory
 
+import pygeos
+
+
 # Pickle-like convenience functions
 
 def loads(data, hex=False):
     """Load a geometry from a WKB byte string, or hex-encoded string if
     ``hex=True``.
     """
-    reader = WKBReader(lgeos)
-    if hex:
-        return reader.read_hex(data)
-    else:
-        return reader.read(data)
+    return pygeos.from_wkb(data)
+
 
 def load(fp, hex=False):
     """Load a geometry from an open file."""

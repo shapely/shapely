@@ -3,6 +3,9 @@
 
 from shapely import geos
 
+import pygeos
+
+
 # Pickle-like convenience functions
 
 
@@ -19,7 +22,7 @@ def loads(data):
     -------
     Shapely geometry object
     """
-    return geos.WKTReader(geos.lgeos).read(data)
+    return pygeos.from_wkt(data)
 
 
 def load(fp):

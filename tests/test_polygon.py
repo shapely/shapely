@@ -230,13 +230,13 @@ class PolygonTestCase(unittest.TestCase):
     def test_linearring_empty(self):
         # Test Non-operability of Null rings
         r_null = LinearRing()
-        self.assertEqual(r_null.wkt, 'GEOMETRYCOLLECTION EMPTY')
+        self.assertEqual(r_null.wkt, 'LINEARRING EMPTY')
         self.assertEqual(r_null.length, 0.0)
 
     def test_dimensions(self):
 
         # Background: see http://trac.gispython.org/lab/ticket/168
-    # http://lists.gispython.org/pipermail/community/2008-August/001859.html
+        # http://lists.gispython.org/pipermail/community/2008-August/001859.html
 
         coords = ((0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 1.0, 0.0),
                   (1.0, 0.0, 0.0))
