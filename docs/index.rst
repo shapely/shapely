@@ -54,9 +54,11 @@ API Reference
    :maxdepth: 2
    :caption: Contents:
 
+   creation
    constructive
    coordinates
    geometry
+   io
    linear
    measurement
    predicates
