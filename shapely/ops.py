@@ -14,7 +14,8 @@ from shapely.algorithms.polylabel import polylabel
 
 __all__ = ['cascaded_union', 'linemerge', 'operator', 'polygonize',
            'polygonize_full', 'transform', 'unary_union', 'triangulate',
-           'voronoi_diagram', 'split', 'section']
+           'voronoi_diagram', 'split', 'nearest_points', 'validate', 'snap',
+           'shared_paths', 'clip_by_rect', 'orient']
 
 
 class CollectionOperator(object):
