@@ -8,7 +8,7 @@ if sys.version_info[0] < 3:
 
 from ctypes import c_void_p, cast
 
-from shapely.errors import EmptyPartError, DimensionError
+from shapely.errors import EmptyPartError
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseMultipartGeometry, geos_geom_from_py
 from shapely.geometry import linestring
