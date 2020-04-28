@@ -1,5 +1,6 @@
 from . import unittest, numpy, test_int_types
 from .test_multi import MultiGeometryTestCase
+from shapely.errors import EmptyPartError
 from shapely.geometry import Point, MultiPoint, asMultiPoint
 from shapely.geometry.base import dump_coords
 
@@ -75,7 +76,7 @@ class MultiPointTestCase(MultiGeometryTestCase):
         self.subgeom_access_test(MultiPoint, [p0, p1])
 
     def test_create_multi_with_empty_component(self):
-        with self.assertRaises(ValueError) as exc:
+        with self.assertRaises(EmptyPartError) as exc:
             wkt = MultiPoint([Point(0, 0), Point()]).wkt
 
         self.assertRegex(str(exc.exception), "Can't create MultiPoint with empty component")

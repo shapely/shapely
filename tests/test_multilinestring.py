@@ -1,5 +1,6 @@
 from . import unittest, numpy, test_int_types
 from .test_multi import MultiGeometryTestCase
+from shapely.errors import EmptyPartError
 from shapely.geos import lgeos
 from shapely.geometry import LineString, MultiLineString, asMultiLineString
 from shapely.geometry.base import dump_coords
@@ -80,7 +81,7 @@ class MultiLineStringTestCase(MultiGeometryTestCase):
         self.subgeom_access_test(MultiLineString, [line0, line1])
 
     def test_create_multi_with_empty_component(self):
-        with self.assertRaises(ValueError) as exc:
+        with self.assertRaises(EmptyPartError) as exc:
             wkt = MultiLineString([
                 LineString([(0, 0), (1, 1), (2, 2)]),
                 LineString()

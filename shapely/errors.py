@@ -31,3 +31,7 @@ class TopologicalError(ShapelyError):
 
 class PredicateError(ShapelyError):
     """A geometric predicate has failed to return True/False."""
+
+
+class EmptyPartError(ShapelyError):
+    """An error signifying an empty part was encountered when creating a multi-part."""
