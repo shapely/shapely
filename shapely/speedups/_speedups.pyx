@@ -190,9 +190,10 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
             dy = coords[1]
             dz = 0
             if n == 3:
-                if len(coords) != 3:
+                try:
+                    dz = coords[2]
+                except IndexError:
                     raise ValueError("Inconsistent coordinate dimensionality")
-                dz = coords[2]
             
             # Because of a bug in the GEOS C API, 
             # always set X before Y
@@ -370,7 +371,10 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
             dy = coords[1]
             dz = 0
             if n == 3:
-                dz = coords[2]
+                try:
+                    dz = coords[2]
+                except IndexError:
+                    raise ValueError("Inconsistent coordinate dimensionality")
         
             # Because of a bug in the GEOS C API, 
             # always set X before Y
@@ -386,7 +390,10 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
             dy = coords[1]
             dz = 0
             if n == 3:
-                dz = coords[2]
+                try:
+                    dz = coords[2]
+                except IndexError:
+                    raise ValueError("Inconsistent coordinate dimensionality")
         
             # Because of a bug in the GEOS C API, 
             # always set X before Y

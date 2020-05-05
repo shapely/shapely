@@ -129,7 +129,11 @@ elif sys.platform == 'darwin':
             ]
         _lgeos = load_dll('geos_c', fallbacks=alt_paths)
 
-    free = load_dll('c').free
+    # ctypes.CDLL(None) internally calls dlopen(NULL), and as the dlopen
+    # manpage says, "If filename is NULL, then the returned handle is for the
+    # main program". This way we can let the linker do the work to figure out
+    # which libc Python is actually using.
+    free = CDLL(None).free
     free.argtypes = [c_void_p]
     free.restype = None
 
@@ -843,6 +847,8 @@ class LGEOS340(LGEOS330):
 class LGEOS350(LGEOS340):
     """Proxy for GEOS 3.5.0-CAPI-1.9.0
     """
+    geos_version = (3, 5, 0)
+    geos_capi_version = (1, 9, 0)
 
     def __init__(self, dll):
         super(LGEOS350, self).__init__(dll)
@@ -850,7 +856,20 @@ class LGEOS350(LGEOS340):
         self.methods['voronoi_diagram'] = self.GEOSVoronoiDiagram
 
 
-if geos_version >= (3, 5, 0):
+class LGEOS360(LGEOS350):
+    """Proxy for GEOS 3.6.0-CAPI-1.10.0
+    """
+    geos_version = (3, 6, 0)
+    geos_capi_version = (1, 10, 0)
+
+    def __init__(self, dll):
+        super(LGEOS360, self).__init__(dll)
+        self.methods['minimum_clearance'] = self.GEOSMinimumClearance
+
+
+if geos_version >= (3, 6, 0):
+    L = LGEOS360
+elif geos_version >= (3, 5, 0):
     L = LGEOS350
 elif geos_version >= (3, 4, 0):
     L = LGEOS340
