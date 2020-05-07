@@ -79,7 +79,7 @@ class MultiPointTestCase(MultiGeometryTestCase):
         with self.assertRaises(EmptyPartError) as exc:
             wkt = MultiPoint([Point(0, 0), Point()]).wkt
 
-        self.assertRegex(str(exc.exception), "Can't create MultiPoint with empty component")
+        self.assertEqual(str(exc.exception), "Can't create MultiPoint with empty component")
 
 
 def test_suite():

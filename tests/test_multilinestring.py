@@ -87,7 +87,7 @@ class MultiLineStringTestCase(MultiGeometryTestCase):
                 LineString()
             ]).wkt
 
-        self.assertRegex(str(exc.exception), "Can't create MultiLineString with empty component")
+        self.assertEqual(str(exc.exception), "Can't create MultiLineString with empty component")
 
 
 def test_suite():
