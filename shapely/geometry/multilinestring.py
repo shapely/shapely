@@ -8,6 +8,7 @@ if sys.version_info[0] < 3:
 
 from ctypes import c_void_p, cast
 
+from shapely.errors import EmptyPartError
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseMultipartGeometry, geos_geom_from_py
 from shapely.geometry import linestring
@@ -132,6 +133,10 @@ def geos_multilinestring_from_py(ob):
     # add to coordinate sequence
     for l in range(L):
         geom, ndims = linestring.geos_linestring_from_py(obs[l])
+
+        if lgeos.GEOSisEmpty(geom):
+            raise EmptyPartError("Can't create MultiLineString with empty component")
+
         subs[l] = cast(geom, c_void_p)
             
     return (lgeos.GEOSGeom_createCollection(5, subs, L), N)

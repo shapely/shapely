@@ -8,6 +8,7 @@ if sys.version_info[0] < 3:
 
 from ctypes import byref, c_double, c_void_p, cast
 
+from shapely.errors import EmptyPartError
 from shapely.geos import lgeos
 from shapely.geometry.base import (
     BaseMultipartGeometry, exceptNull, geos_geom_from_py)
@@ -169,6 +170,10 @@ def geos_multipoint_from_py(ob):
     for i in range(m):
         coords = ob[i]
         geom, ndims = point.geos_point_from_py(coords)
+
+        if lgeos.GEOSisEmpty(geom):
+            raise EmptyPartError("Can't create MultiPoint with empty component")
+
         subs[i] = cast(geom, c_void_p)
 
     return lgeos.GEOSGeom_createCollection(4, subs, m), n
