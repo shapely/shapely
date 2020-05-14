@@ -15,6 +15,7 @@ __all__ = [
     "delaunay_triangles",
     "envelope",
     "extract_unique_points",
+    "build_area",
     "make_valid",
     "normalize",
     "point_on_surface",
@@ -286,6 +287,26 @@ def extract_unique_points(geometry, **kwargs):
     <pygeos.Geometry MULTIPOINT EMPTY>
     """
     return lib.extract_unique_points(geometry, **kwargs)
+
+
+@requires_geos("3.8.0")
+def build_area(geometry, **kwargs):
+    """Creates an areal geometry formed by the constituent linework of given geometry.
+
+    Equivalent of the PostGIS ST_BuildArea() function.
+
+    Requires at least GEOS 3.8.0.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+
+    Examples
+    --------
+    >>> build_area(Geometry("GEOMETRYCOLLECTION(POLYGON((0 0, 3 0, 3 3, 0 3, 0 0)), POLYGON((1 1, 1 2, 2 2, 1 1)))"))
+    <pygeos.Geometry POLYGON ((0 0, 0 3, 3 3, 3 0, 0 0), (1 1, 2 2, 1 2, 1 1))>
+    """
+    return lib.build_area(geometry, **kwargs)
 
 
 @requires_geos("3.8.0")

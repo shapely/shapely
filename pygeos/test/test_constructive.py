@@ -4,7 +4,7 @@ import pytest
 
 from pygeos import Geometry, GEOSException
 
-from .common import point, all_types, empty
+from .common import point, line_string, all_types, empty
 
 CONSTRUCTIVE_NO_ARGS = (
     pygeos.boundary,
@@ -76,6 +76,33 @@ def test_snap_none():
 def test_snap_nan_float(geometry):
     actual = pygeos.snap(geometry, point, tolerance=np.nan)
     assert actual is None
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 8, 0), reason="GEOS < 3.8")
+def test_build_area_none():
+    actual = pygeos.build_area(None)
+    assert actual is None
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 8, 0), reason="GEOS < 3.8")
+@pytest.mark.parametrize(
+    "geom,expected",
+    [
+        (point, empty),  # a point has no area
+        (line_string, empty),  # a line string has no area
+        # geometry collection of two polygons are combined into one
+        (
+            Geometry("GEOMETRYCOLLECTION(POLYGON((0 0, 3 0, 3 3, 0 3, 0 0)), POLYGON((1 1, 1 2, 2 2, 1 1)))"),
+            Geometry("POLYGON ((0 0, 0 3, 3 3, 3 0, 0 0), (1 1, 2 2, 1 2, 1 1))"),
+        ),
+        (empty, empty),
+        ([empty], [empty])
+    ],
+)
+def test_build_area(geom, expected):
+    actual = pygeos.build_area(geom)
+    assert actual is not expected
+    assert actual == expected
 
 
 @pytest.mark.skipif(pygeos.geos_version < (3, 8, 0), reason="GEOS < 3.8")

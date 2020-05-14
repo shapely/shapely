@@ -213,6 +213,7 @@ static void *GEOSLinearRingToPolygon(void *context, void *geom) {
 }
 static void *polygons_without_holes_data[1] = {GEOSLinearRingToPolygon};
 #if GEOS_SINCE_380
+  static void *build_area_data[1] = {GEOSBuildArea_r};
   static void *make_valid_data[1] = {GEOSMakeValid_r};
 #endif
 typedef void *FuncGEOS_Y_Y(void *context, void *a);
@@ -1487,6 +1488,7 @@ int init_ufuncs(PyObject *m, PyObject *d)
 
     #if GEOS_SINCE_380
       DEFINE_Y_Y (make_valid);
+      DEFINE_Y_Y (build_area);
     #endif
 
     Py_DECREF(ufunc);
