@@ -567,7 +567,7 @@ To obtain a polygon with a known orientation, use
 
   Returns a properly oriented copy of the given polygon. The signed area of the
   result will have the given sign. A sign of 1.0 means that the coordinates of
-  the product's exterior ring will be oriented counter-clockwise.
+  the product's exterior ring will be oriented counter-clockwise and the interior rings (holes) will be oriented clockwise.
 
   `New in version 1.2.10`.
 
