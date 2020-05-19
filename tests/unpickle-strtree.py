@@ -1,6 +1,9 @@
 # See test_strtree.py::test_pickle_persistence
 
 import sys
+import os
+sys.path.append(os.getcwd())
+
 import pickle
 from shapely.geometry import Point
 from shapely.geos import geos_version
