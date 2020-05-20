@@ -2516,7 +2516,7 @@ cannot add or remove geometries.
 
   `New in version 1.4.0`.
 
-  .. method:: strtree.query(goem)
+  .. method:: strtree.query(geom)
 
     Returns a list of all geometries in the `strtree` whose extents intersect the
     extent of `geom`. This means that a subsequent search through the returned
