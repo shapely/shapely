@@ -4,7 +4,14 @@ from pygeos import box
 import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
-from .common import point, empty, assert_increases_refcount, assert_decreases_refcount
+from .common import (
+    point,
+    empty,
+    empty_point,
+    empty_line_string,
+    assert_increases_refcount,
+    assert_decreases_refcount,
+)
 
 
 # the distance between 2 points spaced at whole numbers along a diagonal
@@ -37,12 +44,28 @@ def poly_tree():
     yield pygeos.STRtree(geoms)
 
 
-def test_init_with_none():
-    tree = pygeos.STRtree(np.array([None]))
-    assert tree.query(point).size == 0
+@pytest.mark.parametrize(
+    "geometry,count, hits",
+    [
+        # Empty array produces empty tree
+        ([], 0, 0),
+        ([point], 1, 1),
+        # None geometries are ignored when creating tree
+        ([None], 0, 0),
+        ([point, None], 1, 1),
+        # empty geometries are ignored when creating tree
+        ([empty, empty_point, empty_line_string], 0, 0),
+        # only the valid geometry should have a hit
+        ([empty, point, empty_point, empty_line_string], 1, 1),
+    ],
+)
+def test_init(geometry, count, hits):
+    tree = pygeos.STRtree(np.array(geometry))
+    assert len(tree) == count
+    assert tree.query(box(0, 0, 100, 100)).size == hits
 
 
-def test_init_with_no_geometry():
+def test_init_with_invalid_geometry():
     with pytest.raises(TypeError):
         pygeos.STRtree(np.array(["Not a geometry"], dtype=object))
 
@@ -72,19 +95,13 @@ def test_flush_geometries():
     tree.query(point)
 
 
-def test_len():
-    arr = np.array([point, None, point])
-    tree = pygeos.STRtree(arr)
-    assert len(tree) == 2
-
-
 def test_geometries_property():
     arr = np.array([point])
     tree = pygeos.STRtree(arr)
     assert arr is tree.geometries
 
 
-def test_query_no_geom(tree):
+def test_query_invalid_geometry(tree):
     with pytest.raises(TypeError):
         tree.query("I am not a geometry")
 
@@ -93,8 +110,24 @@ def test_query_none(tree):
     assert tree.query(None).size == 0
 
 
-def test_query_empty(tree):
-    assert tree.query(empty).size == 0
+@pytest.mark.parametrize("geometry", [empty, empty_point, empty_line_string])
+def test_query_empty(tree, geometry):
+    assert tree.query(geometry).size == 0
+
+
+@pytest.mark.parametrize(
+    "tree_geometry, geometry,expected",
+    [
+        ([point], box(0, 0, 10, 10), [0]),
+        # None is ignored in the tree, but the index of the valid geometry should
+        # be retained.
+        ([None, point], box(0, 0, 10, 10), [1]),
+        ([None, empty, point], box(0, 0, 10, 10), [2]),
+    ],
+)
+def test_query(tree_geometry, geometry, expected):
+    tree = pygeos.STRtree(np.array(tree_geometry))
+    assert_array_equal(tree.query(geometry), expected)
 
 
 @pytest.mark.parametrize(
@@ -630,6 +663,34 @@ def test_query_touches_polygons(poly_tree, geometry, expected):
 
 
 ### Bulk query tests
+@pytest.mark.parametrize(
+    "tree_geometry,geometry,expected",
+    [
+        # Empty tree returns no results
+        ([], [None], (2, 0)),
+        ([], [point], (2, 0)),
+        # None is ignored when constructing and querying the tree
+        ([None], [None], (2, 0)),
+        ([point], [None], (2, 0)),
+        ([None], [point], (2, 0)),
+        # Empty is included in the tree, but ignored when querying the tree
+        ([empty], [empty], (2, 0)),
+        ([empty], [point], (2, 0)),
+        ([point, empty], [empty], (2, 0)),
+        # Only the non-empty geometry gets hits
+        ([point, empty], [point, empty], (2, 1)),
+        (
+            [point, empty, empty_point, empty_line_string],
+            [point, empty, empty_point, empty_line_string],
+            (2, 1),
+        ),
+    ],
+)
+def test_query_bulk(tree_geometry, geometry, expected):
+    tree = pygeos.STRtree(np.array(tree_geometry))
+    assert tree.query_bulk(np.array(geometry)).shape == expected
+
+
 def test_query_bulk_wrong_dimensions(tree):
     with pytest.raises(TypeError, match="Array should be one dimensional"):
         tree.query_bulk([[pygeos.points(0.5, 0.5)]])
