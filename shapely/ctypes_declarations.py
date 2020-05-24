@@ -102,7 +102,7 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSCoordSeq_getDimensions.restype = c_int
     lgeos.GEOSCoordSeq_getDimensions.argtypes = [c_void_p, c_void_p]
 
-    # Linear refeferencing
+    # Linear referencing
 
     if geos_version >= (3, 2, 0):
 
