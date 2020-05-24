@@ -148,6 +148,9 @@ IMPL330 = {
     'buffer_with_params': (UnaryTopologicalOp, 'buffer_with_params'),
 }
 
+IMPL360 = {
+    'minimum_clearance': (UnaryRealProperty, 'minimum_clearance')
+}
 
 def impl_items(defs):
     return [(k, v[0](v[1])) for k, v in list(defs.items())]
@@ -161,5 +164,7 @@ if lgeos.geos_version >= (3, 2, 0):
     imp.update(impl_items(IMPL320))
 if lgeos.geos_version >= (3, 3, 0):
     imp.update(impl_items(IMPL330))
+if lgeos.geos_version >= (3, 6, 0):
+    imp.update(impl_items(IMPL360))
 
 DefaultImplementation = imp
