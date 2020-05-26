@@ -987,6 +987,7 @@ example will be shown for each.
   >>> LinearRing([(1,0), (1,1), (0,0)]).is_ccw
   True
 
+A ring with an undesired orientation can be reversed like this:
 
 .. code-block:: pycon
 
