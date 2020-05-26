@@ -530,6 +530,17 @@ static PyUFuncGenericFunction Y_i_funcs[1] = {&Y_i_func};
 /* Define the geom, geom -> double functions (YY_d) */
 static void *distance_data[1] = {GEOSDistance_r};
 static void *hausdorff_distance_data[1] = {GEOSHausdorffDistance_r};
+#if GEOS_SINCE_370
+  static int GEOSFrechetDistanceWrapped_r(void *context, void *a,  void *b, double *c) {
+      /* Handle empty geometries (they give segfaults) */
+      if (GEOSisEmpty_r(context, a) | GEOSisEmpty_r(context, b)) {
+          *c = NPY_NAN;
+          return 1;
+      }
+      return GEOSFrechetDistance_r(context, a, b, c);
+  }
+  static void *frechet_distance_data[1] = {GEOSFrechetDistanceWrapped_r};
+#endif
 /* Project and ProjectNormalize don't return error codes. wrap them. */
 static int GEOSProjectWrapped_r(void *context, void *a,  void *b, double *c) {
     /* Handle empty points (they give segfaults) */
@@ -720,6 +731,32 @@ static void haussdorf_distance_densify_func(char **args, npy_intp *dimensions,
     }
 }
 static PyUFuncGenericFunction haussdorf_distance_densify_funcs[1] = {&haussdorf_distance_densify_func};
+
+
+static char frechet_distance_densify_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_DOUBLE};
+static void frechet_distance_densify_func(char **args, npy_intp *dimensions,
+                                            npy_intp *steps, void *data)
+{
+    void *context_handle = geos_context[0];
+    GEOSGeometry *in1, *in2;
+
+    TERNARY_LOOP {
+        /* get the geometries: return on error */
+        if (!get_geom(*(GeometryObject **)ip1, &in1)) { return; }
+        if (!get_geom(*(GeometryObject **)ip2, &in2)) { return; }
+        double in3 = *(double *) ip3;
+        if ((in1 == NULL) | (in2 == NULL) | npy_isnan(in3) | GEOSisEmpty_r(context_handle, in1) | GEOSisEmpty_r(context_handle, in2)) {
+            *(double *)op1 = NPY_NAN;
+        } else {
+            if ((in3 <= 0) | (in3 > 1)) {
+                PyErr_Format(PyExc_ValueError, "Densify must be in range (0.0 - 1.0], got %f instead", in3);
+                return;
+            }
+            GEOSFrechetDistanceDensify_r(context_handle, in1, in2, in3, (double *) op1);
+        }
+    }
+}
+static PyUFuncGenericFunction frechet_distance_densify_funcs[1] = {&frechet_distance_densify_func};
 
 
 static char delaunay_triangles_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
@@ -1485,6 +1522,12 @@ int init_ufuncs(PyObject *m, PyObject *d)
     DEFINE_CUSTOM (to_wkb, 5);
     DEFINE_CUSTOM (to_wkt, 5);
     DEFINE_CUSTOM (from_shapely, 1);
+
+    #if GEOS_SINCE_370
+      DEFINE_YY_d (frechet_distance);
+
+      DEFINE_CUSTOM (frechet_distance_densify, 3);
+    #endif
 
     #if GEOS_SINCE_380
       DEFINE_Y_Y (make_valid);

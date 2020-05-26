@@ -2,8 +2,10 @@ import numpy as np
 
 from . import lib
 from . import Geometry  # NOQA
+from .geos import requires_geos
 
-__all__ = ["area", "distance", "bounds", "total_bounds", "length", "hausdorff_distance"]
+
+__all__ = ["area", "distance", "bounds", "total_bounds", "length", "hausdorff_distance", "frechet_distance"]
 
 
 def area(geometry, **kwargs):
@@ -172,3 +174,41 @@ def hausdorff_distance(a, b, densify=None, **kwargs):
         return lib.hausdorff_distance(a, b, **kwargs)
     else:
         return lib.haussdorf_distance_densify(a, b, densify, **kwargs)
+
+
+@requires_geos("3.7.0")
+def frechet_distance(a, b, densify=None, **kwargs):
+    """Compute the discrete Fréchet distance between two geometries.
+
+    The Fréchet distance is a measure of similarity: it is the greatest
+    distance between any point in A and the closest point in B. The discrete
+    distance is an approximation of this metric: only vertices are considered.
+    The parameter 'densify' makes this approximation less coarse by splitting
+    the line segments between vertices before computing the distance.
+
+    Fréchet distance sweep continuously along their respective curves
+    and the direction of curves is significant. This makes it a better measure
+    of similarity than Hausdorff distance for curve or surface matching.
+
+    Parameters
+    ----------
+    a, b : Geometry or array_like
+    densify : float, array_like or None
+        The value of densify is required to be between 0 and 1.
+
+    Examples
+    --------
+    >>> line_1 = Geometry("LINESTRING (0 0, 100 0)")
+    >>> line_2 = Geometry("LINESTRING (0 0, 50 50, 100 0)")
+    >>> frechet_distance(line_1, line_2)  # doctest: +ELLIPSIS
+    70.71...
+    >>> frechet_distance(line_1, line_2, densify=0.5)
+    50.0
+    >>> frechet_distance(line_1, Geometry("LINESTRING EMPTY"))
+    nan
+    >>> frechet_distance(line_1, None)
+    nan
+    """
+    if densify is None:
+        return lib.frechet_distance(a, b, **kwargs)
+    return lib.frechet_distance_densify(a, b, densify, **kwargs)
