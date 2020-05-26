@@ -1223,8 +1223,8 @@ interior point in common.
 
 .. method:: object.overlaps(other)
 
-  Returns ``True`` if the objects have more than one but not all points in common,
-  they have the same dimension, and the intersection of the interiors of the geometries
+  Returns ``True`` if the geometries have more than one but not all points in common,
+  have the same dimension, and the intersection of the interiors of the geometries
   has the same dimension as the geometries themselves.
 
 .. method:: object.touches(other)
