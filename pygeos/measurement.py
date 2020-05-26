@@ -143,9 +143,9 @@ def length(geometry, **kwargs):
 
 
 def hausdorff_distance(a, b, densify=None, **kwargs):
-    """Compute the discrete Haussdorf distance between two geometries.
+    """Compute the discrete Hausdorff distance between two geometries.
 
-    The Haussdorf distance is a measure of similarity: it is the greatest
+    The Hausdorff distance is a measure of similarity: it is the greatest
     distance between any point in A and the closest point in B. The discrete
     distance is an approximation of this metric: only vertices are considered.
     The parameter 'densify' makes this approximation less coarse by splitting
@@ -173,7 +173,7 @@ def hausdorff_distance(a, b, densify=None, **kwargs):
     if densify is None:
         return lib.hausdorff_distance(a, b, **kwargs)
     else:
-        return lib.haussdorf_distance_densify(a, b, densify, **kwargs)
+        return lib.hausdorff_distance_densify(a, b, densify, **kwargs)
 
 
 @requires_geos("3.7.0")

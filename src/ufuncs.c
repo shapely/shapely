@@ -705,8 +705,8 @@ static void equals_exact_func(char **args, npy_intp *dimensions,
 static PyUFuncGenericFunction equals_exact_funcs[1] = {&equals_exact_func};
 
 
-static char haussdorf_distance_densify_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_DOUBLE};
-static void haussdorf_distance_densify_func(char **args, npy_intp *dimensions,
+static char hausdorff_distance_densify_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_DOUBLE};
+static void hausdorff_distance_densify_func(char **args, npy_intp *dimensions,
                                             npy_intp *steps, void *data)
 {
     void *context_handle = geos_context[0];
@@ -730,7 +730,7 @@ static void haussdorf_distance_densify_func(char **args, npy_intp *dimensions,
         }
     }
 }
-static PyUFuncGenericFunction haussdorf_distance_densify_funcs[1] = {&haussdorf_distance_densify_func};
+static PyUFuncGenericFunction hausdorff_distance_densify_funcs[1] = {&hausdorff_distance_densify_func};
 
 
 static char frechet_distance_densify_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_DOUBLE};
@@ -1505,7 +1505,7 @@ int init_ufuncs(PyObject *m, PyObject *d)
     DEFINE_CUSTOM (buffer, 7);
     DEFINE_CUSTOM (snap, 3);
     DEFINE_CUSTOM (equals_exact, 3);
-    DEFINE_CUSTOM (haussdorf_distance_densify, 3);
+    DEFINE_CUSTOM (hausdorff_distance_densify, 3);
     DEFINE_CUSTOM (delaunay_triangles, 3);
     DEFINE_CUSTOM (voronoi_polygons, 4);
     DEFINE_CUSTOM (is_valid_reason, 1);

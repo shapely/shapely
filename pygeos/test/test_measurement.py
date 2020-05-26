@@ -136,7 +136,7 @@ def test_length_missing():
     assert np.isnan(actual)
 
 
-def test_haussdorf_distance():
+def test_hausdorff_distance():
     # example from GEOS docs
     a = pygeos.linestrings([[0, 0], [100, 0], [10, 100], [10, 100]])
     b = pygeos.linestrings([[0, 100], [0, 10], [80, 10]])
@@ -144,7 +144,7 @@ def test_haussdorf_distance():
     assert actual == pytest.approx(22.360679775, abs=1e-7)
 
 
-def test_haussdorf_distance_densify():
+def test_hausdorff_distance_densify():
     # example from GEOS docs
     a = pygeos.linestrings([[0, 0], [100, 0], [10, 100], [10, 100]])
     b = pygeos.linestrings([[0, 100], [0, 10], [80, 10]])
@@ -152,12 +152,12 @@ def test_haussdorf_distance_densify():
     assert actual == pytest.approx(47.8, abs=0.1)
 
 
-def test_haussdorf_distance_missing():
+def test_hausdorff_distance_missing():
     actual = pygeos.hausdorff_distance(point, None)
     assert np.isnan(actual)
 
 
-def test_haussdorf_densify_nan():
+def test_hausdorff_densify_nan():
     actual = pygeos.hausdorff_distance(point, point, densify=np.nan)
     assert np.isnan(actual)
 
@@ -167,12 +167,12 @@ def test_distance_empty():
     assert np.isnan(actual)
 
 
-def test_haussdorf_distance_empty():
+def test_hausdorff_distance_empty():
     actual = pygeos.hausdorff_distance(point, empty)
     assert np.isnan(actual)
 
 
-def test_haussdorf_distance_densify_empty():
+def test_hausdorff_distance_densify_empty():
     actual = pygeos.hausdorff_distance(point, empty, densify=0.2)
     assert np.isnan(actual)
 
