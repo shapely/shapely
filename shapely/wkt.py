@@ -48,8 +48,9 @@ def dumps(ob, trim=False, **kw):
         Remove excess decimals from the WKT.
     rounding_precision (GEOS 3.3+):
         Round output to the specified number of digits
-    output_dimension (GEOS 3.3+)
-        Force removal of dimensions above the one specified
+    output_dimension (GEOS 3.3+):
+        Force removal of dimensions above the one specified.
+        Defaults to 3.
 
     Returns
     -------
