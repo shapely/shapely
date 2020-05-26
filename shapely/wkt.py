@@ -6,21 +6,76 @@ from shapely import geos
 # Pickle-like convenience functions
 
 def loads(data):
-    """Load a geometry from a WKT string."""
+    """
+    Load a geometry from a WKT string.
+
+    Parameters
+    ----------
+    data :
+        A WKT string
+
+    Returns
+    -------
+    Shapely geometry object
+    """
     return geos.WKTReader(geos.lgeos).read(data)
 
 def load(fp):
-    """Load a geometry from an open file."""
+    """
+    Load a geometry from an open file.
+
+    Parameters
+    ----------
+    fp :
+        A file-like object which implements a `read` method.
+
+    Returns
+    -------
+    Shapely geometry object
+    """
     data = fp.read()
     return loads(data)
 
 def dumps(ob, trim=False, **kw):
-    """Dump a WKT representation of a geometry to a string.
+    """
+    Dump a WKT representation of a geometry to a string.
 
-    See available keyword output settings in ``shapely.geos.WKTWriter``.
+    Parameters
+    ----------
+    ob :
+        A geometry object of any type to be dumped to WKT.
+    trim :
+        Remove excess decimals from the WKT.
+    rounding_precision (GEOS 3.3+):
+        Round output to the specified number of digits
+    output_dimension (GEOS 3.3+)
+        Force removal of dimensions above the one specified
+
+    Returns
+    -------
+    input geometry as WKT string
     """
     return geos.WKTWriter(geos.lgeos, trim=trim, **kw).write(ob)
 
 def dump(ob, fp, **settings):
-    """Dump a geometry to an open file."""
+    """
+    Dump a geometry to an open file.
+
+    Parameters
+    ----------
+    ob :
+        A geometry object of any type to be dumped to WKT.
+    fp :
+        A file-like object which implements a `write` method.
+    trim :
+        Remove excess decimals from the WKT.
+    rounding_precision (GEOS 3.3+):
+        Round output to the specified number of digits
+    output_dimension (GEOS 3.3+)
+        Force removal of dimensions above the one specified
+
+    Returns
+    -------
+    None
+    """
     fp.write(dumps(ob, **settings))
