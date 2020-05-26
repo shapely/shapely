@@ -2542,7 +2542,7 @@ counterparts. To serialize a geometric object to a binary or text string, use
 appropriate type, use ``loads()``.
 
 The default settings for the wkt attribute and `shapely.wkt.dumps()` function
-are different. By default, the property's value is trimmed of excess decimals,
+are different. By default, the attribute's value is trimmed of excess decimals,
 while this is not the case for `dumps()`, though it can be replicated by setting
 `trim=True`.
 
