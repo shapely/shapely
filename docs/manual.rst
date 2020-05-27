@@ -1537,15 +1537,15 @@ Several of these set-theoretic methods can be invoked using overloaded operators
 .. code-block:: pycon
 >>> from shapely import wkt
 >>> p1 = wkt.loads('POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))')
->>> p2 = wkt.loads('POLYGON((1 0, 2 0, 2 1, 1 1, 1 0))')
+>>> p2 = wkt.loads('POLYGON((0.5 0, 1.5 0, 1.5 1, 0.5 1, 0.5 0))')
 >>> (p1 & p2).wkt
-'LINESTRING (1 0, 1 1)'
+'POLYGON ((1 0, 0.5 0, 0.5 1, 1 1, 1 0))'
 >>> (p1 | p2).wkt
-'POLYGON ((1 0, 0 0, 0 1, 1 1, 2 1, 2 0, 1 0))'
+'POLYGON ((0.5 0, 0 0, 0 1, 0.5 1, 1 1, 1.5 1, 1.5 0, 1 0, 0.5 0))'
 >>> (p1 - p2).wkt
-'POLYGON ((1 0, 0 0, 0 1, 1 1, 1 0))'
+'POLYGON ((0.5 0, 0 0, 0 1, 0.5 1, 0.5 0))'
 >>> (p1 ^ p2).wkt
-'POLYGON ((1 0, 0 0, 0 1, 1 1, 2 1, 2 0, 1 0))'
+'MULTIPOLYGON (((0.5 0, 0 0, 0 1, 0.5 1, 0.5 0)), ((1 0, 1 1, 1.5 1, 1.5 0, 1 0)))'
 
 
 Constructive Methods
