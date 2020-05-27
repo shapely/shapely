@@ -5,13 +5,14 @@ from shapely import geos
 
 # Pickle-like convenience functions
 
+
 def loads(data):
     """
     Load a geometry from a WKT string.
 
     Parameters
     ----------
-    data :
+    data : str
         A WKT string
 
     Returns
@@ -19,6 +20,7 @@ def loads(data):
     Shapely geometry object
     """
     return geos.WKTReader(geos.lgeos).read(data)
+
 
 def load(fp):
     """
@@ -36,6 +38,7 @@ def load(fp):
     data = fp.read()
     return loads(data)
 
+
 def dumps(ob, trim=False, **kw):
     """
     Dump a WKT representation of a geometry to a string.
@@ -44,19 +47,20 @@ def dumps(ob, trim=False, **kw):
     ----------
     ob :
         A geometry object of any type to be dumped to WKT.
-    trim :
+    trim : bool, default False
         Remove excess decimals from the WKT.
-    rounding_precision (GEOS 3.3+):
-        Round output to the specified number of digits
-    output_dimension (GEOS 3.3+):
+    rounding_precision (GEOS 3.3+) : int
+        Round output to the specified number of digits.
+        Default behavior returns full precision.
+    output_dimension (GEOS 3.3+): int, default 3
         Force removal of dimensions above the one specified.
-        Defaults to 3.
 
     Returns
     -------
     input geometry as WKT string
     """
     return geos.WKTWriter(geos.lgeos, trim=trim, **kw).write(ob)
+
 
 def dump(ob, fp, **settings):
     """
@@ -68,12 +72,13 @@ def dump(ob, fp, **settings):
         A geometry object of any type to be dumped to WKT.
     fp :
         A file-like object which implements a `write` method.
-    trim :
+    trim : bool, default False
         Remove excess decimals from the WKT.
-    rounding_precision (GEOS 3.3+):
-        Round output to the specified number of digits
-    output_dimension (GEOS 3.3+)
-        Force removal of dimensions above the one specified
+    rounding_precision (GEOS 3.3+) : int
+        Round output to the specified number of digits.
+        Default behavior returns full precision.
+    output_dimension (GEOS 3.3+): int, default 3
+        Force removal of dimensions above the one specified.
 
     Returns
     -------
