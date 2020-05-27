@@ -212,7 +212,7 @@ static void *GEOSLinearRingToPolygon(void *context, void *geom) {
     return GEOSGeom_createPolygon_r(context, shell, NULL, 0);
 }
 static void *polygons_without_holes_data[1] = {GEOSLinearRingToPolygon};
-#if GEOS_SINCE_380
+#if GEOS_SINCE_3_8_0
   static void *build_area_data[1] = {GEOSBuildArea_r};
   static void *make_valid_data[1] = {GEOSMakeValid_r};
 #endif
@@ -244,7 +244,7 @@ static PyUFuncGenericFunction Y_Y_funcs[1] = {&Y_Y_func};
 
 /* GEOS < 3.8 gives segfault for empty linestrings, this is fixed since
    https://github.com/libgeos/geos/commit/18505af1103cdafb2178f2f0eb8e1a10cfa16d2d */
-#if GEOS_SINCE_380
+#if GEOS_SINCE_3_8_0
     static void *line_interpolate_point_data[1] = {GEOSInterpolate_r};
     static void *line_interpolate_point_normalized_data[1] = {GEOSInterpolateNormalized_r};
 #else
@@ -530,7 +530,7 @@ static PyUFuncGenericFunction Y_i_funcs[1] = {&Y_i_func};
 /* Define the geom, geom -> double functions (YY_d) */
 static void *distance_data[1] = {GEOSDistance_r};
 static void *hausdorff_distance_data[1] = {GEOSHausdorffDistance_r};
-#if GEOS_SINCE_370
+#if GEOS_SINCE_3_7_0
   static int GEOSFrechetDistanceWrapped_r(void *context, void *a,  void *b, double *c) {
       /* Handle empty geometries (they give segfaults) */
       if (GEOSisEmpty_r(context, a) | GEOSisEmpty_r(context, b)) {
@@ -1523,13 +1523,13 @@ int init_ufuncs(PyObject *m, PyObject *d)
     DEFINE_CUSTOM (to_wkt, 5);
     DEFINE_CUSTOM (from_shapely, 1);
 
-    #if GEOS_SINCE_370
+    #if GEOS_SINCE_3_7_0
       DEFINE_YY_d (frechet_distance);
 
       DEFINE_CUSTOM (frechet_distance_densify, 3);
     #endif
 
-    #if GEOS_SINCE_380
+    #if GEOS_SINCE_3_8_0
       DEFINE_Y_Y (make_valid);
       DEFINE_Y_Y (build_area);
     #endif
