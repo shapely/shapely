@@ -4,7 +4,7 @@
 from ctypes import c_double
 import warnings
 
-from shapely.errors import DimensionError
+from shapely.errors import DimensionError, ShapelyDeprecationWarning
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, geos_geom_from_py
 from shapely.geometry.proxy import CachingGeometryProxy
@@ -139,7 +139,7 @@ class Point(BaseGeometry):
         warnings.warn(
             "Setting the 'coords' to mutate a Geometry in place is deprecated,"
             " and will not be possible any more in Shapely 2.0",
-            FutureWarning, stacklevel=2)
+            ShapelyDeprecationWarning, stacklevel=2)
         self.empty()
         if len(args) == 1:
             self._geom, self._ndim = geos_point_from_py(args[0])

@@ -5,7 +5,9 @@ from shapely.errors import DimensionError
 import pytest
 
 
-shapely20_deprecated = pytest.mark.filterwarnings("ignore:Setting:FutureWarning")
+shapely20_deprecated = pytest.mark.filterwarnings(
+    "ignore::shapely.errors.ShapelyDeprecationWarning"
+)
 
 
 class LineStringTestCase(unittest.TestCase):

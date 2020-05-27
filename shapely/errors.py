@@ -31,3 +31,10 @@ class TopologicalError(ShapelyError):
 
 class PredicateError(ShapelyError):
     """A geometric predicate has failed to return True/False."""
+
+
+class ShapelyDeprecationWarning(FutureWarning):
+    """
+    Warning for features that will be removed or behaviour that will be
+    changed in a future release.
+    """
