@@ -14,7 +14,8 @@ from shapely.algorithms.polylabel import polylabel
 
 __all__ = ['cascaded_union', 'linemerge', 'operator', 'polygonize',
            'polygonize_full', 'transform', 'unary_union', 'triangulate',
-           'voronoi_diagram', 'split', 'section']
+           'voronoi_diagram', 'split', 'nearest_points', 'validate', 'snap',
+           'shared_paths', 'clip_by_rect', 'orient', 'substring']
 
 
 class CollectionOperator(object):
@@ -254,18 +255,19 @@ def transform(func, geom):
 
       g2 = transform(id_func, g1)
 
-    A partially applied transform function from pyproj satisfies the
-    requirements for `func`.
+    Using pyproj >= 2.1, this example will accurately project Shapely geometries:
 
-      from functools import partial
       import pyproj
 
-      project = partial(
-          pyproj.transform,
-          pyproj.Proj(init='epsg:4326'),
-          pyproj.Proj(init='epsg:26913'))
+      wgs84 = pyproj.CRS('EPSG:4326')
+      utm = pyproj.CRS('EPSG:32618')
+
+      project = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True).transform
 
       g2 = transform(project, g1)
+
+    Note that the always_xy kwarg is required here as Shapely geometries only support
+    X,Y coordinate ordering.
 
     Lambda expressions such as the one in
 

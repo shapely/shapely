@@ -56,6 +56,10 @@ def load_dll(libname, fallbacks=None, mode=DEFAULT_MODE):
                 libname, fallbacks or []))
 
 _lgeos = None
+def exists_conda_env():
+    """Does this module exist in a conda environment?"""
+    return os.path.exists(os.path.join(sys.prefix, 'conda-meta'))
+
 
 if sys.platform.startswith('linux'):
     # Test to see if we have a wheel repaired by 'auditwheel' containing its
@@ -70,7 +74,7 @@ if sys.platform.startswith('linux'):
         if len(geos_pyinstaller_so) == 1:
             _lgeos = CDLL(geos_pyinstaller_so[0])
             LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
-    elif os.getenv('CONDA_PREFIX', ''):
+    elif exists_conda_env():
         # conda package.
         _lgeos = CDLL(os.path.join(sys.prefix, 'lib', 'libgeos_c.so'))
     else:
@@ -101,7 +105,7 @@ elif sys.platform == 'darwin':
             _lgeos = CDLL(geos_whl_dylib)
             LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
 
-    elif os.getenv('CONDA_PREFIX', ''):
+    elif exists_conda_env():
         # conda package.
         _lgeos = CDLL(os.path.join(sys.prefix, 'lib', 'libgeos_c.dylib'))
     else:
@@ -129,12 +133,16 @@ elif sys.platform == 'darwin':
             ]
         _lgeos = load_dll('geos_c', fallbacks=alt_paths)
 
-    free = load_dll('c').free
+    # ctypes.CDLL(None) internally calls dlopen(NULL), and as the dlopen
+    # manpage says, "If filename is NULL, then the returned handle is for the
+    # main program". This way we can let the linker do the work to figure out
+    # which libc Python is actually using.
+    free = CDLL(None).free
     free.argtypes = [c_void_p]
     free.restype = None
 
 elif sys.platform == 'win32':
-    if os.getenv('CONDA_PREFIX', ''):
+    if exists_conda_env():
         # conda package.
         _lgeos = CDLL(os.path.join(sys.prefix, 'Library', 'bin', 'geos_c.dll'))
     else:
@@ -843,11 +851,24 @@ class LGEOS340(LGEOS330):
 class LGEOS350(LGEOS340):
     """Proxy for GEOS 3.5.0-CAPI-1.9.0
     """
+    geos_version = (3, 5, 0)
+    geos_capi_version = (1, 9, 0)
 
     def __init__(self, dll):
         super(LGEOS350, self).__init__(dll)
         self.methods['clip_by_rect'] = self.GEOSClipByRect
         self.methods['voronoi_diagram'] = self.GEOSVoronoiDiagram
+
+
+class LGEOS360(LGEOS350):
+    """Proxy for GEOS 3.6.0-CAPI-1.10.0
+    """
+    geos_version = (3, 6, 0)
+    geos_capi_version = (1, 10, 0)
+
+    def __init__(self, dll):
+        super(LGEOS360, self).__init__(dll)
+        self.methods['minimum_clearance'] = self.GEOSMinimumClearance
 
 
 class LGEOS380(LGEOS350):
@@ -860,6 +881,8 @@ class LGEOS380(LGEOS350):
 
 if geos_version >= (3, 8, 0):
     L = LGEOS380
+elif geos_version >= (3, 6, 0):
+    L = LGEOS360
 elif geos_version >= (3, 5, 0):
     L = LGEOS350
 elif geos_version >= (3, 4, 0):

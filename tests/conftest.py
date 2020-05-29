@@ -6,6 +6,7 @@ from shapely.geos import geos_version
 
 
 requires_geos_38 = pytest.mark.skipif(geos_version < (3, 8, 0), reason='GEOS >= 3.8.0 is required.')
+requires_geos_342 = pytest.mark.skipif(geos_version < (3, 4, 2), reason="GEOS > 3.4.2 is required.")
 
 
 def pytest_addoption(parser):
