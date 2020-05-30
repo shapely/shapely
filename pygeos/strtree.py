@@ -1,6 +1,6 @@
 from enum import IntEnum
 import numpy as np
-from pygeos import lib
+from . import lib
 
 
 __all__ = ["STRtree"]

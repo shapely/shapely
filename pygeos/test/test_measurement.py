@@ -281,7 +281,7 @@ def test_frechet_densify_nan():
     ]
 )
 def test_frechet_densify_invalid_values(densify):
-    with pytest.raises(ValueError, match=r"Densify must be in range \(0.0 - 1.0], got .* instead"):
+    with pytest.raises(pygeos.GEOSException, match="Fraction is not in range"):
         actual = pygeos.frechet_distance(line_string, line_string, densify=densify)
 
 

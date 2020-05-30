@@ -2,6 +2,7 @@ from enum import IntEnum
 import numpy as np
 from . import lib
 from . import Geometry  # NOQA
+from .decorators import multithreading_enabled
 
 __all__ = [
     "GeometryType",
@@ -40,6 +41,7 @@ class GeometryType(IntEnum):
 # generic
 
 
+@multithreading_enabled
 def get_type_id(geometry):
     """Returns the type ID of a geometry.
 
@@ -71,6 +73,7 @@ def get_type_id(geometry):
     return lib.get_type_id(geometry)
 
 
+@multithreading_enabled
 def get_dimensions(geometry):
     """Returns the inherent dimensionality of a geometry.
 
@@ -98,6 +101,7 @@ def get_dimensions(geometry):
     return lib.get_dimensions(geometry)
 
 
+@multithreading_enabled
 def get_coordinate_dimensions(geometry):
     """Returns the dimensionality of the coordinates in a geometry (2 or 3).
 
@@ -119,6 +123,7 @@ def get_coordinate_dimensions(geometry):
     return lib.get_coordinate_dimensions(geometry)
 
 
+@multithreading_enabled
 def get_num_coordinates(geometry):
     """Returns the total number of coordinates in a geometry.
 
@@ -142,6 +147,7 @@ def get_num_coordinates(geometry):
     return lib.get_num_coordinates(geometry)
 
 
+@multithreading_enabled
 def get_srid(geometry):
     """Returns the SRID of a geometry.
 
@@ -167,6 +173,7 @@ def get_srid(geometry):
     return lib.get_srid(geometry)
 
 
+@multithreading_enabled
 def set_srid(geometry, srid):
     """Returns a geometry with its SRID set.
 
@@ -194,6 +201,7 @@ def set_srid(geometry, srid):
 # points
 
 
+@multithreading_enabled
 def get_x(point):
     """Returns the x-coordinate of a point
 
@@ -216,6 +224,7 @@ def get_x(point):
     return lib.get_x(point)
 
 
+@multithreading_enabled
 def get_y(point):
     """Returns the y-coordinate of a point
 
@@ -273,6 +282,7 @@ def get_point(geometry, index):
     return lib.get_point(geometry, np.intc(index))
 
 
+@multithreading_enabled
 def get_num_points(geometry):
     """Returns number of points in a linestring or linearring.
 
@@ -347,6 +357,7 @@ def get_interior_ring(geometry, index):
     return lib.get_interior_ring(geometry, np.intc(index))
 
 
+@multithreading_enabled
 def get_num_interior_rings(geometry):
     """Returns number of internal rings in a polygon
 
@@ -412,6 +423,7 @@ def get_geometry(geometry, index):
     return lib.get_geometry(geometry, np.intc(index))
 
 
+@multithreading_enabled
 def get_num_geometries(geometry):
     """Returns number of geometries in a collection.
 

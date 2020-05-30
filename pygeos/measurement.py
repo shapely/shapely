@@ -2,12 +2,13 @@ import numpy as np
 
 from . import lib
 from . import Geometry  # NOQA
-from .geos import requires_geos
+from .decorators import requires_geos, multithreading_enabled
 
 
 __all__ = ["area", "distance", "bounds", "total_bounds", "length", "hausdorff_distance", "frechet_distance"]
 
 
+@multithreading_enabled
 def area(geometry, **kwargs):
     """Computes the area of a (multi)polygon.
 
@@ -29,6 +30,7 @@ def area(geometry, **kwargs):
     return lib.area(geometry, **kwargs)
 
 
+@multithreading_enabled
 def distance(a, b, **kwargs):
     """Computes the Cartesian distance between two geometries.
 
@@ -53,6 +55,7 @@ def distance(a, b, **kwargs):
     return lib.distance(a, b, **kwargs)
 
 
+@multithreading_enabled
 def bounds(geometry, **kwargs):
     """Computes the bounds (extent) of a geometry.
 
@@ -119,6 +122,7 @@ def total_bounds(geometry, **kwargs):
     )
 
 
+@multithreading_enabled
 def length(geometry, **kwargs):
     """Computes the length of a (multi)linestring or polygon perimeter.
 
@@ -142,6 +146,7 @@ def length(geometry, **kwargs):
     return lib.length(geometry, **kwargs)
 
 
+@multithreading_enabled
 def hausdorff_distance(a, b, densify=None, **kwargs):
     """Compute the discrete Hausdorff distance between two geometries.
 
@@ -177,6 +182,7 @@ def hausdorff_distance(a, b, densify=None, **kwargs):
 
 
 @requires_geos("3.7.0")
+@multithreading_enabled
 def frechet_distance(a, b, densify=None, **kwargs):
     """Compute the discrete Fréchet distance between two geometries.
 

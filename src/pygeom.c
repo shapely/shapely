@@ -25,9 +25,10 @@ PyObject *GeometryObject_FromGEOS(PyTypeObject *type, GEOSGeometry *ptr)
 
 static void GeometryObject_dealloc(GeometryObject *self)
 {
-    void *context_handle = geos_context[0];
     if (self->ptr != NULL) {
-        GEOSGeom_destroy_r(context_handle, self->ptr);
+        GEOS_INIT;
+        GEOSGeom_destroy_r(ctx, self->ptr);
+        GEOS_FINISH;
     }
     Py_TYPE(self)->tp_free((PyObject *) self);
 }
@@ -39,31 +40,41 @@ static PyMemberDef GeometryObject_members[] = {
 
 static PyObject *GeometryObject_ToWKT(GeometryObject *obj, char *format)
 {
-    void *context_handle = geos_context[0];
     char *wkt;
     PyObject *result;
     if (obj->ptr == NULL) {
         Py_INCREF(Py_None);
         return Py_None;
     }
-    GEOSWKTWriter *writer = GEOSWKTWriter_create_r(context_handle);
-    if (writer == NULL) {
-        return NULL;
-    }
+
+    GEOS_INIT;
+    GEOSWKTWriter *writer = GEOSWKTWriter_create_r(ctx);
+    if (writer == NULL) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
 
     char trim = 1;
     int precision = 3;
     int dimension = 3;
     int use_old_3d = 0;
-    GEOSWKTWriter_setRoundingPrecision_r(context_handle, writer, precision);
-    GEOSWKTWriter_setTrim_r(context_handle, writer, trim);
-    GEOSWKTWriter_setOutputDimension_r(context_handle, writer, dimension);
-    GEOSWKTWriter_setOld3D_r(context_handle, writer, use_old_3d);
-    wkt = GEOSWKTWriter_write_r(context_handle, writer, obj->ptr);
+    GEOSWKTWriter_setRoundingPrecision_r(ctx, writer, precision);
+    GEOSWKTWriter_setTrim_r(ctx, writer, trim);
+    GEOSWKTWriter_setOutputDimension_r(ctx, writer, dimension);
+    GEOSWKTWriter_setOld3D_r(ctx, writer, use_old_3d);
+
+    // Check if the above functions caused a GEOS exception
+    if (last_error[0] != 0) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
+
+    wkt = GEOSWKTWriter_write_r(ctx, writer, obj->ptr);
     result = PyUnicode_FromFormat(format, wkt);
-    GEOSFree_r(context_handle, wkt);
-    GEOSWKTWriter_destroy_r(context_handle, writer);
-    return result;
+    GEOSFree_r(ctx, wkt);
+    GEOSWKTWriter_destroy_r(ctx, writer);
+
+    finish:
+        GEOS_FINISH;
+        if (errstate == PGERR_SUCCESS) {
+            return result;
+        } else {
+            return NULL;
+        }
 }
 
 static PyObject *GeometryObject_repr(GeometryObject *self)
@@ -78,7 +89,6 @@ static PyObject *GeometryObject_str(GeometryObject *self)
 
 static Py_hash_t GeometryObject_hash(GeometryObject *self)
 {
-    void *context = geos_context[0];
     unsigned char *wkb;
     size_t size;
     Py_hash_t x;
@@ -86,31 +96,36 @@ static Py_hash_t GeometryObject_hash(GeometryObject *self)
     if (self->ptr == NULL) {
         return -1;
     }
-    GEOSWKBWriter *writer = GEOSWKBWriter_create_r(context);
-    if (writer == NULL) {
-        return -1;
-    }
 
-    GEOSWKBWriter_setOutputDimension_r(context, writer, 3);
-    GEOSWKBWriter_setIncludeSRID_r(context, writer, 1);
-    wkb = GEOSWKBWriter_write_r(context, writer, self->ptr, &size);
-    GEOSWKBWriter_destroy_r(context, writer);
-    if (wkb == NULL) {
-        return -1;
-    }
+    GEOS_INIT;
+    GEOSWKBWriter *writer = GEOSWKBWriter_create_r(ctx);
+    if (writer == NULL) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
+
+    GEOSWKBWriter_setOutputDimension_r(ctx, writer, 3);
+    GEOSWKBWriter_setIncludeSRID_r(ctx, writer, 1);
+    wkb = GEOSWKBWriter_write_r(ctx, writer, self->ptr, &size);
+    GEOSWKBWriter_destroy_r(ctx, writer);
+    if (wkb == NULL) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
     x = PyHash_GetFuncDef()->hash(wkb, size);
     if (x == -1) {
         x = -2;
     } else {
         x ^= 374761393UL;  // to make the result distinct from the actual WKB hash //
     }
-    GEOSFree_r(context, wkb);
-    return x;
+    GEOSFree_r(ctx, wkb);
+
+    finish:
+        GEOS_FINISH;
+        if (errstate == PGERR_SUCCESS) {
+            return x;
+        } else {
+            return -1;
+        }
 }
 
 static PyObject *GeometryObject_richcompare(GeometryObject *self, PyObject *other, int op) {
   PyObject *result = NULL;
-  void *context = geos_context[0];
+  GEOS_INIT;
   if (Py_TYPE(self)->tp_richcompare != Py_TYPE(other)->tp_richcompare) {
       result = Py_NotImplemented;
   } else {
@@ -123,10 +138,10 @@ static PyObject *GeometryObject_richcompare(GeometryObject *self, PyObject *othe
         result = Py_NotImplemented;
         break;
       case Py_EQ:
-        result = GEOSEqualsExact_r(context, self->ptr, other_geom->ptr, 0) ? Py_True : Py_False;
+        result = GEOSEqualsExact_r(ctx, self->ptr, other_geom->ptr, 0) ? Py_True : Py_False;
         break;
       case Py_NE:
-        result = GEOSEqualsExact_r(context, self->ptr, other_geom->ptr, 0) ? Py_False : Py_True;
+        result = GEOSEqualsExact_r(ctx, self->ptr, other_geom->ptr, 0) ? Py_False : Py_True;
         break;
       case Py_GT:
         result = Py_NotImplemented;
@@ -136,13 +151,13 @@ static PyObject *GeometryObject_richcompare(GeometryObject *self, PyObject *othe
         break;
     }
   }
+  GEOS_FINISH;
   Py_XINCREF(result);
   return result;
 }
 
 static PyObject *GeometryObject_FromWKT(PyTypeObject *type, PyObject *value)
 {
-    void *context_handle = geos_context[0];
     PyObject *result = NULL;
     const char *wkt;
     GEOSGeometry *geom;
@@ -157,21 +172,26 @@ static PyObject *GeometryObject_FromWKT(PyTypeObject *type, PyObject *value)
         return NULL;
     }
 
-    reader = GEOSWKTReader_create_r(context_handle);
-    if (reader == NULL) {
-        return NULL;
-    }
-    geom = GEOSWKTReader_read_r(context_handle, reader, wkt);
-    GEOSWKTReader_destroy_r(context_handle, reader);
-    if (geom == NULL) {
-        return NULL;
-    }
+    GEOS_INIT;
+
+    reader = GEOSWKTReader_create_r(ctx);
+    if (reader == NULL) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
+    geom = GEOSWKTReader_read_r(ctx, reader, wkt);
+    GEOSWKTReader_destroy_r(ctx, reader);
+    if (geom == NULL) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
     result = GeometryObject_FromGEOS(type, geom);
     if (result == NULL) {
-        GEOSGeom_destroy_r(context_handle, geom);
+        GEOSGeom_destroy_r(ctx, geom);
         PyErr_Format(PyExc_RuntimeError, "Could not instantiate a new Geometry object");
     }
-    return result;
+
+    finish:
+        GEOS_FINISH;
+        if (errstate == PGERR_SUCCESS) {
+            return result;
+        } else {
+            return NULL;
+        }
 }
 
 static PyObject *GeometryObject_new(PyTypeObject *type, PyObject *args,
@@ -216,12 +236,12 @@ PyTypeObject GeometryType = {
 /* Get a GEOSGeometry pointer from a GeometryObject, or NULL if the input is
 Py_None. Returns 0 on error, 1 on success. */
 char get_geom(GeometryObject *obj, GEOSGeometry **out) {
-    if (!PyObject_IsInstance((PyObject *) obj, (PyObject *) &GeometryType)) {
+    PyTypeObject *type = ((PyObject *)obj)->ob_type;
+    if ((type != &GeometryType) & (type->tp_base != &GeometryType)) {
         if ((PyObject *) obj == Py_None) {
             *out = NULL;
             return 1;
         } else {
-            PyErr_Format(PyExc_TypeError, "One of the arguments is of incorrect type. Please provide only Geometry objects.");
             return 0;
         }
     } else {

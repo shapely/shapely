@@ -2,7 +2,7 @@ from enum import IntEnum
 import numpy as np
 from . import Geometry  # NOQA
 from . import lib
-from .geos import requires_geos
+from .decorators import requires_geos
 
 
 __all__ = [

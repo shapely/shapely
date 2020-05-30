@@ -1,5 +1,6 @@
 from . import lib
 from . import Geometry  # NOQA
+from .decorators import multithreading_enabled
 
 __all__ = ["line_interpolate_point", "line_locate_point", "line_merge", "shared_paths"]
 
@@ -37,6 +38,7 @@ def line_interpolate_point(line, distance, normalize=False):
         return lib.line_interpolate_point(line, distance)
 
 
+@multithreading_enabled
 def line_locate_point(line, other, normalize=False):
     """Returns the distance to the line origin of given point.
 

@@ -223,7 +223,6 @@ npy_intp CountCoords(PyArrayObject *arr)
     npy_intp result = 0;
     GeometryObject *obj;
     GEOSGeometry *geom;
-    GEOSContextHandle_t context = geos_context[0];
 
     /* Handle zero-sized arrays specially */
     if (PyArray_SIZE(arr) == 0) { return 0; }
@@ -238,21 +237,32 @@ npy_intp CountCoords(PyArrayObject *arr)
     if (iternext == NULL) { NpyIter_Deallocate(iter); return -1; }
     dataptr = NpyIter_GetDataPtrArray(iter);
 
+    GEOS_INIT;
+
     do {
         /* get the geometry */
         obj = *(GeometryObject **) dataptr[0];
-        if (!get_geom(obj, &geom)) { result = -1; goto finish; }
+        if (!get_geom(obj, &geom)) {
+            errstate = PGERR_NOT_A_GEOMETRY;
+            result = -1;
+            goto finish;
+        }
         /* skip incase obj was None */
         if (geom == NULL) { continue; }
         /* count coordinates */
-        ret = GEOSGetNumCoordinates_r(context, geom);
-        if (ret < 0) { result = -1; goto finish; }
+        ret = GEOSGetNumCoordinates_r(ctx, geom);
+        if (ret < 0) {
+            errstate = PGERR_GEOS_EXCEPTION;
+            result = -1;
+            goto finish;
+        }
         result += ret;
     } while(iternext(iter));
 
     finish:
-    NpyIter_Deallocate(iter);
-    return result;
+        GEOS_FINISH;
+        NpyIter_Deallocate(iter);
+        return result;
 }
 
 
@@ -264,7 +274,6 @@ PyObject *GetCoords(PyArrayObject *arr)
     npy_intp cursor;
     GeometryObject *obj;
     GEOSGeometry *geom;
-    GEOSContextHandle_t context = geos_context[0];
 
     /* create a coordinate array with the appropriate dimensions */
     npy_intp size = CountCoords(arr);
@@ -286,8 +295,10 @@ PyObject *GetCoords(PyArrayObject *arr)
         return NULL;
     }
     iternext = NpyIter_GetIterNext(iter, NULL);
-    if (iternext == NULL) { goto fail; }
+    if (iternext == NULL) { NpyIter_Deallocate(iter); return NULL; }
     dataptr = NpyIter_GetDataPtrArray(iter);
+
+    GEOS_INIT;
 
     /* We work with a "cursor" that tells the get_coordinates function where
     to write the coordinate data into the output array "result" */
@@ -295,20 +306,24 @@ PyObject *GetCoords(PyArrayObject *arr)
     do {
         /* get the geometry */
         obj = *(GeometryObject **) dataptr[0];
-        if (!get_geom(obj, &geom)) { goto fail; }
+        if (!get_geom(obj, &geom)) { errstate = PGERR_NOT_A_GEOMETRY; goto finish; }
         /* skip None values */
         if (geom == NULL) { continue; }
         /* get the coordinates */
-        if (!get_coordinates(context, geom, result, &cursor)) { goto fail; }
+        if (!get_coordinates(ctx, geom, result, &cursor)) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
     } while(iternext(iter));
 
-    NpyIter_Deallocate(iter);
-    return (PyObject *) result;
-
-    fail:
-        Py_DECREF(result);
+    
+    finish:
+        GEOS_FINISH;
         NpyIter_Deallocate(iter);
-        return NULL;
+
+        if (errstate != PGERR_SUCCESS ) {
+            Py_DECREF(result);
+            return NULL;
+        } else {
+            return (PyObject *) result; 
+        }
 }
 
 
@@ -321,7 +336,6 @@ PyObject *SetCoords(PyArrayObject *geoms, PyArrayObject *coords)
     GeometryObject *obj;
     PyObject *new_obj;
     GEOSGeometry *geom, *new_geom;
-    GEOSContextHandle_t context = geos_context[0];
 
     /* SetCoords acts implace: if the array is zero-sized, just return the
     same object */
@@ -337,8 +351,10 @@ PyObject *SetCoords(PyArrayObject *geoms, PyArrayObject *coords)
                        NPY_KEEPORDER, NPY_NO_CASTING, NULL);
     if (iter == NULL) { return NULL; }
     iternext = NpyIter_GetIterNext(iter, NULL);
-    if (iternext == NULL) { goto fail; }
+    if (iternext == NULL) { NpyIter_Deallocate(iter); return NULL; }
     dataptr = NpyIter_GetDataPtrArray(iter);
+
+    GEOS_INIT;
 
     /* We work with a "cursor" that tells the set_coordinates function where
     to read the coordinate data from the coordinate array "coords" */
@@ -346,26 +362,29 @@ PyObject *SetCoords(PyArrayObject *geoms, PyArrayObject *coords)
     do {
         /* get the geometry */
         obj = *(GeometryObject **) dataptr[0];
-        if (!get_geom(obj, &geom)) { goto fail; }
+        if (!get_geom(obj, &geom)) { errstate = PGERR_NOT_A_GEOMETRY; goto finish; }
         /* skip None values */
         if (geom == NULL) { continue; }
         /* create a new geometry with coordinates from "coords" array */
-        new_geom = set_coordinates(context, geom, coords, &cursor);
-        if (new_geom == NULL) { goto fail; }
+        new_geom = set_coordinates(ctx, geom, coords, &cursor);
+        if (new_geom == NULL) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
         /* pack into a GeometryObject and set it to the geometry array */
         new_obj = GeometryObject_FromGEOS(&GeometryType, new_geom);
         Py_XDECREF(obj);
         *(PyObject **) dataptr[0] = new_obj;
     } while(iternext(iter));
 
-    NpyIter_Deallocate(iter);
 
-    Py_INCREF((PyObject *) geoms);
-    return (PyObject *) geoms;
-
-    fail:
+    finish:
+        GEOS_FINISH;
         NpyIter_Deallocate(iter);
-        return NULL;
+
+        if (errstate == PGERR_SUCCESS ) {
+            Py_INCREF((PyObject *) geoms);
+            return (PyObject *) geoms;
+        } else {
+            return NULL;
+        }
 }
 
 PyObject *PyCountCoords(PyObject *self, PyObject *args)

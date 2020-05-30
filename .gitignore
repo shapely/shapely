@@ -53,6 +53,9 @@ coverage.xml
 # PyCharm
 .idea
 
+# VS Code
+.vscode
+
 # Pipenv
 .venv
 Pipfile

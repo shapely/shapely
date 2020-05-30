@@ -2,7 +2,7 @@ from .lib import GEOSException  # NOQA
 from .lib import Geometry  # NOQA
 from .lib import geos_version, geos_version_string  # NOQA
 from .lib import geos_capi_version, geos_capi_version_string  # NOQA
-from .geos import UnsupportedGEOSOperation  # NOQA
+from .decorators import UnsupportedGEOSOperation  # NOQA
 from .geometry import *
 from .creation import *
 from .constructive import *
