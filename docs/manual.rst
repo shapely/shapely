@@ -1527,6 +1527,28 @@ boundaries.
   of many objects. See :func:`shapely.ops.unary_union` for a more effective
   method.
 
+Several of these set-theoretic methods can be invoked using overloaded operators:
+
+- `intersection` can be accessed with and, `&`
+- `union` can be accessed with or, `|`
+- `difference` can be accessed with minus, `-`
+- `symmetric_difference` can be accessed with xor, `^`
+
+
+.. code-block:: pycon
+>>> from shapely import wkt
+>>> p1 = wkt.loads('POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))')
+>>> p2 = wkt.loads('POLYGON((0.5 0, 1.5 0, 1.5 1, 0.5 1, 0.5 0))')
+>>> (p1 & p2).wkt
+'POLYGON ((1 0, 0.5 0, 0.5 1, 1 1, 1 0))'
+>>> (p1 | p2).wkt
+'POLYGON ((0.5 0, 0 0, 0 1, 0.5 1, 1 1, 1.5 1, 1.5 0, 1 0, 0.5 0))'
+>>> (p1 - p2).wkt
+'POLYGON ((0.5 0, 0 0, 0 1, 0.5 1, 0.5 0))'
+>>> (p1 ^ p2).wkt
+'MULTIPOLYGON (((0.5 0, 0 0, 0 1, 0.5 1, 0.5 0)), ((1 0, 1 1, 1.5 1, 1.5 0, 1 0)))'
+
+
 Constructive Methods
 --------------------
 
