@@ -543,10 +543,11 @@ def prototype(lgeos, geos_version):
             c_void_p, py_object, c_void_p, lgeos.GEOSDistanceCallback, py_object]
         lgeos.GEOSSTRtree_nearest_generic.restype = c_void_p
 
+        lgeos.GEOSMinimumClearance.argtypes = [c_void_p]
+        lgeos.GEOSMinimumClearance.restype = c_double
+
 
     if geos_version > (3, 8, 0):
         lgeos.GEOSMakeValid.restype = c_void_p
         lgeos.GEOSMakeValid.argtypes = [c_void_p]
 
-        lgeos.GEOSMinimumClearance.argtypes = [c_void_p]
-        lgeos.GEOSMinimumClearance.restype = c_double
