@@ -36,13 +36,26 @@ class STRtree:
         # filter empty geometries out of the input
         geoms = [geom for geom in geoms if not geom.is_empty]
         self._n_geoms = len(geoms)
+
+        self._init_tree_handle(geoms)
+
+        # Keep references to geoms.
+        self._geoms = list(geoms)
+
+    def _init_tree_handle(self, geoms):
         # GEOS STRtree capacity has to be > 1
         self._tree_handle = lgeos.GEOSSTRtree_create(max(2, len(geoms)))
         for geom in geoms:
             lgeos.GEOSSTRtree_insert(self._tree_handle, geom._geom, ctypes.py_object(geom))
 
-        # Keep references to geoms.
-        self._geoms = list(geoms)
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        del state["_tree_handle"]
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self._init_tree_handle(self._geoms)
 
     def __del__(self):
         if self._tree_handle is not None:
