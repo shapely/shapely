@@ -871,7 +871,7 @@ class LGEOS360(LGEOS350):
         self.methods['minimum_clearance'] = self.GEOSMinimumClearance
 
 
-class LGEOS380(LGEOS350):
+class LGEOS380(LGEOS360):
     """Proxy for GEOS 3.8.0-CAPI-1.13.0"""
 
     def __init__(self, dll):
