@@ -47,7 +47,7 @@ def make_valid(ob):
     Returns
     -------
     Geometry
-    The input geometry, made valid according to the GEOS MakeValid algorithm.
+        The input geometry, made valid according to the GEOS MakeValid algorithm.
 
     """
     if ob.is_valid:
