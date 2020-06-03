@@ -871,7 +871,20 @@ class LGEOS360(LGEOS350):
         self.methods['minimum_clearance'] = self.GEOSMinimumClearance
 
 
-if geos_version >= (3, 6, 0):
+class LGEOS380(LGEOS360):
+    """Proxy for GEOS 3.8.0-CAPI-1.13.0"""
+
+    geos_version = (3, 8, 0)
+    geos_capi_version = (1, 13, 0)
+
+    def __init__(self, dll):
+        super(LGEOS380, self).__init__(dll)
+        self.methods['make_valid'] = self.GEOSMakeValid
+
+
+if geos_version >= (3, 8, 0):
+    L = LGEOS380
+elif geos_version >= (3, 6, 0):
     L = LGEOS360
 elif geos_version >= (3, 5, 0):
     L = LGEOS350
