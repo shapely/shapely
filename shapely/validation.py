@@ -40,9 +40,9 @@ def make_valid(ob):
 
     Parameters
     ----------
-    ob: Geometry
-    A shapely geometry object which should be made valid. If the object is already valid,
-    it will be returned as-is.
+    ob : Geometry
+        A shapely geometry object which should be made valid. If the object is already valid,
+        it will be returned as-is.
 
     Returns
     -------
