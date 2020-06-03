@@ -15,12 +15,12 @@ def explain_validity(ob):
     Parameters
     ----------
     ob: Geometry
-    A shapely geometry object
+        A shapely geometry object
 
     Returns
     -------
     str
-    A string describing the reason the geometry is invalid.
+        A string describing the reason the geometry is invalid.
 
     """
     return lgeos.GEOSisValidReason(ob._geom)
