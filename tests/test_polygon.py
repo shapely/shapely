@@ -1,7 +1,7 @@
 """Polygons and Linear Rings
 """
 
-from . import unittest, numpy
+from . import unittest, numpy, shapely20_deprecated
 from shapely.wkb import loads as load_wkb
 from shapely.errors import TopologicalError
 from shapely.geos import lgeos
@@ -12,7 +12,7 @@ from shapely.geometry.base import dump_coords
 
 class PolygonTestCase(unittest.TestCase):
 
-    def test_polygon(self):
+    def test_linearring(self):
 
         # Initialization
         # Linear rings won't usually be created by users, but by polygons
@@ -26,6 +26,11 @@ class PolygonTestCase(unittest.TestCase):
         # Ring from sequence of Points
         self.assertEqual(LinearRing((map(Point, coords))), ring)
 
+    @shapely20_deprecated
+    def test_linearring_mutate(self):
+        coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0))
+        ring = LinearRing(coords)
+
         # Coordinate modification
         ring.coords = ((0.0, 0.0), (0.0, 2.0), (2.0, 2.0), (2.0, 0.0))
         self.assertEqual(
@@ -34,6 +39,7 @@ class PolygonTestCase(unittest.TestCase):
              'coordinates': ((0.0, 0.0), (0.0, 2.0), (2.0, 2.0), (2.0, 0.0),
                              (0.0, 0.0))})
 
+    def test_linearring_adapter(self):
         # Test ring adapter
         coords = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]
         ra = asLinearRing(coords)
@@ -45,6 +51,9 @@ class PolygonTestCase(unittest.TestCase):
         self.assertEqual(dump_coords(ra),
                          [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (2.0, -1.0),
                           (0.0, 0.0)])
+
+    def test_polygon(self):
+        coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0))
 
         # Construct a polygon, exterior ring only
         polygon = Polygon(coords)
@@ -95,7 +104,7 @@ class PolygonTestCase(unittest.TestCase):
         self.assertEqual(
             polygon.__geo_interface__,
             {'type': 'Polygon',
-             'coordinates': (((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (2.0, -1.0),
+             'coordinates': (((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0),
                              (0.0, 0.0)), ((0.25, 0.25), (0.25, 0.5),
                              (0.5, 0.5), (0.5, 0.25), (0.25, 0.25)))})
 
@@ -106,20 +115,23 @@ class PolygonTestCase(unittest.TestCase):
         self.assertEqual(len(pa.interiors), 1)
         self.assertEqual(len(pa.interiors[0].coords), 5)
 
-        # Test Non-operability of Null rings
-        r_null = LinearRing()
-        self.assertEqual(r_null.wkt, 'GEOMETRYCOLLECTION EMPTY')
-        self.assertEqual(r_null.length, 0.0)
-
-        # Check that we can set coordinates of a null geometry
-        r_null.coords = [(0, 0), (1, 1), (1, 0)]
-        self.assertAlmostEqual(r_null.length, 3.414213562373095)
-
         # Error handling
         with self.assertRaises(ValueError):
             # A LinearRing must have at least 3 coordinate tuples
             Polygon([[1, 2], [2, 3]])
 
+    def test_linearring_empty(self):
+        # Test Non-operability of Null rings
+        r_null = LinearRing()
+        self.assertEqual(r_null.wkt, 'GEOMETRYCOLLECTION EMPTY')
+        self.assertEqual(r_null.length, 0.0)
+
+    @shapely20_deprecated
+    def test_linearring_empty_mutate(self):
+        # Check that we can set coordinates of a null geometry
+        r_null = LinearRing()
+        r_null.coords = [(0, 0), (1, 1), (1, 0)]
+        self.assertAlmostEqual(r_null.length, 3.414213562373095)
 
     def test_linearring_from_closed_linestring(self):
         coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]

@@ -2,6 +2,7 @@
 """
 
 import sys
+import warnings
 
 from ctypes import c_void_p, cast, POINTER
 import weakref
@@ -12,7 +13,7 @@ from shapely.geometry.base import BaseGeometry, geos_geom_from_py
 from shapely.geometry.linestring import LineString, LineStringAdapter
 from shapely.geometry.point import Point
 from shapely.geometry.proxy import PolygonProxy
-from shapely.errors import TopologicalError
+from shapely.errors import TopologicalError, ShapelyDeprecationWarning
 
 
 __all__ = ['Polygon', 'asPolygon', 'LinearRing', 'asLinearRing']
@@ -49,7 +50,9 @@ class LinearRing(LineString):
         """
         BaseGeometry.__init__(self)
         if coordinates is not None:
-            self._set_coords(coordinates)
+            ret = geos_linearring_from_py(coordinates)
+            if ret is not None:
+                self._geom, self._ndim = ret
 
     @property
     def __geo_interface__(self):
@@ -63,6 +66,10 @@ class LinearRing(LineString):
     _get_coords = BaseGeometry._get_coords
 
     def _set_coords(self, coordinates):
+        warnings.warn(
+            "Setting the 'coords' to mutate a Geometry in place is deprecated,"
+            " and will not be possible any more in Shapely 2.0",
+            ShapelyDeprecationWarning, stacklevel=2)
         self.empty()
         ret = geos_linearring_from_py(coordinates)
         if ret is not None:
