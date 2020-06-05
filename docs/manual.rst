@@ -2673,15 +2673,12 @@ adapted to Numpy arrays.
 
 .. code-block:: pycon
 
-  >>> from numpy import array
-  >>> array(Point(0, 0))
+  >>> from numpy import asarray
+  >>> asarray(Point(0, 0))
   array([ 0.,  0.])
-  >>> array(LineString([(0, 0), (1, 1)]))
+  >>> asarray(LineString([(0, 0), (1, 1)]))
   array([[ 0.,  0.],
          [ 1.,  1.]])
-
-The :func:`numpy.asarray` function does not copy coordinate values – at the
-price of slower Numpy access to the coordinates of Shapely objects.
 
 .. note::
 
