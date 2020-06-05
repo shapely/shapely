@@ -1,6 +1,8 @@
-from . import unittest, numpy
+from . import unittest, numpy, shapely20_deprecated
 from shapely.geometry import Point, asPoint
-from shapely.errors import DimensionError
+from shapely.errors import DimensionError, ShapelyDeprecationWarning
+
+import pytest
 
 
 class LineStringTestCase(unittest.TestCase):
@@ -47,7 +49,10 @@ class LineStringTestCase(unittest.TestCase):
         self.assertEqual(p.__geo_interface__,
                          {'type': 'Point', 'coordinates': (3.0, 4.0)})
 
+    @shapely20_deprecated
+    def test_point_mutate(self):
         # Modify coordinates
+        p = Point(3.0, 4.0)
         p.coords = (2.0, 1.0)
         self.assertEqual(p.__geo_interface__,
                          {'type': 'Point', 'coordinates': (2.0, 1.0)})
@@ -57,6 +62,8 @@ class LineStringTestCase(unittest.TestCase):
         self.assertEqual(p.__geo_interface__,
                          {'type': 'Point', 'coordinates': (0.0, 0.0)})
 
+    def test_point_adapter(self):
+        p = Point(0.0, 0.0)
         # Adapt a coordinate list to a point
         coords = [3.0, 4.0]
         pa = asPoint(coords)
@@ -68,13 +75,17 @@ class LineStringTestCase(unittest.TestCase):
         self.assertEqual(pa.coords[0], (1.0, 4.0))
         self.assertAlmostEqual(pa.distance(p), 4.123105625617661)
 
+    def test_point_empty(self):
         # Test Non-operability of Null geometry
         p_null = Point()
         self.assertEqual(p_null.wkt, 'GEOMETRYCOLLECTION EMPTY')
         self.assertEqual(p_null.coords[:], [])
         self.assertEqual(p_null.area, 0.0)
 
+    @shapely20_deprecated
+    def test_point_empty_mutate(self):
         # Check that we can set coordinates of a null geometry
+        p_null = Point()
         p_null.coords = (1, 2)
         self.assertEqual(p_null.coords[:], [(1.0, 2.0)])
 
@@ -148,6 +159,12 @@ def test_empty_point_bounds():
     """The bounds of an empty point is an empty tuple"""
     p = Point()
     assert p.bounds == ()
+
+
+def test_point_mutability_deprecated():
+    p = Point(3.0, 4.0)
+    with pytest.warns(ShapelyDeprecationWarning, match="Setting"):
+        p.coords = (2.0, 1.0)
 
 
 def test_suite():
