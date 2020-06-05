@@ -2,7 +2,9 @@
 """
 
 from ctypes import c_double
+import warnings
 
+from shapely.errors import ShapelyDeprecationWarning
 from shapely.geos import lgeos, TopologicalError
 from shapely.geometry.base import (
     BaseGeometry, geom_factory, JOIN_STYLE, geos_geom_from_py
@@ -40,7 +42,9 @@ class LineString(BaseGeometry):
         """
         BaseGeometry.__init__(self)
         if coordinates is not None:
-            self._set_coords(coordinates)
+            ret = geos_linestring_from_py(coordinates)
+            if ret is not None:
+                self._geom, self._ndim = ret
 
     @property
     def __geo_interface__(self):
@@ -88,6 +92,10 @@ class LineString(BaseGeometry):
 
     # Coordinate access
     def _set_coords(self, coordinates):
+        warnings.warn(
+            "Setting the 'coords' to mutate a Geometry in place is deprecated,"
+            " and will not be possible any more in Shapely 2.0",
+            ShapelyDeprecationWarning, stacklevel=2)
         self.empty()
         ret = geos_linestring_from_py(coordinates)
         if ret is not None:

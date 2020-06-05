@@ -4,6 +4,8 @@ import unittest
 from shapely.geos import geos_version_string, lgeos, WKTWriter
 from shapely import speedups
 
+import pytest
+
 
 test_int_types = [int]
 
@@ -24,3 +26,8 @@ print('Cython speedups: ' + str(speedups.available))
 if lgeos.geos_version >= (3, 3, 0):
     # Remove any WKT writer defaults to pass tests for all versions of GEOS
     WKTWriter.defaults = {}
+
+
+shapely20_deprecated = pytest.mark.filterwarnings(
+    "ignore::shapely.errors.ShapelyDeprecationWarning"
+)

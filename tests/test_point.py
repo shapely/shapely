@@ -1,13 +1,8 @@
-from . import unittest, numpy
+from . import unittest, numpy, shapely20_deprecated
 from shapely.geometry import Point, asPoint
-from shapely.errors import DimensionError
+from shapely.errors import DimensionError, ShapelyDeprecationWarning
 
 import pytest
-
-
-shapely20_deprecated = pytest.mark.filterwarnings(
-    "ignore::shapely.errors.ShapelyDeprecationWarning"
-)
 
 
 class LineStringTestCase(unittest.TestCase):
@@ -108,11 +103,6 @@ class LineStringTestCase(unittest.TestCase):
         p = Point(array([1.0, 2.0]))
         self.assertEqual(p.coords[:], [(1.0, 2.0)])
 
-    @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy_adapter(self):
-        from numpy import array, asarray
-        from numpy.testing import assert_array_equal
-
         # Adapt a Numpy array to a point
         a = array([1.0, 2.0])
         pa = asPoint(a)
@@ -136,10 +126,6 @@ class LineStringTestCase(unittest.TestCase):
         pas = asarray(pa)
         assert_array_equal(pas, array([1.0, 4.0]))
 
-    @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy_asarray(self):
-        from numpy import array, asarray
-        from numpy.testing import assert_array_equal
         # From Array.txt
         p = Point(0.0, 0.0, 1.0)
         coords = p.coords[0]
@@ -177,7 +163,7 @@ def test_empty_point_bounds():
 
 def test_point_mutability_deprecated():
     p = Point(3.0, 4.0)
-    with pytest.warns(FutureWarning, match="Setting"):
+    with pytest.warns(ShapelyDeprecationWarning, match="Setting"):
         p.coords = (2.0, 1.0)
 
 
