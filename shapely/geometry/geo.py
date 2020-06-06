@@ -1,7 +1,11 @@
 """
 Geometry factories based on the geo interface
 """
-from .point import Point, asPoint
+import warnings
+
+from shapely.errors import ShapelyDeprecationWarning
+
+from .point import Point, _asPoint
 from .linestring import LineString, asLineString
 from .polygon import Polygon, asPolygon
 from .multipoint import MultiPoint, asMultiPoint
@@ -153,6 +157,11 @@ def asShape(context):
     >>> poly.intersects(point)
     False
     """
+    warnings.warn(
+        "The 'asShape()' adapter is deprecated and will be removed in Shapely 2.0. "
+        "Use the 'shape()' function instead.",
+        ShapelyDeprecationWarning, stacklevel=2)
+
     if hasattr(context, "__geo_interface__"):
         ob = context.__geo_interface__
     else:
@@ -164,7 +173,7 @@ def asShape(context):
         raise ValueError("Context does not provide geo interface")
 
     if geom_type == "point":
-        return asPoint(ob["coordinates"])
+        return _asPoint(ob["coordinates"])
     elif geom_type == "linestring":
         return asLineString(ob["coordinates"])
     elif geom_type == "polygon":
