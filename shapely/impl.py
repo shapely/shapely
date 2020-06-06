@@ -107,7 +107,6 @@ IMPL300 = {
     'touches': (BinaryPredicate, 'touches'),
     'within': (BinaryPredicate, 'within'),
     'covers': (BinaryPredicate, 'covers'),
-    'covered_by': (BinaryPredicate, 'covered_by'),
     'equals_exact': (BinaryPredicate, 'equals_exact'),
     'relate_pattern': (BinaryPredicate, 'relate_pattern'),
 
@@ -147,6 +146,7 @@ IMPL320 = {
 IMPL330 = {
     'is_closed': (UnaryPredicate, 'is_closed'),
     'buffer_with_params': (UnaryTopologicalOp, 'buffer_with_params'),
+    'covered_by': (BinaryPredicate, 'covered_by')
 }
 
 IMPL360 = {
