@@ -817,13 +817,7 @@ class LGEOS330(LGEOS320):
         attr.__name__ = func.__name__
         setattr(self, key, attr)
 
-        coveredByKey = 'GEOSCoveredBy'
-        func = getattr(self._lgeos, coveredByKey + '_r')
-        attr = partial(func, self.geos_handle)
-        attr.__name__ = func.__name__
-        setattr(self, coveredByKey, attr)
-
-        for pred in (self.GEOSisClosed, self.GEOSCoveredBy):
+        for pred in (self.GEOSisClosed,):
             pred.func.errcheck = errcheck_predicate
 
         def parallel_offset(geom, distance, resolution=16, join_style=1,

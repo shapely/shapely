@@ -733,6 +733,7 @@ class BaseGeometry(object):
         return bool(self.impl['covers'](self, other))
 
     def covered_by(self, other):
+        """Returns True if the geometry is covered by the other, else False"""
         return bool(self.impl['covered_by'](self, other))
 
     def contains(self, other):
