@@ -169,6 +169,12 @@ class PointAdapter(CachingGeometryProxy, Point):
     _other_owned = False
 
     def __init__(self, context):
+        warnings.warn(
+            "The proxy geometries (through the 'asShape()', 'asPoint()' or "
+            "'PointAdapter()' constructors) are deprecated and will be "
+            "removed in Shapely 2.0. Use the 'shape()' function or the "
+            "standard 'Point()' constructor instead.",
+            ShapelyDeprecationWarning, stacklevel=4)
         self.context = context
         self.factory = geos_point_from_py
 
@@ -202,14 +208,6 @@ class PointAdapter(CachingGeometryProxy, Point):
 
 def asPoint(context):
     """Adapt an object to the Point interface"""
-    warnings.warn(
-        "The 'asPoint' adapter is deprecated and will be removed in Shapely 2.0. "
-        "Use the standard 'Point' constructor instead.",
-        ShapelyDeprecationWarning, stacklevel=2)
-    return _asPoint(context)
-
-
-def _asPoint(context):
     return PointAdapter(context)
 
 

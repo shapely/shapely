@@ -181,7 +181,7 @@ def test_point_mutability_deprecated():
 
 def test_point_adapter_deprecated():
     coords = [3.0, 4.0]
-    with pytest.warns(ShapelyDeprecationWarning, match="adapter is deprecated"):
+    with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
         asPoint(coords)
 
 
