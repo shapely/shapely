@@ -4,7 +4,7 @@ See header file: geos-x.y.z/capi/geos_c.h
 '''
 
 from ctypes import CFUNCTYPE, POINTER, c_void_p, c_char_p, \
-    c_size_t, c_byte, c_uint, c_int, c_double, py_object, c_bool
+    c_size_t, c_byte, c_uint, c_int, c_double, py_object
 
 from .errors import UnsupportedGEOSVersionError
 
@@ -288,7 +288,7 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSCovers.restype = c_byte
     lgeos.GEOSCovers.argtypes = [c_void_p, c_void_p]
 
-    lgeos.GEOSCoveredBy.restype = c_bool
+    lgeos.GEOSCoveredBy.restype = c_byte
     lgeos.GEOSCoveredBy.argtypes = [c_void_p, c_void_p]
 
     lgeos.GEOSEquals.restype = c_byte
