@@ -288,6 +288,9 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSCovers.restype = c_byte
     lgeos.GEOSCovers.argtypes = [c_void_p, c_void_p]
 
+    lgeos.GEOSCoveredBy.restype = c_byte
+    lgeos.GEOSCoveredBy.argtypes = [c_void_p, c_void_p]
+
     lgeos.GEOSEquals.restype = c_byte
     lgeos.GEOSEquals.argtypes = [c_void_p, c_void_p]
 

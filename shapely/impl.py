@@ -146,6 +146,7 @@ IMPL320 = {
 IMPL330 = {
     'is_closed': (UnaryPredicate, 'is_closed'),
     'buffer_with_params': (UnaryTopologicalOp, 'buffer_with_params'),
+    'covered_by': (BinaryPredicate, 'covered_by')
 }
 
 IMPL360 = {

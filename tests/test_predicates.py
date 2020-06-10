@@ -10,6 +10,7 @@ class PredicatesTestCase(unittest.TestCase):
     def test_binary_predicates(self):
 
         point = Point(0.0, 0.0)
+        point2 = Point(2.0, 2.0)
 
         self.assertTrue(point.disjoint(Point(-1.0, -1.0)))
         self.assertFalse(point.touches(Point(-1.0, -1.0)))
@@ -20,6 +21,9 @@ class PredicatesTestCase(unittest.TestCase):
         self.assertFalse(point.touches(Point(-1.0, -1.0)))
         self.assertTrue(point.equals(Point(0.0, 0.0)))
         self.assertTrue(point.covers(Point(0.0, 0.0)))
+        self.assertTrue(point.covered_by(Point(0.0, 0.0)))
+        self.assertFalse(point.covered_by(point2))
+        self.assertFalse(point2.covered_by(point))
         self.assertFalse(point.covers(Point(-1.0, -1.0)))
 
     def test_unary_predicates(self):
