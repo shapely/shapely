@@ -154,6 +154,12 @@ class LineString(BaseGeometry):
 class LineStringAdapter(CachingGeometryProxy, LineString):
 
     def __init__(self, context):
+        warnings.warn(
+            "The proxy geometries (through the 'asShape()', 'asLineString()' or "
+            "'LineStringAdapter()' constructors) are deprecated and will be "
+            "removed in Shapely 2.0. Use the 'shape()' function or the "
+            "standard 'LineString()' constructor instead.",
+            ShapelyDeprecationWarning, stacklevel=4)
         self.context = context
         self.factory = geos_linestring_from_py
 

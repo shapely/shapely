@@ -2,8 +2,11 @@
 """
 
 from . import unittest, numpy, shapely20_deprecated
+
+import pytest
+
 from shapely.wkb import loads as load_wkb
-from shapely.errors import TopologicalError
+from shapely.errors import TopologicalError, ShapelyDeprecationWarning
 from shapely.geos import lgeos
 from shapely.geometry import Point, Polygon, asPolygon
 from shapely.geometry.polygon import LinearRing, LineString, asLinearRing
@@ -39,6 +42,7 @@ class PolygonTestCase(unittest.TestCase):
              'coordinates': ((0.0, 0.0), (0.0, 2.0), (2.0, 2.0), (2.0, 0.0),
                              (0.0, 0.0))})
 
+    @shapely20_deprecated
     def test_linearring_adapter(self):
         # Test ring adapter
         coords = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]
@@ -108,17 +112,20 @@ class PolygonTestCase(unittest.TestCase):
                              (0.0, 0.0)), ((0.25, 0.25), (0.25, 0.5),
                              (0.5, 0.5), (0.5, 0.25), (0.25, 0.25)))})
 
+        # Error handling
+        with self.assertRaises(ValueError):
+            # A LinearRing must have at least 3 coordinate tuples
+            Polygon([[1, 2], [2, 3]])
+
+    @shapely20_deprecated
+    def test_polygon_adapter(self):
         # Adapter
+        coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0))
         hole_coords = [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))]
         pa = asPolygon(coords, hole_coords)
         self.assertEqual(len(pa.exterior.coords), 5)
         self.assertEqual(len(pa.interiors), 1)
         self.assertEqual(len(pa.interiors[0].coords), 5)
-
-        # Error handling
-        with self.assertRaises(ValueError):
-            # A LinearRing must have at least 3 coordinate tuples
-            Polygon([[1, 2], [2, 3]])
 
     def test_linearring_empty(self):
         # Test Non-operability of Null rings
@@ -271,6 +278,19 @@ class PolygonTestCase(unittest.TestCase):
     def test_empty_polygon_exterior(self):
         p = Polygon()
         assert p.exterior == LinearRing()
+
+
+def test_linearring_adapter_deprecated():
+    coords = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]
+    with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
+        asLinearRing(coords)
+
+
+def test_polygon_adapter_deprecated():
+    coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0))
+    hole_coords = [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))]
+    with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
+        asPolygon(coords, hole_coords)
 
 
 def test_suite():

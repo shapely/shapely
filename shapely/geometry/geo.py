@@ -1,6 +1,10 @@
 """
 Geometry factories based on the geo interface
 """
+import warnings
+
+from shapely.errors import ShapelyDeprecationWarning
+
 from .point import Point, asPoint
 from .linestring import LineString, asLineString
 from .polygon import Polygon, asPolygon
@@ -122,6 +126,12 @@ def asShape(context):
     stored in the context, and changes to them will be reflected in the
     returned geometry object.
 
+    .. deprecated:: 1.8
+       The proxy geometries (adapter classes) created by this function are
+       deprecated, and this function will be removed in Shapely 2.0.
+       Use the `shape` function instead to convert a GeoJSON-like dict
+       to a Shapely geometry.
+
     Parameters
     ----------
     context :
@@ -177,6 +187,13 @@ def asShape(context):
         return MultiPolygonAdapter(ob["coordinates"], context_type='geojson')
     elif geom_type == "geometrycollection":
         geoms = [asShape(g) for g in ob.get("geometries", [])]
+        if len(geoms) == 0:
+            # in this case no asShape call already raised the warning
+            warnings.warn(
+                "The proxy geometries (through the 'asShape()' constructor) "
+                "are deprecated and will be removed in Shapely 2.0. Use the "
+                "'shape()' function instead.",
+                ShapelyDeprecationWarning, stacklevel=2)
         return GeometryCollection(geoms)
     else:
         raise ValueError("Unknown geometry type: %s" % geom_type)

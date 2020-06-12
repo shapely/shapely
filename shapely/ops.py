@@ -6,8 +6,8 @@ from ctypes import byref, c_void_p, c_double
 from shapely.prepared import prep
 from shapely.geos import lgeos
 from shapely.geometry.base import geom_factory, BaseGeometry, BaseMultipartGeometry
-from shapely.geometry import asShape, asLineString, asMultiLineString, Point, MultiPoint,\
-                             LineString, MultiLineString, Polygon, GeometryCollection
+from shapely.geometry import (
+    shape, Point, MultiPoint, LineString, MultiLineString, Polygon, GeometryCollection)
 from shapely.geometry.polygon import orient as orient_
 from shapely.algorithms.polylabel import polylabel
 
@@ -25,9 +25,9 @@ class CollectionOperator(object):
             return ob
         else:
             try:
-                return asShape(ob)
-            except ValueError:
-                return asLineString(ob)
+                return shape(ob)
+            except (ValueError, AttributeError):
+                return LineString(ob)
 
     def polygonize(self, lines):
         """Creates polygons from a source of lines
@@ -105,9 +105,9 @@ class CollectionOperator(object):
             source = lines
         elif hasattr(lines, '__iter__'):
             try:
-                source = asMultiLineString([ls.coords for ls in lines])
+                source = MultiLineString([ls.coords for ls in lines])
             except AttributeError:
-                source = asMultiLineString(lines)
+                source = MultiLineString(lines)
         if source is None:
             raise ValueError("Cannot linemerge %s" % lines)
         result = lgeos.GEOSLineMerge(source._geom)

@@ -1,5 +1,9 @@
-from . import unittest, numpy, test_int_types
+from . import unittest, numpy, shapely20_deprecated
 from .test_multi import MultiGeometryTestCase
+
+import pytest
+
+from shapely.errors import ShapelyDeprecationWarning
 from shapely.geos import lgeos
 from shapely.geometry import LineString, MultiLineString, asMultiLineString
 from shapely.geometry.base import dump_coords
@@ -66,6 +70,13 @@ class MultiLineStringTestCase(MultiGeometryTestCase):
         self.assertEqual(len(geom.geoms), 1)
         self.assertEqual(dump_coords(geom), [[(0.0, 0.0), (1.0, 2.0)]])
 
+
+    @shapely20_deprecated
+    @unittest.skipIf(not numpy, 'Numpy required')
+    def test_numpy_adapter(self):
+        from numpy import array
+        from numpy.testing import assert_array_equal
+
         # Adapt a sequence of Numpy arrays to a multilinestring
         a = [array(((1.0, 2.0), (3.0, 4.0)))]
         geoma = asMultiLineString(a)
@@ -78,6 +89,12 @@ class MultiLineStringTestCase(MultiGeometryTestCase):
         line0 = LineString([(0.0, 1.0), (2.0, 3.0)])
         line1 = LineString([(4.0, 5.0), (6.0, 7.0)])
         self.subgeom_access_test(MultiLineString, [line0, line1])
+
+
+def test_multilinestring_adapter_deprecated():
+    coords = [[[5.0, 6.0], [7.0, 8.0]]]
+    with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
+        asMultiLineString(coords)
 
 
 def test_suite():

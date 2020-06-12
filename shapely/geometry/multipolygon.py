@@ -2,7 +2,9 @@
 """
 
 from ctypes import c_void_p, cast
+import warnings
 
+from shapely.errors import ShapelyDeprecationWarning
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseMultipartGeometry, geos_geom_from_py
 from shapely.geometry import polygon
@@ -101,6 +103,12 @@ class MultiPolygonAdapter(CachingGeometryProxy, MultiPolygon):
     _other_owned = False
 
     def __init__(self, context, context_type='polygons'):
+        warnings.warn(
+            "The proxy geometries (through the 'asShape()', 'asMultiPolygon()' "
+            "or 'MultiPolygonAdapter()' constructors) are deprecated and will be "
+            "removed in Shapely 2.0. Use the 'shape()' function or the "
+            "standard 'MultiPolygon()' constructor instead.",
+            ShapelyDeprecationWarning, stacklevel=3)
         self.context = context
         if context_type == 'geojson':
             self.factory = geos_multipolygon_from_py

@@ -2,7 +2,9 @@
 """
 
 from ctypes import byref, c_double, c_void_p, cast
+import warnings
 
+from shapely.errors import ShapelyDeprecationWarning
 from shapely.geos import lgeos
 from shapely.geometry.base import (
     BaseMultipartGeometry, exceptNull, geos_geom_from_py)
@@ -117,6 +119,12 @@ class MultiPointAdapter(CachingGeometryProxy, MultiPoint):
     _other_owned = False
 
     def __init__(self, context):
+        warnings.warn(
+            "The proxy geometries (through the 'asShape()', 'asMultiPoint()' "
+            "or 'MultiPointAdapter()' constructors) are deprecated and will be "
+            "removed in Shapely 2.0. Use the 'shape()' function or the "
+            "standard 'MultiPoint()' constructor instead.",
+            ShapelyDeprecationWarning, stacklevel=4)
         self.context = context
         self.factory = geos_multipoint_from_py
 
