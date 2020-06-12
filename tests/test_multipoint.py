@@ -1,5 +1,9 @@
-from . import unittest, numpy, test_int_types
+from . import unittest, numpy, shapely20_deprecated
 from .test_multi import MultiGeometryTestCase
+
+import pytest
+
+from shapely.errors import ShapelyDeprecationWarning
 from shapely.geometry import Point, MultiPoint, asMultiPoint
 from shapely.geometry.base import dump_coords
 
@@ -35,6 +39,8 @@ class MultiPointTestCase(MultiGeometryTestCase):
                          {'type': 'MultiPoint',
                           'coordinates': ((1.0, 2.0), (3.0, 4.0))})
 
+    @shapely20_deprecated
+    def test_multipoint_adapter(self):
         # Adapt a coordinate list to a line string
         coords = [[5.0, 6.0], [7.0, 8.0]]
         geoma = asMultiPoint(coords)
@@ -56,6 +62,13 @@ class MultiPointTestCase(MultiGeometryTestCase):
         geom = MultiPoint((Point(1.0, 2.0), Point(3.0, 4.0)))
         assert_array_equal(array(geom), array([[1., 2.], [3., 4.]]))
 
+    @shapely20_deprecated
+    @unittest.skipIf(not numpy, 'Numpy required')
+    def test_numpy_adapter(self):
+
+        from numpy import array, asarray
+        from numpy.testing import assert_array_equal
+
         # Adapt a Numpy array to a multipoint
         a = array([[1.0, 2.0], [3.0, 4.0]])
         geoma = asMultiPoint(a)
@@ -73,6 +86,13 @@ class MultiPointTestCase(MultiGeometryTestCase):
         p0 = Point(1.0, 2.0)
         p1 = Point(3.0, 4.0)
         self.subgeom_access_test(MultiPoint, [p0, p1])
+
+
+def test_multipoint_adapter_deprecated():
+    coords = [[5.0, 6.0], [7.0, 8.0]]
+    with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
+        asMultiPoint(coords)
+
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(MultiPointTestCase)

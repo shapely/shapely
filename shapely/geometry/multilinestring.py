@@ -2,7 +2,9 @@
 """
 
 from ctypes import c_void_p, cast
+import warnings
 
+from shapely.errors import ShapelyDeprecationWarning
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseMultipartGeometry, geos_geom_from_py
 from shapely.geometry import linestring
@@ -82,6 +84,12 @@ class MultiLineStringAdapter(CachingGeometryProxy, MultiLineString):
     _other_owned = False
 
     def __init__(self, context):
+        warnings.warn(
+            "The proxy geometries (through the 'asShape()', 'asMultiLineString()' "
+            "or 'MultiLineStringAdapter()' constructors) are deprecated and will be "
+            "removed in Shapely 2.0. Use the 'shape()' function or the "
+            "standard 'MultiLineString()' constructor instead.",
+            ShapelyDeprecationWarning, stacklevel=4)
         self.context = context
         self.factory = geos_multilinestring_from_py
 

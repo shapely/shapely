@@ -103,6 +103,12 @@ class LinearRingAdapter(LineStringAdapter):
     __p__ = None
 
     def __init__(self, context):
+        warnings.warn(
+            "The proxy geometries (through the 'asShape()', 'asLinearRing()' or "
+            "'LinearRingAdapter()' constructors) are deprecated and will be "
+            "removed in Shapely 2.0. Use the 'shape()' function or the "
+            "standard 'LinearRing()' constructor instead.",
+            ShapelyDeprecationWarning, stacklevel=3)
         self.context = context
         self.factory = geos_linearring_from_py
 
@@ -367,6 +373,12 @@ class Polygon(BaseGeometry):
 class PolygonAdapter(PolygonProxy, Polygon):
 
     def __init__(self, shell, holes=None):
+        warnings.warn(
+            "The proxy geometries (through the 'asShape()', 'asPolygon()' or "
+            "'PolygonAdapter()' constructors) are deprecated and will be "
+            "removed in Shapely 2.0. Use the 'shape()' function or the "
+            "standard 'Polygon()' constructor instead.",
+            ShapelyDeprecationWarning, stacklevel=4)
         self.shell = shell
         self.holes = holes
         self.context = (shell, holes)

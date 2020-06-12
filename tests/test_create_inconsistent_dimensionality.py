@@ -10,7 +10,7 @@ any dimension which is not present in every coordinate.
 import pytest
 
 from shapely import wkt
-from shapely.geometry import asShape, LineString, Polygon
+from shapely.geometry import shape, LineString, Polygon
 
 
 geojson_cases = [
@@ -37,7 +37,7 @@ wkt_cases = [
 @pytest.mark.parametrize('geojson', geojson_cases)
 def test_create_from_geojson(geojson):
     with pytest.raises(ValueError) as exc:
-        wkt = asShape(geojson).wkt
+        wkt = shape(geojson).wkt
     assert exc.match("Inconsistent coordinate dimensionality")
 
 

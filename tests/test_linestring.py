@@ -50,6 +50,7 @@ class LineStringTestCase(unittest.TestCase):
                          {'type': 'LineString',
                           'coordinates': ((-1.0, -1.0), (1.0, 1.0))})
 
+    @shapely20_deprecated
     def test_linestring_adapter(self):
         # Adapt a coordinate list to a line string
         coords = [[5.0, 6.0], [7.0, 8.0]]
@@ -148,6 +149,12 @@ class LineStringTestCase(unittest.TestCase):
         la = asarray(line.coords)
         assert_array_equal(la, expected)
 
+    @shapely20_deprecated
+    @unittest.skipIf(not numpy, 'Numpy required')
+    def test_numpy_adapter(self):
+        from numpy import array, asarray
+        from numpy.testing import assert_array_equal
+
         # Adapt a Numpy array to a line string
         a = array([[1.0, 2.0], [3.0, 4.0]])
         la = asLineString(a)
@@ -161,6 +168,11 @@ class LineStringTestCase(unittest.TestCase):
         pas = asarray(la)
         assert_array_equal(pas, array([[1.0, 2.0], [3.0, 4.0]]))
 
+    @unittest.skipIf(not numpy, 'Numpy required')
+    def test_numpy_asarray(self):
+        from numpy import array, asarray
+        from numpy.testing import assert_array_equal
+
         # From Array.txt
         a = asarray([[0.0, 0.0], [2.0, 2.0], [1.0, 1.0]])
         line = LineString(a)
@@ -173,6 +185,11 @@ class LineStringTestCase(unittest.TestCase):
         b = asarray(line)
         assert_array_equal(b, array([[0., 0.], [2., 2.], [1., 1.]]))
 
+    @unittest.skipIf(not numpy, 'Numpy required')
+    def test_numpy_empty(self):
+        from numpy import array, asarray
+        from numpy.testing import assert_array_equal
+
         # Test array interface of empty linestring
         le = LineString()
         a = asarray(le)
@@ -184,6 +201,11 @@ def test_linestring_mutability_deprecated():
     with pytest.warns(ShapelyDeprecationWarning, match="Setting"):
         line.coords = ((-1.0, -1.0), (1.0, 1.0))
 
+
+def test_linestring_adapter_deprecated():
+    coords = [[5.0, 6.0], [7.0, 8.0]]
+    with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
+        asLineString(coords)
 
 
 def test_suite():

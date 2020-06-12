@@ -1,11 +1,13 @@
-from . import unittest
+from . import unittest, shapely20_deprecated
 
-from shapely.geometry import asShape
-from shapely.geometry.multipoint import MultiPointAdapter
-from shapely.geometry.linestring import LineStringAdapter
-from shapely.geometry.multilinestring import MultiLineStringAdapter
+import pytest
+
+from shapely.geometry import asShape, shape
+from shapely.geometry.multipoint import MultiPoint, MultiPointAdapter
+from shapely.geometry.linestring import LineString, LineStringAdapter
+from shapely.geometry.multilinestring import MultiLineString, MultiLineStringAdapter
 from shapely.geometry.polygon import Polygon, PolygonAdapter
-from shapely.geometry.multipolygon import MultiPolygonAdapter
+from shapely.geometry.multipolygon import MultiPolygon, MultiPolygonAdapter
 from shapely import wkt
 
 
@@ -16,7 +18,8 @@ class GeoThing(object):
 
 class GeoInterfaceTestCase(unittest.TestCase):
 
-    def test_geointerface(self):
+    @shapely20_deprecated
+    def test_geointerface_adapter(self):
         # Adapt a dictionary
         d = {"type": "Point", "coordinates": (0.0, 0.0)}
         shape = asShape(d)
@@ -70,6 +73,61 @@ class GeoInterfaceTestCase(unittest.TestCase):
                   )]})
         self.assertIsInstance(shape, MultiPolygonAdapter)
         self.assertEqual(len(shape.geoms), 1)
+
+    def test_geointerface(self):
+        # Convert a dictionary
+        d = {"type": "Point", "coordinates": (0.0, 0.0)}
+        geom = shape(d)
+        self.assertEqual(geom.geom_type, 'Point')
+        self.assertEqual(tuple(geom.coords), ((0.0, 0.0),))
+
+        # Convert an object that implements the geo protocol
+        geom = None
+        thing = GeoThing({"type": "Point", "coordinates": (0.0, 0.0)})
+        geom = shape(thing)
+        self.assertEqual(geom.geom_type, 'Point')
+        self.assertEqual(tuple(geom.coords), ((0.0, 0.0),))
+
+        # Check line string
+        geom = shape(
+            {'type': 'LineString', 'coordinates': ((-1.0, -1.0), (1.0, 1.0))})
+        self.assertIsInstance(geom, LineString)
+        self.assertEqual(tuple(geom.coords), ((-1.0, -1.0), (1.0, 1.0)))
+
+        # polygon
+        geom = shape(
+            {'type': 'Polygon',
+             'coordinates':
+                (((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (2.0, -1.0), (0.0, 0.0)),
+                 ((0.1, 0.1), (0.1, 0.2), (0.2, 0.2), (0.2, 0.1), (0.1, 0.1)))}
+        )
+        self.assertIsInstance(geom, Polygon)
+        self.assertEqual(
+            tuple(geom.exterior.coords),
+            ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (2.0, -1.0), (0.0, 0.0)))
+        self.assertEqual(len(geom.interiors), 1)
+
+        # multi point
+        geom = shape({'type': 'MultiPoint',
+                       'coordinates': ((1.0, 2.0), (3.0, 4.0))})
+        self.assertIsInstance(geom, MultiPoint)
+        self.assertEqual(len(geom.geoms), 2)
+
+        # multi line string
+        geom = shape({'type': 'MultiLineString',
+                       'coordinates': (((0.0, 0.0), (1.0, 2.0)),)})
+        self.assertIsInstance(geom, MultiLineString)
+        self.assertEqual(len(geom.geoms), 1)
+
+        # multi polygon
+        geom = shape(
+            {'type': 'MultiPolygon',
+             'coordinates':
+                [(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)),
+                  ((0.1, 0.1), (0.1, 0.2), (0.2, 0.2), (0.2, 0.1), (0.1, 0.1))
+                  )]})
+        self.assertIsInstance(geom, MultiPolygon)
+        self.assertEqual(len(geom.geoms), 1)
 
 
 def test_empty_wkt_polygon():

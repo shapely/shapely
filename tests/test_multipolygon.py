@@ -1,8 +1,10 @@
 import pytest
 
+from shapely.errors import ShapelyDeprecationWarning
 from shapely.geometry import Polygon, MultiPolygon, asMultiPolygon
 from shapely.geometry.base import dump_coords
-from . import unittest, numpy, test_int_types
+
+from . import unittest, numpy, test_int_types, shapely20_deprecated
 from .test_multi import MultiGeometryTestCase
 
 
@@ -61,6 +63,8 @@ class MultiPolygonTestCase(MultiGeometryTestCase):
                               ((0.25, 0.25), (0.25, 0.5), (0.5, 0.5),
                                (0.5, 0.25), (0.25, 0.25)))]})
 
+    @shapely20_deprecated
+    def test_multipolygon_adapter(self):
         # Adapter
         coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0))
         holes_coords = [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))]
@@ -87,3 +91,8 @@ def test_fail_list_of_multipolygons():
         MultiPolygon([multi])
 
 
+def test_multipolygon_adapter_deprecated():
+    coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0))
+    holes_coords = [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))]
+    with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
+        asMultiPolygon([(coords, holes_coords)])

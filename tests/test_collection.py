@@ -1,8 +1,12 @@
-from . import unittest
+from . import unittest, shapely20_deprecated
+
+from shapely.errors import ShapelyDeprecationWarning
 from shapely.geometry import LineString
 from shapely.geometry.collection import GeometryCollection
 from shapely.geometry import shape
 from shapely.geometry import asShape
+
+import pytest
 
 
 class CollectionTestCase(unittest.TestCase):
@@ -26,7 +30,8 @@ class CollectionTestCase(unittest.TestCase):
         # access geometry, this should not seg fault as 1.2.15 did
         self.assertIsNotNone(child.wkt)
 
-    def test_geointerface(self):
+    @shapely20_deprecated
+    def test_geointerface_adapter(self):
         d = {"type": "GeometryCollection","geometries": [
                 {"type": "Point", "coordinates": (0, 3)},
                 {"type": "LineString", "coordinates": ((2, 0), (1, 0))}
@@ -40,6 +45,12 @@ class CollectionTestCase(unittest.TestCase):
         self.assertIn("Point", geom_types)
         self.assertIn("LineString", geom_types)
 
+    def test_geointerface(self):
+        d = {"type": "GeometryCollection","geometries": [
+                {"type": "Point", "coordinates": (0, 3)},
+                {"type": "LineString", "coordinates": ((2, 0), (1, 0))}
+            ]}
+
         # shape
         m = shape(d)
         self.assertEqual(m.geom_type, "GeometryCollection")
@@ -48,7 +59,8 @@ class CollectionTestCase(unittest.TestCase):
         self.assertIn("Point", geom_types)
         self.assertIn("LineString", geom_types)
 
-    def test_empty_geointerface(self):
+    @shapely20_deprecated
+    def test_empty_geointerface_adapter(self):
         d = {"type": "GeometryCollection", "geometries": []}
 
         # asShape
@@ -56,6 +68,9 @@ class CollectionTestCase(unittest.TestCase):
         self.assertEqual(m.geom_type, "GeometryCollection")
         self.assertEqual(len(m), 0)
         self.assertEqual(m.geoms, [])
+
+    def test_empty_geointerface(self):
+        d = {"type": "GeometryCollection", "geometries": []}
 
         # shape
         m = shape(d)
@@ -75,6 +90,19 @@ class CollectionTestCase(unittest.TestCase):
         self.assertEqual(m.geom_type, "GeometryCollection")
         self.assertEqual(len(m), 0)
         self.assertEqual(m.geoms, [])
+
+
+def test_geometrycollection_adapter_deprecated():
+    d = {"type": "GeometryCollection","geometries": [
+            {"type": "Point", "coordinates": (0, 3)},
+            {"type": "LineString", "coordinates": ((2, 0), (1, 0))}
+    ]}
+    with pytest.warns(ShapelyDeprecationWarning):
+        asShape(d)
+
+    d = {"type": "GeometryCollection", "geometries": []}
+    with pytest.warns(ShapelyDeprecationWarning):
+        asShape(d)
 
 
 def test_suite():
