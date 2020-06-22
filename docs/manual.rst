@@ -1057,8 +1057,12 @@ Operations on non-simple `LineStrings` are fully supported by Shapely.
 
   Returns ``True`` if a feature is "valid" in the sense of [1]_.
 
-A valid `LinearRing` may not cross itself or touch itself at a single point. A
-valid `Polygon` may not possess any overlapping exterior or interior rings. A
+.. note::
+
+   The validity test is meaningful only for `Polygons` and `MultiPolygons`.
+   ``True`` is always returned for other types of geometries.
+
+A valid `Polygon` may not possess any overlapping exterior or interior rings. A
 valid `MultiPolygon` may not collect any overlapping polygons. Operations on
 invalid features may fail.
 
