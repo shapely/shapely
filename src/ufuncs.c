@@ -1305,11 +1305,13 @@ static void from_shapely_func(char **args, npy_intp *dimensions,
             if (attr == NULL) {
                 /* Raise if __geom__ does not exist */
                 PyErr_Format(PyExc_TypeError, "Expected a shapely object or None, got %s", Py_TYPE(in1)->tp_name);
+                GEOS_FINISH;
                 return;
             } else if (!PyLong_Check(attr)) {
                 /* Raise if __geom__ is of incorrect type */
                 PyErr_Format(PyExc_TypeError, "Expected int for the __geom__ attribute, got %s", Py_TYPE(attr)->tp_name);
                 Py_XDECREF(attr);
+                GEOS_FINISH;
                 return;
             }
             /* Convert it to a GEOSGeometry pointer */
