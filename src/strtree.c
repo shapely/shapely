@@ -181,6 +181,7 @@ static PyObject *STRtree_new(PyTypeObject *type, PyObject *args,
         GEOS_FINISH;
         return NULL;
     }
+    GEOS_FINISH;
     self->ptr = tree;
     self->count = count;
     self->_geoms = _geoms;    
