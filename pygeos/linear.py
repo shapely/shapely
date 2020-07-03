@@ -4,7 +4,7 @@ from .decorators import multithreading_enabled
 
 __all__ = ["line_interpolate_point", "line_locate_point", "line_merge", "shared_paths"]
 
-
+@multithreading_enabled
 def line_interpolate_point(line, distance, normalize=False):
     """Returns a point interpolated at given distance on a line.
 
@@ -70,7 +70,7 @@ def line_locate_point(line, other, normalize=False):
     else:
         return lib.line_locate_point(line, other)
 
-
+@multithreading_enabled
 def line_merge(line):
     """Returns (multi)linestrings formed by combining the lines in a
     multilinestrings.

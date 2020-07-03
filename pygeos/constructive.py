@@ -2,7 +2,7 @@ from enum import IntEnum
 import numpy as np
 from . import Geometry  # NOQA
 from . import lib
-from .decorators import requires_geos
+from .decorators import requires_geos, multithreading_enabled
 
 
 __all__ = [
@@ -36,7 +36,7 @@ class BufferJoinStyles(IntEnum):
     MITRE = 2
     BEVEL = 3
 
-
+@multithreading_enabled
 def boundary(geometry, **kwargs):
     """Returns the topological boundary of a geometry.
 
@@ -60,7 +60,7 @@ def boundary(geometry, **kwargs):
     """
     return lib.boundary(geometry, **kwargs)
 
-
+@multithreading_enabled
 def buffer(
     geometry,
     radius,
@@ -162,7 +162,7 @@ def buffer(
         **kwargs
     )
 
-
+@multithreading_enabled
 def centroid(geometry, **kwargs):
     """Computes the geometric center (center-of-mass) of a geometry.
 
@@ -188,7 +188,7 @@ def centroid(geometry, **kwargs):
     """
     return lib.centroid(geometry, **kwargs)
 
-
+@multithreading_enabled
 def convex_hull(geometry, **kwargs):
     """Computes the minimum convex geometry that encloses an input geometry.
 
@@ -205,7 +205,7 @@ def convex_hull(geometry, **kwargs):
     """
     return lib.convex_hull(geometry, **kwargs)
 
-
+@multithreading_enabled
 def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     """Computes a Delaunay triangulation around the vertices of an input
     geometry.
@@ -241,7 +241,7 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     """
     return lib.delaunay_triangles(geometry, tolerance, only_edges, **kwargs)
 
-
+@multithreading_enabled
 def envelope(geometry, **kwargs):
     """Computes the minimum bounding box that encloses an input geometry.
 
@@ -262,7 +262,7 @@ def envelope(geometry, **kwargs):
     """
     return lib.envelope(geometry, **kwargs)
 
-
+@multithreading_enabled
 def extract_unique_points(geometry, **kwargs):
     """Returns all distinct vertices of an input geometry as a multipoint.
 
@@ -290,6 +290,7 @@ def extract_unique_points(geometry, **kwargs):
 
 
 @requires_geos("3.8.0")
+@multithreading_enabled
 def build_area(geometry, **kwargs):
     """Creates an areal geometry formed by the constituent linework of given geometry.
 
@@ -310,6 +311,7 @@ def build_area(geometry, **kwargs):
 
 
 @requires_geos("3.8.0")
+@multithreading_enabled
 def make_valid(geometry, **kwargs):
     """Repairs invalid geometries.
 
@@ -326,7 +328,7 @@ def make_valid(geometry, **kwargs):
     """
     return lib.make_valid(geometry, **kwargs)
 
-
+@multithreading_enabled
 def normalize(geometry, **kwargs):
     """Converts Geometry to normal form (or canonical form).
 
@@ -346,7 +348,7 @@ def normalize(geometry, **kwargs):
     """
     return lib.normalize(geometry, **kwargs)
 
-
+@multithreading_enabled
 def point_on_surface(geometry, **kwargs):
     """Returns a point that intersects an input geometry.
 
@@ -367,7 +369,7 @@ def point_on_surface(geometry, **kwargs):
     """
     return lib.point_on_surface(geometry, **kwargs)
 
-
+@multithreading_enabled
 def simplify(geometry, tolerance, preserve_topology=False, **kwargs):
     """Returns a simplified version of an input geometry using the
     Douglas-Peucker algorithm.
@@ -399,7 +401,7 @@ def simplify(geometry, tolerance, preserve_topology=False, **kwargs):
     else:
         return lib.simplify(geometry, tolerance, **kwargs)
 
-
+@multithreading_enabled
 def snap(geometry, reference, tolerance, **kwargs):
     """Snaps an input geometry to reference geometry's vertices.
 
@@ -428,7 +430,7 @@ def snap(geometry, reference, tolerance, **kwargs):
     """
     return lib.snap(geometry, reference, tolerance, **kwargs)
 
-
+@multithreading_enabled
 def voronoi_polygons(
     geometry, tolerance=0.0, extend_to=None, only_edges=False, **kwargs
 ):

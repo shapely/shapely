@@ -249,7 +249,7 @@ def get_y(point):
 
 # linestrings
 
-
+@multithreading_enabled
 def get_point(geometry, index):
     """Returns the nth point of a linestring or linearring.
 
@@ -310,7 +310,7 @@ def get_num_points(geometry):
 
 # polygons
 
-
+@multithreading_enabled
 def get_exterior_ring(geometry):
     """Returns the exterior ring of a polygon.
 
@@ -331,7 +331,7 @@ def get_exterior_ring(geometry):
     """
     return lib.get_exterior_ring(geometry)
 
-
+@multithreading_enabled
 def get_interior_ring(geometry, index):
     """Returns the nth interior ring of a polygon.
 
@@ -387,7 +387,7 @@ def get_num_interior_rings(geometry):
 
 # collections
 
-
+@multithreading_enabled
 def get_geometry(geometry, index):
     """Returns the nth geometry from a collection of geometries.
 

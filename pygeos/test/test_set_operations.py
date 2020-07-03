@@ -21,6 +21,7 @@ reduce_test_data = [
     pygeos.box(0, 0, 5, 5),
     pygeos.box(2, 2, 7, 7),
     pygeos.box(4, 4, 9, 9),
+    pygeos.box(5, 5, 10, 10),
 ]
 
 
@@ -32,7 +33,7 @@ def test_set_operation_array(a, func):
     assert isinstance(actual[0], Geometry)
 
 
-@pytest.mark.parametrize("n", range(1, 4))
+@pytest.mark.parametrize("n", range(1, 5))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
 def test_set_operation_reduce_1dim(n, func, related_func):
     actual = func(reduce_test_data[:n])
