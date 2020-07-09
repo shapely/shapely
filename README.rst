@@ -166,6 +166,18 @@ On windows (assuming you are in a Visual C++ shell)::
     $ set GEOS_INCLUDE_PATH=%CONDA_PREFIX%\Library\include
     $ set GEOS_LIBRARY_PATH=%CONDA_PREFIX%\Library\lib
 
+
+Memleak testing using valgrind for developers
+---------------------------------------------
+
+PyGEOS uses pytest-valgrind to automatically detect memory leaks. As tests take
+about 20 minutes to complete, this is not done as part of the CI. Run the tests
+locally using the included dockerfile::
+
+    $ docker build . -f ./docker/Dockerfile.valgrind -t pygeos/valgrind
+    $ docker run pygeos/valgrind:latest valgrind --show-leak-kinds=definite --log-file=/tmp/valgrind-output python -m pytest -vv --valgrind --valgrind-log=/tmp/valgrind-output > valgrind.log
+
+
 Relationship to Shapely
 -----------------------
 
