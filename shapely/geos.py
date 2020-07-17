@@ -21,12 +21,19 @@ from .errors import WKBReadingError, WKTReadingError, TopologicalError, Predicat
 # Add message handler to this module's logger
 LOG = logging.getLogger(__name__)
 
+if sys.version_info[0] >= 3:
+    text_types = str
+else:
+    text_types = (str, unicode)
+
+
 # Find and load the GEOS and C libraries
 # If this ever gets any longer, we'll break it into separate modules
 
 def load_dll(libname, fallbacks=None, mode=DEFAULT_MODE):
-    lib = find_library(libname)
+    lib = libname # find_library(libname)
     dll = None
+    fallbacks = [lib, "lib"+lib, "lib"+lib+".dylib"]
     if lib is not None:
         try:
             LOG.debug("Trying `CDLL(%s)`", lib)
@@ -56,10 +63,6 @@ def load_dll(libname, fallbacks=None, mode=DEFAULT_MODE):
                 libname, fallbacks or []))
 
 _lgeos = None
-def exists_conda_env():
-    """Does this module exist in a conda environment?"""
-    return os.path.exists(os.path.join(sys.prefix, 'conda-meta'))
-
 
 if sys.platform.startswith('linux'):
     # Test to see if we have a wheel repaired by 'auditwheel' containing its
@@ -74,7 +77,7 @@ if sys.platform.startswith('linux'):
         if len(geos_pyinstaller_so) == 1:
             _lgeos = CDLL(geos_pyinstaller_so[0])
             LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
-    elif exists_conda_env():
+    elif os.getenv('CONDA_PREFIX', ''):
         # conda package.
         _lgeos = CDLL(os.path.join(sys.prefix, 'lib', 'libgeos_c.so'))
     else:
@@ -105,7 +108,7 @@ elif sys.platform == 'darwin':
             _lgeos = CDLL(geos_whl_dylib)
             LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
 
-    elif exists_conda_env():
+    elif os.getenv('CONDA_PREFIX', ''):
         # conda package.
         _lgeos = CDLL(os.path.join(sys.prefix, 'lib', 'libgeos_c.dylib'))
     else:
@@ -142,7 +145,7 @@ elif sys.platform == 'darwin':
     free.restype = None
 
 elif sys.platform == 'win32':
-    if exists_conda_env():
+    if os.getenv('CONDA_PREFIX', ''):
         # conda package.
         _lgeos = CDLL(os.path.join(sys.prefix, 'Library', 'bin', 'geos_c.dll'))
     else:
@@ -186,7 +189,9 @@ def _geos_version():
     GEOSversion = _lgeos.GEOSversion
     GEOSversion.restype = c_char_p
     GEOSversion.argtypes = []
-    geos_version_string = GEOSversion().decode('ascii')
+    geos_version_string = GEOSversion()
+    if sys.version_info[0] >= 3:
+        geos_version_string = geos_version_string.decode('ascii')
     res = re.findall(r'(\d+)\.(\d+)\.(\d+)', geos_version_string)
     assert len(res) == 2, res
     geos_version = tuple(int(x) for x in res[0])
@@ -234,7 +239,6 @@ if geos_version >= (3, 1, 0):
 
 def make_logging_callback(func):
     """Error or notice handler callback producr
-
     Wraps a logger method, func, as a GEOS callback.
     """
     def callback(fmt, *fmt_args):
@@ -275,9 +279,10 @@ class WKTReader(object):
 
     def read(self, text):
         """Returns geometry from WKT"""
-        if not isinstance(text, str):
+        if not isinstance(text, text_types):
             raise TypeError("Only str is accepted.")
-        text = text.encode()
+        if sys.version_info[0] >= 3:
+            text = text.encode()
         c_string = c_char_p(text)
         geom = self._lgeos.GEOSWKTReader_read(self._reader, c_string)
         if not geom:
@@ -352,13 +357,10 @@ class WKTWriter(object):
 
     def __init__(self, lgeos, **settings):
         """Create WKT Writer
-
         Note: writer defaults are set differently for GEOS 3.3.0 and up.
         For example, with 'POINT Z (1 2 3)':
-
             newer: POINT Z (1 2 3)
             older: POINT (1.0000000000000000 2.0000000000000000)
-
         The older formatting can be achieved for GEOS 3.3.0 and up by setting
         the properties:
             trim = False
@@ -394,7 +396,10 @@ class WKTWriter(object):
         result = self._lgeos.GEOSWKTWriter_write(self._writer, geom._geom)
         text = string_at(result)
         lgeos.GEOSFree(result)
-        return text.decode('ascii')
+        if sys.version_info[0] >= 3:
+            return text.decode('ascii')
+        else:
+            return text
 
 
 class WKBReader(object):
@@ -428,7 +433,8 @@ class WKBReader(object):
 
     def read_hex(self, data):
         """Returns geometry from WKB hex"""
-        data = data.encode('ascii')
+        if sys.version_info[0] >= 3:
+            data = data.encode('ascii')
         geom = self._lgeos.GEOSWKBReader_readHEX(
             self._reader, c_char_p(data), c_size_t(len(data)))
         if not geom:
@@ -527,7 +533,10 @@ class WKBWriter(object):
             self._writer, geom._geom, pointer(size))
         data = string_at(result, size.value)
         lgeos.GEOSFree(result)
-        return data.decode('ascii')
+        if sys.version_info[0] >= 3:
+            return data.decode('ascii')
+        else:
+            return data
 
 
 # Errcheck functions for ctypes
@@ -547,12 +556,14 @@ def errcheck_just_free(result, func, argtuple):
     """Returns string from a C pointer"""
     retval = string_at(result)
     lgeos.GEOSFree(result)
-    return retval.decode('ascii')
+    if sys.version_info[0] >= 3:
+        return retval.decode('ascii')
+    else:
+        return retval
 
 
 def errcheck_null_exception(result, func, argtuple):
     """Wraps errcheck_just_free
-
     Raises TopologicalError if result is NULL.
     """
     if not result:
@@ -572,7 +583,6 @@ def errcheck_predicate(result, func, argtuple):
 
 class LGEOSBase(threading.local):
     """Proxy for GEOS C API
-
     This is a base class. Do not instantiate.
     """
     methods = {}
@@ -817,7 +827,7 @@ class LGEOS330(LGEOS320):
         attr.__name__ = func.__name__
         setattr(self, key, attr)
 
-        for pred in (self.GEOSisClosed, self.GEOSCoveredBy):
+        for pred in (self.GEOSisClosed,):
             pred.func.errcheck = errcheck_predicate
 
         def parallel_offset(geom, distance, resolution=16, join_style=1,
@@ -833,8 +843,6 @@ class LGEOS330(LGEOS320):
         self.methods['cascaded_union'] = self.methods['unary_union']
         self.methods['snap'] = self.GEOSSnap
         self.methods['shared_paths'] = self.GEOSSharedPaths
-        self.methods['buffer_with_params'] = self.GEOSBufferWithParams
-        self.methods['covered_by'] = self.GEOSCoveredBy
 
 
 class LGEOS340(LGEOS330):
@@ -857,8 +865,6 @@ class LGEOS350(LGEOS340):
 
     def __init__(self, dll):
         super(LGEOS350, self).__init__(dll)
-        self.methods['clip_by_rect'] = self.GEOSClipByRect
-        self.methods['voronoi_diagram'] = self.GEOSVoronoiDiagram
 
 
 class LGEOS360(LGEOS350):
@@ -869,23 +875,9 @@ class LGEOS360(LGEOS350):
 
     def __init__(self, dll):
         super(LGEOS360, self).__init__(dll)
-        self.methods['minimum_clearance'] = self.GEOSMinimumClearance
 
 
-class LGEOS380(LGEOS360):
-    """Proxy for GEOS 3.8.0-CAPI-1.13.0"""
-
-    geos_version = (3, 8, 0)
-    geos_capi_version = (1, 13, 0)
-
-    def __init__(self, dll):
-        super(LGEOS380, self).__init__(dll)
-        self.methods['make_valid'] = self.GEOSMakeValid
-
-
-if geos_version >= (3, 8, 0):
-    L = LGEOS380
-elif geos_version >= (3, 6, 0):
+if geos_version >= (3, 6, 0):
     L = LGEOS360
 elif geos_version >= (3, 5, 0):
     L = LGEOS350
