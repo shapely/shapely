@@ -1,5 +1,5 @@
-:mod:`pygeos.io`
-================
+Input/Output
+============
 
 .. automodule:: pygeos.io
    :members:

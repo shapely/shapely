@@ -35,26 +35,35 @@ Note: PyGEOS is a very young package. While the available functionality should
 be stable and working correctly, it's still possible that APIs change in upcoming
 releases. But we would love for you to try it out, give feedback or contribute!
 
-Why ufuncs?
------------
+What is a ufunc?
+----------------
 
 A universal function (or ufunc for short) is a function that operates on
 n-dimensional arrays in an element-by-element fashion, supporting array
 broadcasting. The for-loops that are involved are fully implemented in C
 diminishing the overhead of the Python interpreter.
 
+Multithreading
+--------------
+
+PyGEOS functions support multithreading. More specifically, the Global
+Interpreter Lock (GIL) is released during function execution. Normally in Python, the
+GIL prevents multiple threads from computing at the same time. PyGEOS functions
+internally releases this constraint so that the heavy lifting done by GEOS can be
+done in parallel, from a single Python process.
 
 The Geometry object
 -------------------
 
 The `pygeos.Geometry` object is a container of the actual GEOSGeometry object.
-A C pointer to this object is stored in a static attribute of the `Geometry`
-object. This keeps the python interpreter out of the ufunc inner loop. The
-Geometry object keeps track of the underlying GEOSGeometry and
+The Geometry object keeps track of the underlying GEOSGeometry and
 allows the python garbage collector to free memory when it is not
 used anymore.
 
-`Geometry` objects are immutable. Construct them as follows:
+`Geometry` objects are immutable. This means that after constructed, they cannot
+be changed inplace. Every PyGEOS operation will result in a new object being returned.
+
+Construct a Geometry from a WKT (Well-Known Text):
 
 .. code:: python
 
@@ -68,7 +77,7 @@ Or using one of the provided (vectorized) functions:
 
   >>> from pygeos import points
 
-  >>> point = points(5.2, 52.1)
+  >>> point = points([(5.2, 52.1), (5.1, 52.2)]]
 
 Examples
 --------
@@ -106,76 +115,6 @@ Compute the area of all possible intersections of two lists of polygons:
        [ 60.,  54.,  48.,  42.,  36.]])
 
 See the documentation for more: https://pygeos.readthedocs.io
-
-Installation using conda
-------------------------
-
-Pygeos requires the presence of NumPy and GEOS >= 3.5. It is recommended to install
-these using Anaconda from the conda-forge channel (which provides pre-compiled
-binaries)::
-
-    $ conda install numpy geos pygeos --channel conda-forge
-
-Installation using system GEOS
-------------------------------
-
-On Linux::
-
-    $ sudo apt install libgeos-dev
-
-On OSX::
-
-    $ brew install geos
-
-Make sure `geos-config` is available from you shell; append PATH if necessary::
-
-    $ export PATH=$PATH:/path/to/dir/having/geos-config
-    $ pip install pygeos
-
-
-Installation for developers
----------------------------
-
-Ensure you have numpy and GEOS installed (either using conda or using system
-GEOS, see above).
-
-Clone the package::
-
-    $ git clone https://github.com/pygeos/pygeos.git
-
-Install it using `pip`::
-
-    $ pip install -e .[test]
-
-Run the unittests::
-
-    $ pytest
-
-If GEOS is installed, normally the ``geos-config`` command line utility
-will be available, and ``pip install`` will find GEOS automatically.
-But if needed, you can specify where PyGEOS should look for the GEOS library
-before installing it:
-
-On Linux / OSX::
-
-    $ export GEOS_INCLUDE_PATH=$CONDA_PREFIX/Library/include
-    $ export GEOS_LIBRARY_PATH=$CONDA_PREFIX/Library/lib
-
-On windows (assuming you are in a Visual C++ shell)::
-
-    $ set GEOS_INCLUDE_PATH=%CONDA_PREFIX%\Library\include
-    $ set GEOS_LIBRARY_PATH=%CONDA_PREFIX%\Library\lib
-
-
-Memleak testing using valgrind for developers
----------------------------------------------
-
-PyGEOS uses pytest-valgrind to automatically detect memory leaks. As tests take
-about 20 minutes to complete, this is not done as part of the CI. Run the tests
-locally using the included dockerfile::
-
-    $ docker build . -f ./docker/Dockerfile.valgrind -t pygeos/valgrind
-    $ docker run pygeos/valgrind:latest valgrind --show-leak-kinds=definite --log-file=/tmp/valgrind-output python -m pytest -vv --valgrind --valgrind-log=/tmp/valgrind-output > valgrind.log
 
 
 Relationship to Shapely

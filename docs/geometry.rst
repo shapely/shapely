@@ -1,5 +1,5 @@
-:mod:`pygeos.geometry`
-======================
+Geometry properties
+===================
 
 .. automodule:: pygeos.geometry
    :members:

@@ -1,5 +1,5 @@
-:mod:`pygeos.predicates`
-========================
+Predicates
+==========
 
 .. automodule:: pygeos.predicates
    :members:

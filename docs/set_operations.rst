@@ -1,5 +1,5 @@
-:mod:`pygeos.set_operations`
-=============================
+Set operations
+==============
 
 .. automodule:: pygeos.set_operations
    :members:

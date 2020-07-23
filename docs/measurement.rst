@@ -1,5 +1,5 @@
-:mod:`pygeos.measurement`
-=========================
+Measurement
+===========
 
 .. automodule:: pygeos.measurement
    :members:

@@ -1,5 +1,5 @@
-:mod:`pygeos.strtree`
-=====================
+STRTree
+=======
 
 .. automodule:: pygeos.strtree
    :members: STRtree

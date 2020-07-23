@@ -1,5 +1,5 @@
-:mod:`pygeos.creation`
-======================
+Geometry creation
+=================
 
 .. automodule:: pygeos.creation
    :members:

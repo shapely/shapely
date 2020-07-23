@@ -1,4 +1,4 @@
-:mod:`pygeos.linear`
+Linestring operations
 =====================
 
 .. automodule:: pygeos.linear

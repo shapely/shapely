@@ -1,5 +1,5 @@
-:mod:`pygeos.coordinates`
-=========================
+Coordinate operations
+=====================
 
 .. automodule:: pygeos.coordinates
    :members:

@@ -1,5 +1,5 @@
-:mod:`pygeos.constructive`
-==========================
+Constructive operations
+=======================
 
 .. automodule:: pygeos.constructive
    :members:
