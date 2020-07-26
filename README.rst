@@ -125,9 +125,11 @@ to Python. While Shapely only deals with single geometries, PyGEOS provides
 vectorized functions to work with arrays of geometries, giving better
 performance and convenience for such usecases.
 
-There is still discussion of integrating PyGEOS into Shapely
-(https://github.com/Toblerity/Shapely/issues/782), but for now PyGEOS is
-developed as a separate project.
+There is active discussion and work toward integrating PyGEOS into Shapely:
+* latest proposal: https://github.com/shapely/shapely-rfc/pull/1
+* prior discussion: https://github.com/Toblerity/Shapely/issues/782
+
+For now PyGEOS is developed as a separate project.
 
 References
 ----------
