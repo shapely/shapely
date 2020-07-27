@@ -251,6 +251,7 @@ static void *polygons_without_holes_data[1] = {GEOSLinearRingToPolygon};
 #if GEOS_SINCE_3_8_0
   static void *build_area_data[1] = {GEOSBuildArea_r};
   static void *make_valid_data[1] = {GEOSMakeValid_r};
+  static void *coverage_union_data[1] = {GEOSCoverageUnion_r};
 #endif
 typedef void *FuncGEOS_Y_Y(void *context, void *a);
 static char Y_Y_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
@@ -1943,6 +1944,7 @@ int init_ufuncs(PyObject *m, PyObject *d)
     #if GEOS_SINCE_3_8_0
       DEFINE_Y_Y (make_valid);
       DEFINE_Y_Y (build_area);
+      DEFINE_Y_Y (coverage_union);
     #endif
 
     Py_DECREF(ufunc);

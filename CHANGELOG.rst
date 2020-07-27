@@ -10,6 +10,8 @@ Version 0.8 (unreleased)
 * Release the GIL to allow for multithreading in functions that do not 
   create geometries (#144)
 * Addition of a ``frechet_distance()`` function for GEOS >= 3.7 (#144)
+* Addition of ``coverage_union()`` and ``coverage_union_all()` functions
+  for GEOS >= 3.8 (#142)
 * Fixed segfaults when adding empty geometries to the STRtree (#147)
 * Addition of a ``build_area()`` function for GEOS >= 3.8 (#141)
 * Addition of a ``normalize()`` function (#136)

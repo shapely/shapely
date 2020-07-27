@@ -1,5 +1,6 @@
 import numpy as np
 from . import lib, Geometry, GeometryType
+from .decorators import requires_geos
 from .decorators import multithreading_enabled
 
 __all__ = [
@@ -10,6 +11,8 @@ __all__ = [
     "symmetric_difference_all",
     "union",
     "union_all",
+    "coverage_union",
+    "coverage_union_all",
 ]
 
 @multithreading_enabled
@@ -194,3 +197,78 @@ def union_all(geometries, axis=0, **kwargs):
     # create_collection acts on the inner axis
     collections = lib.create_collection(geometries, GeometryType.GEOMETRYCOLLECTION)
     return lib.unary_union(collections, **kwargs)
+
+
+@requires_geos("3.8.0")
+@multithreading_enabled
+def coverage_union(a, b, **kwargs):
+    """Merges multiple polygons into one. This is an optimized version of
+    union which assumes the polygons to be non-overlapping.
+
+    Requires at least GEOS 3.8.0.
+
+    Parameters
+    ----------
+    a : Geometry or array_like
+    b : Geometry or array_like
+
+    See also
+    --------
+    coverage_union_all
+
+    Examples
+    --------
+    >>> from pygeos.constructive import normalize
+    >>> polygon = Geometry("POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))")
+    >>> normalize(coverage_union(polygon, Geometry("POLYGON ((1 0, 1 1, 2 1, 2 0, 1 0))")))
+    <pygeos.Geometry POLYGON ((0 0, 0 1, 1 1, 2 1, 2 0, 1 0, 0 0))>
+
+    Union with None returns same polygon
+    >>> normalize(coverage_union(polygon, None))
+    <pygeos.Geometry POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
+    """
+    return coverage_union_all([a, b], **kwargs)
+
+
+@requires_geos("3.8.0")
+@multithreading_enabled
+def coverage_union_all(geometries, axis=0, **kwargs):
+    """Returns the union of multiple polygons of a geometry collection.
+    This is an optimized version of union which assumes the polygons
+    to be non-overlapping.
+
+    Requires at least GEOS 3.8.0.
+
+    Parameters
+    ----------
+    geometries : array_like
+    axis : int
+        Axis along which the operation is performed. The default (zero)
+        performs the operation over the first dimension of the input array.
+        axis may be negative, in which case it counts from the last to the
+        first axis.
+
+    See also
+    --------
+    coverage_union
+
+    Examples
+    --------
+    >>> from pygeos.constructive import normalize
+    >>> polygon_1 = Geometry("POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))")
+    >>> polygon_2 = Geometry("POLYGON ((1 0, 1 1, 2 1, 2 0, 1 0))")
+    >>> normalize(coverage_union_all([polygon_1, polygon_2]))
+    <pygeos.Geometry POLYGON ((0 0, 0 1, 1 1, 2 1, 2 0, 1 0, 0 0))>
+    """
+    # coverage union in GEOS works over GeometryCollections
+    # first roll the aggregation axis backwards
+    geometries = np.asarray(geometries)
+    if axis is None:
+        geometries = geometries.ravel()
+    else:
+        geometries = np.rollaxis(
+            np.asarray(geometries), axis=axis, start=geometries.ndim
+        )
+    # create_collection acts on the inner axis
+    collections = lib.create_collection(geometries, GeometryType.GEOMETRYCOLLECTION)
+    return lib.coverage_union(collections, **kwargs)
