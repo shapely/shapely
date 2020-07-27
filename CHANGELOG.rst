@@ -6,6 +6,7 @@ Version 0.8 (unreleased)
 
 **Highlights of this release**
 
+* Fixed bug in ``multilinestrings()``, it now accepts linearrings again (#168) 
 * Release the GIL to allow for multithreading in functions that do not 
   create geometries (#144)
 * Addition of a ``frechet_distance()`` function for GEOS >= 3.7 (#144)

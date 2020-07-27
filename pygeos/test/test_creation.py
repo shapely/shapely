@@ -2,7 +2,16 @@ import pygeos
 import pytest
 import numpy as np
 
-from .common import point
+from .common import (
+    point,
+    line_string,
+    linear_ring,
+    polygon,
+    multi_point,
+    multi_line_string,
+    multi_polygon,
+    geometry_collection,
+)
 
 
 def box_tpl(x1, y1, x2, y2):
@@ -12,7 +21,7 @@ def box_tpl(x1, y1, x2, y2):
 def test_points_from_coords():
     actual = pygeos.points([[0, 0], [2, 2]])
     assert str(actual[0]) == "POINT (0 0)"
-    assert str(actual[1])  == "POINT (2 2)"
+    assert str(actual[1]) == "POINT (2 2)"
 
 
 def test_points_from_xy():
@@ -121,24 +130,73 @@ def test_2_polygons_with_different_holes():
     assert pygeos.area(actual).tolist() == [96.0, 24.0]
 
 
-def test_create_collection_only_none():
-    actual = pygeos.multipoints(np.array([None], dtype=object))
-    assert str(actual) == "MULTIPOINT EMPTY"
+@pytest.mark.parametrize(
+    "func,expected",
+    [
+        (pygeos.multipoints, "MULTIPOINT EMPTY"),
+        (pygeos.multilinestrings, "MULTILINESTRING EMPTY"),
+        (pygeos.multipolygons, "MULTIPOLYGON EMPTY"),
+        (pygeos.geometrycollections, "GEOMETRYCOLLECTION EMPTY"),
+    ],
+)
+def test_create_collection_only_none(func, expected):
+    actual = func(np.array([None], dtype=object))
+    assert str(actual) == expected
 
 
-def test_create_collection_skips_none():
-    actual = pygeos.multipoints([point, None, None, point])
-    assert str(actual) == "MULTIPOINT (2 3, 2 3)"
+@pytest.mark.parametrize(
+    "func,sub_geom",
+    [
+        (pygeos.multipoints, point),
+        (pygeos.multilinestrings, line_string),
+        (pygeos.multilinestrings, linear_ring),
+        (pygeos.multipolygons, polygon),
+        (pygeos.geometrycollections, point),
+        (pygeos.geometrycollections, line_string),
+        (pygeos.geometrycollections, linear_ring),
+        (pygeos.geometrycollections, polygon),
+        (pygeos.geometrycollections, multi_point),
+        (pygeos.geometrycollections, multi_line_string),
+        (pygeos.geometrycollections, multi_polygon),
+        (pygeos.geometrycollections, geometry_collection),
+    ],
+)
+def test_create_collection(func, sub_geom):
+    actual = func([sub_geom, sub_geom])
+    assert pygeos.get_num_geometries(actual) == 2
 
 
-def test_create_collection_wrong_collection_type():
+@pytest.mark.parametrize(
+    "func,sub_geom",
+    [
+        (pygeos.multipoints, point),
+        (pygeos.multilinestrings, line_string),
+        (pygeos.multipolygons, polygon),
+        (pygeos.geometrycollections, polygon),
+    ],
+)
+def test_create_collection_skips_none(func, sub_geom):
+    actual = func([sub_geom, None, None, sub_geom])
+    assert pygeos.get_num_geometries(actual) == 2
+
+
+@pytest.mark.parametrize(
+    "func,sub_geom",
+    [
+        (pygeos.multipoints, line_string),
+        (pygeos.multipoints, geometry_collection),
+        (pygeos.multipoints, multi_point),
+        (pygeos.multilinestrings, point),
+        (pygeos.multilinestrings, polygon),
+        (pygeos.multilinestrings, multi_line_string),
+        (pygeos.multipolygons, linear_ring),
+        (pygeos.multipolygons, multi_point),
+        (pygeos.multipolygons, multi_polygon),
+    ],
+)
+def test_create_collection_wrong_geom_type(func, sub_geom):
     with pytest.raises(TypeError):
-        pygeos.lib.create_collection([point], 2)
-
-
-def test_create_collection_wrong_geom_type():
-    with pytest.raises(TypeError):
-        pygeos.multipolygons([point])
+        func([sub_geom])
 
 
 def test_box():

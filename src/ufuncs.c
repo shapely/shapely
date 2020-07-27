@@ -1363,7 +1363,7 @@ static void create_collection_func(char **args, npy_intp *dimensions,
 {
     GEOSGeometry *g, *g_copy;
     int n_geoms, type;
-    char actual_type, expected_type;
+    char actual_type, expected_type, alt_expected_type;
 
     GEOS_INIT;
 
@@ -1375,15 +1375,19 @@ static void create_collection_func(char **args, npy_intp *dimensions,
         switch (type) {
             case GEOS_MULTIPOINT:
                 expected_type = GEOS_POINT;
+                alt_expected_type = -1;
                 break;
             case GEOS_MULTILINESTRING:
                 expected_type = GEOS_LINESTRING;
+                alt_expected_type = GEOS_LINEARRING;
                 break;
             case GEOS_MULTIPOLYGON:
                 expected_type = GEOS_POLYGON;
+                alt_expected_type = -1;
                 break;
             case GEOS_GEOMETRYCOLLECTION:
                 expected_type = -1;
+                alt_expected_type = -1;
                 break;
         default:
             errstate = PGERR_GEOMETRY_TYPE;
@@ -1397,7 +1401,9 @@ static void create_collection_func(char **args, npy_intp *dimensions,
             if (expected_type != -1) {
                 actual_type = GEOSGeomTypeId_r(ctx, g);
                 if (actual_type == -1) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
-                if (actual_type != expected_type) { errstate = PGERR_GEOMETRY_TYPE; goto finish; }
+                if ((actual_type != expected_type) & (actual_type != alt_expected_type)) {
+                    errstate = PGERR_GEOMETRY_TYPE; goto finish;
+                }
             }
             g_copy = GEOSGeom_clone_r(ctx, g);
             if (g_copy == NULL) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
