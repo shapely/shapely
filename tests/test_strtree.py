@@ -1,8 +1,8 @@
 import gc
+import os
 import pickle
 import subprocess
 import sys
-from pathlib import Path
 
 from shapely.strtree import STRtree
 from shapely.geometry import Point, Polygon
@@ -92,10 +92,11 @@ def test_pickle_persistence():
     """
     tree = STRtree([Point(i, i).buffer(0.1) for i in range(3)])
     pickled_strtree = pickle.dumps(tree)
-    print("pickled strtree:", repr(pickled_strtree))
-    unpickle_script_file_path = Path(__file__).parent / "unpickle-strtree.py"
-    subprocess.run(
+    unpickle_script_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "unpickle-strtree.py")
+    proc = subprocess.Popen(
         [sys.executable, str(unpickle_script_file_path)],
-        input=pickled_strtree,
-        check=True
+        stdin=subprocess.PIPE,
     )
+    proc.communicate(input=pickled_strtree)
+    proc.wait()
+    assert proc.returncode == 0
