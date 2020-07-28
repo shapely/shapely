@@ -880,7 +880,7 @@ class BaseMultipartGeometry(BaseGeometry):
         warn(
             "Iteration over multi-part geometries is deprecated and will be removed in "
             "Shapely 2.0. Use the `geoms` property to access the constituent parts of " 
-            "a multi-part geometry.", ShapelyDeprecationWarning, stacklevel=2)
+            "a multi-part geometry.", ShapelyDeprecationWarning, stacklevel=1)
         if not self.is_empty:
             return iter(self.geoms)
         else:
@@ -902,7 +902,7 @@ class BaseMultipartGeometry(BaseGeometry):
         warn(
             "Iteration over multi-part geometries is deprecated and will be removed in "
             "Shapely 2.0. Use the `geoms` property to access the constituent parts of " 
-            "a multi-part geometry.", ShapelyDeprecationWarning, stacklevel=2)
+            "a multi-part geometry.", ShapelyDeprecationWarning, stacklevel=1)
         if not self.is_empty:
             return self.geoms[index]
         else:
