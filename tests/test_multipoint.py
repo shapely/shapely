@@ -94,5 +94,19 @@ def test_multipoint_adapter_deprecated():
         asMultiPoint(coords)
 
 
+def test_iteration_deprecated():
+    geom = MultiPoint([[5.0, 6.0], [7.0, 8.0]])
+    with pytest.warns(ShapelyDeprecationWarning, match="Iteration"):
+        for g in geom:
+            pass
+
+
+def test_getitem_deprecated():
+    geom = MultiPoint([[5.0, 6.0], [7.0, 8.0]])
+    with pytest.warns(ShapelyDeprecationWarning, match="Iteration"):
+        part = geom[0]
+
+
+
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(MultiPointTestCase)

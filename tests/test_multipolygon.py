@@ -96,3 +96,20 @@ def test_multipolygon_adapter_deprecated():
     holes_coords = [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))]
     with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
         asMultiPolygon([(coords, holes_coords)])
+
+
+def test_iteration_deprecated():
+    geom = MultiPolygon(
+        [(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)),
+          [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))])])
+    with pytest.warns(ShapelyDeprecationWarning, match="Iteration"):
+        for g in geom:
+            pass
+
+
+def test_getitem_deprecated():
+    geom = MultiPolygon(
+        [(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)),
+          [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))])])
+    with pytest.warns(ShapelyDeprecationWarning, match="Iteration"):
+        part = geom[0]
