@@ -10,7 +10,12 @@ from shapely.geos import geos_version
 
 
 if __name__ == "__main__":
-    pickled_strtree = sys.stdin.buffer.read()
+    try:
+        pickled_strtree = sys.stdin.buffer.read()
+    except AttributeError:
+        # Python 2.7
+        pickled_strtree = sys.stdin.read()
+
     print("received pickled strtree:", repr(pickled_strtree))
     strtree = pickle.loads(pickled_strtree)
     # Exercise API.
