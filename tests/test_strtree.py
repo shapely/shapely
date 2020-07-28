@@ -94,8 +94,10 @@ def test_pickle_persistence():
     pickled_strtree = pickle.dumps(tree)
     print("pickled strtree:", repr(pickled_strtree))
     unpickle_script_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "unpickle-strtree.py")
-    subprocess.run(
+    proc = subprocess.Popen(
         [sys.executable, str(unpickle_script_file_path)],
-        input=pickled_strtree,
-        check=True
+        stdin=subprocess.PIPE,
     )
+    proc.communicate(input=pickled_strtree)
+    proc.wait()
+    assert proc.returncode == 0
