@@ -1,6 +1,6 @@
 import pytest
 
-from shapely.geometry import shape, Polygon
+from shapely.geometry import shape, Polygon, MultiLineString
 
 
 @pytest.mark.parametrize(
@@ -28,3 +28,12 @@ def test_polygon_not_empty_np_array():
     geom = {"type": "Polygon", "coordinates": np.array([[[5, 10], [10, 10], [10, 5]]])}
     obj = shape(geom)
     assert obj == Polygon([(5, 10), (10, 10), (10, 5)])
+
+
+@pytest.mark.parametrize("geom", [
+    {'type': "MultiLineString", "coordinates": []},
+    {'type': 'MultiLineString', 'coordinates': [[]]},
+    {'type': 'MultiLineString', 'coordinates': None}
+])
+def test_multilinestring_empty(geom):
+    assert shape(geom) == MultiLineString()
