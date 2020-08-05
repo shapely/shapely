@@ -84,7 +84,7 @@ class MultiPoint(BaseMultipartGeometry):
 
     @property
     @exceptNull
-    def ctypes(self):
+    def _ctypes(self):
         if not self._ctypes_data:
             temp = c_double()
             n = self._ndim
@@ -103,6 +103,14 @@ class MultiPoint(BaseMultipartGeometry):
                     data[n*i+2] = temp.value
             self._ctypes_data = data
         return self._ctypes_data
+
+    @property
+    def ctypes(self):
+        warnings.warn(
+            "Accessing the 'ctypes' attribute is deprecated,"
+            " and will not be possible any more in Shapely 2.0",
+            ShapelyDeprecationWarning, stacklevel=2)
+        return self._ctypes
 
     @exceptNull
     def array_interface(self):

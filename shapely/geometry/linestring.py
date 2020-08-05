@@ -75,9 +75,9 @@ class LineString(BaseGeometry):
             ).format(pnt_format, 2. * scale_factor, stroke_color)
 
     @property
-    def ctypes(self):
+    def _ctypes(self):
         if not self._ctypes_data:
-            self._ctypes_data = self.coords.ctypes
+            self._ctypes_data = self.coords._ctypes
         return self._ctypes_data
 
     def array_interface(self):

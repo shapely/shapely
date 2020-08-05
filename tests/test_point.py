@@ -142,7 +142,6 @@ class LineStringTestCase(unittest.TestCase):
         p = Point(0.0, 0.0, 1.0)
         coords = p.coords[0]
         self.assertEqual(coords, (0.0, 0.0, 1.0))
-        self.assertIsNotNone(p.ctypes)
 
         # Convert to Numpy array, passing through Python sequence
         a = asarray(coords)
@@ -183,6 +182,12 @@ def test_point_adapter_deprecated():
     coords = [3.0, 4.0]
     with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
         asPoint(coords)
+
+
+def test_point_ctypes_deprecated():
+    p = Point(3.0, 4.0)
+    with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
+        p.ctypes is not None
 
 
 def test_suite():

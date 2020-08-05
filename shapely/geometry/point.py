@@ -102,7 +102,7 @@ class Point(BaseGeometry):
             ).format(self, 3. * scale_factor, 1. * scale_factor, fill_color)
 
     @property
-    def ctypes(self):
+    def _ctypes(self):
         if not self._ctypes_data:
             array_type = c_double * self._ndim
             array = array_type()

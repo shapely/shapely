@@ -293,5 +293,18 @@ def test_polygon_adapter_deprecated():
         asPolygon(coords, hole_coords)
 
 
+def test_ctypes_deprecated():
+    coords = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]
+    hole_coords = [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))]
+    ring = LinearRing(coords)
+    polygon = Polygon(coords, hole_coords)
+
+    with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
+        ring.ctypes
+
+    with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
+        polygon.ctypes
+
+
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(PolygonTestCase)

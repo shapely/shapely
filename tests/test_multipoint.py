@@ -94,5 +94,11 @@ def test_multipoint_adapter_deprecated():
         asMultiPoint(coords)
 
 
+def test_multipoint_ctypes_deprecated():
+    geom = MultiPoint(((1.0, 2.0), (3.0, 4.0)))
+    with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
+        geom.ctypes
+
+
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(MultiPointTestCase)

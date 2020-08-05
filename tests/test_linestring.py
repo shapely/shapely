@@ -168,6 +168,7 @@ class LineStringTestCase(unittest.TestCase):
         pas = asarray(la)
         assert_array_equal(pas, array([[1.0, 2.0], [3.0, 4.0]]))
 
+    @shapely20_deprecated
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy_asarray(self):
         from numpy import array, asarray
@@ -206,6 +207,12 @@ def test_linestring_adapter_deprecated():
     coords = [[5.0, 6.0], [7.0, 8.0]]
     with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
         asLineString(coords)
+
+
+def test_linestring_ctypes_deprecated():
+    line = LineString(((1.0, 2.0), (3.0, 4.0)))
+    with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
+        line.ctypes
 
 
 def test_suite():
