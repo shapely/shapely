@@ -126,6 +126,7 @@ vectorized functions to work with arrays of geometries, giving better
 performance and convenience for such usecases.
 
 There is active discussion and work toward integrating PyGEOS into Shapely:
+
 * latest proposal: https://github.com/shapely/shapely-rfc/pull/1
 * prior discussion: https://github.com/Toblerity/Shapely/issues/782
 
