@@ -30,6 +30,7 @@ def geometrycollection_geojson():
 def test_empty(geom):
     assert geom.type == "GeometryCollection"
     assert geom.type == geom.geom_type
+    assert geom.is_empty
     assert len(geom) == 0
     assert geom.geoms == []
 
@@ -83,6 +84,7 @@ def test_empty_geointerface_adapter():
     assert m.geom_type == "GeometryCollection"
     assert len(m) == 0
     assert m.geoms == []
+    assert m.is_empty
 
 
 def test_geometrycollection_adapter_deprecated(geometrycollection_geojson):
