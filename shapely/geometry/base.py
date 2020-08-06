@@ -895,12 +895,12 @@ class BaseMultipartGeometry(BaseGeometry):
     def __getitem__(self, index):
         """
         .. deprecated:: 1.8
-           Iteration over multi-part geometries is deprecated and will be removed in
+           __getitem__ for multi-part geometries is deprecated and will be removed in
            Shapely 2.0. Use the `geoms` property to access the constituent parts of
            a multi-part geometry.
         """
         warn(
-            "Iteration over multi-part geometries is deprecated and will be removed in "
+            "__getitem__ for multi-part geometries is deprecated and will be removed in "
             "Shapely 2.0. Use the `geoms` property to access the constituent parts of " 
             "a multi-part geometry.", ShapelyDeprecationWarning, stacklevel=2)
         if not self.is_empty:
