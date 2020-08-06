@@ -111,5 +111,5 @@ def test_getitem_deprecated():
     geom = MultiPolygon(
         [(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)),
           [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))])])
-    with pytest.warns(ShapelyDeprecationWarning, match="Iteration"):
+    with pytest.warns(ShapelyDeprecationWarning, match="__getitem__"):
         part = geom[0]

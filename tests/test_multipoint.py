@@ -103,7 +103,7 @@ def test_iteration_deprecated():
 
 def test_getitem_deprecated():
     geom = MultiPoint([[5.0, 6.0], [7.0, 8.0]])
-    with pytest.warns(ShapelyDeprecationWarning, match="Iteration"):
+    with pytest.warns(ShapelyDeprecationWarning, match="__getitem__"):
         part = geom[0]
 
 
