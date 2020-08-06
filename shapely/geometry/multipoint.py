@@ -113,12 +113,27 @@ class MultiPoint(BaseMultipartGeometry):
         return self._ctypes
 
     @exceptNull
-    def array_interface(self):
+    def _array_interface(self):
         """Provide the Numpy array protocol."""
-        ai = self.array_interface_base
+        ai = self._array_interface_base
         ai.update({'shape': (len(self.geoms), self._ndim)})
         return ai
-    __array_interface__ = property(array_interface)
+
+    def array_interface(self):
+        """Provide the Numpy array protocol."""
+        warnings.warn(
+            "The 'array_interface' method is deprecated and will be removed "
+            "in Shapely 2.0.",
+            ShapelyDeprecationWarning, stacklevel=2)
+        return self._array_interface()
+
+    @property
+    def __array_interface__(self):
+        warnings.warn(
+            "The array interface is deprecated and will no longer work in "
+            "Shapely 2.0. Convert the '.coords' to a numpy array instead.",
+            ShapelyDeprecationWarning, stacklevel=3)
+        return self._array_interface()
 
 
 class MultiPointAdapter(CachingGeometryProxy, MultiPoint):

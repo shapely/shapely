@@ -302,7 +302,11 @@ class BaseGeometry(object):
         return self._ctypes
 
     @property
-    def array_interface_base(self):
+    def _array_interface_base(self):
+        warn(
+            "The array interface is deprecated and will no longer work in "
+            "Shapely 2.0. Convert the '.coords' to a numpy array instead.",
+            ShapelyDeprecationWarning, stacklevel=2)
         if sys.byteorder == 'little':
             typestr = '<f8'
         elif sys.byteorder == 'big':
@@ -315,6 +319,14 @@ class BaseGeometry(object):
             'typestr': typestr,
             'data': self._ctypes,
             }
+
+    @property
+    def array_interface_base(self):
+        warn(
+            "The 'array_interface_base' property is deprecated and will be "
+            "removed in Shapely 2.0.",
+            ShapelyDeprecationWarning, stacklevel=2)
+        return self._array_interface_base()
 
     @property
     def __array_interface__(self):

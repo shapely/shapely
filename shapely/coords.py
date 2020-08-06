@@ -144,9 +144,9 @@ class CoordinateSequence(object):
             }
         ai.update({'shape': (len(self), self._ndim)})
         return ai
-    
+
     __array_interface__ = property(array_interface)
-    
+
     @property
     def xy(self):
         """X and Y arrays"""

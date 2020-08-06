@@ -128,7 +128,7 @@ class LineStringTestCase(unittest.TestCase):
             ls = LineString(coords)
             ls.geom_type # caused segfault before fix
 
-
+    @shapely20_deprecated
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy(self):
 
@@ -145,8 +145,16 @@ class LineStringTestCase(unittest.TestCase):
         expected = array([[1.0, 2.0], [3.0, 4.0]])
         assert_array_equal(la, expected)
 
+    @unittest.skipIf(not numpy, 'Numpy required')
+    def test_numpy_coords(self):
+        import numpy as np
+        from numpy.testing import assert_array_equal
+
+        line = LineString(((1.0, 2.0), (3.0, 4.0)))
+        expected = np.array([[1.0, 2.0], [3.0, 4.0]])
+
         # Coordinate sequences can be adapted as well
-        la = asarray(line.coords)
+        la = np.asarray(line.coords)
         assert_array_equal(la, expected)
 
     @shapely20_deprecated
@@ -186,6 +194,7 @@ class LineStringTestCase(unittest.TestCase):
         b = asarray(line)
         assert_array_equal(b, array([[0., 0.], [2., 2.], [1., 1.]]))
 
+    @shapely20_deprecated
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy_empty(self):
         from numpy import array, asarray
@@ -213,6 +222,21 @@ def test_linestring_ctypes_deprecated():
     line = LineString(((1.0, 2.0), (3.0, 4.0)))
     with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
         line.ctypes
+
+
+def test_linestring_array_interface_deprecated():
+    line = LineString(((1.0, 2.0), (3.0, 4.0)))
+    with pytest.warns(ShapelyDeprecationWarning, match="array_interface"):
+        line.array_interface()
+
+
+@unittest.skipIf(not numpy, 'Numpy required')
+def test_linestring_array_interface_numpy_deprecated():
+    import numpy as np
+
+    line = LineString(((1.0, 2.0), (3.0, 4.0)))
+    with pytest.warns(ShapelyDeprecationWarning, match="array interface"):
+        np.array(line)
 
 
 def test_suite():

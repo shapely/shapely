@@ -133,6 +133,7 @@ class LineStringTestCase(unittest.TestCase):
         pas = asarray(pa)
         assert_array_equal(pas, array([1.0, 4.0]))
 
+    @shapely20_deprecated
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy_asarray(self):
         from numpy import array, asarray
@@ -188,6 +189,20 @@ def test_point_ctypes_deprecated():
     p = Point(3.0, 4.0)
     with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
         p.ctypes is not None
+
+def test_point_array_interface_deprecated():
+    p = Point(3.0, 4.0)
+    with pytest.warns(ShapelyDeprecationWarning, match="array_interface"):
+        p.array_interface()
+
+
+@unittest.skipIf(not numpy, 'Numpy required')
+def test_point_array_interface_numpy_deprecated():
+    import numpy as np
+
+    p = Point(3.0, 4.0)
+    with pytest.warns(ShapelyDeprecationWarning, match="array interface"):
+        np.array(p)
 
 
 def test_suite():

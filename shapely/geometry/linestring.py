@@ -80,7 +80,7 @@ class LineString(BaseGeometry):
             self._ctypes_data = self.coords._ctypes
         return self._ctypes_data
 
-    def array_interface(self):
+    def _array_interface(self):
         """Provide the Numpy array protocol."""
         if self.is_empty:
             ai = {'version': 3, 'typestr': '<f8', 'shape': (0,), 'data': (c_double * 0)()}
@@ -88,7 +88,21 @@ class LineString(BaseGeometry):
             ai = self.coords.array_interface()
         return ai
 
-    __array_interface__ = property(array_interface)
+    def array_interface(self):
+        """Provide the Numpy array protocol."""
+        warnings.warn(
+            "The 'array_interface' method is deprecated and will be removed "
+            "in Shapely 2.0.",
+            ShapelyDeprecationWarning, stacklevel=2)
+        return self._array_interface()
+
+    @property
+    def __array_interface__(self):
+        warnings.warn(
+            "The array interface is deprecated and will no longer work in "
+            "Shapely 2.0. Convert the '.coords' to a numpy array instead.",
+            ShapelyDeprecationWarning, stacklevel=3)
+        return self._array_interface()
 
     # Coordinate access
     def _set_coords(self, coordinates):

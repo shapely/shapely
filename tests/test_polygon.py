@@ -175,7 +175,7 @@ class PolygonTestCase(unittest.TestCase):
             LinearRing(line)
 
     @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy(self):
+    def test_polygon_from_numpy(self):
 
         from numpy import array, asarray
         from numpy.testing import assert_array_equal
@@ -186,6 +186,17 @@ class PolygonTestCase(unittest.TestCase):
         self.assertEqual(dump_coords(polygon.exterior),
                          [(0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.)])
         self.assertEqual(len(polygon.interiors), 0)
+
+    @shapely20_deprecated
+    @unittest.skipIf(not numpy, 'Numpy required')
+    def test_polygon_exterior_array_interface(self):
+
+        from numpy import array, asarray
+        from numpy.testing import assert_array_equal
+
+        a = asarray(((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.)))
+        polygon = Polygon(a)
+
         b = asarray(polygon.exterior)
         self.assertEqual(b.shape, (5, 2))
         assert_array_equal(
