@@ -303,10 +303,6 @@ class BaseGeometry(object):
 
     @property
     def _array_interface_base(self):
-        warn(
-            "The array interface is deprecated and will no longer work in "
-            "Shapely 2.0. Convert the '.coords' to a numpy array instead.",
-            ShapelyDeprecationWarning, stacklevel=2)
         if sys.byteorder == 'little':
             typestr = '<f8'
         elif sys.byteorder == 'big':
