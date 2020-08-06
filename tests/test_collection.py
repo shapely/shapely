@@ -80,11 +80,11 @@ def test_geointerface_adapter(geometrycollection_geojson):
 def test_empty_geointerface_adapter():
     d = {"type": "GeometryCollection", "geometries": []}
 
-    m = asShape(d)
-    assert m.geom_type == "GeometryCollection"
-    assert len(m) == 0
-    assert m.geoms == []
-    assert m.is_empty
+    geom = asShape(d)
+    assert geom.geom_type == "GeometryCollection"
+    assert geom.is_empty
+    assert len(geom) == 0
+    assert geom.geoms == []
 
 
 def test_geometrycollection_adapter_deprecated(geometrycollection_geojson):
