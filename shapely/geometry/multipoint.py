@@ -79,7 +79,7 @@ class MultiPoint(BaseMultipartGeometry):
         if fill_color is None:
             fill_color = "#66cc99" if self.is_valid else "#ff3333"
         return '<g>' + \
-            ''.join(p.svg(scale_factor, fill_color) for p in self) + \
+            ''.join(p.svg(scale_factor, fill_color) for p in self.geoms) + \
             '</g>'
 
     @property
