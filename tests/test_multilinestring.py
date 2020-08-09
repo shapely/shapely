@@ -3,7 +3,7 @@ from .test_multi import MultiGeometryTestCase
 
 import pytest
 
-from shapely.errors import ShapelyDeprecationWarning
+from shapely.errors import EmptyPartError, ShapelyDeprecationWarning
 from shapely.geos import lgeos
 from shapely.geometry import LineString, MultiLineString, asMultiLineString
 from shapely.geometry.base import dump_coords
@@ -89,6 +89,15 @@ class MultiLineStringTestCase(MultiGeometryTestCase):
         line0 = LineString([(0.0, 1.0), (2.0, 3.0)])
         line1 = LineString([(4.0, 5.0), (6.0, 7.0)])
         self.subgeom_access_test(MultiLineString, [line0, line1])
+
+    def test_create_multi_with_empty_component(self):
+        with self.assertRaises(EmptyPartError) as exc:
+            wkt = MultiLineString([
+                LineString([(0, 0), (1, 1), (2, 2)]),
+                LineString()
+            ]).wkt
+
+        self.assertEqual(str(exc.exception), "Can't create MultiLineString with empty component")
 
 
 def test_multilinestring_adapter_deprecated():

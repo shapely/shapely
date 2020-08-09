@@ -3,7 +3,7 @@ from .test_multi import MultiGeometryTestCase
 
 import pytest
 
-from shapely.errors import ShapelyDeprecationWarning
+from shapely.errors import EmptyPartError, ShapelyDeprecationWarning
 from shapely.geometry import Point, MultiPoint, asMultiPoint
 from shapely.geometry.base import dump_coords
 
@@ -86,6 +86,12 @@ class MultiPointTestCase(MultiGeometryTestCase):
         p0 = Point(1.0, 2.0)
         p1 = Point(3.0, 4.0)
         self.subgeom_access_test(MultiPoint, [p0, p1])
+
+    def test_create_multi_with_empty_component(self):
+        with self.assertRaises(EmptyPartError) as exc:
+            wkt = MultiPoint([Point(0, 0), Point()]).wkt
+
+        self.assertEqual(str(exc.exception), "Can't create MultiPoint with empty component")
 
 
 def test_multipoint_adapter_deprecated():

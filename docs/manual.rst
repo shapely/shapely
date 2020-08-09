@@ -1228,8 +1228,9 @@ interior point in common.
 
 .. method:: object.overlaps(other)
 
-  Returns ``True`` if the objects intersect (see above) but neither contains
-  the other.
+  Returns ``True`` if the geometries have more than one but not all points in common,
+  have the same dimension, and the intersection of the interiors of the geometries
+  has the same dimension as the geometries themselves.
 
 .. method:: object.touches(other)
 
@@ -1530,6 +1531,28 @@ boundaries.
   :meth:`union` is an expensive way to find the cumulative union
   of many objects. See :func:`shapely.ops.unary_union` for a more effective
   method.
+
+Several of these set-theoretic methods can be invoked using overloaded operators:
+
+- `intersection` can be accessed with and, `&`
+- `union` can be accessed with or, `|`
+- `difference` can be accessed with minus, `-`
+- `symmetric_difference` can be accessed with xor, `^`
+
+
+.. code-block:: pycon
+>>> from shapely import wkt
+>>> p1 = wkt.loads('POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))')
+>>> p2 = wkt.loads('POLYGON((0.5 0, 1.5 0, 1.5 1, 0.5 1, 0.5 0))')
+>>> (p1 & p2).wkt
+'POLYGON ((1 0, 0.5 0, 0.5 1, 1 1, 1 0))'
+>>> (p1 | p2).wkt
+'POLYGON ((0.5 0, 0 0, 0 1, 0.5 1, 1 1, 1.5 1, 1.5 0, 1 0, 0.5 0))'
+>>> (p1 - p2).wkt
+'POLYGON ((0.5 0, 0 0, 0 1, 0.5 1, 0.5 0))'
+>>> (p1 ^ p2).wkt
+'MULTIPOLYGON (((0.5 0, 0 0, 0 1, 0.5 1, 0.5 0)), ((1 0, 1 1, 1.5 1, 1.5 0, 1 0)))'
+
 
 Constructive Methods
 --------------------
@@ -2632,6 +2655,11 @@ counterparts. To serialize a geometric object to a binary or text string, use
 ``dumps()``. To deserialize a string and get a new geometric object of the
 appropriate type, use ``loads()``.
 
+The default settings for the wkt attribute and `shapely.wkt.dumps()` function
+are different. By default, the attribute's value is trimmed of excess decimals,
+while this is not the case for `dumps()`, though it can be replicated by setting
+`trim=True`.
+
 .. function:: shapely.wkb.dumps(ob)
 
   Returns a WKB representation of `ob`.
@@ -2642,18 +2670,23 @@ appropriate type, use ``loads()``.
 
 .. code-block:: pycon
 
-  >> from shapely.wkb import dumps, loads
-  >>> wkb = dumps(Point(0, 0))
-  >>> wkb.encode('hex')
+  >>> from shapely import wkb
+  >>> pt = Point(0, 0)
+  >>> wkb.dumps(pt)
+  b'\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+  >>> pt.wkb
+  b'\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+  >>> pt.wkb_hex
   '010100000000000000000000000000000000000000'
-  >>> loads(wkb).wkt
-  'POINT (0.0000000000000000 0.0000000000000000)'
+  >>> wkb.loads(pt.wkb).wkt
+  'POINT (0 0)'
 
 All of Shapely's geometry types are supported by these functions.
 
 .. function:: shapely.wkt.dumps(ob)
 
-  Returns a WKT representation of `ob`.
+  Returns a WKT representation of `ob`. Several keyword arguments are available
+  to alter the WKT which is returned; see the docstrings for more details.
 
 .. function:: shapely.wkt.loads(wkt)
 
@@ -2661,11 +2694,14 @@ All of Shapely's geometry types are supported by these functions.
 
 .. code-block:: pycon
 
-  >> from shapely.wkt import dumps, loads
-  >> wkt = dumps(Point(0, 0))
-  >>> wkt
+  >>> from shapely import wkt
+  >>> pt = Point(0, 0)
+  >>> thewkt = wkt.dumps(pt)
+  >>> thewkt
   'POINT (0.0000000000000000 0.0000000000000000)'
-  >>> loads(wkt).wkt
+  >>> pt.wkt
+  'POINT (0 0)'
+  >>> wkt.dumps(pt, trim=True)
   'POINT (0 0)'
 
 Numpy and Python Arrays
