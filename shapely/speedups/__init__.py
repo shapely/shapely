@@ -53,8 +53,8 @@ def enable():
     if _orig:
         return
 
-    _orig['CoordinateSequence.ctypes'] = coords.CoordinateSequence.ctypes
-    coords.CoordinateSequence.ctypes = property(_speedups.coordseq_ctypes)
+    _orig['CoordinateSequence._ctypes'] = coords.CoordinateSequence._ctypes
+    coords.CoordinateSequence._ctypes = property(_speedups.coordseq_ctypes)
 
     _orig['CoordinateSequence.__iter__'] = coords.CoordinateSequence.__iter__
     coords.CoordinateSequence.__iter__ = method_wrapper(
@@ -84,7 +84,7 @@ def disable():
     if not _orig:
         return
 
-    coords.CoordinateSequence.ctypes = _orig['CoordinateSequence.ctypes']
+    coords.CoordinateSequence._ctypes = _orig['CoordinateSequence._ctypes']
     coords.CoordinateSequence.__iter__ = _orig['CoordinateSequence.__iter__']
     linestring.geos_linestring_from_py = _orig['geos_linestring_from_py']
     polygon.geos_linearring_from_py = _orig['geos_linearring_from_py']

@@ -4,7 +4,9 @@
 import sys
 from array import array
 from ctypes import byref, c_double, c_uint
+import warnings
 
+from shapely.errors import ShapelyDeprecationWarning
 from shapely.geos import lgeos
 from shapely.topology import Validating
 
@@ -100,7 +102,7 @@ class CoordinateSequence(object):
             raise TypeError("key must be an index or slice")
 
     @property
-    def ctypes(self):
+    def _ctypes(self):
         self._update()
         has_z = self._ndim == 3
         n = self._ndim
@@ -118,6 +120,14 @@ class CoordinateSequence(object):
                 data[n*i+2] = temp.value
         return data
 
+    @property
+    def ctypes(self):
+        warnings.warn(
+            "Accessing the 'ctypes' attribute is deprecated,"
+            " and will not be possible any more in Shapely 2.0",
+            ShapelyDeprecationWarning, stacklevel=2)
+        return self._ctypes
+
     def array_interface(self):
         """Provide the Numpy array protocol."""
         if sys.byteorder == 'little':
@@ -130,13 +140,13 @@ class CoordinateSequence(object):
         ai = {
             'version': 3,
             'typestr': typestr,
-            'data': self.ctypes,
+            'data': self._ctypes,
             }
         ai.update({'shape': (len(self), self._ndim)})
         return ai
-    
+
     __array_interface__ = property(array_interface)
-    
+
     @property
     def xy(self):
         """X and Y arrays"""
