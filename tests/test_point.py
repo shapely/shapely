@@ -1,5 +1,5 @@
 from . import unittest, numpy, shapely20_deprecated
-from shapely.geometry import Point, asPoint
+from shapely.geometry import Point
 from shapely.errors import DimensionError, ShapelyDeprecationWarning
 
 import pytest
@@ -62,20 +62,6 @@ class LineStringTestCase(unittest.TestCase):
         self.assertEqual(p.__geo_interface__,
                          {'type': 'Point', 'coordinates': (0.0, 0.0)})
 
-    @shapely20_deprecated
-    def test_point_adapter(self):
-        p = Point(0.0, 0.0)
-        # Adapt a coordinate list to a point
-        coords = [3.0, 4.0]
-        pa = asPoint(coords)
-        self.assertEqual(pa.coords[0], (3.0, 4.0))
-        self.assertEqual(pa.distance(p), 5.0)
-
-        # Move the coordinates and watch the distance change
-        coords[0] = 1.0
-        self.assertEqual(pa.coords[0], (1.0, 4.0))
-        self.assertAlmostEqual(pa.distance(p), 4.123105625617661)
-
     def test_point_empty(self):
         # Test Non-operability of Null geometry
         p_null = Point()
@@ -103,35 +89,6 @@ class LineStringTestCase(unittest.TestCase):
         # Construct from a numpy array
         p = Point(array([1.0, 2.0]))
         self.assertEqual(p.coords[:], [(1.0, 2.0)])
-
-    @shapely20_deprecated
-    @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy_adapter(self):
-        from numpy import array, asarray
-        from numpy.testing import assert_array_equal
-
-        # Adapt a Numpy array to a point
-        a = array([1.0, 2.0])
-        pa = asPoint(a)
-        assert_array_equal(pa.context, array([1.0, 2.0]))
-        self.assertEqual(pa.coords[:], [(1.0, 2.0)])
-
-        # Now, the inverse
-        self.assertEqual(pa.__array_interface__,
-                         pa.context.__array_interface__)
-
-        pas = asarray(pa)
-        assert_array_equal(pas, array([1.0, 2.0]))
-
-        # Adapt a coordinate list to a point
-        coords = [3.0, 4.0]
-        pa = asPoint(coords)
-        coords[0] = 1.0
-
-        # Now, the inverse (again?)
-        self.assertIsNotNone(pa.__array_interface__)
-        pas = asarray(pa)
-        assert_array_equal(pas, array([1.0, 4.0]))
 
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy_asarray(self):
@@ -177,12 +134,6 @@ def test_point_mutability_deprecated():
     p = Point(3.0, 4.0)
     with pytest.warns(ShapelyDeprecationWarning, match="Setting"):
         p.coords = (2.0, 1.0)
-
-
-def test_point_adapter_deprecated():
-    coords = [3.0, 4.0]
-    with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
-        asPoint(coords)
 
 
 def test_suite():

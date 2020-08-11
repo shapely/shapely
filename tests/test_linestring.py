@@ -3,7 +3,7 @@ import pytest
 
 from shapely.errors import ShapelyDeprecationWarning
 from shapely.geos import lgeos
-from shapely.geometry import LineString, asLineString, Point, LinearRing
+from shapely.geometry import LineString, Point, LinearRing
 
 
 class LineStringTestCase(unittest.TestCase):
@@ -49,13 +49,6 @@ class LineStringTestCase(unittest.TestCase):
         self.assertEqual(line.__geo_interface__,
                          {'type': 'LineString',
                           'coordinates': ((-1.0, -1.0), (1.0, 1.0))})
-
-    @shapely20_deprecated
-    def test_linestring_adapter(self):
-        # Adapt a coordinate list to a line string
-        coords = [[5.0, 6.0], [7.0, 8.0]]
-        la = asLineString(coords)
-        self.assertEqual(la.coords[:], [(5.0, 6.0), (7.0, 8.0)])
 
     def test_linestring_empty(self):
         # Test Non-operability of Null geometry
@@ -149,25 +142,6 @@ class LineStringTestCase(unittest.TestCase):
         la = asarray(line.coords)
         assert_array_equal(la, expected)
 
-    @shapely20_deprecated
-    @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy_adapter(self):
-        from numpy import array, asarray
-        from numpy.testing import assert_array_equal
-
-        # Adapt a Numpy array to a line string
-        a = array([[1.0, 2.0], [3.0, 4.0]])
-        la = asLineString(a)
-        assert_array_equal(la.context, a)
-        self.assertEqual(la.coords[:], [(1.0, 2.0), (3.0, 4.0)])
-
-        # Now, the inverse
-        self.assertEqual(la.__array_interface__,
-                         la.context.__array_interface__)
-
-        pas = asarray(la)
-        assert_array_equal(pas, array([[1.0, 2.0], [3.0, 4.0]]))
-
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy_asarray(self):
         from numpy import array, asarray
@@ -200,12 +174,6 @@ def test_linestring_mutability_deprecated():
     line = LineString(((1.0, 2.0), (3.0, 4.0)))
     with pytest.warns(ShapelyDeprecationWarning, match="Setting"):
         line.coords = ((-1.0, -1.0), (1.0, 1.0))
-
-
-def test_linestring_adapter_deprecated():
-    coords = [[5.0, 6.0], [7.0, 8.0]]
-    with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
-        asLineString(coords)
 
 
 def test_suite():

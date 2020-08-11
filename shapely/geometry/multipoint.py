@@ -4,14 +4,14 @@
 from ctypes import byref, c_double, c_void_p, cast
 import warnings
 
-from shapely.errors import EmptyPartError, ShapelyDeprecationWarning
+from shapely.errors import EmptyPartError
 from shapely.geos import lgeos
 from shapely.geometry.base import (
     BaseMultipartGeometry, exceptNull, geos_geom_from_py)
 from shapely.geometry import point
-from shapely.geometry.proxy import CachingGeometryProxy
 
-__all__ = ['MultiPoint', 'asMultiPoint']
+
+__all__ = ['MultiPoint']
 
 
 class MultiPoint(BaseMultipartGeometry):
@@ -111,47 +111,6 @@ class MultiPoint(BaseMultipartGeometry):
         ai.update({'shape': (len(self.geoms), self._ndim)})
         return ai
     __array_interface__ = property(array_interface)
-
-
-class MultiPointAdapter(CachingGeometryProxy, MultiPoint):
-
-    context = None
-    _other_owned = False
-
-    def __init__(self, context):
-        warnings.warn(
-            "The proxy geometries (through the 'asShape()', 'asMultiPoint()' "
-            "or 'MultiPointAdapter()' constructors) are deprecated and will be "
-            "removed in Shapely 2.0. Use the 'shape()' function or the "
-            "standard 'MultiPoint()' constructor instead.",
-            ShapelyDeprecationWarning, stacklevel=4)
-        self.context = context
-        self.factory = geos_multipoint_from_py
-
-    @property
-    def _ndim(self):
-        try:
-            # From array protocol
-            array = self.context.__array_interface__
-            n = array['shape'][1]
-            assert n == 2 or n == 3
-            return n
-        except AttributeError:
-            # Fall back on list
-            return len(self.context[0])
-
-    @property
-    def __array_interface__(self):
-        """Provide the Numpy array protocol."""
-        try:
-            return self.context.__array_interface__
-        except AttributeError:
-            return self.array_interface()
-
-
-def asMultiPoint(context):
-    """Adapt a sequence of objects to the MultiPoint interface"""
-    return MultiPointAdapter(context)
 
 
 def geos_multipoint_from_py(ob):
