@@ -30,19 +30,6 @@ class PolygonTestCase(unittest.TestCase):
         self.assertEqual(LinearRing((map(Point, coords))), ring)
 
     @shapely20_deprecated
-    def test_linearring_mutate(self):
-        coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0))
-        ring = LinearRing(coords)
-
-        # Coordinate modification
-        ring.coords = ((0.0, 0.0), (0.0, 2.0), (2.0, 2.0), (2.0, 0.0))
-        self.assertEqual(
-            ring.__geo_interface__,
-            {'type': 'LinearRing',
-             'coordinates': ((0.0, 0.0), (0.0, 2.0), (2.0, 2.0), (2.0, 0.0),
-                             (0.0, 0.0))})
-
-    @shapely20_deprecated
     def test_linearring_adapter(self):
         # Test ring adapter
         coords = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]
@@ -132,13 +119,6 @@ class PolygonTestCase(unittest.TestCase):
         r_null = LinearRing()
         self.assertEqual(r_null.wkt, 'GEOMETRYCOLLECTION EMPTY')
         self.assertEqual(r_null.length, 0.0)
-
-    @shapely20_deprecated
-    def test_linearring_empty_mutate(self):
-        # Check that we can set coordinates of a null geometry
-        r_null = LinearRing()
-        r_null.coords = [(0, 0), (1, 1), (1, 0)]
-        self.assertAlmostEqual(r_null.length, 3.414213562373095)
 
     def test_linearring_from_closed_linestring(self):
         coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
