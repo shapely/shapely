@@ -5,6 +5,61 @@ from shapely.errors import DimensionError, ShapelyDeprecationWarning
 import pytest
 
 
+def test_from_coordinates():
+    # 2D points
+    p = Point(1.0, 2.0)
+    assert p.coords[:] == [(1.0, 2.0)]
+    assert p.has_z is False
+
+    # 3D Point
+    p = Point(1.0, 2.0, 3.0)
+    assert p.coords[:] == [(1.0, 2.0, 3.0)]
+
+    # empty
+    p = Point()
+    assert p.is_empty
+    assert p.coords[:] == []
+
+
+def test_from_sequence():
+    # From single coordinate pair
+    p = Point((3.0, 4.0))
+    assert p.coords[:] == [(3.0, 4.0)]
+    p = Point([3.0, 4.0])
+    assert p.coords[:] == [(3.0, 4.0)]
+
+    # From coordinate sequence
+    p = Point([(3.0, 4.0)])
+    assert p.coords[:] == [(3.0, 4.0)]
+
+
+def test_from_numpy():
+    # Construct from a numpy array
+    np = pytest.importorskip("numpy")
+
+    p = Point(np.array([1.0, 2.0]))
+    assert p.coords[:] == [(1.0, 2.0)]
+
+
+def test_from_point():
+    # From another point
+    p = Point(3.0, 4.0)
+    q = Point(p)
+    assert q.coords[:] == [(3.0, 4.0)]
+
+
+def test_from_generator():
+    gen = (coord for coord in [(1.0, 2.0)])
+    p = Point(gen)
+    assert p.coords[:] == [(1.0, 2.0)]
+
+
+def test_from_invalid():
+
+    with pytest.raises(TypeError, match="takes at most 3 arguments"):
+        Point(1, 2, 3, 4)
+
+
 class LineStringTestCase(unittest.TestCase):
 
     def test_point(self):
@@ -26,15 +81,8 @@ class LineStringTestCase(unittest.TestCase):
         self.assertTrue(p.has_z)
         self.assertEqual(p.z, 3.0)
 
-        # From coordinate sequence
-        p = Point((3.0, 4.0))
-        self.assertEqual(p.coords[:], [(3.0, 4.0)])
-
-        # From another point
-        q = Point(p)
-        self.assertEqual(q.coords[:], [(3.0, 4.0)])
-
         # Coordinate access
+        p = Point((3.0, 4.0))
         self.assertEqual(p.x, 3.0)
         self.assertEqual(p.y, 4.0)
         self.assertEqual(tuple(p.coords), ((3.0, 4.0),))
@@ -93,16 +141,6 @@ class LineStringTestCase(unittest.TestCase):
         # Passing > 3 arguments to Point is erroneous
         with self.assertRaises(TypeError):
             Point(1.0, 2.0, 3.0, 4.0)
-
-    @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy(self):
-
-        from numpy import array, asarray
-        from numpy.testing import assert_array_equal
-
-        # Construct from a numpy array
-        p = Point(array([1.0, 2.0]))
-        self.assertEqual(p.coords[:], [(1.0, 2.0)])
 
     @shapely20_deprecated
     @unittest.skipIf(not numpy, 'Numpy required')
@@ -203,7 +241,3 @@ def test_point_array_interface_numpy_deprecated():
     p = Point(3.0, 4.0)
     with pytest.warns(ShapelyDeprecationWarning, match="array interface"):
         np.array(p)
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(LineStringTestCase)
