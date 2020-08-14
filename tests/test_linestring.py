@@ -42,7 +42,7 @@ def test_from_linestring():
     line = LineString(((1.0, 2.0), (3.0, 4.0)))
     copy = LineString(line)
     assert copy.coords[:] == [(1.0, 2.0), (3.0, 4.0)]
-    assert lgeos.GEOSGeomType(copy._geom).decode('ascii') == 'LineString'
+    assert copy.geom_type == 'LineString'
 
 
 def test_from_linearring():
@@ -50,7 +50,7 @@ def test_from_linearring():
     ring = LinearRing(coords)
     copy = LineString(ring)
     assert copy.coords[:] == coords
-    assert lgeos.GEOSGeomType(copy._geom).decode('ascii') == 'LineString'
+    assert copy.geom_type == 'LineString'
 
 
 def test_from_linestring_z():
@@ -58,7 +58,7 @@ def test_from_linestring_z():
     line = LineString(coords)
     copy = LineString(line)
     assert copy.coords[:] == coords
-    assert lgeos.GEOSGeomType(copy._geom).decode('ascii') == 'LineString'
+    assert copy.geom_type == 'LineString'
 
 
 def test_from_generator():

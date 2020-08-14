@@ -14,6 +14,7 @@ def test_from_coordinates():
     # 3D Point
     p = Point(1.0, 2.0, 3.0)
     assert p.coords[:] == [(1.0, 2.0, 3.0)]
+    assert p.has_z
 
     # empty
     p = Point()
@@ -32,6 +33,14 @@ def test_from_sequence():
     p = Point([(3.0, 4.0)])
     assert p.coords[:] == [(3.0, 4.0)]
 
+    # 3D
+    p = Point((3.0, 4.0, 5.0))
+    assert p.coords[:] == [(3.0, 4.0, 5.0)]
+    p = Point([3.0, 4.0, 5.0])
+    assert p.coords[:] == [(3.0, 4.0, 5.0)]
+    p = Point([(3.0, 4.0, 5.0)])
+    assert p.coords[:] == [(3.0, 4.0, 5.0)]
+
 
 def test_from_numpy():
     # Construct from a numpy array
@@ -40,12 +49,19 @@ def test_from_numpy():
     p = Point(np.array([1.0, 2.0]))
     assert p.coords[:] == [(1.0, 2.0)]
 
+    p = Point(np.array([1.0, 2.0, 3.0]))
+    assert p.coords[:] == [(1.0, 2.0, 3.0)]
+
 
 def test_from_point():
     # From another point
     p = Point(3.0, 4.0)
     q = Point(p)
     assert q.coords[:] == [(3.0, 4.0)]
+
+    p = Point(3.0, 4.0, 5.0)
+    q = Point(p)
+    assert q.coords[:] == [(3.0, 4.0, 5.0)]
 
 
 def test_from_generator():
