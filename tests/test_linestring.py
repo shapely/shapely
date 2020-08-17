@@ -2,7 +2,6 @@ from . import unittest, numpy, shapely20_deprecated
 import pytest
 
 from shapely.errors import ShapelyDeprecationWarning
-from shapely.geos import lgeos
 from shapely.geometry import LineString, asLineString, Point, LinearRing
 
 
