@@ -133,16 +133,6 @@ class LineStringTestCase(unittest.TestCase):
                           'coordinates': ((1.0, 2.0), (3.0, 4.0))})
 
     @shapely20_deprecated
-    def test_linestring_mutate(self):
-        line = LineString(((1.0, 2.0), (3.0, 4.0)))
-
-        # Coordinate modification
-        line.coords = ((-1.0, -1.0), (1.0, 1.0))
-        self.assertEqual(line.__geo_interface__,
-                         {'type': 'LineString',
-                          'coordinates': ((-1.0, -1.0), (1.0, 1.0))})
-
-    @shapely20_deprecated
     def test_linestring_adapter(self):
         # Adapt a coordinate list to a line string
         coords = [[5.0, 6.0], [7.0, 8.0]]
@@ -154,13 +144,6 @@ class LineStringTestCase(unittest.TestCase):
         l_null = LineString()
         self.assertEqual(l_null.wkt, 'GEOMETRYCOLLECTION EMPTY')
         self.assertEqual(l_null.length, 0.0)
-
-    @shapely20_deprecated
-    def test_linestring_empty_mutate(self):
-        # Check that we can set coordinates of a null geometry
-        l_null = LineString()
-        l_null.coords = [(0, 0), (1, 1)]
-        self.assertAlmostEqual(l_null.length, 1.4142135623730951)
 
     def test_equals_argument_order(self):
         """
@@ -260,12 +243,6 @@ class LineStringTestCase(unittest.TestCase):
         le = LineString()
         a = asarray(le)
         self.assertEqual(a.shape[0], 0)
-
-
-def test_linestring_mutability_deprecated():
-    line = LineString(((1.0, 2.0), (3.0, 4.0)))
-    with pytest.warns(ShapelyDeprecationWarning, match="Setting"):
-        line.coords = ((-1.0, -1.0), (1.0, 1.0))
 
 
 def test_linestring_adapter_deprecated():
