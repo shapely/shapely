@@ -17,6 +17,7 @@ from functools import wraps
 from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
 from shapely.errors import WKBReadingError, WKTReadingError
+from shapely.errors import ShapelyDeprecationWarning
 from shapely.geos import WKBWriter, WKTWriter
 from shapely.geos import lgeos
 from shapely.impl import DefaultImplementation, delegated
@@ -288,12 +289,20 @@ class BaseGeometry(object):
     # ---------------------------
 
     @property
-    def ctypes(self):
-        """Return ctypes buffer"""
+    def _ctypes(self):
         raise NotImplementedError
 
     @property
-    def array_interface_base(self):
+    def ctypes(self):
+        """Return ctypes buffer"""
+        warn(
+            "Accessing the 'ctypes' attribute is deprecated,"
+            " and will not be possible any more in Shapely 2.0",
+            ShapelyDeprecationWarning, stacklevel=2)
+        return self._ctypes
+
+    @property
+    def _array_interface_base(self):
         if sys.byteorder == 'little':
             typestr = '<f8'
         elif sys.byteorder == 'big':
@@ -304,8 +313,16 @@ class BaseGeometry(object):
         return {
             'version': 3,
             'typestr': typestr,
-            'data': self.ctypes,
+            'data': self._ctypes,
             }
+
+    @property
+    def array_interface_base(self):
+        warn(
+            "The 'array_interface_base' property is deprecated and will be "
+            "removed in Shapely 2.0.",
+            ShapelyDeprecationWarning, stacklevel=2)
+        return self._array_interface_base()
 
     @property
     def __array_interface__(self):

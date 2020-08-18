@@ -281,9 +281,9 @@ class Polygon(BaseGeometry):
     __hash__ = None
 
     @property
-    def ctypes(self):
+    def _ctypes(self):
         if not self._ctypes_data:
-            self._ctypes_data = self.exterior.ctypes
+            self._ctypes_data = self.exterior._ctypes
         return self._ctypes_data
 
     @property

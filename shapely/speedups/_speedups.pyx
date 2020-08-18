@@ -239,7 +239,10 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
             elif GEOSisClosed_r(handle, g) and m >= 4:
                 cs = GEOSCoordSeq_clone_r(handle, cs)
                 return <uintptr_t>GEOSGeom_createLinearRing_r(handle, cs), n
-            # else continue below.
+            else:
+                # else continue below.
+                # (and extract coords to avoid array interface of LineString)
+                ob = ob.coords
 
     # If numpy is present, we use numpy.require to ensure that we have a
     # C-continguous array that owns its data. View data will be copied.

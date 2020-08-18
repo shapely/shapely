@@ -1,6 +1,9 @@
 from . import unittest, numpy
-from shapely import geometry
 
+import pytest
+
+from shapely import geometry
+from shapely.errors import ShapelyDeprecationWarning
 
 class CoordsTestCase(unittest.TestCase):
     """
@@ -34,6 +37,16 @@ class CoordsTestCase(unittest.TestCase):
             coords[::-1].tolist(),
             processed_coords.tolist()
         )
+
+
+def test_coords_ctypes_deprecated():
+    """
+    Test that the .ctypes attribute of a CoordinateSequence raises
+    a deprecation warning.
+    """
+    coords = geometry.LineString([[12, 34], [56, 78]]).coords
+    with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
+        coords.ctypes
 
 
 def test_suite():

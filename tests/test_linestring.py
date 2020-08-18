@@ -2,8 +2,110 @@ from . import unittest, numpy, shapely20_deprecated
 import pytest
 
 from shapely.errors import ShapelyDeprecationWarning
-from shapely.geos import lgeos
 from shapely.geometry import LineString, asLineString, Point, LinearRing
+
+
+def test_from_coordinate_sequence():
+    # From coordinate tuples
+    line = LineString(((1.0, 2.0), (3.0, 4.0)))
+    assert len(line.coords) == 2
+    assert line.coords[:] == [(1.0, 2.0), (3.0, 4.0)]
+
+    line = LineString([(1.0, 2.0), (3.0, 4.0)])
+    assert line.coords[:] == [(1.0, 2.0), (3.0, 4.0)]
+
+
+def test_from_coordinate_sequence_3D():
+    line = LineString(((1.0, 2.0, 3.0), (3.0, 4.0, 5.0)))
+    assert line.has_z
+    assert line.coords[:] == [(1.0, 2.0, 3.0), (3.0, 4.0, 5.0)]
+
+
+def test_from_points():
+    # From Points
+    line = LineString((Point(1.0, 2.0), Point(3.0, 4.0)))
+    assert line.coords[:] == [(1.0, 2.0), (3.0, 4.0)]
+
+    line = LineString([Point(1.0, 2.0), Point(3.0, 4.0)])
+    assert line.coords[:] == [(1.0, 2.0), (3.0, 4.0)]
+
+
+def test_from_mix():
+    # From mix of tuples and Points
+    line = LineString((Point(1.0, 2.0), (2.0, 3.0), Point(3.0, 4.0)))
+    assert line.coords[:] == [(1.0, 2.0), (2.0, 3.0), (3.0, 4.0)]
+
+
+def test_from_linestring():
+    # From another linestring
+    line = LineString(((1.0, 2.0), (3.0, 4.0)))
+    copy = LineString(line)
+    assert copy.coords[:] == [(1.0, 2.0), (3.0, 4.0)]
+    assert copy.geom_type == 'LineString'
+
+
+def test_from_linearring():
+    coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
+    ring = LinearRing(coords)
+    copy = LineString(ring)
+    assert copy.coords[:] == coords
+    assert copy.geom_type == 'LineString'
+
+
+def test_from_linestring_z():
+    coords = [(1.0, 2.0, 3.0), (4.0, 5.0, 6.0)]
+    line = LineString(coords)
+    copy = LineString(line)
+    assert copy.coords[:] == coords
+    assert copy.geom_type == 'LineString'
+
+
+def test_from_generator():
+    gen = (coord for coord in [(1.0, 2.0), (3.0, 4.0)])
+    line = LineString(gen)
+    assert line.coords[:] == [(1.0, 2.0), (3.0, 4.0)]
+
+
+def test_from_empty():
+    line = LineString()
+    assert line.is_empty
+    assert line.coords[:] == []
+
+    line = LineString([])
+    assert line.is_empty
+    assert line.coords[:] == []
+
+
+def test_from_numpy():
+    # Construct from a numpy array
+    np = pytest.importorskip("numpy")
+
+    line = LineString(np.array([[1.0, 2.0], [3.0, 4.0]]))
+    assert line.coords[:] == [(1.0, 2.0), (3.0, 4.0)]
+
+
+def test_from_invalid_dim():
+    with pytest.raises(ValueError, match="at least 2 coordinate tuples"):
+        LineString([(1, 2)])
+
+    with pytest.raises(ValueError, match="Inconsistent coordinate dimensionality"):
+        LineString([(1, 2, 3), (4, 5)])
+
+    # TODO this does not fail
+    # with pytest.raises(ValueError, match="Inconsistent coordinate dimensionality"):
+    #     LineString([(1, 2), (3, 4, 5)]))
+
+    # TODO better error, right now raises AssertionError
+    with pytest.raises(Exception):
+        LineString([(1, 2, 3, 4), (4, 5, 6, 7)])
+
+
+def test_from_single_coordinate():
+    """Test for issue #486"""
+    coords = [[-122.185933073564, 37.3629353839073]]
+    with pytest.raises(ValueError):
+        ls = LineString(coords)
+        ls.geom_type # caused segfault before fix
 
 
 class LineStringTestCase(unittest.TestCase):
@@ -14,16 +116,6 @@ class LineStringTestCase(unittest.TestCase):
         line = LineString(((1.0, 2.0), (3.0, 4.0)))
         self.assertEqual(len(line.coords), 2)
         self.assertEqual(line.coords[:], [(1.0, 2.0), (3.0, 4.0)])
-
-        # From Points
-        line2 = LineString((Point(1.0, 2.0), Point(3.0, 4.0)))
-        self.assertEqual(len(line2.coords), 2)
-        self.assertEqual(line2.coords[:], [(1.0, 2.0), (3.0, 4.0)])
-
-        # From mix of tuples and Points
-        line3 = LineString((Point(1.0, 2.0), (2.0, 3.0), Point(3.0, 4.0)))
-        self.assertEqual(len(line3.coords), 3)
-        self.assertEqual(line3.coords[:], [(1.0, 2.0), (2.0, 3.0), (3.0, 4.0)])
 
         # Bounds
         self.assertEqual(line.bounds, (1.0, 2.0, 3.0, 4.0))
@@ -75,43 +167,7 @@ class LineStringTestCase(unittest.TestCase):
         self.assertTrue(ls == ls_clone)
         self.assertTrue(lr == lr_clone)
 
-
-    def test_from_linestring(self):
-        line = LineString(((1.0, 2.0), (3.0, 4.0)))
-        copy = LineString(line)
-        self.assertEqual(len(copy.coords), 2)
-        self.assertEqual(copy.coords[:], [(1.0, 2.0), (3.0, 4.0)])
-        self.assertEqual('LineString',
-                         lgeos.GEOSGeomType(copy._geom).decode('ascii'))
-
-
-    def test_from_linestring_z(self):
-        coords = [(1.0, 2.0, 3.0), (4.0, 5.0, 6.0)]
-        line = LineString(coords)
-        copy = LineString(line)
-        self.assertEqual(len(copy.coords), 2)
-        self.assertEqual(copy.coords[:], coords)
-        self.assertEqual('LineString',
-                         lgeos.GEOSGeomType(copy._geom).decode('ascii'))
-
-
-    def test_from_linearring(self):
-        coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
-        ring = LinearRing(coords)
-        copy = LineString(ring)
-        self.assertEqual(len(copy.coords), 4)
-        self.assertEqual(copy.coords[:], coords)
-        self.assertEqual('LineString',
-                         lgeos.GEOSGeomType(copy._geom).decode('ascii'))
-
-    def test_from_single_coordinate(self):
-        """Test for issue #486"""
-        coords = [[-122.185933073564, 37.3629353839073]]
-        with pytest.raises(ValueError):
-            ls = LineString(coords)
-            ls.geom_type # caused segfault before fix
-
-
+    @shapely20_deprecated
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy(self):
 
@@ -128,8 +184,16 @@ class LineStringTestCase(unittest.TestCase):
         expected = array([[1.0, 2.0], [3.0, 4.0]])
         assert_array_equal(la, expected)
 
+    @unittest.skipIf(not numpy, 'Numpy required')
+    def test_numpy_coords(self):
+        import numpy as np
+        from numpy.testing import assert_array_equal
+
+        line = LineString(((1.0, 2.0), (3.0, 4.0)))
+        expected = np.array([[1.0, 2.0], [3.0, 4.0]])
+
         # Coordinate sequences can be adapted as well
-        la = asarray(line.coords)
+        la = np.asarray(line.coords)
         assert_array_equal(la, expected)
 
     @shapely20_deprecated
@@ -151,6 +215,7 @@ class LineStringTestCase(unittest.TestCase):
         pas = asarray(la)
         assert_array_equal(pas, array([[1.0, 2.0], [3.0, 4.0]]))
 
+    @shapely20_deprecated
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy_asarray(self):
         from numpy import array, asarray
@@ -168,6 +233,7 @@ class LineStringTestCase(unittest.TestCase):
         b = asarray(line)
         assert_array_equal(b, array([[0., 0.], [2., 2.], [1., 1.]]))
 
+    @shapely20_deprecated
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy_empty(self):
         from numpy import array, asarray
@@ -185,5 +251,22 @@ def test_linestring_adapter_deprecated():
         asLineString(coords)
 
 
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(LineStringTestCase)
+def test_linestring_ctypes_deprecated():
+    line = LineString(((1.0, 2.0), (3.0, 4.0)))
+    with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
+        line.ctypes
+
+
+def test_linestring_array_interface_deprecated():
+    line = LineString(((1.0, 2.0), (3.0, 4.0)))
+    with pytest.warns(ShapelyDeprecationWarning, match="array_interface"):
+        line.array_interface()
+
+
+@unittest.skipIf(not numpy, 'Numpy required')
+def test_linestring_array_interface_numpy_deprecated():
+    import numpy as np
+
+    line = LineString(((1.0, 2.0), (3.0, 4.0)))
+    with pytest.warns(ShapelyDeprecationWarning, match="array interface"):
+        np.array(line)
