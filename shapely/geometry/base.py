@@ -9,6 +9,7 @@ different z values may intersect or be equal.
 from binascii import a2b_hex
 from ctypes import pointer, c_size_t, c_char_p, c_void_p
 from itertools import islice
+import logging
 import math
 import sys
 from warnings import warn
@@ -21,6 +22,7 @@ from shapely.geos import WKBWriter, WKTWriter
 from shapely.geos import lgeos
 from shapely.impl import DefaultImplementation, delegated
 
+log = logging.getLogger(__name__)
 
 if sys.version_info[0] < 3:
     range = xrange
@@ -220,13 +222,13 @@ class BaseGeometry(object):
     _lgeos = lgeos
 
     def empty(self, val=EMPTY):
-        # TODO: defer cleanup to the implementation. We shouldn't be
-        # explicitly calling a lgeos method here.
-        if not self._is_empty and not self._other_owned and self.__geom__:
+        if not self._other_owned and self.__geom__ and self.__geom__ != EMPTY:
             try:
                 self._lgeos.GEOSGeom_destroy(self.__geom__)
             except (AttributeError, TypeError):
-                pass  # _lgeos might be empty on shutdown
+                # _lgeos might be empty on shutdown
+                log.exception("Failed to delete GEOS geom")
+
         self._is_empty = True
         self.__geom__ = val
 
