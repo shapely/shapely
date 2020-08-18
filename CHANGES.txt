@@ -4,6 +4,8 @@ Changes
 1.7.1 (TBD)
 -----------
 
+- Correct the test in ``shapely.geometry.base.BaseGeometry.empty()`` to
+  eliminate memory leaks like the one reported in #745.
 - Get free() not from libc but from the processes global symbols (#891),
   fixing a bug that manifests on OS X 10.15 and 10.16.
 - Extracting substrings from complex lines has been made more correct (#848,
