@@ -16,6 +16,8 @@ Version 0.8 (unreleased)
 * Addition of a ``build_area()`` function for GEOS >= 3.8 (#141)
 * Addition of a ``normalize()`` function (#136)
 * Addition of a ``make_valid()`` function for GEOS >= 3.8 (#107)
+* The ``get_coordinate_dimensions()`` function was renamed to
+  ``get_coordinate_dimension()`` for consistency with GEOS (#176)
 
 **Acknowledgments**
 

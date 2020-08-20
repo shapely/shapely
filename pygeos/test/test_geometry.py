@@ -127,9 +127,9 @@ def test_get_dimensions():
     assert actual == [0, 1, 1, 2, 0, 1, 2, 1, -1]
 
 
-def test_get_coordinate_dimensions():
-    actual = pygeos.get_coordinate_dimensions([point, point_z]).tolist()
-    assert actual == [2, 3]
+def test_get_coordinate_dimension():
+    actual = pygeos.get_coordinate_dimension([point, point_z, None]).tolist()
+    assert actual == [2, 3, -1]
 
 
 def test_get_num_coordinates():

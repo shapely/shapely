@@ -8,7 +8,7 @@ __all__ = [
     "GeometryType",
     "get_type_id",
     "get_dimensions",
-    "get_coordinate_dimensions",
+    "get_coordinate_dimension",
     "get_num_coordinates",
     "get_srid",
     "set_srid",
@@ -102,7 +102,7 @@ def get_dimensions(geometry):
 
 
 @multithreading_enabled
-def get_coordinate_dimensions(geometry):
+def get_coordinate_dimension(geometry):
     """Returns the dimensionality of the coordinates in a geometry (2 or 3).
 
     Returns -1 for not-a-geometry values.
@@ -113,14 +113,14 @@ def get_coordinate_dimensions(geometry):
 
     Examples
     --------
-    >>> get_coordinate_dimensions(Geometry("POINT (0 0)"))
+    >>> get_coordinate_dimension(Geometry("POINT (0 0)"))
     2
-    >>> get_coordinate_dimensions(Geometry("POINT Z (0 0 0)"))
+    >>> get_coordinate_dimension(Geometry("POINT Z (0 0 0)"))
     3
-    >>> get_coordinate_dimensions(None)
+    >>> get_coordinate_dimension(None)
     -1
     """
-    return lib.get_coordinate_dimensions(geometry)
+    return lib.get_coordinate_dimension(geometry)
 
 
 @multithreading_enabled
