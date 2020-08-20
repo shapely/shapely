@@ -69,7 +69,7 @@ if sys.platform.startswith('linux'):
     geos_whl_so = glob.glob(
         os.path.abspath(
             os.path.join(
-                os.path.dirname(__file__), "..", "Shapely.libs/libgeos_c-*.so.*"
+                os.path.dirname(__file__), ".libs/libgeos_c-*.so.*"
             )
         )
     )
