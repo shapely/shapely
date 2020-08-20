@@ -64,8 +64,13 @@ def exists_conda_env():
 if sys.platform.startswith('linux'):
     # Test to see if we have a wheel repaired by 'auditwheel' containing its
     # own libgeos_c
-    geos_whl_so = glob.glob(os.path.abspath(os.path.join(os.path.dirname(
-        __file__), '.libs/libgeos_c-*.so.*')))
+    geos_whl_so = glob.glob(
+        os.path.abspath(
+            os.path.join(
+                os.path.dirname(__file__), ".libs/libgeos_c-*.so.*"
+            )
+        )
+    )
     if len(geos_whl_so) == 1:
         _lgeos = CDLL(geos_whl_so[0])
         LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
