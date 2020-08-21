@@ -8,7 +8,7 @@ Version 0.8 (unreleased)
 
 * Fixed bug in ``multilinestrings()``, it now accepts linearrings again (#168) 
 * Release the GIL to allow for multithreading in functions that do not 
-  create geometries (#144)
+  create geometries (#144) and in the STRtree ``query_bulk()`` method (#174)
 * Addition of a ``frechet_distance()`` function for GEOS >= 3.7 (#144)
 * Addition of ``coverage_union()`` and ``coverage_union_all()` functions
   for GEOS >= 3.8 (#142)
