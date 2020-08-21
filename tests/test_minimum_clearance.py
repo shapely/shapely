@@ -15,7 +15,7 @@ requires_geos_36 = pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS > 3
 @requires_geos_36
 def test_point():
     point = load_wkt("POINT (0 0)")
-    assert point.minimum_clearance == math.inf
+    assert point.minimum_clearance == float("inf")
 
 
 @requires_geos_36
