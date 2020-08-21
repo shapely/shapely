@@ -13,6 +13,8 @@ Version 0.8 (unreleased)
 * Addition of ``coverage_union()`` and ``coverage_union_all()` functions
   for GEOS >= 3.8 (#142)
 * Fixed segfaults when adding empty geometries to the STRtree (#147)
+* Addition of ``include_z=True`` keyword in the ``get_coordinates()`` function
+  to get 3D coordinates (#178)
 * Addition of a ``build_area()`` function for GEOS >= 3.8 (#141)
 * Addition of a ``normalize()`` function (#136)
 * Addition of a ``make_valid()`` function for GEOS >= 3.8 (#107)

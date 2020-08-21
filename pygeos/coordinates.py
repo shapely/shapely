@@ -30,7 +30,7 @@ def apply(geometry, transformation):
     [<pygeos.Geometry POINT (0 0)>, None]
     """
     geometry_arr = np.array(geometry, dtype=np.object)  # makes a copy
-    coordinates = lib.get_coordinates(geometry_arr)
+    coordinates = lib.get_coordinates(geometry_arr, False)
     new_coordinates = transformation(coordinates)
     # check the array to yield understandable error messages
     if not isinstance(new_coordinates, np.ndarray):
@@ -73,15 +73,20 @@ def count_coordinates(geometry):
     return lib.count_coordinates(np.asarray(geometry, dtype=np.object))
 
 
-def get_coordinates(geometry):
+def get_coordinates(geometry, include_z=False):
     """Gets coordinates from a geometry array as an array of floats.
 
     The shape of the returned array is (N, 2), with N being the number of
-    coordinate pairs. Three-dimensional data is ignored.
+    coordinate pairs. With the default of `include_z=False`, three-dimensional
+    data is ignored. When specifying `include_z=True`, the shape of the
+    returned array is (N, 3).
 
     Parameters
     ----------
     geometry : Geometry or array_like
+    include_z : bool, default False
+        Whether to include the third dimension in the output. If True, and a
+        geometry has no third dimension, the z-coordinates will be NaN.
 
     Examples
     --------
@@ -91,8 +96,15 @@ def get_coordinates(geometry):
     [[2.0, 2.0], [4.0, 4.0]]
     >>> get_coordinates(None)
     array([], shape=(0, 2), dtype=float64)
+
+    By default the third dimension is ignored:
+
+    >>> get_coordinates(Geometry("POINT Z (0 0 0)")).tolist()
+    [[0.0, 0.0]]
+    >>> get_coordinates(Geometry("POINT Z (0 0 0)"), include_z=True).tolist()
+    [[0.0, 0.0, 0.0]]
     """
-    return lib.get_coordinates(np.asarray(geometry, dtype=np.object))
+    return lib.get_coordinates(np.asarray(geometry, dtype=np.object), include_z)
 
 
 def set_coordinates(geometry, coordinates):

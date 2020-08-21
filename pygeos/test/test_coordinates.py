@@ -8,13 +8,16 @@ from .common import empty
 from .common import point
 from .common import point_z
 from .common import line_string
+from .common import line_string_z
 from .common import linear_ring
 from .common import polygon
+from .common import polygon_z
 from .common import polygon_with_hole
 from .common import multi_point
 from .common import multi_line_string
 from .common import multi_polygon
 from .common import geometry_collection
+from .common import geometry_collection_z
 
 nested_2 = pygeos.geometrycollections([geometry_collection, point])
 nested_3 = pygeos.geometrycollections([nested_2, point])
@@ -47,6 +50,7 @@ def test_count_coords(geoms, count):
 
 
 # fmt: off
+@pytest.mark.parametrize("include_z", [True, False])
 @pytest.mark.parametrize(
     "geoms,x,y",
     [
@@ -57,7 +61,6 @@ def test_count_coords(geoms, count):
         ([point, None], [2], [3]),
         ([None, point, None], [2], [3]),
         ([point, point], [2, 2], [3, 3]),
-        ([point, point_z], [2, 1], [3, 1]),
         ([line_string, linear_ring], [0, 1, 1, 0, 1, 1, 0, 0], [0, 0, 1, 0, 0, 1, 1, 0]),
         ([polygon], [0, 2, 2, 0, 0], [0, 0, 2, 2, 0]),
         ([polygon_with_hole], [0, 0, 10, 10, 0, 2, 2, 4, 4, 2], [0, 10, 10, 0, 0, 2, 4, 4, 2, 2]),
@@ -68,9 +71,32 @@ def test_count_coords(geoms, count):
         ([nested_3], [51, 52, 49, 2, 2], [-1, -1, 2, 3, 3]),
     ],
 )  # fmt: on
-def test_get_coords(geoms, x, y):
-    actual = get_coordinates(np.array(geoms, np.object))
-    expected = np.array([x, y], np.float64).T
+def test_get_coords(geoms, x, y, include_z):
+    actual = get_coordinates(np.array(geoms, np.object), include_z=include_z)
+    if not include_z:
+        expected = np.array([x, y], np.float64).T
+    else:
+        expected = np.array([x, y, [np.nan]*len(x)], np.float64).T
+    assert_equal(actual, expected)
+
+
+# fmt: off
+@pytest.mark.parametrize("include_z", [True, False])
+@pytest.mark.parametrize(
+    "geoms,x,y,z",
+    [
+        ([point, point_z], [2, 1], [3, 1], [np.nan, 1]),
+        ([line_string_z], [0, 1, 1], [0, 0, 1], [0, 1, 2]),
+        ([polygon_z], [0, 2, 2, 0, 0], [0, 0, 2, 2, 0], [0, 1, 2, 3, 0]),
+        ([geometry_collection_z], [1, 0, 1, 1], [1, 0, 0, 1], [1, 0, 1, 2]),
+    ],
+)  # fmt: on
+def test_get_coords_3d(geoms, x, y, z, include_z):
+    actual = get_coordinates(np.array(geoms, np.object), include_z=include_z)
+    if include_z:
+        expected = np.array([x, y, z], np.float64).T
+    else:
+        expected = np.array([x, y], np.float64).T
     assert_equal(actual, expected)
 
 

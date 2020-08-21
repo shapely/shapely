@@ -23,6 +23,9 @@ geometry_collection = pygeos.geometrycollections(
     [pygeos.points(51, -1), pygeos.linestrings([(52, -1), (49, 2)])]
 )
 point_z = pygeos.points(1.0, 1.0, 1.0)
+line_string_z = pygeos.linestrings([(0, 0, 0), (1, 0, 1), (1, 1, 2)])
+polygon_z = pygeos.polygons([(0, 0, 0), (2, 0, 1), (2, 2, 2), (0, 2, 3), (0, 0, 0)])
+geometry_collection_z = pygeos.geometrycollections([point_z, line_string_z])
 polygon_with_hole = pygeos.Geometry(
     "POLYGON((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))"
 )
