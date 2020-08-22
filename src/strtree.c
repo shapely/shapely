@@ -48,6 +48,15 @@ FuncGEOS_YpY_b *get_predicate_func(int predicate_id) {
         case 6: { // touches
             return (FuncGEOS_YpY_b *)GEOSPreparedTouches_r;
         }
+        case 7: { // covers
+            return (FuncGEOS_YpY_b *)GEOSPreparedCovers_r;
+        }
+        case 8: { // covered_by
+            return (FuncGEOS_YpY_b *)GEOSPreparedCoveredBy_r;
+        }
+        case 9: { // contains_properly
+            return (FuncGEOS_YpY_b *)GEOSPreparedContainsProperly_r;
+        }
         default: { // unknown predicate
             PyErr_SetString(PyExc_ValueError, "Invalid query predicate");
             return NULL;

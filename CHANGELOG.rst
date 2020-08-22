@@ -6,8 +6,8 @@ Version 0.8 (unreleased)
 
 **Highlights of this release**
 
-* Fixed bug in ``multilinestrings()``, it now accepts linearrings again (#168) 
-* Release the GIL to allow for multithreading in functions that do not 
+* Fixed bug in ``multilinestrings()``, it now accepts linearrings again (#168)
+* Release the GIL to allow for multithreading in functions that do not
   create geometries (#144) and in the STRtree ``query_bulk()`` method (#174)
 * Addition of a ``frechet_distance()`` function for GEOS >= 3.7 (#144)
 * Addition of ``coverage_union()`` and ``coverage_union_all()` functions
@@ -20,6 +20,8 @@ Version 0.8 (unreleased)
 * Addition of a ``make_valid()`` function for GEOS >= 3.8 (#107)
 * The ``get_coordinate_dimensions()`` function was renamed to
   ``get_coordinate_dimension()`` for consistency with GEOS (#176)
+* Addition of ``covers``, ``covered_by``, ``contains_properly`` predicates
+  to STRtree ``query`` and ``query_bulk`` (#157)
 
 **Acknowledgments**
 
@@ -44,8 +46,8 @@ Version 0.7 (2020-03-18)
   * Query multiple input geometries (spatial join style) with ``STRtree.query_bulk`` (#108)
 * Addition of a ``total_bounds()`` function (#107)
 * Geometries are now hashable, and can be compared with ``==`` or ``!=`` (#102)
-* Fixed bug in ``create_collections()`` with wrong types (#86) 
-* Fixed a reference counting bug in STRtree (#97, #100) 
+* Fixed bug in ``create_collections()`` with wrong types (#86)
+* Fixed a reference counting bug in STRtree (#97, #100)
 * Start of a benchmarking suite using ASV (#96)
 * This is the first release that will provide wheels!
 
@@ -67,8 +69,8 @@ Highlights of this release:
 
 * Addition of the STRtree class for spatial indexing (#58)
 * Addition of a ``bounds`` function (#69)
-* A new ``from_shapely`` function to convert Shapely geometries to pygeos.Geometry (#61) 
-* Reintroduction of the ``shared_paths`` function (#77) 
+* A new ``from_shapely`` function to convert Shapely geometries to pygeos.Geometry (#61)
+* Reintroduction of the ``shared_paths`` function (#77)
 
 Contributors:
 
@@ -93,7 +95,7 @@ Version 0.4 (2019-09-16)
 
 This is a major release of PyGEOS and the first one with actual release notes. Most important features of this release are:
 
-* ``buffer`` and ``haussdorff_distance`` were completed  [#15] 
+* ``buffer`` and ``haussdorff_distance`` were completed  [#15]
 * ``voronoi_polygons`` and ``delaunay_triangles`` have been added [#17]
 * The PyGEOS documentation is now mostly complete and available on http://pygeos.readthedocs.io .
 * The concepts of "empty" and "missing" geometries have been separated. The ``pygeos.Empty`` and ``pygeos.NaG`` objects has been removed. Empty geometries are handled the same as normal geometries. Missing geometries are denoted by ``None`` and are handled by every pygeos function. ``NaN`` values cannot be used anymore to denote missing geometries. [PR #36]

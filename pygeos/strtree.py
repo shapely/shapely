@@ -15,6 +15,9 @@ class BinaryPredicate(IntEnum):
     overlaps = 4
     crosses = 5
     touches = 6
+    covers = 7
+    covered_by = 8
+    contains_properly = 9
 
 
 VALID_PREDICATES = {e.name for e in BinaryPredicate}
@@ -71,7 +74,8 @@ class STRtree:
         geometry : Geometry
             The envelope of the geometry is taken automatically for
             querying the tree.
-        predicate : {None, 'intersects', 'within', 'contains', 'overlaps', 'crosses', 'touches'}, optional
+        predicate : {None, 'intersects', 'within', 'contains', 'overlaps', 'crosses',\
+'touches', 'covers', 'covered_by', 'contains_properly'}, optional
             The predicate to use for testing geometries from the tree
             that are within the input geometry's envelope.
 
@@ -138,7 +142,8 @@ class STRtree:
         geometry : Geometry or array_like
             Input geometries to query the tree.  The envelope of each geometry
             is automatically calculated for querying the tree.
-        predicate : {None, 'intersects', 'within', 'contains', 'overlaps', 'crosses', 'touches'}, optional
+        predicate : {None, 'intersects', 'within', 'contains', 'overlaps', 'crosses',\
+'touches', 'covers', 'covered_by', 'contains_properly'}, optional
             The predicate to use for testing geometries from the tree
             that are within the input geometry's envelope.
 
