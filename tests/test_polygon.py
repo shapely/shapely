@@ -92,6 +92,79 @@ def test_linearring_from_numpy():
     assert line.coords[:] == [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
 
 
+def test_polygon_from_coordinate_sequence():
+    coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)]
+
+    # Construct a polygon, exterior ring only
+    polygon = Polygon(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0)))
+    assert polygon.exterior.coords[:] == coords
+    assert len(polygon.interiors) ==  0
+
+    polygon = Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0)])
+    assert polygon.exterior.coords[:] == coords
+    assert len(polygon.interiors) ==  0
+
+
+def test_polygon_from_coordinate_sequence_with_holes():
+    coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)]
+
+    # Interior rings (holes)
+    polygon = Polygon(coords, [((0.25, 0.25), (0.25, 0.5),
+                                (0.5, 0.5), (0.5, 0.25))])
+    assert polygon.exterior.coords[:] == coords
+    assert len(polygon.interiors) == 1
+    assert len(polygon.interiors[0].coords) == 5
+
+
+def test_polygon_from_linearring():
+    coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
+    ring = LinearRing(coords)
+
+    polygon = Polygon(ring)
+    assert polygon.exterior.coords[:] == coords
+    assert len(polygon.interiors) ==  0
+
+
+def test_polygon_from_polygon():
+    coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)]
+    polygon = Polygon(coords, [((0.25, 0.25), (0.25, 0.5),
+                                (0.5, 0.5), (0.5, 0.25))])
+
+    # Test from another Polygon
+    copy = Polygon(polygon)
+    assert len(polygon.exterior.coords) == 5
+    assert len(polygon.interiors) == 1
+    assert len(polygon.interiors[0].coords) == 5
+
+
+def test_polygon_from_invalid():
+    # Error handling
+    with pytest.raises(ValueError):
+        # A LinearRing must have at least 3 coordinate tuples
+        Polygon([[1, 2], [2, 3]])
+
+
+def test_polygon_from_empty():
+    polygon = Polygon()
+    assert polygon.is_empty
+    assert polygon.exterior.coords[:] == []
+
+    polygon = Polygon([])
+    assert polygon.is_empty
+    assert polygon.exterior.coords[:] == []
+
+
+def test_polygon_from_numpy():
+    np = pytest.importorskip("numpy")
+
+    a = np.array(((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.)))
+    polygon = Polygon(a)
+    assert len(polygon.exterior.coords) == 5
+    assert (polygon.exterior.coords[:]
+            == [(0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.)])
+    assert len(polygon.interiors) == 0
+
+
 class PolygonTestCase(unittest.TestCase):
 
     def test_linearring(self):
@@ -168,13 +241,6 @@ class PolygonTestCase(unittest.TestCase):
         with self.assertRaises(IndexError):  # index out of range
             polygon.interiors[1]
 
-        # Test from another Polygon
-        copy = Polygon(polygon)
-        self.assertEqual(len(polygon.exterior.coords), 5)
-        self.assertEqual(len(polygon.interiors[0].coords), 5)
-        with self.assertRaises(IndexError):  # index out of range
-            polygon.interiors[1]
-
         # Coordinate getters and setters raise exceptions
         self.assertRaises(NotImplementedError, polygon._get_coords)
         with self.assertRaises(NotImplementedError):
@@ -187,11 +253,6 @@ class PolygonTestCase(unittest.TestCase):
              'coordinates': (((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0),
                              (0.0, 0.0)), ((0.25, 0.25), (0.25, 0.5),
                              (0.5, 0.5), (0.5, 0.25), (0.25, 0.25)))})
-
-        # Error handling
-        with self.assertRaises(ValueError):
-            # A LinearRing must have at least 3 coordinate tuples
-            Polygon([[1, 2], [2, 3]])
 
     @shapely20_deprecated
     def test_polygon_adapter(self):
@@ -215,19 +276,6 @@ class PolygonTestCase(unittest.TestCase):
         r_null = LinearRing()
         r_null.coords = [(0, 0), (1, 1), (1, 0)]
         self.assertAlmostEqual(r_null.length, 3.414213562373095)
-
-    @unittest.skipIf(not numpy, 'Numpy required')
-    def test_polygon_from_numpy(self):
-
-        from numpy import array, asarray
-        from numpy.testing import assert_array_equal
-
-        a = asarray(((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.)))
-        polygon = Polygon(a)
-        self.assertEqual(len(polygon.exterior.coords), 5)
-        self.assertEqual(dump_coords(polygon.exterior),
-                         [(0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.)])
-        self.assertEqual(len(polygon.interiors), 0)
 
     @shapely20_deprecated
     @unittest.skipIf(not numpy, 'Numpy required')
