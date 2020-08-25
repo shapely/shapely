@@ -13,6 +13,85 @@ from shapely.geometry.polygon import LinearRing, LineString, asLinearRing
 from shapely.geometry.base import dump_coords
 
 
+def test_linearring_from_coordinate_sequence():
+    expected_coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)]
+
+    ring = LinearRing(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0)))
+    assert ring.coords[:] == expected_coords
+
+    ring = LinearRing([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0)])
+    assert ring.coords[:] == expected_coords
+
+
+def test_linearring_from_points():
+    # From Points
+    expected_coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)]
+
+    ring = LinearRing([Point(0.0, 0.0), Point(0.0, 1.0), Point(1.0, 1.0)])
+    assert ring.coords[:] == expected_coords
+
+
+def test_linearring_from_closed_linestring():
+    coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
+    line = LineString(coords)
+    ring = LinearRing(line)
+    assert len(ring.coords) == 4
+    assert ring.coords[:] == coords
+    assert ring.geom_type == 'LinearRing'
+
+
+def test_linearring_from_unclosed_linestring():
+    coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
+    line = LineString(coords[:-1])  # Pass in unclosed line
+    ring = LinearRing(line)
+    assert len(ring.coords) == 4
+    assert ring.coords[:] == coords
+    assert ring.geom_type == 'LinearRing'
+
+
+def test_linearring_from_invalid():
+    coords = [(0.0, 0.0), (0.0, 0.0), (0.0, 0.0)]
+    line = LineString(coords)
+    assert not line.is_valid
+    with pytest.raises(TopologicalError):
+        LinearRing(line)
+
+
+def test_linearring_from_too_short_linestring():
+    # Creation of LinearRing request at least 3 coordinates (unclosed) or
+    # 4 coordinates (closed)
+    coords = [(0.0, 0.0), (1.0, 1.0)]
+    line = LineString(coords)
+    with pytest.raises(ValueError, match="at least 3 coordinate tuple"):
+        LinearRing(line)
+
+
+def test_linearring_from_generator():
+    coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
+    gen = (coord for coord in coords)
+    ring = LinearRing(gen)
+    assert ring.coords[:] == coords
+
+
+def test_linearring_from_empty():
+    ring = LinearRing()
+    assert ring.is_empty
+    assert ring.coords[:] == []
+
+    ring = LinearRing([])
+    assert ring.is_empty
+    assert ring.coords[:] == []
+
+
+def test_linearring_from_numpy():
+    # Construct from a numpy array
+    np = pytest.importorskip("numpy")
+    coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
+
+    line = LineString(np.array(coords))
+    assert line.coords[:] == [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
+
+
 class PolygonTestCase(unittest.TestCase):
 
     def test_linearring(self):
@@ -25,9 +104,6 @@ class PolygonTestCase(unittest.TestCase):
         self.assertEqual(ring.coords[0], ring.coords[4])
         self.assertEqual(ring.coords[0], ring.coords[-1])
         self.assertTrue(ring.is_ring)
-
-        # Ring from sequence of Points
-        self.assertEqual(LinearRing((map(Point, coords))), ring)
 
     @shapely20_deprecated
     def test_linearring_mutate(self):
@@ -139,40 +215,6 @@ class PolygonTestCase(unittest.TestCase):
         r_null = LinearRing()
         r_null.coords = [(0, 0), (1, 1), (1, 0)]
         self.assertAlmostEqual(r_null.length, 3.414213562373095)
-
-    def test_linearring_from_closed_linestring(self):
-        coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
-        line = LineString(coords)
-        ring = LinearRing(line)
-        self.assertEqual(len(ring.coords), 4)
-        self.assertEqual(ring.coords[:], coords)
-        self.assertEqual('LinearRing',
-                         lgeos.GEOSGeomType(ring._geom).decode('ascii'))
-
-
-    def test_linearring_from_unclosed_linestring(self):
-        coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
-        line = LineString(coords[:-1])  # Pass in unclosed line
-        ring = LinearRing(line)
-        self.assertEqual(len(ring.coords), 4)
-        self.assertEqual(ring.coords[:], coords)
-        self.assertEqual('LinearRing',
-                         lgeos.GEOSGeomType(ring._geom).decode('ascii'))
-
-    def test_linearring_from_invalid(self):
-        coords = [(0.0, 0.0), (0.0, 0.0), (0.0, 0.0)]
-        line = LineString(coords)
-        self.assertFalse(line.is_valid)
-        with self.assertRaises(TopologicalError):
-            ring = LinearRing(line)
-
-    def test_linearring_from_too_short_linestring(self):
-        # Creation of LinearRing request at least 3 coordinates (unclosed) or
-        # 4 coordinates (closed)
-        coords = [(0.0, 0.0), (0.0, 0.0)]
-        line = LineString(coords)
-        with self.assertRaises(TopologicalError):
-            LinearRing(line)
 
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_polygon_from_numpy(self):
