@@ -3,7 +3,7 @@ from .test_multi import MultiGeometryTestCase
 
 import pytest
 
-from shapely.errors import EmptyPartError
+from shapely.errors import EmptyPartError, ShapelyDeprecationWarning
 from shapely.geometry import Point, MultiPoint
 from shapely.geometry.base import dump_coords
 
