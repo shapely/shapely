@@ -335,13 +335,9 @@ class BaseGeometry:
 
     def _get_coords(self):
         """Access to geometry's coordinates (CoordinateSequence)"""
-        raise NotImplementedError("set_coords must be provided by derived classes")
+        return CoordinateSequence(self)
 
-    def _set_coords(self, ob):
-        raise NotImplementedError(
-            "set_coords must be provided by derived classes")
-
-    coords = property(_get_coords, _set_coords)
+    coords = property(_get_coords)
 
     @property
     def xy(self):
@@ -872,10 +868,6 @@ class BaseMultipartGeometry(BaseGeometry):
                              "provide the array interface")
 
     def _get_coords(self):
-        raise NotImplementedError("Sub-geometries may have coordinate "
-                                  "sequences, but collections do not")
-
-    def _set_coords(self, ob):
         raise NotImplementedError("Sub-geometries may have coordinate "
                                   "sequences, but collections do not")
 
