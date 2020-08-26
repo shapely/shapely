@@ -74,12 +74,12 @@ class LineString(BaseGeometry):
             ).format(pnt_format, 2. * scale_factor, stroke_color)
 
     @property
-    def ctypes(self):
+    def _ctypes(self):
         if not self._ctypes_data:
-            self._ctypes_data = self.coords.ctypes
+            self._ctypes_data = self.coords._ctypes
         return self._ctypes_data
 
-    def array_interface(self):
+    def _array_interface(self):
         """Provide the Numpy array protocol."""
         if self.is_empty:
             ai = {'version': 3, 'typestr': '<f8', 'shape': (0,), 'data': (c_double * 0)()}
@@ -87,20 +87,21 @@ class LineString(BaseGeometry):
             ai = self.coords.array_interface()
         return ai
 
-    __array_interface__ = property(array_interface)
-
-    # Coordinate access
-    def _set_coords(self, coordinates):
+    def array_interface(self):
+        """Provide the Numpy array protocol."""
         warnings.warn(
-            "Setting the 'coords' to mutate a Geometry in place is deprecated,"
-            " and will not be possible any more in Shapely 2.0",
+            "The 'array_interface' method is deprecated and will be removed "
+            "in Shapely 2.0.",
             ShapelyDeprecationWarning, stacklevel=2)
-        self.empty()
-        ret = geos_linestring_from_py(coordinates)
-        if ret is not None:
-            self._geom, self._ndim = ret
+        return self._array_interface()
 
-    coords = property(BaseGeometry._get_coords, _set_coords)
+    @property
+    def __array_interface__(self):
+        warnings.warn(
+            "The array interface is deprecated and will no longer work in "
+            "Shapely 2.0. Convert the '.coords' to a numpy array instead.",
+            ShapelyDeprecationWarning, stacklevel=3)
+        return self._array_interface()
 
     @property
     def xy(self):

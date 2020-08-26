@@ -60,22 +60,6 @@ class LinearRing(LineString):
             'coordinates': tuple(self.coords)
             }
 
-    # Coordinate access
-
-    _get_coords = BaseGeometry._get_coords
-
-    def _set_coords(self, coordinates):
-        warnings.warn(
-            "Setting the 'coords' to mutate a Geometry in place is deprecated,"
-            " and will not be possible any more in Shapely 2.0",
-            ShapelyDeprecationWarning, stacklevel=2)
-        self.empty()
-        ret = geos_linearring_from_py(coordinates)
-        if ret is not None:
-            self._geom, self._ndim = ret
-
-    coords = property(_get_coords, _set_coords)
-
     def __setstate__(self, state):
         """WKB doesn't differentiate between LineString and LinearRing so we
         need to move the coordinate sequence into the correct geometry type"""
@@ -267,9 +251,9 @@ class Polygon(BaseGeometry):
     __hash__ = None
 
     @property
-    def ctypes(self):
+    def _ctypes(self):
         if not self._ctypes_data:
-            self._ctypes_data = self.exterior.ctypes
+            self._ctypes_data = self.exterior._ctypes
         return self._ctypes_data
 
     @property
@@ -278,10 +262,6 @@ class Polygon(BaseGeometry):
         "A polygon does not itself provide the array interface. Its rings do.")
 
     def _get_coords(self):
-        raise NotImplementedError(
-        "Component rings have coordinate sequences, but the polygon does not")
-
-    def _set_coords(self, ob):
         raise NotImplementedError(
         "Component rings have coordinate sequences, but the polygon does not")
 

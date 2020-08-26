@@ -8,6 +8,7 @@ Shapely is written by:
 * Andy Freeland <andy@andyfreeland.net>
 * Ariel Kadouri <ariel@arielsartistry.com>
 * Aron Bierbaum <aronbierbaum@gmail.com>
+* Bart Broere <2715782+bartbroere@users.noreply.github.com>
 * Bas Couwenberg <sebastic@xs4all.nl>
 * Benjamin Root <ben.v.root@gmail.com>
 * BertrandGervais <bertrand.gervais.pro@gmail.com>
@@ -16,6 +17,7 @@ Shapely is written by:
 * Chad Hawkins <cwh@chadwhawkins.com>
 * Christian Prior <cprior@gmail.com>
 * Christian Quest <github@cquest.org>
+* Christophe Pradal <christophe.pradal@inria.fr>
 * Daniele Esposti <expobrain@users.noreply.github.com>
 * Dave Collins <dave@hopest.net>
 * David Baumgold <david@davidbaumgold.com>
@@ -24,6 +26,7 @@ Shapely is written by:
 * Erwin Sterrenburg <e.w.sterrenburg@gmail.com>
 * Felix Yan <felixonmars@archlinux.org>
 * Filipe Fernandes <ocefpaf@gmail.com>
+* Frédéric Junod <frederic.junod@camptocamp.com>
 * Gabi Davar <grizzly.nyo@gmail.com>
 * Gerrit Holl <gerrit.holl@dwd.de>
 * Hannes <kannes@users.noreply.github.com>
@@ -40,6 +43,7 @@ Shapely is written by:
 * Jamie Hall <jamie1212@gmail.com>
 * Jason Sanford <jason.sanford@mapmyfitness.com>
 * Jeethu Rao <jeethu@jeethurao.com>
+* Jeremiah England <34973839+Jeremiah-England@users.noreply.github.com>
 * Jinkun Wang <mejkunw@gmail.com>
 * Johan Euphrosine <proppy@aminche.com>
 * Johannes Schönberger <jschoenberger@demuc.de>
@@ -47,15 +51,20 @@ Shapely is written by:
 * Joris Van den Bossche <jorisvandenbossche@gmail.com>
 * Joshua Arnott <josh@snorfalorpagus.net>
 * Juan Luis Cano Rodríguez <juanlu@satellogic.com>
+* Kai Lautaportti <dokai@b426a367-1105-0410-b9ff-cdf4ab011145>
 * Kelsey Jordahl <kjordahl@enthought.com>
 * Kevin Wurster <wursterk@gmail.com>
+* Konstantin Veretennicov <kveretennicov@gmail.com>
+* Koshy Thomas <koshy1123@gmail.com>
 * Kristian Evers <kristianevers@gmail.com>
+* Kyle Barron <kylebarron2@gmail.com>
 * Leandro Lima <leandro@limaesilva.com.br>
 * Lukasz <uhho@users.noreply.github.com>
 * Luke Lee <durdenmisc@gmail.com>
 * Maarten Vermeyen <maarten.vermeyen@rwo.vlaanderen.be>
 * Marc Jansen <jansen@terrestris.de>
 * Marco De Nadai <me@marcodena.it>
+* Mathieu <mathieu.nivel@gmail.com>
 * Matt Amos <matt.amos@mapzen.com>
 * Michel Blancard <michel.blancard@data.gouv.fr>
 * Mike Taves <mwtoews@gmail.com>
@@ -67,6 +76,7 @@ Shapely is written by:
 * Phil Elson <pelson.pub@gmail.com>
 * Pierre PACI <villerupt@gmail.com>
 * Ricardo Zilleruelo <51384295+zetaatlyft@users.noreply.github.com>
+* S Murthy <sr-murthy@users.noreply.github.com>
 * Sampo Syrjanen <sampo.syrjanen@here.com>
 * Samuel Chin <samuelchin91@gmail.com>
 * Sean Gillies <sean.gillies@gmail.com>
@@ -76,8 +86,8 @@ Shapely is written by:
 * Taro Matsuzawa aka. btm <btm@tech.email.ne.jp>
 * Thibault Deutsch <thibault.deutsch@gmail.com>
 * Thomas Kluyver <takowl@gmail.com>
-* Tom Caruso <carusot42@gmail.com>
 * Tobias Sauerwein <tobias.sauerwein@camptocamp.com>
+* Tom Caruso <carusot42@gmail.com>
 * Tom Clancy <17627475+clncy@users.noreply.github.com>
 * WANG Aiyong <gepcelway@gmail.com>
 * Will May <williamcmay@live.com>
@@ -85,8 +95,6 @@ Shapely is written by:
 * cclauss <cclauss@me.com>
 * clefrks <33859587+clefrks@users.noreply.github.com>
 * davidh-ssec <david.hoese@ssec.wisc.edu>
-* dokai <dokai@b426a367-1105-0410-b9ff-cdf4ab011145>
-* fredj <frederic.junod@camptocamp.com>
 * georgeouzou <geothrock@gmail.com>
 * giumas <gmasetti@ccom.unh.edu>
 * joelostblom <joelostblom@users.noreply.github.com>

@@ -6,12 +6,20 @@ Changes
 
 New features:
 
-- shapely.ops.voronoi_diagram() computes the Voronoi Diagram of a geometry or geometry collection (#833, #851).
+- shapely.ops.voronoi_diagram() computes the Voronoi Diagram of a geometry or
+  geometry collection (#833, #851).
 - shapely.validation.make_valid() fixes invalid geometries (#883)
 
-1.7.1 (TBD)
------------
+1.7.1 (2020-08-20)
+------------------
 
+- ``STRtree`` now safely implements the pickle protocol (#915).
+- Documentation has been added for ``minimum_clearance`` (#875, #874).
+- In ``STRtree.__del__()`` we guard against calling ``GEOSSTRtree_destroy``
+  when the lgeos module has already been torn down on exit (#897, #830).
+- Documentation for the ``overlaps()`` method has been corrected (#920).
+- Correct the test in ``shapely.geometry.base.BaseGeometry.empty()`` to
+  eliminate memory leaks like the one reported in #745.
 - Get free() not from libc but from the processes global symbols (#891),
   fixing a bug that manifests on OS X 10.15 and 10.16.
 - Extracting substrings from complex lines has been made more correct (#848,
@@ -22,6 +30,7 @@ New features:
 - Improved documentation of STRtree usage (#857).
 - Improved handling for empty list or list of lists in GeoJSON coordinates
   (#852).
+- The polylabel algorithm now accounts for polygon holes (#851, #817).
 
 1.7.0 (2020-01-28)
 ------------------

@@ -9,6 +9,7 @@ different z values may intersect or be equal.
 from binascii import a2b_hex
 from ctypes import pointer, c_size_t, c_char_p, c_void_p
 from itertools import islice
+import logging
 import math
 import sys
 from warnings import warn
@@ -17,10 +18,12 @@ from functools import wraps
 from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
 from shapely.errors import WKBReadingError, WKTReadingError
+from shapely.errors import ShapelyDeprecationWarning
 from shapely.geos import WKBWriter, WKTWriter
 from shapely.geos import lgeos
 from shapely.impl import DefaultImplementation, delegated
 
+log = logging.getLogger(__name__)
 
 try:
     import numpy as np
@@ -212,13 +215,13 @@ class BaseGeometry(object):
     _lgeos = lgeos
 
     def empty(self, val=EMPTY):
-        # TODO: defer cleanup to the implementation. We shouldn't be
-        # explicitly calling a lgeos method here.
-        if not self._is_empty and not self._other_owned and self.__geom__:
+        if not self._other_owned and self.__geom__ and self.__geom__ != EMPTY:
             try:
                 self._lgeos.GEOSGeom_destroy(self.__geom__)
             except (AttributeError, TypeError):
-                pass  # _lgeos might be empty on shutdown
+                # _lgeos might be empty on shutdown
+                log.exception("Failed to delete GEOS geom")
+
         self._is_empty = True
         self.__geom__ = val
 
@@ -288,12 +291,20 @@ class BaseGeometry(object):
     # ---------------------------
 
     @property
-    def ctypes(self):
-        """Return ctypes buffer"""
+    def _ctypes(self):
         raise NotImplementedError
 
     @property
-    def array_interface_base(self):
+    def ctypes(self):
+        """Return ctypes buffer"""
+        warn(
+            "Accessing the 'ctypes' attribute is deprecated,"
+            " and will not be possible any more in Shapely 2.0",
+            ShapelyDeprecationWarning, stacklevel=2)
+        return self._ctypes
+
+    @property
+    def _array_interface_base(self):
         if sys.byteorder == 'little':
             typestr = '<f8'
         elif sys.byteorder == 'big':
@@ -304,8 +315,16 @@ class BaseGeometry(object):
         return {
             'version': 3,
             'typestr': typestr,
-            'data': self.ctypes,
+            'data': self._ctypes,
             }
+
+    @property
+    def array_interface_base(self):
+        warn(
+            "The 'array_interface_base' property is deprecated and will be "
+            "removed in Shapely 2.0.",
+            ShapelyDeprecationWarning, stacklevel=2)
+        return self._array_interface_base()
 
     @property
     def __array_interface__(self):
@@ -321,11 +340,7 @@ class BaseGeometry(object):
             return []
         return CoordinateSequence(self)
 
-    def _set_coords(self, ob):
-        raise NotImplementedError(
-            "set_coords must be provided by derived classes")
-
-    coords = property(_get_coords, _set_coords)
+    coords = property(_get_coords)
 
     @property
     def xy(self):
@@ -849,10 +864,6 @@ class BaseMultipartGeometry(BaseGeometry):
                                   "provide the array interface")
 
     def _get_coords(self):
-        raise NotImplementedError("Sub-geometries may have coordinate "
-                                  "sequences, but collections do not")
-
-    def _set_coords(self, ob):
         raise NotImplementedError("Sub-geometries may have coordinate "
                                   "sequences, but collections do not")
 
