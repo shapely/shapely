@@ -189,6 +189,7 @@ class LineStringTestCase(unittest.TestCase):
         la = np.asarray(line.coords)
         assert_array_equal(la, expected)
 
+    @shapely20_deprecated
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy_asarray(self):
         from numpy import array, asarray
