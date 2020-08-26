@@ -203,6 +203,16 @@ def test_empty_point_bounds():
     assert p.bounds == ()
 
 
+def test_point_immutable():
+    p = Point(3.0, 4.0)
+
+    with pytest.raises(AttributeError):
+        p.coords = (2.0, 1.0)
+
+    with pytest.raises(TypeError):
+        p.coords[0] = (2.0, 1.0)
+
+
 def test_point_adapter_deprecated():
     coords = [3.0, 4.0]
     with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):

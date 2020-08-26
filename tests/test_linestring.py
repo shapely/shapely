@@ -245,6 +245,16 @@ class LineStringTestCase(unittest.TestCase):
         self.assertEqual(a.shape[0], 0)
 
 
+def test_linestring_immutable():
+    line = LineString(((1.0, 2.0), (3.0, 4.0)))
+
+    with pytest.raises(AttributeError):
+        line.coords = [(-1.0, -1.0), (1.0, 1.0)]
+
+    with pytest.raises(TypeError):
+        line.coords[0] = (-1.0, -1.0)
+
+
 def test_linestring_adapter_deprecated():
     coords = [[5.0, 6.0], [7.0, 8.0]]
     with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
