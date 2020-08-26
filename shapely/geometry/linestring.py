@@ -106,21 +106,6 @@ class LineString(BaseGeometry):
             ShapelyDeprecationWarning, stacklevel=3)
         return self._array_interface()
 
-    # Coordinate access
-    def _set_coords(self, coordinates):
-        warnings.warn(
-            "Setting the 'coords' to mutate a Geometry in place is deprecated,"
-            " and will not be possible any more in Shapely 2.0",
-            ShapelyDeprecationWarning, stacklevel=2)
-        self._empty()
-        ret = geos_linestring_from_py(coordinates)
-        if ret is not None:
-            geom, n = ret
-            self._set_geom(geom)
-            self._ndim = n
-
-    coords = property(BaseGeometry._get_coords, _set_coords)
-
     @property
     def xy(self):
         """Separate arrays of X and Y coordinate values
