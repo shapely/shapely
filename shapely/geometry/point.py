@@ -155,29 +155,6 @@ class Point(BaseGeometry):
             return ()
         return (xy[0], xy[1], xy[0], xy[1])
 
-    # Coordinate access
-
-    def _get_coords(self):
-        """Access to geometry's coordinates (CoordinateSequence)"""
-        return CoordinateSequence(self)
-
-    def _set_coords(self, *args):
-        warnings.warn(
-            "Setting the 'coords' to mutate a Geometry in place is deprecated,"
-            " and will not be possible any more in Shapely 2.0",
-            ShapelyDeprecationWarning, stacklevel=2)
-        self._empty()
-        if len(args) == 1:
-            geom, n = geos_point_from_py(args[0])
-        elif len(args) > 3:
-            raise TypeError("Point() takes at most 3 arguments ({} given)".format(len(args)))
-        else:
-            geom, n = geos_point_from_py(tuple(args))
-        self._set_geom(geom)
-        self._ndim = n
-
-    coords = property(_get_coords, _set_coords)
-
     @property
     def xy(self):
         """Separate arrays of X and Y coordinate values
