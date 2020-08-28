@@ -2,20 +2,18 @@
 """
 
 from .base import CAP_STYLE, JOIN_STYLE
-from .geo import box, shape, asShape, mapping
-from .point import Point, asPoint
-from .linestring import LineString, asLineString
-from .polygon import Polygon, asPolygon, LinearRing, asLinearRing
-from .multipoint import MultiPoint, asMultiPoint
-from .multilinestring import MultiLineString, asMultiLineString
-from .multipolygon import MultiPolygon, asMultiPolygon
+from .geo import box, shape, mapping
+from .point import Point
+from .linestring import LineString
+from .polygon import Polygon, LinearRing
+from .multipoint import MultiPoint
+from .multilinestring import MultiLineString
+from .multipolygon import MultiPolygon
 from .collection import GeometryCollection
 
 __all__ = [
-    'box', 'shape', 'asShape', 'Point', 'asPoint', 'LineString',
-    'asLineString', 'Polygon', 'asPolygon', 'MultiPoint', 'asMultiPoint',
-    'MultiLineString', 'asMultiLineString', 'MultiPolygon', 'asMultiPolygon',
-    'GeometryCollection', 'mapping', 'LinearRing', 'asLinearRing',
+    'box', 'shape', 'mapping', 'Point', 'LineString', 'Polygon', 'MultiPoint',
+    'MultiLineString', 'MultiPolygon', 'GeometryCollection', 'LinearRing',
     'CAP_STYLE', 'JOIN_STYLE',
 ]
 
