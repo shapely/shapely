@@ -5,7 +5,7 @@ import pytest
 
 from shapely.errors import EmptyPartError, ShapelyDeprecationWarning
 from shapely.geos import lgeos
-from shapely.geometry import LineString, MultiLineString, asMultiLineString
+from shapely.geometry import LineString, MultiLineString
 from shapely.geometry.base import dump_coords
 
 
@@ -69,21 +69,6 @@ class MultiLineStringTestCase(MultiGeometryTestCase):
         self.assertEqual(len(geom.geoms), 1)
         self.assertEqual(dump_coords(geom), [[(0.0, 0.0), (1.0, 2.0)]])
 
-
-    @shapely20_deprecated
-    @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy_adapter(self):
-        from numpy import array
-        from numpy.testing import assert_array_equal
-
-        # Adapt a sequence of Numpy arrays to a multilinestring
-        a = [array(((1.0, 2.0), (3.0, 4.0)))]
-        geoma = asMultiLineString(a)
-        assert_array_equal(geoma.context, [array([[1., 2.], [3., 4.]])])
-        self.assertEqual(dump_coords(geoma), [[(1.0, 2.0), (3.0, 4.0)]])
-
-        # TODO: is there an inverse?
-
     @shapely20_deprecated
     def test_subgeom_access(self):
         line0 = LineString([(0.0, 1.0), (2.0, 3.0)])
@@ -98,12 +83,6 @@ class MultiLineStringTestCase(MultiGeometryTestCase):
             ]).wkt
 
         self.assertEqual(str(exc.exception), "Can't create MultiLineString with empty component")
-
-
-def test_multilinestring_adapter_deprecated():
-    coords = [[[5.0, 6.0], [7.0, 8.0]]]
-    with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
-        asMultiLineString(coords)
 
 
 def test_iteration_deprecated():
