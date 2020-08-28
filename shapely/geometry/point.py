@@ -102,28 +102,6 @@ class Point(BaseGeometry):
             ).format(self, 3. * scale_factor, 1. * scale_factor, fill_color)
 
     @property
-    def _ctypes(self):
-        if not self._ctypes_data:
-            array_type = c_double * self._ndim
-            array = array_type()
-            xy = self.coords[0]
-            array[0] = xy[0]
-            array[1] = xy[1]
-            if self._ndim == 3:
-                array[2] = xy[2]
-            self._ctypes_data = array
-        return self._ctypes_data
-
-    def _array_interface(self):
-        """Provide the Numpy array protocol."""
-        if self.is_empty:
-            ai = {'version': 3, 'typestr': '<f8', 'shape': (0,), 'data': (c_double * 0)()}
-        else:
-            ai = self._array_interface_base
-            ai.update({'shape': (self._ndim,)})
-        return ai
-
-    @property
     def bounds(self):
         """Returns minimum bounding region (minx, miny, maxx, maxy)"""
         try:

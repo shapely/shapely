@@ -294,21 +294,6 @@ class BaseGeometry(object):
     def _ctypes(self):
         raise NotImplementedError
 
-    @property
-    def _array_interface_base(self):
-        if sys.byteorder == 'little':
-            typestr = '<f8'
-        elif sys.byteorder == 'big':
-            typestr = '>f8'
-        else:
-            raise ValueError(
-                "Unsupported byteorder: neither little nor big-endian")
-        return {
-            'version': 3,
-            'typestr': typestr,
-            'data': self._ctypes,
-            }
-
     # Coordinate access
     # -----------------
 

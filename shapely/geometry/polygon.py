@@ -250,12 +250,6 @@ class Polygon(BaseGeometry):
 
     __hash__ = None
 
-    @property
-    def _ctypes(self):
-        if not self._ctypes_data:
-            self._ctypes_data = self.exterior._ctypes
-        return self._ctypes_data
-
     def _get_coords(self):
         raise NotImplementedError(
         "Component rings have coordinate sequences, but the polygon does not")
