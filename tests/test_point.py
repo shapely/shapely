@@ -120,38 +120,20 @@ class LineStringTestCase(unittest.TestCase):
         self.assertEqual(p_null.coords[:], [])
         self.assertEqual(p_null.area, 0.0)
 
-    @shapely20_deprecated
     @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy_asarray(self):
-        from numpy import array, asarray
-        from numpy.testing import assert_array_equal
+    def test_coords(self):
+        import numpy as np
 
         # From Array.txt
         p = Point(0.0, 0.0, 1.0)
         coords = p.coords[0]
-        self.assertEqual(coords, (0.0, 0.0, 1.0))
+        assert coords == (0.0, 0.0, 1.0)
 
         # Convert to Numpy array, passing through Python sequence
-        a = asarray(coords)
-        self.assertEqual(a.ndim, 1)
-        self.assertEqual(a.size, 3)
-        self.assertEqual(a.shape, (3,))
-
-        # Convert to Numpy array, passing through a ctypes array
-        b = asarray(p)
-        self.assertEqual(b.size, 3)
-        self.assertEqual(b.shape, (3,))
-        assert_array_equal(b, array([0.0, 0.0, 1.0]))
-
-        # Make a point from a Numpy array
-        a = asarray([1.0, 1.0, 0.0])
-        p = Point(*list(a))
-        self.assertEqual(p.coords[:], [(1.0, 1.0, 0.0)])
-
-        # Test array interface of empty geometry
-        pe = Point()
-        a = asarray(pe)
-        self.assertEqual(a.shape[0], 0)
+        a = np.asarray(coords)
+        assert a.ndim == 1
+        assert a.size == 3
+        assert a.shape == (3,)
 
 
 def test_empty_point_bounds():
@@ -170,21 +152,14 @@ def test_point_immutable():
         p.coords[0] = (2.0, 1.0)
 
 
-def test_point_ctypes_deprecated():
-    p = Point(3.0, 4.0)
-    with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
-        p.ctypes is not None
-
-def test_point_array_interface_deprecated():
-    p = Point(3.0, 4.0)
-    with pytest.warns(ShapelyDeprecationWarning, match="array_interface"):
-        p.array_interface()
-
-
 @unittest.skipIf(not numpy, 'Numpy required')
-def test_point_array_interface_numpy_deprecated():
+def test_point_array_coercion():
+    # don't convert to array of coordinates, keep objects
     import numpy as np
 
     p = Point(3.0, 4.0)
-    with pytest.warns(ShapelyDeprecationWarning, match="array interface"):
-        np.array(p)
+    arr = np.array(p)
+    assert arr.ndim == 0
+    assert arr.size == 1
+    assert arr.dtype == np.dtype("object")
+    assert arr.item() == p

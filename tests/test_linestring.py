@@ -160,23 +160,6 @@ class LineStringTestCase(unittest.TestCase):
         self.assertTrue(ls == ls_clone)
         self.assertTrue(lr == lr_clone)
 
-    @shapely20_deprecated
-    @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy(self):
-
-        from numpy import array, asarray
-        from numpy.testing import assert_array_equal
-
-        # Construct from a numpy array
-        line = LineString(array([[0.0, 0.0], [1.0, 2.0]]))
-        self.assertEqual(len(line.coords), 2)
-        self.assertEqual(line.coords[:], [(0.0, 0.0), (1.0, 2.0)])
-
-        line = LineString(((1.0, 2.0), (3.0, 4.0)))
-        la = asarray(line)
-        expected = array([[1.0, 2.0], [3.0, 4.0]])
-        assert_array_equal(la, expected)
-
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy_coords(self):
         import numpy as np
@@ -189,35 +172,6 @@ class LineStringTestCase(unittest.TestCase):
         la = np.asarray(line.coords)
         assert_array_equal(la, expected)
 
-    @shapely20_deprecated
-    @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy_asarray(self):
-        from numpy import array, asarray
-        from numpy.testing import assert_array_equal
-
-        # From Array.txt
-        a = asarray([[0.0, 0.0], [2.0, 2.0], [1.0, 1.0]])
-        line = LineString(a)
-        self.assertEqual(line.coords[:], [(0.0, 0.0), (2.0, 2.0), (1.0, 1.0)])
-
-        data = line.ctypes
-        self.assertEqual(data[0], 0.0)
-        self.assertEqual(data[5], 1.0)
-
-        b = asarray(line)
-        assert_array_equal(b, array([[0., 0.], [2., 2.], [1., 1.]]))
-
-    @shapely20_deprecated
-    @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy_empty(self):
-        from numpy import array, asarray
-        from numpy.testing import assert_array_equal
-
-        # Test array interface of empty linestring
-        le = LineString()
-        a = asarray(le)
-        self.assertEqual(a.shape[0], 0)
-
 
 def test_linestring_immutable():
     line = LineString(((1.0, 2.0), (3.0, 4.0)))
@@ -229,22 +183,14 @@ def test_linestring_immutable():
         line.coords[0] = (-1.0, -1.0)
 
 
-def test_linestring_ctypes_deprecated():
-    line = LineString(((1.0, 2.0), (3.0, 4.0)))
-    with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
-        line.ctypes
-
-
-def test_linestring_array_interface_deprecated():
-    line = LineString(((1.0, 2.0), (3.0, 4.0)))
-    with pytest.warns(ShapelyDeprecationWarning, match="array_interface"):
-        line.array_interface()
-
-
 @unittest.skipIf(not numpy, 'Numpy required')
-def test_linestring_array_interface_numpy_deprecated():
+def test_linestring_array_coercion():
+    # don't convert to array of coordinates, keep objects
     import numpy as np
 
     line = LineString(((1.0, 2.0), (3.0, 4.0)))
-    with pytest.warns(ShapelyDeprecationWarning, match="array interface"):
-        np.array(line)
+    arr = np.array(line)
+    assert arr.ndim == 0
+    assert arr.size == 1
+    assert arr.dtype == np.dtype("object")
+    assert arr.item() == line

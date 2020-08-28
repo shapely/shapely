@@ -295,15 +295,6 @@ class BaseGeometry(object):
         raise NotImplementedError
 
     @property
-    def ctypes(self):
-        """Return ctypes buffer"""
-        warn(
-            "Accessing the 'ctypes' attribute is deprecated,"
-            " and will not be possible any more in Shapely 2.0",
-            ShapelyDeprecationWarning, stacklevel=2)
-        return self._ctypes
-
-    @property
     def _array_interface_base(self):
         if sys.byteorder == 'little':
             typestr = '<f8'
@@ -317,19 +308,6 @@ class BaseGeometry(object):
             'typestr': typestr,
             'data': self._ctypes,
             }
-
-    @property
-    def array_interface_base(self):
-        warn(
-            "The 'array_interface_base' property is deprecated and will be "
-            "removed in Shapely 2.0.",
-            ShapelyDeprecationWarning, stacklevel=2)
-        return self._array_interface_base()
-
-    @property
-    def __array_interface__(self):
-        """Provide the Numpy array protocol."""
-        raise NotImplementedError
 
     # Coordinate access
     # -----------------
@@ -851,17 +829,6 @@ class BaseMultipartGeometry(BaseGeometry):
     def shape_factory(self, *args):
         # Factory for part instances, usually a geometry class
         raise NotImplementedError("To be implemented by derived classes")
-
-    @property
-    def ctypes(self):
-        raise NotImplementedError(
-            "Multi-part geometries have no ctypes representations")
-
-    @property
-    def __array_interface__(self):
-        """Provide the Numpy array protocol."""
-        raise NotImplementedError("Multi-part geometries do not themselves "
-                                  "provide the array interface")
 
     def _get_coords(self):
         raise NotImplementedError("Sub-geometries may have coordinate "

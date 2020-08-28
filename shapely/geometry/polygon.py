@@ -256,11 +256,6 @@ class Polygon(BaseGeometry):
             self._ctypes_data = self.exterior._ctypes
         return self._ctypes_data
 
-    @property
-    def __array_interface__(self):
-        raise NotImplementedError(
-        "A polygon does not itself provide the array interface. Its rings do.")
-
     def _get_coords(self):
         raise NotImplementedError(
         "Component rings have coordinate sequences, but the polygon does not")

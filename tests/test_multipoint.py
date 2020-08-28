@@ -51,17 +51,6 @@ class MultiPointTestCase(MultiGeometryTestCase):
         self.assertEqual(len(geom.geoms), 2)
         self.assertEqual(dump_coords(geom), [[(0.0, 0.0)], [(1.0, 2.0)]])
 
-    @shapely20_deprecated
-    @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy(self):
-
-        from numpy import array, asarray
-        from numpy.testing import assert_array_equal
-
-        # Geo interface (cont.)
-        geom = MultiPoint((Point(1.0, 2.0), Point(3.0, 4.0)))
-        assert_array_equal(array(geom), array([[1., 2.], [3., 4.]]))
-
     def test_subgeom_access(self):
         p0 = Point(1.0, 2.0)
         p1 = Point(3.0, 4.0)
@@ -74,25 +63,19 @@ class MultiPointTestCase(MultiGeometryTestCase):
         self.assertEqual(str(exc.exception), "Can't create MultiPoint with empty component")
 
 
-def test_multipoint_ctypes_deprecated():
-    geom = MultiPoint(((1.0, 2.0), (3.0, 4.0)))
-    with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
-        geom.ctypes
-
-
-def test_multipoint_array_interface_deprecated():
-    geom = MultiPoint(((1.0, 2.0), (3.0, 4.0)))
-    with pytest.warns(ShapelyDeprecationWarning, match="array_interface"):
-        geom.array_interface()
-
-
+@pytest.mark.xfail
 @unittest.skipIf(not numpy, 'Numpy required')
-def test_multipoint_array_interface_numpy_deprecated():
+def test_multipoint_array_coercion():
+    # don't convert to array of coordinates, keep objects
+    # TODO this still fails because of MultiPoint having a length
     import numpy as np
 
     geom = MultiPoint(((1.0, 2.0), (3.0, 4.0)))
-    with pytest.warns(ShapelyDeprecationWarning, match="array interface"):
-        np.array(geom)
+    arr = np.array(geom)
+    assert arr.ndim == 0
+    assert arr.size == 1
+    assert arr.dtype == np.dtype("object")
+    assert arr.item() == geom
 
 
 def test_suite():
