@@ -1,11 +1,10 @@
 from . import unittest, shapely20_deprecated
 
-from shapely.errors import ShapelyDeprecationWarning
 from shapely.geometry.base import BaseGeometry, EmptyGeometry
 import shapely.geometry as sgeom
 from shapely.geometry.polygon import LinearRing
 
-from shapely.geometry import MultiPolygon, mapping, shape, asShape
+from shapely.geometry import MultiPolygon, mapping, shape
 
 import pytest
 
@@ -74,11 +73,3 @@ def test_shape_empty():
     empty_json = mapping(empty_mp)
     empty_shape = shape(empty_json)
     assert empty_shape.is_empty
-
-
-def test_asshape_empty():
-    empty_mp = MultiPolygon()
-    empty_json = mapping(empty_mp)
-    with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
-        empty_asShape = asShape(empty_json)
-    assert empty_asShape.is_empty

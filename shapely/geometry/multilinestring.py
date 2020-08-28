@@ -4,13 +4,13 @@
 from ctypes import c_void_p, cast
 import warnings
 
-from shapely.errors import EmptyPartError, ShapelyDeprecationWarning
+from shapely.errors import EmptyPartError
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseMultipartGeometry, geos_geom_from_py
 from shapely.geometry import linestring
-from shapely.geometry.proxy import CachingGeometryProxy
 
-__all__ = ['MultiLineString', 'asMultiLineString']
+
+__all__ = ['MultiLineString']
 
 
 class MultiLineString(BaseMultipartGeometry):
@@ -78,39 +78,6 @@ class MultiLineString(BaseMultipartGeometry):
         return '<g>' + \
             ''.join(p.svg(scale_factor, stroke_color) for p in self.geoms) + \
             '</g>'
-
-
-class MultiLineStringAdapter(CachingGeometryProxy, MultiLineString):
-    
-    context = None
-    _other_owned = False
-
-    def __init__(self, context):
-        warnings.warn(
-            "The proxy geometries (through the 'asShape()', 'asMultiLineString()' "
-            "or 'MultiLineStringAdapter()' constructors) are deprecated and will be "
-            "removed in Shapely 2.0. Use the 'shape()' function or the "
-            "standard 'MultiLineString()' constructor instead.",
-            ShapelyDeprecationWarning, stacklevel=4)
-        self.context = context
-        self.factory = geos_multilinestring_from_py
-
-    @property
-    def _ndim(self):
-        try:
-            # From array protocol
-            array = self.context[0].__array_interface__
-            n = array['shape'][1]
-            assert n == 2 or n == 3
-            return n
-        except AttributeError:
-            # Fall back on list
-            return len(self.context[0][0])
-
-
-def asMultiLineString(context):
-    """Adapts a sequence of objects to the MultiLineString interface"""
-    return MultiLineStringAdapter(context)
 
 
 def geos_multilinestring_from_py(ob):

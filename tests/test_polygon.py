@@ -9,8 +9,8 @@ from shapely.coords import CoordinateSequence
 from shapely.wkb import loads as load_wkb
 from shapely.errors import TopologicalError, ShapelyDeprecationWarning
 from shapely.geos import lgeos
-from shapely.geometry import Point, Polygon, asPolygon
-from shapely.geometry.polygon import LinearRing, LineString, asLinearRing
+from shapely.geometry import Point, Polygon
+from shapely.geometry.polygon import LinearRing, LineString
 from shapely.geometry.base import dump_coords
 
 
@@ -198,20 +198,6 @@ class PolygonTestCase(unittest.TestCase):
         self.assertEqual(ring.coords[0], ring.coords[-1])
         self.assertTrue(ring.is_ring)
 
-    @shapely20_deprecated
-    def test_linearring_adapter(self):
-        # Test ring adapter
-        coords = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]
-        ra = asLinearRing(coords)
-        self.assertTrue(ra.wkt.upper().startswith('LINEARRING'))
-        self.assertEqual(dump_coords(ra),
-                         [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0),
-                          (0.0, 0.0)])
-        coords[3] = [2.0, -1.0]
-        self.assertEqual(dump_coords(ra),
-                         [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (2.0, -1.0),
-                          (0.0, 0.0)])
-
     def test_polygon(self):
         coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0))
 
@@ -260,16 +246,6 @@ class PolygonTestCase(unittest.TestCase):
              'coordinates': (((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0),
                              (0.0, 0.0)), ((0.25, 0.25), (0.25, 0.5),
                              (0.5, 0.5), (0.5, 0.25), (0.25, 0.25)))})
-
-    @shapely20_deprecated
-    def test_polygon_adapter(self):
-        # Adapter
-        coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0))
-        hole_coords = [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))]
-        pa = asPolygon(coords, hole_coords)
-        self.assertEqual(len(pa.exterior.coords), 5)
-        self.assertEqual(len(pa.interiors), 1)
-        self.assertEqual(len(pa.interiors[0].coords), 5)
 
     def test_linearring_empty(self):
         # Test Non-operability of Null rings
@@ -389,19 +365,6 @@ def test_linearring_immutable():
 
     with pytest.raises(TypeError):
         ring.coords[0] = (1.0, 1.0)
-
-
-def test_linearring_adapter_deprecated():
-    coords = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]
-    with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
-        asLinearRing(coords)
-
-
-def test_polygon_adapter_deprecated():
-    coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0))
-    hole_coords = [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))]
-    with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
-        asPolygon(coords, hole_coords)
 
 
 def test_ctypes_deprecated():
