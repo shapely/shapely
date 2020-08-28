@@ -9,10 +9,9 @@ from shapely.geos import lgeos, TopologicalError
 from shapely.geometry.base import (
     BaseGeometry, geom_factory, JOIN_STYLE, geos_geom_from_py
 )
-from shapely.geometry.proxy import CachingGeometryProxy
 from shapely.geometry.point import Point
 
-__all__ = ['LineString', 'asLineString']
+__all__ = ['LineString']
 
 
 class LineString(BaseGeometry):
@@ -152,52 +151,6 @@ class LineString(BaseGeometry):
                 self, distance, resolution, join_style, mitre_limit, side))
         except OSError:
             raise TopologicalError()
-
-
-class LineStringAdapter(CachingGeometryProxy, LineString):
-
-    def __init__(self, context):
-        warnings.warn(
-            "The proxy geometries (through the 'asShape()', 'asLineString()' or "
-            "'LineStringAdapter()' constructors) are deprecated and will be "
-            "removed in Shapely 2.0. Use the 'shape()' function or the "
-            "standard 'LineString()' constructor instead.",
-            ShapelyDeprecationWarning, stacklevel=4)
-        self.context = context
-        self.factory = geos_linestring_from_py
-
-    @property
-    def _ndim(self):
-        try:
-            # From array protocol
-            array = self.context.__array_interface__
-            n = array['shape'][1]
-            assert n == 2 or n == 3
-            return n
-        except AttributeError:
-            # Fall back on list
-            return len(self.context[0])
-
-    @property
-    def __array_interface__(self):
-        """Provide the Numpy array protocol."""
-        try:
-            return self.context.__array_interface__
-        except AttributeError:
-            return self.array_interface()
-
-    _get_coords = BaseGeometry._get_coords
-
-    def _set_coords(self, ob):
-        raise NotImplementedError(
-            "Adapters can not modify their coordinate sources")
-
-    coords = property(_get_coords)
-
-
-def asLineString(context):
-    """Adapt an object the LineString interface"""
-    return LineStringAdapter(context)
 
 
 def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):

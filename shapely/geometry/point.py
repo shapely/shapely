@@ -7,9 +7,9 @@ import warnings
 from shapely.errors import DimensionError, ShapelyDeprecationWarning
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, geos_geom_from_py
-from shapely.geometry.proxy import CachingGeometryProxy
 
-__all__ = ['Point', 'asPoint']
+
+__all__ = ['Point']
 
 
 class Point(BaseGeometry):
@@ -162,53 +162,6 @@ class Point(BaseGeometry):
           [0.0]
         """
         return self.coords.xy
-
-
-class PointAdapter(CachingGeometryProxy, Point):
-
-    _other_owned = False
-
-    def __init__(self, context):
-        warnings.warn(
-            "The proxy geometries (through the 'asShape()', 'asPoint()' or "
-            "'PointAdapter()' constructors) are deprecated and will be "
-            "removed in Shapely 2.0. Use the 'shape()' function or the "
-            "standard 'Point()' constructor instead.",
-            ShapelyDeprecationWarning, stacklevel=4)
-        self.context = context
-        self.factory = geos_point_from_py
-
-    @property
-    def _ndim(self):
-        try:
-            # From array protocol
-            array = self.context.__array_interface__
-            n = array['shape'][0]
-            assert n == 2 or n == 3
-            return n
-        except AttributeError:
-            # Fall back on list
-            return len(self.context)
-
-    @property
-    def __array_interface__(self):
-        """Provide the Numpy array protocol."""
-        try:
-            return self.context.__array_interface__
-        except AttributeError:
-            return self.array_interface()
-
-    _get_coords = BaseGeometry._get_coords
-
-    def _set_coords(self, ob):
-        raise NotImplementedError("Adapters can not modify their sources")
-
-    coords = property(_get_coords)
-
-
-def asPoint(context):
-    """Adapt an object to the Point interface"""
-    return PointAdapter(context)
 
 
 def geos_point_from_py(ob, update_geom=None, update_ndim=0):

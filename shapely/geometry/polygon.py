@@ -10,13 +10,12 @@ import weakref
 from shapely.algorithms.cga import signed_area
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, geos_geom_from_py
-from shapely.geometry.linestring import LineString, LineStringAdapter
+from shapely.geometry.linestring import LineString
 from shapely.geometry.point import Point
-from shapely.geometry.proxy import PolygonProxy
 from shapely.errors import TopologicalError, ShapelyDeprecationWarning
 
 
-__all__ = ['Polygon', 'asPolygon', 'LinearRing', 'asLinearRing']
+__all__ = ['Polygon', 'LinearRing']
 
 
 class LinearRing(LineString):
@@ -82,35 +81,6 @@ class LinearRing(LineString):
         """True if the geometry is simple, meaning that any self-intersections
         are only at boundary points, else False"""
         return LineString(self).is_simple
-
-
-class LinearRingAdapter(LineStringAdapter):
-
-    __p__ = None
-
-    def __init__(self, context):
-        warnings.warn(
-            "The proxy geometries (through the 'asShape()', 'asLinearRing()' or "
-            "'LinearRingAdapter()' constructors) are deprecated and will be "
-            "removed in Shapely 2.0. Use the 'shape()' function or the "
-            "standard 'LinearRing()' constructor instead.",
-            ShapelyDeprecationWarning, stacklevel=3)
-        self.context = context
-        self.factory = geos_linearring_from_py
-
-    @property
-    def __geo_interface__(self):
-        return {
-            'type': 'LinearRing',
-            'coordinates': tuple(self.coords)
-            }
-
-    coords = property(BaseGeometry._get_coords)
-
-
-def asLinearRing(context):
-    """Adapt an object to the LinearRing interface"""
-    return LinearRingAdapter(context)
 
 
 class InteriorRingSequence(object):
@@ -352,38 +322,6 @@ class Polygon(BaseGeometry):
             (xmin, ymax),
             (xmax, ymax),
             (xmax, ymin)])
-
-
-class PolygonAdapter(PolygonProxy, Polygon):
-
-    def __init__(self, shell, holes=None):
-        warnings.warn(
-            "The proxy geometries (through the 'asShape()', 'asPolygon()' or "
-            "'PolygonAdapter()' constructors) are deprecated and will be "
-            "removed in Shapely 2.0. Use the 'shape()' function or the "
-            "standard 'Polygon()' constructor instead.",
-            ShapelyDeprecationWarning, stacklevel=4)
-        self.shell = shell
-        self.holes = holes
-        self.context = (shell, holes)
-        self.factory = geos_polygon_from_py
-
-    @property
-    def _ndim(self):
-        try:
-            # From array protocol
-            array = self.shell.__array_interface__
-            n = array['shape'][1]
-            assert n == 2 or n == 3
-            return n
-        except AttributeError:
-            # Fall back on list
-            return len(self.shell[0])
-
-
-def asPolygon(shell, holes=None):
-    """Adapt objects to the Polygon interface"""
-    return PolygonAdapter(shell, holes)
 
 
 def orient(polygon, sign=1.0):

@@ -2790,51 +2790,12 @@ Python arrays of `x` and `y` values via the :attr:`xy` attribute.
   >>> LineString([(0, 0), (1, 1)]).xy
   (array('d', [0.0, 1.0]), array('d', [0.0, 1.0]))
 
-The :func:`shapely.geometry.asShape` family of functions can be used to wrap
-Numpy coordinate arrays so that they can then be analyzed using Shapely while
-maintaining their original storage. A 1 x 2 array can be adapted to a point
-
-.. code-block:: pycon
-
-  >>> from shapely.geometry import asPoint
-  >>> pa = asPoint(array([0.0, 0.0]))
-  >>> pa.wkt
-  'POINT (0.0000000000000000 0.0000000000000000)'
-
-and a N x 2 array can be adapted to a line string
-
-.. code-block:: pycon
-
-  >>> from shapely.geometry import asLineString
-  >>> la = asLineString(array([[1.0, 2.0], [3.0, 4.0]]))
-  >>> la.wkt
-  'LINESTRING (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)'
-
-Polygon and MultiPoint can also be created from N x 2 arrays:
-
-.. code-block:: pycon
-
-  >>> from shapely.geometry import asMultiPoint
-  >>> ma = asMultiPoint(np.array([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6]]))
-  >>> ma.wkt
-  'MULTIPOINT (1.1 2.2, 3.3 4.4, 5.5 6.6)'
-
-  >>> from shapely.geometry import asPolygon
-  >>> pa = asPolygon(np.array([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6]]))
-  >>> pa.wkt
-  'POLYGON ((1.1 2.2, 3.3 4.4, 5.5 6.6, 1.1 2.2))'
-
 Python Geo Interface
 --------------------
 
 Any object that provides the GeoJSON-like `Python geo interface`_ can be
-adapted and used as a Shapely geometry using the
-:func:`shapely.geometry.asShape` or :func:`shapely.geometry.shape` functions.
-
-.. function:: shapely.geometry.asShape(context)
-
-  Adapts the context to a geometry interface. The coordinates remain stored in
-  the context.
+converted to a Shapely geometry using the :func:`shapely.geometry.shape`
+function.
 
 .. function:: shapely.geometry.shape(context)
 
