@@ -190,8 +190,6 @@ class BaseGeometry(object):
     #     Property by which the GEOS geometry is accessed.
     # __p__ : object
     #     Parent (Shapely) geometry
-    # _ctypes_data : object
-    #     Cached ctypes data buffer
     # _ndim : int
     #     Number of dimensions (2 or 3, generally)
     # _crs : object
@@ -202,7 +200,6 @@ class BaseGeometry(object):
     #     case of a multipart geometry member.
     __geom__ = EMPTY
     __p__ = None
-    _ctypes_data = None
     _ndim = None
     _crs = None
     _other_owned = False
@@ -286,13 +283,6 @@ class BaseGeometry(object):
         return not self.__eq__(other)
 
     __hash__ = None
-
-    # Array and ctypes interfaces
-    # ---------------------------
-
-    @property
-    def _ctypes(self):
-        raise NotImplementedError
 
     # Coordinate access
     # -----------------
