@@ -5,12 +5,12 @@ import warnings
 
 from shapely.errors import ShapelyDeprecationWarning
 
-from .point import Point, asPoint
-from .linestring import LineString, asLineString
-from .polygon import Polygon, asPolygon
-from .multipoint import MultiPoint, asMultiPoint
-from .multilinestring import MultiLineString, asMultiLineString
-from .multipolygon import MultiPolygon, MultiPolygonAdapter
+from .point import Point
+from .linestring import LineString
+from .polygon import Polygon
+from .multipoint import MultiPoint
+from .multilinestring import MultiLineString
+from .multipolygon import MultiPolygon
 from .collection import GeometryCollection
 
 # numpy is an optional dependency
@@ -115,85 +115,6 @@ def shape(context):
         return MultiPolygon(ob["coordinates"], context_type='geojson')
     elif geom_type == "geometrycollection":
         geoms = [shape(g) for g in ob.get("geometries", [])]
-        return GeometryCollection(geoms)
-    else:
-        raise ValueError("Unknown geometry type: %s" % geom_type)
-
-
-def asShape(context):
-    """
-    Adapts the context to a geometry interface. The coordinates remain
-    stored in the context, and changes to them will be reflected in the
-    returned geometry object.
-
-    .. deprecated:: 1.8
-       The proxy geometries (adapter classes) created by this function are
-       deprecated, and this function will be removed in Shapely 2.0.
-       Use the `shape` function instead to convert a GeoJSON-like dict
-       to a Shapely geometry.
-
-    Parameters
-    ----------
-    context :
-        a GeoJSON-like dict, which provides a "type" member describing the type
-        of the geometry and "coordinates" member providing a list of coordinates,
-        or an object which implements __geo_interface__.
-
-    Returns
-    -------
-    Geometry object
-
-    Notes
-    -----
-    The Adapter classes returned by this function trade performance for
-    reduced storage of coordinate values. In general, the shape() function
-    should be used instead.
-
-    Example
-    -------
-    Create a Point and Polygon from GeoJSON, change the coordinates of the Point's
-    context and show that the corresponding geometry is changed, as well.
-
-    >>> point_context = {'type': 'Point', 'coordinates': [0.5, 0.5]}
-    >>> poly_context = {'type': 'Polygon', 'coordinates': [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]}
-    >>> point, poly = asShape(point_context), asShape(poly_context)
-    >>> poly.intersects(point)
-    True
-    >>> point_context['coordinates'][0] = 1.5
-    >>> poly.intersects(point)
-    False
-    """
-    if hasattr(context, "__geo_interface__"):
-        ob = context.__geo_interface__
-    else:
-        ob = context
-
-    try:
-        geom_type = ob.get("type").lower()
-    except AttributeError:
-        raise ValueError("Context does not provide geo interface")
-
-    if geom_type == "point":
-        return asPoint(ob["coordinates"])
-    elif geom_type == "linestring":
-        return asLineString(ob["coordinates"])
-    elif geom_type == "polygon":
-        return asPolygon(ob["coordinates"][0], ob["coordinates"][1:])
-    elif geom_type == "multipoint":
-        return asMultiPoint(ob["coordinates"])
-    elif geom_type == "multilinestring":
-        return asMultiLineString(ob["coordinates"])
-    elif geom_type == "multipolygon":
-        return MultiPolygonAdapter(ob["coordinates"], context_type='geojson')
-    elif geom_type == "geometrycollection":
-        geoms = [asShape(g) for g in ob.get("geometries", [])]
-        if len(geoms) == 0:
-            # in this case no asShape call already raised the warning
-            warnings.warn(
-                "The proxy geometries (through the 'asShape()' constructor) "
-                "are deprecated and will be removed in Shapely 2.0. Use the "
-                "'shape()' function instead.",
-                ShapelyDeprecationWarning, stacklevel=2)
         return GeometryCollection(geoms)
     else:
         raise ValueError("Unknown geometry type: %s" % geom_type)
