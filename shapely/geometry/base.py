@@ -90,46 +90,12 @@ def geom_factory(g, parent=None):
     return ob
 
 
-def geom_from_wkt(data):
-    warn("`geom_from_wkt` is deprecated. Use `geos.wkt_reader.read(data)`.",
-         DeprecationWarning)
-    data = data.encode('ascii')
-    geom = lgeos.GEOSGeomFromWKT(c_char_p(data))
-    if not geom:
-        raise WKTReadingError(
-            "Could not create geometry because of errors while reading input.")
-    return geom_factory(geom)
-
-
-def geom_to_wkt(ob):
-    warn("`geom_to_wkt` is deprecated. Use `geos.wkt_writer.write(ob)`.",
-         DeprecationWarning)
-    if ob is None or ob._geom is None:
-        raise ValueError("Null geometry supports no operations")
-    return lgeos.GEOSGeomToWKT(ob._geom)
-
-
 def deserialize_wkb(data):
     geom = lgeos.GEOSGeomFromWKB_buf(c_char_p(data), c_size_t(len(data)))
     if not geom:
         raise WKBReadingError(
             "Could not create geometry because of errors while reading input.")
     return geom
-
-
-def geom_from_wkb(data):
-    warn("`geom_from_wkb` is deprecated. Use `geos.wkb_reader.read(data)`.",
-         DeprecationWarning)
-    return geom_factory(deserialize_wkb(data))
-
-
-def geom_to_wkb(ob):
-    warn("`geom_to_wkb` is deprecated. Use `geos.wkb_writer.write(ob)`.",
-         DeprecationWarning)
-    if ob is None or ob._geom is None:
-        raise ValueError("Null geometry supports no operations")
-    size = c_size_t()
-    return lgeos.GEOSGeomToWKB_buf(c_void_p(ob._geom), pointer(size))
 
 
 def geos_geom_from_py(ob, create_func=None):
@@ -367,16 +333,6 @@ class BaseGeometry(object):
     @property
     def type(self):
         return self.geometryType()
-
-    def to_wkb(self):
-        warn("`to_wkb` is deprecated. Use the `wkb` property.",
-             DeprecationWarning)
-        return geom_to_wkb(self)
-
-    def to_wkt(self):
-        warn("`to_wkt` is deprecated. Use the `wkt` property.",
-             DeprecationWarning)
-        return geom_to_wkt(self)
 
     @property
     def wkt(self):
