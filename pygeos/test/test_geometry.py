@@ -143,9 +143,21 @@ def test_get_set_srid():
     assert pygeos.get_srid(actual) == 4326
 
 
-@pytest.mark.parametrize("func", [pygeos.get_x, pygeos.get_y])
+@pytest.mark.parametrize(
+    "func",
+    [
+        pygeos.get_x,
+        pygeos.get_y,
+        pytest.param(
+            pygeos.get_z,
+            marks=pytest.mark.skipif(
+                pygeos.geos_version < (3, 7, 0), reason="GEOS < 3.7"
+            ),
+        ),
+    ],
+)
 @pytest.mark.parametrize("geom", all_types[1:])
-def test_get_xy_no_point(func, geom):
+def test_get_xyz_no_point(func, geom):
     assert np.isnan(func(geom))
 
 
@@ -155,6 +167,16 @@ def test_get_x():
 
 def test_get_y():
     assert pygeos.get_y([point, point_z]).tolist() == [3.0, 1.0]
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 7, 0), reason="GEOS < 3.7")
+def test_get_z():
+    assert pygeos.get_z([point_z]).tolist() == [1.0]
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 7, 0), reason="GEOS < 3.7")
+def test_get_z_2d():
+    assert np.isnan(pygeos.get_z(point))
 
 
 @pytest.mark.parametrize("geom", all_types)
