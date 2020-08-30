@@ -1773,6 +1773,8 @@ static void to_wkt_func(char **args, npy_intp *dimensions,
             Py_INCREF(Py_None);
             *out = Py_None;
         } else {
+            errstate = check_to_wkt_compatible(ctx, in1);
+            if (errstate != PGERR_SUCCESS) { goto finish; }
             wkt = GEOSWKTWriter_write_r(ctx, writer, in1);
             if (wkt == NULL) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
             Py_XDECREF(*out);

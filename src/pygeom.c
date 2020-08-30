@@ -7,6 +7,8 @@
 #include "pygeom.h"
 #include "geos.h"
 
+char* repr_fmt = "<pygeos.Geometry %s>";
+
 /* Initializes a new geometry object */
 PyObject *GeometryObject_FromGEOS(PyTypeObject *type, GEOSGeometry *ptr)
 {
@@ -48,6 +50,10 @@ static PyObject *GeometryObject_ToWKT(GeometryObject *obj, char *format)
     }
 
     GEOS_INIT;
+
+    errstate = check_to_wkt_compatible(ctx, obj->ptr);
+    if (errstate != PGERR_SUCCESS) { goto finish; }
+
     GEOSWKTWriter *writer = GEOSWKTWriter_create_r(ctx);
     if (writer == NULL) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
 
@@ -79,7 +85,13 @@ static PyObject *GeometryObject_ToWKT(GeometryObject *obj, char *format)
 
 static PyObject *GeometryObject_repr(GeometryObject *self)
 {
-    return GeometryObject_ToWKT(self, "<pygeos.Geometry %s>");
+    PyObject *result = GeometryObject_ToWKT(self, repr_fmt);
+    // we never want a repr() to fail; that can be very confusing
+    if (result == NULL) {
+        PyErr_Clear();
+        return PyUnicode_FromFormat(repr_fmt, "Exception in WKT writer");
+    }
+    return result;
 }
 
 static PyObject *GeometryObject_str(GeometryObject *self)
