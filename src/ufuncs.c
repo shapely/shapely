@@ -38,7 +38,7 @@
     }
 
 #define OUTPUT_Y\
-    PyObject *ret = GeometryObject_FromGEOS(&GeometryType, ret_ptr);\
+    PyObject *ret = GeometryObject_FromGEOS(ret_ptr, ctx);\
     PyObject **out = (PyObject **)op1;\
     Py_XDECREF(*out);\
     *out = ret
@@ -58,12 +58,16 @@ static void geom_arr_to_npy(GEOSGeometry **array, char *ptr, npy_intp stride, np
     PyObject *ret;
     PyObject **out;
 
+    GEOS_INIT;
+
     for(i = 0; i < count; i++, ptr += stride) {
-        ret = GeometryObject_FromGEOS(&GeometryType, array[i]);
+        ret = GeometryObject_FromGEOS(array[i], ctx);
         out = (PyObject **)ptr;
         Py_XDECREF(*out);
         *out = ret;
     }
+
+    GEOS_FINISH;
 }
 
 /* Define the geom -> bool functions (Y_b) */

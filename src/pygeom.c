@@ -7,15 +7,29 @@
 #include "pygeom.h"
 #include "geos.h"
 
+/* This initializes a global geometry type registry */
+PyObject *geom_registry[1] = {NULL};
+
 char* repr_fmt = "<pygeos.Geometry %s>";
 
 /* Initializes a new geometry object */
-PyObject *GeometryObject_FromGEOS(PyTypeObject *type, GEOSGeometry *ptr)
+PyObject *GeometryObject_FromGEOS(GEOSGeometry *ptr, GEOSContextHandle_t ctx)
 {
     if (ptr == NULL) {
         Py_INCREF(Py_None);
         return Py_None;
     }
+
+    int type_id = GEOSGeomTypeId_r(ctx, ptr);
+
+    if (type_id == -1) { return NULL; }
+    PyObject *type_obj = PyList_GET_ITEM(geom_registry[0], type_id);
+    if (type_obj == NULL) { return NULL; }
+    if (!PyType_Check(type_obj)) {
+        PyErr_Format(PyExc_RuntimeError, "Invalid registry value");
+        return NULL;
+    }
+    PyTypeObject *type = (PyTypeObject *)type_obj;
     GeometryObject *self = (GeometryObject *) type->tp_alloc(type, 0);
     if (self == NULL) {
         return NULL;
@@ -168,7 +182,7 @@ static PyObject *GeometryObject_richcompare(GeometryObject *self, PyObject *othe
   return result;
 }
 
-static PyObject *GeometryObject_FromWKT(PyTypeObject *type, PyObject *value)
+static PyObject *GeometryObject_FromWKT(PyObject *value)
 {
     PyObject *result = NULL;
     const char *wkt;
@@ -191,7 +205,7 @@ static PyObject *GeometryObject_FromWKT(PyTypeObject *type, PyObject *value)
     geom = GEOSWKTReader_read_r(ctx, reader, wkt);
     GEOSWKTReader_destroy_r(ctx, reader);
     if (geom == NULL) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
-    result = GeometryObject_FromGEOS(type, geom);
+    result = GeometryObject_FromGEOS(geom, ctx);
     if (result == NULL) {
         GEOSGeom_destroy_r(ctx, geom);
         PyErr_Format(PyExc_RuntimeError, "Could not instantiate a new Geometry object");
@@ -215,7 +229,7 @@ static PyObject *GeometryObject_new(PyTypeObject *type, PyObject *args,
         return NULL;
     }
     else if (PyUnicode_Check(value)) {
-        return GeometryObject_FromWKT(type, value);
+        return GeometryObject_FromWKT(value);
     }
     else {
         PyErr_Format(PyExc_TypeError, "Expected string, got %s", value->ob_type->tp_name);
@@ -233,7 +247,7 @@ PyTypeObject GeometryType = {
     .tp_doc = "Geometry type",
     .tp_basicsize = sizeof(GeometryObject),
     .tp_itemsize = 0,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
     .tp_new = GeometryObject_new,
     .tp_dealloc = (destructor) GeometryObject_dealloc,
     .tp_members = GeometryObject_members,
@@ -245,11 +259,23 @@ PyTypeObject GeometryType = {
 };
 
 
+/* Check if type `a` is a subclass of type `b`
+(copied from cython generated code) */
+int __Pyx_InBases(PyTypeObject *a, PyTypeObject *b) {
+    while (a) {
+        a = a->tp_base;
+        if (a == b)
+            return 1;
+    }
+    return b == &PyBaseObject_Type;
+}
+
+
 /* Get a GEOSGeometry pointer from a GeometryObject, or NULL if the input is
 Py_None. Returns 0 on error, 1 on success. */
 char get_geom(GeometryObject *obj, GEOSGeometry **out) {
     PyTypeObject *type = ((PyObject *)obj)->ob_type;
-    if ((type != &GeometryType) & (type->tp_base != &GeometryType)) {
+    if ((type != &GeometryType) & !(__Pyx_InBases(type, &GeometryType))) {
         if ((PyObject *) obj == Py_None) {
             *out = NULL;
             return 1;
@@ -265,11 +291,21 @@ char get_geom(GeometryObject *obj, GEOSGeometry **out) {
 int
 init_geom_type(PyObject *m)
 {
+    Py_ssize_t i;
+    PyObject *type;
     if (PyType_Ready(&GeometryType) < 0) {
         return -1;
     }
 
-    Py_INCREF(&GeometryType);
-    PyModule_AddObject(m, "Geometry", (PyObject *) &GeometryType);
+    type = (PyObject *) &GeometryType;
+    Py_INCREF(type);
+    PyModule_AddObject(m, "Geometry", type);
+
+    geom_registry[0] = PyList_New(8);
+    for (i = 0; i < 8; i++) {
+        Py_INCREF(type);
+        PyList_SET_ITEM(geom_registry[0], i, type);
+    }
+    PyModule_AddObject(m, "registry", geom_registry[0]);
     return 0;
 }
