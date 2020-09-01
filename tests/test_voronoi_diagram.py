@@ -39,7 +39,7 @@ def test_edges():
     regions = voronoi_diagram(mp, edges=True)
 
     assert len(regions) == 1
-    assert all(r.type == 'LineString' for r in regions)
+    assert all(r.type == 'LineString' for r in regions.geoms)
 
 
 @requires_geos_35
@@ -50,7 +50,7 @@ def test_smaller_envelope():
     regions = voronoi_diagram(mp, envelope=poly)
 
     assert len(regions) == 2
-    assert sum(r.area for r in regions) > poly.area
+    assert sum(r.area for r in regions.geoms) > poly.area
 
 
 @requires_geos_35
@@ -64,7 +64,7 @@ def test_larger_envelope():
     regions = voronoi_diagram(mp, envelope=poly)
 
     assert len(regions) == 2
-    assert sum(r.area for r in regions) == poly.area
+    assert sum(r.area for r in regions.geoms) == poly.area
 
 
 @requires_geos_35

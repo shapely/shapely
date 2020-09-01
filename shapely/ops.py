@@ -103,6 +103,9 @@ class CollectionOperator(object):
         source = None
         if hasattr(lines, 'type') and lines.type == 'MultiLineString':
             source = lines
+        elif hasattr(lines, 'geoms'):
+            # other Multi geometries
+            source = MultiLineString([ls.coords for ls in lines.geoms])
         elif hasattr(lines, '__iter__'):
             try:
                 source = MultiLineString([ls.coords for ls in lines])
@@ -120,6 +123,8 @@ class CollectionOperator(object):
         """
         try:
             L = len(geoms)
+            if isinstance(geoms, BaseMultipartGeometry):
+                geoms = geoms.geoms
         except TypeError:
             geoms = [geoms]
             L = 1
@@ -137,6 +142,8 @@ class CollectionOperator(object):
         """
         try:
             L = len(geoms)
+            if isinstance(geoms, BaseMultipartGeometry):
+                geoms = geoms.geoms
         except TypeError:
             geoms = [geoms]
             L = 1
