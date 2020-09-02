@@ -120,14 +120,6 @@ class CoordinateSequence(object):
                 data[n*i+2] = temp.value
         return data
 
-    @property
-    def ctypes(self):
-        warnings.warn(
-            "Accessing the 'ctypes' attribute is deprecated,"
-            " and will not be possible any more in Shapely 2.0",
-            ShapelyDeprecationWarning, stacklevel=2)
-        return self._ctypes
-
     def array_interface(self):
         """Provide the Numpy array protocol."""
         if sys.byteorder == 'little':
