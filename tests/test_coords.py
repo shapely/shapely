@@ -37,13 +37,3 @@ class CoordsTestCase(unittest.TestCase):
             coords[::-1].tolist(),
             processed_coords.tolist()
         )
-
-
-def test_coords_ctypes_deprecated():
-    """
-    Test that the .ctypes attribute of a CoordinateSequence raises
-    a deprecation warning.
-    """
-    coords = geometry.LineString([[12, 34], [56, 78]]).coords
-    with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
-        coords.ctypes
