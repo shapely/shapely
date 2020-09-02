@@ -157,8 +157,6 @@ class BaseGeometry:
     #     Property by which the GEOS geometry is accessed.
     # __p__ : object
     #     Parent (Shapely) geometry
-    # _ctypes_data : object
-    #     Cached ctypes data buffer
     # _ndim : int
     #     Number of dimensions (2 or 3, generally)
     # _crs : object
@@ -169,7 +167,6 @@ class BaseGeometry:
     #     case of a multipart geometry member.
     __geom__ = EMPTY
     __p__ = None
-    _ctypes_data = None
     _ndim = None
     _crs = None
     _other_owned = False
@@ -285,50 +282,6 @@ class BaseGeometry:
         return not self.__eq__(other)
 
     __hash__ = None
-
-    # Array and ctypes interfaces
-    # ---------------------------
-
-    @property
-    def _ctypes(self):
-        raise NotImplementedError
-
-    @property
-    def ctypes(self):
-        """Return ctypes buffer"""
-        warn(
-            "Accessing the 'ctypes' attribute is deprecated,"
-            " and will not be possible any more in Shapely 2.0",
-            ShapelyDeprecationWarning, stacklevel=2)
-        return self._ctypes
-
-    @property
-    def _array_interface_base(self):
-        if sys.byteorder == 'little':
-            typestr = '<f8'
-        elif sys.byteorder == 'big':
-            typestr = '>f8'
-        else:
-            raise ValueError(
-                "Unsupported byteorder: neither little nor big-endian")
-        return {
-            'version': 3,
-            'typestr': typestr,
-            'data': self._ctypes,
-            }
-
-    @property
-    def array_interface_base(self):
-        warn(
-            "The 'array_interface_base' property is deprecated and will be "
-            "removed in Shapely 2.0.",
-            ShapelyDeprecationWarning, stacklevel=2)
-        return self._array_interface_base()
-
-    @property
-    def __array_interface__(self):
-        """Provide the Numpy array protocol."""
-        raise AttributeError("Not implemented")
 
     # Coordinate access
     # -----------------
@@ -855,17 +808,6 @@ class BaseMultipartGeometry(BaseGeometry):
     def shape_factory(self, *args):
         # Factory for part instances, usually a geometry class
         raise NotImplementedError("To be implemented by derived classes")
-
-    @property
-    def ctypes(self):
-        raise NotImplementedError(
-            "Multi-part geometries have no ctypes representations")
-
-    @property
-    def __array_interface__(self):
-        """Provide the Numpy array protocol."""
-        raise AttributeError("Multi-part geometries do not themselves "
-                             "provide the array interface")
 
     def _get_coords(self):
         raise NotImplementedError("Sub-geometries may have coordinate "
