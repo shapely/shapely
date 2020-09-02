@@ -253,21 +253,6 @@ class PolygonTestCase(unittest.TestCase):
         self.assertEqual(r_null.wkt, 'GEOMETRYCOLLECTION EMPTY')
         self.assertEqual(r_null.length, 0.0)
 
-    @shapely20_deprecated
-    @unittest.skipIf(not numpy, 'Numpy required')
-    def test_polygon_exterior_array_interface(self):
-
-        from numpy import array, asarray
-        from numpy.testing import assert_array_equal
-
-        a = asarray(((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.)))
-        polygon = Polygon(a)
-
-        b = asarray(polygon.exterior)
-        self.assertEqual(b.shape, (5, 2))
-        assert_array_equal(
-            b, array([(0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.)]))
-
     def test_dimensions(self):
 
         # Background: see http://trac.gispython.org/lab/ticket/168
@@ -365,16 +350,3 @@ def test_linearring_immutable():
 
     with pytest.raises(TypeError):
         ring.coords[0] = (1.0, 1.0)
-
-
-def test_ctypes_deprecated():
-    coords = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]
-    hole_coords = [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))]
-    ring = LinearRing(coords)
-    polygon = Polygon(coords, hole_coords)
-
-    with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
-        ring.ctypes
-
-    with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
-        polygon.ctypes

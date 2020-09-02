@@ -85,59 +85,6 @@ class MultiPoint(BaseMultipartGeometry):
             ''.join(p.svg(scale_factor, fill_color) for p in self.geoms) + \
             '</g>'
 
-    @property
-    @exceptNull
-    def _ctypes(self):
-        if not self._ctypes_data:
-            temp = c_double()
-            n = self._ndim
-            m = len(self.geoms)
-            array_type = c_double * (m * n)
-            data = array_type()
-            for i in range(m):
-                g = self.geoms[i]._geom
-                cs = lgeos.GEOSGeom_getCoordSeq(g)
-                lgeos.GEOSCoordSeq_getX(cs, 0, byref(temp))
-                data[n*i] = temp.value
-                lgeos.GEOSCoordSeq_getY(cs, 0, byref(temp))
-                data[n*i+1] = temp.value
-                if n == 3: # TODO: use hasz
-                    lgeos.GEOSCoordSeq_getZ(cs, 0, byref(temp))
-                    data[n*i+2] = temp.value
-            self._ctypes_data = data
-        return self._ctypes_data
-
-    @property
-    def ctypes(self):
-        warnings.warn(
-            "Accessing the 'ctypes' attribute is deprecated,"
-            " and will not be possible any more in Shapely 2.0",
-            ShapelyDeprecationWarning, stacklevel=2)
-        return self._ctypes
-
-    @exceptNull
-    def _array_interface(self):
-        """Provide the Numpy array protocol."""
-        ai = self._array_interface_base
-        ai.update({'shape': (len(self.geoms), self._ndim)})
-        return ai
-
-    def array_interface(self):
-        """Provide the Numpy array protocol."""
-        warnings.warn(
-            "The 'array_interface' method is deprecated and will be removed "
-            "in Shapely 2.0.",
-            ShapelyDeprecationWarning, stacklevel=2)
-        return self._array_interface()
-
-    @property
-    def __array_interface__(self):
-        warnings.warn(
-            "The array interface is deprecated and will no longer work in "
-            "Shapely 2.0. Convert the '.coords' to a numpy array instead.",
-            ShapelyDeprecationWarning, stacklevel=3)
-        return self._array_interface()
-
 
 def geos_multipoint_from_py(ob):
     if isinstance(ob, MultiPoint):
