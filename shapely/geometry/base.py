@@ -991,12 +991,3 @@ class EmptyGeometry(BaseGeometry):
     def __init__(self):
         """Create an empty geometry."""
         BaseGeometry.__init__(self)
-
-
-def _test():
-    """Test runner"""
-    import doctest
-    doctest.testmod()
-
-if __name__ == "__main__":
-    _test()

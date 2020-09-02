@@ -142,12 +142,3 @@ def geos_multilinestring_from_py(ob):
         subs[l] = cast(geom, c_void_p)
             
     return (lgeos.GEOSGeom_createCollection(5, subs, L), N)
-
-
-# Test runner
-def _test():
-    import doctest
-    doctest.testmod()
-
-if __name__ == "__main__":
-    _test()
