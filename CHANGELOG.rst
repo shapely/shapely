@@ -20,6 +20,7 @@ Version 0.8 (unreleased)
 * Addition of a ``normalize()`` function (#136)
 * Addition of a ``make_valid()`` function for GEOS >= 3.8 (#107)
 * Addition of a ``get_z()`` function for GEOS >= 3.7 (#175)
+* Addition of a ``relate()`` function (#186)
 * The ``get_coordinate_dimensions()`` function was renamed to
   ``get_coordinate_dimension()`` for consistency with GEOS (#176)
 * Addition of ``covers``, ``covered_by``, ``contains_properly`` predicates

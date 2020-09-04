@@ -26,6 +26,7 @@ __all__ = [
     "touches",
     "within",
     "equals_exact",
+    "relate",
 ]
 
 
@@ -691,3 +692,21 @@ def equals_exact(a, b, tolerance=0.0, **kwargs):
     True
     """
     return lib.equals_exact(a, b, tolerance, **kwargs)
+
+
+def relate(a, b, **kwargs):
+    """
+    Returns a string representation of the DE-9IM intersection matrix.
+
+    Parameters
+    ----------
+    a, b : Geometry or array_like
+
+    Examples
+    --------
+    >>> point = Geometry("POINT (0 0)")
+    >>> line = Geometry("LINESTRING(0 0, 1 1)")
+    >>> relate(point, line)
+    'F0FFFF102'
+    """
+    return lib.relate(a, b, **kwargs)

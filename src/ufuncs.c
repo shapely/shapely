@@ -1246,6 +1246,42 @@ static void is_valid_reason_func(char **args, npy_intp *dimensions,
 }
 static PyUFuncGenericFunction is_valid_reason_funcs[1] = {&is_valid_reason_func};
 
+
+static char relate_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
+static void relate_func(char **args, npy_intp *dimensions,
+                        npy_intp *steps, void *data)
+{
+    char *pattern;
+    GEOSGeometry *in1 = NULL, *in2 = NULL;
+
+    GEOS_INIT;
+
+    BINARY_LOOP {
+        PyObject **out = (PyObject **)op1;
+        /* get the geometries: return on error */
+        if (!get_geom(*(GeometryObject **)ip1, &in1)) { errstate = PGERR_NOT_A_GEOMETRY; goto finish; }
+        if (!get_geom(*(GeometryObject **)ip2, &in2)) { errstate = PGERR_NOT_A_GEOMETRY; goto finish; }
+        if ((in1 == NULL) | (in2 == NULL)) {
+            /* Missing geometries give None */
+            Py_XDECREF(*out);
+            Py_INCREF(Py_None);
+            *out = Py_None;
+        } else {
+            pattern = GEOSRelate_r(ctx, in1, in2);
+            if (pattern == NULL) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
+            /* convert to python string and set to out */
+            Py_XDECREF(*out);
+            *out = PyUnicode_FromString(pattern);
+            GEOSFree_r(ctx, pattern);
+        }
+    }
+
+    finish:
+        GEOS_FINISH;
+}
+static PyUFuncGenericFunction relate_funcs[1] = {&relate_func};
+
+
 /* define double -> geometry construction functions */
 static char points_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
 static void points_func(char **args, npy_intp *dimensions,
@@ -1940,6 +1976,7 @@ int init_ufuncs(PyObject *m, PyObject *d)
     DEFINE_CUSTOM (delaunay_triangles, 3);
     DEFINE_CUSTOM (voronoi_polygons, 4);
     DEFINE_CUSTOM (is_valid_reason, 1);
+    DEFINE_CUSTOM (relate, 2);
     DEFINE_GENERALIZED(points, 1, "(d)->()");
     DEFINE_GENERALIZED(linestrings, 1, "(i, d)->()");
     DEFINE_GENERALIZED(linearrings, 1, "(i, d)->()");
