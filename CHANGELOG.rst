@@ -6,6 +6,7 @@ Version 0.8 (unreleased)
 
 **Highlights of this release**
 
+* Handle multi geometries in ``boundary`` (#188)
 * Handle empty points in to_wkb by conversion to POINT (nan, nan) (#179)
 * Prevent segfault in to_wkt (and repr) with empty points in multipoints (#171)
 * Fixed bug in ``multilinestrings()``, it now accepts linearrings again (#168)

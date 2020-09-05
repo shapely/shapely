@@ -197,7 +197,7 @@ static void *envelope_data[1] = {GEOSEnvelope_r};
 static void *convex_hull_data[1] = {GEOSConvexHull_r};
 static void *GEOSBoundaryAllTypes_r(void *context, void *geom) {
     char typ = GEOSGeomTypeId_r(context, geom);
-    if (typ > 3) {
+    if (typ == 7) {
         /* return None for geometrycollections */
         return NULL;
     } else {

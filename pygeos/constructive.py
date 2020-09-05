@@ -43,7 +43,7 @@ def boundary(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
-        This function will raise for non-empty geometrycollections.
+        This function will return None for geometrycollections.
 
     Examples
     --------
@@ -55,7 +55,11 @@ def boundary(geometry, **kwargs):
     <pygeos.Geometry MULTIPOINT EMPTY>
     >>> boundary(Geometry("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))"))
     <pygeos.Geometry LINESTRING (0 0, 1 0, 1 1, 0 1, 0 0)>
-    >>> boundary(Geometry("MULTIPOINT (0 0, 1 2)")) is None
+    >>> boundary(Geometry("MULTIPOINT (0 0, 1 2)"))
+    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
+    >>> boundary(Geometry("MULTILINESTRING ((0 0, 1 1), (0 1, 1 0))"))
+    <pygeos.Geometry MULTIPOINT (0 0, 0 1, 1 0, 1 1)>
+    >>> boundary(Geometry("GEOMETRYCOLLECTION (POINT (0 0))")) is None
     True
     """
     return lib.boundary(geometry, **kwargs)
