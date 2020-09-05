@@ -65,6 +65,17 @@ def test_linestrings_from_xyz():
     assert str(actual) == "LINESTRING Z (0 2 0, 1 3 0)"
 
 
+@pytest.mark.parametrize("shape", [
+    (2, 1, 2),  # 2 linestrings of 1 2D point
+    (1, 1, 2),  # 1 linestring of 1 2D point
+    (1, 2),  # 1 linestring of 1 2D point (scalar)
+    (2, ),  # 1 2D point (scalar)
+])
+def test_linestrings_invalid_shape(shape):
+    with pytest.raises(ValueError):
+        pygeos.linestrings(np.ones(shape))
+
+
 def test_linearrings():
     actual = pygeos.linearrings(box_tpl(0, 0, 1, 1))
     assert str(actual) == "LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)"
@@ -79,6 +90,28 @@ def test_linearrings_unclosed():
     actual = pygeos.linearrings(box_tpl(0, 0, 1, 1)[:-1])
     assert str(actual) == "LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)"
 
+
+@pytest.mark.parametrize("shape", [
+    (2, 1, 2),  # 2 linearrings of 1 2D point
+    (1, 1, 2),  # 1 linearring of 1 2D point
+    (1, 2),  # 1 linearring of 1 2D point (scalar)
+    (2, 2, 2),  # 2 linearrings of 2 2D points
+    (1, 2, 2),  # 1 linearring of 2 2D points
+    (2, 2),  # 1 linearring of 2 2D points (scalar)
+    (2, 3, 2),  # 2 linearrings of 3 2D points
+    (1, 3, 2),  # 1 linearring of 3 2D points
+    (3, 2),  # 1 linearring of 3 2D points (scalar)
+    (2, ),  # 1 2D point (scalar)
+])
+def test_linearrings_invalid_shape(shape):
+    coords = np.ones(shape)
+    with pytest.raises(ValueError):
+        pygeos.linearrings(coords)
+
+    # make sure the first coordinate != second coordinate
+    coords[..., 1] += 1
+    with pytest.raises(ValueError):
+        pygeos.linearrings(coords)
 
 def test_polygon_from_linearring():
     actual = pygeos.polygons(pygeos.linearrings(box_tpl(0, 0, 1, 1)))
@@ -128,6 +161,52 @@ def test_2_polygons_with_different_holes():
         [[box_tpl(1, 1, 3, 3)], [box_tpl(1, 1, 2, 2)]],
     )
     assert pygeos.area(actual).tolist() == [96.0, 24.0]
+
+
+@pytest.mark.parametrize("shape", [
+    (2, 1, 2),  # 2 linearrings of 1 2D point
+    (1, 1, 2),  # 1 linearring of 1 2D point
+    (1, 2),  # 1 linearring of 1 2D point (scalar)
+    (2, 2, 2),  # 2 linearrings of 2 2D points
+    (1, 2, 2),  # 1 linearring of 2 2D points
+    (2, 2),  # 1 linearring of 2 2D points (scalar)
+    (2, 3, 2),  # 2 linearrings of 3 2D points
+    (1, 3, 2),  # 1 linearring of 3 2D points
+    (3, 2),  # 1 linearring of 3 2D points (scalar)
+    (2, ),  # 1 2D point (scalar)
+])
+def test_polygons_not_enough_points_in_shell(shape):
+    coords = np.ones(shape)
+    with pytest.raises(ValueError):
+        pygeos.polygons(coords)
+    
+    # make sure the first coordinate != second coordinate
+    coords[..., 1] += 1
+    with pytest.raises(ValueError):
+        pygeos.polygons(coords)
+
+
+@pytest.mark.parametrize("shape", [
+    (2, 1, 2),  # 2 linearrings of 1 2D point
+    (1, 1, 2),  # 1 linearring of 1 2D point
+    (1, 2),  # 1 linearring of 1 2D point (scalar)
+    (2, 2, 2),  # 2 linearrings of 2 2D points
+    (1, 2, 2),  # 1 linearring of 2 2D points
+    (2, 2),  # 1 linearring of 2 2D points (scalar)
+    (2, 3, 2),  # 2 linearrings of 3 2D points
+    (1, 3, 2),  # 1 linearring of 3 2D points
+    (3, 2),  # 1 linearring of 3 2D points (scalar)
+    (2, ),  # 1 2D point (scalar)
+])
+def test_polygons_not_enough_points_in_holes(shape):
+    coords = np.ones(shape)
+    with pytest.raises(ValueError):
+        pygeos.polygons(np.ones((1, 4, 2)), coords)
+    
+    # make sure the first coordinate != second coordinate
+    coords[..., 1] += 1
+    with pytest.raises(ValueError):
+        pygeos.polygons(np.ones((1, 4, 2)), coords)
 
 
 @pytest.mark.parametrize(

@@ -1301,6 +1301,11 @@ static char linestrings_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
 static void linestrings_func(char **args, npy_intp *dimensions,
                               npy_intp *steps, void *data)
 {
+    if (dimensions[1] < 2) {
+        PyErr_SetString(PyExc_ValueError, "Provide at least 2 coordinates to create a linestring.");
+        return;
+    }
+
     GEOS_INIT;
 
     DOUBLE_COREDIM_LOOP_OUTER {
@@ -1327,6 +1332,7 @@ static void linearrings_func(char **args, npy_intp *dimensions,
                              npy_intp *steps, void *data)
 {
     GEOS_INIT;
+
     DOUBLE_COREDIM_LOOP_OUTER {
         /* check if first and last coords are equal; duplicate if necessary */
         char ring_closure = 0;
@@ -1337,6 +1343,11 @@ static void linearrings_func(char **args, npy_intp *dimensions,
                 ring_closure = 1;
                 break;
             }
+        }
+        if (n_c1 + ring_closure < 4) {
+            PyErr_SetString(PyExc_ValueError, "Provide at least 4 coordinates to create a linearring.");
+            GEOS_FINISH;
+            return;
         }
         /* fill the coordinate sequence */
         CREATE_COORDSEQ(n_c1 + ring_closure, n_c2);
