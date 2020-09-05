@@ -1,15 +1,23 @@
 import numpy as np
 import pygeos
 import pytest
+import struct
 from unittest import mock
 
 from .common import all_types, point, empty_point
 
 
-POINT11_WKB = (
-    b"\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?"
-)
+POINT11_WKB = b'\x01\x01\x00\x00\x00' + struct.pack("<2d", 1., 1.)
 
+NAN = struct.pack("<d", float("nan"))
+POINT_NAN_WKB = b'\x01\x01\x00\x00\x00' + (NAN * 2)
+POINTZ_NAN_WKB = b'\x01\x01\x00\x00\x80' + (NAN * 3)
+MULTIPOINT_NAN_WKB = b'\x01\x04\x00\x00\x00\x01\x00\x00\x00\x01\x01\x00\x00\x00' + (NAN * 2)
+MULTIPOINTZ_NAN_WKB = b'\x01\x04\x00\x00\x80\x01\x00\x00\x00\x01\x01\x00\x00\x80' + (NAN * 3)
+GEOMETRYCOLLECTION_NAN_WKB = b'\x01\x07\x00\x00\x00\x01\x00\x00\x00\x01\x01\x00\x00\x00' + (NAN * 2)
+GEOMETRYCOLLECTIONZ_NAN_WKB = b'\x01\x07\x00\x00\x80\x01\x00\x00\x00\x01\x01\x00\x00\x80' + (NAN * 3)
+NESTED_COLLECTION_NAN_WKB = b'\x01\x07\x00\x00\x00\x01\x00\x00\x00\x01\x04\x00\x00\x00\x01\x00\x00\x00\x01\x01\x00\x00\x00' + (NAN * 2)
+NESTED_COLLECTIONZ_NAN_WKB = b'\x01\x07\x00\x00\x80\x01\x00\x00\x00\x01\x04\x00\x00\x80\x01\x00\x00\x00\x01\x01\x00\x00\x80' + (NAN * 3)
 
 class ShapelyGeometryMock:
     def __init__(self, g):
@@ -102,20 +110,14 @@ def test_from_wkb_all_types(geom, use_hex, byte_order):
 
 
 @pytest.mark.parametrize(
-    "wkt", ("LINESTRING EMPTY", "POLYGON EMPTY", "GEOMETRYCOLLECTION EMPTY")
+    "wkt", ("POINT EMPTY", "LINESTRING EMPTY", "POLYGON EMPTY", "GEOMETRYCOLLECTION EMPTY")
 )
 def test_from_wkb_empty(wkt):
-    wkb = pygeos.to_wkb(pygeos.from_wkt(wkt))
+    wkb = pygeos.to_wkb(pygeos.Geometry(wkt))
     geom = pygeos.from_wkb(wkb)
     assert pygeos.is_geometry(geom).all()
     assert pygeos.is_empty(geom).all()
     assert pygeos.to_wkb(geom) == wkb
-
-
-def test_from_wkb_empty_point():
-    geom = pygeos.from_wkt("POINT EMPTY")
-    with pytest.raises(pygeos.GEOSException):
-        pygeos.to_wkb(geom)
 
 
 def test_to_wkt():
@@ -247,6 +249,68 @@ def test_to_wkb_srid():
     result = pygeos.to_wkb(point_with_srid, include_srid=True)
     assert np.frombuffer(result[5:9], "<u4").item() == 4326
 
+
+@pytest.mark.skipif(pygeos.geos_version >= (3, 8, 0), reason="Pre GEOS 3.8.0 has 3D empty points")
+@pytest.mark.parametrize("geom,dims,expected", [
+    (empty_point, 2, POINT_NAN_WKB),
+    (empty_point, 3, POINTZ_NAN_WKB),
+    (pygeos.multipoints([empty_point]), 2, MULTIPOINT_NAN_WKB),
+    (pygeos.multipoints([empty_point]), 3, MULTIPOINTZ_NAN_WKB),
+    (pygeos.geometrycollections([empty_point]), 2, GEOMETRYCOLLECTION_NAN_WKB),
+    (pygeos.geometrycollections([empty_point]), 3, GEOMETRYCOLLECTIONZ_NAN_WKB),
+    (pygeos.geometrycollections([pygeos.multipoints([empty_point])]), 2, NESTED_COLLECTION_NAN_WKB),
+    (pygeos.geometrycollections([pygeos.multipoints([empty_point])]), 3, NESTED_COLLECTIONZ_NAN_WKB),
+])
+def test_to_wkb_point_empty_pre_geos38(geom,dims,expected):
+    actual = pygeos.to_wkb(geom, output_dimension=dims)
+    # Use numpy.isnan; there are many byte representations for NaN
+    assert actual[:-dims * 8] == expected[:-dims * 8]
+    assert np.isnan(struct.unpack("<{}d".format(dims), actual[-dims * 8:])).all()
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 8, 0), reason="Post GEOS 3.8.0 has 2D empty points")
+@pytest.mark.parametrize("geom,dims,expected", [
+    (empty_point, 2, POINT_NAN_WKB),
+    (empty_point, 3, POINT_NAN_WKB),
+    (pygeos.multipoints([empty_point]), 2, MULTIPOINT_NAN_WKB),
+    (pygeos.multipoints([empty_point]), 3, MULTIPOINT_NAN_WKB),
+    (pygeos.geometrycollections([empty_point]), 2, GEOMETRYCOLLECTION_NAN_WKB),
+    (pygeos.geometrycollections([empty_point]), 3, GEOMETRYCOLLECTION_NAN_WKB),
+    (pygeos.geometrycollections([pygeos.multipoints([empty_point])]), 2, NESTED_COLLECTION_NAN_WKB),
+    (pygeos.geometrycollections([pygeos.multipoints([empty_point])]), 3, NESTED_COLLECTION_NAN_WKB),
+])
+def test_to_wkb_point_empty_post_geos38(geom,dims,expected):
+    # Post GEOS 3.8: empty point is 2D
+    actual = pygeos.to_wkb(geom, output_dimension=dims)
+    # Use numpy.isnan; there are many byte representations for NaN
+    assert actual[:-2 * 8] == expected[:-2 * 8]
+    assert np.isnan(struct.unpack("<2d", actual[-2 * 8:])).all()
+
+
+@pytest.mark.parametrize("wkb,expected_type", [
+    (POINT_NAN_WKB, 0),
+    (POINTZ_NAN_WKB, 0),
+    (MULTIPOINT_NAN_WKB, 4),
+    (MULTIPOINTZ_NAN_WKB, 4),
+    (GEOMETRYCOLLECTION_NAN_WKB, 7),
+    (GEOMETRYCOLLECTIONZ_NAN_WKB, 7),
+    (NESTED_COLLECTION_NAN_WKB, 7),
+    (NESTED_COLLECTIONZ_NAN_WKB, 7),
+])
+def test_from_wkb_point_empty(wkb,expected_type):
+    geom = pygeos.from_wkb(wkb)
+    # POINT (nan nan) transforms to an empty point
+    # Note that the dimensionality (2D/3D) is GEOS-version dependent
+    assert pygeos.is_empty(geom)
+    assert pygeos.get_type_id(geom) == expected_type
+
+
+def test_to_wkb_point_empty_srid():
+    expected = pygeos.set_srid(empty_point, 4236)
+    wkb = pygeos.to_wkb(expected, include_srid=True)
+    actual = pygeos.from_wkb(wkb)
+    assert pygeos.get_srid(actual) == 4236
+    
 
 @pytest.mark.parametrize("geom", all_types)
 @mock.patch("pygeos.io.ShapelyGeometry", ShapelyGeometryMock)

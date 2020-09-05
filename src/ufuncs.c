@@ -44,15 +44,6 @@
     *out = ret
 
 
-static void destroy_geom_arr(void *context, GEOSGeometry **array, npy_intp length) {
-    npy_intp i;
-    for(i = 0; i < length; i++) {
-        if (array[i] != NULL) {
-            GEOSGeom_destroy_r(context, array[i]);
-        }
-    }
-}
-
 static void geom_arr_to_npy(GEOSGeometry **array, char *ptr, npy_intp stride, npy_intp count) {
     npy_intp i;
     PyObject *ret;
@@ -1715,10 +1706,11 @@ static void to_wkb_func(char **args, npy_intp *dimensions,
     npy_intp n = dimensions[0];
     npy_intp i;
 
-    GEOSGeometry *in1;
+    GEOSGeometry *in1, *temp_geom;
     GEOSWKBWriter *writer;
     unsigned char *wkb;
     size_t size;
+    char has_empty;
 
     if ((is2 != 0) | (is3 != 0) | (is4 != 0) | (is5 != 0)) {
         PyErr_Format(PyExc_ValueError, "to_wkb function called with non-scalar parameters");
@@ -1751,10 +1743,24 @@ static void to_wkb_func(char **args, npy_intp *dimensions,
             Py_INCREF(Py_None);
             *out = Py_None;
         } else {
-            if (hex) {
-                wkb = GEOSWKBWriter_writeHEX_r(ctx, writer, in1, &size);
+            // WKB Does not allow empty points.
+            // We check for that and patch the POINT EMPTY if necessary
+            has_empty = has_point_empty(ctx, in1);
+            if (has_empty == 2) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
+            if (has_empty) {
+                temp_geom = point_empty_to_nan_all_geoms(ctx, in1);
             } else {
-                wkb = GEOSWKBWriter_write_r(ctx, writer, in1, &size);
+                temp_geom = in1;
+            }
+
+            if (hex) {
+                wkb = GEOSWKBWriter_writeHEX_r(ctx, writer, temp_geom, &size);
+            } else {
+                wkb = GEOSWKBWriter_write_r(ctx, writer, temp_geom, &size);
+            }
+            // Destroy the temp_geom if it was patched (POINT EMPTY patch)
+            if (has_empty) {
+                GEOSGeom_destroy_r(ctx, temp_geom);
             }
             if (wkb == NULL) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
             Py_XDECREF(*out);
