@@ -1,7 +1,7 @@
 Changelog
 =========
 
-Version 0.8 (unreleased)
+Version 0.8 (2020-09-06)
 ------------------------
 
 **Highlights of this release**
