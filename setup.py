@@ -146,10 +146,14 @@ setup(
     ext_modules=[module_lib],
     classifiers=[
         "Programming Language :: Python :: 3",
-        "Development Status :: 1 - Planning",
-        "Topic :: Scientific/Engineering :: Mathematics",
-        "Topic :: Scientific/Engineering :: GIS",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: Developers",
+        "Development Status :: 4 - Beta",
+        "Topic :: Scientific/Engineering",
+        "Topic :: Software Development",
         "Operating System :: Unix",
+        "Operating System :: MacOS",
+        "Operating System :: Microsoft :: Windows",
     ],
     cmdclass=cmdclass,
 )
