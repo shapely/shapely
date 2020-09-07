@@ -392,7 +392,7 @@ copy.
   >>> LineString(line)
   <shapely.geometry.linestring.LineString object at 0x...>
 
-A `LineString` may also be constructed using a a sequence of mixed `Point`
+A `LineString` may also be constructed using a sequence of mixed `Point`
 instances or coordinate tuples. The individual coordinates are copied into
 the new object.
 
