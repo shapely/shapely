@@ -55,7 +55,7 @@ def dump_coords(geom):
         return geom.exterior.coords[:] + [i.coords[:] for i in geom.interiors]
     elif geom.type.startswith('Multi') or geom.type == 'GeometryCollection':
         # Recursive call
-        return [dump_coords(part) for part in geom]
+        return [dump_coords(part) for part in geom.geoms]
     else:
         raise ValueError('Unhandled geometry type: ' + repr(geom.type))
 
@@ -867,7 +867,7 @@ class BaseMultipartGeometry(BaseGeometry):
         return (
             type(other) == type(self) and
             len(self) == len(other) and
-            all(x == y for x, y in zip(self, other))
+            all(x == y for x, y in zip(self.geoms, other.geoms))
         )
 
     def __ne__(self, other):
@@ -891,7 +891,7 @@ class BaseMultipartGeometry(BaseGeometry):
         if color is None:
             color = "#66cc99" if self.is_valid else "#ff3333"
         return '<g>' + \
-            ''.join(p.svg(scale_factor, color) for p in self) + \
+            ''.join(p.svg(scale_factor, color) for p in self.geoms) + \
             '</g>'
 
 
