@@ -89,6 +89,7 @@ class MultiPointTestCase(MultiGeometryTestCase):
         pas = asarray(geoma)
         assert_array_equal(pas, array([[1., 2.], [3., 4.]]))
 
+    @shapely20_deprecated
     def test_subgeom_access(self):
         p0 = Point(1.0, 2.0)
         p1 = Point(3.0, 4.0)

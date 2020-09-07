@@ -74,6 +74,7 @@ class MultiPolygonTestCase(MultiGeometryTestCase):
         self.assertEqual(len(mpa.geoms[0].interiors), 1)
         self.assertEqual(len(mpa.geoms[0].interiors[0].coords), 5)
 
+    @shapely20_deprecated
     def test_subgeom_access(self):
         poly0 = Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)])
         poly1 = Polygon([(0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25)])

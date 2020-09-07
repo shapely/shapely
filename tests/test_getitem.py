@@ -1,4 +1,4 @@
-from . import unittest
+from . import unittest, shapely20_deprecated
 from shapely import geometry
 
 
@@ -48,6 +48,7 @@ class CoordsGetItemTestCase(unittest.TestCase):
 
 class MultiGeomGetItemTestCase(unittest.TestCase):
 
+    @shapely20_deprecated
     def test_index_multigeom(self):
         c = [(float(x), float(-x)) for x in range(4)]
         g = geometry.MultiPoint(c)
@@ -56,11 +57,13 @@ class MultiGeomGetItemTestCase(unittest.TestCase):
         self.assertRaises(IndexError, lambda: g[4])
         self.assertRaises(IndexError, lambda: g[-5])
 
+    @shapely20_deprecated
     def test_index_multigeom_misc(self):
         g = geometry.MultiLineString()  # empty
         self.assertRaises(IndexError, lambda: g[0])
         self.assertRaises(TypeError, lambda: g[0.0])
 
+    @shapely20_deprecated
     def test_slice_multigeom(self):
         c = [(float(x), float(-x)) for x in range(4)]
         g = geometry.MultiPoint(c)

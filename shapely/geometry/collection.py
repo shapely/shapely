@@ -56,6 +56,8 @@ class GeometryCollection(BaseMultipartGeometry):
 
 def geos_geometrycollection_from_py(ob):
     """Creates a GEOS GeometryCollection from a list of geometries"""
+    if isinstance(ob, BaseMultipartGeometry):
+         ob = ob.geoms
     L = len(ob)
     N = 2
     subs = (c_void_p * L)()
