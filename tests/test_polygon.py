@@ -13,6 +13,158 @@ from shapely.geometry.polygon import LinearRing, LineString, asLinearRing
 from shapely.geometry.base import dump_coords
 
 
+def test_linearring_from_coordinate_sequence():
+    expected_coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)]
+
+    ring = LinearRing(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0)))
+    assert ring.coords[:] == expected_coords
+
+    ring = LinearRing([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0)])
+    assert ring.coords[:] == expected_coords
+
+
+def test_linearring_from_points():
+    # From Points
+    expected_coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)]
+
+    ring = LinearRing([Point(0.0, 0.0), Point(0.0, 1.0), Point(1.0, 1.0)])
+    assert ring.coords[:] == expected_coords
+
+
+def test_linearring_from_closed_linestring():
+    coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
+    line = LineString(coords)
+    ring = LinearRing(line)
+    assert len(ring.coords) == 4
+    assert ring.coords[:] == coords
+    assert ring.geom_type == 'LinearRing'
+
+
+def test_linearring_from_unclosed_linestring():
+    coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
+    line = LineString(coords[:-1])  # Pass in unclosed line
+    ring = LinearRing(line)
+    assert len(ring.coords) == 4
+    assert ring.coords[:] == coords
+    assert ring.geom_type == 'LinearRing'
+
+
+def test_linearring_from_invalid():
+    coords = [(0.0, 0.0), (0.0, 0.0), (0.0, 0.0)]
+    line = LineString(coords)
+    assert not line.is_valid
+    with pytest.raises(TopologicalError):
+        LinearRing(line)
+
+
+def test_linearring_from_too_short_linestring():
+    # Creation of LinearRing request at least 3 coordinates (unclosed) or
+    # 4 coordinates (closed)
+    coords = [(0.0, 0.0), (1.0, 1.0)]
+    line = LineString(coords)
+    with pytest.raises(ValueError, match="at least 3 coordinate tuple"):
+        LinearRing(line)
+
+
+def test_linearring_from_generator():
+    coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
+    gen = (coord for coord in coords)
+    ring = LinearRing(gen)
+    assert ring.coords[:] == coords
+
+
+def test_linearring_from_empty():
+    ring = LinearRing()
+    assert ring.is_empty
+    assert ring.coords[:] == []
+
+    ring = LinearRing([])
+    assert ring.is_empty
+    assert ring.coords[:] == []
+
+
+def test_linearring_from_numpy():
+    # Construct from a numpy array
+    np = pytest.importorskip("numpy")
+    coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
+
+    line = LineString(np.array(coords))
+    assert line.coords[:] == [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
+
+
+def test_polygon_from_coordinate_sequence():
+    coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)]
+
+    # Construct a polygon, exterior ring only
+    polygon = Polygon(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0)))
+    assert polygon.exterior.coords[:] == coords
+    assert len(polygon.interiors) ==  0
+
+    polygon = Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0)])
+    assert polygon.exterior.coords[:] == coords
+    assert len(polygon.interiors) ==  0
+
+
+def test_polygon_from_coordinate_sequence_with_holes():
+    coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)]
+
+    # Interior rings (holes)
+    polygon = Polygon(coords, [((0.25, 0.25), (0.25, 0.5),
+                                (0.5, 0.5), (0.5, 0.25))])
+    assert polygon.exterior.coords[:] == coords
+    assert len(polygon.interiors) == 1
+    assert len(polygon.interiors[0].coords) == 5
+
+
+def test_polygon_from_linearring():
+    coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
+    ring = LinearRing(coords)
+
+    polygon = Polygon(ring)
+    assert polygon.exterior.coords[:] == coords
+    assert len(polygon.interiors) ==  0
+
+
+def test_polygon_from_polygon():
+    coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)]
+    polygon = Polygon(coords, [((0.25, 0.25), (0.25, 0.5),
+                                (0.5, 0.5), (0.5, 0.25))])
+
+    # Test from another Polygon
+    copy = Polygon(polygon)
+    assert len(polygon.exterior.coords) == 5
+    assert len(polygon.interiors) == 1
+    assert len(polygon.interiors[0].coords) == 5
+
+
+def test_polygon_from_invalid():
+    # Error handling
+    with pytest.raises(ValueError):
+        # A LinearRing must have at least 3 coordinate tuples
+        Polygon([[1, 2], [2, 3]])
+
+
+def test_polygon_from_empty():
+    polygon = Polygon()
+    assert polygon.is_empty
+    assert polygon.exterior.coords[:] == []
+
+    polygon = Polygon([])
+    assert polygon.is_empty
+    assert polygon.exterior.coords[:] == []
+
+
+def test_polygon_from_numpy():
+    np = pytest.importorskip("numpy")
+
+    a = np.array(((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.)))
+    polygon = Polygon(a)
+    assert len(polygon.exterior.coords) == 5
+    assert (polygon.exterior.coords[:]
+            == [(0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.)])
+    assert len(polygon.interiors) == 0
+
+
 class PolygonTestCase(unittest.TestCase):
 
     def test_linearring(self):
@@ -25,9 +177,6 @@ class PolygonTestCase(unittest.TestCase):
         self.assertEqual(ring.coords[0], ring.coords[4])
         self.assertEqual(ring.coords[0], ring.coords[-1])
         self.assertTrue(ring.is_ring)
-
-        # Ring from sequence of Points
-        self.assertEqual(LinearRing((map(Point, coords))), ring)
 
     @shapely20_deprecated
     def test_linearring_mutate(self):
@@ -92,13 +241,6 @@ class PolygonTestCase(unittest.TestCase):
         with self.assertRaises(IndexError):  # index out of range
             polygon.interiors[1]
 
-        # Test from another Polygon
-        copy = Polygon(polygon)
-        self.assertEqual(len(polygon.exterior.coords), 5)
-        self.assertEqual(len(polygon.interiors[0].coords), 5)
-        with self.assertRaises(IndexError):  # index out of range
-            polygon.interiors[1]
-
         # Coordinate getters and setters raise exceptions
         self.assertRaises(NotImplementedError, polygon._get_coords)
         with self.assertRaises(NotImplementedError):
@@ -111,11 +253,6 @@ class PolygonTestCase(unittest.TestCase):
              'coordinates': (((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0),
                              (0.0, 0.0)), ((0.25, 0.25), (0.25, 0.5),
                              (0.5, 0.5), (0.5, 0.25), (0.25, 0.25)))})
-
-        # Error handling
-        with self.assertRaises(ValueError):
-            # A LinearRing must have at least 3 coordinate tuples
-            Polygon([[1, 2], [2, 3]])
 
     @shapely20_deprecated
     def test_polygon_adapter(self):
@@ -140,52 +277,16 @@ class PolygonTestCase(unittest.TestCase):
         r_null.coords = [(0, 0), (1, 1), (1, 0)]
         self.assertAlmostEqual(r_null.length, 3.414213562373095)
 
-    def test_linearring_from_closed_linestring(self):
-        coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
-        line = LineString(coords)
-        ring = LinearRing(line)
-        self.assertEqual(len(ring.coords), 4)
-        self.assertEqual(ring.coords[:], coords)
-        self.assertEqual('LinearRing',
-                         lgeos.GEOSGeomType(ring._geom).decode('ascii'))
-
-
-    def test_linearring_from_unclosed_linestring(self):
-        coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
-        line = LineString(coords[:-1])  # Pass in unclosed line
-        ring = LinearRing(line)
-        self.assertEqual(len(ring.coords), 4)
-        self.assertEqual(ring.coords[:], coords)
-        self.assertEqual('LinearRing',
-                         lgeos.GEOSGeomType(ring._geom).decode('ascii'))
-
-    def test_linearring_from_invalid(self):
-        coords = [(0.0, 0.0), (0.0, 0.0), (0.0, 0.0)]
-        line = LineString(coords)
-        self.assertFalse(line.is_valid)
-        with self.assertRaises(TopologicalError):
-            ring = LinearRing(line)
-
-    def test_linearring_from_too_short_linestring(self):
-        # Creation of LinearRing request at least 3 coordinates (unclosed) or
-        # 4 coordinates (closed)
-        coords = [(0.0, 0.0), (0.0, 0.0)]
-        line = LineString(coords)
-        with self.assertRaises(TopologicalError):
-            LinearRing(line)
-
+    @shapely20_deprecated
     @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy(self):
+    def test_polygon_exterior_array_interface(self):
 
         from numpy import array, asarray
         from numpy.testing import assert_array_equal
 
         a = asarray(((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.)))
         polygon = Polygon(a)
-        self.assertEqual(len(polygon.exterior.coords), 5)
-        self.assertEqual(dump_coords(polygon.exterior),
-                         [(0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.)])
-        self.assertEqual(len(polygon.interiors), 0)
+
         b = asarray(polygon.exterior)
         self.assertEqual(b.shape, (5, 2))
         assert_array_equal(
@@ -291,6 +392,19 @@ def test_polygon_adapter_deprecated():
     hole_coords = [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))]
     with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
         asPolygon(coords, hole_coords)
+
+
+def test_ctypes_deprecated():
+    coords = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]
+    hole_coords = [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))]
+    ring = LinearRing(coords)
+    polygon = Polygon(coords, hole_coords)
+
+    with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
+        ring.ctypes
+
+    with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
+        polygon.ctypes
 
 
 def test_suite():

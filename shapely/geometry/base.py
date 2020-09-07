@@ -9,6 +9,7 @@ different z values may intersect or be equal.
 from binascii import a2b_hex
 from ctypes import pointer, c_size_t, c_char_p, c_void_p
 from itertools import islice
+import logging
 import math
 import sys
 from warnings import warn
@@ -16,11 +17,13 @@ from functools import wraps
 
 from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
-from shapely.errors import WKBReadingError, WKTReadingError, ShapelyDeprecationWarning
+from shapely.errors import WKBReadingError, WKTReadingError
+from shapely.errors import ShapelyDeprecationWarning
 from shapely.geos import WKBWriter, WKTWriter
 from shapely.geos import lgeos
 from shapely.impl import DefaultImplementation, delegated
 
+log = logging.getLogger(__name__)
 
 try:
     import numpy as np
@@ -52,7 +55,7 @@ def dump_coords(geom):
         return geom.exterior.coords[:] + [i.coords[:] for i in geom.interiors]
     elif geom.type.startswith('Multi') or geom.type == 'GeometryCollection':
         # Recursive call
-        return [dump_coords(part) for part in geom]
+        return [dump_coords(part) for part in geom.geoms]
     else:
         raise ValueError('Unhandled geometry type: ' + repr(geom.type))
 
@@ -87,46 +90,12 @@ def geom_factory(g, parent=None):
     return ob
 
 
-def geom_from_wkt(data):
-    warn("`geom_from_wkt` is deprecated. Use `geos.wkt_reader.read(data)`.",
-         DeprecationWarning)
-    data = data.encode('ascii')
-    geom = lgeos.GEOSGeomFromWKT(c_char_p(data))
-    if not geom:
-        raise WKTReadingError(
-            "Could not create geometry because of errors while reading input.")
-    return geom_factory(geom)
-
-
-def geom_to_wkt(ob):
-    warn("`geom_to_wkt` is deprecated. Use `geos.wkt_writer.write(ob)`.",
-         DeprecationWarning)
-    if ob is None or ob._geom is None:
-        raise ValueError("Null geometry supports no operations")
-    return lgeos.GEOSGeomToWKT(ob._geom)
-
-
 def deserialize_wkb(data):
     geom = lgeos.GEOSGeomFromWKB_buf(c_char_p(data), c_size_t(len(data)))
     if not geom:
         raise WKBReadingError(
             "Could not create geometry because of errors while reading input.")
     return geom
-
-
-def geom_from_wkb(data):
-    warn("`geom_from_wkb` is deprecated. Use `geos.wkb_reader.read(data)`.",
-         DeprecationWarning)
-    return geom_factory(deserialize_wkb(data))
-
-
-def geom_to_wkb(ob):
-    warn("`geom_to_wkb` is deprecated. Use `geos.wkb_writer.write(ob)`.",
-         DeprecationWarning)
-    if ob is None or ob._geom is None:
-        raise ValueError("Null geometry supports no operations")
-    size = c_size_t()
-    return lgeos.GEOSGeomToWKB_buf(c_void_p(ob._geom), pointer(size))
 
 
 def geos_geom_from_py(ob, create_func=None):
@@ -212,13 +181,13 @@ class BaseGeometry(object):
     _lgeos = lgeos
 
     def empty(self, val=EMPTY):
-        # TODO: defer cleanup to the implementation. We shouldn't be
-        # explicitly calling a lgeos method here.
-        if not self._is_empty and not self._other_owned and self.__geom__:
+        if not self._other_owned and self.__geom__ and self.__geom__ != EMPTY:
             try:
                 self._lgeos.GEOSGeom_destroy(self.__geom__)
             except (AttributeError, TypeError):
-                pass  # _lgeos might be empty on shutdown
+                # _lgeos might be empty on shutdown
+                log.exception("Failed to delete GEOS geom")
+
         self._is_empty = True
         self.__geom__ = val
 
@@ -288,12 +257,20 @@ class BaseGeometry(object):
     # ---------------------------
 
     @property
-    def ctypes(self):
-        """Return ctypes buffer"""
+    def _ctypes(self):
         raise NotImplementedError
 
     @property
-    def array_interface_base(self):
+    def ctypes(self):
+        """Return ctypes buffer"""
+        warn(
+            "Accessing the 'ctypes' attribute is deprecated,"
+            " and will not be possible any more in Shapely 2.0",
+            ShapelyDeprecationWarning, stacklevel=2)
+        return self._ctypes
+
+    @property
+    def _array_interface_base(self):
         if sys.byteorder == 'little':
             typestr = '<f8'
         elif sys.byteorder == 'big':
@@ -304,8 +281,16 @@ class BaseGeometry(object):
         return {
             'version': 3,
             'typestr': typestr,
-            'data': self.ctypes,
+            'data': self._ctypes,
             }
+
+    @property
+    def array_interface_base(self):
+        warn(
+            "The 'array_interface_base' property is deprecated and will be "
+            "removed in Shapely 2.0.",
+            ShapelyDeprecationWarning, stacklevel=2)
+        return self._array_interface_base()
 
     @property
     def __array_interface__(self):
@@ -348,16 +333,6 @@ class BaseGeometry(object):
     @property
     def type(self):
         return self.geometryType()
-
-    def to_wkb(self):
-        warn("`to_wkb` is deprecated. Use the `wkb` property.",
-             DeprecationWarning)
-        return geom_to_wkb(self)
-
-    def to_wkt(self):
-        warn("`to_wkt` is deprecated. Use the `wkt` property.",
-             DeprecationWarning)
-        return geom_to_wkt(self)
 
     @property
     def wkt(self):
@@ -912,7 +887,7 @@ class BaseMultipartGeometry(BaseGeometry):
         return (
             type(other) == type(self) and
             len(self) == len(other) and
-            all(x == y for x, y in zip(self, other))
+            all(x == y for x, y in zip(self.geoms, other.geoms))
         )
 
     def __ne__(self, other):

@@ -4,7 +4,7 @@
 from ctypes import byref, c_double, c_void_p, cast
 import warnings
 
-from shapely.errors import ShapelyDeprecationWarning
+from shapely.errors import EmptyPartError, ShapelyDeprecationWarning
 from shapely.geos import lgeos
 from shapely.geometry.base import (
     BaseMultipartGeometry, exceptNull, geos_geom_from_py)
@@ -84,7 +84,7 @@ class MultiPoint(BaseMultipartGeometry):
 
     @property
     @exceptNull
-    def ctypes(self):
+    def _ctypes(self):
         if not self._ctypes_data:
             temp = c_double()
             n = self._ndim
@@ -104,13 +104,36 @@ class MultiPoint(BaseMultipartGeometry):
             self._ctypes_data = data
         return self._ctypes_data
 
+    @property
+    def ctypes(self):
+        warnings.warn(
+            "Accessing the 'ctypes' attribute is deprecated,"
+            " and will not be possible any more in Shapely 2.0",
+            ShapelyDeprecationWarning, stacklevel=2)
+        return self._ctypes
+
     @exceptNull
-    def array_interface(self):
+    def _array_interface(self):
         """Provide the Numpy array protocol."""
-        ai = self.array_interface_base
+        ai = self._array_interface_base
         ai.update({'shape': (len(self.geoms), self._ndim)})
         return ai
-    __array_interface__ = property(array_interface)
+
+    def array_interface(self):
+        """Provide the Numpy array protocol."""
+        warnings.warn(
+            "The 'array_interface' method is deprecated and will be removed "
+            "in Shapely 2.0.",
+            ShapelyDeprecationWarning, stacklevel=2)
+        return self._array_interface()
+
+    @property
+    def __array_interface__(self):
+        warnings.warn(
+            "The array interface is deprecated and will no longer work in "
+            "Shapely 2.0. Convert the '.coords' to a numpy array instead.",
+            ShapelyDeprecationWarning, stacklevel=3)
+        return self._array_interface()
 
 
 class MultiPointAdapter(CachingGeometryProxy, MultiPoint):
@@ -172,6 +195,10 @@ def geos_multipoint_from_py(ob):
     for i in range(m):
         coords = ob[i]
         geom, ndims = point.geos_point_from_py(coords)
+
+        if lgeos.GEOSisEmpty(geom):
+            raise EmptyPartError("Can't create MultiPoint with empty component")
+
         subs[i] = cast(geom, c_void_p)
 
     return lgeos.GEOSGeom_createCollection(4, subs, m), n

@@ -3,7 +3,7 @@ from .test_multi import MultiGeometryTestCase
 
 import pytest
 
-from shapely.errors import ShapelyDeprecationWarning
+from shapely.errors import EmptyPartError, ShapelyDeprecationWarning
 from shapely.geometry import Point, MultiPoint, asMultiPoint
 from shapely.geometry.base import dump_coords
 
@@ -47,7 +47,7 @@ class MultiPointTestCase(MultiGeometryTestCase):
         self.assertEqual(dump_coords(geoma), [[(5.0, 6.0)], [(7.0, 8.0)]])
 
     @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy(self):
+    def test_multipoint_from_numpy(self):
 
         from numpy import array, asarray
         from numpy.testing import assert_array_equal
@@ -57,6 +57,13 @@ class MultiPointTestCase(MultiGeometryTestCase):
         self.assertIsInstance(geom, MultiPoint)
         self.assertEqual(len(geom.geoms), 2)
         self.assertEqual(dump_coords(geom), [[(0.0, 0.0)], [(1.0, 2.0)]])
+
+    @shapely20_deprecated
+    @unittest.skipIf(not numpy, 'Numpy required')
+    def test_numpy(self):
+
+        from numpy import array, asarray
+        from numpy.testing import assert_array_equal
 
         # Geo interface (cont.)
         geom = MultiPoint((Point(1.0, 2.0), Point(3.0, 4.0)))
@@ -87,11 +94,38 @@ class MultiPointTestCase(MultiGeometryTestCase):
         p1 = Point(3.0, 4.0)
         self.subgeom_access_test(MultiPoint, [p0, p1])
 
+    def test_create_multi_with_empty_component(self):
+        with self.assertRaises(EmptyPartError) as exc:
+            wkt = MultiPoint([Point(0, 0), Point()]).wkt
+
+        self.assertEqual(str(exc.exception), "Can't create MultiPoint with empty component")
+
 
 def test_multipoint_adapter_deprecated():
     coords = [[5.0, 6.0], [7.0, 8.0]]
     with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
         asMultiPoint(coords)
+
+
+def test_multipoint_ctypes_deprecated():
+    geom = MultiPoint(((1.0, 2.0), (3.0, 4.0)))
+    with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
+        geom.ctypes
+
+
+def test_multipoint_array_interface_deprecated():
+    geom = MultiPoint(((1.0, 2.0), (3.0, 4.0)))
+    with pytest.warns(ShapelyDeprecationWarning, match="array_interface"):
+        geom.array_interface()
+
+
+@unittest.skipIf(not numpy, 'Numpy required')
+def test_multipoint_array_interface_numpy_deprecated():
+    import numpy as np
+
+    geom = MultiPoint(((1.0, 2.0), (3.0, 4.0)))
+    with pytest.warns(ShapelyDeprecationWarning, match="array interface"):
+        np.array(geom)
 
 
 def test_iteration_deprecated():
@@ -105,7 +139,6 @@ def test_getitem_deprecated():
     geom = MultiPoint([[5.0, 6.0], [7.0, 8.0]])
     with pytest.warns(ShapelyDeprecationWarning, match="__getitem__"):
         part = geom[0]
-
 
 
 def test_suite():
