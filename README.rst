@@ -26,6 +26,13 @@ PyGEOS
 	:alt: PyPI
 	:target: https://badge.fury.io/py/pygeos
 
+.. Zenodo
+
+.. image:: https://zenodo.org/badge/191151963.svg
+  :alt: Zenodo 
+  :target: https://zenodo.org/badge/latestdoi/191151963
+
+
 PyGEOS is a C/Python library with vectorized geometry functions. The geometry
 operations are done in the open-source geometry library GEOS. PyGEOS wraps
 these operations in NumPy ufuncs providing a performance improvement when
