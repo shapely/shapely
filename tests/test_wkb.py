@@ -2,6 +2,9 @@ from shapely.wkb import dumps, loads
 from shapely.geometry import Point
 import binascii
 
+from tests.conftest import shapely20_todo
+
+
 
 def bin2hex(value):
     return binascii.b2a_hex(value).upper().decode("utf-8")
@@ -19,6 +22,7 @@ def test_dumps_srid():
     assert bin2hex(result) == "0101000020E6100000333333333333F33F3333333333330B40"
 
 
+@shapely20_todo
 def test_dumps_endianness():
     p1 = Point(1.2, 3.4)
     result = dumps(p1)

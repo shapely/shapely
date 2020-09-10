@@ -237,7 +237,12 @@ class Polygon(BaseGeometry):
         #     geom_shell = LinearRing(shell)
         #     if holes is not None:
         #         geom_holes = [LinearRing(h) for h in holes]
-    
+
+        if holes is not None:
+            if len(holes) == 0:
+                # pygeos constructor cannot handle holes=[]
+                holes = None
+
         geom = pygeos.polygons(shell, holes=holes)
         if not isinstance(geom, Polygon):
             raise ValueError("Invalid values passed to Polygon constructor")

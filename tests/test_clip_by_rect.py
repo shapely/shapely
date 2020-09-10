@@ -10,8 +10,12 @@ from shapely.wkt import loads as load_wkt, dumps as dump_wkt
 from shapely.geos import geos_version
 import pytest
 
+from tests.conftest import shapely20_todo
+
 
 pytestmark = pytest.mark.skipif(geos_version < (3, 5, 0), reason='GEOS 3.5.0 required')
+# pytestmark = shapely20_todo
+
 
 
 def test_point_outside():

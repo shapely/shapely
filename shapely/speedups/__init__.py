@@ -60,12 +60,6 @@ def enable():
     coords.CoordinateSequence.__iter__ = method_wrapper(
         _speedups.coordseq_iter)
 
-    _orig['geos_linestring_from_py'] = linestring.geos_linestring_from_py
-    linestring.geos_linestring_from_py = _speedups.geos_linestring_from_py
-
-    _orig['geos_linearring_from_py'] = polygon.geos_linearring_from_py
-    polygon.geos_linearring_from_py = _speedups.geos_linearring_from_py
-
     _orig['affine_transform'] = shapely.affinity.affine_transform
 
     # copy docstring from original function
@@ -86,8 +80,6 @@ def disable():
 
     coords.CoordinateSequence._ctypes = _orig['CoordinateSequence._ctypes']
     coords.CoordinateSequence.__iter__ = _orig['CoordinateSequence.__iter__']
-    linestring.geos_linestring_from_py = _orig['geos_linestring_from_py']
-    polygon.geos_linearring_from_py = _orig['geos_linearring_from_py']
     shapely.affinity.affine_transform = _orig['affine_transform']
     _orig.clear()
 

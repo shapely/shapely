@@ -42,7 +42,7 @@ def load(fp):
     return loads(data)
 
 
-def dumps(ob, trim=False, **kw):
+def dumps(ob, trim=False, rounding_precision=-1, **kw):
     """
     Dump a WKT representation of a geometry to a string.
 
@@ -62,7 +62,7 @@ def dumps(ob, trim=False, **kw):
     -------
     input geometry as WKT string
     """
-    return geos.WKTWriter(geos.lgeos, trim=trim, **kw).write(ob)
+    return pygeos.to_wkt(ob, trim=trim, rounding_precision=rounding_precision, **kw)
 
 
 def dump(ob, fp, **settings):

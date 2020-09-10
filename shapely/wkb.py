@@ -39,15 +39,9 @@ def dumps(ob, hex=False, srid=None, **kw):
         See available keyword output settings in ``shapely.geos.WKBWriter``."""
     if srid is not None:
         # clone the object and set the SRID before dumping
-        geom = lgeos.GEOSGeom_clone(ob._geom)
-        lgeos.GEOSSetSRID(geom, srid)
-        ob = geom_factory(geom)
+        ob = pygeos.set_srid(ob, srid)
         kw["include_srid"] = True
-    writer = WKBWriter(lgeos, **kw)
-    if hex:
-        return writer.write_hex(ob)
-    else:
-        return writer.write(ob)
+    return pygeos.to_wkb(ob, hex=hex, **kw)
 
 
 def dump(ob, fp, hex=False, **kw):

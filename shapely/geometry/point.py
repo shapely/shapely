@@ -90,11 +90,6 @@ class Point(BaseGeometry):
         return "<shapely.geometry.Point {} >".format(self.wkt)
 
     @property
-    def wkt(self):
-        """WKT representation of the geometry"""
-        return pygeos.to_wkt(self)
-
-    @property
     def x(self):
         """Return x coordinate."""
         return pygeos.get_x(self)

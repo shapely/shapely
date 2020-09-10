@@ -152,7 +152,6 @@ class BaseGeometry(pygeos.Geometry):
     # _other_owned : bool
     #     True if this object's GEOS geometry is owned by another as in the
     #     case of a multipart geometry member.
-    __geom__ = EMPTY
     __p__ = None
     _crs = None
     _other_owned = False
@@ -164,16 +163,13 @@ class BaseGeometry(pygeos.Geometry):
     # a reference to the so/dll proxy to preserve access during clean up
     _lgeos = lgeos
 
-    def empty(self, val=EMPTY):
-        if not self._other_owned and self.__geom__ and self.__geom__ != EMPTY:
-            try:
-                self._lgeos.GEOSGeom_destroy(self.__geom__)
-            except (AttributeError, TypeError):
-                # _lgeos might be empty on shutdown
-                log.exception("Failed to delete GEOS geom")
+    @property
+    def _geom(self):
+        return self._ptr
 
-        self._is_empty = True
-        self.__geom__ = val
+    @property
+    def __geom__(self):
+        return self._ptr
 
     @property
     def _ndim(self):
@@ -185,35 +181,21 @@ class BaseGeometry(pygeos.Geometry):
     def __nonzero__(self):
         return self.__bool__()
 
-    def __del__(self):
-        self.empty(val=None)
-        self.__p__ = None
-
     def __str__(self):
         return self.wkt
 
-    # To support pickling
-    def __reduce__(self):
-        return (self.__class__, (), self.wkb)
+    # TODO support pickling
+    # def __reduce__(self):
+    #     return (self.__class__, (), self.wkb)
 
-    def __setstate__(self, state):
-        self.empty()
-        self.__geom__ = deserialize_wkb(state)
-        self._is_empty = False
-        if lgeos.methods['has_z'](self.__geom__):
-            self._ndim = 3
-        else:
-            self._ndim = 2
-
-    @property
-    def _geom(self):
-        return self.__geom__
-
-    @_geom.setter
-    def _geom(self, val):
-        self.empty()
-        self._is_empty = val in [EMPTY, None]
-        self.__geom__ = val
+    # def __setstate__(self, state):
+    #     self.empty()
+    #     self.__geom__ = deserialize_wkb(state)
+    #     self._is_empty = False
+    #     if lgeos.methods['has_z'](self.__geom__):
+    #         self._ndim = 3
+    #     else:
+    #         self._ndim = 2
 
     # Operators
     # ---------
@@ -233,7 +215,7 @@ class BaseGeometry(pygeos.Geometry):
     def __eq__(self, other):
         return (
             type(other) == type(self) and
-            tuple(self.coords) == tuple(other.coords)
+            bool(pygeos.equals_exact(self, other))
         )
 
     def __ne__(self, other):
@@ -277,7 +259,8 @@ class BaseGeometry(pygeos.Geometry):
     @property
     def wkt(self):
         """WKT representation of the geometry"""
-        return pygeos.to_wkt(self)
+        # TODO keep default of not trimming? 
+        return pygeos.to_wkt(self, rounding_precision=-1)
 
     @property
     def wkb(self):
@@ -392,7 +375,7 @@ class BaseGeometry(pygeos.Geometry):
     @delegated
     def representative_point(self):
         """Returns a point guaranteed to be within the object, cheaply."""
-        return pygeos.representative_point(self)
+        return pygeos.point_on_surface(self)
 
     @property
     def convex_hull(self):
@@ -715,11 +698,8 @@ class BaseGeometry(pygeos.Geometry):
         If the normalized arg is True, the distance will be interpreted as a
         fraction of the geometry's length.
         """
-        if normalized:
-            op = self.impl['interpolate_normalized']
-        else:
-            op = self.impl['interpolate']
-        return geom_factory(op(self, distance))
+        # TODO spelling normalize(d)
+        return pygeos.line_interpolate_point(self, distance, normalize=normalized)
 
 
 class BaseMultipartGeometry(BaseGeometry):
@@ -751,16 +731,6 @@ class BaseMultipartGeometry(BaseGeometry):
             return len(self.geoms)
         else:
             return 0
-
-    def __eq__(self, other):
-        return (
-            type(other) == type(self) and
-            len(self) == len(other) and
-            all(x == y for x, y in zip(self.geoms, other.geoms))
-        )
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
     __hash__ = None
 

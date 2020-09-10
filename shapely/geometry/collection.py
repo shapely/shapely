@@ -40,6 +40,8 @@ class GeometryCollection(BaseMultipartGeometry):
         if not geoms:
             # TODO better empty constructor
             return pygeos.from_wkt("GEOMETRYCOLLECTION EMPTY")
+        if isinstance(geoms, BaseGeometry):
+            geoms = [geoms]
 
         return pygeos.geometrycollections(geoms)
 
