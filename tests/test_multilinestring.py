@@ -32,8 +32,8 @@ class MultiLineStringTestCase(MultiGeometryTestCase):
 
         # Sub-geometry Access
         geom = MultiLineString([(((0.0, 0.0), (1.0, 2.0)))])
-        self.assertIsInstance(geom[0], LineString)
-        self.assertEqual(dump_coords(geom[0]), [(0.0, 0.0), (1.0, 2.0)])
+        self.assertIsInstance(geom.geoms[0], LineString)
+        self.assertEqual(dump_coords(geom.geoms[0]), [(0.0, 0.0), (1.0, 2.0)])
         with self.assertRaises(IndexError):  # index out of range
             geom.geoms[1]
 
@@ -41,7 +41,6 @@ class MultiLineStringTestCase(MultiGeometryTestCase):
         self.assertEqual(geom.__geo_interface__,
                          {'type': 'MultiLineString',
                           'coordinates': (((0.0, 0.0), (1.0, 2.0)),)})
-
 
     def test_from_multilinestring_z(self):
         coords1 = [(0.0, 1.0, 2.0), (3.0, 4.0, 5.0)]
@@ -85,6 +84,7 @@ class MultiLineStringTestCase(MultiGeometryTestCase):
 
         # TODO: is there an inverse?
 
+    @shapely20_deprecated
     def test_subgeom_access(self):
         line0 = LineString([(0.0, 1.0), (2.0, 3.0)])
         line1 = LineString([(4.0, 5.0), (6.0, 7.0)])
@@ -104,6 +104,19 @@ def test_multilinestring_adapter_deprecated():
     coords = [[[5.0, 6.0], [7.0, 8.0]]]
     with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
         asMultiLineString(coords)
+
+
+def test_iteration_deprecated():
+    geom = MultiLineString([[[5.0, 6.0], [7.0, 8.0]]])
+    with pytest.warns(ShapelyDeprecationWarning, match="Iteration"):
+        for g in geom:
+            pass
+
+
+def test_getitem_deprecated():
+    geom = MultiLineString([[[5.0, 6.0], [7.0, 8.0]]])
+    with pytest.warns(ShapelyDeprecationWarning, match="__getitem__"):
+        part = geom[0]
 
 
 def test_suite():

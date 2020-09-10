@@ -89,6 +89,7 @@ class MultiPointTestCase(MultiGeometryTestCase):
         pas = asarray(geoma)
         assert_array_equal(pas, array([[1., 2.], [3., 4.]]))
 
+    @shapely20_deprecated
     def test_subgeom_access(self):
         p0 = Point(1.0, 2.0)
         p1 = Point(3.0, 4.0)
@@ -126,6 +127,19 @@ def test_multipoint_array_interface_numpy_deprecated():
     geom = MultiPoint(((1.0, 2.0), (3.0, 4.0)))
     with pytest.warns(ShapelyDeprecationWarning, match="array interface"):
         np.array(geom)
+
+
+def test_iteration_deprecated():
+    geom = MultiPoint([[5.0, 6.0], [7.0, 8.0]])
+    with pytest.warns(ShapelyDeprecationWarning, match="Iteration"):
+        for g in geom:
+            pass
+
+
+def test_getitem_deprecated():
+    geom = MultiPoint([[5.0, 6.0], [7.0, 8.0]])
+    with pytest.warns(ShapelyDeprecationWarning, match="__getitem__"):
+        part = geom[0]
 
 
 def test_suite():

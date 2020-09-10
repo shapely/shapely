@@ -23,7 +23,7 @@ class TestSplitGeometry(unittest.TestCase):
 				raise ValueError
 		elif expected_chunks == 1:
 			# not split --> expected equal to line
-			self.assertTrue(s[0].equals(geom))
+			self.assertTrue(s.geoms[0].equals(geom))
 
 	def test_split_closed_line_with_point(self):
 		# point at start/end of closed ring -> return equal
@@ -175,15 +175,15 @@ class TestSplitClosedRing(TestSplitGeometry):
 		splitter = Point([0.0, 0.5])
 		self.helper(self.ls, splitter, 2)
 		result = split(self.ls, splitter)
-		assert result[0].coords[:] == [(0, 0), (0.0, 0.5)]
-		assert result[1].coords[:] == [(0.0, 0.5), (0, 1), (1, 1), (1, 0), (0, 0)]
+		assert result.geoms[0].coords[:] == [(0, 0), (0.0, 0.5)]
+		assert result.geoms[1].coords[:] == [(0.0, 0.5), (0, 1), (1, 1), (1, 0), (0, 0)]
 
 		# previously failed, see GH#585
 		splitter = Point([0.5, 0.0])
 		self.helper(self.ls, splitter, 2)
 		result = split(self.ls, splitter)
-		assert result[0].coords[:] == [(0, 0), (0, 1), (1, 1), (1, 0), (0.5, 0)]
-		assert result[1].coords[:] == [(0.5, 0), (0, 0)]
+		assert result.geoms[0].coords[:] == [(0, 0), (0, 1), (1, 1), (1, 0), (0.5, 0)]
+		assert result.geoms[1].coords[:] == [(0.5, 0), (0, 0)]
 
 		splitter = Point([2.0, 2.0])
 		self.helper(self.ls, splitter, 1)

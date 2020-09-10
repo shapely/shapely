@@ -17,10 +17,10 @@ class SharedPaths(unittest.TestCase):
         a, b = result.geoms
         self.assertTrue(isinstance(a, MultiLineString))
         self.assertTrue(len(a) == 1)
-        self.assertEqual(a[0].coords[:], [(5, 0), (10, 0)])
+        self.assertEqual(a.geoms[0].coords[:], [(5, 0), (10, 0)])
         self.assertTrue(b.is_empty)
 
-    def test_shared_paths_forward(self):
+    def test_shared_paths_forward2(self):
         g1 = LineString([(0, 0), (10, 0), (10, 5), (20, 5)])
         g2 = LineString([(15, 0), (5, 0)])
         result = shared_paths(g1, g2)
@@ -30,7 +30,7 @@ class SharedPaths(unittest.TestCase):
         a, b = result.geoms
         self.assertTrue(isinstance(b, MultiLineString))
         self.assertTrue(len(b) == 1)
-        self.assertEqual(b[0].coords[:], [(5, 0), (10, 0)])
+        self.assertEqual(b.geoms[0].coords[:], [(5, 0), (10, 0)])
         self.assertTrue(a.is_empty)
     
     def test_wrong_type(self):
