@@ -102,8 +102,8 @@ def box(x1, y1, x2, y2):
     Parameters
     ----------
     x1 : array_like
-    y2 : array_like
-    x1 : array_like
+    y1 : array_like
+    x2 : array_like
     y2 : array_like
     """
     x1, y1, x2, y2 = np.broadcast_arrays(x1, y1, x2, y2)
