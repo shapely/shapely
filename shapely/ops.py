@@ -11,6 +11,8 @@ from shapely.geometry import (
 from shapely.geometry.polygon import orient as orient_
 from shapely.algorithms.polylabel import polylabel
 
+import pygeos
+
 
 __all__ = ['cascaded_union', 'linemerge', 'operator', 'polygonize',
            'polygonize_full', 'transform', 'unary_union', 'triangulate',
@@ -121,18 +123,7 @@ class CollectionOperator(object):
 
         This method was superseded by :meth:`unary_union`.
         """
-        try:
-            L = len(geoms)
-            if isinstance(geoms, BaseMultipartGeometry):
-                geoms = geoms.geoms
-        except TypeError:
-            geoms = [geoms]
-            L = 1
-        subs = (c_void_p * L)()
-        for i, g in enumerate(geoms):
-            subs[i] = g._geom
-        collection = lgeos.GEOSGeom_createCollection(6, subs, L)
-        return geom_factory(lgeos.methods['cascaded_union'](collection))
+        return pygeos.union_all(geoms, axis=None)
 
     def unary_union(self, geoms):
         """Returns the union of a sequence of geometries
@@ -140,18 +131,7 @@ class CollectionOperator(object):
         This method replaces :meth:`cascaded_union` as the
         prefered method for dissolving many polygons.
         """
-        try:
-            L = len(geoms)
-            if isinstance(geoms, BaseMultipartGeometry):
-                geoms = geoms.geoms
-        except TypeError:
-            geoms = [geoms]
-            L = 1
-        subs = (c_void_p * L)()
-        for i, g in enumerate(geoms):
-            subs[i] = g._geom
-        collection = lgeos.GEOSGeom_createCollection(6, subs, L)
-        return geom_factory(lgeos.methods['unary_union'](collection))
+        return pygeos.union_all(geoms, axis=None)
 
 operator = CollectionOperator()
 polygonize = operator.polygonize
