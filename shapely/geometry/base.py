@@ -163,6 +163,10 @@ class BaseGeometry(pygeos.Geometry):
     # a reference to the so/dll proxy to preserve access during clean up
     _lgeos = lgeos
 
+    def __new__(self):
+        # TODO create empty geometry - should we deprecate this constructor?
+        return pygeos.from_wkt("GEOMETRYCOLLECTION EMPTY")
+
     @property
     def _geom(self):
         return self._ptr
@@ -817,9 +821,10 @@ class HeterogeneousGeometrySequence(GeometrySequence):
 
 
 class EmptyGeometry(BaseGeometry):
-    def __init__(self):
+    def __new__(self):
         """Create an empty geometry."""
-        BaseGeometry.__init__(self)
+        # TODO(shapely-2.0) create empty geometry - should we deprecate this class?
+        return pygeos.from_wkt("GEOMETRYCOLLECTION EMPTY")
 
 
 def _test():

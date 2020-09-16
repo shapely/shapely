@@ -62,7 +62,7 @@ def test_linearring_from_too_short_linestring():
     # 4 coordinates (closed)
     coords = [(0.0, 0.0), (1.0, 1.0)]
     line = LineString(coords)
-    with pytest.raises(ValueError, match="at least 3 coordinate tuple"):
+    with pytest.raises(ValueError, match="at least 3 coordinate tuple|at least 4 coordinates"):
         LinearRing(line)
 
 
@@ -214,8 +214,7 @@ class PolygonTestCase(unittest.TestCase):
         with self.assertRaises(IndexError):  # index out of range
             polygon.interiors[1]
 
-        # Coordinate getters and setters raise exceptions
-        self.assertRaises(NotImplementedError, polygon._get_coords)
+        # Coordinate getter raises exceptions
         with self.assertRaises(NotImplementedError):
             polygon.coords
 

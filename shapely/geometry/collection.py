@@ -41,7 +41,12 @@ class GeometryCollection(BaseMultipartGeometry):
             # TODO better empty constructor
             return pygeos.from_wkt("GEOMETRYCOLLECTION EMPTY")
         if isinstance(geoms, BaseGeometry):
-            geoms = [geoms]
+            # TODO(shapely-2.0) do we actually want to split Multi-part geometries?
+            # this is needed for the split() tests
+            if hasattr(geoms, "geoms"):
+                geoms = geoms.geoms
+            else:
+                geoms = [geoms]
 
         return pygeos.geometrycollections(geoms)
 

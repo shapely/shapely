@@ -7,6 +7,7 @@ import warnings
 from ctypes import c_void_p, cast, POINTER
 import weakref
 
+import numpy as np
 import pygeos
 
 from shapely.algorithms.cga import signed_area
@@ -78,6 +79,11 @@ class LinearRing(LineString):
                 else:
                     return o
             coordinates = [_coords(o) for o in coordinates]
+
+        if len(coordinates) == 0:
+            # empty geometry
+            # TODO better constructor + should pygeos.linearrings handle this?
+            return pygeos.from_wkt("LINEARRING EMPTY")
 
         geom = pygeos.linearrings(coordinates)
         if not isinstance(geom, LinearRing):
@@ -237,6 +243,22 @@ class Polygon(BaseGeometry):
             if len(holes) == 0:
                 # pygeos constructor cannot handle holes=[]
                 holes = None
+
+        if not isinstance(shell, BaseGeometry):
+            if not isinstance(shell, (list, np.ndarray)):
+                # eg emtpy generator not handled well by np.asarray
+                shell = list(shell)
+            shell = np.asarray(shell)
+
+            if len(shell) == 0:
+                # empty geometry
+                # TODO better constructor + should pygeos.polygons handle this?
+                return pygeos.from_wkt("POLYGON EMPTY")
+
+            if not np.issubdtype(shell.dtype, np.number):
+                # conversion of coords to 2D array failed, this might be due
+                # to inconsistent coordinate dimensionality
+                raise ValueError("Inconsistent coordinate dimensionality")
 
         geom = pygeos.polygons(shell, holes=holes)
         if not isinstance(geom, Polygon):

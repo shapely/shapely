@@ -90,9 +90,9 @@ class CollectionOperator(object):
             collection, byref(dangles), byref(cuts), byref(invalids))
         return (
             geom_factory(product),
-            geom_factory(dangles),
-            geom_factory(cuts),
-            geom_factory(invalids)
+            geom_factory(dangles.value),
+            geom_factory(cuts.value),
+            geom_factory(invalids.value)
             )
 
     def linemerge(self, lines):

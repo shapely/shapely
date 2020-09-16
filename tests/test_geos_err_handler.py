@@ -2,11 +2,16 @@ import logging
 
 import pytest
 
+import pygeos
+
 from shapely.geometry import LineString
 from shapely.errors import ReadingError
 from shapely.wkt import loads
 
+from tests.conftest import shapely20_todo
 
+
+@shapely20_todo  # logging is not yet implemented
 def test_error_handler_exception(tmpdir):
     """Error logged in addition to exception"""
     logger = logging.getLogger('shapely.geos')
@@ -16,7 +21,7 @@ def test_error_handler_exception(tmpdir):
 
     # This calls error_handler with a format string of "%s" and one
     # value.
-    with pytest.raises(ReadingError):
+    with pytest.raises((ReadingError, pygeos.GEOSException)):
         loads('POINT (LOLWUT)')
 
     log = open(logfile).read()
@@ -42,11 +47,14 @@ def test_error_handler_wrong_type():
         loads(1)
 
 
+# pygeos handles both bytes and str
+@shapely20_todo
 def test_error_handler_for_bytes():
     with pytest.raises(TypeError):
         loads(b'POINT (10 10)')
 
 
+@shapely20_todo  # logging is not yet implemented
 def test_info_handler(tmpdir):
     logger = logging.getLogger('shapely.geos')
     logfile = str(tmpdir.join('test_error.log'))
