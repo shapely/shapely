@@ -91,11 +91,6 @@ class LinearRing(LineString):
             'coordinates': tuple(self.coords)
             }
 
-    @property
-    def coords(self):
-        coords = pygeos.get_coordinates(self, include_z=self.has_z)
-        return [tuple(c) for c in coords]
-
     def __setstate__(self, state):
         """WKB doesn't differentiate between LineString and LinearRing so we
         need to move the coordinate sequence into the correct geometry type"""
@@ -280,10 +275,6 @@ class Polygon(BaseGeometry):
         return not self.__eq__(other)
 
     __hash__ = None
-
-    def _get_coords(self):
-        raise NotImplementedError(
-        "Component rings have coordinate sequences, but the polygon does not")
 
     @property
     def coords(self):

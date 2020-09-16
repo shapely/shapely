@@ -102,11 +102,6 @@ class LineString(BaseGeometry):
             ).format(pnt_format, 2. * scale_factor, stroke_color)
 
     @property
-    def coords(self):
-        coords = pygeos.get_coordinates(self, include_z=self.has_z)
-        return [tuple(c) for c in coords]
-
-    @property
     def xy(self):
         """Separate arrays of X and Y coordinate values
 

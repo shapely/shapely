@@ -53,12 +53,12 @@ def enable():
     if _orig:
         return
 
-    _orig['CoordinateSequence._ctypes'] = coords.CoordinateSequence._ctypes
-    coords.CoordinateSequence._ctypes = property(_speedups.coordseq_ctypes)
+    # _orig['CoordinateSequence._ctypes'] = coords.CoordinateSequence._ctypes
+    # coords.CoordinateSequence._ctypes = property(_speedups.coordseq_ctypes)
 
-    _orig['CoordinateSequence.__iter__'] = coords.CoordinateSequence.__iter__
-    coords.CoordinateSequence.__iter__ = method_wrapper(
-        _speedups.coordseq_iter)
+    # _orig['CoordinateSequence.__iter__'] = coords.CoordinateSequence.__iter__
+    # coords.CoordinateSequence.__iter__ = method_wrapper(
+    #     _speedups.coordseq_iter)
 
     _orig['affine_transform'] = shapely.affinity.affine_transform
 
@@ -78,8 +78,8 @@ def disable():
     if not _orig:
         return
 
-    coords.CoordinateSequence._ctypes = _orig['CoordinateSequence._ctypes']
-    coords.CoordinateSequence.__iter__ = _orig['CoordinateSequence.__iter__']
+    # coords.CoordinateSequence._ctypes = _orig['CoordinateSequence._ctypes']
+    # coords.CoordinateSequence.__iter__ = _orig['CoordinateSequence.__iter__']
     shapely.affinity.affine_transform = _orig['affine_transform']
     _orig.clear()
 

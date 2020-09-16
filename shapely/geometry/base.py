@@ -216,13 +216,12 @@ class BaseGeometry(pygeos.Geometry):
     # Coordinate access
     # -----------------
 
-    def _get_coords(self):
-        """Access to geometry's coordinates (CoordinateSequence)"""
+    @property
+    def coords(self):
         if self.is_empty:
             return []
-        return CoordinateSequence(self)
-
-    coords = property(_get_coords)
+        coords_array = pygeos.get_coordinates(self, include_z=self.has_z)
+        return CoordinateSequence(coords_array)
 
     @property
     def xy(self):
@@ -698,14 +697,11 @@ class BaseMultipartGeometry(BaseGeometry):
         # Factory for part instances, usually a geometry class
         raise NotImplementedError("To be implemented by derived classes")
 
-    def _get_coords(self):
-        raise NotImplementedError("Sub-geometries may have coordinate "
-                                  "sequences, but collections do not")
-
     @property
     def coords(self):
         raise NotImplementedError(
-            "Multi-part geometries do not provide a coordinate sequence")
+            "Sub-geometries may have coordinate sequences, "
+            "but multi-part geometries do not")
 
     @property
     def geoms(self):
