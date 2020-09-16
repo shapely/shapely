@@ -248,7 +248,7 @@ class Polygon(BaseGeometry):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    __hash__ = None
+    __hash__ = object.__hash__
 
     def _get_coords(self):
         raise NotImplementedError(
