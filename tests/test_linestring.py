@@ -84,28 +84,27 @@ def test_from_numpy():
     assert line.coords[:] == [(1.0, 2.0), (3.0, 4.0)]
 
 
-# def test_from_invalid_dim():
-#     with pytest.raises(ValueError, match="at least 2 coordinate tuples"):
-#         LineString([(1, 2)])
+def test_from_invalid_dim():
+    with pytest.raises(ValueError, match="at least 2 coordinate tuples|at least 2 coordinates"):
+        LineString([(1, 2)])
 
-#     with pytest.raises(ValueError, match="Inconsistent coordinate dimensionality"):
-#         LineString([(1, 2, 3), (4, 5)])
+    with pytest.raises(ValueError, match="Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions"):
+        LineString([(1, 2, 3), (4, 5)])
 
-#     # TODO this does not fail
-#     # with pytest.raises(ValueError, match="Inconsistent coordinate dimensionality"):
-#     #     LineString([(1, 2), (3, 4, 5)]))
+    with pytest.raises(ValueError, match="Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions"):
+        LineString([(1, 2), (3, 4, 5)])
 
-#     # TODO better error, right now raises AssertionError
-#     with pytest.raises(Exception):
-#         LineString([(1, 2, 3, 4), (4, 5, 6, 7)])
+    # TODO better error, right now raises AssertionError
+    with pytest.raises(Exception):
+        LineString([(1, 2, 3, 4), (4, 5, 6, 7)])
 
 
-# def test_from_single_coordinate():
-#     """Test for issue #486"""
-#     coords = [[-122.185933073564, 37.3629353839073]]
-#     with pytest.raises(ValueError):
-#         ls = LineString(coords)
-#         ls.geom_type # caused segfault before fix
+def test_from_single_coordinate():
+    """Test for issue #486"""
+    coords = [[-122.185933073564, 37.3629353839073]]
+    with pytest.raises(ValueError):
+        ls = LineString(coords)
+        ls.geom_type # caused segfault before fix
 
 
 class LineStringTestCase(unittest.TestCase):
