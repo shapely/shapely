@@ -808,22 +808,6 @@ class BaseMultipartGeometry(BaseGeometry):
     def __bool__(self):
         return self.is_empty is False
 
-    def __iter__(self):
-        """
-        .. deprecated:: 1.8
-           Iteration over multi-part geometries is deprecated and will be removed in
-           Shapely 2.0. Use the `geoms` property to access the constituent parts of
-           a multi-part geometry.
-        """
-        warn(
-            "Iteration over multi-part geometries is deprecated and will be removed in "
-            "Shapely 2.0. Use the `geoms` property to access the constituent parts of "
-            "a multi-part geometry.", ShapelyDeprecationWarning, stacklevel=2)
-        if not self.is_empty:
-            return iter(self.geoms)
-        else:
-            return iter([])
-
     def __len__(self):
         warn(
             "__len__ for multi-part geometries is deprecated and will be removed in "
@@ -834,22 +818,6 @@ class BaseMultipartGeometry(BaseGeometry):
             return len(self.geoms)
         else:
             return 0
-
-    def __getitem__(self, index):
-        """
-        .. deprecated:: 1.8
-           __getitem__ for multi-part geometries is deprecated and will be removed in
-           Shapely 2.0. Use the `geoms` property to access the constituent parts of
-           a multi-part geometry.
-        """
-        warn(
-            "__getitem__ for multi-part geometries is deprecated and will be removed in "
-            "Shapely 2.0. Use the `geoms` property to access the constituent parts of "
-            "a multi-part geometry.", ShapelyDeprecationWarning, stacklevel=2)
-        if not self.is_empty:
-            return self.geoms[index]
-        else:
-            return ()[index]
 
     def __eq__(self, other):
         return (
