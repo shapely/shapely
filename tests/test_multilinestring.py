@@ -69,7 +69,6 @@ class MultiLineStringTestCase(MultiGeometryTestCase):
         self.assertEqual(len(geom.geoms), 1)
         self.assertEqual(dump_coords(geom), [[(0.0, 0.0), (1.0, 2.0)]])
 
-    @shapely20_deprecated
     def test_subgeom_access(self):
         line0 = LineString([(0.0, 1.0), (2.0, 3.0)])
         line1 = LineString([(4.0, 5.0), (6.0, 7.0)])
@@ -83,16 +82,3 @@ class MultiLineStringTestCase(MultiGeometryTestCase):
             ]).wkt
 
         self.assertEqual(str(exc.exception), "Can't create MultiLineString with empty component")
-
-
-def test_iteration_deprecated():
-    geom = MultiLineString([[[5.0, 6.0], [7.0, 8.0]]])
-    with pytest.warns(ShapelyDeprecationWarning, match="Iteration"):
-        for g in geom:
-            pass
-
-
-def test_getitem_deprecated():
-    geom = MultiLineString([[[5.0, 6.0], [7.0, 8.0]]])
-    with pytest.warns(ShapelyDeprecationWarning, match="__getitem__"):
-        part = geom[0]

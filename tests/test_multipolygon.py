@@ -63,7 +63,6 @@ class MultiPolygonTestCase(MultiGeometryTestCase):
                               ((0.25, 0.25), (0.25, 0.5), (0.5, 0.5),
                                (0.5, 0.25), (0.25, 0.25)))]})
 
-    @shapely20_deprecated
     def test_subgeom_access(self):
         poly0 = Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)])
         poly1 = Polygon([(0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25)])
@@ -75,20 +74,3 @@ def test_fail_list_of_multipolygons():
     multi = MultiPolygon([(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)), [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))])])
     with pytest.raises(ValueError):
         MultiPolygon([multi])
-
-
-def test_iteration_deprecated():
-    geom = MultiPolygon(
-        [(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)),
-          [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))])])
-    with pytest.warns(ShapelyDeprecationWarning, match="Iteration"):
-        for g in geom:
-            pass
-
-
-def test_getitem_deprecated():
-    geom = MultiPolygon(
-        [(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)),
-          [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))])])
-    with pytest.warns(ShapelyDeprecationWarning, match="__getitem__"):
-        part = geom[0]
