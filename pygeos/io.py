@@ -4,12 +4,24 @@ from . import Geometry  # noqa
 from . import lib
 from . import geos_capi_version_string
 
-try:
-    from shapely.geos import geos_version_string as shapely_geos_version
-    from shapely.geometry.base import BaseGeometry as ShapelyGeometry
-except ImportError:
-    shapely_geos_version = None
-    ShapelyGeometry = None
+
+shapely_geos_version = None
+ShapelyGeometry = None
+_shapely_checked = False
+
+def check_shapely_version():
+    global shapely_geos_version
+    global ShapelyGeometry
+    global _shapely_checked
+
+    if not _shapely_checked:
+        try:
+            from shapely.geos import geos_version_string as shapely_geos_version
+            from shapely.geometry.base import BaseGeometry as ShapelyGeometry
+        except ImportError:
+            pass
+        
+        _shapely_checked = True
 
 
 __all__ = ["from_shapely", "from_wkb", "from_wkt", "to_wkb", "to_wkt"]
@@ -199,6 +211,8 @@ def from_shapely(geometry, **kwargs):
     >>> from_shapely(Point(1, 2))   # doctest: +SKIP
     <pygeos.Geometry POINT (1 2)>
     """
+    check_shapely_version()
+
     if shapely_geos_version is None:
         raise ImportError("This function requires shapely")
 
