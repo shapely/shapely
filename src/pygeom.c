@@ -10,8 +10,6 @@
 /* This initializes a global geometry type registry */
 PyObject *geom_registry[1] = {NULL};
 
-char* repr_fmt = "<pygeos.Geometry %s>";
-
 /* Initializes a new geometry object */
 PyObject *GeometryObject_FromGEOS(GEOSGeometry *ptr, GEOSContextHandle_t ctx)
 {
@@ -54,7 +52,7 @@ static PyMemberDef GeometryObject_members[] = {
     {NULL}  /* Sentinel */
 };
 
-static PyObject *GeometryObject_ToWKT(GeometryObject *obj, char *format)
+static PyObject *GeometryObject_ToWKT(GeometryObject *obj)
 {
     char *wkt;
     PyObject *result;
@@ -84,7 +82,7 @@ static PyObject *GeometryObject_ToWKT(GeometryObject *obj, char *format)
     if (last_error[0] != 0) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
 
     wkt = GEOSWKTWriter_write_r(ctx, writer, obj->ptr);
-    result = PyUnicode_FromFormat(format, wkt);
+    result = PyUnicode_FromString(wkt);
     GEOSFree_r(ctx, wkt);
     GEOSWKTWriter_destroy_r(ctx, writer);
 
@@ -99,18 +97,29 @@ static PyObject *GeometryObject_ToWKT(GeometryObject *obj, char *format)
 
 static PyObject *GeometryObject_repr(GeometryObject *self)
 {
-    PyObject *result = GeometryObject_ToWKT(self, repr_fmt);
+    PyObject *result, *wkt, *truncated;
+    
+    wkt = GeometryObject_ToWKT(self);
     // we never want a repr() to fail; that can be very confusing
-    if (result == NULL) {
+    if (wkt == NULL) {
         PyErr_Clear();
-        return PyUnicode_FromFormat(repr_fmt, "Exception in WKT writer");
+        return PyUnicode_FromString("<pygeos.Geometry Exception in WKT writer>");
     }
+    // the total length is limited to 80 characters
+    if (PyUnicode_GET_LENGTH(wkt) > 62) {
+        truncated = PyUnicode_Substring(wkt, 0, 59);
+        result = PyUnicode_FromFormat("<pygeos.Geometry %U...>", truncated);
+        Py_XDECREF(truncated);
+    } else {
+        result = PyUnicode_FromFormat("<pygeos.Geometry %U>", wkt);
+    }
+    Py_XDECREF(wkt);
     return result;
 }
 
 static PyObject *GeometryObject_str(GeometryObject *self)
 {
-    return GeometryObject_ToWKT(self, "%s");
+    return GeometryObject_ToWKT(self);
 }
 
 static Py_hash_t GeometryObject_hash(GeometryObject *self)

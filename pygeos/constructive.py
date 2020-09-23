@@ -114,7 +114,7 @@ def buffer(
     >>> buffer(Geometry("POINT (10 10)"), 2, quadsegs=1)
     <pygeos.Geometry POLYGON ((12 10, 10 8, 8 10, 10 12, 12 10))>
     >>> buffer(Geometry("POINT (10 10)"), 2, quadsegs=2)
-    <pygeos.Geometry POLYGON ((12 10, 11.4 8.59, 10 8, 8.59 8.59, 8 10, 8.59 11.4, 10 12, 11.4 11.4, 12 10))>
+    <pygeos.Geometry POLYGON ((12 10, 11.4 8.59, 10 8, 8.59 8.59, 8 10, 8.59 11....>
     >>> buffer(Geometry("POINT (10 10)"), -2, quadsegs=1)
     <pygeos.Geometry POLYGON EMPTY>
     >>> line = Geometry("LINESTRING (10 10, 20 10)")
@@ -126,11 +126,11 @@ def buffer(
     <pygeos.Geometry POLYGON ((20 10, 10 10, 10 12, 20 12, 20 10))>
     >>> line2 = Geometry("LINESTRING (10 10, 20 10, 20 20)")
     >>> buffer(line2, 2, cap_style="flat", join_style="bevel")
-    <pygeos.Geometry POLYGON ((18 12, 18 20, 22 20, 22 10, 20 8, 10 8, 10 12, 18 12))>
+    <pygeos.Geometry POLYGON ((18 12, 18 20, 22 20, 22 10, 20 8, 10 8, 10 12, 18...>
     >>> buffer(line2, 2, cap_style="flat", join_style="mitre")
     <pygeos.Geometry POLYGON ((18 12, 18 20, 22 20, 22 8, 10 8, 10 12, 18 12))>
     >>> buffer(line2, 2, cap_style="flat", join_style="mitre", mitre_limit=1)
-    <pygeos.Geometry POLYGON ((18 12, 18 20, 22 20, 21.8 9, 21 8.17, 10 8, 10 12, 18 12))>
+    <pygeos.Geometry POLYGON ((18 12, 18 20, 22 20, 21.8 9, 21 8.17, 10 8, 10 12...>
     >>> square = Geometry("POLYGON((0 0, 10 0, 10 10, 0 10, 0 0))")
     >>> buffer(square, 2, join_style="mitre")
     <pygeos.Geometry POLYGON ((-2 -2, -2 12, 12 12, 12 -2, -2 -2))>
@@ -233,7 +233,7 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     >>> delaunay_triangles(points)
     <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
     >>> delaunay_triangles(points, only_edges=True)
-    <pygeos.Geometry MULTILINESTRING ((50 30, 100 100), (50 30, 60 30), (60 30, 100 100))>
+    <pygeos.Geometry MULTILINESTRING ((50 30, 100 100), (50 30, 60 30), (60 30, ...>
     >>> delaunay_triangles(Geometry("MULTIPOINT (50 30, 51 30, 60 30, 100 100)"), tolerance=2)
     <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
     >>> delaunay_triangles(Geometry("POLYGON ((50 30, 60 30, 100 100, 50 30))"))
@@ -396,7 +396,7 @@ def simplify(geometry, tolerance, preserve_topology=False, **kwargs):
     <pygeos.Geometry LINESTRING (0 0, 0 20)>
     >>> polygon_with_hole = Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))")
     >>> simplify(polygon_with_hole, tolerance=4, preserve_topology=True)
-    <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))>
+    <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2...>
     >>> simplify(polygon_with_hole, tolerance=4, preserve_topology=False)
     <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
     """
@@ -460,7 +460,7 @@ def voronoi_polygons(
     --------
     >>> points = Geometry("MULTIPOINT (2 2, 4 2)")
     >>> voronoi_polygons(points)
-    <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((3 0, 0 0, 0 4, 3 4, 3 0)), POLYGON ((3 4, 6 4, 6 0, 3 0, 3 4)))>
+    <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((3 0, 0 0, 0 4, 3 4, 3 0)), PO...>
     >>> voronoi_polygons(points, only_edges=True)
     <pygeos.Geometry LINESTRING (3 4, 3 0)>
     >>> voronoi_polygons(Geometry("MULTIPOINT (2 2, 4 2, 4.2 2)"), 0.5, only_edges=True)
