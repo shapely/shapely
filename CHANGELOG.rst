@@ -6,6 +6,7 @@ Version 0.9 (unreleased)
 
 **Highlights of this release**
 
+* Added support for pickling to ``Geometry`` objects (#190)
 * Limited the length of geometry repr to 80 characters (#189)
 
 

@@ -109,6 +109,13 @@ def to_wkb(
     The Well-Known Binary format is defined in the `OGC Simple Features
     Specification for SQL <https://www.opengeospatial.org/standards/sfs>`__.
 
+    The following limitations apply to WKB serialization:
+
+    - linearrings will be converted to linestrings
+    - a point with only NaN coordinates is converted to an empty point
+    - empty points are transformed to 3D in GEOS < 3.8
+    - empty points are transformed to 2D in GEOS 3.8
+
     Parameters
     ----------
     geometry : Geometry or array_like

@@ -95,6 +95,63 @@ static PyObject *GeometryObject_ToWKT(GeometryObject *obj)
         }
 }
 
+
+static PyObject *GeometryObject_ToWKB(GeometryObject *obj)
+{
+    unsigned char *wkb = NULL;
+    char has_empty = 0;
+    size_t size;
+    PyObject *result = NULL;
+    GEOSGeometry *geom = NULL;
+    GEOSWKBWriter *writer = NULL;
+    if (obj->ptr == NULL) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
+    GEOS_INIT;
+
+    // WKB Does not allow empty points.
+    // We check for that and patch the POINT EMPTY if necessary
+    has_empty = has_point_empty(ctx, obj->ptr);
+    if (has_empty == 2) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
+    if (has_empty == 1) {
+        geom = point_empty_to_nan_all_geoms(ctx, obj->ptr);
+    } else {
+        geom = obj->ptr;
+    }
+
+    /* Create the WKB writer */
+    writer = GEOSWKBWriter_create_r(ctx);
+    if (writer == NULL) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
+    // Allow 3D output and include SRID
+    GEOSWKBWriter_setOutputDimension_r(ctx, writer, 3);
+    GEOSWKBWriter_setIncludeSRID_r(ctx, writer, 1);
+    // Check if the above functions caused a GEOS exception
+    if (last_error[0] != 0) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
+
+    wkb = GEOSWKBWriter_write_r(ctx, writer, geom, &size);
+    if (wkb == NULL) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
+
+    result = PyBytes_FromStringAndSize((char *) wkb, size);    
+
+    finish:
+    // Destroy the geom if it was patched (POINT EMPTY patch)
+    if (has_empty & (geom != NULL)) {
+        GEOSGeom_destroy_r(ctx, geom);
+    }
+    if (writer != NULL) {
+        GEOSWKBWriter_destroy_r(ctx, writer);
+    }
+    if (wkb != NULL) {
+        GEOSFree_r(ctx, wkb);
+    }
+
+    GEOS_FINISH;
+
+    return result;
+}
+
 static PyObject *GeometryObject_repr(GeometryObject *self)
 {
     PyObject *result, *wkt, *truncated;
@@ -122,40 +179,50 @@ static PyObject *GeometryObject_str(GeometryObject *self)
     return GeometryObject_ToWKT(self);
 }
 
+
+/* For pickling. To be used in GeometryObject->tp_reduce.
+ * reduce should return a a tuple of (callable, args).
+ * On unpickling, callable(*args) is called */
+static PyObject *GeometryObject_reduce(PyObject *self)
+{
+    Py_INCREF(self->ob_type);
+    return PyTuple_Pack(
+        2,
+        self->ob_type,
+        PyTuple_Pack(
+            1,
+            GeometryObject_ToWKB((GeometryObject *)self)
+        )
+    );
+}
+
+
+/* For lookups in sets / dicts.
+ * Python should be told how to generate a hash from the Geometry object. */
 static Py_hash_t GeometryObject_hash(GeometryObject *self)
 {
-    unsigned char *wkb;
-    size_t size;
+    PyObject *wkb = NULL;
     Py_hash_t x;
 
     if (self->ptr == NULL) {
         return -1;
     }
 
-    GEOS_INIT;
-    GEOSWKBWriter *writer = GEOSWKBWriter_create_r(ctx);
-    if (writer == NULL) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
+    // Transform to a WKB (PyBytes object)
+    wkb = GeometryObject_ToWKB(self);
+    if (wkb == NULL) { return -1; }
 
-    GEOSWKBWriter_setOutputDimension_r(ctx, writer, 3);
-    GEOSWKBWriter_setIncludeSRID_r(ctx, writer, 1);
-    wkb = GEOSWKBWriter_write_r(ctx, writer, self->ptr, &size);
-    GEOSWKBWriter_destroy_r(ctx, writer);
-    if (wkb == NULL) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
-    x = PyHash_GetFuncDef()->hash(wkb, size);
+    // Use the python built-in method to hash the PyBytes object
+    x = wkb->ob_type->tp_hash(wkb);
     if (x == -1) {
         x = -2;
     } else {
         x ^= 374761393UL;  // to make the result distinct from the actual WKB hash //
     }
-    GEOSFree_r(ctx, wkb);
 
-    finish:
-        GEOS_FINISH;
-        if (errstate == PGERR_SUCCESS) {
-            return x;
-        } else {
-            return -1;
-        }
+    Py_DECREF(wkb);
+
+    return x;
 }
 
 static PyObject *GeometryObject_richcompare(GeometryObject *self, PyObject *other, int op) {
@@ -229,6 +296,47 @@ static PyObject *GeometryObject_FromWKT(PyObject *value)
         }
 }
 
+static PyObject *GeometryObject_FromWKB(PyObject *value)
+{
+    PyObject *result = NULL;
+    unsigned char *wkb = NULL;
+    Py_ssize_t size;
+    GEOSGeometry *geom = NULL;
+    GEOSWKBReader *reader = NULL;
+
+    /* Cast the PyObject bytes to char* */
+    if (!PyBytes_Check(value)) {
+        PyErr_Format(PyExc_TypeError, "Expected bytes, found %s", value->ob_type->tp_name);
+        return NULL;
+    }
+    size = PyBytes_Size(value);
+    wkb = (unsigned char *)PyBytes_AsString(value);
+    if (wkb == NULL) { return NULL; }
+
+    GEOS_INIT;
+
+    reader = GEOSWKBReader_create_r(ctx);
+    if (reader == NULL) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
+    geom = GEOSWKBReader_read_r(ctx, reader, wkb, size);
+    if (geom == NULL) { errstate = PGERR_GEOS_EXCEPTION; goto finish; }
+
+    result = GeometryObject_FromGEOS(geom, ctx);
+    if (result == NULL) {
+        GEOSGeom_destroy_r(ctx, geom);
+        PyErr_Format(PyExc_RuntimeError, "Could not instantiate a new Geometry object");
+    }
+
+    finish:
+
+    if (reader != NULL) {
+        GEOSWKBReader_destroy_r(ctx, reader);
+    }
+
+    GEOS_FINISH;
+
+    return result;
+}
+
 static PyObject *GeometryObject_new(PyTypeObject *type, PyObject *args,
                                     PyObject *kwds)
 {
@@ -239,20 +347,22 @@ static PyObject *GeometryObject_new(PyTypeObject *type, PyObject *args,
     }
     else if (PyUnicode_Check(value)) {
         return GeometryObject_FromWKT(value);
-    }
-    else {
+    } else if (PyBytes_Check(value)) {
+        return GeometryObject_FromWKB(value);
+    } else {
         PyErr_Format(PyExc_TypeError, "Expected string, got %s", value->ob_type->tp_name);
         return NULL;
     }
 }
 
 static PyMethodDef GeometryObject_methods[] = {
+    {"__reduce__", (PyCFunction) GeometryObject_reduce, METH_NOARGS, "For pickling."},
     {NULL}  /* Sentinel */
 };
 
 PyTypeObject GeometryType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "pygeos.lib.GEOSGeometry",
+    .tp_name = "pygeos.lib.Geometry",
     .tp_doc = "Geometry type",
     .tp_basicsize = sizeof(GeometryObject),
     .tp_itemsize = 0,
