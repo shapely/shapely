@@ -69,13 +69,3 @@ def geos_geometrycollection_from_py(ob):
         subs[l] = geom
     
     return (lgeos.GEOSGeom_createCollection(7, subs, L), N)
-
-# Test runner
-def _test():
-    import doctest
-    doctest.testmod()
-
-
-if __name__ == "__main__":
-    _test()
-

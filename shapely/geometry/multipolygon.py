@@ -201,11 +201,3 @@ def geos_multipolygon_from_polygons(arg):
         subs[i] = cast(geom, c_void_p)
 
     return (lgeos.GEOSGeom_createCollection(6, subs, L), N)
-
-# Test runner
-def _test():
-    import doctest
-    doctest.testmod()
-
-if __name__ == "__main__":
-    _test()

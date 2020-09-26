@@ -225,7 +225,3 @@ class STRtree:
         result = ctypes.cast(item, ctypes.py_object).value
 
         return result
-
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()
