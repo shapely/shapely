@@ -92,7 +92,8 @@ class Point(BaseGeometry):
         """Return z coordinate."""
         if not pygeos.has_z(self):
             raise DimensionError("This point has no z coordinate.")
-        return pygeos.get_z(self)
+        # return pygeos.get_z(self) -> get_z only supported for GEOS 3.7+
+        return self.coords[0][2]
 
     @property
     def __geo_interface__(self):
