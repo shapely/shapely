@@ -67,7 +67,7 @@ class LinearRing(LineString):
             elif not coordinates.is_valid:
                 raise TopologicalError("An input LineString must be valid.")
             else:
-                # LineStrint
+                # LineString
                 # TODO convert LineString to LinearRing more directly?
                 coordinates = coordinates.coords
 

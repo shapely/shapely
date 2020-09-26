@@ -318,11 +318,11 @@ class BaseGeometry(pygeos.Geometry):
     @property
     def area(self):
         """Unitless area of the geometry (float)"""
-        return pygeos.area(self)
+        return float(pygeos.area(self))
 
     def distance(self, other):
         """Unitless distance to other geometry (float)"""
-        return pygeos.distance(self, other)
+        return float(pygeos.distance(self, other))
 
     def hausdorff_distance(self, other):
         """Unitless hausdorff distance to other geometry (float)"""
@@ -331,7 +331,7 @@ class BaseGeometry(pygeos.Geometry):
     @property
     def length(self):
         """Unitless length of the geometry (float)"""
-        return pygeos.length(self)
+        return float(pygeos.length(self))
 
     @property
     def minimum_clearance(self):
