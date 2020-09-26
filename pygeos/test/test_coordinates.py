@@ -6,6 +6,7 @@ from numpy.testing import assert_equal
 
 from .common import empty
 from .common import point
+from .common import empty_point
 from .common import point_z
 from .common import line_string
 from .common import line_string_z
@@ -105,6 +106,7 @@ def test_get_coords_3d(geoms, x, y, z, include_z):
     [
         ([], 0, False),
         ([empty], 0, False),
+        ([empty_point], 0, False),
         ([point, empty], 1, False),
         ([empty, point, empty], 1, False),
         ([point, None], 1, False),

@@ -28,7 +28,6 @@ __all__ = [
 class GeometryType(IntEnum):
     """The enumeration of GEOS geometry types"""
 
-    NAG = -1
     POINT = 0
     LINESTRING = 1
     LINEARRING = 2

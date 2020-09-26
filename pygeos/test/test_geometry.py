@@ -4,6 +4,7 @@ import pytest
 
 from .common import point
 from .common import point_nan
+from .common import empty_point
 from .common import line_string
 from .common import linear_ring
 from .common import polygon
@@ -191,7 +192,7 @@ def test_adapt_ptr_raises():
         point._ptr += 1
 
 
-@pytest.mark.parametrize("geom", all_types + (pygeos.points(np.nan, np.nan),))
+@pytest.mark.parametrize("geom", all_types + (pygeos.points(np.nan, np.nan), empty_point))
 def test_hash_same_equal(geom):
     assert hash(geom) == hash(pygeos.apply(geom, lambda x: x))
 

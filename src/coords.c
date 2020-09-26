@@ -109,6 +109,11 @@ static void *set_coordinates_simple(GEOSContextHandle_t context, GEOSGeometry *g
     double *x, *y;
     GEOSGeometry *ret;
 
+    /* Special case for POINT EMPTY (Point coordinate list cannot be 0-length) */
+    if ((type == 0) & (GEOSisEmpty_r(context, geom) == 1)) {
+        return GEOSGeom_createEmptyPoint_r(context);
+    }
+
     /* Investigate the current (const) CoordSequence */
     const GEOSCoordSequence *seq = GEOSGeom_getCoordSeq_r(context, geom);
     if (seq == NULL) { return NULL; }
