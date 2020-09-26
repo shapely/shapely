@@ -53,7 +53,6 @@ class CollectionOperator(object):
         for g in collection.geoms:
             clone = lgeos.GEOSGeom_clone(g._geom)
             g = geom_factory(clone)
-            g._other_owned = False
             yield g
 
     def polygonize_full(self, lines):

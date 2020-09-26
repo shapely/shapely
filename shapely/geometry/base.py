@@ -142,26 +142,11 @@ class BaseGeometry(pygeos.Geometry):
     #     Cached ctypes pointer to GEOS geometry. Not to be accessed.
     # _geom : c_void_p
     #     Property by which the GEOS geometry is accessed.
-    # __p__ : object
-    #     Parent (Shapely) geometry
     # _ndim : int
     #     Number of dimensions (2 or 3, generally)
-    # _crs : object
-    #     Coordinate reference system. Available for Shapely extensions, but
-    #     not implemented here.
-    # _other_owned : bool
-    #     True if this object's GEOS geometry is owned by another as in the
-    #     case of a multipart geometry member.
-    __p__ = None
-    _crs = None
-    _other_owned = False
-    _is_empty = True
 
     # Backend config
     impl = DefaultImplementation
-
-    # a reference to the so/dll proxy to preserve access during clean up
-    _lgeos = lgeos
 
     def __new__(self):
         # TODO create empty geometry - should we deprecate this constructor?
@@ -184,6 +169,9 @@ class BaseGeometry(pygeos.Geometry):
 
     def __nonzero__(self):
         return self.__bool__()
+
+    def __repr__(self):
+        return "<shapely.geometry.{} {} >".format(self.__class__.__name__, self.wkt)
 
     def __str__(self):
         return self.wkt
@@ -326,7 +314,7 @@ class BaseGeometry(pygeos.Geometry):
 
     def hausdorff_distance(self, other):
         """Unitless hausdorff distance to other geometry (float)"""
-        return pygeos.hausdorff_distance(self, other)
+        return float(pygeos.hausdorff_distance(self, other))
 
     @property
     def length(self):

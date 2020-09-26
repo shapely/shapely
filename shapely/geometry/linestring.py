@@ -47,7 +47,7 @@ class LineString(BaseGeometry):
             return pygeos.from_wkt("LINESTRING EMPTY")
         elif isinstance(coordinates, LineString):
             if type(coordinates) == LineString:
-                # TODO should we clone it?
+                # return original objects since geometries are immutable
                 return coordinates
             else:
                 # LinearRing

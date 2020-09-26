@@ -46,15 +46,6 @@ class Point(BaseGeometry):
         2) 2 or more parameters: x, y, z : float
             Easting, northing, and elevation.
         """
-        # BaseGeometry.__init__(self)
-        # if len(args) > 0:
-        #     if len(args) == 1:
-        #         self._geom, self._ndim = geos_point_from_py(args[0])
-
-        #     else:
-        #         self._geom, self._ndim = geos_point_from_py(tuple(args))
-        # # BaseGeometry.__init__(self)
-
         if len(args) == 0:
             # empty geometry
             # TODO better constructor
@@ -85,9 +76,6 @@ class Point(BaseGeometry):
         return geom
 
     # Coordinate getters and setters
-
-    def __repr__(self):
-        return "<shapely.geometry.Point {} >".format(self.wkt)
 
     @property
     def x(self):

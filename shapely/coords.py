@@ -25,18 +25,6 @@ class CoordinateSequence(object):
 
     """
 
-    # Attributes
-    # ----------
-    # _cseq : c_void_p
-    #     Ctypes pointer to GEOS coordinate sequence
-    # _ndim : int
-    #     Number of dimensions (2 or 3, generally)
-    # __p__ : object
-    #     Parent (Shapely) geometry
-    _cseq = None
-    _ndim = None
-    __p__ = None
-
     def __init__(self, coords):
         self._coords = coords
 

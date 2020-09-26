@@ -62,7 +62,7 @@ class LinearRing(LineString):
             return pygeos.from_wkt("LINEARRING EMPTY")
         elif isinstance(coordinates, LineString):
             if type(coordinates) == LinearRing:
-                # TODO should we clone it?
+                # return original objects since geometries are immutable
                 return coordinates
             elif not coordinates.is_valid:
                 raise TopologicalError("An input LineString must be valid.")
@@ -204,9 +204,6 @@ class Polygon(BaseGeometry):
         A sequence of rings which bound all existing holes.
     """
 
-    _exterior = None
-    _interiors = []
-
     def __new__(self, shell=None, holes=None):
         """
         Parameters
@@ -232,7 +229,7 @@ class Polygon(BaseGeometry):
             # TODO better way?
             return pygeos.from_wkt("POLYGON EMPTY")
         elif isinstance(shell, Polygon):
-            # TODO should we clone it?
+            # return original objects since geometries are immutable
             return shell
         # else:
         #     geom_shell = LinearRing(shell)
