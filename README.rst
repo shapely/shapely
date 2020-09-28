@@ -26,6 +26,11 @@ PyGEOS
 	:alt: PyPI
 	:target: https://badge.fury.io/py/pygeos
 
+.. Anaconda
+
+.. image:: https://anaconda.org/conda-forge/pygeos/badges/version.svg
+  :alt: Anaconda
+
 .. Zenodo
 
 .. image:: https://zenodo.org/badge/191151963.svg
@@ -58,33 +63,6 @@ Interpreter Lock (GIL) is released during function execution. Normally in Python
 GIL prevents multiple threads from computing at the same time. PyGEOS functions
 internally releases this constraint so that the heavy lifting done by GEOS can be
 done in parallel, from a single Python process.
-
-The Geometry object
--------------------
-
-The `pygeos.Geometry` object is a container of the actual GEOSGeometry object.
-The Geometry object keeps track of the underlying GEOSGeometry and
-allows the python garbage collector to free memory when it is not
-used anymore.
-
-`Geometry` objects are immutable. This means that after constructed, they cannot
-be changed inplace. Every PyGEOS operation will result in a new object being returned.
-
-Construct a Geometry from a WKT (Well-Known Text):
-
-.. code:: python
-
-  >>> from pygeos import Geometry
-
-  >>> geometry = Geometry("POINT (5.2 52.1)")
-
-Or using one of the provided (vectorized) functions:
-
-.. code:: python
-
-  >>> from pygeos import points
-
-  >>> point = points([(5.2, 52.1), (5.1, 52.2)]]
 
 Examples
 --------

@@ -13,15 +13,15 @@ API Reference
    :caption: Contents:
 
    installation
-   io
-   creation
    geometry
+   creation
+   io
    measurement
-   coordinates
    predicates
    set_operations
    constructive
    linear
+   coordinates
    strtree
    changelog
 

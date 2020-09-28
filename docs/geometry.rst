@@ -1,8 +1,8 @@
 Geometry
 ========
 
-The `pygeos.Geometry` class is the central datatype in PyGEOS. 
-An instance of `pygeos.Geometry` is a container of the actual GEOSGeometry object.
+The ``pygeos.Geometry`` class is the central datatype in PyGEOS. 
+An instance of ``Geometry`` is a container of the actual GEOSGeometry object.
 The Geometry object keeps track of the underlying GEOSGeometry and
 lets the python garbage collector free its memory when it is not
 used anymore.
@@ -14,7 +14,7 @@ Construction
 ~~~~~~~~~~~~
 
 For convenience, the ``Geometry`` class can be constructed with a WKT (Well-Known Text)
-or WKB (Well-Known Binary) representation of your geometry:
+or WKB (Well-Known Binary) representation of a geometry:
 
 .. code:: python
 
@@ -35,7 +35,7 @@ Geometries can be serialized using pickle:
   >>> pickle.loads(point_1)
   <pygeos.Geometry POINT (5.2 52.1)>
 
-.. warning:: Pickling is not supported for linearrings and empty points.
+.. warning:: Pickling will convert linearrings to linestrings and it may convert empty points.
              See :func:`pygeos.io.to_wkb` for a complete list of limitations.
 
 Hashing
@@ -52,7 +52,7 @@ Therefore, geometries are equal if and only if their WKB representations are equ
   >>> {point_1, point_2, point_3}
   {<pygeos.Geometry POINT (5.2 52.1)>, <pygeos.Geometry POINT (1 1)>}
 
-.. warning:: Due to limitations of WKB, linearrings will equal linearrings if they contain the exact same points.
+.. warning:: Due to limitations of WKB, linearrings will equal linestrings if they contain the exact same points.
              Also, different kind of empty points will be considered equal. See :func:`pygeos.io.to_wkb`.
 
 Comparing two geometries directly is also supported.
@@ -67,8 +67,8 @@ This is the same as using :func:`pygeos.predicates.equals_exact` with a ``tolera
 Properties
 ~~~~~~~~~~
 
-Geometry objects have no attributes or properties.
-Instead, use functions listed below to obtain information about geometry objects.
+Geometry objects have neither properties nor methods.
+Instead, use the functions listed below to obtain information about geometry objects.
 
 .. automodule:: pygeos.geometry
    :members:
