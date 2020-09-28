@@ -21,11 +21,14 @@ if "all" in sys.warnoptions:
 def get_geos_config(option):
     """Get configuration option from the `geos-config` development utility
 
-    The PATH environment variable should include the path where geos-config is located.
+    The PATH environment variable should include the path where geos-config is
+    located, or the GEOS_CONFIG environment variable should point to the
+    executable.
     """
+    cmd = os.environ.get('GEOS_CONFIG', 'geos-config')
     try:
         stdout, stderr = subprocess.Popen(
-            ["geos-config", option], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            [cmd, option], stdout=subprocess.PIPE, stderr=subprocess.PIPE
         ).communicate()
     except OSError:
         return
