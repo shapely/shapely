@@ -90,6 +90,36 @@ static char GEOSisClosedAllTypes_r(void *context, void *geom) {
 }
 static void *is_closed_data[1] = {GEOSisClosedAllTypes_r};
 static void *is_valid_data[1] = {GEOSisValid_r};
+
+#if GEOS_SINCE_3_7_0
+static char GEOSGeom_isCCW_r(void *context, void *geom) {
+    const GEOSCoordSequence *coord_seq;
+    char is_ccw = 2;  // return value of 2 means GEOSException
+    int i;
+
+    // Return False for non-linear geometries
+    i = GEOSGeomTypeId_r(context, geom);
+    if (i == -1) { return 2; }
+    if ((i != GEOS_LINEARRING) & (i != GEOS_LINESTRING)) {
+        return 0;
+    }
+
+    // Return False for lines with fewer than 4 points
+    i = GEOSGeomGetNumPoints_r(context, geom);
+    if (i == -1) { return 2; }
+    if (i < 4) {
+        return 0;
+    }
+
+    // Get the coordinatesequence and call isCCW()
+    coord_seq = GEOSGeom_getCoordSeq_r(context, geom);
+    if (coord_seq == NULL) {return 2; }
+    if (!GEOSCoordSeq_isCCW_r(context, coord_seq, &is_ccw)) { return 2; }
+    return is_ccw;
+}
+static void *is_ccw_data[1] = {GEOSGeom_isCCW_r};
+#endif
+
 typedef char FuncGEOS_Y_b(void *context, void *a);
 static char Y_b_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
 static void Y_b_func(char **args, npy_intp *dimensions,
@@ -2009,6 +2039,7 @@ int init_ufuncs(PyObject *m, PyObject *d)
     DEFINE_CUSTOM (from_shapely, 1);
 
     #if GEOS_SINCE_3_7_0
+      DEFINE_Y_b (is_ccw);
       DEFINE_Y_d (get_z);
       DEFINE_YY_d (frechet_distance);
       DEFINE_YYd_d (frechet_distance_densify);

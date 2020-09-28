@@ -1,8 +1,9 @@
 import pytest
 import pygeos
+from pygeos import Geometry
 import numpy as np
 
-from .common import point, all_types
+from .common import point, all_types, polygon, geometry_collection
 
 UNARY_PREDICATES = (
     pygeos.is_empty,
@@ -13,6 +14,7 @@ UNARY_PREDICATES = (
     pygeos.is_missing,
     pygeos.is_geometry,
     pygeos.is_valid_input,
+    pytest.param(pygeos.is_ccw, marks=pytest.mark.skipif(pygeos.geos_version < (3, 7, 0), reason="GEOS < 3.7")),
 )
 
 BINARY_PREDICATES = (
@@ -103,3 +105,20 @@ def test_relate():
 @pytest.mark.parametrize("g1, g2", [(point, None), (None, point), (None, None)])
 def test_relate_none(g1, g2):
     assert pygeos.relate(g1, g2) is None
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 7, 0), reason="GEOS < 3.7")
+@pytest.mark.parametrize("geom, expected", [
+    (Geometry("LINEARRING (0 0, 0 1, 1 1, 0 0)"), False),
+    (Geometry("LINEARRING (0 0, 1 1, 0 1, 0 0)"), True),
+    (Geometry("LINESTRING (0 0, 0 1, 1 1, 0 0)"), False),
+    (Geometry("LINESTRING (0 0, 1 1, 0 1, 0 0)"), True),
+    (Geometry("LINESTRING (0 0, 1 1, 0 1)"), False),
+    (Geometry("LINESTRING (0 0, 0 1, 1 1)"), False),
+    (point, False),
+    (polygon, False),
+    (geometry_collection, False),
+    (None, False),
+])
+def test_is_ccw(geom, expected):
+    assert pygeos.is_ccw(geom) == expected
