@@ -43,9 +43,8 @@ matrix:
 before_install:
   - ./ci/travis/install_geos.sh
   - pip install --upgrade pip
-  - export PATH=$HOME/geosinstall/geos-$GEOSVERSION/bin/geos-config:$PATH
   - export GEOS_CONFIG=$HOME/geosinstall/geos-$GEOSVERSION/bin/geos-config
-  - pip install git+https://github.com/pygeos/pygeos.git@setup-geos-config -v
+  - pip install git+https://github.com/pygeos/pygeos.git -v
   # if building with speedups install cython
   - if [ "$SPEEDUPS" == "1" ]; then pip install --install-option="--no-cython-compile" cython; fi
   # if testing without numpy explicitly remove it
