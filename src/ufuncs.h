@@ -3,7 +3,6 @@
 
 #include <Python.h>
 
-
-extern int init_ufuncs(PyObject *m, PyObject *d);
+extern int init_ufuncs(PyObject* m, PyObject* d);
 
 #endif
