@@ -28,6 +28,7 @@ __all__ = [
 class GeometryType(IntEnum):
     """The enumeration of GEOS geometry types"""
 
+    MISSING = -1
     POINT = 0
     LINESTRING = 1
     LINEARRING = 2
@@ -45,7 +46,7 @@ class GeometryType(IntEnum):
 def get_type_id(geometry):
     """Returns the type ID of a geometry.
 
-    - None is -1
+    - None (missing) is -1
     - POINT is 0
     - LINESTRING is 1
     - LINEARRING is 2
