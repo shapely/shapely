@@ -47,7 +47,8 @@ class CoordinateSequence(object):
     def __len__(self):
         self._update()
         cs_len = c_uint(0)
-        lgeos.GEOSCoordSeq_getSize(self._cseq, byref(cs_len))
+        if self._cseq:
+            lgeos.GEOSCoordSeq_getSize(self._cseq, byref(cs_len))
         return cs_len.value
 
     def __iter__(self):

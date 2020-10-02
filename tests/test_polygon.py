@@ -5,6 +5,7 @@ from . import unittest, numpy, shapely20_deprecated
 
 import pytest
 
+from shapely.coords import CoordinateSequence
 from shapely.wkb import loads as load_wkb
 from shapely.errors import TopologicalError, ShapelyDeprecationWarning
 from shapely.geos import lgeos
@@ -76,10 +77,12 @@ def test_linearring_from_generator():
 def test_linearring_from_empty():
     ring = LinearRing()
     assert ring.is_empty
+    assert isinstance(ring.coords, CoordinateSequence)
     assert ring.coords[:] == []
 
     ring = LinearRing([])
     assert ring.is_empty
+    assert isinstance(ring.coords, CoordinateSequence)
     assert ring.coords[:] == []
 
 
@@ -98,11 +101,11 @@ def test_polygon_from_coordinate_sequence():
     # Construct a polygon, exterior ring only
     polygon = Polygon(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0)))
     assert polygon.exterior.coords[:] == coords
-    assert len(polygon.interiors) ==  0
+    assert len(polygon.interiors) == 0
 
     polygon = Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0)])
     assert polygon.exterior.coords[:] == coords
-    assert len(polygon.interiors) ==  0
+    assert len(polygon.interiors) == 0
 
 
 def test_polygon_from_coordinate_sequence_with_holes():
@@ -122,7 +125,7 @@ def test_polygon_from_linearring():
 
     polygon = Polygon(ring)
     assert polygon.exterior.coords[:] == coords
-    assert len(polygon.interiors) ==  0
+    assert len(polygon.interiors) == 0
 
 
 def test_polygon_from_polygon():

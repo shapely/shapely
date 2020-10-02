@@ -302,8 +302,6 @@ class BaseGeometry(object):
 
     def _get_coords(self):
         """Access to geometry's coordinates (CoordinateSequence)"""
-        if self.is_empty:
-            return []
         return CoordinateSequence(self)
 
     def _set_coords(self, ob):
@@ -854,7 +852,7 @@ class BaseMultipartGeometry(BaseGeometry):
         """
         warn(
             "Iteration over multi-part geometries is deprecated and will be removed in "
-            "Shapely 2.0. Use the `geoms` property to access the constituent parts of " 
+            "Shapely 2.0. Use the `geoms` property to access the constituent parts of "
             "a multi-part geometry.", ShapelyDeprecationWarning, stacklevel=2)
         if not self.is_empty:
             return iter(self.geoms)
@@ -876,7 +874,7 @@ class BaseMultipartGeometry(BaseGeometry):
         """
         warn(
             "__getitem__ for multi-part geometries is deprecated and will be removed in "
-            "Shapely 2.0. Use the `geoms` property to access the constituent parts of " 
+            "Shapely 2.0. Use the `geoms` property to access the constituent parts of "
             "a multi-part geometry.", ShapelyDeprecationWarning, stacklevel=2)
         if not self.is_empty:
             return self.geoms[index]

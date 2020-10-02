@@ -1,6 +1,7 @@
 from . import unittest, numpy, shapely20_deprecated
 import pytest
 
+from shapely.coords import CoordinateSequence
 from shapely.errors import ShapelyDeprecationWarning
 from shapely.geometry import LineString, asLineString, Point, LinearRing
 
@@ -69,10 +70,12 @@ def test_from_generator():
 def test_from_empty():
     line = LineString()
     assert line.is_empty
+    assert isinstance(line.coords, CoordinateSequence)
     assert line.coords[:] == []
 
     line = LineString([])
     assert line.is_empty
+    assert isinstance(line.coords, CoordinateSequence)
     assert line.coords[:] == []
 
 
