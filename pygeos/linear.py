@@ -1,11 +1,14 @@
+from warnings import warn
+
 from . import lib
 from . import Geometry  # NOQA
 from .decorators import multithreading_enabled
 
 __all__ = ["line_interpolate_point", "line_locate_point", "line_merge", "shared_paths"]
 
+
 @multithreading_enabled
-def line_interpolate_point(line, distance, normalize=False):
+def line_interpolate_point(line, distance, normalized=False, **kwargs):
     """Returns a point interpolated at given distance on a line.
 
     Parameters
@@ -14,8 +17,8 @@ def line_interpolate_point(line, distance, normalize=False):
     distance : float or array_like
         Negative values measure distance from the end of the line. Out-of-range
         values will be clipped to the line endings.
-    normalize : bool
-        If normalize is set to True, the distance is a fraction of the total
+    normalized : bool
+        If normalized is set to True, the distance is a fraction of the total
         line length instead of the absolute distance.
 
     Examples
@@ -27,19 +30,22 @@ def line_interpolate_point(line, distance, normalize=False):
     <pygeos.Geometry POINT (0 10)>
     >>> line_interpolate_point(line, -2)
     <pygeos.Geometry POINT (0 8)>
-    >>> line_interpolate_point(line, [0.25, -0.25], normalize=True).tolist()
+    >>> line_interpolate_point(line, [0.25, -0.25], normalized=True).tolist()
     [<pygeos.Geometry POINT (0 4)>, <pygeos.Geometry POINT (0 8)>]
     >>> line_interpolate_point(Geometry("LINESTRING EMPTY"), 1)
     <pygeos.Geometry POINT EMPTY>
     """
-    if normalize:
+    if "normalize" in kwargs:
+        warn("argument 'normalize' is deprecated; use 'normalized'", DeprecationWarning)
+        normalized = kwargs.pop("normalize")
+    if normalized:
         return lib.line_interpolate_point_normalized(line, distance)
     else:
         return lib.line_interpolate_point(line, distance)
 
 
 @multithreading_enabled
-def line_locate_point(line, other, normalize=False):
+def line_locate_point(line, other, normalized=False, **kwargs):
     """Returns the distance to the line origin of given point.
 
     If given point does not intersect with the line, the point will first be
@@ -49,8 +55,8 @@ def line_locate_point(line, other, normalize=False):
     ----------
     line : Geometry or array_like
     point : Geometry or array_like
-    normalize : bool
-        If normalize is set to True, the distance is a fraction of the total
+    normalized : bool
+        If normalized is set to True, the distance is a fraction of the total
         line length instead of the absolute distance.
 
     Examples
@@ -58,17 +64,21 @@ def line_locate_point(line, other, normalize=False):
     >>> line = Geometry("LINESTRING(0 2, 0 10)")
     >>> line_locate_point(line, Geometry("POINT(4 4)"))
     2.0
-    >>> line_locate_point(line, Geometry("POINT(4 4)"), normalize=True)
+    >>> line_locate_point(line, Geometry("POINT(4 4)"), normalized=True)
     0.25
     >>> line_locate_point(line, Geometry("POINT(0 18)"))
     8.0
     >>> line_locate_point(Geometry("LINESTRING EMPTY"), Geometry("POINT(4 4)"))
     nan
     """
-    if normalize:
+    if "normalize" in kwargs:
+        warn("argument 'normalize' is deprecated; use 'normalized'", DeprecationWarning)
+        normalized = kwargs.pop("normalize")
+    if normalized:
         return lib.line_locate_point_normalized(line, other)
     else:
         return lib.line_locate_point(line, other)
+
 
 @multithreading_enabled
 def line_merge(line):

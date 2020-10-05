@@ -9,6 +9,8 @@ Version 0.9 (unreleased)
 * Addition of a ``is_ccw()`` function for GEOS >= 3.7 (#201)
 * Added support for pickling to ``Geometry`` objects (#190)
 * Limited the length of geometry repr to 80 characters (#189)
+* Argument in ``line_interpolate_point`` and ``line_locate_point``
+  was renamed from ``normalize`` to ``normalized`` (#209)
 
 
 Version 0.8 (2020-09-06)
