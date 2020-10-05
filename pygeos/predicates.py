@@ -133,7 +133,7 @@ def is_empty(geometry, **kwargs):
     """
     return lib.is_empty(geometry, **kwargs)
 
-
+@multithreading_enabled
 def is_geometry(geometry, **kwargs):
     """Returns True if the object is a geometry
 
@@ -159,7 +159,7 @@ def is_geometry(geometry, **kwargs):
     """
     return lib.is_geometry(geometry, **kwargs)
 
-
+@multithreading_enabled
 def is_missing(geometry, **kwargs):
     """Returns True if the object is not a geometry (None)
 
@@ -186,7 +186,7 @@ def is_missing(geometry, **kwargs):
     """
     return lib.is_missing(geometry, **kwargs)
 
-
+@multithreading_enabled
 def is_valid_input(geometry, **kwargs):
     """Returns True if the object is a geometry or None
 

@@ -165,24 +165,33 @@ static PyUFuncGenericFunction Y_b_funcs[1] = {&Y_b_func};
 
 /* Define the object -> bool functions (O_b) which do not raise on non-geom objects*/
 static char IsMissing(void* context, PyObject* obj) {
-  return ((PyObject*)obj == Py_None);
+  GEOSGeometry* g = NULL;
+  if (!get_geom((GeometryObject *) obj, &g)) {
+    return 0;
+  };
+  return g == NULL;  // get_geom sets g to NULL for None input
 }
 static void* is_missing_data[1] = {IsMissing};
 static char IsGeometry(void* context, PyObject* obj) {
-  return (PyObject_IsInstance(obj, (PyObject*)&GeometryType));
+  GEOSGeometry* g = NULL;
+  if (!get_geom((GeometryObject *) obj, &g)) {
+    return 0;
+  }
+  return g != NULL;
 }
 static void* is_geometry_data[1] = {IsGeometry};
 static char IsValidInput(void* context, PyObject* obj) {
-  return (IsGeometry(context, obj) | IsMissing(context, obj));
+  GEOSGeometry* g = NULL;
+  return get_geom((GeometryObject *) obj, &g);
 }
 static void* is_valid_input_data[1] = {IsValidInput};
 typedef char FuncGEOS_O_b(void* context, PyObject* obj);
 static char O_b_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
 static void O_b_func(char** args, npy_intp* dimensions, npy_intp* steps, void* data) {
   FuncGEOS_O_b* func = (FuncGEOS_O_b*)data;
-  GEOS_INIT;
+  GEOS_INIT_THREADS;
   UNARY_LOOP { *(npy_bool*)op1 = func(ctx, *(PyObject**)ip1); }
-  GEOS_FINISH;
+  GEOS_FINISH_THREADS;
 }
 static PyUFuncGenericFunction O_b_funcs[1] = {&O_b_func};
 

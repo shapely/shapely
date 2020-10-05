@@ -318,3 +318,11 @@ def test_subclasses(with_point_in_registry):
         assert isinstance(point, Point)
         assert pygeos.get_type_id(point) == pygeos.GeometryType.POINT
         assert point.x == 1
+
+
+def test_subclass_is_geometry(with_point_in_registry):
+    assert pygeos.is_geometry(Point("POINT (1 1)"))
+
+
+def test_subclass_is_valid_input(with_point_in_registry):
+    assert pygeos.is_valid_input(Point("POINT (1 1)"))
