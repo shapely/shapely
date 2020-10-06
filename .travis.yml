@@ -89,7 +89,7 @@ before_install:
   - if [ "$NUMPY" == "0" ]; then pip uninstall --yes numpy; fi
   # convert SPEEDUPS to --with-speedups/--without-speedups
   - if [ "$SPEEDUPS" == "1" ]; then SPEEDUPS_FLAG=--with-speedups; else SPEEDUPS_FLAG=--without-speedups; fi
-  - pip install --upgrade coveralls pytest-cov pytest>=3.8
+  - pip install --upgrade coveralls matplotlib pytest-cov pytest>=3.8
 
 install:
   - export GEOS_CONFIG=$HOME/geosinstall/geos-$GEOSVERSION/bin/geos-config
