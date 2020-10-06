@@ -569,9 +569,9 @@ class BaseGeometry(object):
         >>> from shapely.wkt import loads
         >>> g = loads('POINT (0.0 0.0)')
         >>> g.buffer(1.0).area        # 16-gon approx of a unit radius circle
-        3.1365484905459389
+        3.136548490545939
         >>> g.buffer(1.0, 128).area   # 128-gon approximation
-        3.1415138011443009
+        3.141513801144299
         >>> g.buffer(1.0, 3).area     # triangle approximation
         3.0
         >>> list(g.buffer(1.0, cap_style=CAP_STYLE.square).exterior.coords)

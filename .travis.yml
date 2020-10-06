@@ -100,6 +100,7 @@ script:
   - export DYLD_LIBRARY_PATH=$HOME/geosinstall/geos-$GEOSVERSION/lib
   - python -c "from shapely.geos import geos_version; print(geos_version)"
   - python -m pytest --cov shapely --cov-report term-missing "${SPEEDUPS_FLAG}"
+  - python -m pytest shapely --doctest-modules
 
 after_success:
   - coveralls || echo "!! intermittent coveralls failure"

@@ -16,10 +16,10 @@ __all__ = ['MultiPolygon', 'asMultiPolygon']
 class MultiPolygon(BaseMultipartGeometry):
 
     """A collection of one or more polygons
-    
+
     If component polygons overlap the collection is `invalid` and some
     operations on it may fail.
-    
+
     Attributes
     ----------
     geoms : sequence
@@ -39,9 +39,10 @@ class MultiPolygon(BaseMultipartGeometry):
         -------
         Construct a collection from a sequence of coordinate tuples
 
+          >>> from shapely.geometry import Polygon
           >>> ob = MultiPolygon( [
           ...     (
-          ...     ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)), 
+          ...     ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)),
           ...     [((0.1,0.1), (0.1,0.2), (0.2,0.2), (0.2,0.1))]
           ...     )
           ... ] )
@@ -98,7 +99,7 @@ class MultiPolygon(BaseMultipartGeometry):
 
 
 class MultiPolygonAdapter(CachingGeometryProxy, MultiPolygon):
-    
+
     context = None
     _other_owned = False
 
@@ -137,7 +138,7 @@ def geos_multipolygon_from_py(ob):
     """ob must provide Python geo interface coordinates."""
     L = len(ob)
     assert L >= 1
-    
+
     N = len(ob[0][0][0])
     assert N == 2 or N == 3
 
@@ -184,7 +185,7 @@ def geos_multipolygon_from_polygons(arg):
         N = len(exemplar[0][0])
     except TypeError:
         N = exemplar._ndim
-    
+
     assert N == 2 or N == 3
 
     subs = (c_void_p * L)()

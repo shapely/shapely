@@ -26,11 +26,12 @@ class GeometryCollection(BaseMultipartGeometry):
         ----------
         geoms : list
             A list of shapely geometry instances, which may be heterogenous.
-        
+
         Example
         -------
         Create a GeometryCollection with a Point and a LineString
-        
+
+          >>> from shapely.geometry import LineString, Point
           >>> p = Point(51, -1)
           >>> l = LineString([(52, -1), (49, 2)])
           >>> gc = GeometryCollection([p, l])
@@ -67,5 +68,5 @@ def geos_geometrycollection_from_py(ob):
             N = 3
         geom, n = geos_geom_from_py(ob[l])
         subs[l] = geom
-    
+
     return (lgeos.GEOSGeom_createCollection(7, subs, L), N)
