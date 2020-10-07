@@ -282,6 +282,62 @@ char check_to_wkt_compatible(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
   }
 }
 
+/* GEOSInterpolate_r and GEOSInterpolateNormalized_r segfault on empty
+ * geometries and also on collections with the first geometry empty.
+ * 
+ * This function returns:
+ * - PGERR_GEOMETRY_TYPE on non-linear geometries
+ * - PGERR_EMPTY_GEOMETRY on empty linear geometries
+ * - PGERR_EXCEPTIONS on GEOS exceptions
+ * - PGERR_SUCCESS on a non-empty and linear geometry
+ * 
+ * Note that GEOS 3.8 fixed this situation for empty LINESTRING/LINEARRING,
+ * but it still segfaults on other empty geometries.
+ */
+char geos_interpolate_checker(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
+  char type;
+  char is_empty;
+  const GEOSGeometry* sub_geom;
+
+  // Check if the geometry is linear
+  type = GEOSGeomTypeId_r(ctx, geom);
+  if (type == -1) {
+    return PGERR_GEOS_EXCEPTION;
+  } else if ((type == GEOS_POINT) | (type == GEOS_POLYGON) | (type == GEOS_MULTIPOINT) |
+             (type == GEOS_MULTIPOLYGON)) {
+    return PGERR_GEOMETRY_TYPE;
+  }
+
+  // Check if the geometry is empty
+  is_empty = GEOSisEmpty_r(ctx, geom);
+  if (is_empty == 1) {
+    return PGERR_EMPTY_GEOMETRY;
+  } else if (is_empty == 2) {
+    return PGERR_GEOS_EXCEPTION;
+  }
+
+  // For collections: also check the type and emptyness of the first geometry
+  if ((type == GEOS_MULTILINESTRING) | (type == GEOS_GEOMETRYCOLLECTION)) {
+    sub_geom = GEOSGetGeometryN_r(ctx, geom, 0);
+    if (sub_geom == NULL) {
+      return PGERR_GEOS_EXCEPTION;  // GEOSException
+    }
+    type = GEOSGeomTypeId_r(ctx, sub_geom);
+    if (type == -1) {
+      return PGERR_GEOS_EXCEPTION;
+    } else if ((type != GEOS_LINESTRING) & (type != GEOS_LINEARRING)) {
+      return PGERR_GEOMETRY_TYPE;
+    }
+    is_empty = GEOSisEmpty_r(ctx, sub_geom);
+    if (is_empty == 1) {
+      return PGERR_EMPTY_GEOMETRY;
+    } else if (is_empty == 2) {
+      return PGERR_GEOS_EXCEPTION;
+    }
+  }
+  return PGERR_SUCCESS;
+}
+
 /* Define GEOS error handlers. See GEOS_INIT / GEOS_FINISH macros in geos.h*/
 void geos_error_handler(const char* message, void* userdata) {
   snprintf(userdata, 1024, "%s", message);

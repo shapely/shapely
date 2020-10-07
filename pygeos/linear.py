@@ -14,6 +14,9 @@ def line_interpolate_point(line, distance, normalized=False, **kwargs):
     Parameters
     ----------
     line : Geometry or array_like
+        For multilinestrings or geometrycollections, the first geometry is taken
+        and the rest is ignored. This function raises a TypeError for non-linear
+        geometries. For empty linear geometries, empty points are returned.
     distance : float or array_like
         Negative values measure distance from the end of the line. Out-of-range
         values will be clipped to the line endings.

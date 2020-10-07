@@ -48,7 +48,8 @@ enum {
   PGERR_GEOS_EXCEPTION,
   PGERR_NO_MALLOC,
   PGERR_GEOMETRY_TYPE,
-  PGERR_MULTIPOINT_WITH_POINT_EMPTY
+  PGERR_MULTIPOINT_WITH_POINT_EMPTY,
+  PGERR_EMPTY_GEOMETRY
 };
 
 // Define how the states are handled by CPython
@@ -78,6 +79,9 @@ enum {
       PyErr_SetString(PyExc_ValueError,                                                  \
                       "WKT output of multipoints with an empty point is unsupported on " \
                       "this version of GEOS.");                                          \
+      break;                                                                             \
+    case PGERR_EMPTY_GEOMETRY:                                                           \
+      PyErr_SetString(PyExc_ValueError, "One of the Geometry inputs is empty.");         \
       break;                                                                             \
     default:                                                                             \
       PyErr_Format(PyExc_RuntimeError,                                                   \
@@ -127,6 +131,7 @@ extern char has_point_empty(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 extern GEOSGeometry* point_empty_to_nan_all_geoms(GEOSContextHandle_t ctx,
                                                   GEOSGeometry* geom);
 extern char check_to_wkt_compatible(GEOSContextHandle_t ctx, GEOSGeometry* geom);
+extern char geos_interpolate_checker(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 
 extern int init_geos(PyObject* m);
 
