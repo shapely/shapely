@@ -102,7 +102,6 @@ script:
   - python -m pytest --cov shapely --cov-report term-missing "${SPEEDUPS_FLAG}"
   - if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" && "$NUMPY" == "1" && "$SPEEDUPS" == "1" ]]; then python -m pytest shapely --doctest-modules; fi
 
-
 after_success:
   - coveralls || echo "!! intermittent coveralls failure"
 
