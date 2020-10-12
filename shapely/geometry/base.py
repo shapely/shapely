@@ -569,9 +569,9 @@ class BaseGeometry(object):
         >>> from shapely.wkt import loads
         >>> g = loads('POINT (0.0 0.0)')
         >>> g.buffer(1.0).area        # 16-gon approx of a unit radius circle
-        3.1365484905459389
+        3.1365484905459384
         >>> g.buffer(1.0, 128).area   # 128-gon approximation
-        3.1415138011443009
+        3.141513801144299
         >>> g.buffer(1.0, 3).area     # triangle approximation
         3.0
         >>> list(g.buffer(1.0, cap_style=CAP_STYLE.square).exterior.coords)
@@ -854,7 +854,7 @@ class BaseMultipartGeometry(BaseGeometry):
         """
         warn(
             "Iteration over multi-part geometries is deprecated and will be removed in "
-            "Shapely 2.0. Use the `geoms` property to access the constituent parts of " 
+            "Shapely 2.0. Use the `geoms` property to access the constituent parts of "
             "a multi-part geometry.", ShapelyDeprecationWarning, stacklevel=2)
         if not self.is_empty:
             return iter(self.geoms)
@@ -876,7 +876,7 @@ class BaseMultipartGeometry(BaseGeometry):
         """
         warn(
             "__getitem__ for multi-part geometries is deprecated and will be removed in "
-            "Shapely 2.0. Use the `geoms` property to access the constituent parts of " 
+            "Shapely 2.0. Use the `geoms` property to access the constituent parts of "
             "a multi-part geometry.", ShapelyDeprecationWarning, stacklevel=2)
         if not self.is_empty:
             return self.geoms[index]

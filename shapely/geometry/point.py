@@ -27,7 +27,7 @@ class Point(BaseGeometry):
     -------
       >>> p = Point(1.0, -1.0)
       >>> print(p)
-      POINT (1.0000000000000000 -1.0000000000000000)
+      POINT (1 -1)
       >>> p.y
       -1.0
       >>> p.x

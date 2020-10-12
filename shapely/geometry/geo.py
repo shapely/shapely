@@ -216,7 +216,7 @@ def mapping(ob):
     Example
     -------
     >>> pt = Point(0, 0)
-    >>> mapping(p)
+    >>> mapping(pt)
     {'type': 'Point', 'coordinates': (0.0, 0.0)}
     """
     return ob.__geo_interface__
