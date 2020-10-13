@@ -59,9 +59,12 @@ build_script:
   - pip install -r requirements-dev.txt
 
   - ps: 'Write-Host "Installing PyGEOS" -ForegroundColor Magenta'
+  - set GEOS_LIBRARY_PATH=%GEOSINSTALL%\lib
+  - set GEOS_INCLUDE_PATH=%GEOSINSTALL%\include
   - pip install git+https://github.com/pygeos/pygeos.git -v
 
   - ps: 'Write-Host "Building extension" -ForegroundColor Magenta'
+  - set GEOS_LIBRARY_PATH=%GEOSINSTALL%\bin\geos_c.dll
   - python setup.py build_ext --inplace -I%CYTHONPF%\\include -lgeos_c -L%CYTHONPF%\\lib
 
   - ps: 'Write-Host "Running pytest" -ForegroundColor Magenta'
