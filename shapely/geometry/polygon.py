@@ -10,7 +10,7 @@ import weakref
 import numpy as np
 import pygeos
 
-from shapely.algorithms.cga import signed_area
+from shapely.algorithms.cga import signed_area, is_ccw_impl
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, geos_geom_from_py
 from shapely.geometry.linestring import LineString
@@ -109,8 +109,7 @@ class LinearRing(LineString):
     @property
     def is_ccw(self):
         """True is the ring is oriented counter clock-wise"""
-        # TODO
-        return bool(self.impl['is_ccw'](self))
+        return bool(is_ccw_impl()(self))
 
     @property
     def is_simple(self):
