@@ -147,6 +147,7 @@ class BaseGeometry(pygeos.Geometry):
 
     # Backend config
     impl = DefaultImplementation
+    _coords = None
 
     def __new__(self):
         # TODO create empty geometry - should we deprecate this constructor?
@@ -212,8 +213,10 @@ class BaseGeometry(pygeos.Geometry):
     def coords(self):
         if self.is_empty:
             return []
-        coords_array = pygeos.get_coordinates(self, include_z=self.has_z)
-        return CoordinateSequence(coords_array)
+        if self._coords is None:
+            coords_array = pygeos.get_coordinates(self, include_z=self.has_z)
+            self._coords = CoordinateSequence(coords_array)
+        return self._coords
 
     @property
     def xy(self):
