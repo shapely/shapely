@@ -123,12 +123,6 @@ class Point(BaseGeometry):
             ).format(self, 3. * scale_factor, 1. * scale_factor, fill_color)
 
     @property
-    def bounds(self):
-        """Returns minimum bounding region (minx, miny, maxx, maxy)"""
-        # TODO keep return type of tuple, or just numpy array?
-        return tuple(pygeos.bounds(self).tolist())
-
-    @property
     def xy(self):
         """Separate arrays of X and Y coordinate values
 

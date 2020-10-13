@@ -142,9 +142,10 @@ class LineStringTestCase(unittest.TestCase):
 def test_empty_point_bounds():
     """The bounds of an empty point is an empty tuple"""
     p = Point()
-    # TODO keep this change or not?
-    assert len(p.bounds) == 4
-    assert all(math.isnan(v) for v in p.bounds)
+    # TODO keep this empty tuple or change to (nan, nan, nan, nan)?
+    assert p.bounds == ()
+    # assert len(p.bounds) == 4
+    # assert all(math.isnan(v) for v in p.bounds)
 
 
 def test_point_immutable():

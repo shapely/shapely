@@ -243,7 +243,7 @@ class BaseGeometry(pygeos.Geometry):
     @property
     def wkt(self):
         """WKT representation of the geometry"""
-        # TODO keep default of not trimming? 
+        # TODO(shapely-2.0) keep default of not trimming? 
         return pygeos.to_wkt(self, rounding_precision=-1)
 
     @property
@@ -345,7 +345,7 @@ class BaseGeometry(pygeos.Geometry):
     @property
     def bounds(self):
         """Returns minimum bounding region (minx, miny, maxx, maxy)"""
-        # TODO return empty tuple or (nan, nan, nan, nan)
+        # TODO(shapely-2.0) return empty tuple or (nan, nan, nan, nan)?
         if self.is_empty:
             return ()
         else:
