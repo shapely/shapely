@@ -54,9 +54,14 @@ build_script:
   - python -c "import sys; print('Python ' + sys.version)"
   - python -c "import ctypes, os; print(ctypes.CDLL(os.environ['GEOS_LIBRARY_PATH']))"
 
-  - ps: 'Write-Host "Building extension" -ForegroundColor Magenta'
+  - ps: 'Write-Host "Installing dev requirements" -ForegroundColor Magenta'
   - cd %APPVEYOR_BUILD_FOLDER%
   - pip install -r requirements-dev.txt
+
+  - ps: 'Write-Host "Installing PyGEOS" -ForegroundColor Magenta'
+  - pip install git+https://github.com/pygeos/pygeos.git -v
+
+  - ps: 'Write-Host "Building extension" -ForegroundColor Magenta'
   - python setup.py build_ext --inplace -I%CYTHONPF%\\include -lgeos_c -L%CYTHONPF%\\lib
 
   - ps: 'Write-Host "Running pytest" -ForegroundColor Magenta'
