@@ -679,8 +679,7 @@ class BaseGeometry(pygeos.Geometry):
         If the normalized arg is True, the distance will be interpreted as a
         fraction of the geometry's length.
         """
-        # TODO spelling normalize(d)
-        return pygeos.line_interpolate_point(self, distance, normalize=normalized)
+        return pygeos.line_interpolate_point(self, distance, normalized=normalized)
 
 
 class BaseMultipartGeometry(BaseGeometry):
