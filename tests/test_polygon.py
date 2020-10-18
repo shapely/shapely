@@ -91,8 +91,21 @@ def test_linearring_from_numpy():
     np = pytest.importorskip("numpy")
     coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
 
-    line = LineString(np.array(coords))
-    assert line.coords[:] == [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
+    ring = LinearRing(np.array(coords))
+    assert ring.coords[:] == [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
+
+
+def test_linearring_coords_numpy():
+    np = pytest.importorskip("numpy")
+    from numpy.testing import assert_array_equal
+
+    ring = LinearRing(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0)))
+    ra = np.asarray(ring.coords)
+    expected = np.asarray([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)])
+    assert_array_equal(ra, expected)
+
+    ring = LinearRing()
+    assert np.asarray(ring.coords).shape[0] == 0
 
 
 def test_polygon_from_coordinate_sequence():
@@ -298,7 +311,7 @@ class PolygonTestCase(unittest.TestCase):
     def test_dimensions(self):
 
         # Background: see http://trac.gispython.org/lab/ticket/168
-    # http://lists.gispython.org/pipermail/community/2008-August/001859.html
+        # http://lists.gispython.org/pipermail/community/2008-August/001859.html
 
         coords = ((0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 1.0, 0.0),
                   (1.0, 0.0, 0.0))

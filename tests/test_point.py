@@ -78,7 +78,7 @@ def test_from_invalid():
         Point(1, 2, 3, 4)
 
 
-class LineStringTestCase(unittest.TestCase):
+class PointTestCase(unittest.TestCase):
 
     def test_point(self):
 
@@ -220,6 +220,10 @@ class LineStringTestCase(unittest.TestCase):
         # Test array interface of empty geometry
         pe = Point()
         a = asarray(pe)
+        self.assertEqual(a.shape[0], 0)
+
+        # Access the coords
+        a = asarray(pe.coords)
         self.assertEqual(a.shape[0], 0)
 
 
