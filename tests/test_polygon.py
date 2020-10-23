@@ -95,7 +95,7 @@ def test_linearring_from_numpy():
     assert ring.coords[:] == [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
 
 
-def test_linearring_coords_numpy():
+def test_numpy_linearring_coords():
     np = pytest.importorskip("numpy")
     from numpy.testing import assert_array_equal
 
@@ -103,6 +103,10 @@ def test_linearring_coords_numpy():
     ra = np.asarray(ring.coords)
     expected = np.asarray([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)])
     assert_array_equal(ra, expected)
+
+
+def test_numpy_empty_linearring_coords():
+    np = pytest.importorskip("numpy")
 
     ring = LinearRing()
     assert np.asarray(ring.coords).shape[0] == 0

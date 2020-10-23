@@ -205,7 +205,7 @@ class LineStringTestCase(unittest.TestCase):
         assert_array_equal(la, expected)
 
     @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy_coords(self):
+    def test_numpy_linestring_coords(self):
         import numpy as np
         from numpy.testing import assert_array_equal
 
@@ -215,6 +215,10 @@ class LineStringTestCase(unittest.TestCase):
         # Coordinate sequences can be adapted as well
         la = np.asarray(line.coords)
         assert_array_equal(la, expected)
+
+    @unittest.skipIf(not numpy, 'Numpy required')
+    def test_numpy_empty_linestring_coords(self):
+        import numpy as np
 
         # Check empty
         line = LineString([])
