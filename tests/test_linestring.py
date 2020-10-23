@@ -206,23 +206,20 @@ class LineStringTestCase(unittest.TestCase):
 
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy_linestring_coords(self):
-        import numpy as np
         from numpy.testing import assert_array_equal
 
         line = LineString(((1.0, 2.0), (3.0, 4.0)))
-        expected = np.array([[1.0, 2.0], [3.0, 4.0]])
+        expected = numpy.array([[1.0, 2.0], [3.0, 4.0]])
 
         # Coordinate sequences can be adapted as well
-        la = np.asarray(line.coords)
+        la = numpy.asarray(line.coords)
         assert_array_equal(la, expected)
 
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy_empty_linestring_coords(self):
-        import numpy as np
-
         # Check empty
         line = LineString([])
-        la = np.asarray(line.coords)
+        la = numpy.asarray(line.coords)
 
         self.assertEqual(la.shape[0], 0)
 

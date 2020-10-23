@@ -224,12 +224,10 @@ class PointTestCase(unittest.TestCase):
 
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy_empty_point_coords(self):
-        from numpy import asarray
-
         pe = Point()
 
         # Access the coords
-        a = asarray(pe.coords)
+        a = numpy.asarray(pe.coords)
         self.assertEqual(a.shape[0], 0)
 
 
