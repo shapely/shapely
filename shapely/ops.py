@@ -577,44 +577,46 @@ def substring(geom, start_dist, end_dist, normalized=False):
     elif normalized and -start_dist >= 1 and -end_dist >= 1:
         return geom.interpolate(0, normalized)
 
-    start_point = geom.interpolate(start_dist, normalized)
-    end_point = geom.interpolate(end_dist, normalized)
+    if normalized:
+        start_dist *= geom.length
+        end_dist *= geom.length
+
+    start_point = geom.interpolate(start_dist)
+    end_point = geom.interpolate(end_dist)
 
     if start_dist < 0:
-        start_dist = 1 + start_dist if normalized else geom.length + start_dist  # Values may still be negative,
-    if end_dist < 0:                                                             # but only in the out-of-range
-        end_dist = 1 + end_dist if normalized else geom.length + end_dist        # sense, not the wrap-around sense.
+        start_dist = geom.length + start_dist  # Values may still be negative,
+    if end_dist < 0:                           # but only in the out-of-range
+        end_dist = geom.length + end_dist      # sense, not the wrap-around sense.
 
-    min_dist = min(start_dist, end_dist)
-    max_dist = max(start_dist, end_dist)
-    if normalized:
-        min_dist *= geom.length
-        max_dist *= geom.length
+    reverse = start_dist > end_dist
+    if reverse:
+        start_dist, end_dist = end_dist, start_dist
 
-    if min_dist < 0:
-        min_dist = 0  # to avoid duplicating the first vertex
+    if start_dist < 0:
+        start_dist = 0  # to avoid duplicating the first vertex
 
-    if start_dist < end_dist:
-        vertex_list = [(start_point.x, start_point.y)]
-    else:
+    if reverse:
         vertex_list = [(end_point.x, end_point.y)]
+    else:
+        vertex_list = [(start_point.x, start_point.y)]
 
     coords = list(geom.coords)
     current_distance = 0
     for p1, p2 in zip(coords, coords[1:]):
-        if min_dist < current_distance < max_dist:
+        if start_dist < current_distance < end_dist:
             vertex_list.append(p1)
-        elif current_distance >= max_dist:
+        elif current_distance >= end_dist:
             break
 
         current_distance += ((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2) ** 0.5
 
-    if start_dist < end_dist:
-        vertex_list.append((end_point.x, end_point.y))
-    else:
+    if reverse:
         vertex_list.append((start_point.x, start_point.y))
         # reverse direction result
         vertex_list = reversed(vertex_list)
+    else:
+        vertex_list.append((end_point.x, end_point.y))
 
     return LineString(vertex_list)
 
