@@ -580,6 +580,11 @@ def substring(geom, start_dist, end_dist, normalized=False):
     start_point = geom.interpolate(start_dist, normalized)
     end_point = geom.interpolate(end_dist, normalized)
 
+    if start_dist < 0:
+        start_dist = 1 + start_dist if normalized else geom.length + start_dist  # Values may still be negative,
+    if end_dist < 0:                                                             # but only in the out-of-range
+        end_dist = 1 + end_dist if normalized else geom.length + end_dist        # sense, not the wrap-around sense.
+
     min_dist = min(start_dist, end_dist)
     max_dist = max(start_dist, end_dist)
     if normalized:
