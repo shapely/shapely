@@ -36,42 +36,31 @@ class SubstringTestCase(unittest.TestCase):
 
     @unittest.skipIf(geos_version < (3, 2, 0), 'GEOS 3.2.0 required')
     def test_return_startsubstring(self):
-        self.assertTrue(substring(self.line1, -500, 0.6).equals(LineString(([0, 0], [0.6, 0]))))
-        self.assertTrue(substring(self.line1, -1.1, 0.6, True).equals(LineString(([0, 0], [1.2, 0]))))
+        self.assertEqual(substring(self.line1, -500, 0.6).wkt, LineString(([0, 0], [0.6, 0])).wkt)
+        self.assertEqual(substring(self.line1, -1.1, 0.6, True).wkt, LineString(([0, 0], [1.2, 0])).wkt)
 
     @unittest.skipIf(geos_version < (3, 2, 0), 'GEOS 3.2.0 required')
     def test_return_endsubstring(self):
-        self.assertTrue(substring(self.line1, 0.6, 500).equals(LineString(([0.6, 0], [2, 0]))))
-        self.assertTrue(substring(self.line1, 0.6, 1.1, True).equals(LineString(([1.2, 0], [2, 0]))))
+        self.assertEqual(substring(self.line1, 0.6, 500).wkt, LineString(([0.6, 0], [2, 0])).wkt)
+        self.assertEqual(substring(self.line1, 0.6, 1.1, True).wkt, LineString(([1.2, 0], [2, 0])).wkt)
 
     @unittest.skipIf(geos_version < (3, 2, 0), 'GEOS 3.2.0 required')
     def test_return_midsubstring(self):
-        self.assertTrue(substring(self.line1, 0.5, 0.6).equals(LineString(([0.5, 0], [0.6, 0]))))
-        self.assertTrue(substring(self.line1, 0.6, 0.5).equals(LineString(([0.6, 0], [0.5, 0]))))
-        self.assertTrue(substring(self.line1, -0.5, -0.6).equals(LineString(([1.5, 0], [1.4, 0]))))
-        self.assertTrue(substring(self.line1, -0.6, -0.5).equals(LineString(([1.4, 0], [1.5, 0]))))
-        self.assertTrue(substring(self.line1, 0.5, 0.6, True).equals(LineString(([1, 0], [1.2, 0]))))
-        self.assertTrue(substring(self.line1, 0.6, 0.5, True).equals(LineString(([1.2, 0], [1, 0]))))
-        self.assertTrue(substring(self.line1, -0.5, -0.6, True).equals(LineString(([1, 0], [0.8, 0]))))
-        self.assertTrue(substring(self.line1, -0.6, -0.5, True).equals(LineString(([0.8, 0], [1, 0]))))
-
-    @unittest.skipIf(geos_version < (3, 2, 0), 'GEOS 3.2.0 required')
-    def test_return_midsubstring(self):
-        self.assertTrue(substring(self.line1, 0.5, 0.6).equals(LineString(([0.5, 0], [0.6, 0]))))
-        self.assertTrue(substring(self.line1, 0.6, 0.5).equals(LineString(([0.6, 0], [0.5, 0]))))
-        self.assertTrue(substring(self.line1, -0.5, -0.6).equals(LineString(([1.5, 0], [1.4, 0]))))
-        self.assertTrue(substring(self.line1, -0.6, -0.5).equals(LineString(([1.4, 0], [1.5, 0]))))
-        self.assertTrue(substring(self.line1, 0.5, 0.6, True).equals(LineString(([1, 0], [1.2, 0]))))
-        self.assertTrue(substring(self.line1, 0.6, 0.5, True).equals(LineString(([1.2, 0], [1, 0]))))
-        self.assertTrue(substring(self.line1, -0.5, -0.6, True).equals(LineString(([1, 0], [0.8, 0]))))
-        self.assertTrue(substring(self.line1, -0.6, -0.5, True).equals(LineString(([0.8, 0], [1, 0]))))
+        self.assertEqual(substring(self.line1, 0.5, 0.6).wkt, LineString(([0.5, 0], [0.6, 0])).wkt)
+        self.assertEqual(substring(self.line1, 0.6, 0.5).wkt, LineString(([0.6, 0], [0.5, 0])).wkt)
+        self.assertEqual(substring(self.line1, -0.5, -0.6).wkt, LineString(([1.5, 0], [1.4, 0])).wkt)
+        self.assertEqual(substring(self.line1, -0.6, -0.5).wkt, LineString(([1.4, 0], [1.5, 0])).wkt)
+        self.assertEqual(substring(self.line1, 0.5, 0.6, True).wkt, LineString(([1, 0], [1.2, 0])).wkt)
+        self.assertEqual(substring(self.line1, 0.6, 0.5, True).wkt, LineString(([1.2, 0], [1, 0])).wkt)
+        self.assertEqual(substring(self.line1, -0.5, -0.6, True).wkt, LineString(([1, 0], [0.8, 0])).wkt)
+        self.assertEqual(substring(self.line1, -0.6, -0.5, True).wkt, LineString(([0.8, 0], [1, 0])).wkt)
 
     @unittest.skipIf(geos_version < (3, 2, 0), 'GEOS 3.2.0 required')
     def test_return_substring_with_vertices(self):
-        self.assertTrue(substring(self.line2, 1, 7).equals(LineString(([3, 1], [3, 6], [4, 6]))))
-        self.assertTrue(substring(self.line2, 0.2, 0.9, True).equals(LineString(([3, 1.5], [3, 6], [3.75, 6]))))
-        self.assertTrue(substring(self.line2, 0, 0.9, True).equals(LineString(([3, 0], [3, 6], [3.75, 6]))))
-        self.assertTrue(substring(self.line2, 0.2, 1, True).equals(LineString(([3, 1.5], [3, 6], [4.5, 6]))))
+        self.assertEqual(substring(self.line2, 1, 7).wkt, LineString(([3, 1], [3, 6], [4, 6])).wkt)
+        self.assertEqual(substring(self.line2, 0.2, 0.9, True).wkt, LineString(([3, 1.5], [3, 6], [3.75, 6])).wkt)
+        self.assertEqual(substring(self.line2, 0, 0.9, True).wkt, LineString(([3, 0], [3, 6], [3.75, 6])).wkt)
+        self.assertEqual(substring(self.line2, 0.2, 1, True).wkt, LineString(([3, 1.5], [3, 6], [4.5, 6])).wkt)
 
     @unittest.skipIf(geos_version < (3, 2, 0), 'GEOS 3.2.0 required')
     def test_return_substring_issue682(self):
