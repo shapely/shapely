@@ -591,6 +591,9 @@ def substring(geom, start_dist, end_dist, normalized=False):
         min_dist *= geom.length
         max_dist *= geom.length
 
+    if min_dist < 0:
+        min_dist = 0  # to avoid duplicating the first vertex
+
     if start_dist < end_dist:
         vertex_list = [(start_point.x, start_point.y)]
     else:
