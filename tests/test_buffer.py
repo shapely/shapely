@@ -75,6 +75,3 @@ class BufferSingleSidedCase(unittest.TestCase):
         for index, coord in enumerate(h.exterior.coords):
             self.assertAlmostEqual(coord[0], expected_coord[index][0])
             self.assertAlmostEqual(coord[1], expected_coord[index][1])
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(BufferSingleSidedCase)

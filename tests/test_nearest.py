@@ -13,10 +13,3 @@ class Nearest(unittest.TestCase):
         self.assertAlmostEqual(second.x, 2.0, 7)
         self.assertAlmostEqual(first.y, 0.0, 7)
         self.assertAlmostEqual(second.y, 0.0, 7)
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(Nearest)
-
-if __name__ == '__main__':
-    unittest.main()

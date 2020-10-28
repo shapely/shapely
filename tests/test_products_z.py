@@ -11,7 +11,3 @@ class ProductZTestCase(unittest.TestCase):
         self.assertTrue(interxn.has_z)
         self.assertEqual(interxn._ndim, 3)
         self.assertTrue(0.0 <= interxn.z <= 1.0)
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(ProductZTestCase)

@@ -10,7 +10,3 @@ class MappingTestCase(unittest.TestCase):
     def test_empty_polygon(self):
         """Empty polygons will round trip without error"""
         self.assertIsNotNone(mapping(Polygon()))
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(MappingTestCase)

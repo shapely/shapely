@@ -59,7 +59,3 @@ class OperatorsTestCase(unittest.TestCase):
         self.assertNotEqual(line1, line2)
         # but dupes are the same with ==
         self.assertEqual(line2, line2_dup)
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(OperatorsTestCase)

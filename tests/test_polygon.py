@@ -405,7 +405,3 @@ def test_ctypes_deprecated():
 
     with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
         polygon.ctypes
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(PolygonTestCase)

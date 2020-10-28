@@ -81,10 +81,6 @@ class MultiPolygonTestCase(MultiGeometryTestCase):
         self.subgeom_access_test(MultiPolygon, [poly0, poly1])
 
 
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(MultiPolygonTestCase)
-
-
 def test_fail_list_of_multipolygons():
     """A list of multipolygons is not a valid multipolygon ctor argument"""
     multi = MultiPolygon([(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)), [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))])])

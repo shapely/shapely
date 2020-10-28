@@ -75,10 +75,3 @@ class LambdaTestCase(unittest.TestCase):
         self.assertAlmostEqual(g.area, h.area)
         self.assertAlmostEqual(h.centroid.x, 1.0)
         self.assertAlmostEqual(h.centroid.y, 3.5)
-
-
-def test_suite():
-    loader = unittest.TestLoader()
-    return unittest.TestSuite([
-        loader.loadTestsFromTestCase(IdentityTestCase),
-        loader.loadTestsFromTestCase(LambdaTestCase)])

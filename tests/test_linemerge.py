@@ -46,7 +46,3 @@ class LineMergeTestCase(unittest.TestCase):
         ]
         result = linemerge(lines5)
         self.assertEqual(result.type, 'MultiLineString')
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(LineMergeTestCase)

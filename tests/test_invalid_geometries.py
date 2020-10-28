@@ -22,9 +22,3 @@ class InvalidGeometriesTestCase(unittest.TestCase):
         self.assertRaises(TopologicalError,
                           polygon.intersection, polygon_invalid)
         return
-
-
-def test_suite():
-    loader = unittest.TestLoader()
-    return unittest.TestSuite([
-        loader.loadTestsFromTestCase(InvalidGeometriesTestCase)])

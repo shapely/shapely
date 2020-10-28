@@ -80,11 +80,3 @@ def test_asshape_empty():
     with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
         empty_asShape = asShape(empty_json)
     assert empty_asShape.is_empty
-
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(EmptinessTestCase)
-
-if __name__ == '__main__':
-    unittest.main()

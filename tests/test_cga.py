@@ -28,10 +28,3 @@ class PolygonOrienterTestCase(unittest.TestCase):
         polygon = orient(polygon, 1)
         self.assertTrue(polygon.exterior.is_ccw)
         self.assertFalse(polygon.interiors[0].is_ccw)
-
-
-def test_suite():
-    loader = unittest.TestLoader()
-    return unittest.TestSuite([
-        loader.loadTestsFromTestCase(RingOrientationTestCase),
-        loader.loadTestsFromTestCase(PolygonOrienterTestCase)])

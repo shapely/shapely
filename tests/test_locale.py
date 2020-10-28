@@ -53,7 +53,3 @@ class LocaleTestCase(unittest.TestCase):
         wkt = dumps(p)
         self.assertTrue(wkt.startswith('POINT'))
         self.assertFalse(',' in wkt)
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(LocaleTestCase)

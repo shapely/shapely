@@ -31,10 +31,3 @@ class DelaunayTriangulation(unittest.TestCase):
         p = Point(1,1)
         polys = triangulate(p)
         self.assertEqual(len(polys), 0)
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(DelaunayTriangulation)
-
-if __name__ == '__main__':
-    unittest.main()

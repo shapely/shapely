@@ -42,9 +42,3 @@ class SharedPaths(unittest.TestCase):
             
         with self.assertRaises(TypeError):
             result = shared_paths(g2, g1)
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(SharedPaths)
-
-if __name__ == '__main__':
-    unittest.main()

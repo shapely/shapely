@@ -43,7 +43,3 @@ class PolygonizeTestCase(unittest.TestCase):
             dump_coords(cuts),
             [[(1.0, 1.0), (100.0, 100.0)], [(5.0, 5.0), (6.0, 6.0)]])
         self.assertEqual(list(invalids.geoms), [])
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(PolygonizeTestCase)

@@ -18,7 +18,3 @@ class BoxTestCase(unittest.TestCase):
         b = geometry.box(0, 0, 1, 1, ccw=False)
         self.assertEqual(b.exterior.coords[0], (0.0, 0.0))
         self.assertEqual(b.exterior.coords[1], (0.0, 1.0))
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(BoxTestCase)

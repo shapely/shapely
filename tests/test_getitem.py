@@ -118,11 +118,3 @@ class LinearRingGetItemTestCase(unittest.TestCase):
         t = [a.equals(b) for (a, b) in zip(g.interiors[:3], holes[:3])]
         self.assertTrue(all(t))
         self.assertTrue(g.interiors[3:] == holes[3:] == [])
-
-
-def test_suite():
-    loader = unittest.TestLoader()
-    return unittest.TestSuite([
-        loader.loadTestsFromTestCase(CoordsGetItemTestCase),
-        loader.loadTestsFromTestCase(MultiGeomGetItemTestCase),
-        loader.loadTestsFromTestCase(LinearRingGetItemTestCase)])

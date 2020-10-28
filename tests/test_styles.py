@@ -13,8 +13,3 @@ class StylesTest(unittest.TestCase):
         self.assertEqual(JOIN_STYLE.round, 1)
         self.assertEqual(JOIN_STYLE.mitre, 2)
         self.assertEqual(JOIN_STYLE.bevel, 3)
-
-
-def test_suite():
-    return unittest.TestSuite([
-        unittest.TestLoader().loadTestsFromTestCase(StylesTest)])
