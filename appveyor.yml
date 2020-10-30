@@ -1,25 +1,25 @@
-image: Visual Studio 2017
+image: Visual Studio 2019
 platform: x64
 
 environment:
+  COMPILER: msvc2019
   matrix:
-    # Interleave PYTHON, ARCH and GEOSVERSION
-    - PYTHON: "C:\\Python35"
-      ARCH: x86
-      COMPILER: msvc2017
-      GEOSVERSION: "3.5.2"
-    - PYTHON: "C:\\Python36-x64"
+    # Interleave PYTHON, ARCH and GEOS_VERSION
+    - PYTHON: "C:\\Python35-x64"
       ARCH: x64
-      COMPILER: msvc2017
-      GEOSVERSION: "3.6.4"
-    - PYTHON: "C:\\Python37"
+      GEOS_VERSION: "3.5.2"
+    - PYTHON: "C:\\Python36"
       ARCH: x86
-      COMPILER: msvc2017
-      GEOSVERSION: "3.7.3"
-    - PYTHON: "C:\\Python38-x64"
+      GEOS_VERSION: "3.6.4"
+    - PYTHON: "C:\\Python37-x64"
       ARCH: x64
-      COMPILER: msvc2017
-      GEOSVERSION: "3.8.1"
+      GEOS_VERSION: "3.7.3"
+    - PYTHON: "C:\\Python38"
+      ARCH: x86
+      GEOS_VERSION: "3.8.1"
+    - PYTHON: "C:\\Python39-x64"
+      ARCH: x64
+      GEOS_VERSION: "3.8.1"
 
 
 install:
@@ -35,18 +35,18 @@ install:
 
 
 build_script:
-  - set GEOSINSTALL=C:\projects\deps\geos-%GEOSVERSION%-%COMPILER%-%ARCH%
-  - set CYTHONPF=C:\\projects\\deps\\geos-%GEOSVERSION%-%COMPILER%-%ARCH%
-  - set GEOS_LIBRARY_PATH=%GEOSINSTALL%\bin\geos_c.dll
+  - set GEOS_INSTALL=C:\projects\deps\geos-%GEOS_VERSION%-%COMPILER%-%ARCH%
+  - set CYTHONPF=C:\\projects\\deps\\geos-%GEOS_VERSION%-%COMPILER%-%ARCH%
+  - set GEOS_LIBRARY_PATH=%GEOS_INSTALL%\bin\geos_c.dll
 
   - ps: 'Write-Host "Configuring MSVC compiler $env:COMPILER" -ForegroundColor Magenta'
-  - if %COMPILER%==msvc2017 ( call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" %ARCH% )
+  - call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" %ARCH%
 
-  - ps: 'Write-Host "Configuring PATH with $env:PYTHON and $env:GEOSINSTALL\bin" -ForegroundColor Magenta'
-  - set PATH=%PYTHON%;%PYTHON%\Scripts;%GEOSINSTALL%\bin;%PATH%
+  - ps: 'Write-Host "Configuring PATH with $env:PYTHON and $env:GEOS_INSTALL\bin" -ForegroundColor Magenta'
+  - set PATH=%PYTHON%;%PYTHON%\Scripts;%GEOS_INSTALL%\bin;%PATH%
   - python -m pip install --disable-pip-version-check --upgrade pip
 
-  - ps: 'Write-Host "Checking GEOS build $env:GEOSINSTALL" -ForegroundColor Magenta'
+  - ps: 'Write-Host "Checking GEOS build $env:GEOS_INSTALL" -ForegroundColor Magenta'
   - if not exist C:\projects\deps mkdir C:\projects\deps
   - call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\build_geos.cmd
 
