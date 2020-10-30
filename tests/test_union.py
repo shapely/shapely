@@ -66,7 +66,3 @@ class UnionTestCase(unittest.TestCase):
                                0.71857254056)
         self.assertAlmostEqual(unary_union([patches, patches]).area,
                                0.71857254056)
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(UnionTestCase)

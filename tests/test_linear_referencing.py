@@ -68,8 +68,3 @@ class LinearReferencingTestCase(unittest.TestCase):
         # zero yield the line's ends.
         self.assertTrue(self.line1.interpolate(-1000).equals(Point(0.0, 0.0)))
         self.assertTrue(self.line1.interpolate(1000).equals(Point(2.0, 0.0)))
-
-
-def test_suite():
-    loader = unittest.TestLoader()
-    return loader.loadTestsFromTestCase(LinearReferencingTestCase)

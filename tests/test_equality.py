@@ -23,7 +23,3 @@ class PointEqualityTestCase(unittest.TestCase):
         self.assertFalse(p1.equals(p2))
         self.assertTrue(p1.almost_equals(p2, 0))
         self.assertFalse(p1.almost_equals(p2, 1))
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(PointEqualityTestCase)

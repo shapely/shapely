@@ -17,11 +17,3 @@ class STRTreeNearest(unittest.TestCase):
         self.assertEqual(result, Polygon([(0,2),(1,2),(1,3),(0,3)]))
         result = tree.nearest(Polygon([(-0.5,-0.5),(0.5,-0.5),(0.5,0.5),(-0.5,0.5)]))
         self.assertEqual(result, Point(0,0.5))
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(STRTreeNearest)
-
-if __name__ == '__main__':
-    unittest.main()
-    

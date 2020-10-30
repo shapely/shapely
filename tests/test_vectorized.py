@@ -102,7 +102,3 @@ class VectorizedTouchesTestCase(unittest.TestCase):
                              [False, False, False, False, False]], dtype=bool)
         from numpy.testing import assert_array_equal
         assert_array_equal(result, expected)
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(VectorizedContainsTestCase)

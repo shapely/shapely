@@ -82,7 +82,3 @@ class PolylabelTestCase(unittest.TestCase):
         label = polylabel(polygon, 0.05)
         self.assertAlmostEqual(label.x, 7.65625)
         self.assertAlmostEqual(label.y, 7.65625)
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(PolylabelTestCase)

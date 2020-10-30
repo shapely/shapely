@@ -186,7 +186,3 @@ class SvgTestCase(unittest.TestCase):
             'stroke-width="1.0" fill="#ff3333" opacity="0.6" />'
             '<polyline fill="none" stroke="#ff3333" stroke-width="2.0" '
             'points="4.0,2.0 4.0,2.0" opacity="0.8" /></g>')
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(SvgTestCase)

@@ -142,7 +142,3 @@ def test_empty_polygon():
     g = Polygon()
     assert g.__geo_interface__['type'] == 'Polygon'
     assert g.__geo_interface__['coordinates'] == ()
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(GeoInterfaceTestCase)

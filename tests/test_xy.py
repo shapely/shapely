@@ -11,7 +11,3 @@ class XYTestCase(unittest.TestCase):
         self.assertEqual(list(x), [0.0, 1.0])
         self.assertEqual(len(y), 2)
         self.assertEqual(list(y), [0.0, 1.0])
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(XYTestCase)

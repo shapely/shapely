@@ -28,7 +28,3 @@ class WrapperTestCase(unittest.TestCase):
         finally:
             if project_impl is not None:
                 Point.impl.map['project'] = project_impl
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(WrapperTestCase)

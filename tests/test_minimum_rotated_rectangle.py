@@ -28,6 +28,3 @@ class MinimumRotatedRectangleTestCase(unittest.TestCase):
         self.assertEqual(len(rect.coords), 2)
         self.assertEqual(rect.coords[0], (0,0))
         self.assertEqual(rect.coords[1], (2,2))
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(MinimumRotatedRectangleTestCase)

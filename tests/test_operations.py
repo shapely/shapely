@@ -94,6 +94,3 @@ class OperationsTestCase(unittest.TestCase):
         assert(empty_line.is_empty)
         with pytest.raises(ValueError):
             empty_line.interpolate(.5, normalized=True)
-        
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(OperationsTestCase)

@@ -67,7 +67,3 @@ class IterOpsTestCase(unittest.TestCase):
 
         with self.assertRaises(TopologicalError):
             list(iterops.within(polygon1, [polygon2]))
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(IterOpsTestCase)

@@ -64,6 +64,3 @@ class PredicatesTestCase(unittest.TestCase):
         # an invalid pattern should raise an exception
         with pytest.raises(PredicateError):
             g1.relate_pattern(g2, 'fail')
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(PredicatesTestCase)

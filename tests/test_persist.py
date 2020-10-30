@@ -53,7 +53,3 @@ class PersistTestCase(unittest.TestCase):
         self.assertTrue(text.startswith('POINT'))
         pt = wkt.loads(text)
         self.assertTrue(pt.equals(p))
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(PersistTestCase)

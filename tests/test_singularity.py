@@ -13,7 +13,3 @@ class PolygonTestCase(unittest.TestCase):
         p = (1.0, 1.0)
         poly = Polygon([p, p, p, p, p])
         self.assertEqual(poly.bounds, (1.0, 1.0, 1.0, 1.0))
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(PolygonTestCase)

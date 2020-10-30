@@ -303,10 +303,3 @@ class TransformOpsTestCase(unittest.TestCase):
         tls = affinity.translate(load_wkt('LINESTRING EMPTY'))
         els = load_wkt('LINESTRING EMPTY')
         self.assertTrue(tls.equals(els))
-
-
-def test_suite():
-    loader = unittest.TestLoader()
-    return unittest.TestSuite([
-        loader.loadTestsFromTestCase(AffineTestCase),
-        loader.loadTestsFromTestCase(TransformOpsTestCase)])

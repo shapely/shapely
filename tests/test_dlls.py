@@ -18,7 +18,3 @@ class LoadingTestCase(unittest.TestCase):
             os.path.join(sys.prefix, "lib", "libgeos_c.so"), # anaconda (Linux)
             'libgeos_c.so.1',
             'libgeos_c.so'])
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(LoadingTestCase)
