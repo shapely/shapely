@@ -109,7 +109,7 @@ def test_numpy_empty_linearring_coords():
     np = pytest.importorskip("numpy")
 
     ring = LinearRing()
-    assert np.asarray(ring.coords).shape[0] == 0
+    assert np.asarray(ring.coords).shape == (0,)
 
 
 def test_polygon_from_coordinate_sequence():

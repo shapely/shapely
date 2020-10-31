@@ -87,6 +87,16 @@ def test_from_numpy():
     assert line.coords[:] == [(1.0, 2.0), (3.0, 4.0)]
 
 
+def test_numpy_empty_linestring_coords():
+    np = pytest.importorskip("numpy")
+
+    # Check empty
+    line = LineString([])
+    la = np.asarray(line.coords)
+
+    assert la.shape == (0,)
+
+
 def test_from_invalid_dim():
     with pytest.raises(ValueError, match="at least 2 coordinate tuples"):
         LineString([(1, 2)])
@@ -108,7 +118,7 @@ def test_from_single_coordinate():
     coords = [[-122.185933073564, 37.3629353839073]]
     with pytest.raises(ValueError):
         ls = LineString(coords)
-        ls.geom_type # caused segfault before fix
+        ls.geom_type  # caused segfault before fix
 
 
 class LineStringTestCase(unittest.TestCase):
@@ -214,14 +224,6 @@ class LineStringTestCase(unittest.TestCase):
         # Coordinate sequences can be adapted as well
         la = numpy.asarray(line.coords)
         assert_array_equal(la, expected)
-
-    @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy_empty_linestring_coords(self):
-        # Check empty
-        line = LineString([])
-        la = numpy.asarray(line.coords)
-
-        self.assertEqual(la.shape[0], 0)
 
     @shapely20_deprecated
     @unittest.skipIf(not numpy, 'Numpy required')

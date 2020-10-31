@@ -222,14 +222,6 @@ class PointTestCase(unittest.TestCase):
         a = asarray(pe)
         self.assertEqual(a.shape[0], 0)
 
-    @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy_empty_point_coords(self):
-        pe = Point()
-
-        # Access the coords
-        a = numpy.asarray(pe.coords)
-        self.assertEqual(a.shape[0], 0)
-
 
 def test_empty_point_bounds():
     """The bounds of an empty point is an empty tuple"""
@@ -268,3 +260,13 @@ def test_point_array_interface_numpy_deprecated():
     p = Point(3.0, 4.0)
     with pytest.warns(ShapelyDeprecationWarning, match="array interface"):
         np.array(p)
+
+
+def test_numpy_empty_point_coords():
+    np = pytest.importorskip("numpy")
+
+    pe = Point()
+
+    # Access the coords
+    a = np.asarray(pe.coords)
+    assert a.shape == (0,)
