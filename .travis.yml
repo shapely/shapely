@@ -10,73 +10,88 @@ matrix:
   include:
     - python: "3.5"
       env:
-        GEOSVERSION="3.5.2"
+        GEOS_VERSION="3.5.2"
         SPEEDUPS=1
         NUMPY=1
     - python: "3.5"
       env:
-        GEOSVERSION="3.5.2"
+        GEOS_VERSION="3.5.2"
         SPEEDUPS=0
         NUMPY=1
     - python: "3.5"
       env:
-        GEOSVERSION="3.5.2"
+        GEOS_VERSION="3.5.2"
         SPEEDUPS=0
         NUMPY=0
     - python: "3.6"
       env:
-        GEOSVERSION="3.6.4"
+        GEOS_VERSION="3.6.4"
         SPEEDUPS=1
         NUMPY=1
     - python: "3.6"
       env:
-        GEOSVERSION="3.6.4"
+        GEOS_VERSION="3.6.4"
         SPEEDUPS=0
         NUMPY=1
     - python: "3.6"
       env:
-        GEOSVERSION="3.6.4"
+        GEOS_VERSION="3.6.4"
         SPEEDUPS=0
         NUMPY=0
     - python: "3.7"
       env:
-        GEOSVERSION="3.7.3"
+        GEOS_VERSION="3.7.3"
         SPEEDUPS=1
         NUMPY=1
     - python: "3.7"
       env:
-        GEOSVERSION="3.7.3"
+        GEOS_VERSION="3.7.3"
         SPEEDUPS=0
         NUMPY=1
     - python: "3.7"
       env:
-        GEOSVERSION="3.7.3"
+        GEOS_VERSION="3.7.3"
         SPEEDUPS=0
         NUMPY=0
     - python: "3.8"
       env:
-        GEOSVERSION="3.8.1"
+        GEOS_VERSION="3.8.1"
         SPEEDUPS=1
         NUMPY=1
     - python: "3.8"
       env:
-        GEOSVERSION="3.8.1"
+        GEOS_VERSION="3.8.1"
         SPEEDUPS=0
         NUMPY=1
     - python: "3.8"
       env:
-        GEOSVERSION="3.8.1"
+        GEOS_VERSION="3.8.1"
+        SPEEDUPS=0
+        NUMPY=0
+    - python: "3.9"
+      env:
+        GEOS_VERSION="3.8.1"
+        SPEEDUPS=1
+        NUMPY=1
+    - python: "3.9"
+      env:
+        GEOS_VERSION="3.8.1"
+        SPEEDUPS=0
+        NUMPY=1
+    - python: "3.9"
+      env:
+        GEOS_VERSION="3.8.1"
         SPEEDUPS=0
         NUMPY=0
     - python: "3.9-dev"
       env:
-        GEOSVERSION="master"
+        GEOS_VERSION="master"
         SPEEDUPS=1
         NUMPY=1
   allow_failures:
     - python: "3.9-dev"
       env:
-        GEOSVERSION="master"
+        GEOS_VERSION="master"
         SPEEDUPS=1
         NUMPY=1
 
@@ -92,12 +107,12 @@ before_install:
   - pip install --upgrade coveralls pytest-cov pytest>=3.8
 
 install:
-  - export GEOS_CONFIG=$HOME/geosinstall/geos-$GEOSVERSION/bin/geos-config
+  - export GEOS_CONFIG=$HOME/geosinstall/geos-$GEOS_VERSION/bin/geos-config
   - pip install -v -e .[all]
 
 script:
-  - export LD_LIBRARY_PATH=$HOME/geosinstall/geos-$GEOSVERSION/lib
-  - export DYLD_LIBRARY_PATH=$HOME/geosinstall/geos-$GEOSVERSION/lib
+  - export LD_LIBRARY_PATH=$HOME/geosinstall/geos-$GEOS_VERSION/lib
+  - export DYLD_LIBRARY_PATH=$HOME/geosinstall/geos-$GEOS_VERSION/lib
   - python -c "from shapely.geos import geos_version; print(geos_version)"
   - python -m pytest --cov shapely --cov-report term-missing "${SPEEDUPS_FLAG}"
   - if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" && "$NUMPY" == "1" && "$SPEEDUPS" == "1" ]]; then python -m pytest shapely --doctest-modules; fi
