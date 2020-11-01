@@ -45,6 +45,7 @@ build_script:
   - ps: 'Write-Host "Configuring PATH with $env:PYTHON and $env:GEOS_INSTALL\bin" -ForegroundColor Magenta'
   - set PATH=%PYTHON%;%PYTHON%\Scripts;%GEOS_INSTALL%\bin;%PATH%
   - python -m pip install --disable-pip-version-check --upgrade pip
+  - pip install --upgrade wheel
 
   - ps: 'Write-Host "Checking GEOS build $env:GEOS_INSTALL" -ForegroundColor Magenta'
   - if not exist C:\projects\deps mkdir C:\projects\deps
