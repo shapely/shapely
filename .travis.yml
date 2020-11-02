@@ -97,7 +97,8 @@ matrix:
 
 before_install:
   - ./ci/travis/install_geos.sh
-  - pip install --upgrade pip
+  - pip install --disable-pip-version-check --upgrade pip
+  - pip install --upgrade wheel
   # if building with speedups install cython
   - if [ "$SPEEDUPS" == "1" ]; then pip install --install-option="--no-cython-compile" cython; fi
   # if testing without numpy explicitly remove it
