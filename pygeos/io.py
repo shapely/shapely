@@ -20,7 +20,7 @@ def check_shapely_version():
             from shapely.geometry.base import BaseGeometry as ShapelyGeometry
         except ImportError:
             pass
-        
+
         _shapely_checked = True
 
 

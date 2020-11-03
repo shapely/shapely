@@ -50,9 +50,13 @@ package from Github::
 
     $ git clone git@github.com:pygeos/pygeos.git
 
+Install Cython, which is required to build Cython extensions::
+
+    $ pip install cython
+
 Install it in development mode using `pip`::
 
-    $ pip install -e .[test]
+    $ pip install -e .[test] --no-build-isolation
 
 Run the unittests::
 

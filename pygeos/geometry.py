@@ -1,8 +1,11 @@
 from enum import IntEnum
 import numpy as np
-from . import lib
+
 from . import Geometry  # NOQA
+from . import lib
+from . import _geometry
 from .decorators import multithreading_enabled, requires_geos
+
 
 __all__ = [
     "GeometryType",
@@ -22,6 +25,7 @@ __all__ = [
     "get_point",
     "get_interior_ring",
     "get_geometry",
+    "get_parts",
 ]
 
 
@@ -279,6 +283,7 @@ def get_z(point):
 
 # linestrings
 
+
 @multithreading_enabled
 def get_point(geometry, index):
     """Returns the nth point of a linestring or linearring.
@@ -340,6 +345,7 @@ def get_num_points(geometry):
 
 # polygons
 
+
 @multithreading_enabled
 def get_exterior_ring(geometry):
     """Returns the exterior ring of a polygon.
@@ -360,6 +366,7 @@ def get_exterior_ring(geometry):
     True
     """
     return lib.get_exterior_ring(geometry)
+
 
 @multithreading_enabled
 def get_interior_ring(geometry, index):
@@ -417,6 +424,7 @@ def get_num_interior_rings(geometry):
 
 # collections
 
+
 @multithreading_enabled
 def get_geometry(geometry, index):
     """Returns the nth geometry from a collection of geometries.
@@ -451,6 +459,47 @@ def get_geometry(geometry, index):
     True
     """
     return lib.get_geometry(geometry, np.intc(index))
+
+
+def get_parts(geometry, return_index=False):
+    """Gets parts of each GeometryCollection or Multi* geometry object; returns
+    a copy of each geometry in the GeometryCollection or Multi* geometry object.
+
+    Note: This does not return the individual parts of Multi* geometry objects in
+    a GeometryCollection.  You may need to call this function multiple times to
+    return individual parts of Multi* geometry objects in a GeometryCollection.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    return_index : bool, optional (default: False)
+        If True, will return a tuple of ndarrys of (parts, indexes), where indexes
+        are the indexes of the original geometries in the source array.
+
+    Returns
+    -------
+    ndarray of parts or tuple of (parts, indexes)
+
+    Examples
+    --------
+    >>> get_parts(Geometry("MULTIPOINT (0 1, 2 3)")).tolist()
+    [<pygeos.Geometry POINT (0 1)>, <pygeos.Geometry POINT (2 3)>]
+    >>> parts, index = get_parts([Geometry("MULTIPOINT (0 1)"), Geometry("MULTIPOINT (4 5, 6 7)")], return_index=True)
+    >>> parts.tolist()
+    [<pygeos.Geometry POINT (0 1)>, <pygeos.Geometry POINT (4 5)>, <pygeos.Geometry POINT (6 7)>]
+    >>> index.tolist()
+    [0, 1, 1]
+    """
+    geometry = np.asarray(geometry, dtype=np.object)
+    geometry = np.atleast_1d(geometry)
+
+    if geometry.ndim != 1:
+        raise ValueError("Array should be one dimensional")
+
+    if return_index:
+        return _geometry.get_parts(geometry)
+
+    return _geometry.get_parts(geometry)[0]
 
 
 @multithreading_enabled

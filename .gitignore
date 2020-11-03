@@ -15,7 +15,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
 lib64/
 parts/
 sdist/
@@ -67,3 +66,6 @@ docs/_build
 
 # Benchmarks
 .asv
+
+# Cython C files
+pygeos/*.c
