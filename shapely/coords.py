@@ -54,25 +54,6 @@ class CoordinateSequence(object):
         else:
             raise TypeError("key must be an index or slice")
 
-    # def array_interface(self):
-    #     """Provide the Numpy array protocol."""
-    #     if sys.byteorder == 'little':
-    #         typestr = '<f8'
-    #     elif sys.byteorder == 'big':
-    #         typestr = '>f8'
-    #     else:
-    #         raise ValueError(
-    #             "Unsupported byteorder: neither little nor big-endian")
-    #     ai = {
-    #         'version': 3,
-    #         'typestr': typestr,
-    #         'data': self._ctypes,
-    #         }
-    #     ai.update({'shape': (len(self), self._ndim)})
-    #     return ai
-
-    # __array_interface__ = property(array_interface)
-
     def __array__(self, dtype=None):
         return self._coords
 

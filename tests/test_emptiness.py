@@ -8,6 +8,8 @@ from shapely.geometry import MultiPolygon, mapping, shape
 
 import pytest
 
+from tests.conftest import shapely20_wontfix
+
 
 empty_generator = lambda: iter([])
 
@@ -21,15 +23,17 @@ class EmptinessTestCase(unittest.TestCase):
         g = BaseGeometry()
         self.assertTrue(g.is_empty)
 
+    @shapely20_wontfix
     def test_emptying_point(self):
         p = sgeom.Point(0, 0)
         self.assertFalse(p.is_empty)
-        # p.empty()
-        # self.assertTrue(p.is_empty)
+        p.empty()
+        self.assertTrue(p.is_empty)
 
+    @shapely20_wontfix
     def test_none_geom(self):
         p = BaseGeometry()
-        # p._geom = None
+        p._geom = None
         self.assertTrue(p.is_empty)
 
     def test_empty_point(self):

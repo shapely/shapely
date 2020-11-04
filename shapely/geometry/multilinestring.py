@@ -47,7 +47,6 @@ class MultiLineString(BaseMultipartGeometry):
             # TODO better empty constructor
             return pygeos.from_wkt("MULTILINESTRING EMPTY")
         elif isinstance(lines, MultiLineString):
-            # TODO clone?
             return lines
 
         lines = getattr(lines, 'geoms', lines)

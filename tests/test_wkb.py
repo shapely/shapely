@@ -2,9 +2,6 @@ from shapely.wkb import dumps, loads
 from shapely.geometry import Point
 import binascii
 
-from tests.conftest import shapely20_todo
-
-
 
 def bin2hex(value):
     return binascii.b2a_hex(value).upper().decode("utf-8")

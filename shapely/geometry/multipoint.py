@@ -52,7 +52,6 @@ class MultiPoint(BaseMultipartGeometry):
             # TODO better empty constructor
             return pygeos.from_wkt("MULTIPOINT EMPTY")
         elif isinstance(points, MultiPoint):
-            # TODO clone?
             return points
 
         m = len(points)

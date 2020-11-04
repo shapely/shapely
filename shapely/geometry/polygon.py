@@ -50,12 +50,6 @@ class LinearRing(LineString):
           >>> ring.length
           4.0
         """
-        # BaseGeometry.__init__(self)
-        # if coordinates is not None:
-        #     ret = geos_linearring_from_py(coordinates)
-        #     if ret is not None:
-        #         self._geom, self._ndim = ret
-
         if coordinates is None:
             # empty geometry
             # TODO better way?

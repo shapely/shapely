@@ -27,7 +27,7 @@ class MultiPolygon(BaseMultipartGeometry):
         A sequence of `Polygon` instances
     """
 
-    def __new__(self, polygons=None, context_type='polygons'):
+    def __new__(self, polygons=None):
         """
         Parameters
         ----------
@@ -56,7 +56,6 @@ class MultiPolygon(BaseMultipartGeometry):
             # TODO better empty constructor
             return pygeos.from_wkt("MULTIPOLYGON EMPTY")
         elif isinstance(polygons, MultiPolygon):
-            # TODO clone?
             return polygons
 
         polygons = getattr(polygons, 'geoms', polygons)
@@ -86,11 +85,6 @@ class MultiPolygon(BaseMultipartGeometry):
             subs.append(p)
 
         return pygeos.multipolygons(subs)
-
-        # elif context_type == 'polygons':
-        #     self._geom, self._ndim = geos_multipolygon_from_polygons(polygons)
-        # elif context_type == 'geojson':
-        #     self._geom, self._ndim = geos_multipolygon_from_py(polygons)
 
     def shape_factory(self, *args):
         return polygon.Polygon(*args)
