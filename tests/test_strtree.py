@@ -13,6 +13,8 @@ from shapely.strtree import STRtree
 
 from .conftest import requires_geos_342
 
+import pytest
+
 
 @requires_geos_342
 def test_query():
@@ -92,6 +94,9 @@ def test_safe_delete():
     strtree.lgeos = _lgeos
 
 
+# TODO(shapely-2.0) this fails on Appveyor, see
+# https://github.com/Toblerity/Shapely/pull/983#issuecomment-718557666
+@pytest.mark.skipif(sys.platform.startswith("win32"), reason="does not run on Appveyor")
 @requires_geos_342
 def test_pickle_persistence():
     """

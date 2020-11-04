@@ -21,12 +21,13 @@ def test_wkt(pipi):
     assert pipi.wkt == "POINT ({0:.15f} {1:.15f})".format(pi, -pi)
 
 
-def test_wkt(pipi4):
+def test_wkt2(pipi4):
     """.wkt and wkt.dumps() both do not trim by default."""
     assert pipi4.wkt == "POINT ({0:.14f} {1:.14f})".format(pi*4, -pi*4)
 
 
 def test_dumps(pipi4):
+    """.wkt and wkt.dumps() both do not trim by default."""
     assert dumps(pipi4) == "POINT ({0:.16f} {1:.16f})".format(pi*4, -pi*4)
 
 

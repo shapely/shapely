@@ -5,6 +5,8 @@ from shapely.coords import CoordinateSequence
 from shapely.errors import ShapelyDeprecationWarning
 from shapely.geometry import LineString, Point, LinearRing
 
+import pygeos
+
 
 def test_from_coordinate_sequence():
     # From coordinate tuples
@@ -94,19 +96,20 @@ def test_numpy_empty_linestring_coords():
     line = LineString([])
     la = np.asarray(line.coords)
 
-    assert la.shape == (0,)
+    assert la.shape == (0, 2)
 
 
 def test_from_invalid_dim():
-    with pytest.raises(ValueError, match="at least 2 coordinate tuples"):
+    # TODO(shapely-2.0) better error message?
+    # pytest.raises(ValueError, match="at least 2 coordinate tuples|at least 2 coordinates"):
+    with pytest.raises(pygeos.GEOSException):
         LineString([(1, 2)])
 
-    with pytest.raises(ValueError, match="Inconsistent coordinate dimensionality"):
+    with pytest.raises(ValueError, match="Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions"):
         LineString([(1, 2, 3), (4, 5)])
 
-    # TODO this does not fail
-    # with pytest.raises(ValueError, match="Inconsistent coordinate dimensionality"):
-    #     LineString([(1, 2), (3, 4, 5)]))
+    with pytest.raises(ValueError, match="Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions"):
+        LineString([(1, 2), (3, 4, 5)])
 
     # TODO better error, right now raises AssertionError
     with pytest.raises(Exception):
@@ -116,7 +119,7 @@ def test_from_invalid_dim():
 def test_from_single_coordinate():
     """Test for issue #486"""
     coords = [[-122.185933073564, 37.3629353839073]]
-    with pytest.raises(ValueError):
+    with pytest.raises(pygeos.GEOSException):
         ls = LineString(coords)
         ls.geom_type  # caused segfault before fix
 
@@ -148,7 +151,7 @@ class LineStringTestCase(unittest.TestCase):
     def test_linestring_empty(self):
         # Test Non-operability of Null geometry
         l_null = LineString()
-        self.assertEqual(l_null.wkt, 'GEOMETRYCOLLECTION EMPTY')
+        self.assertEqual(l_null.wkt, 'LINESTRING EMPTY')
         self.assertEqual(l_null.length, 0.0)
 
     def test_equals_argument_order(self):

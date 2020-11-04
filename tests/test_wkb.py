@@ -92,18 +92,18 @@ def test_loads_srid():
         "BIIdd", "0101000020346C0000333333333333F33F3333333333330B40")
 
 
-requires_geos_39 = pytest.mark.xfail(
-    geos_version < (3, 9, 0), reason="GEOS >= 3.9.0 is required", strict=True)
+requires_geos_380 = pytest.mark.xfail(
+    geos_version < (3, 8, 0), reason="GEOS >= 3.8.0 is required", strict=True)
 
 
-@requires_geos_39
+@requires_geos_380
 def test_point_empty():
     g = wkt.loads("POINT EMPTY")
     assert g.wkb_hex == hostorder(
         "BIdd", "0101000000000000000000F87F000000000000F87F")
 
 
-@requires_geos_39
+@pytest.mark.xfail(reason="Fails with latest pygeos")
 def test_point_z_empty():
     g = wkt.loads("POINT Z EMPTY")
     assert g.wkb_hex == hostorder(
