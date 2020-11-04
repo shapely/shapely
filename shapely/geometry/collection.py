@@ -40,7 +40,9 @@ class GeometryCollection(BaseMultipartGeometry):
         if not geoms:
             pass
         else:
-            self._geom, self._ndim = geos_geometrycollection_from_py(geoms)
+            geom, n = geos_geometrycollection_from_py(geoms)
+            self._set_geom(geom)
+            self._ndim = n
 
     @property
     def __geo_interface__(self):

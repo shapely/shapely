@@ -47,13 +47,15 @@ class Point(BaseGeometry):
         BaseGeometry.__init__(self)
         if len(args) > 0:
             if len(args) == 1:
-                self._geom, self._ndim = geos_point_from_py(args[0])
+                geom, n = geos_point_from_py(args[0])
             elif len(args) > 3:
                 raise TypeError(
                     "Point() takes at most 3 arguments ({} given)".format(len(args))
                 )
             else:
-                self._geom, self._ndim = geos_point_from_py(tuple(args))
+                geom, n = geos_point_from_py(tuple(args))
+            self._set_geom(geom)
+            self._ndim = n
 
     # Coordinate getters and setters
 
@@ -157,11 +159,13 @@ class Point(BaseGeometry):
             ShapelyDeprecationWarning, stacklevel=2)
         self.empty()
         if len(args) == 1:
-            self._geom, self._ndim = geos_point_from_py(args[0])
+            geom, n = geos_point_from_py(args[0])
         elif len(args) > 3:
             raise TypeError("Point() takes at most 3 arguments ({} given)".format(len(args)))
         else:
-            self._geom, self._ndim = geos_point_from_py(tuple(args))
+            geom, n = geos_point_from_py(tuple(args))
+        self._set_geom(geom)
+        self._ndim = n
 
     coords = property(BaseGeometry._get_coords, _set_coords)
 

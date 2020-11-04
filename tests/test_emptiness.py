@@ -1,4 +1,4 @@
-from . import unittest
+from . import unittest, shapely20_deprecated
 
 from shapely.errors import ShapelyDeprecationWarning
 from shapely.geometry.base import BaseGeometry, EmptyGeometry
@@ -28,6 +28,7 @@ class EmptinessTestCase(unittest.TestCase):
         p.empty()
         self.assertTrue(p._is_empty)
 
+    @shapely20_deprecated
     def test_none_geom(self):
         p = BaseGeometry()
         p._geom = None
