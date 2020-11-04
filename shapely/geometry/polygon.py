@@ -7,7 +7,10 @@ import warnings
 from ctypes import c_void_p, cast, POINTER
 import weakref
 
-from shapely.algorithms.cga import signed_area
+import numpy as np
+import pygeos
+
+from shapely.algorithms.cga import signed_area, is_ccw_impl
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, geos_geom_from_py
 from shapely.geometry.linestring import LineString
@@ -26,7 +29,7 @@ class LinearRing(LineString):
     invalid and operations on it may fail.
     """
 
-    def __init__(self, coordinates=None):
+    def __new__(self, coordinates=None):
         """
         Parameters
         ----------
@@ -47,13 +50,39 @@ class LinearRing(LineString):
           >>> ring.length
           4.0
         """
-        BaseGeometry.__init__(self)
-        if coordinates is not None:
-            ret = geos_linearring_from_py(coordinates)
-            if ret is not None:
-                geom, n = ret
-                self._set_geom(geom)
-                self._ndim = n
+        if coordinates is None:
+            # empty geometry
+            # TODO better way?
+            return pygeos.from_wkt("LINEARRING EMPTY")
+        elif isinstance(coordinates, LineString):
+            if type(coordinates) == LinearRing:
+                # return original objects since geometries are immutable
+                return coordinates
+            elif not coordinates.is_valid:
+                raise TopologicalError("An input LineString must be valid.")
+            else:
+                # LineString
+                # TODO convert LineString to LinearRing more directly?
+                coordinates = coordinates.coords
+
+        else:
+            # check coordinates on points
+            def _coords(o):
+                if isinstance(o, Point):
+                    return o.coords[0]
+                else:
+                    return o
+            coordinates = [_coords(o) for o in coordinates]
+
+        if len(coordinates) == 0:
+            # empty geometry
+            # TODO better constructor + should pygeos.linearrings handle this?
+            return pygeos.from_wkt("LINEARRING EMPTY")
+
+        geom = pygeos.linearrings(coordinates)
+        if not isinstance(geom, LinearRing):
+            raise ValueError("Invalid values passed to LinearRing constructor")
+        return geom
 
     @property
     def __geo_interface__(self):
@@ -74,13 +103,16 @@ class LinearRing(LineString):
     @property
     def is_ccw(self):
         """True is the ring is oriented counter clock-wise"""
-        return bool(self.impl['is_ccw'](self))
+        return bool(is_ccw_impl()(self))
 
     @property
     def is_simple(self):
         """True if the geometry is simple, meaning that any self-intersections
         are only at boundary points, else False"""
-        return LineString(self).is_simple
+        return pygeos.is_simple(self)
+
+
+pygeos.lib.registry[2] = LinearRing
 
 
 class InteriorRingSequence(object):
@@ -113,7 +145,7 @@ class InteriorRingSequence(object):
             raise StopIteration
 
     def __len__(self):
-        return lgeos.GEOSGetNumInteriorRings(self._geom)
+        return pygeos.get_num_interior_rings(self.__p__)
 
     def __getitem__(self, key):
         m = self.__len__()
@@ -146,18 +178,7 @@ class InteriorRingSequence(object):
         return hash(repr(self.__p__))
 
     def _get_ring(self, i):
-        gtag = self.gtag()
-        if gtag != self._gtag:
-            self.__rings__ = {}
-        if i not in self.__rings__:
-            g = lgeos.GEOSGetInteriorRingN(self._geom, i)
-            ring = LinearRing()
-            ring._set_geom(g)
-            ring.__p__ = self
-            ring._other_owned = True
-            ring._ndim = self._ndim
-            self.__rings__[i] = weakref.ref(ring)
-        return self.__rings__[i]()
+        return pygeos.get_interior_ring(self.__p__, i)
 
 
 class Polygon(BaseGeometry):
@@ -176,11 +197,7 @@ class Polygon(BaseGeometry):
         A sequence of rings which bound all existing holes.
     """
 
-    _exterior = None
-    _interiors = []
-    _ndim = 2
-
-    def __init__(self, shell=None, holes=None):
+    def __new__(self, shell=None, holes=None):
         """
         Parameters
         ----------
@@ -200,30 +217,47 @@ class Polygon(BaseGeometry):
           >>> polygon.area
           1.0
         """
-        BaseGeometry.__init__(self)
+        if shell is None:
+            # empty geometry
+            # TODO better way?
+            return pygeos.from_wkt("POLYGON EMPTY")
+        elif isinstance(shell, Polygon):
+            # return original objects since geometries are immutable
+            return shell
+        # else:
+        #     geom_shell = LinearRing(shell)
+        #     if holes is not None:
+        #         geom_holes = [LinearRing(h) for h in holes]
 
-        if shell is not None:
-            ret = geos_polygon_from_py(shell, holes)
-            if ret is not None:
-                geom, n = ret
-                self._set_geom(geom)
-                self._ndim = n
-            else:
-                self._empty()
+        if holes is not None:
+            if len(holes) == 0:
+                # pygeos constructor cannot handle holes=[]
+                holes = None
+
+        if not isinstance(shell, BaseGeometry):
+            if not isinstance(shell, (list, np.ndarray)):
+                # eg emtpy generator not handled well by np.asarray
+                shell = list(shell)
+            shell = np.asarray(shell)
+
+            if len(shell) == 0:
+                # empty geometry
+                # TODO better constructor + should pygeos.polygons handle this?
+                return pygeos.from_wkt("POLYGON EMPTY")
+
+            if not np.issubdtype(shell.dtype, np.number):
+                # conversion of coords to 2D array failed, this might be due
+                # to inconsistent coordinate dimensionality
+                raise ValueError("Inconsistent coordinate dimensionality")
+
+        geom = pygeos.polygons(shell, holes=holes)
+        if not isinstance(geom, Polygon):
+            raise ValueError("Invalid values passed to Polygon constructor")
+        return geom
 
     @property
     def exterior(self):
-        if self.is_empty:
-            return LinearRing()
-        elif self._exterior is None or self._exterior() is None:
-            g = lgeos.GEOSGetExteriorRing(self._geom)
-            ring = LinearRing()
-            ring._set_geom(g)
-            ring.__p__ = self
-            ring._other_owned = True
-            ring._ndim = self._ndim
-            self._exterior = weakref.ref(ring)
-        return self._exterior()
+        return pygeos.get_exterior_ring(self)
 
     @property
     def interiors(self):
@@ -253,10 +287,6 @@ class Polygon(BaseGeometry):
         return not self.__eq__(other)
 
     __hash__ = None
-
-    def _get_coords(self):
-        raise NotImplementedError(
-        "Component rings have coordinate sequences, but the polygon does not")
 
     @property
     def coords(self):
@@ -313,6 +343,9 @@ class Polygon(BaseGeometry):
             (xmax, ymin)])
 
 
+pygeos.lib.registry[3] = Polygon
+
+
 def orient(polygon, sign=1.0):
     s = float(sign)
     rings = []
@@ -327,138 +360,3 @@ def orient(polygon, sign=1.0):
         else:
             rings.append(list(ring.coords)[::-1])
     return Polygon(rings[0], rings[1:])
-
-
-def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
-    # If a LinearRing is passed in, clone it and return
-    # If a valid LineString is passed in, clone the coord seq and return a
-    # LinearRing.
-    #
-    # NB: access to coordinates using the array protocol has been moved
-    # entirely to the speedups module.
-
-    if isinstance(ob, LineString):
-        if type(ob) == LinearRing:
-            return geos_geom_from_py(ob)
-        elif not ob.is_valid:
-            raise TopologicalError("An input LineString must be valid.")
-        elif ob.is_closed and len(ob.coords) >= 4:
-            return geos_geom_from_py(ob, lgeos.GEOSGeom_createLinearRing)
-        else:
-            ob = list(ob.coords)
-
-    try:
-        m = len(ob)
-    except TypeError:  # generators
-        ob = list(ob)
-        m = len(ob)
-
-    if m == 0:
-        return None
-
-    def _coords(o):
-        if isinstance(o, Point):
-            return o.coords[0]
-        else:
-            return o
-
-    n = len(_coords(ob[0]))
-    if m < 3:
-        raise ValueError(
-            "A LinearRing must have at least 3 coordinate tuples")
-    assert (n == 2 or n == 3)
-
-    # Add closing coordinates if not provided
-    if (
-        m == 3
-        or _coords(ob[0])[0] != _coords(ob[-1])[0]
-        or _coords(ob[0])[1] != _coords(ob[-1])[1]
-    ):
-        M = m + 1
-    else:
-        M = m
-
-    # Create a coordinate sequence
-    if update_geom is not None:
-        if n != update_ndim:
-            raise ValueError(
-                "Coordinate dimensions mismatch: target geom has {} dims, "
-                "update geom has {} dims".format(n, update_ndim))
-        cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
-    else:
-        cs = lgeos.GEOSCoordSeq_create(M, n)
-
-    # add to coordinate sequence
-    for i in range(m):
-        coords = _coords(ob[i])
-        # Because of a bug in the GEOS C API,
-        # always set X before Y
-        lgeos.GEOSCoordSeq_setX(cs, i, coords[0])
-        lgeos.GEOSCoordSeq_setY(cs, i, coords[1])
-        if n == 3:
-            try:
-                lgeos.GEOSCoordSeq_setZ(cs, i, coords[2])
-            except IndexError:
-                raise ValueError("Inconsistent coordinate dimensionality")
-
-    # Add closing coordinates to sequence?
-    if M > m:
-        coords = _coords(ob[0])
-        # Because of a bug in the GEOS C API,
-        # always set X before Y
-        lgeos.GEOSCoordSeq_setX(cs, M-1, coords[0])
-        lgeos.GEOSCoordSeq_setY(cs, M-1, coords[1])
-        if n == 3:
-            lgeos.GEOSCoordSeq_setZ(cs, M-1, coords[2])
-
-    if update_geom is not None:
-        return None
-    else:
-        return lgeos.GEOSGeom_createLinearRing(cs), n
-
-
-def update_linearring_from_py(geom, ob):
-    geos_linearring_from_py(ob, geom._geom, geom._ndim)
-
-
-def geos_polygon_from_py(shell, holes=None):
-
-    if shell is None:
-        return None
-
-    if isinstance(shell, Polygon):
-        return geos_geom_from_py(shell)
-
-    if shell is not None:
-        ret = geos_linearring_from_py(shell)
-        if ret is None:
-            return None
-
-        geos_shell, ndim = ret
-        if holes is not None and len(holes) > 0:
-            ob = holes
-            L = len(ob)
-            exemplar = ob[0]
-            try:
-                N = len(exemplar[0])
-            except TypeError:
-                N = exemplar._ndim
-            if not L >= 1:
-                raise ValueError("number of holes must be non zero")
-            if N not in (2, 3):
-                raise ValueError("insufficiant coordinate dimension")
-
-            # Array of pointers to ring geometries
-            geos_holes = (c_void_p * L)()
-
-            # add to coordinate sequence
-            for l in range(L):
-                geom, ndim = geos_linearring_from_py(ob[l])
-                geos_holes[l] = cast(geom, c_void_p)
-        else:
-            geos_holes = POINTER(c_void_p)()
-            L = 0
-
-        return (
-            lgeos.GEOSGeom_createPolygon(
-                c_void_p(geos_shell), geos_holes, L), ndim)

@@ -94,19 +94,18 @@ def test_numpy_empty_linestring_coords():
     line = LineString([])
     la = np.asarray(line.coords)
 
-    assert la.shape == (0,)
+    assert la.shape == (0, 2)
 
 
 def test_from_invalid_dim():
-    with pytest.raises(ValueError, match="at least 2 coordinate tuples"):
+    with pytest.raises(ValueError, match="at least 2 coordinate tuples|at least 2 coordinates"):
         LineString([(1, 2)])
 
-    with pytest.raises(ValueError, match="Inconsistent coordinate dimensionality"):
+    with pytest.raises(ValueError, match="Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions"):
         LineString([(1, 2, 3), (4, 5)])
 
-    # TODO this does not fail
-    # with pytest.raises(ValueError, match="Inconsistent coordinate dimensionality"):
-    #     LineString([(1, 2), (3, 4, 5)]))
+    with pytest.raises(ValueError, match="Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions"):
+        LineString([(1, 2), (3, 4, 5)])
 
     # TODO better error, right now raises AssertionError
     with pytest.raises(Exception):
@@ -148,7 +147,7 @@ class LineStringTestCase(unittest.TestCase):
     def test_linestring_empty(self):
         # Test Non-operability of Null geometry
         l_null = LineString()
-        self.assertEqual(l_null.wkt, 'GEOMETRYCOLLECTION EMPTY')
+        self.assertEqual(l_null.wkt, 'LINESTRING EMPTY')
         self.assertEqual(l_null.length, 0.0)
 
     def test_equals_argument_order(self):

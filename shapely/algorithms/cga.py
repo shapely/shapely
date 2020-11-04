@@ -1,3 +1,5 @@
+import pygeos
+
 
 def signed_area(ring):
     """Return the signed area enclosed by a ring in linear time using the
@@ -8,9 +10,13 @@ def signed_area(ring):
     ys.append(ys[1])
     return sum(xs[i]*(ys[i+1]-ys[i-1]) for i in range(1, len(ring.coords)))/2.0
 
-def is_ccw_impl(name):
+def is_ccw_impl(name=None):
     """Predicate implementation"""
     def is_ccw_op(ring):
         return signed_area(ring) >= 0.0
-    return is_ccw_op
+
+    if pygeos.geos_version >= (3, 7, 0):
+        return pygeos.is_ccw
+    else:
+        return is_ccw_op
 

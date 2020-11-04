@@ -9,6 +9,8 @@ from shapely.geos import lgeos
 from shapely.geometry.base import BaseMultipartGeometry, geos_geom_from_py
 from shapely.geometry import linestring
 
+import pygeos
+
 
 __all__ = ['MultiLineString']
 
@@ -16,7 +18,7 @@ __all__ = ['MultiLineString']
 class MultiLineString(BaseMultipartGeometry):
     """
     A collection of one or more line strings
-    
+
     A MultiLineString has non-zero length and zero area.
 
     Attributes
@@ -25,7 +27,7 @@ class MultiLineString(BaseMultipartGeometry):
         A sequence of LineStrings
     """
 
-    def __init__(self, lines=None):
+    def __new__(self, lines=None):
         """
         Parameters
         ----------
@@ -40,15 +42,26 @@ class MultiLineString(BaseMultipartGeometry):
 
           >>> lines = MultiLineString( [[[0.0, 0.0], [1.0, 2.0]]] )
         """
-        super(MultiLineString, self).__init__()
-
         if not lines:
             # allow creation of empty multilinestrings, to support unpickling
-            pass
-        else:
-            geom, n = geos_multilinestring_from_py(lines)
-            self._set_geom(geom)
-            self._ndim = n
+            # TODO better empty constructor
+            return pygeos.from_wkt("MULTILINESTRING EMPTY")
+        elif isinstance(lines, MultiLineString):
+            return lines
+
+        lines = getattr(lines, 'geoms', lines)
+        m = len(lines)
+        subs = []
+        for i in range(m):
+            l = linestring.LineString(lines[i])
+            if l.is_empty:
+                raise EmptyPartError("Can't create MultiLineString with empty component")
+            subs.append(l)
+
+        if len(lines) == 0:
+            return pygeos.from_wkt("MULTILINESTRING EMPTY")
+
+        return pygeos.multilinestrings(subs)
 
     def shape_factory(self, *args):
         return linestring.LineString(*args)
@@ -80,34 +93,4 @@ class MultiLineString(BaseMultipartGeometry):
             '</g>'
 
 
-def geos_multilinestring_from_py(ob):
-    # ob must be either a MultiLineString, a sequence, or 
-    # array of sequences or arrays
-    
-    if isinstance(ob, MultiLineString):
-         return geos_geom_from_py(ob)
-
-    obs = getattr(ob, 'geoms', ob)
-    L = len(obs)
-    assert L >= 1
-    exemplar = obs[0]
-    try:
-        N = len(exemplar[0])
-    except TypeError:
-        N = exemplar._ndim
-    if N not in (2, 3):
-        raise ValueError("Invalid coordinate dimensionality")
-
-    # Array of pointers to point geometries
-    subs = (c_void_p * L)()
-    
-    # add to coordinate sequence
-    for l in range(L):
-        geom, ndims = linestring.geos_linestring_from_py(obs[l])
-
-        if lgeos.GEOSisEmpty(geom):
-            raise EmptyPartError("Can't create MultiLineString with empty component")
-
-        subs[l] = cast(geom, c_void_p)
-            
-    return (lgeos.GEOSGeom_createCollection(5, subs, L), N)
+pygeos.lib.registry[5] = MultiLineString
