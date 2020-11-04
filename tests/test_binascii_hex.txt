@@ -14,7 +14,7 @@ Point
   >>> from shapely import wkb
   >>> shape = wkb.loads(a2b_hex(x))
   >>> shape # doctest: +ELLIPSIS
-  <shapely.geometry.point.Point object at ...>
+  <shapely.geometry.Point POINT (0 0)>
 
 LineString
 ----------
@@ -24,7 +24,7 @@ LineString
   >>> x = b2a_hex(line.wkb)
   >>> shape = wkb.loads(a2b_hex(x))
   >>> shape # doctest: +ELLIPSIS
-  <shapely.geometry.linestring.LineString object at ...>
+  <shapely.geometry.LineString LINESTRING (0 0, 1 1)>
 
 Polygon
 ----------
@@ -34,7 +34,7 @@ Polygon
   >>> x = b2a_hex(polygon.wkb)
   >>> shape = wkb.loads(a2b_hex(x))
   >>> shape # doctest: +ELLIPSIS
-  <shapely.geometry.polygon.Polygon object at ...>
+  <shapely.geometry.Polygon POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
 
 Polygon with hole
 -----------------
@@ -43,5 +43,5 @@ Polygon with hole
   >>> x = b2a_hex(polygon.wkb)
   >>> shape = wkb.loads(a2b_hex(x))
   >>> shape # doctest: +ELLIPSIS
-  <shapely.geometry.polygon.Polygon object at ...>
+  <shapely.geometry.Polygon POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0), (0.1 0.1, 0.1 0.2, 0.2 0.2, 0.2 0.1, 0.1 0.1))>
 

@@ -22,7 +22,7 @@ def test_wkt(some_point):
 
 
 def test_wkt_null(empty_geometry):
-    assert empty_geometry.wkt == "GEOMETRYCOLLECTION EMPTY"
+    assert empty_geometry.wkt == "POINT EMPTY"
 
 
 def test_dump_load(some_point, tmpdir):
@@ -52,7 +52,7 @@ def test_dumps_loads(some_point):
 
 
 def test_dumps_loads_null_geometry(empty_geometry):
-    assert dumps(empty_geometry) == "GEOMETRYCOLLECTION EMPTY"
+    assert dumps(empty_geometry) == "POINT EMPTY"
     # This is does not work with __eq__():
     assert loads(dumps(empty_geometry)).equals(empty_geometry)
 
