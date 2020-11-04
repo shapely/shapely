@@ -110,7 +110,7 @@ class LineString(BaseGeometry):
             "Setting the 'coords' to mutate a Geometry in place is deprecated,"
             " and will not be possible any more in Shapely 2.0",
             ShapelyDeprecationWarning, stacklevel=2)
-        self.empty()
+        self._empty()
         ret = geos_linestring_from_py(coordinates)
         if ret is not None:
             self._geom, self._ndim = ret
