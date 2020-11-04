@@ -50,8 +50,7 @@ class MultiLineStringTestCase(MultiGeometryTestCase):
         ml = MultiLineString([coords1, coords2])
         copy = MultiLineString(ml)
         self.assertIsInstance(copy, MultiLineString)
-        self.assertEqual('MultiLineString',
-                         lgeos.GEOSGeomType(copy._geom).decode('ascii'))
+        assert copy.geom_type == 'MultiLineString'
         self.assertEqual(len(copy.geoms), 2)
         self.assertEqual(dump_coords(copy.geoms[0]), coords1)
         self.assertEqual(dump_coords(copy.geoms[1]), coords2)
