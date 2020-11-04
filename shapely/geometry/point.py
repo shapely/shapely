@@ -4,6 +4,8 @@
 from ctypes import c_double
 import warnings
 
+import pygeos
+
 from shapely.errors import DimensionError, ShapelyDeprecationWarning
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, geos_geom_from_py
@@ -34,7 +36,7 @@ class Point(BaseGeometry):
       1.0
     """
 
-    def __init__(self, *args):
+    def __new__(self, *args):
         """
         Parameters
         ----------
@@ -44,36 +46,53 @@ class Point(BaseGeometry):
         2) 2 or more parameters: x, y, z : float
             Easting, northing, and elevation.
         """
-        BaseGeometry.__init__(self)
-        if len(args) > 0:
-            if len(args) == 1:
-                geom, n = geos_point_from_py(args[0])
-            elif len(args) > 3:
-                raise TypeError(
-                    "Point() takes at most 3 arguments ({} given)".format(len(args))
-                )
-            else:
-                geom, n = geos_point_from_py(tuple(args))
-            self._set_geom(geom)
-            self._ndim = n
+        if len(args) == 0:
+            # empty geometry
+            # TODO better constructor
+            return pygeos.from_wkt("POINT EMPTY")
+        elif len(args) > 3:
+            raise TypeError(
+                "Point() takes at most 3 arguments ({} given)".format(len(args))
+            )
+        elif len(args) == 1:
+            coords = args[0]
+            if isinstance(coords, Point):
+                return coords
+
+            # Accept either (x, y) or [(x, y)]
+            if not hasattr(coords, '__getitem__'):  # generators
+                coords = list(coords)
+
+            if isinstance(coords[0], tuple):
+                coords = coords[0]
+
+            geom = pygeos.points(coords)
+        else:
+            # 2 or 3 args
+            geom = pygeos.points(*args)
+
+        if not isinstance(geom, Point):
+            raise ValueError("Invalid values passed to Point constructor")
+        return geom
 
     # Coordinate getters and setters
 
     @property
     def x(self):
         """Return x coordinate."""
-        return self.coords[0][0]
+        return pygeos.get_x(self)
 
     @property
     def y(self):
         """Return y coordinate."""
-        return self.coords[0][1]
+        return pygeos.get_y(self)
 
     @property
     def z(self):
         """Return z coordinate."""
-        if self._ndim != 3:
+        if not pygeos.has_z(self):
             raise DimensionError("This point has no z coordinate.")
+        # return pygeos.get_z(self) -> get_z only supported for GEOS 3.7+
         return self.coords[0][2]
 
     @property
@@ -104,15 +123,6 @@ class Point(BaseGeometry):
             ).format(self, 3. * scale_factor, 1. * scale_factor, fill_color)
 
     @property
-    def bounds(self):
-        """Returns minimum bounding region (minx, miny, maxx, maxy)"""
-        try:
-            xy = self.coords[0]
-        except IndexError:
-            return ()
-        return (xy[0], xy[1], xy[0], xy[1])
-
-    @property
     def xy(self):
         """Separate arrays of X and Y coordinate values
 
@@ -126,50 +136,4 @@ class Point(BaseGeometry):
         return self.coords.xy
 
 
-def geos_point_from_py(ob, update_geom=None, update_ndim=0):
-    """Create a GEOS geom from an object that is a Point, a coordinate sequence
-    or that provides the array interface.
-
-    Returns the GEOS geometry and the number of its dimensions.
-    """
-    if isinstance(ob, Point):
-        return geos_geom_from_py(ob)
-
-    # Accept either (x, y) or [(x, y)]
-    if not hasattr(ob, '__getitem__'):  # generators
-        ob = list(ob)
-
-    if isinstance(ob[0], tuple):
-        coords = ob[0]
-    else:
-        coords = ob
-    n = len(coords)
-    dx = c_double(coords[0])
-    dy = c_double(coords[1])
-    dz = None
-    if n == 3:
-        dz = c_double(coords[2])
-
-    if update_geom:
-        cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
-        if n != update_ndim:
-            raise ValueError(
-                "Wrong coordinate dimensions; this geometry has dimensions: "
-                "%d" % update_ndim)
-    else:
-        cs = lgeos.GEOSCoordSeq_create(1, n)
-
-    # Because of a bug in the GEOS C API, always set X before Y
-    lgeos.GEOSCoordSeq_setX(cs, 0, dx)
-    lgeos.GEOSCoordSeq_setY(cs, 0, dy)
-    if n == 3:
-        lgeos.GEOSCoordSeq_setZ(cs, 0, dz)
-
-    if update_geom:
-        return None
-    else:
-        return lgeos.GEOSGeom_createPoint(cs), n
-
-
-def update_point_from_py(geom, ob):
-    geos_point_from_py(ob, geom._geom, geom._ndim)
+pygeos.lib.registry[0] = Point

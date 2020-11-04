@@ -19,13 +19,13 @@ def test_prep():
 
 def test_op_not_allowed():
     p = PreparedGeometry(Point(0.0, 0.0).buffer(1.0))
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         Point(0.0, 0.0).union(p)
 
 
 def test_predicate_not_allowed():
     p = PreparedGeometry(Point(0.0, 0.0).buffer(1.0))
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         Point(0.0, 0.0).contains(p)
 
 

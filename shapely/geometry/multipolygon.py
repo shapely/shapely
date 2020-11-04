@@ -5,8 +5,10 @@ from ctypes import c_void_p, cast
 import warnings
 
 from shapely.geos import lgeos
-from shapely.geometry.base import BaseMultipartGeometry, geos_geom_from_py
+from shapely.geometry.base import BaseMultipartGeometry
 from shapely.geometry import polygon
+
+import pygeos
 
 
 __all__ = ['MultiPolygon']
@@ -25,7 +27,7 @@ class MultiPolygon(BaseMultipartGeometry):
         A sequence of `Polygon` instances
     """
 
-    def __init__(self, polygons=None, context_type='polygons'):
+    def __new__(self, polygons=None):
         """
         Parameters
         ----------
@@ -50,17 +52,40 @@ class MultiPolygon(BaseMultipartGeometry):
           >>> type(ob.geoms[0]) == Polygon
           True
         """
-        super(MultiPolygon, self).__init__()
-
         if not polygons:
             # allow creation of empty multipolygons, to support unpickling
-            return
-        elif context_type == 'polygons':
-            geom, n = geos_multipolygon_from_polygons(polygons)
-        elif context_type == 'geojson':
-            geom, n = geos_multipolygon_from_py(polygons)
-        self._set_geom(geom)
-        self._ndim = n
+            # TODO better empty constructor
+            return pygeos.from_wkt("MULTIPOLYGON EMPTY")
+        elif isinstance(polygons, MultiPolygon):
+            return polygons
+
+        polygons = getattr(polygons, 'geoms', polygons)
+        polygons = [p for p in polygons
+            if p and not (isinstance(p, polygon.Polygon) and p.is_empty)]
+
+        L = len(polygons)
+
+        # Bail immediately if we have no input points.
+        if L == 0:
+            return pygeos.from_wkt("MULTIPOLYGON EMPTY")
+
+        # This function does not accept sequences of MultiPolygons: there is
+        # no implicit flattening.
+        if isinstance(polygons[0], MultiPolygon):
+            raise ValueError("Sequences of multi-polygons are not valid arguments")
+
+        subs = []
+        for i in range(L):
+            ob = polygons[i]
+            if not isinstance(ob, polygon.Polygon):
+                shell = ob[0]
+                holes = ob[1]
+                p = polygon.Polygon(shell, holes)
+            else:
+                p = polygon.Polygon(ob)
+            subs.append(p)
+
+        return pygeos.multipolygons(subs)
 
     def shape_factory(self, *args):
         return polygon.Polygon(*args)
@@ -99,71 +124,4 @@ class MultiPolygon(BaseMultipartGeometry):
             '</g>'
 
 
-def geos_multipolygon_from_py(ob):
-    """ob must provide Python geo interface coordinates."""
-    L = len(ob)
-    assert L >= 1
-
-    N = len(ob[0][0][0])
-    assert N == 2 or N == 3
-
-    subs = (c_void_p * L)()
-    for l in range(L):
-        geom, ndims = polygon.geos_polygon_from_py(ob[l][0], ob[l][1:])
-        subs[l] = cast(geom, c_void_p)
-
-    return (lgeos.GEOSGeom_createCollection(6, subs, L), N)
-
-
-def geos_multipolygon_from_polygons(arg):
-    """Creates a GEOS multipolygon from a sequence of polygon-like objects.
-
-    Parameters
-    ----------
-    arg : sequence or MultiPolygon
-
-    Returns
-    -------
-    int
-        Pointer to a GEOS multipolygon.
-
-    """
-    if isinstance(arg, MultiPolygon):
-        return geos_geom_from_py(arg)
-
-    obs = getattr(arg, 'geoms', arg)
-    obs = [ob for ob in obs
-           if ob and not (isinstance(ob, polygon.Polygon) and ob.is_empty)]
-    L = len(obs)
-
-    # Bail immediately if we have no input points.
-    if L <= 0:
-        return (lgeos.GEOSGeom_createEmptyCollection(6), 3)
-
-    # This function does not accept sequences of MultiPolygons: there is
-    # no implicit flattening.
-    if isinstance(obs[0], MultiPolygon):
-        raise ValueError("Sequences of multi-polygons are not valid arguments")
-
-    exemplar = obs[0]
-    try:
-        N = len(exemplar[0][0])
-    except TypeError:
-        N = exemplar._ndim
-
-    assert N == 2 or N == 3
-
-    subs = (c_void_p * L)()
-
-    for i, ob in enumerate(obs):
-        if isinstance(ob, polygon.Polygon):
-            shell = ob.exterior
-            holes = ob.interiors
-        else:
-            shell = ob[0]
-            holes = ob[1]
-
-        geom, ndims = polygon.geos_polygon_from_py(shell, holes)
-        subs[i] = cast(geom, c_void_p)
-
-    return (lgeos.GEOSGeom_createCollection(6, subs, L), N)
+pygeos.lib.registry[6] = MultiPolygon

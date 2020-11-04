@@ -4,6 +4,8 @@
 from ctypes import c_double
 import warnings
 
+import pygeos
+
 from shapely.errors import ShapelyDeprecationWarning
 from shapely.geos import lgeos, TopologicalError
 from shapely.geometry.base import (
@@ -22,7 +24,7 @@ class LineString(BaseGeometry):
     and need not be straight. Unlike a LinearRing, a LineString is not closed.
     """
 
-    def __init__(self, coordinates=None):
+    def __new__(self, coordinates=None):
         """
         Parameters
         ----------
@@ -39,13 +41,37 @@ class LineString(BaseGeometry):
           >>> a.length
           2.0
         """
-        BaseGeometry.__init__(self)
-        if coordinates is not None:
-            ret = geos_linestring_from_py(coordinates)
-            if ret is not None:
-                geom, n = ret
-                self._set_geom(geom)
-                self._ndim = n
+        if coordinates is None:
+            # empty geometry
+            # TODO better constructor
+            return pygeos.from_wkt("LINESTRING EMPTY")
+        elif isinstance(coordinates, LineString):
+            if type(coordinates) == LineString:
+                # return original objects since geometries are immutable
+                return coordinates
+            else:
+                # LinearRing
+                # TODO convert LinearRing to LineString more directly
+                coordinates = coordinates.coords
+        else:
+            # check coordinates on points
+            def _coords(o):
+                if isinstance(o, Point):
+                    return o.coords[0]
+                else:
+                    return o
+            coordinates = [_coords(o) for o in coordinates]
+
+        if len(coordinates) == 0:
+            # empty geometry
+            # TODO better constructor + should pygeos.linestrings handle this?
+            return pygeos.from_wkt("LINESTRING EMPTY")
+
+        geom = pygeos.linestrings(coordinates)
+        if not isinstance(geom, LineString):
+            raise ValueError("Invalid values passed to LineString constructor")
+        return geom
+
 
     @property
     def __geo_interface__(self):
@@ -123,79 +149,4 @@ class LineString(BaseGeometry):
             raise TopologicalError()
 
 
-def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
-    # If a LineString is passed in, clone it and return
-    # If a LinearRing is passed in, clone the coord seq and return a
-    # LineString.
-    #
-    # NB: access to coordinates using the array protocol has been moved
-    # entirely to the speedups module.
-
-    if isinstance(ob, LineString):
-        if type(ob) == LineString:
-            return geos_geom_from_py(ob)
-        else:
-            return geos_geom_from_py(ob, lgeos.GEOSGeom_createLineString)
-
-    try:
-        m = len(ob)
-    except TypeError:  # generators
-        ob = list(ob)
-        m = len(ob)
-
-    if m == 0:
-        return None
-    elif m == 1:
-        raise ValueError("LineStrings must have at least 2 coordinate tuples")
-
-    if m < 2:
-        raise ValueError(
-            "LineStrings must have at least 2 coordinate tuples")
-
-    def _coords(o):
-        if isinstance(o, Point):
-            return o.coords[0]
-        else:
-            return o
-
-    try:
-        n = len(_coords(ob[0]))
-    except TypeError:
-        raise ValueError(
-            "Input %s is the wrong shape for a LineString" % str(ob))
-    assert n == 2 or n == 3
-
-    # Create a coordinate sequence
-    if update_geom is not None:
-        cs = lgeos.GEOSGeom_getCoordSeq(update_geom)
-        if n != update_ndim:
-            raise ValueError(
-                "Wrong coordinate dimensions; this geometry has "
-                "dimensions: %d" % update_ndim)
-    else:
-        cs = lgeos.GEOSCoordSeq_create(m, n)
-
-    # add to coordinate sequence
-    for i in range(m):
-        coords = _coords(ob[i])
-        # Because of a bug in the GEOS C API,
-        # always set X before Y
-        lgeos.GEOSCoordSeq_setX(cs, i, coords[0])
-        lgeos.GEOSCoordSeq_setY(cs, i, coords[1])
-        if n == 3:
-            try:
-                lgeos.GEOSCoordSeq_setZ(cs, i, coords[2])
-            except IndexError:
-                raise ValueError("Inconsistent coordinate dimensionality")
-
-    if update_geom is not None:
-        return None
-    else:
-        ptr = lgeos.GEOSGeom_createLineString(cs)
-        if not ptr:
-            raise ValueError("GEOSGeom_createLineString returned a NULL pointer")
-        return ptr, n
-
-
-def update_linestring_from_py(geom, ob):
-    geos_linestring_from_py(ob, geom._geom, geom._ndim)
+pygeos.lib.registry[1] = LineString

@@ -10,6 +10,8 @@ from shapely.geometry.base import (
     BaseMultipartGeometry, exceptNull, geos_geom_from_py)
 from shapely.geometry import point
 
+import pygeos
+
 
 __all__ = ['MultiPoint']
 
@@ -26,7 +28,7 @@ class MultiPoint(BaseMultipartGeometry):
         A sequence of Points
     """
 
-    def __init__(self, points=None):
+    def __new__(self, points=None):
         """
         Parameters
         ----------
@@ -46,15 +48,26 @@ class MultiPoint(BaseMultipartGeometry):
           >>> type(ob.geoms[0]) == Point
           True
         """
-        super(MultiPoint, self).__init__()
-
-        if points is None or len(points) == 0:
+        if points is None:
             # allow creation of empty multipoints, to support unpickling
-            pass
-        else:
-            geom, n = geos_multipoint_from_py(points)
-            self._set_geom(geom)
-            self._ndim = n
+            # TODO better empty constructor
+            return pygeos.from_wkt("MULTIPOINT EMPTY")
+        elif isinstance(points, MultiPoint):
+            return points
+
+        m = len(points)
+        subs = []
+        for i in range(m):
+            p = point.Point(points[i])
+            if p.is_empty:
+                raise EmptyPartError("Can't create MultiPoint with empty component")
+            subs.append(p)
+
+        if len(points) == 0:
+            return pygeos.from_wkt("MULTIPOINT EMPTY")
+
+        return pygeos.multipoints(subs)
+
 
     def shape_factory(self, *args):
         return point.Point(*args)
@@ -86,28 +99,4 @@ class MultiPoint(BaseMultipartGeometry):
             '</g>'
 
 
-def geos_multipoint_from_py(ob):
-    if isinstance(ob, MultiPoint):
-        return geos_geom_from_py(ob)
-
-    m = len(ob)
-    try:
-        n = len(ob[0])
-    except TypeError:
-        n = ob[0]._ndim
-    assert n == 2 or n == 3
-
-    # Array of pointers to point geometries
-    subs = (c_void_p * m)()
-
-    # add to coordinate sequence
-    for i in range(m):
-        coords = ob[i]
-        geom, ndims = point.geos_point_from_py(coords)
-
-        if lgeos.GEOSisEmpty(geom):
-            raise EmptyPartError("Can't create MultiPoint with empty component")
-
-        subs[i] = cast(geom, c_void_p)
-
-    return lgeos.GEOSGeom_createCollection(4, subs, m), n
+pygeos.lib.registry[4] = MultiPoint
