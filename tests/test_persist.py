@@ -6,8 +6,6 @@ from shapely import wkb, wkt
 from shapely.geometry import Point
 import struct
 
-from tests.conftest import shapely20_todo
-
 
 class PersistTestCase(unittest.TestCase):
 
@@ -18,7 +16,6 @@ class PersistTestCase(unittest.TestCase):
         q = pickle.loads(data)
         self.assertTrue(q.equals(p))
 
-    @shapely20_todo  # big_endian is not yet implemented
     def test_wkb(self):
 
         p = Point(0.0, 0.0)
@@ -29,7 +26,6 @@ class PersistTestCase(unittest.TestCase):
         self.assertTrue(p.equals(wkb.loads(wkb_big_endian)))
         self.assertTrue(p.equals(wkb.loads(wkb_little_endian)))
 
-    @shapely20_todo  # big_endian is not yet implemented
     def test_wkb_dumps_endianness(self):
 
         p = Point(0.5, 2.0)

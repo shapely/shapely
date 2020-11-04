@@ -12,8 +12,6 @@ import pytest
 from shapely import wkt
 from shapely.geometry import shape, LineString, Polygon
 
-from tests.conftest import shapely20_todo
-
 
 geojson_cases = [
     {"type": "LineString", "coordinates": [[1, 1, 1], [2, 2]]},
