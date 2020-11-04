@@ -14,6 +14,8 @@ from shapely import wkt
 
 from .conftest import requires_geos_342
 
+import pytest
+
 
 point = Point(2, 3)
 empty = wkt.loads("GEOMETRYCOLLECTION EMPTY")
@@ -134,6 +136,9 @@ def test_safe_delete():
     strtree.lgeos = _lgeos
 
 
+# TODO(shapely-2.0) this fails on Appveyor, see
+# https://github.com/Toblerity/Shapely/pull/983#issuecomment-718557666
+@pytest.mark.skipif(sys.platform.startswith("win32"), reason="does not run on Appveyor")
 @requires_geos_342
 def test_pickle_persistence():
     """

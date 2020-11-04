@@ -15,49 +15,21 @@ jobs:
             geos: 3.6.4
             numpy: 1.13.3
             speeedups: 1
-          - python: 3.6
-            geos: 3.6.4
-            numpy: 1.13.3
-            speeedups: 0
-          - python: 3.6
-            geos: 3.6.4
-            speeedups: 0
           # 2018
           - python: 3.7
             geos: 3.7.3
             numpy: 1.15.4
             speedups: 1
-          - python: 3.7
-            geos: 3.7.3
-            numpy: 1.15.4
-            speedups: 0
-          - python: 3.7
-            geos: 3.7.3
-            speedups: 0
           # 2019
           - python: 3.8
             geos: 3.8.1
             numpy: 1.17.5
             speedups: 1
-          - python: 3.8
-            geos: 3.8.1
-            numpy: 1.17.5
-            speedups: 0
-          - python: 3.8
-            geos: 3.8.1
-            speedups: 0
           # 2020
           - python: 3.9
             geos: 3.9.1
             numpy: 1.19.5
             speedups: 1
-          - python: 3.9
-            geos: 3.9.1
-            numpy: 1.19.5
-            speedups: 0
-          - python: 3.9
-            geos: 3.9.1
-            speedups: 0
           # dev
           - python: 3.9
             geos: main
@@ -90,11 +62,17 @@ jobs:
           ./ci/install_geos.sh
           cd ${{ github.workspace }}
 
+      - name: Set environment variables for PyGEOS installation
+        shell: bash
+        run: |
+          echo "GEOS_CONFIG=$GEOS_INSTALL/bin/geos-config" >> $GITHUB_ENV
+
       - name: Install python dependencies
         shell: bash
         run: |
           pip install --disable-pip-version-check --upgrade pip
           pip install --upgrade wheel
+          pip install git+https://github.com/pygeos/pygeos.git -v
           if [ "$GEOS_VERSION" = "main" ]; then
             pip install --upgrade --pre Cython numpy;
           elif [ "$SPEEDUPS" == "1" ]; then

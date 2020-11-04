@@ -13,6 +13,8 @@ from shapely.geometry import Point, Polygon
 from shapely.geometry.polygon import LinearRing, LineString
 from shapely.geometry.base import dump_coords
 
+import pygeos
+
 
 def test_empty_linearring_coords():
     assert LinearRing().coords[:] == []
@@ -67,7 +69,7 @@ def test_linearring_from_too_short_linestring():
     # 4 coordinates (closed)
     coords = [(0.0, 0.0), (1.0, 1.0)]
     line = LineString(coords)
-    with pytest.raises(ValueError, match="at least 3 coordinate tuple"):
+    with pytest.raises(pygeos.GEOSException, match="Invalid number of points"):
         LinearRing(line)
 
 
@@ -114,7 +116,7 @@ def test_numpy_empty_linearring_coords():
     np = pytest.importorskip("numpy")
 
     ring = LinearRing()
-    assert np.asarray(ring.coords).shape == (0,)
+    assert np.asarray(ring.coords).shape == (0, 2)
 
 
 @pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
@@ -174,7 +176,7 @@ def test_polygon_from_polygon():
 
 def test_polygon_from_invalid():
     # Error handling
-    with pytest.raises(ValueError):
+    with pytest.raises(pygeos.GEOSException):
         # A LinearRing must have at least 3 coordinate tuples
         Polygon([[1, 2], [2, 3]])
 
@@ -249,8 +251,7 @@ class PolygonTestCase(unittest.TestCase):
         with self.assertRaises(IndexError):  # index out of range
             polygon.interiors[1]
 
-        # Coordinate getters and setters raise exceptions
-        self.assertRaises(NotImplementedError, polygon._get_coords)
+        # Coordinate getter raises exceptions
         with self.assertRaises(NotImplementedError):
             polygon.coords
 
@@ -265,7 +266,7 @@ class PolygonTestCase(unittest.TestCase):
     def test_linearring_empty(self):
         # Test Non-operability of Null rings
         r_null = LinearRing()
-        self.assertEqual(r_null.wkt, 'GEOMETRYCOLLECTION EMPTY')
+        self.assertEqual(r_null.wkt, 'LINEARRING EMPTY')
         self.assertEqual(r_null.length, 0.0)
 
     def test_dimensions(self):
