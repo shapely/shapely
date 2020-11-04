@@ -62,7 +62,7 @@ def test_linearring_from_too_short_linestring():
     # 4 coordinates (closed)
     coords = [(0.0, 0.0), (1.0, 1.0)]
     line = LineString(coords)
-    with pytest.raises(ValueError, match="at least 3 coordinate tuple"):
+    with pytest.raises(ValueError, match="at least 3 coordinate tuple|at least 4 coordinates"):
         LinearRing(line)
 
 
@@ -214,8 +214,7 @@ class PolygonTestCase(unittest.TestCase):
         with self.assertRaises(IndexError):  # index out of range
             polygon.interiors[1]
 
-        # Coordinate getters and setters raise exceptions
-        self.assertRaises(NotImplementedError, polygon._get_coords)
+        # Coordinate getter raises exceptions
         with self.assertRaises(NotImplementedError):
             polygon.coords
 
@@ -230,13 +229,13 @@ class PolygonTestCase(unittest.TestCase):
     def test_linearring_empty(self):
         # Test Non-operability of Null rings
         r_null = LinearRing()
-        self.assertEqual(r_null.wkt, 'GEOMETRYCOLLECTION EMPTY')
+        self.assertEqual(r_null.wkt, 'LINEARRING EMPTY')
         self.assertEqual(r_null.length, 0.0)
 
     def test_dimensions(self):
 
         # Background: see http://trac.gispython.org/lab/ticket/168
-    # http://lists.gispython.org/pipermail/community/2008-August/001859.html
+        # http://lists.gispython.org/pipermail/community/2008-August/001859.html
 
         coords = ((0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 1.0, 0.0),
                   (1.0, 0.0, 0.0))

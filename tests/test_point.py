@@ -1,4 +1,7 @@
 from . import unittest, numpy, shapely20_deprecated
+
+import math
+
 from shapely.geometry import Point
 from shapely.errors import DimensionError, ShapelyDeprecationWarning
 
@@ -116,7 +119,7 @@ class LineStringTestCase(unittest.TestCase):
     def test_point_empty(self):
         # Test Non-operability of Null geometry
         p_null = Point()
-        self.assertEqual(p_null.wkt, 'GEOMETRYCOLLECTION EMPTY')
+        self.assertEqual(p_null.wkt, 'POINT EMPTY')
         self.assertEqual(p_null.coords[:], [])
         self.assertEqual(p_null.area, 0.0)
 
@@ -139,7 +142,10 @@ class LineStringTestCase(unittest.TestCase):
 def test_empty_point_bounds():
     """The bounds of an empty point is an empty tuple"""
     p = Point()
+    # TODO keep this empty tuple or change to (nan, nan, nan, nan)?
     assert p.bounds == ()
+    # assert len(p.bounds) == 4
+    # assert all(math.isnan(v) for v in p.bounds)
 
 
 def test_point_immutable():

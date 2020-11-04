@@ -5,6 +5,9 @@ from shapely.geometry import Point, Polygon
 from shapely.geos import TopologicalError, PredicateError
 import pytest
 
+import pygeos
+
+
 class PredicatesTestCase(unittest.TestCase):
 
     def test_binary_predicates(self):
@@ -43,7 +46,7 @@ class PredicatesTestCase(unittest.TestCase):
         p2 = [(339, 207), (280, 311), (460, 138), (399, 242), (459, 277),
               (459, 415), (399, 381), (519, 311), (520, 242), (519, 173),
               (399, 450), (339, 207)]
-        self.assertRaises(TopologicalError, Polygon(p1).within, Polygon(p2))
+        self.assertRaises(pygeos.GEOSException, Polygon(p1).within, Polygon(p2))
 
     def test_relate_pattern(self):
 

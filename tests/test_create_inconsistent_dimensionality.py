@@ -29,8 +29,8 @@ direct_cases = [
 
 
 wkt_cases = [
-    ('LINESTRING (1 1 1, 2 2)', 'LINESTRING (1.0000000000000000 1.0000000000000000, 2.0000000000000000 2.0000000000000000)'),
-    ('POLYGON ((0 0 0, 1 0 0, 1 1, 0 1 0, 0 0 0))', 'POLYGON ((0.0000000000000000 0.0000000000000000, 1.0000000000000000 0.0000000000000000, 1.0000000000000000 1.0000000000000000, 0.0000000000000000 1.0000000000000000, 0.0000000000000000 0.0000000000000000))')
+    ('LINESTRING (1 1 1, 2 2)', 'LINESTRING Z (1 1 1, 2 2 0)'),
+    ('POLYGON ((0 0 0, 1 0 0, 1 1, 0 1 0, 0 0 0))', 'POLYGON Z ((0 0 0, 1 0 0, 1 1 0, 0 1 0, 0 0 0))')
 ]
 
 
@@ -38,14 +38,14 @@ wkt_cases = [
 def test_create_from_geojson(geojson):
     with pytest.raises(ValueError) as exc:
         wkt = shape(geojson).wkt
-    assert exc.match("Inconsistent coordinate dimensionality")
+    assert exc.match("Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions")
 
 
 @pytest.mark.parametrize('constructor, args', direct_cases)
 def test_create_directly(constructor, args):
     with pytest.raises(ValueError) as exc:
         geom = constructor(*args)
-    assert exc.match("Inconsistent coordinate dimensionality")
+    assert exc.match("Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions")
 
 
 @pytest.mark.parametrize('wkt_geom,expected', wkt_cases)

@@ -4,17 +4,17 @@
 from shapely.geos import WKBReader, WKBWriter, lgeos
 from shapely.geometry.base import geom_factory
 
+import pygeos
+
+
 # Pickle-like convenience functions
 
 def loads(data, hex=False):
     """Load a geometry from a WKB byte string, or hex-encoded string if
     ``hex=True``.
     """
-    reader = WKBReader(lgeos)
-    if hex:
-        return reader.read_hex(data)
-    else:
-        return reader.read(data)
+    return pygeos.from_wkb(data)
+
 
 def load(fp, hex=False):
     """Load a geometry from an open file."""
@@ -39,15 +39,15 @@ def dumps(ob, hex=False, srid=None, **kw):
         See available keyword output settings in ``shapely.geos.WKBWriter``."""
     if srid is not None:
         # clone the object and set the SRID before dumping
-        geom = lgeos.GEOSGeom_clone(ob._geom)
-        lgeos.GEOSSetSRID(geom, srid)
-        ob = geom_factory(geom)
+        ob = pygeos.set_srid(ob, srid)
         kw["include_srid"] = True
-    writer = WKBWriter(lgeos, **kw)
-    if hex:
-        return writer.write_hex(ob)
-    else:
-        return writer.write(ob)
+    if "big_endian" in kw:
+        # translate big_endian=True/False into byte_order=0/1
+        # but if not specified, keep the default of byte_order=-1 (native)
+        big_endian = kw.pop("big_endian")
+        byte_order = 0 if big_endian else 1
+        kw.update(byte_order=byte_order)
+    return pygeos.to_wkb(ob, hex=hex, **kw)
 
 
 def dump(ob, fp, hex=False, **kw):

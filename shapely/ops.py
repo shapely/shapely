@@ -11,6 +11,8 @@ from shapely.geometry import (
 from shapely.geometry.polygon import orient as orient_
 from shapely.algorithms.polylabel import polylabel
 
+import pygeos
+
 
 __all__ = ['cascaded_union', 'linemerge', 'operator', 'polygonize',
            'polygonize_full', 'transform', 'unary_union', 'triangulate',
@@ -51,7 +53,6 @@ class CollectionOperator(object):
         for g in collection.geoms:
             clone = lgeos.GEOSGeom_clone(g._geom)
             g = geom_factory(clone)
-            g._other_owned = False
             yield g
 
     def polygonize_full(self, lines):
@@ -88,9 +89,9 @@ class CollectionOperator(object):
             collection, byref(dangles), byref(cuts), byref(invalids))
         return (
             geom_factory(product),
-            geom_factory(dangles),
-            geom_factory(cuts),
-            geom_factory(invalids)
+            geom_factory(dangles.value),
+            geom_factory(cuts.value),
+            geom_factory(invalids.value)
             )
 
     def linemerge(self, lines):
@@ -121,18 +122,7 @@ class CollectionOperator(object):
 
         This method was superseded by :meth:`unary_union`.
         """
-        try:
-            L = len(geoms)
-            if isinstance(geoms, BaseMultipartGeometry):
-                geoms = geoms.geoms
-        except TypeError:
-            geoms = [geoms]
-            L = 1
-        subs = (c_void_p * L)()
-        for i, g in enumerate(geoms):
-            subs[i] = g._geom
-        collection = lgeos.GEOSGeom_createCollection(6, subs, L)
-        return geom_factory(lgeos.methods['cascaded_union'](collection))
+        return pygeos.union_all(geoms, axis=None)
 
     def unary_union(self, geoms):
         """Returns the union of a sequence of geometries
@@ -140,18 +130,7 @@ class CollectionOperator(object):
         This method replaces :meth:`cascaded_union` as the
         prefered method for dissolving many polygons.
         """
-        try:
-            L = len(geoms)
-            if isinstance(geoms, BaseMultipartGeometry):
-                geoms = geoms.geoms
-        except TypeError:
-            geoms = [geoms]
-            L = 1
-        subs = (c_void_p * L)()
-        for i, g in enumerate(geoms):
-            subs[i] = g._geom
-        collection = lgeos.GEOSGeom_createCollection(6, subs, L)
-        return geom_factory(lgeos.methods['unary_union'](collection))
+        return pygeos.union_all(geoms, axis=None)
 
 operator = CollectionOperator()
 polygonize = operator.polygonize

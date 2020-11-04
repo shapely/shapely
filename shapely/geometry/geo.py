@@ -112,7 +112,7 @@ def shape(context):
     elif geom_type == "multilinestring":
         return MultiLineString(ob["coordinates"])
     elif geom_type == "multipolygon":
-        return MultiPolygon(ob["coordinates"], context_type='geojson')
+        return MultiPolygon([[c[0], c[1:]] for c in ob["coordinates"]])
     elif geom_type == "geometrycollection":
         geoms = [shape(g) for g in ob.get("geometries", [])]
         return GeometryCollection(geoms)
