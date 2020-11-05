@@ -86,9 +86,14 @@ class OperationsTestCase(unittest.TestCase):
         known_point = Point(1,1.5)
         interpolated_point = test_line.interpolate(.5, normalized=True)
         self.assertEqual(interpolated_point, known_point)
-        
-        # Issue #653; should raise ValueError on exception
+
+        # Issue #653; should nog segfault for empty geometries
         empty_line = loads('LINESTRING EMPTY')
-        assert(empty_line.is_empty)
-        with pytest.raises(ValueError):
-            empty_line.interpolate(.5, normalized=True)
+        assert empty_line.is_empty
+        interpolated_point = empty_line.interpolate(.5, normalized=True)
+        assert interpolated_point.is_empty
+
+        # invalid geometry should raise TypeError on exception
+        polygon = loads('POLYGON EMPTY')
+        with pytest.raises(TypeError, match="incorrect geometry type"):
+            polygon.interpolate(.5, normalized=True)

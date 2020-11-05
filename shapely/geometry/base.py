@@ -23,7 +23,7 @@ from shapely.errors import WKBReadingError, WKTReadingError
 from shapely.errors import ShapelyDeprecationWarning
 from shapely.geos import WKBWriter, WKTWriter
 from shapely.geos import lgeos
-from shapely.impl import DefaultImplementation, delegated
+from shapely.impl import DefaultImplementation
 
 log = logging.getLogger(__name__)
 
@@ -104,16 +104,6 @@ def geos_geom_from_py(ob, create_func=None):
     N = ob._ndim
 
     return geom, N
-
-
-def exceptNull(func):
-    """Decorator which helps avoid GEOS operations on null pointers."""
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if not args[0]._geom or args[0].is_empty:
-            raise ValueError("Null/empty geometry supports no operations")
-        return func(*args, **kwargs)
-    return wrapper
 
 
 class CAP_STYLE(object):
@@ -354,7 +344,6 @@ class BaseGeometry(pygeos.Geometry):
         """Returns the geometric center of the object"""
         return pygeos.centroid(self)
 
-    @delegated
     def representative_point(self):
         """Returns a point guaranteed to be within the object, cheaply."""
         return pygeos.point_on_surface(self)
@@ -504,7 +493,6 @@ class BaseGeometry(pygeos.Geometry):
             single_sided=single_sided
         )
 
-    @delegated
     def simplify(self, tolerance, preserve_topology=True):
         """Returns a simplified geometry produced by the Douglas-Peucker
         algorithm
@@ -655,7 +643,6 @@ class BaseGeometry(pygeos.Geometry):
     # Linear referencing
     # ------------------
 
-    @delegated
     def project(self, other, normalized=False):
         """Returns the distance along this geometry to a point nearest the
         specified point
@@ -663,14 +650,8 @@ class BaseGeometry(pygeos.Geometry):
         If the normalized arg is True, return the distance normalized to the
         length of the linear geometry.
         """
-        if normalized:
-            op = self.impl['project_normalized']
-        else:
-            op = self.impl['project']
-        return op(self, other)
+        return pygeos.line_locate_point(self, other, normalized=normalized)
 
-    @delegated
-    @exceptNull
     def interpolate(self, distance, normalized=False):
         """Return a point at the specified distance along a linear geometry
 
