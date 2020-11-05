@@ -302,8 +302,6 @@ class BaseGeometry(object):
 
     def _get_coords(self):
         """Access to geometry's coordinates (CoordinateSequence)"""
-        if self.is_empty:
-            return []
         return CoordinateSequence(self)
 
     def _set_coords(self, ob):

@@ -1,6 +1,7 @@
 from . import unittest, numpy, shapely20_deprecated
 import pytest
 
+from shapely.coords import CoordinateSequence
 from shapely.errors import ShapelyDeprecationWarning
 from shapely.geometry import LineString, asLineString, Point, LinearRing
 
@@ -69,10 +70,12 @@ def test_from_generator():
 def test_from_empty():
     line = LineString()
     assert line.is_empty
+    assert isinstance(line.coords, CoordinateSequence)
     assert line.coords[:] == []
 
     line = LineString([])
     assert line.is_empty
+    assert isinstance(line.coords, CoordinateSequence)
     assert line.coords[:] == []
 
 
@@ -82,6 +85,16 @@ def test_from_numpy():
 
     line = LineString(np.array([[1.0, 2.0], [3.0, 4.0]]))
     assert line.coords[:] == [(1.0, 2.0), (3.0, 4.0)]
+
+
+def test_numpy_empty_linestring_coords():
+    np = pytest.importorskip("numpy")
+
+    # Check empty
+    line = LineString([])
+    la = np.asarray(line.coords)
+
+    assert la.shape == (0,)
 
 
 def test_from_invalid_dim():
@@ -105,7 +118,7 @@ def test_from_single_coordinate():
     coords = [[-122.185933073564, 37.3629353839073]]
     with pytest.raises(ValueError):
         ls = LineString(coords)
-        ls.geom_type # caused segfault before fix
+        ls.geom_type  # caused segfault before fix
 
 
 class LineStringTestCase(unittest.TestCase):
@@ -202,15 +215,14 @@ class LineStringTestCase(unittest.TestCase):
         assert_array_equal(la, expected)
 
     @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy_coords(self):
-        import numpy as np
+    def test_numpy_linestring_coords(self):
         from numpy.testing import assert_array_equal
 
         line = LineString(((1.0, 2.0), (3.0, 4.0)))
-        expected = np.array([[1.0, 2.0], [3.0, 4.0]])
+        expected = numpy.array([[1.0, 2.0], [3.0, 4.0]])
 
         # Coordinate sequences can be adapted as well
-        la = np.asarray(line.coords)
+        la = numpy.asarray(line.coords)
         assert_array_equal(la, expected)
 
     @shapely20_deprecated

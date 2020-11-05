@@ -1,4 +1,5 @@
 from . import unittest, numpy, shapely20_deprecated
+from shapely.coords import CoordinateSequence
 from shapely.geometry import Point, asPoint
 from shapely.errors import DimensionError, ShapelyDeprecationWarning
 
@@ -19,6 +20,7 @@ def test_from_coordinates():
     # empty
     p = Point()
     assert p.is_empty
+    assert isinstance(p.coords, CoordinateSequence)
     assert p.coords[:] == []
 
 
@@ -76,7 +78,7 @@ def test_from_invalid():
         Point(1, 2, 3, 4)
 
 
-class LineStringTestCase(unittest.TestCase):
+class PointTestCase(unittest.TestCase):
 
     def test_point(self):
 
@@ -244,6 +246,7 @@ def test_point_ctypes_deprecated():
     with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
         p.ctypes is not None
 
+
 def test_point_array_interface_deprecated():
     p = Point(3.0, 4.0)
     with pytest.warns(ShapelyDeprecationWarning, match="array_interface"):
@@ -257,3 +260,13 @@ def test_point_array_interface_numpy_deprecated():
     p = Point(3.0, 4.0)
     with pytest.warns(ShapelyDeprecationWarning, match="array interface"):
         np.array(p)
+
+
+def test_numpy_empty_point_coords():
+    np = pytest.importorskip("numpy")
+
+    pe = Point()
+
+    # Access the coords
+    a = np.asarray(pe.coords)
+    assert a.shape == (0,)

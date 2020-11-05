@@ -5,6 +5,7 @@ from . import unittest, numpy, shapely20_deprecated
 
 import pytest
 
+from shapely.coords import CoordinateSequence
 from shapely.wkb import loads as load_wkb
 from shapely.errors import TopologicalError, ShapelyDeprecationWarning
 from shapely.geos import lgeos
@@ -76,10 +77,12 @@ def test_linearring_from_generator():
 def test_linearring_from_empty():
     ring = LinearRing()
     assert ring.is_empty
+    assert isinstance(ring.coords, CoordinateSequence)
     assert ring.coords[:] == []
 
     ring = LinearRing([])
     assert ring.is_empty
+    assert isinstance(ring.coords, CoordinateSequence)
     assert ring.coords[:] == []
 
 
@@ -88,8 +91,25 @@ def test_linearring_from_numpy():
     np = pytest.importorskip("numpy")
     coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
 
-    line = LineString(np.array(coords))
-    assert line.coords[:] == [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
+    ring = LinearRing(np.array(coords))
+    assert ring.coords[:] == [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
+
+
+def test_numpy_linearring_coords():
+    np = pytest.importorskip("numpy")
+    from numpy.testing import assert_array_equal
+
+    ring = LinearRing(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0)))
+    ra = np.asarray(ring.coords)
+    expected = np.asarray([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)])
+    assert_array_equal(ra, expected)
+
+
+def test_numpy_empty_linearring_coords():
+    np = pytest.importorskip("numpy")
+
+    ring = LinearRing()
+    assert np.asarray(ring.coords).shape == (0,)
 
 
 def test_polygon_from_coordinate_sequence():
@@ -98,11 +118,11 @@ def test_polygon_from_coordinate_sequence():
     # Construct a polygon, exterior ring only
     polygon = Polygon(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0)))
     assert polygon.exterior.coords[:] == coords
-    assert len(polygon.interiors) ==  0
+    assert len(polygon.interiors) == 0
 
     polygon = Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0)])
     assert polygon.exterior.coords[:] == coords
-    assert len(polygon.interiors) ==  0
+    assert len(polygon.interiors) == 0
 
 
 def test_polygon_from_coordinate_sequence_with_holes():
@@ -122,7 +142,7 @@ def test_polygon_from_linearring():
 
     polygon = Polygon(ring)
     assert polygon.exterior.coords[:] == coords
-    assert len(polygon.interiors) ==  0
+    assert len(polygon.interiors) == 0
 
 
 def test_polygon_from_polygon():
@@ -295,7 +315,7 @@ class PolygonTestCase(unittest.TestCase):
     def test_dimensions(self):
 
         # Background: see http://trac.gispython.org/lab/ticket/168
-    # http://lists.gispython.org/pipermail/community/2008-August/001859.html
+        # http://lists.gispython.org/pipermail/community/2008-August/001859.html
 
         coords = ((0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 1.0, 0.0),
                   (1.0, 0.0, 0.0))
