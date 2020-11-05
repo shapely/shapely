@@ -887,23 +887,39 @@ static void* frechet_distance_data[1] = {GEOSFrechetDistanceWrapped_r};
 #endif
 /* Project and ProjectNormalize don't return error codes. wrap them. */
 static int GEOSProjectWrapped_r(void* context, void* a, void* b, double* c) {
-  /* Handle empty points (they give segfaults) */
-  if (GEOSisEmpty_r(context, b)) {
+  /* Handle empty points (they give segfaults (for b) or give exception (for a)) */
+  if (GEOSisEmpty_r(context, a) | GEOSisEmpty_r(context, b)) {
     *c = NPY_NAN;
   } else {
     *c = GEOSProject_r(context, a, b);
   }
-  return 1;
+  if (*c == -1.0) {
+    return 0;
+  } else {
+    return 1;
+  }
 }
 static void* line_locate_point_data[1] = {GEOSProjectWrapped_r};
 static int GEOSProjectNormalizedWrapped_r(void* context, void* a, void* b, double* c) {
-  /* Handle empty points (they give segfaults) */
-  if (GEOSisEmpty_r(context, b)) {
+  double length;
+  double distance;
+
+  /* Handle empty points (they give segfaults (for b) or give exception (for a)) */
+  if (GEOSisEmpty_r(context, a) | GEOSisEmpty_r(context, b)) {
     *c = NPY_NAN;
   } else {
-    *c = GEOSProject_r(context, a, b);
+    /* Use custom implementation of GEOSProjectNormalized to overcome bug in
+    older GEOS versions (https://trac.osgeo.org/geos/ticket/1058) */
+    if (GEOSLength_r(context, a, &length) != 1) {
+      return 0;
+    };
+    distance = GEOSProject_r(context, a, b);
+    if (distance == -1.0) {
+      return 0;
+    } else {
+      *c = distance / length;
+    }
   }
-  *c = GEOSProjectNormalized_r(context, a, b);
   return 1;
 }
 static void* line_locate_point_normalized_data[1] = {GEOSProjectNormalizedWrapped_r};

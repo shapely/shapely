@@ -26,7 +26,7 @@ def test_line_interpolate_point_geom_array():
 
 def test_line_interpolate_point_geom_array_normalized():
     actual = pygeos.line_interpolate_point(
-        [line_string, linear_ring, multi_line_string], 1, normalize=True
+        [line_string, linear_ring, multi_line_string], 1, normalized=True
     )
     assert pygeos.equals(actual[0], pygeos.Geometry("POINT (1 1)"))
     assert pygeos.equals(actual[1], pygeos.Geometry("POINT (0 0)"))
@@ -40,7 +40,7 @@ def test_line_interpolate_point_float_array():
     assert pygeos.equals(actual[2], pygeos.Geometry("POINT (1 0.8)"))
 
 
-@pytest.mark.parametrize("normalize", [False, True])
+@pytest.mark.parametrize("normalized", [False, True])
 @pytest.mark.parametrize(
     "geom",
     [
@@ -52,16 +52,16 @@ def test_line_interpolate_point_float_array():
         pygeos.Geometry("GEOMETRYCOLLECTION (LINESTRING EMPTY, POINT (1 1))"),
     ],
 )
-def test_line_interpolate_point_empty(geom, normalize):
+def test_line_interpolate_point_empty(geom, normalized):
     # These geometries segfault in some versions of GEOS (in 3.8.0, still
     # some of them segfault). Instead, we patched this to return POINT EMPTY.
     # This matches GEOS 3.8.0 behavior on simple empty geometries.
     assert pygeos.equals(
-        pygeos.line_interpolate_point(geom, 0.2, normalize=normalize), empty_point
+        pygeos.line_interpolate_point(geom, 0.2, normalized=normalized), empty_point
     )
 
 
-@pytest.mark.parametrize("normalize", [False, True])
+@pytest.mark.parametrize("normalized", [False, True])
 @pytest.mark.parametrize(
     "geom",
     [
@@ -77,9 +77,9 @@ def test_line_interpolate_point_empty(geom, normalize):
         pygeos.geometrycollections([multi_polygon]),
     ],
 )
-def test_line_interpolate_point_invalid_type(geom, normalize):
+def test_line_interpolate_point_invalid_type(geom, normalized):
     with pytest.raises(TypeError):
-        assert pygeos.line_interpolate_point(geom, 0.2, normalize=normalize)
+        assert pygeos.line_interpolate_point(geom, 0.2, normalized=normalized)
 
 
 def test_line_interpolate_point_none():
@@ -102,14 +102,25 @@ def test_line_locate_point_geom_array2():
     np.testing.assert_allclose(actual, [0.0, 1.0])
 
 
-def test_line_locate_point_none():
-    assert np.isnan(pygeos.line_locate_point(line_string, None))
-    assert np.isnan(pygeos.line_locate_point(None, point))
+@pytest.mark.parametrize("normalized", [False, True])
+def test_line_locate_point_none(normalized):
+    assert np.isnan(pygeos.line_locate_point(line_string, None, normalized=normalized))
+    assert np.isnan(pygeos.line_locate_point(None, point, normalized=normalized))
 
 
-def test_line_locate_point_empty():
-    assert np.isnan(pygeos.line_locate_point(line_string, empty_point))
-    assert np.isnan(pygeos.line_locate_point(empty_line_string, point))
+@pytest.mark.parametrize("normalized", [False, True])
+def test_line_locate_point_empty(normalized):
+    assert np.isnan(pygeos.line_locate_point(line_string, empty_point, normalized=normalized))
+    assert np.isnan(pygeos.line_locate_point(empty_line_string, point, normalized=normalized))
+
+
+@pytest.mark.parametrize("normalized", [False, True])
+def test_line_locate_point_invalid_geometry(normalized):
+    with pytest.raises(pygeos.GEOSException):
+        pygeos.line_locate_point(line_string, line_string, normalized=normalized)
+
+    with pytest.raises(pygeos.GEOSException):
+        pygeos.line_locate_point(polygon, point, normalized=normalized)
 
 
 def test_line_merge_geom_array():

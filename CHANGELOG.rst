@@ -13,6 +13,8 @@ Version 0.9 (unreleased)
 * Limited the length of geometry repr to 80 characters (#189)
 * Argument in ``line_interpolate_point`` and ``line_locate_point``
   was renamed from ``normalize`` to ``normalized`` (#209)
+* Fixed error handling in ``line_locate_point`` for incorrect geometry
+  types, now actually requiring line and point geometries (#216)
 * Addition of ``get_parts`` function to get individual parts of an array of multipart
   geometries (#197).
 * Addition of Cython and internal PyGEOS C API to enable easier development of internal
