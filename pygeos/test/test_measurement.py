@@ -1,7 +1,7 @@
 import pygeos
 import pytest
 import numpy as np
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_allclose
 
 from .common import point_polygon_testdata
 from .common import point
@@ -288,4 +288,22 @@ def test_frechet_densify_invalid_values(densify):
 @pytest.mark.skipif(pygeos.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 def test_frechet_distance_densify_empty():
     actual = pygeos.frechet_distance(line_string, empty, densify=0.2)
+    assert np.isnan(actual)
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+def test_minimum_clearance():
+    actual = pygeos.minimum_clearance([polygon, polygon_with_hole, multi_polygon])
+    assert_allclose(actual, [2.0, 2.0, 0.1])
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+def test_minimum_clearance_nonexistent():
+    actual = pygeos.minimum_clearance([point, empty])
+    assert np.isinf(actual).all()
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+def test_minimum_clearance_missing():
+    actual = pygeos.minimum_clearance(None)
     assert np.isnan(actual)

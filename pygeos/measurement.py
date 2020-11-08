@@ -5,7 +5,10 @@ from . import Geometry  # NOQA
 from .decorators import requires_geos, multithreading_enabled
 
 
-__all__ = ["area", "distance", "bounds", "total_bounds", "length", "hausdorff_distance", "frechet_distance"]
+__all__ = [
+    "area", "distance", "bounds", "total_bounds", "length", "hausdorff_distance",
+    "frechet_distance", "minimum_clearance"
+]
 
 
 @multithreading_enabled
@@ -218,3 +221,30 @@ def frechet_distance(a, b, densify=None, **kwargs):
     if densify is None:
         return lib.frechet_distance(a, b, **kwargs)
     return lib.frechet_distance_densify(a, b, densify, **kwargs)
+
+
+@requires_geos("3.6.0")
+@multithreading_enabled
+def minimum_clearance(geometry, **kwargs):
+    """Computes the Minimum Clearance distance.
+
+    A geometry's "minimum clearance" is the smallest distance by which
+    a vertex of the geometry could be moved to produce an invalid geometry.
+
+    If no minimum clearance exists for a geometry (for example, a single
+    point, or an empty geometry), infinity is returned.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+
+    Examples
+    --------
+    >>> minimum_clearance(Geometry("POLYGON((0 0, 0 10, 5 6, 10 10, 10 0, 5 4, 0 0))"))
+    2.0
+    >>> minimum_clearance(Geometry("POLYGON EMPTY"))
+    inf
+    >>> minimum_clearance(None)
+    nan
+    """
+    return lib.minimum_clearance(geometry, **kwargs)

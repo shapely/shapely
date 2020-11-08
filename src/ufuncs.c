@@ -773,6 +773,20 @@ static void* get_z_data[1] = {GetZ};
 #endif
 static void* area_data[1] = {GEOSArea_r};
 static void* length_data[1] = {GEOSLength_r};
+#if GEOS_SINCE_3_6_0
+static int MinimumClearance(void* context, void* a, double* b) {
+  // GEOSMinimumClearance deviates from the pattern of returning 0 on exception and 1 on
+  // success for functions that return an int (it follows pattern for boolean functions
+  // returning char 0/1 and 2 on exception)
+  int retcode = GEOSMinimumClearance_r(context, a, b);
+  if (retcode == 2) {
+    return 0;
+  } else {
+    return 1;
+  }
+}
+static void* minimum_clearance_data[1] = {MinimumClearance};
+#endif
 typedef int FuncGEOS_Y_d(void* context, void* a, double* b);
 static char Y_d_dtypes[2] = {NPY_OBJECT, NPY_DOUBLE};
 static void Y_d_func(char** args, npy_intp* dimensions, npy_intp* steps, void* data) {
@@ -2250,6 +2264,10 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_CUSTOM(to_wkb, 5);
   DEFINE_CUSTOM(to_wkt, 5);
   DEFINE_CUSTOM(from_shapely, 1);
+
+#if GEOS_SINCE_3_6_0
+  DEFINE_Y_d(minimum_clearance);
+#endif
 
 #if GEOS_SINCE_3_7_0
   DEFINE_Y_b(is_ccw);
