@@ -553,14 +553,62 @@ split = SplitOp.split
 
 
 def substring(geom, start_dist, end_dist, normalized=False):
-    """Return a line segment between specified distances along a linear geometry.
+    """Return a line segment between specified distances along a LineString
 
     Negative distance values are taken as measured in the reverse
     direction from the end of the geometry. Out-of-range index
     values are handled by clamping them to the valid range of values.
-    If the start distances equals the end distance, a point is being returned.
-    If the normalized arg is True, the distance will be interpreted as a
-    fraction of the geometry's length.
+
+    If the start distance equals the end distance, a Point is returned.
+
+    If the start distance is actually beyond the end distance, then the
+    reversed substring is returned such that the start distance is
+    at the first coordinate.
+
+    Parameters
+    ----------
+    geom : LineString
+        The geometry to get a substring of.
+    start_dist : float
+        The distance along `goem` of the start of the substring.
+    end_dist : float
+        The distance along `geom` of the end of the substring.
+    normalized : bool, False
+        Whether the distance parameters are interpreted as a
+        fraction of the geometry's length.
+
+    Returns
+    -------
+    Union[Point, LineString]
+        The substring between `start_dist` and `end_dist` or a Point
+        if they are at the same location.
+
+    Raises
+    ------
+    AssertionError
+        If `geom` is not a LineString.
+
+    Examples
+    --------
+    >>> from shapely.geometry import LineString
+    >>> from shapely.ops import substring
+    >>> ls = LineString((i, 0) for i in range(6))
+    >>> ls.wkt
+    'LINESTRING (0 0, 1 0, 2 0, 3 0, 4 0, 5 0)'
+    >>> substring(ls, start_dist=1, end_dist=3).wkt
+    'LINESTRING (1 0, 2 0, 3 0)'
+    >>> substring(ls, start_dist=3, end_dist=1).wkt
+    'LINESTRING (3 0, 2 0, 1 0)'
+    >>> substring(ls, start_dist=1, end_dist=-3).wkt
+    'LINESTRING (1 0, 2 0)'
+    >>> substring(ls, start_dist=0.2, end_dist=-0.6, normalized=True).wkt
+    'LINESTRING (1 0, 2 0)'
+
+    Returning a `Point` when `start_dist` and `end_dist` are at the
+    same location.
+
+    >>> substring(ls, 2.5, -2.5).wkt
+    'POINT (2.5 0)'
     """
 
     assert(isinstance(geom, LineString))

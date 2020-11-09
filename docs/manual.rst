@@ -2358,7 +2358,7 @@ Shared paths
 ------------
 
 The :func:`~shapely.ops.shared_paths` function in `shapely.ops` finds the shared
-paths between two lineal geometries.
+paths between two linear geometries.
 
 .. function:: shapely.ops.shared_paths(geom1, geom2)
 
@@ -2416,27 +2416,53 @@ The :func:`~shapely.ops.split` function in `shapely.ops` splits a geometry by an
 Substring
 ---------
 
-The :func:`~shapely.ops.substring` function in `shapely.ops` returns a line segment between specified distances along a linear geometry.
+The :func:`~shapely.ops.substring` function in `shapely.ops` returns a line segment
+between specified distances along a `LineString`.
 
 .. function:: shapely.ops.substring(geom, start_dist, end_dist[, normalized=False])
 
-    Negative distance values are taken as measured in the reverse
-    direction from the end of the geometry. Out-of-range index
-    values are handled by clamping them to the valid range of values.
+  Return the `LineString` between `start_dist` and `end_dist` or a `Point`
+  if they are at the same location
 
-    If the start distance equals the end distance, a point is being returned.
+  Negative distance values are taken as measured in the reverse
+  direction from the end of the geometry. Out-of-range index
+  values are handled by clamping them to the valid range of values.
 
-    If the normalized arg is True, the distance will be interpreted as a
-    fraction of the geometry's length.
+  If the start distance equals the end distance, a point is being returned.
 
-   `New in version 1.7.0`
+  If the start distance is actually past the end distance, then the
+  reversed substring is returned such that the start distance is
+  at the first coordinate.
 
-.. code-block:: pycon
+  If the normalized arg is ``True``, the distance will be interpreted as a
+  fraction of the geometry's length
 
-  >>> line = LineString(([0, 0], [2, 0]))
-  >>> result = substring(line, 0.5, 0.6)
-  >>> result.wkt
-  'LINESTRING (0.5 0, 0.6 0)'
+  `New in version 1.7.0`
+
+  Here are some examples that return `LineStrings`.
+
+  .. code-block:: pycon
+
+    >>> from shapely.geometry import LineString
+    >>> from shapely.ops import substring
+    >>> ls = LineString((i, 0) for i in range(6))
+    >>> ls.wkt
+    'LINESTRING (0 0, 1 0, 2 0, 3 0, 4 0, 5 0)'
+    >>> substring(ls, start_dist=1, end_dist=3).wkt
+    'LINESTRING (1 0, 2 0, 3 0)'
+    >>> substring(ls, start_dist=3, end_dist=1).wkt
+    'LINESTRING (3 0, 2 0, 1 0)'
+    >>> substring(ls, start_dist=1, end_dist=-3).wkt
+    'LINESTRING (1 0, 2 0)'
+    >>> substring(ls, start_dist=0.2, end_dist=-0.6, normalized=True).wkt
+    'LINESTRING (1 0, 2 0)'
+
+  And here is an example that returns a `Point`.
+
+  .. code-block:: pycon
+
+    >>> substring(ls, start_dist=2.5, end_dist=-2.5)
+    'POINT (2.5 0)'
 
 Prepared Geometry Operations
 ----------------------------
