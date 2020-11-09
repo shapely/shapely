@@ -10,6 +10,7 @@ __all__ = [
     "BufferJoinStyles",
     "boundary",
     "buffer",
+    "offset_curve",
     "centroid",
     "convex_hull",
     "delaunay_triangles",
@@ -63,6 +64,7 @@ def boundary(geometry, **kwargs):
     True
     """
     return lib.boundary(geometry, **kwargs)
+
 
 @multithreading_enabled
 def buffer(
@@ -165,6 +167,69 @@ def buffer(
         np.bool(single_sided),
         **kwargs
     )
+
+
+@multithreading_enabled
+def offset_curve(
+    geometry,
+    distance,
+    quadsegs=8,
+    join_style="round",
+    mitre_limit=5.0,
+    **kwargs
+):
+    """
+    Returns a (Multi)LineString at a distance from the object
+    on its right or its left side.
+
+    For positive distance the offset will be at the left side of
+    the input line and retain the same direction. For a negative
+    distance it will be at the right side and in the opposite
+    direction.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    distance : float or array_like
+        Specifies the offset distance from the input geometry. Negative
+        for right side offset, positive for left side offset.
+    quadsegs : int
+        Specifies the number of linear segments in a quarter circle in the
+        approximation of circular arcs.
+    join_style : {'round', 'bevel', 'sharp'}
+        Specifies the shape of outside corners. 'round' results in
+        rounded shapes. 'bevel' results in a beveled edge that touches the
+        original vertex. 'mitre' results in a single vertex that is beveled
+        depending on the ``mitre_limit`` parameter.
+    mitre_limit : float
+        Crops of 'mitre'-style joins if the point is displaced from the
+        buffered vertex by more than this limit.
+
+    Examples
+    --------
+    >>> line = Geometry("LINESTRING (0 0, 0 2)")
+    >>> offset_curve(line, 2)
+    <pygeos.Geometry LINESTRING (-2 0, -2 2)>
+    >>> offset_curve(line, -2)
+    <pygeos.Geometry LINESTRING (2 2, 2 0)>
+    """
+    if isinstance(join_style, str):
+        join_style = BufferJoinStyles[join_style.upper()].value
+    if not np.isscalar(quadsegs):
+        raise TypeError("quadsegs only accepts scalar values")
+    if not np.isscalar(join_style):
+        raise TypeError("join_style only accepts scalar values")
+    if not np.isscalar(mitre_limit):
+        raise TypeError("mitre_limit only accepts scalar values")
+    return lib.offset_curve(
+        geometry,
+        distance,
+        np.intc(quadsegs),
+        np.intc(join_style),
+        np.double(mitre_limit),
+        **kwargs
+    )
+
 
 @multithreading_enabled
 def centroid(geometry, **kwargs):
