@@ -315,7 +315,7 @@ class BaseGeometry(pygeos.Geometry):
     @property
     def minimum_clearance(self):
         """Unitless distance by which a node could be moved to produce an invalid geometry (float)"""
-        return self.impl['minimum_clearance'](self)
+        return float(pygeos.minimum_clearance(self))
 
     # Topological properties
     # ----------------------
