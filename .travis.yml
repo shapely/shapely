@@ -1,28 +1,56 @@
-language: minimal
+---
+language: python
+dist: xenial
+os: linux
 
-matrix:
+cache:
+  directories:
+    - $HOME/geosinstall
+    - ~/.cache/pip
+
+jobs:
   include:
-    - os: linux # 2017
-      env: PYTHON_VERSION="3.6" DEPS="numpy=1.13 geos=3.6"
-    - os: linux # 2018
-      env: PYTHON_VERSION="3.7" DEPS="numpy=1.15 geos=3.7"
-    - os: linux # 2019
-      env: PYTHON_VERSION="3.8" DEPS="numpy=1.17 geos=3.8"
-    - os: linux # now
-      env: PYTHON_VERSION="3.8" CONDA_FORGE=1 DEPS="numpy geos"
-    - os: osx
-      env: PYTHON_VERSION="3.8" DEPS="numpy geos"
+    - python: "3.5"
+      env:  # 2015
+        GEOS_VERSION="3.5.2"
+        NUMPY_VERSION="1.10.4"
+    - python: "3.6"
+      env:  # 2017
+        GEOS_VERSION="3.6.4"
+        NUMPY_VERSION="1.13.3"
+    - python: "3.7"
+      env:  # 2018
+        GEOS_VERSION="3.7.3"
+        NUMPY_VERSION="1.15.4"
+    - python: "3.8"
+      env:  # 2019
+        GEOS_VERSION="3.8.1"
+        NUMPY_VERSION="1.17.5"
+    - python: "3.9"
+      env:  # 2020
+        GEOS_VERSION="3.8.1"
+        NUMPY_VERSION="1.19.4"
+    - python: "3.9-dev"
+      env: GEOS_VERSION="master"
+  allow_failures:
+    - python: "3.9-dev"
+      env: GEOS_VERSION="master"
 
 install:
-  - wget https://repo.anaconda.com/pkgs/misc/conda-execs/conda-latest-$TRAVIS_OS_NAME-64.exe -O conda.exe
-  - chmod +x conda.exe
-  - export CONDA_ALWAYS_YES=1
-  - if [ $RESTORE_FREE_CHANNEL ]; then ./conda.exe config --set restore_free_channel true; fi
-  - if [ $CONDA_FORGE ]; then ./conda.exe config --add channels conda-forge; fi
-  - ./conda.exe create --prefix $HOME/miniconda python=$PYTHON_VERSION conda pytest $DEPS
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - pip install -e . --no-deps -v
+  - export GEOS_INSTALL=$HOME/geosinstall/geos-$GEOS_VERSION
+  - ./ci/install_geos.sh
+  - cd $TRAVIS_BUILD_DIR
+  - pip install --disable-pip-version-check --upgrade pip
+  - pip install --upgrade wheel
+  - if [ "$GEOS_VERSION" = "master" ]; then
+      pip install --upgrade --pre Cython numpy pytest;
+    else
+      pip install --upgrade Cython "numpy==$NUMPY_VERSION" pytest;
+    fi
+  - export LD_LIBRARY_PATH=$GEOS_INSTALL/lib
+  - export PATH=$GEOS_INSTALL/bin:$PATH
+  - python setup.py build_ext --inplace
+  - pip install --no-deps -e .
 
 script:
-  - pytest --doctest-modules;
+  - pytest --doctest-modules

@@ -3,6 +3,7 @@ from pygeos.decorators import requires_geos, multithreading_enabled
 from unittest import mock
 import pytest
 from itertools import chain
+import sys
 
 import numpy as np
 
@@ -22,6 +23,10 @@ def test_geos_version():
     assert pygeos.geos_version_string == expected
 
 
+@pytest.mark.skipif(
+    sys.platform.startswith("win") and pygeos.geos_version[:2] == (3, 7),
+    reason="GEOS_C_API_VERSION broken for GEOS 3.7.x on Windows",
+)
 def test_geos_capi_version():
     expected = "{0:d}.{1:d}.{2:d}-CAPI-{3:d}.{4:d}.{5:d}".format(
         *(pygeos.geos_version + pygeos.geos_capi_version)

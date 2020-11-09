@@ -1,15 +1,33 @@
+---
+image: Visual Studio 2019
+platform: x64
+
 environment:
+  global:
+    COMPILER: msvc2019
+
   matrix:
-    - PYTHON_PATH: "C:\\Miniconda37"
-      PYTHON_VERSION: 3.7
-      DEPS: "numpy geos Cython"
-
-    - PYTHON_PATH: "C:\\Miniconda37-x64"
-      PYTHON_VERSION: 3.7
-      DEPS: "numpy geos Cython"
-
-init:
-  - "ECHO %PYTHON% %PYTHON_VERSION%"
+    # Interleave PYTHON, ARCH and GEOS_VERSION
+    - PYTHON: "C:\\Python35-x64"
+      ARCH: x64
+      GEOS_VERSION: 3.5.2
+      NUMPY_VERSION: 1.10.4
+    - PYTHON: "C:\\Python36"
+      ARCH: x86
+      GEOS_VERSION: 3.6.4
+      NUMPY_VERSION: 1.13.3
+    - PYTHON: "C:\\Python37-x64"
+      ARCH: x64
+      GEOS_VERSION: 3.7.3
+      NUMPY_VERSION: 1.15.4
+    - PYTHON: "C:\\Python38"
+      ARCH: x86
+      GEOS_VERSION: 3.8.1
+      NUMPY_VERSION: 1.17.5
+    - PYTHON: "C:\\Python39-x64"
+      ARCH: x64
+      GEOS_VERSION: 3.8.1
+      NUMPY_VERSION: 1.19.4
 
 install:
   # If there is a newer build queued for the same PR, cancel this one.
@@ -23,26 +41,35 @@ install:
       Where-Object pullRequestId -eq $env:APPVEYOR_PULL_REQUEST_NUMBER)[0].buildNumber) { `
       throw "There are newer queued builds for this pull request, failing early." }
 
-  # Prepend to the PATH of this build
-  - "set PATH=%PYTHON_PATH%;%PYTHON_PATH%\\Scripts;%CONDA_ROOT%\\Library\\bin;%PATH%"
-  - conda config --set always_yes true
-  - conda update --quiet conda
+build: false  # disable automatic build
+build_script:
+  - set GEOS_INSTALL=C:\projects\deps\geos-%GEOS_VERSION%-%COMPILER%-%ARCH%
+  - set GEOS_ESCAPED_INSTALL=C:\\projects\\deps\\geos-%GEOS_VERSION%-%COMPILER%-%ARCH%
 
-  # See https://github.com/conda/conda/issues/8836 ("yes, this is insane")
-  - activate
-  - conda info --all
-  - conda config --append channels conda-forge
-  - conda create -n testenv --yes python=%PYTHON_VERSION% %DEPS% pytest
+  - ps: 'Write-Host "Configuring PATH with $env:PYTHON and $env:GEOS_INSTALL\bin" -ForegroundColor Magenta'
+  - set PATH=%PYTHON%;%PYTHON%\Scripts;%GEOS_INSTALL%\bin;%PATH%
+  - python -m pip install --disable-pip-version-check --upgrade pip
+  - pip install --upgrade wheel  # may be required to generate some dependencies
 
-  # Do this. Don't "conda activate testenv".
-  - activate testenv
+  - ps: 'Write-Host "Configuring MSVC compiler $env:COMPILER" -ForegroundColor Magenta'
+  - call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" %ARCH%
 
-build: false
+  - ps: 'Write-Host "Checking GEOS build $env:GEOS_INSTALL" -ForegroundColor Magenta'
+  - if not exist C:\projects\deps mkdir C:\projects\deps
+  - cd C:\projects\deps
+  - call %APPVEYOR_BUILD_FOLDER%\ci\install_geos.cmd
 
-before_test:
-  - "set GEOS_LIBRARY_PATH=%CONDA_PREFIX%\\Library\\lib"
-  - "set GEOS_INCLUDE_PATH=%CONDA_PREFIX%\\Library\\include"
-  - "%CMD_IN_ENV% pip install -e . --no-deps --no-build-isolation -v"
+  - ps: 'Write-Host "Building extension" -ForegroundColor Magenta'
+  - set GEOS_LIBRARY_PATH=%GEOS_ESCAPED_INSTALL%\\lib
+  - set GEOS_INCLUDE_PATH=%GEOS_ESCAPED_INSTALL%\\include
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - xcopy %GEOS_INSTALL%\bin\geos*.dll pygeos\
+  - pip install --upgrade Cython "numpy==%NUMPY_VERSION%" pytest
+  - python setup.py build_ext --inplace
+  - pip install --no-deps -e .
 
 test_script:
   - pytest --doctest-modules
+
+cache:
+  - C:\projects\deps -> %APPVEYOR_BUILD_FOLDER%\ci\install_geos.cmd
