@@ -570,7 +570,7 @@ class BaseGeometry(pygeos.Geometry):
     def relate(self, other):
         """Returns the DE-9IM intersection matrix for the two geometries
         (string)"""
-        return self.impl['relate'](self, other)
+        return pygeos.relate(self, other)
 
     def covers(self, other):
         """Returns True if the geometry covers the other, else False"""
