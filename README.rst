@@ -20,6 +20,12 @@ PyGEOS
 	:alt: Appveyor CI status
 	:target: https://ci.appveyor.com/project/caspervdw/pygeos-3e5cu
 
+.. Github Actions status — https://github.com/pygeos/pygeos/actions
+
+.. image:: https://github.com/pygeos/pygeos/workflows/Conda/badge.svg
+	:alt: Github Actions status
+	:target: https://github.com/pygeos/pygeos/actions?query=workflow%3AConda
+
 .. PyPI
 
 .. image:: https://badge.fury.io/py/pygeos.svg

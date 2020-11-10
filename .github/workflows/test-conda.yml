@@ -1,10 +1,10 @@
-name: Test using Conda environments
+name: Conda
 
 on: [push, pull_request]
 
 jobs:
   TestConda:
-    name: ${{ matrix.os }} - Python ${{ matrix.python }} (GEOS ${{ matrix.geos || 'latest' }}, numpy ${{ matrix.numpy || 'latest' }}, conda ${{ matrix.channel || 'defaults' }})
+    name: ${{ matrix.os }} - ${{ matrix.channel || 'defaults' }} - Python ${{ matrix.python }} (GEOS ${{ matrix.geos || 'latest' }}, numpy ${{ matrix.numpy || 'latest' }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -16,6 +16,12 @@ jobs:
           - os: ubuntu-latest
             python: 3.8
             channel: conda-forge
+          - os: windows-latest
+            python: 3.8
+            channel: conda-forge
+          - os: macos-latest
+            python: 3.8
+            channel: conda-forge
           - os: macos-latest
             python: 3.6
             geos: 3.6
@@ -31,27 +37,6 @@ jobs:
           - os: macos-latest
             python: 3.8
             channel: defaults
-          - os: macos-latest
-            python: 3.8
-            channel: conda-forge
-          - os: windows-latest
-            python: 3.6
-            geos: 3.6
-            numpy: 1.13
-          - os: windows-latest
-            python: 3.7
-            geos: 3.7
-            numpy: 1.15
-          - os: windows-latest
-            python: 3.8
-            geos: 3.8
-            numpy: 1.17
-          - os: windows-latest
-            python: 3.8
-            channel: defaults
-          - os: windows-latest
-            python: 3.8
-            channel: conda-forge
 
     steps:
       - uses: actions/checkout@v2
