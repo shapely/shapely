@@ -18,7 +18,7 @@
 static char get_coordinates(GEOSContextHandle_t, GEOSGeometry*, PyArrayObject*, npy_intp*,
                             int);
 static void* set_coordinates(GEOSContextHandle_t, GEOSGeometry*, PyArrayObject*,
-                             npy_intp*);
+                             npy_intp*, int);
 
 /* Get coordinates from a point, linestring or linearring and puts them at
 position `cursor` in the array `out`. Increases the cursor correspondingly.
@@ -133,9 +133,10 @@ static char get_coordinates(GEOSContextHandle_t context, GEOSGeometry* geom,
 new coordinates set from position `cursor` in the array `out`. The value of the
 cursor is increased correspondingly. Returns NULL on error,*/
 static void* set_coordinates_simple(GEOSContextHandle_t context, GEOSGeometry* geom,
-                                    int type, PyArrayObject* coords, npy_intp* cursor) {
+                                    int type, PyArrayObject* coords, npy_intp* cursor,
+                                    int include_z) {
   unsigned int n, i, dims;
-  double *x, *y;
+  double *x, *y, *z;
   GEOSGeometry* ret;
 
   /* Special case for POINT EMPTY (Point coordinate list cannot be 0-length) */
@@ -155,6 +156,12 @@ static void* set_coordinates_simple(GEOSContextHandle_t context, GEOSGeometry* g
     return NULL;
   }
 
+  /* If we have CoordSeq with z dim, but new coordinates only are 2D,
+   * create new CoordSeq that is also only 2D */
+  if ((dims == 3) && !include_z) {
+    dims = 2;
+  }
+
   /* Create a new one to fill with the new coordinates */
   GEOSCoordSequence* seq_new = GEOSCoordSeq_create_r(context, n, dims);
   if (seq_new == NULL) {
@@ -169,6 +176,12 @@ static void* set_coordinates_simple(GEOSContextHandle_t context, GEOSGeometry* g
     }
     if (GEOSCoordSeq_setY_r(context, seq_new, i, *y) == 0) {
       goto fail;
+    }
+    if (dims == 3) {
+      z = PyArray_GETPTR2(coords, *cursor, 2);
+      if (GEOSCoordSeq_setZ_r(context, seq_new, i, *z) == 0) {
+        goto fail;
+      }
     }
   }
 
@@ -194,7 +207,8 @@ fail:
 `set_coordinates_simple` on the linearrings that make the polygon.
 Returns NULL on error,*/
 static void* set_coordinates_polygon(GEOSContextHandle_t context, GEOSGeometry* geom,
-                                     PyArrayObject* coords, npy_intp* cursor) {
+                                     PyArrayObject* coords, npy_intp* cursor,
+                                     int include_z) {
   int i;
   GEOSGeometry *shell, *hole, *result = NULL;
   int n = GEOSGetNumInteriorRings_r(context, geom);
@@ -209,7 +223,7 @@ static void* set_coordinates_polygon(GEOSContextHandle_t context, GEOSGeometry* 
   if (shell == NULL) {
     goto finish;
   }
-  shell = set_coordinates_simple(context, shell, 2, coords, cursor);
+  shell = set_coordinates_simple(context, shell, 2, coords, cursor, include_z);
   if (shell == NULL) {
     goto finish;
   }
@@ -219,7 +233,7 @@ static void* set_coordinates_polygon(GEOSContextHandle_t context, GEOSGeometry* 
     if (hole == NULL) {
       goto finish;
     }
-    hole = set_coordinates_simple(context, hole, 2, coords, cursor);
+    hole = set_coordinates_simple(context, hole, 2, coords, cursor, include_z);
     if (hole == NULL) {
       goto finish;
     }
@@ -238,8 +252,8 @@ finish:
 /* Returns a copy of the input collection with new coordinates set by calling
 `set_coordinates` on the constituent subgeometries. Returns NULL on error,*/
 static void* set_coordinates_collection(GEOSContextHandle_t context, GEOSGeometry* geom,
-                                        int type, PyArrayObject* coords,
-                                        npy_intp* cursor) {
+                                        int type, PyArrayObject* coords, npy_intp* cursor,
+                                        int include_z) {
   int i;
   GEOSGeometry *sub_geom, *result = NULL;
   int n = GEOSGetNumGeometries_r(context, geom);
@@ -253,7 +267,7 @@ static void* set_coordinates_collection(GEOSContextHandle_t context, GEOSGeometr
     if (sub_geom == NULL) {
       goto finish;
     }
-    sub_geom = set_coordinates(context, sub_geom, coords, cursor);
+    sub_geom = set_coordinates(context, sub_geom, coords, cursor, include_z);
     if (sub_geom == NULL) {
       goto finish;
     }
@@ -272,14 +286,14 @@ finish:
 `cursor` in the array `out`. The value of the cursor is increased
 correspondingly. Returns NULL on error,*/
 static void* set_coordinates(GEOSContextHandle_t context, GEOSGeometry* geom,
-                             PyArrayObject* coords, npy_intp* cursor) {
+                             PyArrayObject* coords, npy_intp* cursor, int include_z) {
   int type = GEOSGeomTypeId_r(context, geom);
   if ((type == 0) | (type == 1) | (type == 2)) {
-    return set_coordinates_simple(context, geom, type, coords, cursor);
+    return set_coordinates_simple(context, geom, type, coords, cursor, include_z);
   } else if (type == 3) {
-    return set_coordinates_polygon(context, geom, coords, cursor);
+    return set_coordinates_polygon(context, geom, coords, cursor, include_z);
   } else if ((type >= 4) & (type <= 7)) {
-    return set_coordinates_collection(context, geom, type, coords, cursor);
+    return set_coordinates_collection(context, geom, type, coords, cursor, include_z);
   } else {
     return NULL;
   }
@@ -431,6 +445,8 @@ PyObject* SetCoords(PyArrayObject* geoms, PyArrayObject* coords) {
   NpyIter_IterNextFunc* iternext;
   char** dataptr;
   npy_intp cursor;
+  npy_intp* coords_shape;
+  int include_z;
   GeometryObject* obj;
   PyObject* new_obj;
   GEOSGeometry *geom, *new_geom;
@@ -441,6 +457,9 @@ PyObject* SetCoords(PyArrayObject* geoms, PyArrayObject* coords) {
     Py_INCREF((PyObject*)geoms);
     return (PyObject*)geoms;
   }
+
+  coords_shape = PyArray_SHAPE(coords);
+  include_z = (coords_shape[1] == 3);
 
   /* We use the Numpy iterator C-API here.
   The iterator exposes an "iternext" function which updates a "dataptr"
@@ -474,7 +493,7 @@ PyObject* SetCoords(PyArrayObject* geoms, PyArrayObject* coords) {
       continue;
     }
     /* create a new geometry with coordinates from "coords" array */
-    new_geom = set_coordinates(ctx, geom, coords, &cursor);
+    new_geom = set_coordinates(ctx, geom, coords, &cursor, include_z);
     if (new_geom == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
       goto finish;
@@ -554,6 +573,10 @@ PyObject* PySetCoords(PyObject* self, PyObject* args) {
   }
   if ((PyArray_TYPE((PyArrayObject*)coords)) != NPY_DOUBLE) {
     PyErr_SetString(PyExc_TypeError, "Coordinate array should be of float64 dtype");
+    return NULL;
+  }
+  if ((PyArray_NDIM((PyArrayObject*)coords)) != 2) {
+    PyErr_SetString(PyExc_ValueError, "Coordinate array should be 2-dimensional");
     return NULL;
   }
   geoms = SetCoords((PyArrayObject*)geoms, (PyArrayObject*)coords);

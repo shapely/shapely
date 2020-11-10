@@ -19,6 +19,8 @@ Version 0.9 (unreleased)
   types, now actually requiring line and point geometries (#216)
 * Addition of ``get_parts`` function to get individual parts of an array of multipart
   geometries (#197).
+* The ``apply`` function for coordinate transformations and the ``set_coordinates``
+  function now support geometries with z-coordinates (#131).
 * Addition of Cython and internal PyGEOS C API to enable easier development of internal
   functions (previously all significant internal functions were developed in C) (#51).
 

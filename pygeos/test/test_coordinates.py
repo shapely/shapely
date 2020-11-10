@@ -2,7 +2,7 @@ import pytest
 import pygeos
 from pygeos import apply, count_coordinates, get_coordinates, set_coordinates
 import numpy as np
-from numpy.testing import assert_equal
+from numpy.testing import assert_equal, assert_allclose
 
 from .common import empty
 from .common import point
@@ -101,6 +101,7 @@ def test_get_coords_3d(geoms, x, y, z, include_z):
     assert_equal(actual, expected)
 
 
+@pytest.mark.parametrize("include_z", [True, False])
 @pytest.mark.parametrize(
     "geoms,count,has_ring",
     [
@@ -114,24 +115,24 @@ def test_get_coords_3d(geoms, x, y, z, include_z):
         ([point, point], 2, False),
         ([point, point_z], 2, False),
         ([line_string, linear_ring], 8, True),
+        ([line_string_z], 3, True),
         ([polygon], 5, True),
+        ([polygon_z], 5, True),
         ([polygon_with_hole], 10, True),
         ([multi_point, multi_line_string], 4, False),
         ([multi_polygon], 10, True),
         ([geometry_collection], 3, False),
+        ([geometry_collection_z], 3, False),
         ([nested_2], 4, False),
         ([nested_3], 5, False),
     ],
 )
-def test_set_coords(geoms, count, has_ring):
-    geoms = np.array(geoms, np.object)
-    if has_ring:
-        # do not randomize; linearrings / polygons should stay closed
-        coords = get_coordinates(geoms) + np.random.random((1, 2))
-    else:
-        coords = np.random.random((count, 2))
-    new_geoms = set_coordinates(geoms, coords)
-    assert_equal(coords, get_coordinates(new_geoms))
+def test_set_coords(geoms, count, has_ring, include_z):
+    arr_geoms = np.array(geoms, np.object)
+    n = 3 if include_z else 2
+    coords = get_coordinates(arr_geoms, include_z=include_z) + np.random.random((1, n))
+    new_geoms = set_coordinates(arr_geoms, coords)
+    assert_equal(coords, get_coordinates(new_geoms, include_z=include_z))
 
 
 def test_set_coords_nan():
@@ -156,17 +157,32 @@ def test_set_coords_0dim():
     assert actual.ndim == 0
 
 
+@pytest.mark.parametrize("include_z", [True, False])
+def test_set_coords_mixed_dimension(include_z):
+    geoms = np.array([point, point_z], dtype=object)
+    coords = get_coordinates(geoms, include_z=include_z)
+    new_geoms = set_coordinates(geoms, coords * 2)
+    if include_z:
+        # preserve original dimensionality
+        assert not pygeos.has_z(new_geoms[0])
+        assert pygeos.has_z(new_geoms[1])
+    else:
+        # all 2D
+        assert not pygeos.has_z(new_geoms).any()
+
+
+@pytest.mark.parametrize("include_z", [True, False])
 @pytest.mark.parametrize(
     "geoms",
-    [[], [empty], [None, point, None], [nested_3]],
+    [[], [empty], [None, point, None], [nested_3], [point, point_z], [line_string_z]],
 )
-def test_apply(geoms):
+def test_apply(geoms, include_z):
     geoms = np.array(geoms, np.object)
-    coordinates_before = get_coordinates(geoms)
-    new_geoms = apply(geoms, lambda x: x + 1)
+    coordinates_before = get_coordinates(geoms, include_z=include_z)
+    new_geoms = apply(geoms, lambda x: x + 1, include_z=include_z)
     assert new_geoms is not geoms
-    coordinates_after = get_coordinates(new_geoms)
-    assert_equal(coordinates_before + 1, coordinates_after)
+    coordinates_after = get_coordinates(new_geoms, include_z=include_z)
+    assert_allclose(coordinates_before + 1, coordinates_after, equal_nan=True)
 
 
 def test_apply_0dim():
@@ -185,3 +201,11 @@ def test_apply_check_shape():
 
     with pytest.raises(ValueError):
         apply(linear_ring, remove_coord)
+
+
+def test_apply_correct_coordinate_dimension():
+    # ensure that new geometry is 2D with include_z=False
+    geom = line_string_z
+    assert pygeos.get_coordinate_dimension(geom) == 3
+    new_geom = apply(geom, lambda x: x + 1, include_z=False)
+    assert pygeos.get_coordinate_dimension(new_geom) == 2
