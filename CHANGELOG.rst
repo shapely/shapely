@@ -23,6 +23,10 @@ Version 0.9 (unreleased)
   function now support geometries with z-coordinates (#131).
 * Addition of Cython and internal PyGEOS C API to enable easier development of internal
   functions (previously all significant internal functions were developed in C) (#51).
+* API change: geometry and counting functions (``get_num_coordinates``,
+  ``get_num_geometries``, ``get_num_interior_rings``, ``get_num_points``) now return 0
+  for ``None`` input values instead of -1 (#218).
+* Fixed internal GEOS error code detection for ``get_dimensions`` and ``get_srid`` (#218).
 
 Version 0.8 (2020-09-06)
 ------------------------

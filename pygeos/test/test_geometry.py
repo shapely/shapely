@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import pygeos
 import pytest
@@ -21,18 +22,18 @@ from .common import all_types
 
 
 def test_get_num_points():
-    actual = pygeos.get_num_points(all_types).tolist()
-    assert actual == [0, 3, 5, 0, 0, 0, 0, 0, 0]
+    actual = pygeos.get_num_points(all_types + (None,)).tolist()
+    assert actual == [0, 3, 5, 0, 0, 0, 0, 0, 0, 0]
 
 
 def test_get_num_interior_rings():
-    actual = pygeos.get_num_interior_rings(all_types + (polygon_with_hole,)).tolist()
-    assert actual == [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+    actual = pygeos.get_num_interior_rings(all_types + (polygon_with_hole, None))
+    assert actual.tolist() == [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
 
 
 def test_get_num_geometries():
-    actual = pygeos.get_num_geometries(all_types).tolist()
-    assert actual == [1, 1, 1, 1, 2, 1, 2, 2, 0]
+    actual = pygeos.get_num_geometries(all_types + (None,)).tolist()
+    assert actual == [1, 1, 1, 1, 2, 1, 2, 2, 0, 0]
 
 
 @pytest.mark.parametrize(
@@ -137,8 +138,14 @@ def test_get_coordinate_dimension():
 
 
 def test_get_num_coordinates():
-    actual = pygeos.get_num_coordinates(all_types).tolist()
-    assert actual == [1, 3, 5, 5, 2, 2, 10, 3, 0]
+    actual = pygeos.get_num_coordinates(all_types + (None,)).tolist()
+    assert actual == [1, 3, 5, 5, 2, 2, 10, 3, 0, 0]
+
+
+def test_get_srid():
+    """All geometry types have no SRID by default; None returns -1"""
+    actual = pygeos.get_srid(all_types + (None,)).tolist()
+    assert actual == [0, 0, 0, 0, 0, 0, 0, 0, 0, -1]
 
 
 def test_get_set_srid():
