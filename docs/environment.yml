@@ -2,6 +2,8 @@ name: pygeos
 channels:
   - defaults
 dependencies:
-  - python==3.6.*
-  - geos==3.8.0
-  - numpydoc==0.7.*
+  - python==3.8.*
+  - geos==3.8.*
+  - numpy==1.19.*
+  - numpydoc==1.1.*
+  - Cython==0.29.*
