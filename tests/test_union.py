@@ -1,7 +1,9 @@
 from . import unittest
+import pytest
 import random
 from itertools import islice
 from functools import partial
+from shapely.errors import ShapelyDeprecationWarning
 from shapely.geos import geos_version
 from shapely.geometry import Point, MultiPolygon
 from shapely.ops import cascaded_union, unary_union
@@ -27,6 +29,7 @@ def halton(base):
 class UnionTestCase(unittest.TestCase):
 
     def test_cascaded_union(self):
+        # cascaded_union is deprecated, as it was superseded by unary_union
 
         # Use a partial function to make 100 points uniformly distributed
         # in a 40x40 box centered on 0,0.
@@ -39,7 +42,8 @@ class UnionTestCase(unittest.TestCase):
 
         # Perform a cascaded union of the polygon spots, dissolving them
         # into a collection of polygon patches
-        u = cascaded_union(spots)
+        with pytest.warns(ShapelyDeprecationWarning, match="is deprecated"):
+            u = cascaded_union(spots)
         self.assertTrue(u.geom_type in ('Polygon', 'MultiPolygon'))
 
     def setUp(self):

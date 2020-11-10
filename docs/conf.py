@@ -25,7 +25,7 @@ import shapely
 
 # For pyplots in code/, load functions here first, so they are visible
 from shapely import geometry, affinity, wkt, wkb
-from shapely.ops import cascaded_union
+from shapely.ops import unary_union
 
 # -- General configuration -----------------------------------------------------
 
