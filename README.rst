@@ -8,23 +8,17 @@ PyGEOS
 	:alt: Documentation Status
 	:target: https://pygeos.readthedocs.io/en/latest/?badge=latest
 
-.. Travis CI status — https://travis-ci.org
+.. Github Actions status — https://github.com/pygeos/pygeos/actions
 
-.. image:: https://travis-ci.org/pygeos/pygeos.svg?branch=master
-	:alt: Travis CI status
-	:target: https://travis-ci.org/pygeos/pygeos
+.. image:: https://github.com/pygeos/pygeos/workflows/Conda/badge.svg
+	:alt: Github Actions status
+	:target: https://github.com/pygeos/pygeos/actions?query=workflow%3AConda
 
 .. Appveyor CI status — https://ci.appveyor.com
 
 .. image:: https://ci.appveyor.com/api/projects/status/jw48gpd88f188av6?svg=true
 	:alt: Appveyor CI status
 	:target: https://ci.appveyor.com/project/caspervdw/pygeos-3e5cu
-
-.. Github Actions status — https://github.com/pygeos/pygeos/actions
-
-.. image:: https://github.com/pygeos/pygeos/workflows/Conda/badge.svg
-	:alt: Github Actions status
-	:target: https://github.com/pygeos/pygeos/actions?query=workflow%3AConda
 
 .. PyPI
 
