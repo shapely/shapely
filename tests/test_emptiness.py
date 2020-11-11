@@ -29,6 +29,7 @@ class EmptinessTestCase(unittest.TestCase):
         p.empty()
         self.assertTrue(p._is_empty)
 
+    @shapely20_deprecated
     def test_none_geom(self):
         p = BaseGeometry()
         p._geom = None

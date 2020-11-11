@@ -44,7 +44,9 @@ class LineString(BaseGeometry):
         if coordinates is not None:
             ret = geos_linestring_from_py(coordinates)
             if ret is not None:
-                self._geom, self._ndim = ret
+                geom, n = ret
+                self._set_geom(geom)
+                self._ndim = n
 
     @property
     def __geo_interface__(self):
@@ -113,7 +115,9 @@ class LineString(BaseGeometry):
         self._empty()
         ret = geos_linestring_from_py(coordinates)
         if ret is not None:
-            self._geom, self._ndim = ret
+            geom, n = ret
+            self._set_geom(geom)
+            self._ndim = n
 
     coords = property(BaseGeometry._get_coords, _set_coords)
 

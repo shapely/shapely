@@ -52,7 +52,9 @@ class MultiPoint(BaseMultipartGeometry):
             # allow creation of empty multipoints, to support unpickling
             pass
         else:
-            self._geom, self._ndim = geos_multipoint_from_py(points)
+            geom, n = geos_multipoint_from_py(points)
+            self._set_geom(geom)
+            self._ndim = n
 
     def shape_factory(self, *args):
         return point.Point(*args)

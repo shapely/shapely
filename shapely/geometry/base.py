@@ -80,7 +80,7 @@ def geom_factory(g, parent=None):
         [geom_type],
         )
     ob.__class__ = getattr(mod, geom_type)
-    ob._geom = g
+    ob._set_geom(g)
     ob.__p__ = parent
     if lgeos.methods['has_z'](g):
         ob._ndim = 3
@@ -230,6 +230,13 @@ class BaseGeometry(object):
 
     @_geom.setter
     def _geom(self, val):
+        warn(
+            "Setting the '_geom' attribute directly is deprecated, and will "
+            "no longer be possible in Shapely 2.0.",
+            ShapelyDeprecationWarning, stacklevel=2)
+        self._set_geom(val)
+
+    def _set_geom(self, val):
         self._empty()
         self._is_empty = val in [EMPTY, None]
         self.__geom__ = val
@@ -951,7 +958,7 @@ class GeometrySequence(object):
     def _get_geom_item(self, i):
         g = self.shape_factory()
         g._other_owned = True
-        g._geom = lgeos.GEOSGetGeometryN(self._geom, i)
+        g._set_geom(lgeos.GEOSGetGeometryN(self._geom, i))
         g._ndim = self._ndim
         g.__p__ = self
         return g

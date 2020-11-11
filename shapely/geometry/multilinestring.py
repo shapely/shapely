@@ -46,7 +46,9 @@ class MultiLineString(BaseMultipartGeometry):
             # allow creation of empty multilinestrings, to support unpickling
             pass
         else:
-            self._geom, self._ndim = geos_multilinestring_from_py(lines)
+            geom, n = geos_multilinestring_from_py(lines)
+            self._set_geom(geom)
+            self._ndim = n
 
     def shape_factory(self, *args):
         return linestring.LineString(*args)

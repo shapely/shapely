@@ -55,11 +55,13 @@ class MultiPolygon(BaseMultipartGeometry):
 
         if not polygons:
             # allow creation of empty multipolygons, to support unpickling
-            pass
+            return
         elif context_type == 'polygons':
-            self._geom, self._ndim = geos_multipolygon_from_polygons(polygons)
+            geom, n = geos_multipolygon_from_polygons(polygons)
         elif context_type == 'geojson':
-            self._geom, self._ndim = geos_multipolygon_from_py(polygons)
+            geom, n = geos_multipolygon_from_py(polygons)
+        self._set_geom(geom)
+        self._ndim = n
 
     def shape_factory(self, *args):
         return polygon.Polygon(*args)

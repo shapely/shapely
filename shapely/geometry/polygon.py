@@ -52,7 +52,9 @@ class LinearRing(LineString):
         if coordinates is not None:
             ret = geos_linearring_from_py(coordinates)
             if ret is not None:
-                self._geom, self._ndim = ret
+                geom, n = ret
+                self._set_geom(geom)
+                self._ndim = n
 
     @property
     def __geo_interface__(self):
@@ -73,7 +75,9 @@ class LinearRing(LineString):
         self._empty()
         ret = geos_linearring_from_py(coordinates)
         if ret is not None:
-            self._geom, self._ndim = ret
+            geom, n = ret
+            self._set_geom(geom)
+            self._ndim = n
 
     coords = property(_get_coords, _set_coords)
 
@@ -196,7 +200,7 @@ class InteriorRingSequence(object):
         if i not in self.__rings__:
             g = lgeos.GEOSGetInteriorRingN(self._geom, i)
             ring = LinearRing()
-            ring._geom = g
+            ring._set_geom(g)
             ring.__p__ = self
             ring._other_owned = True
             ring._ndim = self._ndim
@@ -249,7 +253,9 @@ class Polygon(BaseGeometry):
         if shell is not None:
             ret = geos_polygon_from_py(shell, holes)
             if ret is not None:
-                self._geom, self._ndim = ret
+                geom, n = ret
+                self._set_geom(geom)
+                self._ndim = n
             else:
                 self._empty()
 
@@ -260,7 +266,7 @@ class Polygon(BaseGeometry):
         elif self._exterior is None or self._exterior() is None:
             g = lgeos.GEOSGetExteriorRing(self._geom)
             ring = LinearRing()
-            ring._geom = g
+            ring._set_geom(g)
             ring.__p__ = self
             ring._other_owned = True
             ring._ndim = self._ndim
