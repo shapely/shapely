@@ -2,6 +2,9 @@
 
 from math import sin, cos, tan, pi
 
+import numpy as np
+import pygeos
+
 __all__ = ['affine_transform', 'rotate', 'scale', 'skew', 'translate']
 
 
@@ -43,8 +46,6 @@ def affine_transform(geom, matrix):
         y' = d * x + e * y + f * z + yoff
         z' = g * x + h * y + i * z + zoff
     """
-    if geom.is_empty:
-        return geom
     if len(matrix) == 6:
         ndim = 2
         a, b, d, e, xoff, yoff = matrix
@@ -62,37 +63,25 @@ def affine_transform(geom, matrix):
     else:
         raise ValueError("'matrix' expects either 6 or 12 coefficients")
 
-    def affine_pts(pts):
+    def _affine_coords(coords):
         """Internal function to yield affine transform of coordinate tuples"""
-        if ndim == 2:
-            for x, y in pts:
-                xp = a * x + b * y + xoff
-                yp = d * x + e * y + yoff
-                yield (xp, yp)
-        elif ndim == 3:
-            for x, y, z in pts:
-                xp = a * x + b * y + c * z + xoff
-                yp = d * x + e * y + f * z + yoff
-                zp = g * x + h * y + i * z + zoff
-                yield (xp, yp, zp)
+        x = coords[:, 0]
+        y = coords[:, 1]
 
-    # Process coordinates from each supported geometry type
-    if geom.type in ('Point', 'LineString', 'LinearRing'):
-        return type(geom)(list(affine_pts(geom.coords)))
-    elif geom.type == 'Polygon':
-        ring = geom.exterior
-        shell = type(ring)(list(affine_pts(ring.coords)))
-        holes = list(geom.interiors)
-        for pos, ring in enumerate(holes):
-            holes[pos] = type(ring)(list(affine_pts(ring.coords)))
-        return type(geom)(shell, holes)
-    elif geom.type.startswith('Multi') or geom.type == 'GeometryCollection':
-        # Recursive call
-        # TODO: fix GeometryCollection constructor
-        return type(geom)([affine_transform(part, matrix)
-                           for part in geom.geoms])
-    else:
-        raise ValueError('Type %r not recognized' % geom.type)
+        if ndim == 2:
+            xp = a * x + b * y + xoff
+            yp = d * x + e * y + yoff
+            return np.hstack((np.atleast_2d(xp).T, np.atleast_2d(yp).T))
+        elif ndim == 3:
+            z = coords[:, 2]
+            xp = a * x + b * y + c * z + xoff
+            yp = d * x + e * y + f * z + yoff
+            zp = g * x + h * y + i * z + zoff
+            return np.hstack(
+                (np.atleast_2d(xp).T, np.atleast_2d(yp).T, np.atleast_2d(zp).T)
+            )
+
+    return pygeos.apply(geom, _affine_coords, include_z=ndim == 3)
 
 
 def interpret_origin(geom, origin, ndim):
