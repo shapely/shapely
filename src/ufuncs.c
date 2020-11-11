@@ -43,6 +43,23 @@
   Py_XDECREF(*out);                                      \
   *out = ret
 
+// Fail if inputs output multiple times on the same place in memory. That would
+// lead to segfaults as the same GEOSGeometry would be 'owned' by multiple PyObjects.
+#define CHECK_NO_INPLACE_OUTPUT(N)                                                \
+  if ((steps[N] == 0) && (dimensions[0] > 1)) {                                   \
+    PyErr_Format(PyExc_NotImplementedError,                                       \
+                 "Unknown ufunc mode with args[0]=%p, args[N]=%p, steps[0]=%ld, " \
+                 "steps[N]=%ld, dimensions[0]=%ld.",                              \
+                 args[0], args[N], steps[0], steps[N], dimensions[0]);            \
+    return;                                                                       \
+  }
+
+#define CHECK_ALLOC(ARR)                                             \
+  if (ARR == NULL) {                                                 \
+    PyErr_SetString(PyExc_MemoryError, "Could not allocate memory"); \
+    return;                                                          \
+  }
+
 static void geom_arr_to_npy(GEOSGeometry** array, char* ptr, npy_intp stride,
                             npy_intp count) {
   npy_intp i;
@@ -371,22 +388,11 @@ static void Y_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* d
   GEOSGeometry* in1 = NULL;
   GEOSGeometry** geom_arr;
 
-  // Fail if inputs output multiple times on the same place in memory. That would
-  // lead to segfaults as the same GEOSGeometry would be 'owned' by multiple PyObjects.
-  if ((steps[1] == 0) && (dimensions[0] > 1)) {
-    PyErr_Format(
-        PyExc_NotImplementedError,
-        "Unknown ufunc mode with args=[%p, %p], steps=[%ld, %ld], dimensions=[%ld].",
-        args[0], args[1], steps[0], steps[1], dimensions[0]);
-    return;
-  }
+  CHECK_NO_INPLACE_OUTPUT(1);
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
-  if (geom_arr == NULL) {
-    PyErr_SetString(PyExc_MemoryError, "Could not allocate memory");
-    return;
-  }
+  CHECK_ALLOC(geom_arr);
 
   GEOS_INIT_THREADS;
 
@@ -507,22 +513,11 @@ static void Yd_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
   GEOSGeometry* in1 = NULL;
   GEOSGeometry** geom_arr;
 
-  // Fail if inputs output multiple times on the same place in memory. That would
-  // lead to segfaults as the same GEOSGeometry would be 'owned' by multiple PyObjects.
-  if ((steps[2] == 0) && (dimensions[0] > 1)) {
-    PyErr_Format(PyExc_NotImplementedError,
-                 "Unknown ufunc mode with args=[%p, %p, %p], steps=[%ld, %ld, %ld], "
-                 "dimensions=[%ld].",
-                 args[0], args[1], args[2], steps[0], steps[1], steps[2], dimensions[0]);
-    return;
-  }
+  CHECK_NO_INPLACE_OUTPUT(2);
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
-  if (geom_arr == NULL) {
-    PyErr_SetString(PyExc_MemoryError, "Could not allocate memory");
-    return;
-  }
+  CHECK_ALLOC(geom_arr);
 
   GEOS_INIT_THREADS;
 
@@ -653,22 +648,11 @@ static void Yi_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
   GEOSGeometry* in1 = NULL;
   GEOSGeometry** geom_arr;
 
-  // Fail if inputs output multiple times on the same place in memory. That would
-  // lead to segfaults as the same GEOSGeometry would be 'owned' by multiple PyObjects.
-  if ((steps[2] == 0) && (dimensions[0] > 1)) {
-    PyErr_Format(PyExc_NotImplementedError,
-                 "Unknown ufunc mode with args=[%p, %p, %p], steps=[%ld, %ld, %ld], "
-                 "dimensions=[%ld].",
-                 args[0], args[1], args[2], steps[0], steps[1], steps[2], dimensions[0]);
-    return;
-  }
+  CHECK_NO_INPLACE_OUTPUT(2);
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
-  if (geom_arr == NULL) {
-    PyErr_SetString(PyExc_MemoryError, "Could not allocate memory");
-    return;
-  }
+  CHECK_ALLOC(geom_arr);
 
   GEOS_INIT_THREADS;
 
@@ -808,10 +792,7 @@ static void YY_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
-  if (geom_arr == NULL) {
-    PyErr_SetString(PyExc_MemoryError, "Could not allocate memory");
-    return;
-  }
+  CHECK_ALLOC(geom_arr);
 
   GEOS_INIT_THREADS;
 
@@ -1145,6 +1126,7 @@ finish:
 static PyUFuncGenericFunction YYd_d_funcs[1] = {&YYd_d_func};
 
 /* Define functions with unique call signatures */
+
 static void* null_data[1] = {NULL};
 static char buffer_inner(void* ctx, GEOSBufferParams* params, void* ip1, void* ip2,
                          GEOSGeometry** geom_arr, npy_intp i) {
@@ -1178,15 +1160,7 @@ static void buffer_func(char** args, npy_intp* dimensions, npy_intp* steps, void
   npy_intp i;
   GEOSGeometry** geom_arr;
 
-  // Fail if inputs output multiple times on the same place in memory. That would
-  // lead to segfaults as the same GEOSGeometry would be 'owned' by multiple PyObjects.
-  if ((steps[7] == 0) && (dimensions[0] > 1)) {
-    PyErr_Format(PyExc_NotImplementedError,
-                 "Unknown ufunc mode with args[0]=%p, args[7]=%p, steps[0]=%ld, "
-                 "steps[7]=%ld, dimensions[0]=%ld.",
-                 args[0], args[7], steps[0], steps[7], dimensions[0]);
-    return;
-  }
+  CHECK_NO_INPLACE_OUTPUT(7);
 
   if ((is3 != 0) | (is4 != 0) | (is5 != 0) | (is6 != 0) | (is7 != 0)) {
     PyErr_Format(PyExc_ValueError, "Buffer function called with non-scalar parameters");
@@ -1195,10 +1169,7 @@ static void buffer_func(char** args, npy_intp* dimensions, npy_intp* steps, void
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * n);
-  if (geom_arr == NULL) {
-    PyErr_SetString(PyExc_MemoryError, "Could not allocate memory");
-    return;
-  }
+  CHECK_ALLOC(geom_arr);
 
   GEOS_INIT_THREADS;
 
@@ -1258,15 +1229,7 @@ static void offset_curve_func(char** args, npy_intp* dimensions, npy_intp* steps
   GEOSGeometry** geom_arr;
   GEOSGeometry* in1 = NULL;
 
-  // Fail if inputs output multiple times on the same place in memory. That would
-  // lead to segfaults as the same GEOSGeometry would be 'owned' by multiple PyObjects.
-  if ((steps[5] == 0) && (dimensions[0] > 1)) {
-    PyErr_Format(PyExc_NotImplementedError,
-                 "Unknown ufunc mode with args[0]=%p, args[5]=%p, steps[0]=%ld, "
-                 "steps[5]=%ld, dimensions[0]=%ld.",
-                 args[0], args[5], steps[0], steps[5], dimensions[0]);
-    return;
-  }
+  CHECK_NO_INPLACE_OUTPUT(5);
 
   if ((is3 != 0) | (is4 != 0) | (is5 != 0)) {
     PyErr_Format(PyExc_ValueError,
@@ -1281,10 +1244,7 @@ static void offset_curve_func(char** args, npy_intp* dimensions, npy_intp* steps
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * n);
-  if (geom_arr == NULL) {
-    PyErr_SetString(PyExc_MemoryError, "Could not allocate memory");
-    return;
-  }
+  CHECK_ALLOC(geom_arr);
 
   GEOS_INIT_THREADS;
 
@@ -1325,23 +1285,11 @@ static void snap_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
   GEOSGeometry *in1 = NULL, *in2 = NULL;
   GEOSGeometry** geom_arr;
 
-  // Fail if inputs output multiple times on the same place in memory. That would
-  // lead to segfaults as the same GEOSGeometry would be 'owned' by multiple PyObjects.
-  if ((steps[3] == 0) && (dimensions[0] > 1)) {
-    PyErr_Format(PyExc_NotImplementedError,
-                 "Unknown ufunc mode with args=[%p, %p, %p, %p], steps=[%ld, %ld, %ld, "
-                 "%ld], dimensions=[%ld].",
-                 args[0], args[1], args[2], args[3], steps[0], steps[1], steps[2],
-                 steps[3], dimensions[0]);
-    return;
-  }
+  CHECK_NO_INPLACE_OUTPUT(3);
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
-  if (geom_arr == NULL) {
-    PyErr_SetString(PyExc_MemoryError, "Could not allocate memory");
-    return;
-  }
+  CHECK_ALLOC(geom_arr);
 
   GEOS_INIT_THREADS;
 
@@ -1420,23 +1368,11 @@ static void delaunay_triangles_func(char** args, npy_intp* dimensions, npy_intp*
   GEOSGeometry* in1 = NULL;
   GEOSGeometry** geom_arr;
 
-  // Fail if inputs output multiple times on the same place in memory. That would
-  // lead to segfaults as the same GEOSGeometry would be 'owned' by multiple PyObjects.
-  if ((steps[3] == 0) && (dimensions[0] > 1)) {
-    PyErr_Format(PyExc_NotImplementedError,
-                 "Unknown ufunc mode with args=[%p, %p, %p, %p], steps=[%ld, %ld, %ld, "
-                 "%ld], dimensions=[%ld].",
-                 args[0], args[1], args[2], args[3], steps[0], steps[1], steps[2],
-                 steps[3], dimensions[0]);
-    return;
-  }
+  CHECK_NO_INPLACE_OUTPUT(3);
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
-  if (geom_arr == NULL) {
-    PyErr_SetString(PyExc_MemoryError, "Could not allocate memory");
-    return;
-  }
+  CHECK_ALLOC(geom_arr);
 
   GEOS_INIT_THREADS;
 
@@ -1479,23 +1415,11 @@ static void voronoi_polygons_func(char** args, npy_intp* dimensions, npy_intp* s
   GEOSGeometry *in1 = NULL, *in3 = NULL;
   GEOSGeometry** geom_arr;
 
-  // Fail if inputs output multiple times on the same place in memory. That would
-  // lead to segfaults as the same GEOSGeometry would be 'owned' by multiple PyObjects.
-  if ((steps[4] == 0) && (dimensions[0] > 1)) {
-    PyErr_Format(PyExc_NotImplementedError,
-                 "Unknown ufunc mode with args=[%p, %p, %p, %p, %p], steps=[%ld, %ld, "
-                 "%ld, %ld, %ld], dimensions=[%ld].",
-                 args[0], args[1], args[2], args[3], args[4], steps[0], steps[1],
-                 steps[2], steps[3], steps[4], dimensions[0]);
-    return;
-  }
+  CHECK_NO_INPLACE_OUTPUT(4);
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
-  if (geom_arr == NULL) {
-    PyErr_SetString(PyExc_MemoryError, "Could not allocate memory");
-    return;
-  }
+  CHECK_ALLOC(geom_arr);
 
   GEOS_INIT_THREADS;
 
