@@ -10,6 +10,16 @@
  *     npy_intp *steps
  */
 
+
+/** (ip1) -> () */
+#define NO_OUTPUT_LOOP\
+    char *ip1 = args[0];\
+    npy_intp is1 = steps[0];\
+    npy_intp n = dimensions[0];\
+    npy_intp i;\
+    for(i = 0; i < n; i++, ip1 += is1)
+
+
 /** (ip1) -> (op1) */
 #define UNARY_LOOP                         \
   char *ip1 = args[0], *op1 = args[1];     \

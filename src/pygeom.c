@@ -37,6 +37,7 @@ PyObject* GeometryObject_FromGEOS(GEOSGeometry* ptr, GEOSContextHandle_t ctx) {
     return NULL;
   } else {
     self->ptr = ptr;
+    self->ptr_prepared = NULL;
     return (PyObject*)self;
   }
 }
@@ -45,6 +46,9 @@ static void GeometryObject_dealloc(GeometryObject* self) {
   if (self->ptr != NULL) {
     GEOS_INIT;
     GEOSGeom_destroy_r(ctx, self->ptr);
+    if (self->ptr_prepared != NULL) {
+      GEOSPreparedGeom_destroy_r(ctx, self->ptr_prepared);
+    }
     GEOS_FINISH;
   }
   Py_TYPE(self)->tp_free((PyObject*)self);
@@ -53,6 +57,8 @@ static void GeometryObject_dealloc(GeometryObject* self) {
 static PyMemberDef GeometryObject_members[] = {
     {"_ptr", T_PYSSIZET, offsetof(GeometryObject, ptr), READONLY,
      "pointer to GEOSGeometry"},
+    {"_ptr_prepared", T_PYSSIZET, offsetof(GeometryObject, ptr_prepared), READONLY,
+     "pointer to PreparedGEOSGeometry"},
     {NULL} /* Sentinel */
 };
 
@@ -426,6 +432,21 @@ char get_geom(GeometryObject* obj, GEOSGeometry** out) {
     *out = obj->ptr;
     return 1;
   }
+}
+
+/* Get a GEOSGeometry AND GEOSPreparedGeometry pointer from a GeometryObject,
+or NULL if the input is Py_None. Returns 0 on error, 1 on success. */
+char get_geom_with_prepared(GeometryObject* obj, GEOSGeometry** out,
+                            GEOSPreparedGeometry** prep) {
+  if (!get_geom(obj, out)) {
+    // It is not a GeometryObject / None: Error
+    return 0;
+  }
+  if (*out != NULL) {
+    // Only if it is not None, fill the prepared geometry
+    *prep = obj->ptr_prepared;
+  }
+  return 1;
 }
 
 int init_geom_type(PyObject* m) {

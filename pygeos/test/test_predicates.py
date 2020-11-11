@@ -31,6 +31,10 @@ BINARY_PREDICATES = (
     pygeos.equals_exact,
 )
 
+BINARY_PREPARED_PREDICATES = tuple(
+    set(BINARY_PREDICATES) - {pygeos.equals, pygeos.equals_exact}
+)
+
 
 @pytest.mark.parametrize("geometry", all_types)
 @pytest.mark.parametrize("func", UNARY_PREDICATES)
@@ -122,3 +126,12 @@ def test_relate_none(g1, g2):
 ])
 def test_is_ccw(geom, expected):
     assert pygeos.is_ccw(geom) == expected
+
+
+@pytest.mark.parametrize("a", all_types)
+@pytest.mark.parametrize("func", BINARY_PREPARED_PREDICATES)
+def test_binary_prepared(a, func):
+    actual = func(a, point)
+    pygeos.lib.prepare(a)
+    result = func(a, point)
+    assert actual == result

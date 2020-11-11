@@ -345,6 +345,10 @@ def crosses(a, b, **kwargs):
     ----------
     a, b : Geometry or array_like
 
+    See also
+    --------
+    prepare : improve performance by preparing ``a`` (the first argument)
+
     Examples
     --------
     >>> line = Geometry("LINESTRING(0 0, 1 1)")
@@ -383,6 +387,7 @@ def contains(a, b, **kwargs):
     See also
     --------
     within : ``contains(A, B) == within(B, A)``
+    prepare : improve performance by preparing ``a`` (the first argument)
 
     Examples
     --------
@@ -424,6 +429,7 @@ def covered_by(a, b, **kwargs):
     See also
     --------
     covers : ``covered_by(A, B) == covers(B, A)``
+    prepare : improve performance by preparing ``a`` (the first argument)
 
     Examples
     --------
@@ -465,6 +471,7 @@ def covers(a, b, **kwargs):
     See also
     --------
     covered_by : ``covers(A, B) == covered_by(B, A)``
+    prepare : improve performance by preparing ``a`` (the first argument)
 
     Examples
     --------
@@ -509,6 +516,7 @@ def disjoint(a, b, **kwargs):
     See also
     --------
     intersects : ``disjoint(A, B) == ~intersects(A, B)``
+    prepare : improve performance by preparing ``a`` (the first argument)
 
     Examples
     --------
@@ -574,6 +582,7 @@ def intersects(a, b, **kwargs):
     See also
     --------
     disjoint : ``intersects(A, B) == ~disjoint(A, B)``
+    prepare : improve performance by preparing ``a`` (the first argument)
 
     Examples
     --------
@@ -598,6 +607,10 @@ def overlaps(a, b, **kwargs):
     Parameters
     ----------
     a, b : Geometry or array_like
+
+    See also
+    --------
+    prepare : improve performance by preparing ``a`` (the first argument)
 
     Examples
     --------
@@ -624,6 +637,10 @@ def touches(a, b, **kwargs):
     Parameters
     ----------
     a, b : Geometry or array_like
+
+    See also
+    --------
+    prepare : improve performance by preparing ``a`` (the first argument)
 
     Examples
     --------
@@ -663,6 +680,7 @@ def within(a, b, **kwargs):
     See also
     --------
     contains : ``within(A, B) == contains(B, A)``
+    prepare : improve performance by preparing ``a`` (the first argument)
 
     Examples
     --------
