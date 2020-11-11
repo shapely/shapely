@@ -157,7 +157,7 @@ class Point(BaseGeometry):
             "Setting the 'coords' to mutate a Geometry in place is deprecated,"
             " and will not be possible any more in Shapely 2.0",
             ShapelyDeprecationWarning, stacklevel=2)
-        self.empty()
+        self._empty()
         if len(args) == 1:
             geom, n = geos_point_from_py(args[0])
         elif len(args) > 3:

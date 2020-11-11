@@ -134,8 +134,8 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
             dz = 0
             if n == 3:
                 dz = cp[sm*i+2*sn]
-                
-            # Because of a bug in the GEOS C API, 
+
+            # Because of a bug in the GEOS C API,
             # always set X before Y
             GEOSCoordSeq_setX_r(handle, cs, i, dx)
             GEOSCoordSeq_setY_r(handle, cs, i, dy)
@@ -194,8 +194,8 @@ def geos_linestring_from_py(ob, update_geom=None, update_ndim=0):
                     dz = coords[2]
                 except IndexError:
                     raise ValueError("Inconsistent coordinate dimensionality")
-            
-            # Because of a bug in the GEOS C API, 
+
+            # Because of a bug in the GEOS C API,
             # always set X before Y
             GEOSCoordSeq_setX_r(handle, cs, i, dx)
             GEOSCoordSeq_setY_r(handle, cs, i, dy)
@@ -301,8 +301,8 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
             dz = 0
             if n == 3:
                 dz = cp[sm*i+2*sn]
-        
-            # Because of a bug in the GEOS C API, 
+
+            # Because of a bug in the GEOS C API,
             # always set X before Y
             GEOSCoordSeq_setX_r(handle, cs, i, dx)
             GEOSCoordSeq_setY_r(handle, cs, i, dy)
@@ -316,14 +316,14 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
             dz = 0
             if n == 3:
                 dz = cp[2*sn]
-        
-            # Because of a bug in the GEOS C API, 
+
+            # Because of a bug in the GEOS C API,
             # always set X before Y
             GEOSCoordSeq_setX_r(handle, cs, M-1, dx)
             GEOSCoordSeq_setY_r(handle, cs, M-1, dy)
             if n == 3:
                 GEOSCoordSeq_setZ_r(handle, cs, M-1, dz)
-            
+
     except AttributeError:
         # Fall back on list
         try:
@@ -366,7 +366,7 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
                 % update_ndim)
         else:
             cs = GEOSCoordSeq_create_r(handle, M, n)
-        
+
         # add to coordinate sequence
         for i in range(m):
             coords = _coords(ob[i])
@@ -378,8 +378,8 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
                     dz = coords[2]
                 except IndexError:
                     raise ValueError("Inconsistent coordinate dimensionality")
-        
-            # Because of a bug in the GEOS C API, 
+
+            # Because of a bug in the GEOS C API,
             # always set X before Y
             GEOSCoordSeq_setX_r(handle, cs, i, dx)
             GEOSCoordSeq_setY_r(handle, cs, i, dy)
@@ -397,8 +397,8 @@ def geos_linearring_from_py(ob, update_geom=None, update_ndim=0):
                     dz = coords[2]
                 except IndexError:
                     raise ValueError("Inconsistent coordinate dimensionality")
-        
-            # Because of a bug in the GEOS C API, 
+
+            # Because of a bug in the GEOS C API,
             # always set X before Y
             GEOSCoordSeq_setX_r(handle, cs, M-1, dx)
             GEOSCoordSeq_setY_r(handle, cs, M-1, dy)
@@ -425,10 +425,11 @@ def coordseq_ctypes(self):
     m = self.__len__()
     array_type = ctypes.c_double * (m * n)
     data = array_type()
-    
-    cs = cast_seq(self._cseq)
+
+    if self._cseq:
+        cs = cast_seq(self._cseq)
     data_p = <double *><uintptr_t>ctypes.addressof(data)
-    
+
     for i in range(m):
         GEOSCoordSeq_getX_r(handle, cs, i, &temp)
         data_p[n*i] = temp
@@ -450,7 +451,8 @@ def coordseq_iter(self):
 
     cdef GEOSContextHandle_t handle = cast_handle(lgeos.geos_handle)
     cdef GEOSCoordSequence *cs
-    cs = cast_seq(self._cseq)
+    if self._cseq:
+        cs = cast_seq(self._cseq)
 
     has_z = self._ndim == 3
     for i in range(self.__len__()):
@@ -477,7 +479,7 @@ cdef GEOSCoordSequence* transform(GEOSCoordSequence* cs,
                                   double yoff,
                                   double zoff):
     """Performs an affine transformation on a GEOSCoordSequence
-    
+
     Returns the transformed coordinate sequence
     """
     cdef GEOSContextHandle_t handle = cast_handle(lgeos.geos_handle)
@@ -485,11 +487,11 @@ cdef GEOSCoordSequence* transform(GEOSCoordSequence* cs,
     cdef GEOSCoordSequence *cs_t
     cdef double x, y, z
     cdef double x_t, y_t, z_t
-    
+
     # create a new coordinate sequence with the same size and dimensions
     GEOSCoordSeq_getSize_r(handle, cs, &m)
     cs_t = GEOSCoordSeq_create_r(handle, m, ndim)
-    
+
     # perform the transform
     if ndim == 2:
         for n in range(0, m):
@@ -510,7 +512,7 @@ cdef GEOSCoordSequence* transform(GEOSCoordSequence* cs,
             GEOSCoordSeq_setX_r(handle, cs_t, n, x_t)
             GEOSCoordSeq_setY_r(handle, cs_t, n, y_t)
             GEOSCoordSeq_setZ_r(handle, cs_t, n, z_t)
-    
+
     return cs_t
 
 cpdef affine_transform(geom, matrix):
@@ -533,7 +535,7 @@ cpdef affine_transform(geom, matrix):
             matrix = a, b, d, e, xoff, yoff
     else:
         raise ValueError("'matrix' expects either 6 or 12 coefficients")
-    
+
     cdef GEOSContextHandle_t handle = cast_handle(lgeos.geos_handle)
     cdef GEOSCoordSequence *cs
     cdef GEOSCoordSequence *cs_t
@@ -542,15 +544,15 @@ cpdef affine_transform(geom, matrix):
     cdef int m, n
     cdef double x, y, z
     cdef double x_t, y_t, z_t
-    
+
     # Process coordinates from each supported geometry type
     if geom.type in ('Point', 'LineString', 'LinearRing'):
         the_geom = cast_geom(geom._geom)
         cs = <GEOSCoordSequence*>GEOSGeom_getCoordSeq_r(handle, the_geom)
-        
+
         # perform the transformation
         cs_t = transform(cs, ndim, a, b, c, d, e, f, g, h, i, xoff, yoff, zoff)
-        
+
         # create a new geometry from the coordinate sequence
         if geom.type == 'Point':
             the_geom_t = GEOSGeom_createPoint_r(handle, cs_t)
@@ -558,7 +560,7 @@ cpdef affine_transform(geom, matrix):
             the_geom_t = GEOSGeom_createLineString_r(handle, cs_t)
         elif geom.type == 'LinearRing':
             the_geom_t = GEOSGeom_createLinearRing_r(handle, cs_t)
-        
+
         # return the geometry as a Python object
         return geom_factory(<uintptr_t>the_geom_t)
     elif geom.type == 'Polygon':

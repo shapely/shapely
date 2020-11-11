@@ -181,6 +181,13 @@ class BaseGeometry(object):
     _lgeos = lgeos
 
     def empty(self, val=EMPTY):
+        warn(
+            "The 'empty()' method is deprecated and will be removed in "
+            "Shapely 2.0",
+            ShapelyDeprecationWarning, stacklevel=2)
+        self._empty(val=val)
+
+    def _empty(self, val=EMPTY):
         if not self._other_owned and self.__geom__ and self.__geom__ != EMPTY:
             try:
                 self._lgeos.GEOSGeom_destroy(self.__geom__)
@@ -198,7 +205,7 @@ class BaseGeometry(object):
         return self.__bool__()
 
     def __del__(self):
-        self.empty(val=None)
+        self._empty(val=None)
         self.__p__ = None
 
     def __str__(self):
@@ -209,7 +216,7 @@ class BaseGeometry(object):
         return (self.__class__, (), self.wkb)
 
     def __setstate__(self, state):
-        self.empty()
+        self._empty()
         self.__geom__ = deserialize_wkb(state)
         self._is_empty = False
         if lgeos.methods['has_z'](self.__geom__):
@@ -230,7 +237,7 @@ class BaseGeometry(object):
         self._set_geom(val)
 
     def _set_geom(self, val):
-        self.empty()
+        self._empty()
         self._is_empty = val in [EMPTY, None]
         self.__geom__ = val
 
@@ -309,8 +316,6 @@ class BaseGeometry(object):
 
     def _get_coords(self):
         """Access to geometry's coordinates (CoordinateSequence)"""
-        if self.is_empty:
-            return []
         return CoordinateSequence(self)
 
     def _set_coords(self, ob):

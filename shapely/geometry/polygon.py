@@ -72,7 +72,7 @@ class LinearRing(LineString):
             "Setting the 'coords' to mutate a Geometry in place is deprecated,"
             " and will not be possible any more in Shapely 2.0",
             ShapelyDeprecationWarning, stacklevel=2)
-        self.empty()
+        self._empty()
         ret = geos_linearring_from_py(coordinates)
         if ret is not None:
             geom, n = ret
@@ -257,7 +257,7 @@ class Polygon(BaseGeometry):
                 self._set_geom(geom)
                 self._ndim = n
             else:
-                self.empty()
+                self._empty()
 
     @property
     def exterior(self):
