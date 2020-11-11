@@ -60,14 +60,6 @@ def enable():
     # coords.CoordinateSequence.__iter__ = method_wrapper(
     #     _speedups.coordseq_iter)
 
-    _orig['affine_transform'] = shapely.affinity.affine_transform
-
-    # copy docstring from original function
-    def affine_transform(geom, matrix):
-        return _speedups.affine_transform(geom, matrix)
-    affine_transform.__doc__ = shapely.affinity.affine_transform.__doc__
-    shapely.affinity.affine_transform = affine_transform
-
     global enabled
     enabled = True
 
@@ -80,7 +72,6 @@ def disable():
 
     # coords.CoordinateSequence._ctypes = _orig['CoordinateSequence._ctypes']
     # coords.CoordinateSequence.__iter__ = _orig['CoordinateSequence.__iter__']
-    shapely.affinity.affine_transform = _orig['affine_transform']
     _orig.clear()
 
     global enabled
