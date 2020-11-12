@@ -210,29 +210,45 @@ void query_callback(void* item, void* user_data) {
  * Parameters
  * ----------
  * predicate_func: pointer to a prepared predicate function, e.g.,
- * GEOSPreparedIntersects_r geom: input geometry to prepare and test against each geometry
- * in the tree specified by in_indexes. tree_geometries: pointer to ndarray of all
- * geometries in the tree in_indexes: dynamic vector of indexes of tree geometries that
- * have overlapping envelopes with envelope of input geometry. out_indexes: dynamic vector
- * of indexes of tree geometries that meet predicate function. count: pointer to an
- * integer where the number of geometries that met the predicate will be written
+ *   GEOSPreparedIntersects_r
+ *
+ * geom: input geometry to prepare and test against each geometry in the tree specified by
+ *   in_indexes.
+ *
+ * prepared_geom: input prepared geometry, only if previously created.  If NULL, geom
+ *   will be prepared instead.
+ *
+ * tree_geometries: pointer to ndarray of all geometries in the tree
+ *
+ * in_indexes: dynamic vector of indexes of tree geometries that have overlapping
+ *   envelopes with envelope of input geometry.
+ *
+ * out_indexes: dynamic vector of indexes of tree geometries that meet predicate function.
+ *
+ * count: pointer to an integer where the number of geometries that met the predicate will
+ *   be written.
  *
  * Returns PGERR_GEOS_EXCEPTION if an error was encountered or PGERR_SUCCESS otherwise
  * */
 
 static char evaluate_predicate(void* context, FuncGEOS_YpY_b* predicate_func,
-                               GEOSGeometry* geom, pg_geom_obj_vec* tree_geometries,
-                               npy_intp_vec* in_indexes, npy_intp_vec* out_indexes,
-                               npy_intp* count) {
+                               GEOSGeometry* geom, GEOSPreparedGeometry* prepared_geom,
+                               pg_geom_obj_vec* tree_geometries, npy_intp_vec* in_indexes,
+                               npy_intp_vec* out_indexes, npy_intp* count) {
   GeometryObject* pg_geom;
   GEOSGeometry* target_geom;
-  const GEOSPreparedGeometry* prepared_geom;
+  const GEOSPreparedGeometry* prepared_geom_tmp;
   npy_intp i, size, index;
 
-  // Create prepared geometry
-  prepared_geom = GEOSPrepare_r(context, geom);
   if (prepared_geom == NULL) {
-    return PGERR_GEOS_EXCEPTION;
+    // geom was not previously prepared, prepare it now
+    prepared_geom_tmp = GEOSPrepare_r(context, geom);
+    if (prepared_geom_tmp == NULL) {
+      return PGERR_GEOS_EXCEPTION;
+    }
+  } else {
+    // cast to const only needed until larger refactor of all geom pointers to const
+    prepared_geom_tmp = (const GEOSPreparedGeometry*)prepared_geom;
   }
 
   size = kv_size(*in_indexes);
@@ -249,13 +265,17 @@ static char evaluate_predicate(void* context, FuncGEOS_YpY_b* predicate_func,
     get_geom((GeometryObject*)pg_geom, &target_geom);
 
     // keep the index value if it passes the predicate
-    if (predicate_func(context, prepared_geom, target_geom)) {
+    if (predicate_func(context, prepared_geom_tmp, target_geom)) {
       kv_push(npy_intp, *out_indexes, index);
       (*count)++;
     }
   }
 
-  GEOSPreparedGeom_destroy_r(context, prepared_geom);
+  if (prepared_geom == NULL) {
+    // only if we created prepared_geom_tmp here, destroy it
+    GEOSPreparedGeom_destroy_r(context, prepared_geom_tmp);
+    prepared_geom_tmp = NULL;
+  }
 
   return PGERR_SUCCESS;
 }
@@ -272,9 +292,10 @@ static char evaluate_predicate(void* context, FuncGEOS_YpY_b* predicate_func,
  * */
 
 static PyObject* STRtree_query(STRtreeObject* self, PyObject* args) {
-  GeometryObject* geometry;
+  GeometryObject* geometry = NULL;
   int predicate_id = 0;  // default no predicate
-  GEOSGeometry* geom;
+  GEOSGeometry* geom = NULL;
+  GEOSPreparedGeometry* prepared_geom = NULL;
   npy_intp_vec query_indexes,
       predicate_indexes;  // Resizable array for matches for each geometry
   npy_intp count;
@@ -290,7 +311,7 @@ static PyObject* STRtree_query(STRtreeObject* self, PyObject* args) {
     return NULL;
   }
 
-  if (!get_geom(geometry, &geom)) {
+  if (!get_geom_with_prepared(geometry, &geom, &prepared_geom)) {
     PyErr_SetString(PyExc_TypeError, "Invalid geometry");
     return NULL;
   }
@@ -326,8 +347,8 @@ static PyObject* STRtree_query(STRtreeObject* self, PyObject* args) {
   }
 
   kv_init(predicate_indexes);
-  errstate = evaluate_predicate(ctx, predicate_func, geom, &self->_geoms, &query_indexes,
-                                &predicate_indexes, &count);
+  errstate = evaluate_predicate(ctx, predicate_func, geom, prepared_geom, &self->_geoms,
+                                &query_indexes, &predicate_indexes, &count);
   if (errstate != PGERR_SUCCESS) {
     // error performing predicate
     kv_destroy(query_indexes);
@@ -361,9 +382,10 @@ static PyObject* STRtree_query(STRtreeObject* self, PyObject* args) {
 static PyObject* STRtree_query_bulk(STRtreeObject* self, PyObject* args) {
   PyObject* arr;
   PyArrayObject* pg_geoms;
-  GeometryObject* pg_geom;
+  GeometryObject* pg_geom = NULL;
   int predicate_id = 0;  // default no predicate
-  GEOSGeometry* geom;
+  GEOSGeometry* geom = NULL;
+  GEOSPreparedGeometry* prepared_geom = NULL;
   npy_intp_vec query_indexes, src_indexes, target_indexes;
   npy_intp i, j, n, size;
   FuncGEOS_YpY_b* predicate_func = NULL;
@@ -416,7 +438,7 @@ static PyObject* STRtree_query_bulk(STRtreeObject* self, PyObject* args) {
   for (i = 0; i < n; i++) {
     // get pygeos geometry from input geometry array
     pg_geom = *(GeometryObject**)PyArray_GETPTR1(pg_geoms, i);
-    if (!get_geom(pg_geom, &geom)) {
+    if (!get_geom_with_prepared(pg_geom, &geom, &prepared_geom)) {
       errstate = PGERR_NOT_A_GEOMETRY;
       break;
     }
@@ -442,8 +464,9 @@ static PyObject* STRtree_query_bulk(STRtreeObject* self, PyObject* args) {
       }
     } else {
       // this pushes directly onto target_indexes
-      errstate = evaluate_predicate(ctx, predicate_func, geom, &self->_geoms,
-                                    &query_indexes, &target_indexes, &size);
+      errstate =
+          evaluate_predicate(ctx, predicate_func, geom, prepared_geom, &self->_geoms,
+                             &query_indexes, &target_indexes, &size);
 
       if (errstate != PGERR_SUCCESS) {
         kv_destroy(query_indexes);

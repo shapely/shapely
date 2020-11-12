@@ -217,6 +217,15 @@ def test_query_tree_with_none():
 
 ### predicate == 'intersects'
 
+
+def test_query_with_prepared(tree):
+    geom = box(0, 0, 1, 1)
+    expected = tree.query(geom, predicate="intersects")
+
+    pygeos.prepare(geom)
+    assert_array_equal(expected, tree.query(geom, predicate="intersects"))
+
+
 # TEMPORARY xfail: MultiPoint intersects with prepared geometries does not work
 # properly on GEOS 3.5.x; it was fixed in 3.6+
 @pytest.mark.parametrize(
@@ -1044,6 +1053,20 @@ def test_query_bulk_invalid_predicate(tree):
 
 
 ### predicate == 'intersects'
+
+
+def test_query_bulk_with_prepared(tree):
+    geom = np.array([box(0, 0, 1, 1), box(3, 3, 5, 5)])
+    expected = tree.query_bulk(geom, predicate="intersects")
+
+    # test with array of partially prepared geometries
+    pygeos.prepare(geom[0])
+    assert_array_equal(expected, tree.query_bulk(geom, predicate="intersects"))
+
+    # test with fully prepared geometries
+    pygeos.prepare(geom)
+    assert_array_equal(expected, tree.query_bulk(geom, predicate="intersects"))
+
 
 # TEMPORARY xfail: MultiPoint intersects with prepared geometries does not work
 # properly on GEOS 3.5.x; it was fixed in 3.6+
