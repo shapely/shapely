@@ -110,12 +110,14 @@ def get_geos_paths():
     }
 
 
-# Add numpy include dirs without importing numpy on module level.
-# derived from scikit-hep:
-# https://github.com/scikit-hep/root_numpy/pull/292
 class build_ext(_build_ext):
     def finalize_options(self):
         _build_ext.finalize_options(self)
+
+        # Add numpy include dirs without importing numpy on module level.
+        # derived from scikit-hep:
+        # https://github.com/scikit-hep/root_numpy/pull/292
+
         # Prevent numpy from thinking it is still in its setup process:
         try:
             del builtins.__NUMPY_SETUP__

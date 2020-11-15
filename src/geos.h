@@ -4,7 +4,9 @@
 #include <Python.h>
 
 /* To avoid accidental use of non reentrant GEOS API. */
+#ifndef GEOS_USE_ONLY_R_API
 #define GEOS_USE_ONLY_R_API
+#endif
 
 // wrap geos.h import to silence geos gcc warnings
 #pragma GCC diagnostic push

@@ -1,3 +1,5 @@
+# distutils: define_macros=GEOS_USE_ONLY_R_API
+
 cdef class get_geos_handle:
     '''This class provides a context manager that wraps the GEOS context handle.
 

@@ -30,7 +30,7 @@
 /* char PyGEOS_GetGEOSGeometry(GeometryObject *obj, GEOSGeometry **out) */
 #define PyGEOS_GetGEOSGeometry_NUM 1
 #define PyGEOS_GetGEOSGeometry_RETURN char
-#define PyGEOS_GetGEOSGeometry_PROTO (GeometryObject * obj, GEOSGeometry * *out)
+#define PyGEOS_GetGEOSGeometry_PROTO (PyObject * obj, GEOSGeometry * *out)
 
 /* Total number of C API pointers */
 #define PyGEOS_API_num_pointers 2
