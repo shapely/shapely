@@ -1,5 +1,6 @@
 import builtins
 import os
+from pathlib import Path
 import subprocess
 import sys
 from distutils.version import LooseVersion
@@ -131,7 +132,15 @@ class build_ext(_build_ext):
 
 ext_modules = []
 
-if "clean" not in sys.argv and "sdist" not in sys.argv:
+if "clean" in sys.argv:
+    # delete any previously Cythonized or compiled files in pygeos
+    p = Path("pygeos")
+    for pattern in ["*.c", "*.so", "*.pyd"]:
+        for filename in p.glob(pattern):
+            print("removing '{}'".format(filename))
+            filename.unlink()
+
+elif "sdist" not in sys.argv:
     ext_options = get_geos_paths()
 
     ext_modules = [
