@@ -29,7 +29,8 @@ Version 0.9 (unreleased)
 * Fixed internal GEOS error code detection for ``get_dimensions`` and ``get_srid`` (#218).
 * Addition of ``prepare`` function that generates a GEOS prepared geometry which is stored on
   the Geometry object itself. All binary predicates (except ``equals``) make use of this (#92).
-
+* Use previously prepared geometries within ``STRtree`` ``query`` and ``query_bulk``
+  functions if available (#246).
 
 Version 0.8 (2020-09-06)
 ------------------------
