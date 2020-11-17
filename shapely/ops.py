@@ -629,6 +629,12 @@ def substring(geom, start_dist, end_dist, normalized=False):
         start_dist *= geom.length
         end_dist *= geom.length
 
+    # Filter out cases where distances meet at a middle point from opposite ends.
+    if start_dist < 0 < end_dist and abs(start_dist) + end_dist == geom.length:
+        return geom.interpolate(end_dist)
+    elif end_dist < 0 < start_dist and abs(end_dist) + start_dist == geom.length:
+        return geom.interpolate(start_dist)
+
     start_point = geom.interpolate(start_dist)
     end_point = geom.interpolate(end_dist)
 

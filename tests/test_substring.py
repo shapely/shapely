@@ -35,6 +35,12 @@ class SubstringTestCase(unittest.TestCase):
         self.assertTrue(substring(self.line1, 0.5, 0.5, True).equals(Point(1, 0)))
         self.assertTrue(substring(self.line1, -0.5, -0.5, True).equals(Point(1, 0)))
 
+        # Coming from opposite ends
+        self.assertTrue(substring(self.line1, 1.5, -0.5).equals(Point(1.5, 0)))
+        self.assertTrue(substring(self.line1, -0.5, 1.5).equals(Point(1.5, 0)))
+        self.assertTrue(substring(self.line1, -0.7, 0.3, True).equals(Point(0.6, 0)))
+        self.assertTrue(substring(self.line1, 0.3, -0.7, True).equals(Point(0.6, 0)))
+
     @unittest.skipIf(geos_version < (3, 2, 0), 'GEOS 3.2.0 required')
     def test_return_startsubstring(self):
         self.assertEqual(substring(self.line1, -500, 0.6).wkt, LineString(([0, 0], [0.6, 0])).wkt)
