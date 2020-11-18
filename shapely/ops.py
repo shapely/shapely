@@ -2,7 +2,9 @@
 """
 
 from ctypes import byref, c_void_p, c_double
+from warnings import warn
 
+from shapely.errors import ShapelyDeprecationWarning
 from shapely.prepared import prep
 from shapely.geos import lgeos
 from shapely.geometry.base import geom_factory, BaseGeometry, BaseMultipartGeometry
@@ -119,8 +121,13 @@ class CollectionOperator(object):
     def cascaded_union(self, geoms):
         """Returns the union of a sequence of geometries
 
-        This method was superseded by :meth:`unary_union`.
+        This function is deprecated, as it was superseded by
+        :meth:`unary_union`.
         """
+        warn(
+            "The 'cascaded_union()' function is deprecated. "
+            "Use 'unary_union()' instead.",
+            ShapelyDeprecationWarning, stacklevel=2)
         try:
             L = len(geoms)
             if isinstance(geoms, BaseMultipartGeometry):

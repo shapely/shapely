@@ -3,7 +3,7 @@ from shapely.ops import split
 from . import unittest
 
 from shapely.geometry import Point, MultiPoint, LineString, MultiLineString, Polygon, MultiPolygon, GeometryCollection
-from shapely.ops import cascaded_union, linemerge
+from shapely.ops import linemerge, unary_union
 
 class TestSplitGeometry(unittest.TestCase):
 	# helper class for testing below
@@ -16,7 +16,7 @@ class TestSplitGeometry(unittest.TestCase):
 			if s.geoms[0].type == 'LineString':
 				self.assertTrue(linemerge(s).simplify(0.000001).equals(geom))
 			elif s.geoms[0].type == 'Polygon':
-				union = cascaded_union(s).simplify(0.000001)
+				union = unary_union(s).simplify(0.000001)
 				self.assertTrue(union.equals(geom))
 				self.assertEqual(union.area, geom.area)
 			else:

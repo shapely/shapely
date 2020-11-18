@@ -137,7 +137,7 @@ described in a following section of the manual.
 Coordinate Systems
 ------------------
 
-Even though the Earth is not flat – and for that matter not exactly spherical –
+Even though the Earth is not flat – and for that matter not exactly spherical –
 there are many analytic problems that can be approached by transforming Earth
 features to a Cartesian plane, applying tried and true algorithms, and then
 transforming the results back to geographic coordinates.  This practice is as
@@ -2220,10 +2220,8 @@ efficient than accumulating with :meth:`union`.
 
   .. note::
 
-     In 1.2.16 :func:`shapely.ops.cascaded_union` was transparently superseded by
-     :func:`shapely.ops.unary_union` if GEOS 3.3+ is used. The unary union
-     function can operate on different geometry types, not only polygons as is
-     the case for the older cascaded union.
+     In 1.8.0 :func:`shapely.ops.cascaded_union` is deprecated, as it was
+     superseded by :func:`shapely.ops.unary_union`.
 
 Delaunay triangulation
 ----------------------
