@@ -585,7 +585,7 @@ def substring(geom, start_dist, end_dist, normalized=False):
 
     Raises
     ------
-    AssertionError
+    TypeError
         If `geom` is not a LineString.
 
     Examples
@@ -611,7 +611,8 @@ def substring(geom, start_dist, end_dist, normalized=False):
     'POINT (2.5 0)'
     """
 
-    assert(isinstance(geom, LineString))
+    if not isinstance(geom, LineString):
+        raise TypeError("Can only calculate a substring of LineString geometries. A %s was provided." % geom.type)
 
     # Filter out cases in which to return a point
     if start_dist == end_dist:
