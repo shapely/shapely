@@ -2416,7 +2416,7 @@ The :func:`~shapely.ops.split` function in `shapely.ops` splits a geometry by an
 Substring
 ---------
 
-The :func:`~shapely.ops.substring` function in `shapely.ops` returns a line segment
+The :func:`~shapely.ops.substring` function in :mod:`shapely.ops` returns a line segment
 between specified distances along a `LineString`.
 
 .. function:: shapely.ops.substring(geom, start_dist, end_dist[, normalized=False])
@@ -2439,7 +2439,7 @@ between specified distances along a `LineString`.
 
   `New in version 1.7.0`
 
-  Here are some examples that return `LineStrings`.
+  Here are some examples that return `LineString` geometries.
 
   .. code-block:: pycon
 

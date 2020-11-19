@@ -570,7 +570,7 @@ def substring(geom, start_dist, end_dist, normalized=False):
     geom : LineString
         The geometry to get a substring of.
     start_dist : float
-        The distance along `goem` of the start of the substring.
+        The distance along `geom` of the start of the substring.
     end_dist : float
         The distance along `geom` of the end of the substring.
     normalized : bool, False
