@@ -122,6 +122,11 @@ class TestSplitLine(TestSplitGeometry):
 		self.assertTrue(splitter.touches(self.ls))
 		self.helper(self.ls, splitter, 1)
 
+		# splitter boundary touches interior of line --> return 2 segments
+		splitter = LineString([(0, 1), (1, 1)])  # touches at (1, 1)
+		self.assertTrue(splitter.touches(self.ls))
+		self.helper(self.ls, splitter, 2)
+
 	def test_split_line_with_multiline(self):
 		# crosses at one point --> return 2 segments
 		splitter = MultiLineString([[(0, 1), (1, 0)], [(0, 0), (2, -2)]])
