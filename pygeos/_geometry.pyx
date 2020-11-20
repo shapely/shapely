@@ -33,14 +33,10 @@ def get_parts(object[:] array):
     cdef const GEOSGeometry *part = NULL
 
     counts = pygeos.get_num_geometries(array)
+    cdef Py_ssize_t count = counts.sum()
 
-    # None elements in array return -1 for count, so
-    # they must be filtered out before calculating total count
-    cdef Py_ssize_t count = counts[counts>0].sum()
-
-    if count <= 0:
-        # return immeidately if there are no geometries to return
-        # count is negative when the only entries in array are None
+    if count == 0:
+        # return immediately if there are no geometries to return
         return (
             np.empty(shape=(0, ), dtype=np.object),
             np.empty(shape=(0, ), dtype=np.intp)
