@@ -1,10 +1,9 @@
 from . import unittest
-from shapely.geos import geos_version
 from shapely.geometry import LineString, LinearRing
 from shapely.wkt import loads
 
 class OperationsTestCase(unittest.TestCase):
-    @unittest.skipIf(geos_version < (3, 2, 0), 'GEOS 3.2.0 required')
+
     def test_parallel_offset_linestring(self):
         line1 = LineString([(0, 0), (10, 0)])
         left = line1.parallel_offset(5, 'left')
@@ -26,7 +25,6 @@ class OperationsTestCase(unittest.TestCase):
                          resolution=1),
                          LineString([(0, 2), (7, 2), (7, -5)]))
 
-    @unittest.skipIf(geos_version < (3, 2, 0), 'GEOS 3.2.0 required')
     def test_parallel_offset_linear_ring(self):
         lr1 = LinearRing([(0, 0), (5, 0), (5, 5), (0, 5), (0, 0)])
         self.assertEqual(lr1.parallel_offset(2, 'left', resolution=1),

@@ -49,10 +49,10 @@ def dumps(ob, trim=False, **kw):
         A geometry object of any type to be dumped to WKT.
     trim : bool, default False
         Remove excess decimals from the WKT.
-    rounding_precision (GEOS 3.3+) : int
+    rounding_precision : int
         Round output to the specified number of digits.
         Default behavior returns full precision.
-    output_dimension (GEOS 3.3+): int, default 3
+    output_dimension : int, default 3
         Force removal of dimensions above the one specified.
 
     Returns
@@ -74,10 +74,10 @@ def dump(ob, fp, **settings):
         A file-like object which implements a `write` method.
     trim : bool, default False
         Remove excess decimals from the WKT.
-    rounding_precision (GEOS 3.3+) : int
+    rounding_precision : int
         Round output to the specified number of digits.
         Default behavior returns full precision.
-    output_dimension (GEOS 3.3+): int, default 3
+    output_dimension : int, default 3
         Force removal of dimensions above the one specified.
 
     Returns

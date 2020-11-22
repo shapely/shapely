@@ -4,7 +4,6 @@ import random
 from itertools import islice
 from functools import partial
 from shapely.errors import ShapelyDeprecationWarning
-from shapely.geos import geos_version
 from shapely.geometry import Point, MultiPolygon
 from shapely.ops import cascaded_union, unary_union
 
@@ -54,14 +53,12 @@ class UnionTestCase(unittest.TestCase):
             list(islice(halton(7), 20, 120)),
         )
 
-    @unittest.skipIf(geos_version < (3, 3, 0), 'GEOS 3.3.0 required')
     def test_unary_union(self):
         patches = [Point(xy).buffer(0.05) for xy in self.coords]
         u = unary_union(patches)
         self.assertEqual(u.geom_type, 'MultiPolygon')
         self.assertAlmostEqual(u.area, 0.71857254056)
 
-    @unittest.skipIf(geos_version < (3, 3, 0), 'GEOS 3.3.0 required')
     def test_unary_union_multi(self):
         # Test of multipart input based on comment by @schwehr at
         # https://github.com/Toblerity/Shapely/issues/47#issuecomment-21809308

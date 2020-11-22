@@ -2,10 +2,8 @@ from . import unittest
 
 from shapely.geometry import Point, LineString, Polygon, MultiLineString, \
                              GeometryCollection
-from shapely.geos import geos_version
 from shapely.ops import shared_paths
 
-@unittest.skipIf(geos_version < (3, 3, 0), 'GEOS 3.3.0 required')
 class SharedPaths(unittest.TestCase):
     def test_shared_paths_forward(self):
         g1 = LineString([(0, 0), (10, 0), (10, 5), (20, 5)])

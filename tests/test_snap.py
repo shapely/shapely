@@ -1,10 +1,9 @@
 from . import unittest
 
 from shapely.geometry import LineString, Polygon
-from shapely.geos import geos_version
 from shapely.ops import snap
 
-@unittest.skipIf(geos_version < (3, 3, 0), 'GEOS 3.3.0 required')
+
 class Snap(unittest.TestCase):
     def test_snap(self):
         

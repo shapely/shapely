@@ -3,7 +3,7 @@ import pytest
 from shapely.geometry import Point, LineString, Polygon, MultiPoint, \
                              GeometryCollection
 from shapely.wkt import loads
-from shapely.geos import TopologicalError, geos_version
+from shapely.geos import TopologicalError
 
 class OperationsTestCase(unittest.TestCase):
 
@@ -73,15 +73,13 @@ class OperationsTestCase(unittest.TestCase):
         with pytest.raises(TopologicalError):
             invalid_polygon.relate(invalid_polygon)
 
-    @unittest.skipIf(geos_version < (3, 2, 0), 'GEOS 3.2.0 required')
     def test_hausdorff_distance(self):
         point = Point(1, 1)
         line = LineString([(2, 0), (2, 4), (3, 4)])
 
         distance = point.hausdorff_distance(line)
         self.assertEqual(distance, point.distance(Point(3, 4)))
-    
-    @unittest.skipIf(geos_version < (3, 2, 0), 'GEOS 3.2.0 required')
+
     def test_interpolate(self):
         # successful interpolation
         test_line = LineString(((1,1),(1,2)))

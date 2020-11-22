@@ -18,12 +18,12 @@ def pipi4():
 
 def test_wkt(pipi):
     """.wkt and wkt.dumps() both do not trim by default."""
-    assert pipi.wkt == "POINT ({0:.16f} {1:.16f})".format(pi, -pi)
+    assert pipi.wkt == "POINT ({0:.15f} {1:.15f})".format(pi, -pi)
 
 
 def test_wkt(pipi4):
     """.wkt and wkt.dumps() both do not trim by default."""
-    assert pipi4.wkt == "POINT ({0:.16f} {1:.16f})".format(pi*4, -pi*4)
+    assert pipi4.wkt == "POINT ({0:.14f} {1:.14f})".format(pi*4, -pi*4)
 
 
 def test_dumps(pipi4):

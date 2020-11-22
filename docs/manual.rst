@@ -876,10 +876,6 @@ supports linear referencing based on length or distance, evaluating the
 distance along a geometric object to the projection of a given point, or the
 point at a given distance along the object.
 
-.. note::
-
-  Linear referencing methods require GEOS 3.2.0 or later.
-
 .. method:: object.interpolate(distance[, normalized=False])
 
   Return a point at the specified distance along a linear geometric object.
