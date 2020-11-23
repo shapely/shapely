@@ -1,10 +1,6 @@
 import pytest
-from shapely.geos import geos_version
 from shapely.geometry import Point, Polygon
 from shapely.prepared import PreparedGeometry, prep
-
-
-pytestmark = pytest.mark.skipif(geos_version < (3, 1, 0), reason="GEOS 3.1.0 required")
 
 
 def test_prepared_geometry():

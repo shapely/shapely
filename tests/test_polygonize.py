@@ -1,5 +1,4 @@
 from . import unittest
-from shapely.geos import geos_version
 from shapely.geometry import Point, LineString, Polygon
 from shapely.geometry.base import dump_coords
 from shapely.ops import polygonize, polygonize_full
@@ -20,7 +19,6 @@ class PolygonizeTestCase(unittest.TestCase):
         result = list(polygonize(lines))
         self.assertTrue(all([isinstance(x, Polygon) for x in result]))
 
-    @unittest.skipIf(geos_version < (3, 3, 0), 'GEOS 3.3.0 required')
     def test_polygonize_full(self):
 
         lines2 = [

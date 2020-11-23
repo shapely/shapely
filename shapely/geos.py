@@ -201,40 +201,38 @@ def _geos_version():
 geos_version_string, geos_version, geos_capi_version = _geos_version()
 
 
-# If we have the new interface, then record a baseline so that we know what
-# additional functions are declared in ctypes_declarations.
-if geos_version >= (3, 1, 0):
-    start_set = set(_lgeos.__dict__)
+# Record a baseline so that we know what additional functions are declared
+# in ctypes_declarations.
+start_set = set(_lgeos.__dict__)
 
 # Apply prototypes for the libgeos_c functions
 prototype(_lgeos, geos_version)
 
-# If we have the new interface, automatically detect all function
-# declarations, and declare their re-entrant counterpart.
-if geos_version >= (3, 1, 0):
-    end_set = set(_lgeos.__dict__)
-    new_func_names = end_set - start_set
+# Automatically detect all function declarations, and declare their
+# re-entrant counterpart.
+end_set = set(_lgeos.__dict__)
+new_func_names = end_set - start_set
 
-    for func_name in new_func_names:
-        new_func_name = "%s_r" % func_name
-        if hasattr(_lgeos, new_func_name):
-            new_func = getattr(_lgeos, new_func_name)
-            old_func = getattr(_lgeos, func_name)
-            new_func.restype = old_func.restype
-            if old_func.argtypes is None:
-                # Handle functions that didn't take an argument before,
-                # finishGEOS.
-                new_func.argtypes = [c_void_p]
-            else:
-                new_func.argtypes = [c_void_p] + list(old_func.argtypes)
-            if old_func.errcheck is not None:
-                new_func.errcheck = old_func.errcheck
+for func_name in new_func_names:
+    new_func_name = "%s_r" % func_name
+    if hasattr(_lgeos, new_func_name):
+        new_func = getattr(_lgeos, new_func_name)
+        old_func = getattr(_lgeos, func_name)
+        new_func.restype = old_func.restype
+        if old_func.argtypes is None:
+            # Handle functions that didn't take an argument before,
+            # finishGEOS.
+            new_func.argtypes = [c_void_p]
+        else:
+            new_func.argtypes = [c_void_p] + list(old_func.argtypes)
+        if old_func.errcheck is not None:
+            new_func.errcheck = old_func.errcheck
 
-    # Handle special case.
-    _lgeos.initGEOS_r.restype = c_void_p
-    _lgeos.initGEOS_r.argtypes = \
-        [EXCEPTION_HANDLER_FUNCTYPE, EXCEPTION_HANDLER_FUNCTYPE]
-    _lgeos.finishGEOS_r.argtypes = [c_void_p]
+# Handle special case.
+_lgeos.initGEOS_r.restype = c_void_p
+_lgeos.initGEOS_r.argtypes = \
+    [EXCEPTION_HANDLER_FUNCTYPE, EXCEPTION_HANDLER_FUNCTYPE]
+_lgeos.finishGEOS_r.argtypes = [c_void_p]
 
 
 def make_logging_callback(func):
@@ -300,71 +298,63 @@ class WKTWriter(object):
     _writer = None
 
     # Establish default output settings
-    defaults = {}
+    defaults = {
+        'trim': True,
+        'output_dimension': 3,
+    }
 
-    if geos_version >= (3, 3, 0):
+    # GEOS' defaults for methods without "get"
+    _trim = False
+    _rounding_precision = -1
+    _old_3d = False
 
-        defaults['trim'] = True
-        defaults['output_dimension'] = 3
+    @property
+    def trim(self):
+        """Trimming of unnecessary decimals (default: True)"""
+        return getattr(self, '_trim')
 
-        # GEOS' defaults for methods without "get"
-        _trim = False
-        _rounding_precision = -1
-        _old_3d = False
+    @trim.setter
+    def trim(self, value):
+        self._trim = bool(value)
+        self._lgeos.GEOSWKTWriter_setTrim(self._writer, self._trim)
 
-        @property
-        def trim(self):
-            """Trimming of unnecessary decimals (default: True)"""
-            return getattr(self, '_trim')
+    @property
+    def rounding_precision(self):
+        """Rounding precision when writing the WKT.
+        A precision of -1 (default) disables it."""
+        return getattr(self, '_rounding_precision')
 
-        @trim.setter
-        def trim(self, value):
-            self._trim = bool(value)
-            self._lgeos.GEOSWKTWriter_setTrim(self._writer, self._trim)
+    @rounding_precision.setter
+    def rounding_precision(self, value):
+        self._rounding_precision = int(value)
+        self._lgeos.GEOSWKTWriter_setRoundingPrecision(
+            self._writer, self._rounding_precision)
 
-        @property
-        def rounding_precision(self):
-            """Rounding precision when writing the WKT.
-            A precision of -1 (default) disables it."""
-            return getattr(self, '_rounding_precision')
+    @property
+    def output_dimension(self):
+        """Output dimension, either 2 or 3 (default)"""
+        return self._lgeos.GEOSWKTWriter_getOutputDimension(
+            self._writer)
 
-        @rounding_precision.setter
-        def rounding_precision(self, value):
-            self._rounding_precision = int(value)
-            self._lgeos.GEOSWKTWriter_setRoundingPrecision(
-                self._writer, self._rounding_precision)
+    @output_dimension.setter
+    def output_dimension(self, value):
+        self._lgeos.GEOSWKTWriter_setOutputDimension(
+            self._writer, int(value))
 
-        @property
-        def output_dimension(self):
-            """Output dimension, either 2 or 3 (default)"""
-            return self._lgeos.GEOSWKTWriter_getOutputDimension(
-                self._writer)
+    @property
+    def old_3d(self):
+        """Show older style for 3D WKT, without 'Z' (default: False)"""
+        return getattr(self, '_old_3d')
 
-        @output_dimension.setter
-        def output_dimension(self, value):
-            self._lgeos.GEOSWKTWriter_setOutputDimension(
-                self._writer, int(value))
-
-        @property
-        def old_3d(self):
-            """Show older style for 3D WKT, without 'Z' (default: False)"""
-            return getattr(self, '_old_3d')
-
-        @old_3d.setter
-        def old_3d(self, value):
-            self._old_3d = bool(value)
-            self._lgeos.GEOSWKTWriter_setOld3D(self._writer, self._old_3d)
+    @old_3d.setter
+    def old_3d(self, value):
+        self._old_3d = bool(value)
+        self._lgeos.GEOSWKTWriter_setOld3D(self._writer, self._old_3d)
 
     def __init__(self, lgeos, **settings):
         """Create WKT Writer
 
-        Note: writer defaults are set differently for GEOS 3.3.0 and up.
-        For example, with 'POINT Z (1 2 3)':
-
-            newer: POINT Z (1 2 3)
-            older: POINT (1.0000000000000000 2.0000000000000000)
-
-        The older formatting can be achieved for GEOS 3.3.0 and up by setting
+        Note: older formatting before GEOS 3.3.0 can be achieved by setting
         the properties:
             trim = False
             output_dimension = 2
@@ -594,83 +584,14 @@ class LGEOSBase(threading.local):
             self.geos_handle = None
 
 
-class LGEOS300(LGEOSBase):
-    """Proxy for GEOS 3.0.0-CAPI-1.4.1
+class LGEOS330(LGEOSBase):
+    """Proxy for GEOS 3.3.0-CAPI-1.7.0
     """
-    geos_version = (3, 0, 0)
-    geos_capi_version = (1, 4, 0)
+    geos_version = (3, 3, 0)
+    geos_capi_version = (1, 7, 0)
 
     def __init__(self, dll):
-        super(LGEOS300, self).__init__(dll)
-        self.geos_handle = self._lgeos.initGEOS(notice_h, error_h)
-        keys = list(self._lgeos.__dict__.keys())
-        for key in keys:
-            setattr(self, key, getattr(self._lgeos, key))
-        self.GEOSFree = self._lgeos.free
-        # Deprecated
-        self.GEOSGeomToWKB_buf.errcheck = errcheck_wkb
-        self.GEOSGeomToWKT.errcheck = errcheck_just_free
-        self.GEOSRelate.errcheck = errcheck_null_exception
-        for pred in (
-                self.GEOSDisjoint,
-                self.GEOSTouches,
-                self.GEOSIntersects,
-                self.GEOSCrosses,
-                self.GEOSWithin,
-                self.GEOSContains,
-                self.GEOSOverlaps,
-                self.GEOSEquals,
-                self.GEOSEqualsExact,
-                self.GEOSRelatePattern,
-                self.GEOSisEmpty,
-                self.GEOSisValid,
-                self.GEOSisSimple,
-                self.GEOSisRing,
-                self.GEOSHasZ):
-            pred.errcheck = errcheck_predicate
-
-        self.methods['area'] = self.GEOSArea
-        self.methods['boundary'] = self.GEOSBoundary
-        self.methods['buffer'] = self.GEOSBuffer
-        self.methods['centroid'] = self.GEOSGetCentroid
-        self.methods['representative_point'] = self.GEOSPointOnSurface
-        self.methods['convex_hull'] = self.GEOSConvexHull
-        self.methods['distance'] = self.GEOSDistance
-        self.methods['envelope'] = self.GEOSEnvelope
-        self.methods['length'] = self.GEOSLength
-        self.methods['has_z'] = self.GEOSHasZ
-        self.methods['is_empty'] = self.GEOSisEmpty
-        self.methods['is_ring'] = self.GEOSisRing
-        self.methods['is_simple'] = self.GEOSisSimple
-        self.methods['is_valid'] = self.GEOSisValid
-        self.methods['disjoint'] = self.GEOSDisjoint
-        self.methods['touches'] = self.GEOSTouches
-        self.methods['intersects'] = self.GEOSIntersects
-        self.methods['crosses'] = self.GEOSCrosses
-        self.methods['within'] = self.GEOSWithin
-        self.methods['contains'] = self.GEOSContains
-        self.methods['overlaps'] = self.GEOSOverlaps
-        self.methods['equals'] = self.GEOSEquals
-        self.methods['equals_exact'] = self.GEOSEqualsExact
-        self.methods['relate'] = self.GEOSRelate
-        self.methods['difference'] = self.GEOSDifference
-        self.methods['symmetric_difference'] = self.GEOSSymDifference
-        self.methods['union'] = self.GEOSUnion
-        self.methods['intersection'] = self.GEOSIntersection
-        self.methods['relate_pattern'] = self.GEOSRelatePattern
-        self.methods['simplify'] = self.GEOSSimplify
-        self.methods['topology_preserve_simplify'] = \
-            self.GEOSTopologyPreserveSimplify
-
-
-class LGEOS310(LGEOSBase):
-    """Proxy for GEOS 3.1.0-CAPI-1.5.0
-    """
-    geos_version = (3, 1, 0)
-    geos_capi_version = (1, 5, 0)
-
-    def __init__(self, dll):
-        super(LGEOS310, self).__init__(dll)
+        super(LGEOS330, self).__init__(dll)
         self.geos_handle = self._lgeos.initGEOS_r(notice_h, error_h)
         keys = list(self._lgeos.__dict__.keys())
         for key in [x for x in keys if not x.endswith('_r')]:
@@ -681,9 +602,15 @@ class LGEOS310(LGEOSBase):
                 setattr(self, key, attr)
             else:
                 setattr(self, key, getattr(self._lgeos, key))
-        if not hasattr(self, 'GEOSFree'):
-            # GEOS < 3.1.1
-            self.GEOSFree = self._lgeos.free
+
+        # GEOS 3.3.8 from homebrew has, but doesn't advertise
+        # GEOSPolygonize_full. We patch it in explicitly here.
+        key = 'GEOSPolygonize_full'
+        func = getattr(self._lgeos, key + '_r')
+        attr = partial(func, self.geos_handle)
+        attr.__name__ = func.__name__
+        setattr(self, key, attr)
+
         # Deprecated
         self.GEOSGeomToWKB_buf.func.errcheck = errcheck_wkb
         self.GEOSGeomToWKT.func.errcheck = errcheck_just_free
@@ -713,7 +640,9 @@ class LGEOS310(LGEOSBase):
                 self.GEOSisValid,
                 self.GEOSisSimple,
                 self.GEOSisRing,
-                self.GEOSHasZ):
+                self.GEOSHasZ,
+                self.GEOSisClosed,
+                self.GEOSCoveredBy):
             pred.func.errcheck = errcheck_predicate
 
         self.GEOSisValidReason.func.errcheck = errcheck_just_free
@@ -763,68 +692,6 @@ class LGEOS310(LGEOSBase):
             self.GEOSTopologyPreserveSimplify
         self.methods['cascaded_union'] = self.GEOSUnionCascaded
 
-
-class LGEOS311(LGEOS310):
-    """Proxy for GEOS 3.1.1-CAPI-1.6.0
-    """
-    geos_version = (3, 1, 1)
-    geos_capi_version = (1, 6, 0)
-
-    def __init__(self, dll):
-        super(LGEOS311, self).__init__(dll)
-
-
-class LGEOS320(LGEOS311):
-    """Proxy for GEOS 3.2.0-CAPI-1.6.0
-    """
-    geos_version = (3, 2, 0)
-    geos_capi_version = (1, 6, 0)
-
-    def __init__(self, dll):
-        super(LGEOS320, self).__init__(dll)
-
-        if geos_version >= (3, 2, 0):
-
-            def parallel_offset(geom, distance, resolution=16, join_style=1,
-                                mitre_limit=5.0, side='right'):
-                side = side == 'left'
-                if distance < 0:
-                    distance = abs(distance)
-                    side = not side
-                return self.GEOSSingleSidedBuffer(
-                    geom, distance, resolution, join_style, mitre_limit, side)
-
-            self.methods['parallel_offset'] = parallel_offset
-
-        self.methods['project'] = self.GEOSProject
-        self.methods['project_normalized'] = self.GEOSProjectNormalized
-        self.methods['interpolate'] = self.GEOSInterpolate
-        self.methods['interpolate_normalized'] = \
-            self.GEOSInterpolateNormalized
-        self.methods['buffer_with_style'] = self.GEOSBufferWithStyle
-        self.methods['hausdorff_distance'] = self.GEOSHausdorffDistance
-
-
-class LGEOS330(LGEOS320):
-    """Proxy for GEOS 3.3.0-CAPI-1.7.0
-    """
-    geos_version = (3, 3, 0)
-    geos_capi_version = (1, 7, 0)
-
-    def __init__(self, dll):
-        super(LGEOS330, self).__init__(dll)
-
-        # GEOS 3.3.8 from homebrew has, but doesn't advertise
-        # GEOSPolygonize_full. We patch it in explicitly here.
-        key = 'GEOSPolygonize_full'
-        func = getattr(self._lgeos, key + '_r')
-        attr = partial(func, self.geos_handle)
-        attr.__name__ = func.__name__
-        setattr(self, key, attr)
-
-        for pred in (self.GEOSisClosed, self.GEOSCoveredBy):
-            pred.func.errcheck = errcheck_predicate
-
         def parallel_offset(geom, distance, resolution=16, join_style=1,
                             mitre_limit=5.0, side='right'):
             if side == 'right':
@@ -833,9 +700,16 @@ class LGEOS330(LGEOS320):
                 geom, distance, resolution, join_style, mitre_limit)
 
         self.methods['parallel_offset'] = parallel_offset
+        self.methods['project'] = self.GEOSProject
+        self.methods['project_normalized'] = self.GEOSProjectNormalized
+        self.methods['interpolate'] = self.GEOSInterpolate
+        self.methods['interpolate_normalized'] = \
+            self.GEOSInterpolateNormalized
+        self.methods['buffer_with_style'] = self.GEOSBufferWithStyle
+        self.methods['hausdorff_distance'] = self.GEOSHausdorffDistance
         self.methods['unary_union'] = self.GEOSUnaryUnion
-        self.methods['is_closed'] = self.GEOSisClosed
         self.methods['cascaded_union'] = self.methods['unary_union']
+        self.methods['is_closed'] = self.GEOSisClosed
         self.methods['snap'] = self.GEOSSnap
         self.methods['shared_paths'] = self.GEOSSharedPaths
         self.methods['buffer_with_params'] = self.GEOSBufferWithParams
@@ -898,14 +772,8 @@ elif geos_version >= (3, 4, 0):
     L = LGEOS340
 elif geos_version >= (3, 3, 0):
     L = LGEOS330
-elif geos_version >= (3, 2, 0):
-    L = LGEOS320
-elif geos_version >= (3, 1, 1):
-    L = LGEOS311
-elif geos_version >= (3, 1, 0):
-    L = LGEOS310
 else:
-    L = LGEOS300
+    raise ValueError('unexpected geos_version: ' + str(geos_version))
 
 lgeos = L(_lgeos)
 

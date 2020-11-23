@@ -23,10 +23,6 @@ print('GEOS version: ' + geos_version_string)
 print('Numpy version: ' + numpy_version)
 print('Cython speedups: ' + str(speedups.available))
 
-if lgeos.geos_version >= (3, 3, 0):
-    # Remove any WKT writer defaults to pass tests for all versions of GEOS
-    WKTWriter.defaults = {}
-
 
 shapely20_deprecated = pytest.mark.filterwarnings(
     "ignore::shapely.errors.ShapelyDeprecationWarning"

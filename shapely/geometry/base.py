@@ -616,10 +616,6 @@ class BaseGeometry(object):
         if cap_style == CAP_STYLE.round and join_style == JOIN_STYLE.round:
             return geom_factory(self.impl['buffer'](self, distance, res))
 
-        if 'buffer_with_style' not in self.impl:
-            raise NotImplementedError("Styled buffering not available for "
-                                      "GEOS versions < 3.2.")
-
         return geom_factory(self.impl['buffer_with_style'](self, distance, res,
                                                            cap_style,
                                                            join_style,

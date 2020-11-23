@@ -73,7 +73,7 @@ class GEOSImpl(BaseImpl):
             lgeos.geos_capi_version,)
 
 
-IMPL300 = {
+IMPL330 = {
     'area': (UnaryRealProperty, 'area'),
     'distance': (BinaryRealProperty, 'distance'),
     'length': (UnaryRealProperty, 'length'),
@@ -85,6 +85,9 @@ IMPL300 = {
     'envelope': (UnaryTopologicalOp, 'envelope'),
     'convex_hull': (UnaryTopologicalOp, 'convex_hull'),
     'buffer': (UnaryTopologicalOp, 'buffer'),
+    'simplify': (UnaryTopologicalOp, 'simplify'),
+    'topology_preserve_simplify':
+        (UnaryTopologicalOp, 'topology_preserve_simplify'),
     #
     'difference': (BinaryTopologicalOp, 'difference'),
     'intersection': (BinaryTopologicalOp, 'intersection'),
@@ -96,6 +99,7 @@ IMPL300 = {
     'is_ring': (UnaryPredicate, 'is_ring'),
     'is_simple': (UnaryPredicate, 'is_simple'),
     'is_valid': (UnaryPredicate, 'is_valid'),
+    'is_closed': (UnaryPredicate, 'is_closed'),
     #
     'relate': (BinaryPredicate, 'relate'),
     'contains': (BinaryPredicate, 'contains'),
@@ -107,17 +111,9 @@ IMPL300 = {
     'touches': (BinaryPredicate, 'touches'),
     'within': (BinaryPredicate, 'within'),
     'covers': (BinaryPredicate, 'covers'),
+    'covered_by': (BinaryPredicate, 'covered_by'),
     'equals_exact': (BinaryPredicate, 'equals_exact'),
     'relate_pattern': (BinaryPredicate, 'relate_pattern'),
-
-    # First pure Python implementation
-    'is_ccw': (cga.is_ccw_impl, 'is_ccw'),
-    }
-
-IMPL310 = {
-    'simplify': (UnaryTopologicalOp, 'simplify'),
-    'topology_preserve_simplify':
-        (UnaryTopologicalOp, 'topology_preserve_simplify'),
     'prepared_disjoint': (BinaryPredicate, 'prepared_disjoint'),
     'prepared_touches': (BinaryPredicate, 'prepared_touches'),
     'prepared_crosses': (BinaryPredicate, 'prepared_crosses'),
@@ -128,26 +124,19 @@ IMPL310 = {
     'prepared_contains_properly':
         (BinaryPredicate, 'prepared_contains_properly'),
     'prepared_covers': (BinaryPredicate, 'prepared_covers'),
-    }
 
-IMPL311 = {
-    }
-
-IMPL320 = {
     'parallel_offset': (UnaryTopologicalOp, 'parallel_offset'),
     'project_normalized': (ProjectOp, 'project_normalized'),
     'project': (ProjectOp, 'project'),
     'interpolate_normalized': (InterpolateOp, 'interpolate_normalized'),
     'interpolate': (InterpolateOp, 'interpolate'),
     'buffer_with_style': (UnaryTopologicalOp, 'buffer_with_style'),
-    'hausdorff_distance': (BinaryRealProperty, 'hausdorff_distance'),
-    }
-
-IMPL330 = {
-    'is_closed': (UnaryPredicate, 'is_closed'),
     'buffer_with_params': (UnaryTopologicalOp, 'buffer_with_params'),
-    'covered_by': (BinaryPredicate, 'covered_by')
-}
+    'hausdorff_distance': (BinaryRealProperty, 'hausdorff_distance'),
+
+    # First pure Python implementation
+    'is_ccw': (cga.is_ccw_impl, 'is_ccw'),
+    }
 
 IMPL360 = {
     'minimum_clearance': (UnaryRealProperty, 'minimum_clearance')
@@ -156,15 +145,7 @@ IMPL360 = {
 def impl_items(defs):
     return [(k, v[0](v[1])) for k, v in list(defs.items())]
 
-imp = GEOSImpl(dict(impl_items(IMPL300)))
-if lgeos.geos_version >= (3, 1, 0):
-    imp.update(impl_items(IMPL310))
-if lgeos.geos_version >= (3, 1, 1):
-    imp.update(impl_items(IMPL311))
-if lgeos.geos_version >= (3, 2, 0):
-    imp.update(impl_items(IMPL320))
-if lgeos.geos_version >= (3, 3, 0):
-    imp.update(impl_items(IMPL330))
+imp = GEOSImpl(dict(impl_items(IMPL330)))
 if lgeos.geos_version >= (3, 6, 0):
     imp.update(impl_items(IMPL360))
 
