@@ -9,9 +9,11 @@ export GEOS_CONFIG="/usr/local/bin/geos-config"
 VERSION=$1
 
 source $HOME/envs/pydotorg27/bin/activate
+touch shapely/speedups/*.pyx
 touch shapely/vectorized/*.pyx
 CFLAGS="`$GEOS_CONFIG --cflags`" LDFLAGS="`$GEOS_CONFIG --libs`" python setup.py bdist_wheel -d wheels/$VERSION
 source $HOME/envs/pydotorg34/bin/activate
+touch shapely/speedups/*.pyx
 touch shapely/vectorized/*.pyx
 CFLAGS="`$GEOS_CONFIG --cflags`" LDFLAGS="`$GEOS_CONFIG --libs`" python setup.py bdist_wheel -d wheels/$VERSION
 
