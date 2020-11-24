@@ -637,8 +637,7 @@ class BaseGeometry(pygeos.Geometry):
     def relate_pattern(self, other, pattern):
         """Returns True if the DE-9IM string code for the relationship between
         the geometries satisfies the pattern, else False"""
-        pattern = c_char_p(pattern.encode('ascii'))
-        return bool(self.impl['relate_pattern'](self, other, pattern))
+        return bool(pygeos.relate_pattern(self, other, pattern))
 
     # Linear referencing
     # ------------------

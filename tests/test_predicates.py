@@ -65,5 +65,5 @@ class PredicatesTestCase(unittest.TestCase):
         assert(g1.relate_pattern(g3, 'FF2FF10F2'))
 
         # an invalid pattern should raise an exception
-        with pytest.raises(PredicateError):
+        with pytest.raises(pygeos.GEOSException, match="IllegalArgumentException"):
             g1.relate_pattern(g2, 'fail')
