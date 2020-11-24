@@ -7,7 +7,6 @@ import warnings
 import pygeos
 
 from shapely.errors import DimensionError, ShapelyDeprecationWarning
-from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry
 
 

@@ -7,7 +7,6 @@ import warnings
 import pygeos
 
 from shapely.errors import ShapelyDeprecationWarning
-from shapely.geos import lgeos, TopologicalError
 from shapely.geometry.base import BaseGeometry, geom_factory, JOIN_STYLE
 from shapely.geometry.point import Point
 
