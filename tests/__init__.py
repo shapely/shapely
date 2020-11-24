@@ -2,7 +2,6 @@ import sys
 import unittest
 
 from shapely.geos import geos_version_string, lgeos, WKTWriter
-from shapely import speedups
 
 import pytest
 
@@ -21,7 +20,6 @@ except ImportError:
 print('Python version: ' + sys.version.replace('\n', ' '))
 print('GEOS version: ' + geos_version_string)
 print('Numpy version: ' + numpy_version)
-print('Cython speedups: ' + str(speedups.available))
 
 
 shapely20_deprecated = pytest.mark.filterwarnings(
