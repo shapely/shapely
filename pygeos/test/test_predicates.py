@@ -3,7 +3,7 @@ import pygeos
 from pygeos import Geometry
 import numpy as np
 
-from .common import point, all_types, polygon, geometry_collection
+from .common import point, all_types, line_string, polygon, geometry_collection, empty
 
 UNARY_PREDICATES = (
     pygeos.is_empty,
@@ -109,6 +109,43 @@ def test_relate():
 @pytest.mark.parametrize("g1, g2", [(point, None), (None, point), (None, None)])
 def test_relate_none(g1, g2):
     assert pygeos.relate(g1, g2) is None
+
+
+def test_relate_pattern():
+    line_string = pygeos.linestrings([(0, 0), (1, 0), (1, 1)])
+    polygon = pygeos.box(0, 0, 2, 2)
+    assert pygeos.relate(line_string, polygon) == "11F00F212"
+    assert pygeos.relate_pattern(line_string, polygon, "11F00F212")
+    assert pygeos.relate_pattern(line_string, polygon, "*********")
+    assert not pygeos.relate_pattern(line_string, polygon, "F********")
+
+
+def test_relate_pattern_empty():
+    assert pygeos.relate_pattern(empty, empty, "*" * 9).item() is True
+
+
+@pytest.mark.parametrize("g1, g2", [(point, None), (None, point), (None, None)])
+def test_relate_pattern_none(g1, g2):
+    assert pygeos.relate_pattern(g1, g2, "*" * 9).item() is False
+
+
+def test_relate_pattern_incorrect_length():
+    with pytest.raises(pygeos.GEOSException, match="Should be length 9"):
+        pygeos.relate_pattern(point, polygon, "**")
+
+    with pytest.raises(pygeos.GEOSException, match="Should be length 9"):
+        pygeos.relate_pattern(point, polygon, "**********")
+
+
+@pytest.mark.parametrize("pattern", [b"*********", 10, None])
+def test_relate_pattern_non_string(pattern):
+    with pytest.raises(TypeError, match="expected string"):
+        pygeos.relate_pattern(point, polygon, pattern)
+
+
+def test_relate_pattern_non_scalar():
+    with pytest.raises(ValueError, match="only supports scalar"):
+        pygeos.relate_pattern([point] *2, polygon, ["*********"] * 2)
 
 
 @pytest.mark.skipif(pygeos.geos_version < (3, 7, 0), reason="GEOS < 3.7")

@@ -1535,6 +1535,66 @@ finish:
 }
 static PyUFuncGenericFunction relate_funcs[1] = {&relate_func};
 
+static char relate_pattern_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_BOOL};
+static void relate_pattern_func(char** args, npy_intp* dimensions, npy_intp* steps,
+                                void* data) {
+  GEOSGeometry *in1 = NULL, *in2 = NULL;
+  const char* pattern = NULL;
+  npy_bool ret;
+
+  /* get the pattern argument (only deal with scalar for now) */
+  char* ip3 = args[2];
+  npy_intp is3 = steps[2];
+
+  if (is3 != 0) {
+    PyErr_Format(PyExc_ValueError, "pattern keyword only supports scalar argument");
+    return;
+  }
+  PyObject* in3 = *(PyObject**)ip3;
+  if (PyUnicode_Check(in3)) {
+    pattern = PyUnicode_AsUTF8(in3);
+    if (pattern == NULL) {
+      /* error happened in PyUnicode_AsUTF8, error already set by Python */
+      return;
+    }
+  } else {
+    PyErr_Format(PyExc_TypeError, "pattern keyword expected string, got %s",
+                 Py_TYPE(in3)->tp_name);
+    return;
+  }
+
+  GEOS_INIT_THREADS;
+
+  TERNARY_LOOP {
+    /* get the geometries: return on error */
+    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
+      errstate = PGERR_NOT_A_GEOMETRY;
+      goto finish;
+    }
+    if (!get_geom(*(GeometryObject**)ip2, &in2)) {
+      errstate = PGERR_NOT_A_GEOMETRY;
+      goto finish;
+    }
+    /* ip3 is already handled above */
+
+    if ((in1 == NULL) | (in2 == NULL)) {
+      /* in case of a missing value: return 0 (False) */
+      ret = 0;
+    } else {
+      ret = GEOSRelatePattern_r(ctx, in1, in2, pattern);
+      if (ret == 2) {
+        errstate = PGERR_GEOS_EXCEPTION;
+        goto finish;
+      }
+    }
+    *(npy_bool*)op1 = ret;
+  }
+
+finish:
+  GEOS_FINISH_THREADS;
+}
+static PyUFuncGenericFunction relate_pattern_funcs[1] = {&relate_pattern_func};
+
 /* define double -> geometry construction functions */
 static char points_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
 static void points_func(char** args, npy_intp* dimensions, npy_intp* steps, void* data) {
@@ -2387,6 +2447,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_CUSTOM(voronoi_polygons, 4);
   DEFINE_CUSTOM(is_valid_reason, 1);
   DEFINE_CUSTOM(relate, 2);
+  DEFINE_CUSTOM(relate_pattern, 3);
   DEFINE_GENERALIZED(points, 1, "(d)->()");
   DEFINE_GENERALIZED(linestrings, 1, "(i, d)->()");
   DEFINE_GENERALIZED(linearrings, 1, "(i, d)->()");

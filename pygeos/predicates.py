@@ -28,6 +28,7 @@ __all__ = [
     "within",
     "equals_exact",
     "relate",
+    "relate_pattern",
 ]
 
 
@@ -57,7 +58,7 @@ def is_ccw(geometry, **kwargs):
     Note that there are no checks on whether lines are actually closed and
     not self-intersecting, while this is a requirement for is_ccw. The recommended
     usage of this function for linestrings is ``is_ccw(g) & is_simple(g)`` and for
-    linearrings ``is_ccw(g) & is_valid(g)``. 
+    linearrings ``is_ccw(g) & is_valid(g)``.
 
     Parameters
     ----------
@@ -768,3 +769,33 @@ def relate(a, b, **kwargs):
     'F0FFFF102'
     """
     return lib.relate(a, b, **kwargs)
+
+
+@multithreading_enabled
+def relate_pattern(a, b, pattern, **kwargs):
+    """
+    Returns True if the DE-9IM string code for the relationship between
+    the geometries satisfies the pattern, else False.
+
+    This function compares the DE-9IM code string for two geometries
+    against a specified pattern. If the string matches the pattern then
+    ``True`` is returned, otherwise ``False``. The pattern specified can
+    be an exact match (``0``, ``1`` or ``2``), a boolean match
+    (uppercase ``T`` or ``F``), or a wildcard (``*``). For example,
+    the pattern for the `within` predicate is ``'T*F**F***'``.
+
+    Parameters
+    ----------
+    a, b : Geometry or array_like
+    pattern : string
+
+    Examples
+    --------
+    >>> point = Geometry("POINT (0.5 0.5)")
+    >>> square = Geometry("POLYGON((0 0, 0 1, 1 1, 1 0, 0 0))")
+    >>> relate(point, square)
+    '0FFFFF212'
+    >>> relate_pattern(point, square, "T*F**F***")
+    True
+    """
+    return lib.relate_pattern(a, b, pattern, **kwargs)
