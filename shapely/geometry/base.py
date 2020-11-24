@@ -23,7 +23,6 @@ from shapely.errors import WKBReadingError, WKTReadingError
 from shapely.errors import ShapelyDeprecationWarning
 from shapely.geos import WKBWriter, WKTWriter
 from shapely.geos import lgeos
-from shapely.impl import DefaultImplementation
 
 log = logging.getLogger(__name__)
 
@@ -135,8 +134,6 @@ class BaseGeometry(pygeos.Geometry):
     # _ndim : int
     #     Number of dimensions (2 or 3, generally)
 
-    # Backend config
-    impl = DefaultImplementation
     _coords = None
 
     def __new__(self):
