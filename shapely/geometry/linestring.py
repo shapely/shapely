@@ -8,9 +8,7 @@ import pygeos
 
 from shapely.errors import ShapelyDeprecationWarning
 from shapely.geos import lgeos, TopologicalError
-from shapely.geometry.base import (
-    BaseGeometry, geom_factory, JOIN_STYLE, geos_geom_from_py
-)
+from shapely.geometry.base import BaseGeometry, geom_factory, JOIN_STYLE
 from shapely.geometry.point import Point
 
 __all__ = ['LineString']

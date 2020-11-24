@@ -6,23 +6,16 @@ operations are performed in the x-y plane. Thus, geometries with
 different z values may intersect or be equal.
 """
 
-from binascii import a2b_hex
-from ctypes import pointer, c_size_t, c_char_p, c_void_p
 from itertools import islice
 import logging
 import math
 import sys
 from warnings import warn
-from functools import wraps
 
 import pygeos
 
 from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
-from shapely.errors import WKBReadingError, WKTReadingError
-from shapely.errors import ShapelyDeprecationWarning
-from shapely.geos import WKBWriter, WKTWriter
-from shapely.geos import lgeos
 
 log = logging.getLogger(__name__)
 
@@ -77,34 +70,6 @@ def geom_factory(g, parent=None):
     return pygeos.from_shapely(ob)
 
 
-def deserialize_wkb(data):
-    geom = lgeos.GEOSGeomFromWKB_buf(c_char_p(data), c_size_t(len(data)))
-    if not geom:
-        raise WKBReadingError(
-            "Could not create geometry because of errors while reading input.")
-    return geom
-
-
-def geos_geom_from_py(ob, create_func=None):
-    """Helper function for geos_*_from_py functions in each geom type.
-
-    If a create_func is specified the coodinate sequence is cloned and a new
-    geometry is created with it, otherwise the geometry is cloned directly.
-    This behaviour is useful for converting between LineString and LinearRing
-    objects.
-    """
-    if create_func is None:
-        geom = lgeos.GEOSGeom_clone(ob._geom)
-    else:
-        cs = lgeos.GEOSGeom_getCoordSeq(ob._geom)
-        cs = lgeos.GEOSCoordSeq_clone(cs)
-        geom = create_func(cs)
-
-    N = ob._ndim
-
-    return geom, N
-
-
 class CAP_STYLE(object):
     round = 1
     flat = 2
@@ -115,8 +80,6 @@ class JOIN_STYLE(object):
     round = 1
     mitre = 2
     bevel = 3
-
-EMPTY = deserialize_wkb(a2b_hex(b'010700000000000000'))
 
 
 class BaseGeometry(pygeos.Geometry):

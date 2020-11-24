@@ -6,7 +6,7 @@ import warnings
 
 from shapely.errors import EmptyPartError
 from shapely.geos import lgeos
-from shapely.geometry.base import BaseMultipartGeometry, geos_geom_from_py
+from shapely.geometry.base import BaseMultipartGeometry
 from shapely.geometry import linestring
 
 import pygeos
