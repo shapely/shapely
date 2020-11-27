@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   test:
-    name: Python ${{ matrix.python }} (GEOS ${{ matrix.geos }}, speedups ${{ matrix.speedups }}, numpy ${{ matrix.numpy || 'not installed' }})
+    name: Python ${{ matrix.python }} (GEOS ${{ matrix.geos }}, numpy ${{ matrix.numpy || 'not installed' }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -14,36 +14,29 @@ jobs:
           - python: 3.6
             geos: 3.6.4
             numpy: 1.13.3
-            speeedups: 1
           # 2018
           - python: 3.7
             geos: 3.7.3
             numpy: 1.15.4
-            speedups: 1
           # 2019
           - python: 3.8
             geos: 3.8.1
             numpy: 1.17.5
-            speedups: 1
           # 2020
           - python: 3.9
             geos: 3.9.1
             numpy: 1.19.5
-            speedups: 1
           # 2021
           - python: "3.10"
             geos: 3.10.0
             numpy: 1.21.3
-            speedups: 1
           # dev
           - python: "3.10"
             geos: main
-            speedups: 1
 
     env:
       GEOS_VERSION: ${{ matrix.geos }}
       GEOS_INSTALL: ${{ github.workspace }}/geosinstall/geos-${{ matrix.geos }}
-      SPEEDUPS: ${{ matrix.speedups }}
 
     steps:
       - uses: actions/checkout@v2
@@ -80,9 +73,6 @@ jobs:
           pip install git+https://github.com/pygeos/pygeos.git -v
           if [ "$GEOS_VERSION" = "main" ]; then
             pip install --upgrade --pre Cython numpy;
-          elif [ "$SPEEDUPS" == "1" ]; then
-            pip install --install-option="--no-cython-compile" cython;
-            pip install --upgrade numpy==${{ matrix.numpy }};
           elif [ -n "${{ matrix.numpy }}" ]; then
             pip install --upgrade numpy==${{ matrix.numpy }};
           else
@@ -111,13 +101,11 @@ jobs:
         shell: bash
         continue-on-error: ${{ matrix.geos == 'main' }}
         run: |
-          if [ "$SPEEDUPS" == "1" ]; then SPEEDUPS_FLAG=--with-speedups; else SPEEDUPS_FLAG=--without-speedups; fi
           python -c "from shapely import geos; print(geos.geos_version_string)"
-          python -c "from shapely import speedups; print(speedups.enabled)"
-          python -m pytest --cov shapely --cov-report term-missing "${SPEEDUPS_FLAG}"
+          python -m pytest --cov shapely --cov-report term-missing
 
       - name: Run doctests
-        if: ${{ matrix.python == '3.8' && matrix.numpy && matrix.speedups == '1' }}
+        if: ${{ matrix.python == '3.8' }}
         shell: bash
         run: |
           python -m pytest shapely --doctest-modules
