@@ -9,8 +9,6 @@ include CHANGES.txt CREDITS.txt LICENSE.txt README.rst VERSION.txt
 recursive-include _vendor *.py
 recursive-include tests *.py *.txt
 recursive-include shapely/examples *.py
-recursive-include shapely/speedups *.pyx
-recursive-include shapely/vectorized *.pyx
 recursive-include shapely *.pxi
 recursive-include shapely/DLLs *.dll *.rst *.txt
 include docs/*.rst
