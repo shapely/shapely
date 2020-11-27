@@ -4,7 +4,6 @@
 from ctypes import c_void_p, cast
 import warnings
 
-from shapely.geos import lgeos
 from shapely.geometry.base import BaseMultipartGeometry
 from shapely.geometry import polygon
 

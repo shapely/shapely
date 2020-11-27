@@ -1,6 +1,8 @@
 from . import unittest
-from shapely.errors import GeometryTypeError
 from shapely.geometry import Point, LineString, MultiLineString
+
+import pygeos
+import pytest
 
 
 class LinearReferencingTestCase(unittest.TestCase):
@@ -28,7 +30,7 @@ class LinearReferencingTestCase(unittest.TestCase):
             self.multiline.project(self.point, normalized=True), 0.125)
 
     def test_not_supported_project(self):
-        with self.assertRaises(GeometryTypeError):
+        with pytest.raises(pygeos.GEOSException, match="IllegalArgumentException"):
             self.point.buffer(1.0).project(self.point)
 
     def test_not_on_line_project(self):
