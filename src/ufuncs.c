@@ -717,46 +717,57 @@ static void YY_Y_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
   FuncGEOS_YY_Y* func = (FuncGEOS_YY_Y*)data;
   GEOSGeometry *in1 = NULL, *in2 = NULL, *out = NULL;
 
+  // Whether to destroy a temporary intermediate value of `out`:
+  char do_destroy = 0;
+
   GEOS_INIT_THREADS;
 
   if (!get_geom(*(GeometryObject**)args[0], &out)) {
     errstate = PGERR_NOT_A_GEOMETRY;
-  } else if (out != NULL) {
+  } else {
     BINARY_LOOP {
-      // Cleanup previous in1
-      if (i > 1) {
-        // If i == 0, in1 is undefined
-        // If i == 1, in1 is the first input, which is owned by python
-        GEOSGeom_destroy_r(ctx, in1);
-      }
-      // This is the main reduce logic: in1 becomes previous out
+      // Get the geometry inputs; in1 from previous iteration, in2 from array
       in1 = out;
-      // Get the other geometry (as normal)
       if (!get_geom(*(GeometryObject**)ip2, &in2)) {
         errstate = PGERR_NOT_A_GEOMETRY;
         break;
       }
-      if (in2 == NULL) {
-        // We break the loop as the answer will remain NULL (None)
-        out = NULL;
-        break;
-      } else {
+
+      /* Either (or both) in1 and in2 could be NULL (Python: None).
+       * Reduction operations should skip None values. We have 4 possible combinations:
+       */
+
+      // 1. (not NULL, not NULL); run the GEOS function
+      if ((in1 != NULL) && (in2 != NULL)) {
         out = func(ctx, in1, in2);
+  
+        // Discard in1 if it was a temporary intermediate
+        if (do_destroy) {
+          GEOSGeom_destroy_r(ctx, in1);
+        }
+
+        // Mark the newly generated geometry as intermediate. Note: out will become in1. 
+        do_destroy = 1;
+
+        // Break on error (we do this after discarding in1 to avoid memleaks)
         if (out == NULL) {
           errstate = PGERR_GEOS_EXCEPTION;
           break;
         }
       }
-    }
-    // We need to cleanup the intermediate geometry stored in in1.
-    // However, in some cases the intermediate geometry equals the first input, which is
-    // 'owned' by python. Destoying that would lead to a segfault when the python object
-    // is dereferenced.
-    // We check for that situation explicitly from the ufunc input (misusing the variable
-    // 'in2').
-    get_geom(*(GeometryObject**)args[0], &in2);
-    if (in1 != in2) {
-      GEOSGeom_destroy_r(ctx, in1);
+
+      // 2. (NULL, not NULL); When the first element of the reduction axis is None
+      else if ((in1 == NULL) && (in2 != NULL)) {
+        // Keep in2 as 'outcome' of the operation.
+        out = in2;
+        // Ensure that it will not be destroyed (it is owned by python)
+        do_destroy = 0;
+      }
+
+      // 3. (not NULL, NULL); When a None value is encountered after a not-None
+      //    Don't do `out = in1`, as that is already the case.
+      // 4. (NULL, NULL); When we have not yet encountered any not-None
+      //    Do nothing; out will remain NULL
     }
   }
 

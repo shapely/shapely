@@ -61,6 +61,9 @@ def intersection(a, b, **kwargs):
 def intersection_all(geometries, axis=0, **kwargs):
     """Returns the intersection of multiple geometries.
 
+    This function ignores None values when other Geometry elements are present.
+    If all elements of the given axis are None, None is returned.
+
     Parameters
     ----------
     geometries : array_like
@@ -81,7 +84,7 @@ def intersection_all(geometries, axis=0, **kwargs):
     >>> intersection_all([line_1, line_2])
     <pygeos.Geometry LINESTRING (1 1, 2 2)>
     >>> intersection_all([[line_1, line_2, None]], axis=1).tolist()
-    [None]
+    [<pygeos.Geometry LINESTRING (1 1, 2 2)>]
     """
     return lib.intersection.reduce(geometries, axis=axis, **kwargs)
 
@@ -111,6 +114,9 @@ def symmetric_difference(a, b, **kwargs):
 def symmetric_difference_all(geometries, axis=0, **kwargs):
     """Returns the symmetric difference of multiple geometries.
 
+    This function ignores None values when other Geometry elements are present.
+    If all elements of the given axis are None, None is returned.
+
     Parameters
     ----------
     geometries : array_like
@@ -131,7 +137,7 @@ def symmetric_difference_all(geometries, axis=0, **kwargs):
     >>> symmetric_difference_all([line_1, line_2])
     <pygeos.Geometry MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>
     >>> symmetric_difference_all([[line_1, line_2, None]], axis=1).tolist()
-    [None]
+    [<pygeos.Geometry MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>]
     """
     return lib.symmetric_difference.reduce(geometries, axis=axis, **kwargs)
 
@@ -161,6 +167,9 @@ def union(a, b, **kwargs):
 @multithreading_enabled
 def union_all(geometries, axis=0, **kwargs):
     """Returns the union of multiple geometries.
+
+    This function ignores None values when other Geometry elements are present.
+    If all elements of the given axis are None, None is returned.
 
     Parameters
     ----------
@@ -196,7 +205,15 @@ def union_all(geometries, axis=0, **kwargs):
         )
     # create_collection acts on the inner axis
     collections = lib.create_collection(geometries, GeometryType.GEOMETRYCOLLECTION)
-    return lib.unary_union(collections, **kwargs)
+    result = lib.unary_union(collections, **kwargs)
+    # for consistency with other _all functions, we replace GEOMETRY COLLECTION EMPTY
+    # if the original collection had no geometries
+    only_none = lib.get_num_geometries(collections) == 0
+    if np.isscalar(only_none):
+        return result if not only_none else None
+    else:
+        result[only_none] = None
+        return result
 
 
 @requires_geos("3.8.0")
