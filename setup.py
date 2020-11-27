@@ -165,7 +165,7 @@ long_description = readme + '\n\n' + credits + '\n\n' + changes
 
 extra_reqs = {
     'test': ['pytest', 'pytest-cov'],
-    'vectorized': ['numpy']}
+}
 extra_reqs['all'] = list(it.chain.from_iterable(extra_reqs.values()))
 
 # Make a dict of setup arguments. Some items will be updated as
@@ -187,7 +187,6 @@ setup_args = dict(
         'shapely.geometry',
         'shapely.algorithms',
         'shapely.examples',
-        'shapely.speedups',
         'shapely.vectorized',
     ],
     classifiers         = [
@@ -227,155 +226,5 @@ if sys.platform == 'win32':
             shutil.copy(dll, 'shapely/DLLs')
     setup_args['package_data']['shapely'].append('shapely/DLLs/*.dll')
 
-# Prepare build opts and args for the speedups extension module.
-include_dirs = []
-library_dirs = []
-libraries = []
-extra_link_args = []
 
-# If NO_GEOS_CONFIG is set in the environment, geos-config will not
-# be called and CFLAGS and LDFLAGS environment variables must be set
-# instead like
-#
-# CFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib -lgeos_c"
-#
-# Or, equivalently:
-#
-# CFLAGS="$(geos-config --cflags)" LDFLAGS="$(geos-config --clibs)"
-
-if geos_version and geos_config:
-    # Collect other options from GEOS configuration.
-    for item in geos_config.get('--cflags').split():
-        if item.startswith("-I"):
-            include_dirs.extend(item[2:].split(":"))
-    for item in geos_config.get('--clibs').split():
-        if item.startswith("-L"):
-            library_dirs.extend(item[2:].split(":"))
-        elif item.startswith("-l"):
-            libraries.append(item[2:])
-        else:
-            # e.g. -framework GEOS
-            extra_link_args.append(item)
-
-
-# Optional compilation of speedups
-# setuptools stuff from Bob Ippolito's simplejson project
-if sys.platform == 'win32':
-    # distutils.msvc9compiler can raise an IOError when failing to
-    # find the compiler
-    ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError,
-                  IOError)
-else:
-    ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError)
-
-
-class BuildFailed(Exception):
-    pass
-
-
-def construct_build_ext(build_ext):
-    class WrappedBuildExt(build_ext):
-        # This class allows C extension building to fail.
-
-        def run(self):
-            try:
-                build_ext.run(self)
-            except DistutilsPlatformError as x:
-                raise BuildFailed(x)
-
-        def build_extension(self, ext):
-            try:
-                build_ext.build_extension(self, ext)
-            except ext_errors as x:
-                raise BuildFailed(x)
-
-    return WrappedBuildExt
-
-if (platform.python_implementation() == 'PyPy'):
-    ext_modules = []
-    libraries = []
-
-
-pyx_file = "shapely/speedups/_speedups.pyx"
-c_file = "shapely/speedups/_speedups.c"
-
-force_cython = False
-# Always regenerate for sdist or absent c file
-if 'sdist' in sys.argv or not os.path.exists(c_file):
-    force_cython = True
-# Also regenerate if pyx_file is outdated.
-elif os.path.exists(c_file):
-    if os.path.getmtime(pyx_file) > os.path.getmtime(c_file):
-        force_cython = True
-
-ext_modules = [
-    Extension("shapely.speedups._speedups", ["shapely/speedups/_speedups.c"],
-        include_dirs=include_dirs, library_dirs=library_dirs,
-        libraries=libraries, extra_link_args=extra_link_args)]
-
-cmd_classes = setup_args.setdefault('cmdclass', {})
-
-try:
-    import numpy
-    from Cython.Distutils import build_ext as cython_build_ext
-    from distutils.extension import Extension as DistutilsExtension
-
-    if 'build_ext' in setup_args['cmdclass']:
-        raise ValueError('We need to put the Cython build_ext in '
-                         'cmd_classes, but it is already defined.')
-    setup_args['cmdclass']['build_ext'] = cython_build_ext
-
-    include_dirs.append(numpy.get_include())
-    libraries.append(numpy.get_include())
-
-    ext_modules.append(DistutilsExtension(
-        "shapely.vectorized._vectorized",
-        sources=["shapely/vectorized/_vectorized.pyx"],
-        include_dirs=include_dirs,
-        library_dirs=library_dirs,
-        libraries=libraries,
-        extra_link_args=extra_link_args,))
-
-except ImportError:
-    log.info("Numpy or Cython not available, shapely.vectorized submodule "
-             "not being built.")
-    force_cython = False
-
-try:
-    if force_cython:
-        log.info("Updating C extension with Cython.")
-        subprocess.check_call(["cython", "shapely/speedups/_speedups.pyx"])
-except (subprocess.CalledProcessError, OSError):
-    log.warning("Could not (re)create C extension with Cython.")
-    if force_cython:
-        raise
-
-if not os.path.exists(c_file):
-    log.warning("speedup extension not found")
-
-try:
-    # try building with speedups
-    existing_build_ext = setup_args['cmdclass'].\
-        get('build_ext', distutils_build_ext)
-    setup_args['cmdclass']['build_ext'] = \
-        construct_build_ext(existing_build_ext)
-    setup(ext_modules=ext_modules, **setup_args)
-except BuildFailed as ex:
-    BUILD_EXT_WARNING = "The C extension could not be compiled, " \
-                        "speedups are not enabled."
-    log.warning(ex)
-    log.warning(BUILD_EXT_WARNING)
-    log.warning("Failure information, if any, is above.")
-    log.warning("I'm retrying the build without the C extension now.")
-
-    # Remove any previously defined build_ext command class.
-    if 'build_ext' in setup_args['cmdclass']:
-        del setup_args['cmdclass']['build_ext']
-
-    if 'build_ext' in cmd_classes:
-        del cmd_classes['build_ext']
-
-    setup(**setup_args)
-
-    log.warning(BUILD_EXT_WARNING)
-    log.info("Plain-Python installation succeeded.")
+setup(**setup_args)
