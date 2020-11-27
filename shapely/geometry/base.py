@@ -6,24 +6,16 @@ operations are performed in the x-y plane. Thus, geometries with
 different z values may intersect or be equal.
 """
 
-from binascii import a2b_hex
-from ctypes import pointer, c_size_t, c_char_p, c_void_p
 from itertools import islice
 import logging
 import math
 import sys
 from warnings import warn
-from functools import wraps
 
 import pygeos
 
 from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
-from shapely.errors import WKBReadingError, WKTReadingError
-from shapely.errors import ShapelyDeprecationWarning
-from shapely.geos import WKBWriter, WKTWriter
-from shapely.geos import lgeos
-from shapely.impl import DefaultImplementation, delegated
 
 log = logging.getLogger(__name__)
 
@@ -78,44 +70,6 @@ def geom_factory(g, parent=None):
     return pygeos.from_shapely(ob)
 
 
-def deserialize_wkb(data):
-    geom = lgeos.GEOSGeomFromWKB_buf(c_char_p(data), c_size_t(len(data)))
-    if not geom:
-        raise WKBReadingError(
-            "Could not create geometry because of errors while reading input.")
-    return geom
-
-
-def geos_geom_from_py(ob, create_func=None):
-    """Helper function for geos_*_from_py functions in each geom type.
-
-    If a create_func is specified the coodinate sequence is cloned and a new
-    geometry is created with it, otherwise the geometry is cloned directly.
-    This behaviour is useful for converting between LineString and LinearRing
-    objects.
-    """
-    if create_func is None:
-        geom = lgeos.GEOSGeom_clone(ob._geom)
-    else:
-        cs = lgeos.GEOSGeom_getCoordSeq(ob._geom)
-        cs = lgeos.GEOSCoordSeq_clone(cs)
-        geom = create_func(cs)
-
-    N = ob._ndim
-
-    return geom, N
-
-
-def exceptNull(func):
-    """Decorator which helps avoid GEOS operations on null pointers."""
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if not args[0]._geom or args[0].is_empty:
-            raise ValueError("Null/empty geometry supports no operations")
-        return func(*args, **kwargs)
-    return wrapper
-
-
 class CAP_STYLE(object):
     round = 1
     flat = 2
@@ -126,8 +80,6 @@ class JOIN_STYLE(object):
     round = 1
     mitre = 2
     bevel = 3
-
-EMPTY = deserialize_wkb(a2b_hex(b'010700000000000000'))
 
 
 class BaseGeometry(pygeos.Geometry):
@@ -145,8 +97,6 @@ class BaseGeometry(pygeos.Geometry):
     # _ndim : int
     #     Number of dimensions (2 or 3, generally)
 
-    # Backend config
-    impl = DefaultImplementation
     _coords = None
 
     def __new__(self):
@@ -325,7 +275,7 @@ class BaseGeometry(pygeos.Geometry):
     @property
     def minimum_clearance(self):
         """Unitless distance by which a node could be moved to produce an invalid geometry (float)"""
-        return self.impl['minimum_clearance'](self)
+        return float(pygeos.minimum_clearance(self))
 
     # Topological properties
     # ----------------------
@@ -354,7 +304,6 @@ class BaseGeometry(pygeos.Geometry):
         """Returns the geometric center of the object"""
         return pygeos.centroid(self)
 
-    @delegated
     def representative_point(self):
         """Returns a point guaranteed to be within the object, cheaply."""
         return pygeos.point_on_surface(self)
@@ -504,7 +453,6 @@ class BaseGeometry(pygeos.Geometry):
             single_sided=single_sided
         )
 
-    @delegated
     def simplify(self, tolerance, preserve_topology=True):
         """Returns a simplified geometry produced by the Douglas-Peucker
         algorithm
@@ -582,7 +530,7 @@ class BaseGeometry(pygeos.Geometry):
     def relate(self, other):
         """Returns the DE-9IM intersection matrix for the two geometries
         (string)"""
-        return self.impl['relate'](self, other)
+        return pygeos.relate(self, other)
 
     def covers(self, other):
         """Returns True if the geometry covers the other, else False"""
@@ -649,13 +597,11 @@ class BaseGeometry(pygeos.Geometry):
     def relate_pattern(self, other, pattern):
         """Returns True if the DE-9IM string code for the relationship between
         the geometries satisfies the pattern, else False"""
-        pattern = c_char_p(pattern.encode('ascii'))
-        return bool(self.impl['relate_pattern'](self, other, pattern))
+        return bool(pygeos.relate_pattern(self, other, pattern))
 
     # Linear referencing
     # ------------------
 
-    @delegated
     def project(self, other, normalized=False):
         """Returns the distance along this geometry to a point nearest the
         specified point
@@ -663,14 +609,8 @@ class BaseGeometry(pygeos.Geometry):
         If the normalized arg is True, return the distance normalized to the
         length of the linear geometry.
         """
-        if normalized:
-            op = self.impl['project_normalized']
-        else:
-            op = self.impl['project']
-        return op(self, other)
+        return pygeos.line_locate_point(self, other, normalized=normalized)
 
-    @delegated
-    @exceptNull
     def interpolate(self, distance, normalized=False):
         """Return a point at the specified distance along a linear geometry
 

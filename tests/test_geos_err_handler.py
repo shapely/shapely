@@ -28,6 +28,7 @@ def test_error_handler_exception(tmpdir):
     assert "Expected number but encountered word: 'LOLWUT'" in log
 
 
+@shapely20_todo  # logging is not yet implemented
 def test_error_handler(tmpdir):
     logger = logging.getLogger('shapely.geos')
     logfile = str(tmpdir.join('test_error.log'))

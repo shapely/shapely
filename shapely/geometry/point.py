@@ -7,8 +7,7 @@ import warnings
 import pygeos
 
 from shapely.errors import DimensionError, ShapelyDeprecationWarning
-from shapely.geos import lgeos
-from shapely.geometry.base import BaseGeometry, geos_geom_from_py
+from shapely.geometry.base import BaseGeometry
 
 
 __all__ = ['Point']

@@ -7,10 +7,7 @@ import warnings
 import pygeos
 
 from shapely.errors import ShapelyDeprecationWarning
-from shapely.geos import lgeos, TopologicalError
-from shapely.geometry.base import (
-    BaseGeometry, geom_factory, JOIN_STYLE, geos_geom_from_py
-)
+from shapely.geometry.base import BaseGeometry, geom_factory, JOIN_STYLE
 from shapely.geometry.point import Point
 
 __all__ = ['LineString']
@@ -142,11 +139,11 @@ class LineString(BaseGeometry):
         if mitre_limit == 0.0:
             raise ValueError(
                 'Cannot compute offset from zero-length line segment')
-        try:
-            return geom_factory(self.impl['parallel_offset'](
-                self, distance, resolution, join_style, mitre_limit, side))
-        except OSError:
-            raise TopologicalError()
+        if side == 'right':
+            distance *= -1
+        return pygeos.offset_curve(
+            self, distance, resolution, join_style, mitre_limit
+        )
 
 
 pygeos.lib.registry[1] = LineString
