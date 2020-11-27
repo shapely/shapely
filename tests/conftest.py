@@ -12,27 +12,6 @@ shapely20_todo = pytest.mark.xfail(strict=True, reason="Not yet implemented for 
 shapely20_wontfix = pytest.mark.xfail(strict=True, reason="Will fail for Shapely 2.0")
 
 
-def pytest_addoption(parser):
-    parser.addoption("--with-speedups", action="store_true", default=False,
-                     help="Run tests with speedups.")
-    parser.addoption("--without-speedups", action="store_true", default=False,
-                     help="Run tests without speedups.")
-
-def pytest_runtest_setup(item):
-    if item.config.getoption("--with-speedups"):
-        import shapely.speedups
-        if not shapely.speedups.available:
-            print("Speedups have been demanded but are unavailable")
-            sys.exit(1)
-        shapely.speedups.enable()
-        assert(shapely.speedups.enabled is True)
-        print("Speedups enabled for %s." % item.name)
-    elif item.config.getoption("--without-speedups"):
-        import shapely.speedups
-        shapely.speedups.disable()
-        assert(shapely.speedups.enabled is False)
-        print("Speedups disabled for %s." % item.name)
-
 def pytest_report_header(config):
     headers = []
     try:
