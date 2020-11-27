@@ -12,7 +12,7 @@ import pygeos
 
 from shapely.algorithms.cga import signed_area, is_ccw_impl
 from shapely.geos import lgeos
-from shapely.geometry.base import BaseGeometry, geos_geom_from_py
+from shapely.geometry.base import BaseGeometry
 from shapely.geometry.linestring import LineString
 from shapely.geometry.point import Point
 from shapely.errors import TopologicalError, ShapelyDeprecationWarning
