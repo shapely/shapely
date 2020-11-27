@@ -6,6 +6,7 @@ from shapely.impl import delegated, ImplementationError
 from tests.conftest import shapely20_wontfix
 
 
+@shapely20_wontfix
 def test_error():
     with pytest.raises(ImplementationError):
         Point(0, 0).impl['bogus']()
