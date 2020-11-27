@@ -3,11 +3,9 @@
 
 from ctypes import c_void_p
 
-from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry
 from shapely.geometry.base import BaseMultipartGeometry
 from shapely.geometry.base import HeterogeneousGeometrySequence
-from shapely.geometry.base import geos_geom_from_py
 
 import pygeos
 
