@@ -1,9 +1,8 @@
 """
 Support for GEOS prepared geometry operations.
 """
+import pygeos
 
-from shapely.geos import lgeos
-from shapely.impl import DefaultImplementation, delegated
 from pickle import PicklingError
 
 
@@ -20,75 +19,53 @@ class PreparedGeometry(object):
       True
     """
 
-    impl = DefaultImplementation
-
     def __init__(self, context):
         if isinstance(context, PreparedGeometry):
             self.context = context.context
         else:
+            pygeos.prepare(context)
             self.context = context
-        self.__geom__ = lgeos.GEOSPrepare(self.context._geom)
         self.prepared = True
 
-    def __del__(self):
-        if self.__geom__ is not None:
-            try:
-                lgeos.GEOSPreparedGeom_destroy(self.__geom__)
-            except AttributeError:
-                pass  # lgeos might be empty on shutdown.
-
-        self.__geom__ = None
-        self.context = None
-        self.prepared = False
-
-    @property
-    def _geom(self):
-        return self.__geom__
-
-    @delegated
     def contains(self, other):
         """Returns True if the geometry contains the other, else False"""
-        return bool(self.impl['prepared_contains'](self, other))
+        return self.context.contains(other)
 
-    @delegated
     def contains_properly(self, other):
         """Returns True if the geometry properly contains the other, else False"""
-        return bool(self.impl['prepared_contains_properly'](self, other))
+        # TODO temporary hack until pygeos exposes contains properly as predicate function
+        from pygeos import STRtree
+        tree = STRtree([other])
+        idx = tree.query(self.context, predicate="contains_properly")
+        return bool(len(idx))
 
-    @delegated
     def covers(self, other):
         """Returns True if the geometry covers the other, else False"""
-        return bool(self.impl['prepared_covers'](self, other))
+        return self.context.covers(other)
 
-    @delegated
     def crosses(self, other):
         """Returns True if the geometries cross, else False"""
-        return bool(self.impl['prepared_crosses'](self, other))
+        return self.context.crosses(other)
 
-    @delegated
     def disjoint(self, other):
         """Returns True if geometries are disjoint, else False"""
-        return bool(self.impl['prepared_disjoint'](self, other))
+        return self.context.disjoint(other)
 
-    @delegated
     def intersects(self, other):
         """Returns True if geometries intersect, else False"""
-        return bool(self.impl['prepared_intersects'](self, other))
+        return self.context.intersects(other)
 
-    @delegated
     def overlaps(self, other):
         """Returns True if geometries overlap, else False"""
-        return bool(self.impl['prepared_overlaps'](self, other))
+        return self.context.overlaps(other)
 
-    @delegated
     def touches(self, other):
         """Returns True if geometries touch, else False"""
-        return bool(self.impl['prepared_touches'](self, other))
+        return self.context.touches(other)
 
-    @delegated
     def within(self, other):
         """Returns True if geometry is within the other, else False"""
-        return bool(self.impl['prepared_within'](self, other))
+        return self.context.within(other)
 
     def __reduce__(self):
         raise PicklingError("Prepared geometries cannot be pickled.")
