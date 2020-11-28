@@ -224,11 +224,8 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
     return result
 
 
-class ValidateOp:
-    def __call__(self, this):
-        return lgeos.GEOSisValidReason(this._geom)
-
-validate = ValidateOp()
+def validate(geom):
+    return pygeos.is_valid_reason(geom)
 
 
 def transform(func, geom):
@@ -327,6 +324,7 @@ def nearest_points(g1, g2):
     p2 = Point(x2.value, y2.value)
     return (p1, p2)
 
+
 def snap(g1, g2, tolerance):
     """Snap one geometry to another with a given tolerance
 
@@ -351,7 +349,8 @@ def snap(g1, g2, tolerance):
     >>> result.wkt
     'LINESTRING (0 0, 1 1, 2 1, 2.6 0.5)'
     """
-    return(geom_factory(lgeos.methods['snap'](g1._geom, g2._geom, tolerance)))
+    return pygeos.snap(g1, g2, tolerance)
+
 
 def shared_paths(g1, g2):
     """Find paths shared between the two given lineal geometries
@@ -373,7 +372,7 @@ def shared_paths(g1, g2):
         raise TypeError("First geometry must be a LineString")
     if not isinstance(g2, LineString):
         raise TypeError("Second geometry must be a LineString")
-    return(geom_factory(lgeos.methods['shared_paths'](g1._geom, g2._geom)))
+    return pygeos.shared_paths(g1, g2)
 
 
 class SplitOp:
