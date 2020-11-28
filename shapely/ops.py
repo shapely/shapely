@@ -116,8 +116,7 @@ class CollectionOperator:
                 source = MultiLineString(lines)
         if source is None:
             raise ValueError("Cannot linemerge %s" % lines)
-        result = lgeos.GEOSLineMerge(source._geom)
-        return geom_factory(result)
+        return pygeos.line_merge(source)
 
     def cascaded_union(self, geoms):
         """Returns the union of a sequence of geometries
@@ -163,9 +162,8 @@ def triangulate(geom, tolerance=0.0, edges=False):
     Otherwise the list of LineString edges is returned.
 
     """
-    func = lgeos.methods['delaunay_triangulation']
-    gc = geom_factory(func(geom._geom, tolerance, int(edges)))
-    return [g for g in gc.geoms]
+    collection = pygeos.delaunay_triangles(geom, tolerance=tolerance, only_edges=edges)
+    return [g for g in collection.geoms]
 
 
 def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
@@ -210,15 +208,16 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
     [1] https://en.wikipedia.org/wiki/Voronoi_diagram
     [2] https://geos.osgeo.org/doxygen/geos__c_8h_source.html  (line 730)
     """
-    func = lgeos.methods['voronoi_diagram']
-    envelope = envelope._geom if envelope else None
     try:
-        result = geom_factory(func(geom._geom, envelope, tolerance, int(edges)))
-    except ValueError:
-        errstr = "Could not create Voronoi Diagram with the specified inputs."
+        result = pygeos.voronoi_polygons(
+            geom, tolerance=tolerance, extend_to=envelope, only_edges=edges
+        )
+    except pygeos.GEOSException as err:
+        errstr = "Could not create Voronoi Diagram with the specified inputs "
+        errstr += "({}).".format(str(err))
         if tolerance:
             errstr += " Try running again with default tolerance value."
-        raise ValueError(errstr)
+        raise pygeos.GEOSException(errstr) from err
 
     if result.type != 'GeometryCollection':
         return GeometryCollection([result])
