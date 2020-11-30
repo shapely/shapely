@@ -38,6 +38,7 @@ Version 0.9 (unreleased)
   functions if available (#246).
 * Ensure that ``python setup.py clean`` removes all previously Cythonized and compiled
   files (#239).
+* Addition of a ``reverse`` function for GEOS >= 3.7 (#254).
 
 Version 0.8 (2020-09-06)
 ------------------------

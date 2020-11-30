@@ -20,6 +20,7 @@ __all__ = [
     "make_valid",
     "normalize",
     "point_on_surface",
+    "reverse",
     "simplify",
     "snap",
     "voronoi_polygons",
@@ -36,6 +37,7 @@ class BufferJoinStyles(IntEnum):
     ROUND = 1
     MITRE = 2
     BEVEL = 3
+
 
 @multithreading_enabled
 def boundary(geometry, **kwargs):
@@ -171,12 +173,7 @@ def buffer(
 
 @multithreading_enabled
 def offset_curve(
-    geometry,
-    distance,
-    quadsegs=8,
-    join_style="round",
-    mitre_limit=5.0,
-    **kwargs
+    geometry, distance, quadsegs=8, join_style="round", mitre_limit=5.0, **kwargs
 ):
     """
     Returns a (Multi)LineString at a distance from the object
@@ -257,6 +254,7 @@ def centroid(geometry, **kwargs):
     """
     return lib.centroid(geometry, **kwargs)
 
+
 @multithreading_enabled
 def convex_hull(geometry, **kwargs):
     """Computes the minimum convex geometry that encloses an input geometry.
@@ -273,6 +271,7 @@ def convex_hull(geometry, **kwargs):
     <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
     """
     return lib.convex_hull(geometry, **kwargs)
+
 
 @multithreading_enabled
 def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
@@ -310,6 +309,7 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     """
     return lib.delaunay_triangles(geometry, tolerance, only_edges, **kwargs)
 
+
 @multithreading_enabled
 def envelope(geometry, **kwargs):
     """Computes the minimum bounding box that encloses an input geometry.
@@ -330,6 +330,7 @@ def envelope(geometry, **kwargs):
     <pygeos.Geometry POINT EMPTY>
     """
     return lib.envelope(geometry, **kwargs)
+
 
 @multithreading_enabled
 def extract_unique_points(geometry, **kwargs):
@@ -397,6 +398,7 @@ def make_valid(geometry, **kwargs):
     """
     return lib.make_valid(geometry, **kwargs)
 
+
 @multithreading_enabled
 def normalize(geometry, **kwargs):
     """Converts Geometry to normal form (or canonical form).
@@ -416,6 +418,7 @@ def normalize(geometry, **kwargs):
     <pygeos.Geometry MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))>
     """
     return lib.normalize(geometry, **kwargs)
+
 
 @multithreading_enabled
 def point_on_surface(geometry, **kwargs):
@@ -437,6 +440,38 @@ def point_on_surface(geometry, **kwargs):
     <pygeos.Geometry POINT EMPTY>
     """
     return lib.point_on_surface(geometry, **kwargs)
+
+
+@requires_geos("3.7.0")
+@multithreading_enabled
+def reverse(geometry, **kwargs):
+    """Returns a copy of a Geometry with the order of coordinates reversed.
+
+    If a Geometry is a polygon with interior rings, the interior rings are also
+    reversed.
+
+    Points are unchanged. None is returned where Geometry is None.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+
+    See also
+    --------
+    is_ccw : Checks if a Geometry is clockwise.
+
+    Examples
+    --------
+    >>> reverse(Geometry("LINESTRING (0 0, 1 2)"))
+    <pygeos.Geometry LINESTRING (1 2, 0 0)>
+    >>> reverse(Geometry("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))"))
+    <pygeos.Geometry POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
+    >>> reverse(None) is None
+    True
+    """
+
+    return lib.reverse(geometry, **kwargs)
+
 
 @multithreading_enabled
 def simplify(geometry, tolerance, preserve_topology=False, **kwargs):
@@ -470,6 +505,7 @@ def simplify(geometry, tolerance, preserve_topology=False, **kwargs):
     else:
         return lib.simplify(geometry, tolerance, **kwargs)
 
+
 @multithreading_enabled
 def snap(geometry, reference, tolerance, **kwargs):
     """Snaps an input geometry to reference geometry's vertices.
@@ -498,6 +534,7 @@ def snap(geometry, reference, tolerance, **kwargs):
     <pygeos.Geometry POLYGON ((0 0, 0 10, 8 10, 8 0, 0 0))>
     """
     return lib.snap(geometry, reference, tolerance, **kwargs)
+
 
 @multithreading_enabled
 def voronoi_polygons(

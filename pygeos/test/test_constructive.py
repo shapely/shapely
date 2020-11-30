@@ -4,7 +4,18 @@ import pytest
 
 from pygeos import Geometry, GEOSException
 
-from .common import point, line_string, all_types, empty, empty_line_string
+from .common import (
+    point,
+    point_z,
+    line_string,
+    all_types,
+    empty,
+    empty_point,
+    empty_line_string,
+    empty_polygon,
+    geometry_collection,
+    multi_point,
+)
 
 CONSTRUCTIVE_NO_ARGS = (
     pygeos.boundary,
@@ -97,11 +108,13 @@ def test_build_area_none():
         (line_string, empty),  # a line string has no area
         # geometry collection of two polygons are combined into one
         (
-            Geometry("GEOMETRYCOLLECTION(POLYGON((0 0, 3 0, 3 3, 0 3, 0 0)), POLYGON((1 1, 1 2, 2 2, 1 1)))"),
+            Geometry(
+                "GEOMETRYCOLLECTION(POLYGON((0 0, 3 0, 3 3, 0 3, 0 0)), POLYGON((1 1, 1 2, 2 2, 1 1)))"
+            ),
             Geometry("POLYGON ((0 0, 0 3, 3 3, 3 0, 0 0), (1 1, 2 2, 1 2, 1 1))"),
         ),
         (empty, empty),
-        ([empty], [empty])
+        ([empty], [empty]),
     ],
 )
 def test_build_area(geom, expected):
@@ -132,7 +145,7 @@ def test_make_valid_none():
             Geometry("MULTIPOLYGON (((1 1, 2 2, 2 0, 1 1)), ((0 0, 0 2, 1 1, 0 0)))"),
         ),
         (empty, empty),
-        ([empty], [empty])
+        ([empty], [empty]),
     ],
 )
 def test_make_valid(geom, expected):
@@ -160,7 +173,7 @@ def test_make_valid(geom, expected):
                 ),
             ],
         ),
-        ([point, None, empty], [point, None, empty])
+        ([point, None, empty], [point, None, empty]),
     ],
 )
 def test_make_valid_1d(geom, expected):
@@ -223,3 +236,73 @@ def test_offset_curve_non_scalar_kwargs():
 def test_offset_curve_join_style():
     with pytest.raises(KeyError):
         pygeos.offset_curve(line_string, 1.0, join_style="nonsense")
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 7, 0), reason="GEOS < 3.7")
+@pytest.mark.parametrize(
+    "geom,expected",
+    [
+        (
+            pygeos.Geometry("LINESTRING (0 0, 1 2)"),
+            pygeos.Geometry("LINESTRING (1 2, 0 0)"),
+        ),
+        (
+            pygeos.Geometry("LINEARRING (0 0, 1 2, 1 3, 0 0)"),
+            pygeos.Geometry("LINEARRING (0 0, 1 3, 1 2, 0 0)"),
+        ),
+        (
+            pygeos.Geometry("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))"),
+            pygeos.Geometry("POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))"),
+        ),
+        (
+            pygeos.Geometry(
+                "POLYGON((0 0, 10 0, 10 10, 0 10, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))"
+            ),
+            pygeos.Geometry(
+                "POLYGON((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 4 2, 4 4, 2 4, 2 2))"
+            ),
+        ),
+        (
+            pygeos.Geometry("MULTILINESTRING ((0 0, 1 2), (3 3, 4 4))"),
+            pygeos.Geometry("MULTILINESTRING ((1 2, 0 0), (4 4, 3 3))"),
+        ),
+        (
+            pygeos.Geometry(
+                "MULTIPOLYGON (((0 0, 1 0, 1 1, 0 1, 0 0)), ((2 2, 2 3, 3 3, 3 2, 2 2)))"
+            ),
+            pygeos.Geometry(
+                "MULTIPOLYGON (((0 0, 0 1, 1 1, 1 0, 0 0)), ((2 2, 3 2, 3 3, 2 3, 2 2)))"
+            ),
+        ),
+        # points are unchanged
+        (point, point),
+        (point_z, point_z),
+        (multi_point, multi_point),
+        # empty geometries are unchanged
+        (empty_point, empty_point),
+        (empty_line_string, empty_line_string),
+        (empty, empty),
+        (empty_polygon, empty_polygon),
+    ],
+)
+def test_reverse(geom, expected):
+    assert pygeos.equals(pygeos.reverse(geom), expected)
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 7, 0), reason="GEOS < 3.7")
+def test_reverse_none():
+    assert pygeos.reverse(None) is None
+    assert pygeos.reverse([None]).tolist() == [None]
+
+    geometry = pygeos.Geometry("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))")
+    expected = pygeos.Geometry("POLYGON ((0 0,  0 1, 1 1, 1 0, 0 0))")
+    result = pygeos.reverse([None, geometry])
+    assert result[0] is None
+    assert pygeos.equals(result[1], expected)
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 7, 0), reason="GEOS < 3.7")
+@pytest.mark.parametrize("geom", ["Not a geometry", 1])
+def test_reverse_invalid_type(geom):
+    with pytest.raises(TypeError, match="One of the arguments is of incorrect type"):
+        pygeos.reverse(geom)

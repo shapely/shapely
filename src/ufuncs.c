@@ -381,6 +381,9 @@ static void* build_area_data[1] = {GEOSBuildArea_r};
 static void* make_valid_data[1] = {GEOSMakeValid_r};
 static void* coverage_union_data[1] = {GEOSCoverageUnion_r};
 #endif
+#if GEOS_SINCE_3_7_0
+static void* reverse_data[1] = {GEOSReverse_r};
+#endif
 typedef void* FuncGEOS_Y_Y(void* context, void* a);
 static char Y_Y_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
 static void Y_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* data) {
@@ -2480,6 +2483,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 #if GEOS_SINCE_3_7_0
   DEFINE_Y_b(is_ccw);
   DEFINE_Y_d(get_z);
+  DEFINE_Y_Y(reverse);
   DEFINE_YY_d(frechet_distance);
   DEFINE_YYd_d(frechet_distance_densify);
 #endif
