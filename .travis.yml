@@ -70,17 +70,17 @@ matrix:
         NUMPY=0
     - python: "3.9"
       env:
-        GEOS_VERSION="3.8.1"
+        GEOS_VERSION="3.9.0beta1"
         SPEEDUPS=1
         NUMPY=1
     - python: "3.9"
       env:
-        GEOS_VERSION="3.8.1"
+        GEOS_VERSION="3.9.0beta1"
         SPEEDUPS=0
         NUMPY=1
     - python: "3.9"
       env:
-        GEOS_VERSION="3.8.1"
+        GEOS_VERSION="3.9.0beta1"
         SPEEDUPS=0
         NUMPY=0
     - python: "3.9-dev"

@@ -11,6 +11,7 @@ import pytest
 
 from shapely import wkt
 from shapely.geometry import shape, LineString, Polygon
+from shapely.geos import geos_version
 
 
 geojson_cases = [
@@ -29,9 +30,29 @@ direct_cases = [
 
 
 wkt_cases = [
-    ('LINESTRING (1 1 1, 2 2)', 'LINESTRING Z (1 1 1, 2 2 0)'),
-    ('POLYGON ((0 0 0, 1 0 0, 1 1, 0 1 0, 0 0 0))', 'POLYGON Z ((0 0 0, 1 0 0, 1 1 0, 0 1 0, 0 0 0))')
+    # preserve 3rd dimension
+    ('MULTIPOINT (1 1 1, 2 2)', 'MULTIPOINT Z (1 1 1, 2 2 0)'),
+    ('MULTIPOINT (1 1, 2 2 2)', 'MULTIPOINT Z (1 1 0, 2 2 2)'),
+    ('POLYGON ((0 0 0, 1 0 0, 1 1, 0 1 0, 0 0 0))',
+     'POLYGON Z ((0 0 0, 1 0 0, 1 1 0, 0 1 0, 0 0 0))'),
+    # drop 3rd dimension
+    ('POLYGON ((0 0, 1 0 1, 1 1, 0 1, 0 0))',
+     'POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))'),
 ]
+if geos_version < (3, 9, 0):
+    wkt_cases += [
+        # preserve 3rd dimension
+        ('LINESTRING (1 1 1, 2 2)', 'LINESTRING Z (1 1 1, 2 2 0)'),
+        # drop 3rd dimension
+        ('LINESTRING (1 1, 2 2 2)', 'LINESTRING (1 1, 2 2)'),
+    ]
+else:
+    wkt_cases += [
+        # drop 3rd dimension
+        ('LINESTRING (1 1 1, 2 2)', 'LINESTRING (1 1, 2 2)'),
+        # preserve 3rd dimension
+        ('LINESTRING (1 1, 2 2 2)', 'LINESTRING Z (1 1 0, 2 2 2)'),
+    ]
 
 
 @pytest.mark.parametrize('geojson', geojson_cases)
