@@ -1,8 +1,11 @@
+---
 image: Visual Studio 2019
 platform: x64
 
 environment:
-  COMPILER: msvc2019
+  global:
+    COMPILER: msvc2019
+
   matrix:
     # Interleave PYTHON, ARCH and GEOS_VERSION
     - PYTHON: "C:\\Python35-x64"
@@ -33,7 +36,7 @@ install:
         Where-Object pullRequestId -eq $env:APPVEYOR_PULL_REQUEST_NUMBER)[0].buildNumber) { `
           throw "There are newer queued builds for this pull request, failing early." }
 
-
+build: false  # disable automatic build
 build_script:
   - set GEOS_INSTALL=C:\projects\deps\geos-%GEOS_VERSION%-%COMPILER%-%ARCH%
   - set CYTHONPF=C:\\projects\\deps\\geos-%GEOS_VERSION%-%COMPILER%-%ARCH%
@@ -49,7 +52,7 @@ build_script:
 
   - ps: 'Write-Host "Checking GEOS build $env:GEOS_INSTALL" -ForegroundColor Magenta'
   - if not exist C:\projects\deps mkdir C:\projects\deps
-  - call %APPVEYOR_BUILD_FOLDER%\ci\appveyor\build_geos.cmd
+  - call %APPVEYOR_BUILD_FOLDER%\ci\install_geos.cmd
 
   - ps: 'Write-Host "Checking geos_c.dll" -ForegroundColor Magenta'
   - python -c "import sys; print('Python ' + sys.version)"
@@ -68,4 +71,4 @@ build_script:
 
 
 cache:
-  - C:\projects\deps -> %APPVEYOR_BUILD_FOLDER%\ci\appveyor\build_geos.cmd
+  - C:\projects\deps -> %APPVEYOR_BUILD_FOLDER%\ci\install_geos.cmd
