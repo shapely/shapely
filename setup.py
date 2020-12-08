@@ -154,6 +154,7 @@ elif "sdist" not in sys.argv:
                 "src/pygeom.c",
                 "src/strtree.c",
                 "src/ufuncs.c",
+                "src/vector.c"
             ],
             **ext_options,
         )
