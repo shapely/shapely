@@ -59,11 +59,20 @@ PyMODINIT_FUNC PyInit_lib(void) {
   import_array();
   import_umath();
 
+  /* GEOS_VERSION_PATCH may contain non-integer characters, e.g., 0beta1
+     add quotes using https://gcc.gnu.org/onlinedocs/cpp/Stringizing.html
+     then take the first digit */
+#define Q(x) #x
+#define QUOTE(x) Q(x)
+
+#define GEOS_VERSION_PATCH_STR QUOTE(GEOS_VERSION_PATCH)
+  int geos_version_patch_int = GEOS_VERSION_PATCH_STR[0] - '0';
+
   /* export the GEOS versions as python tuple and string */
   PyModule_AddObject(m, "geos_version",
                      PyTuple_Pack(3, PyLong_FromLong((long)GEOS_VERSION_MAJOR),
                                   PyLong_FromLong((long)GEOS_VERSION_MINOR),
-                                  PyLong_FromLong((long)GEOS_VERSION_PATCH)));
+                                  PyLong_FromLong((long)geos_version_patch_int)));
   PyModule_AddObject(m, "geos_capi_version",
                      PyTuple_Pack(3, PyLong_FromLong((long)GEOS_CAPI_VERSION_MAJOR),
                                   PyLong_FromLong((long)GEOS_CAPI_VERSION_MINOR),
