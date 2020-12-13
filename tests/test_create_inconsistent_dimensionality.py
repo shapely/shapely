@@ -29,8 +29,16 @@ direct_cases = [
 
 
 wkt_cases = [
+    # preserve 3rd dimension
+    ('MULTIPOINT (1 1 1, 2 2)', 'MULTIPOINT Z (1 1 1, 2 2 0)'),
+    ('MULTIPOINT (1 1, 2 2 2)', 'MULTIPOINT Z (1 1 0, 2 2 2)'),
     ('LINESTRING (1 1 1, 2 2)', 'LINESTRING Z (1 1 1, 2 2 0)'),
-    ('POLYGON ((0 0 0, 1 0 0, 1 1, 0 1 0, 0 0 0))', 'POLYGON Z ((0 0 0, 1 0 0, 1 1 0, 0 1 0, 0 0 0))')
+    ('POLYGON ((0 0 0, 1 0 0, 1 1, 0 1 0, 0 0 0))',
+     'POLYGON Z ((0 0 0, 1 0 0, 1 1 0, 0 1 0, 0 0 0))'),
+    # drop 3rd dimension
+    ('LINESTRING (1 1, 2 2 2)', 'LINESTRING (1 1, 2 2)'),
+    ('POLYGON ((0 0, 1 0 1, 1 1, 0 1, 0 0))',
+     'POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))'),
 ]
 
 

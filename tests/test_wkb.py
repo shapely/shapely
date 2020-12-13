@@ -1,6 +1,12 @@
+import binascii
+
+import pytest
+
+from shapely import wkt
 from shapely.wkb import dumps, loads
 from shapely.geometry import Point
-import binascii
+from shapely.geos import geos_version
+
 
 
 def bin2hex(value):
@@ -49,3 +55,20 @@ def test_loads_srid():
     # replace geometry srid with another
     result = dumps(geom, srid=27700)
     assert bin2hex(result) == "0101000020346C0000333333333333F33F3333333333330B40"
+
+
+requires_geos_39 = pytest.mark.xfail(
+    geos_version < (3, 9, 0), reason="GEOS >= 3.9.0 is required", strict=True)
+
+
+@requires_geos_39
+def test_point_empty():
+    g = wkt.loads("POINT EMPTY")
+    assert g.wkb_hex == "0101000000000000000000F87F000000000000F87F"
+
+
+@requires_geos_39
+def test_point_z_empty():
+    g = wkt.loads("POINT Z EMPTY")
+    assert g.wkb_hex == \
+        "0101000080000000000000F87F000000000000F87F000000000000F87F"
