@@ -61,18 +61,26 @@ def load_dll(libname, fallbacks=None, mode=DEFAULT_MODE):
             "Could not find lib {} or load any of its variants {}.".format(
                 libname, fallbacks or []))
 
+
 _lgeos = None
 
 if sys.platform.startswith('linux'):
-    # Test to see if we have a wheel repaired by 'auditwheel' containing its
-    # own libgeos_c
+    # Test to see if we have a wheel repaired by auditwheel which contains its
+    # own libgeos_c. Note: auditwheel 3 changed the location of libs.
     geos_whl_so = glob.glob(
         os.path.abspath(
             os.path.join(
                 os.path.dirname(__file__), ".libs/libgeos_c-*.so.*"
             )
         )
+    ) or glob.glob(
+        os.path.abspath(
+            os.path.join(
+                os.path.dirname(__file__), "..", "Shapely.libs", "libgeos_c-*.so.*"
+            )
+        )
     )
+
     if len(geos_whl_so) == 1:
         _lgeos = CDLL(geos_whl_so[0])
         LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
