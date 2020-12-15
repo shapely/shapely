@@ -6,6 +6,8 @@ Changes
 
 New features:
 
+- Load libraries relocated to shapely/.libs by auditwheel versions < 3.1 or
+  relocated to Shapely.libs by auditwheel versions >= 3.1.
 - shapely.ops.voronoi_diagram() computes the Voronoi Diagram of a geometry or
   geometry collection (#833, #851).
 - shapely.validation.make_valid() fixes invalid geometries (#883)

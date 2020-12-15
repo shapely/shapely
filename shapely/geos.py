@@ -62,18 +62,27 @@ def exists_conda_env():
 
 
 if sys.platform.startswith('linux'):
-    # Test to see if we have a wheel repaired by 'auditwheel' containing its
-    # own libgeos_c
+    # Test to see if we have a wheel repaired by auditwheel which contains its
+    # own libgeos_c. Note: auditwheel 3.1 changed the location of libs.
     geos_whl_so = glob.glob(
+        os.path.abspath(os.path.join(os.path.dirname(__file__), ".libs/libgeos*.so*"))
+    ) or glob.glob(
         os.path.abspath(
             os.path.join(
-                os.path.dirname(__file__), ".libs/libgeos_c-*.so.*"
+                os.path.dirname(__file__), "..", "Shapely.libs", "libgeos*.so*"
             )
         )
     )
-    if len(geos_whl_so) == 1:
-        _lgeos = CDLL(geos_whl_so[0])
+
+    if len(geos_whl_so) > 0:
+        # We have observed problems with CDLL of libgeos_c not automatically
+        # loading the sibling c++ library since the change made by auditwheel
+        # 3.1, so we explicitly load them both.
+        geos_whl_so = sorted(geos_whl_so)
+        CDLL(geos_whl_so[0])
+        _lgeos = CDLL(geos_whl_so[-1])
         LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
+
     elif hasattr(sys, 'frozen'):
         geos_pyinstaller_so = glob.glob(os.path.join(sys.prefix, 'libgeos_c-*.so.*'))
         if len(geos_pyinstaller_so) == 1:
