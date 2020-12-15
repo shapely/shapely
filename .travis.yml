@@ -70,17 +70,17 @@ matrix:
         NUMPY=0
     - python: "3.9"
       env:
-        GEOS_VERSION="3.9.0beta2"
+        GEOS_VERSION="3.9.0"
         SPEEDUPS=1
         NUMPY=1
     - python: "3.9"
       env:
-        GEOS_VERSION="3.9.0beta2"
+        GEOS_VERSION="3.9.0"
         SPEEDUPS=0
         NUMPY=1
     - python: "3.9"
       env:
-        GEOS_VERSION="3.9.0beta2"
+        GEOS_VERSION="3.9.0"
         SPEEDUPS=0
         NUMPY=0
     - python: "3.9-dev"
@@ -106,7 +106,7 @@ before_install:
   - if [ "$NUMPY" == "0" ]; then pip uninstall --yes numpy; fi
   # convert SPEEDUPS to --with-speedups/--without-speedups
   - if [ "$SPEEDUPS" == "1" ]; then SPEEDUPS_FLAG=--with-speedups; else SPEEDUPS_FLAG=--without-speedups; fi
-  - pip install --upgrade coveralls pytest-cov pytest>=3.8
+  - pip install --upgrade coveralls pytest-cov pytest
 
 install:
   - export GEOS_CONFIG=$HOME/geosinstall/geos-$GEOS_VERSION/bin/geos-config
@@ -115,7 +115,8 @@ install:
 script:
   - export LD_LIBRARY_PATH=$HOME/geosinstall/geos-$GEOS_VERSION/lib
   - export DYLD_LIBRARY_PATH=$HOME/geosinstall/geos-$GEOS_VERSION/lib
-  - python -c "from shapely.geos import geos_version; print(geos_version)"
+  - python -c "from shapely import geos; print(geos.geos_version_string)"
+  - python -c "from shapely import speedups; print(speedups.enabled)"
   - python -m pytest --cov shapely --cov-report term-missing "${SPEEDUPS_FLAG}"
   - if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" && "$NUMPY" == "1" && "$SPEEDUPS" == "1" ]]; then python -m pytest shapely --doctest-modules; fi
 
