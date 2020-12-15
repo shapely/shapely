@@ -78,6 +78,7 @@ if sys.platform.startswith('linux'):
     )
 
     if len(geos_whl_so) > 0:
+        geos_whl_so = sorted(geos_whl_so)
         CDLL(geos_whl_so[0])
         _lgeos = CDLL(geos_whl_so[-1])
         LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
