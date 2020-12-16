@@ -3,6 +3,8 @@
 import numpy as np
 import pygeos
 
+from shapely.prepared import PreparedGeometry
+
 
 def _construct_points(x, y):
     x, y = np.asanyarray(x), np.asanyarray(y)
@@ -39,6 +41,8 @@ def contains(geometry, x, y):
 
     """
     points = _construct_points(x, y)
+    if isinstance(geometry, PreparedGeometry):
+        geometry = geometry.context
     pygeos.prepare(geometry)
     return pygeos.contains(geometry, points)
 
@@ -65,5 +69,7 @@ def touches(geometry, x, y):
 
     """
     points = _construct_points(x, y)
+    if isinstance(geometry, PreparedGeometry):
+        geometry = geometry.context
     pygeos.prepare(geometry)
     return pygeos.touches(geometry, points)
