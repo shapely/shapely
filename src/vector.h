@@ -13,14 +13,6 @@ typedef struct {
   npy_intp* a;
 } index_vec_t;
 
-/* A resizable vector with pointers to pygeos GeometryObjects.
- * Wraps the vector implementation in kvec.h as a type.
- */
-typedef struct {
-  size_t n, m;
-  GeometryObject** a;
-} geom_obj_vec_t;
-
 /* Copy values from arr to a new numpy integer array.
  *
  * Parameters

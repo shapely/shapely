@@ -5,13 +5,18 @@
 
 #include "geos.h"
 #include "pygeom.h"
-#include "vector.h"
 
+/* A resizable vector with addresses of geometries within tree geometries array */
+typedef struct {
+  size_t n, m;
+  GeometryObject*** a;
+} tree_geom_vec_t;
 
 typedef struct {
   PyObject_HEAD void* ptr;
-  npy_intp count;
-  geom_obj_vec_t _geoms;
+  npy_intp count;           // count of geometries added to the tree
+  size_t _geoms_size;       // size of _geoms array (same as original size of input array)
+  GeometryObject** _geoms;  // array of input geometries
 } STRtreeObject;
 
 extern PyTypeObject STRtreeType;
