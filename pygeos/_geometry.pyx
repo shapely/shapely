@@ -38,11 +38,11 @@ def get_parts(object[:] array):
     if count == 0:
         # return immediately if there are no geometries to return
         return (
-            np.empty(shape=(0, ), dtype=np.object),
+            np.empty(shape=(0, ), dtype=np.object_),
             np.empty(shape=(0, ), dtype=np.intp)
         )
 
-    parts = np.empty(shape=(count, ), dtype=np.object)
+    parts = np.empty(shape=(count, ), dtype=np.object_)
     index = np.empty(shape=(count, ), dtype=np.intp)
 
     cdef int[:] counts_view = counts

@@ -41,7 +41,7 @@ BINARY_PREPARED_PREDICATES = tuple(
 def test_unary_array(geometry, func):
     actual = func([geometry, geometry])
     assert actual.shape == (2,)
-    assert actual.dtype == np.bool
+    assert actual.dtype == np.bool_
 
 
 @pytest.mark.parametrize("func", UNARY_PREDICATES)
@@ -65,7 +65,7 @@ def test_unary_missing(func):
 def test_binary_array(a, func):
     actual = func([a, a], point)
     assert actual.shape == (2,)
-    assert actual.dtype == np.bool
+    assert actual.dtype == np.bool_
 
 
 @pytest.mark.parametrize("func", BINARY_PREDICATES)
@@ -88,10 +88,10 @@ def test_equals_exact_tolerance():
     p2 = pygeos.points(50.1, 4.1)
     actual = pygeos.equals_exact([p1, p2, None], p1, tolerance=0.05)
     np.testing.assert_allclose(actual, [True, False, False])
-    assert actual.dtype == np.bool
+    assert actual.dtype == np.bool_
     actual = pygeos.equals_exact([p1, p2, None], p1, tolerance=0.2)
     np.testing.assert_allclose(actual, [True, True, False])
-    assert actual.dtype == np.bool
+    assert actual.dtype == np.bool_
 
     # default value for tolerance
     assert pygeos.equals_exact(p1, p1).item() is True

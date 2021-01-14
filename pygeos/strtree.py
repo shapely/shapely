@@ -52,7 +52,7 @@ class STRtree:
     """
 
     def __init__(self, geometries, leafsize=5):
-        self.geometries = np.asarray(geometries, dtype=np.object)
+        self.geometries = np.asarray(geometries, dtype=np.object_)
         self._tree = lib.STRtree(self.geometries, leafsize)
 
     def __len__(self):

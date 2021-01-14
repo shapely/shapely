@@ -1,3 +1,5 @@
+from collections.abc import Sized
+
 import numpy as np
 
 from . import Geometry  # noqa
@@ -93,9 +95,9 @@ def to_wkt(
     return lib.to_wkt(
         geometry,
         np.intc(rounding_precision),
-        np.bool(trim),
+        np.bool_(trim),
         np.intc(output_dimension),
-        np.bool(old_3d),
+        np.bool_(old_3d),
         **kwargs,
     )
 
@@ -151,10 +153,10 @@ def to_wkb(
 
     return lib.to_wkb(
         geometry,
-        np.bool(hex),
+        np.bool_(hex),
         np.intc(output_dimension),
         np.intc(byte_order),
-        np.bool(include_srid),
+        np.bool_(include_srid),
         **kwargs,
     )
 
@@ -239,6 +241,11 @@ def from_shapely(geometry, **kwargs):
         arr = np.empty(1, dtype=object)
         arr[0] = geometry
         arr.shape = ()
+    elif not isinstance(geometry, np.ndarray) and isinstance(geometry, Sized):
+        # geometry is a list/array-like
+        arr = np.empty(len(geometry), dtype=object)
+        arr[:] = geometry
     else:
-        arr = np.asarray(geometry, dtype=object)
+        # we already have a numpy array or we are None
+        arr = geometry
     return lib.from_shapely(arr, **kwargs)

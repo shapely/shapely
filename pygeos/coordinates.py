@@ -43,7 +43,7 @@ def apply(geometry, transformation, include_z=False):
     >>> apply(Geometry("POINT Z (0 0 0)"), lambda x: x + 1, include_z=True)
     <pygeos.Geometry POINT Z (1 1 1)>
     """
-    geometry_arr = np.array(geometry, dtype=np.object)  # makes a copy
+    geometry_arr = np.array(geometry, dtype=np.object_)  # makes a copy
     coordinates = lib.get_coordinates(geometry_arr, include_z)
     new_coordinates = transformation(coordinates)
     # check the array to yield understandable error messages
@@ -84,7 +84,7 @@ def count_coordinates(geometry):
     >>> count_coordinates([Geometry("POINT (0 0)"), None])
     1
     """
-    return lib.count_coordinates(np.asarray(geometry, dtype=np.object))
+    return lib.count_coordinates(np.asarray(geometry, dtype=np.object_))
 
 
 def get_coordinates(geometry, include_z=False):
@@ -118,7 +118,7 @@ def get_coordinates(geometry, include_z=False):
     >>> get_coordinates(Geometry("POINT Z (0 0 0)"), include_z=True).tolist()
     [[0.0, 0.0, 0.0]]
     """
-    return lib.get_coordinates(np.asarray(geometry, dtype=np.object), include_z)
+    return lib.get_coordinates(np.asarray(geometry, dtype=np.object_), include_z)
 
 
 def set_coordinates(geometry, coordinates):
@@ -151,7 +151,7 @@ def set_coordinates(geometry, coordinates):
     >>> set_coordinates(Geometry("POINT Z (0 0 0)"), [[1, 1, 1]])
     <pygeos.Geometry POINT Z (1 1 1)>
     """
-    geometry_arr = np.asarray(geometry, dtype=np.object)
+    geometry_arr = np.asarray(geometry, dtype=np.object_)
     coordinates = np.atleast_2d(np.asarray(coordinates)).astype(np.float64)
     n_coords = lib.count_coordinates(geometry_arr)
     if coordinates.ndim != 2:

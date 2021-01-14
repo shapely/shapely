@@ -46,7 +46,7 @@ nested_3 = pygeos.geometrycollections([nested_2, point])
     ],
 )
 def test_count_coords(geoms, count):
-    actual = count_coordinates(np.array(geoms, np.object))
+    actual = count_coordinates(np.array(geoms, np.object_))
     assert actual == count
 
 
@@ -73,7 +73,7 @@ def test_count_coords(geoms, count):
     ],
 )  # fmt: on
 def test_get_coords(geoms, x, y, include_z):
-    actual = get_coordinates(np.array(geoms, np.object), include_z=include_z)
+    actual = get_coordinates(np.array(geoms, np.object_), include_z=include_z)
     if not include_z:
         expected = np.array([x, y], np.float64).T
     else:
@@ -93,7 +93,7 @@ def test_get_coords(geoms, x, y, include_z):
     ],
 )  # fmt: on
 def test_get_coords_3d(geoms, x, y, z, include_z):
-    actual = get_coordinates(np.array(geoms, np.object), include_z=include_z)
+    actual = get_coordinates(np.array(geoms, np.object_), include_z=include_z)
     if include_z:
         expected = np.array([x, y, z], np.float64).T
     else:
@@ -128,7 +128,7 @@ def test_get_coords_3d(geoms, x, y, z, include_z):
     ],
 )
 def test_set_coords(geoms, count, has_ring, include_z):
-    arr_geoms = np.array(geoms, np.object)
+    arr_geoms = np.array(geoms, np.object_)
     n = 3 if include_z else 2
     coords = get_coordinates(arr_geoms, include_z=include_z) + np.random.random((1, n))
     new_geoms = set_coordinates(arr_geoms, coords)
@@ -177,7 +177,7 @@ def test_set_coords_mixed_dimension(include_z):
     [[], [empty], [None, point, None], [nested_3], [point, point_z], [line_string_z]],
 )
 def test_apply(geoms, include_z):
-    geoms = np.array(geoms, np.object)
+    geoms = np.array(geoms, np.object_)
     coordinates_before = get_coordinates(geoms, include_z=include_z)
     new_geoms = apply(geoms, lambda x: x + 1, include_z=include_z)
     assert new_geoms is not geoms

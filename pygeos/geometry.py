@@ -500,7 +500,7 @@ def get_parts(geometry, return_index=False):
     >>> index.tolist()
     [0, 1, 1]
     """
-    geometry = np.asarray(geometry, dtype=np.object)
+    geometry = np.asarray(geometry, dtype=np.object_)
     geometry = np.atleast_1d(geometry)
 
     if geometry.ndim != 1:
