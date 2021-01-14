@@ -1,14 +1,6 @@
 """Coordinate sequence utilities
 """
-
-import sys
 from array import array
-from ctypes import byref, c_double, c_uint
-import warnings
-
-from shapely.errors import ShapelyDeprecationWarning
-from shapely.geos import lgeos
-from shapely.topology import Validating
 
 
 class CoordinateSequence(object):
@@ -68,33 +60,3 @@ class CoordinateSequence(object):
             x.append(xy[0])
             y.append(xy[1])
         return x, y
-
-
-class BoundsOp(Validating):
-
-    def __init__(self, *args):
-        pass
-
-    def __call__(self, this):
-        self._validate(this)
-        env = this.envelope
-        if env.geom_type == 'Point':
-            return env.bounds
-        cs = lgeos.GEOSGeom_getCoordSeq(env.exterior._geom)
-        cs_len = c_uint(0)
-        lgeos.GEOSCoordSeq_getSize(cs, byref(cs_len))
-        minx = 1.e+20
-        maxx = -1e+20
-        miny = 1.e+20
-        maxy = -1e+20
-        temp = c_double()
-        for i in range(cs_len.value):
-            lgeos.GEOSCoordSeq_getX(cs, i, byref(temp))
-            x = temp.value
-            if x < minx: minx = x
-            if x > maxx: maxx = x
-            lgeos.GEOSCoordSeq_getY(cs, i, byref(temp))
-            y = temp.value
-            if y < miny: miny = y
-            if y > maxy: maxy = y
-        return (minx, miny, maxx, maxy)
