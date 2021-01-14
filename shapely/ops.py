@@ -694,8 +694,7 @@ def clip_by_rect(geom, xmin, ymin, xmax, ymax):
     """
     if geom.is_empty:
         return geom
-    result = geom_factory(lgeos.methods['clip_by_rect'](geom._geom, xmin, ymin, xmax, ymax))
-    return result
+    return pygeos.clip_by_rect(geom, xmin, ymin, xmax, ymax)
 
 
 def orient(geom, sign=1.0):
