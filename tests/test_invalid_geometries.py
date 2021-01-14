@@ -3,7 +3,7 @@
 
 from . import unittest
 from shapely.geometry import Polygon
-from shapely.topology import TopologicalError
+from shapely.errors import TopologicalError
 
 import pygeos
 
