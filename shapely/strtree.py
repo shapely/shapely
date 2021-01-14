@@ -84,8 +84,9 @@ class STRtree:
     def _init_tree_handle(self, geoms):
         # GEOS STRtree capacity has to be > 1
         self._tree_handle = lgeos.GEOSSTRtree_create(max(2, len(geoms)))
-        for geom in geoms:
-            lgeos.GEOSSTRtree_insert(self._tree_handle, geom._geom, ctypes.py_object(geom))
+        self._idxs = list(range(len(geoms)))
+        for idx, geom in zip(self._idxs, geoms):
+            lgeos.GEOSSTRtree_insert(self._tree_handle, geom._geom, ctypes.py_object(idx))
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -105,7 +106,7 @@ class STRtree:
 
             self._tree_handle = None
 
-    def query(self, geom):
+    def query(self, geom, return_geometries=True):
         """
         Search the index for geometry objects whose extents
         intersect the extent of the given object.
@@ -165,14 +166,17 @@ class STRtree:
         result = []
 
         def callback(item, userdata):
-            geom = ctypes.cast(item, ctypes.py_object).value
-            result.append(geom)
+            idx = ctypes.cast(item, ctypes.py_object).value
+            result.append(idx)
 
         lgeos.GEOSSTRtree_query(self._tree_handle, geom._geom, lgeos.GEOSQueryCallback(callback), None)
 
-        return result
+        if return_geometries:
+            return [self._geoms[i] for i in result]
+        else:
+            return result
 
-    def nearest(self, geom):
+    def nearest(self, geom, return_geometries=True):
         """
         Get the nearest object in the index to a geometry object.
 
@@ -212,10 +216,10 @@ class STRtree:
 
         def callback(item1, item2, distance, userdata):
             try:
-                geom1 = ctypes.cast(item1, ctypes.py_object).value
+                idx1 = ctypes.cast(item1, ctypes.py_object).value
                 geom2 = ctypes.cast(item2, ctypes.py_object).value
                 dist = ctypes.cast(distance, ctypes.POINTER(ctypes.c_double))
-                lgeos.GEOSDistance(geom1._geom, geom2._geom, dist)
+                lgeos.GEOSDistance(self._geoms[idx1]._geom, geom2._geom, dist)
                 return 1
             except:
                 return 0
@@ -224,4 +228,7 @@ class STRtree:
             lgeos.GEOSDistanceCallback(callback), None)
         result = ctypes.cast(item, ctypes.py_object).value
 
-        return result
+        if return_geometries:
+            return self._geoms[result]
+        else:
+            return result

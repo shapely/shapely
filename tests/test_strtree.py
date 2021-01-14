@@ -18,6 +18,10 @@ def test_query():
     tree = STRtree(points)
     results = tree.query(Point(2, 2).buffer(0.99))
     assert len(results) == 1
+    assert results[0] == Point(2, 2)
+    results = tree.query(Point(2, 2).buffer(0.99), return_geometries=False)
+    assert len(results) == 1
+    assert results[0] == 2
     results = tree.query(Point(2, 2).buffer(1.0))
     assert len(results) == 3
 
