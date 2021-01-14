@@ -12,6 +12,7 @@ __all__ = [
     "buffer",
     "offset_curve",
     "centroid",
+    "clip_by_rect",
     "convex_hull",
     "delaunay_triangles",
     "envelope",
@@ -253,6 +254,49 @@ def centroid(geometry, **kwargs):
     <pygeos.Geometry POINT EMPTY>
     """
     return lib.centroid(geometry, **kwargs)
+
+
+@multithreading_enabled
+def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
+    """
+    Returns the portion of a geometry within a rectangle.
+
+    The geometry is clipped in a fast but possibly dirty way. The output is
+    not guaranteed to be valid. No exceptions will be raised for topological
+    errors.
+
+    Note: empty geometries or geometries that do not overlap with the
+    specified bounds will result in GEOMETRYCOLLECTION EMPTY.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+        The geometry to be clipped
+    xmin : float
+        Minimum x value of the rectangle
+    ymin : float
+        Minimum y value of the rectangle
+    xmax : float
+        Maximum x value of the rectangle
+    ymax : float
+        Maximum y value of the rectangle
+
+    Examples
+    --------
+    >>> line = Geometry("LINESTRING (0 0, 10 10)")
+    >>> clip_by_rect(line, 0., 0., 1., 1.)
+    <pygeos.Geometry LINESTRING (0 0, 1 1)>
+    """
+    if not all(np.isscalar(val) for val in [xmin, ymin, xmax, ymax]):
+        raise TypeError("xmin/ymin/xmax/ymax only accepts scalar values")
+    return lib.clip_by_rect(
+        geometry,
+        np.double(xmin),
+        np.double(ymin),
+        np.double(xmax),
+        np.double(ymax),
+        **kwargs
+    )
 
 
 @multithreading_enabled

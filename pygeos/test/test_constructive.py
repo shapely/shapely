@@ -306,3 +306,88 @@ def test_reverse_none():
 def test_reverse_invalid_type(geom):
     with pytest.raises(TypeError, match="One of the arguments is of incorrect type"):
         pygeos.reverse(geom)
+
+
+@pytest.mark.parametrize(
+    "geom,expected",
+    [
+        # Point outside
+        ("POINT (0 0)", "GEOMETRYCOLLECTION EMPTY"),
+        # Point inside
+        ("POINT (15 15)", "POINT (15 15)"),
+        # Point on boundary
+        ("POINT (15 10)", "GEOMETRYCOLLECTION EMPTY"),
+        # Line outside
+        ("LINESTRING (0 0, -5 5)", "GEOMETRYCOLLECTION EMPTY"),
+        # Line inside
+        ("LINESTRING (15 15, 16 15)", "LINESTRING (15 15, 16 15)"),
+        # Line on boundary
+        ("LINESTRING (10 15, 10 10, 15 10)", "GEOMETRYCOLLECTION EMPTY"),
+        # Line splitting rectangle
+        ("LINESTRING (10 5, 25 20)", "LINESTRING (15 10, 20 15)"),
+    ],
+)
+def test_clip_by_rect(geom, expected):
+    geom, expected = pygeos.Geometry(geom), pygeos.Geometry(expected)
+    actual = pygeos.clip_by_rect(geom, 10, 10, 20, 20)
+    assert pygeos.equals(actual, expected)
+
+
+@pytest.mark.parametrize(
+    "geom, rect, expected",
+    [
+        # Polygon hole (CCW) fully on rectangle boundary"""
+        (
+            "POLYGON ((0 0, 0 30, 30 30, 30 0, 0 0), (10 10, 20 10, 20 20, 10 20, 10 10))",
+            (10, 10, 20, 20),
+            "GEOMETRYCOLLECTION EMPTY"
+        ),
+        # Polygon hole (CW) fully on rectangle boundary"""
+        (
+            "POLYGON ((0 0, 0 30, 30 30, 30 0, 0 0), (10 10, 10 20, 20 20, 20 10, 10 10))",
+            (10, 10, 20, 20),
+            "GEOMETRYCOLLECTION EMPTY"
+        ),
+        # Polygon fully within rectangle"""
+        (
+            "POLYGON ((1 1, 1 30, 30 30, 30 1, 1 1), (10 10, 20 10, 20 20, 10 20, 10 10))",
+            (0, 0, 40, 40),
+            "POLYGON ((1 1, 1 30, 30 30, 30 1, 1 1), (10 10, 20 10, 20 20, 10 20, 10 10))",
+        ),
+        # Polygon overlapping rectangle
+        (
+            "POLYGON ((0 0, 0 30, 30 30, 30 0, 0 0), (10 10, 20 10, 20 20, 10 20, 10 10))",
+            (5, 5, 15, 15),
+            "POLYGON ((5 5, 5 15, 10 15, 10 10, 15 10, 15 5, 5 5))",
+        )
+    ],
+)
+def test_clip_by_rect_polygon(geom, rect, expected):
+    geom, expected = pygeos.Geometry(geom), pygeos.Geometry(expected)
+    actual = pygeos.clip_by_rect(geom, *rect)
+    assert pygeos.equals(actual, expected)
+
+
+@pytest.mark.parametrize("geometry", all_types)
+def test_clip_by_rect_array(geometry):
+    actual = pygeos.clip_by_rect([geometry, geometry], 0.0, 0.0, 1.0, 1.0)
+    assert actual.shape == (2,)
+    assert actual[0] is None or isinstance(actual[0], Geometry)
+
+
+def test_clip_by_rect_missing():
+    actual = pygeos.clip_by_rect(None, 0, 0, 1, 1)
+    assert actual is None
+
+
+@pytest.mark.parametrize("geom", [empty, empty_line_string, empty_polygon])
+def test_clip_by_rect_empty(geom):
+    # TODO empty point
+    actual = pygeos.clip_by_rect(geom, 0, 0, 1, 1)
+    assert actual == Geometry("GEOMETRYCOLLECTION EMPTY")
+
+
+def test_clip_by_rect_non_scalar_kwargs():
+    msg = "only accepts scalar values"
+    with pytest.raises(TypeError, match=msg):
+        pygeos.clip_by_rect([line_string, line_string], 0, 0, 1, np.array([0, 1]))

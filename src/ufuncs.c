@@ -743,13 +743,13 @@ static void YY_Y_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
       // 1. (not NULL, not NULL); run the GEOS function
       if ((in1 != NULL) && (in2 != NULL)) {
         out = func(ctx, in1, in2);
-  
+
         // Discard in1 if it was a temporary intermediate
         if (do_destroy) {
           GEOSGeom_destroy_r(ctx, in1);
         }
 
-        // Mark the newly generated geometry as intermediate. Note: out will become in1. 
+        // Mark the newly generated geometry as intermediate. Note: out will become in1.
         do_destroy = 1;
 
         // Break on error (we do this after discarding in1 to avoid memleaks)
@@ -1350,6 +1350,67 @@ static void snap_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
   free(geom_arr);
 }
 static PyUFuncGenericFunction snap_funcs[1] = {&snap_func};
+
+static char clip_by_rect_dtypes[6] = {NPY_OBJECT, NPY_DOUBLE, NPY_DOUBLE,
+                                      NPY_DOUBLE, NPY_DOUBLE, NPY_OBJECT};
+static void clip_by_rect_func(char** args, npy_intp* dimensions, npy_intp* steps,
+                              void* data) {
+  char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2], *ip4 = args[3], *ip5 = args[4];
+  npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2], is4 = steps[3], is5 = steps[4];
+  npy_intp n = dimensions[0];
+  npy_intp i;
+  GEOSGeometry** geom_arr;
+  GEOSGeometry* in1 = NULL;
+
+  CHECK_NO_INPLACE_OUTPUT(5);
+
+  if ((is2 != 0) | (is3 != 0) | (is4 != 0) | (is5 != 0)) {
+    PyErr_Format(PyExc_ValueError,
+                 "clip_by_rect function called with non-scalar parameters");
+    return;
+  }
+
+  double xmin = *(double*)ip2;
+  double ymin = *(double*)ip3;
+  double xmax = *(double*)ip4;
+  double ymax = *(double*)ip5;
+
+  // allocate a temporary array to store output GEOSGeometry objects
+  geom_arr = malloc(sizeof(void*) * n);
+  CHECK_ALLOC(geom_arr);
+
+  GEOS_INIT_THREADS;
+
+  for (i = 0; i < n; i++, ip1 += is1) {
+    /* get the geometry: return on error */
+    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
+      errstate = PGERR_NOT_A_GEOMETRY;
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      break;
+    }
+
+    if (in1 == NULL) {
+      // in case of a missing value: return NULL (None)
+      geom_arr[i] = NULL;
+    } else {
+      geom_arr[i] = GEOSClipByRect_r(ctx, in1, xmin, ymin, xmax, ymax);
+      if (geom_arr[i] == NULL) {
+        errstate = PGERR_GEOS_EXCEPTION;
+        destroy_geom_arr(ctx, geom_arr, i - 1);
+        break;
+      }
+    }
+  }
+
+  GEOS_FINISH_THREADS;
+
+  // fill the numpy array with PyObjects while holding the GIL
+  if (errstate == PGERR_SUCCESS) {
+    geom_arr_to_npy(geom_arr, args[5], steps[5], dimensions[0]);
+  }
+  free(geom_arr);
+}
+static PyUFuncGenericFunction clip_by_rect_funcs[1] = {&clip_by_rect_func};
 
 static char equals_exact_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_BOOL};
 static void equals_exact_func(char** args, npy_intp* dimensions, npy_intp* steps,
@@ -2524,6 +2585,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_CUSTOM(buffer, 7);
   DEFINE_CUSTOM(offset_curve, 5);
   DEFINE_CUSTOM(snap, 3);
+  DEFINE_CUSTOM(clip_by_rect, 5);
   DEFINE_CUSTOM(equals_exact, 3);
 
   DEFINE_CUSTOM(delaunay_triangles, 3);

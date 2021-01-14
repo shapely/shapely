@@ -60,6 +60,30 @@ class ConstructiveSuite:
         pygeos.delaunay_triangles(self.points)
 
 
+class ClipSuite:
+    """Benchmarks for different methods of clipping geometries by boxes"""
+
+    def setup(self):
+        # create irregular polygons by merging overlapping point buffers
+        self.polygon = pygeos.union_all(
+                pygeos.buffer(pygeos.points(np.random.random((1000, 2)) * 500), 10)
+            )
+        xmin = np.random.random(100) * 100
+        xmax = xmin + 100
+        ymin = np.random.random(100) * 100
+        ymax = ymin + 100
+        self.bounds = np.array([xmin, ymin, xmax, ymax]).T
+        self.boxes = pygeos.box(xmin, ymin, xmax, ymax)
+
+
+    def time_clip_by_box(self):
+        pygeos.intersection(self.polygon, self.boxes)
+
+    def time_clip_by_rect(self):
+        for bounds in self.bounds:
+            pygeos.clip_by_rect(self.polygon, *bounds)
+
+
 class GetParts:
     """Benchmarks for getting individual parts from 100 multipolygons of 100 polygons each"""
 
