@@ -339,27 +339,147 @@ def test_get_parts_invalid_dimensions(geom):
         pygeos.get_parts(geom)
 
 
-@pytest.mark.parametrize(
-    "geom", [point, line_string, polygon],
-)
+@pytest.mark.parametrize("geom", [point, line_string, polygon])
 def test_get_parts_non_multi(geom):
     """Non-multipart geometries should be returned identical to inputs"""
     assert np.all(pygeos.equals_exact(np.asarray(geom), pygeos.get_parts(geom)))
 
 
-@pytest.mark.parametrize(
-    "geom", [None, [None], []],
-)
+@pytest.mark.parametrize("geom", [None, [None], []])
 def test_get_parts_None(geom):
     assert len(pygeos.get_parts(geom)) == 0
 
 
-@pytest.mark.parametrize(
-    "geom", ["foo", ["foo"], 42],
-)
+@pytest.mark.parametrize("geom", ["foo", ["foo"], 42])
 def test_get_parts_invalid_geometry(geom):
-    with pytest.raises(
-        TypeError, match="One of the arguments is of incorrect type.",
-    ):
+    with pytest.raises(TypeError, match="One of the arguments is of incorrect type."):
         pygeos.get_parts(geom)
 
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+def test_get_precision():
+    geometries = all_types + (point_z, empty_point, empty_line_string, empty_polygon)
+    # default is 0
+    actual = pygeos.get_precision(geometries).tolist()
+    assert actual == [0] * len(geometries)
+
+    geometry = pygeos.set_precision(geometries, 1)
+    actual = pygeos.get_precision(geometry).tolist()
+    assert actual == [1] * len(geometries)
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+def test_get_precision_none():
+    assert np.all(np.isnan(pygeos.get_precision([None])))
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+def test_set_precision():
+    initial_geometry = pygeos.Geometry("POINT (0.9 0.9)")
+    assert pygeos.get_precision(initial_geometry) == 0
+
+    geometry = pygeos.set_precision(initial_geometry, 0)
+    assert pygeos.get_precision(geometry) == 0
+    assert pygeos.equals(geometry, initial_geometry)
+
+    geometry = pygeos.set_precision(initial_geometry, 1)
+    assert pygeos.get_precision(geometry) == 1
+    assert pygeos.equals(geometry, pygeos.Geometry("POINT (1 1)"))
+    # original should remain unchanged
+    assert pygeos.equals(initial_geometry, pygeos.Geometry("POINT (0.9 0.9)"))
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+def test_set_precision_drop_coords():
+    # setting precision of 0 will not drop duplicated points in original
+    geometry = pygeos.set_precision(
+        pygeos.Geometry("LINESTRING (0 0, 0 0, 0 1, 1 1)"), 0
+    )
+    assert pygeos.equals(geometry, pygeos.Geometry("LINESTRING (0 0, 0 0, 0 1, 1 1)"))
+
+    # setting precision will remove duplicated points
+    geometry = pygeos.set_precision(geometry, 1)
+    assert pygeos.equals(geometry, pygeos.Geometry("LINESTRING (0 0, 0 1, 1 1)"))
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+def test_set_precision_z():
+    geometry = pygeos.set_precision(pygeos.Geometry("POINT Z (0.9 0.9 0.9)"), 1)
+    assert pygeos.get_precision(geometry) == 1
+    assert pygeos.equals(geometry, pygeos.Geometry("POINT Z (1 1 0.9)"))
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+def test_set_precision_nan():
+    assert np.all(np.isnan(pygeos.get_coordinates(pygeos.set_precision(point_nan, 1))))
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+def test_set_precision_none():
+    assert pygeos.set_precision(None, 0) is None
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+def test_set_precision_grid_size_nan():
+    assert pygeos.set_precision(pygeos.Geometry("POINT (0.9 0.9)"), np.nan) is None
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+def test_set_precision_preserve_topology():
+    # GEOS test case - geometry is valid initially but becomes
+    # invalid after rounding
+    geometry = pygeos.Geometry(
+        "POLYGON((10 10,20 10,16 15,20 20, 10 20, 14 15, 10 10))"
+    )
+
+    assert pygeos.equals(
+        pygeos.set_precision(geometry, 5, preserve_topology=False),
+        pygeos.Geometry("POLYGON ((10 10, 20 10, 15 15, 20 20, 10 20, 15 15, 10 10))"),
+    )
+
+    assert pygeos.equals(
+        pygeos.set_precision(geometry, 5, preserve_topology=True),
+        pygeos.Geometry(
+            "MULTIPOLYGON (((10 10, 15 15, 20 10, 10 10)), ((15 15, 10 20, 20 20, 15 15)))"
+        ),
+    )
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize(
+    "geometry,expected",
+    [
+        (
+            pygeos.Geometry("LINESTRING (0 0, 0.1 0.1)"),
+            pygeos.Geometry("LINESTRING EMPTY"),
+        ),
+        (
+            pygeos.Geometry("LINEARRING (0 0, 0.1 0, 0.1 0.1, 0 0.1, 0 0)"),
+            pygeos.Geometry("LINEARRING EMPTY"),
+        ),
+        (
+            pygeos.Geometry("POLYGON ((0 0, 0.1 0, 0.1 0.1, 0 0.1, 0 0))"),
+            pygeos.Geometry("POLYGON EMPTY"),
+        ),
+    ],
+)
+def test_set_precision_collapse(geometry, expected):
+    """Lines and polygons collapse to empty geometries if vertices are too close"""
+    assert pygeos.equals(pygeos.set_precision(geometry, 1), expected)
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+def test_set_precision_intersection():
+    """Operations should use the most precise presision grid size of the inputs"""
+
+    box1 = pygeos.normalize(pygeos.box(0, 0, 0.9, 0.9))
+    box2 = pygeos.normalize(pygeos.box(0.75, 0, 1.75, 0.75))
+
+    assert pygeos.get_precision(pygeos.intersection(box1, box2)) == 0
+
+    # GEOS will use and keep the most precise precision grid size
+    box1 = pygeos.set_precision(box1, 0.5)
+    box2 = pygeos.set_precision(box2, 1)
+    out = pygeos.intersection(box1, box2)
+    assert pygeos.get_precision(out) == 0.5
+    assert pygeos.equals(out, pygeos.Geometry("LINESTRING (1 1, 1 0)"))

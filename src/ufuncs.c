@@ -876,7 +876,19 @@ static void* get_z_data[1] = {GetZ};
 #endif
 static void* area_data[1] = {GEOSArea_r};
 static void* length_data[1] = {GEOSLength_r};
+
 #if GEOS_SINCE_3_6_0
+static int GetPrecision(void* context, void* a, double* b) {
+  // GEOS returns -1 on error; 0 indicates double precision; > 0 indicates a precision
+  // grid size was set for this geometry.
+  double out = GEOSGeom_getPrecision_r(context, a);
+  if (out == -1) {
+    return 0;
+  }
+  *(double*)b = out;
+  return 1;
+}
+static void* get_precision_data[1] = {GetPrecision};
 static int MinimumClearance(void* context, void* a, double* b) {
   // GEOSMinimumClearance deviates from the pattern of returning 0 on exception and 1 on
   // success for functions that return an int (it follows pattern for boolean functions
@@ -1608,6 +1620,63 @@ finish:
   GEOS_FINISH_THREADS;
 }
 static PyUFuncGenericFunction relate_pattern_funcs[1] = {&relate_pattern_func};
+
+#if GEOS_SINCE_3_6_0
+static char set_precision_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
+static void set_precision_func(char** args, npy_intp* dimensions, npy_intp* steps,
+                               void* data) {
+  GEOSGeometry* in1 = NULL;
+  GEOSGeometry** geom_arr;
+
+  CHECK_NO_INPLACE_OUTPUT(4);
+
+  // allocate a temporary array to store output GEOSGeometry objects
+  geom_arr = malloc(sizeof(void*) * dimensions[0]);
+  CHECK_ALLOC(geom_arr);
+
+  GEOS_INIT_THREADS;
+
+  QUATERNARY_LOOP {
+    // get the geometry: return on error
+    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
+      errstate = PGERR_NOT_A_GEOMETRY;
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      break;
+    }
+    // grid size
+    double in2 = *(double*)ip2;
+    // preserve topology
+    npy_bool in3 = *(npy_bool*)ip3;
+    // flags:
+    // GEOS_PREC_NO_TOPO (1<<0): if set, do not try to preserve topology
+    // GEOS_PREC_KEEP_COLLAPSED  (1<<1): Not used because uncollapsed geometries are
+    // invalid and will not be retained in GEOS >= 3.9 anyway.
+    int flags = in3 ? 0 : GEOS_PREC_NO_TOPO;
+
+    if ((in1 == NULL) | npy_isnan(in2)) {
+      // in case of a missing value: return NULL (None)
+      geom_arr[i] = NULL;
+    } else {
+      geom_arr[i] = GEOSGeom_setPrecision_r(ctx, in1, in2, flags);
+      if (geom_arr[i] == NULL) {
+        errstate = PGERR_GEOS_EXCEPTION;
+        destroy_geom_arr(ctx, geom_arr, i - 1);
+        break;
+      }
+    }
+  }
+
+  GEOS_FINISH_THREADS;
+
+  // fill the numpy array with PyObjects while holding the GIL
+  if (errstate == PGERR_SUCCESS) {
+    geom_arr_to_npy(geom_arr, args[3], steps[3], dimensions[0]);
+  }
+  free(geom_arr);
+}
+
+static PyUFuncGenericFunction set_precision_funcs[1] = {&set_precision_func};
+#endif
 
 /* define double -> geometry construction functions */
 static char points_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
@@ -2478,6 +2547,8 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 
 #if GEOS_SINCE_3_6_0
   DEFINE_Y_d(minimum_clearance);
+  DEFINE_Y_d(get_precision);
+  DEFINE_CUSTOM(set_precision, 3);
 #endif
 
 #if GEOS_SINCE_3_7_0

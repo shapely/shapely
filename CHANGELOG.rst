@@ -39,6 +39,8 @@ Version 0.9 (unreleased)
 * Ensure that ``python setup.py clean`` removes all previously Cythonized and compiled
   files (#239).
 * Addition of a ``reverse`` function for GEOS >= 3.7 (#254).
+* Addition of ``get_precision`` to get precision of a geometry and ``set_precision``
+  to set the precision of a geometry (may round and reduce coordinates).
 
 Version 0.8 (2020-09-06)
 ------------------------
