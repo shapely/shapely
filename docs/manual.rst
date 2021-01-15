@@ -209,6 +209,7 @@ General Attributes and Methods
   such as a point, this will return `math.infinity`.
   
   `New in Shapely 1.7.1`
+  
   Requires GEOS 3.6 or higher.
 
 .. code-block:: pycon
