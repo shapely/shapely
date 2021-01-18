@@ -72,7 +72,6 @@ jobs:
 
       - name: Run tests
         shell: bash
-        continue-on-error: ${{ matrix.channel == 'conda-forge' }}
         run: |
           source activate test
           pytest --doctest-modules

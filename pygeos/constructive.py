@@ -604,9 +604,10 @@ def voronoi_polygons(
 
     Examples
     --------
+    >>> from pygeos import normalize
     >>> points = Geometry("MULTIPOINT (2 2, 4 2)")
-    >>> voronoi_polygons(points)
-    <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((3 0, 0 0, 0 4, 3 4, 3 0)), PO...>
+    >>> normalize(voronoi_polygons(points))
+    <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((3 0, 3 4, 6 4, 6 0, 3 0)), PO...>
     >>> voronoi_polygons(points, only_edges=True)
     <pygeos.Geometry LINESTRING (3 4, 3 0)>
     >>> voronoi_polygons(Geometry("MULTIPOINT (2 2, 4 2, 4.2 2)"), 0.5, only_edges=True)

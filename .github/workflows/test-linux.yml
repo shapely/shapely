@@ -29,8 +29,8 @@ jobs:
             numpy: 1.17.5
           # 2020
           - python: 3.9
-            geos: 3.8.1
-            numpy: 1.19.4
+            geos: 3.9.0
+            numpy: 1.19.5
           # dev
           - python: 3.9
             geos: master
