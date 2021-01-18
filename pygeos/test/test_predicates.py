@@ -14,6 +14,7 @@ UNARY_PREDICATES = (
     pygeos.is_missing,
     pygeos.is_geometry,
     pygeos.is_valid_input,
+    pygeos.is_prepared,
     pytest.param(pygeos.is_ccw, marks=pytest.mark.skipif(pygeos.geos_version < (3, 7, 0), reason="GEOS < 3.7")),
 )
 
@@ -165,10 +166,25 @@ def test_is_ccw(geom, expected):
     assert pygeos.is_ccw(geom) == expected
 
 
+def _prepare_with_copy(geometry):
+    """Prepare without modifying inplace"""
+    geometry = pygeos.apply(geometry, lambda x: x)  # makes a copy
+    pygeos.prepare(geometry)
+    return geometry
+
+
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func", BINARY_PREPARED_PREDICATES)
 def test_binary_prepared(a, func):
     actual = func(a, point)
-    pygeos.lib.prepare(a)
-    result = func(a, point)
+    result = func(_prepare_with_copy(a), point)
     assert actual == result
+
+@pytest.mark.parametrize("geometry", all_types + (empty,))
+def test_is_prepared_true(geometry):
+    assert pygeos.is_prepared(_prepare_with_copy(geometry))
+
+
+@pytest.mark.parametrize("geometry", all_types + (empty, None))
+def test_is_prepared_false(geometry):
+    assert not pygeos.is_prepared(geometry)

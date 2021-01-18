@@ -445,6 +445,8 @@ char get_geom_with_prepared(GeometryObject* obj, GEOSGeometry** out,
   if (*out != NULL) {
     // Only if it is not None, fill the prepared geometry
     *prep = obj->ptr_prepared;
+  } else {
+    *prep = NULL;
   }
   return 1;
 }

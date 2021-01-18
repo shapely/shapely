@@ -175,7 +175,7 @@ def geometrycollections(geometries):
 
 
 def prepare(geometry, **kwargs):
-    """Compute a prepared geometry.
+    """Prepare a geometry, improving performance of other operations.
 
     A prepared geometry is a normal geometry with added information such as an
     index on the line segments. This improves the performance of the following operations:
@@ -191,16 +191,18 @@ def prepare(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometries are changed inplace
 
     See also
     --------
-    destroy_prepared
+    is_prepared : Identify whether a geometry is prepared already.
+    destroy_prepared : Destroy the prepared part of a geometry.
     """
-    return lib.prepare(geometry, **kwargs)
+    lib.prepare(geometry, **kwargs)
 
 
 def destroy_prepared(geometry, **kwargs):
-    """Destroy a previously prepared geometry, freeing up memory.
+    """Destroy the prepared part of a geometry, freeing up memory.
 
     Note that the prepared geometry will always be cleaned up if the geometry itself
     is dereferenced. This function needs only be called in very specific circumstances,
@@ -209,9 +211,10 @@ def destroy_prepared(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometries are changed inplace
 
     See also
     --------
     prepare
     """
-    return lib.destroy_prepared(geometry, **kwargs)
+    lib.destroy_prepared(geometry, **kwargs)

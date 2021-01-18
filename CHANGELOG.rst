@@ -36,6 +36,7 @@ Version 0.9 (unreleased)
   the Geometry object itself. All binary predicates (except ``equals``) make use of this (#92).
 * Use previously prepared geometries within ``STRtree`` ``query`` and ``query_bulk``
   functions if available (#246).
+* Addition of ``is_prepared`` predicate (#252).
 * Ensure that ``python setup.py clean`` removes all previously Cythonized and compiled
   files (#239).
 * Addition of a ``reverse`` function for GEOS >= 3.7 (#254).
