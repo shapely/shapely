@@ -31,6 +31,9 @@ Version 0.9 (unreleased)
   instead of returning None if any value is None (#249).
 * API change: ``union_all`` now returns None (instead of ``GEOMETRYCOLLECTION EMPTY``) if
   all input values are None (#249).
+* API change: the default axis of ``union_all``, ``intersection_all``, ``symmetric_difference_all``,
+  and ``coverage_union_all`` can now reduce over multiple axes. The default changed from the first
+  axis (``0``) to all axes (``None``) (#266).
 * Fixed internal GEOS error code detection for ``get_dimensions`` and ``get_srid`` (#218).
 * Addition of ``prepare`` function that generates a GEOS prepared geometry which is stored on
   the Geometry object itself. All binary predicates (except ``equals``) make use of this (#92).

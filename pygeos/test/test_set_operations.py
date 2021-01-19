@@ -55,9 +55,9 @@ def test_set_operation_reduce_1dim(n, func, related_func):
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
 def test_set_operation_reduce_axis(func, related_func):
     data = [[point] * 2] * 3  # shape = (3, 2)
-    actual = func(data)
-    assert actual.shape == (2,)
-    actual = func(data, axis=0)  # default
+    actual = func(data, axis=None)  # default
+    assert isinstance(actual, Geometry)  # scalar output
+    actual = func(data, axis=0)
     assert actual.shape == (2,)
     actual = func(data, axis=1)
     assert actual.shape == (3,)
@@ -126,9 +126,9 @@ def test_coverage_union_reduce_1dim(n):
 def test_coverage_union_reduce_axis():
     # shape = (3, 2), all polygons - none of them overlapping
     data = [[pygeos.box(i, j, i + 1, j + 1) for i in range(2)] for j in range(3)]
-    actual = pygeos.coverage_union_all(data)
-    assert actual.shape == (2,)
-    actual = pygeos.coverage_union_all(data, axis=0)  # default
+    actual = pygeos.coverage_union_all(data, axis=None)  # default
+    assert isinstance(actual, Geometry)
+    actual = pygeos.coverage_union_all(data, axis=0)
     assert actual.shape == (2,)
     actual = pygeos.coverage_union_all(data, axis=1)
     assert actual.shape == (3,)
