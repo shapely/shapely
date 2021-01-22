@@ -4,7 +4,38 @@ Changelog
 Version 0.9 (unreleased)
 ------------------------
 
-**Highlights of this release**
+**Major enhancements**
+
+* Addition of ``prepare`` function that generates a GEOS prepared geometry which is stored on
+  the Geometry object itself. All binary predicates (except ``equals``) make use of this.
+  Helper functions ``destroy_prepared`` and ``is_prepared`` are also available. (#92, #252)
+* Use previously prepared geometries within ``STRtree`` ``query`` and ``query_bulk``
+  functions if available (#246)
+* Official support for Python 3.9 and numpy 1.20 (#278, #279)
+* Drop support for Python 3.5 (#211)
+* Added support for pickling to ``Geometry`` objects (#190)
+* The ``apply`` function for coordinate transformations and the ``set_coordinates``
+  function now support geometries with z-coordinates (#131)
+* Addition of Cython and internal PyGEOS C API to enable easier development of internal
+  functions (previously all significant internal functions were developed in C).
+  Added a Cython-implemented ``get_parts`` function (#51)
+
+**API Changes**
+
+* Geometry and counting functions (``get_num_coordinates``,
+  ``get_num_geometries``, ``get_num_interior_rings``, ``get_num_points``) now return 0
+  for ``None`` input values instead of -1 (#218)
+* ``intersection_all`` and ``symmetric_difference_all`` now ignore None values
+  instead of returning None if any value is None (#249)
+* ``union_all`` now returns None (instead of ``GEOMETRYCOLLECTION EMPTY``) if
+  all input values are None (#249)
+* The default axis of ``union_all``, ``intersection_all``, ``symmetric_difference_all``,
+  and ``coverage_union_all`` can now reduce over multiple axes. The default changed from the first
+  axis (``0``) to all axes (``None``) (#266)
+* Argument in ``line_interpolate_point`` and ``line_locate_point``
+  was renamed from ``normalize`` to ``normalized`` (#209)
+
+**Added GEOS functions**
 
 * Release the GIL for ``is_geometry()``, ``is_missing()``, and
   ``is_valid_input()`` (#207)
@@ -12,40 +43,33 @@ Version 0.9 (unreleased)
 * Addition of a ``minimum_clearance`` function for GEOS >= 3.6.0 (#223)
 * Addition of a ``offset_curve`` function (#229)
 * Addition of a ``relate_pattern`` function (#245)
-* Added support for pickling to ``Geometry`` objects (#190)
+* Addition of a ``clip_by_rect`` function (#273)
+* Addition of a ``reverse`` function for GEOS >= 3.7 (#254)
+* Addition of ``get_precision`` to get precision of a geometry and ``set_precision``
+  to set the precision of a geometry (may round and reduce coordinates) (#257)
+
+**Bug fixes**
+
+* Fixed internal GEOS error code detection for ``get_dimensions`` and ``get_srid`` (#218)
 * Limited the length of geometry repr to 80 characters (#189)
-* Argument in ``line_interpolate_point`` and ``line_locate_point``
-  was renamed from ``normalize`` to ``normalized`` (#209)
 * Fixed error handling in ``line_locate_point`` for incorrect geometry
   types, now actually requiring line and point geometries (#216)
 * Addition of ``get_parts`` function to get individual parts of an array of multipart
-  geometries (#197).
-* The ``apply`` function for coordinate transformations and the ``set_coordinates``
-  function now support geometries with z-coordinates (#131).
-* Addition of Cython and internal PyGEOS C API to enable easier development of internal
-  functions (previously all significant internal functions were developed in C) (#51).
-* API change: geometry and counting functions (``get_num_coordinates``,
-  ``get_num_geometries``, ``get_num_interior_rings``, ``get_num_points``) now return 0
-  for ``None`` input values instead of -1 (#218).
-* API change: ``intersection_all`` and ``symmetric_difference_all`` now ignore None values
-  instead of returning None if any value is None (#249).
-* API change: ``union_all`` now returns None (instead of ``GEOMETRYCOLLECTION EMPTY``) if
-  all input values are None (#249).
-* API change: the default axis of ``union_all``, ``intersection_all``, ``symmetric_difference_all``,
-  and ``coverage_union_all`` can now reduce over multiple axes. The default changed from the first
-  axis (``0``) to all axes (``None``) (#266).
-* Fixed internal GEOS error code detection for ``get_dimensions`` and ``get_srid`` (#218).
-* Addition of ``prepare`` function that generates a GEOS prepared geometry which is stored on
-  the Geometry object itself. All binary predicates (except ``equals``) make use of this (#92).
-* Use previously prepared geometries within ``STRtree`` ``query`` and ``query_bulk``
-  functions if available (#246).
-* Addition of ``is_prepared`` predicate (#252).
+  geometries (#197)
 * Ensure that ``python setup.py clean`` removes all previously Cythonized and compiled
-  files (#239).
-* Addition of a ``reverse`` function for GEOS >= 3.7 (#254).
-* Addition of ``get_precision`` to get precision of a geometry and ``set_precision``
-  to set the precision of a geometry (may round and reduce coordinates).
-* Addition of a ``clip_by_rect`` function (#273)
+  files (#239)
+* Handle GEOS beta versions  (#262)
+
+**Acknowledgments**
+
+Thanks to everyone who contributed to this release!
+People with a "+" by their names contributed a patch for the first time.
+
+* Brendan Ward
+* Casper van der Wel
+* Joris Van den Bossche
+* Mike Taves
+
 
 Version 0.8 (2020-09-06)
 ------------------------
@@ -76,10 +100,7 @@ Version 0.8 (2020-09-06)
 
 **Acknowledgments**
 
-Thanks to everyone who contributed to this release!
-People with a "+" by their names contributed a patch for the first time.
-
-* Brendan Ward
+Thanks to everyone who Mike T
 * Casper van der Wel
 * Joris Van den Bossche
 * Krishna Chaitanya +
