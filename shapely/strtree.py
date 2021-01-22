@@ -82,8 +82,8 @@ class STRtree:
         self._geoms = list(geoms)
 
     def _init_tree_handle(self, geoms):
-        # GEOS STRtree capacity has to be > 1
-        self._tree_handle = lgeos.GEOSSTRtree_create(max(2, len(geoms)))
+        node_capacity = 10
+        self._tree_handle = lgeos.GEOSSTRtree_create(node_capacity)
         for geom in geoms:
             lgeos.GEOSSTRtree_insert(self._tree_handle, geom._geom, ctypes.py_object(geom))
 
