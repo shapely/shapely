@@ -1,6 +1,21 @@
 Changelog
 =========
 
+Version 0.10 (unreleased)
+------------------------
+
+**Highlights of this release**
+
+* ...
+
+**Acknowledgments**
+
+Thanks to everyone who contributed to this release!
+People with a "+" by their names contributed a patch for the first time.
+
+* ...
+
+
 Version 0.9 (2021-01-23)
 ------------------------
 
