@@ -34,6 +34,9 @@ Version 0.9 (unreleased)
   axis (``0``) to all axes (``None``) (#266)
 * Argument in ``line_interpolate_point`` and ``line_locate_point``
   was renamed from ``normalize`` to ``normalized`` (#209)
+* Addition of ``grid_size`` parameter to specify fixed-precision grid for ``difference``,
+  ``intersection``, ``symmetric_difference``, ``union``, and ``union_all`` operations for
+  GEOS >= 3.9 (#276)
 
 **Added GEOS functions**
 

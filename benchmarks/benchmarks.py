@@ -105,6 +105,61 @@ class GetParts:
         parts = np.concatenate(parts)
 
 
+class OverlaySuite:
+    """Benchmarks for different methods of overlaying geometries"""
+
+    def setup(self):
+        # create irregular polygons by merging overlapping point buffers
+        self.left = pygeos.union_all(pygeos.buffer(pygeos.points(np.random.random((500, 2)) * 500), 15))
+        # shift this up and right
+        self.right = pygeos.apply(self.left, lambda x: x+50)
+
+    def time_difference(self):
+        pygeos.difference(self.left, self.right)
+
+    def time_difference_prec1(self):
+        pygeos.difference(self.left, self.right, grid_size=1)
+
+    def time_difference_prec2(self):
+        pygeos.difference(self.left, self.right, grid_size=2)
+
+    def time_intersection(self):
+        pygeos.intersection(self.left, self.right)
+
+    def time_intersection_prec1(self):
+        pygeos.intersection(self.left, self.right, grid_size=1)
+
+    def time_intersection_prec2(self):
+        pygeos.intersection(self.left, self.right, grid_size=2)
+
+    def time_symmetric_difference(self):
+        pygeos.symmetric_difference(self.left, self.right)
+
+    def time_symmetric_difference_prec1(self):
+        pygeos.symmetric_difference(self.left, self.right, grid_size=1)
+
+    def time_symmetric_difference_prec2(self):
+        pygeos.symmetric_difference(self.left, self.right, grid_size=2)
+
+    def time_union(self):
+        pygeos.union(self.left, self.right)
+
+    def time_union_prec1(self):
+        pygeos.union(self.left, self.right, grid_size=1)
+
+    def time_union_prec2(self):
+        pygeos.union(self.left, self.right, grid_size=2)
+
+    def time_union_all(self):
+        pygeos.union_all([self.left, self.right])
+
+    def time_union_all_prec1(self):
+        pygeos.union_all([self.left, self.right], grid_size=1)
+
+    def time_union_all_prec2(self):
+        pygeos.union_all([self.left, self.right], grid_size=2)
+
+
 class STRtree:
     """Benchmarks queries against STRtree"""
 
