@@ -1,7 +1,7 @@
 Changelog
 =========
 
-Version 0.9 (unreleased)
+Version 0.9 (2021-01-23)
 ------------------------
 
 **Major enhancements**
