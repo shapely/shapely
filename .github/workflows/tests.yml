@@ -112,6 +112,7 @@ jobs:
             pip install --upgrade --pre Cython numpy;
           elif [ "$SPEEDUPS" == "1" ]; then
             pip install --install-option="--no-cython-compile" cython;
+            pip install --upgrade numpy==${{ matrix.numpy }};
           elif [ ${{ matrix.numpy }} ]; then
             pip install --upgrade numpy==${{ matrix.numpy }};
           fi
