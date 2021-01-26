@@ -139,7 +139,7 @@ jobs:
           python -m pytest --cov shapely --cov-report term-missing "${SPEEDUPS_FLAG}"
 
       - name: Run doctests
-        if: ${{ matrix.python == '3.8' && matrix.numpy && maxtrix.speedups == '1' }}
+        if: ${{ matrix.python == '3.8' && matrix.numpy && matrix.speedups == '1' }}
         shell: bash
         run: |
           python -m pytest shapely --doctest-modules
