@@ -137,7 +137,7 @@ jobs:
           if [ "$SPEEDUPS" == "1" ]; then SPEEDUPS_FLAG=--with-speedups; else SPEEDUPS_FLAG=--without-speedups; fi
           python -c "from shapely.geos import geos_version; print(geos_version)"
           python -m pytest --cov shapely --cov-report term-missing "${SPEEDUPS_FLAG}"
-          if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" && ${{ matrix.numpy }} && "$SPEEDUPS" == "1" ]]; then python -m pytest shapely --doctest-modules; fi
+          if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" && -n ${{ matrix.numpy }} && "$SPEEDUPS" == "1" ]]; then python -m pytest shapely --doctest-modules; fi
 
       - name: Upload coverage
         shell: bash
