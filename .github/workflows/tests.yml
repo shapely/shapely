@@ -140,6 +140,8 @@ jobs:
           if [[ "$TRAVIS_PYTHON_VERSION" == "3.8" && -n ${{ matrix.numpy }} && "$SPEEDUPS" == "1" ]]; then python -m pytest shapely --doctest-modules; fi
 
       - name: Upload coverage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
           coveralls || echo "!! intermittent coveralls failure"
