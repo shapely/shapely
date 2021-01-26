@@ -31,7 +31,7 @@ def test_empty(geom):
     assert geom.type == "GeometryCollection"
     assert geom.type == geom.geom_type
     assert geom.is_empty
-    assert len(geom) == 0
+    assert len(geom.geoms) == 0
     assert geom.geoms == []
 
 
@@ -53,7 +53,7 @@ def test_child_with_deleted_parent():
 def test_from_geojson(geometrycollection_geojson):
     geom = shape(geometrycollection_geojson)
     assert geom.geom_type == "GeometryCollection"
-    assert len(geom) == 2
+    assert len(geom.geoms) == 2
 
     geom_types = [g.geom_type for g in geom.geoms]
     assert "Point" in geom_types
@@ -95,3 +95,22 @@ def test_geometrycollection_adapter_deprecated(geometrycollection_geojson):
     with pytest.warns(ShapelyDeprecationWarning):
         asShape(d)
 
+
+@pytest.mark.parametrize('geom', [
+    GeometryCollection(),
+    shape({"type": "GeometryCollection", "geometries": []}),
+    shape({"type": "GeometryCollection", "geometries": [
+        {"type": "Point", "coordinates": ()},
+        {"type": "LineString", "coordinates": (())}
+    ]}),
+    wkt.loads('GEOMETRYCOLLECTION EMPTY'),
+])
+def test_len_empty_deprecated(geom):
+    with pytest.warns(ShapelyDeprecationWarning):
+        assert len(geom) == 0
+
+
+def test_len_deprecated(geometrycollection_geojson):
+    geom = shape(geometrycollection_geojson)
+    with pytest.warns(ShapelyDeprecationWarning):
+        assert len(geom) == 2

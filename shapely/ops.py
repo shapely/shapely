@@ -129,9 +129,9 @@ class CollectionOperator(object):
             "Use 'unary_union()' instead.",
             ShapelyDeprecationWarning, stacklevel=2)
         try:
-            L = len(geoms)
             if isinstance(geoms, BaseMultipartGeometry):
                 geoms = geoms.geoms
+            L = len(geoms)
         except TypeError:
             geoms = [geoms]
             L = 1
@@ -148,9 +148,9 @@ class CollectionOperator(object):
         prefered method for dissolving many polygons.
         """
         try:
-            L = len(geoms)
             if isinstance(geoms, BaseMultipartGeometry):
                 geoms = geoms.geoms
+            L = len(geoms)
         except TypeError:
             geoms = [geoms]
             L = 1

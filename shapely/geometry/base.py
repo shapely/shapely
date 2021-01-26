@@ -870,6 +870,11 @@ class BaseMultipartGeometry(BaseGeometry):
             return iter([])
 
     def __len__(self):
+        warn(
+            "__len__ for multi-part geometries is deprecated and will be removed in "
+            "Shapely 2.0. Check the length of the `geoms` property instead to get the "
+            " number of parts of a multi-part geometry.",
+            ShapelyDeprecationWarning, stacklevel=2)
         if not self.is_empty:
             return len(self.geoms)
         else:
@@ -894,7 +899,7 @@ class BaseMultipartGeometry(BaseGeometry):
     def __eq__(self, other):
         return (
             type(other) == type(self) and
-            len(self) == len(other) and
+            len(self.geoms) == len(other.geoms) and
             all(x == y for x, y in zip(self.geoms, other.geoms))
         )
 

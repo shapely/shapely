@@ -22,7 +22,7 @@ def test_no_regions():
     mp = MultiPoint(points=[(0.5, 0.5)])
     regions = voronoi_diagram(mp)
 
-    assert len(regions) == 0
+    assert len(regions.geoms) == 0
 
 
 @requires_geos_35
@@ -30,7 +30,7 @@ def test_two_regions():
     mp = MultiPoint(points=[(0.5, 0.5), (1.0, 1.0)])
     regions = voronoi_diagram(mp)
 
-    assert len(regions) == 2
+    assert len(regions.geoms) == 2
 
 
 @requires_geos_35
@@ -38,7 +38,7 @@ def test_edges():
     mp = MultiPoint(points=[(0.5, 0.5), (1.0, 1.0)])
     regions = voronoi_diagram(mp, edges=True)
 
-    assert len(regions) == 1
+    assert len(regions.geoms) == 1
     assert all(r.type == 'LineString' for r in regions.geoms)
 
 
@@ -49,7 +49,7 @@ def test_smaller_envelope():
 
     regions = voronoi_diagram(mp, envelope=poly)
 
-    assert len(regions) == 2
+    assert len(regions.geoms) == 2
     assert sum(r.area for r in regions.geoms) > poly.area
 
 
@@ -63,7 +63,7 @@ def test_larger_envelope():
 
     regions = voronoi_diagram(mp, envelope=poly)
 
-    assert len(regions) == 2
+    assert len(regions.geoms) == 2
     assert sum(r.area for r in regions.geoms) == poly.area
 
 
@@ -72,7 +72,7 @@ def test_from_polygon():
     poly = load_wkt('POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))')
     regions = voronoi_diagram(poly)
 
-    assert len(regions) == 4
+    assert len(regions.geoms) == 4
 
 
 @requires_geos_35
@@ -80,7 +80,7 @@ def test_from_polygon_with_enough_tolerance():
     poly = load_wkt('POLYGON ((0 0, 0.5 0, 0.5 0.5, 0 0.5, 0 0))')
     regions = voronoi_diagram(poly, tolerance=1.0)
 
-    assert len(regions) == 2
+    assert len(regions.geoms) == 2
 
 
 @requires_geos_35
@@ -131,5 +131,5 @@ def test_from_multipoint_without_tolerace_without_floating_point_coordinates():
     """But it's fine without it."""
     mp = load_wkt('MULTIPOINT (0 0, 1 0, 1 2, 0 1)')
     regions = voronoi_diagram(mp)
-    assert len(regions) == 4
+    assert len(regions.geoms) == 4
 
