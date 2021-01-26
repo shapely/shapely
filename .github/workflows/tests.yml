@@ -79,7 +79,7 @@ jobs:
     env:
       GEOS_VERSION: ${{ matrix.geos }}
       GEOS_INSTALL: ${{ github.workspace }}/geosinstall/geos-${{ matrix.geos }}
-      SPEEDUPS: ${{ matrix.speedup }}
+      SPEEDUPS: ${{ matrix.speedups }}
 
     steps:
       - uses: actions/checkout@v2
