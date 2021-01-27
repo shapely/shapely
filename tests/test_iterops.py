@@ -1,13 +1,17 @@
 """Test operator iterations
 """
-from . import unittest
+from . import unittest, shapely20_deprecated
 from shapely import iterops
+from shapely.errors import ShapelyDeprecationWarning
 from shapely.geometry import Point, Polygon
 from shapely.geos import TopologicalError
+
+import pytest
 
 
 class IterOpsTestCase(unittest.TestCase):
 
+    @shapely20_deprecated
     def test_iterops(self):
 
         coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0))
@@ -43,7 +47,7 @@ class IterOpsTestCase(unittest.TestCase):
                  for p in points))),
             [[(0.5, 0.5)]])
 
-
+    @shapely20_deprecated
     def test_err(self):
         # bowtie polygon.
         coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0))
@@ -55,6 +59,7 @@ class IterOpsTestCase(unittest.TestCase):
             all([isinstance(x, Polygon)
                  for x in iterops.intersects(polygon, points, True)]))
 
+    @shapely20_deprecated
     def test_topological_error(self):
         p1 = [(339, 346), (459, 346), (399, 311), (340, 277), (399, 173),
               (280, 242), (339, 415), (280, 381), (460, 207), (339, 346)]
@@ -67,3 +72,12 @@ class IterOpsTestCase(unittest.TestCase):
 
         with self.assertRaises(TopologicalError):
             list(iterops.within(polygon1, [polygon2]))
+
+    def test_iterops_deprecated(self):
+
+        coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0))
+        polygon = Polygon(coords)
+        points = [Point(0.5, 0.5), Point(2.0, 2.0)]
+
+        with pytest.warns(ShapelyDeprecationWarning, match="'contains' function"):
+            list(iterops.contains(polygon, points, True))

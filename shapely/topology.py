@@ -23,6 +23,7 @@ class Validating(object):
 class Delegating(Validating):
 
     def __init__(self, name):
+        self._name = name
         self.fn = lgeos.methods[name]
 
     def _check_topology(self, err, *geoms):
