@@ -1184,6 +1184,20 @@ A line's endpoints are part of its `boundary` and are therefore not contained.
   >>> [p.wkt for p in contained]
   ['POINT (0.5000000000000000 0.5000000000000000)']
 
+.. method:: object.covers(other)
+
+  Returns ``True`` if every point of `other` is a point on the interior or
+  boundary of `object`. This is similar to ``object.contains(other)`` except
+  that this does not require any interior points of `other` to lie in the 
+  interior of `object`.
+
+.. method:: object.covered_by(other)
+
+  Returns ``True`` if every point of `object` is a point on the interior or
+  boundary of `other`. This is equivalent to ``other.covers(object)``.
+  
+  `New in version 1.8`.
+
 .. method:: object.crosses(other)
 
   Returns ``True`` if the `interior` of the object intersects the `interior` of
