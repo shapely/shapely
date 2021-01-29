@@ -1,0 +1,175 @@
+name: Tests (Linux)
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    name: Python ${{ matrix.python }} (GEOS ${{ matrix.geos }}, speedups ${{ matrix.speedups }}, numpy ${{ matrix.numpy || 'not installed' }})
+    # runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # 2015
+          - python: 3.5
+            geos: 3.5.2
+            numpy: 1.10.4
+            speedups: 1
+          - python: 3.5
+            geos: 3.5.2
+            numpy: 1.10.4
+            speedups: 0
+          - python: 3.5
+            geos: 3.5.2
+            speedups: 0
+          # 2017
+          - python: 3.6
+            geos: 3.6.4
+            numpy: 1.13.3
+            speeedups: 1
+          - python: 3.6
+            geos: 3.6.4
+            numpy: 1.13.3
+            speeedups: 0
+          - python: 3.6
+            geos: 3.6.4
+            speeedups: 0
+          # 2018
+          - python: 3.7
+            geos: 3.7.3
+            numpy: 1.15.4
+            speedups: 1
+          - python: 3.7
+            geos: 3.7.3
+            numpy: 1.15.4
+            speedups: 0
+          - python: 3.7
+            geos: 3.7.3
+            speedups: 0
+          # 2019
+          - python: 3.8
+            geos: 3.8.1
+            numpy: 1.17.5
+            speedups: 1
+          - python: 3.8
+            geos: 3.8.1
+            numpy: 1.17.5
+            speedups: 0
+          - python: 3.8
+            geos: 3.8.1
+            speedups: 0
+          # 2020
+          - python: 3.9
+            geos: 3.9.0
+            numpy: 1.19.5
+            speedups: 1
+          - python: 3.9
+            geos: 3.9.0
+            numpy: 1.19.5
+            speedups: 0
+          - python: 3.9
+            geos: 3.9.0
+            speedups: 0
+          # dev
+          - python: 3.9
+            geos: master
+            speedups: 1
+
+    env:
+      GEOS_VERSION: ${{ matrix.geos }}
+      GEOS_INSTALL: ${{ github.workspace }}/geosinstall/geos-${{ matrix.geos }}
+      SPEEDUPS: ${{ matrix.speedups }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Cache GEOS and pip packages
+        uses: actions/cache@v2
+        with:
+          key: ${{ runner.os }}-geos-${{ matrix.geos }}
+          path: |
+            ~/.cache/pip
+            ${{ github.workspace }}/geosinstall
+
+      - name: Install GEOS
+        shell: bash
+        run: |
+          ./ci/install_geos.sh
+          cd ${{ github.workspace }}
+
+      - name: Install python dependencies
+        shell: bash
+        run: |
+          pip install --disable-pip-version-check --upgrade pip
+          pip install --upgrade wheel
+          if [ "$GEOS_VERSION" = "master" ]; then
+            pip install --upgrade --pre Cython numpy;
+          elif [ "$SPEEDUPS" == "1" ]; then
+            pip install --install-option="--no-cython-compile" cython;
+            pip install --upgrade numpy==${{ matrix.numpy }};
+          elif [ -n "${{ matrix.numpy }}" ]; then
+            pip install --upgrade numpy==${{ matrix.numpy }};
+          else
+            pip uninstall --yes numpy;
+          fi
+          pip install --upgrade coveralls pytest-cov pytest
+          pip list
+
+      - name: Set environment variables
+        shell: bash
+        run: |
+          echo "LD_LIBRARY_PATH=$GEOS_INSTALL/lib" >> $GITHUB_ENV
+          echo $GEOS_INSTALL/bin >> $GITHUB_PATH
+
+      - name: Build and install Shapely
+        shell: bash
+        run: |
+          pip install -v -e .
+
+      - name: Overview of the Python environment (pip list)
+        shell: bash
+        run: |
+          pip list
+
+      - name: Run tests
+        shell: bash
+        continue-on-error: ${{ matrix.geos == 'master' }}
+        run: |
+          if [ "$SPEEDUPS" == "1" ]; then SPEEDUPS_FLAG=--with-speedups; else SPEEDUPS_FLAG=--without-speedups; fi
+          python -c "from shapely import geos; print(geos.geos_version_string)"
+          python -c "from shapely import speedups; print(speedups.enabled)"
+          python -m pytest --cov shapely --cov-report term-missing "${SPEEDUPS_FLAG}"
+
+      - name: Run doctests
+        if: ${{ matrix.python == '3.8' && matrix.numpy && matrix.speedups == '1' }}
+        shell: bash
+        run: |
+          python -m pytest shapely --doctest-modules
+
+      - name: Upload coverage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_SERVICE_NAME: github-actions
+          COVERALLS_PARALLEL: true
+        shell: bash
+        run: |
+          coveralls || echo "!! intermittent coveralls failure"
+
+  coveralls:
+    name: Indicate completion to coveralls.io
+    needs: test
+    runs-on: ubuntu-latest
+    container: python:3-slim
+    steps:
+    - name: Finished
+      run: |
+        pip3 install --upgrade coveralls
+        coveralls --finish || echo "!! intermittent coveralls failure"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
