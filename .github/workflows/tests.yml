@@ -115,6 +115,8 @@ jobs:
             pip install --upgrade numpy==${{ matrix.numpy }};
           elif [ -n "${{ matrix.numpy }}" ]; then
             pip install --upgrade numpy==${{ matrix.numpy }};
+          else
+            pip uninstall --yes numpy;
           fi
           pip install --upgrade coveralls pytest-cov pytest
           pip list
