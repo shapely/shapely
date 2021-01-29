@@ -2,10 +2,10 @@
 Shapely
 =======
 
-|travis| |appveyor| |coveralls|
+|github-actions| |appveyor| |coveralls|
 
-.. |travis| image:: https://travis-ci.org/Toblerity/Shapely.svg?branch=master
-   :target: https://travis-ci.org/Toblerity/Shapely
+.. |github-actions| image:: https://github.com/Toblerity/Shapely/workflows/Tests%20(Linux)/badge.svg
+   :target: https://github.com/Toblerity/Shapely/actions
 
 .. |appveyor| image:: https://ci.appveyor.com/api/projects/status/github/Toblerity/Shapely?branch=master&svg=true
    :target: https://ci.appveyor.com/project/frsci/shapely?branch=master
