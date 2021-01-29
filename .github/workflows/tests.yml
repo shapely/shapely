@@ -170,6 +170,6 @@ jobs:
     - name: Finished
       run: |
         pip3 install --upgrade coveralls
-        coveralls --finish
+        coveralls --finish || echo "!! intermittent coveralls failure"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
