@@ -106,11 +106,11 @@ def test_geometrycollection_adapter_deprecated(geometrycollection_geojson):
     wkt.loads('GEOMETRYCOLLECTION EMPTY'),
 ])
 def test_len_empty_deprecated(geom):
-    with pytest.warns(ShapelyDeprecationWarning):
+    with pytest.warns(ShapelyDeprecationWarning, match="__len__"):
         assert len(geom) == 0
 
 
 def test_len_deprecated(geometrycollection_geojson):
     geom = shape(geometrycollection_geojson)
-    with pytest.warns(ShapelyDeprecationWarning):
+    with pytest.warns(ShapelyDeprecationWarning, match="__len__"):
         assert len(geom) == 2
