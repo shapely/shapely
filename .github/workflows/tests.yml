@@ -156,6 +156,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_SERVICE_NAME: github-actions
+          COVERALLS_PARALLEL: true
         shell: bash
         run: |
           coveralls || echo "!! intermittent coveralls failure"
