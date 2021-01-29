@@ -116,7 +116,7 @@ jobs:
           elif [ -n "${{ matrix.numpy }}" ]; then
             pip install --upgrade numpy==${{ matrix.numpy }};
           fi
-          pip install --upgrade coveralls pytest-cov pytest>=3.8
+          pip install --upgrade coveralls pytest-cov pytest
           pip list
 
       - name: Set environment variables
@@ -140,7 +140,8 @@ jobs:
         continue-on-error: ${{ matrix.geos == 'master' }}
         run: |
           if [ "$SPEEDUPS" == "1" ]; then SPEEDUPS_FLAG=--with-speedups; else SPEEDUPS_FLAG=--without-speedups; fi
-          python -c "from shapely.geos import geos_version; print(geos_version)"
+          python -c "from shapely import geos; print(geos.geos_version_string)"
+          python -c "from shapely import speedups; print(speedups.enabled)"
           python -m pytest --cov shapely --cov-report term-missing "${SPEEDUPS_FLAG}"
 
       - name: Run doctests
