@@ -3,7 +3,7 @@ name: Tests (Linux)
 on: [push, pull_request]
 
 jobs:
-  TestLinux:
+  test:
     name: Python ${{ matrix.python }} (GEOS ${{ matrix.geos }}, speedups ${{ matrix.speedups }}, numpy ${{ matrix.numpy || 'not installed' }})
     # runs-on: ubuntu-latest
     runs-on: ubuntu-16.04
@@ -159,3 +159,16 @@ jobs:
         shell: bash
         run: |
           coveralls || echo "!! intermittent coveralls failure"
+
+  coveralls:
+    name: Indicate completion to coveralls.io
+    needs: test
+    runs-on: ubuntu-latest
+    container: python:3-slim
+    steps:
+    - name: Finished
+      run: |
+        pip3 install --upgrade coveralls
+        coveralls --finish
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
