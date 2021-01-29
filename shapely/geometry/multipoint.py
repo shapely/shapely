@@ -48,7 +48,7 @@ class MultiPoint(BaseMultipartGeometry):
         """
         super(MultiPoint, self).__init__()
 
-        if points is None or len(points) == 0:
+        if points is None or (not isinstance(points, MultiPoint) and len(points) == 0):
             # allow creation of empty multipoints, to support unpickling
             pass
         else:

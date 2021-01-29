@@ -32,7 +32,7 @@ class PolygonizeTestCase(unittest.TestCase):
             ]
 
         result2, dangles, cuts, invalids = polygonize_full(lines2)
-        self.assertEqual(len(result2), 2)
+        self.assertEqual(len(result2.geoms), 2)
         self.assertTrue(all([isinstance(x, Polygon) for x in result2.geoms]))
         self.assertEqual(list(dangles.geoms), [])
         self.assertTrue(all([isinstance(x, LineString) for x in cuts.geoms]))

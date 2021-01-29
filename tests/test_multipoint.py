@@ -140,3 +140,9 @@ def test_getitem_deprecated():
     geom = MultiPoint([[5.0, 6.0], [7.0, 8.0]])
     with pytest.warns(ShapelyDeprecationWarning, match="__getitem__"):
         part = geom[0]
+
+
+def test_len_deprecated():
+    geom = MultiPoint([[5.0, 6.0], [7.0, 8.0]])
+    with pytest.warns(ShapelyDeprecationWarning, match="__len__"):
+        assert len(geom) == 2

@@ -775,13 +775,11 @@ Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
   (-1.0, -1.0, 2.0, 2.0)
 
 Its members are instances of `Polygon` and are accessed via the ``geoms``
-property or via the iterator protocol using ``in`` or ``list()``.
+property.
 
 .. code-block:: pycon
 
   >>> len(polygons.geoms)
-  3
-  >>> len(polygons)
   3
 
 .. _empties:
@@ -1649,11 +1647,11 @@ mileage may vary when cleaning surfaces.
   True
   >>> clean
   <shapely.geometry.multipolygon.MultiPolygon object at ...>
-  >>> len(clean)
+  >>> len(clean.geoms)
   2
-  >>> list(clean[0].exterior.coords)
+  >>> list(clean.geoms[0].exterior.coords)
   [(0.0, 0.0), (0.0, 2.0), (1.0, 1.0), (0.0, 0.0)]
-  >>> list(clean[1].exterior.coords)
+  >>> list(clean.geoms[1].exterior.coords)
   [(1.0, 1.0), (2.0, 2.0), (2.0, 0.0), (1.0, 1.0)]
 
 Buffering splits the polygon in two at the point where they touch.
@@ -2147,7 +2145,7 @@ using functions in the :mod:`shapely.ops` module.
     ...     ((1, 1), (100, 100)),
     ...     ]
     >>> result, dangles, cuts, invalids = polygonize_full(lines)
-    >>> len(result)
+    >>> len(result.geoms)
     2
     >>> list(result.geoms)
     [<shapely.geometry.polygon.Polygon object at ...>, <shapely.geometry.polygon.Polygon object at ...>]
