@@ -17,7 +17,7 @@ except ImportError:
     numpy = False
     numpy_version = 'not available'
 
-# Show some diagnostic information; handy for Travis CI
+# Show some diagnostic information; handy for CI
 print('Python version: ' + sys.version.replace('\n', ' '))
 print('GEOS version: ' + geos_version_string)
 print('Numpy version: ' + numpy_version)

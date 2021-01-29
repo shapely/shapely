@@ -1,7 +1,9 @@
 """
 Iterative forms of operations
 """
+import warnings
 
+from shapely.errors import ShapelyDeprecationWarning
 from shapely.topology import Delegating
 
 
@@ -11,6 +13,10 @@ class IterOp(Delegating):
     """
 
     def __call__(self, context, iterator, value=True):
+        warnings.warn(
+            "The '{0}' function is deprecated and will be removed in "
+            "Shapely 2.0".format(self._name),
+            ShapelyDeprecationWarning, stacklevel=2)
         if context._geom is None:
             raise ValueError("Null geometry supports no operations")
         for item in iterator:
