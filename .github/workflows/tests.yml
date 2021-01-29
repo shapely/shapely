@@ -128,7 +128,12 @@ jobs:
       - name: Build and install Shapely
         shell: bash
         run: |
-          pip install -v -e .[all]
+          pip install -v -e .
+
+      - name: Overview of the Python environment (pip list)
+        shell: bash
+        run: |
+          pip list
 
       - name: Run tests
         shell: bash
