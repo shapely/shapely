@@ -8,6 +8,10 @@ Version 0.10 (unreleased)
 
 * ...
 
+**Added GEOS functions**
+
+* Addition of a ``contains_properly`` function (#267).
+
 **Acknowledgments**
 
 Thanks to everyone who contributed to this release!

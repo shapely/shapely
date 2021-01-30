@@ -256,8 +256,20 @@ static PyUFuncGenericFunction YY_b_funcs[1] = {&YY_b_func};
 /* Define the geom, geom -> bool functions (YY_b) prepared */
 static void* contains_func_tuple[2] = {GEOSContains_r, GEOSPreparedContains_r};
 static void* contains_data[1] = {contains_func_tuple};
-// static void* contains_properly_func_tuple[2] = {..., GEOSPreparedContainsProperly_r};
-// static void* contains_properly_data[1] = {contains_properly_func_tuple};
+static char GEOSContainsProperly(void* context, void* g1, void* g2) {
+  const GEOSPreparedGeometry* prepared_geom_tmp = NULL;
+  char ret;
+
+  prepared_geom_tmp = GEOSPrepare_r(context, g1);
+  if (prepared_geom_tmp == NULL) {
+      return 2;
+    }
+  ret = GEOSPreparedContainsProperly_r(context, prepared_geom_tmp, g2);
+  GEOSPreparedGeom_destroy_r(context, prepared_geom_tmp);
+  return ret;
+}
+static void* contains_properly_func_tuple[2] = {GEOSContainsProperly, GEOSPreparedContainsProperly_r};
+static void* contains_properly_data[1] = {contains_properly_func_tuple};
 static void* covered_by_func_tuple[2] = {GEOSCoveredBy_r, GEOSPreparedCoveredBy_r};
 static void* covered_by_data[1] = {covered_by_func_tuple};
 static void* covers_func_tuple[2] = {GEOSCovers_r, GEOSPreparedCovers_r};
@@ -2618,6 +2630,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_YY_b_p(crosses);
   DEFINE_YY_b_p(within);
   DEFINE_YY_b_p(contains);
+  DEFINE_YY_b_p(contains_properly);
   DEFINE_YY_b_p(overlaps);
   DEFINE_YY_b(equals);
   DEFINE_YY_b_p(covers);

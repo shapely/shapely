@@ -25,6 +25,7 @@ BINARY_PREDICATES = (
     pygeos.crosses,
     pygeos.within,
     pygeos.contains,
+    pygeos.contains_properly,
     pygeos.overlaps,
     pygeos.equals,
     pygeos.covers,
@@ -180,6 +181,7 @@ def test_binary_prepared(a, func):
     result = func(_prepare_with_copy(a), point)
     assert actual == result
 
+
 @pytest.mark.parametrize("geometry", all_types + (empty,))
 def test_is_prepared_true(geometry):
     assert pygeos.is_prepared(_prepare_with_copy(geometry))
@@ -188,3 +190,9 @@ def test_is_prepared_true(geometry):
 @pytest.mark.parametrize("geometry", all_types + (empty, None))
 def test_is_prepared_false(geometry):
     assert not pygeos.is_prepared(geometry)
+
+
+def test_contains_properly():
+    # polygon contains itself, but does not properly contains itself
+    assert pygeos.contains(polygon, polygon).item() is True
+    assert pygeos.contains_properly(polygon, polygon).item() is False

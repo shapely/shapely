@@ -19,6 +19,7 @@ __all__ = [
     "is_valid_reason",
     "crosses",
     "contains",
+    "contains_properly",
     "covered_by",
     "covers",
     "disjoint",
@@ -416,6 +417,10 @@ def contains(a, b, **kwargs):
     A contains B if no points of B lie in the exterior of A and at least one
     point of the interior of B lies in the interior of A.
 
+    Note: following this definition, a geometry does not contain its boundary,
+    but it does contain itself. See `contains_properly` for a version where
+    a geometry does not contain itself.
+
     Parameters
     ----------
     a, b : Geometry or array_like
@@ -423,6 +428,7 @@ def contains(a, b, **kwargs):
     See also
     --------
     within : ``contains(A, B) == within(B, A)``
+    contains_properly : contains with no common boundary points
     prepare : improve performance by preparing ``a`` (the first argument)
 
     Examples
@@ -452,6 +458,52 @@ def contains(a, b, **kwargs):
     False
     """
     return lib.contains(a, b, **kwargs)
+
+
+@multithreading_enabled
+def contains_properly(a, b, **kwargs):
+    """Returns True if geometry B is completely inside geometry A, with no
+    common boundary points.
+
+    A contains B properly if B intersects the interior of A but not the
+    boundary (or exterior). This means that a geometry A does not
+    "contain properly" itself, which contrasts with the `contains` function,
+    where common points on the boundary are allowed.
+
+    Note: this function will prepare the geometries under the hood if needed.
+    You can prepare the geometries in advance to avoid repeated preparation
+    when calling this function multiple times.
+
+    Parameters
+    ----------
+    a, b : Geometry or array_like
+
+    See also
+    --------
+    contains : contains which allows common boundary points
+    prepare : improve performance by preparing ``a`` (the first argument)
+
+    Examples
+    --------
+    >>> area1 = Geometry("POLYGON((0 0, 3 0, 3 3, 0 3, 0 0))")
+    >>> area2 = Geometry("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))")
+    >>> area3 = Geometry("POLYGON((1 1, 2 1, 2 2, 1 2, 1 1))")
+
+    ``area1`` and ``area2`` have a common border:
+
+    >>> contains(area1, area2)
+    True
+    >>> contains_properly(area1, area2)
+    False
+
+    ``area3`` is completely inside ``area1`` with no common border:
+
+    >>> contains(area1, area3)
+    True
+    >>> contains_properly(area1, area3)
+    True
+    """
+    return lib.contains_properly(a, b, **kwargs)
 
 
 @multithreading_enabled
