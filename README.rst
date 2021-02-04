@@ -20,6 +20,12 @@ PyGEOS
 	:alt: Appveyor CI status
 	:target: https://ci.appveyor.com/project/caspervdw/pygeos-3e5cu
 
+.. Travis CI status -- https://travis-ci.com
+
+.. image:: https://travis-ci.com/pygeos/pygeos.svg?branch=master
+   :alt: Travis CI status
+   :target: https://travis-ci.com/github/pygeos/pygeos
+
 .. PyPI
 
 .. image:: https://badge.fury.io/py/pygeos.svg
