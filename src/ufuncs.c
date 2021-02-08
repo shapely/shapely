@@ -1988,8 +1988,7 @@ static char create_collection_dtypes[3] = {NPY_OBJECT, NPY_INT, NPY_OBJECT};
 static void create_collection_func(char** args, npy_intp* dimensions, npy_intp* steps,
                                    void* data) {
   GEOSGeometry *g, *g_copy;
-  int n_geoms, type;
-  char actual_type, expected_type, alt_expected_type;
+  int n_geoms, type, actual_type, expected_type, alt_expected_type;
 
   GEOS_INIT;
 
