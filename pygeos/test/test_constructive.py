@@ -391,3 +391,80 @@ def test_clip_by_rect_non_scalar_kwargs():
     msg = "only accepts scalar values"
     with pytest.raises(TypeError, match=msg):
         pygeos.clip_by_rect([line_string, line_string], 0, 0, 1, np.array([0, 1]))
+
+
+def test_polygonize():
+    lines = [
+        pygeos.Geometry("LINESTRING (0 0, 1 1)"),
+        pygeos.Geometry("LINESTRING (0 0, 0 1)"),
+        pygeos.Geometry("LINESTRING (0 1, 1 1)"),
+        pygeos.Geometry("LINESTRING (1 1, 1 0)"),
+        pygeos.Geometry("LINESTRING (1 0, 0 0)"),
+        pygeos.Geometry("LINESTRING (5 5, 6 6)"),
+        pygeos.Geometry("POINT (0 0)"),
+        None,
+    ]
+    result = pygeos.polygonize(lines)
+    assert pygeos.get_type_id(result) == 7  # GeometryCollection
+    expected = pygeos.Geometry(
+        "GEOMETRYCOLLECTION (POLYGON ((0 0, 1 1, 1 0, 0 0)), POLYGON ((1 1, 0 0, 0 1, 1 1)))"
+    )
+    assert result == expected
+
+
+def test_polygonize_array():
+    lines = [
+        pygeos.Geometry("LINESTRING (0 0, 1 1)"),
+        pygeos.Geometry("LINESTRING (0 0, 0 1)"),
+        pygeos.Geometry("LINESTRING (0 1, 1 1)"),
+    ]
+    expected = pygeos.Geometry(
+        "GEOMETRYCOLLECTION (POLYGON ((1 1, 0 0, 0 1, 1 1)))"
+    )
+    result = pygeos.polygonize(np.array(lines))
+    assert isinstance(result, pygeos.Geometry)
+    assert result == expected
+
+    result = pygeos.polygonize(np.array([lines]))
+    assert isinstance(result, np.ndarray)
+    assert result.shape == (1,)
+    assert result[0] == expected
+
+    arr = np.array([lines, lines])
+    assert arr.shape == (2, 3)
+    result = pygeos.polygonize(arr)
+    assert isinstance(result, np.ndarray)
+    assert result.shape == (2,)
+    assert result[0] == expected
+    assert result[1] == expected
+
+    arr = np.array([[lines, lines], [lines, lines], [lines, lines]])
+    assert arr.shape == (3, 2, 3)
+    result = pygeos.polygonize(arr)
+    assert isinstance(result, np.ndarray)
+    assert result.shape == (3, 2)
+    for res in result.flatten():
+        assert res == expected
+
+
+@pytest.mark.skipif(
+    np.__version__ < "1.15",
+    reason="axis keyword for generalized ufunc introduced in np 1.15",
+)
+def test_polygonize_array_axis():
+    lines = [
+        pygeos.Geometry("LINESTRING (0 0, 1 1)"),
+        pygeos.Geometry("LINESTRING (0 0, 0 1)"),
+        pygeos.Geometry("LINESTRING (0 1, 1 1)"),
+    ]
+    arr = np.array([lines, lines])  # shape (2, 3)
+    result = pygeos.polygonize(arr, axis=1)
+    assert result.shape == (2,)
+    result = pygeos.polygonize(arr, axis=0)
+    assert result.shape == (3,)
+
+
+def test_polygonize_missing():
+    # set of geometries that is all missing
+    result = pygeos.polygonize([None, None])
+    assert result == pygeos.Geometry("GEOMETRYCOLLECTION EMPTY")

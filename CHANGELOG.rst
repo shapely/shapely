@@ -16,6 +16,7 @@ Version 0.10 (unreleased)
 **Added GEOS functions**
 
 * Addition of a ``contains_properly`` function (#267).
+* Addition of a ``polygonize`` function (#275).
 
 **Bug fixes**
 * Fixed portability issue for ARM architecture (#293)

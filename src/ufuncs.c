@@ -1776,6 +1776,50 @@ finish:
 }
 static PyUFuncGenericFunction relate_pattern_funcs[1] = {&relate_pattern_func};
 
+static char polygonize_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
+static void polygonize_func(char** args, npy_intp* dimensions, npy_intp* steps,
+                            void* data) {
+  GEOSGeometry* geom = NULL;
+  unsigned int n_geoms;
+
+  GEOS_INIT;
+
+  GEOSGeometry** geoms = malloc(sizeof(void*) * dimensions[1]);
+  if (geoms == NULL) {
+    errstate = PGERR_NO_MALLOC;
+    goto finish;
+  }
+
+  SINGLE_COREDIM_LOOP_OUTER {
+    n_geoms = 0;
+    SINGLE_COREDIM_LOOP_INNER {
+      if (!get_geom(*(GeometryObject**)cp1, &geom)) {
+        errstate = PGERR_NOT_A_GEOMETRY;
+        goto finish;
+      }
+      if (geom == NULL) {
+        continue;
+      }
+      geoms[n_geoms] = geom;
+      n_geoms++;
+    }
+
+    GEOSGeometry* ret_ptr = GEOSPolygonize_r(ctx, geoms, n_geoms);
+    if (ret_ptr == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
+    OUTPUT_Y;
+  }
+
+finish:
+  if (geoms != NULL) {
+    free(geoms);
+  }
+  GEOS_FINISH;
+}
+static PyUFuncGenericFunction polygonize_funcs[1] = {&polygonize_func};
+
 #if GEOS_SINCE_3_6_0
 static char set_precision_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
 static void set_precision_func(char** args, npy_intp* dimensions, npy_intp* steps,
@@ -2701,6 +2745,8 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_CUSTOM(is_valid_reason, 1);
   DEFINE_CUSTOM(relate, 2);
   DEFINE_CUSTOM(relate_pattern, 3);
+  DEFINE_GENERALIZED(polygonize, 1, "(d)->()");
+
   DEFINE_GENERALIZED(points, 1, "(d)->()");
   DEFINE_GENERALIZED(linestrings, 1, "(i, d)->()");
   DEFINE_GENERALIZED(linearrings, 1, "(i, d)->()");
