@@ -174,7 +174,8 @@ class SvgTestCase(unittest.TestCase):
         self.assertSVG(GeometryCollection(), '<g />')
         # Valid
         self.assertSVG(
-            Point(7, 3).union(LineString([(4, 2), (8, 4)])),
+            GeometryCollection(
+                [Point(7, 3), LineString([(4, 2), (8, 4)])]),
             '<g><circle cx="7.0" cy="3.0" r="3.0" stroke="#555555" '
             'stroke-width="1.0" fill="#66cc99" opacity="0.6" />'
             '<polyline fill="none" stroke="#66cc99" stroke-width="2.0" '
