@@ -168,6 +168,7 @@ jobs:
         if: ${{ matrix.python == '3.8' && matrix.numpy && matrix.speedups == '1' }}
         shell: bash
         run: |
+          pip install matplotlib
           python -m pytest shapely --doctest-modules
 
       - name: Upload coverage
