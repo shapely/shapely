@@ -43,6 +43,7 @@ class MultiPoint(BaseMultipartGeometry):
         -------
         Construct a 2 point collection
 
+          >>> from shapely.geometry import Point
           >>> ob = MultiPoint([[0.0, 0.0], [1.0, 2.0]])
           >>> len(ob.geoms)
           2
