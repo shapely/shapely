@@ -26,7 +26,7 @@ environment:
       NUMPY_VERSION: 1.17.5
     - PYTHON: "C:\\Python39-x64"
       ARCH: x64
-      GEOS_VERSION: 3.8.1
+      GEOS_VERSION: 3.9.1
       NUMPY_VERSION: 1.19.4
 
 install:
