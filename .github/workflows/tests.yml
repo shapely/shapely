@@ -61,15 +61,15 @@ jobs:
             speedups: 0
           # 2020
           - python: 3.9
-            geos: 3.9.0
+            geos: 3.9.1
             numpy: 1.19.5
             speedups: 1
           - python: 3.9
-            geos: 3.9.0
+            geos: 3.9.1
             numpy: 1.19.5
             speedups: 0
           - python: 3.9
-            geos: 3.9.0
+            geos: 3.9.1
             speedups: 0
           # dev
           - python: 3.9
