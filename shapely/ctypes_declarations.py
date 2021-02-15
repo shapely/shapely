@@ -388,6 +388,9 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSGeom_getDimensions.restype = c_int
     lgeos.GEOSGeom_getDimensions.argtypes = [c_void_p]
 
+    lgeos.GEOSNormalize.restype = c_int
+    lgeos.GEOSNormalize.argtypes = [c_void_p]
+
     # Misc functions
 
     lgeos.GEOSArea.restype = c_double

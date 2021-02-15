@@ -88,6 +88,7 @@ IMPL330 = {
     'simplify': (UnaryTopologicalOp, 'simplify'),
     'topology_preserve_simplify':
         (UnaryTopologicalOp, 'topology_preserve_simplify'),
+    'normalize': (UnaryTopologicalOp, 'normalize'),
     #
     'difference': (BinaryTopologicalOp, 'difference'),
     'intersection': (BinaryTopologicalOp, 'intersection'),

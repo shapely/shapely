@@ -699,6 +699,7 @@ class LGEOS330(LGEOSBase):
         self.methods['simplify'] = self.GEOSSimplify
         self.methods['topology_preserve_simplify'] = \
             self.GEOSTopologyPreserveSimplify
+        self.methods['normalize'] = self.GEOSNormalize
         self.methods['cascaded_union'] = self.GEOSUnionCascaded
 
         def parallel_offset(geom, distance, resolution=16, join_style=1,

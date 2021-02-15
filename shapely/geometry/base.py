@@ -637,6 +637,27 @@ class BaseGeometry(object):
             op = self.impl['simplify']
         return geom_factory(op(self, tolerance))
 
+    def normalize(self):
+        """Converts geometry to normal form (or canonical form).
+
+        This method orders the coordinates, rings of a polygon and parts of
+        multi geometries consistently. Typically useful for testing purposes
+        (for example in combination with `equals_exact`).
+
+        Examples
+        --------
+        >>> from shapely.wkt import loads
+        >>> p = loads("MULTILINESTRING((0 0, 1 1), (3 3, 2 2))")
+        >>> p.normalize().wkt
+        "MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))"
+        """
+        # self.impl['normalize'](self)
+        if self._geom is None:
+            raise ValueError("Null geometry supports no operations")
+        geom_cloned = lgeos.GEOSGeom_clone(self._geom)
+        lgeos.GEOSNormalize(geom_cloned)
+        return geom_factory(geom_cloned)
+
     # Binary operations
     # -----------------
 
