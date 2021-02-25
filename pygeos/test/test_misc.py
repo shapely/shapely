@@ -1,3 +1,5 @@
+from string import ascii_lowercase
+
 import pygeos
 from pygeos.decorators import requires_geos, multithreading_enabled
 from unittest import mock
@@ -20,7 +22,12 @@ def test_version():
 
 def test_geos_version():
     expected = "{0:d}.{1:d}.{2:d}".format(*pygeos.geos_version)
-    assert pygeos.geos_version_string == expected
+    actual = pygeos.geos_version_string
+
+    # strip any beta / dev qualifiers
+    actual = actual.lower().rstrip(ascii_lowercase)
+
+    assert actual == expected
 
 
 @pytest.mark.skipif(
@@ -31,7 +38,18 @@ def test_geos_capi_version():
     expected = "{0:d}.{1:d}.{2:d}-CAPI-{3:d}.{4:d}.{5:d}".format(
         *(pygeos.geos_version + pygeos.geos_capi_version)
     )
-    assert pygeos.geos_capi_version_string == expected
+
+    # split into component parts and strip any beta / dev qualifiers
+    (
+        actual_geos_version,
+        actual_geos_api_version,
+    ) = pygeos.geos_capi_version_string.split("-CAPI-")
+
+    actual_geos_version = actual_geos_version.lower().rstrip(ascii_lowercase)
+
+    assert (
+        "{0}-CAPI-{1}".format(actual_geos_version, actual_geos_api_version) == expected
+    )
 
 
 @pytest.mark.parametrize("version", ["3.7.0", "3.7.1", "3.6.2"])
