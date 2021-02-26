@@ -15,6 +15,7 @@ __all__ = [
     "clip_by_rect",
     "convex_hull",
     "delaunay_triangles",
+    "segmentize",
     "envelope",
     "extract_unique_points",
     "build_area",
@@ -564,6 +565,39 @@ def reverse(geometry, **kwargs):
     """
 
     return lib.reverse(geometry, **kwargs)
+
+
+@requires_geos("3.10.0")
+@multithreading_enabled
+def segmentize(geometry, tolerance, **kwargs):
+    """Adds vertices to line segments based on tolerance.
+
+    Additional vertices will be added to every line segment in an input geometry
+    so that segments are no greater than tolerance.  New vertices will evenly
+    subdivide each segment.
+
+    Only linear components of input geometries are densified; other geometries
+    are returned unmodified.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    tolerance : float or array_like
+        Additional vertices will be added so that all line segments are no
+        greater than this value.  Must be greater than 0.
+
+    Examples
+    --------
+    >>> line = Geometry("LINESTRING (0 0, 0 10)")
+    >>> segmentize(line, tolerance=5)
+    <pygeos.Geometry LINESTRING (0 0, 0 5, 0 10)>
+    >>> poly = Geometry("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))")
+    >>> segmentize(poly, tolerance=5)
+    <pygeos.Geometry POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
+    >>> segmentize(None, tolerance=5) is None
+    True
+    """
+    return lib.segmentize(geometry, tolerance, **kwargs)
 
 
 @multithreading_enabled
