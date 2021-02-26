@@ -1,6 +1,7 @@
 from enum import IntEnum
 import numpy as np
 from . import lib
+from .decorators import requires_geos
 
 
 __all__ = ["STRtree"]
@@ -49,6 +50,8 @@ class STRtree:
     >>> # Query geometries that overlap envelopes of `geoms`
     >>> tree.query_bulk([pygeos.box(2, 2, 4, 4), pygeos.box(5, 5, 6, 6)]).tolist()
     [[0, 0, 0, 1, 1], [2, 3, 4, 5, 6]]
+    >>> tree.nearest([pygeos.points(1,1), pygeos.points(3,5)]).tolist()  # doctest: +SKIP
+    [[0, 1], [1, 4]]
     """
 
     def __init__(self, geometries, leafsize=10):
@@ -186,3 +189,126 @@ class STRtree:
             predicate = BinaryPredicate[predicate].value
 
         return self._tree.query_bulk(geometry, predicate)
+
+    @requires_geos("3.6.0")
+    def nearest(self, geometry):
+        """Returns the index of the nearest item in the tree for each input
+        geometry.
+
+        If there are multiple equidistant or intersected geometries in the tree,
+        only a single result is returned for each input geometry, based on the
+        order that tree geometries are visited; this order may be
+        nondeterministic.
+
+        Any geometry that is None or empty in the input geometries is omitted
+        from the output.
+
+        Parameters
+        ----------
+        geometry : Geometry or array_like
+            Input geometries to query the tree.
+
+        Returns
+        -------
+        ndarray with shape (2, n)
+            The first subarray contains input geometry indexes.
+            The second subarray contains tree geometry indexes.
+
+        See also
+        --------
+        nearest_all: returns all equidistant geometries and optional distances
+
+        Examples
+        --------
+        >>> import pygeos
+        >>> tree = pygeos.STRtree(pygeos.points(np.arange(10), np.arange(10)))
+        >>> tree.nearest(pygeos.points(1,1)).tolist()  # doctest: +SKIP
+        [[0], [1]]
+        >>> tree.nearest([pygeos.box(1,1,3,3)]).tolist()  # doctest: +SKIP
+        [[0], [1]]
+        >>> points = pygeos.points(0.5,0.5)
+        >>> tree.nearest([None, pygeos.points(10,10)]).tolist()  # doctest: +SKIP
+        [[1], [9]]
+        """
+
+        geometry = np.asarray(geometry, dtype=object)
+        if geometry.ndim == 0:
+            geometry = np.expand_dims(geometry, 0)
+
+        return self._tree.nearest(geometry)
+
+    @requires_geos("3.6.0")
+    def nearest_all(self, geometry, max_distance=None, return_distance=False):
+        """Returns the index of the nearest item(s) in the tree for each input
+        geometry.
+
+        If there are multiple equidistant or intersected geometries in tree, all
+        are returned.  Tree indexes are returned in the order they are visited
+        for each input geometry and may not be in ascending index order; no meaningful
+        order is implied.
+
+        The max_distance used to search for nearest items in the tree may have a
+        significant impact on performance by reducing the number of input geometries
+        that are evaluated for nearest items in the tree.  Only those input geometries
+        with at least one tree item within +/- max_distance beyond their envelope will
+        be evaluated.
+
+        The distance, if returned, will be 0 for any intersected geometries in the tree.
+
+        Any geometry that is None or empty in the input geometries is omitted from
+        the output.
+
+        Parameters
+        ----------
+        geometry : Geometry or array_like
+            Input geometries to query the tree.
+        max_distance : float, optional (default: None)
+            Maximum distance within which to query for nearest items in tree.
+            Must be greater than 0.
+        return_distance : bool, optional (default: False)
+            If True, will return distances in addition to indexes.
+
+        Returns
+        -------
+        indices or tuple of (indices, distances)
+            indices is an ndarray of shape (2,n) and distances (if present) an
+            ndarray of shape (n).
+            The first subarray of indices contains input geometry indices.
+            The second subarray of indices contains tree geometry indices.
+
+        See also
+        --------
+        nearest: returns singular nearest geometry for each input
+
+        Examples
+        --------
+        >>> import pygeos
+        >>> tree = pygeos.STRtree(pygeos.points(np.arange(10), np.arange(10)))
+        >>> tree.nearest_all(pygeos.points(1,1)).tolist()  # doctest: +SKIP
+        [[0], [1]]
+        >>> tree.nearest_all([pygeos.box(1,1,3,3)]).tolist()  # doctest: +SKIP
+        [[0, 0, 0], [1, 2, 3]]
+        >>> points = pygeos.points(0.5,0.5)
+        >>> index, distance = tree.nearest_all(points, return_distance=True)  # doctest: +SKIP
+        >>> index.tolist()  # doctest: +SKIP
+        [[0, 0], [0, 1]]
+        >>> distance.round(4).tolist()  # doctest: +SKIP
+        [0.7071, 0.7071]
+        >>> tree.nearest_all(None).tolist()  # doctest: +SKIP
+        [[], []]
+        """
+
+        geometry = np.asarray(geometry, dtype=object)
+        if geometry.ndim == 0:
+            geometry = np.expand_dims(geometry, 0)
+
+        if max_distance is not None and max_distance <= 0:
+            raise ValueError("max_distance must be greater than 0")
+
+        # a distance of 0 means no max_distance is used
+        max_distance = max_distance or 0
+
+        if return_distance:
+            return self._tree.nearest_all(geometry, max_distance)
+
+        return self._tree.nearest_all(geometry, max_distance)[0]

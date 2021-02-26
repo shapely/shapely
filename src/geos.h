@@ -139,4 +139,10 @@ extern char geos_interpolate_checker(GEOSContextHandle_t ctx, GEOSGeometry* geom
 
 extern int init_geos(PyObject* m);
 
-#endif
+
+int get_bounds(GEOSContextHandle_t ctx, GEOSGeometry* geom, double* xmin, double* ymin,
+               double* xmax, double* ymax);
+GEOSGeometry* create_box(GEOSContextHandle_t ctx, double xmin, double ymin, double xmax,
+                         double ymax);
+
+#endif // _GEOS_H

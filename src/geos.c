@@ -5,6 +5,7 @@
 
 #include <Python.h>
 #include <structmember.h>
+#include <numpy/npy_math.h>
 
 /* This initializes a globally accessible GEOSException object */
 PyObject* geos_exception[1] = {NULL};
@@ -284,13 +285,13 @@ char check_to_wkt_compatible(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
 
 /* GEOSInterpolate_r and GEOSInterpolateNormalized_r segfault on empty
  * geometries and also on collections with the first geometry empty.
- * 
+ *
  * This function returns:
  * - PGERR_GEOMETRY_TYPE on non-linear geometries
  * - PGERR_EMPTY_GEOMETRY on empty linear geometries
  * - PGERR_EXCEPTIONS on GEOS exceptions
  * - PGERR_SUCCESS on a non-empty and linear geometry
- * 
+ *
  * Note that GEOS 3.8 fixed this situation for empty LINESTRING/LINEARRING,
  * but it still segfaults on other empty geometries.
  */
@@ -345,4 +346,188 @@ void geos_error_handler(const char* message, void* userdata) {
 
 void geos_notice_handler(const char* message, void* userdata) {
   snprintf(userdata, 1024, "%s", message);
+}
+
+
+/* Extract bounds from geometry.
+ *
+ * Bounds coordinates will be set to NPY_NAN if geom is NULL, empty, or does not have an
+ * envelope.
+ *
+ * Parameters
+ * ----------
+ * ctx: GEOS context handle
+ * geom: pointer to GEOSGeometry; can be NULL
+ * xmin: pointer to xmin value
+ * ymin: pointer to ymin value
+ * xmax: pointer to xmax value
+ * ymax: pointer to ymax value
+ *
+ * Must be called from within a GEOS_INIT_THREADS / GEOS_FINISH_THREADS
+ * or GEOS_INIT / GEOS_FINISH block.
+ *
+ * Returns
+ * -------
+ * 1 on success; 0 on error
+ */
+int get_bounds(GEOSContextHandle_t ctx, GEOSGeometry* geom, double* xmin, double* ymin,
+               double* xmax, double* ymax) {
+
+  int retval = 1;
+
+  if (geom == NULL || GEOSisEmpty_r(ctx, geom)) {
+    *xmin = *ymin = *xmax = *ymax = NPY_NAN;
+    return 1;
+  }
+
+#if GEOS_SINCE_3_7_0
+  // use min / max coordinates
+
+  if (!(GEOSGeom_getXMin_r(ctx, geom, xmin) && GEOSGeom_getYMin_r(ctx, geom, ymin) &&
+        GEOSGeom_getXMax_r(ctx, geom, xmax) && GEOSGeom_getYMax_r(ctx, geom, ymax))) {
+    return 0;
+  }
+
+#else
+  // extract coordinates from envelope
+
+  GEOSGeometry* envelope = NULL;
+  const GEOSGeometry* ring = NULL;
+  const GEOSCoordSequence* coord_seq = NULL;
+  int size;
+
+  /* construct the envelope */
+  envelope = GEOSEnvelope_r(ctx, geom);
+  if (envelope == NULL) {
+    return 0;
+  }
+
+  size = GEOSGetNumCoordinates_r(ctx, envelope);
+
+  /* get the bbox depending on the number of coordinates in the envelope */
+  if (size == 0) { /* Envelope is empty */
+    *xmin = *ymin = *xmax = *ymax = NPY_NAN;
+  } else if (size == 1) { /* Envelope is a point */
+    if (!GEOSGeomGetX_r(ctx, envelope, xmin)) {
+      retval = 0;
+      goto finish;
+    }
+    if (!GEOSGeomGetY_r(ctx, envelope, ymin)) {
+      retval = 0;
+      goto finish;
+    }
+    *xmax = *xmin;
+    *ymax = *ymin;
+  } else if (size == 5) { /* Envelope is a box */
+    ring = GEOSGetExteriorRing_r(ctx, envelope);
+    if (ring == NULL) {
+      retval = 0;
+      goto finish;
+    }
+    coord_seq = GEOSGeom_getCoordSeq_r(ctx, ring);
+    if (coord_seq == NULL) {
+      retval = 0;
+      goto finish;
+    }
+    if (!GEOSCoordSeq_getX_r(ctx, coord_seq, 0, xmin)) {
+      retval = 0;
+      goto finish;
+    }
+    if (!GEOSCoordSeq_getY_r(ctx, coord_seq, 0, ymin)) {
+      retval = 0;
+      goto finish;
+    }
+    if (!GEOSCoordSeq_getX_r(ctx, coord_seq, 2, xmax)) {
+      retval = 0;
+      goto finish;
+    }
+    if (!GEOSCoordSeq_getY_r(ctx, coord_seq, 2, ymax)) {
+      retval = 0;
+      goto finish;
+    }
+  }
+
+finish:
+  if (envelope != NULL) {
+    GEOSGeom_destroy_r(ctx, envelope);
+  }
+
+#endif
+
+  return retval;
+}
+
+/* Create a Polygon from bounding coordinates.
+ *
+ * Must be called from within a GEOS_INIT_THREADS / GEOS_FINISH_THREADS
+ * or GEOS_INIT / GEOS_FINISH block.
+ *
+ * Parameters
+ * ----------
+ * ctx: GEOS context handle
+ * xmin: minimum X value
+ * ymin: minimum Y value
+ * xmax: maximum X value
+ * ymax: maximum Y value
+ *
+ * Returns
+ * -------
+ * GEOSGeometry* on success (owned by caller) or
+ * NULL on failure or NPY_NAN coordinates
+ */
+GEOSGeometry* create_box(GEOSContextHandle_t ctx, double xmin, double ymin, double xmax,
+                         double ymax) {
+  if (xmin == NPY_NAN || ymin == NPY_NAN || xmax == NPY_NAN || ymax == NPY_NAN) {
+    return NULL;
+  }
+
+  GEOSCoordSequence* coords = NULL;
+  GEOSGeometry* geom = NULL;
+  GEOSGeometry* ring = NULL;
+
+  // Construct coordinate sequence and set vertices
+  coords = GEOSCoordSeq_create_r(ctx, 5, 2);
+  if (coords == NULL) {
+    return NULL;
+  }
+
+  if (!(GEOSCoordSeq_setX_r(ctx, coords, 0, xmin) &&
+        GEOSCoordSeq_setY_r(ctx, coords, 0, ymin) &&
+        GEOSCoordSeq_setX_r(ctx, coords, 1, xmax) &&
+        GEOSCoordSeq_setY_r(ctx, coords, 1, ymin) &&
+        GEOSCoordSeq_setX_r(ctx, coords, 2, xmax) &&
+        GEOSCoordSeq_setY_r(ctx, coords, 2, ymax) &&
+        GEOSCoordSeq_setX_r(ctx, coords, 3, xmin) &&
+        GEOSCoordSeq_setY_r(ctx, coords, 3, ymax) &&
+        GEOSCoordSeq_setX_r(ctx, coords, 4, xmin) &&
+        GEOSCoordSeq_setY_r(ctx, coords, 4, ymin))) {
+    if (coords != NULL) {
+      GEOSCoordSeq_destroy_r(ctx, coords);
+    }
+
+    return NULL;
+  }
+
+  // Construct linear ring then use to construct polygon
+  // Note: coords are owned by ring
+  ring = GEOSGeom_createLinearRing_r(ctx, coords);
+  if (ring == NULL) {
+    if (coords != NULL) {
+      GEOSCoordSeq_destroy_r(ctx, coords);
+    }
+
+    return NULL;
+  }
+
+  // Note: ring is owned by polygon
+  geom = GEOSGeom_createPolygon_r(ctx, ring, NULL, 0);
+  if (geom == NULL) {
+    if (ring != NULL) {
+      GEOSGeom_destroy_r(ctx, ring);
+    }
+
+    return NULL;
+  }
+
+  return geom;
 }

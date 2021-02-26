@@ -1178,3 +1178,314 @@ def test_query_bulk_intersects_lines(line_tree, geometry, expected):
 )
 def test_query_bulk_intersects_polygons(poly_tree, geometry, expected):
     assert_array_equal(poly_tree.query_bulk(geometry, predicate="intersects"), expected)
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+def test_nearest_empty_tree():
+    tree = pygeos.STRtree([])
+    assert_array_equal(tree.nearest(point), [[], []])
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize("geometry", ["I am not a geometry"])
+def test_nearest_invalid_geom(tree, geometry):
+    with pytest.raises(TypeError):
+        tree.nearest(geometry)
+
+
+# TODO: add into regular results
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize(
+    "geometry,expected",
+    [(None, [[], []]), ([None], [[], []])],
+)
+def test_nearest_none(tree, geometry, expected):
+    assert_array_equal(tree.nearest_all(geometry), expected)
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize(
+    "geometry,expected",
+    [
+        (pygeos.points(0.25, 0.25), [[0], [0]]),
+        (pygeos.points(0.75, 0.75), [[0], [1]]),
+        (pygeos.points(1, 1), [[0], [1]]),
+        ([pygeos.points(1, 1), pygeos.points(0, 0)], [[0, 1], [1, 0]]),
+        ([pygeos.points(1, 1), pygeos.points(0.25, 1)], [[0, 1], [1, 1]]),
+        ([pygeos.points(-10, -10), pygeos.points(100, 100)], [[0, 1], [0, 9]]),
+        (box(0.5, 0.5, 0.75, 0.75), [[0], [1]]),
+        (pygeos.buffer(pygeos.points(2.5, 2.5), HALF_UNIT_DIAG), [[0], [2]]),
+        (pygeos.buffer(pygeos.points(3, 3), HALF_UNIT_DIAG), [[0], [3]]),
+        (pygeos.multipoints([[5.5, 5], [7, 7]]), [[0], [7]]),
+        (pygeos.multipoints([[5, 7], [7, 5]]), [[0], [6]]),
+        (None, [[], []]),
+        ([None], [[], []]),
+    ],
+)
+def test_nearest_points(tree, geometry, expected):
+    assert_array_equal(tree.nearest(geometry), expected)
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.xfail(reason="equidistant geometries may produce nondeterministic results")
+@pytest.mark.parametrize(
+    "geometry,expected",
+    [
+        # 2 equidistant points in tree
+        (pygeos.points(0.5, 0.5), [0, 1]),
+        # multiple points in box
+        (box(0, 0, 3, 3), [0, 1, 2, 3]),
+        # return nearest point in tree for each point in multipoint
+        (pygeos.multipoints([[5, 5], [7, 7]]), [5, 7]),
+    ],
+)
+def test_nearest_points_equidistant(tree, geometry, expected):
+    result = tree.nearest(geometry)
+    assert result[1] in expected
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize(
+    "geometry,expected",
+    [
+        (pygeos.points(0.5, 0.5), [[0], [0]]),
+        (pygeos.points(1.5, 0.5), [[0], [0]]),
+        (pygeos.box(0.5, 1.5, 1, 2), [[0], [1]]),
+        (pygeos.linestrings([[0, 0.5], [1, 2.5]]), [[0], [0]]),
+    ],
+)
+def test_nearest_lines(line_tree, geometry, expected):
+    assert_array_equal(line_tree.nearest(geometry), expected)
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.xfail(reason="equidistant geometries may produce nondeterministic results")
+@pytest.mark.parametrize(
+    "geometry,expected",
+    [
+        # at junction between 2 lines
+        (pygeos.points(2, 2), [1, 2]),
+        # contains one line, intersects with another
+        (box(0, 0, 1, 1), [0, 1]),
+        # overlaps 2 lines
+        (box(0.5, 0.5, 1.5, 1.5), [0, 1]),
+        # box overlaps 2 lines and intersects endpoints of 2 more
+        (box(3, 3, 5, 5), [2, 3, 4, 5]),
+        (pygeos.buffer(pygeos.points(2.5, 2.5), HALF_UNIT_DIAG), [1, 2]),
+        (pygeos.buffer(pygeos.points(3, 3), HALF_UNIT_DIAG), [2, 3]),
+        # multipoints at endpoints of 2 lines each
+        (pygeos.multipoints([[5, 5], [7, 7]]), [4, 5, 6, 7]),
+        # second point in multipoint at endpoints of 2 lines
+        (pygeos.multipoints([[5.5, 5], [7, 7]]), [6, 7]),
+        # multipoints are equidistant from 2 lines
+        (pygeos.multipoints([[5, 7], [7, 5]]), [5, 6]),
+    ],
+)
+def test_nearest_lines_equidistant(line_tree, geometry, expected):
+    result = line_tree.nearest(geometry)
+    assert result[1] in expected
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize(
+    "geometry,expected",
+    [
+        (pygeos.points(0, 0), [[0], [0]]),
+        (pygeos.points(2, 2), [[0], [2]]),
+        (pygeos.box(0, 5, 1, 6), [[0], [3]]),
+        (pygeos.multipoints([[5, 7], [7, 5]]), [[0], [6]]),
+    ],
+)
+def test_nearest_polygons(poly_tree, geometry, expected):
+    assert_array_equal(poly_tree.nearest(geometry), expected)
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.xfail(reason="equidistant geometries may produce nondeterministic results")
+@pytest.mark.parametrize(
+    "geometry,expected",
+    [
+        # 2 polygons in tree overlap point
+        (pygeos.points(0.5, 0.5), [0, 1]),
+        # box overlaps multiple polygons
+        (box(0, 0, 1, 1), [0, 1]),
+        (box(0.5, 0.5, 1.5, 1.5), [0, 1, 2]),
+        (box(3, 3, 5, 5), [3, 4, 5]),
+        (pygeos.buffer(pygeos.points(2.5, 2.5), HALF_UNIT_DIAG), [2, 3]),
+        # completely overlaps one polygon, touches 2 others
+        (pygeos.buffer(pygeos.points(3, 3), HALF_UNIT_DIAG), [2, 3, 4]),
+        # each point in multi point intersects a polygon in tree
+        (pygeos.multipoints([[5, 5], [7, 7]]), [5, 7]),
+        (pygeos.multipoints([[5.5, 5], [7, 7]]), [5, 7]),
+    ],
+)
+def test_nearest_polygons_equidistant(poly_tree, geometry, expected):
+    result = poly_tree.nearest(geometry)
+    assert result[1] in expected
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+def test_nearest_all_empty_tree():
+    tree = pygeos.STRtree([])
+    assert_array_equal(tree.nearest_all(point), [[], []])
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize("geometry", ["I am not a geometry"])
+def test_nearest_all_invalid_geom(tree, geometry):
+    with pytest.raises(TypeError):
+        tree.nearest_all(geometry)
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize(
+    "geometry,return_distance,expected",
+    [(None, False, [[], []]), ([None], False, [[], []]), (None, True, ([[], []], []))],
+)
+def test_nearest_all_none(tree, geometry, return_distance, expected):
+    if return_distance:
+        index, distance = tree.nearest_all(geometry, return_distance=True)
+        assert_array_equal(index, expected[0])
+        assert_array_equal(distance, expected[1])
+
+    else:
+        assert_array_equal(tree.nearest_all(geometry), expected)
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize(
+    "geometry,expected", [(empty, [[], []]), ([empty, point], [[1, 1], [2, 3]])]
+)
+def test_nearest_all_empty_geom(tree, geometry, expected):
+    assert_array_equal(tree.nearest_all(geometry), expected)
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize(
+    "geometry,expected",
+    [
+        (pygeos.points(0.25, 0.25), [[0], [0]]),
+        (pygeos.points(0.75, 0.75), [[0], [1]]),
+        (pygeos.points(1, 1), [[0], [1]]),
+        # 2 equidistant points in tree
+        (pygeos.points(0.5, 0.5), [[0, 0], [0, 1]]),
+        ([pygeos.points(1, 1), pygeos.points(0, 0)], [[0, 1], [1, 0]]),
+        ([pygeos.points(1, 1), pygeos.points(0.25, 1)], [[0, 1], [1, 1]]),
+        ([pygeos.points(-10, -10), pygeos.points(100, 100)], [[0, 1], [0, 9]]),
+        (box(0.5, 0.5, 0.75, 0.75), [[0], [1]]),
+        # multiple points in box
+        (box(0, 0, 3, 3), [[0, 0, 0, 0], [0, 1, 2, 3]]),
+        (pygeos.buffer(pygeos.points(2.5, 2.5), HALF_UNIT_DIAG), [[0], [2]]),
+        (pygeos.buffer(pygeos.points(3, 3), HALF_UNIT_DIAG), [[0], [3]]),
+        (pygeos.multipoints([[5.5, 5], [7, 7]]), [[0], [7]]),
+        (pygeos.multipoints([[5, 7], [7, 5]]), [[0], [6]]),
+        # return nearest point in tree for each point in multipoint
+        (pygeos.multipoints([[5, 5], [7, 7]]), [[0, 0], [5, 7]]),
+        # 2 equidistant points per point in multipoint
+        (
+            pygeos.multipoints([[0.5, 0.5], [3.5, 3.5]]),
+            [
+                [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+                [0, 1, 3, 4],
+            ],
+        ),
+    ],
+)
+def test_nearest_all_points(tree, geometry, expected):
+    assert_array_equal(tree.nearest_all(geometry), expected)
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize(
+    "geometry,expected",
+    [
+        (pygeos.points(0.5, 0.5), [[0], [0]]),
+        # at junction between 2 lines, will return both
+        (pygeos.points(2, 2), [[0, 0], [1, 2]]),
+        # contains one line, intersects with another
+        (box(0, 0, 1, 1), [[0, 0], [0, 1]]),
+        # overlaps 2 lines
+        (box(0.5, 0.5, 1.5, 1.5), [[0, 0], [0, 1]]),
+        # second box overlaps 2 lines and intersects endpoints of 2 more
+        ([box(0, 0, 0.5, 0.5), box(3, 3, 5, 5)], [[0, 1, 1, 1, 1], [0, 2, 3, 4, 5]]),
+        (pygeos.buffer(pygeos.points(2.5, 2.5), HALF_UNIT_DIAG), [[0, 0], [1, 2]]),
+        (pygeos.buffer(pygeos.points(3, 3), HALF_UNIT_DIAG), [[0, 0], [2, 3]]),
+        # multipoints at endpoints of 2 lines each
+        (pygeos.multipoints([[5, 5], [7, 7]]), [[0, 0, 0, 0], [4, 5, 6, 7]]),
+        # second point in multipoint at endpoints of 2 lines
+        (pygeos.multipoints([[5.5, 5], [7, 7]]), [[0, 0], [6, 7]]),
+        # multipoints are equidistant from 2 lines
+        (pygeos.multipoints([[5, 7], [7, 5]]), [[0, 0], [5, 6]]),
+    ],
+)
+def test_nearest_all_lines(line_tree, geometry, expected):
+    assert_array_equal(line_tree.nearest_all(geometry), expected)
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize(
+    "geometry,expected",
+    [
+        (pygeos.points(0, 0), [[0], [0]]),
+        (pygeos.points(2, 2), [[0], [2]]),
+        # 2 polygons in tree overlap point
+        (pygeos.points(0.5, 0.5), [[0, 0], [0, 1]]),
+        # box overlaps multiple polygons
+        (box(0, 0, 1, 1), [[0, 0], [0, 1]]),
+        (box(0.5, 0.5, 1.5, 1.5), [[0, 0, 0], [0, 1, 2]]),
+        ([box(0, 0, 1, 1), box(3, 3, 5, 5)], [[0, 0, 1, 1, 1], [0, 1, 3, 4, 5]]),
+        (pygeos.buffer(pygeos.points(2.5, 2.5), HALF_UNIT_DIAG), [[0, 0], [2, 3]]),
+        # completely overlaps one polygon, touches 2 others
+        (pygeos.buffer(pygeos.points(3, 3), HALF_UNIT_DIAG), [[0, 0, 0], [2, 3, 4]]),
+        # each point in multi point intersects a polygon in tree
+        (pygeos.multipoints([[5, 5], [7, 7]]), [[0, 0], [5, 7]]),
+        (pygeos.multipoints([[5.5, 5], [7, 7]]), [[0, 0], [5, 7]]),
+        (pygeos.multipoints([[5, 7], [7, 5]]), [[0], [6]]),
+    ],
+)
+def test_nearest_all_polygons(poly_tree, geometry, expected):
+    assert_array_equal(poly_tree.nearest_all(geometry), expected)
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize(
+    "geometry,max_distance,expected",
+    [
+        # using unset max_distance should return all nearest
+        (pygeos.points(0.5, 0.5), None, [[0, 0], [0, 1]]),
+        # using large max_distance should return all nearest
+        (pygeos.points(0.5, 0.5), 10, [[0, 0], [0, 1]]),
+        # using small max_distance should return no results
+        (pygeos.points(0.5, 0.5), 0.1, [[], []]),
+        # using small max_distance should only return results in that distance
+        ([pygeos.points(0.5, 0.5), pygeos.points(0, 0)], 0.1, [[1], [0]]),
+    ],
+)
+def test_nearest_all_max_distance(tree, geometry, max_distance, expected):
+    assert_array_equal(tree.nearest_all(geometry, max_distance=max_distance), expected)
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize(
+    "geometry,max_distance",
+    [(pygeos.points(0.5, 0.5), 0), (pygeos.points(0.5, 0.5), -1)],
+)
+def test_nearest_all_invalid_max_distance(tree, geometry, max_distance):
+    with pytest.raises(ValueError, match="max_distance must be greater than 0"):
+        tree.nearest_all(geometry, max_distance=max_distance)
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize(
+    "geometry,expected",
+    [(pygeos.points(0, 0), [0.0]), (pygeos.points(0.5, 0.5), [0.7071, 0.7071])],
+)
+def test_nearest_all_return_distance(tree, geometry, expected):
+    assert_array_equal(
+        np.round(tree.nearest_all(geometry, return_distance=True)[1], 4), expected
+    )

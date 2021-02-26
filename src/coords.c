@@ -14,6 +14,7 @@
 #include "geos.h"
 #include "pygeom.h"
 
+
 /* These function prototypes enables that these functions can call themselves */
 static char get_coordinates(GEOSContextHandle_t, GEOSGeometry*, PyArrayObject*, npy_intp*,
                             int);

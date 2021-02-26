@@ -12,6 +12,33 @@ typedef struct {
   GeometryObject*** a;
 } tree_geom_vec_t;
 
+/* A struct to hold pairs of GeometryObject** and distance for use in STRtree::nearest_all */
+typedef struct {
+  GeometryObject** geom;
+  double distance;
+} tree_geom_dist_vec_item_t;
+
+/* A resizeable vector with pairs of GeometryObject** and distance for use in
+ * STRtree::nearest_all */
+typedef struct {
+  size_t n, m;
+  tree_geom_dist_vec_item_t* a;
+} tree_geom_dist_vec_t;
+
+/* A resizeable vector with distances to nearest tree items */
+typedef struct {
+  size_t n, m;
+  double* a;
+} tree_dist_vec_t;
+
+/* A struct to hold userdata argument data for distance_callback used by
+ * GEOSSTRtree_nearest_generic_r */
+typedef struct {
+  GEOSContextHandle_t ctx;
+  tree_geom_dist_vec_t* dist_pairs;
+  double min_distance;
+} tree_nearest_userdata_t;
+
 typedef struct {
   PyObject_HEAD void* ptr;
   npy_intp count;           // count of geometries added to the tree

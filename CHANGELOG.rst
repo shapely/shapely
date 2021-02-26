@@ -4,9 +4,10 @@ Changelog
 Version 0.10 (unreleased)
 ------------------------
 
-**Highlights of this release**
+**Major enhancements**
 
-* ...
+* Addition of ``nearest`` and ``nearest_all`` functions to ``STRtree`` for
+  GEOS >= 3.6 to find the nearest neighbors (#272).
 
 **API Changes**
 
@@ -28,7 +29,9 @@ Version 0.10 (unreleased)
 Thanks to everyone who contributed to this release!
 People with a "+" by their names contributed a patch for the first time.
 
-* ...
+* Brendan Ward
+* Casper van der Wel
+* Joris Van den Bossche
 
 
 Version 0.9 (2021-01-23)
