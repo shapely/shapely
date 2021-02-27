@@ -649,7 +649,7 @@ class BaseGeometry(object):
         >>> from shapely.wkt import loads
         >>> p = loads("MULTILINESTRING((0 0, 1 1), (3 3, 2 2))")
         >>> p.normalize().wkt
-        "MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))"
+        'MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))'
         """
         # self.impl['normalize'](self)
         if self._geom is None:
