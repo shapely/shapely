@@ -16,18 +16,12 @@ int init_geos(PyObject* m) {
   return 0;
 }
 
-/* Returns 1 if geometry is an empty point, 0 otherwise, 2 on error.
- */
-char is_point_empty(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
-  int geom_type;
-
-  geom_type = GEOSGeomTypeId_r(ctx, geom);
-  if (geom_type == GEOS_POINT) {
-    return GEOSisEmpty_r(ctx, geom);
-  } else if (geom_type == -1) {
-    return 2;  // GEOS exception
-  } else {
-    return 0;  // No empty point
+void destroy_geom_arr(void* context, GEOSGeometry** array, int length) {
+  int i;
+  for (i = 0; i < length; i++) {
+    if (array[i] != NULL) {
+      GEOSGeom_destroy_r(context, array[i]);
+    }
   }
 }
 
@@ -54,6 +48,25 @@ char multipoint_has_point_empty(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
     }
   }
   return 0;
+}
+
+// POINT EMPTY is converted to POINT (nan nan)
+// by GEOS >= 3.10.0. Before that, we do it ourselves here.
+#if !GEOS_SINCE_3_10_0
+
+/* Returns 1 if geometry is an empty point, 0 otherwise, 2 on error.
+ */
+char is_point_empty(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
+  int geom_type;
+
+  geom_type = GEOSGeomTypeId_r(ctx, geom);
+  if (geom_type == GEOS_POINT) {
+    return GEOSisEmpty_r(ctx, geom);
+  } else if (geom_type == -1) {
+    return 2;  // GEOS exception
+  } else {
+    return 0;  // No empty point
+  }
 }
 
 /* Returns 1 if a geometrycollection has an empty point, 0 otherwise, 2 on error.
@@ -132,15 +145,6 @@ GEOSGeometry* point_empty_to_nan(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
   }
   GEOSSetSRID_r(ctx, result, GEOSGetSRID_r(ctx, geom));
   return result;
-}
-
-void destroy_geom_arr(void* context, GEOSGeometry** array, int length) {
-  int i;
-  for (i = 0; i < length; i++) {
-    if (array[i] != NULL) {
-      GEOSGeom_destroy_r(context, array[i]);
-    }
-  }
 }
 
 /* Creates a new multipoint, replacing empty points with POINT (nan, nan[, nan)]
@@ -250,6 +254,8 @@ GEOSGeometry* point_empty_to_nan_all_geoms(GEOSContextHandle_t ctx, GEOSGeometry
   GEOSSetSRID_r(ctx, result, GEOSGetSRID_r(ctx, geom));
   return result;
 }
+
+#endif  // !GEOS_SINCE_3_10_0
 
 /* Checks whether the geometry is a multipoint with an empty point in it
  *

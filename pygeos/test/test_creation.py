@@ -41,6 +41,11 @@ def test_points_invalid_ndim():
         pygeos.points([0, 1, 2, 3])
 
 
+@pytest.mark.skipif(pygeos.geos_version < (3, 10, 0), reason="GEOS < 3.10")
+def test_points_nan_becomes_empty():
+    assert str(pygeos.points(np.nan, np.nan)) == "POINT EMPTY"
+
+
 def test_linestrings_from_coords():
     actual = pygeos.linestrings([[[0, 0], [1, 1]], [[0, 0], [2, 2]]])
     assert str(actual[0]) == "LINESTRING (0 0, 1 1)"

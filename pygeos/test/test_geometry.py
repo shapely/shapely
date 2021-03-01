@@ -4,7 +4,7 @@ import pygeos
 import pytest
 
 from .common import point
-from .common import point_nan
+from .common import line_string_nan
 from .common import empty_point
 from .common import line_string
 from .common import empty_line_string
@@ -231,24 +231,24 @@ def test_set_unique(geom):
 
 
 def test_eq_nan():
-    assert point_nan != point_nan
+    assert line_string_nan != line_string_nan
 
 
 def test_neq_nan():
-    assert not (point_nan == point_nan)
+    assert not (line_string_nan == line_string_nan)
 
 
 def test_set_nan():
     # As NaN != NaN, you can have multiple "NaN" points in a set
     # set([float("nan"), float("nan")]) also returns a set with 2 elements
-    a = set(pygeos.points([[np.nan, np.nan]] * 10))
+    a = set(pygeos.linestrings([[[np.nan, np.nan], [np.nan, np.nan]]] * 10))
     assert len(a) == 10  # different objects: NaN != NaN
 
 
 def test_set_nan_same_objects():
     # You can't put identical objects in a set.
     # x = float("nan"); set([x, x]) also retuns a set with 1 element
-    a = set([point_nan] * 10)
+    a = set([line_string_nan] * 10)
     assert len(a) == 1
 
 
@@ -411,7 +411,7 @@ def test_set_precision_z():
 
 @pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_set_precision_nan():
-    assert np.all(np.isnan(pygeos.get_coordinates(pygeos.set_precision(point_nan, 1))))
+    assert np.all(np.isnan(pygeos.get_coordinates(pygeos.set_precision(line_string_nan, 1))))
 
 
 @pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")

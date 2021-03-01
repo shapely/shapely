@@ -32,6 +32,9 @@ def _wrap_construct_ufunc(func, coords, y=None, z=None):
 def points(coords, y=None, z=None):
     """Create an array of points.
 
+    Note that GEOS >=3.10 automatically converts POINT (nan nan) to
+    POINT EMPTY.
+
     Parameters
     ----------
     coords : array_like
