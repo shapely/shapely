@@ -18,8 +18,9 @@ References
      https://www.cs.odu.edu/~mln/ltrs-pdfs/icase-1997-14.pdf
 """
 
-from shapely.geos import lgeos
 import ctypes
+
+from shapely.geos import lgeos
 
 
 class STRtree:
