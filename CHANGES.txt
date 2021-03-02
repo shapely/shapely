@@ -1,16 +1,29 @@
 Changes
 =======
 
-1.8.0 (TBD)
+1.8a1 (TBD)
 -----------
+
+Deprecations:
+
+- ops.cascaded_union will be removed in version 2.0.0.
+- More ...
 
 New features:
 
+- Add a normalize() method to geometry classes, exposing the GEOSNormalize
+  algorithm (#1090).
+- Initialize STRtree with a capacity of 10 items per node (#1070).
 - Load libraries relocated to shapely/.libs by auditwheel versions < 3.1 or
   relocated to Shapely.libs by auditwheel versions >= 3.1.
 - shapely.ops.voronoi_diagram() computes the Voronoi Diagram of a geometry or
   geometry collection (#833, #851).
 - shapely.validation.make_valid() fixes invalid geometries (#883)
+
+Bug fixes:
+
+- Several issues with duplication and order of vertices in ops.substring have
+  been fixed (#1008).
 
 1.7.1 (2020-08-20)
 ------------------
