@@ -1,15 +1,17 @@
+import ctypes
 import gc
 import os
 import pickle
 import subprocess
 import sys
 
-from shapely.strtree import STRtree
+import pytest
+
 from shapely.geometry import Point, Polygon
-
 from shapely import strtree
+from shapely.strtree import STRtree
 
-from tests.conftest import requires_geos_342
+from .conftest import requires_geos_342
 
 
 @requires_geos_342
@@ -20,6 +22,25 @@ def test_query():
     assert len(results) == 1
     results = tree.query(Point(2, 2).buffer(1.0))
     assert len(results) == 3
+
+
+@requires_geos_342
+@pytest.mark.parametrize(
+    "q_geom,num_results", [(Point(2, 2).buffer(0.99), 1), (Point(2, 2).buffer(1.0), 3)]
+)
+def test_query_cb(q_geom, num_results):
+    points = [Point(i, i) for i in range(10)]
+    tree = STRtree(points)
+
+    results = []
+
+    def callback(item, userdata):
+        obj = ctypes.cast(item, ctypes.py_object).value
+        results.append(obj)
+
+    tree.query_cb(q_geom, callback=callback)
+
+    assert len(results) == num_results
 
 
 @requires_geos_342

@@ -21,6 +21,7 @@ References
 from shapely.geos import lgeos
 import ctypes
 
+
 class STRtree:
     """
     An STRtree is a spatial index; specifically, an R-tree created
@@ -172,6 +173,11 @@ class STRtree:
 
         return result
 
+    def query_cb(self, geom, callback):
+        lgeos.GEOSSTRtree_query(
+            self._tree_handle, geom._geom, lgeos.GEOSQueryCallback(callback), None
+        )
+
     def nearest(self, geom):
         """
         Get the nearest object in the index to a geometry object.
@@ -217,11 +223,16 @@ class STRtree:
                 dist = ctypes.cast(distance, ctypes.POINTER(ctypes.c_double))
                 lgeos.GEOSDistance(geom1._geom, geom2._geom, dist)
                 return 1
-            except:
+            except Exception:
                 return 0
 
-        item = lgeos.GEOSSTRtree_nearest_generic(self._tree_handle, ctypes.py_object(geom), envelope._geom, \
-            lgeos.GEOSDistanceCallback(callback), None)
+        item = lgeos.GEOSSTRtree_nearest_generic(
+            self._tree_handle,
+            ctypes.py_object(geom),
+            envelope._geom,
+            lgeos.GEOSDistanceCallback(callback),
+            None,
+        )
         result = ctypes.cast(item, ctypes.py_object).value
 
         return result
