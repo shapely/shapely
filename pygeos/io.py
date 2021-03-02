@@ -137,9 +137,9 @@ def to_wkb(
 
     Examples
     --------
-    >>> to_wkb(Geometry("POINT (1 1)"))
+    >>> to_wkb(Geometry("POINT (1 1)"), byte_order=1)
     b'\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?'
-    >>> to_wkb(Geometry("POINT (1 1)"), hex=True)
+    >>> to_wkb(Geometry("POINT (1 1)"), hex=True, byte_order=1)
     '0101000000000000000000F03F000000000000F03F'
     """
     if not np.isscalar(hex):

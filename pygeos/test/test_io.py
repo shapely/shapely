@@ -201,13 +201,13 @@ def test_repr_multipoint_with_point_empty():
 
 def test_to_wkb():
     point = pygeos.points(1, 1)
-    actual = pygeos.to_wkb(point)
+    actual = pygeos.to_wkb(point, byte_order=1)
     assert actual == POINT11_WKB
 
 
 def test_to_wkb_hex():
     point = pygeos.points(1, 1)
-    actual = pygeos.to_wkb(point, hex=True)
+    actual = pygeos.to_wkb(point, hex=True, byte_order=1)
     le = "01"
     point_type = "01000000"
     coord = "000000000000F03F"  # 1.0 as double (LE)
@@ -216,11 +216,11 @@ def test_to_wkb_hex():
 
 def test_to_wkb_3D():
     point_z = pygeos.points(1, 1, 1)
-    actual = pygeos.to_wkb(point_z)
+    actual = pygeos.to_wkb(point_z, byte_order=1)
     # fmt: off
     assert actual == b"\x01\x01\x00\x00\x80\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?"  # noqa
     # fmt: on
-    actual = pygeos.to_wkb(point_z, output_dimension=2)
+    actual = pygeos.to_wkb(point_z, output_dimension=2, byte_order=1)
     assert actual == POINT11_WKB
 
 
@@ -256,12 +256,12 @@ def test_to_wkb_srid():
     actual = pygeos.from_wkb(ewkb)
     assert pygeos.to_wkt(actual, trim=True) == "POINT (0 0)"
 
-    assert pygeos.to_wkb(actual, hex=True) == wkb
-    assert pygeos.to_wkb(actual, hex=True, include_srid=True) == ewkb
+    assert pygeos.to_wkb(actual, hex=True, byte_order=1) == wkb
+    assert pygeos.to_wkb(actual, hex=True, include_srid=True, byte_order=1) == ewkb
 
     point = pygeos.points(1, 1)
     point_with_srid = pygeos.set_srid(point, np.int32(4326))
-    result = pygeos.to_wkb(point_with_srid, include_srid=True)
+    result = pygeos.to_wkb(point_with_srid, include_srid=True, byte_order=1)
     assert np.frombuffer(result[5:9], "<u4").item() == 4326
 
 
@@ -277,7 +277,7 @@ def test_to_wkb_srid():
     (pygeos.geometrycollections([pygeos.multipoints([empty_point])]), 3, NESTED_COLLECTIONZ_NAN_WKB),
 ])
 def test_to_wkb_point_empty_pre_geos38(geom,dims,expected):
-    actual = pygeos.to_wkb(geom, output_dimension=dims)
+    actual = pygeos.to_wkb(geom, output_dimension=dims, byte_order=1)
     # Use numpy.isnan; there are many byte representations for NaN
     assert actual[:-dims * 8] == expected[:-dims * 8]
     assert np.isnan(struct.unpack("<{}d".format(dims), actual[-dims * 8:])).all()
@@ -296,7 +296,7 @@ def test_to_wkb_point_empty_pre_geos38(geom,dims,expected):
 ])
 def test_to_wkb_point_empty_post_geos38(geom,dims,expected):
     # Post GEOS 3.8: empty point is 2D
-    actual = pygeos.to_wkb(geom, output_dimension=dims)
+    actual = pygeos.to_wkb(geom, output_dimension=dims, byte_order=1)
     # Use numpy.isnan; there are many byte representations for NaN
     assert actual[:-2 * 8] == expected[:-2 * 8]
     assert np.isnan(struct.unpack("<2d", actual[-2 * 8:])).all()
