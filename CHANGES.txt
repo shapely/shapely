@@ -6,8 +6,18 @@ Changes
 
 Deprecations:
 
-- ops.cascaded_union will be removed in version 2.0.0.
-- More ...
+The following functions and geometry attributes and methods will be removed in
+version 2.0.0.
+
+- ops.cascaded_union
+- geometry .empty()
+- geometry .to_wkb() and .to_wkt()
+- geometry .ctypes and .__array_interface__
+
+Geometry objects will become immutable in version 2.0.0.
+
+Deprecation warnings will be emitted in 1.8a1 when any of these features are
+used.
 
 New features:
 
