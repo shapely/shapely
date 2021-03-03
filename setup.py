@@ -134,12 +134,11 @@ ext_modules = []
 
 if "clean" in sys.argv:
     # delete any previously Cythonized or compiled files in pygeos
-    p = Path("pygeos")
-    for pattern in ["*.c", "*.so", "*.pyd"]:
+    p = Path(".")
+    for pattern in ["build/lib.*/pygeos/*.so", "pygeos/*.c", "pygeos/*.so", "pygeos/*.pyd"]:
         for filename in p.glob(pattern):
             print("removing '{}'".format(filename))
             filename.unlink()
-
 elif "sdist" not in sys.argv:
     ext_options = get_geos_paths()
 
