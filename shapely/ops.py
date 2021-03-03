@@ -429,14 +429,20 @@ class SplitOp(object):
         assert(isinstance(line, LineString))
         assert(isinstance(splitter, LineString) or isinstance(splitter, MultiLineString))
 
-        if splitter.crosses(line):
-            # The lines cross --> return multilinestring from the split
-            return line.difference(splitter)
-        elif splitter.relate_pattern(line, '1********'):
+        # |    s\l   | Interior | Boundary | Exterior |
+        # |----------|----------|----------|----------|
+        # | Interior |  0 or F  |    *     |    *     |   At least one of these two must be 0
+        # | Boundary |  0 or F  |    *     |    *     |   So either '0********' or '[0F]**0*****'
+        # | Exterior |    *     |    *     |    *     |   No overlapping interiors ('1********')
+        relation = splitter.relate(line)
+        if relation[0] == '1':
             # The lines overlap at some segment (linear intersection of interiors)
             raise ValueError('Input geometry segment overlaps with the splitter.')
+        elif relation[0] == '0' or relation[3] == '0':
+            # The splitter crosses or touches the line's interior --> return multilinestring from the split
+            return line.difference(splitter)
         else:
-            # The lines do not cross --> return collection with identity line
+            # The splitter does not cross or touch the line's interior --> return collection with identity line
             return [line]
 
     @staticmethod
