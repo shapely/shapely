@@ -13,8 +13,12 @@ version 2.0.0.
 - geometry .empty()
 - geometry .to_wkb() and .to_wkt()
 - geometry .ctypes and .__array_interface__
+- multi-part geometry .__len__
 
 Geometry objects will become immutable in version 2.0.0.
+
+The STRtree class will be entirely changed in 2.0.0. The exact future API is
+not yet decided, but will be decided before 1.8.0 is released.
 
 Deprecation warnings will be emitted in 1.8a1 when any of these features are
 used.

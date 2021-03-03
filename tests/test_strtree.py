@@ -4,18 +4,21 @@ import pickle
 import subprocess
 import sys
 
-from shapely.strtree import STRtree
+import pytest
+
+from shapely.errors import ShapelyDeprecationWarning
 from shapely.geometry import Point, Polygon
-
 from shapely import strtree
+from shapely.strtree import STRtree
 
-from tests.conftest import requires_geos_342
+from .conftest import requires_geos_342
 
 
 @requires_geos_342
 def test_query():
     points = [Point(i, i) for i in range(10)]
-    tree = STRtree(points)
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(points)
     results = tree.query(Point(2, 2).buffer(0.99))
     assert len(results) == 1
     results = tree.query(Point(2, 2).buffer(1.0))
@@ -30,7 +33,8 @@ def test_insert_empty_geometry():
     """
     empty = Polygon()
     geoms = [empty]
-    tree = STRtree(geoms)
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(geoms)
     assert tree._n_geoms == 0
     query = Polygon([(0, 0), (1, 1), (2, 0), (0, 0)])
     results = tree.query(query)
@@ -46,7 +50,8 @@ def test_query_empty_geometry():
     empty = Polygon()
     point = Point(1, 0.5)
     geoms = [empty, point]
-    tree = STRtree(geoms)
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(geoms)
     assert tree._n_geoms == 1
     query = Polygon([(0, 0), (1, 1), (2, 0), (0, 0)])
     results = tree.query(query)
@@ -60,7 +65,8 @@ def test_references():
     empty = Polygon()
     point = Point(1, 0.5)
     geoms = [empty, point]
-    tree = STRtree(geoms)
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(geoms)
     assert tree._n_geoms == 1
 
     empty = None
@@ -75,7 +81,8 @@ def test_references():
 
 @requires_geos_342
 def test_safe_delete():
-    tree = STRtree([])
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree([])
 
     _lgeos = strtree.lgeos
     strtree.lgeos = None
@@ -90,7 +97,9 @@ def test_pickle_persistence():
     """
     Don't crash trying to use unpickled GEOS handle.
     """
-    tree = STRtree([Point(i, i).buffer(0.1) for i in range(3)])
+
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree([Point(i, i).buffer(0.1) for i in range(3)])
     pickled_strtree = pickle.dumps(tree)
     unpickle_script_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "unpickle-strtree.py")
     proc = subprocess.Popen(
