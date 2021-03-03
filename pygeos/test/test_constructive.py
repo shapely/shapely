@@ -83,6 +83,16 @@ def test_float_arg_nan(geometry, func):
     assert actual is None
 
 
+def test_buffer_cap_style_invalid():
+    with pytest.raises(ValueError, match="'invalid' is not a valid option"):
+        pygeos.buffer(point, 1, cap_style="invalid")
+
+
+def test_buffer_join_style_invalid():
+    with pytest.raises(ValueError, match="'invalid' is not a valid option"):
+        pygeos.buffer(point, 1, join_style="invalid")
+
+
 def test_snap_none():
     actual = pygeos.snap(None, point, tolerance=1.0)
     assert actual is None
@@ -233,9 +243,9 @@ def test_offset_curve_non_scalar_kwargs():
         pygeos.offset_curve([line_string, line_string], 1, mitre_limit=[5.0, 6.0])
 
 
-def test_offset_curve_join_style():
-    with pytest.raises(KeyError):
-        pygeos.offset_curve(line_string, 1.0, join_style="nonsense")
+def test_offset_curve_join_style_invalid():
+    with pytest.raises(ValueError, match="'invalid' is not a valid option"):
+        pygeos.offset_curve(line_string, 1.0, join_style="invalid")
 
 
 @pytest.mark.skipif(pygeos.geos_version < (3, 7, 0), reason="GEOS < 3.7")

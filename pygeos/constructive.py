@@ -1,8 +1,8 @@
-from enum import IntEnum
 import numpy as np
 from . import Geometry  # NOQA
 from . import lib
 from .decorators import requires_geos, multithreading_enabled
+from .enum import ParamEnum
 
 
 __all__ = [
@@ -30,16 +30,16 @@ __all__ = [
 ]
 
 
-class BufferCapStyles(IntEnum):
-    ROUND = 1
-    FLAT = 2
-    SQUARE = 3
+class BufferCapStyles(ParamEnum):
+    round = 1
+    flat = 2
+    square = 3
 
 
-class BufferJoinStyles(IntEnum):
-    ROUND = 1
-    MITRE = 2
-    BEVEL = 3
+class BufferJoinStyles(ParamEnum):
+    round = 1
+    mitre = 2
+    bevel = 3
 
 
 @multithreading_enabled
@@ -105,7 +105,7 @@ def buffer(
         circular line endings (see ``quadsegs``). Both 'square' and 'flat'
         result in rectangular line endings, only 'flat' will end at the
         original vertex, while 'square' involves adding the buffer width.
-    join_style : {'round', 'bevel', 'sharp'}
+    join_style : {'round', 'bevel', 'mitre'}
         Specifies the shape of buffered line midpoints. 'round' results in
         rounded shapes. 'bevel' results in a beveled edge that touches the
         original vertex. 'mitre' results in a single vertex that is beveled
@@ -149,9 +149,9 @@ def buffer(
     True
     """
     if isinstance(cap_style, str):
-        cap_style = BufferCapStyles[cap_style.upper()].value
+        cap_style = BufferCapStyles.get_value(cap_style)
     if isinstance(join_style, str):
-        join_style = BufferJoinStyles[join_style.upper()].value
+        join_style = BufferJoinStyles.get_value(join_style)
     if not np.isscalar(quadsegs):
         raise TypeError("quadsegs only accepts scalar values")
     if not np.isscalar(cap_style):
@@ -196,7 +196,7 @@ def offset_curve(
     quadsegs : int
         Specifies the number of linear segments in a quarter circle in the
         approximation of circular arcs.
-    join_style : {'round', 'bevel', 'sharp'}
+    join_style : {'round', 'bevel', 'mitre'}
         Specifies the shape of outside corners. 'round' results in
         rounded shapes. 'bevel' results in a beveled edge that touches the
         original vertex. 'mitre' results in a single vertex that is beveled
@@ -214,7 +214,7 @@ def offset_curve(
     <pygeos.Geometry LINESTRING (2 2, 2 0)>
     """
     if isinstance(join_style, str):
-        join_style = BufferJoinStyles[join_style.upper()].value
+        join_style = BufferJoinStyles.get_value(join_style)
     if not np.isscalar(quadsegs):
         raise TypeError("quadsegs only accepts scalar values")
     if not np.isscalar(join_style):

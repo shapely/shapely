@@ -1,13 +1,12 @@
-from enum import IntEnum
 import numpy as np
 from . import lib
 from .decorators import requires_geos
-
+from .enum import ParamEnum
 
 __all__ = ["STRtree"]
 
 
-class BinaryPredicate(IntEnum):
+class BinaryPredicate(ParamEnum):
     """The enumeration of GEOS binary predicates types"""
 
     intersects = 1
@@ -19,9 +18,6 @@ class BinaryPredicate(IntEnum):
     covers = 7
     covered_by = 8
     contains_properly = 9
-
-
-VALID_PREDICATES = {e.name for e in BinaryPredicate}
 
 
 class STRtree:
@@ -105,14 +101,7 @@ class STRtree:
             predicate = 0
 
         else:
-            if not predicate in VALID_PREDICATES:
-                raise ValueError(
-                    "Predicate {} is not valid; must be one of {}".format(
-                        predicate, ", ".join(VALID_PREDICATES)
-                    )
-                )
-
-            predicate = BinaryPredicate[predicate].value
+            predicate = BinaryPredicate.get_value(predicate)
 
         return self._tree.query(geometry, predicate)
 
@@ -179,14 +168,7 @@ class STRtree:
             predicate = 0
 
         else:
-            if not predicate in VALID_PREDICATES:
-                raise ValueError(
-                    "Predicate {} is not valid; must be one of {}".format(
-                        predicate, ", ".join(VALID_PREDICATES)
-                    )
-                )
-
-            predicate = BinaryPredicate[predicate].value
+            predicate = BinaryPredicate.get_value(predicate)
 
         return self._tree.query_bulk(geometry, predicate)
 
