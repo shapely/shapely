@@ -1,8 +1,12 @@
 Changes
 =======
 
-1.8a1 (TBD)
------------
+1.8a1 (2021-03-03)
+------------------
+
+Shapely 1.8.0 will be a transitional version. There are a few bug fixes and new
+features, but it is mainly about warning of the upcoming changes in 2.0.0.
+Several more pre-releases before 1.8.0 are expected.
 
 Deprecations:
 
@@ -43,6 +47,10 @@ Bug fixes:
   discrepancies between results using multi and single part splitters (#1034).
 - Several issues with duplication and order of vertices in ops.substring have
   been fixed (#1008).
+
+Packaging:
+
+- The wheels uploaded to PyPI will include GEOS 3.9.1.
 
 1.7.1 (2020-08-20)
 ------------------
