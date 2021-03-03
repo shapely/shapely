@@ -22,6 +22,11 @@ New features:
 
 Bug fixes:
 
+- For pyinstaller we now handle the case of more than one GEOS library in the
+  environment, such as when fiona and rasterio wheels are co-installed with
+  shapely (#1071).
+- The ops.split function now splits on touch to eliminate confusing
+  discrepancies between results using multi and single part splitters (#1034).
 - Several issues with duplication and order of vertices in ops.substring have
   been fixed (#1008).
 
