@@ -13,8 +13,9 @@ Version 0.10 (unreleased)
 
 * STRtree default leaf size is now 10 instead of 5, for somewhat better performance
   under normal conditions (#286)
-* Removes ``VALID_PREDICATES`` set from ``pygeos.strtree`` package; these can be constructed
+* Deprecated ``VALID_PREDICATES`` set from ``pygeos.strtree`` package; these can be constructed
   in downstream libraries using the ``pygeos.strtree.BinaryPredicate`` enum.
+  This will be removed in a future release.
 
 **Added GEOS functions**
 
