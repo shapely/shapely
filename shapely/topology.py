@@ -9,13 +9,14 @@ These methods return ctypes objects that should be recast by the caller.
 
 from ctypes import byref, c_double
 from shapely.geos import TopologicalError, lgeos
+from shapely.errors import InvalidGeometryError
 
 
 class Validating(object):
 
     def _validate(self, ob, stop_prepared=False):
         if ob is None or ob._geom is None:
-            raise ValueError("Null geometry supports no operations")
+            raise InvalidGeometryError("Null geometry supports no operations")
         if stop_prepared and hasattr(ob, 'prepared'):
             raise ValueError("Prepared geometries cannot be operated on")
 

@@ -1,4 +1,5 @@
 """Shapely errors."""
+import warnings
 
 
 class ShapelyError(Exception):
@@ -41,3 +42,22 @@ class ShapelyDeprecationWarning(FutureWarning):
 
 class EmptyPartError(ShapelyError):
     """An error signifying an empty part was encountered when creating a multi-part."""
+
+
+class GeometryTypeError(TypeError, ValueError):
+    """
+    An error raised when the type of the geometry in question is
+    unrecognized or inappropriate.
+    """
+    def __init__(self, msg):
+        warnings.warn("GeometryTypeError will derive from ShapelyError and not TypeError or ValueError in Shapely 2.0.", ShapelyDeprecationWarning, stacklevel=2)
+        super().__init__(msg)
+
+
+class InvalidGeometryError(TypeError, ValueError):
+    """
+    An error raised when an operation is attempted on a null geometry
+    """
+    def __init__(self, msg):
+        warnings.warn("InvalidGeometryError will derive from ShapelyError and not TypeError or ValueError in Shapely 2.0.", ShapelyDeprecationWarning, stacklevel=2)
+        super().__init__(msg)

@@ -4,7 +4,7 @@
 from ctypes import byref, c_void_p, c_double
 from warnings import warn
 
-from shapely.errors import ShapelyDeprecationWarning
+from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
 from shapely.prepared import prep
 from shapely.geos import lgeos
 from shapely.geometry.base import geom_factory, BaseGeometry, BaseMultipartGeometry
@@ -322,7 +322,7 @@ def transform(func, geom):
     elif geom.type.startswith('Multi') or geom.type == 'GeometryCollection':
         return type(geom)([transform(func, part) for part in geom.geoms])
     else:
-        raise ValueError('Type %r not recognized' % geom.type)
+        raise GeometryTypeError('Type %r not recognized' % geom.type)
 
 
 def nearest_points(g1, g2):
@@ -391,9 +391,9 @@ def shared_paths(g1, g2):
         The second geometry
     """
     if not isinstance(g1, LineString):
-        raise TypeError("First geometry must be a LineString")
+        raise GeometryTypeError("First geometry must be a LineString")
     if not isinstance(g2, LineString):
-        raise TypeError("Second geometry must be a LineString")
+        raise GeometryTypeError("Second geometry must be a LineString")
     return(geom_factory(lgeos.methods['shared_paths'](g1._geom, g2._geom)))
 
 
@@ -402,9 +402,10 @@ class SplitOp(object):
     @staticmethod
     def _split_polygon_with_line(poly, splitter):
         """Split a Polygon with a LineString"""
-
-        assert(isinstance(poly, Polygon))
-        assert(isinstance(splitter, LineString))
+        if not isinstance(poly, Polygon):
+            raise GeometryTypeError("First argument must be a Polygon")
+        if not isinstance(splitter, LineString):
+            raise GeometryTypeError("Second argument must be a LineString")
 
         union = poly.boundary.union(splitter)
 
@@ -426,8 +427,10 @@ class SplitOp(object):
         if splitter.type in ('Polygon', 'MultiPolygon'):
             splitter = splitter.boundary
 
-        assert(isinstance(line, LineString))
-        assert(isinstance(splitter, LineString) or isinstance(splitter, MultiLineString))
+        if not isinstance(line, LineString):
+            raise GeometryTypeError("First argument must be a LineString")
+        if not isinstance(splitter, LineString) and not isinstance(splitter, MultiLineString):
+            raise GeometryTypeError("Second argument must be either a LineString or a MultiLineString")
 
         # |    s\l   | Interior | Boundary | Exterior |
         # |----------|----------|----------|----------|
@@ -448,9 +451,10 @@ class SplitOp(object):
     @staticmethod
     def _split_line_with_point(line, splitter):
         """Split a LineString with a Point"""
-
-        assert(isinstance(line, LineString))
-        assert(isinstance(splitter, Point))
+        if not isinstance(line, LineString):
+            raise GeometryTypeError("First argument must be a LineString")
+        if not isinstance(splitter, Point):
+            raise GeometryTypeError("Second argument must be a Point")
 
         # check if point is in the interior of the line
         if not line.relate_pattern(splitter, '0********'):
@@ -494,8 +498,10 @@ class SplitOp(object):
     def _split_line_with_multipoint(line, splitter):
         """Split a LineString with a MultiPoint"""
 
-        assert(isinstance(line, LineString))
-        assert(isinstance(splitter, MultiPoint))
+        if not isinstance(line, LineString):
+            raise GeometryTypeError("First argument must be a LineString")
+        if not isinstance(splitter, MultiPoint):
+            raise GeometryTypeError("Second argument must be a MultiPoint")
 
         chunks = [line]
         for pt in splitter.geoms:
@@ -549,16 +555,16 @@ class SplitOp(object):
             elif splitter.type in ('MultiPoint'):
                 split_func =  SplitOp._split_line_with_multipoint
             else:
-                raise ValueError("Splitting a LineString with a %s is not supported" % splitter.type)
+                raise GeometryTypeError("Splitting a LineString with a %s is not supported" % splitter.type)
 
         elif geom.type == 'Polygon':
             if splitter.type == 'LineString':
                 split_func = SplitOp._split_polygon_with_line
             else:
-                raise ValueError("Splitting a Polygon with a %s is not supported" % splitter.type)
+                raise GeometryTypeError("Splitting a Polygon with a %s is not supported" % splitter.type)
 
         else:
-            raise ValueError("Splitting %s geometry is not supported" % geom.type)
+            raise GeometryTypeError("Splitting %s geometry is not supported" % geom.type)
 
         return GeometryCollection(split_func(geom, splitter))
 
@@ -625,7 +631,7 @@ def substring(geom, start_dist, end_dist, normalized=False):
     """
 
     if not isinstance(geom, LineString):
-        raise TypeError("Can only calculate a substring of LineString geometries. A %s was provided." % geom.type)
+        raise GeometryTypeError("Can only calculate a substring of LineString geometries. A %s was provided." % geom.type)
 
     # Filter out cases in which to return a point
     if start_dist == end_dist:
