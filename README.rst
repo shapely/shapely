@@ -10,15 +10,19 @@ PyGEOS
 
 .. Github Actions status — https://github.com/pygeos/pygeos/actions
 
+.. image:: https://github.com/pygeos/pygeos/workflows/Linux/badge.svg
+	:alt: Github Actions status
+	:target: https://github.com/pygeos/pygeos/actions/workflows/test-linux.yml?query=branch%3Amaster
+
 .. image:: https://github.com/pygeos/pygeos/workflows/Conda/badge.svg
 	:alt: Github Actions status
-	:target: https://github.com/pygeos/pygeos/actions?query=workflow%3AConda
+	:target: https://github.com/pygeos/pygeos/actions/workflows/test-conda.yml?query=branch%3Amaster
 
 .. Appveyor CI status — https://ci.appveyor.com
 
-.. image:: https://ci.appveyor.com/api/projects/status/jw48gpd88f188av6?svg=true
+.. image:: https://ci.appveyor.com/api/projects/status/jw48gpd88f188av6/branch/master?svg=true
 	:alt: Appveyor CI status
-	:target: https://ci.appveyor.com/project/caspervdw/pygeos-3e5cu
+	:target: https://ci.appveyor.com/project/caspervdw/pygeos-3e5cu/branch/master
 
 .. Travis CI status -- https://travis-ci.com
 
