@@ -238,6 +238,9 @@ class STRtree:
         None
 
         """
+        if not self._initdata:
+            return
+
         lgeos.GEOSSTRtree_query(
             self._tree_handle, geom._geom, lgeos.GEOSQueryCallback(callback), None
         )
