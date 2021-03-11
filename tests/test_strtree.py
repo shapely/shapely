@@ -21,7 +21,8 @@ from .conftest import requires_geos_342
     "query_geom,num_results", [(Point(2, 2).buffer(0.99), 1), (Point(2, 2).buffer(1.0), 3)]
 )
 def test_query(geoms, query_geom, num_results):
-    tree = STRtree(geoms)
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(geoms)
     results = tree.query(query_geom)
     assert len(results) == num_results
 
@@ -32,7 +33,8 @@ def test_query(geoms, query_geom, num_results):
     "query_geom,num_results", [(Point(2, 2).buffer(0.99), 1), (Point(2, 2).buffer(1.0), 3)]
 )
 def test_query_cb(geoms, query_geom, num_results):
-    tree = STRtree(geoms)
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(geoms)
 
     results = []
 
@@ -52,7 +54,8 @@ def test_query_cb(geoms, query_geom, num_results):
     "query_geom,num_results", [(Point(2, 2).buffer(0.99), 1), (Point(2, 2).buffer(1.0), 3)]
 )
 def test_query_cb_str(geoms, values, query_geom, num_results):
-    tree = STRtree(zip(geoms, values))
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(zip(geoms, values))
 
     results = []
 
@@ -72,7 +75,8 @@ def test_query_cb_str(geoms, values, query_geom, num_results):
     "query_geom,num_results", [(Point(2, 2).buffer(0.99), 1), (Point(2, 2).buffer(1.0), 3)]
 )
 def test_query_cb_dict(geoms, values, query_geom, num_results):
-    tree = STRtree(zip(geoms, values))
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(zip(geoms, values))
 
     results = []
 
