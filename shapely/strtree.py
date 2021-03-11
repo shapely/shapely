@@ -266,6 +266,9 @@ class STRtree:
         'POINT (0 0)'
 
         """
+        if not self._initdata:
+            return None
+
         envelope = geom.envelope
         try:
             geoms, values = zip(*self._initdata)
