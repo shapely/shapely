@@ -19,8 +19,39 @@ References
 """
 
 import ctypes
+from functools import wraps
+import logging
 
 from shapely.geos import lgeos
+
+log = logging.getLogger(__name__)
+
+
+def nearest_callback(func):
+    @wraps(func)
+    def wrapper(arg1, arg2, arg3, arg4):
+        value = ctypes.cast(arg1, ctypes.py_object).value
+        geom = ctypes.cast(arg2, ctypes.py_object).value
+        dist = ctypes.cast(arg3, ctypes.POINTER(ctypes.c_double))
+        userdata = ctypes.cast(arg4, ctypes.py_object).value
+        try:
+            dist.contents.value = func(value, geom, userdata)
+            return 1
+        except Exception:
+            log.exception()
+            return 0
+
+    return wrapper
+
+
+def query_callback(func):
+    @wraps(func)
+    def wrapper(arg1, arg2):
+        value = ctypes.cast(arg1, ctypes.py_object).value
+        userdata = ctypes.cast(arg2, ctypes.py_object).value
+        func(value, userdata)
+
+    return wrapper
 
 
 class STRtree:
@@ -73,21 +104,27 @@ class STRtree:
     None
     """
 
-    def __init__(self, geoms):
-        # filter empty geometries out of the input
-        geoms = [geom for geom in geoms if not geom.is_empty]
-        self._n_geoms = len(geoms)
+    def __init__(self, initdata=None):
+        self._initdata = None
+        self._tree_handle = None
+        if initdata is not None:
+            self._initdata = list(initdata)
+        self._init_tree_handle(self._initdata)
 
-        self._init_tree_handle(geoms)
-
-        # Keep references to geoms.
-        self._geoms = list(geoms)
-
-    def _init_tree_handle(self, geoms):
+    def _init_tree_handle(self, initdata):
         node_capacity = 10
         self._tree_handle = lgeos.GEOSSTRtree_create(node_capacity)
-        for geom in geoms:
-            lgeos.GEOSSTRtree_insert(self._tree_handle, geom._geom, ctypes.py_object(geom))
+        if initdata:
+            for obj in initdata:
+                if not isinstance(obj, tuple):
+                    geom = obj
+                    value = obj
+                else:
+                    geom, value = obj
+                if not geom.is_empty:
+                    lgeos.GEOSSTRtree_insert(
+                        self._tree_handle, geom._geom, ctypes.py_object(value)
+                    )
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -96,15 +133,14 @@ class STRtree:
 
     def __setstate__(self, state):
         self.__dict__.update(state)
-        self._init_tree_handle(self._geoms)
+        self._init_tree_handle(self._initdata)
 
     def __del__(self):
         if self._tree_handle is not None:
             try:
                 lgeos.GEOSSTRtree_destroy(self._tree_handle)
-            except AttributeError:
-                pass  # lgeos might be empty on shutdown.
-
+            except AttributeError:  # lgeos might be empty on shutdown.
+                pass
             self._tree_handle = None
 
     def query(self, geom):
@@ -160,21 +196,38 @@ class STRtree:
         >>> index_by_id = dict((id(pt), i) for i, pt in enumerate(points))
         >>> [(index_by_id[id(pt)], pt.wkt) for pt in tree.query(Point(2,2).buffer(1.0))]
         [(1, 'POINT (1 1)'), (2, 'POINT (2 2)'), (3, 'POINT (3 3)')]
-        """
-        if self._n_geoms == 0:
-            return []
 
+        """
         result = []
 
-        def callback(item, userdata):
-            geom = ctypes.cast(item, ctypes.py_object).value
-            result.append(geom)
+        @query_callback
+        def callback(value, userdata):
+            result.append(value)
 
-        lgeos.GEOSSTRtree_query(self._tree_handle, geom._geom, lgeos.GEOSQueryCallback(callback), None)
+        self.query_cb(geom, callback)
 
         return result
 
     def query_cb(self, geom, callback):
+        """Search for tree nodes intersecting geom and execute the
+        callback function for each
+
+        Parameters
+        ----------
+        geom : Geometry
+            The query geometry
+        callback : callable
+            This is a function that takes two arguments, value and
+            userdata, and which is decorated by
+            shapely.strtree.query_callback. See STRtree.query() for an
+            example. Value is the value stored with the tree node.
+            Support for userdata is not implemented.
+
+        Returns
+        -------
+        None
+
+        """
         lgeos.GEOSSTRtree_query(
             self._tree_handle, geom._geom, lgeos.GEOSQueryCallback(callback), None
         )
@@ -211,21 +264,19 @@ class STRtree:
         >>> tree = STRtree ([Point(0, 0), Point(0, 0)])
         >>> tree.nearest(Point(0, 0)).wkt
         'POINT (0 0)'
+
         """
-        if self._n_geoms == 0:
-            return None
-
         envelope = geom.envelope
+        try:
+            geoms, values = zip(*self._initdata)
+        except TypeError:
+            geoms = self._initdata
+            values = self._initdata
 
-        def callback(item1, item2, distance, userdata):
-            try:
-                geom1 = ctypes.cast(item1, ctypes.py_object).value
-                geom2 = ctypes.cast(item2, ctypes.py_object).value
-                dist = ctypes.cast(distance, ctypes.POINTER(ctypes.c_double))
-                lgeos.GEOSDistance(geom1._geom, geom2._geom, dist)
-                return 1
-            except Exception:
-                return 0
+        @nearest_callback
+        def callback(value, geom, userdata):
+            value_geom = geoms[values.index(value)]
+            return geom.distance(value_geom)
 
         item = lgeos.GEOSSTRtree_nearest_generic(
             self._tree_handle,
