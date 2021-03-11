@@ -21,7 +21,9 @@ References
 import ctypes
 from functools import wraps
 import logging
+from warnings import warn
 
+from shapely.errors import ShapelyDeprecationWarning
 from shapely.geos import lgeos
 
 log = logging.getLogger(__name__)
@@ -40,7 +42,6 @@ def nearest_callback(func):
         except Exception:
             log.exception()
             return 0
-
     return wrapper
 
 
@@ -50,7 +51,6 @@ def query_callback(func):
         value = ctypes.cast(arg1, ctypes.py_object).value
         userdata = ctypes.cast(arg2, ctypes.py_object).value
         func(value, userdata)
-
     return wrapper
 
 
@@ -105,9 +105,13 @@ class STRtree:
     """
 
     def __init__(self, initdata=None):
+        warn(
+            "STRtree will be completely changed in 2.0.0. The exact API is not yet decided, but will be documented before 1.8.0",
+            ShapelyDeprecationWarning,
+            stacklevel=2,
+        )
         self._initdata = None
         self._tree_handle = None
-
         if initdata is not None:
             self._initdata = []
             for obj in initdata:
@@ -302,5 +306,4 @@ class STRtree:
             None,
         )
         result = ctypes.cast(item, ctypes.py_object).value
-
         return result

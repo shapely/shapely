@@ -1,16 +1,56 @@
 Changes
 =======
 
-1.8.0 (TBD)
------------
+1.8a1 (2021-03-03)
+------------------
+
+Shapely 1.8.0 will be a transitional version. There are a few bug fixes and new
+features, but it is mainly about warning of the upcoming changes in 2.0.0.
+Several more pre-releases before 1.8.0 are expected.
+
+Deprecations:
+
+The following functions and geometry attributes and methods will be removed in
+version 2.0.0.
+
+- ops.cascaded_union
+- geometry .empty()
+- geometry .to_wkb() and .to_wkt()
+- geometry .ctypes and .__array_interface__
+- multi-part geometry .__len__
+
+Geometry objects will become immutable in version 2.0.0.
+
+The STRtree class will be entirely changed in 2.0.0. The exact future API is
+not yet decided, but will be decided before 1.8.0 is released.
+
+Deprecation warnings will be emitted in 1.8a1 when any of these features are
+used.
 
 New features:
 
+- Add a normalize() method to geometry classes, exposing the GEOSNormalize
+  algorithm (#1090).
+- Initialize STRtree with a capacity of 10 items per node (#1070).
 - Load libraries relocated to shapely/.libs by auditwheel versions < 3.1 or
   relocated to Shapely.libs by auditwheel versions >= 3.1.
 - shapely.ops.voronoi_diagram() computes the Voronoi Diagram of a geometry or
   geometry collection (#833, #851).
 - shapely.validation.make_valid() fixes invalid geometries (#883)
+
+Bug fixes:
+
+- For pyinstaller we now handle the case of more than one GEOS library in the
+  environment, such as when fiona and rasterio wheels are co-installed with
+  shapely (#1071).
+- The ops.split function now splits on touch to eliminate confusing
+  discrepancies between results using multi and single part splitters (#1034).
+- Several issues with duplication and order of vertices in ops.substring have
+  been fixed (#1008).
+
+Packaging:
+
+- The wheels uploaded to PyPI will include GEOS 3.9.1.
 
 1.7.1 (2020-08-20)
 ------------------

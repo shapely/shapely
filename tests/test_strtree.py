@@ -7,6 +7,7 @@ import sys
 
 import pytest
 
+from shapely.errors import ShapelyDeprecationWarning
 from shapely.geometry import Point, Polygon
 from shapely import strtree
 from shapely.strtree import STRtree, query_callback
@@ -92,7 +93,8 @@ def test_insert_empty_geometry():
     """
     empty = Polygon()
     geoms = [empty]
-    tree = STRtree(geoms)
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(geoms)
     query = Polygon([(0, 0), (1, 1), (2, 0), (0, 0)])
     results = tree.query(query)
     assert len(results) == 0
@@ -107,7 +109,8 @@ def test_query_empty_geometry():
     empty = Polygon()
     point = Point(1, 0.5)
     geoms = [empty, point]
-    tree = STRtree(geoms)
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(geoms)
     query = Polygon([(0, 0), (1, 1), (2, 0), (0, 0)])
     results = tree.query(query)
     assert len(results) == 1
@@ -120,7 +123,8 @@ def test_references():
     empty = Polygon()
     point = Point(1, 0.5)
     geoms = [empty, point]
-    tree = STRtree(geoms)
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(geoms)
 
     empty = None
     point = None
@@ -134,7 +138,8 @@ def test_references():
 
 @requires_geos_342
 def test_safe_delete():
-    tree = STRtree([])
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree([])
 
     _lgeos = strtree.lgeos
     strtree.lgeos = None
@@ -149,7 +154,9 @@ def test_pickle_persistence():
     """
     Don't crash trying to use unpickled GEOS handle.
     """
-    tree = STRtree([(Point(i, i).buffer(0.1), "Hi!") for i in range(3)])
+    with pytest.warns(ShapelyDeprecationWarning):
+      tree = STRtree([(Point(i, i).buffer(0.1), "Hi!") for i in range(3)])
+
     pickled_strtree = pickle.dumps(tree)
     unpickle_script_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "unpickle-strtree.py")
     proc = subprocess.Popen(

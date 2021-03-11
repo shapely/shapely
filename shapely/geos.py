@@ -85,7 +85,7 @@ if sys.platform.startswith('linux'):
 
     elif hasattr(sys, 'frozen'):
         geos_pyinstaller_so = glob.glob(os.path.join(sys.prefix, 'libgeos_c-*.so.*'))
-        if len(geos_pyinstaller_so) == 1:
+        if len(geos_pyinstaller_so) >= 1:
             _lgeos = CDLL(geos_pyinstaller_so[0])
             LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
     elif exists_conda_env():
@@ -699,6 +699,7 @@ class LGEOS330(LGEOSBase):
         self.methods['simplify'] = self.GEOSSimplify
         self.methods['topology_preserve_simplify'] = \
             self.GEOSTopologyPreserveSimplify
+        self.methods['normalize'] = self.GEOSNormalize
         self.methods['cascaded_union'] = self.GEOSUnionCascaded
 
         def parallel_offset(geom, distance, resolution=16, join_style=1,

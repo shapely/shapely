@@ -92,3 +92,13 @@ class OperationsTestCase(unittest.TestCase):
         assert(empty_line.is_empty)
         with pytest.raises(ValueError):
             empty_line.interpolate(.5, normalized=True)
+
+    def test_normalize(self):
+        point = Point(1, 1)
+        result = point.normalize()
+        assert result == point
+
+        line = loads("MULTILINESTRING ((1 1, 0 0), (1 1, 1 2))")
+        result = line.normalize()
+        expected = loads("MULTILINESTRING ((1 1, 1 2), (0 0, 1 1))")
+        assert result == expected

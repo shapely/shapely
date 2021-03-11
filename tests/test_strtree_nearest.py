@@ -1,5 +1,8 @@
 import pytest
 
+import pytest
+
+from shapely.errors import ShapelyDeprecationWarning
 from shapely.geometry import Point, Polygon
 from shapely.geos import geos_version
 from shapely.strtree import STRtree
@@ -18,7 +21,8 @@ from shapely.strtree import STRtree
 )
 @pytest.mark.parametrize("query_geom", [Point(0, 0.4)])
 def test_nearest_geom(geoms, query_geom):
-    tree = STRtree(geoms)
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(geoms)
     result = tree.nearest(query_geom)
     assert result.geom_type == "Point"
     assert result.x == 0.0
@@ -39,5 +43,6 @@ def test_nearest_geom(geoms, query_geom):
 @pytest.mark.parametrize("values", [["Ahoy!", "Hi!", "Hi!"]])
 @pytest.mark.parametrize("query_geom", [Point(0, 0.4)])
 def test_nearest_value(geoms, values, query_geom):
-    tree = STRtree(zip(geoms, values))
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(zip(geoms, values))
     tree.nearest(query_geom) == "Ahoy!"
