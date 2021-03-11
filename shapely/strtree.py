@@ -107,8 +107,18 @@ class STRtree:
     def __init__(self, initdata=None):
         self._initdata = None
         self._tree_handle = None
+
         if initdata is not None:
-            self._initdata = list(initdata)
+            self._initdata = []
+            for obj in initdata:
+                if not isinstance(obj, tuple):
+                    geom = obj
+                    value = obj
+                else:
+                    geom, value = obj
+                if not geom.is_empty:
+                    self._initdata.append(obj)
+
         self._init_tree_handle(self._initdata)
 
     def _init_tree_handle(self, initdata):
