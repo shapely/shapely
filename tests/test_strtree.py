@@ -33,11 +33,26 @@ def test_query(geoms, query_geom, num_results):
     "query_geom,expected",
     [(Point(2, 2).buffer(0.99), [2]), (Point(2, 2).buffer(1.0), [1, 2, 3])],
 )
-def test_query_idx_values(geoms, query_geom, expected):
+def test_query_enumeration_idx(geoms, query_geom, expected):
+    """Store enumeration idx"""
     with pytest.warns(ShapelyDeprecationWarning):
         tree = STRtree(enumerate(geoms))
     results = tree.query(query_geom)
     assert sorted(results) == sorted(expected)
+
+
+@requires_geos_342
+@pytest.mark.parametrize("geoms", [[Point(i, i) for i in range(10)]])
+@pytest.mark.parametrize(
+    "query_geom,expected",
+    [(Point(2, 2).buffer(0.99), [2]), (Point(2, 2).buffer(1.0), [1, 2, 3])],
+)
+def test_query_enumeration(geoms, query_geom, expected):
+    """Store enumeration"""
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(zip(enumerate(geoms), geoms))
+    results = tree.query(query_geom)
+    assert sorted(results) == sorted([(idx, geoms[idx]) for idx in expected])
 
 
 @requires_geos_342
