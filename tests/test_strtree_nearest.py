@@ -44,5 +44,5 @@ def test_nearest_geom(geoms, query_geom):
 @pytest.mark.parametrize("query_geom", [Point(0, 0.4)])
 def test_nearest_value(geoms, values, query_geom):
     with pytest.warns(ShapelyDeprecationWarning):
-        tree = STRtree(zip(geoms, values))
+        tree = STRtree(zip(values, geoms))
     tree.nearest(query_geom) == "Ahoy!"

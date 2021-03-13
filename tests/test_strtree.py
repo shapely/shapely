@@ -30,6 +30,19 @@ def test_query(geoms, query_geom, num_results):
 @requires_geos_342
 @pytest.mark.parametrize("geoms", [[Point(i, i) for i in range(10)]])
 @pytest.mark.parametrize(
+    "query_geom,expected",
+    [(Point(2, 2).buffer(0.99), [2]), (Point(2, 2).buffer(1.0), [1, 2, 3])],
+)
+def test_query_idx_values(geoms, query_geom, expected):
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(enumerate(geoms))
+    results = tree.query(query_geom)
+    assert sorted(results) == sorted(expected)
+
+
+@requires_geos_342
+@pytest.mark.parametrize("geoms", [[Point(i, i) for i in range(10)]])
+@pytest.mark.parametrize(
     "query_geom,num_results", [(Point(2, 2).buffer(0.99), 1), (Point(2, 2).buffer(1.0), 3)]
 )
 def test_query_cb(geoms, query_geom, num_results):
@@ -55,7 +68,7 @@ def test_query_cb(geoms, query_geom, num_results):
 )
 def test_query_cb_str(geoms, values, query_geom, num_results):
     with pytest.warns(ShapelyDeprecationWarning):
-        tree = STRtree(zip(geoms, values))
+        tree = STRtree(zip(values, geoms))
 
     results = []
 
@@ -76,7 +89,7 @@ def test_query_cb_str(geoms, values, query_geom, num_results):
 )
 def test_query_cb_dict(geoms, values, query_geom, num_results):
     with pytest.warns(ShapelyDeprecationWarning):
-        tree = STRtree(zip(geoms, values))
+        tree = STRtree(zip(values, geoms))
 
     results = []
 
@@ -159,7 +172,7 @@ def test_pickle_persistence():
     Don't crash trying to use unpickled GEOS handle.
     """
     with pytest.warns(ShapelyDeprecationWarning):
-      tree = STRtree([(Point(i, i).buffer(0.1), "Hi!") for i in range(3)])
+        tree = STRtree([("Hi!", Point(i, i).buffer(0.1)) for i in range(3)])
 
     pickled_strtree = pickle.dumps(tree)
     unpickle_script_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "unpickle-strtree.py")

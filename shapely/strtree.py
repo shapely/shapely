@@ -133,15 +133,15 @@ class STRtree:
                 geom = obj
                 value = obj
             else:
-                geom, value = obj
+                value, geom = obj
             if not geom.is_empty:
-                yield geom, value
+                yield value, geom
 
     def _init_tree(self, initdata):
         if initdata:
             node_capacity = 10
             self._tree = lgeos.GEOSSTRtree_create(node_capacity)
-            for geom, value in self._iteritems(initdata):
+            for value, geom in self._iteritems(initdata):
                 lgeos.GEOSSTRtree_insert(
                     self._tree, geom._geom, ctypes.py_object(value)
                 )
