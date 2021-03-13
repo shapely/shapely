@@ -38,9 +38,9 @@ def test_query_cb(geoms, query_geom, num_results):
 
     results = []
 
-    def callback(item, userdata):
-        obj = ctypes.cast(item, ctypes.py_object).value
-        results.append(obj)
+    @query_callback
+    def callback(value):
+        results.append(value)
 
     tree.query_cb(query_geom, callback=callback)
 
@@ -60,7 +60,7 @@ def test_query_cb_str(geoms, values, query_geom, num_results):
     results = []
 
     @query_callback
-    def callback(value, userdata):
+    def callback(value):
         results.append(value)
 
     tree.query_cb(query_geom, callback=callback)
@@ -81,7 +81,7 @@ def test_query_cb_dict(geoms, values, query_geom, num_results):
     results = []
 
     @query_callback
-    def callback(value, userdata):
+    def callback(value):
         results.append(value)
 
     tree.query_cb(query_geom, callback=callback)

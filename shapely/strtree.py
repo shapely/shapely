@@ -35,9 +35,8 @@ def nearest_callback(func):
         value = ctypes.cast(arg1, ctypes.py_object).value
         geom = ctypes.cast(arg2, ctypes.py_object).value
         dist = ctypes.cast(arg3, ctypes.POINTER(ctypes.c_double))
-        userdata = ctypes.cast(arg4, ctypes.py_object).value
         try:
-            dist.contents.value = func(value, geom, userdata)
+            dist.contents.value = func(value, geom)
             return 1
         except Exception:
             log.exception()
@@ -49,8 +48,7 @@ def query_callback(func):
     @wraps(func)
     def wrapper(arg1, arg2):
         value = ctypes.cast(arg1, ctypes.py_object).value
-        userdata = ctypes.cast(arg2, ctypes.py_object).value
-        func(value, userdata)
+        func(value)
     return wrapper
 
 
@@ -105,62 +103,69 @@ class STRtree:
     """
 
     def __init__(self, initdata=None):
+        """Create a new STRtree.
+
+        Parameters
+        ----------
+        initdata : iterable
+            An iterable sequence of single geometry objects or (geom,
+            value) tuples.
+
+        Notes
+        -----
+        Items from initdata will be stored in two lists.
+
+        """
         warn(
             "STRtree will be completely changed in 2.0.0. The exact API is not yet decided, but will be documented before 1.8.0",
             ShapelyDeprecationWarning,
             stacklevel=2,
         )
         self._initdata = None
-        self._tree_handle = None
-        if initdata is not None:
-            self._initdata = []
-            for obj in initdata:
-                if not isinstance(obj, tuple):
-                    geom = obj
-                    value = obj
-                else:
-                    geom, value = obj
-                if not geom.is_empty:
-                    self._initdata.append(obj)
-
-        self._init_tree_handle(self._initdata)
-
-    def _init_tree_handle(self, initdata):
-        node_capacity = 10
-        self._tree_handle = lgeos.GEOSSTRtree_create(node_capacity)
+        self._tree = None
         if initdata:
-            for obj in initdata:
-                if not isinstance(obj, tuple):
-                    geom = obj
-                    value = obj
-                else:
-                    geom, value = obj
-                if not geom.is_empty:
-                    lgeos.GEOSSTRtree_insert(
-                        self._tree_handle, geom._geom, ctypes.py_object(value)
-                    )
+            self._initdata = list(self._iteritems(initdata))
+            self._init_tree(self._initdata)
+
+    def _iteritems(self, initdata):
+        for obj in initdata:
+            if not isinstance(obj, tuple):
+                geom = obj
+                value = obj
+            else:
+                geom, value = obj
+            if not geom.is_empty:
+                yield geom, value
+
+    def _init_tree(self, initdata):
+        if initdata:
+            node_capacity = 10
+            self._tree = lgeos.GEOSSTRtree_create(node_capacity)
+            for geom, value in self._iteritems(initdata):
+                lgeos.GEOSSTRtree_insert(
+                    self._tree, geom._geom, ctypes.py_object(value)
+                )
 
     def __getstate__(self):
         state = self.__dict__.copy()
-        del state["_tree_handle"]
+        del state["_tree"]
         return state
 
     def __setstate__(self, state):
         self.__dict__.update(state)
-        self._init_tree_handle(self._initdata)
+        self._init_tree(self._initdata)
 
     def __del__(self):
-        if self._tree_handle is not None:
+        if self._tree is not None:
             try:
-                lgeos.GEOSSTRtree_destroy(self._tree_handle)
+                lgeos.GEOSSTRtree_destroy(self._tree)
             except AttributeError:  # lgeos might be empty on shutdown.
                 pass
-            self._tree_handle = None
+            self._tree = None
 
     def query(self, geom):
         """
-        Search the index for geometry objects whose extents
-        intersect the extent of the given object.
+        Search the tree for nodes which intersect geom's envelope
 
         Parameters
         ----------
@@ -169,18 +174,17 @@ class STRtree:
 
         Returns
         -------
-        list of geometry objects
-            All the geometry objects in the index whose extents
-            intersect the extent of `geom`.
+        list
+            A list of the values stored at the found nodes. The list
+            will be empty if the tree is empty.
 
         Note
         ----
-        A geometry object's "extent" is its the minimum xy bounding
+        A geometry object's envelope is its the minimum xy bounding
         rectangle.
 
         Examples
         --------
-
         A buffer around a point can be used to control the extent
         of the query.
 
@@ -203,55 +207,42 @@ class STRtree:
         >>> [o.wkt for o in tree.query(query_geom) if o.intersects(query_geom)]
         ['POINT (2 2)']
 
-        To get the original indices of the returned objects, create an
-        auxiliary dictionary. But use the geometry *ids* as keys since
-        the shapely geometry objects themselves are not hashable.
-
-        >>> index_by_id = dict((id(pt), i) for i, pt in enumerate(points))
-        >>> [(index_by_id[id(pt)], pt.wkt) for pt in tree.query(Point(2,2).buffer(1.0))]
-        [(1, 'POINT (1 1)'), (2, 'POINT (2 2)'), (3, 'POINT (3 3)')]
-
         """
         result = []
 
         @query_callback
-        def callback(value, userdata):
+        def callback(value):
             result.append(value)
 
         self.query_cb(geom, callback)
-
         return result
 
     def query_cb(self, geom, callback):
-        """Search for tree nodes intersecting geom and execute the
-        callback function for each
+        """Searches the tree for nodes and applies a callback function.
 
         Parameters
         ----------
         geom : Geometry
             The query geometry
         callback : callable
-            This is a function that takes two arguments, value and
-            userdata, and which is decorated by
-            shapely.strtree.query_callback. See STRtree.query() for an
-            example. Value is the value stored with the tree node.
-            Support for userdata is not implemented.
+            This is a function which takes a node value as argument and
+            which is decorated by shapely.strtree.query_callback. See
+            STRtree.query() for an example.
 
         Returns
         -------
         None
 
         """
-        if not self._initdata:
+        if self._tree is None or not self._initdata:
             return
 
         lgeos.GEOSSTRtree_query(
-            self._tree_handle, geom._geom, lgeos.GEOSQueryCallback(callback), None
+            self._tree, geom._geom, lgeos.GEOSQueryCallback(callback), None
         )
 
     def nearest(self, geom):
-        """
-        Get the nearest object in the index to a geometry object.
+        """Finds the tree node nearest to a given geometry object.
 
         Parameters
         ----------
@@ -260,13 +251,9 @@ class STRtree:
 
         Returns
         -------
-        geometry object
-            The nearest geometry object in the index to `geom`.
-
-            Will always only return *one* object even if several
-            in the index are the minimum distance away.
-
-            `None` if the index is empty.
+        object or None
+            The value of the tree node nearest to geom or None if the
+            index is empty.
 
         Examples
         --------
@@ -278,32 +265,31 @@ class STRtree:
 
         Will only return one object:
 
-        >>> tree = STRtree ([Point(0, 0), Point(0, 0)])
+        >>> tree = STRtree([Point(0, 0), Point(0, 0)])
         >>> tree.nearest(Point(0, 0)).wkt
         'POINT (0 0)'
 
         """
-        if not self._initdata:
+        if self._tree is None or not self._initdata:
             return None
 
-        envelope = geom.envelope
-        try:
-            geoms, values = zip(*self._initdata)
-        except TypeError:
-            geoms = self._initdata
-            values = self._initdata
+        # In a future version of shapely, geometries will be hashable
+        # and we won't need to reindex like this.
+        geoms = {id(v): g for g, v in self._initdata}
 
         @nearest_callback
-        def callback(value, geom, userdata):
-            value_geom = geoms[values.index(value)]
+        def callback(value, geom):
+            value_geom = geoms[id(value)]
             return geom.distance(value_geom)
 
+        envelope = geom.envelope
+
         item = lgeos.GEOSSTRtree_nearest_generic(
-            self._tree_handle,
+            self._tree,
             ctypes.py_object(geom),
             envelope._geom,
             lgeos.GEOSDistanceCallback(callback),
             None,
         )
-        result = ctypes.cast(item, ctypes.py_object).value
-        return result
+
+        return ctypes.cast(item, ctypes.py_object).value
