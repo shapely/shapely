@@ -39,7 +39,7 @@ def nearest_callback(func):
             dist.contents.value = func(value, geom)
             return 1
         except Exception:
-            log.exception()
+            log.exception("Caught exception")
             return 0
     return wrapper
 
