@@ -275,7 +275,7 @@ class STRtree:
 
         # In a future version of shapely, geometries will be hashable
         # and we won't need to reindex like this.
-        geoms = {id(v): g for g, v in self._initdata}
+        geoms = {id(v): g for v, g in self._initdata}
 
         @nearest_callback
         def callback(value, geom):
