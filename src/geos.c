@@ -4,8 +4,8 @@
 #include "geos.h"
 
 #include <Python.h>
-#include <structmember.h>
 #include <numpy/npy_math.h>
+#include <structmember.h>
 
 /* This initializes a globally accessible GEOSException object */
 PyObject* geos_exception[1] = {NULL};
@@ -354,7 +354,6 @@ void geos_notice_handler(const char* message, void* userdata) {
   snprintf(userdata, 1024, "%s", message);
 }
 
-
 /* Extract bounds from geometry.
  *
  * Bounds coordinates will be set to NPY_NAN if geom is NULL, empty, or does not have an
@@ -378,7 +377,6 @@ void geos_notice_handler(const char* message, void* userdata) {
  */
 int get_bounds(GEOSContextHandle_t ctx, GEOSGeometry* geom, double* xmin, double* ymin,
                double* xmax, double* ymax) {
-
   int retval = 1;
 
   if (geom == NULL || GEOSisEmpty_r(ctx, geom)) {
@@ -475,6 +473,8 @@ finish:
  * ymin: minimum Y value
  * xmax: maximum X value
  * ymax: maximum Y value
+ * ccw: if 1, box will be created in counterclockwise direction from bottom right;
+ *  otherwise will be created in clockwise direction from bottom left.
  *
  * Returns
  * -------
@@ -482,8 +482,8 @@ finish:
  * NULL on failure or NPY_NAN coordinates
  */
 GEOSGeometry* create_box(GEOSContextHandle_t ctx, double xmin, double ymin, double xmax,
-                         double ymax) {
-  if (xmin == NPY_NAN || ymin == NPY_NAN || xmax == NPY_NAN || ymax == NPY_NAN) {
+                         double ymax, char ccw) {
+  if (npy_isnan(xmin) | npy_isnan(ymin) | npy_isnan(xmax) | npy_isnan(ymax)) {
     return NULL;
   }
 
@@ -497,41 +497,56 @@ GEOSGeometry* create_box(GEOSContextHandle_t ctx, double xmin, double ymin, doub
     return NULL;
   }
 
-  if (!(GEOSCoordSeq_setX_r(ctx, coords, 0, xmin) &&
-        GEOSCoordSeq_setY_r(ctx, coords, 0, ymin) &&
-        GEOSCoordSeq_setX_r(ctx, coords, 1, xmax) &&
-        GEOSCoordSeq_setY_r(ctx, coords, 1, ymin) &&
-        GEOSCoordSeq_setX_r(ctx, coords, 2, xmax) &&
-        GEOSCoordSeq_setY_r(ctx, coords, 2, ymax) &&
-        GEOSCoordSeq_setX_r(ctx, coords, 3, xmin) &&
-        GEOSCoordSeq_setY_r(ctx, coords, 3, ymax) &&
-        GEOSCoordSeq_setX_r(ctx, coords, 4, xmin) &&
-        GEOSCoordSeq_setY_r(ctx, coords, 4, ymin))) {
-    if (coords != NULL) {
-      GEOSCoordSeq_destroy_r(ctx, coords);
-    }
+  if (ccw) {
+    // Start from bottom right (xmax, ymin) to match shapely
+    if (!(GEOSCoordSeq_setX_r(ctx, coords, 0, xmax) &&
+          GEOSCoordSeq_setY_r(ctx, coords, 0, ymin) &&
+          GEOSCoordSeq_setX_r(ctx, coords, 1, xmax) &&
+          GEOSCoordSeq_setY_r(ctx, coords, 1, ymax) &&
+          GEOSCoordSeq_setX_r(ctx, coords, 2, xmin) &&
+          GEOSCoordSeq_setY_r(ctx, coords, 2, ymax) &&
+          GEOSCoordSeq_setX_r(ctx, coords, 3, xmin) &&
+          GEOSCoordSeq_setY_r(ctx, coords, 3, ymin) &&
+          GEOSCoordSeq_setX_r(ctx, coords, 4, xmax) &&
+          GEOSCoordSeq_setY_r(ctx, coords, 4, ymin))) {
+      if (coords != NULL) {
+        GEOSCoordSeq_destroy_r(ctx, coords);
+      }
 
-    return NULL;
+      return NULL;
+    }
+  } else {
+    // Start from bottom left (min, ymin) to match shapely
+    if (!(GEOSCoordSeq_setX_r(ctx, coords, 0, xmin) &&
+          GEOSCoordSeq_setY_r(ctx, coords, 0, ymin) &&
+          GEOSCoordSeq_setX_r(ctx, coords, 1, xmin) &&
+          GEOSCoordSeq_setY_r(ctx, coords, 1, ymax) &&
+          GEOSCoordSeq_setX_r(ctx, coords, 2, xmax) &&
+          GEOSCoordSeq_setY_r(ctx, coords, 2, ymax) &&
+          GEOSCoordSeq_setX_r(ctx, coords, 3, xmax) &&
+          GEOSCoordSeq_setY_r(ctx, coords, 3, ymin) &&
+          GEOSCoordSeq_setX_r(ctx, coords, 4, xmin) &&
+          GEOSCoordSeq_setY_r(ctx, coords, 4, ymin))) {
+      if (coords != NULL) {
+        GEOSCoordSeq_destroy_r(ctx, coords);
+      }
+
+      return NULL;
+    }
   }
 
   // Construct linear ring then use to construct polygon
-  // Note: coords are owned by ring
+  // Note: coords are owned by ring; if ring fails to construct, it will
+  // automatically clean up the coords
   ring = GEOSGeom_createLinearRing_r(ctx, coords);
   if (ring == NULL) {
-    if (coords != NULL) {
-      GEOSCoordSeq_destroy_r(ctx, coords);
-    }
-
     return NULL;
   }
 
-  // Note: ring is owned by polygon
+  // Note: ring is owned by polygon; if polygon fails to construct, it will
+  // automatically clean up the ring
   geom = GEOSGeom_createPolygon_r(ctx, ring, NULL, 0);
   if (geom == NULL) {
-    if (ring != NULL) {
-      GEOSGeom_destroy_r(ctx, ring);
-    }
-
     return NULL;
   }
 

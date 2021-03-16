@@ -48,7 +48,8 @@ class ConstructiveSuite:
     """Benchmarks constructive functions on a set of 10,000 points"""
 
     def setup(self):
-        self.points = pygeos.points(np.random.random((10000, 2)))
+        self.coords = np.random.random((10000, 2))
+        self.points = pygeos.points(self.coords)
 
     def time_voronoi_polygons(self):
         pygeos.voronoi_polygons(self.points)
@@ -61,6 +62,9 @@ class ConstructiveSuite:
 
     def time_delaunay_triangles(self):
         pygeos.delaunay_triangles(self.points)
+
+    def time_box(self):
+        pygeos.box(*np.hstack([self.coords, self.coords + 100]).T)
 
 
 class ClipSuite:
@@ -247,12 +251,14 @@ class STRtree:
         # result
         l, r = self.grid_point_tree.nearest(self.grid_points)
         # calculate distance to nearest neighbor
-        dist = pygeos.distance(self.grid_points.take(l), self.grid_point_tree.geometries.take(r))
+        dist = pygeos.distance(
+            self.grid_points.take(l), self.grid_point_tree.geometries.take(r)
+        )
         # include a slight epsilon to ensure nearest are within this radius
         b = pygeos.buffer(self.grid_points, dist + 1e-8)
 
         # query the tree for others in the same buffer distance
-        left, right = self.grid_point_tree.query_bulk(b, predicate='intersects')
+        left, right = self.grid_point_tree.query_bulk(b, predicate="intersects")
         dist = pygeos.distance(
             self.grid_points.take(left), self.grid_point_tree.geometries.take(right)
         )

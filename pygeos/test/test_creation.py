@@ -296,15 +296,56 @@ def test_create_collection_wrong_geom_type(func, sub_geom):
         func([sub_geom])
 
 
-def test_box():
-    actual = pygeos.box(0, 0, 1, 1)
-    assert str(actual) == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
+@pytest.mark.parametrize(
+    "coords,ccw,expected",
+    [
+        ((0, 0, 1, 1), True, pygeos.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))")),
+        ((0, 0, 1, 1), False, pygeos.Geometry("POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))")),
+    ],
+)
+def test_box(coords, ccw, expected):
+    actual = pygeos.box(*coords, ccw=ccw)
+    assert pygeos.equals(actual, expected)
 
 
-def test_box_multiple():
-    actual = pygeos.box(0, 0, [1, 2], [1, 2])
-    assert str(actual[0]) == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
-    assert str(actual[1]) == "POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))"
+@pytest.mark.parametrize(
+    "coords,ccw,expected",
+    [
+        (
+            (0, 0, [1, 2], [1, 2]),
+            True,
+            [
+                pygeos.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"),
+                pygeos.Geometry("POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))"),
+            ],
+        ),
+        (
+            (0, 0, [1, 2], [1, 2]),
+            [True, False],
+            [
+                pygeos.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"),
+                pygeos.Geometry("POLYGON ((0 0, 0 2, 2 2, 2 0, 0 0))"),
+            ],
+        ),
+    ],
+)
+def test_box_array(coords, ccw, expected):
+    actual = pygeos.box(*coords, ccw=ccw)
+    assert pygeos.equals(actual, expected).all()
+
+
+@pytest.mark.parametrize(
+    "coords",
+    [
+        [np.nan, np.nan, np.nan, np.nan],
+        [np.nan, 0, 1, 1],
+        [0, np.nan, 1, 1],
+        [0, 0, np.nan, 1],
+        [0, 0, 1, np.nan],
+    ],
+)
+def test_box_nan(coords):
+    assert pygeos.box(*coords) is None
 
 
 class BaseGeometry(pygeos.Geometry):

@@ -923,7 +923,7 @@ static PyObject* STRtree_nearest_all(STRtreeObject* self, PyObject* args) {
       }
 
       envelope = create_box(ctx, xmin - max_distance, ymin - max_distance,
-                            xmax + max_distance, ymax + max_distance);
+                            xmax + max_distance, ymax + max_distance, 1);
       if (envelope == NULL) {
         errstate = PGERR_GEOS_EXCEPTION;
         kv_destroy(src_indexes);

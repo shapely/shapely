@@ -1249,6 +1249,48 @@ static PyUFuncGenericFunction YYd_Y_funcs[1] = {&YYd_Y_func};
 #endif
 
 /* Define functions with unique call signatures */
+static char box_dtypes[6] = {NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE,
+                             NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
+static void box_func(char** args, npy_intp* dimensions, npy_intp* steps, void* data) {
+  char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2], *ip4 = args[3], *ip5 = args[4];
+  npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2], is4 = steps[3], is5 = steps[4];
+  npy_intp n = dimensions[0];
+  npy_intp i;
+  GEOSGeometry** geom_arr;
+
+  CHECK_NO_INPLACE_OUTPUT(6);
+
+  // allocate a temporary array to store output GEOSGeometry objects
+  geom_arr = malloc(sizeof(void*) * n);
+  CHECK_ALLOC(geom_arr);
+
+  GEOS_INIT_THREADS;
+
+  for (i = 0; i < n; i++, ip1 += is1, ip2 += is2, ip3 += is3, ip4 += is4, ip5 += is5) {
+    geom_arr[i] = create_box(ctx, *(double*)ip1, *(double*)ip2, *(double*)ip3,
+                             *(double*)ip4, *(char*)ip5);
+    if (geom_arr[i] == NULL) {
+      // result will be NULL for any nan coordinates, which is OK;
+      // otherwise raise an error
+      if (!(npy_isnan(*(double*)ip1) | npy_isnan(*(double*)ip2) |
+            npy_isnan(*(double*)ip3) | npy_isnan(*(double*)ip4))) {
+        errstate = PGERR_GEOS_EXCEPTION;
+        destroy_geom_arr(ctx, geom_arr, i - 1);
+        break;
+      }
+    }
+  }
+
+  GEOS_FINISH_THREADS;
+
+  // fill the numpy array with PyObjects while holding the GIL
+  if (errstate == PGERR_SUCCESS) {
+    geom_arr_to_npy(geom_arr, args[5], steps[5], dimensions[0]);
+  }
+  free(geom_arr);
+}
+
+static PyUFuncGenericFunction box_funcs[1] = {&box_func};
 
 static void* null_data[1] = {NULL};
 static char buffer_inner(void* ctx, GEOSBufferParams* params, void* ip1, void* ip2,
@@ -2744,6 +2786,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 
   DEFINE_YYd_d(hausdorff_distance_densify);
 
+  DEFINE_CUSTOM(box, 5);
   DEFINE_CUSTOM(buffer, 7);
   DEFINE_CUSTOM(offset_curve, 5);
   DEFINE_CUSTOM(snap, 3);

@@ -101,21 +101,30 @@ def polygons(shells, holes=None):
     return lib.polygons_with_holes(shells, holes)
 
 
-def box(x1, y1, x2, y2):
+def box(xmin, ymin, xmax, ymax, ccw=True, **kwargs):
     """Create box polygons.
 
     Parameters
     ----------
-    x1 : array_like
-    y1 : array_like
-    x2 : array_like
-    y2 : array_like
+    xmin : array_like
+    ymin : array_like
+    xmax : array_like
+    ymax : array_like
+    ccw : bool (default: True)
+        If True, box will be created in counterclockwise direction starting
+        from bottom right coordinate (xmax, ymin).
+        If False, box will be created in clockwise direction starting from
+        bottom left coordinate (xmin, ymin).
+
+    Examples
+    --------
+    >>> box(0, 0, 1, 1)
+    <pygeos.Geometry POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))>
+    >>> box(0, 0, 1, 1, ccw=False)
+    <pygeos.Geometry POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
+
     """
-    x1, y1, x2, y2 = np.broadcast_arrays(x1, y1, x2, y2)
-    rings = np.array(((x2, y1), (x2, y2), (x1, y2), (x1, y1)))
-    # bring first two axes to the last two positions
-    rings = rings.transpose(list(range(2, rings.ndim)) + [0, 1])
-    return polygons(rings)
+    return lib.box(xmin, ymin, xmax, ymax, ccw, **kwargs)
 
 
 def multipoints(geometries):
@@ -188,8 +197,8 @@ def prepare(geometry, **kwargs):
     Note that if a prepared geometry is modified, the newly created Geometry object is
     not prepared. In that case, ``prepare`` should be called again.
 
-    This function does not recompute previously prepared geometries; 
-    it is efficient to call this function on an array that partially contains prepared geometries. 
+    This function does not recompute previously prepared geometries;
+    it is efficient to call this function on an array that partially contains prepared geometries.
 
     Parameters
     ----------
