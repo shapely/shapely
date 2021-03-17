@@ -1,14 +1,15 @@
-arch:
-  - ppc64le
-  - s390x
-  - arm64
 os: linux
 dist: focal
 language: python
 python: "3.8"
 
-allow_failures:
-  - s390x
+matrix:
+  include:
+    - arch: ppc64le
+    - arch: s390x
+    - arch: arm64
+  allow_failures:
+    - arch: s390x
 
 branches:
   only:
