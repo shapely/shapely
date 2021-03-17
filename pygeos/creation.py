@@ -18,18 +18,19 @@ __all__ = [
 ]
 
 
-def _wrap_construct_ufunc(func, coords, y=None, z=None):
+def _wrap_construct_ufunc(func, coords, y=None, z=None, **kwargs):
     if y is None:
-        return func(coords)
+        return func(coords, **kwargs)
     x = coords
     if z is None:
         coords = np.broadcast_arrays(x, y)
     else:
         coords = np.broadcast_arrays(x, y, z)
-    return func(np.stack(coords, axis=-1))
+    return func(np.stack(coords, axis=-1), **kwargs)
 
 
-def points(coords, y=None, z=None):
+@multithreading_enabled
+def points(coords, y=None, z=None, **kwargs):
     """Create an array of points.
 
     Note that GEOS >=3.10 automatically converts POINT (nan nan) to
@@ -43,10 +44,11 @@ def points(coords, y=None, z=None):
     y : array_like
     z : array_like
     """
-    return _wrap_construct_ufunc(lib.points, coords, y, z)
+    return _wrap_construct_ufunc(lib.points, coords, y, z, **kwargs)
 
 
-def linestrings(coords, y=None, z=None):
+@multithreading_enabled
+def linestrings(coords, y=None, z=None, **kwargs):
     """Create an array of linestrings.
 
     Parameters
@@ -57,10 +59,11 @@ def linestrings(coords, y=None, z=None):
     y : array_like
     z : array_like
     """
-    return _wrap_construct_ufunc(lib.linestrings, coords, y, z)
+    return _wrap_construct_ufunc(lib.linestrings, coords, y, z, **kwargs)
 
 
-def linearrings(coords, y=None, z=None):
+@multithreading_enabled
+def linearrings(coords, y=None, z=None, **kwargs):
     """Create an array of linearrings.
 
     If the provided coords do not constitute a closed linestring, the first
@@ -74,7 +77,8 @@ def linearrings(coords, y=None, z=None):
     y : array_like
     z : array_like
     """
-    return _wrap_construct_ufunc(lib.linearrings, coords, y, z)
+    return _wrap_construct_ufunc(lib.linearrings, coords, y, z, **kwargs)
+
 
 @multithreading_enabled
 def polygons(shells, holes=None):
