@@ -1473,11 +1473,20 @@ def test_nearest_all_max_distance(tree, geometry, max_distance, expected):
 @pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
     "geometry,max_distance",
-    [(pygeos.points(0.5, 0.5), 0), (pygeos.points(0.5, 0.5), -1)],
+    [
+        (pygeos.points(0.5, 0.5), 0),
+        (pygeos.points(0.5, 0.5), -1),
+    ],
 )
 def test_nearest_all_invalid_max_distance(tree, geometry, max_distance):
     with pytest.raises(ValueError, match="max_distance must be greater than 0"):
         tree.nearest_all(geometry, max_distance=max_distance)
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+def test_nearest_all_nonscalar_max_distance(tree):
+    with pytest.raises(ValueError, match="parameter only accepts scalar values"):
+        tree.nearest_all(pygeos.points(0.5, 0.5), max_distance=[1])
 
 
 @pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
