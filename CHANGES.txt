@@ -1,6 +1,13 @@
 Changes
 =======
 
+1.8a2 (TBD)
+-----------
+
+Bug fixes:
+
+- Only load conda GEOS dll if it exists (on Windows) (#1108).
+
 1.8a1 (2021-03-03)
 ------------------
 
