@@ -156,9 +156,10 @@ elif sys.platform == 'darwin':
     free.restype = None
 
 elif sys.platform == 'win32':
-    if exists_conda_env():
+    _conda_dll_path = os.path.join(sys.prefix, 'Library', 'bin', 'geos_c.dll')
+    if exists_conda_env() and os.path.exists(_conda_dll_path):
         # conda package.
-        _lgeos = CDLL(os.path.join(sys.prefix, 'Library', 'bin', 'geos_c.dll'))
+        _lgeos = CDLL(_conda_dll_path)
     else:
         try:
             egg_dlls = os.path.abspath(
