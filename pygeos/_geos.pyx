@@ -14,5 +14,3 @@ cdef class get_geos_handle:
 
     def __exit__(self, type, value, traceback):
         GEOS_finish_r(self.handle)
-
-

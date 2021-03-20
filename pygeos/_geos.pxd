@@ -18,8 +18,18 @@ cdef extern from "geos_c.h":
     const GEOSGeometry* GEOSGetGeometryN_r(GEOSContextHandle_t handle,
                                            const GEOSGeometry* g,
                                            int n) nogil except NULL
+    int GEOSGeomTypeId_r(GEOSContextHandle_t handle, GEOSGeometry* g) nogil except -1
+    void GEOSGeom_destroy_r(GEOSContextHandle_t handle,
+                                    GEOSGeometry* g) nogil
     GEOSGeometry* GEOSGeom_clone_r(GEOSContextHandle_t handle,
                                    const GEOSGeometry* g) nogil except NULL
+
+    GEOSGeometry* GEOSGeom_createCollection_r(
+        GEOSContextHandle_t handle,
+        int type,
+        GEOSGeometry** geoms,
+        unsigned int ngeoms
+    ) nogil except NULL
 
 
 cdef class get_geos_handle:
