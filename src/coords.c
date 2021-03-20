@@ -14,7 +14,6 @@
 #include "geos.h"
 #include "pygeom.h"
 
-
 /* These function prototypes enables that these functions can call themselves */
 static char get_coordinates(GEOSContextHandle_t, GEOSGeometry*, PyArrayObject*, npy_intp*,
                             int);
@@ -360,14 +359,15 @@ finish:
   return result;
 }
 
-PyObject* GetCoords(PyArrayObject* arr, int include_z) {
+PyObject* GetCoords(PyArrayObject* arr, int include_z, int return_index) {
   npy_intp coord_dim;
   NpyIter* iter;
   NpyIter_IterNextFunc* iternext;
   char** dataptr;
-  npy_intp cursor;
+  npy_intp cursor, i, geom_i;
   GeometryObject* obj;
   GEOSGeometry* geom;
+  PyArrayObject* index = NULL;
 
   /* create a coordinate array with the appropriate dimensions */
   npy_intp size = CountCoords(arr);
@@ -384,24 +384,42 @@ PyObject* GetCoords(PyArrayObject* arr, int include_z) {
   if (result == NULL) {
     return NULL;
   }
+  if (return_index) {
+    npy_intp dims_ind[1] = {size};
+    index = (PyArrayObject*)PyArray_SimpleNew(1, dims_ind, NPY_INTP);
+    if (index == NULL) {
+      Py_DECREF(result);
+      return NULL;
+    }
+  }
 
   /* Handle zero-sized arrays specially */
   if (PyArray_SIZE(arr) == 0) {
-    return (PyObject*)result;
+    if (return_index) {
+      PyObject* result_tpl = PyTuple_New(2);
+      PyTuple_SET_ITEM(result_tpl, 0, (PyObject*)result);
+      PyTuple_SET_ITEM(result_tpl, 1, (PyObject*)index);
+      return result_tpl;
+    } else {
+      return (PyObject*)result;
+    }
   }
 
   /* We use the Numpy iterator C-API here.
   The iterator exposes an "iternext" function which updates a "dataptr"
   see also: https://docs.scipy.org/doc/numpy/reference/c-api.iterator.html */
-  iter = NpyIter_New(arr, NPY_ITER_READONLY | NPY_ITER_REFS_OK, NPY_KEEPORDER,
+  iter = NpyIter_New(arr, NPY_ITER_READONLY | NPY_ITER_REFS_OK, NPY_CORDER,
                      NPY_NO_CASTING, NULL);
   if (iter == NULL) {
     Py_DECREF(result);
+    Py_XDECREF(index);
     return NULL;
   }
   iternext = NpyIter_GetIterNext(iter, NULL);
   if (iternext == NULL) {
     NpyIter_Deallocate(iter);
+    Py_DECREF(result);
+    Py_XDECREF(index);
     return NULL;
   }
   dataptr = NpyIter_GetDataPtrArray(iter);
@@ -411,9 +429,11 @@ PyObject* GetCoords(PyArrayObject* arr, int include_z) {
   /* We work with a "cursor" that tells the get_coordinates function where
   to write the coordinate data into the output array "result" */
   cursor = 0;
+  geom_i = -1;
   do {
     /* get the geometry */
     obj = *(GeometryObject**)dataptr[0];
+    geom_i++;
     if (!get_geom(obj, &geom)) {
       errstate = PGERR_NOT_A_GEOMETRY;
       goto finish;
@@ -422,10 +442,19 @@ PyObject* GetCoords(PyArrayObject* arr, int include_z) {
     if (geom == NULL) {
       continue;
     }
-    /* get the coordinates */
+    /* keep track of the current cursor in "i" to be able to loop from the
+    first to the last coordinate belonging to this geometry later */
+    i = cursor;
+    /* get the coordinates (updates "cursor") */
     if (!get_coordinates(ctx, geom, result, &cursor, include_z)) {
       errstate = PGERR_GEOS_EXCEPTION;
       goto finish;
+    }
+    if (return_index) {
+      /* loop from "i" to "cursor" */
+      for (; i < cursor; i++) {
+        *(npy_intp*)PyArray_GETPTR1(index, i) = geom_i;
+      }
     }
   } while (iternext(iter));
 
@@ -435,7 +464,13 @@ finish:
 
   if (errstate != PGERR_SUCCESS) {
     Py_DECREF(result);
+    Py_XDECREF(index);
     return NULL;
+  } else if (return_index) {
+    PyObject* result_tpl = PyTuple_New(2);
+    PyTuple_SET_ITEM(result_tpl, 0, (PyObject*)result);
+    PyTuple_SET_ITEM(result_tpl, 1, (PyObject*)index);
+    return result_tpl;
   } else {
     return (PyObject*)result;
   }
@@ -465,7 +500,7 @@ PyObject* SetCoords(PyArrayObject* geoms, PyArrayObject* coords) {
   /* We use the Numpy iterator C-API here.
   The iterator exposes an "iternext" function which updates a "dataptr"
   see also: https://docs.scipy.org/doc/numpy/reference/c-api.iterator.html */
-  iter = NpyIter_New(geoms, NPY_ITER_READWRITE | NPY_ITER_REFS_OK, NPY_KEEPORDER,
+  iter = NpyIter_New(geoms, NPY_ITER_READWRITE | NPY_ITER_REFS_OK, NPY_CORDER,
                      NPY_NO_CASTING, NULL);
   if (iter == NULL) {
     return NULL;
@@ -542,8 +577,9 @@ PyObject* PyCountCoords(PyObject* self, PyObject* args) {
 PyObject* PyGetCoords(PyObject* self, PyObject* args) {
   PyObject* arr;
   int include_z;
+  int return_index;
 
-  if (!PyArg_ParseTuple(args, "Op", &arr, &include_z)) {
+  if (!PyArg_ParseTuple(args, "Opp", &arr, &include_z, &return_index)) {
     return NULL;
   }
   if (!PyArray_Check(arr)) {
@@ -554,7 +590,7 @@ PyObject* PyGetCoords(PyObject* self, PyObject* args) {
     PyErr_SetString(PyExc_TypeError, "Array should be of object dtype");
     return NULL;
   }
-  return GetCoords((PyArrayObject*)arr, include_z);
+  return GetCoords((PyArrayObject*)arr, include_z, return_index);
 }
 
 PyObject* PySetCoords(PyObject* self, PyObject* args) {

@@ -13,6 +13,7 @@ Version 0.10 (unreleased)
   ``multilinestrings``, ``multipolygons``, and ``geometrycollections`` (#290).
 * Released GIL for ``points``, ``linestrings``, ``linearrings``, and 
   ``polygons`` (without holes) (#310).
+* Added the option to return the geometry index in ``get_coordinates`` (#318).
 * Updated ``box`` ufunc to use internal C function for creating polygon
   (about 2x faster) and added ``ccw`` parameter to create polygon in
   counterclockwise (default) or clockwise direction (#308).

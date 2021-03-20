@@ -82,6 +82,36 @@ def test_get_coords(geoms, x, y, include_z):
 
 
 # fmt: off
+@pytest.mark.parametrize(
+    "geoms,index",
+    [
+        ([], []),
+        ([empty], []),
+        ([point, empty], [0]),
+        ([empty, point, empty], [1]),
+        ([point, None], [0]),
+        ([None, point, None], [1]),
+        ([point, point], [0, 1]),
+        ([point, line_string], [0, 1, 1, 1]),
+        ([line_string, point], [0, 0, 0, 1]),
+        ([line_string, linear_ring], [0, 0, 0, 1, 1, 1, 1, 1]),
+    ],
+)  # fmt: on
+def test_get_coords_index(geoms, index):
+    _, actual = get_coordinates(np.array(geoms, np.object_), return_index=True)
+    expected = np.array(index, dtype=np.intp)
+    assert_equal(actual, expected)
+
+
+@pytest.mark.parametrize("order", ["C", "F"])
+def test_get_coords_index_multidim(order):
+    geometry = np.array([[point, line_string], [empty, empty]], order=order)
+    expected = [0, 1, 1, 1]  # would be [0, 2, 2, 2] with fortran order
+    _, actual = get_coordinates(geometry, return_index=True)
+    assert_equal(actual, expected)
+
+
+# fmt: off
 @pytest.mark.parametrize("include_z", [True, False])
 @pytest.mark.parametrize(
     "geoms,x,y,z",

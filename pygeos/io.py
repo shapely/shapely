@@ -50,7 +50,7 @@ def to_wkt(
         The rounding precision when writing the WKT string. Set to a value of
         -1 to indicate the full precision.
     trim : bool, default True
-        Whether to trim unnecessary decimals (trailing zeros).
+        If True, trim unnecessary decimals (trailing zeros).
     output_dimension : int, default 3
         The output dimension for the WKT string. Supported values are 2 and 3.
         Specifying 3 means that up to 3 dimensions will be written but 2D
@@ -132,7 +132,7 @@ def to_wkb(
         Defaults to native machine byte order (-1). Use 0 to force big endian
         and 1 for little endian.
     include_srid : bool, default False
-        Whether the SRID should be included in WKB (this is an extension
+        If True, the SRID is be included in WKB (this is an extension
         to the OGC WKB specification).
 
     Examples

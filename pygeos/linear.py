@@ -21,7 +21,7 @@ def line_interpolate_point(line, distance, normalized=False, **kwargs):
         Negative values measure distance from the end of the line. Out-of-range
         values will be clipped to the line endings.
     normalized : bool
-        If normalized is set to True, the distance is a fraction of the total
+        If True, the distance is a fraction of the total
         line length instead of the absolute distance.
 
     Examples
@@ -59,7 +59,7 @@ def line_locate_point(line, other, normalized=False, **kwargs):
     line : Geometry or array_like
     point : Geometry or array_like
     normalized : bool
-        If normalized is set to True, the distance is a fraction of the total
+        If True, the distance is a fraction of the total
         line length instead of the absolute distance.
 
     Examples
