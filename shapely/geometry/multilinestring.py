@@ -40,7 +40,7 @@ class MultiLineString(BaseMultipartGeometry):
 
           >>> lines = MultiLineString( [[[0.0, 0.0], [1.0, 2.0]]] )
         """
-        super(MultiLineString, self).__init__()
+        super().__init__()
 
         if not lines:
             # allow creation of empty multilinestrings, to support unpickling
