@@ -6,6 +6,7 @@ Changes
 
 Bug fixes:
 
+- Python's builtin super() is now used only as described in PEP 3135 (#1109).
 - Only load conda GEOS dll if it exists (on Windows) (#1108).
 
 1.8a1 (2021-03-03)
@@ -14,6 +15,10 @@ Bug fixes:
 Shapely 1.8.0 will be a transitional version. There are a few bug fixes and new
 features, but it is mainly about warning of the upcoming changes in 2.0.0.
 Several more pre-releases before 1.8.0 are expected.
+
+Python version support:
+
+Shapely 1.8 will support only Python versions >= 3.5 (#884).
 
 Deprecations:
 
