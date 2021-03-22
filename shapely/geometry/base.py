@@ -1032,7 +1032,7 @@ class HeterogeneousGeometrySequence(GeometrySequence):
     """
 
     def __init__(self, parent):
-        super(HeterogeneousGeometrySequence, self).__init__(parent, None)
+        super().__init__(parent, None)
 
     def _get_geom_item(self, i):
         sub = lgeos.GEOSGetGeometryN(self._geom, i)

@@ -84,7 +84,7 @@ class LinearRing(LineString):
     def __setstate__(self, state):
         """WKB doesn't differentiate between LineString and LinearRing so we
         need to move the coordinate sequence into the correct geometry type"""
-        super(LinearRing, self).__setstate__(state)
+        super().__setstate__(state)
         cs = lgeos.GEOSGeom_getCoordSeq(self.__geom__)
         cs_clone = lgeos.GEOSCoordSeq_clone(cs)
         lgeos.GEOSGeom_destroy(self.__geom__)

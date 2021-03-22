@@ -46,7 +46,7 @@ class MultiPoint(BaseMultipartGeometry):
           >>> type(ob.geoms[0]) == Point
           True
         """
-        super(MultiPoint, self).__init__()
+        super().__init__()
 
         if points is None or (not isinstance(points, MultiPoint) and len(points) == 0):
             # allow creation of empty multipoints, to support unpickling
