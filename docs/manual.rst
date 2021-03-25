@@ -1570,7 +1570,7 @@ Constructive Methods
 Shapely geometric object have several methods that yield new objects not
 derived from set-theoretic analysis.
 
-.. method:: object.buffer(distance, resolution=16, cap_style=1, join_style=1, mitre_limit=5.0)
+.. method:: object.buffer(distance, resolution=16, cap_style=1, join_style=1, mitre_limit=5.0, single_sided=False)
 
   Returns an approximate representation of all points within a given `distance`
   of the this geometric object.
@@ -1646,6 +1646,26 @@ With a `resolution` of 1, the buffer is a square patch.
   5
   >>> q.area
   200.0
+
+You may want a buffer only on one side. You can achieve this effect with
+`single_sided` option.
+
+The side used is determined by the sign of the buffer distance:
+
+- a positive distance indicates the left-hand side
+- a negative distance indicates the right-hand side
+
+.. code-block:: pycon
+
+  >>> line = LineString([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
+  >>> left_hand_side = line.buffer(0.5, single_sided=True)
+  >>> right_hand_side = line.buffer(-0.3, single_sided=True)
+
+.. plot:: code/buffer_single_side.py
+
+The single-sided buffer of point geometries is the same as the regular buffer.
+The End Cap Style for single-sided buffers is always ignored, and forced to
+the equivalent of `CAP_STYLE.flat`.
 
 Passed a `distance` of 0, :meth:`buffer` can sometimes be used to "clean" self-touching
 or self-crossing polygons such as the classic "bowtie". Users have reported
