@@ -1663,6 +1663,8 @@ The side used is determined by the sign of the buffer distance:
 
 .. plot:: code/buffer_single_side.py
 
+Figure 10. Single sided buffer of 0.5 left hand (left) and of 0.3 right hand (right).
+
 The single-sided buffer of point geometries is the same as the regular buffer.
 The End Cap Style for single-sided buffers is always ignored, and forced to
 the equivalent of `CAP_STYLE.flat`.
@@ -1710,7 +1712,7 @@ Buffering splits the polygon in two at the point where they touch.
 
 .. plot:: code/convex_hull.py
 
-Figure 10. Convex hull (blue) of 2 points (left) and of 6 points (right).
+Figure 11. Convex hull (blue) of 2 points (left) and of 6 points (right).
 
 .. attribute:: object.envelope
 
@@ -1742,7 +1744,7 @@ Figure 10. Convex hull (blue) of 2 points (left) and of 6 points (right).
 
 .. plot:: code/minimum_rotated_rectangle.py
 
-Figure 11. Minimum rotated rectangle for a multipoint feature (left) and a
+Figure 12. Minimum rotated rectangle for a multipoint feature (left) and a
 linestring feature (right).
 
 .. method:: object.parallel_offset(distance, side, resolution=16, join_style=1, mitre_limit=5.0)
@@ -1782,7 +1784,7 @@ linestring feature (right).
 
 .. plot:: code/parallel_offset.py
 
-Figure 12. Three styles of parallel offset lines on the left side of a simple
+Figure 13. Three styles of parallel offset lines on the left side of a simple
 line string (its starting point shown as a circle) and one offset on the right
 side, a multipart.
 
@@ -1790,7 +1792,7 @@ The effect of the `mitre_limit` parameter is shown below.
 
 .. plot:: code/parallel_offset_mitre.py
 
-Figure 13. Large and small mitre_limit values for left and right offsets.
+Figure 14. Large and small mitre_limit values for left and right offsets.
 
 .. method:: object.simplify(tolerance, preserve_topology=True)
 
@@ -1817,7 +1819,7 @@ Douglas-Peucker algorithm [6]_ is used.
 
 .. plot:: code/simplify.py
 
-Figure 14. Simplification of a nearly circular polygon using a tolerance of 0.2
+Figure 15. Simplification of a nearly circular polygon using a tolerance of 0.2
 (left) and 0.5 (right).
 
 .. note::
@@ -1945,7 +1947,7 @@ preserved or supported by 3D affine transformations.
 
   .. plot:: code/rotate.py
 
-  Figure 15. Rotation of a `LineString` (gray) by an angle of 90°
+  Figure 16. Rotation of a `LineString` (gray) by an angle of 90°
   counter-clockwise (blue) using different origins.
 
 .. function:: shapely.affinity.scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center')
@@ -1987,7 +1989,7 @@ preserved or supported by 3D affine transformations.
 
   .. plot:: code/scale.py
 
-  Figure 16. Scaling of a gray triangle to blue result: a) by a factor of 1.5
+  Figure 17. Scaling of a gray triangle to blue result: a) by a factor of 1.5
   along x-direction, with reflection across y-axis; b) by a factor of 2 along
   x-direction with custom origin at (1, 1).
 
@@ -2019,7 +2021,7 @@ preserved or supported by 3D affine transformations.
 
   .. plot:: code/skew.py
 
-  Figure 17. Skewing of a gray "R" to blue result: a) by a shear angle of 20°
+  Figure 18. Skewing of a gray "R" to blue result: a) by a shear angle of 20°
   along the x-direction and an origin at (1, 1); b) by a shear angle of 30°
   along the y-direction, using default origin.
 
