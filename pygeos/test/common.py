@@ -60,3 +60,13 @@ def assert_decreases_refcount(obj):
     before = sys.getrefcount(obj)
     yield
     assert sys.getrefcount(obj) == before - 1
+
+
+def assert_geometries_equal(actual, expected):
+    actual = np.asarray(actual)
+    expected = np.broadcast_to(expected, actual.shape)
+    mask = pygeos.is_geometry(expected)
+    if np.any(mask):
+        assert pygeos.equals(actual[mask], expected[mask]).all()
+    if np.any(~mask):
+        assert pygeos.is_missing(actual[~mask])

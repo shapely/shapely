@@ -2,7 +2,7 @@ import numpy as np
 from . import lib
 from . import Geometry, GeometryType
 from .decorators import multithreading_enabled
-from ._geometry import collections_1d
+from ._geometry import collections_1d, simple_geometries_1d
 
 __all__ = [
     "points",
@@ -19,19 +19,18 @@ __all__ = [
 ]
 
 
-def _wrap_construct_ufunc(func, coords, y=None, z=None, **kwargs):
+def _xyz_to_coords(x, y, z):
     if y is None:
-        return func(coords, **kwargs)
-    x = coords
+        return x
     if z is None:
         coords = np.broadcast_arrays(x, y)
     else:
         coords = np.broadcast_arrays(x, y, z)
-    return func(np.stack(coords, axis=-1), **kwargs)
+    return np.stack(coords, axis=-1)
 
 
 @multithreading_enabled
-def points(coords, y=None, z=None, **kwargs):
+def points(coords, y=None, z=None, indices=None, **kwargs):
     """Create an array of points.
 
     Note that GEOS >=3.10 automatically converts POINT (nan nan) to
@@ -44,13 +43,25 @@ def points(coords, y=None, z=None, **kwargs):
         provided, an array of x coordinates.
     y : array_like
     z : array_like
+    indices : array_like or None
+       Indices into the target array where input coordinates belong. If
+       provided, the coords should be 2D with shape (N, 2) or (N, 3) and
+       indices should be 1D with shape (N,). Missing indices will give None
+       values in the output array.
     """
-    return _wrap_construct_ufunc(lib.points, coords, y, z, **kwargs)
+    coords = _xyz_to_coords(coords, y, z)
+    if indices is None:
+        return lib.points(coords, **kwargs)
+    else:
+        return simple_geometries_1d(coords, indices, GeometryType.POINT)
 
 
 @multithreading_enabled
-def linestrings(coords, y=None, z=None, **kwargs):
+def linestrings(coords, y=None, z=None, indices=None, **kwargs):
     """Create an array of linestrings.
+
+    This function will raise an exception if a linestring contains less than
+    two points.
 
     Parameters
     ----------
@@ -59,16 +70,27 @@ def linestrings(coords, y=None, z=None, **kwargs):
         is provided, an array of lists of x coordinates
     y : array_like
     z : array_like
+    indices : array_like or None
+       Indices into the target array where input coordinates belong. If
+       provided, the coords should be 2D with shape (N, 2) or (N, 3) and
+       indices should be 1D with shape (N,). Missing indices will give None
+       values in the output array.
     """
-    return _wrap_construct_ufunc(lib.linestrings, coords, y, z, **kwargs)
+    coords = _xyz_to_coords(coords, y, z)
+    if indices is None:
+        return lib.linestrings(coords, **kwargs)
+    else:
+        return simple_geometries_1d(coords, indices, GeometryType.LINESTRING)
 
 
 @multithreading_enabled
-def linearrings(coords, y=None, z=None, **kwargs):
+def linearrings(coords, y=None, z=None, indices=None, **kwargs):
     """Create an array of linearrings.
 
     If the provided coords do not constitute a closed linestring, the first
-    coordinate is duplicated at the end to close the ring.
+    coordinate is duplicated at the end to close the ring. This function will
+    raise an exception if a linearring contains less than three points or if
+    the terminal coordinates contain NaN (not-a-number).
 
     Parameters
     ----------
@@ -77,9 +99,17 @@ def linearrings(coords, y=None, z=None, **kwargs):
         is provided, an array of lists of x coordinates
     y : array_like
     z : array_like
+    indices : array_like or None
+       Indices into the target array where input coordinates belong. If
+       provided, the coords should be 2D with shape (N, 2) or (N, 3) and
+       indices should be 1D with shape (N,). Missing indices will give None
+       values in the output array.
     """
-    return _wrap_construct_ufunc(lib.linearrings, coords, y, z, **kwargs)
-
+    coords = _xyz_to_coords(coords, y, z)
+    if indices is None:
+        return lib.linearrings(coords, **kwargs)
+    else:
+        return simple_geometries_1d(coords, indices, GeometryType.LINEARRING)
 
 
 @multithreading_enabled
