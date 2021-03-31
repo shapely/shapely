@@ -207,7 +207,9 @@ General Attributes and Methods
   This can be thought of as a measure of the robustness of a geometry, where larger values of
   minimum clearance indicate a more robust geometry. If no minimum clearance exists for a geometry,
   such as a point, this will return `math.infinity`.
-
+  
+  `New in Shapely 1.7.1`
+  
   Requires GEOS 3.6 or higher.
 
 .. code-block:: pycon
@@ -775,13 +777,11 @@ Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
   (-1.0, -1.0, 2.0, 2.0)
 
 Its members are instances of `Polygon` and are accessed via the ``geoms``
-property or via the iterator protocol using ``in`` or ``list()``.
+property.
 
 .. code-block:: pycon
 
   >>> len(polygons.geoms)
-  3
-  >>> len(polygons)
   3
 
 .. _empties:
@@ -1184,6 +1184,20 @@ A line's endpoints are part of its `boundary` and are therefore not contained.
   >>> [p.wkt for p in contained]
   ['POINT (0.5000000000000000 0.5000000000000000)']
 
+.. method:: object.covers(other)
+
+  Returns ``True`` if every point of `other` is a point on the interior or
+  boundary of `object`. This is similar to ``object.contains(other)`` except
+  that this does not require any interior points of `other` to lie in the 
+  interior of `object`.
+
+.. method:: object.covered_by(other)
+
+  Returns ``True`` if every point of `object` is a point on the interior or
+  boundary of `other`. This is equivalent to ``other.covers(object)``.
+  
+  `New in version 1.8`.
+
 .. method:: object.crosses(other)
 
   Returns ``True`` if the `interior` of the object intersects the `interior` of
@@ -1556,7 +1570,7 @@ Constructive Methods
 Shapely geometric object have several methods that yield new objects not
 derived from set-theoretic analysis.
 
-.. method:: object.buffer(distance, resolution=16, cap_style=1, join_style=1, mitre_limit=5.0)
+.. method:: object.buffer(distance, resolution=16, cap_style=1, join_style=1, mitre_limit=5.0, single_sided=False)
 
   Returns an approximate representation of all points within a given `distance`
   of the this geometric object.
@@ -1633,6 +1647,28 @@ With a `resolution` of 1, the buffer is a square patch.
   >>> q.area
   200.0
 
+You may want a buffer only on one side. You can achieve this effect with
+`single_sided` option.
+
+The side used is determined by the sign of the buffer distance:
+
+- a positive distance indicates the left-hand side
+- a negative distance indicates the right-hand side
+
+.. code-block:: pycon
+
+  >>> line = LineString([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
+  >>> left_hand_side = line.buffer(0.5, single_sided=True)
+  >>> right_hand_side = line.buffer(-0.3, single_sided=True)
+
+.. plot:: code/buffer_single_side.py
+
+Figure 10. Single sided buffer of 0.5 left hand (left) and of 0.3 right hand (right).
+
+The single-sided buffer of point geometries is the same as the regular buffer.
+The End Cap Style for single-sided buffers is always ignored, and forced to
+the equivalent of `CAP_STYLE.flat`.
+
 Passed a `distance` of 0, :meth:`buffer` can sometimes be used to "clean" self-touching
 or self-crossing polygons such as the classic "bowtie". Users have reported
 that very small distance values sometimes produce cleaner results than 0. Your
@@ -1649,11 +1685,11 @@ mileage may vary when cleaning surfaces.
   True
   >>> clean
   <shapely.geometry.multipolygon.MultiPolygon object at ...>
-  >>> len(clean)
+  >>> len(clean.geoms)
   2
-  >>> list(clean[0].exterior.coords)
+  >>> list(clean.geoms[0].exterior.coords)
   [(0.0, 0.0), (0.0, 2.0), (1.0, 1.0), (0.0, 0.0)]
-  >>> list(clean[1].exterior.coords)
+  >>> list(clean.geoms[1].exterior.coords)
   [(1.0, 1.0), (2.0, 2.0), (2.0, 0.0), (1.0, 1.0)]
 
 Buffering splits the polygon in two at the point where they touch.
@@ -1676,7 +1712,7 @@ Buffering splits the polygon in two at the point where they touch.
 
 .. plot:: code/convex_hull.py
 
-Figure 10. Convex hull (blue) of 2 points (left) and of 6 points (right).
+Figure 11. Convex hull (blue) of 2 points (left) and of 6 points (right).
 
 .. attribute:: object.envelope
 
@@ -1708,7 +1744,7 @@ Figure 10. Convex hull (blue) of 2 points (left) and of 6 points (right).
 
 .. plot:: code/minimum_rotated_rectangle.py
 
-Figure 11. Minimum rotated rectangle for a multipoint feature (left) and a
+Figure 12. Minimum rotated rectangle for a multipoint feature (left) and a
 linestring feature (right).
 
 .. method:: object.parallel_offset(distance, side, resolution=16, join_style=1, mitre_limit=5.0)
@@ -1748,7 +1784,7 @@ linestring feature (right).
 
 .. plot:: code/parallel_offset.py
 
-Figure 12. Three styles of parallel offset lines on the left side of a simple
+Figure 13. Three styles of parallel offset lines on the left side of a simple
 line string (its starting point shown as a circle) and one offset on the right
 side, a multipart.
 
@@ -1756,7 +1792,7 @@ The effect of the `mitre_limit` parameter is shown below.
 
 .. plot:: code/parallel_offset_mitre.py
 
-Figure 13. Large and small mitre_limit values for left and right offsets.
+Figure 14. Large and small mitre_limit values for left and right offsets.
 
 .. method:: object.simplify(tolerance, preserve_topology=True)
 
@@ -1783,7 +1819,7 @@ Douglas-Peucker algorithm [6]_ is used.
 
 .. plot:: code/simplify.py
 
-Figure 14. Simplification of a nearly circular polygon using a tolerance of 0.2
+Figure 15. Simplification of a nearly circular polygon using a tolerance of 0.2
 (left) and 0.5 (right).
 
 .. note::
@@ -1911,7 +1947,7 @@ preserved or supported by 3D affine transformations.
 
   .. plot:: code/rotate.py
 
-  Figure 15. Rotation of a `LineString` (gray) by an angle of 90°
+  Figure 16. Rotation of a `LineString` (gray) by an angle of 90°
   counter-clockwise (blue) using different origins.
 
 .. function:: shapely.affinity.scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin='center')
@@ -1953,7 +1989,7 @@ preserved or supported by 3D affine transformations.
 
   .. plot:: code/scale.py
 
-  Figure 16. Scaling of a gray triangle to blue result: a) by a factor of 1.5
+  Figure 17. Scaling of a gray triangle to blue result: a) by a factor of 1.5
   along x-direction, with reflection across y-axis; b) by a factor of 2 along
   x-direction with custom origin at (1, 1).
 
@@ -1985,7 +2021,7 @@ preserved or supported by 3D affine transformations.
 
   .. plot:: code/skew.py
 
-  Figure 17. Skewing of a gray "R" to blue result: a) by a shear angle of 20°
+  Figure 18. Skewing of a gray "R" to blue result: a) by a shear angle of 20°
   along the x-direction and an origin at (1, 1); b) by a shear angle of 30°
   along the y-direction, using default origin.
 
@@ -2147,7 +2183,7 @@ using functions in the :mod:`shapely.ops` module.
     ...     ((1, 1), (100, 100)),
     ...     ]
     >>> result, dangles, cuts, invalids = polygonize_full(lines)
-    >>> len(result)
+    >>> len(result.geoms)
     2
     >>> list(result.geoms)
     [<shapely.geometry.polygon.Polygon object at ...>, <shapely.geometry.polygon.Polygon object at ...>]

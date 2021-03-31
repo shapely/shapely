@@ -51,7 +51,7 @@ class MultiPolygon(BaseMultipartGeometry):
           >>> type(ob.geoms[0]) == Polygon
           True
         """
-        super(MultiPolygon, self).__init__()
+        super().__init__()
 
         if not polygons:
             # allow creation of empty multipolygons, to support unpickling

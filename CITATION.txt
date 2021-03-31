@@ -1,7 +1,7 @@
 If you use Shapely for any published work, please cite it using the reference
 below:
 
-@Misc{,
+@Misc{shapely,
   author =    {Sean Gillies and others},
   organization = {toblerity.org},
   title =     {Shapely: manipulation and analysis of geometric objects},

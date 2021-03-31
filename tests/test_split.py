@@ -10,7 +10,7 @@ class TestSplitGeometry(unittest.TestCase):
 	def helper(self, geom, splitter, expected_chunks):
 		s = split(geom, splitter)
 		self.assertEqual(s.type, "GeometryCollection")
-		self.assertEqual(len(s), expected_chunks)
+		self.assertEqual(len(s.geoms), expected_chunks)
 		if expected_chunks > 1:
 			# split --> expected collection that when merged is again equal to original geometry
 			if s.geoms[0].type == 'LineString':
@@ -121,6 +121,11 @@ class TestSplitLine(TestSplitGeometry):
 		splitter = LineString([(-1, 1), (1, -1)])
 		self.assertTrue(splitter.touches(self.ls))
 		self.helper(self.ls, splitter, 1)
+
+		# splitter boundary touches interior of line --> return 2 segments
+		splitter = LineString([(0, 1), (1, 1)])  # touches at (1, 1)
+		self.assertTrue(splitter.touches(self.ls))
+		self.helper(self.ls, splitter, 2)
 
 	def test_split_line_with_multiline(self):
 		# crosses at one point --> return 2 segments

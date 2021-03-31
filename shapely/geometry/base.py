@@ -637,6 +637,27 @@ class BaseGeometry(object):
             op = self.impl['simplify']
         return geom_factory(op(self, tolerance))
 
+    def normalize(self):
+        """Converts geometry to normal form (or canonical form).
+
+        This method orders the coordinates, rings of a polygon and parts of
+        multi geometries consistently. Typically useful for testing purposes
+        (for example in combination with `equals_exact`).
+
+        Examples
+        --------
+        >>> from shapely.wkt import loads
+        >>> p = loads("MULTILINESTRING((0 0, 1 1), (3 3, 2 2))")
+        >>> p.normalize().wkt
+        'MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))'
+        """
+        # self.impl['normalize'](self)
+        if self._geom is None:
+            raise ValueError("Null geometry supports no operations")
+        geom_cloned = lgeos.GEOSGeom_clone(self._geom)
+        lgeos.GEOSNormalize(geom_cloned)
+        return geom_factory(geom_cloned)
+
     # Binary operations
     # -----------------
 
@@ -870,6 +891,11 @@ class BaseMultipartGeometry(BaseGeometry):
             return iter([])
 
     def __len__(self):
+        warn(
+            "__len__ for multi-part geometries is deprecated and will be removed in "
+            "Shapely 2.0. Check the length of the `geoms` property instead to get the "
+            " number of parts of a multi-part geometry.",
+            ShapelyDeprecationWarning, stacklevel=2)
         if not self.is_empty:
             return len(self.geoms)
         else:
@@ -894,7 +920,7 @@ class BaseMultipartGeometry(BaseGeometry):
     def __eq__(self, other):
         return (
             type(other) == type(self) and
-            len(self) == len(other) and
+            len(self.geoms) == len(other.geoms) and
             all(x == y for x, y in zip(self.geoms, other.geoms))
         )
 
@@ -1006,7 +1032,7 @@ class HeterogeneousGeometrySequence(GeometrySequence):
     """
 
     def __init__(self, parent):
-        super(HeterogeneousGeometrySequence, self).__init__(parent, None)
+        super().__init__(parent, None)
 
     def _get_geom_item(self, i):
         sub = lgeos.GEOSGetGeometryN(self._geom, i)

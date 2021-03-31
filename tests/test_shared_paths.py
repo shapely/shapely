@@ -11,10 +11,10 @@ class SharedPaths(unittest.TestCase):
         result = shared_paths(g1, g2)
         
         self.assertTrue(isinstance(result, GeometryCollection))
-        self.assertTrue(len(result) == 2)
+        self.assertTrue(len(result.geoms) == 2)
         a, b = result.geoms
         self.assertTrue(isinstance(a, MultiLineString))
-        self.assertTrue(len(a) == 1)
+        self.assertTrue(len(a.geoms) == 1)
         self.assertEqual(a.geoms[0].coords[:], [(5, 0), (10, 0)])
         self.assertTrue(b.is_empty)
 
@@ -24,10 +24,10 @@ class SharedPaths(unittest.TestCase):
         result = shared_paths(g1, g2)
         
         self.assertTrue(isinstance(result, GeometryCollection))
-        self.assertTrue(len(result) == 2)
+        self.assertTrue(len(result.geoms) == 2)
         a, b = result.geoms
         self.assertTrue(isinstance(b, MultiLineString))
-        self.assertTrue(len(b) == 1)
+        self.assertTrue(len(b.geoms) == 1)
         self.assertEqual(b.geoms[0].coords[:], [(5, 0), (10, 0)])
         self.assertTrue(a.is_empty)
     

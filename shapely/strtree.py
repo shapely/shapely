@@ -18,8 +18,12 @@ References
      https://www.cs.odu.edu/~mln/ltrs-pdfs/icase-1997-14.pdf
 """
 
-from shapely.geos import lgeos
 import ctypes
+from warnings import warn
+
+from shapely.errors import ShapelyDeprecationWarning
+from shapely.geos import lgeos
+
 
 class STRtree:
     """
@@ -72,6 +76,11 @@ class STRtree:
     """
 
     def __init__(self, geoms):
+        warn(
+            "STRtree will be completely changed in 2.0.0. The exact API is not yet decided, but will be documented before 1.8.0",
+            ShapelyDeprecationWarning,
+            stacklevel=2,
+        )
         # filter empty geometries out of the input
         geoms = [geom for geom in geoms if not geom.is_empty]
         self._n_geoms = len(geoms)
@@ -82,8 +91,8 @@ class STRtree:
         self._geoms = list(geoms)
 
     def _init_tree_handle(self, geoms):
-        # GEOS STRtree capacity has to be > 1
-        self._tree_handle = lgeos.GEOSSTRtree_create(max(2, len(geoms)))
+        node_capacity = 10
+        self._tree_handle = lgeos.GEOSSTRtree_create(node_capacity)
         self._idxs = list(range(len(geoms)))
         for idx, geom in zip(self._idxs, geoms):
             lgeos.GEOSSTRtree_insert(self._tree_handle, geom._geom, ctypes.py_object(idx))
@@ -221,7 +230,7 @@ class STRtree:
                 dist = ctypes.cast(distance, ctypes.POINTER(ctypes.c_double))
                 lgeos.GEOSDistance(self._geoms[idx1]._geom, geom2._geom, dist)
                 return 1
-            except:
+            except Exception:
                 return 0
 
         item = lgeos.GEOSSTRtree_nearest_generic(self._tree_handle, ctypes.py_object(geom), envelope._geom, \
