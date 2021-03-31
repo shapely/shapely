@@ -32,14 +32,15 @@ PyGEOS
 
 .. PyPI
 
-.. image:: https://badge.fury.io/py/pygeos.svg
+.. image:: https://img.shields.io/pypi/v/pygeos.svg
 	:alt: PyPI
-	:target: https://badge.fury.io/py/pygeos
+	:target: https://pypi.org/project/pygeos/
 
 .. Anaconda
 
-.. image:: https://anaconda.org/conda-forge/pygeos/badges/version.svg
+.. image:: https://img.shields.io/conda/vn/conda-forge/pygeos
   :alt: Anaconda
+  :target: https://anaconda.org/conda-forge/pygeos
 
 .. Zenodo
 
