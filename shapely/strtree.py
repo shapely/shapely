@@ -75,16 +75,31 @@ class STRtree:
     None
     """
 
-    def __init__(self, geoms):
+    def __init__(self, initdata):
         warn(
             "STRtree will be completely changed in 2.0.0. The exact API is not yet decided, but will be documented before 1.8.0",
             ShapelyDeprecationWarning,
             stacklevel=2,
         )
-        # filter empty geometries out of the input
-        geoms = [geom for geom in geoms if not geom.is_empty]
-        self._n_geoms = len(geoms)
+        ids = []
+        geoms = []
+        has_custom_ids = True
+        for item in initdata:
+            if isinstance(item, tuple):
+                # a geom, idx pair
+                ids.append(item[1])
+                geoms.append(item[0])
+            else:
+                geoms.append(item)
+                has_custom_ids = False
+        if not has_custom_ids and ids:
+            raise ValueError(
+                "can't mix geometries and (geom, id) tuples in the initdata"
+            )
 
+        self._ids = ids
+        self._has_custom_ids = has_custom_ids
+        self._n_geoms = len(geoms)
         self._init_tree_handle(geoms)
 
         # Keep references to geoms.
@@ -182,6 +197,8 @@ class STRtree:
 
         if return_geometries:
             return [self._geoms[i] for i in result]
+        elif self._has_custom_ids:
+            return [self._ids[i] for i in result]
         else:
             return result
 
@@ -239,5 +256,7 @@ class STRtree:
 
         if return_geometries:
             return self._geoms[result]
+        elif self._has_custom_ids:
+            return self._ids[result]
         else:
             return result
