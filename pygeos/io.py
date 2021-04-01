@@ -5,11 +5,20 @@ import numpy as np
 from . import Geometry  # noqa
 from . import lib
 from . import geos_capi_version_string
+from .enum import ParamEnum
+
+
+# Allowed options for handling WKB/WKT decoding errors
+# Note: cannot use standard constructor since "raise" is a keyword
+DecodingErrorOptions = ParamEnum(
+    "DecodingErrorOptions", {"ignore": 0, "warn": 1, "raise": 2}
+)
 
 
 shapely_geos_version = None
 ShapelyGeometry = None
 _shapely_checked = False
+
 
 def check_shapely_version():
     global shapely_geos_version
@@ -161,7 +170,7 @@ def to_wkb(
     )
 
 
-def from_wkt(geometry, **kwargs):
+def from_wkt(geometry, on_invalid="raise", **kwargs):
     """
     Creates geometries from the Well-Known Text (WKT) representation.
 
@@ -172,37 +181,59 @@ def from_wkt(geometry, **kwargs):
     ----------
     geometry : str or array_like
         The WKT string(s) to convert.
+    on_invalid : {"raise", "warn", "ignore"}
+        - raise: an exception will be raised if WKT input geometries are invalid.
+        - warn: a warning will be raised and invalid WKT geometries will be
+          returned as `None`.
+        - ignore: invalid WKT geometries will be returned as `None` without a warning.
 
     Examples
     --------
     >>> from_wkt('POINT (0 0)')
     <pygeos.Geometry POINT (0 0)>
     """
-    return lib.from_wkt(geometry, **kwargs)
+    if not np.isscalar(on_invalid):
+        raise TypeError("on_invalid only accepts scalar values")
+
+    invalid_handler = np.uint8(DecodingErrorOptions.get_value(on_invalid))
+
+    return lib.from_wkt(geometry, invalid_handler, **kwargs)
 
 
-def from_wkb(geometry, **kwargs):
+def from_wkb(geometry, on_invalid="raise", **kwargs):
     r"""
     Creates geometries from the Well-Known Binary (WKB) representation.
 
     The Well-Known Binary format is defined in the `OGC Simple Features
     Specification for SQL <https://www.opengeospatial.org/standards/sfs>`__.
 
+
     Parameters
     ----------
     geometry : str or array_like
         The WKB byte object(s) to convert.
+    on_invalid : {"raise", "warn", "ignore"}
+        - raise: an exception will be raised if WKB input geometries are invalid.
+        - warn: a warning will be raised and invalid WKB geometries will be
+          returned as `None`.
+        - ignore: invalid WKB geometries will be returned as `None` without a warning.
 
     Examples
     --------
     >>> from_wkb(b'\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?')
     <pygeos.Geometry POINT (1 1)>
     """
+
+    if not np.isscalar(on_invalid):
+        raise TypeError("on_invalid only accepts scalar values")
+
+    invalid_handler = np.uint8(DecodingErrorOptions.get_value(on_invalid))
+
     # ensure the input has object dtype, to avoid numpy inferring it as a
     # fixed-length string dtype (which removes trailing null bytes upon access
     # of array elements)
     geometry = np.asarray(geometry, dtype=object)
-    return lib.from_wkb(geometry, **kwargs)
+    return lib.from_wkb(geometry, invalid_handler, **kwargs)
 
 
 def from_shapely(geometry, **kwargs):

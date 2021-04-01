@@ -2301,16 +2301,25 @@ static PyUFuncGenericFunction bounds_funcs[1] = {&bounds_func};
 
 /* Define the object -> geom functions (O_Y) */
 
-static char from_wkb_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
+static char from_wkb_dtypes[3] = {NPY_OBJECT, NPY_UINT8, NPY_OBJECT};
 static void from_wkb_func(char** args, npy_intp* dimensions, npy_intp* steps,
                           void* data) {
-  GEOSGeometry* ret_ptr;
+  char *ip1 = args[0], *ip2 = args[1], *op1 = args[2];
+  npy_intp is1 = steps[0], is2 = steps[1], os1 = steps[2];
   PyObject* in1;
-
+  npy_uint8 on_invalid = *(npy_uint8*)ip2;
+  npy_intp n = dimensions[0];
+  npy_intp i;
   GEOSWKBReader* reader;
   unsigned char* wkb;
+  GEOSGeometry* ret_ptr;
   Py_ssize_t size;
   char is_hex;
+
+  if ((is2 != 0)) {
+    PyErr_Format(PyExc_ValueError, "from_wkb function called with non-scalar parameters");
+    return;
+  }
 
   GEOS_INIT;
 
@@ -2321,7 +2330,7 @@ static void from_wkb_func(char** args, npy_intp* dimensions, npy_intp* steps,
     goto finish;
   }
 
-  UNARY_LOOP {
+  for (i = 0; i < n; i++, ip1 += is1, op1 += os1) {
     /* ip1 is pointer to array element PyObject* */
     in1 = *(PyObject**)ip1;
 
@@ -2362,8 +2371,15 @@ static void from_wkb_func(char** args, npy_intp* dimensions, npy_intp* steps,
         ret_ptr = GEOSWKBReader_read_r(ctx, reader, wkb, size);
       }
       if (ret_ptr == NULL) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        goto finish;
+        if (on_invalid == 2) {
+          // raise exception
+          errstate = PGERR_GEOS_EXCEPTION;
+          goto finish;
+        } else if (on_invalid == 1) {
+          // raise warning, return None
+          errstate = PGWARN_INVALID_WKB;
+        }
+        // else: return None, no warning
       }
     }
     OUTPUT_Y;
@@ -2375,14 +2391,23 @@ finish:
 }
 static PyUFuncGenericFunction from_wkb_funcs[1] = {&from_wkb_func};
 
-static char from_wkt_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
+static char from_wkt_dtypes[3] = {NPY_OBJECT, NPY_UINT8, NPY_OBJECT};
 static void from_wkt_func(char** args, npy_intp* dimensions, npy_intp* steps,
                           void* data) {
-  GEOSGeometry* ret_ptr;
+  char *ip1 = args[0], *ip2 = args[1], *op1 = args[2];
+  npy_intp is1 = steps[0], is2 = steps[1], os1 = steps[2];
   PyObject* in1;
-
+  npy_uint8 on_invalid = *(npy_uint8*)ip2;
+  npy_intp n = dimensions[0];
+  npy_intp i;
+  GEOSGeometry* ret_ptr;
   GEOSWKTReader* reader;
   const char* wkt;
+
+  if ((is2 != 0)) {
+    PyErr_Format(PyExc_ValueError, "from_wkt function called with non-scalar parameters");
+    return;
+  }
 
   GEOS_INIT;
 
@@ -2393,7 +2418,7 @@ static void from_wkt_func(char** args, npy_intp* dimensions, npy_intp* steps,
     goto finish;
   }
 
-  UNARY_LOOP {
+  for (i = 0; i < n; i++, ip1 += is1, op1 += os1) {
     /* ip1 is pointer to array element PyObject* */
     in1 = *(PyObject**)ip1;
 
@@ -2422,8 +2447,15 @@ static void from_wkt_func(char** args, npy_intp* dimensions, npy_intp* steps,
       /* Read the WKT */
       ret_ptr = GEOSWKTReader_read_r(ctx, reader, wkt);
       if (ret_ptr == NULL) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        goto finish;
+        if (on_invalid == 2) {
+          // raise exception
+          errstate = PGERR_GEOS_EXCEPTION;
+          goto finish;
+        } else if (on_invalid == 1) {
+          // raise warning, return None
+          errstate = PGWARN_INVALID_WKT;
+        }
+        // else: return None, no warning
       }
     }
     OUTPUT_Y;
@@ -2862,8 +2894,8 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_GENERALIZED(polygons_with_holes, 2, "(),(i)->()");
   DEFINE_GENERALIZED(create_collection, 2, "(i),()->()");
 
-  DEFINE_CUSTOM(from_wkb, 1);
-  DEFINE_CUSTOM(from_wkt, 1);
+  DEFINE_CUSTOM(from_wkb, 2);
+  DEFINE_CUSTOM(from_wkt, 2);
   DEFINE_CUSTOM(to_wkb, 5);
   DEFINE_CUSTOM(to_wkt, 5);
   DEFINE_CUSTOM(from_shapely, 1);

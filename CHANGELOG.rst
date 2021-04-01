@@ -14,7 +14,7 @@ Version 0.10 (unreleased)
 * Enable bulk construction of collections with different number of geometries
   by optionally taking index arrays in the constructors ``multipoints``,
   ``multilinestrings``, ``multipolygons``, and ``geometrycollections`` (#290).
-* Released GIL for ``points``, ``linestrings``, ``linearrings``, and 
+* Released GIL for ``points``, ``linestrings``, ``linearrings``, and
   ``polygons`` (without holes) (#310).
 * Added the option to return the geometry index in ``get_coordinates`` (#318).
 * Updated ``box`` ufunc to use internal C function for creating polygon
@@ -30,6 +30,8 @@ Version 0.10 (unreleased)
   This will be removed in a future release.
 * ``points``, ``linestrings``, ``linearrings``, and ``polygons`` now return a ``GEOSException``
   instead of a ``ValueError`` for invalid input (#310).
+* Addition of ``on_invalid`` parameter to ``from_wkb`` and ``from_wkt`` to
+  optionally return invalid WKB geometries as ``None``.
 
 **Added GEOS functions**
 
@@ -40,7 +42,7 @@ Version 0.10 (unreleased)
 **Bug fixes**
 
 * Fixed portability issue for ARM architecture (#293)
-* Fixed segfault in ``linearrings`` and ``box`` when constructing a geometry with nan 
+* Fixed segfault in ``linearrings`` and ``box`` when constructing a geometry with nan
   coordinates (#310).
 
 **Acknowledgments**
