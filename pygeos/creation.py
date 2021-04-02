@@ -48,6 +48,10 @@ def points(coords, y=None, z=None, indices=None, **kwargs):
        provided, the coords should be 2D with shape (N, 2) or (N, 3) and
        indices should be 1D with shape (N,). Missing indices will give None
        values in the output array.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        Ignored if ``indices`` is provided.
     """
     coords = _xyz_to_coords(coords, y, z)
     if indices is None:
@@ -75,6 +79,10 @@ def linestrings(coords, y=None, z=None, indices=None, **kwargs):
        provided, the coords should be 2D with shape (N, 2) or (N, 3) and
        indices should be 1D with shape (N,). Missing indices will give None
        values in the output array.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        Ignored if ``indices`` is provided.
     """
     coords = _xyz_to_coords(coords, y, z)
     if indices is None:
@@ -104,6 +112,10 @@ def linearrings(coords, y=None, z=None, indices=None, **kwargs):
        provided, the coords should be 2D with shape (N, 2) or (N, 3) and
        indices should be 1D with shape (N,). Missing indices will give None
        values in the output array.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        Ignored if ``indices`` is provided.
     """
     coords = _xyz_to_coords(coords, y, z)
     if indices is None:
@@ -151,6 +163,9 @@ def box(xmin, ymin, xmax, ymax, ccw=True, **kwargs):
         from bottom right coordinate (xmax, ymin).
         If False, box will be created in clockwise direction starting from
         bottom left coordinate (xmin, ymin).
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Examples
     --------
@@ -163,7 +178,7 @@ def box(xmin, ymin, xmax, ymax, ccw=True, **kwargs):
     return lib.box(xmin, ymin, xmax, ymax, ccw, **kwargs)
 
 
-def multipoints(geometries, indices=None):
+def multipoints(geometries, indices=None, **kwargs):
     """Create multipoints from arrays of points
 
     Parameters
@@ -174,6 +189,10 @@ def multipoints(geometries, indices=None):
        Indices into the target array where input geometries belong. If
         provided, both geometries and indices should be 1D and have matching
         sizes.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        Ignored if ``indices`` is provided.
     """
     typ = GeometryType.MULTIPOINT
     geometries = np.asarray(geometries)
@@ -182,12 +201,12 @@ def multipoints(geometries, indices=None):
     ):
         geometries = points(geometries)
     if indices is None:
-        return lib.create_collection(geometries, typ)
+        return lib.create_collection(geometries, typ, **kwargs)
     else:
         return collections_1d(geometries, indices, typ)
 
 
-def multilinestrings(geometries, indices=None):
+def multilinestrings(geometries, indices=None, **kwargs):
     """Create multilinestrings from arrays of linestrings
 
     Parameters
@@ -198,6 +217,10 @@ def multilinestrings(geometries, indices=None):
         Indices into the target array where input geometries belong. If
         provided, both geometries and indices should be 1D and have matching
         sizes.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        Ignored if ``indices`` is provided.
     """
     typ = GeometryType.MULTILINESTRING
     geometries = np.asarray(geometries)
@@ -207,12 +230,12 @@ def multilinestrings(geometries, indices=None):
         geometries = linestrings(geometries)
 
     if indices is None:
-        return lib.create_collection(geometries, typ)
+        return lib.create_collection(geometries, typ, **kwargs)
     else:
         return collections_1d(geometries, indices, typ)
 
 
-def multipolygons(geometries, indices=None):
+def multipolygons(geometries, indices=None, **kwargs):
     """Create multipolygons from arrays of polygons
 
     Parameters
@@ -223,6 +246,10 @@ def multipolygons(geometries, indices=None):
         Indices into the target array where input geometries belong. If
         provided, both geometries and indices should be 1D and have matching
         sizes.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        Ignored if ``indices`` is provided.
     """
     typ = GeometryType.MULTIPOLYGON
     geometries = np.asarray(geometries)
@@ -231,12 +258,12 @@ def multipolygons(geometries, indices=None):
     ):
         geometries = polygons(geometries)
     if indices is None:
-        return lib.create_collection(geometries, typ)
+        return lib.create_collection(geometries, typ, **kwargs)
     else:
         return collections_1d(geometries, indices, typ)
 
 
-def geometrycollections(geometries, indices=None):
+def geometrycollections(geometries, indices=None, **kwargs):
     """Create geometrycollections from arrays of geometries
 
     Parameters
@@ -247,10 +274,14 @@ def geometrycollections(geometries, indices=None):
         Indices into the target array where input geometries belong. If
         provided, both geometries and indices should be 1D and have matching
         sizes.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        Ignored if ``indices`` is provided.
     """
     typ = GeometryType.GEOMETRYCOLLECTION
     if indices is None:
-        return lib.create_collection(geometries, typ)
+        return lib.create_collection(geometries, typ, **kwargs)
     else:
         return collections_1d(geometries, indices, typ)
 
@@ -273,6 +304,9 @@ def prepare(geometry, **kwargs):
     ----------
     geometry : Geometry or array_like
         Geometries are changed inplace
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     See also
     --------
@@ -293,6 +327,9 @@ def destroy_prepared(geometry, **kwargs):
     ----------
     geometry : Geometry or array_like
         Geometries are changed inplace
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     See also
     --------

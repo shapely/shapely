@@ -23,6 +23,9 @@ def line_interpolate_point(line, distance, normalized=False, **kwargs):
     normalized : bool
         If True, the distance is a fraction of the total
         line length instead of the absolute distance.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Examples
     --------
@@ -61,6 +64,9 @@ def line_locate_point(line, other, normalized=False, **kwargs):
     normalized : bool
         If True, the distance is a fraction of the total
         line length instead of the absolute distance.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Examples
     --------
@@ -84,13 +90,16 @@ def line_locate_point(line, other, normalized=False, **kwargs):
 
 
 @multithreading_enabled
-def line_merge(line):
+def line_merge(line, **kwargs):
     """Returns (multi)linestrings formed by combining the lines in a
     multilinestrings.
 
     Parameters
     ----------
     line : Geometry or array_like
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Examples
     --------
@@ -101,7 +110,7 @@ def line_merge(line):
     >>> line_merge(Geometry("LINESTRING EMPTY"))
     <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
     """
-    return lib.line_merge(line)
+    return lib.line_merge(line, **kwargs)
 
 
 def shared_paths(a, b, **kwargs):
@@ -118,6 +127,9 @@ def shared_paths(a, b, **kwargs):
     ----------
     a : Geometry or array_like
     b : Geometry or array_like
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Examples
     --------

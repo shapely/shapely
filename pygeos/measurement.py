@@ -23,6 +23,9 @@ def area(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Examples
     --------
@@ -45,6 +48,9 @@ def distance(a, b, **kwargs):
     Parameters
     ----------
     a, b : Geometry or array_like
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Examples
     --------
@@ -72,6 +78,9 @@ def bounds(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Examples
     --------
@@ -97,6 +106,9 @@ def total_bounds(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Returns
     -------
@@ -137,6 +149,9 @@ def length(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Examples
     --------
@@ -169,6 +184,9 @@ def hausdorff_distance(a, b, densify=None, **kwargs):
     a, b : Geometry or array_like
     densify : float, array_like or None
         The value of densify is required to be between 0 and 1.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Examples
     --------
@@ -209,6 +227,9 @@ def frechet_distance(a, b, densify=None, **kwargs):
     a, b : Geometry or array_like
     densify : float, array_like or None
         The value of densify is required to be between 0 and 1.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Examples
     --------
@@ -242,6 +263,9 @@ def minimum_clearance(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Examples
     --------

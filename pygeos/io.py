@@ -66,6 +66,9 @@ def to_wkt(
         Enable old style 3D/4D WKT generation. By default, new style 3D/4D WKT
         (ie. "POINT Z (10 20 30)") is returned, but with ``old_3d=True``
         the WKT will be formatted in the style "POINT (10 20 30)".
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Examples
     --------
@@ -141,6 +144,9 @@ def to_wkb(
     include_srid : bool, default False
         If True, the SRID is be included in WKB (this is an extension
         to the OGC WKB specification).
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Examples
     --------
@@ -184,6 +190,9 @@ def from_wkt(geometry, on_invalid="raise", **kwargs):
         - warn: a warning will be raised and invalid WKT geometries will be
           returned as `None`.
         - ignore: invalid WKT geometries will be returned as `None` without a warning.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Examples
     --------
@@ -215,6 +224,9 @@ def from_wkb(geometry, on_invalid="raise", **kwargs):
         - warn: a warning will be raised and invalid WKB geometries will be
           returned as `None`.
         - ignore: invalid WKB geometries will be returned as `None` without a warning.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Examples
     --------
@@ -242,6 +254,9 @@ def from_shapely(geometry, **kwargs):
     Parameters
     ----------
     geometry : shapely Geometry object or array_like
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Examples
     --------
