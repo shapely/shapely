@@ -16,6 +16,7 @@ jobs:
           - os: ubuntu-latest
             python: 3.8
             channel: conda-forge
+            pytest_args: "--doctest-modules"
           - os: windows-latest
             python: 3.8
             channel: conda-forge
@@ -74,4 +75,4 @@ jobs:
         shell: bash
         run: |
           source activate test
-          pytest --doctest-modules
+          pytest ${{ matrix.pytest_args }}

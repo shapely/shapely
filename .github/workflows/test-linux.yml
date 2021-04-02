@@ -89,4 +89,4 @@ jobs:
         shell: bash
         continue-on-error: ${{ matrix.geos == 'master' }}
         run: |
-          pytest --doctest-modules
+          pytest

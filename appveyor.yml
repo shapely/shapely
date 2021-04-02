@@ -69,7 +69,7 @@ build_script:
   - pip install --no-deps -e .
 
 test_script:
-  - pytest --doctest-modules
+  - pytest
 
 cache:
   - C:\projects\deps -> %APPVEYOR_BUILD_FOLDER%\ci\install_geos.cmd

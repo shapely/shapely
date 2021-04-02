@@ -24,4 +24,4 @@ install:
   - pip install . --no-deps --no-build-isolation
 
 script:
-  - pytest --doctest-modules
+  - pytest
