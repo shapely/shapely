@@ -1,36 +1,38 @@
 # distutils: define_macros=GEOS_USE_ONLY_R_API
 
-from cpython cimport PyObject
 cimport cython
+from cpython cimport PyObject
 from cython cimport view
 
 import numpy as np
+
 cimport numpy as np
+
 import pygeos
 
 from pygeos._geos cimport (
-    GEOSGeometry,
-    GEOSCoordSequence,
     GEOSContextHandle_t,
-    GEOSGeom_clone_r,
-    GEOSGetGeometryN_r,
-    get_geos_handle,
-    GEOSGeom_destroy_r,
-    GEOSGeom_createCollection_r,
-    GEOSGeomTypeId_r,
     GEOSCoordSeq_create_r,
     GEOSCoordSeq_destroy_r,
     GEOSCoordSeq_setX_r,
     GEOSCoordSeq_setY_r,
     GEOSCoordSeq_setZ_r,
-    GEOSGeom_createPoint_r,
+    GEOSCoordSequence,
+    GEOSGeom_clone_r,
+    GEOSGeom_createCollection_r,
+    GEOSGeom_createLinearRing_r,
     GEOSGeom_createLineString_r,
-    GEOSGeom_createLinearRing_r
+    GEOSGeom_createPoint_r,
+    GEOSGeom_destroy_r,
+    GEOSGeometry,
+    GEOSGeomTypeId_r,
+    GEOSGetGeometryN_r,
+    get_geos_handle,
 )
 from pygeos._pygeos_api cimport (
     import_pygeos_c_api,
     PyGEOS_CreateGeometry,
-    PyGEOS_GetGEOSGeometry
+    PyGEOS_GetGEOSGeometry,
 )
 
 # initialize PyGEOS C API

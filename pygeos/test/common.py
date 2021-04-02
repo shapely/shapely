@@ -1,7 +1,9 @@
-import numpy as np
-import pygeos
 import sys
 from contextlib import contextmanager
+
+import numpy as np
+
+import pygeos
 
 point_polygon_testdata = (
     pygeos.points(np.arange(6), np.arange(6)),

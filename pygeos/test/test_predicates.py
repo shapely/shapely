@@ -1,9 +1,10 @@
+import numpy as np
 import pytest
+
 import pygeos
 from pygeos import Geometry
-import numpy as np
 
-from .common import point, all_types, line_string, polygon, geometry_collection, empty
+from .common import all_types, empty, geometry_collection, point, polygon
 
 UNARY_PREDICATES = (
     pygeos.is_empty,
@@ -15,7 +16,10 @@ UNARY_PREDICATES = (
     pygeos.is_geometry,
     pygeos.is_valid_input,
     pygeos.is_prepared,
-    pytest.param(pygeos.is_ccw, marks=pytest.mark.skipif(pygeos.geos_version < (3, 7, 0), reason="GEOS < 3.7")),
+    pytest.param(
+        pygeos.is_ccw,
+        marks=pytest.mark.skipif(pygeos.geos_version < (3, 7, 0), reason="GEOS < 3.7"),
+    ),
 )
 
 BINARY_PREDICATES = (
@@ -114,12 +118,12 @@ def test_relate_none(g1, g2):
 
 
 def test_relate_pattern():
-    line_string = pygeos.linestrings([(0, 0), (1, 0), (1, 1)])
+    g = pygeos.linestrings([(0, 0), (1, 0), (1, 1)])
     polygon = pygeos.box(0, 0, 2, 2)
-    assert pygeos.relate(line_string, polygon) == "11F00F212"
-    assert pygeos.relate_pattern(line_string, polygon, "11F00F212")
-    assert pygeos.relate_pattern(line_string, polygon, "*********")
-    assert not pygeos.relate_pattern(line_string, polygon, "F********")
+    assert pygeos.relate(g, polygon) == "11F00F212"
+    assert pygeos.relate_pattern(g, polygon, "11F00F212")
+    assert pygeos.relate_pattern(g, polygon, "*********")
+    assert not pygeos.relate_pattern(g, polygon, "F********")
 
 
 def test_relate_pattern_empty():
@@ -147,22 +151,25 @@ def test_relate_pattern_non_string(pattern):
 
 def test_relate_pattern_non_scalar():
     with pytest.raises(ValueError, match="only supports scalar"):
-        pygeos.relate_pattern([point] *2, polygon, ["*********"] * 2)
+        pygeos.relate_pattern([point] * 2, polygon, ["*********"] * 2)
 
 
 @pytest.mark.skipif(pygeos.geos_version < (3, 7, 0), reason="GEOS < 3.7")
-@pytest.mark.parametrize("geom, expected", [
-    (Geometry("LINEARRING (0 0, 0 1, 1 1, 0 0)"), False),
-    (Geometry("LINEARRING (0 0, 1 1, 0 1, 0 0)"), True),
-    (Geometry("LINESTRING (0 0, 0 1, 1 1, 0 0)"), False),
-    (Geometry("LINESTRING (0 0, 1 1, 0 1, 0 0)"), True),
-    (Geometry("LINESTRING (0 0, 1 1, 0 1)"), False),
-    (Geometry("LINESTRING (0 0, 0 1, 1 1)"), False),
-    (point, False),
-    (polygon, False),
-    (geometry_collection, False),
-    (None, False),
-])
+@pytest.mark.parametrize(
+    "geom, expected",
+    [
+        (Geometry("LINEARRING (0 0, 0 1, 1 1, 0 0)"), False),
+        (Geometry("LINEARRING (0 0, 1 1, 0 1, 0 0)"), True),
+        (Geometry("LINESTRING (0 0, 0 1, 1 1, 0 0)"), False),
+        (Geometry("LINESTRING (0 0, 1 1, 0 1, 0 0)"), True),
+        (Geometry("LINESTRING (0 0, 1 1, 0 1)"), False),
+        (Geometry("LINESTRING (0 0, 0 1, 1 1)"), False),
+        (point, False),
+        (polygon, False),
+        (geometry_collection, False),
+        (None, False),
+    ],
+)
 def test_is_ccw(geom, expected):
     assert pygeos.is_ccw(geom) == expected
 

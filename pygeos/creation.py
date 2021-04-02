@@ -1,8 +1,8 @@
 import numpy as np
-from . import lib
-from . import Geometry, GeometryType
-from .decorators import multithreading_enabled
+
+from . import Geometry, GeometryType, lib
 from ._geometry import collections_1d, simple_geometries_1d
+from .decorators import multithreading_enabled
 
 __all__ = [
     "points",

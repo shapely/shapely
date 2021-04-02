@@ -13,10 +13,10 @@ this capability.
 Segfaults will occur if the C API is not imported properly.
 """
 
-from cpython.ref cimport PyObject
 cimport numpy as np
+from cpython.ref cimport PyObject
 
-from pygeos._geos cimport GEOSGeometry, GEOSContextHandle_t
+from pygeos._geos cimport GEOSContextHandle_t, GEOSGeometry
 
 
 cdef extern from "c_api.h":

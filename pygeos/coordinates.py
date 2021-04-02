@@ -1,5 +1,7 @@
-from . import lib, Geometry
 import numpy as np
+
+from . import Geometry  # NOQA
+from . import lib
 
 __all__ = ["apply", "count_coordinates", "get_coordinates", "set_coordinates"]
 
@@ -165,15 +167,13 @@ def set_coordinates(geometry, coordinates):
     """
     geometry_arr = np.asarray(geometry, dtype=np.object_)
     coordinates = np.atleast_2d(np.asarray(coordinates)).astype(np.float64)
-    n_coords = lib.count_coordinates(geometry_arr)
     if coordinates.ndim != 2:
         raise ValueError(
             "The coordinate array should have dimension of 2 "
             "(has {})".format(coordinates.ndim)
         )
-    if (coordinates.shape[0] != lib.count_coordinates(geometry_arr)) or (
-        coordinates.shape[1] not in {2, 3}
-    ):
+    n_coords = lib.count_coordinates(geometry_arr)
+    if (coordinates.shape[0] != n_coords) or (coordinates.shape[1] not in {2, 3}):
         raise ValueError(
             "The coordinate array has an invalid shape {}".format(coordinates.shape)
         )

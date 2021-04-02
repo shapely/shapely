@@ -1,13 +1,18 @@
 import numpy as np
 
-from . import lib
 from . import Geometry  # NOQA
-from .decorators import requires_geos, multithreading_enabled
-
+from . import lib
+from .decorators import multithreading_enabled, requires_geos
 
 __all__ = [
-    "area", "distance", "bounds", "total_bounds", "length", "hausdorff_distance",
-    "frechet_distance", "minimum_clearance"
+    "area",
+    "distance",
+    "bounds",
+    "total_bounds",
+    "length",
+    "hausdorff_distance",
+    "frechet_distance",
+    "minimum_clearance",
 ]
 
 

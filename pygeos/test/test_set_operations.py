@@ -1,13 +1,14 @@
 import numpy as np
 import pytest
+
 import pygeos
 from pygeos import Geometry
 from pygeos.decorators import UnsupportedGEOSOperation
 
-from .common import point, all_types, polygon, multi_polygon
+from .common import all_types, multi_polygon, point, polygon
 
 # fixed-precision operations raise GEOS exceptions on mixed dimension geometry collections
-all_single_types = [g for g in all_types if not pygeos.get_type_id(g)==7]
+all_single_types = [g for g in all_types if not pygeos.get_type_id(g) == 7]
 
 SET_OPERATIONS = (
     pygeos.difference,
@@ -205,7 +206,6 @@ def test_set_operation_prec_reduce_axis(func, related_func):
     assert actual.shape == (3,)
 
 
-
 @pytest.mark.skipif(pygeos.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("none_position", range(3))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS_PREC)
@@ -287,9 +287,9 @@ def test_coverage_union_overlapping_inputs():
 @pytest.mark.parametrize(
     "geom_1, geom_2",
     # All possible polygon, non_polygon combinations
-    [[polygon, non_polygon] for non_polygon in non_polygon_types] +
+    [[polygon, non_polygon] for non_polygon in non_polygon_types]
     # All possible non_polygon, non_polygon combinations
-    [
+    + [
         [non_polygon_1, non_polygon_2]
         for non_polygon_1 in non_polygon_types
         for non_polygon_2 in non_polygon_types
@@ -334,14 +334,14 @@ def test_coverage_union_non_polygon_inputs(geom_1, geom_2):
         (
             [pygeos.box(0.1, 0.1, 5, 5), pygeos.box(0, 0.2, 5.1, 10)],
             10,
-            pygeos.Geometry('POLYGON ((0 10, 10 10, 10 0, 0 0, 0 10))')
+            pygeos.Geometry("POLYGON ((0 10, 10 10, 10 0, 0 0, 0 10))"),
         ),
         # grid_size is so large that polygons collapse to empty
         (
             [pygeos.box(0.1, 0.1, 5, 5), pygeos.box(0, 0.2, 5.1, 10)],
             100,
-            pygeos.Geometry('POLYGON EMPTY')
-        )
+            pygeos.Geometry("POLYGON EMPTY"),
+        ),
     ],
 )
 def test_union_all_prec(geom, grid_size, expected):

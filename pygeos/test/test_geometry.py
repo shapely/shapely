@@ -1,24 +1,26 @@
-import sys
 import numpy as np
-import pygeos
 import pytest
 
-from .common import point
-from .common import line_string_nan
-from .common import empty_point
-from .common import line_string
-from .common import empty_line_string
-from .common import linear_ring
-from .common import polygon
-from .common import polygon_with_hole
-from .common import empty_polygon
-from .common import multi_point
-from .common import multi_line_string
-from .common import multi_polygon
-from .common import geometry_collection
-from .common import empty as empty_geometry_collection
-from .common import point_z
+import pygeos
+
 from .common import all_types
+from .common import empty as empty_geometry_collection
+from .common import (
+    empty_line_string,
+    empty_point,
+    empty_polygon,
+    geometry_collection,
+    line_string,
+    line_string_nan,
+    linear_ring,
+    multi_line_string,
+    multi_point,
+    multi_polygon,
+    point,
+    point_z,
+    polygon,
+    polygon_with_hole,
+)
 
 
 def test_get_num_points():
@@ -411,7 +413,9 @@ def test_set_precision_z():
 
 @pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_set_precision_nan():
-    assert np.all(np.isnan(pygeos.get_coordinates(pygeos.set_precision(line_string_nan, 1))))
+    assert np.all(
+        np.isnan(pygeos.get_coordinates(pygeos.set_precision(line_string_nan, 1)))
+    )
 
 
 @pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")

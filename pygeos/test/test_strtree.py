@@ -1,18 +1,20 @@
 import math
+
+import numpy as np
+import pytest
+from numpy.testing import assert_array_equal
+
 import pygeos
 from pygeos import box
-import pytest
-import numpy as np
-from numpy.testing import assert_array_equal
-from .common import (
-    point,
-    empty,
-    empty_point,
-    empty_line_string,
-    assert_increases_refcount,
-    assert_decreases_refcount,
-)
 
+from .common import (
+    assert_decreases_refcount,
+    assert_increases_refcount,
+    empty,
+    empty_line_string,
+    empty_point,
+    point,
+)
 
 # the distance between 2 points spaced at whole numbers along a diagonal
 HALF_UNIT_DIAG = math.sqrt(2) / 2
@@ -1195,10 +1197,7 @@ def test_nearest_invalid_geom(tree, geometry):
 
 # TODO: add into regular results
 @pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
-@pytest.mark.parametrize(
-    "geometry,expected",
-    [(None, [[], []]), ([None], [[], []])],
-)
+@pytest.mark.parametrize("geometry,expected", [(None, [[], []]), ([None], [[], []])])
 def test_nearest_none(tree, geometry, expected):
     assert_array_equal(tree.nearest_all(geometry), expected)
 
@@ -1382,18 +1381,7 @@ def test_nearest_all_empty_geom(tree, geometry, expected):
         # return nearest point in tree for each point in multipoint
         (pygeos.multipoints([[5, 5], [7, 7]]), [[0, 0], [5, 7]]),
         # 2 equidistant points per point in multipoint
-        (
-            pygeos.multipoints([[0.5, 0.5], [3.5, 3.5]]),
-            [
-                [
-                    0,
-                    0,
-                    0,
-                    0,
-                ],
-                [0, 1, 3, 4],
-            ],
-        ),
+        (pygeos.multipoints([[0.5, 0.5], [3.5, 3.5]]), [[0, 0, 0, 0], [0, 1, 3, 4]]),
     ],
 )
 def test_nearest_all_points(tree, geometry, expected):
@@ -1473,10 +1461,7 @@ def test_nearest_all_max_distance(tree, geometry, max_distance, expected):
 @pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
     "geometry,max_distance",
-    [
-        (pygeos.points(0.5, 0.5), 0),
-        (pygeos.points(0.5, 0.5), -1),
-    ],
+    [(pygeos.points(0.5, 0.5), 0), (pygeos.points(0.5, 0.5), -1)],
 )
 def test_nearest_all_invalid_max_distance(tree, geometry, max_distance):
     with pytest.raises(ValueError, match="max_distance must be greater than 0"):

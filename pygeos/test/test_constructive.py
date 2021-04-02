@@ -1,20 +1,19 @@
-import pygeos
 import numpy as np
 import pytest
 
+import pygeos
 from pygeos import Geometry, GEOSException
 
 from .common import (
-    point,
-    point_z,
-    line_string,
     all_types,
     empty,
-    empty_point,
     empty_line_string,
+    empty_point,
     empty_polygon,
-    geometry_collection,
+    line_string,
     multi_point,
+    point,
+    point_z,
 )
 
 CONSTRUCTIVE_NO_ARGS = (
@@ -428,9 +427,7 @@ def test_polygonize_array():
         pygeos.Geometry("LINESTRING (0 0, 0 1)"),
         pygeos.Geometry("LINESTRING (0 1, 1 1)"),
     ]
-    expected = pygeos.Geometry(
-        "GEOMETRYCOLLECTION (POLYGON ((1 1, 0 0, 0 1, 1 1)))"
-    )
+    expected = pygeos.Geometry("GEOMETRYCOLLECTION (POLYGON ((1 1, 0 0, 0 1, 1 1)))")
     result = pygeos.polygonize(np.array(lines))
     assert isinstance(result, pygeos.Geometry)
     assert result == expected
@@ -492,18 +489,12 @@ def test_segmentize_invalid_tolerance(geometry, tolerance):
 @pytest.mark.parametrize("geometry", all_types)
 def test_segmentize_tolerance_nan(geometry):
     actual = pygeos.segmentize(geometry, tolerance=np.nan)
-    assert actual == None
+    assert actual is None
 
 
 @pytest.mark.skipif(pygeos.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize(
-    "geometry",
-    [
-        empty,
-        empty_point,
-        empty_line_string,
-        empty_polygon,
-    ],
+    "geometry", [empty, empty_point, empty_line_string, empty_polygon]
 )
 def test_segmentize_empty(geometry):
     actual = pygeos.segmentize(geometry, tolerance=5)

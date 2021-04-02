@@ -1,8 +1,10 @@
 # distutils: define_macros=GEOS_USE_ONLY_R_API
 #from pygeos import GEOSException
 from libc.stdio cimport snprintf
-from libc.stdlib cimport malloc, free
+from libc.stdlib cimport free, malloc
+
 import warnings
+
 from pygeos import GEOSException
 
 

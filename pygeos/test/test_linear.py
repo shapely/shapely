@@ -1,16 +1,19 @@
-import pygeos
 import numpy as np
 import pytest
 
-from .common import empty_point
-from .common import empty_line_string
-from .common import point
-from .common import line_string
-from .common import polygon
-from .common import multi_point
-from .common import multi_polygon
-from .common import linear_ring
-from .common import multi_line_string
+import pygeos
+
+from .common import (
+    empty_line_string,
+    empty_point,
+    line_string,
+    linear_ring,
+    multi_line_string,
+    multi_point,
+    multi_polygon,
+    point,
+    polygon,
+)
 
 
 def test_line_interpolate_point_geom_array():
@@ -110,8 +113,12 @@ def test_line_locate_point_none(normalized):
 
 @pytest.mark.parametrize("normalized", [False, True])
 def test_line_locate_point_empty(normalized):
-    assert np.isnan(pygeos.line_locate_point(line_string, empty_point, normalized=normalized))
-    assert np.isnan(pygeos.line_locate_point(empty_line_string, point, normalized=normalized))
+    assert np.isnan(
+        pygeos.line_locate_point(line_string, empty_point, normalized=normalized)
+    )
+    assert np.isnan(
+        pygeos.line_locate_point(empty_line_string, point, normalized=normalized)
+    )
 
 
 @pytest.mark.parametrize("normalized", [False, True])

@@ -1,7 +1,7 @@
 from warnings import warn
 
-from . import lib
 from . import Geometry  # NOQA
+from . import lib
 from .decorators import multithreading_enabled
 
 __all__ = ["line_interpolate_point", "line_locate_point", "line_merge", "shared_paths"]
