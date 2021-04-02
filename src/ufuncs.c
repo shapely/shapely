@@ -2566,6 +2566,10 @@ static void from_shapely_func(char** args, npy_intp* dimensions, npy_intp* steps
       /* None in the input propagates to the output */
       ret_ptr = NULL;
     } else {
+      /* Check if we have a prepared geometry */
+      if (PyObject_HasAttrString(in1, "context")) {
+        in1 = PyObject_GetAttrString(in1, "context");
+      }
       /* Get the __geom__ attribute */
       attr = PyObject_GetAttrString(in1, "__geom__");
       if (attr == NULL) {

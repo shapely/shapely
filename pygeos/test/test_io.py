@@ -34,6 +34,39 @@ class ShapelyGeometryMock:
         # (starting with numpy 1.20 it is called, but not used)
         return np.array([1.0, 2.0]).__array_interface__
 
+    @property
+    def wkb(self):
+        return pygeos.to_wkb(self.g)
+
+    @property
+    def geom_type(self):
+        idx = pygeos.get_type_id(self.g)
+        return [
+            "None",
+            "Point",
+            "LineString",
+            "LinearRing",
+            "Polygon",
+            "MultiPoint",
+            "MultiLineString",
+            "MultiPolygon",
+            "GeometryCollection",
+        ][idx]
+
+    @property
+    def is_empty(self):
+        return pygeos.is_empty(self.g)
+
+
+class ShapelyPreparedMock:
+    def __init__(self, g):
+        self.context = ShapelyGeometryMock(g)
+
+
+def shapely_wkb_loads_mock(wkb):
+    geom = pygeos.from_wkb(wkb)
+    return ShapelyGeometryMock(geom)
+
 
 def test_from_wkt():
     expected = pygeos.points(1, 1)
@@ -434,23 +467,41 @@ def test_to_wkb_point_empty_srid():
 
 @pytest.mark.parametrize("geom", all_types)
 @mock.patch("pygeos.io.ShapelyGeometry", ShapelyGeometryMock)
-@mock.patch("pygeos.io.shapely_geos_version", pygeos.geos_capi_version_string)
+@mock.patch("pygeos.io.ShapelyPreparedGeometry", ShapelyPreparedMock)
+@mock.patch("pygeos.io.shapely_compatible", True)
+@mock.patch("pygeos.io._shapely_checked", True)
 def test_from_shapely(geom):
     actual = pygeos.from_shapely(ShapelyGeometryMock(geom))
-    assert isinstance(geom, pygeos.Geometry)
+    assert isinstance(actual, pygeos.Geometry)
+    assert pygeos.equals(geom, actual)
+    assert geom._ptr != actual._ptr
+
+
+@pytest.mark.parametrize("geom", all_types)
+@mock.patch("pygeos.io.ShapelyGeometry", ShapelyGeometryMock)
+@mock.patch("pygeos.io.ShapelyPreparedGeometry", ShapelyPreparedMock)
+@mock.patch("pygeos.io.shapely_compatible", True)
+@mock.patch("pygeos.io._shapely_checked", True)
+def test_from_shapely_prepared(geom):
+    actual = pygeos.from_shapely(ShapelyPreparedMock(geom))
+    assert isinstance(actual, pygeos.Geometry)
     assert pygeos.equals(geom, actual)
     assert geom._ptr != actual._ptr
 
 
 @mock.patch("pygeos.io.ShapelyGeometry", ShapelyGeometryMock)
-@mock.patch("pygeos.io.shapely_geos_version", pygeos.geos_capi_version_string)
+@mock.patch("pygeos.io.ShapelyPreparedGeometry", ShapelyPreparedMock)
+@mock.patch("pygeos.io.shapely_compatible", True)
+@mock.patch("pygeos.io._shapely_checked", True)
 def test_from_shapely_arr():
     actual = pygeos.from_shapely([ShapelyGeometryMock(point), None])
     assert pygeos.equals(point, actual[0])
 
 
 @mock.patch("pygeos.io.ShapelyGeometry", ShapelyGeometryMock)
-@mock.patch("pygeos.io.shapely_geos_version", pygeos.geos_capi_version_string)
+@mock.patch("pygeos.io.ShapelyPreparedGeometry", ShapelyPreparedMock)
+@mock.patch("pygeos.io.shapely_compatible", True)
+@mock.patch("pygeos.io._shapely_checked", True)
 def test_from_shapely_none():
     actual = pygeos.from_shapely(None)
     assert actual is None
@@ -458,17 +509,84 @@ def test_from_shapely_none():
 
 @pytest.mark.parametrize("geom", [1, 2.3, "x", ShapelyGeometryMock(None)])
 @mock.patch("pygeos.io.ShapelyGeometry", ShapelyGeometryMock)
-@mock.patch("pygeos.io.shapely_geos_version", pygeos.geos_capi_version_string)
+@mock.patch("pygeos.io.ShapelyPreparedGeometry", ShapelyPreparedMock)
+@mock.patch("pygeos.io.shapely_compatible", True)
+@mock.patch("pygeos.io._shapely_checked", True)
 def test_from_shapely_error(geom):
     with pytest.raises(TypeError):
         pygeos.from_shapely(geom)
 
 
-# We have >= 3.5 in PyGEOS. Test with some random older version.
-@mock.patch("pygeos.io.shapely_geos_version", "2.3.4-abc")
-def test_from_shapely_incompatible_versions():
-    with pytest.raises(ImportError):
-        pygeos.from_shapely(point)
+@pytest.mark.parametrize("geom", all_types)
+@mock.patch("pygeos.io.ShapelyGeometry", ShapelyGeometryMock)
+@mock.patch("pygeos.io.ShapelyPreparedGeometry", ShapelyPreparedMock)
+@mock.patch("pygeos.io.shapely_compatible", False)
+@mock.patch("pygeos.io._shapely_checked", True)
+def test_from_shapely_incompatible(geom):
+    actual = pygeos.from_shapely(ShapelyGeometryMock(geom))
+    assert isinstance(actual, pygeos.Geometry)
+    assert pygeos.equals(geom, actual)
+    assert geom._ptr != actual._ptr
+
+
+@pytest.mark.parametrize("geom", all_types)
+@mock.patch("pygeos.io.ShapelyGeometry", ShapelyGeometryMock)
+@mock.patch("pygeos.io.ShapelyPreparedGeometry", ShapelyPreparedMock)
+@mock.patch("pygeos.io.shapely_compatible", False)
+@mock.patch("pygeos.io._shapely_checked", True)
+def test_from_shapely_incompatible_prepared(geom):
+    actual = pygeos.from_shapely(ShapelyPreparedMock(geom))
+    assert isinstance(actual, pygeos.Geometry)
+    assert pygeos.equals(geom, actual)
+    assert geom._ptr != actual._ptr
+
+
+@mock.patch("pygeos.io.ShapelyGeometry", ShapelyGeometryMock)
+@mock.patch("pygeos.io.ShapelyPreparedGeometry", ShapelyPreparedMock)
+@mock.patch("pygeos.io.shapely_compatible", False)
+@mock.patch("pygeos.io._shapely_checked", True)
+def test_from_shapely_incompatible_none():
+    actual = pygeos.from_shapely(None)
+    assert actual is None
+
+
+@mock.patch("pygeos.io.ShapelyGeometry", ShapelyGeometryMock)
+@mock.patch("pygeos.io.ShapelyPreparedGeometry", ShapelyPreparedMock)
+@mock.patch("pygeos.io.shapely_compatible", False)
+@mock.patch("pygeos.io._shapely_checked", True)
+def test_from_shapely_incompatible_array():
+    actual = pygeos.from_shapely([ShapelyGeometryMock(point), None])
+    assert pygeos.equals(point, actual[0])
+
+
+@pytest.mark.parametrize("geom", all_types)
+@mock.patch("pygeos.io.ShapelyGeometry", ShapelyGeometryMock)
+@mock.patch("pygeos.io.shapely_wkb_loads", shapely_wkb_loads_mock)
+@mock.patch("pygeos.io.shapely_compatible", False)
+@mock.patch("pygeos.io._shapely_checked", True)
+def test_to_shapely_incompatible(geom):
+    actual = pygeos.to_shapely(geom)
+    assert isinstance(actual, ShapelyGeometryMock)
+    assert pygeos.equals(geom, actual.g)
+    assert geom._ptr != actual.g._ptr
+
+
+@mock.patch("pygeos.io.ShapelyGeometry", ShapelyGeometryMock)
+@mock.patch("pygeos.io.shapely_wkb_loads", shapely_wkb_loads_mock)
+@mock.patch("pygeos.io.shapely_compatible", False)
+@mock.patch("pygeos.io._shapely_checked", True)
+def test_to_shapely_incompatible_none():
+    actual = pygeos.to_shapely(None)
+    assert actual is None
+
+
+@mock.patch("pygeos.io.ShapelyGeometry", ShapelyGeometryMock)
+@mock.patch("pygeos.io.shapely_wkb_loads", shapely_wkb_loads_mock)
+@mock.patch("pygeos.io.shapely_compatible", False)
+@mock.patch("pygeos.io._shapely_checked", True)
+def test_to_shapely_incompatible_array():
+    actual = pygeos.to_shapely([point, None])
+    assert pygeos.equals(point, actual[0].g)
 
 
 @pytest.mark.parametrize("geom", all_types + (point_z, empty_point))

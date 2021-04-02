@@ -20,6 +20,8 @@ Version 0.10 (unreleased)
 * Updated ``box`` ufunc to use internal C function for creating polygon
   (about 2x faster) and added ``ccw`` parameter to create polygon in
   counterclockwise (default) or clockwise direction (#308).
+* Added ``to_shapely`` and improved performance of ``from_shapely`` in the case
+  GEOS versions are different (#312).
 
 **API Changes**
 
@@ -54,6 +56,7 @@ People with a "+" by their names contributed a patch for the first time.
 * Brendan Ward
 * Casper van der Wel
 * Joris Van den Bossche
+* 0phoff +
 
 
 Version 0.9 (2021-01-23)
