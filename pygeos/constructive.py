@@ -23,6 +23,7 @@ __all__ = [
     "normalize",
     "point_on_surface",
     "polygonize",
+    "polygonize_full",
     "reverse",
     "simplify",
     "snap",
@@ -564,6 +565,7 @@ def polygonize(geometries, **kwargs):
     See Also
     --------
     get_parts, get_geometry
+    polygonize_full
 
     Examples
     --------
@@ -576,6 +578,65 @@ def polygonize(geometries, **kwargs):
     <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((1 1, 0 0, 0 1, 1 1)))>
     """
     return lib.polygonize(geometries, **kwargs)
+
+
+def polygonize_full(geometries, **kwargs):
+    """Creates polygons formed from the linework of a set of Geometries and
+    return all extra outputs as well.
+
+    Polygonizes an array of Geometries that contain linework which
+    represents the edges of a planar graph. Any type of Geometry may be
+    provided as input; only the constituent lines and rings will be used to
+    create the output polygons.
+
+    This function performs the same polygonization as `polygonize` but does
+    not only return the polygonal result but all extra outputs as well. The
+    return value consists of 4 elements:
+
+    * The polygonal valid output
+    * **Cut edges**: edges connected on both ends but not part of polygonal output
+    * **dangles**: edges connected on one end but not part of polygonal output
+    * **invalid rings**: polygons formed but which are not valid
+
+    This function returns the geometries within GeometryCollections.
+    Individual geometries can be obtained using `get_geometry` to get
+    a single geometry or `get_parts` to get an array of geometries.
+
+    Parameters
+    ----------
+    geometries : array_like
+        An array of geometries.
+    axis : int
+        Axis along which the geometries are polygonized.
+        The default is to perform a reduction over the last dimension
+        of the input array. A 1D array results in a scalar geometry.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    Returns
+    -------
+    (polgyons, cuts, dangles, invalid)
+        tuple of 4 GeometryCollections or arrays of GeometryCollections
+
+    See Also
+    --------
+    polygonize
+
+    Examples
+    --------
+    >>> lines = [
+    ...     Geometry("LINESTRING (0 0, 1 1)"),
+    ...     Geometry("LINESTRING (0 0, 0 1, 1 1)"),
+    ...     Geometry("LINESTRING (0 1, 1 1)"),
+    ... ]
+    >>> polygonize_full(lines)  # doctest: +NORMALIZE_WHITESPACE
+    (<pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((1 1, 0 0, 0 1, 1 1)))>,
+     <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>,
+     <pygeos.Geometry GEOMETRYCOLLECTION (LINESTRING (0 1, 1 1))>,
+     <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>)
+    """
+    return lib.polygonize_full(geometries, **kwargs)
 
 
 @requires_geos("3.7.0")

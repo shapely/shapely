@@ -477,6 +477,113 @@ def test_polygonize_missing():
     assert result == pygeos.Geometry("GEOMETRYCOLLECTION EMPTY")
 
 
+def test_polygonize_full():
+    lines = [
+        None,
+        pygeos.Geometry("LINESTRING (0 0, 1 1)"),
+        pygeos.Geometry("LINESTRING (0 0, 0 1)"),
+        pygeos.Geometry("LINESTRING (0 1, 1 1)"),
+        pygeos.Geometry("LINESTRING (1 1, 1 0)"),
+        None,
+        pygeos.Geometry("LINESTRING (1 0, 0 0)"),
+        pygeos.Geometry("LINESTRING (5 5, 6 6)"),
+        pygeos.Geometry("LINESTRING (1 1, 100 100)"),
+        pygeos.Geometry("POINT (0 0)"),
+        None,
+    ]
+    result = pygeos.polygonize_full(lines)
+    assert len(result) == 4
+    assert all(pygeos.get_type_id(geom) == 7 for geom in result)  # GeometryCollection
+    polygons, cuts, dangles, invalid = result
+    expected_polygons = pygeos.Geometry(
+        "GEOMETRYCOLLECTION (POLYGON ((0 0, 1 1, 1 0, 0 0)), POLYGON ((1 1, 0 0, 0 1, 1 1)))"
+    )
+    assert polygons == expected_polygons
+    assert cuts == pygeos.Geometry("GEOMETRYCOLLECTION EMPTY")
+    expected_dangles = pygeos.Geometry(
+        "GEOMETRYCOLLECTION (LINESTRING (1 1, 100 100), LINESTRING (5 5, 6 6))"
+    )
+    assert dangles == expected_dangles
+    assert invalid == pygeos.Geometry("GEOMETRYCOLLECTION EMPTY")
+
+
+def test_polygonize_full_array():
+    lines = [
+        pygeos.Geometry("LINESTRING (0 0, 1 1)"),
+        pygeos.Geometry("LINESTRING (0 0, 0 1)"),
+        pygeos.Geometry("LINESTRING (0 1, 1 1)"),
+    ]
+    expected = pygeos.Geometry("GEOMETRYCOLLECTION (POLYGON ((1 1, 0 0, 0 1, 1 1)))")
+    result = pygeos.polygonize_full(np.array(lines))
+    assert len(result) == 4
+    assert all(isinstance(geom, pygeos.Geometry) for geom in result)
+    assert result[0] == expected
+    assert all(
+        geom == pygeos.Geometry("GEOMETRYCOLLECTION EMPTY") for geom in result[1:]
+    )
+
+    result = pygeos.polygonize_full(np.array([lines]))
+    assert len(result) == 4
+    assert all(isinstance(geom, np.ndarray) for geom in result)
+    assert all(geom.shape == (1,) for geom in result)
+    assert result[0][0] == expected
+    assert all(
+        geom[0] == pygeos.Geometry("GEOMETRYCOLLECTION EMPTY") for geom in result[1:]
+    )
+
+    arr = np.array([lines, lines])
+    assert arr.shape == (2, 3)
+    result = pygeos.polygonize_full(arr)
+    assert len(result) == 4
+    assert all(isinstance(arr, np.ndarray) for arr in result)
+    assert all(arr.shape == (2,) for arr in result)
+    assert result[0][0] == expected
+    assert result[0][1] == expected
+    assert all(
+        g == pygeos.Geometry("GEOMETRYCOLLECTION EMPTY")
+        for geom in result[1:]
+        for g in geom
+    )
+
+    arr = np.array([[lines, lines], [lines, lines], [lines, lines]])
+    assert arr.shape == (3, 2, 3)
+    result = pygeos.polygonize_full(arr)
+    assert len(result) == 4
+    assert all(isinstance(arr, np.ndarray) for arr in result)
+    assert all(arr.shape == (3, 2) for arr in result)
+    for res in result[0].flatten():
+        assert res == expected
+    for arr in result[1:]:
+        for res in arr.flatten():
+            assert res == pygeos.Geometry("GEOMETRYCOLLECTION EMPTY")
+
+
+@pytest.mark.skipif(
+    np.__version__ < "1.15",
+    reason="axis keyword for generalized ufunc introduced in np 1.15",
+)
+def test_polygonize_full_array_axis():
+    lines = [
+        pygeos.Geometry("LINESTRING (0 0, 1 1)"),
+        pygeos.Geometry("LINESTRING (0 0, 0 1)"),
+        pygeos.Geometry("LINESTRING (0 1, 1 1)"),
+    ]
+    arr = np.array([lines, lines])  # shape (2, 3)
+    result = pygeos.polygonize_full(arr, axis=1)
+    assert len(result) == 4
+    assert all(arr.shape == (2,) for arr in result)
+    result = pygeos.polygonize_full(arr, axis=0)
+    assert len(result) == 4
+    assert all(arr.shape == (3,) for arr in result)
+
+
+def test_polygonize_full_missing():
+    # set of geometries that is all missing
+    result = pygeos.polygonize_full([None, None])
+    assert len(result) == 4
+    assert all(geom == pygeos.Geometry("GEOMETRYCOLLECTION EMPTY") for geom in result)
+
+
 @pytest.mark.skipif(pygeos.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize("geometry", all_types)
 @pytest.mark.parametrize("tolerance", [-1, 0])

@@ -65,6 +65,16 @@
   cp1 = ip1;                      \
   for (i_c1 = 0; i_c1 < n_c1; i_c1++, cp1 += cs1)
 
+/** (ip1, cp1) -> (op1, op2, op3, op4) */
+#define SINGLE_COREDIM_LOOP_OUTER_NOUT4                                                \
+  char *ip1 = args[0], *op1 = args[1], *op2 = args[2], *op3 = args[3], *op4 = args[4], \
+       *cp1;                                                                           \
+  npy_intp is1 = steps[0], os1 = steps[1], os2 = steps[2], os3 = steps[3],             \
+           os4 = steps[4], cs1 = steps[5];                                             \
+  npy_intp n = dimensions[0], n_c1 = dimensions[1];                                    \
+  npy_intp i, i_c1;                                                                    \
+  for (i = 0; i < n; i++, ip1 += is1, op1 += os1, op2 += os2, op3 += os3, op4 += os4)
+
 /** (ip1, cp1, cp2) -> (op1) */
 #define DOUBLE_COREDIM_LOOP_OUTER                                          \
   char *ip1 = args[0], *op1 = args[1], *cp1, *cp2;                         \
