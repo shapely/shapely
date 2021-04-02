@@ -113,6 +113,7 @@ def line_merge(line, **kwargs):
     return lib.line_merge(line, **kwargs)
 
 
+@multithreading_enabled
 def shared_paths(a, b, **kwargs):
     """Returns the shared paths between geom1 and geom2.
 
