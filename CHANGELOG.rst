@@ -9,13 +9,8 @@ Version 0.10 (unreleased)
 * Addition of ``nearest`` and ``nearest_all`` functions to ``STRtree`` for
   GEOS >= 3.6 to find the nearest neighbors (#272).
 * Enable bulk construction of geometries with different number of coordinates
-  by optionally taking index arrays in the constructors ``multipoints``,
-  ``points``, ``linestrings``, and ``linearrings`` (#322).
-* Enable bulk construction of collections with different number of geometries
-  by optionally taking index arrays in the constructors ``multipoints``,
-  ``multilinestrings``, ``multipolygons``, and ``geometrycollections`` (#290).
-* Released GIL for ``points``, ``linestrings``, ``linearrings``, and
-  ``polygons`` (without holes) (#310).
+  by optionally taking index arrays in all creation functions (#230, #322, #326).
+* Released the GIL in all geometry creation functions (#310, #326).
 * Added the option to return the geometry index in ``get_coordinates`` (#318).
 * Updated ``box`` ufunc to use internal C function for creating polygon
   (about 2x faster) and added ``ccw`` parameter to create polygon in
@@ -31,9 +26,11 @@ Version 0.10 (unreleased)
   in downstream libraries using the ``pygeos.strtree.BinaryPredicate`` enum.
   This will be removed in a future release.
 * ``points``, ``linestrings``, ``linearrings``, and ``polygons`` now return a ``GEOSException``
-  instead of a ``ValueError`` for invalid input (#310).
+  instead of a ``ValueError`` or ``TypeError`` for invalid input (#310, #326).
 * Addition of ``on_invalid`` parameter to ``from_wkb`` and ``from_wkt`` to
   optionally return invalid WKB geometries as ``None``.
+* Removed the (internal) function ``lib.polygons_without_holes`` and renamed
+  ``lib.polygons_with_holes`` to ``lib.polygons`` (#326).
 
 **Added GEOS functions**
 
@@ -47,6 +44,8 @@ Version 0.10 (unreleased)
 * Fixed portability issue for ARM architecture (#293)
 * Fixed segfault in ``linearrings`` and ``box`` when constructing a geometry with nan
   coordinates (#310).
+* Fixed segfault in ``polygons`` (with holes) when None was provided.
+* Fixed memory leak in ``polygons`` when non-linearring input was provided.
 
 **Acknowledgments**
 

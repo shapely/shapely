@@ -48,9 +48,7 @@ def test_invalid_geometries(func, geometries):
 @pytest.mark.parametrize(
     "func", [pygeos.points, pygeos.linestrings, pygeos.linearrings]
 )
-@pytest.mark.parametrize(
-    "indices", [np.array([point]), " hello", [0, 1]]  # wrong length
-)
+@pytest.mark.parametrize("indices", [[point], " hello", [0, 1], [-1]])
 def test_invalid_indices_simple(func, indices):
     with pytest.raises((TypeError, ValueError)):
         func([[0.2, 0.3]], indices=indices)
@@ -112,6 +110,55 @@ def test_linearrings_invalid(coordinates):
         pygeos.linearrings(coordinates, indices=np.zeros(len(coordinates)))
 
 
+@pytest.mark.parametrize("shells", [[point], [line_string], "hello", [2]])
+def test_polygons_invalid_shells(shells):
+    with pytest.raises((TypeError, ValueError, pygeos.GEOSException)):
+        pygeos.polygons(shells, [linear_ring], indices=[0])
+
+
+@pytest.mark.parametrize("holes", [[1, 2], None, [linear_ring, point], "hello"])
+def test_polygons_invalid_holes(holes):
+    with pytest.raises((TypeError, ValueError, pygeos.GEOSException)):
+        pygeos.polygons([linear_ring, linear_ring], holes, indices=[0, 1])
+
+
+@pytest.mark.parametrize("indices", [[1, 2], [point], "hello", [1], [-1]])
+def test_polygons_invalid_indices(indices):
+    with pytest.raises((TypeError, ValueError)):
+        pygeos.polygons([linear_ring], [linear_ring], indices=indices)
+
+
+hole_1 = pygeos.linearrings([(0.2, 0.2), (0.2, 0.4), (0.4, 0.4)])
+hole_2 = pygeos.linearrings([(0.6, 0.6), (0.6, 0.8), (0.8, 0.8)])
+poly = pygeos.polygons(linear_ring)
+poly_hole_1 = pygeos.polygons(linear_ring, holes=[hole_1])
+poly_hole_2 = pygeos.polygons(linear_ring, holes=[hole_2])
+poly_hole_1_2 = pygeos.polygons(linear_ring, holes=[hole_1, hole_2])
+
+
+@pytest.mark.parametrize(
+    "holes,indices,expected",
+    [
+        ([None], [1], [poly, poly]),
+        ([hole_1], [0], [poly_hole_1, poly]),
+        ([hole_1], [1], [poly, poly_hole_1]),
+        ([hole_1, hole_2], [0, 0], [poly_hole_1_2, poly]),
+        ([hole_1, hole_2], [0, 1], [poly_hole_1, poly_hole_2]),
+        ([hole_1, None, hole_2], [0, 0, 0], [poly_hole_1_2, poly]),
+        ([hole_1, None, hole_2], [0, 0, 1], [poly_hole_1, poly_hole_2]),
+        ([hole_1, None, hole_2], [0, 1, 1], [poly_hole_1, poly_hole_2]),
+    ],
+)
+def test_polygons(holes, indices, expected):
+    actual = pygeos.polygons([linear_ring, linear_ring], holes, indices=indices)
+    assert_geometries_equal(actual, expected)
+
+
+def test_polygons_missing_shell():
+    actual = pygeos.polygons([None, linear_ring], [hole_1, hole_2], indices=[0, 1])
+    assert_geometries_equal(actual, [None, poly_hole_2])
+
+
 @pytest.mark.parametrize(
     "func",
     [
@@ -121,9 +168,7 @@ def test_linearrings_invalid(coordinates):
         pygeos.geometrycollections,
     ],
 )
-@pytest.mark.parametrize(
-    "indices", [np.array([point]), " hello", [0, 1]]  # wrong length
-)
+@pytest.mark.parametrize("indices", [np.array([point]), " hello", [0, 1], [-1]])
 def test_invalid_indices_collections(func, indices):
     with pytest.raises((TypeError, ValueError)):
         func([point], indices=indices)

@@ -145,6 +145,11 @@ def test_polygon_from_linearring():
     assert str(actual) == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
 
 
+def test_polygons_none():
+    assert pygeos.polygons(None) is None
+    assert pygeos.polygons(None, holes=[linear_ring]) is None
+
+
 def test_polygons():
     actual = pygeos.polygons(box_tpl(0, 0, 1, 1))
     assert str(actual) == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
@@ -155,6 +160,21 @@ def test_polygon_no_hole_list_raises():
         pygeos.polygons(box_tpl(0, 0, 10, 10), box_tpl(1, 1, 2, 2))
 
 
+def test_polygon_no_hole_wrong_type():
+    with pytest.raises((TypeError, pygeos.GEOSException)):
+        pygeos.polygons(point)
+
+
+def test_polygon_with_hole_wrong_type():
+    with pytest.raises((TypeError, pygeos.GEOSException)):
+        pygeos.polygons(point, [linear_ring])
+
+
+def test_polygon_wrong_hole_type():
+    with pytest.raises((TypeError, pygeos.GEOSException)):
+        pygeos.polygons(linear_ring, [point])
+
+
 def test_polygon_with_1_hole():
     actual = pygeos.polygons(box_tpl(0, 0, 10, 10), [box_tpl(1, 1, 2, 2)])
     assert pygeos.area(actual) == 99.0
@@ -163,6 +183,18 @@ def test_polygon_with_1_hole():
 def test_polygon_with_2_holes():
     actual = pygeos.polygons(
         box_tpl(0, 0, 10, 10), [box_tpl(1, 1, 2, 2), box_tpl(3, 3, 4, 4)]
+    )
+    assert pygeos.area(actual) == 98.0
+
+
+def test_polygon_with_none_hole():
+    actual = pygeos.polygons(
+        pygeos.linearrings(box_tpl(0, 0, 10, 10)),
+        [
+            pygeos.linearrings(box_tpl(1, 1, 2, 2)),
+            None,
+            pygeos.linearrings(box_tpl(3, 3, 4, 4)),
+        ],
     )
     assert pygeos.area(actual) == 98.0
 

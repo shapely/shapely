@@ -1,7 +1,7 @@
 import numpy as np
 
 from . import Geometry, GeometryType, lib
-from ._geometry import collections_1d, simple_geometries_1d
+from ._geometry import collections_1d, polygons_1d, simple_geometries_1d
 from .decorators import multithreading_enabled
 
 __all__ = [
@@ -44,10 +44,10 @@ def points(coords, y=None, z=None, indices=None, **kwargs):
     y : array_like
     z : array_like
     indices : array_like or None
-       Indices into the target array where input coordinates belong. If
-       provided, the coords should be 2D with shape (N, 2) or (N, 3) and
-       indices should be 1D with shape (N,). Missing indices will give None
-       values in the output array.
+        Indices into the target array where input coordinates belong. If
+        provided, the coords should be 2D with shape (N, 2) or (N, 3) and
+        indices should be 1D with shape (N,). Missing indices will give None
+        values in the output array.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -75,10 +75,10 @@ def linestrings(coords, y=None, z=None, indices=None, **kwargs):
     y : array_like
     z : array_like
     indices : array_like or None
-       Indices into the target array where input coordinates belong. If
-       provided, the coords should be 2D with shape (N, 2) or (N, 3) and
-       indices should be 1D with shape (N,). Missing indices will give None
-       values in the output array.
+        Indices into the target array where input coordinates belong. If
+        provided, the coords should be 2D with shape (N, 2) or (N, 3) and
+        indices should be 1D with shape (N,). Missing indices will give None
+        values in the output array.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -108,10 +108,10 @@ def linearrings(coords, y=None, z=None, indices=None, **kwargs):
     y : array_like
     z : array_like
     indices : array_like or None
-       Indices into the target array where input coordinates belong. If
-       provided, the coords should be 2D with shape (N, 2) or (N, 3) and
-       indices should be 1D with shape (N,). Missing indices will give None
-       values in the output array.
+        Indices into the target array where input coordinates belong. If
+        provided, the coords should be 2D with shape (N, 2) or (N, 3) and
+        indices should be 1D with shape (N,). Missing indices will give None
+        values in the output array.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -125,7 +125,7 @@ def linearrings(coords, y=None, z=None, indices=None, **kwargs):
 
 
 @multithreading_enabled
-def polygons(shells, holes=None):
+def polygons(shells, holes=None, indices=None, **kwargs):
     """Create an array of polygons.
 
     Parameters
@@ -133,22 +133,40 @@ def polygons(shells, holes=None):
     shell : array_like
         An array of linearrings that constitute the out shell of the polygons.
         Coordinates can also be passed, see linearrings.
-    holes : array_like
+    holes : array_like or None
         An array of lists of linearrings that constitute holes for each shell.
+    indices : array_like or None
+        Indices into the shells array where input holes belong. If
+        provided, shells, holes, and indices should all be 1D and the size
+        of holes must equal the size of indices.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        Ignored if ``indices`` is provided.
     """
     shells = np.asarray(shells)
     if not isinstance(shells, Geometry) and np.issubdtype(shells.dtype, np.number):
         shells = linearrings(shells)
 
-    if holes is None:
-        return lib.polygons_without_holes(shells)
+    if holes is None and indices is not None:
+        raise TypeError("Indices provided without a holes array.")
+    elif holes is None:
+        # no holes provided: initialize an empty holes array matching shells
+        shape = shells.shape + (0,) if isinstance(shells, np.ndarray) else (0,)
+        holes = np.empty(shape, dtype=object)
+    else:
+        holes = np.asarray(holes)
+        # convert holes coordinates into linearrings
+        if np.issubdtype(holes.dtype, np.number):
+            holes = linearrings(holes)
 
-    holes = np.asarray(holes)
-    if not isinstance(holes, Geometry) and np.issubdtype(holes.dtype, np.number):
-        holes = linearrings(holes)
-    return lib.polygons_with_holes(shells, holes)
+    if indices is None:
+        return lib.polygons(shells, holes, **kwargs)
+    else:
+        return polygons_1d(shells, holes, indices)
 
 
+@multithreading_enabled
 def box(xmin, ymin, xmax, ymax, ccw=True, **kwargs):
     """Create box polygons.
 
@@ -178,6 +196,7 @@ def box(xmin, ymin, xmax, ymax, ccw=True, **kwargs):
     return lib.box(xmin, ymin, xmax, ymax, ccw, **kwargs)
 
 
+@multithreading_enabled
 def multipoints(geometries, indices=None, **kwargs):
     """Create multipoints from arrays of points
 
@@ -186,7 +205,7 @@ def multipoints(geometries, indices=None, **kwargs):
     geometries : array_like
         An array of points or coordinates (see points).
     indices : array_like or None
-       Indices into the target array where input geometries belong. If
+        Indices into the target array where input geometries belong. If
         provided, both geometries and indices should be 1D and have matching
         sizes.
     **kwargs
@@ -206,6 +225,7 @@ def multipoints(geometries, indices=None, **kwargs):
         return collections_1d(geometries, indices, typ)
 
 
+@multithreading_enabled
 def multilinestrings(geometries, indices=None, **kwargs):
     """Create multilinestrings from arrays of linestrings
 
@@ -235,6 +255,7 @@ def multilinestrings(geometries, indices=None, **kwargs):
         return collections_1d(geometries, indices, typ)
 
 
+@multithreading_enabled
 def multipolygons(geometries, indices=None, **kwargs):
     """Create multipolygons from arrays of polygons
 
@@ -263,6 +284,7 @@ def multipolygons(geometries, indices=None, **kwargs):
         return collections_1d(geometries, indices, typ)
 
 
+@multithreading_enabled
 def geometrycollections(geometries, indices=None, **kwargs):
     """Create geometrycollections from arrays of geometries
 

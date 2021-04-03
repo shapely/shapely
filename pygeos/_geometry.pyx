@@ -23,6 +23,7 @@ from pygeos._geos cimport (
     GEOSGeom_createLinearRing_r,
     GEOSGeom_createLineString_r,
     GEOSGeom_createPoint_r,
+    GEOSGeom_createPolygon_r,
     GEOSGeom_destroy_r,
     GEOSGeometry,
     GEOSGeomTypeId_r,
@@ -92,7 +93,7 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type):
     cdef double[:, :] coord_view = coordinates
     cdef np.intp_t[:] index_view = indices
 
-    # get the geometry count per collection
+    # get the geometry count per collection (this raises on negative indices)
     cdef unsigned int[:] coord_counts = np.bincount(indices).astype(np.uint32)
 
     # The final target array
@@ -192,6 +193,7 @@ def get_parts(object[:] array):
                 part = GEOSGeom_clone_r(geos_handle, part)
                 if part == NULL:
                     return  # GEOSException is raised by get_geos_handle
+
                 # cast part back to <GEOSGeometry> to discard const qualifier
                 # pending issue #227
                 parts_view[idx] = PyGEOS_CreateGeometry(<GEOSGeometry *>part, geos_handle)
@@ -259,7 +261,7 @@ def collections_1d(object geometries, object indices, int geometry_type = 7):
     cdef object[:] geometries_view = geometries
     cdef int[:] indices_view = indices
 
-    # get the geometry count per collection
+    # get the geometry count per collection (this raises on negative indices)
     cdef int[:] collection_size = np.bincount(indices).astype(np.int32)
 
     # A temporary array for the geometries that will be given to CreateCollection.
@@ -321,5 +323,144 @@ def collections_1d(object geometries, object indices, int geometry_type = 7):
             result_view[coll_idx] = PyGEOS_CreateGeometry(coll, geos_handle)
 
             geom_idx_1 += collection_size[coll_idx]
+
+    return result
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def polygons_1d(object shells, object holes, object indices):
+    cdef Py_ssize_t hole_idx_1 = 0
+    cdef Py_ssize_t poly_idx = 0
+    cdef unsigned int n_holes = 0
+    cdef int geom_type = 0
+    cdef Py_ssize_t poly_hole_idx = 0
+    cdef GEOSGeometry *shell = NULL
+    cdef GEOSGeometry *hole = NULL
+    cdef GEOSGeometry *poly = NULL
+
+    # Cast input arrays and define memoryviews for later usage
+    shells = np.asarray(shells, dtype=object)
+    if shells.ndim != 1:
+        raise TypeError("shells is not a one-dimensional array.")
+
+    # Cast input arrays and define memoryviews for later usage
+    holes = np.asarray(holes, dtype=object)
+    if holes.ndim != 1:
+        raise TypeError("holes is not a one-dimensional array.")
+
+    indices = np.asarray(indices, dtype=np.int32)
+    if indices.ndim != 1:
+        raise TypeError("indices is not a one-dimensional array.")
+
+    if holes.shape[0] != indices.shape[0]:
+        raise ValueError("holes and indices do not have equal size.")
+
+    if shells.shape[0] == 0:
+        # return immediately if there are no geometries to return
+        return np.empty(shape=(0, ), dtype=object)
+
+    if (indices >= shells.shape[0]).any():
+        raise ValueError("Some indices are of bounds of the shells array.")  
+
+    if np.any(indices[1:] < indices[:indices.shape[0] - 1]):
+        raise ValueError("The indices should be sorted.")  
+
+    cdef Py_ssize_t n_poly = shells.shape[0]
+    cdef object[:] shells_view = shells
+    cdef object[:] holes_view = holes
+    cdef int[:] indices_view = indices
+
+    # get the holes count per polygon (this raises on negative indices)
+    cdef int[:] hole_count = np.bincount(indices, minlength=n_poly).astype(np.int32)
+
+    # A temporary array for the holes that will be given to CreatePolygon
+    # Its size equals max(hole_count) to accomodate the largest polygon.
+    temp_holes = np.empty(shape=(np.max(hole_count), ), dtype=np.intp)
+    cdef np.intp_t[:] temp_holes_view = temp_holes
+
+    # The final target array
+    result = np.empty(shape=(n_poly, ), dtype=object)
+    cdef object[:] result_view = result
+
+    with get_geos_handle() as geos_handle:
+        for poly_idx in range(n_poly):
+            n_holes = 0
+
+            # get the shell
+            if PyGEOS_GetGEOSGeometry(<PyObject *>shells_view[poly_idx], &shell) == 0:
+                raise TypeError(
+                    "One of the arguments is of incorrect type. Please provide only Geometry objects."
+                )
+
+            # return None for missing shells (ignore possibly present holes)
+            if shell == NULL:
+                result_view[poly_idx] = PyGEOS_CreateGeometry(NULL, geos_handle)
+                hole_idx_1 += hole_count[poly_idx]
+                continue
+
+            geom_type = GEOSGeomTypeId_r(geos_handle, shell)
+            if geom_type == -1:
+                return  # GEOSException is raised by get_geos_handle
+            elif geom_type != 2:
+                raise TypeError(
+                    f"One of the shells has unexpected geometry type {geom_type}."
+                )
+
+            # fill the temporary array with holes belonging to this polygon
+            for poly_hole_idx in range(hole_count[poly_idx]):
+                if PyGEOS_GetGEOSGeometry(<PyObject *>holes_view[hole_idx_1 + poly_hole_idx], &hole) == 0:
+                    _deallocate_arr(geos_handle, temp_holes_view, n_holes)
+                    raise TypeError(
+                        "One of the arguments is of incorrect type. Please provide only Geometry objects."
+                    )
+
+                # ignore missing holes
+                if hole == NULL:
+                    continue
+
+                # check the type
+                geom_type = GEOSGeomTypeId_r(geos_handle, hole)
+                if geom_type == -1:
+                    _deallocate_arr(geos_handle, temp_holes_view, n_holes)
+                    return  # GEOSException is raised by get_geos_handle
+                elif geom_type != 2:
+                    _deallocate_arr(geos_handle, temp_holes_view, n_holes)
+                    raise TypeError(
+                        f"One of the holes has unexpected geometry type {geom_type}."
+                    )
+
+                # assign to the temporary geometry array  
+                hole = GEOSGeom_clone_r(geos_handle, hole)
+                if hole == NULL:
+                    _deallocate_arr(geos_handle, temp_holes_view, n_holes)
+                    return  # GEOSException is raised by get_geos_handle                 
+                temp_holes_view[n_holes] = <np.intp_t>hole
+                n_holes += 1
+
+            # clone the shell as the polygon will take ownership
+            shell = GEOSGeom_clone_r(geos_handle, shell)
+            if shell == NULL:
+                _deallocate_arr(geos_handle, temp_holes_view, n_holes)
+                return  # GEOSException is raised by get_geos_handle
+
+            # create the polygon
+            poly = GEOSGeom_createPolygon_r(
+                geos_handle,
+                shell, 
+                <GEOSGeometry**> &temp_holes_view[0],
+                n_holes
+            )
+            if poly == NULL:
+                # GEOSGeom_createPolygon_r should take ownership of the input geometries,
+                # but it doesn't in case of an exception. We prefer a memory leak here over
+                # a possible segfault in the future. The pre-emptive type check already covers
+                # all known cases that GEOSGeom_createPolygon_r errors, so this should never
+                # happen anyway. https://trac.osgeo.org/geos/ticket/1111.
+                return  # GEOSException is raised by get_geos_handle
+
+            result_view[poly_idx] = PyGEOS_CreateGeometry(poly, geos_handle)
+
+            hole_idx_1 += hole_count[poly_idx]
 
     return result
