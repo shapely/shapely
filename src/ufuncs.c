@@ -390,6 +390,17 @@ static void* normalize_data[1] = {GEOSNormalize_r_with_clone};
 static void* build_area_data[1] = {GEOSBuildArea_r};
 static void* make_valid_data[1] = {GEOSMakeValid_r};
 static void* coverage_union_data[1] = {GEOSCoverageUnion_r};
+static void* GEOSMinimumBoundingCircleWithReturn(void* context, void* geom) {
+  GEOSGeometry* center = NULL;
+  double radius;
+  GEOSGeometry* ret = GEOSMinimumBoundingCircle_r(context, geom, &radius, &center);
+  if (ret == NULL) {
+    return NULL;
+  }
+  GEOSGeom_destroy_r(context, center);
+  return ret;
+}
+static void* minimum_bounding_circle_data[1] = {GEOSMinimumBoundingCircleWithReturn};
 #endif
 #if GEOS_SINCE_3_7_0
 static void* reverse_data[1] = {GEOSReverse_r};
@@ -920,6 +931,19 @@ static int MinimumClearance(void* context, void* a, double* b) {
   }
 }
 static void* minimum_clearance_data[1] = {MinimumClearance};
+#endif
+#if GEOS_SINCE_3_8_0
+static int GEOSMinimumBoundingRadius(void* context, GEOSGeometry* geom, double* radius) {
+  GEOSGeometry* center = NULL;
+  GEOSGeometry* ret = GEOSMinimumBoundingCircle_r(context, geom, radius, &center);
+  if (ret == NULL) {
+    return 0;  // exception code
+  }
+  GEOSGeom_destroy_r(context, center);
+  GEOSGeom_destroy_r(context, ret);
+  return 1;  // success code
+}
+static void* minimum_bounding_radius_data[1] = {GEOSMinimumBoundingRadius};
 #endif
 typedef int FuncGEOS_Y_d(void* context, void* a, double* b);
 static char Y_d_dtypes[2] = {NPY_OBJECT, NPY_DOUBLE};
@@ -3080,6 +3104,8 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Y_Y(make_valid);
   DEFINE_Y_Y(build_area);
   DEFINE_Y_Y(coverage_union);
+  DEFINE_Y_Y(minimum_bounding_circle);
+  DEFINE_Y_d(minimum_bounding_radius);
 #endif
 
 #if GEOS_SINCE_3_9_0

@@ -38,6 +38,7 @@ Version 0.10 (unreleased)
 * Addition of a ``polygonize`` function (#275)
 * Addition of a ``polygonize_full`` function (#298)
 * Addition of a ``segmentize`` function for GEOS >= 3.10 (#299)
+* Addition of ``minimum_bounding_circle`` and ``minimum_bounding_radius`` functions for GEOS >= 3.8 (#315)
 
 **Bug fixes**
 
@@ -55,6 +56,7 @@ People with a "+" by their names contributed a patch for the first time.
 * Brendan Ward
 * Casper van der Wel
 * Joris Van den Bossche
+* Martin Fleischmann
 * 0phoff +
 
 

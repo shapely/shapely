@@ -13,6 +13,7 @@ __all__ = [
     "hausdorff_distance",
     "frechet_distance",
     "minimum_clearance",
+    "minimum_bounding_radius",
 ]
 
 
@@ -277,3 +278,36 @@ def minimum_clearance(geometry, **kwargs):
     nan
     """
     return lib.minimum_clearance(geometry, **kwargs)
+
+
+@requires_geos("3.8.0")
+@multithreading_enabled
+def minimum_bounding_radius(geometry, **kwargs):
+    """Computes the radius of the minimum bounding circle that encloses an input geometry.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+
+    Examples
+    --------
+    >>> minimum_bounding_radius(Geometry("POLYGON ((0 5, 5 10, 10 5, 5 0, 0 5))"))
+    5.0
+    >>> minimum_bounding_radius(Geometry("LINESTRING (1 1, 1 10)"))
+    4.5
+    >>> minimum_bounding_radius(Geometry("MULTIPOINT (2 2, 4 2)"))
+    1.0
+    >>> minimum_bounding_radius(Geometry("POINT (0 1)"))
+    0.0
+    >>> minimum_bounding_radius(Geometry("GEOMETRYCOLLECTION EMPTY"))
+    0.0
+
+    See also
+    --------
+    minimum_bounding_circle
+    """
+    return lib.minimum_bounding_radius(geometry, **kwargs)

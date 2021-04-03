@@ -687,3 +687,45 @@ def test_segmentize_none():
 def test_segmentize(geometry, tolerance, expected):
     actual = pygeos.segmentize(geometry, tolerance)
     assert pygeos.equals(actual, geometry).all()
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 8, 0), reason="GEOS < 3.8")
+@pytest.mark.parametrize("geometry", all_types)
+def test_minimum_bounding_circle_all_types(geometry):
+    actual = pygeos.minimum_bounding_circle([geometry, geometry])
+    assert actual.shape == (2,)
+    assert actual[0] is None or isinstance(actual[0], Geometry)
+
+    actual = pygeos.minimum_bounding_circle(None)
+    assert actual is None
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 8, 0), reason="GEOS < 3.8")
+@pytest.mark.parametrize(
+    "geometry, expected",
+    [
+        (
+            pygeos.Geometry("POLYGON ((0 5, 5 10, 10 5, 5 0, 0 5))"),
+            pygeos.buffer(pygeos.Geometry("POINT (5 5)"), 5),
+        ),
+        (
+            pygeos.Geometry("LINESTRING (1 0, 1 10)"),
+            pygeos.buffer(pygeos.Geometry("POINT (1 5)"), 5),
+        ),
+        (
+            pygeos.Geometry("MULTIPOINT (2 2, 4 2)"),
+            pygeos.buffer(pygeos.Geometry("POINT (3 2)"), 1),
+        ),
+        (
+            pygeos.Geometry("POINT (2 2)"),
+            pygeos.Geometry("POINT (2 2)"),
+        ),
+        (
+            pygeos.Geometry("GEOMETRYCOLLECTION EMPTY"),
+            pygeos.Geometry("POLYGON EMPTY"),
+        ),
+    ],
+)
+def test_minimum_bounding_circle(geometry, expected):
+    actual = pygeos.minimum_bounding_circle(geometry)
+    assert pygeos.equals(actual, expected).all()

@@ -303,3 +303,34 @@ def test_minimum_clearance_nonexistent():
 def test_minimum_clearance_missing():
     actual = pygeos.minimum_clearance(None)
     assert np.isnan(actual)
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 8, 0), reason="GEOS < 3.8")
+@pytest.mark.parametrize(
+    "geometry, expected",
+    [
+        (
+            pygeos.Geometry("POLYGON ((0 5, 5 10, 10 5, 5 0, 0 5))"),
+            5,
+        ),
+        (
+            pygeos.Geometry("LINESTRING (1 0, 1 10)"),
+            5,
+        ),
+        (
+            pygeos.Geometry("MULTIPOINT (2 2, 4 2)"),
+            1,
+        ),
+        (
+            pygeos.Geometry("POINT (2 2)"),
+            0,
+        ),
+        (
+            pygeos.Geometry("GEOMETRYCOLLECTION EMPTY"),
+            0,
+        ),
+    ],
+)
+def test_minimum_bounding_radius(geometry, expected):
+    actual = pygeos.minimum_bounding_radius(geometry)
+    assert actual == pytest.approx(expected, abs=1e-12)
