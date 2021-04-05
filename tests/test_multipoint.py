@@ -3,7 +3,7 @@ from .test_multi import MultiGeometryTestCase
 
 import pytest
 
-from shapely.errors import EmptyPartError, ShapelyDeprecationWarning
+from shapely.errors import EmptyPartError
 from shapely.geometry import Point, MultiPoint
 from shapely.geometry.base import dump_coords
 
@@ -75,7 +75,7 @@ def test_multipoint_array_coercion():
     assert arr.item() == geom
 
 
-def test_len_deprecated():
+def test_len_raises():
     geom = MultiPoint([[5.0, 6.0], [7.0, 8.0]])
-    with pytest.warns(ShapelyDeprecationWarning, match="__len__"):
-        assert len(geom) == 2
+    with pytest.raises(TypeError):
+        len(geom)
