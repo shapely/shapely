@@ -46,16 +46,8 @@ class CollectionOperator:
             source = [source]
         finally:
             obs = [self.shapeup(l) for l in source]
-        geom_array_type = c_void_p * len(obs)
-        geom_array = geom_array_type()
-        for i, line in enumerate(obs):
-            geom_array[i] = line._geom
-        product = lgeos.GEOSPolygonize(byref(geom_array), len(obs))
-        collection = geom_factory(product)
-        for g in collection.geoms:
-            clone = lgeos.GEOSGeom_clone(g._geom)
-            g = geom_factory(clone)
-            yield g
+        collection = pygeos.polygonize(obs)
+        return collection.geoms
 
     def polygonize_full(self, lines):
         """Creates polygons from a source of lines, returning the polygons
@@ -79,22 +71,7 @@ class CollectionOperator:
             source = [source]
         finally:
             obs = [self.shapeup(l) for l in source]
-        L = len(obs)
-        subs = (c_void_p * L)()
-        for i, g in enumerate(obs):
-            subs[i] = g._geom
-        collection = lgeos.GEOSGeom_createCollection(5, subs, L)
-        dangles = c_void_p()
-        cuts = c_void_p()
-        invalids = c_void_p()
-        product = lgeos.GEOSPolygonize_full(
-            collection, byref(dangles), byref(cuts), byref(invalids))
-        return (
-            geom_factory(product),
-            geom_factory(dangles.value),
-            geom_factory(cuts.value),
-            geom_factory(invalids.value)
-            )
+        return pygeos.polygonize_full(obs)
 
     def linemerge(self, lines):
         """Merges all connected lines from a source
