@@ -148,7 +148,7 @@ def test_dump_binary_load_hex(some_point):
         try:
             with open(file, "r") as file_pointer:
                 load(file_pointer, hex=True)
-        except (WKBReadingError, UnicodeDecodeError):
+        except (WKBReadingError, UnicodeEncodeError, UnicodeDecodeError):
             pass
         else:
             raise AssertionError("Reading a text file as binary should fail")
