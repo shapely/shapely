@@ -10,6 +10,11 @@ from shapely.geometry.base import geom_factory
 def loads(data, hex=False):
     """Load a geometry from a WKB byte string, or hex-encoded string if
     ``hex=True``.
+
+    Raises
+    ------
+    WKBReadingError, UnicodeDecodeError
+        If ``data`` contains an invalid geometry.
     """
     reader = WKBReader(lgeos)
     if hex:
@@ -19,7 +24,13 @@ def loads(data, hex=False):
 
 
 def load(fp, hex=False):
-    """Load a geometry from an open file."""
+    """Load a geometry from an open file.
+
+    Raises
+    ------
+    WKBReadingError, UnicodeDecodeError
+        If the given file contains an invalid geometry.
+    """
     data = fp.read()
     return loads(data, hex=hex)
 
