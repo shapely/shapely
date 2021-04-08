@@ -781,7 +781,7 @@ class BaseGeometry(object):
         tolerance
 
         Refers to coordinate equality, which requires coordinates to be equal
-        and in the same order for all components of a geometry
+        and in the same order for all components of a geometry.
         """
         return bool(self.impl['equals_exact'](self, other, tolerance))
 
@@ -789,7 +789,7 @@ class BaseGeometry(object):
         """Returns True if geometries are equal at all coordinates to a
         specified decimal place
 
-        Refers to approximate coordinate equality, which requires coordinates be
+        Refers to approximate coordinate equality, which requires coordinates to be
         approximately equal and in the same order for all components of a geometry.
         """
         return self.equals_exact(other, 0.5 * 10**(-decimal))
