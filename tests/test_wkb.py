@@ -99,8 +99,9 @@ requires_geos_380 = pytest.mark.xfail(
 @requires_geos_380
 def test_point_empty():
     g = wkt.loads("POINT EMPTY")
-    assert g.wkb_hex == hostorder(
-        "BIdd", "0101000000000000000000F87F000000000000F87F")
+    NAN = struct.pack("<d", float("nan")).hex()
+    POINT_EMPTY_WKB = "0101000000" + (NAN * 2)
+    assert g.wkb_hex == hostorder("BIdd", POINT_EMPTY_WKB)
 
 
 @pytest.mark.xfail(reason="Fails with latest pygeos")
