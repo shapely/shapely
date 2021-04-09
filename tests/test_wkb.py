@@ -99,7 +99,7 @@ requires_geos_380 = pytest.mark.xfail(
 @requires_geos_380
 def test_point_empty():
     g = wkt.loads("POINT EMPTY")
-    NAN = struct.pack("<d", float("nan")).hex()
+    NAN = struct.pack("<d", float("nan")).hex().upper()
     POINT_EMPTY_WKB = "0101000000" + (NAN * 2)
     assert g.wkb_hex == hostorder("BIdd", POINT_EMPTY_WKB)
 
