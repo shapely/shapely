@@ -196,7 +196,6 @@ setup_args = dict(
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
@@ -204,7 +203,7 @@ setup_args = dict(
         'Topic :: Scientific/Engineering :: GIS',
     ],
     cmdclass           = {},
-    python_requires    = '>=3.5',
+    python_requires    = '>=3.6',
     extras_require     = extra_reqs,
     package_data={
         'shapely': ['shapely/_geos.pxi']},

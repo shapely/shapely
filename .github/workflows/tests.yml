@@ -11,10 +11,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # 2015
-          - python: 3.5
-            geos: 3.5.2
-            numpy: 1.13.3
           # 2017
           - python: 3.6
             geos: 3.6.4

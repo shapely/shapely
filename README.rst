@@ -52,7 +52,7 @@ Requirements
 
 Shapely 1.7 requires
 
-* Python 2.7, >=3.5
+* Python >=3.6
 * GEOS >=3.3
 
 Installing Shapely
