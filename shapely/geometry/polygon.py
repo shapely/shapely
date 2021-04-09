@@ -131,7 +131,7 @@ def asLinearRing(context):
     return LinearRingAdapter(context)
 
 
-class InteriorRingSequence(object):
+class InteriorRingSequence:
 
     _factory = None
     _geom = None

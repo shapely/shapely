@@ -1290,7 +1290,7 @@ Shapely's binary :meth:`within` predicate.
 
 .. code-block:: python
 
-  class Within(object):
+  class Within:
       def __init__(self, o):
           self.o = o
       def __lt__(self, other):
@@ -2857,7 +2857,7 @@ Or a simple placemark-type object:
 
 .. code-block:: pycon
 
-  >>> class GeoThing(object):
+  >>> class GeoThing:
   ...     def __init__(self, d):
   ...         self.__geo_interface__ = d
   >>> thing = GeoThing({"type": "Point", "coordinates": (0.0, 0.0)})

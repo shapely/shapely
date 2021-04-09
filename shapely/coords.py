@@ -11,7 +11,7 @@ from shapely.geos import lgeos
 from shapely.topology import Validating
 
 
-class CoordinateSequence(object):
+class CoordinateSequence:
     """
     Iterative access to coordinate tuples from the parent geometry's coordinate
     sequence.

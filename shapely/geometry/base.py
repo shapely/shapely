@@ -128,13 +128,13 @@ def exceptNull(func):
     return wrapper
 
 
-class CAP_STYLE(object):
+class CAP_STYLE:
     round = 1
     flat = 2
     square = 3
 
 
-class JOIN_STYLE(object):
+class JOIN_STYLE:
     round = 1
     mitre = 2
     bevel = 3
@@ -142,7 +142,7 @@ class JOIN_STYLE(object):
 EMPTY = deserialize_wkb(a2b_hex(b'010700000000000000'))
 
 
-class BaseGeometry(object):
+class BaseGeometry:
     """
     Provides GEOS spatial predicates and topological operations.
 
@@ -949,7 +949,7 @@ class BaseMultipartGeometry(BaseGeometry):
             '</g>'
 
 
-class GeometrySequence(object):
+class GeometrySequence:
     """
     Iterative access to members of a homogeneous multipart geometry.
     """

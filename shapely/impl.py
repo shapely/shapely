@@ -44,7 +44,7 @@ def delegated(func):
 # Map geometry methods to their GEOS delegates
 
 
-class BaseImpl(object):
+class BaseImpl:
     """Base class for registrable implementations."""
 
     def __init__(self, values):

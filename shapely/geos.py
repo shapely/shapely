@@ -269,7 +269,7 @@ error_h = EXCEPTION_HANDLER_FUNCTYPE(error_handler)
 notice_h = EXCEPTION_HANDLER_FUNCTYPE(notice_handler)
 
 
-class WKTReader(object):
+class WKTReader:
 
     _lgeos = None
     _reader = None
@@ -302,7 +302,7 @@ class WKTReader(object):
         return geom_factory(geom)
 
 
-class WKTWriter(object):
+class WKTWriter:
 
     _lgeos = None
     _writer = None
@@ -402,7 +402,7 @@ class WKTWriter(object):
         return text.decode('ascii')
 
 
-class WKBReader(object):
+class WKBReader:
 
     _lgeos = None
     _reader = None
@@ -445,7 +445,7 @@ class WKBReader(object):
         return geometry.base.geom_factory(geom)
 
 
-class WKBWriter(object):
+class WKBWriter:
 
     _lgeos = None
     _writer = None

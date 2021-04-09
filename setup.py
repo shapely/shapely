@@ -82,7 +82,7 @@ if 'all' in sys.warnoptions:
     log.level = logging.DEBUG
 
 
-class GEOSConfig(object):
+class GEOSConfig:
     """Interface to config options from the `geos-config` utility
     """
 
