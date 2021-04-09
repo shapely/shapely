@@ -72,7 +72,7 @@ NAMED_REQUIREMENT = \
 REQUIREMENT = stringStart + NAMED_REQUIREMENT + stringEnd
 
 
-class Requirement(object):
+class Requirement:
     """Parse a requirement.
 
     Parse a given requirement string into its parts, such as name, specifier,
