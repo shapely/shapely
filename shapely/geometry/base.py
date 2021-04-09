@@ -683,17 +683,6 @@ class BaseMultipartGeometry(BaseGeometry):
     def __bool__(self):
         return self.is_empty is False
 
-    def __len__(self):
-        warn(
-            "__len__ for multi-part geometries is deprecated and will be removed in "
-            "Shapely 2.0. Check the length of the `geoms` property instead to get the "
-            " number of parts of a multi-part geometry.",
-            ShapelyDeprecationWarning, stacklevel=2)
-        if not self.is_empty:
-            return len(self.geoms)
-        else:
-            return 0
-
     __hash__ = None
 
     def svg(self, scale_factor=1., color=None):
