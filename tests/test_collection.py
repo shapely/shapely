@@ -64,21 +64,7 @@ def test_geointerface(geometrycollection_geojson):
     assert geom.__geo_interface__ == geometrycollection_geojson
 
 
-@pytest.mark.parametrize('geom', [
-    GeometryCollection(),
-    shape({"type": "GeometryCollection", "geometries": []}),
-    shape({"type": "GeometryCollection", "geometries": [
-        {"type": "Point", "coordinates": ()},
-        {"type": "LineString", "coordinates": (())}
-    ]}),
-    wkt.loads('GEOMETRYCOLLECTION EMPTY'),
-])
-def test_len_empty_deprecated(geom):
-    with pytest.warns(ShapelyDeprecationWarning, match="__len__"):
-        assert len(geom) == 0
-
-
-def test_len_deprecated(geometrycollection_geojson):
+def test_len_raises(geometrycollection_geojson):
     geom = shape(geometrycollection_geojson)
-    with pytest.warns(ShapelyDeprecationWarning, match="__len__"):
-        assert len(geom) == 2
+    with pytest.raises(TypeError):
+        len(geom)
