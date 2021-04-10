@@ -12,7 +12,7 @@ def some_point():
 
 
 @pytest.fixture(scope="module")
-def null_geometry():
+def empty_geometry():
     return Point()
 
 
