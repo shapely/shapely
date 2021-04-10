@@ -129,13 +129,9 @@ def test_dump_hex_load_binary(some_point):
         with open(file, "w") as file_pointer:
             dump(some_point, file_pointer, hex=True)
 
-        try:
+        with pytest.raises(WKBReadingError):
             with open(file, "rb") as file_pointer:
                 load(file_pointer)
-        except WKBReadingError:
-            pass
-        else:
-            raise AssertionError("Reading a text file as binary should fail")
 
 
 def test_dump_binary_load_hex(some_point):
