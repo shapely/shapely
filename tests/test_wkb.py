@@ -1,8 +1,6 @@
 import binascii
 import struct
 import sys
-from tempfile import TemporaryDirectory
-from os.path import join
 
 import pytest
 
@@ -100,54 +98,46 @@ def test_loads_hex(some_point):
     assert loads(dumps(some_point, hex=True), hex=True) == some_point
 
 
-def test_dump_load_binary(some_point):
-    with TemporaryDirectory() as directory_path:
-        file = join(directory_path, "test.wkb")
-        with open(file, "wb") as file_pointer:
-            dump(some_point, file_pointer)
-        with open(file, "rb") as file_pointer:
-            restored = load(file_pointer)
+def test_dump_load_binary(some_point, tmpdir):
+    file = tmpdir.join("test.wkb")
+    with open(file, "wb") as file_pointer:
+        dump(some_point, file_pointer)
+    with open(file, "rb") as file_pointer:
+        restored = load(file_pointer)
 
     assert some_point == restored
 
 
-def test_dump_load_hex(some_point):
-    with TemporaryDirectory() as directory_path:
-        file = join(directory_path, "test.wkb")
-        with open(file, "w") as file_pointer:
-            dump(some_point, file_pointer, hex=True)
-        with open(file, "r") as file_pointer:
-            restored = load(file_pointer, hex=True)
+def test_dump_load_hex(some_point, tmpdir):
+    file = tmpdir.join("test.wkb")
+    with open(file, "w") as file_pointer:
+        dump(some_point, file_pointer, hex=True)
+    with open(file, "r") as file_pointer:
+        restored = load(file_pointer, hex=True)
 
     assert some_point == restored
 
 
-def test_dump_hex_load_binary(some_point):
+def test_dump_hex_load_binary(some_point, tmpdir):
     """Asserts that reading a binary file as text (hex mode) fails."""
-    with TemporaryDirectory() as directory_path:
-        file = join(directory_path, "test.wkb")
-        with open(file, "w") as file_pointer:
-            dump(some_point, file_pointer, hex=True)
+    file = tmpdir.join("test.wkb")
+    with open(file, "w") as file_pointer:
+        dump(some_point, file_pointer, hex=True)
 
-        with pytest.raises(WKBReadingError):
-            with open(file, "rb") as file_pointer:
-                load(file_pointer)
+    with pytest.raises(WKBReadingError):
+        with open(file, "rb") as file_pointer:
+            load(file_pointer)
 
 
-def test_dump_binary_load_hex(some_point):
+def test_dump_binary_load_hex(some_point, tmpdir):
     """Asserts that reading a text file (hex mode) as binary fails."""
-    with TemporaryDirectory() as directory_path:
-        file = join(directory_path, "test.wkb")
-        with open(file, "wb") as file_pointer:
-            dump(some_point, file_pointer)
+    file = tmpdir.join("test.wkb")
+    with open(file, "wb") as file_pointer:
+        dump(some_point, file_pointer)
 
-        try:
-            with open(file, "r") as file_pointer:
-                load(file_pointer, hex=True)
-        except (WKBReadingError, UnicodeEncodeError, UnicodeDecodeError):
-            pass
-        else:
-            raise AssertionError("Reading a text file as binary should fail")
+    with pytest.raises((WKBReadingError, UnicodeEncodeError, UnicodeDecodeError)):
+        with open(file, "r") as file_pointer:
+            load(file_pointer, hex=True)
 
 
 requires_geos_39 = pytest.mark.xfail(

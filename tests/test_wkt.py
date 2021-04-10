@@ -1,6 +1,4 @@
 from math import pi
-from tempfile import TemporaryDirectory
-from os.path import join
 
 import pytest
 
@@ -10,7 +8,7 @@ from shapely.wkt import dumps, dump, load, loads
 
 @pytest.fixture(scope="module")
 def some_point():
-    return Point((pi, -pi))
+    return Point(pi, -pi)
 
 
 @pytest.fixture(scope="module")
@@ -27,24 +25,22 @@ def test_wkt_null(null_geometry):
     assert null_geometry.wkt == "GEOMETRYCOLLECTION EMPTY"
 
 
-def test_dump_load(some_point):
-    with TemporaryDirectory() as directory_path:
-        file = join(directory_path, "test.wkt")
-        with open(file, "w") as file_pointer:
-            dump(some_point, file_pointer)
-        with open(file, "r") as file_pointer:
-            restored = load(file_pointer)
+def test_dump_load(some_point, tmpdir):
+    file = tmpdir.join("test.wkt")
+    with open(file, "w") as file_pointer:
+        dump(some_point, file_pointer)
+    with open(file, "r") as file_pointer:
+        restored = load(file_pointer)
 
     assert some_point == restored
 
 
-def test_dump_load_null_geometry(null_geometry):
-    with TemporaryDirectory() as directory_path:
-        file = join(directory_path, "test.wkt")
-        with open(file, "w") as file_pointer:
-            dump(null_geometry, file_pointer)
-        with open(file, "r") as file_pointer:
-            restored = load(file_pointer)
+def test_dump_load_null_geometry(null_geometry, tmpdir):
+    file = tmpdir.join("test.wkt")
+    with open(file, "w") as file_pointer:
+        dump(null_geometry, file_pointer)
+    with open(file, "r") as file_pointer:
+        restored = load(file_pointer)
 
     # This is does not work with __eq__():
     assert null_geometry.equals(restored)
