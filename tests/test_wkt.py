@@ -21,8 +21,8 @@ def test_wkt(some_point):
     assert some_point.wkt == "POINT ({0:.15f} {1:.15f})".format(pi, -pi)
 
 
-def test_wkt_null(null_geometry):
-    assert null_geometry.wkt == "GEOMETRYCOLLECTION EMPTY"
+def test_wkt_null(empty_geometry):
+    assert empty_geometry.wkt == "GEOMETRYCOLLECTION EMPTY"
 
 
 def test_dump_load(some_point, tmpdir):
@@ -35,15 +35,15 @@ def test_dump_load(some_point, tmpdir):
     assert some_point == restored
 
 
-def test_dump_load_null_geometry(null_geometry, tmpdir):
+def test_dump_load_null_geometry(empty_geometry, tmpdir):
     file = tmpdir.join("test.wkt")
     with open(file, "w") as file_pointer:
-        dump(null_geometry, file_pointer)
+        dump(empty_geometry, file_pointer)
     with open(file, "r") as file_pointer:
         restored = load(file_pointer)
 
     # This is does not work with __eq__():
-    assert null_geometry.equals(restored)
+    assert empty_geometry.equals(restored)
 
 
 def test_dumps_loads(some_point):
@@ -51,10 +51,10 @@ def test_dumps_loads(some_point):
     assert loads(dumps(some_point)) == some_point
 
 
-def test_dumps_loads_null_geometry(null_geometry):
-    assert dumps(null_geometry) == "GEOMETRYCOLLECTION EMPTY"
+def test_dumps_loads_null_geometry(empty_geometry):
+    assert dumps(empty_geometry) == "GEOMETRYCOLLECTION EMPTY"
     # This is does not work with __eq__():
-    assert loads(dumps(null_geometry)).equals(null_geometry)
+    assert loads(dumps(empty_geometry)).equals(empty_geometry)
 
 
 def test_dumps_precision(some_point):
