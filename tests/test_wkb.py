@@ -97,7 +97,7 @@ def test_loads_srid():
 
 
 def test_loads_hex(some_point):
-    assert loads(dumps(some_point, hex=True), hex=True), some_point
+    assert loads(dumps(some_point, hex=True), hex=True) == some_point
 
 
 def test_dump_load_binary(some_point):
