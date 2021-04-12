@@ -136,17 +136,28 @@ def get_coordinates(geometry, include_z=False, return_index=False):
 
 
 def set_coordinates(geometry, coordinates):
-    """Returns a copy of a geometry array with different coordinates.
+    """Adapts the coordinates of a geometry array in-place.
 
     If the coordinates array has shape (N, 2), all returned geometries
     will be two-dimensional, and the third dimension will be discarded,
     if present. If the coordinates array has shape (N, 3), the returned
     geometries preserve the dimensionality of the input geometries.
 
+    .. warning::
+
+        The geometry array is modified in-place! If you do not want to
+        modify the original array, you can do
+        ``set_coordinates(arr.copy(), newcoords)``.
+
     Parameters
     ----------
     geometry : Geometry or array_like
     coordinates: array_like
+
+    See Also
+    --------
+    apply : Returns a copy of a geometry array with a function applied to its
+        coordinates.
 
     Examples
     --------
