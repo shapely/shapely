@@ -38,6 +38,7 @@ Version 0.10 (unreleased)
 * Addition of a ``polygonize`` function (#275)
 * Addition of a ``polygonize_full`` function (#298)
 * Addition of a ``segmentize`` function for GEOS >= 3.10 (#299)
+* Addition of ``oriented_envelope`` and ``minimum_rotated_rectangle`` functions (#314)
 * Addition of ``minimum_bounding_circle`` and ``minimum_bounding_radius`` functions for GEOS >= 3.8 (#315)
 
 **Bug fixes**

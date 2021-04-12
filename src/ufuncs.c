@@ -405,6 +405,9 @@ static void* minimum_bounding_circle_data[1] = {GEOSMinimumBoundingCircleWithRet
 #if GEOS_SINCE_3_7_0
 static void* reverse_data[1] = {GEOSReverse_r};
 #endif
+#if GEOS_SINCE_3_6_0
+static void* oriented_envelope_data[1] = {GEOSMinimumRotatedRectangle_r};
+#endif
 typedef void* FuncGEOS_Y_Y(void* context, void* a);
 static char Y_Y_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
 static void Y_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* data) {
@@ -3089,6 +3092,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 #if GEOS_SINCE_3_6_0
   DEFINE_Y_d(minimum_clearance);
   DEFINE_Y_d(get_precision);
+  DEFINE_Y_Y(oriented_envelope);
   DEFINE_CUSTOM(set_precision, 3);
 #endif
 

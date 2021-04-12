@@ -729,3 +729,84 @@ def test_minimum_bounding_circle_all_types(geometry):
 def test_minimum_bounding_circle(geometry, expected):
     actual = pygeos.minimum_bounding_circle(geometry)
     assert pygeos.equals(actual, expected).all()
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize("geometry", all_types)
+def test_oriented_envelope_all_types(geometry):
+    actual = pygeos.oriented_envelope([geometry, geometry])
+    assert actual.shape == (2,)
+    assert actual[0] is None or isinstance(actual[0], Geometry)
+
+    actual = pygeos.oriented_envelope(None)
+    assert actual is None
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize(
+    "geometry, expected",
+    [
+        (
+            pygeos.Geometry("MULTIPOINT (0 0, 10 0, 10 10)"),
+            pygeos.Geometry("POLYGON ((0 0, 5 -5, 15 5, 10 10, 0 0))"),
+        ),
+        (
+            pygeos.Geometry("LINESTRING (1 1, 5 1, 10 10)"),
+            pygeos.Geometry("POLYGON ((1 1, 3 -1, 12 8, 10 10, 1 1))"),
+        ),
+        (
+            pygeos.Geometry("POLYGON ((1 1, 15 1, 5 10, 1 1))"),
+            pygeos.Geometry("POLYGON ((15 1, 15 10, 1 10, 1 1, 15 1))"),
+        ),
+        (
+            pygeos.Geometry("LINESTRING (1 1, 10 1)"),
+            pygeos.Geometry("LINESTRING (1 1, 10 1)"),
+        ),
+        (
+            pygeos.Geometry("POINT (2 2)"),
+            pygeos.Geometry("POINT (2 2)"),
+        ),
+        (
+            pygeos.Geometry("GEOMETRYCOLLECTION EMPTY"),
+            pygeos.Geometry("POLYGON EMPTY"),
+        ),
+    ],
+)
+def test_oriented_envelope(geometry, expected):
+    actual = pygeos.oriented_envelope(geometry)
+    assert pygeos.equals(actual, expected).all()
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize(
+    "geometry, expected",
+    [
+        (
+            pygeos.Geometry("MULTIPOINT (0 0, 10 0, 10 10)"),
+            pygeos.Geometry("POLYGON ((0 0, 5 -5, 15 5, 10 10, 0 0))"),
+        ),
+        (
+            pygeos.Geometry("LINESTRING (1 1, 5 1, 10 10)"),
+            pygeos.Geometry("POLYGON ((1 1, 3 -1, 12 8, 10 10, 1 1))"),
+        ),
+        (
+            pygeos.Geometry("POLYGON ((1 1, 15 1, 5 10, 1 1))"),
+            pygeos.Geometry("POLYGON ((15 1, 15 10, 1 10, 1 1, 15 1))"),
+        ),
+        (
+            pygeos.Geometry("LINESTRING (1 1, 10 1)"),
+            pygeos.Geometry("LINESTRING (1 1, 10 1)"),
+        ),
+        (
+            pygeos.Geometry("POINT (2 2)"),
+            pygeos.Geometry("POINT (2 2)"),
+        ),
+        (
+            pygeos.Geometry("GEOMETRYCOLLECTION EMPTY"),
+            pygeos.Geometry("POLYGON EMPTY"),
+        ),
+    ],
+)
+def test_minimum_rotated_rectangle(geometry, expected):
+    actual = pygeos.minimum_rotated_rectangle(geometry)
+    assert pygeos.equals(actual, expected).all()
