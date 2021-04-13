@@ -125,6 +125,7 @@ def get_coordinates(geometry, include_z=False, return_index=False):
     [[0.0, 0.0, 0.0]]
 
     When return_index=True, indexes are returned also:
+
     >>> geometries = [Geometry("LINESTRING (2 2, 4 4)"), Geometry("POINT (0 0)")]
     >>> coordinates, index = get_coordinates(geometries, return_index=True)
     >>> coordinates.tolist(), index.tolist()
