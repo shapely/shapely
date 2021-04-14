@@ -50,9 +50,9 @@ See the manual for more examples and guidance.
 Requirements
 ============
 
-Shapely 1.7 requires
+Shapely 1.8 requires
 
-* Python 2.7, >=3.5
+* Python >=3.5
 * GEOS >=3.3
 
 Installing Shapely
