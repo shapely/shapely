@@ -282,8 +282,6 @@ def get_y(point, **kwargs):
 def get_z(point, **kwargs):
     """Returns the z-coordinate of a point.
 
-    Requires at least GEOS 3.7.0.
-
     Parameters
     ----------
     point : Geometry or array_like

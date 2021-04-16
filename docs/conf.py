@@ -54,3 +54,9 @@ html_static_path = ['_static']
 html_css_files = [
     'custom.css',
 ]
+
+
+# set an environment variable for pygeos.decorators.requires_geos to see if we
+# are in a doc build
+import os
+os.environ["SPHINX_DOC_BUILD"] = "1"

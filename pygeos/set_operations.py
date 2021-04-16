@@ -402,8 +402,6 @@ def coverage_union(a, b, **kwargs):
     """Merges multiple polygons into one. This is an optimized version of
     union which assumes the polygons to be non-overlapping.
 
-    Requires at least GEOS 3.8.0.
-
     Parameters
     ----------
     a : Geometry or array_like
@@ -436,8 +434,6 @@ def coverage_union_all(geometries, axis=None, **kwargs):
     """Returns the union of multiple polygons of a geometry collection.
     This is an optimized version of union which assumes the polygons
     to be non-overlapping.
-
-    Requires at least GEOS 3.8.0.
 
     Parameters
     ----------

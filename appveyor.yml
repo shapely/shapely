@@ -8,10 +8,6 @@ environment:
 
   matrix:
     # Interleave PYTHON, ARCH and GEOS_VERSION
-    - PYTHON: "C:\\Python35-x64"
-      ARCH: x64
-      GEOS_VERSION: 3.5.2
-      NUMPY_VERSION: 1.10.4
     - PYTHON: "C:\\Python36"
       ARCH: x86
       GEOS_VERSION: 3.6.4
@@ -69,7 +65,7 @@ build_script:
   - pip install --no-deps -e .
 
 test_script:
-  - pytest
+  - pytest pygeos
 
 cache:
   - C:\projects\deps -> %APPVEYOR_BUILD_FOLDER%\ci\install_geos.cmd

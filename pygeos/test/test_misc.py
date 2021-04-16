@@ -1,3 +1,4 @@
+import os
 import sys
 from itertools import chain
 from string import ascii_lowercase
@@ -14,6 +15,13 @@ from pygeos.decorators import multithreading_enabled, requires_geos
 def mocked_geos_version():
     with mock.patch.object(pygeos.lib, "geos_version", new=(3, 7, 1)):
         yield "3.7.1"
+
+
+@pytest.fixture
+def sphinx_doc_build():
+    os.environ["SPHINX_DOC_BUILD"] = "1"
+    yield
+    del os.environ["SPHINX_DOC_BUILD"]
 
 
 def test_version():
@@ -52,23 +60,44 @@ def test_geos_capi_version():
     )
 
 
+def func():
+    """Docstring that will be mocked.
+    A multiline.
+
+    Some description.
+    """
+
+
+expected_docstring = """Docstring that will be mocked.
+    A multiline.
+
+    .. note:: 'func' requires at least GEOS {}.
+
+    Some description.
+    """
+
+
 @pytest.mark.parametrize("version", ["3.7.0", "3.7.1", "3.6.2"])
 def test_requires_geos_ok(version, mocked_geos_version):
-    @requires_geos(version)
-    def foo():
-        return "bar"
-
-    assert foo() == "bar"
+    wrapped = requires_geos(version)(func)
+    assert wrapped is func
 
 
 @pytest.mark.parametrize("version", ["3.7.2", "3.8.0", "3.8.1"])
 def test_requires_geos_not_ok(version, mocked_geos_version):
-    @requires_geos(version)
-    def foo():
-        return "bar"
-
+    wrapped = requires_geos(version)(func)
     with pytest.raises(pygeos.UnsupportedGEOSOperation):
-        foo()
+        wrapped()
+
+    assert wrapped.__doc__ == expected_docstring.format(version)
+
+
+@pytest.mark.parametrize("version", ["3.6.0", "3.8.0"])
+def test_requires_geos_doc_build(version, mocked_geos_version, sphinx_doc_build):
+    """The requires_geos decorator always adapts the docstring."""
+    wrapped = requires_geos(version)(func)
+
+    assert wrapped.__doc__ == expected_docstring.format(version)
 
 
 @multithreading_enabled

@@ -75,4 +75,4 @@ jobs:
         shell: bash
         run: |
           source activate test
-          pytest ${{ matrix.pytest_args }}
+          pytest pygeos ${{ matrix.pytest_args }}

@@ -1,3 +1,4 @@
+import os
 from functools import wraps
 
 import numpy as np
@@ -16,19 +17,32 @@ class requires_geos:
         self.version = tuple(int(x) for x in version.split("."))
 
     def __call__(self, func):
-        if lib.geos_version < self.version:
-            msg = "'{}' requires at least GEOS {}.{}.{}".format(
-                func.__name__, *self.version
-            )
+        is_compatible = lib.geos_version >= self.version
+        is_doc_build = os.environ.get("SPHINX_DOC_BUILD") == "1"  # set in docs/conf.py
+        if is_compatible and not is_doc_build:
+            return func  # return directly, do not change the docstring
+
+        msg = "'{}' requires at least GEOS {}.{}.{}.".format(
+            func.__name__, *self.version
+        )
+        if is_compatible:
+
+            @wraps(func)
+            def wrapped(*args, **kwargs):
+                return func(*args, **kwargs)
+
+        else:
 
             @wraps(func)
             def wrapped(*args, **kwargs):
                 raise UnsupportedGEOSOperation(msg)
 
-            wrapped.__doc__ = msg
-            return wrapped
-        else:
-            return func
+        if wrapped.__doc__:
+            wrapped.__doc__ = wrapped.__doc__.replace(
+                "\n\n", "\n\n    .. note:: {}\n\n".format(msg), 1
+            )
+
+        return wrapped
 
 
 def multithreading_enabled(func):
