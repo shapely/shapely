@@ -65,7 +65,11 @@ if sys.platform.startswith('linux'):
     # Test to see if we have a wheel repaired by auditwheel which contains its
     # own libgeos_c. Note: auditwheel 3.1 changed the location of libs.
     geos_whl_so = glob.glob(
-        os.path.abspath(os.path.join(os.path.dirname(__file__), ".libs/libgeos*.so*"))
+        os.path.abspath(
+            os.path.join(
+                os.path.dirname(__file__), ".libs", "libgeos*.so*"
+            )
+        )
     ) or glob.glob(
         os.path.abspath(
             os.path.join(
@@ -73,14 +77,16 @@ if sys.platform.startswith('linux'):
             )
         )
     )
+    geos_whl_so = sorted(geos_whl_so)
+    LOG.debug("globs found libgeos wheels: %s", geos_whl_so)
 
     if len(geos_whl_so) > 0:
         # We have observed problems with CDLL of libgeos_c not automatically
         # loading the sibling c++ library since the change made by auditwheel
         # 3.1, so we explicitly load them both.
-        geos_whl_so = sorted(geos_whl_so)
         CDLL(geos_whl_so[0])
-        _lgeos = CDLL(geos_whl_so[-1])
+        libgeos_whl_so = [so for so in geos_whl_so if "libgeos_c" in so]
+        _lgeos = CDLL(libgeos_whl_so[0])
         LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
 
     elif hasattr(sys, 'frozen'):
