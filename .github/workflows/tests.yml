@@ -5,8 +5,7 @@ on: [push, pull_request]
 jobs:
   test:
     name: Python ${{ matrix.python }} (GEOS ${{ matrix.geos }}, speedups ${{ matrix.speedups }}, numpy ${{ matrix.numpy || 'not installed' }})
-    # runs-on: ubuntu-latest
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
