@@ -1,9 +1,9 @@
 """Load/dump geometries using the well-known text (WKT) format
+
+Also provides pickle-like convenience functions.
 """
 
 from shapely import geos
-
-# Pickle-like convenience functions
 
 
 def loads(data):

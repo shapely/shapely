@@ -39,5 +39,6 @@ class ShapelyDeprecationWarning(FutureWarning):
     changed in a future release.
     """
 
+
 class EmptyPartError(ShapelyError):
     """An error signifying an empty part was encountered when creating a multi-part."""
