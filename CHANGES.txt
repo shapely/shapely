@@ -4,6 +4,10 @@ Changes
 1.8a2 (TBD)
 -----------
 
+Python version support:
+
+Shapely 1.8 will support only Python versions >= 3.6.
+
 Bug fixes:
 
 - Python's builtin super() is now used only as described in PEP 3135 (#1109).

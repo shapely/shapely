@@ -10,18 +10,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # 2015
-          - python: 3.5
-            geos: 3.5.2
-            numpy: 1.10.4
-            speedups: 1
-          - python: 3.5
-            geos: 3.5.2
-            numpy: 1.10.4
-            speedups: 0
-          - python: 3.5
-            geos: 3.5.2
-            speedups: 0
           # 2017
           - python: 3.6
             geos: 3.6.4

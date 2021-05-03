@@ -8,9 +8,6 @@ environment:
 
   matrix:
     # Interleave PYTHON, ARCH and GEOS_VERSION
-    - PYTHON: "C:\\Python35-x64"
-      ARCH: x64
-      GEOS_VERSION: "3.5.2"
     - PYTHON: "C:\\Python36"
       ARCH: x86
       GEOS_VERSION: "3.6.4"
