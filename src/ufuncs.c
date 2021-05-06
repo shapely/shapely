@@ -2199,8 +2199,13 @@ static void polygons_func(char** args, npy_intp* dimensions, npy_intp* steps,
       break;
     }
     if (shell == NULL) {
-      // set None if shell is None (ignoring holes)
-      geom_arr[i] = NULL;
+      // output empty polygon if shell is None (ignoring holes)
+      geom_arr[i] = GEOSGeom_createEmptyPolygon_r(ctx);
+      if (geom_arr[i] == NULL) {
+        errstate = PGERR_GEOS_EXCEPTION;
+        destroy_geom_arr(ctx, geom_arr, i - 1);
+        break;
+      };
       continue;
     }
     geom_type = GEOSGeomTypeId_r(ctx, shell);

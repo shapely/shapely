@@ -4,6 +4,7 @@ import pytest
 import pygeos
 
 from .common import (
+    empty_polygon,
     geometry_collection,
     line_string,
     linear_ring,
@@ -146,8 +147,8 @@ def test_polygon_from_linearring():
 
 
 def test_polygons_none():
-    assert pygeos.polygons(None) is None
-    assert pygeos.polygons(None, holes=[linear_ring]) is None
+    assert pygeos.equals(pygeos.polygons(None), empty_polygon)
+    assert pygeos.equals(pygeos.polygons(None, holes=[linear_ring]), empty_polygon)
 
 
 def test_polygons():
