@@ -12,6 +12,8 @@ Version 0.10 (unreleased)
   by optionally taking index arrays in all creation functions (#230, #322, #326, #346).
 * Released the GIL in all geometry creation functions (#310, #326).
 * Added the option to return the geometry index in ``get_coordinates`` (#318).
+* Added the ``get_rings`` function, similar as ``get_parts`` but specifically
+  to extract the rings of Polygon geometries (#342).
 * Updated ``box`` ufunc to use internal C function for creating polygon
   (about 2x faster) and added ``ccw`` parameter to create polygon in
   counterclockwise (default) or clockwise direction (#308).

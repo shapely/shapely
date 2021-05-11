@@ -25,6 +25,7 @@ __all__ = [
     "get_interior_ring",
     "get_geometry",
     "get_parts",
+    "get_rings",
     "get_precision",
     "set_precision",
 ]
@@ -494,7 +495,7 @@ def get_geometry(geometry, index, **kwargs):
 
     See also
     --------
-    get_num_geometries
+    get_num_geometries, get_parts
 
     Examples
     --------
@@ -525,12 +526,16 @@ def get_parts(geometry, return_index=False):
     ----------
     geometry : Geometry or array_like
     return_index : bool, optional (default: False)
-        If True, will return a tuple of ndarrys of (parts, indexes), where indexes
+        If True, will return a tuple of ndarrays of (parts, indexes), where indexes
         are the indexes of the original geometries in the source array.
 
     Returns
     -------
     ndarray of parts or tuple of (parts, indexes)
+
+    See also
+    --------
+    get_geometry, get_rings
 
     Examples
     --------
@@ -552,6 +557,61 @@ def get_parts(geometry, return_index=False):
         return _geometry.get_parts(geometry)
 
     return _geometry.get_parts(geometry)[0]
+
+
+def get_rings(geometry, return_index=False):
+    """Gets rings of Polygon geometry object.
+
+    For each Polygon, the first returned ring is always the exterior ring
+    and potential subsequent rings are interior rings.
+
+    If the geometry is not a Polygon, nothing is returned (empty array for
+    scalar geometry input or no element in output array for array input).
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    return_index : bool, optional (default: False)
+        If True, will return a tuple of ndarrays of (rings, indexes), where
+        indexes are the indexes of the original geometries in the source array.
+
+    Returns
+    -------
+    ndarray of rings or tuple of (rings, indexes)
+
+    See also
+    --------
+    get_exterior_ring, get_interior_ring, get_parts
+
+    Examples
+    --------
+    >>> polygon_with_hole = Geometry("POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), \
+(2 2, 2 4, 4 4, 4 2, 2 2))")
+    >>> get_rings(polygon_with_hole).tolist()
+    [<pygeos.Geometry LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>,
+     <pygeos.Geometry LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>]
+
+    With ``return_index=True``:
+
+    >>> polygon = Geometry("POLYGON ((0 0, 2 0, 2 2, 0 2, 0 0))")
+    >>> rings, index = get_rings([polygon, polygon_with_hole], return_index=True)
+    >>> rings.tolist()
+    [<pygeos.Geometry LINEARRING (0 0, 2 0, 2 2, 0 2, 0 0)>,
+     <pygeos.Geometry LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>,
+     <pygeos.Geometry LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>]
+    >>> index.tolist()
+    [0, 1, 1]
+    """
+    geometry = np.asarray(geometry, dtype=np.object_)
+    geometry = np.atleast_1d(geometry)
+
+    if geometry.ndim != 1:
+        raise ValueError("Array should be one dimensional")
+
+    if return_index:
+        return _geometry.get_parts(geometry, extract_rings=True)
+
+    return _geometry.get_parts(geometry, extract_rings=True)[0]
 
 
 @multithreading_enabled

@@ -358,6 +358,68 @@ def test_get_parts_invalid_geometry(geom):
         pygeos.get_parts(geom)
 
 
+@pytest.mark.parametrize(
+    "geom",
+    [
+        point,
+        multi_point,
+        line_string,
+        multi_line_string,
+        polygon,
+        multi_polygon,
+        geometry_collection,
+        empty_point,
+        empty_line_string,
+        empty_polygon,
+        empty_geometry_collection,
+        None,
+    ],
+)
+def test_get_rings(geom):
+    if (pygeos.get_type_id(geom) != pygeos.GeometryType.POLYGON) or pygeos.is_empty(
+        geom
+    ):
+        rings = pygeos.get_rings(geom)
+        assert len(rings) == 0
+    else:
+        rings = pygeos.get_rings(geom)
+        assert len(rings) == 1
+        assert rings[0] == pygeos.get_exterior_ring(geom)
+
+
+def test_get_rings_holes():
+    rings = pygeos.get_rings(polygon_with_hole)
+    assert len(rings) == 2
+    assert rings[0] == pygeos.get_exterior_ring(polygon_with_hole)
+    assert rings[1] == pygeos.get_interior_ring(polygon_with_hole, 0)
+
+
+def test_get_rings_return_index():
+    geom = np.array([polygon, None, empty_polygon, polygon_with_hole])
+    expected_parts = []
+    expected_index = []
+    for i, g in enumerate(geom):
+        if g is None or pygeos.is_empty(g):
+            continue
+        expected_parts.append(pygeos.get_exterior_ring(g))
+        expected_index.append(i)
+        for j in range(0, pygeos.get_num_interior_rings(g)):
+            expected_parts.append(pygeos.get_interior_ring(g, j))
+            expected_index.append(i)
+
+    parts, index = pygeos.get_rings(geom, return_index=True)
+    assert len(parts) == len(expected_parts)
+    assert np.all(pygeos.equals_exact(parts, expected_parts))
+    assert np.array_equal(index, expected_index)
+
+
+@pytest.mark.parametrize("geom", [[[None]], [[polygon]]])
+def test_get_rings_invalid_dimensions(geom):
+    """Only 1D inputs are supported"""
+    with pytest.raises(ValueError, match="Array should be one dimensional"):
+        pygeos.get_parts(geom)
+
+
 @pytest.mark.skipif(pygeos.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_get_precision():
     geometries = all_types + (point_z, empty_point, empty_line_string, empty_polygon)

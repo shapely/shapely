@@ -28,7 +28,9 @@ from pygeos._geos cimport (
     GEOSGeom_destroy_r,
     GEOSGeometry,
     GEOSGeomTypeId_r,
+    GEOSGetExteriorRing_r,
     GEOSGetGeometryN_r,
+    GEOSGetInteriorRingN_r,
     get_geos_handle,
 )
 from pygeos._pygeos_api cimport (
@@ -145,17 +147,33 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type):
     return result
 
 
+
+cdef const GEOSGeometry* GetRingN(GEOSContextHandle_t handle, GEOSGeometry* polygon, int n):
+    if n == 0:
+        return GEOSGetExteriorRing_r(handle, polygon)
+    else:
+        return GEOSGetInteriorRingN_r(handle, polygon, n - 1)
+
+
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def get_parts(object[:] array):
+def get_parts(object[:] array, bint extract_rings=0):
     cdef Py_ssize_t geom_idx = 0
     cdef Py_ssize_t part_idx = 0
     cdef Py_ssize_t idx = 0
+    cdef Py_ssize_t count
     cdef GEOSGeometry *geom = NULL
     cdef const GEOSGeometry *part = NULL
 
-    counts = pygeos.get_num_geometries(array)
-    cdef Py_ssize_t count = counts.sum()
+    if extract_rings:
+        counts = pygeos.get_num_interior_rings(array)
+        is_polygon = (pygeos.get_type_id(array) == 3) & (~pygeos.is_empty(array))
+        counts += is_polygon
+        count = counts.sum()
+    else:
+        counts = pygeos.get_num_geometries(array)
+        count = counts.sum()
 
     if count == 0:
         # return immediately if there are no geometries to return
@@ -186,7 +204,11 @@ def get_parts(object[:] array):
 
             for part_idx in range(counts_view[geom_idx]):
                 index_view[idx] = geom_idx
-                part = GEOSGetGeometryN_r(geos_handle, geom, part_idx)
+
+                if extract_rings:
+                    part = GetRingN(geos_handle, geom, part_idx)
+                else:
+                    part = GEOSGetGeometryN_r(geos_handle, geom, part_idx)
                 if part == NULL:
                     return  # GEOSException is raised by get_geos_handle
 
