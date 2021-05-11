@@ -158,6 +158,8 @@ def test_hausdorff_distance_densify():
 def test_hausdorff_distance_missing():
     actual = pygeos.hausdorff_distance(point, None)
     assert np.isnan(actual)
+    actual = pygeos.hausdorff_distance(point, None, densify=0.001)
+    assert np.isnan(actual)
 
 
 def test_hausdorff_densify_nan():

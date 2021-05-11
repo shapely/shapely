@@ -310,7 +310,7 @@ char geos_interpolate_checker(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
   type = GEOSGeomTypeId_r(ctx, geom);
   if (type == -1) {
     return PGERR_GEOS_EXCEPTION;
-  } else if ((type == GEOS_POINT) | (type == GEOS_POLYGON) | (type == GEOS_MULTIPOINT) |
+  } else if ((type == GEOS_POINT) || (type == GEOS_POLYGON) || (type == GEOS_MULTIPOINT) ||
              (type == GEOS_MULTIPOLYGON)) {
     return PGERR_GEOMETRY_TYPE;
   }
@@ -324,7 +324,7 @@ char geos_interpolate_checker(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
   }
 
   // For collections: also check the type and emptyness of the first geometry
-  if ((type == GEOS_MULTILINESTRING) | (type == GEOS_GEOMETRYCOLLECTION)) {
+  if ((type == GEOS_MULTILINESTRING) || (type == GEOS_GEOMETRYCOLLECTION)) {
     sub_geom = GEOSGetGeometryN_r(ctx, geom, 0);
     if (sub_geom == NULL) {
       return PGERR_GEOS_EXCEPTION;  // GEOSException
@@ -332,7 +332,7 @@ char geos_interpolate_checker(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
     type = GEOSGeomTypeId_r(ctx, sub_geom);
     if (type == -1) {
       return PGERR_GEOS_EXCEPTION;
-    } else if ((type != GEOS_LINESTRING) & (type != GEOS_LINEARRING)) {
+    } else if ((type != GEOS_LINESTRING) && (type != GEOS_LINEARRING)) {
       return PGERR_GEOMETRY_TYPE;
     }
     is_empty = GEOSisEmpty_r(ctx, sub_geom);
@@ -483,7 +483,7 @@ finish:
  */
 GEOSGeometry* create_box(GEOSContextHandle_t ctx, double xmin, double ymin, double xmax,
                          double ymax, char ccw) {
-  if (npy_isnan(xmin) | npy_isnan(ymin) | npy_isnan(xmax) | npy_isnan(ymax)) {
+  if (npy_isnan(xmin) || npy_isnan(ymin) || npy_isnan(xmax) || npy_isnan(ymax)) {
     return NULL;
   }
 

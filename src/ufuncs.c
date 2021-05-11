@@ -84,7 +84,7 @@ static char GEOSisClosedAllTypes_r(void* context, void* geom) {
   int type = GEOSGeomTypeId_r(context, geom);
   if (type == -1) {
     return 2;  // Predicates use a return value of 2 for errors
-  } else if ((type == 1) | (type == 5)) {
+  } else if ((type == 1) || (type == 5)) {
     return GEOSisClosed_r(context, geom);
   } else {
     return 0;
@@ -104,7 +104,7 @@ static char GEOSGeom_isCCW_r(void* context, void* geom) {
   if (i == -1) {
     return 2;
   }
-  if ((i != GEOS_LINEARRING) & (i != GEOS_LINESTRING)) {
+  if ((i != GEOS_LINEARRING) && (i != GEOS_LINESTRING)) {
     return 0;
   }
 
@@ -218,7 +218,7 @@ static void YY_b_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
       errstate = PGERR_NOT_A_GEOMETRY;
       goto finish;
     }
-    if ((in1 == NULL) | (in2 == NULL)) {
+    if ((in1 == NULL) || (in2 == NULL)) {
       /* in case of a missing value: return 0 (False) */
       ret = 0;
     } else {
@@ -293,7 +293,7 @@ static void YY_b_p_func(char** args, npy_intp* dimensions, npy_intp* steps, void
       errstate = PGERR_NOT_A_GEOMETRY;
       goto finish;
     }
-    if ((in1 == NULL) | (in2 == NULL)) {
+    if ((in1 == NULL) || (in2 == NULL)) {
       /* in case of a missing value: return 0 (False) */
       ret = 0;
     } else {
@@ -565,7 +565,7 @@ static void Yd_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
       break;
     }
     double in2 = *(double*)ip2;
-    if ((in1 == NULL) | (npy_isnan(in2))) {
+    if ((in1 == NULL) || (npy_isnan(in2))) {
       // in case of a missing value: return NULL (None)
       geom_arr[i] = NULL;
     } else {
@@ -595,7 +595,7 @@ static PyUFuncGenericFunction Yd_Y_funcs[1] = {&Yd_Y_func};
 static void* GetPointN(void* context, void* geom, int n) {
   char typ = GEOSGeomTypeId_r(context, geom);
   int size, i;
-  if ((typ != 1) & (typ != 2)) {
+  if ((typ != 1) && (typ != 2)) {
     return NULL;
   }
   size = GEOSGeomGetNumPoints_r(context, geom);
@@ -608,7 +608,7 @@ static void* GetPointN(void* context, void* geom, int n) {
   } else {
     i = n;
   }
-  if ((i < 0) | (i >= size)) {
+  if ((i < 0) || (i >= size)) {
     /* Important, could give segfaults else */
     return NULL;
   }
@@ -631,7 +631,7 @@ static void* GetInteriorRingN(void* context, void* geom, int n) {
   } else {
     i = n;
   }
-  if ((i < 0) | (i >= size)) {
+  if ((i < 0) || (i >= size)) {
     /* Important, could give segfaults else */
     return NULL;
   }
@@ -655,7 +655,7 @@ static void* GetGeometryN(void* context, void* geom, int n) {
   } else {
     i = n;
   }
-  if ((i < 0) | (i >= size)) {
+  if ((i < 0) || (i >= size)) {
     /* Important, could give segfaults else */
     return NULL;
   }
@@ -851,7 +851,7 @@ static void YY_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
       destroy_geom_arr(ctx, geom_arr, i - 1);
       break;
     }
-    if ((in1 == NULL) | (in2 == NULL)) {
+    if ((in1 == NULL) || (in2 == NULL)) {
       // in case of a missing value: return NULL (None)
       geom_arr[i] = NULL;
     } else {
@@ -996,7 +996,7 @@ static void* get_srid_data[1] = {get_srid_func_tuple};
 
 static int GetNumPoints(void* context, void* geom, int n) {
   char typ = GEOSGeomTypeId_r(context, geom);
-  if ((typ == 1) | (typ == 2)) { /* Linestring & Linearring */
+  if ((typ == 1) || (typ == 2)) { /* Linestring & Linearring */
     return GEOSGeomGetNumPoints_r(context, geom);
   } else {
     return 0;
@@ -1069,7 +1069,7 @@ static void* hausdorff_distance_data[1] = {GEOSHausdorffDistance_r};
 #if GEOS_SINCE_3_7_0
 static int GEOSFrechetDistanceWrapped_r(void* context, void* a, void* b, double* c) {
   /* Handle empty geometries (they give segfaults) */
-  if (GEOSisEmpty_r(context, a) | GEOSisEmpty_r(context, b)) {
+  if (GEOSisEmpty_r(context, a) || GEOSisEmpty_r(context, b)) {
     *c = NPY_NAN;
     return 1;
   }
@@ -1080,7 +1080,7 @@ static void* frechet_distance_data[1] = {GEOSFrechetDistanceWrapped_r};
 /* Project and ProjectNormalize don't return error codes. wrap them. */
 static int GEOSProjectWrapped_r(void* context, void* a, void* b, double* c) {
   /* Handle empty points (they give segfaults (for b) or give exception (for a)) */
-  if (GEOSisEmpty_r(context, a) | GEOSisEmpty_r(context, b)) {
+  if (GEOSisEmpty_r(context, a) || GEOSisEmpty_r(context, b)) {
     *c = NPY_NAN;
   } else {
     *c = GEOSProject_r(context, a, b);
@@ -1097,7 +1097,7 @@ static int GEOSProjectNormalizedWrapped_r(void* context, void* a, void* b, doubl
   double distance;
 
   /* Handle empty points (they give segfaults (for b) or give exception (for a)) */
-  if (GEOSisEmpty_r(context, a) | GEOSisEmpty_r(context, b)) {
+  if (GEOSisEmpty_r(context, a) || GEOSisEmpty_r(context, b)) {
     *c = NPY_NAN;
   } else {
     /* Use custom implementation of GEOSProjectNormalized to overcome bug in
@@ -1133,7 +1133,7 @@ static void YY_d_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
       errstate = PGERR_NOT_A_GEOMETRY;
       goto finish;
     }
-    if ((in1 == NULL) | (in2 == NULL)) {
+    if ((in1 == NULL) || (in2 == NULL)) {
       /* in case of a missing value: return NaN */
       *(double*)op1 = NPY_NAN;
     } else {
@@ -1144,7 +1144,7 @@ static void YY_d_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
       }
       /* incase the outcome is 0.0, check the inputs for emptyness */
       if (*op1 == 0.0) {
-        if (GEOSisEmpty_r(ctx, in1) | GEOSisEmpty_r(ctx, in2)) {
+        if (GEOSisEmpty_r(ctx, in1) || GEOSisEmpty_r(ctx, in2)) {
           *(double*)op1 = NPY_NAN;
         }
       }
@@ -1180,7 +1180,7 @@ static void YYd_d_func(char** args, npy_intp* dimensions, npy_intp* steps, void*
       goto finish;
     }
     double in3 = *(double*)ip3;
-    if ((in1 == NULL) | (in2 == NULL) | npy_isnan(in3) | GEOSisEmpty_r(ctx, in1) |
+    if ((in1 == NULL) || (in2 == NULL) || npy_isnan(in3) || GEOSisEmpty_r(ctx, in1) ||
         GEOSisEmpty_r(ctx, in2)) {
       *(double*)op1 = NPY_NAN;
     } else {
@@ -1227,7 +1227,7 @@ static void YYd_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void*
       break;
     }
     double in3 = *(double*)ip3;
-    if ((in1 == NULL) | (in2 == NULL) | npy_isnan(in3)) {
+    if ((in1 == NULL) || (in2 == NULL) || npy_isnan(in3)) {
       // in case of a missing value: return NULL (None)
       geom_arr[i] = NULL;
     } else {
@@ -1275,8 +1275,8 @@ static void box_func(char** args, npy_intp* dimensions, npy_intp* steps, void* d
     if (geom_arr[i] == NULL) {
       // result will be NULL for any nan coordinates, which is OK;
       // otherwise raise an error
-      if (!(npy_isnan(*(double*)ip1) | npy_isnan(*(double*)ip2) |
-            npy_isnan(*(double*)ip3) | npy_isnan(*(double*)ip4))) {
+      if (!(npy_isnan(*(double*)ip1) || npy_isnan(*(double*)ip2) ||
+            npy_isnan(*(double*)ip3) || npy_isnan(*(double*)ip4))) {
         errstate = PGERR_GEOS_EXCEPTION;
         destroy_geom_arr(ctx, geom_arr, i - 1);
         break;
@@ -1306,7 +1306,7 @@ static char buffer_inner(void* ctx, GEOSBufferParams* params, void* ip1, void* i
   }
   double in2 = *(double*)ip2;
   /* handle NULL geometries or NaN buffer width */
-  if ((in1 == NULL) | npy_isnan(in2)) {
+  if ((in1 == NULL) || npy_isnan(in2)) {
     geom_arr[i] = NULL;
   } else {
     geom_arr[i] = GEOSBufferWithParams_r(ctx, in1, params, in2);
@@ -1330,7 +1330,7 @@ static void buffer_func(char** args, npy_intp* dimensions, npy_intp* steps, void
 
   CHECK_NO_INPLACE_OUTPUT(7);
 
-  if ((is3 != 0) | (is4 != 0) | (is5 != 0) | (is6 != 0) | (is7 != 0)) {
+  if ((is3 != 0) || (is4 != 0) || (is5 != 0) || (is6 != 0) || (is7 != 0)) {
     PyErr_Format(PyExc_ValueError, "Buffer function called with non-scalar parameters");
     return;
   }
@@ -1399,7 +1399,7 @@ static void offset_curve_func(char** args, npy_intp* dimensions, npy_intp* steps
 
   CHECK_NO_INPLACE_OUTPUT(5);
 
-  if ((is3 != 0) | (is4 != 0) | (is5 != 0)) {
+  if ((is3 != 0) || (is4 != 0) || (is5 != 0)) {
     PyErr_Format(PyExc_ValueError,
                  "Offset curve function called with non-scalar parameters");
     return;
@@ -1425,7 +1425,7 @@ static void offset_curve_func(char** args, npy_intp* dimensions, npy_intp* steps
     }
 
     width = *(double*)ip2;
-    if ((in1 == NULL) | npy_isnan(width)) {
+    if ((in1 == NULL) || npy_isnan(width)) {
       // in case of a missing value: return NULL (None)
       geom_arr[i] = NULL;
     } else {
@@ -1470,7 +1470,7 @@ static void snap_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
       break;
     }
     double in3 = *(double*)ip3;
-    if ((in1 == NULL) | (in2 == NULL) | npy_isnan(in3)) {
+    if ((in1 == NULL) || (in2 == NULL) || npy_isnan(in3)) {
       // in case of a missing value: return NULL (None)
       geom_arr[i] = NULL;
     } else {
@@ -1506,7 +1506,7 @@ static void clip_by_rect_func(char** args, npy_intp* dimensions, npy_intp* steps
 
   CHECK_NO_INPLACE_OUTPUT(5);
 
-  if ((is2 != 0) | (is3 != 0) | (is4 != 0) | (is5 != 0)) {
+  if ((is2 != 0) || (is3 != 0) || (is4 != 0) || (is5 != 0)) {
     PyErr_Format(PyExc_ValueError,
                  "clip_by_rect function called with non-scalar parameters");
     return;
@@ -1573,12 +1573,12 @@ static void equals_exact_func(char** args, npy_intp* dimensions, npy_intp* steps
       goto finish;
     }
     double in3 = *(double*)ip3;
-    if ((in1 == NULL) | (in2 == NULL) | npy_isnan(in3)) {
+    if ((in1 == NULL) || (in2 == NULL) || npy_isnan(in3)) {
       /* return 0 (False) for missing values */
       ret = 0;
     } else {
       ret = GEOSEqualsExact_r(ctx, in1, in2, in3);
-      if ((ret != 0) & (ret != 1)) {
+      if ((ret != 0) && (ret != 1)) {
         errstate = PGERR_GEOS_EXCEPTION;
         goto finish;
       }
@@ -1614,7 +1614,7 @@ static void delaunay_triangles_func(char** args, npy_intp* dimensions, npy_intp*
     }
     double in2 = *(double*)ip2;
     npy_bool in3 = *(npy_bool*)ip3;
-    if ((in1 == NULL) | npy_isnan(in2)) {
+    if ((in1 == NULL) || npy_isnan(in2)) {
       // in case of a missing value: return NULL (None)
       geom_arr[i] = NULL;
     } else {
@@ -1662,7 +1662,7 @@ static void voronoi_polygons_func(char** args, npy_intp* dimensions, npy_intp* s
     }
     double in2 = *(double*)ip2;
     npy_bool in4 = *(npy_bool*)ip4;
-    if ((in1 == NULL) | npy_isnan(in2)) {
+    if ((in1 == NULL) || npy_isnan(in2)) {
       /* propagate NULL geometries; in3 = NULL is actually supported */
       geom_arr[i] = NULL;
     } else {
@@ -1741,7 +1741,7 @@ static void relate_func(char** args, npy_intp* dimensions, npy_intp* steps, void
       errstate = PGERR_NOT_A_GEOMETRY;
       goto finish;
     }
-    if ((in1 == NULL) | (in2 == NULL)) {
+    if ((in1 == NULL) || (in2 == NULL)) {
       /* Missing geometries give None */
       Py_XDECREF(*out);
       Py_INCREF(Py_None);
@@ -1806,7 +1806,7 @@ static void relate_pattern_func(char** args, npy_intp* dimensions, npy_intp* ste
     }
     /* ip3 is already handled above */
 
-    if ((in1 == NULL) | (in2 == NULL)) {
+    if ((in1 == NULL) || (in2 == NULL)) {
       /* in case of a missing value: return 0 (False) */
       ret = 0;
     } else {
@@ -1977,7 +1977,7 @@ static void set_precision_func(char** args, npy_intp* dimensions, npy_intp* step
     // invalid and will not be retained in GEOS >= 3.9 anyway.
     int flags = in3 ? 0 : GEOS_PREC_NO_TOPO;
 
-    if ((in1 == NULL) | npy_isnan(in2)) {
+    if ((in1 == NULL) || npy_isnan(in2)) {
       // in case of a missing value: return NULL (None)
       geom_arr[i] = NULL;
     } else {
@@ -2347,7 +2347,7 @@ static void create_collection_func(char** args, npy_intp* dimensions, npy_intp* 
           destroy_geom_arr(ctx, temp_geoms, n_geoms - 1);
           goto finish;
         }
-        if ((actual_type != expected_type) & (actual_type != alt_expected_type)) {
+        if ((actual_type != expected_type) && (actual_type != alt_expected_type)) {
           errstate = PGERR_GEOMETRY_TYPE;
           destroy_geom_arr(ctx, geom_arr, i - 1);
           destroy_geom_arr(ctx, temp_geoms, n_geoms - 1);
@@ -2543,7 +2543,7 @@ static void from_wkb_func(char** args, npy_intp* dimensions, npy_intp* steps,
 
       /* Check if this is a HEX WKB */
       if (size != 0) {
-        is_hex = ((wkb[0] == 48) | (wkb[0] == 49));
+        is_hex = ((wkb[0] == 48) || (wkb[0] == 49));
       } else {
         is_hex = 0;
       }
@@ -2723,7 +2723,7 @@ static void to_wkb_func(char** args, npy_intp* dimensions, npy_intp* steps, void
   char has_empty;
 #endif  // !GEOS_SINCE_3_10_0
 
-  if ((is2 != 0) | (is3 != 0) | (is4 != 0) | (is5 != 0)) {
+  if ((is2 != 0) || (is3 != 0) || (is4 != 0) || (is5 != 0)) {
     PyErr_Format(PyExc_ValueError, "to_wkb function called with non-scalar parameters");
     return;
   }
@@ -2824,7 +2824,7 @@ static void to_wkt_func(char** args, npy_intp* dimensions, npy_intp* steps, void
   GEOSWKTWriter* writer;
   char* wkt;
 
-  if ((is2 != 0) | (is3 != 0) | (is4 != 0) | (is5 != 0)) {
+  if ((is2 != 0) || (is3 != 0) || (is4 != 0) || (is5 != 0)) {
     PyErr_Format(PyExc_ValueError, "to_wkt function called with non-scalar parameters");
     return;
   }

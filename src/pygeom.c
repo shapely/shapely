@@ -168,7 +168,7 @@ static PyObject* GeometryObject_ToWKB(GeometryObject* obj) {
 
 finish:
   // Destroy the geom if it was patched (POINT EMPTY patch)
-  if (has_empty & (geom != NULL)) {
+  if (has_empty && (geom != NULL)) {
     GEOSGeom_destroy_r(ctx, geom);
   }
   if (writer != NULL) {
@@ -425,7 +425,7 @@ int __Pyx_InBases(PyTypeObject* a, PyTypeObject* b) {
 Py_None. Returns 0 on error, 1 on success. */
 char get_geom(GeometryObject* obj, GEOSGeometry** out) {
   PyTypeObject* type = ((PyObject*)obj)->ob_type;
-  if ((type != &GeometryType) & !(__Pyx_InBases(type, &GeometryType))) {
+  if ((type != &GeometryType) && !(__Pyx_InBases(type, &GeometryType))) {
     if ((PyObject*)obj == Py_None) {
       *out = NULL;
       return 1;

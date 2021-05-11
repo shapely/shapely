@@ -118,11 +118,11 @@ on error, 1 on success*/
 static char get_coordinates(GEOSContextHandle_t context, GEOSGeometry* geom,
                             PyArrayObject* out, npy_intp* cursor, int include_z) {
   int type = GEOSGeomTypeId_r(context, geom);
-  if ((type == 0) | (type == 1) | (type == 2)) {
+  if ((type == 0) || (type == 1) || (type == 2)) {
     return get_coordinates_simple(context, geom, out, cursor, include_z);
   } else if (type == 3) {
     return get_coordinates_polygon(context, geom, out, cursor, include_z);
-  } else if ((type >= 4) & (type <= 7)) {
+  } else if ((type >= 4) && (type <= 7)) {
     return get_coordinates_collection(context, geom, out, cursor, include_z);
   } else {
     return 0;
@@ -140,7 +140,7 @@ static void* set_coordinates_simple(GEOSContextHandle_t context, GEOSGeometry* g
   GEOSGeometry* ret;
 
   /* Special case for POINT EMPTY (Point coordinate list cannot be 0-length) */
-  if ((type == 0) & (GEOSisEmpty_r(context, geom) == 1)) {
+  if ((type == 0) && (GEOSisEmpty_r(context, geom) == 1)) {
     return GEOSGeom_createEmptyPoint_r(context);
   }
 
@@ -288,11 +288,11 @@ correspondingly. Returns NULL on error,*/
 static void* set_coordinates(GEOSContextHandle_t context, GEOSGeometry* geom,
                              PyArrayObject* coords, npy_intp* cursor, int include_z) {
   int type = GEOSGeomTypeId_r(context, geom);
-  if ((type == 0) | (type == 1) | (type == 2)) {
+  if ((type == 0) || (type == 1) || (type == 2)) {
     return set_coordinates_simple(context, geom, type, coords, cursor, include_z);
   } else if (type == 3) {
     return set_coordinates_polygon(context, geom, coords, cursor, include_z);
-  } else if ((type >= 4) & (type <= 7)) {
+  } else if ((type >= 4) && (type <= 7)) {
     return set_coordinates_collection(context, geom, type, coords, cursor, include_z);
   } else {
     return NULL;
@@ -600,7 +600,7 @@ PyObject* PySetCoords(PyObject* self, PyObject* args) {
   if (!PyArg_ParseTuple(args, "OO", &geoms, &coords)) {
     return NULL;
   }
-  if ((!PyArray_Check(geoms)) | (!PyArray_Check(coords))) {
+  if ((!PyArray_Check(geoms)) || (!PyArray_Check(coords))) {
     PyErr_SetString(PyExc_TypeError, "Not an ndarray");
     return NULL;
   }
