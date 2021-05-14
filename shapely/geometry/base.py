@@ -653,7 +653,7 @@ class BaseGeometry(object):
         """
         # self.impl['normalize'](self)
         if self._geom is None:
-            raise ValueError("Null geometry supports no operations")
+            raise InvalidGeometryError("Null geometry supports no operations")
         geom_cloned = lgeos.GEOSGeom_clone(self._geom)
         lgeos.GEOSNormalize(geom_cloned)
         return geom_factory(geom_cloned)

@@ -394,7 +394,7 @@ class WKTWriter(object):
     def write(self, geom):
         """Returns WKT string for geometry"""
         if geom is None or geom._geom is None:
-            raise ValueError("Null geometry supports no operations")
+            raise InvalidGeometryError("Null geometry supports no operations")
         result = self._lgeos.GEOSWKTWriter_write(self._writer, geom._geom)
         text = string_at(result)
         lgeos.GEOSFree(result)
