@@ -316,7 +316,7 @@ class BaseGeometry:
 
     def _get_coords(self):
         """Access to geometry's coordinates (CoordinateSequence)"""
-        return CoordinateSequence(self)
+        raise NotImplementedError("set_coords must be provided by derived classes")
 
     def _set_coords(self, ob):
         raise NotImplementedError(

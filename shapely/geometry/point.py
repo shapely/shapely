@@ -4,6 +4,7 @@
 from ctypes import c_double
 import warnings
 
+from shapely.coords import CoordinateSequence
 from shapely.errors import DimensionError, ShapelyDeprecationWarning
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, geos_geom_from_py
@@ -152,6 +153,10 @@ class Point(BaseGeometry):
 
     # Coordinate access
 
+    def _get_coords(self):
+        """Access to geometry's coordinates (CoordinateSequence)"""
+        return CoordinateSequence(self)
+
     def _set_coords(self, *args):
         warnings.warn(
             "Setting the 'coords' to mutate a Geometry in place is deprecated,"
@@ -167,7 +172,7 @@ class Point(BaseGeometry):
         self._set_geom(geom)
         self._ndim = n
 
-    coords = property(BaseGeometry._get_coords, _set_coords)
+    coords = property(_get_coords, _set_coords)
 
     @property
     def xy(self):
@@ -217,7 +222,9 @@ class PointAdapter(CachingGeometryProxy, Point):
         except AttributeError:
             return self.array_interface()
 
-    _get_coords = BaseGeometry._get_coords
+    def _get_coords(self):
+        """Access to geometry's coordinates (CoordinateSequence)"""
+        return CoordinateSequence(self)
 
     def _set_coords(self, ob):
         raise NotImplementedError("Adapters can not modify their sources")

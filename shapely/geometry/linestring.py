@@ -4,6 +4,7 @@
 from ctypes import c_double
 import warnings
 
+from shapely.coords import CoordinateSequence
 from shapely.errors import ShapelyDeprecationWarning
 from shapely.geos import lgeos, TopologicalError
 from shapely.geometry.base import (
@@ -107,6 +108,10 @@ class LineString(BaseGeometry):
         return self._array_interface()
 
     # Coordinate access
+    def _get_coords(self):
+        """Access to geometry's coordinates (CoordinateSequence)"""
+        return CoordinateSequence(self)
+
     def _set_coords(self, coordinates):
         warnings.warn(
             "Setting the 'coords' to mutate a Geometry in place is deprecated,"
@@ -119,7 +124,7 @@ class LineString(BaseGeometry):
             self._set_geom(geom)
             self._ndim = n
 
-    coords = property(BaseGeometry._get_coords, _set_coords)
+    coords = property(_get_coords, _set_coords)
 
     @property
     def xy(self):
@@ -201,7 +206,9 @@ class LineStringAdapter(CachingGeometryProxy, LineString):
         except AttributeError:
             return self.array_interface()
 
-    _get_coords = BaseGeometry._get_coords
+    def _get_coords(self):
+        """Access to geometry's coordinates (CoordinateSequence)"""
+        return CoordinateSequence(self)
 
     def _set_coords(self, ob):
         raise NotImplementedError(

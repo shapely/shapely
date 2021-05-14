@@ -41,15 +41,22 @@ class CoordinateSequence:
         self.__p__ = parent
 
     def _update(self):
-        self._ndim = self.__p__._ndim
-        self._cseq = lgeos.GEOSGeom_getCoordSeq(self.__p__._geom)
+        if self.__p__.is_empty:
+            self._ndim = None
+            self._cseq = None
+        else:
+            self._ndim = self.__p__._ndim
+            self._cseq = lgeos.GEOSGeom_getCoordSeq(self.__p__._geom)
 
     def __len__(self):
         self._update()
-        cs_len = c_uint(0)
-        if self._cseq:
-            lgeos.GEOSCoordSeq_getSize(self._cseq, byref(cs_len))
-        return cs_len.value
+        if self._cseq is None:
+            return 0
+        else:
+            cs_len = c_uint(0)
+            if self._cseq:
+                lgeos.GEOSCoordSeq_getSize(self._cseq, byref(cs_len))
+            return cs_len.value
 
     def __iter__(self):
         self._update()
@@ -74,7 +81,7 @@ class CoordinateSequence:
         m = self.__len__()
         has_z = self._ndim == 3
         if isinstance(key, int):
-            if key + m < 0 or key >= m:
+            if self._cseq is None or key + m < 0 or key >= m:
                 raise IndexError("index out of range")
             if key < 0:
                 i = m + key
@@ -88,17 +95,20 @@ class CoordinateSequence:
             else:
                 return (dx.value, dy.value)
         elif isinstance(key, slice):
-            res = []
-            start, stop, stride = key.indices(m)
-            for i in range(start, stop, stride):
-                lgeos.GEOSCoordSeq_getX(self._cseq, i, byref(dx))
-                lgeos.GEOSCoordSeq_getY(self._cseq, i, byref(dy))
-                if has_z:
-                    lgeos.GEOSCoordSeq_getZ(self._cseq, i, byref(dz))
-                    res.append((dx.value, dy.value, dz.value))
-                else:
-                    res.append((dx.value, dy.value))
-            return res
+            if self._cseq is None:
+                return []
+            else:
+                res = []
+                start, stop, stride = key.indices(m)
+                for i in range(start, stop, stride):
+                    lgeos.GEOSCoordSeq_getX(self._cseq, i, byref(dx))
+                    lgeos.GEOSCoordSeq_getY(self._cseq, i, byref(dy))
+                    if has_z:
+                        lgeos.GEOSCoordSeq_getZ(self._cseq, i, byref(dz))
+                        res.append((dx.value, dy.value, dz.value))
+                    else:
+                        res.append((dx.value, dy.value))
+                return res
         else:
             raise TypeError("key must be an index or slice")
 
