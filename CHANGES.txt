@@ -10,6 +10,8 @@ Shapely 1.8 will support only Python versions >= 3.6.
 
 Bug fixes:
 
+- GEOS error messages printed when GEOS_getCoordSeq() is passed an empty
+  geometry are avoided by never passing an empty geometry (#1134).
 - Python's builtin super() is now used only as described in PEP 3135 (#1109).
 - Only load conda GEOS dll if it exists (on Windows) (#1108).
 

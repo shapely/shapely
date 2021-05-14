@@ -8,6 +8,7 @@ from ctypes import c_void_p, cast, POINTER
 import weakref
 
 from shapely.algorithms.cga import signed_area
+from shapely.coords import CoordinateSequence
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, geos_geom_from_py
 from shapely.geometry.linestring import LineString, LineStringAdapter
@@ -65,7 +66,9 @@ class LinearRing(LineString):
 
     # Coordinate access
 
-    _get_coords = BaseGeometry._get_coords
+    def _get_coords(self):
+        """Access to geometry's coordinates (CoordinateSequence)"""
+        return CoordinateSequence(self)
 
     def _set_coords(self, coordinates):
         warnings.warn(
@@ -123,7 +126,11 @@ class LinearRingAdapter(LineStringAdapter):
             'coordinates': tuple(self.coords)
             }
 
-    coords = property(BaseGeometry._get_coords)
+    def _get_coords(self):
+        """Access to geometry's coordinates (CoordinateSequence)"""
+        return CoordinateSequence(self)
+
+    coords = property(_get_coords)
 
 
 def asLinearRing(context):
