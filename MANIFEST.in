@@ -5,4 +5,5 @@ include pygeos/_version.py
 include pygeos/*.dll
 include LICENSE
 include pyproject.toml
+exclude pygeos/*.c
 exclude MANIFEST.in
