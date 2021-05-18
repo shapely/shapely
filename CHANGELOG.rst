@@ -64,7 +64,9 @@ People with a "+" by their names contributed a patch for the first time.
 * Casper van der Wel
 * Joris Van den Bossche
 * Martin Fleischmann
-* 0phoff +
+* Mike Taves
+* Tanguy Ophoff +
+* James Myatt +
 
 
 Version 0.9 (2021-01-23)
