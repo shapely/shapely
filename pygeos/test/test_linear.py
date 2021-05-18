@@ -154,3 +154,38 @@ def test_shared_paths_non_linestring():
     g2 = pygeos.points(0, 1)
     with pytest.raises(pygeos.GEOSException):
         pygeos.shared_paths(g1, g2)
+
+
+def _prepare_input(geometry, prepare):
+    """Prepare without modifying inplace"""
+    if prepare:
+        geometry = pygeos.apply(geometry, lambda x: x)  # makes a copy
+        pygeos.prepare(geometry)
+        return geometry
+    else:
+        return geometry
+
+
+@pytest.mark.parametrize("prepare", [True, False])
+def test_shortest_line(prepare):
+    g1 = pygeos.linestrings([(0, 0), (1, 0), (1, 1)])
+    g2 = pygeos.linestrings([(0, 3), (3, 0)])
+    actual = pygeos.shortest_line(_prepare_input(g1, prepare), g2)
+    expected = pygeos.linestrings([(1, 1), (1.5, 1.5)])
+    assert pygeos.equals(actual, expected)
+
+
+@pytest.mark.parametrize("prepare", [True, False])
+def test_shortest_line_none(prepare):
+    assert pygeos.shortest_line(_prepare_input(line_string, prepare), None) is None
+    assert pygeos.shortest_line(None, line_string) is None
+    assert pygeos.shortest_line(None, None) is None
+
+
+@pytest.mark.parametrize("prepare", [True, False])
+def test_shortest_line_empty(prepare):
+    g1 = _prepare_input(line_string, prepare)
+    assert pygeos.shortest_line(g1, empty_line_string) is None
+    g1_empty = _prepare_input(empty_line_string, prepare)
+    assert pygeos.shortest_line(g1_empty, line_string) is None
+    assert pygeos.shortest_line(g1_empty, empty_line_string) is None

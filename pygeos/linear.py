@@ -4,7 +4,13 @@ from . import Geometry  # NOQA
 from . import lib
 from .decorators import multithreading_enabled
 
-__all__ = ["line_interpolate_point", "line_locate_point", "line_merge", "shared_paths"]
+__all__ = [
+    "line_interpolate_point",
+    "line_locate_point",
+    "line_merge",
+    "shared_paths",
+    "shortest_line",
+]
 
 
 @multithreading_enabled
@@ -140,3 +146,36 @@ def shared_paths(a, b, **kwargs):
     <pygeos.Geometry GEOMETRYCOLLECTION (MULTILINESTRING EMPTY, MULTILINESTRING ...>
     """
     return lib.shared_paths(a, b, **kwargs)
+
+
+@multithreading_enabled
+def shortest_line(a, b, **kwargs):
+    """
+    Returns the shortest line between two geometries.
+
+    The resulting line consists of two points, representing the nearest
+    points between the geometry pair. The line always starts in the first
+    geometry `a` and ends in he second geometry `b`. The endpoints of the
+    line will not necessarily be existing vertices of the input geometries
+    `a` and `b`, but can also be a point along a line segment.
+
+    Parameters
+    ----------
+    a : Geometry or array_like
+    b : Geometry or array_like
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    See also
+    --------
+    prepare : improve performance by preparing ``a`` (the first argument) (for GEOS>=3.9)
+
+    Examples
+    --------
+    >>> geom1 = Geometry("LINESTRING (0 0, 1 0, 1 1, 0 1, 0 0)")
+    >>> geom2 = Geometry("LINESTRING (0 3, 3 0, 5 3)")
+    >>> shortest_line(geom1, geom2)
+    <pygeos.Geometry LINESTRING (1 1, 1.5 1.5)>
+    """
+    return lib.shortest_line(a, b, **kwargs)
