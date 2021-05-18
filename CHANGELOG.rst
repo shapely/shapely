@@ -1,6 +1,27 @@
 Changelog
 =========
 
+Version 0.11 (unreleased)
+-------------------------
+
+**Major enhancements**
+
+**API Changes**
+
+**Added GEOS Functions**
+
+**Bug fixes**
+
+**Acknowledgements**
+
+Thanks to everyone who contributed to this release!
+People with a "+" by their names contributed a patch for the first time.
+
+* Brendan Ward
+* Casper van der Wel
+* Joris Van den Bossche
+
+
 Version 0.10 (2021-05-18)
 -------------------------
 
