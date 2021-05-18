@@ -464,7 +464,7 @@ def contains(a, b, **kwargs):
     point of the interior of B lies in the interior of A.
 
     Note: following this definition, a geometry does not contain its boundary,
-    but it does contain itself. See `contains_properly` for a version where
+    but it does contain itself. See ``contains_properly`` for a version where
     a geometry does not contain itself.
 
     Parameters
@@ -516,7 +516,7 @@ def contains_properly(a, b, **kwargs):
 
     A contains B properly if B intersects the interior of A but not the
     boundary (or exterior). This means that a geometry A does not
-    "contain properly" itself, which contrasts with the `contains` function,
+    "contain properly" itself, which contrasts with the ``contains`` function,
     where common points on the boundary are allowed.
 
     Note: this function will prepare the geometries under the hood if needed.
@@ -902,7 +902,7 @@ def equals_exact(a, b, tolerance=0.0, **kwargs):
 
     This method uses exact coordinate equality, which requires coordinates
     to be equal (within specified tolerance) and and in the same order for all
-    components of a geometry. This is in contrast with the `equals` function
+    components of a geometry. This is in contrast with the ``equals`` function
     which uses spatial (topological) equality.
 
     Parameters
@@ -972,7 +972,7 @@ def relate_pattern(a, b, pattern, **kwargs):
     ``True`` is returned, otherwise ``False``. The pattern specified can
     be an exact match (``0``, ``1`` or ``2``), a boolean match
     (uppercase ``T`` or ``F``), or a wildcard (``*``). For example,
-    the pattern for the `within` predicate is ``'T*F**F***'``.
+    the pattern for the ``within`` predicate is ``'T*F**F***'``.
 
     Parameters
     ----------

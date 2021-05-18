@@ -187,7 +187,7 @@ def to_wkb(
         The output dimension for the WKB. Supported values are 2 and 3.
         Specifying 3 means that up to 3 dimensions will be written but 2D
         geometries will still be represented as 2D in the WKB represenation.
-    byte_order : int
+    byte_order : int, default -1
         Defaults to native machine byte order (-1). Use 0 to force big endian
         and 1 for little endian.
     include_srid : bool, default False
@@ -279,11 +279,11 @@ def from_wkt(geometry, on_invalid="raise", **kwargs):
     ----------
     geometry : str or array_like
         The WKT string(s) to convert.
-    on_invalid : {"raise", "warn", "ignore"}
+    on_invalid : {"raise", "warn", "ignore"}, default "raise"
         - raise: an exception will be raised if WKT input geometries are invalid.
         - warn: a warning will be raised and invalid WKT geometries will be
-          returned as `None`.
-        - ignore: invalid WKT geometries will be returned as `None` without a warning.
+          returned as ``None``.
+        - ignore: invalid WKT geometries will be returned as ``None`` without a warning.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -313,11 +313,11 @@ def from_wkb(geometry, on_invalid="raise", **kwargs):
     ----------
     geometry : str or array_like
         The WKB byte object(s) to convert.
-    on_invalid : {"raise", "warn", "ignore"}
+    on_invalid : {"raise", "warn", "ignore"}, default "raise"
         - raise: an exception will be raised if WKB input geometries are invalid.
         - warn: a warning will be raised and invalid WKB geometries will be
-          returned as `None`.
-        - ignore: invalid WKB geometries will be returned as `None` without a warning.
+          returned as ``None``.
+        - ignore: invalid WKB geometries will be returned as ``None`` without a warning.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.

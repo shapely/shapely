@@ -104,23 +104,23 @@ def buffer(
     geometry : Geometry or array_like
     width : float or array_like
         Specifies the circle radius in the Minkowski sum (or difference).
-    quadsegs : int
+    quadsegs : int, default 8
         Specifies the number of linear segments in a quarter circle in the
         approximation of circular arcs.
-    cap_style : {'round', 'square', 'flat'}
+    cap_style : {'round', 'square', 'flat'}, default 'round'
         Specifies the shape of buffered line endings. 'round' results in
         circular line endings (see ``quadsegs``). Both 'square' and 'flat'
         result in rectangular line endings, only 'flat' will end at the
         original vertex, while 'square' involves adding the buffer width.
-    join_style : {'round', 'bevel', 'mitre'}
+    join_style : {'round', 'bevel', 'mitre'}, default 'round'
         Specifies the shape of buffered line midpoints. 'round' results in
         rounded shapes. 'bevel' results in a beveled edge that touches the
         original vertex. 'mitre' results in a single vertex that is beveled
         depending on the ``mitre_limit`` parameter.
-    mitre_limit : float
+    mitre_limit : float, default 5.0
         Crops of 'mitre'-style joins if the point is displaced from the
         buffered vertex by more than this limit.
-    single_sided : bool
+    single_sided : bool, default False
         Only buffer at one side of the geometry.
     **kwargs
         For other keyword-only arguments, see the
@@ -203,15 +203,15 @@ def offset_curve(
     distance : float or array_like
         Specifies the offset distance from the input geometry. Negative
         for right side offset, positive for left side offset.
-    quadsegs : int
+    quadsegs : int, default 8
         Specifies the number of linear segments in a quarter circle in the
         approximation of circular arcs.
-    join_style : {'round', 'bevel', 'mitre'}
+    join_style : {'round', 'bevel', 'mitre'}, default 'round'
         Specifies the shape of outside corners. 'round' results in
         rounded shapes. 'bevel' results in a beveled edge that touches the
         original vertex. 'mitre' results in a single vertex that is beveled
         depending on the ``mitre_limit`` parameter.
-    mitre_limit : float
+    mitre_limit : float, default 5.0
         Crops of 'mitre'-style joins if the point is displaced from the
         buffered vertex by more than this limit.
     **kwargs
@@ -353,9 +353,9 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
-    tolerance : float or array_like
+    tolerance : float or array_like, default 0.0
         Snap input vertices together if their distance is less than this value.
-    only_edges : bool or array_like
+    only_edges : bool or array_like, default False
         If set to True, the triangulation will return a collection of
         linestrings instead of polygons.
     **kwargs
@@ -484,7 +484,7 @@ def normalize(geometry, **kwargs):
 
     This method orders the coordinates, rings of a polygon and parts of
     multi geometries consistently. Typically useful for testing purposes
-    (for example in combination with `equals_exact`).
+    (for example in combination with ``equals_exact``).
 
     Parameters
     ----------
@@ -540,8 +540,8 @@ def polygonize(geometries, **kwargs):
     ignored.
 
     This function returns the polygons within a GeometryCollection.
-    Individual Polygons can be obtained using `get_geometry` to get
-    a single polygon or `get_parts` to get an array of polygons.
+    Individual Polygons can be obtained using ``get_geometry`` to get
+    a single polygon or ``get_parts`` to get an array of polygons.
     MultiPolygons can be constructed from the output using
     ``pygeos.multipolygons(pygeos.get_parts(pygeos.polygonize(geometries)))``.
 
@@ -588,7 +588,7 @@ def polygonize_full(geometries, **kwargs):
     provided as input; only the constituent lines and rings will be used to
     create the output polygons.
 
-    This function performs the same polygonization as `polygonize` but does
+    This function performs the same polygonization as ``polygonize`` but does
     not only return the polygonal result but all extra outputs as well. The
     return value consists of 4 elements:
 
@@ -598,8 +598,8 @@ def polygonize_full(geometries, **kwargs):
     * **invalid rings**: polygons formed but which are not valid
 
     This function returns the geometries within GeometryCollections.
-    Individual geometries can be obtained using `get_geometry` to get
-    a single geometry or `get_parts` to get an array of geometries.
+    Individual geometries can be obtained using ``get_geometry`` to get
+    a single geometry or ``get_parts`` to get an array of geometries.
 
     Parameters
     ----------
@@ -719,7 +719,7 @@ def simplify(geometry, tolerance, preserve_topology=False, **kwargs):
     tolerance : float or array_like
         The maximum allowed geometry displacement. The higher this value, the
         smaller the number of vertices in the resulting geometry.
-    preserve_topology : bool
+    preserve_topology : bool, default False
         If set to True, the operation will avoid creating invalid geometries.
     **kwargs
         For other keyword-only arguments, see the
@@ -790,12 +790,12 @@ def voronoi_polygons(
     Parameters
     ----------
     geometry : Geometry or array_like
-    tolerance : float or array_like
+    tolerance : float or array_like, default 0.0
         Snap input vertices together if their distance is less than this value.
-    extend_to : Geometry or array_like
+    extend_to : Geometry or array_like, optional
         If provided, the diagram will be extended to cover the envelope of this
         geometry (unless this envelope is smaller than the input geometry).
-    only_edges : bool or array_like
+    only_edges : bool or array_like, default False
         If set to True, the triangulation will return a collection of
         linestrings instead of polygons.
     **kwargs
@@ -858,46 +858,7 @@ def oriented_envelope(geometry, **kwargs):
     return lib.oriented_envelope(geometry, **kwargs)
 
 
-@requires_geos("3.6.0")
-@multithreading_enabled
-def minimum_rotated_rectangle(geometry, **kwargs):
-    """
-    Computes the oriented envelope (minimum rotated rectangle)
-    that encloses an input geometry.
-
-    Unlike envelope this rectangle is not constrained to be parallel to the
-    coordinate axes. If the convex hull of the object is a degenerate (line
-    or point) this degenerate is returned.
-
-    An alias for ``oriented_envelope``.
-
-    Parameters
-    ----------
-    geometry : Geometry or array_like
-    **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
-
-    Examples
-    --------
-    >>> minimum_rotated_rectangle(Geometry("MULTIPOINT (0 0, 10 0, 10 10)"))
-    <pygeos.Geometry POLYGON ((0 0, 5 -5, 15 5, 10 10, 0 0))>
-    >>> minimum_rotated_rectangle(Geometry("LINESTRING (1 1, 5 1, 10 10)"))
-    <pygeos.Geometry POLYGON ((1 1, 3 -1, 12 8, 10 10, 1 1))>
-    >>> minimum_rotated_rectangle(Geometry("POLYGON ((1 1, 15 1, 5 10, 1 1))"))
-    <pygeos.Geometry POLYGON ((15 1, 15 10, 1 10, 1 1, 15 1))>
-    >>> minimum_rotated_rectangle(Geometry("LINESTRING (1 1, 10 1)"))
-    <pygeos.Geometry LINESTRING (1 1, 10 1)>
-    >>> minimum_rotated_rectangle(Geometry("POINT (2 2)"))
-    <pygeos.Geometry POINT (2 2)>
-    >>> minimum_rotated_rectangle(Geometry("GEOMETRYCOLLECTION EMPTY"))
-    <pygeos.Geometry POLYGON EMPTY>
-
-    See also
-    --------
-    oriented_envelope
-    """
-    return lib.oriented_envelope(geometry, **kwargs)
+minimum_rotated_rectangle = oriented_envelope
 
 
 @requires_geos("3.8.0")

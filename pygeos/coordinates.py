@@ -23,7 +23,7 @@ def apply(geometry, transformation, include_z=False):
         another (N, 2) or (N, 3) ndarray of float64.
     include_z : bool, default False
         If True, include the third dimension in the coordinates array
-        that is passed to the `transformation` function. If a
+        that is passed to the ``transformation`` function. If a
         geometry has no third dimension, the z-coordinates passed to the
         function will be NaN.
 
@@ -93,8 +93,8 @@ def get_coordinates(geometry, include_z=False, return_index=False):
     """Gets coordinates from a geometry array as an array of floats.
 
     The shape of the returned array is (N, 2), with N being the number of
-    coordinate pairs. With the default of `include_z=False`, three-dimensional
-    data is ignored. When specifying `include_z=True`, the shape of the
+    coordinate pairs. With the default of ``include_z=False``, three-dimensional
+    data is ignored. When specifying ``include_z=True``, the shape of the
     returned array is (N, 3).
 
     Parameters

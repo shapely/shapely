@@ -183,7 +183,7 @@ def hausdorff_distance(a, b, densify=None, **kwargs):
     Parameters
     ----------
     a, b : Geometry or array_like
-    densify : float, array_like or None
+    densify : float or array_like, optional
         The value of densify is required to be between 0 and 1.
     **kwargs
         For other keyword-only arguments, see the
@@ -226,7 +226,7 @@ def frechet_distance(a, b, densify=None, **kwargs):
     Parameters
     ----------
     a, b : Geometry or array_like
-    densify : float, array_like or None
+    densify : float or array_like, optional
         The value of densify is required to be between 0 and 1.
     **kwargs
         For other keyword-only arguments, see the

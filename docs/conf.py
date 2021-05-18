@@ -56,6 +56,11 @@ html_css_files = [
 ]
 
 
+# If true, the current module name will be prepended to all description
+# unit titles (such as .. function::).
+add_module_names = False
+
+
 # set an environment variable for pygeos.decorators.requires_geos to see if we
 # are in a doc build
 import os

@@ -35,7 +35,7 @@ class STRtree:
     Parameters
     ----------
     geometries : array_like
-    leafsize : int
+    leafsize : int, default 10
         the maximum number of child nodes that a node can have
 
     Examples
@@ -48,7 +48,7 @@ class STRtree:
     >>> # Query geometries that are contained by input geometry:
     >>> tree.query(pygeos.box(2, 2, 4, 4), predicate='contains').tolist()
     [3]
-    >>> # Query geometries that overlap envelopes of `geoms`
+    >>> # Query geometries that overlap envelopes of ``geoms``
     >>> tree.query_bulk([pygeos.box(2, 2, 4, 4), pygeos.box(5, 5, 6, 6)]).tolist()
     [[0, 0, 0, 1, 1], [2, 3, 4, 5, 6]]
     >>> tree.nearest([pygeos.points(1,1), pygeos.points(3,5)]).tolist()  # doctest: +SKIP
@@ -249,10 +249,10 @@ class STRtree:
         ----------
         geometry : Geometry or array_like
             Input geometries to query the tree.
-        max_distance : float, optional (default: None)
+        max_distance : float, optional
             Maximum distance within which to query for nearest items in tree.
             Must be greater than 0.
-        return_distance : bool, optional (default: False)
+        return_distance : bool, default False
             If True, will return distances in addition to indexes.
 
         Returns

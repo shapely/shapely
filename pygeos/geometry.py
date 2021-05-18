@@ -525,7 +525,7 @@ def get_parts(geometry, return_index=False):
     Parameters
     ----------
     geometry : Geometry or array_like
-    return_index : bool, optional (default: False)
+    return_index : bool, default False
         If True, will return a tuple of ndarrays of (parts, indexes), where indexes
         are the indexes of the original geometries in the source array.
 
@@ -571,7 +571,7 @@ def get_rings(geometry, return_index=False):
     Parameters
     ----------
     geometry : Geometry or array_like
-    return_index : bool, optional (default: False)
+    return_index : bool, default False
         If True, will return a tuple of ndarrays of (rings, indexes), where
         indexes are the indexes of the original geometries in the source array.
 
@@ -711,7 +711,7 @@ def set_precision(geometry, grid_size, preserve_topology=False, **kwargs):
         geometry if precision grid size was not previously set). If this
         value is more precise than input geometry, the input geometry will
         not be modified.
-    preserve_topology : bool, optional (default: False)
+    preserve_topology : bool, default False
         If True, will attempt to preserve the topology of a geometry after
         rounding coordinates.
     **kwargs

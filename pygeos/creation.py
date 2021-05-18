@@ -39,11 +39,11 @@ def points(coords, y=None, z=None, indices=None, **kwargs):
     Parameters
     ----------
     coords : array_like
-        An array of coordinate tuples (2- or 3-dimensional) or, if `y` is
+        An array of coordinate tuples (2- or 3-dimensional) or, if ``y`` is
         provided, an array of x coordinates.
-    y : array_like
-    z : array_like
-    indices : array_like or None
+    y : array_like, optional
+    z : array_like, optional
+    indices : array_like, optional
         Indices into the target array where input coordinates belong. If
         provided, the coords should be 2D with shape (N, 2) or (N, 3) and
         indices should be an array of shape (N,) with integers in increasing
@@ -77,11 +77,11 @@ def linestrings(coords, y=None, z=None, indices=None, **kwargs):
     Parameters
     ----------
     coords : array_like
-        An array of lists of coordinate tuples (2- or 3-dimensional) or, if `y`
+        An array of lists of coordinate tuples (2- or 3-dimensional) or, if ``y``
         is provided, an array of lists of x coordinates
-    y : array_like
-    z : array_like
-    indices : array_like or None
+    y : array_like, optional
+    z : array_like, optional
+    indices : array_like, optional
         Indices into the target array where input coordinates belong. If
         provided, the coords should be 2D with shape (N, 2) or (N, 3) and
         indices should be an array of shape (N,) with integers in increasing
@@ -117,11 +117,11 @@ def linearrings(coords, y=None, z=None, indices=None, **kwargs):
     Parameters
     ----------
     coords : array_like
-        An array of lists of coordinate tuples (2- or 3-dimensional) or, if `y`
+        An array of lists of coordinate tuples (2- or 3-dimensional) or, if ``y``
         is provided, an array of lists of x coordinates
-    y : array_like
-    z : array_like
-    indices : array_like or None
+    y : array_like, optional
+    z : array_like, optional
+    indices : array_like, optional
         Indices into the target array where input coordinates belong. If
         provided, the coords should be 2D with shape (N, 2) or (N, 3) and
         indices should be an array of shape (N,) with integers in increasing
@@ -152,69 +152,69 @@ def linearrings(coords, y=None, z=None, indices=None, **kwargs):
 @multithreading_enabled
 def polygons(geometries, holes=None, indices=None, **kwargs):
     """Create an array of polygons.
-    and the holes; the first geometry for each index is the outer shell and all subsequent geometries in that index are the holes...
-        Parameters
-        ----------
-        geometries : array_like
-            An array of linearrings or coordinates (see linearrings).
-            Unless ``indices`` are given (see description below), this
-            include the outer shells only. The ``holes`` argument should be used
-            to create polygons with holes.
-        holes : array_like or None
-            An array of lists of linearrings that constitute holes for each shell.
-            Not to be used in combination with ``indices``.
-        indices : array_like or None
-            Indices into the target array where input geometries belong. If
-            provided, the holes are expected to be present inside ``geometries``;
-            the first geometry for each index is the outer shell
-            and all subsequent geometries in that index are the holes.
-            Both geometries and indices should be 1D and have matching sizes.
-            Indices should be in increasing order. Missing indices will result
-            in a ValueError.
-        **kwargs
-            For other keyword-only arguments, see the
-            `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
-            Ignored if ``indices`` is provided.
 
-        Examples
-        --------
-        Polygons are constructed from rings:
+    Parameters
+    ----------
+    geometries : array_like
+        An array of linearrings or coordinates (see linearrings).
+        Unless ``indices`` are given (see description below), this
+        include the outer shells only. The ``holes`` argument should be used
+        to create polygons with holes.
+    holes : array_like, optional
+        An array of lists of linearrings that constitute holes for each shell.
+        Not to be used in combination with ``indices``.
+    indices : array_like, optional
+        Indices into the target array where input geometries belong. If
+        provided, the holes are expected to be present inside ``geometries``;
+        the first geometry for each index is the outer shell
+        and all subsequent geometries in that index are the holes.
+        Both geometries and indices should be 1D and have matching sizes.
+        Indices should be in increasing order. Missing indices will result
+        in a ValueError.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        Ignored if ``indices`` is provided.
 
-        >>> ring_1 = linearrings([[0, 0], [0, 10], [10, 10], [10, 0]])
-        >>> ring_2 = linearrings([[2, 6], [2, 7], [3, 7], [3, 6]])
-        >>> polygons([ring_1, ring_2])[0]
-        <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
-        >>> polygons([ring_1, ring_2])[1]
-        <pygeos.Geometry POLYGON ((2 6, 2 7, 3 7, 3 6, 2 6))>
+    Examples
+    --------
+    Polygons are constructed from rings:
 
-        Or from coordinates directly:
+    >>> ring_1 = linearrings([[0, 0], [0, 10], [10, 10], [10, 0]])
+    >>> ring_2 = linearrings([[2, 6], [2, 7], [3, 7], [3, 6]])
+    >>> polygons([ring_1, ring_2])[0]
+    <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
+    >>> polygons([ring_1, ring_2])[1]
+    <pygeos.Geometry POLYGON ((2 6, 2 7, 3 7, 3 6, 2 6))>
 
-        >>> polygons([[0, 0], [0, 10], [10, 10], [10, 0]])
-        <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
+    Or from coordinates directly:
 
-        Adding holes can be done using the `holes` keyword argument:
+    >>> polygons([[0, 0], [0, 10], [10, 10], [10, 0]])
+    <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
 
-        >>> polygons(ring_1, holes=[ring_2])
-        <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 6, 2 7, 3 7, 3 6...>
+    Adding holes can be done using the ``holes`` keyword argument:
 
-        Or using the `indices` argument:
+    >>> polygons(ring_1, holes=[ring_2])
+    <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 6, 2 7, 3 7, 3 6...>
 
-        >>> polygons([ring_1, ring_2], indices=[0, 1])[0]
-        <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
-        >>> polygons([ring_1, ring_2], indices=[0, 1])[1]
-        <pygeos.Geometry POLYGON ((2 6, 2 7, 3 7, 3 6, 2 6))>
-        >>> polygons([ring_1, ring_2], indices=[0, 0])[0]
-        <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 6, 2 7, 3 7, 3 6...>
+    Or using the ``indices`` argument:
 
-        Missing input values (`None`) are ignored and may result in an
-        empty polygon:
+    >>> polygons([ring_1, ring_2], indices=[0, 1])[0]
+    <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
+    >>> polygons([ring_1, ring_2], indices=[0, 1])[1]
+    <pygeos.Geometry POLYGON ((2 6, 2 7, 3 7, 3 6, 2 6))>
+    >>> polygons([ring_1, ring_2], indices=[0, 0])[0]
+    <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 6, 2 7, 3 7, 3 6...>
 
-        >>> polygons(None)
-        <pygeos.Geometry POLYGON EMPTY>
-        >>> polygons(ring_1, holes=[None])
-        <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
-        >>> polygons([ring_1, None], indices=[0, 0])[0]
-        <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
+    Missing input values (``None``) are ignored and may result in an
+    empty polygon:
+
+    >>> polygons(None)
+    <pygeos.Geometry POLYGON EMPTY>
+    >>> polygons(ring_1, holes=[None])
+    <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
+    >>> polygons([ring_1, None], indices=[0, 0])[0]
+    <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
     """
     geometries = np.asarray(geometries)
     if not isinstance(geometries, Geometry) and np.issubdtype(
@@ -250,7 +250,7 @@ def box(xmin, ymin, xmax, ymax, ccw=True, **kwargs):
     ymin : array_like
     xmax : array_like
     ymax : array_like
-    ccw : bool (default: True)
+    ccw : bool, default True
         If True, box will be created in counterclockwise direction starting
         from bottom right coordinate (xmax, ymin).
         If False, box will be created in clockwise direction starting from
@@ -278,7 +278,7 @@ def multipoints(geometries, indices=None, **kwargs):
     ----------
     geometries : array_like
         An array of points or coordinates (see points).
-    indices : array_like or None
+    indices : array_like, optional
         Indices into the target array where input geometries belong. If
         provided, both geometries and indices should be 1D and have matching
         sizes. Indices should be in increasing order. Missing indices will result
@@ -305,12 +305,12 @@ def multipoints(geometries, indices=None, **kwargs):
     <pygeos.Geometry MULTIPOINT (0 0, 2 2, 3 3)>
 
     Multiple multipoints of different sizes can be constructed efficiently using the
-    `indices` keyword argument:
+    ``indices`` keyword argument:
 
     >>> multipoints([point_1, point_2, point_2], indices=[0, 0, 1]).tolist()
     [<pygeos.Geometry MULTIPOINT (1 1, 2 2)>, <pygeos.Geometry MULTIPOINT (2 2)>]
 
-    Missing input values (`None`) are ignored and may result in an
+    Missing input values (``None``) are ignored and may result in an
     empty multipoint:
 
     >>> multipoints([None])
@@ -340,7 +340,7 @@ def multilinestrings(geometries, indices=None, **kwargs):
     ----------
     geometries : array_like
         An array of linestrings or coordinates (see linestrings).
-    indices : array_like or None
+    indices : array_like, optional
         Indices into the target array where input geometries belong. If
         provided, both geometries and indices should be 1D and have matching
         sizes. Indices should be in increasing order. Missing indices will result
@@ -375,7 +375,7 @@ def multipolygons(geometries, indices=None, **kwargs):
     ----------
     geometries : array_like
         An array of polygons or coordinates (see polygons).
-    indices : array_like or None
+    indices : array_like, optional
         Indices into the target array where input geometries belong. If
         provided, both geometries and indices should be 1D and have matching
         sizes. Indices should be in increasing order. Missing indices will result
@@ -409,7 +409,7 @@ def geometrycollections(geometries, indices=None, **kwargs):
     ----------
     geometries : array_like
         An array of geometries
-    indices : array_like or None
+    indices : array_like, optional
         Indices into the target array where input geometries belong. If
         provided, both geometries and indices should be 1D and have matching
         sizes. Indices should be in increasing order. Missing indices will result
