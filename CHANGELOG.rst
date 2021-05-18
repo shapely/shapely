@@ -1,7 +1,7 @@
 Changelog
 =========
 
-Version 0.10 (unreleased)
+Version 0.10 (2021-05-18)
 -------------------------
 
 **Major enhancements**
