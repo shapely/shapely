@@ -1,13 +1,11 @@
 """Support for various GEOS geometry operations
 """
 
-from ctypes import byref, c_void_p, c_double
 from warnings import warn
 
 from shapely.errors import ShapelyDeprecationWarning
 from shapely.prepared import prep
-from shapely.geos import lgeos
-from shapely.geometry.base import geom_factory, BaseGeometry, BaseMultipartGeometry
+from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
 from shapely.geometry import (
     shape, Point, MultiPoint, LineString, MultiLineString, Polygon, GeometryCollection)
 from shapely.geometry.polygon import orient as orient_
