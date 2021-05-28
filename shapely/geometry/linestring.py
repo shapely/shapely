@@ -56,7 +56,7 @@ class LineString(BaseGeometry):
             'coordinates': tuple(self.coords)
             }
 
-    def svg(self, scale_factor=1., stroke_color=None):
+    def svg(self, scale_factor=1., stroke_color=None, opacity=None):
         """Returns SVG polyline element for the LineString geometry.
 
         Parameters
@@ -66,16 +66,20 @@ class LineString(BaseGeometry):
         stroke_color : str, optional
             Hex string for stroke color. Default is to use "#66cc99" if
             geometry is valid, and "#ff3333" if invalid.
+        opacity : float
+            Float number between 0 and 1 for color opacity. Defaul value is 0.8
         """
         if self.is_empty:
             return '<g />'
         if stroke_color is None:
             stroke_color = "#66cc99" if self.is_valid else "#ff3333"
+        if opacity is None:
+            opacity = 0.8
         pnt_format = " ".join(["{},{}".format(*c) for c in self.coords])
         return (
             '<polyline fill="none" stroke="{2}" stroke-width="{1}" '
-            'points="{0}" opacity="0.8" />'
-            ).format(pnt_format, 2. * scale_factor, stroke_color)
+            'points="{0}" opacity="{3}" />'
+            ).format(pnt_format, 2. * scale_factor, stroke_color,opacity)
 
     @property
     def _ctypes(self):

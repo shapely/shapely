@@ -84,7 +84,7 @@ class Point(BaseGeometry):
             'coordinates': self.coords[0]
             }
 
-    def svg(self, scale_factor=1., fill_color=None):
+    def svg(self, scale_factor=1., fill_color=None, opacity=None):
         """Returns SVG circle element for the Point geometry.
 
         Parameters
@@ -94,15 +94,19 @@ class Point(BaseGeometry):
         fill_color : str, optional
             Hex string for fill color. Default is to use "#66cc99" if
             geometry is valid, and "#ff3333" if invalid.
+        opacity : float
+            Float number between 0 and 1 for color opacity. Defaul value is 0.6
         """
         if self.is_empty:
             return '<g />'
         if fill_color is None:
             fill_color = "#66cc99" if self.is_valid else "#ff3333"
+        if opacity is None:
+            opacity = 0.6 
         return (
             '<circle cx="{0.x}" cy="{0.y}" r="{1}" '
-            'stroke="#555555" stroke-width="{2}" fill="{3}" opacity="0.6" />'
-            ).format(self, 3. * scale_factor, 1. * scale_factor, fill_color)
+            'stroke="#555555" stroke-width="{2}" fill="{3}" opacity="{4}" />'
+            ).format(self, 3. * scale_factor, 1. * scale_factor, fill_color, opacity)
 
     @property
     def _ctypes(self):
