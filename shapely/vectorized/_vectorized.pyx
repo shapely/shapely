@@ -121,4 +121,4 @@ cdef _predicated_1d(geometry, np.double_t[:] x, np.double_t[:] y, predicate fn):
             result[idx] = <np.uint8_t> fn(geos_h, geos_geom, p)
             GEOSGeom_destroy_r(geos_h, p)
 
-    return result.view(dtype=np.bool)
+    return result.view(dtype=bool)
