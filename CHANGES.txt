@@ -8,6 +8,10 @@ Python version support:
 
 Shapely 1.8 will support only Python versions >= 3.6.
 
+New features:
+
+- Add `covers` and `intersects` to the vectorized methods (#1144).
+
 Bug fixes:
 
 - GEOS error messages printed when GEOS_getCoordSeq() is passed an empty

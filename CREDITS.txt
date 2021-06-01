@@ -72,6 +72,7 @@ Shapely is written by:
 * Morris Tweed <tweed.morris@gmail.com>
 * Naveen Michaud-Agrawal <naveen.michaudagrawal@gmail.com>
 * Oliver Tonnhofer <olt@bogosoft.com>
+* Pascal Bourgault <pascal.bourgaulty@gmail.com
 * Paveł Tyślacki <tbicr@users.noreply.github.com>
 * Peter Sagerson <psagers.github@ignorare.net>
 * Phil Elson <pelson.pub@gmail.com>
