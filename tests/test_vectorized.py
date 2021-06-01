@@ -102,3 +102,95 @@ class VectorizedTouchesTestCase(unittest.TestCase):
                              [False, False, False, False, False]], dtype=bool)
         from numpy.testing import assert_array_equal
         assert_array_equal(result, expected)
+
+
+@unittest.skipIf(not has_vectorized, 'shapely.vectorized required')
+class VectorizedCoversTestCase(unittest.TestCase):
+    def assertCoversResults(self, geom, x, y):
+        from shapely.vectorized import covers
+        result = covers(geom, x, y)
+        x = np.asanyarray(x)
+        y = np.asanyarray(y)
+
+        self.assertIsInstance(result, np.ndarray)
+        self.assertEqual(result.dtype, bool)
+
+        result_flat = result.flat
+        x_flat, y_flat = x.flat, y.flat
+
+        # Do the equivalent operation, only slowly, comparing the result
+        # as we go.
+        for idx in range(x.size):
+            self.assertEqual(result_flat[idx], geom.covers(Point(x_flat[idx],
+                                                                 y_flat[idx])))
+        return result
+
+    def construct_torus(self):
+        point = Point(0, 0)
+        return point.buffer(5).symmetric_difference(point.buffer(2.5))
+
+    def test_covers_poly(self):
+        y, x = np.mgrid[-10:10:5j], np.mgrid[-5:15:5j]
+        self.assertCoversResults(self.construct_torus(), x, y)
+
+    def test_covers_point(self):
+        y, x = np.mgrid[-10:10:5j], np.mgrid[-5:15:5j]
+        self.assertCoversResults(Point(x[0], y[0]), x, y)
+
+    def test_covers_linestring(self):
+        y, x = np.mgrid[-10:10:5j], np.mgrid[-5:15:5j]
+        self.assertCoversResults(Point(x[0], y[0]), x, y)
+
+    def test_covers_multipoly(self):
+        y, x = np.mgrid[-10:10:5j], np.mgrid[-5:15:5j]
+        # Construct a geometry of the torus cut in half vertically.
+        cut_poly = box(-1, -10, -2.5, 10)
+        geom = self.construct_torus().difference(cut_poly)
+        self.assertIsInstance(geom, MultiPolygon)
+        self.assertCoversResults(geom, x, y)
+
+
+@unittest.skipIf(not has_vectorized, 'shapely.vectorized required')
+class VectorizedIntersectsTestCase(unittest.TestCase):
+    def assertIntersectsResults(self, geom, x, y):
+        from shapely.vectorized import intersects
+        result = intersects(geom, x, y)
+        x = np.asanyarray(x)
+        y = np.asanyarray(y)
+
+        self.assertIsInstance(result, np.ndarray)
+        self.assertEqual(result.dtype, bool)
+
+        result_flat = result.flat
+        x_flat, y_flat = x.flat, y.flat
+
+        # Do the equivalent operation, only slowly, comparing the result
+        # as we go.
+        for idx in range(x.size):
+            self.assertEqual(result_flat[idx], geom.intersects(Point(x_flat[idx],
+                                                                     y_flat[idx])))
+        return result
+
+    def construct_torus(self):
+        point = Point(0, 0)
+        return point.buffer(5).symmetric_difference(point.buffer(2.5))
+
+    def test_intersects_poly(self):
+        y, x = np.mgrid[-10:10:5j], np.mgrid[-5:15:5j]
+        self.assertIntersectsResults(self.construct_torus(), x, y)
+
+    def test_intersects_point(self):
+        y, x = np.mgrid[-10:10:5j], np.mgrid[-5:15:5j]
+        self.assertIntersectsResults(Point(x[0], y[0]), x, y)
+
+    def test_intersects_linestring(self):
+        y, x = np.mgrid[-10:10:5j], np.mgrid[-5:15:5j]
+        self.assertIntersectsResults(Point(x[0], y[0]), x, y)
+
+    def test_intersects_multipoly(self):
+        y, x = np.mgrid[-10:10:5j], np.mgrid[-5:15:5j]
+        # Construct a geometry of the torus cut in half vertically.
+        cut_poly = box(-1, -10, -2.5, 10)
+        geom = self.construct_torus().difference(cut_poly)
+        self.assertIsInstance(geom, MultiPolygon)
+        self.assertIntersectsResults(geom, x, y)

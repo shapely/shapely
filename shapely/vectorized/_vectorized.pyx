@@ -41,6 +41,54 @@ def contains(geometry, x, y):
     return _predicated_elementwise(geometry, x, y, GEOSPreparedContains_r)
 
 
+def covers(geometry, x, y):
+    """
+    Vectorized (element-wise) version of `covers` which checks whether
+    multiple points are covered by the exterior of a single geometry.
+
+    Parameters
+    ----------
+    geometry : PreparedGeometry or subclass of BaseGeometry
+        The geometry which is to be checked to see whether each point is
+        covered. The geometry will be "prepared" if it is not already
+        a PreparedGeometry instance.
+    x : array
+        The x coordinates of the points to check. 
+    y : array
+        The y coordinates of the points to check.
+
+    Returns
+    -------
+    Mask of points covered by the exterior of the given `geometry`.
+
+    """
+    return _predicated_elementwise(geometry, x, y, GEOSPreparedCovers_r)
+
+
+def intersects(geometry, x, y):
+    """
+    Vectorized (element-wise) version of `intersects` which checks whether
+    multiple points are share any portion of space with a single geometry.
+
+    Parameters
+    ----------
+    geometry : PreparedGeometry or subclass of BaseGeometry
+        The geometry which is to be checked to see whether each point share any
+        portion of space with. The geometry will be "prepared" if it is not already
+        a PreparedGeometry instance.
+    x : array
+        The x coordinates of the points to check. 
+    y : array
+        The y coordinates of the points to check.
+
+    Returns
+    -------
+    Mask of points sharing space with the given `geometry`.
+
+    """
+    return _predicated_elementwise(geometry, x, y, GEOSPreparedIntersects_r)
+
+
 def touches(geometry, x, y):
     """
     Vectorized (element-wise) version of `touches` which checks whether
