@@ -43,9 +43,14 @@ class STRtree:
     ----------
     geoms : sequence
         A sequence of geometry objects.
-    values : sequence
+    items : sequence
         A sequence of integers which typically serve as identifiers in
         an application.
+
+    Attributes
+    ----------
+    node_capacity : int
+        The maximum number of items per node. Default: 10.
 
     Examples
     --------
@@ -77,12 +82,13 @@ class STRtree:
     References
     ----------
     .. [1] Leutenegger, Scott T.; Edgington, Jeffrey M.; Lopez, Mario A.
-    (February 1997). "STR: A Simple and Efficient Algorithm for R-Tree
-    Packing". https://ia600900.us.archive.org/27/items/nasa_techdoc_19970016975/19970016975.pdf
+       (February 1997). "STR: A Simple and Efficient Algorithm for
+       R-Tree Packing".
+       https://ia600900.us.archive.org/27/items/nasa_techdoc_19970016975/19970016975.pdf
 
     """
 
-    def __init__(self, geoms, values=None):
+    def __init__(self, geoms, items=None, node_capacity=10):
         warn(
             "STRtree will be changed in 2.0.0. The exact API is not yet decided, but will be documented before 1.8.0",
             ShapelyDeprecationWarning,
@@ -90,9 +96,10 @@ class STRtree:
         )
         self._tree = None
         self._rev = None
+        self.node_capacity = node_capacity
 
-        if values:
-            initdata = zip(geoms, values)
+        if items:
+            initdata = zip(geoms, items)
         else:
             initdata = geoms
 
@@ -115,10 +122,11 @@ class STRtree:
 
     def _init_tree(self, rev_initdata):
         if rev_initdata:
-            node_capacity = 10
-            self._tree = lgeos.GEOSSTRtree_create(node_capacity)
-            for idx, geom in rev_initdata:
-                lgeos.GEOSSTRtree_insert(self._tree, geom._geom, ctypes.py_object(idx))
+            self._tree = lgeos.GEOSSTRtree_create(self.node_capacity)
+            for value, geom in rev_initdata:
+                lgeos.GEOSSTRtree_insert(
+                    self._tree, geom._geom, ctypes.py_object(value)
+                )
 
     def __getstate__(self):
         state = self.__dict__.copy()
