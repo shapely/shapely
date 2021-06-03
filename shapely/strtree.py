@@ -31,21 +31,20 @@ log = logging.getLogger(__name__)
 class STRtree:
     """An STR-packed R-tree spatial index.
 
-    An index is initialized from a sequence of geometry objects or
-    (geometry, item) pairs. The items must be integers and are stored in
-    nodes of the tree. Stored items and corresponding geometry objects
-    can be spatially queried using another geometric object.
+    An index is initialized from a sequence of geometry objects and
+    optionally an sequence of values. The values must be integers and are
+    stored in nodes of the tree. Stored values and corresponding geometry
+    objects can be spatially queried using another geometric object.
 
     The tree is immutable and query-only, meaning that once created
     nodes cannot be added or removed.
 
-    *New in version 1.4.0*.
-
     Parameters
     ----------
-    initdata : sequence
-        A sequence of single geometry objects or (geometry, item) pairs.
-        The items must be integers and typically serve as identifiers in
+    geoms : sequence
+        A sequence of geometry objects.
+    values : sequence
+        A sequence of integers which typically serve as identifiers in
         an application.
 
     Examples
@@ -83,7 +82,7 @@ class STRtree:
 
     """
 
-    def __init__(self, initdata):
+    def __init__(self, geoms, values=None):
         warn(
             "STRtree will be changed in 2.0.0. The exact API is not yet decided, but will be documented before 1.8.0",
             ShapelyDeprecationWarning,
@@ -91,12 +90,19 @@ class STRtree:
         )
         self._tree = None
         self._rev = None
+
+        if values:
+            initdata = zip(geoms, values)
+        else:
+            initdata = geoms
+
         if initdata:
             self._rev = {
                 idx: geom
                 for geom, idx in self._iterinitdata(initdata)
                 if not geom.is_empty
             }
+
             if self._rev:
                 self._init_tree(self._rev.items())
 
