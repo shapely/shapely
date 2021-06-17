@@ -60,7 +60,7 @@ class MultiLineString(BaseMultipartGeometry):
             'coordinates': tuple(tuple(c for c in g.coords) for g in self.geoms)
             }
 
-    def svg(self, scale_factor=1., stroke_color=None):
+    def svg(self, scale_factor=1., stroke_color=None, opacity=None):
         """Returns a group of SVG polyline elements for the LineString geometry.
 
         Parameters
@@ -70,13 +70,15 @@ class MultiLineString(BaseMultipartGeometry):
         stroke_color : str, optional
             Hex string for stroke color. Default is to use "#66cc99" if
             geometry is valid, and "#ff3333" if invalid.
+        opacity : float
+            Float number between 0 and 1 for color opacity. Defaul value is 0.8
         """
         if self.is_empty:
             return '<g />'
         if stroke_color is None:
             stroke_color = "#66cc99" if self.is_valid else "#ff3333"
         return '<g>' + \
-            ''.join(p.svg(scale_factor, stroke_color) for p in self.geoms) + \
+            ''.join(p.svg(scale_factor, stroke_color, opacity) for p in self.geoms) + \
             '</g>'
 
 

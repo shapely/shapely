@@ -345,7 +345,7 @@ class Polygon(BaseGeometry):
             'type': 'Polygon',
             'coordinates': tuple(coords)}
 
-    def svg(self, scale_factor=1., fill_color=None):
+    def svg(self, scale_factor=1., fill_color=None, opacity=None):
         """Returns SVG path element for the Polygon geometry.
 
         Parameters
@@ -355,11 +355,15 @@ class Polygon(BaseGeometry):
         fill_color : str, optional
             Hex string for fill color. Default is to use "#66cc99" if
             geometry is valid, and "#ff3333" if invalid.
+        opacity : float
+            Float number between 0 and 1 for color opacity. Defaul value is 0.6
         """
         if self.is_empty:
             return '<g />'
         if fill_color is None:
             fill_color = "#66cc99" if self.is_valid else "#ff3333"
+        if opacity is None:
+            opacity = 0.6 
         exterior_coords = [
             ["{},{}".format(*c) for c in self.exterior.coords]]
         interior_coords = [
@@ -370,8 +374,8 @@ class Polygon(BaseGeometry):
             for coords in exterior_coords + interior_coords])
         return (
             '<path fill-rule="evenodd" fill="{2}" stroke="#555555" '
-            'stroke-width="{0}" opacity="0.6" d="{1}" />'
-            ).format(2. * scale_factor, path, fill_color)
+            'stroke-width="{0}" opacity="{3}" d="{1}" />'
+            ).format(2. * scale_factor, path, fill_color, opacity)
 
     @classmethod
     def from_bounds(cls, xmin, ymin, xmax, ymax):
