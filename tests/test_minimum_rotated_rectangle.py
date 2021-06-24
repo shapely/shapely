@@ -13,7 +13,6 @@ class MinimumRotatedRectangleTestCase(unittest.TestCase):
         ls = geometry.LineString([(0,1), (1, 2), (2, 1), (1, 0)])
         rect = ls.minimum_rotated_rectangle
         self.assertIsInstance(rect, geometry.Polygon)
-        self.assertIsInstance(rect, geometry.Polygon)
         self.assertEqual(rect.area - ls.convex_hull.area < 0.1, True)
         self.assertEqual(len(rect.exterior.coords), 5)
 
