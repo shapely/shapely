@@ -2,6 +2,7 @@ import sys
 from contextlib import contextmanager
 
 import numpy as np
+import pytest
 
 import pygeos
 
@@ -52,14 +53,20 @@ all_types = (
 
 @contextmanager
 def assert_increases_refcount(obj):
-    before = sys.getrefcount(obj)
+    try:
+        before = sys.getrefcount(obj)
+    except AttributeError:  # happens on Pypy
+        pytest.skip("sys.getrefcount is not available.")
     yield
     assert sys.getrefcount(obj) == before + 1
 
 
 @contextmanager
 def assert_decreases_refcount(obj):
-    before = sys.getrefcount(obj)
+    try:
+        before = sys.getrefcount(obj)
+    except AttributeError:  # happens on Pypy
+        pytest.skip("sys.getrefcount is not available.")
     yield
     assert sys.getrefcount(obj) == before - 1
 
