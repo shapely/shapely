@@ -18,11 +18,14 @@ References
      https://www.cs.odu.edu/~mln/ltrs-pdfs/icase-1997-14.pdf
 """
 
+from collections.abc import Iterable
 import ctypes
 import logging
+from typing import Mapping, Iterable, Sequence, Tuple, Union
 from warnings import warn
 
 from shapely.errors import ShapelyDeprecationWarning
+from shapely.geometry.base import BaseGeometry
 from shapely.geos import lgeos
 
 log = logging.getLogger(__name__)
@@ -88,36 +91,42 @@ class STRtree:
 
     """
 
-    def __init__(self, geoms, items=None, node_capacity=10):
+    def __init__(
+        self,
+        geoms: Iterable[BaseGeometry],
+        items: Iterable[int] = None,
+        node_capacity: int = 10,
+    ):
         warn(
             "STRtree will be changed in 2.0.0. The exact API is not yet decided, but will be documented before 1.8.0",
             ShapelyDeprecationWarning,
             stacklevel=2,
         )
         self._tree = None
-        self._rev = None
         self.node_capacity = node_capacity
 
-        if items:
-            initdata = zip(geoms, items)
-        else:
-            initdata = geoms
+        self._rev: Mapping[int, BaseGeometry] = {
+            item: geom
+            for geom, item in self._iterinitdata(
+                zip(geoms, items) if items is not None else geoms
+            )
+            if not geom.is_empty
+        }
 
-        if initdata:
-            self._rev = {
-                idx: geom
-                for geom, idx in self._iterinitdata(initdata)
-                if not geom.is_empty
-            }
+        if self._rev:
+            self._init_tree(self._rev.items())
 
-            if self._rev:
-                self._init_tree(self._rev.items())
+    def _iterinitdata(
+        self,
+        initdata: Union[Iterable[Tuple[BaseGeometry, int]], Iterable[BaseGeometry]],
+    ):
+        if not initdata:
+            return
 
-    def _iterinitdata(self, initdata):
         for enum_idx, item in enumerate(initdata):
-            if isinstance(item, tuple):  # a geom, idx pair
+            if isinstance(item, tuple):
                 yield item[:2]
-            else:  # a single geometry
+            else:
                 yield (item, enum_idx)
 
     def _init_tree(self, rev_initdata):
@@ -147,7 +156,7 @@ class STRtree:
 
             self._tree = None
 
-    def query_item(self, geom):
+    def query_items(self, geom: BaseGeometry) -> Sequence[int]:
         """Query for nodes which intersect the geom's envelope to get
         stored items.
 
@@ -160,7 +169,7 @@ class STRtree:
 
         Returns
         -------
-        Collection
+        sequence
             A list or array of ints.
 
         Note
@@ -207,7 +216,7 @@ class STRtree:
         )
         return result
 
-    def query_geom(self, geom):
+    def query_geoms(self, geom: BaseGeometry) -> Sequence[BaseGeometry]:
         """Query for nodes which intersect the geom's envelope to get
         geometries corresponding to the items stored in the nodes.
 
@@ -218,18 +227,18 @@ class STRtree:
 
         Returns
         -------
-        Collection
-            A list or array of geometry objects.
+        sequence
+            A sequence of geometry objects.
 
         """
-        items = self.query_item(geom)
+        items = self.query_items(geom)
         return [self._rev[idx] for idx in items]
 
-    def query(self, geom):
+    def query(self, geom: BaseGeometry) -> Sequence[BaseGeometry]:
         """Query for nodes which intersect the geom's envelope to get
         geometries corresponding to the items stored in the nodes.
 
-        This method is an alias for query_geom. It may be removed in
+        This method is an alias for query_geoms. It may be removed in
         version 2.0.
 
         Parameters
@@ -239,13 +248,13 @@ class STRtree:
 
         Returns
         -------
-        Collection
+        sequence
             A list or array of geometry objects.
 
         """
-        return self.query_geom(geom)
+        return self.query_geoms(geom)
 
-    def nearest_item(self, geom):
+    def nearest_item(self, geom: BaseGeometry) -> Union[int, None]:
         """Query the tree for the node nearest to geom and get the item
         stored in the node.
 
@@ -304,7 +313,7 @@ class STRtree:
         result = ctypes.cast(item, ctypes.py_object).value
         return result
 
-    def nearest_geom(self, geom):
+    def nearest_geom(self, geom: BaseGeometry) -> Union[BaseGeometry, None]:
         """Query the tree for the node nearest to geom and get the
         geometry corresponding to the item stored in the node.
 
@@ -315,15 +324,19 @@ class STRtree:
 
         Returns
         -------
-        int or None
+        BaseGeometry or None
 
         None is returned if this index is empty. This may change in
         version 2.0.
 
         """
-        return self._rev[self.nearest_item(geom)]
+        item = self.nearest_item(geom)
+        if item is None:
+            return None
+        else:
+            return self._rev[item]
 
-    def nearest(self, geom):
+    def nearest(self, geom: BaseGeometry) -> Union[BaseGeometry, None]:
         """Query the tree for the node nearest to geom and get the
         geometry corresponding to the item stored in the node.
 
@@ -337,7 +350,7 @@ class STRtree:
 
         Returns
         -------
-        int or None
+        BaseGeometry or None
 
         None is returned if this index is empty. This may change in
         version 2.0.

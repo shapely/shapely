@@ -18,7 +18,8 @@ from .conftest import requires_geos_342
 @requires_geos_342
 @pytest.mark.parametrize("geoms", [[Point(i, i) for i in range(10)]])
 @pytest.mark.parametrize(
-    "query_geom,num_results", [(Point(2, 2).buffer(0.99), 1), (Point(2, 2).buffer(1.0), 3)]
+    "query_geom,num_results",
+    [(Point(2, 2).buffer(0.99), 1), (Point(2, 2).buffer(1.0), 3)],
 )
 def test_query(geoms, query_geom, num_results):
     with pytest.warns(ShapelyDeprecationWarning):
@@ -37,7 +38,7 @@ def test_query_enumeration_idx(geoms, query_geom, expected):
     """Store enumeration idx"""
     with pytest.warns(ShapelyDeprecationWarning):
         tree = STRtree((g, i) for i, g in enumerate(geoms))
-    results = tree.query_item(query_geom)
+    results = tree.query_items(query_geom)
     assert sorted(results) == sorted(expected)
 
 
