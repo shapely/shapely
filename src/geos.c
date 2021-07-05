@@ -552,3 +552,46 @@ GEOSGeometry* create_box(GEOSContextHandle_t ctx, double xmin, double ymin, doub
 
   return geom;
 }
+
+/* Create a Point from x and y coordinates.
+ *
+ * Must be called from within a GEOS_INIT_THREADS / GEOS_FINISH_THREADS
+ * or GEOS_INIT / GEOS_FINISH block.
+ *
+ * Helper function for quickly creating a Point for older GEOS versions.
+ *
+ * Parameters
+ * ----------
+ * ctx: GEOS context handle
+ * x: X value
+ * y: Y value
+ *
+ * Returns
+ * -------
+ * GEOSGeometry* on success (owned by caller) or NULL on failure
+ */
+GEOSGeometry* create_point(GEOSContextHandle_t ctx, double x, double y) {
+#if GEOS_SINCE_3_8_0
+  return GEOSGeom_createPointFromXY_r(ctx, x, y);
+#else
+  GEOSCoordSequence* coord_seq = NULL;
+  GEOSGeometry* geom = NULL;
+
+  coord_seq = GEOSCoordSeq_create_r(ctx, 1, 2);
+  if (coord_seq == NULL) {
+    return NULL;
+  }
+  for (int j = 0; j < 2; j++) {
+    if (!GEOSCoordSeq_setOrdinate_r(ctx, coord_seq, 0, j, 0.0)) {
+      GEOSCoordSeq_destroy_r(ctx, coord_seq);
+      return NULL;
+    }
+  }
+  geom = GEOSGeom_createPoint_r(ctx, coord_seq);
+  if (geom == NULL) {
+    GEOSCoordSeq_destroy_r(ctx, coord_seq);
+    return NULL;
+  }
+  return geom;
+#endif
+}
