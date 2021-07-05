@@ -104,8 +104,7 @@ class STRtree:
         )
         self._tree = None
         self.node_capacity = node_capacity
-
-        self._rev: Mapping[int, BaseGeometry] = {
+        self._rev = {
             item: geom
             for geom, item in self._iterinitdata(
                 zip(geoms, items) if items is not None else geoms
