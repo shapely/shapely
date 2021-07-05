@@ -33,8 +33,8 @@
 #define CHECK_NO_INPLACE_OUTPUT(N)                                                \
   if ((steps[N] == 0) && (dimensions[0] > 1)) {                                   \
     PyErr_Format(PyExc_NotImplementedError,                                       \
-                 "Unknown ufunc mode with args[0]=%p, args[N]=%p, steps[0]=%ld, " \
-                 "steps[N]=%ld, dimensions[0]=%ld.",                              \
+                 "Zero-strided output detected. Ufunc mode with args[0]=%p, "     \
+                 "args[N]=%p, steps[0]=%ld, steps[N]=%ld, dimensions[0]=%ld.",    \
                  args[0], args[N], steps[0], steps[N], dimensions[0]);            \
     return;                                                                       \
   }
@@ -1261,7 +1261,7 @@ static void box_func(char** args, npy_intp* dimensions, npy_intp* steps, void* d
   npy_intp i;
   GEOSGeometry** geom_arr;
 
-  CHECK_NO_INPLACE_OUTPUT(6);
+  CHECK_NO_INPLACE_OUTPUT(5);
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * n);
@@ -2024,7 +2024,7 @@ static void set_precision_func(char** args, npy_intp* dimensions, npy_intp* step
   GEOSGeometry* in1 = NULL;
   GEOSGeometry** geom_arr;
 
-  CHECK_NO_INPLACE_OUTPUT(4);
+  CHECK_NO_INPLACE_OUTPUT(3);
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
