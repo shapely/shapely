@@ -192,7 +192,7 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
         errstr += "({}).".format(str(err))
         if tolerance:
             errstr += " Try running again with default tolerance value."
-        raise pygeos.GEOSException(errstr) from err
+        raise ValueError(errstr) from err
 
     if result.type != 'GeometryCollection':
         return GeometryCollection([result])

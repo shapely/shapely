@@ -8,8 +8,6 @@ that we return a sane result without error or raise a useful one.
 
 import pytest
 
-import pygeos
-
 from shapely.geos import geos_version
 from shapely.geometry import MultiPoint
 from shapely.wkt import loads as load_wkt
@@ -88,7 +86,7 @@ def test_from_polygon_with_enough_tolerance():
 @requires_geos_35
 def test_from_polygon_without_enough_tolerance():
     poly = load_wkt('POLYGON ((0 0, 0.5 0, 0.5 0.5, 0 0.5, 0 0))')
-    with pytest.raises(pygeos.GEOSException) as exc:
+    with pytest.raises(ValueError) as exc:
         voronoi_diagram(poly, tolerance=0.6)
 
     assert "Could not create Voronoi Diagram with the specified inputs" in str(exc.value)
@@ -98,7 +96,7 @@ def test_from_polygon_without_enough_tolerance():
 @requires_geos_35
 def test_from_polygon_without_floating_point_coordinates():
     poly = load_wkt('POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))')
-    with pytest.raises(pygeos.GEOSException) as exc:
+    with pytest.raises(ValueError) as exc:
         voronoi_diagram(poly, tolerance=0.1)
 
     assert "Could not create Voronoi Diagram with the specified inputs" in str(exc.value)
@@ -110,7 +108,7 @@ def test_from_multipoint_without_floating_point_coordinates():
     """A Multipoint with the same "shape" as the above Polygon raises the same error..."""
     mp = load_wkt('MULTIPOINT (0 0, 1 0, 1 1, 0 1)')
 
-    with pytest.raises(pygeos.GEOSException) as exc:
+    with pytest.raises(ValueError) as exc:
         voronoi_diagram(mp, tolerance=0.1)
 
     assert "Could not create Voronoi Diagram with the specified inputs" in str(exc.value)
@@ -121,7 +119,7 @@ def test_from_multipoint_without_floating_point_coordinates():
 def test_from_multipoint_with_tolerace_without_floating_point_coordinates():
     """This multipoint will not work with a tolerance value."""
     mp = load_wkt('MULTIPOINT (0 0, 1 0, 1 2, 0 1)')
-    with pytest.raises(pygeos.GEOSException) as exc:
+    with pytest.raises(ValueError) as exc:
         voronoi_diagram(mp, tolerance=0.1)
 
     assert "Could not create Voronoi Diagram with the specified inputs" in str(exc.value)
