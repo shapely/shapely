@@ -4,6 +4,15 @@ Changes
 1.8a2 (TBD)
 -----------
 
+New features:
+
+- The STRtree class constructor now takes an optional second argument, a
+  sequence of user-provided integers to be stored in the tree. If not provided,
+  the sequence indices of the geometries will be stored, as before (#1112).
+- The STRtree class has new query_geoms(), query_items(), nearest_geom(), and
+  nearest_item() methods (#1112). The query() and nearest() methods remain as
+  aliases for query_geoms() and nearest_geom().
+
 Bug fixes:
 
 - Only load conda GEOS dll if it exists (on Windows) (#1108).

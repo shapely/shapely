@@ -18,10 +18,9 @@ References
      https://www.cs.odu.edu/~mln/ltrs-pdfs/icase-1997-14.pdf
 """
 
-from collections.abc import Iterable
 import ctypes
 import logging
-from typing import Mapping, Iterable, Sequence, Tuple, Union
+from typing import ItemsView, Iterable, Iterator, Sequence, Tuple, Union
 from warnings import warn
 
 from shapely.errors import ShapelyDeprecationWarning
@@ -35,9 +34,12 @@ class STRtree:
     """An STR-packed R-tree spatial index.
 
     An index is initialized from a sequence of geometry objects and
-    optionally an sequence of values. The values must be integers and are
-    stored in nodes of the tree. Stored values and corresponding geometry
-    objects can be spatially queried using another geometric object.
+    optionally an sequence of integer items. The integer items, if
+    provided, are stored in nodes of the tree. If items are not
+    provided, the indices of the geometry sequence will be used instead.
+
+    Stored values and corresponding geometry objects can be spatially
+    queried using another geometric object.
 
     The tree is immutable and query-only, meaning that once created
     nodes cannot be added or removed.
@@ -46,9 +48,10 @@ class STRtree:
     ----------
     geoms : sequence
         A sequence of geometry objects.
-    items : sequence
+    items : sequence, optional
         A sequence of integers which typically serve as identifiers in
-        an application.
+        an application. This sequence must have the same length as
+        geoms.
 
     Attributes
     ----------
@@ -118,23 +121,21 @@ class STRtree:
     def _iterinitdata(
         self,
         initdata: Union[Iterable[Tuple[BaseGeometry, int]], Iterable[BaseGeometry]],
-    ):
+    ) -> Iterator[Tuple[BaseGeometry, int]]:
         if not initdata:
             return
 
         for enum_idx, item in enumerate(initdata):
             if isinstance(item, tuple):
-                yield item[:2]
-            else:
+                yield item[0], item[1]
+            elif isinstance(item, BaseGeometry):
                 yield (item, enum_idx)
 
-    def _init_tree(self, rev_initdata):
+    def _init_tree(self, rev_initdata: ItemsView[int, BaseGeometry]):
         if rev_initdata:
             self._tree = lgeos.GEOSSTRtree_create(self.node_capacity)
-            for value, geom in rev_initdata:
-                lgeos.GEOSSTRtree_insert(
-                    self._tree, geom._geom, ctypes.py_object(value)
-                )
+            for item, geom in rev_initdata:
+                lgeos.GEOSSTRtree_insert(self._tree, geom._geom, ctypes.py_object(item))
 
     def __getstate__(self):
         state = self.__dict__.copy()
