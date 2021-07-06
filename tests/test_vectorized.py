@@ -18,7 +18,7 @@ class VectorizedContainsTestCase(unittest.TestCase):
         y = np.asanyarray(y) 
 
         self.assertIsInstance(result, np.ndarray)
-        self.assertEqual(result.dtype, np.bool)
+        self.assertEqual(result.dtype, bool)
 
         result_flat = result.flat
         x_flat, y_flat = x.flat, y.flat

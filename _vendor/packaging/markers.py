@@ -40,7 +40,7 @@ class UndefinedEnvironmentName(ValueError):
     """
 
 
-class Node(object):
+class Node:
 
     def __init__(self, value):
         self.value = value
@@ -254,7 +254,7 @@ def default_environment():
     }
 
 
-class Marker(object):
+class Marker:
 
     def __init__(self, marker):
         try:

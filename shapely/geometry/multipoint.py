@@ -66,7 +66,7 @@ class MultiPoint(BaseMultipartGeometry):
             'coordinates': tuple([g.coords[0] for g in self.geoms])
             }
 
-    def svg(self, scale_factor=1., fill_color=None):
+    def svg(self, scale_factor=1., fill_color=None, opacity=None):
         """Returns a group of SVG circle elements for the MultiPoint geometry.
 
         Parameters
@@ -76,13 +76,15 @@ class MultiPoint(BaseMultipartGeometry):
         fill_color : str, optional
             Hex string for fill color. Default is to use "#66cc99" if
             geometry is valid, and "#ff3333" if invalid.
+        opacity : float
+            Float number between 0 and 1 for color opacity. Defaul value is 0.6
         """
         if self.is_empty:
             return '<g />'
         if fill_color is None:
             fill_color = "#66cc99" if self.is_valid else "#ff3333"
         return '<g>' + \
-            ''.join(p.svg(scale_factor, fill_color) for p in self.geoms) + \
+            ''.join(p.svg(scale_factor, fill_color, opacity) for p in self.geoms) + \
             '</g>'
 
     @property

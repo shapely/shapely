@@ -1290,7 +1290,7 @@ Shapely's binary :meth:`within` predicate.
 
 .. code-block:: python
 
-  class Within(object):
+  class Within:
       def __init__(self, o):
           self.o = o
       def __lt__(self, other):
@@ -2208,6 +2208,33 @@ using functions in the :mod:`shapely.ops` module.
      <shapely.geometry.linestring.LineString object at 0x...>,
      <shapely.geometry.linestring.LineString object at 0x...>]
 
+Efficient Rectangle Clipping
+----------------------------
+The :func:`~shapely.ops.clip_by_rect` function in `shapely.ops` returns the
+portion of a geometry within a rectangle.
+
+.. function:: shapely.ops.clip_by_rect(geom, xmin, ymin, xmax, ymax)
+
+    The geometry is clipped in a fast but possibly dirty way. The output is
+    not guaranteed to be valid. No exceptions will be raised for topological
+    errors.
+
+    `New in version 1.7.`
+
+    Requires GEOS 3.5.0 or higher
+
+.. code-block:: python
+
+  >>> from shapely.geometry import Polygon
+  >>> from shapely.ops import clip_by_rect
+  >>> polygon = Polygon(
+         shell=[(0, 0), (0, 30), (30, 30), (30, 0), (0, 0)],
+         holes=[[(10, 10), (20, 10), (20, 20), (10, 20), (10, 10)]],
+      )
+  >>> clipped_polygon = clip_by_rect(polygon, 5, 5, 15, 15)
+  >>> print(clipped_polygon.wkt)
+  POLYGON ((5 5, 5 15, 10 15, 10 10, 15 10, 15 5, 5 5))
+
 Efficient Unions
 ----------------
 
@@ -2857,7 +2884,7 @@ Or a simple placemark-type object:
 
 .. code-block:: pycon
 
-  >>> class GeoThing(object):
+  >>> class GeoThing:
   ...     def __init__(self, d):
   ...         self.__geo_interface__ = d
   >>> thing = GeoThing({"type": "Point", "coordinates": (0.0, 0.0)})

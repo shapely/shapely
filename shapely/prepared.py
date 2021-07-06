@@ -7,7 +7,7 @@ from shapely.impl import DefaultImplementation, delegated
 from pickle import PicklingError
 
 
-class PreparedGeometry(object):
+class PreparedGeometry:
     """
     A geometry prepared for efficient comparison to a set of other geometries.
 
