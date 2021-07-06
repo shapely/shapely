@@ -20,7 +20,7 @@ __all__ = ['cascaded_union', 'linemerge', 'operator', 'polygonize',
            'shared_paths', 'clip_by_rect', 'orient', 'substring']
 
 
-class CollectionOperator(object):
+class CollectionOperator:
 
     def shapeup(self, ob):
         if isinstance(ob, BaseGeometry):
@@ -245,7 +245,7 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
     return result
 
 
-class ValidateOp(object):
+class ValidateOp:
     def __call__(self, this):
         return lgeos.GEOSisValidReason(this._geom)
 
@@ -397,7 +397,7 @@ def shared_paths(g1, g2):
     return(geom_factory(lgeos.methods['shared_paths'](g1._geom, g2._geom)))
 
 
-class SplitOp(object):
+class SplitOp:
 
     @staticmethod
     def _split_polygon_with_line(poly, splitter):

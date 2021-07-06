@@ -128,13 +128,13 @@ def exceptNull(func):
     return wrapper
 
 
-class CAP_STYLE(object):
+class CAP_STYLE:
     round = 1
     flat = 2
     square = 3
 
 
-class JOIN_STYLE(object):
+class JOIN_STYLE:
     round = 1
     mitre = 2
     bevel = 3
@@ -142,7 +142,7 @@ class JOIN_STYLE(object):
 EMPTY = deserialize_wkb(a2b_hex(b'010700000000000000'))
 
 
-class BaseGeometry(object):
+class BaseGeometry:
     """
     Provides GEOS spatial predicates and topological operations.
 
@@ -316,7 +316,7 @@ class BaseGeometry(object):
 
     def _get_coords(self):
         """Access to geometry's coordinates (CoordinateSequence)"""
-        return CoordinateSequence(self)
+        raise NotImplementedError("set_coords must be provided by derived classes")
 
     def _set_coords(self, ob):
         raise NotImplementedError(
@@ -781,7 +781,7 @@ class BaseGeometry(object):
         tolerance
 
         Refers to coordinate equality, which requires coordinates to be equal
-        and in the same order for all components of a geometry
+        and in the same order for all components of a geometry.
         """
         return bool(self.impl['equals_exact'](self, other, tolerance))
 
@@ -789,7 +789,7 @@ class BaseGeometry(object):
         """Returns True if geometries are equal at all coordinates to a
         specified decimal place
 
-        Refers to approximate coordinate equality, which requires coordinates be
+        Refers to approximate coordinate equality, which requires coordinates to be
         approximately equal and in the same order for all components of a geometry.
         """
         return self.equals_exact(other, 0.5 * 10**(-decimal))
@@ -949,7 +949,7 @@ class BaseMultipartGeometry(BaseGeometry):
             '</g>'
 
 
-class GeometrySequence(object):
+class GeometrySequence:
     """
     Iterative access to members of a homogeneous multipart geometry.
     """
@@ -1032,7 +1032,7 @@ class HeterogeneousGeometrySequence(GeometrySequence):
     """
 
     def __init__(self, parent):
-        super(HeterogeneousGeometrySequence, self).__init__(parent, None)
+        super().__init__(parent, None)
 
     def _get_geom_item(self, i):
         sub = lgeos.GEOSGetGeometryN(self._geom, i)

@@ -269,7 +269,7 @@ error_h = EXCEPTION_HANDLER_FUNCTYPE(error_handler)
 notice_h = EXCEPTION_HANDLER_FUNCTYPE(notice_handler)
 
 
-class WKTReader(object):
+class WKTReader:
 
     _lgeos = None
     _reader = None
@@ -302,7 +302,7 @@ class WKTReader(object):
         return geom_factory(geom)
 
 
-class WKTWriter(object):
+class WKTWriter:
 
     _lgeos = None
     _writer = None
@@ -402,7 +402,7 @@ class WKTWriter(object):
         return text.decode('ascii')
 
 
-class WKBReader(object):
+class WKBReader:
 
     _lgeos = None
     _reader = None
@@ -445,7 +445,7 @@ class WKBReader(object):
         return geometry.base.geom_factory(geom)
 
 
-class WKBWriter(object):
+class WKBWriter:
 
     _lgeos = None
     _writer = None
@@ -601,7 +601,7 @@ class LGEOS330(LGEOSBase):
     geos_capi_version = (1, 7, 0)
 
     def __init__(self, dll):
-        super(LGEOS330, self).__init__(dll)
+        super().__init__(dll)
         self.geos_handle = self._lgeos.initGEOS_r(notice_h, error_h)
         keys = list(self._lgeos.__dict__.keys())
         for key in [x for x in keys if not x.endswith('_r')]:
@@ -734,7 +734,7 @@ class LGEOS340(LGEOS330):
     geos_capi_version = (1, 8, 0)
 
     def __init__(self, dll):
-        super(LGEOS340, self).__init__(dll)
+        super().__init__(dll)
         self.methods['delaunay_triangulation'] = self.GEOSDelaunayTriangulation
         self.methods['nearest_points'] = self.GEOSNearestPoints
 
@@ -746,7 +746,7 @@ class LGEOS350(LGEOS340):
     geos_capi_version = (1, 9, 0)
 
     def __init__(self, dll):
-        super(LGEOS350, self).__init__(dll)
+        super().__init__(dll)
         self.methods['clip_by_rect'] = self.GEOSClipByRect
         self.methods['voronoi_diagram'] = self.GEOSVoronoiDiagram
 
@@ -758,7 +758,7 @@ class LGEOS360(LGEOS350):
     geos_capi_version = (1, 10, 0)
 
     def __init__(self, dll):
-        super(LGEOS360, self).__init__(dll)
+        super().__init__(dll)
         self.methods['minimum_clearance'] = self.GEOSMinimumClearance
 
 
@@ -769,7 +769,7 @@ class LGEOS380(LGEOS360):
     geos_capi_version = (1, 13, 0)
 
     def __init__(self, dll):
-        super(LGEOS380, self).__init__(dll)
+        super().__init__(dll)
         self.methods['make_valid'] = self.GEOSMakeValid
 
 

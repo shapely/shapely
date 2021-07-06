@@ -29,8 +29,8 @@ class OperationsTestCase(unittest.TestCase):
         self.assertIsInstance(point.buffer(10.0, 32), Polygon)
 
         # Simplify
-        p = loads('POLYGON ((120 120, 121 121, 122 122, 220 120, 180 199, '
-                  '160 200, 140 199, 120 120))')
+        p = loads('POLYGON ((120 120, 140 199, 160 200, 180 199, 220 120, '
+                  '122 122, 121 121, 120 120))')
         expected = loads('POLYGON ((120 120, 140 199, 160 200, 180 199, '
                          '220 120, 120 120))')
         s = p.simplify(10.0, preserve_topology=False)

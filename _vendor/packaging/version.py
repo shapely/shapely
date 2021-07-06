@@ -39,7 +39,7 @@ class InvalidVersion(ValueError):
     """
 
 
-class _BaseVersion(object):
+class _BaseVersion:
 
     def __hash__(self):
         return hash(self._key)

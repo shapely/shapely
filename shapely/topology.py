@@ -11,7 +11,7 @@ from ctypes import byref, c_double
 from shapely.geos import TopologicalError, lgeos
 
 
-class Validating(object):
+class Validating:
 
     def _validate(self, ob, stop_prepared=False):
         if ob is None or ob._geom is None:

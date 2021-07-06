@@ -5,7 +5,7 @@ from shapely.geometry.base import EMPTY
 from shapely.geos import lgeos
 
 
-class CachingGeometryProxy(object):
+class CachingGeometryProxy:
 
     context = None
     factory = None
