@@ -22,6 +22,25 @@ People with a "+" by their names contributed a patch for the first time.
 * Joris Van den Bossche
 
 
+Version 0.10.1 (2021-07-06)
+---------------------------
+
+**Bug fixes**
+
+* Fixed the ``box`` and ``set_precision`` functions with numpy 1.21 (#367).
+* Fixed ``STRtree`` creation to allow querying the tree in a multi-threaded
+  context (#361).
+
+**Acknowledgements**
+
+Thanks to everyone who contributed to this release!
+People with a "+" by their names contributed a patch for the first time.
+
+* Brendan Ward
+* Casper van der Wel
+* Joris Van den Bossche
+
+
 Version 0.10 (2021-05-18)
 -------------------------
 
