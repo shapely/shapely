@@ -42,8 +42,12 @@ class STRtree:
 
     Parameters
     ----------
-    geoms : sequence of geometry objects
-        geometry objects to be indexed
+    geoms : sequence
+        A sequence of geometry objects.
+    items : sequence, optional
+        A sequence of integers which typically serve as identifiers in
+        an application. This sequence must have the same length as
+        geoms.
 
     Examples
     --------
@@ -75,30 +79,21 @@ class STRtree:
     None
     """
 
-    def __init__(self, initdata):
+    def __init__(self, geoms, items=None):
         warn(
             "STRtree will be completely changed in 2.0.0. The exact API is not yet decided, but will be documented before 1.8.0",
             ShapelyDeprecationWarning,
             stacklevel=2,
         )
-        ids = []
-        geoms = []
-        has_custom_ids = True
-        for item in initdata:
-            if isinstance(item, tuple):
-                # a geom, idx pair
-                ids.append(item[1])
-                geoms.append(item[0])
-            else:
-                geoms.append(item)
-                has_custom_ids = False
-        if not has_custom_ids and ids:
-            raise ValueError(
-                "can't mix geometries and (geom, id) tuples in the initdata"
-            )
+        geoms = list(geoms)
+        has_custom_items = items is not None
+        if not has_custom_items:
+            items = list(range(len(geoms)))
 
-        self._ids = ids
-        self._has_custom_ids = has_custom_ids
+        self._items = items
+        self._has_custom_items = has_custom_items
+        # filter empty geometries out of the input
+        geoms = [geom for geom in geoms if not geom.is_empty]
         self._n_geoms = len(geoms)
         self._init_tree_handle(geoms)
 
@@ -130,7 +125,20 @@ class STRtree:
 
             self._tree_handle = None
 
-    def query(self, geom, return_geometries=True):
+    def _query(self, geom):
+        if self._n_geoms == 0:
+            return []
+
+        result = []
+
+        def callback(item, userdata):
+            idx = ctypes.cast(item, ctypes.py_object).value
+            result.append(idx)
+
+        lgeos.GEOSSTRtree_query(self._tree_handle, geom._geom, lgeos.GEOSQueryCallback(callback), None)
+        return result
+
+    def query(self, geom):
         """
         Search the index for geometry objects whose extents
         intersect the extent of the given object.
@@ -184,25 +192,36 @@ class STRtree:
         >>> [(index_by_id[id(pt)], pt.wkt) for pt in tree.query(Point(2,2).buffer(1.0))]
         [(1, 'POINT (1 1)'), (2, 'POINT (2 2)'), (3, 'POINT (3 3)')]
         """
-        if self._n_geoms == 0:
-            return []
+        result = self._query(geom)
+        return [self._geoms[i] for i in result]
 
-        result = []
-
-        def callback(item, userdata):
-            idx = ctypes.cast(item, ctypes.py_object).value
-            result.append(idx)
-
-        lgeos.GEOSSTRtree_query(self._tree_handle, geom._geom, lgeos.GEOSQueryCallback(callback), None)
-
-        if return_geometries:
-            return [self._geoms[i] for i in result]
-        elif self._has_custom_ids:
-            return [self._ids[i] for i in result]
+    def query_items(self, geom):
+        """
+        """
+        result = self._query(geom)
+        if self._has_custom_items:
+            return [self._items[i] for i in result]
         else:
             return result
 
-    def nearest(self, geom, return_geometries=True):
+    def _nearest(self, geom):
+        envelope = geom.envelope
+
+        def callback(item1, item2, distance, userdata):
+            try:
+                idx1 = ctypes.cast(item1, ctypes.py_object).value
+                geom2 = ctypes.cast(item2, ctypes.py_object).value
+                dist = ctypes.cast(distance, ctypes.POINTER(ctypes.c_double))
+                lgeos.GEOSDistance(self._geoms[idx1]._geom, geom2._geom, dist)
+                return 1
+            except Exception:
+                return 0
+
+        item = lgeos.GEOSSTRtree_nearest_generic(self._tree_handle, ctypes.py_object(geom), envelope._geom, \
+            lgeos.GEOSDistanceCallback(callback), None)
+        return ctypes.cast(item, ctypes.py_object).value
+
+    def nearest(self, geom):
         """
         Get the nearest object in the index to a geometry object.
 
@@ -238,25 +257,17 @@ class STRtree:
         if self._n_geoms == 0:
             return None
 
-        envelope = geom.envelope
+        result = self._nearest(geom)
+        return self._geoms[result]
+        
+    def nearest_items(self, geom):
+        """
+        """
+        if self._n_geoms == 0:
+            return None
 
-        def callback(item1, item2, distance, userdata):
-            try:
-                idx1 = ctypes.cast(item1, ctypes.py_object).value
-                geom2 = ctypes.cast(item2, ctypes.py_object).value
-                dist = ctypes.cast(distance, ctypes.POINTER(ctypes.c_double))
-                lgeos.GEOSDistance(self._geoms[idx1]._geom, geom2._geom, dist)
-                return 1
-            except Exception:
-                return 0
-
-        item = lgeos.GEOSSTRtree_nearest_generic(self._tree_handle, ctypes.py_object(geom), envelope._geom, \
-            lgeos.GEOSDistanceCallback(callback), None)
-        result = ctypes.cast(item, ctypes.py_object).value
-
-        if return_geometries:
-            return self._geoms[result]
-        elif self._has_custom_ids:
-            return self._ids[result]
+        result = self._nearest(geom)
+        if self._has_custom_items:
+            return self._items[result]
         else:
             return result
