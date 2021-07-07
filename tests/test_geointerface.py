@@ -11,7 +11,7 @@ from shapely.geometry.multipolygon import MultiPolygon, MultiPolygonAdapter
 from shapely import wkt
 
 
-class GeoThing(object):
+class GeoThing:
     def __init__(self, d):
         self.__geo_interface__ = d
 

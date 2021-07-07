@@ -4,7 +4,7 @@
 #
 # This script requires environment variables to be set
 #  - export GEOS_INSTALL=/path/to/cached/prefix -- to build or use as cache
-#  - export GEOS_VERSION=3.7.3 or master -- to download and compile
+#  - export GEOS_VERSION=3.7.3 or main -- to download and compile
 
 set -e
 
@@ -38,11 +38,12 @@ build_geos(){
     make install
 }
 
-if [ "$GEOS_VERSION" = "master" ]; then
+if [ "$GEOS_VERSION" = "main" ]; then
     prepare_geos_build_dir
     # use GitHub mirror
     git clone --depth 1 https://github.com/libgeos/geos.git geos-$GEOS_VERSION
     cd geos-$GEOS_VERSION
+    git log -1
     git rev-parse HEAD > newrev.txt
     BUILD=no
     # Only build if nothing cached or if the GEOS revision changed

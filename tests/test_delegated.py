@@ -4,7 +4,7 @@ from shapely.impl import BaseImpl
 from shapely.geometry.base import delegated
 
 
-class Geometry(object):
+class Geometry:
 
     impl = BaseImpl({})
 

@@ -5,10 +5,15 @@ import sys
 import pytest
 
 from shapely import wkt
-from shapely.wkb import dumps, loads
+from shapely.errors import WKBReadingError
 from shapely.geometry import Point
 from shapely.geos import geos_version
+from shapely.wkb import dumps, loads, dump, load
 
+
+@pytest.fixture(scope="module")
+def some_point():
+    return Point(1.2, 3.4)
 
 
 def bin2hex(value):
@@ -45,30 +50,27 @@ def hostorder(fmt, value):
         *struct.unpack(hexorder + fmt, hex2bin(value))[1:]))
 
 
-def test_dumps_srid():
-    p1 = Point(1.2, 3.4)
-    result = dumps(p1)
+def test_dumps_srid(some_point):
+    result = dumps(some_point)
     assert bin2hex(result) == hostorder(
         "BIdd", "0101000000333333333333F33F3333333333330B40")
-    result = dumps(p1, srid=4326)
+    result = dumps(some_point, srid=4326)
     assert bin2hex(result) == hostorder(
         "BIIdd", "0101000020E6100000333333333333F33F3333333333330B40")
 
 
-def test_dumps_endianness():
-    p1 = Point(1.2, 3.4)
-    result = dumps(p1)
+def test_dumps_endianness(some_point):
+    result = dumps(some_point)
     assert bin2hex(result) == hostorder(
         "BIdd", "0101000000333333333333F33F3333333333330B40")
-    result = dumps(p1, big_endian=False)
+    result = dumps(some_point, big_endian=False)
     assert bin2hex(result) == "0101000000333333333333F33F3333333333330B40"
-    result = dumps(p1, big_endian=True)
+    result = dumps(some_point, big_endian=True)
     assert bin2hex(result) == "00000000013FF3333333333333400B333333333333"
 
 
-def test_dumps_hex():
-    p1 = Point(1.2, 3.4)
-    result = dumps(p1, hex=True)
+def test_dumps_hex(some_point):
+    result = dumps(some_point, hex=True)
     assert result == hostorder(
         "BIdd", "0101000000333333333333F33F3333333333330B40")
 
@@ -90,6 +92,52 @@ def test_loads_srid():
     result = dumps(geom, srid=27700)
     assert bin2hex(result) == hostorder(
         "BIIdd", "0101000020346C0000333333333333F33F3333333333330B40")
+
+
+def test_loads_hex(some_point):
+    assert loads(dumps(some_point, hex=True), hex=True) == some_point
+
+
+def test_dump_load_binary(some_point, tmpdir):
+    file = tmpdir.join("test.wkb")
+    with open(file, "wb") as file_pointer:
+        dump(some_point, file_pointer)
+    with open(file, "rb") as file_pointer:
+        restored = load(file_pointer)
+
+    assert some_point == restored
+
+
+def test_dump_load_hex(some_point, tmpdir):
+    file = tmpdir.join("test.wkb")
+    with open(file, "w") as file_pointer:
+        dump(some_point, file_pointer, hex=True)
+    with open(file, "r") as file_pointer:
+        restored = load(file_pointer, hex=True)
+
+    assert some_point == restored
+
+
+def test_dump_hex_load_binary(some_point, tmpdir):
+    """Asserts that reading a binary file as text (hex mode) fails."""
+    file = tmpdir.join("test.wkb")
+    with open(file, "w") as file_pointer:
+        dump(some_point, file_pointer, hex=True)
+
+    with pytest.raises(WKBReadingError):
+        with open(file, "rb") as file_pointer:
+            load(file_pointer)
+
+
+def test_dump_binary_load_hex(some_point, tmpdir):
+    """Asserts that reading a text file (hex mode) as binary fails."""
+    file = tmpdir.join("test.wkb")
+    with open(file, "wb") as file_pointer:
+        dump(some_point, file_pointer)
+
+    with pytest.raises((WKBReadingError, UnicodeEncodeError, UnicodeDecodeError)):
+        with open(file, "r") as file_pointer:
+            load(file_pointer, hex=True)
 
 
 requires_geos_39 = pytest.mark.xfail(

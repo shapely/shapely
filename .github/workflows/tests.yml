@@ -5,24 +5,11 @@ on: [push, pull_request]
 jobs:
   test:
     name: Python ${{ matrix.python }} (GEOS ${{ matrix.geos }}, speedups ${{ matrix.speedups }}, numpy ${{ matrix.numpy || 'not installed' }})
-    # runs-on: ubuntu-latest
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          # 2015
-          - python: 3.5
-            geos: 3.5.2
-            numpy: 1.10.4
-            speedups: 1
-          - python: 3.5
-            geos: 3.5.2
-            numpy: 1.10.4
-            speedups: 0
-          - python: 3.5
-            geos: 3.5.2
-            speedups: 0
           # 2017
           - python: 3.6
             geos: 3.6.4
@@ -73,7 +60,7 @@ jobs:
             speedups: 0
           # dev
           - python: 3.9
-            geos: master
+            geos: main
             speedups: 1
 
     env:
@@ -108,7 +95,7 @@ jobs:
         run: |
           pip install --disable-pip-version-check --upgrade pip
           pip install --upgrade wheel
-          if [ "$GEOS_VERSION" = "master" ]; then
+          if [ "$GEOS_VERSION" = "main" ]; then
             pip install --upgrade --pre Cython numpy;
           elif [ "$SPEEDUPS" == "1" ]; then
             pip install --install-option="--no-cython-compile" cython;
@@ -139,7 +126,7 @@ jobs:
 
       - name: Run tests
         shell: bash
-        continue-on-error: ${{ matrix.geos == 'master' }}
+        continue-on-error: ${{ matrix.geos == 'main' }}
         run: |
           if [ "$SPEEDUPS" == "1" ]; then SPEEDUPS_FLAG=--with-speedups; else SPEEDUPS_FLAG=--without-speedups; fi
           python -c "from shapely import geos; print(geos.geos_version_string)"

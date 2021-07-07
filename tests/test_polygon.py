@@ -14,6 +14,10 @@ from shapely.geometry.polygon import LinearRing, LineString, asLinearRing
 from shapely.geometry.base import dump_coords
 
 
+def test_empty_linearring_coords():
+    assert LinearRing().coords[:] == []
+
+
 def test_linearring_from_coordinate_sequence():
     expected_coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)]
 

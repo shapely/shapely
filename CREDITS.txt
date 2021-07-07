@@ -24,6 +24,7 @@ Shapely is written by:
 * David Swinkels <davidswinkelss@gmail.com>
 * Denis Rykov <rykovd@gmail.com>
 * Erwin Sterrenburg <e.w.sterrenburg@gmail.com>
+* Felix Divo <4403130+felixdivo@users.noreply.github.com>
 * Felix Yan <felixonmars@archlinux.org>
 * Filipe Fernandes <ocefpaf@gmail.com>
 * Frédéric Junod <frederic.junod@camptocamp.com>

@@ -8,6 +8,7 @@ from ctypes import c_void_p, cast, POINTER
 import weakref
 
 from shapely.algorithms.cga import signed_area
+from shapely.coords import CoordinateSequence
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, geos_geom_from_py
 from shapely.geometry.linestring import LineString, LineStringAdapter
@@ -65,7 +66,9 @@ class LinearRing(LineString):
 
     # Coordinate access
 
-    _get_coords = BaseGeometry._get_coords
+    def _get_coords(self):
+        """Access to geometry's coordinates (CoordinateSequence)"""
+        return CoordinateSequence(self)
 
     def _set_coords(self, coordinates):
         warnings.warn(
@@ -84,7 +87,7 @@ class LinearRing(LineString):
     def __setstate__(self, state):
         """WKB doesn't differentiate between LineString and LinearRing so we
         need to move the coordinate sequence into the correct geometry type"""
-        super(LinearRing, self).__setstate__(state)
+        super().__setstate__(state)
         cs = lgeos.GEOSGeom_getCoordSeq(self.__geom__)
         cs_clone = lgeos.GEOSCoordSeq_clone(cs)
         lgeos.GEOSGeom_destroy(self.__geom__)
@@ -123,7 +126,11 @@ class LinearRingAdapter(LineStringAdapter):
             'coordinates': tuple(self.coords)
             }
 
-    coords = property(BaseGeometry._get_coords)
+    def _get_coords(self):
+        """Access to geometry's coordinates (CoordinateSequence)"""
+        return CoordinateSequence(self)
+
+    coords = property(_get_coords)
 
 
 def asLinearRing(context):
@@ -131,7 +138,7 @@ def asLinearRing(context):
     return LinearRingAdapter(context)
 
 
-class InteriorRingSequence(object):
+class InteriorRingSequence:
 
     _factory = None
     _geom = None
@@ -338,7 +345,7 @@ class Polygon(BaseGeometry):
             'type': 'Polygon',
             'coordinates': tuple(coords)}
 
-    def svg(self, scale_factor=1., fill_color=None):
+    def svg(self, scale_factor=1., fill_color=None, opacity=None):
         """Returns SVG path element for the Polygon geometry.
 
         Parameters
@@ -348,11 +355,15 @@ class Polygon(BaseGeometry):
         fill_color : str, optional
             Hex string for fill color. Default is to use "#66cc99" if
             geometry is valid, and "#ff3333" if invalid.
+        opacity : float
+            Float number between 0 and 1 for color opacity. Defaul value is 0.6
         """
         if self.is_empty:
             return '<g />'
         if fill_color is None:
             fill_color = "#66cc99" if self.is_valid else "#ff3333"
+        if opacity is None:
+            opacity = 0.6 
         exterior_coords = [
             ["{},{}".format(*c) for c in self.exterior.coords]]
         interior_coords = [
@@ -363,8 +374,8 @@ class Polygon(BaseGeometry):
             for coords in exterior_coords + interior_coords])
         return (
             '<path fill-rule="evenodd" fill="{2}" stroke="#555555" '
-            'stroke-width="{0}" opacity="0.6" d="{1}" />'
-            ).format(2. * scale_factor, path, fill_color)
+            'stroke-width="{0}" opacity="{3}" d="{1}" />'
+            ).format(2. * scale_factor, path, fill_color, opacity)
 
     @classmethod
     def from_bounds(cls, xmin, ymin, xmax, ymax):

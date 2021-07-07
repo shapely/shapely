@@ -4,6 +4,7 @@
 from ctypes import c_double
 import warnings
 
+from shapely.coords import CoordinateSequence
 from shapely.errors import DimensionError, ShapelyDeprecationWarning
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, geos_geom_from_py
@@ -83,7 +84,7 @@ class Point(BaseGeometry):
             'coordinates': self.coords[0]
             }
 
-    def svg(self, scale_factor=1., fill_color=None):
+    def svg(self, scale_factor=1., fill_color=None, opacity=None):
         """Returns SVG circle element for the Point geometry.
 
         Parameters
@@ -93,15 +94,19 @@ class Point(BaseGeometry):
         fill_color : str, optional
             Hex string for fill color. Default is to use "#66cc99" if
             geometry is valid, and "#ff3333" if invalid.
+        opacity : float
+            Float number between 0 and 1 for color opacity. Defaul value is 0.6
         """
         if self.is_empty:
             return '<g />'
         if fill_color is None:
             fill_color = "#66cc99" if self.is_valid else "#ff3333"
+        if opacity is None:
+            opacity = 0.6 
         return (
             '<circle cx="{0.x}" cy="{0.y}" r="{1}" '
-            'stroke="#555555" stroke-width="{2}" fill="{3}" opacity="0.6" />'
-            ).format(self, 3. * scale_factor, 1. * scale_factor, fill_color)
+            'stroke="#555555" stroke-width="{2}" fill="{3}" opacity="{4}" />'
+            ).format(self, 3. * scale_factor, 1. * scale_factor, fill_color, opacity)
 
     @property
     def _ctypes(self):
@@ -152,6 +157,10 @@ class Point(BaseGeometry):
 
     # Coordinate access
 
+    def _get_coords(self):
+        """Access to geometry's coordinates (CoordinateSequence)"""
+        return CoordinateSequence(self)
+
     def _set_coords(self, *args):
         warnings.warn(
             "Setting the 'coords' to mutate a Geometry in place is deprecated,"
@@ -167,7 +176,7 @@ class Point(BaseGeometry):
         self._set_geom(geom)
         self._ndim = n
 
-    coords = property(BaseGeometry._get_coords, _set_coords)
+    coords = property(_get_coords, _set_coords)
 
     @property
     def xy(self):
@@ -217,7 +226,9 @@ class PointAdapter(CachingGeometryProxy, Point):
         except AttributeError:
             return self.array_interface()
 
-    _get_coords = BaseGeometry._get_coords
+    def _get_coords(self):
+        """Access to geometry's coordinates (CoordinateSequence)"""
+        return CoordinateSequence(self)
 
     def _set_coords(self, ob):
         raise NotImplementedError("Adapters can not modify their sources")

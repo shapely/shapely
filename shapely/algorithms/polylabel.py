@@ -3,7 +3,7 @@ from ..geos import TopologicalError
 from heapq import heappush, heappop
 
 
-class Cell(object):
+class Cell:
     """A `Cell`'s centroid property is a potential solution to finding the pole
     of inaccessibility for a given polygon. Rich comparison operators are used
     for sorting `Cell` objects in a priority queue based on the potential
