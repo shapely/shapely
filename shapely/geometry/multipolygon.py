@@ -1,9 +1,6 @@
 """Collections of polygons and related utilities
 """
 
-from ctypes import c_void_p, cast
-import warnings
-
 from shapely.geometry.base import BaseMultipartGeometry
 from shapely.geometry import polygon
 

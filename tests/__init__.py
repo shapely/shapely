@@ -1,7 +1,7 @@
 import sys
 import unittest
 
-from shapely.geos import geos_version_string, lgeos, WKTWriter
+from shapely.geos import geos_version_string
 
 import pytest
 

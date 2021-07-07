@@ -1,9 +1,6 @@
 """Collections of points and related utilities
 """
 
-from ctypes import byref, c_double, c_void_p, cast
-import warnings
-
 from shapely.errors import EmptyPartError, ShapelyDeprecationWarning
 from shapely.geometry.base import BaseMultipartGeometry
 from shapely.geometry import point

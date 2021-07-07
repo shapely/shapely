@@ -2,10 +2,6 @@
 
 Also provides pickle-like convenience functions.
 """
-
-from shapely.geos import WKBReader, WKBWriter, lgeos
-from shapely.geometry.base import geom_factory
-
 import pygeos
 
 

@@ -1,17 +1,10 @@
 """Polygons and their linear ring components
 """
 
-import sys
-import warnings
-
-from ctypes import c_void_p, cast, POINTER
-import weakref
-
 import numpy as np
 import pygeos
 
 from shapely.algorithms.cga import signed_area, is_ccw_impl
-from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry
 from shapely.geometry.linestring import LineString
 from shapely.geometry.point import Point

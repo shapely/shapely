@@ -1,9 +1,6 @@
 """Points and related utilities
 """
 
-from ctypes import c_double
-import warnings
-
 import pygeos
 
 from shapely.errors import DimensionError, ShapelyDeprecationWarning

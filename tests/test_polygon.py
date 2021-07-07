@@ -8,7 +8,6 @@ import pytest
 from shapely.coords import CoordinateSequence
 from shapely.wkb import loads as load_wkb
 from shapely.errors import TopologicalError, ShapelyDeprecationWarning
-from shapely.geos import lgeos
 from shapely.geometry import Point, Polygon
 from shapely.geometry.polygon import LinearRing, LineString
 from shapely.geometry.base import dump_coords

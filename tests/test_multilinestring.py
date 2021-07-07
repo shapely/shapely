@@ -4,7 +4,6 @@ from .test_multi import MultiGeometryTestCase
 import pytest
 
 from shapely.errors import EmptyPartError
-from shapely.geos import lgeos
 from shapely.geometry import LineString, MultiLineString
 from shapely.geometry.base import dump_coords
 
