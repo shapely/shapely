@@ -20,7 +20,7 @@ References
 
 import ctypes
 import logging
-from typing import ItemsView, Iterable, Iterator, Sequence, Tuple, Union
+from typing import Any, ItemsView, Iterable, Iterator, Sequence, Tuple, Union
 from warnings import warn
 
 from shapely.errors import ShapelyDeprecationWarning
@@ -34,11 +34,11 @@ class STRtree:
     """An STR-packed R-tree spatial index.
 
     An index is initialized from a sequence of geometry objects and
-    optionally an sequence of integer items. The integer items, if
-    provided, are stored in nodes of the tree. If items are not
-    provided, the indices of the geometry sequence will be used instead.
+    optionally an sequence of items. The items, if provided, are stored
+    in nodes of the tree. If items are not provided, the indices of the
+    geometry sequence will be used instead.
 
-    Stored values and corresponding geometry objects can be spatially
+    Stored items and corresponding geometry objects can be spatially
     queried using another geometric object.
 
     The tree is immutable and query-only, meaning that once created
@@ -49,9 +49,8 @@ class STRtree:
     geoms : sequence
         A sequence of geometry objects.
     items : sequence, optional
-        A sequence of integers which typically serve as identifiers in
-        an application. This sequence must have the same length as
-        geoms.
+        A sequence of objects which typically serve as identifiers in an
+        application. This sequence must have the same length as geoms.
 
     Attributes
     ----------
@@ -80,10 +79,9 @@ class STRtree:
 
     Notes
     -----
-    The class maintains a reverse mapping of integer items to geometries
-    and for performance reasons stores only integers in the STRtree from
-    the GEOS C API. The tree is filled using the Sort-Tile-Recursive
-    [1]_ algorithm.
+    The class maintains a reverse mapping of items to geometries. These
+    items must therefore be hashable. The tree is filled using the
+    Sort-Tile-Recursive [1]_ algorithm.
 
     References
     ----------
@@ -97,7 +95,7 @@ class STRtree:
     def __init__(
         self,
         geoms: Iterable[BaseGeometry],
-        items: Iterable[int] = None,
+        items: Iterable[Any] = None,
         node_capacity: int = 10,
     ):
         warn(
@@ -120,8 +118,8 @@ class STRtree:
 
     def _iterinitdata(
         self,
-        initdata: Union[Iterable[Tuple[BaseGeometry, int]], Iterable[BaseGeometry]],
-    ) -> Iterator[Tuple[BaseGeometry, int]]:
+        initdata: Union[Iterable[Tuple[BaseGeometry, Any]], Iterable[BaseGeometry]],
+    ) -> Iterator[Tuple[BaseGeometry, Any]]:
         if not initdata:
             return
 
@@ -131,7 +129,7 @@ class STRtree:
             elif isinstance(item, BaseGeometry):
                 yield (item, enum_idx)
 
-    def _init_tree(self, rev_initdata: ItemsView[int, BaseGeometry]):
+    def _init_tree(self, rev_initdata: ItemsView[Any, BaseGeometry]):
         if rev_initdata:
             self._tree = lgeos.GEOSSTRtree_create(self.node_capacity)
             for item, geom in rev_initdata:
@@ -156,7 +154,7 @@ class STRtree:
 
             self._tree = None
 
-    def query_items(self, geom: BaseGeometry) -> Sequence[int]:
+    def query_items(self, geom: BaseGeometry) -> Sequence[Any]:
         """Query for nodes which intersect the geom's envelope to get
         stored items.
 
@@ -169,8 +167,7 @@ class STRtree:
 
         Returns
         -------
-        sequence
-            A list or array of ints.
+        An array or list of items stored in the tree.
 
         Note
         ----
@@ -227,8 +224,7 @@ class STRtree:
 
         Returns
         -------
-        sequence
-            A sequence of geometry objects.
+        An array or list of geometry objects.
 
         """
         items = self.query_items(geom)
@@ -248,13 +244,12 @@ class STRtree:
 
         Returns
         -------
-        sequence
-            A list or array of geometry objects.
+        An array or list of geometry objects.
 
         """
         return self.query_geoms(geom)
 
-    def nearest_item(self, geom: BaseGeometry) -> Union[int, None]:
+    def nearest_item(self, geom: BaseGeometry) -> Union[Any, None]:
         """Query the tree for the node nearest to geom and get the item
         stored in the node.
 
@@ -267,7 +262,7 @@ class STRtree:
 
         Returns
         -------
-        int or None
+        Stored item or None.
 
         None is returned if this index is empty. This may change in
         version 2.0.
@@ -324,7 +319,7 @@ class STRtree:
 
         Returns
         -------
-        BaseGeometry or None
+        BaseGeometry or None.
 
         None is returned if this index is empty. This may change in
         version 2.0.
@@ -350,7 +345,7 @@ class STRtree:
 
         Returns
         -------
-        BaseGeometry or None
+        BaseGeometry or None.
 
         None is returned if this index is empty. This may change in
         version 2.0.

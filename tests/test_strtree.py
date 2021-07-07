@@ -157,23 +157,23 @@ def test_nearest_geom(geoms, query_geom):
         ]
     ],
 )
-@pytest.mark.parametrize("values", [list(range(1, 4))])
+@pytest.mark.parametrize("items", [list(range(1, 4)), list("abc")])
 @pytest.mark.parametrize("query_geom", [Point(0, 0.4)])
-def test_nearest_item(geoms, values, query_geom):
+def test_nearest_item(geoms, items, query_geom):
     with pytest.warns(ShapelyDeprecationWarning):
-        tree = STRtree(geoms, values)
-    assert tree.nearest_item(query_geom) == 1
+        tree = STRtree(geoms, items)
+    assert tree.nearest_item(query_geom) == items[0]
 
 
-@pytest.mark.parametrize(["geoms", "values"], [(None, None), ([], None)])
-def test_nearest_empty(geoms, values):
+@pytest.mark.parametrize(["geoms", "items"], [(None, None), ([], None)])
+def test_nearest_empty(geoms, items):
     with pytest.warns(ShapelyDeprecationWarning):
-        tree = STRtree(geoms, values)
+        tree = STRtree(geoms, items)
     assert tree.nearest_item(None) is None
 
 
-@pytest.mark.parametrize(["geoms", "values"], [(None, None), ([], None)])
-def test_nearest_values(geoms, values):
+@pytest.mark.parametrize(["geoms", "items"], [(None, None), ([], None)])
+def test_nearest_items(geoms, items):
     with pytest.warns(ShapelyDeprecationWarning):
-        tree = STRtree(geoms, values)
+        tree = STRtree(geoms, items)
     assert tree.nearest_item(None) is None
