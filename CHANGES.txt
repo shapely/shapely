@@ -8,6 +8,15 @@ Python version support:
 
 Shapely 1.8 will support only Python versions >= 3.6.
 
+New features:
+
+- The STRtree class constructor now takes an optional second argument, a
+  sequence of objects to be stored in the tree. If not provided, the sequence
+  indices of the geometries will be stored, as before (#1112).
+- The STRtree class has new query_geoms(), query_items(), nearest_geom(), and
+  nearest_item() methods (#1112). The query() and nearest() methods remain as
+  aliases for query_geoms() and nearest_geom().
+
 Bug fixes:
 
 - GEOS error messages printed when GEOS_getCoordSeq() is passed an empty
