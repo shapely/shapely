@@ -10,6 +10,8 @@ Shapely 1.8 will support only Python versions >= 3.6.
 
 New features:
 
+- The STRtree nearest*() methods now take an optional argument that
+  specifies exclusion of the input geometry from results (#1115).
 - The STRtree class constructor now takes an optional second argument, a
   sequence of objects to be stored in the tree. If not provided, the sequence
   indices of the geometries will be stored, as before (#1112).

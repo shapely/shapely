@@ -177,3 +177,22 @@ def test_nearest_items(geoms, items):
     with pytest.warns(ShapelyDeprecationWarning):
         tree = STRtree(geoms, items)
     assert tree.nearest_item(None) is None
+
+
+@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS 3.6.0 required")
+@pytest.mark.parametrize(
+    "geoms",
+    [
+        [
+            Point(0, 0.5),
+            Polygon([(1, 0), (2, 0), (2, 1), (1, 1)]),
+            Polygon([(0, 2), (1, 2), (1, 3), (0, 3)]),
+        ]
+    ],
+)
+@pytest.mark.parametrize("items", [list(range(1, 4)), list("abc")])
+@pytest.mark.parametrize("query_geom", [Point(0, 0.5)])
+def test_nearest_item_excluding(geoms, items, query_geom):
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(geoms, items)
+    assert tree.nearest_item(query_geom, exclude_geom=True) != items[0]
