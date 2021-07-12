@@ -13,7 +13,7 @@ import logging
 from shapely.geos import lgeos
 from shapely.geometry import Point, LineString, LinearRing
 from shapely.geometry.base import geom_factory
-from shapely.errors import TopologicalError
+from shapely.errors import GeometryTypeError, TopologicalError
 
 
 include "../_geos.pxi"
@@ -573,4 +573,4 @@ cpdef affine_transform(geom, matrix):
     elif geom.type.startswith('Multi') or geom.type == 'GeometryCollection':
         return type(geom)([affine_transform(part, matrix) for part in geom.geoms])
     else:
-        raise ValueError('Type %r not recognized' % geom.type)
+        raise GeometryTypeError('Type %r not recognized' % geom.type)

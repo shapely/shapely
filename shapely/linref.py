@@ -1,6 +1,7 @@
 """Linear referencing
 """
 
+from shapely.errors import GeometryTypeError
 from shapely.topology import Delegating
 
 
@@ -8,7 +9,7 @@ class LinearRefBase(Delegating):
     def _validate_line(self, ob):
         super()._validate(ob)
         if not ob.geom_type in ['LinearRing', 'LineString', 'MultiLineString']:
-            raise TypeError("Only linear types support this operation")
+            raise GeometryTypeError("Only linear types support this operation")
 
 class ProjectOp(LinearRefBase):
     def __call__(self, this, other):
