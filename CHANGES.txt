@@ -10,6 +10,10 @@ Shapely 1.8 will support only Python versions >= 3.6.
 
 New features:
 
+- A GeometryTypeError has been added to shapely.errors and is consistently
+  raised instead of TypeError or ValueError as in version 1.7. For backwards
+  compatibility, the new exception will derive from TypeError and Value error
+  until version 2.0 (#1099).
 - The STRtree class constructor now takes an optional second argument, a
   sequence of objects to be stored in the tree. If not provided, the sequence
   indices of the geometries will be stored, as before (#1112).

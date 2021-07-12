@@ -45,7 +45,7 @@ class EmptyPartError(ShapelyError):
     """An error signifying an empty part was encountered when creating a multi-part."""
 
 
-class GeometryTypeError(TypeError, ValueError):
+class GeometryTypeError(ShapelyError, TypeError, ValueError):
     """
     An error raised when the type of the geometry in question is
     unrecognized or inappropriate.
@@ -55,7 +55,7 @@ class GeometryTypeError(TypeError, ValueError):
         super().__init__(msg)
 
 
-class InvalidGeometryError(TypeError, ValueError):
+class InvalidGeometryError(ShapelyError, TypeError, ValueError):
     """
     An error raised when an operation is attempted on a null geometry
     """
