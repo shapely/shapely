@@ -192,7 +192,7 @@ def test_nearest_items(geoms, items):
 )
 @pytest.mark.parametrize("items", [list(range(1, 4)), list("abc")])
 @pytest.mark.parametrize("query_geom", [Point(0, 0.5)])
-def test_nearest_item_excluding(geoms, items, query_geom):
+def test_nearest_item_exclusive(geoms, items, query_geom):
     with pytest.warns(ShapelyDeprecationWarning):
         tree = STRtree(geoms, items)
-    assert tree.nearest_item(query_geom, exclude_geom=True) != items[0]
+    assert tree.nearest_item(query_geom, exclusive=True) != items[0]
