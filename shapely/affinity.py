@@ -1,6 +1,7 @@
 """Affine transforms, both in general and specific, named transforms."""
 
 from math import sin, cos, tan, pi
+from shapely.errors import GeometryTypeError
 
 __all__ = ['affine_transform', 'rotate', 'scale', 'skew', 'translate']
 
@@ -92,7 +93,7 @@ def affine_transform(geom, matrix):
         return type(geom)([affine_transform(part, matrix)
                            for part in geom.geoms])
     else:
-        raise ValueError('Type %r not recognized' % geom.type)
+        raise GeometryTypeError('Type %r not recognized' % geom.type)
 
 
 def interpret_origin(geom, origin, ndim):
