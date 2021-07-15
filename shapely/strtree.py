@@ -21,6 +21,7 @@ References
 import ctypes
 import logging
 from typing import Any, ItemsView, Iterable, Iterator, Sequence, Tuple, Union
+import sys
 from warnings import warn
 
 from shapely.errors import ShapelyDeprecationWarning
@@ -249,7 +250,9 @@ class STRtree:
         """
         return self.query_geoms(geom)
 
-    def nearest_item(self, geom: BaseGeometry) -> Union[Any, None]:
+    def nearest_item(
+        self, geom: BaseGeometry, exclusive: bool = False
+    ) -> Union[Any, None]:
         """Query the tree for the node nearest to geom and get the item
         stored in the node.
 
@@ -259,6 +262,9 @@ class STRtree:
         ----------
         geom : geometry object
             The query geometry.
+        exclusive : bool, optional
+            Whether to exclude the item corresponding to the given geom
+            from results or not.  Default: False.
 
         Returns
         -------
@@ -289,10 +295,14 @@ class STRtree:
 
         def callback(item1, item2, distance, userdata):
             try:
+                callback_userdata = ctypes.cast(userdata, ctypes.py_object).value
                 idx = ctypes.cast(item1, ctypes.py_object).value
                 geom2 = ctypes.cast(item2, ctypes.py_object).value
                 dist = ctypes.cast(distance, ctypes.POINTER(ctypes.c_double))
-                lgeos.GEOSDistance(self._rev[idx]._geom, geom2._geom, dist)
+                if callback_userdata["exclusive"] and self._rev[idx].equals(geom2):
+                    dist[0] = sys.float_info.max
+                else:
+                    lgeos.GEOSDistance(self._rev[idx]._geom, geom2._geom, dist)
                 return 1
             except Exception:
                 log.exception("Caught exception")
@@ -303,12 +313,14 @@ class STRtree:
             ctypes.py_object(geom),
             envelope._geom,
             lgeos.GEOSDistanceCallback(callback),
-            None,
+            ctypes.py_object({"exclusive": exclusive}),
         )
         result = ctypes.cast(item, ctypes.py_object).value
         return result
 
-    def nearest_geom(self, geom: BaseGeometry) -> Union[BaseGeometry, None]:
+    def nearest_geom(
+        self, geom: BaseGeometry, exclusive: bool = False
+    ) -> Union[BaseGeometry, None]:
         """Query the tree for the node nearest to geom and get the
         geometry corresponding to the item stored in the node.
 
@@ -316,6 +328,9 @@ class STRtree:
         ----------
         geom : geometry object
             The query geometry.
+        exclusive : bool, optional
+            Whether to exclude the given geom from results or not.
+            Default: False.
 
         Returns
         -------
@@ -325,13 +340,15 @@ class STRtree:
         version 2.0.
 
         """
-        item = self.nearest_item(geom)
+        item = self.nearest_item(geom, exclusive=exclusive)
         if item is None:
             return None
         else:
             return self._rev[item]
 
-    def nearest(self, geom: BaseGeometry) -> Union[BaseGeometry, None]:
+    def nearest(
+        self, geom: BaseGeometry, exclusive: bool = False
+    ) -> Union[BaseGeometry, None]:
         """Query the tree for the node nearest to geom and get the
         geometry corresponding to the item stored in the node.
 
@@ -342,6 +359,9 @@ class STRtree:
         ----------
         geom : geometry object
             The query geometry.
+        exclusive : bool, optional
+            Whether to exclude the given geom from results or not.
+            Default: False.
 
         Returns
         -------
@@ -351,4 +371,4 @@ class STRtree:
         version 2.0.
 
         """
-        return self.nearest_geom(geom)
+        return self.nearest_geom(geom, exclusive=exclusive)
