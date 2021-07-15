@@ -97,11 +97,11 @@ if sys.platform.startswith('linux'):
             'libgeos_c.so',
         ]
         _lgeos = load_dll('libgeos_c', fallbacks=alt_paths)
-    # Necessary for environments with only libc.musl
-    c_alt_paths = [
-        'libc.musl-x86_64.so.1'
-    ]
-    # free = load_dll('c', fallbacks=c_alt_paths).free
+
+    # ctypes.CDLL(None) internally calls dlopen(NULL), and as the dlopen
+    # manpage says, "If filename is NULL, then the returned handle is for the
+    # main program". This way we can let the linker do the work to figure out
+    # which libc Python is actually using.
     free = CDLL(None).free
     free.argtypes = [c_void_p]
     free.restype = None
@@ -148,10 +148,6 @@ elif sys.platform == 'darwin':
             ]
         _lgeos = load_dll('geos_c', fallbacks=alt_paths)
 
-    # ctypes.CDLL(None) internally calls dlopen(NULL), and as the dlopen
-    # manpage says, "If filename is NULL, then the returned handle is for the
-    # main program". This way we can let the linker do the work to figure out
-    # which libc Python is actually using.
     free = CDLL(None).free
     free.argtypes = [c_void_p]
     free.restype = None
@@ -188,12 +184,13 @@ elif sys.platform == 'win32':
 
 elif sys.platform == 'sunos5':
     _lgeos = load_dll('geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
-    free = CDLL('libc.so.1').free
+    free.restype = None
     free.argtypes = [c_void_p]
     free.restype = None
+
 else:  # other *nix systems
     _lgeos = load_dll('geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
-    free = load_dll('c', fallbacks=['libc.so.6']).free
+    free = CDLL(None).free
     free.argtypes = [c_void_p]
     free.restype = None
 
