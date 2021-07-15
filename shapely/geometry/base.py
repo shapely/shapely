@@ -101,7 +101,7 @@ def deserialize_wkb(data):
 def geos_geom_from_py(ob, create_func=None):
     """Helper function for geos_*_from_py functions in each geom type.
 
-    If a create_func is specified the coodinate sequence is cloned and a new
+    If a create_func is specified the coordinate sequence is cloned and a new
     geometry is created with it, otherwise the geometry is cloned directly.
     This behaviour is useful for converting between LineString and LinearRing
     objects.

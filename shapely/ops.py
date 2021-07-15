@@ -145,7 +145,7 @@ class CollectionOperator:
         """Returns the union of a sequence of geometries
 
         This method replaces :meth:`cascaded_union` as the
-        prefered method for dissolving many polygons.
+        preferred method for dissolving many polygons.
         """
         try:
             if isinstance(geoms, BaseMultipartGeometry):
