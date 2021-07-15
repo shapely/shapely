@@ -101,7 +101,8 @@ if sys.platform.startswith('linux'):
     c_alt_paths = [
         'libc.musl-x86_64.so.1'
     ]
-    free = load_dll('c', fallbacks=c_alt_paths).free
+    # free = load_dll('c', fallbacks=c_alt_paths).free
+    free = CDLL(None).free
     free.argtypes = [c_void_p]
     free.restype = None
 
