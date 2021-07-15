@@ -503,7 +503,7 @@ class Specifier(_IndividualSpecifier):
                 return False
 
         # Ensure that we do not allow a local version of the version mentioned
-        # in the specifier, which is techincally greater than, to match.
+        # in the specifier, which is technically greater than, to match.
         if prospective.local is not None:
             if Version(prospective.base_version) == Version(spec.base_version):
                 return False
@@ -589,7 +589,7 @@ def _pad_version(left, right):
 class SpecifierSet(BaseSpecifier):
 
     def __init__(self, specifiers="", prereleases=None):
-        # Split on , to break each indidivual specifier into it's own item, and
+        # Split on , to break each individual specifier into it's own item, and
         # strip each item to remove leading/trailing whitespace.
         specifiers = [s.strip() for s in specifiers.split(",") if s.strip()]
 
