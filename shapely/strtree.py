@@ -19,43 +19,51 @@ References
 """
 
 import ctypes
+import logging
+from typing import Any, ItemsView, Iterable, Iterator, Sequence, Tuple, Union
+import sys
 from warnings import warn
 
 from shapely.errors import ShapelyDeprecationWarning
+from shapely.geometry.base import BaseGeometry
 from shapely.geos import lgeos
+
+log = logging.getLogger(__name__)
 
 
 class STRtree:
-    """
-    An STRtree is a spatial index; specifically, an R-tree created
-    using the Sort-Tile-Recursive algorithm.
+    """An STR-packed R-tree spatial index.
 
-    Pass a list of geometry objects to the `STRtree` constructor to
-    create a spatial index. References to these indexed objects are
-    kept and stored in the R-tree. You can query them with another
-    geometric object.
+    An index is initialized from a sequence of geometry objects and
+    optionally an sequence of items. The items, if provided, are stored
+    in nodes of the tree. If items are not provided, the indices of the
+    geometry sequence will be used instead.
 
-    The `STRtree` is query-only, meaning that once created
-    you cannot add or remove geometries.
+    Stored items and corresponding geometry objects can be spatially
+    queried using another geometric object.
 
-    *New in version 1.4.0*.
+    The tree is immutable and query-only, meaning that once created
+    nodes cannot be added or removed.
 
     Parameters
     ----------
     geoms : sequence
         A sequence of geometry objects.
     items : sequence, optional
-        A sequence of integers which typically serve as identifiers in
-        an application. This sequence must have the same length as
-        geoms.
+        A sequence of objects which typically serve as identifiers in an
+        application. This sequence must have the same length as geoms.
+
+    Attributes
+    ----------
+    node_capacity : int
+        The maximum number of items per node. Default: 10.
 
     Examples
     --------
-
-    Creating an index of pologons:
+    Creating an index of polygons:
 
     >>> from shapely.strtree import STRtree
-    >>> from shapely.geometry import Polygon, Point
+    >>> from shapely.geometry import Polygon
     >>>
     >>> polys = [Polygon(((0, 0), (1, 0), (1, 1))),
     ...          Polygon(((0, 1), (0, 0), (1, 0))),
@@ -70,21 +78,28 @@ class STRtree:
     >>> polys[2] in result
     False
 
-    Behavior if an `STRtree` is created empty:
+    Notes
+    -----
+    The class maintains a reverse mapping of items to geometries. These
+    items must therefore be hashable. The tree is filled using the
+    Sort-Tile-Recursive [1]_ algorithm.
 
-    >>> tree = STRtree([])
-    >>> tree.query(Point(0, 0))
-    []
-    >>> print(tree.nearest(Point(0, 0)))
-    None
+    References
+    ----------
+    .. [1] Leutenegger, Scott T.; Edgington, Jeffrey M.; Lopez, Mario A.
+       (February 1997). "STR: A Simple and Efficient Algorithm for
+       R-Tree Packing".
+       https://ia600900.us.archive.org/27/items/nasa_techdoc_19970016975/19970016975.pdf
+
     """
 
-    def __init__(self, geoms, items=None):
-        warn(
-            "STRtree will be completely changed in 2.0.0. The exact API is not yet decided, but will be documented before 1.8.0",
-            ShapelyDeprecationWarning,
-            stacklevel=2,
-        )
+    def __init__(
+        self,
+        geoms: Iterable[BaseGeometry],
+        items: Iterable[Any] = None,
+        node_capacity: int = 10,
+    ):
+        self.node_capacity = node_capacity
         geoms = list(geoms)
         has_custom_items = items is not None
         if not has_custom_items:
@@ -100,30 +115,30 @@ class STRtree:
         # Keep references to geoms.
         self._geoms = list(geoms)
 
-    def _init_tree_handle(self, geoms):
-        node_capacity = 10
-        self._tree_handle = lgeos.GEOSSTRtree_create(node_capacity)
+    def _init_tree(self, geoms):
+        self._tree = lgeos.GEOSSTRtree_create(self.node_capacity)
         self._idxs = list(range(len(geoms)))
         for idx, geom in zip(self._idxs, geoms):
-            lgeos.GEOSSTRtree_insert(self._tree_handle, geom._geom, ctypes.py_object(idx))
+            lgeos.GEOSSTRtree_insert(self._tree, geom._geom, ctypes.py_object(idx))
 
-    def __getstate__(self):
-        state = self.__dict__.copy()
-        del state["_tree_handle"]
-        return state
+    # def __getstate__(self):
+    #     state = self.__dict__.copy()
+    #     del state["_tree"]
+    #     return state
 
-    def __setstate__(self, state):
-        self.__dict__.update(state)
-        self._init_tree_handle(self._geoms)
+    # def __setstate__(self, state):
+    #     self.__dict__.update(state)
+    #     if self._rev:
+    #         self._init_tree(self._rev.items())
 
     def __del__(self):
-        if self._tree_handle is not None:
+        if self._tree is not None:
             try:
-                lgeos.GEOSSTRtree_destroy(self._tree_handle)
+                lgeos.GEOSSTRtree_destroy(self._tree)
             except AttributeError:
                 pass  # lgeos might be empty on shutdown.
 
-            self._tree_handle = None
+            self._tree = None
 
     def _query(self, geom):
         if self._n_geoms == 0:
@@ -138,30 +153,28 @@ class STRtree:
         lgeos.GEOSSTRtree_query(self._tree_handle, geom._geom, lgeos.GEOSQueryCallback(callback), None)
         return result
 
-    def query(self, geom):
-        """
-        Search the index for geometry objects whose extents
-        intersect the extent of the given object.
+    def query_items(self, geom: BaseGeometry) -> Sequence[Any]:
+        """Query for nodes which intersect the geom's envelope to get
+        stored items.
+
+        Items are integers serving as identifiers for an application.
 
         Parameters
         ----------
         geom : geometry object
-            The query geometry
+            The query geometry.
 
         Returns
         -------
-        list of geometry objects
-            All the geometry objects in the index whose extents
-            intersect the extent of `geom`.
+        An array or list of items stored in the tree.
 
         Note
         ----
-        A geometry object's "extent" is its the minimum xy bounding
+        A geometry object's "envelope" is its minimum xy bounding
         rectangle.
 
         Examples
         --------
-
         A buffer around a point can be used to control the extent
         of the query.
 
@@ -184,25 +197,48 @@ class STRtree:
         >>> [o.wkt for o in tree.query(query_geom) if o.intersects(query_geom)]
         ['POINT (2 2)']
 
-        To get the original indices of the returned objects, create an
-        auxiliary dictionary. But use the geometry *ids* as keys since
-        the shapely geometry objects themselves are not hashable.
-
-        >>> index_by_id = dict((id(pt), i) for i, pt in enumerate(points))
-        >>> [(index_by_id[id(pt)], pt.wkt) for pt in tree.query(Point(2,2).buffer(1.0))]
-        [(1, 'POINT (1 1)'), (2, 'POINT (2 2)'), (3, 'POINT (3 3)')]
-        """
-        result = self._query(geom)
-        return [self._geoms[i] for i in result]
-
-    def query_items(self, geom):
-        """
         """
         result = self._query(geom)
         if self._has_custom_items:
             return [self._items[i] for i in result]
         else:
             return result
+
+    def query_geoms(self, geom: BaseGeometry) -> Sequence[BaseGeometry]:
+        """Query for nodes which intersect the geom's envelope to get
+        geometries corresponding to the items stored in the nodes.
+
+        Parameters
+        ----------
+        geom : geometry object
+            The query geometry.
+
+        Returns
+        -------
+        An array or list of geometry objects.
+
+        """
+        result = self._query(geom)
+        return [self._geoms[i] for i in result]
+
+    def query(self, geom: BaseGeometry) -> Sequence[BaseGeometry]:
+        """Query for nodes which intersect the geom's envelope to get
+        geometries corresponding to the items stored in the nodes.
+
+        This method is an alias for query_geoms. It may be removed in
+        version 2.0.
+
+        Parameters
+        ----------
+        geom : geometry object
+            The query geometry.
+
+        Returns
+        -------
+        An array or list of geometry objects.
+
+        """
+        return self.query_geoms(geom)
 
     def _nearest(self, geom):
         envelope = geom.envelope
@@ -221,24 +257,28 @@ class STRtree:
             lgeos.GEOSDistanceCallback(callback), None)
         return ctypes.cast(item, ctypes.py_object).value
 
-    def nearest(self, geom):
-        """
-        Get the nearest object in the index to a geometry object.
+    def nearest_item(
+        self, geom: BaseGeometry, exclusive: bool = False
+    ) -> Union[Any, None]:
+        """Query the tree for the node nearest to geom and get the item
+        stored in the node.
+
+        Items are integers serving as identifiers for an application.
 
         Parameters
         ----------
         geom : geometry object
-            The query geometry
+            The query geometry.
+        exclusive : bool, optional
+            Whether to exclude the item corresponding to the given geom
+            from results or not.  Default: False.
 
         Returns
         -------
-        geometry object
-            The nearest geometry object in the index to `geom`.
+        Stored item or None.
 
-            Will always only return *one* object even if several
-            in the index are the minimum distance away.
-
-            `None` if the index is empty.
+        None is returned if this index is empty. This may change in
+        version 2.0.
 
         Examples
         --------
@@ -253,15 +293,7 @@ class STRtree:
         >>> tree = STRtree ([Point(0, 0), Point(0, 0)])
         >>> tree.nearest(Point(0, 0)).wkt
         'POINT (0 0)'
-        """
-        if self._n_geoms == 0:
-            return None
 
-        result = self._nearest(geom)
-        return self._geoms[result]
-        
-    def nearest_items(self, geom):
-        """
         """
         if self._n_geoms == 0:
             return None
@@ -271,3 +303,55 @@ class STRtree:
             return self._items[result]
         else:
             return result
+
+    def nearest_geom(
+        self, geom: BaseGeometry, exclusive: bool = False
+    ) -> Union[BaseGeometry, None]:
+        """Query the tree for the node nearest to geom and get the
+        geometry corresponding to the item stored in the node.
+
+        Parameters
+        ----------
+        geom : geometry object
+            The query geometry.
+        exclusive : bool, optional
+            Whether to exclude the given geom from results or not.
+            Default: False.
+
+        Returns
+        -------
+        BaseGeometry or None.
+
+        None is returned if this index is empty. This may change in
+        version 2.0.
+
+        """
+        result = self._nearest(geom)
+        return self._geoms[result]
+
+    def nearest(
+        self, geom: BaseGeometry, exclusive: bool = False
+    ) -> Union[BaseGeometry, None]:
+        """Query the tree for the node nearest to geom and get the
+        geometry corresponding to the item stored in the node.
+
+        This method is an alias for nearest_geom. It may be removed in
+        version 2.0.
+
+        Parameters
+        ----------
+        geom : geometry object
+            The query geometry.
+        exclusive : bool, optional
+            Whether to exclude the given geom from results or not.
+            Default: False.
+
+        Returns
+        -------
+        BaseGeometry or None.
+
+        None is returned if this index is empty. This may change in
+        version 2.0.
+
+        """
+        return self.nearest_geom(geom, exclusive=exclusive)

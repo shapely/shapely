@@ -1,5 +1,6 @@
 from . import unittest
 
+from shapely.errors import GeometryTypeError
 from shapely.geometry import Point, LineString, Polygon, MultiLineString, \
                              GeometryCollection
 from shapely.ops import shared_paths
@@ -35,8 +36,8 @@ class SharedPaths(unittest.TestCase):
         g1 = Point(0, 0)
         g2 = LineString([(5, 0), (15, 0)])
         
-        with self.assertRaises(TypeError):
+        with self.assertRaises(GeometryTypeError):
             result = shared_paths(g1, g2)
             
-        with self.assertRaises(TypeError):
+        with self.assertRaises(GeometryTypeError):
             result = shared_paths(g2, g1)

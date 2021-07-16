@@ -15,7 +15,7 @@ import threading
 from functools import partial
 
 from .ctypes_declarations import prototype, EXCEPTION_HANDLER_FUNCTYPE
-from .errors import WKBReadingError, WKTReadingError, TopologicalError, PredicateError
+from .errors import InvalidGeometryError, WKBReadingError, WKTReadingError, TopologicalError, PredicateError
 
 
 # Add message handler to this module's logger
@@ -97,11 +97,12 @@ if sys.platform.startswith('linux'):
             'libgeos_c.so',
         ]
         _lgeos = load_dll('libgeos_c', fallbacks=alt_paths)
-    # Necessary for environments with only libc.musl
-    c_alt_paths = [
-        'libc.musl-x86_64.so.1'
-    ]
-    free = load_dll('c', fallbacks=c_alt_paths).free
+
+    # ctypes.CDLL(None) internally calls dlopen(NULL), and as the dlopen
+    # manpage says, "If filename is NULL, then the returned handle is for the
+    # main program". This way we can let the linker do the work to figure out
+    # which libc Python is actually using.
+    free = CDLL(None).free
     free.argtypes = [c_void_p]
     free.restype = None
 
@@ -147,10 +148,6 @@ elif sys.platform == 'darwin':
             ]
         _lgeos = load_dll('geos_c', fallbacks=alt_paths)
 
-    # ctypes.CDLL(None) internally calls dlopen(NULL), and as the dlopen
-    # manpage says, "If filename is NULL, then the returned handle is for the
-    # main program". This way we can let the linker do the work to figure out
-    # which libc Python is actually using.
     free = CDLL(None).free
     free.argtypes = [c_void_p]
     free.restype = None
@@ -187,12 +184,13 @@ elif sys.platform == 'win32':
 
 elif sys.platform == 'sunos5':
     _lgeos = load_dll('geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
-    free = CDLL('libc.so.1').free
+    free.restype = None
     free.argtypes = [c_void_p]
     free.restype = None
+
 else:  # other *nix systems
     _lgeos = load_dll('geos_c', fallbacks=['libgeos_c.so.1', 'libgeos_c.so'])
-    free = load_dll('c', fallbacks=['libc.so.6']).free
+    free = CDLL(None).free
     free.argtypes = [c_void_p]
     free.restype = None
 
@@ -395,7 +393,7 @@ class WKTWriter:
     def write(self, geom):
         """Returns WKT string for geometry"""
         if geom is None or geom._geom is None:
-            raise ValueError("Null geometry supports no operations")
+            raise InvalidGeometryError("Null geometry supports no operations")
         result = self._lgeos.GEOSWKTWriter_write(self._writer, geom._geom)
         text = string_at(result)
         lgeos.GEOSFree(result)
@@ -515,7 +513,7 @@ class WKBWriter:
     def write(self, geom):
         """Returns WKB byte string for geometry"""
         if geom is None or geom._geom is None:
-            raise ValueError("Null geometry supports no operations")
+            raise InvalidGeometryError("Null geometry supports no operations")
         size = c_size_t()
         result = self._lgeos.GEOSWKBWriter_write(
             self._writer, geom._geom, pointer(size))
@@ -526,7 +524,7 @@ class WKBWriter:
     def write_hex(self, geom):
         """Returns WKB hex string for geometry"""
         if geom is None or geom._geom is None:
-            raise ValueError("Null geometry supports no operations")
+            raise InvalidGeometryError("Null geometry supports no operations")
         size = c_size_t()
         result = self._lgeos.GEOSWKBWriter_writeHEX(
             self._writer, geom._geom, pointer(size))

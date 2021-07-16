@@ -3,7 +3,7 @@ Design Notes
 ============
 
 Shapely provides classes that implement, more or less, the interfaces in the
-OGC's simple feature acess specification [1]_. The classes are defined in
+OGC's simple feature access specification [1]_. The classes are defined in
 similarly named modules under ``shapely.geometry``: ``Point`` is in
 ``shapely.geometry.point``, ``MultiPolygon`` is in
 ``shapely.geometry.multipolygon``. These classes derive from

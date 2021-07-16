@@ -8,6 +8,7 @@ import pytest
 
 from shapely.errors import ShapelyDeprecationWarning
 from shapely.geometry import Point, Polygon
+from shapely.geos import geos_version
 from shapely import strtree
 from shapely.strtree import STRtree
 
@@ -15,18 +16,30 @@ from .conftest import requires_geos_342
 
 
 @requires_geos_342
-def test_query():
-    points = [Point(i, i) for i in range(10)]
+@pytest.mark.parametrize("geoms", [[Point(i, i) for i in range(10)]])
+@pytest.mark.parametrize(
+    "query_geom,num_results",
+    [(Point(2, 2).buffer(0.99), 1), (Point(2, 2).buffer(1.0), 3)],
+)
+def test_query(geoms, query_geom, num_results):
     with pytest.warns(ShapelyDeprecationWarning):
-        tree = STRtree(points)
-    results = tree.query(Point(2, 2).buffer(0.99))
-    assert len(results) == 1
-    assert results[0] == Point(2, 2)
-    results = tree.query_items(Point(2, 2).buffer(0.99))
-    assert len(results) == 1
-    assert results[0] == 2
-    results = tree.query(Point(2, 2).buffer(1.0))
-    assert len(results) == 3
+        tree = STRtree(geoms)
+    results = tree.query(query_geom)
+    assert len(results) == num_results
+
+
+@requires_geos_342
+@pytest.mark.parametrize("geoms", [[Point(i, i) for i in range(10)]])
+@pytest.mark.parametrize(
+    "query_geom,expected",
+    [(Point(2, 2).buffer(0.99), [2]), (Point(2, 2).buffer(1.0), [1, 2, 3])],
+)
+def test_query_enumeration_idx(geoms, query_geom, expected):
+    """Store enumeration idx"""
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree((g, i) for i, g in enumerate(geoms))
+    results = tree.query_items(query_geom)
+    assert sorted(results) == sorted(expected)
 
 
 @requires_geos_342
@@ -39,7 +52,6 @@ def test_insert_empty_geometry():
     geoms = [empty]
     with pytest.warns(ShapelyDeprecationWarning):
         tree = STRtree(geoms)
-    assert tree._n_geoms == 0
     query = Polygon([(0, 0), (1, 1), (2, 0), (0, 0)])
     results = tree.query(query)
     assert len(results) == 0
@@ -56,7 +68,6 @@ def test_query_empty_geometry():
     geoms = [empty, point]
     with pytest.warns(ShapelyDeprecationWarning):
         tree = STRtree(geoms)
-    assert tree._n_geoms == 1
     query = Polygon([(0, 0), (1, 1), (2, 0), (0, 0)])
     results = tree.query(query)
     assert len(results) == 1
@@ -71,7 +82,6 @@ def test_references():
     geoms = [empty, point]
     with pytest.warns(ShapelyDeprecationWarning):
         tree = STRtree(geoms)
-    assert tree._n_geoms == 1
 
     empty = None
     point = None
@@ -101,9 +111,9 @@ def test_pickle_persistence():
     """
     Don't crash trying to use unpickled GEOS handle.
     """
-
     with pytest.warns(ShapelyDeprecationWarning):
-        tree = STRtree([Point(i, i).buffer(0.1) for i in range(3)])
+        tree = STRtree([(Point(i, i).buffer(0.1), i) for i in range(3)])
+
     pickled_strtree = pickle.dumps(tree)
     unpickle_script_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "unpickle-strtree.py")
     proc = subprocess.Popen(
@@ -113,3 +123,76 @@ def test_pickle_persistence():
     proc.communicate(input=pickled_strtree)
     proc.wait()
     assert proc.returncode == 0
+
+
+@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS 3.6.0 required")
+@pytest.mark.parametrize(
+    "geoms",
+    [
+        [
+            Polygon([(1, 0), (2, 0), (2, 1), (1, 1)]),
+            Polygon([(0, 2), (1, 2), (1, 3), (0, 3)]),
+            Point(0, 0.5),
+        ]
+    ],
+)
+@pytest.mark.parametrize("query_geom", [Point(0, 0.4)])
+def test_nearest_geom(geoms, query_geom):
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(geoms)
+    result = tree.nearest(query_geom)
+    assert result.geom_type == "Point"
+    assert result.x == 0.0
+    assert result.y == 0.5
+
+
+@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS 3.6.0 required")
+@pytest.mark.parametrize(
+    "geoms",
+    [
+        [
+            Point(0, 0.5),
+            Polygon([(1, 0), (2, 0), (2, 1), (1, 1)]),
+            Polygon([(0, 2), (1, 2), (1, 3), (0, 3)]),
+        ]
+    ],
+)
+@pytest.mark.parametrize("items", [list(range(1, 4)), list("abc")])
+@pytest.mark.parametrize("query_geom", [Point(0, 0.4)])
+def test_nearest_item(geoms, items, query_geom):
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(geoms, items)
+    assert tree.nearest_item(query_geom) == items[0]
+
+
+@pytest.mark.parametrize(["geoms", "items"], [(None, None), ([], None)])
+def test_nearest_empty(geoms, items):
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(geoms, items)
+    assert tree.nearest_item(None) is None
+
+
+@pytest.mark.parametrize(["geoms", "items"], [(None, None), ([], None)])
+def test_nearest_items(geoms, items):
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(geoms, items)
+    assert tree.nearest_item(None) is None
+
+
+@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS 3.6.0 required")
+@pytest.mark.parametrize(
+    "geoms",
+    [
+        [
+            Point(0, 0.5),
+            Polygon([(1, 0), (2, 0), (2, 1), (1, 1)]),
+            Polygon([(0, 2), (1, 2), (1, 3), (0, 3)]),
+        ]
+    ],
+)
+@pytest.mark.parametrize("items", [list(range(1, 4)), list("abc")])
+@pytest.mark.parametrize("query_geom", [Point(0, 0.5)])
+def test_nearest_item_exclusive(geoms, items, query_geom):
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(geoms, items)
+    assert tree.nearest_item(query_geom, exclusive=True) != items[0]

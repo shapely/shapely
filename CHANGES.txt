@@ -8,8 +8,25 @@ Python version support:
 
 Shapely 1.8 will support only Python versions >= 3.6.
 
+New features:
+
+- The STRtree nearest*() methods now take an optional argument that
+  specifies exclusion of the input geometry from results (#1115).
+- A GeometryTypeError has been added to shapely.errors and is consistently
+  raised instead of TypeError or ValueError as in version 1.7. For backwards
+  compatibility, the new exception will derive from TypeError and Value error
+  until version 2.0 (#1099).
+- The STRtree class constructor now takes an optional second argument, a
+  sequence of objects to be stored in the tree. If not provided, the sequence
+  indices of the geometries will be stored, as before (#1112).
+- The STRtree class has new query_geoms(), query_items(), nearest_geom(), and
+  nearest_item() methods (#1112). The query() and nearest() methods remain as
+  aliases for query_geoms() and nearest_geom().
+
 Bug fixes:
 
+- We no longer attempt to load libc to get the free function on Linux, but get
+  it from the global symbol table.
 - GEOS error messages printed when GEOS_getCoordSeq() is passed an empty
   geometry are avoided by never passing an empty geometry (#1134).
 - Python's builtin super() is now used only as described in PEP 3135 (#1109).

@@ -2,6 +2,7 @@ from shapely.ops import split
 
 from . import unittest
 
+from shapely.errors import GeometryTypeError
 from shapely.geometry import Point, MultiPoint, LineString, MultiLineString, Polygon, MultiPolygon, GeometryCollection
 from shapely.ops import linemerge, unary_union
 
@@ -59,11 +60,11 @@ class TestSplitPolygon(TestSplitGeometry):
 		self.helper(self.poly_hole, splitter, 1)
 
 	def test_split_poly_with_other(self):
-		with self.assertRaises(ValueError):
+		with self.assertRaises(GeometryTypeError):
 			split(self.poly_simple, Point(1, 1))
-		with self.assertRaises(ValueError):
+		with self.assertRaises(GeometryTypeError):
 			split(self.poly_simple, MultiPoint([(1, 1), (3, 4)]))
-		with self.assertRaises(ValueError):
+		with self.assertRaises(GeometryTypeError):
 			split(self.poly_simple, self.poly_hole)
 
 class TestSplitLine(TestSplitGeometry):

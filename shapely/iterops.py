@@ -3,7 +3,7 @@ Iterative forms of operations
 """
 import warnings
 
-from shapely.errors import ShapelyDeprecationWarning
+from shapely.errors import InvalidGeometryError, ShapelyDeprecationWarning
 from shapely.topology import Delegating
 
 
@@ -18,7 +18,7 @@ class IterOp(Delegating):
             "Shapely 2.0".format(self._name),
             ShapelyDeprecationWarning, stacklevel=2)
         if context._geom is None:
-            raise ValueError("Null geometry supports no operations")
+            raise InvalidGeometryError("Null geometry supports no operations")
         for item in iterator:
             try:
                 this_geom, ob = item
@@ -26,7 +26,7 @@ class IterOp(Delegating):
                 this_geom = item
                 ob = this_geom
             if not this_geom._geom:
-                raise ValueError("Null geometry supports no operations")
+                raise InvalidGeometryError("Null geometry supports no operations")
             try:
                 retval = self.fn(context._geom, this_geom._geom)
             except Exception as err:

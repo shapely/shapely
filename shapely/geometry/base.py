@@ -17,7 +17,7 @@ from functools import wraps
 
 from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
-from shapely.errors import WKBReadingError, WKTReadingError
+from shapely.errors import GeometryTypeError, WKBReadingError, WKTReadingError
 from shapely.errors import ShapelyDeprecationWarning
 from shapely.geos import WKBWriter, WKTWriter
 from shapely.geos import lgeos
@@ -57,7 +57,7 @@ def dump_coords(geom):
         # Recursive call
         return [dump_coords(part) for part in geom.geoms]
     else:
-        raise ValueError('Unhandled geometry type: ' + repr(geom.type))
+        raise GeometryTypeError('Unhandled geometry type: ' + repr(geom.type))
 
 
 def geometry_type_name(g):
@@ -101,7 +101,7 @@ def deserialize_wkb(data):
 def geos_geom_from_py(ob, create_func=None):
     """Helper function for geos_*_from_py functions in each geom type.
 
-    If a create_func is specified the coodinate sequence is cloned and a new
+    If a create_func is specified the coordinate sequence is cloned and a new
     geometry is created with it, otherwise the geometry is cloned directly.
     This behaviour is useful for converting between LineString and LinearRing
     objects.
@@ -653,7 +653,7 @@ class BaseGeometry:
         """
         # self.impl['normalize'](self)
         if self._geom is None:
-            raise ValueError("Null geometry supports no operations")
+            raise InvalidGeometryError("Null geometry supports no operations")
         geom_cloned = lgeos.GEOSGeom_clone(self._geom)
         lgeos.GEOSNormalize(geom_cloned)
         return geom_factory(geom_cloned)
@@ -1007,7 +1007,7 @@ class GeometrySequence:
             return self._get_geom_item(i)
         elif isinstance(key, slice):
             if type(self) == HeterogeneousGeometrySequence:
-                raise TypeError(
+                raise GeometryTypeError(
                     "Heterogenous geometry collections are not sliceable")
             res = []
             start, stop, stride = key.indices(m)

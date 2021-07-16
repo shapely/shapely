@@ -3,6 +3,7 @@ Geometry factories based on the geo interface
 """
 import warnings
 
+from shapely.errors import GeometryTypeError
 from shapely.errors import ShapelyDeprecationWarning
 
 from .point import Point, asPoint
@@ -52,7 +53,7 @@ def _empty_shape_for_no_coordinates(geom_type):
     elif geom_type == 'multipolygon':
         return MultiPolygon()
     else:
-        raise ValueError("Unknown geometry type: %s" % geom_type)
+        raise GeometryTypeError("Unknown geometry type: %s" % geom_type)
 
 
 def box(minx, miny, maxx, maxy, ccw=True):
@@ -117,7 +118,7 @@ def shape(context):
         geoms = [shape(g) for g in ob.get("geometries", [])]
         return GeometryCollection(geoms)
     else:
-        raise ValueError("Unknown geometry type: %s" % geom_type)
+        raise GeometryTypeError("Unknown geometry type: %s" % geom_type)
 
 
 def asShape(context):
@@ -196,7 +197,7 @@ def asShape(context):
                 ShapelyDeprecationWarning, stacklevel=2)
         return GeometryCollection(geoms)
     else:
-        raise ValueError("Unknown geometry type: %s" % geom_type)
+        raise GeometryTypeError("Unknown geometry type: %s" % geom_type)
 
 
 def mapping(ob):
