@@ -110,7 +110,7 @@ class STRtree:
         # filter empty geometries out of the input
         geoms = [geom for geom in geoms if not geom.is_empty]
         self._n_geoms = len(geoms)
-        self._init_tree_handle(geoms)
+        self._init_tree(geoms)
 
         # Keep references to geoms.
         self._geoms = list(geoms)
@@ -150,7 +150,7 @@ class STRtree:
             idx = ctypes.cast(item, ctypes.py_object).value
             result.append(idx)
 
-        lgeos.GEOSSTRtree_query(self._tree_handle, geom._geom, lgeos.GEOSQueryCallback(callback), None)
+        lgeos.GEOSSTRtree_query(self._tree, geom._geom, lgeos.GEOSQueryCallback(callback), None)
         return result
 
     def query_items(self, geom: BaseGeometry) -> Sequence[Any]:
@@ -253,7 +253,7 @@ class STRtree:
             except Exception:
                 return 0
 
-        item = lgeos.GEOSSTRtree_nearest_generic(self._tree_handle, ctypes.py_object(geom), envelope._geom, \
+        item = lgeos.GEOSSTRtree_nearest_generic(self._tree, ctypes.py_object(geom), envelope._geom, \
             lgeos.GEOSDistanceCallback(callback), None)
         return ctypes.cast(item, ctypes.py_object).value
 
