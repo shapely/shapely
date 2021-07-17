@@ -136,15 +136,8 @@ class STRtree:
         for idx, geom in zip(self._idxs, geoms):
             lgeos.GEOSSTRtree_insert(self._tree, geom._geom, ctypes.py_object(idx))
 
-    # def __getstate__(self):
-    #     state = self.__dict__.copy()
-    #     del state["_tree"]
-    #     return state
-
-    # def __setstate__(self, state):
-    #     self.__dict__.update(state)
-    #     if self._rev:
-    #         self._init_tree(self._rev.items())
+    def __reduce__(self):
+        return STRtree, (self._geoms, self._items)
 
     def __del__(self):
         if self._tree is not None:
