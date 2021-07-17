@@ -99,6 +99,11 @@ class STRtree:
         items: Iterable[Any] = None,
         node_capacity: int = 10,
     ):
+        warn(
+            "STRtree will be changed in 2.0.0. The exact API is not yet decided, but will be documented before 1.8.0",
+            ShapelyDeprecationWarning,
+            stacklevel=2,
+        )
         self.node_capacity = node_capacity
         geoms = list(geoms)
         has_custom_items = items is not None
