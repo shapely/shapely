@@ -245,21 +245,32 @@ class STRtree:
         """
         return self.query_geoms(geom)
 
-    def _nearest(self, geom):
+    def _nearest(self, geom, exclusive):
         envelope = geom.envelope
 
         def callback(item1, item2, distance, userdata):
             try:
-                idx1 = ctypes.cast(item1, ctypes.py_object).value
+                callback_userdata = ctypes.cast(userdata, ctypes.py_object).value
+                idx = ctypes.cast(item1, ctypes.py_object).value
                 geom2 = ctypes.cast(item2, ctypes.py_object).value
                 dist = ctypes.cast(distance, ctypes.POINTER(ctypes.c_double))
-                lgeos.GEOSDistance(self._geoms[idx1]._geom, geom2._geom, dist)
+                if callback_userdata["exclusive"] and self._geoms[idx].equals(geom2):
+                    dist[0] = sys.float_info.max
+                else:
+                    lgeos.GEOSDistance(self._geoms[idx]._geom, geom2._geom, dist)
+                
                 return 1
             except Exception:
+                log.exception("Caught exception")
                 return 0
 
-        item = lgeos.GEOSSTRtree_nearest_generic(self._tree, ctypes.py_object(geom), envelope._geom, \
-            lgeos.GEOSDistanceCallback(callback), None)
+        item = lgeos.GEOSSTRtree_nearest_generic(
+            self._tree,
+            ctypes.py_object(geom),
+            envelope._geom,
+            lgeos.GEOSDistanceCallback(callback),
+            ctypes.py_object({"exclusive": exclusive}),
+        )
         return ctypes.cast(item, ctypes.py_object).value
 
     def nearest_item(
@@ -303,7 +314,7 @@ class STRtree:
         if self._n_geoms == 0:
             return None
 
-        result = self._nearest(geom)
+        result = self._nearest(geom, exclusive)
         if self._has_custom_items:
             return self._items[result]
         else:
@@ -331,7 +342,7 @@ class STRtree:
         version 2.0.
 
         """
-        result = self._nearest(geom)
+        result = self._nearest(geom, exclusive)
         return self._geoms[result]
 
     def nearest(
