@@ -37,7 +37,7 @@ def test_query(geoms, query_geom, num_results):
 def test_query_enumeration_idx(geoms, query_geom, expected):
     """Store enumeration idx"""
     with pytest.warns(ShapelyDeprecationWarning):
-        tree = STRtree((g, i) for i, g in enumerate(geoms))
+        tree = STRtree(geoms, range(len(geoms)))
     results = tree.query_items(query_geom)
     assert sorted(results) == sorted(expected)
 
@@ -112,7 +112,7 @@ def test_pickle_persistence():
     Don't crash trying to use unpickled GEOS handle.
     """
     with pytest.warns(ShapelyDeprecationWarning):
-        tree = STRtree([(Point(i, i).buffer(0.1), i) for i in range(3)])
+        tree = STRtree([Point(i, i).buffer(0.1) for i in range(3)], range(3))
 
     pickled_strtree = pickle.dumps(tree)
     unpickle_script_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "unpickle-strtree.py")
@@ -165,14 +165,14 @@ def test_nearest_item(geoms, items, query_geom):
     assert tree.nearest_item(query_geom) == items[0]
 
 
-@pytest.mark.parametrize(["geoms", "items"], [(None, None), ([], None)])
+@pytest.mark.parametrize(["geoms", "items"], [([], None), ([], [])])
 def test_nearest_empty(geoms, items):
     with pytest.warns(ShapelyDeprecationWarning):
         tree = STRtree(geoms, items)
     assert tree.nearest_item(None) is None
 
 
-@pytest.mark.parametrize(["geoms", "items"], [(None, None), ([], None)])
+@pytest.mark.parametrize(["geoms", "items"], [([], None), ([], [])])
 def test_nearest_items(geoms, items):
     with pytest.warns(ShapelyDeprecationWarning):
         tree = STRtree(geoms, items)
