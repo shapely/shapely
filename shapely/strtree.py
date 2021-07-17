@@ -116,28 +116,34 @@ class STRtree:
             # unzip the list of tuples
             geoms, items = list(zip(*geoms))
 
-        has_custom_items = items is not None
-        if not has_custom_items:
-            items = list(range(len(geoms)))
-
-        self._items = items
-        self._has_custom_items = has_custom_items
-        # filter empty geometries out of the input
-        geoms = [geom for geom in geoms if not geom.is_empty]
-        self._n_geoms = len(geoms)
-        self._init_tree(geoms)
-
-        # Keep references to geoms.
+        # Keep references to geoms
         self._geoms = list(geoms)
+        # Default enumeration index to store in the tree
+        self._idxs = list(range(len(self._geoms)))
+
+        # handle items
+        self._has_custom_items = items is not None
+        if not self._has_custom_items:
+            items = self._idxs
+        self._items = items
+
+        self._init_tree(geoms)
 
     def _init_tree(self, geoms):
         self._tree = lgeos.GEOSSTRtree_create(self.node_capacity)
-        self._idxs = list(range(len(geoms)))
+        i = 0
         for idx, geom in zip(self._idxs, geoms):
-            lgeos.GEOSSTRtree_insert(self._tree, geom._geom, ctypes.py_object(idx))
+            # filter empty geometries out of the input
+            if geom is not None and not geom.is_empty:
+                lgeos.GEOSSTRtree_insert(self._tree, geom._geom, ctypes.py_object(idx))
+                i += 1
+        self._n_geoms = i
 
     def __reduce__(self):
-        return STRtree, (self._geoms, self._items)
+        if self._has_custom_items:
+            return STRtree, (self._geoms, self._items)
+        else:
+            return STRtree, (self._geoms, )
 
     def __del__(self):
         if self._tree is not None:
