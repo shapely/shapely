@@ -105,7 +105,17 @@ class STRtree:
             stacklevel=2,
         )
         self.node_capacity = node_capacity
+
+        if geoms is None:
+            # TODO should we allow this?
+            geoms = []
+
         geoms = list(geoms)
+        if geoms and isinstance(geoms[0], tuple):
+            # TODO should we allow this?
+            # unzip the list of tuples
+            geoms, items = list(zip(*geoms))
+
         has_custom_items = items is not None
         if not has_custom_items:
             items = list(range(len(geoms)))
