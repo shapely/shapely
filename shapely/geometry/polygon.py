@@ -317,7 +317,7 @@ class Polygon(BaseGeometry):
 
     @property
     def __array_interface__(self):
-        raise NotImplementedError(
+        raise AttributeError(
         "A polygon does not itself provide the array interface. Its rings do.")
 
     def _get_coords(self):

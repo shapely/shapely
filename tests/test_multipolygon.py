@@ -110,3 +110,15 @@ def test_getitem_deprecated():
           [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))])])
     with pytest.warns(ShapelyDeprecationWarning, match="__getitem__"):
         part = geom[0]
+
+
+@shapely20_deprecated
+@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
+def test_numpy_object_array():
+    np = pytest.importorskip("numpy")
+
+    geom = MultiPolygon(
+        [(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)),
+          [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))])])
+    ar = np.empty(1, object)
+    ar[:] = [geom]

@@ -421,7 +421,10 @@ def coordseq_ctypes(self):
     cdef GEOSCoordSequence *cs
     cdef double *data_p
     self._update()
-    n = self._ndim
+    n = self._ndim or 0
+    if n == 0:
+        # ignore with NumPy 1.21 __array_interface__
+        raise AttributeError("empty geometry sequence")
     m = self.__len__()
     array_type = ctypes.c_double * (m * n)
     data = array_type()
