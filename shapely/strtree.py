@@ -20,7 +20,7 @@ References
 
 import ctypes
 import logging
-from typing import Any, ItemsView, Iterable, Iterator, Sequence, Tuple, Union
+from typing import Any, ItemsView, Iterable, Iterator, Optional, Sequence, Tuple, Union
 import sys
 from warnings import warn
 
@@ -108,27 +108,24 @@ class STRtree:
         self.node_capacity = node_capacity
         self._rev = {
             item: geom
-            for geom, item in self._iterinitdata(
-                zip(geoms, items) if items is not None else geoms
-            )
+            for geom, item in self._iterinitdata(geoms, items)
             if not geom.is_empty
         }
-
         if self._rev:
             self._init_tree(self._rev.items())
 
     def _iterinitdata(
         self,
-        initdata: Union[Iterable[Tuple[BaseGeometry, Any]], Iterable[BaseGeometry]],
+        geoms: Iterable[BaseGeometry], items: Optional[Iterable[BaseGeometry]],
     ) -> Iterator[Tuple[BaseGeometry, Any]]:
-        if not initdata:
-            return
-
-        for enum_idx, item in enumerate(initdata):
-            if isinstance(item, tuple):
-                yield item[0], item[1]
-            elif isinstance(item, BaseGeometry):
-                yield (item, enum_idx)
+        if items is not None:
+            for geom, item in zip(geoms, items):
+                if isinstance(geom, BaseGeometry):
+                    yield (geom, item)
+        else:
+            for enum_idx, geom in enumerate(geoms):
+                if isinstance(geom, BaseGeometry):
+                    yield (geom, enum_idx)
 
     def _init_tree(self, rev_initdata: ItemsView[Any, BaseGeometry]):
         if rev_initdata:
