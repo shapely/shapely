@@ -7,12 +7,17 @@ import sys
 import pytest
 
 from shapely.errors import ShapelyDeprecationWarning
-from shapely.geometry import Point, Polygon
+from shapely.geometry import Point, Polygon, box
 from shapely.geos import geos_version
 from shapely import strtree
 from shapely.strtree import STRtree
+from shapely import wkt
 
 from .conftest import requires_geos_342
+
+
+point = Point(2, 3)
+empty = wkt.loads("GEOMETRYCOLLECTION EMPTY")
 
 
 @requires_geos_342
@@ -40,6 +45,38 @@ def test_query_enumeration_idx(geoms, query_geom, expected):
         tree = STRtree(geoms, range(len(geoms)))
     results = tree.query_items(query_geom)
     assert sorted(results) == sorted(expected)
+
+
+@requires_geos_342
+@pytest.mark.parametrize("geoms", [[Point(i, i) for i in range(5)]])
+@pytest.mark.parametrize("items", [None, list(range(1, 6)), list("abcde")])
+@pytest.mark.parametrize(
+    "query_geom,expected",
+    [(Point(2, 2).buffer(0.99), [2]), (Point(2, 2).buffer(1.0), [1, 2, 3])],
+)
+def test_query_items(geoms, items, query_geom, expected):
+    """Store enumeration idx"""
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(geoms, items)
+    results = tree.query_items(query_geom)
+    expected = [items[idx] for idx in expected] if items is not None else expected
+    assert sorted(results) == sorted(expected)
+
+
+@pytest.mark.parametrize(
+    "tree_geometry, geometry,expected",
+    [
+        ([point], box(0, 0, 10, 10), [0]),
+        # None/empty is ignored in the tree, but the index of the valid geometry
+        # should be retained.
+        ([None, point], box(0, 0, 10, 10), [1]),
+        ([None, empty, point], box(0, 0, 10, 10), [2]),
+    ],
+)
+def test_query_items_with_empty(tree_geometry, geometry, expected):
+    with pytest.warns(ShapelyDeprecationWarning):
+        tree = STRtree(tree_geometry)
+    assert tree.query_items(geometry) == expected
 
 
 @requires_geos_342
