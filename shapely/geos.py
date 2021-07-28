@@ -143,8 +143,10 @@ elif sys.platform == 'darwin':
                 "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
                 # macports
                 '/opt/local/lib/libgeos_c.dylib',
-                # homebrew
+                # homebrew Intel
                 '/usr/local/lib/libgeos_c.dylib',
+                # homebrew Apple Silicon
+                '/opt/homebrew/lib/libgeos_c.dylib',
             ]
         _lgeos = load_dll('geos_c', fallbacks=alt_paths)
 

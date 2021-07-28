@@ -31,6 +31,8 @@ Bug fixes:
   geometry are avoided by never passing an empty geometry (#1134).
 - Python's builtin super() is now used only as described in PEP 3135 (#1109).
 - Only load conda GEOS dll if it exists (on Windows) (#1108).
+- Add /opt/homebrew/lib to the list of directories to be searched for the GEOS
+  shared library.
 
 1.8a1 (2021-03-03)
 ------------------
