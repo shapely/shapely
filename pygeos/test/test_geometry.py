@@ -268,11 +268,16 @@ def test_set_nan_same_objects():
         empty_line_string,
         empty_polygon,
         empty_geometry_collection,
+        np.array([None]),
+        np.empty_like(np.array([None])),
     ],
 )
 def test_get_parts(geom):
     expected_num_parts = pygeos.get_num_geometries(geom)
-    expected_parts = pygeos.get_geometry(geom, range(0, expected_num_parts))
+    if expected_num_parts == 0:
+        expected_parts = []
+    else:
+        expected_parts = pygeos.get_geometry(geom, range(0, expected_num_parts))
 
     parts = pygeos.get_parts(geom)
     assert len(parts) == expected_num_parts
@@ -549,3 +554,9 @@ def test_set_precision_intersection():
     out = pygeos.intersection(box1, box2)
     assert pygeos.get_precision(out) == 0.5
     assert pygeos.equals(out, pygeos.Geometry("LINESTRING (1 1, 1 0)"))
+
+
+def test_empty():
+    """Compatibility with empty_like, see GH373"""
+    g = np.empty_like(np.array([None, None]))
+    assert pygeos.is_missing(g).all()

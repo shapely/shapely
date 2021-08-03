@@ -12,6 +12,9 @@ Version 0.11 (unreleased)
 
 **Bug fixes**
 
+* Fixed operations on geometry arrays containing NULL instead of None.
+  These occur for instance by using ``numpy.empty_like`` (#371)
+
 **Acknowledgements**
 
 Thanks to everyone who contributed to this release!
