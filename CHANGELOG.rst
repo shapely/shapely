@@ -1,7 +1,7 @@
 Changelog
 =========
 
-Version 0.11 (unreleased)
+Version 0.10.2 (2021-08-19)
 -------------------------
 
 **Distribution**
