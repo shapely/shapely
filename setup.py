@@ -1,12 +1,14 @@
 import builtins
+import logging
 import os
-from pathlib import Path
 import subprocess
 import sys
 from distutils.version import LooseVersion
-from setuptools import setup, Extension
+from pathlib import Path
+
+from setuptools import Extension, setup, find_packages
 from setuptools.command.build_ext import build_ext as _build_ext
-import logging
+
 import versioneer
 
 # Skip Cython build if not available
@@ -135,11 +137,21 @@ ext_modules = []
 if "clean" in sys.argv:
     # delete any previously Cythonized or compiled files in pygeos
     p = Path(".")
-    for pattern in ["build/lib.*/pygeos/*.so", "pygeos/*.c", "pygeos/*.so", "pygeos/*.pyd"]:
+    for pattern in [
+        "build/lib.*/pygeos/*.so",
+        "pygeos/*.c",
+        "pygeos/*.so",
+        "pygeos/*.pyd",
+    ]:
         for filename in p.glob(pattern):
             print("removing '{}'".format(filename))
             filename.unlink()
-elif "sdist" not in sys.argv:
+elif "sdist" in sys.argv:
+    if Path("LICENSE_GEOS").exists() or Path("LICENSE_win32").exists():
+        raise FileExistsError(
+            "Source distributions should not pack LICENSE_GEOS or LICENSE_win32. Please remove the files."
+        )
+else:
     ext_options = get_geos_paths()
 
     ext_modules = [
@@ -153,7 +165,7 @@ elif "sdist" not in sys.argv:
                 "src/pygeom.c",
                 "src/strtree.c",
                 "src/ufuncs.c",
-                "src/vector.c"
+                "src/vector.c",
             ],
             **ext_options,
         )
@@ -164,8 +176,20 @@ elif "sdist" not in sys.argv:
         sys.exit("ERROR: Cython is required to build pygeos from source.")
 
     cython_modules = [
-        Extension("pygeos._geometry", ["pygeos/_geometry.pyx",], **ext_options,),
-        Extension("pygeos._geos", ["pygeos/_geos.pyx",], **ext_options,),
+        Extension(
+            "pygeos._geometry",
+            [
+                "pygeos/_geometry.pyx",
+            ],
+            **ext_options,
+        ),
+        Extension(
+            "pygeos._geos",
+            [
+                "pygeos/_geos.pyx",
+            ],
+            **ext_options,
+        ),
     ]
 
     ext_modules += cythonize(
@@ -186,6 +210,7 @@ version = versioneer.get_version()
 cmdclass = versioneer.get_cmdclass()
 cmdclass["build_ext"] = build_ext
 
+
 setup(
     name="pygeos",
     version=version,
@@ -195,12 +220,14 @@ setup(
     author="Casper van der Wel",
     author_email="caspervdw@gmail.com",
     license="BSD 3-Clause",
-    packages=["pygeos"],
+    packages=find_packages(include=["pygeos", "pygeos.*"]),
     install_requires=["numpy>=1.13"],
-    extras_require={"test": ["pytest"], "docs": ["sphinx", "numpydoc"],},
+    extras_require={
+        "test": ["pytest"],
+        "docs": ["sphinx", "numpydoc"],
+    },
     python_requires=">=3.6",
     include_package_data=True,
-    data_files=[("geos_license", ["GEOS_LICENSE"])],
     ext_modules=ext_modules,
     classifiers=[
         "Programming Language :: Python :: 3",

@@ -1,3 +1,10 @@
+This binary distribution of pygeos also bundles the following software:
+
+Name: Geometry Engine Open Source (GEOS)
+Files: libgeos-*.so.*, libgeos_c-*.so.*, libgeos.dylib, libgeos_c.dylib, geos-*.dll, geos_c-*.dll
+Availability: https://trac.osgeo.org/geos/
+License: LGPLv2.1
+
                   GNU LESSER GENERAL PUBLIC LICENSE
                        Version 2.1, February 1999
 

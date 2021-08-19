@@ -4,11 +4,21 @@ Changelog
 Version 0.11 (unreleased)
 -------------------------
 
-**Major enhancements**
+**Distribution**
 
-**API Changes**
+Unittests are now included in the pygeos distribution. Run them by 1) installing
+``pytest`` (or ``pygeos[test]``) and invoking ``pytest --pyargs pygeos.tests``.
 
-**Added GEOS Functions**
+We started using a new tool for building binary wheels: ``cibuildwheel``. This
+resulted into the following improvements in the distributed binary wheels:
+
+* Windows binary wheels now contain mangled DLLs, which avoids conflicts
+  with other GEOS versions present on the system (a.k.a. 'DLL hell') (#365).
+* Windows binary wheels now contain the Microsoft Visual C++ Runtime Files
+  (msvcp140.dll) for usage on systems without the C++ redistributable (#365).
+* Linux x86_64 and i686 wheels are now built using the manylinux2010 image
+  instead of manylinux1 (#365).
+* Linux aarch64 wheels are now available for Python 3.9 (manylinux2014, #365).
 
 **Bug fixes**
 

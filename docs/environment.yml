@@ -7,3 +7,4 @@ dependencies:
   - numpy==1.19.*
   - numpydoc==1.1.*
   - Cython==0.29.*
+  - docutils==0.16.*

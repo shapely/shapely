@@ -24,6 +24,9 @@ var/
 *.egg
 *.log
 *.whl
+# to make binary distributions (that pack additional licenses) not 'dirty':
+/LICENSE_GEOS
+/LICENSE_win32
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

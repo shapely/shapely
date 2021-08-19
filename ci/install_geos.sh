@@ -16,11 +16,13 @@ elif [ -z "$GEOS_VERSION" ]; then
     exit 1
 fi
 
-# Create directories, if they don't exit
+# Create directories, if they don't exist
 mkdir -p $GEOS_INSTALL
 
 # Download and build GEOS outside other source tree
-GEOS_BUILD=$HOME/geosbuild
+if [ -z "$GEOS_BUILD" ]; then
+    GEOS_BUILD=$HOME/geosbuild
+fi
 
 prepare_geos_build_dir(){
   rm -rf $GEOS_BUILD
@@ -29,12 +31,15 @@ prepare_geos_build_dir(){
 }
 
 build_geos(){
+    echo "Installing cmake"
+    pip install cmake
+
     echo "Building geos-$GEOS_VERSION"
     mkdir build
     cd build
     cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$GEOS_INSTALL ..
     make -j 2
-    ctest .
+    # ctest .
     make install
 }
 
@@ -63,7 +68,7 @@ else
         echo "Using cached install $GEOS_INSTALL"
     else
         prepare_geos_build_dir
-        wget -q http://download.osgeo.org/geos/geos-$GEOS_VERSION.tar.bz2
+        curl -OL http://download.osgeo.org/geos/geos-$GEOS_VERSION.tar.bz2
         tar xfj geos-$GEOS_VERSION.tar.bz2
         cd geos-$GEOS_VERSION
         build_geos

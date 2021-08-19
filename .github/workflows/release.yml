@@ -1,13 +1,18 @@
-name: Release and publish pygeos to GitHub
+name: Build and publish
 
 on:
   push:
+    branches:
+      - master  # just build the sdist & wheel, skip release
     tags:
       - "*"
+  pull_request:  # also build on PRs touching this file
+    paths:
+      - ".github/workflows/release.yml"
 
 jobs:
-  build-n-publish:
-    name: Build and publish pygeos to GitHub
+  build_sdist:
+    name: Build sdist
     runs-on: ubuntu-latest
 
     steps:
@@ -17,7 +22,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.x"
+          python-version: "3.8"
 
       - name: Build a source tarball
         run: |
@@ -25,11 +30,126 @@ jobs:
           pip install setuptools
           python setup.py sdist
 
-      # - name: Publish distribution to PyPI
-      #   uses: pypa/gh-action-pypi-publish@master
-      #   with:
-      #     user: __token__
-      #     password: ${{ secrets.PYPI_API_TOKEN }}
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./dist/*.tar.gz
+          retention-days: 30
+
+  build_wheels:
+    name: Build ${{ matrix.archs }} wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    env:
+      GEOS_VERSION: "3.9.1"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, windows-2019, macos-10.15]
+        archs: [auto32, auto64]
+        exclude:
+        # osx doesn't have 32-bit builds
+        - os: macos-10.15
+          archs: auto32
+        include:
+        # Only numpy >= 1.19 has aarch64 wheels
+        - os: ubuntu-20.04
+          archs: aarch64
+        # Numpy doesn't have ppc64le wheels:
+        # - os: ubuntu-20.04
+        #   archs: ppc64le
+        # We know that tests don't pass on s390x:
+        # - os: ubuntu-20.04
+        #   archs: s390x  
+        # On ARM64, the GEOS libraries do not end up in the wheel:
+        # - os: macos-10.15
+        #   archs: arm64
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache GEOS build
+        uses: actions/cache@v2
+        with:
+          path: |
+            geos-${{ env.GEOS_VERSION }}
+          key: ${{ matrix.os }}-${{ matrix.archs }}-2
+
+      - name: Add GEOS LICENSE
+        run: |
+          cp ci/wheelbuilder/LICENSE_GEOS .
+        shell: bash
+
+      - name: Add MSVC LICENSE
+        run: |
+          cp ci/wheelbuilder/LICENSE_win32 .
+        shell: bash
+        if: ${{ matrix.os == 'windows-2019' }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: arm64
+        if: ${{ matrix.os == 'ubuntu-20.04' && matrix.archs == 'aarch64' }}
+
+      - name: Activate MSVC 32-bit
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x86
+        if: ${{ matrix.os == 'windows-2019' && matrix.archs == 'auto32' }}
+
+      - name: Activate MSVC 64-bit
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+        if: ${{ matrix.os == 'windows-2019' && matrix.archs == 'auto64' }}
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.0.0
+        env:
+          CIBW_ARCHS: ${{ matrix.archs }}
+          CIBW_SKIP: pp* cp36-manylinux_aarch64 cp37-manylinux_aarch64 cp38-manylinux_aarch64
+          CIBW_ENVIRONMENT_LINUX:
+            GEOS_VERSION=${{ env.GEOS_VERSION }}
+            GEOS_INSTALL=/host${{ github.workspace }}/geos-${{ env.GEOS_VERSION }}
+            GEOS_CONFIG=/host${{ github.workspace }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
+            LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/host${{ github.workspace }}/geos-${{ env.GEOS_VERSION }}/lib
+          CIBW_ENVIRONMENT_MACOS:
+            GEOS_INSTALL=${{ github.workspace }}/geos-${{ env.GEOS_VERSION }}
+            GEOS_CONFIG=${{ github.workspace }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
+            DYLD_FALLBACK_LIBRARY_PATH=${{ github.workspace }}/geos-${{ env.GEOS_VERSION }}/lib
+            LDFLAGS=-Wl,-rpath,${{ github.workspace }}/geos-${{ env.GEOS_VERSION }}/lib
+          CIBW_ENVIRONMENT_WINDOWS:
+            GEOS_INSTALL='${{ github.workspace }}\geos-${{ env.GEOS_VERSION }}'
+            GEOS_LIBRARY_PATH='${{ github.workspace }}\geos-${{ env.GEOS_VERSION }}\lib'
+            GEOS_INCLUDE_PATH='${{ github.workspace }}\geos-${{ env.GEOS_VERSION }}\include'
+          CIBW_BEFORE_ALL: ./ci/install_geos.sh
+          CIBW_BEFORE_ALL_WINDOWS: ci\install_geos.cmd
+          CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ github.workspace }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} {wheel}
+          CIBW_TEST_REQUIRES: pytest
+          # The pytest command has the custom setting import-mode=importlib
+          # so that pytest does not mess up the PATH.
+          # If you do not do that, the (uncompiled) contents of
+          # {package}/pygeos will be tested against instead of the
+          # installed contents of the wheel that was built.
+          CIBW_TEST_COMMAND: pytest --pyargs pygeos.tests
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
+          retention-days: 5
+
+  publish:
+    name: Publish on GitHub and PyPI
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    # release on every tag
+    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: artifact
+          path: dist
 
       - name: Create GitHub Release
         id: create_release
@@ -57,4 +177,11 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: dist/${{ env.name }}
           asset_name: ${{ env.name }}
-          asset_content_type: application/zip
+          asset_content_type: application/zip      
+
+      - name: Upload Release Assets to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.4.2
+        with:
+          user: __token__
+          password: ${{ secrets.pypi_password }}
+          # To test: repository_url: https://test.pypi.org/legacy/
