@@ -106,6 +106,7 @@ def test_numpy_object_array():
     geom = LineString([(0.0, 0.0), (0.0, 1.0)])
     ar = np.empty(1, object)
     ar[:] = [geom]
+    assert ar[0] == geom
 
 
 def test_from_invalid_dim():

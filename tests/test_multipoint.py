@@ -137,6 +137,7 @@ def test_numpy_object_array():
     geom = MultiPoint(((1.0, 2.0), (3.0, 4.0)))
     ar = np.empty(1, object)
     ar[:] = [geom]
+    assert ar[0] == geom
 
 
 def test_iteration_deprecated():

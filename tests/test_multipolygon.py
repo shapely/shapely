@@ -122,3 +122,4 @@ def test_numpy_object_array():
           [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))])])
     ar = np.empty(1, object)
     ar[:] = [geom]
+    assert ar[0] == geom

@@ -127,3 +127,4 @@ def test_numpy_object_array():
     geom = MultiLineString([[[5.0, 6.0], [7.0, 8.0]]])
     ar = np.empty(1, object)
     ar[:] = [geom]
+    assert ar[0] == geom
