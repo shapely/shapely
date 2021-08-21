@@ -114,3 +114,14 @@ def test_len_deprecated(geometrycollection_geojson):
     geom = shape(geometrycollection_geojson)
     with pytest.warns(ShapelyDeprecationWarning, match="__len__"):
         assert len(geom) == 2
+
+
+@shapely20_deprecated
+@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
+def test_numpy_object_array():
+    np = pytest.importorskip("numpy")
+
+    geom = GeometryCollection([LineString([(0, 0), (1, 1)])])
+    ar = np.empty(1, object)
+    ar[:] = [geom]
+    assert ar[0] == geom

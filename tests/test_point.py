@@ -262,6 +262,7 @@ def test_point_array_interface_numpy_deprecated():
         np.array(p)
 
 
+@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_empty_point_coords():
     np = pytest.importorskip("numpy")
 
@@ -270,3 +271,14 @@ def test_numpy_empty_point_coords():
     # Access the coords
     a = np.asarray(pe.coords)
     assert a.shape == (0,)
+
+
+@shapely20_deprecated
+@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
+def test_numpy_object_array():
+    np = pytest.importorskip("numpy")
+
+    geom = Point(3.0, 4.0)
+    ar = np.empty(1, object)
+    ar[:] = [geom]
+    assert ar[0] == geom

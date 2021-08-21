@@ -849,8 +849,8 @@ class BaseMultipartGeometry(BaseGeometry):
     @property
     def __array_interface__(self):
         """Provide the Numpy array protocol."""
-        raise NotImplementedError("Multi-part geometries do not themselves "
-                                  "provide the array interface")
+        raise AttributeError("Multi-part geometries do not themselves "
+                             "provide the array interface")
 
     def _get_coords(self):
         raise NotImplementedError("Sub-geometries may have coordinate "

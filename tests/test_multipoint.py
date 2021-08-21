@@ -129,6 +129,17 @@ def test_multipoint_array_interface_numpy_deprecated():
         np.array(geom)
 
 
+@shapely20_deprecated
+@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
+def test_numpy_object_array():
+    np = pytest.importorskip("numpy")
+
+    geom = MultiPoint(((1.0, 2.0), (3.0, 4.0)))
+    ar = np.empty(1, object)
+    ar[:] = [geom]
+    assert ar[0] == geom
+
+
 def test_iteration_deprecated():
     geom = MultiPoint([[5.0, 6.0], [7.0, 8.0]])
     with pytest.warns(ShapelyDeprecationWarning, match="Iteration"):

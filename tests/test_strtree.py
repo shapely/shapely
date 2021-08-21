@@ -53,8 +53,7 @@ def test_query_enumeration_idx(geoms, query_geom, expected):
 )
 def test_query_items(geoms, items, query_geom, expected):
     """Store enumeration idx"""
-    with pytest.warns(ShapelyDeprecationWarning):
-        tree = STRtree(geoms, items)
+    tree = STRtree(geoms, items)
     results = tree.query_items(query_geom)
     expected = [items[idx] for idx in expected] if items is not None else expected
     assert sorted(results) == sorted(expected)
@@ -71,8 +70,7 @@ def test_query_items(geoms, items, query_geom, expected):
     ],
 )
 def test_query_items_with_empty(tree_geometry, geometry, expected):
-    with pytest.warns(ShapelyDeprecationWarning):
-        tree = STRtree(tree_geometry)
+    tree = STRtree(tree_geometry)
     assert tree.query_items(geometry) == expected
 
 

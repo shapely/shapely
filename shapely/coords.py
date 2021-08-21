@@ -116,7 +116,10 @@ class CoordinateSequence:
     def _ctypes(self):
         self._update()
         has_z = self._ndim == 3
-        n = self._ndim
+        n = self._ndim or 0
+        if n == 0:
+            # ignore with NumPy 1.21 __array_interface__
+            raise AttributeError("empty geometry sequence")
         m = self.__len__()
         array_type = c_double * (m * n)
         data = array_type()
