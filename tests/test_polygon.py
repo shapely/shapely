@@ -109,11 +109,22 @@ def test_numpy_linearring_coords():
     assert_array_equal(ra, expected)
 
 
+@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_empty_linearring_coords():
     np = pytest.importorskip("numpy")
 
     ring = LinearRing()
     assert np.asarray(ring.coords).shape == (0,)
+
+
+@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
+def test_numpy_object_array():
+    np = pytest.importorskip("numpy")
+
+    geom = Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0)])
+    ar = np.empty(1, object)
+    ar[:] = [geom]
+    assert ar[0] == geom
 
 
 def test_polygon_from_coordinate_sequence():
