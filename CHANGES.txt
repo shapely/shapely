@@ -37,7 +37,9 @@ Bug fixes:
 
 Shapely 1.8.0 will be a transitional version. There are a few bug fixes and new
 features, but it is mainly about warning of the upcoming changes in 2.0.0.
-Several more pre-releases before 1.8.0 are expected.
+Several more pre-releases before 1.8.0 are expected. See the migration guide
+to Shapely 1.8 / 2.0 for more details on how to update your code
+(https://shapely.readthedocs.io/en/latest/migration.html).
 
 Python version support:
 
@@ -50,7 +52,6 @@ version 2.0.0.
 
 - ops.cascaded_union
 - geometry .empty()
-- geometry .to_wkb() and .to_wkt()
 - geometry .ctypes and .__array_interface__
 - multi-part geometry .__len__
 
@@ -61,6 +62,9 @@ not yet decided, but will be decided before 1.8.0 is released.
 
 Deprecation warnings will be emitted in 1.8a1 when any of these features are
 used.
+
+The deprecated .to_wkb() and .to_wkt() methods on the geometry objects have
+been removed.
 
 New features:
 

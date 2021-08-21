@@ -11,6 +11,7 @@ Documentation Contents
    The Project <project>
    User Manual <manual>
    API Documentation <modules>
+   migration
 
 Indices and tables
 ==================
