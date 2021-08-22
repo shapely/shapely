@@ -37,9 +37,19 @@ class requires_geos:
             def wrapped(*args, **kwargs):
                 raise UnsupportedGEOSOperation(msg)
 
-        if wrapped.__doc__:
-            wrapped.__doc__ = wrapped.__doc__.replace(
-                "\n\n", "\n\n    .. note:: {}\n\n".format(msg), 1
+        doc = wrapped.__doc__
+        if doc:
+            # Insert the message at the first double newline
+            position = doc.find("\n\n") + 2
+            # Figure out the indentation level
+            indent = 2
+            while True:
+                if doc[position + indent] == " ":
+                    indent += 1
+                else:
+                    break
+            wrapped.__doc__ = doc.replace(
+                "\n\n", "\n\n{}.. note:: {}\n\n".format(" " * indent, msg), 1
             )
 
         return wrapped

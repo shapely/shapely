@@ -68,13 +68,22 @@ def func():
     """
 
 
+class SomeClass:
+    def func(self):
+        """Docstring that will be mocked.
+        A multiline.
+
+        Some description.
+        """
+
+
 expected_docstring = """Docstring that will be mocked.
-    A multiline.
+{indent}A multiline.
 
-    .. note:: 'func' requires at least GEOS {}.
+{indent}.. note:: 'func' requires at least GEOS {version}.
 
-    Some description.
-    """
+{indent}Some description.
+{indent}"""
 
 
 @pytest.mark.parametrize("version", ["3.7.0", "3.7.1", "3.6.2"])
@@ -89,7 +98,7 @@ def test_requires_geos_not_ok(version, mocked_geos_version):
     with pytest.raises(pygeos.UnsupportedGEOSOperation):
         wrapped()
 
-    assert wrapped.__doc__ == expected_docstring.format(version)
+    assert wrapped.__doc__ == expected_docstring.format(version=version, indent=" " * 4)
 
 
 @pytest.mark.parametrize("version", ["3.6.0", "3.8.0"])
@@ -97,7 +106,15 @@ def test_requires_geos_doc_build(version, mocked_geos_version, sphinx_doc_build)
     """The requires_geos decorator always adapts the docstring."""
     wrapped = requires_geos(version)(func)
 
-    assert wrapped.__doc__ == expected_docstring.format(version)
+    assert wrapped.__doc__ == expected_docstring.format(version=version, indent=" " * 4)
+
+
+@pytest.mark.parametrize("version", ["3.6.0", "3.8.0"])
+def test_requires_geos_method(version, mocked_geos_version, sphinx_doc_build):
+    """The requires_geos decorator adjusts methods docstrings correctly"""
+    wrapped = requires_geos(version)(SomeClass.func)
+
+    assert wrapped.__doc__ == expected_docstring.format(version=version, indent=" " * 8)
 
 
 @multithreading_enabled
