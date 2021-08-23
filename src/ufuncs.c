@@ -84,7 +84,7 @@ static char GEOSisClosedAllTypes_r(void* context, void* geom) {
   int type = GEOSGeomTypeId_r(context, geom);
   if (type == -1) {
     return 2;  // Predicates use a return value of 2 for errors
-  } else if ((type == 1) || (type == 5)) {
+  } else if ((type == 1) || (type == 2) || (type == 5)) {
     return GEOSisClosed_r(context, geom);
   } else {
     return 0;

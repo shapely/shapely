@@ -20,7 +20,7 @@ Version 0.11 (unreleased)
 
 **Bug fixes**
 
-* ...
+* Return True instead of False for LINEARRING geometries in ``is_closed`` (#379).
 
 **Acknowledgments**
 

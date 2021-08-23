@@ -4,7 +4,15 @@ import pytest
 import pygeos
 from pygeos import Geometry
 
-from .common import all_types, empty, geometry_collection, point, polygon
+from .common import (
+    all_types,
+    empty,
+    geometry_collection,
+    line_string,
+    linear_ring,
+    point,
+    polygon,
+)
 
 UNARY_PREDICATES = (
     pygeos.is_empty,
@@ -102,6 +110,19 @@ def test_equals_exact_tolerance():
     # default value for tolerance
     assert pygeos.equals_exact(p1, p1).item() is True
     assert pygeos.equals_exact(p1, p2).item() is False
+
+
+@pytest.mark.parametrize(
+    "geometry,expected",
+    [
+        (point, False),
+        (line_string, False),
+        (linear_ring, True),
+        (empty, False),
+    ],
+)
+def test_is_closed(geometry, expected):
+    assert pygeos.is_closed(geometry) == expected
 
 
 def test_relate():
