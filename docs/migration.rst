@@ -273,8 +273,8 @@ manager that can be copied into your project::
         def ignore_shapely2_warnings():
             yield
 
-This can then be used when creating NumPy arrays (be careful to *only* for
-this specific purpose, and not generally suppress those warnings)::
+This can then be used when creating NumPy arrays (be careful to *only* use it
+for this specific purpose, and not generally suppress those warnings)::
 
     geoms = [...]
     arr = np.empty(len(geoms), dtype="object")
