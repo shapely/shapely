@@ -137,8 +137,11 @@ support those features, and for those classes there is no change in behaviour
 for this aspect.
 
 
-The array interface and conversion to NumPy
-===========================================
+Interopability with NumPy and the array interface
+=================================================
+
+Conversion of the coordinates to (NumPy) arrays
+-----------------------------------------------
 
 Shapely provides an array interface to have easy access to the coordinates as,
 for example, NumPy arrays (:ref:`manual section <array-interface>`).
@@ -191,6 +194,92 @@ convert the ``.coords`` attribute instead::
 The ``array_interface()`` method and ``ctypes`` attribute will be removed in
 Shapely 2.0, but since Shapely will start requiring NumPy as a dependency,
 you can use NumPy or its array interface directly.
+
+Creating NumPy arrays of geometry objects
+-----------------------------------------
+
+Shapely geometry objects can be stored in NumPy arrays using the ``object``
+dtype. In general, one could create such an array from a list of geometries
+as follows::
+
+    >>> from shapely.geometry import Point
+    >>> arr = np.array([Point(0, 0), Point(1, 1), Point(2, 2)])
+    >>> arr
+    array([<shapely.geometry.point.Point object at 0x7fb798407cd0>,
+           <shapely.geometry.point.Point object at 0x7fb7982831c0>,
+           <shapely.geometry.point.Point object at 0x7fb798283b80>],
+          dtype=object)
+
+The above works for point geometries, but because in Shapely 1.x, some
+geometry types are sequence-like (see above), NumPy can try to "unpack" them
+when creating an array. Therefore, for more robust creation of a NumPy array
+from a list of geometries, it's generally recommended to this in a two-step
+way (first creating an empty array and then filling it)::
+
+    geoms = [Point(0, 0), Point(1, 1), Point(2, 2)]
+    arr = np.empty(len(geoms), dtype="object")
+    arr[:] = geoms
+
+This code snippet results in the same array as the example above, and works
+for all geometry types and Shapely/NumPy versions. 
+
+However, starting with Shapely 1.8, the above code will show deprecation
+warnings that cannot be avoided (depending on the geometry type, NumPy tries
+to access the array interface of the objects or check if an object is
+iterable or has a length, and those operations are all deprecated now. The
+end result is still correct, but the warnings appear nonetheless).
+Specifically in this case, it is fine to ignore those warnings (and the only
+way to make them go away)::
+
+    import warnings
+    from shapely.errors import ShapelyDeprecationWarning
+
+    geoms = [Point(0, 0), Point(1, 1), Point(2, 2)]
+    arr = np.empty(len(geoms), dtype="object")
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=ShapelyDeprecationWarning)
+        arr[:] = geoms
+
+In Shapely 2.0, the geometry objects will no longer be sequence like and
+those deprecation warnings will be removed (and thus the ``filterwarnings``
+will no longer be necessary), and creation of NumPy arrays will generally be
+more robust.
+
+If you maintain code that depends on Shapely, and you want to have it work
+with multiple versions of Shapely, the above code snippet provides a context
+manager that can be copied into your project::
+
+    import contextlib
+    import shapely
+    import warnings
+    from distutils.version import LooseVersion
+
+    SHAPELY_GE_20 = str(shapely.__version__) >= LooseVersion("2.0")
+
+    try:
+        from shapely.errors import ShapelyDeprecationWarning as shapely_warning
+    except ImportError:
+        shapely_warning = None
+
+    if shapely_warning is not None and not SHAPELY_GE_20:
+        @contextlib.contextmanager
+        def ignore_shapely2_warnings():
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=shapely_warning)
+                yield
+    else:
+        @contextlib.contextmanager
+        def ignore_shapely2_warnings():
+            yield
+
+This can then be used when creating NumPy arrays (be careful to *only* for
+this specific purpose, and not generally suppress those warnings)::
+
+    geoms = [...]
+    arr = np.empty(len(geoms), dtype="object")
+    with ignore_shapely2_warnings():
+        arr[:] = geoms
 
 
 Consistent creation of empty geometries
