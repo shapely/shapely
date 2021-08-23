@@ -46,7 +46,7 @@ In Shapely 1.8, this will start raising a warning::
     in place is deprecated, and will not be possible any more in Shapely 2.0
 
 and starting with version 2.0.0, all geometry objects will become immutable
-(as a consequence, they will also become hashable and thefore usable as, for
+(as a consequence, they will also become hashable and therefore usable as, for
 example, dictionary keys).
 
 **How do I update my code?** There is no direct alternative for mutating the
@@ -137,11 +137,11 @@ support those features, and for those classes there is no change in behaviour
 for this aspect.
 
 
-The array interface and conversion to numpy
+The array interface and conversion to NumPy
 ===========================================
 
 Shapely provides an array interface to have easy access to the coordinates as,
-for example, numpy arrays (:ref:`manual section <array-interface>`).
+for example, NumPy arrays (:ref:`manual section <array-interface>`).
 
 A small example::
 
@@ -165,20 +165,20 @@ In addition, there are also the explicit ``array_interface()`` method and
 
 This functionality is available for Point, LineString, LinearRing and MultiPoint.
 
-For more robust interoperability with numpy, this array interface will be removed
+For more robust interoperability with NumPy, this array interface will be removed
 from those geometry classes, and limited to the ``coords``. 
 
-Starting with Shapely 1.8, converting a geometry object to a numpy array
+Starting with Shapely 1.8, converting a geometry object to a NumPy array
 directly will start raising a warning::
 
     >>> np.asarray(line)
     ShapelyDeprecationWarning: The array interface is deprecated and will no longer
-    work in Shapely 2.0. Convert the '.coords' to a numpy array instead.
+    work in Shapely 2.0. Convert the '.coords' to a NumPy array instead.
     array([[0., 0.],
            [1., 1.],
            [2., 2.]])
 
-**How do I update my code?** To convert a geometry to a numpy array, you can
+**How do I update my code?** To convert a geometry to a NumPy array, you can
 convert the ``.coords`` attribute instead::
 
     >>> line.coords
