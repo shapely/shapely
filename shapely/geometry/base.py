@@ -99,7 +99,7 @@ class BaseGeometry(pygeos.Geometry):
     # _ndim : int
     #     Number of dimensions (2 or 3, generally)
 
-    _coords = None
+    __slots__ = []
 
     def __new__(self):
         # TODO create empty geometry - should we deprecate this constructor?
@@ -182,10 +182,8 @@ class BaseGeometry(pygeos.Geometry):
     @property
     def coords(self):
         """Access to geometry's coordinates (CoordinateSequence)"""
-        if self._coords is None:
-            coords_array = pygeos.get_coordinates(self, include_z=self.has_z)
-            self._coords = CoordinateSequence(coords_array)
-        return self._coords
+        coords_array = pygeos.get_coordinates(self, include_z=self.has_z)
+        return CoordinateSequence(coords_array)
 
     @property
     def xy(self):
@@ -663,6 +661,8 @@ class BaseGeometry(pygeos.Geometry):
 
 
 class BaseMultipartGeometry(BaseGeometry):
+
+    __slots__ = []
 
     def shape_factory(self, *args):
         # Factory for part instances, usually a geometry class

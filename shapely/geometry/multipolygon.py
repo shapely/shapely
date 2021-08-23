@@ -26,6 +26,8 @@ class MultiPolygon(BaseMultipartGeometry):
         A sequence of `Polygon` instances
     """
 
+    __slots__ = []
+
     def __new__(self, polygons=None):
         """
         Parameters

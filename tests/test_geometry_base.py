@@ -1,8 +1,6 @@
 from shapely import geometry
-from shapely.errors import ShapelyDeprecationWarning
 
 import pytest
-
 
 def test_polygon():
     assert bool(geometry.Polygon()) is False
@@ -31,6 +29,5 @@ def test_geometry_collection():
     geometry.GeometryCollection([geometry.Point(1, 1)]),
 ])
 def test_setattr_disallowed(geom):
-    with pytest.warns(ShapelyDeprecationWarning, match="Setting custom attributes"):
+    with pytest.raises(AttributeError):
         geom.name = "test"
-    assert geom.name == "test"

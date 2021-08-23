@@ -35,6 +35,8 @@ class Point(BaseGeometry):
       1.0
     """
 
+    __slots__ = []
+
     def __new__(self, *args):
         """
         Parameters

@@ -34,6 +34,8 @@ class LinearRing(LineString):
     invalid and operations on it may fail.
     """
 
+    __slots__ = []
+
     def __new__(self, coordinates=None):
         """
         Parameters
@@ -197,6 +199,8 @@ class Polygon(BaseGeometry):
     interiors : sequence
         A sequence of rings which bound all existing holes.
     """
+
+    __slots__ = []
 
     def __new__(self, shell=None, holes=None):
         """
