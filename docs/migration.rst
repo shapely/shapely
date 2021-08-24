@@ -45,9 +45,9 @@ In Shapely 1.8, this will start raising a warning::
     ShapelyDeprecationWarning: Setting the 'coords' to mutate a Geometry
     in place is deprecated, and will not be possible any more in Shapely 2.0
 
-and starting with version 2.0.0, all geometry objects will become immutable
-.  As a consequence, they will also become hashable and therefore usable as, for
-example, dictionary keys).
+and starting with version 2.0.0, all geometry objects will become immutable.
+As a consequence, they will also become hashable and therefore usable as, for
+example, dictionary keys.
 
 **How do I update my code?** There is no direct alternative for mutating the
 coordinates of an existing geometry, except for creating a new geometry
