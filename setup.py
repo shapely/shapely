@@ -74,7 +74,7 @@ from _vendor.packaging.version import Version
 from shapely._buildcfg import geos_version_string, geos_version, \
         geos_config, get_geos_config
 
-logging.basicConfig()
+logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__file__)
 
 # python -W all setup.py ...
@@ -343,7 +343,8 @@ except ImportError:
 try:
     if force_cython:
         log.info("Updating C extension with Cython.")
-        subprocess.check_call(["cython", "shapely/speedups/_speedups.pyx"])
+        cython_out = subprocess.check_output(["cython", "-v", "shapely/speedups/_speedups.pyx"], stderr=subprocess.STDOUT)
+        log.info("%r", cython_out)
 except (subprocess.CalledProcessError, OSError):
     log.warning("Could not (re)create C extension with Cython.")
     if force_cython:
