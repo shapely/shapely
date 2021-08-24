@@ -335,4 +335,4 @@ as well:
 - The ``empty()`` method on a geometry object is deprecated.
 
 - The ``shapely.ops.cascaded_union`` function is deprecated. Use
-  ``shapely.ops.unary_union`` instead.
+  ``shapely.ops.unary_union`` instead, which internally already uses a cascaded union operation for better performance.
