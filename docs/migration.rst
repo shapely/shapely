@@ -194,9 +194,8 @@ convert the ``.coords`` attribute instead::
 The ``array_interface()`` method and ``ctypes`` attribute will be removed in
 Shapely 2.0, but since Shapely will start requiring NumPy as a dependency,
 you can use NumPy or its array interface directly. Check the NumPy docs on
-the `ctypes attribute <https://numpy.org/doc/stable/reference/generated/numpy.ndarray.ctypes.html>`__
-or the `array interface <https://numpy.org/doc/stable/reference/arrays.interface.html>`__
-for more details.
+the :py:attr:`ctypes <numpy:numpy.ndarray.ctypes>` attribute
+or the :ref:`array interface <numpy:arrays.interface>` for more details.
 
 Creating NumPy arrays of geometry objects
 -----------------------------------------
