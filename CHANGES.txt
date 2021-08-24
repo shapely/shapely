@@ -1,8 +1,24 @@
 Changes
 =======
 
-1.8a2 (TBD)
------------
+1.8a3 (2021-08-24)
+------------------
+
+Deprecations:
+
+The STRtree class deprecation warnings have been removed. The class in 2.0.0
+will be backwards compatible with the class in 1.8.0.
+
+Bug fixes:
+
+- The __array_interface__ raises only AttributeError, all other exceptions are
+  deprecated starting with Numpy 1.21 (#1173).
+- The STRtree class now uses a pair of item, geom sequences internally instead
+  of a dict (#1177).
+
+
+1.8a2 (2021-07-15)
+------------------
 
 Python version support:
 
