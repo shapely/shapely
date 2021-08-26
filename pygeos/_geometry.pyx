@@ -54,10 +54,26 @@ cdef char _set_xyz(GEOSContextHandle_t geos_handle, GEOSCoordSequence *seq, unsi
             return 0
     return 1
 
+
+def _check_out_array(object out, Py_ssize_t size):
+    if out is None:
+        return np.empty(shape=(size, ), dtype=object)
+    if not isinstance(out, np.ndarray):
+        raise TypeError("out array must be of numpy.ndarray type")
+    if not out.flags.writeable:
+        raise TypeError("out array must be writeable")
+    if out.dtype != object:
+        raise TypeError("out array dtype must be object")
+    if out.ndim != 1:
+        raise TypeError("out must be a one-dimensional array.") 
+    if out.shape[0] < size:
+        raise ValueError(f"out array is too small ({out.shape[0]} < {size})") 
+    return out
+
  
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def simple_geometries_1d(object coordinates, object indices, int geometry_type):
+def simple_geometries_1d(object coordinates, object indices, int geometry_type, object out = None):
     cdef Py_ssize_t idx = 0
     cdef unsigned int coord_idx = 0
     cdef Py_ssize_t geom_idx = 0
@@ -70,11 +86,11 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type):
     # Cast input arrays and define memoryviews for later usage
     coordinates = np.asarray(coordinates, dtype=np.float64)
     if coordinates.ndim != 2:
-        raise TypeError("coordinates is not a two-dimensional array.")
+        raise TypeError("coordinates must be a two-dimensional array.")
 
     indices = np.asarray(indices, dtype=np.intp)  # intp is what bincount takes
     if indices.ndim != 1:
-        raise TypeError("indices is not a one-dimensional array.")
+        raise TypeError("indices must be a one-dimensional array.")
 
     if coordinates.shape[0] != indices.shape[0]:
         raise ValueError("geometries and indices do not have equal size.")
@@ -100,18 +116,23 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type):
 
     # The final target array
     cdef Py_ssize_t n_geoms = coord_counts.shape[0]
-    result = np.empty(shape=(n_geoms, ), dtype=object)
-    cdef object[:] result_view = result
+    # Allow missing indices only if 'out' was given explicitly (if 'out' is not
+    # supplied by the user, we would have to come up with an output value ourselves).
+    cdef char allow_missing = out is not None
+    out = _check_out_array(out, n_geoms)
+    cdef object[:] out_view = out
 
     with get_geos_handle() as geos_handle:
         for geom_idx in range(n_geoms):
             geom_size = coord_counts[geom_idx]
 
-            # for now, raise if there are indices missing (decision on this in GH345)
             if geom_size == 0:
-                raise ValueError(
-                    f"Index {geom_idx} is missing from the input indices."
-                )
+                if allow_missing:
+                    continue
+                else:
+                    raise ValueError(
+                        f"Index {geom_idx} is missing from the input indices."
+                    )
 
             # check if we need to close a linearring
             if geometry_type == 2:
@@ -142,9 +163,9 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type):
             if geom == NULL:
                 return  # GEOSException is raised by get_geos_handle
 
-            result_view[geom_idx] = PyGEOS_CreateGeometry(geom, geos_handle)
+            out_view[geom_idx] = PyGEOS_CreateGeometry(geom, geos_handle)
 
-    return result
+    return out
 
 
 
@@ -239,7 +260,7 @@ cdef _deallocate_arr(void* handle, np.intp_t[:] arr, Py_ssize_t last_geom_i):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def collections_1d(object geometries, object indices, int geometry_type = 7):
+def collections_1d(object geometries, object indices, int geometry_type = 7, object out = None):
     """Converts geometries + indices to collections
 
     Allowed geometry type conversions are:
@@ -276,11 +297,11 @@ def collections_1d(object geometries, object indices, int geometry_type = 7):
     # Cast input arrays and define memoryviews for later usage
     geometries = np.asarray(geometries, dtype=object)
     if geometries.ndim != 1:
-        raise TypeError("geometries is not a one-dimensional array.")
+        raise TypeError("geometries must be a one-dimensional array.")
 
     indices = np.asarray(indices, dtype=np.intp)  # intp is what bincount takes
     if indices.ndim != 1:
-        raise TypeError("indices is not a one-dimensional array.")
+        raise TypeError("indices must be a one-dimensional array.")
 
     if geometries.shape[0] != indices.shape[0]:
         raise ValueError("geometries and indices do not have equal size.")
@@ -302,15 +323,21 @@ def collections_1d(object geometries, object indices, int geometry_type = 7):
 
     # The final target array
     cdef Py_ssize_t n_colls = collection_size.shape[0]
-    result = np.empty(shape=(n_colls, ), dtype=object)
-    cdef object[:] result_view = result
+    # Allow missing indices only if 'out' was given explicitly (if 'out' is not
+    # supplied by the user, we would have to come up with an output value ourselves).
+    cdef char allow_missing = out is not None
+    out = _check_out_array(out, n_colls)
+    cdef object[:] out_view = out
 
     with get_geos_handle() as geos_handle:
         for coll_idx in range(n_colls):
             if collection_size[coll_idx] == 0:
-                raise ValueError(
-                    f"Index {coll_idx} is missing from the input indices."
-                )
+                if allow_missing:
+                    continue
+                else:
+                    raise ValueError(
+                        f"Index {coll_idx} is missing from the input indices."
+                    )
             coll_size = 0
 
             # fill the temporary array with geometries belonging to this collection
@@ -368,8 +395,8 @@ def collections_1d(object geometries, object indices, int geometry_type = 7):
             if coll == NULL:
                 return  # GEOSException is raised by get_geos_handle
 
-            result_view[coll_idx] = PyGEOS_CreateGeometry(coll, geos_handle)
+            out_view[coll_idx] = PyGEOS_CreateGeometry(coll, geos_handle)
 
             geom_idx_1 += collection_size[coll_idx]
 
-    return result
+    return out

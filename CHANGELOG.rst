@@ -7,7 +7,8 @@ Version 0.11 (unreleased)
 
 **Major enhancements**
 
-* ...
+* Optionally output to a user-specified array (``out`` keyword argument) when constructing
+  geometries from ``indices`` (#380).
 
 **API Changes**
 

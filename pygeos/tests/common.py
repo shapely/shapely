@@ -3,6 +3,7 @@ from contextlib import contextmanager
 
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 import pygeos
 
@@ -78,4 +79,4 @@ def assert_geometries_equal(actual, expected):
     if np.any(mask):
         assert pygeos.equals(actual[mask], expected[mask]).all()
     if np.any(~mask):
-        assert pygeos.is_missing(actual[~mask])
+        assert_array_equal(actual[~mask], expected[~mask])
