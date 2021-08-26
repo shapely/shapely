@@ -16,6 +16,7 @@ __all__ = [
     "box",
     "prepare",
     "destroy_prepared",
+    "empty",
 ]
 
 
@@ -503,3 +504,36 @@ def destroy_prepared(geometry, **kwargs):
     prepare
     """
     lib.destroy_prepared(geometry, **kwargs)
+
+
+def empty(shape, geom_type=None, order="C"):
+    """Create a geometry array prefilled with None or with empty geometries.
+
+    Parameters
+    ----------
+    shape : int or tuple of int
+        Shape of the empty array, e.g., ``(2, 3)`` or ``2``.
+    geom_type : pygeos.GeometryType, optional
+        The desired geometry type in case the array should be prefilled
+        with empty geometries. Default ``None``.
+    order : {'C', 'F'}, optional, default: 'C'
+        Whether to store multi-dimensional data in row-major
+        (C-style) or column-major (Fortran-style) order in
+        memory.
+
+    Examples
+    --------
+    >>> empty((2, 3)).tolist()
+    [[None, None, None], [None, None, None]]
+    >>> empty(2, geom_type=GeometryType.POINT).tolist()
+    [<pygeos.Geometry POINT EMPTY>, <pygeos.Geometry POINT EMPTY>]
+    """
+    if geom_type is None:
+        return np.empty(shape, dtype=object, order=order)
+
+    geom_type = GeometryType(geom_type)  # cast int to GeometryType
+    if geom_type is GeometryType.MISSING:
+        return np.empty(shape, dtype=object, order=order)
+
+    fill_value = Geometry(geom_type.name + " EMPTY")
+    return np.full(shape, fill_value, dtype=object, order=order)
