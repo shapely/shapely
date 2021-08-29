@@ -33,6 +33,7 @@ Bug fixes:
 - Only load conda GEOS dll if it exists (on Windows) (#1108).
 - Add /opt/homebrew/lib to the list of directories to be searched for the GEOS
   shared library.
+- Added new library search path to assist app creation with cx_Freeze.
 
 1.8a1 (2021-03-03)
 ------------------
