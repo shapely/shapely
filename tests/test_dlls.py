@@ -13,8 +13,9 @@ class LoadingTestCase(unittest.TestCase):
     def test_fallbacks(self):
         load_dll('geos_c', fallbacks=[
             os.path.join(sys.prefix, "lib", "libgeos_c.dylib"), # anaconda (Mac OS X)
-            '/opt/local/lib/libgeos_c.dylib',  # MacPorts
-            '/usr/local/lib/libgeos_c.dylib',  # homebrew (Mac OS X)
+            '/opt/local/lib/libgeos_c.dylib',     # MacPorts
+            '/usr/local/lib/libgeos_c.dylib',     # homebrew (Mac OS X)
+            '/opt/homebrew/lib/libgeos_c.dylib',  # homebrew (macOS)
             os.path.join(sys.prefix, "lib", "libgeos_c.so"), # anaconda (Linux)
             'libgeos_c.so.1',
             'libgeos_c.so'])

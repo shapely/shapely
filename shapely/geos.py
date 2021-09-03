@@ -131,9 +131,11 @@ elif sys.platform == 'darwin':
                     os.environ['RESOURCEPATH'], '..', 'Frameworks',
                     'libgeos_c.dylib')]
             except KeyError:
-                # binary from pyinstaller
                 alt_paths = [
-                    os.path.join(sys.executable, 'libgeos_c.dylib')]
+                    # binary from pyinstaller
+                    os.path.join(sys.executable, 'libgeos_c.dylib'),
+                    # .app from cx_Freeze
+                    os.path.join(os.path.dirname(sys.executable), 'libgeos_c.1.dylib')]
                 if hasattr(sys, '_MEIPASS'):
                     alt_paths.append(
                         os.path.join(sys._MEIPASS, 'libgeos_c.1.dylib'))
@@ -143,8 +145,10 @@ elif sys.platform == 'darwin':
                 "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
                 # macports
                 '/opt/local/lib/libgeos_c.dylib',
-                # homebrew
+                # homebrew Intel
                 '/usr/local/lib/libgeos_c.dylib',
+                # homebrew Apple Silicon
+                '/opt/homebrew/lib/libgeos_c.dylib',
             ]
         _lgeos = load_dll('geos_c', fallbacks=alt_paths)
 
