@@ -106,7 +106,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.0.0
         env:
           CIBW_ARCHS: ${{ matrix.archs }}
-          CIBW_SKIP: pp* cp36-manylinux_aarch64 cp37-manylinux_aarch64 cp38-manylinux_aarch64
+          CIBW_SKIP: pp*
           CIBW_ENVIRONMENT_LINUX:
             GEOS_VERSION=${{ env.GEOS_VERSION }}
             GEOS_INSTALL=/host${{ github.workspace }}/geos-${{ env.GEOS_VERSION }}
