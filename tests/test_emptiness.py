@@ -69,6 +69,16 @@ class EmptinessTestCase(unittest.TestCase):
         self.assertTrue(LinearRing(empty_generator()).is_empty)
 
 
+@shapely20_deprecated
+@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
+def test_numpy_object_array():
+    np = pytest.importorskip("numpy")
+
+    geoms = [BaseGeometry(), EmptyGeometry()]
+    arr = np.empty(2, object)
+    arr[:] = geoms
+
+
 def test_shape_empty():
     empty_mp = MultiPolygon()
     empty_json = mapping(empty_mp)

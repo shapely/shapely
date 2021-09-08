@@ -328,7 +328,7 @@ class BaseGeometry:
     @property
     def __array_interface__(self):
         """Provide the Numpy array protocol."""
-        raise NotImplementedError
+        raise AttributeError("Not implemented")
 
     # Coordinate access
     # -----------------

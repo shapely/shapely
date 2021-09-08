@@ -1,8 +1,24 @@
 Changes
 =======
 
-1.8a2 (TBD)
------------
+1.8a3 (2021-08-24)
+------------------
+
+Deprecations:
+
+The STRtree class deprecation warnings have been removed. The class in 2.0.0
+will be backwards compatible with the class in 1.8.0.
+
+Bug fixes:
+
+- The __array_interface__ raises only AttributeError, all other exceptions are
+  deprecated starting with Numpy 1.21 (#1173).
+- The STRtree class now uses a pair of item, geom sequences internally instead
+  of a dict (#1177).
+
+
+1.8a2 (2021-07-15)
+------------------
 
 Python version support:
 
@@ -31,13 +47,18 @@ Bug fixes:
   geometry are avoided by never passing an empty geometry (#1134).
 - Python's builtin super() is now used only as described in PEP 3135 (#1109).
 - Only load conda GEOS dll if it exists (on Windows) (#1108).
+- Add /opt/homebrew/lib to the list of directories to be searched for the GEOS
+  shared library.
+- Added new library search path to assist app creation with cx_Freeze.
 
 1.8a1 (2021-03-03)
 ------------------
 
 Shapely 1.8.0 will be a transitional version. There are a few bug fixes and new
 features, but it is mainly about warning of the upcoming changes in 2.0.0.
-Several more pre-releases before 1.8.0 are expected.
+Several more pre-releases before 1.8.0 are expected. See the migration guide
+to Shapely 1.8 / 2.0 for more details on how to update your code
+(https://shapely.readthedocs.io/en/latest/migration.html).
 
 Python version support:
 
@@ -50,7 +71,6 @@ version 2.0.0.
 
 - ops.cascaded_union
 - geometry .empty()
-- geometry .to_wkb() and .to_wkt()
 - geometry .ctypes and .__array_interface__
 - multi-part geometry .__len__
 - setting custom attributes on geometry objects
@@ -62,6 +82,9 @@ not yet decided, but will be decided before 1.8.0 is released.
 
 Deprecation warnings will be emitted in 1.8a1 when any of these features are
 used.
+
+The deprecated .to_wkb() and .to_wkt() methods on the geometry objects have
+been removed.
 
 New features:
 
