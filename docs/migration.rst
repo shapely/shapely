@@ -20,6 +20,8 @@ For more background, see
 `RFC 1: Roadmap for Shapely 2.0 <https://github.com/shapely/shapely-rfc/pull/1>`__.
 
 .. contents:: Table of Contents
+  :backlinks: none
+  :local:
 
 
 Geometry objects will become immutable
@@ -288,7 +290,9 @@ Consistent creation of empty geometries
 =======================================
 
 Shapely 1.x is inconsistent in creating empty geometries between various
-creation methods. A small example for an empty Polygon geometry::
+creation methods. A small example for an empty Polygon geometry:
+
+.. code-block:: python
 
     # Using an empty constructor results in a GeometryCollection
     >>> from shapely.geometry import Polygon
