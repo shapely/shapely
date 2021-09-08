@@ -20,6 +20,8 @@ For more background, see
 `RFC 1: Roadmap for Shapely 2.0 <https://github.com/shapely/shapely-rfc/pull/1>`__.
 
 .. contents:: Table of Contents
+  :backlinks: none
+  :local:
 
 
 Geometry objects will become immutable
