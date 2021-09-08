@@ -66,9 +66,13 @@ Currently you can do::
     >>> line.name
     'my_geometry'
 
-This doesn't raise a warning in Shapely 1.8, but will start raising an
+In Shapely 1.8, this will start raising a warning, and will raise an
 AttributeError in Shapely 2.0.
 
+**How do I update my code?** There is no direct alternative for adding custom
+attributes to geometry objects. You can use other Python data structures such as
+(GeoJSON-like) dictionaries or GeoPandas' GeoDataFrames to store attributes
+alongside geometry features. 
 
 Multi-part geometries will no longer be "sequences" (length, iterable, indexable)
 =================================================================================
