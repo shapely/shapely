@@ -8,7 +8,7 @@ from shapely.errors import ShapelyDeprecationWarning
 
 from .point import Point, asPoint
 from .linestring import LineString, asLineString
-from .polygon import Polygon, asPolygon
+from .polygon import LinearRing, Polygon, asPolygon
 from .multipoint import MultiPoint, asMultiPoint
 from .multilinestring import MultiLineString, asMultiLineString
 from .multipolygon import MultiPolygon, MultiPolygonAdapter
@@ -106,6 +106,8 @@ def shape(context):
         return Point(ob["coordinates"])
     elif geom_type == "linestring":
         return LineString(ob["coordinates"])
+    elif geom_type == "linearring":
+        return LinearRing(ob["coordinates"])
     elif geom_type == "polygon":
         return Polygon(ob["coordinates"][0], ob["coordinates"][1:])
     elif geom_type == "multipoint":
