@@ -33,6 +33,7 @@ from shapely.ops import unary_union
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     'matplotlib.sphinxext.plot_directive',
+    'sphinx.ext.intersphinx',
     'sphinx.ext.autodoc',
     #'sphinx.ext.pngmath', # <----- pick one, not both
     'sphinx.ext.mathjax', # <--/
@@ -209,3 +210,11 @@ latex_documents = [
 
 # If false, no module index is generated.
 #latex_use_modindex = True
+
+
+#  --Options for sphinx extensions -----------------------------------------------
+
+# connect docs in other projects
+intersphinx_mapping = {
+    'numpy': ('https://numpy.org/doc/stable/', None),
+}

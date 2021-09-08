@@ -2787,6 +2787,8 @@ All of Shapely's geometry types are supported by these functions.
   >>> wkt.dumps(pt, trim=True)
   'POINT (0 0)'
 
+.. _array-interface:
+
 Numpy and Python Arrays
 -----------------------
 
