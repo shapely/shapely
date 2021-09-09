@@ -115,7 +115,6 @@ jobs:
           CIBW_ENVIRONMENT_MACOS:
             GEOS_INSTALL=${{ github.workspace }}/geos-${{ env.GEOS_VERSION }}
             GEOS_CONFIG=${{ github.workspace }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
-            DYLD_FALLBACK_LIBRARY_PATH=${{ github.workspace }}/geos-${{ env.GEOS_VERSION }}/lib
             LDFLAGS=-Wl,-rpath,${{ github.workspace }}/geos-${{ env.GEOS_VERSION }}/lib
           CIBW_ENVIRONMENT_WINDOWS:
             GEOS_INSTALL='${{ github.workspace }}\geos-${{ env.GEOS_VERSION }}'

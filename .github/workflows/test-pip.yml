@@ -1,0 +1,137 @@
+name: Test
+
+on: [push, pull_request]
+
+jobs:
+  TestLinux:
+    name: ${{ matrix.os }}-${{ matrix.architecture }} Py${{ matrix.python }} GEOS ${{ matrix.geos }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-2019]
+        architecture: [x64]
+        geos: [3.6.4, 3.7.3, 3.8.1, 3.9.1, main]
+        include:
+          # 2017
+          - python: 3.6
+            geos: 3.6.4
+            numpy: 1.13.3
+          # 2018
+          - python: 3.7
+            geos: 3.7.3
+            numpy: 1.15.4
+          # 2019
+          - python: 3.8
+            geos: 3.8.1
+            numpy: 1.17.5
+          # 2020
+          - python: 3.9
+            geos: 3.9.1
+            numpy: 1.19.5
+          # dev
+          - python: 3.9
+            geos: main
+          # enable two 32-bit windows builds:
+          - os: windows-2019
+            architecture: x86
+            python: 3.6
+            geos: 3.6.4
+            numpy: 1.13.3
+          - os: windows-2019
+            architecture: x86
+            python: 3.9
+            geos: 3.9.1
+            numpy: 1.19.5
+
+    env:
+      GEOS_VERSION: ${{ matrix.geos }}
+      GEOS_INSTALL: ${{ github.workspace }}/geosinstall/geos-${{ matrix.geos }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: ${{ matrix.architecture }}
+
+      - name: Cache GEOS and pip packages
+        uses: actions/cache@v2
+        with:
+          key: ${{ matrix.os }}-${{ matrix.architecture }}-geos-${{ matrix.geos }}
+          path: |
+            ~/.cache/pip
+            ${{ github.workspace }}/geosinstall
+
+      - name: Activate MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.architecture }}
+        if: ${{ matrix.os == 'windows-2019' }}
+
+      - name: Correct slashes in GEOS_INSTALL (Windows)
+        shell: bash
+        run: |
+          echo 'GEOS_INSTALL=${{ github.workspace }}\geosinstall\geos-${{ matrix.geos }}' >> $GITHUB_ENV
+        if: ${{ matrix.os == 'windows-2019' }}
+
+      - name: Install GEOS
+        shell: bash
+        run: |
+          ./ci/install_geos.sh
+          cd '${{ github.workspace }}'
+
+      - name: Install python dependencies
+        shell: bash
+        run: |
+          pip install --disable-pip-version-check --upgrade pip
+          pip install --upgrade wheel setuptools
+          if [ "$GEOS_VERSION" = "main" ]; then
+            pip install --upgrade --pre Cython numpy pytest;
+          else
+            pip install --upgrade Cython numpy==${{ matrix.numpy }} pytest;
+          fi
+          pip list
+
+      - name: Set environment variables (Linux)
+        shell: bash
+        run: |
+          echo "${{ env.GEOS_INSTALL }}/bin" >> $GITHUB_PATH
+          echo "LD_LIBRARY_PATH=${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+
+      - name: Set environment variables (OSX)
+        shell: bash
+        run: |
+          echo "${{ env.GEOS_INSTALL }}/bin" >> $GITHUB_PATH
+          echo "LDFLAGS=-Wl,-rpath,${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
+        if: ${{ matrix.os == 'macos-latest' }}
+
+      # Python >=3.8 ignores the PATH for finding DLLs. We copy them into the package dir. 
+      - name: Set environment variables + copy DLLs (Windows)
+        shell: bash
+        run: |
+          cp geosinstall/geos-${{ matrix.geos }}/bin/*.dll pygeos
+          echo 'GEOS_LIBRARY_PATH=${{ env.GEOS_INSTALL }}\lib' >> $GITHUB_ENV
+          echo 'GEOS_INCLUDE_PATH=${{ env.GEOS_INSTALL }}\include' >> $GITHUB_ENV
+        if: ${{ matrix.os == 'windows-2019' }}
+
+      - name: Build PyGEOS
+        shell: bash
+        run: |
+          python setup.py build_ext --inplace
+          pip install --no-deps -e .
+
+      - name: Run tests
+        shell: bash
+        continue-on-error: ${{ matrix.geos == 'main' }}
+        run: |
+          pytest pygeos
+
+      - name: Run doctests
+        shell: bash
+        run: |
+          pytest --doctest-modules pygeos --ignore=pygeos/tests
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.8' }}

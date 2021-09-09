@@ -3,11 +3,12 @@ import logging
 import os
 import subprocess
 import sys
-from distutils.version import LooseVersion
 from pathlib import Path
 
 from setuptools import Extension, setup, find_packages
 from setuptools.command.build_ext import build_ext as _build_ext
+# import distutils *after* setuptools
+from distutils.version import LooseVersion
 
 import versioneer
 
