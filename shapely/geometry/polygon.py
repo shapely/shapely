@@ -21,6 +21,11 @@ from shapely.errors import TopologicalError, ShapelyDeprecationWarning
 __all__ = ['Polygon', 'LinearRing']
 
 
+def _unpickle_linearring(wkb):
+    linestring = pygeos.from_wkb(wkb)
+    return pygeos.linearrings(pygeos.get_coordinates(linestring))
+
+
 class LinearRing(LineString):
     """
     A closed one-dimensional feature comprising one or more line segments
@@ -91,14 +96,10 @@ class LinearRing(LineString):
             'coordinates': tuple(self.coords)
             }
 
-    def __setstate__(self, state):
+    def __reduce__(self):
         """WKB doesn't differentiate between LineString and LinearRing so we
         need to move the coordinate sequence into the correct geometry type"""
-        super().__setstate__(state)
-        cs = lgeos.GEOSGeom_getCoordSeq(self.__geom__)
-        cs_clone = lgeos.GEOSCoordSeq_clone(cs)
-        lgeos.GEOSGeom_destroy(self.__geom__)
-        self.__geom__ = lgeos.GEOSGeom_createLinearRing(cs_clone)
+        return (_unpickle_linearring, (self.wkb, ))
 
     @property
     def is_ccw(self):
