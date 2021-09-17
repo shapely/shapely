@@ -5,10 +5,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+from pkg_resources import parse_version
 from setuptools import Extension, setup, find_packages
 from setuptools.command.build_ext import build_ext as _build_ext
-# import distutils *after* setuptools
-from distutils.version import LooseVersion
 
 import versioneer
 
@@ -83,7 +82,7 @@ def get_geos_paths():
         )
         return {}
 
-    if LooseVersion(geos_version) < LooseVersion(MIN_GEOS_VERSION):
+    if parse_version(geos_version) < parse_version(MIN_GEOS_VERSION):
         raise ImportError(
             "GEOS version should be >={}, found {}".format(
                 MIN_GEOS_VERSION, geos_version
