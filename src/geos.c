@@ -25,6 +25,12 @@ void destroy_geom_arr(void* context, GEOSGeometry** array, int length) {
   }
 }
 
+/* These functions are used to workaround two Pre-GEOS 3.9.0 issues:
+ * - POINT EMPTY was not handled correctly (we do it ourselves)
+ * - MULTIPOINT (EMPTY) resulted in segfault (we check for it and raise)
+ */
+#if !GEOS_SINCE_3_9_0
+
 /* Returns 1 if a multipoint has an empty point, 0 otherwise, 2 on error.
  */
 char multipoint_has_point_empty(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
@@ -49,10 +55,6 @@ char multipoint_has_point_empty(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
   }
   return 0;
 }
-
-// POINT EMPTY is converted to POINT (nan nan)
-// by GEOS >= 3.10.0. Before that, we do it ourselves here.
-#if !GEOS_SINCE_3_10_0
 
 /* Returns 1 if geometry is an empty point, 0 otherwise, 2 on error.
  */
@@ -255,8 +257,6 @@ GEOSGeometry* point_empty_to_nan_all_geoms(GEOSContextHandle_t ctx, GEOSGeometry
   return result;
 }
 
-#endif  // !GEOS_SINCE_3_10_0
-
 /* Checks whether the geometry is a multipoint with an empty point in it
  *
  * According to https://github.com/libgeos/geos/issues/305, this check is not
@@ -288,6 +288,8 @@ char check_to_wkt_compatible(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
     return PGERR_GEOS_EXCEPTION;
   }
 }
+
+#endif  // !GEOS_SINCE_3_9_0
 
 /* GEOSInterpolate_r and GEOSInterpolateNormalized_r segfault on empty
  * geometries and also on collections with the first geometry empty.

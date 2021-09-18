@@ -34,6 +34,7 @@ polygon_with_hole = pygeos.Geometry(
     "POLYGON((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))"
 )
 empty_point = pygeos.Geometry("POINT EMPTY")
+empty_point_z = pygeos.Geometry("POINT Z EMPTY")
 empty_line_string = pygeos.Geometry("LINESTRING EMPTY")
 empty_polygon = pygeos.Geometry("POLYGON EMPTY")
 empty = pygeos.Geometry("GEOMETRYCOLLECTION EMPTY")

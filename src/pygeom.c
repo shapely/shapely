@@ -72,10 +72,13 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
 
   GEOS_INIT;
 
+  // Before GEOS 3.9.0, there was as segfault on e.g. MULTIPOINT (1 1, EMPTY)
+  #if !GEOS_SINCE_3_9_0
   errstate = check_to_wkt_compatible(ctx, obj->ptr);
   if (errstate != PGERR_SUCCESS) {
     goto finish;
   }
+  #endif
 
   GEOSWKTWriter* writer = GEOSWKTWriter_create_r(ctx);
   if (writer == NULL) {
@@ -126,8 +129,8 @@ static PyObject* GeometryObject_ToWKB(GeometryObject* obj) {
 
   GEOS_INIT;
 
-#if !GEOS_SINCE_3_10_0
-  // WKB Does not allow empty points in GEOS < 3.10.
+#if !GEOS_SINCE_3_9_0
+  // WKB Does not allow empty points in GEOS < 3.9.
   // We check for that and patch the POINT EMPTY if necessary
   has_empty = has_point_empty(ctx, obj->ptr);
   if (has_empty == 2) {
@@ -141,7 +144,7 @@ static PyObject* GeometryObject_ToWKB(GeometryObject* obj) {
   }
 #else
   geom = obj->ptr;
-#endif  // !GEOS_SINCE_3_10_0
+#endif  // !GEOS_SINCE_3_9_0
 
   /* Create the WKB writer */
   writer = GEOSWKBWriter_create_r(ctx);

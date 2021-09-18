@@ -35,7 +35,7 @@ Geometries can be serialized using pickle:
   >>> pickle.loads(point_1)
   <pygeos.Geometry POINT (5.2 52.1)>
 
-.. warning:: Pickling will convert linearrings to linestrings and it may convert empty points.
+.. warning:: Pickling will convert linearrings to linestrings.
              See :func:`pygeos.io.to_wkb` for a complete list of limitations.
 
 Hashing
@@ -53,7 +53,7 @@ Therefore, geometries are equal if and only if their WKB representations are equ
   {<pygeos.Geometry POINT (5.2 52.1)>, <pygeos.Geometry POINT (1 1)>}
 
 .. warning:: Due to limitations of WKB, linearrings will equal linestrings if they contain the exact same points.
-             Also, different kind of empty points will be considered equal. See :func:`pygeos.io.to_wkb`.
+             See :func:`pygeos.io.to_wkb`.
 
 Comparing two geometries directly is also supported.
 This is the same as using :func:`pygeos.predicates.equals_exact` with a ``tolerance`` value of zero.
