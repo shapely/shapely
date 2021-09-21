@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from pkg_resources import parse_version
-from setuptools import Extension, setup, find_packages
+from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext as _build_ext
 
 import versioneer

@@ -9,6 +9,7 @@ on:
   pull_request:  # also build on PRs touching this file
     paths:
       - ".github/workflows/release.yml"
+      - "ci/*"
 
 jobs:
   build_sdist:
@@ -69,9 +70,8 @@ jobs:
       - name: Cache GEOS build
         uses: actions/cache@v2
         with:
-          path: |
-            geos-${{ env.GEOS_VERSION }}
-          key: ${{ matrix.os }}-${{ matrix.archs }}-2
+          path: geos-${{ env.GEOS_VERSION }}
+          key: ${{ matrix.os }}-${{ matrix.archs }}-${{ env.GEOS_VERSION }}-${{ hashFiles('ci/*') }}
 
       - name: Add GEOS LICENSE
         run: |
@@ -125,11 +125,6 @@ jobs:
           CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ github.workspace }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} {wheel}
           CIBW_TEST_REQUIRES: pytest
-          # The pytest command has the custom setting import-mode=importlib
-          # so that pytest does not mess up the PATH.
-          # If you do not do that, the (uncompiled) contents of
-          # {package}/pygeos will be tested against instead of the
-          # installed contents of the wheel that was built.
           CIBW_TEST_COMMAND: pytest --pyargs pygeos.tests
 
       - name: Upload artifacts

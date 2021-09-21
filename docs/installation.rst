@@ -98,27 +98,36 @@ GEOS discovery (runtime)
 ------------------------
 
 PyGEOS is dynamically linked to GEOS. This means that the same GEOS library that was used
-during PyGEOS compilation is required on your system. Make sure that the dynamic linker paths are
-set such that the libraries are found.
+during PyGEOS compilation is required on your system at runtime. When using pygeos that was distributed
+as a binary wheel or through conda, this is automatically the case and you can stop reading.
 
-When using a binary wheel, conda, the Anaconda shell, or the OSGeo4W shell, this is automatically
-the case and you can stop reading. In other cases this can be tricky, especially if you have
-multiple GEOS installations next to each other. For PyGEOS this can be solved by prepending
-the GEOS path before you start Python.
+In other cases this can be tricky, especially if you have multiple GEOS installations next
+to each other. We only include some guidelines here to address this issue as this document is
+not intended as a general guide of shared library discovery.
 
-On Linux::
+If you encountered exceptions like:
 
-    $ export LD_LIBRARY_PATH=/path/to/geos/lib:$LD_LIBRARY_PATH
-    $ sudo ldconfig  # refresh dynamic linker cache
+.. code-block:: none
 
-On OSX::
+   ImportError: libgeos_c.so.1: cannot open shared object file: No such file or directory
 
-    $ export DYLD_LIBRARY_PATH=/path/to/geos/lib:$DYLD_LIBRARY_PATH
+You will have to make the shared library file available to the Python interpreter. There are in
+general four ways of making Python aware of the location of shared library:
 
-On Windows::
+1. Copy the shared libraries into the pygeos module directory (this is how Windows binary wheels work:
+   they are distributed with the correct dlls in the pygeos module directory)
+2. Copy the shared libraries into the library directory of the Python interpreter (this is how
+   Anaconda environments work)
+3. Copy the shared libraries into some system location (``C:\Windows\System32``; ``/usr/local/lib``,
+   this happens if you installed GEOS through ``apt`` or ``brew``)
+4. Add the shared library location to a the dynamic linker path variable at runtime.
+   (Advanced usage; Linux and OSX only; on Windows this method was deprecated in Python 3.8)
 
-    $ set PATH=C:\path\to\geos\bin;%PATH%
+The filenames of the GEOS shared libraries are:
 
-Note that setting environment variables like this is temporary. You will need to
-repeat this every time before you want to use PyGEOS. Also, it will influence other
-applications that are using GEOS; they may find a different GEOS version and crash.
+* On Linux: ``libgeos-*.so.*, libgeos_c-*.so.*``
+* On OSX: ``libgeos.dylib, libgeos_c.dylib``
+* On Windows: ``geos-*.dll, geos_c-*.dll``
+
+Note that pygeos does not make use of any RUNPATH (RPATH) header. The location
+of the GEOS shared library is not stored inside the compiled PyGEOS library.
