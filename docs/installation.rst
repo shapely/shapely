@@ -105,7 +105,7 @@ In other cases this can be tricky, especially if you have multiple GEOS installa
 to each other. We only include some guidelines here to address this issue as this document is
 not intended as a general guide of shared library discovery.
 
-If you encountered exceptions like:
+If you encounter exceptions like:
 
 .. code-block:: none
 
