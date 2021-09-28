@@ -30,13 +30,13 @@
 
 // Fail if inputs output multiple times on the same place in memory. That would
 // lead to segfaults as the same GEOSGeometry would be 'owned' by multiple PyObjects.
-#define CHECK_NO_INPLACE_OUTPUT(N)                                                \
-  if ((steps[N] == 0) && (dimensions[0] > 1)) {                                   \
-    PyErr_Format(PyExc_NotImplementedError,                                       \
-                 "Zero-strided output detected. Ufunc mode with args[0]=%p, "     \
-                 "args[N]=%p, steps[0]=%ld, steps[N]=%ld, dimensions[0]=%ld.",    \
-                 args[0], args[N], steps[0], steps[N], dimensions[0]);            \
-    return;                                                                       \
+#define CHECK_NO_INPLACE_OUTPUT(N)                                             \
+  if ((steps[N] == 0) && (dimensions[0] > 1)) {                                \
+    PyErr_Format(PyExc_NotImplementedError,                                    \
+                 "Zero-strided output detected. Ufunc mode with args[0]=%p, "  \
+                 "args[N]=%p, steps[0]=%ld, steps[N]=%ld, dimensions[0]=%ld.", \
+                 args[0], args[N], steps[0], steps[N], dimensions[0]);         \
+    return;                                                                    \
   }
 
 #define CHECK_ALLOC(ARR)                                             \
@@ -1947,7 +1947,7 @@ static PyUFuncGenericFunction polygonize_full_funcs[1] = {&polygonize_full_func}
 
 static char shortest_line_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
 static void shortest_line_func(char** args, npy_intp* dimensions, npy_intp* steps,
-                                void* data) {
+                               void* data) {
   GEOSGeometry* in1 = NULL;
   GEOSGeometry* in2 = NULL;
   GEOSPreparedGeometry* in1_prepared = NULL;
@@ -2195,6 +2195,12 @@ static void linearrings_func(char** args, npy_intp* dimensions, npy_intp* steps,
         ring_closure = 1;
         break;
       }
+    }
+    /* the minimum number of coordinates in a linearring is 4 */
+    if (n_c1 + ring_closure < 4) {
+      errstate = PGERR_LINEARRING_NCOORDS;
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      goto finish;
     }
     /* fill the coordinate sequence */
     coord_seq = GEOSCoordSeq_create_r(ctx, n_c1 + ring_closure, n_c2);
@@ -2932,13 +2938,13 @@ static void to_wkt_func(char** args, npy_intp* dimensions, npy_intp* steps, void
       Py_INCREF(Py_None);
       *out = Py_None;
     } else {
-      // Before GEOS 3.9.0, there was as segfault on e.g. MULTIPOINT (1 1, EMPTY)
-      #if !GEOS_SINCE_3_9_0
+// Before GEOS 3.9.0, there was as segfault on e.g. MULTIPOINT (1 1, EMPTY)
+#if !GEOS_SINCE_3_9_0
       errstate = check_to_wkt_compatible(ctx, in1);
       if (errstate != PGERR_SUCCESS) {
         goto finish;
       }
-      #endif
+#endif
       wkt = GEOSWKTWriter_write_r(ctx, writer, in1);
       if (wkt == NULL) {
         errstate = PGERR_GEOS_EXCEPTION;

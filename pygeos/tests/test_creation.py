@@ -127,12 +127,12 @@ def test_linearrings_invalid_shape_scalar():
 )
 def test_linearrings_invalid_shape(shape):
     coords = np.ones(shape)
-    with pytest.raises(pygeos.GEOSException):
+    with pytest.raises(ValueError):
         pygeos.linearrings(coords)
 
     # make sure the first coordinate != second coordinate
     coords[..., 1] += 1
-    with pytest.raises(pygeos.GEOSException):
+    with pytest.raises(ValueError):
         pygeos.linearrings(coords)
 
 
@@ -245,12 +245,12 @@ def test_polygons_not_enough_points_in_shell_scalar():
 )
 def test_polygons_not_enough_points_in_shell(shape):
     coords = np.ones(shape)
-    with pytest.raises(pygeos.GEOSException):
+    with pytest.raises(ValueError):
         pygeos.polygons(coords)
 
     # make sure the first coordinate != second coordinate
     coords[..., 1] += 1
-    with pytest.raises(pygeos.GEOSException):
+    with pytest.raises(ValueError):
         pygeos.polygons(coords)
 
 
@@ -275,12 +275,12 @@ def test_polygons_not_enough_points_in_holes_scalar():
 )
 def test_polygons_not_enough_points_in_holes(shape):
     coords = np.ones(shape)
-    with pytest.raises(pygeos.GEOSException):
+    with pytest.raises(ValueError):
         pygeos.polygons(np.ones((1, 4, 2)), coords)
 
     # make sure the first coordinate != second coordinate
     coords[..., 1] += 1
-    with pytest.raises(pygeos.GEOSException):
+    with pytest.raises(ValueError):
         pygeos.polygons(np.ones((1, 4, 2)), coords)
 
 

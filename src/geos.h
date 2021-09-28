@@ -52,6 +52,7 @@ enum {
   PGERR_GEOMETRY_TYPE,
   PGERR_MULTIPOINT_WITH_POINT_EMPTY,
   PGERR_EMPTY_GEOMETRY,
+  PGERR_LINEARRING_NCOORDS,
   PGWARN_INVALID_WKB,  // raise the GEOS WKB error as a warning instead of exception
   PGWARN_INVALID_WKT   // raise the GEOS WKB error as a warning instead of exception
 };
@@ -86,6 +87,10 @@ enum {
       break;                                                                             \
     case PGERR_EMPTY_GEOMETRY:                                                           \
       PyErr_SetString(PyExc_ValueError, "One of the Geometry inputs is empty.");         \
+      break;                                                                             \
+    case PGERR_LINEARRING_NCOORDS:                                                       \
+      PyErr_SetString(PyExc_ValueError,                                                  \
+                      "A linearring requires at least 4 coordinates.");                  \
       break;                                                                             \
     case PGWARN_INVALID_WKB:                                                             \
       PyErr_WarnFormat(PyExc_Warning, 0,                                                 \

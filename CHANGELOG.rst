@@ -14,8 +14,9 @@ Version 0.11 (unreleased)
 
 **API Changes**
 
-* ...
-
+* When constructing a linearring through ``pygeos.linearrings`` or a polygon through 
+  ``pygeos.polygons`` now a ``ValueError`` is raised (instead of a ``GEOSException``)
+  if the ring contains less than 4 coordinates including ring closure (#378).
 
 **Added GEOS functions**
 
