@@ -14,6 +14,7 @@ import math
 import sys
 from warnings import warn
 from functools import wraps
+import warnings
 
 from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
@@ -240,6 +241,24 @@ class BaseGeometry:
         self._empty()
         self._is_empty = val in [EMPTY, None]
         self.__geom__ = val
+
+    def __setattr__(self, name, value):
+        # first try regular attribute access via __getattribute__, so that
+        # our own (existing) attributes don't raise a warning
+        try:
+            object.__getattribute__(self, name)
+            super().__setattr__(name, value)
+            return
+        except AttributeError:
+            pass
+
+        # if custom atribute, raise the warning
+        warn(
+            "Setting custom attributes on geometry objects is deprecated, "
+            "and will raise an AttributeError in Shapely 2.0",
+            ShapelyDeprecationWarning, stacklevel=2
+        )
+        super().__setattr__(name, value)
 
     # Operators
     # ---------

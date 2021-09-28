@@ -38,6 +38,11 @@ class CachingGeometryProxy:
     def gtag(self):
         return hash(repr(self.context))
 
+    def __setattr__(self, name, value):
+        # to override the custom one in BaseGeometry, so we don't warn
+        # for the proxy classes, which are already deprecated itself
+        object.__setattr__(self, name, value)
+
 
 class PolygonProxy(CachingGeometryProxy):
 

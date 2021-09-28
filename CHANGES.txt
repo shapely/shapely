@@ -73,6 +73,7 @@ version 2.0.0.
 - geometry .empty()
 - geometry .ctypes and .__array_interface__
 - multi-part geometry .__len__
+- setting custom attributes on geometry objects
 
 Geometry objects will become immutable in version 2.0.0.
 
