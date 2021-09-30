@@ -49,10 +49,33 @@ jobs:
 
     env:
       GEOS_VERSION: ${{ matrix.geos }}
+      GEOS_VERSION_SPEC: ${{ matrix.geos }}
       GEOS_INSTALL: ${{ github.workspace }}/geosinstall/geos-${{ matrix.geos }}
+      GEOS_BUILD: ${{ github.workspace }}/geosbuild
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Correct slashes in GEOS_INSTALL (Windows)
+        run: |
+          echo 'GEOS_INSTALL=${{ github.workspace }}\geosinstall\geos-${{ matrix.geos }}' >> $GITHUB_ENV
+          echo 'GEOS_BUILD=${{ github.workspace }}\geosbuild' >> $GITHUB_ENV
+        if: ${{ matrix.os == 'windows-2019' }}
+
+      - name: Checkout PyGEOS
+        uses: actions/checkout@v2
+
+      - name: Checkout GEOS (main)
+        uses: actions/checkout@v2
+        with:
+          repository: libgeos/geos
+          ref: main
+          path: ${{ env.GEOS_BUILD }}
+        if: ${{ matrix.geos == 'main' }}
+
+      - name: Put the latest commit hash in the cache token
+        run: |
+          echo "GEOS_VERSION_SPEC=$(git rev-parse HEAD)" >> $GITHUB_ENV
+        working-directory: ${{ env.GEOS_BUILD }}
+        if: ${{ matrix.geos == 'main' }}
 
       - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v2
@@ -63,7 +86,7 @@ jobs:
       - name: Cache GEOS and pip packages
         uses: actions/cache@v2
         with:
-          key: ${{ matrix.os }}-${{ matrix.architecture }}-geos-${{ matrix.geos }}-${{ hashFiles('ci/install_geos.sh') }}
+          key: ${{ matrix.os }}-${{ matrix.architecture }}-geos-${{ env.GEOS_VERSION_SPEC }}-${{ hashFiles('ci/install_geos.sh') }}
           path: |
             ~/.cache/pip
             ${{ github.workspace }}/geosinstall
@@ -72,11 +95,6 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ matrix.architecture }}
-        if: ${{ matrix.os == 'windows-2019' }}
-
-      - name: Correct slashes in GEOS_INSTALL (Windows)
-        run: |
-          echo 'GEOS_INSTALL=${{ github.workspace }}\geosinstall\geos-${{ matrix.geos }}' >> $GITHUB_ENV
         if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Install GEOS
@@ -118,9 +136,7 @@ jobs:
         if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Build PyGEOS
-        run: |
-          python setup.py build_ext --inplace
-          pip install --no-deps -e .
+        run: python setup.py build_ext --inplace
 
       - name: Run tests
         continue-on-error: ${{ matrix.geos == 'main' }}
