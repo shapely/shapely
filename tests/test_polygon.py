@@ -69,7 +69,10 @@ def test_linearring_from_too_short_linestring():
     # 4 coordinates (closed)
     coords = [(0.0, 0.0), (1.0, 1.0)]
     line = LineString(coords)
-    with pytest.raises(pygeos.GEOSException, match="Invalid number of points"):
+    with pytest.raises(
+        (ValueError, pygeos.GEOSException),
+        match="Invalid number of points|requires at least 4 coordinates"
+    ):
         LinearRing(line)
 
 
@@ -176,7 +179,7 @@ def test_polygon_from_polygon():
 
 def test_polygon_from_invalid():
     # Error handling
-    with pytest.raises(pygeos.GEOSException):
+    with pytest.raises((ValueError, pygeos.GEOSException)):
         # A LinearRing must have at least 3 coordinate tuples
         Polygon([[1, 2], [2, 3]])
 
