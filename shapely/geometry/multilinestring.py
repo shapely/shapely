@@ -26,6 +26,8 @@ class MultiLineString(BaseMultipartGeometry):
         A sequence of LineStrings
     """
 
+    __slots__ = []
+
     def __new__(self, lines=None):
         """
         Parameters
