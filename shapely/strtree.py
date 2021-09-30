@@ -136,7 +136,7 @@ class STRtree:
 
         Returns
         -------
-        An array or list of items stored in the tree.
+        An array of items stored in the tree.
 
         Note
         ----
@@ -185,7 +185,7 @@ class STRtree:
 
         Returns
         -------
-        An array or list of geometry objects.
+        An array of geometry objects.
 
         """
         result = self._tree.query(geom, 0)
@@ -205,7 +205,7 @@ class STRtree:
 
         Returns
         -------
-        An array or list of geometry objects.
+        An array of geometry objects.
 
         """
         return self.query_geoms(geom)
