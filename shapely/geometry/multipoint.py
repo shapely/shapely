@@ -26,6 +26,8 @@ class MultiPoint(BaseMultipartGeometry):
         A sequence of Points
     """
 
+    __slots__ = []
+
     def __new__(self, points=None):
         """
         Parameters

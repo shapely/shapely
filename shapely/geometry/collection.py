@@ -20,6 +20,8 @@ class GeometryCollection(BaseMultipartGeometry):
         A sequence of Shapely geometry instances
     """
 
+    __slots__ = []
+
     def __new__(self, geoms=None):
         """
         Parameters

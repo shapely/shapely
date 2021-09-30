@@ -21,6 +21,8 @@ class LineString(BaseGeometry):
     and need not be straight. Unlike a LinearRing, a LineString is not closed.
     """
 
+    __slots__ = []
+
     def __new__(self, coordinates=None):
         """
         Parameters
