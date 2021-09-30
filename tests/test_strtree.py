@@ -12,7 +12,7 @@ from shapely import strtree
 from shapely.strtree import STRtree
 from shapely import wkt
 
-from .conftest import requires_geos_342
+from .conftest import requires_geos_342, shapely20_todo
 
 import pytest
 
@@ -124,18 +124,6 @@ def test_references():
     assert results[0] == Point(1, 0.5)
 
 
-@requires_geos_342
-def test_safe_delete():
-    tree = STRtree([])
-
-    _lgeos = strtree.lgeos
-    strtree.lgeos = None
-
-    del tree
-
-    strtree.lgeos = _lgeos
-
-
 # TODO(shapely-2.0) this fails on Appveyor, see
 # https://github.com/Toblerity/Shapely/pull/983#issuecomment-718557666
 @pytest.mark.skipif(sys.platform.startswith("win32"), reason="does not run on Appveyor")
@@ -207,6 +195,7 @@ def test_nearest_items(geoms, items):
     assert tree.nearest_item(None) is None
 
 
+@shapely20_todo
 @pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS 3.6.0 required")
 @pytest.mark.parametrize(
     "geoms",

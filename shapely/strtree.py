@@ -17,14 +17,14 @@ References
      VLDB Conf. 497-506. 10.1109/ICDE.1997.582015.
      https://www.cs.odu.edu/~mln/ltrs-pdfs/icase-1997-14.pdf
 """
-
-import ctypes
 import logging
-from typing import Any, ItemsView, Iterable, Iterator, Optional, Sequence, Tuple, Union
-import sys
+from typing import Any, Iterable, Sequence, Union
 
 from shapely.geometry.base import BaseGeometry
-from shapely.geos import lgeos
+
+import numpy as np
+from pygeos import lib
+
 
 log = logging.getLogger(__name__)
 
@@ -100,53 +100,28 @@ class STRtree:
         self.node_capacity = node_capacity
 
         # Keep references to geoms
-        self._geoms = list(geoms)
-        # Default enumeration index to store in the tree
-        self._idxs = list(range(len(self._geoms)))
+        self.geometries = np.asarray(geoms, dtype=np.object_)
+
+        # initialize GEOS STRtree
+        self._tree = lib.STRtree(self.geometries, node_capacity)
 
         # handle items
         self._has_custom_items = items is not None
-        if not self._has_custom_items:
-            items = self._idxs
+        if self._has_custom_items:
+            items = np.asarray(items)
+        else:
+            # should never be accessed
+            items = None
         self._items = items
 
-        # initialize GEOS STRtree
-        self._tree = lgeos.GEOSSTRtree_create(self.node_capacity)
-        i = 0
-        for idx, geom in zip(self._idxs, self._geoms):
-            # filter empty geometries out of the input
-            if geom is not None and not geom.is_empty:
-                lgeos.GEOSSTRtree_insert(self._tree, geom._geom, ctypes.py_object(idx))
-                i += 1
-        self._n_geoms = i
+    def __len__(self):
+        return self._tree.count
 
     def __reduce__(self):
         if self._has_custom_items:
-            return STRtree, (self._geoms, self._items)
+            return (STRtree, (self.geometries, self._items))
         else:
-            return STRtree, (self._geoms, )
-
-    def __del__(self):
-        if self._tree is not None:
-            try:
-                lgeos.GEOSSTRtree_destroy(self._tree)
-            except AttributeError:
-                pass  # lgeos might be empty on shutdown.
-
-            self._tree = None
-
-    def _query(self, geom):
-        if self._n_geoms == 0:
-            return []
-
-        result = []
-
-        def callback(item, userdata):
-            idx = ctypes.cast(item, ctypes.py_object).value
-            result.append(idx)
-
-        lgeos.GEOSSTRtree_query(self._tree, geom._geom, lgeos.GEOSQueryCallback(callback), None)
-        return result
+            return (STRtree, (self.geometries, ))
 
     def query_items(self, geom: BaseGeometry) -> Sequence[Any]:
         """Query for nodes which intersect the geom's envelope to get
@@ -161,7 +136,7 @@ class STRtree:
 
         Returns
         -------
-        An array or list of items stored in the tree.
+        An array of items stored in the tree.
 
         Note
         ----
@@ -193,9 +168,9 @@ class STRtree:
         ['POINT (2 2)']
 
         """
-        result = self._query(geom)
+        result = self._tree.query(geom, 0)
         if self._has_custom_items:
-            return [self._items[i] for i in result]
+            return self._items[result]
         else:
             return result
 
@@ -210,11 +185,11 @@ class STRtree:
 
         Returns
         -------
-        An array or list of geometry objects.
+        An array of geometry objects.
 
         """
-        result = self._query(geom)
-        return [self._geoms[i] for i in result]
+        result = self._tree.query(geom, 0)
+        return self.geometries[result]
 
     def query(self, geom: BaseGeometry) -> Sequence[BaseGeometry]:
         """Query for nodes which intersect the geom's envelope to get
@@ -230,38 +205,25 @@ class STRtree:
 
         Returns
         -------
-        An array or list of geometry objects.
+        An array of geometry objects.
 
         """
         return self.query_geoms(geom)
 
-    def _nearest(self, geom, exclusive):
-        envelope = geom.envelope
+    def _nearest_idx(self, geom: BaseGeometry, exclusive: bool = False) -> int:
+        if exclusive:
+            raise NotImplementedError(
+                "The `exclusive` keyword is not yet implemented for Shapely 2.0"
+            )
+        geometry = np.asarray(geom, dtype=object)
+        if geometry.ndim == 0:
+            geometry = np.expand_dims(geometry, 0)
 
-        def callback(item1, item2, distance, userdata):
-            try:
-                callback_userdata = ctypes.cast(userdata, ctypes.py_object).value
-                idx = ctypes.cast(item1, ctypes.py_object).value
-                geom2 = ctypes.cast(item2, ctypes.py_object).value
-                dist = ctypes.cast(distance, ctypes.POINTER(ctypes.c_double))
-                if callback_userdata["exclusive"] and self._geoms[idx].equals(geom2):
-                    dist[0] = sys.float_info.max
-                else:
-                    lgeos.GEOSDistance(self._geoms[idx]._geom, geom2._geom, dist)
-                
-                return 1
-            except Exception:
-                log.exception("Caught exception")
-                return 0
-
-        item = lgeos.GEOSSTRtree_nearest_generic(
-            self._tree,
-            ctypes.py_object(geom),
-            envelope._geom,
-            lgeos.GEOSDistanceCallback(callback),
-            ctypes.py_object({"exclusive": exclusive}),
-        )
-        return ctypes.cast(item, ctypes.py_object).value
+        indices = self._tree.nearest(geometry)
+        # nearest returns ndarray with shape (2, 1) -> index in input
+        # geometries and index into tree geometries
+        idx = indices[1, 0]
+        return idx
 
     def nearest_item(
         self, geom: BaseGeometry, exclusive: bool = False
@@ -301,10 +263,10 @@ class STRtree:
         'POINT (0 0)'
 
         """
-        if self._n_geoms == 0:
+        if self._tree.count == 0:
             return None
 
-        result = self._nearest(geom, exclusive)
+        result = self._nearest_idx(geom, exclusive)
         if self._has_custom_items:
             return self._items[result]
         else:
@@ -332,8 +294,11 @@ class STRtree:
         version 2.0.
 
         """
-        result = self._nearest(geom, exclusive)
-        return self._geoms[result]
+        if self._tree.count == 0:
+            return None
+
+        result = self._nearest_idx(geom, exclusive)
+        return self.geometries[result]
 
     def nearest(
         self, geom: BaseGeometry, exclusive: bool = False
