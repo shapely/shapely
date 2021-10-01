@@ -6,7 +6,7 @@ from shapely.geometry import asShape, shape
 from shapely.geometry.multipoint import MultiPoint, MultiPointAdapter
 from shapely.geometry.linestring import LineString, LineStringAdapter
 from shapely.geometry.multilinestring import MultiLineString, MultiLineStringAdapter
-from shapely.geometry.polygon import Polygon, PolygonAdapter
+from shapely.geometry.polygon import LinearRing, Polygon, PolygonAdapter
 from shapely.geometry.multipolygon import MultiPolygon, MultiPolygonAdapter
 from shapely import wkt
 
@@ -93,6 +93,17 @@ class GeoInterfaceTestCase(unittest.TestCase):
             {'type': 'LineString', 'coordinates': ((-1.0, -1.0), (1.0, 1.0))})
         self.assertIsInstance(geom, LineString)
         self.assertEqual(tuple(geom.coords), ((-1.0, -1.0), (1.0, 1.0)))
+
+        # Check linearring
+        geom = shape(
+            {'type': 'LinearRing', 
+             'coordinates': 
+                 ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (2.0, -1.0), (0.0, 0.0))}
+        )
+        self.assertIsInstance(geom, LinearRing)
+        self.assertEqual(
+            tuple(geom.coords),
+            ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (2.0, -1.0), (0.0, 0.0)))
 
         # polygon
         geom = shape(
