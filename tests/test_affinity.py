@@ -83,7 +83,7 @@ class AffineTestCase(unittest.TestCase):
                     0, 2.5,
                     -5, 4.1)
         a2 = affinity.affine_transform(g, matrix2d)
-        self.assertTrue(a2.almost_equals(expected2d))
+        self.assertTrue(a2.equals_exact(expected2d, 1e-6))
         self.assertFalse(a2.has_z)
         # Make sure a 3D matrix does not make a 3D shape from a 2D input
         matrix3d = (2, 0, 0,
@@ -91,7 +91,7 @@ class AffineTestCase(unittest.TestCase):
                     0, 0, 10,
                     -5, 4.1, 100)
         a3 = affinity.affine_transform(g, matrix3d)
-        self.assertTrue(a3.almost_equals(expected2d))
+        self.assertTrue(a3.equals_exact(expected2d, 1e-6))
         self.assertFalse(a3.has_z)
 
     def test_affine_3d(self):
@@ -121,8 +121,8 @@ class AffineTestCase(unittest.TestCase):
                               '-0.2 11.6 140.47744, 1 11.6 139.19728)')
         expected32 = load_wkt('LINESTRING(-0.2 14.35 100.2, '
                               '-0.2 11.6 132.8, 1 11.6 128.6)')
-        self.assertTrue(a22.almost_equals(expected2d))
-        self.assertTrue(a23.almost_equals(expected2d))
+        self.assertTrue(a22.equals_exact(expected2d, 1e-6))
+        self.assertTrue(a23.equals_exact(expected2d, 1e-6))
         # Do explicit 3D check of coordinate values
         for a, e in zip(a32.coords, expected32.coords):
             for ap, ep in zip(a, e):
@@ -160,7 +160,7 @@ class TransformOpsTestCase(unittest.TestCase):
         rls = affinity.rotate(ls, 90, origin=Point(0, 0))
         els = load_wkt('LINESTRING(-400 240, -300 240, -300 300)')
         self.assertTrue(rls.equals(els))
-    
+
     def test_rotate_empty(self):
         rls = affinity.rotate(load_wkt('LINESTRING EMPTY'), 90)
         els = load_wkt('LINESTRING EMPTY')
@@ -215,7 +215,7 @@ class TransformOpsTestCase(unittest.TestCase):
         for a, b in zip(sls.coords, els.coords):
             for ap, bp in zip(a, b):
                 self.assertEqual(ap, bp)
-    
+
     def test_scale_empty(self):
         sls = affinity.scale(load_wkt('LINESTRING EMPTY'))
         els = load_wkt('LINESTRING EMPTY')
@@ -231,33 +231,33 @@ class TransformOpsTestCase(unittest.TestCase):
         els = load_wkt('LINESTRING (253.39745962155615 417.3205080756888, '
                        '226.60254037844385 317.3205080756888, '
                        '286.60254037844385 282.67949192431126)')
-        self.assertTrue(sls.almost_equals(els))
+        self.assertTrue(sls.equals_exact(els, 1e-6))
         # retest with radians for the same result
         sls = affinity.skew(ls, pi/12, -pi/6, use_radians=True)
-        self.assertTrue(sls.almost_equals(els))
+        self.assertTrue(sls.equals_exact(els, 1e-6))
         # retest with named parameters for the same result
         sls = affinity.skew(geom=ls, xs=15, ys=-30,
                             origin='center', use_radians=False)
-        self.assertTrue(sls.almost_equals(els))
+        self.assertTrue(sls.equals_exact(els, 1e-6))
         ## other `origin` parameters
         # around the centroid
         sls = affinity.skew(ls, 15, -30, origin='centroid')
         els = load_wkt('LINESTRING(258.42150697963973 406.49519052838332, '
                        '231.6265877365273980 306.4951905283833185, '
                        '291.6265877365274264 271.8541743770057337)')
-        self.assertTrue(sls.almost_equals(els))
+        self.assertTrue(sls.equals_exact(els, 1e-6))
         # around the second coordinate tuple
         sls = affinity.skew(ls, 15, -30, origin=ls.coords[1])
         els = load_wkt('LINESTRING(266.7949192431123038 400, 240 300, '
                        '300 265.3589838486224153)')
-        self.assertTrue(sls.almost_equals(els))
+        self.assertTrue(sls.equals_exact(els, 1e-6))
         # around the absolute Point of origin
         sls = affinity.skew(ls, 15, -30, origin=Point(0, 0))
         els = load_wkt('LINESTRING(347.179676972449101 261.435935394489832, '
                        '320.3847577293367976 161.4359353944898317, '
                        '380.3847577293367976 126.7949192431122754)')
-        self.assertTrue(sls.almost_equals(els))
-    
+        self.assertTrue(sls.equals_exact(els, 1e-6))
+
     def test_skew_empty(self):
         sls = affinity.skew(load_wkt('LINESTRING EMPTY'))
         els = load_wkt('LINESTRING EMPTY')
@@ -274,13 +274,13 @@ class TransformOpsTestCase(unittest.TestCase):
         sls = affinity.skew(ls, xs_ys[0:1], xs_ys[1:2])
         self.assertEqual(xs_ys[0], 15.0)
         self.assertEqual(xs_ys[1], -30.0)
-        self.assertTrue(sls.almost_equals(els))
+        self.assertTrue(sls.equals_exact(els, 1e-6))
         # check with radians
         xs_ys = numpy.array([pi/12, -pi/6])
         sls = affinity.skew(ls, xs_ys[0:1], xs_ys[1:2], use_radians=True)
         self.assertEqual(xs_ys[0], pi/12)
         self.assertEqual(xs_ys[1], -pi/6)
-        self.assertTrue(sls.almost_equals(els))
+        self.assertTrue(sls.equals_exact(els, 1e-6))
 
     def test_translate(self):
         ls = load_wkt('LINESTRING(240 400 10, 240 300 30, 300 300 20)')
@@ -298,7 +298,7 @@ class TransformOpsTestCase(unittest.TestCase):
         # retest with named parameters for the same result
         tls = affinity.translate(geom=ls, xoff=100, yoff=400, zoff=-10)
         self.assertTrue(tls.equals(els))
-    
+
     def test_translate_empty(self):
         tls = affinity.translate(load_wkt('LINESTRING EMPTY'))
         els = load_wkt('LINESTRING EMPTY')

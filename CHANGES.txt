@@ -1,6 +1,14 @@
 Changes
 =======
 
+1.8rc1 (2021-10-04)
+-------------------
+
+Deprecations:
+
+The almost_exact() method of BaseGeometry has been deprecated. It is confusing
+and will be removed in 2.0.0. The equals_exact() method is to be used instead.
+
 1.8a3 (2021-08-24)
 ------------------
 

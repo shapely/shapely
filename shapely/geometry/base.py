@@ -772,10 +772,25 @@ class BaseGeometry:
         return bool(self.impl['disjoint'](self, other))
 
     def equals(self, other):
-        """Returns True if geometries are equal, else False
+        """Returns True if geometries are equal, else False.
 
-        Refers to point-set equality (or topological equality), and is equivalent to
-        (self.within(other) & self.contains(other))
+        This method considers point-set equality (or topological
+        equality), and is equivalent to (self.within(other) &
+        self.contains(other)).
+
+        Examples
+        --------
+        >>> LineString(
+        ...     (0, 0), (2, 2)
+        ... ).equals(
+        ...     LineString((0, 0), (1, 1), (2, 2))
+        ... )
+        True
+
+        Returns
+        -------
+        bool
+
         """
         return bool(self.impl['equals'](self, other))
 
@@ -796,22 +811,76 @@ class BaseGeometry:
         return bool(self.impl['within'](self, other))
 
     def equals_exact(self, other, tolerance):
-        """Returns True if geometries are equal to within a specified
-        tolerance
+        """True if geometries are equal to within a specified
+        tolerance.
 
-        Refers to coordinate equality, which requires coordinates to be equal
-        and in the same order for all components of a geometry.
+        Parameters
+        ----------
+        other : BaseGeometry
+            The other geometry object in this comparison.
+        tolerance : float
+            Absolute tolerance in the same units as coordinates.
+
+        This method considers coordinate equality, which requires
+        coordinates to be equal and in the same order for all components
+        of a geometry.
+
+        Because of this it is possible for "equals()" to be True for two
+        geometries and "equals_exact()" to be False.
+
+        Examples
+        --------
+        >>> LineString(
+        ...     (0, 0), (2, 2)
+        ... ).equals_exact(
+        ...     LineString((0, 0), (1, 1), (2, 2)),
+        ...     1e-6
+        ... )
+        False
+
+        Returns
+        -------
+        bool
+
         """
         return bool(self.impl['equals_exact'](self, other, tolerance))
 
     def almost_equals(self, other, decimal=6):
-        """Returns True if geometries are equal at all coordinates to a
-        specified decimal place
+        """True if geometries are equal at all coordinates to a
+        specified decimal place.
 
-        Refers to approximate coordinate equality, which requires coordinates to be
-        approximately equal and in the same order for all components of a geometry.
+        .. deprecated:: 1.8.0 The 'almost_equals()' method is deprecated
+            and will be removed in Shapely 2.0 because the name is
+            confusing. The 'equals_exact()' method should be used
+            instead.
+
+        Refers to approximate coordinate equality, which requires
+        coordinates to be approximately equal and in the same order for
+        all components of a geometry.
+
+        Because of this it is possible for "equals()" to be True for two
+        geometries and "almost_equals()" to be False.
+
+        Examples
+        --------
+        >>> LineString(
+        ...     (0, 0), (2, 2)
+        ... ).almost_equals(
+        ...     LineString((0, 0), (1, 1), (2, 2))
+        ... )
+        False
+
+        Returns
+        -------
+        bool
+
         """
-        return self.equals_exact(other, 0.5 * 10**(-decimal))
+        warn(
+            "The 'almost_equals()' method is deprecated and will be removed in Shapely 2.0",
+            ShapelyDeprecationWarning,
+            stacklevel=2,
+        )
+        return self.equals_exact(other, 0.5 * 10 ** (-decimal))
 
     def relate_pattern(self, other, pattern):
         """Returns True if the DE-9IM string code for the relationship between

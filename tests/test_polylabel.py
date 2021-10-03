@@ -14,7 +14,7 @@ class PolylabelTestCase(unittest.TestCase):
                               (-100, -20), (-150, -200)]).buffer(100)
         label = polylabel(polygon, tolerance=10)
         expected = Point(59.35615556364569, 121.8391962974644)
-        self.assertTrue(expected.almost_equals(label))
+        self.assertTrue(expected.equals_exact(label, 1e-6))
 
     def test_invalid_polygon(self):
         """
