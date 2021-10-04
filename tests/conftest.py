@@ -2,7 +2,6 @@ import sys
 
 import pytest
 
-from shapely.geometry import LineString
 from shapely.geos import geos_version
 
 
@@ -15,6 +14,7 @@ def pytest_addoption(parser):
                      help="Run tests with speedups.")
     parser.addoption("--without-speedups", action="store_true", default=False,
                      help="Run tests without speedups.")
+
 
 def pytest_runtest_setup(item):
     if item.config.getoption("--with-speedups"):
@@ -31,6 +31,7 @@ def pytest_runtest_setup(item):
         assert(shapely.speedups.enabled is False)
         print("Speedups disabled for %s." % item.name)
 
+
 def pytest_report_header(config):
     headers = []
     try:
@@ -40,8 +41,3 @@ def pytest_report_header(config):
     else:
         headers.append("numpy: {}".format(numpy.__version__))
     return '\n'.join(headers)
-
-
-@pytest.fixture(autouse=True)
-def add_linestring(doctest_namespace):
-        doctest_namespace["LineString"] = LineString

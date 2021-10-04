@@ -781,9 +781,9 @@ class BaseGeometry:
         Examples
         --------
         >>> LineString(
-        ...     (0, 0), (2, 2)
+        ...     [(0, 0), (2, 2)]
         ... ).equals(
-        ...     LineString((0, 0), (1, 1), (2, 2))
+        ...     LineString([(0, 0), (1, 1), (2, 2)])
         ... )
         True
 
@@ -831,9 +831,9 @@ class BaseGeometry:
         Examples
         --------
         >>> LineString(
-        ...     (0, 0), (2, 2)
+        ...     [(0, 0), (2, 2)]
         ... ).equals_exact(
-        ...     LineString((0, 0), (1, 1), (2, 2)),
+        ...     LineString([(0, 0), (1, 1), (2, 2)]),
         ...     1e-6
         ... )
         False
@@ -864,9 +864,10 @@ class BaseGeometry:
         Examples
         --------
         >>> LineString(
-        ...     (0, 0), (2, 2)
-        ... ).almost_equals(
-        ...     LineString((0, 0), (1, 1), (2, 2))
+        ...     [(0, 0), (2, 2)]
+        ... ).equals_exact(
+        ...     LineString([(0, 0), (1, 1), (2, 2)]),
+        ...     1e-6
         ... )
         False
 
