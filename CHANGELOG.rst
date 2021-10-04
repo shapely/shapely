@@ -11,6 +11,8 @@ Version 0.11 (unreleased)
   geometries from ``indices`` (#380).
 * Added ``pygeos.empty`` to create a geometry array pre-filled with None or
   with empty geometries (#381).
+* Added ``pygeos.force_2d`` and ``pygeos.force_3d`` to change the dimensionality of
+  the coordinates in a geometry (#396).
 
 **API Changes**
 

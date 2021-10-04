@@ -38,6 +38,9 @@ __all__ = [
 def has_z(geometry, **kwargs):
     """Returns True if a geometry has a Z coordinate.
 
+    Note that this function returns False if the (first) Z coordinate equals NaN or
+    if the geometry is empty.
+
     Parameters
     ----------
     geometry : Geometry or array_like
@@ -45,12 +48,18 @@ def has_z(geometry, **kwargs):
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
+    See also
+    --------
+    get_coordinate_dimension
+
     Examples
     --------
     >>> has_z(Geometry("POINT (0 0)"))
     False
     >>> has_z(Geometry("POINT Z (0 0 0)"))
     True
+    >>> has_z(Geometry("POINT Z(0 0 nan)"))
+    False
     """
     return lib.has_z(geometry, **kwargs)
 
