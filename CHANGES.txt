@@ -9,6 +9,11 @@ Deprecations:
 The almost_exact() method of BaseGeometry has been deprecated. It is confusing
 and will be removed in 2.0.0. The equals_exact() method is to be used instead.
 
+Bug fixes:
+
+- We ensure that the _speedups module is always imported before _vectorized to
+  avoid an unexplained condition on Windows with Python 3.8 and 3.9 (#1184).
+
 1.8a3 (2021-08-24)
 ------------------
 

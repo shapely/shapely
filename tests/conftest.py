@@ -15,6 +15,7 @@ def pytest_addoption(parser):
     parser.addoption("--without-speedups", action="store_true", default=False,
                      help="Run tests without speedups.")
 
+
 def pytest_runtest_setup(item):
     if item.config.getoption("--with-speedups"):
         import shapely.speedups
@@ -29,6 +30,7 @@ def pytest_runtest_setup(item):
         shapely.speedups.disable()
         assert(shapely.speedups.enabled is False)
         print("Speedups disabled for %s." % item.name)
+
 
 def pytest_report_header(config):
     headers = []
