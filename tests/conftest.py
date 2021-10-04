@@ -2,6 +2,7 @@ import sys
 
 import pytest
 
+from shapely.geometry import LineString
 from shapely.geos import geos_version
 
 
@@ -39,3 +40,8 @@ def pytest_report_header(config):
     else:
         headers.append("numpy: {}".format(numpy.__version__))
     return '\n'.join(headers)
+
+
+@pytest.fixture(autouse=True)
+def add_linestring(doctest_namespace):
+        doctest_namespace["LineString"] = LineString
