@@ -776,6 +776,9 @@ def force_3d(geometry, z=0.0, **kwargs):
     2D geometries will get the provided Z coordinate; Z coordinates of 3D geometries
     are unchanged (unless they are nan).
 
+    Note that for empty geometries, 3D is only supported since GEOS 3.9 and then
+    still only for simple geometries (non-collections).
+
     Parameters
     ----------
     geometry : Geometry or array_like

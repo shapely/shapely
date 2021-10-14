@@ -2940,8 +2940,18 @@ static void to_wkt_func(char** args, npy_intp* dimensions, npy_intp* steps, void
       Py_INCREF(Py_None);
       *out = Py_None;
     } else {
-// Before GEOS 3.9.0, there was as segfault on e.g. MULTIPOINT (1 1, EMPTY)
-#if !GEOS_SINCE_3_9_0
+#if GEOS_SINCE_3_9_0
+      errstate = wkt_empty_3d_geometry(ctx, in1, &wkt);
+      if (errstate != PGERR_SUCCESS) {
+        goto finish;
+      }
+      if (wkt != NULL) {
+        *out = PyUnicode_FromString(wkt);
+        goto finish;
+      }
+
+#else
+      // Before GEOS 3.9.0, there was as segfault on e.g. MULTIPOINT (1 1, EMPTY)
       errstate = check_to_wkt_compatible(ctx, in1);
       if (errstate != PGERR_SUCCESS) {
         goto finish;

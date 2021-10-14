@@ -65,20 +65,31 @@ static PyMemberDef GeometryObject_members[] = {
 static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
   char* wkt;
   PyObject* result;
-  if (obj->ptr == NULL) {
+  GEOSGeometry* geom = obj->ptr;
+
+  if (geom == NULL) {
     Py_INCREF(Py_None);
     return Py_None;
   }
 
   GEOS_INIT;
 
-  // Before GEOS 3.9.0, there was as segfault on e.g. MULTIPOINT (1 1, EMPTY)
-  #if !GEOS_SINCE_3_9_0
-  errstate = check_to_wkt_compatible(ctx, obj->ptr);
+#if GEOS_SINCE_3_9_0
+  errstate = wkt_empty_3d_geometry(ctx, geom, &wkt);
   if (errstate != PGERR_SUCCESS) {
     goto finish;
   }
-  #endif
+  if (wkt != NULL) {
+    result = PyUnicode_FromString(wkt);
+    goto finish;
+  }
+#else
+  // Before GEOS 3.9.0, there was as segfault on e.g. MULTIPOINT (1 1, EMPTY)
+  errstate = check_to_wkt_compatible(ctx, geom);
+  if (errstate != PGERR_SUCCESS) {
+    goto finish;
+  }
+#endif
 
   GEOSWKTWriter* writer = GEOSWKTWriter_create_r(ctx);
   if (writer == NULL) {
@@ -101,7 +112,7 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
     goto finish;
   }
 
-  wkt = GEOSWKTWriter_write_r(ctx, writer, obj->ptr);
+  wkt = GEOSWKTWriter_write_r(ctx, writer, geom);
   result = PyUnicode_FromString(wkt);
   GEOSFree_r(ctx, wkt);
   GEOSWKTWriter_destroy_r(ctx, writer);

@@ -99,6 +99,13 @@ def to_wkt(
     The Well-known Text format is defined in the `OGC Simple Features
     Specification for SQL <https://www.opengeospatial.org/standards/sfs>`__.
 
+    The following limitations apply to WKT serialization:
+
+    - for GEOS <= 3.8 a multipoint with an empty sub-geometry will raise an exception
+    - for GEOS <= 3.8 empty geometries are always serialized to 2D
+    - for GEOS >= 3.9 only simple empty geometries can be 3D, collections are still
+      always 2D
+
     Parameters
     ----------
     geometry : Geometry or array_like

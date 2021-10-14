@@ -28,6 +28,7 @@ Version 0.11 (unreleased)
 
 * Return True instead of False for LINEARRING geometries in ``is_closed`` (#379).
 * Fixed the WKB serialization of 3D empty points for GEOS >= 3.9.0 (#392).
+* Fixed the WKT serialization of single part 3D empty geometries for GEOS >= 3.9.0 (#402).
 * Fixed the WKT serialization of multipoints with empty points for GEOS >= 3.9.0 (#392).
 
 **Acknowledgments**

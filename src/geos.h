@@ -152,6 +152,10 @@ extern GEOSGeometry* point_empty_to_nan_all_geoms(GEOSContextHandle_t ctx,
                                                   GEOSGeometry* geom);
 extern char check_to_wkt_compatible(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 #endif  // !GEOS_SINCE_3_9_0
+#if GEOS_SINCE_3_9_0
+extern char wkt_empty_3d_geometry(GEOSContextHandle_t ctx, GEOSGeometry* geom,
+                                  char** wkt);
+#endif  // GEOS_SINCE_3_9_0
 extern char geos_interpolate_checker(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 
 extern int init_geos(PyObject* m);
