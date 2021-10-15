@@ -103,7 +103,7 @@ jobs:
 
       - name: Install python dependencies
         run: |
-          pip install --disable-pip-version-check --upgrade pip
+          python -m pip install --disable-pip-version-check --upgrade pip
           pip install --upgrade wheel setuptools
           if [ "$GEOS_VERSION" = "main" ]; then
             pip install --upgrade --pre Cython numpy pytest;
