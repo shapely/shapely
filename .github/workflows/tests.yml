@@ -58,8 +58,20 @@ jobs:
           - python: 3.9
             geos: 3.9.1
             speedups: 0
+          # 2021
+          - python: "3.10"
+            geos: 3.10.0rc3
+            numpy: 1.21.2
+            speedups: 1
+          - python: "3.10"
+            geos: 3.10.0rc3
+            numpy: 1.21.2
+            speedups: 0
+          - python: "3.10"
+            geos: 3.10.0rc3
+            speedups: 0
           # dev
-          - python: 3.9
+          - python: "3.10"
             geos: main
             speedups: 1
 
