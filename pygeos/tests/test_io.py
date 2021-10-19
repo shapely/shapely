@@ -20,6 +20,7 @@ GEOMETRYCOLLECTION_NAN_WKB = b'\x01\x07\x00\x00\x00\x01\x00\x00\x00\x01\x01\x00\
 GEOMETRYCOLLECTIONZ_NAN_WKB = b'\x01\x07\x00\x00\x80\x01\x00\x00\x00\x01\x01\x00\x00\x80' + (NAN * 3)
 NESTED_COLLECTION_NAN_WKB = b'\x01\x07\x00\x00\x00\x01\x00\x00\x00\x01\x04\x00\x00\x00\x01\x00\x00\x00\x01\x01\x00\x00\x00' + (NAN * 2)
 NESTED_COLLECTIONZ_NAN_WKB = b'\x01\x07\x00\x00\x80\x01\x00\x00\x00\x01\x04\x00\x00\x80\x01\x00\x00\x00\x01\x01\x00\x00\x80' + (NAN * 3)
+INVALID_WKB = "01030000000100000002000000507daec600b1354100de02498e5e3d41306ea321fcb03541a011a53d905e3d41"
 # fmt: on
 
 
@@ -166,11 +167,9 @@ def test_from_wkb_exceptions():
     # invalid ring in WKB
     with pytest.raises(
         pygeos.GEOSException,
-        match="Invalid number of points in LinearRing found 3 - must be 0 or >= 4",
+        match="Points of LinearRing do not form a closed linestring",
     ):
-        result = pygeos.from_wkb(
-            b"\x01\x03\x00\x00\x00\x01\x00\x00\x00\x03\x00\x00\x00P}\xae\xc6\x00\xb15A\x00\xde\x02I\x8e^=A0n\xa3!\xfc\xb05A\xa0\x11\xa5=\x90^=AP}\xae\xc6\x00\xb15A\x00\xde\x02I\x8e^=A"
-        )
+        result = pygeos.from_wkb(INVALID_WKB)
         assert result is None
 
 
@@ -182,10 +181,7 @@ def test_from_wkb_warn_on_invalid_warn():
 
     # invalid ring in WKB
     with pytest.warns(Warning, match="Invalid WKB"):
-        result = pygeos.from_wkb(
-            b"\x01\x03\x00\x00\x00\x01\x00\x00\x00\x03\x00\x00\x00P}\xae\xc6\x00\xb15A\x00\xde\x02I\x8e^=A0n\xa3!\xfc\xb05A\xa0\x11\xa5=\x90^=AP}\xae\xc6\x00\xb15A\x00\xde\x02I\x8e^=A",
-            on_invalid="warn",
-        )
+        result = pygeos.from_wkb(INVALID_WKB, on_invalid="warn")
         assert result is None
 
 
@@ -198,10 +194,7 @@ def test_from_wkb_ignore_on_invalid_ignore():
 
     # invalid ring in WKB
     with pytest.warns(None) as w:
-        result = pygeos.from_wkb(
-            b"\x01\x03\x00\x00\x00\x01\x00\x00\x00\x03\x00\x00\x00P}\xae\xc6\x00\xb15A\x00\xde\x02I\x8e^=A0n\xa3!\xfc\xb05A\xa0\x11\xa5=\x90^=AP}\xae\xc6\x00\xb15A\x00\xde\x02I\x8e^=A",
-            on_invalid="ignore",
-        )
+        result = pygeos.from_wkb(INVALID_WKB, on_invalid="ignore")
         assert result is None
         assert len(w) == 0  # no warning
 

@@ -193,7 +193,7 @@ def test_linearrings(coordinates):
 )
 def test_linearrings_invalid(coordinates):
     # attempt to construct linestrings with 1 coordinate
-    with pytest.raises(pygeos.GEOSException):
+    with pytest.raises((pygeos.GEOSException, ValueError)):
         pygeos.linearrings(coordinates, indices=np.zeros(len(coordinates)))
 
 

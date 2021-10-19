@@ -141,6 +141,10 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type, 
                     if coord_view[idx, coord_idx] != coord_view[idx + geom_size - 1, coord_idx]:
                         ring_closure = 1
                         break
+                # check the resulting size to prevent invalid rings
+                if geom_size + ring_closure < 4:
+                    # the error equals PGERR_LINEARRING_NCOORDS (in pygeos/src/geos.h)
+                    raise ValueError("A linearring requires at least 4 coordinates.")
 
             seq = GEOSCoordSeq_create_r(geos_handle, geom_size + ring_closure, dims)
             for coord_idx in range(geom_size):
