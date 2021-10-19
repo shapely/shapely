@@ -1,6 +1,21 @@
 Changes
 =======
 
+1.8rc2 (2021-10-19)
+-------------------
+
+Build:
+
+A pyproject.toml file has been added to specify build dependencies for the
+_vectorized and _speedups modules (#1128). To install shapely without these
+build dependencies, use the features of your build tool that disable PEP 517
+and 518 support.
+
+Bug fixes:
+
+- Part of PR #1042, which added a new primary GEOS library name to be searched
+  for, has been reverted by PR #1201.
+
 1.8rc1 (2021-10-04)
 -------------------
 
