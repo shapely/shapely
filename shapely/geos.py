@@ -96,7 +96,7 @@ if sys.platform.startswith('linux'):
             'libgeos_c.so.1',
             'libgeos_c.so',
         ]
-        _lgeos = load_dll('libgeos_c', fallbacks=alt_paths)
+        _lgeos = load_dll('geos_c', fallbacks=alt_paths)
 
     # ctypes.CDLL(None) internally calls dlopen(NULL), and as the dlopen
     # manpage says, "If filename is NULL, then the returned handle is for the
