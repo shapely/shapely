@@ -3,6 +3,8 @@ Credits
 
 Shapely is written by:
 
+* Adi Shavit <adishavit@gmail.com>
+* Alberto Rubiales <arubiales11@gmail.com>
 * Allan Adair <allan.m.adair@gmail.com>
 * Andrew Blakey <ablakey@gmail.com>
 * Andy Freeland <andy@andyfreeland.net>
@@ -10,14 +12,19 @@ Shapely is written by:
 * Aron Bierbaum <aronbierbaum@gmail.com>
 * Bart Broere <2715782+bartbroere@users.noreply.github.com>
 * Bas Couwenberg <sebastic@xs4all.nl>
+* Ben Beasley <code@musicinmybrain.net>
 * Benjamin Root <ben.v.root@gmail.com>
 * BertrandGervais <bertrand.gervais.pro@gmail.com>
+* Bhavika Tekwani <4955119+bhavika@users.noreply.github.com>
+* Bi0T1N <Bi0T1N@users.noreply.github.com>
 * Brad Hards <bradh@frogmouth.net>
 * Brandon Wood <btwood@geometeor.com>
 * Chad Hawkins <cwh@chadwhawkins.com>
 * Christian Prior <cprior@gmail.com>
 * Christian Quest <github@cquest.org>
 * Christophe Pradal <christophe.pradal@inria.fr>
+* Dan Baston <dbaston@gmail.com>
+* Dan Mahr <danmahr23@gmail.com>
 * Daniele Esposti <expobrain@users.noreply.github.com>
 * Dave Collins <dave@hopest.net>
 * David Baumgold <david@davidbaumgold.com>
@@ -36,6 +43,7 @@ Shapely is written by:
 * Howard Butler <hobu.inc@gmail.com>
 * Hugo <hugovk@users.noreply.github.com>
 * Jacob Wasserman <jwasserman@gmail.com>
+* Jaeha Lee <jaehaaheaj@gmail.com>
 * James Douglass <jamesdouglassusa@gmail.com>
 * James Gaboardi <jgaboardi@gmail.com>
 * James Lamb <jaylamb20@gmail.com>
@@ -52,6 +60,7 @@ Shapely is written by:
 * Joris Van den Bossche <jorisvandenbossche@gmail.com>
 * Joshua Arnott <josh@snorfalorpagus.net>
 * Juan Luis Cano Rodríguez <juanlu@satellogic.com>
+* Justin Shenk <shenk.justin@gmail.com>
 * Kai Lautaportti <dokai@b426a367-1105-0410-b9ff-cdf4ab011145>
 * Kelsey Jordahl <kjordahl@enthought.com>
 * Kevin Wurster <wursterk@gmail.com>
@@ -67,6 +76,9 @@ Shapely is written by:
 * Marco De Nadai <me@marcodena.it>
 * Mathieu <mathieu.nivel@gmail.com>
 * Matt Amos <matt.amos@mapzen.com>
+* Matthias Cuntz <mcuntz@users.noreply.github.com>
+* MejstrikRudolf <68251685+MejstrikRudolf@users.noreply.github.com>
+* Michael K <michael-k@users.noreply.github.com>
 * Michel Blancard <michel.blancard@data.gouv.fr>
 * Mike Taves <mwtoews@gmail.com>
 * Morris Tweed <tweed.morris@gmail.com>
@@ -76,7 +88,9 @@ Shapely is written by:
 * Peter Sagerson <psagers.github@ignorare.net>
 * Phil Elson <pelson.pub@gmail.com>
 * Pierre PACI <villerupt@gmail.com>
+* Raja Gangopadhya <raja.gangopadhya@ridewithvia.com>
 * Ricardo Zilleruelo <51384295+zetaatlyft@users.noreply.github.com>
+* Rémy Phelipot <remy-phelipot@users.noreply.github.com>
 * S Murthy <sr-murthy@users.noreply.github.com>
 * Sampo Syrjanen <sampo.syrjanen@here.com>
 * Samuel Chin <samuelchin91@gmail.com>
@@ -86,13 +100,17 @@ Shapely is written by:
 * Steve M. Kim <steve@climate.com>
 * Taro Matsuzawa aka. btm <btm@tech.email.ne.jp>
 * Thibault Deutsch <thibault.deutsch@gmail.com>
+* Thomas Gratier <thomas_gratier@yahoo.fr>
 * Thomas Kluyver <takowl@gmail.com>
+* Tim Gates <tim.gates@iress.com>
 * Tobias Sauerwein <tobias.sauerwein@camptocamp.com>
 * Tom Caruso <carusot42@gmail.com>
 * Tom Clancy <17627475+clncy@users.noreply.github.com>
 * WANG Aiyong <gepcelway@gmail.com>
 * Will May <williamcmay@live.com>
 * Zachary Ware <zachary.ware@gmail.com>
+* aharfoot <aharfoot@users.noreply.github.com>
+* bstadlbauer <11799671+bstadlbauer@users.noreply.github.com>
 * cclauss <cclauss@me.com>
 * clefrks <33859587+clefrks@users.noreply.github.com>
 * davidh-ssec <david.hoese@ssec.wisc.edu>
@@ -104,6 +122,7 @@ Shapely is written by:
 * rsmb <rsmb@users.noreply.github.com>
 * shongololo <garethsimons@me.com>
 * solarjoe <walterwhite666@googlemail.com>
+* sshuair <sshuair@gmail.com>
 * stephenworsley <49274989+stephenworsley@users.noreply.github.com>
 
 See also: https://github.com/Toblerity/Shapely/graphs/contributors.
