@@ -1,6 +1,11 @@
 Changes
 =======
 
+1.8.0 (2021-10-25)
+------------------
+
+This is the final 1.8.0 release. There have been no changes since 1.8rc2.
+
 1.8rc2 (2021-10-19)
 -------------------
 
