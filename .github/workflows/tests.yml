@@ -60,15 +60,15 @@ jobs:
             speedups: 0
           # 2021
           - python: "3.10"
-            geos: 3.10.0rc3
-            numpy: 1.21.2
+            geos: 3.10.0
+            numpy: 1.21.3
             speedups: 1
           - python: "3.10"
-            geos: 3.10.0rc3
-            numpy: 1.21.2
+            geos: 3.10.0
+            numpy: 1.21.3
             speedups: 0
           - python: "3.10"
-            geos: 3.10.0rc3
+            geos: 3.10.0
             speedups: 0
           # dev
           - python: "3.10"
