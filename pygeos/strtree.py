@@ -29,8 +29,8 @@ class STRtree:
     """A query-only R-tree created using the Sort-Tile-Recursive (STR)
     algorithm.
 
-    For two-dimensional spatial data. The actual tree will be constructed at the first
-    query.
+    For two-dimensional spatial data. The tree is constructed directly
+    at initialization.
 
     Parameters
     ----------
