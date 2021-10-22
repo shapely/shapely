@@ -14,7 +14,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2019]
         architecture: [x64]
-        geos: [3.6.4, 3.7.3, 3.8.1, 3.9.1, main]
+        geos: [3.6.4, 3.7.3, 3.8.1, 3.9.1, 3.10.0, main]
         include:
           # 2017
           - python: 3.6
@@ -32,8 +32,12 @@ jobs:
           - python: 3.9
             geos: 3.9.1
             numpy: 1.19.5
+          # 2021
+          - python: "3.10"
+            geos: 3.10.0
+            numpy: 1.21.3
           # dev
-          - python: 3.9
+          - python: "3.10"
             geos: main
           # enable two 32-bit windows builds:
           - os: windows-2019
@@ -43,9 +47,9 @@ jobs:
             numpy: 1.13.3
           - os: windows-2019
             architecture: x86
-            python: 3.9
-            geos: 3.9.1
-            numpy: 1.19.5
+            python: "3.10"
+            geos: 3.10.0
+            numpy: 1.21.3
 
     env:
       GEOS_VERSION: ${{ matrix.geos }}
@@ -138,7 +142,7 @@ jobs:
         run: python setup.py build_ext --inplace
 
       - name: Run tests
-        continue-on-error: ${{ matrix.geos == 'main' }}
+        continue-on-error: ${{ matrix.geos == 'main' || matrix.geos == '3.10.0' }}
         run: pytest pygeos
 
       # Only run doctests on 1 runner (because of typographic differences in doctest results)

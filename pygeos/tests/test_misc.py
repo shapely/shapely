@@ -1,7 +1,7 @@
 import os
 import sys
 from itertools import chain
-from string import ascii_lowercase
+from string import ascii_letters, digits
 from unittest import mock
 
 import numpy as np
@@ -33,7 +33,10 @@ def test_geos_version():
     actual = pygeos.geos_version_string
 
     # strip any beta / dev qualifiers
-    actual = actual.lower().rstrip(ascii_lowercase)
+    if any(c.isalpha() for c in actual):
+        if actual[-1].isnumeric():
+            actual = actual.rstrip(digits)
+        actual = actual.rstrip(ascii_letters)
 
     assert actual == expected
 
@@ -53,7 +56,11 @@ def test_geos_capi_version():
         actual_geos_api_version,
     ) = pygeos.geos_capi_version_string.split("-CAPI-")
 
-    actual_geos_version = actual_geos_version.lower().rstrip(ascii_lowercase)
+    if any(c.isalpha() for c in actual_geos_version):
+        if actual_geos_version[-1].isnumeric():
+            actual_geos_version = actual_geos_version.rstrip(digits)
+        actual_geos_version = actual_geos_version.rstrip(ascii_letters)
+    actual_geos_version = actual_geos_version.rstrip(ascii_letters)
 
     assert (
         "{0}-CAPI-{1}".format(actual_geos_version, actual_geos_api_version) == expected
