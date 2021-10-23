@@ -13,6 +13,7 @@ Version 0.11 (unreleased)
   with empty geometries (#381).
 * Added ``pygeos.force_2d`` and ``pygeos.force_3d`` to change the dimensionality of
   the coordinates in a geometry (#396).
+* Added ``pygeos.testing.assert_geometries_equal`` (#401).
 
 **API Changes**
 

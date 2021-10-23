@@ -23,6 +23,7 @@ API Reference
    linear
    coordinates
    strtree
+   testing
    changelog
 
 

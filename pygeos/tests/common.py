@@ -3,7 +3,6 @@ from contextlib import contextmanager
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_equal
 
 import pygeos
 
@@ -83,13 +82,3 @@ def assert_decreases_refcount(obj):
         pytest.skip("sys.getrefcount is not available.")
     yield
     assert sys.getrefcount(obj) == before - 1
-
-
-def assert_geometries_equal(actual, expected):
-    actual = np.asarray(actual)
-    expected = np.broadcast_to(expected, actual.shape)
-    mask = pygeos.is_geometry(expected)
-    if np.any(mask):
-        assert pygeos.equals_exact(actual[mask], expected[mask]).all()
-    if np.any(~mask):
-        assert_array_equal(actual[~mask], expected[~mask])

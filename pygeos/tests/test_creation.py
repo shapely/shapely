@@ -3,6 +3,7 @@ import pytest
 
 import pygeos
 from pygeos.geometry import GeometryType
+from pygeos.testing import assert_geometries_equal
 
 from .common import (
     empty_polygon,
@@ -148,8 +149,8 @@ def test_polygon_from_linearring():
 
 
 def test_polygons_none():
-    assert pygeos.equals(pygeos.polygons(None), empty_polygon)
-    assert pygeos.equals(pygeos.polygons(None, holes=[linear_ring]), empty_polygon)
+    assert_geometries_equal(pygeos.polygons(None), empty_polygon)
+    assert_geometries_equal(pygeos.polygons(None, holes=[linear_ring]), empty_polygon)
 
 
 def test_polygons():
@@ -362,7 +363,7 @@ def test_create_collection_wrong_geom_type(func, sub_geom):
 )
 def test_box(coords, ccw, expected):
     actual = pygeos.box(*coords, ccw=ccw)
-    assert pygeos.equals(actual, expected)
+    assert_geometries_equal(actual, expected)
 
 
 @pytest.mark.parametrize(
@@ -388,7 +389,7 @@ def test_box(coords, ccw, expected):
 )
 def test_box_array(coords, ccw, expected):
     actual = pygeos.box(*coords, ccw=ccw)
-    assert pygeos.equals(actual, expected).all()
+    assert_geometries_equal(actual, expected)
 
 
 @pytest.mark.parametrize(
