@@ -2960,7 +2960,7 @@ Conclusion
 
 We hope that you will enjoy and profit from using Shapely. This manual will
 be updated and improved regularly. Its source is available at
-https://github.com/Toblerity/Shapely/tree/master/docs/.
+https://github.com/Toblerity/Shapely/tree/main/docs/.
 
 
 References
