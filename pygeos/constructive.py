@@ -131,7 +131,7 @@ def buffer(
     >>> buffer(Geometry("POINT (10 10)"), 2, quadsegs=1)
     <pygeos.Geometry POLYGON ((12 10, 10 8, 8 10, 10 12, 12 10))>
     >>> buffer(Geometry("POINT (10 10)"), 2, quadsegs=2)
-    <pygeos.Geometry POLYGON ((12 10, 11.4 8.59, 10 8, 8.59 8.59, 8 10, 8.59 11....>
+    <pygeos.Geometry POLYGON ((12 10, 11.414 8.586, 10 8, 8.586 8.586, 8 10, 8.5...>
     >>> buffer(Geometry("POINT (10 10)"), -2, quadsegs=1)
     <pygeos.Geometry POLYGON EMPTY>
     >>> line = Geometry("LINESTRING (10 10, 20 10)")
@@ -147,7 +147,7 @@ def buffer(
     >>> buffer(line2, 2, cap_style="flat", join_style="mitre")
     <pygeos.Geometry POLYGON ((18 12, 18 20, 22 20, 22 8, 10 8, 10 12, 18 12))>
     >>> buffer(line2, 2, cap_style="flat", join_style="mitre", mitre_limit=1)
-    <pygeos.Geometry POLYGON ((18 12, 18 20, 22 20, 21.8 9, 21 8.17, 10 8, 10 12...>
+    <pygeos.Geometry POLYGON ((18 12, 18 20, 22 20, 21.828 9, 21 8.172, 10 8, 10...>
     >>> square = Geometry("POLYGON((0 0, 10 0, 10 10, 0 10, 0 0))")
     >>> buffer(square, 2, join_style="mitre")
     <pygeos.Geometry POLYGON ((-2 -2, -2 12, 12 12, 12 -2, -2 -2))>
@@ -876,11 +876,11 @@ def minimum_bounding_circle(geometry, **kwargs):
     Examples
     --------
     >>> minimum_bounding_circle(Geometry("POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))"))
-    <pygeos.Geometry POLYGON ((12.1 5, 11.9 3.62, 11.5 2.29, 10.9 1.07, 10 4.44e...>
+    <pygeos.Geometry POLYGON ((12.071 5, 11.935 3.621, 11.533 2.294, 10.879 1.07...>
     >>> minimum_bounding_circle(Geometry("LINESTRING (1 1, 10 10)"))
-    <pygeos.Geometry POLYGON ((11.9 5.5, 11.7 4.26, 11.4 3.06, 10.8 1.96, 10 1, ...>
+    <pygeos.Geometry POLYGON ((11.864 5.5, 11.742 4.258, 11.38 3.065, 10.791 1.9...>
     >>> minimum_bounding_circle(Geometry("MULTIPOINT (2 2, 4 2)"))
-    <pygeos.Geometry POLYGON ((4 2, 3.98 1.8, 3.92 1.62, 3.83 1.44, 3.71 1.29, 3...>
+    <pygeos.Geometry POLYGON ((4 2, 3.981 1.805, 3.924 1.617, 3.831 1.444, 3.707...>
     >>> minimum_bounding_circle(Geometry("POINT (0 1)"))
     <pygeos.Geometry POINT (0 1)>
     >>> minimum_bounding_circle(Geometry("GEOMETRYCOLLECTION EMPTY"))

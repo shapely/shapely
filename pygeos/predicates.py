@@ -408,7 +408,7 @@ def is_valid_reason(geometry, **kwargs):
     >>> is_valid_reason(Geometry("LINESTRING(0 0, 1 1)"))
     'Valid Geometry'
     >>> is_valid_reason(Geometry("POLYGON((0 0, 1 1, 1 2, 1 1, 0 0))"))
-    'Self-intersection[0 0]'
+    'Ring Self-intersection[1 1]'
     >>> is_valid_reason(None) is None
     True
     """

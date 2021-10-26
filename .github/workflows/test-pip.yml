@@ -142,10 +142,10 @@ jobs:
         run: python setup.py build_ext --inplace
 
       - name: Run tests
-        continue-on-error: ${{ matrix.geos == 'main' || matrix.geos == '3.10.0' }}
+        continue-on-error: ${{ matrix.geos == 'main' }}
         run: pytest pygeos
 
       # Only run doctests on 1 runner (because of typographic differences in doctest results)
       - name: Run doctests
         run: pytest --doctest-modules pygeos --ignore=pygeos/tests
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.8' }}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.10.0' }}

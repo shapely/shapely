@@ -2020,13 +2020,31 @@ static void shortest_line_func(char** args, npy_intp* dimensions, npy_intp* step
 static PyUFuncGenericFunction shortest_line_funcs[1] = {&shortest_line_func};
 
 #if GEOS_SINCE_3_6_0
-static char set_precision_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
+static char set_precision_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_INT, NPY_OBJECT};
 static void set_precision_func(char** args, npy_intp* dimensions, npy_intp* steps,
                                void* data) {
   GEOSGeometry* in1 = NULL;
   GEOSGeometry** geom_arr;
+  int flags;
 
   CHECK_NO_INPLACE_OUTPUT(3);
+
+  /* preserve topology flag
+   * flags:
+   * - 0: default (from GEOS 3.10 this is named GEOS_PREC_VALID_OUTPUT)
+   * - 1: GEOS_PREC_NO_TOPO
+   * - 2: GEOS_PREC_KEEP_COLLAPSED
+   */
+  if (steps[2] != 0) {
+    PyErr_Format(PyExc_ValueError, "set_precision function called with non-scalar mode");
+    return;
+  }
+  flags = *(int*)args[2];
+  if (!((flags == 0) || (flags == GEOS_PREC_NO_TOPO) ||
+        (flags == GEOS_PREC_KEEP_COLLAPSED))) {
+    PyErr_Format(PyExc_ValueError, "set_precision function called with illegal mode");
+    return;
+  }
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
@@ -2034,7 +2052,7 @@ static void set_precision_func(char** args, npy_intp* dimensions, npy_intp* step
 
   GEOS_INIT_THREADS;
 
-  QUATERNARY_LOOP {
+  TERNARY_LOOP {
     // get the geometry: return on error
     if (!get_geom(*(GeometryObject**)ip1, &in1)) {
       errstate = PGERR_NOT_A_GEOMETRY;
@@ -2043,13 +2061,6 @@ static void set_precision_func(char** args, npy_intp* dimensions, npy_intp* step
     }
     // grid size
     double in2 = *(double*)ip2;
-    // preserve topology
-    npy_bool in3 = *(npy_bool*)ip3;
-    // flags:
-    // GEOS_PREC_NO_TOPO (1<<0): if set, do not try to preserve topology
-    // GEOS_PREC_KEEP_COLLAPSED  (1<<1): Not used because uncollapsed geometries are
-    // invalid and will not be retained in GEOS >= 3.9 anyway.
-    int flags = in3 ? 0 : GEOS_PREC_NO_TOPO;
 
     if ((in1 == NULL) || npy_isnan(in2)) {
       // in case of a missing value: return NULL (None)

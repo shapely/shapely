@@ -1,5 +1,3 @@
-from warnings import warn
-
 from . import Geometry  # NOQA
 from . import lib
 from .decorators import multithreading_enabled
@@ -47,9 +45,6 @@ def line_interpolate_point(line, distance, normalized=False, **kwargs):
     >>> line_interpolate_point(Geometry("LINESTRING EMPTY"), 1)
     <pygeos.Geometry POINT EMPTY>
     """
-    if "normalize" in kwargs:
-        warn("argument 'normalize' is deprecated; use 'normalized'", DeprecationWarning)
-        normalized = kwargs.pop("normalize")
     if normalized:
         return lib.line_interpolate_point_normalized(line, distance)
     else:
@@ -86,9 +81,6 @@ def line_locate_point(line, other, normalized=False, **kwargs):
     >>> line_locate_point(Geometry("LINESTRING EMPTY"), Geometry("POINT(4 4)"))
     nan
     """
-    if "normalize" in kwargs:
-        warn("argument 'normalize' is deprecated; use 'normalized'", DeprecationWarning)
-        normalized = kwargs.pop("normalize")
     if normalized:
         return lib.line_locate_point_normalized(line, other)
     else:

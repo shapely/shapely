@@ -576,8 +576,8 @@ def test_query_crosses_points(tree, geometry, expected):
         (box(0, 0, 1.5, 1.5), [1]),
         # buffer intersects 2 lines
         (pygeos.buffer(pygeos.points(3, 3), 0.5), [2, 3]),
-        # buffer crosses line
-        (pygeos.buffer(pygeos.points(2, 1), 1), [1]),
+        # line crosses line
+        (pygeos.linestrings([(1, 0), (0, 1)]), [0]),
         # envelope of points overlaps lines but intersects none
         (pygeos.multipoints([[5, 7], [7, 5]]), []),
         # only one point of multipoint intersects
@@ -643,7 +643,7 @@ def test_query_touches_points(tree, geometry, expected):
         (pygeos.buffer(pygeos.points(3, 3), 0.5), []),
         # buffer intersects midpoint of line at tangent but there is a little overlap
         # due to precision issues
-        (pygeos.buffer(pygeos.points(2, 1), HALF_UNIT_DIAG), []),
+        (pygeos.buffer(pygeos.points(2, 1), HALF_UNIT_DIAG + 1e-7), []),
         # envelope of points overlaps lines but intersects none
         (pygeos.multipoints([[5, 7], [7, 5]]), []),
         # only one point of multipoint intersects at vertex between lines
@@ -1376,8 +1376,8 @@ def test_nearest_all_empty_geom(tree, geometry, expected):
         (box(0.5, 0.5, 0.75, 0.75), [[0], [1]]),
         # multiple points in box
         (box(0, 0, 3, 3), [[0, 0, 0, 0], [0, 1, 2, 3]]),
-        (pygeos.buffer(pygeos.points(2.5, 2.5), HALF_UNIT_DIAG), [[0], [2]]),
-        (pygeos.buffer(pygeos.points(3, 3), HALF_UNIT_DIAG), [[0], [3]]),
+        (pygeos.buffer(pygeos.points(2.5, 2.5), 1), [[0, 0], [2, 3]]),
+        (pygeos.buffer(pygeos.points(3, 3), 0.5), [[0], [3]]),
         (pygeos.multipoints([[5.5, 5], [7, 7]]), [[0], [7]]),
         (pygeos.multipoints([[5, 7], [7, 5]]), [[0], [6]]),
         # return nearest point in tree for each point in multipoint
@@ -1403,8 +1403,8 @@ def test_nearest_all_points(tree, geometry, expected):
         (box(0.5, 0.5, 1.5, 1.5), [[0, 0], [0, 1]]),
         # second box overlaps 2 lines and intersects endpoints of 2 more
         ([box(0, 0, 0.5, 0.5), box(3, 3, 5, 5)], [[0, 1, 1, 1, 1], [0, 2, 3, 4, 5]]),
-        (pygeos.buffer(pygeos.points(2.5, 2.5), HALF_UNIT_DIAG), [[0, 0], [1, 2]]),
-        (pygeos.buffer(pygeos.points(3, 3), HALF_UNIT_DIAG), [[0, 0], [2, 3]]),
+        (pygeos.buffer(pygeos.points(2.5, 2.5), 1), [[0, 0, 0], [1, 2, 3]]),
+        (pygeos.buffer(pygeos.points(3, 3), 0.5), [[0, 0], [2, 3]]),
         # multipoints at endpoints of 2 lines each
         (pygeos.multipoints([[5, 5], [7, 7]]), [[0, 0, 0, 0], [4, 5, 6, 7]]),
         # second point in multipoint at endpoints of 2 lines
