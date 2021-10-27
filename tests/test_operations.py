@@ -3,7 +3,7 @@ import pytest
 from shapely.geometry import Point, LineString, Polygon, MultiPoint, \
                              GeometryCollection
 from shapely.wkt import loads
-from shapely.geos import TopologicalError
+from shapely.errors import TopologicalError
 
 import pygeos
 
