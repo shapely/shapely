@@ -2,7 +2,7 @@
 """
 from . import unittest
 from shapely.geometry import Point, Polygon
-from shapely.geos import TopologicalError, PredicateError
+from shapely.errors import TopologicalError, PredicateError
 import pytest
 
 import pygeos

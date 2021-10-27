@@ -1,7 +1,7 @@
 from . import unittest
 from shapely.algorithms.polylabel import polylabel, Cell
 from shapely.geometry import LineString, Point, Polygon
-from shapely.geos import TopologicalError
+from shapely.errors import TopologicalError
 
 
 class PolylabelTestCase(unittest.TestCase):
