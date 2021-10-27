@@ -39,6 +39,7 @@ Version 0.11 (unreleased)
 * Fixed the WKB serialization of 3D empty points for GEOS >= 3.9.0 (#392).
 * Fixed the WKT serialization of single part 3D empty geometries for GEOS >= 3.9.0 (#402).
 * Fixed the WKT serialization of multipoints with empty points for GEOS >= 3.9.0 (#392).
+* Fixed a segfault when getting coordinates from empty points in GEOS 3.8.0.
 
 **Acknowledgments**
 

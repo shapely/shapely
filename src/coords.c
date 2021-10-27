@@ -23,11 +23,26 @@ static void* set_coordinates(GEOSContextHandle_t, GEOSGeometry*, PyArrayObject*,
 /* Get coordinates from a point, linestring or linearring and puts them at
 position `cursor` in the array `out`. Increases the cursor correspondingly.
 Returns 0 on error, 1 on success */
-static char get_coordinates_simple(GEOSContextHandle_t ctx, GEOSGeometry* geom,
+static char get_coordinates_simple(GEOSContextHandle_t ctx, GEOSGeometry* geom, int type,
                                    PyArrayObject* out, npy_intp* cursor, int include_z) {
   unsigned int n, i;
   double *x, *y, *z;
-  const GEOSCoordSequence* seq = GEOSGeom_getCoordSeq_r(ctx, geom);
+  const GEOSCoordSequence* seq;
+  char is_empty;
+
+  /* For points, directly check if they are empty. This is because empty points
+   * internally have a coordinate sequence of length 1, but we did not count them in
+   * the allocation of the coordinate array */
+  if (type == GEOS_POINT) {
+    is_empty = GEOSisEmpty_r(ctx, geom);
+    if (is_empty == 2) {
+      return 0;
+    } else if (is_empty == 1) {
+      return 1;
+    }
+  }
+
+  seq = GEOSGeom_getCoordSeq_r(ctx, geom);
   if (seq == NULL) {
     return 0;
   }
@@ -67,7 +82,7 @@ static char get_coordinates_polygon(GEOSContextHandle_t ctx, GEOSGeometry* geom,
   if (ring == NULL) {
     return 0;
   }
-  if (!get_coordinates_simple(ctx, ring, out, cursor, include_z)) {
+  if (!get_coordinates_simple(ctx, ring, GEOS_LINEARRING, out, cursor, include_z)) {
     return 0;
   }
 
@@ -80,7 +95,7 @@ static char get_coordinates_polygon(GEOSContextHandle_t ctx, GEOSGeometry* geom,
     if (ring == NULL) {
       return 0;
     }
-    if (!get_coordinates_simple(ctx, ring, out, cursor, include_z)) {
+    if (!get_coordinates_simple(ctx, ring, GEOS_LINEARRING, out, cursor, include_z)) {
       return 0;
     }
   }
@@ -119,7 +134,7 @@ static char get_coordinates(GEOSContextHandle_t ctx, GEOSGeometry* geom,
                             PyArrayObject* out, npy_intp* cursor, int include_z) {
   int type = GEOSGeomTypeId_r(ctx, geom);
   if ((type == 0) || (type == 1) || (type == 2)) {
-    return get_coordinates_simple(ctx, geom, out, cursor, include_z);
+    return get_coordinates_simple(ctx, geom, type, out, cursor, include_z);
   } else if (type == 3) {
     return get_coordinates_polygon(ctx, geom, out, cursor, include_z);
   } else if ((type >= 4) && (type <= 7)) {
@@ -421,7 +436,7 @@ PyObject* GetCoords(PyArrayObject* arr, int include_z, int return_index) {
   }
 
   /* Handle zero-sized arrays specially */
-  if (PyArray_SIZE(arr) == 0) {
+  if (size == 0) {
     if (return_index) {
       PyObject* result_tpl = PyTuple_New(2);
       PyTuple_SET_ITEM(result_tpl, 0, (PyObject*)result);

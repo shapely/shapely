@@ -125,6 +125,7 @@ def test_get_coords_index_multidim(order):
         ([line_string_z], [0, 1, 1], [0, 0, 1], [4, 4, 4]),
         ([polygon_z], [0, 2, 2, 0, 0], [0, 0, 2, 2, 0], [4, 4, 4, 4, 4]),
         ([geometry_collection_z], [2, 0, 1, 1], [3, 0, 0, 1], [4, 4, 4, 4]),
+        ([point, empty_point], [2], [3], [np.nan]),
     ],
 )  # fmt: on
 def test_get_coords_3d(geoms, x, y, z, include_z):

@@ -276,7 +276,7 @@ def test_offset_curve_join_style_invalid():
             pygeos.Geometry("MULTILINESTRING ((0 0, 1 2), (3 3, 4 4))"),
             pygeos.Geometry("MULTILINESTRING ((1 2, 0 0), (4 4, 3 3))"),
             marks=pytest.mark.skipif(
-                pygeos.geos_version < (3, 8, 0), reason="GEOS < 3.8"
+                pygeos.geos_version < (3, 8, 1), reason="GEOS < 3.8.1"
             ),
         ),
         (
