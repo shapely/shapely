@@ -178,7 +178,7 @@ predicate by users that require them.
    above or below the plane, is ignored in geometric analysis. There is
    a potential pitfall for users here: coordinate tuples that differ only in
    `z` are not distinguished from each other and their application can result
-   in suprisingly invalid geometry objects. For example, ``LineString([(0, 0,
+   in surprisingly invalid geometry objects. For example, ``LineString([(0, 0,
    0), (0, 0, 1)])`` does not return a vertical line of unit length, but an invalid line
    in the plane with zero length. Similarly, ``Polygon([(0, 0, 0), (0, 0, 1),
    (1, 1, 1)])`` is not bounded by a closed ring and is invalid.

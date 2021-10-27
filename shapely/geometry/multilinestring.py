@@ -71,7 +71,7 @@ class MultiLineString(BaseMultipartGeometry):
             Hex string for stroke color. Default is to use "#66cc99" if
             geometry is valid, and "#ff3333" if invalid.
         opacity : float
-            Float number between 0 and 1 for color opacity. Defaul value is 0.8
+            Float number between 0 and 1 for color opacity. Default value is 0.8
         """
         if self.is_empty:
             return '<g />'

@@ -192,13 +192,13 @@ class _IndividualSpecifier(BaseSpecifier):
 
             if self.contains(parsed_version, **kw):
                 # If our version is a prerelease, and we were not set to allow
-                # prereleases, then we'll store it for later incase nothing
+                # prereleases, then we'll store it for later in case nothing
                 # else matches this specifier.
                 if (parsed_version.is_prerelease and not
                         (prereleases or self.prereleases)):
                     found_prereleases.append(version)
                 # Either this is not a prerelease, or we should have been
-                # accepting prereleases from the begining.
+                # accepting prereleases from the beginning.
                 else:
                     yielded = True
                     yield version
