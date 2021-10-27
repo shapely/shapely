@@ -77,7 +77,7 @@ class MultiPoint(BaseMultipartGeometry):
             Hex string for fill color. Default is to use "#66cc99" if
             geometry is valid, and "#ff3333" if invalid.
         opacity : float
-            Float number between 0 and 1 for color opacity. Defaul value is 0.6
+            Float number between 0 and 1 for color opacity. Default value is 0.6
         """
         if self.is_empty:
             return '<g />'

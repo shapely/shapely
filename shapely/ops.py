@@ -361,7 +361,7 @@ def snap(g1, g2, tolerance):
         The first geometry
     g2 : geometry
         The second geometry
-    tolerence : float
+    tolerance : float
         The snapping tolerance
 
     Example

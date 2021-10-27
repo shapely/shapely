@@ -223,7 +223,7 @@ Bug fixes:
 - A missing special case for rectangular polygons has been added to the
   polylabel algorithm (#644).
 - LinearRing can be created from a LineString (#638).
-- The prepared geoemtry validation condition has been tightened in #632 to fix
+- The prepared geometry validation condition has been tightened in #632 to fix
   the bug reported in #631.
 - Attempting to interpolate an empty geometry no longer results in a
   segmentation fault, raising `ValueError` instead (#653).
