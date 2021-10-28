@@ -1,4 +1,5 @@
 import binascii
+import math
 import struct
 import sys
 
@@ -159,8 +160,13 @@ requires_geos_380 = pytest.mark.xfail(
 @requires_geos_380
 def test_point_empty():
     g = wkt.loads("POINT EMPTY")
-    assert g.wkb_hex == hostorder(
-        "BIdd", "0101000000000000000000F87F000000000000F87F")
+    result = dumps(g, big_endian=False)
+    # Use math.isnan for second part of the WKB representation  there are
+    # many byte representations for NaN)
+    assert result[: -2 * 8] == b'\x01\x01\x00\x00\x00'
+    coords = struct.unpack("<2d", result[-2 * 8 :])
+    assert len(coords) == 2
+    assert all(math.isnan(val) for val in coords)
 
 
 @pytest.mark.xfail(reason="Fails with latest pygeos")
