@@ -64,10 +64,6 @@ build_script:
   - set GEOS_INCLUDE_PATH=%GEOS_INSTALL%\include
   - pip install git+https://github.com/pygeos/pygeos.git -v
 
-  - ps: 'Write-Host "Building extension" -ForegroundColor Magenta'
-  - set GEOS_LIBRARY_PATH=%GEOS_INSTALL%\bin\geos_c.dll
-  - python setup.py build_ext --inplace -I%CYTHONPF%\\include -lgeos_c -L%CYTHONPF%\\lib
-
   - ps: 'Write-Host "Running pytest" -ForegroundColor Magenta'
   - pytest
   - python -c "import shapely; print(shapely.__version__)"
