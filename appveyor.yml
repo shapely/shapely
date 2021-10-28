@@ -65,6 +65,7 @@ build_script:
   - pip install git+https://github.com/pygeos/pygeos.git -v
 
   - ps: 'Write-Host "Running pytest" -ForegroundColor Magenta'
+  - set PATH=%GEOS_INSTALL%\bin;%PATH%
   - pytest
   - python -c "import shapely; print(shapely.__version__)"
   - python -c "from shapely.geos import geos_version_string; print(geos_version_string)"
