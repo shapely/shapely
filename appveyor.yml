@@ -51,10 +51,6 @@ build_script:
   - if not exist C:\projects\deps mkdir C:\projects\deps
   - call %APPVEYOR_BUILD_FOLDER%\ci\install_geos.cmd
 
-  - ps: 'Write-Host "Checking geos_c.dll" -ForegroundColor Magenta'
-  - python -c "import sys; print('Python ' + sys.version)"
-  - python -c "import ctypes, os; print(ctypes.CDLL(os.environ['GEOS_LIBRARY_PATH']))"
-
   - ps: 'Write-Host "Installing dev requirements" -ForegroundColor Magenta'
   - cd %APPVEYOR_BUILD_FOLDER%
   - pip install -r requirements-dev.txt
