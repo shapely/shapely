@@ -3,13 +3,6 @@ import sys
 
 import pytest
 
-
-if os.name == 'nt' and sys.version_info[1] >= 8:
-    geos_path = os.environ.get("GEOS_INSTALL")
-    if geos_path:
-        os.add_dll_directory(geos_path + r"\bin")
-
-
 from shapely.geos import geos_version
 
 
