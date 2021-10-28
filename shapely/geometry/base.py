@@ -252,7 +252,7 @@ class BaseGeometry:
         except AttributeError:
             pass
 
-        # if custom atribute, raise the warning
+        # if custom attribute, raise the warning
         warn(
             "Setting custom attributes on geometry objects is deprecated, "
             "and will raise an AttributeError in Shapely 2.0",
@@ -1097,7 +1097,7 @@ class GeometrySequence:
         elif isinstance(key, slice):
             if type(self) == HeterogeneousGeometrySequence:
                 raise GeometryTypeError(
-                    "Heterogenous geometry collections are not sliceable")
+                    "Heterogeneous geometry collections are not sliceable")
             res = []
             start, stop, stride = key.indices(m)
             for i in range(start, stop, stride):

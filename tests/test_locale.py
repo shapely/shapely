@@ -5,7 +5,7 @@ import sys
 import locale
 from shapely.wkt import loads, dumps
 
-# Set locale to one that uses a comma as decimal seperator
+# Set locale to one that uses a comma as decimal separator
 # TODO: try a few other common locales
 if sys.platform == 'win32':
     test_locales = {

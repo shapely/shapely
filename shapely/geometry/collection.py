@@ -12,7 +12,7 @@ from shapely.geometry.base import geos_geom_from_py
 
 class GeometryCollection(BaseMultipartGeometry):
 
-    """A heterogenous collection of geometries
+    """A heterogeneous collection of geometries
 
     Attributes
     ----------
@@ -25,7 +25,7 @@ class GeometryCollection(BaseMultipartGeometry):
         Parameters
         ----------
         geoms : list
-            A list of shapely geometry instances, which may be heterogenous.
+            A list of shapely geometry instances, which may be heterogeneous.
 
         Example
         -------
