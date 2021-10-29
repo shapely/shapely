@@ -151,6 +151,16 @@ def test_polygon_from_coordinate_sequence_with_holes():
     assert len(polygon.interiors) == 1
     assert len(polygon.interiors[0].coords) == 5
 
+    # Multiple interior rings with different length
+    coords = [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]
+    holes = [[(1, 1), (2, 1), (2, 2), (1, 2), (1, 1)],
+             [(3, 3), (3, 4), (4, 5), (5, 4), (5, 3), (3, 3)]]
+    polygon = Polygon(coords, holes)
+    assert polygon.exterior.coords[:] == coords
+    assert len(polygon.interiors) == 2
+    assert len(polygon.interiors[0].coords) == 5
+    assert len(polygon.interiors[1].coords) == 6
+
 
 def test_polygon_from_linearring():
     coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]

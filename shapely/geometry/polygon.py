@@ -231,6 +231,8 @@ class Polygon(BaseGeometry):
             if len(holes) == 0:
                 # pygeos constructor cannot handle holes=[]
                 holes = None
+            else:
+                holes = [pygeos.linearrings(ring) for ring in holes]
 
         if not isinstance(shell, BaseGeometry):
             if not isinstance(shell, (list, np.ndarray)):
