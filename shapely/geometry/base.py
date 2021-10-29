@@ -323,7 +323,7 @@ class BaseGeometry:
             "The 'array_interface_base' property is deprecated and will be "
             "removed in Shapely 2.0.",
             ShapelyDeprecationWarning, stacklevel=2)
-        return self._array_interface_base()
+        return self._array_interface_base
 
     @property
     def __array_interface__(self):
