@@ -2,12 +2,12 @@ Changelog
 =========
 
 
-Version 0.11 (unreleased)
+Version 0.11 (2021-10-30)
 -------------------------
 
 **Distribution**
 
-* Distribute binary wheels for Python 3.10 (#441601).
+* Distribute binary wheels for Python 3.10 (#416).
 * All binary wheels now have GEOS 3.10.0. See https://github.com/libgeos/geos/blob/main/NEWS
   for the changes (#416).
 
