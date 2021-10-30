@@ -40,7 +40,7 @@ jobs:
     name: Build ${{ matrix.archs }} wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     env:
-      GEOS_VERSION: "3.9.1"
+      GEOS_VERSION: "3.10.0"
     strategy:
       fail-fast: false
       matrix:
@@ -70,7 +70,7 @@ jobs:
       - name: Cache GEOS build
         uses: actions/cache@v2
         with:
-          path: geos-${{ env.GEOS_VERSION }}
+          path: ${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
           key: ${{ matrix.os }}-${{ matrix.archs }}-${{ env.GEOS_VERSION }}-${{ hashFiles('ci/*') }}
 
       - name: Add GEOS LICENSE
@@ -103,27 +103,27 @@ jobs:
         if: ${{ matrix.os == 'windows-2019' && matrix.archs == 'auto64' }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.0.0
+        uses: pypa/cibuildwheel@v2.2.2
         env:
           CIBW_ARCHS: ${{ matrix.archs }}
-          CIBW_SKIP: pp*
+          CIBW_SKIP: pp* *musllinux*
           CIBW_ENVIRONMENT_LINUX:
             GEOS_VERSION=${{ env.GEOS_VERSION }}
-            GEOS_INSTALL=/host${{ github.workspace }}/geos-${{ env.GEOS_VERSION }}
-            GEOS_CONFIG=/host${{ github.workspace }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
-            LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/host${{ github.workspace }}/geos-${{ env.GEOS_VERSION }}/lib
+            GEOS_INSTALL=/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
+            GEOS_CONFIG=/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
+            LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/lib
           CIBW_ENVIRONMENT_MACOS:
-            GEOS_INSTALL=${{ github.workspace }}/geos-${{ env.GEOS_VERSION }}
-            GEOS_CONFIG=${{ github.workspace }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
-            LDFLAGS=-Wl,-rpath,${{ github.workspace }}/geos-${{ env.GEOS_VERSION }}/lib
+            GEOS_INSTALL=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
+            GEOS_CONFIG=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
+            LDFLAGS=-Wl,-rpath,${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/lib
           CIBW_ENVIRONMENT_WINDOWS:
-            GEOS_INSTALL='${{ github.workspace }}\geos-${{ env.GEOS_VERSION }}'
-            GEOS_LIBRARY_PATH='${{ github.workspace }}\geos-${{ env.GEOS_VERSION }}\lib'
-            GEOS_INCLUDE_PATH='${{ github.workspace }}\geos-${{ env.GEOS_VERSION }}\include'
+            GEOS_INSTALL='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}'
+            GEOS_LIBRARY_PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\lib'
+            GEOS_INCLUDE_PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\include'
           CIBW_BEFORE_ALL: ./ci/install_geos.sh
           CIBW_BEFORE_ALL_WINDOWS: ci\install_geos.cmd
           CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ github.workspace }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} {wheel}
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} {wheel}
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: pytest --pyargs pygeos.tests
 

@@ -5,6 +5,13 @@ Changelog
 Version 0.11 (unreleased)
 -------------------------
 
+**Distribution**
+
+* Distribute binary wheels for Python 3.10 (#441601).
+* All binary wheels now have GEOS 3.10.0. See https://github.com/libgeos/geos/blob/main/NEWS
+  for the changes (#416).
+
+
 **Major enhancements**
 
 * Optionally output to a user-specified array (``out`` keyword argument) when constructing
@@ -29,17 +36,13 @@ Version 0.11 (unreleased)
 * Removed deprecated ``normalize`` keyword argument in ``pygeos.line_locate_point`` and
   ``pygeos.line_interpolate_point`` (#410).
 
-**Added GEOS functions**
-
-* ...
-
 **Bug fixes**
 
 * Return True instead of False for LINEARRING geometries in ``is_closed`` (#379).
 * Fixed the WKB serialization of 3D empty points for GEOS >= 3.9.0 (#392).
 * Fixed the WKT serialization of single part 3D empty geometries for GEOS >= 3.9.0 (#402).
 * Fixed the WKT serialization of multipoints with empty points for GEOS >= 3.9.0 (#392).
-* Fixed a segfault when getting coordinates from empty points in GEOS 3.8.0.
+* Fixed a segfault when getting coordinates from empty points in GEOS 3.8.0 (#415).
 
 **Acknowledgments**
 
