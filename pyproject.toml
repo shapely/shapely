@@ -10,7 +10,7 @@ requires = [
     "numpy==1.17.3; python_version=='3.8' and platform_machine != 'aarch64'",
     "numpy==1.19.3; python_version=='3.8' and platform_machine == 'aarch64'",
     "numpy==1.19.3; python_version=='3.9'",
-    "numpy==1.21.2; python_version=='3.10'",
+    "numpy==1.21.3; python_version=='3.10'",
     # do not pin numpy on future versions of python to avoid incompatible numpy and python versions
     "numpy; python_version>='3.11'",
     "Cython>=0.29",

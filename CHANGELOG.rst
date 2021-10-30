@@ -27,8 +27,8 @@ People with a "+" by their names contributed a patch for the first time.
 * Joris Van den Bossche
 
 
-Version 0.11 (2021-10-30)
--------------------------
+Version 0.11.1 (2021-10-30)
+---------------------------
 
 **Distribution**
 
