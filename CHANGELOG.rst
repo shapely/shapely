@@ -7,7 +7,8 @@ Version 0.12 (unreleased)
 
 **Major enhancements**
 
-* ...
+* Added GeoJSON input/output capabilities (``pygeos.from_geojson``, 
+  ``pygeos.to_geojson``) (#413).
 
 **API Changes**
 

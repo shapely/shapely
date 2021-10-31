@@ -25,11 +25,11 @@ void destroy_geom_arr(void* context, GEOSGeometry** array, int length) {
   }
 }
 
-/* These functions are used to workaround two Pre-GEOS 3.9.0 issues:
+/* These functions are used to workaround two GEOS issues (in WKB writer for
+ * GEOS < 3.9, in WKT writer for GEOS < 3.9 and in GeoJSON writer for GEOS 3.10.0):
  * - POINT EMPTY was not handled correctly (we do it ourselves)
  * - MULTIPOINT (EMPTY) resulted in segfault (we check for it and raise)
  */
-#if !GEOS_SINCE_3_9_0
 
 /* Returns 1 if a multipoint has an empty point, 0 otherwise, 2 on error.
  */
@@ -288,8 +288,6 @@ char check_to_wkt_compatible(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
     return PGERR_GEOS_EXCEPTION;
   }
 }
-
-#endif  // !GEOS_SINCE_3_9_0
 
 #if GEOS_SINCE_3_9_0
 
