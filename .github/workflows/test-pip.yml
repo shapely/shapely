@@ -47,9 +47,9 @@ jobs:
             numpy: 1.13.3
           - os: windows-2019
             architecture: x86
-            python: "3.10"
+            python: 3.9
             geos: 3.10.0
-            numpy: 1.21.3
+            numpy: 1.19.5
 
     env:
       GEOS_VERSION: ${{ matrix.geos }}
