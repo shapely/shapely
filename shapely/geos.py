@@ -11,6 +11,7 @@ import logging
 import os
 import re
 import sys
+import site
 import threading
 from functools import partial
 
@@ -89,8 +90,14 @@ if sys.platform.startswith('linux'):
             _lgeos = CDLL(geos_pyinstaller_so[0])
             LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
     elif exists_conda_env():
-        # conda package.
-        _lgeos = CDLL(os.path.join(sys.prefix, 'lib', 'libgeos_c.so'))
+        # Using site.PREFIXES allows finding the lib from a venv as well.
+        for prefix in site.PREFIXES:
+            libpath = os.path.join(prefix, 'lib', 'libgeos_c.so' )
+            if os.path.exists(libpath):
+                _lgeos = CDLL(libpath)
+                break
+        else:
+           raise OSError("Could not find libgeos_c.so in {}".format(site.PREFIXES))
     else:
         alt_paths = [
             'libgeos_c.so.1',
