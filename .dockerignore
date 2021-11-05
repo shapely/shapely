@@ -1,5 +1,0 @@
-# The wheel-building image only depends on requirements-dev.txt. Ignore all
-# other files.
-*
-.*
-!requirements-dev.txt
