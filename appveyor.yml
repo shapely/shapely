@@ -20,6 +20,9 @@ environment:
     - PYTHON: "C:\\Python39-x64"
       ARCH: x64
       GEOS_VERSION: "3.9.1"
+    - PYTHON: "C:\\Python310"
+      ARCH: x86
+      GEOS_VERSION: "3.10.1"
 
 
 install:
