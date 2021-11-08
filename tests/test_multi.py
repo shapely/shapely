@@ -5,4 +5,4 @@ class MultiGeometryTestCase(unittest.TestCase):
         geom = cls(geoms)
         for t in test_int_types:
             for i, g in enumerate(geoms):
-                self.assertEqual(geom[t(i)], geoms[i])
+                self.assertEqual(geom.geoms[t(i)], geoms[i])

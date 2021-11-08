@@ -1,17 +1,17 @@
 """Support for various GEOS geometry operations
 """
 
-from ctypes import byref, c_void_p, c_double
 from warnings import warn
 
 from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
 from shapely.prepared import prep
-from shapely.geos import lgeos
-from shapely.geometry.base import geom_factory, BaseGeometry, BaseMultipartGeometry
+from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
 from shapely.geometry import (
     shape, Point, MultiPoint, LineString, MultiLineString, Polygon, GeometryCollection)
 from shapely.geometry.polygon import orient as orient_
 from shapely.algorithms.polylabel import polylabel
+
+import pygeos
 
 
 __all__ = ['cascaded_union', 'linemerge', 'operator', 'polygonize',
@@ -44,17 +44,8 @@ class CollectionOperator:
             source = [source]
         finally:
             obs = [self.shapeup(l) for l in source]
-        geom_array_type = c_void_p * len(obs)
-        geom_array = geom_array_type()
-        for i, line in enumerate(obs):
-            geom_array[i] = line._geom
-        product = lgeos.GEOSPolygonize(byref(geom_array), len(obs))
-        collection = geom_factory(product)
-        for g in collection.geoms:
-            clone = lgeos.GEOSGeom_clone(g._geom)
-            g = geom_factory(clone)
-            g._other_owned = False
-            yield g
+        collection = pygeos.polygonize(obs)
+        return collection.geoms
 
     def polygonize_full(self, lines):
         """Creates polygons from a source of lines, returning the polygons
@@ -78,22 +69,7 @@ class CollectionOperator:
             source = [source]
         finally:
             obs = [self.shapeup(l) for l in source]
-        L = len(obs)
-        subs = (c_void_p * L)()
-        for i, g in enumerate(obs):
-            subs[i] = g._geom
-        collection = lgeos.GEOSGeom_createCollection(5, subs, L)
-        dangles = c_void_p()
-        cuts = c_void_p()
-        invalids = c_void_p()
-        product = lgeos.GEOSPolygonize_full(
-            collection, byref(dangles), byref(cuts), byref(invalids))
-        return (
-            geom_factory(product),
-            geom_factory(dangles),
-            geom_factory(cuts),
-            geom_factory(invalids)
-            )
+        return pygeos.polygonize_full(obs)
 
     def linemerge(self, lines):
         """Merges all connected lines from a source
@@ -115,8 +91,7 @@ class CollectionOperator:
                 source = MultiLineString(lines)
         if source is None:
             raise ValueError("Cannot linemerge %s" % lines)
-        result = lgeos.GEOSLineMerge(source._geom)
-        return geom_factory(result)
+        return pygeos.line_merge(source)
 
     def cascaded_union(self, geoms):
         """Returns the union of a sequence of geometries
@@ -128,18 +103,7 @@ class CollectionOperator:
             "The 'cascaded_union()' function is deprecated. "
             "Use 'unary_union()' instead.",
             ShapelyDeprecationWarning, stacklevel=2)
-        try:
-            if isinstance(geoms, BaseMultipartGeometry):
-                geoms = geoms.geoms
-            L = len(geoms)
-        except TypeError:
-            geoms = [geoms]
-            L = 1
-        subs = (c_void_p * L)()
-        for i, g in enumerate(geoms):
-            subs[i] = g._geom
-        collection = lgeos.GEOSGeom_createCollection(6, subs, L)
-        return geom_factory(lgeos.methods['cascaded_union'](collection))
+        return pygeos.union_all(geoms, axis=None)
 
     def unary_union(self, geoms):
         """Returns the union of a sequence of geometries
@@ -147,18 +111,8 @@ class CollectionOperator:
         This method replaces :meth:`cascaded_union` as the
         preferred method for dissolving many polygons.
         """
-        try:
-            if isinstance(geoms, BaseMultipartGeometry):
-                geoms = geoms.geoms
-            L = len(geoms)
-        except TypeError:
-            geoms = [geoms]
-            L = 1
-        subs = (c_void_p * L)()
-        for i, g in enumerate(geoms):
-            subs[i] = g._geom
-        collection = lgeos.GEOSGeom_createCollection(6, subs, L)
-        return geom_factory(lgeos.methods['unary_union'](collection))
+        return pygeos.union_all(geoms, axis=None)
+
 
 operator = CollectionOperator()
 polygonize = operator.polygonize
@@ -183,9 +137,8 @@ def triangulate(geom, tolerance=0.0, edges=False):
     Otherwise the list of LineString edges is returned.
 
     """
-    func = lgeos.methods['delaunay_triangulation']
-    gc = geom_factory(func(geom._geom, tolerance, int(edges)))
-    return [g for g in gc.geoms]
+    collection = pygeos.delaunay_triangles(geom, tolerance=tolerance, only_edges=edges)
+    return [g for g in collection.geoms]
 
 
 def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
@@ -230,26 +183,24 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
     [1] https://en.wikipedia.org/wiki/Voronoi_diagram
     [2] https://geos.osgeo.org/doxygen/geos__c_8h_source.html  (line 730)
     """
-    func = lgeos.methods['voronoi_diagram']
-    envelope = envelope._geom if envelope else None
     try:
-        result = geom_factory(func(geom._geom, envelope, tolerance, int(edges)))
-    except ValueError:
-        errstr = "Could not create Voronoi Diagram with the specified inputs."
+        result = pygeos.voronoi_polygons(
+            geom, tolerance=tolerance, extend_to=envelope, only_edges=edges
+        )
+    except pygeos.GEOSException as err:
+        errstr = "Could not create Voronoi Diagram with the specified inputs "
+        errstr += "({}).".format(str(err))
         if tolerance:
             errstr += " Try running again with default tolerance value."
-        raise ValueError(errstr)
+        raise ValueError(errstr) from err
 
     if result.type != 'GeometryCollection':
         return GeometryCollection([result])
     return result
 
 
-class ValidateOp:
-    def __call__(self, this):
-        return lgeos.GEOSisValidReason(this._geom)
-
-validate = ValidateOp()
+def validate(geom):
+    return pygeos.is_valid_reason(geom)
 
 
 def transform(func, geom):
@@ -330,23 +281,17 @@ def nearest_points(g1, g2):
 
     The points are returned in the same order as the input geometries.
     """
-    seq = lgeos.methods['nearest_points'](g1._geom, g2._geom)
+    seq = pygeos.shortest_line(g1, g2)
     if seq is None:
         if g1.is_empty:
             raise ValueError('The first input geometry is empty')
         else:
             raise ValueError('The second input geometry is empty')
-    x1 = c_double()
-    y1 = c_double()
-    x2 = c_double()
-    y2 = c_double()
-    lgeos.GEOSCoordSeq_getX(seq, 0, byref(x1))
-    lgeos.GEOSCoordSeq_getY(seq, 0, byref(y1))
-    lgeos.GEOSCoordSeq_getX(seq, 1, byref(x2))
-    lgeos.GEOSCoordSeq_getY(seq, 1, byref(y2))
-    p1 = Point(x1.value, y1.value)
-    p2 = Point(x2.value, y2.value)
+
+    p1 = pygeos.get_point(seq, 0)
+    p2 = pygeos.get_point(seq, 1)
     return (p1, p2)
+
 
 def snap(g1, g2, tolerance):
     """Snap one geometry to another with a given tolerance
@@ -361,7 +306,7 @@ def snap(g1, g2, tolerance):
         The first geometry
     g2 : geometry
         The second geometry
-    tolerence : float
+    tolerance : float
         The snapping tolerance
 
     Example
@@ -372,7 +317,8 @@ def snap(g1, g2, tolerance):
     >>> result.wkt
     'LINESTRING (0 0, 1 1, 2 1, 2.6 0.5)'
     """
-    return(geom_factory(lgeos.methods['snap'](g1._geom, g2._geom, tolerance)))
+    return pygeos.snap(g1, g2, tolerance)
+
 
 def shared_paths(g1, g2):
     """Find paths shared between the two given lineal geometries
@@ -394,7 +340,7 @@ def shared_paths(g1, g2):
         raise GeometryTypeError("First geometry must be a LineString")
     if not isinstance(g2, LineString):
         raise GeometryTypeError("Second geometry must be a LineString")
-    return(geom_factory(lgeos.methods['shared_paths'](g1._geom, g2._geom)))
+    return pygeos.shared_paths(g1, g2)
 
 
 class SplitOp:
@@ -722,8 +668,7 @@ def clip_by_rect(geom, xmin, ymin, xmax, ymax):
     """
     if geom.is_empty:
         return geom
-    result = geom_factory(lgeos.methods['clip_by_rect'](geom._geom, xmin, ymin, xmax, ymax))
-    return result
+    return pygeos.clip_by_rect(geom, xmin, ymin, xmax, ymax)
 
 
 def orient(geom, sign=1.0):

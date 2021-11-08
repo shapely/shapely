@@ -3,7 +3,9 @@ import pytest
 
 from shapely.coords import CoordinateSequence
 from shapely.errors import ShapelyDeprecationWarning
-from shapely.geometry import LineString, asLineString, Point, LinearRing
+from shapely.geometry import LineString, Point, LinearRing
+
+import pygeos
 
 
 def test_from_coordinate_sequence():
@@ -95,7 +97,7 @@ def test_numpy_empty_linestring_coords():
     line = LineString([])
     la = np.asarray(line.coords)
 
-    assert la.shape == (0,)
+    assert la.shape == (0, 2)
 
 
 @shapely20_deprecated
@@ -110,15 +112,16 @@ def test_numpy_object_array():
 
 
 def test_from_invalid_dim():
-    with pytest.raises(ValueError, match="at least 2 coordinate tuples"):
+    # TODO(shapely-2.0) better error message?
+    # pytest.raises(ValueError, match="at least 2 coordinate tuples|at least 2 coordinates"):
+    with pytest.raises(pygeos.GEOSException):
         LineString([(1, 2)])
 
-    with pytest.raises(ValueError, match="Inconsistent coordinate dimensionality"):
+    with pytest.raises(ValueError, match="Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions"):
         LineString([(1, 2, 3), (4, 5)])
 
-    # TODO this does not fail
-    # with pytest.raises(ValueError, match="Inconsistent coordinate dimensionality"):
-    #     LineString([(1, 2), (3, 4, 5)]))
+    with pytest.raises(ValueError, match="Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions"):
+        LineString([(1, 2), (3, 4, 5)])
 
     # TODO better error, right now raises AssertionError
     with pytest.raises(Exception):
@@ -128,7 +131,7 @@ def test_from_invalid_dim():
 def test_from_single_coordinate():
     """Test for issue #486"""
     coords = [[-122.185933073564, 37.3629353839073]]
-    with pytest.raises(ValueError):
+    with pytest.raises(pygeos.GEOSException):
         ls = LineString(coords)
         ls.geom_type  # caused segfault before fix
 
@@ -157,35 +160,11 @@ class LineStringTestCase(unittest.TestCase):
                          {'type': 'LineString',
                           'coordinates': ((1.0, 2.0), (3.0, 4.0))})
 
-    @shapely20_deprecated
-    def test_linestring_mutate(self):
-        line = LineString(((1.0, 2.0), (3.0, 4.0)))
-
-        # Coordinate modification
-        line.coords = ((-1.0, -1.0), (1.0, 1.0))
-        self.assertEqual(line.__geo_interface__,
-                         {'type': 'LineString',
-                          'coordinates': ((-1.0, -1.0), (1.0, 1.0))})
-
-    @shapely20_deprecated
-    def test_linestring_adapter(self):
-        # Adapt a coordinate list to a line string
-        coords = [[5.0, 6.0], [7.0, 8.0]]
-        la = asLineString(coords)
-        self.assertEqual(la.coords[:], [(5.0, 6.0), (7.0, 8.0)])
-
     def test_linestring_empty(self):
         # Test Non-operability of Null geometry
         l_null = LineString()
-        self.assertEqual(l_null.wkt, 'GEOMETRYCOLLECTION EMPTY')
+        self.assertEqual(l_null.wkt, 'LINESTRING EMPTY')
         self.assertEqual(l_null.length, 0.0)
-
-    @shapely20_deprecated
-    def test_linestring_empty_mutate(self):
-        # Check that we can set coordinates of a null geometry
-        l_null = LineString()
-        l_null.coords = [(0, 0), (1, 1)]
-        self.assertAlmostEqual(l_null.length, 1.4142135623730951)
 
     def test_equals_argument_order(self):
         """
@@ -209,23 +188,6 @@ class LineStringTestCase(unittest.TestCase):
         self.assertTrue(ls == ls_clone)
         self.assertTrue(lr == lr_clone)
 
-    @shapely20_deprecated
-    @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy(self):
-
-        from numpy import array, asarray
-        from numpy.testing import assert_array_equal
-
-        # Construct from a numpy array
-        line = LineString(array([[0.0, 0.0], [1.0, 2.0]]))
-        self.assertEqual(len(line.coords), 2)
-        self.assertEqual(line.coords[:], [(0.0, 0.0), (1.0, 2.0)])
-
-        line = LineString(((1.0, 2.0), (3.0, 4.0)))
-        la = asarray(line)
-        expected = array([[1.0, 2.0], [3.0, 4.0]])
-        assert_array_equal(la, expected)
-
     @unittest.skipIf(not numpy, 'Numpy required')
     def test_numpy_linestring_coords(self):
         from numpy.testing import assert_array_equal
@@ -237,83 +199,25 @@ class LineStringTestCase(unittest.TestCase):
         la = numpy.asarray(line.coords)
         assert_array_equal(la, expected)
 
-    @shapely20_deprecated
-    @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy_adapter(self):
-        from numpy import array, asarray
-        from numpy.testing import assert_array_equal
 
-        # Adapt a Numpy array to a line string
-        a = array([[1.0, 2.0], [3.0, 4.0]])
-        la = asLineString(a)
-        assert_array_equal(la.context, a)
-        self.assertEqual(la.coords[:], [(1.0, 2.0), (3.0, 4.0)])
-
-        # Now, the inverse
-        self.assertEqual(la.__array_interface__,
-                         la.context.__array_interface__)
-
-        pas = asarray(la)
-        assert_array_equal(pas, array([[1.0, 2.0], [3.0, 4.0]]))
-
-    @shapely20_deprecated
-    @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy_asarray(self):
-        from numpy import array, asarray
-        from numpy.testing import assert_array_equal
-
-        # From Array.txt
-        a = asarray([[0.0, 0.0], [2.0, 2.0], [1.0, 1.0]])
-        line = LineString(a)
-        self.assertEqual(line.coords[:], [(0.0, 0.0), (2.0, 2.0), (1.0, 1.0)])
-
-        data = line.ctypes
-        self.assertEqual(data[0], 0.0)
-        self.assertEqual(data[5], 1.0)
-
-        b = asarray(line)
-        assert_array_equal(b, array([[0., 0.], [2., 2.], [1., 1.]]))
-
-    @shapely20_deprecated
-    @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy_empty(self):
-        from numpy import array, asarray
-        from numpy.testing import assert_array_equal
-
-        # Test array interface of empty linestring
-        le = LineString()
-        a = asarray(le)
-        self.assertEqual(a.shape[0], 0)
-
-
-def test_linestring_mutability_deprecated():
+def test_linestring_immutable():
     line = LineString(((1.0, 2.0), (3.0, 4.0)))
-    with pytest.warns(ShapelyDeprecationWarning, match="Setting"):
-        line.coords = ((-1.0, -1.0), (1.0, 1.0))
 
+    with pytest.raises(AttributeError):
+        line.coords = [(-1.0, -1.0), (1.0, 1.0)]
 
-def test_linestring_adapter_deprecated():
-    coords = [[5.0, 6.0], [7.0, 8.0]]
-    with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
-        asLineString(coords)
-
-
-def test_linestring_ctypes_deprecated():
-    line = LineString(((1.0, 2.0), (3.0, 4.0)))
-    with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
-        line.ctypes
-
-
-def test_linestring_array_interface_deprecated():
-    line = LineString(((1.0, 2.0), (3.0, 4.0)))
-    with pytest.warns(ShapelyDeprecationWarning, match="array_interface"):
-        line.array_interface()
+    with pytest.raises(TypeError):
+        line.coords[0] = (-1.0, -1.0)
 
 
 @unittest.skipIf(not numpy, 'Numpy required')
-def test_linestring_array_interface_numpy_deprecated():
+def test_linestring_array_coercion():
+    # don't convert to array of coordinates, keep objects
     import numpy as np
 
     line = LineString(((1.0, 2.0), (3.0, 4.0)))
-    with pytest.warns(ShapelyDeprecationWarning, match="array interface"):
-        np.array(line)
+    arr = np.array(line)
+    assert arr.ndim == 0
+    assert arr.size == 1
+    assert arr.dtype == np.dtype("object")
+    assert arr.item() == line

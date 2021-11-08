@@ -1,5 +1,5 @@
 """
-Minimal proxy to a GEOS C dynamic library, which is system dependant
+Minimal proxy to a GEOS C dynamic library, which is system dependent
 
 Two environment variables influence this module: GEOS_LIBRARY_PATH and/or
 GEOS_CONFIG.

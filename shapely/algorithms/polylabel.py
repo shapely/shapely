@@ -1,5 +1,5 @@
 from ..geometry import Point, LineString
-from ..geos import TopologicalError
+from ..errors import TopologicalError
 from heapq import heappush, heappop
 
 
@@ -75,7 +75,7 @@ def polylabel(polygon, tolerance=1.0):
 
     Raises
     ------
-    shapely.geos.TopologicalError
+    shapely.errors.TopologicalError
         If the input polygon is not a valid geometry.
 
     Example
@@ -122,7 +122,7 @@ def polylabel(polygon, tolerance=1.0):
         if cell.distance > best_cell.distance:
             best_cell = cell
 
-        # continue to the next iteration if we cant find a better solution
+        # continue to the next iteration if we can't find a better solution
         # based on tolerance
         if cell.max_distance - best_cell.distance <= tolerance:
             continue
