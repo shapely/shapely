@@ -105,7 +105,7 @@ jobs:
           python -m pytest --cov shapely --cov-report term-missing
 
       - name: Run doctests
-        if: ${{ matrix.python == '3.9' }}
+        if: ${{ matrix.python == '3.10' }}
         shell: bash
         run: |
           python -m pytest shapely --doctest-modules
