@@ -14,11 +14,11 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2019]
         architecture: [x64]
-        geos: [3.6.4, 3.7.3, 3.8.1, 3.9.1, 3.10.0, main]
+        geos: [3.6.5, 3.7.3, 3.8.1, 3.9.2, 3.10.1, main]
         include:
           # 2017
           - python: 3.6
-            geos: 3.6.4
+            geos: 3.6.5
             numpy: 1.13.3
           # 2018
           - python: 3.7
@@ -30,11 +30,11 @@ jobs:
             numpy: 1.17.5
           # 2020
           - python: 3.9
-            geos: 3.9.1
+            geos: 3.9.2
             numpy: 1.19.5
           # 2021
           - python: "3.10"
-            geos: 3.10.0
+            geos: 3.10.1
             numpy: 1.21.3
           # dev
           - python: "3.10"
@@ -43,12 +43,12 @@ jobs:
           - os: windows-2019
             architecture: x86
             python: 3.6
-            geos: 3.6.4
+            geos: 3.6.5
             numpy: 1.13.3
           - os: windows-2019
             architecture: x86
             python: 3.9
-            geos: 3.10.0
+            geos: 3.10.1
             numpy: 1.19.5
 
     env:
@@ -148,4 +148,4 @@ jobs:
       # Only run doctests on 1 runner (because of typographic differences in doctest results)
       - name: Run doctests
         run: pytest --doctest-modules pygeos --ignore=pygeos/tests
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.10.0' }}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.10' }}
