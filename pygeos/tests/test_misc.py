@@ -1,7 +1,5 @@
-import ctypes
 import os
 import sys
-import warnings
 from itertools import chain
 from string import ascii_letters, digits
 from unittest import mock
@@ -11,7 +9,6 @@ import pytest
 
 import pygeos
 from pygeos.decorators import multithreading_enabled, requires_geos
-from pygeos.may_segfault import may_segfault
 
 
 @pytest.fixture
@@ -187,44 +184,3 @@ def test_multithreading_enabled_preserves_flag():
 def test_multithreading_enabled_ok(args, kwargs):
     result = set_first_element(42, *args, **kwargs)
     assert result[0] == 42
-
-
-def my_unstable_func(event=None):
-    if event == "segfault":
-        ctypes.string_at(0)  # segfault
-    elif event == "exit":
-        exit(1)
-    elif event == "raise":
-        raise ValueError("This is a test")
-    elif event == "warn":
-        warnings.warn("This is a test", RuntimeWarning)
-    elif event == "return":
-        return "This is a test"
-
-
-def test_may_segfault():
-    if os.name == "nt":
-        match = "access violation"
-    else:
-        match = "GEOS crashed"
-    with pytest.raises(OSError, match=match):
-        may_segfault(my_unstable_func)("segfault")
-
-
-def test_may_segfault_exit():
-    with pytest.raises(OSError, match="GEOS crashed with exit code 1."):
-        may_segfault(my_unstable_func)("exit")
-
-
-def test_may_segfault_raises():
-    with pytest.raises(ValueError, match="This is a test"):
-        may_segfault(my_unstable_func)("raise")
-
-
-def test_may_segfault_returns():
-    assert may_segfault(my_unstable_func)("return") == "This is a test"
-
-
-def test_may_segfault_warns():
-    with pytest.warns(RuntimeWarning, match="This is a test"):
-        may_segfault(my_unstable_func)("warn")

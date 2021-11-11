@@ -741,7 +741,7 @@ def test_pickle_with_srid():
     assert pygeos.get_srid(pickle.loads(pickled)) == 4326
 
 
-@pytest.mark.skipif(pygeos.geos_version < (3, 10, 0), reason="GEOS < 3.10")
+@pytest.mark.skipif(pygeos.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 @pytest.mark.parametrize(
     "geojson,expected",
     [
@@ -761,7 +761,7 @@ def test_from_geojson(geojson, expected):
     assert_geometries_equal(actual, expected)
 
 
-@pytest.mark.skipif(pygeos.geos_version < (3, 10, 0), reason="GEOS < 3.10")
+@pytest.mark.skipif(pygeos.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_from_geojson_exceptions():
     with pytest.raises(TypeError, match="Expected bytes or string, got int"):
         pygeos.from_geojson(1)
@@ -775,28 +775,28 @@ def test_from_geojson_exceptions():
     with pytest.raises(pygeos.GEOSException, match="type must be array, but is null"):
         pygeos.from_geojson('{"type": "LineString", "coordinates": null}')
 
-    # Note: The two below tests may make GEOS 3.10.0 crash
-    # https://trac.osgeo.org/geos/ticket/1138
-    with pytest.raises((pygeos.GEOSException, OSError)):
+    # Note: The two below tests are the reason that from_geojson is disabled for
+    # GEOS 3.10.0 See https://trac.osgeo.org/geos/ticket/1138
+    with pytest.raises(pygeos.GEOSException, match="key 'type' not found"):
         pygeos.from_geojson('{"geometry": null, "properties": []}')
 
-    with pytest.raises((pygeos.GEOSException, OSError)):
+    with pytest.raises(pygeos.GEOSException, match="key 'type' not found"):
         pygeos.from_geojson('{"no": "geojson"}')
 
 
-@pytest.mark.skipif(pygeos.geos_version < (3, 10, 0), reason="GEOS < 3.10")
+@pytest.mark.skipif(pygeos.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_from_geojson_warn_on_invalid():
     with pytest.warns(Warning, match="Invalid GeoJSON"):
         assert pygeos.from_geojson("", on_invalid="warn") is None
 
 
-@pytest.mark.skipif(pygeos.geos_version < (3, 10, 0), reason="GEOS < 3.10")
+@pytest.mark.skipif(pygeos.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_from_geojson_ignore_on_invalid():
     with pytest.warns(None):
         assert pygeos.from_geojson("", on_invalid="ignore") is None
 
 
-@pytest.mark.skipif(pygeos.geos_version < (3, 10, 0), reason="GEOS < 3.10")
+@pytest.mark.skipif(pygeos.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_from_geojson_on_invalid_unsupported_option():
     with pytest.raises(ValueError, match="not a valid option"):
         pygeos.from_geojson(GEOJSON_GEOMETRY, on_invalid="unsupported_option")
@@ -850,7 +850,7 @@ def test_to_geojson_point_empty(geom):
         assert pygeos.to_geojson(geom)
 
 
-@pytest.mark.skipif(pygeos.geos_version < (3, 10, 0), reason="GEOS < 3.10")
+@pytest.mark.skipif(pygeos.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 @pytest.mark.parametrize("geom", all_types)
 def test_geojson_all_types(geom):
     if pygeos.get_type_id(geom) == pygeos.GeometryType.LINEARRING:

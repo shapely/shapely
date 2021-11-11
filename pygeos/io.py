@@ -4,10 +4,9 @@ from collections.abc import Sized
 import numpy as np
 
 from . import Geometry  # noqa
-from . import geos_capi_version_string, geos_version_string, lib
+from . import geos_capi_version_string, lib
 from .decorators import requires_geos
 from .enum import ParamEnum
-from .may_segfault import may_segfault
 
 __all__ = [
     "from_geojson",
@@ -408,18 +407,13 @@ def from_wkb(geometry, on_invalid="raise", **kwargs):
     return lib.from_wkb(geometry, invalid_handler, **kwargs)
 
 
-@requires_geos("3.10.0")
+@requires_geos("3.10.1")
 def from_geojson(geometry, on_invalid="raise", **kwargs):
     """Creates geometries from GeoJSON representations (strings).
 
     If a GeoJSON is a FeatureCollection, it is read as a single geometry
     (with type GEOMETRYCOLLECTION). This may be unpacked using the ``pygeos.get_parts``.
     Properties are not read.
-
-    .. note::
-
-      For GEOS 3.10.0, this function is executed in a subprocess. This is because invalid
-      GeoJSON input may result in a crash. For GEOS 3.10.1 the issue is expected to be fixed.
 
     The GeoJSON format is defined in `RFC 7946 <https://geojson.org/>`__.
 
@@ -463,13 +457,7 @@ def from_geojson(geometry, on_invalid="raise", **kwargs):
     # of array elements)
     geometry = np.asarray(geometry, dtype=object)
 
-    # GEOS 3.10.0 may segfault on invalid GeoJSON input. This bug is currently
-    # solved in main branch, expected fix in (3, 10, 1)
-    if geos_version_string == "3.10.0":  # so not on dev versions!
-        _from_geojson = may_segfault(lib.from_geojson)
-    else:
-        _from_geojson = lib.from_geojson
-    return _from_geojson(geometry, invalid_handler, **kwargs)
+    return lib.from_geojson(geometry, invalid_handler, **kwargs)
 
 
 def from_shapely(geometry, **kwargs):

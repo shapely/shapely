@@ -17,8 +17,7 @@ Version 0.12 (unreleased)
 
 **Bug fixes**
 
-* Protect ``pygeos.from_geojson`` against segfaults by running the function in a
-  subprocess (GEOS 3.10.0 only) (#418).
+* ...
 
 
 **Acknowledgments**
