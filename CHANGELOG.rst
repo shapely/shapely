@@ -7,6 +7,7 @@ Version 0.12 (unreleased)
 
 **Major enhancements**
 
+* Added ``pygeos.dwithin`` for GEOS >= 3.10 (#417).
 * Added GeoJSON input/output capabilities (``pygeos.from_geojson``, 
   ``pygeos.to_geojson``) (#413).
 

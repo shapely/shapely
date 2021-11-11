@@ -1,3 +1,5 @@
+from functools import partial
+
 import numpy as np
 import pytest
 
@@ -39,15 +41,19 @@ BINARY_PREDICATES = (
     pygeos.contains,
     pygeos.contains_properly,
     pygeos.overlaps,
-    pygeos.equals,
     pygeos.covers,
     pygeos.covered_by,
+    pytest.param(
+        partial(pygeos.dwithin, distance=1.0),
+        marks=pytest.mark.skipif(
+            pygeos.geos_version < (3, 10, 0), reason="GEOS < 3.10"
+        ),
+    ),
+    pygeos.equals,
     pygeos.equals_exact,
 )
 
-BINARY_PREPARED_PREDICATES = tuple(
-    set(BINARY_PREDICATES) - {pygeos.equals, pygeos.equals_exact}
-)
+BINARY_PREPARED_PREDICATES = BINARY_PREDICATES[:-2]
 
 
 @pytest.mark.parametrize("geometry", all_types)
@@ -110,6 +116,26 @@ def test_equals_exact_tolerance():
     # default value for tolerance
     assert pygeos.equals_exact(p1, p1).item() is True
     assert pygeos.equals_exact(p1, p2).item() is False
+
+    # an array of tolerances
+    actual = pygeos.equals_exact(p1, p2, tolerance=[0.05, 0.2, np.nan])
+    np.testing.assert_allclose(actual, [False, True, False])
+
+
+@pytest.mark.skipif(pygeos.geos_version < (3, 10, 0), reason="GEOS < 3.10")
+def test_dwithin():
+    p1 = pygeos.points(50, 4)
+    p2 = pygeos.points(50.1, 4.1)
+    actual = pygeos.dwithin([p1, p2, None], p1, distance=0.05)
+    np.testing.assert_equal(actual, [True, False, False])
+    assert actual.dtype == np.bool_
+    actual = pygeos.dwithin([p1, p2, None], p1, distance=0.2)
+    np.testing.assert_allclose(actual, [True, True, False])
+    assert actual.dtype == np.bool_
+
+    # an array of distances
+    actual = pygeos.dwithin(p1, p2, distance=[0.05, 0.2, np.nan])
+    np.testing.assert_allclose(actual, [False, True, False])
 
 
 @pytest.mark.parametrize(

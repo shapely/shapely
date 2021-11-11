@@ -23,6 +23,7 @@ __all__ = [
     "covered_by",
     "covers",
     "disjoint",
+    "dwithin",
     "equals",
     "intersects",
     "overlaps",
@@ -1001,3 +1002,41 @@ def relate_pattern(a, b, pattern, **kwargs):
     True
     """
     return lib.relate_pattern(a, b, pattern, **kwargs)
+
+
+@multithreading_enabled
+@requires_geos("3.10.0")
+def dwithin(a, b, distance, **kwargs):
+    """
+    Returns True if the geometries are within a given distance.
+
+    Using this function is more efficient than computing the distance and
+    comparing the result.
+
+    Parameters
+    ----------
+    a, b : Geometry or array_like
+    distance : float
+        Negative distances always return False.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    See also
+    --------
+    distance : compute the actual distance between A and B
+    prepare : improve performance by preparing ``a`` (the first argument)
+
+    Examples
+    --------
+    >>> point = Geometry("POINT (0.5 0.5)")
+    >>> dwithin(point, Geometry("POINT (2 0.5)"), 2)
+    True
+    >>> dwithin(point, Geometry("POINT (2 0.5)"), [2, 1.5, 1]).tolist()
+    [True, True, False]
+    >>> dwithin(point, Geometry("POINT (0.5 0.5)"), 0)
+    True
+    >>> dwithin(point, None, 100)
+    False
+    """
+    return lib.dwithin(a, b, distance, **kwargs)
