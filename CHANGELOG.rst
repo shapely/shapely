@@ -5,11 +5,21 @@ Changelog
 Version 0.12 (unreleased)
 -------------------------
 
+**Distribution**
+
+* Distribute binary wheels for Apple Silicon architecture
+  (arm64 and universal2) (#427).
+* Removed 32-bit architecture wheels for
+  Python 3.10 (#427).
+* All binary wheels now have GEOS 3.10.1. See https://github.com/libgeos/geos/blob/main/NEWS
+  for the changes (#422).
+
+
 **Major enhancements**
 
 * Added ``pygeos.dwithin`` for GEOS >= 3.10 (#417).
 * Added GeoJSON input/output capabilities (``pygeos.from_geojson``, 
-  ``pygeos.to_geojson``) (#413).
+  ``pygeos.to_geojson``) for GEOS >= 3.10 (#413).
 
 **API Changes**
 

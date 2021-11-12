@@ -37,32 +37,38 @@ jobs:
           retention-days: 30
 
   build_wheels:
-    name: Build ${{ matrix.archs }} wheels on ${{ matrix.os }}
+    name: Build ${{ matrix.arch }} wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     env:
       GEOS_VERSION: "3.10.1"
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-10.15]
-        archs: [auto32, auto64]
-        exclude:
-        # osx doesn't have 32-bit builds
-        - os: macos-10.15
-          archs: auto32
         include:
-        # Only numpy >= 1.19 has aarch64 wheels
         - os: ubuntu-20.04
-          archs: aarch64
-        # Numpy doesn't have ppc64le wheels:
-        # - os: ubuntu-20.04
-        #   archs: ppc64le
-        # We know that tests don't pass on s390x:
-        # - os: ubuntu-20.04
-        #   archs: s390x  
-        # On ARM64, the GEOS libraries do not end up in the wheel:
-        # - os: macos-10.15
-        #   archs: arm64
+          arch: x86_64
+        - os: ubuntu-20.04
+          arch: i686
+        - os: ubuntu-20.04
+          arch: aarch64
+          qemu_platform: arm64
+        # Note: Numpy doesn't have ppc64le & s390x wheels
+        # Also, some GEOS tests fail on s390x.
+        - os: windows-2019
+          arch: x86
+          msvc_arch: x86
+        - os: windows-2019
+          arch: AMD64
+          msvc_arch: x64
+        - os: macos-10.15
+          arch: x86_64
+          cmake_osx_architectures: x86_64
+        - os: macos-10.15
+          arch: arm64
+          cmake_osx_architectures: arm64
+        - os: macos-10.15
+          arch: universal2
+          cmake_osx_architectures: "x86_64;arm64"
 
     steps:
       - uses: actions/checkout@v2
@@ -71,7 +77,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
-          key: ${{ matrix.os }}-${{ matrix.archs }}-${{ env.GEOS_VERSION }}-${{ hashFiles('ci/*') }}
+          key: ${{ matrix.os }}-${{ matrix.arch }}-${{ env.GEOS_VERSION }}-${{ hashFiles('ci/*') }}
 
       - name: Add GEOS LICENSE
         run: |
@@ -87,26 +93,20 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
         with:
-          platforms: arm64
-        if: ${{ matrix.os == 'ubuntu-20.04' && matrix.archs == 'aarch64' }}
+          platforms: ${{ matrix.qemu_platform }}
+        if: ${{ matrix.qemu_platform }}
 
-      - name: Activate MSVC 32-bit
+      - name: Activate MSVC
         uses: ilammy/msvc-dev-cmd@v1
         with:
-          arch: x86
-        if: ${{ matrix.os == 'windows-2019' && matrix.archs == 'auto32' }}
-
-      - name: Activate MSVC 64-bit
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
-        if: ${{ matrix.os == 'windows-2019' && matrix.archs == 'auto64' }}
+          arch: ${{ matrix.msvc_arch }}
+        if: ${{ matrix.msvc_arch }}
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.2.2
         env:
-          CIBW_ARCHS: ${{ matrix.archs }}
-          CIBW_SKIP: pp* *musllinux*
+          CIBW_ARCHS: ${{ matrix.arch }}
+          CIBW_SKIP: pp* *musllinux* cp310-win32 cp310-macosx_x86_64 cp310-manylinux_i686
           CIBW_ENVIRONMENT_LINUX:
             GEOS_VERSION=${{ env.GEOS_VERSION }}
             GEOS_INSTALL=/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
@@ -116,6 +116,8 @@ jobs:
             GEOS_INSTALL=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
             GEOS_CONFIG=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
             LDFLAGS=-Wl,-rpath,${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/lib
+            MACOSX_DEPLOYMENT_TARGET=10.9
+            CMAKE_OSX_ARCHITECTURES='${{ matrix.cmake_osx_architectures }}'
           CIBW_ENVIRONMENT_WINDOWS:
             GEOS_INSTALL='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}'
             GEOS_LIBRARY_PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\lib'
