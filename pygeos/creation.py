@@ -34,9 +34,6 @@ def _xyz_to_coords(x, y, z):
 def points(coords, y=None, z=None, indices=None, out=None, **kwargs):
     """Create an array of points.
 
-    Note that GEOS >=3.10 automatically converts POINT (nan nan) to
-    POINT EMPTY.
-
     Parameters
     ----------
     coords : array_like
@@ -63,6 +60,13 @@ def points(coords, y=None, z=None, indices=None, out=None, **kwargs):
     [<pygeos.Geometry POINT (0 1)>, <pygeos.Geometry POINT (4 5)>]
     >>> points([0, 1, 2])
     <pygeos.Geometry POINT Z (0 1 2)>
+
+    Notes
+    -----
+
+    - GEOS >=3.10 automatically converts POINT (nan nan) to POINT EMPTY.
+    - Usage of the ``y`` and ``z`` arguments will prevents lazy evaluation in ``dask``.
+      Instead provide the coordinates as an array with shape ``(..., 2)`` or ``(..., 3)`` using only the ``coords`` argument.
     """
     coords = _xyz_to_coords(coords, y, z)
     if indices is None:
@@ -104,6 +108,11 @@ def linestrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
     [<pygeos.Geometry LINESTRING (0 1, 4 5)>, <pygeos.Geometry LINESTRING (2 3, 5 6)>]
     >>> linestrings([[0, 1], [4, 5], [2, 3], [5, 6], [7, 8]], indices=[0, 0, 1, 1, 1]).tolist()
     [<pygeos.Geometry LINESTRING (0 1, 4 5)>, <pygeos.Geometry LINESTRING (2 3, 5 6, 7 8)>]
+
+    Notes
+    -----
+    - Usage of the ``y`` and ``z`` arguments will prevents lazy evaluation in ``dask``.
+      Instead provide the coordinates as a ``(..., 2)`` or ``(..., 3)`` array using only ``coords``.
     """
     coords = _xyz_to_coords(coords, y, z)
     if indices is None:
@@ -152,6 +161,11 @@ def linearrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
     <pygeos.Geometry LINEARRING (0 0, 0 1, 1 1, 0 0)>
     >>> linearrings([[0, 0], [0, 1], [1, 1]])
     <pygeos.Geometry LINEARRING (0 0, 0 1, 1 1, 0 0)>
+
+    Notes
+    -----
+    - Usage of the ``y`` and ``z`` arguments will prevents lazy evaluation in ``dask``.
+      Instead provide the coordinates as a ``(..., 2)`` or ``(..., 3)`` array using only ``coords``.
     """
     coords = _xyz_to_coords(coords, y, z)
     if indices is None:

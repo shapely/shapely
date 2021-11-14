@@ -93,7 +93,7 @@ def get_dimensions(geometry, **kwargs):
 
     The inherent dimension is 0 for points, 1 for linestrings and linearrings,
     and 2 for polygons. For geometrycollections it is the max of the containing
-    elements. Empty and None geometries return -1.
+    elements. Empty collections and None values return -1.
 
     Parameters
     ----------

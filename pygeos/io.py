@@ -294,6 +294,12 @@ def to_shapely(geometry):
     """
     Converts PyGEOS geometries to Shapely.
 
+    .. warning:: When Shapely and PyGEOS are using the same GEOS version,
+       this function assumes that the libraries are actually the same.
+       In some cases (especially when using pip-installed wheels) this may
+       lead to unexpected behaviour. If you require safe (but slower) behaviour,
+       then we recommend setting ``pygeos.io.shapely_compatible`` to ``False``.
+
     Parameters
     ----------
     geometry : shapely Geometry object or array_like
@@ -463,6 +469,12 @@ def from_geojson(geometry, on_invalid="raise", **kwargs):
 def from_shapely(geometry, **kwargs):
     """
     Creates geometries from shapely Geometry objects.
+
+    .. warning:: When Shapely and PyGEOS are using the same GEOS version,
+       this function assumes that the libraries are actually the same.
+       In some cases (especially when using pip-installed wheels) this may
+       lead to unexpected behaviour. If you require safe (but slower) behaviour,
+       then we recommend setting ``pygeos.io.shapely_compatible`` to ``False``.
 
     Parameters
     ----------
