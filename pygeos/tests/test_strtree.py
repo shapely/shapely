@@ -211,6 +211,11 @@ def test_query_unsupported_predicate(tree):
         tree.query(pygeos.points(1, 1), predicate="disjoint")
 
 
+def test_query_predicate_errors(tree):
+    with pytest.raises(pygeos.GEOSException):
+        tree.query(pygeos.linestrings([1, 1], [1, float("nan")]), predicate="touches")
+
+
 def test_query_tree_with_none():
     # valid GEOS binary predicate, but not supported for query
     tree = pygeos.STRtree(

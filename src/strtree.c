@@ -276,6 +276,7 @@ static char evaluate_predicate(void* context, FuncGEOS_YpY_b* predicate_func,
   GEOSGeometry* target_geom;
   const GEOSPreparedGeometry* prepared_geom_tmp;
   npy_intp i, size;
+  char predicate_result;
 
   if (prepared_geom == NULL) {
     // geom was not previously prepared, prepare it now
@@ -302,7 +303,10 @@ static char evaluate_predicate(void* context, FuncGEOS_YpY_b* predicate_func,
     get_geom(pg_geom, &target_geom);
 
     // keep the geometry if it passes the predicate
-    if (predicate_func(context, prepared_geom_tmp, target_geom)) {
+    predicate_result = predicate_func(context, prepared_geom_tmp, target_geom);
+    if (predicate_result == 2) {
+      return PGERR_GEOS_EXCEPTION;
+    } else if (predicate_result == 1) {
       kv_push(GeometryObject**, *out_geoms, pg_geom_loc);
       (*count)++;
     }
