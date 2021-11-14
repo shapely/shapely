@@ -116,7 +116,8 @@ def linestrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
 def linearrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
     """Create an array of linearrings.
 
-    If the provided coords do not constitute a closed linestring, the first
+    If the provided coords do not constitute a closed linestring, or if there
+    are only 3 provided coords, the first
     coordinate is duplicated at the end to close the ring. This function will
     raise an exception if a linearring contains less than three points or if
     the terminal coordinates contain NaN (not-a-number).

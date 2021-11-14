@@ -2252,12 +2252,16 @@ static void linearrings_func(char** args, npy_intp* dimensions, npy_intp* steps,
   DOUBLE_COREDIM_LOOP_OUTER {
     /* check if first and last coords are equal; duplicate if necessary */
     ring_closure = 0;
-    DOUBLE_COREDIM_LOOP_INNER_2 {
-      first_coord = *(double*)(ip1 + i_c2 * cs2);
-      last_coord = *(double*)(ip1 + (n_c1 - 1) * cs1 + i_c2 * cs2);
-      if (first_coord != last_coord) {
-        ring_closure = 1;
-        break;
+    if (n_c1 == 3) {
+      ring_closure = 1;
+    } else {
+      DOUBLE_COREDIM_LOOP_INNER_2 {
+        first_coord = *(double*)(ip1 + i_c2 * cs2);
+        last_coord = *(double*)(ip1 + (n_c1 - 1) * cs1 + i_c2 * cs2);
+        if (first_coord != last_coord) {
+          ring_closure = 1;
+          break;
+        }
       }
     }
     /* the minimum number of coordinates in a linearring is 4 */

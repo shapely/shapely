@@ -24,20 +24,23 @@ def box_tpl(x1, y1, x2, y2):
 
 def test_points_from_coords():
     actual = pygeos.points([[0, 0], [2, 2]])
-    assert str(actual[0]) == "POINT (0 0)"
-    assert str(actual[1]) == "POINT (2 2)"
+    assert_geometries_equal(
+        actual, [pygeos.Geometry("POINT (0 0)"), pygeos.Geometry("POINT (2 2)")]
+    )
 
 
 def test_points_from_xy():
     actual = pygeos.points(2, [0, 1])
-    assert str(actual[0]) == "POINT (2 0)"
-    assert str(actual[1]) == "POINT (2 1)"
+    assert_geometries_equal(
+        actual, [pygeos.Geometry("POINT (2 0)"), pygeos.Geometry("POINT (2 1)")]
+    )
 
 
 def test_points_from_xyz():
     actual = pygeos.points(1, 1, [0, 1])
-    assert str(actual[0]) == "POINT Z (1 1 0)"
-    assert str(actual[1]) == "POINT Z (1 1 1)"
+    assert_geometries_equal(
+        actual, [pygeos.Geometry("POINT Z (1 1 0)"), pygeos.Geometry("POINT (1 1 1)")]
+    )
 
 
 def test_points_invalid_ndim():
@@ -47,31 +50,42 @@ def test_points_invalid_ndim():
 
 @pytest.mark.skipif(pygeos.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 def test_points_nan_becomes_empty():
-    assert str(pygeos.points(np.nan, np.nan)) == "POINT EMPTY"
+    actual = pygeos.points(np.nan, np.nan)
+    assert_geometries_equal(actual, pygeos.Geometry("POINT EMPTY"))
 
 
 def test_linestrings_from_coords():
     actual = pygeos.linestrings([[[0, 0], [1, 1]], [[0, 0], [2, 2]]])
-    assert str(actual[0]) == "LINESTRING (0 0, 1 1)"
-    assert str(actual[1]) == "LINESTRING (0 0, 2 2)"
+    assert_geometries_equal(
+        actual,
+        [
+            pygeos.Geometry("LINESTRING (0 0, 1 1)"),
+            pygeos.Geometry("LINESTRING (0 0, 2 2)"),
+        ],
+    )
 
 
 def test_linestrings_from_xy():
     actual = pygeos.linestrings([0, 1], [2, 3])
-    assert str(actual) == "LINESTRING (0 2, 1 3)"
+    assert_geometries_equal(actual, pygeos.Geometry("LINESTRING (0 2, 1 3)"))
 
 
 def test_linestrings_from_xy_broadcast():
     x = [0, 1]  # the same X coordinates for both linestrings
     y = [2, 3], [4, 5]  # each linestring has a different set of Y coordinates
     actual = pygeos.linestrings(x, y)
-    assert str(actual[0]) == "LINESTRING (0 2, 1 3)"
-    assert str(actual[1]) == "LINESTRING (0 4, 1 5)"
+    assert_geometries_equal(
+        actual,
+        [
+            pygeos.Geometry("LINESTRING (0 2, 1 3)"),
+            pygeos.Geometry("LINESTRING (0 4, 1 5)"),
+        ],
+    )
 
 
 def test_linestrings_from_xyz():
     actual = pygeos.linestrings([0, 1], [2, 3], 0)
-    assert str(actual) == "LINESTRING Z (0 2 0, 1 3 0)"
+    assert_geometries_equal(actual, pygeos.Geometry("LINESTRING Z (0 2 0, 1 3 0)"))
 
 
 def test_linestrings_invalid_shape_scalar():
@@ -94,17 +108,26 @@ def test_linestrings_invalid_shape(shape):
 
 def test_linearrings():
     actual = pygeos.linearrings(box_tpl(0, 0, 1, 1))
-    assert str(actual) == "LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)"
+    assert_geometries_equal(
+        actual, pygeos.Geometry("LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)")
+    )
 
 
 def test_linearrings_from_xy():
     actual = pygeos.linearrings([0, 1, 2, 0], [3, 4, 5, 3])
-    assert str(actual) == "LINEARRING (0 3, 1 4, 2 5, 0 3)"
+    assert_geometries_equal(actual, pygeos.Geometry("LINEARRING (0 3, 1 4, 2 5, 0 3)"))
 
 
 def test_linearrings_unclosed():
     actual = pygeos.linearrings(box_tpl(0, 0, 1, 1)[:-1])
-    assert str(actual) == "LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)"
+    assert_geometries_equal(
+        actual, pygeos.Geometry("LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)")
+    )
+
+
+def test_linearrings_unclosed_all_coords_equal():
+    actual = pygeos.linearrings([(0, 0), (0, 0), (0, 0)])
+    assert_geometries_equal(actual, pygeos.Geometry("LINEARRING (0 0, 0 0, 0 0, 0 0)"))
 
 
 def test_linearrings_invalid_shape_scalar():
@@ -121,9 +144,6 @@ def test_linearrings_invalid_shape_scalar():
         (2, 2, 2),  # 2 linearrings of 2 2D points
         (1, 2, 2),  # 1 linearring of 2 2D points
         (2, 2),  # 1 linearring of 2 2D points (scalar)
-        (2, 3, 2),  # 2 linearrings of 3 2D points
-        (1, 3, 2),  # 1 linearring of 3 2D points
-        (3, 2),  # 1 linearring of 3 2D points (scalar)
     ],
 )
 def test_linearrings_invalid_shape(shape):
@@ -145,7 +165,9 @@ def test_linearrings_all_nan():
 
 def test_polygon_from_linearring():
     actual = pygeos.polygons(pygeos.linearrings(box_tpl(0, 0, 1, 1)))
-    assert str(actual) == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
+    assert_geometries_equal(
+        actual, pygeos.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))")
+    )
 
 
 def test_polygons_none():
@@ -155,7 +177,9 @@ def test_polygons_none():
 
 def test_polygons():
     actual = pygeos.polygons(box_tpl(0, 0, 1, 1))
-    assert str(actual) == "POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"
+    assert_geometries_equal(
+        actual, pygeos.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))")
+    )
 
 
 def test_polygon_no_hole_list_raises():
@@ -239,9 +263,6 @@ def test_polygons_not_enough_points_in_shell_scalar():
         (2, 2, 2),  # 2 linearrings of 2 2D points
         (1, 2, 2),  # 1 linearring of 2 2D points
         (2, 2),  # 1 linearring of 2 2D points (scalar)
-        (2, 3, 2),  # 2 linearrings of 3 2D points
-        (1, 3, 2),  # 1 linearring of 3 2D points
-        (3, 2),  # 1 linearring of 3 2D points (scalar)
     ],
 )
 def test_polygons_not_enough_points_in_shell(shape):
@@ -269,9 +290,6 @@ def test_polygons_not_enough_points_in_holes_scalar():
         (2, 2, 2),  # 2 linearrings of 2 2D points
         (1, 2, 2),  # 1 linearring of 2 2D points
         (2, 2),  # 1 linearring of 2 2D points (scalar)
-        (2, 3, 2),  # 2 linearrings of 3 2D points
-        (1, 3, 2),  # 1 linearring of 3 2D points
-        (3, 2),  # 1 linearring of 3 2D points (scalar)
     ],
 )
 def test_polygons_not_enough_points_in_holes(shape):
@@ -296,7 +314,7 @@ def test_polygons_not_enough_points_in_holes(shape):
 )
 def test_create_collection_only_none(func, expected):
     actual = func(np.array([None], dtype=object))
-    assert str(actual) == expected
+    assert_geometries_equal(actual, pygeos.Geometry(expected))
 
 
 @pytest.mark.parametrize(

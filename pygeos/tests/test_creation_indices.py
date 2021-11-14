@@ -188,7 +188,6 @@ def test_linearrings(coordinates):
 @pytest.mark.parametrize(
     "coordinates",
     [
-        ([[1, 1], [2, 1], [1, 1]]),  # too few coordinates
         ([[1, np.nan], [2, 1], [2, 2], [1, 1]]),  # starting with nan
     ],
 )
@@ -196,6 +195,11 @@ def test_linearrings_invalid(coordinates):
     # attempt to construct linestrings with 1 coordinate
     with pytest.raises((pygeos.GEOSException, ValueError)):
         pygeos.linearrings(coordinates, indices=np.zeros(len(coordinates)))
+
+
+def test_linearrings_unclosed_all_coords_equal():
+    actual = pygeos.linearrings([(0, 0), (0, 0), (0, 0)], indices=np.zeros(3))
+    assert_geometries_equal(actual, pygeos.Geometry("LINEARRING (0 0, 0 0, 0 0, 0 0)"))
 
 
 @pytest.mark.parametrize(

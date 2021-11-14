@@ -23,7 +23,9 @@ Version 0.12 (unreleased)
 
 **API Changes**
 
-* ...
+* When constructing a linearring through ``pygeos.linearrings`` or a polygon through 
+  ``pygeos.polygons`` the ring is automatically closed when supplied with 3 coordinates
+  also when the first and last are already equal (#431).
 
 **Bug fixes**
 

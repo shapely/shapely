@@ -137,10 +137,13 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type, 
             # check if we need to close a linearring
             if geometry_type == 2:
                 ring_closure = 0
-                for coord_idx in range(dims):
-                    if coord_view[idx, coord_idx] != coord_view[idx + geom_size - 1, coord_idx]:
-                        ring_closure = 1
-                        break
+                if geom_size == 3:
+                    ring_closure = 1
+                else:
+                    for coord_idx in range(dims):
+                        if coord_view[idx, coord_idx] != coord_view[idx + geom_size - 1, coord_idx]:
+                            ring_closure = 1
+                            break
                 # check the resulting size to prevent invalid rings
                 if geom_size + ring_closure < 4:
                     # the error equals PGERR_LINEARRING_NCOORDS (in pygeos/src/geos.h)
