@@ -2927,9 +2927,9 @@ References
    1973, pp. 112-122.
 
 
-.. _GEOS: https://trac.osgeo.org/geos/
+.. _GEOS: https://libgeos.org/
 .. _Java Topology Suite: https://projects.eclipse.org/projects/locationtech.jts
-.. _PostGIS: http://postgis.refractions.net
+.. _PostGIS: https://postgis.net
 .. _Open Geospatial Consortium: https://www.opengeospatial.org/
 .. _Strobl-PDF: https://giswiki.hsr.ch/images/3/3d/9dem_springer.pdf
 .. |Strobl-PDF| replace:: PDF

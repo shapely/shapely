@@ -24,6 +24,6 @@ The buffer algorithm in GEOS_ is purely two-dimensional and discards any Z coord
 This is generally the case for the GEOS algorithms.
 
 
-.. _GEOS: https://trac.osgeo.org/geos/
+.. _GEOS: https://libgeos.org/
 .. _JTS Topology Suite: https://locationtech.github.io/jts/
 .. _JTS FAQ: https://locationtech.github.io/jts/jts-faq.html#E1
