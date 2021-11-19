@@ -121,7 +121,7 @@ For now PyGEOS is developed as a separate project.
 References
 ----------
 
-- GEOS: http://trac.osgeo.org/geos
+- GEOS: https://libgeos.org
 - Shapely: https://shapely.readthedocs.io/en/latest/
 - Numpy ufuncs: https://docs.scipy.org/doc/numpy/reference/ufuncs.html
 - Joris van den Bossche's blogpost: https://jorisvandenbossche.github.io/blog/2017/09/19/geopandas-cython/
@@ -132,4 +132,4 @@ Copyright & License
 -------------------
 
 PyGEOS is licensed under BSD 3-Clause license. Copyright (c) 2019, Casper van der Wel.
-GEOS is available under the terms of ​GNU Lesser General Public License (LGPL) 2.1 at https://trac.osgeo.org/geos.
+GEOS is available under the terms of ​GNU Lesser General Public License (LGPL) 2.1 at https://libgeos.org.
