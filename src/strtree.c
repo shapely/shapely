@@ -3,6 +3,7 @@
 
 #include <Python.h>
 #include <float.h>
+#include <numpy/npy_math.h>
 #include <structmember.h>
 
 #define NO_IMPORT_ARRAY
@@ -1045,6 +1046,226 @@ static PyObject* STRtree_nearest_all(STRtreeObject* self, PyObject* args) {
 
 #endif  // GEOS_SINCE_3_6_0
 
+#if GEOS_SINCE_3_10_0
+
+static PyObject* STRtree_dwithin(STRtreeObject* self, PyObject* args) {
+  char ret;
+  PyObject* geom_arr;
+  PyObject* dist_arr;
+  PyArrayObject* pg_geoms;
+  PyArrayObject* distances;
+  GeometryObject* pg_geom = NULL;
+  GeometryObject* target_pg_geom = NULL;
+  GeometryObject** target_geom_loc;  // address of geometry in tree geometries (_geoms)
+  GEOSGeometry* geom = NULL;
+  GEOSGeometry* target_geom = NULL;
+  GEOSPreparedGeometry* prepared_geom = NULL;
+  const GEOSPreparedGeometry* prepared_geom_tmp = NULL;
+  GEOSGeometry* envelope = NULL;
+  npy_intp i, j, n, size, geom_index;
+  double xmin, ymin, xmax, ymax, distance;
+  char* head_ptr = (char*)self->_geoms;
+  PyArrayObject* result;  // array of [source index, tree index]
+
+  // Indices of input geometries
+  index_vec_t src_indexes;
+
+  // Addresses in tree geometries (_geoms) that overlap with expanded bboxes around
+  // intput geometries
+  tree_geom_vec_t query_geoms;
+
+  // Addresses in tree geometries (_geoms) that meet DistanceWithin predicate
+  tree_geom_vec_t target_geoms;
+
+  if (self->ptr == NULL) {
+    PyErr_SetString(PyExc_RuntimeError, "Tree is uninitialized");
+    return NULL;
+  }
+
+  if (!PyArg_ParseTuple(args, "OO", &geom_arr, &dist_arr)) {
+    return NULL;
+  }
+
+  if (!PyArray_Check(geom_arr)) {
+    PyErr_SetString(PyExc_TypeError, "Geometries not an ndarray");
+    return NULL;
+  }
+
+  if (!PyArray_Check(dist_arr)) {
+    PyErr_SetString(PyExc_TypeError, "Distances not an ndarray");
+    return NULL;
+  }
+
+  pg_geoms = (PyArrayObject*)geom_arr;
+  if (!PyArray_ISOBJECT(pg_geoms)) {
+    PyErr_SetString(PyExc_TypeError, "Geometry array should be of object dtype");
+    return NULL;
+  }
+
+  if (PyArray_NDIM(pg_geoms) != 1) {
+    PyErr_SetString(PyExc_ValueError, "Geometry array should be one dimensional");
+    return NULL;
+  }
+
+  distances = (PyArrayObject*)dist_arr;
+  if (!PyArray_ISFLOAT(distances)) {
+    PyErr_SetString(PyExc_TypeError, "Distance array should be floating point dtype");
+    return NULL;
+  }
+
+  if (PyArray_NDIM(distances) != 1) {
+    PyErr_SetString(PyExc_ValueError, "Distance array should be one dimensional");
+    return NULL;
+  }
+
+  n = PyArray_SIZE(pg_geoms);
+  if (n != PyArray_SIZE(distances)) {
+    PyErr_SetString(PyExc_ValueError, "Geometries and distances must be same length");
+    return NULL;
+  }
+
+  // If tree is empty, return empty arrays
+  if (self->count == 0 || n == 0) {
+    npy_intp index_dims[2] = {2, 0};
+    return PyArray_SimpleNew(2, index_dims, NPY_INTP);
+  }
+
+  kv_init(src_indexes);
+  kv_init(target_geoms);
+
+  GEOS_INIT_THREADS;
+
+  for (i = 0; i < n; i++) {
+    // get pygeos geometry from input geometry array
+    pg_geom = *(GeometryObject**)PyArray_GETPTR1(pg_geoms, i);
+    if (!get_geom_with_prepared(pg_geom, &geom, &prepared_geom)) {
+      errstate = PGERR_NOT_A_GEOMETRY;
+      break;
+    }
+
+    distance = *(double*)PyArray_GETPTR1(distances, i);
+
+    if (geom == NULL || GEOSisEmpty_r(ctx, geom) || npy_isnan(distance)) {
+      continue;
+    }
+
+    // prescreen geometries using simple bbox expansion
+    if (get_bounds(ctx, geom, &xmin, &ymin, &xmax, &ymax) == 0) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      break;
+    }
+
+    envelope = create_box(ctx, xmin - distance, ymin - distance, xmax + distance,
+                          ymax + distance, 1);
+    if (envelope == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      break;
+    }
+
+    kv_init(query_geoms);
+    GEOSSTRtree_query_r(ctx, self->ptr, envelope, query_callback, &query_geoms);
+    GEOSGeom_destroy_r(ctx, envelope);
+
+    size = kv_size(query_geoms);
+
+    if (size == 0) {
+      // no target geoms in query window, skip this source geom
+      kv_destroy(query_geoms);
+      continue;
+    }
+
+    // prepare the query geometry if not already prepared
+    if (prepared_geom == NULL) {
+      // geom was not previously prepared, prepare it now
+      prepared_geom_tmp = GEOSPrepare_r(ctx, (const GEOSGeometry*)geom);
+      if (prepared_geom_tmp == NULL) {
+        errstate = PGERR_GEOS_EXCEPTION;
+        kv_destroy(query_geoms);
+        break;
+      }
+    } else {
+      // cast to const only needed until larger refactor of all geom pointers to const
+      prepared_geom_tmp = (const GEOSPreparedGeometry*)prepared_geom;
+    }
+
+    for (j = 0; j < size; j++) {
+      // get address of geometry in tree geometries, then use that to get associated
+      // GEOS geometry
+      target_geom_loc = kv_A(query_geoms, j);
+      target_pg_geom = *target_geom_loc;
+
+      if (target_pg_geom == NULL) {
+        continue;
+      }
+      get_geom(target_pg_geom, &target_geom);
+
+      ret = GEOSPreparedDistanceWithin_r(ctx, prepared_geom_tmp, target_geom, distance);
+
+      if (ret == 2) {
+        // exception: checked below to break out of outer loop
+        errstate = PGERR_GEOS_EXCEPTION;
+        break;
+      }
+
+      if (ret == 1) {
+        // success: add to outputs
+        kv_push(npy_intp, src_indexes, i);
+        kv_push(GeometryObject**, target_geoms, target_geom_loc);
+      }
+    }
+
+    kv_destroy(query_geoms);
+
+    // only if we created prepared_geom_tmp here, destroy it
+    if (prepared_geom == NULL) {
+      GEOSPreparedGeom_destroy_r(ctx, prepared_geom_tmp);
+      prepared_geom_tmp = NULL;
+    }
+
+    if (errstate != PGERR_SUCCESS) {
+      // break outer loop
+      break;
+    }
+  }
+
+  GEOS_FINISH_THREADS;
+
+  if (errstate != PGERR_SUCCESS) {
+    kv_destroy(src_indexes);
+    kv_destroy(target_geoms);
+    return NULL;
+  }
+
+  size = kv_size(src_indexes);
+  npy_intp dims[2] = {2, size};
+
+  // the following raises a compiler warning based on how the macro is defined
+  // in numpy.  There doesn't appear to be anything we can do to avoid it.
+  result = (PyArrayObject*)PyArray_SimpleNew(2, dims, NPY_INTP);
+  if (result == NULL) {
+    PyErr_SetString(PyExc_RuntimeError, "could not allocate numpy array");
+    kv_destroy(src_indexes);
+    kv_destroy(target_geoms);
+    return NULL;
+  }
+
+  for (i = 0; i < size; i++) {
+    // assign value into numpy arrays
+    *(npy_intp*)PyArray_GETPTR2(result, 0, i) = kv_A(src_indexes, i);
+
+    // Calculate index using offset of its address compared to head of _geoms
+    geom_index =
+        (npy_intp)(((char*)kv_A(target_geoms, i) - head_ptr) / sizeof(GeometryObject*));
+    *(npy_intp*)PyArray_GETPTR2(result, 1, i) = geom_index;
+  }
+
+  kv_destroy(src_indexes);
+  kv_destroy(target_geoms);
+  return (PyObject*)result;
+}
+
+#endif  // GEOS_SINCE_3_10_0
+
 static PyMemberDef STRtree_members[] = {
     {"_ptr", T_PYSSIZET, offsetof(STRtreeObject, ptr), READONLY,
      "Pointer to GEOSSTRtree"},
@@ -1067,7 +1288,12 @@ static PyMethodDef STRtree_methods[] = {
      "Queries the index for the nearest item to each of the given search geometries"},
     {"nearest_all", (PyCFunction)STRtree_nearest_all, METH_VARARGS,
      "Queries the index for all nearest item(s) to each of the given search geometries"},
-#endif
+#endif  // GEOS_SINCE_3_6_0
+#if GEOS_SINCE_3_10_0
+    {"dwithin", (PyCFunction)STRtree_dwithin, METH_VARARGS,
+     "Queries the index for all item(s) in the tree within given distance of search "
+     "geometries"},
+#endif     // GEOS_SINCE_3_10_0
     {NULL} /* Sentinel */
 };
 

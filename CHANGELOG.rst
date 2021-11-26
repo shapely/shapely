@@ -18,19 +18,21 @@ Version 0.12 (unreleased)
 **Major enhancements**
 
 * Added ``pygeos.dwithin`` for GEOS >= 3.10 (#417).
-* Added GeoJSON input/output capabilities (``pygeos.from_geojson``, 
+* Added ``dwithin`` predicate to ``STRtree`` ``query`` and ``query_bulk`` methods
+  to find geometries within a search distance for GEOS >= 3.10 (#425).
+* Added GeoJSON input/output capabilities (``pygeos.from_geojson``,
   ``pygeos.to_geojson``) for GEOS >= 3.10 (#413).
 
 **API Changes**
 
-* When constructing a linearring through ``pygeos.linearrings`` or a polygon through 
+* When constructing a linearring through ``pygeos.linearrings`` or a polygon through
   ``pygeos.polygons`` the ring is automatically closed when supplied with 3 coordinates
   also when the first and last are already equal (#431).
 
 **Bug fixes**
 
 * Raise ``GEOSException`` in the rare case when predicate evalution in ``STRtree.query``
-  errors. Previously, the exceptions were ignored silently and the geometry was added 
+  errors. Previously, the exceptions were ignored silently and the geometry was added
   to the result (as if the predicate returned ``True``) (#432).
 
 
@@ -72,7 +74,7 @@ Version 0.11.1 (2021-10-30)
   At the same time, GEOS < 3.10 implementation was not entirely correct so that some geometries
   did and some did not preserve topology with this mode. Now, the new ``mode`` argument controls
   the behaviour and the ``preserve_topology`` argument is deprecated (#410).
-* When constructing a linearring through ``pygeos.linearrings`` or a polygon through 
+* When constructing a linearring through ``pygeos.linearrings`` or a polygon through
   ``pygeos.polygons`` now a ``ValueError`` is raised (instead of a ``GEOSException``)
   if the ring contains less than 4 coordinates including ring closure (#378).
 * Removed deprecated ``normalize`` keyword argument in ``pygeos.line_locate_point`` and

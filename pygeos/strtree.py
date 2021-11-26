@@ -1,7 +1,7 @@
 import numpy as np
 
 from . import lib
-from .decorators import requires_geos
+from .decorators import requires_geos, UnsupportedGEOSOperation
 from .enum import ParamEnum
 
 __all__ = ["STRtree"]
@@ -62,7 +62,7 @@ class STRtree:
     def __len__(self):
         return self._tree.count
 
-    def query(self, geometry, predicate=None):
+    def query(self, geometry, predicate=None, distance=None):
         """Return the index of all geometries in the tree with extents that
         intersect the envelope of the input geometry.
 
@@ -70,6 +70,8 @@ class STRtree:
         is tested using the predicate function against each item whose
         extent intersects the envelope of the input geometry:
         predicate(geometry, tree_geometry).
+
+        The 'dwithin' predicate requires GEOS >= 3.10.
 
         If geometry is None, an empty array is returned.
 
@@ -79,9 +81,12 @@ class STRtree:
             The envelope of the geometry is taken automatically for
             querying the tree.
         predicate : {None, 'intersects', 'within', 'contains', 'overlaps', 'crosses',\
-'touches', 'covers', 'covered_by', 'contains_properly'}, optional
+'touches', 'covers', 'covered_by', 'contains_properly', 'dwithin'}, optional
             The predicate to use for testing geometries from the tree
             that are within the input geometry's envelope.
+        distance : number, optional
+            Distance around the geometry within which to query the tree for the
+            'dwithin' predicate.  Required if predicate='dwithin'.
 
         Returns
         -------
@@ -97,20 +102,37 @@ class STRtree:
         >>> # Query geometries that are contained by input geometry
         >>> tree.query(pygeos.box(2, 2, 4, 4), predicate='contains').tolist()
         [3]
+        >>> # Query geometries within 1 unit distance of input geometry
+        >>> tree.query(pygeos.points(0.5, 0.5), predicate='dwithin', distance=1.0).tolist()  # doctest: +SKIP
+        [0, 1]
         """
 
         if geometry is None:
             return np.array([], dtype=np.intp)
 
         if predicate is None:
-            predicate = 0
+            return self._tree.query(geometry, 0)
 
-        else:
-            predicate = BinaryPredicate.get_value(predicate)
+        elif predicate == "dwithin":
+            if lib.geos_version < (3, 10, 0):
+                raise UnsupportedGEOSOperation(
+                    "dwithin predicate requires GEOS >= 3.10"
+                )
+            if distance is None:
+                raise ValueError(
+                    "distance parameter must be provided for dwithin predicate"
+                )
+            if not np.isscalar(distance):
+                raise ValueError("distance must be a scalar value")
 
+            geometry = np.array([geometry])
+            distance = np.array([distance], dtype="float64")
+            return self._tree.dwithin(geometry, distance)[1]
+
+        predicate = BinaryPredicate.get_value(predicate)
         return self._tree.query(geometry, predicate)
 
-    def query_bulk(self, geometry, predicate=None):
+    def query_bulk(self, geometry, predicate=None, distance=None):
         """Returns all combinations of each input geometry and geometries in the tree
         where the envelope of each input geometry intersects with the envelope of a
         tree geometry.
@@ -119,6 +141,8 @@ class STRtree:
         is tested using the predicate function against each item whose
         extent intersects the envelope of the input geometry:
         predicate(geometry, tree_geometry).
+
+        The 'dwithin' predicate requires GEOS >= 3.10.
 
         This returns an array with shape (2,n) where the subarrays correspond
         to the indexes of the input geometries and indexes of the tree geometries
@@ -140,9 +164,13 @@ class STRtree:
             Input geometries to query the tree.  The envelope of each geometry
             is automatically calculated for querying the tree.
         predicate : {None, 'intersects', 'within', 'contains', 'overlaps', 'crosses',\
-'touches', 'covers', 'covered_by', 'contains_properly'}, optional
+'touches', 'covers', 'covered_by', 'contains_properly', 'dwithin'}, optional
             The predicate to use for testing geometries from the tree
             that are within the input geometry's envelope.
+        distance : number or array_like, optional
+            Distances around each input geometry within which to query the tree
+            for the 'dwithin' predicate.  If array_like, shape must be
+            broadcastable to shape of geometry.  Required if predicate='dwithin'.
 
         Returns
         -------
@@ -163,6 +191,9 @@ class STRtree:
         >>> # transpose the output:
         >>> tree.query_bulk([pygeos.box(2, 2, 4, 4), pygeos.box(5, 5, 6, 6)]).T.tolist()
         [[0, 2], [0, 3], [0, 4], [1, 5], [1, 6]]
+        >>> # Query for tree geometries within 1 unit distance of input geometries
+        >>> tree.query_bulk([pygeos.points(0.5, 0.5)], predicate='dwithin', distance=1.0).tolist()  # doctest: +SKIP
+        [[0, 0], [0, 1]]
         """
 
         geometry = np.asarray(geometry)
@@ -170,11 +201,30 @@ class STRtree:
             geometry = np.expand_dims(geometry, 0)
 
         if predicate is None:
-            predicate = 0
+            return self._tree.query_bulk(geometry, 0)
 
-        else:
-            predicate = BinaryPredicate.get_value(predicate)
+        # Requires GEOS >= 3.10
+        elif predicate == "dwithin":
+            if lib.geos_version < (3, 10, 0):
+                raise UnsupportedGEOSOperation(
+                    "dwithin predicate requires GEOS >= 3.10"
+                )
+            if distance is None:
+                raise ValueError(
+                    "distance parameter must be provided for dwithin predicate"
+                )
+            distance = np.asarray(distance, dtype="float64")
+            if distance.ndim > 1:
+                raise ValueError("Distance array should be one dimensional")
 
+            try:
+                distance = np.broadcast_to(distance, geometry.shape)
+            except ValueError:
+                raise ValueError("Could not broadcast distance to match geometry")
+
+            return self._tree.dwithin(geometry, distance)
+
+        predicate = BinaryPredicate.get_value(predicate)
         return self._tree.query_bulk(geometry, predicate)
 
     @requires_geos("3.6.0")
