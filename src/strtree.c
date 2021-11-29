@@ -209,6 +209,7 @@ static PyObject* STRtree_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
       return NULL;
     }
     GEOSSTRtree_query_r(ctx, tree, dummy, dummy_query_callback, NULL);
+    GEOSGeom_destroy_r(ctx, dummy);
   }
 
   STRtreeObject* self = (STRtreeObject*)type->tp_alloc(type, 0);
@@ -272,6 +273,7 @@ static char evaluate_predicate(void* context, FuncGEOS_YpY_b* predicate_func,
                                GEOSGeometry* geom, GEOSPreparedGeometry* prepared_geom,
                                tree_geom_vec_t* in_geoms, tree_geom_vec_t* out_geoms,
                                npy_intp* count) {
+  char errstate = PGERR_SUCCESS;
   GeometryObject* pg_geom;
   GeometryObject** pg_geom_loc;  // address of geometry in tree geometries (_geoms)
   GEOSGeometry* target_geom;
@@ -306,7 +308,9 @@ static char evaluate_predicate(void* context, FuncGEOS_YpY_b* predicate_func,
     // keep the geometry if it passes the predicate
     predicate_result = predicate_func(context, prepared_geom_tmp, target_geom);
     if (predicate_result == 2) {
-      return PGERR_GEOS_EXCEPTION;
+      // error evaluating predicate; break and cleanup prepared geometry below
+      errstate = PGERR_GEOS_EXCEPTION;
+      break;
     } else if (predicate_result == 1) {
       kv_push(GeometryObject**, *out_geoms, pg_geom_loc);
       (*count)++;
@@ -319,7 +323,7 @@ static char evaluate_predicate(void* context, FuncGEOS_YpY_b* predicate_func,
     prepared_geom_tmp = NULL;
   }
 
-  return PGERR_SUCCESS;
+  return errstate;
 }
 
 /* Query the tree based on input geometry and predicate function.
@@ -528,8 +532,6 @@ static PyObject* STRtree_query_bulk(STRtreeObject* self, PyObject* args) {
 
       if (errstate != PGERR_SUCCESS) {
         kv_destroy(query_geoms);
-        kv_destroy(src_indexes);
-        kv_destroy(target_geoms);
         break;
       }
 
@@ -544,6 +546,8 @@ static PyObject* STRtree_query_bulk(STRtreeObject* self, PyObject* args) {
   GEOS_FINISH_THREADS;
 
   if (errstate != PGERR_SUCCESS) {
+    kv_destroy(src_indexes);
+    kv_destroy(target_geoms);
     return NULL;
   }
 
@@ -555,6 +559,8 @@ static PyObject* STRtree_query_bulk(STRtreeObject* self, PyObject* args) {
   result = (PyArrayObject*)PyArray_SimpleNew(2, dims, NPY_INTP);
   if (result == NULL) {
     PyErr_SetString(PyExc_RuntimeError, "could not allocate numpy array");
+    kv_destroy(src_indexes);
+    kv_destroy(target_geoms);
     return NULL;
   }
 
@@ -799,6 +805,8 @@ static PyObject* STRtree_nearest(STRtreeObject* self, PyObject* arr) {
   result = (PyArrayObject*)PyArray_SimpleNew(2, index_dims, NPY_INTP);
   if (result == NULL) {
     PyErr_SetString(PyExc_RuntimeError, "could not allocate numpy array");
+    kv_destroy(src_indexes);
+    kv_destroy(nearest_indexes);
     return NULL;
   }
 
@@ -934,9 +942,6 @@ static PyObject* STRtree_nearest_all(STRtreeObject* self, PyObject* args) {
       // if max_distance is defined, prescreen geometries using simple bbox expansion
       if (get_bounds(ctx, geom, &xmin, &ymin, &xmax, &ymax) == 0) {
         errstate = PGERR_GEOS_EXCEPTION;
-        kv_destroy(src_indexes);
-        kv_destroy(nearest_geoms);
-        kv_destroy(nearest_dist);
         break;
       }
 
@@ -944,9 +949,6 @@ static PyObject* STRtree_nearest_all(STRtreeObject* self, PyObject* args) {
                             xmax + max_distance, ymax + max_distance, 1);
       if (envelope == NULL) {
         errstate = PGERR_GEOS_EXCEPTION;
-        kv_destroy(src_indexes);
-        kv_destroy(nearest_geoms);
-        kv_destroy(nearest_dist);
         break;
       }
 
@@ -962,6 +964,11 @@ static PyObject* STRtree_nearest_all(STRtreeObject* self, PyObject* args) {
       }
     }
 
+    if (errstate == PGERR_GEOS_EXCEPTION) {
+      // break outer loop
+      break;
+    }
+
     // reset loop-dependent values of userdata
     kv_init(dist_pairs);
     userdata.min_distance = DBL_MAX;
@@ -973,9 +980,6 @@ static PyObject* STRtree_nearest_all(STRtreeObject* self, PyObject* args) {
     if (nearest_result == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
       kv_destroy(dist_pairs);
-      kv_destroy(src_indexes);
-      kv_destroy(nearest_geoms);
-      kv_destroy(nearest_dist);
       break;
     }
 
@@ -999,6 +1003,9 @@ static PyObject* STRtree_nearest_all(STRtreeObject* self, PyObject* args) {
   GEOS_FINISH_THREADS;
 
   if (errstate != PGERR_SUCCESS) {
+    kv_destroy(src_indexes);
+    kv_destroy(nearest_geoms);
+    kv_destroy(nearest_dist);
     return NULL;
   }
 
@@ -1009,6 +1016,9 @@ static PyObject* STRtree_nearest_all(STRtreeObject* self, PyObject* args) {
   result_indexes = (PyArrayObject*)PyArray_SimpleNew(2, index_dims, NPY_INTP);
   if (result_indexes == NULL) {
     PyErr_SetString(PyExc_RuntimeError, "could not allocate numpy array");
+    kv_destroy(src_indexes);
+    kv_destroy(nearest_geoms);
+    kv_destroy(nearest_dist);
     return NULL;
   }
 
@@ -1017,6 +1027,9 @@ static PyObject* STRtree_nearest_all(STRtreeObject* self, PyObject* args) {
   result_distances = (PyArrayObject*)PyArray_SimpleNew(1, distance_dims, NPY_DOUBLE);
   if (result_distances == NULL) {
     PyErr_SetString(PyExc_RuntimeError, "could not allocate numpy array");
+    kv_destroy(src_indexes);
+    kv_destroy(nearest_geoms);
+    kv_destroy(nearest_dist);
     return NULL;
   }
 
