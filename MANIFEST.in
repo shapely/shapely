@@ -1,8 +1,6 @@
 prune manual
 prune debian
 prune docs
-prune DLLs_AMD64
-prune DLLs_x86
 exclude *.txt
 exclude MANIFEST.in
 include CHANGES.txt CREDITS.txt LICENSE.txt README.rst VERSION.txt
