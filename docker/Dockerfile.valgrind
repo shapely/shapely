@@ -1,0 +1,18 @@
+# This docker is used for memory leak testing of pygeos. To use it, first build:
+# docker build . -f ./docker/Dockerfile.valgrind -t pygeos/valgrind
+# Then run the pytest suite with valgrind enabled:
+# docker run --rm pygeos/valgrind:latest valgrind --show-leak-kinds=definite --log-file=/tmp/valgrind-output python -m pytest -vv --valgrind --valgrind-log=/tmp/valgrind-output > valgrind.log
+
+FROM python:3.6-stretch
+
+RUN apt-get update && apt-get install -y valgrind libgeos-dev --no-install-recommends
+
+RUN pip install numpy Cython pytest pytest-valgrind
+
+COPY . /code
+
+WORKDIR /code
+
+RUN python setup.py build_ext --inplace
+
+ENV PYTHONMALLOC malloc

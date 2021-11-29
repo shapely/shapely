@@ -1,0 +1,19 @@
+# Ignore everything
+**
+
+# Allow files and directories
+!/*.py
+!/*LICENSE*
+!/setup.cfg
+!/pygeos/**
+!/src/**
+
+# Ignore unnecessary files inside allowed directories
+# This should go after the allowed directories
+**/*~
+**/*.log
+**/.DS_Store
+**/Thumbs.db
+**/*.pyc
+**/*.so
+**/.*

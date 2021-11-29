@@ -1,0 +1,27 @@
+os: linux
+dist: focal
+language: python
+python: "3.8"
+
+matrix:
+  include:
+    - arch: ppc64le
+    - arch: s390x
+    - arch: arm64
+  allow_failures:
+    - arch: s390x
+
+branches:
+  only:
+  - master
+
+before_install:
+  - sudo apt-get --yes install libgeos-dev
+  - pip install numpy cython
+
+install:
+  - python setup.py build_ext --inplace
+  - pip install . --no-deps --no-build-isolation
+
+script:
+  - pytest pygeos
