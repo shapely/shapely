@@ -82,3 +82,12 @@ def assert_decreases_refcount(obj):
         pytest.skip("sys.getrefcount is not available.")
     yield
     assert sys.getrefcount(obj) == before - 1
+
+
+@contextmanager
+def ignore_invalid(condition=True):
+    if condition:
+        with np.errstate(invalid="ignore"):
+            yield
+    else:
+        yield

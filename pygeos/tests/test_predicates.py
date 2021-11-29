@@ -10,6 +10,7 @@ from .common import (
     all_types,
     empty,
     geometry_collection,
+    ignore_invalid,
     line_string,
     linear_ring,
     point,
@@ -83,7 +84,10 @@ def test_unary_missing(func):
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func", BINARY_PREDICATES)
 def test_binary_array(a, func):
-    actual = func([a, a], point)
+    with ignore_invalid(pygeos.is_empty(a)):
+        # Empty geometries give 'invalid value encountered' in all predicates
+        # (see https://github.com/libgeos/geos/issues/515)
+        actual = func([a, a], point)
     assert actual.shape == (2,)
     assert actual.dtype == np.bool_
 
@@ -174,7 +178,10 @@ def test_relate_pattern():
 
 
 def test_relate_pattern_empty():
-    assert pygeos.relate_pattern(empty, empty, "*" * 9).item() is True
+    with ignore_invalid():
+        # Empty geometries give 'invalid value encountered' in all predicates
+        # (see https://github.com/libgeos/geos/issues/515)
+        assert pygeos.relate_pattern(empty, empty, "*" * 9).item() is True
 
 
 @pytest.mark.parametrize("g1, g2", [(point, None), (None, point), (None, None)])
@@ -231,8 +238,11 @@ def _prepare_with_copy(geometry):
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func", BINARY_PREPARED_PREDICATES)
 def test_binary_prepared(a, func):
-    actual = func(a, point)
-    result = func(_prepare_with_copy(a), point)
+    with ignore_invalid(pygeos.is_empty(a)):
+        # Empty geometries give 'invalid value encountered' in all predicates
+        # (see https://github.com/libgeos/geos/issues/515)
+        actual = func(a, point)
+        result = func(_prepare_with_copy(a), point)
     assert actual == result
 
 

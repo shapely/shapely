@@ -23,13 +23,13 @@ HALF_UNIT_DIAG = math.sqrt(2) / 2
 EPS = 1e-9
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def tree():
     geoms = pygeos.points(np.arange(10), np.arange(10))
     yield pygeos.STRtree(geoms)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def line_tree():
     x = np.arange(10)
     y = np.arange(10)
@@ -38,7 +38,7 @@ def line_tree():
     yield pygeos.STRtree(geoms)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def poly_tree():
     # create buffers so that midpoint between two buffers intersects
     # each buffer.  NOTE: add EPS to help mitigate rounding errors at midpoint.

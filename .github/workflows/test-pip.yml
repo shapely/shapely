@@ -36,9 +36,11 @@ jobs:
           - python: "3.10"
             geos: 3.10.1
             numpy: 1.21.3
+            extra_pytest_args: "-W error"  # error on warnings
           # dev
           - python: "3.10"
             geos: main
+            extra_pytest_args: "-W error"  # error on warnings
           # enable two 32-bit windows builds:
           - os: windows-2019
             architecture: x86
@@ -143,7 +145,7 @@ jobs:
 
       - name: Run tests
         continue-on-error: ${{ matrix.geos == 'main' }}
-        run: pytest pygeos
+        run: pytest pygeos ${{ matrix.extra_pytest_args }}
 
       # Only run doctests on 1 runner (because of typographic differences in doctest results)
       - name: Run doctests

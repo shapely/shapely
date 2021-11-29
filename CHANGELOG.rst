@@ -34,6 +34,8 @@ Version 0.12 (unreleased)
 * Raise ``GEOSException`` in the rare case when predicate evalution in ``STRtree.query``
   errors. Previously, the exceptions were ignored silently and the geometry was added
   to the result (as if the predicate returned ``True``) (#432).
+* Hide ``RuntimeWarning`` when using ``total_bounds`` on empty geometries, empty arrays,
+  or geometries with NaN coordinates (#441).
 
 
 **Acknowledgments**

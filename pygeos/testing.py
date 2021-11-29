@@ -8,9 +8,13 @@ __all__ = ["assert_geometries_equal"]
 
 
 def _equals_exact_with_ndim(x, y, tolerance):
-    return pygeos.equals_exact(x, y, tolerance=tolerance) & (
-        pygeos.get_coordinate_dimension(x) == pygeos.get_coordinate_dimension(y)
-    )
+    dimension_equals = pygeos.get_coordinate_dimension(
+        x
+    ) == pygeos.get_coordinate_dimension(y)
+    with np.errstate(invalid="ignore"):
+        # Suppress 'invalid value encountered in equals_exact' with nan coordinates
+        geometry_equals = pygeos.equals_exact(x, y, tolerance=tolerance)
+    return dimension_equals & geometry_equals
 
 
 def _replace_nan(arr):

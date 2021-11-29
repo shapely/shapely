@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 
 from . import Geometry  # NOQA
@@ -133,14 +135,17 @@ def total_bounds(geometry, **kwargs):
     if b.ndim == 1:
         return b
 
-    return np.array(
-        [
-            np.nanmin(b[..., 0]),
-            np.nanmin(b[..., 1]),
-            np.nanmax(b[..., 2]),
-            np.nanmax(b[..., 3]),
-        ]
-    )
+    with warnings.catch_warnings():
+        # ignore 'All-NaN slice encountered' warnings
+        warnings.simplefilter("ignore", RuntimeWarning)
+        return np.array(
+            [
+                np.nanmin(b[..., 0]),
+                np.nanmin(b[..., 1]),
+                np.nanmax(b[..., 2]),
+                np.nanmax(b[..., 3]),
+            ]
+        )
 
 
 @multithreading_enabled
