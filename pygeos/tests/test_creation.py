@@ -163,6 +163,25 @@ def test_linearrings_all_nan():
         pygeos.linearrings(coords)
 
 
+@pytest.mark.parametrize("dim", [2, 3])
+@pytest.mark.parametrize("order", ["C", "F"])
+def test_linearrings_buffer(dim, order):
+    coords1 = np.random.randn(10, 4, dim)
+    coords1 = np.asarray(coords1, order=order)
+    result1 = pygeos.linearrings(coords1)
+
+    # with manual closure -> can directly copy from buffer if C order
+    coords2 = np.hstack((coords1, coords1[:, [0], :]))
+    coords2 = np.asarray(coords2, order=order)
+    result2 = pygeos.linearrings(coords2)
+    assert_geometries_equal(result1, result2)
+
+    # create scalar -> can also directly copy from buffer if F order
+    coords3 = np.asarray(coords2[0], order=order)
+    result3 = pygeos.linearrings(coords3)
+    assert_geometries_equal(result3, result1[0])
+
+
 def test_polygon_from_linearring():
     actual = pygeos.polygons(pygeos.linearrings(box_tpl(0, 0, 1, 1)))
     assert_geometries_equal(

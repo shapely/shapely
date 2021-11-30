@@ -222,6 +222,22 @@ def test_linearrings_out(indices, expected):
     assert actual is out
 
 
+@pytest.mark.parametrize("dim", [2, 3])
+@pytest.mark.parametrize("order", ["C", "F"])
+def test_linearrings_buffer(dim, order):
+    coords = np.random.randn(10, 4, dim)
+    coords1 = np.asarray(coords.reshape(10 * 4, dim), order=order)
+    indices1 = np.repeat(range(10), 4)
+    result1 = pygeos.linearrings(coords1, indices=indices1)
+
+    # with manual closure -> can directly copy from buffer if C order
+    coords2 = np.hstack((coords, coords[:, [0], :]))
+    coords2 = np.asarray(coords2.reshape(10 * 5, dim), order=order)
+    indices2 = np.repeat(range(10), 5)
+    result2 = pygeos.linearrings(coords2, indices=indices2)
+    assert_geometries_equal(result1, result2)
+
+
 hole_1 = pygeos.linearrings([(0.2, 0.2), (0.2, 0.4), (0.4, 0.4)])
 hole_2 = pygeos.linearrings([(0.6, 0.6), (0.6, 0.8), (0.8, 0.8)])
 poly = pygeos.polygons(linear_ring)

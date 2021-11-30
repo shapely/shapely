@@ -2,6 +2,7 @@
 #define _GEOS_H
 
 #include <Python.h>
+#include <numpy/ndarraytypes.h>
 
 /* To avoid accidental use of non reentrant GEOS API. */
 #ifndef GEOS_USE_ONLY_R_API
@@ -175,5 +176,9 @@ GEOSGeometry* create_box(GEOSContextHandle_t ctx, double xmin, double ymin, doub
 GEOSGeometry* create_point(GEOSContextHandle_t ctx, double x, double y);
 GEOSGeometry* PyGEOSForce2D(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 GEOSGeometry* PyGEOSForce3D(GEOSContextHandle_t ctx, GEOSGeometry* geom, double z);
+
+GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
+                                        unsigned int size, unsigned int dims, char ring_closure,
+                                        npy_intp cs1, npy_intp cs2);
 
 #endif  // _GEOS_H

@@ -22,6 +22,8 @@ Version 0.12 (unreleased)
   to find geometries within a search distance for GEOS >= 3.10 (#425).
 * Added GeoJSON input/output capabilities (``pygeos.from_geojson``,
   ``pygeos.to_geojson``) for GEOS >= 3.10 (#413).
+* Performance improvement in constructing LineStrings or LinearRings from
+  numpy arrays for GEOS >= 3.10 (#436)
 
 **API Changes**
 

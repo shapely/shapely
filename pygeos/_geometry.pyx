@@ -12,11 +12,6 @@ import pygeos
 
 from pygeos._geos cimport (
     GEOSContextHandle_t,
-    GEOSCoordSeq_create_r,
-    GEOSCoordSeq_destroy_r,
-    GEOSCoordSeq_setX_r,
-    GEOSCoordSeq_setY_r,
-    GEOSCoordSeq_setZ_r,
     GEOSCoordSequence,
     GEOSGeom_clone_r,
     GEOSGeom_createCollection_r,
@@ -35,24 +30,13 @@ from pygeos._geos cimport (
 )
 from pygeos._pygeos_api cimport (
     import_pygeos_c_api,
+    PyGEOS_CoordSeq_FromBuffer,
     PyGEOS_CreateGeometry,
     PyGEOS_GetGEOSGeometry,
 )
 
 # initialize PyGEOS C API
 import_pygeos_c_api()
-
-
-cdef char _set_xyz(GEOSContextHandle_t geos_handle, GEOSCoordSequence *seq, unsigned int coord_idx,
-                   unsigned int dims, double[:, :] coord_view, Py_ssize_t idx):
-    if GEOSCoordSeq_setX_r(geos_handle, seq, coord_idx, coord_view[idx, 0]) == 0:
-        return 0
-    if GEOSCoordSeq_setY_r(geos_handle, seq, coord_idx, coord_view[idx, 1]) == 0:
-        return 0
-    if dims == 3:
-        if GEOSCoordSeq_setZ_r(geos_handle, seq, coord_idx, coord_view[idx, 2]) == 0:
-            return 0
-    return 1
 
 
 def _check_out_array(object out, Py_ssize_t size):
@@ -79,12 +63,11 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type, 
     cdef Py_ssize_t geom_idx = 0
     cdef unsigned int geom_size = 0
     cdef unsigned int ring_closure = 0
-    cdef Py_ssize_t coll_geom_idx = 0
     cdef GEOSGeometry *geom = NULL
     cdef GEOSCoordSequence *seq = NULL
 
     # Cast input arrays and define memoryviews for later usage
-    coordinates = np.asarray(coordinates, dtype=np.float64)
+    coordinates = np.asarray(coordinates, dtype=np.float64, order="C")
     if coordinates.ndim != 2:
         raise TypeError("coordinates must be a two-dimensional array.")
 
@@ -149,22 +132,16 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type, 
                     # the error equals PGERR_LINEARRING_NCOORDS (in pygeos/src/geos.h)
                     raise ValueError("A linearring requires at least 4 coordinates.")
 
-            seq = GEOSCoordSeq_create_r(geos_handle, geom_size + ring_closure, dims)
-            for coord_idx in range(geom_size):
-                if _set_xyz(geos_handle, seq, coord_idx, dims, coord_view, idx) == 0:
-                    GEOSCoordSeq_destroy_r(geos_handle, seq)
-                    return  # GEOSException is raised by get_geos_handle
-                idx += 1
+            seq = PyGEOS_CoordSeq_FromBuffer(geos_handle, &coord_view[idx, 0], geom_size, dims, ring_closure)
+            if seq == NULL:
+                return  # GEOSException is raised by get_geos_handle
+            idx += geom_size
 
             if geometry_type == 0:
                 geom = GEOSGeom_createPoint_r(geos_handle, seq)
             elif geometry_type == 1:
                 geom = GEOSGeom_createLineString_r(geos_handle, seq)
             elif geometry_type == 2:
-                if ring_closure == 1:
-                    if _set_xyz(geos_handle, seq, geom_size, dims, coord_view, idx - geom_size) == 0:
-                        GEOSCoordSeq_destroy_r(geos_handle, seq)
-                        return  # GEOSException is raised by get_geos_handle
                 geom = GEOSGeom_createLinearRing_r(geos_handle, seq)
 
             if geom == NULL:

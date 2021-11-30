@@ -4,6 +4,7 @@
 #include "geos.h"
 
 #include <Python.h>
+#include <numpy/ndarraytypes.h>
 #include <numpy/npy_math.h>
 #include <structmember.h>
 
@@ -879,4 +880,61 @@ GEOSGeometry* PyGEOSForce2D(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
 
 GEOSGeometry* PyGEOSForce3D(GEOSContextHandle_t ctx, GEOSGeometry* geom, double z) {
   return force_dims(ctx, geom, 3, z);
+}
+
+GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
+                                        unsigned int size, unsigned int dims, char ring_closure,
+                                        npy_intp cs1, npy_intp cs2) {
+  GEOSCoordSequence* coord_seq;
+  char *cp1, *cp2;
+  unsigned int i, j;
+  double first_coord;
+
+#if GEOS_SINCE_3_10_0
+
+  if (!ring_closure) {
+    if ((cs1 == dims * 8) && (cs2 == 8)) {
+      /* C-contiguous memory */
+      int hasZ = dims == 3;
+      coord_seq = GEOSCoordSeq_copyFromBuffer_r(ctx, buf, size, hasZ, 0);
+      return coord_seq;
+    }
+    else if ((cs1 == 8) && (cs2 == size * 8)) {
+      /* F-contiguous memory (note: this for the subset, so we don't necessarily
+      end up here if the full array is F-contiguous) */
+      const double* x = buf;
+      const double* y =  (double*)((char*)buf + cs2);
+      const double* z = (dims == 3) ? (double*)((char*)buf + 2 * cs2) : NULL;
+      coord_seq = GEOSCoordSeq_copyFromArrays_r(ctx, x, y, z, NULL, size);
+      return coord_seq;
+    }
+  }
+
+#endif
+
+  coord_seq = GEOSCoordSeq_create_r(ctx, size + ring_closure, dims);
+  if (coord_seq == NULL) {
+    return NULL;
+  }
+  cp1 = (char*)buf;
+  for (i = 0; i < size; i++, cp1 += cs1) {
+    cp2 = cp1;
+    for (j = 0; j < dims; j++, cp2 += cs2) {
+      if (!GEOSCoordSeq_setOrdinate_r(ctx, coord_seq, i, j, *(double*)cp2)) {
+        GEOSCoordSeq_destroy_r(ctx, coord_seq);
+        return NULL;
+      }
+    }
+  }
+  /* add the closing coordinate if necessary */
+  if (ring_closure) {
+    for (j = 0; j < dims; j++){
+      first_coord = *(double*)((char*)buf + j * cs2);
+      if (!GEOSCoordSeq_setOrdinate_r(ctx, coord_seq, size, j, first_coord)) {
+        GEOSCoordSeq_destroy_r(ctx, coord_seq);
+        return NULL;
+      }
+    }
+  }
+  return coord_seq;
 }

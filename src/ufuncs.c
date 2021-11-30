@@ -2198,21 +2198,11 @@ static void linestrings_func(char** args, npy_intp* dimensions, npy_intp* steps,
   GEOS_INIT_THREADS;
 
   DOUBLE_COREDIM_LOOP_OUTER {
-    coord_seq = GEOSCoordSeq_create_r(ctx, n_c1, n_c2);
+    coord_seq = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, 0, cs1, cs2);
     if (coord_seq == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
-    }
-    DOUBLE_COREDIM_LOOP_INNER_1 {
-      DOUBLE_COREDIM_LOOP_INNER_2 {
-        if (!GEOSCoordSeq_setOrdinate_r(ctx, coord_seq, i_c1, i_c2, *(double*)cp2)) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          GEOSCoordSeq_destroy_r(ctx, coord_seq);
-          destroy_geom_arr(ctx, geom_arr, i - 1);
-          goto finish;
-        }
-      }
     }
     geom_arr[i] = GEOSGeom_createLineString_r(ctx, coord_seq);
     // Note: coordinate sequence is owned by linestring; if linestring fails to construct,
@@ -2271,33 +2261,11 @@ static void linearrings_func(char** args, npy_intp* dimensions, npy_intp* steps,
       goto finish;
     }
     /* fill the coordinate sequence */
-    coord_seq = GEOSCoordSeq_create_r(ctx, n_c1 + ring_closure, n_c2);
+    coord_seq = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, ring_closure, cs1, cs2);
     if (coord_seq == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
-    }
-    DOUBLE_COREDIM_LOOP_INNER_1 {
-      DOUBLE_COREDIM_LOOP_INNER_2 {
-        if (!GEOSCoordSeq_setOrdinate_r(ctx, coord_seq, i_c1, i_c2, *(double*)cp2)) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          GEOSCoordSeq_destroy_r(ctx, coord_seq);
-          destroy_geom_arr(ctx, geom_arr, i - 1);
-          goto finish;
-        }
-      }
-    }
-    /* add the closing coordinate if necessary */
-    if (ring_closure) {
-      DOUBLE_COREDIM_LOOP_INNER_2 {
-        first_coord = *(double*)(ip1 + i_c2 * cs2);
-        if (!GEOSCoordSeq_setOrdinate_r(ctx, coord_seq, n_c1, i_c2, first_coord)) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          GEOSCoordSeq_destroy_r(ctx, coord_seq);
-          destroy_geom_arr(ctx, geom_arr, i - 1);
-          goto finish;
-        }
-      }
     }
     geom_arr[i] = GEOSGeom_createLinearRing_r(ctx, coord_seq);
     // Note: coordinate sequence is owned by linearring; if linearring fails to construct,

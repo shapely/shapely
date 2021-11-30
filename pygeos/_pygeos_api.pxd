@@ -16,7 +16,7 @@ Segfaults will occur if the C API is not imported properly.
 cimport numpy as np
 from cpython.ref cimport PyObject
 
-from pygeos._geos cimport GEOSContextHandle_t, GEOSGeometry
+from pygeos._geos cimport GEOSContextHandle_t, GEOSCoordSequence, GEOSGeometry
 
 
 cdef extern from "c_api.h":
@@ -30,3 +30,6 @@ cdef extern from "c_api.h":
     # they are declared that way in the header file).
     object PyGEOS_CreateGeometry(GEOSGeometry *ptr, GEOSContextHandle_t ctx)
     char PyGEOS_GetGEOSGeometry(PyObject *obj, GEOSGeometry **out) nogil
+    GEOSCoordSequence* PyGEOS_CoordSeq_FromBuffer(GEOSContextHandle_t ctx, const double* buf,
+                                                 unsigned int size, unsigned int dims,
+                                                 char ring_closure) nogil

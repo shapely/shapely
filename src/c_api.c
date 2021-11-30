@@ -24,3 +24,8 @@ extern PyObject* PyGEOS_CreateGeometry(GEOSGeometry *ptr, GEOSContextHandle_t ct
 extern char PyGEOS_GetGEOSGeometry(PyObject *obj, GEOSGeometry **out) {
     return get_geom((GeometryObject*)obj, out);
 }
+
+extern GEOSCoordSequence* PyGEOS_CoordSeq_FromBuffer(GEOSContextHandle_t ctx, const double* buf,
+                                                    unsigned int size, unsigned int dims, char ring_closure) {
+    return coordseq_from_buffer(ctx, buf, size, dims, ring_closure, dims * 8, 8);
+}
