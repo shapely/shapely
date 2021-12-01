@@ -1,27 +1,66 @@
 os: linux
 dist: focal
 language: python
-python: "3.8"
+python: '3.8'
 
-matrix:
+env:
+  global:
+  - GEOS_VERSION=3.10.1
+
+cache:
+  directories:
+  - "$HOME/geosinstall"
+  - "~/.cache/pip"
+
+jobs:
   include:
-    - arch: ppc64le
-    - arch: s390x
-    - arch: arm64
-  allow_failures:
-    - arch: s390x
+  - arch: ppc64le
+  - arch: s390x
+  - arch: arm64
+  - arch: arm64
+    dist: bionic  # docker pull gives TLS handshake timeouts on focal
+    services: docker
+    env:
+    - CIBUILDWHEEL=1
+    - CIBW_BUILD="cp*-manylinux_aarch64"
+    - CIBW_MANYLINUX_AARCH64_IMAGE=manylinux2014
+    - CIBW_ENVIRONMENT_PASS_LINUX="GEOS_VERSION GEOS_INSTALL GEOS_CONFIG LD_LIBRARY_PATH"
+    - CIBW_BEFORE_ALL="./ci/install_geos.sh"
+    - CIBW_TEST_REQUIRES="pytest"
+    - CIBW_TEST_COMMAND="pytest --pyargs pygeos.tests"
 
 branches:
   only:
   - master
-
-before_install:
-  - sudo apt-get --yes install libgeos-dev
-  - pip install numpy cython
+  - travis
 
 install:
-  - python setup.py build_ext --inplace
-  - pip install . --no-deps --no-build-isolation
+- |
+  if [[ -z $CIBUILDWHEEL ]]; then
+    export GEOS_INSTALL=$HOME/geosinstall/geos-$GEOS_VERSION
+    ./ci/install_geos.sh
+    export PATH=$HOME/geosinstall/geos-$GEOS_VERSION/bin:$PATH
+    pip install .[test]
+  else
+    python3 -m pip install cibuildwheel==2.3.0
+  fi
 
 script:
-  - pytest pygeos
+- |
+  if [[ -z $CIBUILDWHEEL ]]; then
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/geosinstall/geos-$GEOS_VERSION/lib
+    pytest --pyargs pygeos.tests
+  else
+    export GEOS_INSTALL=/host$HOME/geosinstall/geos-$GEOS_VERSION
+    export GEOS_CONFIG=$GEOS_INSTALL/bin/geos-config
+    export LD_LIBRARY_PATH=$GEOS_INSTALL/lib
+    python3 -m cibuildwheel --output-dir wheelhouse
+  fi
+
+deploy:
+  provider: pypi
+  username: __token__
+  on:
+    tags: true
+  password:
+    secure: re0cOdX/1e123zboovMrcoxa0+r+hXJzSMZc7KiSyqtZmfEmI4vsNJg4w/qt5+kcRvfb4I7sVe7UfKpf2kLUCWjy+oA9t/cuHAOYoeT4gQ7/VM8n+hKhKl+NWkrQIjb4K66ctxoahZkoy+pdY4d3h7h5oRutzaiz2KaFZePUbURkSZcQEfX8Occw+xD4ERHKDNuHoqk5FzUfsJpGI6ic0IFdo3PyqKcsMNTu0or4Piylgc8VbtVojPXd8g+5o2vc8gG1ZG8g8n2BeFadpGeHLHUYnU2BvA/aDhkCXA9O6zCWOHZ1ndOsew0k49jrLpmkjz19lFi5bWoQjcztxlozgkn9gA9pFOxNUZDsFhOceud8yXduwQeGeprVhrRuolFarLKHn4suEgajN15sVo22JeJ4r7JH2EYiTk0sjQlCqVCB7HGYsrp7MjMgObTG/4pdtxUB3OIDDkFODxoInhNZS58rhLcFk3ie67ufDoTIwrI1wzZ5ASszs5cr0rc5oJhAQB3Cw2I2k8+cyH+DyrhzCFQEVdzwLJMv6yl+BCkOZDGUY22vPlsJ5MG0Zf7mhFCoEdWv5m5B5kCzMJgftr8itrkA5VJ8k2g6oQMBZIsuiwIxppzNdCjwiBsCQmcHWxmHnXoUwbcrCgip6lMmpRidDNUo5TPEpCC3knN/S2clUeg=

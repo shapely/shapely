@@ -49,9 +49,10 @@ jobs:
           arch: x86_64
         - os: ubuntu-20.04
           arch: i686
-        - os: ubuntu-20.04
-          arch: aarch64
-          qemu_platform: arm64
+        # The aarch64 build has been transferred to Travis
+        # - os: ubuntu-20.04
+        #   arch: aarch64
+        #   qemu_platform: arm64
         # Note: Numpy doesn't have ppc64le & s390x wheels
         # Also, some GEOS tests fail on s390x.
         - os: windows-2019
@@ -90,11 +91,11 @@ jobs:
         shell: bash
         if: ${{ matrix.os == 'windows-2019' }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-        with:
-          platforms: ${{ matrix.qemu_platform }}
-        if: ${{ matrix.qemu_platform }}
+      # - name: Set up QEMU
+      #   uses: docker/setup-qemu-action@v1
+      #   with:
+      #     platforms: ${{ matrix.qemu_platform }}
+      #   if: ${{ matrix.qemu_platform }}
 
       - name: Activate MSVC
         uses: ilammy/msvc-dev-cmd@v1
@@ -103,10 +104,12 @@ jobs:
         if: ${{ matrix.msvc_arch }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.2.2
+        uses: pypa/cibuildwheel@v2.3.0
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_SKIP: pp* *musllinux* cp310-win32 cp310-macosx_x86_64 cp310-manylinux_i686
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2010
+          CIBW_MANYLINUX_I686_IMAGE: manylinux2010
           CIBW_ENVIRONMENT_LINUX:
             GEOS_VERSION=${{ env.GEOS_VERSION }}
             GEOS_INSTALL=/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
