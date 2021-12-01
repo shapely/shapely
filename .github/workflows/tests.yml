@@ -114,7 +114,7 @@ jobs:
           if [ "$GEOS_VERSION" = "main" ]; then
             pip install --upgrade --pre Cython numpy pytest pytest-cov coveralls;
           else
-            pip install --upgrade Cython numpy==${{ matrix.numpy }} pytest;
+            pip install --upgrade Cython numpy==${{ matrix.numpy }} pytest pytest-cov coveralls;
           fi
           pip list
 
