@@ -204,15 +204,15 @@ static PyObject* GeometryObject_repr(GeometryObject* self) {
   // we never want a repr() to fail; that can be very confusing
   if (wkt == NULL) {
     PyErr_Clear();
-    return PyUnicode_FromString("<pygeos.Geometry Exception in WKT writer>");
+    return PyUnicode_FromString("<shapely.Geometry Exception in WKT writer>");
   }
   // the total length is limited to 80 characters
   if (PyUnicode_GET_LENGTH(wkt) > 62) {
     truncated = PyUnicode_Substring(wkt, 0, 59);
-    result = PyUnicode_FromFormat("<pygeos.Geometry %U...>", truncated);
+    result = PyUnicode_FromFormat("<shapely.Geometry %U...>", truncated);
     Py_XDECREF(truncated);
   } else {
-    result = PyUnicode_FromFormat("<pygeos.Geometry %U>", wkt);
+    result = PyUnicode_FromFormat("<shapely.Geometry %U>", wkt);
   }
   Py_XDECREF(wkt);
   return result;
@@ -410,7 +410,7 @@ static PyMethodDef GeometryObject_methods[] = {
 };
 
 PyTypeObject GeometryType = {
-    PyVarObject_HEAD_INIT(NULL, 0).tp_name = "pygeos.lib.Geometry",
+    PyVarObject_HEAD_INIT(NULL, 0).tp_name = "shapely.lib.Geometry",
     .tp_doc = "Geometry type",
     .tp_basicsize = sizeof(GeometryObject),
     .tp_itemsize = 0,

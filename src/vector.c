@@ -5,7 +5,7 @@
 #include <structmember.h>
 
 #define NO_IMPORT_ARRAY
-#define PY_ARRAY_UNIQUE_SYMBOL pygeos_ARRAY_API
+#define PY_ARRAY_UNIQUE_SYMBOL shapely_ARRAY_API
 
 #include <numpy/arrayobject.h>
 #include <numpy/ndarraytypes.h>

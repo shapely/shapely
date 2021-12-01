@@ -6,8 +6,8 @@
 
 #define NO_IMPORT_ARRAY
 #define NO_IMPORT_UFUNC
-#define PY_ARRAY_UNIQUE_SYMBOL pygeos_ARRAY_API
-#define PY_UFUNC_UNIQUE_SYMBOL pygeos_UFUNC_API
+#define PY_ARRAY_UNIQUE_SYMBOL shapely_ARRAY_API
+#define PY_UFUNC_UNIQUE_SYMBOL shapely_UFUNC_API
 #include <numpy/ndarraytypes.h>
 #include <numpy/npy_3kcompat.h>
 #include <numpy/ufuncobject.h>
