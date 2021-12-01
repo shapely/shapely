@@ -112,7 +112,7 @@ jobs:
           python -m pip install --disable-pip-version-check --upgrade pip
           pip install --upgrade wheel setuptools
           if [ "$GEOS_VERSION" = "main" ]; then
-            pip install --upgrade --pre Cython numpy pytest;
+            pip install --upgrade --pre Cython numpy pytest pytest-cov coveralls;
           else
             pip install --upgrade Cython numpy==${{ matrix.numpy }} pytest;
           fi
