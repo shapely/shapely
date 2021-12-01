@@ -5,7 +5,7 @@ from shapely.errors import EmptyPartError
 from shapely.geometry.base import BaseMultipartGeometry
 from shapely.geometry import linestring
 
-import pygeos
+import shapely
 
 
 __all__ = ['MultiLineString']
@@ -43,7 +43,7 @@ class MultiLineString(BaseMultipartGeometry):
         if not lines:
             # allow creation of empty multilinestrings, to support unpickling
             # TODO better empty constructor
-            return pygeos.from_wkt("MULTILINESTRING EMPTY")
+            return shapely.from_wkt("MULTILINESTRING EMPTY")
         elif isinstance(lines, MultiLineString):
             return lines
 
@@ -57,9 +57,9 @@ class MultiLineString(BaseMultipartGeometry):
             subs.append(l)
 
         if len(lines) == 0:
-            return pygeos.from_wkt("MULTILINESTRING EMPTY")
+            return shapely.from_wkt("MULTILINESTRING EMPTY")
 
-        return pygeos.multilinestrings(subs)
+        return shapely.multilinestrings(subs)
 
     def shape_factory(self, *args):
         return linestring.LineString(*args)
@@ -93,4 +93,4 @@ class MultiLineString(BaseMultipartGeometry):
             '</g>'
 
 
-pygeos.lib.registry[5] = MultiLineString
+shapely.lib.registry[5] = MultiLineString

@@ -1,6 +1,6 @@
 # TODO: allow for implementations using other than GEOS
 
-import pygeos
+import shapely
 
 
 __all__ = ['explain_validity', 'make_valid']
@@ -24,7 +24,7 @@ def explain_validity(ob):
         A string describing the reason the geometry is invalid.
 
     """
-    return pygeos.is_valid_reason(ob)
+    return shapely.is_valid_reason(ob)
 
 
 def make_valid(ob):
@@ -53,4 +53,4 @@ def make_valid(ob):
     """
     if ob.is_valid:
         return ob
-    return pygeos.make_valid(ob)
+    return shapely.make_valid(ob)

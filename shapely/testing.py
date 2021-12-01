@@ -2,18 +2,18 @@ from functools import partial
 
 import numpy as np
 
-import pygeos
+import shapely
 
 __all__ = ["assert_geometries_equal"]
 
 
 def _equals_exact_with_ndim(x, y, tolerance):
-    dimension_equals = pygeos.get_coordinate_dimension(
+    dimension_equals = shapely.get_coordinate_dimension(
         x
-    ) == pygeos.get_coordinate_dimension(y)
+    ) == shapely.get_coordinate_dimension(y)
     with np.errstate(invalid="ignore"):
         # Suppress 'invalid value encountered in equals_exact' with nan coordinates
-        geometry_equals = pygeos.equals_exact(x, y, tolerance=tolerance)
+        geometry_equals = shapely.equals_exact(x, y, tolerance=tolerance)
     return dimension_equals & geometry_equals
 
 
@@ -23,8 +23,8 @@ def _replace_nan(arr):
 
 def _assert_nan_coords_same(x, y, tolerance, err_msg, verbose):
     x, y = np.broadcast_arrays(x, y)
-    x_coords = pygeos.get_coordinates(x, include_z=True)
-    y_coords = pygeos.get_coordinates(y, include_z=True)
+    x_coords = shapely.get_coordinates(x, include_z=True)
+    y_coords = shapely.get_coordinates(y, include_z=True)
 
     # Check the shapes (condition is copied from numpy test_array_equal)
     if x_coords.shape != y_coords.shape:
@@ -42,15 +42,15 @@ def _assert_nan_coords_same(x, y, tolerance, err_msg, verbose):
         raise AssertionError(msg)
 
     # If this passed, replace NaN with a number to be able to use equals_exact
-    x_no_nan = pygeos.apply(x, _replace_nan, include_z=True)
-    y_no_nan = pygeos.apply(y, _replace_nan, include_z=True)
+    x_no_nan = shapely.apply(x, _replace_nan, include_z=True)
+    y_no_nan = shapely.apply(y, _replace_nan, include_z=True)
 
     return _equals_exact_with_ndim(x_no_nan, y_no_nan, tolerance=tolerance)
 
 
 def _assert_none_same(x, y, err_msg, verbose):
-    x_id = pygeos.is_missing(x)
-    y_id = pygeos.is_missing(y)
+    x_id = shapely.is_missing(x)
+    y_id = shapely.is_missing(y)
 
     if not (x_id == y_id).all():
         msg = build_err_msg(
@@ -84,7 +84,7 @@ def assert_geometries_equal(
 
     Given two array_like objects, check that the shape is equal and all elements of
     these objects are equal. An exception is raised at shape mismatch or conflicting
-    values. In contrast to the standard usage in pygeos, no assertion is raised if
+    values. In contrast to the standard usage in shapely, no assertion is raised if
     both objects have NaNs/Nones in the same positions.
 
     Parameters
@@ -104,8 +104,8 @@ def assert_geometries_equal(
     """
     __tracebackhide__ = True  # Hide traceback for py.test
     if normalize:
-        x = pygeos.normalize(x)
-        y = pygeos.normalize(y)
+        x = shapely.normalize(x)
+        y = shapely.normalize(y)
     x = np.array(x, copy=False)
     y = np.array(y, copy=False)
 

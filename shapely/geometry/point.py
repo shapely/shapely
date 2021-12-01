@@ -1,7 +1,7 @@
 """Points and related utilities
 """
 
-import pygeos
+import shapely
 
 from shapely.errors import DimensionError, ShapelyDeprecationWarning
 from shapely.geometry.base import BaseGeometry
@@ -47,7 +47,7 @@ class Point(BaseGeometry):
         if len(args) == 0:
             # empty geometry
             # TODO better constructor
-            return pygeos.from_wkt("POINT EMPTY")
+            return shapely.from_wkt("POINT EMPTY")
         elif len(args) > 3:
             raise TypeError(
                 "Point() takes at most 3 arguments ({} given)".format(len(args))
@@ -64,10 +64,10 @@ class Point(BaseGeometry):
             if isinstance(coords[0], tuple):
                 coords = coords[0]
 
-            geom = pygeos.points(coords)
+            geom = shapely.points(coords)
         else:
             # 2 or 3 args
-            geom = pygeos.points(*args)
+            geom = shapely.points(*args)
 
         if not isinstance(geom, Point):
             raise ValueError("Invalid values passed to Point constructor")
@@ -78,19 +78,19 @@ class Point(BaseGeometry):
     @property
     def x(self):
         """Return x coordinate."""
-        return pygeos.get_x(self)
+        return shapely.get_x(self)
 
     @property
     def y(self):
         """Return y coordinate."""
-        return pygeos.get_y(self)
+        return shapely.get_y(self)
 
     @property
     def z(self):
         """Return z coordinate."""
-        if not pygeos.has_z(self):
+        if not shapely.has_z(self):
             raise DimensionError("This point has no z coordinate.")
-        # return pygeos.get_z(self) -> get_z only supported for GEOS 3.7+
+        # return shapely.get_z(self) -> get_z only supported for GEOS 3.7+
         return self.coords[0][2]
 
     @property
@@ -138,4 +138,4 @@ class Point(BaseGeometry):
         return self.coords.xy
 
 
-pygeos.lib.registry[0] = Point
+shapely.lib.registry[0] = Point

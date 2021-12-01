@@ -23,7 +23,7 @@ from typing import Any, Iterable, Sequence, Union
 from shapely.geometry.base import BaseGeometry
 
 import numpy as np
-from pygeos import lib
+from shapely import lib
 
 
 log = logging.getLogger(__name__)

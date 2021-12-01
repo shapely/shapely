@@ -46,7 +46,7 @@ def difference(a, b, grid_size=None, **kwargs):
 
     Examples
     --------
-    >>> from pygeos.constructive import normalize
+    >>> from shapely.constructive import normalize
     >>> line = Geometry("LINESTRING (0 0, 2 2)")
     >>> difference(line, Geometry("LINESTRING (1 1, 3 3)"))
     <pygeos.Geometry LINESTRING (0 0, 1 1)>
@@ -104,7 +104,7 @@ def intersection(a, b, grid_size=None, **kwargs):
 
     Examples
     --------
-    >>> from pygeos.constructive import normalize
+    >>> from shapely.constructive import normalize
     >>> line = Geometry("LINESTRING(0 0, 2 2)")
     >>> intersection(line, Geometry("LINESTRING(1 1, 3 3)"))
     <pygeos.Geometry LINESTRING (1 1, 2 2)>
@@ -194,7 +194,7 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
 
     Examples
     --------
-    >>> from pygeos.constructive import normalize
+    >>> from shapely.constructive import normalize
     >>> line = Geometry("LINESTRING(0 0, 2 2)")
     >>> symmetric_difference(line, Geometry("LINESTRING(1 1, 3 3)"))
     <pygeos.Geometry MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>
@@ -283,7 +283,7 @@ def union(a, b, grid_size=None, **kwargs):
 
     Examples
     --------
-    >>> from pygeos.constructive import normalize
+    >>> from shapely.constructive import normalize
     >>> line = Geometry("LINESTRING(0 0, 2 2)")
     >>> union(line, Geometry("LINESTRING(2 2, 3 3)"))
     <pygeos.Geometry MULTILINESTRING ((0 0, 2 2), (2 2, 3 3))>
@@ -346,7 +346,7 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
 
     Examples
     --------
-    >>> from pygeos.constructive import normalize
+    >>> from shapely.constructive import normalize
     >>> line_1 = Geometry("LINESTRING(0 0, 2 2)")
     >>> line_2 = Geometry("LINESTRING(2 2, 3 3)")
     >>> union_all([line_1, line_2])
@@ -416,7 +416,7 @@ def coverage_union(a, b, **kwargs):
 
     Examples
     --------
-    >>> from pygeos.constructive import normalize
+    >>> from shapely.constructive import normalize
     >>> polygon = Geometry("POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))")
     >>> normalize(coverage_union(polygon, Geometry("POLYGON ((1 0, 1 1, 2 1, 2 0, 1 0))")))
     <pygeos.Geometry POLYGON ((0 0, 0 1, 1 1, 2 1, 2 0, 1 0, 0 0))>
@@ -453,7 +453,7 @@ def coverage_union_all(geometries, axis=None, **kwargs):
 
     Examples
     --------
-    >>> from pygeos.constructive import normalize
+    >>> from shapely.constructive import normalize
     >>> polygon_1 = Geometry("POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))")
     >>> polygon_2 = Geometry("POLYGON ((1 0, 1 1, 2 1, 2 0, 1 0))")
     >>> normalize(coverage_union_all([polygon_1, polygon_2]))

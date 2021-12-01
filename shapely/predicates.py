@@ -247,7 +247,7 @@ def is_prepared(geometry, **kwargs):
     >>> geometry = Geometry("POINT (0 0)")
     >>> is_prepared(Geometry("POINT (0 0)"))
     False
-    >>> from pygeos import prepare; prepare(geometry);
+    >>> from shapely import prepare; prepare(geometry);
     >>> is_prepared(geometry)
     True
     >>> is_prepared(None)

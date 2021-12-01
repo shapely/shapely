@@ -528,7 +528,7 @@ def empty(shape, geom_type=None, order="C"):
     ----------
     shape : int or tuple of int
         Shape of the empty array, e.g., ``(2, 3)`` or ``2``.
-    geom_type : pygeos.GeometryType, optional
+    geom_type : shapely.GeometryType, optional
         The desired geometry type in case the array should be prefilled
         with empty geometries. Default ``None``.
     order : {'C', 'F'}, optional, default: 'C'

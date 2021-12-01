@@ -5,7 +5,7 @@ from shapely.geometry import Point, Polygon
 from shapely.errors import TopologicalError, PredicateError
 import pytest
 
-import pygeos
+import shapely
 
 
 class PredicatesTestCase(unittest.TestCase):
@@ -46,7 +46,7 @@ class PredicatesTestCase(unittest.TestCase):
         p2 = [(339, 207), (280, 311), (460, 138), (399, 242), (459, 277),
               (459, 415), (399, 381), (519, 311), (520, 242), (519, 173),
               (399, 450), (339, 207)]
-        self.assertRaises(pygeos.GEOSException, Polygon(p1).within, Polygon(p2))
+        self.assertRaises(shapely.GEOSException, Polygon(p1).within, Polygon(p2))
 
     def test_relate_pattern(self):
 
@@ -65,5 +65,5 @@ class PredicatesTestCase(unittest.TestCase):
         assert(g1.relate_pattern(g3, 'FF2FF10F2'))
 
         # an invalid pattern should raise an exception
-        with pytest.raises(pygeos.GEOSException, match="IllegalArgumentException"):
+        with pytest.raises(shapely.GEOSException, match="IllegalArgumentException"):
             g1.relate_pattern(g2, 'fail')

@@ -1,46 +1,46 @@
 import numpy as np
 import pytest
 
-import pygeos
-from pygeos import Geometry
-from pygeos.decorators import UnsupportedGEOSOperation
-from pygeos.testing import assert_geometries_equal
+import shapely
+from shapely import Geometry
+from shapely.decorators import UnsupportedGEOSOperation
+from shapely.testing import assert_geometries_equal
 
 from .common import all_types, multi_polygon, point, polygon
 
 # fixed-precision operations raise GEOS exceptions on mixed dimension geometry collections
-all_single_types = [g for g in all_types if not pygeos.get_type_id(g) == 7]
+all_single_types = [g for g in all_types if not shapely.get_type_id(g) == 7]
 
 SET_OPERATIONS = (
-    pygeos.difference,
-    pygeos.intersection,
-    pygeos.symmetric_difference,
-    pygeos.union,
-    # pygeos.coverage_union is tested seperately
+    shapely.difference,
+    shapely.intersection,
+    shapely.symmetric_difference,
+    shapely.union,
+    # shapely.coverage_union is tested seperately
 )
 
 REDUCE_SET_OPERATIONS = (
-    (pygeos.intersection_all, pygeos.intersection),
-    (pygeos.symmetric_difference_all, pygeos.symmetric_difference),
-    (pygeos.union_all, pygeos.union),
-    # (pygeos.coverage_union_all, pygeos.coverage_union) is tested seperately
+    (shapely.intersection_all, shapely.intersection),
+    (shapely.symmetric_difference_all, shapely.symmetric_difference),
+    (shapely.union_all, shapely.union),
+    #  shapely.coverage_union_all, shapely.coverage_union) is tested seperately
 )
 
 # operations that support fixed precision
-REDUCE_SET_OPERATIONS_PREC = ((pygeos.union_all, pygeos.union),)
+REDUCE_SET_OPERATIONS_PREC = ((shapely.union_all, shapely.union),)
 
 
 reduce_test_data = [
-    pygeos.box(0, 0, 5, 5),
-    pygeos.box(2, 2, 7, 7),
-    pygeos.box(4, 4, 9, 9),
-    pygeos.box(5, 5, 10, 10),
+    shapely.box(0, 0, 5, 5),
+    shapely.box(2, 2, 7, 7),
+    shapely.box(4, 4, 9, 9),
+    shapely.box(5, 5, 10, 10),
 ]
 
 non_polygon_types = [
     geom
     for geom in all_types
-    if (not pygeos.is_empty(geom) and geom not in (polygon, multi_polygon))
+    if (not shapely.is_empty(geom) and geom not in (polygon, multi_polygon))
 ]
 
 
@@ -52,7 +52,7 @@ def test_set_operation_array(a, func):
     assert isinstance(actual[0], Geometry)
 
 
-@pytest.mark.skipif(pygeos.geos_version >= (3, 9, 0), reason="GEOS >= 3.9")
+@pytest.mark.skipif(shapely.geos_version >= (3, 9, 0), reason="GEOS >= 3.9")
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 @pytest.mark.parametrize("grid_size", [0, 1])
 def test_set_operations_prec_not_supported(func, grid_size):
@@ -62,7 +62,7 @@ def test_set_operations_prec_not_supported(func, grid_size):
         func(point, point, grid_size)
 
 
-@pytest.mark.skipif(pygeos.geos_version < (3, 9, 0), reason="GEOS < 3.9")
+@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 def test_set_operation_prec_nonscalar_grid_size(func):
     with pytest.raises(
@@ -71,7 +71,7 @@ def test_set_operation_prec_nonscalar_grid_size(func):
         func(point, point, grid_size=[1])
 
 
-@pytest.mark.skipif(pygeos.geos_version < (3, 9, 0), reason="GEOS < 3.9")
+@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("a", all_single_types)
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 @pytest.mark.parametrize("grid_size", [0, 1, 2])
@@ -82,11 +82,11 @@ def test_set_operation_prec_array(a, func, grid_size):
 
     # results should match the operation when the precision is previously set
     # to same grid_size
-    b = pygeos.set_precision(a, grid_size=grid_size)
-    point2 = pygeos.set_precision(point, grid_size=grid_size)
+    b = shapely.set_precision(a, grid_size=grid_size)
+    point2 = shapely.set_precision(point, grid_size=grid_size)
     expected = func([b, b], point2)
 
-    assert pygeos.equals(pygeos.normalize(actual), pygeos.normalize(expected)).all()
+    assert shapely.equals(shapely.normalize(actual), shapely.normalize(expected)).all()
 
 
 @pytest.mark.parametrize("n", range(1, 5))
@@ -97,7 +97,7 @@ def test_set_operation_reduce_1dim(n, func, related_func):
     expected = reduce_test_data[0]
     for i in range(1, n):
         expected = related_func(expected, reduce_test_data[i])
-    assert pygeos.equals(actual, expected)
+    assert shapely.equals(actual, expected)
 
 
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
@@ -153,7 +153,7 @@ def test_set_operation_reduce_all_none_arr(n, func, related_func):
     assert func([[None] * n] * 2, axis=1).tolist() == [None, None]
 
 
-@pytest.mark.skipif(pygeos.geos_version >= (3, 9, 0), reason="GEOS >= 3.9")
+@pytest.mark.skipif(shapely.geos_version >= (3, 9, 0), reason="GEOS >= 3.9")
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS_PREC)
 @pytest.mark.parametrize("grid_size", [0, 1])
 def test_set_operation_prec_reduce_not_supported(func, related_func, grid_size):
@@ -163,7 +163,7 @@ def test_set_operation_prec_reduce_not_supported(func, related_func, grid_size):
         func([point, point], grid_size)
 
 
-@pytest.mark.skipif(pygeos.geos_version < (3, 9, 0), reason="GEOS < 3.9")
+@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS_PREC)
 def test_set_operation_prec_reduce_nonscalar_grid_size(func, related_func):
     with pytest.raises(
@@ -172,14 +172,14 @@ def test_set_operation_prec_reduce_nonscalar_grid_size(func, related_func):
         func([point, point], grid_size=[1])
 
 
-@pytest.mark.skipif(pygeos.geos_version < (3, 9, 0), reason="GEOS < 3.9")
+@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS_PREC)
 def test_set_operation_prec_reduce_grid_size_nan(func, related_func):
     actual = func([point, point], grid_size=np.nan)
     assert actual is None
 
 
-@pytest.mark.skipif(pygeos.geos_version < (3, 9, 0), reason="GEOS < 3.9")
+@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("n", range(1, 5))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS_PREC)
 @pytest.mark.parametrize("grid_size", [0, 1])
@@ -190,10 +190,10 @@ def test_set_operation_prec_reduce_1dim(n, func, related_func, grid_size):
     for i in range(1, n):
         expected = related_func(expected, reduce_test_data[i], grid_size=grid_size)
 
-    assert pygeos.equals(actual, expected)
+    assert shapely.equals(actual, expected)
 
 
-@pytest.mark.skipif(pygeos.geos_version < (3, 9, 0), reason="GEOS < 3.9")
+@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS_PREC)
 def test_set_operation_prec_reduce_axis(func, related_func):
     data = [[point] * 2] * 3  # shape = (3, 2)
@@ -207,7 +207,7 @@ def test_set_operation_prec_reduce_axis(func, related_func):
     assert actual.shape == (3,)
 
 
-@pytest.mark.skipif(pygeos.geos_version < (3, 9, 0), reason="GEOS < 3.9")
+@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("none_position", range(3))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS_PREC)
 def test_set_operation_prec_reduce_one_none(func, related_func, none_position):
@@ -218,7 +218,7 @@ def test_set_operation_prec_reduce_one_none(func, related_func, none_position):
     assert_geometries_equal(actual, expected)
 
 
-@pytest.mark.skipif(pygeos.geos_version < (3, 9, 0), reason="GEOS < 3.9")
+@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("none_position", range(3))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS_PREC)
 def test_set_operation_prec_reduce_two_none(func, related_func, none_position):
@@ -230,7 +230,7 @@ def test_set_operation_prec_reduce_two_none(func, related_func, none_position):
     assert_geometries_equal(actual, expected)
 
 
-@pytest.mark.skipif(pygeos.geos_version < (3, 9, 0), reason="GEOS < 3.9")
+@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("n", range(1, 3))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS_PREC)
 def test_set_operation_prec_reduce_all_none(n, func, related_func):
@@ -239,7 +239,7 @@ def test_set_operation_prec_reduce_all_none(n, func, related_func):
     assert func([None] * n, grid_size=1) is None
 
 
-@pytest.mark.skipif(pygeos.geos_version < (3, 8, 0), reason="GEOS < 3.8")
+@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 @pytest.mark.parametrize("n", range(1, 4))
 def test_coverage_union_reduce_1dim(n):
     """
@@ -247,44 +247,44 @@ def test_coverage_union_reduce_1dim(n):
       1. It expects only non-overlapping polygons
       2. It expects GEOS 3.8.0+
     """
-    test_data = [pygeos.box(0, 0, 1, 1), pygeos.box(1, 0, 2, 1), pygeos.box(2, 0, 3, 1)]
-    actual = pygeos.coverage_union_all(test_data[:n])
+    test_data = [shapely.box(0, 0, 1, 1), shapely.box(1, 0, 2, 1), shapely.box(2, 0, 3, 1)]
+    actual = shapely.coverage_union_all(test_data[:n])
     # perform the reduction in a python loop and compare
     expected = test_data[0]
     for i in range(1, n):
-        expected = pygeos.coverage_union(expected, test_data[i])
+        expected = shapely.coverage_union(expected, test_data[i])
     assert_geometries_equal(actual, expected, normalize=True)
 
 
-@pytest.mark.skipif(pygeos.geos_version < (3, 8, 0), reason="GEOS < 3.8")
+@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 def test_coverage_union_reduce_axis():
     # shape = (3, 2), all polygons - none of them overlapping
-    data = [[pygeos.box(i, j, i + 1, j + 1) for i in range(2)] for j in range(3)]
-    actual = pygeos.coverage_union_all(data, axis=None)  # default
+    data = [[shapely.box(i, j, i + 1, j + 1) for i in range(2)] for j in range(3)]
+    actual = shapely.coverage_union_all(data, axis=None)  # default
     assert isinstance(actual, Geometry)
-    actual = pygeos.coverage_union_all(data, axis=0)
+    actual = shapely.coverage_union_all(data, axis=0)
     assert actual.shape == (2,)
-    actual = pygeos.coverage_union_all(data, axis=1)
+    actual = shapely.coverage_union_all(data, axis=1)
     assert actual.shape == (3,)
-    actual = pygeos.coverage_union_all(data, axis=-1)
+    actual = shapely.coverage_union_all(data, axis=-1)
     assert actual.shape == (3,)
 
 
-@pytest.mark.skipif(pygeos.geos_version < (3, 8, 0), reason="GEOS < 3.8")
+@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 def test_coverage_union_overlapping_inputs():
     polygon = Geometry("POLYGON ((1 1, 1 0, 0 0, 0 1, 1 1))")
 
     # Overlapping polygons raise an error
     with pytest.raises(
-        pygeos.GEOSException,
+        shapely.GEOSException,
         match="CoverageUnion cannot process incorrectly noded inputs.",
     ):
-        pygeos.coverage_union(
+        shapely.coverage_union(
             polygon, Geometry("POLYGON ((1 0, 0.9 1, 2 1, 2 0, 1 0))")
         )
 
 
-@pytest.mark.skipif(pygeos.geos_version < (3, 8, 0), reason="GEOS < 3.8")
+@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 @pytest.mark.parametrize(
     "geom_1, geom_2",
     # All possible polygon, non_polygon combinations
@@ -299,52 +299,52 @@ def test_coverage_union_overlapping_inputs():
 def test_coverage_union_non_polygon_inputs(geom_1, geom_2):
     # Non polygon geometries raise an error
     with pytest.raises(
-        pygeos.GEOSException, match="Unhandled geometry type in CoverageUnion."
+        shapely.GEOSException, match="Unhandled geometry type in CoverageUnion."
     ):
-        pygeos.coverage_union(geom_1, geom_2)
+        shapely.coverage_union(geom_1, geom_2)
 
 
-@pytest.mark.skipif(pygeos.geos_version < (3, 9, 0), reason="GEOS < 3.9")
+@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize(
     "geom,grid_size,expected",
     [
         # floating point precision, expect no change
         (
-            [pygeos.box(0.1, 0.1, 5, 5), pygeos.box(0, 0.2, 5.1, 10)],
+            [shapely.box(0.1, 0.1, 5, 5), shapely.box(0, 0.2, 5.1, 10)],
             0,
-            pygeos.Geometry(
+            shapely.Geometry(
                 "POLYGON ((0 0.2, 0 10, 5.1 10, 5.1 0.2, 5 0.2, 5 0.1, 0.1 0.1, 0.1 0.2, 0 0.2))"
             ),
         ),
         # grid_size is at effective precision, expect no change
         (
-            [pygeos.box(0.1, 0.1, 5, 5), pygeos.box(0, 0.2, 5.1, 10)],
+            [shapely.box(0.1, 0.1, 5, 5), shapely.box(0, 0.2, 5.1, 10)],
             0.1,
-            pygeos.Geometry(
+            shapely.Geometry(
                 "POLYGON ((0 0.2, 0 10, 5.1 10, 5.1 0.2, 5 0.2, 5 0.1, 0.1 0.1, 0.1 0.2, 0 0.2))"
             ),
         ),
         # grid_size forces rounding to nearest integer
         (
-            [pygeos.box(0.1, 0.1, 5, 5), pygeos.box(0, 0.2, 5.1, 10)],
+            [shapely.box(0.1, 0.1, 5, 5), shapely.box(0, 0.2, 5.1, 10)],
             1,
-            pygeos.Geometry("POLYGON ((0 5, 0 10, 5 10, 5 5, 5 0, 0 0, 0 5))"),
+            shapely.Geometry("POLYGON ((0 5, 0 10, 5 10, 5 5, 5 0, 0 0, 0 5))"),
         ),
         # grid_size much larger than effective precision causes rounding to nearest
         # multiple of 10
         (
-            [pygeos.box(0.1, 0.1, 5, 5), pygeos.box(0, 0.2, 5.1, 10)],
+            [shapely.box(0.1, 0.1, 5, 5), shapely.box(0, 0.2, 5.1, 10)],
             10,
-            pygeos.Geometry("POLYGON ((0 10, 10 10, 10 0, 0 0, 0 10))"),
+            shapely.Geometry("POLYGON ((0 10, 10 10, 10 0, 0 0, 0 10))"),
         ),
         # grid_size is so large that polygons collapse to empty
         (
-            [pygeos.box(0.1, 0.1, 5, 5), pygeos.box(0, 0.2, 5.1, 10)],
+            [shapely.box(0.1, 0.1, 5, 5), shapely.box(0, 0.2, 5.1, 10)],
             100,
-            pygeos.Geometry("POLYGON EMPTY"),
+            shapely.Geometry("POLYGON EMPTY"),
         ),
     ],
 )
 def test_union_all_prec(geom, grid_size, expected):
-    actual = pygeos.union_all(geom, grid_size=grid_size)
-    assert pygeos.equals(actual, expected)
+    actual = shapely.union_all(geom, grid_size=grid_size)
+    assert shapely.equals(actual, expected)

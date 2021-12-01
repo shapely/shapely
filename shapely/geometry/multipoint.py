@@ -5,7 +5,7 @@ from shapely.errors import EmptyPartError, ShapelyDeprecationWarning
 from shapely.geometry.base import BaseMultipartGeometry
 from shapely.geometry import point
 
-import pygeos
+import shapely
 
 
 __all__ = ['MultiPoint']
@@ -48,7 +48,7 @@ class MultiPoint(BaseMultipartGeometry):
         if points is None:
             # allow creation of empty multipoints, to support unpickling
             # TODO better empty constructor
-            return pygeos.from_wkt("MULTIPOINT EMPTY")
+            return shapely.from_wkt("MULTIPOINT EMPTY")
         elif isinstance(points, MultiPoint):
             return points
 
@@ -61,9 +61,9 @@ class MultiPoint(BaseMultipartGeometry):
             subs.append(p)
 
         if len(points) == 0:
-            return pygeos.from_wkt("MULTIPOINT EMPTY")
+            return shapely.from_wkt("MULTIPOINT EMPTY")
 
-        return pygeos.multipoints(subs)
+        return shapely.multipoints(subs)
 
 
     def shape_factory(self, *args):
@@ -98,4 +98,4 @@ class MultiPoint(BaseMultipartGeometry):
             '</g>'
 
 
-pygeos.lib.registry[4] = MultiPoint
+shapely.lib.registry[4] = MultiPoint

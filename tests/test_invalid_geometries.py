@@ -5,7 +5,7 @@ from . import unittest
 from shapely.geometry import Polygon
 from shapely.errors import TopologicalError
 
-import pygeos
+import shapely
 
 
 class InvalidGeometriesTestCase(unittest.TestCase):
@@ -19,8 +19,8 @@ class InvalidGeometriesTestCase(unittest.TestCase):
         polygon = Polygon(((-.5, -.5), (-.5, .5), (.5, .5), (.5, -5)))
         self.assertTrue(polygon.is_valid)
         self.assertTrue(polygon_invalid.intersects(polygon))
-        self.assertRaises((TopologicalError, pygeos.GEOSException),
+        self.assertRaises((TopologicalError, shapely.GEOSException),
                           polygon_invalid.intersection, polygon)
-        self.assertRaises((TopologicalError, pygeos.GEOSException),
+        self.assertRaises((TopologicalError, shapely.GEOSException),
                           polygon.intersection, polygon_invalid)
         return

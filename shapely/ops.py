@@ -11,7 +11,7 @@ from shapely.geometry import (
 from shapely.geometry.polygon import orient as orient_
 from shapely.algorithms.polylabel import polylabel
 
-import pygeos
+import shapely
 
 
 __all__ = ['cascaded_union', 'linemerge', 'operator', 'polygonize',
@@ -44,7 +44,7 @@ class CollectionOperator:
             source = [source]
         finally:
             obs = [self.shapeup(l) for l in source]
-        collection = pygeos.polygonize(obs)
+        collection = shapely.polygonize(obs)
         return collection.geoms
 
     def polygonize_full(self, lines):
@@ -69,7 +69,7 @@ class CollectionOperator:
             source = [source]
         finally:
             obs = [self.shapeup(l) for l in source]
-        return pygeos.polygonize_full(obs)
+        return shapely.polygonize_full(obs)
 
     def linemerge(self, lines):
         """Merges all connected lines from a source
@@ -91,7 +91,7 @@ class CollectionOperator:
                 source = MultiLineString(lines)
         if source is None:
             raise ValueError("Cannot linemerge %s" % lines)
-        return pygeos.line_merge(source)
+        return shapely.line_merge(source)
 
     def cascaded_union(self, geoms):
         """Returns the union of a sequence of geometries
@@ -103,7 +103,7 @@ class CollectionOperator:
             "The 'cascaded_union()' function is deprecated. "
             "Use 'unary_union()' instead.",
             ShapelyDeprecationWarning, stacklevel=2)
-        return pygeos.union_all(geoms, axis=None)
+        return shapely.union_all(geoms, axis=None)
 
     def unary_union(self, geoms):
         """Returns the union of a sequence of geometries
@@ -111,7 +111,7 @@ class CollectionOperator:
         This method replaces :meth:`cascaded_union` as the
         preferred method for dissolving many polygons.
         """
-        return pygeos.union_all(geoms, axis=None)
+        return shapely.union_all(geoms, axis=None)
 
 
 operator = CollectionOperator()
@@ -137,7 +137,7 @@ def triangulate(geom, tolerance=0.0, edges=False):
     Otherwise the list of LineString edges is returned.
 
     """
-    collection = pygeos.delaunay_triangles(geom, tolerance=tolerance, only_edges=edges)
+    collection = shapely.delaunay_triangles(geom, tolerance=tolerance, only_edges=edges)
     return [g for g in collection.geoms]
 
 
@@ -184,10 +184,10 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
     [2] https://geos.osgeo.org/doxygen/geos__c_8h_source.html  (line 730)
     """
     try:
-        result = pygeos.voronoi_polygons(
+        result = shapely.voronoi_polygons(
             geom, tolerance=tolerance, extend_to=envelope, only_edges=edges
         )
-    except pygeos.GEOSException as err:
+    except shapely.GEOSException as err:
         errstr = "Could not create Voronoi Diagram with the specified inputs "
         errstr += "({}).".format(str(err))
         if tolerance:
@@ -200,7 +200,7 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
 
 
 def validate(geom):
-    return pygeos.is_valid_reason(geom)
+    return shapely.is_valid_reason(geom)
 
 
 def transform(func, geom):
@@ -281,15 +281,15 @@ def nearest_points(g1, g2):
 
     The points are returned in the same order as the input geometries.
     """
-    seq = pygeos.shortest_line(g1, g2)
+    seq = shapely.shortest_line(g1, g2)
     if seq is None:
         if g1.is_empty:
             raise ValueError('The first input geometry is empty')
         else:
             raise ValueError('The second input geometry is empty')
 
-    p1 = pygeos.get_point(seq, 0)
-    p2 = pygeos.get_point(seq, 1)
+    p1 = shapely.get_point(seq, 0)
+    p2 = shapely.get_point(seq, 1)
     return (p1, p2)
 
 
@@ -317,7 +317,7 @@ def snap(g1, g2, tolerance):
     >>> result.wkt
     'LINESTRING (0 0, 1 1, 2 1, 2.6 0.5)'
     """
-    return pygeos.snap(g1, g2, tolerance)
+    return shapely.snap(g1, g2, tolerance)
 
 
 def shared_paths(g1, g2):
@@ -340,7 +340,7 @@ def shared_paths(g1, g2):
         raise GeometryTypeError("First geometry must be a LineString")
     if not isinstance(g2, LineString):
         raise GeometryTypeError("Second geometry must be a LineString")
-    return pygeos.shared_paths(g1, g2)
+    return shapely.shared_paths(g1, g2)
 
 
 class SplitOp:
@@ -668,7 +668,7 @@ def clip_by_rect(geom, xmin, ymin, xmax, ymax):
     """
     if geom.is_empty:
         return geom
-    return pygeos.clip_by_rect(geom, xmin, ymin, xmax, ymax)
+    return shapely.clip_by_rect(geom, xmin, ymin, xmax, ymax)
 
 
 def orient(geom, sign=1.0):

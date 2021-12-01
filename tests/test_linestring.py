@@ -5,7 +5,7 @@ from shapely.coords import CoordinateSequence
 from shapely.errors import ShapelyDeprecationWarning
 from shapely.geometry import LineString, Point, LinearRing
 
-import pygeos
+import shapely
 
 
 def test_from_coordinate_sequence():
@@ -114,7 +114,7 @@ def test_numpy_object_array():
 def test_from_invalid_dim():
     # TODO(shapely-2.0) better error message?
     # pytest.raises(ValueError, match="at least 2 coordinate tuples|at least 2 coordinates"):
-    with pytest.raises(pygeos.GEOSException):
+    with pytest.raises(shapely.GEOSException):
         LineString([(1, 2)])
 
     with pytest.raises(ValueError, match="Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions"):
@@ -131,7 +131,7 @@ def test_from_invalid_dim():
 def test_from_single_coordinate():
     """Test for issue #486"""
     coords = [[-122.185933073564, 37.3629353839073]]
-    with pytest.raises(pygeos.GEOSException):
+    with pytest.raises(shapely.GEOSException):
         ls = LineString(coords)
         ls.geom_type  # caused segfault before fix
 

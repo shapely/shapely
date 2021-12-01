@@ -7,13 +7,13 @@ from unittest import mock
 import numpy as np
 import pytest
 
-import pygeos
-from pygeos.decorators import multithreading_enabled, requires_geos
+import shapely
+from shapely.decorators import multithreading_enabled, requires_geos
 
 
 @pytest.fixture
 def mocked_geos_version():
-    with mock.patch.object(pygeos.lib, "geos_version", new=(3, 7, 1)):
+    with mock.patch.object(shapely.lib, "geos_version", new=(3, 7, 1)):
         yield "3.7.1"
 
 
@@ -25,12 +25,12 @@ def sphinx_doc_build():
 
 
 def test_version():
-    assert isinstance(pygeos.__version__, str)
+    assert isinstance(shapely.__version__, str)
 
 
 def test_geos_version():
-    expected = "{0:d}.{1:d}.{2:d}".format(*pygeos.geos_version)
-    actual = pygeos.geos_version_string
+    expected = "{0:d}.{1:d}.{2:d}".format( shapely.geos_version)
+    actual = shapely.geos_version_string
 
     # strip any beta / dev qualifiers
     if any(c.isalpha() for c in actual):
@@ -42,19 +42,19 @@ def test_geos_version():
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith("win") and pygeos.geos_version[:2] == (3, 7),
+    sys.platform.startswith("win") and shapely.geos_version[:2] == (3, 7),
     reason="GEOS_C_API_VERSION broken for GEOS 3.7.x on Windows",
 )
 def test_geos_capi_version():
     expected = "{0:d}.{1:d}.{2:d}-CAPI-{3:d}.{4:d}.{5:d}".format(
-        *(pygeos.geos_version + pygeos.geos_capi_version)
+        *(shapely.geos_version + shapely.geos_capi_version)
     )
 
     # split into component parts and strip any beta / dev qualifiers
     (
         actual_geos_version,
         actual_geos_api_version,
-    ) = pygeos.geos_capi_version_string.split("-CAPI-")
+    ) = shapely.geos_capi_version_string.split("-CAPI-")
 
     if any(c.isalpha() for c in actual_geos_version):
         if actual_geos_version[-1].isnumeric():
@@ -102,7 +102,7 @@ def test_requires_geos_ok(version, mocked_geos_version):
 @pytest.mark.parametrize("version", ["3.7.2", "3.8.0", "3.8.1"])
 def test_requires_geos_not_ok(version, mocked_geos_version):
     wrapped = requires_geos(version)(func)
-    with pytest.raises(pygeos.UnsupportedGEOSOperation):
+    with pytest.raises(shapely.UnsupportedGEOSOperation):
         wrapped()
 
     assert wrapped.__doc__ == expected_docstring.format(version=version, indent=" " * 4)

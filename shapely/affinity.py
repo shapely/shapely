@@ -4,7 +4,7 @@ from math import sin, cos, tan, pi
 from shapely.errors import GeometryTypeError
 
 import numpy as np
-import pygeos
+import shapely
 
 __all__ = ['affine_transform', 'rotate', 'scale', 'skew', 'translate']
 
@@ -82,7 +82,7 @@ def affine_transform(geom, matrix):
                 (np.atleast_2d(xp).T, np.atleast_2d(yp).T, np.atleast_2d(zp).T)
             )
 
-    return pygeos.apply(geom, _affine_coords, include_z=ndim == 3)
+    return shapely.apply(geom, _affine_coords, include_z=ndim == 3)
 
 
 def interpret_origin(geom, origin, ndim):

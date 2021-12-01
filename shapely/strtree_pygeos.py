@@ -40,18 +40,18 @@ class STRtree:
 
     Examples
     --------
-    >>> import pygeos
-    >>> tree = pygeos.STRtree(pygeos.points(np.arange(10), np.arange(10)))
+    >>> import shapely
+    >>> tree = shapely.STRtree(shapely.points(np.arange(10), np.arange(10)))
     >>> # Query geometries that overlap envelope of input geometries:
-    >>> tree.query(pygeos.box(2, 2, 4, 4)).tolist()
+    >>> tree.query(shapely.box(2, 2, 4, 4)).tolist()
     [2, 3, 4]
     >>> # Query geometries that are contained by input geometry:
-    >>> tree.query(pygeos.box(2, 2, 4, 4), predicate='contains').tolist()
+    >>> tree.query(shapely.box(2, 2, 4, 4), predicate='contains').tolist()
     [3]
     >>> # Query geometries that overlap envelopes of ``geoms``
-    >>> tree.query_bulk([pygeos.box(2, 2, 4, 4), pygeos.box(5, 5, 6, 6)]).tolist()
+    >>> tree.query_bulk([shapely.box(2, 2, 4, 4), shapely.box(5, 5, 6, 6)]).tolist()
     [[0, 0, 0, 1, 1], [2, 3, 4, 5, 6]]
-    >>> tree.nearest([pygeos.points(1,1), pygeos.points(3,5)]).tolist()  # doctest: +SKIP
+    >>> tree.nearest( shapely.points(1,1), shapely.points(3,5)]).tolist()  # doctest: +SKIP
     [[0, 1], [1, 4]]
     """
 
@@ -95,15 +95,15 @@ class STRtree:
 
         Examples
         --------
-        >>> import pygeos
-        >>> tree = pygeos.STRtree(pygeos.points(np.arange(10), np.arange(10)))
-        >>> tree.query(pygeos.box(1,1, 3,3)).tolist()
+        >>> import shapely
+        >>> tree = shapely.STRtree(shapely.points(np.arange(10), np.arange(10)))
+        >>> tree.query(shapely.box(1,1, 3,3)).tolist()
         [1, 2, 3]
         >>> # Query geometries that are contained by input geometry
-        >>> tree.query(pygeos.box(2, 2, 4, 4), predicate='contains').tolist()
+        >>> tree.query(shapely.box(2, 2, 4, 4), predicate='contains').tolist()
         [3]
         >>> # Query geometries within 1 unit distance of input geometry
-        >>> tree.query(pygeos.points(0.5, 0.5), predicate='dwithin', distance=1.0).tolist()  # doctest: +SKIP
+        >>> tree.query(shapely.points(0.5, 0.5), predicate='dwithin', distance=1.0).tolist()  # doctest: +SKIP
         [0, 1]
         """
 
@@ -180,19 +180,19 @@ class STRtree:
 
         Examples
         --------
-        >>> import pygeos
-        >>> tree = pygeos.STRtree(pygeos.points(np.arange(10), np.arange(10)))
-        >>> tree.query_bulk([pygeos.box(2, 2, 4, 4), pygeos.box(5, 5, 6, 6)]).tolist()
+        >>> import shapely
+        >>> tree = shapely.STRtree(shapely.points(np.arange(10), np.arange(10)))
+        >>> tree.query_bulk([shapely.box(2, 2, 4, 4), shapely.box(5, 5, 6, 6)]).tolist()
         [[0, 0, 0, 1, 1], [2, 3, 4, 5, 6]]
         >>> # Query for geometries that contain tree geometries
-        >>> tree.query_bulk([pygeos.box(2, 2, 4, 4), pygeos.box(5, 5, 6, 6)], predicate='contains').tolist()
+        >>> tree.query_bulk([shapely.box(2, 2, 4, 4), shapely.box(5, 5, 6, 6)], predicate='contains').tolist()
         [[0], [3]]
         >>> # To get an array of pairs of index of input geometry, index of tree geometry,
         >>> # transpose the output:
-        >>> tree.query_bulk([pygeos.box(2, 2, 4, 4), pygeos.box(5, 5, 6, 6)]).T.tolist()
+        >>> tree.query_bulk([shapely.box(2, 2, 4, 4), shapely.box(5, 5, 6, 6)]).T.tolist()
         [[0, 2], [0, 3], [0, 4], [1, 5], [1, 6]]
         >>> # Query for tree geometries within 1 unit distance of input geometries
-        >>> tree.query_bulk([pygeos.points(0.5, 0.5)], predicate='dwithin', distance=1.0).tolist()  # doctest: +SKIP
+        >>> tree.query_bulk([shapely.points(0.5, 0.5)], predicate='dwithin', distance=1.0).tolist()  # doctest: +SKIP
         [[0, 0], [0, 1]]
         """
 
@@ -257,14 +257,14 @@ class STRtree:
 
         Examples
         --------
-        >>> import pygeos
-        >>> tree = pygeos.STRtree(pygeos.points(np.arange(10), np.arange(10)))
-        >>> tree.nearest(pygeos.points(1,1)).tolist()  # doctest: +SKIP
+        >>> import shapely
+        >>> tree = shapely.STRtree(shapely.points(np.arange(10), np.arange(10)))
+        >>> tree.nearest(shapely.points(1,1)).tolist()  # doctest: +SKIP
         [[0], [1]]
-        >>> tree.nearest([pygeos.box(1,1,3,3)]).tolist()  # doctest: +SKIP
+        >>> tree.nearest( shapely.box(1,1,3,3)]).tolist()  # doctest: +SKIP
         [[0], [1]]
-        >>> points = pygeos.points(0.5,0.5)
-        >>> tree.nearest([None, pygeos.points(10,10)]).tolist()  # doctest: +SKIP
+        >>> points = shapely.points(0.5,0.5)
+        >>> tree.nearest([None, shapely.points(10,10)]).tolist()  # doctest: +SKIP
         [[1], [9]]
         """
 
@@ -319,13 +319,13 @@ class STRtree:
 
         Examples
         --------
-        >>> import pygeos
-        >>> tree = pygeos.STRtree(pygeos.points(np.arange(10), np.arange(10)))
-        >>> tree.nearest_all(pygeos.points(1,1)).tolist()  # doctest: +SKIP
+        >>> import shapely
+        >>> tree = shapely.STRtree(shapely.points(np.arange(10), np.arange(10)))
+        >>> tree.nearest_all(shapely.points(1,1)).tolist()  # doctest: +SKIP
         [[0], [1]]
-        >>> tree.nearest_all([pygeos.box(1,1,3,3)]).tolist()  # doctest: +SKIP
+        >>> tree.nearest_all( shapely.box(1,1,3,3)]).tolist()  # doctest: +SKIP
         [[0, 0, 0], [1, 2, 3]]
-        >>> points = pygeos.points(0.5,0.5)
+        >>> points = shapely.points(0.5,0.5)
         >>> index, distance = tree.nearest_all(points, return_distance=True)  # doctest: +SKIP
         >>> index.tolist()  # doctest: +SKIP
         [[0, 0], [0, 1]]
