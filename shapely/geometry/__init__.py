@@ -12,9 +12,19 @@ from .multipolygon import MultiPolygon
 from .collection import GeometryCollection
 
 __all__ = [
-    'box', 'shape', 'mapping', 'Point', 'LineString', 'Polygon', 'MultiPoint',
-    'MultiLineString', 'MultiPolygon', 'GeometryCollection', 'LinearRing',
-    'CAP_STYLE', 'JOIN_STYLE',
+    "box",
+    "shape",
+    "mapping",
+    "Point",
+    "LineString",
+    "Polygon",
+    "MultiPoint",
+    "MultiLineString",
+    "MultiPolygon",
+    "GeometryCollection",
+    "LinearRing",
+    "CAP_STYLE",
+    "JOIN_STYLE",
 ]
 
 # This needs to be called here to avoid circular references

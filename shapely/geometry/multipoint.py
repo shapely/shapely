@@ -8,7 +8,7 @@ from shapely.geometry import point
 import shapely
 
 
-__all__ = ['MultiPoint']
+__all__ = ["MultiPoint"]
 
 
 class MultiPoint(BaseMultipartGeometry):
@@ -65,18 +65,17 @@ class MultiPoint(BaseMultipartGeometry):
 
         return shapely.multipoints(subs)
 
-
     def shape_factory(self, *args):
         return point.Point(*args)
 
     @property
     def __geo_interface__(self):
         return {
-            'type': 'MultiPoint',
-            'coordinates': tuple([g.coords[0] for g in self.geoms])
-            }
+            "type": "MultiPoint",
+            "coordinates": tuple([g.coords[0] for g in self.geoms]),
+        }
 
-    def svg(self, scale_factor=1., fill_color=None, opacity=None):
+    def svg(self, scale_factor=1.0, fill_color=None, opacity=None):
         """Returns a group of SVG circle elements for the MultiPoint geometry.
 
         Parameters
@@ -90,12 +89,14 @@ class MultiPoint(BaseMultipartGeometry):
             Float number between 0 and 1 for color opacity. Default value is 0.6
         """
         if self.is_empty:
-            return '<g />'
+            return "<g />"
         if fill_color is None:
             fill_color = "#66cc99" if self.is_valid else "#ff3333"
-        return '<g>' + \
-            ''.join(p.svg(scale_factor, fill_color, opacity) for p in self.geoms) + \
-            '</g>'
+        return (
+            "<g>"
+            + "".join(p.svg(scale_factor, fill_color, opacity) for p in self.geoms)
+            + "</g>"
+        )
 
 
 shapely.lib.registry[4] = MultiPoint
