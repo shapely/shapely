@@ -2767,60 +2767,6 @@ finish:
 }
 static PyUFuncGenericFunction from_wkt_funcs[1] = {&from_wkt_func};
 
-static char from_shapely_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
-static void from_shapely_func(char** args, npy_intp* dimensions, npy_intp* steps,
-                              void* data) {
-  GEOSGeometry *in_ptr, *ret_ptr;
-  PyObject *in1, *attr;
-
-  GEOS_INIT;
-
-  UNARY_LOOP {
-    /* ip1 is pointer to array element PyObject* */
-    in1 = *(PyObject**)ip1;
-
-    if (in1 == Py_None) {
-      /* None in the input propagates to the output */
-      ret_ptr = NULL;
-    } else {
-      /* Check if we have a prepared geometry */
-      if (PyObject_HasAttrString(in1, "context")) {
-        in1 = PyObject_GetAttrString(in1, "context");
-      }
-      /* Get the __geom__ attribute */
-      attr = PyObject_GetAttrString(in1, "__geom__");
-      if (attr == NULL) {
-        /* Raise if __geom__ does not exist */
-        PyErr_Format(PyExc_TypeError, "Expected a shapely object or None, got %s",
-                     Py_TYPE(in1)->tp_name);
-        GEOS_FINISH;
-        return;
-      } else if (!PyLong_Check(attr)) {
-        /* Raise if __geom__ is of incorrect type */
-        PyErr_Format(PyExc_TypeError, "Expected int for the __geom__ attribute, got %s",
-                     Py_TYPE(attr)->tp_name);
-        Py_XDECREF(attr);
-        GEOS_FINISH;
-        return;
-      }
-      /* Convert it to a GEOSGeometry pointer */
-      in_ptr = PyLong_AsVoidPtr(attr);
-      Py_XDECREF(attr);
-      /* Clone the geometry and finish */
-      ret_ptr = GEOSGeom_clone_r(ctx, in_ptr);
-      if (ret_ptr == NULL) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        goto finish;
-      }
-    }
-    OUTPUT_Y;
-  }
-
-finish:
-  GEOS_FINISH;
-}
-static PyUFuncGenericFunction from_shapely_funcs[1] = {&from_shapely_func};
-
 static char to_wkb_dtypes[6] = {NPY_OBJECT, NPY_BOOL, NPY_INT,
                                 NPY_INT,    NPY_BOOL, NPY_OBJECT};
 static void to_wkb_func(char** args, npy_intp* dimensions, npy_intp* steps, void* data) {
@@ -3373,7 +3319,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_CUSTOM(from_wkt, 2);
   DEFINE_CUSTOM(to_wkb, 5);
   DEFINE_CUSTOM(to_wkt, 5);
-  DEFINE_CUSTOM(from_shapely, 1);
 
 #if GEOS_SINCE_3_6_0
   DEFINE_Y_d(minimum_clearance);

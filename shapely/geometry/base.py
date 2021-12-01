@@ -56,22 +56,6 @@ def dump_coords(geom):
         raise GeometryTypeError('Unhandled geometry type: ' + repr(geom.type))
 
 
-class _DummyGeometry:
-    # pygeos.from_shapely expects a python object that exposes
-    # the GEOS pointer as a __geom__ attribute
-
-    def __init__(self, g):
-        self.__geom__ = g
-
-
-def geom_factory(g, parent=None):
-    # Abstract geometry factory for use with topological methods below
-    if not g:
-        raise ValueError("No Shapely geometry can be created from null value")
-    ob = _DummyGeometry(g)
-    return pygeos.from_shapely(ob)
-
-
 class CAP_STYLE:
     round = 1
     flat = 2
