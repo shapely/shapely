@@ -4,7 +4,7 @@ from enum import IntEnum
 import numpy as np
 
 from . import Geometry  # NOQA
-from . import _geometry, geos_version, lib
+from . import _geometry_helpers, geos_version, lib
 from .decorators import multithreading_enabled, requires_geos
 from .enum import ParamEnum
 
@@ -561,9 +561,9 @@ def get_parts(geometry, return_index=False):
         raise ValueError("Array should be one dimensional")
 
     if return_index:
-        return _geometry.get_parts(geometry)
+        return _geometry_helpers.get_parts(geometry)
 
-    return _geometry.get_parts(geometry)[0]
+    return _geometry_helpers.get_parts(geometry)[0]
 
 
 def get_rings(geometry, return_index=False):
@@ -616,9 +616,9 @@ def get_rings(geometry, return_index=False):
         raise ValueError("Array should be one dimensional")
 
     if return_index:
-        return _geometry.get_parts(geometry, extract_rings=True)
+        return _geometry_helpers.get_parts(geometry, extract_rings=True)
 
-    return _geometry.get_parts(geometry, extract_rings=True)[0]
+    return _geometry_helpers.get_parts(geometry, extract_rings=True)[0]
 
 
 @multithreading_enabled
