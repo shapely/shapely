@@ -1,7 +1,7 @@
 """Line strings and related utilities
 """
 
-import pygeos
+import shapely
 
 from shapely.errors import ShapelyDeprecationWarning
 from shapely.geometry.base import BaseGeometry, geom_factory, JOIN_STYLE
@@ -40,7 +40,7 @@ class LineString(BaseGeometry):
         if coordinates is None:
             # empty geometry
             # TODO better constructor
-            return pygeos.from_wkt("LINESTRING EMPTY")
+            return shapely.from_wkt("LINESTRING EMPTY")
         elif isinstance(coordinates, LineString):
             if type(coordinates) == LineString:
                 # return original objects since geometries are immutable
@@ -60,10 +60,10 @@ class LineString(BaseGeometry):
 
         if len(coordinates) == 0:
             # empty geometry
-            # TODO better constructor + should pygeos.linestrings handle this?
-            return pygeos.from_wkt("LINESTRING EMPTY")
+            # TODO better constructor + should shapely.linestrings handle this?
+            return shapely.from_wkt("LINESTRING EMPTY")
 
-        geom = pygeos.linestrings(coordinates)
+        geom = shapely.linestrings(coordinates)
         if not isinstance(geom, LineString):
             raise ValueError("Invalid values passed to LineString constructor")
         return geom
@@ -144,9 +144,9 @@ class LineString(BaseGeometry):
                 'Cannot compute offset from zero-length line segment')
         if side == 'right':
             distance *= -1
-        return pygeos.offset_curve(
+        return shapely.offset_curve(
             self, distance, resolution, join_style, mitre_limit
         )
 
 
-pygeos.lib.registry[1] = LineString
+shapely.lib.registry[1] = LineString

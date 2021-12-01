@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-import pygeos
-from pygeos.geometry import GeometryType
-from pygeos.testing import assert_geometries_equal
+import shapely
+from shapely import GeometryType
+from shapely.testing import assert_geometries_equal
 
 from .common import (
     empty_polygon,
@@ -23,74 +23,74 @@ def box_tpl(x1, y1, x2, y2):
 
 
 def test_points_from_coords():
-    actual = pygeos.points([[0, 0], [2, 2]])
+    actual = shapely.points([[0, 0], [2, 2]])
     assert_geometries_equal(
-        actual, [pygeos.Geometry("POINT (0 0)"), pygeos.Geometry("POINT (2 2)")]
+        actual, [shapely.Geometry("POINT (0 0)"), shapely.Geometry("POINT (2 2)")]
     )
 
 
 def test_points_from_xy():
-    actual = pygeos.points(2, [0, 1])
+    actual = shapely.points(2, [0, 1])
     assert_geometries_equal(
-        actual, [pygeos.Geometry("POINT (2 0)"), pygeos.Geometry("POINT (2 1)")]
+        actual, [shapely.Geometry("POINT (2 0)"), shapely.Geometry("POINT (2 1)")]
     )
 
 
 def test_points_from_xyz():
-    actual = pygeos.points(1, 1, [0, 1])
+    actual = shapely.points(1, 1, [0, 1])
     assert_geometries_equal(
-        actual, [pygeos.Geometry("POINT Z (1 1 0)"), pygeos.Geometry("POINT (1 1 1)")]
+        actual, [shapely.Geometry("POINT Z (1 1 0)"), shapely.Geometry("POINT (1 1 1)")]
     )
 
 
 def test_points_invalid_ndim():
-    with pytest.raises(pygeos.GEOSException):
-        pygeos.points([0, 1, 2, 3])
+    with pytest.raises(shapely.GEOSException):
+        shapely.points([0, 1, 2, 3])
 
 
-@pytest.mark.skipif(pygeos.geos_version < (3, 10, 0), reason="GEOS < 3.10")
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 def test_points_nan_becomes_empty():
-    actual = pygeos.points(np.nan, np.nan)
-    assert_geometries_equal(actual, pygeos.Geometry("POINT EMPTY"))
+    actual = shapely.points(np.nan, np.nan)
+    assert_geometries_equal(actual, shapely.Geometry("POINT EMPTY"))
 
 
 def test_linestrings_from_coords():
-    actual = pygeos.linestrings([[[0, 0], [1, 1]], [[0, 0], [2, 2]]])
+    actual = shapely.linestrings([[[0, 0], [1, 1]], [[0, 0], [2, 2]]])
     assert_geometries_equal(
         actual,
         [
-            pygeos.Geometry("LINESTRING (0 0, 1 1)"),
-            pygeos.Geometry("LINESTRING (0 0, 2 2)"),
+            shapely.Geometry("LINESTRING (0 0, 1 1)"),
+            shapely.Geometry("LINESTRING (0 0, 2 2)"),
         ],
     )
 
 
 def test_linestrings_from_xy():
-    actual = pygeos.linestrings([0, 1], [2, 3])
-    assert_geometries_equal(actual, pygeos.Geometry("LINESTRING (0 2, 1 3)"))
+    actual = shapely.linestrings([0, 1], [2, 3])
+    assert_geometries_equal(actual, shapely.Geometry("LINESTRING (0 2, 1 3)"))
 
 
 def test_linestrings_from_xy_broadcast():
     x = [0, 1]  # the same X coordinates for both linestrings
     y = [2, 3], [4, 5]  # each linestring has a different set of Y coordinates
-    actual = pygeos.linestrings(x, y)
+    actual = shapely.linestrings(x, y)
     assert_geometries_equal(
         actual,
         [
-            pygeos.Geometry("LINESTRING (0 2, 1 3)"),
-            pygeos.Geometry("LINESTRING (0 4, 1 5)"),
+            shapely.Geometry("LINESTRING (0 2, 1 3)"),
+            shapely.Geometry("LINESTRING (0 4, 1 5)"),
         ],
     )
 
 
 def test_linestrings_from_xyz():
-    actual = pygeos.linestrings([0, 1], [2, 3], 0)
-    assert_geometries_equal(actual, pygeos.Geometry("LINESTRING Z (0 2 0, 1 3 0)"))
+    actual = shapely.linestrings([0, 1], [2, 3], 0)
+    assert_geometries_equal(actual, shapely.Geometry("LINESTRING Z (0 2 0, 1 3 0)"))
 
 
 def test_linestrings_invalid_shape_scalar():
     with pytest.raises(ValueError):
-        pygeos.linestrings((1, 1))
+        shapely.linestrings((1, 1))
 
 
 @pytest.mark.parametrize(
@@ -102,37 +102,37 @@ def test_linestrings_invalid_shape_scalar():
     ],
 )
 def test_linestrings_invalid_shape(shape):
-    with pytest.raises(pygeos.GEOSException):
-        pygeos.linestrings(np.ones(shape))
+    with pytest.raises(shapely.GEOSException):
+        shapely.linestrings(np.ones(shape))
 
 
 def test_linearrings():
-    actual = pygeos.linearrings(box_tpl(0, 0, 1, 1))
+    actual = shapely.linearrings(box_tpl(0, 0, 1, 1))
     assert_geometries_equal(
-        actual, pygeos.Geometry("LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)")
+        actual, shapely.Geometry("LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)")
     )
 
 
 def test_linearrings_from_xy():
-    actual = pygeos.linearrings([0, 1, 2, 0], [3, 4, 5, 3])
-    assert_geometries_equal(actual, pygeos.Geometry("LINEARRING (0 3, 1 4, 2 5, 0 3)"))
+    actual = shapely.linearrings([0, 1, 2, 0], [3, 4, 5, 3])
+    assert_geometries_equal(actual, shapely.Geometry("LINEARRING (0 3, 1 4, 2 5, 0 3)"))
 
 
 def test_linearrings_unclosed():
-    actual = pygeos.linearrings(box_tpl(0, 0, 1, 1)[:-1])
+    actual = shapely.linearrings(box_tpl(0, 0, 1, 1)[:-1])
     assert_geometries_equal(
-        actual, pygeos.Geometry("LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)")
+        actual, shapely.Geometry("LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)")
     )
 
 
 def test_linearrings_unclosed_all_coords_equal():
-    actual = pygeos.linearrings([(0, 0), (0, 0), (0, 0)])
-    assert_geometries_equal(actual, pygeos.Geometry("LINEARRING (0 0, 0 0, 0 0, 0 0)"))
+    actual = shapely.linearrings([(0, 0), (0, 0), (0, 0)])
+    assert_geometries_equal(actual, shapely.Geometry("LINEARRING (0 0, 0 0, 0 0, 0 0)"))
 
 
 def test_linearrings_invalid_shape_scalar():
     with pytest.raises(ValueError):
-        pygeos.linearrings((1, 1))
+        shapely.linearrings((1, 1))
 
 
 @pytest.mark.parametrize(
@@ -149,18 +149,18 @@ def test_linearrings_invalid_shape_scalar():
 def test_linearrings_invalid_shape(shape):
     coords = np.ones(shape)
     with pytest.raises(ValueError):
-        pygeos.linearrings(coords)
+        shapely.linearrings(coords)
 
     # make sure the first coordinate != second coordinate
     coords[..., 1] += 1
     with pytest.raises(ValueError):
-        pygeos.linearrings(coords)
+        shapely.linearrings(coords)
 
 
 def test_linearrings_all_nan():
     coords = np.full((4, 2), np.nan)
-    with pytest.raises(pygeos.GEOSException):
-        pygeos.linearrings(coords)
+    with pytest.raises(shapely.GEOSException):
+        shapely.linearrings(coords)
 
 
 @pytest.mark.parametrize("dim", [2, 3])
@@ -168,109 +168,109 @@ def test_linearrings_all_nan():
 def test_linearrings_buffer(dim, order):
     coords1 = np.random.randn(10, 4, dim)
     coords1 = np.asarray(coords1, order=order)
-    result1 = pygeos.linearrings(coords1)
+    result1 = shapely.linearrings(coords1)
 
     # with manual closure -> can directly copy from buffer if C order
     coords2 = np.hstack((coords1, coords1[:, [0], :]))
     coords2 = np.asarray(coords2, order=order)
-    result2 = pygeos.linearrings(coords2)
+    result2 = shapely.linearrings(coords2)
     assert_geometries_equal(result1, result2)
 
     # create scalar -> can also directly copy from buffer if F order
     coords3 = np.asarray(coords2[0], order=order)
-    result3 = pygeos.linearrings(coords3)
+    result3 = shapely.linearrings(coords3)
     assert_geometries_equal(result3, result1[0])
 
 
 def test_polygon_from_linearring():
-    actual = pygeos.polygons(pygeos.linearrings(box_tpl(0, 0, 1, 1)))
+    actual = shapely.polygons(shapely.linearrings(box_tpl(0, 0, 1, 1)))
     assert_geometries_equal(
-        actual, pygeos.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))")
+        actual, shapely.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))")
     )
 
 
 def test_polygons_none():
-    assert_geometries_equal(pygeos.polygons(None), empty_polygon)
-    assert_geometries_equal(pygeos.polygons(None, holes=[linear_ring]), empty_polygon)
+    assert_geometries_equal(shapely.polygons(None), empty_polygon)
+    assert_geometries_equal(shapely.polygons(None, holes=[linear_ring]), empty_polygon)
 
 
 def test_polygons():
-    actual = pygeos.polygons(box_tpl(0, 0, 1, 1))
+    actual = shapely.polygons(box_tpl(0, 0, 1, 1))
     assert_geometries_equal(
-        actual, pygeos.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))")
+        actual, shapely.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))")
     )
 
 
 def test_polygon_no_hole_list_raises():
     with pytest.raises(ValueError):
-        pygeos.polygons(box_tpl(0, 0, 10, 10), box_tpl(1, 1, 2, 2))
+        shapely.polygons(box_tpl(0, 0, 10, 10), box_tpl(1, 1, 2, 2))
 
 
 def test_polygon_no_hole_wrong_type():
-    with pytest.raises((TypeError, pygeos.GEOSException)):
-        pygeos.polygons(point)
+    with pytest.raises((TypeError, shapely.GEOSException)):
+        shapely.polygons(point)
 
 
 def test_polygon_with_hole_wrong_type():
-    with pytest.raises((TypeError, pygeos.GEOSException)):
-        pygeos.polygons(point, [linear_ring])
+    with pytest.raises((TypeError, shapely.GEOSException)):
+        shapely.polygons(point, [linear_ring])
 
 
 def test_polygon_wrong_hole_type():
-    with pytest.raises((TypeError, pygeos.GEOSException)):
-        pygeos.polygons(linear_ring, [point])
+    with pytest.raises((TypeError, shapely.GEOSException)):
+        shapely.polygons(linear_ring, [point])
 
 
 def test_polygon_with_1_hole():
-    actual = pygeos.polygons(box_tpl(0, 0, 10, 10), [box_tpl(1, 1, 2, 2)])
-    assert pygeos.area(actual) == 99.0
+    actual = shapely.polygons(box_tpl(0, 0, 10, 10), [box_tpl(1, 1, 2, 2)])
+    assert shapely.area(actual) == 99.0
 
 
 def test_polygon_with_2_holes():
-    actual = pygeos.polygons(
+    actual = shapely.polygons(
         box_tpl(0, 0, 10, 10), [box_tpl(1, 1, 2, 2), box_tpl(3, 3, 4, 4)]
     )
-    assert pygeos.area(actual) == 98.0
+    assert shapely.area(actual) == 98.0
 
 
 def test_polygon_with_none_hole():
-    actual = pygeos.polygons(
-        pygeos.linearrings(box_tpl(0, 0, 10, 10)),
+    actual = shapely.polygons(
+        shapely.linearrings(box_tpl(0, 0, 10, 10)),
         [
-            pygeos.linearrings(box_tpl(1, 1, 2, 2)),
+            shapely.linearrings(box_tpl(1, 1, 2, 2)),
             None,
-            pygeos.linearrings(box_tpl(3, 3, 4, 4)),
+            shapely.linearrings(box_tpl(3, 3, 4, 4)),
         ],
     )
-    assert pygeos.area(actual) == 98.0
+    assert shapely.area(actual) == 98.0
 
 
 def test_2_polygons_with_same_hole():
-    actual = pygeos.polygons(
+    actual = shapely.polygons(
         [box_tpl(0, 0, 10, 10), box_tpl(0, 0, 5, 5)], [box_tpl(1, 1, 2, 2)]
     )
-    assert pygeos.area(actual).tolist() == [99.0, 24.0]
+    assert shapely.area(actual).tolist() == [99.0, 24.0]
 
 
 def test_2_polygons_with_2_same_holes():
-    actual = pygeos.polygons(
+    actual = shapely.polygons(
         [box_tpl(0, 0, 10, 10), box_tpl(0, 0, 5, 5)],
         [box_tpl(1, 1, 2, 2), box_tpl(3, 3, 4, 4)],
     )
-    assert pygeos.area(actual).tolist() == [98.0, 23.0]
+    assert shapely.area(actual).tolist() == [98.0, 23.0]
 
 
 def test_2_polygons_with_different_holes():
-    actual = pygeos.polygons(
+    actual = shapely.polygons(
         [box_tpl(0, 0, 10, 10), box_tpl(0, 0, 5, 5)],
         [[box_tpl(1, 1, 3, 3)], [box_tpl(1, 1, 2, 2)]],
     )
-    assert pygeos.area(actual).tolist() == [96.0, 24.0]
+    assert shapely.area(actual).tolist() == [96.0, 24.0]
 
 
 def test_polygons_not_enough_points_in_shell_scalar():
     with pytest.raises(ValueError):
-        pygeos.polygons((1, 1))
+        shapely.polygons((1, 1))
 
 
 @pytest.mark.parametrize(
@@ -287,17 +287,17 @@ def test_polygons_not_enough_points_in_shell_scalar():
 def test_polygons_not_enough_points_in_shell(shape):
     coords = np.ones(shape)
     with pytest.raises(ValueError):
-        pygeos.polygons(coords)
+        shapely.polygons(coords)
 
     # make sure the first coordinate != second coordinate
     coords[..., 1] += 1
     with pytest.raises(ValueError):
-        pygeos.polygons(coords)
+        shapely.polygons(coords)
 
 
 def test_polygons_not_enough_points_in_holes_scalar():
     with pytest.raises(ValueError):
-        pygeos.polygons(np.ones((1, 4, 2)), (1, 1))
+        shapely.polygons(np.ones((1, 4, 2)), (1, 1))
 
 
 @pytest.mark.parametrize(
@@ -314,76 +314,76 @@ def test_polygons_not_enough_points_in_holes_scalar():
 def test_polygons_not_enough_points_in_holes(shape):
     coords = np.ones(shape)
     with pytest.raises(ValueError):
-        pygeos.polygons(np.ones((1, 4, 2)), coords)
+        shapely.polygons(np.ones((1, 4, 2)), coords)
 
     # make sure the first coordinate != second coordinate
     coords[..., 1] += 1
     with pytest.raises(ValueError):
-        pygeos.polygons(np.ones((1, 4, 2)), coords)
+        shapely.polygons(np.ones((1, 4, 2)), coords)
 
 
 @pytest.mark.parametrize(
     "func,expected",
     [
-        (pygeos.multipoints, "MULTIPOINT EMPTY"),
-        (pygeos.multilinestrings, "MULTILINESTRING EMPTY"),
-        (pygeos.multipolygons, "MULTIPOLYGON EMPTY"),
-        (pygeos.geometrycollections, "GEOMETRYCOLLECTION EMPTY"),
+        (shapely.multipoints, "MULTIPOINT EMPTY"),
+        (shapely.multilinestrings, "MULTILINESTRING EMPTY"),
+        (shapely.multipolygons, "MULTIPOLYGON EMPTY"),
+        (shapely.geometrycollections, "GEOMETRYCOLLECTION EMPTY"),
     ],
 )
 def test_create_collection_only_none(func, expected):
     actual = func(np.array([None], dtype=object))
-    assert_geometries_equal(actual, pygeos.Geometry(expected))
+    assert_geometries_equal(actual, shapely.Geometry(expected))
 
 
 @pytest.mark.parametrize(
     "func,sub_geom",
     [
-        (pygeos.multipoints, point),
-        (pygeos.multilinestrings, line_string),
-        (pygeos.multilinestrings, linear_ring),
-        (pygeos.multipolygons, polygon),
-        (pygeos.geometrycollections, point),
-        (pygeos.geometrycollections, line_string),
-        (pygeos.geometrycollections, linear_ring),
-        (pygeos.geometrycollections, polygon),
-        (pygeos.geometrycollections, multi_point),
-        (pygeos.geometrycollections, multi_line_string),
-        (pygeos.geometrycollections, multi_polygon),
-        (pygeos.geometrycollections, geometry_collection),
+        (shapely.multipoints, point),
+        (shapely.multilinestrings, line_string),
+        (shapely.multilinestrings, linear_ring),
+        (shapely.multipolygons, polygon),
+        (shapely.geometrycollections, point),
+        (shapely.geometrycollections, line_string),
+        (shapely.geometrycollections, linear_ring),
+        (shapely.geometrycollections, polygon),
+        (shapely.geometrycollections, multi_point),
+        (shapely.geometrycollections, multi_line_string),
+        (shapely.geometrycollections, multi_polygon),
+        (shapely.geometrycollections, geometry_collection),
     ],
 )
 def test_create_collection(func, sub_geom):
     actual = func([sub_geom, sub_geom])
-    assert pygeos.get_num_geometries(actual) == 2
+    assert shapely.get_num_geometries(actual) == 2
 
 
 @pytest.mark.parametrize(
     "func,sub_geom",
     [
-        (pygeos.multipoints, point),
-        (pygeos.multilinestrings, line_string),
-        (pygeos.multipolygons, polygon),
-        (pygeos.geometrycollections, polygon),
+        (shapely.multipoints, point),
+        (shapely.multilinestrings, line_string),
+        (shapely.multipolygons, polygon),
+        (shapely.geometrycollections, polygon),
     ],
 )
 def test_create_collection_skips_none(func, sub_geom):
     actual = func([sub_geom, None, None, sub_geom])
-    assert pygeos.get_num_geometries(actual) == 2
+    assert shapely.get_num_geometries(actual) == 2
 
 
 @pytest.mark.parametrize(
     "func,sub_geom",
     [
-        (pygeos.multipoints, line_string),
-        (pygeos.multipoints, geometry_collection),
-        (pygeos.multipoints, multi_point),
-        (pygeos.multilinestrings, point),
-        (pygeos.multilinestrings, polygon),
-        (pygeos.multilinestrings, multi_line_string),
-        (pygeos.multipolygons, linear_ring),
-        (pygeos.multipolygons, multi_point),
-        (pygeos.multipolygons, multi_polygon),
+        (shapely.multipoints, line_string),
+        (shapely.multipoints, geometry_collection),
+        (shapely.multipoints, multi_point),
+        (shapely.multilinestrings, point),
+        (shapely.multilinestrings, polygon),
+        (shapely.multilinestrings, multi_line_string),
+        (shapely.multipolygons, linear_ring),
+        (shapely.multipolygons, multi_point),
+        (shapely.multipolygons, multi_polygon),
     ],
 )
 def test_create_collection_wrong_geom_type(func, sub_geom):
@@ -394,12 +394,12 @@ def test_create_collection_wrong_geom_type(func, sub_geom):
 @pytest.mark.parametrize(
     "coords,ccw,expected",
     [
-        ((0, 0, 1, 1), True, pygeos.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))")),
-        ((0, 0, 1, 1), False, pygeos.Geometry("POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))")),
+        ((0, 0, 1, 1), True, shapely.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))")),
+        ((0, 0, 1, 1), False, shapely.Geometry("POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))")),
     ],
 )
 def test_box(coords, ccw, expected):
-    actual = pygeos.box(*coords, ccw=ccw)
+    actual = shapely.box(*coords, ccw=ccw)
     assert_geometries_equal(actual, expected)
 
 
@@ -410,22 +410,22 @@ def test_box(coords, ccw, expected):
             (0, 0, [1, 2], [1, 2]),
             True,
             [
-                pygeos.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"),
-                pygeos.Geometry("POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))"),
+                shapely.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"),
+                shapely.Geometry("POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))"),
             ],
         ),
         (
             (0, 0, [1, 2], [1, 2]),
             [True, False],
             [
-                pygeos.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"),
-                pygeos.Geometry("POLYGON ((0 0, 0 2, 2 2, 2 0, 0 0))"),
+                shapely.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"),
+                shapely.Geometry("POLYGON ((0 0, 0 2, 2 2, 2 0, 0 0))"),
             ],
         ),
     ],
 )
 def test_box_array(coords, ccw, expected):
-    actual = pygeos.box(*coords, ccw=ccw)
+    actual = shapely.box(*coords, ccw=ccw)
     assert_geometries_equal(actual, expected)
 
 
@@ -440,84 +440,84 @@ def test_box_array(coords, ccw, expected):
     ],
 )
 def test_box_nan(coords):
-    assert pygeos.box(*coords) is None
+    assert shapely.box(*coords) is None
 
 
-class BaseGeometry(pygeos.Geometry):
+class BaseGeometry(shapely.Geometry):
     @property
     def type_id(self):
-        return pygeos.get_type_id(self)
+        return shapely.get_type_id(self)
 
 
 class Point(BaseGeometry):
     @property
     def x(self):
-        return pygeos.get_x(self)
+        return shapely.get_x(self)
 
     @property
     def y(self):
-        return pygeos.get_y(self)
+        return shapely.get_y(self)
 
 
 @pytest.fixture
 def with_point_in_registry():
-    orig = pygeos.lib.registry[0]
-    pygeos.lib.registry[0] = Point
+    orig = shapely.lib.registry[0]
+    shapely.lib.registry[0] = Point
     yield
-    pygeos.lib.registry[0] = orig
+    shapely.lib.registry[0] = orig
 
 
 def test_subclasses(with_point_in_registry):
-    for _point in [Point("POINT (1 1)"), pygeos.points(1, 1)]:
+    for _point in [Point("POINT (1 1)"), shapely.points(1, 1)]:
         assert isinstance(_point, Point)
-        assert pygeos.get_type_id(_point) == pygeos.GeometryType.POINT
+        assert shapely.get_type_id(_point) == shapely.GeometryType.POINT
         assert _point.x == 1
 
 
 def test_prepare():
-    arr = np.array([pygeos.points(1, 1), None, pygeos.box(0, 0, 1, 1)])
+    arr = np.array([shapely.points(1, 1), None, shapely.box(0, 0, 1, 1)])
     assert arr[0]._ptr_prepared == 0
     assert arr[2]._ptr_prepared == 0
-    pygeos.prepare(arr)
+    shapely.prepare(arr)
     assert arr[0]._ptr_prepared != 0
     assert arr[1] is None
     assert arr[2]._ptr_prepared != 0
 
     # preparing again actually does nothing
     original = arr[0]._ptr_prepared
-    pygeos.prepare(arr)
+    shapely.prepare(arr)
     assert arr[0]._ptr_prepared == original
 
 
 def test_destroy_prepared():
-    arr = np.array([pygeos.points(1, 1), None, pygeos.box(0, 0, 1, 1)])
-    pygeos.prepare(arr)
+    arr = np.array([shapely.points(1, 1), None, shapely.box(0, 0, 1, 1)])
+    shapely.prepare(arr)
     assert arr[0]._ptr_prepared != 0
     assert arr[2]._ptr_prepared != 0
-    pygeos.destroy_prepared(arr)
+    shapely.destroy_prepared(arr)
     assert arr[0]._ptr_prepared == 0
     assert arr[1] is None
     assert arr[2]._ptr_prepared == 0
-    pygeos.destroy_prepared(arr)  # does not error
+    shapely.destroy_prepared(arr)  # does not error
 
 
 def test_subclass_is_geometry(with_point_in_registry):
-    assert pygeos.is_geometry(Point("POINT (1 1)"))
+    assert shapely.is_geometry(Point("POINT (1 1)"))
 
 
 def test_subclass_is_valid_input(with_point_in_registry):
-    assert pygeos.is_valid_input(Point("POINT (1 1)"))
+    assert shapely.is_valid_input(Point("POINT (1 1)"))
 
 
 @pytest.mark.parametrize("geom_type", [None, GeometryType.MISSING, -1])
 def test_empty_missing(geom_type):
-    actual = pygeos.empty((2,), geom_type=geom_type)
-    assert pygeos.is_missing(actual).all()
+    actual = shapely.empty((2,), geom_type=geom_type)
+    assert shapely.is_missing(actual).all()
 
 
 @pytest.mark.parametrize("geom_type", range(8))
 def test_empty(geom_type):
-    actual = pygeos.empty((2,), geom_type=geom_type)
-    assert (~pygeos.is_missing(actual)).all()
-    assert pygeos.is_empty(actual).all()
-    assert (pygeos.get_type_id(actual) == geom_type).all()
+    actual = shapely.empty((2,), geom_type=geom_type)
+    assert (shapely.is_missing(actual)).all()
+    assert shapely.is_empty(actual).all()
+    assert (shapely.get_type_id(actual) == geom_type).all()

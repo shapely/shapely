@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-import pygeos
-from pygeos.testing import assert_geometries_equal
+import shapely
+from shapely.testing import assert_geometries_equal
 
 from .common import (
     all_types,
@@ -27,11 +27,11 @@ EMPTY_GEOMS = (
     empty,
 )
 
-line_string_reversed = pygeos.linestrings([(0, 0), (1, 0), (1, 1)][::-1])
+line_string_reversed = shapely.linestrings([(0, 0), (1, 0), (1, 1)][::-1])
 
 
 PRE_GEOS_390 = pytest.mark.skipif(
-    pygeos.geos_version < (3, 9, 0),
+    shapely.geos_version < (3, 9, 0),
     reason="2D and 3D empty geometries did not have dimensionality before GEOS 3.9",
 )
 

@@ -1,7 +1,7 @@
 """
 Support for GEOS prepared geometry operations.
 """
-import pygeos
+import shapely
 
 from pickle import PicklingError
 
@@ -23,7 +23,7 @@ class PreparedGeometry:
         if isinstance(context, PreparedGeometry):
             self.context = context.context
         else:
-            pygeos.prepare(context)
+            shapely.prepare(context)
             self.context = context
         self.prepared = True
 
@@ -33,8 +33,8 @@ class PreparedGeometry:
 
     def contains_properly(self, other):
         """Returns True if the geometry properly contains the other, else False"""
-        # TODO temporary hack until pygeos exposes contains properly as predicate function
-        from pygeos import STRtree
+        # TODO temporary hack until shapely exposes contains properly as predicate function
+        from shapely import STRtree
         tree = STRtree([other])
         idx = tree.query(self.context, predicate="contains_properly")
         return bool(len(idx))

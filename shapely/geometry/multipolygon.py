@@ -4,7 +4,7 @@
 from shapely.geometry.base import BaseMultipartGeometry
 from shapely.geometry import polygon
 
-import pygeos
+import shapely
 
 
 __all__ = ['MultiPolygon']
@@ -53,7 +53,7 @@ class MultiPolygon(BaseMultipartGeometry):
         if not polygons:
             # allow creation of empty multipolygons, to support unpickling
             # TODO better empty constructor
-            return pygeos.from_wkt("MULTIPOLYGON EMPTY")
+            return shapely.from_wkt("MULTIPOLYGON EMPTY")
         elif isinstance(polygons, MultiPolygon):
             return polygons
 
@@ -65,7 +65,7 @@ class MultiPolygon(BaseMultipartGeometry):
 
         # Bail immediately if we have no input points.
         if L == 0:
-            return pygeos.from_wkt("MULTIPOLYGON EMPTY")
+            return shapely.from_wkt("MULTIPOLYGON EMPTY")
 
         # This function does not accept sequences of MultiPolygons: there is
         # no implicit flattening.
@@ -83,7 +83,7 @@ class MultiPolygon(BaseMultipartGeometry):
                 p = polygon.Polygon(ob)
             subs.append(p)
 
-        return pygeos.multipolygons(subs)
+        return shapely.multipolygons(subs)
 
     def shape_factory(self, *args):
         return polygon.Polygon(*args)
@@ -124,4 +124,4 @@ class MultiPolygon(BaseMultipartGeometry):
             '</g>'
 
 
-pygeos.lib.registry[6] = MultiPolygon
+shapely.lib.registry[6] = MultiPolygon

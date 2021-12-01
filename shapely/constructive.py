@@ -543,7 +543,7 @@ def polygonize(geometries, **kwargs):
     Individual Polygons can be obtained using ``get_geometry`` to get
     a single polygon or ``get_parts`` to get an array of polygons.
     MultiPolygons can be constructed from the output using
-    ``pygeos.multipolygons(pygeos.get_parts(pygeos.polygonize(geometries)))``.
+    ``shapely.multipolygons(shapely.get_parts(shapely.polygonize(geometries)))``.
 
     Parameters
     ----------
@@ -804,7 +804,7 @@ def voronoi_polygons(
 
     Examples
     --------
-    >>> from pygeos import normalize
+    >>> from shapely import normalize
     >>> points = Geometry("MULTIPOINT (2 2, 4 2)")
     >>> normalize(voronoi_polygons(points))
     <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((3 0, 3 4, 6 4, 6 0, 3 0)), PO...>

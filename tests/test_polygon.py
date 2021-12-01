@@ -12,8 +12,6 @@ from shapely.geometry import Point, Polygon
 from shapely.geometry.polygon import LinearRing, LineString
 from shapely.geometry.base import dump_coords
 
-import pygeos
-
 
 def test_empty_linearring_coords():
     assert LinearRing().coords[:] == []

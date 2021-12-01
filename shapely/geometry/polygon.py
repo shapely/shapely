@@ -2,7 +2,7 @@
 """
 
 import numpy as np
-import pygeos
+import shapely
 
 from shapely.algorithms.cga import signed_area, is_ccw_impl
 from shapely.geometry.base import BaseGeometry
@@ -15,8 +15,8 @@ __all__ = ['Polygon', 'LinearRing']
 
 
 def _unpickle_linearring(wkb):
-    linestring = pygeos.from_wkb(wkb)
-    return pygeos.linearrings(pygeos.get_coordinates(linestring))
+    linestring = shapely.from_wkb(wkb)
+    return shapely.linearrings(shapely.get_coordinates(linestring))
 
 
 class LinearRing(LineString):
@@ -53,7 +53,7 @@ class LinearRing(LineString):
         if coordinates is None:
             # empty geometry
             # TODO better way?
-            return pygeos.from_wkt("LINEARRING EMPTY")
+            return shapely.from_wkt("LINEARRING EMPTY")
         elif isinstance(coordinates, LineString):
             if type(coordinates) == LinearRing:
                 # return original objects since geometries are immutable
@@ -76,10 +76,10 @@ class LinearRing(LineString):
 
         if len(coordinates) == 0:
             # empty geometry
-            # TODO better constructor + should pygeos.linearrings handle this?
-            return pygeos.from_wkt("LINEARRING EMPTY")
+            # TODO better constructor + should shapely.linearrings handle this?
+            return shapely.from_wkt("LINEARRING EMPTY")
 
-        geom = pygeos.linearrings(coordinates)
+        geom = shapely.linearrings(coordinates)
         if not isinstance(geom, LinearRing):
             raise ValueError("Invalid values passed to LinearRing constructor")
         return geom
@@ -105,10 +105,10 @@ class LinearRing(LineString):
     def is_simple(self):
         """True if the geometry is simple, meaning that any self-intersections
         are only at boundary points, else False"""
-        return pygeos.is_simple(self)
+        return shapely.is_simple(self)
 
 
-pygeos.lib.registry[2] = LinearRing
+shapely.lib.registry[2] = LinearRing
 
 
 class InteriorRingSequence:
@@ -141,7 +141,7 @@ class InteriorRingSequence:
             raise StopIteration
 
     def __len__(self):
-        return pygeos.get_num_interior_rings(self.__p__)
+        return shapely.get_num_interior_rings(self.__p__)
 
     def __getitem__(self, key):
         m = self.__len__()
@@ -174,7 +174,7 @@ class InteriorRingSequence:
         return hash(repr(self.__p__))
 
     def _get_ring(self, i):
-        return pygeos.get_interior_ring(self.__p__, i)
+        return shapely.get_interior_ring(self.__p__, i)
 
 
 class Polygon(BaseGeometry):
@@ -218,7 +218,7 @@ class Polygon(BaseGeometry):
         if shell is None:
             # empty geometry
             # TODO better way?
-            return pygeos.from_wkt("POLYGON EMPTY")
+            return shapely.from_wkt("POLYGON EMPTY")
         elif isinstance(shell, Polygon):
             # return original objects since geometries are immutable
             return shell
@@ -229,7 +229,7 @@ class Polygon(BaseGeometry):
 
         if holes is not None:
             if len(holes) == 0:
-                # pygeos constructor cannot handle holes=[]
+                # shapely constructor cannot handle holes=[]
                 holes = None
 
         if not isinstance(shell, BaseGeometry):
@@ -240,22 +240,22 @@ class Polygon(BaseGeometry):
 
             if len(shell) == 0:
                 # empty geometry
-                # TODO better constructor + should pygeos.polygons handle this?
-                return pygeos.from_wkt("POLYGON EMPTY")
+                # TODO better constructor + should shapely.polygons handle this?
+                return shapely.from_wkt("POLYGON EMPTY")
 
             if not np.issubdtype(shell.dtype, np.number):
                 # conversion of coords to 2D array failed, this might be due
                 # to inconsistent coordinate dimensionality
                 raise ValueError("Inconsistent coordinate dimensionality")
 
-        geom = pygeos.polygons(shell, holes=holes)
+        geom = shapely.polygons(shell, holes=holes)
         if not isinstance(geom, Polygon):
             raise ValueError("Invalid values passed to Polygon constructor")
         return geom
 
     @property
     def exterior(self):
-        return pygeos.get_exterior_ring(self)
+        return shapely.get_exterior_ring(self)
 
     @property
     def interiors(self):
@@ -345,7 +345,7 @@ class Polygon(BaseGeometry):
             (xmax, ymin)])
 
 
-pygeos.lib.registry[3] = Polygon
+shapely.lib.registry[3] = Polygon
 
 
 def orient(polygon, sign=1.0):

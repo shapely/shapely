@@ -1,7 +1,7 @@
 """Provides multi-point element-wise operations such as ``contains``."""
 
 import numpy as np
-import pygeos
+import shapely
 
 from shapely.prepared import PreparedGeometry
 
@@ -16,7 +16,7 @@ def _construct_points(x, y):
     if y.dtype != np.float64:
         y = y.astype(np.float64)
 
-    return pygeos.points(x, y)
+    return shapely.points(x, y)
 
 
 def contains(geometry, x, y):
@@ -43,8 +43,8 @@ def contains(geometry, x, y):
     points = _construct_points(x, y)
     if isinstance(geometry, PreparedGeometry):
         geometry = geometry.context
-    pygeos.prepare(geometry)
-    return pygeos.contains(geometry, points)
+    shapely.prepare(geometry)
+    return shapely.contains(geometry, points)
 
 
 def touches(geometry, x, y):
@@ -71,5 +71,5 @@ def touches(geometry, x, y):
     points = _construct_points(x, y)
     if isinstance(geometry, PreparedGeometry):
         geometry = geometry.context
-    pygeos.prepare(geometry)
-    return pygeos.touches(geometry, points)
+    shapely.prepare(geometry)
+    return shapely.touches(geometry, points)

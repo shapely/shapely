@@ -8,9 +8,9 @@ import numpy as np
 
 cimport numpy as np
 
-import pygeos
+import shapely
 
-from pygeos._geos cimport (
+from shapely._geos cimport (
     GEOSContextHandle_t,
     GEOSCoordSequence,
     GEOSGeom_clone_r,
@@ -28,14 +28,14 @@ from pygeos._geos cimport (
     GEOSGetInteriorRingN_r,
     get_geos_handle,
 )
-from pygeos._pygeos_api cimport (
+from shapely._pygeos_api cimport (
     import_pygeos_c_api,
     PyGEOS_CoordSeq_FromBuffer,
     PyGEOS_CreateGeometry,
     PyGEOS_GetGEOSGeometry,
 )
 
-# initialize PyGEOS C API
+# initialize Shapely C API
 import_pygeos_c_api()
 
 
@@ -129,7 +129,7 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type, 
                             break
                 # check the resulting size to prevent invalid rings
                 if geom_size + ring_closure < 4:
-                    # the error equals PGERR_LINEARRING_NCOORDS (in pygeos/src/geos.h)
+                    # the error equals PGERR_LINEARRING_NCOORDS (in shapely/src/geos.h)
                     raise ValueError("A linearring requires at least 4 coordinates.")
 
             seq = PyGEOS_CoordSeq_FromBuffer(geos_handle, &coord_view[idx, 0], geom_size, dims, ring_closure)
@@ -172,12 +172,12 @@ def get_parts(object[:] array, bint extract_rings=0):
     cdef const GEOSGeometry *part = NULL
 
     if extract_rings:
-        counts = pygeos.get_num_interior_rings(array)
-        is_polygon = (pygeos.get_type_id(array) == 3) & (~pygeos.is_empty(array))
+        counts = shapely.get_num_interior_rings(array)
+        is_polygon = (shapely.get_type_id(array) == 3) & (~shapely.is_empty(array))
         counts += is_polygon
         count = counts.sum()
     else:
-        counts = pygeos.get_num_geometries(array)
+        counts = shapely.get_num_geometries(array)
         count = counts.sum()
 
     if count == 0:

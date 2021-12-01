@@ -1,4 +1,4 @@
-import pygeos
+import shapely
 
 
 def signed_area(ring):
@@ -15,8 +15,8 @@ def is_ccw_impl(name=None):
     def is_ccw_op(ring):
         return signed_area(ring) >= 0.0
 
-    if pygeos.geos_version >= (3, 7, 0):
-        return pygeos.is_ccw
+    if shapely.geos_version >= (3, 7, 0):
+        return shapely.is_ccw
     else:
         return is_ccw_op
 

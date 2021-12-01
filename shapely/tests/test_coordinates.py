@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_equal
 
-import pygeos
-from pygeos import apply, count_coordinates, get_coordinates, set_coordinates
+import shapely
+from shapely import apply, count_coordinates, get_coordinates, set_coordinates
 
 from .common import (
     empty,
@@ -25,8 +25,8 @@ from .common import (
     polygon_z,
 )
 
-nested_2 = pygeos.geometrycollections([geometry_collection, point])
-nested_3 = pygeos.geometrycollections([nested_2, point])
+nested_2 = shapely.geometrycollections([geometry_collection, point])
+nested_3 = shapely.geometrycollections([nested_2, point])
 
 
 @pytest.mark.parametrize(
@@ -179,14 +179,14 @@ def test_set_coords_nan():
 
 
 def test_set_coords_breaks_ring():
-    with pytest.raises(pygeos.GEOSException):
+    with pytest.raises(shapely.GEOSException):
         set_coordinates(linear_ring, np.random.random((5, 2)))
 
 
 def test_set_coords_0dim():
     # a geometry input returns a geometry
     actual = set_coordinates(point, [[1, 1]])
-    assert isinstance(actual, pygeos.Geometry)
+    assert isinstance(actual, shapely.Geometry)
     # a 0-dim array input returns a 0-dim array
     actual = set_coordinates(np.asarray(point), [[1, 1]])
     assert isinstance(actual, np.ndarray)
@@ -200,11 +200,11 @@ def test_set_coords_mixed_dimension(include_z):
     new_geoms = set_coordinates(geoms, coords * 2)
     if include_z:
         # preserve original dimensionality
-        assert not pygeos.has_z(new_geoms[0])
-        assert pygeos.has_z(new_geoms[1])
+        assert not shapely.has_z(new_geoms[0])
+        assert shapely.has_z(new_geoms[1])
     else:
         # all 2D
-        assert not pygeos.has_z(new_geoms).any()
+        assert not shapely.has_z(new_geoms).any()
 
 
 @pytest.mark.parametrize("include_z", [True, False])
@@ -224,7 +224,7 @@ def test_apply(geoms, include_z):
 def test_apply_0dim():
     # a geometry input returns a geometry
     actual = apply(point, lambda x: x + 1)
-    assert isinstance(actual, pygeos.Geometry)
+    assert isinstance(actual, shapely.Geometry)
     # a 0-dim array input returns a 0-dim array
     actual = apply(np.asarray(point), lambda x: x + 1)
     assert isinstance(actual, np.ndarray)
@@ -242,26 +242,26 @@ def test_apply_check_shape():
 def test_apply_correct_coordinate_dimension():
     # ensure that new geometry is 2D with include_z=False
     geom = line_string_z
-    assert pygeos.get_coordinate_dimension(geom) == 3
+    assert shapely.get_coordinate_dimension(geom) == 3
     new_geom = apply(geom, lambda x: x + 1, include_z=False)
-    assert pygeos.get_coordinate_dimension(new_geom) == 2
+    assert shapely.get_coordinate_dimension(new_geom) == 2
 
 
 @pytest.mark.parametrize("geom", [
-    pytest.param(empty_point_z, marks=pytest.mark.skipif(pygeos.geos_version < (3, 9, 0), reason="Empty points don't have a dimensionality before GEOS 3.9")),
+    pytest.param(empty_point_z, marks=pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="Empty points don't have a dimensionality before GEOS 3.9")),
     empty_line_string_z,
 ])
 def test_apply_empty_preserve_z(geom):
-    assert pygeos.get_coordinate_dimension(geom) == 3
+    assert shapely.get_coordinate_dimension(geom) == 3
     new_geom = apply(geom, lambda x: x + 1, include_z=True)
-    assert pygeos.get_coordinate_dimension(new_geom) == 3
+    assert shapely.get_coordinate_dimension(new_geom) == 3
 
 
 @pytest.mark.parametrize("geom", [
-    pytest.param(empty_point_z, marks=pytest.mark.skipif(pygeos.geos_version < (3, 9, 0), reason="Empty points don't have a dimensionality before GEOS 3.9")),
+    pytest.param(empty_point_z, marks=pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="Empty points don't have a dimensionality before GEOS 3.9")),
     empty_line_string_z,
 ])
 def test_apply_remove_z(geom):
-    assert pygeos.get_coordinate_dimension(geom) == 3
+    assert shapely.get_coordinate_dimension(geom) == 3
     new_geom = apply(geom, lambda x: x + 1, include_z=False)
-    assert pygeos.get_coordinate_dimension(new_geom) == 2
+    assert shapely.get_coordinate_dimension(new_geom) == 2

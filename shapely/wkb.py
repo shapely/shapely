@@ -2,7 +2,7 @@
 
 Also provides pickle-like convenience functions.
 """
-import pygeos
+import shapely
 
 
 def loads(data, hex=False):
@@ -14,7 +14,7 @@ def loads(data, hex=False):
     WKBReadingError, UnicodeDecodeError
         If ``data`` contains an invalid geometry.
     """
-    return pygeos.from_wkb(data)
+    return shapely.from_wkb(data)
 
 
 
@@ -49,7 +49,7 @@ def dumps(ob, hex=False, srid=None, **kw):
     """
     if srid is not None:
         # clone the object and set the SRID before dumping
-        ob = pygeos.set_srid(ob, srid)
+        ob = shapely.set_srid(ob, srid)
         kw["include_srid"] = True
     if "big_endian" in kw:
         # translate big_endian=True/False into byte_order=0/1
@@ -57,7 +57,7 @@ def dumps(ob, hex=False, srid=None, **kw):
         big_endian = kw.pop("big_endian")
         byte_order = 0 if big_endian else 1
         kw.update(byte_order=byte_order)
-    return pygeos.to_wkb(ob, hex=hex, **kw)
+    return shapely.to_wkb(ob, hex=hex, **kw)
 
 
 def dump(ob, fp, hex=False, **kw):
