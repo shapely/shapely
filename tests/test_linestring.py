@@ -1,4 +1,5 @@
 from . import unittest, numpy, shapely20_deprecated
+from .conftest import shapely20_todo
 import pytest
 
 from shapely.coords import CoordinateSequence
@@ -111,6 +112,7 @@ def test_numpy_object_array():
     assert ar[0] == geom
 
 
+@shapely20_todo
 def test_from_invalid_dim():
     # TODO(shapely-2.0) better error message?
     # pytest.raises(ValueError, match="at least 2 coordinate tuples|at least 2 coordinates"):
