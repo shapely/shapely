@@ -16,7 +16,11 @@ __all__ = ['Polygon', 'LinearRing']
 
 def _unpickle_linearring(wkb):
     linestring = shapely.from_wkb(wkb)
-    return shapely.linearrings(shapely.get_coordinates(linestring))
+    srid = shapely.get_srid(linestring)
+    linearring = shapely.linearrings(shapely.get_coordinates(linestring))
+    if srid:
+        linearring = shapely.set_srid(linearring, srid)
+    return linearring
 
 
 class LinearRing(LineString):
@@ -94,7 +98,7 @@ class LinearRing(LineString):
     def __reduce__(self):
         """WKB doesn't differentiate between LineString and LinearRing so we
         need to move the coordinate sequence into the correct geometry type"""
-        return (_unpickle_linearring, (self.wkb, ))
+        return (_unpickle_linearring, (shapely.to_wkb(self, include_srid=True), ))
 
     @property
     def is_ccw(self):

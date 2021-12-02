@@ -114,7 +114,7 @@ class BaseGeometry(shapely.Geometry):
         return self.wkt
 
     def __reduce__(self):
-        return (shapely.from_wkb, (self.wkb, ))
+        return (shapely.from_wkb, (shapely.to_wkb(self, include_srid=True), ))
 
     def __setattr__(self, name, value):
         # first try regular attribute access via __getattribute__, so that
