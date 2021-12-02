@@ -5,8 +5,8 @@
 
 #define PyGEOS_API_Module
 
-#define PY_ARRAY_UNIQUE_SYMBOL pygeos_ARRAY_API
-#define PY_UFUNC_UNIQUE_SYMBOL pygeos_UFUNC_API
+#define PY_ARRAY_UNIQUE_SYMBOL shapely_ARRAY_API
+#define PY_UFUNC_UNIQUE_SYMBOL shapely_UFUNC_API
 #include <numpy/ndarraytypes.h>
 #include <numpy/npy_3kcompat.h>
 #include <numpy/ufuncobject.h>
@@ -92,7 +92,7 @@ PyMODINIT_FUNC PyInit_lib(void) {
   PyGEOS_API[PyGEOS_CoordSeq_FromBuffer_NUM] = (void*)PyGEOS_CoordSeq_FromBuffer;
 
   /* Create a Capsule containing the API pointer array's address */
-  c_api_object = PyCapsule_New((void*)PyGEOS_API, "pygeos.lib._C_API", NULL);
+  c_api_object = PyCapsule_New((void*)PyGEOS_API, "shapely.lib._C_API", NULL);
   if (c_api_object != NULL) {
     PyModule_AddObject(m, "_C_API", c_api_object);
   }

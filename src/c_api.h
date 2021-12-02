@@ -42,7 +42,7 @@
 #define PyGEOS_API_num_pointers 3
 
 #ifdef PyGEOS_API_Module
-/* This section is used when compiling pygeos.lib C extension.
+/* This section is used when compiling shapely.lib C extension.
  * Each API function needs to provide a corresponding *_PROTO here.
  */
 
@@ -75,9 +75,9 @@ static void **PyGEOS_API;
  * PyCapsule_Import will set an exception on error.
  */
 static int
-import_pygeos_c_api(void)
+import_shapely_c_api(void)
 {
-    PyGEOS_API = (void **)PyCapsule_Import("pygeos.lib._C_API", 0);
+    PyGEOS_API = (void **)PyCapsule_Import("shapely.lib._C_API", 0);
     return (PyGEOS_API == NULL) ? -1 : 0;
 }
 
