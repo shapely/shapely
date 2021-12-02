@@ -112,7 +112,8 @@ def test_numpy_object_array():
     assert ar[0] == geom
 
 
-@shapely20_todo
+# TODO(shapely-2.0)
+@pytest.mark.xfail(strict=False, reason="Not yet implemented for Shapely 2.0")
 def test_from_invalid_dim():
     # TODO(shapely-2.0) better error message?
     # pytest.raises(ValueError, match="at least 2 coordinate tuples|at least 2 coordinates"):
