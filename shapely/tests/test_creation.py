@@ -518,6 +518,6 @@ def test_empty_missing(geom_type):
 @pytest.mark.parametrize("geom_type", range(8))
 def test_empty(geom_type):
     actual = shapely.empty((2,), geom_type=geom_type)
-    assert (shapely.is_missing(actual)).all()
+    assert (~shapely.is_missing(actual)).all()
     assert shapely.is_empty(actual).all()
     assert (shapely.get_type_id(actual) == geom_type).all()
