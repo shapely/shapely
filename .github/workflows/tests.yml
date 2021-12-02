@@ -135,7 +135,7 @@ jobs:
       # - Python >=3.8 ignores the PATH for finding DLLs, so we copy them into the package 
       - name: Set environment variables + copy DLLs (Windows)
         run: |
-          cp geosinstall/geos-${{ matrix.geos }}/bin/*.dll pygeos
+          cp geosinstall/geos-${{ matrix.geos }}/bin/*.dll shapely
           echo 'GEOS_LIBRARY_PATH=${{ env.GEOS_INSTALL }}\lib' >> $GITHUB_ENV
           echo 'GEOS_INCLUDE_PATH=${{ env.GEOS_INSTALL }}\include' >> $GITHUB_ENV
         if: ${{ matrix.os == 'windows-2019' }}
