@@ -36,7 +36,8 @@ jobs:
           - python: "3.10"
             geos: 3.10.1
             numpy: 1.21.3
-            extra_pytest_args: "-W error"  # error on warnings
+            # TODO(shapely-2.0) temporary allow warnings
+            # extra_pytest_args: "-W error"  # error on warnings
           # dev
           - python: "3.10"
             geos: main
