@@ -7,7 +7,7 @@
 #include <structmember.h>
 
 #define NO_IMPORT_ARRAY
-#define PY_ARRAY_UNIQUE_SYMBOL pygeos_ARRAY_API
+#define PY_ARRAY_UNIQUE_SYMBOL shapely_ARRAY_API
 
 #include <numpy/arrayobject.h>
 #include <numpy/ndarraytypes.h>
@@ -333,7 +333,7 @@ static char evaluate_predicate(void* context, FuncGEOS_YpY_b* predicate_func,
  * satisfy the predicate function are returned.
  *
  * args must be:
- * - pygeos geometry object
+ * - shapely geometry object
  * - predicate id (see strtree.py for list of ids)
  * */
 
@@ -426,7 +426,7 @@ static PyObject* STRtree_query(STRtreeObject* self, PyObject* args) {
  * and second is indexes of tree geometries that meet the above conditions.
  *
  * args must be:
- * - ndarray of pygeos geometries
+ * - ndarray of shapely geometries
  * - predicate id (see strtree.py for list of ids)
  *
  * */
@@ -496,7 +496,7 @@ static PyObject* STRtree_query_bulk(STRtreeObject* self, PyObject* args) {
   GEOS_INIT_THREADS;
 
   for (i = 0; i < n; i++) {
-    // get pygeos geometry from input geometry array
+    // get shapely geometry from input geometry array
     pg_geom = *(GeometryObject**)PyArray_GETPTR1(pg_geoms, i);
     if (!get_geom_with_prepared(pg_geom, &geom, &prepared_geom)) {
       errstate = PGERR_NOT_A_GEOMETRY;
@@ -762,7 +762,7 @@ static PyObject* STRtree_nearest(STRtreeObject* self, PyObject* arr) {
   GEOS_INIT_THREADS;
 
   for (i = 0; i < n; i++) {
-    // get pygeos geometry from input geometry array
+    // get shapely geometry from input geometry array
     pg_geom = *(GeometryObject**)PyArray_GETPTR1(pg_geoms, i);
     if (!get_geom(pg_geom, &geom)) {
       errstate = PGERR_NOT_A_GEOMETRY;
@@ -928,7 +928,7 @@ static PyObject* STRtree_nearest_all(STRtreeObject* self, PyObject* args) {
   userdata.dist_pairs = &dist_pairs;
 
   for (i = 0; i < n; i++) {
-    // get pygeos geometry from input geometry array
+    // get shapely geometry from input geometry array
     pg_geom = *(GeometryObject**)PyArray_GETPTR1(pg_geoms, i);
     if (!get_geom(pg_geom, &geom)) {
       errstate = PGERR_NOT_A_GEOMETRY;
@@ -1149,7 +1149,7 @@ static PyObject* STRtree_dwithin(STRtreeObject* self, PyObject* args) {
   GEOS_INIT_THREADS;
 
   for (i = 0; i < n; i++) {
-    // get pygeos geometry from input geometry array
+    // get shapely geometry from input geometry array
     pg_geom = *(GeometryObject**)PyArray_GETPTR1(pg_geoms, i);
     if (!get_geom_with_prepared(pg_geom, &geom, &prepared_geom)) {
       errstate = PGERR_NOT_A_GEOMETRY;
@@ -1311,7 +1311,7 @@ static PyMethodDef STRtree_methods[] = {
 };
 
 PyTypeObject STRtreeType = {
-    PyVarObject_HEAD_INIT(NULL, 0).tp_name = "pygeos.lib.STRtree",
+    PyVarObject_HEAD_INIT(NULL, 0).tp_name = "shapely.lib.STRtree",
     .tp_doc =
         "A query-only R-tree created using the Sort-Tile-Recursive (STR) algorithm.",
     .tp_basicsize = sizeof(STRtreeObject),

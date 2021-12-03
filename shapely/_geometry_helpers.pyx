@@ -29,14 +29,14 @@ from shapely._geos cimport (
     get_geos_handle,
 )
 from shapely._pygeos_api cimport (
-    import_pygeos_c_api,
+    import_shapely_c_api,
     PyGEOS_CoordSeq_FromBuffer,
     PyGEOS_CreateGeometry,
     PyGEOS_GetGEOSGeometry,
 )
 
 # initialize Shapely C API
-import_pygeos_c_api()
+import_shapely_c_api()
 
 
 def _check_out_array(object out, Py_ssize_t size):

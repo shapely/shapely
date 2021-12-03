@@ -152,14 +152,6 @@ class BaseGeometry(shapely.Geometry):
     def __xor__(self, other):
         return self.symmetric_difference(other)
 
-    def __eq__(self, other):
-        return type(other) == type(self) and bool(shapely.equals_exact(self, other))
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    __hash__ = None
-
     # Coordinate access
     # -----------------
 
@@ -747,8 +739,6 @@ class BaseMultipartGeometry(BaseGeometry):
 
     def __bool__(self):
         return self.is_empty is False
-
-    __hash__ = None
 
     def svg(self, scale_factor=1.0, color=None):
         """Returns a group of SVG elements for the multipart geometry.
