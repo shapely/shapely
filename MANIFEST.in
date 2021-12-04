@@ -10,5 +10,6 @@ recursive-include src *.c *.h
 recursive-include tests *.py *.txt
 recursive-include shapely/examples *.py
 recursive-include shapely *.pxi *.pxd *.pyx
+recursive-exclude shapely *.c
 recursive-include shapely/DLLs *.dll *.rst *.txt
 include docs/*.rst
