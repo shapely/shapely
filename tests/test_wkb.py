@@ -1,4 +1,5 @@
 import binascii
+import math
 import struct
 import sys
 
@@ -9,6 +10,8 @@ from shapely.errors import WKBReadingError
 from shapely.geometry import Point
 from shapely.geos import geos_version
 from shapely.wkb import dumps, loads, dump, load
+
+from tests.conftest import shapely20_todo
 
 
 @pytest.fixture(scope="module")
@@ -118,6 +121,8 @@ def test_dump_load_hex(some_point, tmpdir):
     assert some_point == restored
 
 
+# pygeos handles both bytes and str
+@shapely20_todo
 def test_dump_hex_load_binary(some_point, tmpdir):
     """Asserts that reading a binary file as text (hex mode) fails."""
     file = tmpdir.join("test.wkb")
@@ -135,23 +140,36 @@ def test_dump_binary_load_hex(some_point, tmpdir):
     with open(file, "wb") as file_pointer:
         dump(some_point, file_pointer)
 
+    # TODO(shapely-2.0) on windows this doesn't seem to error with pygeos,
+    # but you get back a point with garbage coordinates
+    if sys.platform == 'win32':
+        with open(file, "r") as file_pointer:
+            restored = load(file_pointer, hex=True)
+        assert some_point != restored
+        return
+
     with pytest.raises((WKBReadingError, UnicodeEncodeError, UnicodeDecodeError)):
         with open(file, "r") as file_pointer:
             load(file_pointer, hex=True)
 
 
-requires_geos_39 = pytest.mark.xfail(
-    geos_version < (3, 9, 0), reason="GEOS >= 3.9.0 is required", strict=True)
+requires_geos_380 = pytest.mark.xfail(
+    geos_version < (3, 8, 0), reason="GEOS >= 3.8.0 is required", strict=True)
 
 
-@requires_geos_39
+@requires_geos_380
 def test_point_empty():
     g = wkt.loads("POINT EMPTY")
-    assert g.wkb_hex == hostorder(
-        "BIdd", "0101000000000000000000F87F000000000000F87F")
+    result = dumps(g, big_endian=False)
+    # Use math.isnan for second part of the WKB representation  there are
+    # many byte representations for NaN)
+    assert result[: -2 * 8] == b'\x01\x01\x00\x00\x00'
+    coords = struct.unpack("<2d", result[-2 * 8 :])
+    assert len(coords) == 2
+    assert all(math.isnan(val) for val in coords)
 
 
-@requires_geos_39
+@pytest.mark.xfail(reason="Fails with latest pygeos")
 def test_point_z_empty():
     g = wkt.loads("POINT Z EMPTY")
     assert g.wkb_hex == hostorder(

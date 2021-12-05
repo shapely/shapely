@@ -1,4 +1,4 @@
-from . import unittest, shapely20_deprecated
+from . import unittest
 from shapely import geometry
 
 
@@ -44,35 +44,6 @@ class CoordsGetItemTestCase(unittest.TestCase):
         self.assertTrue(g.coords[::2] == c[::2])
         self.assertTrue(g.coords[:4] == c[:4])
         self.assertTrue(g.coords[4:] == c[4:] == [])
-
-
-class MultiGeomGetItemTestCase(unittest.TestCase):
-
-    @shapely20_deprecated
-    def test_index_multigeom(self):
-        c = [(float(x), float(-x)) for x in range(4)]
-        g = geometry.MultiPoint(c)
-        for i in range(-4, 4):
-            self.assertTrue(g[i].equals(geometry.Point(c[i])))
-        self.assertRaises(IndexError, lambda: g[4])
-        self.assertRaises(IndexError, lambda: g[-5])
-
-    @shapely20_deprecated
-    def test_index_multigeom_misc(self):
-        g = geometry.MultiLineString()  # empty
-        self.assertRaises(IndexError, lambda: g[0])
-        self.assertRaises(TypeError, lambda: g[0.0])
-
-    @shapely20_deprecated
-    def test_slice_multigeom(self):
-        c = [(float(x), float(-x)) for x in range(4)]
-        g = geometry.MultiPoint(c)
-        self.assertEqual(type(g[:]), type(g))
-        self.assertEqual(len(g[:]), len(g))
-        self.assertTrue(g[1:].equals(geometry.MultiPoint(c[1:])))
-        self.assertTrue(g[:-1].equals(geometry.MultiPoint(c[:-1])))
-        self.assertTrue(g[::-1].equals(geometry.MultiPoint(c[::-1])))
-        self.assertTrue(g[4:].is_empty)
 
 
 class LinearRingGetItemTestCase(unittest.TestCase):

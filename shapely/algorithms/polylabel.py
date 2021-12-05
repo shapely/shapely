@@ -1,5 +1,5 @@
 from ..geometry import Point, LineString
-from ..geos import TopologicalError
+from ..errors import TopologicalError
 from heapq import heappush, heappop
 
 
@@ -75,7 +75,7 @@ def polylabel(polygon, tolerance=1.0):
 
     Raises
     ------
-    shapely.geos.TopologicalError
+    shapely.errors.TopologicalError
         If the input polygon is not a valid geometry.
 
     Example

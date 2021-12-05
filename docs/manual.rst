@@ -2819,51 +2819,12 @@ Python arrays of `x` and `y` values via the :attr:`xy` attribute.
   >>> LineString([(0, 0), (1, 1)]).xy
   (array('d', [0.0, 1.0]), array('d', [0.0, 1.0]))
 
-The :func:`shapely.geometry.asShape` family of functions can be used to wrap
-Numpy coordinate arrays so that they can then be analyzed using Shapely while
-maintaining their original storage. A 1 x 2 array can be adapted to a point
-
-.. code-block:: pycon
-
-  >>> from shapely.geometry import asPoint
-  >>> pa = asPoint(array([0.0, 0.0]))
-  >>> pa.wkt
-  'POINT (0.0000000000000000 0.0000000000000000)'
-
-and a N x 2 array can be adapted to a line string
-
-.. code-block:: pycon
-
-  >>> from shapely.geometry import asLineString
-  >>> la = asLineString(array([[1.0, 2.0], [3.0, 4.0]]))
-  >>> la.wkt
-  'LINESTRING (1.0000000000000000 2.0000000000000000, 3.0000000000000000 4.0000000000000000)'
-
-Polygon and MultiPoint can also be created from N x 2 arrays:
-
-.. code-block:: pycon
-
-  >>> from shapely.geometry import asMultiPoint
-  >>> ma = asMultiPoint(np.array([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6]]))
-  >>> ma.wkt
-  'MULTIPOINT (1.1 2.2, 3.3 4.4, 5.5 6.6)'
-
-  >>> from shapely.geometry import asPolygon
-  >>> pa = asPolygon(np.array([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6]]))
-  >>> pa.wkt
-  'POLYGON ((1.1 2.2, 3.3 4.4, 5.5 6.6, 1.1 2.2))'
-
 Python Geo Interface
 --------------------
 
 Any object that provides the GeoJSON-like `Python geo interface`_ can be
-adapted and used as a Shapely geometry using the
-:func:`shapely.geometry.asShape` or :func:`shapely.geometry.shape` functions.
-
-.. function:: shapely.geometry.asShape(context)
-
-  Adapts the context to a geometry interface. The coordinates remain stored in
-  the context.
+converted to a Shapely geometry using the :func:`shapely.geometry.shape`
+function.
 
 .. function:: shapely.geometry.shape(context)
 
@@ -2927,33 +2888,6 @@ used in many applications and you can expect that all operations are highly
 optimized. The creation of new geometries with many coordinates, however,
 involves some overhead that might slow down your code.
 
-.. versionadded:: 1.2.10
-
-The :mod:`shapely.speedups` module contains performance enhancements written in
-C. They are automatically installed when Python has access to a compiler and
-GEOS development headers during installation.
-
-You can check if the speedups are installed with the :attr:`available`
-attribute. To enable the speedups call :func:`enable`. You can revert to the
-slow implementation with :func:`disable`.
-
-.. code-block:: pycon
-
-  >>> from shapely import speedups
-  >>> speedups.available
-  True
-  >>> speedups.enable()
-
-.. versionadded:: 1.6.0
-
-Speedups are now enabled by default if they are available. You can check if
-speedups are enabled with the :attr:`enabled` attribute.
-
-.. code-block:: pycon
-
-  >>> from shapely import speedups
-  >>> speedups.enabled
-  True
 
 Conclusion
 ==========
@@ -2993,9 +2927,9 @@ References
    1973, pp. 112-122.
 
 
-.. _GEOS: https://trac.osgeo.org/geos/
+.. _GEOS: https://libgeos.org/
 .. _Java Topology Suite: https://projects.eclipse.org/projects/locationtech.jts
-.. _PostGIS: http://postgis.refractions.net
+.. _PostGIS: https://postgis.net
 .. _Open Geospatial Consortium: https://www.opengeospatial.org/
 .. _Strobl-PDF: https://giswiki.hsr.ch/images/3/3d/9dem_springer.pdf
 .. |Strobl-PDF| replace:: PDF

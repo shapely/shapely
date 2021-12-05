@@ -89,8 +89,8 @@ def test_from_polygon_without_enough_tolerance():
     with pytest.raises(ValueError) as exc:
         voronoi_diagram(poly, tolerance=0.6)
 
-    assert exc.match("Could not create Voronoi Diagram with the specified inputs. "
-                     "Try running again with default tolerance value.")
+    assert "Could not create Voronoi Diagram with the specified inputs" in str(exc.value)
+    assert "Try running again with default tolerance value." in str(exc.value)
 
 
 @requires_geos_35
@@ -99,8 +99,8 @@ def test_from_polygon_without_floating_point_coordinates():
     with pytest.raises(ValueError) as exc:
         voronoi_diagram(poly, tolerance=0.1)
 
-    assert exc.match("Could not create Voronoi Diagram with the specified inputs. "
-                     "Try running again with default tolerance value")
+    assert "Could not create Voronoi Diagram with the specified inputs" in str(exc.value)
+    assert "Try running again with default tolerance value." in str(exc.value)
 
 
 @requires_geos_35
@@ -111,8 +111,8 @@ def test_from_multipoint_without_floating_point_coordinates():
     with pytest.raises(ValueError) as exc:
         voronoi_diagram(mp, tolerance=0.1)
 
-    assert exc.match("Could not create Voronoi Diagram with the specified inputs. "
-                     "Try running again with default tolerance value")
+    assert "Could not create Voronoi Diagram with the specified inputs" in str(exc.value)
+    assert "Try running again with default tolerance value." in str(exc.value)
 
 
 @requires_geos_35
@@ -122,8 +122,8 @@ def test_from_multipoint_with_tolerace_without_floating_point_coordinates():
     with pytest.raises(ValueError) as exc:
         voronoi_diagram(mp, tolerance=0.1)
 
-    assert exc.match("Could not create Voronoi Diagram with the specified inputs. "
-                     "Try running again with default tolerance value")
+    assert "Could not create Voronoi Diagram with the specified inputs" in str(exc.value)
+    assert "Try running again with default tolerance value." in str(exc.value)
 
 
 @requires_geos_35

@@ -1,11 +1,8 @@
 from shapely import wkt
-from . import shapely20_deprecated
 
-from shapely.errors import ShapelyDeprecationWarning
 from shapely.geometry import LineString
 from shapely.geometry.collection import GeometryCollection
 from shapely.geometry import shape
-from shapely.geometry import asShape
 
 import pytest
 
@@ -65,58 +62,12 @@ def test_geointerface(geometrycollection_geojson):
     assert geom.__geo_interface__ == geometrycollection_geojson
 
 
-@shapely20_deprecated
-def test_geointerface_adapter(geometrycollection_geojson):
-    geom = asShape(geometrycollection_geojson)
-    assert geom.geom_type == "GeometryCollection"
-    assert len(geom) == 2
-
-    geom_types = [g.geom_type for g in geom.geoms]
-    assert "Point" in geom_types
-    assert "LineString" in geom_types
-
-
-@shapely20_deprecated
-def test_empty_geointerface_adapter():
-    d = {"type": "GeometryCollection", "geometries": []}
-
-    geom = asShape(d)
-    assert geom.geom_type == "GeometryCollection"
-    assert geom.is_empty
-    assert len(geom) == 0
-    assert geom.geoms == []
-
-
-def test_geometrycollection_adapter_deprecated(geometrycollection_geojson):
-    with pytest.warns(ShapelyDeprecationWarning):
-        asShape(geometrycollection_geojson)
-
-    d = {"type": "GeometryCollection", "geometries": []}
-    with pytest.warns(ShapelyDeprecationWarning):
-        asShape(d)
-
-
-@pytest.mark.parametrize('geom', [
-    GeometryCollection(),
-    shape({"type": "GeometryCollection", "geometries": []}),
-    shape({"type": "GeometryCollection", "geometries": [
-        {"type": "Point", "coordinates": ()},
-        {"type": "LineString", "coordinates": (())}
-    ]}),
-    wkt.loads('GEOMETRYCOLLECTION EMPTY'),
-])
-def test_len_empty_deprecated(geom):
-    with pytest.warns(ShapelyDeprecationWarning, match="__len__"):
-        assert len(geom) == 0
-
-
-def test_len_deprecated(geometrycollection_geojson):
+def test_len_raises(geometrycollection_geojson):
     geom = shape(geometrycollection_geojson)
-    with pytest.warns(ShapelyDeprecationWarning, match="__len__"):
-        assert len(geom) == 2
+    with pytest.raises(TypeError):
+        len(geom)
 
 
-@shapely20_deprecated
 @pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
     np = pytest.importorskip("numpy")

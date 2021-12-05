@@ -1,6 +1,9 @@
-from . import unittest, numpy, shapely20_deprecated
+from . import unittest, numpy
+
+import math
+
 from shapely.coords import CoordinateSequence
-from shapely.geometry import Point, asPoint
+from shapely.geometry import Point
 from shapely.errors import DimensionError, ShapelyDeprecationWarning
 
 import pytest
@@ -115,151 +118,59 @@ class PointTestCase(unittest.TestCase):
         self.assertEqual(p.__geo_interface__,
                          {'type': 'Point', 'coordinates': (3.0, 4.0)})
 
-    @shapely20_deprecated
-    def test_point_mutate(self):
-        # Modify coordinates
-        p = Point(3.0, 4.0)
-        p.coords = (2.0, 1.0)
-        self.assertEqual(p.__geo_interface__,
-                         {'type': 'Point', 'coordinates': (2.0, 1.0)})
-
-        # Alternate method
-        p.coords = ((0.0, 0.0),)
-        self.assertEqual(p.__geo_interface__,
-                         {'type': 'Point', 'coordinates': (0.0, 0.0)})
-
-    @shapely20_deprecated
-    def test_point_adapter(self):
-        p = Point(0.0, 0.0)
-        # Adapt a coordinate list to a point
-        coords = [3.0, 4.0]
-        pa = asPoint(coords)
-        self.assertEqual(pa.coords[0], (3.0, 4.0))
-        self.assertEqual(pa.distance(p), 5.0)
-
-        # Move the coordinates and watch the distance change
-        coords[0] = 1.0
-        self.assertEqual(pa.coords[0], (1.0, 4.0))
-        self.assertAlmostEqual(pa.distance(p), 4.123105625617661)
-
     def test_point_empty(self):
         # Test Non-operability of Null geometry
         p_null = Point()
-        self.assertEqual(p_null.wkt, 'GEOMETRYCOLLECTION EMPTY')
+        self.assertEqual(p_null.wkt, 'POINT EMPTY')
         self.assertEqual(p_null.coords[:], [])
         self.assertEqual(p_null.area, 0.0)
 
-    @shapely20_deprecated
-    def test_point_empty_mutate(self):
-        # Check that we can set coordinates of a null geometry
-        p_null = Point()
-        p_null.coords = (1, 2)
-        self.assertEqual(p_null.coords[:], [(1.0, 2.0)])
-
-        # Passing > 3 arguments to Point is erroneous
-        with self.assertRaises(TypeError):
-            Point(1.0, 2.0, 3.0, 4.0)
-
-    @shapely20_deprecated
     @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy_adapter(self):
-        from numpy import array, asarray
-        from numpy.testing import assert_array_equal
-
-        # Adapt a Numpy array to a point
-        a = array([1.0, 2.0])
-        pa = asPoint(a)
-        assert_array_equal(pa.context, array([1.0, 2.0]))
-        self.assertEqual(pa.coords[:], [(1.0, 2.0)])
-
-        # Now, the inverse
-        self.assertEqual(pa.__array_interface__,
-                         pa.context.__array_interface__)
-
-        pas = asarray(pa)
-        assert_array_equal(pas, array([1.0, 2.0]))
-
-        # Adapt a coordinate list to a point
-        coords = [3.0, 4.0]
-        pa = asPoint(coords)
-        coords[0] = 1.0
-
-        # Now, the inverse (again?)
-        self.assertIsNotNone(pa.__array_interface__)
-        pas = asarray(pa)
-        assert_array_equal(pas, array([1.0, 4.0]))
-
-    @shapely20_deprecated
-    @unittest.skipIf(not numpy, 'Numpy required')
-    def test_numpy_asarray(self):
-        from numpy import array, asarray
-        from numpy.testing import assert_array_equal
+    def test_coords(self):
+        import numpy as np
 
         # From Array.txt
         p = Point(0.0, 0.0, 1.0)
         coords = p.coords[0]
-        self.assertEqual(coords, (0.0, 0.0, 1.0))
+        assert coords == (0.0, 0.0, 1.0)
 
         # Convert to Numpy array, passing through Python sequence
-        a = asarray(coords)
-        self.assertEqual(a.ndim, 1)
-        self.assertEqual(a.size, 3)
-        self.assertEqual(a.shape, (3,))
-
-        # Convert to Numpy array, passing through a ctypes array
-        b = asarray(p)
-        self.assertEqual(b.size, 3)
-        self.assertEqual(b.shape, (3,))
-        assert_array_equal(b, array([0.0, 0.0, 1.0]))
-
-        # Make a point from a Numpy array
-        a = asarray([1.0, 1.0, 0.0])
-        p = Point(*list(a))
-        self.assertEqual(p.coords[:], [(1.0, 1.0, 0.0)])
-
-        # Test array interface of empty geometry
-        pe = Point()
-        a = asarray(pe)
-        self.assertEqual(a.shape[0], 0)
+        a = np.asarray(coords)
+        assert a.ndim == 1
+        assert a.size == 3
+        assert a.shape == (3,)
 
 
 def test_empty_point_bounds():
     """The bounds of an empty point is an empty tuple"""
     p = Point()
+    # TODO keep this empty tuple or change to (nan, nan, nan, nan)?
     assert p.bounds == ()
+    # assert len(p.bounds) == 4
+    # assert all(math.isnan(v) for v in p.bounds)
 
 
-def test_point_mutability_deprecated():
+def test_point_immutable():
     p = Point(3.0, 4.0)
-    with pytest.warns(ShapelyDeprecationWarning, match="Setting"):
+
+    with pytest.raises(AttributeError):
         p.coords = (2.0, 1.0)
 
-
-def test_point_adapter_deprecated():
-    coords = [3.0, 4.0]
-    with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
-        asPoint(coords)
-
-
-def test_point_ctypes_deprecated():
-    p = Point(3.0, 4.0)
-    with pytest.warns(ShapelyDeprecationWarning, match="ctypes"):
-        p.ctypes is not None
-
-
-def test_point_array_interface_deprecated():
-    p = Point(3.0, 4.0)
-    with pytest.warns(ShapelyDeprecationWarning, match="array_interface"):
-        p.array_interface()
+    with pytest.raises(TypeError):
+        p.coords[0] = (2.0, 1.0)
 
 
 @unittest.skipIf(not numpy, 'Numpy required')
-def test_point_array_interface_numpy_deprecated():
+def test_point_array_coercion():
+    # don't convert to array of coordinates, keep objects
     import numpy as np
 
     p = Point(3.0, 4.0)
-    with pytest.warns(ShapelyDeprecationWarning, match="array interface"):
-        np.array(p)
+    arr = np.array(p)
+    assert arr.ndim == 0
+    assert arr.size == 1
+    assert arr.dtype == np.dtype("object")
+    assert arr.item() == p
 
 
 @pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
@@ -270,10 +181,9 @@ def test_numpy_empty_point_coords():
 
     # Access the coords
     a = np.asarray(pe.coords)
-    assert a.shape == (0,)
+    assert a.shape == (0, 2)
 
 
-@shapely20_deprecated
 @pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
     np = pytest.importorskip("numpy")

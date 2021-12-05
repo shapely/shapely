@@ -1,0 +1,186 @@
+name: Build and publish
+
+on:
+  push:
+    branches:
+      - master  # just build the sdist & wheel, skip release
+    tags:
+      - "*"
+  pull_request:  # also build on PRs touching this file
+    paths:
+      - ".github/workflows/release.yml"
+      - "ci/*"
+
+jobs:
+  build_sdist:
+    name: Build sdist
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+
+      - name: Build a source tarball
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools
+          python setup.py sdist
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./dist/*.tar.gz
+          retention-days: 30
+
+  build_wheels:
+    name: Build ${{ matrix.arch }} wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    env:
+      GEOS_VERSION: "3.10.1"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - os: ubuntu-20.04
+          arch: x86_64
+        - os: ubuntu-20.04
+          arch: i686
+        # The aarch64 build has been transferred to Travis
+        # - os: ubuntu-20.04
+        #   arch: aarch64
+        #   qemu_platform: arm64
+        # Note: Numpy doesn't have ppc64le & s390x wheels
+        # Also, some GEOS tests fail on s390x.
+        - os: windows-2019
+          arch: x86
+          msvc_arch: x86
+        - os: windows-2019
+          arch: AMD64
+          msvc_arch: x64
+        - os: macos-10.15
+          arch: x86_64
+          cmake_osx_architectures: x86_64
+        - os: macos-10.15
+          arch: arm64
+          cmake_osx_architectures: arm64
+        - os: macos-10.15
+          arch: universal2
+          cmake_osx_architectures: "x86_64;arm64"
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache GEOS build
+        uses: actions/cache@v2
+        with:
+          path: ${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
+          key: ${{ matrix.os }}-${{ matrix.arch }}-${{ env.GEOS_VERSION }}-${{ hashFiles('ci/*') }}
+
+      - name: Add GEOS LICENSE
+        run: |
+          cp ci/wheelbuilder/LICENSE_GEOS .
+        shell: bash
+
+      - name: Add MSVC LICENSE
+        run: |
+          cp ci/wheelbuilder/LICENSE_win32 .
+        shell: bash
+        if: ${{ matrix.os == 'windows-2019' }}
+
+      # - name: Set up QEMU
+      #   uses: docker/setup-qemu-action@v1
+      #   with:
+      #     platforms: ${{ matrix.qemu_platform }}
+      #   if: ${{ matrix.qemu_platform }}
+
+      - name: Activate MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.msvc_arch }}
+        if: ${{ matrix.msvc_arch }}
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.3.0
+        env:
+          CIBW_ARCHS: ${{ matrix.arch }}
+          CIBW_SKIP: pp* *musllinux* cp310-win32 cp310-macosx_x86_64 cp310-manylinux_i686
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2010
+          CIBW_MANYLINUX_I686_IMAGE: manylinux2010
+          CIBW_ENVIRONMENT_LINUX:
+            GEOS_VERSION=${{ env.GEOS_VERSION }}
+            GEOS_INSTALL=/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
+            GEOS_CONFIG=/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
+            LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/lib
+          CIBW_ENVIRONMENT_MACOS:
+            GEOS_INSTALL=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
+            GEOS_CONFIG=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
+            LDFLAGS=-Wl,-rpath,${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/lib
+            MACOSX_DEPLOYMENT_TARGET=10.9
+            CMAKE_OSX_ARCHITECTURES='${{ matrix.cmake_osx_architectures }}'
+          CIBW_ENVIRONMENT_WINDOWS:
+            GEOS_INSTALL='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}'
+            GEOS_LIBRARY_PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\lib'
+            GEOS_INCLUDE_PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\include'
+          CIBW_BEFORE_ALL: ./ci/install_geos.sh
+          CIBW_BEFORE_ALL_WINDOWS: ci\install_geos.cmd
+          CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} {wheel}
+          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_COMMAND: pytest --pyargs pygeos.tests
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
+          retention-days: 5
+
+  publish:
+    name: Publish on GitHub and PyPI
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    # release on every tag
+    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: artifact
+          path: dist
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Get Asset name
+        run: |
+          export PKG=$(ls dist/ | grep tar)
+          set -- $PKG
+          echo "name=$1" >> $GITHUB_ENV
+
+      - name: Upload Release Asset (sdist) to GitHub
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/${{ env.name }}
+          asset_name: ${{ env.name }}
+          asset_content_type: application/zip      
+
+      - name: Upload Release Assets to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.4.2
+        with:
+          user: __token__
+          password: ${{ secrets.pypi_password }}
+          # To test: repository_url: https://test.pypi.org/legacy/

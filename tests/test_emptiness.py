@@ -1,13 +1,14 @@
 from . import unittest, shapely20_deprecated
 
-from shapely.errors import ShapelyDeprecationWarning
 from shapely.geometry.base import BaseGeometry, EmptyGeometry
 import shapely.geometry as sgeom
 from shapely.geometry.polygon import LinearRing
 
-from shapely.geometry import MultiPolygon, mapping, shape, asShape
+from shapely.geometry import MultiPolygon, mapping, shape
 
 import pytest
+
+from tests.conftest import shapely20_wontfix
 
 
 empty_generator = lambda: iter([])
@@ -16,24 +17,11 @@ class EmptinessTestCase(unittest.TestCase):
 
     def test_empty_class(self):
         g = EmptyGeometry()
-        self.assertTrue(g._is_empty)
+        self.assertTrue(g.is_empty)
 
     def test_empty_base(self):
         g = BaseGeometry()
-        self.assertTrue(g._is_empty)
-
-    @shapely20_deprecated
-    def test_emptying_point(self):
-        p = sgeom.Point(0, 0)
-        self.assertFalse(p._is_empty)
-        p.empty()
-        self.assertTrue(p._is_empty)
-
-    @shapely20_deprecated
-    def test_none_geom(self):
-        p = BaseGeometry()
-        p._geom = None
-        self.assertTrue(p.is_empty)
+        self.assertTrue(g.is_empty)
 
     def test_empty_point(self):
         self.assertTrue(sgeom.Point().is_empty)
@@ -84,11 +72,3 @@ def test_shape_empty():
     empty_json = mapping(empty_mp)
     empty_shape = shape(empty_json)
     assert empty_shape.is_empty
-
-
-def test_asshape_empty():
-    empty_mp = MultiPolygon()
-    empty_json = mapping(empty_mp)
-    with pytest.warns(ShapelyDeprecationWarning, match="proxy geometries"):
-        empty_asShape = asShape(empty_json)
-    assert empty_asShape.is_empty
