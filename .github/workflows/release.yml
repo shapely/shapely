@@ -10,6 +10,9 @@ on:
     paths:
       - ".github/workflows/release.yml"
       - "ci/*"
+      - "MANIFEST.in"
+      - "pyproject.toml"
+      - "setup.py"
 
 jobs:
   build_sdist:
