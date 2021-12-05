@@ -18,7 +18,6 @@ from .common import (
     point,
 )
 
-pytestmark = pytest.mark.skip
 
 # the distance between 2 points spaced at whole numbers along a diagonal
 HALF_UNIT_DIAG = math.sqrt(2) / 2
@@ -68,7 +67,7 @@ def poly_tree():
 def test_init(geometry, count, hits):
     tree = shapely.STRtree(np.array(geometry))
     assert len(tree) == count
-    assert tree.query(box(0, 0, 100, 100)).size == hits
+    assert tree.query_items(box(0, 0, 100, 100)).size == hits
 
 
 def test_init_with_invalid_geometry():
@@ -98,7 +97,7 @@ def test_flush_geometries():
 
     gc.collect()
     # Still it does not lead to a segfault
-    tree.query(point)
+    tree.query_items(point)
 
 
 def test_geometries_property():
@@ -109,16 +108,16 @@ def test_geometries_property():
 
 def test_query_invalid_geometry(tree):
     with pytest.raises(TypeError):
-        tree.query("I am not a geometry")
+        tree.query_items("I am not a geometry")
 
 
 def test_query_none(tree):
-    assert tree.query(None).size == 0
+    assert tree.query_items(None).size == 0
 
 
 @pytest.mark.parametrize("geometry", [empty, empty_point, empty_line_string])
 def test_query_empty(tree, geometry):
-    assert tree.query(geometry).size == 0
+    assert tree.query_items(geometry).size == 0
 
 
 @pytest.mark.parametrize(
@@ -133,7 +132,7 @@ def test_query_empty(tree, geometry):
 )
 def test_query(tree_geometry, geometry, expected):
     tree = shapely.STRtree(np.array(tree_geometry))
-    assert_array_equal(tree.query(geometry), expected)
+    assert_array_equal(tree.query_items(geometry), expected)
 
 
 @pytest.mark.parametrize(
@@ -154,7 +153,7 @@ def test_query(tree_geometry, geometry, expected):
     ],
 )
 def test_query_points(tree, geometry, expected):
-    assert_array_equal(tree.query(geometry), expected)
+    assert_array_equal(tree.query_items(geometry), expected)
 
 
 @pytest.mark.parametrize(
@@ -176,7 +175,7 @@ def test_query_points(tree, geometry, expected):
     ],
 )
 def test_query_lines(line_tree, geometry, expected):
-    assert_array_equal(line_tree.query(geometry), expected)
+    assert_array_equal(line_tree.query_items(geometry), expected)
 
 
 @pytest.mark.parametrize(
@@ -199,18 +198,18 @@ def test_query_lines(line_tree, geometry, expected):
     ],
 )
 def test_query_polygons(poly_tree, geometry, expected):
-    assert_array_equal(poly_tree.query(geometry), expected)
+    assert_array_equal(poly_tree.query_items(geometry), expected)
 
 
 def test_query_invalid_predicate(tree):
     with pytest.raises(ValueError):
-        tree.query(shapely.points(1, 1), predicate="bad_predicate")
+        tree.query_items(shapely.points(1, 1), predicate="bad_predicate")
 
 
 def test_query_unsupported_predicate(tree):
     # valid GEOS binary predicate, but not supported for query
     with pytest.raises(ValueError):
-        tree.query(shapely.points(1, 1), predicate="disjoint")
+        tree.query_items(shapely.points(1, 1), predicate="disjoint")
 
 
 @pytest.mark.parametrize(
@@ -229,7 +228,7 @@ def test_query_unsupported_predicate(tree):
 def test_query_prepared_inputs(tree, predicate, expected):
     geom = box(0, 0, 2, 2)
     shapely.prepare(geom)
-    assert_array_equal(tree.query(geom, predicate=predicate), expected)
+    assert_array_equal(tree.query_items(geom, predicate=predicate), expected)
 
 
 @pytest.mark.parametrize(
@@ -276,7 +275,7 @@ def test_query_prepared_inputs(tree, predicate, expected):
 )
 def test_query_predicate_errors(tree, predicate):
     with pytest.raises(shapely.GEOSException):
-        tree.query(shapely.linestrings([1, 1], [1, float("nan")]), predicate=predicate)
+        tree.query_items(shapely.linestrings([1, 1], [1, float("nan")]), predicate=predicate)
 
 
 def test_query_tree_with_none():
@@ -284,7 +283,7 @@ def test_query_tree_with_none():
     tree = shapely.STRtree(
         [shapely.Geometry("POINT (0 0)"), None, shapely.Geometry("POINT (2 2)")]
     )
-    assert tree.query(shapely.points(2, 2), predicate="intersects") == [2]
+    assert tree.query_items(shapely.points(2, 2), predicate="intersects") == [2]
 
 
 ### predicate == 'intersects'
@@ -292,10 +291,10 @@ def test_query_tree_with_none():
 
 def test_query_with_prepared(tree):
     geom = box(0, 0, 1, 1)
-    expected = tree.query(geom, predicate="intersects")
+    expected = tree.query_items(geom, predicate="intersects")
 
     shapely.prepare(geom)
-    assert_array_equal(expected, tree.query(geom, predicate="intersects"))
+    assert_array_equal(expected, tree.query_items(geom, predicate="intersects"))
 
 
 # TEMPORARY xfail: MultiPoint intersects with prepared geometries does not work
@@ -332,7 +331,7 @@ def test_query_with_prepared(tree):
     ],
 )
 def test_query_intersects_points(tree, geometry, expected):
-    assert_array_equal(tree.query(geometry, predicate="intersects"), expected)
+    assert_array_equal(tree.query_items(geometry, predicate="intersects"), expected)
 
 
 @pytest.mark.parametrize(
@@ -358,7 +357,7 @@ def test_query_intersects_points(tree, geometry, expected):
     ],
 )
 def test_query_intersects_lines(line_tree, geometry, expected):
-    assert_array_equal(line_tree.query(geometry, predicate="intersects"), expected)
+    assert_array_equal(line_tree.query_items(geometry, predicate="intersects"), expected)
 
 
 @pytest.mark.parametrize(
@@ -386,7 +385,7 @@ def test_query_intersects_lines(line_tree, geometry, expected):
     ],
 )
 def test_query_intersects_polygons(poly_tree, geometry, expected):
-    assert_array_equal(poly_tree.query(geometry, predicate="intersects"), expected)
+    assert_array_equal(poly_tree.query_items(geometry, predicate="intersects"), expected)
 
 
 ### predicate == 'within'
@@ -411,7 +410,7 @@ def test_query_intersects_polygons(poly_tree, geometry, expected):
     ],
 )
 def test_query_within_points(tree, geometry, expected):
-    assert_array_equal(tree.query(geometry, predicate="within"), expected)
+    assert_array_equal(tree.query_items(geometry, predicate="within"), expected)
 
 
 @pytest.mark.parametrize(
@@ -437,7 +436,7 @@ def test_query_within_points(tree, geometry, expected):
     ],
 )
 def test_query_within_lines(line_tree, geometry, expected):
-    assert_array_equal(line_tree.query(geometry, predicate="within"), expected)
+    assert_array_equal(line_tree.query_items(geometry, predicate="within"), expected)
 
 
 @pytest.mark.parametrize(
@@ -469,7 +468,7 @@ def test_query_within_lines(line_tree, geometry, expected):
     ],
 )
 def test_query_within_polygons(poly_tree, geometry, expected):
-    assert_array_equal(poly_tree.query(geometry, predicate="within"), expected)
+    assert_array_equal(poly_tree.query_items(geometry, predicate="within"), expected)
 
 
 ### predicate == 'contains'
@@ -497,7 +496,7 @@ def test_query_within_polygons(poly_tree, geometry, expected):
     ],
 )
 def test_query_contains_points(tree, geometry, expected):
-    assert_array_equal(tree.query(geometry, predicate="contains"), expected)
+    assert_array_equal(tree.query_items(geometry, predicate="contains"), expected)
 
 
 @pytest.mark.parametrize(
@@ -518,7 +517,7 @@ def test_query_contains_points(tree, geometry, expected):
     ],
 )
 def test_query_contains_lines(line_tree, geometry, expected):
-    assert_array_equal(line_tree.query(geometry, predicate="contains"), expected)
+    assert_array_equal(line_tree.query_items(geometry, predicate="contains"), expected)
 
 
 @pytest.mark.parametrize(
@@ -540,7 +539,7 @@ def test_query_contains_lines(line_tree, geometry, expected):
     ],
 )
 def test_query_contains_polygons(poly_tree, geometry, expected):
-    assert_array_equal(poly_tree.query(geometry, predicate="contains"), expected)
+    assert_array_equal(poly_tree.query_items(geometry, predicate="contains"), expected)
 
 
 ### predicate == 'overlaps'
@@ -569,7 +568,7 @@ def test_query_contains_polygons(poly_tree, geometry, expected):
     ],
 )
 def test_query_overlaps_points(tree, geometry, expected):
-    assert_array_equal(tree.query(geometry, predicate="overlaps"), expected)
+    assert_array_equal(tree.query_items(geometry, predicate="overlaps"), expected)
 
 
 @pytest.mark.parametrize(
@@ -591,7 +590,7 @@ def test_query_overlaps_points(tree, geometry, expected):
     ],
 )
 def test_query_overlaps_lines(line_tree, geometry, expected):
-    assert_array_equal(line_tree.query(geometry, predicate="overlaps"), expected)
+    assert_array_equal(line_tree.query_items(geometry, predicate="overlaps"), expected)
 
 
 @pytest.mark.parametrize(
@@ -612,7 +611,7 @@ def test_query_overlaps_lines(line_tree, geometry, expected):
     ],
 )
 def test_query_overlaps_polygons(poly_tree, geometry, expected):
-    assert_array_equal(poly_tree.query(geometry, predicate="overlaps"), expected)
+    assert_array_equal(poly_tree.query_items(geometry, predicate="overlaps"), expected)
 
 
 ### predicate == 'crosses'
@@ -632,7 +631,7 @@ def test_query_overlaps_polygons(poly_tree, geometry, expected):
     ],
 )
 def test_query_crosses_points(tree, geometry, expected):
-    assert_array_equal(tree.query(geometry, predicate="crosses"), expected)
+    assert_array_equal(tree.query_items(geometry, predicate="crosses"), expected)
 
 
 @pytest.mark.parametrize(
@@ -653,7 +652,7 @@ def test_query_crosses_points(tree, geometry, expected):
     ],
 )
 def test_query_crosses_lines(line_tree, geometry, expected):
-    assert_array_equal(line_tree.query(geometry, predicate="crosses"), expected)
+    assert_array_equal(line_tree.query_items(geometry, predicate="crosses"), expected)
 
 
 @pytest.mark.parametrize(
@@ -670,7 +669,7 @@ def test_query_crosses_lines(line_tree, geometry, expected):
     ],
 )
 def test_query_crosses_polygons(poly_tree, geometry, expected):
-    assert_array_equal(poly_tree.query(geometry, predicate="crosses"), expected)
+    assert_array_equal(poly_tree.query_items(geometry, predicate="crosses"), expected)
 
 
 ### predicate == 'touches'
@@ -693,7 +692,7 @@ def test_query_crosses_polygons(poly_tree, geometry, expected):
     ],
 )
 def test_query_touches_points(tree, geometry, expected):
-    assert_array_equal(tree.query(geometry, predicate="touches"), expected)
+    assert_array_equal(tree.query_items(geometry, predicate="touches"), expected)
 
 
 @pytest.mark.parametrize(
@@ -719,7 +718,7 @@ def test_query_touches_points(tree, geometry, expected):
     ],
 )
 def test_query_touches_lines(line_tree, geometry, expected):
-    assert_array_equal(line_tree.query(geometry, predicate="touches"), expected)
+    assert_array_equal(line_tree.query_items(geometry, predicate="touches"), expected)
 
 
 @pytest.mark.parametrize(
@@ -740,7 +739,7 @@ def test_query_touches_lines(line_tree, geometry, expected):
     ],
 )
 def test_query_touches_polygons(poly_tree, geometry, expected):
-    assert_array_equal(poly_tree.query(geometry, predicate="touches"), expected)
+    assert_array_equal(poly_tree.query_items(geometry, predicate="touches"), expected)
 
 
 ### predicate == 'covers'
@@ -768,7 +767,7 @@ def test_query_touches_polygons(poly_tree, geometry, expected):
     ],
 )
 def test_query_covers_points(tree, geometry, expected):
-    assert_array_equal(tree.query(geometry, predicate="covers"), expected)
+    assert_array_equal(tree.query_items(geometry, predicate="covers"), expected)
 
 
 @pytest.mark.parametrize(
@@ -791,7 +790,7 @@ def test_query_covers_points(tree, geometry, expected):
     ],
 )
 def test_query_covers_lines(line_tree, geometry, expected):
-    assert_array_equal(line_tree.query(geometry, predicate="covers"), expected)
+    assert_array_equal(line_tree.query_items(geometry, predicate="covers"), expected)
 
 
 @pytest.mark.parametrize(
@@ -813,7 +812,7 @@ def test_query_covers_lines(line_tree, geometry, expected):
     ],
 )
 def test_query_covers_polygons(poly_tree, geometry, expected):
-    assert_array_equal(poly_tree.query(geometry, predicate="covers"), expected)
+    assert_array_equal(poly_tree.query_items(geometry, predicate="covers"), expected)
 
 
 ### predicate == 'covered_by'
@@ -838,7 +837,7 @@ def test_query_covers_polygons(poly_tree, geometry, expected):
     ],
 )
 def test_query_covered_by_points(tree, geometry, expected):
-    assert_array_equal(tree.query(geometry, predicate="covered_by"), expected)
+    assert_array_equal(tree.query_items(geometry, predicate="covered_by"), expected)
 
 
 @pytest.mark.parametrize(
@@ -869,7 +868,7 @@ def test_query_covered_by_points(tree, geometry, expected):
     ],
 )
 def test_query_covered_by_lines(line_tree, geometry, expected):
-    assert_array_equal(line_tree.query(geometry, predicate="covered_by"), expected)
+    assert_array_equal(line_tree.query_items(geometry, predicate="covered_by"), expected)
 
 
 @pytest.mark.parametrize(
@@ -904,7 +903,7 @@ def test_query_covered_by_lines(line_tree, geometry, expected):
     ],
 )
 def test_query_covered_by_polygons(poly_tree, geometry, expected):
-    assert_array_equal(poly_tree.query(geometry, predicate="covered_by"), expected)
+    assert_array_equal(poly_tree.query_items(geometry, predicate="covered_by"), expected)
 
 
 ### predicate == 'contains_properly'
@@ -939,7 +938,7 @@ def test_query_covered_by_polygons(poly_tree, geometry, expected):
     ],
 )
 def test_query_contains_properly_points(tree, geometry, expected):
-    assert_array_equal(tree.query(geometry, predicate="contains_properly"), expected)
+    assert_array_equal(tree.query_items(geometry, predicate="contains_properly"), expected)
 
 
 @pytest.mark.parametrize(
@@ -963,7 +962,7 @@ def test_query_contains_properly_points(tree, geometry, expected):
 )
 def test_query_contains_properly_lines(line_tree, geometry, expected):
     assert_array_equal(
-        line_tree.query(geometry, predicate="contains_properly"), expected
+        line_tree.query_items(geometry, predicate="contains_properly"), expected
     )
 
 
@@ -989,7 +988,7 @@ def test_query_contains_properly_lines(line_tree, geometry, expected):
 )
 def test_query_contains_properly_polygons(poly_tree, geometry, expected):
     assert_array_equal(
-        poly_tree.query(geometry, predicate="contains_properly"), expected
+        poly_tree.query_items(geometry, predicate="contains_properly"), expected
     )
 
 
@@ -999,7 +998,7 @@ def test_query_contains_properly_polygons(poly_tree, geometry, expected):
 @pytest.mark.skipif(shapely.geos_version >= (3, 10, 0), reason="GEOS >= 3.10")
 def test_query_dwithin_geos_version(tree):
     with pytest.raises(UnsupportedGEOSOperation, match="requires GEOS >= 3.10"):
-        tree.query(shapely.points(0, 0), predicate="dwithin", distance=1)
+        tree.query_items(shapely.points(0, 0), predicate="dwithin", distance=1)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
@@ -1014,7 +1013,7 @@ def test_query_dwithin_geos_version(tree):
 )
 def test_query_dwithin_invalid_distance(tree, distance, match):
     with pytest.raises(ValueError, match=match):
-        tree.query(shapely.points(0, 0), predicate="dwithin", distance=distance)
+        tree.query_items(shapely.points(0, 0), predicate="dwithin", distance=distance)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
@@ -1048,7 +1047,7 @@ def test_query_dwithin_invalid_distance(tree, distance, match):
 )
 def test_query_dwithin_points(tree, geometry, distance, expected):
     assert_array_equal(
-        tree.query(geometry, predicate="dwithin", distance=distance), expected
+        tree.query_items(geometry, predicate="dwithin", distance=distance), expected
     )
 
 
@@ -1070,7 +1069,7 @@ def test_query_dwithin_points(tree, geometry, distance, expected):
 )
 def test_query_dwithin_lines(line_tree, geometry, distance, expected):
     assert_array_equal(
-        line_tree.query(geometry, predicate="dwithin", distance=distance), expected
+        line_tree.query_items(geometry, predicate="dwithin", distance=distance), expected
     )
 
 
@@ -1095,7 +1094,7 @@ def test_query_dwithin_lines(line_tree, geometry, distance, expected):
 )
 def test_query_dwithin_polygons(poly_tree, geometry, distance, expected):
     assert_array_equal(
-        poly_tree.query(geometry, predicate="dwithin", distance=distance), expected
+        poly_tree.query_items(geometry, predicate="dwithin", distance=distance), expected
     )
 
 
@@ -1495,14 +1494,14 @@ def test_query_bulk_dwithin_polygons(poly_tree, geometry, distance, expected):
 @pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_nearest_empty_tree():
     tree = shapely.STRtree([])
-    assert_array_equal(tree.nearest(point), [[], []])
+    assert_array_equal(tree.nearest_bulk(point), [[], []])
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize("geometry", ["I am not a geometry"])
 def test_nearest_invalid_geom(tree, geometry):
     with pytest.raises(TypeError):
-        tree.nearest(geometry)
+        tree.nearest_bulk(geometry)
 
 
 # TODO: add into regular results
@@ -1532,7 +1531,7 @@ def test_nearest_none(tree, geometry, expected):
     ],
 )
 def test_nearest_points(tree, geometry, expected):
-    assert_array_equal(tree.nearest(geometry), expected)
+    assert_array_equal(tree.nearest_bulk(geometry), expected)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
@@ -1549,7 +1548,7 @@ def test_nearest_points(tree, geometry, expected):
     ],
 )
 def test_nearest_points_equidistant(tree, geometry, expected):
-    result = tree.nearest(geometry)
+    result = tree.nearest_bulk(geometry)
     assert result[1] in expected
 
 
@@ -1564,7 +1563,7 @@ def test_nearest_points_equidistant(tree, geometry, expected):
     ],
 )
 def test_nearest_lines(line_tree, geometry, expected):
-    assert_array_equal(line_tree.nearest(geometry), expected)
+    assert_array_equal(line_tree.nearest_bulk(geometry), expected)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
@@ -1591,7 +1590,7 @@ def test_nearest_lines(line_tree, geometry, expected):
     ],
 )
 def test_nearest_lines_equidistant(line_tree, geometry, expected):
-    result = line_tree.nearest(geometry)
+    result = line_tree.nearest_bulk(geometry)
     assert result[1] in expected
 
 
@@ -1606,7 +1605,7 @@ def test_nearest_lines_equidistant(line_tree, geometry, expected):
     ],
 )
 def test_nearest_polygons(poly_tree, geometry, expected):
-    assert_array_equal(poly_tree.nearest(geometry), expected)
+    assert_array_equal(poly_tree.nearest_bulk(geometry), expected)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
@@ -1629,7 +1628,7 @@ def test_nearest_polygons(poly_tree, geometry, expected):
     ],
 )
 def test_nearest_polygons_equidistant(poly_tree, geometry, expected):
-    result = poly_tree.nearest(geometry)
+    result = poly_tree.nearest_bulk(geometry)
     assert result[1] in expected
 
 
