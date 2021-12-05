@@ -2,5 +2,5 @@
 requires = ["setuptools", "wheel", "cython", "oldest-supported-numpy"]
 
 [tool.coverage.run]
-source = "shapely"
+source = ["shapely"]
 omit = ["shapely/tests/*"]
