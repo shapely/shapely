@@ -9,7 +9,7 @@ import pytest
 import shapely
 from shapely.testing import assert_geometries_equal
 
-from .common import all_types, empty_point, empty_point_z, point, point_z
+from .common import all_types, empty_point, empty_point_z, point, point_z, shapely20_todo
 
 # fmt: off
 POINT11_WKB = b"\x01\x01\x00\x00\x00" + struct.pack("<2d", 1.0, 1.0)
@@ -379,10 +379,12 @@ def test_to_wkt_multipoint_with_point_empty_errors():
         shapely.to_wkt(geom)
 
 
+@shapely20_todo
 def test_repr():
     assert repr(point) == "<pygeos.Geometry POINT (2 3)>"
 
 
+@shapely20_todo
 def test_repr_max_length():
     # the repr is limited to 80 characters
     geom = shapely.linestrings(np.arange(1000), np.arange(1000))
@@ -391,6 +393,7 @@ def test_repr_max_length():
     assert representation.endswith("...>")
 
 
+@shapely20_todo
 @pytest.mark.skipif(
     shapely.geos_version >= (3, 9, 0),
     reason="MULTIPOINT (EMPTY, 2 3) gives Exception on GEOS < 3.9",
@@ -401,6 +404,7 @@ def test_repr_multipoint_with_point_empty():
     assert repr(geom) == "<pygeos.Geometry Exception in WKT writer>"
 
 
+@shapely20_todo
 @pytest.mark.skipif(
     shapely.geos_version < (3, 9, 0),
     reason="Empty geometries have no dimensionality on GEOS < 3.9",
