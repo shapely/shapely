@@ -10,6 +10,9 @@ on:
     paths:
       - ".github/workflows/release.yml"
       - "ci/*"
+      - "MANIFEST.in"
+      - "pyproject.toml"
+      - "setup.py"
 
 jobs:
   build_sdist:
@@ -27,9 +30,8 @@ jobs:
 
       - name: Build a source tarball
         run: |
-          python -m pip install --upgrade pip
-          pip install setuptools
-          python setup.py sdist
+          python -m pip install --upgrade pip build
+          python -m build --sdist
 
       - uses: actions/upload-artifact@v2
         with:

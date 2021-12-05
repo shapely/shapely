@@ -3,7 +3,6 @@
 *.c
 *.so
 
-VERSION.txt
 Shapely.egg-info/
 build/
 dist/
