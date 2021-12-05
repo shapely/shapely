@@ -3,7 +3,7 @@ name: Tests
 on: [push, pull_request]
 
 jobs:
-  Test:
+  tests:
     name: ${{ matrix.os }}-${{ matrix.architecture }} Py${{ matrix.python }} GEOS ${{ matrix.geos }}
     runs-on: ${{ matrix.os }}
     defaults:
@@ -169,7 +169,7 @@ jobs:
         run: |
           coveralls --service=github || echo "!! intermittent coveralls failure"
 
-  Coveralls:
+  coveralls:
     name: Indicate completion to coveralls.io
     needs: test
     runs-on: ubuntu-latest
