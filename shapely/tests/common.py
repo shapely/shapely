@@ -6,6 +6,8 @@ import pytest
 
 import shapely
 
+shapely20_todo = pytest.mark.xfail(strict=False, reason="Not yet implemented for Shapely 2.0")
+
 point_polygon_testdata = (
     shapely.points(np.arange(6), np.arange(6)),
     shapely.box(2, 2, 4, 4),
