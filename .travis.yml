@@ -23,7 +23,6 @@ jobs:
     env:
     - CIBUILDWHEEL=1
     - CIBW_BUILD="cp*-manylinux_aarch64"
-    - CIBW_MANYLINUX_AARCH64_IMAGE=manylinux2014
     - CIBW_ENVIRONMENT_PASS_LINUX="GEOS_VERSION GEOS_INSTALL GEOS_CONFIG LD_LIBRARY_PATH"
     - CIBW_BEFORE_ALL="./ci/install_geos.sh"
     - CIBW_TEST_REQUIRES="pytest"
@@ -54,12 +53,14 @@ script:
     export GEOS_INSTALL=/host$HOME/geosinstall/geos-$GEOS_VERSION
     export GEOS_CONFIG=$GEOS_INSTALL/bin/geos-config
     export LD_LIBRARY_PATH=$GEOS_INSTALL/lib
-    python3 -m cibuildwheel --output-dir wheelhouse
+    python3 -m cibuildwheel --output-dir dist
   fi
 
 deploy:
   provider: pypi
   username: __token__
+  skip_cleanup: true
+  skip_existing: true
   on:
     tags: true
   password:
