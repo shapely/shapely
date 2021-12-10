@@ -28,6 +28,7 @@ jobs:
     - CIBW_TEST_REQUIRES="pytest"
     - CIBW_TEST_COMMAND="pytest --pyargs shapely.tests"
 
+
 branches:
   only:
   - main
