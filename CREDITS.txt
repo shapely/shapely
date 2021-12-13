@@ -125,7 +125,7 @@ Shapely is written by:
 * sshuair <sshuair@gmail.com>
 * stephenworsley <49274989+stephenworsley@users.noreply.github.com>
 
-See also: https://github.com/Toblerity/Shapely/graphs/contributors.
+See also: https://github.com/shapely/shapely/graphs/contributors.
 
 Additional help from:
 
