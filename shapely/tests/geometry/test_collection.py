@@ -1,3 +1,5 @@
+import numpy as np
+
 from shapely import wkt
 
 from shapely.geometry import LineString
@@ -70,8 +72,6 @@ def test_len_raises(geometrycollection_geojson):
 
 @pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
-    np = pytest.importorskip("numpy")
-
     geom = GeometryCollection([LineString([(0, 0), (1, 1)])])
     ar = np.empty(1, object)
     ar[:] = [geom]
