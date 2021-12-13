@@ -6,5 +6,5 @@ below:
   organization = {toblerity.org},
   title =     {Shapely: manipulation and analysis of geometric objects},
   year =      {2007--},
-  url = "https://github.com/shapely/shapely"
+  url =       {https://github.com/shapely/shapely},
 }
