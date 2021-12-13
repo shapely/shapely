@@ -43,7 +43,7 @@ def test_from_linestring():
     line = LineString(((1.0, 2.0), (3.0, 4.0)))
     copy = LineString(line)
     assert copy.coords[:] == [(1.0, 2.0), (3.0, 4.0)]
-    assert copy.geom_type == 'LineString'
+    assert copy.geom_type == "LineString"
 
 
 def test_from_linearring():
@@ -51,7 +51,7 @@ def test_from_linearring():
     ring = LinearRing(coords)
     copy = LineString(ring)
     assert copy.coords[:] == coords
-    assert copy.geom_type == 'LineString'
+    assert copy.geom_type == "LineString"
 
 
 def test_from_linestring_z():
@@ -59,7 +59,7 @@ def test_from_linestring_z():
     line = LineString(coords)
     copy = LineString(line)
     assert copy.coords[:] == coords
-    assert copy.geom_type == 'LineString'
+    assert copy.geom_type == "LineString"
 
 
 def test_from_generator():
@@ -111,10 +111,16 @@ def test_from_invalid_dim():
     with pytest.raises(shapely.GEOSException):
         LineString([(1, 2)])
 
-    with pytest.raises(ValueError, match="Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions"):
+    with pytest.raises(
+        ValueError,
+        match="Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions",
+    ):
         LineString([(1, 2, 3), (4, 5)])
 
-    with pytest.raises(ValueError, match="Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions"):
+    with pytest.raises(
+        ValueError,
+        match="Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions",
+    ):
         LineString([(1, 2), (3, 4, 5)])
 
     # TODO better error, right now raises AssertionError
@@ -131,7 +137,6 @@ def test_from_single_coordinate():
 
 
 class TestLineString:
-
     def test_linestring(self):
 
         # From coordinate tuples
@@ -150,13 +155,15 @@ class TestLineString:
             line.coords[2]  # index out of range
 
         # Geo interface
-        assert line.__geo_interface__ == {'type': 'LineString',
-                          'coordinates': ((1.0, 2.0), (3.0, 4.0))}
+        assert line.__geo_interface__ == {
+            "type": "LineString",
+            "coordinates": ((1.0, 2.0), (3.0, 4.0)),
+        }
 
     def test_linestring_empty(self):
         # Test Non-operability of Null geometry
         l_null = LineString()
-        assert l_null.wkt == 'LINESTRING EMPTY'
+        assert l_null.wkt == "LINESTRING EMPTY"
         assert l_null.length == 0.0
 
     def test_equals_argument_order(self):

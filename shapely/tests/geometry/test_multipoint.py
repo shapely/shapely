@@ -9,7 +9,6 @@ from shapely.geometry.base import dump_coords
 
 
 class TestMultiPoint(MultiGeometryTestCase):
-
     def test_multipoint(self):
 
         # From coordinate tuples
@@ -35,8 +34,10 @@ class TestMultiPoint(MultiGeometryTestCase):
             geom.geoms[2]
 
         # Geo interface
-        assert geom.__geo_interface__ == {'type': 'MultiPoint',
-                          'coordinates': ((1.0, 2.0), (3.0, 4.0))}
+        assert geom.__geo_interface__ == {
+            "type": "MultiPoint",
+            "coordinates": ((1.0, 2.0), (3.0, 4.0)),
+        }
 
     def test_multipoint_from_numpy(self):
         # Construct from a numpy array
@@ -51,9 +52,9 @@ class TestMultiPoint(MultiGeometryTestCase):
         self.subgeom_access_test(MultiPoint, [p0, p1])
 
     def test_create_multi_with_empty_component(self):
-        with pytest.raises(EmptyPartError, match="Can't create MultiPoint with empty component"):
-            wkt = MultiPoint([Point(0, 0), Point()]).wkt
-
+        msg = "Can't create MultiPoint with empty component"
+        with pytest.raises(EmptyPartError, match=msg):
+            MultiPoint([Point(0, 0), Point()]).wkt
 
 
 def test_multipoint_array_coercion():

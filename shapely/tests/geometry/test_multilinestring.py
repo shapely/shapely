@@ -10,7 +10,6 @@ from shapely.geometry.base import dump_coords
 
 
 class TestMultiLineString(MultiGeometryTestCase):
-
     def test_multilinestring(self):
 
         # From coordinate tuples
@@ -38,8 +37,10 @@ class TestMultiLineString(MultiGeometryTestCase):
             geom.geoms[1]
 
         # Geo interface
-        assert geom.__geo_interface__ == {'type': 'MultiLineString',
-                          'coordinates': (((0.0, 0.0), (1.0, 2.0)),)}
+        assert geom.__geo_interface__ == {
+            "type": "MultiLineString",
+            "coordinates": (((0.0, 0.0), (1.0, 2.0)),),
+        }
 
     def test_from_multilinestring_z(self):
         coords1 = [(0.0, 1.0, 2.0), (3.0, 4.0, 5.0)]
@@ -49,7 +50,7 @@ class TestMultiLineString(MultiGeometryTestCase):
         ml = MultiLineString([coords1, coords2])
         copy = MultiLineString(ml)
         assert isinstance(copy, MultiLineString)
-        assert copy.geom_type == 'MultiLineString'
+        assert copy.geom_type == "MultiLineString"
         assert len(copy.geoms) == 2
         assert dump_coords(copy.geoms[0]) == coords1
         assert dump_coords(copy.geoms[1]) == coords2
@@ -67,11 +68,9 @@ class TestMultiLineString(MultiGeometryTestCase):
         self.subgeom_access_test(MultiLineString, [line0, line1])
 
     def test_create_multi_with_empty_component(self):
-        with pytest.raises(EmptyPartError, match="Can't create MultiLineString with empty component"):
-            wkt = MultiLineString([
-                LineString([(0, 0), (1, 1), (2, 2)]),
-                LineString()
-            ]).wkt
+        msg = "Can't create MultiLineString with empty component"
+        with pytest.raises(EmptyPartError, match=msg):
+            MultiLineString([LineString([(0, 0), (1, 1), (2, 2)]), LineString()]).wkt
 
 
 @pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21

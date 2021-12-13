@@ -78,7 +78,6 @@ def test_from_invalid():
 
 
 class TestPoint:
-
     def test_point(self):
 
         # Test 2D points
@@ -111,12 +110,12 @@ class TestPoint:
         assert p.bounds == (3.0, 4.0, 3.0, 4.0)
 
         # Geo interface
-        assert p.__geo_interface__ == {'type': 'Point', 'coordinates': (3.0, 4.0)}
+        assert p.__geo_interface__ == {"type": "Point", "coordinates": (3.0, 4.0)}
 
     def test_point_empty(self):
         # Test Non-operability of Null geometry
         p_null = Point()
-        assert p_null.wkt == 'POINT EMPTY'
+        assert p_null.wkt == "POINT EMPTY"
         assert p_null.coords[:] == []
         assert p_null.area == 0.0
 
