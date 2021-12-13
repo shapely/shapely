@@ -3,7 +3,7 @@
 import shapely
 
 
-__all__ = ['explain_validity', 'make_valid']
+__all__ = ["explain_validity", "make_valid"]
 
 
 def explain_validity(ob):

@@ -54,7 +54,7 @@ class GeometryCollection(BaseMultipartGeometry):
         geometries = []
         for geom in self.geoms:
             geometries.append(geom.__geo_interface__)
-        return dict(type='GeometryCollection', geometries=geometries)
+        return dict(type="GeometryCollection", geometries=geometries)
 
     @property
     def geoms(self):

@@ -1,16 +1,18 @@
 import warnings
 
 
-__all__ = ['available', 'enable', 'disable', 'enabled']
+__all__ = ["available", "enable", "disable", "enabled"]
 
 
 available = True
 enabled = True
 
 
-_MSG = ("This function has no longer any effect, and will be removed in a "
-        "future release. Starting with Shapely 2.0, equivalent speedups are "
-        "always available")
+_MSG = (
+    "This function has no longer any effect, and will be removed in a "
+    "future release. Starting with Shapely 2.0, equivalent speedups are "
+    "always available"
+)
 
 
 def enable():
