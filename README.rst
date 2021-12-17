@@ -4,14 +4,14 @@ Shapely
 
 |github-actions| |appveyor| |coveralls|
 
-.. |github-actions| image:: https://github.com/Toblerity/Shapely/workflows/Tests%20(Linux)/badge.svg?branch=maint-1.8
-   :target: https://github.com/Toblerity/Shapely/actions?query=branch%3Amaint-1.8
+.. |github-actions| image:: https://github.com/shapely/shapely/workflows/Tests%20(Linux)/badge.svg?branch=maint-1.8
+   :target: https://github.com/shapely/shapely/actions?query=branch%3Amaint-1.8
 
-.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/github/Toblerity/Shapely?branch=maint-1.8&svg=true
+.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/github/shapely/shapely?branch=maint-1.8&svg=true
    :target: https://ci.appveyor.com/project/frsci/shapely?branch=maint-1.8
 
-.. |coveralls| image:: https://coveralls.io/repos/github/Toblerity/Shapely/badge.svg?branch=maint-1.8
-   :target: https://coveralls.io/github/Toblerity/Shapely?branch=maint-1.8
+.. |coveralls| image:: https://coveralls.io/repos/github/shapely/shapely/badge.svg?branch=maint-1.8
+   :target: https://coveralls.io/github/shapely/shapely?branch=maint-1.8
 
 Manipulation and analysis of geometric objects in the Cartesian plane.
 
@@ -27,8 +27,8 @@ planar geometric objects. It is based on the widely deployed `GEOS
 libraries. Shapely is not concerned with data formats or coordinate systems,
 but can be readily integrated with packages that are. For more details, see:
 
-* `Shapely GitHub repository <https://github.com/Toblerity/Shapely>`__
-* `Shapely documentation and manual <https://shapely.readthedocs.io/en/latest/>`__
+* `Shapely GitHub repository <https://github.com/shapely/shapely>`__
+* `Shapely documentation and manual <https://shapely.readthedocs.io/en/maint-1.8/>`__
 
 Usage
 =====
@@ -158,4 +158,4 @@ Questions about using Shapely may be asked on the `GIS StackExchange
 <https://gis.stackexchange.com/questions/tagged/shapely>`__ using the "shapely"
 tag.
 
-Bugs may be reported at https://github.com/Toblerity/Shapely/issues.
+Bugs may be reported at https://github.com/shapely/shapely/issues.

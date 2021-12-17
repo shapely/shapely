@@ -73,7 +73,7 @@ class PolylabelTestCase(unittest.TestCase):
     def test_polygon_with_hole(self):
         """
         Finds pole of inaccessibility for a polygon with a hole
-        https://github.com/Toblerity/Shapely/issues/817
+        https://github.com/shapely/shapely/issues/817
         """
         polygon = Polygon(
             shell=[(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)],
