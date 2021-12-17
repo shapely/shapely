@@ -5,7 +5,7 @@ prune DLLs_AMD64
 prune DLLs_x86
 exclude *.txt
 exclude MANIFEST.in
-include CHANGES.txt CREDITS.txt LICENSE.txt README.rst
+include CHANGES.txt CREDITS.txt LICENSE.txt README.rst VERSION.txt
 include pyproject.toml
 recursive-include _vendor *.py
 recursive-include tests *.py *.txt
