@@ -180,7 +180,7 @@ setup_args = dict(
     author_email        = 'sean.gillies@gmail.com',
     maintainer          = 'Sean Gillies',
     maintainer_email    = 'sean.gillies@gmail.com',
-    url                 = 'https://github.com/Toblerity/Shapely',
+    url                 = 'https://github.com/shapely/shapely',
     long_description    = long_description,
     packages            = [
         'shapely',
