@@ -3,9 +3,8 @@
 Also provides pickle-like convenience functions.
 """
 
-from shapely import geos
-
 import shapely
+from shapely import geos
 
 
 def loads(data):

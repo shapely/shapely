@@ -3,23 +3,21 @@
 
 from warnings import warn
 
+import shapely
+from shapely.algorithms.polylabel import polylabel
 from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
-from shapely.prepared import prep
-from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
 from shapely.geometry import (
-    shape,
-    Point,
-    MultiPoint,
+    GeometryCollection,
     LineString,
     MultiLineString,
+    MultiPoint,
+    Point,
     Polygon,
-    GeometryCollection,
+    shape,
 )
+from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
 from shapely.geometry.polygon import orient as orient_
-from shapely.algorithms.polylabel import polylabel
-
-import shapely
-
+from shapely.prepared import prep
 
 __all__ = [
     "cascaded_union",

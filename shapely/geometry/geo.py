@@ -3,16 +3,15 @@ Geometry factories based on the geo interface
 """
 import warnings
 
-from shapely.errors import GeometryTypeError
-from shapely.errors import ShapelyDeprecationWarning
+from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
 
-from .point import Point
-from .linestring import LineString
-from .polygon import LinearRing, Polygon
-from .multipoint import MultiPoint
-from .multilinestring import MultiLineString
-from .multipolygon import MultiPolygon
 from .collection import GeometryCollection
+from .linestring import LineString
+from .multilinestring import MultiLineString
+from .multipoint import MultiPoint
+from .multipolygon import MultiPolygon
+from .point import Point
+from .polygon import LinearRing, Polygon
 
 # numpy is an optional dependency
 try:

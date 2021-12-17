@@ -6,18 +6,16 @@ operations are performed in the x-y plane. Thus, geometries with
 different z values may intersect or be equal.
 """
 
-from itertools import islice
 import logging
 import math
 import sys
+from itertools import islice
 from warnings import warn
 
 import shapely
-
 from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
-from shapely.errors import GeometryTypeError
-from shapely.errors import ShapelyDeprecationWarning
+from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
 
 log = logging.getLogger(__name__)
 

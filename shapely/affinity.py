@@ -1,10 +1,11 @@
 """Affine transforms, both in general and specific, named transforms."""
 
-from math import sin, cos, tan, pi
-from shapely.errors import GeometryTypeError
+from math import cos, pi, sin, tan
 
 import numpy as np
+
 import shapely
+from shapely.errors import GeometryTypeError
 
 __all__ = ["affine_transform", "rotate", "scale", "skew", "translate"]
 

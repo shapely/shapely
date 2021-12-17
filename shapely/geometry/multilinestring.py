@@ -1,12 +1,10 @@
 """Collections of linestrings and related utilities
 """
 
-from shapely.errors import EmptyPartError
-from shapely.geometry.base import BaseMultipartGeometry
-from shapely.geometry import linestring
-
 import shapely
-
+from shapely.errors import EmptyPartError
+from shapely.geometry import linestring
+from shapely.geometry.base import BaseMultipartGeometry
 
 __all__ = ["MultiLineString"]
 
