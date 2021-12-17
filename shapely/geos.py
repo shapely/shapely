@@ -1,8 +1,8 @@
 """
 Proxies for libgeos, GEOS-specific exceptions, and utilities
 """
-import pygeos
+import shapely
 
-geos_version_string = pygeos.geos_capi_version_string
-geos_version = pygeos.geos_version
-geos_capi_version = pygeos.geos_capi_version
+geos_version_string = shapely.geos_capi_version_string
+geos_version = shapely.geos_version
+geos_capi_version = shapely.geos_capi_version

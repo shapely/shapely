@@ -23,7 +23,7 @@ from typing import Any, Iterable, Sequence, Union
 from shapely.geometry.base import BaseGeometry
 
 import numpy as np
-from pygeos import lib
+from shapely import lib
 
 
 log = logging.getLogger(__name__)
@@ -121,7 +121,7 @@ class STRtree:
         if self._has_custom_items:
             return (STRtree, (self.geometries, self._items))
         else:
-            return (STRtree, (self.geometries, ))
+            return (STRtree, (self.geometries,))
 
     def query_items(self, geom: BaseGeometry) -> Sequence[Any]:
         """Query for nodes which intersect the geom's envelope to get
