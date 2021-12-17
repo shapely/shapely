@@ -1,16 +1,13 @@
 """Polygons and Linear Rings
 """
-
-from . import unittest, numpy, shapely20_deprecated
-
-import pytest
+import numpy as np
 
 from shapely.coords import CoordinateSequence
 from shapely.wkb import loads as load_wkb
-from shapely.errors import TopologicalError, ShapelyDeprecationWarning
-from shapely.geometry import Point, Polygon
-from shapely.geometry.polygon import LinearRing, LineString
-from shapely.geometry.base import dump_coords
+from shapely.errors import TopologicalError
+from shapely.geometry import LinearRing, LineString, Point, Polygon
+
+import pytest
 
 
 def test_empty_linearring_coords():
@@ -41,7 +38,7 @@ def test_linearring_from_closed_linestring():
     ring = LinearRing(line)
     assert len(ring.coords) == 4
     assert ring.coords[:] == coords
-    assert ring.geom_type == 'LinearRing'
+    assert ring.geom_type == "LinearRing"
 
 
 def test_linearring_from_unclosed_linestring():
@@ -50,7 +47,7 @@ def test_linearring_from_unclosed_linestring():
     ring = LinearRing(line)
     assert len(ring.coords) == 4
     assert ring.coords[:] == coords
-    assert ring.geom_type == 'LinearRing'
+    assert ring.geom_type == "LinearRing"
 
 
 def test_linearring_from_invalid():
@@ -91,7 +88,6 @@ def test_linearring_from_empty():
 
 def test_linearring_from_numpy():
     # Construct from a numpy array
-    np = pytest.importorskip("numpy")
     coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
 
     ring = LinearRing(np.array(coords))
@@ -99,7 +95,6 @@ def test_linearring_from_numpy():
 
 
 def test_numpy_linearring_coords():
-    np = pytest.importorskip("numpy")
     from numpy.testing import assert_array_equal
 
     ring = LinearRing(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0)))
@@ -110,16 +105,12 @@ def test_numpy_linearring_coords():
 
 @pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_empty_linearring_coords():
-    np = pytest.importorskip("numpy")
-
     ring = LinearRing()
     assert np.asarray(ring.coords).shape == (0, 2)
 
 
 @pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
-    np = pytest.importorskip("numpy")
-
     geom = Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0)])
     ar = np.empty(1, object)
     ar[:] = [geom]
@@ -143,8 +134,7 @@ def test_polygon_from_coordinate_sequence_with_holes():
     coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)]
 
     # Interior rings (holes)
-    polygon = Polygon(coords, [((0.25, 0.25), (0.25, 0.5),
-                                (0.5, 0.5), (0.5, 0.25))])
+    polygon = Polygon(coords, [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))])
     assert polygon.exterior.coords[:] == coords
     assert len(polygon.interiors) == 1
     assert len(polygon.interiors[0].coords) == 5
@@ -161,8 +151,7 @@ def test_polygon_from_linearring():
 
 def test_polygon_from_polygon():
     coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)]
-    polygon = Polygon(coords, [((0.25, 0.25), (0.25, 0.5),
-                                (0.5, 0.5), (0.5, 0.25))])
+    polygon = Polygon(coords, [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))])
 
     # Test from another Polygon
     copy = Polygon(polygon)
@@ -189,44 +178,46 @@ def test_polygon_from_empty():
 
 
 def test_polygon_from_numpy():
-    np = pytest.importorskip("numpy")
-
-    a = np.array(((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.)))
+    a = np.array(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)))
     polygon = Polygon(a)
     assert len(polygon.exterior.coords) == 5
-    assert (polygon.exterior.coords[:]
-            == [(0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.)])
+    assert polygon.exterior.coords[:] == [
+        (0.0, 0.0),
+        (0.0, 1.0),
+        (1.0, 1.0),
+        (1.0, 0.0),
+        (0.0, 0.0),
+    ]
     assert len(polygon.interiors) == 0
 
 
-class PolygonTestCase(unittest.TestCase):
-
+class TestPolygon:
     def test_linearring(self):
 
         # Initialization
         # Linear rings won't usually be created by users, but by polygons
         coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0))
         ring = LinearRing(coords)
-        self.assertEqual(len(ring.coords), 5)
-        self.assertEqual(ring.coords[0], ring.coords[4])
-        self.assertEqual(ring.coords[0], ring.coords[-1])
-        self.assertTrue(ring.is_ring)
+        assert len(ring.coords) == 5
+        assert ring.coords[0] == ring.coords[4]
+        assert ring.coords[0] == ring.coords[-1]
+        assert ring.is_ring is True
 
     def test_polygon(self):
         coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0))
 
         # Construct a polygon, exterior ring only
         polygon = Polygon(coords)
-        self.assertEqual(len(polygon.exterior.coords), 5)
+        assert len(polygon.exterior.coords) == 5
 
         # Ring Access
-        self.assertIsInstance(polygon.exterior, LinearRing)
+        assert isinstance(polygon.exterior, LinearRing)
         ring = polygon.exterior
-        self.assertEqual(len(ring.coords), 5)
-        self.assertEqual(ring.coords[0], ring.coords[4])
-        self.assertEqual(ring.coords[0], (0., 0.))
-        self.assertTrue(ring.is_ring)
-        self.assertEqual(len(polygon.interiors), 0)
+        assert len(ring.coords) == 5
+        assert ring.coords[0] == ring.coords[4]
+        assert ring.coords[0] == (0.0, 0.0)
+        assert ring.is_ring is True
+        assert len(polygon.interiors) == 0
 
         # Create a new polygon from WKB
         data = polygon.wkb
@@ -234,94 +225,110 @@ class PolygonTestCase(unittest.TestCase):
         ring = None
         polygon = load_wkb(data)
         ring = polygon.exterior
-        self.assertEqual(len(ring.coords), 5)
-        self.assertEqual(ring.coords[0], ring.coords[4])
-        self.assertEqual(ring.coords[0], (0., 0.))
-        self.assertTrue(ring.is_ring)
+        assert len(ring.coords) == 5
+        assert ring.coords[0] == ring.coords[4]
+        assert ring.coords[0] == (0.0, 0.0)
+        assert ring.is_ring is True
         polygon = None
 
         # Interior rings (holes)
-        polygon = Polygon(coords, [((0.25, 0.25), (0.25, 0.5),
-                                    (0.5, 0.5), (0.5, 0.25))])
-        self.assertEqual(len(polygon.exterior.coords), 5)
-        self.assertEqual(len(polygon.interiors[0].coords), 5)
-        with self.assertRaises(IndexError):  # index out of range
+        polygon = Polygon(
+            coords, [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))]
+        )
+        assert len(polygon.exterior.coords) == 5
+        assert len(polygon.interiors[0].coords) == 5
+        with pytest.raises(IndexError):  # index out of range
             polygon.interiors[1]
 
         # Coordinate getter raises exceptions
-        with self.assertRaises(NotImplementedError):
+        with pytest.raises(NotImplementedError):
             polygon.coords
 
         # Geo interface
-        self.assertEqual(
-            polygon.__geo_interface__,
-            {'type': 'Polygon',
-             'coordinates': (((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0),
-                             (0.0, 0.0)), ((0.25, 0.25), (0.25, 0.5),
-                             (0.5, 0.5), (0.5, 0.25), (0.25, 0.25)))})
+        assert polygon.__geo_interface__ == {
+            "type": "Polygon",
+            "coordinates": (
+                ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)),
+                ((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25), (0.25, 0.25)),
+            ),
+        }
 
     def test_linearring_empty(self):
         # Test Non-operability of Null rings
         r_null = LinearRing()
-        self.assertEqual(r_null.wkt, 'LINEARRING EMPTY')
-        self.assertEqual(r_null.length, 0.0)
+        assert r_null.wkt == "LINEARRING EMPTY"
+        assert r_null.length == 0.0
 
     def test_dimensions(self):
 
         # Background: see http://trac.gispython.org/lab/ticket/168
         # http://lists.gispython.org/pipermail/community/2008-August/001859.html
 
-        coords = ((0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 1.0, 0.0),
-                  (1.0, 0.0, 0.0))
+        coords = ((0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 1.0, 0.0), (1.0, 0.0, 0.0))
         polygon = Polygon(coords)
-        self.assertEqual(polygon._ndim, 3)
+        assert polygon._ndim == 3
         gi = polygon.__geo_interface__
-        self.assertEqual(
-            gi['coordinates'],
-            (((0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 1.0, 0.0),
-              (1.0, 0.0, 0.0), (0.0, 0.0, 0.0)),))
+        assert gi["coordinates"] == (
+            (
+                (0.0, 0.0, 0.0),
+                (0.0, 1.0, 0.0),
+                (1.0, 1.0, 0.0),
+                (1.0, 0.0, 0.0),
+                (0.0, 0.0, 0.0),
+            ),
+        )
 
         e = polygon.exterior
-        self.assertEqual(e._ndim, 3)
+        assert e._ndim == 3
         gi = e.__geo_interface__
-        self.assertEqual(
-            gi['coordinates'],
-            ((0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 1.0, 0.0),
-             (1.0, 0.0, 0.0), (0.0, 0.0, 0.0)))
+        assert gi["coordinates"] == (
+            (0.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0),
+            (1.0, 1.0, 0.0),
+            (1.0, 0.0, 0.0),
+            (0.0, 0.0, 0.0),
+        )
 
     def test_attribute_chains(self):
 
         # Attribute Chaining
         # See also ticket #151.
         p = Polygon(((0.0, 0.0), (0.0, 1.0), (-1.0, 1.0), (-1.0, 0.0)))
-        self.assertEqual(
-            list(p.boundary.coords),
-            [(0.0, 0.0), (0.0, 1.0), (-1.0, 1.0), (-1.0, 0.0), (0.0, 0.0)])
+        assert list(p.boundary.coords) == [
+            (0.0, 0.0),
+            (0.0, 1.0),
+            (-1.0, 1.0),
+            (-1.0, 0.0),
+            (0.0, 0.0),
+        ]
 
         ec = list(Point(0.0, 0.0).buffer(1.0, 1).exterior.coords)
-        self.assertIsInstance(ec, list)  # TODO: this is a poor test
+        assert isinstance(ec, list)  # TODO: this is a poor test
 
         # Test chained access to interiors
         p = Polygon(
             ((0.0, 0.0), (0.0, 1.0), (-1.0, 1.0), (-1.0, 0.0)),
-            [((-0.25, 0.25), (-0.25, 0.75), (-0.75, 0.75), (-0.75, 0.25))]
+            [((-0.25, 0.25), (-0.25, 0.75), (-0.75, 0.75), (-0.75, 0.25))],
         )
-        self.assertEqual(p.area, 0.75)
+        assert p.area == 0.75
 
         """Not so much testing the exact values here, which are the
         responsibility of the geometry engine (GEOS), but that we can get
         chain functions and properties using anonymous references.
         """
-        self.assertEqual(
-            list(p.interiors[0].coords),
-            [(-0.25, 0.25), (-0.25, 0.75), (-0.75, 0.75), (-0.75, 0.25),
-             (-0.25, 0.25)])
+        assert list(p.interiors[0].coords) == [
+            (-0.25, 0.25),
+            (-0.25, 0.75),
+            (-0.75, 0.75),
+            (-0.75, 0.25),
+            (-0.25, 0.25),
+        ]
         xy = list(p.interiors[0].buffer(1).exterior.coords)[0]
-        self.assertEqual(len(xy), 2)
+        assert len(xy) == 2
 
         # Test multiple operators, boundary of a buffer
         ec = list(p.buffer(1).boundary.coords)
-        self.assertIsInstance(ec, list)  # TODO: this is a poor test
+        assert isinstance(ec, list)  # TODO: this is a poor test
 
     def test_empty_equality(self):
         # Test equals operator, including empty geometries
@@ -333,22 +340,16 @@ class PolygonTestCase(unittest.TestCase):
         polygon_empty1 = Polygon()
         polygon_empty2 = Polygon()
 
-        self.assertNotEqual(point1, polygon1)
-        self.assertEqual(polygon_empty1, polygon_empty2)
-        self.assertNotEqual(polygon1, polygon_empty1)
-        self.assertEqual(polygon1, polygon2)
-        self.assertNotEqual(None, polygon_empty1)
+        assert point1 != polygon1
+        assert polygon_empty1 == polygon_empty2
+        assert polygon1 != polygon_empty1
+        assert polygon1 == polygon2
+        assert polygon_empty1 != None
 
     def test_from_bounds(self):
         xmin, ymin, xmax, ymax = -180, -90, 180, 90
-        coords = [
-            (xmin, ymin),
-            (xmin, ymax),
-            (xmax, ymax),
-            (xmax, ymin)]
-        self.assertEqual(
-            Polygon(coords),
-            Polygon.from_bounds(xmin, ymin, xmax, ymax))
+        coords = [(xmin, ymin), (xmin, ymax), (xmax, ymax), (xmax, ymin)]
+        assert Polygon(coords) == Polygon.from_bounds(xmin, ymin, xmax, ymax)
 
     def test_empty_polygon_exterior(self):
         p = Polygon()
