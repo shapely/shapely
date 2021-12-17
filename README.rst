@@ -28,7 +28,7 @@ libraries. Shapely is not concerned with data formats or coordinate systems,
 but can be readily integrated with packages that are. For more details, see:
 
 * `Shapely GitHub repository <https://github.com/shapely/shapely>`__
-* `Shapely documentation and manual <https://shapely.readthedocs.io/en/latest/>`__
+* `Shapely documentation and manual <https://shapely.readthedocs.io/en/maint-1.8/>`__
 
 Usage
 =====
