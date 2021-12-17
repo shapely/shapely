@@ -154,9 +154,9 @@ def test_polygon_from_polygon():
 
     # Test from another Polygon
     copy = Polygon(polygon)
-    assert len(polygon.exterior.coords) == 5
-    assert len(polygon.interiors) == 1
-    assert len(polygon.interiors[0].coords) == 5
+    assert len(copy.exterior.coords) == 5
+    assert len(copy.interiors) == 1
+    assert len(copy.interiors[0].coords) == 5
 
 
 def test_polygon_from_invalid():
@@ -343,7 +343,7 @@ class TestPolygon:
         assert polygon_empty1 == polygon_empty2
         assert polygon1 != polygon_empty1
         assert polygon1 == polygon2
-        assert polygon_empty1 != None
+        assert polygon_empty1 is not None
 
     def test_from_bounds(self):
         xmin, ymin, xmax, ymax = -180, -90, 180, 90

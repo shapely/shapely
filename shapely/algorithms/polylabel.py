@@ -1,7 +1,7 @@
 from heapq import heappop, heappush
 
 from ..errors import TopologicalError
-from ..geometry import LineString, Point
+from ..geometry import Point
 
 
 class Cell:

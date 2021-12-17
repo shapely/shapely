@@ -2,7 +2,7 @@
 """
 
 import shapely
-from shapely.errors import EmptyPartError, ShapelyDeprecationWarning
+from shapely.errors import EmptyPartError
 from shapely.geometry import point
 from shapely.geometry.base import BaseMultipartGeometry
 

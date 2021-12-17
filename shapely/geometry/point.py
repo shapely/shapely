@@ -2,7 +2,7 @@
 """
 
 import shapely
-from shapely.errors import DimensionError, ShapelyDeprecationWarning
+from shapely.errors import DimensionError
 from shapely.geometry.base import BaseGeometry
 
 __all__ = ["Point"]

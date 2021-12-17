@@ -4,7 +4,7 @@
 from warnings import warn
 
 import shapely
-from shapely.algorithms.polylabel import polylabel
+from shapely.algorithms.polylabel import polylabel  # noqa
 from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
 from shapely.geometry import (
     GeometryCollection,
@@ -62,7 +62,7 @@ class CollectionOperator:
         except TypeError:
             source = [source]
         finally:
-            obs = [self.shapeup(l) for l in source]
+            obs = [self.shapeup(line) for line in source]
         collection = shapely.polygonize(obs)
         return collection.geoms
 
@@ -87,7 +87,7 @@ class CollectionOperator:
         except TypeError:
             source = [source]
         finally:
-            obs = [self.shapeup(l) for l in source]
+            obs = [self.shapeup(line) for line in source]
         return shapely.polygonize_full(obs)
 
     def linemerge(self, lines):

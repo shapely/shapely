@@ -1,9 +1,7 @@
 """
 Geometry factories based on the geo interface
 """
-import warnings
-
-from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
+from shapely.errors import GeometryTypeError
 
 from .collection import GeometryCollection
 from .linestring import LineString

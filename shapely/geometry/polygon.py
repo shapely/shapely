@@ -5,7 +5,7 @@ import numpy as np
 
 import shapely
 from shapely.algorithms.cga import is_ccw_impl, signed_area
-from shapely.errors import ShapelyDeprecationWarning, TopologicalError
+from shapely.errors import TopologicalError
 from shapely.geometry.base import BaseGeometry
 from shapely.geometry.linestring import LineString
 from shapely.geometry.point import Point
@@ -158,14 +158,6 @@ class InteriorRingSequence:
             return res
         else:
             raise TypeError("key must be an index or slice")
-
-    @property
-    def _longest(self):
-        max = 0
-        for g in iter(self):
-            l = len(g.coords)
-            if l > max:
-                max = l
 
     def gtag(self):
         return hash(repr(self.__p__))

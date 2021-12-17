@@ -8,7 +8,6 @@ different z values may intersect or be equal.
 
 import logging
 import math
-import sys
 from itertools import islice
 from warnings import warn
 
@@ -441,9 +440,7 @@ class BaseGeometry(shapely.Geometry):
                 "The `quadsegs` argument is deprecated. Use `resolution`.",
                 DeprecationWarning,
             )
-            res = quadsegs
-        else:
-            res = resolution
+            resolution = quadsegs
 
         if mitre_limit == 0.0:
             raise ValueError("Cannot compute offset from zero-length line segment")
@@ -811,14 +808,6 @@ class GeometrySequence:
             return type(self.__p__)(res or None)
         else:
             raise TypeError("key must be an index or slice")
-
-    @property
-    def _longest(self):
-        max = 0
-        for g in iter(self):
-            l = len(g.coords)
-            if l > max:
-                max = l
 
 
 class HeterogeneousGeometrySequence(GeometrySequence):

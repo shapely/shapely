@@ -1,7 +1,6 @@
 import json
 import pickle
 import struct
-from unittest import mock
 
 import numpy as np
 import pytest

@@ -26,6 +26,3 @@ __all__ = [
     "CAP_STYLE",
     "JOIN_STYLE",
 ]
-
-# This needs to be called here to avoid circular references
-import shapely.speedups

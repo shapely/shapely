@@ -5,7 +5,6 @@ from math import cos, pi, sin, tan
 import numpy as np
 
 import shapely
-from shapely.errors import GeometryTypeError
 
 __all__ = ["affine_transform", "rotate", "scale", "skew", "translate"]
 
@@ -155,8 +154,8 @@ def rotate(geom, angle, origin="center", use_radians=False):
 
     # fmt: off
     matrix = (cosp, -sinp, 0.0,
-              sinp,  cosp, 0.0,
-              0.0,    0.0, 1.0,
+              sinp, cosp, 0.0,
+              0.0, 0.0, 1.0,
               x0 - x0 * cosp + y0 * sinp, y0 - x0 * sinp - y0 * cosp, 0.0)
     # fmt: on
     return affine_transform(geom, matrix)
@@ -234,7 +233,7 @@ def skew(geom, xs=0.0, ys=0.0, origin="center", use_radians=False):
     # fmt: off
     matrix = (1.0, tanx, 0.0,
               tany, 1.0, 0.0,
-              0.0,  0.0, 1.0,
+              0.0, 0.0, 1.0,
               -y0 * tanx, -x0 * tany, 0.0)
     # fmt: on
     return affine_transform(geom, matrix)
