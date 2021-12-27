@@ -115,25 +115,6 @@ class BaseGeometry(shapely.Geometry):
     def __reduce__(self):
         return (shapely.from_wkb, (self.wkb,))
 
-    def __setattr__(self, name, value):
-        # first try regular attribute access via __getattribute__, so that
-        # our own (existing) attributes don't raise a warning
-        try:
-            object.__getattribute__(self, name)
-            super().__setattr__(name, value)
-            return
-        except AttributeError:
-            pass
-
-        # if custom attribute, raise the warning
-        warn(
-            "Setting custom attributes on geometry objects is deprecated, "
-            "and will raise an AttributeError in Shapely 2.0",
-            ShapelyDeprecationWarning,
-            stacklevel=2,
-        )
-        super().__setattr__(name, value)
-
     # Operators
     # ---------
 
