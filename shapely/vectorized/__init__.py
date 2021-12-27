@@ -1,8 +1,8 @@
 """Provides multi-point element-wise operations such as ``contains``."""
 
 import numpy as np
-import shapely
 
+import shapely
 from shapely.prepared import PreparedGeometry
 
 

@@ -3,8 +3,6 @@
 Also provides pickle-like convenience functions.
 """
 
-from shapely import geos
-
 import shapely
 
 

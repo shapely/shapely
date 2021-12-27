@@ -1,11 +1,12 @@
 """Multi-part collections of geometries
 """
 
-from shapely.geometry.base import BaseGeometry
-from shapely.geometry.base import BaseMultipartGeometry
-from shapely.geometry.base import HeterogeneousGeometrySequence
-
 import shapely
+from shapely.geometry.base import (
+    BaseGeometry,
+    BaseMultipartGeometry,
+    HeterogeneousGeometrySequence,
+)
 
 
 class GeometryCollection(BaseMultipartGeometry):
