@@ -1,8 +1,7 @@
 import numpy as np
-
 import pytest
 
-from shapely.geometry import Polygon, MultiPolygon
+from shapely.geometry import MultiPolygon, Polygon
 from shapely.geometry.base import dump_coords
 
 from .test_multi import MultiGeometryTestCase

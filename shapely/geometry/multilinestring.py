@@ -1,12 +1,10 @@
 """Collections of linestrings and related utilities
 """
 
-from shapely.errors import EmptyPartError
-from shapely.geometry.base import BaseMultipartGeometry
-from shapely.geometry import linestring
-
 import shapely
-
+from shapely.errors import EmptyPartError
+from shapely.geometry import linestring
+from shapely.geometry.base import BaseMultipartGeometry
 
 __all__ = ["MultiLineString"]
 
@@ -51,12 +49,12 @@ class MultiLineString(BaseMultipartGeometry):
         m = len(lines)
         subs = []
         for i in range(m):
-            l = linestring.LineString(lines[i])
-            if l.is_empty:
+            line = linestring.LineString(lines[i])
+            if line.is_empty:
                 raise EmptyPartError(
                     "Can't create MultiLineString with empty component"
                 )
-            subs.append(l)
+            subs.append(line)
 
         if len(lines) == 0:
             return shapely.from_wkt("MULTILINESTRING EMPTY")

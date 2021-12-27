@@ -1,12 +1,10 @@
 """Collections of points and related utilities
 """
 
-from shapely.errors import EmptyPartError, ShapelyDeprecationWarning
-from shapely.geometry.base import BaseMultipartGeometry
-from shapely.geometry import point
-
 import shapely
-
+from shapely.errors import EmptyPartError
+from shapely.geometry import point
+from shapely.geometry.base import BaseMultipartGeometry
 
 __all__ = ["MultiPoint"]
 

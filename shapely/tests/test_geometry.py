@@ -32,8 +32,8 @@ from .common import (
     polygon_with_hole,
     polygon_with_hole_z,
     polygon_z,
+    shapely20_todo,
 )
-from .common import shapely20_todo
 
 
 def test_get_num_points():

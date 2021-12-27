@@ -1,6 +1,6 @@
-from shapely import geometry
-
 import pytest
+
+from shapely import geometry
 
 
 def test_polygon():

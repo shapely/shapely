@@ -1,11 +1,9 @@
 """Collections of polygons and related utilities
 """
 
-from shapely.geometry.base import BaseMultipartGeometry
-from shapely.geometry import polygon
-
 import shapely
-
+from shapely.geometry import polygon
+from shapely.geometry.base import BaseMultipartGeometry
 
 __all__ = ["MultiPolygon"]
 

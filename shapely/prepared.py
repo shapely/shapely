@@ -1,9 +1,9 @@
 """
 Support for GEOS prepared geometry operations.
 """
-import shapely
-
 from pickle import PicklingError
+
+import shapely
 
 
 class PreparedGeometry:

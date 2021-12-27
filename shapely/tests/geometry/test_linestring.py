@@ -1,10 +1,9 @@
 import numpy as np
+import pytest
 
 import shapely
 from shapely.coords import CoordinateSequence
-from shapely.geometry import LineString, Point, LinearRing
-
-import pytest
+from shapely.geometry import LinearRing, LineString, Point
 
 
 def test_from_coordinate_sequence():

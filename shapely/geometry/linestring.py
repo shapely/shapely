@@ -2,8 +2,6 @@
 """
 
 import shapely
-
-from shapely.errors import ShapelyDeprecationWarning
 from shapely.geometry.base import BaseGeometry, JOIN_STYLE
 from shapely.geometry.point import Point
 

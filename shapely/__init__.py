@@ -15,7 +15,7 @@ from .strtree import *  # NOQA
 from .io import *  # NOQA
 
 # Submodule always needs to be imported to ensure Geometry subclasses are registered
-import shapely.geometry
+import shapely.geometry  # NOQA
 
 from ._version import get_versions
 
