@@ -20,11 +20,10 @@ References
 import logging
 from typing import Any, Iterable, Sequence, Union
 
-from shapely.geometry.base import BaseGeometry
-
 import numpy as np
-from shapely import lib
 
+from shapely import lib
+from shapely.geometry.base import BaseGeometry
 
 log = logging.getLogger(__name__)
 

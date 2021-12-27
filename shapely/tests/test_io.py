@@ -1,7 +1,6 @@
 import json
 import pickle
 import struct
-from unittest import mock
 
 import numpy as np
 import pytest
@@ -9,7 +8,14 @@ import pytest
 import shapely
 from shapely.testing import assert_geometries_equal
 
-from .common import all_types, empty_point, empty_point_z, point, point_z, shapely20_todo
+from .common import (
+    all_types,
+    empty_point,
+    empty_point_z,
+    point,
+    point_z,
+    shapely20_todo,
+)
 
 # fmt: off
 POINT11_WKB = b"\x01\x01\x00\x00\x00" + struct.pack("<2d", 1.0, 1.0)
@@ -459,7 +465,9 @@ def test_to_wkb_byte_order():
     coord = b"\x00\x00\x00\x00\x00\x00\xf0?"  # 1.0 as double (LE)
 
     assert shapely.to_wkb(point, byte_order=1) == le + point_type + 2 * coord
-    assert shapely.to_wkb(point, byte_order=0) == be + point_type[::-1] + 2 * coord[::-1]
+    assert (
+        shapely.to_wkb(point, byte_order=0) == be + point_type[::-1] + 2 * coord[::-1]
+    )
 
 
 def test_to_wkb_srid():
@@ -717,7 +725,9 @@ def test_to_geojson_exceptions():
         empty_point,
         shapely.multipoints([empty_point, point]),
         shapely.geometrycollections([empty_point, point]),
-        shapely.geometrycollections([shapely.geometrycollections([empty_point]), point]),
+        shapely.geometrycollections(
+            [shapely.geometrycollections([empty_point]), point]
+        ),
     ],
 )
 def test_to_geojson_point_empty(geom):

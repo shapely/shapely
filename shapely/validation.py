@@ -2,7 +2,6 @@
 
 import shapely
 
-
 __all__ = ["explain_validity", "make_valid"]
 
 

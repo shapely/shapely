@@ -3,23 +3,21 @@
 
 from warnings import warn
 
+import shapely
+from shapely.algorithms.polylabel import polylabel  # noqa
 from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
-from shapely.prepared import prep
-from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
 from shapely.geometry import (
-    shape,
-    Point,
-    MultiPoint,
+    GeometryCollection,
     LineString,
     MultiLineString,
+    MultiPoint,
+    Point,
     Polygon,
-    GeometryCollection,
+    shape,
 )
+from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
 from shapely.geometry.polygon import orient as orient_
-from shapely.algorithms.polylabel import polylabel
-
-import shapely
-
+from shapely.prepared import prep
 
 __all__ = [
     "cascaded_union",
@@ -64,7 +62,7 @@ class CollectionOperator:
         except TypeError:
             source = [source]
         finally:
-            obs = [self.shapeup(l) for l in source]
+            obs = [self.shapeup(line) for line in source]
         collection = shapely.polygonize(obs)
         return collection.geoms
 
@@ -89,7 +87,7 @@ class CollectionOperator:
         except TypeError:
             source = [source]
         finally:
-            obs = [self.shapeup(l) for l in source]
+            obs = [self.shapeup(line) for line in source]
         return shapely.polygonize_full(obs)
 
     def linemerge(self, lines):
