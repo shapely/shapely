@@ -6,6 +6,7 @@ from . import lib
 from .decorators import requires_geos, UnsupportedGEOSOperation
 from .enum import ParamEnum
 from .geometry.base import BaseGeometry
+from .predicates import is_missing
 
 __all__ = ["STRtree"]
 
@@ -371,7 +372,7 @@ class STRtree:
         return self._tree.query_bulk(geometry, predicate)
 
     @requires_geos("3.6.0")
-    def nearest_bulk(self, geometry, exclusive: bool = False):
+    def _nearest_idx(self, geometry, exclusive: bool = False):
         """Returns the index of the nearest item in the tree for each input
         geometry.
 
@@ -416,17 +417,21 @@ class STRtree:
                 "The `exclusive` keyword is not yet implemented for Shapely 2.0"
             )
 
-        geometry = np.asarray(geometry, dtype=object)
-        if geometry.ndim == 0:
-            geometry = np.expand_dims(geometry, 0)
-
-        return self._tree.nearest(geometry)
-
-    def _nearest_idx(self, geom: BaseGeometry, exclusive: bool = False) -> int:
-        indices = self.nearest_bulk(geom, exclusive=exclusive)
-        # nearest returns ndarray with shape (2, 1) -> index in input
+        geometry_arr = np.asarray(geometry, dtype=object)
+        # TODO those changes compared to _tree.nearest output should be pushed into C
+        # _tree.nearest currently ignores missing values
+        if is_missing(geometry_arr).any():
+            raise ValueError(
+                "Cannot determine nearest geometry for missing value (None)"
+            )
+        # _tree.nearest returns ndarray with shape (2, 1) -> index in input
         # geometries and index into tree geometries
-        return indices[1, 0]
+        indices = self._tree.nearest(np.atleast_1d(geometry_arr))[1]
+
+        if geometry_arr.ndim == 0:
+            return indices[0]
+        else:
+            return indices
 
     @requires_geos("3.6.0")
     def nearest_item(

@@ -1517,14 +1517,15 @@ def test_query_bulk_dwithin_polygons(poly_tree, geometry, distance, expected):
 @pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_nearest_empty_tree():
     tree = shapely.STRtree([])
-    assert_array_equal(tree.nearest_bulk(point), [[], []])
+    # TODO what do we want here?
+    assert tree.nearest_item(point) is None
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize("geometry", ["I am not a geometry"])
 def test_nearest_invalid_geom(tree, geometry):
     with pytest.raises(TypeError):
-        tree.nearest_bulk(geometry)
+        tree.nearest_item(geometry)
 
 
 # TODO: add into regular results
@@ -1535,26 +1536,31 @@ def test_nearest_none(tree, geometry, expected):
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize("geometry", [None, [None], [shapely.points(1, 1), None]])
+def test_nearest_item_none(tree, geometry):
+    with pytest.raises(ValueError):
+        tree.nearest_item(geometry)
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
     "geometry,expected",
     [
-        (shapely.points(0.25, 0.25), [[0], [0]]),
-        (shapely.points(0.75, 0.75), [[0], [1]]),
-        (shapely.points(1, 1), [[0], [1]]),
-        ([shapely.points(1, 1), shapely.points(0, 0)], [[0, 1], [1, 0]]),
-        ([shapely.points(1, 1), shapely.points(0.25, 1)], [[0, 1], [1, 1]]),
-        ([shapely.points(-10, -10), shapely.points(100, 100)], [[0, 1], [0, 9]]),
-        (box(0.5, 0.5, 0.75, 0.75), [[0], [1]]),
-        (shapely.buffer(shapely.points(2.5, 2.5), HALF_UNIT_DIAG), [[0], [2]]),
-        (shapely.buffer(shapely.points(3, 3), HALF_UNIT_DIAG), [[0], [3]]),
-        (shapely.multipoints([[5.5, 5], [7, 7]]), [[0], [7]]),
-        (shapely.multipoints([[5, 7], [7, 5]]), [[0], [6]]),
-        (None, [[], []]),
-        ([None], [[], []]),
+        (shapely.points(0.25, 0.25), 0),
+        (shapely.points(0.75, 0.75), 1),
+        (shapely.points(1, 1), 1),
+        ([shapely.points(1, 1), shapely.points(0, 0)], [1, 0]),
+        ([shapely.points(1, 1), shapely.points(0.25, 1)], [1, 1]),
+        ([shapely.points(-10, -10), shapely.points(100, 100)], [0, 9]),
+        (box(0.5, 0.5, 0.75, 0.75), 1),
+        (shapely.buffer(shapely.points(2.5, 2.5), HALF_UNIT_DIAG), 2),
+        (shapely.buffer(shapely.points(3, 3), HALF_UNIT_DIAG), 3),
+        (shapely.multipoints([[5.5, 5], [7, 7]]), 7),
+        (shapely.multipoints([[5, 7], [7, 5]]), 6),
     ],
 )
 def test_nearest_points(tree, geometry, expected):
-    assert_array_equal(tree.nearest_bulk(geometry), expected)
+    assert_array_equal(tree.nearest_item(geometry), expected)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
@@ -1571,22 +1577,22 @@ def test_nearest_points(tree, geometry, expected):
     ],
 )
 def test_nearest_points_equidistant(tree, geometry, expected):
-    result = tree.nearest_bulk(geometry)
-    assert result[1] in expected
+    result = tree.nearest_item(geometry)
+    assert result in expected
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
     "geometry,expected",
     [
-        (shapely.points(0.5, 0.5), [[0], [0]]),
-        (shapely.points(1.5, 0.5), [[0], [0]]),
-        (shapely.box(0.5, 1.5, 1, 2), [[0], [1]]),
-        (shapely.linestrings([[0, 0.5], [1, 2.5]]), [[0], [0]]),
+        (shapely.points(0.5, 0.5), 0),
+        (shapely.points(1.5, 0.5), 0),
+        (shapely.box(0.5, 1.5, 1, 2), 1),
+        (shapely.linestrings([[0, 0.5], [1, 2.5]]), 0),
     ],
 )
 def test_nearest_lines(line_tree, geometry, expected):
-    assert_array_equal(line_tree.nearest_bulk(geometry), expected)
+    assert_array_equal(line_tree.nearest_item(geometry), expected)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
@@ -1613,22 +1619,22 @@ def test_nearest_lines(line_tree, geometry, expected):
     ],
 )
 def test_nearest_lines_equidistant(line_tree, geometry, expected):
-    result = line_tree.nearest_bulk(geometry)
-    assert result[1] in expected
+    result = line_tree.nearest_item(geometry)
+    assert result in expected
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
     "geometry,expected",
     [
-        (shapely.points(0, 0), [[0], [0]]),
-        (shapely.points(2, 2), [[0], [2]]),
-        (shapely.box(0, 5, 1, 6), [[0], [3]]),
-        (shapely.multipoints([[5, 7], [7, 5]]), [[0], [6]]),
+        (shapely.points(0, 0), 0),
+        (shapely.points(2, 2), 2),
+        (shapely.box(0, 5, 1, 6), 3),
+        (shapely.multipoints([[5, 7], [7, 5]]), 6),
     ],
 )
 def test_nearest_polygons(poly_tree, geometry, expected):
-    assert_array_equal(poly_tree.nearest_bulk(geometry), expected)
+    assert_array_equal(poly_tree.nearest_item(geometry), expected)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
@@ -1651,8 +1657,8 @@ def test_nearest_polygons(poly_tree, geometry, expected):
     ],
 )
 def test_nearest_polygons_equidistant(poly_tree, geometry, expected):
-    result = poly_tree.nearest_bulk(geometry)
-    assert result[1] in expected
+    result = poly_tree.nearest_item(geometry)
+    assert result in expected
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
