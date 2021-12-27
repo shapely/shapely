@@ -5,7 +5,6 @@ from . import lib
 from .decorators import requires_geos
 from .enum import ParamEnum
 
-
 __all__ = [
     "from_geojson",
     "from_wkb",

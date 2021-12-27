@@ -17,7 +17,6 @@ def loads(data, hex=False):
     return shapely.from_wkb(data)
 
 
-
 def load(fp, hex=False):
     """Load a geometry from an open file.
 
@@ -33,7 +32,7 @@ def load(fp, hex=False):
 def dumps(ob, hex=False, srid=None, **kw):
     """Dump a WKB representation of a geometry to a byte string, or a
     hex-encoded string if ``hex=True``.
-    
+
     Parameters
     ----------
     ob : geometry

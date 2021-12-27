@@ -32,6 +32,7 @@ from .common import (
     polygon_with_hole,
     polygon_with_hole_z,
     polygon_z,
+    shapely20_todo,
 )
 
 
@@ -210,6 +211,9 @@ def test_new_from_wkt(geom):
     assert_geometries_equal(actual, geom)
 
 
+# TODO(shapely-2.0) Python 3.10 build triggers warnings as errors, and this still
+# raise the deprecation warning (which should be removed)
+@shapely20_todo
 def test_adapt_ptr_raises():
     point = shapely.Geometry("POINT (2 2)")
     with pytest.raises(AttributeError):

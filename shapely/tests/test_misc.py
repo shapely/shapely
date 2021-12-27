@@ -29,7 +29,7 @@ def test_version():
 
 
 def test_geos_version():
-    expected = "{0:d}.{1:d}.{2:d}".format( shapely.geos_version)
+    expected = "{0:d}.{1:d}.{2:d}".format(*shapely.geos_version)
     actual = shapely.geos_version_string
 
     # strip any beta / dev qualifiers

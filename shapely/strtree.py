@@ -131,7 +131,7 @@ class STRtree:
         if self._has_custom_items:
             return (STRtree, (self.geometries, self._items))
         else:
-            return (STRtree, (self.geometries, ))
+            return (STRtree, (self.geometries,))
 
     def query_items(self, geom: BaseGeometry, predicate=None, distance=None) -> Sequence[Any]:
         """

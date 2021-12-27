@@ -14,7 +14,7 @@ if exist %GEOS_INSTALL% (
   7z x geos-%GEOS_VERSION%.tar
   cd geos-%GEOS_VERSION% || exit /B 1
 
-  pip install ninja
+  pip install ninja cmake
   cmake --version
 
   mkdir build
@@ -22,7 +22,6 @@ if exist %GEOS_INSTALL% (
   cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%GEOS_INSTALL% .. || exit /B 2
   cmake --build . || exit /B 3
   ctest . || exit /B 4
-  ctest .
   cmake --install . || exit /B 5
   cd ..
 )

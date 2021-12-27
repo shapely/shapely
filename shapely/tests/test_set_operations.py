@@ -247,7 +247,11 @@ def test_coverage_union_reduce_1dim(n):
       1. It expects only non-overlapping polygons
       2. It expects GEOS 3.8.0+
     """
-    test_data = [shapely.box(0, 0, 1, 1), shapely.box(1, 0, 2, 1), shapely.box(2, 0, 3, 1)]
+    test_data = [
+        shapely.box(0, 0, 1, 1),
+        shapely.box(1, 0, 2, 1),
+        shapely.box(2, 0, 3, 1),
+    ]
     actual = shapely.coverage_union_all(test_data[:n])
     # perform the reduction in a python loop and compare
     expected = test_data[0]
