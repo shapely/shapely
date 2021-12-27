@@ -1,14 +1,20 @@
-name: Tests (Linux)
+name: Tests
 
 on: [push, pull_request]
 
 jobs:
   test:
-    name: Python ${{ matrix.python }} (GEOS ${{ matrix.geos }}, speedups ${{ matrix.speedups }}, numpy ${{ matrix.numpy || 'not installed' }})
-    runs-on: ubuntu-latest
+    name: ${{ matrix.os }}-${{ matrix.architecture }} Py${{ matrix.python }} GEOS ${{ matrix.geos }} speedups ${{ matrix.speedups }} numpy ${{ matrix.numpy || 'not installed' }}
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, macos-latest, windows-2019]
+        architecture: [x64]
+        geos: [3.6.5, 3.7.3, 3.8.1, 3.9.2, 3.10.1]
         include:
           # 2017
           - python: 3.6
@@ -36,15 +42,15 @@ jobs:
             speedups: 0
           # 2019
           - python: 3.8
-            geos: 3.8.2
+            geos: 3.8.1
             numpy: 1.17.5
             speedups: 1
           - python: 3.8
-            geos: 3.8.2
+            geos: 3.8.1
             numpy: 1.17.5
             speedups: 0
           - python: 3.8
-            geos: 3.8.2
+            geos: 3.8.1
             speedups: 0
           # 2020
           - python: 3.9
@@ -70,46 +76,65 @@ jobs:
           - python: "3.10"
             geos: 3.10.1
             speedups: 0
-          # dev
-          - python: "3.10"
-            geos: main
-            speedups: 1
+          # enable two 32-bit windows builds
+          - os: windows-2019
+            architecture: x86
+            python: 3.6
+            geos: 3.6.5
+            numpy: 1.13.3
+            speeedups: 1
+          - os: windows-2019
+            architecture: x86
+            python: 3.9
+            geos: 3.10.1
+            numpy: 1.19.5
+            speeedups: 1
 
     env:
       GEOS_VERSION: ${{ matrix.geos }}
       GEOS_INSTALL: ${{ github.workspace }}/geosinstall/geos-${{ matrix.geos }}
+      GEOS_BUILD: ${{ github.workspace }}/geosbuild
       SPEEDUPS: ${{ matrix.speedups }}
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Correct slashes in GEOS_INSTALL (Windows)
+        run: |
+          echo 'GEOS_INSTALL=${{ github.workspace }}\geosinstall\geos-${{ matrix.geos }}' >> $GITHUB_ENV
+          echo 'GEOS_BUILD=${{ github.workspace }}\geosbuild' >> $GITHUB_ENV
+        if: ${{ matrix.os == 'windows-2019' }}
+
+      - name: Checkout Shapely
+        uses: actions/checkout@v2
 
       - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
+          architecture: ${{ matrix.architecture }}
 
       - name: Cache GEOS and pip packages
         uses: actions/cache@v2
         with:
-          key: ${{ runner.os }}-geos-${{ matrix.geos }}
+          key: ${{ matrix.os }}-${{ matrix.architecture }}-geos-${{ env.GEOS_VERSION }}-${{ hashFiles('ci/install_geos.sh') }}
           path: |
             ~/.cache/pip
             ${{ github.workspace }}/geosinstall
 
+      - name: Activate MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.architecture }}
+        if: ${{ matrix.os == 'windows-2019' }}
+
       - name: Install GEOS
-        shell: bash
         run: |
-          ./ci/install_geos.sh
-          cd ${{ github.workspace }}
+          bash ci/install_geos.sh
 
       - name: Install python dependencies
-        shell: bash
         run: |
           pip install --disable-pip-version-check --upgrade pip
-          pip install --upgrade wheel
-          if [ "$GEOS_VERSION" = "main" ]; then
-            pip install --upgrade --pre Cython numpy;
-          elif [ "$SPEEDUPS" == "1" ]; then
+          pip install --upgrade wheel setuptools
+          if [ "$SPEEDUPS" == "1" ]; then
             pip install --install-option="--no-cython-compile" cython;
             pip install --upgrade numpy==${{ matrix.numpy }};
           elif [ -n "${{ matrix.numpy }}" ]; then
@@ -120,26 +145,47 @@ jobs:
           pip install --upgrade coveralls pytest-cov pytest
           pip list
 
-      - name: Set environment variables
-        shell: bash
+      - name: Set environment variables (Linux)
         run: |
-          echo "LD_LIBRARY_PATH=$GEOS_INSTALL/lib" >> $GITHUB_ENV
-          echo $GEOS_INSTALL/bin >> $GITHUB_PATH
+          echo "${{ env.GEOS_INSTALL }}/bin" >> $GITHUB_PATH
+          echo "LD_LIBRARY_PATH=${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+
+      - name: Set environment variables (macOS)
+        run: |
+          echo "${{ env.GEOS_INSTALL }}/bin" >> $GITHUB_PATH
+          echo "DYLD_LIBRARY_PATH=${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
+          echo "LDFLAGS=-Wl,-rpath,${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
+        if: ${{ matrix.os == 'macos-latest' }}
+
+      # Windows requires special treatment:
+      # - geos-config does not exist, so we specify include and library paths
+      # - Python >=3.8 ignores the PATH for finding DLLs, so we copy them into the package
+      - name: Set environment variables + copy DLLs (Windows)
+        run: |
+          echo "${{ env.GEOS_INSTALL }}\bin" >> $GITHUB_PATH
+          if [ "${{ matrix.architecture }}" == "x86" ]; then
+            DLL_DIR=DLLs_x86_VC9
+          elif [ "${{ matrix.architecture }}" == "x64" ]; then
+            DLL_DIR=DLLs_AMD64_VC9
+          fi
+          cp geosinstall/geos-${{ matrix.geos }}/bin/*.dll $DLL_DIR
+          echo 'GEOS_LIBRARY_PATH=${{ env.GEOS_INSTALL }}\bin\geos_c.dll' >> $GITHUB_ENV
+          echo 'GEOS_INCLUDE_PATH=${{ env.GEOS_INSTALL }}\include' >> $GITHUB_ENV
+        if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Build and install Shapely
-        shell: bash
         run: |
+          export DYLD_LIBRARY_PATH=${{ env.DYLD_LIBRARY_PATH }}
           pip install -v -e .
 
       - name: Overview of the Python environment (pip list)
-        shell: bash
         run: |
           pip list
 
       - name: Run tests
-        shell: bash
-        continue-on-error: ${{ matrix.geos == 'main' }}
         run: |
+          export DYLD_LIBRARY_PATH=${{ env.DYLD_LIBRARY_PATH }}
           if [ "$SPEEDUPS" == "1" ]; then SPEEDUPS_FLAG=--with-speedups; else SPEEDUPS_FLAG=--without-speedups; fi
           python -c "from shapely import geos; print(geos.geos_version_string)"
           python -c "from shapely import speedups; print(speedups.enabled)"
@@ -147,7 +193,6 @@ jobs:
 
       - name: Run doctests
         if: ${{ matrix.python == '3.9' && matrix.numpy && matrix.speedups == '1' }}
-        shell: bash
         run: |
           python -m pytest shapely --doctest-modules
 
@@ -155,7 +200,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_PARALLEL: true
-        shell: bash
         run: |
           coveralls --service=github || echo "!! intermittent coveralls failure"
 

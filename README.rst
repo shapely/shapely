@@ -2,13 +2,10 @@
 Shapely
 =======
 
-|github-actions| |appveyor| |coveralls|
+|github-actions| |coveralls|
 
-.. |github-actions| image:: https://github.com/shapely/shapely/workflows/Tests%20(Linux)/badge.svg?branch=maint-1.8
+.. |github-actions| image:: https://github.com/shapely/shapely/workflows/Tests/badge.svg?branch=maint-1.8
    :target: https://github.com/shapely/shapely/actions?query=branch%3Amaint-1.8
-
-.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/github/shapely/shapely?branch=maint-1.8&svg=true
-   :target: https://ci.appveyor.com/project/frsci/shapely?branch=maint-1.8
 
 .. |coveralls| image:: https://coveralls.io/repos/github/shapely/shapely/badge.svg?branch=maint-1.8
    :target: https://coveralls.io/github/shapely/shapely?branch=maint-1.8
