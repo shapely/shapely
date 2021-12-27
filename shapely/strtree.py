@@ -7,7 +7,6 @@ from .decorators import requires_geos, UnsupportedGEOSOperation
 from .enum import ParamEnum
 from .geometry.base import BaseGeometry
 
-
 __all__ = ["STRtree"]
 
 
@@ -39,7 +38,7 @@ class STRtree:
     once created nodes cannot be added or removed.
 
     An index is initialized from a sequence of geometry objects and
-    optionally a sequence of items. If items are not provided, the 
+    optionally a sequence of items. If items are not provided, the
     indices of the geometry sequence will be used instead.
 
     Stored items and corresponding geometry objects can be spatially
@@ -133,7 +132,9 @@ class STRtree:
         else:
             return (STRtree, (self.geometries,))
 
-    def query_items(self, geom: BaseGeometry, predicate=None, distance=None) -> Sequence[Any]:
+    def query_items(
+        self, geom: BaseGeometry, predicate=None, distance=None
+    ) -> Sequence[Any]:
         """
         Return the index of all geometries in the tree with extents that
         intersect the envelope of the input geometry.
