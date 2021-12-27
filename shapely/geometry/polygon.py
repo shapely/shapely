@@ -2,16 +2,15 @@
 """
 
 import numpy as np
-import shapely
 
-from shapely.algorithms.cga import signed_area, is_ccw_impl
+import shapely
+from shapely.algorithms.cga import is_ccw_impl, signed_area
+from shapely.errors import TopologicalError
 from shapely.geometry.base import BaseGeometry
 from shapely.geometry.linestring import LineString
 from shapely.geometry.point import Point
-from shapely.errors import TopologicalError, ShapelyDeprecationWarning
 
-
-__all__ = ['Polygon', 'LinearRing']
+__all__ = ["Polygon", "LinearRing"]
 
 
 def _unpickle_linearring(wkb):
@@ -76,6 +75,7 @@ class LinearRing(LineString):
                     return o.coords[0]
                 else:
                     return o
+
             coordinates = [_coords(o) for o in coordinates]
 
         if len(coordinates) == 0:
@@ -90,15 +90,12 @@ class LinearRing(LineString):
 
     @property
     def __geo_interface__(self):
-        return {
-            'type': 'LinearRing',
-            'coordinates': tuple(self.coords)
-            }
+        return {"type": "LinearRing", "coordinates": tuple(self.coords)}
 
     def __reduce__(self):
         """WKB doesn't differentiate between LineString and LinearRing so we
         need to move the coordinate sequence into the correct geometry type"""
-        return (_unpickle_linearring, (shapely.to_wkb(self, include_srid=True), ))
+        return (_unpickle_linearring, (shapely.to_wkb(self, include_srid=True),))
 
     @property
     def is_ccw(self):
@@ -166,14 +163,6 @@ class InteriorRingSequence:
         else:
             raise TypeError("key must be an index or slice")
 
-    @property
-    def _longest(self):
-        max = 0
-        for g in iter(self):
-            l = len(g.coords)
-            if l > max:
-                max = l
-
     def gtag(self):
         return hash(repr(self.__p__))
 
@@ -235,6 +224,8 @@ class Polygon(BaseGeometry):
             if len(holes) == 0:
                 # shapely constructor cannot handle holes=[]
                 holes = None
+            else:
+                holes = [LinearRing(ring) for ring in holes]
 
         if not isinstance(shell, BaseGeometry):
             if not isinstance(shell, (list, np.ndarray)):
@@ -270,7 +261,8 @@ class Polygon(BaseGeometry):
     @property
     def coords(self):
         raise NotImplementedError(
-        "Component rings have coordinate sequences, but the polygon does not")
+            "Component rings have coordinate sequences, but the polygon does not"
+        )
 
     @property
     def __geo_interface__(self):
@@ -280,11 +272,9 @@ class Polygon(BaseGeometry):
             coords = [tuple(self.exterior.coords)]
             for hole in self.interiors:
                 coords.append(tuple(hole.coords))
-        return {
-            'type': 'Polygon',
-            'coordinates': tuple(coords)}
+        return {"type": "Polygon", "coordinates": tuple(coords)}
 
-    def svg(self, scale_factor=1., fill_color=None, opacity=None):
+    def svg(self, scale_factor=1.0, fill_color=None, opacity=None):
         """Returns SVG path element for the Polygon geometry.
 
         Parameters
@@ -298,32 +288,30 @@ class Polygon(BaseGeometry):
             Float number between 0 and 1 for color opacity. Default value is 0.6
         """
         if self.is_empty:
-            return '<g />'
+            return "<g />"
         if fill_color is None:
             fill_color = "#66cc99" if self.is_valid else "#ff3333"
         if opacity is None:
-            opacity = 0.6 
-        exterior_coords = [
-            ["{},{}".format(*c) for c in self.exterior.coords]]
+            opacity = 0.6
+        exterior_coords = [["{},{}".format(*c) for c in self.exterior.coords]]
         interior_coords = [
-            ["{},{}".format(*c) for c in interior.coords]
-            for interior in self.interiors]
-        path = " ".join([
-            "M {} L {} z".format(coords[0], " L ".join(coords[1:]))
-            for coords in exterior_coords + interior_coords])
+            ["{},{}".format(*c) for c in interior.coords] for interior in self.interiors
+        ]
+        path = " ".join(
+            [
+                "M {} L {} z".format(coords[0], " L ".join(coords[1:]))
+                for coords in exterior_coords + interior_coords
+            ]
+        )
         return (
             '<path fill-rule="evenodd" fill="{2}" stroke="#555555" '
             'stroke-width="{0}" opacity="{3}" d="{1}" />'
-            ).format(2. * scale_factor, path, fill_color, opacity)
+        ).format(2.0 * scale_factor, path, fill_color, opacity)
 
     @classmethod
     def from_bounds(cls, xmin, ymin, xmax, ymax):
         """Construct a `Polygon()` from spatial bounds."""
-        return cls([
-            (xmin, ymin),
-            (xmin, ymax),
-            (xmax, ymax),
-            (xmax, ymin)])
+        return cls([(xmin, ymin), (xmin, ymax), (xmax, ymax), (xmax, ymin)])
 
 
 shapely.lib.registry[3] = Polygon
@@ -333,12 +321,12 @@ def orient(polygon, sign=1.0):
     s = float(sign)
     rings = []
     ring = polygon.exterior
-    if signed_area(ring)/s >= 0.0:
+    if signed_area(ring) / s >= 0.0:
         rings.append(ring)
     else:
         rings.append(list(ring.coords)[::-1])
     for ring in polygon.interiors:
-        if signed_area(ring)/s <= 0.0:
+        if signed_area(ring) / s <= 0.0:
             rings.append(ring)
         else:
             rings.append(list(ring.coords)[::-1])

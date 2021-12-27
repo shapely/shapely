@@ -2,12 +2,10 @@
 """
 
 import shapely
-
-from shapely.errors import ShapelyDeprecationWarning
 from shapely.geometry.base import BaseGeometry, JOIN_STYLE
 from shapely.geometry.point import Point
 
-__all__ = ['LineString']
+__all__ = ["LineString"]
 
 
 class LineString(BaseGeometry):
@@ -56,6 +54,7 @@ class LineString(BaseGeometry):
                     return o.coords[0]
                 else:
                     return o
+
             coordinates = [_coords(o) for o in coordinates]
 
         if len(coordinates) == 0:
@@ -68,15 +67,11 @@ class LineString(BaseGeometry):
             raise ValueError("Invalid values passed to LineString constructor")
         return geom
 
-
     @property
     def __geo_interface__(self):
-        return {
-            'type': 'LineString',
-            'coordinates': tuple(self.coords)
-            }
+        return {"type": "LineString", "coordinates": tuple(self.coords)}
 
-    def svg(self, scale_factor=1., stroke_color=None, opacity=None):
+    def svg(self, scale_factor=1.0, stroke_color=None, opacity=None):
         """Returns SVG polyline element for the LineString geometry.
 
         Parameters
@@ -90,7 +85,7 @@ class LineString(BaseGeometry):
             Float number between 0 and 1 for color opacity. Default value is 0.8
         """
         if self.is_empty:
-            return '<g />'
+            return "<g />"
         if stroke_color is None:
             stroke_color = "#66cc99" if self.is_valid else "#ff3333"
         if opacity is None:
@@ -99,7 +94,7 @@ class LineString(BaseGeometry):
         return (
             '<polyline fill="none" stroke="{2}" stroke-width="{1}" '
             'points="{0}" opacity="{3}" />'
-            ).format(pnt_format, 2. * scale_factor, stroke_color,opacity)
+        ).format(pnt_format, 2.0 * scale_factor, stroke_color, opacity)
 
     @property
     def xy(self):
@@ -116,8 +111,13 @@ class LineString(BaseGeometry):
         return self.coords.xy
 
     def parallel_offset(
-            self, distance, side='right',
-            resolution=16, join_style=JOIN_STYLE.round, mitre_limit=5.0):
+        self,
+        distance,
+        side="right",
+        resolution=16,
+        join_style=JOIN_STYLE.round,
+        mitre_limit=5.0,
+    ):
 
         """Returns a LineString or MultiLineString geometry at a distance from
         the object on its right or its left side.
@@ -140,13 +140,10 @@ class LineString(BaseGeometry):
         Corners with a ratio which exceed the limit will be beveled.
         """
         if mitre_limit == 0.0:
-            raise ValueError(
-                'Cannot compute offset from zero-length line segment')
-        if side == 'right':
+            raise ValueError("Cannot compute offset from zero-length line segment")
+        if side == "right":
             distance *= -1
-        return shapely.offset_curve(
-            self, distance, resolution, join_style, mitre_limit
-        )
+        return shapely.offset_curve(self, distance, resolution, join_style, mitre_limit)
 
 
 shapely.lib.registry[1] = LineString

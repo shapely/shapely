@@ -2,20 +2,27 @@
 """
 
 from .base import CAP_STYLE, JOIN_STYLE
-from .geo import box, shape, mapping
-from .point import Point
-from .linestring import LineString
-from .polygon import Polygon, LinearRing
-from .multipoint import MultiPoint
-from .multilinestring import MultiLineString
-from .multipolygon import MultiPolygon
 from .collection import GeometryCollection
+from .geo import box, mapping, shape
+from .linestring import LineString
+from .multilinestring import MultiLineString
+from .multipoint import MultiPoint
+from .multipolygon import MultiPolygon
+from .point import Point
+from .polygon import LinearRing, Polygon
 
 __all__ = [
-    'box', 'shape', 'mapping', 'Point', 'LineString', 'Polygon', 'MultiPoint',
-    'MultiLineString', 'MultiPolygon', 'GeometryCollection', 'LinearRing',
-    'CAP_STYLE', 'JOIN_STYLE',
+    "box",
+    "shape",
+    "mapping",
+    "Point",
+    "LineString",
+    "Polygon",
+    "MultiPoint",
+    "MultiLineString",
+    "MultiPolygon",
+    "GeometryCollection",
+    "LinearRing",
+    "CAP_STYLE",
+    "JOIN_STYLE",
 ]
-
-# This needs to be called here to avoid circular references
-import shapely.speedups

@@ -2,16 +2,13 @@
 Shapely
 =======
 
-|github-actions| |appveyor| |coveralls|
+|github-actions| |coveralls|
 
-.. |github-actions| image:: https://github.com/Toblerity/Shapely/workflows/Tests%20(Linux)/badge.svg?branch=main
-   :target: https://github.com/Toblerity/Shapely/actions?query=branch%3Amain
+.. |github-actions| image:: https://github.com/shapely/shapely/workflows/Tests/badge.svg?branch=main
+   :target: https://github.com/shapely/shapely/actions?query=branch%3Amain
 
-.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/github/Toblerity/Shapely?branch=main&svg=true
-   :target: https://ci.appveyor.com/project/frsci/shapely?branch=main
-
-.. |coveralls| image:: https://coveralls.io/repos/github/Toblerity/Shapely/badge.svg?branch=main
-   :target: https://coveralls.io/github/Toblerity/Shapely?branch=main
+.. |coveralls| image:: https://coveralls.io/repos/github/shapely/shapely/badge.svg?branch=main
+   :target: https://coveralls.io/github/shapely/shapely?branch=main
 
 Manipulation and analysis of geometric objects in the Cartesian plane.
 
@@ -27,7 +24,7 @@ planar geometric objects. It is based on the widely deployed `GEOS
 libraries. Shapely is not concerned with data formats or coordinate systems,
 but can be readily integrated with packages that are. For more details, see:
 
-* `Shapely GitHub repository <https://github.com/Toblerity/Shapely>`__
+* `Shapely GitHub repository <https://github.com/shapely/shapely>`__
 * `Shapely documentation and manual <https://shapely.readthedocs.io/en/latest/>`__
 
 Usage
@@ -158,4 +155,4 @@ Questions about using Shapely may be asked on the `GIS StackExchange
 <https://gis.stackexchange.com/questions/tagged/shapely>`__ using the "shapely"
 tag.
 
-Bugs may be reported at https://github.com/Toblerity/Shapely/issues.
+Bugs may be reported at https://github.com/shapely/shapely/issues.

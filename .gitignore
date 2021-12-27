@@ -3,7 +3,7 @@
 *.c
 *.so
 
-Shapely.egg-info/
+shapely.egg-info/
 build/
 dist/
 docs/_build/

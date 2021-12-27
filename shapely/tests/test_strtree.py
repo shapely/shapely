@@ -319,7 +319,9 @@ def test_query_with_prepared(tree):
         pytest.param(
             shapely.multipoints([[5, 5], [7, 7]]),
             [5, 7],
-            marks=pytest.mark.xfail(shapely.geos_version < (3, 6, 0), reason="GEOS 3.5"),
+            marks=pytest.mark.xfail(
+                shapely.geos_version < (3, 6, 0), reason="GEOS 3.5"
+            ),
         ),
         # envelope of points contains points, but points do not intersect
         (shapely.multipoints([[5, 7], [7, 5]]), []),
@@ -327,7 +329,9 @@ def test_query_with_prepared(tree):
         pytest.param(
             shapely.multipoints([[5, 7], [7, 7]]),
             [7],
-            marks=pytest.mark.xfail(shapely.geos_version < (3, 6, 0), reason="GEOS 3.5"),
+            marks=pytest.mark.xfail(
+                shapely.geos_version < (3, 6, 0), reason="GEOS 3.5"
+            ),
         ),
     ],
 )
@@ -1211,7 +1215,10 @@ def test_query_bulk_lines(line_tree, geometry, expected):
         # larger box overlaps envelope of 3 polygons
         ([box(0, 0, 1.5, 1.5)], [[0, 0, 0], [0, 1, 2]]),
         # envelope of buffer overlaps envelope of 3 polygons
-        ([shapely.buffer(shapely.points(3, 3), HALF_UNIT_DIAG)], [[0, 0, 0], [2, 3, 4]]),
+        (
+            [shapely.buffer(shapely.points(3, 3), HALF_UNIT_DIAG)],
+            [[0, 0, 0], [2, 3, 4]],
+        ),
         # envelope of larger buffer overlaps envelope of 6 polygons
         (
             [shapely.buffer(shapely.points(3, 3), 3 * HALF_UNIT_DIAG)],
@@ -1342,7 +1349,10 @@ def test_query_bulk_intersects_lines(line_tree, geometry, expected):
         # larger box intersects 3 polygons
         ([box(0, 0, 1.5, 1.5)], [[0, 0, 0], [0, 1, 2]]),
         # buffer overlaps 3 polygons
-        ([shapely.buffer(shapely.points(3, 3), HALF_UNIT_DIAG)], [[0, 0, 0], [2, 3, 4]]),
+        (
+            [shapely.buffer(shapely.points(3, 3), HALF_UNIT_DIAG)],
+            [[0, 0, 0], [2, 3, 4]],
+        ),
         # larger buffer overlaps 6 polygons (touches midpoints)
         (
             [shapely.buffer(shapely.points(3, 3), 3 * HALF_UNIT_DIAG)],

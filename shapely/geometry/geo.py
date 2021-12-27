@@ -1,18 +1,15 @@
 """
 Geometry factories based on the geo interface
 """
-import warnings
-
 from shapely.errors import GeometryTypeError
-from shapely.errors import ShapelyDeprecationWarning
 
-from .point import Point
-from .linestring import LineString
-from .polygon import LinearRing, Polygon
-from .multipoint import MultiPoint
-from .multilinestring import MultiLineString
-from .multipolygon import MultiPolygon
 from .collection import GeometryCollection
+from .linestring import LineString
+from .multilinestring import MultiLineString
+from .multipoint import MultiPoint
+from .multipolygon import MultiPolygon
+from .point import Point
+from .polygon import LinearRing, Polygon
 
 # numpy is an optional dependency
 try:
@@ -40,17 +37,17 @@ def _is_coordinates_empty(coordinates):
 
 def _empty_shape_for_no_coordinates(geom_type):
     """Return empty counterpart for geom_type"""
-    if geom_type == 'point':
+    if geom_type == "point":
         return Point()
-    elif geom_type == 'multipoint':
+    elif geom_type == "multipoint":
         return MultiPoint()
-    elif geom_type == 'linestring':
+    elif geom_type == "linestring":
         return LineString()
-    elif geom_type == 'multilinestring':
+    elif geom_type == "multilinestring":
         return MultiLineString()
-    elif geom_type == 'polygon':
+    elif geom_type == "polygon":
         return Polygon()
-    elif geom_type == 'multipolygon':
+    elif geom_type == "multipolygon":
         return MultiPolygon()
     else:
         raise GeometryTypeError("Unknown geometry type: %s" % geom_type)
@@ -100,7 +97,7 @@ def shape(context):
     else:
         ob = context
     geom_type = ob.get("type").lower()
-    if 'coordinates' in ob and _is_coordinates_empty(ob['coordinates']):
+    if "coordinates" in ob and _is_coordinates_empty(ob["coordinates"]):
         return _empty_shape_for_no_coordinates(geom_type)
     elif geom_type == "point":
         return Point(ob["coordinates"])
