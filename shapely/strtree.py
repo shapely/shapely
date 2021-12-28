@@ -53,7 +53,7 @@ class STRtree:
         A sequence of objects which typically serve as identifiers in an
         application. This sequence must have the same length as geoms.
     leafsize : int, default 10
-        the maximum number of child nodes that a node can have
+        the maximum number of child nodes per parent node in the tree
 
     Attributes
     ----------
@@ -177,7 +177,7 @@ class STRtree:
         --------
         >>> import shapely
         >>> tree = shapely.STRtree(shapely.points(np.arange(10), np.arange(10)))
-        >>> tree.query(shapely.box(1,1, 3,3)).tolist()
+        >>> tree.query_items(shapely.box(1,1, 3,3)).tolist()
         [1, 2, 3]
         >>> # Query geometries that are contained by input geometry
         >>> tree.query(shapely.box(2, 2, 4, 4), predicate='contains').tolist()
