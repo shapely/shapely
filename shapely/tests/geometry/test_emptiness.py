@@ -1,67 +1,70 @@
-from . import unittest, shapely20_deprecated
-
-from shapely.geometry.base import BaseGeometry, EmptyGeometry
-import shapely.geometry as sgeom
-from shapely.geometry.polygon import LinearRing
-
-from shapely.geometry import MultiPolygon, mapping, shape
-
+import numpy as np
 import pytest
 
-from tests.conftest import shapely20_wontfix
+from shapely.geometry import (
+    GeometryCollection,
+    LinearRing,
+    LineString,
+    mapping,
+    MultiLineString,
+    MultiPoint,
+    MultiPolygon,
+    Point,
+    Polygon,
+    shape,
+)
+from shapely.geometry.base import BaseGeometry, EmptyGeometry
 
 
-empty_generator = lambda: iter([])
+def empty_generator():
+    return iter([])
 
-class EmptinessTestCase(unittest.TestCase):
 
+class TestEmptiness:
     def test_empty_class(self):
         g = EmptyGeometry()
-        self.assertTrue(g.is_empty)
+        assert g.is_empty
 
     def test_empty_base(self):
         g = BaseGeometry()
-        self.assertTrue(g.is_empty)
+        assert g.is_empty
 
     def test_empty_point(self):
-        self.assertTrue(sgeom.Point().is_empty)
+        assert Point().is_empty
 
     def test_empty_multipoint(self):
-        self.assertTrue(sgeom.MultiPoint().is_empty)
+        assert MultiPoint().is_empty
 
     def test_empty_geometry_collection(self):
-        self.assertTrue(sgeom.GeometryCollection().is_empty)
+        assert GeometryCollection().is_empty
 
     def test_empty_linestring(self):
-        self.assertTrue(sgeom.LineString().is_empty)
-        self.assertTrue(sgeom.LineString(None).is_empty)
-        self.assertTrue(sgeom.LineString([]).is_empty)
-        self.assertTrue(sgeom.LineString(empty_generator()).is_empty)
+        assert LineString().is_empty
+        assert LineString(None).is_empty
+        assert LineString([]).is_empty
+        assert LineString(empty_generator()).is_empty
 
     def test_empty_multilinestring(self):
-        self.assertTrue(sgeom.MultiLineString([]).is_empty)
+        assert MultiLineString([]).is_empty
 
     def test_empty_polygon(self):
-        self.assertTrue(sgeom.Polygon().is_empty)
-        self.assertTrue(sgeom.Polygon(None).is_empty)
-        self.assertTrue(sgeom.Polygon([]).is_empty)
-        self.assertTrue(sgeom.Polygon(empty_generator()).is_empty)
+        assert Polygon().is_empty
+        assert Polygon(None).is_empty
+        assert Polygon([]).is_empty
+        assert Polygon(empty_generator()).is_empty
 
     def test_empty_multipolygon(self):
-        self.assertTrue(sgeom.MultiPolygon([]).is_empty)
+        assert MultiPolygon([]).is_empty
 
     def test_empty_linear_ring(self):
-        self.assertTrue(LinearRing().is_empty)
-        self.assertTrue(LinearRing(None).is_empty)
-        self.assertTrue(LinearRing([]).is_empty)
-        self.assertTrue(LinearRing(empty_generator()).is_empty)
+        assert LinearRing().is_empty
+        assert LinearRing(None).is_empty
+        assert LinearRing([]).is_empty
+        assert LinearRing(empty_generator()).is_empty
 
 
-@shapely20_deprecated
 @pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
-    np = pytest.importorskip("numpy")
-
     geoms = [BaseGeometry(), EmptyGeometry()]
     arr = np.empty(2, object)
     arr[:] = geoms
