@@ -179,6 +179,6 @@ GEOSGeometry* PyGEOSForce3D(GEOSContextHandle_t ctx, GEOSGeometry* geom, double 
 
 GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
                                         unsigned int size, unsigned int dims, char ring_closure,
-                                        npy_intp cs1, npy_intp cs2);
+                                        npy_intp cs1, npy_intp cs2, char* last_error);
 
 #endif  // _GEOS_H

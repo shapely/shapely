@@ -88,6 +88,23 @@ def test_linestrings_from_xyz():
     assert_geometries_equal(actual, shapely.Geometry("LINESTRING Z (0 2 0, 1 3 0)"))
 
 
+@pytest.mark.parametrize("dim", [2, 3])
+def test_linestrings_buffer(dim):
+    coords = np.random.randn(10, 3, dim)
+    coords1 = np.asarray(coords, order="C")
+    result1 = shapely.linestrings(coords1)
+
+    coords2 = np.asarray(coords1, order="F")
+    result2 = shapely.linestrings(coords2)
+    assert_geometries_equal(result1, result2)
+
+    # creating (.., 8, 8*3) strided array so it uses copyFromArrays
+    coords3 = np.asarray(np.swapaxes(np.swapaxes(coords, 0, 2), 1, 0), order="F")
+    coords3 = np.swapaxes(np.swapaxes(coords3, 0, 2), 1, 2)
+    result3 = shapely.linestrings(coords3)
+    assert_geometries_equal(result1, result3)
+
+
 def test_linestrings_invalid_shape_scalar():
     with pytest.raises(ValueError):
         shapely.linestrings((1, 1))
@@ -104,6 +121,21 @@ def test_linestrings_invalid_shape_scalar():
 def test_linestrings_invalid_shape(shape):
     with pytest.raises(shapely.GEOSException):
         shapely.linestrings(np.ones(shape))
+
+
+def test_linestrings_invalid_ndim():
+    coords = np.ones((10, 2, 4), order="C")
+    with pytest.raises(shapely.GEOSException):
+        shapely.linestrings(coords)
+
+    coords = np.ones((10, 2, 4), order="F")
+    with pytest.raises(shapely.GEOSException):
+        shapely.linestrings(coords)
+
+    coords = np.swapaxes(np.swapaxes(np.ones((10, 2, 4)), 0, 2), 1, 0)
+    coords = np.swapaxes(np.swapaxes(np.asarray(coords, order="F"), 0, 2), 1, 2)
+    with pytest.raises(shapely.GEOSException):
+        shapely.linestrings(coords)
 
 
 def test_linearrings():
@@ -155,6 +187,16 @@ def test_linearrings_invalid_shape(shape):
     coords[..., 1] += 1
     with pytest.raises(ValueError):
         shapely.linearrings(coords)
+
+
+def test_linearrings_invalid_ndim():
+    coords1 = np.random.randn(10, 3, 4)
+    with pytest.raises(shapely.GEOSException):
+        shapely.linearrings(coords1)
+
+    coords2 = np.hstack((coords1, coords1[:, [0], :]))
+    with pytest.raises(shapely.GEOSException):
+        shapely.linearrings(coords2)
 
 
 def test_linearrings_all_nan():

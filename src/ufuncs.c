@@ -2198,7 +2198,7 @@ static void linestrings_func(char** args, npy_intp* dimensions, npy_intp* steps,
   GEOS_INIT_THREADS;
 
   DOUBLE_COREDIM_LOOP_OUTER {
-    coord_seq = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, 0, cs1, cs2);
+    coord_seq = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, 0, cs1, cs2, &last_error);
     if (coord_seq == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
       destroy_geom_arr(ctx, geom_arr, i - 1);
@@ -2261,7 +2261,7 @@ static void linearrings_func(char** args, npy_intp* dimensions, npy_intp* steps,
       goto finish;
     }
     /* fill the coordinate sequence */
-    coord_seq = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, ring_closure, cs1, cs2);
+    coord_seq = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, ring_closure, cs1, cs2, &last_error);
     if (coord_seq == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
       destroy_geom_arr(ctx, geom_arr, i - 1);

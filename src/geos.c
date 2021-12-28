@@ -883,8 +883,9 @@ GEOSGeometry* PyGEOSForce3D(GEOSContextHandle_t ctx, GEOSGeometry* geom, double 
 }
 
 GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
-                                        unsigned int size, unsigned int dims, char ring_closure,
-                                        npy_intp cs1, npy_intp cs2) {
+                                        unsigned int size, unsigned int dims,
+                                        char ring_closure, npy_intp cs1, npy_intp cs2,
+                                        char* last_error) {
   GEOSCoordSequence* coord_seq;
   char *cp1, *cp2;
   unsigned int i, j;
@@ -896,12 +897,22 @@ GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* b
     if ((cs1 == dims * 8) && (cs2 == 8)) {
       /* C-contiguous memory */
       int hasZ = dims == 3;
+      if (dims > 3) {
+        snprintf(last_error, 1024,
+                 "IllegalArgumentException: Ordinate dimension cannot be larger than 3");
+        return NULL;
+      }
       coord_seq = GEOSCoordSeq_copyFromBuffer_r(ctx, buf, size, hasZ, 0);
       return coord_seq;
     }
     else if ((cs1 == 8) && (cs2 == size * 8)) {
       /* F-contiguous memory (note: this for the subset, so we don't necessarily
       end up here if the full array is F-contiguous) */
+      if (dims > 3) {
+        snprintf(last_error, 1024,
+                 "IllegalArgumentException: Ordinate dimension cannot be larger than 3");
+        return NULL;
+      }
       const double* x = buf;
       const double* y =  (double*)((char*)buf + cs2);
       const double* z = (dims == 3) ? (double*)((char*)buf + 2 * cs2) : NULL;
