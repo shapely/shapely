@@ -173,6 +173,18 @@ def test_polygon_from_linearring():
         assert polygon.interiors[i].coords[:] == holes[i].coords[:]
 
 
+def test_polygon_from_linestring():
+    coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
+    line = LineString(coords)
+    polygon = Polygon(line)
+    assert polygon.exterior.coords[:] == coords
+
+    # from unclosed linestring
+    line = LineString(coords[:-1])
+    polygon = Polygon(line)
+    assert polygon.exterior.coords[:] == coords
+
+
 def test_polygon_from_polygon():
     coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)]
     polygon = Polygon(coords, [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))])

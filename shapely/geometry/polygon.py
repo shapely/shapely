@@ -238,6 +238,9 @@ class Polygon(BaseGeometry):
                 # conversion of coords to 2D array failed, this might be due
                 # to inconsistent coordinate dimensionality
                 raise ValueError("Inconsistent coordinate dimensionality")
+        else:
+            if not isinstance(shell, LinearRing):
+                shell = LinearRing(shell)
 
         geom = shapely.polygons(shell, holes=holes)
         if not isinstance(geom, Polygon):
