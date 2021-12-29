@@ -220,6 +220,8 @@ class Polygon(BaseGeometry):
             if len(holes) == 0:
                 # shapely constructor cannot handle holes=[]
                 holes = None
+            else:
+                holes = [LinearRing(ring) for ring in holes]
 
         if not isinstance(shell, BaseGeometry):
             if not isinstance(shell, (list, np.ndarray)):

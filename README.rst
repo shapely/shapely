@@ -2,9 +2,9 @@
 Shapely
 =======
 
-|github-actions| |appveyor| |coveralls|
+|github-actions| |coveralls|
 
-.. |github-actions| image:: https://github.com/shapely/shapely/workflows/Tests%20(Linux)/badge.svg?branch=main
+.. |github-actions| image:: https://github.com/shapely/shapely/workflows/Tests/badge.svg?branch=main
    :target: https://github.com/shapely/shapely/actions?query=branch%3Amain
 
 .. |coveralls| image:: https://coveralls.io/repos/github/shapely/shapely/badge.svg?branch=main

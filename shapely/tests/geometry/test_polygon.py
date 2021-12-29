@@ -138,6 +138,18 @@ def test_polygon_from_coordinate_sequence_with_holes():
     assert len(polygon.interiors) == 1
     assert len(polygon.interiors[0].coords) == 5
 
+    # Multiple interior rings with different length
+    coords = [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]
+    holes = [
+        [(1, 1), (2, 1), (2, 2), (1, 2), (1, 1)],
+        [(3, 3), (3, 4), (4, 5), (5, 4), (5, 3), (3, 3)],
+    ]
+    polygon = Polygon(coords, holes)
+    assert polygon.exterior.coords[:] == coords
+    assert len(polygon.interiors) == 2
+    assert len(polygon.interiors[0].coords) == 5
+    assert len(polygon.interiors[1].coords) == 6
+
 
 def test_polygon_from_linearring():
     coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
@@ -146,6 +158,19 @@ def test_polygon_from_linearring():
     polygon = Polygon(ring)
     assert polygon.exterior.coords[:] == coords
     assert len(polygon.interiors) == 0
+
+    # from shell and holes linearrings
+    shell = LinearRing([(0.0, 0.0), (70.0, 120.0), (140.0, 0.0), (0.0, 0.0)])
+    holes = [
+        LinearRing([(60.0, 80.0), (80.0, 80.0), (70.0, 60.0), (60.0, 80.0)]),
+        LinearRing([(30.0, 10.0), (50.0, 10.0), (40.0, 30.0), (30.0, 10.0)]),
+        LinearRing([(90.0, 10), (110.0, 10.0), (100.0, 30.0), (90.0, 10.0)]),
+    ]
+    polygon = Polygon(shell, holes)
+    assert polygon.exterior.coords[:] == shell.coords[:]
+    assert len(polygon.interiors) == 3
+    for i in range(3):
+        assert polygon.interiors[i].coords[:] == holes[i].coords[:]
 
 
 def test_polygon_from_polygon():
