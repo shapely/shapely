@@ -1528,16 +1528,18 @@ def test_nearest_invalid_geom(tree, geometry):
         tree.nearest_item(geometry)
 
 
-# TODO: add into regular results
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
-@pytest.mark.parametrize("geometry,expected", [(None, [[], []]), ([None], [[], []])])
-def test_nearest_none(tree, geometry, expected):
-    assert_array_equal(tree.nearest_all(geometry), expected)
-
-
 @pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize("geometry", [None, [None], [shapely.points(1, 1), None]])
-def test_nearest_item_none(tree, geometry):
+def test_nearest_none(tree, geometry):
+    with pytest.raises(ValueError):
+        tree.nearest_item(geometry)
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize(
+    "geometry", [empty_point, [empty_point], [shapely.points(1, 1), empty_point]]
+)
+def test_nearest_empty(tree, geometry):
     with pytest.raises(ValueError):
         tree.nearest_item(geometry)
 

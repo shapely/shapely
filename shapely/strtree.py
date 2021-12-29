@@ -6,7 +6,7 @@ from . import lib
 from .decorators import requires_geos, UnsupportedGEOSOperation
 from .enum import ParamEnum
 from .geometry.base import BaseGeometry
-from .predicates import is_missing
+from .predicates import is_empty, is_missing
 
 __all__ = ["STRtree"]
 
@@ -23,10 +23,6 @@ class BinaryPredicate(ParamEnum):
     covers = 7
     covered_by = 8
     contains_properly = 9
-
-
-# DEPRECATED: to be removed on a future release
-VALID_PREDICATES = {e.name for e in BinaryPredicate}
 
 
 class STRtree:
@@ -91,7 +87,7 @@ class STRtree:
     >>> # Query geometries that overlap envelopes of ``geoms``
     >>> tree.query_bulk([shapely.box(2, 2, 4, 4), shapely.box(5, 5, 6, 6)]).tolist()
     [[0, 0, 0, 1, 1], [2, 3, 4, 5, 6]]
-    >>> tree.nearest( shapely.points(1,1), shapely.points(3,5)]).tolist()  # doctest: +SKIP
+    >>> tree.nearest([shapely.points(1,1), shapely.points(3,5)]).tolist()  # doctest: +SKIP
     [[0, 1], [1, 4]]
 
     References
@@ -167,7 +163,7 @@ class STRtree:
         Returns
         -------
         ndarray
-            Indexes of geometries in tree
+            An array of indexes (or stored items) of geometries in the tree
         Note
         ----
         A geometry object's "envelope" is its minimum xy bounding
@@ -373,44 +369,6 @@ class STRtree:
 
     @requires_geos("3.6.0")
     def _nearest_idx(self, geometry, exclusive: bool = False):
-        """Returns the index of the nearest item in the tree for each input
-        geometry.
-
-        If there are multiple equidistant or intersected geometries in the tree,
-        only a single result is returned for each input geometry, based on the
-        order that tree geometries are visited; this order may be
-        nondeterministic.
-
-        Any geometry that is None or empty in the input geometries is omitted
-        from the output.
-
-        Parameters
-        ----------
-        geometry : Geometry or array_like
-            Input geometries to query the tree.
-
-        Returns
-        -------
-        ndarray with shape (2, n)
-            The first subarray contains input geometry indexes.
-            The second subarray contains tree geometry indexes.
-
-        See also
-        --------
-        nearest_all: returns all equidistant geometries and optional distances
-
-        Examples
-        --------
-        >>> import shapely
-        >>> tree = shapely.STRtree(shapely.points(np.arange(10), np.arange(10)))
-        >>> tree.nearest(shapely.points(1,1)).tolist()  # doctest: +SKIP
-        [[0], [1]]
-        >>> tree.nearest( shapely.box(1,1,3,3)]).tolist()  # doctest: +SKIP
-        [[0], [1]]
-        >>> points = shapely.points(0.5,0.5)
-        >>> tree.nearest([None, shapely.points(10,10)]).tolist()  # doctest: +SKIP
-        [[1], [9]]
-        """
         # TODO(shapely-2.0)
         if exclusive:
             raise NotImplementedError(
@@ -420,9 +378,10 @@ class STRtree:
         geometry_arr = np.asarray(geometry, dtype=object)
         # TODO those changes compared to _tree.nearest output should be pushed into C
         # _tree.nearest currently ignores missing values
-        if is_missing(geometry_arr).any():
+        if is_missing(geometry_arr).any() or is_empty(geometry_arr).any():
             raise ValueError(
-                "Cannot determine nearest geometry for missing value (None)"
+                "Cannot determine nearest geometry for empty geometry or "
+                "missing value (None)."
             )
         # _tree.nearest returns ndarray with shape (2, 1) -> index in input
         # geometries and index into tree geometries
@@ -434,28 +393,40 @@ class STRtree:
             return indices
 
     @requires_geos("3.6.0")
-    def nearest_item(
-        self, geom: BaseGeometry, exclusive: bool = False
-    ) -> Union[Any, None]:
-        """Query the tree for the node nearest to geom and get the item
-        stored in the node.
+    def nearest_item(self, geom, exclusive: bool = False) -> Union[Any, None]:
+        """Query the tree for the nearest geometry.
 
-        Items are integers serving as identifiers for an application.
+        Returns the index (or stored item) of the nearest geometry in the tree
+        for each input geometry.
+
+        If there are multiple equidistant or intersected geometries in the tree,
+        only a single result is returned for each input geometry, based on the
+        order that tree geometries are visited; this order may be
+        nondeterministic.
+
+        Any geometry that is None or empty in the input geometries is omitted
+        from the output.
 
         Parameters
         ----------
-        geom : geometry object
-            The query geometry.
+        geom : Geometry or array_like
+            Input geometries to query the tree.
         exclusive : bool, optional
             Whether to exclude the item corresponding to the given geom
             from results or not.  Default: False.
 
         Returns
         -------
-        Stored item or None.
+        scalar or ndarray
+            Indexes (or stored items) of geometries in tree. Return value
+            will have the same shape as the input.
 
-        None is returned if this index is empty. This may change in
-        version 2.0.
+            None is returned if this index is empty. This may change in
+            version 2.0.
+
+        See also
+        --------
+        nearest_all: returns all equidistant geometries and optional distances
 
         Examples
         --------
@@ -471,6 +442,15 @@ class STRtree:
         >>> tree.nearest(Point(0, 0)).wkt
         'POINT (0 0)'
 
+        >>> import shapely
+        >>> tree = shapely.STRtree(shapely.points(np.arange(10), np.arange(10)))
+        >>> tree.nearest(shapely.points(1,1)).tolist()  # doctest: +SKIP
+        [[0], [1]]
+        >>> tree.nearest( shapely.box(1,1,3,3)]).tolist()  # doctest: +SKIP
+        [[0], [1]]
+        >>> points = shapely.points(0.5,0.5)
+        >>> tree.nearest([None, shapely.points(10,10)]).tolist()  # doctest: +SKIP
+        [[1], [9]]
         """
         if self._tree.count == 0:
             return None
