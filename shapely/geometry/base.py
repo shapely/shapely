@@ -408,7 +408,7 @@ class BaseGeometry(shapely.Geometry):
         3.1365484905459...
         >>> g.buffer(1.0, 128).area   # 128-gon approximation
         3.141513801144...
-        >>> round(g.buffer(1.0, 3).area, 10)  # triangle approximation
+        >>> g.buffer(1.0, 3).area     # triangle approximation
         3.0
         >>> list(g.buffer(1.0, cap_style=CAP_STYLE.square).exterior.coords)
         [(1.0, 1.0), (1.0, -1.0), (-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0)]
