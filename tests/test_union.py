@@ -61,7 +61,7 @@ class UnionTestCase(unittest.TestCase):
 
     def test_unary_union_multi(self):
         # Test of multipart input based on comment by @schwehr at
-        # https://github.com/Toblerity/Shapely/issues/47#issuecomment-21809308
+        # https://github.com/shapely/shapely/issues/47#issuecomment-21809308
         patches = MultiPolygon([Point(xy).buffer(0.05) for xy in self.coords])
         self.assertAlmostEqual(unary_union(patches).area,
                                0.71857254056)

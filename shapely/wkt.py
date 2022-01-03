@@ -3,9 +3,7 @@
 Also provides pickle-like convenience functions.
 """
 
-from shapely import geos
-
-import pygeos
+import shapely
 
 
 def loads(data):
@@ -21,7 +19,7 @@ def loads(data):
     -------
     Shapely geometry object
     """
-    return pygeos.from_wkt(data)
+    return shapely.from_wkt(data)
 
 
 def load(fp):
@@ -61,7 +59,7 @@ def dumps(ob, trim=False, rounding_precision=-1, **kw):
     -------
     input geometry as WKT string
     """
-    return pygeos.to_wkt(ob, trim=trim, rounding_precision=rounding_precision, **kw)
+    return shapely.to_wkt(ob, trim=trim, rounding_precision=rounding_precision, **kw)
 
 
 def dump(ob, fp, **settings):

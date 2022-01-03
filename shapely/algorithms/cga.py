@@ -1,4 +1,4 @@
-import pygeos
+import shapely
 
 
 def signed_area(ring):
@@ -8,15 +8,18 @@ def signed_area(ring):
     xs, ys = ring.coords.xy
     xs.append(xs[1])
     ys.append(ys[1])
-    return sum(xs[i]*(ys[i+1]-ys[i-1]) for i in range(1, len(ring.coords)))/2.0
+    return (
+        sum(xs[i] * (ys[i + 1] - ys[i - 1]) for i in range(1, len(ring.coords))) / 2.0
+    )
+
 
 def is_ccw_impl(name=None):
     """Predicate implementation"""
+
     def is_ccw_op(ring):
         return signed_area(ring) >= 0.0
 
-    if pygeos.geos_version >= (3, 7, 0):
-        return pygeos.is_ccw
+    if shapely.geos_version >= (3, 7, 0):
+        return shapely.is_ccw
     else:
         return is_ccw_op
-

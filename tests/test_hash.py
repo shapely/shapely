@@ -1,37 +1,35 @@
-from shapely.geometry import Point, MultiPoint, Polygon, GeometryCollection
+from shapely.geometry import Point, MultiPoint, LineString, Polygon, GeometryCollection
 
 
 def test_point():
-    g = Point(0, 0)
-    try:
-        assert hash(g)
-        return False
-    except TypeError:
-        return True
+    g = Point(1, 2)
+    assert hash(g) == hash(Point(1, 2))
+    assert hash(g) != hash(Point(1, 3))
 
 
 def test_multipoint():
-    g = MultiPoint([(0, 0)])
-    try:
-        assert hash(g)
-        return False
-    except TypeError:
-        return True
+    g = MultiPoint([(1, 2), (3, 4)])
+    assert hash(g) == hash(MultiPoint([(1, 2), (3, 4)]))
+    assert hash(g) != hash(MultiPoint([(1, 2), (3, 3)]))
+
+
+def test_linestring():
+    g = LineString([(1, 2), (3, 4)])
+    assert hash(g) == hash(LineString([(1, 2), (3, 4)]))
+    assert hash(g) != hash(LineString([(1, 2), (3, 3)]))
 
 
 def test_polygon():
     g = Point(0, 0).buffer(1.0)
-    try:
-        assert hash(g)
-        return False
-    except TypeError:
-        return True
+    assert hash(g) == hash(Point(0, 0).buffer(1.0))
+    assert hash(g) != hash(Point(0, 0).buffer(1.1))
 
 
 def test_collection():
-    g = GeometryCollection([Point(0, 0)])
-    try:
-        assert hash(g)
-        return False
-    except TypeError:
-        return True
+    g = GeometryCollection([Point(1, 2), LineString([(1, 2), (3, 4)])])
+    assert hash(g) == hash(
+        GeometryCollection([Point(1, 2), LineString([(1, 2), (3, 4)])])
+    )
+    assert hash(g) != hash(
+        GeometryCollection([Point(1, 2), LineString([(1, 2), (3, 3)])])
+    )

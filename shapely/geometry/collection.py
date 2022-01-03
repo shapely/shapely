@@ -1,11 +1,12 @@
 """Multi-part collections of geometries
 """
 
-from shapely.geometry.base import BaseGeometry
-from shapely.geometry.base import BaseMultipartGeometry
-from shapely.geometry.base import HeterogeneousGeometrySequence
-
-import pygeos
+import shapely
+from shapely.geometry.base import (
+    BaseGeometry,
+    BaseMultipartGeometry,
+    HeterogeneousGeometrySequence,
+)
 
 
 class GeometryCollection(BaseMultipartGeometry):
@@ -38,7 +39,7 @@ class GeometryCollection(BaseMultipartGeometry):
         """
         if not geoms:
             # TODO better empty constructor
-            return pygeos.from_wkt("GEOMETRYCOLLECTION EMPTY")
+            return shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")
         if isinstance(geoms, BaseGeometry):
             # TODO(shapely-2.0) do we actually want to split Multi-part geometries?
             # this is needed for the split() tests
@@ -47,14 +48,14 @@ class GeometryCollection(BaseMultipartGeometry):
             else:
                 geoms = [geoms]
 
-        return pygeos.geometrycollections(geoms)
+        return shapely.geometrycollections(geoms)
 
     @property
     def __geo_interface__(self):
         geometries = []
         for geom in self.geoms:
             geometries.append(geom.__geo_interface__)
-        return dict(type='GeometryCollection', geometries=geometries)
+        return dict(type="GeometryCollection", geometries=geometries)
 
     @property
     def geoms(self):
@@ -63,4 +64,4 @@ class GeometryCollection(BaseMultipartGeometry):
         return HeterogeneousGeometrySequence(self)
 
 
-pygeos.lib.registry[7] = GeometryCollection
+shapely.lib.registry[7] = GeometryCollection

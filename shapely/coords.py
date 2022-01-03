@@ -53,8 +53,8 @@ class CoordinateSequence:
     def xy(self):
         """X and Y arrays"""
         m = self.__len__()
-        x = array('d')
-        y = array('d')
+        x = array("d")
+        y = array("d")
         for i in range(m):
             xy = self._coords[i].tolist()
             x.append(xy[0])

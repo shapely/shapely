@@ -6,70 +6,53 @@ operations are performed in the x-y plane. Thus, geometries with
 different z values may intersect or be equal.
 """
 
-from itertools import islice
 import logging
 import math
-import sys
+from itertools import islice
 from warnings import warn
 
-import pygeos
-
+import shapely
 from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
-from shapely.errors import GeometryTypeError
-from shapely.errors import ShapelyDeprecationWarning
+from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
 
 log = logging.getLogger(__name__)
 
 try:
     import numpy as np
+
     integer_types = (int, np.integer)
 except ImportError:
     integer_types = (int,)
 
 
 GEOMETRY_TYPES = [
-    'Point',
-    'LineString',
-    'LinearRing',
-    'Polygon',
-    'MultiPoint',
-    'MultiLineString',
-    'MultiPolygon',
-    'GeometryCollection',
+    "Point",
+    "LineString",
+    "LinearRing",
+    "Polygon",
+    "MultiPoint",
+    "MultiLineString",
+    "MultiPolygon",
+    "GeometryCollection",
 ]
 
 
 def dump_coords(geom):
     """Dump coordinates of a geometry in the same order as data packing"""
     if not isinstance(geom, BaseGeometry):
-        raise ValueError('Must be instance of a geometry class; found ' +
-                         geom.__class__.__name__)
-    elif geom.type in ('Point', 'LineString', 'LinearRing'):
+        raise ValueError(
+            "Must be instance of a geometry class; found " + geom.__class__.__name__
+        )
+    elif geom.type in ("Point", "LineString", "LinearRing"):
         return geom.coords[:]
-    elif geom.type == 'Polygon':
+    elif geom.type == "Polygon":
         return geom.exterior.coords[:] + [i.coords[:] for i in geom.interiors]
-    elif geom.type.startswith('Multi') or geom.type == 'GeometryCollection':
+    elif geom.type.startswith("Multi") or geom.type == "GeometryCollection":
         # Recursive call
         return [dump_coords(part) for part in geom.geoms]
     else:
-        raise GeometryTypeError('Unhandled geometry type: ' + repr(geom.type))
-
-
-class _DummyGeometry:
-    # pygeos.from_shapely expects a python object that exposes
-    # the GEOS pointer as a __geom__ attribute
-
-    def __init__(self, g):
-        self.__geom__ = g
-
-
-def geom_factory(g, parent=None):
-    # Abstract geometry factory for use with topological methods below
-    if not g:
-        raise ValueError("No Shapely geometry can be created from null value")
-    ob = _DummyGeometry(g)
-    return pygeos.from_shapely(ob)
+        raise GeometryTypeError("Unhandled geometry type: " + repr(geom.type))
 
 
 class CAP_STYLE:
@@ -84,7 +67,7 @@ class JOIN_STYLE:
     bevel = 3
 
 
-class BaseGeometry(pygeos.Geometry):
+class BaseGeometry(shapely.Geometry):
     """
     Provides GEOS spatial predicates and topological operations.
 
@@ -103,7 +86,7 @@ class BaseGeometry(pygeos.Geometry):
 
     def __new__(self):
         # TODO create empty geometry - should we deprecate this constructor?
-        return pygeos.from_wkt("GEOMETRYCOLLECTION EMPTY")
+        return shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")
 
     @property
     def _geom(self):
@@ -115,7 +98,7 @@ class BaseGeometry(pygeos.Geometry):
 
     @property
     def _ndim(self):
-        return pygeos.get_coordinate_dimension(self)
+        return shapely.get_coordinate_dimension(self)
 
     def __bool__(self):
         return self.is_empty is False
@@ -130,25 +113,7 @@ class BaseGeometry(pygeos.Geometry):
         return self.wkt
 
     def __reduce__(self):
-        return (pygeos.from_wkb, (self.wkb, ))
-
-    def __setattr__(self, name, value):
-        # first try regular attribute access via __getattribute__, so that
-        # our own (existing) attributes don't raise a warning
-        try:
-            object.__getattribute__(self, name)
-            super().__setattr__(name, value)
-            return
-        except AttributeError:
-            pass
-
-        # if custom attribute, raise the warning
-        warn(
-            "Setting custom attributes on geometry objects is deprecated, "
-            "and will raise an AttributeError in Shapely 2.0",
-            ShapelyDeprecationWarning, stacklevel=2
-        )
-        super().__setattr__(name, value)
+        return (shapely.from_wkb, (self.wkb,))
 
     # Operators
     # ---------
@@ -165,24 +130,13 @@ class BaseGeometry(pygeos.Geometry):
     def __xor__(self, other):
         return self.symmetric_difference(other)
 
-    def __eq__(self, other):
-        return (
-            type(other) == type(self) and
-            bool(pygeos.equals_exact(self, other))
-        )
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    __hash__ = None
-
     # Coordinate access
     # -----------------
 
     @property
     def coords(self):
         """Access to geometry's coordinates (CoordinateSequence)"""
-        coords_array = pygeos.get_coordinates(self, include_z=self.has_z)
+        coords_array = shapely.get_coordinates(self, include_z=self.has_z)
         return CoordinateSequence(coords_array)
 
     @property
@@ -210,29 +164,31 @@ class BaseGeometry(pygeos.Geometry):
     @property
     def wkt(self):
         """WKT representation of the geometry"""
-        # TODO(shapely-2.0) keep default of not trimming? 
-        return pygeos.to_wkt(self, rounding_precision=-1)
+        # TODO(shapely-2.0) keep default of not trimming?
+        return shapely.to_wkt(self, rounding_precision=-1)
 
     @property
     def wkb(self):
         """WKB representation of the geometry"""
-        return pygeos.to_wkb(self)
+        return shapely.to_wkb(self)
 
     @property
     def wkb_hex(self):
         """WKB hex representation of the geometry"""
-        return pygeos.to_wkb(self, hex=True)
+        return shapely.to_wkb(self, hex=True)
 
-    def svg(self, scale_factor=1., **kwargs):
+    def svg(self, scale_factor=1.0, **kwargs):
         """Raises NotImplementedError"""
         raise NotImplementedError
 
     def _repr_svg_(self):
         """SVG representation for iPython notebook"""
-        svg_top = '<svg xmlns="http://www.w3.org/2000/svg" ' \
+        svg_top = (
+            '<svg xmlns="http://www.w3.org/2000/svg" '
             'xmlns:xlink="http://www.w3.org/1999/xlink" '
+        )
         if self.is_empty:
-            return svg_top + '/>'
+            return svg_top + "/>"
         else:
             # Establish SVG canvas that will fit all the data + small space
             xmin, ymin, xmax, ymax = self.bounds
@@ -250,25 +206,24 @@ class BaseGeometry(pygeos.Geometry):
                 ymax += expand_amount
             dx = xmax - xmin
             dy = ymax - ymin
-            width = min([max([100., dx]), 300])
-            height = min([max([100., dy]), 300])
+            width = min([max([100.0, dx]), 300])
+            height = min([max([100.0, dy]), 300])
             try:
                 scale_factor = max([dx, dy]) / max([width, height])
             except ZeroDivisionError:
-                scale_factor = 1.
+                scale_factor = 1.0
             view_box = "{} {} {} {}".format(xmin, ymin, dx, dy)
             transform = "matrix(1,0,0,-1,0,{})".format(ymax + ymin)
             return svg_top + (
                 'width="{1}" height="{2}" viewBox="{0}" '
                 'preserveAspectRatio="xMinYMin meet">'
                 '<g transform="{3}">{4}</g></svg>'
-                ).format(view_box, width, height, transform,
-                         self.svg(scale_factor))
+            ).format(view_box, width, height, transform, self.svg(scale_factor))
 
     @property
     def geom_type(self):
         """Name of the geometry's type, such as 'Point'"""
-        return GEOMETRY_TYPES[pygeos.get_type_id(self)]
+        return GEOMETRY_TYPES[shapely.get_type_id(self)]
 
     # Real-valued properties and methods
     # ----------------------------------
@@ -276,25 +231,25 @@ class BaseGeometry(pygeos.Geometry):
     @property
     def area(self):
         """Unitless area of the geometry (float)"""
-        return float(pygeos.area(self))
+        return float(shapely.area(self))
 
     def distance(self, other):
         """Unitless distance to other geometry (float)"""
-        return float(pygeos.distance(self, other))
+        return float(shapely.distance(self, other))
 
     def hausdorff_distance(self, other):
         """Unitless hausdorff distance to other geometry (float)"""
-        return float(pygeos.hausdorff_distance(self, other))
+        return float(shapely.hausdorff_distance(self, other))
 
     @property
     def length(self):
         """Unitless length of the geometry (float)"""
-        return float(pygeos.length(self))
+        return float(shapely.length(self))
 
     @property
     def minimum_clearance(self):
         """Unitless distance by which a node could be moved to produce an invalid geometry (float)"""
-        return float(pygeos.minimum_clearance(self))
+        return float(shapely.minimum_clearance(self))
 
     # Topological properties
     # ----------------------
@@ -307,7 +262,7 @@ class BaseGeometry(pygeos.Geometry):
         collection of points. The boundary of a point is an empty (null)
         collection.
         """
-        return pygeos.boundary(self)
+        return shapely.boundary(self)
 
     @property
     def bounds(self):
@@ -316,16 +271,16 @@ class BaseGeometry(pygeos.Geometry):
         if self.is_empty:
             return ()
         else:
-            return tuple(pygeos.bounds(self).tolist())
+            return tuple(shapely.bounds(self).tolist())
 
     @property
     def centroid(self):
         """Returns the geometric center of the object"""
-        return pygeos.centroid(self)
+        return shapely.centroid(self)
 
     def representative_point(self):
         """Returns a point guaranteed to be within the object, cheaply."""
-        return pygeos.point_on_surface(self)
+        return shapely.point_on_surface(self)
 
     @property
     def convex_hull(self):
@@ -335,12 +290,12 @@ class BaseGeometry(pygeos.Geometry):
         The convex hull of a three member multipoint, for example, is a
         triangular polygon.
         """
-        return pygeos.convex_hull(self)
+        return shapely.convex_hull(self)
 
     @property
     def envelope(self):
         """A figure that envelopes the geometry"""
-        return pygeos.envelope(self)
+        return shapely.envelope(self)
 
     @property
     def minimum_rotated_rectangle(self):
@@ -356,8 +311,10 @@ class BaseGeometry(pygeos.Geometry):
         except AttributeError:  # may be a Point or a LineString
             return hull
         # generate the edge vectors between the convex hull's coords
-        edges = ((pt2[0] - pt1[0], pt2[1] - pt1[1]) for pt1, pt2 in zip(
-            coords, islice(coords, 1, None)))
+        edges = (
+            (pt2[0] - pt1[0], pt2[1] - pt1[1])
+            for pt1, pt2 in zip(coords, islice(coords, 1, None))
+        )
 
         def _transformed_rects():
             for dx, dy in edges:
@@ -370,20 +327,25 @@ class BaseGeometry(pygeos.Geometry):
                 # transform hull from the original coordinate system to
                 # the coordinate system defined by the edge and compute
                 # the axes-parallel bounding rectangle.
-                transf_rect = affine_transform(
-                    hull, (ux, uy, vx, vy, 0, 0)).envelope
+                transf_rect = affine_transform(hull, (ux, uy, vx, vy, 0, 0)).envelope
                 # yield the transformed rectangle and a matrix to
                 # transform it back to the original coordinate system.
                 yield (transf_rect, (ux, vx, uy, vy, 0, 0))
 
         # check for the minimum area rectangle and return it
-        transf_rect, inv_matrix = min(
-            _transformed_rects(), key=lambda r: r[0].area)
+        transf_rect, inv_matrix = min(_transformed_rects(), key=lambda r: r[0].area)
         return affine_transform(transf_rect, inv_matrix)
 
-    def buffer(self, distance, resolution=16, quadsegs=None,
-               cap_style=CAP_STYLE.round, join_style=JOIN_STYLE.round,
-               mitre_limit=5.0, single_sided=False):
+    def buffer(
+        self,
+        distance,
+        resolution=16,
+        quadsegs=None,
+        cap_style=CAP_STYLE.round,
+        join_style=JOIN_STYLE.round,
+        mitre_limit=5.0,
+        single_sided=False,
+    ):
         """Get a geometry that represents all points within a distance
         of this geometry.
 
@@ -457,19 +419,21 @@ class BaseGeometry(pygeos.Geometry):
         if quadsegs is not None:
             warn(
                 "The `quadsegs` argument is deprecated. Use `resolution`.",
-                DeprecationWarning)
-            res = quadsegs
-        else:
-            res = resolution
+                DeprecationWarning,
+            )
+            resolution = quadsegs
 
         if mitre_limit == 0.0:
-            raise ValueError(
-                'Cannot compute offset from zero-length line segment')
+            raise ValueError("Cannot compute offset from zero-length line segment")
 
-        return pygeos.buffer(
-            self, distance, quadsegs=resolution, cap_style=cap_style,
-            join_style=join_style, mitre_limit=mitre_limit,
-            single_sided=single_sided
+        return shapely.buffer(
+            self,
+            distance,
+            quadsegs=resolution,
+            cap_style=cap_style,
+            join_style=join_style,
+            mitre_limit=mitre_limit,
+            single_sided=single_sided,
         )
 
     def simplify(self, tolerance, preserve_topology=True):
@@ -481,9 +445,7 @@ class BaseGeometry(pygeos.Geometry):
         option is used, the algorithm may produce self-intersecting or
         otherwise invalid geometries.
         """
-        return pygeos.simplify(
-            self, tolerance, preserve_topology=preserve_topology
-        )
+        return shapely.simplify(self, tolerance, preserve_topology=preserve_topology)
 
     def normalize(self):
         """Converts geometry to normal form (or canonical form).
@@ -499,27 +461,27 @@ class BaseGeometry(pygeos.Geometry):
         >>> p.normalize().wkt
         'MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))'
         """
-        return pygeos.normalize(self)
+        return shapely.normalize(self)
 
     # Binary operations
     # -----------------
 
     def difference(self, other):
         """Returns the difference of the geometries"""
-        return pygeos.difference(self, other)
+        return shapely.difference(self, other)
 
     def intersection(self, other):
         """Returns the intersection of the geometries"""
-        return pygeos.intersection(self, other)
+        return shapely.intersection(self, other)
 
     def symmetric_difference(self, other):
         """Returns the symmetric difference of the geometries
         (Shapely geometry)"""
-        return pygeos.symmetric_difference(self, other)
+        return shapely.symmetric_difference(self, other)
 
     def union(self, other):
         """Returns the union of the geometries (Shapely geometry)"""
-        return pygeos.union(self, other)
+        return shapely.union(self, other)
 
     # Unary predicates
     # ----------------
@@ -528,38 +490,38 @@ class BaseGeometry(pygeos.Geometry):
     def has_z(self):
         """True if the geometry's coordinate sequence(s) have z values (are
         3-dimensional)"""
-        return bool(pygeos.has_z(self))
+        return bool(shapely.has_z(self))
 
     @property
     def is_empty(self):
         """True if the set of points in this geometry is empty, else False"""
-        return bool(pygeos.is_empty(self))
+        return bool(shapely.is_empty(self))
 
     @property
     def is_ring(self):
         """True if the geometry is a closed ring, else False"""
-        return bool(pygeos.is_ring(self))
+        return bool(shapely.is_ring(self))
 
     @property
     def is_closed(self):
         """True if the geometry is closed, else False
 
         Applicable only to 1-D geometries."""
-        if self.geom_type == 'LinearRing':
+        if self.geom_type == "LinearRing":
             return True
-        return bool(pygeos.is_closed(self))
+        return bool(shapely.is_closed(self))
 
     @property
     def is_simple(self):
         """True if the geometry is simple, meaning that any self-intersections
         are only at boundary points, else False"""
-        return bool(pygeos.is_simple(self))
+        return bool(shapely.is_simple(self))
 
     @property
     def is_valid(self):
         """True if the geometry is valid (definition depends on sub-class),
         else False"""
-        return bool(pygeos.is_valid(self))
+        return bool(shapely.is_valid(self))
 
     # Binary predicates
     # -----------------
@@ -567,27 +529,27 @@ class BaseGeometry(pygeos.Geometry):
     def relate(self, other):
         """Returns the DE-9IM intersection matrix for the two geometries
         (string)"""
-        return pygeos.relate(self, other)
+        return shapely.relate(self, other)
 
     def covers(self, other):
         """Returns True if the geometry covers the other, else False"""
-        return bool(pygeos.covers(self, other))
+        return bool(shapely.covers(self, other))
 
     def covered_by(self, other):
         """Returns True if the geometry is covered by the other, else False"""
-        return bool(pygeos.covered_by(self, other))
+        return bool(shapely.covered_by(self, other))
 
     def contains(self, other):
         """Returns True if the geometry contains the other, else False"""
-        return bool(pygeos.contains(self, other))
+        return bool(shapely.contains(self, other))
 
     def crosses(self, other):
         """Returns True if the geometries cross, else False"""
-        return bool(pygeos.crosses(self, other))
+        return bool(shapely.crosses(self, other))
 
     def disjoint(self, other):
         """Returns True if geometries are disjoint, else False"""
-        return bool(pygeos.disjoint(self, other))
+        return bool(shapely.disjoint(self, other))
 
     def equals(self, other):
         """Returns True if geometries are equal, else False.
@@ -610,23 +572,23 @@ class BaseGeometry(pygeos.Geometry):
         bool
 
         """
-        return bool(pygeos.equals(self, other))
+        return bool(shapely.equals(self, other))
 
     def intersects(self, other):
         """Returns True if geometries intersect, else False"""
-        return bool(pygeos.intersects(self, other))
+        return bool(shapely.intersects(self, other))
 
     def overlaps(self, other):
         """Returns True if geometries overlap, else False"""
-        return bool(pygeos.overlaps(self, other))
+        return bool(shapely.overlaps(self, other))
 
     def touches(self, other):
         """Returns True if geometries touch, else False"""
-        return bool(pygeos.touches(self, other))
+        return bool(shapely.touches(self, other))
 
     def within(self, other):
         """Returns True if geometry is within the other, else False"""
-        return bool(pygeos.within(self, other))
+        return bool(shapely.within(self, other))
 
     def equals_exact(self, other, tolerance):
         """True if geometries are equal to within a specified
@@ -661,7 +623,7 @@ class BaseGeometry(pygeos.Geometry):
         bool
 
         """
-        return bool(pygeos.equals_exact(self, other, tolerance))
+        return bool(shapely.equals_exact(self, other, tolerance))
 
     def almost_equals(self, other, decimal=6):
         """True if geometries are equal at all coordinates to a
@@ -704,7 +666,7 @@ class BaseGeometry(pygeos.Geometry):
     def relate_pattern(self, other, pattern):
         """Returns True if the DE-9IM string code for the relationship between
         the geometries satisfies the pattern, else False"""
-        return bool(pygeos.relate_pattern(self, other, pattern))
+        return bool(shapely.relate_pattern(self, other, pattern))
 
     # Linear referencing
     # ------------------
@@ -716,7 +678,7 @@ class BaseGeometry(pygeos.Geometry):
         If the normalized arg is True, return the distance normalized to the
         length of the linear geometry.
         """
-        return pygeos.line_locate_point(self, other, normalized=normalized)
+        return shapely.line_locate_point(self, other, normalized=normalized)
 
     def interpolate(self, distance, normalized=False):
         """Return a point at the specified distance along a linear geometry
@@ -727,7 +689,7 @@ class BaseGeometry(pygeos.Geometry):
         If the normalized arg is True, the distance will be interpreted as a
         fraction of the geometry's length.
         """
-        return pygeos.line_interpolate_point(self, distance, normalized=normalized)
+        return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
 
 class BaseMultipartGeometry(BaseGeometry):
@@ -742,7 +704,8 @@ class BaseMultipartGeometry(BaseGeometry):
     def coords(self):
         raise NotImplementedError(
             "Sub-geometries may have coordinate sequences, "
-            "but multi-part geometries do not")
+            "but multi-part geometries do not"
+        )
 
     @property
     def geoms(self):
@@ -753,9 +716,7 @@ class BaseMultipartGeometry(BaseGeometry):
     def __bool__(self):
         return self.is_empty is False
 
-    __hash__ = None
-
-    def svg(self, scale_factor=1., color=None):
+    def svg(self, scale_factor=1.0, color=None):
         """Returns a group of SVG elements for the multipart geometry.
 
         Parameters
@@ -767,12 +728,10 @@ class BaseMultipartGeometry(BaseGeometry):
             if geometry is valid, and "#ff3333" if invalid.
         """
         if self.is_empty:
-            return '<g />'
+            return "<g />"
         if color is None:
             color = "#66cc99" if self.is_valid else "#ff3333"
-        return '<g>' + \
-            ''.join(p.svg(scale_factor, color) for p in self.geoms) + \
-            '</g>'
+        return "<g>" + "".join(p.svg(scale_factor, color) for p in self.geoms) + "</g>"
 
 
 class GeometrySequence:
@@ -799,14 +758,14 @@ class GeometrySequence:
         self.__p__ = parent
 
     def _get_geom_item(self, i):
-        return pygeos.get_geometry(self.__p__, i)
+        return shapely.get_geometry(self.__p__, i)
 
     def __iter__(self):
         for i in range(self.__len__()):
             yield self._get_geom_item(i)
 
     def __len__(self):
-        return pygeos.get_num_geometries(self.__p__)
+        return shapely.get_num_geometries(self.__p__)
 
     def __getitem__(self, key):
         m = self.__len__()
@@ -821,7 +780,8 @@ class GeometrySequence:
         elif isinstance(key, slice):
             if type(self) == HeterogeneousGeometrySequence:
                 raise GeometryTypeError(
-                    "Heterogeneous geometry collections are not sliceable")
+                    "Heterogeneous geometry collections are not sliceable"
+                )
             res = []
             start, stop, stride = key.indices(m)
             for i in range(start, stop, stride):
@@ -829,14 +789,6 @@ class GeometrySequence:
             return type(self.__p__)(res or None)
         else:
             raise TypeError("key must be an index or slice")
-
-    @property
-    def _longest(self):
-        max = 0
-        for g in iter(self):
-            l = len(g.coords)
-            if l > max:
-                max = l
 
 
 class HeterogeneousGeometrySequence(GeometrySequence):
@@ -848,11 +800,11 @@ class HeterogeneousGeometrySequence(GeometrySequence):
         super().__init__(parent, None)
 
     def _get_geom_item(self, i):
-        return pygeos.get_geometry(self.__p__, i)
+        return shapely.get_geometry(self.__p__, i)
 
 
 class EmptyGeometry(BaseGeometry):
     def __new__(self):
         """Create an empty geometry."""
         # TODO(shapely-2.0) create empty geometry - should we deprecate this class?
-        return pygeos.from_wkt("GEOMETRYCOLLECTION EMPTY")
+        return shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")
