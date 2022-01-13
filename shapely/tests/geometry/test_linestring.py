@@ -102,8 +102,6 @@ def test_numpy_object_array():
     assert ar[0] == geom
 
 
-# TODO(shapely-2.0)
-@pytest.mark.xfail(strict=False, reason="Not yet implemented for Shapely 2.0")
 def test_from_invalid_dim():
     # TODO(shapely-2.0) better error message?
     # pytest.raises(ValueError, match="at least 2 coordinate tuples|at least 2 coordinates"):
@@ -111,20 +109,21 @@ def test_from_invalid_dim():
         LineString([(1, 2)])
 
     with pytest.raises(
-        ValueError,
-        match="Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions",
+        ValueError, match="Input operand 0 does not have enough dimensions"
     ):
         LineString([(1, 2, 3), (4, 5)])
 
     with pytest.raises(
-        ValueError,
-        match="Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions",
+        ValueError, match="Input operand 0 does not have enough dimensions"
     ):
         LineString([(1, 2), (3, 4, 5)])
 
-    # TODO better error, right now raises AssertionError
-    with pytest.raises(Exception):
+    msg = r"The ordinate \(last\) dimension should be 2 or 3, got {}"
+    with pytest.raises(ValueError, match=msg.format(4)):
         LineString([(1, 2, 3, 4), (4, 5, 6, 7)])
+
+    with pytest.raises(ValueError, match=msg.format(1)):
+        LineString([(1,), (4,)])
 
 
 def test_from_single_coordinate():
