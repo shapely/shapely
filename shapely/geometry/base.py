@@ -5,7 +5,7 @@ geometry objects, but has no effect on geometric analysis. All
 operations are performed in the x-y plane. Thus, geometries with
 different z values may intersect or be equal.
 """
-
+from xml.etree import ElementTree as ET
 import logging
 import math
 from itertools import islice
@@ -17,6 +17,12 @@ from shapely.coords import CoordinateSequence
 from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
 
 log = logging.getLogger(__name__)
+
+SVG_NAMESPACE = "http://www.w3.org/2000/svg"
+SVG_XLINK_NAMESPACE = "http://www.w3.org/1999/xlink"
+ET.register_namespace('', SVG_NAMESPACE)
+ET.register_namespace('xlink', SVG_XLINK_NAMESPACE)
+
 
 try:
     import numpy as np
@@ -65,6 +71,23 @@ class JOIN_STYLE:
     round = 1
     mitre = 2
     bevel = 3
+
+
+def empty_svg_doc_element():
+    doc = ET.Element('svg', xmlns=SVG_NAMESPACE)
+    doc.set('xmlns:xlink', SVG_XLINK_NAMESPACE)
+    return doc
+
+def svg_doc_element(elements, width, height, xmin, ymin, xmax, ymax):
+    doc = empty_svg_doc_element()
+    doc.set('width', f'{width}')
+    doc.set('height', f'{height}')
+    doc.set('viewBox', f'{xmin} {ymin} {xmax - xmin} {ymax - ymin}')
+    doc.set('preserveAspectRatio', 'xMinYMin meet')
+
+    for e in elements:
+        doc.append(e)
+    return doc
 
 
 class BaseGeometry(shapely.Geometry):
@@ -181,14 +204,23 @@ class BaseGeometry(shapely.Geometry):
         """Raises NotImplementedError"""
         raise NotImplementedError
 
+    def svg_path_element(self, stroke_scale_factor=1.0):
+        path = ET.fromstring(self.svg(stroke_scale_factor))
+
+        # svg is y-down, shapely is y-up
+        _, ymin, _, ymax = self.bounds
+        path.set('transform', f'matrix(1,0,0,-1,0,{ymax + ymin})')
+        return path
+
+    def svg_doc(self, width, height, xmin, ymin, xmax, ymax, stroke_scale_factor=1):
+        path = self.svg_path_element(stroke_scale_factor)
+        doc_element = svg_doc_element([path], width, height, xmin, ymin, xmax, ymax)
+        return ET.tostring(doc_element, encoding="unicode")
+
     def _repr_svg_(self):
         """SVG representation for iPython notebook"""
-        svg_top = (
-            '<svg xmlns="http://www.w3.org/2000/svg" '
-            'xmlns:xlink="http://www.w3.org/1999/xlink" '
-        )
         if self.is_empty:
-            return svg_top + "/>"
+            return ET.tostring(empty_svg_doc_element(), encoding="unicode")  
         else:
             # Establish SVG canvas that will fit all the data + small space
             xmin, ymin, xmax, ymax = self.bounds
@@ -212,14 +244,11 @@ class BaseGeometry(shapely.Geometry):
                 scale_factor = max([dx, dy]) / max([width, height])
             except ZeroDivisionError:
                 scale_factor = 1.0
-            view_box = "{} {} {} {}".format(xmin, ymin, dx, dy)
-            transform = "matrix(1,0,0,-1,0,{})".format(ymax + ymin)
-            return svg_top + (
-                'width="{1}" height="{2}" viewBox="{0}" '
-                'preserveAspectRatio="xMinYMin meet">'
-                '<g transform="{3}">{4}</g></svg>'
-            ).format(view_box, width, height, transform, self.svg(scale_factor))
 
+            return self.svg_doc(
+                    width, height,
+                    xmin, ymin, xmax, ymax,
+                    stroke_scale_factor=scale_factor)
     @property
     def geom_type(self):
         """Name of the geometry's type, such as 'Point'"""
