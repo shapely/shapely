@@ -1,4 +1,4 @@
-from shapely.geometry import Point, MultiPoint, LineString, Polygon, GeometryCollection
+from shapely.geometry import GeometryCollection, LineString, MultiPoint, Point
 
 
 def test_point():
