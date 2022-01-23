@@ -2191,6 +2191,14 @@ static void linestrings_func(char** args, npy_intp* dimensions, npy_intp* steps,
   GEOSCoordSequence* coord_seq = NULL;
   GEOSGeometry** geom_arr;
 
+  // check the ordinate dimension before calling coordseq_from_buffer
+  if (dimensions[2] < 2 || dimensions[2] > 3) {
+    PyErr_Format(PyExc_ValueError,
+                 "The ordinate (last) dimension should be 2 or 3, got %ld",
+                 dimensions[2]);
+    return;
+  }
+
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
   CHECK_ALLOC(geom_arr);
@@ -2232,6 +2240,14 @@ static void linearrings_func(char** args, npy_intp* dimensions, npy_intp* steps,
   GEOSGeometry** geom_arr;
   char ring_closure = 0;
   double first_coord, last_coord;
+
+  // check the ordinate dimension before calling coordseq_from_buffer
+  if (dimensions[2] < 2 || dimensions[2] > 3) {
+    PyErr_Format(PyExc_ValueError,
+                 "The ordinate (last) dimension should be 2 or 3, got %ld",
+                 dimensions[2]);
+    return;
+  }
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
