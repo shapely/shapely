@@ -7,7 +7,7 @@ class ShapelyError(Exception):
 
 
 class UnsupportedGEOSVersionError(ShapelyError):
-    """Raised when the system's GEOS library version is unsupported."""
+    """Raised when the GEOS library version does not support a certain operation."""
 
 
 class ReadingError(ShapelyError):
