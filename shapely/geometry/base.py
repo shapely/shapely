@@ -107,7 +107,10 @@ class BaseGeometry(shapely.Geometry):
         return self.__bool__()
 
     def __repr__(self):
-        return "<shapely.geometry.{} {}>".format(self.__class__.__name__, self.wkt)
+        base_repr = super().__repr__()
+        return base_repr.replace(
+            "shapely.Geometry", "shapely.geometry.{}".format(self.__class__.__name__)
+        )
 
     def __str__(self):
         return self.wkt

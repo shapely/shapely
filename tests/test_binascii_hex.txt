@@ -42,6 +42,6 @@ Polygon with hole
   >>> polygon = Polygon(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)), [((0.1,0.1), (0.1,0.2), (0.2,0.2), (0.2,0.1))])
   >>> x = b2a_hex(polygon.wkb)
   >>> shape = wkb.loads(a2b_hex(x))
-  >>> shape # doctest: +ELLIPSIS
-  <shapely.geometry.Polygon POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0), (0.1 0.1, 0.1 0.2, 0.2 0.2, 0.2 0.1, 0.1 0.1))>
+  >>> shape.wkt # doctest: +ELLIPSIS
+  'POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0), (0.1 0.1, 0.1 0.2, 0.2 0.2, 0.2 0.1, 0.1 0.1))'
 
