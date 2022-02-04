@@ -11,7 +11,7 @@ def loads(data, hex=False):
 
     Raises
     ------
-    WKBReadingError, UnicodeDecodeError
+    GEOSException, UnicodeDecodeError
         If ``data`` contains an invalid geometry.
     """
     return shapely.from_wkb(data)
@@ -22,7 +22,7 @@ def load(fp, hex=False):
 
     Raises
     ------
-    WKBReadingError, UnicodeDecodeError
+    GEOSException, UnicodeDecodeError
         If the given file contains an invalid geometry.
     """
     data = fp.read()
