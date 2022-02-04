@@ -160,7 +160,6 @@ def test_point_array_coercion():
     assert arr.item() == p
 
 
-@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_empty_point_coords():
     pe = Point()
 
@@ -169,7 +168,6 @@ def test_numpy_empty_point_coords():
     assert a.shape == (0, 2)
 
 
-@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
     geom = Point(3.0, 4.0)
     ar = np.empty(1, object)

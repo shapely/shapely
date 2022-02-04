@@ -85,7 +85,6 @@ def test_from_numpy():
     assert line.coords[:] == [(1.0, 2.0), (3.0, 4.0)]
 
 
-@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_empty_linestring_coords():
     # Check empty
     line = LineString([])
@@ -94,7 +93,6 @@ def test_numpy_empty_linestring_coords():
     assert la.shape == (0, 2)
 
 
-@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
     geom = LineString([(0.0, 0.0), (0.0, 1.0)])
     ar = np.empty(1, object)
