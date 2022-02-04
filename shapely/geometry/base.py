@@ -85,7 +85,13 @@ class BaseGeometry(shapely.Geometry):
     __slots__ = []
 
     def __new__(self):
-        # TODO create empty geometry - should we deprecate this constructor?
+        warn(
+            "Directly calling the base class 'BaseGeometry()' is deprecated, and "
+            "will raise an error in the future. To create an empty geometry, "
+            "use one of the subclasses instead, for example 'GeometryCollection()'.",
+            FutureWarning,
+            stacklevel=2,
+        )
         return shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")
 
     @property
@@ -806,5 +812,11 @@ class HeterogeneousGeometrySequence(GeometrySequence):
 class EmptyGeometry(BaseGeometry):
     def __new__(self):
         """Create an empty geometry."""
-        # TODO(shapely-2.0) create empty geometry - should we deprecate this class?
+        warn(
+            "The 'EmptyGeometry()' constructor to create an empty geometry is "
+            "deprecated, and will raise an error in the future. Use one of the "
+            "geometry subclasses instead, for example 'GeometryCollection()'.",
+            FutureWarning,
+            stacklevel=2,
+        )
         return shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")

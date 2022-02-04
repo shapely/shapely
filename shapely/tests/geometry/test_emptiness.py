@@ -22,11 +22,13 @@ def empty_generator():
 
 class TestEmptiness:
     def test_empty_class(self):
-        g = EmptyGeometry()
+        with pytest.warns(FutureWarning):
+            g = EmptyGeometry()
         assert g.is_empty
 
     def test_empty_base(self):
-        g = BaseGeometry()
+        with pytest.warns(FutureWarning):
+            g = BaseGeometry()
         assert g.is_empty
 
     def test_empty_point(self):
@@ -65,7 +67,7 @@ class TestEmptiness:
 
 @pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
-    geoms = [BaseGeometry(), EmptyGeometry()]
+    geoms = [Point(), GeometryCollection()]
     arr = np.empty(2, object)
     arr[:] = geoms
 
