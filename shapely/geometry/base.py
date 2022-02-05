@@ -5,8 +5,6 @@ geometry objects, but has no effect on geometric analysis. All
 operations are performed in the x-y plane. Thus, geometries with
 different z values may intersect or be equal.
 """
-
-import logging
 import math
 from itertools import islice
 from warnings import warn
@@ -15,8 +13,6 @@ import shapely
 from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
 from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
-
-log = logging.getLogger(__name__)
 
 try:
     import numpy as np
