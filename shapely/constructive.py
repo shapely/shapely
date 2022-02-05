@@ -31,6 +31,8 @@ __all__ = [
     "oriented_envelope",
     "minimum_rotated_rectangle",
     "minimum_bounding_circle",
+    "maximum_inscribed_circle",
+    "largest_empty_circle",
 ]
 
 
@@ -888,6 +890,90 @@ def minimum_bounding_circle(geometry, **kwargs):
 
     See also
     --------
-    minimum_bounding_radius
+    minimum_bounding_radius, maximum_inscribed_circle
     """
     return lib.minimum_bounding_circle(geometry, **kwargs)
+
+
+@requires_geos("3.9.0")
+@multithreading_enabled
+def maximum_inscribed_circle(geometry, tolerance=0, **kwargs):
+    """Finds the largest circle that is fully contained within the input geometry.
+
+    Constructs the "maximum inscribed circle" (MIC) for a polygonal geometry,
+    up to a specified tolerance. The MIC is determined by a point in the
+    interior of the area which has the farthest distance from the area
+    boundary, along with a boundary point at that distance. In the context of
+    geography the center of the MIC is known as the "pole of inaccessibility".
+    A cartographic use case is to determine a suitable point to place a map
+    label within a polygon.
+    The radius length of the MIC is a  measure of how "narrow" a polygon is.
+    It is the distance at which the negative buffer becomes empty.
+
+    The class supports polygons with holes and multipolygons.
+
+    Returns a two-point linestring, with the first point at the center of the
+    inscribed circle and the second on the boundary of the inscribed circle.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    tolerance : float or array_like
+        Stop the algorithm when the search area is smaller than this tolerance
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    Examples
+    --------
+    >>> maximum_inscribed_circle(Geometry("POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))"))
+    <shapely.geometry.LineString LINESTRING (5 5, 0 5)>
+
+    See also
+    --------
+    minimum_bounding_circle
+    """
+    return lib.maximum_inscribed_circle(geometry, tolerance, **kwargs)
+
+
+@requires_geos("3.9.0")
+@multithreading_enabled
+def largest_empty_circle(geometry, boundary=None, tolerance=0, **kwargs):
+    """Finds the largest circle that is fully contained within the convex hull
+    of the input geometry, using the input as further boundaries.
+
+    Constructs the "largest empty circle" (LEC) for a set of obstacle
+    geometries, up to a specified tolerance. The obstacles are point and line
+    geometries. Polygonal obstacles willl be treated as linear features. The
+    LEC is the largest circle which has its **center** inside the boundary,
+    and whose interior does not intersect with any obstacle. If no boundary
+    is provided, the convex hull of the obstacles is used as the boundary.
+    The LEC center is the point in the interior of the boundary which has the
+    farthest distance from the obstacles (up to tolerance). The LEC is
+    determined by the center point and a point lying on an obstacle
+    indicating the circle radius.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+        The geometries that the LEC must fit within without covering
+    boundary : Geometry or array_like
+        The area within which the LEC must reside
+    tolerance : float or array_like
+        Stop the algorithm when the search area is smaller than this tolerance
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    Examples
+    --------
+    >>> largest_empty_circle(Geometry("POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))"))
+    <shapely.geometry.LineString LINESTRING (5 5, 0 5)>
+    >>> largest_empty_circle(Geometry("MULTIPOINT (2 2, 4 2)"))
+    <shapely.geometry.LineString LINESTRING (3 2, 2 2)>
+
+    """
+    if boundary is None:
+        boundary = envelope(geometry)
+
+    return lib.largest_empty_circle(geometry, boundary, tolerance, **kwargs)

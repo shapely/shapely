@@ -538,6 +538,7 @@ static void* force_3d_data[1] = {PyGEOSForce3D};
 
 #if GEOS_SINCE_3_9_0
 static void* unary_union_prec_data[1] = {GEOSUnaryUnionPrec_r};
+static void* maximum_inscribed_circle_data[1] = {GEOSMaximumInscribedCircle_r};
 #endif
 
 #if GEOS_SINCE_3_10_0
@@ -1206,6 +1207,7 @@ static void* intersection_prec_data[1] = {GEOSIntersectionPrec_r};
 static void* difference_prec_data[1] = {GEOSDifferencePrec_r};
 static void* symmetric_difference_prec_data[1] = {GEOSSymDifferencePrec_r};
 static void* union_prec_data[1] = {GEOSUnionPrec_r};
+static void* largest_empty_circle_data[1] = {GEOSLargestEmptyCircle_r};
 typedef void* FuncGEOS_YYd_Y(void* context, void* a, void* b, double c);
 static char YYd_Y_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_OBJECT};
 
@@ -3365,6 +3367,8 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_YYd_Y(symmetric_difference_prec);
   DEFINE_YYd_Y(union_prec);
   DEFINE_Yd_Y(unary_union_prec);
+  DEFINE_Yd_Y(maximum_inscribed_circle);
+  DEFINE_YYd_Y(largest_empty_circle);
 #endif
 
 #if GEOS_SINCE_3_10_0

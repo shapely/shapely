@@ -1,5 +1,5 @@
 from . import unittest
-from shapely.algorithms.polylabel import polylabel, Cell
+from shapely.algorithms.polylabel import polylabel
 from shapely.geometry import LineString, Point, Polygon
 from shapely.errors import TopologicalError
 
@@ -15,37 +15,6 @@ class PolylabelTestCase(unittest.TestCase):
         label = polylabel(polygon, tolerance=10)
         expected = Point(59.35615556364569, 121.8391962974644)
         self.assertTrue(expected.equals_exact(label, 1e-6))
-
-    def test_invalid_polygon(self):
-        """
-        Makes sure that the polylabel function throws an exception when provided
-        an invalid polygon.
-
-        """
-        bowtie_polygon = Polygon([(0, 0), (0, 20), (10, 10), (20, 20),
-                                  (20, 0), (10, 10), (0, 0)])
-        self.assertRaises(TopologicalError, polylabel, bowtie_polygon)
-
-    def test_cell_sorting(self):
-        """
-        Tests rich comparison operators of Cells for use in the polylabel
-        minimum priority queue.
-
-        """
-        polygon = Point(0, 0).buffer(100)
-        cell1 = Cell(0, 0, 50, polygon)  # closest
-        cell2 = Cell(50, 50, 50, polygon)  # furthest
-        self.assertLess(cell1, cell2)
-        self.assertLessEqual(cell1, cell2)
-        self.assertFalse(cell2 <= cell1)
-        self.assertEqual(cell1, cell1)
-        self.assertFalse(cell1 == cell2)
-        self.assertNotEqual(cell1, cell2)
-        self.assertFalse(cell1 != cell1)
-        self.assertGreater(cell2, cell1)
-        self.assertFalse(cell1 > cell2)
-        self.assertGreaterEqual(cell2, cell1)
-        self.assertFalse(cell1 >= cell2)
 
     def test_concave_polygon(self):
         """
@@ -68,7 +37,7 @@ class PolylabelTestCase(unittest.TestCase):
         polygon = Polygon([(32.71997,-117.19310), (32.71997,-117.21065),
                            (32.72408,-117.21065), (32.72408,-117.19310)])
         label = polylabel(polygon)
-        self.assertEqual(label.coords[:], [(32.722025, -117.201875)])
+        self.assertEqual(label.coords[:], [(32.722025, -117.208595)])
 
     def test_polygon_with_hole(self):
         """

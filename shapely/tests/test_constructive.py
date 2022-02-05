@@ -823,3 +823,45 @@ def test_oriented_envelope(geometry, expected):
 def test_minimum_rotated_rectangle(geometry, expected):
     actual = shapely.minimum_rotated_rectangle(geometry)
     assert shapely.equals(actual, expected).all()
+
+
+# @pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
+# @pytest.mark.parametrize("geometry", all_types)
+# def test_maximum_inscribed_circle_all_types(geometry):
+#     actual = shapely.maximum_inscribed_circle([geometry, geometry])
+#     assert actual.shape == (2,)
+#     assert actual[0] is None or isinstance(actual[0], Geometry)
+
+#     actual = shapely.maximum_inscribed_circle(None)
+#     assert actual is None
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
+@pytest.mark.parametrize(
+    "geometry, expected",
+    [
+        (
+            shapely.Geometry("POLYGON ((0 5, 5 10, 10 5, 5 0, 0 5))"),
+            shapely.Geometry("LINESTRING (5 5, 0 5)"),
+        ),
+        # (
+        #     shapely.Geometry("LINESTRING (1 0, 1 10)"),
+        #     shapely.Geometry("LINESTRING (10 1.0000000000000004, 5.5 5.5)"),
+        # ),
+        # (
+        #     shapely.Geometry("MULTIPOINT (2 2, 4 2)"),
+        #     shapely.Geometry("LINESTRING (3 2, 2 2)"),
+        # ),
+        # (
+        #     shapely.Geometry("POINT (2 2)"),
+        #     shapely.Geometry("LINESTRING (2 2, 2 2)"),
+        # ),
+        # (
+        #     shapely.Geometry("GEOMETRYCOLLECTION EMPTY"),
+        #     shapely.Geometry("LINESTRING EMPTY"),
+        # ),
+    ],
+)
+def test_maximum_inscribed_circle(geometry, expected):
+    actual = shapely.maximum_inscribed_circle(geometry)
+    assert_geometries_equal(actual, expected)
