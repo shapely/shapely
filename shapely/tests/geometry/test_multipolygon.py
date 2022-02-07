@@ -107,7 +107,6 @@ def test_fail_list_of_multipolygons():
         MultiPolygon([multi])
 
 
-@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
     geom = MultiPolygon(
         [

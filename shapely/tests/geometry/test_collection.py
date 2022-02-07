@@ -78,7 +78,6 @@ def test_len_raises(geometrycollection_geojson):
         len(geom)
 
 
-@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
     geom = GeometryCollection([LineString([(0, 0), (1, 1)])])
     ar = np.empty(1, object)
