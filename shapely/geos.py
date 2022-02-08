@@ -110,7 +110,7 @@ elif sys.platform == 'darwin':
     # Test to see if we have a delocated wheel with a GEOS dylib.
     geos_whl_dylib = glob.glob(
         os.path.abspath(
-            os.path.join(os.path.dirname(__file__), ".dylibs/libgeos_c.1*.dylib")
+            os.path.join(os.path.dirname(__file__), ".dylibs/libgeos*.dylib")
         )
     )
 
