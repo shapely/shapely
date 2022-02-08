@@ -108,16 +108,20 @@ if sys.platform.startswith('linux'):
 
 elif sys.platform == 'darwin':
     # Test to see if we have a delocated wheel with a GEOS dylib.
-    geos_whl_dylib = os.path.abspath(os.path.join(os.path.dirname(
-        __file__), '.dylibs/libgeos_c.1.dylib'))
+    geos_whl_dylib = glob.glob(
+        os.path.abspath(
+            os.path.join(os.path.dirname(__file__), ".dylibs/libgeos_c.1*.dylib")
+        )
+    )
 
-    if os.path.exists(geos_whl_dylib):
+    if len(geos_whl_dylib) > 0:
         handle = CDLL(None)
         if hasattr(handle, "initGEOS_r"):
             LOG.debug("GEOS already loaded")
             _lgeos = handle
         else:
-            _lgeos = CDLL(geos_whl_dylib)
+            geos_whl_dylib = sorted(geos_whl_dylib)
+            _lgeos = CDLL(geos_whl_dylib[-1])
             LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
 
     elif exists_conda_env():
