@@ -45,6 +45,7 @@ build_geos(){
     cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$GEOS_INSTALL -DCMAKE_INSTALL_LIBDIR=lib ..
     cmake --build . -j 4
     cmake --install .
+    ls -l $GEOS_INSTALL/lib
 }
 
 if [ -d "$GEOS_INSTALL/include/geos" ]; then
