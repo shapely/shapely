@@ -66,7 +66,6 @@ def test_multipoint_array_coercion():
     assert arr.item() == geom
 
 
-@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
     geom = MultiPoint(((1.0, 2.0), (3.0, 4.0)))
     ar = np.empty(1, object)

@@ -102,13 +102,11 @@ def test_numpy_linearring_coords():
     assert_array_equal(ra, expected)
 
 
-@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_empty_linearring_coords():
     ring = LinearRing()
     assert np.asarray(ring.coords).shape == (0, 2)
 
 
-@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
     geom = Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0)])
     ar = np.empty(1, object)
@@ -400,3 +398,47 @@ def test_linearring_immutable():
 
     with pytest.raises(TypeError):
         ring.coords[0] = (1.0, 1.0)
+
+
+class TestLinearRingGetItem:
+    def test_index_linearring(self):
+        shell = LinearRing([(0.0, 0.0), (70.0, 120.0), (140.0, 0.0), (0.0, 0.0)])
+        holes = [
+            LinearRing([(60.0, 80.0), (80.0, 80.0), (70.0, 60.0), (60.0, 80.0)]),
+            LinearRing([(30.0, 10.0), (50.0, 10.0), (40.0, 30.0), (30.0, 10.0)]),
+            LinearRing([(90.0, 10), (110.0, 10.0), (100.0, 30.0), (90.0, 10.0)]),
+        ]
+        g = Polygon(shell, holes)
+        for i in range(-3, 3):
+            assert g.interiors[i].equals(holes[i])
+        with pytest.raises(IndexError):
+            g.interiors[3]
+        with pytest.raises(IndexError):
+            g.interiors[-4]
+
+    def test_index_linearring_misc(self):
+        g = Polygon()  # empty
+        with pytest.raises(IndexError):
+            g.interiors[0]
+        with pytest.raises(TypeError):
+            g.interiors[0.0]
+
+    def test_slice_linearring(self):
+        shell = LinearRing([(0.0, 0.0), (70.0, 120.0), (140.0, 0.0), (0.0, 0.0)])
+        holes = [
+            LinearRing([(60.0, 80.0), (80.0, 80.0), (70.0, 60.0), (60.0, 80.0)]),
+            LinearRing([(30.0, 10.0), (50.0, 10.0), (40.0, 30.0), (30.0, 10.0)]),
+            LinearRing([(90.0, 10), (110.0, 10.0), (100.0, 30.0), (90.0, 10.0)]),
+        ]
+        g = Polygon(shell, holes)
+        t = [a.equals(b) for (a, b) in zip(g.interiors[1:], holes[1:])]
+        assert all(t)
+        t = [a.equals(b) for (a, b) in zip(g.interiors[:-1], holes[:-1])]
+        assert all(t)
+        t = [a.equals(b) for (a, b) in zip(g.interiors[::-1], holes[::-1])]
+        assert all(t)
+        t = [a.equals(b) for (a, b) in zip(g.interiors[::2], holes[::2])]
+        assert all(t)
+        t = [a.equals(b) for (a, b) in zip(g.interiors[:3], holes[:3])]
+        assert all(t)
+        assert g.interiors[3:] == holes[3:] == []
