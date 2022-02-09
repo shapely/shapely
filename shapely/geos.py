@@ -113,6 +113,10 @@ elif sys.platform == 'darwin':
     )
     LOG.debug("Formed path for globbing: dylib_path=%r", dylib_path)
     print("Formed path for globbing: dylib_path={!r}".format(dylib_path))
+    print("Contents of .dylibs: {}".format(os.listdir(os.path.dirname(dylib_path))))
+    print(
+        "Contents of __file__ parent: {}".format(os.listdir(os.path.dirname(__file__)))
+    )
 
     geos_whl_dylib = glob.glob(dylib_path)
     LOG.debug("Globbed: geos_whl_dylib=%r", geos_whl_dylib)
