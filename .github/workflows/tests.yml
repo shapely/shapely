@@ -132,7 +132,7 @@ jobs:
 
       - name: Install python dependencies
         run: |
-          pip install --disable-pip-version-check --upgrade pip
+          pip install --disable-pip-version-check --user --upgrade pip
           pip install --upgrade wheel setuptools
           if [ "$SPEEDUPS" == "1" ]; then
             pip install --install-option="--no-cython-compile" cython;
