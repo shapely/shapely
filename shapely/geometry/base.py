@@ -12,7 +12,7 @@ from itertools import islice
 from warnings import warn
 
 import shapely
-from shapely.affinity import affine_transform
+from shapely.affinity import affine_transform, scale
 from shapely.coords import CoordinateSequence
 from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
 
@@ -79,7 +79,8 @@ def empty_svg_doc_element():
     return doc
 
 def svg_doc_element(elements, width, height, xmin, ymin, xmax, ymax):
-    doc = empty_svg_doc_element()
+    doc = ET.Element('svg', xmlns=SVG_NAMESPACE)
+    doc.set('xmlns:xlink', SVG_XLINK_NAMESPACE)
     doc.set('width', f'{width}')
     doc.set('height', f'{height}')
     doc.set('viewBox', f'{xmin} {ymin} {xmax - xmin} {ymax - ymin}')
@@ -204,23 +205,42 @@ class BaseGeometry(shapely.Geometry):
         """Raises NotImplementedError"""
         raise NotImplementedError
 
-    def svg_path_element(self, stroke_scale_factor=1.0):
-        path = ET.fromstring(self.svg(stroke_scale_factor))
+    def svg_path_element(self, scale_factor=1.0, yflip='transform'):
+        """Returns SVG XML Element for the geometry.
 
-        # svg is y-down, shapely is y-up
-        _, ymin, _, ymax = self.bounds
-        path.set('transform', f'matrix(1,0,0,-1,0,{ymax + ymin})')
+        The y-axis of SVG is flipped compared to a Shapely geometry. The
+        'y_flip' parameter specifies how to handle the flip. Options are
+        'transform' (default), 'scale', and None. 'transform' encodes the
+        y-axis flip in a transform matrix in the SVG, 'scale' flips the
+        geometry points along the y-axis, and None does nothing to handle the
+        flip.
+
+        Parameters
+        ==========
+        scale_factor : float
+            Multiplication factor for the SVG stroke-width and, in the case of
+            a point, multiplication factor for the point radius.
+            Default is 1.
+        """
+        # manage y-flip: svg is y-down, shapely is y-up
+        if self.is_empty or not yflip:
+            path = ET.fromstring(self.svg(scale_factor))
+        elif yflip == 'scale':
+            flipped = scale(self, yfact=-1)
+            path = flipped.svg_path_element(scale_factor, yflip=None)
+        elif yflip == 'transform':
+            path = ET.fromstring(self.svg(scale_factor))
+            _, ymin, _, ymax = self.bounds
+            path.set('transform', f'matrix(1,0,0,-1,0,{ymax + ymin})')
+        else:
+            raise ValueError("yflip parameter must be 'transform', 'scale', or None.")
         return path
-
-    def svg_doc(self, width, height, xmin, ymin, xmax, ymax, stroke_scale_factor=1):
-        path = self.svg_path_element(stroke_scale_factor)
-        doc_element = svg_doc_element([path], width, height, xmin, ymin, xmax, ymax)
-        return ET.tostring(doc_element, encoding="unicode")
 
     def _repr_svg_(self):
         """SVG representation for iPython notebook"""
         if self.is_empty:
-            return ET.tostring(empty_svg_doc_element(), encoding="unicode")  
+            empty_svg = ET.Element('svg', xmlns=SVG_NAMESPACE)
+            svg_str = ET.tostring(empty_svg, encoding="unicode")
         else:
             # Establish SVG canvas that will fit all the data + small space
             xmin, ymin, xmax, ymax = self.bounds
@@ -245,10 +265,11 @@ class BaseGeometry(shapely.Geometry):
             except ZeroDivisionError:
                 scale_factor = 1.0
 
-            return self.svg_doc(
-                    width, height,
-                    xmin, ymin, xmax, ymax,
-                    stroke_scale_factor=scale_factor)
+            path = self.svg_path_element(scale_factor)
+            doc_element = svg_doc_element([path], width, height, xmin, ymin, xmax, ymax)
+            svg_str = ET.tostring(doc_element, encoding="unicode")
+        return svg_str
+
     @property
     def geom_type(self):
         """Name of the geometry's type, such as 'Point'"""
