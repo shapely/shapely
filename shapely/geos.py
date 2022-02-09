@@ -108,11 +108,13 @@ if sys.platform.startswith('linux'):
 
 elif sys.platform == 'darwin':
     # Test to see if we have a delocated wheel with a GEOS dylib.
-    geos_whl_dylib = glob.glob(
-        os.path.abspath(
-            os.path.join(os.path.dirname(__file__), ".dylibs/libgeos*.dylib")
-        )
+    dylib_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), ".dylibs/*.dylib")
     )
+    LOG.debug("Formed path for globbing: dylib_path=%r", dylib_path)
+
+    geos_whl_dylib = glob.glob(dylib_path)
+    LOG.debug("Globbed: geos_whl_dylib=%r", geos_whl_dylib)
 
     if len(geos_whl_dylib) > 0:
         handle = CDLL(None)
@@ -121,7 +123,7 @@ elif sys.platform == 'darwin':
             _lgeos = handle
         else:
             geos_whl_dylib = sorted(geos_whl_dylib)
-            CDLL(geos_whl_so[0])
+            CDLL(geos_whl_dylib[0])
             _lgeos = CDLL(geos_whl_dylib[-1])
             LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
 
