@@ -240,6 +240,7 @@ class BaseGeometry(shapely.Geometry):
         """SVG representation for iPython notebook"""
         if self.is_empty:
             empty_svg = ET.Element('svg', xmlns=SVG_NAMESPACE)
+            empty_svg.set('xmlns:xlink', SVG_XLINK_NAMESPACE)
             svg_str = ET.tostring(empty_svg, encoding="unicode")
         else:
             # Establish SVG canvas that will fit all the data + small space
