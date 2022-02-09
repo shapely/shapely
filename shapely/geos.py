@@ -121,6 +121,7 @@ elif sys.platform == 'darwin':
             _lgeos = handle
         else:
             geos_whl_dylib = sorted(geos_whl_dylib)
+            CDLL(geos_whl_so[0])
             _lgeos = CDLL(geos_whl_dylib[-1])
             LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
 
