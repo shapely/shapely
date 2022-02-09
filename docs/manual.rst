@@ -636,6 +636,10 @@ Collections can also be sliced.
   When possible, it is better to use one of the homogeneous collection types
   described below.
 
+.. note::
+
+  Collections are not guaranteed to preserve the order of their elements.
+
 .. _multipoints:
 
 Collections of Points
