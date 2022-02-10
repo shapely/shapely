@@ -1,4 +1,4 @@
-from xml.dom.minidom import parseString as parse_xml_string
+import xml.etree.ElementTree as ET
 
 from . import unittest
 from shapely.geometry import Point, MultiPoint, LineString, MultiLineString,\
@@ -10,7 +10,10 @@ class _Repr_Svg_TestCase(unittest.TestCase):
 
     def assert_repr_svg_(self, geom, expected):
         """Helper function to check SVG representation for iPython notebook"""
-        self.assertEqual(geom._repr_svg_(), expected)
+        # avoid order-related issues in string comparison by running through
+        # Element string parsing
+        self.assertEqual(ET.tostring(ET.fromstring(geom._repr_svg_())),
+                         ET.tostring(ET.fromstring(expected)))
 
     def test_empty(self):
         self.assert_repr_svg_(

@@ -18,12 +18,6 @@ class SvgTestCase(unittest.TestCase):
         except:
             raise AssertionError(
                 'XML is not valid for SVG element: ' + str(svg_elem))
-        svg_doc = geom._repr_svg_()
-        try:
-            doc = parse_xml_string(svg_doc)
-        except:
-            raise AssertionError(
-                'XML is not valid for SVG document: ' + str(svg_doc))
         svg_output_dir = None
         # svg_output_dir = '.'  # useful for debugging SVG files
         if svg_output_dir:
