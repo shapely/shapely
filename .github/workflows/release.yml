@@ -123,7 +123,7 @@ jobs:
           CIBW_ENVIRONMENT_MACOS:
             MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
             GEOS_INSTALL=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
-            GEOS_CONFIG=/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
+            GEOS_CONFIG=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
             LDFLAGS=-Wl,-rpath,${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/lib
             CMAKE_OSX_ARCHITECTURES='${{ matrix.cmake_osx_architectures }}'
           CIBW_ENVIRONMENT_WINDOWS:
