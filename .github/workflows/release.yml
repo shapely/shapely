@@ -120,7 +120,6 @@ jobs:
           CIBW_ENVIRONMENT_MACOS:
             GEOS_INSTALL=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
             GEOS_LIBRARY_PATH=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/lib/libgeos_c.dylib
-            # GEOS_CONFIG=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
             LDFLAGS=-Wl,-rpath,${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/lib
             MACOSX_DEPLOYMENT_TARGET=10.9
             CMAKE_OSX_ARCHITECTURES='${{ matrix.cmake_osx_architectures }}'
