@@ -5,11 +5,11 @@ geometry objects, but has no effect on geometric analysis. All
 operations are performed in the x-y plane. Thus, geometries with
 different z values may intersect or be equal.
 """
-from xml.etree import ElementTree as ET
 import logging
 import math
 from itertools import islice
 from warnings import warn
+from xml.etree import ElementTree as ET
 
 import shapely
 from shapely.affinity import affine_transform, scale
@@ -20,8 +20,8 @@ log = logging.getLogger(__name__)
 
 SVG_NAMESPACE = "http://www.w3.org/2000/svg"
 SVG_XLINK_NAMESPACE = "http://www.w3.org/1999/xlink"
-ET.register_namespace('', SVG_NAMESPACE)
-ET.register_namespace('xlink', SVG_XLINK_NAMESPACE)
+ET.register_namespace("", SVG_NAMESPACE)
+ET.register_namespace("xlink", SVG_XLINK_NAMESPACE)
 
 
 try:
@@ -74,17 +74,18 @@ class JOIN_STYLE:
 
 
 def empty_svg_doc_element():
-    doc = ET.Element('svg', xmlns=SVG_NAMESPACE)
-    doc.set('xmlns:xlink', SVG_XLINK_NAMESPACE)
+    doc = ET.Element("svg", xmlns=SVG_NAMESPACE)
+    doc.set("xmlns:xlink", SVG_XLINK_NAMESPACE)
     return doc
 
+
 def svg_doc_element(elements, width, height, xmin, ymin, xmax, ymax):
-    doc = ET.Element('svg', xmlns=SVG_NAMESPACE)
-    doc.set('xmlns:xlink', SVG_XLINK_NAMESPACE)
-    doc.set('width', f'{width}')
-    doc.set('height', f'{height}')
-    doc.set('viewBox', f'{xmin} {ymin} {xmax - xmin} {ymax - ymin}')
-    doc.set('preserveAspectRatio', 'xMinYMin meet')
+    doc = ET.Element("svg", xmlns=SVG_NAMESPACE)
+    doc.set("xmlns:xlink", SVG_XLINK_NAMESPACE)
+    doc.set("width", f"{width}")
+    doc.set("height", f"{height}")
+    doc.set("viewBox", f"{xmin} {ymin} {xmax - xmin} {ymax - ymin}")
+    doc.set("preserveAspectRatio", "xMinYMin meet")
 
     for e in elements:
         doc.append(e)
@@ -205,7 +206,7 @@ class BaseGeometry(shapely.Geometry):
         """Raises NotImplementedError"""
         raise NotImplementedError
 
-    def svg_path_element(self, scale_factor=1.0, yflip='transform'):
+    def svg_path_element(self, scale_factor=1.0, yflip="transform"):
         """Returns SVG XML Element for the geometry.
 
         The y-axis of SVG is flipped compared to a Shapely geometry. The
@@ -225,13 +226,13 @@ class BaseGeometry(shapely.Geometry):
         # manage y-flip: svg is y-down, shapely is y-up
         if self.is_empty or not yflip:
             path = ET.fromstring(self.svg(scale_factor))
-        elif yflip == 'scale':
+        elif yflip == "scale":
             flipped = scale(self, yfact=-1)
             path = flipped.svg_path_element(scale_factor, yflip=None)
-        elif yflip == 'transform':
+        elif yflip == "transform":
             path = ET.fromstring(self.svg(scale_factor))
             _, ymin, _, ymax = self.bounds
-            path.set('transform', f'matrix(1,0,0,-1,0,{ymax + ymin})')
+            path.set("transform", f"matrix(1,0,0,-1,0,{ymax + ymin})")
         else:
             raise ValueError("yflip parameter must be 'transform', 'scale', or None.")
         return path
@@ -239,8 +240,8 @@ class BaseGeometry(shapely.Geometry):
     def _repr_svg_(self):
         """SVG representation for iPython notebook"""
         if self.is_empty:
-            empty_svg = ET.Element('svg', xmlns=SVG_NAMESPACE)
-            empty_svg.set('xmlns:xlink', SVG_XLINK_NAMESPACE)
+            empty_svg = ET.Element("svg", xmlns=SVG_NAMESPACE)
+            empty_svg.set("xmlns:xlink", SVG_XLINK_NAMESPACE)
             svg_str = ET.tostring(empty_svg, encoding="unicode")
         else:
             # Establish SVG canvas that will fit all the data + small space
