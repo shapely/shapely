@@ -30,7 +30,7 @@ jobs:
 
       - name: Build a source tarball
         env:
-          GEOS_VERSION: ${{ env.GEOS_VERSION }}
+          GEOS_VERSION: "3.10.2"
           GEOS_INSTALL: /host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
           GEOS_CONFIG: /host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
           LD_LIBRARY_PATH: $LD_LIBRARY_PATH:/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/lib
