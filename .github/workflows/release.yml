@@ -31,9 +31,9 @@ jobs:
       - name: Build a source tarball
         env:
           GEOS_VERSION: "3.10.2"
-          GEOS_INSTALL: /host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
-          GEOS_CONFIG: /host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
-          LD_LIBRARY_PATH: $LD_LIBRARY_PATH:/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/lib
+          GEOS_INSTALL: ${{ runner.temp }}/geos-$GEOS_VERSION
+          GEOS_CONFIG: ${{ runner.temp }}/geos-$GEOS_VERSION/bin/geos-config
+          LD_LIBRARY_PATH: $LD_LIBRARY_PATH:${{ runner.temp }}/geos-$GEOS_VERSION/lib
         run: |
           ./ci/install_geos.sh
           python -m pip install --upgrade pip build
