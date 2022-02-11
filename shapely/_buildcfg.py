@@ -109,7 +109,8 @@ if not lgeos and geos_config:
         try:
             lgeos = CDLL(geos_library_path)
             break
-        except:
+        except Exception as exc:
+            log.info("CDLL failed", exc_info=exc)
             guesses.append(geos_library_path)
     if lgeos:
         if hasattr(lgeos, 'GEOSversion'):
