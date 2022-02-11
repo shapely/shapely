@@ -1,9 +1,7 @@
 """Shapely errors."""
 import warnings
 
-
-class ShapelyError(Exception):
-    """Base error class."""
+from shapely.lib import GEOSException, ShapelyError  # NOQA
 
 
 class UnsupportedGEOSVersionError(ShapelyError):
