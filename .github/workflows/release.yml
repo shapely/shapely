@@ -130,7 +130,7 @@ jobs:
             GEOS_INSTALL='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}'
             GEOS_LIBRARY_PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\lib'
             GEOS_INCLUDE_PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\include'
-            PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin;$PATH'
+            PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin;%PATH%'
           CIBW_BEFORE_ALL: ./ci/install_geos.sh
           CIBW_BEFORE_ALL_WINDOWS: ci\install_geos.cmd
           CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
