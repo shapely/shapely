@@ -63,17 +63,13 @@ jobs:
         - os: windows-2019
           arch: AMD64
           msvc_arch: x64
-        - os: macos-10.15
+        - os: macos-latest
           arch: x86_64
           cmake_osx_architectures: x86_64
           macos-target: "10.10"
-        - os: macos-10.15
+        - os: macos-latest
           arch: arm64
           cmake_osx_architectures: arm64
-          macos-target: "11.0"
-        - os: macos-10.15
-          arch: universal2
-          cmake_osx_architectures: "x86_64;arm64"
           macos-target: "11.0"
 
     steps:
@@ -122,7 +118,6 @@ jobs:
             LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/lib
           CIBW_ENVIRONMENT_MACOS:
             PYTHONWARNINGS=all
-            MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos-target }}
             GEOS_INSTALL=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
             GEOS_CONFIG=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
             LDFLAGS=-Wl,-rpath,${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/lib
