@@ -102,13 +102,11 @@ def test_numpy_linearring_coords():
     assert_array_equal(ra, expected)
 
 
-@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_empty_linearring_coords():
     ring = LinearRing()
     assert np.asarray(ring.coords).shape == (0, 2)
 
 
-@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
     geom = Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0)])
     ar = np.empty(1, object)
