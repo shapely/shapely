@@ -49,6 +49,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       GEOS_VERSION: "3.10.2"
+      CIBW_BUILD_VERBOSITY: 2
     strategy:
       fail-fast: false
       matrix:
@@ -108,14 +109,14 @@ jobs:
           arch: ${{ matrix.msvc_arch }}
         if: ${{ matrix.msvc_arch }}
 
-      - name: Extend Windows PATTH
+      - name: Extend Windows PATH
         run: |
           echo '${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin' >> $GITHUB_PATH
         shell: bash
         if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.3.0
+        uses: pypa/cibuildwheel@v2.3.1
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_SKIP: pp* *musllinux* cp310-win32 cp310-macosx_x86_64 cp310-manylinux_i686
