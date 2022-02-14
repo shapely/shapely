@@ -113,7 +113,10 @@ elif sys.platform == 'darwin':
     )
     LOG.debug("Formed path for globbing: dylib_path=%r", dylib_path)
     print("Formed path for globbing: dylib_path={!r}".format(dylib_path))
-    print("Contents of .dylibs: {}".format(os.listdir(os.path.dirname(dylib_path))))
+    try:
+        print("Contents of .dylibs: {}".format(os.listdir(os.path.dirname(dylib_path))))
+    except FileNotFoundError:
+        pass
     print(
         "Contents of __file__ parent: {}".format(os.listdir(os.path.dirname(__file__)))
     )
