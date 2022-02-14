@@ -45,7 +45,7 @@ build_geos(){
     cmake --build . -j 4
     cmake --install .
     ls -l $GEOS_INSTALL/lib
-    lipo --info $GEOS_INSTALL/lib/libgeos_c.dylib
+    lipo -info $GEOS_INSTALL/lib/libgeos_c.dylib
 }
 
 if [ -d "$GEOS_INSTALL/include/geos" ]; then
