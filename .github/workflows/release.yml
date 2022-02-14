@@ -76,6 +76,9 @@ jobs:
         - os: macos-10.15
           arch: arm64
           cmake_osx_architectures: arm64
+        - os: macos-10.15
+          arch: universal2
+          cmake_osx_architectures: "x86_64;arm64"
 
     steps:
       - uses: actions/checkout@v2
