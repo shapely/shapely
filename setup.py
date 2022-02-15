@@ -316,16 +316,6 @@ ext_modules = [
 cmd_classes = setup_args.setdefault('cmdclass', {})
 
 try:
-    # Add numpy include dirs without importing numpy on module level.
-    # derived from scikit-hep:
-    # https://github.com/scikit-hep/root_numpy/pull/292
-
-    # Prevent numpy from thinking it is still in its setup process:
-    try:
-        del builtins.__NUMPY_SETUP__
-    except AttributeError:
-        pass
-
     import numpy
     from Cython.Distutils import build_ext as cython_build_ext
     from distutils.extension import Extension as DistutilsExtension
