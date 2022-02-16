@@ -1,14 +1,16 @@
 Changes
 =======
 
-1.8.1dev (2022-02-16)
----------------------
+1.8.1 (2022-02-16)
+------------------
 
 Packaging:
 
 Wheels for 1.8.1 published on PyPI include GEOS 3.10.2. This version is the
 best version of GDAL yet. Discrepancies in behavior compared to previous
 versions are considered to be improvements.
+
+For the first time, we will publish wheels for macos_arm64 (see PR #1310).
 
 Python version support:
 
