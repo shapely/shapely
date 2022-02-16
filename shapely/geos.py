@@ -192,7 +192,7 @@ elif sys.platform == 'win32':
             LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
         else:
             try:
-                wheel_dlls = os.path.abspath(
+                egg_dlls = os.path.abspath(
                     os.path.join(os.path.dirname(__file__), "DLLs")
                 )
                 if hasattr(sys, "_MEIPASS"):
