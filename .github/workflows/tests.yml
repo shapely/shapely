@@ -132,7 +132,7 @@ jobs:
 
       - name: Install python dependencies
         run: |
-          pip install --disable-pip-version-check --upgrade pip
+          pip install --disable-pip-version-check --user --upgrade pip
           pip install --upgrade wheel setuptools
           if [ "$SPEEDUPS" == "1" ]; then
             pip install --install-option="--no-cython-compile" cython;
@@ -171,7 +171,6 @@ jobs:
           fi
           cp geosinstall/geos-${{ matrix.geos }}/bin/*.dll $DLL_DIR
           echo 'GEOS_LIBRARY_PATH=${{ env.GEOS_INSTALL }}\bin\geos_c.dll' >> $GITHUB_ENV
-          echo 'GEOS_INCLUDE_PATH=${{ env.GEOS_INSTALL }}\include' >> $GITHUB_ENV
         if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Build and install Shapely

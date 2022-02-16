@@ -69,11 +69,6 @@ from distutils.errors import CCompilerError, DistutilsExecError, \
 
 from _vendor.packaging.version import Version
 
-# Get geos_version from GEOS dynamic library, which depends on
-# GEOS_LIBRARY_PATH and/or GEOS_CONFIG environment variables
-from shapely._buildcfg import geos_version_string, geos_version, \
-        geos_config, get_geos_config
-
 logging.basicConfig()
 log = logging.getLogger(__file__)
 

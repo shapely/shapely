@@ -108,16 +108,23 @@ if sys.platform.startswith('linux'):
 
 elif sys.platform == 'darwin':
     # Test to see if we have a delocated wheel with a GEOS dylib.
-    geos_whl_dylib = os.path.abspath(os.path.join(os.path.dirname(
-        __file__), '.dylibs/libgeos_c.1.dylib'))
+    dylib_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), ".dylibs/*.dylib")
+    )
+    LOG.debug("Formed path for globbing: dylib_path=%r", dylib_path)
 
-    if os.path.exists(geos_whl_dylib):
+    geos_whl_dylib = glob.glob(dylib_path)
+    LOG.debug("Globbed: geos_whl_dylib=%r", geos_whl_dylib)
+
+    if len(geos_whl_dylib) > 0:
         handle = CDLL(None)
         if hasattr(handle, "initGEOS_r"):
             LOG.debug("GEOS already loaded")
             _lgeos = handle
         else:
-            _lgeos = CDLL(geos_whl_dylib)
+            geos_whl_dylib = sorted(geos_whl_dylib)
+            CDLL(geos_whl_dylib[0])
+            _lgeos = CDLL(geos_whl_dylib[-1])
             LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
 
     elif exists_conda_env():
@@ -159,25 +166,44 @@ elif sys.platform == 'darwin':
 elif sys.platform == 'win32':
     _conda_dll_path = os.path.join(sys.prefix, 'Library', 'bin', 'geos_c.dll')
     if exists_conda_env() and os.path.exists(_conda_dll_path):
-        # conda package.
         _lgeos = CDLL(_conda_dll_path)
     else:
-        try:
-            egg_dlls = os.path.abspath(
-                os.path.join(os.path.dirname(__file__), 'DLLs'))
-            if hasattr(sys, '_MEIPASS'):
-                wininst_dlls = sys._MEIPASS
-            elif hasattr(sys, "frozen"):
-                wininst_dlls = os.path.normpath(
-                    os.path.abspath(sys.executable + '../../DLLS'))
-            else:
-                wininst_dlls = os.path.abspath(os.__file__ + "../../../DLLs")
-            original_path = os.environ['PATH']
-            os.environ['PATH'] = "%s;%s;%s" % \
-                (egg_dlls, wininst_dlls, original_path)
-            _lgeos = load_dll("geos_c.dll")
-        except (ImportError, WindowsError, OSError):
-            raise
+        geos_whl_dll = glob.glob(
+            os.path.abspath(
+                os.path.join(
+                    os.path.dirname(__file__), "..", "Shapely.libs", "geos*.dll"
+                )
+            )
+        )
+
+        if len(geos_whl_dll) > 0:
+            geos_whl_dll = sorted(geos_whl_dll)
+            # CDLL(geos_whl_so[0])
+            _lgeos = CDLL(geos_whl_dll[-1])
+            LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
+        else:
+            try:
+                egg_dlls = os.path.abspath(
+                    os.path.join(os.path.dirname(__file__), "DLLs")
+                )
+                if hasattr(sys, "_MEIPASS"):
+                    wininst_dlls = sys._MEIPASS
+                elif hasattr(sys, "frozen"):
+                    wininst_dlls = os.path.normpath(
+                        os.path.abspath(sys.executable + "../../DLLS")
+                    )
+                else:
+                    wininst_dlls = os.path.abspath(os.__file__ + "../../../DLLs")
+                original_path = os.environ["PATH"]
+                os.environ["PATH"] = "%s;%s;%s" % (
+                    egg_dlls,
+                    wininst_dlls,
+                    original_path,
+                )
+                _lgeos = load_dll("geos_c.dll")
+
+            except (ImportError, WindowsError, OSError):
+                raise
 
         def free(m):
             try:

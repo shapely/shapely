@@ -38,7 +38,6 @@ build_geos(){
     echo "Building geos-$GEOS_VERSION"
     mkdir build
     cd build
-     # Use Ninja on windows, otherwise, use the platform's default
     if [ "$RUNNER_OS" = "Windows" ]; then
         export CMAKE_GENERATOR=Ninja
     fi
