@@ -112,11 +112,11 @@ jobs:
           arch: ${{ matrix.msvc_arch }}
         if: ${{ matrix.msvc_arch }}
 
-      - name: Extend Windows PATH
-        run: |
-          echo '${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin' >> $GITHUB_PATH
-        shell: bash
-        if: ${{ matrix.os == 'windows-2019' }}
+      # - name: Extend Windows PATH
+      #   run: |
+      #     echo '${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin' >> $GITHUB_PATH
+      #   shell: bash
+      #   if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Extend Windows setup.cfg
         run: |
