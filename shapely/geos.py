@@ -112,18 +112,9 @@ elif sys.platform == 'darwin':
         os.path.join(os.path.dirname(__file__), ".dylibs/*.dylib")
     )
     LOG.debug("Formed path for globbing: dylib_path=%r", dylib_path)
-    print("Formed path for globbing: dylib_path={!r}".format(dylib_path))
-    try:
-        print("Contents of .dylibs: {}".format(os.listdir(os.path.dirname(dylib_path))))
-    except FileNotFoundError:
-        pass
-    print(
-        "Contents of __file__ parent: {}".format(os.listdir(os.path.dirname(__file__)))
-    )
 
     geos_whl_dylib = glob.glob(dylib_path)
     LOG.debug("Globbed: geos_whl_dylib=%r", geos_whl_dylib)
-    print("Globbed: geos_whl_dylib={!r}".format(geos_whl_dylib))
 
     if len(geos_whl_dylib) > 0:
         handle = CDLL(None)

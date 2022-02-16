@@ -1,6 +1,24 @@
 Changes
 =======
 
+1.8.1dev (2022-02-16)
+---------------------
+
+Packaging:
+
+Wheels for 1.8.1 published on PyPI include GEOS 3.10.2. This version is the
+best version of GDAL yet. Discrepancies in behavior compared to previous
+versions are considered to be improvements.
+
+Python version support:
+
+Shapely 1.8.1 works with Pythons 3.6-3.10.
+
+Bug fixes:
+
+- Require Cython >= 0.29.24 to support Python 3.10 (#1224).
+- Fix array_interface_base (#1235).
+
 1.8.0 (2021-10-25)
 ------------------
 

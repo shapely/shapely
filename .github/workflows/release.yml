@@ -3,10 +3,10 @@ name: Build and publish
 on:
   push:
     branches:
-      - maint-1.8  # just build the sdist & wheel, skip release
+      - maint-1.8
     tags:
       - "*"
-  pull_request:  # also build on PRs touching this file
+  pull_request:
     paths:
       - ".github/workflows/release.yml"
       - "ci/*"
@@ -58,12 +58,6 @@ jobs:
           arch: x86_64
         - os: ubuntu-20.04
           arch: i686
-        # The aarch64 build has been transferred to Travis
-        # - os: ubuntu-20.04
-        #   arch: aarch64
-        #   qemu_platform: arm64
-        # Note: Numpy doesn't have ppc64le & s390x wheels
-        # Also, some GEOS tests fail on s390x.
         - os: windows-2019
           arch: x86
           msvc_arch: x86
@@ -100,23 +94,11 @@ jobs:
         shell: bash
         if: ${{ matrix.os == 'windows-2019' }}
 
-      # - name: Set up QEMU
-      #   uses: docker/setup-qemu-action@v1
-      #   with:
-      #     platforms: ${{ matrix.qemu_platform }}
-      #   if: ${{ matrix.qemu_platform }}
-
       - name: Activate MSVC
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ matrix.msvc_arch }}
         if: ${{ matrix.msvc_arch }}
-
-      # - name: Extend Windows PATH
-      #   run: |
-      #     echo '${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin' >> $GITHUB_PATH
-      #   shell: bash
-      #   if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Extend Windows setup.cfg
         run: |
@@ -170,7 +152,6 @@ jobs:
     name: Publish on GitHub and PyPI
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
-    # release on every tag
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
     steps:
       - uses: actions/download-artifact@v2
@@ -182,7 +163,7 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
           release_name: ${{ github.ref }}
@@ -205,10 +186,3 @@ jobs:
           asset_path: dist/${{ env.name }}
           asset_name: ${{ env.name }}
           asset_content_type: application/zip      
-
-      - name: Upload Release Assets to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.4.2
-        with:
-          user: __token__
-          password: ${{ secrets.pypi_password }}
-          # To test: repository_url: https://test.pypi.org/legacy/

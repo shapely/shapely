@@ -14,5 +14,4 @@ recursive-include shapely/speedups *.pyx
 recursive-include shapely/vectorized *.pyx
 recursive-include shapely *.pxi
 recursive-include shapely/DLLs *.dll *.rst *.txt
-recursive-exclude shapely *.c
 include docs/*.rst
