@@ -37,7 +37,7 @@ jobs:
         run: |
           ./ci/install_geos.sh
           python -m pip install --upgrade pip build
-          python -m pip install -r requirements-dev.txt
+          python -m pip install cython==0.29.28 oldest-supported-numpy
           python -m build --sdist
 
       - uses: actions/upload-artifact@v2

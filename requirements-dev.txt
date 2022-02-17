@@ -1,4 +1,4 @@
-cython==0.29.24
+cython>=0.29.24
 descartes==1.0.1
 matplotlib
 numpy>=1.4.1
