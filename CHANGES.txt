@@ -4,7 +4,7 @@ Changes
 1.8.1.post1 (2022-02-17)
 ------------------------
 
-This post-release addresses a defect in the 1.8.1 source distribution. No *.c
+This post-release addresses a defect in the 1.8.1 source distribution. No .c
 files are included in the 1.8.1.post1 sdist and Cython is required to build and
 install from source.
 
