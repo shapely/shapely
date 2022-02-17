@@ -320,15 +320,15 @@ shapely.lib.registry[3] = Polygon
 
 
 def orient(polygon, sign=1.0):
-    s = float(sign)
+    reverse_orientation = float(sign) < 0
     rings = []
     ring = polygon.exterior
-    if signed_area(ring) / s >= 0.0:
+    if ring.is_ccw ^ reverse_orientation:
         rings.append(ring)
     else:
         rings.append(list(ring.coords)[::-1])
     for ring in polygon.interiors:
-        if signed_area(ring) / s <= 0.0:
+        if (not ring.is_ccw) ^ reverse_orientation:
             rings.append(ring)
         else:
             rings.append(list(ring.coords)[::-1])
