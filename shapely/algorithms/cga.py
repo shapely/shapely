@@ -1,5 +1,6 @@
-import shapely
 import numpy as np
+
+import shapely
 
 
 def signed_area(ring):
