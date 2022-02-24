@@ -4,10 +4,7 @@ from functools import wraps
 import numpy as np
 
 from . import lib
-
-
-class UnsupportedGEOSOperation(ImportError):
-    pass
+from .errors import UnsupportedGEOSVersionError
 
 
 class requires_geos:
@@ -35,7 +32,7 @@ class requires_geos:
 
             @wraps(func)
             def wrapped(*args, **kwargs):
-                raise UnsupportedGEOSOperation(msg)
+                raise UnsupportedGEOSVersionError(msg)
 
         doc = wrapped.__doc__
         if doc:
