@@ -1,14 +1,12 @@
 """Collections of linestrings and related utilities
 """
 
-from shapely.errors import EmptyPartError
-from shapely.geometry.base import BaseMultipartGeometry
-from shapely.geometry import linestring
-
 import shapely
+from shapely.errors import EmptyPartError
+from shapely.geometry import linestring
+from shapely.geometry.base import BaseMultipartGeometry
 
-
-__all__ = ['MultiLineString']
+__all__ = ["MultiLineString"]
 
 
 class MultiLineString(BaseMultipartGeometry):
@@ -47,14 +45,16 @@ class MultiLineString(BaseMultipartGeometry):
         elif isinstance(lines, MultiLineString):
             return lines
 
-        lines = getattr(lines, 'geoms', lines)
+        lines = getattr(lines, "geoms", lines)
         m = len(lines)
         subs = []
         for i in range(m):
-            l = linestring.LineString(lines[i])
-            if l.is_empty:
-                raise EmptyPartError("Can't create MultiLineString with empty component")
-            subs.append(l)
+            line = linestring.LineString(lines[i])
+            if line.is_empty:
+                raise EmptyPartError(
+                    "Can't create MultiLineString with empty component"
+                )
+            subs.append(line)
 
         if len(lines) == 0:
             return shapely.from_wkt("MULTILINESTRING EMPTY")
@@ -67,11 +67,11 @@ class MultiLineString(BaseMultipartGeometry):
     @property
     def __geo_interface__(self):
         return {
-            'type': 'MultiLineString',
-            'coordinates': tuple(tuple(c for c in g.coords) for g in self.geoms)
-            }
+            "type": "MultiLineString",
+            "coordinates": tuple(tuple(c for c in g.coords) for g in self.geoms),
+        }
 
-    def svg(self, scale_factor=1., stroke_color=None, opacity=None):
+    def svg(self, scale_factor=1.0, stroke_color=None, opacity=None):
         """Returns a group of SVG polyline elements for the LineString geometry.
 
         Parameters
@@ -85,12 +85,14 @@ class MultiLineString(BaseMultipartGeometry):
             Float number between 0 and 1 for color opacity. Default value is 0.8
         """
         if self.is_empty:
-            return '<g />'
+            return "<g />"
         if stroke_color is None:
             stroke_color = "#66cc99" if self.is_valid else "#ff3333"
-        return '<g>' + \
-            ''.join(p.svg(scale_factor, stroke_color, opacity) for p in self.geoms) + \
-            '</g>'
+        return (
+            "<g>"
+            + "".join(p.svg(scale_factor, stroke_color, opacity) for p in self.geoms)
+            + "</g>"
+        )
 
 
 shapely.lib.registry[5] = MultiLineString

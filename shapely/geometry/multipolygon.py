@@ -1,13 +1,11 @@
 """Collections of polygons and related utilities
 """
 
-from shapely.geometry.base import BaseMultipartGeometry
-from shapely.geometry import polygon
-
 import shapely
+from shapely.geometry import polygon
+from shapely.geometry.base import BaseMultipartGeometry
 
-
-__all__ = ['MultiPolygon']
+__all__ = ["MultiPolygon"]
 
 
 class MultiPolygon(BaseMultipartGeometry):
@@ -57,9 +55,12 @@ class MultiPolygon(BaseMultipartGeometry):
         elif isinstance(polygons, MultiPolygon):
             return polygons
 
-        polygons = getattr(polygons, 'geoms', polygons)
-        polygons = [p for p in polygons
-            if p and not (isinstance(p, polygon.Polygon) and p.is_empty)]
+        polygons = getattr(polygons, "geoms", polygons)
+        polygons = [
+            p
+            for p in polygons
+            if p and not (isinstance(p, polygon.Polygon) and p.is_empty)
+        ]
 
         L = len(polygons)
 
@@ -97,12 +98,9 @@ class MultiPolygon(BaseMultipartGeometry):
             for hole in geom.interiors:
                 coords.append(tuple(hole.coords))
             allcoords.append(tuple(coords))
-        return {
-            'type': 'MultiPolygon',
-            'coordinates': allcoords
-            }
+        return {"type": "MultiPolygon", "coordinates": allcoords}
 
-    def svg(self, scale_factor=1., fill_color=None, opacity=None):
+    def svg(self, scale_factor=1.0, fill_color=None, opacity=None):
         """Returns group of SVG path elements for the MultiPolygon geometry.
 
         Parameters
@@ -116,12 +114,14 @@ class MultiPolygon(BaseMultipartGeometry):
             Float number between 0 and 1 for color opacity. Default value is 0.6
         """
         if self.is_empty:
-            return '<g />'
+            return "<g />"
         if fill_color is None:
             fill_color = "#66cc99" if self.is_valid else "#ff3333"
-        return '<g>' + \
-            ''.join(p.svg(scale_factor, fill_color, opacity) for p in self.geoms) + \
-            '</g>'
+        return (
+            "<g>"
+            + "".join(p.svg(scale_factor, fill_color, opacity) for p in self.geoms)
+            + "</g>"
+        )
 
 
 shapely.lib.registry[6] = MultiPolygon

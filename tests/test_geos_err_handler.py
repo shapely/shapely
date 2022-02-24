@@ -5,7 +5,6 @@ import pytest
 import shapely
 
 from shapely.geometry import LineString
-from shapely.errors import ReadingError
 from shapely.wkt import loads
 
 from tests.conftest import shapely20_todo
@@ -21,7 +20,7 @@ def test_error_handler_exception(tmpdir):
 
     # This calls error_handler with a format string of "%s" and one
     # value.
-    with pytest.raises((ReadingError, shapely.GEOSException)):
+    with pytest.raises(shapely.GEOSException):
         loads('POINT (LOLWUT)')
 
     log = open(logfile).read()

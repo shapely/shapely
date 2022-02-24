@@ -1,15 +1,16 @@
-files: 'pygeos'
+files: 'shapely/'
+exclude: 'shapely/examples'
 repos:
 -   repo: https://github.com/psf/black
-    rev: 20.8b1
+    rev: 21.12b0
     hooks:
     - id: black
 -   repo: https://gitlab.com/pycqa/flake8
-    rev: 3.9.0
+    rev: 3.9.2
     hooks:
     - id: flake8
 -   repo: https://github.com/pycqa/isort
-    rev: 5.8.0
+    rev: 5.10.1
     hooks:
     - id: isort
-      exclude: pygeos/__init__.py
+      exclude: shapely/__init__.py

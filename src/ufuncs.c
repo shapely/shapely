@@ -2191,6 +2191,14 @@ static void linestrings_func(char** args, npy_intp* dimensions, npy_intp* steps,
   GEOSCoordSequence* coord_seq = NULL;
   GEOSGeometry** geom_arr;
 
+  // check the ordinate dimension before calling coordseq_from_buffer
+  if (dimensions[2] < 2 || dimensions[2] > 3) {
+    PyErr_Format(PyExc_ValueError,
+                 "The ordinate (last) dimension should be 2 or 3, got %ld",
+                 dimensions[2]);
+    return;
+  }
+
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
   CHECK_ALLOC(geom_arr);
@@ -2232,6 +2240,14 @@ static void linearrings_func(char** args, npy_intp* dimensions, npy_intp* steps,
   GEOSGeometry** geom_arr;
   char ring_closure = 0;
   double first_coord, last_coord;
+
+  // check the ordinate dimension before calling coordseq_from_buffer
+  if (dimensions[2] < 2 || dimensions[2] > 3) {
+    PyErr_Format(PyExc_ValueError,
+                 "The ordinate (last) dimension should be 2 or 3, got %ld",
+                 dimensions[2]);
+    return;
+  }
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
@@ -2531,6 +2547,30 @@ static void bounds_func(char** args, npy_intp* dimensions, npy_intp* steps, void
     if (in1 == NULL) { /* no geometry => bbox becomes (nan, nan, nan, nan) */
       *x1 = *y1 = *x2 = *y2 = NPY_NAN;
     } else {
+
+#if GEOS_SINCE_3_7_0
+      if (GEOSisEmpty_r(ctx, in1)) {
+        *x1 = *y1 = *x2 = *y2 = NPY_NAN;
+      }
+      else {
+        if (!GEOSGeom_getXMin_r(ctx, in1, x1)) {
+            errstate = PGERR_GEOS_EXCEPTION;
+            goto finish;
+        }
+        if (!GEOSGeom_getYMin_r(ctx, in1, y1)) {
+            errstate = PGERR_GEOS_EXCEPTION;
+            goto finish;
+        }
+        if (!GEOSGeom_getXMax_r(ctx, in1, x2)) {
+            errstate = PGERR_GEOS_EXCEPTION;
+            goto finish;
+        }
+        if (!GEOSGeom_getYMax_r(ctx, in1, y2)) {
+            errstate = PGERR_GEOS_EXCEPTION;
+            goto finish;
+        }
+      }
+#else
       /* construct the envelope */
       envelope = GEOSEnvelope_r(ctx, in1);
       if (envelope == NULL) {
@@ -2586,6 +2626,7 @@ static void bounds_func(char** args, npy_intp* dimensions, npy_intp* steps, void
       }
       GEOSGeom_destroy_r(ctx, envelope);
       envelope = NULL;
+#endif
     }
   }
 

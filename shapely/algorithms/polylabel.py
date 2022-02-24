@@ -1,6 +1,7 @@
-from ..geometry import Point, LineString
+from heapq import heappop, heappush
+
 from ..errors import TopologicalError
-from heapq import heappush, heappop
+from ..geometry import Point
 
 
 class Cell:
@@ -10,6 +11,7 @@ class Cell:
     maximum distance of any theoretical point within a cell to a given
     polygon's exterior boundary.
     """
+
     def __init__(self, x, y, h, polygon):
         self.x = x
         self.y = y
@@ -80,14 +82,15 @@ def polylabel(polygon, tolerance=1.0):
 
     Example
     -------
+    >>> from shapely import wkt
     >>> polygon = LineString([(0, 0), (50, 200), (100, 100), (20, 50),
     ... (-100, -20), (-150, -200)]).buffer(100)
     >>> label = polylabel(polygon, tolerance=10)
-    >>> label.wkt
-    'POINT (59.35615556364569 121.8391962974644)'
+    >>> wkt.dumps(label, rounding_precision=12)
+    'POINT (59.356155563646 121.839196297464)'
     """
     if not polygon.is_valid:
-        raise TopologicalError('Invalid polygon')
+        raise TopologicalError("Invalid polygon")
     minx, miny, maxx, maxy = polygon.bounds
     width = maxx - minx
     height = maxy - miny

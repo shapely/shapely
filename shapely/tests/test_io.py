@@ -1,7 +1,6 @@
 import json
 import pickle
 import struct
-from unittest import mock
 
 import numpy as np
 import pytest
@@ -9,7 +8,14 @@ import pytest
 import shapely
 from shapely.testing import assert_geometries_equal
 
-from .common import all_types, empty_point, empty_point_z, point, point_z, shapely20_todo
+from .common import (
+    all_types,
+    empty_point,
+    empty_point_z,
+    point,
+    point_z,
+    shapely20_todo,
+)
 
 # fmt: off
 POINT11_WKB = b"\x01\x01\x00\x00\x00" + struct.pack("<2d", 1.0, 1.0)
@@ -459,7 +465,9 @@ def test_to_wkb_byte_order():
     coord = b"\x00\x00\x00\x00\x00\x00\xf0?"  # 1.0 as double (LE)
 
     assert shapely.to_wkb(point, byte_order=1) == le + point_type + 2 * coord
-    assert shapely.to_wkb(point, byte_order=0) == be + point_type[::-1] + 2 * coord[::-1]
+    assert (
+        shapely.to_wkb(point, byte_order=0) == be + point_type[::-1] + 2 * coord[::-1]
+    )
 
 
 def test_to_wkb_srid():
@@ -598,21 +606,15 @@ def test_to_wkb_point_empty_srid():
     assert shapely.get_srid(actual) == 4236
 
 
-@shapely20_todo
 @pytest.mark.parametrize("geom", all_types + (point_z, empty_point))
 def test_pickle(geom):
-    if shapely.get_type_id(geom) == 2:
-        # Linearrings get converted to linestrings
-        expected = shapely.linestrings(shapely.get_coordinates(geom))
-    else:
-        expected = geom
     pickled = pickle.dumps(geom)
-    assert_geometries_equal(pickle.loads(pickled), expected, tolerance=0)
+    assert_geometries_equal(pickle.loads(pickled), geom, tolerance=0)
 
 
-@shapely20_todo
-def test_pickle_with_srid():
-    geom = shapely.set_srid(point, 4326)
+@pytest.mark.parametrize("geom", all_types + (point_z, empty_point))
+def test_pickle_with_srid(geom):
+    geom = shapely.set_srid(geom, 4326)
     pickled = pickle.dumps(geom)
     assert shapely.get_srid(pickle.loads(pickled)) == 4326
 
@@ -717,7 +719,9 @@ def test_to_geojson_exceptions():
         empty_point,
         shapely.multipoints([empty_point, point]),
         shapely.geometrycollections([empty_point, point]),
-        shapely.geometrycollections([shapely.geometrycollections([empty_point]), point]),
+        shapely.geometrycollections(
+            [shapely.geometrycollections([empty_point]), point]
+        ),
     ],
 )
 def test_to_geojson_point_empty(geom):

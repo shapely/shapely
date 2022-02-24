@@ -1,29 +1,39 @@
-from shapely import wkt
-
-from shapely.geometry import LineString
-from shapely.geometry.collection import GeometryCollection
-from shapely.geometry import shape
-
+import numpy as np
 import pytest
+
+from shapely import wkt
+from shapely.geometry import LineString, shape
+from shapely.geometry.collection import GeometryCollection
 
 
 @pytest.fixture()
 def geometrycollection_geojson():
-    return {"type": "GeometryCollection", "geometries": [
-        {"type": "Point", "coordinates": (0, 3, 0)},
-        {"type": "LineString", "coordinates": ((2, 0), (1, 0))}
-    ]}
+    return {
+        "type": "GeometryCollection",
+        "geometries": [
+            {"type": "Point", "coordinates": (0, 3, 0)},
+            {"type": "LineString", "coordinates": ((2, 0), (1, 0))},
+        ],
+    }
 
 
-@pytest.mark.parametrize('geom', [
-    GeometryCollection(),
-    shape({"type": "GeometryCollection", "geometries": []}),
-    shape({"type": "GeometryCollection", "geometries": [
-        {"type": "Point", "coordinates": ()},
-        {"type": "LineString", "coordinates": (())}
-    ]}),
-    wkt.loads('GEOMETRYCOLLECTION EMPTY'),
-])
+@pytest.mark.parametrize(
+    "geom",
+    [
+        GeometryCollection(),
+        shape({"type": "GeometryCollection", "geometries": []}),
+        shape(
+            {
+                "type": "GeometryCollection",
+                "geometries": [
+                    {"type": "Point", "coordinates": ()},
+                    {"type": "LineString", "coordinates": (())},
+                ],
+            }
+        ),
+        wkt.loads("GEOMETRYCOLLECTION EMPTY"),
+    ],
+)
 def test_empty(geom):
     assert geom.type == "GeometryCollection"
     assert geom.type == geom.geom_type
@@ -68,10 +78,7 @@ def test_len_raises(geometrycollection_geojson):
         len(geom)
 
 
-@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
-    np = pytest.importorskip("numpy")
-
     geom = GeometryCollection([LineString([(0, 0), (1, 1)])])
     ar = np.empty(1, object)
     ar[:] = [geom]

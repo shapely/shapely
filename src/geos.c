@@ -882,6 +882,12 @@ GEOSGeometry* PyGEOSForce3D(GEOSContextHandle_t ctx, GEOSGeometry* geom, double 
   return force_dims(ctx, geom, 3, z);
 }
 
+/* Create a GEOSCoordSequence from an array
+ *
+ * Note: this function assumes that the dimension of the buffer is already
+ * checked before calling this function, so the buffer and the dims argument
+ * is only 2D or 3D.
+ */
 GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
                                         unsigned int size, unsigned int dims, char ring_closure,
                                         npy_intp cs1, npy_intp cs2) {

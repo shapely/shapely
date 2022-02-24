@@ -2,12 +2,10 @@
 """
 
 import shapely
-
-from shapely.errors import DimensionError, ShapelyDeprecationWarning
+from shapely.errors import DimensionError
 from shapely.geometry.base import BaseGeometry
 
-
-__all__ = ['Point']
+__all__ = ["Point"]
 
 
 class Point(BaseGeometry):
@@ -58,7 +56,7 @@ class Point(BaseGeometry):
                 return coords
 
             # Accept either (x, y) or [(x, y)]
-            if not hasattr(coords, '__getitem__'):  # generators
+            if not hasattr(coords, "__getitem__"):  # generators
                 coords = list(coords)
 
             if isinstance(coords[0], tuple):
@@ -95,12 +93,9 @@ class Point(BaseGeometry):
 
     @property
     def __geo_interface__(self):
-        return {
-            'type': 'Point',
-            'coordinates': self.coords[0]
-            }
+        return {"type": "Point", "coordinates": self.coords[0]}
 
-    def svg(self, scale_factor=1., fill_color=None, opacity=None):
+    def svg(self, scale_factor=1.0, fill_color=None, opacity=None):
         """Returns SVG circle element for the Point geometry.
 
         Parameters
@@ -114,15 +109,15 @@ class Point(BaseGeometry):
             Float number between 0 and 1 for color opacity. Default value is 0.6
         """
         if self.is_empty:
-            return '<g />'
+            return "<g />"
         if fill_color is None:
             fill_color = "#66cc99" if self.is_valid else "#ff3333"
         if opacity is None:
-            opacity = 0.6 
+            opacity = 0.6
         return (
             '<circle cx="{0.x}" cy="{0.y}" r="{1}" '
             'stroke="#555555" stroke-width="{2}" fill="{3}" opacity="{4}" />'
-            ).format(self, 3. * scale_factor, 1. * scale_factor, fill_color, opacity)
+        ).format(self, 3.0 * scale_factor, 1.0 * scale_factor, fill_color, opacity)
 
     @property
     def xy(self):

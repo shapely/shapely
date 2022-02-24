@@ -6,54 +6,53 @@ operations are performed in the x-y plane. Thus, geometries with
 different z values may intersect or be equal.
 """
 
-from itertools import islice
 import logging
 import math
-import sys
+from itertools import islice
 from warnings import warn
 
 import shapely
-
 from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
-from shapely.errors import GeometryTypeError
-from shapely.errors import ShapelyDeprecationWarning
+from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
 
 log = logging.getLogger(__name__)
 
 try:
     import numpy as np
+
     integer_types = (int, np.integer)
 except ImportError:
     integer_types = (int,)
 
 
 GEOMETRY_TYPES = [
-    'Point',
-    'LineString',
-    'LinearRing',
-    'Polygon',
-    'MultiPoint',
-    'MultiLineString',
-    'MultiPolygon',
-    'GeometryCollection',
+    "Point",
+    "LineString",
+    "LinearRing",
+    "Polygon",
+    "MultiPoint",
+    "MultiLineString",
+    "MultiPolygon",
+    "GeometryCollection",
 ]
 
 
 def dump_coords(geom):
     """Dump coordinates of a geometry in the same order as data packing"""
     if not isinstance(geom, BaseGeometry):
-        raise ValueError('Must be instance of a geometry class; found ' +
-                         geom.__class__.__name__)
-    elif geom.type in ('Point', 'LineString', 'LinearRing'):
+        raise ValueError(
+            "Must be instance of a geometry class; found " + geom.__class__.__name__
+        )
+    elif geom.type in ("Point", "LineString", "LinearRing"):
         return geom.coords[:]
-    elif geom.type == 'Polygon':
+    elif geom.type == "Polygon":
         return geom.exterior.coords[:] + [i.coords[:] for i in geom.interiors]
-    elif geom.type.startswith('Multi') or geom.type == 'GeometryCollection':
+    elif geom.type.startswith("Multi") or geom.type == "GeometryCollection":
         # Recursive call
         return [dump_coords(part) for part in geom.geoms]
     else:
-        raise GeometryTypeError('Unhandled geometry type: ' + repr(geom.type))
+        raise GeometryTypeError("Unhandled geometry type: " + repr(geom.type))
 
 
 class CAP_STYLE:
@@ -114,25 +113,7 @@ class BaseGeometry(shapely.Geometry):
         return self.wkt
 
     def __reduce__(self):
-        return (shapely.from_wkb, (self.wkb, ))
-
-    def __setattr__(self, name, value):
-        # first try regular attribute access via __getattribute__, so that
-        # our own (existing) attributes don't raise a warning
-        try:
-            object.__getattribute__(self, name)
-            super().__setattr__(name, value)
-            return
-        except AttributeError:
-            pass
-
-        # if custom attribute, raise the warning
-        warn(
-            "Setting custom attributes on geometry objects is deprecated, "
-            "and will raise an AttributeError in Shapely 2.0",
-            ShapelyDeprecationWarning, stacklevel=2
-        )
-        super().__setattr__(name, value)
+        return (shapely.from_wkb, (shapely.to_wkb(self, include_srid=True),))
 
     # Operators
     # ---------
@@ -183,7 +164,7 @@ class BaseGeometry(shapely.Geometry):
     @property
     def wkt(self):
         """WKT representation of the geometry"""
-        # TODO(shapely-2.0) keep default of not trimming? 
+        # TODO(shapely-2.0) keep default of not trimming?
         return shapely.to_wkt(self, rounding_precision=-1)
 
     @property
@@ -196,16 +177,18 @@ class BaseGeometry(shapely.Geometry):
         """WKB hex representation of the geometry"""
         return shapely.to_wkb(self, hex=True)
 
-    def svg(self, scale_factor=1., **kwargs):
+    def svg(self, scale_factor=1.0, **kwargs):
         """Raises NotImplementedError"""
         raise NotImplementedError
 
     def _repr_svg_(self):
         """SVG representation for iPython notebook"""
-        svg_top = '<svg xmlns="http://www.w3.org/2000/svg" ' \
+        svg_top = (
+            '<svg xmlns="http://www.w3.org/2000/svg" '
             'xmlns:xlink="http://www.w3.org/1999/xlink" '
+        )
         if self.is_empty:
-            return svg_top + '/>'
+            return svg_top + "/>"
         else:
             # Establish SVG canvas that will fit all the data + small space
             xmin, ymin, xmax, ymax = self.bounds
@@ -223,20 +206,19 @@ class BaseGeometry(shapely.Geometry):
                 ymax += expand_amount
             dx = xmax - xmin
             dy = ymax - ymin
-            width = min([max([100., dx]), 300])
-            height = min([max([100., dy]), 300])
+            width = min([max([100.0, dx]), 300])
+            height = min([max([100.0, dy]), 300])
             try:
                 scale_factor = max([dx, dy]) / max([width, height])
             except ZeroDivisionError:
-                scale_factor = 1.
+                scale_factor = 1.0
             view_box = "{} {} {} {}".format(xmin, ymin, dx, dy)
             transform = "matrix(1,0,0,-1,0,{})".format(ymax + ymin)
             return svg_top + (
                 'width="{1}" height="{2}" viewBox="{0}" '
                 'preserveAspectRatio="xMinYMin meet">'
                 '<g transform="{3}">{4}</g></svg>'
-                ).format(view_box, width, height, transform,
-                         self.svg(scale_factor))
+            ).format(view_box, width, height, transform, self.svg(scale_factor))
 
     @property
     def geom_type(self):
@@ -329,8 +311,10 @@ class BaseGeometry(shapely.Geometry):
         except AttributeError:  # may be a Point or a LineString
             return hull
         # generate the edge vectors between the convex hull's coords
-        edges = ((pt2[0] - pt1[0], pt2[1] - pt1[1]) for pt1, pt2 in zip(
-            coords, islice(coords, 1, None)))
+        edges = (
+            (pt2[0] - pt1[0], pt2[1] - pt1[1])
+            for pt1, pt2 in zip(coords, islice(coords, 1, None))
+        )
 
         def _transformed_rects():
             for dx, dy in edges:
@@ -343,20 +327,25 @@ class BaseGeometry(shapely.Geometry):
                 # transform hull from the original coordinate system to
                 # the coordinate system defined by the edge and compute
                 # the axes-parallel bounding rectangle.
-                transf_rect = affine_transform(
-                    hull, (ux, uy, vx, vy, 0, 0)).envelope
+                transf_rect = affine_transform(hull, (ux, uy, vx, vy, 0, 0)).envelope
                 # yield the transformed rectangle and a matrix to
                 # transform it back to the original coordinate system.
                 yield (transf_rect, (ux, vx, uy, vy, 0, 0))
 
         # check for the minimum area rectangle and return it
-        transf_rect, inv_matrix = min(
-            _transformed_rects(), key=lambda r: r[0].area)
+        transf_rect, inv_matrix = min(_transformed_rects(), key=lambda r: r[0].area)
         return affine_transform(transf_rect, inv_matrix)
 
-    def buffer(self, distance, resolution=16, quadsegs=None,
-               cap_style=CAP_STYLE.round, join_style=JOIN_STYLE.round,
-               mitre_limit=5.0, single_sided=False):
+    def buffer(
+        self,
+        distance,
+        resolution=16,
+        quadsegs=None,
+        cap_style=CAP_STYLE.round,
+        join_style=JOIN_STYLE.round,
+        mitre_limit=5.0,
+        single_sided=False,
+    ):
         """Get a geometry that represents all points within a distance
         of this geometry.
 
@@ -416,9 +405,9 @@ class BaseGeometry(shapely.Geometry):
         >>> from shapely.wkt import loads
         >>> g = loads('POINT (0.0 0.0)')
         >>> g.buffer(1.0).area        # 16-gon approx of a unit radius circle
-        3.1365484905459384
+        3.1365484905459...
         >>> g.buffer(1.0, 128).area   # 128-gon approximation
-        3.141513801144299
+        3.141513801144...
         >>> g.buffer(1.0, 3).area     # triangle approximation
         3.0
         >>> list(g.buffer(1.0, cap_style=CAP_STYLE.square).exterior.coords)
@@ -430,19 +419,21 @@ class BaseGeometry(shapely.Geometry):
         if quadsegs is not None:
             warn(
                 "The `quadsegs` argument is deprecated. Use `resolution`.",
-                DeprecationWarning)
-            res = quadsegs
-        else:
-            res = resolution
+                DeprecationWarning,
+            )
+            resolution = quadsegs
 
         if mitre_limit == 0.0:
-            raise ValueError(
-                'Cannot compute offset from zero-length line segment')
+            raise ValueError("Cannot compute offset from zero-length line segment")
 
         return shapely.buffer(
-            self, distance, quadsegs=resolution, cap_style=cap_style,
-            join_style=join_style, mitre_limit=mitre_limit,
-            single_sided=single_sided
+            self,
+            distance,
+            quadsegs=resolution,
+            cap_style=cap_style,
+            join_style=join_style,
+            mitre_limit=mitre_limit,
+            single_sided=single_sided,
         )
 
     def simplify(self, tolerance, preserve_topology=True):
@@ -454,9 +445,7 @@ class BaseGeometry(shapely.Geometry):
         option is used, the algorithm may produce self-intersecting or
         otherwise invalid geometries.
         """
-        return shapely.simplify(
-            self, tolerance, preserve_topology=preserve_topology
-        )
+        return shapely.simplify(self, tolerance, preserve_topology=preserve_topology)
 
     def normalize(self):
         """Converts geometry to normal form (or canonical form).
@@ -518,7 +507,7 @@ class BaseGeometry(shapely.Geometry):
         """True if the geometry is closed, else False
 
         Applicable only to 1-D geometries."""
-        if self.geom_type == 'LinearRing':
+        if self.geom_type == "LinearRing":
             return True
         return bool(shapely.is_closed(self))
 
@@ -715,7 +704,8 @@ class BaseMultipartGeometry(BaseGeometry):
     def coords(self):
         raise NotImplementedError(
             "Sub-geometries may have coordinate sequences, "
-            "but multi-part geometries do not")
+            "but multi-part geometries do not"
+        )
 
     @property
     def geoms(self):
@@ -726,7 +716,7 @@ class BaseMultipartGeometry(BaseGeometry):
     def __bool__(self):
         return self.is_empty is False
 
-    def svg(self, scale_factor=1., color=None):
+    def svg(self, scale_factor=1.0, color=None):
         """Returns a group of SVG elements for the multipart geometry.
 
         Parameters
@@ -738,12 +728,10 @@ class BaseMultipartGeometry(BaseGeometry):
             if geometry is valid, and "#ff3333" if invalid.
         """
         if self.is_empty:
-            return '<g />'
+            return "<g />"
         if color is None:
             color = "#66cc99" if self.is_valid else "#ff3333"
-        return '<g>' + \
-            ''.join(p.svg(scale_factor, color) for p in self.geoms) + \
-            '</g>'
+        return "<g>" + "".join(p.svg(scale_factor, color) for p in self.geoms) + "</g>"
 
 
 class GeometrySequence:
@@ -792,7 +780,8 @@ class GeometrySequence:
         elif isinstance(key, slice):
             if type(self) == HeterogeneousGeometrySequence:
                 raise GeometryTypeError(
-                    "Heterogeneous geometry collections are not sliceable")
+                    "Heterogeneous geometry collections are not sliceable"
+                )
             res = []
             start, stop, stride = key.indices(m)
             for i in range(start, stop, stride):
@@ -800,14 +789,6 @@ class GeometrySequence:
             return type(self.__p__)(res or None)
         else:
             raise TypeError("key must be an index or slice")
-
-    @property
-    def _longest(self):
-        max = 0
-        for g in iter(self):
-            l = len(g.coords)
-            if l > max:
-                max = l
 
 
 class HeterogeneousGeometrySequence(GeometrySequence):
