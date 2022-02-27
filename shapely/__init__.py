@@ -14,7 +14,16 @@ from .strtree import *  # NOQA
 from .io import *  # NOQA
 
 # Submodule always needs to be imported to ensure Geometry subclasses are registered
-import shapely.geometry  # NOQA
+from shapely.geometry import (  # NOQA
+    Point,
+    LineString,
+    Polygon,
+    MultiPoint,
+    MultiLineString,
+    MultiPolygon,
+    GeometryCollection,
+    LinearRing,
+)
 
 from ._version import get_versions
 
