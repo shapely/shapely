@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
+from shapely import LineString, MultiLineString
 from shapely.errors import EmptyPartError
-from shapely.geometry import LineString, MultiLineString
 from shapely.geometry.base import dump_coords
 
 from .test_multi import MultiGeometryTestCase

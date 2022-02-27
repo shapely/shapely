@@ -1,34 +1,43 @@
 import numpy as np
 import pytest
 
-from shapely import geometry
+from shapely import (
+    GeometryCollection,
+    LinearRing,
+    LineString,
+    MultiLineString,
+    MultiPoint,
+    MultiPolygon,
+    Point,
+    Polygon,
+)
 
 
 def test_polygon():
-    assert bool(geometry.Polygon()) is False
+    assert bool(Polygon()) is False
 
 
 def test_linestring():
-    assert bool(geometry.LineString()) is False
+    assert bool(LineString()) is False
 
 
 def test_point():
-    assert bool(geometry.Point()) is False
+    assert bool(Point()) is False
 
 
 def test_geometry_collection():
-    assert bool(geometry.GeometryCollection()) is False
+    assert bool(GeometryCollection()) is False
 
 
 geometries_all_types = [
-    geometry.Point(1, 1),
-    geometry.LinearRing([(0, 0), (1, 1), (0, 1), (0, 0)]),
-    geometry.LineString([(0, 0), (1, 1), (0, 1), (0, 0)]),
-    geometry.Polygon([(0, 0), (1, 1), (0, 1), (0, 0)]),
-    geometry.MultiPoint([(1, 1)]),
-    geometry.MultiLineString([[(0, 0), (1, 1), (0, 1), (0, 0)]]),
-    geometry.MultiPolygon([geometry.Polygon([(0, 0), (1, 1), (0, 1), (0, 0)])]),
-    geometry.GeometryCollection([geometry.Point(1, 1)]),
+    Point(1, 1),
+    LinearRing([(0, 0), (1, 1), (0, 1), (0, 0)]),
+    LineString([(0, 0), (1, 1), (0, 1), (0, 0)]),
+    Polygon([(0, 0), (1, 1), (0, 1), (0, 0)]),
+    MultiPoint([(1, 1)]),
+    MultiLineString([[(0, 0), (1, 1), (0, 1), (0, 0)]]),
+    MultiPolygon([Polygon([(0, 0), (1, 1), (0, 1), (0, 0)])]),
+    GeometryCollection([Point(1, 1)]),
 ]
 
 

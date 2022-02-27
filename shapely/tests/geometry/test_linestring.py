@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 
 import shapely
+from shapely import LinearRing, LineString, Point
 from shapely.coords import CoordinateSequence
-from shapely.geometry import LinearRing, LineString, Point
 
 
 def test_from_coordinate_sequence():
