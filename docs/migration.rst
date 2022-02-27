@@ -74,7 +74,17 @@ AttributeError in Shapely 2.0.
 **How do I update my code?** There is no direct alternative for adding custom
 attributes to geometry objects. You can use other Python data structures such as
 (GeoJSON-like) dictionaries or GeoPandas' GeoDataFrames to store attributes
-alongside geometry features. 
+alongside geometry features.  
+You can also create a costum object holding a reference to a shapely geometry object, in addition to the custom attribute(s)::
+
+    from shapely.geometry import LineString
+    
+    class CustomObject():
+      
+      def __init__(self, attribute1, coords):
+        self.attribute1 = attribute1
+        self.line = LineString(coords)
+
 
 Multi-part geometries will no longer be "sequences" (length, iterable, indexable)
 =================================================================================
