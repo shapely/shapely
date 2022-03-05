@@ -109,7 +109,7 @@ class BaseGeometry(shapely.Geometry):
     def __repr__(self):
         base_repr = super().__repr__()
         return base_repr.replace(
-            "shapely.Geometry", "shapely.geometry.{}".format(self.__class__.__name__)
+            "shapely.Geometry", "shapely.{}".format(self.__class__.__name__)
         )
 
     def __str__(self):
