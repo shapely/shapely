@@ -274,8 +274,18 @@ class BaseGeometry(shapely.Geometry):
         """Returns the geometric center of the object"""
         return shapely.centroid(self)
 
+    def point_on_surface(self):
+        """Returns a point guaranteed to be within the object, cheaply.
+
+        Alias of `representative_point`.
+        """
+        return shapely.point_on_surface(self)
+
     def representative_point(self):
-        """Returns a point guaranteed to be within the object, cheaply."""
+        """Returns a point guaranteed to be within the object, cheaply.
+
+        Alias of `point_on_surface`.
+        """
         return shapely.point_on_surface(self)
 
     @property
@@ -667,14 +677,40 @@ class BaseGeometry(shapely.Geometry):
     # Linear referencing
     # ------------------
 
+    def line_locate_point(self, other, normalized=False):
+        """Returns the distance along this geometry to a point nearest the
+        specified point
+
+        If the normalized arg is True, return the distance normalized to the
+        length of the linear geometry.
+
+        Alias of `project`.
+        """
+        return shapely.line_locate_point(self, other, normalized=normalized)
+
     def project(self, other, normalized=False):
         """Returns the distance along this geometry to a point nearest the
         specified point
 
         If the normalized arg is True, return the distance normalized to the
         length of the linear geometry.
+
+        Alias of `line_locate_point`.
         """
         return shapely.line_locate_point(self, other, normalized=normalized)
+
+    def line_interpolate_point(self, distance, normalized=False):
+        """Return a point at the specified distance along a linear geometry
+
+        Negative length values are taken as measured in the reverse
+        direction from the end of the geometry. Out-of-range index
+        values are handled by clamping them to the valid range of values.
+        If the normalized arg is True, the distance will be interpreted as a
+        fraction of the geometry's length.
+
+        Alias of `interpolate`.
+        """
+        return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
     def interpolate(self, distance, normalized=False):
         """Return a point at the specified distance along a linear geometry
@@ -684,6 +720,8 @@ class BaseGeometry(shapely.Geometry):
         values are handled by clamping them to the valid range of values.
         If the normalized arg is True, the distance will be interpreted as a
         fraction of the geometry's length.
+
+        Alias of `line_interpolate_point`.
         """
         return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
