@@ -42,7 +42,7 @@ jobs:
     name: Build ${{ matrix.arch }} wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     env:
-      GEOS_VERSION: "3.10.1"
+      GEOS_VERSION: "3.10.2"
     strategy:
       fail-fast: false
       matrix:
