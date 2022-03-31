@@ -260,16 +260,16 @@ def test_from_wkb_warn_on_invalid_warn():
 
 def test_from_wkb_ignore_on_invalid_ignore():
     # invalid WKB
-    with pytest.warns() as w:
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")  # no warning
         result = shapely.from_wkb(b"\x01\x01\x00\x00\x00\x00", on_invalid="ignore")
         assert result is None
-        assert len(w) == 0  # no warning
 
     # invalid ring in WKB
-    with pytest.warns() as w:
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")  # no warning
         result = shapely.from_wkb(INVALID_WKB, on_invalid="ignore")
         assert result is None
-        assert len(w) == 0  # no warning
 
 
 def test_from_wkb_on_invalid_unsupported_option():
