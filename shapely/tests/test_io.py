@@ -8,14 +8,7 @@ import pytest
 import shapely
 from shapely.testing import assert_geometries_equal
 
-from .common import (
-    all_types,
-    empty_point,
-    empty_point_z,
-    point,
-    point_z,
-    shapely20_todo,
-)
+from .common import all_types, empty_point, empty_point_z, point, point_z
 
 # fmt: off
 POINT11_WKB = b"\x01\x01\x00\x00\x00" + struct.pack("<2d", 1.0, 1.0)
