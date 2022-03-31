@@ -222,15 +222,6 @@ static PyObject* GeometryObject_str(GeometryObject* self) {
   return GeometryObject_ToWKT(self);
 }
 
-/* For pickling. To be used in GeometryObject->tp_reduce.
- * reduce should return a a tuple of (callable, args).
- * On unpickling, callable(*args) is called */
-static PyObject* GeometryObject_reduce(PyObject* self) {
-  Py_INCREF(self->ob_type);
-  return PyTuple_Pack(2, self->ob_type,
-                      PyTuple_Pack(1, GeometryObject_ToWKB((GeometryObject*)self)));
-}
-
 /* For lookups in sets / dicts.
  * Python should be told how to generate a hash from the Geometry object. */
 static Py_hash_t GeometryObject_hash(GeometryObject* self) {
@@ -405,7 +396,6 @@ static PyObject* GeometryObject_new(PyTypeObject* type, PyObject* args, PyObject
 }
 
 static PyMethodDef GeometryObject_methods[] = {
-    {"__reduce__", (PyCFunction)GeometryObject_reduce, METH_NOARGS, "For pickling."},
     {NULL} /* Sentinel */
 };
 

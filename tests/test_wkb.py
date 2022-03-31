@@ -6,7 +6,6 @@ import sys
 import pytest
 
 from shapely import wkt
-from shapely.errors import WKBReadingError
 from shapely.geometry import Point
 from shapely.geos import geos_version
 from shapely.wkb import dumps, loads, dump, load
@@ -129,7 +128,7 @@ def test_dump_hex_load_binary(some_point, tmpdir):
     with open(file, "w") as file_pointer:
         dump(some_point, file_pointer, hex=True)
 
-    with pytest.raises(WKBReadingError):
+    with pytest.raises(TypeError):
         with open(file, "rb") as file_pointer:
             load(file_pointer)
 
@@ -148,7 +147,7 @@ def test_dump_binary_load_hex(some_point, tmpdir):
         assert some_point != restored
         return
 
-    with pytest.raises((WKBReadingError, UnicodeEncodeError, UnicodeDecodeError)):
+    with pytest.raises((UnicodeEncodeError, UnicodeDecodeError)):
         with open(file, "r") as file_pointer:
             load(file_pointer, hex=True)
 

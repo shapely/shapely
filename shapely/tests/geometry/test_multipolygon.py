@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from shapely.geometry import MultiPolygon, Polygon
+from shapely import MultiPolygon, Polygon
 from shapely.geometry.base import dump_coords
 
 from .test_multi import MultiGeometryTestCase
@@ -107,7 +107,6 @@ def test_fail_list_of_multipolygons():
         MultiPolygon([multi])
 
 
-@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
     geom = MultiPolygon(
         [

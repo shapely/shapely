@@ -17,15 +17,12 @@ References
      VLDB Conf. 497-506. 10.1109/ICDE.1997.582015.
      https://www.cs.odu.edu/~mln/ltrs-pdfs/icase-1997-14.pdf
 """
-import logging
 from typing import Any, Iterable, Sequence, Union
 
 import numpy as np
 
 from shapely import lib
 from shapely.geometry.base import BaseGeometry
-
-log = logging.getLogger(__name__)
 
 
 class STRtree:

@@ -1,18 +1,16 @@
 import numpy as np
-import pytest
 
-from shapely.geometry import (
+from shapely import (
     GeometryCollection,
     LinearRing,
     LineString,
-    mapping,
     MultiLineString,
     MultiPoint,
     MultiPolygon,
     Point,
     Polygon,
-    shape,
 )
+from shapely.geometry import mapping, shape
 from shapely.geometry.base import BaseGeometry, EmptyGeometry
 
 
@@ -63,7 +61,6 @@ class TestEmptiness:
         assert LinearRing(empty_generator()).is_empty
 
 
-@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
     geoms = [BaseGeometry(), EmptyGeometry()]
     arr = np.empty(2, object)

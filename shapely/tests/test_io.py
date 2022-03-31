@@ -602,21 +602,15 @@ def test_to_wkb_point_empty_srid():
     assert shapely.get_srid(actual) == 4236
 
 
-@shapely20_todo
 @pytest.mark.parametrize("geom", all_types + (point_z, empty_point))
 def test_pickle(geom):
-    if shapely.get_type_id(geom) == 2:
-        # Linearrings get converted to linestrings
-        expected = shapely.linestrings(shapely.get_coordinates(geom))
-    else:
-        expected = geom
     pickled = pickle.dumps(geom)
-    assert_geometries_equal(pickle.loads(pickled), expected, tolerance=0)
+    assert_geometries_equal(pickle.loads(pickled), geom, tolerance=0)
 
 
-@shapely20_todo
-def test_pickle_with_srid():
-    geom = shapely.set_srid(point, 4326)
+@pytest.mark.parametrize("geom", all_types + (point_z, empty_point))
+def test_pickle_with_srid(geom):
+    geom = shapely.set_srid(geom, 4326)
     pickled = pickle.dumps(geom)
     assert shapely.get_srid(pickle.loads(pickled)) == 4326
 
