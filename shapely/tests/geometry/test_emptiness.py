@@ -1,17 +1,16 @@
 import numpy as np
 
-from shapely.geometry import (
+from shapely import (
     GeometryCollection,
     LinearRing,
     LineString,
-    mapping,
     MultiLineString,
     MultiPoint,
     MultiPolygon,
     Point,
     Polygon,
-    shape,
 )
+from shapely.geometry import mapping, shape
 from shapely.geometry.base import BaseGeometry, EmptyGeometry
 
 

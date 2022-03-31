@@ -1,9 +1,8 @@
 import numpy as np
 import pytest
 
-from shapely import wkt
-from shapely.geometry import LineString, shape
-from shapely.geometry.collection import GeometryCollection
+from shapely import GeometryCollection, LineString, wkt
+from shapely.geometry import shape
 
 
 @pytest.fixture()

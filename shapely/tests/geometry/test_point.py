@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
+from shapely import Point
 from shapely.coords import CoordinateSequence
 from shapely.errors import DimensionError
-from shapely.geometry import Point
 
 
 def test_from_coordinates():
