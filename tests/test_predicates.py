@@ -2,7 +2,6 @@
 """
 from . import unittest
 from shapely.geometry import Point, Polygon
-from shapely.errors import TopologicalError, PredicateError
 import pytest
 
 import shapely

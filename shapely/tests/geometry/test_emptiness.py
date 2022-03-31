@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 
 from shapely.geometry import (
     GeometryCollection,
@@ -65,7 +64,6 @@ class TestEmptiness:
         assert LinearRing(empty_generator()).is_empty
 
 
-@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
     geoms = [Point(), GeometryCollection()]
     arr = np.empty(2, object)

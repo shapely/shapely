@@ -3,7 +3,8 @@ import numpy as np
 from . import box  # NOQA
 from . import Geometry  # NOQA
 from . import GeometryType, lib
-from .decorators import multithreading_enabled, requires_geos, UnsupportedGEOSOperation
+from .decorators import multithreading_enabled, requires_geos
+from .errors import UnsupportedGEOSVersionError
 
 __all__ = [
     "difference",
@@ -65,7 +66,9 @@ def difference(a, b, grid_size=None, **kwargs):
 
     if grid_size is not None:
         if lib.geos_version < (3, 9, 0):
-            raise UnsupportedGEOSOperation("grid_size parameter requires GEOS >= 3.9.0")
+            raise UnsupportedGEOSVersionError(
+                "grid_size parameter requires GEOS >= 3.9.0"
+            )
 
         if not np.isscalar(grid_size):
             raise ValueError("grid_size parameter only accepts scalar values")
@@ -119,7 +122,9 @@ def intersection(a, b, grid_size=None, **kwargs):
 
     if grid_size is not None:
         if lib.geos_version < (3, 9, 0):
-            raise UnsupportedGEOSOperation("grid_size parameter requires GEOS >= 3.9.0")
+            raise UnsupportedGEOSVersionError(
+                "grid_size parameter requires GEOS >= 3.9.0"
+            )
 
         if not np.isscalar(grid_size):
             raise ValueError("grid_size parameter only accepts scalar values")
@@ -209,7 +214,9 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
 
     if grid_size is not None:
         if lib.geos_version < (3, 9, 0):
-            raise UnsupportedGEOSOperation("grid_size parameter requires GEOS >= 3.9.0")
+            raise UnsupportedGEOSVersionError(
+                "grid_size parameter requires GEOS >= 3.9.0"
+            )
 
         if not np.isscalar(grid_size):
             raise ValueError("grid_size parameter only accepts scalar values")
@@ -300,7 +307,9 @@ def union(a, b, grid_size=None, **kwargs):
 
     if grid_size is not None:
         if lib.geos_version < (3, 9, 0):
-            raise UnsupportedGEOSOperation("grid_size parameter requires GEOS >= 3.9.0")
+            raise UnsupportedGEOSVersionError(
+                "grid_size parameter requires GEOS >= 3.9.0"
+            )
 
         if not np.isscalar(grid_size):
             raise ValueError("grid_size parameter only accepts scalar values")
@@ -377,7 +386,9 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
 
     if grid_size is not None:
         if lib.geos_version < (3, 9, 0):
-            raise UnsupportedGEOSOperation("grid_size parameter requires GEOS >= 3.9.0")
+            raise UnsupportedGEOSVersionError(
+                "grid_size parameter requires GEOS >= 3.9.0"
+            )
 
         if not np.isscalar(grid_size):
             raise ValueError("grid_size parameter only accepts scalar values")
