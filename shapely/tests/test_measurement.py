@@ -42,7 +42,7 @@ def test_area():
 
 def test_distance():
     actual = shapely.distance(*point_polygon_testdata)
-    expected = [2 * 2 ** 0.5, 2 ** 0.5, 0, 0, 0, 2 ** 0.5]
+    expected = [2 * 2**0.5, 2**0.5, 0, 0, 0, 2**0.5]
     np.testing.assert_allclose(actual, expected)
 
 
