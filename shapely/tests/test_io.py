@@ -386,7 +386,7 @@ def test_repr_max_length():
     # the repr is limited to 80 characters
     geom = shapely.linestrings(np.arange(1000), np.arange(1000))
     representation = repr(geom)
-    assert len(representation) == 83
+    assert len(representation) == 80
     assert representation.endswith("...>")
 
 
