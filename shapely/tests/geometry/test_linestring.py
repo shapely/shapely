@@ -106,14 +106,11 @@ def test_from_invalid_dim():
     with pytest.raises(shapely.GEOSException):
         LineString([(1, 2)])
 
-    with pytest.raises(
-        ValueError, match="Input operand 0 does not have enough dimensions"
-    ):
+    # exact error depends on numpy version
+    with pytest.raises((ValueError, TypeError)):
         LineString([(1, 2, 3), (4, 5)])
 
-    with pytest.raises(
-        ValueError, match="Input operand 0 does not have enough dimensions"
-    ):
+    with pytest.raises((ValueError, TypeError)):
         LineString([(1, 2), (3, 4, 5)])
 
     msg = r"The ordinate \(last\) dimension should be 2 or 3, got {}"
