@@ -42,6 +42,7 @@ wkt_cases = [
 ]
 
 
+@pytest.mark.filterwarnings("ignore:Creating an ndarray from ragged nested sequences:")
 @pytest.mark.parametrize('geojson', geojson_cases)
 def test_create_from_geojson(geojson):
     # exact error depends on numpy version
@@ -50,6 +51,7 @@ def test_create_from_geojson(geojson):
     assert exc.match("Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions|ufunc 'linestrings' not supported for the input types")
 
 
+@pytest.mark.filterwarnings("ignore:Creating an ndarray from ragged nested sequences:")
 @pytest.mark.parametrize('constructor, args', direct_cases)
 def test_create_directly(constructor, args):
     with pytest.raises((ValueError, TypeError)) as exc:
