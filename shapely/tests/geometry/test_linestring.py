@@ -1,3 +1,5 @@
+import platform
+
 import numpy as np
 import pytest
 
@@ -100,6 +102,10 @@ def test_numpy_object_array():
     assert ar[0] == geom
 
 
+@pytest.mark.skipif(
+    platform.system() == "Linux" and platform.machine() == "aarch64",
+    reason="Linux aarch64 wheels fail on this test, see https://github.com/shapely/shapely/pull/1253",
+)
 def test_from_invalid_dim():
     # TODO(shapely-2.0) better error message?
     # pytest.raises(ValueError, match="at least 2 coordinate tuples|at least 2 coordinates"):
