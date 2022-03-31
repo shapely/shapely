@@ -5,8 +5,6 @@ geometry objects, but has no effect on geometric analysis. All
 operations are performed in the x-y plane. Thus, geometries with
 different z values may intersect or be equal.
 """
-
-import logging
 import math
 from itertools import islice
 from warnings import warn
@@ -15,8 +13,6 @@ import shapely
 from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
 from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
-
-log = logging.getLogger(__name__)
 
 try:
     import numpy as np
@@ -85,7 +81,13 @@ class BaseGeometry(shapely.Geometry):
     __slots__ = []
 
     def __new__(self):
-        # TODO create empty geometry - should we deprecate this constructor?
+        warn(
+            "Directly calling the base class 'BaseGeometry()' is deprecated, and "
+            "will raise an error in the future. To create an empty geometry, "
+            "use one of the subclasses instead, for example 'GeometryCollection()'.",
+            ShapelyDeprecationWarning,
+            stacklevel=2,
+        )
         return shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")
 
     @property
@@ -320,7 +322,7 @@ class BaseGeometry(shapely.Geometry):
             for dx, dy in edges:
                 # compute the normalized direction vector of the edge
                 # vector.
-                length = math.sqrt(dx ** 2 + dy ** 2)
+                length = math.sqrt(dx**2 + dy**2)
                 ux, uy = dx / length, dy / length
                 # compute the normalized perpendicular vector
                 vx, vy = -uy, ux
@@ -806,5 +808,11 @@ class HeterogeneousGeometrySequence(GeometrySequence):
 class EmptyGeometry(BaseGeometry):
     def __new__(self):
         """Create an empty geometry."""
-        # TODO(shapely-2.0) create empty geometry - should we deprecate this class?
+        warn(
+            "The 'EmptyGeometry()' constructor to create an empty geometry is "
+            "deprecated, and will raise an error in the future. Use one of the "
+            "geometry subclasses instead, for example 'GeometryCollection()'.",
+            ShapelyDeprecationWarning,
+            stacklevel=2,
+        )
         return shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")

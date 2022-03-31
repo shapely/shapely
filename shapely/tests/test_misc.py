@@ -102,7 +102,7 @@ def test_requires_geos_ok(version, mocked_geos_version):
 @pytest.mark.parametrize("version", ["3.7.2", "3.8.0", "3.8.1"])
 def test_requires_geos_not_ok(version, mocked_geos_version):
     wrapped = requires_geos(version)(func)
-    with pytest.raises(shapely.UnsupportedGEOSOperation):
+    with pytest.raises(shapely.errors.UnsupportedGEOSVersionError):
         wrapped()
 
     assert wrapped.__doc__ == expected_docstring.format(version=version, indent=" " * 4)

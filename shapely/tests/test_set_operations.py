@@ -3,7 +3,7 @@ import pytest
 
 import shapely
 from shapely import Geometry
-from shapely.decorators import UnsupportedGEOSOperation
+from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 
 from .common import all_types, multi_polygon, point, polygon
@@ -57,7 +57,7 @@ def test_set_operation_array(a, func):
 @pytest.mark.parametrize("grid_size", [0, 1])
 def test_set_operations_prec_not_supported(func, grid_size):
     with pytest.raises(
-        UnsupportedGEOSOperation, match="grid_size parameter requires GEOS >= 3.9.0"
+        UnsupportedGEOSVersionError, match="grid_size parameter requires GEOS >= 3.9.0"
     ):
         func(point, point, grid_size)
 
@@ -158,7 +158,7 @@ def test_set_operation_reduce_all_none_arr(n, func, related_func):
 @pytest.mark.parametrize("grid_size", [0, 1])
 def test_set_operation_prec_reduce_not_supported(func, related_func, grid_size):
     with pytest.raises(
-        UnsupportedGEOSOperation, match="grid_size parameter requires GEOS >= 3.9.0"
+        UnsupportedGEOSVersionError, match="grid_size parameter requires GEOS >= 3.9.0"
     ):
         func([point, point], grid_size)
 
