@@ -85,7 +85,7 @@ class BaseGeometry(shapely.Geometry):
             "Directly calling the base class 'BaseGeometry()' is deprecated, and "
             "will raise an error in the future. To create an empty geometry, "
             "use one of the subclasses instead, for example 'GeometryCollection()'.",
-            FutureWarning,
+            ShapelyDeprecationWarning,
             stacklevel=2,
         )
         return shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")
@@ -812,7 +812,7 @@ class EmptyGeometry(BaseGeometry):
             "The 'EmptyGeometry()' constructor to create an empty geometry is "
             "deprecated, and will raise an error in the future. Use one of the "
             "geometry subclasses instead, for example 'GeometryCollection()'.",
-            FutureWarning,
+            ShapelyDeprecationWarning,
             stacklevel=2,
         )
         return shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")
