@@ -1,5 +1,3 @@
-import platform
-
 import numpy as np
 import pytest
 
@@ -102,24 +100,17 @@ def test_numpy_object_array():
     assert ar[0] == geom
 
 
-@pytest.mark.skipif(
-    platform.system() == "Linux" and platform.machine() == "aarch64",
-    reason="Linux aarch64 wheels fail on this test, see https://github.com/shapely/shapely/pull/1253",
-)
 def test_from_invalid_dim():
     # TODO(shapely-2.0) better error message?
     # pytest.raises(ValueError, match="at least 2 coordinate tuples|at least 2 coordinates"):
     with pytest.raises(shapely.GEOSException):
         LineString([(1, 2)])
 
-    with pytest.raises(
-        ValueError, match="Input operand 0 does not have enough dimensions"
-    ):
+    # exact error depends on numpy version
+    with pytest.raises((ValueError, TypeError)):
         LineString([(1, 2, 3), (4, 5)])
 
-    with pytest.raises(
-        ValueError, match="Input operand 0 does not have enough dimensions"
-    ):
+    with pytest.raises((ValueError, TypeError)):
         LineString([(1, 2), (3, 4, 5)])
 
     msg = r"The ordinate \(last\) dimension should be 2 or 3, got {}"
