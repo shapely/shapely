@@ -48,13 +48,8 @@ class STRtree:
     items : sequence, optional
         A sequence of objects which typically serve as identifiers in an
         application. This sequence must have the same length as geoms.
-    leafsize : int, default 10
-        the maximum number of child nodes per parent node in the tree
-
-    Attributes
-    ----------
-    node_capacity : int
-        The maximum number of items per node. Default: 10.
+    node_capacity : int, default 10
+        The maximum number of child nodes per parent node in the tree.
 
     Examples
     --------
@@ -103,13 +98,13 @@ class STRtree:
         self,
         geoms: Iterable[BaseGeometry],
         items: Iterable[Any] = None,
-        leafsize: int = 10,
+        node_capacity: int = 10,
     ):
         # Keep references to geoms
         self.geometries = np.asarray(geoms, dtype=np.object_)
 
         # initialize GEOS STRtree
-        self._tree = lib.STRtree(self.geometries, leafsize)
+        self._tree = lib.STRtree(self.geometries, node_capacity)
 
         # handle items
         self._has_custom_items = items is not None
@@ -133,19 +128,27 @@ class STRtree:
         self, geom: BaseGeometry, predicate=None, distance=None
     ) -> Sequence[Any]:
         """
-        Return the index of all geometries in the tree with extents that
-        intersect the envelope of the input geometry.
+        Return the index (or stored item) of all geometries in the tree
+        with extents that intersect the envelope of the input geometry.
 
-        Items are integers serving as identifiers for an application.
+        The returned items may be identified by an integer index (default) or
+        arbitrary item values (optional) if those are provided when
+        constructing the tree.
 
-        If predicate is provided, a prepared version of the input geometry
+        By default, the returned items correspond with those geometries from
+        the tree for which the envelope intersects with the envelope of the
+        input geometry. Optionally, results can be filtered by a spatial
+        predicate involving the input geometry (this is done on the actual
+        geometries, and not their envelopes).
+
+        If a predicate is provided, a prepared version of the input geometry
         is tested using the predicate function against each item whose
         extent intersects the envelope of the input geometry:
-        predicate(geometry, tree_geometry).
+        predicate(input_geometry, tree_geometry).
 
         The 'dwithin' predicate requires GEOS >= 3.10.
 
-        If geometry is None, an empty array is returned.
+        If geometry is None or empty, an empty array is returned.
 
         Parameters
         ----------
@@ -176,10 +179,10 @@ class STRtree:
         >>> tree.query_items(shapely.box(1,1, 3,3)).tolist()
         [1, 2, 3]
         >>> # Query geometries that are contained by input geometry
-        >>> tree.query(shapely.box(2, 2, 4, 4), predicate='contains').tolist()
+        >>> tree.query_items(shapely.box(2, 2, 4, 4), predicate='contains').tolist()
         [3]
         >>> # Query geometries within 1 unit distance of input geometry
-        >>> tree.query(shapely.points(0.5, 0.5), predicate='dwithin', distance=1.0).tolist()  # doctest: +SKIP
+        >>> tree.query_items(shapely.points(0.5, 0.5), predicate='dwithin', distance=1.0).tolist()  # doctest: +SKIP
         [0, 1]
 
         A buffer around a point can be used to control the extent
