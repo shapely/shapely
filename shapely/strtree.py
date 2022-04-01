@@ -3,7 +3,7 @@ from typing import Any, Iterable, Sequence, Union
 import numpy as np
 
 from . import lib
-from .decorators import requires_geos, UnsupportedGEOSOperation
+from .decorators import requires_geos, UnsupportedGEOSVersionError
 from .enum import ParamEnum
 from .geometry.base import BaseGeometry
 from .predicates import is_empty, is_missing
@@ -216,7 +216,7 @@ class STRtree:
 
         elif predicate == "dwithin":
             if lib.geos_version < (3, 10, 0):
-                raise UnsupportedGEOSOperation(
+                raise UnsupportedGEOSVersionError(
                     "dwithin predicate requires GEOS >= 3.10"
                 )
             if distance is None:
@@ -349,7 +349,7 @@ class STRtree:
         # Requires GEOS >= 3.10
         elif predicate == "dwithin":
             if lib.geos_version < (3, 10, 0):
-                raise UnsupportedGEOSOperation(
+                raise UnsupportedGEOSVersionError(
                     "dwithin predicate requires GEOS >= 3.10"
                 )
             if distance is None:
