@@ -1,6 +1,4 @@
 """Shapely errors."""
-import warnings
-
 from shapely.lib import GEOSException, ShapelyError  # NOQA
 
 
@@ -27,16 +25,8 @@ class EmptyPartError(ShapelyError):
     """An error signifying an empty part was encountered when creating a multi-part."""
 
 
-class GeometryTypeError(ShapelyError, TypeError, ValueError):
+class GeometryTypeError(ShapelyError):
     """
     An error raised when the type of the geometry in question is
     unrecognized or inappropriate.
     """
-
-    def __init__(self, msg):
-        warnings.warn(
-            "GeometryTypeError will derive from ShapelyError and not TypeError or ValueError in Shapely 2.0.",
-            ShapelyDeprecationWarning,
-            stacklevel=2,
-        )
-        super().__init__(msg)
