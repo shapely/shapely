@@ -407,8 +407,7 @@ class STRtree:
         order that tree geometries are visited; this order may be
         nondeterministic.
 
-        Any geometry that is None or empty in the input geometries is omitted
-        from the output.
+        If any input geometry is None or empty, an error is raised.
 
         Parameters
         ----------
