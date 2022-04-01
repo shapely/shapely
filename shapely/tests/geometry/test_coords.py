@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from shapely.geometry import LineString
+from shapely import LineString
 
 
 class TestCoords:

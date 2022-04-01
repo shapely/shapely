@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 
 import shapely
+from shapely import LinearRing, LineString, Point
 from shapely.coords import CoordinateSequence
-from shapely.geometry import LinearRing, LineString, Point
 
 
 def test_from_coordinate_sequence():
@@ -100,20 +100,18 @@ def test_numpy_object_array():
     assert ar[0] == geom
 
 
+@pytest.mark.filterwarnings("ignore:Creating an ndarray from ragged nested sequences:")
 def test_from_invalid_dim():
     # TODO(shapely-2.0) better error message?
     # pytest.raises(ValueError, match="at least 2 coordinate tuples|at least 2 coordinates"):
     with pytest.raises(shapely.GEOSException):
         LineString([(1, 2)])
 
-    with pytest.raises(
-        ValueError, match="Input operand 0 does not have enough dimensions"
-    ):
+    # exact error depends on numpy version
+    with pytest.raises((ValueError, TypeError)):
         LineString([(1, 2, 3), (4, 5)])
 
-    with pytest.raises(
-        ValueError, match="Input operand 0 does not have enough dimensions"
-    ):
+    with pytest.raises((ValueError, TypeError)):
         LineString([(1, 2), (3, 4, 5)])
 
     msg = r"The ordinate \(last\) dimension should be 2 or 3, got {}"

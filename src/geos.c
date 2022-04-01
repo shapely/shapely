@@ -12,7 +12,9 @@
 PyObject* geos_exception[1] = {NULL};
 
 int init_geos(PyObject* m) {
-  geos_exception[0] = PyErr_NewException("shapely.GEOSException", NULL, NULL);
+  PyObject* base_class = PyErr_NewException("shapely.errors.ShapelyError", NULL, NULL);
+  PyModule_AddObject(m, "ShapelyError", base_class);
+  geos_exception[0] = PyErr_NewException("shapely.errors.GEOSException", base_class, NULL);
   PyModule_AddObject(m, "GEOSException", geos_exception[0]);
   return 0;
 }
@@ -414,12 +416,8 @@ char geos_interpolate_checker(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
   return PGERR_SUCCESS;
 }
 
-/* Define GEOS error handlers. See GEOS_INIT / GEOS_FINISH macros in geos.h*/
+/* Define the GEOS error handler. See GEOS_INIT / GEOS_FINISH macros in geos.h*/
 void geos_error_handler(const char* message, void* userdata) {
-  snprintf(userdata, 1024, "%s", message);
-}
-
-void geos_notice_handler(const char* message, void* userdata) {
   snprintf(userdata, 1024, "%s", message);
 }
 

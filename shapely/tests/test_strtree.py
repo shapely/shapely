@@ -7,7 +7,8 @@ import pytest
 from numpy.testing import assert_array_equal
 
 import shapely
-from shapely import box, UnsupportedGEOSOperation
+from shapely import box
+from shapely.errors import UnsupportedGEOSVersionError
 
 from .common import (
     assert_decreases_refcount,
@@ -1012,7 +1013,7 @@ def test_query_contains_properly_polygons(poly_tree, geometry, expected):
 
 @pytest.mark.skipif(shapely.geos_version >= (3, 10, 0), reason="GEOS >= 3.10")
 def test_query_dwithin_geos_version(tree):
-    with pytest.raises(UnsupportedGEOSOperation, match="requires GEOS >= 3.10"):
+    with pytest.raises(UnsupportedGEOSVersionError, match="requires GEOS >= 3.10"):
         tree.query_items(shapely.points(0, 0), predicate="dwithin", distance=1)
 
 
@@ -1389,7 +1390,7 @@ def test_query_bulk_predicate_errors(tree):
 
 @pytest.mark.skipif(shapely.geos_version >= (3, 10, 0), reason="GEOS >= 3.10")
 def test_query_bulk_dwithin_geos_version(tree):
-    with pytest.raises(UnsupportedGEOSOperation, match="requires GEOS >= 3.10"):
+    with pytest.raises(UnsupportedGEOSVersionError, match="requires GEOS >= 3.10"):
         tree.query_bulk(shapely.points(0, 0), predicate="dwithin", distance=1)
 
 
