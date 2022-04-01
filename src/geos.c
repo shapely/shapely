@@ -416,12 +416,8 @@ char geos_interpolate_checker(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
   return PGERR_SUCCESS;
 }
 
-/* Define GEOS error handlers. See GEOS_INIT / GEOS_FINISH macros in geos.h*/
+/* Define the GEOS error handler. See GEOS_INIT / GEOS_FINISH macros in geos.h*/
 void geos_error_handler(const char* message, void* userdata) {
-  snprintf(userdata, 1024, "%s", message);
-}
-
-void geos_notice_handler(const char* message, void* userdata) {
   snprintf(userdata, 1024, "%s", message);
 }
 

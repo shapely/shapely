@@ -126,8 +126,7 @@ enum {
 
 #define _GEOS_INIT                                                           \
   ctx = GEOS_init_r();                                                       \
-  GEOSContext_setErrorMessageHandler_r(ctx, geos_error_handler, last_error); \
-  GEOSContext_setNoticeMessageHandler_r(ctx, geos_notice_handler, last_warning)
+  GEOSContext_setErrorMessageHandler_r(ctx, geos_error_handler, last_error)
 
 #define GEOS_INIT \
   _GEOS_INIT_DEF; \
@@ -155,7 +154,6 @@ enum {
 extern PyObject* geos_exception[1];
 
 extern void geos_error_handler(const char* message, void* userdata);
-extern void geos_notice_handler(const char* message, void* userdata);
 extern void destroy_geom_arr(void* context, GEOSGeometry** array, int length);
 extern char has_point_empty(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 extern GEOSGeometry* point_empty_to_nan_all_geoms(GEOSContextHandle_t ctx,
