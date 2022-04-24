@@ -57,7 +57,8 @@ enum {
   PGERR_LINEARRING_NCOORDS,
   PGWARN_INVALID_WKB,  // raise the GEOS WKB error as a warning instead of exception
   PGWARN_INVALID_WKT,  // raise the GEOS WKT error as a warning instead of exception
-  PGWARN_INVALID_GEOJSON
+  PGWARN_INVALID_GEOJSON,
+  PGERR_INTERRUPT
 };
 
 // Define how the states are handled by CPython
@@ -111,6 +112,8 @@ enum {
       PyErr_WarnFormat(PyExc_Warning, 0,                                                 \
                        "Invalid GeoJSON: geometry is returned as None. %s", last_error); \
       break;                                                                             \
+    case PGERR_INTERRUPT:                                                                \
+      break;                                                                             \
     default:                                                                             \
       PyErr_Format(PyExc_RuntimeError,                                                   \
                    "Pygeos ufunc returned with unknown error state code %d.", errstate); \
@@ -124,8 +127,8 @@ enum {
   char last_warning[1024] = "";  \
   GEOSContextHandle_t ctx
 
-#define _GEOS_INIT                                                           \
-  ctx = GEOS_init_r();                                                       \
+#define _GEOS_INIT     \
+  ctx = GEOS_init_r(); \
   GEOSContext_setErrorMessageHandler_r(ctx, geos_error_handler, last_error)
 
 #define GEOS_INIT \
@@ -176,7 +179,7 @@ GEOSGeometry* PyGEOSForce2D(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 GEOSGeometry* PyGEOSForce3D(GEOSContextHandle_t ctx, GEOSGeometry* geom, double z);
 
 GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
-                                        unsigned int size, unsigned int dims, char ring_closure,
-                                        npy_intp cs1, npy_intp cs2);
+                                        unsigned int size, unsigned int dims,
+                                        char ring_closure, npy_intp cs1, npy_intp cs2);
 
 #endif  // _GEOS_H

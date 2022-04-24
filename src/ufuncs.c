@@ -45,6 +45,28 @@
     return;                                                          \
   }
 
+/* PyErr_CheckSignals calls python signal handler at iteration 10000, 20000, and
+ * so forth. If a signal handler raises an exception (by default, SIGINT raises
+ * a KeyboardIterrupt), it returns -1.
+ * The caller needs to check 'errstate' and cleanup & exit if it equals PGERR_INTERRUPT.
+ */ 
+#define CHECK_INTERRUPT(I)            \
+  if (((I + 1) % 10000) == 0) {        \
+    if (PyErr_CheckSignals() == -1) { \
+      errstate = PGERR_INTERRUPT;     \
+    };                                \
+  }
+
+/* This version of CHECK_INTERRUPT is to be used in a context without GIL */
+#define CHECK_INTERRUPT_THREADS(I)    \
+  if (((I + 1) % 10000) == 0) {        \
+    Py_BLOCK_THREADS;                 \
+    if (PyErr_CheckSignals() == -1) { \
+      errstate = PGERR_INTERRUPT;     \
+    };                                \
+    Py_UNBLOCK_THREADS;               \
+  }
+
 static void geom_arr_to_npy(GEOSGeometry** array, char* ptr, npy_intp stride,
                             npy_intp count) {
   npy_intp i;
@@ -2151,6 +2173,12 @@ static void points_func(char** args, npy_intp* dimensions, npy_intp* steps, void
   GEOS_INIT_THREADS;
 
   SINGLE_COREDIM_LOOP_OUTER {
+    CHECK_INTERRUPT_THREADS(i);
+    if (errstate == PGERR_INTERRUPT) {
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      goto finish;
+    }
+
     coord_seq = GEOSCoordSeq_create_r(ctx, 1, n_c1);
     if (coord_seq == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
@@ -2554,20 +2582,20 @@ static void bounds_func(char** args, npy_intp* dimensions, npy_intp* steps, void
       }
       else {
         if (!GEOSGeom_getXMin_r(ctx, in1, x1)) {
-            errstate = PGERR_GEOS_EXCEPTION;
-            goto finish;
+          errstate = PGERR_GEOS_EXCEPTION;
+          goto finish;
         }
         if (!GEOSGeom_getYMin_r(ctx, in1, y1)) {
-            errstate = PGERR_GEOS_EXCEPTION;
-            goto finish;
+          errstate = PGERR_GEOS_EXCEPTION;
+          goto finish;
         }
         if (!GEOSGeom_getXMax_r(ctx, in1, x2)) {
-            errstate = PGERR_GEOS_EXCEPTION;
-            goto finish;
+          errstate = PGERR_GEOS_EXCEPTION;
+          goto finish;
         }
         if (!GEOSGeom_getYMax_r(ctx, in1, y2)) {
-            errstate = PGERR_GEOS_EXCEPTION;
-            goto finish;
+          errstate = PGERR_GEOS_EXCEPTION;
+          goto finish;
         }
       }
 #else
