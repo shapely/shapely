@@ -117,7 +117,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.3.1
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
-          CIBW_SKIP: pp* *musllinux*
+          CIBW_SKIP: pp* *musllinux* cp310-manylinux_i686
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2010
           CIBW_MANYLINUX_I686_IMAGE: manylinux2010
           CIBW_ENVIRONMENT_LINUX:
