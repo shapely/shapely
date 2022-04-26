@@ -100,6 +100,7 @@ def test_numpy_object_array():
     assert ar[0] == geom
 
 
+@pytest.mark.filterwarnings("ignore:Creating an ndarray from ragged nested sequences:")
 def test_from_invalid_dim():
     # TODO(shapely-2.0) better error message?
     # pytest.raises(ValueError, match="at least 2 coordinate tuples|at least 2 coordinates"):
