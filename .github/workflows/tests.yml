@@ -150,7 +150,8 @@ jobs:
         run: pip list
 
       - name: Run tests
-        continue-on-error: ${{ matrix.geos == 'main' }}
+        # Enable this if we have failures on GEOS main
+        # continue-on-error: ${{ matrix.geos == 'main' }}
         run: |
           pytest shapely/tests tests --cov --cov-report term-missing ${{ matrix.extra_pytest_args }}
 
