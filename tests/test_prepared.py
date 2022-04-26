@@ -45,13 +45,12 @@ def test_prepared_predicates():
     for geom2 in (polygon2, point2, polygon_empty):
         with np.errstate(invalid="ignore"):
             assert polygon1.disjoint(geom2) == prepared_polygon1.disjoint(geom2)
-        with np.errstate(invalid="ignore"):
             assert polygon1.touches(geom2) == prepared_polygon1.touches(geom2)
-        assert polygon1.intersects(geom2) == prepared_polygon1.intersects(geom2)
-        assert polygon1.crosses(geom2) == prepared_polygon1.crosses(geom2)
-        assert polygon1.within(geom2) == prepared_polygon1.within(geom2)
-        assert polygon1.contains(geom2) == prepared_polygon1.contains(geom2)
-        assert polygon1.overlaps(geom2) == prepared_polygon1.overlaps(geom2)
+            assert polygon1.intersects(geom2) == prepared_polygon1.intersects(geom2)
+            assert polygon1.crosses(geom2) == prepared_polygon1.crosses(geom2)
+            assert polygon1.within(geom2) == prepared_polygon1.within(geom2)
+            assert polygon1.contains(geom2) == prepared_polygon1.contains(geom2)
+            assert polygon1.overlaps(geom2) == prepared_polygon1.overlaps(geom2)
 
 
 def test_prepare_already_prepared():
