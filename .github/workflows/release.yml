@@ -3,7 +3,7 @@ name: Build and publish
 on:
   push:
     branches:
-      - master  # just build the sdist & wheel, skip release
+      - main  # just build the sdist & wheel, skip release
     tags:
       - "*"
   pull_request:  # also build on PRs touching this file
@@ -110,8 +110,6 @@ jobs:
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_SKIP: pp* *musllinux* cp310-win32 cp310-macosx_x86_64 cp310-manylinux_i686
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2010
-          CIBW_MANYLINUX_I686_IMAGE: manylinux2010
           CIBW_ENVIRONMENT_LINUX:
             GEOS_VERSION=${{ env.GEOS_VERSION }}
             GEOS_INSTALL=/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
@@ -132,7 +130,7 @@ jobs:
           CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} {wheel}
           CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: pytest --pyargs pygeos.tests
+          CIBW_TEST_COMMAND: pytest --pyargs shapely.tests
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
@@ -185,4 +183,5 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.pypi_password }}
+          skip_existing: true
           # To test: repository_url: https://test.pypi.org/legacy/
