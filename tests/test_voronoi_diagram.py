@@ -6,6 +6,7 @@ and more to cover input cases and behavior, making sure
 that we return a sane result without error or raise a useful one.
 """
 
+import numpy as np
 import pytest
 
 from shapely.geos import geos_version
@@ -20,7 +21,8 @@ requires_geos_35 = pytest.mark.skipif(geos_version < (3, 5, 0), reason='GEOS >= 
 @requires_geos_35
 def test_no_regions():
     mp = MultiPoint(points=[(0.5, 0.5)])
-    regions = voronoi_diagram(mp)
+    with np.errstate(invalid="ignore"):
+        regions = voronoi_diagram(mp)
 
     assert len(regions.geoms) == 0
 

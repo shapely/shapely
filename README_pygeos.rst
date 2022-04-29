@@ -44,9 +44,11 @@ operations are done in the open-source geometry library GEOS. PyGEOS wraps
 these operations in NumPy ufuncs providing a performance improvement when
 operating on arrays of geometries.
 
-Note: PyGEOS is a very young package. While the available functionality should
-be stable and working correctly, it's still possible that APIs change in upcoming
-releases. But we would love for you to try it out, give feedback or contribute!
+**Important note**: PyGEOS was merged with Shapely (https://shapely.readthedocs.io)
+in December 2021 and will be released as part of Shapely 2.0. The development will take place
+at the Shapely repository. Please raise issues or create pull request over there.
+PyGEOS itself will receive updates (by backporting from the Shapely repository) until
+Shapely 2.0 is actually released.
 
 What is a ufunc?
 ----------------
@@ -102,21 +104,6 @@ Compute the area of all possible intersections of two lists of polygons:
 
 See the documentation for more: https://pygeos.readthedocs.io
 
-
-Relationship to Shapely
------------------------
-
-Both Shapely and PyGEOS are exposing the functionality of the GEOS C++ library
-to Python. While Shapely only deals with single geometries, PyGEOS provides
-vectorized functions to work with arrays of geometries, giving better
-performance and convenience for such usecases.
-
-There is active discussion and work toward integrating PyGEOS into Shapely:
-
-* latest proposal: https://github.com/shapely/shapely-rfc/pull/1
-* prior discussion: https://github.com/Toblerity/Shapely/issues/782
-
-For now PyGEOS is developed as a separate project.
 
 References
 ----------
