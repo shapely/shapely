@@ -112,7 +112,7 @@ class BaseGeometry(shapely.Geometry):
         class_name = str(self.__class__.__name__)
         try:
             wkt = super().__str__()
-        except GEOSException:
+        except (GEOSException, ValueError):
             # we never want a repr() to fail; that can be very confusing
             return "<shapely.{} Exception in WKT writer>".format(class_name)
 
