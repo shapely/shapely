@@ -199,7 +199,6 @@ finish:
 
 static PyObject* GeometryObject_repr(GeometryObject* self) {
   PyObject *result, *wkt, *truncated;
-  char geom_type;
 
   wkt = GeometryObject_ToWKT(self);
   // we never want a repr() to fail; that can be very confusing
@@ -207,7 +206,6 @@ static PyObject* GeometryObject_repr(GeometryObject* self) {
     PyErr_Clear();
     return PyUnicode_FromString("<shapely.Geometry Exception in WKT writer>");
   }
-
   // the total length is limited to 80 characters
   if (PyUnicode_GET_LENGTH(wkt) > 62) {
     truncated = PyUnicode_Substring(wkt, 0, 59);

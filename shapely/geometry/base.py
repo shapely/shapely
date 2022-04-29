@@ -113,8 +113,10 @@ class BaseGeometry(shapely.Geometry):
         try:
             wkt = super().__str__()
         except GEOSException:
+            # we never want a repr() to fail; that can be very confusing
             return "<shapely.{} Exception in WKT writer>".format(class_name)
 
+        # the total length is limited to 80 characters
         max_length = 80 - (11 + len(class_name))
         if len(wkt) > max_length:
             return "<shapely.{} {}...>".format(class_name, wkt[: max_length - 3])
