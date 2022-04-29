@@ -208,17 +208,9 @@ static PyObject* GeometryObject_repr(GeometryObject* self) {
     return PyUnicode_FromString("<shapely.Geometry Exception in WKT writer>");
   }
 
-  GEOS_INIT;
-  GEOSGeometry* geom = self->ptr;
-  geom_type = GEOSGeomTypeId_r(ctx, geom);
-  GEOS_FINISH;
-
-  int type_lengths[8] = {5, 10, 10, 7, 10, 15, 12, 18};
-  int max_length = 80 - (11 + type_lengths[geom_type]);
-
   // the total length is limited to 80 characters
-  if (PyUnicode_GET_LENGTH(wkt) > max_length) {
-    truncated = PyUnicode_Substring(wkt, 0, max_length - 3);
+  if (PyUnicode_GET_LENGTH(wkt) > 62) {
+    truncated = PyUnicode_Substring(wkt, 0, 59);
     result = PyUnicode_FromFormat("<shapely.Geometry %U...>", truncated);
     Py_XDECREF(truncated);
   } else {

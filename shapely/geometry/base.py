@@ -12,7 +12,7 @@ from warnings import warn
 import shapely
 from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
-from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
+from shapely.errors import GeometryTypeError, GEOSException, ShapelyDeprecationWarning
 
 try:
     import numpy as np
@@ -109,10 +109,17 @@ class BaseGeometry(shapely.Geometry):
         return self.__bool__()
 
     def __repr__(self):
-        base_repr = super().__repr__()
-        return base_repr.replace(
-            "shapely.Geometry", "shapely.{}".format(self.__class__.__name__)
-        )
+        class_name = str(self.__class__.__name__)
+        try:
+            wkt = super().__str__()
+        except GEOSException:
+            return "<shapely.{} Exception in WKT writer>".format(class_name)
+
+        max_length = 80 - (11 + len(class_name))
+        if len(wkt) > max_length:
+            return "<shapely.{} {}...>".format(class_name, wkt[: max_length - 3])
+        else:
+            return "<shapely.{} {}>".format(class_name, wkt)
 
     def __str__(self):
         return self.wkt
