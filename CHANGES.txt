@@ -1,6 +1,11 @@
 Changes
 =======
 
+1.8.2 (TBD)
+-----------
+
+- Fix leak of GEOS coordinate sequence in nearest_points reported in #1098.
+
 1.8.1.post1 (2022-02-17)
 ------------------------
 
