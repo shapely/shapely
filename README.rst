@@ -52,8 +52,7 @@ Manipulation and analysis of geometric objects in the Cartesian plane.
 Shapely is a BSD-licensed Python package for manipulation and analysis of
 planar geometric objects. It is using the widely deployed open-source
 geometry library `GEOS <https://libgeos.org/>`__ (the engine of `PostGIS
-<https://postgis.net/>`__) and `JTS <https://locationtech.github.io/jts/>`__
-(from which GEOS is ported) libraries.
+<https://postgis.net/>`__, and a port of `JTS <https://locationtech.github.io/jts/>`__).
 Shapely wraps the GEOS operations in NumPy ufuncs providing a performance
 improvement when operating on arrays of geometries, as well as provides a
 rich scalar `Geometry` interface.
