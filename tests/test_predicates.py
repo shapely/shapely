@@ -1,9 +1,10 @@
-"""Test GEOS predicates
+"""Test GEOS predicates.
 """
 from . import unittest
-from shapely.geometry import Point, Polygon
+from shapely.geometry import LinearRing, MultiPolygon, Point, Polygon
 from shapely.geos import TopologicalError, PredicateError
 import pytest
+
 
 class PredicatesTestCase(unittest.TestCase):
 
@@ -64,3 +65,17 @@ class PredicatesTestCase(unittest.TestCase):
         # an invalid pattern should raise an exception
         with pytest.raises(PredicateError):
             g1.relate_pattern(g2, 'fail')
+
+
+@pytest.mark.parametrize(
+    "geom",
+    [
+        Point(0, 0).buffer(1.0).exterior,
+        Point(0, 0).buffer(1.0),
+        MultiPolygon([Point(0, 0).buffer(1.0)]),
+    ],
+)
+def test_polygon_closed(geom):
+    """Polygons and MultiPolygons are closed by definition."""
+    # See gh-1246
+    assert geom.is_closed

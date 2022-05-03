@@ -1,9 +1,11 @@
 Changes
 =======
 
-1.8.2 (2022-05-04)
+1.8.2 (2022-05-03)
 ------------------
 
+- Make Polygons and MultiPolygons closed by definition, like LinearRings.
+  Resolves #1246.
 - Perform frozen app check for GEOS before conda env check on macos as we
   already do on linux (#1301).
 - Fix leak of GEOS coordinate sequence in nearest_points reported in #1098.

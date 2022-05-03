@@ -721,7 +721,7 @@ class BaseGeometry:
         """True if the geometry is closed, else False
 
         Applicable only to 1-D geometries."""
-        if self.geom_type == 'LinearRing':
+        if self.geom_type in {"LinearRing", "Polygon", "MultiPolygon"}:
             return True
         elif self.geom_type == 'LineString':
             if 'is_closed' in self.impl:
