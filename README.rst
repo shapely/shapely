@@ -63,7 +63,7 @@ What is a ufunc?
 ----------------
 
 A universal function (or ufunc for short) is a function that operates on
-n-dimensional arrays in an element-by-element fashion, supporting array
+*n*-dimensional arrays in an element-by-element fashion, supporting array
 broadcasting. The for-loops that are involved are fully implemented in C
 diminishing the overhead of the Python interpreter.
 
@@ -124,7 +124,7 @@ See the documentation for more examples and guidance: https://shapely.readthedoc
 Requirements
 ============
 
-Shapely 1.8 requires
+Shapely 2.0 requires
 
 * Python >=3.6
 * GEOS >=3.5
