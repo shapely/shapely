@@ -142,7 +142,7 @@ Built distributions are the only option for users who do not have or do not
 know how to use their platform's compiler and Python SDK, and a good option for
 users who would rather not bother.
 
-Linux, OS X, and Windows users can get Shapely wheels with GEOS included from the
+Linux, macOS, and Windows users can get Shapely wheels with GEOS included from the
 Python Package Index with a recent version of pip (8+):
 
 .. code-block:: console
@@ -164,7 +164,7 @@ Source distributions
 If you want to build Shapely from source for compatibility with other modules
 that depend on GEOS (such as cartopy or osgeo.ogr) or want to use a different
 version of GEOS than the one included in the project wheels you should first
-install the GEOS library, Cython, and Numpy on your system (using apt, yum,
+install the GEOS library, Cython, and NumPy on your system (using apt, yum,
 brew, or other means) and then direct pip to ignore the binary wheels.
 
 .. code-block:: console
@@ -209,7 +209,7 @@ Development and Testing
 =======================
 
 Dependencies for developing Shapely are listed in requirements-dev.txt. Cython
-and Numpy are not required for production installations, only for development.
+and NumPy are not required for production installations, only for development.
 Use of a virtual environment is strongly recommended.
 
 .. code-block:: console
