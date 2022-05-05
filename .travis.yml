@@ -3,6 +3,8 @@ dist: focal
 language: python
 python: '3.8'
 
+if: (branch = main OR tag IS present) AND (type = push)
+
 env:
   global:
   - GEOS_VERSION=3.10.1
@@ -27,13 +29,6 @@ jobs:
     - CIBW_BEFORE_ALL="./ci/install_geos.sh"
     - CIBW_TEST_REQUIRES="pytest"
     - CIBW_TEST_COMMAND="pytest --pyargs shapely.tests"
-
-
-branches:
-  only:
-  - main
-  - travis
-  - /^\d+\.\d+(\.\d+)?(-\S*)?$/
 
 install:
 - |
