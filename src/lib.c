@@ -26,6 +26,8 @@ static PyMethodDef GeosModule[] = {
      "Gets the coordinates as an (N, 2) shaped ndarray of floats"},
     {"set_coordinates", PySetCoords, METH_VARARGS,
      "Sets coordinates to a geometry array"},
+    {"set_interrupt_interval", PySetInterruptInterval, METH_VARARGS,
+     "Sets the interval for interrupt checking in the ufunc inner loop"},
     {NULL, NULL, 0, NULL}};
 
 static struct PyModuleDef moduledef = {

@@ -16,6 +16,22 @@
 #include "geos.h"
 #include "pygeom.h"
 
+/* This initializes a global value for interrupt checking */
+int interrupt_interval[1] = {NULL};
+
+
+PyObject* PySetInterruptInterval(PyObject* self, PyObject* args) {
+  npy_intp ret;
+
+  if (!PyArg_ParseTuple(args, "i", interrupt_interval)) {
+    return NULL;
+  }
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+
 #define OUTPUT_Y                                         \
   PyObject* ret = GeometryObject_FromGEOS(ret_ptr, ctx); \
   PyObject** out = (PyObject**)op1;                      \
@@ -51,7 +67,7 @@
  * The caller needs to check 'errstate' and cleanup & exit if it equals PGERR_INTERRUPT.
  */ 
 #define CHECK_INTERRUPT(I)            \
-  if (((I + 1) % 10000) == 0) {        \
+  if (((I + 1) % interrupt_interval[0]) == 0) {        \
     if (PyErr_CheckSignals() == -1) { \
       errstate = PGERR_INTERRUPT;     \
     };                                \
@@ -59,7 +75,7 @@
 
 /* This version of CHECK_INTERRUPT is to be used in a context without GIL */
 #define CHECK_INTERRUPT_THREADS(I)    \
-  if (((I + 1) % 10000) == 0) {        \
+  if (((I + 1) % interrupt_interval[0]) == 0) {        \
     Py_BLOCK_THREADS;                 \
     if (PyErr_CheckSignals() == -1) { \
       errstate = PGERR_INTERRUPT;     \
