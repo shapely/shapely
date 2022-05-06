@@ -18,19 +18,36 @@
 
 /* This initializes a global value for interrupt checking */
 int interrupt_interval[1] = {NULL};
-
+unsigned long main_thread_id[1] = {NULL};
 
 PyObject* PySetInterruptInterval(PyObject* self, PyObject* args) {
   npy_intp ret;
+  int value;
 
-  if (!PyArg_ParseTuple(args, "i", interrupt_interval)) {
+  if (!PyArg_ParseTuple(args, "i", &value)) {
     return NULL;
+  }
+
+  if (value > 0) {
+    interrupt_interval[1] = value;
+  } else {
+    PyErr_SetString(PyExc_ValueError, "Interrupt interval must be greater than zero.");
   }
 
   Py_INCREF(Py_None);
   return Py_None;
 }
 
+PyObject* PySetMainThreadId(PyObject* self, PyObject* args) {
+  npy_intp ret;
+
+  if (!PyArg_ParseTuple(args, "k", main_thread_id)) {
+    return NULL;
+  }
+
+  Py_INCREF(Py_None);
+  return Py_None;
+}
 
 #define OUTPUT_Y                                         \
   PyObject* ret = GeometryObject_FromGEOS(ret_ptr, ctx); \
@@ -65,22 +82,27 @@ PyObject* PySetInterruptInterval(PyObject* self, PyObject* args) {
  * so forth. If a signal handler raises an exception (by default, SIGINT raises
  * a KeyboardIterrupt), it returns -1.
  * The caller needs to check 'errstate' and cleanup & exit if it equals PGERR_INTERRUPT.
- */ 
-#define CHECK_INTERRUPT(I)            \
-  if (((I + 1) % interrupt_interval[0]) == 0) {        \
-    if (PyErr_CheckSignals() == -1) { \
-      errstate = PGERR_INTERRUPT;     \
-    };                                \
+ */
+#define CHECK_INTERRUPT(I)                      \
+  if (((I + 1) % interrupt_interval[0]) == 0) { \
+    if (PyErr_CheckSignals() == -1) {           \
+      errstate = PGERR_INTERRUPT;               \
+    };                                          \
   }
 
-/* This version of CHECK_INTERRUPT is to be used in a context without GIL */
-#define CHECK_INTERRUPT_THREADS(I)    \
-  if (((I + 1) % interrupt_interval[0]) == 0) {        \
-    Py_BLOCK_THREADS;                 \
-    if (PyErr_CheckSignals() == -1) { \
-      errstate = PGERR_INTERRUPT;     \
-    };                                \
-    Py_UNBLOCK_THREADS;               \
+/* This version of CHECK_INTERRUPT is to be used in a context without GIL
+ * the GIL is only acquired if the current thread is the main thread (else,
+ * signals won't be set anyway)
+ */
+#define CHECK_INTERRUPT_THREADS(I)                          \
+  if (((I + 1) % interrupt_interval[0]) == 0) {             \
+    if (PyThread_get_thread_ident() == main_thread_id[0]) { \
+      Py_BLOCK_THREADS;                                     \
+      if (PyErr_CheckSignals() == -1) {                     \
+        errstate = PGERR_INTERRUPT;                         \
+      }                                                     \
+      Py_UNBLOCK_THREADS;                                   \
+    }                                                       \
   }
 
 static void geom_arr_to_npy(GEOSGeometry** array, char* ptr, npy_intp stride,
@@ -2321,7 +2343,8 @@ static void linearrings_func(char** args, npy_intp* dimensions, npy_intp* steps,
       goto finish;
     }
     /* fill the coordinate sequence */
-    coord_seq = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, ring_closure, cs1, cs2);
+    coord_seq =
+        coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, ring_closure, cs1, cs2);
     if (coord_seq == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
       destroy_geom_arr(ctx, geom_arr, i - 1);
@@ -2591,12 +2614,10 @@ static void bounds_func(char** args, npy_intp* dimensions, npy_intp* steps, void
     if (in1 == NULL) { /* no geometry => bbox becomes (nan, nan, nan, nan) */
       *x1 = *y1 = *x2 = *y2 = NPY_NAN;
     } else {
-
 #if GEOS_SINCE_3_7_0
       if (GEOSisEmpty_r(ctx, in1)) {
         *x1 = *y1 = *x2 = *y2 = NPY_NAN;
-      }
-      else {
+      } else {
         if (!GEOSGeom_getXMin_r(ctx, in1, x1)) {
           errstate = PGERR_GEOS_EXCEPTION;
           goto finish;

@@ -28,6 +28,8 @@ static PyMethodDef GeosModule[] = {
      "Sets coordinates to a geometry array"},
     {"set_interrupt_interval", PySetInterruptInterval, METH_VARARGS,
      "Sets the interval for interrupt checking in the ufunc inner loop"},
+    {"set_main_thread_id", PySetMainThreadId, METH_VARARGS,
+     ""},
     {NULL, NULL, 0, NULL}};
 
 static struct PyModuleDef moduledef = {
