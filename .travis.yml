@@ -3,7 +3,7 @@ dist: focal
 language: python
 python: '3.8'
 
-if: (branch = main OR tag IS present) AND (type = pull_request)
+if: (branch = main OR tag IS present) AND (type = push)
 
 env:
   global:
