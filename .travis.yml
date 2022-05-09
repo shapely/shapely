@@ -45,6 +45,7 @@ script:
 - |
   if [[ -z $CIBUILDWHEEL ]]; then
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/geosinstall/geos-$GEOS_VERSION/lib
+    cd ..
     pytest -v --pyargs shapely.tests
   else
     export GEOS_INSTALL=/host$HOME/geosinstall/geos-$GEOS_VERSION
