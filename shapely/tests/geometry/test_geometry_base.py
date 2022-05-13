@@ -11,6 +11,7 @@ from shapely import (
     Point,
     Polygon,
 )
+from shapely.errors import ShapelyDeprecationWarning
 
 
 def test_polygon():
@@ -73,3 +74,12 @@ def test_comparison_notimplemented(geom):
     result = geom != arr
     assert isinstance(result, np.ndarray)
     assert not result.any()
+
+
+def test_GeometryType_deprecated():
+    geom = Point(1, 1)
+
+    with pytest.warns(ShapelyDeprecationWarning):
+        geom_type = geom.geometryType()
+
+    assert geom_type == geom.geom_type

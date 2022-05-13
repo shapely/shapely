@@ -169,6 +169,12 @@ class BaseGeometry(shapely.Geometry):
     # ----------------------------------------
 
     def geometryType(self):
+        warn(
+            "The 'GeometryType()' method is deprecated, and will be removed in "
+            "the future. You can use the 'geom_type' attribute instead.",
+            ShapelyDeprecationWarning,
+            stacklevel=2,
+        )
         return self.geom_type
 
     @property
