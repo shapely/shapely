@@ -1,9 +1,8 @@
 import numpy as np
 import pytest
 
-from shapely import wkt
-from shapely.geometry import LineString, shape
-from shapely.geometry.collection import GeometryCollection
+from shapely import GeometryCollection, LineString, wkt
+from shapely.geometry import shape
 
 
 @pytest.fixture()
@@ -78,7 +77,6 @@ def test_len_raises(geometrycollection_geojson):
         len(geom)
 
 
-@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
     geom = GeometryCollection([LineString([(0, 0), (1, 1)])])
     ar = np.empty(1, object)

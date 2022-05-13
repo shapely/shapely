@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
+from shapely import LineString, MultiLineString
 from shapely.errors import EmptyPartError
-from shapely.geometry import LineString, MultiLineString
 from shapely.geometry.base import dump_coords
 
 from .test_multi import MultiGeometryTestCase
@@ -72,7 +72,6 @@ class TestMultiLineString(MultiGeometryTestCase):
             MultiLineString([LineString([(0, 0), (1, 1), (2, 2)]), LineString()]).wkt
 
 
-@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
     geom = MultiLineString([[[5.0, 6.0], [7.0, 8.0]]])
     ar = np.empty(1, object)

@@ -1,6 +1,7 @@
 import json
 import pickle
 import struct
+import warnings
 
 import numpy as np
 import pytest
@@ -8,14 +9,7 @@ import pytest
 import shapely
 from shapely.testing import assert_geometries_equal
 
-from .common import (
-    all_types,
-    empty_point,
-    empty_point_z,
-    point,
-    point_z,
-    shapely20_todo,
-)
+from .common import all_types, empty_point, empty_point_z, point, point_z
 
 # fmt: off
 POINT11_WKB = b"\x01\x01\x00\x00\x00" + struct.pack("<2d", 1.0, 1.0)
@@ -175,10 +169,12 @@ def test_from_wkt_warn_on_invalid():
 
 
 def test_from_wkb_ignore_on_invalid():
-    with pytest.warns(None):
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
         shapely.from_wkt("", on_invalid="ignore")
 
-    with pytest.warns(None):
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
         shapely.from_wkt("NOT A WKT STRING", on_invalid="ignore")
 
 
@@ -257,16 +253,16 @@ def test_from_wkb_warn_on_invalid_warn():
 
 def test_from_wkb_ignore_on_invalid_ignore():
     # invalid WKB
-    with pytest.warns(None) as w:
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")  # no warning
         result = shapely.from_wkb(b"\x01\x01\x00\x00\x00\x00", on_invalid="ignore")
         assert result is None
-        assert len(w) == 0  # no warning
 
     # invalid ring in WKB
-    with pytest.warns(None) as w:
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")  # no warning
         result = shapely.from_wkb(INVALID_WKB, on_invalid="ignore")
         assert result is None
-        assert len(w) == 0  # no warning
 
 
 def test_from_wkb_on_invalid_unsupported_option():
@@ -385,12 +381,10 @@ def test_to_wkt_multipoint_with_point_empty_errors():
         shapely.to_wkt(geom)
 
 
-@shapely20_todo
 def test_repr():
-    assert repr(point) == "<pygeos.Geometry POINT (2 3)>"
+    assert repr(point) == "<shapely.Point POINT (2 3)>"
 
 
-@shapely20_todo
 def test_repr_max_length():
     # the repr is limited to 80 characters
     geom = shapely.linestrings(np.arange(1000), np.arange(1000))
@@ -399,7 +393,6 @@ def test_repr_max_length():
     assert representation.endswith("...>")
 
 
-@shapely20_todo
 @pytest.mark.skipif(
     shapely.geos_version >= (3, 9, 0),
     reason="MULTIPOINT (EMPTY, 2 3) gives Exception on GEOS < 3.9",
@@ -407,16 +400,15 @@ def test_repr_max_length():
 def test_repr_multipoint_with_point_empty():
     # Test if segfault is prevented
     geom = shapely.multipoints([point, empty_point])
-    assert repr(geom) == "<pygeos.Geometry Exception in WKT writer>"
+    assert repr(geom) == "<shapely.MultiPoint Exception in WKT writer>"
 
 
-@shapely20_todo
 @pytest.mark.skipif(
     shapely.geos_version < (3, 9, 0),
     reason="Empty geometries have no dimensionality on GEOS < 3.9",
 )
 def test_repr_point_z_empty():
-    assert repr(empty_point_z) == "<pygeos.Geometry POINT Z EMPTY>"
+    assert repr(empty_point_z) == "<shapely.Point POINT Z EMPTY>"
 
 
 def test_to_wkb():
@@ -606,21 +598,15 @@ def test_to_wkb_point_empty_srid():
     assert shapely.get_srid(actual) == 4236
 
 
-@shapely20_todo
 @pytest.mark.parametrize("geom", all_types + (point_z, empty_point))
 def test_pickle(geom):
-    if shapely.get_type_id(geom) == 2:
-        # Linearrings get converted to linestrings
-        expected = shapely.linestrings(shapely.get_coordinates(geom))
-    else:
-        expected = geom
     pickled = pickle.dumps(geom)
-    assert_geometries_equal(pickle.loads(pickled), expected, tolerance=0)
+    assert_geometries_equal(pickle.loads(pickled), geom, tolerance=0)
 
 
-@shapely20_todo
-def test_pickle_with_srid():
-    geom = shapely.set_srid(point, 4326)
+@pytest.mark.parametrize("geom", all_types + (point_z, empty_point))
+def test_pickle_with_srid(geom):
+    geom = shapely.set_srid(geom, 4326)
     pickled = pickle.dumps(geom)
     assert shapely.get_srid(pickle.loads(pickled)) == 4326
 
@@ -676,7 +662,8 @@ def test_from_geojson_warn_on_invalid():
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_from_geojson_ignore_on_invalid():
-    with pytest.warns(None):
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
         assert shapely.from_geojson("", on_invalid="ignore") is None
 
 

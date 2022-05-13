@@ -451,7 +451,7 @@ class SplitOp:
             point2 = coords[i + 1]
             dx = point1[0] - point2[0]
             dy = point1[1] - point2[1]
-            segment_length = (dx ** 2 + dy ** 2) ** 0.5
+            segment_length = (dx**2 + dy**2) ** 0.5
             current_position += segment_length
             if distance_on_line == current_position:
                 # splitter is exactly on a vertex

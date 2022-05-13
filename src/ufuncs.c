@@ -2549,6 +2549,30 @@ static void bounds_func(char** args, npy_intp* dimensions, npy_intp* steps, void
     if (in1 == NULL) { /* no geometry => bbox becomes (nan, nan, nan, nan) */
       *x1 = *y1 = *x2 = *y2 = NPY_NAN;
     } else {
+
+#if GEOS_SINCE_3_7_0
+      if (GEOSisEmpty_r(ctx, in1)) {
+        *x1 = *y1 = *x2 = *y2 = NPY_NAN;
+      }
+      else {
+        if (!GEOSGeom_getXMin_r(ctx, in1, x1)) {
+            errstate = PGERR_GEOS_EXCEPTION;
+            goto finish;
+        }
+        if (!GEOSGeom_getYMin_r(ctx, in1, y1)) {
+            errstate = PGERR_GEOS_EXCEPTION;
+            goto finish;
+        }
+        if (!GEOSGeom_getXMax_r(ctx, in1, x2)) {
+            errstate = PGERR_GEOS_EXCEPTION;
+            goto finish;
+        }
+        if (!GEOSGeom_getYMax_r(ctx, in1, y2)) {
+            errstate = PGERR_GEOS_EXCEPTION;
+            goto finish;
+        }
+      }
+#else
       /* construct the envelope */
       envelope = GEOSEnvelope_r(ctx, in1);
       if (envelope == NULL) {
@@ -2604,6 +2628,7 @@ static void bounds_func(char** args, npy_intp* dimensions, npy_intp* steps, void
       }
       GEOSGeom_destroy_r(ctx, envelope);
       envelope = NULL;
+#endif
     }
   }
 

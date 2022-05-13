@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
+from shapely import MultiPoint, Point
 from shapely.errors import EmptyPartError
-from shapely.geometry import MultiPoint, Point
 from shapely.geometry.base import dump_coords
 
 from .test_multi import MultiGeometryTestCase
@@ -66,7 +66,6 @@ def test_multipoint_array_coercion():
     assert arr.item() == geom
 
 
-@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
     geom = MultiPoint(((1.0, 2.0), (3.0, 4.0)))
     ar = np.empty(1, object)

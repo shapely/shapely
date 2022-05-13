@@ -48,7 +48,11 @@ def test_no_args_array(geometry, func):
 @pytest.mark.parametrize("geometry", all_types)
 @pytest.mark.parametrize("func", CONSTRUCTIVE_FLOAT_ARG)
 def test_float_arg_array(geometry, func):
-    if func is shapely.offset_curve and shapely.get_type_id(geometry) not in [1, 2]:
+    if (
+        func is shapely.offset_curve
+        and shapely.get_type_id(geometry) not in [1, 2]
+        and shapely.geos_version < (3, 11, 0)
+    ):
         with pytest.raises(GEOSException, match="only accept linestrings"):
             func([geometry, geometry], 0.0)
         return
