@@ -143,8 +143,7 @@ jobs:
 
       - name: Build and install Shapely
         run: |
-          python setup.py build_ext --inplace
-          pip install . --no-build-isolation
+          pip install .
 
       - name: Overview of the Python environment (pip list)
         run: pip list
