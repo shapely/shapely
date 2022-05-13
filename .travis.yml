@@ -3,6 +3,8 @@ dist: focal
 language: python
 python: '3.8'
 
+if: (branch = main OR tag IS present) AND (type = push)
+
 env:
   global:
   - GEOS_VERSION=3.10.1
@@ -28,13 +30,6 @@ jobs:
     - CIBW_TEST_REQUIRES="pytest"
     - CIBW_TEST_COMMAND="pytest --pyargs shapely.tests"
 
-
-branches:
-  only:
-  - main
-  - travis
-  - /^\d+\.\d+(\.\d+)?(-\S*)?$/
-
 install:
 - |
   if [[ -z $CIBUILDWHEEL ]]; then
@@ -50,6 +45,7 @@ script:
 - |
   if [[ -z $CIBUILDWHEEL ]]; then
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/geosinstall/geos-$GEOS_VERSION/lib
+    cd ..
     pytest -v --pyargs shapely.tests
   else
     export GEOS_INSTALL=/host$HOME/geosinstall/geos-$GEOS_VERSION
