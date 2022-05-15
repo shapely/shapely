@@ -16,7 +16,7 @@ class MinimumRotatedRectangleTestCase(unittest.TestCase):
         self.assertEqual(rect.area - ls.convex_hull.area < 0.1, True)
         self.assertEqual(len(rect.exterior.coords), 5)
 
-    def test_digenerate(self):
+    def test_degenerate(self):
         rect = geometry.Point((0,1)).minimum_rotated_rectangle
         self.assertIsInstance(rect, geometry.Point)
         self.assertEqual(len(rect.coords), 1)
