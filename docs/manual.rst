@@ -214,7 +214,7 @@ General Attributes and Methods
 
 .. code-block:: pycon
 
-  >>> from shapely.geometry import Polygon
+  >>> from shapely import Polygon
   >>> Polygon([[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]).minimum_clearance
   1.0
 
@@ -225,6 +225,7 @@ General Attributes and Methods
 
 .. code-block:: pycon
 
+  >>> from shapely import Point, LineString
   >>> Point(0, 0).geom_type
   'Point'
 
@@ -267,9 +268,9 @@ General Attributes and Methods
 
   >>> donut = Point(0, 0).buffer(2.0).difference(Point(0, 0).buffer(1.0))
   >>> donut.centroid.wkt
-  'POINT (-0.0000000000000001 -0.0000000000000000)'
+  'POINT (0 0)'
   >>> donut.representative_point().wkt
-  'POINT (-1.5000000000000000 0.0000000000000000)'
+  'POINT (1.4975923633360986 0.0490085701647802)'
 
 .. _points:
 
@@ -283,7 +284,7 @@ Points
 
 .. code-block:: pycon
 
-  >>> from shapely.geometry import Point
+  >>> from shapely import Point
   >>> point = Point(0.0, 0.0)
   >>> q = Point((0.0, 0.0))
 
@@ -327,7 +328,7 @@ a copy.
 .. code-block:: pycon
 
   >>> Point(point)
-  <shapely.geometry.point.Point object at 0x...>
+  <shapely.Point POINT (0 0)>
 
 .. _linestrings:
 
@@ -354,7 +355,7 @@ A `LineString` has zero area and non-zero length.
 
 .. code-block:: pycon
 
-  >>> from shapely.geometry import LineString
+  >>> from shapely import LineString
   >>> line = LineString([(0, 0), (1, 1)])
   >>> line.area
   0.0
@@ -381,9 +382,9 @@ Coordinates may also be sliced. `New in version 1.2.14`.
 
 .. code-block:: pycon
 
-  >>> point.coords[:]
+  >>> line.coords[:]
   [(0.0, 0.0), (1.0, 1.0)]
-  >>> point.coords[1:]
+  >>> line.coords[1:]
   [(1.0, 1.0)]
 
 The constructor also accepts another `LineString` instance, thereby making a
@@ -392,7 +393,7 @@ copy.
 .. code-block:: pycon
 
   >>> LineString(line)
-  <shapely.geometry.linestring.LineString object at 0x...>
+  <shapely.LineString LINESTRING (0 0, 1 1)>
 
 A `LineString` may also be constructed using a sequence of mixed `Point`
 instances or coordinate tuples. The individual coordinates are copied into
@@ -401,7 +402,7 @@ the new object.
 .. code-block:: pycon
 
   >>> LineString([Point(0.0, 1.0), (2.0, 3.0), Point(4.0, 5.0)])
-  <shapely.geometry.linestring.LineString object at 0x...>
+  <shapely.LineString LINESTRING (0 1, 2 3, 4 5)>
 
 .. _linearrings:
 
@@ -434,12 +435,12 @@ A `LinearRing` has zero area and non-zero length.
 
 .. code-block:: pycon
 
-  >>> from shapely.geometry.polygon import LinearRing
+  >>> from shapely import LinearRing
   >>> ring = LinearRing([(0, 0), (1, 1), (1, 0)])
   >>> ring.area
   0.0
   >>> ring.length
-  3.4142135623730949
+  3.414213562373095
 
 Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
 
@@ -463,7 +464,7 @@ instance, thereby making a copy.
 .. code-block:: pycon
 
   >>> LinearRing(ring)
-  <shapely.geometry.polygon.LinearRing object at 0x...>
+  <shapely.LinearRing LINEARRING (0 0, 1 1, 1 0, 0 0)>
 
 As with `LineString`, a sequence of `Point` instances is not a valid
 constructor parameter.
@@ -502,12 +503,12 @@ A `Polygon` has non-zero area and non-zero length.
 
 .. code-block:: pycon
 
-  >>> from shapely.geometry import Polygon
+  >>> from shapely import Polygon
   >>> polygon = Polygon([(0, 0), (1, 1), (1, 0)])
   >>> polygon.area
   0.5
   >>> polygon.length
-  3.4142135623730949
+  3.414213562373095
 
 Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
 
@@ -537,7 +538,7 @@ The `Polygon` constructor also accepts instances of `LineString` and
   0.5
   >>> t = Polygon(s.buffer(1.0).exterior, [r])
   >>> t.area
-  6.5507620529190334
+  6.5507620529190325
 
 Rectangular polygons occur commonly, and can be conveniently constructed using
 the :func:`shapely.geometry.box()` function.
@@ -553,10 +554,10 @@ For example:
 
 .. code-block:: pycon
 
-  >>> from shapely.geometry import box
+  >>> from shapely import box
   >>> b = box(0.0, 0.0, 1.0, 1.0)
   >>> b
-  <shapely.geometry.polygon.Polygon object at 0x...>
+  <shapely.Polygon POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))>
   >>> list(b.exterior.coords)
   [(1.0, 0.0), (1.0, 1.0), (0.0, 1.0), (0.0, 0.0), (1.0, 0.0)]
 
@@ -591,11 +592,10 @@ immutable collections of geometric objects.  The collections may be homogeneous
   >>> b = LineString([(0, 0), (1, 1), (2,1), (2,2)])
   >>> x = a.intersection(b)
   >>> x
-  <shapely.geometry.collection.GeometryCollection object at 0x...>
-  >>> from pprint import pprint
-  >>> pprint(list(x))
-  [<shapely.geometry.point.Point object at 0x...>,
-   <shapely.geometry.linestring.LineString object at 0x...>]
+  <shapely.GeometryCollection GEOMETRYCOLLECTION (LINESTRING (0 0, 1 1), POINT...>
+  >>> list(x.geoms)
+  [<shapely.LineString LINESTRING (0 0, 1 1)>, <shapely.Point POINT (2 2)>]
+
 
 .. plot:: code/geometrycollection.py
    :class: figure
@@ -604,32 +604,12 @@ Figure 5. a) a green and a yellow line that intersect along a line and at a
 single point; b) the intersection (in blue) is a collection containing one
 `LineString` and one `Point`.
 
-Members of a `GeometryCollection` are accessed via the ``geoms`` property or via
-the iterator protocol using ``in``  or ``list()``.
+Members of a `GeometryCollection` are accessed via the ``geoms`` property.
 
 .. code-block:: pycon
 
-  >>> pprint(list(x.geoms))
-  [<shapely.geometry.point.Point object at 0x...>,
-   <shapely.geometry.linestring.LineString object at 0x...>]
-  >>> pprint(list(x))
-  [<shapely.geometry.point.Point object at 0x...>,
-   <shapely.geometry.linestring.LineString object at 0x...>]
-
-Collections can also be sliced.
-
-.. code-block:: pycon
-
-  >>> from shapely.geometry import MultiPoint
-  >>> m = MultiPoint([(0, 0), (1, 1), (1,2), (2,2)])
-  >>> m[:1].wkt
-  'MULTIPOINT (0.0000000000000000 0.0000000000000000)'
-  >>> m[3:].wkt
-  'MULTIPOINT (2.0000000000000000 2.0000000000000000)'
-  >>> m[4:].wkt
-  'GEOMETRYCOLLECTION EMPTY'
-
-`New in version 1.2.14`.
+  >>> list(x.geoms)
+  [<shapely.LineString LINESTRING (0 0, 1 1)>, <shapely.Point POINT (2 2)>]
 
 .. note::
 
@@ -650,7 +630,7 @@ A `MultiPoint` has zero area and zero length.
 
 .. code-block:: pycon
 
-  >>> from shapely.geometry import MultiPoint
+  >>> from shapely import MultiPoint
   >>> points = MultiPoint([(0.0, 0.0), (1.0, 1.0)])
   >>> points.area
   0.0
@@ -664,18 +644,13 @@ Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
   >>> points.bounds
   (0.0, 0.0, 1.0, 1.0)
 
-Members of a multi-point collection are accessed via the ``geoms`` property or
-via the iterator protocol using ``in`` or ``list()``.
+Members of a multi-point collection are accessed via the ``geoms`` property.
 
 .. code-block:: pycon
 
-  >>> import pprint
-  >>> pprint.pprint(list(points.geoms))
-  [<shapely.geometry.point.Point object at 0x...>,
-   <shapely.geometry.point.Point object at 0x...>]
-  >>> pprint.pprint(list(points))
-  [<shapely.geometry.point.Point object at 0x...>,
-   <shapely.geometry.point.Point object at 0x...>]
+  >>> from pprint import pprint
+  >>> list(points.geoms)
+  [<shapely.Point POINT (0 0)>, <shapely.Point POINT (1 1)>]
 
 The constructor also accepts another `MultiPoint` instance or an unordered
 sequence of `Point` instances, thereby making copies.
@@ -683,7 +658,7 @@ sequence of `Point` instances, thereby making copies.
 .. code-block:: pycon
 
   >>> MultiPoint([Point(0, 0), Point(1, 1)])
-  <shapely.geometry.multipoint.MultiPoint object at 0x...>
+  <shapely.MultiPoint MULTIPOINT (0 0, 1 1)>
 
 .. _multilinestrings:
 
@@ -705,13 +680,13 @@ A `MultiLineString` has zero area and non-zero length.
 
 .. code-block:: pycon
 
-  >>> from shapely.geometry import MultiLineString
+  >>> from shapely import MultiLineString
   >>> coords = [((0, 0), (1, 1)), ((-1, 0), (1, 0))]
   >>> lines = MultiLineString(coords)
   >>> lines.area
   0.0
   >>> lines.length
-  3.4142135623730949
+  3.414213562373095
 
 Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
 
@@ -721,18 +696,15 @@ Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
   (-1.0, 0.0, 1.0, 1.0)
 
 Its members are instances of `LineString` and are accessed via the ``geoms``
-property or via the iterator protocol using ``in`` or ``list()``.
+property.
 
 .. code-block:: pycon
 
   >>> len(lines.geoms)
   2
-  >>> pprint.pprint(list(lines.geoms))
-  [<shapely.geometry.linestring.LineString object at 0x...>,
-   <shapely.geometry.linestring.LineString object at 0x...>]
-  >>> pprint.pprint(list(lines))
-  [<shapely.geometry.linestring.LineString object at 0x...>,
-   <shapely.geometry.linestring.LineString object at 0x...>]
+  >>> pprint(list(lines.geoms))
+  [<shapely.LineString LINESTRING (0 0, 1 1)>,
+   <shapely.LineString LINESTRING (-1 0, 1 0)>]
 
 The constructor also accepts another instance of `MultiLineString` or an
 unordered sequence of `LineString` instances, thereby making copies.
@@ -740,9 +712,9 @@ unordered sequence of `LineString` instances, thereby making copies.
 .. code-block:: pycon
 
   >>> MultiLineString(lines)
-  <shapely.geometry.multilinestring.MultiLineString object at 0x...>
+  <shapely.MultiLineString MULTILINESTRING ((0 0, 1 1), (-1 0, 1 0))>
   >>> MultiLineString(lines.geoms)
-  <shapely.geometry.multilinestring.MultiLineString object at 0x...>
+  <shapely.MultiLineString MULTILINESTRING ((0 0, 1 1), (-1 0, 1 0))>
 
 .. _multipolygons:
 
@@ -759,6 +731,7 @@ instances, thereby making copies.
 
 .. code-block:: pycon
 
+  >>> from shapely import MultiPolygon
   >>> polygons = MultiPolygon([polygon, s, t])
   >>> len(polygons.geoms)
   3
@@ -803,21 +776,8 @@ by empty features.
   0.0
   >>> line.bounds
   ()
-  >>> line.coords
+  >>> list(line.coords)
   []
-
-The coordinates of a empty feature can be set, after which the geometry is no
-longer empty.
-
-.. code-block:: pycon
-
-  >>> line.coords = [(0, 0), (1, 1)]
-  >>> line.is_empty
-  False
-  >>> line.length
-  1.4142135623730951
-  >>> line.bounds
-  (0.0, 0.0, 1.0, 1.0)
 
 Coordinate sequences
 --------------------
@@ -831,7 +791,7 @@ directly, but can be accessed from an existing geometry as the
 
   >>> line = LineString([(0, 1), (2, 3), (4, 5)])
   >>> line.coords
-  <shapely.coords.CoordinateSequence object at 0x00000276EED1C7F0>
+  <shapely.coords.CoordinateSequence object at ...>
 
 Coordinate sequences can be indexed, sliced and iterated over as if they were a
 list of coordinate tuples.
@@ -856,7 +816,7 @@ interior rings.
 
   >>> poly = Polygon([(0, 0), (0, 1), (1, 1), (0, 0)])
   >>> poly.exterior.coords
-  <shapely.coords.CoordinateSequence object at 0x00000276EED1C048>
+  <shapely.coords.CoordinateSequence object at ...>
 
 Multipart geometries do not have a coordinate sequence. Instead the coordinate
 sequences are stored on their component geometries.
@@ -864,8 +824,8 @@ sequences are stored on their component geometries.
 .. code-block:: pycon
 
   >>> p = MultiPoint([(0, 0), (1, 1), (2, 2)])
-  >>> p[2].coords
-  <shapely.coords.CoordinateSequence object at 0x00000276EFB9B320>
+  >>> p.geoms[2].coords
+  <shapely.coords.CoordinateSequence object at ...>
 
 Linear Referencing Methods
 --------------------------
@@ -887,11 +847,11 @@ fraction of the geometric object's length.
 
   >>> ip = LineString([(0, 0), (0, 1), (1, 1)]).interpolate(1.5)
   >>> ip
-  <shapely.geometry.point.Point object at 0x740570>
+  <shapely.Point POINT (0.5 1)>
   >>> ip.wkt
-  'POINT (0.5000000000000000 1.0000000000000000)'
+  'POINT (0.5 1)'
   >>> LineString([(0, 0), (0, 1), (1, 1)]).interpolate(0.75, normalized=True).wkt
-  'POINT (0.5000000000000000 1.0000000000000000)'
+  'POINT (0.5 1)'
 
 .. method:: object.project(other[, normalized=False])
 
@@ -934,10 +894,10 @@ specified distance.
 .. code-block:: pycon
 
   >>> line = LineString([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0)])
-  >>> pprint([list(x.coords) for x in cut(line, 1.0)])
+  >>> pprint([list(x.coords) for x in cut(line, 1.0)])  # doctest: +SKIP
   [[(0.0, 0.0), (1.0, 0.0)],
    [(1.0, 0.0), (2.0, 0.0), (3.0, 0.0), (4.0, 0.0), (5.0, 0.0)]]
-  >>> pprint([list(x.coords) for x in cut(line, 2.5)])
+  >>> pprint([list(x.coords) for x in cut(line, 2.5)])  # doctest: +SKIP
   [[(0.0, 0.0), (1.0, 0.0), (2.0, 0.0), (2.5, 0.0)],
    [(2.5, 0.0), (3.0, 0.0), (4.0, 0.0), (5.0, 0.0)]]
 
@@ -990,8 +950,8 @@ A ring with an undesired orientation can be reversed like this:
   >>> ring = LinearRing([(0,0), (1,1), (1,0)])
   >>> ring.is_ccw
   False
-  >>> ring.coords = list(ring.coords)[::-1]
-  >>> ring.is_ccw
+  >>> ring2 = LinearRing(list(ring.coords)[::-1])
+  >>> ring2.is_ccw
   True
 
 .. attribute:: object.is_empty
@@ -1016,7 +976,7 @@ A ring with an undesired orientation can be reversed like this:
 
   >>> from operator import attrgetter
   >>> empties = filter(attrgetter('is_empty'), [Point(), Point(0, 0)])
-  >>> len(empties)
+  >>> len(list(empties))
   1
 
 .. attribute:: object.is_ring
@@ -1091,12 +1051,12 @@ buffer operations (explained in a following section) overlap.
 
 .. code-block:: pycon
 
-  >>> @validate
+  >>> @validate  # doctest: +SKIP
   ... def ring(coordinates):
   ...     return LinearRing(coordinates)
   ...
   >>> coords = [(0, 0), (1, 1), (1, -1), (0, 1)]
-  >>> ring(coords)
+  >>> ring(coords)  # doctest: +SKIP
   Traceback (most recent call last):
     File "<stdin>", line 1, in <module>
     File "<stdin>", line 7, in wrapper
@@ -1178,11 +1138,11 @@ A line's endpoints are part of its `boundary` and are therefore not contained.
 .. code-block:: pycon
 
   >>> line = LineString(coords)
-  >>> contained = filter(line.contains, [Point(), Point(0.5, 0.5)])
+  >>> contained = list(filter(line.contains, [Point(), Point(0.5, 0.5)]))
   >>> len(contained)
   1
   >>> [p.wkt for p in contained]
-  ['POINT (0.5000000000000000 0.5000000000000000)']
+  ['POINT (0.5 0.5)']
 
 .. method:: object.covers(other)
 
@@ -1290,21 +1250,18 @@ Shapely's binary :meth:`within` predicate.
 
 .. code-block:: python
 
-  class Within:
-      def __init__(self, o):
-          self.o = o
-      def __lt__(self, other):
-          return self.o.within(other.o)
+  >>> class Within:
+  ...     def __init__(self, o):
+  ...         self.o = o
+  ...     def __lt__(self, other):
+  ...         return self.o.within(other.o)
 
 As the howto says, the `less than` comparison is guaranteed to be used in
-sorting. That's what we'll rely on to spatially sort, and the reason why we use
-:meth:`within` in reverse instead of :meth:`contains`. Trying it out on features
+sorting. That's what we'll rely on to spatially sort. Trying it out on features
 `d` and `c`, we see that it works.
 
 .. code-block:: pycon
 
-  >>> d < c
-  True
   >>> Within(d) < Within(c)
   False
 
@@ -1362,11 +1319,11 @@ returned, otherwise ``False``. The pattern specified can be an exact match
 
 .. code-block:: pycon
 
-  >> point = Point(0.5, 0.5)
-  >> square = Polygon([(0, 0), (0, 1), (1, 1), (1, 0)])
-  >> square.relate_pattern(point, 'T*****FF*')
+  >>> point = Point(0.5, 0.5)
+  >>> square = Polygon([(0, 0), (0, 1), (1, 1), (1, 0)])
+  >>> square.relate_pattern(point, 'T*****FF*')
   True
-  >> point.within(square)
+  >>> point.within(square)
   True
 
 Note that the order or the geometries is significant, as demonstrated below.
@@ -1413,23 +1370,21 @@ available as a read-only attribute.
   `boundary`.
 
 The boundary of a polygon is a line, the boundary of a line is a collection of
-points. The boundary of a point is an empty (null) collection.
+points. The boundary of a point is an empty collection.
 
 .. code-block:: pycon
 
-  >> coords = [((0, 0), (1, 1)), ((-1, 0), (1, 0))]
+  >>> coords = [((0, 0), (1, 1)), ((-1, 0), (1, 0))]
   >>> lines = MultiLineString(coords)
   >>> lines.boundary
-  <shapely.geometry.multipoint.MultiPoint object at 0x...>
-  >>> pprint(list(lines.boundary))
-  [<shapely.geometry.point.Point object at 0x...>,
-   <shapely.geometry.point.Point object at 0x...>,
-   <shapely.geometry.point.Point object at 0x...>,
-   <shapely.geometry.point.Point object at 0x...>]
+  <shapely.MultiPoint MULTIPOINT (-1 0, 0 0, 1 0, 1 1)>
+  >>> pprint(list(lines.boundary.geoms))
+  [<shapely.Point POINT (-1 0)>,
+   <shapely.Point POINT (0 0)>,
+   <shapely.Point POINT (1 0)>,
+   <shapely.Point POINT (1 1)>]
   >>> lines.boundary.boundary
-  <shapely.geometry.collection.GeometryCollection object at 0x...>
-  >>> lines.boundary.boundary.is_empty
-  True
+  <shapely.GeometryCollection GEOMETRYCOLLECTION EMPTY>
 
 See the figures in :ref:`linestrings` and :ref:`multilinestrings` for the
 illustration of lines and their boundaries.
@@ -1441,9 +1396,7 @@ illustration of lines and their boundaries.
 .. code-block:: pycon
 
   >>> LineString([(0, 0), (1, 1)]).centroid
-  <shapely.geometry.point.Point object at 0x...>
-  >>> LineString([(0, 0), (1, 1)]).centroid.wkt
-  'POINT (0.5000000000000000 0.5000000000000000)'
+  <shapely.Point POINT (0.5 0.5)>
 
 .. note::
 
@@ -1460,7 +1413,7 @@ illustration of lines and their boundaries.
   >>> a = Point(1, 1).buffer(1.5)
   >>> b = Point(2, 1).buffer(1.5)
   >>> a.difference(b)
-  <shapely.geometry.polygon.Polygon object at 0x...>
+  <shapely.Polygon POLYGON ((1.435 -0.435, 1.293 -0.471, 1.147 -0.493, 1 -0.5,...>
 
 .. note::
 
@@ -1489,7 +1442,7 @@ Figure 8. Differences between two approximately circular polygons.
   >>> a = Point(1, 1).buffer(1.5)
   >>> b = Point(2, 1).buffer(1.5)
   >>> a.intersection(b)
-  <shapely.geometry.polygon.Polygon object at 0x...>
+  <shapely.Polygon POLYGON ((2.493 0.853, 2.471 0.707, 2.435 0.565, 2.386 0.42...>
 
 See the figure under :meth:`symmetric_difference` below.
 
@@ -1503,7 +1456,7 @@ See the figure under :meth:`symmetric_difference` below.
   >>> a = Point(1, 1).buffer(1.5)
   >>> b = Point(2, 1).buffer(1.5)
   >>> a.symmetric_difference(b)
-  <shapely.geometry.multipolygon.MultiPolygon object at ...>
+  <shapely.MultiPolygon MULTIPOLYGON (((1.574 -0.386, 1.707 -0.323, 1.833 -0.2...>
 
 .. plot:: code/intersection-sym-difference.py
 
@@ -1521,7 +1474,7 @@ depending on whether they intersect or not.
   >>> a = Point(1, 1).buffer(1.5)
   >>> b = Point(2, 1).buffer(1.5)
   >>> a.union(b)
-  <shapely.geometry.polygon.Polygon object at 0x...>
+  <shapely.Polygon POLYGON ((1.435 -0.435, 1.293 -0.471, 1.147 -0.493, 1 -0.5,...>
 
 The semantics of these operations vary with type of geometric object.  For
 example, compare the boundary of the union of polygons to the union of their
@@ -1530,9 +1483,9 @@ boundaries.
 .. code-block:: pycon
 
   >>> a.union(b).boundary
-  <shapely.geometry.polygon.LinearRing object at 0x...>
+  <shapely.LineString LINESTRING (1.435 -0.435, 1.293 -0.471, 1.147 -0.493, 1 ...>
   >>> a.boundary.union(b.boundary)
-  <shapely.geometry.multilinestring.MultiLineString object at 0x...>
+  <shapely.MultiLineString MULTILINESTRING ((2.5 1, 2.493 0.853, 2.471 0.707, ...>
 
 .. plot:: code/union.py
 
@@ -1551,17 +1504,18 @@ Several of these set-theoretic methods can be invoked using overloaded operators
 
 
 .. code-block:: pycon
->>> from shapely import wkt
->>> p1 = wkt.loads('POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))')
->>> p2 = wkt.loads('POLYGON((0.5 0, 1.5 0, 1.5 1, 0.5 1, 0.5 0))')
->>> (p1 & p2).wkt
-'POLYGON ((1 0, 0.5 0, 0.5 1, 1 1, 1 0))'
->>> (p1 | p2).wkt
-'POLYGON ((0.5 0, 0 0, 0 1, 0.5 1, 1 1, 1.5 1, 1.5 0, 1 0, 0.5 0))'
->>> (p1 - p2).wkt
-'POLYGON ((0.5 0, 0 0, 0 1, 0.5 1, 0.5 0))'
->>> (p1 ^ p2).wkt
-'MULTIPOLYGON (((0.5 0, 0 0, 0 1, 0.5 1, 0.5 0)), ((1 0, 1 1, 1.5 1, 1.5 0, 1 0)))'
+
+  >>> from shapely import wkt
+  >>> p1 = wkt.loads('POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))')
+  >>> p2 = wkt.loads('POLYGON((0.5 0, 1.5 0, 1.5 1, 0.5 1, 0.5 0))')
+  >>> (p1 & p2).wkt
+  'POLYGON ((0.5 0, 0.5 1, 1 1, 1 0, 0.5 0))'
+  >>> (p1 | p2).wkt
+  'POLYGON ((0 0, 0 1, 0.5 1, 1 1, 1.5 1, 1.5 0, 1 0, 0.5 0, 0 0))'
+  >>> (p1 - p2).wkt
+  'POLYGON ((0 0, 0 1, 0.5 1, 0.5 0, 0 0))'
+  >>> (p1 ^ p2).wkt
+  'MULTIPOLYGON (((0 0, 0 1, 0.5 1, 0.5 0, 0 0)), ((1 1, 1.5 1, 1.5 0, 1 0, 1 1)))'
 
 
 Constructive Methods
@@ -1633,9 +1587,9 @@ The default (`resolution` of 16) buffer of a point is a polygonal patch with
 
   >>> p = Point(0, 0).buffer(10.0)
   >>> len(p.exterior.coords)
-  66
+  65
   >>> p.area
-  313.65484905459385
+  313.6548490545941
 
 With a `resolution` of 1, the buffer is a square patch.
 
@@ -1684,7 +1638,7 @@ mileage may vary when cleaning surfaces.
   >>> clean.is_valid
   True
   >>> clean
-  <shapely.geometry.multipolygon.MultiPolygon object at ...>
+  <shapely.MultiPolygon MULTIPOLYGON (((0 0, 0 2, 1 1, 0 0)), ((1 1, 2 2, 2 0,...>
   >>> len(clean.geoms)
   2
   >>> list(clean.geoms[0].exterior.coords)
@@ -1704,11 +1658,11 @@ Buffering splits the polygon in two at the point where they touch.
 .. code-block:: pycon
 
   >>> Point(0, 0).convex_hull
-  <shapely.geometry.point.Point object at 0x...>
+  <shapely.Point POINT (0 0)>
   >>> MultiPoint([(0, 0), (1, 1)]).convex_hull
-  <shapely.geometry.linestring.LineString object at 0x...>
+  <shapely.LineString LINESTRING (0 0, 1 1)>
   >>> MultiPoint([(0, 0), (1, 1), (1, -1)]).convex_hull
-  <shapely.geometry.polygon.Polygon object at 0x...>
+  <shapely.Polygon POLYGON ((1 -1, 0 0, 1 1, 1 -1))>
 
 .. plot:: code/convex_hull.py
 
@@ -1722,9 +1676,9 @@ Figure 11. Convex hull (blue) of 2 points (left) and of 6 points (right).
 .. code-block:: pycon
 
   >>> Point(0, 0).envelope
-  <shapely.geometry.point.Point object at 0x...>
+  <shapely.Point POINT (0 0)>
   >>> MultiPoint([(0, 0), (1, 1)]).envelope
-  <shapely.geometry.polygon.Polygon object at 0x...>
+  <shapely.Polygon POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))>
 
 .. attribute:: object.minimum_rotated_rectangle
 
@@ -1738,9 +1692,9 @@ Figure 11. Convex hull (blue) of 2 points (left) and of 6 points (right).
 .. code-block:: pycon
 
   >>> Point(0, 0).minimum_rotated_rectangle
-  <shapely.geometry.point.Point object at 0x...>
+  <shapely.Point POINT (0 0)>
   >>> MultiPoint([(0,0),(1,1),(2,0.5)]).minimum_rotated_rectangle
-  <shapely.geometry.polygon.Polygon object at 0x...>
+  <shapely.Polygon POLYGON ((1.824 1.206, -0.176 0.706, 0 0, 2 0.5, 1.824 1.206))>
 
 .. plot:: code/minimum_rotated_rectangle.py
 
@@ -1808,12 +1762,12 @@ Douglas-Peucker algorithm [6]_ is used.
   >>> p = Point(0.0, 0.0)
   >>> x = p.buffer(1.0)
   >>> x.area
-  3.1365484905459389
+  3.1365484905459398
   >>> len(x.exterior.coords)
-  66
+  65
   >>> s = x.simplify(0.05, preserve_topology=False)
   >>> s.area
-  3.0614674589207187
+  3.061467458920719
   >>> len(s.exterior.coords)
   17
 
@@ -2081,7 +2035,7 @@ If using `pyproj>=2.1.0`, the preferred method to project geometries is:
 
     import pyproj
 
-    from shapely.geometry import Point
+    from shapely import Point
     from shapely.ops import transform
 
     wgs84_pt = Point(-72.2495, 43.886)
@@ -2150,8 +2104,7 @@ using functions in the :mod:`shapely.ops` module.
     ...     ((1, 0), (0, 0))
     ...     ]
     >>> pprint(list(polygonize(lines)))
-    [<shapely.geometry.polygon.Polygon object at 0x...>,
-     <shapely.geometry.polygon.Polygon object at 0x...>]
+    [<shapely.Polygon POLYGON ((0 0, 1 1, 1 0, 0 0))>, <shapely.Polygon POLYGON ((1 1, 0 0, 0 1, 1 1))>]
 
 .. function:: shapely.ops.polygonize_full(lines)
 
@@ -2173,6 +2126,7 @@ using functions in the :mod:`shapely.ops` module.
 
   .. code-block:: pycon
 
+    >>> from shapely.ops import polygonize_full
     >>> lines = [
     ...     ((0, 0), (1, 1)),
     ...     ((0, 0), (0, 1)),
@@ -2186,9 +2140,9 @@ using functions in the :mod:`shapely.ops` module.
     >>> len(result.geoms)
     2
     >>> list(result.geoms)
-    [<shapely.geometry.polygon.Polygon object at ...>, <shapely.geometry.polygon.Polygon object at ...>]
+    [<shapely.Polygon POLYGON ((0 0, 1 1, 1 0, 0 0))>, <shapely.Polygon POLYGON ((1 1, 0 0, 0 1, 1 1))>]
     >>> list(cuts.geoms)
-    [<shapely.geometry.linestring.LineString object at ...>, <shapely.geometry.linestring.LineString object at ...>]
+    [<shapely.LineString LINESTRING (1 1, 100 100)>, <shapely.LineString LINESTRING (5 5, 6 6)>]
 
 .. function:: shapely.ops.linemerge(lines)
 
@@ -2202,11 +2156,13 @@ using functions in the :mod:`shapely.ops` module.
 
     >>> from shapely.ops import linemerge
     >>> linemerge(lines)
-    <shapely.geometry.multilinestring.MultiLineString object at 0x...>
-    >>> pprint(list(linemerge(lines)))
-    [<shapely.geometry.linestring.LineString object at 0x...>,
-     <shapely.geometry.linestring.LineString object at 0x...>,
-     <shapely.geometry.linestring.LineString object at 0x...>]
+    <shapely.MultiLineString MULTILINESTRING ((1 1, 1 0, 0 0), (0 0, 1 1), (0 0,...>
+    >>> pprint(list(linemerge(lines).geoms))
+    [<shapely.LineString LINESTRING (1 1, 1 0, 0 0)>,
+     <shapely.LineString LINESTRING (0 0, 1 1)>,
+     <shapely.LineString LINESTRING (0 0, 0 1, 1 1)>,
+     <shapely.LineString LINESTRING (1 1, 100 100)>,
+     <shapely.LineString LINESTRING (5 5, 6 6)>]
 
 Efficient Rectangle Clipping
 ----------------------------
@@ -2225,12 +2181,11 @@ portion of a geometry within a rectangle.
 
 .. code-block:: python
 
-  >>> from shapely.geometry import Polygon
   >>> from shapely.ops import clip_by_rect
   >>> polygon = Polygon(
-         shell=[(0, 0), (0, 30), (30, 30), (30, 0), (0, 0)],
-         holes=[[(10, 10), (20, 10), (20, 20), (10, 20), (10, 10)]],
-      )
+  ...     shell=[(0, 0), (0, 30), (30, 30), (30, 0), (0, 0)],
+  ...     holes=[[(10, 10), (20, 10), (20, 20), (10, 20), (10, 10)]],
+  ... )
   >>> clipped_polygon = clip_by_rect(polygon, 5, 5, 15, 15)
   >>> print(clipped_polygon.wkt)
   POLYGON ((5 5, 5 15, 10 15, 10 10, 15 10, 15 5, 5 5))
@@ -2255,7 +2210,7 @@ efficient than accumulating with :meth:`union`.
     >>> from shapely.ops import unary_union
     >>> polygons = [Point(i, 0).buffer(0.7) for i in range(5)]
     >>> unary_union(polygons)
-    <shapely.geometry.polygon.Polygon object at 0x...>
+    <shapely.Polygon POLYGON ((0.444 -0.541, 0.389 -0.582, 0.33 -0.617, 0.268 -0...>
 
   Because the union merges the areas of overlapping `Polygons` it can be
   used in an attempt to fix invalid `MultiPolygons`. As with the zero
@@ -2265,11 +2220,11 @@ efficient than accumulating with :meth:`union`.
 
     >>> m = MultiPolygon(polygons)
     >>> m.area
-    7.6845438018375516
+    7.684543801837549
     >>> m.is_valid
     False
     >>> unary_union(m).area
-    6.6103013551167971
+    6.610301355116799
     >>> unary_union(m).is_valid
     True
 
@@ -2311,7 +2266,7 @@ Delaunay triangulation from a collection of points.
   >>> from shapely.ops import triangulate
   >>> points = MultiPoint([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
   >>> triangles = triangulate(points)
-  >>> pprint([triangle.wkt for triangle in triangles])
+  >>> print([triangle.wkt for triangle in triangles])
   ['POLYGON ((0 2, 0 0, 1 1, 0 2))',
    'POLYGON ((0 2, 1 1, 2 2, 0 2))',
    'POLYGON ((2 2, 1 1, 3 1, 2 2))',
@@ -2354,13 +2309,13 @@ Voronoi diagram from a collection points, or the vertices of any geometry.
   >>> from shapely.ops import voronoi_diagram
   >>> points = MultiPoint([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
   >>> regions = voronoi_diagram(points)
-  >>> pprint([region.wkt for region in regions])
+  >>> pprint([region.wkt for region in regions.geoms])
   ['POLYGON ((2 1, 2 0.5, 0.5 0.5, 0 1, 1 2, 2 1))',
-   'POLYGON ((6 5, 6 -3, 3.75 -3, 2 0.5, 2 1, 6 5))',
-   'POLYGON ((0.5 -3, -3 -3, -3 1, 0 1, 0.5 0.5, 0.5 -3))',
-   'POLYGON ((3.75 -3, 0.5 -3, 0.5 0.5, 2 0.5, 3.75 -3))',
-   'POLYGON ((-3 1, -3 5, 1 5, 1 2, 0 1, -3 1))',
-   'POLYGON ((1 5, 6 5, 2 1, 1 2, 1 5))']
+   'POLYGON ((6 -3, 3.7499999999999996 -3, 2 0.5, 2 1, 6 5, 6 -3))',
+   'POLYGON ((-3 -3, -3 1, 0 1, 0.5 0.5, 0.5 -3, -3 -3))',
+   'POLYGON ((0.5 -3, 0.5 0.5, 2 0.5, 3.7499999999999996 -3, 0.5 -3))',
+   'POLYGON ((-3 5, 1 5, 1 2, 0 1, -3 1, -3 5))',
+   'POLYGON ((6 5, 2 1, 1 2, 1 5, 6 5))']
 
 
 Nearest points
@@ -2434,7 +2389,7 @@ paths between two linear geometries.
   >>> from shapely.ops import shared_paths
   >>> g1 = LineString([(0, 0), (10, 0), (10, 5), (20, 5)])
   >>> g2 = LineString([(5, 0), (30, 0), (30, 5), (0, 5)])
-  >>> forward, backward = shared_paths(g1, g2)
+  >>> forward, backward = shared_paths(g1, g2).geoms
   >>> forward.wkt
   'MULTILINESTRING ((5 0, 10 0))'
   >>> backward.wkt
@@ -2464,6 +2419,7 @@ The :func:`~shapely.ops.split` function in `shapely.ops` splits a geometry by an
 
 .. code-block:: pycon
 
+  >>> from shapely.ops import split
   >>> pt = Point((1, 1))
   >>> line = LineString([(0,0), (2,2)])
   >>> result = split(line, pt)
@@ -2500,7 +2456,6 @@ between specified distances along a `LineString`.
 
   .. code-block:: pycon
 
-    >>> from shapely.geometry import LineString
     >>> from shapely.ops import substring
     >>> ls = LineString((i, 0) for i in range(6))
     >>> ls.wkt
@@ -2518,7 +2473,7 @@ between specified distances along a `LineString`.
 
   .. code-block:: pycon
 
-    >>> substring(ls, start_dist=2.5, end_dist=-2.5)
+    >>> substring(ls, start_dist=2.5, end_dist=-2.5).wkt
     'POINT (2.5 0)'
 
 Prepared Geometry Operations
@@ -2536,7 +2491,6 @@ first use the :func:`prepared.prep` function.
 
 .. code-block:: pycon
 
-  >>> from shapely.geometry import Point
   >>> from shapely.prepared import prep
   >>> points = [...] # large list of points
   >>> polygon = Point(0.0, 0.0).buffer(1.0)
@@ -2589,7 +2543,7 @@ be parsed out.
   >>> coords = [(0, 0), (0, 2), (1, 1), (2, 2), (2, 0), (1, 1), (0, 0)]
   >>> p = Polygon(coords)
   >>> str(make_valid(p))
-  'MULTIPOLYGON (((0 0, 0 2, 1 1, 0 0)), ((1 1, 2 2, 2 0, 1 1)))'
+  'MULTIPOLYGON (((1 1, 0 0, 0 2, 1 1)), ((2 0, 1 1, 2 2, 2 0)))'
 
   Yields a MultiPolygon with two parts:
 
@@ -2602,7 +2556,8 @@ be parsed out.
   >>> from shapely.validation import make_valid
   >>> coords = [(0, 2), (0, 1), (2, 0), (0, 0), (0, 2)]
   >>> p = Polygon(coords)
-  >>> str(make_valid(p))
+  >>> make_valid(p).wkt
+  'GEOMETRYCOLLECTION (POLYGON ((2 0, 0 0, 0 1, 2 0)), LINESTRING (0 2, 0 1))'
 
   Yields a GeometryCollection with a Polygon and a LineString:
 
@@ -2619,13 +2574,13 @@ accessible via :attr:`shapely.__version__`,
 .. code-block:: pycon
 
   >>> import shapely
-  >>> shapely.__version__
-  '1.3.0'
+  >>> shapely.__version__  # doctest: +SKIP
+  '2.0.0'
   >>> import shapely.geos
-  >>> shapely.geos.geos_version
-  (3, 3, 0)
-  >>> shapely.geos.geos_version_string
-  '3.3.0-CAPI-1.7.0'
+  >>> shapely.geos.geos_version  # doctest: +SKIP
+  (3, 10, 2)
+  >>> shapely.geos.geos_version_string  # doctest: +SKIP
+  '3.10.2-CAPI-1.16.0'
 
 Polylabel
 ---------
@@ -2649,7 +2604,7 @@ Polylabel
   ... (-100, -20), (-150, -200)]).buffer(100)
   >>> label = polylabel(polygon, tolerance=10)
   >>> label.wkt
-  'POINT (59.35615556364569 121.8391962974644)'
+  'POINT (59.35615556364569 121.83919629746435)'
 
 STR-packed R-tree
 =================
@@ -2678,7 +2633,7 @@ cannot add or remove geometries.
 
     .. code-block:: pycon
 
-      >>> from shapely.strtree import STRtree
+      >>> from shapely import STRtree
       >>> points = [Point(i, i) for i in range(10)]
       >>> tree = STRtree(points)
       >>> query_geom = Point(2,2).buffer(0.99)
@@ -2710,7 +2665,7 @@ cannot add or remove geometries.
 
       >>> tree = STRtree([Point(i, i) for i in range(10)])
       >>> tree.nearest(Point(2.2, 2.2)).wkt
-      'Point (2 2)'
+      'POINT (2 2)'
 
 Interoperation
 ==============
@@ -2728,8 +2683,10 @@ example, trades in hex-encoded WKB.
 .. code-block:: pycon
 
   >>> Point(0, 0).wkt
-  'POINT (0.0000000000000000 0.0000000000000000)'
-  >>> Point(0, 0).wkb.encode('hex')
+  'POINT (0 0)'
+  >>> Point(0, 0).wkb
+  b'\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+  >>> Point(0, 0).wkb_hex
   '010100000000000000000000000000000000000000'
 
 The `shapely.wkt` and `shapely.wkb` modules provide `dumps()` and `loads()`
@@ -2759,8 +2716,6 @@ while this is not the case for `dumps()`, though it can be replicated by setting
   b'\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
   >>> pt.wkb
   b'\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-  >>> pt.wkb_hex
-  '010100000000000000000000000000000000000000'
   >>> wkb.loads(pt.wkb).wkt
   'POINT (0 0)'
 
@@ -2798,16 +2753,12 @@ adapted to Numpy arrays.
 
 .. code-block:: pycon
 
-  >>> from numpy import asarray
-  >>> asarray(Point(0, 0))
-  array([ 0.,  0.])
-  >>> asarray(LineString([(0, 0), (1, 1)]))
-  array([[ 0.,  0.],
-         [ 1.,  1.]])
-
-.. note::
-
-  The Numpy array interface is provided without a dependency on Numpy itself.
+  >>> import numpy as np
+  >>> np.asarray(Point(0, 0).coords)
+  array([[0., 0.]])
+  >>> np.asarray(LineString([(0, 0), (1, 1)]).coords)
+  array([[0., 0.],
+         [1., 1.]])
 
 The coordinates of the same types of geometric objects can be had as standard
 Python arrays of `x` and `y` values via the :attr:`xy` attribute.
@@ -2862,8 +2813,8 @@ The GeoJSON-like mapping of a geometric object can be obtained using
 
 .. function:: shapely.geometry.mapping(ob)
 
-  Returns a new, independent geometry with coordinates `copied` from the
-  context.
+  Returns a GeoJSON-like mapping from a Geometry or any object which
+  implements ``__geo_interface__``.
 
   `New in version 1.2.3`.
 
@@ -2877,7 +2828,7 @@ The GeoJSON-like mapping of a geometric object can be obtained using
   >>> m['type']
   'Point'
   >>> m['coordinates']
-  (0.0, 0.0)}
+  (0.0, 0.0)
 
 
 Performance
