@@ -648,7 +648,6 @@ Members of a multi-point collection are accessed via the ``geoms`` property.
 
 .. code-block:: pycon
 
-  >>> from pprint import pprint
   >>> list(points.geoms)
   [<shapely.Point POINT (0 0)>, <shapely.Point POINT (1 1)>]
 
@@ -702,7 +701,7 @@ property.
 
   >>> len(lines.geoms)
   2
-  >>> pprint(list(lines.geoms))
+  >>> print(list(lines.geoms))
   [<shapely.LineString LINESTRING (0 0, 1 1)>,
    <shapely.LineString LINESTRING (-1 0, 1 0)>]
 
@@ -894,10 +893,10 @@ specified distance.
 .. code-block:: pycon
 
   >>> line = LineString([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0)])
-  >>> pprint([list(x.coords) for x in cut(line, 1.0)])  # doctest: +SKIP
+  >>> print([list(x.coords) for x in cut(line, 1.0)])  # doctest: +SKIP
   [[(0.0, 0.0), (1.0, 0.0)],
    [(1.0, 0.0), (2.0, 0.0), (3.0, 0.0), (4.0, 0.0), (5.0, 0.0)]]
-  >>> pprint([list(x.coords) for x in cut(line, 2.5)])  # doctest: +SKIP
+  >>> print([list(x.coords) for x in cut(line, 2.5)])  # doctest: +SKIP
   [[(0.0, 0.0), (1.0, 0.0), (2.0, 0.0), (2.5, 0.0)],
    [(2.5, 0.0), (3.0, 0.0), (4.0, 0.0), (5.0, 0.0)]]
 
@@ -1378,7 +1377,7 @@ points. The boundary of a point is an empty collection.
   >>> lines = MultiLineString(coords)
   >>> lines.boundary
   <shapely.MultiPoint MULTIPOINT (-1 0, 0 0, 1 0, 1 1)>
-  >>> pprint(list(lines.boundary.geoms))
+  >>> list(lines.boundary.geoms)
   [<shapely.Point POINT (-1 0)>,
    <shapely.Point POINT (0 0)>,
    <shapely.Point POINT (1 0)>,
@@ -2103,8 +2102,9 @@ using functions in the :mod:`shapely.ops` module.
     ...     ((1, 1), (1, 0)),
     ...     ((1, 0), (0, 0))
     ...     ]
-    >>> pprint(list(polygonize(lines)))
-    [<shapely.Polygon POLYGON ((0 0, 1 1, 1 0, 0 0))>, <shapely.Polygon POLYGON ((1 1, 0 0, 0 1, 1 1))>]
+    >>> list(polygonize(lines))
+    [<shapely.Polygon POLYGON ((0 0, 1 1, 1 0, 0 0))>,
+     <shapely.Polygon POLYGON ((1 1, 0 0, 0 1, 1 1))>]
 
 .. function:: shapely.ops.polygonize_full(lines)
 
@@ -2157,7 +2157,7 @@ using functions in the :mod:`shapely.ops` module.
     >>> from shapely.ops import linemerge
     >>> linemerge(lines)
     <shapely.MultiLineString MULTILINESTRING ((1 1, 1 0, 0 0), (0 0, 1 1), (0 0,...>
-    >>> pprint(list(linemerge(lines).geoms))
+    >>> list(linemerge(lines).geoms)
     [<shapely.LineString LINESTRING (1 1, 1 0, 0 0)>,
      <shapely.LineString LINESTRING (0 0, 1 1)>,
      <shapely.LineString LINESTRING (0 0, 0 1, 1 1)>,
@@ -2309,7 +2309,7 @@ Voronoi diagram from a collection points, or the vertices of any geometry.
   >>> from shapely.ops import voronoi_diagram
   >>> points = MultiPoint([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
   >>> regions = voronoi_diagram(points)
-  >>> pprint([region.wkt for region in regions.geoms])
+  >>> print([region.wkt for region in regions.geoms])
   ['POLYGON ((2 1, 2 0.5, 0.5 0.5, 0 1, 1 2, 2 1))',
    'POLYGON ((6 -3, 3.7499999999999996 -3, 2 0.5, 2 1, 6 5, 6 -3))',
    'POLYGON ((-3 -3, -3 1, 0 1, 0.5 0.5, 0.5 -3, -3 -3))',
