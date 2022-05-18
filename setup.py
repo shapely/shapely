@@ -9,6 +9,10 @@ from pkg_resources import parse_version
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext as _build_ext
 
+# ensure the current directory is on sys.path so versioneer can be imported
+# when pip uses PEP 517/518 build rules.
+# https://github.com/python-versioneer/python-versioneer/issues/193
+sys.path.append(os.path.dirname(__file__))
 import versioneer
 
 # Skip Cython build if not available
