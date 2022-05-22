@@ -10,33 +10,32 @@ from shapely.geometry.base import (
 
 
 class GeometryCollection(BaseMultipartGeometry):
+    """
+    A heterogeneous collection of geometries.
 
-    """A heterogeneous collection of geometries
+    Parameters
+    ----------
+    geoms : list
+        A list of shapely geometry instances, which may be heterogeneous.
 
     Attributes
     ----------
     geoms : sequence
         A sequence of Shapely geometry instances
+
+    Examples
+    --------
+    Create a GeometryCollection with a Point and a LineString
+
+    >>> from shapely import LineString, Point
+    >>> p = Point(51, -1)
+    >>> l = LineString([(52, -1), (49, 2)])
+    >>> gc = GeometryCollection([p, l])
     """
 
     __slots__ = []
 
     def __new__(self, geoms=None):
-        """
-        Parameters
-        ----------
-        geoms : list
-            A list of shapely geometry instances, which may be heterogeneous.
-
-        Example
-        -------
-        Create a GeometryCollection with a Point and a LineString
-
-          >>> from shapely.geometry import LineString, Point
-          >>> p = Point(51, -1)
-          >>> l = LineString([(52, -1), (49, 2)])
-          >>> gc = GeometryCollection([p, l])
-        """
         if not geoms:
             # TODO better empty constructor
             return shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")

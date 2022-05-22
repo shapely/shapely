@@ -24,35 +24,39 @@ def _unpickle_linearring(wkb):
 
 class LinearRing(LineString):
     """
-    A closed one-dimensional feature comprising one or more line segments
+    A closed one-dimensional feature comprising one or more line segments.
 
     A LinearRing that crosses itself or touches itself at a single point is
     invalid and operations on it may fail.
+
+    Parameters
+    ----------
+    coordinates : sequence
+        A sequence of (x, y [,z]) numeric coordinate pairs or triples.
+        Also can be a sequence of Point objects.
+
+    Notes
+    -----
+    Rings are implicitly closed. There is no need to specify a final
+    coordinate pair identical to the first.
+
+    Examples
+    --------
+    Construct a square ring.
+
+    >>> ring = LinearRing( ((0, 0), (0, 1), (1 ,1 ), (1 , 0)) )
+    >>> ring.is_closed
+    True
+    >>> list(ring.coords)
+    [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)]
+    >>> ring.length
+    4.0
+
     """
 
     __slots__ = []
 
     def __new__(self, coordinates=None):
-        """
-        Parameters
-        ----------
-        coordinates : sequence
-            A sequence of (x, y [,z]) numeric coordinate pairs or triples.
-            Also can be a sequence of Point objects.
-
-        Rings are implicitly closed. There is no need to specific a final
-        coordinate pair identical to the first.
-
-        Example
-        -------
-        Construct a square ring.
-
-          >>> ring = LinearRing( ((0, 0), (0, 1), (1 ,1 ), (1 , 0)) )
-          >>> ring.is_closed
-          True
-          >>> ring.length
-          4.0
-        """
         if coordinates is None:
             # empty geometry
             # TODO better way?
@@ -172,11 +176,20 @@ class InteriorRingSequence:
 
 class Polygon(BaseGeometry):
     """
-    A two-dimensional figure bounded by a linear ring
+    A two-dimensional figure bounded by a linear ring.
 
     A polygon has a non-zero area. It may have one or more negative-space
     "holes" which are also bounded by linear rings. If any rings cross each
     other, the feature is invalid and operations on it may fail.
+
+    Parameters
+    ----------
+    shell : sequence
+        A sequence of (x, y [,z]) numeric coordinate pairs or triples.
+        Also can be a sequence of Point objects.
+    holes : sequence
+        A sequence of objects which satisfy the same requirements as the
+        shell parameters above
 
     Attributes
     ----------
@@ -184,30 +197,20 @@ class Polygon(BaseGeometry):
         The ring which bounds the positive space of the polygon.
     interiors : sequence
         A sequence of rings which bound all existing holes.
+
+    Examples
+    --------
+    Create a square polygon with no holes
+
+    >>> coords = ((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.))
+    >>> polygon = Polygon(coords)
+    >>> polygon.area
+    1.0
     """
 
     __slots__ = []
 
     def __new__(self, shell=None, holes=None):
-        """
-        Parameters
-        ----------
-        shell : sequence
-            A sequence of (x, y [,z]) numeric coordinate pairs or triples.
-            Also can be a sequence of Point objects.
-        holes : sequence
-            A sequence of objects which satisfy the same requirements as the
-            shell parameters above
-
-        Example
-        -------
-        Create a square polygon with no holes
-
-          >>> coords = ((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.))
-          >>> polygon = Polygon(coords)
-          >>> polygon.area
-          1.0
-        """
         if shell is None:
             # empty geometry
             # TODO better way?

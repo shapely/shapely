@@ -10,39 +10,38 @@ __all__ = ["MultiPoint"]
 
 
 class MultiPoint(BaseMultipartGeometry):
-
-    """A collection of one or more points
+    """
+    A collection of one or more points.
 
     A MultiPoint has zero area and zero length.
+
+    Parameters
+    ----------
+    points : sequence
+        A sequence of (x, y [,z]) numeric coordinate pairs or triples or a
+        sequence of objects that implement the numpy array interface,
+        including instances of Point.
 
     Attributes
     ----------
     geoms : sequence
         A sequence of Points
+
+    Examples
+    --------
+    Construct a 2 point collection
+
+    >>> from shapely import Point
+    >>> ob = MultiPoint([[0.0, 0.0], [1.0, 2.0]])
+    >>> len(ob.geoms)
+    2
+    >>> type(ob.geoms[0]) == Point
+    True
     """
 
     __slots__ = []
 
     def __new__(self, points=None):
-        """
-        Parameters
-        ----------
-        points : sequence
-            A sequence of (x, y [,z]) numeric coordinate pairs or triples or a
-            sequence of objects that implement the numpy array interface,
-            including instances of Point.
-
-        Example
-        -------
-        Construct a 2 point collection
-
-          >>> from shapely.geometry import Point
-          >>> ob = MultiPoint([[0.0, 0.0], [1.0, 2.0]])
-          >>> len(ob.geoms)
-          2
-          >>> type(ob.geoms[0]) == Point
-          True
-        """
         if points is None:
             # allow creation of empty multipoints, to support unpickling
             # TODO better empty constructor

@@ -10,38 +10,37 @@ __all__ = ["Point"]
 
 class Point(BaseGeometry):
     """
-    A zero dimensional feature
+    A zero dimensional feature.
 
     A point has zero length and zero area.
+
+    Parameters
+    ----------
+    There are 2 cases:
+
+    1) 1 parameter: this must satisfy the numpy array protocol.
+    2) 2 or more parameters: x, y, z : float
+        Easting, northing, and elevation.
 
     Attributes
     ----------
     x, y, z : float
         Coordinate values
 
-    Example
-    -------
-      >>> p = Point(1.0, -1.0)
-      >>> print(p)
-      POINT (1 -1)
-      >>> p.y
-      -1.0
-      >>> p.x
-      1.0
+    Examples
+    --------
+    >>> p = Point(1.0, -1.0)
+    >>> print(p)
+    POINT (1 -1)
+    >>> p.y
+    -1.0
+    >>> p.x
+    1.0
     """
 
     __slots__ = []
 
     def __new__(self, *args):
-        """
-        Parameters
-        ----------
-        There are 2 cases:
-
-        1) 1 parameter: this must satisfy the numpy array protocol.
-        2) 2 or more parameters: x, y, z : float
-            Easting, northing, and elevation.
-        """
         if len(args) == 0:
             # empty geometry
             # TODO better constructor
