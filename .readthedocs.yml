@@ -19,5 +19,5 @@ conda:
 
 python:
   install:
-    - method: pip
+    - method: setuptools
       path: .
