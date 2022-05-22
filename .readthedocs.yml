@@ -10,10 +10,6 @@ sphinx:
   configuration: docs/conf.py
   fail_on_warning: true
 
-# Build documentation with MkDocs
-#mkdocs:
-#  configuration: mkdocs.yml
-
 # Optionally build your docs in additional formats such as PDF and ePub
 formats:
   - pdf
@@ -23,5 +19,5 @@ conda:
 
 python:
   install:
-    - method: setuptools
+    - method: pip
       path: .

@@ -1,10 +1,10 @@
-name: pygeos
+name: shapely_docs
 channels:
-  - defaults
+  - conda-forge
 dependencies:
-  - python==3.8.*
-  - geos==3.8.*
-  - numpy==1.19.*
+  - python=3.10
+  - geos=3.10
+  - numpy
+  - sphinx-book-theme
   - numpydoc==1.1.*
-  - Cython==0.29.*
-  - docutils==0.16.*
+  - matplotlib
