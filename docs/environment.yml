@@ -5,6 +5,7 @@ dependencies:
   - python=3.10
   - geos=3.10
   - numpy
+  - cython
   - sphinx-book-theme
   - numpydoc==1.1.*
   - matplotlib
