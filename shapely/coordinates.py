@@ -3,10 +3,10 @@ import numpy as np
 from . import Geometry  # NOQA
 from . import lib
 
-__all__ = ["apply", "count_coordinates", "get_coordinates", "set_coordinates"]
+__all__ = ["transform", "count_coordinates", "get_coordinates", "set_coordinates"]
 
 
-def apply(geometry, transformation, include_z=False):
+def transform(geometry, transformation, include_z=False):
     """Returns a copy of a geometry array with a function applied to its
     coordinates.
 

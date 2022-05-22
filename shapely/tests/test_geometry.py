@@ -224,27 +224,27 @@ def test_adapt_ptr_raises():
     "geom", all_types + (shapely.points(np.nan, np.nan), empty_point)
 )
 def test_hash_same_equal(geom):
-    assert hash(geom) == hash(shapely.apply(geom, lambda x: x))
+    assert hash(geom) == hash(shapely.transform(geom, lambda x: x))
 
 
 @pytest.mark.parametrize("geom", all_types[:-1])
 def test_hash_same_not_equal(geom):
-    assert hash(geom) != hash(shapely.apply(geom, lambda x: x + 1))
+    assert hash(geom) != hash(shapely.transform(geom, lambda x: x + 1))
 
 
 @pytest.mark.parametrize("geom", all_types)
 def test_eq(geom):
-    assert geom == shapely.apply(geom, lambda x: x)
+    assert geom == shapely.transform(geom, lambda x: x)
 
 
 @pytest.mark.parametrize("geom", all_types[:-1])
 def test_neq(geom):
-    assert geom != shapely.apply(geom, lambda x: x + 1)
+    assert geom != shapely.transform(geom, lambda x: x + 1)
 
 
 @pytest.mark.parametrize("geom", all_types)
 def test_set_unique(geom):
-    a = {geom, shapely.apply(geom, lambda x: x)}
+    a = {geom, shapely.transform(geom, lambda x: x)}
     assert len(a) == 1
 
 

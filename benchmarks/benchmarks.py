@@ -126,7 +126,7 @@ class OverlaySuite:
             pygeos.buffer(pygeos.points(np.random.random((500, 2)) * 500), 15)
         )
         # shift this up and right
-        self.right = pygeos.apply(self.left, lambda x: x + 50)
+        self.right = pygeos.transform(self.left, lambda x: x + 50)
 
     def time_difference(self):
         pygeos.difference(self.left, self.right)
