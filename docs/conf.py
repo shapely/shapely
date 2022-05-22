@@ -233,7 +233,7 @@ intersphinx_mapping = {
     'numpy': ('https://numpy.org/doc/stable/', None),
 }
 
-# set an environment variable for pygeos.decorators.requires_geos to see if we
+# set an environment variable for shapely.decorators.requires_geos to see if we
 # are in a doc build
 import os
 os.environ["SPHINX_DOC_BUILD"] = "1"
