@@ -1,7 +1,7 @@
 Predicates
 ==========
 
-.. automodule:: pygeos.predicates
+.. automodule:: shapely.predicates
    :members:
    :undoc-members:
    :special-members:
