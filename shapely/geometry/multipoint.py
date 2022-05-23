@@ -18,7 +18,7 @@ class MultiPoint(BaseMultipartGeometry):
     Parameters
     ----------
     points : sequence
-        A sequence Points, or a sequence of (x, y [,z]) numeric coordinate
+        A sequence of Points, or a sequence of (x, y [,z]) numeric coordinate
         pairs or triples, or an array-like of shape (N, 2) or (N, 3).
 
     Attributes
@@ -28,7 +28,7 @@ class MultiPoint(BaseMultipartGeometry):
 
     Examples
     --------
-    Construct a 2 point collection
+    Construct a MultiPoint containing two Points
 
     >>> from shapely import Point
     >>> ob = MultiPoint([[0.0, 0.0], [1.0, 2.0]])

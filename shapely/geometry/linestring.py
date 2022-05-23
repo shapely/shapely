@@ -25,7 +25,7 @@ class LineString(BaseGeometry):
 
     Examples
     --------
-    Create a line with two segments
+    Create a LineString with two segments
 
     >>> a = LineString([[0, 0], [1, 0], [1, 1]])
     >>> a.length

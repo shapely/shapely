@@ -29,7 +29,7 @@ class MultiPolygon(BaseMultipartGeometry):
 
     Examples
     --------
-    Construct a collection from a sequence of coordinate tuples
+    Construct a MultiPolygon from a sequence of coordinate tuples
 
     >>> from shapely import Polygon
     >>> ob = MultiPolygon([

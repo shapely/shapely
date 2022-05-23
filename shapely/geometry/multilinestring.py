@@ -28,7 +28,7 @@ class MultiLineString(BaseMultipartGeometry):
 
     Examples
     --------
-    Construct a collection containing two LineStrings.
+    Construct a MultiLineString containing two LineStrings.
 
     >>> lines = MultiLineString([[[0, 0], [1, 2]], [[4, 4], [5, 6]]])
     """
