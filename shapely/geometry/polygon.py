@@ -24,15 +24,18 @@ def _unpickle_linearring(wkb):
 
 class LinearRing(LineString):
     """
-    A closed one-dimensional feature comprising one or more line segments.
+    A geometry type composed of one or more line segments
+    that forms a closed loop.
 
+    A LinearRing is a closed, one-dimensional feature.
     A LinearRing that crosses itself or touches itself at a single point is
     invalid and operations on it may fail.
 
     Parameters
     ----------
     coordinates : sequence
-        A sequence of (x, y [,z]) numeric coordinate pairs or triples.
+        A sequence of (x, y [,z]) numeric coordinate pairs or triples, or
+        an array-like with shape (N, 2) or (N, 3).
         Also can be a sequence of Point objects.
 
     Notes
@@ -178,14 +181,16 @@ class Polygon(BaseGeometry):
     """
     A geometry type representing an area that is enclosed by a linear ring.
 
-    A polygon has a non-zero area. It may have one or more negative-space
-    "holes" which are also bounded by linear rings. If any rings cross each
-    other, the feature is invalid and operations on it may fail.
+    A polygon is a two-dimensional feature and has a non-zero area. It may
+    have one or more negative-space "holes" which are also bounded by linear
+    rings. If any rings cross each other, the feature is invalid and
+    operations on it may fail.
 
     Parameters
     ----------
     shell : sequence
-        A sequence of (x, y [,z]) numeric coordinate pairs or triples.
+        A sequence of (x, y [,z]) numeric coordinate pairs or triples, or
+        an array-like with shape (N, 2) or (N, 3).
         Also can be a sequence of Point objects.
     holes : sequence
         A sequence of objects which satisfy the same requirements as the

@@ -11,12 +11,14 @@ from shapely.geometry.base import (
 
 class GeometryCollection(BaseMultipartGeometry):
     """
-    A geometry type that may contain more than one type of geometry.
+    A collection of one or more geometries that may contain more than one type
+    of geometry.
 
     Parameters
     ----------
     geoms : list
-        A list of shapely geometry instances, which may be of varying geometry types.
+        A list of shapely geometry instances, which may be of varying
+        geometry types.
 
     Attributes
     ----------

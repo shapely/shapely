@@ -18,9 +18,8 @@ class MultiLineString(BaseMultipartGeometry):
     Parameters
     ----------
     lines : sequence
-        A sequence of line-like coordinate sequences or objects that
-        provide the numpy array interface, including instances of
-        LineString.
+        A sequence LineStrings, or a sequence of line-like coordinate
+        sequences or array-likes (see accepted input for LineString).
 
     Attributes
     ----------
@@ -29,9 +28,9 @@ class MultiLineString(BaseMultipartGeometry):
 
     Examples
     --------
-    Construct a collection containing one line string.
+    Construct a collection containing two LineStrings.
 
-    >>> lines = MultiLineString( [[[0.0, 0.0], [1.0, 2.0]]] )
+    >>> lines = MultiLineString([[[0, 0], [1, 2]], [[4, 4], [5, 6]]])
     """
 
     __slots__ = []

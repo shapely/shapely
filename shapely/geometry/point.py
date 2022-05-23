@@ -10,17 +10,19 @@ __all__ = ["Point"]
 
 class Point(BaseGeometry):
     """
-    A geometry type that represents a single coordinate with x,y and possibly z values.
+    A geometry type that represents a single coordinate with
+    x,y and possibly z values.
 
-    A point has zero length and zero area.
+    A point is a zero-dimensional feature and has zero length and zero area.
 
     Parameters
     ----------
-    There are 2 cases:
+    args : float, or sequence of floats
+        The coordinates can either be passed as a single parameter, or as
+        individual float values using multiple parameters:
 
-    1) 1 parameter: this must satisfy the numpy array protocol with shape (N, 2) or (N, 3).
-    2) 2 or more parameters: x, y, and possibly z : float
-        Easting, northing, and elevation.
+        1) 1 parameter: a sequence or array-like of with 2 or 3 values.
+        2) 2 or 3 parameters (float): x, y, and possibly z.
 
     Attributes
     ----------
@@ -29,7 +31,13 @@ class Point(BaseGeometry):
 
     Examples
     --------
+    Constructing the Point using separate parameters for x and y:
+
     >>> p = Point(1.0, -1.0)
+
+    Constructing the Point using a list of x, y coordinates:
+
+    >>> p = Point([1.0, -1.0])
     >>> print(p)
     POINT (1 -1)
     >>> p.y

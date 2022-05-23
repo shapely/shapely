@@ -18,9 +18,8 @@ class MultiPoint(BaseMultipartGeometry):
     Parameters
     ----------
     points : sequence
-        A sequence of (x, y [,z]) numeric coordinate pairs or triples, or a
-        sequence of objects that implement the numpy array interface,
-        including instances of Point.
+        A sequence Points, or a sequence of (x, y [,z]) numeric coordinate
+        pairs or triples, or an array-like of shape (N, 2) or (N, 3).
 
     Attributes
     ----------

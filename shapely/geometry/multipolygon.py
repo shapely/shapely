@@ -10,7 +10,7 @@ __all__ = ["MultiPolygon"]
 
 class MultiPolygon(BaseMultipartGeometry):
     """
-    A collection of one or more polygons.
+    A collection of one or more Polygons.
 
     If component polygons overlap the collection is invalid and some
     operations on it may fail.
@@ -18,10 +18,9 @@ class MultiPolygon(BaseMultipartGeometry):
     Parameters
     ----------
     polygons : sequence
-        A sequence of (shell, holes) tuples where shell is the sequence
-        representation of a linear ring (see linearring.py) and holes is
-        a sequence of such linear rings.
-        Also can be a sequence of Polygon objects.
+        A sequence of Polygons, or a sequence of (shell, holes) tuples
+        where shell is the sequence representation of a linear ring
+        (see LinearRing) and holes is a sequence of such linear rings.
 
     Attributes
     ----------

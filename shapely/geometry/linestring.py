@@ -10,17 +10,18 @@ __all__ = ["LineString"]
 
 class LineString(BaseGeometry):
     """
-    A one-dimensional geometry type composed of one or more line segments.
+    A geometry type composed of one or more line segments.
 
-    A LineString has non-zero length and zero area. It may approximate a curve
-    and need not be straight. Unlike a LinearRing, a LineString is not closed.
+    A LineString is a one-dimensional feature and has a non-zero length but
+    zero area. It may approximate a curve and need not be straight. Unlike a
+    LinearRing, a LineString is not closed.
 
     Parameters
     ----------
     coordinates : sequence
-        A sequence of (x, y [,z]) numeric coordinate pairs or triples, or
-        an object that provides the numpy array interface, including
-        another instance of LineString.
+        A sequence of (x, y, [,z]) numeric coordinate pairs or triples, or
+        an array-like with shape (N, 2) or (N, 3).
+        Also can be a sequence of Point objects.
 
     Examples
     --------
