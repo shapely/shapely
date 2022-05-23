@@ -11,7 +11,7 @@ available via system package management tools like apt, yum, and Homebrew.
 Installation from PyPI
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Shapely is available as a binary distribution (wheel) for Linux, OSX and Windows platforms.
+Shapely is available as a binary distribution (wheel) for Linux, macOS and Windows platforms.
 The distribution includes a GEOS version that was most recent at the time of the Shapely release.
 Install the binary wheel with pip as follows::
 
@@ -39,7 +39,7 @@ On Linux::
     $ sudo apt install libgeos-dev  # skip this if you already have GEOS
     $ pip install shapely --no-binary shapely
 
-On OSX::
+On macOS::
 
     $ brew install geos  # skip this if you already have GEOS
     $ pip install shapely --no-binary shapely
@@ -101,13 +101,13 @@ Shapely can be tested using ``pytest``::
 GEOS discovery (compile time)
 -----------------------------
 
-If GEOS is installed on Linux or OSX, normally the ``geos-config`` command line utility
+If GEOS is installed on Linux or macOS, normally the ``geos-config`` command line utility
 will be available and ``pip`` will find GEOS automatically.
-If the correct ``geos-config`` is not on the PATH, you can add it as follows (on Linux/OSX)::
+If the correct ``geos-config`` is not on the PATH, you can add it as follows (on Linux/macOS)::
 
     $ export PATH=/path/to/geos/bin:$PATH
 
-Alternatively, you can specify where Shapely should look for GEOS (on Linux/OSX)::
+Alternatively, you can specify where Shapely should look for GEOS (on Linux/macOS)::
 
     $ export GEOS_INCLUDE_PATH=/path/to/geos/include
     $ export GEOS_LIBRARY_PATH=/path/to/geos/lib
@@ -120,7 +120,7 @@ specified manually in any case::
 
 Common locations of GEOS (to be suffixed by ``lib``, ``include`` or ``bin``):
 
-* Anaconda (Linux/OSX): ``$CONDA_PREFIX/Library``
+* Anaconda (Linux/macOS): ``$CONDA_PREFIX/Library``
 * Anaconda (Windows): ``%CONDA_PREFIX%\Library``
 * OSGeo4W (Windows): ``C:\OSGeo4W64``
 
@@ -152,12 +152,12 @@ general four ways of making Python aware of the location of shared library:
 3. Copy the shared libraries into some system location (``C:\Windows\System32``; ``/usr/local/lib``,
    this happens if you installed GEOS through ``apt`` or ``brew``)
 4. Add the shared library location to a the dynamic linker path variable at runtime.
-   (Advanced usage; Linux and OSX only; on Windows this method was deprecated in Python 3.8)
+   (Advanced usage; Linux and macOS only; on Windows this method was deprecated in Python 3.8)
 
 The filenames of the GEOS shared libraries are:
 
 * On Linux: ``libgeos-*.so.*, libgeos_c-*.so.*``
-* On OSX: ``libgeos.dylib, libgeos_c.dylib``
+* On macOS: ``libgeos.dylib, libgeos_c.dylib``
 * On Windows: ``geos-*.dll, geos_c-*.dll``
 
 Note that shapely does not make use of any RUNPATH (RPATH) header. The location
