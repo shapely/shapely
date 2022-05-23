@@ -11,14 +11,14 @@ __all__ = ["MultiPoint"]
 
 class MultiPoint(BaseMultipartGeometry):
     """
-    A collection of one or more points.
+    A collection of one or more Points.
 
     A MultiPoint has zero area and zero length.
 
     Parameters
     ----------
     points : sequence
-        A sequence of (x, y [,z]) numeric coordinate pairs or triples or a
+        A sequence of (x, y [,z]) numeric coordinate pairs or triples, or a
         sequence of objects that implement the numpy array interface,
         including instances of Point.
 

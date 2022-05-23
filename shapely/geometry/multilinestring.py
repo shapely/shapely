@@ -11,7 +11,7 @@ __all__ = ["MultiLineString"]
 
 class MultiLineString(BaseMultipartGeometry):
     """
-    A collection of one or more line strings.
+    A collection of one or more LineStrings.
 
     A MultiLineString has non-zero length and zero area.
 

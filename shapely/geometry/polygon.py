@@ -37,7 +37,7 @@ class LinearRing(LineString):
 
     Notes
     -----
-    Rings are implicitly closed. There is no need to specify a final
+    Rings are automatically closed. There is no need to specify a final
     coordinate pair identical to the first.
 
     Examples
@@ -176,7 +176,7 @@ class InteriorRingSequence:
 
 class Polygon(BaseGeometry):
     """
-    A two-dimensional figure bounded by a linear ring.
+    A geometry type representing an area that is enclosed by a linear ring.
 
     A polygon has a non-zero area. It may have one or more negative-space
     "holes" which are also bounded by linear rings. If any rings cross each
