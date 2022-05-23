@@ -129,7 +129,7 @@ GEOS discovery (runtime)
 ------------------------
 
 Shapely is dynamically linked to GEOS. This means that the same GEOS library that was used
-during Shapely compilation is required on your system at runtime. When using shapely that was distributed
+during Shapely compilation is required on your system at runtime. When using Shapely that was distributed
 as a binary wheel or through conda, this is automatically the case and you can stop reading.
 
 In other cases this can be tricky, especially if you have multiple GEOS installations next
@@ -145,8 +145,8 @@ If you encounter exceptions like:
 You will have to make the shared library file available to the Python interpreter. There are in
 general four ways of making Python aware of the location of shared library:
 
-1. Copy the shared libraries into the shapely module directory (this is how Windows binary wheels work:
-   they are distributed with the correct dlls in the shapely module directory)
+1. Copy the shared libraries into the ``shapely`` module directory (this is how Windows binary wheels work:
+   they are distributed with the correct dlls in the ``shapely`` module directory)
 2. Copy the shared libraries into the library directory of the Python interpreter (this is how
    Anaconda environments work)
 3. Copy the shared libraries into some system location (``C:\Windows\System32``; ``/usr/local/lib``,
@@ -160,5 +160,5 @@ The filenames of the GEOS shared libraries are:
 * On macOS: ``libgeos.dylib, libgeos_c.dylib``
 * On Windows: ``geos-*.dll, geos_c-*.dll``
 
-Note that shapely does not make use of any RUNPATH (RPATH) header. The location
+Note that Shapely does not make use of any RUNPATH (RPATH) header. The location
 of the GEOS shared library is not stored inside the compiled Shapely library.

@@ -56,7 +56,7 @@ Shapely 2.0 requires
 Installing Shapely
 ==================
 
-It is recommended to install shapely using one of the available built
+It is recommended to install Shapely using one of the available built
 distributions, for example using ``pip`` or ``conda``:
 
 .. code-block:: console
