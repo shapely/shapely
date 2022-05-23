@@ -4,7 +4,7 @@ Installation
 Built distributions
 -------------------
 
-Built distributions don't require to compile Shapely and its Dependencies,
+Built distributions don't require to compile Shapely and its dependencies,
 and can be installed using ``pip`` or ``conda``. In addition, Shapely is also
 available via system package management tools like apt, yum, and Homebrew.
 
