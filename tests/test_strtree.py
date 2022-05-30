@@ -124,9 +124,6 @@ def test_references():
     assert results[0] == Point(1, 0.5)
 
 
-# TODO(shapely-2.0) this fails on Appveyor, see
-# https://github.com/shapely/shapely/pull/983#issuecomment-718557666
-@pytest.mark.skipif(sys.platform.startswith("win32"), reason="does not run on Appveyor")
 @requires_geos_342
 def test_pickle_persistence():
     """
