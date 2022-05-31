@@ -9,45 +9,44 @@ __all__ = ["MultiPolygon"]
 
 
 class MultiPolygon(BaseMultipartGeometry):
+    """
+    A collection of one or more Polygons.
 
-    """A collection of one or more polygons
-
-    If component polygons overlap the collection is `invalid` and some
+    If component polygons overlap the collection is invalid and some
     operations on it may fail.
+
+    Parameters
+    ----------
+    polygons : sequence
+        A sequence of Polygons, or a sequence of (shell, holes) tuples
+        where shell is the sequence representation of a linear ring
+        (see LinearRing) and holes is a sequence of such linear rings.
 
     Attributes
     ----------
     geoms : sequence
         A sequence of `Polygon` instances
+
+    Examples
+    --------
+    Construct a MultiPolygon from a sequence of coordinate tuples
+
+    >>> from shapely import Polygon
+    >>> ob = MultiPolygon([
+    ...     (
+    ...     ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)),
+    ...     [((0.1,0.1), (0.1,0.2), (0.2,0.2), (0.2,0.1))]
+    ...     )
+    ... ])
+    >>> len(ob.geoms)
+    1
+    >>> type(ob.geoms[0]) == Polygon
+    True
     """
 
     __slots__ = []
 
     def __new__(self, polygons=None):
-        """
-        Parameters
-        ----------
-        polygons : sequence
-            A sequence of (shell, holes) tuples where shell is the sequence
-            representation of a linear ring (see linearring.py) and holes is
-            a sequence of such linear rings
-
-        Example
-        -------
-        Construct a collection from a sequence of coordinate tuples
-
-          >>> from shapely.geometry import Polygon
-          >>> ob = MultiPolygon( [
-          ...     (
-          ...     ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)),
-          ...     [((0.1,0.1), (0.1,0.2), (0.2,0.2), (0.2,0.1))]
-          ...     )
-          ... ] )
-          >>> len(ob.geoms)
-          1
-          >>> type(ob.geoms[0]) == Polygon
-          True
-        """
         if not polygons:
             # allow creation of empty multipolygons, to support unpickling
             # TODO better empty constructor
