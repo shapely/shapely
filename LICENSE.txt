@@ -1,6 +1,6 @@
 BSD 3-Clause License
 
-Copyright (c) 2007, Sean C. Gillies. 2007-2022, Shapely Contributors.
+Copyright (c) 2007, Sean C. Gillies. 2019, Casper van der Wel. 2007-2022, Shapely Contributors.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
