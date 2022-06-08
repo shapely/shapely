@@ -116,6 +116,9 @@ class BaseGeometry(shapely.Geometry):
             # we never want a repr() to fail; that can be very confusing
             return "<shapely.{} Exception in WKT writer>".format(class_name)
 
+        # remove the WKT type since this duplicates the class name
+        wkt = wkt.split(' ', 1).pop()
+
         # the total length is limited to 80 characters
         max_length = 80 - (11 + len(class_name))
         if len(wkt) > max_length:
