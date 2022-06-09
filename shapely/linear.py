@@ -35,15 +35,15 @@ def line_interpolate_point(line, distance, normalized=False, **kwargs):
     --------
     >>> line = Geometry("LINESTRING(0 2, 0 10)")
     >>> line_interpolate_point(line, 2)
-    <pygeos.Geometry POINT (0 4)>
+    <shapely.Point POINT (0 4)>
     >>> line_interpolate_point(line, 100)
-    <pygeos.Geometry POINT (0 10)>
+    <shapely.Point POINT (0 10)>
     >>> line_interpolate_point(line, -2)
-    <pygeos.Geometry POINT (0 8)>
+    <shapely.Point POINT (0 8)>
     >>> line_interpolate_point(line, [0.25, -0.25], normalized=True).tolist()
-    [<pygeos.Geometry POINT (0 4)>, <pygeos.Geometry POINT (0 8)>]
+    [<shapely.Point POINT (0 4)>, <shapely.Point POINT (0 8)>]
     >>> line_interpolate_point(Geometry("LINESTRING EMPTY"), 1)
-    <pygeos.Geometry POINT EMPTY>
+    <shapely.Point POINT EMPTY>
     """
     if normalized:
         return lib.line_interpolate_point_normalized(line, distance)
@@ -102,11 +102,11 @@ def line_merge(line, **kwargs):
     Examples
     --------
     >>> line_merge(Geometry("MULTILINESTRING((0 2, 0 10), (0 10, 5 10))"))
-    <pygeos.Geometry LINESTRING (0 2, 0 10, 5 10)>
+    <shapely.LineString LINESTRING (0 2, 0 10, 5 10)>
     >>> line_merge(Geometry("MULTILINESTRING((0 2, 0 10), (0 11, 5 10))"))
-    <pygeos.Geometry MULTILINESTRING ((0 2, 0 10), (0 11, 5 10))>
+    <shapely.MultiLineString MULTILINESTRING ((0 2, 0 10), (0 11, 5 10))>
     >>> line_merge(Geometry("LINESTRING EMPTY"))
-    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
+    <shapely.GeometryCollection GEOMETRYCOLLECTION EMPTY>
     """
     return lib.line_merge(line, **kwargs)
 
@@ -135,7 +135,7 @@ def shared_paths(a, b, **kwargs):
     >>> geom1 = Geometry("LINESTRING (0 0, 1 0, 1 1, 0 1, 0 0)")
     >>> geom2 = Geometry("LINESTRING (1 0, 2 0, 2 1, 1 1, 1 0)")
     >>> shared_paths(geom1, geom2)
-    <pygeos.Geometry GEOMETRYCOLLECTION (MULTILINESTRING EMPTY, MULTILINESTRING ...>
+    <shapely.GeometryCollection GEOMETRYCOLLECTION (MULTILINESTRING EMPTY, MULTI...>
     """
     return lib.shared_paths(a, b, **kwargs)
 
@@ -168,6 +168,6 @@ def shortest_line(a, b, **kwargs):
     >>> geom1 = Geometry("LINESTRING (0 0, 1 0, 1 1, 0 1, 0 0)")
     >>> geom2 = Geometry("LINESTRING (0 3, 3 0, 5 3)")
     >>> shortest_line(geom1, geom2)
-    <pygeos.Geometry LINESTRING (1 1, 1.5 1.5)>
+    <shapely.LineString LINESTRING (1 1, 1.5 1.5)>
     """
     return lib.shortest_line(a, b, **kwargs)
