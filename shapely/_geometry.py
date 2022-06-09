@@ -3,7 +3,6 @@ from enum import IntEnum
 
 import numpy as np
 
-from . import Geometry  # NOQA
 from . import _geometry_helpers, geos_version, lib
 from .decorators import multithreading_enabled, requires_geos
 from .enum import ParamEnum

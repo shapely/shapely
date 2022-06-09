@@ -1,4 +1,3 @@
-from . import Geometry  # NOQA
 from . import lib
 from .decorators import multithreading_enabled
 
@@ -33,7 +32,8 @@ def line_interpolate_point(line, distance, normalized=False, **kwargs):
 
     Examples
     --------
-    >>> line = Geometry("LINESTRING(0 2, 0 10)")
+    >>> from shapely import LineString, Point
+    >>> line = LineString(((0, 2), (0, 10)))
     >>> line_interpolate_point(line, 2)
     <shapely.Point POINT (0 4)>
     >>> line_interpolate_point(line, 100)
@@ -42,7 +42,7 @@ def line_interpolate_point(line, distance, normalized=False, **kwargs):
     <shapely.Point POINT (0 8)>
     >>> line_interpolate_point(line, [0.25, -0.25], normalized=True).tolist()
     [<shapely.Point POINT (0 4)>, <shapely.Point POINT (0 8)>]
-    >>> line_interpolate_point(Geometry("LINESTRING EMPTY"), 1)
+    >>> line_interpolate_point(LineString(), 1)
     <shapely.Point POINT EMPTY>
     """
     if normalized:
@@ -71,14 +71,16 @@ def line_locate_point(line, other, normalized=False, **kwargs):
 
     Examples
     --------
-    >>> line = Geometry("LINESTRING(0 2, 0 10)")
-    >>> line_locate_point(line, Geometry("POINT(4 4)"))
+    >>> from shapely import LineString, Point
+    >>> line = LineString(((0, 2), (0, 10)))
+    >>> point = Point(4, 4)
+    >>> line_locate_point(line, point)
     2.0
-    >>> line_locate_point(line, Geometry("POINT(4 4)"), normalized=True)
+    >>> line_locate_point(line, point, normalized=True)
     0.25
-    >>> line_locate_point(line, Geometry("POINT(0 18)"))
+    >>> line_locate_point(line, Point(0, 18))
     8.0
-    >>> line_locate_point(Geometry("LINESTRING EMPTY"), Geometry("POINT(4 4)"))
+    >>> line_locate_point(LineString(), point)
     nan
     """
     if normalized:
@@ -101,11 +103,12 @@ def line_merge(line, **kwargs):
 
     Examples
     --------
-    >>> line_merge(Geometry("MULTILINESTRING((0 2, 0 10), (0 10, 5 10))"))
+    >>> from shapely import MultiLineString
+    >>> line_merge(MultiLineString((((0, 2), (0, 10)), ((0, 10), (5, 10)))))
     <shapely.LineString LINESTRING (0 2, 0 10, 5 10)>
-    >>> line_merge(Geometry("MULTILINESTRING((0 2, 0 10), (0 11, 5 10))"))
+    >>> line_merge(MultiLineString((((0, 2), (0, 10)), ((0, 11), (5, 10)))))
     <shapely.MultiLineString MULTILINESTRING ((0 2, 0 10), (0 11, 5 10))>
-    >>> line_merge(Geometry("LINESTRING EMPTY"))
+    >>> line_merge(MultiLineString())
     <shapely.GeometryCollection GEOMETRYCOLLECTION EMPTY>
     """
     return lib.line_merge(line, **kwargs)
@@ -132,10 +135,14 @@ def shared_paths(a, b, **kwargs):
 
     Examples
     --------
-    >>> geom1 = Geometry("LINESTRING (0 0, 1 0, 1 1, 0 1, 0 0)")
-    >>> geom2 = Geometry("LINESTRING (1 0, 2 0, 2 1, 1 1, 1 0)")
-    >>> shared_paths(geom1, geom2)
-    <shapely.GeometryCollection GEOMETRYCOLLECTION (MULTILINESTRING EMPTY, MULTI...>
+    >>> from shapely import LineString
+    >>> line1 = LineString(((0, 0), (1, 0), (1, 1), (0, 1), (0, 0)))
+    >>> line2 = LineString(((1, 0), (2, 0), (2, 1), (1, 1), (1, 0)))
+    >>> shared_paths(line1, line2).wkt
+    'GEOMETRYCOLLECTION (MULTILINESTRING EMPTY, MULTILINESTRING ((1 0, 1 1)))'
+    >>> line3 = LineString(((1, 1), (0, 1)))
+    >>> shared_paths(line1, line3).wkt
+    'GEOMETRYCOLLECTION (MULTILINESTRING ((1 1, 0 1)), MULTILINESTRING EMPTY)'
     """
     return lib.shared_paths(a, b, **kwargs)
 
@@ -165,9 +172,10 @@ def shortest_line(a, b, **kwargs):
 
     Examples
     --------
-    >>> geom1 = Geometry("LINESTRING (0 0, 1 0, 1 1, 0 1, 0 0)")
-    >>> geom2 = Geometry("LINESTRING (0 3, 3 0, 5 3)")
-    >>> shortest_line(geom1, geom2)
+    >>> from shapely import LineString
+    >>> line1 = LineString(((0, 0), (1, 0), (1, 1), (0, 1), (0, 0)))
+    >>> line2 = LineString(((0, 3), (3, 0), (5, 3)))
+    >>> shortest_line(line1, line2)
     <shapely.LineString LINESTRING (1 1, 1.5 1.5)>
     """
     return lib.shortest_line(a, b, **kwargs)

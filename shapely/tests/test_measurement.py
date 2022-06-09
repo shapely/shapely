@@ -331,11 +331,11 @@ def test_minimum_clearance_missing():
             1,
         ),
         (
-            shapely.Geometry("POINT (2 2)"),
+            shapely.Point(2, 2),
             0,
         ),
         (
-            shapely.Geometry("GEOMETRYCOLLECTION EMPTY"),
+            shapely.GeometryCollection(),
             0,
         ),
     ],

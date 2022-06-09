@@ -33,15 +33,16 @@ point_z = shapely.points(2, 3, 4)
 line_string_z = shapely.linestrings([(0, 0, 4), (1, 0, 4), (1, 1, 4)])
 polygon_z = shapely.polygons([(0, 0, 4), (2, 0, 4), (2, 2, 4), (0, 2, 4), (0, 0, 4)])
 geometry_collection_z = shapely.geometrycollections([point_z, line_string_z])
-polygon_with_hole = shapely.Geometry(
-    "POLYGON((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))"
+polygon_with_hole = shapely.Polygon(
+    ((0, 0), (0, 10), (10, 10), (10, 0), (0, 0)),
+    holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))],
 )
-empty_point = shapely.Geometry("POINT EMPTY")
-empty_point_z = shapely.Geometry("POINT Z EMPTY")
-empty_line_string = shapely.Geometry("LINESTRING EMPTY")
-empty_line_string_z = shapely.Geometry("LINESTRING Z EMPTY")
-empty_polygon = shapely.Geometry("POLYGON EMPTY")
-empty = shapely.Geometry("GEOMETRYCOLLECTION EMPTY")
+empty_point = shapely.Point()
+empty_point_z = shapely.from_wkt("POINT Z EMPTY")
+empty_line_string = shapely.LineString()
+empty_line_string_z = shapely.from_wkt("LINESTRING Z EMPTY")
+empty_polygon = shapely.Polygon()
+empty = shapely.GeometryCollection()
 line_string_nan = shapely.linestrings([(np.nan, np.nan), (np.nan, np.nan)])
 multi_point_z = shapely.multipoints([(0, 0, 4), (1, 2, 4)])
 multi_line_string_z = shapely.multilinestrings([[(0, 0, 4), (1, 2, 4)]])
@@ -51,8 +52,9 @@ multi_polygon_z = shapely.multipolygons(
         [(2.1, 2.1, 4), (2.2, 2.1, 4), (2.2, 2.2, 4), (2.1, 2.2, 4), (2.1, 2.1, 4)],
     ]
 )
-polygon_with_hole_z = shapely.Geometry(
-    "POLYGON Z((0 0 4, 0 10 4, 10 10 4, 10 0 4, 0 0 4), (2 2 4, 2 4 4, 4 4 4, 4 2 4, 2 2 4))"
+polygon_with_hole_z = shapely.Polygon(
+    ((0, 0, 4), (0, 10, 4), (10, 10, 4), (10, 0, 4), (0, 0, 4)),
+    holes=[((2, 2, 4), (2, 4, 4), (4, 4, 4), (4, 2, 4), (2, 2, 4))],
 )
 
 all_types = (

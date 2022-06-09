@@ -24,9 +24,7 @@ def box_tpl(x1, y1, x2, y2):
 
 def test_points_from_coords():
     actual = shapely.points([[0, 0], [2, 2]])
-    assert_geometries_equal(
-        actual, [shapely.Geometry("POINT (0 0)"), shapely.Geometry("POINT (2 2)")]
-    )
+    assert_geometries_equal(actual, [shapely.Point(0, 0), shapely.Point(2, 2)])
 
 
 def test_points_from_xy():
@@ -60,7 +58,7 @@ def test_linestrings_from_coords():
         actual,
         [
             shapely.Geometry("LINESTRING (0 0, 1 1)"),
-            shapely.Geometry("LINESTRING (0 0, 2 2)"),
+            shapely.LineString(((0, 0), (2, 2))),
         ],
     )
 
@@ -451,7 +449,11 @@ def test_create_collection_wrong_geom_type(func, sub_geom):
     "coords,ccw,expected",
     [
         ((0, 0, 1, 1), True, shapely.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))")),
-        ((0, 0, 1, 1), False, shapely.Geometry("POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))")),
+        (
+            (0, 0, 1, 1),
+            False,
+            shapely.Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0))),
+        ),
     ],
 )
 def test_box(coords, ccw, expected):
@@ -475,7 +477,7 @@ def test_box(coords, ccw, expected):
             [True, False],
             [
                 shapely.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"),
-                shapely.Geometry("POLYGON ((0 0, 0 2, 2 2, 2 0, 0 0))"),
+                shapely.Polygon(((0, 0), (0, 2), (2, 2), (2, 0), (0, 0))),
             ],
         ),
     ],

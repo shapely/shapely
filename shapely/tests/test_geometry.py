@@ -215,7 +215,7 @@ def test_new_from_wkt(geom):
 # raise the deprecation warning (which should be removed)
 @shapely20_todo
 def test_adapt_ptr_raises():
-    point = shapely.Geometry("POINT (2 2)")
+    point = shapely.Point(2, 2)
     with pytest.raises(AttributeError):
         point._ptr += 1
 
@@ -596,7 +596,7 @@ def test_set_precision_grid_size_nan():
         (
             shapely.Geometry("POLYGON ((0 0, 0.1 0, 0.1 0.1, 0 0.1, 0 0))"),
             "valid_output",
-            shapely.Geometry("POLYGON EMPTY"),
+            shapely.Polygon(),
         ),
         pytest.param(
             shapely.Geometry("POLYGON ((0 0, 0.1 0, 0.1 0.1, 0 0.1, 0 0))"),
@@ -610,7 +610,7 @@ def test_set_precision_grid_size_nan():
         (
             shapely.Geometry("POLYGON ((0 0, 0.1 0, 0.1 0.1, 0 0.1, 0 0))"),
             "keep_collapsed",
-            shapely.Geometry("POLYGON EMPTY"),
+            shapely.Polygon(),
         ),
     ],
 )

@@ -22,7 +22,7 @@ def test_line_interpolate_point_geom_array():
         [line_string, linear_ring, multi_line_string], -1
     )
     assert_geometries_equal(actual[0], shapely.Geometry("POINT (1 0)"))
-    assert_geometries_equal(actual[1], shapely.Geometry("POINT (0 1)"))
+    assert_geometries_equal(actual[1], shapely.Point(0, 1))
     assert_geometries_equal(
         actual[2], shapely.Geometry("POINT (0.5528 1.1056)"), tolerance=0.001
     )
@@ -33,7 +33,7 @@ def test_line_interpolate_point_geom_array_normalized():
         [line_string, linear_ring, multi_line_string], 1, normalized=True
     )
     assert_geometries_equal(actual[0], shapely.Geometry("POINT (1 1)"))
-    assert_geometries_equal(actual[1], shapely.Geometry("POINT (0 0)"))
+    assert_geometries_equal(actual[1], shapely.Point(0, 0))
     assert_geometries_equal(actual[2], shapely.Geometry("POINT (1 2)"))
 
 
@@ -52,7 +52,7 @@ def test_line_interpolate_point_float_array():
         shapely.Geometry("LINEARRING EMPTY"),
         shapely.Geometry("MULTILINESTRING EMPTY"),
         shapely.Geometry("MULTILINESTRING (EMPTY, (0 0, 1 1))"),
-        shapely.Geometry("GEOMETRYCOLLECTION EMPTY"),
+        shapely.GeometryCollection(),
         shapely.Geometry("GEOMETRYCOLLECTION (LINESTRING EMPTY, POINT (1 1))"),
     ],
 )

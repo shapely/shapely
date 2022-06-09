@@ -345,7 +345,7 @@ def test_coverage_union_non_polygon_inputs(geom_1, geom_2):
         (
             [shapely.box(0.1, 0.1, 5, 5), shapely.box(0, 0.2, 5.1, 10)],
             100,
-            shapely.Geometry("POLYGON EMPTY"),
+            shapely.Polygon(),
         ),
     ],
 )

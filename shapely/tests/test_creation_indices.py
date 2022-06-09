@@ -241,7 +241,7 @@ def test_linearrings_buffer(dim, order):
 hole_1 = shapely.linearrings([(0.2, 0.2), (0.2, 0.4), (0.4, 0.4)])
 hole_2 = shapely.linearrings([(0.6, 0.6), (0.6, 0.8), (0.8, 0.8)])
 poly = shapely.polygons(linear_ring)
-poly_empty = shapely.Geometry("POLYGON EMPTY")
+poly_empty = shapely.Polygon()
 poly_hole_1 = shapely.polygons(linear_ring, holes=[hole_1])
 poly_hole_2 = shapely.polygons(linear_ring, holes=[hole_2])
 poly_hole_1_2 = shapely.polygons(linear_ring, holes=[hole_1, hole_2])
