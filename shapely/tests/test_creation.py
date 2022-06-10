@@ -65,7 +65,7 @@ def test_linestrings_from_coords():
         actual,
         [
             LineString(((0, 0), (1, 1))),
-            shapely.LineString(((0, 0), (2, 2))),
+            LineString(((0, 0), (2, 2))),
         ],
     )
 
@@ -455,7 +455,7 @@ def test_create_collection_wrong_geom_type(func, sub_geom):
         (
             (0, 0, 1, 1),
             False,
-            shapely.Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0))),
+            Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0))),
         ),
     ],
 )
@@ -480,7 +480,7 @@ def test_box(coords, ccw, expected):
             [True, False],
             [
                 Polygon(((1, 0), (1, 1), (0, 1), (0, 0), (1, 0))),
-                shapely.Polygon(((0, 0), (0, 2), (2, 2), (2, 0), (0, 0))),
+                Polygon(((0, 0), (0, 2), (2, 2), (2, 0), (0, 0))),
             ],
         ),
     ],

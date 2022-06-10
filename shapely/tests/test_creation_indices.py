@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import shapely
-from shapely import LinearRing
+from shapely import LinearRing, Polygon
 from shapely.testing import assert_geometries_equal
 
 from .common import empty_point, line_string, linear_ring, point, polygon
@@ -242,7 +242,7 @@ def test_linearrings_buffer(dim, order):
 hole_1 = shapely.linearrings([(0.2, 0.2), (0.2, 0.4), (0.4, 0.4)])
 hole_2 = shapely.linearrings([(0.6, 0.6), (0.6, 0.8), (0.8, 0.8)])
 poly = shapely.polygons(linear_ring)
-poly_empty = shapely.Polygon()
+poly_empty = Polygon()
 poly_hole_1 = shapely.polygons(linear_ring, holes=[hole_1])
 poly_hole_2 = shapely.polygons(linear_ring, holes=[hole_2])
 poly_hole_1_2 = shapely.polygons(linear_ring, holes=[hole_1, hole_2])

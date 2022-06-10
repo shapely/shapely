@@ -216,7 +216,7 @@ def test_new_from_wkt(geom):
 # raise the deprecation warning (which should be removed)
 @shapely20_todo
 def test_adapt_ptr_raises():
-    point = shapely.Point(2, 2)
+    point = Point(2, 2)
     with pytest.raises(AttributeError):
         point._ptr += 1
 

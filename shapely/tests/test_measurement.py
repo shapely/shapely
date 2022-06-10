@@ -3,7 +3,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
 import shapely
-from shapely import LineString, MultiPoint, Polygon
+from shapely import GeometryCollection, LineString, MultiPoint, Point, Polygon
 
 from .common import (
     empty,
@@ -332,11 +332,11 @@ def test_minimum_clearance_missing():
             1,
         ),
         (
-            shapely.Point(2, 2),
+            Point(2, 2),
             0,
         ),
         (
-            shapely.GeometryCollection(),
+            GeometryCollection(),
             0,
         ),
     ],

@@ -429,7 +429,7 @@ def coverage_union(a, b, **kwargs):
     --------
     >>> from shapely.constructive import normalize
     >>> polygon = Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
-    >>> normalize(coverage_union(polygon, Geometry("POLYGON ((1 0, 1 1, 2 1, 2 0, 1 0))")))
+    >>> normalize(coverage_union(polygon, Polygon(((1, 0), (1, 1), (2, 1), (2, 0), (1, 0)))))
     <shapely.Polygon POLYGON ((0 0, 0 1, 1 1, 2 1, 2 0, 1 0, 0 0))>
 
     Union with None returns same polygon

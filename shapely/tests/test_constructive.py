@@ -297,7 +297,7 @@ def test_offset_curve_join_style_invalid():
         ),
         (
             Polygon(((0, 0), (1, 0), (1, 1), (0, 1), (0, 0))),
-            shapely.Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0))),
+            Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0))),
         ),
         (
             Polygon(
@@ -470,7 +470,7 @@ def test_polygonize():
         LineString(((1, 1), (1, 0))),
         LineString(((1, 0), (0, 0))),
         LineString(((5, 5), (6, 6))),
-        shapely.Point(0, 0),
+        Point(0, 0),
         None,
     ]
     result = shapely.polygonize(lines)
@@ -537,7 +537,7 @@ def test_polygonize_array_axis():
 def test_polygonize_missing():
     # set of geometries that is all missing
     result = shapely.polygonize([None, None])
-    assert result == shapely.GeometryCollection()
+    assert result == GeometryCollection()
 
 
 def test_polygonize_full():
@@ -551,7 +551,7 @@ def test_polygonize_full():
         LineString(((1, 0), (0, 0))),
         LineString(((5, 5), (6, 6))),
         LineString(((1, 1), (100, 100))),
-        shapely.Point(0, 0),
+        Point(0, 0),
         None,
     ]
     result = shapely.polygonize_full(lines)
@@ -565,12 +565,12 @@ def test_polygonize_full():
         ]
     )
     assert polygons == expected_polygons
-    assert cuts == shapely.GeometryCollection()
+    assert cuts == GeometryCollection()
     expected_dangles = GeometryCollection(
         [LineString(((1, 1), (100, 100))), LineString(((5, 5), (6, 6)))]
     )
     assert dangles == expected_dangles
-    assert invalid == shapely.GeometryCollection()
+    assert invalid == GeometryCollection()
 
 
 def test_polygonize_full_array():
@@ -584,14 +584,14 @@ def test_polygonize_full_array():
     assert len(result) == 4
     assert all(isinstance(geom, shapely.Geometry) for geom in result)
     assert result[0] == expected
-    assert all(geom == shapely.GeometryCollection() for geom in result[1:])
+    assert all(geom == GeometryCollection() for geom in result[1:])
 
     result = shapely.polygonize_full(np.array([lines]))
     assert len(result) == 4
     assert all(isinstance(geom, np.ndarray) for geom in result)
     assert all(geom.shape == (1,) for geom in result)
     assert result[0][0] == expected
-    assert all(geom[0] == shapely.GeometryCollection() for geom in result[1:])
+    assert all(geom[0] == GeometryCollection() for geom in result[1:])
 
     arr = np.array([lines, lines])
     assert arr.shape == (2, 3)
@@ -601,7 +601,7 @@ def test_polygonize_full_array():
     assert all(arr.shape == (2,) for arr in result)
     assert result[0][0] == expected
     assert result[0][1] == expected
-    assert all(g == shapely.GeometryCollection() for geom in result[1:] for g in geom)
+    assert all(g == GeometryCollection() for geom in result[1:] for g in geom)
 
     arr = np.array([[lines, lines], [lines, lines], [lines, lines]])
     assert arr.shape == (3, 2, 3)
@@ -613,7 +613,7 @@ def test_polygonize_full_array():
         assert res == expected
     for arr in result[1:]:
         for res in arr.flatten():
-            assert res == shapely.GeometryCollection()
+            assert res == GeometryCollection()
 
 
 @pytest.mark.skipif(
@@ -639,7 +639,7 @@ def test_polygonize_full_missing():
     # set of geometries that is all missing
     result = shapely.polygonize_full([None, None])
     assert len(result) == 4
-    assert all(geom == shapely.GeometryCollection() for geom in result)
+    assert all(geom == GeometryCollection() for geom in result)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
@@ -785,12 +785,12 @@ def test_minimum_bounding_circle_all_types(geometry):
             shapely.buffer(Point(3, 2), 1),
         ),
         (
-            shapely.Point(2, 2),
-            shapely.Point(2, 2),
+            Point(2, 2),
+            Point(2, 2),
         ),
         (
-            shapely.GeometryCollection(),
-            shapely.Polygon(),
+            GeometryCollection(),
+            Polygon(),
         ),
     ],
 )
@@ -831,12 +831,12 @@ def test_oriented_envelope_all_types(geometry):
             LineString(((1, 1), (10, 1))),
         ),
         (
-            shapely.Point(2, 2),
-            shapely.Point(2, 2),
+            Point(2, 2),
+            Point(2, 2),
         ),
         (
-            shapely.GeometryCollection(),
-            shapely.Polygon(),
+            GeometryCollection(),
+            Polygon(),
         ),
     ],
 )
@@ -866,12 +866,12 @@ def test_oriented_envelope(geometry, expected):
             LineString(((1, 1), (10, 1))),
         ),
         (
-            shapely.Point(2, 2),
-            shapely.Point(2, 2),
+            Point(2, 2),
+            Point(2, 2),
         ),
         (
-            shapely.GeometryCollection(),
-            shapely.Polygon(),
+            GeometryCollection(),
+            Polygon(),
         ),
     ],
 )
