@@ -4,15 +4,15 @@ Installation
 Built distributions
 -------------------
 
-Built distributions don't require to compile Shapely and its dependencies,
+Built distributions don't require compiling Shapely and its dependencies,
 and can be installed using ``pip`` or ``conda``. In addition, Shapely is also
 available via system package management tools like apt, yum, and Homebrew.
 
 Installation from PyPI
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Shapely is available as a binary distribution (wheel) for Linux, macOS and Windows platforms.
-The distribution includes a GEOS version that was most recent at the time of the Shapely release.
+Shapely is available as a binary distribution (wheel) for Linux, macOS, and Windows platforms on `PyPI <https://pypi.org/project/Shapely/>`__.
+The distribution includes the most recent version of GEOS available at the time of the Shapely release.
 Install the binary wheel with pip as follows::
 
     $ pip install shapely
@@ -29,10 +29,10 @@ Installation from source with custom GEOS libary
 ------------------------------------------------
 
 You may want to use a specific GEOS version or a GEOS distribution that is already present on
-your system (for example for compatibility with other modules that depend on GEOS, such as
-cartopy or osgeo.ogr). In such cases you will need to ensure the GEOS library is install
-and then compile Shapely yourself, installing it from source (by directing pip to ignore
-the binary wheels).
+your system (for compatibility with other modules that depend on GEOS, such as
+cartopy or osgeo.ogr). In such cases you will need to ensure the GEOS library is installed on your system
+and then compile Shapely from source yourself, by directing pip to ignore
+the binary wheels.
 
 On Linux::
 
@@ -44,7 +44,7 @@ On macOS::
     $ brew install geos  # skip this if you already have GEOS
     $ pip install shapely --no-binary shapely
 
-If you've installed GEOS to a standard location, the installation will automatically
+If you've installed GEOS to a standard location on Linux or macOS, the installation will automatically
 find it using ``geos-config``. See the notes below on GEOS discovery at compile time
 to configure this.
 
@@ -58,10 +58,10 @@ to build Shapely yourself:
 - Make sure the GEOS .dll files are available on the PATH
 
 
-Installation of development version
+Installation for local development
 -----------------------------------
 
-The same as installation with a custom GEOS binary, but then instead of installing
+This is similar to installing with a custom GEOS binary, but then instead of installing
 Shapely with pip from PyPI, you clone the package from Github::
 
     $ git clone git@github.com:shapely/shapely.git
@@ -101,13 +101,13 @@ Shapely can be tested using ``pytest``::
 GEOS discovery (compile time)
 -----------------------------
 
-If GEOS is installed on Linux or macOS, normally the ``geos-config`` command line utility
+If GEOS is installed on Linux or macOS the ``geos-config`` command line utility should be available
 will be available and ``pip`` will find GEOS automatically.
 If the correct ``geos-config`` is not on the PATH, you can add it as follows (on Linux/macOS)::
 
     $ export PATH=/path/to/geos/bin:$PATH
 
-Alternatively, you can specify where Shapely should look for GEOS (on Linux/macOS)::
+Alternatively, you can specify where Shapely should look for GEOS library and header files using environment variables (on Linux/macOS)::
 
     $ export GEOS_INCLUDE_PATH=/path/to/geos/include
     $ export GEOS_LIBRARY_PATH=/path/to/geos/lib

@@ -56,7 +56,7 @@ Shapely 2.0 requires
 Installing Shapely
 ==================
 
-It is recommended to install Shapely using one of the available built
+We recommend installing Shapely using one of the available built
 distributions, for example using ``pip`` or ``conda``:
 
 .. code-block:: console
@@ -66,7 +66,7 @@ distributions, for example using ``pip`` or ``conda``:
     $ conda install shapely --channel conda-forge
 
 See the `installation documentation <https://shapely.readthedocs.io/en/latest/installation.html>`__
-for more details (installing from source, using a custom GEOS install, development version, etc).
+for more details and advanced installation instructions.
 
 Integration
 ===========
