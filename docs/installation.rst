@@ -11,9 +11,10 @@ available via system package management tools like apt, yum, and Homebrew.
 Installation from PyPI
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Shapely is available as a binary distribution (wheel) for Linux, macOS, and Windows platforms on `PyPI <https://pypi.org/project/Shapely/>`__.
-The distribution includes the most recent version of GEOS available at the time of the Shapely release.
-Install the binary wheel with pip as follows::
+Shapely is available as a binary distribution (wheel) for Linux, macOS, and
+Windows platforms on `PyPI <https://pypi.org/project/Shapely/>`__. The
+distribution includes the most recent version of GEOS available at the time
+of the Shapely release. Install the binary wheel with pip as follows::
 
     $ pip install shapely
 
@@ -28,11 +29,11 @@ Shapely is available on the conda-forge channel. Install as follows::
 Installation from source with custom GEOS libary
 ------------------------------------------------
 
-You may want to use a specific GEOS version or a GEOS distribution that is already present on
-your system (for compatibility with other modules that depend on GEOS, such as
-cartopy or osgeo.ogr). In such cases you will need to ensure the GEOS library is installed on your system
-and then compile Shapely from source yourself, by directing pip to ignore
-the binary wheels.
+You may want to use a specific GEOS version or a GEOS distribution that is
+already present on your system (for compatibility with other modules that
+depend on GEOS, such as cartopy or osgeo.ogr). In such cases you will need to
+ensure the GEOS library is installed on your system and then compile Shapely
+from source yourself, by directing pip to ignore the binary wheels.
 
 On Linux::
 
@@ -101,13 +102,14 @@ Shapely can be tested using ``pytest``::
 GEOS discovery (compile time)
 -----------------------------
 
-If GEOS is installed on Linux or macOS the ``geos-config`` command line utility should be available
-will be available and ``pip`` will find GEOS automatically.
+If GEOS is installed on Linux or macOS, the ``geos-config`` command line utility
+should be available and ``pip`` will find GEOS automatically.
 If the correct ``geos-config`` is not on the PATH, you can add it as follows (on Linux/macOS)::
 
     $ export PATH=/path/to/geos/bin:$PATH
 
-Alternatively, you can specify where Shapely should look for GEOS library and header files using environment variables (on Linux/macOS)::
+Alternatively, you can specify where Shapely should look for GEOS library and
+header files using environment variables (on Linux/macOS)::
 
     $ export GEOS_INCLUDE_PATH=/path/to/geos/include
     $ export GEOS_LIBRARY_PATH=/path/to/geos/lib
