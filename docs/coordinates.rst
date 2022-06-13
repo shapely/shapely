@@ -1,7 +1,7 @@
 Coordinate operations
 =====================
 
-.. automodule:: pygeos.coordinates
+.. automodule:: shapely.coordinates
    :members:
    :undoc-members:
    :special-members:

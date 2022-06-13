@@ -19,6 +19,10 @@ class LinearReferencingTestCase(unittest.TestCase):
         self.assertEqual(self.line1.project(self.point), 1.0)
         self.assertEqual(self.line1.project(self.point, normalized=True), 0.5)
 
+    def test_alias_project(self):
+        self.assertEqual(self.line1.line_locate_point(self.point), 1.0)
+        self.assertEqual(self.line1.line_locate_point(self.point, normalized=True), 0.5)
+
     def test_line2_project(self):
         self.assertEqual(self.line2.project(self.point), 1.0)
         self.assertAlmostEqual(
@@ -44,6 +48,14 @@ class LinearReferencingTestCase(unittest.TestCase):
             self.line1.interpolate(0.5, normalized=True).equals(Point(1, 0)))
         self.assertTrue(
             self.line1.interpolate(-0.5, normalized=True).equals(Point(1, 0)))
+
+    def test_alias_interpolate(self):
+        self.assertTrue(self.line1.line_interpolate_point(0.5).equals(Point(0.5, 0.0)))
+        self.assertTrue(self.line1.line_interpolate_point(-0.5).equals(Point(1.5, 0.0)))
+        self.assertTrue(
+            self.line1.line_interpolate_point(0.5, normalized=True).equals(Point(1, 0)))
+        self.assertTrue(
+            self.line1.line_interpolate_point(-0.5, normalized=True).equals(Point(1, 0)))
 
     def test_line2_interpolate(self):
         self.assertTrue(self.line2.interpolate(0.5).equals(Point(3.0, 0.5)))
