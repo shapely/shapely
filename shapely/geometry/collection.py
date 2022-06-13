@@ -60,8 +60,6 @@ class GeometryCollection(BaseMultipartGeometry):
 
     @property
     def geoms(self):
-        if self.is_empty:
-            return []
         return HeterogeneousGeometrySequence(self)
 
 
