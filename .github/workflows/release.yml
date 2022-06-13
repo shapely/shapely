@@ -30,7 +30,7 @@ jobs:
 
       - name: Build a source tarball
         env:
-          GEOS_VERSION: "3.10.2"
+          GEOS_VERSION: "3.10.3"
           GEOS_INSTALL: ${{ runner.temp }}/geos-$GEOS_VERSION
           GEOS_CONFIG: ${{ runner.temp }}/geos-$GEOS_VERSION/bin/geos-config
           LD_LIBRARY_PATH: $LD_LIBRARY_PATH:${{ runner.temp }}/geos-$GEOS_VERSION/lib
@@ -49,7 +49,7 @@ jobs:
     name: Build ${{ matrix.arch }} wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     env:
-      GEOS_VERSION: "3.10.2"
+      GEOS_VERSION: "3.10.3"
       CIBW_BUILD_VERBOSITY: 2
     strategy:
       fail-fast: false
