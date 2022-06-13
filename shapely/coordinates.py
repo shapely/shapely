@@ -29,20 +29,20 @@ def transform(geometry, transformation, include_z=False):
 
     Examples
     --------
-    >>> apply(Geometry("POINT (0 0)"), lambda x: x + 1)
+    >>> transform(Geometry("POINT (0 0)"), lambda x: x + 1)
     <pygeos.Geometry POINT (1 1)>
-    >>> apply(Geometry("LINESTRING (2 2, 4 4)"), lambda x: x * [2, 3])
+    >>> transform(Geometry("LINESTRING (2 2, 4 4)"), lambda x: x * [2, 3])
     <pygeos.Geometry LINESTRING (4 6, 8 12)>
-    >>> apply(None, lambda x: x) is None
+    >>> transform(None, lambda x: x) is None
     True
-    >>> apply([Geometry("POINT (0 0)"), None], lambda x: x).tolist()
+    >>> transform([Geometry("POINT (0 0)"), None], lambda x: x).tolist()
     [<pygeos.Geometry POINT (0 0)>, None]
 
     By default, the third dimension is ignored:
 
-    >>> apply(Geometry("POINT Z (0 0 0)"), lambda x: x + 1)
+    >>> transform(Geometry("POINT Z (0 0 0)"), lambda x: x + 1)
     <pygeos.Geometry POINT (1 1)>
-    >>> apply(Geometry("POINT Z (0 0 0)"), lambda x: x + 1, include_z=True)
+    >>> transform(Geometry("POINT Z (0 0 0)"), lambda x: x + 1, include_z=True)
     <pygeos.Geometry POINT Z (1 1 1)>
     """
     geometry_arr = np.array(geometry, dtype=np.object_)  # makes a copy
@@ -157,7 +157,7 @@ def set_coordinates(geometry, coordinates):
 
     See Also
     --------
-    apply : Returns a copy of a geometry array with a function applied to its
+    transform : Returns a copy of a geometry array with a function applied to its
         coordinates.
 
     Examples
