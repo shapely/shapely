@@ -33,15 +33,7 @@ def test_empty(geom):
 
 
 def test_empty_subgeoms():
-    geom = shape(
-        {
-            "type": "GeometryCollection",
-            "geometries": [
-                {"type": "Point", "coordinates": ()},
-                {"type": "LineString", "coordinates": (())},
-            ],
-        }
-    )
+    geom = GeometryCollection([Point(), LineString()])
     assert geom.type == "GeometryCollection"
     assert geom.type == geom.geom_type
     assert geom.is_empty
