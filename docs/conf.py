@@ -18,9 +18,6 @@ import sys, os
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.append(os.path.abspath('sphinxext'))
 
-# Load latest source tree
-sys.path.insert(0, os.path.abspath('..'))
-
 import shapely
 
 # For pyplots in code/, load functions here first, so they are visible
@@ -233,7 +230,7 @@ intersphinx_mapping = {
     'numpy': ('https://numpy.org/doc/stable/', None),
 }
 
-# set an environment variable for pygeos.decorators.requires_geos to see if we
+# set an environment variable for shapely.decorators.requires_geos to see if we
 # are in a doc build
 import os
 os.environ["SPHINX_DOC_BUILD"] = "1"

@@ -1,7 +1,7 @@
 Geometry creation
 =================
 
-.. automodule:: pygeos.creation
+.. automodule:: shapely.creation
    :members:
    :exclude-members:
    :special-members:
