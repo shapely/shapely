@@ -69,15 +69,6 @@ class BaseGeometry(shapely.Geometry):
 
     """
 
-    # Attributes
-    # ----------
-    # __geom__ : c_void_p
-    #     Cached ctypes pointer to GEOS geometry. Not to be accessed.
-    # _geom : c_void_p
-    #     Property by which the GEOS geometry is accessed.
-    # _ndim : int
-    #     Number of dimensions (2 or 3, generally)
-
     __slots__ = []
 
     def __new__(self):
@@ -89,14 +80,6 @@ class BaseGeometry(shapely.Geometry):
             stacklevel=2,
         )
         return shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")
-
-    @property
-    def _geom(self):
-        return self._ptr
-
-    @property
-    def __geom__(self):
-        return self._ptr
 
     @property
     def _ndim(self):
@@ -763,14 +746,11 @@ class GeometrySequence:
     # ----------
     # _factory : callable
     #     Returns instances of Shapely geometries
-    # _geom : c_void_p
-    #     Ctypes pointer to the parent's GEOS geometry
     # _ndim : int
     #     Number of dimensions (2 or 3, generally)
     # __p__ : object
     #     Parent (Shapely) geometry
     shape_factory = None
-    _geom = None
     __p__ = None
     _ndim = None
 
