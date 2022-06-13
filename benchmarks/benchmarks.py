@@ -206,35 +206,35 @@ class STRtree:
         tree = pygeos.STRtree(self.polygons)
         tree.query(pygeos.points(0, 0))
 
-    def time_tree_query_bulk(self):
-        self.tree.query_bulk(self.polygons)
+    def time_tree_query(self):
+        self.tree.query(self.polygons)
 
-    def time_tree_query_bulk_intersects(self):
-        self.tree.query_bulk(self.polygons, predicate="intersects")
+    def time_tree_query_intersects(self):
+        self.tree.query(self.polygons, predicate="intersects")
 
-    def time_tree_query_bulk_within(self):
-        self.tree.query_bulk(self.polygons, predicate="within")
+    def time_tree_query_within(self):
+        self.tree.query(self.polygons, predicate="within")
 
-    def time_tree_query_bulk_contains(self):
-        self.tree.query_bulk(self.polygons, predicate="contains")
+    def time_tree_query_contains(self):
+        self.tree.query(self.polygons, predicate="contains")
 
-    def time_tree_query_bulk_overlaps(self):
-        self.tree.query_bulk(self.polygons, predicate="overlaps")
+    def time_tree_query_overlaps(self):
+        self.tree.query(self.polygons, predicate="overlaps")
 
-    def time_tree_query_bulk_crosses(self):
-        self.tree.query_bulk(self.polygons, predicate="crosses")
+    def time_tree_query_crosses(self):
+        self.tree.query(self.polygons, predicate="crosses")
 
-    def time_tree_query_bulk_touches(self):
-        self.tree.query_bulk(self.polygons, predicate="touches")
+    def time_tree_query_touches(self):
+        self.tree.query(self.polygons, predicate="touches")
 
-    def time_tree_query_bulk_covers(self):
-        self.tree.query_bulk(self.polygons, predicate="covers")
+    def time_tree_query_covers(self):
+        self.tree.query(self.polygons, predicate="covers")
 
-    def time_tree_query_bulk_covered_by(self):
-        self.tree.query_bulk(self.polygons, predicate="covered_by")
+    def time_tree_query_covered_by(self):
+        self.tree.query(self.polygons, predicate="covered_by")
 
-    def time_tree_query_bulk_contains_properly(self):
-        self.tree.query_bulk(self.polygons, predicate="contains_properly")
+    def time_tree_query_contains_properly(self):
+        self.tree.query(self.polygons, predicate="contains_properly")
 
     def time_tree_nearest_points(self):
         self.point_tree.nearest(self.points)
@@ -258,7 +258,7 @@ class STRtree:
         b = pygeos.buffer(self.grid_points, dist + 1e-8)
 
         # query the tree for others in the same buffer distance
-        left, right = self.grid_point_tree.query_bulk(b, predicate="intersects")
+        left, right = self.grid_point_tree.query(b, predicate="intersects")
         dist = pygeos.distance(
             self.grid_points.take(left), self.grid_point_tree.geometries.take(right)
         )
@@ -312,7 +312,7 @@ class STRtree:
         # geometries
         tolerance = 200
         b = pygeos.buffer(self.points, tolerance, quadsegs=1)
-        left, right = self.tree.query_bulk(b)
+        left, right = self.tree.query(b)
         dist = pygeos.distance(self.points.take(left), self.polygons.take(right))
 
         # sort by left, distance

@@ -211,7 +211,7 @@ tree.geometries.take(arr_indices[1])]).T.tolist()  # doctest: +NORMALIZE_WHITESP
             is_scalar = True
 
         if predicate is None:
-            indices = self._tree.query_bulk(geometry, 0)
+            indices = self._tree.query(geometry, 0)
             return indices[1] if is_scalar else indices
 
         # Requires GEOS >= 3.10
@@ -237,7 +237,7 @@ tree.geometries.take(arr_indices[1])]).T.tolist()  # doctest: +NORMALIZE_WHITESP
             return indices[1] if is_scalar else indices
 
         predicate = BinaryPredicate.get_value(predicate)
-        indices = self._tree.query_bulk(geometry, predicate)
+        indices = self._tree.query(geometry, predicate)
         return indices[1] if is_scalar else indices
 
     @requires_geos("3.6.0")
