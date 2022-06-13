@@ -224,7 +224,6 @@ setup(
     url="https://github.com/shapely/shapely",
     keywords="geometry topology gis",
     author="Sean Gillies",
-    author_email="sean.gillies@gmail.com",
     maintainer="Shapely contributors",
     packages=find_packages(include=["shapely", "shapely.*"]),
     install_requires=["numpy>=1.13"],
