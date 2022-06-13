@@ -1,5 +1,8 @@
 import itertools
 import math
+import pickle
+import subprocess
+import sys
 from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
@@ -7,7 +10,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 import shapely
-from shapely import box, geos_version, MultiPoint, Point, STRtree
+from shapely import box, geos_version, MultiPoint, Point, Polygon, STRtree
 from shapely.errors import UnsupportedGEOSVersionError
 
 from .common import (
@@ -88,6 +91,24 @@ def test_del_decreases_refcount():
         del tree
 
 
+def test_references():
+    point1 = Point()
+    point2 = Point(0, 1)
+
+    geoms = [point1, point2]
+    tree = STRtree(geoms)
+
+    point1 = None
+    point2 = None
+
+    import gc
+
+    gc.collect()
+
+    # query after freeing geometries does not lead to segfault
+    assert tree.query(box(0, 0, 1, 1)).tolist() == [1]
+
+
 def test_flush_geometries():
     arr = shapely.points(np.arange(10), np.arange(10))
     tree = STRtree(arr)
@@ -106,6 +127,43 @@ def test_geometries_property():
     arr = np.array([point])
     tree = STRtree(arr)
     assert arr is tree.geometries
+
+
+# TODO(shapely-2.0) this fails on Appveyor, see
+# https://github.com/shapely/shapely/pull/983#issuecomment-718557666
+@pytest.mark.skipif(sys.platform.startswith("win32"), reason="does not run on Appveyor")
+def test_pickle_persistence(tmp_path):
+    # write the pickeled tree to another process; the process should not crash
+    tree = STRtree([Point(i, i).buffer(0.1) for i in range(3)])
+
+    pickled_strtree = pickle.dumps(tree)
+    unpickle_script = """
+import pickle
+import sys
+
+from shapely import Point, geos_version
+
+pickled_strtree = sys.stdin.buffer.read()
+print("received pickled strtree:", repr(pickled_strtree))
+tree = pickle.loads(pickled_strtree)
+
+tree.query(Point(0, 0))
+if geos_version >= (3, 6, 0):
+    tree.nearest(Point(0, 0))
+print("done")
+"""
+
+    filename = tmp_path / "unpickle-strtree.py"
+    with open(filename, "w") as out:
+        out.write(unpickle_script)
+
+    proc = subprocess.Popen(
+        [sys.executable, str(filename)],
+        stdin=subprocess.PIPE,
+    )
+    proc.communicate(input=pickled_strtree)
+    proc.wait()
+    assert proc.returncode == 0
 
 
 @pytest.mark.parametrize(
@@ -1502,6 +1560,28 @@ def test_nearest_none(tree, geometry):
 def test_nearest_empty(tree, geometry):
     with pytest.raises(ValueError):
         tree.nearest(geometry)
+
+
+# TODO: implement tests for nearest exclusive=True
+@pytest.mark.xfail(strict=True, reason="Not yet implemented for Shapely 2.0")
+@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS 3.6.0 required")
+@pytest.mark.parametrize(
+    "tree_geoms,geometry,expected",
+    [
+        (
+            [
+                Point(0, 0.5),
+                Polygon([(1, 0), (2, 0), (2, 1), (1, 1)]),
+                Polygon([(0, 2), (1, 2), (1, 3), (0, 3)]),
+            ],
+            Point(0, 0.5),
+            [1],
+        ),
+    ],
+)
+def test_nearest_exclusive(tree_geoms, geometry, expected):
+    tree = STRtree(tree_geoms)
+    assert_array_equal(tree.nearest(geometry, exclusive=True), expected)
 
 
 @pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
