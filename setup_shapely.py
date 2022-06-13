@@ -206,8 +206,6 @@ setup_args = dict(
     cmdclass           = {},
     python_requires    = '>=3.6',
     extras_require     = extra_reqs,
-    package_data={
-        'shapely': ['shapely/_geos.pxi']},
     include_package_data=True
 )
 
