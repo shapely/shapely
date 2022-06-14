@@ -62,9 +62,9 @@ class STRtree:
         node_capacity: int = 10,
     ):
         # Keep references to geoms
-        self.geometries = np.asarray(geoms, dtype=np.object_)
+        self._geometries = np.asarray(geoms, dtype=np.object_)
         # prevent modification
-        self.geometries.flags.writeable = False
+        self._geometries.flags.writeable = False
 
         # initialize GEOS STRtree
         self._tree = lib.STRtree(self.geometries, node_capacity)
@@ -75,10 +75,10 @@ class STRtree:
     def __reduce__(self):
         return (STRtree, (self.geometries,))
 
+    @property
     def geometries(self):
         """
-        Return the geometries stored in the tree in the order used to construct
-        the tree.
+        Geometries stored in the tree in the order used to construct the tree.
 
         Do not attempt to modify items in the returned array.
 
@@ -86,7 +86,7 @@ class STRtree:
         -------
         ndarray of Geometry objects
         """
-        return self.geometries
+        return self._geometries
 
     def query(self, geometry, predicate=None, distance=None):
         """

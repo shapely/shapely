@@ -114,7 +114,7 @@ def test_flush_geometries():
     tree = STRtree(arr)
 
     # Dereference geometries
-    tree.geometries.flags.writeable = True
+    tree._geometries.flags.writeable = True
     arr[:] = None
     import gc
 
