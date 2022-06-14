@@ -69,7 +69,7 @@ def affine_transform(geom, matrix):
         off = np.array([xoff, yoff, zoff], dtype=float)
 
     def _affine_coords(coords):
-        return np.dot(A, coords.T).T + off
+        return np.matmul(A, coords.T).T + off
 
     return shapely.apply(geom, _affine_coords, include_z=ndim == 3)
 
