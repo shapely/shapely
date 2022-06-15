@@ -12,7 +12,8 @@ typedef struct {
   GeometryObject*** a;
 } tree_geom_vec_t;
 
-/* A struct to hold pairs of GeometryObject** and distance for use in STRtree::nearest_all */
+/* A struct to hold pairs of GeometryObject** and distance for use in STRtree::nearest_all
+ */
 typedef struct {
   GeometryObject** geom;
   double distance;
@@ -37,6 +38,7 @@ typedef struct {
   GEOSContextHandle_t ctx;
   tree_geom_dist_vec_t* dist_pairs;
   double min_distance;
+  int exclusive;  // if 1, only non-equal tree geometries will be returned
 } tree_nearest_userdata_t;
 
 typedef struct {

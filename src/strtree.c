@@ -572,6 +572,12 @@ int nearest_all_distance_callback(const void* item1, const void* item2, double* 
 
   tree_nearest_userdata_t* params = (tree_nearest_userdata_t*)userdata;
 
+  // ignore geometries that are equal to the input
+  if (params->exclusive && GEOSEquals_r(params->ctx, (GEOSGeometry*)item2, tree_geom)) {
+    *distance = DBL_MAX;  // set large distance to force searching for other matches
+    return 1;
+  }
+
   // distance returns 1 on success, 0 on error
   if (GEOSDistance_r(params->ctx, (GEOSGeometry*)item2, tree_geom, &calc_distance) == 0) {
     return 0;
@@ -592,13 +598,15 @@ int nearest_all_distance_callback(const void* item1, const void* item2, double* 
     tree_geom_dist_vec_item_t dist_pair =
         (tree_geom_dist_vec_item_t){(GeometryObject**)item1, calc_distance};
     kv_push(tree_geom_dist_vec_item_t, *(params->dist_pairs), dist_pair);
-  }
 
-  // Set distance for callback
-  // This adds a slight adjustment to force checking of adjacent tree nodes; otherwise
-  // they are skipped by the GEOS nearest neighbor algorithm check against bounds
-  // of adjacent nodes.
-  *distance = calc_distance + 1e-6;
+    // Set distance for callback with a slight adjustment to force checking of adjacent
+    // tree nodes; otherwise they are skipped by the GEOS nearest neighbor algorithm check
+    // against bounds of adjacent nodes.
+    *distance = calc_distance + 1e-6;
+
+  } else {
+    *distance = calc_distance;
+  }
 
   return 1;
 }
@@ -761,7 +769,8 @@ static PyObject* STRtree_nearest_all(STRtreeObject* self, PyObject* args) {
   char* head_ptr = (char*)self->_geoms;
   tree_nearest_userdata_t userdata;
   double distance;
-  PyArrayObject* result_indexes;    // array of [source index, tree index]
+  int exclusive = 0;              // if 1, only non-equal tree geometries will be returned
+  PyArrayObject* result_indexes;  // array of [source index, tree index]
   PyArrayObject* result_distances;  // array of distances
   PyObject* result;                 // tuple of (indexes array, distance array)
 
@@ -782,7 +791,7 @@ static PyObject* STRtree_nearest_all(STRtreeObject* self, PyObject* args) {
     return NULL;
   }
 
-  if (!PyArg_ParseTuple(args, "Od", &arr, &max_distance)) {
+  if (!PyArg_ParseTuple(args, "Odi", &arr, &max_distance, &exclusive)) {
     return NULL;
   }
   if (max_distance > 0) {
@@ -835,6 +844,7 @@ static PyObject* STRtree_nearest_all(STRtreeObject* self, PyObject* args) {
   // initialize userdata context and dist_pairs vector
   userdata.ctx = ctx;
   userdata.dist_pairs = &dist_pairs;
+  userdata.exclusive = exclusive;
 
   for (i = 0; i < n; i++) {
     // get shapely geometry from input geometry array
@@ -848,7 +858,10 @@ static PyObject* STRtree_nearest_all(STRtreeObject* self, PyObject* args) {
     }
 
     if (use_max_distance) {
-      // if max_distance is defined, prescreen geometries using simple bbox expansion
+      // if max_distance is defined, prescreen geometries using simple bbox expansion;
+      // this only helps to eliminate input geometries that have no tree geometries
+      // within_max distance, and adds overhead when there is a large number
+      // of hits within this distance
       if (get_bounds(ctx, geom, &xmin, &ymin, &xmax, &ymax) == 0) {
         errstate = PGERR_GEOS_EXCEPTION;
         break;

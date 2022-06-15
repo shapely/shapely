@@ -1865,6 +1865,36 @@ def test_nearest_all_return_distance(tree, geometry, expected):
     )
 
 
+@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize(
+    "geometry,exclusive,expected",
+    [
+        (Point(1, 1), False, [[0], [1]]),
+        (Point(1, 1), True, [[0, 0], [0, 2]]),
+        ([Point(1, 1)], True, [[0, 0], [0, 2]]),
+        ([Point(1, 1)], True, [[0, 0], [0, 2]]),
+        ([Point(1, 1), Point(2, 2)], True, [[0, 0, 1, 1], [0, 2, 1, 3]]),
+    ],
+)
+def test_nearest_all_exclusive(tree, geometry, exclusive, expected):
+    assert_array_equal(tree.nearest_all(geometry, exclusive=exclusive), expected)
+
+
+@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize(
+    "geometry,exclusive",
+    [
+        (Point(1, 1), "invalid"),
+        (Point(1, 1), ["also invalid"]),
+        ([Point(1, 1)], []),
+        ([Point(1, 1)], [False]),
+    ],
+)
+def test_nearest_all_invalid_exclusive(tree, geometry, exclusive):
+    with pytest.raises(ValueError):
+        tree.nearest_all(geometry, exclusive=exclusive)
+
+
 def test_strtree_threaded_query():
     ## Create data
     polygons = shapely.polygons(np.random.randn(1000, 3, 2))
