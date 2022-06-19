@@ -53,28 +53,28 @@ Shapely is a BSD-licensed Python package for manipulation and analysis of
 planar geometric objects. It is using the widely deployed open-source
 geometry library `GEOS <https://libgeos.org/>`__ (the engine of `PostGIS
 <https://postgis.net/>`__, and a port of `JTS <https://locationtech.github.io/jts/>`__).
-Shapely wraps GEOS geometries and operations to provide both a feature rich `Geometry` interface for singular (scalar) geometries and higher-performance NumPy ufuncs for operations using arrays of geometries.
-improvement when operating on arrays of geometries, as well as provides a
-rich scalar `Geometry` interface.
-Shapely is not primarily focused on data serialization formats or coordinate systems, but can be
-readily integrated with packages that are.
+Shapely wraps GEOS geometries and operations to provide both a feature rich
+`Geometry` interface for singular (scalar) geometries and higher-performance
+NumPy ufuncs for operations using arrays of geometries.
+Shapely is not primarily focused on data serialization formats or coordinate
+systems, but can be readily integrated with packages that are.
 
 What is a ufunc?
 ----------------
 
 A universal function (or ufunc for short) is a function that operates on
 *n*-dimensional arrays on an element-by-element fashion and supports array
-broadcasting. The underlying ``for`` loops are implemented in C to reduce the overhead of the Python interpreter.
-diminishing the overhead of the Python interpreter.
+broadcasting. The underlying ``for`` loops are implemented in C to reduce the
+overhead of the Python interpreter.
 
 Multithreading
 --------------
 
-Shapely functions generally support multithreading by releasing the Global Interpreter Lock (GIL) during execution.
-Interpreter Lock (GIL) is released during function execution. Normally in Python, the
-GIL prevents multiple threads from computing at the same time. Shapely functions
-internally release this constraint so that the heavy lifting done by GEOS can be
-done in parallel, from a single Python process.
+Shapely functions generally support multithreading by releasing the Global
+Interpreter Lock (GIL) during execution. Normally in Python, the GIL prevents
+multiple threads from computing at the same time. Shapely functions
+internally release this constraint so that the heavy lifting done by GEOS can
+be done in parallel, from a single Python process.
 
 Usage
 =====
@@ -85,7 +85,7 @@ buffering a point, using the scalar Geometry interface:
 .. code-block:: pycon
 
     >>> from shapely import Point
-    >>> patch = shapely.Point(0.0, 0.0).buffer(10.0)
+    >>> patch = Point(0.0, 0.0).buffer(10.0)
     >>> patch
     <shapely.Polygon POLYGON ((10 0, 9.952 -0.98, 9.808 -1.951, 9.569 -2.903, 9....>
     >>> patch.area
