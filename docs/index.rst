@@ -1,27 +1,24 @@
-=======
-Shapely
-=======
+.. include:: ../README.rst
 
-Documentation Contents
-======================
+.. include:: ../CREDITS.txt
+
+.. include:: ../FAQ.rst
+
 
 .. toctree::
-   :maxdepth: 2
-
-   The Project <project>
-   User Manual <manual>
-   API Documentation <modules>
-   migration
-
-
-API Reference
-=============
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Contents:
+   :caption: User Guide
+   :hidden:
 
    installation
+   User Manual <manual>
+   migration
+   changelog
+
+
+.. toctree::
+   :caption: API Reference
+   :hidden:
+
    geometry
    creation
    io
@@ -33,7 +30,6 @@ API Reference
    coordinates
    strtree
    testing
-   changelog
 
 Indices and tables
 ==================

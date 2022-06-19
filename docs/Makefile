@@ -30,7 +30,7 @@ help:
 clean:
 	-rm -rf $(BUILDDIR)/* build/plot_directive/*
 
-html: apidocs
+html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
@@ -50,7 +50,7 @@ json:
 	@echo
 	@echo "Build finished; now you can process the JSON files."
 
-htmlhelp: apidocs
+htmlhelp:
 	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) $(BUILDDIR)/htmlhelp
 	@echo
 	@echo "Build finished; now you can run HTML Help Workshop with the" \
@@ -87,9 +87,3 @@ doctest:
 	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDDIR)/doctest
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(BUILDDIR)/doctest/output.txt."
-
-apidocs:
-	sphinx-apidoc -f -s txt -o . ../shapely
-	@echo
-	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
-

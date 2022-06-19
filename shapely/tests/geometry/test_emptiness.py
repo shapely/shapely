@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import pytest
 
@@ -75,3 +77,22 @@ def test_shape_empty():
     empty_json = mapping(empty_mp)
     empty_shape = shape(empty_json)
     assert empty_shape.is_empty
+
+
+@pytest.mark.parametrize(
+    "geom",
+    [
+        Point(),
+        LineString(),
+        Polygon(),
+        MultiPoint(),
+        MultiLineString(),
+        MultiPolygon(),
+        GeometryCollection(),
+        LinearRing(),
+    ],
+)
+def test_empty_geometry_bounds(geom):
+    """The bounds of an empty geometry is a tuple of NaNs"""
+    assert len(geom.bounds) == 4
+    assert all(math.isnan(v) for v in geom.bounds)
