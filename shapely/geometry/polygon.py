@@ -122,7 +122,6 @@ shapely.lib.registry[2] = LinearRing
 class InteriorRingSequence:
 
     _factory = None
-    _geom = None
     __p__ = None
     _ndim = None
     _index = 0
@@ -132,7 +131,6 @@ class InteriorRingSequence:
 
     def __init__(self, parent):
         self.__p__ = parent
-        self._geom = parent._geom
         self._ndim = parent._ndim
 
     def __iter__(self):
