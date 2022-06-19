@@ -1,82 +1,115 @@
 Installation
 ============
 
+Built distributions
+-------------------
+
+Built distributions don't require compiling Shapely and its dependencies,
+and can be installed using ``pip`` or ``conda``. In addition, Shapely is also
+available via some system package management tools like apt.
+
 Installation from PyPI
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
-PyGEOS is available as a binary distribution (wheel) for Linux, OSX and Windows platforms.
-The distribution includes a GEOS version that was most recent at the time of the PyGEOS release.
-Install the binary wheel with pip as follows::
+Shapely is available as a binary distribution (wheel) for Linux, macOS, and
+Windows platforms on `PyPI <https://pypi.org/project/Shapely/>`__. The
+distribution includes the most recent version of GEOS available at the time
+of the Shapely release. Install the binary wheel with pip as follows::
 
-    $ pip install pygeos
+    $ pip install shapely
+
+Installation using conda
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Shapely is available on the conda-forge channel. Install as follows::
+
+    $ conda install shapely --channel conda-forge
 
 
-Installation using Anaconda
----------------------------
+Installation from source with custom GEOS libary
+------------------------------------------------
 
-PyGEOS is available on the conda-forge channel. Install as follows::
-
-    $ conda install pygeos --channel conda-forge
-
-
-Installation with custom GEOS libary
-------------------------------------
-
-You may want to use a specific GEOS version or a GEOS distribution that is already present on
-your system. In such cases you will need to compile PyGEOS yourself.
+You may want to use a specific GEOS version or a GEOS distribution that is
+already present on your system (for compatibility with other modules that
+depend on GEOS, such as cartopy or osgeo.ogr). In such cases you will need to
+ensure the GEOS library is installed on your system and then compile Shapely
+from source yourself, by directing pip to ignore the binary wheels.
 
 On Linux::
 
     $ sudo apt install libgeos-dev  # skip this if you already have GEOS
-    $ pip install pygeos --no-binary
+    $ pip install shapely --no-binary shapely
 
-On OSX::
+On macOS::
 
     $ brew install geos  # skip this if you already have GEOS
-    $ pip install pygeos --no-binary
+    $ pip install shapely --no-binary shapely
+
+If you've installed GEOS to a standard location on Linux or macOS, the installation will automatically
+find it using ``geos-config``. See the notes below on GEOS discovery at compile time
+to configure this.
 
 We do not have a recipe for Windows platforms. The following steps should enable you
-to build PyGEOS yourself:
+to build Shapely yourself:
 
 - Get a C compiler applicable to your Python version (https://wiki.python.org/moin/WindowsCompilers)
 - Download and install a GEOS binary (https://trac.osgeo.org/osgeo4w/)
 - Set GEOS_INCLUDE_PATH and GEOS_LIBRARY_PATH environment variables (see below for notes on GEOS discovery)
-- Run ``pip install pygeos --no-binary``
+- Run ``pip install shapely --no-binary``
 - Make sure the GEOS .dll files are available on the PATH
 
 
-Installation from source
-------------------------
+Installation for local development
+-----------------------------------
 
-The same as installation with a custom GEOS binary, but then instead of installing pygeos
-with pip, you clone the package from Github::
+This is similar to installing with a custom GEOS binary, but then instead of installing
+Shapely with pip from PyPI, you clone the package from Github::
 
-    $ git clone git@github.com:pygeos/pygeos.git
+    $ git clone git@github.com:shapely/shapely.git
+    $ cd shapely/
 
 Install it in development mode using ``pip``::
 
     $ pip install -e .[test]
 
+For development, use of a virtual environment is strongly recommended. For example
+using ``venv``:
 
-Testing PyGEOS
---------------
+.. code-block:: console
 
-PyGEOS can be tested using ``pytest``::
+    $ python3 -m venv .
+    $ source bin/activate
+    (env) $ pip install -r requirements-dev.txt
+    (env) $ pip install -e .
 
-    $ pip install pytest  # or pygeos[test]
-    $ pytest --pyargs pygeos.tests
+Or using ``conda``:
+
+.. code-block:: console
+
+    $ conda create -n env python=3 geos numpy cython pytest
+    $ conda activate env
+    (env) $ pip install -e .
+
+Testing Shapely
+---------------
+
+Shapely can be tested using ``pytest``::
+
+    $ pip install pytest  # or shapely[test]
+    $ pytest --pyargs shapely.tests
 
 
 GEOS discovery (compile time)
 -----------------------------
 
-If GEOS is installed on Linux or OSX, normally the ``geos-config`` command line utility
-will be available and ``pip`` will find GEOS automatically.
-If the correct ``geos-config`` is not on the PATH, you can add it as follows (on Linux/OSX)::
+If GEOS is installed on Linux or macOS, the ``geos-config`` command line utility
+should be available and ``pip`` will find GEOS automatically.
+If the correct ``geos-config`` is not on the PATH, you can add it as follows (on Linux/macOS)::
 
     $ export PATH=/path/to/geos/bin:$PATH
 
-Alternatively, you can specify where PyGEOS should look for GEOS (on Linux/OSX)::
+Alternatively, you can specify where Shapely should look for GEOS library and
+header files using environment variables (on Linux/macOS)::
 
     $ export GEOS_INCLUDE_PATH=/path/to/geos/include
     $ export GEOS_LIBRARY_PATH=/path/to/geos/lib
@@ -89,7 +122,7 @@ specified manually in any case::
 
 Common locations of GEOS (to be suffixed by ``lib``, ``include`` or ``bin``):
 
-* Anaconda (Linux/OSX): ``$CONDA_PREFIX/Library``
+* Anaconda (Linux/macOS): ``$CONDA_PREFIX/Library``
 * Anaconda (Windows): ``%CONDA_PREFIX%\Library``
 * OSGeo4W (Windows): ``C:\OSGeo4W64``
 
@@ -97,8 +130,8 @@ Common locations of GEOS (to be suffixed by ``lib``, ``include`` or ``bin``):
 GEOS discovery (runtime)
 ------------------------
 
-PyGEOS is dynamically linked to GEOS. This means that the same GEOS library that was used
-during PyGEOS compilation is required on your system at runtime. When using pygeos that was distributed
+Shapely is dynamically linked to GEOS. This means that the same GEOS library that was used
+during Shapely compilation is required on your system at runtime. When using Shapely that was distributed
 as a binary wheel or through conda, this is automatically the case and you can stop reading.
 
 In other cases this can be tricky, especially if you have multiple GEOS installations next
@@ -114,20 +147,20 @@ If you encounter exceptions like:
 You will have to make the shared library file available to the Python interpreter. There are in
 general four ways of making Python aware of the location of shared library:
 
-1. Copy the shared libraries into the pygeos module directory (this is how Windows binary wheels work:
-   they are distributed with the correct dlls in the pygeos module directory)
+1. Copy the shared libraries into the ``shapely`` module directory (this is how Windows binary wheels work:
+   they are distributed with the correct dlls in the ``shapely`` module directory)
 2. Copy the shared libraries into the library directory of the Python interpreter (this is how
    Anaconda environments work)
 3. Copy the shared libraries into some system location (``C:\Windows\System32``; ``/usr/local/lib``,
    this happens if you installed GEOS through ``apt`` or ``brew``)
 4. Add the shared library location to a the dynamic linker path variable at runtime.
-   (Advanced usage; Linux and OSX only; on Windows this method was deprecated in Python 3.8)
+   (Advanced usage; Linux and macOS only; on Windows this method was deprecated in Python 3.8)
 
 The filenames of the GEOS shared libraries are:
 
 * On Linux: ``libgeos-*.so.*, libgeos_c-*.so.*``
-* On OSX: ``libgeos.dylib, libgeos_c.dylib``
+* On macOS: ``libgeos.dylib, libgeos_c.dylib``
 * On Windows: ``geos-*.dll, geos_c-*.dll``
 
-Note that pygeos does not make use of any RUNPATH (RPATH) header. The location
-of the GEOS shared library is not stored inside the compiled PyGEOS library.
+Note that Shapely does not make use of any RUNPATH (RPATH) header. The location
+of the GEOS shared library is not stored inside the compiled Shapely library.
