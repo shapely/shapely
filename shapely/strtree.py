@@ -37,7 +37,7 @@ class STRtree:
     All operations return indices of the input geometries.  These indices
     can be used to index into anything associated with the input geometries,
     including the input geometries themselves, or custom items stored in
-    other object of the same length as the geometries.
+    another object of the same length as the geometries.
 
     Any mixture of geometry types may be stored in the tree.
 
@@ -80,6 +80,9 @@ class STRtree:
         """
         Geometries stored in the tree in the order used to construct the tree.
 
+        The order of this array corresponds to the tree indices returned by
+        other STRtree methods.
+
         Do not attempt to modify items in the returned array.
 
         Returns
@@ -94,13 +97,13 @@ class STRtree:
         and tree geometries where the extent of each input geometry intersects
         the extent of a tree geometry.
 
-        If input geometry is a scalar, this returns an array of shape (n, ) with
-        the indices of the matching tree geometries.  If input geometry is an
+        If the input geometry is a scalar, this returns an array of shape (n, ) with
+        the indices of the matching tree geometries.  If the input geometry is an
         array_like, this returns an array with shape (2,n) where the subarrays
         correspond to the indices of the input geometries and indices of the
         tree geometries associated with each.  To generate an array of pairs of
         input geometry index and tree geometry index, simply transpose the
-        results.
+        result.
 
         If a predicate is provided, the tree geometries are further filtered to
         those that meet the predicate when comparing the input geometry to the
@@ -109,15 +112,8 @@ class STRtree:
 
         The 'dwithin' predicate requires GEOS >= 3.10.
 
-        In the context of a spatial join, input geometries are the "left"
-        geometries that determine the order of the results, and tree geometries
-        are "right" geometries that are joined against the left geometries.
-        This effectively performs an inner join, where only those combinations
-        of geometries that can be joined based on overlapping extents or optional
-        predicate are returned.
-
-        Any geometry that is None or empty in the input geometries is omitted from
-        the output.
+        Any input geometry that is None or empty will never match geometries
+        in the tree.
 
         Parameters
         ----------
@@ -152,33 +148,39 @@ class STRtree:
         >>> tree = STRtree(points)
 
         Query the tree using a scalar geometry:
+
         >>> indices = tree.query(box(0, 0, 1, 1))
         >>> indices.tolist()
         [0, 1]
 
         Query using an array of geometries:
+
         >>> boxes = np.array([box(0, 0, 1, 1), box(2, 2, 3, 3)])
         >>> arr_indices = tree.query(boxes)
         >>> arr_indices.tolist()
         [[0, 0, 1, 1], [0, 1, 2, 3]]
 
         Or transpose to get all pairs of input and tree indices:
+
         >>> arr_indices.T.tolist()
         [[0, 0], [0, 1], [1, 2], [1, 3]]
 
         Retrieve the tree geometries by results of query:
+
         >>> tree.geometries.take(indices).tolist()
         [<shapely.Point POINT (0 0)>, <shapely.Point POINT (1 1)>]
 
         Retrieve all pairs of input and tree geometries:
+
         >>> np.array([boxes.take(arr_indices[0]),\
-tree.geometries.take(arr_indices[1])]).T.tolist()  # doctest: +NORMALIZE_WHITESPACE
+tree.geometries.take(arr_indices[1])]).T.tolist()
         [[<shapely.Polygon POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))>, <shapely.Point POINT (0 0)>],
          [<shapely.Polygon POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))>, <shapely.Point POINT (1 1)>],
          [<shapely.Polygon POLYGON ((3 2, 3 3, 2 3, 2 2, 3 2))>, <shapely.Point POINT (2 2)>],
          [<shapely.Polygon POLYGON ((3 2, 3 3, 2 3, 2 2, 3 2))>, <shapely.Point POINT (3 3)>]]
 
         Query using a predicate:
+
         >>> tree = STRtree([box(0, 0, 0.5, 0.5), box(0.5, 0.5, 1, 1), box(1, 1, 2, 2)])
         >>> tree.query(box(0, 0, 1, 1), predicate="contains").tolist()
         [0, 1]
@@ -193,15 +195,25 @@ tree.geometries.take(arr_indices[1])]).T.tolist()  # doctest: +NORMALIZE_WHITESP
         Retrieve custom items associated with tree geometries (records can
         be in whatever data structure so long as geometries and custom data
         can be extracted into arrays of the same length and order):
+
         >>> records = [
         ...     {"geometry": Point(0, 0), "value": "A"},
         ...     {"geometry": Point(2, 2), "value": "B"}
         ... ]
         >>> tree = STRtree([record["geometry"] for record in records])
-        >>> import numpy as np
         >>> items = np.array([record["value"] for record in records])
         >>> items.take(tree.query(box(0, 0, 1, 1))).tolist()
         ['A']
+
+
+        Notes
+        -----
+        In the context of a spatial join, input geometries are the "left"
+        geometries that determine the order of the results, and tree geometries
+        are "right" geometries that are joined against the left geometries.
+        This effectively performs an inner join, where only those combinations
+        of geometries that can be joined based on overlapping extents or optional
+        predicate are returned.
         """
 
         geometry = np.asarray(geometry)
@@ -305,6 +317,7 @@ tree.geometries.take(arr_indices[1])]).T.tolist()  # doctest: +NORMALIZE_WHITESP
         >>> tree = STRtree([Point(i, i) for i in range(10)])
 
         Query the tree for nearest using a scalar geometry:
+
         >>> index = tree.nearest(Point(2.2, 2.2))
         >>> index
         2
@@ -312,6 +325,7 @@ tree.geometries.take(arr_indices[1])]).T.tolist()  # doctest: +NORMALIZE_WHITESP
         <shapely.Point POINT (2 2)>
 
         Query the tree for nearest using an array of geometries:
+
         >>> indices = tree.nearest([Point(2.2, 2.2), Point(4.4, 4.4)])
         >>> indices.tolist()
         [2, 4]
@@ -320,6 +334,7 @@ tree.geometries.take(arr_indices[1])]).T.tolist()  # doctest: +NORMALIZE_WHITESP
 
 
         Nearest only return one object if there are multiple equidistant results:
+
         >>> tree = STRtree ([Point(0, 0), Point(0, 0)])
         >>> tree.nearest(Point(0, 0))
         0
