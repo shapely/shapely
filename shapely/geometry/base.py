@@ -763,8 +763,6 @@ class BaseMultipartGeometry(BaseGeometry):
 
     @property
     def geoms(self):
-        if self.is_empty:
-            return []
         return GeometrySequence(self, self.shape_factory)
 
     def __bool__(self):
