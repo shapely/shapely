@@ -82,7 +82,7 @@ def affine_transform(geom, matrix):
                 (np.atleast_2d(xp).T, np.atleast_2d(yp).T, np.atleast_2d(zp).T)
             )
 
-    return shapely.apply(geom, _affine_coords, include_z=ndim == 3)
+    return shapely.transform(geom, _affine_coords, include_z=ndim == 3)
 
 
 def interpret_origin(geom, origin, ndim):

@@ -135,7 +135,7 @@ class OverlaySuite:
             shapely.buffer(shapely.points(np.random.random((500, 2)) * 500), 15)
         )
         # shift this up and right
-        self.right = shapely.apply(self.left, lambda x: x + 50)
+        self.right = shapely.transform(self.left, lambda x: x + 50)
 
     def time_difference(self):
         shapely.difference(self.left, self.right)
