@@ -91,33 +91,18 @@ buffering a point, using the scalar Geometry interface:
     >>> patch.area
     313.6548490545941
 
-Using the vectorized ufunc interface, compare a grid of points with a polygon:
+Using the vectorized ufunc interface (instead of using a manual for loop),
+compare an array of points with a polygon:
 
 .. code:: python
 
-    >>> geoms = shapely.points(*np.indices((4, 4)))
+    >>> import shapely
+    >>> import numpy as np
+    >>> geoms = np.array([Point(0, 0), Point(1, 1), Point(2, 2)])
     >>> polygon = shapely.box(0, 0, 2, 2)
 
     >>> shapely.contains(polygon, geoms)
-    array([[False, False, False, False],
-           [False,  True, False, False],
-           [False, False, False, False],
-           [False, False, False, False]])
-
-Compute the area of all possible intersections of two lists of polygons:
-
-.. code:: python
-
-    >>> polygons_x = shapely.box(range(5), 0, range(10, 15), 10)
-    >>> polygons_y = shapely.box(0, range(5), 10, range(10, 15))
-
-    >>> from shapely import area, intersection
-    >>> area(intersection(polygons_x[:, np.newaxis], polygons_y[np.newaxis, :]))
-    array([[100.,  90.,  80.,  70.,  60.],
-           [ 90.,  81.,  72.,  63.,  54.],
-           [ 80.,  72.,  64.,  56.,  48.],
-           [ 70.,  63.,  56.,  49.,  42.],
-           [ 60.,  54.,  48.,  42.,  36.]])
+    array([False,  True, False])
 
 See the documentation for more examples and guidance: https://shapely.readthedocs.io
 
