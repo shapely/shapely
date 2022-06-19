@@ -287,11 +287,7 @@ class BaseGeometry(shapely.Geometry):
     @property
     def bounds(self):
         """Returns minimum bounding region (minx, miny, maxx, maxy)"""
-        # TODO(shapely-2.0) return empty tuple or (nan, nan, nan, nan)?
-        if self.is_empty:
-            return ()
-        else:
-            return tuple(shapely.bounds(self).tolist())
+        return tuple(shapely.bounds(self).tolist())
 
     @property
     def centroid(self):
@@ -763,8 +759,6 @@ class BaseMultipartGeometry(BaseGeometry):
 
     @property
     def geoms(self):
-        if self.is_empty:
-            return []
         return GeometrySequence(self)
 
     def __bool__(self):

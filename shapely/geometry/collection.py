@@ -2,7 +2,7 @@
 """
 
 import shapely
-from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry, GeometrySequence
+from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
 
 
 class GeometryCollection(BaseMultipartGeometry):
@@ -53,12 +53,6 @@ class GeometryCollection(BaseMultipartGeometry):
         for geom in self.geoms:
             geometries.append(geom.__geo_interface__)
         return dict(type="GeometryCollection", geometries=geometries)
-
-    @property
-    def geoms(self):
-        if self.is_empty:
-            return []
-        return GeometrySequence(self)
 
 
 shapely.lib.registry[7] = GeometryCollection
