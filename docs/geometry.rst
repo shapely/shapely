@@ -70,7 +70,7 @@ Properties
 Geometry objects have neither properties nor methods.
 Instead, use the functions listed below to obtain information about geometry objects.
 
-.. automodule:: pygeos.geometry
+.. automodule:: shapely.geometry
    :members:
    :exclude-members: GeometryType
    :special-members:

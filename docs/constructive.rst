@@ -1,7 +1,7 @@
 Constructive operations
 =======================
 
-.. automodule:: pygeos.constructive
+.. automodule:: shapely.constructive
    :members:
    :exclude-members: BufferCapStyles, BufferJoinStyles, minimum_rotated_rectangle
    :special-members:

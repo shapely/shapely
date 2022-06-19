@@ -1,7 +1,7 @@
-Predicates
-==========
+Coordinate operations
+=====================
 
-.. automodule:: pygeos.predicates
+.. automodule:: shapely.coordinates
    :members:
    :undoc-members:
    :special-members:

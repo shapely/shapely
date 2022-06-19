@@ -1,7 +1,7 @@
-Set operations
-==============
+Measurement
+===========
 
-.. automodule:: pygeos.set_operations
+.. automodule:: shapely.measurement
    :members:
    :exclude-members:
    :special-members:

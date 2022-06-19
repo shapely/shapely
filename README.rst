@@ -128,56 +128,22 @@ Shapely 2.0 requires
 
 * Python >=3.6
 * GEOS >=3.5
+* NumPy >=1.13
 
 Installing Shapely
 ==================
 
-Shapely may be installed from a source distribution or one of several kinds
-of built distribution.
-
-Built distributions
--------------------
-
-Built distributions are the only option for users who do not have or do not
-know how to use their platform's compiler and Python SDK, and a good option for
-users who would rather not bother.
-
-Linux, macOS, and Windows users can get Shapely wheels with GEOS included from the
-Python Package Index with a recent version of pip (8+):
+We recommend installing Shapely using one of the available built
+distributions, for example using ``pip`` or ``conda``:
 
 .. code-block:: console
 
     $ pip install shapely
+    # or using conda
+    $ conda install shapely --channel conda-forge
 
-Shapely is available via system package management tools like apt, yum, and
-Homebrew, and is also provided by popular Python distributions like Canopy and
-Anaconda. If you use the Conda package manager to install Shapely, be sure to
-use the conda-forge channel.
-
-Windows users have another good installation options: the wheels published at
-https://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely. These can be installed
-using pip by specifying the entire URL.
-
-Source distributions
---------------------
-
-If you want to build Shapely from source for compatibility with other modules
-that depend on GEOS (such as cartopy or osgeo.ogr) or want to use a different
-version of GEOS than the one included in the project wheels you should first
-install the GEOS library, Cython, and NumPy on your system (using apt, yum,
-brew, or other means) and then direct pip to ignore the binary wheels.
-
-.. code-block:: console
-
-    $ pip install shapely --no-binary shapely
-
-If you've installed GEOS to a standard location, the geos-config program will
-be used to get compiler and linker options. If geos-config is not on your
-executable, it can be specified with a GEOS_CONFIG environment variable, e.g.:
-
-.. code-block:: console
-
-    $ GEOS_CONFIG=/path/to/geos-config pip install shapely
+See the `installation documentation <https://shapely.readthedocs.io/en/latest/installation.html>`__
+for more details and advanced installation instructions.
 
 Integration
 ===========
@@ -204,26 +170,6 @@ dicts.
     <shapely.geometry.point.Point object at 0x...>
     >>> print(json.dumps(mapping(s)))
     {"type": "Point", "coordinates": [0.0, 0.0]}
-
-Development and Testing
-=======================
-
-Dependencies for developing Shapely are listed in requirements-dev.txt. Cython
-and NumPy are not required for production installations, only for development.
-Use of a virtual environment is strongly recommended.
-
-.. code-block:: console
-
-    $ virtualenv .
-    $ source bin/activate
-    (env)$ pip install -r requirements-dev.txt
-    (env)$ pip install -e .
-
-The project uses pytest to run Shapely's suite of unittests and doctests.
-
-.. code-block:: console
-
-    (env)$ python -m pytest
 
 Support
 =======
