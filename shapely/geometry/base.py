@@ -413,10 +413,10 @@ class BaseGeometry(shapely.Geometry):
         --------
         >>> from shapely.wkt import loads
         >>> g = loads('POINT (0.0 0.0)')
-        >>> g.buffer(1.0).area        # 16-gon approx of a unit radius circle
-        3.13654849054594
-        >>> g.buffer(1.0, 128).area   # 128-gon approximation
-        3.141513801144301
+        >>> g.buffer(1.0).area        # 16-gon approx of a unit radius circle  # doctest: +ELLIPSIS
+        3.1365484905459...
+        >>> g.buffer(1.0, 128).area   # 128-gon approximation  # doctest: +ELLIPSIS
+        3.141513801144301...
         >>> g.buffer(1.0, 3).area     # triangle approximation
         3.0
         >>> list(g.buffer(1.0, cap_style=CAP_STYLE.square).exterior.coords)

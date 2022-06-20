@@ -39,7 +39,7 @@ polygon_with_hole = shapely.Polygon(
 )
 empty_point = shapely.Point()
 empty_point_z = shapely.from_wkt("POINT Z EMPTY")
-empty_line_string = shapely.LineString()
+empty_line_string = shapely.String()
 empty_line_string_z = shapely.from_wkt("LINESTRING Z EMPTY")
 empty_polygon = shapely.Polygon()
 empty = shapely.GeometryCollection()

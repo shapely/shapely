@@ -2,9 +2,9 @@ Geometry
 ========
 
 Shapely geometry classes, such as ``shapely.Point``, are the central data types
-in Shapely.  Each geometry class extends ``shapely.geometry.base.BaseGeometry``,
+in Shapely.  Each geometry class extends the ``shapely.Geometry`` base class,
 which is a container of the underlying GEOS geometry object, to provide geometry
-type-specific attributes and behavior.  The ``BaseGeometry`` object keeps track of
+type-specific attributes and behavior.  The ``Geometry`` object keeps track of
 the underlying GEOS geometry and lets the python garbage collector free its
 memory when it is not used anymore.
 

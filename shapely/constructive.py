@@ -762,8 +762,10 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
     <shapely.LineString LINESTRING (0 0, 1 10, 0 20)>
     >>> simplify(line, tolerance=1)
     <shapely.LineString LINESTRING (0 0, 0 20)>
-    >>> polygon_with_hole = Polygon(((0, 0), (0, 10), (10, 10), (10, 0), (0, 0)), \
-holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))])
+    >>> polygon_with_hole = Polygon(
+    ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+    ...     holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))]
+    ... )
     >>> simplify(polygon_with_hole, tolerance=4, preserve_topology=True)
     <shapely.Polygon POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2...>
     >>> simplify(polygon_with_hole, tolerance=4, preserve_topology=False)

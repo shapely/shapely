@@ -517,8 +517,10 @@ def contains(a, b, **kwargs):
     True
     >>> contains(area, LineString(((0, 0), (2, 2))))
     False
-    >>> polygon_with_hole = polygon_with_hole = Polygon(((0, 0), (0, 10), (10, 10), (10, 0), (0, 0)), \
-holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))])
+    >>> polygon_with_hole = Polygon(
+    ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+    ...     holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))]
+    ... )
     >>> contains(polygon_with_hole, Point(1, 1))
     True
     >>> contains(polygon_with_hole, Point(2, 2))
@@ -614,8 +616,10 @@ def covered_by(a, b, **kwargs):
     True
     >>> covered_by(LineString(((0, 0), (2, 2))), area)
     False
-    >>> polygon_with_hole = Polygon(((0, 0), (0, 10), (10, 10), (10, 0), (0, 0)), \
-holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))])
+    >>> polygon_with_hole = Polygon(
+    ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+    ...     holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))]
+    ... )
     >>> covered_by(Point(1, 1), polygon_with_hole)
     True
     >>> covered_by(Point(2, 2), polygon_with_hole)
@@ -661,8 +665,10 @@ def covers(a, b, **kwargs):
     True
     >>> covers(area, LineString(((0, 0), (2, 2))))
     False
-    >>> polygon_with_hole = Polygon(((0, 0), (0, 10), (10, 10), (10, 0), (0, 0)), \
-holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))])
+    >>> polygon_with_hole = Polygon(
+    ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+    ...     holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))]
+    ... )
     >>> covers(polygon_with_hole, Point(1, 1))
     True
     >>> covers(polygon_with_hole, Point(2, 2))
@@ -916,8 +922,10 @@ def within(a, b, **kwargs):
     True
     >>> within(LineString(((0, 0), (2, 2))), area)
     False
-    >>> polygon_with_hole = Polygon(((0, 0), (0, 10), (10, 10), (10, 0), (0, 0)), \
-holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))])
+    >>> polygon_with_hole = Polygon(
+    ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+    ...     holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))]
+    ... )
     >>> within(Point(1, 1), polygon_with_hole)
     True
     >>> within(Point(2, 2), polygon_with_hole)

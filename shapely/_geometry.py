@@ -113,7 +113,7 @@ def get_dimensions(geometry, **kwargs):
     2
     >>> get_dimensions(GeometryCollection([point, polygon]))
     2
-    >>> get_dimensions(GeometryCollection())
+    >>> get_dimensions(GeometryCollection([]))
     -1
     >>> get_dimensions(None)
     -1
@@ -359,8 +359,14 @@ def get_point(geometry, index, **kwargs):
     <shapely.Point POINT (2 2)>
     >>> get_point(line, [0, 3]).tolist()
     [<shapely.Point POINT (0 0)>, <shapely.Point POINT (3 3)>]
+
+    The functcion works the same for LinearRing input:
+
     >>> get_point(LinearRing(((0, 0), (1, 1), (2, 2), (0, 0))), 1)
     <shapely.Point POINT (1 1)>
+
+    For non-linear geometries it returns None:
+
     >>> get_point(MultiPoint(((0, 0), (1, 1), (2, 2), (3, 3))), 1) is None
     True
     >>> get_point(Point(1, 1), 0) is None
@@ -452,8 +458,10 @@ def get_interior_ring(geometry, index, **kwargs):
     Examples
     --------
     >>> from shapely import Point, Polygon
-    >>> polygon_with_hole = Polygon(((0, 0), (0, 10), (10, 10), (10, 0), (0, 0)), \
-holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))])
+    >>> polygon_with_hole = Polygon(
+    ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+    ...     holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))]
+    ... )
     >>> get_interior_ring(polygon_with_hole, 0)
     <shapely.LinearRing LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>
     >>> get_interior_ring(polygon_with_hole, 1) is None
@@ -492,8 +500,10 @@ def get_num_interior_rings(geometry, **kwargs):
     >>> polygon = Polygon(((0, 0), (0, 10), (10, 10), (10, 0), (0, 0)))
     >>> get_num_interior_rings(polygon)
     0
-    >>> polygon_with_hole = Polygon(((0, 0), (0, 10), (10, 10), (10, 0), (0, 0)), \
-holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))])
+    >>> polygon_with_hole = Polygon(
+    ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+    ...     holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))]
+    ... )
     >>> get_num_interior_rings(polygon_with_hole)
     1
     >>> get_num_interior_rings(Point(0, 0))
@@ -623,8 +633,10 @@ def get_rings(geometry, return_index=False):
     Examples
     --------
     >>> from shapely import Polygon
-    >>> polygon_with_hole = Polygon(((0, 0), (0, 10), (10, 10), (10, 0), (0, 0)), \
-holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))])
+    >>> polygon_with_hole = Polygon(
+    ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+    ...     holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))]
+    ... )
     >>> get_rings(polygon_with_hole).tolist()
     [<shapely.LinearRing LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>,
     <shapely.LinearRing LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>]
@@ -717,8 +729,8 @@ def get_precision(geometry, **kwargs):
     >>> get_precision(geometry)
     1.0
     >>> import numpy as np
-    >>> np.isnan(get_precision(None))
-    True
+    >>> get_precision(None)
+    nan
     """
     return lib.get_precision(geometry, **kwargs)
 
