@@ -133,7 +133,7 @@ def test_line_locate_point_invalid_geometry(normalized):
 def test_line_merge_geom_array():
     actual = shapely.line_merge([line_string, multi_line_string])
     assert_geometries_equal(actual[0], line_string)
-    assert_geometries_equal(actual[1], LineString(((0, 0), (1, 2))))
+    assert_geometries_equal(actual[1], LineString([(0, 0), (1, 2)]))
 
 
 def test_shared_paths_linestring():

@@ -320,15 +320,15 @@ def test_minimum_clearance_missing():
     "geometry, expected",
     [
         (
-            Polygon(((0, 5), (5, 10), (10, 5), (5, 0), (0, 5))),
+            Polygon([(0, 5), (5, 10), (10, 5), (5, 0), (0, 5)]),
             5,
         ),
         (
-            LineString(((1, 0), (1, 10))),
+            LineString([(1, 0), (1, 10)]),
             5,
         ),
         (
-            MultiPoint(((2, 2), (4, 2))),
+            MultiPoint([(2, 2), (4, 2)]),
             1,
         ),
         (

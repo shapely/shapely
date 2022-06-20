@@ -31,7 +31,7 @@ def transform(geometry, transformation, include_z=False):
     >>> from shapely import LineString, Point
     >>> transform(Point(0, 0), lambda x: x + 1)
     <shapely.Point POINT (1 1)>
-    >>> transform(LineString(((2, 2), (4, 4))), lambda x: x * [2, 3])
+    >>> transform(LineString([(2, 2), (4, 4)]), lambda x: x * [2, 3])
     <shapely.LineString LINESTRING (4 6, 8 12)>
     >>> transform(None, lambda x: x) is None
     True
@@ -80,7 +80,7 @@ def count_coordinates(geometry):
     >>> from shapely import LineString, Point
     >>> count_coordinates(Point(0, 0))
     1
-    >>> count_coordinates(LineString(((2, 2), (4, 2))))
+    >>> count_coordinates(LineString([(2, 2), (4, 2)]))
     2
     >>> count_coordinates(None)
     0
@@ -114,7 +114,7 @@ def get_coordinates(geometry, include_z=False, return_index=False):
     >>> from shapely import LineString, Point
     >>> get_coordinates(Point(0, 0)).tolist()
     [[0.0, 0.0]]
-    >>> get_coordinates(LineString(((2, 2), (4, 4)))).tolist()
+    >>> get_coordinates(LineString([(2, 2), (4, 4)])).tolist()
     [[2.0, 2.0], [4.0, 4.0]]
     >>> get_coordinates(None)
     array([], shape=(0, 2), dtype=float64)
@@ -128,7 +128,7 @@ def get_coordinates(geometry, include_z=False, return_index=False):
 
     When return_index=True, indexes are returned also:
 
-    >>> geometries = [LineString(((2, 2), (4, 4))), Point(0, 0)]
+    >>> geometries = [LineString([(2, 2), (4, 4)]), Point(0, 0)]
     >>> coordinates, index = get_coordinates(geometries, return_index=True)
     >>> coordinates.tolist(), index.tolist()
     ([[2.0, 2.0], [4.0, 4.0], [0.0, 0.0]], [0, 0, 1])
@@ -167,7 +167,7 @@ def set_coordinates(geometry, coordinates):
     >>> from shapely import LineString, Point
     >>> set_coordinates(Point(0, 0), [[1, 1]])
     <shapely.Point POINT (1 1)>
-    >>> set_coordinates([Point(0, 0), LineString(((0, 0), (0, 0)))], [[1, 2], [3, 4], [5, 6]]).tolist()
+    >>> set_coordinates([Point(0, 0), LineString([(0, 0), (0, 0)])], [[1, 2], [3, 4], [5, 6]]).tolist()
     [<shapely.Point POINT (1 2)>, <shapely.LineString LINESTRING (3 4, 5 6)>]
     >>> set_coordinates([None, Point(0, 0)], [[1, 2]]).tolist()
     [None, <shapely.Point POINT (1 2)>]

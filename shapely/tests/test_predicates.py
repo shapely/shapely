@@ -212,12 +212,12 @@ def test_relate_pattern_non_scalar():
 @pytest.mark.parametrize(
     "geom, expected",
     [
-        (LinearRing(((0, 0), (0, 1), (1, 1), (0, 0))), False),
-        (LinearRing(((0, 0), (1, 1), (0, 1), (0, 0))), True),
-        (LineString(((0, 0), (0, 1), (1, 1), (0, 0))), False),
-        (LineString(((0, 0), (1, 1), (0, 1), (0, 0))), True),
-        (LineString(((0, 0), (1, 1), (0, 1))), False),
-        (LineString(((0, 0), (0, 1), (1, 1))), False),
+        (LinearRing([(0, 0), (0, 1), (1, 1), (0, 0)]), False),
+        (LinearRing([(0, 0), (1, 1), (0, 1), (0, 0)]), True),
+        (LineString([(0, 0), (0, 1), (1, 1), (0, 0)]), False),
+        (LineString([(0, 0), (1, 1), (0, 1), (0, 0)]), True),
+        (LineString([(0, 0), (1, 1), (0, 1)]), False),
+        (LineString([(0, 0), (0, 1), (1, 1)]), False),
         (point, False),
         (polygon, False),
         (geometry_collection, False),

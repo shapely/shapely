@@ -465,9 +465,9 @@ class BaseGeometry(shapely.Geometry):
 
         Examples
         --------
-        >>> from shapely.wkt import loads
-        >>> p = loads("MULTILINESTRING((0 0, 1 1), (3 3, 2 2))")
-        >>> p.normalize().wkt
+        >>> from shapely import MultiLineString
+        >>> line = MultiLineString([[(0, 0), (1, 1)], [(3, 3), (2, 2)]])
+        >>> line.normalize().wkt
         'MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))'
         """
         return shapely.normalize(self)

@@ -16,7 +16,17 @@ returned.
 Construction
 ~~~~~~~~~~~~
 
-For convenience, geometries can be constructed from a WKT (Well-Known Text)
+Geometries can be constructed directly using Shapely geometry classes:
+
+.. code:: python
+
+  >>> from shapely import Point, LineString
+  >>> Point(5.2, 52.1)
+  <shapely.Point POINT (5.2 52.1)>
+  >>> LineString([(0, 0), (1, 2)])
+  <shapely.LineString LINESTRING (0 0, 1 2)>
+
+Geometries can also be constructed from a WKT (Well-Known Text)
 or WKB (Well-Known Binary) representation:
 
 .. code:: python

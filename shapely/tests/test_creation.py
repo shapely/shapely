@@ -64,15 +64,15 @@ def test_linestrings_from_coords():
     assert_geometries_equal(
         actual,
         [
-            LineString(((0, 0), (1, 1))),
-            LineString(((0, 0), (2, 2))),
+            LineString([(0, 0), (1, 1)]),
+            LineString([(0, 0), (2, 2)]),
         ],
     )
 
 
 def test_linestrings_from_xy():
     actual = shapely.linestrings([0, 1], [2, 3])
-    assert_geometries_equal(actual, LineString(((0, 2), (1, 3))))
+    assert_geometries_equal(actual, LineString([(0, 2), (1, 3)]))
 
 
 def test_linestrings_from_xy_broadcast():
@@ -82,15 +82,15 @@ def test_linestrings_from_xy_broadcast():
     assert_geometries_equal(
         actual,
         [
-            LineString(((0, 2), (1, 3))),
-            LineString(((0, 4), (1, 5))),
+            LineString([(0, 2), (1, 3)]),
+            LineString([(0, 4), (1, 5)]),
         ],
     )
 
 
 def test_linestrings_from_xyz():
     actual = shapely.linestrings([0, 1], [2, 3], 0)
-    assert_geometries_equal(actual, LineString(((0, 2, 0), (1, 3, 0))))
+    assert_geometries_equal(actual, LineString([(0, 2, 0), (1, 3, 0)]))
 
 
 @pytest.mark.parametrize("dim", [2, 3])
@@ -153,25 +153,25 @@ def test_linestrings_invalid_ndim():
 def test_linearrings():
     actual = shapely.linearrings(box_tpl(0, 0, 1, 1))
     assert_geometries_equal(
-        actual, LinearRing(((1, 0), (1, 1), (0, 1), (0, 0), (1, 0)))
+        actual, LinearRing([(1, 0), (1, 1), (0, 1), (0, 0), (1, 0)])
     )
 
 
 def test_linearrings_from_xy():
     actual = shapely.linearrings([0, 1, 2, 0], [3, 4, 5, 3])
-    assert_geometries_equal(actual, LinearRing(((0, 3), (1, 4), (2, 5), (0, 3))))
+    assert_geometries_equal(actual, LinearRing([(0, 3), (1, 4), (2, 5), (0, 3)]))
 
 
 def test_linearrings_unclosed():
     actual = shapely.linearrings(box_tpl(0, 0, 1, 1)[:-1])
     assert_geometries_equal(
-        actual, LinearRing(((1, 0), (1, 1), (0, 1), (0, 0), (1, 0)))
+        actual, LinearRing([(1, 0), (1, 1), (0, 1), (0, 0), (1, 0)])
     )
 
 
 def test_linearrings_unclosed_all_coords_equal():
     actual = shapely.linearrings([(0, 0), (0, 0), (0, 0)])
-    assert_geometries_equal(actual, LinearRing(((0, 0), (0, 0), (0, 0), (0, 0))))
+    assert_geometries_equal(actual, LinearRing([(0, 0), (0, 0), (0, 0), (0, 0)]))
 
 
 def test_linearrings_invalid_shape_scalar():
@@ -245,7 +245,7 @@ def test_linearrings_buffer(dim, order):
 
 def test_polygon_from_linearring():
     actual = shapely.polygons(shapely.linearrings(box_tpl(0, 0, 1, 1)))
-    assert_geometries_equal(actual, Polygon(((1, 0), (1, 1), (0, 1), (0, 0), (1, 0))))
+    assert_geometries_equal(actual, Polygon([(1, 0), (1, 1), (0, 1), (0, 0), (1, 0)]))
 
 
 def test_polygons_none():
@@ -255,7 +255,7 @@ def test_polygons_none():
 
 def test_polygons():
     actual = shapely.polygons(box_tpl(0, 0, 1, 1))
-    assert_geometries_equal(actual, Polygon(((1, 0), (1, 1), (0, 1), (0, 0), (1, 0))))
+    assert_geometries_equal(actual, Polygon([(1, 0), (1, 1), (0, 1), (0, 0), (1, 0)]))
 
 
 def test_polygon_no_hole_list_raises():
@@ -451,11 +451,11 @@ def test_create_collection_wrong_geom_type(func, sub_geom):
 @pytest.mark.parametrize(
     "coords,ccw,expected",
     [
-        ((0, 0, 1, 1), True, Polygon(((1, 0), (1, 1), (0, 1), (0, 0), (1, 0)))),
+        ((0, 0, 1, 1), True, Polygon([(1, 0), (1, 1), (0, 1), (0, 0), (1, 0)])),
         (
             (0, 0, 1, 1),
             False,
-            Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0))),
+            Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)]),
         ),
     ],
 )
@@ -471,16 +471,16 @@ def test_box(coords, ccw, expected):
             (0, 0, [1, 2], [1, 2]),
             True,
             [
-                Polygon(((1, 0), (1, 1), (0, 1), (0, 0), (1, 0))),
-                Polygon(((2, 0), (2, 2), (0, 2), (0, 0), (2, 0))),
+                Polygon([(1, 0), (1, 1), (0, 1), (0, 0), (1, 0)]),
+                Polygon([(2, 0), (2, 2), (0, 2), (0, 0), (2, 0)]),
             ],
         ),
         (
             (0, 0, [1, 2], [1, 2]),
             [True, False],
             [
-                Polygon(((1, 0), (1, 1), (0, 1), (0, 0), (1, 0))),
-                Polygon(((0, 0), (0, 2), (2, 2), (2, 0), (0, 0))),
+                Polygon([(1, 0), (1, 1), (0, 1), (0, 0), (1, 0)]),
+                Polygon([(0, 0), (0, 2), (2, 2), (2, 0), (0, 0)]),
             ],
         ),
     ],

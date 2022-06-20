@@ -34,8 +34,8 @@ line_string_z = shapely.linestrings([(0, 0, 4), (1, 0, 4), (1, 1, 4)])
 polygon_z = shapely.polygons([(0, 0, 4), (2, 0, 4), (2, 2, 4), (0, 2, 4), (0, 0, 4)])
 geometry_collection_z = shapely.geometrycollections([point_z, line_string_z])
 polygon_with_hole = shapely.Polygon(
-    ((0, 0), (0, 10), (10, 10), (10, 0), (0, 0)),
-    holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))],
+    [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+    holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]],
 )
 empty_point = shapely.Point()
 empty_point_z = shapely.from_wkt("POINT Z EMPTY")

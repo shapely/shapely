@@ -475,12 +475,12 @@ def test_set_precision(mode):
 @pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_set_precision_drop_coords():
     # setting precision of 0 will not drop duplicated points in original
-    geometry = shapely.set_precision(LineString(((0, 0), (0, 0), (0, 1), (1, 1))), 0)
-    assert_geometries_equal(geometry, LineString(((0, 0), (0, 0), (0, 1), (1, 1))))
+    geometry = shapely.set_precision(LineString([(0, 0), (0, 0), (0, 1), (1, 1)]), 0)
+    assert_geometries_equal(geometry, LineString([(0, 0), (0, 0), (0, 1), (1, 1)]))
 
     # setting precision will remove duplicated points
     geometry = shapely.set_precision(geometry, 1)
-    assert_geometries_equal(geometry, LineString(((0, 0), (0, 1), (1, 1))))
+    assert_geometries_equal(geometry, LineString([(0, 0), (0, 1), (1, 1)]))
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
@@ -516,51 +516,51 @@ def test_set_precision_grid_size_nan():
     "geometry,mode,expected",
     [
         (
-            Polygon(((2, 2), (4, 2), (3.2, 3), (4, 4), (2, 4), (2.8, 3), (2, 2))),
+            Polygon([(2, 2), (4, 2), (3.2, 3), (4, 4), (2, 4), (2.8, 3), (2, 2)]),
             "valid_output",
             MultiPolygon(
                 [
-                    Polygon(((4, 2), (2, 2), (3, 3), (4, 2))),
-                    Polygon(((2, 4), (4, 4), (3, 3), (2, 4))),
+                    Polygon([(4, 2), (2, 2), (3, 3), (4, 2)]),
+                    Polygon([(2, 4), (4, 4), (3, 3), (2, 4)]),
                 ]
             ),
         ),
         pytest.param(
-            Polygon(((2, 2), (4, 2), (3.2, 3), (4, 4), (2, 4), (2.8, 3), (2, 2))),
+            Polygon([(2, 2), (4, 2), (3.2, 3), (4, 4), (2, 4), (2.8, 3), (2, 2)]),
             "pointwise",
-            Polygon(((2, 2), (4, 2), (3, 3), (4, 4), (2, 4), (3, 3), (2, 2))),
+            Polygon([(2, 2), (4, 2), (3, 3), (4, 4), (2, 4), (3, 3), (2, 2)]),
             marks=pytest.mark.skipif(
                 shapely.geos_version < (3, 10, 0),
                 reason="pointwise does not work pre-GEOS 3.10",
             ),
         ),
         (
-            Polygon(((2, 2), (4, 2), (3.2, 3), (4, 4), (2, 4), (2.8, 3), (2, 2))),
+            Polygon([(2, 2), (4, 2), (3.2, 3), (4, 4), (2, 4), (2.8, 3), (2, 2)]),
             "keep_collapsed",
             MultiPolygon(
                 [
-                    Polygon(((4, 2), (2, 2), (3, 3), (4, 2))),
-                    Polygon(((2, 4), (4, 4), (3, 3), (2, 4))),
+                    Polygon([(4, 2), (2, 2), (3, 3), (4, 2)]),
+                    Polygon([(2, 4), (4, 4), (3, 3), (2, 4)]),
                 ]
             ),
         ),
-        (LineString(((0, 0), (0.1, 0.1))), "valid_output", LineString()),
+        (LineString([(0, 0), (0.1, 0.1)]), "valid_output", LineString()),
         pytest.param(
-            LineString(((0, 0), (0.1, 0.1))),
+            LineString([(0, 0), (0.1, 0.1)]),
             "pointwise",
-            LineString(((0, 0), (0, 0))),
+            LineString([(0, 0), (0, 0)]),
             marks=pytest.mark.skipif(
                 shapely.geos_version < (3, 10, 0),
                 reason="pointwise does not work pre-GEOS 3.10",
             ),
         ),
         (
-            LineString(((0, 0), (0.1, 0.1))),
+            LineString([(0, 0), (0.1, 0.1)]),
             "keep_collapsed",
-            LineString(((0, 0), (0, 0))),
+            LineString([(0, 0), (0, 0)]),
         ),
         pytest.param(
-            LinearRing(((0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0))),
+            LinearRing([(0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0)]),
             "valid_output",
             LinearRing(),
             marks=pytest.mark.skipif(
@@ -568,40 +568,40 @@ def test_set_precision_grid_size_nan():
             ),
         ),
         pytest.param(
-            LinearRing(((0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0))),
+            LinearRing([(0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0)]),
             "pointwise",
-            LinearRing(((0, 0), (0, 0), (0, 0), (0, 0), (0, 0))),
+            LinearRing([(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)]),
             marks=pytest.mark.skipif(
                 shapely.geos_version < (3, 10, 0),
                 reason="pointwise does not work pre-GEOS 3.10",
             ),
         ),
         pytest.param(
-            LinearRing(((0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0))),
+            LinearRing([(0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0)]),
             "keep_collapsed",
             # See https://trac.osgeo.org/geos/ticket/1135#comment:5
-            LineString(((0, 0), (0, 0), (0, 0))),
+            LineString([(0, 0), (0, 0), (0, 0)]),
             marks=pytest.mark.skipif(
                 shapely.geos_version < (3, 10, 0),
                 reason="this collapsed into an invalid linearring pre-GEOS 3.10",
             ),
         ),
         (
-            Polygon((((0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0)))),
+            Polygon([(0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0)]),
             "valid_output",
             Polygon(),
         ),
         pytest.param(
-            Polygon((((0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0)))),
+            Polygon([(0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0)]),
             "pointwise",
-            Polygon((((0, 0), (0, 0), (0, 0), (0, 0), (0, 0)))),
+            Polygon([(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)]),
             marks=pytest.mark.skipif(
                 shapely.geos_version < (3, 10, 0),
                 reason="pointwise does not work pre-GEOS 3.10",
             ),
         ),
         (
-            Polygon((((0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0)))),
+            Polygon([(0, 0), (0.1, 0), (0.1, 0.1), (0, 0.1), (0, 0)]),
             "keep_collapsed",
             Polygon(),
         ),
@@ -635,7 +635,7 @@ def test_set_precision_intersection():
     box2 = shapely.set_precision(box2, 1)
     out = shapely.intersection(box1, box2)
     assert shapely.get_precision(out) == 0.5
-    assert_geometries_equal(out, LineString(((1, 1), (1, 0))))
+    assert_geometries_equal(out, LineString([(1, 1), (1, 0)]))
 
 
 @pytest.mark.parametrize("preserve_topology", [False, True])
@@ -643,7 +643,7 @@ def set_precision_preserve_topology(preserve_topology):
     # the preserve_topology kwarg is deprecated (ignored)
     with pytest.warns(UserWarning):
         actual = shapely.set_precision(
-            LineString(((0, 0), (0.1, 0.1))),
+            LineString([(0, 0), (0.1, 0.1)]),
             1.0,
             preserve_topology=preserve_topology,
         )
@@ -655,7 +655,7 @@ def set_precision_pointwise_pre_310():
     # using 'pointwise' emits a warning
     with pytest.warns(UserWarning):
         actual = shapely.set_precision(
-            LineString(((0, 0), (0.1, 0.1))),
+            LineString([(0, 0), (0.1, 0.1)]),
             1.0,
             mode="pointwise",
         )

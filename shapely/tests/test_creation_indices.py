@@ -200,7 +200,7 @@ def test_linearrings_invalid(coordinates):
 
 def test_linearrings_unclosed_all_coords_equal():
     actual = shapely.linearrings([(0, 0), (0, 0), (0, 0)], indices=np.zeros(3))
-    assert_geometries_equal(actual, LinearRing(((0, 0), (0, 0), (0, 0), (0, 0))))
+    assert_geometries_equal(actual, LinearRing([(0, 0), (0, 0), (0, 0), (0, 0)]))
 
 
 @pytest.mark.parametrize(

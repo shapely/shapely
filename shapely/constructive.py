@@ -64,15 +64,15 @@ def boundary(geometry, **kwargs):
 MultiLineString, MultiPoint, Point, Polygon
     >>> boundary(Point(0, 0))
     <shapely.GeometryCollection GEOMETRYCOLLECTION EMPTY>
-    >>> boundary(LineString(((0, 0), (1, 1), (1, 2))))
+    >>> boundary(LineString([(0, 0), (1, 1), (1, 2)]))
     <shapely.MultiPoint MULTIPOINT (0 0, 1 2)>
-    >>> boundary(LinearRing(((0, 0), (1, 0), (1, 1), (0, 1), (0, 0))))
+    >>> boundary(LinearRing([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]))
     <shapely.MultiPoint MULTIPOINT EMPTY>
-    >>> boundary(Polygon((((0, 0), (1, 0), (1, 1), (0, 1), (0, 0)))))
+    >>> boundary(Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]))
     <shapely.LineString LINESTRING (0 0, 1 0, 1 1, 0 1, 0 0)>
-    >>> boundary(MultiPoint(((0, 0), (1, 2))))
+    >>> boundary(MultiPoint([(0, 0), (1, 2)]))
     <shapely.GeometryCollection GEOMETRYCOLLECTION EMPTY>
-    >>> boundary(MultiLineString((((0, 0), (1, 1)), ((0, 1), (1, 0)))))
+    >>> boundary(MultiLineString([[(0, 0), (1, 1)], [(0, 1), (1, 0)]]))
     <shapely.MultiPoint MULTIPOINT (0 0, 0 1, 1 0, 1 1)>
     >>> boundary(GeometryCollection([Point(0, 0)])) is None
     True
@@ -137,21 +137,21 @@ def buffer(
     <shapely.Polygon POLYGON ((12 10, 11.414 8.586, 10 8, 8.586 8.586, 8 10, 8.5...>
     >>> buffer(Point(10, 10), -2, quadsegs=1)
     <shapely.Polygon POLYGON EMPTY>
-    >>> line = LineString(((10, 10), (20, 10)))
+    >>> line = LineString([(10, 10), (20, 10)])
     >>> buffer(line, 2, cap_style="square")
     <shapely.Polygon POLYGON ((20 12, 22 12, 22 8, 10 8, 8 8, 8 12, 20 12))>
     >>> buffer(line, 2, cap_style="flat")
     <shapely.Polygon POLYGON ((20 12, 20 8, 10 8, 10 12, 20 12))>
     >>> buffer(line, 2, single_sided=True, cap_style="flat")
     <shapely.Polygon POLYGON ((20 10, 10 10, 10 12, 20 12, 20 10))>
-    >>> line2 = LineString(((10, 10), (20, 10), (20, 20)))
+    >>> line2 = LineString([(10, 10), (20, 10), (20, 20)])
     >>> buffer(line2, 2, cap_style="flat", join_style="bevel")
     <shapely.Polygon POLYGON ((18 12, 18 20, 22 20, 22 10, 20 8, 10 8, 10 12, 18...>
     >>> buffer(line2, 2, cap_style="flat", join_style="mitre")
     <shapely.Polygon POLYGON ((18 12, 18 20, 22 20, 22 8, 10 8, 10 12, 18 12))>
     >>> buffer(line2, 2, cap_style="flat", join_style="mitre", mitre_limit=1)
     <shapely.Polygon POLYGON ((18 12, 18 20, 22 20, 21.828 9, 21 8.172, 10 8, 10...>
-    >>> square = Polygon((((0, 0), (10, 0), (10, 10), (0, 10), (0, 0))))
+    >>> square = Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)])
     >>> buffer(square, 2, join_style="mitre")
     <shapely.Polygon POLYGON ((-2 -2, -2 12, 12 12, 12 -2, -2 -2))>
     >>> buffer(square, -2, join_style="mitre")
@@ -224,7 +224,7 @@ def offset_curve(
     Examples
     --------
     >>> from shapely import LineString
-    >>> line = LineString(((0, 0), (0, 2)))
+    >>> line = LineString([(0, 0), (0, 2)])
     >>> offset_curve(line, 2)
     <shapely.LineString LINESTRING (-2 0, -2 2)>
     >>> offset_curve(line, -2)
@@ -267,11 +267,11 @@ def centroid(geometry, **kwargs):
     Examples
     --------
     >>> from shapely import LineString, MultiPoint, Polygon
-    >>> centroid(Polygon((((0, 0), (10, 0), (10, 10), (0, 10), (0, 0)))))
+    >>> centroid(Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]))
     <shapely.Point POINT (5 5)>
-    >>> centroid(LineString(((0, 0), (2, 2), (10, 10))))
+    >>> centroid(LineString([(0, 0), (2, 2), (10, 10)]))
     <shapely.Point POINT (5 5)>
-    >>> centroid(MultiPoint(((0, 0), (10, 10))))
+    >>> centroid(MultiPoint([(0, 0), (10, 10)]))
     <shapely.Point POINT (5 5)>
     >>> centroid(Polygon())
     <shapely.Point POINT EMPTY>
@@ -310,10 +310,10 @@ def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
     Examples
     --------
     >>> from shapely import LineString, Polygon
-    >>> line = LineString(((0, 0), (10, 10)))
+    >>> line = LineString([(0, 0), (10, 10)])
     >>> clip_by_rect(line, 0., 0., 1., 1.)
     <shapely.LineString LINESTRING (0 0, 1 1)>
-    >>> polygon = Polygon((((0, 0), (10, 0), (10, 10), (0, 10), (0, 0))))
+    >>> polygon = Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)])
     >>> clip_by_rect(polygon, 0., 0., 1., 1.)
     <shapely.Polygon POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
     """
@@ -343,7 +343,7 @@ def convex_hull(geometry, **kwargs):
     Examples
     --------
     >>> from shapely import MultiPoint, Polygon
-    >>> convex_hull(MultiPoint(((0, 0), (10, 0), (10, 10))))
+    >>> convex_hull(MultiPoint([(0, 0), (10, 0), (10, 10)]))
     <shapely.Polygon POLYGON ((0 0, 10 10, 10 0, 0 0))>
     >>> convex_hull(Polygon())
     <shapely.GeometryCollection GEOMETRYCOLLECTION EMPTY>
@@ -375,17 +375,17 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     Examples
     --------
     >>> from shapely import GeometryCollection, LineString, MultiPoint, Polygon
-    >>> points = MultiPoint(((50, 30), (60, 30), (100, 100)))
+    >>> points = MultiPoint([(50, 30), (60, 30), (100, 100)])
     >>> delaunay_triangles(points)
     <shapely.GeometryCollection GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 ...>
     >>> delaunay_triangles(points, only_edges=True)
     <shapely.MultiLineString MULTILINESTRING ((50 30, 100 100), (50 30, 60 30), ...>
-    >>> delaunay_triangles(MultiPoint(((50, 30), (51, 30), (60, 30), (100, 100))), \
+    >>> delaunay_triangles(MultiPoint([(50, 30), (51, 30), (60, 30), (100, 100)]), \
 tolerance=2)
     <shapely.GeometryCollection GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 ...>
-    >>> delaunay_triangles(Polygon(((50, 30), (60, 30), (100, 100), (50, 30))))
+    >>> delaunay_triangles(Polygon([(50, 30), (60, 30), (100, 100), (50, 30)]))
     <shapely.GeometryCollection GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 ...>
-    >>> delaunay_triangles(LineString(((50, 30), (60, 30), (100, 100))))
+    >>> delaunay_triangles(LineString([(50, 30), (60, 30), (100, 100)]))
     <shapely.GeometryCollection GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 ...>
     >>> delaunay_triangles(GeometryCollection())
     <shapely.GeometryCollection GEOMETRYCOLLECTION EMPTY>
@@ -407,9 +407,9 @@ def envelope(geometry, **kwargs):
     Examples
     --------
     >>> from shapely import GeometryCollection, LineString, MultiPoint, Point
-    >>> envelope(LineString(((0, 0), (10, 10))))
+    >>> envelope(LineString([(0, 0), (10, 10)]))
     <shapely.Polygon POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))>
-    >>> envelope(MultiPoint(((0, 0), (10, 10))))
+    >>> envelope(MultiPoint([(0, 0), (10, 10)]))
     <shapely.Polygon POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))>
     >>> envelope(Point(0, 0))
     <shapely.Point POINT (0 0)>
@@ -438,11 +438,11 @@ def extract_unique_points(geometry, **kwargs):
     >>> from shapely import LineString, MultiPoint, Point, Polygon
     >>> extract_unique_points(Point(0, 0))
     <shapely.MultiPoint MULTIPOINT (0 0)>
-    >>> extract_unique_points(LineString(((0, 0), (1, 1), (1, 1))))
+    >>> extract_unique_points(LineString([(0, 0), (1, 1), (1, 1)]))
     <shapely.MultiPoint MULTIPOINT (0 0, 1 1)>
-    >>> extract_unique_points(Polygon((((0, 0), (1, 0), (1, 1), (0, 1), (0, 0)))))
+    >>> extract_unique_points(Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]))
     <shapely.MultiPoint MULTIPOINT (0 0, 1 0, 1 1, 0 1)>
-    >>> extract_unique_points(MultiPoint(((0, 0), (1, 1), (0, 0))))
+    >>> extract_unique_points(MultiPoint([(0, 0), (1, 1), (0, 0)]))
     <shapely.MultiPoint MULTIPOINT (0 0, 1 1)>
     >>> extract_unique_points(LineString())
     <shapely.MultiPoint MULTIPOINT EMPTY>
@@ -467,8 +467,8 @@ def build_area(geometry, **kwargs):
     Examples
     --------
     >>> from shapely import GeometryCollection, Polygon
-    >>> polygon1 = Polygon(((0, 0), (3, 0), (3, 3), (0, 3), (0, 0)))
-    >>> polygon2 = Polygon(((1, 1), (1, 2), (2, 2), (1, 1)))
+    >>> polygon1 = Polygon([(0, 0), (3, 0), (3, 3), (0, 3), (0, 0)])
+    >>> polygon2 = Polygon([(1, 1), (1, 2), (2, 2), (1, 1)])
     >>> build_area(GeometryCollection([polygon1, polygon2]))
     <shapely.Polygon POLYGON ((0 0, 0 3, 3 3, 3 0, 0 0), (1 1, 2 2, 1 2, 1 1))>
     """
@@ -490,7 +490,7 @@ def make_valid(geometry, **kwargs):
     Examples
     --------
     >>> from shapely import is_valid, Polygon
-    >>> polygon = Polygon(((0, 0), (1, 1), (1, 2), (1, 1), (0, 0)))
+    >>> polygon = Polygon([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)])
     >>> is_valid(polygon)
     False
     >>> make_valid(polygon)
@@ -517,7 +517,7 @@ def normalize(geometry, **kwargs):
     Examples
     --------
     >>> from shapely import MultiLineString
-    >>> line = MultiLineString((((0, 0), (1, 1)), ((2, 2), (3, 3))))
+    >>> line = MultiLineString([[(0, 0), (1, 1)], [(2, 2), (3, 3)]])
     >>> normalize(line)
     <shapely.MultiLineString MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))>
     """
@@ -538,11 +538,11 @@ def point_on_surface(geometry, **kwargs):
     Examples
     --------
     >>> from shapely import LineString, MultiPoint, Polygon
-    >>> point_on_surface(Polygon((((0, 0), (10, 0), (10, 10), (0, 10), (0, 0)))))
+    >>> point_on_surface(Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]))
     <shapely.Point POINT (5 5)>
-    >>> point_on_surface(LineString(((0, 0), (2, 2), (10, 10))))
+    >>> point_on_surface(LineString([(0, 0), (2, 2), (10, 10)]))
     <shapely.Point POINT (2 2)>
-    >>> point_on_surface(MultiPoint(((0, 0), (10, 10))))
+    >>> point_on_surface(MultiPoint([(0, 0), (10, 10)]))
     <shapely.Point POINT (0 0)>
     >>> point_on_surface(Polygon())
     <shapely.Point POINT EMPTY>
@@ -593,9 +593,9 @@ def polygonize(geometries, **kwargs):
     --------
     >>> from shapely import LineString
     >>> lines = [
-    ...     LineString(((0, 0), (1, 1))),
-    ...     LineString(((0, 0), (0, 1))),
-    ...     LineString(((0, 1), (1, 1)))
+    ...     LineString([(0, 0), (1, 1)]),
+    ...     LineString([(0, 0), (0, 1)]),
+    ...     LineString([(0, 1), (1, 1)])
     ... ]
     >>> polygonize(lines)
     <shapely.GeometryCollection GEOMETRYCOLLECTION (POLYGON ((1 1, 0 0, 0 1, 1 1)))>
@@ -650,9 +650,9 @@ def polygonize_full(geometries, **kwargs):
     --------
     >>> from shapely import LineString
     >>> lines = [
-    ...     LineString(((0, 0), (1, 1))),
-    ...     LineString(((0, 0), (0, 1), (1, 1))),
-    ...     LineString(((0, 1), (1, 1)))
+    ...     LineString([(0, 0), (1, 1)]),
+    ...     LineString([(0, 0), (0, 1), (1, 1)]),
+    ...     LineString([(0, 1), (1, 1)])
     ... ]
     >>> polygonize_full(lines)  # doctest: +NORMALIZE_WHITESPACE
     (<shapely.GeometryCollection GEOMETRYCOLLECTION (POLYGON ((1 1, 0 0, 0 1, 1 1)))>,
@@ -687,9 +687,9 @@ def reverse(geometry, **kwargs):
     Examples
     --------
     >>> from shapely import LineString, Polygon
-    >>> reverse(LineString(((0, 0), (1, 2))))
+    >>> reverse(LineString([(0, 0), (1, 2)]))
     <shapely.LineString LINESTRING (1 2, 0 0)>
-    >>> reverse(Polygon(((0, 0), (1, 0), (1, 1), (0, 1), (0, 0))))
+    >>> reverse(Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]))
     <shapely.Polygon POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
     >>> reverse(None) is None
     True
@@ -723,10 +723,10 @@ def segmentize(geometry, tolerance, **kwargs):
     Examples
     --------
     >>> from shapely import LineString, Polygon
-    >>> line = LineString(((0, 0), (0, 10)))
+    >>> line = LineString([(0, 0), (0, 10)])
     >>> segmentize(line, tolerance=5)  # doctest: +SKIP
     <shapely.LineString LINESTRING (0 0, 0 5, 0 10)>
-    >>> polygon = Polygon((((0, 0), (10, 0), (10, 10), (0, 10), (0, 0))))
+    >>> polygon = Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)])
     >>> segmentize(polygon, tolerance=5)  # doctest: +SKIP
     <shapely.Polygon POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
     >>> segmentize(None, tolerance=5) is None  # doctest: +SKIP
@@ -757,14 +757,14 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
     Examples
     --------
     >>> from shapely import LineString, Polygon
-    >>> line = LineString(((0, 0), (1, 10), (0, 20)))
+    >>> line = LineString([(0, 0), (1, 10), (0, 20)])
     >>> simplify(line, tolerance=0.9)
     <shapely.LineString LINESTRING (0 0, 1 10, 0 20)>
     >>> simplify(line, tolerance=1)
     <shapely.LineString LINESTRING (0 0, 0 20)>
     >>> polygon_with_hole = Polygon(
     ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
-    ...     holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))]
+    ...     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]]
     ... )
     >>> simplify(polygon_with_hole, tolerance=4, preserve_topology=True)
     <shapely.Polygon POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2...>
@@ -803,10 +803,10 @@ def snap(geometry, reference, tolerance, **kwargs):
     <shapely.Point POINT (0 2)>
     >>> snap(point, target_point, tolerance=0.49)
     <shapely.Point POINT (0.5 2.5)>
-    >>> polygon = Polygon(((0, 0), (0, 10), (10, 10), (10, 0), (0, 0)))
+    >>> polygon = Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
     >>> snap(polygon, Point(8, 10), tolerance=5)
     <shapely.Polygon POLYGON ((0 0, 0 10, 8 10, 10 0, 0 0))>
-    >>> snap(polygon, LineString(((8, 10), (8, 0))), tolerance=5)
+    >>> snap(polygon, LineString([(8, 10), (8, 0)]), tolerance=5)
     <shapely.Polygon POLYGON ((0 0, 0 10, 8 10, 8 0, 0 0))>
     """
     return lib.snap(geometry, reference, tolerance, **kwargs)
@@ -840,16 +840,16 @@ def voronoi_polygons(
     Examples
     --------
     >>> from shapely import LineString, MultiPoint, normalize, Point
-    >>> points = MultiPoint(((2, 2), (4, 2)))
+    >>> points = MultiPoint([(2, 2), (4, 2)])
     >>> normalize(voronoi_polygons(points))
     <shapely.GeometryCollection GEOMETRYCOLLECTION (POLYGON ((3 0, 3 4, 6 4, 6 0...>
     >>> voronoi_polygons(points, only_edges=True)
     <shapely.LineString LINESTRING (3 4, 3 0)>
-    >>> voronoi_polygons(MultiPoint(((2, 2), (4, 2), (4.2, 2))), 0.5, only_edges=True)
+    >>> voronoi_polygons(MultiPoint([(2, 2), (4, 2), (4.2, 2)]), 0.5, only_edges=True)
     <shapely.LineString LINESTRING (3 4.2, 3 -0.2)>
-    >>> voronoi_polygons(points, extend_to=LineString(((0, 0), (10, 10))), only_edges=True)
+    >>> voronoi_polygons(points, extend_to=LineString([(0, 0), (10, 10)]), only_edges=True)
     <shapely.LineString LINESTRING (3 10, 3 0)>
-    >>> voronoi_polygons(LineString(((2, 2), (4, 2))), only_edges=True)
+    >>> voronoi_polygons(LineString([(2, 2), (4, 2)]), only_edges=True)
     <shapely.LineString LINESTRING (3 4, 3 0)>
     >>> voronoi_polygons(Point(2, 2))
     <shapely.GeometryCollection GEOMETRYCOLLECTION EMPTY>
@@ -878,13 +878,13 @@ def oriented_envelope(geometry, **kwargs):
     Examples
     --------
     >>> from shapely import GeometryCollection, LineString, MultiPoint, Point, Polygon
-    >>> oriented_envelope(MultiPoint(((0, 0), (10, 0), (10, 10))))
+    >>> oriented_envelope(MultiPoint([(0, 0), (10, 0), (10, 10)]))
     <shapely.Polygon POLYGON ((0 0, 5 -5, 15 5, 10 10, 0 0))>
-    >>> oriented_envelope(LineString(((1, 1), (5, 1), (10, 10))))
+    >>> oriented_envelope(LineString([(1, 1), (5, 1), (10, 10)]))
     <shapely.Polygon POLYGON ((1 1, 3 -1, 12 8, 10 10, 1 1))>
-    >>> oriented_envelope(Polygon(((1, 1), (15, 1), (5, 10), (1, 1))))
+    >>> oriented_envelope(Polygon([(1, 1), (15, 1), (5, 10), (1, 1)]))
     <shapely.Polygon POLYGON ((15 1, 15 10, 1 10, 1 1, 15 1))>
-    >>> oriented_envelope(LineString(((1, 1), (10, 1))))
+    >>> oriented_envelope(LineString([(1, 1), (10, 1)]))
     <shapely.LineString LINESTRING (1 1, 10 1)>
     >>> oriented_envelope(Point(2, 2))
     <shapely.Point POINT (2 2)>
@@ -912,11 +912,11 @@ def minimum_bounding_circle(geometry, **kwargs):
     Examples
     --------
     >>> from shapely import GeometryCollection, LineString, MultiPoint, Point, Polygon
-    >>> minimum_bounding_circle(Polygon(((0, 0), (0, 10), (10, 10), (10, 0), (0, 0))))
+    >>> minimum_bounding_circle(Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]))
     <shapely.Polygon POLYGON ((12.071 5, 11.935 3.621, 11.533 2.294, 10.879 1.07...>
-    >>> minimum_bounding_circle(LineString(((1, 1), (10, 10))))
+    >>> minimum_bounding_circle(LineString([(1, 1), (10, 10)]))
     <shapely.Polygon POLYGON ((11.864 5.5, 11.742 4.258, 11.38 3.065, 10.791 1.9...>
-    >>> minimum_bounding_circle(MultiPoint(((2, 2), (4, 2))))
+    >>> minimum_bounding_circle(MultiPoint([(2, 2), (4, 2)]))
     <shapely.Polygon POLYGON ((4 2, 3.981 1.805, 3.924 1.617, 3.831 1.444, 3.707...>
     >>> minimum_bounding_circle(Point(0, 1))
     <shapely.Point POINT (0 1)>

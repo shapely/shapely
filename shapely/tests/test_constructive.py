@@ -141,13 +141,13 @@ def test_build_area_none():
         (
             GeometryCollection(
                 [
-                    Polygon(((0, 0), (0, 3), (3, 3), (3, 0), (0, 0))),
-                    Polygon(((1, 1), (2, 2), (1, 2), (1, 1))),
+                    Polygon([(0, 0), (0, 3), (3, 3), (3, 0), (0, 0)]),
+                    Polygon([(1, 1), (2, 2), (1, 2), (1, 1)]),
                 ]
             ),
             Polygon(
-                ((0, 0), (0, 3), (3, 3), (3, 0), (0, 0)),
-                holes=[((1, 1), (2, 2), (1, 2), (1, 1))],
+                [(0, 0), (0, 3), (3, 3), (3, 0), (0, 0)],
+                holes=[[(1, 1), (2, 2), (1, 2), (1, 1)]],
             ),
         ),
         (empty, empty),
@@ -173,16 +173,16 @@ def test_make_valid_none():
         (point, point),  # a valid geometry stays the same (but is copied)
         # an L shaped polygon without area is converted to a multilinestring
         (
-            Polygon(((0, 0), (1, 1), (1, 2), (1, 1), (0, 0))),
+            Polygon([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)]),
             MultiLineString([((1, 1), (1, 2)), ((0, 0), (1, 1))]),
         ),
         # a polygon with self-intersection (bowtie) is converted into polygons
         (
-            Polygon(((0, 0), (2, 2), (2, 0), (0, 2), (0, 0))),
+            Polygon([(0, 0), (2, 2), (2, 0), (0, 2), (0, 0)]),
             MultiPolygon(
                 [
-                    Polygon(((1, 1), (2, 2), (2, 0), (1, 1))),
-                    Polygon(((0, 0), (0, 2), (1, 1), (0, 0))),
+                    Polygon([(1, 1), (2, 2), (2, 0), (1, 1)]),
+                    Polygon([(0, 0), (0, 2), (1, 1), (0, 0)]),
                 ]
             ),
         ),
@@ -205,15 +205,15 @@ def test_make_valid(geom, expected):
         # first polygon is valid, second polygon has self-intersection
         (
             [
-                Polygon(((0, 0), (2, 2), (0, 2), (0, 0))),
-                Polygon(((0, 0), (2, 2), (2, 0), (0, 2), (0, 0))),
+                Polygon([(0, 0), (2, 2), (0, 2), (0, 0)]),
+                Polygon([(0, 0), (2, 2), (2, 0), (0, 2), (0, 0)]),
             ],
             [
-                Polygon(((0, 0), (2, 2), (0, 2), (0, 0))),
+                Polygon([(0, 0), (2, 2), (0, 2), (0, 0)]),
                 MultiPolygon(
                     [
-                        Polygon(((1, 1), (0, 0), (0, 2), (1, 1))),
-                        Polygon(((1, 1), (2, 2), (2, 0), (1, 1))),
+                        Polygon([(1, 1), (0, 0), (0, 2), (1, 1)]),
+                        Polygon([(1, 1), (2, 2), (2, 0), (1, 1)]),
                     ]
                 ),
             ],
@@ -290,28 +290,28 @@ def test_offset_curve_join_style_invalid():
 @pytest.mark.parametrize(
     "geom,expected",
     [
-        (LineString(((0, 0), (1, 2))), LineString(((1, 2), (0, 0)))),
+        (LineString([(0, 0), (1, 2)]), LineString([(1, 2), (0, 0)])),
         (
-            LinearRing(((0, 0), (1, 2), (1, 3), (0, 0))),
-            LinearRing(((0, 0), (1, 3), (1, 2), (0, 0))),
+            LinearRing([(0, 0), (1, 2), (1, 3), (0, 0)]),
+            LinearRing([(0, 0), (1, 3), (1, 2), (0, 0)]),
         ),
         (
-            Polygon(((0, 0), (1, 0), (1, 1), (0, 1), (0, 0))),
-            Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0))),
+            Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]),
+            Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)]),
         ),
         (
             Polygon(
-                ((0, 0), (10, 0), (10, 10), (0, 10), (0, 0)),
-                holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))],
+                [(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)],
+                holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]],
             ),
             Polygon(
-                ((0, 0), (0, 10), (10, 10), (10, 0), (0, 0)),
-                holes=[((2, 2), (4, 2), (4, 4), (2, 4), (2, 2))],
+                [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+                holes=[[(2, 2), (4, 2), (4, 4), (2, 4), (2, 2)]],
             ),
         ),
         pytest.param(
-            MultiLineString([((0, 0), (1, 2)), ((3, 3), (4, 4))]),
-            MultiLineString([((1, 2), (0, 0)), ((4, 4), (3, 3))]),
+            MultiLineString([[(0, 0), (1, 2)], [(3, 3), (4, 4)]]),
+            MultiLineString([[(1, 2), (0, 0)], [(4, 4), (3, 3)]]),
             marks=pytest.mark.skipif(
                 shapely.geos_version < (3, 8, 1), reason="GEOS < 3.8.1"
             ),
@@ -319,14 +319,14 @@ def test_offset_curve_join_style_invalid():
         (
             MultiPolygon(
                 [
-                    Polygon(((0, 0), (1, 0), (1, 1), (0, 1), (0, 0))),
-                    Polygon(((2, 2), (2, 3), (3, 3), (3, 2), (2, 2))),
+                    Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]),
+                    Polygon([(2, 2), (2, 3), (3, 3), (3, 2), (2, 2)]),
                 ]
             ),
             MultiPolygon(
                 [
-                    Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0))),
-                    Polygon(((2, 2), (3, 2), (3, 3), (2, 3), (2, 2))),
+                    Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)]),
+                    Polygon([(2, 2), (3, 2), (3, 3), (2, 3), (2, 2)]),
                 ]
             ),
         ),
@@ -350,8 +350,8 @@ def test_reverse_none():
     assert shapely.reverse(None) is None
     assert shapely.reverse([None]).tolist() == [None]
 
-    geometry = Polygon(((0, 0), (1, 0), (1, 1), (0, 1), (0, 0)))
-    expected = Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
+    geometry = Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
+    expected = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
     result = shapely.reverse([None, geometry])
     assert result[0] is None
     assert_geometries_equal(result[1], expected)
@@ -374,13 +374,13 @@ def test_reverse_invalid_type(geom):
         # Point on boundary
         (Point(15, 10), GeometryCollection()),
         # Line outside
-        (LineString(((0, 0), (-5, 5))), GeometryCollection()),
+        (LineString([(0, 0), (-5, 5)]), GeometryCollection()),
         # Line inside
-        (LineString(((15, 15), (16, 15))), LineString(((15, 15), (16, 15)))),
+        (LineString([(15, 15), (16, 15)]), LineString([(15, 15), (16, 15)])),
         # Line on boundary
-        (LineString(((10, 15), (10, 10), (15, 10))), GeometryCollection()),
+        (LineString([(10, 15), (10, 10), (15, 10)]), GeometryCollection()),
         # Line splitting rectangle
-        (LineString(((10, 5), (25, 20))), LineString(((15, 10), (20, 15)))),
+        (LineString([(10, 5), (25, 20)]), LineString([(15, 10), (20, 15)])),
     ],
 )
 def test_clip_by_rect(geom, expected):
@@ -424,11 +424,11 @@ def test_clip_by_rect(geom, expected):
         # Polygon overlapping rectanglez
         (
             Polygon(
-                ((0, 0), (0, 30), (30, 30), (30, 0), (0, 0)),
-                holes=[((10, 10), (20, 10), (20, 20), (10, 20), (10, 10))],
+                [(0, 0), (0, 30), (30, 30), (30, 0), (0, 0)],
+                holes=[[(10, 10), (20, 10), (20, 20), (10, 20), (10, 10)]],
             ),
             (5, 5, 15, 15),
-            Polygon(((5, 5), (5, 15), (10, 15), (10, 10), (15, 10), (15, 5), (5, 5))),
+            Polygon([(5, 5), (5, 15), (10, 15), (10, 10), (15, 10), (15, 5), (5, 5)]),
         ),
     ],
 )
@@ -464,12 +464,12 @@ def test_clip_by_rect_non_scalar_kwargs():
 
 def test_polygonize():
     lines = [
-        LineString(((0, 0), (1, 1))),
-        LineString(((0, 0), (0, 1))),
-        LineString(((0, 1), (1, 1))),
-        LineString(((1, 1), (1, 0))),
-        LineString(((1, 0), (0, 0))),
-        LineString(((5, 5), (6, 6))),
+        LineString([(0, 0), (1, 1)]),
+        LineString([(0, 0), (0, 1)]),
+        LineString([(0, 1), (1, 1)]),
+        LineString([(1, 1), (1, 0)]),
+        LineString([(1, 0), (0, 0)]),
+        LineString([(5, 5), (6, 6)]),
         Point(0, 0),
         None,
     ]
@@ -477,8 +477,8 @@ def test_polygonize():
     assert shapely.get_type_id(result) == 7  # GeometryCollection
     expected = GeometryCollection(
         [
-            Polygon(((0, 0), (1, 1), (1, 0), (0, 0))),
-            Polygon(((1, 1), (0, 0), (0, 1), (1, 1))),
+            Polygon([(0, 0), (1, 1), (1, 0), (0, 0)]),
+            Polygon([(1, 1), (0, 0), (0, 1), (1, 1)]),
         ]
     )
     assert result == expected
@@ -486,11 +486,11 @@ def test_polygonize():
 
 def test_polygonize_array():
     lines = [
-        LineString(((0, 0), (1, 1))),
-        LineString(((0, 0), (0, 1))),
-        LineString(((0, 1), (1, 1))),
+        LineString([(0, 0), (1, 1)]),
+        LineString([(0, 0), (0, 1)]),
+        LineString([(0, 1), (1, 1)]),
     ]
-    expected = GeometryCollection([Polygon(((1, 1), (0, 0), (0, 1), (1, 1)))])
+    expected = GeometryCollection([Polygon([(1, 1), (0, 0), (0, 1), (1, 1)])])
     result = shapely.polygonize(np.array(lines))
     assert isinstance(result, shapely.Geometry)
     assert result == expected
@@ -523,9 +523,9 @@ def test_polygonize_array():
 )
 def test_polygonize_array_axis():
     lines = [
-        LineString(((0, 0), (1, 1))),
-        LineString(((0, 0), (0, 1))),
-        LineString(((0, 1), (1, 1))),
+        LineString([(0, 0), (1, 1)]),
+        LineString([(0, 0), (0, 1)]),
+        LineString([(0, 1), (1, 1)]),
     ]
     arr = np.array([lines, lines])  # shape (2, 3)
     result = shapely.polygonize(arr, axis=1)
@@ -543,14 +543,14 @@ def test_polygonize_missing():
 def test_polygonize_full():
     lines = [
         None,
-        LineString(((0, 0), (1, 1))),
-        LineString(((0, 0), (0, 1))),
-        LineString(((0, 1), (1, 1))),
-        LineString(((1, 1), (1, 0))),
+        LineString([(0, 0), (1, 1)]),
+        LineString([(0, 0), (0, 1)]),
+        LineString([(0, 1), (1, 1)]),
+        LineString([(1, 1), (1, 0)]),
         None,
-        LineString(((1, 0), (0, 0))),
-        LineString(((5, 5), (6, 6))),
-        LineString(((1, 1), (100, 100))),
+        LineString([(1, 0), (0, 0)]),
+        LineString([(5, 5), (6, 6)]),
+        LineString([(1, 1), (100, 100)]),
         Point(0, 0),
         None,
     ]
@@ -560,14 +560,14 @@ def test_polygonize_full():
     polygons, cuts, dangles, invalid = result
     expected_polygons = GeometryCollection(
         [
-            Polygon(((0, 0), (1, 1), (1, 0), (0, 0))),
-            Polygon(((1, 1), (0, 0), (0, 1), (1, 1))),
+            Polygon([(0, 0), (1, 1), (1, 0), (0, 0)]),
+            Polygon([(1, 1), (0, 0), (0, 1), (1, 1)]),
         ]
     )
     assert polygons == expected_polygons
     assert cuts == GeometryCollection()
     expected_dangles = GeometryCollection(
-        [LineString(((1, 1), (100, 100))), LineString(((5, 5), (6, 6)))]
+        [LineString([(1, 1), (100, 100)]), LineString([(5, 5), (6, 6)])]
     )
     assert dangles == expected_dangles
     assert invalid == GeometryCollection()
@@ -575,11 +575,11 @@ def test_polygonize_full():
 
 def test_polygonize_full_array():
     lines = [
-        LineString(((0, 0), (1, 1))),
-        LineString(((0, 0), (0, 1))),
-        LineString(((0, 1), (1, 1))),
+        LineString([(0, 0), (1, 1)]),
+        LineString([(0, 0), (0, 1)]),
+        LineString([(0, 1), (1, 1)]),
     ]
-    expected = GeometryCollection([Polygon(((1, 1), (0, 0), (0, 1), (1, 1)))])
+    expected = GeometryCollection([Polygon([(1, 1), (0, 0), (0, 1), (1, 1)])])
     result = shapely.polygonize_full(np.array(lines))
     assert len(result) == 4
     assert all(isinstance(geom, shapely.Geometry) for geom in result)
@@ -622,9 +622,9 @@ def test_polygonize_full_array():
 )
 def test_polygonize_full_array_axis():
     lines = [
-        LineString(((0, 0), (1, 1))),
-        LineString(((0, 0), (0, 1))),
-        LineString(((0, 1), (1, 1))),
+        LineString([(0, 0), (1, 1)]),
+        LineString([(0, 0), (0, 1)]),
+        LineString([(0, 1), (1, 1)]),
     ]
     arr = np.array([lines, lines])  # shape (2, 3)
     result = shapely.polygonize_full(arr, axis=1)
@@ -684,26 +684,26 @@ def test_segmentize_none():
     [
         # tolerance greater than max edge length, no change
         (
-            LineString(((0, 0), (0, 10))),
+            LineString([(0, 0), (0, 10)]),
             20,
-            LineString(((0, 0), (0, 10))),
+            LineString([(0, 0), (0, 10)]),
         ),
         (
-            Polygon(((0, 0), (10, 0), (10, 10), (0, 10), (0, 0))),
+            Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]),
             20,
-            Polygon(((0, 0), (10, 0), (10, 10), (0, 10), (0, 0))),
+            Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]),
         ),
         # tolerance causes one vertex per segment
         (
-            LineString(((0, 0), (0, 10))),
+            LineString([(0, 0), (0, 10)]),
             5,
-            LineString(((0, 0), (0, 5), (0, 10))),
+            LineString([(0, 0), (0, 5), (0, 10)]),
         ),
         (
-            Polygon(((0, 0), (10, 0), (10, 10), (0, 10), (0, 0))),
+            Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]),
             5,
             Polygon(
-                (
+                [
                     (0, 0),
                     (5, 0),
                     (10, 0),
@@ -713,41 +713,41 @@ def test_segmentize_none():
                     (0, 10),
                     (0, 5),
                     (0, 0),
-                )
+                ]
             ),
         ),
         # ensure input arrays are broadcast correctly
         (
             [
-                LineString(((0, 0), (0, 10))),
-                LineString(((0, 0), (0, 2))),
+                LineString([(0, 0), (0, 10)]),
+                LineString([(0, 0), (0, 2)]),
             ],
             5,
             [
-                LineString(((0, 0), (0, 5), (0, 10))),
-                LineString(((0, 0), (0, 2))),
+                LineString([(0, 0), (0, 5), (0, 10)]),
+                LineString([(0, 0), (0, 2)]),
             ],
         ),
         (
             [
-                LineString(((0, 0), (0, 10))),
-                LineString(((0, 0), (0, 2))),
+                LineString([(0, 0), (0, 10)]),
+                LineString([(0, 0), (0, 2)]),
             ],
             [5],
             [
-                LineString(((0, 0), (0, 5), (0, 10))),
-                LineString(((0, 0), (0, 2))),
+                LineString([(0, 0), (0, 5), (0, 10)]),
+                LineString([(0, 0), (0, 2)]),
             ],
         ),
         (
             [
-                LineString(((0, 0), (0, 10))),
-                LineString(((0, 0), (0, 2))),
+                LineString([(0, 0), (0, 10)]),
+                LineString([(0, 0), (0, 2)]),
             ],
             [5, 1.5],
             [
-                LineString(((0, 0), (0, 5), (0, 10))),
-                LineString(((0, 0), (0, 1), (0, 2))),
+                LineString([(0, 0), (0, 5), (0, 10)]),
+                LineString([(0, 0), (0, 1), (0, 2)]),
             ],
         ),
     ],
@@ -773,15 +773,15 @@ def test_minimum_bounding_circle_all_types(geometry):
     "geometry, expected",
     [
         (
-            Polygon(((0, 5), (5, 10), (10, 5), (5, 0), (0, 5))),
+            Polygon([(0, 5), (5, 10), (10, 5), (5, 0), (0, 5)]),
             shapely.buffer(Point(5, 5), 5),
         ),
         (
-            LineString(((1, 0), (1, 10))),
+            LineString([(1, 0), (1, 10)]),
             shapely.buffer(Point(1, 5), 5),
         ),
         (
-            MultiPoint(((2, 2), (4, 2))),
+            MultiPoint([(2, 2), (4, 2)]),
             shapely.buffer(Point(3, 2), 1),
         ),
         (
@@ -815,20 +815,20 @@ def test_oriented_envelope_all_types(geometry):
     "geometry, expected",
     [
         (
-            MultiPoint(((0, 0), (10, 0), (10, 10))),
-            Polygon(((0, 0), (5, -5), (15, 5), (10, 10), (0, 0))),
+            MultiPoint([(0, 0), (10, 0), (10, 10)]),
+            Polygon([(0, 0), (5, -5), (15, 5), (10, 10), (0, 0)]),
         ),
         (
-            LineString(((1, 1), (5, 1), (10, 10))),
-            Polygon(((1, 1), (3, -1), (12, 8), (10, 10), (1, 1))),
+            LineString([(1, 1), (5, 1), (10, 10)]),
+            Polygon([(1, 1), (3, -1), (12, 8), (10, 10), (1, 1)]),
         ),
         (
-            Polygon(((1, 1), (15, 1), (5, 10), (1, 1))),
-            Polygon(((15, 1), (15, 10), (1, 10), (1, 1), (15, 1))),
+            Polygon([(1, 1), (15, 1), (5, 10), (1, 1)]),
+            Polygon([(15, 1), (15, 10), (1, 10), (1, 1), (15, 1)]),
         ),
         (
-            LineString(((1, 1), (10, 1))),
-            LineString(((1, 1), (10, 1))),
+            LineString([(1, 1), (10, 1)]),
+            LineString([(1, 1), (10, 1)]),
         ),
         (
             Point(2, 2),
@@ -850,20 +850,20 @@ def test_oriented_envelope(geometry, expected):
     "geometry, expected",
     [
         (
-            MultiPoint(((0, 0), (10, 0), (10, 10))),
-            Polygon(((0, 0), (5, -5), (15, 5), (10, 10), (0, 0))),
+            MultiPoint([(0, 0), (10, 0), (10, 10)]),
+            Polygon([(0, 0), (5, -5), (15, 5), (10, 10), (0, 0)]),
         ),
         (
-            LineString(((1, 1), (5, 1), (10, 10))),
-            Polygon(((1, 1), (3, -1), (12, 8), (10, 10), (1, 1))),
+            LineString([(1, 1), (5, 1), (10, 10)]),
+            Polygon([(1, 1), (3, -1), (12, 8), (10, 10), (1, 1)]),
         ),
         (
-            Polygon(((1, 1), (15, 1), (5, 10), (1, 1))),
-            Polygon(((15, 1), (15, 10), (1, 10), (1, 1), (15, 1))),
+            Polygon([(1, 1), (15, 1), (5, 10), (1, 1)]),
+            Polygon([(15, 1), (15, 10), (1, 10), (1, 1), (15, 1)]),
         ),
         (
-            LineString(((1, 1), (10, 1))),
-            LineString(((1, 1), (10, 1))),
+            LineString([(1, 1), (10, 1)]),
+            LineString([(1, 1), (10, 1)]),
         ),
         (
             Point(2, 2),

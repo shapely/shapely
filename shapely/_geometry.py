@@ -108,7 +108,7 @@ def get_dimensions(geometry, **kwargs):
     >>> point = Point(0, 0)
     >>> get_dimensions(point)
     0
-    >>> polygon = Polygon(((0, 0), (0, 10), (10, 10), (10, 0), (0, 0)))
+    >>> polygon = Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
     >>> get_dimensions(polygon)
     2
     >>> get_dimensions(GeometryCollection([point, polygon]))
@@ -171,7 +171,7 @@ def get_num_coordinates(geometry, **kwargs):
     1
     >>> get_num_coordinates(Point(0, 0, 0))
     1
-    >>> line = LineString(((0, 0), (1, 1)))
+    >>> line = LineString([(0, 0), (1, 1)])
     >>> get_num_coordinates(line)
     2
     >>> get_num_coordinates(GeometryCollection([point, line]))
@@ -352,7 +352,7 @@ def get_point(geometry, index, **kwargs):
     Examples
     --------
     >>> from shapely import LinearRing, LineString, MultiPoint, Point
-    >>> line = LineString(((0, 0), (1, 1), (2, 2), (3, 3)))
+    >>> line = LineString([(0, 0), (1, 1), (2, 2), (3, 3)])
     >>> get_point(line, 1)
     <shapely.Point POINT (1 1)>
     >>> get_point(line, -2)
@@ -362,12 +362,12 @@ def get_point(geometry, index, **kwargs):
 
     The functcion works the same for LinearRing input:
 
-    >>> get_point(LinearRing(((0, 0), (1, 1), (2, 2), (0, 0))), 1)
+    >>> get_point(LinearRing([(0, 0), (1, 1), (2, 2), (0, 0)]), 1)
     <shapely.Point POINT (1 1)>
 
     For non-linear geometries it returns None:
 
-    >>> get_point(MultiPoint(((0, 0), (1, 1), (2, 2), (3, 3))), 1) is None
+    >>> get_point(MultiPoint([(0, 0), (1, 1), (2, 2), (3, 3)]), 1) is None
     True
     >>> get_point(Point(1, 1), 0) is None
     True
@@ -398,9 +398,9 @@ def get_num_points(geometry, **kwargs):
     Examples
     --------
     >>> from shapely import LineString, MultiPoint
-    >>> get_num_points(LineString(((0, 0), (1, 1), (2, 2), (3, 3))))
+    >>> get_num_points(LineString([(0, 0), (1, 1), (2, 2), (3, 3)]))
     4
-    >>> get_num_points(MultiPoint(((0, 0), (1, 1), (2, 2), (3, 3))))
+    >>> get_num_points(MultiPoint([(0, 0), (1, 1), (2, 2), (3, 3)]))
     0
     >>> get_num_points(None)
     0
@@ -429,7 +429,7 @@ def get_exterior_ring(geometry, **kwargs):
     Examples
     --------
     >>> from shapely import Point, Polygon
-    >>> get_exterior_ring(Polygon(((0, 0), (0, 10), (10, 10), (10, 0), (0, 0))))
+    >>> get_exterior_ring(Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]))
     <shapely.LinearRing LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>
     >>> get_exterior_ring(Point(1, 1)) is None
     True
@@ -460,13 +460,13 @@ def get_interior_ring(geometry, index, **kwargs):
     >>> from shapely import Point, Polygon
     >>> polygon_with_hole = Polygon(
     ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
-    ...     holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))]
+    ...     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]]
     ... )
     >>> get_interior_ring(polygon_with_hole, 0)
     <shapely.LinearRing LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>
     >>> get_interior_ring(polygon_with_hole, 1) is None
     True
-    >>> polygon = Polygon(((0, 0), (0, 10), (10, 10), (10, 0), (0, 0)))
+    >>> polygon = Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
     >>> get_interior_ring(polygon, 0) is None
     True
     >>> get_interior_ring(Point(0, 0), 0) is None
@@ -497,12 +497,12 @@ def get_num_interior_rings(geometry, **kwargs):
     Examples
     --------
     >>> from shapely import Point, Polygon
-    >>> polygon = Polygon(((0, 0), (0, 10), (10, 10), (10, 0), (0, 0)))
+    >>> polygon = Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
     >>> get_num_interior_rings(polygon)
     0
     >>> polygon_with_hole = Polygon(
     ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
-    ...     holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))]
+    ...     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]]
     ... )
     >>> get_num_interior_rings(polygon_with_hole)
     1
@@ -542,7 +542,7 @@ def get_geometry(geometry, index, **kwargs):
     Examples
     --------
     >>> from shapely import Point, MultiPoint
-    >>> multipoint = MultiPoint(((0, 0), (1, 1), (2, 2), (3, 3)))
+    >>> multipoint = MultiPoint([(0, 0), (1, 1), (2, 2), (3, 3)])
     >>> get_geometry(multipoint, 1)
     <shapely.Point POINT (1 1)>
     >>> get_geometry(multipoint, -1)
@@ -583,9 +583,9 @@ def get_parts(geometry, return_index=False):
     Examples
     --------
     >>> from shapely import MultiPoint
-    >>> get_parts(MultiPoint(((0, 1), (2, 3)))).tolist()
+    >>> get_parts(MultiPoint([(0, 1), (2, 3)])).tolist()
     [<shapely.Point POINT (0 1)>, <shapely.Point POINT (2 3)>]
-    >>> parts, index = get_parts([MultiPoint(((0, 1),)), MultiPoint(((4, 5), (6, 7)))], \
+    >>> parts, index = get_parts([MultiPoint([(0, 1)]), MultiPoint([(4, 5), (6, 7)])], \
 return_index=True)
     >>> parts.tolist()
     [<shapely.Point POINT (0 1)>,
@@ -635,7 +635,7 @@ def get_rings(geometry, return_index=False):
     >>> from shapely import Polygon
     >>> polygon_with_hole = Polygon(
     ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
-    ...     holes=[((2, 2), (2, 4), (4, 4), (4, 2), (2, 2))]
+    ...     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]]
     ... )
     >>> get_rings(polygon_with_hole).tolist()
     [<shapely.LinearRing LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>,
@@ -643,7 +643,7 @@ def get_rings(geometry, return_index=False):
 
     With ``return_index=True``:
 
-    >>> polygon = Polygon(((0, 0), (2, 0), (2, 2), (0, 2), (0, 0)))
+    >>> polygon = Polygon([(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)])
     >>> rings, index = get_rings([polygon, polygon_with_hole], return_index=True)
     >>> rings.tolist()
     [<shapely.LinearRing LINEARRING (0 0, 2 0, 2 2, 0 2, 0 0)>,
@@ -687,7 +687,7 @@ def get_num_geometries(geometry, **kwargs):
     Examples
     --------
     >>> from shapely import MultiPoint, Point
-    >>> get_num_geometries(MultiPoint(((0, 0), (1, 1), (2, 2), (3, 3))))
+    >>> get_num_geometries(MultiPoint([(0, 0), (1, 1), (2, 2), (3, 3)]))
     4
     >>> get_num_geometries(Point(1, 1))
     1
@@ -805,13 +805,13 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
     <shapely.Point POINT (1 1)>
     >>> set_precision(Point(0.9, 0.9, 0.9), 1.0)
     <shapely.Point POINT Z (1 1 0.9)>
-    >>> set_precision(LineString(((0, 0), (0, 0.1), (0, 1), (1, 1))), 1.0)
+    >>> set_precision(LineString([(0, 0), (0, 0.1), (0, 1), (1, 1)]), 1.0)
     <shapely.LineString LINESTRING (0 0, 0 1, 1 1)>
-    >>> set_precision(LineString(((0, 0), (0, 0.1), (0.1, 0.1))), 1.0, mode="valid_output")
+    >>> set_precision(LineString([(0, 0), (0, 0.1), (0.1, 0.1)]), 1.0, mode="valid_output")
     <shapely.LineString LINESTRING Z EMPTY>
-    >>> set_precision(LineString(((0, 0), (0, 0.1), (0.1, 0.1))), 1.0, mode="pointwise")
+    >>> set_precision(LineString([(0, 0), (0, 0.1), (0.1, 0.1)]), 1.0, mode="pointwise")
     <shapely.LineString LINESTRING (0 0, 0 0, 0 0)>
-    >>> set_precision(LineString(((0, 0), (0, 0.1), (0.1, 0.1))), 1.0, mode="keep_collapsed")
+    >>> set_precision(LineString([(0, 0), (0, 0.1), (0.1, 0.1)]), 1.0, mode="keep_collapsed")
     <shapely.LineString LINESTRING (0 0, 0 0)>
     >>> set_precision(None, 1.0) is None
     True
@@ -854,7 +854,7 @@ def force_2d(geometry, **kwargs):
     <shapely.Point POINT (0 0)>
     >>> force_2d(Point(0, 0))
     <shapely.Point POINT (0 0)>
-    >>> force_2d(LineString(((0, 0, 0), (0, 1, 1), (1, 1, 2))))
+    >>> force_2d(LineString([(0, 0, 0), (0, 1, 1), (1, 1, 2)]))
     <shapely.LineString LINESTRING (0 0, 0 1, 1 1)>
     >>> force_2d(from_wkt("POLYGON Z EMPTY"))
     <shapely.Polygon POLYGON EMPTY>
@@ -889,7 +889,7 @@ def force_3d(geometry, z=0.0, **kwargs):
     <shapely.Point POINT Z (0 0 3)>
     >>> force_3d(Point(0, 0, 0), z=3)
     <shapely.Point POINT Z (0 0 0)>
-    >>> force_3d(LineString(((0, 0), (0, 1), (1, 1))))
+    >>> force_3d(LineString([(0, 0), (0, 1), (1, 1)]))
     <shapely.LineString LINESTRING Z (0 0 0, 0 1 0, 1 1 0)>
     >>> force_3d(None) is None
     True
