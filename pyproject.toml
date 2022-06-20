@@ -8,9 +8,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "shapely"
-version = "0"  # required here, but updated in setup.py
-authors = [{name = "Sean Gillies"}]
-maintainers = [{name = "Shapely contributors"}]
+dynamic = ["version"]
+authors = [
+    {name = "Sean Gillies"},
+]
+maintainers = [
+    {name = "Shapely contributors"},
+]
 description = "Manipulation and analysis of geometric objects"
 readme = "README.rst"
 keywords = ["geometry", "topology", "gis"]
@@ -46,7 +50,10 @@ repository = "https://github.com/shapely/shapely"
 changelog = "https://github.com/shapely/shapely/blob/main/CHANGELOG.rst"
 
 [tool.setuptools.packages.find]
-include = ["shapely", "shapely.*"]
+include = [
+    "shapely",
+    "shapely.*",
+]
 
 [tool.coverage.run]
 source = ["shapely"]
