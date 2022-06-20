@@ -230,7 +230,7 @@ def test_is_ccw(geom, expected):
 
 def _prepare_with_copy(geometry):
     """Prepare without modifying inplace"""
-    geometry = shapely.apply(geometry, lambda x: x)  # makes a copy
+    geometry = shapely.transform(geometry, lambda x: x)  # makes a copy
     shapely.prepare(geometry)
     return geometry
 

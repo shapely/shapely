@@ -537,28 +537,28 @@ def test_subclasses(with_point_in_registry):
 
 def test_prepare():
     arr = np.array([shapely.points(1, 1), None, shapely.box(0, 0, 1, 1)])
-    assert arr[0]._ptr_prepared == 0
-    assert arr[2]._ptr_prepared == 0
+    assert arr[0]._geom_prepared == 0
+    assert arr[2]._geom_prepared == 0
     shapely.prepare(arr)
-    assert arr[0]._ptr_prepared != 0
+    assert arr[0]._geom_prepared != 0
     assert arr[1] is None
-    assert arr[2]._ptr_prepared != 0
+    assert arr[2]._geom_prepared != 0
 
     # preparing again actually does nothing
-    original = arr[0]._ptr_prepared
+    original = arr[0]._geom_prepared
     shapely.prepare(arr)
-    assert arr[0]._ptr_prepared == original
+    assert arr[0]._geom_prepared == original
 
 
 def test_destroy_prepared():
     arr = np.array([shapely.points(1, 1), None, shapely.box(0, 0, 1, 1)])
     shapely.prepare(arr)
-    assert arr[0]._ptr_prepared != 0
-    assert arr[2]._ptr_prepared != 0
+    assert arr[0]._geom_prepared != 0
+    assert arr[2]._geom_prepared != 0
     shapely.destroy_prepared(arr)
-    assert arr[0]._ptr_prepared == 0
+    assert arr[0]._geom_prepared == 0
     assert arr[1] is None
-    assert arr[2]._ptr_prepared == 0
+    assert arr[2]._geom_prepared == 0
     shapely.destroy_prepared(arr)  # does not error
 
 

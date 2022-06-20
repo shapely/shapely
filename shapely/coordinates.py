@@ -2,10 +2,10 @@ import numpy as np
 
 from . import lib
 
-__all__ = ["apply", "count_coordinates", "get_coordinates", "set_coordinates"]
+__all__ = ["transform", "count_coordinates", "get_coordinates", "set_coordinates"]
 
 
-def apply(geometry, transformation, include_z=False):
+def transform(geometry, transformation, include_z=False):
     """Returns a copy of a geometry array with a function applied to its
     coordinates.
 
@@ -29,20 +29,20 @@ def apply(geometry, transformation, include_z=False):
     Examples
     --------
     >>> from shapely import LineString, Point
-    >>> apply(Point(0, 0), lambda x: x + 1)
+    >>> transform(Point(0, 0), lambda x: x + 1)
     <shapely.Point POINT (1 1)>
-    >>> apply(LineString(((2, 2), (4, 4))), lambda x: x * [2, 3])
+    >>> transform(LineString(((2, 2), (4, 4))), lambda x: x * [2, 3])
     <shapely.LineString LINESTRING (4 6, 8 12)>
-    >>> apply(None, lambda x: x) is None
+    >>> transform(None, lambda x: x) is None
     True
-    >>> apply([Point(0, 0), None], lambda x: x).tolist()
+    >>> transform([Point(0, 0), None], lambda x: x).tolist()
     [<shapely.Point POINT (0 0)>, None]
 
     By default, the third dimension is ignored:
 
-    >>> apply(Point(0, 0, 0), lambda x: x + 1)
+    >>> transform(Point(0, 0, 0), lambda x: x + 1)
     <shapely.Point POINT (1 1)>
-    >>> apply(Point(0, 0, 0), lambda x: x + 1, include_z=True)
+    >>> transform(Point(0, 0, 0), lambda x: x + 1, include_z=True)
     <shapely.Point POINT Z (1 1 1)>
     """
     geometry_arr = np.array(geometry, dtype=np.object_)  # makes a copy
@@ -159,7 +159,7 @@ def set_coordinates(geometry, coordinates):
 
     See Also
     --------
-    apply : Returns a copy of a geometry array with a function applied to its
+    transform : Returns a copy of a geometry array with a function applied to its
         coordinates.
 
     Examples

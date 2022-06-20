@@ -59,9 +59,6 @@ class MultiLineString(BaseMultipartGeometry):
 
         return shapely.multilinestrings(subs)
 
-    def shape_factory(self, *args):
-        return linestring.LineString(*args)
-
     @property
     def __geo_interface__(self):
         return {

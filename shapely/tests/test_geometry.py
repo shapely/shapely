@@ -33,7 +33,6 @@ from .common import (
     polygon_with_hole,
     polygon_with_hole_z,
     polygon_z,
-    shapely20_todo,
 )
 
 
@@ -212,40 +211,37 @@ def test_new_from_wkt(geom):
     assert_geometries_equal(actual, geom)
 
 
-# TODO(shapely-2.0) Python 3.10 build triggers warnings as errors, and this still
-# raise the deprecation warning (which should be removed)
-@shapely20_todo
 def test_adapt_ptr_raises():
     point = Point(2, 2)
     with pytest.raises(AttributeError):
-        point._ptr += 1
+        point._geom += 1
 
 
 @pytest.mark.parametrize(
     "geom", all_types + (shapely.points(np.nan, np.nan), empty_point)
 )
 def test_hash_same_equal(geom):
-    assert hash(geom) == hash(shapely.apply(geom, lambda x: x))
+    assert hash(geom) == hash(shapely.transform(geom, lambda x: x))
 
 
 @pytest.mark.parametrize("geom", all_types[:-1])
 def test_hash_same_not_equal(geom):
-    assert hash(geom) != hash(shapely.apply(geom, lambda x: x + 1))
+    assert hash(geom) != hash(shapely.transform(geom, lambda x: x + 1))
 
 
 @pytest.mark.parametrize("geom", all_types)
 def test_eq(geom):
-    assert geom == shapely.apply(geom, lambda x: x)
+    assert geom == shapely.transform(geom, lambda x: x)
 
 
 @pytest.mark.parametrize("geom", all_types[:-1])
 def test_neq(geom):
-    assert geom != shapely.apply(geom, lambda x: x + 1)
+    assert geom != shapely.transform(geom, lambda x: x + 1)
 
 
 @pytest.mark.parametrize("geom", all_types)
 def test_set_unique(geom):
-    a = {geom, shapely.apply(geom, lambda x: x)}
+    a = {geom, shapely.transform(geom, lambda x: x)}
     assert len(a) == 1
 
 
