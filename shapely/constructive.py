@@ -150,7 +150,7 @@ def buffer(
     >>> buffer(line2, 2, cap_style="flat", join_style="mitre")
     <shapely.Polygon POLYGON ((18 12, 18 20, 22 20, 22 8, 10 8, 10 12, 18 12))>
     >>> buffer(line2, 2, cap_style="flat", join_style="mitre", mitre_limit=1)
-    <shapely.Polygon POLYGON ((18 12, 18 20, 22 20, 22 9.172, 20.828 8, 10 8, 10...>
+    <shapely.Polygon POLYGON ((18 12, 18 20, 22 20, 21.828 9, 21 8.172, 10 8, 10...>
     >>> square = Polygon((((0, 0), (10, 0), (10, 10), (0, 10), (0, 0))))
     >>> buffer(square, 2, join_style="mitre")
     <shapely.Polygon POLYGON ((-2 -2, -2 12, 12 12, 12 -2, -2 -2))>
@@ -228,7 +228,7 @@ def offset_curve(
     >>> offset_curve(line, 2)
     <shapely.LineString LINESTRING (-2 0, -2 2)>
     >>> offset_curve(line, -2)
-    <shapely.LineString LINESTRING (2 0, 2 2)>
+    <shapely.LineString LINESTRING (2 2, 2 0)>
     """
     if isinstance(join_style, str):
         join_style = BufferJoinStyles.get_value(join_style)

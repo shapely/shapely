@@ -427,7 +427,7 @@ def coverage_union(a, b, **kwargs):
 
     Examples
     --------
-    >>> from shapely.constructive import normalize
+    >>> from shapely import normalize, Polygon
     >>> polygon = Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
     >>> normalize(coverage_union(polygon, Polygon(((1, 0), (1, 1), (2, 1), (2, 0), (1, 0)))))
     <shapely.Polygon POLYGON ((0 0, 0 1, 1 1, 2 1, 2 0, 1 0, 0 0))>
