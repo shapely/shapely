@@ -61,9 +61,6 @@ class MultiPoint(BaseMultipartGeometry):
 
         return shapely.multipoints(subs)
 
-    def shape_factory(self, *args):
-        return point.Point(*args)
-
     @property
     def __geo_interface__(self):
         return {

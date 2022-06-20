@@ -55,9 +55,9 @@ static void GeometryObject_dealloc(GeometryObject* self) {
 }
 
 static PyMemberDef GeometryObject_members[] = {
-    {"_ptr", T_PYSSIZET, offsetof(GeometryObject, ptr), READONLY,
+    {"_geom", T_PYSSIZET, offsetof(GeometryObject, ptr), READONLY,
      "pointer to GEOSGeometry"},
-    {"_ptr_prepared", T_PYSSIZET, offsetof(GeometryObject, ptr_prepared), READONLY,
+    {"_geom_prepared", T_PYSSIZET, offsetof(GeometryObject, ptr_prepared), READONLY,
      "pointer to PreparedGEOSGeometry"},
     {NULL} /* Sentinel */
 };
