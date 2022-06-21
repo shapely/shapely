@@ -389,33 +389,41 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
         Examples
         --------
         >>> from shapely import box, Point
-        >>> import numpy as np
         >>> points = [Point(0, 0), Point(1, 1), Point(2,2), Point(3, 3)]
         >>> tree = STRtree(points)
 
         Find the nearest tree geometries to a scalar geometry:
 
         >>> tree.query_nearest(Point(1, 1)).tolist()
-        [[0], [1]]
-
-        All intersecting geometries in the tree are returned:
-
-        >>> indices = tree.query_nearest(box(1,1,3,3)).tolist()
-        >>> indices.tolist()
-        [[0, 0, 0], [1, 2, 3]]
+        [1]
 
         Find the nearest tree geometries to an array of geometries:
 
-        >>> tree.query_nearest([Point(1, 1), Point(3, 3)]).tolist()
-        [[0, 0], [1, 3]]
+        >>> tree.query_nearest([Point(1, 1), Point(2.25, 2.25)]).tolist()
+        [[0, 1], [1, 2]]
 
-        Return the distance for each input and nearest tree geometry:
+        All intersecting geometries in the tree are returned:
+
+        >>> tree.query_nearest(box(1,1,3,3)).tolist()
+        [1, 2, 3]
+
+        Return the distance to each nearest tree geometry:
 
         >>> index, distance = tree.query_nearest(Point(0.5, 0.5), return_distance=True)
         >>> index.tolist()
-        [[0, 0], [0, 1]]
+        [0, 1]
         >>> distance.round(4).tolist()
         [0.7071, 0.7071]
+
+        Return the distance for each input and nearest tree geometry for an array
+        of geometries:
+
+        >>> indices, distance = tree.query_nearest([Point(0.5, 0.5), Point(1, 1)], return_distance=True)
+        >>> indices.tolist()
+        [[0, 0, 1], [0, 1, 1]]
+        >>> distance.round(4).tolist()
+        [0.7071, 0.7071, 0.0]
+
         """
 
         geometry = np.asarray(geometry, dtype=object)
