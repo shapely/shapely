@@ -39,7 +39,8 @@ typedef struct {
   GEOSContextHandle_t ctx;
   tree_geom_dist_vec_t* dist_pairs;
   double min_distance;
-  int exclusive;  // if 1, only non-equal tree geometries will be returned
+  int exclusive;    // if 1, only non-equal tree geometries will be returned
+  int all_matches;  // if 0, only first nearest tree geometry will be returned
 } tree_nearest_userdata_t;
 
 typedef struct {

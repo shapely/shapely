@@ -1918,9 +1918,23 @@ def test_query_nearest_exclusive(tree, geometry, exclusive, expected):
 
 @pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
+    "geometry,expected",
+    [
+        (Point(1, 1), []),
+        ([Point(1, 1)], [[], []]),
+    ],
+)
+def test_query_nearest_exclusive_no_results(tree, geometry, expected):
+    tree = STRtree([Point(1, 1)])
+    assert_array_equal(tree.query_nearest(geometry, exclusive=True), expected)
+
+
+@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize(
     "geometry,exclusive",
     [
         (Point(1, 1), "invalid"),
+        # non-scalar exclusive parameter not allowed
         (Point(1, 1), ["also invalid"]),
         ([Point(1, 1)], []),
         ([Point(1, 1)], [False]),
@@ -1929,6 +1943,32 @@ def test_query_nearest_exclusive(tree, geometry, exclusive, expected):
 def test_query_nearest_invalid_exclusive(tree, geometry, exclusive):
     with pytest.raises(ValueError):
         tree.query_nearest(geometry, exclusive=exclusive)
+
+
+@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize(
+    "geometry,all_matches",
+    [
+        (Point(1, 1), "invalid"),
+        # non-scalar all_matches parameter not allowed
+        (Point(1, 1), ["also invalid"]),
+        ([Point(1, 1)], []),
+        ([Point(1, 1)], [False]),
+    ],
+)
+def test_query_nearest_invalid_all_matches(tree, geometry, all_matches):
+    with pytest.raises(ValueError):
+        tree.query_nearest(geometry, all_matches=all_matches)
+
+
+@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
+def test_query_nearest_all_matches(tree):
+    point = Point(0.5, 0.5)
+    assert_array_equal(tree.query_nearest(point, all_matches=True), [0, 1])
+
+    indices = tree.query_nearest(point, all_matches=False)
+    # result is dependent on tree traversal order; may vary across test runs
+    assert np.array_equal(indices, [0]) or np.array_equal(indices, [1])
 
 
 def test_strtree_threaded_query():

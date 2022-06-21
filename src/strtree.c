@@ -599,14 +599,15 @@ int query_nearest_distance_callback(const void* item1, const void* item2,
         (tree_geom_dist_vec_item_t){(GeometryObject**)item1, calc_distance};
     kv_push(tree_geom_dist_vec_item_t, *(params->dist_pairs), dist_pair);
 
-    // Set distance for callback with a slight adjustment to force checking of adjacent
-    // tree nodes; otherwise they are skipped by the GEOS nearest neighbor algorithm check
-    // against bounds of adjacent nodes.
-    *distance = calc_distance + 1e-6;
-
-  } else {
-    *distance = calc_distance;
+    if (params->all_matches == 1) {
+      // Set distance for callback with a slight adjustment to force checking of adjacent
+      // tree nodes; otherwise they are skipped by the GEOS nearest neighbor algorithm
+      // check against bounds of adjacent nodes.
+      calc_distance += 1e-6;
+    }
   }
+
+  *distance = calc_distance;
 
   return 1;
 }
@@ -769,8 +770,10 @@ static PyObject* STRtree_query_nearest(STRtreeObject* self, PyObject* args) {
   char* head_ptr = (char*)self->_geoms;
   tree_nearest_userdata_t userdata;
   double distance;
-  int exclusive = 0;              // if 1, only non-equal tree geometries will be returned
-  PyArrayObject* result_indexes;  // array of [source index, tree index]
+  int exclusive = 0;    // if 1, only non-equal tree geometries will be returned
+  int all_matches = 1;  // if 0, only first matching nearest geometry will be returned
+  int has_match = 0;
+  PyArrayObject* result_indexes;    // array of [source index, tree index]
   PyArrayObject* result_distances;  // array of distances
   PyObject* result;                 // tuple of (indexes array, distance array)
 
@@ -791,7 +794,7 @@ static PyObject* STRtree_query_nearest(STRtreeObject* self, PyObject* args) {
     return NULL;
   }
 
-  if (!PyArg_ParseTuple(args, "Odi", &arr, &max_distance, &exclusive)) {
+  if (!PyArg_ParseTuple(args, "Odii", &arr, &max_distance, &exclusive, &all_matches)) {
     return NULL;
   }
   if (max_distance > 0) {
@@ -845,6 +848,7 @@ static PyObject* STRtree_query_nearest(STRtreeObject* self, PyObject* args) {
   userdata.ctx = ctx;
   userdata.dist_pairs = &dist_pairs;
   userdata.exclusive = exclusive;
+  userdata.all_matches = all_matches;
 
   for (i = 0; i < n; i++) {
     // get shapely geometry from input geometry array
@@ -905,17 +909,22 @@ static PyObject* STRtree_query_nearest(STRtreeObject* self, PyObject* args) {
       break;
     }
 
+    has_match = 0;
+
     for (j = 0; j < kv_size(dist_pairs); j++) {
       distance = kv_A(dist_pairs, j).distance;
 
       // only keep entries from the smallest distances for this input geometry
       // only keep entries within max_distance, if nonzero
-      // Note: there may be multiple equidistant or intersected tree items
+      // Note: there may be multiple equidistant or intersected tree items;
+      // only 1 is returned if all_matches == 0
       if (distance <= userdata.min_distance &&
-          (!use_max_distance || distance <= max_distance)) {
+          (!use_max_distance || distance <= max_distance) &&
+          (all_matches || !has_match)) {
         kv_push(npy_intp, src_indexes, i);
         kv_push(GeometryObject**, nearest_geoms, kv_A(dist_pairs, j).geom);
         kv_push(double, nearest_dist, distance);
+        has_match = 1;
       }
     }
 
