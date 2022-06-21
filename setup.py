@@ -204,51 +204,14 @@ else:
     )
 
 
-try:
-    descr = open(os.path.join(os.path.dirname(__file__), "README.rst")).read()
-except IOError:
-    descr = ""
-
-
 version = versioneer.get_version()
 cmdclass = versioneer.get_cmdclass()
 cmdclass["build_ext"] = build_ext
 
 
+# see setup.cfg for static project metadata
 setup(
-    name="shapely",
     version=version,
-    description="Manipulation and analysis of geometric objects",
-    long_description=descr,
-    license="BSD 3-Clause",
-    url="https://github.com/shapely/shapely",
-    keywords="geometry topology gis",
-    author="Sean Gillies",
-    maintainer="Shapely contributors",
-    packages=find_packages(include=["shapely", "shapely.*"]),
-    install_requires=["numpy>=1.13"],
-    python_requires=">=3.6",
-    extras_require={
-        "test": ["pytest"],
-        "docs": ["sphinx", "numpydoc"],
-    },
-    include_package_data=True,
     ext_modules=ext_modules,
     cmdclass=cmdclass,
-    classifiers=[
-        "Development Status :: 5 - Production/Stable",
-        "Intended Audience :: Developers",
-        "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: BSD License",
-        "Operating System :: Unix",
-        "Operating System :: MacOS",
-        "Operating System :: Microsoft :: Windows",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Topic :: Scientific/Engineering :: GIS",
-    ],
 )
