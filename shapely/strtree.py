@@ -344,9 +344,9 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
         geometry.
 
         If there are multiple equidistant or intersected geometries in tree and
-        all_matches is True, all matching tree geometries are returned;
-        otherwise only the first matching tree geometry is returned.  Tree
-        indices are returned in the order they are visited for each input
+        `all_matches` is True (the default), all matching tree geometries are
+        returned; otherwise only the first matching tree geometry is returned.
+        Tree indices are returned in the order they are visited for each input
         geometry and may not be in ascending index order; no meaningful order is
         implied.
 
@@ -374,8 +374,8 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
         return_distance : bool, default False
             If True, will return distances in addition to indices.
         exclusive : bool, default False
-            If True, the nearest tree geometries that are not equal to the input
-            geometry will be returned.
+            If True, the nearest tree geometries that are equal to the input
+            geometry will not be returned.
         all_matches : bool, default True
             If True, all equidistant and intersected geometries will be returned
             for each input geometry.
@@ -431,9 +431,9 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
 
         Retrieve all pairs of input and tree geometries:
 
-        >>> np.array([query_points.take(arr_indices[0]), tree.geometries.take(arr_indices[1])]).T.tolist()
-        [[<shapely.Point POINT (1 1)>, <shapely.Point POINT (1 1)>],
-         [<shapely.Point POINT (2.25 2.25)>, <shapely.Point POINT (2 2)>]]
+        >>> list(zip(query_points.take(arr_indices[0]), tree.geometries.take(arr_indices[1])))
+        [(<shapely.Point POINT (1 1)>, <shapely.Point POINT (1 1)>),
+         (<shapely.Point POINT (2.25 2.25)>, <shapely.Point POINT (2 2)>)]
 
         All intersecting geometries in the tree are returned by default:
 
