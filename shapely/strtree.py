@@ -253,7 +253,7 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
         return indices[1] if is_scalar else indices
 
     @requires_geos("3.6.0")
-    def nearest(self, geometry, exclusive: bool = False) -> Union[Any, None]:
+    def nearest(self, geometry) -> Union[Any, None]:
         """
         Return the index of the nearest geometry in the tree for each input
         geometry.
@@ -269,9 +269,6 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
         ----------
         geometry : Geometry or array_like
             Input geometries to query the tree.
-        exclusive : bool, optional
-            Whether to exclude the item corresponding to the given geom
-            from results or not.  Default: False.
 
         Returns
         -------
@@ -284,7 +281,7 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
 
         See also
         --------
-        nearest_all: returns all equidistant geometries and optional distances
+        query_nearest: returns all equidistant geometries and optional distances
 
         Examples
         --------
@@ -316,12 +313,6 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
         if self._tree.count == 0:
             return None
 
-        # TODO(shapely-2.0)
-        if exclusive:
-            raise NotImplementedError(
-                "The `exclusive` keyword is not yet implemented for Shapely 2.0"
-            )
-
         geometry_arr = np.asarray(geometry, dtype=object)
         # TODO those changes compared to _tree.nearest output should be pushed into C
         # _tree.nearest currently ignores missing values
@@ -340,7 +331,7 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
             return indices
 
     @requires_geos("3.6.0")
-    def nearest_all(
+    def query_nearest(
         self, geometry, max_distance=None, return_distance=False, exclusive=False
     ):
         """Returns the index of the nearest geometries in the tree for each input
@@ -399,23 +390,23 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
 
         Find the nearest tree geometries to a scalar geometry:
 
-        >>> tree.nearest_all(Point(1, 1)).tolist()  # doctest: +SKIP
+        >>> tree.query_nearest(Point(1, 1)).tolist()  # doctest: +SKIP
         [[0], [1]]
 
         All intersecting geometries in the tree are returned:
 
-        >>> indices = tree.nearest_all(box(1,1,3,3)).tolist()  # doctest: +SKIP
+        >>> indices = tree.query_nearest(box(1,1,3,3)).tolist()  # doctest: +SKIP
         >>> indices.tolist()  # doctest: +SKIP
         [[0, 0, 0], [1, 2, 3]]
 
         Find the nearest tree geometries to an array of geometries:
 
-        >>> tree.nearest_all([Point(1, 1), Point(3, 3)]).tolist()  # doctest: +SKIP
+        >>> tree.query_nearest([Point(1, 1), Point(3, 3)]).tolist()  # doctest: +SKIP
         [[0, 0], [1, 3]]
 
         Return the distance for each input and nearest tree geometry:
 
-        >>> index, distance = tree.nearest_all(Point(0.5, 0.5), return_distance=True)  # doctest: +SKIP
+        >>> index, distance = tree.query_nearest(Point(0.5, 0.5), return_distance=True)  # doctest: +SKIP
         >>> index.tolist()  # doctest: +SKIP
         [[0, 0], [0, 1]]
         >>> distance.round(4).tolist()  # doctest: +SKIP
@@ -443,6 +434,6 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
             raise ValueError("exclusive parameter must be boolean")
 
         if return_distance:
-            return self._tree.nearest_all(geometry, max_distance, exclusive)
+            return self._tree.query_nearest(geometry, max_distance, exclusive)
 
-        return self._tree.nearest_all(geometry, max_distance, exclusive)[0]
+        return self._tree.query_nearest(geometry, max_distance, exclusive)[0]

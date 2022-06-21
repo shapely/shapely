@@ -560,8 +560,8 @@ int nearest_distance_callback(const void* item1, const void* item2, double* dist
  * 0 on error (caller immediately exits and returns NULL); 1 on success
  * */
 
-int nearest_all_distance_callback(const void* item1, const void* item2, double* distance,
-                                  void* userdata) {
+int query_nearest_distance_callback(const void* item1, const void* item2,
+                                    double* distance, void* userdata) {
   GEOSGeometry* tree_geom = NULL;
   size_t pairs_size;
   double calc_distance;
@@ -754,7 +754,7 @@ static PyObject* STRtree_nearest(STRtreeObject* self, PyObject* arr) {
  * tuple of ([arr indexes (shape n), tree indexes (shape n)], distances (shape n))
  * */
 
-static PyObject* STRtree_nearest_all(STRtreeObject* self, PyObject* args) {
+static PyObject* STRtree_query_nearest(STRtreeObject* self, PyObject* args) {
   PyObject* arr;
   double max_distance = 0;   // default of 0 indicates max_distance not set
   int use_max_distance = 0;  // flag for the above
@@ -896,7 +896,7 @@ static PyObject* STRtree_nearest_all(STRtreeObject* self, PyObject* args) {
     userdata.min_distance = DBL_MAX;
 
     nearest_result = (GeometryObject**)GEOSSTRtree_nearest_generic_r(
-        ctx, self->ptr, geom, geom, nearest_all_distance_callback, &userdata);
+        ctx, self->ptr, geom, geom, query_nearest_distance_callback, &userdata);
 
     // GEOSSTRtree_nearest_generic_r returns NULL on error
     if (nearest_result == NULL) {
@@ -1217,7 +1217,7 @@ static PyMethodDef STRtree_methods[] = {
 #if GEOS_SINCE_3_6_0
     {"nearest", (PyCFunction)STRtree_nearest, METH_O,
      "Queries the index for the nearest item to each of the given search geometries"},
-    {"nearest_all", (PyCFunction)STRtree_nearest_all, METH_VARARGS,
+    {"query_nearest", (PyCFunction)STRtree_query_nearest, METH_VARARGS,
      "Queries the index for all nearest item(s) to each of the given search geometries"},
 #endif  // GEOS_SINCE_3_6_0
 #if GEOS_SINCE_3_10_0
