@@ -364,13 +364,18 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
             Must be greater than 0.
         return_distance : bool, default False
             If True, will return distances in addition to indices.
-            If True, will return distances in addition to indices.
         exclusive : bool, default False
             If True, the nearest tree geometries that are not equal to the input
             geometry will be returned.
 
         Returns
         -------
+        tree indices or tuple of (tree indices, distances) if geometry is a scalar
+            indices is an ndarray of shape (n, ) and distances (if present) an
+            ndarray of shape (n, )
+
+        OR
+
         indices or tuple of (indices, distances)
             indices is an ndarray of shape (2,n) and distances (if present) an
             ndarray of shape (n).
@@ -390,32 +395,34 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
 
         Find the nearest tree geometries to a scalar geometry:
 
-        >>> tree.query_nearest(Point(1, 1)).tolist()  # doctest: +SKIP
+        >>> tree.query_nearest(Point(1, 1)).tolist()
         [[0], [1]]
 
         All intersecting geometries in the tree are returned:
 
-        >>> indices = tree.query_nearest(box(1,1,3,3)).tolist()  # doctest: +SKIP
-        >>> indices.tolist()  # doctest: +SKIP
+        >>> indices = tree.query_nearest(box(1,1,3,3)).tolist()
+        >>> indices.tolist()
         [[0, 0, 0], [1, 2, 3]]
 
         Find the nearest tree geometries to an array of geometries:
 
-        >>> tree.query_nearest([Point(1, 1), Point(3, 3)]).tolist()  # doctest: +SKIP
+        >>> tree.query_nearest([Point(1, 1), Point(3, 3)]).tolist()
         [[0, 0], [1, 3]]
 
         Return the distance for each input and nearest tree geometry:
 
-        >>> index, distance = tree.query_nearest(Point(0.5, 0.5), return_distance=True)  # doctest: +SKIP
-        >>> index.tolist()  # doctest: +SKIP
+        >>> index, distance = tree.query_nearest(Point(0.5, 0.5), return_distance=True)
+        >>> index.tolist()
         [[0, 0], [0, 1]]
-        >>> distance.round(4).tolist()  # doctest: +SKIP
+        >>> distance.round(4).tolist()
         [0.7071, 0.7071]
         """
 
         geometry = np.asarray(geometry, dtype=object)
+        is_scalar = False
         if geometry.ndim == 0:
             geometry = np.expand_dims(geometry, 0)
+            is_scalar = True
 
         if max_distance is not None:
             if not np.isscalar(max_distance):
@@ -433,7 +440,18 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
         if exclusive not in {True, False}:
             raise ValueError("exclusive parameter must be boolean")
 
-        if return_distance:
-            return self._tree.query_nearest(geometry, max_distance, exclusive)
+        results = self._tree.query_nearest(geometry, max_distance, exclusive)
 
-        return self._tree.query_nearest(geometry, max_distance, exclusive)[0]
+        # output indices are shape (n, )
+        if is_scalar:
+            if not return_distance:
+                return results[0][1]
+
+            else:
+                return (results[0][1], results[1])
+
+        # output indices are shape (2, n)
+        if not return_distance:
+            return results[0]
+
+        return results
