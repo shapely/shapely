@@ -281,7 +281,8 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
 
         See also
         --------
-        query_nearest: returns all equidistant geometries and optional distances
+        query_nearest: returns all equidistant geometries, exclusive geometries,
+        and optional distances
 
         Examples
         --------
