@@ -204,14 +204,13 @@ else:
     )
 
 
-version = versioneer.get_version()
 cmdclass = versioneer.get_cmdclass()
 cmdclass["build_ext"] = build_ext
 
 
 # see pyproject.toml for static project metadata
 setup(
-    version=version,
+    version=versioneer.get_version(),
     ext_modules=ext_modules,
     cmdclass=cmdclass,
 )
