@@ -357,6 +357,7 @@ static void* unary_union_data[1] = {GEOSUnaryUnion_r};
 static void* point_on_surface_data[1] = {GEOSPointOnSurface_r};
 static void* centroid_data[1] = {GEOSGetCentroid_r};
 static void* line_merge_data[1] = {GEOSLineMerge_r};
+static void* node_data[1] = {GEOSNode_r};
 static void* extract_unique_points_data[1] = {GEOSGeom_extractUniquePoints_r};
 static void* GetExteriorRing(void* context, void* geom) {
   char typ = GEOSGeomTypeId_r(context, geom);
@@ -3284,6 +3285,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Y_Y(point_on_surface);
   DEFINE_Y_Y(centroid);
   DEFINE_Y_Y(line_merge);
+  DEFINE_Y_Y(node);
   DEFINE_Y_Y(extract_unique_points);
   DEFINE_Y_Y(get_exterior_ring);
   DEFINE_Y_Y(normalize);
