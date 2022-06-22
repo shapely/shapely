@@ -315,8 +315,6 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
             return None
 
         geometry_arr = np.asarray(geometry, dtype=object)
-        # TODO those changes compared to _tree.nearest output should be pushed into C
-        # _tree.nearest currently ignores missing values
         if is_missing(geometry_arr).any() or is_empty(geometry_arr).any():
             raise ValueError(
                 "Cannot determine nearest geometry for empty geometry or "
