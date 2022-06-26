@@ -745,6 +745,36 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
+    def segmentize(self, tolerance, **kwargs):
+        """Adds vertices to line segments based on tolerance.
+
+        Additional vertices will be added to every line segment in an input geometry
+        so that segments are no greater than tolerance.  New vertices will evenly
+        subdivide each segment.
+
+        Only linear components of input geometries are densified; other geometries
+        are returned unmodified.
+
+        Parameters
+        ----------
+        tolerance : float or array_like
+            Additional vertices will be added so that all line segments are no
+            greater than this value.  Must be greater than 0.
+        **kwargs
+            For other keyword-only arguments, see the
+            `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+        Examples
+        --------
+        >>> line = shapely.Geometry("LINESTRING (0 0, 0 10)")
+        >>> line.segmentize(tolerance=5)  # doctest: +SKIP
+        <shapely.LineString LINESTRING (0 0, 0 5, 0 10)>
+        >>> poly = shapely.Geometry("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))")
+        >>> poly.segmentize(tolerance=5)  # doctest: +SKIP
+        <shapely.Polygon POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
+        """
+        return shapely.lib.segmentize(self, tolerance, **kwargs)
+
 
 class BaseMultipartGeometry(BaseGeometry):
 
