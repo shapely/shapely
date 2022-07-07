@@ -14,7 +14,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2019]
         architecture: [x64]
-        geos: [3.6.5, 3.7.5, 3.8.3, 3.9.3, 3.10.3]
+        geos: [3.6.5, 3.7.5, 3.8.3, 3.9.3, 3.10.3, 3.11.0]
         include:
           # 2017
           - python: 3.6
@@ -75,6 +75,18 @@ jobs:
             speedups: 0
           - python: "3.10"
             geos: 3.10.3
+            speedups: 0
+          # 2022
+          - python: "3.10"  # switch to "3.11" when released (PEP 664)
+            geos: 3.11.0
+            numpy: 1.23.0
+            speedups: 1
+          - python: "3.10"
+            geos: 3.11.0
+            numpy: 1.23.0
+            speedups: 0
+          - python: "3.10"
+            geos: 3.11.0
             speedups: 0
           # enable two 32-bit windows builds
           - os: windows-2019
