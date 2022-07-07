@@ -14,7 +14,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2019]
         architecture: [x64]
-        geos: [3.6.5, 3.7.5, 3.8.3, 3.9.3, 3.10.3, main]
+        geos: [3.6.5, 3.7.5, 3.8.3, 3.9.3, 3.10.3, 3.11.0, main]
         include:
           # 2017
           - python: 3.6
@@ -36,6 +36,10 @@ jobs:
           - python: "3.10"
             geos: 3.10.3
             numpy: 1.21.3
+          # 2022
+          - python: "3.10"  # switch to "3.11" when released (PEP 664)
+            geos: 3.11.0
+            numpy: 1.23.0
             # TODO(shapely-2.0) temporary allow warnings
             # extra_pytest_args: "-W error"  # error on warnings
           # dev
