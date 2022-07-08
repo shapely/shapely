@@ -69,15 +69,6 @@ class BaseGeometry(shapely.Geometry):
 
     """
 
-    # Attributes
-    # ----------
-    # __geom__ : c_void_p
-    #     Cached ctypes pointer to GEOS geometry. Not to be accessed.
-    # _geom : c_void_p
-    #     Property by which the GEOS geometry is accessed.
-    # _ndim : int
-    #     Number of dimensions (2 or 3, generally)
-
     __slots__ = []
 
     def __new__(self):
@@ -89,14 +80,6 @@ class BaseGeometry(shapely.Geometry):
             stacklevel=2,
         )
         return shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")
-
-    @property
-    def _geom(self):
-        return self._ptr
-
-    @property
-    def __geom__(self):
-        return self._ptr
 
     @property
     def _ndim(self):
@@ -286,11 +269,7 @@ class BaseGeometry(shapely.Geometry):
     @property
     def bounds(self):
         """Returns minimum bounding region (minx, miny, maxx, maxy)"""
-        # TODO(shapely-2.0) return empty tuple or (nan, nan, nan, nan)?
-        if self.is_empty:
-            return ()
-        else:
-            return tuple(shapely.bounds(self).tolist())
+        return tuple(shapely.bounds(self).tolist())
 
     @property
     def centroid(self):
@@ -753,10 +732,6 @@ class BaseMultipartGeometry(BaseGeometry):
 
     __slots__ = []
 
-    def shape_factory(self, *args):
-        # Factory for part instances, usually a geometry class
-        raise NotImplementedError("To be implemented by derived classes")
-
     @property
     def coords(self):
         raise NotImplementedError(
@@ -766,9 +741,7 @@ class BaseMultipartGeometry(BaseGeometry):
 
     @property
     def geoms(self):
-        if self.is_empty:
-            return []
-        return GeometrySequence(self, self.shape_factory)
+        return GeometrySequence(self)
 
     def __bool__(self):
         return self.is_empty is False
@@ -798,20 +771,11 @@ class GeometrySequence:
 
     # Attributes
     # ----------
-    # _factory : callable
-    #     Returns instances of Shapely geometries
-    # _geom : c_void_p
-    #     Ctypes pointer to the parent's GEOS geometry
-    # _ndim : int
-    #     Number of dimensions (2 or 3, generally)
     # __p__ : object
     #     Parent (Shapely) geometry
-    shape_factory = None
-    _geom = None
     __p__ = None
-    _ndim = None
 
-    def __init__(self, parent, type):
+    def __init__(self, parent):
         self.__p__ = parent
 
     def _get_geom_item(self, i):
@@ -835,10 +799,6 @@ class GeometrySequence:
                 i = key
             return self._get_geom_item(i)
         elif isinstance(key, slice):
-            if type(self) == HeterogeneousGeometrySequence:
-                raise GeometryTypeError(
-                    "Heterogeneous geometry collections are not sliceable"
-                )
             res = []
             start, stop, stride = key.indices(m)
             for i in range(start, stop, stride):
@@ -846,18 +806,6 @@ class GeometrySequence:
             return type(self.__p__)(res or None)
         else:
             raise TypeError("key must be an index or slice")
-
-
-class HeterogeneousGeometrySequence(GeometrySequence):
-    """
-    Iterative access to a heterogeneous sequence of geometries.
-    """
-
-    def __init__(self, parent):
-        super().__init__(parent, None)
-
-    def _get_geom_item(self, i):
-        return shapely.get_geometry(self.__p__, i)
 
 
 class EmptyGeometry(BaseGeometry):
