@@ -382,7 +382,7 @@ def test_to_wkt_multipoint_with_point_empty_errors():
 
 
 def test_repr():
-    assert repr(point) == "<shapely.Point (2 3)>"
+    assert repr(point) == "<POINT (2 3)>"
 
 
 def test_repr_max_length():
@@ -400,7 +400,7 @@ def test_repr_max_length():
 def test_repr_multipoint_with_point_empty():
     # Test if segfault is prevented
     geom = shapely.multipoints([point, empty_point])
-    assert repr(geom) == "<shapely.MultiPoint Exception in WKT writer>"
+    assert repr(geom) == "<Exception in WKT writer>"
 
 
 @pytest.mark.skipif(
@@ -408,7 +408,7 @@ def test_repr_multipoint_with_point_empty():
     reason="Empty geometries have no dimensionality on GEOS < 3.9",
 )
 def test_repr_point_z_empty():
-    assert repr(empty_point_z) == "<shapely.Point Z EMPTY>"
+    assert repr(empty_point_z) == "<POINT Z EMPTY>"
 
 
 def test_to_wkb():
