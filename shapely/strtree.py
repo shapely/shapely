@@ -417,15 +417,15 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
 
         Find the nearest tree geometries to an array of geometries:
 
-        >>> query_points = np.array([Point(1, 1), Point(2.25, 2.25)])
+        >>> query_points = np.array([Point(2.25, 2.25), Point(1, 1)])
         >>> arr_indices = tree.query_nearest(query_points)
         >>> arr_indices.tolist()
-        [[0, 1], [1, 2]]
+        [[0, 1], [2, 1]]
 
         Or transpose to get all pairs of input and tree indices:
 
         >>> arr_indices.T.tolist()
-        [[0, 1], [1, 2]]
+        [[0, 2], [1, 1]]
 
         Retrieve all pairs of input and tree geometries:
 
