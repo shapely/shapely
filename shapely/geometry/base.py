@@ -96,7 +96,9 @@ class BaseGeometry(shapely.Geometry):
             wkt = super().__str__()
         except (GEOSException, ValueError):
             # we never want a repr() to fail; that can be very confusing
-            return "<Exception in WKT writer>"
+            return "<shapely.{} Exception in WKT writer>".format(
+                self.__class__.__name__
+            )
 
         # the total length is limited to 80 characters including brackets
         max_length = 78

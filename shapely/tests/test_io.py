@@ -355,7 +355,7 @@ def test_repr_max_length():
 def test_repr_multipoint_with_point_empty():
     # Test if segfault is prevented
     geom = shapely.multipoints([point, empty_point])
-    assert repr(geom) == "<Exception in WKT writer>"
+    assert repr(geom) == "<shapely.MultiPoint Exception in WKT writer>"
 
 
 @pytest.mark.skipif(
