@@ -328,7 +328,7 @@ a copy.
 .. code-block:: pycon
 
   >>> Point(point)
-  <shapely.Point POINT (0 0)>
+  <POINT (0 0)>
 
 .. _linestrings:
 
@@ -393,7 +393,7 @@ copy.
 .. code-block:: pycon
 
   >>> LineString(line)
-  <shapely.LineString LINESTRING (0 0, 1 1)>
+  <LINESTRING (0 0, 1 1)>
 
 A `LineString` may also be constructed using a sequence of mixed `Point`
 instances or coordinate tuples. The individual coordinates are copied into
@@ -402,7 +402,7 @@ the new object.
 .. code-block:: pycon
 
   >>> LineString([Point(0.0, 1.0), (2.0, 3.0), Point(4.0, 5.0)])
-  <shapely.LineString LINESTRING (0 1, 2 3, 4 5)>
+  <LINESTRING (0 1, 2 3, 4 5)>
 
 .. _linearrings:
 
@@ -464,7 +464,7 @@ instance, thereby making a copy.
 .. code-block:: pycon
 
   >>> LinearRing(ring)
-  <shapely.LinearRing LINEARRING (0 0, 1 1, 1 0, 0 0)>
+  <LINEARRING (0 0, 1 1, 1 0, 0 0)>
 
 As with `LineString`, a sequence of `Point` instances is not a valid
 constructor parameter.
@@ -557,7 +557,7 @@ For example:
   >>> from shapely import box
   >>> b = box(0.0, 0.0, 1.0, 1.0)
   >>> b
-  <shapely.Polygon POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))>
+  <POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))>
   >>> list(b.exterior.coords)
   [(1.0, 0.0), (1.0, 1.0), (0.0, 1.0), (0.0, 0.0), (1.0, 0.0)]
 
@@ -592,9 +592,9 @@ immutable collections of geometric objects.  The collections may be homogeneous
   >>> b = LineString([(0, 0), (1, 1), (2,1), (2,2)])
   >>> x = a.intersection(b)
   >>> x
-  <shapely.GeometryCollection GEOMETRYCOLLECTION (LINESTRING (0 0, 1 1), POINT...>
+  <GEOMETRYCOLLECTION (LINESTRING (0 0, 1 1), POINT (2 2))>
   >>> list(x.geoms)
-  [<shapely.LineString LINESTRING (0 0, 1 1)>, <shapely.Point POINT (2 2)>]
+  [<LINESTRING (0 0, 1 1)>, <POINT (2 2)>]
 
 
 .. plot:: code/geometrycollection.py
@@ -609,7 +609,7 @@ Members of a `GeometryCollection` are accessed via the ``geoms`` property.
 .. code-block:: pycon
 
   >>> list(x.geoms)
-  [<shapely.LineString LINESTRING (0 0, 1 1)>, <shapely.Point POINT (2 2)>]
+  [<LINESTRING (0 0, 1 1)>, <POINT (2 2)>]
 
 .. note::
 
@@ -649,7 +649,7 @@ Members of a multi-point collection are accessed via the ``geoms`` property.
 .. code-block:: pycon
 
   >>> list(points.geoms)
-  [<shapely.Point POINT (0 0)>, <shapely.Point POINT (1 1)>]
+  [<POINT (0 0)>, <POINT (1 1)>]
 
 The constructor also accepts another `MultiPoint` instance or an unordered
 sequence of `Point` instances, thereby making copies.
@@ -657,7 +657,7 @@ sequence of `Point` instances, thereby making copies.
 .. code-block:: pycon
 
   >>> MultiPoint([Point(0, 0), Point(1, 1)])
-  <shapely.MultiPoint MULTIPOINT (0 0, 1 1)>
+  <MULTIPOINT (0 0, 1 1)>
 
 .. _multilinestrings:
 
@@ -702,8 +702,7 @@ property.
   >>> len(lines.geoms)
   2
   >>> print(list(lines.geoms))
-  [<shapely.LineString LINESTRING (0 0, 1 1)>,
-   <shapely.LineString LINESTRING (-1 0, 1 0)>]
+  [<LINESTRING (0 0, 1 1)>, <LINESTRING (-1 0, 1 0)>]
 
 The constructor also accepts another instance of `MultiLineString` or an
 unordered sequence of `LineString` instances, thereby making copies.
@@ -711,9 +710,9 @@ unordered sequence of `LineString` instances, thereby making copies.
 .. code-block:: pycon
 
   >>> MultiLineString(lines)
-  <shapely.MultiLineString MULTILINESTRING ((0 0, 1 1), (-1 0, 1 0))>
+  <MULTILINESTRING ((0 0, 1 1), (-1 0, 1 0))>
   >>> MultiLineString(lines.geoms)
-  <shapely.MultiLineString MULTILINESTRING ((0 0, 1 1), (-1 0, 1 0))>
+  <MULTILINESTRING ((0 0, 1 1), (-1 0, 1 0))>
 
 .. _multipolygons:
 
@@ -846,7 +845,7 @@ fraction of the geometric object's length.
 
   >>> ip = LineString([(0, 0), (0, 1), (1, 1)]).interpolate(1.5)
   >>> ip
-  <shapely.Point POINT (0.5 1)>
+  <POINT (0.5 1)>
   >>> ip.wkt
   'POINT (0.5 1)'
   >>> LineString([(0, 0), (0, 1), (1, 1)]).interpolate(0.75, normalized=True).wkt
@@ -1376,14 +1375,11 @@ points. The boundary of a point is an empty collection.
   >>> coords = [((0, 0), (1, 1)), ((-1, 0), (1, 0))]
   >>> lines = MultiLineString(coords)
   >>> lines.boundary
-  <shapely.MultiPoint MULTIPOINT (-1 0, 0 0, 1 0, 1 1)>
+  <MULTIPOINT (-1 0, 0 0, 1 0, 1 1)>
   >>> list(lines.boundary.geoms)
-  [<shapely.Point POINT (-1 0)>,
-   <shapely.Point POINT (0 0)>,
-   <shapely.Point POINT (1 0)>,
-   <shapely.Point POINT (1 1)>]
+  [<POINT (-1 0)>, <POINT (0 0)>, <POINT (1 0)>, <POINT (1 1)>]
   >>> lines.boundary.boundary
-  <shapely.GeometryCollection GEOMETRYCOLLECTION EMPTY>
+  <GEOMETRYCOLLECTION EMPTY>
 
 See the figures in :ref:`linestrings` and :ref:`multilinestrings` for the
 illustration of lines and their boundaries.
@@ -1395,7 +1391,7 @@ illustration of lines and their boundaries.
 .. code-block:: pycon
 
   >>> LineString([(0, 0), (1, 1)]).centroid
-  <shapely.Point POINT (0.5 0.5)>
+  <POINT (0.5 0.5)>
 
 .. note::
 
@@ -1412,7 +1408,7 @@ illustration of lines and their boundaries.
   >>> a = Point(1, 1).buffer(1.5)
   >>> b = Point(2, 1).buffer(1.5)
   >>> a.difference(b)
-  <shapely.Polygon POLYGON ((1.435 -0.435, 1.293 -0.471, 1.147 -0.493, 1 -0.5,...>
+  <POLYGON ((1.435 -0.435, 1.293 -0.471, 1.147 -0.493, 1 -0.5, 0.853 -0.493, 0...>
 
 .. note::
 
@@ -1441,7 +1437,7 @@ Figure 8. Differences between two approximately circular polygons.
   >>> a = Point(1, 1).buffer(1.5)
   >>> b = Point(2, 1).buffer(1.5)
   >>> a.intersection(b)
-  <shapely.Polygon POLYGON ((2.493 0.853, 2.471 0.707, 2.435 0.565, 2.386 0.42...>
+  <POLYGON ((2.493 0.853, 2.471 0.707, 2.435 0.565, 2.386 0.426, 2.323 0.293, ...>
 
 See the figure under :meth:`symmetric_difference` below.
 
@@ -1455,7 +1451,7 @@ See the figure under :meth:`symmetric_difference` below.
   >>> a = Point(1, 1).buffer(1.5)
   >>> b = Point(2, 1).buffer(1.5)
   >>> a.symmetric_difference(b)
-  <shapely.MultiPolygon MULTIPOLYGON (((1.574 -0.386, 1.707 -0.323, 1.833 -0.2...>
+  <MULTIPOLYGON (((1.574 -0.386, 1.707 -0.323, 1.833 -0.247, 1.952 -0.16, 2.06...>
 
 .. plot:: code/intersection-sym-difference.py
 
@@ -1473,7 +1469,7 @@ depending on whether they intersect or not.
   >>> a = Point(1, 1).buffer(1.5)
   >>> b = Point(2, 1).buffer(1.5)
   >>> a.union(b)
-  <shapely.Polygon POLYGON ((1.435 -0.435, 1.293 -0.471, 1.147 -0.493, 1 -0.5,...>
+  <POLYGON ((1.435 -0.435, 1.293 -0.471, 1.147 -0.493, 1 -0.5, 0.853 -0.493, 0...>
 
 The semantics of these operations vary with type of geometric object.  For
 example, compare the boundary of the union of polygons to the union of their
@@ -1482,9 +1478,9 @@ boundaries.
 .. code-block:: pycon
 
   >>> a.union(b).boundary
-  <shapely.LineString LINESTRING (1.435 -0.435, 1.293 -0.471, 1.147 -0.493, 1 ...>
+  <LINESTRING (1.435 -0.435, 1.293 -0.471, 1.147 -0.493, 1 -0.5, 0.853 -0.493,...>
   >>> a.boundary.union(b.boundary)
-  <shapely.MultiLineString MULTILINESTRING ((2.5 1, 2.493 0.853, 2.471 0.707, ...>
+  <MULTILINESTRING ((2.5 1, 2.493 0.853, 2.471 0.707, 2.435 0.565, 2.386 0.426...>
 
 .. plot:: code/union.py
 
@@ -1637,7 +1633,7 @@ mileage may vary when cleaning surfaces.
   >>> clean.is_valid
   True
   >>> clean
-  <shapely.MultiPolygon MULTIPOLYGON (((0 0, 0 2, 1 1, 0 0)), ((1 1, 2 2, 2 0,...>
+  <MULTIPOLYGON (((0 0, 0 2, 1 1, 0 0)), ((1 1, 2 2, 2 0, 1 1)))>
   >>> len(clean.geoms)
   2
   >>> list(clean.geoms[0].exterior.coords)
@@ -1657,11 +1653,11 @@ Buffering splits the polygon in two at the point where they touch.
 .. code-block:: pycon
 
   >>> Point(0, 0).convex_hull
-  <shapely.Point POINT (0 0)>
+  <POINT (0 0)>
   >>> MultiPoint([(0, 0), (1, 1)]).convex_hull
-  <shapely.LineString LINESTRING (0 0, 1 1)>
+  <LINESTRING (0 0, 1 1)>
   >>> MultiPoint([(0, 0), (1, 1), (1, -1)]).convex_hull
-  <shapely.Polygon POLYGON ((1 -1, 0 0, 1 1, 1 -1))>
+  <POLYGON ((1 -1, 0 0, 1 1, 1 -1))>
 
 .. plot:: code/convex_hull.py
 
@@ -1675,9 +1671,9 @@ Figure 11. Convex hull (blue) of 2 points (left) and of 6 points (right).
 .. code-block:: pycon
 
   >>> Point(0, 0).envelope
-  <shapely.Point POINT (0 0)>
+  <POINT (0 0)>
   >>> MultiPoint([(0, 0), (1, 1)]).envelope
-  <shapely.Polygon POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))>
+  <POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))>
 
 .. attribute:: object.minimum_rotated_rectangle
 
@@ -1691,9 +1687,9 @@ Figure 11. Convex hull (blue) of 2 points (left) and of 6 points (right).
 .. code-block:: pycon
 
   >>> Point(0, 0).minimum_rotated_rectangle
-  <shapely.Point POINT (0 0)>
+  <POINT (0 0)>
   >>> MultiPoint([(0,0),(1,1),(2,0.5)]).minimum_rotated_rectangle
-  <shapely.Polygon POLYGON ((1.824 1.206, -0.176 0.706, 0 0, 2 0.5, 1.824 1.206))>
+  <POLYGON ((1.824 1.206, -0.176 0.706, 0 0, 2 0.5, 1.824 1.206))>
 
 .. plot:: code/minimum_rotated_rectangle.py
 
@@ -2103,8 +2099,7 @@ using functions in the :mod:`shapely.ops` module.
     ...     ((1, 0), (0, 0))
     ...     ]
     >>> list(polygonize(lines))
-    [<shapely.Polygon POLYGON ((0 0, 1 1, 1 0, 0 0))>,
-     <shapely.Polygon POLYGON ((1 1, 0 0, 0 1, 1 1))>]
+    [<POLYGON ((0 0, 1 1, 1 0, 0 0))>, <POLYGON ((1 1, 0 0, 0 1, 1 1))>]
 
 .. function:: shapely.ops.polygonize_full(lines)
 
@@ -2140,9 +2135,9 @@ using functions in the :mod:`shapely.ops` module.
     >>> len(result.geoms)
     2
     >>> list(result.geoms)
-    [<shapely.Polygon POLYGON ((0 0, 1 1, 1 0, 0 0))>, <shapely.Polygon POLYGON ((1 1, 0 0, 0 1, 1 1))>]
+    [<POLYGON ((0 0, 1 1, 1 0, 0 0))>, <POLYGON ((1 1, 0 0, 0 1, 1 1))>]
     >>> list(cuts.geoms)
-    [<shapely.LineString LINESTRING (1 1, 100 100)>, <shapely.LineString LINESTRING (5 5, 6 6)>]
+    [<LINESTRING (1 1, 100 100)>, <LINESTRING (5 5, 6 6)>]
 
 .. function:: shapely.ops.linemerge(lines)
 
@@ -2156,13 +2151,13 @@ using functions in the :mod:`shapely.ops` module.
 
     >>> from shapely.ops import linemerge
     >>> linemerge(lines)
-    <shapely.MultiLineString MULTILINESTRING ((1 1, 1 0, 0 0), (0 0, 1 1), (0 0,...>
+    <MULTILINESTRING ((1 1, 1 0, 0 0), (0 0, 1 1), (0 0, 0 1, 1 1), (1 1, 100 10...>
     >>> list(linemerge(lines).geoms)
-    [<shapely.LineString LINESTRING (1 1, 1 0, 0 0)>,
-     <shapely.LineString LINESTRING (0 0, 1 1)>,
-     <shapely.LineString LINESTRING (0 0, 0 1, 1 1)>,
-     <shapely.LineString LINESTRING (1 1, 100 100)>,
-     <shapely.LineString LINESTRING (5 5, 6 6)>]
+    [<LINESTRING (1 1, 1 0, 0 0)>,
+     <LINESTRING (0 0, 1 1)>,
+     <LINESTRING (0 0, 0 1, 1 1)>,
+     <LINESTRING (1 1, 100 100)>,
+     <LINESTRING (5 5, 6 6)>]
 
 Efficient Rectangle Clipping
 ----------------------------
@@ -2210,7 +2205,7 @@ efficient than accumulating with :meth:`union`.
     >>> from shapely.ops import unary_union
     >>> polygons = [Point(i, 0).buffer(0.7) for i in range(5)]
     >>> unary_union(polygons)
-    <shapely.Polygon POLYGON ((0.444 -0.541, 0.389 -0.582, 0.33 -0.617, 0.268 -0...>
+    <POLYGON ((0.444 -0.541, 0.389 -0.582, 0.33 -0.617, 0.268 -0.647, 0.203 -0.6...>
 
   Because the union merges the areas of overlapping `Polygons` it can be
   used in an attempt to fix invalid `MultiPolygons`. As with the zero
