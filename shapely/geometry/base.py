@@ -625,12 +625,16 @@ class BaseGeometry:
 
         if 'buffer_with_params' in self.impl:
             params = self._lgeos.GEOSBufferParams_create()
-            self._lgeos.GEOSBufferParams_setEndCapStyle(params, cap_style)
-            self._lgeos.GEOSBufferParams_setJoinStyle(params, join_style)
-            self._lgeos.GEOSBufferParams_setMitreLimit(params, mitre_limit)
-            self._lgeos.GEOSBufferParams_setQuadrantSegments(params, res)
-            self._lgeos.GEOSBufferParams_setSingleSided(params, single_sided)
-            return geom_factory(self.impl['buffer_with_params'](self, params, distance))
+            try:
+                self._lgeos.GEOSBufferParams_setEndCapStyle(params, cap_style)
+                self._lgeos.GEOSBufferParams_setJoinStyle(params, join_style)
+                self._lgeos.GEOSBufferParams_setMitreLimit(params, mitre_limit)
+                self._lgeos.GEOSBufferParams_setQuadrantSegments(params, res)
+                self._lgeos.GEOSBufferParams_setSingleSided(params, single_sided)
+                return geom_factory(self.impl['buffer_with_params'](self, params, distance))
+            finally:
+                if params:
+                    self._lgeos.GEOSBufferParams_destroy(params)
 
         if cap_style == CAP_STYLE.round and join_style == JOIN_STYLE.round:
             return geom_factory(self.impl['buffer'](self, distance, res))
