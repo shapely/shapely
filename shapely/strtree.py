@@ -413,7 +413,7 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
         Retrieve the tree geometries by results of query:
 
         >>> tree.geometries.take(indices).tolist()
-        [<shapely.Point POINT (0 0)>]
+        [<POINT (0 0)>]
 
         Find the nearest tree geometries to an array of geometries:
 
@@ -430,8 +430,8 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
         Retrieve all pairs of input and tree geometries:
 
         >>> list(zip(query_points.take(arr_indices[0]), tree.geometries.take(arr_indices[1])))
-        [(<shapely.Point POINT (1 1)>, <shapely.Point POINT (1 1)>),
-         (<shapely.Point POINT (2.25 2.25)>, <shapely.Point POINT (2 2)>)]
+        [(<POINT (1 1)>, <POINT (1 1)>),
+         (<POINT (2.25 2.25)>, <POINT (2 2)>)]
 
         All intersecting geometries in the tree are returned by default:
 
