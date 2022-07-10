@@ -252,7 +252,7 @@ class STRtree:
         self.grid_point_tree.nearest(self.grid_points)
 
     def time_tree_nearest_points_equidistant_manual_all(self):
-        # This benchmark approximates nearest_all for equidistant results
+        # This benchmark approximates query_nearest for equidistant results
         # starting from singular nearest neighbors and searching for more
         # within same distance.
 
@@ -290,31 +290,31 @@ class STRtree:
         right = right[ix]
         dist = dist[ix]
 
-    def time_tree_nearest_all_points(self):
-        self.point_tree.nearest_all(self.points)
+    def time_tree_query_nearest_points(self):
+        self.point_tree.query_nearest(self.points)
 
-    def time_tree_nearest_all_points_equidistant(self):
-        self.grid_point_tree.nearest_all(self.grid_points)
+    def time_tree_query_nearest_points_equidistant(self):
+        self.grid_point_tree.query_nearest(self.grid_points)
 
-    def time_tree_nearest_all_points_small_max_distance(self):
+    def time_tree_query_nearest_points_small_max_distance(self):
         # returns >300 results
-        self.point_tree.nearest_all(self.points, max_distance=5)
+        self.point_tree.query_nearest(self.points, max_distance=5)
 
-    def time_tree_nearest_all_points_large_max_distance(self):
+    def time_tree_query_nearest_points_large_max_distance(self):
         # measures the overhead of using a distance that would encompass all tree points
-        self.point_tree.nearest_all(self.points, max_distance=1000)
+        self.point_tree.query_nearest(self.points, max_distance=1000)
 
     def time_tree_nearest_poly(self):
         self.tree.nearest(self.points)
 
-    def time_tree_nearest_all_poly(self):
-        self.tree.nearest_all(self.points)
+    def time_tree_query_nearest_poly(self):
+        self.tree.query_nearest(self.points)
 
-    def time_tree_nearest_all_poly_small_max_distance(self):
+    def time_tree_query_nearest_poly_small_max_distance(self):
         # returns >300 results
-        self.tree.nearest_all(self.points, max_distance=5)
+        self.tree.query_nearest(self.points, max_distance=5)
 
-    def time_tree_nearest_all_poly_python(self):
+    def time_tree_query_nearest_poly_python(self):
         # returns all input points
 
         # use an arbitrary search tolerance that seems appropriate for the density of
@@ -342,5 +342,5 @@ class STRtree:
         right = right[ix]
         dist = dist[ix]
 
-        # arrays are now roughly representative of what tree.nearest_all would provide, though
-        # some nearest_all neighbors may be missed if they are outside tolerance
+        # arrays are now roughly representative of what tree.query_nearest would provide, though
+        # some query_nearest neighbors may be missed if they are outside tolerance
