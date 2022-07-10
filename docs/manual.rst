@@ -267,10 +267,10 @@ General Attributes and Methods
 .. code-block:: pycon
 
   >>> donut = Point(0, 0).buffer(2.0).difference(Point(0, 0).buffer(1.0))
-  >>> donut.centroid.wkt
-  'POINT (0 0)'
-  >>> donut.representative_point().wkt
-  'POINT (1.4975923633360986 0.0490085701647802)'
+  >>> donut.centroid
+  <POINT (0 0)>
+  >>> donut.representative_point()
+  <POINT (1.498 0.049)>
 
 .. _points:
 
@@ -846,10 +846,8 @@ fraction of the geometric object's length.
   >>> ip = LineString([(0, 0), (0, 1), (1, 1)]).interpolate(1.5)
   >>> ip
   <POINT (0.5 1)>
-  >>> ip.wkt
-  'POINT (0.5 1)'
-  >>> LineString([(0, 0), (0, 1), (1, 1)]).interpolate(0.75, normalized=True).wkt
-  'POINT (0.5 1)'
+  >>> LineString([(0, 0), (0, 1), (1, 1)]).interpolate(0.75, normalized=True)
+  <POINT (0.5 1)>
 
 .. method:: object.project(other[, normalized=False])
 
@@ -1139,8 +1137,8 @@ A line's endpoints are part of its `boundary` and are therefore not contained.
   >>> contained = list(filter(line.contains, [Point(), Point(0.5, 0.5)]))
   >>> len(contained)
   1
-  >>> [p.wkt for p in contained]
-  ['POINT (0.5 0.5)']
+  >>> contained
+  [<POINT (0.5 0.5)>]
 
 .. method:: object.covers(other)
 
@@ -1503,12 +1501,12 @@ Several of these set-theoretic methods can be invoked using overloaded operators
   >>> from shapely import wkt
   >>> p1 = wkt.loads('POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))')
   >>> p2 = wkt.loads('POLYGON((0.5 0, 1.5 0, 1.5 1, 0.5 1, 0.5 0))')
-  >>> (p1 & p2).wkt
-  'POLYGON ((0.5 0, 0.5 1, 1 1, 1 0, 0.5 0))'
-  >>> (p1 | p2).wkt
-  'POLYGON ((0 0, 0 1, 0.5 1, 1 1, 1.5 1, 1.5 0, 1 0, 0.5 0, 0 0))'
-  >>> (p1 - p2).wkt
-  'POLYGON ((0 0, 0 1, 0.5 1, 0.5 0, 0 0))'
+  >>> p1 & p2
+  <POLYGON ((0.5 0, 0.5 1, 1 1, 1 0, 0.5 0))>
+  >>> p1 | p2
+  <POLYGON ((0 0, 0 1, 0.5 1, 1 1, 1.5 1, 1.5 0, 1 0, 0.5 0, 0 0))>
+  >>> p1 - p2
+  <POLYGON ((0 0, 0 1, 0.5 1, 0.5 0, 0 0))>
   >>> (p1 ^ p2).wkt
   'MULTIPOLYGON (((0 0, 0 1, 0.5 1, 0.5 0, 0 0)), ((1 1, 1.5 1, 1.5 0, 1 0, 1 1)))'
 
@@ -2182,8 +2180,8 @@ portion of a geometry within a rectangle.
   ...     holes=[[(10, 10), (20, 10), (20, 20), (10, 20), (10, 10)]],
   ... )
   >>> clipped_polygon = clip_by_rect(polygon, 5, 5, 15, 15)
-  >>> print(clipped_polygon.wkt)
-  POLYGON ((5 5, 5 15, 10 15, 10 10, 15 10, 15 5, 5 5))
+  >>> clipped_polygon
+  <POLYGON ((5 5, 5 15, 10 15, 10 10, 15 10, 15 5, 5 5))>
 
 Efficient Unions
 ----------------
@@ -2260,13 +2258,13 @@ Delaunay triangulation from a collection of points.
 
   >>> from shapely.ops import triangulate
   >>> points = MultiPoint([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
-  >>> triangles = triangulate(points)
-  >>> print([triangle.wkt for triangle in triangles])
-  ['POLYGON ((0 2, 0 0, 1 1, 0 2))',
-   'POLYGON ((0 2, 1 1, 2 2, 0 2))',
-   'POLYGON ((2 2, 1 1, 3 1, 2 2))',
-   'POLYGON ((3 1, 1 1, 1 0, 3 1))',
-   'POLYGON ((1 0, 1 1, 0 0, 1 0))']
+  >>> triangulate(points)
+  [<POLYGON ((0 2, 0 0, 1 1, 0 2))>,
+   <POLYGON ((0 2, 1 1, 2 2, 0 2))>,
+   <POLYGON ((2 2, 1 1, 3 1, 2 2))>,
+   <POLYGON ((3 1, 1 1, 1 0, 3 1))>,
+   <POLYGON ((1 0, 1 1, 0 0, 1 0))>]
+
 
 Voronoi Diagram
 ---------------
@@ -2304,13 +2302,13 @@ Voronoi diagram from a collection points, or the vertices of any geometry.
   >>> from shapely.ops import voronoi_diagram
   >>> points = MultiPoint([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
   >>> regions = voronoi_diagram(points)
-  >>> print([region.wkt for region in regions.geoms])
-  ['POLYGON ((2 1, 2 0.5, 0.5 0.5, 0 1, 1 2, 2 1))',
-   'POLYGON ((6 -3, 3.7499999999999996 -3, 2 0.5, 2 1, 6 5, 6 -3))',
-   'POLYGON ((-3 -3, -3 1, 0 1, 0.5 0.5, 0.5 -3, -3 -3))',
-   'POLYGON ((0.5 -3, 0.5 0.5, 2 0.5, 3.7499999999999996 -3, 0.5 -3))',
-   'POLYGON ((-3 5, 1 5, 1 2, 0 1, -3 1, -3 5))',
-   'POLYGON ((6 5, 2 1, 1 2, 1 5, 6 5))']
+  >>> list(regions.geoms) 
+  [<POLYGON ((2 1, 2 0.5, 0.5 0.5, 0 1, 1 2, 2 1))>,
+   <POLYGON ((6 -3, 3.75 -3, 2 0.5, 2 1, 6 5, 6 -3))>,
+   <POLYGON ((-3 -3, -3 1, 0 1, 0.5 0.5, 0.5 -3, -3 -3))>,
+   <POLYGON ((0.5 -3, 0.5 0.5, 2 0.5, 3.75 -3, 0.5 -3))>,
+   <POLYGON ((-3 5, 1 5, 1 2, 0 1, -3 1, -3 5))>,
+   <POLYGON ((6 5, 2 1, 1 2, 1 5, 6 5))>]
 
 
 Nearest points
@@ -2331,8 +2329,9 @@ the nearest points in a pair of geometries.
   >>> from shapely.ops import nearest_points
   >>> triangle = Polygon([(0, 0), (1, 0), (0.5, 1), (0, 0)])
   >>> square = Polygon([(0, 2), (1, 2), (1, 3), (0, 3), (0, 2)])
-  >>> [o.wkt for o in nearest_points(triangle, square)]
-  ['POINT (0.5 1)', 'POINT (0.5 2)']
+  >>> list(nearest_points(triangle, square))
+  [<POINT (0.5 1)>, <POINT (0.5 2)>]
+
 
 Note that the nearest points may not be existing vertices in the geometries.
 
@@ -2358,8 +2357,8 @@ one geometry to the vertices in a second geometry with a given tolerance.
   >>> square = Polygon([(1,1), (2, 1), (2, 2), (1, 2), (1, 1)])
   >>> line = LineString([(0,0), (0.8, 0.8), (1.8, 0.95), (2.6, 0.5)])
   >>> result = snap(line, square, 0.5)
-  >>> result.wkt
-  'LINESTRING (0 0, 1 1, 2 1, 2.6 0.5)'
+  >>> result
+  <LINESTRING (0 0, 1 1, 2 1, 2.6 0.5)>
 
 Shared paths
 ------------
@@ -2385,10 +2384,10 @@ paths between two linear geometries.
   >>> g1 = LineString([(0, 0), (10, 0), (10, 5), (20, 5)])
   >>> g2 = LineString([(5, 0), (30, 0), (30, 5), (0, 5)])
   >>> forward, backward = shared_paths(g1, g2).geoms
-  >>> forward.wkt
-  'MULTILINESTRING ((5 0, 10 0))'
-  >>> backward.wkt
-  'MULTILINESTRING ((10 5, 20 5))'
+  >>> forward
+  <MULTILINESTRING ((5 0, 10 0))>
+  >>> backward
+  <MULTILINESTRING ((10 5, 20 5))>
 
 Splitting
 ---------
@@ -2418,8 +2417,8 @@ The :func:`~shapely.ops.split` function in `shapely.ops` splits a geometry by an
   >>> pt = Point((1, 1))
   >>> line = LineString([(0,0), (2,2)])
   >>> result = split(line, pt)
-  >>> result.wkt
-  'GEOMETRYCOLLECTION (LINESTRING (0 0, 1 1), LINESTRING (1 1, 2 2))'
+  >>> result
+  <GEOMETRYCOLLECTION (LINESTRING (0 0, 1 1), LINESTRING (1 1, 2 2))>
 
 Substring
 ---------
@@ -2453,23 +2452,23 @@ between specified distances along a `LineString`.
 
     >>> from shapely.ops import substring
     >>> ls = LineString((i, 0) for i in range(6))
-    >>> ls.wkt
-    'LINESTRING (0 0, 1 0, 2 0, 3 0, 4 0, 5 0)'
-    >>> substring(ls, start_dist=1, end_dist=3).wkt
-    'LINESTRING (1 0, 2 0, 3 0)'
-    >>> substring(ls, start_dist=3, end_dist=1).wkt
-    'LINESTRING (3 0, 2 0, 1 0)'
-    >>> substring(ls, start_dist=1, end_dist=-3).wkt
-    'LINESTRING (1 0, 2 0)'
-    >>> substring(ls, start_dist=0.2, end_dist=-0.6, normalized=True).wkt
-    'LINESTRING (1 0, 2 0)'
+    >>> ls
+    <LINESTRING (0 0, 1 0, 2 0, 3 0, 4 0, 5 0)>
+    >>> substring(ls, start_dist=1, end_dist=3)
+    <LINESTRING (1 0, 2 0, 3 0)>
+    >>> substring(ls, start_dist=3, end_dist=1)
+    <LINESTRING (3 0, 2 0, 1 0)>
+    >>> substring(ls, start_dist=1, end_dist=-3)
+    <LINESTRING (1 0, 2 0)>
+    >>> substring(ls, start_dist=0.2, end_dist=-0.6, normalized=True)
+    <LINESTRING (1 0, 2 0)>
 
   And here is an example that returns a `Point`.
 
   .. code-block:: pycon
 
-    >>> substring(ls, start_dist=2.5, end_dist=-2.5).wkt
-    'POINT (2.5 0)'
+    >>> substring(ls, start_dist=2.5, end_dist=-2.5)
+    <POINT (2.5 0)>
 
 Prepared Geometry Operations
 ----------------------------
@@ -2537,8 +2536,8 @@ be parsed out.
   >>> from shapely.validation import make_valid
   >>> coords = [(0, 0), (0, 2), (1, 1), (2, 2), (2, 0), (1, 1), (0, 0)]
   >>> p = Polygon(coords)
-  >>> str(make_valid(p))
-  'MULTIPOLYGON (((1 1, 0 0, 0 2, 1 1)), ((2 0, 1 1, 2 2, 2 0)))'
+  >>> make_valid(p)
+  <MULTIPOLYGON (((1 1, 0 0, 0 2, 1 1)), ((2 0, 1 1, 2 2, 2 0)))>
 
   Yields a MultiPolygon with two parts:
 
@@ -2551,8 +2550,8 @@ be parsed out.
   >>> from shapely.validation import make_valid
   >>> coords = [(0, 2), (0, 1), (2, 0), (0, 0), (0, 2)]
   >>> p = Polygon(coords)
-  >>> make_valid(p).wkt
-  'GEOMETRYCOLLECTION (POLYGON ((2 0, 0 0, 0 1, 2 0)), LINESTRING (0 2, 0 1))'
+  >>> make_valid(p)
+  <GEOMETRYCOLLECTION (POLYGON ((2 0, 0 0, 0 1, 2 0)), LINESTRING (0 2, 0 1))>
 
   Yields a GeometryCollection with a Polygon and a LineString:
 
@@ -2598,8 +2597,8 @@ Polylabel
   >>> polygon = LineString([(0, 0), (50, 200), (100, 100), (20, 50),
   ... (-100, -20), (-150, -200)]).buffer(100)
   >>> label = polylabel(polygon, tolerance=10)
-  >>> label.wkt
-  'POINT (59.35615556364569 121.83919629746435)'
+  >>> label
+  <POINT (59.356 121.839)>
 
 STR-packed R-tree
 =================
@@ -2649,8 +2648,8 @@ cannot add or remove geometries.
       >>> points = [Point(i, i) for i in range(10)]
       >>> tree = STRtree(points)
       >>> idx = tree.nearest(Point(2.2, 2.2))
-      >>> points[idx].wkt
-      'POINT (2 2)'
+      >>> points[idx]
+      <POINT (2 2)>
 
 Interoperation
 ==============
