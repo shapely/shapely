@@ -58,9 +58,9 @@ def points(coords, y=None, z=None, indices=None, out=None, **kwargs):
     Examples
     --------
     >>> points([[0, 1], [4, 5]]).tolist()
-    [<shapely.Point POINT (0 1)>, <shapely.Point POINT (4 5)>]
+    [<POINT (0 1)>, <POINT (4 5)>]
     >>> points([0, 1, 2])
-    <shapely.Point POINT Z (0 1 2)>
+    <POINT Z (0 1 2)>
 
     Notes
     -----
@@ -106,9 +106,9 @@ def linestrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
     Examples
     --------
     >>> linestrings([[[0, 1], [4, 5]], [[2, 3], [5, 6]]]).tolist()
-    [<shapely.LineString LINESTRING (0 1, 4 5)>, <shapely.LineString LINESTRING (2 3, 5 6)>]
+    [<LINESTRING (0 1, 4 5)>, <LINESTRING (2 3, 5 6)>]
     >>> linestrings([[0, 1], [4, 5], [2, 3], [5, 6], [7, 8]], indices=[0, 0, 1, 1, 1]).tolist()
-    [<shapely.LineString LINESTRING (0 1, 4 5)>, <shapely.LineString LINESTRING (2 3, 5 6, 7 8)>]
+    [<LINESTRING (0 1, 4 5)>, <LINESTRING (2 3, 5 6, 7 8)>]
 
     Notes
     -----
@@ -159,9 +159,9 @@ def linearrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
     Examples
     --------
     >>> linearrings([[0, 0], [0, 1], [1, 1], [0, 0]])
-    <shapely.LinearRing LINEARRING (0 0, 0 1, 1 1, 0 0)>
+    <LINEARRING (0 0, 0 1, 1 1, 0 0)>
     >>> linearrings([[0, 0], [0, 1], [1, 1]])
-    <shapely.LinearRing LINEARRING (0 0, 0 1, 1 1, 0 0)>
+    <LINEARRING (0 0, 0 1, 1 1, 0 0)>
 
     Notes
     -----
@@ -211,38 +211,38 @@ def polygons(geometries, holes=None, indices=None, out=None, **kwargs):
     >>> ring_1 = linearrings([[0, 0], [0, 10], [10, 10], [10, 0]])
     >>> ring_2 = linearrings([[2, 6], [2, 7], [3, 7], [3, 6]])
     >>> polygons([ring_1, ring_2])[0]
-    <shapely.Polygon POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
     >>> polygons([ring_1, ring_2])[1]
-    <shapely.Polygon POLYGON ((2 6, 2 7, 3 7, 3 6, 2 6))>
+    <POLYGON ((2 6, 2 7, 3 7, 3 6, 2 6))>
 
     Or from coordinates directly:
 
     >>> polygons([[0, 0], [0, 10], [10, 10], [10, 0]])
-    <shapely.Polygon POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
 
     Adding holes can be done using the ``holes`` keyword argument:
 
     >>> polygons(ring_1, holes=[ring_2])
-    <shapely.Polygon POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 6, 2 7, 3 7, 3 6...>
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 6, 2 7, 3 7, 3 6...>
 
     Or using the ``indices`` argument:
 
     >>> polygons([ring_1, ring_2], indices=[0, 1])[0]
-    <shapely.Polygon POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
     >>> polygons([ring_1, ring_2], indices=[0, 1])[1]
-    <shapely.Polygon POLYGON ((2 6, 2 7, 3 7, 3 6, 2 6))>
+    <POLYGON ((2 6, 2 7, 3 7, 3 6, 2 6))>
     >>> polygons([ring_1, ring_2], indices=[0, 0])[0]
-    <shapely.Polygon POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 6, 2 7, 3 7, 3 6...>
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 6, 2 7, 3 7, 3 6...>
 
     Missing input values (``None``) are ignored and may result in an
     empty polygon:
 
     >>> polygons(None)
-    <shapely.Polygon POLYGON EMPTY>
+    <POLYGON EMPTY>
     >>> polygons(ring_1, holes=[None])
-    <shapely.Polygon POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
     >>> polygons([ring_1, None], indices=[0, 0])[0]
-    <shapely.Polygon POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
     """
     geometries = np.asarray(geometries)
     if not isinstance(geometries, Geometry) and np.issubdtype(
@@ -290,9 +290,9 @@ def box(xmin, ymin, xmax, ymax, ccw=True, **kwargs):
     Examples
     --------
     >>> box(0, 0, 1, 1)
-    <shapely.Polygon POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))>
+    <POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))>
     >>> box(0, 0, 1, 1, ccw=False)
-    <shapely.Polygon POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
+    <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
 
     """
     return lib.box(xmin, ymin, xmax, ymax, ccw, **kwargs)
@@ -326,30 +326,30 @@ def multipoints(geometries, indices=None, out=None, **kwargs):
     >>> point_1 = points([1, 1])
     >>> point_2 = points([2, 2])
     >>> multipoints([point_1, point_2])
-    <shapely.MultiPoint MULTIPOINT (1 1, 2 2)>
+    <MULTIPOINT (1 1, 2 2)>
     >>> multipoints([[point_1, point_2], [point_2, None]]).tolist()
-    [<shapely.MultiPoint MULTIPOINT (1 1, 2 2)>, <shapely.MultiPoint MULTIPOINT (2 2)>]
+    [<MULTIPOINT (1 1, 2 2)>, <MULTIPOINT (2 2)>]
 
     Or from coordinates directly:
 
     >>> multipoints([[0, 0], [2, 2], [3, 3]])
-    <shapely.MultiPoint MULTIPOINT (0 0, 2 2, 3 3)>
+    <MULTIPOINT (0 0, 2 2, 3 3)>
 
     Multiple multipoints of different sizes can be constructed efficiently using the
     ``indices`` keyword argument:
 
     >>> multipoints([point_1, point_2, point_2], indices=[0, 0, 1]).tolist()
-    [<shapely.MultiPoint MULTIPOINT (1 1, 2 2)>, <shapely.MultiPoint MULTIPOINT (2 2)>]
+    [<MULTIPOINT (1 1, 2 2)>, <MULTIPOINT (2 2)>]
 
     Missing input values (``None``) are ignored and may result in an
     empty multipoint:
 
     >>> multipoints([None])
-    <shapely.MultiPoint MULTIPOINT EMPTY>
+    <MULTIPOINT EMPTY>
     >>> multipoints([point_1, None], indices=[0, 0]).tolist()
-    [<shapely.MultiPoint MULTIPOINT (1 1)>]
+    [<MULTIPOINT (1 1)>]
     >>> multipoints([point_1, None], indices=[0, 1]).tolist()
-    [<shapely.MultiPoint MULTIPOINT (1 1)>, <shapely.MultiPoint MULTIPOINT EMPTY>]
+    [<MULTIPOINT (1 1)>, <MULTIPOINT EMPTY>]
     """
     typ = GeometryType.MULTIPOINT
     geometries = np.asarray(geometries)
@@ -542,7 +542,7 @@ def empty(shape, geom_type=None, order="C"):
     >>> empty((2, 3)).tolist()
     [[None, None, None], [None, None, None]]
     >>> empty(2, geom_type=GeometryType.POINT).tolist()
-    [<shapely.Point POINT EMPTY>, <shapely.Point POINT EMPTY>]
+    [<POINT EMPTY>, <POINT EMPTY>]
     """
     if geom_type is None:
         return np.empty(shape, dtype=object, order=order)

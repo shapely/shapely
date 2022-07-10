@@ -30,20 +30,20 @@ def transform(geometry, transformation, include_z=False):
     --------
     >>> from shapely import LineString, Point
     >>> transform(Point(0, 0), lambda x: x + 1)
-    <shapely.Point POINT (1 1)>
+    <POINT (1 1)>
     >>> transform(LineString([(2, 2), (4, 4)]), lambda x: x * [2, 3])
-    <shapely.LineString LINESTRING (4 6, 8 12)>
+    <LINESTRING (4 6, 8 12)>
     >>> transform(None, lambda x: x) is None
     True
     >>> transform([Point(0, 0), None], lambda x: x).tolist()
-    [<shapely.Point POINT (0 0)>, None]
+    [<POINT (0 0)>, None]
 
     By default, the third dimension is ignored:
 
     >>> transform(Point(0, 0, 0), lambda x: x + 1)
-    <shapely.Point POINT (1 1)>
+    <POINT (1 1)>
     >>> transform(Point(0, 0, 0), lambda x: x + 1, include_z=True)
-    <shapely.Point POINT Z (1 1 1)>
+    <POINT Z (1 1 1)>
     """
     geometry_arr = np.array(geometry, dtype=np.object_)  # makes a copy
     coordinates = lib.get_coordinates(geometry_arr, include_z, False)
@@ -166,19 +166,19 @@ def set_coordinates(geometry, coordinates):
     --------
     >>> from shapely import LineString, Point
     >>> set_coordinates(Point(0, 0), [[1, 1]])
-    <shapely.Point POINT (1 1)>
+    <POINT (1 1)>
     >>> set_coordinates([Point(0, 0), LineString([(0, 0), (0, 0)])], [[1, 2], [3, 4], [5, 6]]).tolist()
-    [<shapely.Point POINT (1 2)>, <shapely.LineString LINESTRING (3 4, 5 6)>]
+    [<POINT (1 2)>, <LINESTRING (3 4, 5 6)>]
     >>> set_coordinates([None, Point(0, 0)], [[1, 2]]).tolist()
-    [None, <shapely.Point POINT (1 2)>]
+    [None, <POINT (1 2)>]
 
     Third dimension of input geometry is discarded if coordinates array does
     not include one:
 
     >>> set_coordinates(Point(0, 0, 0), [[1, 1]])
-    <shapely.Point POINT (1 1)>
+    <POINT (1 1)>
     >>> set_coordinates(Point(0, 0, 0), [[1, 1, 1]])
-    <shapely.Point POINT Z (1 1 1)>
+    <POINT Z (1 1 1)>
     """
     geometry_arr = np.asarray(geometry, dtype=np.object_)
     coordinates = np.atleast_2d(np.asarray(coordinates)).astype(np.float64)

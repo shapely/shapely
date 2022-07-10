@@ -168,16 +168,16 @@ class STRtree:
         Retrieve the tree geometries by results of query:
 
         >>> tree.geometries.take(indices).tolist()
-        [<shapely.Point POINT (0 0)>, <shapely.Point POINT (1 1)>]
+        [<POINT (0 0)>, <POINT (1 1)>]
 
         Retrieve all pairs of input and tree geometries:
 
         >>> np.array([boxes.take(arr_indices[0]),\
 tree.geometries.take(arr_indices[1])]).T.tolist()
-        [[<shapely.Polygon POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))>, <shapely.Point POINT (0 0)>],
-         [<shapely.Polygon POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))>, <shapely.Point POINT (1 1)>],
-         [<shapely.Polygon POLYGON ((3 2, 3 3, 2 3, 2 2, 3 2))>, <shapely.Point POINT (2 2)>],
-         [<shapely.Polygon POLYGON ((3 2, 3 3, 2 3, 2 2, 3 2))>, <shapely.Point POINT (3 3)>]]
+        [[<POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))>, <POINT (0 0)>],
+         [<POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))>, <POINT (1 1)>],
+         [<POLYGON ((3 2, 3 3, 2 3, 2 2, 3 2))>, <POINT (2 2)>],
+         [<POLYGON ((3 2, 3 3, 2 3, 2 2, 3 2))>, <POINT (3 3)>]]
 
         Query using a predicate:
 
@@ -322,7 +322,7 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
         >>> index
         2
         >>> tree.geometries.take(index)
-        <shapely.Point POINT (2 2)>
+        <POINT (2 2)>
 
         Query the tree for nearest using an array of geometries:
 
@@ -330,7 +330,7 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
         >>> indices.tolist()
         [2, 4]
         >>> tree.geometries.take(indices).tolist()
-        [<shapely.Point POINT (2 2)>, <shapely.Point POINT (4 4)>]
+        [<POINT (2 2)>, <POINT (4 4)>]
 
 
         Nearest only return one object if there are multiple equidistant results:

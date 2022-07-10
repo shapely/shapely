@@ -22,9 +22,9 @@ Geometries can be constructed directly using Shapely geometry classes:
 
   >>> from shapely import Point, LineString
   >>> Point(5.2, 52.1)
-  <shapely.Point POINT (5.2 52.1)>
+  <POINT (5.2 52.1)>
   >>> LineString([(0, 0), (1, 2)])
-  <shapely.LineString LINESTRING (0 0, 1 2)>
+  <LINESTRING (0 0, 1 2)>
 
 Geometries can also be constructed from a WKT (Well-Known Text)
 or WKB (Well-Known Binary) representation:
@@ -33,9 +33,9 @@ or WKB (Well-Known Binary) representation:
 
   >>> from shapely import from_wkb, from_wkt
   >>> from_wkt("POINT (5.2 52.1)")
-  <shapely.Point POINT (5.2 52.1)>
+  <POINT (5.2 52.1)>
   >>> from_wkb(b"\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?")
-  <shapely.Point POINT (1 1)>
+  <POINT (1 1)>
 
 A more efficient way of constructing geometries is by making use of the (vectorized)
 functions described in :mod:`shapely.creation`.
@@ -49,7 +49,7 @@ Geometries can be serialized using pickle:
   >>> from shapely import Point
   >>> pickled = pickle.dumps(Point(1, 1))
   >>> pickle.loads(pickled)
-  <shapely.Point POINT (1 1)>
+  <POINT (1 1)>
 
 .. warning:: Pickling will convert linearrings to linestrings.
              See :func:`shapely.io.to_wkb` for a complete list of limitations.
@@ -69,7 +69,7 @@ Therefore, geometries are equal if and only if their WKB representations are equ
   >>> point_2 = Point(1, 1)
   >>> point_3 = Point(5.2, 52.1)
   >>> {point_1, point_2, point_3}
-  {<shapely.Point POINT (1 1)>, <shapely.Point POINT (5.2 52.1)>}
+  {<POINT (1 1)>, <POINT (5.2 52.1)>}
 
 .. warning:: Due to limitations of WKB, linearrings will equal linestrings if they contain the exact same points.
              See :func:`shapely.io.to_wkb`.

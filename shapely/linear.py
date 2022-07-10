@@ -35,15 +35,15 @@ def line_interpolate_point(line, distance, normalized=False, **kwargs):
     >>> from shapely import LineString, Point
     >>> line = LineString([(0, 2), (0, 10)])
     >>> line_interpolate_point(line, 2)
-    <shapely.Point POINT (0 4)>
+    <POINT (0 4)>
     >>> line_interpolate_point(line, 100)
-    <shapely.Point POINT (0 10)>
+    <POINT (0 10)>
     >>> line_interpolate_point(line, -2)
-    <shapely.Point POINT (0 8)>
+    <POINT (0 8)>
     >>> line_interpolate_point(line, [0.25, -0.25], normalized=True).tolist()
-    [<shapely.Point POINT (0 4)>, <shapely.Point POINT (0 8)>]
+    [<POINT (0 4)>, <POINT (0 8)>]
     >>> line_interpolate_point(LineString(), 1)
-    <shapely.Point POINT EMPTY>
+    <POINT EMPTY>
     """
     if normalized:
         return lib.line_interpolate_point_normalized(line, distance)
@@ -105,11 +105,11 @@ def line_merge(line, **kwargs):
     --------
     >>> from shapely import MultiLineString
     >>> line_merge(MultiLineString([[(0, 2), (0, 10)], [(0, 10), (5, 10)]]))
-    <shapely.LineString LINESTRING (0 2, 0 10, 5 10)>
+    <LINESTRING (0 2, 0 10, 5 10)>
     >>> line_merge(MultiLineString([[(0, 2), (0, 10)], [(0, 11), (5, 10)]]))
-    <shapely.MultiLineString MULTILINESTRING ((0 2, 0 10), (0 11, 5 10))>
+    <MULTILINESTRING ((0 2, 0 10), (0 11, 5 10))>
     >>> line_merge(MultiLineString())
-    <shapely.GeometryCollection GEOMETRYCOLLECTION EMPTY>
+    <GEOMETRYCOLLECTION EMPTY>
     """
     return lib.line_merge(line, **kwargs)
 
@@ -176,6 +176,6 @@ def shortest_line(a, b, **kwargs):
     >>> line1 = LineString([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
     >>> line2 = LineString([(0, 3), (3, 0), (5, 3)])
     >>> shortest_line(line1, line2)
-    <shapely.LineString LINESTRING (1 1, 1.5 1.5)>
+    <LINESTRING (1 1, 1.5 1.5)>
     """
     return lib.shortest_line(a, b, **kwargs)

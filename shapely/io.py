@@ -244,7 +244,7 @@ def from_wkt(geometry, on_invalid="raise", **kwargs):
     Examples
     --------
     >>> from_wkt('POINT (0 0)')
-    <shapely.Point POINT (0 0)>
+    <POINT (0 0)>
     """
     if not np.isscalar(on_invalid):
         raise TypeError("on_invalid only accepts scalar values")
@@ -278,7 +278,7 @@ def from_wkb(geometry, on_invalid="raise", **kwargs):
     Examples
     --------
     >>> from_wkb(b'\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?')
-    <shapely.Point POINT (1 1)>
+    <POINT (1 1)>
     """
 
     if not np.isscalar(on_invalid):
@@ -328,7 +328,7 @@ def from_geojson(geometry, on_invalid="raise", **kwargs):
     Examples
     --------
     >>> from_geojson('{"type": "Point","coordinates": [1, 2]}')
-    <shapely.Point POINT (1 2)>
+    <POINT (1 2)>
     """
     # GEOS Tickets:
     # - support 3D: https://trac.osgeo.org/geos/ticket/1141

@@ -48,18 +48,18 @@ def difference(a, b, grid_size=None, **kwargs):
     >>> from shapely import box, LineString, normalize, Polygon
     >>> line = LineString([(0, 0), (2, 2)])
     >>> difference(line, LineString([(1, 1), (3, 3)]))
-    <shapely.LineString LINESTRING (0 0, 1 1)>
+    <LINESTRING (0 0, 1 1)>
     >>> difference(line, LineString())
-    <shapely.LineString LINESTRING (0 0, 2 2)>
+    <LINESTRING (0 0, 2 2)>
     >>> difference(line, None) is None
     True
     >>> box1 = box(0, 0, 2, 2)
     >>> box2 = box(1, 1, 3, 3)
     >>> normalize(difference(box1, box2))
-    <shapely.Polygon POLYGON ((0 0, 0 2, 1 2, 1 1, 2 1, 2 0, 0 0))>
+    <POLYGON ((0 0, 0 2, 1 2, 1 1, 2 1, 2 0, 0 0))>
     >>> box1 = box(0.1, 0.2, 2.1, 2.1)
     >>> difference(box1, box2, grid_size=1) # doctest: +SKIP
-    <shapely.Polygon POLYGON ((0 0, 0 2, 1 2, 1 1, 2 1, 2 0, 0 0))>
+    <POLYGON ((0 0, 0 2, 1 2, 1 1, 2 1, 2 0, 0 0))>
     """
 
     if grid_size is not None:
@@ -108,14 +108,14 @@ def intersection(a, b, grid_size=None, **kwargs):
     >>> from shapely import box, LineString, normalize, Polygon
     >>> line = LineString([(0, 0), (2, 2)])
     >>> intersection(line, LineString([(1, 1), (3, 3)]))
-    <shapely.LineString LINESTRING (1 1, 2 2)>
+    <LINESTRING (1 1, 2 2)>
     >>> box1 = box(0, 0, 2, 2)
     >>> box2 = box(1, 1, 3, 3)
     >>> normalize(intersection(box1, box2))
-    <shapely.Polygon POLYGON ((1 1, 1 2, 2 2, 2 1, 1 1))>
+    <POLYGON ((1 1, 1 2, 2 2, 2 1, 1 1))>
     >>> box1 = box(0.1, 0.2, 2.1, 2.1)
     >>> intersection(box1, box2, grid_size=1) # doctest: +SKIP
-    <shapely.Polygon POLYGON ((1 1, 1 2, 2 2, 2 1, 1 1))>
+    <POLYGON ((1 1, 1 2, 2 2, 2 1, 1 1))>
     """
 
     if grid_size is not None:
@@ -161,9 +161,9 @@ def intersection_all(geometries, axis=None, **kwargs):
     >>> line1 = LineString([(0, 0), (2, 2)])
     >>> line2 = LineString([(1, 1), (3, 3)])
     >>> intersection_all([line1, line2])
-    <shapely.LineString LINESTRING (1 1, 2 2)>
+    <LINESTRING (1 1, 2 2)>
     >>> intersection_all([[line1, line2, None]], axis=1).tolist()
-    [<shapely.LineString LINESTRING (1 1, 2 2)>]
+    [<LINESTRING (1 1, 2 2)>]
     """
     return lib.intersection.reduce(geometries, axis=axis, **kwargs)
 
@@ -201,14 +201,14 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
     >>> from shapely import box, LineString, normalize
     >>> line = LineString([(0, 0), (2, 2)])
     >>> symmetric_difference(line, LineString([(1, 1), (3, 3)]))
-    <shapely.MultiLineString MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>
+    <MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>
     >>> box1 = box(0, 0, 2, 2)
     >>> box2 = box(1, 1, 3, 3)
     >>> normalize(symmetric_difference(box1, box2))
-    <shapely.MultiPolygon MULTIPOLYGON (((1 2, 1 3, 3 3, 3 1, 2 1, 2 2, 1 2)), (...>
+    <MULTIPOLYGON (((1 2, 1 3, 3 3, 3 1, 2 1, 2 2, 1 2)), (...>
     >>> box1 = box(0.1, 0.2, 2.1, 2.1)
     >>> symmetric_difference(box1, box2, grid_size=1) # doctest: +SKIP
-    <shapely.MultiPolygon MULTIPOLYGON (((1 2, 1 3, 3 3, 3 1, 2 1, 2 2, 1 2)), ((0 0,...>
+    <MULTIPOLYGON (((1 2, 1 3, 3 3, 3 1, 2 1, 2 2, 1 2)), ((0 0,...>
     """
 
     if grid_size is not None:
@@ -254,9 +254,9 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
     >>> line1 = LineString([(0, 0), (2, 2)])
     >>> line2 = LineString([(1, 1), (3, 3)])
     >>> symmetric_difference_all([line1, line2])
-    <shapely.MultiLineString MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>
+    <MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>
     >>> symmetric_difference_all([[line1, line2, None]], axis=1).tolist()
-    [<shapely.MultiLineString MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>]
+    [<MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>]
     """
     return lib.symmetric_difference.reduce(geometries, axis=axis, **kwargs)
 
@@ -293,16 +293,16 @@ def union(a, b, grid_size=None, **kwargs):
     >>> from shapely import box, LineString, normalize
     >>> line = LineString([(0, 0), (2, 2)])
     >>> union(line, LineString([(2, 2), (3, 3)]))
-    <shapely.MultiLineString MULTILINESTRING ((0 0, 2 2), (2 2, 3 3))>
+    <MULTILINESTRING ((0 0, 2 2), (2 2, 3 3))>
     >>> union(line, None) is None
     True
     >>> box1 = box(0, 0, 2, 2)
     >>> box2 = box(1, 1, 3, 3)
     >>> normalize(union(box1, box2))
-    <shapely.Polygon POLYGON ((0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0, 0 0))>
+    <POLYGON ((0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0, 0 0))>
     >>> box1 = box(0.1, 0.2, 2.1, 2.1)
     >>> union(box1, box2, grid_size=1) # doctest: +SKIP
-    <shapely.Polygon POLYGON ((2 0, 0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0))>
+    <POLYGON ((2 0, 0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0))>
     """
 
     if grid_size is not None:
@@ -359,16 +359,16 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
     >>> line1 = LineString([(0, 0), (2, 2)])
     >>> line2 = LineString([(2, 2), (3, 3)])
     >>> union_all([line1, line2])
-    <shapely.MultiLineString MULTILINESTRING ((0 0, 2 2), (2 2, 3 3))>
+    <MULTILINESTRING ((0 0, 2 2), (2 2, 3 3))>
     >>> union_all([[line1, line2, None]], axis=1).tolist()
-    [<shapely.MultiLineString MULTILINESTRING ((0 0, 2 2), (2 2, 3 3))>]
+    [<MULTILINESTRING ((0 0, 2 2), (2 2, 3 3))>]
     >>> box1 = box(0, 0, 2, 2)
     >>> box2 = box(1, 1, 3, 3)
     >>> normalize(union_all([box1, box2]))
-    <shapely.Polygon POLYGON ((0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0, 0 0))>
+    <POLYGON ((0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0, 0 0))>
     >>> box1 = box(0.1, 0.2, 2.1, 2.1)
     >>> union_all([box1, box2], grid_size=1) # doctest: +SKIP
-    <shapely.Polygon POLYGON ((0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0, 0 0))>
+    <POLYGON ((0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0, 0 0))>
 
     """
     # for union_all, GEOS provides an efficient route through first creating
@@ -430,11 +430,11 @@ def coverage_union(a, b, **kwargs):
     >>> from shapely import normalize, Polygon
     >>> polygon = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
     >>> normalize(coverage_union(polygon, Polygon([(1, 0), (1, 1), (2, 1), (2, 0), (1, 0)])))
-    <shapely.Polygon POLYGON ((0 0, 0 1, 1 1, 2 1, 2 0, 1 0, 0 0))>
+    <POLYGON ((0 0, 0 1, 1 1, 2 1, 2 0, 1 0, 0 0))>
 
     Union with None returns same polygon
     >>> normalize(coverage_union(polygon, None))
-    <shapely.Polygon POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
+    <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
     """
     return coverage_union_all([a, b], **kwargs)
 
@@ -468,7 +468,7 @@ def coverage_union_all(geometries, axis=None, **kwargs):
     >>> polygon_1 = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
     >>> polygon_2 = Polygon([(1, 0), (1, 1), (2, 1), (2, 0), (1, 0)])
     >>> normalize(coverage_union_all([polygon_1, polygon_2]))
-    <shapely.Polygon POLYGON ((0 0, 0 1, 1 1, 2 1, 2 0, 1 0, 0 0))>
+    <POLYGON ((0 0, 0 1, 1 1, 2 1, 2 0, 1 0, 0 0))>
     """
     # coverage union in GEOS works over GeometryCollections
     # first roll the aggregation axis backwards
