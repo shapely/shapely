@@ -9,9 +9,11 @@ class OperationsTestCase(unittest.TestCase):
         left = line1.parallel_offset(5, 'left')
         self.assertEqual(left, LineString([(0, 5), (10, 5)]))
         right = line1.parallel_offset(5, 'right')
-        self.assertEqual(right, LineString([(10, -5), (0, -5)]))
+        # using spatial equality because the order of coordinates is not guaranteed
+        # (GEOS 3.11 changed this, see https://github.com/shapely/shapely/issues/1436)
+        assert right.equals(LineString([(10, -5), (0, -5)]))
         right = line1.parallel_offset(-5, 'left')
-        self.assertEqual(right, LineString([(10, -5), (0, -5)]))
+        assert right.equals(LineString([(10, -5), (0, -5)]))
         left = line1.parallel_offset(-5, 'right')
         self.assertEqual(left, LineString([(0, 5), (10, 5)]))
 
