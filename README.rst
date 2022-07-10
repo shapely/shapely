@@ -87,7 +87,7 @@ buffering a point, using the scalar Geometry interface:
     >>> from shapely import Point
     >>> patch = Point(0.0, 0.0).buffer(10.0)
     >>> patch
-    <shapely.Polygon POLYGON ((10 0, 9.952 -0.98, 9.808 -1.951, 9.569 -2.903, 9....>
+    <POLYGON ((10 0, 9.952 -0.98, 9.808 -1.951, 9.569 -2.903, 9.239 -3.827, 8.81...>
     >>> patch.area
     313.6548490545941
 
