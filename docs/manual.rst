@@ -773,7 +773,7 @@ by empty features.
   >>> line.length
   0.0
   >>> line.bounds
-  ()
+  (nan, nan, nan, nan)
   >>> list(line.coords)
   []
 
@@ -2620,8 +2620,8 @@ cannot add or remove geometries.
 
   .. method:: strtree.query(geom)
 
-    Returns a list of all geometries in the `strtree` whose extents intersect the
-    extent of `geom`. This means that a subsequent search through the returned
+    Returns the integer indices of all geometries in the `strtree` whose extents
+    intersect the extent of `geom`. This means that a subsequent search through the returned
     subset using the desired binary predicate (eg. intersects, crosses, contains,
     overlaps) may be necessary to further filter the results according to their
     specific spatial relationships.
@@ -2632,25 +2632,13 @@ cannot add or remove geometries.
       >>> points = [Point(i, i) for i in range(10)]
       >>> tree = STRtree(points)
       >>> query_geom = Point(2,2).buffer(0.99)
-      >>> [o.wkt for o in tree.query(query_geom)]
+      >>> [points[idx].wkt for idx in tree.query(query_geom)]
       ['POINT (2 2)']
       >>> query_geom = Point(2, 2).buffer(1.0)
-      >>> [o.wkt for o in tree.query(query_geom)]
+      >>> [points[idx].wkt for idx in tree.query(query_geom)]
       ['POINT (1 1)', 'POINT (2 2)', 'POINT (3 3)']
-      >>> [o.wkt for o in tree.query(query_geom) if o.intersects(query_geom)]
+      >>> [points[idx].wkt for idx in tree.query(query_geom, predicate="intersects")]
       ['POINT (2 2)']
-
-    .. note::
-      To get the original indexes of the query results, create an auxiliary
-      dictionary. But use the geometry `ids` as keys since the shapely geometries
-      themselves are not hashable.
-
-      .. code-block:: pycon
-
-        >>> index_by_id = dict((id(pt), i) for i, pt in enumerate(points))
-        >>> [(index_by_id[id(pt)], pt.wkt) for pt in tree.query(Point(2,2).buffer(1.0))]
-        [(1, 'POINT (1 1)'), (2, 'POINT (2 2)'), (3, 'POINT (3 3)')]
-
 
   .. method:: strtree.nearest(geom)
 
@@ -2658,8 +2646,10 @@ cannot add or remove geometries.
 
     .. code-block:: pycon
 
-      >>> tree = STRtree([Point(i, i) for i in range(10)])
-      >>> tree.nearest(Point(2.2, 2.2)).wkt
+      >>> points = [Point(i, i) for i in range(10)]
+      >>> tree = STRtree(points)
+      >>> idx = tree.nearest(Point(2.2, 2.2))
+      >>> points[idx].wkt
       'POINT (2 2)'
 
 Interoperation
