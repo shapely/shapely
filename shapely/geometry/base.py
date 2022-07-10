@@ -92,19 +92,20 @@ class BaseGeometry(shapely.Geometry):
         return self.__bool__()
 
     def __repr__(self):
-        class_name = str(self.__class__.__name__)
         try:
             wkt = super().__str__()
         except (GEOSException, ValueError):
             # we never want a repr() to fail; that can be very confusing
-            return "<shapely.{} Exception in WKT writer>".format(class_name)
+            return "<shapely.{} Exception in WKT writer>".format(
+                self.__class__.__name__
+            )
 
-        # the total length is limited to 80 characters
-        max_length = 80 - (11 + len(class_name))
+        # the total length is limited to 80 characters including brackets
+        max_length = 78
         if len(wkt) > max_length:
-            return "<shapely.{} {}...>".format(class_name, wkt[: max_length - 3])
-        else:
-            return "<shapely.{} {}>".format(class_name, wkt)
+            return "<{}...>".format(wkt[: max_length - 3])
+
+        return "<{}>".format(wkt)
 
     def __str__(self):
         return self.wkt
@@ -733,10 +734,6 @@ class BaseMultipartGeometry(BaseGeometry):
 
     __slots__ = []
 
-    def shape_factory(self, *args):
-        # Factory for part instances, usually a geometry class
-        raise NotImplementedError("To be implemented by derived classes")
-
     @property
     def coords(self):
         raise NotImplementedError(
@@ -746,7 +743,7 @@ class BaseMultipartGeometry(BaseGeometry):
 
     @property
     def geoms(self):
-        return GeometrySequence(self, self.shape_factory)
+        return GeometrySequence(self)
 
     def __bool__(self):
         return self.is_empty is False
@@ -776,17 +773,11 @@ class GeometrySequence:
 
     # Attributes
     # ----------
-    # _factory : callable
-    #     Returns instances of Shapely geometries
-    # _ndim : int
-    #     Number of dimensions (2 or 3, generally)
     # __p__ : object
     #     Parent (Shapely) geometry
-    shape_factory = None
     __p__ = None
-    _ndim = None
 
-    def __init__(self, parent, type):
+    def __init__(self, parent):
         self.__p__ = parent
 
     def _get_geom_item(self, i):
@@ -810,10 +801,6 @@ class GeometrySequence:
                 i = key
             return self._get_geom_item(i)
         elif isinstance(key, slice):
-            if type(self) == HeterogeneousGeometrySequence:
-                raise GeometryTypeError(
-                    "Heterogeneous geometry collections are not sliceable"
-                )
             res = []
             start, stop, stride = key.indices(m)
             for i in range(start, stop, stride):
@@ -821,18 +808,6 @@ class GeometrySequence:
             return type(self.__p__)(res or None)
         else:
             raise TypeError("key must be an index or slice")
-
-
-class HeterogeneousGeometrySequence(GeometrySequence):
-    """
-    Iterative access to a heterogeneous sequence of geometries.
-    """
-
-    def __init__(self, parent):
-        super().__init__(parent, None)
-
-    def _get_geom_item(self, i):
-        return shapely.get_geometry(self.__p__, i)
 
 
 class EmptyGeometry(BaseGeometry):
