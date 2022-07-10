@@ -16,8 +16,6 @@ class AffineTestCase(unittest.TestCase):
         g = load_wkt('LINESTRING(2.4 4.1, 2.4 3, 3 3)')
         self.assertRaises(
             TypeError, affinity.affine_transform, g, None)
-        # self.assertRaises(
-        #     TypeError, affinity.affine_transform, g, '123456')
         self.assertRaises(ValueError, affinity.affine_transform, g,
                           [1, 2, 3, 4, 5, 6, 7, 8, 9])
         self.assertRaises(AttributeError, affinity.affine_transform, None,
