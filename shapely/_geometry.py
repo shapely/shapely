@@ -637,7 +637,7 @@ def get_rings(geometry, return_index=False):
     ... )
     >>> get_rings(polygon_with_hole).tolist()
     [<LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>,
-    <LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>]
+     <LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>]
 
     With ``return_index=True``:
 
@@ -645,8 +645,8 @@ def get_rings(geometry, return_index=False):
     >>> rings, index = get_rings([polygon, polygon_with_hole], return_index=True)
     >>> rings.tolist()
     [<LINEARRING (0 0, 2 0, 2 2, 0 2, 0 0)>,
-    <LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>,
-    <LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>]
+     <LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>,
+     <LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>]
     >>> index.tolist()
     [0, 1, 1]
     """
@@ -726,7 +726,6 @@ def get_precision(geometry, **kwargs):
     >>> geometry = set_precision(point, 1.0)
     >>> get_precision(geometry)
     1.0
-    >>> import numpy as np
     >>> get_precision(None)
     nan
     """

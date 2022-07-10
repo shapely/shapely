@@ -1,6 +1,5 @@
 import numpy as np
 
-from . import Geometry  # NOQA
 from . import lib
 from .decorators import multithreading_enabled, requires_geos
 from .enum import ParamEnum
@@ -377,17 +376,17 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     >>> from shapely import GeometryCollection, LineString, MultiPoint, Polygon
     >>> points = MultiPoint([(50, 30), (60, 30), (100, 100)])
     >>> delaunay_triangles(points)
-    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 ...>
+    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
     >>> delaunay_triangles(points, only_edges=True)
     <MULTILINESTRING ((50 30, 100 100), (50 30, 60 30), ...>
     >>> delaunay_triangles(MultiPoint([(50, 30), (51, 30), (60, 30), (100, 100)]), \
 tolerance=2)
-    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 ...>
+    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
     >>> delaunay_triangles(Polygon([(50, 30), (60, 30), (100, 100), (50, 30)]))
-    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 ...>
+    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
     >>> delaunay_triangles(LineString([(50, 30), (60, 30), (100, 100)]))
-    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 ...>
-    >>> delaunay_triangles(GeometryCollection())
+    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
+    >>> delaunay_triangles(GeometryCollection([]))
     <GEOMETRYCOLLECTION EMPTY>
     """
     return lib.delaunay_triangles(geometry, tolerance, only_edges, **kwargs)
@@ -413,7 +412,7 @@ def envelope(geometry, **kwargs):
     <POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))>
     >>> envelope(Point(0, 0))
     <POINT (0 0)>
-    >>> envelope(GeometryCollection())
+    >>> envelope(GeometryCollection([]))
     <POINT EMPTY>
     """
     return lib.envelope(geometry, **kwargs)
@@ -888,7 +887,7 @@ def oriented_envelope(geometry, **kwargs):
     <LINESTRING (1 1, 10 1)>
     >>> oriented_envelope(Point(2, 2))
     <POINT (2 2)>
-    >>> oriented_envelope(GeometryCollection())
+    >>> oriented_envelope(GeometryCollection([]))
     <POLYGON EMPTY>
     """
     return lib.oriented_envelope(geometry, **kwargs)
@@ -920,7 +919,7 @@ def minimum_bounding_circle(geometry, **kwargs):
     <POLYGON ((4 2, 3.981 1.805, 3.924 1.617, 3.831 1.444, 3.707...>
     >>> minimum_bounding_circle(Point(0, 1))
     <POINT (0 1)>
-    >>> minimum_bounding_circle(GeometryCollection())
+    >>> minimum_bounding_circle(GeometryCollection([]))
     <POLYGON EMPTY>
 
     See also

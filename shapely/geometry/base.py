@@ -468,8 +468,8 @@ class BaseGeometry(shapely.Geometry):
         --------
         >>> from shapely import MultiLineString
         >>> line = MultiLineString([[(0, 0), (1, 1)], [(3, 3), (2, 2)]])
-        >>> line.normalize().wkt
-        'MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))'
+        >>> line.normalize()
+        <MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))>
         """
         return shapely.normalize(self)
 

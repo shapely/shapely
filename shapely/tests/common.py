@@ -14,38 +14,38 @@ point_polygon_testdata = (
     shapely.points(np.arange(6), np.arange(6)),
     shapely.box(2, 2, 4, 4),
 )
-point = shapely.points(2, 3)
-line_string = shapely.linestrings([(0, 0), (1, 0), (1, 1)])
-linear_ring = shapely.linearrings([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
-polygon = shapely.polygons([(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)])
-multi_point = shapely.multipoints([(0, 0), (1, 2)])
-multi_line_string = shapely.multilinestrings([[(0, 0), (1, 2)]])
+point = shapely.Point(2, 3)
+line_string = shapely.LineString([(0, 0), (1, 0), (1, 1)])
+linear_ring = shapely.LinearRing([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
+polygon = shapely.Polygon([(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)])
+multi_point = shapely.MultiPoint([(0, 0), (1, 2)])
+multi_line_string = shapely.MultiLineString([[(0, 0), (1, 2)]])
 multi_polygon = shapely.multipolygons(
     [
         [(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)],
         [(2.1, 2.1), (2.2, 2.1), (2.2, 2.2), (2.1, 2.2), (2.1, 2.1)],
     ]
 )
-geometry_collection = shapely.geometrycollections(
-    [shapely.points(51, -1), shapely.linestrings([(52, -1), (49, 2)])]
+geometry_collection = shapely.GeometryCollection(
+    [shapely.Point(51, -1), shapely.LineString([(52, -1), (49, 2)])]
 )
-point_z = shapely.points(2, 3, 4)
-line_string_z = shapely.linestrings([(0, 0, 4), (1, 0, 4), (1, 1, 4)])
-polygon_z = shapely.polygons([(0, 0, 4), (2, 0, 4), (2, 2, 4), (0, 2, 4), (0, 0, 4)])
-geometry_collection_z = shapely.geometrycollections([point_z, line_string_z])
+point_z = shapely.Point(2, 3, 4)
+line_string_z = shapely.LineString([(0, 0, 4), (1, 0, 4), (1, 1, 4)])
+polygon_z = shapely.Polygon([(0, 0, 4), (2, 0, 4), (2, 2, 4), (0, 2, 4), (0, 0, 4)])
+geometry_collection_z = shapely.GeometryCollection([point_z, line_string_z])
 polygon_with_hole = shapely.Polygon(
     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]],
 )
-empty_point = shapely.Point()
+empty_point = shapely.from_wkt("POINT EMPTY")
 empty_point_z = shapely.from_wkt("POINT Z EMPTY")
-empty_line_string = shapely.LineString()
+empty_line_string = shapely.from_wkt("LINESTRING EMPTY")
 empty_line_string_z = shapely.from_wkt("LINESTRING Z EMPTY")
-empty_polygon = shapely.Polygon()
-empty = shapely.GeometryCollection()
-line_string_nan = shapely.linestrings([(np.nan, np.nan), (np.nan, np.nan)])
-multi_point_z = shapely.multipoints([(0, 0, 4), (1, 2, 4)])
-multi_line_string_z = shapely.multilinestrings([[(0, 0, 4), (1, 2, 4)]])
+empty_polygon = shapely.from_wkt("POLYGON EMPTY")
+empty = shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")
+line_string_nan = shapely.LineString([(np.nan, np.nan), (np.nan, np.nan)])
+multi_point_z = shapely.MultiPoint([(0, 0, 4), (1, 2, 4)])
+multi_line_string_z = shapely.MultiLineString([[(0, 0, 4), (1, 2, 4)]])
 multi_polygon_z = shapely.multipolygons(
     [
         [(0, 0, 4), (1, 0, 4), (1, 1, 4), (0, 1, 4), (0, 0, 4)],
@@ -53,8 +53,8 @@ multi_polygon_z = shapely.multipolygons(
     ]
 )
 polygon_with_hole_z = shapely.Polygon(
-    ((0, 0, 4), (0, 10, 4), (10, 10, 4), (10, 0, 4), (0, 0, 4)),
-    holes=[((2, 2, 4), (2, 4, 4), (4, 4, 4), (4, 2, 4), (2, 2, 4))],
+    [(0, 0, 4), (0, 10, 4), (10, 10, 4), (10, 0, 4), (0, 0, 4)],
+    holes=[[(2, 2, 4), (2, 4, 4), (4, 4, 4), (4, 2, 4), (2, 2, 4)]],
 )
 
 all_types = (
