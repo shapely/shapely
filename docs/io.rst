@@ -1,7 +1,7 @@
 Input/Output
 ============
 
-.. automodule:: pygeos.io
+.. automodule:: shapely.io
    :members:
    :exclude-members:
    :special-members:

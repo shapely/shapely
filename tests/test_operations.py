@@ -63,6 +63,8 @@ class OperationsTestCase(unittest.TestCase):
         self.assertIsInstance(point.union(Point(-1, 1)), MultiPoint)
 
         self.assertIsInstance(point.representative_point(), Point)
+        self.assertIsInstance(point.point_on_surface(), Point)
+        self.assertEqual(point.representative_point(), point.point_on_surface())
 
         self.assertIsInstance(point.centroid, Point)
 

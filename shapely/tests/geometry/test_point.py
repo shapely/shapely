@@ -131,15 +131,6 @@ class TestPoint:
         assert a.shape == (3,)
 
 
-def test_empty_point_bounds():
-    """The bounds of an empty point is an empty tuple"""
-    p = Point()
-    # TODO keep this empty tuple or change to (nan, nan, nan, nan)?
-    assert p.bounds == ()
-    # assert len(p.bounds) == 4
-    # assert all(math.isnan(v) for v in p.bounds)
-
-
 def test_point_immutable():
     p = Point(3.0, 4.0)
 

@@ -709,7 +709,7 @@ def segmentize(geometry, tolerance, **kwargs):
 
 
 @multithreading_enabled
-def simplify(geometry, tolerance, preserve_topology=False, **kwargs):
+def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
     """Returns a simplified version of an input geometry using the
     Douglas-Peucker algorithm.
 
@@ -720,7 +720,9 @@ def simplify(geometry, tolerance, preserve_topology=False, **kwargs):
         The maximum allowed geometry displacement. The higher this value, the
         smaller the number of vertices in the resulting geometry.
     preserve_topology : bool, default False
-        If set to True, the operation will avoid creating invalid geometries.
+        By default (True), the operation will avoid creating invalid
+        geometries (checking for collapses, ring-intersections, etc), but
+        this is computationally more expensive.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.

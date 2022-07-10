@@ -78,8 +78,8 @@ def shape(context):
     -------
     Geometry object
 
-    Example
-    -------
+    Examples
+    --------
     Create a Point from GeoJSON, and then create a copy using __geo_interface__.
 
     >>> context = {'type': 'Point', 'coordinates': [0, 1]}
@@ -134,8 +134,8 @@ def mapping(ob):
     -------
     dict
 
-    Example
-    -------
+    Examples
+    --------
     >>> pt = Point(0, 0)
     >>> mapping(pt)
     {'type': 'Point', 'coordinates': (0.0, 0.0)}

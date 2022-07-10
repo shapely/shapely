@@ -1,7 +1,7 @@
 Set operations
 ==============
 
-.. automodule:: pygeos.set_operations
+.. automodule:: shapely.set_operations
    :members:
    :exclude-members:
    :special-members:

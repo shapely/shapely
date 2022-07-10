@@ -9,6 +9,10 @@ from pkg_resources import parse_version
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext as _build_ext
 
+# ensure the current directory is on sys.path so versioneer can be imported
+# when pip uses PEP 517/518 build rules.
+# https://github.com/python-versioneer/python-versioneer/issues/193
+sys.path.append(os.path.dirname(__file__))
 import versioneer
 
 # Skip Cython build if not available
@@ -214,10 +218,37 @@ cmdclass["build_ext"] = build_ext
 setup(
     name="shapely",
     version=version,
+    description="Manipulation and analysis of geometric objects",
+    long_description=descr,
+    license="BSD 3-Clause",
+    url="https://github.com/shapely/shapely",
+    keywords="geometry topology gis",
+    author="Sean Gillies",
+    maintainer="Shapely contributors",
     packages=find_packages(include=["shapely", "shapely.*"]),
     install_requires=["numpy>=1.13"],
     python_requires=">=3.6",
+    extras_require={
+        "test": ["pytest"],
+        "docs": ["sphinx", "numpydoc"],
+    },
     include_package_data=True,
     ext_modules=ext_modules,
     cmdclass=cmdclass,
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: BSD License",
+        "Operating System :: Unix",
+        "Operating System :: MacOS",
+        "Operating System :: Microsoft :: Windows",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Topic :: Scientific/Engineering :: GIS",
+    ],
 )

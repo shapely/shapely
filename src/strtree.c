@@ -326,97 +326,6 @@ static char evaluate_predicate(void* context, FuncGEOS_YpY_b* predicate_func,
   return errstate;
 }
 
-/* Query the tree based on input geometry and predicate function.
- * The index of each geometry in the tree whose envelope intersects the
- * envelope of the input geometry is returned by default.
- * If predicate function is provided, only the index of those geometries that
- * satisfy the predicate function are returned.
- *
- * args must be:
- * - shapely geometry object
- * - predicate id (see strtree.py for list of ids)
- * */
-
-static PyObject* STRtree_query(STRtreeObject* self, PyObject* args) {
-  GeometryObject* geometry = NULL;
-  int predicate_id = 0;  // default no predicate
-  GEOSGeometry* geom = NULL;
-  GEOSPreparedGeometry* prepared_geom = NULL;
-  npy_intp count;
-  FuncGEOS_YpY_b* predicate_func = NULL;
-  PyArrayObject* result;
-
-  // Addresses in tree geometries (_geoms) that match tree
-  tree_geom_vec_t query_geoms;
-
-  // Addresses in tree geometries (_geoms) that meet predicate (if present)
-  tree_geom_vec_t predicate_geoms;
-
-  if (self->ptr == NULL) {
-    PyErr_SetString(PyExc_RuntimeError, "Tree is uninitialized");
-    return NULL;
-  }
-
-  if (!PyArg_ParseTuple(args, "O!i", &GeometryType, &geometry, &predicate_id)) {
-    return NULL;
-  }
-
-  if (!get_geom_with_prepared(geometry, &geom, &prepared_geom)) {
-    PyErr_SetString(PyExc_TypeError, "Invalid geometry");
-    return NULL;
-  }
-
-  if (self->count == 0) {
-    npy_intp dims[1] = {0};
-    return PyArray_SimpleNew(1, dims, NPY_INTP);
-  }
-
-  if (predicate_id != 0) {
-    predicate_func = get_predicate_func(predicate_id);
-    if (predicate_func == NULL) {
-      return NULL;
-    }
-  }
-
-  GEOS_INIT;
-
-  // query the tree for addresses of tree geometries (_geoms) in the tree with
-  // envelopes that intersect the geometry.
-  kv_init(query_geoms);
-  if (geom != NULL && !GEOSisEmpty_r(ctx, geom)) {
-    GEOSSTRtree_query_r(ctx, self->ptr, geom, query_callback, &query_geoms);
-  }
-
-  if (predicate_id == 0 || kv_size(query_geoms) == 0) {
-    // No predicate function provided, return all geometry indexes from
-    // query.  If array is empty, return an empty numpy array
-    result = tree_geom_offsets_to_npy_arr(self->_geoms, &query_geoms);
-    kv_destroy(query_geoms);
-    GEOS_FINISH;
-    return (PyObject*)result;
-  }
-
-  kv_init(predicate_geoms);
-  errstate = evaluate_predicate(ctx, predicate_func, geom, prepared_geom, &query_geoms,
-                                &predicate_geoms, &count);
-  if (errstate != PGERR_SUCCESS) {
-    // error performing predicate
-    kv_destroy(query_geoms);
-    kv_destroy(predicate_geoms);
-    GEOS_FINISH;
-    return NULL;
-  }
-
-  // calculate indices of tree geometries and output to array
-  result = tree_geom_offsets_to_npy_arr(self->_geoms, &predicate_geoms);
-
-  kv_destroy(query_geoms);
-  kv_destroy(predicate_geoms);
-
-  GEOS_FINISH;
-  return (PyObject*)result;
-}
-
 /* Query the tree based on input geometries and predicate function.
  * The index of each geometry in the tree whose envelope intersects the
  * envelope of the input geometry is returned by default.
@@ -431,7 +340,7 @@ static PyObject* STRtree_query(STRtreeObject* self, PyObject* args) {
  *
  * */
 
-static PyObject* STRtree_query_bulk(STRtreeObject* self, PyObject* args) {
+static PyObject* STRtree_query(STRtreeObject* self, PyObject* args) {
   PyObject* arr;
   PyArrayObject* pg_geoms;
   GeometryObject* pg_geom = NULL;
@@ -1289,10 +1198,6 @@ static PyMemberDef STRtree_members[] = {
 
 static PyMethodDef STRtree_methods[] = {
     {"query", (PyCFunction)STRtree_query, METH_VARARGS,
-     "Queries the index for all items whose extents intersect the given search geometry, "
-     "and optionally tests them "
-     "against predicate function if provided. "},
-    {"query_bulk", (PyCFunction)STRtree_query_bulk, METH_VARARGS,
      "Queries the index for all items whose extents intersect the given search "
      "geometries, and optionally tests them "
      "against predicate function if provided. "},
