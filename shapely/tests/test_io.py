@@ -88,51 +88,6 @@ GEOJSON_COLLECTION_EXPECTED = [
 ]
 
 
-class ShapelyGeometryMock:
-    def __init__(self, g):
-        self.g = g
-        self.__geom__ = g._ptr if hasattr(g, "_ptr") else g
-
-    @property
-    def __array_interface__(self):
-        # this should not be called
-        # (starting with numpy 1.20 it is called, but not used)
-        return np.array([1.0, 2.0]).__array_interface__
-
-    @property
-    def wkb(self):
-        return shapely.to_wkb(self.g)
-
-    @property
-    def geom_type(self):
-        idx = shapely.get_type_id(self.g)
-        return [
-            "None",
-            "Point",
-            "LineString",
-            "LinearRing",
-            "Polygon",
-            "MultiPoint",
-            "MultiLineString",
-            "MultiPolygon",
-            "GeometryCollection",
-        ][idx]
-
-    @property
-    def is_empty(self):
-        return shapely.is_empty(self.g)
-
-
-class ShapelyPreparedMock:
-    def __init__(self, g):
-        self.context = ShapelyGeometryMock(g)
-
-
-def shapely_wkb_loads_mock(wkb):
-    geom = shapely.from_wkb(wkb)
-    return ShapelyGeometryMock(geom)
-
-
 def test_from_wkt():
     expected = shapely.points(1, 1)
     actual = shapely.from_wkt("POINT (1 1)")
@@ -382,7 +337,7 @@ def test_to_wkt_multipoint_with_point_empty_errors():
 
 
 def test_repr():
-    assert repr(point) == "<shapely.Point POINT (2 3)>"
+    assert repr(point) == "<POINT (2 3)>"
 
 
 def test_repr_max_length():
@@ -408,7 +363,7 @@ def test_repr_multipoint_with_point_empty():
     reason="Empty geometries have no dimensionality on GEOS < 3.9",
 )
 def test_repr_point_z_empty():
-    assert repr(empty_point_z) == "<shapely.Point POINT Z EMPTY>"
+    assert repr(empty_point_z) == "<POINT Z EMPTY>"
 
 
 def test_to_wkb():

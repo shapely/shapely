@@ -85,9 +85,6 @@ class MultiPolygon(BaseMultipartGeometry):
 
         return shapely.multipolygons(subs)
 
-    def shape_factory(self, *args):
-        return polygon.Polygon(*args)
-
     @property
     def __geo_interface__(self):
         allcoords = []
