@@ -90,4 +90,4 @@ def test_GeometryType_deprecated():
 def test_segmentize():
     line = LineString([(0, 0), (0, 10)])
     result = line.segmentize(tolerance=5)
-    assert result.equals(shapely.segmentize(line, tolerance=5))
+    assert result.equals(LineString([(0, 0), (0, 5), (0, 10)]))
