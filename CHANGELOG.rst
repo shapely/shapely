@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-Version 0.12 (unreleased)
+Version 0.12 (2021-12-03)
 -------------------------
 
 **Distribution**
@@ -13,7 +13,7 @@ Version 0.12 (unreleased)
   Python 3.10 (#427).
 * All binary wheels now have GEOS 3.10.1. See https://github.com/libgeos/geos/blob/main/NEWS
   for the changes (#422).
-
+* Linux x86_64 and i686 wheels are now built using the manylinux2014 image instead of manylinux2010 (#445).
 
 **Major enhancements**
 

@@ -1,8 +1,0 @@
-name: _shapely
-channels:
-- defaults
-dependencies:
-- python==3.6.*
-- geos==3.8.*
-- matplotlib
-- descartes

@@ -3,7 +3,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_equal
 
 import shapely
-from shapely import apply, count_coordinates, get_coordinates, set_coordinates
+from shapely import count_coordinates, get_coordinates, set_coordinates, transform
 
 from .common import (
     empty,
@@ -212,38 +212,38 @@ def test_set_coords_mixed_dimension(include_z):
     "geoms",
     [[], [empty], [None, point, None], [nested_3], [point, point_z], [line_string_z]],
 )
-def test_apply(geoms, include_z):
+def test_transform(geoms, include_z):
     geoms = np.array(geoms, np.object_)
     coordinates_before = get_coordinates(geoms, include_z=include_z)
-    new_geoms = apply(geoms, lambda x: x + 1, include_z=include_z)
+    new_geoms = transform(geoms, lambda x: x + 1, include_z=include_z)
     assert new_geoms is not geoms
     coordinates_after = get_coordinates(new_geoms, include_z=include_z)
     assert_allclose(coordinates_before + 1, coordinates_after, equal_nan=True)
 
 
-def test_apply_0dim():
+def test_transform_0dim():
     # a geometry input returns a geometry
-    actual = apply(point, lambda x: x + 1)
+    actual = transform(point, lambda x: x + 1)
     assert isinstance(actual, shapely.Geometry)
     # a 0-dim array input returns a 0-dim array
-    actual = apply(np.asarray(point), lambda x: x + 1)
+    actual = transform(np.asarray(point), lambda x: x + 1)
     assert isinstance(actual, np.ndarray)
     assert actual.ndim == 0
 
 
-def test_apply_check_shape():
+def test_transform_check_shape():
     def remove_coord(arr):
         return arr[:-1]
 
     with pytest.raises(ValueError):
-        apply(linear_ring, remove_coord)
+        transform(linear_ring, remove_coord)
 
 
-def test_apply_correct_coordinate_dimension():
+def test_transform_correct_coordinate_dimension():
     # ensure that new geometry is 2D with include_z=False
     geom = line_string_z
     assert shapely.get_coordinate_dimension(geom) == 3
-    new_geom = apply(geom, lambda x: x + 1, include_z=False)
+    new_geom = transform(geom, lambda x: x + 1, include_z=False)
     assert shapely.get_coordinate_dimension(new_geom) == 2
 
 
@@ -251,9 +251,9 @@ def test_apply_correct_coordinate_dimension():
     pytest.param(empty_point_z, marks=pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="Empty points don't have a dimensionality before GEOS 3.9")),
     empty_line_string_z,
 ])
-def test_apply_empty_preserve_z(geom):
+def test_transform_empty_preserve_z(geom):
     assert shapely.get_coordinate_dimension(geom) == 3
-    new_geom = apply(geom, lambda x: x + 1, include_z=True)
+    new_geom = transform(geom, lambda x: x + 1, include_z=True)
     assert shapely.get_coordinate_dimension(new_geom) == 3
 
 
@@ -261,7 +261,7 @@ def test_apply_empty_preserve_z(geom):
     pytest.param(empty_point_z, marks=pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="Empty points don't have a dimensionality before GEOS 3.9")),
     empty_line_string_z,
 ])
-def test_apply_remove_z(geom):
+def test_transform_remove_z(geom):
     assert shapely.get_coordinate_dimension(geom) == 3
-    new_geom = apply(geom, lambda x: x + 1, include_z=False)
+    new_geom = transform(geom, lambda x: x + 1, include_z=False)
     assert shapely.get_coordinate_dimension(new_geom) == 2

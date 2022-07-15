@@ -12,7 +12,7 @@ from warnings import warn
 import shapely
 from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
-from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
+from shapely.errors import GeometryTypeError, GEOSException, ShapelyDeprecationWarning
 
 try:
     import numpy as np
@@ -69,15 +69,6 @@ class BaseGeometry(shapely.Geometry):
 
     """
 
-    # Attributes
-    # ----------
-    # __geom__ : c_void_p
-    #     Cached ctypes pointer to GEOS geometry. Not to be accessed.
-    # _geom : c_void_p
-    #     Property by which the GEOS geometry is accessed.
-    # _ndim : int
-    #     Number of dimensions (2 or 3, generally)
-
     __slots__ = []
 
     def __new__(self):
@@ -91,14 +82,6 @@ class BaseGeometry(shapely.Geometry):
         return shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")
 
     @property
-    def _geom(self):
-        return self._ptr
-
-    @property
-    def __geom__(self):
-        return self._ptr
-
-    @property
     def _ndim(self):
         return shapely.get_coordinate_dimension(self)
 
@@ -109,7 +92,20 @@ class BaseGeometry(shapely.Geometry):
         return self.__bool__()
 
     def __repr__(self):
-        return "<shapely.geometry.{} {}>".format(self.__class__.__name__, self.wkt)
+        try:
+            wkt = super().__str__()
+        except (GEOSException, ValueError):
+            # we never want a repr() to fail; that can be very confusing
+            return "<shapely.{} Exception in WKT writer>".format(
+                self.__class__.__name__
+            )
+
+        # the total length is limited to 80 characters including brackets
+        max_length = 78
+        if len(wkt) > max_length:
+            return "<{}...>".format(wkt[: max_length - 3])
+
+        return "<{}>".format(wkt)
 
     def __str__(self):
         return self.wkt
@@ -157,6 +153,12 @@ class BaseGeometry(shapely.Geometry):
     # ----------------------------------------
 
     def geometryType(self):
+        warn(
+            "The 'GeometryType()' method is deprecated, and will be removed in "
+            "the future. You can use the 'geom_type' attribute instead.",
+            ShapelyDeprecationWarning,
+            stacklevel=2,
+        )
         return self.geom_type
 
     @property
@@ -269,19 +271,25 @@ class BaseGeometry(shapely.Geometry):
     @property
     def bounds(self):
         """Returns minimum bounding region (minx, miny, maxx, maxy)"""
-        # TODO(shapely-2.0) return empty tuple or (nan, nan, nan, nan)?
-        if self.is_empty:
-            return ()
-        else:
-            return tuple(shapely.bounds(self).tolist())
+        return tuple(shapely.bounds(self).tolist())
 
     @property
     def centroid(self):
         """Returns the geometric center of the object"""
         return shapely.centroid(self)
 
+    def point_on_surface(self):
+        """Returns a point guaranteed to be within the object, cheaply.
+
+        Alias of `representative_point`.
+        """
+        return shapely.point_on_surface(self)
+
     def representative_point(self):
-        """Returns a point guaranteed to be within the object, cheaply."""
+        """Returns a point guaranteed to be within the object, cheaply.
+
+        Alias of `point_on_surface`.
+        """
         return shapely.point_on_surface(self)
 
     @property
@@ -673,14 +681,40 @@ class BaseGeometry(shapely.Geometry):
     # Linear referencing
     # ------------------
 
+    def line_locate_point(self, other, normalized=False):
+        """Returns the distance along this geometry to a point nearest the
+        specified point
+
+        If the normalized arg is True, return the distance normalized to the
+        length of the linear geometry.
+
+        Alias of `project`.
+        """
+        return shapely.line_locate_point(self, other, normalized=normalized)
+
     def project(self, other, normalized=False):
         """Returns the distance along this geometry to a point nearest the
         specified point
 
         If the normalized arg is True, return the distance normalized to the
         length of the linear geometry.
+
+        Alias of `line_locate_point`.
         """
         return shapely.line_locate_point(self, other, normalized=normalized)
+
+    def line_interpolate_point(self, distance, normalized=False):
+        """Return a point at the specified distance along a linear geometry
+
+        Negative length values are taken as measured in the reverse
+        direction from the end of the geometry. Out-of-range index
+        values are handled by clamping them to the valid range of values.
+        If the normalized arg is True, the distance will be interpreted as a
+        fraction of the geometry's length.
+
+        Alias of `interpolate`.
+        """
+        return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
     def interpolate(self, distance, normalized=False):
         """Return a point at the specified distance along a linear geometry
@@ -690,6 +724,8 @@ class BaseGeometry(shapely.Geometry):
         values are handled by clamping them to the valid range of values.
         If the normalized arg is True, the distance will be interpreted as a
         fraction of the geometry's length.
+
+        Alias of `line_interpolate_point`.
         """
         return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
@@ -697,10 +733,6 @@ class BaseGeometry(shapely.Geometry):
 class BaseMultipartGeometry(BaseGeometry):
 
     __slots__ = []
-
-    def shape_factory(self, *args):
-        # Factory for part instances, usually a geometry class
-        raise NotImplementedError("To be implemented by derived classes")
 
     @property
     def coords(self):
@@ -711,9 +743,7 @@ class BaseMultipartGeometry(BaseGeometry):
 
     @property
     def geoms(self):
-        if self.is_empty:
-            return []
-        return GeometrySequence(self, self.shape_factory)
+        return GeometrySequence(self)
 
     def __bool__(self):
         return self.is_empty is False
@@ -743,20 +773,11 @@ class GeometrySequence:
 
     # Attributes
     # ----------
-    # _factory : callable
-    #     Returns instances of Shapely geometries
-    # _geom : c_void_p
-    #     Ctypes pointer to the parent's GEOS geometry
-    # _ndim : int
-    #     Number of dimensions (2 or 3, generally)
     # __p__ : object
     #     Parent (Shapely) geometry
-    shape_factory = None
-    _geom = None
     __p__ = None
-    _ndim = None
 
-    def __init__(self, parent, type):
+    def __init__(self, parent):
         self.__p__ = parent
 
     def _get_geom_item(self, i):
@@ -780,10 +801,6 @@ class GeometrySequence:
                 i = key
             return self._get_geom_item(i)
         elif isinstance(key, slice):
-            if type(self) == HeterogeneousGeometrySequence:
-                raise GeometryTypeError(
-                    "Heterogeneous geometry collections are not sliceable"
-                )
             res = []
             start, stop, stride = key.indices(m)
             for i in range(start, stop, stride):
@@ -791,18 +808,6 @@ class GeometrySequence:
             return type(self.__p__)(res or None)
         else:
             raise TypeError("key must be an index or slice")
-
-
-class HeterogeneousGeometrySequence(GeometrySequence):
-    """
-    Iterative access to a heterogeneous sequence of geometries.
-    """
-
-    def __init__(self, parent):
-        super().__init__(parent, None)
-
-    def _get_geom_item(self, i):
-        return shapely.get_geometry(self.__p__, i)
 
 
 class EmptyGeometry(BaseGeometry):

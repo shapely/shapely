@@ -9,14 +9,7 @@ import pytest
 import shapely
 from shapely.testing import assert_geometries_equal
 
-from .common import (
-    all_types,
-    empty_point,
-    empty_point_z,
-    point,
-    point_z,
-    shapely20_todo,
-)
+from .common import all_types, empty_point, empty_point_z, point, point_z
 
 # fmt: off
 POINT11_WKB = b"\x01\x01\x00\x00\x00" + struct.pack("<2d", 1.0, 1.0)
@@ -93,51 +86,6 @@ GEOJSON_COLLECTION_EXPECTED = [
         [[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]
     ),
 ]
-
-
-class ShapelyGeometryMock:
-    def __init__(self, g):
-        self.g = g
-        self.__geom__ = g._ptr if hasattr(g, "_ptr") else g
-
-    @property
-    def __array_interface__(self):
-        # this should not be called
-        # (starting with numpy 1.20 it is called, but not used)
-        return np.array([1.0, 2.0]).__array_interface__
-
-    @property
-    def wkb(self):
-        return shapely.to_wkb(self.g)
-
-    @property
-    def geom_type(self):
-        idx = shapely.get_type_id(self.g)
-        return [
-            "None",
-            "Point",
-            "LineString",
-            "LinearRing",
-            "Polygon",
-            "MultiPoint",
-            "MultiLineString",
-            "MultiPolygon",
-            "GeometryCollection",
-        ][idx]
-
-    @property
-    def is_empty(self):
-        return shapely.is_empty(self.g)
-
-
-class ShapelyPreparedMock:
-    def __init__(self, g):
-        self.context = ShapelyGeometryMock(g)
-
-
-def shapely_wkb_loads_mock(wkb):
-    geom = shapely.from_wkb(wkb)
-    return ShapelyGeometryMock(geom)
 
 
 def test_from_wkt():
@@ -388,12 +336,10 @@ def test_to_wkt_multipoint_with_point_empty_errors():
         shapely.to_wkt(geom)
 
 
-@shapely20_todo
 def test_repr():
-    assert repr(point) == "<pygeos.Geometry POINT (2 3)>"
+    assert repr(point) == "<POINT (2 3)>"
 
 
-@shapely20_todo
 def test_repr_max_length():
     # the repr is limited to 80 characters
     geom = shapely.linestrings(np.arange(1000), np.arange(1000))
@@ -402,7 +348,6 @@ def test_repr_max_length():
     assert representation.endswith("...>")
 
 
-@shapely20_todo
 @pytest.mark.skipif(
     shapely.geos_version >= (3, 9, 0),
     reason="MULTIPOINT (EMPTY, 2 3) gives Exception on GEOS < 3.9",
@@ -410,16 +355,15 @@ def test_repr_max_length():
 def test_repr_multipoint_with_point_empty():
     # Test if segfault is prevented
     geom = shapely.multipoints([point, empty_point])
-    assert repr(geom) == "<pygeos.Geometry Exception in WKT writer>"
+    assert repr(geom) == "<shapely.MultiPoint Exception in WKT writer>"
 
 
-@shapely20_todo
 @pytest.mark.skipif(
     shapely.geos_version < (3, 9, 0),
     reason="Empty geometries have no dimensionality on GEOS < 3.9",
 )
 def test_repr_point_z_empty():
-    assert repr(empty_point_z) == "<pygeos.Geometry POINT Z EMPTY>"
+    assert repr(empty_point_z) == "<POINT Z EMPTY>"
 
 
 def test_to_wkb():

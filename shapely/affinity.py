@@ -10,7 +10,7 @@ __all__ = ["affine_transform", "rotate", "scale", "skew", "translate"]
 
 
 def affine_transform(geom, matrix):
-    r"""Returns a transformed geometry using an affine transformation matrix.
+    r"""Return a transformed geometry using an affine transformation matrix.
 
     The coefficient matrix is provided as a list or tuple with 6 or 12 items
     for 2D or 3D transformations, respectively.
@@ -54,35 +54,24 @@ def affine_transform(geom, matrix):
             ndim = 3
             i = 1.0
             c = f = g = h = zoff = 0.0
-            matrix = a, b, c, d, e, f, g, h, i, xoff, yoff, zoff
     elif len(matrix) == 12:
         ndim = 3
         a, b, c, d, e, f, g, h, i, xoff, yoff, zoff = matrix
         if not geom.has_z:
             ndim = 2
-            matrix = a, b, d, e, xoff, yoff
     else:
         raise ValueError("'matrix' expects either 6 or 12 coefficients")
+    if ndim == 2:
+        A = np.array([[a, b], [d, e]], dtype=float)
+        off = np.array([xoff, yoff], dtype=float)
+    else:
+        A = np.array([[a, b, c], [d, e, f], [g, h, i]], dtype=float)
+        off = np.array([xoff, yoff, zoff], dtype=float)
 
     def _affine_coords(coords):
-        """Internal function to yield affine transform of coordinate tuples"""
-        x = coords[:, 0]
-        y = coords[:, 1]
+        return np.matmul(A, coords.T).T + off
 
-        if ndim == 2:
-            xp = a * x + b * y + xoff
-            yp = d * x + e * y + yoff
-            return np.hstack((np.atleast_2d(xp).T, np.atleast_2d(yp).T))
-        elif ndim == 3:
-            z = coords[:, 2]
-            xp = a * x + b * y + c * z + xoff
-            yp = d * x + e * y + f * z + yoff
-            zp = g * x + h * y + i * z + zoff
-            return np.hstack(
-                (np.atleast_2d(xp).T, np.atleast_2d(yp).T, np.atleast_2d(zp).T)
-            )
-
-    return shapely.apply(geom, _affine_coords, include_z=ndim == 3)
+    return shapely.transform(geom, _affine_coords, include_z=ndim == 3)
 
 
 def interpret_origin(geom, origin, ndim):

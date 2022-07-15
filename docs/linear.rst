@@ -1,7 +1,7 @@
-Coordinate operations
+Linestring operations
 =====================
 
-.. automodule:: pygeos.coordinates
+.. automodule:: shapely.linear
    :members:
    :undoc-members:
    :special-members:

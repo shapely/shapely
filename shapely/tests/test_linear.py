@@ -162,7 +162,7 @@ def test_shared_paths_non_linestring():
 def _prepare_input(geometry, prepare):
     """Prepare without modifying inplace"""
     if prepare:
-        geometry = shapely.apply(geometry, lambda x: x)  # makes a copy
+        geometry = shapely.transform(geometry, lambda x: x)  # makes a copy
         shapely.prepare(geometry)
         return geometry
     else:
