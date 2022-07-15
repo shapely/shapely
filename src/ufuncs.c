@@ -17,33 +17,25 @@
 #include "pygeom.h"
 
 /* This initializes a global value for interrupt checking */
-int interrupt_interval[1] = {NULL};
-unsigned long main_thread_id[1] = {NULL};
+int interrupt_interval[1] = {2147483647};
+unsigned long main_thread_id[1] = {0};
 
-PyObject* PySetInterruptInterval(PyObject* self, PyObject* args) {
+PyObject* PySetupInterruptChecks(PyObject* self, PyObject* args) {
   npy_intp ret;
-  int value;
+  int interval;
+  unsigned long thread_id;
 
-  if (!PyArg_ParseTuple(args, "i", &value)) {
+  if (!PyArg_ParseTuple(args, "ki", &thread_id, &interval)) {
     return NULL;
   }
 
-  if (value > 0) {
-    interrupt_interval[1] = value;
-  } else {
+  if (interval <= 0) {
     PyErr_SetString(PyExc_ValueError, "Interrupt interval must be greater than zero.");
-  }
-
-  Py_INCREF(Py_None);
-  return Py_None;
-}
-
-PyObject* PySetMainThreadId(PyObject* self, PyObject* args) {
-  npy_intp ret;
-
-  if (!PyArg_ParseTuple(args, "k", main_thread_id)) {
     return NULL;
   }
+
+  main_thread_id[0] = thread_id;
+  interrupt_interval[0] = interval;
 
   Py_INCREF(Py_None);
   return Py_None;
