@@ -414,10 +414,10 @@ class BaseGeometry(shapely.Geometry):
         --------
         >>> from shapely.wkt import loads
         >>> g = loads('POINT (0.0 0.0)')
-        >>> g.buffer(1.0).area        # 16-gon approx of a unit radius circle
+        >>> g.buffer(1.0).area        # 16-gon approx of a unit radius circle  # doctest: +ELLIPSIS
         3.1365484905459...
-        >>> g.buffer(1.0, 128).area   # 128-gon approximation
-        3.141513801144...
+        >>> g.buffer(1.0, 128).area   # 128-gon approximation  # doctest: +ELLIPSIS
+        3.141513801144301...
         >>> g.buffer(1.0, 3).area     # triangle approximation
         3.0
         >>> list(g.buffer(1.0, cap_style=CAP_STYLE.square).exterior.coords)
@@ -466,10 +466,10 @@ class BaseGeometry(shapely.Geometry):
 
         Examples
         --------
-        >>> from shapely.wkt import loads
-        >>> p = loads("MULTILINESTRING((0 0, 1 1), (3 3, 2 2))")
-        >>> p.normalize().wkt
-        'MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))'
+        >>> from shapely import MultiLineString
+        >>> line = MultiLineString([[(0, 0), (1, 1)], [(3, 3), (2, 2)]])
+        >>> line.normalize()
+        <MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))>
         """
         return shapely.normalize(self)
 
