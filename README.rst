@@ -152,7 +152,7 @@ dicts.
     >>> from shapely.geometry import mapping, shape
     >>> s = shape(json.loads('{"type": "Point", "coordinates": [0.0, 0.0]}'))
     >>> s
-    <shapely.geometry.point.Point object at 0x...>
+    <POINT (0 0)>
     >>> print(json.dumps(mapping(s)))
     {"type": "Point", "coordinates": [0.0, 0.0]}
 
