@@ -2,7 +2,7 @@ from .lib import GEOSException  # NOQA
 from .lib import Geometry  # NOQA
 from .lib import geos_version, geos_version_string  # NOQA
 from .lib import geos_capi_version, geos_capi_version_string  # NOQA
-from .lib import setup_interrupt_checks  # NOQA
+from .errors import setup_signal_checks  # NOQA
 from ._geometry import *  # NOQA
 from .creation import *  # NOQA
 from .constructive import *  # NOQA
@@ -31,6 +31,4 @@ from ._version import get_versions
 __version__ = get_versions()["version"]
 del get_versions
 
-import threading
-
-setup_interrupt_checks(threading.get_ident(), 10000)
+setup_signal_checks()

@@ -17,25 +17,17 @@
 #include "pygeom.h"
 
 /* This initializes a global value for interrupt checking */
-int interrupt_interval[1] = {2147483647};
+int check_signals_interval[1] = {2147483647};
 unsigned long main_thread_id[1] = {0};
 
-PyObject* PySetupInterruptChecks(PyObject* self, PyObject* args) {
+PyObject* PySetupSignalChecks(PyObject* self, PyObject* args) {
   npy_intp ret;
   int interval;
   unsigned long thread_id;
 
-  if (!PyArg_ParseTuple(args, "ki", &thread_id, &interval)) {
+  if (!PyArg_ParseTuple(args, "ik", check_signals_interval, main_thread_id)) {
     return NULL;
   }
-
-  if (interval <= 0) {
-    PyErr_SetString(PyExc_ValueError, "Interrupt interval must be greater than zero.");
-    return NULL;
-  }
-
-  main_thread_id[0] = thread_id;
-  interrupt_interval[0] = interval;
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -73,25 +65,25 @@ PyObject* PySetupInterruptChecks(PyObject* self, PyObject* args) {
 /* PyErr_CheckSignals calls python signal handler at iteration 10000, 20000, and
  * so forth. If a signal handler raises an exception (by default, SIGINT raises
  * a KeyboardIterrupt), it returns -1.
- * The caller needs to check 'errstate' and cleanup & exit if it equals PGERR_INTERRUPT.
+ * The caller needs to check 'errstate' and cleanup & exit if it equals PGERR_PYSIGNAL.
  */
-#define CHECK_INTERRUPT(I)                      \
-  if (((I + 1) % interrupt_interval[0]) == 0) { \
+#define CHECK_SIGNALS(I)                      \
+  if (((I + 1) % check_signals_interval[0]) == 0) { \
     if (PyErr_CheckSignals() == -1) {           \
-      errstate = PGERR_INTERRUPT;               \
+      errstate = PGERR_PYSIGNAL;               \
     };                                          \
   }
 
-/* This version of CHECK_INTERRUPT is to be used in a context without GIL
+/* This version of CHECK_SIGNALS is to be used in a context without GIL
  * the GIL is only acquired if the current thread is the main thread (else,
  * signals won't be set anyway)
  */
-#define CHECK_INTERRUPT_THREADS(I)                          \
-  if (((I + 1) % interrupt_interval[0]) == 0) {             \
+#define CHECK_SIGNALS_THREADS(I)                          \
+  if (((I + 1) % check_signals_interval[0]) == 0) {             \
     if (PyThread_get_thread_ident() == main_thread_id[0]) { \
       Py_BLOCK_THREADS;                                     \
       if (PyErr_CheckSignals() == -1) {                     \
-        errstate = PGERR_INTERRUPT;                         \
+        errstate = PGERR_PYSIGNAL;                         \
       }                                                     \
       Py_UNBLOCK_THREADS;                                   \
     }                                                       \
@@ -192,8 +184,8 @@ static void Y_b_func(char** args, npy_intp* dimensions, npy_intp* steps, void* d
   GEOS_INIT_THREADS;
 
   UNARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       goto finish;
     }
     /* get the geometry; return on error */
@@ -249,8 +241,8 @@ static void O_b_func(char** args, npy_intp* dimensions, npy_intp* steps, void* d
   FuncGEOS_O_b* func = (FuncGEOS_O_b*)data;
   GEOS_INIT_THREADS;
   UNARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       break;
     }
     *(npy_bool*)op1 = func(ctx, *(PyObject**)ip1);
@@ -271,8 +263,8 @@ static void YY_b_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
   GEOS_INIT_THREADS;
 
   BINARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       goto finish;
     }
     /* get the geometries: return on error */
@@ -350,8 +342,8 @@ static void YY_b_p_func(char** args, npy_intp* dimensions, npy_intp* steps, void
   GEOS_INIT_THREADS;
 
   BINARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       goto finish;
     }
     /* get the geometries: return on error */
@@ -398,8 +390,8 @@ static void is_prepared_func(char** args, npy_intp* dimensions, npy_intp* steps,
   GEOS_INIT_THREADS;
 
   UNARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       break;
     }
     /* get the geometry: return on error */
@@ -499,8 +491,8 @@ static void Y_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* d
   GEOS_INIT_THREADS;
 
   UNARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       break;
     }
@@ -566,6 +558,10 @@ static void Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* dat
   GEOS_INIT;
 
   NO_OUTPUT_LOOP {
+    CHECK_SIGNALS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      goto finish;
+    }
     geom_obj = *(GeometryObject**)ip1;
     if (!get_geom(geom_obj, &in1)) {
       errstate = PGERR_GEOS_EXCEPTION;
@@ -639,8 +635,8 @@ static void Yd_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
   GEOS_INIT_THREADS;
 
   BINARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       break;
     }
@@ -779,8 +775,8 @@ static void Yi_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
   GEOS_INIT_THREADS;
 
   BINARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       break;
     }
@@ -853,8 +849,8 @@ static void YY_Y_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
     errstate = PGERR_NOT_A_GEOMETRY;
   } else {
     BINARY_LOOP {
-      CHECK_INTERRUPT_THREADS(i);
-      if (errstate == PGERR_INTERRUPT) {
+      CHECK_SIGNALS_THREADS(i);
+      if (errstate == PGERR_PYSIGNAL) {
         break;
       }
       // Get the geometry inputs; in1 from previous iteration, in2 from array
@@ -939,8 +935,8 @@ static void YY_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
   GEOS_INIT_THREADS;
 
   BINARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       break;
     }
@@ -1057,8 +1053,8 @@ static void Y_d_func(char** args, npy_intp* dimensions, npy_intp* steps, void* d
   GEOS_INIT_THREADS;
 
   UNARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       goto finish;
     }
     /* get the geometry: return on error */
@@ -1142,8 +1138,8 @@ static void Y_i_func(char** args, npy_intp* dimensions, npy_intp* steps, void* d
   GEOS_INIT_THREADS;
 
   UNARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       goto finish;
     }
     /* get the geometry: return on error */
@@ -1232,8 +1228,8 @@ static void YY_d_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
   GEOS_INIT_THREADS;
 
   BINARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       goto finish;
     }
     /* get the geometries: return on error */
@@ -1282,8 +1278,8 @@ static void YYd_d_func(char** args, npy_intp* dimensions, npy_intp* steps, void*
   GEOS_INIT_THREADS;
 
   TERNARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       goto finish;
     }
     /* get the geometries: return on error */
@@ -1335,8 +1331,8 @@ static void YYd_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void*
   GEOS_INIT_THREADS;
 
   TERNARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       break;
     }
@@ -1391,8 +1387,8 @@ static void box_func(char** args, npy_intp* dimensions, npy_intp* steps, void* d
   GEOS_INIT_THREADS;
 
   for (i = 0; i < n; i++, ip1 += is1, ip2 += is2, ip3 += is3, ip4 += is4, ip5 += is5) {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       break;
     }
@@ -1490,8 +1486,8 @@ static void buffer_func(char** args, npy_intp* dimensions, npy_intp* steps, void
 
   if (errstate == PGERR_SUCCESS) {
     for (i = 0; i < n; i++, ip1 += is1, ip2 += is2) {
-      CHECK_INTERRUPT_THREADS(i);
-      if (errstate == PGERR_INTERRUPT) {
+      CHECK_SIGNALS_THREADS(i);
+      if (errstate == PGERR_PYSIGNAL) {
         destroy_geom_arr(ctx, geom_arr, i - 1);
         break;
       }
@@ -1548,8 +1544,8 @@ static void offset_curve_func(char** args, npy_intp* dimensions, npy_intp* steps
   GEOS_INIT_THREADS;
 
   for (i = 0; i < n; i++, ip1 += is1, ip2 += is2) {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       break;
     }
@@ -1598,8 +1594,8 @@ static void snap_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
   GEOS_INIT_THREADS;
 
   TERNARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       break;
     }
@@ -1665,8 +1661,8 @@ static void clip_by_rect_func(char** args, npy_intp* dimensions, npy_intp* steps
   GEOS_INIT_THREADS;
 
   for (i = 0; i < n; i++, ip1 += is1) {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       break;
     }
@@ -1710,8 +1706,8 @@ static void equals_exact_func(char** args, npy_intp* dimensions, npy_intp* steps
   GEOS_INIT_THREADS;
 
   TERNARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       goto finish;
     }
     /* get the geometries: return on error */
@@ -1754,8 +1750,8 @@ static void dwithin_func(char** args, npy_intp* dimensions, npy_intp* steps, voi
   GEOS_INIT_THREADS;
 
   TERNARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       goto finish;
     }
     /* get the geometries: return on error */
@@ -1811,8 +1807,8 @@ static void delaunay_triangles_func(char** args, npy_intp* dimensions, npy_intp*
   GEOS_INIT_THREADS;
 
   TERNARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       break;
     }
@@ -1863,8 +1859,8 @@ static void voronoi_polygons_func(char** args, npy_intp* dimensions, npy_intp* s
   GEOS_INIT_THREADS;
 
   QUATERNARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       break;
     }
@@ -1909,6 +1905,10 @@ static void is_valid_reason_func(char** args, npy_intp* dimensions, npy_intp* st
   GEOS_INIT;
 
   UNARY_LOOP {
+    CHECK_SIGNALS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      goto finish;
+    }
     PyObject** out = (PyObject**)op1;
     /* get the geometry return on error */
     if (!get_geom(*(GeometryObject**)ip1, &in1)) {
@@ -1946,6 +1946,10 @@ static void relate_func(char** args, npy_intp* dimensions, npy_intp* steps, void
   GEOS_INIT;
 
   BINARY_LOOP {
+    CHECK_SIGNALS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      goto finish;
+    }
     PyObject** out = (PyObject**)op1;
     /* get the geometries: return on error */
     if (!get_geom(*(GeometryObject**)ip1, &in1)) {
@@ -2010,8 +2014,8 @@ static void relate_pattern_func(char** args, npy_intp* dimensions, npy_intp* ste
   GEOS_INIT_THREADS;
 
   TERNARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       goto finish;
     }
     /* get the geometries: return on error */
@@ -2058,6 +2062,10 @@ static void polygonize_func(char** args, npy_intp* dimensions, npy_intp* steps,
   }
 
   SINGLE_COREDIM_LOOP_OUTER {
+    CHECK_SIGNALS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      goto finish;
+    }
     n_geoms = 0;
     SINGLE_COREDIM_LOOP_INNER {
       if (!get_geom(*(GeometryObject**)cp1, &geom)) {
@@ -2109,6 +2117,10 @@ static void polygonize_full_func(char** args, npy_intp* dimensions, npy_intp* st
   }
 
   SINGLE_COREDIM_LOOP_OUTER_NOUT4 {
+    CHECK_SIGNALS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      goto finish;
+    }
     n_geoms = 0;
     SINGLE_COREDIM_LOOP_INNER {
       if (!get_geom(*(GeometryObject**)cp1, &geom)) {
@@ -2182,8 +2194,8 @@ static void shortest_line_func(char** args, npy_intp* dimensions, npy_intp* step
   GEOS_INIT_THREADS;
 
   BINARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       break;
     }
@@ -2275,8 +2287,8 @@ static void set_precision_func(char** args, npy_intp* dimensions, npy_intp* step
   GEOS_INIT_THREADS;
 
   TERNARY_LOOP {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       break;
     }
@@ -2327,8 +2339,8 @@ static void points_func(char** args, npy_intp* dimensions, npy_intp* steps, void
   GEOS_INIT_THREADS;
 
   SINGLE_COREDIM_LOOP_OUTER {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
@@ -2388,8 +2400,8 @@ static void linestrings_func(char** args, npy_intp* dimensions, npy_intp* steps,
   GEOS_INIT_THREADS;
 
   DOUBLE_COREDIM_LOOP_OUTER {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
@@ -2443,8 +2455,8 @@ static void linearrings_func(char** args, npy_intp* dimensions, npy_intp* steps,
   GEOS_INIT_THREADS;
 
   DOUBLE_COREDIM_LOOP_OUTER {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
@@ -2516,8 +2528,8 @@ static void polygons_func(char** args, npy_intp* dimensions, npy_intp* steps,
   GEOS_INIT_THREADS;
 
   BINARY_SINGLE_COREDIM_LOOP_OUTER {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       break;
     }
@@ -2632,8 +2644,8 @@ static void create_collection_func(char** args, npy_intp* dimensions, npy_intp* 
   GEOS_INIT_THREADS;
 
   BINARY_SINGLE_COREDIM_LOOP_OUTER {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
@@ -2737,8 +2749,8 @@ static void bounds_func(char** args, npy_intp* dimensions, npy_intp* steps, void
   npy_intp is1 = steps[0], os1 = steps[1], cs1 = steps[2];
   npy_intp n = dimensions[0], i;
   for (i = 0; i < n; i++, ip1 += is1, op1 += os1) {
-    CHECK_INTERRUPT_THREADS(i);
-    if (errstate == PGERR_INTERRUPT) {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
       goto finish;
     }
     if (!get_geom(*(GeometryObject**)ip1, &in1)) {
@@ -2876,6 +2888,10 @@ static void from_wkb_func(char** args, npy_intp* dimensions, npy_intp* steps,
   }
 
   for (i = 0; i < n; i++, ip1 += is1, op1 += os1) {
+    CHECK_SIGNALS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      goto finish;
+    }
     /* ip1 is pointer to array element PyObject* */
     in1 = *(PyObject**)ip1;
 
@@ -2965,6 +2981,10 @@ static void from_wkt_func(char** args, npy_intp* dimensions, npy_intp* steps,
   }
 
   for (i = 0; i < n; i++, ip1 += is1, op1 += os1) {
+    CHECK_SIGNALS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      goto finish;
+    }
     /* ip1 is pointer to array element PyObject* */
     in1 = *(PyObject**)ip1;
 
@@ -3061,6 +3081,10 @@ static void to_wkb_func(char** args, npy_intp* dimensions, npy_intp* steps, void
   }
 
   for (i = 0; i < n; i++, ip1 += is1, op1 += os1) {
+    CHECK_SIGNALS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      goto finish;
+    }
     if (!get_geom(*(GeometryObject**)ip1, &in1)) {
       errstate = PGERR_NOT_A_GEOMETRY;
       goto finish;
@@ -3158,6 +3182,10 @@ static void to_wkt_func(char** args, npy_intp* dimensions, npy_intp* steps, void
   }
 
   for (i = 0; i < n; i++, ip1 += is1, op1 += os1) {
+    CHECK_SIGNALS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      goto finish;
+    }
     if (!get_geom(*(GeometryObject**)ip1, &in1)) {
       errstate = PGERR_NOT_A_GEOMETRY;
       goto finish;
@@ -3234,6 +3262,10 @@ static void from_geojson_func(char** args, npy_intp* dimensions, npy_intp* steps
   }
 
   for (i = 0; i < n; i++, ip1 += is1, op1 += os1) {
+    CHECK_SIGNALS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      goto finish;
+    }
     /* ip1 is pointer to array element PyObject* */
     in1 = *(PyObject**)ip1;
 
@@ -3313,6 +3345,10 @@ static void to_geojson_func(char** args, npy_intp* dimensions, npy_intp* steps,
   }
 
   for (i = 0; i < n; i++, ip1 += is1, op1 += os1) {
+    CHECK_SIGNALS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      goto finish;
+    }
     if (!get_geom(*(GeometryObject**)ip1, &in1)) {
       errstate = PGERR_NOT_A_GEOMETRY;
       goto finish;

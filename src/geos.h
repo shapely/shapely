@@ -58,7 +58,7 @@ enum {
   PGWARN_INVALID_WKB,  // raise the GEOS WKB error as a warning instead of exception
   PGWARN_INVALID_WKT,  // raise the GEOS WKT error as a warning instead of exception
   PGWARN_INVALID_GEOJSON,
-  PGERR_INTERRUPT
+  PGERR_PYSIGNAL
 };
 
 // Define how the states are handled by CPython
@@ -112,7 +112,7 @@ enum {
       PyErr_WarnFormat(PyExc_Warning, 0,                                                 \
                        "Invalid GeoJSON: geometry is returned as None. %s", last_error); \
       break;                                                                             \
-    case PGERR_INTERRUPT:                                                                \
+    case PGERR_PYSIGNAL:                                                                \
       break;                                                                             \
     default:                                                                             \
       PyErr_Format(PyExc_RuntimeError,                                                   \
