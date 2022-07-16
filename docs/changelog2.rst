@@ -8,10 +8,36 @@ Changelog
 Version 2.0.0 (2022-??-??)
 --------------------------
 
+The Shapely 2.0.0 version is a major release featuring a complete refactor of
+the internals and new vectorized (element-wise) array operations providing
+considerable performance improvements (based on the developments in the
+`PyGEOS <https://github.com/pygeos/pygeos>`__ package), along with several
+breaking API changes and many feature improvements.
+
+For more background, see
+`RFC 1: Roadmap for Shapely 2.0 <https://github.com/shapely/shapely-rfc/pull/1>`__.
+
+
 Refactor of the internals
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-No longer using ctypes, but C extension
+Before 2.0.0, Shapely wrapped the underlying GEOS C++ library using
+``ctypes``. While being a low-barrier way to wrap a C library, this runtime
+linking also entails overhead and robustness issues.
+
+With 2.0.0, the internals of Shapely have been refactored to remove the usage
+of ``ctypes``, and instead expose the GEOS functionality through a Python C
+extension module.
+
+The pointer to the actual GEOS Geometry object is stored in a lightweight
+`Python extension type <https://docs.python.org/3/extending/newtypes_tutorial.html>`__.
+This way, the GEOS pointer is accessible from C without Python overhead as a
+static attribute of the Python object (an attribute of the C struct that
+makes up a Python object). Hence, a single `Geometry` Python extension type
+is defined in C wrapping a `GEOSGeometry` pointer. This extension type is
+further subclassed in Python to provide the geometry type-specific classes
+from Shapely (Point, LineString, Polygon, etc).
+
 
 Top-level element-wise functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -78,7 +104,7 @@ Support for fixed precision model for geometries and in overlay functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * `set_precision` to conform a geometry to a certain grid size, and this will then also be used by subsequent overlay methods
-* `grid_size` keyword in overlay methods (`intersection`, `union`, `difference`, etc) 
+* `grid_size` keyword in overlay methods (`intersection`, `union`, `difference`, etc)
 
 
 * Addition of ``get_precision`` to get precision of a geometry and ``set_precision``
@@ -97,7 +123,7 @@ Releasing the GIL
 STRtree improvements
 ~~~~~~~~~~~~~~~~~~~~
 
-* Specifying a `predicate` in the STRtree queries 
+* Specifying a `predicate` in the STRtree queries
 * Bulk queries
 
 
