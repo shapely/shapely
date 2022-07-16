@@ -1,6 +1,7 @@
 """Shapely errors."""
-from shapely.lib import GEOSException, ShapelyError, _setup_signal_checks  # NOQA
 import threading
+
+from shapely.lib import _setup_signal_checks, GEOSException, ShapelyError  # NOQA
 
 
 def setup_signal_checks(interval=10000, main_thread_id=None):
@@ -18,7 +19,7 @@ def setup_signal_checks(interval=10000, main_thread_id=None):
         Python signal handlers are always executed in the main Python thread of the main
         interpreter. Shapely needs to know the main thread id to prevent needless signal
         checks which would deteriorate performance in multithreading contexts.
-    
+
     Notes
     -----
     For more information on signals consult the Python docs:
