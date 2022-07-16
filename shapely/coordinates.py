@@ -30,20 +30,20 @@ def transform(geometry, transformation, include_z=False):
     Examples
     --------
     >>> transform(Geometry("POINT (0 0)"), lambda x: x + 1)
-    <pygeos.Geometry POINT (1 1)>
+    <POINT (1 1)>
     >>> transform(Geometry("LINESTRING (2 2, 4 4)"), lambda x: x * [2, 3])
-    <pygeos.Geometry LINESTRING (4 6, 8 12)>
+    <LINESTRING (4 6, 8 12)>
     >>> transform(None, lambda x: x) is None
     True
     >>> transform([Geometry("POINT (0 0)"), None], lambda x: x).tolist()
-    [<pygeos.Geometry POINT (0 0)>, None]
+    [<POINT (0 0)>, None]
 
     By default, the third dimension is ignored:
 
     >>> transform(Geometry("POINT Z (0 0 0)"), lambda x: x + 1)
-    <pygeos.Geometry POINT (1 1)>
+    <POINT (1 1)>
     >>> transform(Geometry("POINT Z (0 0 0)"), lambda x: x + 1, include_z=True)
-    <pygeos.Geometry POINT Z (1 1 1)>
+    <POINT Z (1 1 1)>
     """
     geometry_arr = np.array(geometry, dtype=np.object_)  # makes a copy
     coordinates = lib.get_coordinates(geometry_arr, include_z, False)
@@ -163,19 +163,19 @@ def set_coordinates(geometry, coordinates):
     Examples
     --------
     >>> set_coordinates(Geometry("POINT (0 0)"), [[1, 1]])
-    <pygeos.Geometry POINT (1 1)>
+    <POINT (1 1)>
     >>> set_coordinates([Geometry("POINT (0 0)"), Geometry("LINESTRING (0 0, 0 0)")], [[1, 2], [3, 4], [5, 6]]).tolist()
-    [<pygeos.Geometry POINT (1 2)>, <pygeos.Geometry LINESTRING (3 4, 5 6)>]
+    [<POINT (1 2)>, <LINESTRING (3 4, 5 6)>]
     >>> set_coordinates([None, Geometry("POINT (0 0)")], [[1, 2]]).tolist()
-    [None, <pygeos.Geometry POINT (1 2)>]
+    [None, <POINT (1 2)>]
 
     Third dimension of input geometry is discarded if coordinates array does
     not include one:
 
     >>> set_coordinates(Geometry("POINT Z (0 0 0)"), [[1, 1]])
-    <pygeos.Geometry POINT (1 1)>
+    <POINT (1 1)>
     >>> set_coordinates(Geometry("POINT Z (0 0 0)"), [[1, 1, 1]])
-    <pygeos.Geometry POINT Z (1 1 1)>
+    <POINT Z (1 1 1)>
     """
     geometry_arr = np.asarray(geometry, dtype=np.object_)
     coordinates = np.atleast_2d(np.asarray(coordinates)).astype(np.float64)

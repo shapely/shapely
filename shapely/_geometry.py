@@ -339,13 +339,13 @@ def get_point(geometry, index, **kwargs):
     --------
     >>> line = Geometry("LINESTRING (0 0, 1 1, 2 2, 3 3)")
     >>> get_point(line, 1)
-    <pygeos.Geometry POINT (1 1)>
+    <POINT (1 1)>
     >>> get_point(line, -2)
-    <pygeos.Geometry POINT (2 2)>
+    <POINT (2 2)>
     >>> get_point(line, [0, 3]).tolist()
-    [<pygeos.Geometry POINT (0 0)>, <pygeos.Geometry POINT (3 3)>]
+    [<POINT (0 0)>, <POINT (3 3)>]
     >>> get_point(Geometry("LINEARRING (0 0, 1 1, 2 2, 0 0)"), 1)
-    <pygeos.Geometry POINT (1 1)>
+    <POINT (1 1)>
     >>> get_point(Geometry("MULTIPOINT (0 0, 1 1, 2 2, 3 3)"), 1) is None
     True
     >>> get_point(Geometry("POINT (1 1)"), 0) is None
@@ -408,7 +408,7 @@ def get_exterior_ring(geometry, **kwargs):
     Examples
     --------
     >>> get_exterior_ring(Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))"))
-    <pygeos.Geometry LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>
+    <LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>
     >>> get_exterior_ring(Geometry("POINT (1 1)")) is None
     True
     """
@@ -437,7 +437,7 @@ def get_interior_ring(geometry, index, **kwargs):
     --------
     >>> polygon_with_hole = Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))")
     >>> get_interior_ring(polygon_with_hole, 0)
-    <pygeos.Geometry LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>
+    <LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>
     >>> get_interior_ring(Geometry("POINT (1 1)"), 0) is None
     True
     """
@@ -508,13 +508,13 @@ def get_geometry(geometry, index, **kwargs):
     --------
     >>> multipoint = Geometry("MULTIPOINT (0 0, 1 1, 2 2, 3 3)")
     >>> get_geometry(multipoint, 1)
-    <pygeos.Geometry POINT (1 1)>
+    <POINT (1 1)>
     >>> get_geometry(multipoint, -1)
-    <pygeos.Geometry POINT (3 3)>
+    <POINT (3 3)>
     >>> get_geometry(multipoint, 5) is None
     True
     >>> get_geometry(Geometry("POINT (1 1)"), 0)
-    <pygeos.Geometry POINT (1 1)>
+    <POINT (1 1)>
     >>> get_geometry(Geometry("POINT (1 1)"), 1) is None
     True
     """
@@ -547,10 +547,10 @@ def get_parts(geometry, return_index=False):
     Examples
     --------
     >>> get_parts(Geometry("MULTIPOINT (0 1, 2 3)")).tolist()
-    [<pygeos.Geometry POINT (0 1)>, <pygeos.Geometry POINT (2 3)>]
+    [<POINT (0 1)>, <POINT (2 3)>]
     >>> parts, index = get_parts([Geometry("MULTIPOINT (0 1)"), Geometry("MULTIPOINT (4 5, 6 7)")], return_index=True)
     >>> parts.tolist()
-    [<pygeos.Geometry POINT (0 1)>, <pygeos.Geometry POINT (4 5)>, <pygeos.Geometry POINT (6 7)>]
+    [<POINT (0 1)>, <POINT (4 5)>, <POINT (6 7)>]
     >>> index.tolist()
     [0, 1, 1]
     """
@@ -595,17 +595,17 @@ def get_rings(geometry, return_index=False):
     >>> polygon_with_hole = Geometry("POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), \
 (2 2, 2 4, 4 4, 4 2, 2 2))")
     >>> get_rings(polygon_with_hole).tolist()
-    [<pygeos.Geometry LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>,
-     <pygeos.Geometry LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>]
+    [<LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>,
+     <LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>]
 
     With ``return_index=True``:
 
     >>> polygon = Geometry("POLYGON ((0 0, 2 0, 2 2, 0 2, 0 0))")
     >>> rings, index = get_rings([polygon, polygon_with_hole], return_index=True)
     >>> rings.tolist()
-    [<pygeos.Geometry LINEARRING (0 0, 2 0, 2 2, 0 2, 0 0)>,
-     <pygeos.Geometry LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>,
-     <pygeos.Geometry LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>]
+    [<LINEARRING (0 0, 2 0, 2 2, 0 2, 0 0)>,
+     <LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>,
+     <LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>]
     >>> index.tolist()
     [0, 1, 1]
     """
@@ -754,17 +754,17 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
     Examples
     --------
     >>> set_precision(Geometry("POINT (0.9 0.9)"), 1.0)
-    <pygeos.Geometry POINT (1 1)>
+    <POINT (1 1)>
     >>> set_precision(Geometry("POINT (0.9 0.9 0.9)"), 1.0)
-    <pygeos.Geometry POINT Z (1 1 0.9)>
+    <POINT Z (1 1 0.9)>
     >>> set_precision(Geometry("LINESTRING (0 0, 0 0.1, 0 1, 1 1)"), 1.0)
-    <pygeos.Geometry LINESTRING (0 0, 0 1, 1 1)>
+    <LINESTRING (0 0, 0 1, 1 1)>
     >>> set_precision(Geometry("LINESTRING (0 0, 0 0.1, 0.1 0.1)"), 1.0, mode="valid_output")
-    <pygeos.Geometry LINESTRING Z EMPTY>
+    <LINESTRING Z EMPTY>
     >>> set_precision(Geometry("LINESTRING (0 0, 0 0.1, 0.1 0.1)"), 1.0, mode="pointwise")
-    <pygeos.Geometry LINESTRING (0 0, 0 0, 0 0)>
+    <LINESTRING (0 0, 0 0, 0 0)>
     >>> set_precision(Geometry("LINESTRING (0 0, 0 0.1, 0.1 0.1)"), 1.0, mode="keep_collapsed")
-    <pygeos.Geometry LINESTRING (0 0, 0 0)>
+    <LINESTRING (0 0, 0 0)>
     >>> set_precision(None, 1.0) is None
     True
     """
@@ -802,13 +802,13 @@ def force_2d(geometry, **kwargs):
     Examples
     --------
     >>> force_2d(Geometry("POINT Z (0 0 0)"))
-    <pygeos.Geometry POINT (0 0)>
+    <POINT (0 0)>
     >>> force_2d(Geometry("POINT (0 0)"))
-    <pygeos.Geometry POINT (0 0)>
+    <POINT (0 0)>
     >>> force_2d(Geometry("LINESTRING (0 0 0, 0 1 1, 1 1 2)"))
-    <pygeos.Geometry LINESTRING (0 0, 0 1, 1 1)>
+    <LINESTRING (0 0, 0 1, 1 1)>
     >>> force_2d(Geometry("POLYGON Z EMPTY"))
-    <pygeos.Geometry POLYGON EMPTY>
+    <POLYGON EMPTY>
     >>> force_2d(None) is None
     True
     """
@@ -836,11 +836,11 @@ def force_3d(geometry, z=0.0, **kwargs):
     Examples
     --------
     >>> force_3d(Geometry("POINT (0 0)"), z=3)
-    <pygeos.Geometry POINT Z (0 0 3)>
+    <POINT Z (0 0 3)>
     >>> force_3d(Geometry("POINT Z (0 0 0)"), z=3)
-    <pygeos.Geometry POINT Z (0 0 0)>
+    <POINT Z (0 0 0)>
     >>> force_3d(Geometry("LINESTRING (0 0, 0 1, 1 1)"))
-    <pygeos.Geometry LINESTRING Z (0 0 0, 0 1 0, 1 1 0)>
+    <LINESTRING Z (0 0 0, 0 1 0, 1 1 0)>
     >>> force_3d(None) is None
     True
     """

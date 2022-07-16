@@ -61,17 +61,17 @@ def boundary(geometry, **kwargs):
     Examples
     --------
     >>> boundary(Geometry("POINT (0 0)"))
-    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
+    <GEOMETRYCOLLECTION EMPTY>
     >>> boundary(Geometry("LINESTRING(0 0, 1 1, 1 2)"))
-    <pygeos.Geometry MULTIPOINT (0 0, 1 2)>
+    <MULTIPOINT (0 0, 1 2)>
     >>> boundary(Geometry("LINEARRING (0 0, 1 0, 1 1, 0 1, 0 0)"))
-    <pygeos.Geometry MULTIPOINT EMPTY>
+    <MULTIPOINT EMPTY>
     >>> boundary(Geometry("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))"))
-    <pygeos.Geometry LINESTRING (0 0, 1 0, 1 1, 0 1, 0 0)>
+    <LINESTRING (0 0, 1 0, 1 1, 0 1, 0 0)>
     >>> boundary(Geometry("MULTIPOINT (0 0, 1 2)"))
-    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
+    <GEOMETRYCOLLECTION EMPTY>
     >>> boundary(Geometry("MULTILINESTRING ((0 0, 1 1), (0 1, 1 0))"))
-    <pygeos.Geometry MULTIPOINT (0 0, 0 1, 1 0, 1 1)>
+    <MULTIPOINT (0 0, 0 1, 1 0, 1 1)>
     >>> boundary(Geometry("GEOMETRYCOLLECTION (POINT (0 0))")) is None
     True
     """
@@ -129,32 +129,32 @@ def buffer(
     Examples
     --------
     >>> buffer(Geometry("POINT (10 10)"), 2, quadsegs=1)
-    <pygeos.Geometry POLYGON ((12 10, 10 8, 8 10, 10 12, 12 10))>
+    <POLYGON ((12 10, 10 8, 8 10, 10 12, 12 10))>
     >>> buffer(Geometry("POINT (10 10)"), 2, quadsegs=2)
-    <pygeos.Geometry POLYGON ((12 10, 11.414 8.586, 10 8, 8.586 8.586, 8 10, 8.5...>
+    <POLYGON ((12 10, 11.414 8.586, 10 8, 8.586 8.586, 8 10, 8.586 11.414, 10 12...>
     >>> buffer(Geometry("POINT (10 10)"), -2, quadsegs=1)
-    <pygeos.Geometry POLYGON EMPTY>
+    <POLYGON EMPTY>
     >>> line = Geometry("LINESTRING (10 10, 20 10)")
     >>> buffer(line, 2, cap_style="square")
-    <pygeos.Geometry POLYGON ((20 12, 22 12, 22 8, 10 8, 8 8, 8 12, 20 12))>
+    <POLYGON ((20 12, 22 12, 22 8, 10 8, 8 8, 8 12, 20 12))>
     >>> buffer(line, 2, cap_style="flat")
-    <pygeos.Geometry POLYGON ((20 12, 20 8, 10 8, 10 12, 20 12))>
+    <POLYGON ((20 12, 20 8, 10 8, 10 12, 20 12))>
     >>> buffer(line, 2, single_sided=True, cap_style="flat")
-    <pygeos.Geometry POLYGON ((20 10, 10 10, 10 12, 20 12, 20 10))>
+    <POLYGON ((20 10, 10 10, 10 12, 20 12, 20 10))>
     >>> line2 = Geometry("LINESTRING (10 10, 20 10, 20 20)")
     >>> buffer(line2, 2, cap_style="flat", join_style="bevel")
-    <pygeos.Geometry POLYGON ((18 12, 18 20, 22 20, 22 10, 20 8, 10 8, 10 12, 18...>
+    <POLYGON ((18 12, 18 20, 22 20, 22 10, 20 8, 10 8, 10 12, 18 12))>
     >>> buffer(line2, 2, cap_style="flat", join_style="mitre")
-    <pygeos.Geometry POLYGON ((18 12, 18 20, 22 20, 22 8, 10 8, 10 12, 18 12))>
+    <POLYGON ((18 12, 18 20, 22 20, 22 8, 10 8, 10 12, 18 12))>
     >>> buffer(line2, 2, cap_style="flat", join_style="mitre", mitre_limit=1)
-    <pygeos.Geometry POLYGON ((18 12, 18 20, 22 20, 21.828 9, 21 8.172, 10 8, 10...>
+    <POLYGON ((18 12, 18 20, 22 20, 21.828 9, 21 8.172, 10 8, 10 12, 18 12))>
     >>> square = Geometry("POLYGON((0 0, 10 0, 10 10, 0 10, 0 0))")
     >>> buffer(square, 2, join_style="mitre")
-    <pygeos.Geometry POLYGON ((-2 -2, -2 12, 12 12, 12 -2, -2 -2))>
+    <POLYGON ((-2 -2, -2 12, 12 12, 12 -2, -2 -2))>
     >>> buffer(square, -2, join_style="mitre")
-    <pygeos.Geometry POLYGON ((2 2, 2 8, 8 8, 8 2, 2 2))>
+    <POLYGON ((2 2, 2 8, 8 8, 8 2, 2 2))>
     >>> buffer(square, -5, join_style="mitre")
-    <pygeos.Geometry POLYGON EMPTY>
+    <POLYGON EMPTY>
     >>> buffer(line, float("nan")) is None
     True
     """
@@ -222,9 +222,9 @@ def offset_curve(
     --------
     >>> line = Geometry("LINESTRING (0 0, 0 2)")
     >>> offset_curve(line, 2)
-    <pygeos.Geometry LINESTRING (-2 0, -2 2)>
+    <LINESTRING (-2 0, -2 2)>
     >>> offset_curve(line, -2)
-    <pygeos.Geometry LINESTRING (2 2, 2 0)>
+    <LINESTRING (2 2, 2 0)>
     """
     if isinstance(join_style, str):
         join_style = BufferJoinStyles.get_value(join_style)
@@ -263,13 +263,13 @@ def centroid(geometry, **kwargs):
     Examples
     --------
     >>> centroid(Geometry("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))"))
-    <pygeos.Geometry POINT (5 5)>
+    <POINT (5 5)>
     >>> centroid(Geometry("LINESTRING (0 0, 2 2, 10 10)"))
-    <pygeos.Geometry POINT (5 5)>
+    <POINT (5 5)>
     >>> centroid(Geometry("MULTIPOINT (0 0, 10 10)"))
-    <pygeos.Geometry POINT (5 5)>
+    <POINT (5 5)>
     >>> centroid(Geometry("POLYGON EMPTY"))
-    <pygeos.Geometry POINT EMPTY>
+    <POINT EMPTY>
     """
     return lib.centroid(geometry, **kwargs)
 
@@ -306,7 +306,7 @@ def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
     --------
     >>> line = Geometry("LINESTRING (0 0, 10 10)")
     >>> clip_by_rect(line, 0., 0., 1., 1.)
-    <pygeos.Geometry LINESTRING (0 0, 1 1)>
+    <LINESTRING (0 0, 1 1)>
     """
     if not all(np.isscalar(val) for val in [xmin, ymin, xmax, ymax]):
         raise TypeError("xmin/ymin/xmax/ymax only accepts scalar values")
@@ -334,9 +334,9 @@ def convex_hull(geometry, **kwargs):
     Examples
     --------
     >>> convex_hull(Geometry("MULTIPOINT (0 0, 10 0, 10 10)"))
-    <pygeos.Geometry POLYGON ((0 0, 10 10, 10 0, 0 0))>
+    <POLYGON ((0 0, 10 10, 10 0, 0 0))>
     >>> convex_hull(Geometry("POLYGON EMPTY"))
-    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
+    <GEOMETRYCOLLECTION EMPTY>
     """
     return lib.convex_hull(geometry, **kwargs)
 
@@ -366,17 +366,17 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     --------
     >>> points = Geometry("MULTIPOINT (50 30, 60 30, 100 100)")
     >>> delaunay_triangles(points)
-    <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
+    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
     >>> delaunay_triangles(points, only_edges=True)
-    <pygeos.Geometry MULTILINESTRING ((50 30, 100 100), (50 30, 60 30), (60 30, ...>
+    <MULTILINESTRING ((50 30, 100 100), (50 30, 60 30), (60 30, 100 100))>
     >>> delaunay_triangles(Geometry("MULTIPOINT (50 30, 51 30, 60 30, 100 100)"), tolerance=2)
-    <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
+    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
     >>> delaunay_triangles(Geometry("POLYGON ((50 30, 60 30, 100 100, 50 30))"))
-    <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
+    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
     >>> delaunay_triangles(Geometry("LINESTRING (50 30, 60 30, 100 100)"))
-    <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
+    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
     >>> delaunay_triangles(Geometry("GEOMETRYCOLLECTION EMPTY"))
-    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
+    <GEOMETRYCOLLECTION EMPTY>
     """
     return lib.delaunay_triangles(geometry, tolerance, only_edges, **kwargs)
 
@@ -395,13 +395,13 @@ def envelope(geometry, **kwargs):
     Examples
     --------
     >>> envelope(Geometry("LINESTRING (0 0, 10 10)"))
-    <pygeos.Geometry POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))>
+    <POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))>
     >>> envelope(Geometry("MULTIPOINT (0 0, 10 0, 10 10)"))
-    <pygeos.Geometry POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))>
+    <POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))>
     >>> envelope(Geometry("POINT (0 0)"))
-    <pygeos.Geometry POINT (0 0)>
+    <POINT (0 0)>
     >>> envelope(Geometry("GEOMETRYCOLLECTION EMPTY"))
-    <pygeos.Geometry POINT EMPTY>
+    <POINT EMPTY>
     """
     return lib.envelope(geometry, **kwargs)
 
@@ -423,15 +423,15 @@ def extract_unique_points(geometry, **kwargs):
     Examples
     --------
     >>> extract_unique_points(Geometry("POINT (0 0)"))
-    <pygeos.Geometry MULTIPOINT (0 0)>
+    <MULTIPOINT (0 0)>
     >>> extract_unique_points(Geometry("LINESTRING(0 0, 1 1, 1 1)"))
-    <pygeos.Geometry MULTIPOINT (0 0, 1 1)>
+    <MULTIPOINT (0 0, 1 1)>
     >>> extract_unique_points(Geometry("POLYGON((0 0, 1 0, 1 1, 0 0))"))
-    <pygeos.Geometry MULTIPOINT (0 0, 1 0, 1 1)>
+    <MULTIPOINT (0 0, 1 0, 1 1)>
     >>> extract_unique_points(Geometry("MULTIPOINT (0 0, 1 1, 0 0)"))
-    <pygeos.Geometry MULTIPOINT (0 0, 1 1)>
+    <MULTIPOINT (0 0, 1 1)>
     >>> extract_unique_points(Geometry("LINESTRING EMPTY"))
-    <pygeos.Geometry MULTIPOINT EMPTY>
+    <MULTIPOINT EMPTY>
     """
     return lib.extract_unique_points(geometry, **kwargs)
 
@@ -453,7 +453,7 @@ def build_area(geometry, **kwargs):
     Examples
     --------
     >>> build_area(Geometry("GEOMETRYCOLLECTION(POLYGON((0 0, 3 0, 3 3, 0 3, 0 0)), POLYGON((1 1, 1 2, 2 2, 1 1)))"))
-    <pygeos.Geometry POLYGON ((0 0, 0 3, 3 3, 3 0, 0 0), (1 1, 2 2, 1 2, 1 1))>
+    <POLYGON ((0 0, 0 3, 3 3, 3 0, 0 0), (1 1, 2 2, 1 2, 1 1))>
     """
     return lib.build_area(geometry, **kwargs)
 
@@ -473,7 +473,7 @@ def make_valid(geometry, **kwargs):
     Examples
     --------
     >>> make_valid(Geometry("POLYGON((0 0, 1 1, 1 2, 1 1, 0 0))"))
-    <pygeos.Geometry MULTILINESTRING ((0 0, 1 1), (1 1, 1 2))>
+    <MULTILINESTRING ((0 0, 1 1), (1 1, 1 2))>
     """
     return lib.make_valid(geometry, **kwargs)
 
@@ -497,7 +497,7 @@ def normalize(geometry, **kwargs):
     --------
     >>> p = Geometry("MULTILINESTRING((0 0, 1 1),(2 2, 3 3))")
     >>> normalize(p)
-    <pygeos.Geometry MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))>
+    <MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))>
     """
     return lib.normalize(geometry, **kwargs)
 
@@ -516,13 +516,13 @@ def point_on_surface(geometry, **kwargs):
     Examples
     --------
     >>> point_on_surface(Geometry("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))"))
-    <pygeos.Geometry POINT (5 5)>
+    <POINT (5 5)>
     >>> point_on_surface(Geometry("LINESTRING (0 0, 2 2, 10 10)"))
-    <pygeos.Geometry POINT (2 2)>
+    <POINT (2 2)>
     >>> point_on_surface(Geometry("MULTIPOINT (0 0, 10 10)"))
-    <pygeos.Geometry POINT (0 0)>
+    <POINT (0 0)>
     >>> point_on_surface(Geometry("POLYGON EMPTY"))
-    <pygeos.Geometry POINT EMPTY>
+    <POINT EMPTY>
     """
     return lib.point_on_surface(geometry, **kwargs)
 
@@ -574,7 +574,7 @@ def polygonize(geometries, **kwargs):
     ...     Geometry("LINESTRING (0 1, 1 1)"),
     ... ]
     >>> polygonize(lines)
-    <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((1 1, 0 0, 0 1, 1 1)))>
+    <GEOMETRYCOLLECTION (POLYGON ((1 1, 0 0, 0 1, 1 1)))>
     """
     return lib.polygonize(geometries, **kwargs)
 
@@ -630,10 +630,10 @@ def polygonize_full(geometries, **kwargs):
     ...     Geometry("LINESTRING (0 1, 1 1)"),
     ... ]
     >>> polygonize_full(lines)  # doctest: +NORMALIZE_WHITESPACE
-    (<pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((1 1, 0 0, 0 1, 1 1)))>,
-     <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>,
-     <pygeos.Geometry GEOMETRYCOLLECTION (LINESTRING (0 1, 1 1))>,
-     <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>)
+    (<GEOMETRYCOLLECTION (POLYGON ((1 1, 0 0, 0 1, 1 1)))>,
+     <GEOMETRYCOLLECTION EMPTY>,
+     <GEOMETRYCOLLECTION (LINESTRING (0 1, 1 1))>,
+     <GEOMETRYCOLLECTION EMPTY>)
     """
     return lib.polygonize_full(geometries, **kwargs)
 
@@ -662,9 +662,9 @@ def reverse(geometry, **kwargs):
     Examples
     --------
     >>> reverse(Geometry("LINESTRING (0 0, 1 2)"))
-    <pygeos.Geometry LINESTRING (1 2, 0 0)>
+    <LINESTRING (1 2, 0 0)>
     >>> reverse(Geometry("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))"))
-    <pygeos.Geometry POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
+    <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
     >>> reverse(None) is None
     True
     """
@@ -697,12 +697,12 @@ def segmentize(geometry, tolerance, **kwargs):
     Examples
     --------
     >>> line = Geometry("LINESTRING (0 0, 0 10)")
-    >>> segmentize(line, tolerance=5)  # doctest: +SKIP
-    <pygeos.Geometry LINESTRING (0 0, 0 5, 0 10)>
+    >>> segmentize(line, tolerance=5)
+    <LINESTRING (0 0, 0 5, 0 10)>
     >>> poly = Geometry("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))")
-    >>> segmentize(poly, tolerance=5)  # doctest: +SKIP
-    <pygeos.Geometry POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
-    >>> segmentize(None, tolerance=5) is None  # doctest: +SKIP
+    >>> segmentize(poly, tolerance=5)
+    <POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
+    >>> segmentize(None, tolerance=5) is None
     True
     """
     return lib.segmentize(geometry, tolerance, **kwargs)
@@ -731,14 +731,14 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
     --------
     >>> line = Geometry("LINESTRING (0 0, 1 10, 0 20)")
     >>> simplify(line, tolerance=0.9)
-    <pygeos.Geometry LINESTRING (0 0, 1 10, 0 20)>
+    <LINESTRING (0 0, 1 10, 0 20)>
     >>> simplify(line, tolerance=1)
-    <pygeos.Geometry LINESTRING (0 0, 0 20)>
+    <LINESTRING (0 0, 0 20)>
     >>> polygon_with_hole = Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))")
     >>> simplify(polygon_with_hole, tolerance=4, preserve_topology=True)
-    <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2...>
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))>
     >>> simplify(polygon_with_hole, tolerance=4, preserve_topology=False)
-    <pygeos.Geometry POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
     """
     if preserve_topology:
         return lib.simplify_preserve_topology(geometry, tolerance, **kwargs)
@@ -767,14 +767,14 @@ def snap(geometry, reference, tolerance, **kwargs):
     --------
     >>> point = Geometry("POINT (0 2)")
     >>> snap(Geometry("POINT (0.5 2.5)"), point, tolerance=1)
-    <pygeos.Geometry POINT (0 2)>
+    <POINT (0 2)>
     >>> snap(Geometry("POINT (0.5 2.5)"), point, tolerance=0.49)
-    <pygeos.Geometry POINT (0.5 2.5)>
+    <POINT (0.5 2.5)>
     >>> polygon = Geometry("POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))")
     >>> snap(polygon, Geometry("POINT (8 10)"), tolerance=5)
-    <pygeos.Geometry POLYGON ((0 0, 0 10, 8 10, 10 0, 0 0))>
+    <POLYGON ((0 0, 0 10, 8 10, 10 0, 0 0))>
     >>> snap(polygon, Geometry("LINESTRING (8 10, 8 0)"), tolerance=5)
-    <pygeos.Geometry POLYGON ((0 0, 0 10, 8 10, 8 0, 0 0))>
+    <POLYGON ((0 0, 0 10, 8 10, 8 0, 0 0))>
     """
     return lib.snap(geometry, reference, tolerance, **kwargs)
 
@@ -809,17 +809,17 @@ def voronoi_polygons(
     >>> from shapely import normalize
     >>> points = Geometry("MULTIPOINT (2 2, 4 2)")
     >>> normalize(voronoi_polygons(points))
-    <pygeos.Geometry GEOMETRYCOLLECTION (POLYGON ((3 0, 3 4, 6 4, 6 0, 3 0)), PO...>
+    <GEOMETRYCOLLECTION (POLYGON ((3 0, 3 4, 6 4, 6 0, 3 0)), POLYGON ((0 0, 0 4...>
     >>> voronoi_polygons(points, only_edges=True)
-    <pygeos.Geometry LINESTRING (3 4, 3 0)>
+    <LINESTRING (3 4, 3 0)>
     >>> voronoi_polygons(Geometry("MULTIPOINT (2 2, 4 2, 4.2 2)"), 0.5, only_edges=True)
-    <pygeos.Geometry LINESTRING (3 4.2, 3 -0.2)>
+    <LINESTRING (3 4.2, 3 -0.2)>
     >>> voronoi_polygons(points, extend_to=Geometry("LINESTRING (0 0, 10 10)"), only_edges=True)
-    <pygeos.Geometry LINESTRING (3 10, 3 0)>
+    <LINESTRING (3 10, 3 0)>
     >>> voronoi_polygons(Geometry("LINESTRING (2 2, 4 2)"), only_edges=True)
-    <pygeos.Geometry LINESTRING (3 4, 3 0)>
+    <LINESTRING (3 4, 3 0)>
     >>> voronoi_polygons(Geometry("POINT (2 2)"))
-    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
+    <GEOMETRYCOLLECTION EMPTY>
     """
     return lib.voronoi_polygons(geometry, tolerance, extend_to, only_edges, **kwargs)
 
@@ -845,17 +845,17 @@ def oriented_envelope(geometry, **kwargs):
     Examples
     --------
     >>> oriented_envelope(Geometry("MULTIPOINT (0 0, 10 0, 10 10)"))
-    <pygeos.Geometry POLYGON ((0 0, 5 -5, 15 5, 10 10, 0 0))>
+    <POLYGON ((0 0, 5 -5, 15 5, 10 10, 0 0))>
     >>> oriented_envelope(Geometry("LINESTRING (1 1, 5 1, 10 10)"))
-    <pygeos.Geometry POLYGON ((1 1, 3 -1, 12 8, 10 10, 1 1))>
+    <POLYGON ((1 1, 3 -1, 12 8, 10 10, 1 1))>
     >>> oriented_envelope(Geometry("POLYGON ((1 1, 15 1, 5 10, 1 1))"))
-    <pygeos.Geometry POLYGON ((15 1, 15 10, 1 10, 1 1, 15 1))>
+    <POLYGON ((15 1, 15 10, 1 10, 1 1, 15 1))>
     >>> oriented_envelope(Geometry("LINESTRING (1 1, 10 1)"))
-    <pygeos.Geometry LINESTRING (1 1, 10 1)>
+    <LINESTRING (1 1, 10 1)>
     >>> oriented_envelope(Geometry("POINT (2 2)"))
-    <pygeos.Geometry POINT (2 2)>
+    <POINT (2 2)>
     >>> oriented_envelope(Geometry("GEOMETRYCOLLECTION EMPTY"))
-    <pygeos.Geometry POLYGON EMPTY>
+    <POLYGON EMPTY>
     """
     return lib.oriented_envelope(geometry, **kwargs)
 
@@ -878,15 +878,15 @@ def minimum_bounding_circle(geometry, **kwargs):
     Examples
     --------
     >>> minimum_bounding_circle(Geometry("POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))"))
-    <pygeos.Geometry POLYGON ((12.071 5, 11.935 3.621, 11.533 2.294, 10.879 1.07...>
+    <POLYGON ((12.071 5, 11.935 3.621, 11.533 2.294, 10.879 1.072, 10 0, 8.928 -...>
     >>> minimum_bounding_circle(Geometry("LINESTRING (1 1, 10 10)"))
-    <pygeos.Geometry POLYGON ((11.864 5.5, 11.742 4.258, 11.38 3.065, 10.791 1.9...>
+    <POLYGON ((11.864 5.5, 11.742 4.258, 11.38 3.065, 10.791 1.964, 10 1, 9.036 ...>
     >>> minimum_bounding_circle(Geometry("MULTIPOINT (2 2, 4 2)"))
-    <pygeos.Geometry POLYGON ((4 2, 3.981 1.805, 3.924 1.617, 3.831 1.444, 3.707...>
+    <POLYGON ((4 2, 3.981 1.805, 3.924 1.617, 3.831 1.444, 3.707 1.293, 3.556 1....>
     >>> minimum_bounding_circle(Geometry("POINT (0 1)"))
-    <pygeos.Geometry POINT (0 1)>
+    <POINT (0 1)>
     >>> minimum_bounding_circle(Geometry("GEOMETRYCOLLECTION EMPTY"))
-    <pygeos.Geometry POLYGON EMPTY>
+    <POLYGON EMPTY>
 
     See also
     --------

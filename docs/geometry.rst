@@ -1,7 +1,7 @@
 Geometry
 ========
 
-The ``pygeos.Geometry`` class is the central datatype in PyGEOS. 
+The ``pygeos.Geometry`` class is the central datatype in PyGEOS.
 An instance of ``Geometry`` is a container of the actual GEOSGeometry object.
 The Geometry object keeps track of the underlying GEOSGeometry and
 lets the python garbage collector free its memory when it is not
@@ -33,7 +33,7 @@ Geometries can be serialized using pickle:
   >>> import pickle
   >>> pickled = pickle.dumps(point_1)
   >>> pickle.loads(point_1)
-  <pygeos.Geometry POINT (5.2 52.1)>
+  <POINT (5.2 52.1)>
 
 .. warning:: Pickling will convert linearrings to linestrings.
              See :func:`pygeos.io.to_wkb` for a complete list of limitations.
@@ -50,7 +50,7 @@ Therefore, geometries are equal if and only if their WKB representations are equ
 
   >>> point_3 = Geometry("POINT (5.2 52.1)")
   >>> {point_1, point_2, point_3}
-  {<pygeos.Geometry POINT (5.2 52.1)>, <pygeos.Geometry POINT (1 1)>}
+  {<POINT (5.2 52.1)>, <POINT (1 1)>}
 
 .. warning:: Due to limitations of WKB, linearrings will equal linestrings if they contain the exact same points.
              See :func:`pygeos.io.to_wkb`.
