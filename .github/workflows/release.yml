@@ -22,11 +22,13 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.8"
+          python-version: "3.9"
 
       - name: Build a source tarball
         run: |
@@ -76,7 +78,10 @@ jobs:
           cmake_osx_architectures: "x86_64;arm64"
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout source
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Cache GEOS build
         uses: actions/cache@v2
