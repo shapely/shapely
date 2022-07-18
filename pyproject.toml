@@ -2,8 +2,7 @@
 requires = [
     "cython",
     "oldest-supported-numpy",
-    "setuptools==59.6.0; python_version=='3.6'",
-    "setuptools>=61.0.0; python_version>'3.6'",
+    "setuptools>=61.0.0",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -29,14 +28,13 @@ classifiers = [
     "Operating System :: MacOS",
     "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-requires-python = ">=3.6"
+requires-python = ">=3.7"
 dependencies = [
     "numpy>=1.13",
 ]
