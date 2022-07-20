@@ -15,3 +15,9 @@ jobs:
 
       - name: Run black, flake8 and isort
         uses: pre-commit/action@v2.0.0
+
+      - name: Validate citation file
+        shell: bash
+        run: |
+          python -m pip install cffconvert
+          cffconvert --validate

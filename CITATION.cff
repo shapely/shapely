@@ -1,30 +1,41 @@
 cff-version: 1.2.0
-title: Shapely
 message: Please cite this software using these metadata.
 type: software
+title: Shapely
+# version: 2.0
+# date-released: 2022-MM-DD
+# doi: 10.5281/zenodo.#######
+abstract: Manipulation and analysis of geometric objects in the Cartesian plane.
+repository-artifact: https://pypi.org/project/Shapely
+repository-code: https://github.com/shapely/shapely
+license: BSD-3-Clause
 authors:
   - given-names: Sean
     family-names: Gillies
-    orcid: 'https://orcid.org/0000-0002-8401-9184'
+    orcid: https://orcid.org/0000-0002-8401-9184
   - given-names: Casper
-    family-names: Wel
-    name-particle: van der
+    family-names: van der Wel
     affiliation: Nelen & Schuurmans
-    orcid: 'https://orcid.org/0000-0002-5068-0476'
+    orcid: https://orcid.org/0000-0002-0488-2237
   - given-names: Joris
-    family-names: Bossche
-    name-particle: Van den
-    orcid: 'https://orcid.org/0000-0003-3284-2977'
+    family-names: Van den Bossche
+    orcid: https://orcid.org/0000-0003-3284-2977
   - given-names: Mike W.
     family-names: Taves
     email: mwtoews@gmail.com
     affiliation: GNS Science
-    orcid: 'https://orcid.org/0000-0003-3657-7963'
+    orcid: https://orcid.org/0000-0003-3657-7963
   - family-names: Arnott
     given-names: Joshua
   - family-names: Tonnhofer
     given-names: Oliver
   - family-names: Ward
     given-names: Brendan
-    affiliation: 'Astute Spruce, LLC'
-    orcid: 'https://orcid.org/0000-0002-0813-9774'
+    affiliation: Astute Spruce, LLC
+    orcid: https://orcid.org/0000-0002-0813-9774
+keywords:
+  - cartography
+  - geometry
+  - GEOS
+  - GIS
+  - topology
