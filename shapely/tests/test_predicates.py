@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 import shapely
-from shapely import Geometry
+from shapely import LinearRing, LineString
 
 from .common import (
     all_types,
@@ -212,12 +212,12 @@ def test_relate_pattern_non_scalar():
 @pytest.mark.parametrize(
     "geom, expected",
     [
-        (Geometry("LINEARRING (0 0, 0 1, 1 1, 0 0)"), False),
-        (Geometry("LINEARRING (0 0, 1 1, 0 1, 0 0)"), True),
-        (Geometry("LINESTRING (0 0, 0 1, 1 1, 0 0)"), False),
-        (Geometry("LINESTRING (0 0, 1 1, 0 1, 0 0)"), True),
-        (Geometry("LINESTRING (0 0, 1 1, 0 1)"), False),
-        (Geometry("LINESTRING (0 0, 0 1, 1 1)"), False),
+        (LinearRing([(0, 0), (0, 1), (1, 1), (0, 0)]), False),
+        (LinearRing([(0, 0), (1, 1), (0, 1), (0, 0)]), True),
+        (LineString([(0, 0), (0, 1), (1, 1), (0, 0)]), False),
+        (LineString([(0, 0), (1, 1), (0, 1), (0, 0)]), True),
+        (LineString([(0, 0), (1, 1), (0, 1)]), False),
+        (LineString([(0, 0), (0, 1), (1, 1)]), False),
         (point, False),
         (polygon, False),
         (geometry_collection, False),

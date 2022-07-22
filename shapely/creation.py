@@ -3,6 +3,7 @@ import numpy as np
 from . import Geometry, GeometryType, lib
 from ._geometry_helpers import collections_1d, simple_geometries_1d
 from .decorators import multithreading_enabled
+from .io import from_wkt
 
 __all__ = [
     "points",
@@ -550,5 +551,5 @@ def empty(shape, geom_type=None, order="C"):
     if geom_type is GeometryType.MISSING:
         return np.empty(shape, dtype=object, order=order)
 
-    fill_value = Geometry(geom_type.name + " EMPTY")
+    fill_value = from_wkt(geom_type.name + " EMPTY")
     return np.full(shape, fill_value, dtype=object, order=order)

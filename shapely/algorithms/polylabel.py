@@ -85,9 +85,8 @@ def polylabel(polygon, tolerance=1.0):
     >>> from shapely import wkt, LineString
     >>> polygon = LineString([(0, 0), (50, 200), (100, 100), (20, 50),
     ... (-100, -20), (-150, -200)]).buffer(100)
-    >>> label = polylabel(polygon, tolerance=10)
-    >>> wkt.dumps(label, rounding_precision=12)
-    'POINT (59.356155563646 121.839196297464)'
+    >>> polylabel(polygon, tolerance=10).wkt
+    'POINT (59.35615556364569 121.83919629746435)'
     """
     if not polygon.is_valid:
         raise TopologicalError("Invalid polygon")

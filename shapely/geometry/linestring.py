@@ -102,7 +102,7 @@ class LineString(BaseGeometry):
 
         Example:
 
-          >>> x, y = LineString(((0, 0), (1, 1))).xy
+          >>> x, y = LineString([(0, 0), (1, 1)]).xy
           >>> list(x)
           [0.0, 1.0]
           >>> list(y)

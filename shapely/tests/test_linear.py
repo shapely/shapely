@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 import shapely
+from shapely import GeometryCollection, LinearRing, LineString, MultiLineString, Point
 from shapely.testing import assert_geometries_equal
 
 from .common import (
@@ -21,39 +22,37 @@ def test_line_interpolate_point_geom_array():
     actual = shapely.line_interpolate_point(
         [line_string, linear_ring, multi_line_string], -1
     )
-    assert_geometries_equal(actual[0], shapely.Geometry("POINT (1 0)"))
-    assert_geometries_equal(actual[1], shapely.Geometry("POINT (0 1)"))
-    assert_geometries_equal(
-        actual[2], shapely.Geometry("POINT (0.5528 1.1056)"), tolerance=0.001
-    )
+    assert_geometries_equal(actual[0], Point(1, 0))
+    assert_geometries_equal(actual[1], Point(0, 1))
+    assert_geometries_equal(actual[2], Point(0.5528, 1.1056), tolerance=0.001)
 
 
 def test_line_interpolate_point_geom_array_normalized():
     actual = shapely.line_interpolate_point(
         [line_string, linear_ring, multi_line_string], 1, normalized=True
     )
-    assert_geometries_equal(actual[0], shapely.Geometry("POINT (1 1)"))
-    assert_geometries_equal(actual[1], shapely.Geometry("POINT (0 0)"))
-    assert_geometries_equal(actual[2], shapely.Geometry("POINT (1 2)"))
+    assert_geometries_equal(actual[0], Point(1, 1))
+    assert_geometries_equal(actual[1], Point(0, 0))
+    assert_geometries_equal(actual[2], Point(1, 2))
 
 
 def test_line_interpolate_point_float_array():
     actual = shapely.line_interpolate_point(line_string, [0.2, 1.5, -0.2])
-    assert_geometries_equal(actual[0], shapely.Geometry("POINT (0.2 0)"))
-    assert_geometries_equal(actual[1], shapely.Geometry("POINT (1 0.5)"))
-    assert_geometries_equal(actual[2], shapely.Geometry("POINT (1 0.8)"))
+    assert_geometries_equal(actual[0], Point(0.2, 0))
+    assert_geometries_equal(actual[1], Point(1, 0.5))
+    assert_geometries_equal(actual[2], Point(1, 0.8))
 
 
 @pytest.mark.parametrize("normalized", [False, True])
 @pytest.mark.parametrize(
     "geom",
     [
-        shapely.Geometry("LINESTRING EMPTY"),
-        shapely.Geometry("LINEARRING EMPTY"),
-        shapely.Geometry("MULTILINESTRING EMPTY"),
-        shapely.Geometry("MULTILINESTRING (EMPTY, (0 0, 1 1))"),
-        shapely.Geometry("GEOMETRYCOLLECTION EMPTY"),
-        shapely.Geometry("GEOMETRYCOLLECTION (LINESTRING EMPTY, POINT (1 1))"),
+        LineString(),
+        LinearRing(),
+        MultiLineString(),
+        shapely.from_wkt("MULTILINESTRING (EMPTY, (0 0, 1 1))"),
+        GeometryCollection(),
+        GeometryCollection([LineString(), Point(1, 1)]),
     ],
 )
 def test_line_interpolate_point_empty(geom, normalized):
@@ -134,7 +133,7 @@ def test_line_locate_point_invalid_geometry(normalized):
 def test_line_merge_geom_array():
     actual = shapely.line_merge([line_string, multi_line_string])
     assert_geometries_equal(actual[0], line_string)
-    assert_geometries_equal(actual[1], shapely.Geometry("LINESTRING (0 0, 1 2)"))
+    assert_geometries_equal(actual[1], LineString([(0, 0), (1, 2)]))
 
 
 def test_shared_paths_linestring():

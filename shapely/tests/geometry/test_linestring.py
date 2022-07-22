@@ -8,7 +8,7 @@ from shapely.coords import CoordinateSequence
 
 def test_from_coordinate_sequence():
     # From coordinate tuples
-    line = LineString(((1.0, 2.0), (3.0, 4.0)))
+    line = LineString([(1.0, 2.0), (3.0, 4.0)])
     assert len(line.coords) == 2
     assert line.coords[:] == [(1.0, 2.0), (3.0, 4.0)]
 
@@ -17,14 +17,14 @@ def test_from_coordinate_sequence():
 
 
 def test_from_coordinate_sequence_3D():
-    line = LineString(((1.0, 2.0, 3.0), (3.0, 4.0, 5.0)))
+    line = LineString([(1.0, 2.0, 3.0), (3.0, 4.0, 5.0)])
     assert line.has_z
     assert line.coords[:] == [(1.0, 2.0, 3.0), (3.0, 4.0, 5.0)]
 
 
 def test_from_points():
     # From Points
-    line = LineString((Point(1.0, 2.0), Point(3.0, 4.0)))
+    line = LineString([Point(1.0, 2.0), Point(3.0, 4.0)])
     assert line.coords[:] == [(1.0, 2.0), (3.0, 4.0)]
 
     line = LineString([Point(1.0, 2.0), Point(3.0, 4.0)])
@@ -33,13 +33,13 @@ def test_from_points():
 
 def test_from_mix():
     # From mix of tuples and Points
-    line = LineString((Point(1.0, 2.0), (2.0, 3.0), Point(3.0, 4.0)))
+    line = LineString([Point(1.0, 2.0), (2.0, 3.0), Point(3.0, 4.0)])
     assert line.coords[:] == [(1.0, 2.0), (2.0, 3.0), (3.0, 4.0)]
 
 
 def test_from_linestring():
     # From another linestring
-    line = LineString(((1.0, 2.0), (3.0, 4.0)))
+    line = LineString([(1.0, 2.0), (3.0, 4.0)])
     copy = LineString(line)
     assert copy.coords[:] == [(1.0, 2.0), (3.0, 4.0)]
     assert copy.geom_type == "LineString"
@@ -134,7 +134,7 @@ class TestLineString:
     def test_linestring(self):
 
         # From coordinate tuples
-        line = LineString(((1.0, 2.0), (3.0, 4.0)))
+        line = LineString([(1.0, 2.0), (3.0, 4.0)])
         assert len(line.coords) == 2
         assert line.coords[:] == [(1.0, 2.0), (3.0, 4.0)]
 
@@ -185,7 +185,7 @@ class TestLineString:
     def test_numpy_linestring_coords(self):
         from numpy.testing import assert_array_equal
 
-        line = LineString(((1.0, 2.0), (3.0, 4.0)))
+        line = LineString([(1.0, 2.0), (3.0, 4.0)])
         expected = np.array([[1.0, 2.0], [3.0, 4.0]])
 
         # Coordinate sequences can be adapted as well
@@ -194,7 +194,7 @@ class TestLineString:
 
 
 def test_linestring_immutable():
-    line = LineString(((1.0, 2.0), (3.0, 4.0)))
+    line = LineString([(1.0, 2.0), (3.0, 4.0)])
 
     with pytest.raises(AttributeError):
         line.coords = [(-1.0, -1.0), (1.0, 1.0)]
@@ -205,7 +205,7 @@ def test_linestring_immutable():
 
 def test_linestring_array_coercion():
     # don't convert to array of coordinates, keep objects
-    line = LineString(((1.0, 2.0), (3.0, 4.0)))
+    line = LineString([(1.0, 2.0), (3.0, 4.0)])
     arr = np.array(line)
     assert arr.ndim == 0
     assert arr.size == 1

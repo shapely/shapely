@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+import shapely
 from shapely import (
     GeometryCollection,
     LinearRing,
@@ -83,3 +84,10 @@ def test_GeometryType_deprecated():
         geom_type = geom.geometryType()
 
     assert geom_type == geom.geom_type
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
+def test_segmentize():
+    line = LineString([(0, 0), (0, 10)])
+    result = line.segmentize(tolerance=5)
+    assert result.equals(LineString([(0, 0), (0, 5), (0, 10)]))

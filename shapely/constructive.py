@@ -1,6 +1,5 @@
 import numpy as np
 
-from . import Geometry  # NOQA
 from . import lib
 from .decorators import multithreading_enabled, requires_geos
 from .enum import ParamEnum
@@ -60,19 +59,21 @@ def boundary(geometry, **kwargs):
 
     Examples
     --------
-    >>> boundary(Geometry("POINT (0 0)"))
+    >>> from shapely import GeometryCollection, LinearRing, LineString, \
+MultiLineString, MultiPoint, Point, Polygon
+    >>> boundary(Point(0, 0))
     <GEOMETRYCOLLECTION EMPTY>
-    >>> boundary(Geometry("LINESTRING(0 0, 1 1, 1 2)"))
+    >>> boundary(LineString([(0, 0), (1, 1), (1, 2)]))
     <MULTIPOINT (0 0, 1 2)>
-    >>> boundary(Geometry("LINEARRING (0 0, 1 0, 1 1, 0 1, 0 0)"))
+    >>> boundary(LinearRing([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]))
     <MULTIPOINT EMPTY>
-    >>> boundary(Geometry("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))"))
+    >>> boundary(Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]))
     <LINESTRING (0 0, 1 0, 1 1, 0 1, 0 0)>
-    >>> boundary(Geometry("MULTIPOINT (0 0, 1 2)"))
+    >>> boundary(MultiPoint([(0, 0), (1, 2)]))
     <GEOMETRYCOLLECTION EMPTY>
-    >>> boundary(Geometry("MULTILINESTRING ((0 0, 1 1), (0 1, 1 0))"))
+    >>> boundary(MultiLineString([[(0, 0), (1, 1)], [(0, 1), (1, 0)]]))
     <MULTIPOINT (0 0, 0 1, 1 0, 1 1)>
-    >>> boundary(Geometry("GEOMETRYCOLLECTION (POINT (0 0))")) is None
+    >>> boundary(GeometryCollection([Point(0, 0)])) is None
     True
     """
     return lib.boundary(geometry, **kwargs)
@@ -128,27 +129,28 @@ def buffer(
 
     Examples
     --------
-    >>> buffer(Geometry("POINT (10 10)"), 2, quadsegs=1)
+    >>> from shapely import LineString, Point, Polygon
+    >>> buffer(Point(10, 10), 2, quadsegs=1)
     <POLYGON ((12 10, 10 8, 8 10, 10 12, 12 10))>
-    >>> buffer(Geometry("POINT (10 10)"), 2, quadsegs=2)
-    <POLYGON ((12 10, 11.414 8.586, 10 8, 8.586 8.586, 8 10, 8.586 11.414, 10 12...>
-    >>> buffer(Geometry("POINT (10 10)"), -2, quadsegs=1)
+    >>> buffer(Point(10, 10), 2, quadsegs=2)
+    <POLYGON ((12 10, 11.414 8.586, 10 8, 8.586 8.586, 8 10, 8.5...>
+    >>> buffer(Point(10, 10), -2, quadsegs=1)
     <POLYGON EMPTY>
-    >>> line = Geometry("LINESTRING (10 10, 20 10)")
+    >>> line = LineString([(10, 10), (20, 10)])
     >>> buffer(line, 2, cap_style="square")
     <POLYGON ((20 12, 22 12, 22 8, 10 8, 8 8, 8 12, 20 12))>
     >>> buffer(line, 2, cap_style="flat")
     <POLYGON ((20 12, 20 8, 10 8, 10 12, 20 12))>
     >>> buffer(line, 2, single_sided=True, cap_style="flat")
     <POLYGON ((20 10, 10 10, 10 12, 20 12, 20 10))>
-    >>> line2 = Geometry("LINESTRING (10 10, 20 10, 20 20)")
+    >>> line2 = LineString([(10, 10), (20, 10), (20, 20)])
     >>> buffer(line2, 2, cap_style="flat", join_style="bevel")
     <POLYGON ((18 12, 18 20, 22 20, 22 10, 20 8, 10 8, 10 12, 18 12))>
     >>> buffer(line2, 2, cap_style="flat", join_style="mitre")
     <POLYGON ((18 12, 18 20, 22 20, 22 8, 10 8, 10 12, 18 12))>
     >>> buffer(line2, 2, cap_style="flat", join_style="mitre", mitre_limit=1)
     <POLYGON ((18 12, 18 20, 22 20, 21.828 9, 21 8.172, 10 8, 10 12, 18 12))>
-    >>> square = Geometry("POLYGON((0 0, 10 0, 10 10, 0 10, 0 0))")
+    >>> square = Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)])
     >>> buffer(square, 2, join_style="mitre")
     <POLYGON ((-2 -2, -2 12, 12 12, 12 -2, -2 -2))>
     >>> buffer(square, -2, join_style="mitre")
@@ -220,7 +222,8 @@ def offset_curve(
 
     Examples
     --------
-    >>> line = Geometry("LINESTRING (0 0, 0 2)")
+    >>> from shapely import LineString
+    >>> line = LineString([(0, 0), (0, 2)])
     >>> offset_curve(line, 2)
     <LINESTRING (-2 0, -2 2)>
     >>> offset_curve(line, -2)
@@ -262,13 +265,14 @@ def centroid(geometry, **kwargs):
 
     Examples
     --------
-    >>> centroid(Geometry("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))"))
+    >>> from shapely import LineString, MultiPoint, Polygon
+    >>> centroid(Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]))
     <POINT (5 5)>
-    >>> centroid(Geometry("LINESTRING (0 0, 2 2, 10 10)"))
+    >>> centroid(LineString([(0, 0), (2, 2), (10, 10)]))
     <POINT (5 5)>
-    >>> centroid(Geometry("MULTIPOINT (0 0, 10 10)"))
+    >>> centroid(MultiPoint([(0, 0), (10, 10)]))
     <POINT (5 5)>
-    >>> centroid(Geometry("POLYGON EMPTY"))
+    >>> centroid(Polygon())
     <POINT EMPTY>
     """
     return lib.centroid(geometry, **kwargs)
@@ -304,9 +308,13 @@ def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
 
     Examples
     --------
-    >>> line = Geometry("LINESTRING (0 0, 10 10)")
+    >>> from shapely import LineString, Polygon
+    >>> line = LineString([(0, 0), (10, 10)])
     >>> clip_by_rect(line, 0., 0., 1., 1.)
     <LINESTRING (0 0, 1 1)>
+    >>> polygon = Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)])
+    >>> clip_by_rect(polygon, 0., 0., 1., 1.)
+    <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
     """
     if not all(np.isscalar(val) for val in [xmin, ymin, xmax, ymax]):
         raise TypeError("xmin/ymin/xmax/ymax only accepts scalar values")
@@ -333,9 +341,10 @@ def convex_hull(geometry, **kwargs):
 
     Examples
     --------
-    >>> convex_hull(Geometry("MULTIPOINT (0 0, 10 0, 10 10)"))
+    >>> from shapely import MultiPoint, Polygon
+    >>> convex_hull(MultiPoint([(0, 0), (10, 0), (10, 10)]))
     <POLYGON ((0 0, 10 10, 10 0, 0 0))>
-    >>> convex_hull(Geometry("POLYGON EMPTY"))
+    >>> convex_hull(Polygon())
     <GEOMETRYCOLLECTION EMPTY>
     """
     return lib.convex_hull(geometry, **kwargs)
@@ -364,18 +373,20 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
 
     Examples
     --------
-    >>> points = Geometry("MULTIPOINT (50 30, 60 30, 100 100)")
+    >>> from shapely import GeometryCollection, LineString, MultiPoint, Polygon
+    >>> points = MultiPoint([(50, 30), (60, 30), (100, 100)])
     >>> delaunay_triangles(points)
     <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
     >>> delaunay_triangles(points, only_edges=True)
-    <MULTILINESTRING ((50 30, 100 100), (50 30, 60 30), (60 30, 100 100))>
-    >>> delaunay_triangles(Geometry("MULTIPOINT (50 30, 51 30, 60 30, 100 100)"), tolerance=2)
+    <MULTILINESTRING ((50 30, 100 100), (50 30, 60 30), ...>
+    >>> delaunay_triangles(MultiPoint([(50, 30), (51, 30), (60, 30), (100, 100)]), \
+tolerance=2)
     <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
-    >>> delaunay_triangles(Geometry("POLYGON ((50 30, 60 30, 100 100, 50 30))"))
+    >>> delaunay_triangles(Polygon([(50, 30), (60, 30), (100, 100), (50, 30)]))
     <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
-    >>> delaunay_triangles(Geometry("LINESTRING (50 30, 60 30, 100 100)"))
+    >>> delaunay_triangles(LineString([(50, 30), (60, 30), (100, 100)]))
     <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
-    >>> delaunay_triangles(Geometry("GEOMETRYCOLLECTION EMPTY"))
+    >>> delaunay_triangles(GeometryCollection([]))
     <GEOMETRYCOLLECTION EMPTY>
     """
     return lib.delaunay_triangles(geometry, tolerance, only_edges, **kwargs)
@@ -394,13 +405,14 @@ def envelope(geometry, **kwargs):
 
     Examples
     --------
-    >>> envelope(Geometry("LINESTRING (0 0, 10 10)"))
+    >>> from shapely import GeometryCollection, LineString, MultiPoint, Point
+    >>> envelope(LineString([(0, 0), (10, 10)]))
     <POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))>
-    >>> envelope(Geometry("MULTIPOINT (0 0, 10 0, 10 10)"))
+    >>> envelope(MultiPoint([(0, 0), (10, 10)]))
     <POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))>
-    >>> envelope(Geometry("POINT (0 0)"))
+    >>> envelope(Point(0, 0))
     <POINT (0 0)>
-    >>> envelope(Geometry("GEOMETRYCOLLECTION EMPTY"))
+    >>> envelope(GeometryCollection([]))
     <POINT EMPTY>
     """
     return lib.envelope(geometry, **kwargs)
@@ -422,15 +434,16 @@ def extract_unique_points(geometry, **kwargs):
 
     Examples
     --------
-    >>> extract_unique_points(Geometry("POINT (0 0)"))
+    >>> from shapely import LineString, MultiPoint, Point, Polygon
+    >>> extract_unique_points(Point(0, 0))
     <MULTIPOINT (0 0)>
-    >>> extract_unique_points(Geometry("LINESTRING(0 0, 1 1, 1 1)"))
+    >>> extract_unique_points(LineString([(0, 0), (1, 1), (1, 1)]))
     <MULTIPOINT (0 0, 1 1)>
-    >>> extract_unique_points(Geometry("POLYGON((0 0, 1 0, 1 1, 0 0))"))
-    <MULTIPOINT (0 0, 1 0, 1 1)>
-    >>> extract_unique_points(Geometry("MULTIPOINT (0 0, 1 1, 0 0)"))
+    >>> extract_unique_points(Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]))
+    <MULTIPOINT (0 0, 1 0, 1 1, 0 1)>
+    >>> extract_unique_points(MultiPoint([(0, 0), (1, 1), (0, 0)]))
     <MULTIPOINT (0 0, 1 1)>
-    >>> extract_unique_points(Geometry("LINESTRING EMPTY"))
+    >>> extract_unique_points(LineString())
     <MULTIPOINT EMPTY>
     """
     return lib.extract_unique_points(geometry, **kwargs)
@@ -452,7 +465,10 @@ def build_area(geometry, **kwargs):
 
     Examples
     --------
-    >>> build_area(Geometry("GEOMETRYCOLLECTION(POLYGON((0 0, 3 0, 3 3, 0 3, 0 0)), POLYGON((1 1, 1 2, 2 2, 1 1)))"))
+    >>> from shapely import GeometryCollection, Polygon
+    >>> polygon1 = Polygon([(0, 0), (3, 0), (3, 3), (0, 3), (0, 0)])
+    >>> polygon2 = Polygon([(1, 1), (1, 2), (2, 2), (1, 1)])
+    >>> build_area(GeometryCollection([polygon1, polygon2]))
     <POLYGON ((0 0, 0 3, 3 3, 3 0, 0 0), (1 1, 2 2, 1 2, 1 1))>
     """
     return lib.build_area(geometry, **kwargs)
@@ -472,7 +488,11 @@ def make_valid(geometry, **kwargs):
 
     Examples
     --------
-    >>> make_valid(Geometry("POLYGON((0 0, 1 1, 1 2, 1 1, 0 0))"))
+    >>> from shapely import is_valid, Polygon
+    >>> polygon = Polygon([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)])
+    >>> is_valid(polygon)
+    False
+    >>> make_valid(polygon)
     <MULTILINESTRING ((0 0, 1 1), (1 1, 1 2))>
     """
     return lib.make_valid(geometry, **kwargs)
@@ -495,8 +515,9 @@ def normalize(geometry, **kwargs):
 
     Examples
     --------
-    >>> p = Geometry("MULTILINESTRING((0 0, 1 1),(2 2, 3 3))")
-    >>> normalize(p)
+    >>> from shapely import MultiLineString
+    >>> line = MultiLineString([[(0, 0), (1, 1)], [(2, 2), (3, 3)]])
+    >>> normalize(line)
     <MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))>
     """
     return lib.normalize(geometry, **kwargs)
@@ -515,13 +536,14 @@ def point_on_surface(geometry, **kwargs):
 
     Examples
     --------
-    >>> point_on_surface(Geometry("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))"))
+    >>> from shapely import LineString, MultiPoint, Polygon
+    >>> point_on_surface(Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]))
     <POINT (5 5)>
-    >>> point_on_surface(Geometry("LINESTRING (0 0, 2 2, 10 10)"))
+    >>> point_on_surface(LineString([(0, 0), (2, 2), (10, 10)]))
     <POINT (2 2)>
-    >>> point_on_surface(Geometry("MULTIPOINT (0 0, 10 10)"))
+    >>> point_on_surface(MultiPoint([(0, 0), (10, 10)]))
     <POINT (0 0)>
-    >>> point_on_surface(Geometry("POLYGON EMPTY"))
+    >>> point_on_surface(Polygon())
     <POINT EMPTY>
     """
     return lib.point_on_surface(geometry, **kwargs)
@@ -568,10 +590,11 @@ def polygonize(geometries, **kwargs):
 
     Examples
     --------
+    >>> from shapely import LineString
     >>> lines = [
-    ...     Geometry("LINESTRING (0 0, 1 1)"),
-    ...     Geometry("LINESTRING (0 0, 0 1)"),
-    ...     Geometry("LINESTRING (0 1, 1 1)"),
+    ...     LineString([(0, 0), (1, 1)]),
+    ...     LineString([(0, 0), (0, 1)]),
+    ...     LineString([(0, 1), (1, 1)])
     ... ]
     >>> polygonize(lines)
     <GEOMETRYCOLLECTION (POLYGON ((1 1, 0 0, 0 1, 1 1)))>
@@ -624,10 +647,11 @@ def polygonize_full(geometries, **kwargs):
 
     Examples
     --------
+    >>> from shapely import LineString
     >>> lines = [
-    ...     Geometry("LINESTRING (0 0, 1 1)"),
-    ...     Geometry("LINESTRING (0 0, 0 1, 1 1)"),
-    ...     Geometry("LINESTRING (0 1, 1 1)"),
+    ...     LineString([(0, 0), (1, 1)]),
+    ...     LineString([(0, 0), (0, 1), (1, 1)]),
+    ...     LineString([(0, 1), (1, 1)])
     ... ]
     >>> polygonize_full(lines)  # doctest: +NORMALIZE_WHITESPACE
     (<GEOMETRYCOLLECTION (POLYGON ((1 1, 0 0, 0 1, 1 1)))>,
@@ -661,9 +685,10 @@ def reverse(geometry, **kwargs):
 
     Examples
     --------
-    >>> reverse(Geometry("LINESTRING (0 0, 1 2)"))
+    >>> from shapely import LineString, Polygon
+    >>> reverse(LineString([(0, 0), (1, 2)]))
     <LINESTRING (1 2, 0 0)>
-    >>> reverse(Geometry("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))"))
+    >>> reverse(Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]))
     <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
     >>> reverse(None) is None
     True
@@ -696,11 +721,12 @@ def segmentize(geometry, tolerance, **kwargs):
 
     Examples
     --------
-    >>> line = Geometry("LINESTRING (0 0, 0 10)")
+    >>> from shapely import LineString, Polygon
+    >>> line = LineString([(0, 0), (0, 10)])
     >>> segmentize(line, tolerance=5)
     <LINESTRING (0 0, 0 5, 0 10)>
-    >>> poly = Geometry("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))")
-    >>> segmentize(poly, tolerance=5)
+    >>> polygon = Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)])
+    >>> segmentize(polygon, tolerance=5)
     <POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
     >>> segmentize(None, tolerance=5) is None
     True
@@ -729,14 +755,18 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
 
     Examples
     --------
-    >>> line = Geometry("LINESTRING (0 0, 1 10, 0 20)")
+    >>> from shapely import LineString, Polygon
+    >>> line = LineString([(0, 0), (1, 10), (0, 20)])
     >>> simplify(line, tolerance=0.9)
     <LINESTRING (0 0, 1 10, 0 20)>
     >>> simplify(line, tolerance=1)
     <LINESTRING (0 0, 0 20)>
-    >>> polygon_with_hole = Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))")
+    >>> polygon_with_hole = Polygon(
+    ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+    ...     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]]
+    ... )
     >>> simplify(polygon_with_hole, tolerance=4, preserve_topology=True)
-    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))>
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2...>
     >>> simplify(polygon_with_hole, tolerance=4, preserve_topology=False)
     <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
     """
@@ -765,15 +795,17 @@ def snap(geometry, reference, tolerance, **kwargs):
 
     Examples
     --------
-    >>> point = Geometry("POINT (0 2)")
-    >>> snap(Geometry("POINT (0.5 2.5)"), point, tolerance=1)
+    >>> from shapely import LineString, Point, Polygon
+    >>> point = Point(0.5, 2.5)
+    >>> target_point = Point(0, 2)
+    >>> snap(point, target_point, tolerance=1)
     <POINT (0 2)>
-    >>> snap(Geometry("POINT (0.5 2.5)"), point, tolerance=0.49)
+    >>> snap(point, target_point, tolerance=0.49)
     <POINT (0.5 2.5)>
-    >>> polygon = Geometry("POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))")
-    >>> snap(polygon, Geometry("POINT (8 10)"), tolerance=5)
+    >>> polygon = Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
+    >>> snap(polygon, Point(8, 10), tolerance=5)
     <POLYGON ((0 0, 0 10, 8 10, 10 0, 0 0))>
-    >>> snap(polygon, Geometry("LINESTRING (8 10, 8 0)"), tolerance=5)
+    >>> snap(polygon, LineString([(8, 10), (8, 0)]), tolerance=5)
     <POLYGON ((0 0, 0 10, 8 10, 8 0, 0 0))>
     """
     return lib.snap(geometry, reference, tolerance, **kwargs)
@@ -806,19 +838,19 @@ def voronoi_polygons(
 
     Examples
     --------
-    >>> from shapely import normalize
-    >>> points = Geometry("MULTIPOINT (2 2, 4 2)")
+    >>> from shapely import LineString, MultiPoint, normalize, Point
+    >>> points = MultiPoint([(2, 2), (4, 2)])
     >>> normalize(voronoi_polygons(points))
     <GEOMETRYCOLLECTION (POLYGON ((3 0, 3 4, 6 4, 6 0, 3 0)), POLYGON ((0 0, 0 4...>
     >>> voronoi_polygons(points, only_edges=True)
     <LINESTRING (3 4, 3 0)>
-    >>> voronoi_polygons(Geometry("MULTIPOINT (2 2, 4 2, 4.2 2)"), 0.5, only_edges=True)
+    >>> voronoi_polygons(MultiPoint([(2, 2), (4, 2), (4.2, 2)]), 0.5, only_edges=True)
     <LINESTRING (3 4.2, 3 -0.2)>
-    >>> voronoi_polygons(points, extend_to=Geometry("LINESTRING (0 0, 10 10)"), only_edges=True)
+    >>> voronoi_polygons(points, extend_to=LineString([(0, 0), (10, 10)]), only_edges=True)
     <LINESTRING (3 10, 3 0)>
-    >>> voronoi_polygons(Geometry("LINESTRING (2 2, 4 2)"), only_edges=True)
+    >>> voronoi_polygons(LineString([(2, 2), (4, 2)]), only_edges=True)
     <LINESTRING (3 4, 3 0)>
-    >>> voronoi_polygons(Geometry("POINT (2 2)"))
+    >>> voronoi_polygons(Point(2, 2))
     <GEOMETRYCOLLECTION EMPTY>
     """
     return lib.voronoi_polygons(geometry, tolerance, extend_to, only_edges, **kwargs)
@@ -844,17 +876,18 @@ def oriented_envelope(geometry, **kwargs):
 
     Examples
     --------
-    >>> oriented_envelope(Geometry("MULTIPOINT (0 0, 10 0, 10 10)"))
+    >>> from shapely import GeometryCollection, LineString, MultiPoint, Point, Polygon
+    >>> oriented_envelope(MultiPoint([(0, 0), (10, 0), (10, 10)]))
     <POLYGON ((0 0, 5 -5, 15 5, 10 10, 0 0))>
-    >>> oriented_envelope(Geometry("LINESTRING (1 1, 5 1, 10 10)"))
+    >>> oriented_envelope(LineString([(1, 1), (5, 1), (10, 10)]))
     <POLYGON ((1 1, 3 -1, 12 8, 10 10, 1 1))>
-    >>> oriented_envelope(Geometry("POLYGON ((1 1, 15 1, 5 10, 1 1))"))
+    >>> oriented_envelope(Polygon([(1, 1), (15, 1), (5, 10), (1, 1)]))
     <POLYGON ((15 1, 15 10, 1 10, 1 1, 15 1))>
-    >>> oriented_envelope(Geometry("LINESTRING (1 1, 10 1)"))
+    >>> oriented_envelope(LineString([(1, 1), (10, 1)]))
     <LINESTRING (1 1, 10 1)>
-    >>> oriented_envelope(Geometry("POINT (2 2)"))
+    >>> oriented_envelope(Point(2, 2))
     <POINT (2 2)>
-    >>> oriented_envelope(Geometry("GEOMETRYCOLLECTION EMPTY"))
+    >>> oriented_envelope(GeometryCollection([]))
     <POLYGON EMPTY>
     """
     return lib.oriented_envelope(geometry, **kwargs)
@@ -877,15 +910,16 @@ def minimum_bounding_circle(geometry, **kwargs):
 
     Examples
     --------
-    >>> minimum_bounding_circle(Geometry("POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))"))
-    <POLYGON ((12.071 5, 11.935 3.621, 11.533 2.294, 10.879 1.072, 10 0, 8.928 -...>
-    >>> minimum_bounding_circle(Geometry("LINESTRING (1 1, 10 10)"))
-    <POLYGON ((11.864 5.5, 11.742 4.258, 11.38 3.065, 10.791 1.964, 10 1, 9.036 ...>
-    >>> minimum_bounding_circle(Geometry("MULTIPOINT (2 2, 4 2)"))
-    <POLYGON ((4 2, 3.981 1.805, 3.924 1.617, 3.831 1.444, 3.707 1.293, 3.556 1....>
-    >>> minimum_bounding_circle(Geometry("POINT (0 1)"))
+    >>> from shapely import GeometryCollection, LineString, MultiPoint, Point, Polygon
+    >>> minimum_bounding_circle(Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]))
+    <POLYGON ((12.071 5, 11.935 3.621, 11.533 2.294, 10.879 1.07...>
+    >>> minimum_bounding_circle(LineString([(1, 1), (10, 10)]))
+    <POLYGON ((11.864 5.5, 11.742 4.258, 11.38 3.065, 10.791 1.9...>
+    >>> minimum_bounding_circle(MultiPoint([(2, 2), (4, 2)]))
+    <POLYGON ((4 2, 3.981 1.805, 3.924 1.617, 3.831 1.444, 3.707...>
+    >>> minimum_bounding_circle(Point(0, 1))
     <POINT (0 1)>
-    >>> minimum_bounding_circle(Geometry("GEOMETRYCOLLECTION EMPTY"))
+    >>> minimum_bounding_circle(GeometryCollection([]))
     <POLYGON EMPTY>
 
     See also
