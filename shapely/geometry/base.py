@@ -759,6 +759,35 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.segmentize(self, tolerance, **kwargs)
 
+    def reverse(self, **kwargs):
+        """Returns a copy of this Geometry with the order of coordinates reversed.
+
+        If the Geometry is a polygon with interior rings, the interior rings are also
+        reversed.
+
+        Points are unchanged.
+
+        Parameters
+        ----------
+        **kwargs
+            For other keyword-only arguments, see the
+            `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+        See also
+        --------
+        is_ccw : Checks if a Geometry is clockwise.
+
+        Examples
+        --------
+        >>> line = Geometry("LINESTRING (0 0, 1 2)")
+        >>> line.reverse()
+        <LINESTRING (1 2, 0 0)>
+        >>> poly = Geometry("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))")
+        >>> poly.reverse()
+        <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
+        """
+        return shapely.reverse(self, **kwargs)
+
 
 class BaseMultipartGeometry(BaseGeometry):
 
