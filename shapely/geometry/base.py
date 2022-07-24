@@ -729,7 +729,7 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
-    def segmentize(self, tolerance, **kwargs):
+    def segmentize(self, tolerance):
         """Adds vertices to line segments based on tolerance.
 
         Additional vertices will be added to every line segment in an input geometry
@@ -744,9 +744,6 @@ class BaseGeometry(shapely.Geometry):
         tolerance : float or array_like
             Additional vertices will be added so that all line segments are no
             greater than this value.  Must be greater than 0.
-        **kwargs
-            For other keyword-only arguments, see the
-            `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
         Examples
         --------
@@ -757,21 +754,15 @@ class BaseGeometry(shapely.Geometry):
         >>> poly.segmentize(tolerance=5)
         <POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
         """
-        return shapely.segmentize(self, tolerance, **kwargs)
+        return shapely.segmentize(self, tolerance)
 
-    def reverse(self, **kwargs):
+    def reverse(self):
         """Returns a copy of this Geometry with the order of coordinates reversed.
 
         If the Geometry is a polygon with interior rings, the interior rings are also
         reversed.
 
         Points are unchanged.
-
-        Parameters
-        ----------
-        **kwargs
-            For other keyword-only arguments, see the
-            `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
         See also
         --------
@@ -785,7 +776,7 @@ class BaseGeometry(shapely.Geometry):
         >>> Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]).reverse()
         <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
         """
-        return shapely.reverse(self, **kwargs)
+        return shapely.reverse(self)
 
 
 class BaseMultipartGeometry(BaseGeometry):
