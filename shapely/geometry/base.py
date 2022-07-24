@@ -779,11 +779,10 @@ class BaseGeometry(shapely.Geometry):
 
         Examples
         --------
-        >>> line = Geometry("LINESTRING (0 0, 1 2)")
-        >>> line.reverse()
+        >>> from shapely import LineString, Polygon
+        >>> LineString([(0, 0), (1, 2)]).reverse()
         <LINESTRING (1 2, 0 0)>
-        >>> poly = Geometry("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))")
-        >>> poly.reverse()
+        >>> Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]).reverse()
         <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
         """
         return shapely.reverse(self, **kwargs)
