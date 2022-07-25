@@ -427,7 +427,7 @@ class BaseGeometry(shapely.Geometry):
 
         triangle approximation:
 
-        >>> g.buffer(1.0, 3).area  # doctest: +ELLIPSIS
+        >>> g.buffer(1.0, 3).area
         3.0
         >>> list(g.buffer(1.0, cap_style=CAP_STYLE.square).exterior.coords)
         [(1.0, 1.0), (1.0, -1.0), (-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0)]

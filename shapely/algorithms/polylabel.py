@@ -82,7 +82,7 @@ def polylabel(polygon, tolerance=1.0):
 
     Example
     -------
-    >>> from shapely import wkt, LineString
+    >>> from shapely import LineString
     >>> polygon = LineString([(0, 0), (50, 200), (100, 100), (20, 50),
     ... (-100, -20), (-150, -200)]).buffer(100)
     >>> polylabel(polygon, tolerance=10).wkt
