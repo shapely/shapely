@@ -165,7 +165,7 @@ jobs:
           python -m pytest --doctest-modules docs/manual.rst
 
       - name: Run doctests (part 2)
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.10' }}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.10' && matrix.geos == '3.11.0'}}
         run: |
           pytest --doctest-modules shapely --ignore=shapely/tests
 
