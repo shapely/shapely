@@ -757,16 +757,16 @@ class BaseGeometry(shapely.Geometry):
         return shapely.segmentize(self, tolerance)
 
     def reverse(self):
-        """Returns a copy of this Geometry with the order of coordinates reversed.
+        """Returns a copy of this geometry with the order of coordinates reversed.
 
-        If the Geometry is a polygon with interior rings, the interior rings are also
+        If the geometry is a polygon with interior rings, the interior rings are also
         reversed.
 
         Points are unchanged.
 
         See also
         --------
-        is_ccw : Checks if a Geometry is clockwise.
+        is_ccw : Checks if a geometry is clockwise.
 
         Examples
         --------
