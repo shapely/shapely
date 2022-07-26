@@ -747,11 +747,10 @@ class BaseGeometry(shapely.Geometry):
 
         Examples
         --------
-        >>> line = shapely.Geometry("LINESTRING (0 0, 0 10)")
-        >>> line.segmentize(tolerance=5)
+        >>> from shapely import LineString, Polygon
+        >>> LineString([(0, 0), (0, 10)]).segmentize(tolerance=5)
         <LINESTRING (0 0, 0 5, 0 10)>
-        >>> poly = shapely.Geometry("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))")
-        >>> poly.segmentize(tolerance=5)
+        >>> Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]).segmentize(tolerance=5)
         <POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
         """
         return shapely.segmentize(self, tolerance)
