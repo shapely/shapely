@@ -22,18 +22,14 @@ authors:
     orcid: https://orcid.org/0000-0003-3284-2977
   - given-names: "Mike W."
     family-names: Taves
-    email: mwtoews@gmail.com
     affiliation: "GNS Science"
     orcid: https://orcid.org/0000-0003-3657-7963
   - given-names: Joshua
     family-names: Arnott
-  - given-names: Oliver
-    family-names: Tonnhofer
   - given-names: "Brendan C."
     family-names: Ward
     affiliation: "Astute Spruce, LLC"
     orcid: https://orcid.org/0000-0002-0813-9774
-  - name: "Other Shapely contributors"
 keywords:
   - cartography
   - geometry
