@@ -226,8 +226,8 @@ setup(
     author="Sean Gillies",
     maintainer="Shapely contributors",
     packages=find_packages(include=["shapely", "shapely.*"]),
-    install_requires=["numpy>=1.13"],
-    python_requires=">=3.6",
+    install_requires=["numpy>=1.14"],
+    python_requires=">=3.7",
     extras_require={
         "test": ["pytest"],
         "docs": ["sphinx", "numpydoc"],
@@ -244,7 +244,6 @@ setup(
         "Operating System :: MacOS",
         "Operating System :: Microsoft :: Windows",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
