@@ -215,35 +215,35 @@ class STRtree:
         tree = shapely.STRtree(self.polygons)
         tree.query(shapely.points(0, 0))
 
-    def time_tree_query_bulk(self):
-        self.tree.query_bulk(self.polygons)
+    def time_tree_query(self):
+        self.tree.query(self.polygons)
 
-    def time_tree_query_bulk_intersects(self):
-        self.tree.query_bulk(self.polygons, predicate="intersects")
+    def time_tree_query_intersects(self):
+        self.tree.query(self.polygons, predicate="intersects")
 
-    def time_tree_query_bulk_within(self):
-        self.tree.query_bulk(self.polygons, predicate="within")
+    def time_tree_query_within(self):
+        self.tree.query(self.polygons, predicate="within")
 
-    def time_tree_query_bulk_contains(self):
-        self.tree.query_bulk(self.polygons, predicate="contains")
+    def time_tree_query_contains(self):
+        self.tree.query(self.polygons, predicate="contains")
 
-    def time_tree_query_bulk_overlaps(self):
-        self.tree.query_bulk(self.polygons, predicate="overlaps")
+    def time_tree_query_overlaps(self):
+        self.tree.query(self.polygons, predicate="overlaps")
 
-    def time_tree_query_bulk_crosses(self):
-        self.tree.query_bulk(self.polygons, predicate="crosses")
+    def time_tree_query_crosses(self):
+        self.tree.query(self.polygons, predicate="crosses")
 
-    def time_tree_query_bulk_touches(self):
-        self.tree.query_bulk(self.polygons, predicate="touches")
+    def time_tree_query_touches(self):
+        self.tree.query(self.polygons, predicate="touches")
 
-    def time_tree_query_bulk_covers(self):
-        self.tree.query_bulk(self.polygons, predicate="covers")
+    def time_tree_query_covers(self):
+        self.tree.query(self.polygons, predicate="covers")
 
-    def time_tree_query_bulk_covered_by(self):
-        self.tree.query_bulk(self.polygons, predicate="covered_by")
+    def time_tree_query_covered_by(self):
+        self.tree.query(self.polygons, predicate="covered_by")
 
-    def time_tree_query_bulk_contains_properly(self):
-        self.tree.query_bulk(self.polygons, predicate="contains_properly")
+    def time_tree_query_contains_properly(self):
+        self.tree.query(self.polygons, predicate="contains_properly")
 
     def time_tree_nearest_points(self):
         self.point_tree.nearest(self.points)
@@ -252,7 +252,7 @@ class STRtree:
         self.grid_point_tree.nearest(self.grid_points)
 
     def time_tree_nearest_points_equidistant_manual_all(self):
-        # This benchmark approximates nearest_all for equidistant results
+        # This benchmark approximates query_nearest for equidistant results
         # starting from singular nearest neighbors and searching for more
         # within same distance.
 
@@ -267,7 +267,7 @@ class STRtree:
         b = shapely.buffer(self.grid_points, dist + 1e-8)
 
         # query the tree for others in the same buffer distance
-        left, right = self.grid_point_tree.query_bulk(b, predicate="intersects")
+        left, right = self.grid_point_tree.query(b, predicate="intersects")
         dist = shapely.distance(
             self.grid_points.take(left), self.grid_point_tree.geometries.take(right)
         )
@@ -290,38 +290,38 @@ class STRtree:
         right = right[ix]
         dist = dist[ix]
 
-    def time_tree_nearest_all_points(self):
-        self.point_tree.nearest_all(self.points)
+    def time_tree_query_nearest_points(self):
+        self.point_tree.query_nearest(self.points)
 
-    def time_tree_nearest_all_points_equidistant(self):
-        self.grid_point_tree.nearest_all(self.grid_points)
+    def time_tree_query_nearest_points_equidistant(self):
+        self.grid_point_tree.query_nearest(self.grid_points)
 
-    def time_tree_nearest_all_points_small_max_distance(self):
+    def time_tree_query_nearest_points_small_max_distance(self):
         # returns >300 results
-        self.point_tree.nearest_all(self.points, max_distance=5)
+        self.point_tree.query_nearest(self.points, max_distance=5)
 
-    def time_tree_nearest_all_points_large_max_distance(self):
+    def time_tree_query_nearest_points_large_max_distance(self):
         # measures the overhead of using a distance that would encompass all tree points
-        self.point_tree.nearest_all(self.points, max_distance=1000)
+        self.point_tree.query_nearest(self.points, max_distance=1000)
 
     def time_tree_nearest_poly(self):
         self.tree.nearest(self.points)
 
-    def time_tree_nearest_all_poly(self):
-        self.tree.nearest_all(self.points)
+    def time_tree_query_nearest_poly(self):
+        self.tree.query_nearest(self.points)
 
-    def time_tree_nearest_all_poly_small_max_distance(self):
+    def time_tree_query_nearest_poly_small_max_distance(self):
         # returns >300 results
-        self.tree.nearest_all(self.points, max_distance=5)
+        self.tree.query_nearest(self.points, max_distance=5)
 
-    def time_tree_nearest_all_poly_python(self):
+    def time_tree_query_nearest_poly_python(self):
         # returns all input points
 
         # use an arbitrary search tolerance that seems appropriate for the density of
         # geometries
         tolerance = 200
         b = shapely.buffer(self.points, tolerance, quadsegs=1)
-        left, right = self.tree.query_bulk(b)
+        left, right = self.tree.query(b)
         dist = shapely.distance(self.points.take(left), self.polygons.take(right))
 
         # sort by left, distance
@@ -342,5 +342,5 @@ class STRtree:
         right = right[ix]
         dist = dist[ix]
 
-        # arrays are now roughly representative of what tree.nearest_all would provide, though
-        # some nearest_all neighbors may be missed if they are outside tolerance
+        # arrays are now roughly representative of what tree.query_nearest would provide, though
+        # some query_nearest neighbors may be missed if they are outside tolerance

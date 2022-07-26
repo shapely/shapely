@@ -92,19 +92,20 @@ class BaseGeometry(shapely.Geometry):
         return self.__bool__()
 
     def __repr__(self):
-        class_name = str(self.__class__.__name__)
         try:
             wkt = super().__str__()
         except (GEOSException, ValueError):
             # we never want a repr() to fail; that can be very confusing
-            return "<shapely.{} Exception in WKT writer>".format(class_name)
+            return "<shapely.{} Exception in WKT writer>".format(
+                self.__class__.__name__
+            )
 
-        # the total length is limited to 80 characters
-        max_length = 80 - (11 + len(class_name))
+        # the total length is limited to 80 characters including brackets
+        max_length = 78
         if len(wkt) > max_length:
-            return "<shapely.{} {}...>".format(class_name, wkt[: max_length - 3])
-        else:
-            return "<shapely.{} {}>".format(class_name, wkt)
+            return "<{}...>".format(wkt[: max_length - 3])
+
+        return "<{}>".format(wkt)
 
     def __str__(self):
         return self.wkt
@@ -413,10 +414,10 @@ class BaseGeometry(shapely.Geometry):
         --------
         >>> from shapely.wkt import loads
         >>> g = loads('POINT (0.0 0.0)')
-        >>> g.buffer(1.0).area        # 16-gon approx of a unit radius circle
+        >>> g.buffer(1.0).area        # 16-gon approx of a unit radius circle  # doctest: +ELLIPSIS
         3.1365484905459...
-        >>> g.buffer(1.0, 128).area   # 128-gon approximation
-        3.141513801144...
+        >>> g.buffer(1.0, 128).area   # 128-gon approximation  # doctest: +ELLIPSIS
+        3.141513801144301...
         >>> g.buffer(1.0, 3).area     # triangle approximation
         3.0
         >>> list(g.buffer(1.0, cap_style=CAP_STYLE.square).exterior.coords)
@@ -465,10 +466,10 @@ class BaseGeometry(shapely.Geometry):
 
         Examples
         --------
-        >>> from shapely.wkt import loads
-        >>> p = loads("MULTILINESTRING((0 0, 1 1), (3 3, 2 2))")
-        >>> p.normalize().wkt
-        'MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))'
+        >>> from shapely import MultiLineString
+        >>> line = MultiLineString([[(0, 0), (1, 1)], [(3, 3), (2, 2)]])
+        >>> line.normalize()
+        <MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))>
         """
         return shapely.normalize(self)
 
@@ -727,6 +728,36 @@ class BaseGeometry(shapely.Geometry):
         Alias of `line_interpolate_point`.
         """
         return shapely.line_interpolate_point(self, distance, normalized=normalized)
+
+    def segmentize(self, tolerance, **kwargs):
+        """Adds vertices to line segments based on tolerance.
+
+        Additional vertices will be added to every line segment in an input geometry
+        so that segments are no greater than tolerance.  New vertices will evenly
+        subdivide each segment.
+
+        Only linear components of input geometries are densified; other geometries
+        are returned unmodified.
+
+        Parameters
+        ----------
+        tolerance : float or array_like
+            Additional vertices will be added so that all line segments are no
+            greater than this value.  Must be greater than 0.
+        **kwargs
+            For other keyword-only arguments, see the
+            `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+        Examples
+        --------
+        >>> line = shapely.Geometry("LINESTRING (0 0, 0 10)")
+        >>> line.segmentize(tolerance=5)
+        <LINESTRING (0 0, 0 5, 0 10)>
+        >>> poly = shapely.Geometry("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))")
+        >>> poly.segmentize(tolerance=5)
+        <POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
+        """
+        return shapely.segmentize(self, tolerance, **kwargs)
 
 
 class BaseMultipartGeometry(BaseGeometry):

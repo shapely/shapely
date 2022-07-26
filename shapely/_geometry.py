@@ -3,7 +3,6 @@ from enum import IntEnum
 
 import numpy as np
 
-from . import Geometry  # NOQA
 from . import _geometry_helpers, geos_version, lib
 from .decorators import multithreading_enabled, requires_geos
 from .enum import ParamEnum
@@ -79,9 +78,10 @@ def get_type_id(geometry, **kwargs):
 
     Examples
     --------
-    >>> get_type_id(Geometry("LINESTRING (0 0, 1 1, 2 2, 3 3)"))
+    >>> from shapely import LineString, Point
+    >>> get_type_id(LineString([(0, 0), (1, 1), (2, 2), (3, 3)]))
     1
-    >>> get_type_id([Geometry("POINT (1 2)"), Geometry("POINT (1 2)")]).tolist()
+    >>> get_type_id([Point(1, 2), Point(2, 3)]).tolist()
     [0, 0]
     """
     return lib.get_type_id(geometry, **kwargs)
@@ -104,13 +104,16 @@ def get_dimensions(geometry, **kwargs):
 
     Examples
     --------
-    >>> get_dimensions(Geometry("POINT (0 0)"))
+    >>> from shapely import GeometryCollection, Point, Polygon
+    >>> point = Point(0, 0)
+    >>> get_dimensions(point)
     0
-    >>> get_dimensions(Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))"))
+    >>> polygon = Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
+    >>> get_dimensions(polygon)
     2
-    >>> get_dimensions(Geometry("GEOMETRYCOLLECTION (POINT(0 0), LINESTRING(0 0, 1 1))"))
-    1
-    >>> get_dimensions(Geometry("GEOMETRYCOLLECTION EMPTY"))
+    >>> get_dimensions(GeometryCollection([point, polygon]))
+    2
+    >>> get_dimensions(GeometryCollection([]))
     -1
     >>> get_dimensions(None)
     -1
@@ -134,13 +137,14 @@ def get_coordinate_dimension(geometry, **kwargs):
 
     Examples
     --------
-    >>> get_coordinate_dimension(Geometry("POINT (0 0)"))
+    >>> from shapely import Point
+    >>> get_coordinate_dimension(Point(0, 0))
     2
-    >>> get_coordinate_dimension(Geometry("POINT Z (0 0 0)"))
+    >>> get_coordinate_dimension(Point(0, 0, 1))
     3
     >>> get_coordinate_dimension(None)
     -1
-    >>> get_coordinate_dimension(Geometry("POINT Z (0 0 nan)"))
+    >>> get_coordinate_dimension(Point(0, 0, float("nan")))
     2
     """
     return lib.get_coordinate_dimension(geometry, **kwargs)
@@ -161,11 +165,16 @@ def get_num_coordinates(geometry, **kwargs):
 
     Examples
     --------
-    >>> get_num_coordinates(Geometry("POINT (0 0)"))
+    >>> from shapely import GeometryCollection, LineString, Point
+    >>> point = Point(0, 0)
+    >>> get_num_coordinates(point)
     1
-    >>> get_num_coordinates(Geometry("POINT Z (0 0 0)"))
+    >>> get_num_coordinates(Point(0, 0, 0))
     1
-    >>> get_num_coordinates(Geometry("GEOMETRYCOLLECTION (POINT(0 0), LINESTRING(0 0, 1 1))"))
+    >>> line = LineString([(0, 0), (1, 1)])
+    >>> get_num_coordinates(line)
+    2
+    >>> get_num_coordinates(GeometryCollection([point, line]))
     3
     >>> get_num_coordinates(None)
     0
@@ -192,10 +201,11 @@ def get_srid(geometry, **kwargs):
 
     Examples
     --------
-    >>> point = Geometry("POINT (0 0)")
-    >>> with_srid = set_srid(point, 4326)
+    >>> from shapely import Point
+    >>> point = Point(0, 0)
     >>> get_srid(point)
     0
+    >>> with_srid = set_srid(point, 4326)
     >>> get_srid(with_srid)
     4326
     """
@@ -220,10 +230,11 @@ def set_srid(geometry, srid, **kwargs):
 
     Examples
     --------
-    >>> point = Geometry("POINT (0 0)")
-    >>> with_srid = set_srid(point, 4326)
+    >>> from shapely import Point
+    >>> point = Point(0, 0)
     >>> get_srid(point)
     0
+    >>> with_srid = set_srid(point, 4326)
     >>> get_srid(with_srid)
     4326
     """
@@ -251,9 +262,10 @@ def get_x(point, **kwargs):
 
     Examples
     --------
-    >>> get_x(Geometry("POINT (1 2)"))
+    >>> from shapely import MultiPoint, Point
+    >>> get_x(Point(1, 2))
     1.0
-    >>> get_x(Geometry("MULTIPOINT (1 1, 1 2)"))
+    >>> get_x(MultiPoint([(1, 1), (1, 2)]))
     nan
     """
     return lib.get_x(point, **kwargs)
@@ -277,9 +289,10 @@ def get_y(point, **kwargs):
 
     Examples
     --------
-    >>> get_y(Geometry("POINT (1 2)"))
+    >>> from shapely import MultiPoint, Point
+    >>> get_y(Point(1, 2))
     2.0
-    >>> get_y(Geometry("MULTIPOINT (1 1, 1 2)"))
+    >>> get_y(MultiPoint([(1, 1), (1, 2)]))
     nan
     """
     return lib.get_y(point, **kwargs)
@@ -305,11 +318,12 @@ def get_z(point, **kwargs):
 
     Examples
     --------
-    >>> get_z(Geometry("POINT Z (1 2 3)"))
+    >>> from shapely import MultiPoint, Point
+    >>> get_z(Point(1, 2, 3))
     3.0
-    >>> get_z(Geometry("POINT (1 2)"))
+    >>> get_z(Point(1, 2))
     nan
-    >>> get_z(Geometry("MULTIPOINT Z (1 1 1, 2 2 2)"))
+    >>> get_z(MultiPoint([(1, 1, 1), (2, 2, 2)]))
     nan
     """
     return lib.get_z(point, **kwargs)
@@ -337,18 +351,25 @@ def get_point(geometry, index, **kwargs):
 
     Examples
     --------
-    >>> line = Geometry("LINESTRING (0 0, 1 1, 2 2, 3 3)")
+    >>> from shapely import LinearRing, LineString, MultiPoint, Point
+    >>> line = LineString([(0, 0), (1, 1), (2, 2), (3, 3)])
     >>> get_point(line, 1)
-    <pygeos.Geometry POINT (1 1)>
+    <POINT (1 1)>
     >>> get_point(line, -2)
-    <pygeos.Geometry POINT (2 2)>
+    <POINT (2 2)>
     >>> get_point(line, [0, 3]).tolist()
-    [<pygeos.Geometry POINT (0 0)>, <pygeos.Geometry POINT (3 3)>]
-    >>> get_point(Geometry("LINEARRING (0 0, 1 1, 2 2, 0 0)"), 1)
-    <pygeos.Geometry POINT (1 1)>
-    >>> get_point(Geometry("MULTIPOINT (0 0, 1 1, 2 2, 3 3)"), 1) is None
+    [<POINT (0 0)>, <POINT (3 3)>]
+
+    The functcion works the same for LinearRing input:
+
+    >>> get_point(LinearRing([(0, 0), (1, 1), (2, 2), (0, 0)]), 1)
+    <POINT (1 1)>
+
+    For non-linear geometries it returns None:
+
+    >>> get_point(MultiPoint([(0, 0), (1, 1), (2, 2), (3, 3)]), 1) is None
     True
-    >>> get_point(Geometry("POINT (1 1)"), 0) is None
+    >>> get_point(Point(1, 1), 0) is None
     True
     """
     return lib.get_point(geometry, np.intc(index), **kwargs)
@@ -376,10 +397,10 @@ def get_num_points(geometry, **kwargs):
 
     Examples
     --------
-    >>> line = Geometry("LINESTRING (0 0, 1 1, 2 2, 3 3)")
-    >>> get_num_points(line)
+    >>> from shapely import LineString, MultiPoint
+    >>> get_num_points(LineString([(0, 0), (1, 1), (2, 2), (3, 3)]))
     4
-    >>> get_num_points(Geometry("MULTIPOINT (0 0, 1 1, 2 2, 3 3)"))
+    >>> get_num_points(MultiPoint([(0, 0), (1, 1), (2, 2), (3, 3)]))
     0
     >>> get_num_points(None)
     0
@@ -407,9 +428,10 @@ def get_exterior_ring(geometry, **kwargs):
 
     Examples
     --------
-    >>> get_exterior_ring(Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))"))
-    <pygeos.Geometry LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>
-    >>> get_exterior_ring(Geometry("POINT (1 1)")) is None
+    >>> from shapely import Point, Polygon
+    >>> get_exterior_ring(Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]))
+    <LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>
+    >>> get_exterior_ring(Point(1, 1)) is None
     True
     """
     return lib.get_exterior_ring(geometry, **kwargs)
@@ -435,10 +457,19 @@ def get_interior_ring(geometry, index, **kwargs):
 
     Examples
     --------
-    >>> polygon_with_hole = Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))")
+    >>> from shapely import Point, Polygon
+    >>> polygon_with_hole = Polygon(
+    ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+    ...     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]]
+    ... )
     >>> get_interior_ring(polygon_with_hole, 0)
-    <pygeos.Geometry LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>
-    >>> get_interior_ring(Geometry("POINT (1 1)"), 0) is None
+    <LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>
+    >>> get_interior_ring(polygon_with_hole, 1) is None
+    True
+    >>> polygon = Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
+    >>> get_interior_ring(polygon, 0) is None
+    True
+    >>> get_interior_ring(Point(0, 0), 0) is None
     True
     """
     return lib.get_interior_ring(geometry, np.intc(index), **kwargs)
@@ -465,13 +496,17 @@ def get_num_interior_rings(geometry, **kwargs):
 
     Examples
     --------
-    >>> polygon = Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))")
+    >>> from shapely import Point, Polygon
+    >>> polygon = Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
     >>> get_num_interior_rings(polygon)
     0
-    >>> polygon_with_hole = Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))")
+    >>> polygon_with_hole = Polygon(
+    ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+    ...     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]]
+    ... )
     >>> get_num_interior_rings(polygon_with_hole)
     1
-    >>> get_num_interior_rings(Geometry("POINT (1 1)"))
+    >>> get_num_interior_rings(Point(0, 0))
     0
     >>> get_num_interior_rings(None)
     0
@@ -506,16 +541,17 @@ def get_geometry(geometry, index, **kwargs):
 
     Examples
     --------
-    >>> multipoint = Geometry("MULTIPOINT (0 0, 1 1, 2 2, 3 3)")
+    >>> from shapely import Point, MultiPoint
+    >>> multipoint = MultiPoint([(0, 0), (1, 1), (2, 2), (3, 3)])
     >>> get_geometry(multipoint, 1)
-    <pygeos.Geometry POINT (1 1)>
+    <POINT (1 1)>
     >>> get_geometry(multipoint, -1)
-    <pygeos.Geometry POINT (3 3)>
+    <POINT (3 3)>
     >>> get_geometry(multipoint, 5) is None
     True
-    >>> get_geometry(Geometry("POINT (1 1)"), 0)
-    <pygeos.Geometry POINT (1 1)>
-    >>> get_geometry(Geometry("POINT (1 1)"), 1) is None
+    >>> get_geometry(Point(1, 1), 0)
+    <POINT (1 1)>
+    >>> get_geometry(Point(1, 1), 1) is None
     True
     """
     return lib.get_geometry(geometry, np.intc(index), **kwargs)
@@ -546,11 +582,13 @@ def get_parts(geometry, return_index=False):
 
     Examples
     --------
-    >>> get_parts(Geometry("MULTIPOINT (0 1, 2 3)")).tolist()
-    [<pygeos.Geometry POINT (0 1)>, <pygeos.Geometry POINT (2 3)>]
-    >>> parts, index = get_parts([Geometry("MULTIPOINT (0 1)"), Geometry("MULTIPOINT (4 5, 6 7)")], return_index=True)
+    >>> from shapely import MultiPoint
+    >>> get_parts(MultiPoint([(0, 1), (2, 3)])).tolist()
+    [<POINT (0 1)>, <POINT (2 3)>]
+    >>> parts, index = get_parts([MultiPoint([(0, 1)]), MultiPoint([(4, 5), (6, 7)])], \
+return_index=True)
     >>> parts.tolist()
-    [<pygeos.Geometry POINT (0 1)>, <pygeos.Geometry POINT (4 5)>, <pygeos.Geometry POINT (6 7)>]
+    [<POINT (0 1)>, <POINT (4 5)>, <POINT (6 7)>]
     >>> index.tolist()
     [0, 1, 1]
     """
@@ -592,20 +630,23 @@ def get_rings(geometry, return_index=False):
 
     Examples
     --------
-    >>> polygon_with_hole = Geometry("POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), \
-(2 2, 2 4, 4 4, 4 2, 2 2))")
+    >>> from shapely import Polygon
+    >>> polygon_with_hole = Polygon(
+    ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+    ...     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]]
+    ... )
     >>> get_rings(polygon_with_hole).tolist()
-    [<pygeos.Geometry LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>,
-     <pygeos.Geometry LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>]
+    [<LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>,
+     <LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>]
 
     With ``return_index=True``:
 
-    >>> polygon = Geometry("POLYGON ((0 0, 2 0, 2 2, 0 2, 0 0))")
+    >>> polygon = Polygon([(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)])
     >>> rings, index = get_rings([polygon, polygon_with_hole], return_index=True)
     >>> rings.tolist()
-    [<pygeos.Geometry LINEARRING (0 0, 2 0, 2 2, 0 2, 0 0)>,
-     <pygeos.Geometry LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>,
-     <pygeos.Geometry LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>]
+    [<LINEARRING (0 0, 2 0, 2 2, 0 2, 0 0)>,
+     <LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>,
+     <LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>]
     >>> index.tolist()
     [0, 1, 1]
     """
@@ -643,9 +684,10 @@ def get_num_geometries(geometry, **kwargs):
 
     Examples
     --------
-    >>> get_num_geometries(Geometry("MULTIPOINT (0 0, 1 1, 2 2, 3 3)"))
+    >>> from shapely import MultiPoint, Point
+    >>> get_num_geometries(MultiPoint([(0, 0), (1, 1), (2, 2), (3, 3)]))
     4
-    >>> get_num_geometries(Geometry("POINT (1 1)"))
+    >>> get_num_geometries(Point(1, 1))
     1
     >>> get_num_geometries(None)
     0
@@ -677,13 +719,15 @@ def get_precision(geometry, **kwargs):
 
     Examples
     --------
-    >>> get_precision(Geometry("POINT (1 1)"))
+    >>> from shapely import Point
+    >>> point = Point(1, 1)
+    >>> get_precision(point)
     0.0
-    >>> geometry = set_precision(Geometry("POINT (1 1)"), 1.0)
+    >>> geometry = set_precision(point, 1.0)
     >>> get_precision(geometry)
     1.0
-    >>> np.isnan(get_precision(None))
-    True
+    >>> get_precision(None)
+    nan
     """
     return lib.get_precision(geometry, **kwargs)
 
@@ -753,18 +797,19 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
 
     Examples
     --------
-    >>> set_precision(Geometry("POINT (0.9 0.9)"), 1.0)
-    <pygeos.Geometry POINT (1 1)>
-    >>> set_precision(Geometry("POINT (0.9 0.9 0.9)"), 1.0)
-    <pygeos.Geometry POINT Z (1 1 0.9)>
-    >>> set_precision(Geometry("LINESTRING (0 0, 0 0.1, 0 1, 1 1)"), 1.0)
-    <pygeos.Geometry LINESTRING (0 0, 0 1, 1 1)>
-    >>> set_precision(Geometry("LINESTRING (0 0, 0 0.1, 0.1 0.1)"), 1.0, mode="valid_output")
-    <pygeos.Geometry LINESTRING Z EMPTY>
-    >>> set_precision(Geometry("LINESTRING (0 0, 0 0.1, 0.1 0.1)"), 1.0, mode="pointwise")
-    <pygeos.Geometry LINESTRING (0 0, 0 0, 0 0)>
-    >>> set_precision(Geometry("LINESTRING (0 0, 0 0.1, 0.1 0.1)"), 1.0, mode="keep_collapsed")
-    <pygeos.Geometry LINESTRING (0 0, 0 0)>
+    >>> from shapely import LineString, Point
+    >>> set_precision(Point(0.9, 0.9), 1.0)
+    <POINT (1 1)>
+    >>> set_precision(Point(0.9, 0.9, 0.9), 1.0)
+    <POINT Z (1 1 0.9)>
+    >>> set_precision(LineString([(0, 0), (0, 0.1), (0, 1), (1, 1)]), 1.0)
+    <LINESTRING (0 0, 0 1, 1 1)>
+    >>> set_precision(LineString([(0, 0), (0, 0.1), (0.1, 0.1)]), 1.0, mode="valid_output")
+    <LINESTRING Z EMPTY>
+    >>> set_precision(LineString([(0, 0), (0, 0.1), (0.1, 0.1)]), 1.0, mode="pointwise")
+    <LINESTRING (0 0, 0 0, 0 0)>
+    >>> set_precision(LineString([(0, 0), (0, 0.1), (0.1, 0.1)]), 1.0, mode="keep_collapsed")
+    <LINESTRING (0 0, 0 0)>
     >>> set_precision(None, 1.0) is None
     True
     """
@@ -801,14 +846,15 @@ def force_2d(geometry, **kwargs):
 
     Examples
     --------
-    >>> force_2d(Geometry("POINT Z (0 0 0)"))
-    <pygeos.Geometry POINT (0 0)>
-    >>> force_2d(Geometry("POINT (0 0)"))
-    <pygeos.Geometry POINT (0 0)>
-    >>> force_2d(Geometry("LINESTRING (0 0 0, 0 1 1, 1 1 2)"))
-    <pygeos.Geometry LINESTRING (0 0, 0 1, 1 1)>
-    >>> force_2d(Geometry("POLYGON Z EMPTY"))
-    <pygeos.Geometry POLYGON EMPTY>
+    >>> from shapely import LineString, Point, Polygon, from_wkt
+    >>> force_2d(Point(0, 0, 1))
+    <POINT (0 0)>
+    >>> force_2d(Point(0, 0))
+    <POINT (0 0)>
+    >>> force_2d(LineString([(0, 0, 0), (0, 1, 1), (1, 1, 2)]))
+    <LINESTRING (0 0, 0 1, 1 1)>
+    >>> force_2d(from_wkt("POLYGON Z EMPTY"))
+    <POLYGON EMPTY>
     >>> force_2d(None) is None
     True
     """
@@ -835,12 +881,13 @@ def force_3d(geometry, z=0.0, **kwargs):
 
     Examples
     --------
-    >>> force_3d(Geometry("POINT (0 0)"), z=3)
-    <pygeos.Geometry POINT Z (0 0 3)>
-    >>> force_3d(Geometry("POINT Z (0 0 0)"), z=3)
-    <pygeos.Geometry POINT Z (0 0 0)>
-    >>> force_3d(Geometry("LINESTRING (0 0, 0 1, 1 1)"))
-    <pygeos.Geometry LINESTRING Z (0 0 0, 0 1 0, 1 1 0)>
+    >>> from shapely import LineString, Point
+    >>> force_3d(Point(0, 0), z=3)
+    <POINT Z (0 0 3)>
+    >>> force_3d(Point(0, 0, 0), z=3)
+    <POINT Z (0 0 0)>
+    >>> force_3d(LineString([(0, 0), (0, 1), (1, 1)]))
+    <LINESTRING Z (0 0 0, 0 1 0, 1 1 0)>
     >>> force_3d(None) is None
     True
     """

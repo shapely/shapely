@@ -5,31 +5,30 @@ from shapely.ops import polygonize, polygonize_full
 
 
 class PolygonizeTestCase(unittest.TestCase):
-
     def test_polygonize(self):
         lines = [
-            LineString(((0, 0), (1, 1))),
-            LineString(((0, 0), (0, 1))),
-            LineString(((0, 1), (1, 1))),
-            LineString(((1, 1), (1, 0))),
-            LineString(((1, 0), (0, 0))),
-            LineString(((5, 5), (6, 6))),
+            LineString([(0, 0), (1, 1)]),
+            LineString([(0, 0), (0, 1)]),
+            LineString([(0, 1), (1, 1)]),
+            LineString([(1, 1), (1, 0)]),
+            LineString([(1, 0), (0, 0)]),
+            LineString([(5, 5), (6, 6)]),
             Point(0, 0),
-            ]
+        ]
         result = list(polygonize(lines))
         self.assertTrue(all([isinstance(x, Polygon) for x in result]))
 
     def test_polygonize_full(self):
 
         lines2 = [
-            ((0, 0), (1, 1)),
-            ((0, 0), (0, 1)),
-            ((0, 1), (1, 1)),
-            ((1, 1), (1, 0)),
-            ((1, 0), (0, 0)),
-            ((5, 5), (6, 6)),
-            ((1, 1), (100, 100)),
-            ]
+            [(0, 0), (1, 1)],
+            [(0, 0), (0, 1)],
+            [(0, 1), (1, 1)],
+            [(1, 1), (1, 0)],
+            [(1, 0), (0, 0)],
+            [(5, 5), (6, 6)],
+            [(1, 1), (100, 100)],
+        ]
 
         result2, dangles, cuts, invalids = polygonize_full(lines2)
         self.assertEqual(len(result2.geoms), 2)
@@ -38,6 +37,6 @@ class PolygonizeTestCase(unittest.TestCase):
         self.assertTrue(all([isinstance(x, LineString) for x in cuts.geoms]))
 
         self.assertEqual(
-            dump_coords(cuts),
-            [[(1.0, 1.0), (100.0, 100.0)], [(5.0, 5.0), (6.0, 6.0)]])
+            dump_coords(cuts), [[(1.0, 1.0), (100.0, 100.0)], [(5.0, 5.0), (6.0, 6.0)]]
+        )
         self.assertEqual(list(invalids.geoms), [])

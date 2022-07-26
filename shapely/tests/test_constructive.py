@@ -2,7 +2,18 @@ import numpy as np
 import pytest
 
 import shapely
-from shapely import Geometry, GEOSException
+from shapely import (
+    Geometry,
+    GeometryCollection,
+    GEOSException,
+    LinearRing,
+    LineString,
+    MultiLineString,
+    MultiPoint,
+    MultiPolygon,
+    Point,
+    Polygon,
+)
 from shapely.testing import assert_geometries_equal
 
 from .common import (
@@ -128,10 +139,16 @@ def test_build_area_none():
         (line_string, empty),  # a line string has no area
         # geometry collection of two polygons are combined into one
         (
-            Geometry(
-                "GEOMETRYCOLLECTION(POLYGON((0 0, 3 0, 3 3, 0 3, 0 0)), POLYGON((1 1, 1 2, 2 2, 1 1)))"
+            GeometryCollection(
+                [
+                    Polygon([(0, 0), (0, 3), (3, 3), (3, 0), (0, 0)]),
+                    Polygon([(1, 1), (2, 2), (1, 2), (1, 1)]),
+                ]
             ),
-            Geometry("POLYGON ((0 0, 0 3, 3 3, 3 0, 0 0), (1 1, 2 2, 1 2, 1 1))"),
+            Polygon(
+                [(0, 0), (0, 3), (3, 3), (3, 0), (0, 0)],
+                holes=[[(1, 1), (2, 2), (1, 2), (1, 1)]],
+            ),
         ),
         (empty, empty),
         ([empty], [empty]),
@@ -156,13 +173,18 @@ def test_make_valid_none():
         (point, point),  # a valid geometry stays the same (but is copied)
         # an L shaped polygon without area is converted to a multilinestring
         (
-            Geometry("POLYGON((0 0, 1 1, 1 2, 1 1, 0 0))"),
-            Geometry("MULTILINESTRING ((1 1, 1 2), (0 0, 1 1))"),
+            Polygon([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)]),
+            MultiLineString([((1, 1), (1, 2)), ((0, 0), (1, 1))]),
         ),
         # a polygon with self-intersection (bowtie) is converted into polygons
         (
-            Geometry("POLYGON((0 0, 2 2, 2 0, 0 2, 0 0))"),
-            Geometry("MULTIPOLYGON (((1 1, 2 2, 2 0, 1 1)), ((0 0, 0 2, 1 1, 0 0)))"),
+            Polygon([(0, 0), (2, 2), (2, 0), (0, 2), (0, 0)]),
+            MultiPolygon(
+                [
+                    Polygon([(1, 1), (2, 2), (2, 0), (1, 1)]),
+                    Polygon([(0, 0), (0, 2), (1, 1), (0, 0)]),
+                ]
+            ),
         ),
         (empty, empty),
         ([empty], [empty]),
@@ -183,13 +205,16 @@ def test_make_valid(geom, expected):
         # first polygon is valid, second polygon has self-intersection
         (
             [
-                Geometry("POLYGON((0 0, 2 2, 0 2, 0 0))"),
-                Geometry("POLYGON((0 0, 2 2, 2 0, 0 2, 0 0))"),
+                Polygon([(0, 0), (2, 2), (0, 2), (0, 0)]),
+                Polygon([(0, 0), (2, 2), (2, 0), (0, 2), (0, 0)]),
             ],
             [
-                Geometry("POLYGON((0 0, 2 2, 0 2, 0 0))"),
-                Geometry(
-                    "MULTIPOLYGON (((1 1, 0 0, 0 2, 1 1)), ((1 1, 2 2, 2 0, 1 1)))"
+                Polygon([(0, 0), (2, 2), (0, 2), (0, 0)]),
+                MultiPolygon(
+                    [
+                        Polygon([(1, 1), (0, 0), (0, 2), (1, 1)]),
+                        Polygon([(1, 1), (2, 2), (2, 0), (1, 1)]),
+                    ]
                 ),
             ],
         ),
@@ -208,8 +233,8 @@ def test_make_valid_1d(geom, expected):
         (point, point),  # a point is always in normalized form
         # order coordinates of linestrings and parts of multi-linestring
         (
-            Geometry("MULTILINESTRING ((1 1, 0 0), (1 1, 1 2))"),
-            Geometry("MULTILINESTRING ((1 1, 1 2), (0 0, 1 1))"),
+            MultiLineString([((1, 1), (0, 0)), ((1, 1), (1, 2))]),
+            MultiLineString([((1, 1), (1, 2)), ((0, 0), (1, 1))]),
         ),
     ],
 )
@@ -265,39 +290,44 @@ def test_offset_curve_join_style_invalid():
 @pytest.mark.parametrize(
     "geom,expected",
     [
+        (LineString([(0, 0), (1, 2)]), LineString([(1, 2), (0, 0)])),
         (
-            shapely.Geometry("LINESTRING (0 0, 1 2)"),
-            shapely.Geometry("LINESTRING (1 2, 0 0)"),
+            LinearRing([(0, 0), (1, 2), (1, 3), (0, 0)]),
+            LinearRing([(0, 0), (1, 3), (1, 2), (0, 0)]),
         ),
         (
-            shapely.Geometry("LINEARRING (0 0, 1 2, 1 3, 0 0)"),
-            shapely.Geometry("LINEARRING (0 0, 1 3, 1 2, 0 0)"),
+            Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]),
+            Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)]),
         ),
         (
-            shapely.Geometry("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))"),
-            shapely.Geometry("POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))"),
-        ),
-        (
-            shapely.Geometry(
-                "POLYGON((0 0, 10 0, 10 10, 0 10, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))"
+            Polygon(
+                [(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)],
+                holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]],
             ),
-            shapely.Geometry(
-                "POLYGON((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 4 2, 4 4, 2 4, 2 2))"
+            Polygon(
+                [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+                holes=[[(2, 2), (4, 2), (4, 4), (2, 4), (2, 2)]],
             ),
         ),
         pytest.param(
-            shapely.Geometry("MULTILINESTRING ((0 0, 1 2), (3 3, 4 4))"),
-            shapely.Geometry("MULTILINESTRING ((1 2, 0 0), (4 4, 3 3))"),
+            MultiLineString([[(0, 0), (1, 2)], [(3, 3), (4, 4)]]),
+            MultiLineString([[(1, 2), (0, 0)], [(4, 4), (3, 3)]]),
             marks=pytest.mark.skipif(
                 shapely.geos_version < (3, 8, 1), reason="GEOS < 3.8.1"
             ),
         ),
         (
-            shapely.Geometry(
-                "MULTIPOLYGON (((0 0, 1 0, 1 1, 0 1, 0 0)), ((2 2, 2 3, 3 3, 3 2, 2 2)))"
+            MultiPolygon(
+                [
+                    Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]),
+                    Polygon([(2, 2), (2, 3), (3, 3), (3, 2), (2, 2)]),
+                ]
             ),
-            shapely.Geometry(
-                "MULTIPOLYGON (((0 0, 0 1, 1 1, 1 0, 0 0)), ((2 2, 3 2, 3 3, 2 3, 2 2)))"
+            MultiPolygon(
+                [
+                    Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)]),
+                    Polygon([(2, 2), (3, 2), (3, 3), (2, 3), (2, 2)]),
+                ]
             ),
         ),
         # points are unchanged
@@ -320,8 +350,8 @@ def test_reverse_none():
     assert shapely.reverse(None) is None
     assert shapely.reverse([None]).tolist() == [None]
 
-    geometry = shapely.Geometry("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))")
-    expected = shapely.Geometry("POLYGON ((0 0,  0 1, 1 1, 1 0, 0 0))")
+    geometry = Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
+    expected = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
     result = shapely.reverse([None, geometry])
     assert result[0] is None
     assert_geometries_equal(result[1], expected)
@@ -338,23 +368,22 @@ def test_reverse_invalid_type(geom):
     "geom,expected",
     [
         # Point outside
-        ("POINT (0 0)", "GEOMETRYCOLLECTION EMPTY"),
+        (Point(0, 0), GeometryCollection()),
         # Point inside
-        ("POINT (15 15)", "POINT (15 15)"),
+        (Point(15, 15), Point(15, 15)),
         # Point on boundary
-        ("POINT (15 10)", "GEOMETRYCOLLECTION EMPTY"),
+        (Point(15, 10), GeometryCollection()),
         # Line outside
-        ("LINESTRING (0 0, -5 5)", "GEOMETRYCOLLECTION EMPTY"),
+        (LineString([(0, 0), (-5, 5)]), GeometryCollection()),
         # Line inside
-        ("LINESTRING (15 15, 16 15)", "LINESTRING (15 15, 16 15)"),
+        (LineString([(15, 15), (16, 15)]), LineString([(15, 15), (16, 15)])),
         # Line on boundary
-        ("LINESTRING (10 15, 10 10, 15 10)", "GEOMETRYCOLLECTION EMPTY"),
+        (LineString([(10, 15), (10, 10), (15, 10)]), GeometryCollection()),
         # Line splitting rectangle
-        ("LINESTRING (10 5, 25 20)", "LINESTRING (15 10, 20 15)"),
+        (LineString([(10, 5), (25, 20)]), LineString([(15, 10), (20, 15)])),
     ],
 )
 def test_clip_by_rect(geom, expected):
-    geom, expected = shapely.Geometry(geom), shapely.Geometry(expected)
     actual = shapely.clip_by_rect(geom, 10, 10, 20, 20)
     assert_geometries_equal(actual, expected)
 
@@ -364,32 +393,46 @@ def test_clip_by_rect(geom, expected):
     [
         # Polygon hole (CCW) fully on rectangle boundary"""
         (
-            "POLYGON ((0 0, 0 30, 30 30, 30 0, 0 0), (10 10, 20 10, 20 20, 10 20, 10 10))",
+            Polygon(
+                ((0, 0), (0, 30), (30, 30), (30, 0), (0, 0)),
+                holes=[((10, 10), (20, 10), (20, 20), (10, 20), (10, 10))],
+            ),
             (10, 10, 20, 20),
-            "GEOMETRYCOLLECTION EMPTY",
+            GeometryCollection(),
         ),
         # Polygon hole (CW) fully on rectangle boundary"""
         (
-            "POLYGON ((0 0, 0 30, 30 30, 30 0, 0 0), (10 10, 10 20, 20 20, 20 10, 10 10))",
+            Polygon(
+                ((0, 0), (0, 30), (30, 30), (30, 0), (0, 0)),
+                holes=[((10, 10), (10, 20), (20, 20), (20, 10), (10, 10))],
+            ),
             (10, 10, 20, 20),
-            "GEOMETRYCOLLECTION EMPTY",
+            GeometryCollection(),
         ),
         # Polygon fully within rectangle"""
         (
-            "POLYGON ((1 1, 1 30, 30 30, 30 1, 1 1), (10 10, 20 10, 20 20, 10 20, 10 10))",
+            Polygon(
+                ((1, 1), (1, 30), (30, 30), (30, 1), (1, 1)),
+                holes=[((10, 10), (20, 10), (20, 20), (10, 20), (10, 10))],
+            ),
             (0, 0, 40, 40),
-            "POLYGON ((1 1, 1 30, 30 30, 30 1, 1 1), (10 10, 20 10, 20 20, 10 20, 10 10))",
+            Polygon(
+                ((1, 1), (1, 30), (30, 30), (30, 1), (1, 1)),
+                holes=[((10, 10), (20, 10), (20, 20), (10, 20), (10, 10))],
+            ),
         ),
-        # Polygon overlapping rectangle
+        # Polygon overlapping rectanglez
         (
-            "POLYGON ((0 0, 0 30, 30 30, 30 0, 0 0), (10 10, 20 10, 20 20, 10 20, 10 10))",
+            Polygon(
+                [(0, 0), (0, 30), (30, 30), (30, 0), (0, 0)],
+                holes=[[(10, 10), (20, 10), (20, 20), (10, 20), (10, 10)]],
+            ),
             (5, 5, 15, 15),
-            "POLYGON ((5 5, 5 15, 10 15, 10 10, 15 10, 15 5, 5 5))",
+            Polygon([(5, 5), (5, 15), (10, 15), (10, 10), (15, 10), (15, 5), (5, 5)]),
         ),
     ],
 )
 def test_clip_by_rect_polygon(geom, rect, expected):
-    geom, expected = shapely.Geometry(geom), shapely.Geometry(expected)
     actual = shapely.clip_by_rect(geom, *rect)
     assert_geometries_equal(actual, expected)
 
@@ -410,7 +453,7 @@ def test_clip_by_rect_missing():
 def test_clip_by_rect_empty(geom):
     # TODO empty point
     actual = shapely.clip_by_rect(geom, 0, 0, 1, 1)
-    assert actual == Geometry("GEOMETRYCOLLECTION EMPTY")
+    assert actual == GeometryCollection()
 
 
 def test_clip_by_rect_non_scalar_kwargs():
@@ -421,30 +464,33 @@ def test_clip_by_rect_non_scalar_kwargs():
 
 def test_polygonize():
     lines = [
-        shapely.Geometry("LINESTRING (0 0, 1 1)"),
-        shapely.Geometry("LINESTRING (0 0, 0 1)"),
-        shapely.Geometry("LINESTRING (0 1, 1 1)"),
-        shapely.Geometry("LINESTRING (1 1, 1 0)"),
-        shapely.Geometry("LINESTRING (1 0, 0 0)"),
-        shapely.Geometry("LINESTRING (5 5, 6 6)"),
-        shapely.Geometry("POINT (0 0)"),
+        LineString([(0, 0), (1, 1)]),
+        LineString([(0, 0), (0, 1)]),
+        LineString([(0, 1), (1, 1)]),
+        LineString([(1, 1), (1, 0)]),
+        LineString([(1, 0), (0, 0)]),
+        LineString([(5, 5), (6, 6)]),
+        Point(0, 0),
         None,
     ]
     result = shapely.polygonize(lines)
     assert shapely.get_type_id(result) == 7  # GeometryCollection
-    expected = shapely.Geometry(
-        "GEOMETRYCOLLECTION (POLYGON ((0 0, 1 1, 1 0, 0 0)), POLYGON ((1 1, 0 0, 0 1, 1 1)))"
+    expected = GeometryCollection(
+        [
+            Polygon([(0, 0), (1, 1), (1, 0), (0, 0)]),
+            Polygon([(1, 1), (0, 0), (0, 1), (1, 1)]),
+        ]
     )
     assert result == expected
 
 
 def test_polygonize_array():
     lines = [
-        shapely.Geometry("LINESTRING (0 0, 1 1)"),
-        shapely.Geometry("LINESTRING (0 0, 0 1)"),
-        shapely.Geometry("LINESTRING (0 1, 1 1)"),
+        LineString([(0, 0), (1, 1)]),
+        LineString([(0, 0), (0, 1)]),
+        LineString([(0, 1), (1, 1)]),
     ]
-    expected = shapely.Geometry("GEOMETRYCOLLECTION (POLYGON ((1 1, 0 0, 0 1, 1 1)))")
+    expected = GeometryCollection([Polygon([(1, 1), (0, 0), (0, 1), (1, 1)])])
     result = shapely.polygonize(np.array(lines))
     assert isinstance(result, shapely.Geometry)
     assert result == expected
@@ -477,9 +523,9 @@ def test_polygonize_array():
 )
 def test_polygonize_array_axis():
     lines = [
-        shapely.Geometry("LINESTRING (0 0, 1 1)"),
-        shapely.Geometry("LINESTRING (0 0, 0 1)"),
-        shapely.Geometry("LINESTRING (0 1, 1 1)"),
+        LineString([(0, 0), (1, 1)]),
+        LineString([(0, 0), (0, 1)]),
+        LineString([(0, 1), (1, 1)]),
     ]
     arr = np.array([lines, lines])  # shape (2, 3)
     result = shapely.polygonize(arr, axis=1)
@@ -491,62 +537,61 @@ def test_polygonize_array_axis():
 def test_polygonize_missing():
     # set of geometries that is all missing
     result = shapely.polygonize([None, None])
-    assert result == shapely.Geometry("GEOMETRYCOLLECTION EMPTY")
+    assert result == GeometryCollection()
 
 
 def test_polygonize_full():
     lines = [
         None,
-        shapely.Geometry("LINESTRING (0 0, 1 1)"),
-        shapely.Geometry("LINESTRING (0 0, 0 1)"),
-        shapely.Geometry("LINESTRING (0 1, 1 1)"),
-        shapely.Geometry("LINESTRING (1 1, 1 0)"),
+        LineString([(0, 0), (1, 1)]),
+        LineString([(0, 0), (0, 1)]),
+        LineString([(0, 1), (1, 1)]),
+        LineString([(1, 1), (1, 0)]),
         None,
-        shapely.Geometry("LINESTRING (1 0, 0 0)"),
-        shapely.Geometry("LINESTRING (5 5, 6 6)"),
-        shapely.Geometry("LINESTRING (1 1, 100 100)"),
-        shapely.Geometry("POINT (0 0)"),
+        LineString([(1, 0), (0, 0)]),
+        LineString([(5, 5), (6, 6)]),
+        LineString([(1, 1), (100, 100)]),
+        Point(0, 0),
         None,
     ]
     result = shapely.polygonize_full(lines)
     assert len(result) == 4
     assert all(shapely.get_type_id(geom) == 7 for geom in result)  # GeometryCollection
     polygons, cuts, dangles, invalid = result
-    expected_polygons = shapely.Geometry(
-        "GEOMETRYCOLLECTION (POLYGON ((0 0, 1 1, 1 0, 0 0)), POLYGON ((1 1, 0 0, 0 1, 1 1)))"
+    expected_polygons = GeometryCollection(
+        [
+            Polygon([(0, 0), (1, 1), (1, 0), (0, 0)]),
+            Polygon([(1, 1), (0, 0), (0, 1), (1, 1)]),
+        ]
     )
     assert polygons == expected_polygons
-    assert cuts == shapely.Geometry("GEOMETRYCOLLECTION EMPTY")
-    expected_dangles = shapely.Geometry(
-        "GEOMETRYCOLLECTION (LINESTRING (1 1, 100 100), LINESTRING (5 5, 6 6))"
+    assert cuts == GeometryCollection()
+    expected_dangles = GeometryCollection(
+        [LineString([(1, 1), (100, 100)]), LineString([(5, 5), (6, 6)])]
     )
     assert dangles == expected_dangles
-    assert invalid == shapely.Geometry("GEOMETRYCOLLECTION EMPTY")
+    assert invalid == GeometryCollection()
 
 
 def test_polygonize_full_array():
     lines = [
-        shapely.Geometry("LINESTRING (0 0, 1 1)"),
-        shapely.Geometry("LINESTRING (0 0, 0 1)"),
-        shapely.Geometry("LINESTRING (0 1, 1 1)"),
+        LineString([(0, 0), (1, 1)]),
+        LineString([(0, 0), (0, 1)]),
+        LineString([(0, 1), (1, 1)]),
     ]
-    expected = shapely.Geometry("GEOMETRYCOLLECTION (POLYGON ((1 1, 0 0, 0 1, 1 1)))")
+    expected = GeometryCollection([Polygon([(1, 1), (0, 0), (0, 1), (1, 1)])])
     result = shapely.polygonize_full(np.array(lines))
     assert len(result) == 4
     assert all(isinstance(geom, shapely.Geometry) for geom in result)
     assert result[0] == expected
-    assert all(
-        geom == shapely.Geometry("GEOMETRYCOLLECTION EMPTY") for geom in result[1:]
-    )
+    assert all(geom == GeometryCollection() for geom in result[1:])
 
     result = shapely.polygonize_full(np.array([lines]))
     assert len(result) == 4
     assert all(isinstance(geom, np.ndarray) for geom in result)
     assert all(geom.shape == (1,) for geom in result)
     assert result[0][0] == expected
-    assert all(
-        geom[0] == shapely.Geometry("GEOMETRYCOLLECTION EMPTY") for geom in result[1:]
-    )
+    assert all(geom[0] == GeometryCollection() for geom in result[1:])
 
     arr = np.array([lines, lines])
     assert arr.shape == (2, 3)
@@ -556,11 +601,7 @@ def test_polygonize_full_array():
     assert all(arr.shape == (2,) for arr in result)
     assert result[0][0] == expected
     assert result[0][1] == expected
-    assert all(
-        g == shapely.Geometry("GEOMETRYCOLLECTION EMPTY")
-        for geom in result[1:]
-        for g in geom
-    )
+    assert all(g == GeometryCollection() for geom in result[1:] for g in geom)
 
     arr = np.array([[lines, lines], [lines, lines], [lines, lines]])
     assert arr.shape == (3, 2, 3)
@@ -572,7 +613,7 @@ def test_polygonize_full_array():
         assert res == expected
     for arr in result[1:]:
         for res in arr.flatten():
-            assert res == shapely.Geometry("GEOMETRYCOLLECTION EMPTY")
+            assert res == GeometryCollection()
 
 
 @pytest.mark.skipif(
@@ -581,9 +622,9 @@ def test_polygonize_full_array():
 )
 def test_polygonize_full_array_axis():
     lines = [
-        shapely.Geometry("LINESTRING (0 0, 1 1)"),
-        shapely.Geometry("LINESTRING (0 0, 0 1)"),
-        shapely.Geometry("LINESTRING (0 1, 1 1)"),
+        LineString([(0, 0), (1, 1)]),
+        LineString([(0, 0), (0, 1)]),
+        LineString([(0, 1), (1, 1)]),
     ]
     arr = np.array([lines, lines])  # shape (2, 3)
     result = shapely.polygonize_full(arr, axis=1)
@@ -598,7 +639,7 @@ def test_polygonize_full_missing():
     # set of geometries that is all missing
     result = shapely.polygonize_full([None, None])
     assert len(result) == 4
-    assert all(geom == shapely.Geometry("GEOMETRYCOLLECTION EMPTY") for geom in result)
+    assert all(geom == GeometryCollection() for geom in result)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
@@ -643,60 +684,70 @@ def test_segmentize_none():
     [
         # tolerance greater than max edge length, no change
         (
-            shapely.Geometry("LINESTRING (0 0, 0 10)"),
+            LineString([(0, 0), (0, 10)]),
             20,
-            shapely.Geometry("LINESTRING (0 0, 0 10)"),
+            LineString([(0, 0), (0, 10)]),
         ),
         (
-            shapely.Geometry("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))"),
+            Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]),
             20,
-            shapely.Geometry("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))"),
+            Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]),
         ),
         # tolerance causes one vertex per segment
         (
-            shapely.Geometry("LINESTRING (0 0, 0 10)"),
+            LineString([(0, 0), (0, 10)]),
             5,
-            shapely.Geometry("LINESTRING (0 0, 0 5, 0 10)"),
+            LineString([(0, 0), (0, 5), (0, 10)]),
         ),
         (
-            Geometry("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))"),
+            Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]),
             5,
-            shapely.Geometry(
-                "POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))"
+            Polygon(
+                [
+                    (0, 0),
+                    (5, 0),
+                    (10, 0),
+                    (10, 5),
+                    (10, 10),
+                    (5, 10),
+                    (0, 10),
+                    (0, 5),
+                    (0, 0),
+                ]
             ),
         ),
         # ensure input arrays are broadcast correctly
         (
             [
-                shapely.Geometry("LINESTRING (0 0, 0 10)"),
-                shapely.Geometry("LINESTRING (0 0, 0 2)"),
+                LineString([(0, 0), (0, 10)]),
+                LineString([(0, 0), (0, 2)]),
             ],
             5,
             [
-                shapely.Geometry("LINESTRING (0 0, 0 5, 0 10)"),
-                shapely.Geometry("LINESTRING (0 0, 0 2)"),
+                LineString([(0, 0), (0, 5), (0, 10)]),
+                LineString([(0, 0), (0, 2)]),
             ],
         ),
         (
             [
-                shapely.Geometry("LINESTRING (0 0, 0 10)"),
-                shapely.Geometry("LINESTRING (0 0, 0 2)"),
+                LineString([(0, 0), (0, 10)]),
+                LineString([(0, 0), (0, 2)]),
             ],
             [5],
             [
-                shapely.Geometry("LINESTRING (0 0, 0 5, 0 10)"),
-                shapely.Geometry("LINESTRING (0 0, 0 2)"),
+                LineString([(0, 0), (0, 5), (0, 10)]),
+                LineString([(0, 0), (0, 2)]),
             ],
         ),
         (
             [
-                shapely.Geometry("LINESTRING (0 0, 0 10)"),
-                shapely.Geometry("LINESTRING (0 0, 0 2)"),
+                LineString([(0, 0), (0, 10)]),
+                LineString([(0, 0), (0, 2)]),
             ],
             [5, 1.5],
             [
-                shapely.Geometry("LINESTRING (0 0, 0 5, 0 10)"),
-                shapely.Geometry("LINESTRING (0 0, 0 1, 0 2)"),
+                LineString([(0, 0), (0, 5), (0, 10)]),
+                LineString([(0, 0), (0, 1), (0, 2)]),
             ],
         ),
     ],
@@ -722,24 +773,24 @@ def test_minimum_bounding_circle_all_types(geometry):
     "geometry, expected",
     [
         (
-            shapely.Geometry("POLYGON ((0 5, 5 10, 10 5, 5 0, 0 5))"),
-            shapely.buffer(shapely.Geometry("POINT (5 5)"), 5),
+            Polygon([(0, 5), (5, 10), (10, 5), (5, 0), (0, 5)]),
+            shapely.buffer(Point(5, 5), 5),
         ),
         (
-            shapely.Geometry("LINESTRING (1 0, 1 10)"),
-            shapely.buffer(shapely.Geometry("POINT (1 5)"), 5),
+            LineString([(1, 0), (1, 10)]),
+            shapely.buffer(Point(1, 5), 5),
         ),
         (
-            shapely.Geometry("MULTIPOINT (2 2, 4 2)"),
-            shapely.buffer(shapely.Geometry("POINT (3 2)"), 1),
+            MultiPoint([(2, 2), (4, 2)]),
+            shapely.buffer(Point(3, 2), 1),
         ),
         (
-            shapely.Geometry("POINT (2 2)"),
-            shapely.Geometry("POINT (2 2)"),
+            Point(2, 2),
+            Point(2, 2),
         ),
         (
-            shapely.Geometry("GEOMETRYCOLLECTION EMPTY"),
-            shapely.Geometry("POLYGON EMPTY"),
+            GeometryCollection(),
+            Polygon(),
         ),
     ],
 )
@@ -764,28 +815,28 @@ def test_oriented_envelope_all_types(geometry):
     "geometry, expected",
     [
         (
-            shapely.Geometry("MULTIPOINT (0 0, 10 0, 10 10)"),
-            shapely.Geometry("POLYGON ((0 0, 5 -5, 15 5, 10 10, 0 0))"),
+            MultiPoint([(0, 0), (10, 0), (10, 10)]),
+            Polygon([(0, 0), (5, -5), (15, 5), (10, 10), (0, 0)]),
         ),
         (
-            shapely.Geometry("LINESTRING (1 1, 5 1, 10 10)"),
-            shapely.Geometry("POLYGON ((1 1, 3 -1, 12 8, 10 10, 1 1))"),
+            LineString([(1, 1), (5, 1), (10, 10)]),
+            Polygon([(1, 1), (3, -1), (12, 8), (10, 10), (1, 1)]),
         ),
         (
-            shapely.Geometry("POLYGON ((1 1, 15 1, 5 10, 1 1))"),
-            shapely.Geometry("POLYGON ((15 1, 15 10, 1 10, 1 1, 15 1))"),
+            Polygon([(1, 1), (15, 1), (5, 10), (1, 1)]),
+            Polygon([(15, 1), (15, 10), (1, 10), (1, 1), (15, 1)]),
         ),
         (
-            shapely.Geometry("LINESTRING (1 1, 10 1)"),
-            shapely.Geometry("LINESTRING (1 1, 10 1)"),
+            LineString([(1, 1), (10, 1)]),
+            LineString([(1, 1), (10, 1)]),
         ),
         (
-            shapely.Geometry("POINT (2 2)"),
-            shapely.Geometry("POINT (2 2)"),
+            Point(2, 2),
+            Point(2, 2),
         ),
         (
-            shapely.Geometry("GEOMETRYCOLLECTION EMPTY"),
-            shapely.Geometry("POLYGON EMPTY"),
+            GeometryCollection(),
+            Polygon(),
         ),
     ],
 )
@@ -799,28 +850,28 @@ def test_oriented_envelope(geometry, expected):
     "geometry, expected",
     [
         (
-            shapely.Geometry("MULTIPOINT (0 0, 10 0, 10 10)"),
-            shapely.Geometry("POLYGON ((0 0, 5 -5, 15 5, 10 10, 0 0))"),
+            MultiPoint([(0, 0), (10, 0), (10, 10)]),
+            Polygon([(0, 0), (5, -5), (15, 5), (10, 10), (0, 0)]),
         ),
         (
-            shapely.Geometry("LINESTRING (1 1, 5 1, 10 10)"),
-            shapely.Geometry("POLYGON ((1 1, 3 -1, 12 8, 10 10, 1 1))"),
+            LineString([(1, 1), (5, 1), (10, 10)]),
+            Polygon([(1, 1), (3, -1), (12, 8), (10, 10), (1, 1)]),
         ),
         (
-            shapely.Geometry("POLYGON ((1 1, 15 1, 5 10, 1 1))"),
-            shapely.Geometry("POLYGON ((15 1, 15 10, 1 10, 1 1, 15 1))"),
+            Polygon([(1, 1), (15, 1), (5, 10), (1, 1)]),
+            Polygon([(15, 1), (15, 10), (1, 10), (1, 1), (15, 1)]),
         ),
         (
-            shapely.Geometry("LINESTRING (1 1, 10 1)"),
-            shapely.Geometry("LINESTRING (1 1, 10 1)"),
+            LineString([(1, 1), (10, 1)]),
+            LineString([(1, 1), (10, 1)]),
         ),
         (
-            shapely.Geometry("POINT (2 2)"),
-            shapely.Geometry("POINT (2 2)"),
+            Point(2, 2),
+            Point(2, 2),
         ),
         (
-            shapely.Geometry("GEOMETRYCOLLECTION EMPTY"),
-            shapely.Geometry("POLYGON EMPTY"),
+            GeometryCollection(),
+            Polygon(),
         ),
     ],
 )

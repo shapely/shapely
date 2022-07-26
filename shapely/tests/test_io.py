@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 
 import shapely
+from shapely import GeometryCollection, LineString, Point, Polygon
 from shapely.testing import assert_geometries_equal
 
 from .common import all_types, empty_point, empty_point_z, point, point_z
@@ -237,11 +238,11 @@ def test_from_wkb_all_types(geom, use_hex, byte_order):
 
 
 @pytest.mark.parametrize(
-    "wkt",
-    ("POINT EMPTY", "LINESTRING EMPTY", "POLYGON EMPTY", "GEOMETRYCOLLECTION EMPTY"),
+    "geom",
+    (Point(), LineString(), Polygon(), GeometryCollection()),
 )
-def test_from_wkb_empty(wkt):
-    wkb = shapely.to_wkb(shapely.Geometry(wkt))
+def test_from_wkb_empty(geom):
+    wkb = shapely.to_wkb(geom)
     geom = shapely.from_wkb(wkb)
     assert shapely.is_geometry(geom).all()
     assert shapely.is_empty(geom).all()
@@ -306,7 +307,7 @@ def test_to_wkt_point_empty():
     ],
 )
 def test_to_wkt_empty_z(wkt):
-    assert shapely.to_wkt(shapely.Geometry(wkt)) == wkt
+    assert shapely.to_wkt(shapely.from_wkt(wkt)) == wkt
 
 
 def test_to_wkt_geometrycollection_with_point_empty():
@@ -337,7 +338,7 @@ def test_to_wkt_multipoint_with_point_empty_errors():
 
 
 def test_repr():
-    assert repr(point) == "<shapely.Point POINT (2 3)>"
+    assert repr(point) == "<POINT (2 3)>"
 
 
 def test_repr_max_length():
@@ -363,7 +364,7 @@ def test_repr_multipoint_with_point_empty():
     reason="Empty geometries have no dimensionality on GEOS < 3.9",
 )
 def test_repr_point_z_empty():
-    assert repr(empty_point_z) == "<shapely.Point POINT Z EMPTY>"
+    assert repr(empty_point_z) == "<POINT Z EMPTY>"
 
 
 def test_to_wkb():

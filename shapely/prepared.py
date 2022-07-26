@@ -13,7 +13,7 @@ class PreparedGeometry:
     Example:
 
       >>> from shapely.geometry import Point, Polygon
-      >>> triangle = Polygon(((0.0, 0.0), (1.0, 1.0), (1.0, -1.0)))
+      >>> triangle = Polygon([(0.0, 0.0), (1.0, 1.0), (1.0, -1.0)])
       >>> p = prep(triangle)
       >>> p.intersects(Point(0.5, 0.5))
       True
