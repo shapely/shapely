@@ -91,3 +91,11 @@ def test_segmentize():
     line = LineString([(0, 0), (0, 10)])
     result = line.segmentize(tolerance=5)
     assert result.equals(LineString([(0, 0), (0, 5), (0, 10)]))
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
+def test_reverse():
+    coords = [(0, 0), (1, 2)]
+    line = LineString(coords)
+    result = line.reverse()
+    assert result.coords[:] == coords[::-1]
