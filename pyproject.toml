@@ -44,9 +44,8 @@ test = ["pytest"]
 docs = ["sphinx", "numpydoc"]
 
 [project.urls]
-documentation = "https://shapely.readthedocs.io/"
-repository = "https://github.com/shapely/shapely"
-changelog = "https://github.com/shapely/shapely/blob/main/CHANGELOG.rst"
+Documentation = "https://shapely.readthedocs.io/"
+Repository = "https://github.com/shapely/shapely"
 
 [tool.setuptools.packages.find]
 include = [
