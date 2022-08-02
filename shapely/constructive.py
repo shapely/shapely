@@ -145,11 +145,11 @@ def buffer(
     <POLYGON ((20 10, 10 10, 10 12, 20 12, 20 10))>
     >>> line2 = LineString([(10, 10), (20, 10), (20, 20)])
     >>> buffer(line2, 2, cap_style="flat", join_style="bevel")
-    <POLYGON ((18 12, 18 20, 22 20, 22 10, 20 8, 10 8, 10 12, 18...>
+    <POLYGON ((18 12, 18 20, 22 20, 22 10, 20 8, 10 8, 10 12, 18 12))>
     >>> buffer(line2, 2, cap_style="flat", join_style="mitre")
     <POLYGON ((18 12, 18 20, 22 20, 22 8, 10 8, 10 12, 18 12))>
     >>> buffer(line2, 2, cap_style="flat", join_style="mitre", mitre_limit=1)
-    <POLYGON ((18 12, 18 20, 22 20, 21.828 9, 21 8.172, 10 8, 10...>
+    <POLYGON ((18 12, 18 20, 22 20, 22 9.172, 20.828 8, 10 8, 10 12, 18 12))>
     >>> square = Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)])
     >>> buffer(square, 2, join_style="mitre")
     <POLYGON ((-2 -2, -2 12, 12 12, 12 -2, -2 -2))>
@@ -227,7 +227,7 @@ def offset_curve(
     >>> offset_curve(line, 2)
     <LINESTRING (-2 0, -2 2)>
     >>> offset_curve(line, -2)
-    <LINESTRING (2 2, 2 0)>
+    <LINESTRING (2 0, 2 2)>
     """
     if isinstance(join_style, str):
         join_style = BufferJoinStyles.get_value(join_style)
@@ -723,12 +723,12 @@ def segmentize(geometry, tolerance, **kwargs):
     --------
     >>> from shapely import LineString, Polygon
     >>> line = LineString([(0, 0), (0, 10)])
-    >>> segmentize(line, tolerance=5)  # doctest: +SKIP
+    >>> segmentize(line, tolerance=5)
     <LINESTRING (0 0, 0 5, 0 10)>
     >>> polygon = Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)])
-    >>> segmentize(polygon, tolerance=5)  # doctest: +SKIP
+    >>> segmentize(polygon, tolerance=5)
     <POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
-    >>> segmentize(None, tolerance=5) is None  # doctest: +SKIP
+    >>> segmentize(None, tolerance=5) is None
     True
     """
     return lib.segmentize(geometry, tolerance, **kwargs)
@@ -841,7 +841,7 @@ def voronoi_polygons(
     >>> from shapely import LineString, MultiPoint, normalize, Point
     >>> points = MultiPoint([(2, 2), (4, 2)])
     >>> normalize(voronoi_polygons(points))
-    <GEOMETRYCOLLECTION (POLYGON ((3 0, 3 4, 6 4, 6 0...>
+    <GEOMETRYCOLLECTION (POLYGON ((3 0, 3 4, 6 4, 6 0, 3 0)), POLYGON ((0 0, 0 4...>
     >>> voronoi_polygons(points, only_edges=True)
     <LINESTRING (3 4, 3 0)>
     >>> voronoi_polygons(MultiPoint([(2, 2), (4, 2), (4.2, 2)]), 0.5, only_edges=True)

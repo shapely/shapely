@@ -58,8 +58,8 @@ def difference(a, b, grid_size=None, **kwargs):
     >>> normalize(difference(box1, box2))
     <POLYGON ((0 0, 0 2, 1 2, 1 1, 2 1, 2 0, 0 0))>
     >>> box1 = box(0.1, 0.2, 2.1, 2.1)
-    >>> difference(box1, box2, grid_size=1) # doctest: +SKIP
-    <POLYGON ((0 0, 0 2, 1 2, 1 1, 2 1, 2 0, 0 0))>
+    >>> difference(box1, box2, grid_size=1)
+    <POLYGON ((2 0, 0 0, 0 2, 1 2, 1 1, 2 1, 2 0))>
     """
 
     if grid_size is not None:
@@ -114,8 +114,8 @@ def intersection(a, b, grid_size=None, **kwargs):
     >>> normalize(intersection(box1, box2))
     <POLYGON ((1 1, 1 2, 2 2, 2 1, 1 1))>
     >>> box1 = box(0.1, 0.2, 2.1, 2.1)
-    >>> intersection(box1, box2, grid_size=1) # doctest: +SKIP
-    <POLYGON ((1 1, 1 2, 2 2, 2 1, 1 1))>
+    >>> intersection(box1, box2, grid_size=1)
+    <POLYGON ((2 2, 2 1, 1 1, 1 2, 2 2))>
     """
 
     if grid_size is not None:
@@ -205,10 +205,10 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
     >>> box1 = box(0, 0, 2, 2)
     >>> box2 = box(1, 1, 3, 3)
     >>> normalize(symmetric_difference(box1, box2))
-    <MULTIPOLYGON (((1 2, 1 3, 3 3, 3 1, 2 1, 2 2, 1 2)), (...>
+    <MULTIPOLYGON (((1 2, 1 3, 3 3, 3 1, 2 1, 2 2, 1 2)), ((0 0, 0 2, 1 2, 1 1, ...>
     >>> box1 = box(0.1, 0.2, 2.1, 2.1)
-    >>> symmetric_difference(box1, box2, grid_size=1) # doctest: +SKIP
-    <MULTIPOLYGON (((1 2, 1 3, 3 3, 3 1, 2 1, 2 2, 1 2)), ((0 0,...>
+    >>> symmetric_difference(box1, box2, grid_size=1)
+    <MULTIPOLYGON (((2 0, 0 0, 0 2, 1 2, 1 1, 2 1, 2 0)), ((2 2, 1 2, 1 3, 3 3, ...>
     """
 
     if grid_size is not None:
@@ -301,7 +301,7 @@ def union(a, b, grid_size=None, **kwargs):
     >>> normalize(union(box1, box2))
     <POLYGON ((0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0, 0 0))>
     >>> box1 = box(0.1, 0.2, 2.1, 2.1)
-    >>> union(box1, box2, grid_size=1) # doctest: +SKIP
+    >>> union(box1, box2, grid_size=1)
     <POLYGON ((2 0, 0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0))>
     """
 
@@ -367,8 +367,8 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
     >>> normalize(union_all([box1, box2]))
     <POLYGON ((0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0, 0 0))>
     >>> box1 = box(0.1, 0.2, 2.1, 2.1)
-    >>> union_all([box1, box2], grid_size=1) # doctest: +SKIP
-    <POLYGON ((0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0, 0 0))>
+    >>> union_all([box1, box2], grid_size=1)
+    <POLYGON ((2 0, 0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0))>
 
     """
     # for union_all, GEOS provides an efficient route through first creating

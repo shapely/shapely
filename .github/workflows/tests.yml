@@ -37,7 +37,7 @@ jobs:
             geos: 3.10.3
             numpy: 1.21.3
           # 2022
-          - python: "3.10"  # switch to "3.11" when released (PEP 664)
+          - python: "3.10" # switch to "3.11" when released (PEP 664)
             geos: 3.11.0
             numpy: 1.23.0
             # TODO(shapely-2.0) temporary allow warnings
@@ -45,7 +45,7 @@ jobs:
           # dev
           - python: "3.10"
             geos: main
-            extra_pytest_args: "-W error"  # error on warnings
+            extra_pytest_args: "-W error" # error on warnings
           # enable two 32-bit windows builds:
           - os: windows-2019
             architecture: x86
@@ -137,7 +137,7 @@ jobs:
 
       # Windows requires special treatment:
       # - geos-config does not exist, so we specify include and library paths
-      # - Python >=3.8 ignores the PATH for finding DLLs, so we copy them into the package 
+      # - Python >=3.8 ignores the PATH for finding DLLs, so we copy them into the package
       - name: Set environment variables + copy DLLs (Windows)
         run: |
           cp geosinstall/geos-${{ matrix.geos }}/bin/*.dll shapely
@@ -165,13 +165,9 @@ jobs:
           python -m pytest --doctest-modules docs/manual.rst
 
       - name: Run doctests (part 2)
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.10' && matrix.geos == '3.11.0'}}
         run: |
           pytest --doctest-modules shapely --ignore=shapely/tests
-
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.10' }}
-        # TODO(shapely-2.0) temporary allow doctest failures, when removing
-        # integrate with step above
-        continue-on-error: true
 
       - name: Upload coverage
         env:
@@ -187,9 +183,9 @@ jobs:
     runs-on: ubuntu-latest
     container: python:3-slim
     steps:
-    - name: Finished
-      run: |
-        pip3 install --upgrade coveralls
-        coveralls --finish || echo "!! intermittent coveralls failure"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Finished
+        run: |
+          pip3 install --upgrade coveralls
+          coveralls --finish || echo "!! intermittent coveralls failure"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

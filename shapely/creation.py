@@ -223,7 +223,7 @@ def polygons(geometries, holes=None, indices=None, out=None, **kwargs):
     Adding holes can be done using the ``holes`` keyword argument:
 
     >>> polygons(ring_1, holes=[ring_2])
-    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 6, 2 7, 3 7, 3 6...>
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 6, 2 7, 3 7, 3 6, 2 6))>
 
     Or using the ``indices`` argument:
 
@@ -232,7 +232,7 @@ def polygons(geometries, holes=None, indices=None, out=None, **kwargs):
     >>> polygons([ring_1, ring_2], indices=[0, 1])[1]
     <POLYGON ((2 6, 2 7, 3 7, 3 6, 2 6))>
     >>> polygons([ring_1, ring_2], indices=[0, 0])[0]
-    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 6, 2 7, 3 7, 3 6...>
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 6, 2 7, 3 7, 3 6, 2 6))>
 
     Missing input values (``None``) are ignored and may result in an
     empty polygon:

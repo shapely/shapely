@@ -430,8 +430,7 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
         Retrieve all pairs of input and tree geometries:
 
         >>> list(zip(query_points.take(arr_indices[0]), tree.geometries.take(arr_indices[1])))
-        [(<POINT (1 1)>, <POINT (1 1)>),
-         (<POINT (2.25 2.25)>, <POINT (2 2)>)]
+        [(<POINT (2.25 2.25)>, <POINT (2 2)>), (<POINT (1 1)>, <POINT (1 1)>)]
 
         All intersecting geometries in the tree are returned by default:
 
@@ -440,7 +439,7 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
 
         Set all_matches to False to to return a single match per input geometry:
 
-        >>> tree.query_nearest(box(1,1,3,3), all_matches=False).tolist()  # doctest: +SKIP
+        >>> tree.query_nearest(box(1,1,3,3), all_matches=False).tolist()
         [1]
 
         Return the distance to each nearest tree geometry:
