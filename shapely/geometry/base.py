@@ -807,6 +807,27 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.minimum_bounding_circle(self)
 
+    def minimum_bounding_radius(self):
+        """Computes the radius of the minimum bounding circle that encloses the geometry.
+
+        Examples
+        --------
+        >>> from shapely import GeometryCollection, LineString, MultiPoint, Point, Polygon
+        >>> Polygon([(0, 5), (5, 10), (10, 5), (5, 0), (0, 5)]).minimum_bounding_radius()
+        5.0
+        >>> LineString([(1, 1), (1, 10)]).minimum_bounding_radius()
+        4.5
+        >>> MultiPoint([(2, 2), (4, 2)]).minimum_bounding_radius()
+        1.0
+        >>> Point(0, 1).minimum_bounding_radius()
+        0.0
+
+        See also
+        --------
+        minimum_bounding_circle
+        """
+        return shapely.minimum_bounding_radius(self)
+
 
 class BaseMultipartGeometry(BaseGeometry):
 
