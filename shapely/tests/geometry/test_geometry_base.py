@@ -103,11 +103,11 @@ def test_reverse():
 @pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.7")
 def test_minimum_bounding_circle():
     line = LineString([(1, 1), (10, 10)])
-    result = line.minimum_bounding_circle()
+    result = line.minimum_bounding_circle
     assert result.equals(shapely.minimum_bounding_circle(line))
 
 @pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.7")
 def test_minimum_bounding_radius():
     line = LineString([(1, 1), (1, 10)])
-    result = line.minimum_bounding_radius()
+    result = line.minimum_bounding_radius
     assert result == 4.5
