@@ -792,7 +792,7 @@ class BaseGeometry(shapely.Geometry):
 
         Examples
         --------
-        >>> from shapely import GeometryCollection, LineString, MultiPoint, Point, Polygon
+        >>> from shapely import LineString, MultiPoint, Point, Polygon
         >>> Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]).minimum_bounding_circle
         <POLYGON ((12.071 5, 11.935 3.621, 11.533 2.294, 10.879 1.072, 10 0, 8.928 -...>
         >>> LineString([(1, 1), (10, 10)]).minimum_bounding_circle
@@ -814,7 +814,7 @@ class BaseGeometry(shapely.Geometry):
 
         Examples
         --------
-        >>> from shapely import GeometryCollection, LineString, MultiPoint, Point, Polygon
+        >>> from shapely import LineString, MultiPoint, Point, Polygon
         >>> Polygon([(0, 5), (5, 10), (10, 5), (5, 0), (0, 5)]).minimum_bounding_radius
         5.0
         >>> LineString([(1, 1), (1, 10)]).minimum_bounding_radius
