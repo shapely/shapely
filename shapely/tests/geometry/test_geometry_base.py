@@ -99,3 +99,9 @@ def test_reverse():
     line = LineString(coords)
     result = line.reverse()
     assert result.coords[:] == coords[::-1]
+
+@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.7")
+def test_minimum_bounding_circle():
+    line = LineString([(1, 1), (10, 10)])
+    result = line.minimum_bounding_circle()
+    assert result.equals(shapely.minimum_bounding_circle(line))
