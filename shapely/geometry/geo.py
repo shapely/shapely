@@ -1,6 +1,8 @@
 """
 Geometry factories based on the geo interface
 """
+import numpy as np
+
 from shapely.errors import GeometryTypeError
 
 from .collection import GeometryCollection
@@ -11,14 +13,6 @@ from .multipolygon import MultiPolygon
 from .point import Point
 from .polygon import LinearRing, Polygon
 
-# numpy is an optional dependency
-try:
-    import numpy as np
-except ImportError:
-    _has_numpy = False
-else:
-    _has_numpy = True
-
 
 def _is_coordinates_empty(coordinates):
     """Helper to identify if coordinates or subset of coordinates are empty"""
@@ -26,8 +20,7 @@ def _is_coordinates_empty(coordinates):
     if coordinates is None:
         return True
 
-    is_numpy_array = _has_numpy and isinstance(coordinates, np.ndarray)
-    if isinstance(coordinates, (list, tuple)) or is_numpy_array:
+    if isinstance(coordinates, (list, tuple, np.ndarray)):
         if len(coordinates) == 0:
             return True
         return all(map(_is_coordinates_empty, coordinates))

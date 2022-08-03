@@ -1,5 +1,4 @@
-import sys
-
+import numpy
 import pytest
 
 from shapely.geos import geos_version
@@ -13,11 +12,5 @@ shapely20_wontfix = pytest.mark.xfail(strict=True, reason="Will fail for Shapely
 
 
 def pytest_report_header(config):
-    headers = []
-    try:
-        import numpy
-    except ImportError:
-        headers.append("numpy: not available")
-    else:
-        headers.append("numpy: {}".format(numpy.__version__))
-    return '\n'.join(headers)
+    """Header for pytest."""
+    return f"dependencies: numpy-{numpy.__version__}"
