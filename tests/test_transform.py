@@ -7,7 +7,7 @@ class IdentityTestCase(unittest.TestCase):
     """New geometry/coordseq method 'xy' makes numpy interop easier"""
 
     def func(self, x, y, z=None):
-        return tuple([c for c in [x, y, z] if c])
+        return tuple(c for c in [x, y, z] if c)
 
     def test_empty(self):
         g = geometry.Point()

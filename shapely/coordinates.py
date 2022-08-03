@@ -54,13 +54,13 @@ def transform(geometry, transformation, include_z=False):
     if new_coordinates.dtype != np.float64:
         raise ValueError(
             "The provided transformation returned an array with an unexpected "
-            "dtype ({})".format(new_coordinates.dtype)
+            f"dtype ({new_coordinates.dtype})"
         )
     if new_coordinates.shape != coordinates.shape:
         # if the shape is too small we will get a segfault
         raise ValueError(
             "The provided transformation returned an array with an unexpected "
-            "shape ({})".format(new_coordinates.shape)
+            f"shape ({new_coordinates.shape})"
         )
     geometry_arr = lib.set_coordinates(geometry_arr, new_coordinates)
     if geometry_arr.ndim == 0 and not isinstance(geometry, np.ndarray):
@@ -185,12 +185,12 @@ def set_coordinates(geometry, coordinates):
     if coordinates.ndim != 2:
         raise ValueError(
             "The coordinate array should have dimension of 2 "
-            "(has {})".format(coordinates.ndim)
+            f"(has {coordinates.ndim})"
         )
     n_coords = lib.count_coordinates(geometry_arr)
     if (coordinates.shape[0] != n_coords) or (coordinates.shape[1] not in {2, 3}):
         raise ValueError(
-            "The coordinate array has an invalid shape {}".format(coordinates.shape)
+            f"The coordinate array has an invalid shape {coordinates.shape}"
         )
     lib.set_coordinates(geometry_arr, coordinates)
     if geometry_arr.ndim == 0 and not isinstance(geometry, np.ndarray):

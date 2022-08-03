@@ -91,7 +91,7 @@ def interpret_origin(geom, origin, ndim):
     elif origin == "centroid":
         origin = geom.centroid.coords[0]
     elif isinstance(origin, str):
-        raise ValueError("'origin' keyword %r is not recognized" % origin)
+        raise ValueError(f"'origin' keyword {origin!r} is not recognized")
     elif hasattr(origin, "type") and origin.type == "Point":
         origin = origin.coords[0]
 

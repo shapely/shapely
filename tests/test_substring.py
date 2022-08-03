@@ -11,7 +11,7 @@ class SubstringTestCase(unittest.TestCase):
         self.point = Point(1, 1)
         self.line1 = LineString([(0, 0), (2, 0)])
         self.line2 = LineString([(3, 0), (3, 6), (4.5, 6)])
-        self.line3 = LineString(((0, i) for i in range(5)))
+        self.line3 = LineString((0, i) for i in range(5))
 
     def test_return_startpoint(self):
         self.assertTrue(substring(self.line1, -500, -600).equals(Point(0, 0)))

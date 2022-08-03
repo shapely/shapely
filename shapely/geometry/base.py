@@ -97,9 +97,9 @@ class BaseGeometry(shapely.Geometry):
         # the total length is limited to 80 characters including brackets
         max_length = 78
         if len(wkt) > max_length:
-            return "<{}...>".format(wkt[: max_length - 3])
+            return f"<{wkt[: max_length - 3]}...>"
 
-        return "<{}>".format(wkt)
+        return f"<{wkt}>"
 
     def __str__(self):
         return self.wkt
@@ -210,8 +210,8 @@ class BaseGeometry(shapely.Geometry):
                 scale_factor = max([dx, dy]) / max([width, height])
             except ZeroDivisionError:
                 scale_factor = 1.0
-            view_box = "{} {} {} {}".format(xmin, ymin, dx, dy)
-            transform = "matrix(1,0,0,-1,0,{})".format(ymax + ymin)
+            view_box = f"{xmin} {ymin} {dx} {dy}"
+            transform = f"matrix(1,0,0,-1,0,{ymax + ymin})"
             return svg_top + (
                 'width="{1}" height="{2}" viewBox="{0}" '
                 'preserveAspectRatio="xMinYMin meet">'
