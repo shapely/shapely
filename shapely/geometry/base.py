@@ -9,18 +9,12 @@ import math
 from itertools import islice
 from warnings import warn
 
+import numpy as np
+
 import shapely
 from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
 from shapely.errors import GeometryTypeError, GEOSException, ShapelyDeprecationWarning
-
-try:
-    import numpy as np
-
-    integer_types = (int, np.integer)
-except ImportError:
-    integer_types = (int,)
-
 
 GEOMETRY_TYPES = [
     "Point",
@@ -849,7 +843,7 @@ class GeometrySequence:
 
     def __getitem__(self, key):
         m = self.__len__()
-        if isinstance(key, integer_types):
+        if isinstance(key, (int, np.integer)):
             if key + m < 0 or key >= m:
                 raise IndexError("index out of range")
             if key < 0:
