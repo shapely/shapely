@@ -115,24 +115,27 @@ A full list of functions can be found in the API docs. TODO add link
 API changes (deprecated in 1.8)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+The Shapely 1.8 release included several deprecation warnings about API
+changes that would happen in Shapely 2.0 and that can be fixed in your code.
 See :ref:`migration` for more details on how to update your code.
 
-Recommended to first upgrade to Shapely 1.8 and resolve all deprecation
+It is hightly recommended to first upgrade to Shapely 1.8 and resolve all deprecation
 warnings before upgrading to Shapely 2.0.
 
 Summary of changes:
 
 * Geometries are now immutable and hashable.
-* Multi-part geometries no longer behave as "sequences". This means that they
-  no longer have a length, are not iterable and indexable anymore. Use ``.geoms``
-  attribute instead to access the parts.
+* Multi-part geometries such as MultiPolygon no longer behave as "sequences".
+  This means that they no longer have a length, are not iterable and
+  indexable anymore. Use ``.geoms`` attribute instead to access the parts.
 * Geometries no longer directly implement the numpy array interface. To
-  convert to an array of coordinates, use `.coords` instead
-  (`np.asarray(geom.coords)`).
+  convert to an array of coordinates, use ``.coords`` instead
+  (``np.asarray(geom.coords)``).
 * Consistent creation of empty geometries (for exampe ``Polygon()`` now
   actually creates an empty Polygon instead of an empty geometry collection).
 * The following attributes and methods on the Geometry classes were
   deprecated and are now removed:
+
   * ``array_interface()`` and ``ctypes``
   * ``asShape()``, and the adapters classes to create geometry-like proxy
     objects (use ``shape()`` instead).
@@ -152,7 +155,7 @@ Some additional backwards incompatible API changes were included in Shapely
 * The unused ``shape_factory()`` method and ``HeterogeneousGeometrySequence``
   class are removed (#1421).
 * The undocumted ``__geom__`` attribute is removed. To access the raw GEOS pointer,
-  the ``_geom`` attribute is still present (1417).
+  the ``_geom`` attribute is still present (#1417).
 
 New features
 ^^^^^^^^^^^^
