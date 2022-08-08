@@ -21,28 +21,89 @@ For more background, see
 Refactor of the internals
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Before 2.0.0, Shapely wrapped the underlying GEOS C++ library using
+Before 2.0, Shapely wrapped the underlying GEOS C++ library using
 ``ctypes``. While being a low-barrier way to wrap a C library, this runtime
 linking also entails overhead and robustness issues.
-
-With 2.0.0, the internals of Shapely have been refactored to remove the usage
+With 2.0, the internals of Shapely have been refactored to remove the usage
 of ``ctypes``, and instead expose the GEOS functionality through a Python C
 extension module.
 
 The pointer to the actual GEOS Geometry object is stored in a lightweight
 `Python extension type <https://docs.python.org/3/extending/newtypes_tutorial.html>`__.
-This way, the GEOS pointer is accessible from C without Python overhead as a
-static attribute of the Python object (an attribute of the C struct that
-makes up a Python object). Hence, a single `Geometry` Python extension type
-is defined in C wrapping a `GEOSGeometry` pointer. This extension type is
-further subclassed in Python to provide the geometry type-specific classes
-from Shapely (Point, LineString, Polygon, etc).
+A single `Geometry` Python extension type is defined in C wrapping a
+`GEOSGeometry` pointer. This extension type is further subclassed in Python
+to provide the geometry type-specific classes from Shapely (Point,
+LineString, Polygon, etc).
+By using an extension type defined in C, the GEOS pointer is accessible from
+C without Python overhead as a static attribute of the Python object (an
+attribute of the C struct that makes up a Python object). This allows writing
+vectorized functions on that level, avoiding Python overhead while looping
+over the array (see next section).
 
 
-Top-level element-wise functions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Top-level vectorized (element-wise) functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Not only all methods on the Geometry classes, but also some methods from submodules (eg ..)
+Shapely 2.0 provides functionality to work arrays of geometry objects and
+exposes all GEOS operations as vectorized functions with a familiar NumPy
+interface. This gives a nice user interface and will provide a substantial
+performance improvement when working with arrays of geometries.
+This adds a required dependency on numpy.
+
+Before the 2.0 release, Shapely only provided an interface for scalar
+geometry objects. When organizing many Shapely geometries in arrays, users
+have to loop over the array to call the scalar methods/properties. This is
+both more verbose to use and has a large overhead limiting the performance of
+such applications.
+
+With the 2.0 release, Shapely introduces new vectorized functions operating
+on numpy arrays. Those functions are implemented as
+`NumPy *universal functions* <https://numpy.org/doc/stable/reference/ufuncs.html>`__
+(or ufunc for short). A universal function is a function that operates on
+n-dimensional arrays in an element-by-element fashion, supporting array
+broadcasting. The for-loops that are involved are fully implemented in C
+diminishing the overhead of the Python interpreter.
+
+This adds a required dependency on numpy.
+
+Illustrating this functionality using a small array of points and a single
+polygon::
+
+  >>> import shapely
+  >>> from shapely import Point
+  >>> import numpy as np
+  >>> geoms = np.array([Point(0, 0), Point(1, 1), Point(2, 2)])
+  >>> polygon = shapely.box(0, 0, 2, 2)
+
+Instead of using a manual for loop, as one would do in previous versions of
+Shapely::
+
+  >>> [polygon.contains(point) for point in geoms]
+  [False,  True, False]
+
+we can now compute whether the points are contained in the polygon directly
+with one function call::
+
+  >>> shapely.contains(polygon, geoms)
+  array([False,  True, False])
+
+Apart from the nicer user interface (no need to manually loop through the
+geometries), this also provides a considerable speedup. Depending on the
+operation, this can give a performance increase with factors of 4x to 100x
+(the high factors are obtained for lightweight GEOS operations such as
+contains in which case the Python overhead is the dominating factor). See
+https://caspervdw.github.io/Introducing-Pygeos/ for more detailed examples.
+
+Those new vectorized functions are available in the top-level ``shapely``
+namespace. All the familiar geospatial methods and attributes from the
+geometry classes now have an equivalent as top-level function (with some
+small name deviations, such as the ``.wkt`` attribute being available as a
+``to_wkt()`` function). In addition, also some methods from submodules (for
+example, several functions from the ``shapely.ops`` submodule such as
+``polygonize()``) are also made available in a vectorized version as
+top-level function.
+
+A full list of functions can be found in the API docs. TODO add link
 
 * Vectorized constructor functions
 * Optionally output to a user-specified array (``out`` keyword argument) when constructing
@@ -119,6 +180,17 @@ Releasing the GIL
 * Release the GIL to allow for multithreading in functions that do not
   create geometries (#144) and in the STRtree ``query_bulk()`` method (#174)
 * Released the GIL in all geometry creation functions (#310, #326).
+
+In addition, this also opens up possibilities for multithreading (release the
+GIL during GEOS operations for better performance). See
+[pygeos/pygeos#113](https://github.com/pygeos/pygeos/pull/113) for experiments
+on this.
+
+Shapely functions generally support multithreading by releasing the Global
+Interpreter Lock (GIL) during execution. Normally in Python, the GIL prevents
+multiple threads from computing at the same time. Shapely functions
+internally release this constraint so that the heavy lifting done by GEOS can
+be done in parallel, from a single Python process.
 
 STRtree improvements
 ~~~~~~~~~~~~~~~~~~~~
