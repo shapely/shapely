@@ -43,7 +43,7 @@ def _empty_shape_for_no_coordinates(geom_type):
     elif geom_type == "multipolygon":
         return MultiPolygon()
     else:
-        raise GeometryTypeError("Unknown geometry type: %s" % geom_type)
+        raise GeometryTypeError(f"Unknown geometry type: {geom_type!r}")
 
 
 def box(minx, miny, maxx, maxy, ccw=True):
@@ -110,7 +110,7 @@ def shape(context):
         geoms = [shape(g) for g in ob.get("geometries", [])]
         return GeometryCollection(geoms)
     else:
-        raise GeometryTypeError("Unknown geometry type: %s" % geom_type)
+        raise GeometryTypeError(f"Unknown geometry type: {geom_type!r}")
 
 
 def mapping(ob):

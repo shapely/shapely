@@ -148,7 +148,7 @@ if "clean" in sys.argv:
         "pygeos/*.pyd",
     ]:
         for filename in p.glob(pattern):
-            print("removing '{}'".format(filename))
+            print(f"removing '{filename}'")
             filename.unlink()
 elif "sdist" in sys.argv:
     if Path("LICENSE_GEOS").exists() or Path("LICENSE_win32").exists():
