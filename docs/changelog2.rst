@@ -157,56 +157,101 @@ Some additional backwards incompatible API changes were included in Shapely
 * The undocumted ``__geom__`` attribute is removed. To access the raw GEOS pointer,
   the ``_geom`` attribute is still present (#1417).
 
+In addition, the ``STRtree`` interface was changed, see the section below for
+more details.
+
 New features
 ^^^^^^^^^^^^
 
 More informative repr with (truncated) WKT
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+The repr (``__repr__``) of Geometry objects has been simplified and improved
+to include a descriptive Well-Known-Text (WKT) formatting. Instead of showing
+the class name and id::
+
+  >>> Point(0, 0)
+  <shapely.geometry.point.Point at 0x7f0b711f1310>
+
+we now get::
+
+  >>> Point(0, 0)
+  <POINT (0 0)>
+
+For large geometries with many coordinates, the WKT string gets truncated at
+80 characters.
+
 
 Support for fixed precision model for geometries and in overlay functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* `set_precision` to conform a geometry to a certain grid size, and this will then also be used by subsequent overlay methods
-* `grid_size` keyword in overlay methods (`intersection`, `union`, `difference`, etc)
+GEOS 3.9.0 overhauled the overlay operations (union, intersection,
+(symmetric) difference): a complete rewrite, dubbed "OverlayNG", provides a
+more robust implementation (no more TopologyExceptions even on valid input),
+the ability to specify the output precision model, and significant
+performance optimizations. When installing Shapely with GEOS >= 3.9 (which is
+the case for PyPI wheels and conda-forge packages), you automatically get
+those improvements already (also for previous versions of Shapely) when using
+the overlay operations.
+
+An additional improvement in Shapely 2.0 is that the ability to specify the
+precision model is now exposed in the Python API:
+
+* The ``set_precision()`` function can be used to conform a geometry to a
+  certain grid size (may round and reduce coordinates), and this will then
+  also be used by subsequent overlay methods. A ``get_precision()`` function
+  is also available to inspect the precision model of geometries.
+* The ``grid_size`` keyword in the overlay methods can also be used to
+  specify the precision model of the output geometry (without first
+  conforming the input geometries).
 
 
-* Addition of ``get_precision`` to get precision of a geometry and ``set_precision``
-  to set the precision of a geometry (may round and reduce coordinates) (#257)
-* Addition of ``grid_size`` parameter to specify fixed-precision grid for ``difference``,
-  ``intersection``, ``symmetric_difference``, ``union``, and ``union_all`` operations for
-  GEOS >= 3.9 (#276)
+Releasing the GIL for multithreaded applications
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Releasing the GIL
-~~~~~~~~~~~~~~~~~
+Shapely itself is not multithreaded, but its functions generally allow for
+multithreading by releasing the Global Interpreter Lock (GIL) during
+execution. Normally in Python, the GIL prevents multiple threads from
+computing at the same time. Shapely functions internally release this
+constraint so that the heavy lifting done by GEOS can be done in parallel,
+from a single Python process.
 
-* Release the GIL to allow for multithreading in functions that do not
-  create geometries (#144) and in the STRtree ``query_bulk()`` method (#174)
-* Released the GIL in all geometry creation functions (#310, #326).
-
-In addition, this also opens up possibilities for multithreading (release the
-GIL during GEOS operations for better performance). See
-[pygeos/pygeos#113](https://github.com/pygeos/pygeos/pull/113) for experiments
-on this.
-
-Shapely functions generally support multithreading by releasing the Global
-Interpreter Lock (GIL) during execution. Normally in Python, the GIL prevents
-multiple threads from computing at the same time. Shapely functions
-internally release this constraint so that the heavy lifting done by GEOS can
-be done in parallel, from a single Python process.
 
 STRtree improvements
 ~~~~~~~~~~~~~~~~~~~~
 
-* Specifying a `predicate` in the STRtree queries
-* Bulk queries
+The biggest change in the ``STRtree`` interface is that all operations now
+return indices of the input tree or query geometries, instead of the
+geometries itself. These indices can be used to index into anything
+associated with the input geometries, including the input geometries
+themselves, or custom items stored in another object of the same length as
+the geometries.
 
+In addition, several significant improvements in the ``STRtree`` are included
+in Shapely 2.0:
 
-* STRtree improvements for spatial indexing:
-  * Directly include predicate evaluation in ``STRtree.query()`` (#87)
-  * Query multiple input geometries (spatial join style) with ``STRtree.query_bulk`` (#108)
+* Directly include predicate evaluation in ``STRtree.query()`` by specifying
+  the ``predicate`` keyword. If a predicate is provided, the potentially
+  intersecting tree geometries are further filtered to those that meet the
+  predicate (using prepared geometries under the hood for efficiency).
+* Query multiple input geometries (spatial join style) with
+  ``STRtree.query()`` by passing an array of geometries. In this case, the
+  return value is a 2D array with shape (2, n) where the subarrays correspond
+  to the indices of the input geometries and indices of the tree geometries
+  associated with each.
+* A new ``STRtree.query_nearest()`` method was added, returning the index of
+  the nearest geometries in the tree for each input geometry. Compared to
+  ``STRtree.nearest()``, which only returns the index of a single nearest
+  geometry for each input geometry, this new methods allows for:
+
+  * returning all equidistant nearest geometries,
+  * excluding nearest geometries that are equal to the input,
+  * specifying an ``max_distance`` to limit the search radius potentially
+    increasing the performance,
+  * optionally returning the distance.
+
 * Fixed ``STRtree`` creation to allow querying the tree in a multi-threaded
-  context (#361).
+  context.
 
 Bindings for new GEOS functionalities
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
