@@ -286,65 +286,68 @@ Getting information / parts / coordinates from geometries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A set of GEOS getter functions are now also exposed to inspect geometries:
-`get_dimensions`, `get_coordinate_dimension`, `get_srid`, `get_num_points`,
-`get_num_interior_rings`, `get_num_geometries`, `get_num_coordinates`,
-`get_precision`.
+``get_dimensions``, ``get_coordinate_dimension``, ``get_srid``,
+``get_num_points``, ``get_num_interior_rings``, ``get_num_geometries``,
+``get_num_coordinates``, ``get_precision``.
 
+Several functions are added to extract parts: ``get_geometry`` to get the nth
+geometry from a GeometryCollection or Multi-part geometry,
+``get_exterior_ring`` and ``get_interior_ring`` to get one of the rings of a
+Polygon, ``get_point`` to get the nth point of a linestring or linearring,
+and ``get_x``, ``get_y`` and ``get_z`` to get the x/y/z coordinate of a
+Point.
 
-To extract parts: `get_geometry`, `get_exterior_ring`, `get_interior_ring`,
-`get_parts`, `get_rings`, `get_point`, `get_coordinates`, `get_x`, `get_y`,
-`get_z`
+In addition, methods to extract all parts or coordinates at once were added:
 
+* The ``get_parts`` function can be used to get individual parts of an array of multipart
+  geometries.
+* The ``get_rings`` function, similar as ``get_parts`` but specifically
+  to extract the rings of Polygon geometries.
+* The ``get_coordinates`` function to get all coordinates from a geometry or
+  array of goemetries as an array of floats.
 
-
-* Addition of ``get_parts`` function to get individual parts of an array of multipart
-  geometries (#197)
-* Added the option to return the geometry index in ``get_coordinates`` (#318).
-* Added the ``get_rings`` function, similar as ``get_parts`` but specifically
-  to extract the rings of Polygon geometries (#342).
+Each of those three functions has an optional ``return_index`` keyword, which
+allows to also return the indexes of the original geometries in the source
+array.
 
 
 Prepared geometries
 ~~~~~~~~~~~~~~~~~~~
 
 Prepared geometries are now no longer separate objects, but geometry objects itself
-can be prepared (this makes the `shapely.prepared` module superfluous).
+can be prepared (this makes the ``shapely.prepared`` module superfluous).
 
-* Addition of ``prepare`` function that generates a GEOS prepared geometry which is stored on
-  the Geometry object itself. All binary predicates (except ``equals``) make use of this.
-  Helper functions ``destroy_prepared`` and ``is_prepared`` are also available. (#92, #252)
+The ``prepare()`` function generates a GEOS prepared geometry which is stored
+on the Geometry object itself. All binary predicates (except ``equals``) will
+make use of this, if the input geometry has been prepared. Helper functions
+``destroy_prepared`` and ``is_prepared`` are also available.
 
 
 GeoJSON IO
 ~~~~~~~~~~
 
-* Added GeoJSON input/output capabilities (``pygeos.from_geojson``,
-  ``pygeos.to_geojson``) for GEOS >= 3.10 (#413).
+* Added GeoJSON input/output capabilities (``shapely.from_geojson``,
+  ``shapely.to_geojson``) for GEOS >= 3.10 (#413).
 
 Other improvements
 ~~~~~~~~~~~~~~~~~~
 
-* Added ``pygeos.force_2d`` and ``pygeos.force_3d`` to change the dimensionality of
-  the coordinates in a geometry (#396).
-
-* Addition of a ``total_bounds()`` function (#107)
-
+* Added ``shapely.force_2d`` and ``shapely.force_3d`` to change the dimensionality of
+  the coordinates in a geometry.
+* Addition of a ``total_bounds()`` function.
+* Added ``shapely.empty`` to create a geometry array pre-filled with None or
+  with empty geometries.
 * Performance improvement in constructing LineStrings or LinearRings from
-  numpy arrays for GEOS >= 3.10 (#436)
-
+  numpy arrays for GEOS >= 3.10.
 * Updated ``box`` ufunc to use internal C function for creating polygon
   (about 2x faster) and added ``ccw`` parameter to create polygon in
-  counterclockwise (default) or clockwise direction (#308).
-
-* Start of a benchmarking suite using ASV (#96)
+  counterclockwise (default) or clockwise direction.
+* Start of a benchmarking suite using ASV.
 
 Utilities
 
-* Added ``pygeos.testing.assert_geometries_equal`` (#401).
+* Added ``shapely.testing.assert_geometries_equal``.
 
-
-* Added ``pygeos.empty`` to create a geometry array pre-filled with None or
-  with empty geometries (#381).
 
 Bug fixes
 ~~~~~~~~~
