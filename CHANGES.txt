@@ -1,6 +1,15 @@
 Changes
 =======
 
+1.8.3 (TBD)
+-----------
+
+Deprecations:
+
+- The STRtree class will be changed in 2.0.0 and will not be compatible with
+  the class in versions 1.8.x. This change obsoletes the deprecation
+  announcement in 1.8a3 (below).
+
 1.8.2 (2022-05-03)
 ------------------
 
