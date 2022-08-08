@@ -100,7 +100,7 @@ class STRtree:
         node_capacity: int = 10,
     ):
         warn(
-            "STRtree will be changed in 2.0.0. The exact API is not yet decided, but will be documented before 1.8.0",
+            "STRtree will be changed in 2.0.0 and will not be compatible with versions < 2.",
             ShapelyDeprecationWarning,
             stacklevel=2,
         )
