@@ -116,8 +116,9 @@ API changes (deprecated in 1.8)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The Shapely 1.8 release included several deprecation warnings about API
-changes that would happen in Shapely 2.0 and that can be fixed in your code.
-See :ref:`migration` for more details on how to update your code.
+changes that would happen in Shapely 2.0 and that can be fixed in your code
+(making it compatible with both <=1.8 and >=2.0). See :ref:`migration` for
+more details on how to update your code.
 
 It is hightly recommended to first upgrade to Shapely 1.8 and resolve all deprecation
 warnings before upgrading to Shapely 2.0.
@@ -157,8 +158,8 @@ Some additional backwards incompatible API changes were included in Shapely
 * The undocumted ``__geom__`` attribute is removed. To access the raw GEOS pointer,
   the ``_geom`` attribute is still present (#1417).
 
-In addition, the ``STRtree`` interface was changed, see the section below for
-more details.
+In addition, the ``STRtree`` interface was changed, see the section
+:ref:`below <changelog-2-strtree>``for more details.
 
 New features
 ^^^^^^^^^^^^
@@ -217,8 +218,10 @@ constraint so that the heavy lifting done by GEOS can be done in parallel,
 from a single Python process.
 
 
-STRtree improvements
-~~~~~~~~~~~~~~~~~~~~
+.. _changelog-2-strtree:
+
+STRtree API changes and improvements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The biggest change in the ``STRtree`` interface is that all operations now
 return indices of the input tree or query geometries, instead of the
@@ -352,23 +355,14 @@ Utilities
 Bug fixes
 ~~~~~~~~~
 
-TODO: check if this are also bug fixes in Shapely 2.0 compared to 1.8
+* Fixed several corner cases in WKT and WKB serialization for varying GEOS
+  versions, including:
 
-* Return True instead of False for LINEARRING geometries in ``is_closed`` (#379).
-* Fixed the WKB serialization of 3D empty points for GEOS >= 3.9.0 (#392).
-* Fixed the WKT serialization of single part 3D empty geometries for GEOS >= 3.9.0 (#402).
-* Fixed the WKT serialization of multipoints with empty points for GEOS >= 3.9.0 (#392).
-* Fixed a segfault when getting coordinates from empty points in GEOS 3.8.0 (#415).
-
-* Fixed portability issue for ARM architecture (#293)
-* Fixed segfault in ``linearrings`` and ``box`` when constructing a geometry with nan
-  coordinates (#310).
-* Fixed segfault in ``polygons`` (with holes) when None was provided.
-* Fixed memory leak in ``polygons`` when non-linearring input was provided.
-
-* Handle empty points in to_wkb by conversion to POINT (nan, nan) (#179)
-* Prevent segfault in to_wkt (and repr) with empty points in multipoints (#171)
-* Fixed segfaults when adding empty geometries to the STRtree (#147)
+  * Fixed the WKT serialization of single part 3D empty geometries to
+    correctly include "Z" (for GEOS >= 3.9.0).
+  * Handle empty points in WKB serialization by conversion to
+    ``POINT (nan, nan)`` consistently for all GEOS versions (GEOS started
+    doing this for >= 3.9.0).
 
 
 **Acknowledgments**
