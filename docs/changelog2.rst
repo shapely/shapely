@@ -142,12 +142,25 @@ Summary of changes:
     objects (use ``shape()`` instead).
   * ``empty()`` method
 
+Some new deprecations have been introduced in Shapely 2.0:
+
+* Directly calling the base class ``BaseGeometry()`` constructor, as well as
+  the ``EmptyGeometry()`` constructor, are deprecated and will raise an error
+  in the future. To create an empty geometry, use one of the subclasses
+  instead, for example ``GeometryCollection()`` (#1022).
+* The ``shapely.speedups`` module (the ``enable`` and ``disable`` functions)
+  is deprecated and will be removed in the future. The module has no longer
+  any affect in Shapely >=2.0.
+
+
 Breaking API changes
 ^^^^^^^^^^^^^^^^^^^^
 
 Some additional backwards incompatible API changes were included in Shapely
 2.0 that were not yet deprecated in Shapely 1.8:
 
+* The ``.bounds`` of an empty geometry has changed from an empty tuple to a
+  tuple of NaNs (#1023).
 * The default of the ``preserve_topology`` keyword of ``simplify()`` changed
   to True (#1392).
 * A ``GeometryCollection`` that consists of all empty sub-geometries now
@@ -157,12 +170,42 @@ Some additional backwards incompatible API changes were included in Shapely
   class are removed (#1421).
 * The undocumted ``__geom__`` attribute is removed. To access the raw GEOS pointer,
   the ``_geom`` attribute is still present (#1417).
+* The ``logging`` functionality has been removed. All errors messages from
+  GEOS are now bubbled up as Python exceptions (#998).
+* Several custom exception classes defined in ``shapely.errors`` (that are no
+  longer used internally) have been removed. Errors from GEOS are now raised
+  as ``GEOSException`` (#1306).
 
 In addition, the ``STRtree`` interface was changed, see the section
 :ref:`below <changelog-2-strtree>``for more details.
 
 New features
 ^^^^^^^^^^^^
+
+The Geometry subclasses are available in the top-level namespace
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Following the new vectorized functions in the top-level ``shapely``
+namespace, the Geometry subclasses (``Point``, ``LineString``, ``Polygon``,
+etc) are now available in the top-level namespace as well (#1330). Thus it is
+no longer needed to import those from the ``shapely.geometry`` submodule.
+
+The following::
+
+  from shapely.geometry import Point
+
+can be replaced with::
+
+  from shapely import Point
+
+  # or
+  import shapely
+  shapely.Point(...)
+
+Note: for backwards compatibility (and being able to write code that works
+for both <=1.8 and >2.0), those classes still remain accessible from the
+``shapely.geometry`` submodule as well.
+
 
 More informative repr with (truncated) WKT
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
