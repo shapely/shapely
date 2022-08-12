@@ -413,15 +413,21 @@ Bug fixes
 Thanks to everyone who contributed to this release!
 People with a "+" by their names contributed a patch for the first time.
 
-(TODO update from actual git log, this is only from the PyGEOS changelog notes)
-
+* Adam J. Stewart +
+* Alan D. Snow +
 * Brendan Ward +
 * Casper van der Wel +
-* Joris Van den Bossche
-* Mike Taves
-* Tanguy Ophoff +
 * James Myatt +
+* Joris Van den Bossche
+* Keith Jenkins +
+* Kian Meng Ang +
 * Krishna Chaitanya +
 * Martin Fleischmann +
-* Tom Clancy +
+* Martin Lackner +
+* Mike Taves
+* Tanguy Ophoff +
+* Tom Clancy
+* Sean Gillies
+* gpapadok +
 * mattijn +
+* odidev +
