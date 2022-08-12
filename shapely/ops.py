@@ -109,7 +109,7 @@ class CollectionOperator:
             except AttributeError:
                 source = MultiLineString(lines)
         if source is None:
-            raise ValueError("Cannot linemerge %s" % lines)
+            raise ValueError(f"Cannot linemerge {lines}")
         return shapely.line_merge(source)
 
     def cascaded_union(self, geoms):
@@ -210,7 +210,7 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
         )
     except shapely.GEOSException as err:
         errstr = "Could not create Voronoi Diagram with the specified inputs "
-        errstr += "({}).".format(str(err))
+        errstr += f"({err!s})."
         if tolerance:
             errstr += " Try running again with default tolerance value."
         raise ValueError(errstr) from err
@@ -296,7 +296,7 @@ def transform(func, geom):
     elif geom.type.startswith("Multi") or geom.type == "GeometryCollection":
         return type(geom)([transform(func, part) for part in geom.geoms])
     else:
-        raise GeometryTypeError("Type %r not recognized" % geom.type)
+        raise GeometryTypeError(f"Type {geom.type!r} not recognized")
 
 
 def nearest_points(g1, g2):
@@ -533,7 +533,7 @@ class SplitOp:
                 split_func = SplitOp._split_line_with_multipoint
             else:
                 raise GeometryTypeError(
-                    "Splitting a LineString with a %s is not supported" % splitter.type
+                    f"Splitting a LineString with a {splitter.type} is not supported"
                 )
 
         elif geom.type == "Polygon":
@@ -541,13 +541,11 @@ class SplitOp:
                 split_func = SplitOp._split_polygon_with_line
             else:
                 raise GeometryTypeError(
-                    "Splitting a Polygon with a %s is not supported" % splitter.type
+                    f"Splitting a Polygon with a {splitter.type} is not supported"
                 )
 
         else:
-            raise GeometryTypeError(
-                "Splitting %s geometry is not supported" % geom.type
-            )
+            raise GeometryTypeError(f"Splitting {geom.type} geometry is not supported")
 
         return GeometryCollection(split_func(geom, splitter))
 
@@ -616,8 +614,8 @@ def substring(geom, start_dist, end_dist, normalized=False):
 
     if not isinstance(geom, LineString):
         raise GeometryTypeError(
-            "Can only calculate a substring of LineString geometries. A %s was provided."
-            % geom.type
+            "Can only calculate a substring of LineString geometries. "
+            f"A {geom.type} was provided."
         )
 
     # Filter out cases in which to return a point

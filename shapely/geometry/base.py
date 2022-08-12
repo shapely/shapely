@@ -9,18 +9,12 @@ import math
 from itertools import islice
 from warnings import warn
 
+import numpy as np
+
 import shapely
 from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
 from shapely.errors import GeometryTypeError, GEOSException, ShapelyDeprecationWarning
-
-try:
-    import numpy as np
-
-    integer_types = (int, np.integer)
-except ImportError:
-    integer_types = (int,)
-
 
 GEOMETRY_TYPES = [
     "Point",
@@ -103,9 +97,9 @@ class BaseGeometry(shapely.Geometry):
         # the total length is limited to 80 characters including brackets
         max_length = 78
         if len(wkt) > max_length:
-            return "<{}...>".format(wkt[: max_length - 3])
+            return f"<{wkt[: max_length - 3]}...>"
 
-        return "<{}>".format(wkt)
+        return f"<{wkt}>"
 
     def __str__(self):
         return self.wkt
@@ -216,8 +210,8 @@ class BaseGeometry(shapely.Geometry):
                 scale_factor = max([dx, dy]) / max([width, height])
             except ZeroDivisionError:
                 scale_factor = 1.0
-            view_box = "{} {} {} {}".format(xmin, ymin, dx, dy)
-            transform = "matrix(1,0,0,-1,0,{})".format(ymax + ymin)
+            view_box = f"{xmin} {ymin} {dx} {dy}"
+            transform = f"matrix(1,0,0,-1,0,{ymax + ymin})"
             return svg_top + (
                 'width="{1}" height="{2}" viewBox="{0}" '
                 'preserveAspectRatio="xMinYMin meet">'
@@ -414,11 +408,20 @@ class BaseGeometry(shapely.Geometry):
         --------
         >>> from shapely.wkt import loads
         >>> g = loads('POINT (0.0 0.0)')
-        >>> g.buffer(1.0).area        # 16-gon approx of a unit radius circle
+
+        16-gon approx of a unit radius circle:
+
+        >>> g.buffer(1.0).area  # doctest: +ELLIPSIS
         3.1365484905459...
-        >>> g.buffer(1.0, 128).area   # 128-gon approximation
+
+        128-gon approximation:
+
+        >>> g.buffer(1.0, 128).area  # doctest: +ELLIPSIS
         3.141513801144...
-        >>> g.buffer(1.0, 3).area     # triangle approximation
+
+        triangle approximation:
+
+        >>> g.buffer(1.0, 3).area
         3.0
         >>> list(g.buffer(1.0, cap_style=CAP_STYLE.square).exterior.coords)
         [(1.0, 1.0), (1.0, -1.0), (-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0)]
@@ -466,10 +469,10 @@ class BaseGeometry(shapely.Geometry):
 
         Examples
         --------
-        >>> from shapely.wkt import loads
-        >>> p = loads("MULTILINESTRING((0 0, 1 1), (3 3, 2 2))")
-        >>> p.normalize().wkt
-        'MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))'
+        >>> from shapely import MultiLineString
+        >>> line = MultiLineString([[(0, 0), (1, 1)], [(3, 3), (2, 2)]])
+        >>> line.normalize()
+        <MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))>
         """
         return shapely.normalize(self)
 
@@ -729,6 +732,54 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
+    def segmentize(self, tolerance):
+        """Adds vertices to line segments based on tolerance.
+
+        Additional vertices will be added to every line segment in an input geometry
+        so that segments are no greater than tolerance.  New vertices will evenly
+        subdivide each segment.
+
+        Only linear components of input geometries are densified; other geometries
+        are returned unmodified.
+
+        Parameters
+        ----------
+        tolerance : float or array_like
+            Additional vertices will be added so that all line segments are no
+            greater than this value.  Must be greater than 0.
+
+        Examples
+        --------
+        >>> from shapely import LineString, Polygon
+        >>> LineString([(0, 0), (0, 10)]).segmentize(tolerance=5)
+        <LINESTRING (0 0, 0 5, 0 10)>
+        >>> Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]).segmentize(tolerance=5)
+        <POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
+        """
+        return shapely.segmentize(self, tolerance)
+
+    def reverse(self):
+        """Returns a copy of this geometry with the order of coordinates reversed.
+
+        If the geometry is a polygon with interior rings, the interior rings are also
+        reversed.
+
+        Points are unchanged.
+
+        See also
+        --------
+        is_ccw : Checks if a geometry is clockwise.
+
+        Examples
+        --------
+        >>> from shapely import LineString, Polygon
+        >>> LineString([(0, 0), (1, 2)]).reverse()
+        <LINESTRING (1 2, 0 0)>
+        >>> Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]).reverse()
+        <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
+        """
+        return shapely.reverse(self)
+
 
 class BaseMultipartGeometry(BaseGeometry):
 
@@ -792,7 +843,7 @@ class GeometrySequence:
 
     def __getitem__(self, key):
         m = self.__len__()
-        if isinstance(key, integer_types):
+        if isinstance(key, (int, np.integer)):
             if key + m < 0 or key >= m:
                 raise IndexError("index out of range")
             if key < 0:

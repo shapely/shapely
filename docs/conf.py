@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Shapely documentation build configuration file, created by
 # sphinx-quickstart on Mon Apr 12 11:07:08 2010.

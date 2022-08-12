@@ -17,9 +17,9 @@ jobs:
         geos: [3.6.5, 3.7.5, 3.8.3, 3.9.3, 3.10.3, 3.11.0, main]
         include:
           # 2017
-          - python: 3.6
+          - python: 3.7  # 3.6 is dropped
             geos: 3.6.5
-            numpy: 1.13.3
+            numpy: 1.14.6
           # 2018
           - python: 3.7
             geos: 3.7.5
@@ -37,7 +37,7 @@ jobs:
             geos: 3.10.3
             numpy: 1.21.3
           # 2022
-          - python: "3.10"  # switch to "3.11" when released (PEP 664)
+          - python: "3.10" # switch to "3.11" when released (PEP 664)
             geos: 3.11.0
             numpy: 1.23.0
             # TODO(shapely-2.0) temporary allow warnings
@@ -45,13 +45,13 @@ jobs:
           # dev
           - python: "3.10"
             geos: main
-            extra_pytest_args: "-W error"  # error on warnings
+            extra_pytest_args: "-W error" # error on warnings
           # enable two 32-bit windows builds:
           - os: windows-2019
             architecture: x86
-            python: 3.6
-            geos: 3.6.5
-            numpy: 1.13.3
+            python: 3.7
+            geos: 3.7.5
+            numpy: 1.15.4
           - os: windows-2019
             architecture: x86
             python: 3.9
@@ -137,7 +137,7 @@ jobs:
 
       # Windows requires special treatment:
       # - geos-config does not exist, so we specify include and library paths
-      # - Python >=3.8 ignores the PATH for finding DLLs, so we copy them into the package 
+      # - Python >=3.8 ignores the PATH for finding DLLs, so we copy them into the package
       - name: Set environment variables + copy DLLs (Windows)
         run: |
           cp geosinstall/geos-${{ matrix.geos }}/bin/*.dll shapely
@@ -160,10 +160,14 @@ jobs:
 
       # Only run doctests on 1 runner (because of typographic differences in doctest results)
       - name: Run doctests
-        run: pytest --doctest-modules shapely --ignore=shapely/tests
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.10' }}
-        # TODO(shapely-2.0) temporary allow doctest failures
-        continue-on-error: true
+        run: |
+          python -m pytest --doctest-modules docs/manual.rst
+
+      - name: Run doctests (part 2)
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.10' && matrix.geos == '3.11.0'}}
+        run: |
+          pytest --doctest-modules shapely --ignore=shapely/tests
 
       - name: Upload coverage
         env:
@@ -179,9 +183,9 @@ jobs:
     runs-on: ubuntu-latest
     container: python:3-slim
     steps:
-    - name: Finished
-      run: |
-        pip3 install --upgrade coveralls
-        coveralls --finish || echo "!! intermittent coveralls failure"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Finished
+        run: |
+          pip3 install --upgrade coveralls
+          coveralls --finish || echo "!! intermittent coveralls failure"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

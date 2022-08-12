@@ -143,8 +143,8 @@ support those features, and for those classes there is no change in behaviour
 for this aspect.
 
 
-Interopability with NumPy and the array interface
-=================================================
+Interoperability with NumPy and the array interface
+===================================================
 
 Conversion of the coordinates to (NumPy) arrays
 -----------------------------------------------

@@ -1,13 +1,12 @@
-from . import unittest
 from math import pi
+
+import numpy as np
+
 from shapely import affinity
 from shapely.wkt import loads as load_wkt
 from shapely.geometry import Point
 
-try:
-    import numpy
-except ImportError:
-    numpy = False
+from . import unittest
 
 
 class AffineTestCase(unittest.TestCase):
@@ -16,8 +15,6 @@ class AffineTestCase(unittest.TestCase):
         g = load_wkt('LINESTRING(2.4 4.1, 2.4 3, 3 3)')
         self.assertRaises(
             TypeError, affinity.affine_transform, g, None)
-        self.assertRaises(
-            TypeError, affinity.affine_transform, g, '123456')
         self.assertRaises(ValueError, affinity.affine_transform, g,
                           [1, 2, 3, 4, 5, 6, 7, 8, 9])
         self.assertRaises(AttributeError, affinity.affine_transform, None,
@@ -166,17 +163,16 @@ class TransformOpsTestCase(unittest.TestCase):
         els = load_wkt('LINESTRING EMPTY')
         self.assertTrue(rls.equals(els))
 
-    @unittest.skipIf(not numpy, 'numpy not installed')
     def test_rotate_angle_array(self):
         ls = load_wkt('LINESTRING(240 400, 240 300, 300 300)')
         els = load_wkt('LINESTRING(220 320, 320 320, 320 380)')
         # check with degrees
-        theta = numpy.array([90.0])
+        theta = np.array([90.0])
         rls = affinity.rotate(ls, theta)
         self.assertEqual(theta[0], 90.0)
         self.assertTrue(rls.equals(els))
         # check with radians
-        theta = numpy.array([pi/2])
+        theta = np.array([pi/2])
         rls = affinity.rotate(ls, theta, use_radians=True)
         self.assertEqual(theta[0], pi/2)
         self.assertTrue(rls.equals(els))
@@ -263,20 +259,19 @@ class TransformOpsTestCase(unittest.TestCase):
         els = load_wkt('LINESTRING EMPTY')
         self.assertTrue(sls.equals(els))
 
-    @unittest.skipIf(not numpy, 'numpy not installed')
     def test_skew_xs_ys_array(self):
         ls = load_wkt('LINESTRING(240 400 10, 240 300 30, 300 300 20)')
         els = load_wkt('LINESTRING (253.39745962155615 417.3205080756888, '
                        '226.60254037844385 317.3205080756888, '
                        '286.60254037844385 282.67949192431126)')
         # check with degrees
-        xs_ys = numpy.array([15.0, -30.0])
+        xs_ys = np.array([15.0, -30.0])
         sls = affinity.skew(ls, xs_ys[0:1], xs_ys[1:2])
         self.assertEqual(xs_ys[0], 15.0)
         self.assertEqual(xs_ys[1], -30.0)
         self.assertTrue(sls.equals_exact(els, 1e-6))
         # check with radians
-        xs_ys = numpy.array([pi/12, -pi/6])
+        xs_ys = np.array([pi/12, -pi/6])
         sls = affinity.skew(ls, xs_ys[0:1], xs_ys[1:2], use_radians=True)
         self.assertEqual(xs_ys[0], pi/12)
         self.assertEqual(xs_ys[1], -pi/6)

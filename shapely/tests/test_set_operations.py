@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import shapely
-from shapely import Geometry
+from shapely import Geometry, Polygon
 from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 
@@ -276,7 +276,7 @@ def test_coverage_union_reduce_axis():
 
 @pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 def test_coverage_union_overlapping_inputs():
-    polygon = Geometry("POLYGON ((1 1, 1 0, 0 0, 0 1, 1 1))")
+    polygon = Polygon([(1, 1), (1, 0), (0, 0), (0, 1), (1, 1)])
 
     # Overlapping polygons raise an error
     with pytest.raises(
@@ -284,7 +284,7 @@ def test_coverage_union_overlapping_inputs():
         match="CoverageUnion cannot process incorrectly noded inputs.",
     ):
         shapely.coverage_union(
-            polygon, Geometry("POLYGON ((1 0, 0.9 1, 2 1, 2 0, 1 0))")
+            polygon, Polygon([(1, 0), (0.9, 1), (2, 1), (2, 0), (1, 0)])
         )
 
 
@@ -316,36 +316,56 @@ def test_coverage_union_non_polygon_inputs(geom_1, geom_2):
         (
             [shapely.box(0.1, 0.1, 5, 5), shapely.box(0, 0.2, 5.1, 10)],
             0,
-            shapely.Geometry(
-                "POLYGON ((0 0.2, 0 10, 5.1 10, 5.1 0.2, 5 0.2, 5 0.1, 0.1 0.1, 0.1 0.2, 0 0.2))"
+            Polygon(
+                (
+                    (0, 0.2),
+                    (0, 10),
+                    (5.1, 10),
+                    (5.1, 0.2),
+                    (5, 0.2),
+                    (5, 0.1),
+                    (0.1, 0.1),
+                    (0.1, 0.2),
+                    (0, 0.2),
+                )
             ),
         ),
         # grid_size is at effective precision, expect no change
         (
             [shapely.box(0.1, 0.1, 5, 5), shapely.box(0, 0.2, 5.1, 10)],
             0.1,
-            shapely.Geometry(
-                "POLYGON ((0 0.2, 0 10, 5.1 10, 5.1 0.2, 5 0.2, 5 0.1, 0.1 0.1, 0.1 0.2, 0 0.2))"
+            Polygon(
+                (
+                    (0, 0.2),
+                    (0, 10),
+                    (5.1, 10),
+                    (5.1, 0.2),
+                    (5, 0.2),
+                    (5, 0.1),
+                    (0.1, 0.1),
+                    (0.1, 0.2),
+                    (0, 0.2),
+                )
             ),
         ),
         # grid_size forces rounding to nearest integer
         (
             [shapely.box(0.1, 0.1, 5, 5), shapely.box(0, 0.2, 5.1, 10)],
             1,
-            shapely.Geometry("POLYGON ((0 5, 0 10, 5 10, 5 5, 5 0, 0 0, 0 5))"),
+            Polygon([(0, 5), (0, 10), (5, 10), (5, 5), (5, 0), (0, 0), (0, 5)]),
         ),
         # grid_size much larger than effective precision causes rounding to nearest
         # multiple of 10
         (
             [shapely.box(0.1, 0.1, 5, 5), shapely.box(0, 0.2, 5.1, 10)],
             10,
-            shapely.Geometry("POLYGON ((0 10, 10 10, 10 0, 0 0, 0 10))"),
+            Polygon([(0, 10), (10, 10), (10, 0), (0, 0), (0, 10)]),
         ),
         # grid_size is so large that polygons collapse to empty
         (
             [shapely.box(0.1, 0.1, 5, 5), shapely.box(0, 0.2, 5.1, 10)],
             100,
-            shapely.Geometry("POLYGON EMPTY"),
+            Polygon(),
         ),
     ],
 )

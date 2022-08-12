@@ -37,7 +37,7 @@ plot_line(ax, b.exterior)
 u = a.exterior.union(b.exterior)
 if u.geom_type in ['LineString', 'LinearRing', 'Point']:
     plot_line(ax, u, color=BLUE)
-elif u.geom_type is 'MultiLineString':
+elif u.geom_type == 'MultiLineString':
     for p in u:
         plot_line(ax, p, color=BLUE)
 
