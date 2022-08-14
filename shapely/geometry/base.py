@@ -476,25 +476,40 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.normalize(self)
 
-    # Binary operations
-    # -----------------
+    # Overlay operations
+    # ---------------------------
 
-    def difference(self, other):
-        """Returns the difference of the geometries"""
-        return shapely.difference(self, other)
+    def difference(self, other, grid_size=None):
+        """
+        Returns the difference of the geometries.
 
-    def intersection(self, other):
-        """Returns the intersection of the geometries"""
-        return shapely.intersection(self, other)
+        Refer to `shapely.difference` for full documentation.
+        """
+        return shapely.difference(self, other, grid_size=grid_size)
 
-    def symmetric_difference(self, other):
-        """Returns the symmetric difference of the geometries
-        (Shapely geometry)"""
-        return shapely.symmetric_difference(self, other)
+    def intersection(self, other, grid_size=None):
+        """
+        Returns the intersection of the geometries.
 
-    def union(self, other):
-        """Returns the union of the geometries (Shapely geometry)"""
-        return shapely.union(self, other)
+        Refer to `shapely.intersection` for full documentation.
+        """
+        return shapely.intersection(self, other, grid_size=grid_size)
+
+    def symmetric_difference(self, other, grid_size=None):
+        """
+        Returns the symmetric difference of the geometries.
+
+        Refer to `shapely.symmetric_difference` for full documentation.
+        """
+        return shapely.symmetric_difference(self, other, grid_size=grid_size)
+
+    def union(self, other, grid_size=None):
+        """
+        Returns the union of the geometries.
+
+        Refer to `shapely.union` for full documentation.
+        """
+        return shapely.union(self, other, grid_size=grid_size)
 
     # Unary predicates
     # ----------------
