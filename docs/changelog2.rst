@@ -6,7 +6,7 @@ Changelog
 
 
 Version 2.0.0 (in progress)
---------------------------
+---------------------------
 
 Shapely 2.0 version is a major release featuring a complete refactor of the
 internals and new vectorized (element-wise) array operations providing
@@ -262,7 +262,7 @@ from a single Python process.
 STRtree API changes and improvements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The biggest change in the ``STRtree`` interface is that all operations now
+The biggest change in the :class:`.STRtree` interface is that all operations now
 return indices of the input tree or query geometries, instead of the
 geometries itself. These indices can be used to index into anything
 associated with the input geometries, including the input geometries
@@ -271,19 +271,19 @@ order as the geometries.
 
 In addition, Shapely 2.0 includes several improvements to ``STRtree``:
 
-* Directly include predicate evaluation in ``STRtree.query()`` by specifying
-  the ``predicate`` keyword. If a predicate is provided, tree geometries with
-  bounding boxes that overlap the bounding boxes of the input geometries are
-  further filtered to those that meet the predicate (using prepared
-  geometries under the hood for efficiency).
+* Directly include predicate evaluation in :meth:`.STRtree.query` by
+  specifying the ``predicate`` keyword. If a predicate is provided, tree
+  geometries with bounding boxes that overlap the bounding boxes of the input
+  geometries are further filtered to those that meet the predicate (using
+  prepared geometries under the hood for efficiency).
 * Query multiple input geometries (spatial join style) with
-  ``STRtree.query()`` by passing an array of geometries. In this case, the
+  :meth:`.STRtree.query` by passing an array of geometries. In this case, the
   return value is a 2D array with shape (2, n) where the subarrays correspond
   to the indices of the input geometries and indices of the tree geometries
   associated with each.
-* A new ``STRtree.query_nearest()`` method was added, returning the index of
-  the nearest geometries in the tree for each input geometry. Compared to
-  ``STRtree.nearest()``, which only returns the index of a single nearest
+* A new :meth:`.STRtree.query_nearest` method was added, returning the index
+  of the nearest geometries in the tree for each input geometry. Compared to
+  :meth:`.STRtree.nearest`, which only returns the index of a single nearest
   geometry for each input geometry, this new methods allows for:
 
   * returning all equidistant nearest geometries,
@@ -300,53 +300,54 @@ Bindings for new GEOS functionalities
 
 Several (new) functions from GEOS are now exposed in Shapely:
 
-* ``haussdorff_distance`` and ``frechet_distance()``
-* ``contains_properly``
-* ``extract_unique_points``
-* ``reverse``
-* ``build_area()`` (GEOS >= 3.8)
-* ``minimum_bounding_circle`` and ``minimum_bounding_radius`` (GEOS >= 3.8)
-* ``coverage_union()`` and ``coverage_union_all()`` (GEOS >= 3.8)
-* ``segmentize`` (GEOS >= 3.10)
-* ``dwithin`` (GEOS >= 3.10)
+* :func:`.hausdorff_distance` and :func:`.frechet_distance`
+* :func:`.contains_properly`
+* :func:`.extract_unique_points`
+* :func:`.reverse`
+* :func:`.build_area` (GEOS >= 3.8)
+* :func:`.minimum_bounding_circle` and :func:`.minimum_bounding_radius` (GEOS >= 3.8)
+* :func:`.coverage_union` and :func:`.coverage_union_all` (GEOS >= 3.8)
+* :func:`.segmentize` (GEOS >= 3.10)
+* :func:`.dwithin` (GEOS >= 3.10)
 
 In addition some aliases for existing methods have been added to provide a
 method name consistent with GEOS or PostGIS:
 
-- ``line_interpolate_point`` (``interpolate``)
-- ``line_locate_point`` (``project``)
-- ``offset_curve`` (``parallel_offset``)
-- ``point_on_surface`` (``representative_point``)
-- ``oriented_envelope`` (``minimum_rotated_rectangle``)
-- ``delauney_triangles`` (``ops.triangulate``)
-- ``voronoi_polygons`` (``ops.voronoi_diagram``)
-- ``shortest_line`` (``ops.nearest_points``)
-- ``is_valid_reason`` (``validation.explain_validity``)
+- :func:`.line_interpolate_point` (``interpolate``)
+- :func:`.line_locate_point` (``project``)
+- :func:`.offset_curve` (``parallel_offset``)
+- :func:`.point_on_surface` (``representative_point``)
+- :func:`.oriented_envelope` (``minimum_rotated_rectangle``)
+- :func:`.delaunay_triangles` (``ops.triangulate``)
+- :func:`.voronoi_polygons` (``ops.voronoi_diagram``)
+- :func:`.shortest_line` (``ops.nearest_points``)
+- :func:`.is_valid_reason` (``validation.explain_validity``)
 
 
 Getting information / parts / coordinates from geometries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A set of GEOS getter functions are now also exposed to inspect geometries:
-``get_dimensions``, ``get_coordinate_dimension``, ``get_srid``,
-``get_num_points``, ``get_num_interior_rings``, ``get_num_geometries``,
-``get_num_coordinates``, ``get_precision``.
+:func:`.get_dimensions`, :func:`.get_coordinate_dimension`,
+:func:`.get_srid`, :func:`.get_num_points`, :func:`.get_num_interior_rings`,
+:func:`.get_num_geometries`, :func:`.get_num_coordinates`,
+:func:`.get_precision`.
 
-Several functions are added to extract parts: ``get_geometry`` to get a
+Several functions are added to extract parts: :func:`.get_geometry` to get a
 geometry from a GeometryCollection or Multi-part geometry,
-``get_exterior_ring`` and ``get_interior_ring`` to get one of the rings of a
-Polygon, ``get_point`` to get a point (vertex) of a linestring or linearring,
-and ``get_x``, ``get_y`` and ``get_z`` to get the x/y/z coordinate of a
-Point.
+:func:`.get_exterior_ring` and :func:`.get_interior_ring` to get one of the
+rings of a Polygon, :func:`.get_point` to get a point (vertex) of a
+linestring or linearring, and :func:`.get_x`, :func:`.get_y` and
+:func:`.get_z` to get the x/y/z coordinate of a Point.
 
 Methods to extract all parts or coordinates at once have been added:
 
-* The ``get_parts`` function can be used to get individual parts of an array
-  of multi-part geometries.
-* The ``get_rings`` function, similar as ``get_parts`` but specifically
+* The :func:`.get_parts` function can be used to get individual parts of an
+  array of multi-part geometries.
+* The :func:`.get_rings` function, similar as ``get_parts`` but specifically
   to extract the rings of Polygon geometries.
-* The ``get_coordinates`` function to get all coordinates from a geometry or
-  array of goemetries as an array of floats.
+* The :func:`.get_coordinates` function to get all coordinates from a
+  geometry or array of goemetries as an array of floats.
 
 Each of those three functions has an optional ``return_index`` keyword, which
 allows to also return the indexes of the original geometries in the source
@@ -360,32 +361,33 @@ Prepared geometries are now no longer separate objects, but geometry objects
 themselves can be prepared (this makes the ``shapely.prepared`` module
 superfluous).
 
-The ``prepare()`` function generates a GEOS prepared geometry which is stored
-on the Geometry object itself. All binary predicates (except ``equals``) will
-make use of this if the input geometry has already been prepared. Helper
-functions ``destroy_prepared`` and ``is_prepared`` are also available.
+The :func:`.prepare()` function generates a GEOS prepared geometry which is
+stored on the Geometry object itself. All binary predicates (except
+``equals``) will make use of this if the input geometry has already been
+prepared. Helper functions :func:`.destroy_prepared` and :func:`.is_prepared`
+are also available.
 
 
 GeoJSON IO
 ~~~~~~~~~~
 
-* Added GeoJSON input/output capabilities (``shapely.from_geojson``,
-  ``shapely.to_geojson``) for GEOS >= 3.10 (#413).
+* Added GeoJSON input/output capabilities (:func:`.from_geojson`,
+  :func:`.to_geojson`) for GEOS >= 3.10 (#413).
 
 Other improvements
 ~~~~~~~~~~~~~~~~~~
 
-* Added ``shapely.force_2d`` and ``shapely.force_3d`` to change the
+* Added :func:`.force_2d` and :func:`.force_3d` to change the
   dimensionality of the coordinates in a geometry.
-* Addition of a ``total_bounds()`` function to return the outer bounds of an
+* Addition of a :func:`.total_bounds` function to return the outer bounds of an
   array of geometries.
-* Added ``shapely.empty`` to create a geometry array pre-filled with None or
-  with empty geometries.
+* Added :func:`.empty` to create a geometry array pre-filled with None
+  or with empty geometries.
 * Performance improvement in constructing LineStrings or LinearRings from
   numpy arrays for GEOS >= 3.10.
-* Updated ``box`` ufunc to use internal C function for creating polygon
-  (about 2x faster) and added ``ccw`` parameter to create polygon in
-  counterclockwise (default) or clockwise direction.
+* Updated the :func:`box() <shapely.creation.box>` ufunc to use internal C
+  function for creating polygon (about 2x faster) and added ``ccw`` parameter
+  to create polygon in counterclockwise (default) or clockwise direction.
 * Start of a benchmarking suite using ASV.
 
 Utilities
