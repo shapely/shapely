@@ -237,10 +237,10 @@ the overlay operations.
 Shapely 2.0 also includes the ability to specify the precision model
 directly:
 
-* The ``set_precision()`` function can be used to conform a geometry to a
+* The :func:`.set_precision` function can be used to conform a geometry to a
   certain grid size (may round and reduce coordinates), and this will then
-  also be used by subsequent overlay methods. A ``get_precision()`` function
-  is also available to inspect the precision model of geometries.
+  also be used by subsequent overlay methods. A :func:`.get_precision`
+  function is also available to inspect the precision model of geometries.
 * The ``grid_size`` keyword in the overlay methods can also be used to
   specify the precision model of the output geometry (without first
   conforming the input geometries).
@@ -262,8 +262,8 @@ from a single Python process.
 STRtree API changes and improvements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The biggest change in the :class:`.STRtree` interface is that all operations now
-return indices of the input tree or query geometries, instead of the
+The biggest change in the :class:`.STRtree` interface is that all operations
+now return indices of the input tree or query geometries, instead of the
 geometries itself. These indices can be used to index into anything
 associated with the input geometries, including the input geometries
 themselves, or custom items stored in another object of the same length and

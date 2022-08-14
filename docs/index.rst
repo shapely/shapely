@@ -20,6 +20,7 @@
    :hidden:
 
    geometry
+   properties
    creation
    io
    measurement
