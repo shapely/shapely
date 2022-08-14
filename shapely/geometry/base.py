@@ -824,22 +824,22 @@ class GeometrySequence:
 
     # Attributes
     # ----------
-    # __p__ : object
+    # _parent : object
     #     Parent (Shapely) geometry
-    __p__ = None
+    _parent = None
 
     def __init__(self, parent):
-        self.__p__ = parent
+        self._parent = parent
 
     def _get_geom_item(self, i):
-        return shapely.get_geometry(self.__p__, i)
+        return shapely.get_geometry(self._parent, i)
 
     def __iter__(self):
         for i in range(self.__len__()):
             yield self._get_geom_item(i)
 
     def __len__(self):
-        return shapely.get_num_geometries(self.__p__)
+        return shapely.get_num_geometries(self._parent)
 
     def __getitem__(self, key):
         m = self.__len__()
@@ -856,7 +856,7 @@ class GeometrySequence:
             start, stop, stride = key.indices(m)
             for i in range(start, stop, stride):
                 res.append(self._get_geom_item(i))
-            return type(self.__p__)(res or None)
+            return type(self._parent)(res or None)
         else:
             raise TypeError("key must be an index or slice")
 
