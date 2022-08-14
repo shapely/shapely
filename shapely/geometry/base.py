@@ -476,7 +476,7 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.normalize(self)
 
-    # Binary (overlay) operations
+    # Overlay operations
     # ---------------------------
 
     def difference(self, other, grid_size=None):
