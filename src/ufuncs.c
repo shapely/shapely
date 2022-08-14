@@ -2548,7 +2548,18 @@ static void bounds_func(char** args, npy_intp* dimensions, npy_intp* steps, void
       *x1 = *y1 = *x2 = *y2 = NPY_NAN;
     } else {
 
-#if GEOS_SINCE_3_7_0
+#if GEOS_SINCE_3_11_0
+      if (GEOSisEmpty_r(ctx, in1)) {
+        *x1 = *y1 = *x2 = *y2 = NPY_NAN;
+      }
+      else {
+        if (!GEOSGeom_getExtent_r(ctx, in1, x1, y1, x2, y2)) {
+          errstate = PGERR_GEOS_EXCEPTION;
+          goto finish;
+        }
+      }
+
+#elif GEOS_SINCE_3_7_0
       if (GEOSisEmpty_r(ctx, in1)) {
         *x1 = *y1 = *x2 = *y2 = NPY_NAN;
       }
