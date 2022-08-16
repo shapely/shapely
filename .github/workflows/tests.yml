@@ -145,7 +145,7 @@ jobs:
       - name: Install python dependencies
         run: |
           python -m pip install --disable-pip-version-check --user --upgrade pip
-          pip install --upgrade wheel setuptools<65
+          pip install --upgrade wheel "setuptools<65"
           if [ "$SPEEDUPS" == "1" ]; then
             pip install --install-option="--no-cython-compile" cython;
             pip install --upgrade numpy==${{ matrix.numpy }};
