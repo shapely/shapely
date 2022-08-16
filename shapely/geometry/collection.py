@@ -3,6 +3,7 @@
 
 from ctypes import c_void_p
 
+from shapely.ctypes_declarations import c_geom_p
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry
 from shapely.geometry.base import BaseMultipartGeometry
@@ -63,7 +64,7 @@ def geos_geometrycollection_from_py(ob):
          ob = ob.geoms
     L = len(ob)
     N = 2
-    subs = (c_void_p * L)()
+    subs = (c_geom_p * L)()
     for l in range(L):
         assert(isinstance(ob[l], BaseGeometry))
         if ob[l].has_z:
