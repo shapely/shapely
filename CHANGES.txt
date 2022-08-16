@@ -1,14 +1,30 @@
 Changes
 =======
 
-1.8.3 (TBD)
------------
+1.8.3 (2022-08-16)
+------------------
 
 Deprecations:
 
-- The STRtree class will be changed in 2.0.0 and will not be compatible with
-  the class in versions 1.8.x. This change obsoletes the deprecation
-  announcement in 1.8a3 (below).
+The STRtree class will be changed in 2.0.0 and will not be compatible with the
+class in versions 1.8.x. This change obsoletes the deprecation announcement in
+1.8a3 (below).
+
+Packaging:
+
+Wheels for 1.8.3 published on PyPI include GEOS 3.10.3.
+
+Bug fixes:
+
+- The signature for GEOSMinimumClearance has been corrected, fixing an issue
+  affecting aarch64-darwin (#1480)
+- Return and arg types have been corrected and made more strict for area,
+  length, and distance properties.
+- A new c_geom_p type has been created to replace c_void_p when calling GEOS
+  functions (#1479).
+- An incorrect polygon-line intersection (#1427) has been fixed in GEOS 3.10.3,
+  which will be included in wheels published to PyPI.
+- GEOS buffer parameters are now destroyed, fixing a memory leak (#1440).
 
 1.8.2 (2022-05-03)
 ------------------
@@ -32,7 +48,7 @@ install from source.
 Packaging:
 
 Wheels for 1.8.1 published on PyPI include GEOS 3.10.2. This version is the
-best version of GDAL yet. Discrepancies in behavior compared to previous
+best version of GEOS yet. Discrepancies in behavior compared to previous
 versions are considered to be improvements.
 
 For the first time, we will publish wheels for macos_arm64 (see PR #1310).
