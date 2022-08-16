@@ -132,6 +132,9 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSBufferParams_create.restype = c_void_p
     lgeos.GEOSBufferParams_create.argtypes = None
 
+    lgeos.GEOSBufferParams_destroy.restype = None
+    lgeos.GEOSBufferParams_destroy.argtypes = [c_void_p]
+
     lgeos.GEOSBufferParams_setEndCapStyle.restype = c_int
     lgeos.GEOSBufferParams_setEndCapStyle.argtypes = [c_void_p, c_int]
 

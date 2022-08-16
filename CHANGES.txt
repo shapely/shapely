@@ -1,6 +1,24 @@
 Changes
 =======
 
+1.8.3 (TBD)
+-----------
+
+Deprecations:
+
+- The STRtree class will be changed in 2.0.0 and will not be compatible with
+  the class in versions 1.8.x. This change obsoletes the deprecation
+  announcement in 1.8a3 (below).
+
+1.8.2 (2022-05-03)
+------------------
+
+- Make Polygons and MultiPolygons closed by definition, like LinearRings.
+  Resolves #1246.
+- Perform frozen app check for GEOS before conda env check on macos as we
+  already do on linux (#1301).
+- Fix leak of GEOS coordinate sequence in nearest_points reported in #1098.
+
 1.8.1.post1 (2022-02-17)
 ------------------------
 

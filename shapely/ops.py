@@ -336,14 +336,19 @@ def nearest_points(g1, g2):
             raise ValueError('The first input geometry is empty')
         else:
             raise ValueError('The second input geometry is empty')
-    x1 = c_double()
-    y1 = c_double()
-    x2 = c_double()
-    y2 = c_double()
-    lgeos.GEOSCoordSeq_getX(seq, 0, byref(x1))
-    lgeos.GEOSCoordSeq_getY(seq, 0, byref(y1))
-    lgeos.GEOSCoordSeq_getX(seq, 1, byref(x2))
-    lgeos.GEOSCoordSeq_getY(seq, 1, byref(y2))
+
+    try:
+        x1 = c_double()
+        y1 = c_double()
+        x2 = c_double()
+        y2 = c_double()
+        lgeos.GEOSCoordSeq_getX(seq, 0, byref(x1))
+        lgeos.GEOSCoordSeq_getY(seq, 0, byref(y1))
+        lgeos.GEOSCoordSeq_getX(seq, 1, byref(x2))
+        lgeos.GEOSCoordSeq_getY(seq, 1, byref(y2))
+    finally:
+        lgeos._lgeos.GEOSCoordSeq_destroy(seq)
+
     p1 = Point(x1.value, y1.value)
     p2 = Point(x2.value, y2.value)
     return (p1, p2)

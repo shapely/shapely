@@ -56,10 +56,11 @@ def load_dll(libname, fallbacks=None, mode=DEFAULT_MODE):
                 libname, fallbacks or []))
 
 _lgeos = None
+
+
 def exists_conda_env():
     """Does this module exist in a conda environment?"""
     return os.path.exists(os.path.join(sys.prefix, 'conda-meta'))
-
 
 if sys.platform.startswith('linux'):
     # Test to see if we have a wheel repaired by auditwheel which contains its
@@ -127,36 +128,39 @@ elif sys.platform == 'darwin':
             _lgeos = CDLL(geos_whl_dylib[-1])
             LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
 
+    elif hasattr(sys, "frozen"):
+        try:
+            # .app file from py2app
+            alt_paths = [
+                os.path.join(
+                    os.environ["RESOURCEPATH"], "..", "Frameworks", "libgeos_c.dylib"
+                )
+            ]
+        except KeyError:
+            alt_paths = [
+                # binary from pyinstaller
+                os.path.join(sys.executable, "libgeos_c.dylib"),
+                # .app from cx_Freeze
+                os.path.join(os.path.dirname(sys.executable), "libgeos_c.1.dylib"),
+            ]
+            if hasattr(sys, "_MEIPASS"):
+                alt_paths.append(os.path.join(sys._MEIPASS, "libgeos_c.1.dylib"))
+
     elif exists_conda_env():
         # conda package.
         _lgeos = CDLL(os.path.join(sys.prefix, 'lib', 'libgeos_c.dylib'))
+
     else:
-        if hasattr(sys, 'frozen'):
-            try:
-                # .app file from py2app
-                alt_paths = [os.path.join(
-                    os.environ['RESOURCEPATH'], '..', 'Frameworks',
-                    'libgeos_c.dylib')]
-            except KeyError:
-                alt_paths = [
-                    # binary from pyinstaller
-                    os.path.join(sys.executable, 'libgeos_c.dylib'),
-                    # .app from cx_Freeze
-                    os.path.join(os.path.dirname(sys.executable), 'libgeos_c.1.dylib')]
-                if hasattr(sys, '_MEIPASS'):
-                    alt_paths.append(
-                        os.path.join(sys._MEIPASS, 'libgeos_c.1.dylib'))
-        else:
-            alt_paths = [
-                # The Framework build from Kyng Chaos
-                "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
-                # macports
-                '/opt/local/lib/libgeos_c.dylib',
-                # homebrew Intel
-                '/usr/local/lib/libgeos_c.dylib',
-                # homebrew Apple Silicon
-                '/opt/homebrew/lib/libgeos_c.dylib',
-            ]
+        alt_paths = [
+            # The Framework build from Kyng Chaos
+            "/Library/Frameworks/GEOS.framework/Versions/Current/GEOS",
+            # macports
+            "/opt/local/lib/libgeos_c.dylib",
+            # homebrew Intel
+            "/usr/local/lib/libgeos_c.dylib",
+            # homebrew Apple Silicon
+            "/opt/homebrew/lib/libgeos_c.dylib",
+        ]
         _lgeos = load_dll('geos_c', fallbacks=alt_paths)
 
     free = CDLL(None).free
@@ -165,8 +169,10 @@ elif sys.platform == 'darwin':
 
 elif sys.platform == 'win32':
     _conda_dll_path = os.path.join(sys.prefix, 'Library', 'bin', 'geos_c.dll')
+
     if exists_conda_env() and os.path.exists(_conda_dll_path):
         _lgeos = CDLL(_conda_dll_path)
+
     else:
         geos_whl_dll = glob.glob(
             os.path.abspath(
@@ -181,6 +187,7 @@ elif sys.platform == 'win32':
             # CDLL(geos_whl_so[0])
             _lgeos = CDLL(geos_whl_dll[-1])
             LOG.debug("Found GEOS DLL: %r, using it.", _lgeos)
+
         else:
             try:
                 egg_dlls = os.path.abspath(

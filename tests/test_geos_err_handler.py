@@ -19,7 +19,8 @@ def test_error_handler_exception(tmpdir):
     with pytest.raises(ReadingError):
         loads('POINT (LOLWUT)')
 
-    log = open(logfile).read()
+    with open(logfile) as fobj:
+        log = fobj.read()
     assert "Expected number but encountered word: 'LOLWUT'" in log
 
 
@@ -33,7 +34,8 @@ def test_error_handler(tmpdir):
     # has *no* conversion specifiers.
     LineString([(0, 0), (2, 2)]).project(LineString([(1, 1), (1.5, 1.5)]))
 
-    log = open(logfile).read()
+    with open(logfile) as fobj:
+        log = fobj.read()
     assert "third argument of GEOSProject_r must be Point" in log
 
 
@@ -57,7 +59,8 @@ def test_info_handler(tmpdir):
     g = loads('MULTIPOLYGON (((10 20, 10 120, 60 70, 30 70, 30 40, 60 40, 60 70, 90 20, 10 20)))')
     assert not g.is_valid
 
-    log = open(logfile).read()
+    with open(logfile) as fobj:
+        log = fobj.read()
     assert "Ring Self-intersection at or near point 60 70" in log
 
 
@@ -71,5 +74,6 @@ def test_info_handler_quiet(tmpdir):
     g = loads('MULTIPOLYGON (((10 20, 10 120, 60 70, 30 70, 30 40, 60 40, 60 70, 90 20, 10 20)))')
     assert not g.is_valid
 
-    log = open(logfile).read()
+    with open(logfile) as fobj:
+        log = fobj.read()
     assert "Ring Self-intersection at or near point 60 70" not in log
