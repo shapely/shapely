@@ -7,7 +7,7 @@ different z values may intersect or be equal.
 """
 
 from binascii import a2b_hex
-from ctypes import pointer, c_size_t, c_char_p, c_void_p
+from ctypes import cast, pointer, c_size_t, c_char_p, c_void_p
 from itertools import islice
 import logging
 import math
@@ -18,6 +18,7 @@ import warnings
 
 from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
+from shapely.ctypes_declarations import c_geom_p
 from shapely.errors import GeometryTypeError, WKBReadingError, WKTReadingError
 from shapely.errors import ShapelyDeprecationWarning
 from shapely.geos import WKBWriter, WKTWriter
@@ -107,10 +108,11 @@ def geos_geom_from_py(ob, create_func=None):
     This behaviour is useful for converting between LineString and LinearRing
     objects.
     """
+    geom_ptr = cast(ob._geom, c_geom_p)
     if create_func is None:
-        geom = lgeos.GEOSGeom_clone(ob._geom)
+        geom = lgeos.GEOSGeom_clone(geom_ptr)
     else:
-        cs = lgeos.GEOSGeom_getCoordSeq(ob._geom)
+        cs = lgeos.GEOSGeom_getCoordSeq(geom_ptr)
         cs = lgeos.GEOSCoordSeq_clone(cs)
         geom = create_func(cs)
 

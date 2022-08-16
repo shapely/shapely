@@ -4,6 +4,7 @@
 from ctypes import c_void_p, cast
 import warnings
 
+from shapely.ctypes_declarations import c_geom_p
 from shapely.errors import EmptyPartError, ShapelyDeprecationWarning
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseMultipartGeometry, geos_geom_from_py
@@ -116,9 +117,9 @@ def asMultiLineString(context):
 
 
 def geos_multilinestring_from_py(ob):
-    # ob must be either a MultiLineString, a sequence, or 
+    # ob must be either a MultiLineString, a sequence, or
     # array of sequences or arrays
-    
+
     if isinstance(ob, MultiLineString):
          return geos_geom_from_py(ob)
 
@@ -134,8 +135,8 @@ def geos_multilinestring_from_py(ob):
         raise ValueError("Invalid coordinate dimensionality")
 
     # Array of pointers to point geometries
-    subs = (c_void_p * L)()
-    
+    subs = (c_geom_p * L)()
+
     # add to coordinate sequence
     for l in range(L):
         geom, ndims = linestring.geos_linestring_from_py(obs[l])
@@ -143,6 +144,6 @@ def geos_multilinestring_from_py(ob):
         if lgeos.GEOSisEmpty(geom):
             raise EmptyPartError("Can't create MultiLineString with empty component")
 
-        subs[l] = cast(geom, c_void_p)
-            
+        subs[l] = cast(geom, c_geom_p)
+
     return (lgeos.GEOSGeom_createCollection(5, subs, L), N)

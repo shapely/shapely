@@ -1,9 +1,10 @@
 """Support for various GEOS geometry operations
 """
 
-from ctypes import byref, c_void_p, c_double
+from ctypes import byref, cast, c_void_p, c_double
 from warnings import warn
 
+from shapely.ctypes_declarations import c_geom_p
 from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
 from shapely.prepared import prep
 from shapely.geos import lgeos
@@ -44,12 +45,16 @@ class CollectionOperator:
             source = [source]
         finally:
             obs = [self.shapeup(l) for l in source]
-        geom_array_type = c_void_p * len(obs)
+
+        geom_array_type = c_geom_p * len(obs)
         geom_array = geom_array_type()
+
         for i, line in enumerate(obs):
-            geom_array[i] = line._geom
+            geom_array[i] = cast(line._geom, c_geom_p)
+
         product = lgeos.GEOSPolygonize(byref(geom_array), len(obs))
         collection = geom_factory(product)
+
         for g in collection.geoms:
             clone = lgeos.GEOSGeom_clone(g._geom)
             g = geom_factory(clone)
@@ -78,16 +83,21 @@ class CollectionOperator:
             source = [source]
         finally:
             obs = [self.shapeup(l) for l in source]
+
         L = len(obs)
-        subs = (c_void_p * L)()
+        subs = (c_geom_p * L)()
+
         for i, g in enumerate(obs):
-            subs[i] = g._geom
+            subs[i] = cast(g._geom, c_geom_p)
+
         collection = lgeos.GEOSGeom_createCollection(5, subs, L)
-        dangles = c_void_p()
-        cuts = c_void_p()
-        invalids = c_void_p()
+        dangles = c_geom_p()
+        cuts = c_geom_p()
+        invalids = c_geom_p()
         product = lgeos.GEOSPolygonize_full(
-            collection, byref(dangles), byref(cuts), byref(invalids))
+            collection, byref(dangles), byref(cuts), byref(invalids)
+        )
+
         return (
             geom_factory(product),
             geom_factory(dangles),
@@ -135,9 +145,12 @@ class CollectionOperator:
         except TypeError:
             geoms = [geoms]
             L = 1
-        subs = (c_void_p * L)()
+
+        subs = (c_geom_p * L)()
+
         for i, g in enumerate(geoms):
-            subs[i] = g._geom
+            subs[i] = cast(g._geom, c_geom_p)
+
         collection = lgeos.GEOSGeom_createCollection(6, subs, L)
         return geom_factory(lgeos.methods['cascaded_union'](collection))
 
@@ -154,9 +167,12 @@ class CollectionOperator:
         except TypeError:
             geoms = [geoms]
             L = 1
-        subs = (c_void_p * L)()
+
+        subs = (c_geom_p * L)()
+
         for i, g in enumerate(geoms):
-            subs[i] = g._geom
+            subs[i] = cast(g._geom, c_geom_p)
+
         collection = lgeos.GEOSGeom_createCollection(6, subs, L)
         return geom_factory(lgeos.methods['unary_union'](collection))
 
