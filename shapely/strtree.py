@@ -24,6 +24,7 @@ from typing import Any, ItemsView, Iterable, Iterator, Optional, Sequence, Tuple
 import sys
 from warnings import warn
 
+from shapely.ctypes_declarations import c_geom_p
 from shapely.errors import ShapelyDeprecationWarning
 from shapely.geometry.base import BaseGeometry
 from shapely.geos import lgeos
@@ -254,8 +255,11 @@ class STRtree:
                 if callback_userdata["exclusive"] and self._geoms[idx].equals(geom2):
                     dist[0] = sys.float_info.max
                 else:
-                    lgeos.GEOSDistance(self._geoms[idx]._geom, geom2._geom, dist)
-                
+                    lgeos.GEOSDistance(
+                        ctypes.cast(self._geoms[idx]._geom, c_geom_p),
+                        ctypes.cast(geom2._geom, c_geom_p),
+                        dist,
+                    )
                 return 1
             except Exception:
                 log.exception("Caught exception")

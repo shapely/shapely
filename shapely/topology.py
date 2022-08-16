@@ -7,7 +7,9 @@ to GEOS functions via ctypes.
 These methods return ctypes objects that should be recast by the caller.
 """
 
-from ctypes import byref, c_double
+from ctypes import byref, cast, c_double
+
+from shapely.ctypes_declarations import c_geom_p
 from shapely.geos import TopologicalError, lgeos
 from shapely.errors import InvalidGeometryError
 
@@ -47,7 +49,9 @@ class BinaryRealProperty(Delegating):
         self._validate(this)
         self._validate(other, stop_prepared=True)
         d = c_double()
-        retval = self.fn(this._geom, other._geom, byref(d))
+        retval = self.fn(
+            cast(this._geom, c_geom_p), cast(other._geom, c_geom_p), byref(d)
+        )
         return d.value
 
 
@@ -56,7 +60,7 @@ class UnaryRealProperty(Delegating):
     def __call__(self, this):
         self._validate(this)
         d = c_double()
-        retval = self.fn(this._geom, byref(d))
+        retval = self.fn(cast(this._geom, c_geom_p), byref(d))
         return d.value
 
 
