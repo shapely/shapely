@@ -242,6 +242,8 @@ class BaseGeometry:
     def _set_geom(self, val):
         self._empty()
         self._is_empty = val in [EMPTY, None]
+        if isinstance(val, c_geom_p):
+            val = cast(val, c_void_p).value
         self.__geom__ = val
 
     def __setattr__(self, name, value):
