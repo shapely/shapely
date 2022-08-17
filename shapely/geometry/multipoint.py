@@ -4,7 +4,6 @@
 from ctypes import byref, c_double, c_void_p, cast
 import warnings
 
-from shapely.ctypes_declarations import c_geom_p
 from shapely.errors import EmptyPartError, ShapelyDeprecationWarning
 from shapely.geos import lgeos
 from shapely.geometry.base import (
@@ -195,7 +194,7 @@ def geos_multipoint_from_py(ob):
     assert n == 2 or n == 3
 
     # Array of pointers to point geometries
-    subs = (c_geom_p * m)()
+    subs = (c_void_p * m)()
 
     # add to coordinate sequence
     for i in range(m):
@@ -205,6 +204,6 @@ def geos_multipoint_from_py(ob):
         if lgeos.GEOSisEmpty(geom):
             raise EmptyPartError("Can't create MultiPoint with empty component")
 
-        subs[i] = cast(geom, c_geom_p)
+        subs[i] = cast(geom, c_void_p)
 
     return lgeos.GEOSGeom_createCollection(4, subs, m), n

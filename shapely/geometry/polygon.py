@@ -9,7 +9,6 @@ import weakref
 
 from shapely.algorithms.cga import signed_area
 from shapely.coords import CoordinateSequence
-from shapely.ctypes_declarations import c_geom_p
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseGeometry, geos_geom_from_py
 from shapely.geometry.linestring import LineString, LineStringAdapter
@@ -556,17 +555,16 @@ def geos_polygon_from_py(shell, holes=None):
                 raise ValueError("insufficiant coordinate dimension")
 
             # Array of pointers to ring geometries
-            geos_holes = (c_geom_p * L)()
+            geos_holes = (c_void_p * L)()
 
             # add to coordinate sequence
             for l in range(L):
                 geom, ndim = geos_linearring_from_py(ob[l])
-                geos_holes[l] = cast(geom, c_geom_p)
+                geos_holes[l] = cast(geom, c_void_p)
         else:
-            geos_holes = POINTER(c_geom_p)()
+            geos_holes = POINTER(c_void_p)()
             L = 0
 
         return (
-            lgeos.GEOSGeom_createPolygon(cast(geos_shell, c_geom_p), geos_holes, L),
-            ndim,
-        )
+            lgeos.GEOSGeom_createPolygon(
+                c_void_p(geos_shell), geos_holes, L), ndim)
