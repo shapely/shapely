@@ -100,11 +100,19 @@ class STRtree:
         items: Iterable[Any] = None,
         node_capacity: int = 10,
     ):
-        warn(
-            "STRtree will be changed in 2.0.0 and will not be compatible with versions < 2.",
-            ShapelyDeprecationWarning,
-            stacklevel=2,
-        )
+        if items is not None:
+            warn(
+                "STRtree will be changed in 2.0.0 and will not be compatible with versions < 2. "
+                "Specifically: the items keyword argument will be removed.",
+                ShapelyDeprecationWarning,
+                stacklevel=2,
+            )
+        else:
+            warn(
+                "STRtree will be changed in 2.0.0 and will not be compatible with versions < 2.",
+                ShapelyDeprecationWarning,
+                stacklevel=2,
+            )
         self.node_capacity = node_capacity
 
         # Keep references to geoms
