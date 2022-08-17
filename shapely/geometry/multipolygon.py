@@ -4,7 +4,6 @@
 from ctypes import c_void_p, cast
 import warnings
 
-from shapely.ctypes_declarations import c_geom_p
 from shapely.errors import ShapelyDeprecationWarning
 from shapely.geos import lgeos
 from shapely.geometry.base import BaseMultipartGeometry, geos_geom_from_py
@@ -147,10 +146,10 @@ def geos_multipolygon_from_py(ob):
     N = len(ob[0][0][0])
     assert N == 2 or N == 3
 
-    subs = (c_geom_p * L)()
+    subs = (c_void_p * L)()
     for l in range(L):
         geom, ndims = polygon.geos_polygon_from_py(ob[l][0], ob[l][1:])
-        subs[l] = cast(geom, c_geom_p)
+        subs[l] = cast(geom, c_void_p)
 
     return (lgeos.GEOSGeom_createCollection(6, subs, L), N)
 
@@ -193,7 +192,7 @@ def geos_multipolygon_from_polygons(arg):
 
     assert N == 2 or N == 3
 
-    subs = (c_geom_p * L)()
+    subs = (c_void_p * L)()
 
     for i, ob in enumerate(obs):
         if isinstance(ob, polygon.Polygon):
@@ -204,6 +203,6 @@ def geos_multipolygon_from_polygons(arg):
             holes = ob[1]
 
         geom, ndims = polygon.geos_polygon_from_py(shell, holes)
-        subs[i] = cast(geom, c_geom_p)
+        subs[i] = cast(geom, c_void_p)
 
     return (lgeos.GEOSGeom_createCollection(6, subs, L), N)

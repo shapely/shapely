@@ -3,19 +3,8 @@
 See header file: geos-x.y.z/capi/geos_c.h
 '''
 
-from ctypes import (
-    CFUNCTYPE,
-    POINTER,
-    Structure,
-    c_void_p,
-    c_char_p,
-    c_size_t,
-    c_byte,
-    c_uint,
-    c_int,
-    c_double,
-    py_object,
-)
+from ctypes import CFUNCTYPE, POINTER, c_void_p, c_char_p, \
+    c_size_t, c_byte, c_uint, c_int, c_double, py_object
 
 from .errors import UnsupportedGEOSVersionError
 
@@ -29,13 +18,6 @@ c_size_t_p = POINTER(c_size_t)
 class allocated_c_char_p(c_char_p):
     '''char pointer return type'''
     pass
-
-
-class GEOSGeom_t(Structure):
-    pass
-
-
-c_geom_p = POINTER(GEOSGeom_t)
 
 
 def prototype(lgeos, geos_version):
@@ -173,25 +155,25 @@ def prototype(lgeos, geos_version):
 
     # Geometry constructors
 
-    lgeos.GEOSGeom_createPoint.restype = c_geom_p
+    lgeos.GEOSGeom_createPoint.restype = c_void_p
     lgeos.GEOSGeom_createPoint.argtypes = [c_void_p]
 
-    lgeos.GEOSGeom_createLinearRing.restype = c_geom_p
+    lgeos.GEOSGeom_createLinearRing.restype = c_void_p
     lgeos.GEOSGeom_createLinearRing.argtypes = [c_void_p]
 
-    lgeos.GEOSGeom_createLineString.restype = c_geom_p
+    lgeos.GEOSGeom_createLineString.restype = c_void_p
     lgeos.GEOSGeom_createLineString.argtypes = [c_void_p]
 
-    lgeos.GEOSGeom_createPolygon.restype = c_geom_p
-    lgeos.GEOSGeom_createPolygon.argtypes = [c_geom_p, POINTER(c_geom_p), c_uint]
+    lgeos.GEOSGeom_createPolygon.restype = c_void_p
+    lgeos.GEOSGeom_createPolygon.argtypes = [c_void_p, c_void_p, c_uint]
 
-    lgeos.GEOSGeom_createCollection.restype = c_geom_p
-    lgeos.GEOSGeom_createCollection.argtypes = [c_int, POINTER(c_geom_p), c_uint]
+    lgeos.GEOSGeom_createCollection.restype = c_void_p
+    lgeos.GEOSGeom_createCollection.argtypes = [c_int, c_void_p, c_uint]
 
-    lgeos.GEOSGeom_createEmptyCollection.restype = c_geom_p
+    lgeos.GEOSGeom_createEmptyCollection.restype = c_void_p
     lgeos.GEOSGeom_createEmptyCollection.argtypes = [c_int]
 
-    lgeos.GEOSGeom_clone.restype = c_geom_p
+    lgeos.GEOSGeom_clone.restype = c_void_p
     lgeos.GEOSGeom_clone.argtypes = [c_void_p]
 
     # Memory management
@@ -243,13 +225,9 @@ def prototype(lgeos, geos_version):
     lgeos.GEOSPolygonize.restype = c_void_p
     lgeos.GEOSPolygonize.argtypes = [c_void_p, c_uint]
 
-    lgeos.GEOSPolygonize_full.restype = c_geom_p
+    lgeos.GEOSPolygonize_full.restype = c_void_p
     lgeos.GEOSPolygonize_full.argtypes = [
-        c_geom_p,
-        POINTER(c_geom_p),
-        POINTER(c_geom_p),
-        POINTER(c_geom_p),
-    ]
+        c_void_p, c_void_p, c_void_p, c_void_p]
 
     if geos_version >= (3, 4, 0):
         lgeos.GEOSDelaunayTriangulation.restype = c_void_p
@@ -419,16 +397,16 @@ def prototype(lgeos, geos_version):
     # Misc functions
 
     lgeos.GEOSArea.restype = c_int
-    lgeos.GEOSArea.argtypes = [c_geom_p, POINTER(c_double)]
+    lgeos.GEOSArea.argtypes = [c_void_p, POINTER(c_double)]
 
     lgeos.GEOSLength.restype = c_int
-    lgeos.GEOSLength.argtypes = [c_geom_p, POINTER(c_double)]
+    lgeos.GEOSLength.argtypes = [c_void_p, POINTER(c_double)]
 
     lgeos.GEOSDistance.restype = c_int
-    lgeos.GEOSDistance.argtypes = [c_geom_p, c_geom_p, POINTER(c_double)]
+    lgeos.GEOSDistance.argtypes = [c_void_p, c_void_p, POINTER(c_double)]
 
     lgeos.GEOSHausdorffDistance.restype = c_int
-    lgeos.GEOSHausdorffDistance.argtypes = [c_geom_p, c_geom_p, POINTER(c_double)]
+    lgeos.GEOSHausdorffDistance.argtypes = [c_void_p, c_void_p, POINTER(c_double)]
 
     # Reader and Writer APIs
 
@@ -546,7 +524,7 @@ def prototype(lgeos, geos_version):
             c_void_p, py_object, c_void_p, lgeos.GEOSDistanceCallback, py_object]
         lgeos.GEOSSTRtree_nearest_generic.restype = c_void_p
 
-        lgeos.GEOSMinimumClearance.argtypes = [c_geom_p, POINTER(c_double)]
+        lgeos.GEOSMinimumClearance.argtypes = [c_void_p, POINTER(c_double)]
         lgeos.GEOSMinimumClearance.restype = c_int
 
     if geos_version >= (3, 8, 0):
