@@ -1,6 +1,13 @@
 Changes
 =======
 
+1.8.4 (2022-08-17)
+------------------
+
+Bug fixes:
+
+- The new c_geom_p type caused a regression and has been removed (#1487).
+
 1.8.3 (2022-08-16)
 ------------------
 
