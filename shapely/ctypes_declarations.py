@@ -397,16 +397,16 @@ def prototype(lgeos, geos_version):
     # Misc functions
 
     lgeos.GEOSArea.restype = c_int
-    lgeos.GEOSArea.argtypes = [c_geom_p, POINTER(c_double)]
+    lgeos.GEOSArea.argtypes = [c_void_p, POINTER(c_double)]
 
     lgeos.GEOSLength.restype = c_int
-    lgeos.GEOSLength.argtypes = [c_geom_p, POINTER(c_double)]
+    lgeos.GEOSLength.argtypes = [c_void_p, POINTER(c_double)]
 
     lgeos.GEOSDistance.restype = c_int
-    lgeos.GEOSDistance.argtypes = [c_geom_p, c_geom_p, POINTER(c_double)]
+    lgeos.GEOSDistance.argtypes = [c_void_p, c_void_p, POINTER(c_double)]
 
     lgeos.GEOSHausdorffDistance.restype = c_int
-    lgeos.GEOSHausdorffDistance.argtypes = [c_geom_p, c_geom_p, POINTER(c_double)]
+    lgeos.GEOSHausdorffDistance.argtypes = [c_void_p, c_void_p, POINTER(c_double)]
 
     # Reader and Writer APIs
 
@@ -524,7 +524,7 @@ def prototype(lgeos, geos_version):
             c_void_p, py_object, c_void_p, lgeos.GEOSDistanceCallback, py_object]
         lgeos.GEOSSTRtree_nearest_generic.restype = c_void_p
 
-        lgeos.GEOSMinimumClearance.argtypes = [c_geom_p, POINTER(c_double)]
+        lgeos.GEOSMinimumClearance.argtypes = [c_void_p, POINTER(c_double)]
         lgeos.GEOSMinimumClearance.restype = c_int
 
     if geos_version >= (3, 8, 0):
