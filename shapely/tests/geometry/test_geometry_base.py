@@ -77,6 +77,11 @@ def test_comparison_notimplemented(geom):
     assert not result.any()
 
 
+def test_base_class_not_callable():
+    with pytest.raises(TypeError):
+        shapely.Geometry("POINT (1 1)")
+
+
 def test_GeometryType_deprecated():
     geom = Point(1, 1)
 

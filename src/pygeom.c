@@ -380,21 +380,6 @@ finish:
   return result;
 }
 
-static PyObject* GeometryObject_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
-  PyObject* value;
-
-  if (!PyArg_ParseTuple(args, "O", &value)) {
-    return NULL;
-  } else if (PyUnicode_Check(value)) {
-    return GeometryObject_FromWKT(value);
-  } else if (PyBytes_Check(value)) {
-    return GeometryObject_FromWKB(value);
-  } else {
-    PyErr_Format(PyExc_TypeError, "Expected string, got %s", value->ob_type->tp_name);
-    return NULL;
-  }
-}
-
 static PyMethodDef GeometryObject_methods[] = {
     {NULL} /* Sentinel */
 };
@@ -405,7 +390,6 @@ PyTypeObject GeometryType = {
     .tp_basicsize = sizeof(GeometryObject),
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    .tp_new = GeometryObject_new,
     .tp_dealloc = (destructor)GeometryObject_dealloc,
     .tp_members = GeometryObject_members,
     .tp_methods = GeometryObject_methods,
