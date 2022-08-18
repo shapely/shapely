@@ -17,7 +17,7 @@
 #include "pygeom.h"
 
 /* This initializes a global value for interrupt checking */
-int check_signals_interval[1] = {2147483647};
+int check_signals_interval[1] = {10000};
 unsigned long main_thread_id[1] = {0};
 
 PyObject* PySetupSignalChecks(PyObject* self, PyObject* args) {
@@ -79,8 +79,6 @@ PyObject* PySetupSignalChecks(PyObject* self, PyObject* args) {
  * signals won't be set anyway)
  */
 
-#if PY_VERSION_HEX >= 0x03070000
-
 #define CHECK_SIGNALS_THREADS(I)                            \
   if (((I + 1) % check_signals_interval[0]) == 0) {         \
     if (PyThread_get_thread_ident() == main_thread_id[0]) { \
@@ -91,20 +89,6 @@ PyObject* PySetupSignalChecks(PyObject* self, PyObject* args) {
       Py_UNBLOCK_THREADS;                                   \
     }                                                       \
   }
-
-#else
-// For Python 3.6, we can't know the current thread ID
-
-#define CHECK_SIGNALS_THREADS(I)                    \
-  if (((I + 1) % check_signals_interval[1]) == 0) { \
-    Py_BLOCK_THREADS;                               \
-    if (PyErr_CheckSignals() == -1) {               \
-      errstate = PGERR_PYSIGNAL;                    \
-    }                                               \
-    Py_UNBLOCK_THREADS;                             \
-  }
-
-#endif  // PY_VERSION_HEX >= 0x03070000
 
 static void geom_arr_to_npy(GEOSGeometry** array, char* ptr, npy_intp stride,
                             npy_intp count) {

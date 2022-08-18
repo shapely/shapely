@@ -113,6 +113,7 @@ enum {
                        "Invalid GeoJSON: geometry is returned as None. %s", last_error); \
       break;                                                                             \
     case PGERR_PYSIGNAL:                                                                \
+      // The python signal handler has already set an exception; we do nothing.
       break;                                                                             \
     default:                                                                             \
       PyErr_Format(PyExc_RuntimeError,                                                   \
