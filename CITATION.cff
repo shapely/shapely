@@ -15,7 +15,6 @@ authors:
     orcid: https://orcid.org/0000-0002-8401-9184
   - given-names: Casper
     family-names: "van der Wel"
-    affiliation: "Nelen & Schuurmans"
     orcid: https://orcid.org/0000-0002-0488-2237
   - given-names: Joris
     family-names: "Van den Bossche"
@@ -30,6 +29,7 @@ authors:
     family-names: Ward
     affiliation: "Astute Spruce, LLC"
     orcid: https://orcid.org/0000-0002-0813-9774
+  - name: others
 keywords:
   - cartography
   - geometry
