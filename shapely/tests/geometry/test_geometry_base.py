@@ -86,6 +86,15 @@ def test_GeometryType_deprecated():
     assert geom_type == geom.geom_type
 
 
+def test_type_deprecated():
+    geom = Point(1, 1)
+
+    with pytest.warns(ShapelyDeprecationWarning):
+        geom_type = geom.type
+
+    assert geom_type == geom.geom_type
+
+
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 def test_segmentize():
     line = LineString([(0, 0), (0, 10)])

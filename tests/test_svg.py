@@ -27,7 +27,7 @@ class SvgTestCase(unittest.TestCase):
         svg_output_dir = None
         # svg_output_dir = '.'  # useful for debugging SVG files
         if svg_output_dir:
-            fname = geom.type
+            fname = geom.geom_type
             if geom.is_empty:
                 fname += '_empty'
             if not geom.is_valid:

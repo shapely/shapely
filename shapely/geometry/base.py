@@ -34,15 +34,15 @@ def dump_coords(geom):
         raise ValueError(
             "Must be instance of a geometry class; found " + geom.__class__.__name__
         )
-    elif geom.type in ("Point", "LineString", "LinearRing"):
+    elif geom.geom_type in ("Point", "LineString", "LinearRing"):
         return geom.coords[:]
-    elif geom.type == "Polygon":
+    elif geom.geom_type == "Polygon":
         return geom.exterior.coords[:] + [i.coords[:] for i in geom.interiors]
-    elif geom.type.startswith("Multi") or geom.type == "GeometryCollection":
+    elif geom.geom_type.startswith("Multi") or geom.geom_type == "GeometryCollection":
         # Recursive call
         return [dump_coords(part) for part in geom.geoms]
     else:
-        raise GeometryTypeError("Unhandled geometry type: " + repr(geom.type))
+        raise GeometryTypeError("Unhandled geometry type: " + repr(geom.geom_type))
 
 
 class CAP_STYLE:
@@ -157,6 +157,12 @@ class BaseGeometry(shapely.Geometry):
 
     @property
     def type(self):
+        warn(
+            "The 'type' attribute is deprecated, and will be removed in "
+            "the future. You can use the 'geom_type' attribute instead.",
+            ShapelyDeprecationWarning,
+            stacklevel=2,
+        )
         return self.geom_type
 
     @property
