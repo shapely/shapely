@@ -54,9 +54,7 @@ class Point(BaseGeometry):
             # TODO better constructor
             return shapely.from_wkt("POINT EMPTY")
         elif len(args) > 3:
-            raise TypeError(
-                "Point() takes at most 3 arguments ({} given)".format(len(args))
-            )
+            raise TypeError(f"Point() takes at most 3 arguments ({len(args)} given)")
         elif len(args) == 1:
             coords = args[0]
             if isinstance(coords, Point):

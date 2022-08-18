@@ -1,6 +1,5 @@
 import numpy as np
 
-from . import Geometry  # noqa
 from . import lib
 from .decorators import requires_geos
 from .enum import ParamEnum
@@ -65,17 +64,18 @@ def to_wkt(
 
     Examples
     --------
-    >>> to_wkt(Geometry("POINT (0 0)"))
+    >>> from shapely import Point
+    >>> to_wkt(Point(0, 0))
     'POINT (0 0)'
-    >>> to_wkt(Geometry("POINT (0 0)"), rounding_precision=3, trim=False)
+    >>> to_wkt(Point(0, 0), rounding_precision=3, trim=False)
     'POINT (0.000 0.000)'
-    >>> to_wkt(Geometry("POINT (0 0)"), rounding_precision=-1, trim=False)
+    >>> to_wkt(Point(0, 0), rounding_precision=-1, trim=False)
     'POINT (0.0000000000000000 0.0000000000000000)'
-    >>> to_wkt(Geometry("POINT (1 2 3)"), trim=True)
+    >>> to_wkt(Point(1, 2, 3), trim=True)
     'POINT Z (1 2 3)'
-    >>> to_wkt(Geometry("POINT (1 2 3)"), trim=True, output_dimension=2)
+    >>> to_wkt(Point(1, 2, 3), trim=True, output_dimension=2)
     'POINT (1 2)'
-    >>> to_wkt(Geometry("POINT (1 2 3)"), trim=True, old_3d=True)
+    >>> to_wkt(Point(1, 2, 3), trim=True, old_3d=True)
     'POINT (1 2 3)'
 
     Notes
@@ -144,9 +144,11 @@ def to_wkb(
 
     Examples
     --------
-    >>> to_wkb(Geometry("POINT (1 1)"), byte_order=1)
+    >>> from shapely import Point
+    >>> point = Point(1, 1)
+    >>> to_wkb(point, byte_order=1)
     b'\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?'
-    >>> to_wkb(Geometry("POINT (1 1)"), hex=True, byte_order=1)
+    >>> to_wkb(point, hex=True, byte_order=1)
     '0101000000000000000000F03F000000000000F03F'
     """
     if not np.isscalar(hex):
@@ -193,9 +195,11 @@ def to_geojson(geometry, indent=None, **kwargs):
 
     Examples
     --------
-    >>> to_geojson(Geometry("POINT (1 1)"))
+    >>> from shapely import Point
+    >>> point = Point(1, 1)
+    >>> to_geojson(point)
     '{"type":"Point","coordinates":[1.0,1.0]}'
-    >>> print(to_geojson(Geometry("POINT (1 1)"), indent=2))
+    >>> print(to_geojson(point, indent=2))
     {
       "type": "Point",
       "coordinates": [
@@ -240,7 +244,7 @@ def from_wkt(geometry, on_invalid="raise", **kwargs):
     Examples
     --------
     >>> from_wkt('POINT (0 0)')
-    <pygeos.Geometry POINT (0 0)>
+    <POINT (0 0)>
     """
     if not np.isscalar(on_invalid):
         raise TypeError("on_invalid only accepts scalar values")
@@ -274,7 +278,7 @@ def from_wkb(geometry, on_invalid="raise", **kwargs):
     Examples
     --------
     >>> from_wkb(b'\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?')
-    <pygeos.Geometry POINT (1 1)>
+    <POINT (1 1)>
     """
 
     if not np.isscalar(on_invalid):
@@ -324,7 +328,7 @@ def from_geojson(geometry, on_invalid="raise", **kwargs):
     Examples
     --------
     >>> from_geojson('{"type": "Point","coordinates": [1, 2]}')
-    <pygeos.Geometry POINT (1 2)>
+    <POINT (1 2)>
     """
     # GEOS Tickets:
     # - support 3D: https://trac.osgeo.org/geos/ticket/1141

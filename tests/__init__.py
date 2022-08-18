@@ -11,23 +11,14 @@ if os.name == 'nt' and sys.version_info[1] >= 8:
 
 from shapely.geos import geos_version_string
 
+import numpy
 import pytest
 
-
-test_int_types = [int]
-
-try:
-    import numpy
-    numpy_version = numpy.version.version
-    test_int_types.extend([int, numpy.int16, numpy.int32, numpy.int64])
-except ImportError:
-    numpy = False
-    numpy_version = 'not available'
 
 # Show some diagnostic information; handy for CI
 print('Python version: ' + sys.version.replace('\n', ' '))
 print('GEOS version: ' + geos_version_string)
-print('Numpy version: ' + numpy_version)
+print('Numpy version: ' + numpy.version.version)
 
 
 shapely20_deprecated = pytest.mark.filterwarnings(

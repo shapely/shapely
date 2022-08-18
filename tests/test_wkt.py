@@ -18,7 +18,7 @@ def empty_geometry():
 
 def test_wkt(some_point):
     """.wkt and wkt.dumps() both do not trim by default."""
-    assert some_point.wkt == "POINT ({0:.15f} {1:.15f})".format(pi, -pi)
+    assert some_point.wkt == f"POINT ({pi:.15f} {-pi:.15f})"
 
 
 def test_wkt_null(empty_geometry):
@@ -47,7 +47,7 @@ def test_dump_load_null_geometry(empty_geometry, tmpdir):
 
 
 def test_dumps_loads(some_point):
-    assert dumps(some_point) == "POINT ({0:.16f} {1:.16f})".format(pi, -pi)
+    assert dumps(some_point) == f"POINT ({pi:.16f} {-pi:.16f})"
     assert loads(dumps(some_point)) == some_point
 
 
@@ -59,4 +59,4 @@ def test_dumps_loads_null_geometry(empty_geometry):
 
 def test_dumps_precision(some_point):
     assert dumps(some_point, rounding_precision=4) == \
-           "POINT ({0:.4f} {1:.4f})".format(pi, -pi)
+           f"POINT ({pi:.4f} {-pi:.4f})"

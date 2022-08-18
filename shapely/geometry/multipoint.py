@@ -65,7 +65,7 @@ class MultiPoint(BaseMultipartGeometry):
     def __geo_interface__(self):
         return {
             "type": "MultiPoint",
-            "coordinates": tuple([g.coords[0] for g in self.geoms]),
+            "coordinates": tuple(g.coords[0] for g in self.geoms),
         }
 
     def svg(self, scale_factor=1.0, fill_color=None, opacity=None):
