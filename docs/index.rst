@@ -12,7 +12,7 @@
    installation
    User Manual <manual>
    migration
-   changelog
+   release
 
 
 .. toctree::
