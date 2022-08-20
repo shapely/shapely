@@ -476,25 +476,40 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.normalize(self)
 
-    # Binary operations
-    # -----------------
+    # Overlay operations
+    # ---------------------------
 
-    def difference(self, other):
-        """Returns the difference of the geometries"""
-        return shapely.difference(self, other)
+    def difference(self, other, grid_size=None):
+        """
+        Returns the difference of the geometries.
 
-    def intersection(self, other):
-        """Returns the intersection of the geometries"""
-        return shapely.intersection(self, other)
+        Refer to `shapely.difference` for full documentation.
+        """
+        return shapely.difference(self, other, grid_size=grid_size)
 
-    def symmetric_difference(self, other):
-        """Returns the symmetric difference of the geometries
-        (Shapely geometry)"""
-        return shapely.symmetric_difference(self, other)
+    def intersection(self, other, grid_size=None):
+        """
+        Returns the intersection of the geometries.
 
-    def union(self, other):
-        """Returns the union of the geometries (Shapely geometry)"""
-        return shapely.union(self, other)
+        Refer to `shapely.intersection` for full documentation.
+        """
+        return shapely.intersection(self, other, grid_size=grid_size)
+
+    def symmetric_difference(self, other, grid_size=None):
+        """
+        Returns the symmetric difference of the geometries.
+
+        Refer to `shapely.symmetric_difference` for full documentation.
+        """
+        return shapely.symmetric_difference(self, other, grid_size=grid_size)
+
+    def union(self, other, grid_size=None):
+        """
+        Returns the union of the geometries.
+
+        Refer to `shapely.union` for full documentation.
+        """
+        return shapely.union(self, other, grid_size=grid_size)
 
     # Unary predicates
     # ----------------
@@ -824,22 +839,22 @@ class GeometrySequence:
 
     # Attributes
     # ----------
-    # __p__ : object
+    # _parent : object
     #     Parent (Shapely) geometry
-    __p__ = None
+    _parent = None
 
     def __init__(self, parent):
-        self.__p__ = parent
+        self._parent = parent
 
     def _get_geom_item(self, i):
-        return shapely.get_geometry(self.__p__, i)
+        return shapely.get_geometry(self._parent, i)
 
     def __iter__(self):
         for i in range(self.__len__()):
             yield self._get_geom_item(i)
 
     def __len__(self):
-        return shapely.get_num_geometries(self.__p__)
+        return shapely.get_num_geometries(self._parent)
 
     def __getitem__(self, key):
         m = self.__len__()
@@ -856,7 +871,7 @@ class GeometrySequence:
             start, stop, stride = key.indices(m)
             for i in range(start, stop, stride):
                 res.append(self._get_geom_item(i))
-            return type(self.__p__)(res or None)
+            return type(self._parent)(res or None)
         else:
             raise TypeError("key must be an index or slice")
 

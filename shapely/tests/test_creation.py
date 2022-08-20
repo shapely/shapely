@@ -504,37 +504,6 @@ def test_box_nan(coords):
     assert shapely.box(*coords) is None
 
 
-class BaseGeometry(shapely.Geometry):
-    @property
-    def type_id(self):
-        return shapely.get_type_id(self)
-
-
-class Point(BaseGeometry):
-    @property
-    def x(self):
-        return shapely.get_x(self)
-
-    @property
-    def y(self):
-        return shapely.get_y(self)
-
-
-@pytest.fixture
-def with_point_in_registry():
-    orig = shapely.lib.registry[0]
-    shapely.lib.registry[0] = Point
-    yield
-    shapely.lib.registry[0] = orig
-
-
-def test_subclasses(with_point_in_registry):
-    for _point in [Point("POINT (1 1)"), shapely.points(1, 1)]:
-        assert isinstance(_point, Point)
-        assert shapely.get_type_id(_point) == shapely.GeometryType.POINT
-        assert _point.x == 1
-
-
 def test_prepare():
     arr = np.array([shapely.points(1, 1), None, shapely.box(0, 0, 1, 1)])
     assert arr[0]._geom_prepared == 0
@@ -560,14 +529,6 @@ def test_destroy_prepared():
     assert arr[1] is None
     assert arr[2]._geom_prepared == 0
     shapely.destroy_prepared(arr)  # does not error
-
-
-def test_subclass_is_geometry(with_point_in_registry):
-    assert shapely.is_geometry(Point("POINT (1 1)"))
-
-
-def test_subclass_is_valid_input(with_point_in_registry):
-    assert shapely.is_valid_input(Point("POINT (1 1)"))
 
 
 @pytest.mark.parametrize("geom_type", [None, GeometryType.MISSING, -1])
