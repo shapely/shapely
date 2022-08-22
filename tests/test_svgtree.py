@@ -9,13 +9,17 @@ from shapely.svgtree import SVGTree
 def test_point():
     elem = SVGTree.fromgeom(Point(0, 0))
     assert (
-        ET.tostring(elem, encoding="unicode") == '<g><circle cx="0.0" cy="0.0" r="1.0" /></g>'
+        ET.tostring(elem, encoding="unicode")
+        == '<g><circle cx="0.0" cy="0.0" r="1.0" /></g>'
     )
 
 
 def test_linestring():
     elem = SVGTree.fromgeom(LineString([(0, 0), (1, 1)]))
-    assert ET.tostring(elem, encoding="unicode") == '<g><path d="M 0.0,0.0 L 1.0,1.0" /></g>'
+    assert (
+        ET.tostring(elem, encoding="unicode")
+        == '<g><path d="M 0.0,0.0 L 1.0,1.0" /></g>'
+    )
 
 
 def test_linearring():

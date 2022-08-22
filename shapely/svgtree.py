@@ -36,19 +36,19 @@ class SVGTree(ElementTree):
 
     @classmethod
     def fromlinestring(cls, geom):
-        group = Element("g")        
+        group = Element("g")
         SubElement(group, "path", d=cls.path(geom.coords))
         return group
 
     @classmethod
     def fromlinearring(cls, geom):
-        group = Element("g")        
+        group = Element("g")
         SubElement(group, "path", d="{} Z".format(cls.path(geom.coords[:-1])))
         return group
 
     @classmethod
     def frompolygon(cls, geom):
-        group = Element("g")        
+        group = Element("g")
         path = "  ".join(
             "{} Z".format(cls.path(ring.coords[:-1]))
             for ring in itertools.chain([geom.exterior], geom.interiors)
