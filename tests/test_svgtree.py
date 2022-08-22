@@ -2,7 +2,10 @@
 
 from xml.etree import ElementTree as ET
 
+import pytest
+
 from shapely import Point, LinearRing, LineString, Polygon, set_precision
+from shapely.geos import geos_version
 from shapely.svgtree import SVGTree
 
 
@@ -30,6 +33,10 @@ def test_linearring():
     )
 
 
+@pytest.mark.skipif(
+    geos_version < (3, 9, 0),
+    reason="GEOS >= 3.9.0 is required to test order of interior ring coordinates.",
+)
 def test_polygon():
     elem = SVGTree.fromgeom(
         set_precision(

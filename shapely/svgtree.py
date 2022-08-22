@@ -3,8 +3,6 @@
 import itertools
 from xml.etree.ElementTree import Element, ElementTree, SubElement
 
-import numpy
-
 
 class SVGTree(ElementTree):
     @classmethod
