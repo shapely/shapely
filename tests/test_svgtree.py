@@ -42,7 +42,7 @@ def test_polygon():
         set_precision(
             Polygon(
                 [(0, 0), (100, 100), (100, 0)],
-                [Point(75, 25).buffer(20, quadsegs=2).exterior],
+                [Point(75, 25).buffer(20, resolution=2).exterior],
             ),
             0.01,
         )
