@@ -1,16 +1,16 @@
-from matplotlib import pyplot
-from shapely.geometry.polygon import LinearRing
+import matplotlib.pyplot as plt
+from shapely.geometry import LinearRing
+from shapely.plotting import plot_line
 
-from figures import SIZE, set_limits, plot_coords, plot_line_isvalid
+from figures import SIZE, BLUE, RED, set_limits
 
-fig = pyplot.figure(1, figsize=SIZE, dpi=90)
+fig = plt.figure(1, figsize=SIZE, dpi=90)
 
 # 1: valid ring
 ax = fig.add_subplot(121)
 ring = LinearRing([(0, 0), (0, 2), (1, 1), (2, 2), (2, 0), (1, 0.8), (0, 0)])
 
-plot_coords(ax, ring)
-plot_line_isvalid(ax, ring, alpha=0.7)
+plot_line(ring, ax=ax, color=BLUE, alpha=0.7)
 
 ax.set_title('a) valid')
 
@@ -20,12 +20,10 @@ set_limits(ax, -1, 3, -1, 3)
 ax = fig.add_subplot(122)
 ring2 = LinearRing([(0, 0), (0, 2), (1, 1), (2, 2), (2, 0), (1, 1), (0, 0)])
 
-plot_coords(ax, ring2)
-plot_line_isvalid(ax, ring2, alpha=0.7)
+plot_line(ring2, ax=ax, color=RED, alpha=0.7)
 
 ax.set_title('b) invalid')
 
 set_limits(ax, -1, 3, -1, 3)
 
-pyplot.show()
-
+plt.show()
