@@ -396,7 +396,7 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
     >>> union_all([box1, box2], grid_size=1)
     <POLYGON ((2 0, 0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0))>
     >>> union_all([None, Point(0, 1)])
-    <Point (0, 1)>
+    <POINT (0 1)>
     >>> union_all([None, None])
     <GEOMETRYCOLLECTION EMPTY>
     """
