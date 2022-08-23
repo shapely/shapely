@@ -311,32 +311,40 @@ Several (new) functions from GEOS are now exposed in Shapely:
 In addition some aliases for existing methods have been added to provide a
 method name consistent with GEOS or PostGIS:
 
-- :func:`.line_interpolate_point` (``interpolate``)
-- :func:`.line_locate_point` (``project``)
-- :func:`.offset_curve` (``parallel_offset``)
-- :func:`.point_on_surface` (``representative_point``)
-- :func:`.oriented_envelope` (``minimum_rotated_rectangle``)
-- :func:`.delaunay_triangles` (``ops.triangulate``)
-- :func:`.voronoi_polygons` (``ops.voronoi_diagram``)
-- :func:`.shortest_line` (``ops.nearest_points``)
-- :func:`.is_valid_reason` (``validation.explain_validity``)
+* :func:`.line_interpolate_point` (``interpolate``)
+* :func:`.line_locate_point` (``project``)
+* :func:`.offset_curve` (``parallel_offset``)
+* :func:`.point_on_surface` (``representative_point``)
+* :func:`.oriented_envelope` (``minimum_rotated_rectangle``)
+* :func:`.delaunay_triangles` (``ops.triangulate``)
+* :func:`.voronoi_polygons` (``ops.voronoi_diagram``)
+* :func:`.shortest_line` (``ops.nearest_points``)
+* :func:`.is_valid_reason` (``validation.explain_validity``)
 
 
 Getting information / parts / coordinates from geometries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A set of GEOS getter functions are now also exposed to inspect geometries:
-:func:`.get_dimensions`, :func:`.get_coordinate_dimension`,
-:func:`.get_srid`, :func:`.get_num_points`, :func:`.get_num_interior_rings`,
-:func:`.get_num_geometries`, :func:`.get_num_coordinates`,
-:func:`.get_precision`.
 
-Several functions are added to extract parts: :func:`.get_geometry` to get a
-geometry from a GeometryCollection or Multi-part geometry,
-:func:`.get_exterior_ring` and :func:`.get_interior_ring` to get one of the
-rings of a Polygon, :func:`.get_point` to get a point (vertex) of a
-linestring or linearring, and :func:`.get_x`, :func:`.get_y` and
-:func:`.get_z` to get the x/y/z coordinate of a Point.
+* :func:`.get_dimensions`
+* :func:`.get_coordinate_dimension`
+* :func:`.get_srid`
+* :func:`.get_num_points`
+* :func:`.get_num_interior_rings`
+* :func:`.get_num_geometries`
+* :func:`.get_num_coordinates`
+* :func:`.get_precision`
+
+Several functions are added to extract parts: 
+
+* :func:`.get_geometry` to get a geometry from a GeometryCollection or
+  Multi-part geometry.
+* :func:`.get_exterior_ring` and :func:`.get_interior_ring` to get one of the
+  rings of a Polygon.
+* :func:`.get_point` to get a point (vertex) of a linestring or linearring.
+* :func:`.get_x`, :func:`.get_y` and :func:`.get_z` to get the x/y/z
+  coordinate of a Point.
 
 Methods to extract all parts or coordinates at once have been added:
 
