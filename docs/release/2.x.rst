@@ -1,5 +1,5 @@
 Version 2.x
-++++++++++++
+===========
 
 .. _version-2-0-0:
 
@@ -380,6 +380,7 @@ GeoJSON IO
 * Added GeoJSON input/output capabilities :func:`.from_geojson` and
   :func:`.to_geojson` for GEOS >= 3.10 (#413).
 
+
 Other improvements
 ~~~~~~~~~~~~~~~~~~
 
@@ -395,9 +396,6 @@ Other improvements
   function for creating polygon (about 2x faster) and added ``ccw`` parameter
   to create polygon in counterclockwise (default) or clockwise direction.
 * Start of a benchmarking suite using ASV.
-
-Utilities
-
 * Added ``shapely.testing.assert_geometries_equal``.
 
 
@@ -414,7 +412,8 @@ Bug fixes
     doing this for >= 3.9.0).
 
 
-**Acknowledgments**
+Acknowledgments
+^^^^^^^^^^^^^^^
 
 Thanks to everyone who contributed to this release!
 People with a "+" by their names contributed a patch for the first time.
