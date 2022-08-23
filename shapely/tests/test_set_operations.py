@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import shapely
-from shapely import Geometry, Polygon
+from shapely import Geometry, GeometryCollection, Polygon
 from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 
@@ -140,17 +140,16 @@ def test_set_operation_reduce_two_none(func, related_func, none_position):
 @pytest.mark.parametrize("n", range(1, 3))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
 def test_set_operation_reduce_all_none(n, func, related_func):
-    # API change: before, union_all([None]) yielded EMPTY GEOMETRYCOLLECTION
-    # The new behaviour is that it returns None if all inputs are None.
-    assert func([None] * n) is None
+    assert_geometries_equal(func([None] * n), GeometryCollection([]))
 
 
 @pytest.mark.parametrize("n", range(1, 3))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
 def test_set_operation_reduce_all_none_arr(n, func, related_func):
-    # API change: before, union_all([None]) yielded EMPTY GEOMETRYCOLLECTION
-    # The new behaviour is that it returns None if all inputs are None.
-    assert func([[None] * n] * 2, axis=1).tolist() == [None, None]
+    assert func([[None] * n] * 2, axis=1).tolist() == [
+        GeometryCollection([]),
+        GeometryCollection([]),
+    ]
 
 
 @pytest.mark.skipif(shapely.geos_version >= (3, 9, 0), reason="GEOS >= 3.9")
@@ -234,9 +233,7 @@ def test_set_operation_prec_reduce_two_none(func, related_func, none_position):
 @pytest.mark.parametrize("n", range(1, 3))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS_PREC)
 def test_set_operation_prec_reduce_all_none(n, func, related_func):
-    # API change: before, union_all([None]) yielded EMPTY GEOMETRYCOLLECTION
-    # The new behaviour is that it returns None if all inputs are None.
-    assert func([None] * n, grid_size=1) is None
+    assert_geometries_equal(func([None] * n, grid_size=1), GeometryCollection([]))
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
