@@ -40,4 +40,4 @@ class LineMergeTestCase(unittest.TestCase):
             ((1, 0), (0, 1)),
         ]
         result = linemerge(lines5)
-        self.assertEqual(result.type, "MultiLineString")
+        self.assertEqual(result.geom_type, "MultiLineString")

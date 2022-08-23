@@ -10,13 +10,13 @@ class TestSplitGeometry(unittest.TestCase):
 	# helper class for testing below
 	def helper(self, geom, splitter, expected_chunks):
 		s = split(geom, splitter)
-		self.assertEqual(s.type, "GeometryCollection")
+		self.assertEqual(s.geom_type, "GeometryCollection")
 		self.assertEqual(len(s.geoms), expected_chunks)
 		if expected_chunks > 1:
 			# split --> expected collection that when merged is again equal to original geometry
-			if s.geoms[0].type == 'LineString':
+			if s.geoms[0].geom_type == 'LineString':
 				self.assertTrue(linemerge(s).simplify(0.000001).equals(geom))
-			elif s.geoms[0].type == 'Polygon':
+			elif s.geoms[0].geom_type == 'Polygon':
 				union = unary_union(s).simplify(0.000001)
 				self.assertTrue(union.equals(geom))
 				self.assertEqual(union.area, geom.area)
