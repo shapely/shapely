@@ -1,4 +1,4 @@
-Releases 2.x
+Version 2.x
 ++++++++++++
 
 .. _version-2-0-0:
@@ -7,7 +7,7 @@ Version 2.0.0 (in progress)
 ---------------------------
 
 Shapely 2.0 version is a major release featuring a complete refactor of the
-internals and new vectorized (element-wise) array operations providing
+internals and new vectorized (element-wise) array operations, providing
 considerable performance improvements (based on the developments in the
 `PyGEOS <https://github.com/pygeos/pygeos>`__ package), along with several
 breaking API changes and many feature improvements.
@@ -45,7 +45,7 @@ Before the 2.0 release, Shapely only provided an interface for scalar
 within an array of geometries and call scalar methods or properties, which is
 both more verbose to use and has a large performance overhead.
 
-Shapely 2.0 exposes all GEOS operations as vectorized functions that operate
+Shapely 2.0 exposes GEOS operations as vectorized functions that operate
 on arrays of geometries using a familiar NumPy interface. Those functions are
 implemented as
 `NumPy *universal functions* <https://numpy.org/doc/stable/reference/ufuncs.html>`__
@@ -224,12 +224,12 @@ Support for fixed precision model for geometries and in overlay functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 GEOS 3.9.0 overhauled the overlay operations (union, intersection,
-(symmetric) difference): a complete rewrite, dubbed "OverlayNG", provides a
+(symmetric) difference).  A complete rewrite, dubbed "OverlayNG", provides a
 more robust implementation (no more TopologyExceptions even on valid input),
 the ability to specify the output precision model, and significant
 performance optimizations. When installing Shapely with GEOS >= 3.9 (which is
 the case for PyPI wheels and conda-forge packages), you automatically get
-those improvements already (also for previous versions of Shapely) when using
+these improvements (also for previous versions of Shapely) when using
 the overlay operations.
 
 Shapely 2.0 also includes the ability to specify the precision model
@@ -286,7 +286,7 @@ In addition, Shapely 2.0 includes several improvements to ``STRtree``:
 
   * returning all equidistant nearest geometries,
   * excluding nearest geometries that are equal to the input,
-  * specifying an ``max_distance`` to limit the search radius potentially
+  * specifying an ``max_distance`` to limit the search radius, potentially
     increasing the performance,
   * optionally returning the distance.
 
@@ -369,8 +369,8 @@ are also available.
 GeoJSON IO
 ~~~~~~~~~~
 
-* Added GeoJSON input/output capabilities (:func:`.from_geojson`,
-  :func:`.to_geojson`) for GEOS >= 3.10 (#413).
+* Added GeoJSON input/output capabilities :func:`.from_geojson` and
+  :func:`.to_geojson` for GEOS >= 3.10 (#413).
 
 Other improvements
 ~~~~~~~~~~~~~~~~~~
