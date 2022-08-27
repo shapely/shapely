@@ -13,6 +13,7 @@ import numpy as np
 
 import shapely
 from shapely.affinity import affine_transform
+from shapely.constructive import BufferCapStyles, BufferJoinStyles
 from shapely.coords import CoordinateSequence
 from shapely.errors import GeometryTypeError, GEOSException, ShapelyDeprecationWarning
 
@@ -46,15 +47,15 @@ def dump_coords(geom):
 
 
 class CAP_STYLE:
-    round = 1
-    flat = 2
-    square = 3
+    round = BufferCapStyles.round
+    flat = BufferCapStyles.flat
+    square = BufferCapStyles.square
 
 
 class JOIN_STYLE:
-    round = 1
-    mitre = 2
-    bevel = 3
+    round = BufferJoinStyles.round
+    mitre = BufferJoinStyles.mitre
+    bevel = BufferJoinStyles.bevel
 
 
 class BaseGeometry(shapely.Geometry):
@@ -330,7 +331,7 @@ class BaseGeometry(shapely.Geometry):
             for dx, dy in edges:
                 # compute the normalized direction vector of the edge
                 # vector.
-                length = math.sqrt(dx**2 + dy**2)
+                length = math.sqrt(dx ** 2 + dy ** 2)
                 ux, uy = dx / length, dy / length
                 # compute the normalized perpendicular vector
                 vx, vy = -uy, ux
@@ -351,8 +352,8 @@ class BaseGeometry(shapely.Geometry):
         distance,
         resolution=16,
         quadsegs=None,
-        cap_style=CAP_STYLE.round,
-        join_style=JOIN_STYLE.round,
+        cap_style="round",
+        join_style="round",
         mitre_limit=5.0,
         single_sided=False,
     ):
@@ -375,12 +376,12 @@ class BaseGeometry(shapely.Geometry):
             angle fillet.  Note: the use of a `quadsegs` parameter is
             deprecated and will be gone from the next major release.
         cap_style : int, optional
-            The styles of caps are: CAP_STYLE.round (1), CAP_STYLE.flat
-            (2), and CAP_STYLE.square (3).
+            The styles of caps are: BufferCapStyles.round (1), BufferCapStyles.flat
+            (2), and BufferCapStyles.square (3).
         join_style : int, optional
             The styles of joins between offset segments are:
-            JOIN_STYLE.round (1), JOIN_STYLE.mitre (2), and
-            JOIN_STYLE.bevel (3).
+            BufferJoinStyles.round (1), BufferJoinStyles.mitre (2), and
+            BufferJoinStyles.bevel (3).
         mitre_limit : float, optional
             The mitre limit ratio is used for very sharp corners. The
             mitre ratio is the ratio of the distance from the corner to
@@ -429,9 +430,9 @@ class BaseGeometry(shapely.Geometry):
 
         >>> g.buffer(1.0, 3).area
         3.0
-        >>> list(g.buffer(1.0, cap_style=CAP_STYLE.square).exterior.coords)
+        >>> list(g.buffer(1.0, cap_style=BufferCapStyles.square).exterior.coords)
         [(1.0, 1.0), (1.0, -1.0), (-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0)]
-        >>> g.buffer(1.0, cap_style=CAP_STYLE.square).area
+        >>> g.buffer(1.0, cap_style=BufferCapStyles.square).area
         4.0
 
         """
