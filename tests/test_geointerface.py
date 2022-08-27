@@ -29,7 +29,7 @@ class GeoInterfaceTestCase(unittest.TestCase):
         geom = None
         thing = GeoThing({"type": "Point", "coordinates": (0.0, 0.0)})
         geom = shape(thing)
-        assert geom.geom_type, 'Point'
+        assert geom.geom_type == 'Point'
         assert tuple(geom.coords) == ((0.0, 0.0),)
 
         # Check line string
