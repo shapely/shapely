@@ -274,7 +274,7 @@ class TransformOpsTestCase(unittest.TestCase):
         xs_ys = np.array([15.0, -30.0])
         sls = affinity.skew(ls, xs_ys[0:1], xs_ys[1:2])
         assert xs_ys[0] == 15.0
-        assert xs_ys[0] == 15.0
+        assert xs_ys[1] == -30.0
         assert sls.equals_exact(els, 1e-6)
         # check with radians
         xs_ys = np.array([pi/12, -pi/6])
