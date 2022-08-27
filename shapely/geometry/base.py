@@ -331,7 +331,7 @@ class BaseGeometry(shapely.Geometry):
             for dx, dy in edges:
                 # compute the normalized direction vector of the edge
                 # vector.
-                length = math.sqrt(dx ** 2 + dy ** 2)
+                length = math.sqrt(dx**2 + dy**2)
                 ux, uy = dx / length, dy / length
                 # compute the normalized perpendicular vector
                 vx, vy = -uy, ux
