@@ -22,7 +22,7 @@ class GeoInterfaceTestCase(unittest.TestCase):
         # Convert a dictionary
         d = {"type": "Point", "coordinates": (0.0, 0.0)}
         geom = shape(d)
-        assert geom.geom_type, 'Point'
+        assert geom.geom_type == 'Point'
         assert tuple(geom.coords) == ((0.0, 0.0),)
 
         # Convert an object that implements the geo protocol
