@@ -544,6 +544,10 @@ static void* unary_union_prec_data[1] = {GEOSUnaryUnionPrec_r};
 static void* segmentize_data[1] = {GEOSDensify_r};
 #endif
 
+#if GEOS_SINCE_3_11_0
+static void* remove_repeated_points_data[1] = {GEOSRemoveRepeatedPoints_r};
+#endif
+
 typedef void* FuncGEOS_Yd_Y(void* context, void* a, double b);
 static char Yd_Y_dtypes[3] = {NPY_OBJECT, NPY_DOUBLE, NPY_OBJECT};
 static void Yd_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* data) {
@@ -3299,6 +3303,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 
   DEFINE_Yd_Y(line_interpolate_point);
   DEFINE_Yd_Y(line_interpolate_point_normalized);
+  DEFINE_Yd_Y(remove_repeated_points);
   DEFINE_Yd_Y(simplify);
   DEFINE_Yd_Y(simplify_preserve_topology);
   DEFINE_Yd_Y(force_3d);

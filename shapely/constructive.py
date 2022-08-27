@@ -23,6 +23,7 @@ __all__ = [
     "point_on_surface",
     "polygonize",
     "polygonize_full",
+    "remove_repeated_points",
     "reverse",
     "simplify",
     "snap",
@@ -660,6 +661,14 @@ def polygonize_full(geometries, **kwargs):
      <GEOMETRYCOLLECTION EMPTY>)
     """
     return lib.polygonize_full(geometries, **kwargs)
+
+
+@requires_geos("3.11.0")
+def remove_repeated_points(geometry, tolerance, **kwargs):
+    """
+    TODO write docstring
+    """
+    return lib.remove_repeated_points(geometry, tolerance, **kwargs)
 
 
 @requires_geos("3.7.0")

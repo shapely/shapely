@@ -286,6 +286,28 @@ def test_offset_curve_join_style_invalid():
         shapely.offset_curve(line_string, 1.0, join_style="invalid")
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
+def test_remove_repeated_points():
+    pass
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
+def test_remove_repeated_points_none():
+    assert shapely.remove_repeated_points(None, 1) is None
+    assert shapely.remove_repeated_points([None], 1).tolist() == [None]
+
+    geometry = Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
+    expected = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
+    result = shapely.remove_repeated_points([None, geometry], 1)
+    assert result[0] is None
+    assert_geometries_equal(result[1], expected)
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
+def test_remove_repeated_points_invalid_type():
+    pass
+
+
 @pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 @pytest.mark.parametrize(
     "geom,expected",
