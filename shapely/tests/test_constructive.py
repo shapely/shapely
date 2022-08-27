@@ -287,8 +287,64 @@ def test_offset_curve_join_style_invalid():
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
-def test_remove_repeated_points():
-    pass
+@pytest.mark.parametrize(
+    "geom,expected",
+    [
+        (LineString([(0, 0), (0, 0), (1, 0)]), LineString([(0, 0), (1, 0)])),
+        (
+            LinearRing([(0, 0), (1, 2), (1, 3), (0, 0)]),
+            LinearRing([(0, 0), (1, 3), (1, 2), (0, 0)]),
+        ),
+        (
+            Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]),
+            Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)]),
+        ),
+        (
+            Polygon(
+                [(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)],
+                holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]],
+            ),
+            Polygon(
+                [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+                holes=[[(2, 2), (4, 2), (4, 4), (2, 4), (2, 2)]],
+            ),
+        ),
+        (
+            MultiPolygon(
+                [
+                    Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]),
+                    Polygon([(2, 2), (2, 3), (3, 3), (3, 2), (2, 2)]),
+                ]
+            ),
+            MultiPolygon(
+                [
+                    Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]),
+                    Polygon([(2, 2), (2, 3), (3, 3), (3, 2), (2, 2)]),
+                ]
+            ),
+        ),
+        # points are unchanged
+        (point, point),
+        (point_z, point_z),
+        (multi_point, multi_point),
+        # empty geometries are unchanged
+        (empty_point, empty_point),
+        (empty_line_string, empty_line_string),
+        (empty, empty),
+        (empty_polygon, empty_polygon),
+    ],
+)
+def test_remove_repeated_points(geom, expected):
+    assert_geometries_equal(shapely.remove_repeated_points(geom, 1), expected)
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
+@pytest.mark.parametrize(
+    "geom, tolerance", [[Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]), 2]]
+)
+def test_remove_repeated_points_invalid_result(geom, tolerance):
+    with pytest.raises(shapely.GEOSException, match="Invalid number of points"):
+        shapely.remove_repeated_points(geom, tolerance)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
@@ -296,16 +352,18 @@ def test_remove_repeated_points_none():
     assert shapely.remove_repeated_points(None, 1) is None
     assert shapely.remove_repeated_points([None], 1).tolist() == [None]
 
-    geometry = Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
-    expected = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
+    geometry = LineString([(0, 0), (0, 0), (1, 1)])
+    expected = LineString([(0, 0), (1, 1)])
     result = shapely.remove_repeated_points([None, geometry], 1)
     assert result[0] is None
     assert_geometries_equal(result[1], expected)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
-def test_remove_repeated_points_invalid_type():
-    pass
+@pytest.mark.parametrize("geom, tolerance", [("Not a geometry", 1), (1, 1)])
+def test_remove_repeated_points_invalid_type(geom, tolerance):
+    with pytest.raises(TypeError, match="One of the arguments is of incorrect type"):
+        shapely.remove_repeated_points(geom, tolerance)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
