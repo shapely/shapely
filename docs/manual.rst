@@ -1553,9 +1553,9 @@ derived from set-theoretic analysis.
 .. code-block:: pycon
 
   >>> from shapely.constructive import BufferCapStyles, BufferJoinStyles
-  >>> BufferCapStyles.flat
+  >>> BufferCapStyles.flat.value
   2
-  >>> BufferJoinStyles.bevel
+  >>> BufferJoinStyles.bevel.value
   3
 
 A positive distance has an effect of dilation; a negative distance, erosion.
