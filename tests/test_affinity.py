@@ -19,7 +19,7 @@ class AffineTestCase(unittest.TestCase):
             affinity.affine_transform(g, None)
         
         with pytest.raises(ValueError):
-            affinity.affine_transform(g,[1, 2, 3, 4, 5, 6, 7, 8, 9])
+            affinity.affine_transform(g, [1, 2, 3, 4, 5, 6, 7, 8, 9])
         
         with pytest.raises(AttributeError):
             affinity.affine_transform(None, [1, 2, 3, 4, 5, 6])
