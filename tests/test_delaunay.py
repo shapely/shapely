@@ -6,9 +6,6 @@ from shapely.geos import geos_version
 import pytest
 
 
-pytestmark = pytest.mark.skipif(geos_version < (3, 4, 0), 
-                 reason='Delaunay triangulation not supported')
-
 class DelaunayTriangulation(unittest.TestCase):
     """
     Only testing the number of triangles and their type here.
