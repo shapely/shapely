@@ -25,9 +25,18 @@ class OperationsTestCase(unittest.TestCase):
         assert_geometries_equal(line2.parallel_offset(2, 'left', join_style=2,
                                                       resolution=1),
                                 LineString([(0, 2), (7, 2), (7, -5)]))
+        # offset_curve alias
+        assert_geometries_equal(
+            line1.offset_curve(2, 'left', resolution=1),
+            line1.parallel_offset(2, 'left', resolution=1)
+        )
 
-    def test_offset_curve_linear_ring(self):
+    def test_parallel_offset_linear_ring(self):
         lr1 = LinearRing([(0, 0), (5, 0), (5, 5), (0, 5), (0, 0)])
-        assert_geometries_equal(lr1.offset_curve(2, 'left', resolution=1),
+        assert_geometries_equal(lr1.parallel_offset(2, 'left', resolution=1),
                                 LineString([(2, 2), (3, 2), (3, 3), (2, 3), (2, 2)]))
-        assert_geometries_equal(lr1.offset_curve(2, 'left', resolution=1),lr1.parallel_offset(2, 'left', resolution=1)) 
+        # offset_curve alias
+        assert_geometries_equal(
+            lr1.offset_curve(2, 'left', resolution=1),
+            lr1.parallel_offset(2, 'left', resolution=1)
+        )
