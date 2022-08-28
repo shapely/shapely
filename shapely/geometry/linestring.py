@@ -146,8 +146,7 @@ class LineString(BaseGeometry):
         return shapely.offset_curve(self, distance, resolution, join_style, mitre_limit)
 
     def parallel_offset(self, *args, **kwargs):
-        """Alias method to :meth:`offset_curve` method.
-        """
+        """Alias method to :meth:`offset_curve` method."""
         return self.offset_curve(*args, **kwargs)
 
 
