@@ -942,3 +942,37 @@ GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* b
   }
   return coord_seq;
 }
+
+/* Copy coordinates of a GEOSCoordSequence to an array
+ *
+ * Note: this function assumes that the buffer is from a C-contiguous array,
+ * and that the dimension of the buffer is only 2D or 3D.
+ *
+ * Returns 0 on error, 1 on success.
+ */
+char coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq,
+                        double* buf, unsigned int size, unsigned int dims) {
+  char *cp1, *cp2;
+  unsigned int i, j;
+
+#if GEOS_SINCE_3_10_0
+
+  int hasZ = dims == 3;
+  if (!GEOSCoordSeq_copyToBuffer_r(ctx, coord_seq, buf, hasZ, 0)) {
+    return 0;
+  }
+  return 1;
+
+#endif
+
+  cp1 = (char*)buf;
+  for (i = 0; i < size; i++, cp1 += 8 * dims) {
+    cp2 = cp1;
+    for (j = 0; j < dims; j++, cp2 += 8) {
+      if (!GEOSCoordSeq_getOrdinate_r(ctx, coord_seq, i, j, (double*)cp2)) {
+        return 0;
+      }
+    }
+  }
+  return 1;
+}
