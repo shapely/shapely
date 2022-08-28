@@ -753,21 +753,21 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
-    def segmentize(self, tolerance):
-        """Adds vertices to line segments based on tolerance.
+    def segmentize(self, max_segment_length):
+        """Adds vertices to line segments based on maximum segment length.
 
         Additional vertices will be added to every line segment in an input geometry
-        so that segments are no greater than tolerance.  New vertices will evenly
-        subdivide each segment.
+        so that segments are longer than the provided maximum segment length.  New
+        vertices will evenly subdivide each segment.
 
         Only linear components of input geometries are densified; other geometries
         are returned unmodified.
 
         Parameters
         ----------
-        tolerance : float or array_like
+        max_segment_length : float or array_like
             Additional vertices will be added so that all line segments are no
-            greater than this value.  Must be greater than 0.
+            longer this value.  Must be greater than 0.
 
         Examples
         --------
@@ -777,7 +777,7 @@ class BaseGeometry(shapely.Geometry):
         >>> Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]).segmentize(tolerance=5)
         <POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
         """
-        return shapely.segmentize(self, tolerance)
+        return shapely.segmentize(self, max_segment_length)
 
     def reverse(self):
         """Returns a copy of this geometry with the order of coordinates reversed.

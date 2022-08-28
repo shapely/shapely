@@ -703,7 +703,7 @@ def segmentize(geometry, max_segment_length, **kwargs):
     """Adds vertices to line segments based on maximum segment length.
 
     Additional vertices will be added to every line segment in an input geometry
-    so that segments are longer than the provide maximum segment length.  New vertices
+    so that segments are longer than the provided maximum segment length.  New vertices
     will evenly subdivide each segment.
 
     Only linear components of input geometries are densified; other geometries
