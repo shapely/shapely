@@ -370,9 +370,9 @@ class BaseGeometry(shapely.Geometry):
         resolution : int, optional
             The resolution of the buffer around each vertex of the
             object.
-        quadsegs : int, optional
+        quad_segs : int, optional
             Sets the number of line segments used to approximate an
-            angle fillet.  Note: the use of a `quadsegs` parameter is
+            angle fillet.  Note: the use of a `quad_segs` parameter is
             deprecated and will be gone from the next major release.
         cap_style : int, optional
             The styles of caps are: CAP_STYLE.round (1), CAP_STYLE.flat
