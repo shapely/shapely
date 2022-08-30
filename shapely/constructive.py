@@ -142,14 +142,14 @@ def buffer(
     <POLYGON ((20 12, 22 12, 22 8, 10 8, 8 8, 8 12, 20 12))>
     >>> buffer(line, 2, cap_style=BufferCapStyle.FLAT)
     <POLYGON ((20 12, 20 8, 10 8, 10 12, 20 12))>
-    >>> buffer(line, 2, single_sided=True, cap_style=BufferCapStyle.FLAT)
+    >>> buffer(line, 2, single_sided=True, cap_style=BufferJoinStyle.FLAT)
     <POLYGON ((20 10, 10 10, 10 12, 20 12, 20 10))>
     >>> line2 = LineString([(10, 10), (20, 10), (20, 20)])
-    >>> buffer(line2, 2, cap_style=BufferCapStyle.FLAT, join_style=BufferCapStyle.BEVEL)
+    >>> buffer(line2, 2, cap_style=BufferCapStyle.FLAT, join_style=BufferJoinStyle.BEVEL)
     <POLYGON ((18 12, 18 20, 22 20, 22 10, 20 8, 10 8, 10 12, 18 12))>
-    >>> buffer(line2, 2, cap_style=BufferCapStyle.FLAT, join_style=BufferCapStyle.MITRE)
+    >>> buffer(line2, 2, cap_style=BufferCapStyle.FLAT, join_style=BufferJoinStyle.MITRE)
     <POLYGON ((18 12, 18 20, 22 20, 22 8, 10 8, 10 12, 18 12))>
-    >>> buffer(line2, 2, cap_style=BufferCapStyle.FLAT, join_style=BufferCapStyle.MITRE, mitre_limit=1)
+    >>> buffer(line2, 2, cap_style=BufferCapStyle.FLAT, join_style=BufferJoinStyle.MITRE, mitre_limit=1)
     <POLYGON ((18 12, 18 20, 22 20, 22 9.172, 20.828 8, 10 8, 10 12, 18 12))>
     >>> square = Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)])
     >>> buffer(square, 2, join_style=BufferJoinStyle.MITRE)
