@@ -1,7 +1,7 @@
 from . import unittest
 from shapely.geometry import LineString, LinearRing
 from shapely.testing import assert_geometries_equal
-from shapely.wkt import loads
+
 
 class OperationsTestCase(unittest.TestCase):
 

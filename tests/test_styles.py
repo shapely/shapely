@@ -5,11 +5,11 @@ from shapely.geometry import CAP_STYLE, JOIN_STYLE
 class StylesTest(unittest.TestCase):
 
     def test_cap(self):
-        self.assertEqual(CAP_STYLE.round, 1)
-        self.assertEqual(CAP_STYLE.flat, 2)
-        self.assertEqual(CAP_STYLE.square, 3)
+        assert CAP_STYLE.round == 1
+        assert CAP_STYLE.flat == 2
+        assert CAP_STYLE.square == 3
 
     def test_join(self):
-        self.assertEqual(JOIN_STYLE.round, 1)
-        self.assertEqual(JOIN_STYLE.mitre, 2)
-        self.assertEqual(JOIN_STYLE.bevel, 3)
+        assert JOIN_STYLE.round == 1
+        assert JOIN_STYLE.mitre == 2
+        assert JOIN_STYLE.bevel == 3

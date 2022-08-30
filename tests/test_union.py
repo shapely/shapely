@@ -43,7 +43,7 @@ class UnionTestCase(unittest.TestCase):
         # into a collection of polygon patches
         with pytest.warns(ShapelyDeprecationWarning, match="is deprecated"):
             u = cascaded_union(spots)
-        self.assertTrue(u.geom_type in ('Polygon', 'MultiPolygon'))
+        assert u.geom_type in ('Polygon', 'MultiPolygon')
 
     def setUp(self):
         # Instead of random points, use deterministic, pseudo-random Halton
@@ -56,14 +56,12 @@ class UnionTestCase(unittest.TestCase):
     def test_unary_union(self):
         patches = [Point(xy).buffer(0.05) for xy in self.coords]
         u = unary_union(patches)
-        self.assertEqual(u.geom_type, 'MultiPolygon')
-        self.assertAlmostEqual(u.area, 0.71857254056)
+        assert u.geom_type == 'MultiPolygon'
+        assert u.area == pytest.approx(0.718572540569)
 
     def test_unary_union_multi(self):
         # Test of multipart input based on comment by @schwehr at
         # https://github.com/shapely/shapely/issues/47#issuecomment-21809308
         patches = MultiPolygon([Point(xy).buffer(0.05) for xy in self.coords])
-        self.assertAlmostEqual(unary_union(patches).area,
-                               0.71857254056)
-        self.assertAlmostEqual(unary_union([patches, patches]).area,
-                               0.71857254056)
+        assert unary_union(patches).area == pytest.approx(0.71857254056)
+        assert unary_union([patches, patches]).area == pytest.approx(0.71857254056)
