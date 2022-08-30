@@ -352,8 +352,8 @@ class BaseGeometry(shapely.Geometry):
         distance,
         resolution=16,
         quadsegs=None,
-        cap_style="round",
-        join_style="round",
+        cap_style=BufferCapStyle.ROUND,
+        join_style=BufferJoinStyle.ROUND,
         mitre_limit=5.0,
         single_sided=False,
     ):
@@ -375,13 +375,17 @@ class BaseGeometry(shapely.Geometry):
             Sets the number of line segments used to approximate an
             angle fillet.  Note: the use of a `quadsegs` parameter is
             deprecated and will be gone from the next major release.
-        cap_style : shapely.BufferCapStyle, default "round"
-            The styles of caps are: BufferCapStyle.ROUND (1), BufferCapStyle.FLAT
-            (2), and BufferCapStyle.SQUARE (3). The default is round.
-        join_style : shapely.BufferJoinStyle, default "round"
-            The styles of joins between offset segments are:
-            BufferJoinStyle.ROUND (1), BufferJoinStyle.MITRE (2), and
-            BufferJoinStyle.BEVEL (3).
+        cap_style : shapely.BufferCapStyle, shapely.BufferCapStyle.ROUND
+            Specifies the shape of buffered line endings. BufferCapStyle.ROUND results in
+            circular line endings (see ``quadsegs``). Both BufferCapStyle.SQUARE and
+            BufferCapStyle.FLAT result in rectangular line endings, only BufferCapStyle.FLAT
+            will end at the original vertex, while BufferCapStyle.SQUARE involves adding the
+            buffer width.
+        join_style : shapely.BufferJoinStyle, shapely.BufferJoinStyle.ROUND
+            Specifies the shape of buffered line midpoints. BufferJoinStyle.ROUND results in
+            rounded shapes. BufferJoinStyle.BEVEL results in a beveled edge that touches the
+            original vertex. BufferJoinStyle.MITRE results in a single vertex that is
+            beveled depending on the ``mitre_limit`` parameter.
         mitre_limit : float, optional
             The mitre limit ratio is used for very sharp corners. The
             mitre ratio is the ratio of the distance from the corner to
@@ -430,9 +434,9 @@ class BaseGeometry(shapely.Geometry):
 
         >>> g.buffer(1.0, 3).area
         3.0
-        >>> list(g.buffer(1.0, cap_style=BufferCapStyles.square).exterior.coords)
+        >>> list(g.buffer(1.0, cap_style=BufferCapStyle.SQUARE).exterior.coords)
         [(1.0, 1.0), (1.0, -1.0), (-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0)]
-        >>> g.buffer(1.0, cap_style=BufferCapStyles.square).area
+        >>> g.buffer(1.0, cap_style=BufferCapStyle.SQUARE).area
         4.0
 
         """

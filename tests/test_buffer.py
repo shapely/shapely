@@ -3,7 +3,7 @@ import pytest
 
 from shapely import geometry
 from shapely.geometry.base import CAP_STYLE, JOIN_STYLE
-from shapely.constructive import BufferCapStyles, BufferJoinStyles
+from shapely.constructive import BufferCapStyle, BufferJoinStyle
 
 
 class BufferTests(unittest.TestCase):
@@ -105,43 +105,45 @@ class BufferTests(unittest.TestCase):
             assert coord[0] == pytest.approx(expected_coord[index][0])
             assert coord[1] == pytest.approx(expected_coord[index][1])
 
-    def test_styles_values(self):
+    def test_enum_values(self):
         assert CAP_STYLE.round == 1
-        assert CAP_STYLE.round == BufferCapStyles.round
+        assert CAP_STYLE.round == BufferCapStyle.ROUND
         assert CAP_STYLE.flat == 2
-        assert CAP_STYLE.flat == BufferCapStyles.flat
+        assert CAP_STYLE.flat == BufferCapStyle.FLAT
         assert CAP_STYLE.square == 3
-        assert CAP_STYLE.square == BufferCapStyles.square
+        assert CAP_STYLE.square == BufferCapStyle.SQUARE
 
         assert JOIN_STYLE.round == 1
-        assert JOIN_STYLE.round == BufferJoinStyles.round
+        assert JOIN_STYLE.round == BufferJoinStyle.ROUND
         assert JOIN_STYLE.mitre == 2
-        assert JOIN_STYLE.mitre == BufferJoinStyles.mitre
+        assert JOIN_STYLE.mitre == BufferJoinStyle.MITRE
         assert JOIN_STYLE.bevel == 3
-        assert JOIN_STYLE.bevel == BufferJoinStyles.bevel
+        assert JOIN_STYLE.bevel == BufferJoinStyle.BEVEL
 
-    def test_styles(self):
+    def test_cap_style(self):
         g = geometry.LineString([[0, 0], [1, 0]])
-        h = g.buffer(1, cap_style=CAP_STYLE.round)
-        assert h == g.buffer(1, cap_style="round")
-        assert h == g.buffer(1, cap_style=BufferCapStyles.round)
+        h = g.buffer(1, cap_style=BufferCapStyle.ROUND)
+        assert h == g.buffer(1, cap_style=CAP_STYLE.round)
+        assert h == g.buffer(1, cap_style="ROUND")
 
-        h = g.buffer(1, cap_style=CAP_STYLE.flat)
-        assert h == g.buffer(1, cap_style="flat")
-        assert h == g.buffer(1, cap_style=BufferCapStyles.flat)
+        h = g.buffer(1, cap_style=BufferCapStyle.FLAT)
+        assert h == g.buffer(1, cap_style=CAP_STYLE.flat)
+        assert h == g.buffer(1, cap_style="FLAT")
 
-        h = g.buffer(1, cap_style=CAP_STYLE.square)
-        assert h == g.buffer(1, cap_style="square")
-        assert h == g.buffer(1, cap_style=BufferCapStyles.square)
+        h = g.buffer(1, cap_style=BufferCapStyle.SQUARE)
+        assert h == g.buffer(1, cap_style=CAP_STYLE.square)
+        assert h == g.buffer(1, cap_style="SQUARE")
 
-        h = g.buffer(1, join_style=JOIN_STYLE.round)
-        assert h == g.buffer(1, join_style="round")
-        assert h == g.buffer(1, join_style=BufferJoinStyles.round)
+    def test_buffer_style(self):
+        g = geometry.LineString([[0, 0], [1, 0]])
+        h = g.buffer(1, join_style=BufferJoinStyle.ROUND)
+        assert h == g.buffer(1, join_style=JOIN_STYLE.round)
+        assert h == g.buffer(1, join_style="ROUND")
 
-        h = g.buffer(1, join_style=JOIN_STYLE.mitre)
-        assert h == g.buffer(1, join_style="mitre")
-        assert h == g.buffer(1, join_style=BufferJoinStyles.mitre)
+        h = g.buffer(1, join_style=BufferJoinStyle.MITRE)
+        assert h == g.buffer(1, join_style=JOIN_STYLE.mitre)
+        assert h == g.buffer(1, join_style="MITRE")
 
-        h = g.buffer(1, join_style=JOIN_STYLE.bevel)
-        assert h == g.buffer(1, join_style="bevel")
-        assert h == g.buffer(1, join_style=BufferJoinStyles.bevel)
+        h = g.buffer(1, join_style=BufferJoinStyle.BEVEL)
+        assert h == g.buffer(1, join_style=JOIN_STYLE.bevel)
+        assert h == g.buffer(1, join_style="BEVEL")

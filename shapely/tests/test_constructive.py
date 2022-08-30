@@ -261,7 +261,7 @@ def test_offset_curve_distance_array():
 def test_offset_curve_kwargs():
     # check that kwargs are passed through
     result1 = shapely.offset_curve(
-        line_string, -2.0, quadsegs=2, join_style="mitre", mitre_limit=2.0
+        line_string, -2.0, quadsegs=2, join_style="MITRE", mitre_limit=2.0
     )
     result2 = shapely.offset_curve(line_string, -2.0)
     assert result1 != result2
@@ -274,7 +274,7 @@ def test_offset_curve_non_scalar_kwargs():
 
     with pytest.raises(TypeError, match=msg):
         shapely.offset_curve(
-            [line_string, line_string], 1, join_style=["round", "bevel"]
+            [line_string, line_string], 1, join_style=["ROUND", "BEVEL"]
         )
 
     with pytest.raises(TypeError, match=msg):
