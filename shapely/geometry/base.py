@@ -13,7 +13,7 @@ import numpy as np
 
 import shapely
 from shapely.affinity import affine_transform
-from shapely.constructive import BufferCapStyles, BufferJoinStyles
+from shapely.constructive import BufferCapStyle, BufferJoinStyle
 from shapely.coords import CoordinateSequence
 from shapely.errors import GeometryTypeError, GEOSException, ShapelyDeprecationWarning
 
@@ -47,15 +47,15 @@ def dump_coords(geom):
 
 
 class CAP_STYLE:
-    round = BufferCapStyles.round
-    flat = BufferCapStyles.flat
-    square = BufferCapStyles.square
+    round = BufferCapStyle.ROUND
+    flat = BufferCapStyle.FLAT
+    square = BufferCapStyle.SQUARE
 
 
 class JOIN_STYLE:
-    round = BufferJoinStyles.round
-    mitre = BufferJoinStyles.mitre
-    bevel = BufferJoinStyles.bevel
+    round = BufferJoinStyle.ROUND
+    mitre = BufferJoinStyle.MITRE
+    bevel = BufferJoinStyle.BEVEL
 
 
 class BaseGeometry(shapely.Geometry):
@@ -375,13 +375,13 @@ class BaseGeometry(shapely.Geometry):
             Sets the number of line segments used to approximate an
             angle fillet.  Note: the use of a `quadsegs` parameter is
             deprecated and will be gone from the next major release.
-        cap_style : int, optional
-            The styles of caps are: BufferCapStyles.round (1), BufferCapStyles.flat
-            (2), and BufferCapStyles.square (3).
-        join_style : int, optional
+        cap_style : shapely.BufferCapStyle, default "round"
+            The styles of caps are: BufferCapStyle.ROUND (1), BufferCapStyle.FLAT
+            (2), and BufferCapStyle.SQUARE (3). The default is round.
+        join_style : shapely.BufferJoinStyle, default "round"
             The styles of joins between offset segments are:
-            BufferJoinStyles.round (1), BufferJoinStyles.mitre (2), and
-            BufferJoinStyles.bevel (3).
+            BufferJoinStyle.ROUND (1), BufferJoinStyle.MITRE (2), and
+            BufferJoinStyle.BEVEL (3).
         mitre_limit : float, optional
             The mitre limit ratio is used for very sharp corners. The
             mitre ratio is the ratio of the distance from the corner to

@@ -5,8 +5,8 @@ from .decorators import multithreading_enabled, requires_geos
 from .enum import ParamEnum
 
 __all__ = [
-    "BufferCapStyles",
-    "BufferJoinStyles",
+    "BufferCapStyle",
+    "BufferJoinStyle",
     "boundary",
     "buffer",
     "offset_curve",
@@ -33,16 +33,16 @@ __all__ = [
 ]
 
 
-class BufferCapStyles(ParamEnum):
-    round = 1
-    flat = 2
-    square = 3
+class BufferCapStyle(ParamEnum):
+    ROUND = 1
+    FLAT = 2
+    SQUARE = 3
 
 
-class BufferJoinStyles(ParamEnum):
-    round = 1
-    mitre = 2
-    bevel = 3
+class BufferJoinStyle(ParamEnum):
+    ROUND = 1
+    MITRE = 2
+    BEVEL = 3
 
 
 @multithreading_enabled
@@ -108,12 +108,12 @@ def buffer(
     quadsegs : int, default 8
         Specifies the number of linear segments in a quarter circle in the
         approximation of circular arcs.
-    cap_style : {'round', 'square', 'flat'}, default 'round'
+    cap_style : shapely.BufferCapStyle, default 'round'
         Specifies the shape of buffered line endings. 'round' results in
         circular line endings (see ``quadsegs``). Both 'square' and 'flat'
         result in rectangular line endings, only 'flat' will end at the
         original vertex, while 'square' involves adding the buffer width.
-    join_style : {'round', 'bevel', 'mitre'}, default 'round'
+    join_style : shapely.BufferJoinStyle, default 'round'
         Specifies the shape of buffered line midpoints. 'round' results in
         rounded shapes. 'bevel' results in a beveled edge that touches the
         original vertex. 'mitre' results in a single vertex that is beveled
@@ -161,9 +161,9 @@ def buffer(
     True
     """
     if isinstance(cap_style, str):
-        cap_style = BufferCapStyles.get_value(cap_style)
+        cap_style = BufferCapStyle.get_value(cap_style)
     if isinstance(join_style, str):
-        join_style = BufferJoinStyles.get_value(join_style)
+        join_style = BufferJoinStyle.get_value(join_style)
     if not np.isscalar(quadsegs):
         raise TypeError("quadsegs only accepts scalar values")
     if not np.isscalar(cap_style):
@@ -230,7 +230,7 @@ def offset_curve(
     <LINESTRING (2 0, 2 2)>
     """
     if isinstance(join_style, str):
-        join_style = BufferJoinStyles.get_value(join_style)
+        join_style = BufferJoinStyle.get_value(join_style)
     if not np.isscalar(quadsegs):
         raise TypeError("quadsegs only accepts scalar values")
     if not np.isscalar(join_style):

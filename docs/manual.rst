@@ -1522,40 +1522,40 @@ derived from set-theoretic analysis.
   Returns an approximate representation of all points within a given `distance`
   of the this geometric object.
 
-  The styles of caps are specified by integer values: 1 (round), 2 (flat),
-  3 (square). These values are also enumerated by the object
-  :class:`shapely.constructive.BufferCapStyles` (see below).
+  The styles of caps are specified by integer values: 1 (ROUND), 2 (FLAT),
+  3 (SQUARE). These values are also enumerated by the object
+  :class:`shapely.BufferCapStyle` (see below).
 
   The styles of joins between offset segments are specified by integer values:
-  1 (round), 2 (mitre), and 3 (bevel). These values are also enumerated by the
-  object :class:`shapely.constructive.BufferJoinStyles` (see below).
+  1 (ROUND), 2 (MITRE), and 3 (BEVEL). These values are also enumerated by the
+  object :class:`shapely.BufferJoinStyle` (see below).
 
-.. data:: shapely.constructive.BufferCapStyles
-
-   ========= =====
-   Attribute Value
-   ========= =====
-   round        1
-   flat         2
-   square       3
-   ========= =====
-
-.. data:: shapely.constructive.BufferJoinStyles
+.. data:: shapely.BufferCapStyle
 
    ========= =====
    Attribute Value
    ========= =====
-   round         1
-   mitre         2
-   bevel         3
+   ROUND        1
+   FLAT         2
+   SQUARE       3
+   ========= =====
+
+.. data:: shapely.BufferJoinStyle
+
+   ========= =====
+   Attribute Value
+   ========= =====
+   ROUND         1
+   MITRE         2
+   BEVEL         3
    ========= =====
 
 .. code-block:: pycon
 
-  >>> from shapely.constructive import BufferCapStyles, BufferJoinStyles
-  >>> BufferCapStyles.flat.value
+  >>> from shapely import BufferCapStyle, BufferJoinStyle
+  >>> BufferCapStyle.flat.value
   2
-  >>> BufferJoinStyles.bevel.value
+  >>> BufferJoinStyle.bevel.value
   3
 
 A positive distance has an effect of dilation; a negative distance, erosion.
@@ -1614,7 +1614,7 @@ Figure 10. Single sided buffer of 0.5 left hand (left) and of 0.3 right hand (ri
 
 The single-sided buffer of point geometries is the same as the regular buffer.
 The End Cap Style for single-sided buffers is always ignored, and forced to
-the equivalent of `BufferCapStyles.flat`.
+the equivalent of `BufferCapStyle.FLAT`.
 
 Passed a `distance` of 0, :meth:`buffer` can sometimes be used to "clean" self-touching
 or self-crossing polygons such as the classic "bowtie". Users have reported
@@ -1710,8 +1710,8 @@ linestring feature (right).
   parameterized as in the :meth:`buffer` method.
 
   The `join_style` is for outside corners between line segments. Accepted integer
-  values are 1 (round), 2 (mitre), and 3 (bevel). See also
-  :data:`shapely.constructive.BufferJoinStyles`.
+  values are 1 (ROUND), 2 (MITRE), and 3 (BEVEL). See also
+  :data:`shapely.constructive.BufferJoinStyle`.
 
   Severely mitered corners can be controlled by the `mitre_limit` parameter
   (spelled in British English, en-gb). The corners of a parallel line will
