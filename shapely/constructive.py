@@ -142,7 +142,7 @@ def buffer(
     <POLYGON ((20 12, 22 12, 22 8, 10 8, 8 8, 8 12, 20 12))>
     >>> buffer(line, 2, cap_style=BufferCapStyle.FLAT)
     <POLYGON ((20 12, 20 8, 10 8, 10 12, 20 12))>
-    >>> buffer(line, 2, single_sided=True, cap_style=BufferJoinStyle.FLAT)
+    >>> buffer(line, 2, single_sided=True, cap_style=BufferCapStyle.FLAT)
     <POLYGON ((20 10, 10 10, 10 12, 20 12, 20 10))>
     >>> line2 = LineString([(10, 10), (20, 10), (20, 20)])
     >>> buffer(line2, 2, cap_style=BufferCapStyle.FLAT, join_style=BufferJoinStyle.BEVEL)
@@ -154,9 +154,9 @@ def buffer(
     >>> square = Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)])
     >>> buffer(square, 2, join_style=BufferJoinStyle.MITRE)
     <POLYGON ((-2 -2, -2 12, 12 12, 12 -2, -2 -2))>
-    >>> buffer(square, -2, join_style=BufferCapStyle.MITRE)
+    >>> buffer(square, -2, join_style=BufferJoinStyle.MITRE)
     <POLYGON ((2 2, 2 8, 8 8, 8 2, 2 2))>
-    >>> buffer(square, -5, join_style=BufferCapStyle.MITRE)
+    >>> buffer(square, -5, join_style=BufferJoinStyle.MITRE)
     <POLYGON EMPTY>
     >>> buffer(line, float("nan")) is None
     True
