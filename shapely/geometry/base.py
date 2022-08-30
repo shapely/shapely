@@ -757,7 +757,7 @@ class BaseGeometry(shapely.Geometry):
         """Adds vertices to line segments based on maximum segment length.
 
         Additional vertices will be added to every line segment in an input geometry
-        so that segments are longer than the provided maximum segment length.  New
+        so that segments are no longer than the provided maximum segment length. New
         vertices will evenly subdivide each segment.
 
         Only linear components of input geometries are densified; other geometries
