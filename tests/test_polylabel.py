@@ -39,15 +39,15 @@ class PolylabelTestCase(unittest.TestCase):
         cell2 = Cell(50, 50, 50, polygon)  # furthest
         assert cell1 < cell2
         assert cell1 <= cell2
-        assert (cell2 <= cell1) == False
+        assert (cell2 <= cell1) is False
         assert cell1 == cell1
-        assert (cell1 == cell2) == False
+        assert (cell1 == cell2) is False
         assert cell1 != cell2
-        assert (cell1 != cell1) == False
+        assert (cell1 != cell1) is False
         assert cell2 > cell1
-        assert (cell1 > cell2) == False
+        assert (cell1 > cell2) is False
         assert cell2 >= cell1
-        assert (cell1 >= cell2) == False
+        assert (cell1 >= cell2) is False
 
     def test_concave_polygon(self):
         """

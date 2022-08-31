@@ -10,4 +10,4 @@ class MappingTestCase(unittest.TestCase):
 
     def test_empty_polygon(self):
         """Empty polygons will round trip without error"""
-        assert mapping(Polygon()) != None
+        assert mapping(Polygon()) is not None
