@@ -1,5 +1,14 @@
+import pytest
+
 from . import unittest
 from shapely import geometry
+
+
+@pytest.mark.parametrize("distance", [float("nan"), float("inf")])
+def test_non_finite_distance(distance):
+    g = geometry.Point(0, 0)
+    with pytest.raises(ValueError, match="distance must be finite"):
+        g.buffer(distance)
 
 
 class BufferSingleSidedCase(unittest.TestCase):
