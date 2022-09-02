@@ -1,4 +1,5 @@
 from . import unittest
+import pytest
 from shapely.algorithms.polylabel import polylabel, Cell
 from shapely.geometry import LineString, Point, Polygon
 from shapely.errors import TopologicalError
@@ -14,7 +15,7 @@ class PolylabelTestCase(unittest.TestCase):
                               (-100, -20), (-150, -200)]).buffer(100)
         label = polylabel(polygon, tolerance=10)
         expected = Point(59.35615556364569, 121.8391962974644)
-        self.assertTrue(expected.equals_exact(label, 1e-6))
+        assert expected.equals_exact(label, 1e-6)
 
     def test_invalid_polygon(self):
         """
@@ -24,7 +25,8 @@ class PolylabelTestCase(unittest.TestCase):
         """
         bowtie_polygon = Polygon([(0, 0), (0, 20), (10, 10), (20, 20),
                                   (20, 0), (10, 10), (0, 0)])
-        self.assertRaises(TopologicalError, polylabel, bowtie_polygon)
+        with pytest.raises(TopologicalError):
+            polylabel(bowtie_polygon)
 
     def test_cell_sorting(self):
         """
@@ -35,17 +37,17 @@ class PolylabelTestCase(unittest.TestCase):
         polygon = Point(0, 0).buffer(100)
         cell1 = Cell(0, 0, 50, polygon)  # closest
         cell2 = Cell(50, 50, 50, polygon)  # furthest
-        self.assertLess(cell1, cell2)
-        self.assertLessEqual(cell1, cell2)
-        self.assertFalse(cell2 <= cell1)
-        self.assertEqual(cell1, cell1)
-        self.assertFalse(cell1 == cell2)
-        self.assertNotEqual(cell1, cell2)
-        self.assertFalse(cell1 != cell1)
-        self.assertGreater(cell2, cell1)
-        self.assertFalse(cell1 > cell2)
-        self.assertGreaterEqual(cell2, cell1)
-        self.assertFalse(cell1 >= cell2)
+        assert cell1 < cell2
+        assert cell1 <= cell2
+        assert (cell2 <= cell1) is False
+        assert cell1 == cell1
+        assert (cell1 == cell2) is False
+        assert cell1 != cell2
+        assert (cell1 != cell1) is False
+        assert cell2 > cell1
+        assert (cell1 > cell2) is False
+        assert cell2 >= cell1
+        assert (cell1 >= cell2) is False
 
     def test_concave_polygon(self):
         """
@@ -56,7 +58,7 @@ class PolylabelTestCase(unittest.TestCase):
         concave_polygon = LineString([(500, 0), (0, 0), (0, 500),
                                       (500, 500)]).buffer(100)
         label = polylabel(concave_polygon)
-        self.assertTrue(concave_polygon.contains(label))
+        assert concave_polygon.contains(label)
 
     def test_rectangle_special_case(self):
         """
@@ -65,10 +67,10 @@ class PolylabelTestCase(unittest.TestCase):
         that this special case is handled correctly.
         https://github.com/mapbox/polylabel/issues/3
         """
-        polygon = Polygon([(32.71997,-117.19310), (32.71997,-117.21065),
-                           (32.72408,-117.21065), (32.72408,-117.19310)])
+        polygon = Polygon([(32.71997, -117.19310), (32.71997, -117.21065),
+                           (32.72408, -117.21065), (32.72408, -117.19310)])
         label = polylabel(polygon)
-        self.assertEqual(label.coords[:], [(32.722025, -117.201875)])
+        assert label.coords[:] == [(32.722025, -117.201875)]
 
     def test_polygon_with_hole(self):
         """
@@ -80,5 +82,5 @@ class PolylabelTestCase(unittest.TestCase):
             holes=[[(2, 2), (6, 2), (6, 6), (2, 6), (2, 2)]],
         )
         label = polylabel(polygon, 0.05)
-        self.assertAlmostEqual(label.x, 7.65625)
-        self.assertAlmostEqual(label.y, 7.65625)
+        assert label.x == pytest.approx(7.65625)
+        assert label.y == pytest.approx(7.65625)
