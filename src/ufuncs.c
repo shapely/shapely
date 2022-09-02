@@ -756,7 +756,7 @@ static void YY_Y_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
   GEOSGeometry *in1 = NULL, *in2 = NULL, *out = NULL;
 
   // Whether to destroy a temporary intermediate value of `out`:
-  char do_destroy = 0;
+  char in1_ownership = 0;
 
   GEOS_INIT_THREADS;
 
@@ -780,12 +780,12 @@ static void YY_Y_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
         out = func(ctx, in1, in2);
 
         // Discard in1 if it was a temporary intermediate
-        if (do_destroy) {
+        if (in1_ownership) {
           GEOSGeom_destroy_r(ctx, in1);
         }
 
         // Mark the newly generated geometry as intermediate. Note: out will become in1.
-        do_destroy = 1;
+        in1_ownership = 1;
 
         // Break on error (we do this after discarding in1 to avoid memleaks)
         if (out == NULL) {
@@ -799,13 +799,20 @@ static void YY_Y_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
         // Keep in2 as 'outcome' of the operation.
         out = in2;
         // Ensure that it will not be destroyed (it is owned by python)
-        do_destroy = 0;
+        in1_ownership = 0;
       }
 
       // 3. (not NULL, NULL); When a None value is encountered after a not-None
       //    Don't do `out = in1`, as that is already the case.
       // 4. (NULL, NULL); When we have not yet encountered any not-None
       //    Do nothing; out will remain NULL
+    }
+  }
+
+  if ((errstate == PGERR_SUCCESS) && (!in1_ownership)) {
+    out = GEOSGeom_clone_r(ctx, out);
+    if (out == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
     }
   }
 
