@@ -69,6 +69,12 @@ class ConstructiveSuite:
     def time_convex_hull(self):
         shapely.convex_hull(self.points)
 
+    def time_concave_hull(self):
+        shapely.concave_hull(self.points, ratio=0.2, allow_holes=False)
+
+    def time_concave_hull_with_holes(self):
+        shapely.concave_hull(self.points, ratio=0.2, allow_holes=True)
+
     def time_delaunay_triangles(self):
         shapely.delaunay_triangles(self.points)
 

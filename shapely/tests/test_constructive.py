@@ -33,6 +33,7 @@ CONSTRUCTIVE_NO_ARGS = (
     shapely.boundary,
     shapely.centroid,
     shapely.convex_hull,
+    shapely.concave_hull,
     shapely.envelope,
     shapely.extract_unique_points,
     shapely.normalize,
