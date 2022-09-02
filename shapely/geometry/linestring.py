@@ -2,6 +2,7 @@
 """
 
 from ctypes import c_double
+import math
 import warnings
 
 from shapely.coords import CoordinateSequence
@@ -171,6 +172,8 @@ class LineString(BaseGeometry):
         if mitre_limit == 0.0:
             raise ValueError(
                 'Cannot compute offset from zero-length line segment')
+        elif not math.isfinite(distance):
+            raise ValueError("parallel_offset distance must be finite")
         try:
             return geom_factory(self.impl['parallel_offset'](
                 self, distance, resolution, join_style, mitre_limit, side))

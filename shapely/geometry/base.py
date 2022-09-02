@@ -622,6 +622,8 @@ class BaseGeometry:
         if mitre_limit == 0.0:
             raise ValueError(
                 'Cannot compute offset from zero-length line segment')
+        elif not math.isfinite(distance):
+            raise ValueError("buffer distance must be finite")
 
         if 'buffer_with_params' in self.impl:
             params = self._lgeos.GEOSBufferParams_create()
