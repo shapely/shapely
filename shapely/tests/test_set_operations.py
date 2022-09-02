@@ -99,6 +99,7 @@ def test_set_operation_reduce_1dim(n, func, related_func):
         expected = related_func(expected, reduce_test_data[i])
     assert shapely.equals(actual, expected)
 
+
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
 def test_set_operation_reduce_single_geom(func, related_func):
     geom = shapely.Point(1, 1)
