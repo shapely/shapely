@@ -229,6 +229,11 @@ intersphinx_mapping = {
     'numpy': ('https://numpy.org/doc/stable/', None),
 }
 
+plot_rcparams = {
+    'savefig.bbox': "tight"
+}
+
+
 # set an environment variable for shapely.decorators.requires_geos to see if we
 # are in a doc build
 import os
