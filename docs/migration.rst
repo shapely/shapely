@@ -261,9 +261,9 @@ manager that can be copied into your project::
     import contextlib
     import shapely
     import warnings
-    from distutils.version import LooseVersion
+    from packaging import version  # https://packaging.pypa.io/
 
-    SHAPELY_GE_20 = str(shapely.__version__) >= LooseVersion("2.0")
+    SHAPELY_GE_20 = version.parse(shapely.__version__) >= version.parse("2.0a1")
 
     try:
         from shapely.errors import ShapelyDeprecationWarning as shapely_warning
