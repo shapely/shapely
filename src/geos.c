@@ -950,20 +950,18 @@ GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* b
  *
  * Returns 0 on error, 1 on success.
  */
-char coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq,
-                        double* buf, unsigned int size, unsigned int dims) {
-  char *cp1, *cp2;
-  unsigned int i, j;
+int coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq,
+                       double* buf, unsigned int size, unsigned int dims) {
 
 #if GEOS_SINCE_3_10_0
 
   int hasZ = dims == 3;
-  if (!GEOSCoordSeq_copyToBuffer_r(ctx, coord_seq, buf, hasZ, 0)) {
-    return 0;
-  }
-  return 1;
+  return GEOSCoordSeq_copyToBuffer_r(ctx, coord_seq, buf, hasZ, 0);
 
-#endif
+#else
+
+  char *cp1, *cp2;
+  unsigned int i, j;
 
   cp1 = (char*)buf;
   for (i = 0; i < size; i++, cp1 += 8 * dims) {
@@ -975,4 +973,6 @@ char coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_
     }
   }
   return 1;
+
+#endif
 }
