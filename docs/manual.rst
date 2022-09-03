@@ -1699,6 +1699,13 @@ linestring feature (right).
   Returns a LineString or MultiLineString geometry at a distance from the
   object on its right or its left side.
 
+  Alias method to :meth:`offset_curve` method.
+
+.. method:: object.offset_curve(distance, side, resolution=16, join_style=1, mitre_limit=5.0)
+
+  Returns a LineString or MultiLineString geometry at a distance from the
+  object on its right or its left side.
+
   The `distance` parameter must be a positive float value.
 
   The `side` parameter may be 'left' or 'right'. Left and right are determined
