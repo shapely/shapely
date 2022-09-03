@@ -33,7 +33,12 @@ CONSTRUCTIVE_NO_ARGS = (
     shapely.boundary,
     shapely.centroid,
     shapely.convex_hull,
-    shapely.concave_hull,
+    pytest.param(
+        shapely.concave_hull,
+        marks=pytest.mark.skipif(
+            shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11"
+        ),
+    ),
     shapely.envelope,
     shapely.extract_unique_points,
     shapely.normalize,
