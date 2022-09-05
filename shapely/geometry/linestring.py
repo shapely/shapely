@@ -149,7 +149,15 @@ class LineString(BaseGeometry):
         join_style=JOIN_STYLE.round,
         mitre_limit=5.0,
     ):
-        """Alias method to :meth:`offset_curve` method."""
+        """
+        Alternative method to :meth:`offset_curve` method.
+
+        Older alternative method to the :meth:`offset_curve` method, but uses
+        ``resolution`` instead of ``quad_segs`` and a ``side`` keyword
+        ('left' or 'right') instead of sign of the distance. This method is
+        kept for backwards compatibility for now, but is is recommended to
+        use :meth:`offset_curve` instead.
+        """
         if side == "right":
             distance *= -1
         return self.offset_curve(

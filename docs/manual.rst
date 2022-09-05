@@ -1699,9 +1699,11 @@ linestring feature (right).
   Returns a LineString or MultiLineString geometry at a distance from the
   object on its right or its left side.
 
-  Alias method to :meth:`offset_curve` method, but uses `resolution` instead
-  of `quad_segs` and a `side` keyword ('left' or 'right') instead of sign of
-  the distance for backwards compatibility.
+  Older alternative method to the :meth:`offset_curve` method, but uses
+  `resolution` instead of `quad_segs` and a `side` keyword ('left' or
+  'right') instead of sign of the distance. This method is kept for backwards
+  compatibility for now, but is is recommended to use :meth:`offset_curve`
+  instead.
 
 .. method:: object.offset_curve(distance, quad_segs=16, join_style=1, mitre_limit=5.0)
 
