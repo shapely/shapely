@@ -105,12 +105,12 @@ def test_float_arg_nan(geometry, func):
 
 
 def test_buffer_cap_style_invalid():
-    with pytest.raises(ValueError, match="'invalid' is not a valid option"):
+    with pytest.raises(ValueError, match="'INVALID' is not a valid option"):
         shapely.buffer(point, 1, cap_style="invalid")
 
 
 def test_buffer_join_style_invalid():
-    with pytest.raises(ValueError, match="'invalid' is not a valid option"):
+    with pytest.raises(ValueError, match="'INVALID' is not a valid option"):
         shapely.buffer(point, 1, join_style="invalid")
 
 

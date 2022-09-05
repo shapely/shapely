@@ -352,8 +352,8 @@ class BaseGeometry(shapely.Geometry):
         distance,
         resolution=16,
         quadsegs=None,
-        cap_style=BufferCapStyle.ROUND,
-        join_style=BufferJoinStyle.ROUND,
+        cap_style="round",
+        join_style="round",
         mitre_limit=5.0,
         single_sided=False,
     ):
@@ -375,17 +375,17 @@ class BaseGeometry(shapely.Geometry):
             Sets the number of line segments used to approximate an
             angle fillet.  Note: the use of a `quadsegs` parameter is
             deprecated and will be gone from the next major release.
-        cap_style : shapely.BufferCapStyle, shapely.BufferCapStyle.ROUND
-            Specifies the shape of buffered line endings. BufferCapStyle.ROUND results in
-            circular line endings (see ``quadsegs``). Both BufferCapStyle.SQUARE and
-            BufferCapStyle.FLAT result in rectangular line endings, only BufferCapStyle.FLAT
-            will end at the original vertex, while BufferCapStyle.SQUARE involves adding the
-            buffer width.
-        join_style : shapely.BufferJoinStyle, shapely.BufferJoinStyle.ROUND
-            Specifies the shape of buffered line midpoints. BufferJoinStyle.ROUND results in
-            rounded shapes. BufferJoinStyle.BEVEL results in a beveled edge that touches the
-            original vertex. BufferJoinStyle.MITRE results in a single vertex that is
-            beveled depending on the ``mitre_limit`` parameter.
+        cap_style : shapely.BufferCapStyle or {'round', 'square', 'flat'}, default 'round'
+            Specifies the shape of buffered line endings. BufferCapStyle.ROUND ('round')
+            results in circular line endings (see ``quadsegs``). Both BufferCapStyle.SQUARE
+            ('square') and BufferCapStyle.FLAT ('flat') result in rectangular line endings,
+            only BufferCapStyle.FLAT ('flat') will end at the original vertex,
+            while BufferCapStyle.SQUARE ('square') involves adding the buffer width.
+        join_style : shapely.BufferJoinStyle or {'round', 'mitre', 'bevel'}, default 'round'
+            Specifies the shape of buffered line midpoints. BufferJoinStyle.ROUND ('round')
+            results in rounded shapes. BufferJoinStyle.BEVEL ('bevel') results in a beveled
+            edge that touches the original vertex. BufferJoinStyle.MITRE ('mitre') results
+            in a single vertex that is beveled depending on the ``mitre_limit`` parameter.
         mitre_limit : float, optional
             The mitre limit ratio is used for very sharp corners. The
             mitre ratio is the ratio of the distance from the corner to

@@ -84,8 +84,8 @@ def buffer(
     geometry,
     radius,
     quadsegs=8,
-    cap_style=BufferCapStyle.ROUND,
-    join_style=BufferJoinStyle.ROUND,
+    cap_style="round",
+    join_style="round",
     mitre_limit=5.0,
     single_sided=False,
     **kwargs
@@ -108,17 +108,17 @@ def buffer(
     quadsegs : int, default 8
         Specifies the number of linear segments in a quarter circle in the
         approximation of circular arcs.
-    cap_style : shapely.BufferCapStyle, shapely.BufferCapStyle.ROUND
-        Specifies the shape of buffered line endings. BufferCapStyle.ROUND results in
-        circular line endings (see ``quadsegs``). Both BufferCapStyle.SQUARE and
-        BufferCapStyle.FLAT result in rectangular line endings, only BufferCapStyle.FLAT
-        will end at the original vertex, while BufferCapStyle.SQUARE involves adding the
-        buffer width.
-    join_style : shapely.BufferJoinStyle, shapely.BufferJoinStyle.ROUND
-        Specifies the shape of buffered line midpoints. BufferJoinStyle.ROUND results in
-        rounded shapes. BufferJoinStyle.BEVEL results in a beveled edge that touches the
-        original vertex. BufferJoinStyle.MITRE results in a single vertex that is
-        beveled depending on the ``mitre_limit`` parameter.
+    cap_style : shapely.BufferCapStyle or {'round', 'square', 'flat'}, default 'round'
+        Specifies the shape of buffered line endings. BufferCapStyle.ROUND ('round')
+        results in circular line endings (see ``quadsegs``). Both BufferCapStyle.SQUARE
+        ('square') and BufferCapStyle.FLAT ('flat') result in rectangular line endings,
+        only BufferCapStyle.FLAT ('flat') will end at the original vertex,
+        while BufferCapStyle.SQUARE ('square') involves adding the buffer width.
+    join_style : shapely.BufferJoinStyle or {'round', 'mitre', 'bevel'}, default 'round'
+        Specifies the shape of buffered line midpoints. BufferJoinStyle.ROUND ('round')
+        results in rounded shapes. BufferJoinStyle.BEVEL ('bevel') results in a beveled
+        edge that touches the original vertex. BufferJoinStyle.MITRE ('mitre') results
+        in a single vertex that is beveled depending on the ``mitre_limit`` parameter.
     mitre_limit : float, default 5.0
         Crops of 'mitre'-style joins if the point is displaced from the
         buffered vertex by more than this limit.
@@ -138,33 +138,33 @@ def buffer(
     >>> buffer(Point(10, 10), -2, quadsegs=1)
     <POLYGON EMPTY>
     >>> line = LineString([(10, 10), (20, 10)])
-    >>> buffer(line, 2, cap_style=BufferCapStyle.SQUARE)
+    >>> buffer(line, 2, cap_style='square')
     <POLYGON ((20 12, 22 12, 22 8, 10 8, 8 8, 8 12, 20 12))>
-    >>> buffer(line, 2, cap_style=BufferCapStyle.FLAT)
+    >>> buffer(line, 2, cap_style='flat')
     <POLYGON ((20 12, 20 8, 10 8, 10 12, 20 12))>
-    >>> buffer(line, 2, single_sided=True, cap_style=BufferCapStyle.FLAT)
+    >>> buffer(line, 2, single_sided=True, cap_style='flat')
     <POLYGON ((20 10, 10 10, 10 12, 20 12, 20 10))>
     >>> line2 = LineString([(10, 10), (20, 10), (20, 20)])
-    >>> buffer(line2, 2, cap_style=BufferCapStyle.FLAT, join_style=BufferJoinStyle.BEVEL)
+    >>> buffer(line2, 2, cap_style='flat', join_style='bevel')
     <POLYGON ((18 12, 18 20, 22 20, 22 10, 20 8, 10 8, 10 12, 18 12))>
-    >>> buffer(line2, 2, cap_style=BufferCapStyle.FLAT, join_style=BufferJoinStyle.MITRE)
+    >>> buffer(line2, 2, cap_style='flat', join_style='mitre')
     <POLYGON ((18 12, 18 20, 22 20, 22 8, 10 8, 10 12, 18 12))>
-    >>> buffer(line2, 2, cap_style=BufferCapStyle.FLAT, join_style=BufferJoinStyle.MITRE, mitre_limit=1)
+    >>> buffer(line2, 2, cap_style='flat', join_style='mitre', mitre_limit=1)
     <POLYGON ((18 12, 18 20, 22 20, 22 9.172, 20.828 8, 10 8, 10 12, 18 12))>
     >>> square = Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)])
-    >>> buffer(square, 2, join_style=BufferJoinStyle.MITRE)
+    >>> buffer(square, 2, join_style='mitre')
     <POLYGON ((-2 -2, -2 12, 12 12, 12 -2, -2 -2))>
-    >>> buffer(square, -2, join_style=BufferJoinStyle.MITRE)
+    >>> buffer(square, -2, join_style='mitre')
     <POLYGON ((2 2, 2 8, 8 8, 8 2, 2 2))>
-    >>> buffer(square, -5, join_style=BufferJoinStyle.MITRE)
+    >>> buffer(square, -5, join_style='mitre')
     <POLYGON EMPTY>
     >>> buffer(line, float("nan")) is None
     True
     """
     if isinstance(cap_style, str):
-        cap_style = BufferCapStyle.get_value(cap_style)
+        cap_style = BufferCapStyle.get_value(cap_style.upper())
     if isinstance(join_style, str):
-        join_style = BufferJoinStyle.get_value(join_style)
+        join_style = BufferJoinStyle.get_value(join_style.upper())
     if not np.isscalar(quadsegs):
         raise TypeError("quadsegs only accepts scalar values")
     if not np.isscalar(cap_style):
