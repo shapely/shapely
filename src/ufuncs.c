@@ -834,19 +834,9 @@ static void YY_Y_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
 static void YY_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* data) {
   // A reduce is characterized by multiple iterations that
   // are output on the same place in memory (steps[2] == 0).
-  if (steps[2] == 0) {
-    if (args[0] == args[2]) {
+  if ((steps[2] == 0) && (args[0] == args[2])) {
       YY_Y_func_reduce(args, dimensions, steps, data);
       return;
-    } else {
-      // Fail if inputs do not have the expected structure.
-      PyErr_Format(PyExc_NotImplementedError,
-                   "Unknown ufunc mode with args=[%p, %p, %p], steps=[%ld, %ld, %ld], "
-                   "dimensions=[%ld].",
-                   args[0], args[1], args[2], steps[0], steps[1], steps[2],
-                   dimensions[0]);
-      return;
-    }
   }
 
   FuncGEOS_YY_Y* func = (FuncGEOS_YY_Y*)data;
