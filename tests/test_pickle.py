@@ -20,5 +20,5 @@ def test_pickle_round_trip(cls, coords):
     geom2 = loads(data)
     assert geom2.has_z == geom1.has_z
     assert type(geom2) is type(geom1)
-    assert geom2.type == geom1.type
+    assert geom2.geom_type == geom1.geom_type
     assert geom2.wkt == geom1.wkt

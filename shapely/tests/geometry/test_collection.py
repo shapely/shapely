@@ -25,8 +25,7 @@ def geometrycollection_geojson():
     ],
 )
 def test_empty(geom):
-    assert geom.type == "GeometryCollection"
-    assert geom.type == geom.geom_type
+    assert geom.geom_type == "GeometryCollection"
     assert geom.is_empty
     assert len(geom.geoms) == 0
     assert list(geom.geoms) == []
@@ -34,8 +33,7 @@ def test_empty(geom):
 
 def test_empty_subgeoms():
     geom = GeometryCollection([Point(), LineString()])
-    assert geom.type == "GeometryCollection"
-    assert geom.type == geom.geom_type
+    assert geom.geom_type == "GeometryCollection"
     assert geom.is_empty
     assert len(geom.geoms) == 2
     assert list(geom.geoms) == [Point(), LineString()]

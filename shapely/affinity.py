@@ -92,7 +92,7 @@ def interpret_origin(geom, origin, ndim):
         origin = geom.centroid.coords[0]
     elif isinstance(origin, str):
         raise ValueError(f"'origin' keyword {origin!r} is not recognized")
-    elif hasattr(origin, "type") and origin.type == "Point":
+    elif getattr(origin, "geom_type", None) == "Point":
         origin = origin.coords[0]
 
     # origin should now be tuple-like

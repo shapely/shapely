@@ -101,6 +101,13 @@ def test_set_operation_reduce_1dim(n, func, related_func):
 
 
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
+def test_set_operation_reduce_single_geom(func, related_func):
+    geom = shapely.Point(1, 1)
+    actual = func([geom, None, None])
+    assert shapely.equals(actual, geom)
+
+
+@pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
 def test_set_operation_reduce_axis(func, related_func):
     data = [[point] * 2] * 3  # shape = (3, 2)
     actual = func(data, axis=None)  # default

@@ -77,7 +77,7 @@ def shape(context):
 
     >>> context = {'type': 'Point', 'coordinates': [0, 1]}
     >>> geom = shape(context)
-    >>> geom.type == 'Point'
+    >>> geom.geom_type == 'Point'
     True
     >>> geom.wkt
     'POINT (0 1)'
