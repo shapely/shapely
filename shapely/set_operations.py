@@ -138,7 +138,7 @@ def intersection_all(geometries, axis=None, **kwargs):
     """Returns the intersection of multiple geometries.
 
     This function ignores None values when other Geometry elements are present.
-    At least two elements must be non-None or an empty GeometryCollection is
+    If all elements of the given axis are None an empty GeometryCollection is
     returned.
 
     Parameters
@@ -167,16 +167,14 @@ def intersection_all(geometries, axis=None, **kwargs):
     >>> intersection_all([[line1, line2, None]], axis=1).tolist()
     [<LINESTRING (1 1, 2 2)>]
     >>> intersection_all([line1, None])
-    <GEOMETRYCOLLECTION EMPTY>
+    <LINESTRING (0 0, 2 2)>
     """
 
     result = lib.intersection.reduce(geometries, axis=axis, **kwargs)
-    empty_geom = GeometryCollection([])
 
-    result = np.where(result == None, empty_geom, result)  # noqa: E711
-
-    if result.ndim == 0:
-        return result.item()
+    # if geometries is [None], reduce returns None and skips the ufunc implementation
+    if result is None:
+        return GeometryCollection([])
 
     return result
 
@@ -243,7 +241,7 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
     """Returns the symmetric difference of multiple geometries.
 
     This function ignores None values when other Geometry elements are present.
-    At least two elements must be non-None or an empty GeometryCollection is
+    If all elements of the given axis are None an empty GeometryCollection is
     returned.
 
     Parameters
@@ -272,16 +270,16 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
     >>> symmetric_difference_all([[line1, line2, None]], axis=1).tolist()
     [<MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>]
     >>> symmetric_difference_all([line1, None])
+    <LINESTRING (0 0, 2 2)>
+    >>> symmetric_difference_all([None, None])
     <GEOMETRYCOLLECTION EMPTY>
     """
 
     result = lib.symmetric_difference.reduce(geometries, axis=axis, **kwargs)
-    empty_geom = GeometryCollection([])
 
-    result = np.where(result == None, empty_geom, result)  # noqa: E711
-
-    if result.ndim == 0:
-        return result.item()
+    # if geometries is [None], reduce returns None and skips the ufunc implementation
+    if result is None:
+        return GeometryCollection([])
 
     return result
 
@@ -349,7 +347,7 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
     """Returns the union of multiple geometries.
 
     This function ignores None values when other Geometry elements are present.
-    If all elements of the given axis are None, an empty GeometryCollection is
+    If all elements of the given axis are None an empty GeometryCollection is
     returned.
 
     If grid_size is nonzero, input coordinates will be snapped to a precision
@@ -492,6 +490,10 @@ def coverage_union_all(geometries, axis=None, **kwargs):
     >>> polygon_2 = Polygon([(1, 0), (1, 1), (2, 1), (2, 0), (1, 0)])
     >>> normalize(coverage_union_all([polygon_1, polygon_2]))
     <POLYGON ((0 0, 0 1, 1 1, 2 1, 2 0, 1 0, 0 0))>
+    >>> normalize(coverage_union_all([polygon_1, None]))
+    <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
+    >>> normalize(coverage_union_all([None, None]))
+    <MULTIPOLYGON EMPTY>
     """
     # coverage union in GEOS works over GeometryCollections
     # first roll the aggregation axis backwards

@@ -809,12 +809,17 @@ static void YY_Y_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
     }
   }
 
-  // In case we do not own the output, make a clone (else we end up with 2 PyObjects
-  // referencing the same GEOS Geometry)
-  if ((errstate == PGERR_SUCCESS) && (!out_ownership)) {
-    out = GEOSGeom_clone_r(ctx, out);
+
+  if (errstate == PGERR_SUCCESS) {
     if (out == NULL) {
-      errstate = PGERR_GEOS_EXCEPTION;
+      out = GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, NULL, 0);
+    } else if (!out_ownership) {
+      // In case we do not own the output, make a clone (else we end up with 2
+      // PyObjects referencing the same GEOS Geometry)
+      out = GEOSGeom_clone_r(ctx, out);
+      if (out == NULL) {
+        errstate = PGERR_GEOS_EXCEPTION;
+      }
     }
   }
 
@@ -827,9 +832,9 @@ static void YY_Y_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
 }
 
 static void YY_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* data) {
-  // A reduce is characterized by multiple iterations (dimension[0] > 1) that
+  // A reduce is characterized by multiple iterations that
   // are output on the same place in memory (steps[2] == 0).
-  if ((steps[2] == 0) && (dimensions[0] > 1)) {
+  if (steps[2] == 0) {
     if (args[0] == args[2]) {
       YY_Y_func_reduce(args, dimensions, steps, data);
       return;
