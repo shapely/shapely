@@ -1,6 +1,14 @@
 Changes
 =======
 
+2.0b1 (in progress)
+-------------------
+
+Relevant changes compared to 2.0a1:
+
+- Renamed the ``tolerance`` keyword to ``max_segment_length`` in the
+  ``segmentize`` function.
+
 2.0a1 (2022-08-03)
 ------------------
 

@@ -103,7 +103,7 @@ def test_type_deprecated():
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 def test_segmentize():
     line = LineString([(0, 0), (0, 10)])
-    result = line.segmentize(tolerance=5)
+    result = line.segmentize(max_segment_length=5)
     assert result.equals(LineString([(0, 0), (0, 5), (0, 10)]))
 
 
