@@ -145,6 +145,7 @@ elif sys.platform == 'darwin':
             ]
             if hasattr(sys, "_MEIPASS"):
                 alt_paths.append(os.path.join(sys._MEIPASS, "libgeos_c.1.dylib"))
+        _lgeos = load_dll('geos_c', fallbacks=alt_paths)
 
     elif exists_conda_env():
         # conda package.
