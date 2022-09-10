@@ -699,12 +699,12 @@ def reverse(geometry, **kwargs):
 
 @requires_geos("3.10.0")
 @multithreading_enabled
-def segmentize(geometry, tolerance, **kwargs):
-    """Adds vertices to line segments based on tolerance.
+def segmentize(geometry, max_segment_length, **kwargs):
+    """Adds vertices to line segments based on maximum segment length.
 
     Additional vertices will be added to every line segment in an input geometry
-    so that segments are no greater than tolerance.  New vertices will evenly
-    subdivide each segment.
+    so that segments are no longer than the provided maximum segment length. New
+    vertices will evenly subdivide each segment.
 
     Only linear components of input geometries are densified; other geometries
     are returned unmodified.
@@ -712,9 +712,9 @@ def segmentize(geometry, tolerance, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
-    tolerance : float or array_like
+    max_segment_length : float or array_like
         Additional vertices will be added so that all line segments are no
-        greater than this value.  Must be greater than 0.
+        longer than this value.  Must be greater than 0.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -723,15 +723,15 @@ def segmentize(geometry, tolerance, **kwargs):
     --------
     >>> from shapely import LineString, Polygon
     >>> line = LineString([(0, 0), (0, 10)])
-    >>> segmentize(line, tolerance=5)
+    >>> segmentize(line, max_segment_length=5)
     <LINESTRING (0 0, 0 5, 0 10)>
     >>> polygon = Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)])
-    >>> segmentize(polygon, tolerance=5)
+    >>> segmentize(polygon, max_segment_length=5)
     <POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
-    >>> segmentize(None, tolerance=5) is None
+    >>> segmentize(None, max_segment_length=5) is None
     True
     """
-    return lib.segmentize(geometry, tolerance, **kwargs)
+    return lib.segmentize(geometry, max_segment_length, **kwargs)
 
 
 @multithreading_enabled
