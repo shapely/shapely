@@ -9,6 +9,8 @@ Relevant changes compared to 2.0a1:
 - Renamed the ``tolerance`` keyword to ``max_segment_length`` in the
   ``segmentize`` function.
 
+Wheels for 2.0b1 published on PyPI include GEOS 3.11.0.
+
 2.0a1 (2022-08-03)
 ------------------
 
