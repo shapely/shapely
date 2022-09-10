@@ -1,9 +1,11 @@
 Set operations
 ==============
 
-.. automodule:: shapely.set_operations
-   :members:
-   :exclude-members:
-   :special-members:
-   :inherited-members:
-   :show-inheritance:
+.. currentmodule:: shapely
+
+.. autosummary::
+   :toctree: reference/
+
+{% for function in get_module_functions("set_operations") %}
+   {{ function }}
+{% endfor %}

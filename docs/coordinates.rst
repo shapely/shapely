@@ -1,9 +1,11 @@
 Coordinate operations
 =====================
 
-.. automodule:: shapely.coordinates
-   :members:
-   :undoc-members:
-   :special-members:
-   :inherited-members:
-   :show-inheritance:
+.. currentmodule:: shapely
+
+.. autosummary::
+   :toctree: reference/
+
+{% for function in get_module_functions("coordinates") %}
+   {{ function }}
+{% endfor %}

@@ -88,9 +88,16 @@ This is the same as using :func:`shapely.predicates.equals_exact` with a ``toler
 Geometry types
 ~~~~~~~~~~~~~~
 
-.. automodule:: shapely.geometry
-  :members:
-  :exclude-members: GeometryType
-  :special-members:
-  :inherited-members:
-  :show-inheritance:
+.. currentmodule:: shapely
+
+.. autosummary::
+    :toctree: reference/
+
+    Point
+    LineString
+    LinearRing
+    Polygon
+    MultiPoint
+    MultiLineString
+    MultiPolygon
+    GeometryCollection
