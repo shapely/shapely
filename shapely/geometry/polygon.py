@@ -121,16 +121,13 @@ shapely.lib.registry[2] = LinearRing
 
 class InteriorRingSequence:
 
-    _factory = None
-    __p__ = None
+    _parent = None
     _ndim = None
     _index = 0
     _length = 0
-    __rings__ = None
-    _gtag = None
 
     def __init__(self, parent):
-        self.__p__ = parent
+        self._parent = parent
         self._ndim = parent._ndim
 
     def __iter__(self):
@@ -147,7 +144,7 @@ class InteriorRingSequence:
             raise StopIteration
 
     def __len__(self):
-        return shapely.get_num_interior_rings(self.__p__)
+        return shapely.get_num_interior_rings(self._parent)
 
     def __getitem__(self, key):
         m = self.__len__()
@@ -168,11 +165,8 @@ class InteriorRingSequence:
         else:
             raise TypeError("key must be an index or slice")
 
-    def gtag(self):
-        return hash(repr(self.__p__))
-
     def _get_ring(self, i):
-        return shapely.get_interior_ring(self.__p__, i)
+        return shapely.get_interior_ring(self._parent, i)
 
 
 class Polygon(BaseGeometry):

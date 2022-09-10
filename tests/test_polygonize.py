@@ -16,7 +16,7 @@ class PolygonizeTestCase(unittest.TestCase):
             Point(0, 0),
         ]
         result = list(polygonize(lines))
-        self.assertTrue(all([isinstance(x, Polygon) for x in result]))
+        assert all(isinstance(x, Polygon) for x in result)
 
     def test_polygonize_full(self):
 
@@ -31,12 +31,10 @@ class PolygonizeTestCase(unittest.TestCase):
         ]
 
         result2, dangles, cuts, invalids = polygonize_full(lines2)
-        self.assertEqual(len(result2.geoms), 2)
-        self.assertTrue(all([isinstance(x, Polygon) for x in result2.geoms]))
-        self.assertEqual(list(dangles.geoms), [])
-        self.assertTrue(all([isinstance(x, LineString) for x in cuts.geoms]))
+        assert len(result2.geoms) == 2
+        assert all(isinstance(x, Polygon) for x in result2.geoms)
+        assert list(dangles.geoms) == []
+        assert all(isinstance(x, LineString) for x in cuts.geoms)
 
-        self.assertEqual(
-            dump_coords(cuts), [[(1.0, 1.0), (100.0, 100.0)], [(5.0, 5.0), (6.0, 6.0)]]
-        )
-        self.assertEqual(list(invalids.geoms), [])
+        assert dump_coords(cuts) == [[(1.0, 1.0), (100.0, 100.0)], [(5.0, 5.0), (6.0, 6.0)]]
+        assert list(invalids.geoms) == []

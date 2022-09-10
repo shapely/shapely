@@ -12,7 +12,7 @@
    installation
    User Manual <manual>
    migration
-   changelog
+   release
 
 
 .. toctree::
@@ -20,6 +20,7 @@
    :hidden:
 
    geometry
+   properties
    creation
    io
    measurement

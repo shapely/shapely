@@ -34,15 +34,15 @@ def dump_coords(geom):
         raise ValueError(
             "Must be instance of a geometry class; found " + geom.__class__.__name__
         )
-    elif geom.type in ("Point", "LineString", "LinearRing"):
+    elif geom.geom_type in ("Point", "LineString", "LinearRing"):
         return geom.coords[:]
-    elif geom.type == "Polygon":
+    elif geom.geom_type == "Polygon":
         return geom.exterior.coords[:] + [i.coords[:] for i in geom.interiors]
-    elif geom.type.startswith("Multi") or geom.type == "GeometryCollection":
+    elif geom.geom_type.startswith("Multi") or geom.geom_type == "GeometryCollection":
         # Recursive call
         return [dump_coords(part) for part in geom.geoms]
     else:
-        raise GeometryTypeError("Unhandled geometry type: " + repr(geom.type))
+        raise GeometryTypeError("Unhandled geometry type: " + repr(geom.geom_type))
 
 
 class CAP_STYLE:
@@ -157,6 +157,12 @@ class BaseGeometry(shapely.Geometry):
 
     @property
     def type(self):
+        warn(
+            "The 'type' attribute is deprecated, and will be removed in "
+            "the future. You can use the 'geom_type' attribute instead.",
+            ShapelyDeprecationWarning,
+            stacklevel=2,
+        )
         return self.geom_type
 
     @property
@@ -476,25 +482,40 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.normalize(self)
 
-    # Binary operations
-    # -----------------
+    # Overlay operations
+    # ---------------------------
 
-    def difference(self, other):
-        """Returns the difference of the geometries"""
-        return shapely.difference(self, other)
+    def difference(self, other, grid_size=None):
+        """
+        Returns the difference of the geometries.
 
-    def intersection(self, other):
-        """Returns the intersection of the geometries"""
-        return shapely.intersection(self, other)
+        Refer to `shapely.difference` for full documentation.
+        """
+        return shapely.difference(self, other, grid_size=grid_size)
 
-    def symmetric_difference(self, other):
-        """Returns the symmetric difference of the geometries
-        (Shapely geometry)"""
-        return shapely.symmetric_difference(self, other)
+    def intersection(self, other, grid_size=None):
+        """
+        Returns the intersection of the geometries.
 
-    def union(self, other):
-        """Returns the union of the geometries (Shapely geometry)"""
-        return shapely.union(self, other)
+        Refer to `shapely.intersection` for full documentation.
+        """
+        return shapely.intersection(self, other, grid_size=grid_size)
+
+    def symmetric_difference(self, other, grid_size=None):
+        """
+        Returns the symmetric difference of the geometries.
+
+        Refer to `shapely.symmetric_difference` for full documentation.
+        """
+        return shapely.symmetric_difference(self, other, grid_size=grid_size)
+
+    def union(self, other, grid_size=None):
+        """
+        Returns the union of the geometries.
+
+        Refer to `shapely.union` for full documentation.
+        """
+        return shapely.union(self, other, grid_size=grid_size)
 
     # Unary predicates
     # ----------------
@@ -602,6 +623,14 @@ class BaseGeometry(shapely.Geometry):
     def within(self, other):
         """Returns True if geometry is within the other, else False"""
         return bool(shapely.within(self, other))
+
+    def dwithin(self, other, distance):
+        """
+        Returns True if geometry is within a given distance from the other, else False.
+
+        Refer to `shapely.dwithin` for full documentation.
+        """
+        return bool(shapely.dwithin(self, other, distance))
 
     def equals_exact(self, other, tolerance):
         """True if geometries are equal to within a specified
@@ -732,31 +761,31 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
-    def segmentize(self, tolerance):
-        """Adds vertices to line segments based on tolerance.
+    def segmentize(self, max_segment_length):
+        """Adds vertices to line segments based on maximum segment length.
 
         Additional vertices will be added to every line segment in an input geometry
-        so that segments are no greater than tolerance.  New vertices will evenly
-        subdivide each segment.
+        so that segments are no longer than the provided maximum segment length. New
+        vertices will evenly subdivide each segment.
 
         Only linear components of input geometries are densified; other geometries
         are returned unmodified.
 
         Parameters
         ----------
-        tolerance : float or array_like
+        max_segment_length : float or array_like
             Additional vertices will be added so that all line segments are no
-            greater than this value.  Must be greater than 0.
+            longer this value.  Must be greater than 0.
 
         Examples
         --------
         >>> from shapely import LineString, Polygon
-        >>> LineString([(0, 0), (0, 10)]).segmentize(tolerance=5)
+        >>> LineString([(0, 0), (0, 10)]).segmentize(max_segment_length=5)
         <LINESTRING (0 0, 0 5, 0 10)>
-        >>> Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]).segmentize(tolerance=5)
+        >>> Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]).segmentize(max_segment_length=5)
         <POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
         """
-        return shapely.segmentize(self, tolerance)
+        return shapely.segmentize(self, max_segment_length)
 
     def reverse(self):
         """Returns a copy of this geometry with the order of coordinates reversed.
@@ -824,22 +853,22 @@ class GeometrySequence:
 
     # Attributes
     # ----------
-    # __p__ : object
+    # _parent : object
     #     Parent (Shapely) geometry
-    __p__ = None
+    _parent = None
 
     def __init__(self, parent):
-        self.__p__ = parent
+        self._parent = parent
 
     def _get_geom_item(self, i):
-        return shapely.get_geometry(self.__p__, i)
+        return shapely.get_geometry(self._parent, i)
 
     def __iter__(self):
         for i in range(self.__len__()):
             yield self._get_geom_item(i)
 
     def __len__(self):
-        return shapely.get_num_geometries(self.__p__)
+        return shapely.get_num_geometries(self._parent)
 
     def __getitem__(self, key):
         m = self.__len__()
@@ -856,7 +885,7 @@ class GeometrySequence:
             start, stop, stride = key.indices(m)
             for i in range(start, stop, stride):
                 res.append(self._get_geom_item(i))
-            return type(self.__p__)(res or None)
+            return type(self._parent)(res or None)
         else:
             raise TypeError("key must be an index or slice")
 
