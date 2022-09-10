@@ -633,6 +633,14 @@ class BaseGeometry(shapely.Geometry):
         """Returns True if geometry is within the other, else False"""
         return bool(shapely.within(self, other))
 
+    def dwithin(self, other, distance):
+        """
+        Returns True if geometry is within a given distance from the other, else False.
+
+        Refer to `shapely.dwithin` for full documentation.
+        """
+        return bool(shapely.dwithin(self, other, distance))
+
     def equals_exact(self, other, tolerance):
         """True if geometries are equal to within a specified
         tolerance.
