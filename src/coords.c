@@ -25,8 +25,8 @@ position `cursor` in the array `out`. Increases the cursor correspondingly.
 Returns 0 on error, 1 on success */
 static char get_coordinates_simple(GEOSContextHandle_t ctx, GEOSGeometry* geom, int type,
                                    PyArrayObject* out, npy_intp* cursor, int include_z) {
-  unsigned int n, i;
-  double *x, *y, *z;
+  unsigned int n, dims;
+  double *buf;
   const GEOSCoordSequence* seq;
   char is_empty;
 
@@ -49,24 +49,14 @@ static char get_coordinates_simple(GEOSContextHandle_t ctx, GEOSGeometry* geom, 
   if (GEOSCoordSeq_getSize_r(ctx, seq, &n) == 0) {
     return 0;
   }
-  for (i = 0; i < n; i++, *cursor += 1) {
-    x = PyArray_GETPTR2(out, *cursor, 0);
-    y = PyArray_GETPTR2(out, *cursor, 1);
-    if (include_z) {
-      z = PyArray_GETPTR2(out, *cursor, 2);
-    }
-    if (!GEOSCoordSeq_getX_r(ctx, seq, i, x)) {
-      return 0;
-    }
-    if (!GEOSCoordSeq_getY_r(ctx, seq, i, y)) {
-      return 0;
-    }
-    if (include_z) {
-      if (!GEOSCoordSeq_getZ_r(ctx, seq, i, z)) {
-        return 0;
-      }
-    }
+
+  dims = (include_z) ? 3 : 2;
+  buf = PyArray_GETPTR2(out, *cursor, 0);
+  if (!coordseq_to_buffer(ctx, seq, buf, n, dims)) {
+    return 0;
   }
+  *cursor += n;
+
   return 1;
 }
 

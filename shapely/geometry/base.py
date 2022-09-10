@@ -349,12 +349,12 @@ class BaseGeometry(shapely.Geometry):
     def buffer(
         self,
         distance,
-        resolution=16,
-        quadsegs=None,
+        quad_segs=16,
         cap_style=CAP_STYLE.round,
         join_style=JOIN_STYLE.round,
         mitre_limit=5.0,
         single_sided=False,
+        **kwargs,
     ):
         """Get a geometry that represents all points within a distance
         of this geometry.
@@ -370,9 +370,9 @@ class BaseGeometry(shapely.Geometry):
         resolution : int, optional
             The resolution of the buffer around each vertex of the
             object.
-        quadsegs : int, optional
+        quad_segs : int, optional
             Sets the number of line segments used to approximate an
-            angle fillet.  Note: the use of a `quadsegs` parameter is
+            angle fillet.  Note: the use of a `quad_segs` parameter is
             deprecated and will be gone from the next major release.
         cap_style : int, optional
             The styles of caps are: CAP_STYLE.round (1), CAP_STYLE.flat
@@ -435,12 +435,21 @@ class BaseGeometry(shapely.Geometry):
         4.0
 
         """
+        quadsegs = kwargs.pop("quadsegs", None)
         if quadsegs is not None:
             warn(
-                "The `quadsegs` argument is deprecated. Use `resolution`.",
-                DeprecationWarning,
+                "The `quadsegs` argument is deprecated. Use `quad_segs` instead.",
+                FutureWarning,
             )
-            resolution = quadsegs
+            quad_segs = quadsegs
+
+        # TODO deprecate `resolution` keyword in the future as well
+        resolution = kwargs.pop("resolution", None)
+        if resolution is not None:
+            quad_segs = resolution
+        if kwargs:
+            kwarg = list(kwargs.keys())[0]  # noqa
+            raise TypeError("buffer() got an unexpected keyword argument '{kwarg}'")
 
         if mitre_limit == 0.0:
             raise ValueError("Cannot compute offset from zero-length line segment")
@@ -448,7 +457,7 @@ class BaseGeometry(shapely.Geometry):
         return shapely.buffer(
             self,
             distance,
-            quadsegs=resolution,
+            quad_segs=quad_segs,
             cap_style=cap_style,
             join_style=join_style,
             mitre_limit=mitre_limit,
@@ -624,6 +633,14 @@ class BaseGeometry(shapely.Geometry):
         """Returns True if geometry is within the other, else False"""
         return bool(shapely.within(self, other))
 
+    def dwithin(self, other, distance):
+        """
+        Returns True if geometry is within a given distance from the other, else False.
+
+        Refer to `shapely.dwithin` for full documentation.
+        """
+        return bool(shapely.dwithin(self, other, distance))
+
     def equals_exact(self, other, tolerance):
         """True if geometries are equal to within a specified
         tolerance.
@@ -753,31 +770,31 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
-    def segmentize(self, tolerance):
-        """Adds vertices to line segments based on tolerance.
+    def segmentize(self, max_segment_length):
+        """Adds vertices to line segments based on maximum segment length.
 
         Additional vertices will be added to every line segment in an input geometry
-        so that segments are no greater than tolerance.  New vertices will evenly
-        subdivide each segment.
+        so that segments are no longer than the provided maximum segment length. New
+        vertices will evenly subdivide each segment.
 
         Only linear components of input geometries are densified; other geometries
         are returned unmodified.
 
         Parameters
         ----------
-        tolerance : float or array_like
+        max_segment_length : float or array_like
             Additional vertices will be added so that all line segments are no
-            greater than this value.  Must be greater than 0.
+            longer this value.  Must be greater than 0.
 
         Examples
         --------
         >>> from shapely import LineString, Polygon
-        >>> LineString([(0, 0), (0, 10)]).segmentize(tolerance=5)
+        >>> LineString([(0, 0), (0, 10)]).segmentize(max_segment_length=5)
         <LINESTRING (0 0, 0 5, 0 10)>
-        >>> Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]).segmentize(tolerance=5)
+        >>> Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]).segmentize(max_segment_length=5)
         <POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
         """
-        return shapely.segmentize(self, tolerance)
+        return shapely.segmentize(self, max_segment_length)
 
     def reverse(self):
         """Returns a copy of this geometry with the order of coordinates reversed.
