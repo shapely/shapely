@@ -12,6 +12,22 @@ Geometry objects are immutable. This means that after constructed, they cannot
 be changed in place. Every Shapely operation will result in a new object being
 returned.
 
+Geometry types
+~~~~~~~~~~~~~~
+
+.. currentmodule:: shapely
+
+.. autosummary::
+    :toctree: reference/
+
+    Point
+    LineString
+    LinearRing
+    Polygon
+    MultiPoint
+    MultiLineString
+    MultiPolygon
+    GeometryCollection
 
 Construction
 ~~~~~~~~~~~~
@@ -83,21 +99,3 @@ This is the same as using :func:`shapely.predicates.equals_exact` with a ``toler
   True
   >>> point_1 != point_2
   True
-
-
-Geometry types
-~~~~~~~~~~~~~~
-
-.. currentmodule:: shapely
-
-.. autosummary::
-    :toctree: reference/
-
-    Point
-    LineString
-    LinearRing
-    Polygon
-    MultiPoint
-    MultiLineString
-    MultiPolygon
-    GeometryCollection
