@@ -12,7 +12,7 @@ on:
       - "ci/*"
       - "MANIFEST.in"
       - "pyproject.toml"
-      - "setup.py"
+      - "setup.*"
 
 jobs:
   build_sdist:
