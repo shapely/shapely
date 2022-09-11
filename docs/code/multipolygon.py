@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 from shapely.geometry import MultiPolygon
-from shapely.plotting import plot_polygon
+from shapely.plotting import plot_polygon, plot_points
 
-from figures import SIZE, BLUE, RED, set_limits
+from figures import SIZE, BLUE, GRAY, RED, set_limits
     
 fig = plt.figure(1, figsize=SIZE, dpi=90)
 
@@ -15,7 +15,8 @@ b = [(1, 1), (1, 2), (2, 2), (2, 1), (1, 1)]
 multi1 = MultiPolygon([[a, []], [b, []]])
 
 for polygon in multi1.geoms:
-    plot_polygon(polygon, ax=ax, color=BLUE)
+    plot_polygon(polygon, ax=ax, add_points=False, color=BLUE)
+plot_points(multi1, ax=ax, color=GRAY, alpha=0.7)
 
 ax.set_title('a) valid')
 
@@ -30,7 +31,8 @@ d = [(1, 0.5), (1, 2), (2, 2), (2, 0.5), (1, 0.5)]
 multi2 = MultiPolygon([[c, []], [d, []]])
 
 for polygon in multi2.geoms:
-    plot_polygon(polygon, ax=ax, color=RED)
+    plot_polygon(polygon, ax=ax, add_points=False, color=RED)
+plot_points(multi2, ax=ax, color=GRAY, alpha=0.7)
 
 ax.set_title('b) invalid')
 

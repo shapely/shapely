@@ -12,8 +12,10 @@ b = LineString([(0, 0), (1, 1), (2,1), (2,2)])
 # 1: disconnected multilinestring
 ax = fig.add_subplot(121)
 
-plot_line(a, ax, color=YELLOW, alpha=0.5)
-plot_line(b, ax, color=GREEN, alpha=0.5)
+plot_line(a, ax, add_points=False, color=YELLOW, alpha=0.5)
+plot_line(b, ax, add_points=False, color=GREEN, alpha=0.5)
+plot_points(a, ax=ax, color=GRAY)
+plot_points(b, ax=ax, color=GRAY)
 
 ax.set_title('a) lines')
 
