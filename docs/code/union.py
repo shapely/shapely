@@ -29,8 +29,7 @@ plot_line(a.exterior, ax=ax, add_points=False, color=GRAY, linewidth=3)
 plot_line(b.exterior, ax=ax, add_points=False, color=GRAY, linewidth=3)
 
 u = a.exterior.union(b.exterior)
-for p in u.geoms:
-    plot_line(p, ax=ax, add_points=False, color=BLUE, linewidth=3)
+plot_line(u, ax=ax, add_points=False, color=BLUE, linewidth=3)
 
 ax.set_title('a.boundary.union(b.boundary)')
 

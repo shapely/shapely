@@ -29,8 +29,7 @@ plot_polygon(a, ax=ax, add_points=False, color=GRAY, alpha=0.2)
 plot_polygon(b, ax=ax, add_points=False, color=GRAY, alpha=0.2)
 
 c = a.symmetric_difference(b)
-for p in c.geoms:
-    plot_polygon(p, ax=ax, add_points=False, color=BLUE, alpha=0.5)
+plot_polygon(c, ax=ax, add_points=False, color=BLUE, alpha=0.5)
 
 ax.set_title('a.symmetric_difference(b)')
 

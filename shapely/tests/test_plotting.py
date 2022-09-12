@@ -2,7 +2,7 @@ import pytest
 from numpy.testing import assert_allclose
 
 import shapely
-from shapely import box, LineString, Point
+from shapely import box, LineString, MultiLineString, Point
 from shapely.plotting import plot_line, plot_points, plot_polygon
 
 pytest.importorskip("matplotlib")
@@ -21,6 +21,20 @@ def test_plot_polygon():
     assert artist.get_linewidth() == 3
 
 
+def test_plot_polygon_with_interior():
+    poly = box(0, 0, 1, 1).difference(shapely.box(0.2, 0.2, 0.5, 0.5))
+    artist = plot_polygon(poly)
+    plot_coords = artist.get_path().vertices
+    assert_allclose(plot_coords, shapely.get_coordinates(poly))
+
+
+def test_plot_multipolygon():
+    poly = box(0, 0, 1, 1).union(box(2, 2, 3, 3))
+    artist = plot_polygon(poly)
+    plot_coords = artist.get_path().vertices
+    assert_allclose(plot_coords, shapely.get_coordinates(poly))
+
+
 def test_plot_line():
     line = LineString([(0, 0), (1, 0), (1, 1)])
     artist = plot_line(line)
@@ -29,8 +43,18 @@ def test_plot_line():
 
     # overriding default styling
     artist = plot_line(line, color="red", linewidth=3)
-    assert artist.get_color() == "red"
+    assert equal_color(artist.get_edgecolor(), "red")
+    assert equal_color(artist.get_facecolor(), "none")
     assert artist.get_linewidth() == 3
+
+
+def test_plot_multilinestring():
+    line = MultiLineString(
+        [LineString([(0, 0), (1, 0), (1, 1)]), LineString([(2, 2), (3, 3)])]
+    )
+    artist = plot_line(line)
+    plot_coords = artist.get_path().vertices
+    assert_allclose(plot_coords, shapely.get_coordinates(line))
 
 
 def test_plot_points():

@@ -14,8 +14,7 @@ b = [(1, 1), (1, 2), (2, 2), (2, 1), (1, 1)]
 
 multi1 = MultiPolygon([[a, []], [b, []]])
 
-for polygon in multi1.geoms:
-    plot_polygon(polygon, ax=ax, add_points=False, color=BLUE)
+plot_polygon(multi1, ax=ax, add_points=False, color=BLUE)
 plot_points(multi1, ax=ax, color=GRAY, alpha=0.7)
 
 ax.set_title('a) valid')
@@ -30,8 +29,7 @@ d = [(1, 0.5), (1, 2), (2, 2), (2, 0.5), (1, 0.5)]
 
 multi2 = MultiPolygon([[c, []], [d, []]])
 
-for polygon in multi2.geoms:
-    plot_polygon(polygon, ax=ax, add_points=False, color=RED)
+plot_polygon(multi2, ax=ax, add_points=False, color=RED)
 plot_points(multi2, ax=ax, color=GRAY, alpha=0.7)
 
 ax.set_title('b) invalid')

@@ -12,8 +12,7 @@ ax = fig.add_subplot(121)
 
 mline1 = MultiLineString([((0, 0), (1, 1)), ((0, 2),  (1, 1.5), (1.5, 1), (2, 0))])
 
-for line in mline1.geoms:
-    plot_line(line, ax=ax, color=BLUE)
+plot_line(mline1, ax=ax, color=BLUE)
 plot_points(mline1, ax=ax, color=GRAY, alpha=0.7)
 plot_points(mline1.boundary, ax=ax, color=BLACK)
 
@@ -26,8 +25,7 @@ ax = fig.add_subplot(122)
 
 mline2 = MultiLineString([((0, 0), (1, 1), (1.5, 1)), ((0, 2), (1, 1.5), (1.5, 1), (2, 0))])
 
-for line in mline2.geoms:
-    plot_line(line, ax=ax, color=YELLOW)
+plot_line(mline2, ax=ax, color=YELLOW)
 plot_points(mline2, ax=ax, color=GRAY, alpha=0.7)
 plot_points(mline2.boundary, ax=ax, color=BLACK)
 

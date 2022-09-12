@@ -12,6 +12,16 @@ def _default_ax():
     return ax
 
 
+def _path_from_polygon(polygon):
+    from matplotlib.path import Path
+
+    path = Path.make_compound_path(
+        Path(np.asarray(polygon.exterior.coords)[:, :2]),
+        *[Path(np.asarray(ring.coords)[:, :2]) for ring in polygon.interiors],
+    )
+    return path
+
+
 def plot_polygon(
     polygon,
     ax=None,
@@ -23,11 +33,11 @@ def plot_polygon(
     **kwargs
 ):
     """
-    Plot a shapely.Polygon
+    Plot a (Multi)Polygon.
 
     Parameters
     ----------
-    polygon : shapely.Polygon
+    polygon : shapely.Polygon or shapely.MultiPolygon
     ax : matplotlib Axes, default None
         The axes on which to draw the plot. If not specified, will get the
         current active axes or create a new figure.
@@ -54,10 +64,12 @@ def plot_polygon(
     if edgecolor is None:
         edgecolor = color
 
-    path = Path.make_compound_path(
-        Path(np.asarray(polygon.exterior.coords)[:, :2]),
-        *[Path(np.asarray(ring.coords)[:, :2]) for ring in polygon.interiors],
-    )
+    if isinstance(polygon, shapely.MultiPolygon):
+        path = Path.make_compound_path(
+            *[_path_from_polygon(poly) for poly in polygon.geoms]
+        )
+    else:
+        path = _path_from_polygon(polygon)
     patch = PathPatch(
         path, facecolor=facecolor, edgecolor=edgecolor, linewidth=linewidth, **kwargs
     )
@@ -73,7 +85,7 @@ def plot_polygon(
 
 def plot_line(line, ax=None, add_points=True, color=None, linewidth=2, **kwargs):
     """
-    Plot a shapely.LineString/LinearRing
+    Plot a (Multi)LineString/LinearRing
 
     Parameters
     ----------
@@ -89,21 +101,30 @@ def plot_line(line, ax=None, add_points=True, color=None, linewidth=2, **kwargs)
     if ax is None:
         ax = _default_ax()
 
-    from matplotlib.lines import Line2D
+    from matplotlib.patches import PathPatch
+    from matplotlib.path import Path
 
-    if add_points:
-        marker = "o"
+    if color is None:
+        color = "C0"
+
+    if isinstance(line, shapely.MultiLineString):
+        path = Path.make_compound_path(
+            *[Path(np.asarray(mline.coords)[:, :2]) for mline in line.geoms]
+        )
     else:
-        marker = None
+        path = Path(np.asarray(line.coords)[:, :2])
 
-    x, y = np.asarray(line.coords)[:, :2].T
-    line = Line2D(x, y, marker=marker, color=color, linewidth=linewidth, **kwargs)
-    ax.add_line(line)
+    patch = PathPatch(
+        path, facecolor="none", edgecolor=color, linewidth=linewidth, **kwargs
+    )
+    ax.add_patch(patch)
     ax.autoscale_view()
 
-    # x, y = zip(*path.vertices)
-    # line, = ax.plot(x, y, 'o', color=color)
-    return line
+    if add_points:
+        x, y = zip(*path.vertices)
+        (line,) = ax.plot(x, y, "o", color=color)
+
+    return patch
 
 
 def plot_points(geom, ax=None, color=None, marker="o", **kwargs):
