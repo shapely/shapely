@@ -1711,7 +1711,7 @@ linestring feature (right).
 
   The `join_style` is for outside corners between line segments. Accepted integer
   values are 1 (ROUND), 2 (MITRE), and 3 (BEVEL). See also
-  :data:`shapely.constructive.BufferJoinStyle`.
+  :data:`shapely.BufferJoinStyle`.
 
   Severely mitered corners can be controlled by the `mitre_limit` parameter
   (spelled in British English, en-gb). The corners of a parallel line will
