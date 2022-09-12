@@ -77,8 +77,8 @@ def plot_polygon(
     ax.autoscale_view()
 
     if add_points:
-        x, y = zip(*path.vertices)
-        (line,) = ax.plot(x, y, "o", color=color)
+        line = plot_points(polygon, ax=ax, color=color)
+        return patch, line
 
     return patch
 
@@ -121,8 +121,8 @@ def plot_line(line, ax=None, add_points=True, color=None, linewidth=2, **kwargs)
     ax.autoscale_view()
 
     if add_points:
-        x, y = zip(*path.vertices)
-        (line,) = ax.plot(x, y, "o", color=color)
+        line = plot_points(line, ax=ax, color=color)
+        return patch, line
 
     return patch
 
