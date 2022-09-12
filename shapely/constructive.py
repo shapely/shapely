@@ -164,7 +164,7 @@ def buffer(
     if isinstance(cap_style, str):
         cap_style = BufferCapStyle.get_value(cap_style.upper())
     if isinstance(join_style, str):
-        join_style = BufferJoinStyles.get_value(join_style.upper())
+        join_style = BufferJoinStyle.get_value(join_style.upper())
     if not np.isscalar(quad_segs):
         raise TypeError("quad_segs only accepts scalar values")
     if not np.isscalar(cap_style):
@@ -231,7 +231,7 @@ def offset_curve(
     <LINESTRING (2 0, 2 2)>
     """
     if isinstance(join_style, str):
-        join_style = BufferJoinStyles.get_value(join_style)
+        join_style = BufferJoinStyle.get_value(join_style)
     if not np.isscalar(quad_segs):
         raise TypeError("quad_segs only accepts scalar values")
     if not np.isscalar(join_style):
