@@ -138,25 +138,25 @@ def buffer(
     >>> buffer(Point(10, 10), -2, quadsegs=1)
     <POLYGON EMPTY>
     >>> line = LineString([(10, 10), (20, 10)])
-    >>> buffer(line, 2, cap_style='square')
+    >>> buffer(line, 2, cap_style="square")
     <POLYGON ((20 12, 22 12, 22 8, 10 8, 8 8, 8 12, 20 12))>
-    >>> buffer(line, 2, cap_style='flat')
+    >>> buffer(line, 2, cap_style="flat")
     <POLYGON ((20 12, 20 8, 10 8, 10 12, 20 12))>
-    >>> buffer(line, 2, single_sided=True, cap_style='flat')
+    >>> buffer(line, 2, single_sided=True, cap_style="flat")
     <POLYGON ((20 10, 10 10, 10 12, 20 12, 20 10))>
     >>> line2 = LineString([(10, 10), (20, 10), (20, 20)])
-    >>> buffer(line2, 2, cap_style='flat', join_style='bevel')
+    >>> buffer(line2, 2, cap_style="flat", join_style="bevel")
     <POLYGON ((18 12, 18 20, 22 20, 22 10, 20 8, 10 8, 10 12, 18 12))>
-    >>> buffer(line2, 2, cap_style='flat', join_style='mitre')
+    >>> buffer(line2, 2, cap_style="flat", join_style="mitre")
     <POLYGON ((18 12, 18 20, 22 20, 22 8, 10 8, 10 12, 18 12))>
-    >>> buffer(line2, 2, cap_style='flat', join_style='mitre', mitre_limit=1)
+    >>> buffer(line2, 2, cap_style="flat", join_style="mitre", mitre_limit=1)
     <POLYGON ((18 12, 18 20, 22 20, 22 9.172, 20.828 8, 10 8, 10 12, 18 12))>
     >>> square = Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)])
-    >>> buffer(square, 2, join_style='mitre')
+    >>> buffer(square, 2, join_style="mitre")
     <POLYGON ((-2 -2, -2 12, 12 12, 12 -2, -2 -2))>
-    >>> buffer(square, -2, join_style='mitre')
+    >>> buffer(square, -2, join_style="mitre")
     <POLYGON ((2 2, 2 8, 8 8, 8 2, 2 2))>
-    >>> buffer(square, -5, join_style='mitre')
+    >>> buffer(square, -5, join_style="mitre")
     <POLYGON EMPTY>
     >>> buffer(line, float("nan")) is None
     True
@@ -189,7 +189,7 @@ def buffer(
 
 @multithreading_enabled
 def offset_curve(
-    geometry, distance, quadsegs=8, join_style="ROUND", mitre_limit=5.0, **kwargs
+    geometry, distance, quadsegs=8, join_style="round", mitre_limit=5.0, **kwargs
 ):
     """
     Returns a (Multi)LineString at a distance from the object
