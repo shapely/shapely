@@ -110,7 +110,7 @@ def buffer(
         approximation of circular arcs.
     cap_style : shapely.BufferCapStyle or {'round', 'square', 'flat'}, default 'round'
         Specifies the shape of buffered line endings. BufferCapStyle.ROUND ('round')
-        results in circular line endings (see ``quadsegs``). Both BufferCapStyle.SQUARE
+        results in circular line endings (see ``quad_segs``). Both BufferCapStyle.SQUARE
         ('square') and BufferCapStyle.FLAT ('flat') result in rectangular line endings,
         only BufferCapStyle.FLAT ('flat') will end at the original vertex,
         while BufferCapStyle.SQUARE ('square') involves adding the buffer width.
