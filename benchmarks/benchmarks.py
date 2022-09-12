@@ -320,7 +320,7 @@ class STRtree:
         # use an arbitrary search tolerance that seems appropriate for the density of
         # geometries
         tolerance = 200
-        b = shapely.buffer(self.points, tolerance, quadsegs=1)
+        b = shapely.buffer(self.points, tolerance, quad_segs=1)
         left, right = self.tree.query(b)
         dist = shapely.distance(self.points.take(left), self.polygons.take(right))
 

@@ -110,15 +110,13 @@ class LineString(BaseGeometry):
         """
         return self.coords.xy
 
-    def parallel_offset(
+    def offset_curve(
         self,
         distance,
-        side="right",
-        resolution=16,
+        quad_segs=16,
         join_style=JOIN_STYLE.round,
         mitre_limit=5.0,
     ):
-
         """Returns a LineString or MultiLineString geometry at a distance from
         the object on its right or its left side.
 
@@ -141,9 +139,33 @@ class LineString(BaseGeometry):
         """
         if mitre_limit == 0.0:
             raise ValueError("Cannot compute offset from zero-length line segment")
+        return shapely.offset_curve(self, distance, quad_segs, join_style, mitre_limit)
+
+    def parallel_offset(
+        self,
+        distance,
+        side="right",
+        resolution=16,
+        join_style=JOIN_STYLE.round,
+        mitre_limit=5.0,
+    ):
+        """
+        Alternative method to :meth:`offset_curve` method.
+
+        Older alternative method to the :meth:`offset_curve` method, but uses
+        ``resolution`` instead of ``quad_segs`` and a ``side`` keyword
+        ('left' or 'right') instead of sign of the distance. This method is
+        kept for backwards compatibility for now, but is is recommended to
+        use :meth:`offset_curve` instead.
+        """
         if side == "right":
             distance *= -1
-        return shapely.offset_curve(self, distance, resolution, join_style, mitre_limit)
+        return self.offset_curve(
+            distance,
+            quad_segs=resolution,
+            join_style=join_style,
+            mitre_limit=mitre_limit,
+        )
 
 
 shapely.lib.registry[1] = LineString

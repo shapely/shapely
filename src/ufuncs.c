@@ -756,7 +756,7 @@ static void YY_Y_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
   GEOSGeometry *in1 = NULL, *in2 = NULL, *out = NULL;
 
   // Whether to destroy a temporary intermediate value of `out`:
-  char do_destroy = 0;
+  char out_ownership = 0;
 
   GEOS_INIT_THREADS;
 
@@ -780,12 +780,12 @@ static void YY_Y_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
         out = func(ctx, in1, in2);
 
         // Discard in1 if it was a temporary intermediate
-        if (do_destroy) {
+        if (out_ownership) {
           GEOSGeom_destroy_r(ctx, in1);
         }
 
         // Mark the newly generated geometry as intermediate. Note: out will become in1.
-        do_destroy = 1;
+        out_ownership = 1;
 
         // Break on error (we do this after discarding in1 to avoid memleaks)
         if (out == NULL) {
@@ -799,13 +799,22 @@ static void YY_Y_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
         // Keep in2 as 'outcome' of the operation.
         out = in2;
         // Ensure that it will not be destroyed (it is owned by python)
-        do_destroy = 0;
+        out_ownership = 0;
       }
 
       // 3. (not NULL, NULL); When a None value is encountered after a not-None
       //    Don't do `out = in1`, as that is already the case.
       // 4. (NULL, NULL); When we have not yet encountered any not-None
       //    Do nothing; out will remain NULL
+    }
+  }
+
+  // In case we do not own the output, make a clone (else we end up with 2 PyObjects
+  // referencing the same GEOS Geometry)
+  if ((errstate == PGERR_SUCCESS) && (!out_ownership)) {
+    out = GEOSGeom_clone_r(ctx, out);
+    if (out == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
     }
   }
 
@@ -2548,7 +2557,18 @@ static void bounds_func(char** args, npy_intp* dimensions, npy_intp* steps, void
       *x1 = *y1 = *x2 = *y2 = NPY_NAN;
     } else {
 
-#if GEOS_SINCE_3_7_0
+#if GEOS_SINCE_3_11_0
+      if (GEOSisEmpty_r(ctx, in1)) {
+        *x1 = *y1 = *x2 = *y2 = NPY_NAN;
+      }
+      else {
+        if (!GEOSGeom_getExtent_r(ctx, in1, x1, y1, x2, y2)) {
+          errstate = PGERR_GEOS_EXCEPTION;
+          goto finish;
+        }
+      }
+
+#elif GEOS_SINCE_3_7_0
       if (GEOSisEmpty_r(ctx, in1)) {
         *x1 = *y1 = *x2 = *y2 = NPY_NAN;
       }
