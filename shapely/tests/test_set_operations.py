@@ -379,3 +379,10 @@ def test_coverage_union_non_polygon_inputs(geom_1, geom_2):
 def test_union_all_prec(geom, grid_size, expected):
     actual = shapely.union_all(geom, grid_size=grid_size)
     assert shapely.equals(actual, expected)
+
+
+def test_uary_union_alias():
+    geoms = [shapely.box(0.1, 0.1, 5, 5), shapely.box(0, 0.2, 5.1, 10)]
+    actual = shapely.unary_union(geoms, grid_size=1)
+    expected = shapely.union_all(geoms, grid_size=1)
+    assert shapely.equals(actual, expected)
