@@ -12,6 +12,7 @@ from warnings import warn
 import numpy as np
 
 import shapely
+from shapely._geometry_helpers import _geom_factory
 from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
 from shapely.errors import GeometryTypeError, GEOSException, ShapelyDeprecationWarning
@@ -26,6 +27,16 @@ GEOMETRY_TYPES = [
     "MultiPolygon",
     "GeometryCollection",
 ]
+
+
+def geom_factory(g, parent=None):
+    warn(
+        "The 'geom_factory' function is deprecated in Shapely 2.0, and will be "
+        "removed in a future version",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return _geom_factory(g)
 
 
 def dump_coords(geom):
