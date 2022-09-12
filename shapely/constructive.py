@@ -231,7 +231,7 @@ def offset_curve(
     <LINESTRING (2 0, 2 2)>
     """
     if isinstance(join_style, str):
-        join_style = BufferJoinStyle.get_value(join_style)
+        join_style = BufferJoinStyle.get_value(join_style.upper())
     if not np.isscalar(quad_segs):
         raise TypeError("quad_segs only accepts scalar values")
     if not np.isscalar(join_style):
