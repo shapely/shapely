@@ -1,3 +1,10 @@
+"""
+Plot single geometries using Matplotlib.
+
+Note: this module is experimental, and mainly targetting (interactive)
+exploration, debugging and illustration purposes.
+
+"""
 import numpy as np
 
 import shapely
@@ -35,6 +42,9 @@ def plot_polygon(
     """
     Plot a (Multi)Polygon.
 
+    Note: this function is experimental, and mainly targetting (interactive)
+    exploration, debugging and illustration purposes.
+
     Parameters
     ----------
     polygon : shapely.Polygon or shapely.MultiPolygon
@@ -43,7 +53,22 @@ def plot_polygon(
         current active axes or create a new figure.
     add_points : bool, default True
         If True, also plot the coordinates (vertices) as points.
+    color : matplotlib color specification
+        Color for both the polygon fill (face) and boundary (edge). By default,
+        the fill is using an alpha of 0.3. You can specify `facecolor` and
+        `edgecolor` separately for greater control.
+    facecolor : matplotlib color specification
+        Color for the polygon fill.
+    edgecolor : matplotlib color specification
+        Color for the polygon boundary.
+    linewidth : float
+        The line width for the polygon boundary.
+    **kwargs
+        Additional keyword arguments passed to the matplotlib Patch.
 
+    Returns
+    -------
+    Matplotlib artist (PathPatch)
     """
     if ax is None:
         ax = _default_ax()
@@ -85,7 +110,10 @@ def plot_polygon(
 
 def plot_line(line, ax=None, add_points=True, color=None, linewidth=2, **kwargs):
     """
-    Plot a (Multi)LineString/LinearRing
+    Plot a (Multi)LineString/LinearRing.
+
+    Note: this function is experimental, and mainly targetting (interactive)
+    exploration, debugging and illustration purposes.
 
     Parameters
     ----------
@@ -95,8 +123,16 @@ def plot_line(line, ax=None, add_points=True, color=None, linewidth=2, **kwargs)
         current active axes or create a new figure.
     add_points : bool, default True
         If True, also plot the coordinates (vertices) as points.
+    color : matplotlib color specification
+        Color for the line (edgecolor under the hood) and pointes.
+    linewidth : float, default 2
+        The line width for the polygon boundary.
+    **kwargs
+        Additional keyword arguments passed to the matplotlib Patch.
 
-
+    Returns
+    -------
+    Matplotlib artist (PathPatch)
     """
     if ax is None:
         ax = _default_ax()
@@ -129,15 +165,27 @@ def plot_line(line, ax=None, add_points=True, color=None, linewidth=2, **kwargs)
 
 def plot_points(geom, ax=None, color=None, marker="o", **kwargs):
     """
-    Plot a shapely.Point/MultiPoint or the vertices of any other geometry type.
+    Plot a Point/MultiPoint or the vertices of any other geometry type.
 
     Parameters
     ----------
-    line : shapely.Geometry
+    geom : shapely.Geometry
+        Any shapely Geometry object, from which all vertices are extracted
+        and plotted.
     ax : matplotlib Axes, default None
         The axes on which to draw the plot. If not specified, will get the
         current active axes or create a new figure.
+    color : matplotlib color specification
+        Color for the filled points. You can use `markeredgecolor` and
+        `markeredgecolor` to have different edge and fill colors.
+    marker : str, default "o"
+        The matplotlib marker for the points.
+    **kwargs
+        Additional keyword arguments passed to matplotlib `plot` (Line2D).
 
+    Returns
+    -------
+    Matplotlib artist (Line2D)
     """
     if ax is None:
         ax = _default_ax()
