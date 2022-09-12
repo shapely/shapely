@@ -35,6 +35,7 @@ class GeometryTypeError(ShapelyError):
 def __getattr__(name):
     import warnings
 
+    # Alias Shapely 1.8 error classes to ShapelyError with deprecation warning
     if name in [
         "ReadingError",
         "WKBReadingError",
