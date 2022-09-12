@@ -14,6 +14,8 @@ Relevant changes compared to 2.0a1:
 - Added use of ``GEOSGeom_getExtent`` to speed up bounds calculations for
   GEOS >= 3.11.
 
+Wheels for 2.0b1 published on PyPI include GEOS 3.11.0.
+
 2.0a1 (2022-08-03)
 ------------------
 
