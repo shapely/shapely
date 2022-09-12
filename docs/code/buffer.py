@@ -11,10 +11,10 @@ fig = plt.figure(1, figsize=SIZE, dpi=90)
 # 1
 ax = fig.add_subplot(121)
 
-plot_line(line, ax=ax, add_points=False, color=GRAY, linewidth=3, zorder=1)
+plot_line(line, ax=ax, add_points=False, color=GRAY, linewidth=3)
 
 dilated = line.buffer(0.5, cap_style=3)
-plot_polygon(dilated, ax=ax, add_points=False, color=BLUE, linewidth=1, zorder=2)
+plot_polygon(dilated, ax=ax, add_points=False, color=BLUE, alpha=0.5)
 
 ax.set_title('a) dilation, cap_style=3')
 

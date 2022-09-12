@@ -25,9 +25,9 @@ POLYGON((2.218 2.204, 2.273 2.18, 2.328 2.144, 2.435 2.042, 2.541 1.895,
 # 1
 ax = fig.add_subplot(121)
 
-plot_polygon(R, ax=ax, add_points=False, color=GRAY)
+plot_polygon(R, ax=ax, add_points=False, color=GRAY, alpha=0.5)
 skewR = affinity.skew(R, xs=20, origin=(1, 1))
-plot_polygon(skewR, ax=ax, add_points=False, color=BLUE)
+plot_polygon(skewR, ax=ax, add_points=False, color=BLUE, alpha=0.5)
 
 add_origin(ax, R, (1, 1))
 
@@ -38,9 +38,9 @@ set_limits(ax, 0, 5, 0, 4)
 # 2
 ax = fig.add_subplot(122)
 
-plot_polygon(R, ax=ax, add_points=False, color=GRAY)
+plot_polygon(R, ax=ax, add_points=False, color=GRAY, alpha=0.5)
 skewR = affinity.skew(R, ys=30)
-plot_polygon(skewR, ax=ax, add_points=False, color=BLUE)
+plot_polygon(skewR, ax=ax, add_points=False, color=BLUE, alpha=0.5)
 
 add_origin(ax, R, 'center')
 
