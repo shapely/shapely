@@ -30,6 +30,15 @@ GEOMETRY_TYPES = [
 
 
 def geom_factory(g, parent=None):
+    """
+    Creates a Shapely geometry instance from a pointer to a GEOS geometry.
+
+    WARNING: the GEOS library used to create the the GEOS geometry pointer
+    and the GEOS library used by Shapely must be exactly the same, or
+    unexpected results or segfaults may occur.
+
+    Deprecated in Shapely 2.0, and will be removed in a future version.
+    """
     warn(
         "The 'geom_factory' function is deprecated in Shapely 2.0, and will be "
         "removed in a future version",
