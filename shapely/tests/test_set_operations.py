@@ -381,6 +381,7 @@ def test_union_all_prec(geom, grid_size, expected):
     assert shapely.equals(actual, expected)
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 def test_uary_union_alias():
     geoms = [shapely.box(0.1, 0.1, 5, 5), shapely.box(0, 0.2, 5.1, 10)]
     actual = shapely.unary_union(geoms, grid_size=1)
