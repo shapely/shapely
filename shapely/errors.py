@@ -30,3 +30,25 @@ class GeometryTypeError(ShapelyError):
     An error raised when the type of the geometry in question is
     unrecognized or inappropriate.
     """
+
+
+def __getattr__(name):
+    import warnings
+
+    if name in [
+        "ReadingError",
+        "WKBReadingError",
+        "WKTReadingError",
+        "PredicateError",
+        "InvalidGeometryError",
+    ]:
+        warnings.warn(
+            f"{name} is deprecated and will be removed in a future version. "
+            "Use ShapelyError instead (functions previously raising {name} "
+            "will now raise a ShapelyError instead).",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return ShapelyError
+
+    raise AttributeError(f"module 'shapely.errors' has no attribute '{name}'")
