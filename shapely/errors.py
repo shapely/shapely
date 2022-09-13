@@ -4,7 +4,7 @@ import threading
 from shapely.lib import _setup_signal_checks, GEOSException, ShapelyError  # NOQA
 
 
-def setup_signal_checks(interval=10000, main_thread_id=None):
+def setup_signal_checks(interval=10000):
     """This enables Python signal checks in the ufunc inner loops.
 
     Doing so allows termination (using CTRL+C) of operations on large arrays of vectors.
@@ -15,10 +15,6 @@ def setup_signal_checks(interval=10000, main_thread_id=None):
         Check for interrupts every x iterations. The higher the number, the slower
         shapely will respond to a signal. However, at low values there will be a negative effect
         on performance. The default of 10000 does not have any measureable effects on performance.
-    main_thread_id : int, defaults to ``threading.get_ident``
-        Python signal handlers are always executed in the main Python thread of the main
-        interpreter. Shapely needs to know the main thread id to prevent needless signal
-        checks which would deteriorate performance in multithreading contexts.
 
     Notes
     -----
@@ -29,7 +25,7 @@ def setup_signal_checks(interval=10000, main_thread_id=None):
     if interval <= 0:
         raise ValueError("Signal checks interval must be greater than zero.")
 
-    _setup_signal_checks(interval, main_thread_id or threading.get_ident())
+    _setup_signal_checks(interval, threading.main_thread().ident)
 
 
 class UnsupportedGEOSVersionError(ShapelyError):
