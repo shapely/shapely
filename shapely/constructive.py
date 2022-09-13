@@ -83,7 +83,7 @@ MultiLineString, MultiPoint, Point, Polygon
 def buffer(
     geometry,
     radius,
-    quadsegs=8,
+    quad_segs=8,
     cap_style="round",
     join_style="round",
     mitre_limit=5.0,
@@ -105,12 +105,12 @@ def buffer(
     geometry : Geometry or array_like
     width : float or array_like
         Specifies the circle radius in the Minkowski sum (or difference).
-    quadsegs : int, default 8
+    quad_segs : int, default 8
         Specifies the number of linear segments in a quarter circle in the
         approximation of circular arcs.
     cap_style : {'round', 'square', 'flat'}, default 'round'
         Specifies the shape of buffered line endings. 'round' results in
-        circular line endings (see ``quadsegs``). Both 'square' and 'flat'
+        circular line endings (see ``quad_segs``). Both 'square' and 'flat'
         result in rectangular line endings, only 'flat' will end at the
         original vertex, while 'square' involves adding the buffer width.
     join_style : {'round', 'bevel', 'mitre'}, default 'round'
@@ -130,11 +130,11 @@ def buffer(
     Examples
     --------
     >>> from shapely import LineString, Point, Polygon
-    >>> buffer(Point(10, 10), 2, quadsegs=1)
+    >>> buffer(Point(10, 10), 2, quad_segs=1)
     <POLYGON ((12 10, 10 8, 8 10, 10 12, 12 10))>
-    >>> buffer(Point(10, 10), 2, quadsegs=2)
+    >>> buffer(Point(10, 10), 2, quad_segs=2)
     <POLYGON ((12 10, 11.414 8.586, 10 8, 8.586 8.586, 8 10, 8.5...>
-    >>> buffer(Point(10, 10), -2, quadsegs=1)
+    >>> buffer(Point(10, 10), -2, quad_segs=1)
     <POLYGON EMPTY>
     >>> line = LineString([(10, 10), (20, 10)])
     >>> buffer(line, 2, cap_style="square")
@@ -164,8 +164,8 @@ def buffer(
         cap_style = BufferCapStyles.get_value(cap_style)
     if isinstance(join_style, str):
         join_style = BufferJoinStyles.get_value(join_style)
-    if not np.isscalar(quadsegs):
-        raise TypeError("quadsegs only accepts scalar values")
+    if not np.isscalar(quad_segs):
+        raise TypeError("quad_segs only accepts scalar values")
     if not np.isscalar(cap_style):
         raise TypeError("cap_style only accepts scalar values")
     if not np.isscalar(join_style):
@@ -177,7 +177,7 @@ def buffer(
     return lib.buffer(
         geometry,
         radius,
-        np.intc(quadsegs),
+        np.intc(quad_segs),
         np.intc(cap_style),
         np.intc(join_style),
         mitre_limit,
@@ -188,7 +188,7 @@ def buffer(
 
 @multithreading_enabled
 def offset_curve(
-    geometry, distance, quadsegs=8, join_style="round", mitre_limit=5.0, **kwargs
+    geometry, distance, quad_segs=8, join_style="round", mitre_limit=5.0, **kwargs
 ):
     """
     Returns a (Multi)LineString at a distance from the object
@@ -205,7 +205,7 @@ def offset_curve(
     distance : float or array_like
         Specifies the offset distance from the input geometry. Negative
         for right side offset, positive for left side offset.
-    quadsegs : int, default 8
+    quad_segs : int, default 8
         Specifies the number of linear segments in a quarter circle in the
         approximation of circular arcs.
     join_style : {'round', 'bevel', 'mitre'}, default 'round'
@@ -231,8 +231,8 @@ def offset_curve(
     """
     if isinstance(join_style, str):
         join_style = BufferJoinStyles.get_value(join_style)
-    if not np.isscalar(quadsegs):
-        raise TypeError("quadsegs only accepts scalar values")
+    if not np.isscalar(quad_segs):
+        raise TypeError("quad_segs only accepts scalar values")
     if not np.isscalar(join_style):
         raise TypeError("join_style only accepts scalar values")
     if not np.isscalar(mitre_limit):
@@ -240,7 +240,7 @@ def offset_curve(
     return lib.offset_curve(
         geometry,
         distance,
-        np.intc(quadsegs),
+        np.intc(quad_segs),
         np.intc(join_style),
         np.double(mitre_limit),
         **kwargs
@@ -699,12 +699,12 @@ def reverse(geometry, **kwargs):
 
 @requires_geos("3.10.0")
 @multithreading_enabled
-def segmentize(geometry, tolerance, **kwargs):
-    """Adds vertices to line segments based on tolerance.
+def segmentize(geometry, max_segment_length, **kwargs):
+    """Adds vertices to line segments based on maximum segment length.
 
     Additional vertices will be added to every line segment in an input geometry
-    so that segments are no greater than tolerance.  New vertices will evenly
-    subdivide each segment.
+    so that segments are no longer than the provided maximum segment length. New
+    vertices will evenly subdivide each segment.
 
     Only linear components of input geometries are densified; other geometries
     are returned unmodified.
@@ -712,9 +712,9 @@ def segmentize(geometry, tolerance, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
-    tolerance : float or array_like
+    max_segment_length : float or array_like
         Additional vertices will be added so that all line segments are no
-        greater than this value.  Must be greater than 0.
+        longer than this value.  Must be greater than 0.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -723,15 +723,15 @@ def segmentize(geometry, tolerance, **kwargs):
     --------
     >>> from shapely import LineString, Polygon
     >>> line = LineString([(0, 0), (0, 10)])
-    >>> segmentize(line, tolerance=5)
+    >>> segmentize(line, max_segment_length=5)
     <LINESTRING (0 0, 0 5, 0 10)>
     >>> polygon = Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)])
-    >>> segmentize(polygon, tolerance=5)
+    >>> segmentize(polygon, max_segment_length=5)
     <POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
-    >>> segmentize(None, tolerance=5) is None
+    >>> segmentize(None, max_segment_length=5) is None
     True
     """
-    return lib.segmentize(geometry, tolerance, **kwargs)
+    return lib.segmentize(geometry, max_segment_length, **kwargs)
 
 
 @multithreading_enabled

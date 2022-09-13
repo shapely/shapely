@@ -261,7 +261,7 @@ def test_offset_curve_distance_array():
 def test_offset_curve_kwargs():
     # check that kwargs are passed through
     result1 = shapely.offset_curve(
-        line_string, -2.0, quadsegs=2, join_style="mitre", mitre_limit=2.0
+        line_string, -2.0, quad_segs=2, join_style="mitre", mitre_limit=2.0
     )
     result2 = shapely.offset_curve(line_string, -2.0)
     assert result1 != result2
@@ -270,7 +270,7 @@ def test_offset_curve_kwargs():
 def test_offset_curve_non_scalar_kwargs():
     msg = "only accepts scalar values"
     with pytest.raises(TypeError, match=msg):
-        shapely.offset_curve([line_string, line_string], 1, quadsegs=np.array([8, 9]))
+        shapely.offset_curve([line_string, line_string], 1, quad_segs=np.array([8, 9]))
 
     with pytest.raises(TypeError, match=msg):
         shapely.offset_curve(
@@ -644,16 +644,16 @@ def test_polygonize_full_missing():
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize("geometry", all_types)
-@pytest.mark.parametrize("tolerance", [-1, 0])
-def test_segmentize_invalid_tolerance(geometry, tolerance):
+@pytest.mark.parametrize("max_segment_length", [-1, 0])
+def test_segmentize_invalid_max_segment_length(geometry, max_segment_length):
     with pytest.raises(GEOSException, match="IllegalArgumentException"):
-        shapely.segmentize(geometry, tolerance=tolerance)
+        shapely.segmentize(geometry, max_segment_length=max_segment_length)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize("geometry", all_types)
-def test_segmentize_tolerance_nan(geometry):
-    actual = shapely.segmentize(geometry, tolerance=np.nan)
+def test_segmentize_max_segment_length_nan(geometry):
+    actual = shapely.segmentize(geometry, max_segment_length=np.nan)
     assert actual is None
 
 
@@ -662,20 +662,20 @@ def test_segmentize_tolerance_nan(geometry):
     "geometry", [empty, empty_point, empty_line_string, empty_polygon]
 )
 def test_segmentize_empty(geometry):
-    actual = shapely.segmentize(geometry, tolerance=5)
+    actual = shapely.segmentize(geometry, max_segment_length=5)
     assert_geometries_equal(actual, geometry)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize("geometry", [point, point_z, multi_point])
 def test_segmentize_no_change(geometry):
-    actual = shapely.segmentize(geometry, tolerance=5)
+    actual = shapely.segmentize(geometry, max_segment_length=5)
     assert_geometries_equal(actual, geometry)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 def test_segmentize_none():
-    assert shapely.segmentize(None, tolerance=5) is None
+    assert shapely.segmentize(None, max_segment_length=5) is None
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")

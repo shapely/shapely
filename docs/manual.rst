@@ -1517,7 +1517,7 @@ Constructive Methods
 Shapely geometric object have several methods that yield new objects not
 derived from set-theoretic analysis.
 
-.. method:: object.buffer(distance, resolution=16, cap_style=1, join_style=1, mitre_limit=5.0, single_sided=False)
+.. method:: object.buffer(distance, quad_segs=16, cap_style=1, join_style=1, mitre_limit=5.0, single_sided=False)
 
   Returns an approximate representation of all points within a given `distance`
   of the this geometric object.
@@ -1559,7 +1559,7 @@ derived from set-theoretic analysis.
   3
 
 A positive distance has an effect of dilation; a negative distance, erosion.
-The optional `resolution` argument determines the number of segments used to
+The optional `quad_segs` argument determines the number of segments used to
 approximate a quarter circle around a point.
 
 .. code-block:: pycon
@@ -1573,7 +1573,7 @@ approximate a quarter circle around a point.
 Figure 9. Dilation of a line (left) and erosion of a polygon (right). New
 object is shown in blue.
 
-The default (`resolution` of 16) buffer of a point is a polygonal patch with
+The default (`quad_segs` of 16) buffer of a point is a polygonal patch with
 99.8% of the area of the circular disk it approximates.
 
 .. code-block:: pycon
@@ -1584,7 +1584,7 @@ The default (`resolution` of 16) buffer of a point is a polygonal patch with
   >>> p.area
   313.6548490545941
 
-With a `resolution` of 1, the buffer is a square patch.
+With a `quad_segs` of 1, the buffer is a square patch.
 
 .. code-block:: pycon
 
@@ -1699,15 +1699,27 @@ linestring feature (right).
   Returns a LineString or MultiLineString geometry at a distance from the
   object on its right or its left side.
 
-  The `distance` parameter must be a positive float value.
+  Older alternative method to the :meth:`offset_curve` method, but uses
+  `resolution` instead of `quad_segs` and a `side` keyword ('left' or
+  'right') instead of sign of the distance. This method is kept for backwards
+  compatibility for now, but is is recommended to use :meth:`offset_curve`
+  instead.
 
-  The `side` parameter may be 'left' or 'right'. Left and right are determined
+.. method:: object.offset_curve(distance, quad_segs=16, join_style=1, mitre_limit=5.0)
+
+  Returns a LineString or MultiLineString geometry at a distance from the
+  object on its right or its left side.
+
+  The `distance` parameter must be a float value.
+
+  The side is determined by the sign of the `distance` parameter (negative for right
+  side offset, positive for left side offset). Left and right are determined
   by following the direction of the given geometric points of the LineString.
   Right hand offsets are returned in the reverse direction of the original
   LineString or LineRing, while left side offsets flow in the same direction.
 
-  The `resolution` of the offset around each vertex of the object is
-  parameterized as in the :meth:`buffer` method.
+  The resolution of the offset around each vertex of the object is
+  parameterized as in the :meth:`buffer` method (using `quad_segs`).
 
   The `join_style` is for outside corners between line segments. Accepted integer
   values are 1 (round), 2 (mitre), and 3 (bevel). See also

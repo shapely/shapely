@@ -21,8 +21,7 @@ class VectorizedContainsTestCase(unittest.TestCase):
         # Do the equivalent operation, only slowly, comparing the result
         # as we go.
         for idx in range(x.size):
-            self.assertEqual(result_flat[idx], geom.contains(Point(x_flat[idx],
-                                                                   y_flat[idx])))
+            assert result_flat[idx] == geom.contains(Point(x_flat[idx], y_flat[idx]))
         return result
 
     def construct_torus(self):
@@ -46,41 +45,40 @@ class VectorizedContainsTestCase(unittest.TestCase):
         # Construct a geometry of the torus cut in half vertically.
         cut_poly = box(-1, -10, -2.5, 10)
         geom = self.construct_torus().difference(cut_poly)
-        self.assertIsInstance(geom, MultiPolygon)
+        assert isinstance(geom, MultiPolygon)
         self.assertContainsResults(geom, x, y)
 
     def test_y_array_order(self):
         y, x = np.mgrid[-10:10:5j, -5:15:5j]
         y = y.copy('f')
         self.assertContainsResults(self.construct_torus(), x, y)
-    
+
     def test_x_array_order(self):
         y, x = np.mgrid[-10:10:5j, -5:15:5j]
         x = x.copy('f')
         self.assertContainsResults(self.construct_torus(), x, y)
-    
+
     def test_xy_array_order(self):
         y, x = np.mgrid[-10:10:5j, -5:15:5j]
         x = x.copy('f')
         y = y.copy('f')
         result = self.assertContainsResults(self.construct_torus(), x, y)
         # Preserve the order
-        self.assertTrue(result.flags['F_CONTIGUOUS'])
-    
+        assert result.flags['F_CONTIGUOUS']
+
     def test_array_dtype(self):
         y, x = np.mgrid[-10:10:5j], np.mgrid[-5:15:5j]
         x = x.astype(np.int16)
         self.assertContainsResults(self.construct_torus(), x, y)
-    
+
     def test_array_2d(self):
         y, x = np.mgrid[-10:10:15j, -5:15:16j]
         result = self.assertContainsResults(self.construct_torus(), x, y)
-        self.assertEqual(result.shape, x.shape)
+        assert result.shape == x.shape
 
     def test_shapely_xy_attr_contains(self):
         g = Point(0, 0).buffer(10.0)
         self.assertContainsResults(self.construct_torus(), *g.exterior.xy)
-
 
 
 class VectorizedTouchesTestCase(unittest.TestCase):
@@ -90,10 +88,10 @@ class VectorizedTouchesTestCase(unittest.TestCase):
         geom = box(0, -1, 2, 2)
         result = touches(geom, x, y)
         expected = np.array([[False, False, False, False, False],
-                             [False,  True,  True,  True, False],
-                             [False,  True, False,  True, False],
-                             [False,  True, False,  True, False],
-                             [False,  True,  True,  True, False],
+                             [False, True, True, True, False],
+                             [False, True, False, True, False],
+                             [False, True, False, True, False],
+                             [False, True, True, True, False],
                              [False, False, False, False, False]], dtype=bool)
         from numpy.testing import assert_array_equal
         assert_array_equal(result, expected)

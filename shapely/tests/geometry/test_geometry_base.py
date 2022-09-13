@@ -77,6 +77,11 @@ def test_comparison_notimplemented(geom):
     assert not result.any()
 
 
+def test_base_class_not_callable():
+    with pytest.raises(TypeError):
+        shapely.Geometry("POINT (1 1)")
+
+
 def test_GeometryType_deprecated():
     geom = Point(1, 1)
 
@@ -86,10 +91,19 @@ def test_GeometryType_deprecated():
     assert geom_type == geom.geom_type
 
 
+def test_type_deprecated():
+    geom = Point(1, 1)
+
+    with pytest.warns(ShapelyDeprecationWarning):
+        geom_type = geom.type
+
+    assert geom_type == geom.geom_type
+
+
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 def test_segmentize():
     line = LineString([(0, 0), (0, 10)])
-    result = line.segmentize(tolerance=5)
+    result = line.segmentize(max_segment_length=5)
     assert result.equals(LineString([(0, 0), (0, 5), (0, 10)]))
 
 
@@ -113,3 +127,11 @@ def test_binary_op_grid_size(op, grid_size):
     result = getattr(geom1, op)(geom2, grid_size=grid_size)
     expected = getattr(shapely, op)(geom1, geom2, grid_size=grid_size)
     assert result == expected
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
+def test_dwithin():
+    point = Point(1, 1)
+    line = LineString([(0, 0), (0, 10)])
+    assert point.dwithin(line, 0.5) is False
+    assert point.dwithin(line, 1.5) is True

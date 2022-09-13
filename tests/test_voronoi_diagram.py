@@ -41,7 +41,7 @@ def test_edges():
     regions = voronoi_diagram(mp, edges=True)
 
     assert len(regions.geoms) == 1
-    assert all(r.type == 'LineString' for r in regions.geoms)
+    assert all(r.geom_type == 'LineString' for r in regions.geoms)
 
 
 @requires_geos_35
