@@ -4,6 +4,7 @@ from . import GeometryType, lib
 from .decorators import multithreading_enabled, requires_geos
 from .errors import UnsupportedGEOSVersionError
 
+
 __all__ = [
     "difference",
     "intersection",
@@ -133,7 +134,7 @@ def intersection(a, b, grid_size=None, **kwargs):
 
 
 @multithreading_enabled
-def intersection_all(geometries, axis=None, **kwargs):
+def intersection_all(geometries, axis=None, skip_na=True, **kwargs):
     """Returns the intersection of multiple geometries.
 
     This function ignores None values when other Geometry elements are present.
@@ -165,7 +166,10 @@ def intersection_all(geometries, axis=None, **kwargs):
     >>> intersection_all([[line1, line2, None]], axis=1).tolist()
     [<LINESTRING (1 1, 2 2)>]
     """
-    return lib.intersection.reduce(geometries, axis=axis, **kwargs)
+    if skip_na:
+        return lib.intersection_skip_na.reduce(geometries, axis=axis, **kwargs)
+    else:
+        return lib.intersection.reduce(geometries, axis=axis, **kwargs)
 
 
 @multithreading_enabled

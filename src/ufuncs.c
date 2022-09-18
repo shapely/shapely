@@ -771,11 +771,7 @@ static void YY_Y_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
         break;
       }
 
-      /* Either (or both) in1 and in2 could be NULL (Python: None).
-       * Reduction operations should skip None values. We have 4 possible combinations:
-       */
-
-      // 1. (not NULL, not NULL); run the GEOS function
+      // (not NULL, not NULL); run the GEOS function
       if ((in1 != NULL) && (in2 != NULL)) {
         out = func(ctx, in1, in2);
 
@@ -784,28 +780,23 @@ static void YY_Y_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
           GEOSGeom_destroy_r(ctx, in1);
         }
 
-        // Mark the newly generated geometry as intermediate. Note: out will become in1.
-        out_ownership = 1;
-
         // Break on error (we do this after discarding in1 to avoid memleaks)
         if (out == NULL) {
           errstate = PGERR_GEOS_EXCEPTION;
           break;
         }
-      }
 
-      // 2. (NULL, not NULL); When the first element of the reduction axis is None
-      else if ((in1 == NULL) && (in2 != NULL)) {
-        // Keep in2 as 'outcome' of the operation.
-        out = in2;
-        // Ensure that it will not be destroyed (it is owned by python)
+        // Mark the newly generated geometry as intermediate. Note: out will become in1.
+        out_ownership = 1;
+      } else {  // we have a missing geometry: break
+        // Discard in1 if it was a temporary intermediate
+        if (out_ownership) {
+          GEOSGeom_destroy_r(ctx, in1);
+        }
         out_ownership = 0;
+        out = NULL;
+        break;
       }
-
-      // 3. (not NULL, NULL); When a None value is encountered after a not-None
-      //    Don't do `out = in1`, as that is already the case.
-      // 4. (NULL, NULL); When we have not yet encountered any not-None
-      //    Do nothing; out will remain NULL
     }
   }
 
@@ -885,7 +876,7 @@ static void YY_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
 }
 static PyUFuncGenericFunction YY_Y_funcs[1] = {&YY_Y_func};
 
-/* Define the nan-ignoring geom, geom -> geom functions (YY_Y_skip_na)
+/* Define the None-ignoring geom, geom -> geom functions (YY_Y_skip_na)
  * There are two inner loop functions for the YY_Y. See the YY-Y implementation.
  */
 static void YY_Y_skip_na_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
@@ -1001,16 +992,20 @@ static void YY_Y_skip_na_func(char** args, npy_intp* dimensions, npy_intp* steps
       destroy_geom_arr(ctx, geom_arr, i - 1);
       break;
     }
-    if ((in1 == NULL) || (in2 == NULL)) {
-      // in case of a missing value: return NULL (None)
-      geom_arr[i] = NULL;
-    } else {
+
+    if ((in1 != NULL) && (in2 != NULL)) {
       geom_arr[i] = func(ctx, in1, in2);
-      if (geom_arr[i] == NULL) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        destroy_geom_arr(ctx, geom_arr, i - 1);
-        break;
-      }
+    } else if ((in1 != NULL) && (in2 == NULL)) {
+      geom_arr[i] = GEOSGeom_clone_r(ctx, in1);
+    } else if ((in1 == NULL) && (in2 != NULL)){
+      geom_arr[i] = GEOSGeom_clone_r(ctx, in2);
+    } else {
+      geom_arr[i] = GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, NULL, 0);
+    }
+    if (geom_arr[i] == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      break;
     }
   }
 
