@@ -6,7 +6,7 @@ from shapely import Geometry, Polygon
 from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 
-from .common import all_types, multi_polygon, point, polygon
+from .common import all_types, multi_polygon, point, polygon, empty
 
 # fixed-precision operations raise GEOS exceptions on mixed dimension geometry collections
 all_single_types = [g for g in all_types if not shapely.get_type_id(g) == 7]
@@ -149,7 +149,7 @@ def test_set_operation_reduce_two_none(func, related_func, none_position):
 def test_set_operation_reduce_all_none(n, func, related_func):
     # API change: before, union_all([None]) yielded EMPTY GEOMETRYCOLLECTION
     # The new behaviour is that it returns None if all inputs are None.
-    assert func([None] * n) is None
+    assert func([None] * n) == empty
 
 
 @pytest.mark.parametrize("n", range(1, 3))
@@ -157,7 +157,7 @@ def test_set_operation_reduce_all_none(n, func, related_func):
 def test_set_operation_reduce_all_none_arr(n, func, related_func):
     # API change: before, union_all([None]) yielded EMPTY GEOMETRYCOLLECTION
     # The new behaviour is that it returns None if all inputs are None.
-    assert func([[None] * n] * 2, axis=1).tolist() == [None, None]
+    assert func([[None] * n] * 2, axis=1).tolist() == [empty, empty]
 
 
 @pytest.mark.skipif(shapely.geos_version >= (3, 9, 0), reason="GEOS >= 3.9")
@@ -379,3 +379,9 @@ def test_coverage_union_non_polygon_inputs(geom_1, geom_2):
 def test_union_all_prec(geom, grid_size, expected):
     actual = shapely.union_all(geom, grid_size=grid_size)
     assert shapely.equals(actual, expected)
+
+
+@pytest.mark.parametrize("geoms", [[None], [None, point], [point, None]])
+@pytest.mark.parametrize("func", [shapely.intersection_all, shapely.symmetric_difference_all])
+def test_set_operation_dont_skip_na(geoms, func):
+    assert func(geoms, skip_na=False) is None

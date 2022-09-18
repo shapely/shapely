@@ -230,7 +230,7 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
 
 
 @multithreading_enabled
-def symmetric_difference_all(geometries, axis=None, **kwargs):
+def symmetric_difference_all(geometries, axis=None, skip_na=True, **kwargs):
     """Returns the symmetric difference of multiple geometries.
 
     This function ignores None values when other Geometry elements are present.
@@ -262,7 +262,10 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
     >>> symmetric_difference_all([[line1, line2, None]], axis=1).tolist()
     [<MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>]
     """
-    return lib.symmetric_difference.reduce(geometries, axis=axis, **kwargs)
+    if skip_na:
+        return lib.symmetric_difference_skip_na.reduce(geometries, axis=axis, **kwargs)
+    else:
+        return lib.symmetric_difference.reduce(geometries, axis=axis, **kwargs)
 
 
 @multithreading_enabled

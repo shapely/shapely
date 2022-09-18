@@ -755,58 +755,60 @@ static void YY_Y_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
   FuncGEOS_YY_Y* func = (FuncGEOS_YY_Y*)data;
   GEOSGeometry *in1 = NULL, *in2 = NULL, *out = NULL;
 
-  // Whether to destroy a temporary intermediate value of `out`:
-  char out_ownership = 0;
-
   GEOS_INIT_THREADS;
 
   if (!get_geom(*(GeometryObject**)args[0], &out)) {
     errstate = PGERR_NOT_A_GEOMETRY;
-  } else {
-    BINARY_LOOP {
-      // Get the geometry inputs; in1 from previous iteration, in2 from array
-      in1 = out;
-      if (!get_geom(*(GeometryObject**)ip2, &in2)) {
-        errstate = PGERR_NOT_A_GEOMETRY;
-        break;
-      }
-
-      // (not NULL, not NULL); run the GEOS function
-      if ((in1 != NULL) && (in2 != NULL)) {
-        out = func(ctx, in1, in2);
-
-        // Discard in1 if it was a temporary intermediate
-        if (out_ownership) {
-          GEOSGeom_destroy_r(ctx, in1);
-        }
-
-        // Break on error (we do this after discarding in1 to avoid memleaks)
-        if (out == NULL) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          break;
-        }
-
-        // Mark the newly generated geometry as intermediate. Note: out will become in1.
-        out_ownership = 1;
-      } else {  // we have a missing geometry: break
-        // Discard in1 if it was a temporary intermediate
-        if (out_ownership) {
-          GEOSGeom_destroy_r(ctx, in1);
-        }
-        out_ownership = 0;
-        out = NULL;
-        break;
-      }
-    }
+    goto finish;
   }
 
-  // In case we do not own the output, make a clone (else we end up with 2 PyObjects
-  // referencing the same GEOS Geometry)
-  if ((errstate == PGERR_SUCCESS) && (!out_ownership)) {
-    out = GEOSGeom_clone_r(ctx, out);
+  if (out == NULL) {
+    out = GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, NULL, 0);
+
     if (out == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
     }
+
+    goto finish;
+  }
+
+  // Take ownership
+  out = GEOSGeom_clone_r(ctx, out);
+  if (out == NULL) {
+    errstate = PGERR_GEOS_EXCEPTION;
+    goto finish;
+  }
+
+  BINARY_LOOP {
+    // Get the geometry inputs; in1 from previous iteration, in2 from array
+    in1 = out;
+    if (!get_geom(*(GeometryObject**)ip2, &in2)) {
+      errstate = PGERR_NOT_A_GEOMETRY;
+      goto finish;
+    }
+
+    // (not NULL, not NULL); run the GEOS function
+    if ((in1 != NULL) && (in2 != NULL)) {
+      out = func(ctx, in1, in2);
+
+      if (out == NULL) {
+        errstate = PGERR_GEOS_EXCEPTION;
+        goto finish;
+      }
+    } else {  // we have a missing geometry: break
+      out = GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, NULL, 0);
+
+      if (out == NULL) {
+        errstate = PGERR_GEOS_EXCEPTION;
+        goto finish;
+      }
+      break;
+    }
+  }
+
+finish:
+  if ((errstate != PGERR_SUCCESS) && (out != NULL)) {
+    GEOSGeom_destroy_r(ctx, out);
   }
 
   GEOS_FINISH_THREADS;
@@ -940,8 +942,12 @@ static void YY_Y_skip_na_func_reduce(char** args, npy_intp* dimensions, npy_intp
 
   // In case we do not own the output, make a clone (else we end up with 2 PyObjects
   // referencing the same GEOS Geometry)
-  if ((errstate == PGERR_SUCCESS) && (!out_ownership)) {
-    out = GEOSGeom_clone_r(ctx, out);
+  if (errstate == PGERR_SUCCESS) {
+    if (out == NULL) {
+      out = GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, NULL, 0);
+    } else if (!out_ownership) {
+      out = GEOSGeom_clone_r(ctx, out);
+    }
     if (out == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
     }
@@ -997,7 +1003,7 @@ static void YY_Y_skip_na_func(char** args, npy_intp* dimensions, npy_intp* steps
       geom_arr[i] = func(ctx, in1, in2);
     } else if ((in1 != NULL) && (in2 == NULL)) {
       geom_arr[i] = GEOSGeom_clone_r(ctx, in1);
-    } else if ((in1 == NULL) && (in2 != NULL)){
+    } else if ((in1 == NULL) && (in2 != NULL)) {
       geom_arr[i] = GEOSGeom_clone_r(ctx, in2);
     } else {
       geom_arr[i] = GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, NULL, 0);
@@ -3349,12 +3355,14 @@ TODO relate functions
                                   PyUFunc_None, #NAME, "", 0);                   \
   PyDict_SetItemString(d, #NAME, ufunc)
 
-#define DEFINE_YY_Y_REORDERABLE(NAME)                                                    \
-  ufunc = PyUFunc_FromFuncAndData(YY_Y_funcs, NAME##_data, YY_Y_dtypes, 1, 2, 1,         \
-                                  PyUFunc_ReorderableNone, #NAME, "", 0);                \
-  PyDict_SetItemString(d, #NAME, ufunc);                                                 \
-  ufunc = PyUFunc_FromFuncAndData(YY_Y_skip_na_funcs, NAME##_data, YY_Y_dtypes, 1, 2, 1, \
-                                  PyUFunc_ReorderableNone, #NAME "_skip_na", "", 0);       \
+#define DEFINE_YY_Y_IDENTITY(NAME)                                                     \
+  ufunc = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(                              \
+      YY_Y_funcs, NAME##_data, YY_Y_dtypes, 1, 2, 1, PyUFunc_IdentityValue, #NAME, "", \
+      0, NULL, empty_geom);                                                            \
+  PyDict_SetItemString(d, #NAME, ufunc);                                               \
+  ufunc = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(                              \
+      YY_Y_skip_na_funcs, NAME##_data, YY_Y_dtypes, 1, 2, 1, PyUFunc_IdentityValue,    \
+      #NAME "_skip_na", "", 0, NULL, empty_geom);                                      \
   PyDict_SetItemString(d, #NAME "_skip_na", ufunc)
 
 #define DEFINE_Y_d(NAME)                                                       \
@@ -3407,6 +3415,11 @@ TODO relate functions
 int init_ufuncs(PyObject* m, PyObject* d) {
   PyObject* ufunc;
 
+  GEOS_INIT;
+  PyObject* empty_geom = GeometryObject_FromGEOS(
+      GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, NULL, 0), ctx);
+  GEOS_FINISH;
+
   DEFINE_Y_b(is_empty);
   DEFINE_Y_b(is_simple);
   DEFINE_Y_b(is_geometry);
@@ -3458,13 +3471,14 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Yd_Y(simplify_preserve_topology);
   DEFINE_Yd_Y(force_3d);
 
-  // 'REORDERABLE' sets PyUFunc_ReorderableNone instead of PyUFunc_None as 'identity',
+  // 'EMPTY_IDENTITY' makes sure that if a reduction is done on an empty list, an
+  // empty GeometryCollection is returned. Also it sets the operation as 'reorderable'
   // meaning that the order of arguments does not matter. This enables reduction over
   // multiple (or all) axes.
-  DEFINE_YY_Y_REORDERABLE(intersection);
+  DEFINE_YY_Y_IDENTITY(intersection);
   DEFINE_YY_Y(difference);
-  DEFINE_YY_Y_REORDERABLE(symmetric_difference);
-  DEFINE_YY_Y_REORDERABLE(union);
+  DEFINE_YY_Y_IDENTITY(symmetric_difference);
+  DEFINE_YY_Y_IDENTITY(union);
   DEFINE_YY_Y(shared_paths);
 
   DEFINE_Y_d(get_x);
