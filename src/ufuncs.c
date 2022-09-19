@@ -806,7 +806,7 @@ static void YY_Y_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
         }
       }
 
-      // (one of the operands is NULL, we are not skipping them: create EMPTY and break)
+      // (one of the operands is NULL, we are not skipping them: break)
       else if (!skip_na) {
         // Discard in1 if it was a temporary intermediate
         if (out_ownership) {
@@ -835,13 +835,6 @@ static void YY_Y_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
   // referencing the same GEOS Geometry)
   if ((errstate == PGERR_SUCCESS) && (!out_ownership) && (out != NULL)) {
     out = GEOSGeom_clone_r(ctx, out);
-    if (out == NULL) {
-      errstate = PGERR_GEOS_EXCEPTION;
-    }
-  }
-  // In case the output is NULL: create an empty geometry
-  if ((errstate == PGERR_SUCCESS) && (out == NULL)) {
-    out = GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, NULL, 0);
     if (out == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
     }
