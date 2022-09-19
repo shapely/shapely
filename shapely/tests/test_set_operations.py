@@ -6,7 +6,7 @@ from shapely import Geometry, Polygon
 from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 
-from .common import all_types, multi_polygon, point, polygon, empty
+from .common import all_types, empty, multi_polygon, point, polygon
 
 # fixed-precision operations raise GEOS exceptions on mixed dimension geometry collections
 all_single_types = [g for g in all_types if not shapely.get_type_id(g) == 7]
@@ -123,9 +123,6 @@ def test_set_operation_reduce_axis(func, related_func):
 @pytest.mark.parametrize("none_position", range(3))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
 def test_set_operation_reduce_one_none(func, related_func, none_position):
-    # API change: before, intersection_all and symmetric_difference_all returned
-    # None if any input geometry was None.
-    # The new behaviour is to ignore None values.
     test_data = reduce_test_data[:2]
     test_data.insert(none_position, None)
     actual = func(test_data)
@@ -147,17 +144,19 @@ def test_set_operation_reduce_two_none(func, related_func, none_position):
 @pytest.mark.parametrize("n", range(1, 3))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
 def test_set_operation_reduce_all_none(n, func, related_func):
-    # API change: before, union_all([None]) yielded EMPTY GEOMETRYCOLLECTION
-    # The new behaviour is that it returns None if all inputs are None.
     assert func([None] * n) == empty
 
 
 @pytest.mark.parametrize("n", range(1, 3))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
-def test_set_operation_reduce_all_none_arr(n, func, related_func):
-    # API change: before, union_all([None]) yielded EMPTY GEOMETRYCOLLECTION
-    # The new behaviour is that it returns None if all inputs are None.
+def test_set_operation_reduce_all_none_arr_axis_1(n, func, related_func):
     assert func([[None] * n] * 2, axis=1).tolist() == [empty, empty]
+
+
+@pytest.mark.parametrize("n", range(1, 3))
+@pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
+def test_set_operation_reduce_all_none_arr_axis_0(n, func, related_func):
+    assert func([[None] * 2] * n, axis=0).tolist() == [empty, empty]
 
 
 @pytest.mark.skipif(shapely.geos_version >= (3, 9, 0), reason="GEOS >= 3.9")
@@ -241,9 +240,7 @@ def test_set_operation_prec_reduce_two_none(func, related_func, none_position):
 @pytest.mark.parametrize("n", range(1, 3))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS_PREC)
 def test_set_operation_prec_reduce_all_none(n, func, related_func):
-    # API change: before, union_all([None]) yielded EMPTY GEOMETRYCOLLECTION
-    # The new behaviour is that it returns None if all inputs are None.
-    assert func([None] * n, grid_size=1) is None
+    assert func([None] * n, grid_size=1) == empty
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")

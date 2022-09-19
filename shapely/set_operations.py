@@ -4,7 +4,6 @@ from . import GeometryType, lib
 from .decorators import multithreading_enabled, requires_geos
 from .errors import UnsupportedGEOSVersionError
 
-
 __all__ = [
     "difference",
     "intersection",
@@ -380,7 +379,9 @@ def union_all(geometries, grid_size=None, axis=None, skip_na=True, **kwargs):
     """
     if not skip_na:
         if grid_size is not None:
-            raise ValueError("skip_na == False cannot be combined with a precision grid size")
+            raise ValueError(
+                "skip_na == False cannot be combined with a precision grid size"
+            )
         return lib.union.reduce(geometries, axis=axis, **kwargs)
 
     # for union_all, GEOS provides an efficient route through first creating
@@ -409,14 +410,8 @@ def union_all(geometries, grid_size=None, axis=None, skip_na=True, **kwargs):
 
     else:
         result = lib.unary_union(collections, **kwargs)
-    # for consistency with other _all functions, we replace GEOMETRY COLLECTION EMPTY
-    # if the original collection had no geometries
-    only_none = lib.get_num_geometries(collections) == 0
-    if np.isscalar(only_none):
-        return result if not only_none else None
-    else:
-        result[only_none] = None
-        return result
+
+    return result
 
 
 @requires_geos("3.8.0")
