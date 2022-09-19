@@ -728,12 +728,24 @@ static void Yi_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
 }
 static PyUFuncGenericFunction Yi_Y_funcs[1] = {&Yi_Y_func};
 
-/* Define the geom, geom -> geom functions (YY_Y) */
-static void* intersection_data[1] = {GEOSIntersection_r};
-static void* difference_data[1] = {GEOSDifference_r};
-static void* symmetric_difference_data[1] = {GEOSSymDifference_r};
-static void* union_data[1] = {GEOSUnion_r};
-static void* shared_paths_data[1] = {GEOSSharedPaths_r};
+/* Define the geom, geom -> geom functions (YY_Y) 
+ * The second parameter is 'skip_na' */
+static void* intersection_data_tuple[2] = {GEOSIntersection_r, 0};
+static void* intersection_data[1] = {intersection_data_tuple};
+static void* difference_data_tuple[2] = {GEOSDifference_r, 0};
+static void* difference_data[1] = {difference_data_tuple};
+static void* symmetric_difference_data_tuple[2] = {GEOSSymDifference_r, 0};
+static void* symmetric_difference_data[1] = {symmetric_difference_data_tuple};
+static void* union_data_tuple[2] = {GEOSUnion_r, 0};
+static void* union_data[1] = {union_data_tuple};
+static void* shared_paths_data_tuple[2] = {GEOSSharedPaths_r, 0};
+static void* shared_paths_data[1] = {shared_paths_data_tuple};
+static void* intersection_skip_na_data_tuple[2] = {GEOSIntersection_r, 1};
+static void* intersection_skip_na_data[1] = {intersection_skip_na_data_tuple};
+static void* symmetric_difference_skip_na_data_tuple[2] = {GEOSSymDifference_r, 1};
+static void* symmetric_difference_skip_na_data[1] = {symmetric_difference_skip_na_data_tuple};
+static void* union_skip_na_data_tuple[2] = {GEOSUnion_r, 1};
+static void* union_skip_na_data[1] = {union_skip_na_data_tuple};
 typedef void* FuncGEOS_YY_Y(void* context, void* a, void* b);
 static char YY_Y_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
 
@@ -751,139 +763,7 @@ static char YY_Y_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
  * second loop:             out[0] = func(in1[0], in2[2])  [ = func(out[0], in2[2]) ]
  */
 static void YY_Y_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
-                             void* data) {
-  FuncGEOS_YY_Y* func = (FuncGEOS_YY_Y*)data;
-  GEOSGeometry *in1 = NULL, *in2 = NULL, *out = NULL;
-
-  GEOS_INIT_THREADS;
-
-  if (!get_geom(*(GeometryObject**)args[0], &out)) {
-    errstate = PGERR_NOT_A_GEOMETRY;
-    goto finish;
-  }
-
-  if (out == NULL) {
-    out = GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, NULL, 0);
-
-    if (out == NULL) {
-      errstate = PGERR_GEOS_EXCEPTION;
-    }
-
-    goto finish;
-  }
-
-  // Take ownership
-  out = GEOSGeom_clone_r(ctx, out);
-  if (out == NULL) {
-    errstate = PGERR_GEOS_EXCEPTION;
-    goto finish;
-  }
-
-  BINARY_LOOP {
-    // Get the geometry inputs; in1 from previous iteration, in2 from array
-    in1 = out;
-    if (!get_geom(*(GeometryObject**)ip2, &in2)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      goto finish;
-    }
-
-    // (not NULL, not NULL); run the GEOS function
-    if ((in1 != NULL) && (in2 != NULL)) {
-      out = func(ctx, in1, in2);
-
-      if (out == NULL) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        goto finish;
-      }
-    } else {  // we have a missing geometry: break
-      out = GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, NULL, 0);
-
-      if (out == NULL) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        goto finish;
-      }
-      break;
-    }
-  }
-
-finish:
-  if ((errstate != PGERR_SUCCESS) && (out != NULL)) {
-    GEOSGeom_destroy_r(ctx, out);
-  }
-
-  GEOS_FINISH_THREADS;
-
-  // fill the numpy array with a single PyObject while holding the GIL
-  if (errstate == PGERR_SUCCESS) {
-    geom_arr_to_npy(&out, args[2], steps[2], 1);
-  }
-}
-
-static void YY_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* data) {
-  // A reduce is characterized by multiple iterations (dimension[0] > 1) that
-  // are output on the same place in memory (steps[2] == 0).
-  if ((steps[2] == 0) && (dimensions[0] > 1)) {
-    if (args[0] == args[2]) {
-      YY_Y_func_reduce(args, dimensions, steps, data);
-      return;
-    } else {
-      // Fail if inputs do not have the expected structure.
-      PyErr_Format(PyExc_NotImplementedError,
-                   "Unknown ufunc mode with args=[%p, %p, %p], steps=[%ld, %ld, %ld], "
-                   "dimensions=[%ld].",
-                   args[0], args[1], args[2], steps[0], steps[1], steps[2],
-                   dimensions[0]);
-      return;
-    }
-  }
-
-  FuncGEOS_YY_Y* func = (FuncGEOS_YY_Y*)data;
-  GEOSGeometry *in1 = NULL, *in2 = NULL;
-  GEOSGeometry** geom_arr;
-
-  // allocate a temporary array to store output GEOSGeometry objects
-  geom_arr = malloc(sizeof(void*) * dimensions[0]);
-  CHECK_ALLOC(geom_arr);
-
-  GEOS_INIT_THREADS;
-
-  BINARY_LOOP {
-    // get the geometries: return on error
-    if (!get_geom(*(GeometryObject**)ip1, &in1) ||
-        !get_geom(*(GeometryObject**)ip2, &in2)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      destroy_geom_arr(ctx, geom_arr, i - 1);
-      break;
-    }
-    if ((in1 == NULL) || (in2 == NULL)) {
-      // in case of a missing value: return NULL (None)
-      geom_arr[i] = NULL;
-    } else {
-      geom_arr[i] = func(ctx, in1, in2);
-      if (geom_arr[i] == NULL) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        destroy_geom_arr(ctx, geom_arr, i - 1);
-        break;
-      }
-    }
-  }
-
-  GEOS_FINISH_THREADS;
-
-  // fill the numpy array with PyObjects while holding the GIL
-  if (errstate == PGERR_SUCCESS) {
-    geom_arr_to_npy(geom_arr, args[2], steps[2], dimensions[0]);
-  }
-  free(geom_arr);
-}
-static PyUFuncGenericFunction YY_Y_funcs[1] = {&YY_Y_func};
-
-/* Define the None-ignoring geom, geom -> geom functions (YY_Y_skip_na)
- * There are two inner loop functions for the YY_Y. See the YY-Y implementation.
- */
-static void YY_Y_skip_na_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
-                                     void* data) {
-  FuncGEOS_YY_Y* func = (FuncGEOS_YY_Y*)data;
+                                     FuncGEOS_YY_Y* func, char skip_na) {
   GEOSGeometry *in1 = NULL, *in2 = NULL, *out = NULL;
 
   // Whether to destroy a temporary intermediate value of `out`:
@@ -903,10 +783,10 @@ static void YY_Y_skip_na_func_reduce(char** args, npy_intp* dimensions, npy_intp
       }
 
       /* Either (or both) in1 and in2 could be NULL (Python: None).
-       * Reduction operations should skip None values. We have 4 possible combinations:
+       * 'skip_na' determines what to do if a NULL is encountered.
        */
 
-      // 1. (not NULL, not NULL); run the GEOS function
+      // (not NULL, not NULL); run the GEOS function
       if ((in1 != NULL) && (in2 != NULL)) {
         out = func(ctx, in1, in2);
 
@@ -923,6 +803,16 @@ static void YY_Y_skip_na_func_reduce(char** args, npy_intp* dimensions, npy_intp
           errstate = PGERR_GEOS_EXCEPTION;
           break;
         }
+      }
+
+      // (one of the operands is NULL, we are not skipping them: create EMPTY and break)
+      else if (!skip_na) {
+        // Discard in1 if it was a temporary intermediate
+        if (out_ownership) {
+          GEOSGeom_destroy_r(ctx, in1);
+        }
+        out = NULL;
+        break;
       }
 
       // 2. (NULL, not NULL); When the first element of the reduction axis is None
@@ -942,12 +832,15 @@ static void YY_Y_skip_na_func_reduce(char** args, npy_intp* dimensions, npy_intp
 
   // In case we do not own the output, make a clone (else we end up with 2 PyObjects
   // referencing the same GEOS Geometry)
-  if (errstate == PGERR_SUCCESS) {
+  if ((errstate == PGERR_SUCCESS) && (!out_ownership) && (out != NULL)) {
+    out = GEOSGeom_clone_r(ctx, out);
     if (out == NULL) {
-      out = GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, NULL, 0);
-    } else if (!out_ownership) {
-      out = GEOSGeom_clone_r(ctx, out);
+      errstate = PGERR_GEOS_EXCEPTION;
     }
+  }
+  // In case the output is NULL: create an empty geometry
+  if ((errstate == PGERR_SUCCESS) && (out == NULL)) {
+    out = GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, NULL, 0);
     if (out == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
     }
@@ -961,13 +854,15 @@ static void YY_Y_skip_na_func_reduce(char** args, npy_intp* dimensions, npy_intp
   }
 }
 
-static void YY_Y_skip_na_func(char** args, npy_intp* dimensions, npy_intp* steps,
-                              void* data) {
+static void YY_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
+  FuncGEOS_YY_Y* func = ((FuncGEOS_YY_Y**)data)[0];
+  int skip_na = (int)((int**)data)[1];
+
   // A reduce is characterized by multiple iterations (dimension[0] > 1) that
   // are output on the same place in memory (steps[2] == 0).
   if ((steps[2] == 0) && (dimensions[0] > 1)) {
     if (args[0] == args[2]) {
-      YY_Y_skip_na_func_reduce(args, dimensions, steps, data);
+      YY_Y_func_reduce(args, dimensions, steps, func, skip_na);
       return;
     } else {
       // Fail if inputs do not have the expected structure.
@@ -980,8 +875,8 @@ static void YY_Y_skip_na_func(char** args, npy_intp* dimensions, npy_intp* steps
     }
   }
 
-  FuncGEOS_YY_Y* func = (FuncGEOS_YY_Y*)data;
   GEOSGeometry *in1 = NULL, *in2 = NULL;
+  char null_means_exc = 0;
   GEOSGeometry** geom_arr;
 
   // allocate a temporary array to store output GEOSGeometry objects
@@ -998,9 +893,12 @@ static void YY_Y_skip_na_func(char** args, npy_intp* dimensions, npy_intp* steps
       destroy_geom_arr(ctx, geom_arr, i - 1);
       break;
     }
-
+    null_means_exc = 1;
     if ((in1 != NULL) && (in2 != NULL)) {
       geom_arr[i] = func(ctx, in1, in2);
+    } else if (!skip_na) {
+      geom_arr[i] = NULL;
+      null_means_exc = 0;
     } else if ((in1 != NULL) && (in2 == NULL)) {
       geom_arr[i] = GEOSGeom_clone_r(ctx, in1);
     } else if ((in1 == NULL) && (in2 != NULL)) {
@@ -1008,7 +906,7 @@ static void YY_Y_skip_na_func(char** args, npy_intp* dimensions, npy_intp* steps
     } else {
       geom_arr[i] = GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, NULL, 0);
     }
-    if (geom_arr[i] == NULL) {
+    if (null_means_exc && (geom_arr[i] == NULL)) {
       errstate = PGERR_GEOS_EXCEPTION;
       destroy_geom_arr(ctx, geom_arr, i - 1);
       break;
@@ -1023,7 +921,8 @@ static void YY_Y_skip_na_func(char** args, npy_intp* dimensions, npy_intp* steps
   }
   free(geom_arr);
 }
-static PyUFuncGenericFunction YY_Y_skip_na_funcs[1] = {&YY_Y_skip_na_func};
+static PyUFuncGenericFunction YY_Y_funcs[1] = {&YY_Y_func};
+
 
 /* Define the geom -> double functions (Y_d) */
 static int GetX(void* context, void* a, double* b) {
@@ -3359,11 +3258,7 @@ TODO relate functions
   ufunc = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(                              \
       YY_Y_funcs, NAME##_data, YY_Y_dtypes, 1, 2, 1, PyUFunc_IdentityValue, #NAME, "", \
       0, NULL, empty_geom);                                                            \
-  PyDict_SetItemString(d, #NAME, ufunc);                                               \
-  ufunc = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(                              \
-      YY_Y_skip_na_funcs, NAME##_data, YY_Y_dtypes, 1, 2, 1, PyUFunc_IdentityValue,    \
-      #NAME "_skip_na", "", 0, NULL, empty_geom);                                      \
-  PyDict_SetItemString(d, #NAME "_skip_na", ufunc)
+  PyDict_SetItemString(d, #NAME, ufunc);                                               
 
 #define DEFINE_Y_d(NAME)                                                       \
   ufunc = PyUFunc_FromFuncAndData(Y_d_funcs, NAME##_data, Y_d_dtypes, 1, 1, 1, \
@@ -3480,6 +3375,10 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_YY_Y_IDENTITY(symmetric_difference);
   DEFINE_YY_Y_IDENTITY(union);
   DEFINE_YY_Y(shared_paths);
+
+  DEFINE_YY_Y_IDENTITY(intersection_skip_na);
+  DEFINE_YY_Y_IDENTITY(symmetric_difference_skip_na);
+  DEFINE_YY_Y_IDENTITY(union_skip_na);
 
   DEFINE_Y_d(get_x);
   DEFINE_Y_d(get_y);

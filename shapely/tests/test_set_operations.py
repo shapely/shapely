@@ -382,6 +382,6 @@ def test_union_all_prec(geom, grid_size, expected):
 
 
 @pytest.mark.parametrize("geoms", [[None], [None, point], [point, None]])
-@pytest.mark.parametrize("func", [shapely.intersection_all, shapely.symmetric_difference_all])
-def test_set_operation_dont_skip_na(geoms, func):
+@pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
+def test_set_operation_dont_skip_na(geoms, func, related_func):
     assert func(geoms, skip_na=False) is None

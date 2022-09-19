@@ -327,7 +327,7 @@ def union(a, b, grid_size=None, **kwargs):
 
 
 @multithreading_enabled
-def union_all(geometries, grid_size=None, axis=None, **kwargs):
+def union_all(geometries, grid_size=None, axis=None, skip_na=True, **kwargs):
     """Returns the union of multiple geometries.
 
     This function ignores None values when other Geometry elements are present.
@@ -378,6 +378,11 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
     <POLYGON ((2 0, 0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0))>
 
     """
+    if not skip_na:
+        if grid_size is not None:
+            raise ValueError("skip_na == False cannot be combined with a precision grid size")
+        return lib.union.reduce(geometries, axis=axis, **kwargs)
+
     # for union_all, GEOS provides an efficient route through first creating
     # GeometryCollections
     # first roll the aggregation axis backwards
