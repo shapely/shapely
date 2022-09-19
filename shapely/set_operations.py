@@ -3,6 +3,7 @@ import numpy as np
 from . import GeometryType, lib
 from .decorators import multithreading_enabled, requires_geos
 from .errors import UnsupportedGEOSVersionError
+from .geometry import GeometryCollection
 
 __all__ = [
     "difference",
@@ -15,6 +16,16 @@ __all__ = [
     "coverage_union",
     "coverage_union_all",
 ]
+
+
+def _none_to_empty(arr):
+    nones = lib.is_missing(arr)
+    if not np.any(nones):
+        return arr
+    elif np.isscalar(nones):
+        return GeometryCollection([])
+    else:
+        return np.where(nones, GeometryCollection([]), arr)
 
 
 @multithreading_enabled
@@ -166,7 +177,10 @@ def intersection_all(geometries, axis=None, skip_na=True, **kwargs):
     [<LINESTRING (1 1, 2 2)>]
     """
     if skip_na:
-        return lib.intersection_skip_na.reduce(geometries, axis=axis, **kwargs)
+        result = lib.intersection_skip_na.reduce(geometries, axis=axis, **kwargs)
+        # In some cases (e.g. [None] input), numpy directly returned the input values.
+        # So we may have None in the results.
+        return _none_to_empty(result)
     else:
         return lib.intersection.reduce(geometries, axis=axis, **kwargs)
 
@@ -262,7 +276,12 @@ def symmetric_difference_all(geometries, axis=None, skip_na=True, **kwargs):
     [<MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>]
     """
     if skip_na:
-        return lib.symmetric_difference_skip_na.reduce(geometries, axis=axis, **kwargs)
+        result = lib.symmetric_difference_skip_na.reduce(
+            geometries, axis=axis, **kwargs
+        )
+        # In some cases (e.g. [None] input), numpy directly returned the input values.
+        # So we may have None in the results.
+        return _none_to_empty(result)
     else:
         return lib.symmetric_difference.reduce(geometries, axis=axis, **kwargs)
 

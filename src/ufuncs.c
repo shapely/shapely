@@ -728,7 +728,7 @@ static void Yi_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
 }
 static PyUFuncGenericFunction Yi_Y_funcs[1] = {&Yi_Y_func};
 
-/* Define the geom, geom -> geom functions (YY_Y) 
+/* Define the geom, geom -> geom functions (YY_Y)
  * The second parameter is 'skip_na' */
 static void* intersection_data_tuple[2] = {GEOSIntersection_r, 0};
 static void* intersection_data[1] = {intersection_data_tuple};
@@ -743,7 +743,8 @@ static void* shared_paths_data[1] = {shared_paths_data_tuple};
 static void* intersection_skip_na_data_tuple[2] = {GEOSIntersection_r, 1};
 static void* intersection_skip_na_data[1] = {intersection_skip_na_data_tuple};
 static void* symmetric_difference_skip_na_data_tuple[2] = {GEOSSymDifference_r, 1};
-static void* symmetric_difference_skip_na_data[1] = {symmetric_difference_skip_na_data_tuple};
+static void* symmetric_difference_skip_na_data[1] = {
+    symmetric_difference_skip_na_data_tuple};
 static void* union_skip_na_data_tuple[2] = {GEOSUnion_r, 1};
 static void* union_skip_na_data[1] = {union_skip_na_data_tuple};
 typedef void* FuncGEOS_YY_Y(void* context, void* a, void* b);
@@ -763,7 +764,7 @@ static char YY_Y_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
  * second loop:             out[0] = func(in1[0], in2[2])  [ = func(out[0], in2[2]) ]
  */
 static void YY_Y_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
-                                     FuncGEOS_YY_Y* func, char skip_na) {
+                             FuncGEOS_YY_Y* func, char skip_na) {
   GEOSGeometry *in1 = NULL, *in2 = NULL, *out = NULL;
 
   // Whether to destroy a temporary intermediate value of `out`:
@@ -854,7 +855,8 @@ static void YY_Y_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
   }
 }
 
-static void YY_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
+static void YY_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                      void* data) {
   FuncGEOS_YY_Y* func = ((FuncGEOS_YY_Y**)data)[0];
   int skip_na = (int)((int**)data)[1];
 
@@ -922,7 +924,6 @@ static void YY_Y_func(char** args, const npy_intp* dimensions, const npy_intp* s
   free(geom_arr);
 }
 static PyUFuncGenericFunction YY_Y_funcs[1] = {&YY_Y_func};
-
 
 /* Define the geom -> double functions (Y_d) */
 static int GetX(void* context, void* a, double* b) {
@@ -3254,11 +3255,10 @@ TODO relate functions
                                   PyUFunc_None, #NAME, "", 0);                   \
   PyDict_SetItemString(d, #NAME, ufunc)
 
-#define DEFINE_YY_Y_IDENTITY(NAME)                                                     \
-  ufunc = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(                              \
-      YY_Y_funcs, NAME##_data, YY_Y_dtypes, 1, 2, 1, PyUFunc_IdentityValue, #NAME, "", \
-      0, NULL, empty_geom);                                                            \
-  PyDict_SetItemString(d, #NAME, ufunc);                                               
+#define DEFINE_YY_Y_REORDERABLE(NAME)                                            \
+  ufunc = PyUFunc_FromFuncAndData(YY_Y_funcs, NAME##_data, YY_Y_dtypes, 1, 2, 1, \
+                                  PyUFunc_ReorderableNone, #NAME, "", 0);        \
+  PyDict_SetItemString(d, #NAME, ufunc);
 
 #define DEFINE_Y_d(NAME)                                                       \
   ufunc = PyUFunc_FromFuncAndData(Y_d_funcs, NAME##_data, Y_d_dtypes, 1, 1, 1, \
@@ -3309,11 +3309,6 @@ TODO relate functions
 
 int init_ufuncs(PyObject* m, PyObject* d) {
   PyObject* ufunc;
-
-  GEOS_INIT;
-  PyObject* empty_geom = GeometryObject_FromGEOS(
-      GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, NULL, 0), ctx);
-  GEOS_FINISH;
 
   DEFINE_Y_b(is_empty);
   DEFINE_Y_b(is_simple);
@@ -3366,19 +3361,18 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Yd_Y(simplify_preserve_topology);
   DEFINE_Yd_Y(force_3d);
 
-  // 'EMPTY_IDENTITY' makes sure that if a reduction is done on an empty list, an
-  // empty GeometryCollection is returned. Also it sets the operation as 'reorderable'
+  // 'REORDERABLE' sets PyUFunc_ReorderableNone instead of PyUFunc_None as 'identity',
   // meaning that the order of arguments does not matter. This enables reduction over
   // multiple (or all) axes.
-  DEFINE_YY_Y_IDENTITY(intersection);
+  DEFINE_YY_Y_REORDERABLE(intersection);
   DEFINE_YY_Y(difference);
-  DEFINE_YY_Y_IDENTITY(symmetric_difference);
-  DEFINE_YY_Y_IDENTITY(union);
+  DEFINE_YY_Y_REORDERABLE(symmetric_difference);
+  DEFINE_YY_Y_REORDERABLE(union);
   DEFINE_YY_Y(shared_paths);
 
-  DEFINE_YY_Y_IDENTITY(intersection_skip_na);
-  DEFINE_YY_Y_IDENTITY(symmetric_difference_skip_na);
-  DEFINE_YY_Y_IDENTITY(union_skip_na);
+  DEFINE_YY_Y_REORDERABLE(intersection_skip_na);
+  DEFINE_YY_Y_REORDERABLE(symmetric_difference_skip_na);
+  DEFINE_YY_Y_REORDERABLE(union_skip_na);
 
   DEFINE_Y_d(get_x);
   DEFINE_Y_d(get_y);
