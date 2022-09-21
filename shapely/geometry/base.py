@@ -324,7 +324,7 @@ class BaseGeometry(shapely.Geometry):
         Returns the oriented envelope (minimum rotated rectangle) that
         encloses the geometry.
 
-        Unlike envelope this rectangle is not constrained to be parallel to the
+        Unlike `envelope` this rectangle is not constrained to be parallel to the
         coordinate axes. If the convex hull of the object is a degenerate (line
         or point) this degenerate is returned.
 
