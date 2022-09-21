@@ -12,6 +12,7 @@ from warnings import warn
 import numpy as np
 
 import shapely
+from shapely._geometry_helpers import _geom_factory
 from shapely.affinity import affine_transform
 from shapely.coords import CoordinateSequence
 from shapely.errors import GeometryTypeError, GEOSException, ShapelyDeprecationWarning
@@ -26,6 +27,25 @@ GEOMETRY_TYPES = [
     "MultiPolygon",
     "GeometryCollection",
 ]
+
+
+def geom_factory(g, parent=None):
+    """
+    Creates a Shapely geometry instance from a pointer to a GEOS geometry.
+
+    WARNING: the GEOS library used to create the the GEOS geometry pointer
+    and the GEOS library used by Shapely must be exactly the same, or
+    unexpected results or segfaults may occur.
+
+    Deprecated in Shapely 2.0, and will be removed in a future version.
+    """
+    warn(
+        "The 'geom_factory' function is deprecated in Shapely 2.0, and will be "
+        "removed in a future version",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return _geom_factory(g)
 
 
 def dump_coords(geom):
@@ -349,12 +369,12 @@ class BaseGeometry(shapely.Geometry):
     def buffer(
         self,
         distance,
-        resolution=16,
-        quadsegs=None,
+        quad_segs=16,
         cap_style=CAP_STYLE.round,
         join_style=JOIN_STYLE.round,
         mitre_limit=5.0,
         single_sided=False,
+        **kwargs,
     ):
         """Get a geometry that represents all points within a distance
         of this geometry.
@@ -370,9 +390,9 @@ class BaseGeometry(shapely.Geometry):
         resolution : int, optional
             The resolution of the buffer around each vertex of the
             object.
-        quadsegs : int, optional
+        quad_segs : int, optional
             Sets the number of line segments used to approximate an
-            angle fillet.  Note: the use of a `quadsegs` parameter is
+            angle fillet.  Note: the use of a `quad_segs` parameter is
             deprecated and will be gone from the next major release.
         cap_style : int, optional
             The styles of caps are: CAP_STYLE.round (1), CAP_STYLE.flat
@@ -435,12 +455,21 @@ class BaseGeometry(shapely.Geometry):
         4.0
 
         """
+        quadsegs = kwargs.pop("quadsegs", None)
         if quadsegs is not None:
             warn(
-                "The `quadsegs` argument is deprecated. Use `resolution`.",
-                DeprecationWarning,
+                "The `quadsegs` argument is deprecated. Use `quad_segs` instead.",
+                FutureWarning,
             )
-            resolution = quadsegs
+            quad_segs = quadsegs
+
+        # TODO deprecate `resolution` keyword in the future as well
+        resolution = kwargs.pop("resolution", None)
+        if resolution is not None:
+            quad_segs = resolution
+        if kwargs:
+            kwarg = list(kwargs.keys())[0]  # noqa
+            raise TypeError("buffer() got an unexpected keyword argument '{kwarg}'")
 
         if mitre_limit == 0.0:
             raise ValueError("Cannot compute offset from zero-length line segment")
@@ -448,7 +477,7 @@ class BaseGeometry(shapely.Geometry):
         return shapely.buffer(
             self,
             distance,
-            quadsegs=resolution,
+            quad_segs=quad_segs,
             cap_style=cap_style,
             join_style=join_style,
             mitre_limit=mitre_limit,

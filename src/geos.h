@@ -57,7 +57,8 @@ enum {
   PGERR_LINEARRING_NCOORDS,
   PGWARN_INVALID_WKB,  // raise the GEOS WKB error as a warning instead of exception
   PGWARN_INVALID_WKT,  // raise the GEOS WKT error as a warning instead of exception
-  PGWARN_INVALID_GEOJSON
+  PGWARN_INVALID_GEOJSON,
+  PGERR_PYSIGNAL
 };
 
 // Define how the states are handled by CPython
@@ -111,6 +112,8 @@ enum {
       PyErr_WarnFormat(PyExc_Warning, 0,                                                 \
                        "Invalid GeoJSON: geometry is returned as None. %s", last_error); \
       break;                                                                             \
+    case PGERR_PYSIGNAL:                                                         \
+      break;                                                                             \
     default:                                                                             \
       PyErr_Format(PyExc_RuntimeError,                                                   \
                    "Pygeos ufunc returned with unknown error state code %d.", errstate); \
@@ -124,8 +127,8 @@ enum {
   char last_warning[1024] = "";  \
   GEOSContextHandle_t ctx
 
-#define _GEOS_INIT                                                           \
-  ctx = GEOS_init_r();                                                       \
+#define _GEOS_INIT     \
+  ctx = GEOS_init_r(); \
   GEOSContext_setErrorMessageHandler_r(ctx, geos_error_handler, last_error)
 
 #define GEOS_INIT \
@@ -150,6 +153,7 @@ enum {
 #define GEOS_SINCE_3_8_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 8))
 #define GEOS_SINCE_3_9_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 9))
 #define GEOS_SINCE_3_10_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 10))
+#define GEOS_SINCE_3_11_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 11))
 
 extern void* geos_context[1];
 extern PyObject* geos_exception[1];

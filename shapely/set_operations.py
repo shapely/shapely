@@ -10,6 +10,7 @@ __all__ = [
     "intersection_all",
     "symmetric_difference",
     "symmetric_difference_all",
+    "unary_union",
     "union",
     "union_all",
     "coverage_union",
@@ -333,6 +334,8 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
     set using set_precision.  Note: returned geometry does not have precision
     set unless specified previously by set_precision.
 
+    `unary_union` is an alias of `union_all`.
+
     Parameters
     ----------
     geometries : array_like
@@ -405,6 +408,9 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
     else:
         result[only_none] = None
         return result
+
+
+unary_union = union_all
 
 
 @requires_geos("3.8.0")

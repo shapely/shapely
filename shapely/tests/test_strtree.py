@@ -47,7 +47,7 @@ def poly_tree():
     # create buffers so that midpoint between two buffers intersects
     # each buffer.  NOTE: add EPS to help mitigate rounding errors at midpoint.
     geoms = shapely.buffer(
-        shapely.points(np.arange(10), np.arange(10)), HALF_UNIT_DIAG + EPS, quadsegs=32
+        shapely.points(np.arange(10), np.arange(10)), HALF_UNIT_DIAG + EPS, quad_segs=32
     )
     yield STRtree(geoms)
 
