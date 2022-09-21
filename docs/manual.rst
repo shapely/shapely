@@ -1687,7 +1687,7 @@ Figure 11. Convex hull (blue) of 2 points (left) and of 6 points (right).
   >>> Point(0, 0).minimum_rotated_rectangle
   <POINT (0 0)>
   >>> MultiPoint([(0,0),(1,1),(2,0.5)]).minimum_rotated_rectangle
-  <POLYGON ((1.824 1.206, -0.176 0.706, 0 0, 2 0.5, 1.824 1.206))>
+  <POLYGON ((2 0.5, 1.824 1.206, -0.176 0.706, 0 0, 2 0.5))>
 
 .. plot:: code/minimum_rotated_rectangle.py
 

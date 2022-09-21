@@ -5,14 +5,12 @@ geometry objects, but has no effect on geometric analysis. All
 operations are performed in the x-y plane. Thus, geometries with
 different z values may intersect or be equal.
 """
-import math
-from itertools import islice
 from warnings import warn
 
 import numpy as np
 
 import shapely
-from shapely.affinity import affine_transform
+from shapely._geometry_helpers import _geom_factory
 from shapely.coords import CoordinateSequence
 from shapely.errors import GeometryTypeError, GEOSException, ShapelyDeprecationWarning
 
@@ -26,6 +24,25 @@ GEOMETRY_TYPES = [
     "MultiPolygon",
     "GeometryCollection",
 ]
+
+
+def geom_factory(g, parent=None):
+    """
+    Creates a Shapely geometry instance from a pointer to a GEOS geometry.
+
+    WARNING: the GEOS library used to create the the GEOS geometry pointer
+    and the GEOS library used by Shapely must be exactly the same, or
+    unexpected results or segfaults may occur.
+
+    Deprecated in Shapely 2.0, and will be removed in a future version.
+    """
+    warn(
+        "The 'geom_factory' function is deprecated in Shapely 2.0, and will be "
+        "removed in a future version",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return _geom_factory(g)
 
 
 def dump_coords(geom):
@@ -308,43 +325,32 @@ class BaseGeometry(shapely.Geometry):
         return shapely.envelope(self)
 
     @property
-    def minimum_rotated_rectangle(self):
-        """Returns the general minimum bounding rectangle of
-        the geometry. Can possibly be rotated. If the convex hull
-        of the object is a degenerate (line or point) this same degenerate
-        is returned.
+    def oriented_envelope(self):
         """
-        # first compute the convex hull
-        hull = self.convex_hull
-        try:
-            coords = hull.exterior.coords
-        except AttributeError:  # may be a Point or a LineString
-            return hull
-        # generate the edge vectors between the convex hull's coords
-        edges = (
-            (pt2[0] - pt1[0], pt2[1] - pt1[1])
-            for pt1, pt2 in zip(coords, islice(coords, 1, None))
-        )
+        Returns the oriented envelope (minimum rotated rectangle) that
+        encloses the geometry.
 
-        def _transformed_rects():
-            for dx, dy in edges:
-                # compute the normalized direction vector of the edge
-                # vector.
-                length = math.sqrt(dx**2 + dy**2)
-                ux, uy = dx / length, dy / length
-                # compute the normalized perpendicular vector
-                vx, vy = -uy, ux
-                # transform hull from the original coordinate system to
-                # the coordinate system defined by the edge and compute
-                # the axes-parallel bounding rectangle.
-                transf_rect = affine_transform(hull, (ux, uy, vx, vy, 0, 0)).envelope
-                # yield the transformed rectangle and a matrix to
-                # transform it back to the original coordinate system.
-                yield (transf_rect, (ux, vx, uy, vy, 0, 0))
+        Unlike envelope this rectangle is not constrained to be parallel to the
+        coordinate axes. If the convex hull of the object is a degenerate (line
+        or point) this degenerate is returned.
 
-        # check for the minimum area rectangle and return it
-        transf_rect, inv_matrix = min(_transformed_rects(), key=lambda r: r[0].area)
-        return affine_transform(transf_rect, inv_matrix)
+        Alias of `minimum_rotated_rectangle`.
+        """
+        return shapely.oriented_envelope(self)
+
+    @property
+    def minimum_rotated_rectangle(self):
+        """
+        Returns the oriented envelope (minimum rotated rectangle) that
+        encloses the geometry.
+
+        Unlike `envelope` this rectangle is not constrained to be parallel to the
+        coordinate axes. If the convex hull of the object is a degenerate (line
+        or point) this degenerate is returned.
+
+        Alias of `oriented_envelope`.
+        """
+        return shapely.oriented_envelope(self)
 
     def buffer(
         self,
