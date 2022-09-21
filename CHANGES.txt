@@ -8,6 +8,13 @@ Relevant changes compared to 2.0a1:
 
 - Renamed the ``tolerance`` keyword to ``max_segment_length`` in the
   ``segmentize`` function.
+- Renamed the ``quadsegs`` keyword in the top-level ``buffer`` and
+  ``offset_curve`` functions and the ``resolution`` keyword in the Geometry
+  class ``buffer`` and ``offset_curve`` methods all to ``quad_segs``.
+- Added use of ``GEOSGeom_getExtent`` to speed up bounds calculations for
+  GEOS >= 3.11.
+
+Wheels for 2.0b1 published on PyPI include GEOS 3.11.0.
 
 2.0a1 (2022-08-03)
 ------------------
