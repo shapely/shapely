@@ -101,6 +101,13 @@ def test_set_operation_reduce_1dim(n, func, related_func):
 
 
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
+def test_set_operation_reduce_single_geom(func, related_func):
+    geom = shapely.Point(1, 1)
+    actual = func([geom, None, None])
+    assert shapely.equals(actual, geom)
+
+
+@pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
 def test_set_operation_reduce_axis(func, related_func):
     data = [[point] * 2] * 3  # shape = (3, 2)
     actual = func(data, axis=None)  # default
@@ -371,4 +378,12 @@ def test_coverage_union_non_polygon_inputs(geom_1, geom_2):
 )
 def test_union_all_prec(geom, grid_size, expected):
     actual = shapely.union_all(geom, grid_size=grid_size)
+    assert shapely.equals(actual, expected)
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
+def test_uary_union_alias():
+    geoms = [shapely.box(0.1, 0.1, 5, 5), shapely.box(0, 0.2, 5.1, 10)]
+    actual = shapely.unary_union(geoms, grid_size=1)
+    expected = shapely.union_all(geoms, grid_size=1)
     assert shapely.equals(actual, expected)
