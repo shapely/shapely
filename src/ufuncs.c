@@ -3567,7 +3567,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 
   DEFINE_Yd_Y(line_interpolate_point);
   DEFINE_Yd_Y(line_interpolate_point_normalized);
-  DEFINE_Yd_Y(remove_repeated_points);
   DEFINE_Yd_Y(simplify);
   DEFINE_Yd_Y(simplify_preserve_topology);
   DEFINE_Yd_Y(force_3d);
@@ -3666,6 +3665,10 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_CUSTOM(dwithin, 3);
   DEFINE_CUSTOM(from_geojson, 2);
   DEFINE_CUSTOM(to_geojson, 2);
+#endif
+
+#if GEOS_SINCE_3_11_0
+  DEFINE_Yd_Y(remove_repeated_points);
 #endif
 
   Py_DECREF(ufunc);
