@@ -665,8 +665,24 @@ def polygonize_full(geometries, **kwargs):
 
 @requires_geos("3.11.0")
 def remove_repeated_points(geometry, tolerance, **kwargs):
-    """
-    TODO write docstring
+    """Returns a copy of a Geometry with repeated points removed.
+
+    From the start of the coordinate sequence, each next point within the tolerance is removed.
+
+    Removing repeated points with a non-zero tolerance may result in an invalid geometry being returned.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    tolerance : float or array_like
+
+    Examples
+    ----------
+    >>> from shapely import LineString, Polygon
+    >>> remove_repeated_points(LineString([(0,0), (0,0), [1,0]]), tolerance=0)
+    <LINESTRING (0 0, 1 0)>
+    >>> remove_repeated_points(Polygon([(0, 0), (0, .5), (0, 1), (.5, 1), (0,0)]), tolerance=.5)
+    <POLYGON ((0 0, 0 1, 0 0, 0 0))>
     """
     return lib.remove_repeated_points(geometry, tolerance, **kwargs)
 
