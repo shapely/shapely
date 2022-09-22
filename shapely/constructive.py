@@ -667,10 +667,10 @@ def polygonize_full(geometries, **kwargs):
 def remove_repeated_points(geometry, tolerance=0.0, **kwargs):
     """Returns a copy of a Geometry with repeated points removed.
 
-    From the start of the coordinate sequence, each next point within the 
+    From the start of the coordinate sequence, each next point within the
     tolerance is removed.
 
-    Removing repeated points with a non-zero tolerance may result in an invalid 
+    Removing repeated points with a non-zero tolerance may result in an invalid
     geometry being returned.
 
     Parameters
