@@ -3,6 +3,7 @@
 cimport cython
 from cpython cimport PyObject
 from cython cimport view
+from libc.stdint cimport uintptr_t
 
 import numpy as np
 
@@ -384,3 +385,11 @@ def collections_1d(object geometries, object indices, int geometry_type = 7, obj
             geom_idx_1 += collection_size[coll_idx]
 
     return out
+
+
+def _geom_factory(uintptr_t g):
+
+    with get_geos_handle() as geos_handle:
+        geom = PyGEOS_CreateGeometry(<GEOSGeometry *>g, geos_handle)
+
+    return geom
