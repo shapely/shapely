@@ -34,15 +34,15 @@ __all__ = [
 
 
 class BufferCapStyle(ParamEnum):
-    ROUND = 1
-    FLAT = 2
-    SQUARE = 3
+    round = 1
+    flat = 2
+    square = 3
 
 
 class BufferJoinStyle(ParamEnum):
-    ROUND = 1
-    MITRE = 2
-    BEVEL = 3
+    round = 1
+    mitre = 2
+    bevel = 3
 
 
 @multithreading_enabled
@@ -109,15 +109,15 @@ def buffer(
         Specifies the number of linear segments in a quarter circle in the
         approximation of circular arcs.
     cap_style : shapely.BufferCapStyle or {'round', 'square', 'flat'}, default 'round'
-        Specifies the shape of buffered line endings. BufferCapStyle.ROUND ('round')
-        results in circular line endings (see ``quad_segs``). Both BufferCapStyle.SQUARE
-        ('square') and BufferCapStyle.FLAT ('flat') result in rectangular line endings,
-        only BufferCapStyle.FLAT ('flat') will end at the original vertex,
-        while BufferCapStyle.SQUARE ('square') involves adding the buffer width.
+        Specifies the shape of buffered line endings. BufferCapStyle.round ('round')
+        results in circular line endings (see ``quad_segs``). Both BufferCapStyle.square
+        ('square') and BufferCapStyle.flat ('flat') result in rectangular line endings,
+        only BufferCapStyle.flat ('flat') will end at the original vertex,
+        while BufferCapStyle.square ('square') involves adding the buffer width.
     join_style : shapely.BufferJoinStyle or {'round', 'mitre', 'bevel'}, default 'round'
-        Specifies the shape of buffered line midpoints. BufferJoinStyle.ROUND ('round')
-        results in rounded shapes. BufferJoinStyle.BEVEL ('bevel') results in a beveled
-        edge that touches the original vertex. BufferJoinStyle.MITRE ('mitre') results
+        Specifies the shape of buffered line midpoints. BufferJoinStyle.round ('round')
+        results in rounded shapes. BufferJoinStyle.bevel ('bevel') results in a beveled
+        edge that touches the original vertex. BufferJoinStyle.mitre ('mitre') results
         in a single vertex that is beveled depending on the ``mitre_limit`` parameter.
     mitre_limit : float, default 5.0
         Crops of 'mitre'-style joins if the point is displaced from the
@@ -162,9 +162,9 @@ def buffer(
     True
     """
     if isinstance(cap_style, str):
-        cap_style = BufferCapStyle.get_value(cap_style.upper())
+        cap_style = BufferCapStyle.get_value(cap_style)
     if isinstance(join_style, str):
-        join_style = BufferJoinStyle.get_value(join_style.upper())
+        join_style = BufferJoinStyle.get_value(join_style)
     if not np.isscalar(quad_segs):
         raise TypeError("quad_segs only accepts scalar values")
     if not np.isscalar(cap_style):
@@ -231,7 +231,7 @@ def offset_curve(
     <LINESTRING (2 0, 2 2)>
     """
     if isinstance(join_style, str):
-        join_style = BufferJoinStyle.get_value(join_style.upper())
+        join_style = BufferJoinStyle.get_value(join_style)
     if not np.isscalar(quad_segs):
         raise TypeError("quad_segs only accepts scalar values")
     if not np.isscalar(join_style):

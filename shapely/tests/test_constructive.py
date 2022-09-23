@@ -105,12 +105,12 @@ def test_float_arg_nan(geometry, func):
 
 
 def test_buffer_cap_style_invalid():
-    with pytest.raises(ValueError, match="'INVALID' is not a valid option"):
+    with pytest.raises(ValueError, match="'invalid' is not a valid option"):
         shapely.buffer(point, 1, cap_style="invalid")
 
 
 def test_buffer_join_style_invalid():
-    with pytest.raises(ValueError, match="'INVALID' is not a valid option"):
+    with pytest.raises(ValueError, match="'invalid' is not a valid option"):
         shapely.buffer(point, 1, join_style="invalid")
 
 
@@ -274,7 +274,7 @@ def test_offset_curve_non_scalar_kwargs():
 
     with pytest.raises(TypeError, match=msg):
         shapely.offset_curve(
-            [line_string, line_string], 1, join_style=["ROUND", "BEVEL"]
+            [line_string, line_string], 1, join_style=["round", "bevel"]
         )
 
     with pytest.raises(TypeError, match=msg):
@@ -282,7 +282,7 @@ def test_offset_curve_non_scalar_kwargs():
 
 
 def test_offset_curve_join_style_invalid():
-    with pytest.raises(ValueError, match="'INVALID' is not a valid option"):
+    with pytest.raises(ValueError, match="'invalid' is not a valid option"):
         shapely.offset_curve(line_string, 1.0, join_style="invalid")
 
 

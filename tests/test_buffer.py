@@ -82,46 +82,46 @@ class BufferTests(unittest.TestCase):
 
     def test_enum_values(self):
         assert CAP_STYLE.round == 1
-        assert CAP_STYLE.round == BufferCapStyle.ROUND
+        assert CAP_STYLE.round == BufferCapStyle.round
         assert CAP_STYLE.flat == 2
-        assert CAP_STYLE.flat == BufferCapStyle.FLAT
+        assert CAP_STYLE.flat == BufferCapStyle.flat
         assert CAP_STYLE.square == 3
-        assert CAP_STYLE.square == BufferCapStyle.SQUARE
+        assert CAP_STYLE.square == BufferCapStyle.square
 
         assert JOIN_STYLE.round == 1
-        assert JOIN_STYLE.round == BufferJoinStyle.ROUND
+        assert JOIN_STYLE.round == BufferJoinStyle.round
         assert JOIN_STYLE.mitre == 2
-        assert JOIN_STYLE.mitre == BufferJoinStyle.MITRE
+        assert JOIN_STYLE.mitre == BufferJoinStyle.mitre
         assert JOIN_STYLE.bevel == 3
-        assert JOIN_STYLE.bevel == BufferJoinStyle.BEVEL
+        assert JOIN_STYLE.bevel == BufferJoinStyle.bevel
 
     def test_cap_style(self):
         g = geometry.LineString([[0, 0], [1, 0]])
-        h = g.buffer(1, cap_style=BufferCapStyle.ROUND)
+        h = g.buffer(1, cap_style=BufferCapStyle.round)
         assert h == g.buffer(1, cap_style=CAP_STYLE.round)
-        assert h == g.buffer(1, cap_style="ROUND")
+        assert h == g.buffer(1, cap_style="round")
 
-        h = g.buffer(1, cap_style=BufferCapStyle.FLAT)
+        h = g.buffer(1, cap_style=BufferCapStyle.flat)
         assert h == g.buffer(1, cap_style=CAP_STYLE.flat)
-        assert h == g.buffer(1, cap_style="FLAT")
+        assert h == g.buffer(1, cap_style="flat")
 
-        h = g.buffer(1, cap_style=BufferCapStyle.SQUARE)
+        h = g.buffer(1, cap_style=BufferCapStyle.square)
         assert h == g.buffer(1, cap_style=CAP_STYLE.square)
-        assert h == g.buffer(1, cap_style="SQUARE")
+        assert h == g.buffer(1, cap_style="square")
 
     def test_buffer_style(self):
         g = geometry.LineString([[0, 0], [1, 0]])
-        h = g.buffer(1, join_style=BufferJoinStyle.ROUND)
+        h = g.buffer(1, join_style=BufferJoinStyle.round)
         assert h == g.buffer(1, join_style=JOIN_STYLE.round)
-        assert h == g.buffer(1, join_style="ROUND")
+        assert h == g.buffer(1, join_style="round")
 
-        h = g.buffer(1, join_style=BufferJoinStyle.MITRE)
+        h = g.buffer(1, join_style=BufferJoinStyle.mitre)
         assert h == g.buffer(1, join_style=JOIN_STYLE.mitre)
-        assert h == g.buffer(1, join_style="MITRE")
+        assert h == g.buffer(1, join_style="mitre")
 
-        h = g.buffer(1, join_style=BufferJoinStyle.BEVEL)
+        h = g.buffer(1, join_style=BufferJoinStyle.bevel)
         assert h == g.buffer(1, join_style=JOIN_STYLE.bevel)
-        assert h == g.buffer(1, join_style="BEVEL")
+        assert h == g.buffer(1, join_style="bevel")
 
 def test_deprecated_quadsegs():
     point = geometry.Point(0,0)
