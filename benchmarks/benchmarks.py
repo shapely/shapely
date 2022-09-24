@@ -53,6 +53,12 @@ class IOSuite:
         shapely.from_wkb(self.to_read_wkb)
 
 
+class ConstructorsSuite:
+    """Microbenchmarks for the Geometry class constructors"""
+    
+    def time_point(self):
+        shapely.Point(1.0, 2.0)
+
 class ConstructiveSuite:
     """Benchmarks constructive functions on a set of 10,000 points"""
 
