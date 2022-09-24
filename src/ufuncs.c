@@ -382,6 +382,163 @@ finish:
 }
 static PyUFuncGenericFunction YY_b_p_funcs[1] = {&YY_b_p_func};
 
+/* Define the geom, X, Y -> bool functions (Ydd_b) prepared */
+static char GEOSContainsXY(void* context, void* g1, void* pg1, double x, double y) {
+  GEOSGeometry *geom = NULL;
+  const GEOSPreparedGeometry* prepared_geom_tmp = NULL;
+  char ret;
+
+#if !GEOS_SINCE_3_12_0
+  geom = create_point(context, x, y);
+  if (geom == NULL) {
+    return 2;
+  }
+#endif
+
+  char destroy_prepared = 0;
+  if (pg1 == NULL) {
+    prepared_geom_tmp = GEOSPrepare_r(context, g1);
+    if (prepared_geom_tmp == NULL) {
+      return 2;
+    }
+    destroy_prepared = 1;
+  } else {
+    prepared_geom_tmp = pg1;
+  }
+
+#if GEOS_SINCE_3_12_0
+  ret = GEOSPreparedContainsXY_r(context, prepared_geom_tmp, x, y);
+#else
+  ret = GEOSPreparedContains_r(context, prepared_geom_tmp, geom);
+#endif
+  if (destroy_prepared) {
+    GEOSPreparedGeom_destroy_r(context, prepared_geom_tmp);
+  }
+#if !GEOS_SINCE_3_12_0
+  GEOSGeom_destroy_r(context, geom);
+#endif
+  return ret;
+}
+static void* contains_xy_data[1] = {GEOSContainsXY};
+
+static char GEOSContainsProperlyXY(void* context, void* g1, void* pg1, double x, double y) {
+  GEOSGeometry *geom = NULL;
+  const GEOSPreparedGeometry* prepared_geom_tmp = NULL;
+  char ret;
+
+#if !GEOS_SINCE_3_12_0
+  geom = create_point(context, x, y);
+  if (geom == NULL) {
+    return 2;
+  }
+#endif
+
+  char destroy_prepared = 0;
+  if (pg1 == NULL) {
+    prepared_geom_tmp = GEOSPrepare_r(context, g1);
+    if (prepared_geom_tmp == NULL) {
+      return 2;
+    }
+    destroy_prepared = 1;
+  } else {
+    prepared_geom_tmp = pg1;
+  }
+
+#if GEOS_SINCE_3_12_0
+  ret = GEOSPreparedContainsProperlyXY_r(context, prepared_geom_tmp, x, y);
+#else
+  ret = GEOSPreparedContainsProperly_r(context, prepared_geom_tmp, geom);
+#endif
+  if (destroy_prepared) {
+    GEOSPreparedGeom_destroy_r(context, prepared_geom_tmp);
+  }
+#if !GEOS_SINCE_3_12_0
+  GEOSGeom_destroy_r(context, geom);
+#endif
+  return ret;
+}
+static void* contains_properly_xy_data[1] = {GEOSContainsProperlyXY};
+
+static char GEOSIntersectsXY(void* context, void* g1, void* pg1, double x, double y) {
+  GEOSGeometry *geom = NULL;
+  const GEOSPreparedGeometry* prepared_geom_tmp = NULL;
+  char ret;
+
+#if !GEOS_SINCE_3_12_0
+  geom = create_point(context, x, y);
+  if (geom == NULL) {
+    return 2;
+  }
+#endif
+
+  char destroy_prepared = 0;
+  if (pg1 == NULL) {
+    prepared_geom_tmp = GEOSPrepare_r(context, g1);
+    if (prepared_geom_tmp == NULL) {
+      return 2;
+    }
+    destroy_prepared = 1;
+  } else {
+    prepared_geom_tmp = pg1;
+  }
+
+#if GEOS_SINCE_3_12_0
+  ret = GEOSPreparedIntersectsXY_r(context, prepared_geom_tmp, x, y);
+#else
+  ret = GEOSPreparedIntersects_r(context, prepared_geom_tmp, geom);
+#endif
+  if (destroy_prepared) {
+    GEOSPreparedGeom_destroy_r(context, prepared_geom_tmp);
+  }
+#if !GEOS_SINCE_3_12_0
+  GEOSGeom_destroy_r(context, geom);
+#endif
+  return ret;
+}
+static void* intersects_xy_data[1] = {GEOSIntersectsXY};
+
+typedef char FuncGEOS_Ydd_b(void* context, void* g, void* pg, double x, double y);
+static char Ydd_b_p_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_DOUBLE, NPY_BOOL};
+static void Ydd_b_p_func(char** args, npy_intp* dimensions, npy_intp* steps, void* data) {
+  FuncGEOS_Ydd_b* func = (FuncGEOS_Ydd_b*)data;
+  GEOSGeometry* in1 = NULL;
+  GEOSPreparedGeometry* in1_prepared = NULL;
+  char ret;
+
+  GEOS_INIT_THREADS;
+
+  TERNARY_LOOP {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      goto finish;
+    }
+    /* get the geometries: return on error */
+    if (!get_geom_with_prepared(*(GeometryObject**)ip1, &in1, &in1_prepared)) {
+      errstate = PGERR_NOT_A_GEOMETRY;
+      goto finish;
+    }
+    double in2 = *(double*)ip2;
+    double in3 = *(double*)ip3;
+    if ((in1 == NULL) || npy_isnan(in2) || npy_isnan(in3)) {
+      /* in case of a missing value: return 0 (False) */
+      ret = 0;
+    } else {
+      ret = func(ctx, in1, in1_prepared, in2, in3);
+      /* return for illegal values */
+      if (ret == 2) {
+        errstate = PGERR_GEOS_EXCEPTION;
+        goto finish;
+      }
+    }
+    *(npy_bool*)op1 = ret;
+  }
+
+finish:
+
+  GEOS_FINISH_THREADS;
+}
+static PyUFuncGenericFunction Ydd_b_p_funcs[1] = {&Ydd_b_p_func};
+
 static char is_prepared_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
 static void is_prepared_func(char** args, npy_intp* dimensions, npy_intp* steps,
                              void* data) {
@@ -3436,6 +3593,11 @@ TODO relate functions
                                   PyUFunc_None, #NAME, "", 0);                       \
   PyDict_SetItemString(d, #NAME, ufunc)
 
+#define DEFINE_Ydd_b_p(NAME)                                                           \
+  ufunc = PyUFunc_FromFuncAndData(Ydd_b_p_funcs, NAME##_data, Ydd_b_p_dtypes, 1, 3, 1, \
+                                  PyUFunc_None, #NAME, "", 0);                         \
+  PyDict_SetItemString(d, #NAME, ufunc)
+
 #define DEFINE_Y_Y(NAME)                                                       \
   ufunc = PyUFunc_FromFuncAndData(Y_Y_funcs, NAME##_data, Y_Y_dtypes, 1, 1, 1, \
                                   PyUFunc_None, #NAME, "", 0);                 \
@@ -3539,6 +3701,9 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_YY_b(equals);
   DEFINE_YY_b_p(covers);
   DEFINE_YY_b_p(covered_by);
+  DEFINE_Ydd_b_p(contains_xy);
+  DEFINE_Ydd_b_p(contains_properly_xy);
+  DEFINE_Ydd_b_p(intersects_xy);
   DEFINE_CUSTOM(is_prepared, 1);
 
   DEFINE_Y_Y(envelope);

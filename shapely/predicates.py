@@ -18,13 +18,16 @@ __all__ = [
     "is_valid_reason",
     "crosses",
     "contains",
+    "contains_xy",
     "contains_properly",
+    "contains_properly_xy",
     "covered_by",
     "covers",
     "disjoint",
     "dwithin",
     "equals",
     "intersects",
+    "intersects_xy",
     "overlaps",
     "touches",
     "within",
@@ -501,6 +504,7 @@ def contains(a, b, **kwargs):
     within : ``contains(A, B) == within(B, A)``
     contains_properly : contains with no common boundary points
     prepare : improve performance by preparing ``a`` (the first argument)
+    contains_xy : variant for checking against a Point with x, y coordinates
 
     Examples
     --------
@@ -560,6 +564,7 @@ def contains_properly(a, b, **kwargs):
     --------
     contains : contains which allows common boundary points
     prepare : improve performance by preparing ``a`` (the first argument)
+    contains_properly_xy : variant for checking against a Point with x, y coordinates
 
     Examples
     --------
@@ -775,6 +780,7 @@ def intersects(a, b, **kwargs):
     --------
     disjoint : ``intersects(A, B) == ~disjoint(A, B)``
     prepare : improve performance by preparing ``a`` (the first argument)
+    intersects_xy : variant for checking against a Point with x, y coordinates
 
     Examples
     --------
@@ -1078,3 +1084,86 @@ def dwithin(a, b, distance, **kwargs):
     False
     """
     return lib.dwithin(a, b, distance, **kwargs)
+
+
+@multithreading_enabled
+def contains_xy(geom, x, y, **kwargs):
+    """
+    Returns True if the Point (x, y) is completely inside geometry A.
+
+    This is a special-case (and faster) variant of the `contains` function
+    which avoids having to create a Point object if you start from x/y
+    coordinates.
+
+    See the docstring of `contains` for more details about the predicate.
+
+    Parameters
+    ----------
+    geom : Geometry or array_like
+    x, y : float or array_like
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    See also
+    --------
+    contains : variant taking two geometries as input
+
+    """
+    return lib.contains_xy(geom, x, y, **kwargs)
+
+
+@multithreading_enabled
+def contains_properly_xy(geom, x, y, **kwargs):
+    """
+    Returns True if the Point (x, y) is completely inside geometry A, with no
+    common boundary points.
+
+    This is a special-case (and faster) variant of the `contains_properly`
+    function which avoids having to create a Point object if you start from
+    x/y coordinates.
+
+    See the docstring of `contains_properly` for more details about the
+    predicate.
+
+    Parameters
+    ----------
+    geom : Geometry or array_like
+    x, y : float or array_like
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    See also
+    --------
+    contains_properly : variant taking two geometries as input
+
+    """
+    return lib.contains_properly_xy(geom, x, y, **kwargs)
+
+
+@multithreading_enabled
+def intersects_xy(geom, x, y, **kwargs):
+    """
+    Returns True if A and the Point (x, y) share any portion of space.
+
+    This is a special-case (and faster) variant of the `intersects` function
+    which avoids having to create a Point object if you start from x/y
+    coordinates.
+
+    See the docstring of `intersects` for more details about the predicate.
+
+    Parameters
+    ----------
+    geom : Geometry or array_like
+    x, y : float or array_like
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    See also
+    --------
+    intersects : variant taking two geometries as input
+
+    """
+    return lib.intersects_xy(geom, x, y, **kwargs)
