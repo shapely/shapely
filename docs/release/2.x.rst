@@ -172,6 +172,15 @@ Some additional backwards incompatible API changes were included in Shapely
 The ``STRtree`` interface has been substantially changed. See the section
 :ref:`below <changelog-2-strtree>` for more details.
 
+Additionally, starting with GEOS 3.11 (which is included in the binary wheels
+on PyPI), the behaviour of the ``parallel_offset`` (``offset_curve``) method
+changed regarding the orientation of the resulting line. With GEOS < 3.11,
+the line retains the same direction for a left offset (positive distance) or
+has opposite direction for a right offset (negative distance), and this
+behaviour was documented as such in previous Shapely versions. Starting with
+GEOS 3.11, the function tries to preserve the orientation of the original
+line.
+
 New features
 ^^^^^^^^^^^^
 

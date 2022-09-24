@@ -28,7 +28,7 @@ help:
 	@echo "  doctest   to run all doctests embedded in the documentation (if enabled)"
 
 clean:
-	-rm -rf $(BUILDDIR)/* build/plot_directive/*
+	-rm -rf $(BUILDDIR)/* build/plot_directive/* reference/* _reference.rst
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html

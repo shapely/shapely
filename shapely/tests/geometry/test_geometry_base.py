@@ -135,3 +135,13 @@ def test_dwithin():
     line = LineString([(0, 0), (0, 10)])
     assert point.dwithin(line, 0.5) is False
     assert point.dwithin(line, 1.5) is True
+
+
+@pytest.mark.parametrize(
+    "op", ["convex_hull", "envelope", "oriented_envelope", "minimum_rotated_rectangle"]
+)
+def test_constructive_properties(op):
+    geom = LineString([(0, 0), (0, 10), (10, 10)])
+    result = getattr(geom, op)
+    expected = getattr(shapely, op)(geom)
+    assert result == expected

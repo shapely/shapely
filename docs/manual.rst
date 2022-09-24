@@ -1687,7 +1687,7 @@ Figure 11. Convex hull (blue) of 2 points (left) and of 6 points (right).
   >>> Point(0, 0).minimum_rotated_rectangle
   <POINT (0 0)>
   >>> MultiPoint([(0,0),(1,1),(2,0.5)]).minimum_rotated_rectangle
-  <POLYGON ((1.824 1.206, -0.176 0.706, 0 0, 2 0.5, 1.824 1.206))>
+  <POLYGON ((2 0.5, 1.824 1.206, -0.176 0.706, 0 0, 2 0.5))>
 
 .. plot:: code/minimum_rotated_rectangle.py
 
@@ -1715,8 +1715,13 @@ linestring feature (right).
   The side is determined by the sign of the `distance` parameter (negative for right
   side offset, positive for left side offset). Left and right are determined
   by following the direction of the given geometric points of the LineString.
-  Right hand offsets are returned in the reverse direction of the original
-  LineString or LineRing, while left side offsets flow in the same direction.
+
+  Note: the behaviour regarding orientation of the resulting line depends
+  on the GEOS version. With GEOS < 3.11, the line retains the same
+  direction for a left offset (positive distance) or has reverse direction
+  for a right offset (negative distance), and this behaviour was documented
+  as such in previous Shapely versions. Starting with GEOS 3.11, the
+  function tries to preserve the orientation of the original line.
 
   The resolution of the offset around each vertex of the object is
   parameterized as in the :meth:`buffer` method (using `quad_segs`).
