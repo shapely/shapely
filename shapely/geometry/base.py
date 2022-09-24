@@ -11,6 +11,7 @@ import numpy as np
 
 import shapely
 from shapely._geometry_helpers import _geom_factory
+from shapely.constructive import BufferCapStyle, BufferJoinStyle
 from shapely.coords import CoordinateSequence
 from shapely.errors import GeometryTypeError, GEOSException, ShapelyDeprecationWarning
 
@@ -63,15 +64,15 @@ def dump_coords(geom):
 
 
 class CAP_STYLE:
-    round = 1
-    flat = 2
-    square = 3
+    round = BufferCapStyle.round
+    flat = BufferCapStyle.flat
+    square = BufferCapStyle.square
 
 
 class JOIN_STYLE:
-    round = 1
-    mitre = 2
-    bevel = 3
+    round = BufferJoinStyle.round
+    mitre = BufferJoinStyle.mitre
+    bevel = BufferJoinStyle.bevel
 
 
 class BaseGeometry(shapely.Geometry):
@@ -356,8 +357,8 @@ class BaseGeometry(shapely.Geometry):
         self,
         distance,
         quad_segs=16,
-        cap_style=CAP_STYLE.round,
-        join_style=JOIN_STYLE.round,
+        cap_style="round",
+        join_style="round",
         mitre_limit=5.0,
         single_sided=False,
         **kwargs,
@@ -380,13 +381,17 @@ class BaseGeometry(shapely.Geometry):
             Sets the number of line segments used to approximate an
             angle fillet.  Note: the use of a `quad_segs` parameter is
             deprecated and will be gone from the next major release.
-        cap_style : int, optional
-            The styles of caps are: CAP_STYLE.round (1), CAP_STYLE.flat
-            (2), and CAP_STYLE.square (3).
-        join_style : int, optional
-            The styles of joins between offset segments are:
-            JOIN_STYLE.round (1), JOIN_STYLE.mitre (2), and
-            JOIN_STYLE.bevel (3).
+        cap_style : shapely.BufferCapStyle or {'round', 'square', 'flat'}, default 'round'
+            Specifies the shape of buffered line endings. BufferCapStyle.round ('round')
+            results in circular line endings (see ``quadsegs``). Both BufferCapStyle.square
+            ('square') and BufferCapStyle.flat ('flat') result in rectangular line endings,
+            only BufferCapStyle.flat ('flat') will end at the original vertex,
+            while BufferCapStyle.square ('square') involves adding the buffer width.
+        join_style : shapely.BufferJoinStyle or {'round', 'mitre', 'bevel'}, default 'round'
+            Specifies the shape of buffered line midpoints. BufferJoinStyle.ROUND ('round')
+            results in rounded shapes. BufferJoinStyle.bevel ('bevel') results in a beveled
+            edge that touches the original vertex. BufferJoinStyle.mitre ('mitre') results
+            in a single vertex that is beveled depending on the ``mitre_limit`` parameter.
         mitre_limit : float, optional
             The mitre limit ratio is used for very sharp corners. The
             mitre ratio is the ratio of the distance from the corner to
@@ -435,9 +440,9 @@ class BaseGeometry(shapely.Geometry):
 
         >>> g.buffer(1.0, 3).area
         3.0
-        >>> list(g.buffer(1.0, cap_style=CAP_STYLE.square).exterior.coords)
+        >>> list(g.buffer(1.0, cap_style=BufferCapStyle.square).exterior.coords)
         [(1.0, 1.0), (1.0, -1.0), (-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0)]
-        >>> g.buffer(1.0, cap_style=CAP_STYLE.square).area
+        >>> g.buffer(1.0, cap_style=BufferCapStyle.square).area
         4.0
 
         """

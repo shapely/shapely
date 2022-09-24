@@ -207,9 +207,9 @@ General Attributes and Methods
   This can be thought of as a measure of the robustness of a geometry, where larger values of
   minimum clearance indicate a more robust geometry. If no minimum clearance exists for a geometry,
   such as a point, this will return `math.infinity`.
-  
+
   `New in Shapely 1.7.1`
-  
+
   Requires GEOS 3.6 or higher.
 
 .. code-block:: pycon
@@ -570,7 +570,7 @@ To obtain a polygon with a known orientation, use
 
   Returns a properly oriented copy of the given polygon. The signed area of the
   result will have the given sign. A sign of 1.0 means that the coordinates of
-  the product's exterior ring will be oriented counter-clockwise and the interior 
+  the product's exterior ring will be oriented counter-clockwise and the interior
   rings (holes) will be oriented clockwise.
 
   `New in version 1.2.10`.
@@ -1144,14 +1144,14 @@ A line's endpoints are part of its `boundary` and are therefore not contained.
 
   Returns ``True`` if every point of `other` is a point on the interior or
   boundary of `object`. This is similar to ``object.contains(other)`` except
-  that this does not require any interior points of `other` to lie in the 
+  that this does not require any interior points of `other` to lie in the
   interior of `object`.
 
 .. method:: object.covered_by(other)
 
   Returns ``True`` if every point of `object` is a point on the interior or
   boundary of `other`. This is equivalent to ``other.covers(object)``.
-  
+
   `New in version 1.8`.
 
 .. method:: object.crosses(other)
@@ -1524,13 +1524,13 @@ derived from set-theoretic analysis.
 
   The styles of caps are specified by integer values: 1 (round), 2 (flat),
   3 (square). These values are also enumerated by the object
-  :class:`shapely.geometry.CAP_STYLE` (see below).
+  :class:`shapely.BufferCapStyle` (see below).
 
   The styles of joins between offset segments are specified by integer values:
   1 (round), 2 (mitre), and 3 (bevel). These values are also enumerated by the
-  object :class:`shapely.geometry.JOIN_STYLE` (see below).
+  object :class:`shapely.BufferJoinStyle` (see below).
 
-.. data:: shapely.geometry.CAP_STYLE
+.. data:: shapely.BufferCapStyle
 
    ========= =====
    Attribute Value
@@ -1540,7 +1540,7 @@ derived from set-theoretic analysis.
    square       3
    ========= =====
 
-.. data:: shapely.geometry.JOIN_STYLE
+.. data:: shapely.BufferJoinStyle
 
    ========= =====
    Attribute Value
@@ -1552,10 +1552,10 @@ derived from set-theoretic analysis.
 
 .. code-block:: pycon
 
-  >>> from shapely.geometry import CAP_STYLE, JOIN_STYLE
-  >>> CAP_STYLE.flat
+  >>> from shapely import BufferCapStyle, BufferJoinStyle
+  >>> BufferCapStyle.flat.value
   2
-  >>> JOIN_STYLE.bevel
+  >>> BufferJoinStyle.bevel.value
   3
 
 A positive distance has an effect of dilation; a negative distance, erosion.
@@ -1614,7 +1614,7 @@ Figure 10. Single sided buffer of 0.5 left hand (left) and of 0.3 right hand (ri
 
 The single-sided buffer of point geometries is the same as the regular buffer.
 The End Cap Style for single-sided buffers is always ignored, and forced to
-the equivalent of `CAP_STYLE.flat`.
+the equivalent of `BufferCapStyle.flat`.
 
 Passed a `distance` of 0, :meth:`buffer` can sometimes be used to "clean" self-touching
 or self-crossing polygons such as the classic "bowtie". Users have reported
@@ -1728,7 +1728,7 @@ linestring feature (right).
 
   The `join_style` is for outside corners between line segments. Accepted integer
   values are 1 (round), 2 (mitre), and 3 (bevel). See also
-  :data:`shapely.geometry.JOIN_STYLE`.
+  :data:`shapely.BufferJoinStyle`.
 
   Severely mitered corners can be controlled by the `mitre_limit` parameter
   (spelled in British English, en-gb). The corners of a parallel line will
@@ -2319,7 +2319,7 @@ Voronoi diagram from a collection points, or the vertices of any geometry.
   >>> from shapely.ops import voronoi_diagram
   >>> points = MultiPoint([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
   >>> regions = voronoi_diagram(points)
-  >>> list(regions.geoms) 
+  >>> list(regions.geoms)
   [<POLYGON ((2 1, 2 0.5, 0.5 0.5, 0 1, 1 2, 2 1))>,
    <POLYGON ((6 -3, 3.75 -3, 2 0.5, 2 1, 6 5, 6 -3))>,
    <POLYGON ((-3 -3, -3 1, 0 1, 0.5 0.5, 0.5 -3, -3 -3))>,
