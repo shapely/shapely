@@ -77,6 +77,9 @@ intersphinx_mapping = {
     'numpy': ('https://numpy.org/doc/stable/', None),
 }
 
+plot_rcparams = {
+    'savefig.bbox': "tight"
+}
 
 #  -- Automatic generation of API reference pages -----------------------------
 
