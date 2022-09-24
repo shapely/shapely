@@ -195,10 +195,16 @@ def offset_curve(
     Returns a (Multi)LineString at a distance from the object
     on its right or its left side.
 
-    For positive distance the offset will be at the left side of
-    the input line and retain the same direction. For a negative
-    distance it will be at the right side and in the opposite
-    direction.
+    For positive distance the offset will be at the left side of the input
+    line. For a negative distance it will be at the right side. In general,
+    this function tries to preserve the direction of the input.
+
+    Note: the behaviour regarding orientation of the resulting line depends
+    on the GEOS version. With GEOS < 3.11, the line retains the same
+    direction for a left offset (positive distance) or has opposite direction
+    for a right offset (negative distance), and this behaviour was documented
+    as such in previous Shapely versions. Starting with GEOS 3.11, the
+    function tries to preserve the orientation of the original line.
 
     Parameters
     ----------
