@@ -7,5 +7,6 @@ dependencies:
   - numpy
   - cython
   - sphinx-book-theme
+  - sphinx-remove-toctrees
   - numpydoc==1.1.*
   - matplotlib
