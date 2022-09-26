@@ -20,7 +20,6 @@ __all__ = [
     "contains",
     "contains_xy",
     "contains_properly",
-    "contains_properly_xy",
     "covered_by",
     "covers",
     "disjoint",
@@ -564,7 +563,6 @@ def contains_properly(a, b, **kwargs):
     --------
     contains : contains which allows common boundary points
     prepare : improve performance by preparing ``a`` (the first argument)
-    contains_properly_xy : variant for checking against a Point with x, y coordinates
 
     Examples
     --------
@@ -1111,35 +1109,6 @@ def contains_xy(geom, x, y, **kwargs):
 
     """
     return lib.contains_xy(geom, x, y, **kwargs)
-
-
-@multithreading_enabled
-def contains_properly_xy(geom, x, y, **kwargs):
-    """
-    Returns True if the Point (x, y) is completely inside geometry A, with no
-    common boundary points.
-
-    This is a special-case (and faster) variant of the `contains_properly`
-    function which avoids having to create a Point object if you start from
-    x/y coordinates.
-
-    See the docstring of `contains_properly` for more details about the
-    predicate.
-
-    Parameters
-    ----------
-    geom : Geometry or array_like
-    x, y : float or array_like
-    **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
-
-    See also
-    --------
-    contains_properly : variant taking two geometries as input
-
-    """
-    return lib.contains_properly_xy(geom, x, y, **kwargs)
 
 
 @multithreading_enabled

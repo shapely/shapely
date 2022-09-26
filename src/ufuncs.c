@@ -421,44 +421,6 @@ static char GEOSContainsXY(void* context, void* g1, void* pg1, double x, double 
 }
 static void* contains_xy_data[1] = {GEOSContainsXY};
 
-static char GEOSContainsProperlyXY(void* context, void* g1, void* pg1, double x, double y) {
-  GEOSGeometry *geom = NULL;
-  const GEOSPreparedGeometry* prepared_geom_tmp = NULL;
-  char ret;
-
-#if !GEOS_SINCE_3_12_0
-  geom = create_point(context, x, y);
-  if (geom == NULL) {
-    return 2;
-  }
-#endif
-
-  char destroy_prepared = 0;
-  if (pg1 == NULL) {
-    prepared_geom_tmp = GEOSPrepare_r(context, g1);
-    if (prepared_geom_tmp == NULL) {
-      return 2;
-    }
-    destroy_prepared = 1;
-  } else {
-    prepared_geom_tmp = pg1;
-  }
-
-#if GEOS_SINCE_3_12_0
-  ret = GEOSPreparedContainsProperlyXY_r(context, prepared_geom_tmp, x, y);
-#else
-  ret = GEOSPreparedContainsProperly_r(context, prepared_geom_tmp, geom);
-#endif
-  if (destroy_prepared) {
-    GEOSPreparedGeom_destroy_r(context, prepared_geom_tmp);
-  }
-#if !GEOS_SINCE_3_12_0
-  GEOSGeom_destroy_r(context, geom);
-#endif
-  return ret;
-}
-static void* contains_properly_xy_data[1] = {GEOSContainsProperlyXY};
-
 static char GEOSIntersectsXY(void* context, void* g1, void* pg1, double x, double y) {
   GEOSGeometry *geom = NULL;
   const GEOSPreparedGeometry* prepared_geom_tmp = NULL;
@@ -3702,7 +3664,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_YY_b_p(covers);
   DEFINE_YY_b_p(covered_by);
   DEFINE_Ydd_b_p(contains_xy);
-  DEFINE_Ydd_b_p(contains_properly_xy);
   DEFINE_Ydd_b_p(intersects_xy);
   DEFINE_CUSTOM(is_prepared, 1);
 
