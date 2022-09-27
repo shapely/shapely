@@ -664,6 +664,7 @@ def polygonize_full(geometries, **kwargs):
 
 
 @requires_geos("3.11.0")
+@multithreading_enabled
 def remove_repeated_points(geometry, tolerance=0.0, **kwargs):
     """Returns a copy of a Geometry with repeated points removed.
 
