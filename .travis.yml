@@ -8,6 +8,9 @@ if: (branch = main OR tag IS present) AND (type = push)
 env:
   global:
   - GEOS_VERSION=3.11.0
+  - secure: Rg+fFrK8N8+jYqno6mfa/MfeUDV9mnUdJtsC02A6A1Umdcs3gwyyEfeEdDlJvJ94Sr04jwN/9WkTj5i7EyW6/ESq1mFaaSLqL456nyriJBHn7o/dJgKavl6E0EyXMbpfLXR4V+5cHfI/48PuX4BuDwlEZa+dLTjpDbvXIwb98sY=
+  - secure: bJ5kz6dk3E9bYoBe//XF5d0xP1ksbc/uGVhZVgB6jRGYpkO/lpU7rIltiG//8LMH+heKK2vEUAo6lLGBPN3FMBx7Ti/UBlbQhw4NKdTW52Tzb8XY15MwcYjCC4PbYf9pGvO5VgRXiTfRjR6yac85ndV7SpYCDKCudf4wJ9M6tro=
+  - secure: MPQZA8QcTJtJrLhHA7hGmrGE5Shr71gxOjjyVcX+KUHmLefWTX/wkz2AXntTq9sBHwBskKc0k7wqM/HRmC2JFgrhe+7zFqs6etILhISdZUizM3TKd7y2Dnm4U3KLBvtuoty3o9N2YsETmXhDsOZ4po8zyxLBuUmo2obIqk+TAyY=
 
 cache:
   directories:
@@ -57,9 +60,8 @@ script:
 deploy:
   provider: pypi
   username: __token__
+  password: $PYPI_TOKEN1$PYPI_TOKEN2$PYPI_TOKEN3
   skip_cleanup: true
   skip_existing: true
   on:
     tags: true
-  password:
-    secure: ""  # TODO
