@@ -1,3 +1,5 @@
+import weakref
+
 import numpy as np
 import pytest
 
@@ -47,6 +49,11 @@ geometries_all_types = [
 def test_setattr_disallowed(geom):
     with pytest.raises(AttributeError):
         geom.name = "test"
+
+
+@pytest.mark.parametrize("geom", geometries_all_types)
+def test_weakrefable(geom):
+    _ = weakref.ref(geom)
 
 
 @pytest.mark.parametrize("geom", geometries_all_types)

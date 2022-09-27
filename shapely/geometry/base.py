@@ -81,7 +81,7 @@ class BaseGeometry(shapely.Geometry):
 
     """
 
-    __slots__ = []
+    __slots__ = ["__weakref__"]
 
     def __new__(self):
         warn(
