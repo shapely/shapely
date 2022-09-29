@@ -23,6 +23,7 @@ __all__ = [
     "point_on_surface",
     "polygonize",
     "polygonize_full",
+    "remove_repeated_points",
     "reverse",
     "simplify",
     "snap",
@@ -667,6 +668,34 @@ def polygonize_full(geometries, **kwargs):
      <GEOMETRYCOLLECTION EMPTY>)
     """
     return lib.polygonize_full(geometries, **kwargs)
+
+
+@requires_geos("3.11.0")
+@multithreading_enabled
+def remove_repeated_points(geometry, tolerance=0.0, **kwargs):
+    """Returns a copy of a Geometry with repeated points removed.
+
+    From the start of the coordinate sequence, each next point within the
+    tolerance is removed.
+
+    Removing repeated points with a non-zero tolerance may result in an invalid
+    geometry being returned.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    tolerance : float or array_like, default=0.0
+        Use 0.0 to remove only exactly repeated points.
+
+    Examples
+    ----------
+    >>> from shapely import LineString, Polygon
+    >>> remove_repeated_points(LineString([(0,0), (0,0), (1,0)]), tolerance=0)
+    <LINESTRING (0 0, 1 0)>
+    >>> remove_repeated_points(Polygon([(0, 0), (0, .5), (0, 1), (.5, 1), (0,0)]), tolerance=.5)
+    <POLYGON ((0 0, 0 1, 0 0, 0 0))>
+    """
+    return lib.remove_repeated_points(geometry, tolerance, **kwargs)
 
 
 @requires_geos("3.7.0")
