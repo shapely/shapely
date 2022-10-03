@@ -311,6 +311,7 @@ Several (new) functions from GEOS are now exposed in Shapely:
 * :func:`.contains_properly`
 * :func:`.extract_unique_points`
 * :func:`.reverse`
+* :func:`.contains_xy` and :func:`.intersects_xy`
 * :func:`.build_area` (GEOS >= 3.8)
 * :func:`.minimum_bounding_circle` and :func:`.minimum_bounding_radius` (GEOS >= 3.8)
 * :func:`.coverage_union` and :func:`.coverage_union_all` (GEOS >= 3.8)
