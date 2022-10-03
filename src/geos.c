@@ -648,11 +648,13 @@ GEOSGeometry* create_point(GEOSContextHandle_t ctx, double x, double y) {
   if (coord_seq == NULL) {
     return NULL;
   }
-  for (int j = 0; j < 2; j++) {
-    if (!GEOSCoordSeq_setOrdinate_r(ctx, coord_seq, 0, j, 0.0)) {
-      GEOSCoordSeq_destroy_r(ctx, coord_seq);
-      return NULL;
-    }
+  if (!GEOSCoordSeq_setX_r(ctx, coord_seq, 0, x)) {
+    GEOSCoordSeq_destroy_r(ctx, coord_seq);
+    return NULL;
+  }
+  if (!GEOSCoordSeq_setY_r(ctx, coord_seq, 0, y)) {
+    GEOSCoordSeq_destroy_r(ctx, coord_seq);
+    return NULL;
   }
   geom = GEOSGeom_createPoint_r(ctx, coord_seq);
   if (geom == NULL) {
