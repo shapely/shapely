@@ -5,6 +5,7 @@ geometry objects, but has no effect on geometric analysis. All
 operations are performed in the x-y plane. Thus, geometries with
 different z values may intersect or be equal.
 """
+import re
 from warnings import warn
 
 import numpy as np
@@ -102,6 +103,91 @@ class BaseGeometry(shapely.Geometry):
 
     def __nonzero__(self):
         return self.__bool__()
+
+    def __format__(self, format_spec):
+        """Format a geometry using a format specification.
+
+        This is inspired from the `Format Specification Mini-Language
+        <https://docs.python.org/3/library/string.html#formatspec>`_.
+
+        Parameters
+        ----------
+        format_spec: str
+            A string with the format specification, e.g., ".2f"
+
+        Semantic for format spec
+        ------------------------
+
+            format_spec ::=  [0][.precision][type]
+            precision   ::=  digit+
+            type        ::=  "f" | "F" | "g" | "G" | "x" | "X"
+
+        Format types "f" and "F" are to use a fixed-point notation. The upper
+        case variant converts `nan` to `NAN` and `inf` to `INF`.
+
+        Format types "g" and "G" are to use a general format, where unnecessary
+        digits are trimmed. The upper case variant is similar to "F", and may
+        also use an upper-case "E" if scientific notation is required.
+
+        For numeric outputs "f" and "g", the precision is optional, and if not
+        speicified, rounding precision will be disabled showing full precision.
+
+        Format types "x" and "X" show a hex-encoded string representation of
+        WKB or Well-Known Binary, with the case of the output matched the
+        case of the format type character.
+
+        Examples
+        --------
+        >>> from shapely import Point
+        >>> pt = Point(1.23456789, -9.87654321)
+        >>> print(f"Treasure close to {pt:.3f}")
+        Treasure close to POINT (1.235 -9.877)
+        >>> print(f"or in hex-encoded WKB: {pt:x}")
+        or in hex-encoded WKB: 01010000001bde8342cac0f33f33f68845cac023c0
+
+        """
+        # bypass reqgexp for simple cases
+        if format_spec == "":
+            return shapely.to_wkt(self, rounding_precision=-1)
+        elif format_spec == "x":
+            return shapely.to_wkb(self, hex=True).lower()
+        elif format_spec == "X":
+            return shapely.to_wkb(self, hex=True)
+
+        # fmt: off
+        format_spec_regexp = (
+            "(?:0?\\.(?P<prec>[0-9]+))?"
+            "(?P<fmt_code>[fFgGxX]?)"
+        )
+        # fmt: on
+        match = re.fullmatch(format_spec_regexp, format_spec)
+        if match is None:
+            raise ValueError(f"invalid format specifier: {format_spec}")
+
+        prec, fmt_code = match.groups()
+
+        if prec:
+            prec = int(prec)
+        else:
+            # GEOS has a default rounding_precision -1
+            prec = -1
+
+        if not fmt_code:
+            fmt_code = "g"
+
+        if fmt_code in ("g", "G"):
+            res = shapely.to_wkt(self, rounding_precision=prec, trim=True)
+        elif fmt_code in ("f", "F"):
+            res = shapely.to_wkt(self, rounding_precision=prec, trim=False)
+        elif fmt_code in ("x", "X"):
+            raise ValueError("hex representation does not specify precision")
+        else:
+            raise NotImplementedError(f"unhandled fmt_code: {fmt_code}")
+
+        if fmt_code.isupper():
+            return res.upper()
+        else:
+            return res
 
     def __repr__(self):
         try:
