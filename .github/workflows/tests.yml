@@ -40,6 +40,7 @@ jobs:
           - python: "3.10" # switch to "3.11" when released (PEP 664)
             geos: 3.11.0
             numpy: 1.23.0
+            matplotlib: true
             # TODO(shapely-2.0) temporary allow warnings
             # extra_pytest_args: "-W error"  # error on warnings
           # dev
@@ -120,6 +121,9 @@ jobs:
             pip install --upgrade --pre Cython numpy pytest pytest-cov coveralls;
           else
             pip install --upgrade Cython numpy==${{ matrix.numpy }} pytest pytest-cov coveralls;
+          fi
+          if [ -n "${{ matrix.numpy }}" ]; then
+            pip install matplotlib
           fi
           pip list
 
