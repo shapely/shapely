@@ -1107,6 +1107,14 @@ def contains_xy(geom, x, y, **kwargs):
     --------
     contains : variant taking two geometries as input
 
+    Examples
+    --------
+    >>> from shapely import Point, Polygon
+    >>> area = Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
+    >>> contains(area, Point(0.5, 0.5))
+    True
+    >>> contains_xy(area, 0.5, 0.5)
+    True
     """
     return lib.contains_xy(geom, x, y, **kwargs)
 
@@ -1134,5 +1142,13 @@ def intersects_xy(geom, x, y, **kwargs):
     --------
     intersects : variant taking two geometries as input
 
+    Examples
+    --------
+    >>> from shapely import LineString, Point
+    >>> line = LineString([(0, 0), (1, 1)])
+    >>> intersects(line, Point(0, 0))
+    True
+    >>> intersects_xy(line, 0, 0)
+    True
     """
     return lib.intersects_xy(geom, x, y, **kwargs)
