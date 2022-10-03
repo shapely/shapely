@@ -1,8 +1,8 @@
-.. _migration:
+.. _migration-pygeos:
 
-========================
-Migrating to from PyGEOS
-========================
+=====================
+Migrating from PyGEOS
+=====================
 
 The PyGEOS package was merged with Shapely in December 2021 and will be
 released as part of Shapely 2.0. No further development will take place for
@@ -51,7 +51,7 @@ or merged:
   It should thus be a matter of replacing ``query_bulk`` with ``query`` in
   your code.
 
-  See :meth:`STRtree.query` for more details.
+  See :meth:`.STRtree.query` for more details.
 
 - The ``nearest()`` method was changed to return an array of the same shape
   as the input geometries. Thus, for a scalar geometry it now returns a
@@ -59,7 +59,7 @@ or merged:
   geometries it now returns a 1D array of indices ((n,) array instead of a
   (2, n) array).
 
-  See :meth:`STRtree.nearest` for more details.
+  See :meth:`.STRtree.nearest` for more details.
 
 - The ``nearest_all()`` method has been replaced with ``query_nearest()``.
   For an array of geometries, the output is the same, but when passing a
@@ -68,7 +68,7 @@ or merged:
 
   In addition, this method gained the new ``exclusive`` and ``all_matches``
   keywords (with defaults preserving existing behaviour from PyGEOS). See
-  :meth:`STRtree.nearest_all` for more details.
+  :meth:`.STRtree.query_nearest` for more details.
 
 
 Other differences
