@@ -11,6 +11,7 @@ __all__ = [
     "intersection_all",
     "symmetric_difference",
     "symmetric_difference_all",
+    "unary_union",
     "union",
     "union_all",
     "coverage_union",
@@ -349,7 +350,8 @@ def union_all(geometries, grid_size=None, axis=None, skip_na=True, **kwargs):
     """Returns the union of multiple geometries.
 
     This function ignores None values when other Geometry elements are present.
-    If all elements of the given axis are None, None is returned.
+    If all elements of the given axis are None an empty GeometryCollection is
+    returned.
 
     If grid_size is nonzero, input coordinates will be snapped to a precision
     grid of that size and resulting coordinates will be snapped to that same
@@ -357,6 +359,8 @@ def union_all(geometries, grid_size=None, axis=None, skip_na=True, **kwargs):
     the highest precision of the inputs will be used, which may be previously
     set using set_precision.  Note: returned geometry does not have precision
     set unless specified previously by set_precision.
+
+    `unary_union` is an alias of `union_all`.
 
     Parameters
     ----------
@@ -380,7 +384,7 @@ def union_all(geometries, grid_size=None, axis=None, skip_na=True, **kwargs):
 
     Examples
     --------
-    >>> from shapely import box, LineString, normalize
+    >>> from shapely import box, LineString, normalize, Point
     >>> line1 = LineString([(0, 0), (2, 2)])
     >>> line2 = LineString([(2, 2), (3, 3)])
     >>> union_all([line1, line2])
@@ -394,7 +398,12 @@ def union_all(geometries, grid_size=None, axis=None, skip_na=True, **kwargs):
     >>> box1 = box(0.1, 0.2, 2.1, 2.1)
     >>> union_all([box1, box2], grid_size=1)
     <POLYGON ((2 0, 0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0))>
-
+    >>> union_all([None, Point(0, 1)])
+    <POINT (0 1)>
+    >>> union_all([None, None])
+    <GEOMETRYCOLLECTION EMPTY>
+    >>> union_all([])
+    <GEOMETRYCOLLECTION EMPTY>
     """
     if not skip_na:
         if grid_size is not None:
@@ -410,9 +419,8 @@ def union_all(geometries, grid_size=None, axis=None, skip_na=True, **kwargs):
     if axis is None:
         geometries = geometries.ravel()
     else:
-        geometries = np.rollaxis(
-            np.asarray(geometries), axis=axis, start=geometries.ndim
-        )
+        geometries = np.rollaxis(geometries, axis=axis, start=geometries.ndim)
+
     # create_collection acts on the inner axis
     collections = lib.create_collection(geometries, GeometryType.GEOMETRYCOLLECTION)
 
@@ -425,12 +433,12 @@ def union_all(geometries, grid_size=None, axis=None, skip_na=True, **kwargs):
         if not np.isscalar(grid_size):
             raise ValueError("grid_size parameter only accepts scalar values")
 
-        result = lib.unary_union_prec(collections, grid_size, **kwargs)
+        return lib.unary_union_prec(collections, grid_size, **kwargs)
 
-    else:
-        result = lib.unary_union(collections, **kwargs)
+    return lib.unary_union(collections, **kwargs)
 
-    return result
+
+unary_union = union_all
 
 
 @requires_geos("3.8.0")

@@ -5,8 +5,8 @@ from .decorators import multithreading_enabled, requires_geos
 from .enum import ParamEnum
 
 __all__ = [
-    "BufferCapStyles",
-    "BufferJoinStyles",
+    "BufferCapStyle",
+    "BufferJoinStyle",
     "boundary",
     "buffer",
     "offset_curve",
@@ -23,6 +23,7 @@ __all__ = [
     "point_on_surface",
     "polygonize",
     "polygonize_full",
+    "remove_repeated_points",
     "reverse",
     "simplify",
     "snap",
@@ -33,13 +34,13 @@ __all__ = [
 ]
 
 
-class BufferCapStyles(ParamEnum):
+class BufferCapStyle(ParamEnum):
     round = 1
     flat = 2
     square = 3
 
 
-class BufferJoinStyles(ParamEnum):
+class BufferJoinStyle(ParamEnum):
     round = 1
     mitre = 2
     bevel = 3
@@ -108,16 +109,17 @@ def buffer(
     quad_segs : int, default 8
         Specifies the number of linear segments in a quarter circle in the
         approximation of circular arcs.
-    cap_style : {'round', 'square', 'flat'}, default 'round'
-        Specifies the shape of buffered line endings. 'round' results in
-        circular line endings (see ``quad_segs``). Both 'square' and 'flat'
-        result in rectangular line endings, only 'flat' will end at the
-        original vertex, while 'square' involves adding the buffer width.
-    join_style : {'round', 'bevel', 'mitre'}, default 'round'
-        Specifies the shape of buffered line midpoints. 'round' results in
-        rounded shapes. 'bevel' results in a beveled edge that touches the
-        original vertex. 'mitre' results in a single vertex that is beveled
-        depending on the ``mitre_limit`` parameter.
+    cap_style : shapely.BufferCapStyle or {'round', 'square', 'flat'}, default 'round'
+        Specifies the shape of buffered line endings. BufferCapStyle.round ('round')
+        results in circular line endings (see ``quad_segs``). Both BufferCapStyle.square
+        ('square') and BufferCapStyle.flat ('flat') result in rectangular line endings,
+        only BufferCapStyle.flat ('flat') will end at the original vertex,
+        while BufferCapStyle.square ('square') involves adding the buffer width.
+    join_style : shapely.BufferJoinStyle or {'round', 'mitre', 'bevel'}, default 'round'
+        Specifies the shape of buffered line midpoints. BufferJoinStyle.round ('round')
+        results in rounded shapes. BufferJoinStyle.bevel ('bevel') results in a beveled
+        edge that touches the original vertex. BufferJoinStyle.mitre ('mitre') results
+        in a single vertex that is beveled depending on the ``mitre_limit`` parameter.
     mitre_limit : float, default 5.0
         Crops of 'mitre'-style joins if the point is displaced from the
         buffered vertex by more than this limit.
@@ -129,7 +131,7 @@ def buffer(
 
     Examples
     --------
-    >>> from shapely import LineString, Point, Polygon
+    >>> from shapely import LineString, Point, Polygon, BufferCapStyle, BufferJoinStyle
     >>> buffer(Point(10, 10), 2, quad_segs=1)
     <POLYGON ((12 10, 10 8, 8 10, 10 12, 12 10))>
     >>> buffer(Point(10, 10), 2, quad_segs=2)
@@ -161,9 +163,9 @@ def buffer(
     True
     """
     if isinstance(cap_style, str):
-        cap_style = BufferCapStyles.get_value(cap_style)
+        cap_style = BufferCapStyle.get_value(cap_style)
     if isinstance(join_style, str):
-        join_style = BufferJoinStyles.get_value(join_style)
+        join_style = BufferJoinStyle.get_value(join_style)
     if not np.isscalar(quad_segs):
         raise TypeError("quad_segs only accepts scalar values")
     if not np.isscalar(cap_style):
@@ -194,10 +196,16 @@ def offset_curve(
     Returns a (Multi)LineString at a distance from the object
     on its right or its left side.
 
-    For positive distance the offset will be at the left side of
-    the input line and retain the same direction. For a negative
-    distance it will be at the right side and in the opposite
-    direction.
+    For positive distance the offset will be at the left side of the input
+    line. For a negative distance it will be at the right side. In general,
+    this function tries to preserve the direction of the input.
+
+    Note: the behaviour regarding orientation of the resulting line depends
+    on the GEOS version. With GEOS < 3.11, the line retains the same
+    direction for a left offset (positive distance) or has opposite direction
+    for a right offset (negative distance), and this behaviour was documented
+    as such in previous Shapely versions. Starting with GEOS 3.11, the
+    function tries to preserve the orientation of the original line.
 
     Parameters
     ----------
@@ -230,7 +238,7 @@ def offset_curve(
     <LINESTRING (2 0, 2 2)>
     """
     if isinstance(join_style, str):
-        join_style = BufferJoinStyles.get_value(join_style)
+        join_style = BufferJoinStyle.get_value(join_style)
     if not np.isscalar(quad_segs):
         raise TypeError("quad_segs only accepts scalar values")
     if not np.isscalar(join_style):
@@ -660,6 +668,34 @@ def polygonize_full(geometries, **kwargs):
      <GEOMETRYCOLLECTION EMPTY>)
     """
     return lib.polygonize_full(geometries, **kwargs)
+
+
+@requires_geos("3.11.0")
+@multithreading_enabled
+def remove_repeated_points(geometry, tolerance=0.0, **kwargs):
+    """Returns a copy of a Geometry with repeated points removed.
+
+    From the start of the coordinate sequence, each next point within the
+    tolerance is removed.
+
+    Removing repeated points with a non-zero tolerance may result in an invalid
+    geometry being returned.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    tolerance : float or array_like, default=0.0
+        Use 0.0 to remove only exactly repeated points.
+
+    Examples
+    ----------
+    >>> from shapely import LineString, Polygon
+    >>> remove_repeated_points(LineString([(0,0), (0,0), (1,0)]), tolerance=0)
+    <LINESTRING (0 0, 1 0)>
+    >>> remove_repeated_points(Polygon([(0, 0), (0, .5), (0, 1), (.5, 1), (0,0)]), tolerance=.5)
+    <POLYGON ((0 0, 0 1, 0 0, 0 0))>
+    """
+    return lib.remove_repeated_points(geometry, tolerance, **kwargs)
 
 
 @requires_geos("3.7.0")

@@ -68,6 +68,8 @@ docs/_build/
 docs/shapely.*.txt
 docs/shapely.txt
 docs/modules.txt
+docs/_reference.rst
+docs/reference/*
 
 # Benchmarks
 .asv

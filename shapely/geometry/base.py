@@ -5,14 +5,13 @@ geometry objects, but has no effect on geometric analysis. All
 operations are performed in the x-y plane. Thus, geometries with
 different z values may intersect or be equal.
 """
-import math
-from itertools import islice
 from warnings import warn
 
 import numpy as np
 
 import shapely
-from shapely.affinity import affine_transform
+from shapely._geometry_helpers import _geom_factory
+from shapely.constructive import BufferCapStyle, BufferJoinStyle
 from shapely.coords import CoordinateSequence
 from shapely.errors import GeometryTypeError, GEOSException, ShapelyDeprecationWarning
 
@@ -26,6 +25,25 @@ GEOMETRY_TYPES = [
     "MultiPolygon",
     "GeometryCollection",
 ]
+
+
+def geom_factory(g, parent=None):
+    """
+    Creates a Shapely geometry instance from a pointer to a GEOS geometry.
+
+    WARNING: the GEOS library used to create the the GEOS geometry pointer
+    and the GEOS library used by Shapely must be exactly the same, or
+    unexpected results or segfaults may occur.
+
+    Deprecated in Shapely 2.0, and will be removed in a future version.
+    """
+    warn(
+        "The 'geom_factory' function is deprecated in Shapely 2.0, and will be "
+        "removed in a future version",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return _geom_factory(g)
 
 
 def dump_coords(geom):
@@ -46,15 +64,15 @@ def dump_coords(geom):
 
 
 class CAP_STYLE:
-    round = 1
-    flat = 2
-    square = 3
+    round = BufferCapStyle.round
+    flat = BufferCapStyle.flat
+    square = BufferCapStyle.square
 
 
 class JOIN_STYLE:
-    round = 1
-    mitre = 2
-    bevel = 3
+    round = BufferJoinStyle.round
+    mitre = BufferJoinStyle.mitre
+    bevel = BufferJoinStyle.bevel
 
 
 class BaseGeometry(shapely.Geometry):
@@ -63,7 +81,7 @@ class BaseGeometry(shapely.Geometry):
 
     """
 
-    __slots__ = []
+    __slots__ = ["__weakref__"]
 
     def __new__(self):
         warn(
@@ -308,50 +326,39 @@ class BaseGeometry(shapely.Geometry):
         return shapely.envelope(self)
 
     @property
-    def minimum_rotated_rectangle(self):
-        """Returns the general minimum bounding rectangle of
-        the geometry. Can possibly be rotated. If the convex hull
-        of the object is a degenerate (line or point) this same degenerate
-        is returned.
+    def oriented_envelope(self):
         """
-        # first compute the convex hull
-        hull = self.convex_hull
-        try:
-            coords = hull.exterior.coords
-        except AttributeError:  # may be a Point or a LineString
-            return hull
-        # generate the edge vectors between the convex hull's coords
-        edges = (
-            (pt2[0] - pt1[0], pt2[1] - pt1[1])
-            for pt1, pt2 in zip(coords, islice(coords, 1, None))
-        )
+        Returns the oriented envelope (minimum rotated rectangle) that
+        encloses the geometry.
 
-        def _transformed_rects():
-            for dx, dy in edges:
-                # compute the normalized direction vector of the edge
-                # vector.
-                length = math.sqrt(dx**2 + dy**2)
-                ux, uy = dx / length, dy / length
-                # compute the normalized perpendicular vector
-                vx, vy = -uy, ux
-                # transform hull from the original coordinate system to
-                # the coordinate system defined by the edge and compute
-                # the axes-parallel bounding rectangle.
-                transf_rect = affine_transform(hull, (ux, uy, vx, vy, 0, 0)).envelope
-                # yield the transformed rectangle and a matrix to
-                # transform it back to the original coordinate system.
-                yield (transf_rect, (ux, vx, uy, vy, 0, 0))
+        Unlike envelope this rectangle is not constrained to be parallel to the
+        coordinate axes. If the convex hull of the object is a degenerate (line
+        or point) this degenerate is returned.
 
-        # check for the minimum area rectangle and return it
-        transf_rect, inv_matrix = min(_transformed_rects(), key=lambda r: r[0].area)
-        return affine_transform(transf_rect, inv_matrix)
+        Alias of `minimum_rotated_rectangle`.
+        """
+        return shapely.oriented_envelope(self)
+
+    @property
+    def minimum_rotated_rectangle(self):
+        """
+        Returns the oriented envelope (minimum rotated rectangle) that
+        encloses the geometry.
+
+        Unlike `envelope` this rectangle is not constrained to be parallel to the
+        coordinate axes. If the convex hull of the object is a degenerate (line
+        or point) this degenerate is returned.
+
+        Alias of `oriented_envelope`.
+        """
+        return shapely.oriented_envelope(self)
 
     def buffer(
         self,
         distance,
         quad_segs=16,
-        cap_style=CAP_STYLE.round,
-        join_style=JOIN_STYLE.round,
+        cap_style="round",
+        join_style="round",
         mitre_limit=5.0,
         single_sided=False,
         **kwargs,
@@ -374,13 +381,17 @@ class BaseGeometry(shapely.Geometry):
             Sets the number of line segments used to approximate an
             angle fillet.  Note: the use of a `quad_segs` parameter is
             deprecated and will be gone from the next major release.
-        cap_style : int, optional
-            The styles of caps are: CAP_STYLE.round (1), CAP_STYLE.flat
-            (2), and CAP_STYLE.square (3).
-        join_style : int, optional
-            The styles of joins between offset segments are:
-            JOIN_STYLE.round (1), JOIN_STYLE.mitre (2), and
-            JOIN_STYLE.bevel (3).
+        cap_style : shapely.BufferCapStyle or {'round', 'square', 'flat'}, default 'round'
+            Specifies the shape of buffered line endings. BufferCapStyle.round ('round')
+            results in circular line endings (see ``quadsegs``). Both BufferCapStyle.square
+            ('square') and BufferCapStyle.flat ('flat') result in rectangular line endings,
+            only BufferCapStyle.flat ('flat') will end at the original vertex,
+            while BufferCapStyle.square ('square') involves adding the buffer width.
+        join_style : shapely.BufferJoinStyle or {'round', 'mitre', 'bevel'}, default 'round'
+            Specifies the shape of buffered line midpoints. BufferJoinStyle.ROUND ('round')
+            results in rounded shapes. BufferJoinStyle.bevel ('bevel') results in a beveled
+            edge that touches the original vertex. BufferJoinStyle.mitre ('mitre') results
+            in a single vertex that is beveled depending on the ``mitre_limit`` parameter.
         mitre_limit : float, optional
             The mitre limit ratio is used for very sharp corners. The
             mitre ratio is the ratio of the distance from the corner to
@@ -429,9 +440,9 @@ class BaseGeometry(shapely.Geometry):
 
         >>> g.buffer(1.0, 3).area
         3.0
-        >>> list(g.buffer(1.0, cap_style=CAP_STYLE.square).exterior.coords)
+        >>> list(g.buffer(1.0, cap_style=BufferCapStyle.square).exterior.coords)
         [(1.0, 1.0), (1.0, -1.0), (-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0)]
-        >>> g.buffer(1.0, cap_style=CAP_STYLE.square).area
+        >>> g.buffer(1.0, cap_style=BufferCapStyle.square).area
         4.0
 
         """

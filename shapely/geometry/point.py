@@ -1,5 +1,6 @@
 """Points and related utilities
 """
+import numpy as np
 
 import shapely
 from shapely.errors import DimensionError
@@ -70,7 +71,7 @@ class Point(BaseGeometry):
             geom = shapely.points(coords)
         else:
             # 2 or 3 args
-            geom = shapely.points(*args)
+            geom = shapely.points(np.array(args))
 
         if not isinstance(geom, Point):
             raise ValueError("Invalid values passed to Point constructor")
