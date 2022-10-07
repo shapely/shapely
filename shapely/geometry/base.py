@@ -127,7 +127,9 @@ class BaseGeometry(shapely.Geometry):
 
         Format types "g" and "G" are to use a general format, where unnecessary
         digits are trimmed. The upper case variant is similar to "F", and may
-        also use an upper-case "E" if scientific notation is required.
+        also use an upper-case "E" if scientific notation is required. Note
+        that this representation may be different for GEOS 3.10.0 and later,
+        which does not use scientific notation.
 
         For numeric outputs "f" and "g", the precision is optional, and if not
         speicified, rounding precision will be disabled showing full precision.

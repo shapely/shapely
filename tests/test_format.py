@@ -1,6 +1,7 @@
 import pytest
 
 from shapely import Point, Polygon
+from shapely.geos import geos_version
 
 
 def test_format_point():
@@ -25,16 +26,29 @@ def test_format_point():
     valid = [
         (".0f", x1, y1, "0", "12345678901"),
         (".1f", x1, y1, "0.1", "12345678901.2"),
-        (".1g", x1, y1, "0.1", "1e+10"),
-        (".6G", x1, y1, "0.123457", "1.23457E+10"),
-        ("0.12g", x1, y1, "0.123456789012", "12345678901.2"),
         (".3F", float("inf"), -float("inf"), "INF", "-INF"),
     ]
+    if geos_version < (3, 10, 0):
+        # 'g' format varies depending on GEOS version
+        valid += [
+            (".1g", x1, y1, "0.1", "1e+10"),
+            (".6G", x1, y1, "0.123457", "1.23457E+10"),
+            ("0.12g", x1, y1, "0.123456789012", "12345678901.2"),
+        ]
     for format_spec, x, y, expected_x, expected_y in valid:
         assert format(x, format_spec) == expected_x, format_spec
         assert format(y, format_spec) == expected_y, format_spec
         expected_pt = f"POINT ({expected_x} {expected_y})"
         assert format(Point(x, y), format_spec) == expected_pt, format_spec
+    if geos_version >= (3, 10, 0):
+        # 'g' format tests for GEOS >= 3.10.0
+        valid = [
+            (".1g", x1, y1, "POINT (0.1 12345678901.2)"),
+            (".6G", x1, y1, "POINT (0.123457 12345678901.234568)"),
+            ("0.12g", x1, y1, "POINT (0.123456789012 12345678901.234568)"),
+        ]
+        for format_spec, x, y, expected_pt in valid:
+            assert format(Point(x, y), format_spec) == expected_pt, format_spec
 
     invalid = [
         ("5G", ValueError, "invalid format specifier"),
@@ -59,10 +73,19 @@ def test_format_polygon():
         "<POLYGON ((10.00 0.00, 7.07 -7.07, 0.00 -10.00, -7.07 -7.07, "
         "-10.00 -0.00, -7.07 7.07, -0.00 10.00, 7.07 7.07, 10.00 0.00))>"
     )
-    assert f"{poly:.2G}" == (
-        "POLYGON ((10 0, 7.1 -7.1, 1.6E-14 -10, -7.1 -7.1, "
-        "-10 -3.2E-14, -7.1 7.1, -4.6E-14 10, 7.1 7.1, 10 0))"
-    )
+
+    # 'g' format varies depending on GEOS version
+    if geos_version < (3, 10, 0):
+        expected_2G = (
+            "POLYGON ((10 0, 7.1 -7.1, 1.6E-14 -10, -7.1 -7.1, "
+            "-10 -3.2E-14, -7.1 7.1, -4.6E-14 10, 7.1 7.1, 10 0))"
+        )
+    else:
+        expected_2G = (
+            "POLYGON ((10 0, 7.07 -7.07, 0 -10, -7.07 -7.07, "
+            "-10 0, -7.07 7.07, 0 10, 7.07 7.07, 10 0))"
+        )
+    assert f"{poly:.2G}" == expected_2G
 
     empty = Polygon()
     assert f"{empty}" == "POLYGON EMPTY"
