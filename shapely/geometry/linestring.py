@@ -1,5 +1,6 @@
 """Line strings and related utilities
 """
+import numpy as np
 
 import shapely
 from shapely.geometry.base import BaseGeometry, JOIN_STYLE
@@ -146,6 +147,8 @@ class LineString(BaseGeometry):
         """
         if mitre_limit == 0.0:
             raise ValueError("Cannot compute offset from zero-length line segment")
+        elif not np.isfinite(distance):
+            raise ValueError("offset_curve distance must be finite")
         return shapely.offset_curve(self, distance, quad_segs, join_style, mitre_limit)
 
     def parallel_offset(
