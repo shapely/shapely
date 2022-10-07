@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import shapely
-from shapely import Geometry, GeometryCollection, Polygon
+from shapely import Geometry, Polygon
 from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 
