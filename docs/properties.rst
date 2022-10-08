@@ -1,5 +1,5 @@
 Geometry properties
-=================
+===================
 
 .. currentmodule:: shapely
 

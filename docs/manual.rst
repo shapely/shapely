@@ -1358,7 +1358,7 @@ available as a read-only attribute.
   These methods will `always` return a geometric object. An intersection of
   disjoint geometries for example will return an empty `GeometryCollection`,
   not `None` or `False`. To test for a non-empty result, use the geometry's
-  :ref:`is_empty` property.
+  :attr:`is_empty` property.
 
 .. attribute:: object.boundary
 
@@ -2627,6 +2627,7 @@ object. Query-only means that once created, the `STRtree` is immutable. You
 cannot add or remove geometries.
 
 .. class:: strtree.STRtree(geometries)
+  :noindex:
 
   The `STRtree` constructor takes a sequence of geometric objects.
 
@@ -2635,6 +2636,7 @@ cannot add or remove geometries.
   `New in version 1.4.0`.
 
   .. method:: strtree.query(geom)
+    :noindex:
 
     Returns the integer indices of all geometries in the `strtree` whose extents
     intersect the extent of `geom`. This means that a subsequent search through the returned
@@ -2657,6 +2659,7 @@ cannot add or remove geometries.
       ['POINT (2 2)']
 
   .. method:: strtree.nearest(geom)
+    :noindex:
 
     Returns the nearest geometry in `strtree` to `geom`.
 

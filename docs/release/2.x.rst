@@ -402,7 +402,7 @@ Other improvements
   or with empty geometries.
 * Performance improvement in constructing LineStrings or LinearRings from
   numpy arrays for GEOS >= 3.10.
-* Updated the :func:`box() <shapely.creation.box>` ufunc to use internal C
+* Updated the :func:`~shapely.box` ufunc to use internal C
   function for creating polygon (about 2x faster) and added ``ccw`` parameter
   to create polygon in counterclockwise (default) or clockwise direction.
 * Start of a benchmarking suite using ASV.

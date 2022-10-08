@@ -688,7 +688,7 @@ def remove_repeated_points(geometry, tolerance=0.0, **kwargs):
         Use 0.0 to remove only exactly repeated points.
 
     Examples
-    ----------
+    --------
     >>> from shapely import LineString, Polygon
     >>> remove_repeated_points(LineString([(0,0), (0,0), (1,0)]), tolerance=0)
     <LINESTRING (0 0, 1 0)>
