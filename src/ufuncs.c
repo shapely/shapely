@@ -2061,6 +2061,62 @@ finish:
 }
 static PyUFuncGenericFunction relate_pattern_funcs[1] = {&relate_pattern_func};
 
+static char intersection_all2_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
+static void intersection_all2_func(char** args, npy_intp* dimensions, npy_intp* steps,
+                                   void* data) {
+  GEOSGeometry* geom = NULL;
+  GEOSGeometry* ret_ptr = NULL;
+  unsigned int n_geoms;
+
+  GEOS_INIT;
+
+  GEOSGeometry** geoms = malloc(sizeof(void*) * dimensions[1]);
+  if (geoms == NULL) {
+    errstate = PGERR_NO_MALLOC;
+    goto finish;
+  }
+
+  SINGLE_COREDIM_LOOP_OUTER {
+    CHECK_SIGNALS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      goto finish;
+    }
+    n_geoms = 0;
+    SINGLE_COREDIM_LOOP_INNER {
+      if (!get_geom(*(GeometryObject**)cp1, &geom)) {
+        errstate = PGERR_NOT_A_GEOMETRY;
+        goto finish;
+      }
+      if (geom == NULL) {
+        continue;
+      }
+      geoms[n_geoms] = geom;
+      n_geoms++;
+    }
+    if (n_geoms == 0) {
+      ret_ptr = GEOSGeom_createEmptyCollection_r(ctx, 7);
+    } else {
+      ret_ptr = GEOSGeom_clone_r(ctx, geoms[0]);
+      int j;
+      for (j = 1; j < n_geoms; j++) {
+        ret_ptr = GEOSIntersection_r(ctx, ret_ptr, geoms[j]);
+        if (ret_ptr == NULL) {
+          errstate = PGERR_GEOS_EXCEPTION;
+          goto finish;
+        }
+      }
+    }
+    OUTPUT_Y;
+  }
+
+finish:
+  if (geoms != NULL) {
+    free(geoms);
+  }
+  GEOS_FINISH;
+}
+static PyUFuncGenericFunction intersection_all2_funcs[1] = {&intersection_all2_func};
+
 static char polygonize_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
 static void polygonize_func(char** args, npy_intp* dimensions, npy_intp* steps,
                             void* data) {
@@ -3613,6 +3669,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_CUSTOM(is_valid_reason, 1);
   DEFINE_CUSTOM(relate, 2);
   DEFINE_CUSTOM(relate_pattern, 3);
+  DEFINE_GENERALIZED(intersection_all2, 1, "(d)->()");
   DEFINE_GENERALIZED(polygonize, 1, "(d)->()");
   DEFINE_GENERALIZED_NOUT4(polygonize_full, 1, "(d)->(),(),(),()");
   DEFINE_CUSTOM(shortest_line, 2);

@@ -166,7 +166,13 @@ def intersection_all(geometries, axis=None, **kwargs):
     >>> intersection_all([[line1, line2, None]], axis=1).tolist()
     [<LINESTRING (1 1, 2 2)>]
     """
-    return lib.intersection.reduce(geometries, axis=axis, **kwargs)
+    geometries = np.asarray(geometries)
+    if axis is None:
+        geometries = geometries.ravel()
+    else:
+        geometries = np.rollaxis(geometries, axis=axis, start=geometries.ndim)
+
+    return lib.intersection_all2(geometries, **kwargs)
 
 
 @multithreading_enabled
