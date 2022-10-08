@@ -44,12 +44,12 @@ PyObject* GeometryObject_FromGEOS(GEOSGeometry* ptr, GEOSContextHandle_t ctx) {
 
 static void GeometryObject_dealloc(GeometryObject* self) {
   if (self->ptr != NULL) {
-    GEOS_INIT;
+    // not using GEOS_INIT, but using global context instead
+    GEOSContextHandle_t ctx = geos_context[0];
     GEOSGeom_destroy_r(ctx, self->ptr);
     if (self->ptr_prepared != NULL) {
       GEOSPreparedGeom_destroy_r(ctx, self->ptr_prepared);
     }
-    GEOS_FINISH;
   }
   Py_TYPE(self)->tp_free((PyObject*)self);
 }
