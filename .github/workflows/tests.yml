@@ -37,9 +37,9 @@ jobs:
             geos: 3.10.3
             numpy: 1.21.3
           # 2022
-          - python: "3.10" # switch to "3.11" when released (PEP 664)
+          - python: "3.11-dev" # switch to "3.11" when released (PEP 664)
             geos: 3.11.0
-            numpy: 1.23.0
+            numpy: 1.23.3
             matplotlib: true
             # TODO(shapely-2.0) temporary allow warnings
             # extra_pytest_args: "-W error"  # error on warnings
@@ -73,10 +73,10 @@ jobs:
         if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Checkout Shapely
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Checkout GEOS (main)
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: libgeos/geos
           ref: main
@@ -90,13 +90,13 @@ jobs:
         if: ${{ matrix.geos == 'main' }}
 
       - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
           architecture: ${{ matrix.architecture }}
 
       - name: Cache GEOS and pip packages
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           key: ${{ matrix.os }}-${{ matrix.architecture }}-geos-${{ env.GEOS_VERSION_SPEC }}-${{ hashFiles('ci/install_geos.sh') }}
           path: |
