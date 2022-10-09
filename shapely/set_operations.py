@@ -172,7 +172,7 @@ def intersection_all(geometries, axis=None, **kwargs):
     else:
         geometries = np.rollaxis(geometries, axis=axis, start=geometries.ndim)
 
-    return lib.intersection_all2(geometries, **kwargs)
+    return lib.intersection_all(geometries, **kwargs)
 
 
 @multithreading_enabled
@@ -265,7 +265,13 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
     >>> symmetric_difference_all([[line1, line2, None]], axis=1).tolist()
     [<MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>]
     """
-    return lib.symmetric_difference.reduce(geometries, axis=axis, **kwargs)
+    geometries = np.asarray(geometries)
+    if axis is None:
+        geometries = geometries.ravel()
+    else:
+        geometries = np.rollaxis(geometries, axis=axis, start=geometries.ndim)
+
+    return lib.symmetric_difference_all(geometries, **kwargs)
 
 
 @multithreading_enabled

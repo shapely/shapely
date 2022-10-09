@@ -984,6 +984,66 @@ static void YY_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
 }
 static PyUFuncGenericFunction YY_Y_funcs[1] = {&YY_Y_func};
 
+/* Define the reducing geoms -> geom functions (Y_Y_reduce) */
+static void* intersection_all_data[1] = {GEOSIntersection_r};
+static void* symmetric_difference_all_data[1] = {GEOSSymDifference_r};
+static char Y_Y_reduce_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
+static void Y_Y_reduce_func(char** args, npy_intp* dimensions, npy_intp* steps,
+                                   void* data) {
+  FuncGEOS_YY_Y* func = (FuncGEOS_YY_Y*)data;
+  GEOSGeometry* geom = NULL;
+  GEOSGeometry* ret_ptr = NULL;
+  int n_geoms;
+
+  GEOS_INIT;
+
+  GEOSGeometry** geoms = malloc(sizeof(void*) * dimensions[1]);
+  if (geoms == NULL) {
+    errstate = PGERR_NO_MALLOC;
+    goto finish;
+  }
+
+  SINGLE_COREDIM_LOOP_OUTER {
+    CHECK_SIGNALS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      goto finish;
+    }
+    n_geoms = 0;
+    SINGLE_COREDIM_LOOP_INNER {
+      if (!get_geom(*(GeometryObject**)cp1, &geom)) {
+        errstate = PGERR_NOT_A_GEOMETRY;
+        goto finish;
+      }
+      if (geom == NULL) {
+        continue;
+      }
+      geoms[n_geoms] = geom;
+      n_geoms++;
+    }
+    if (n_geoms == 0) {
+      ret_ptr = GEOSGeom_createEmptyCollection_r(ctx, 7);
+    } else {
+      ret_ptr = GEOSGeom_clone_r(ctx, geoms[0]);
+      int j;
+      for (j = 1; j < n_geoms; j++) {
+        ret_ptr = func(ctx, ret_ptr, geoms[j]);
+        if (ret_ptr == NULL) {
+          errstate = PGERR_GEOS_EXCEPTION;
+          goto finish;
+        }
+      }
+    }
+    OUTPUT_Y;
+  }
+
+finish:
+  if (geoms != NULL) {
+    free(geoms);
+  }
+  GEOS_FINISH;
+}
+static PyUFuncGenericFunction Y_Y_reduce_funcs[1] = {&Y_Y_reduce_func};
+
 /* Define the geom -> double functions (Y_d) */
 static int GetX(void* context, void* a, double* b) {
   char typ = GEOSGeomTypeId_r(context, a);
@@ -2060,62 +2120,6 @@ finish:
   GEOS_FINISH_THREADS;
 }
 static PyUFuncGenericFunction relate_pattern_funcs[1] = {&relate_pattern_func};
-
-static char intersection_all2_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
-static void intersection_all2_func(char** args, npy_intp* dimensions, npy_intp* steps,
-                                   void* data) {
-  GEOSGeometry* geom = NULL;
-  GEOSGeometry* ret_ptr = NULL;
-  unsigned int n_geoms;
-
-  GEOS_INIT;
-
-  GEOSGeometry** geoms = malloc(sizeof(void*) * dimensions[1]);
-  if (geoms == NULL) {
-    errstate = PGERR_NO_MALLOC;
-    goto finish;
-  }
-
-  SINGLE_COREDIM_LOOP_OUTER {
-    CHECK_SIGNALS(i);
-    if (errstate == PGERR_PYSIGNAL) {
-      goto finish;
-    }
-    n_geoms = 0;
-    SINGLE_COREDIM_LOOP_INNER {
-      if (!get_geom(*(GeometryObject**)cp1, &geom)) {
-        errstate = PGERR_NOT_A_GEOMETRY;
-        goto finish;
-      }
-      if (geom == NULL) {
-        continue;
-      }
-      geoms[n_geoms] = geom;
-      n_geoms++;
-    }
-    if (n_geoms == 0) {
-      ret_ptr = GEOSGeom_createEmptyCollection_r(ctx, 7);
-    } else {
-      ret_ptr = GEOSGeom_clone_r(ctx, geoms[0]);
-      int j;
-      for (j = 1; j < n_geoms; j++) {
-        ret_ptr = GEOSIntersection_r(ctx, ret_ptr, geoms[j]);
-        if (ret_ptr == NULL) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          goto finish;
-        }
-      }
-    }
-    OUTPUT_Y;
-  }
-
-finish:
-  if (geoms != NULL) {
-    free(geoms);
-  }
-  GEOS_FINISH;
-}
-static PyUFuncGenericFunction intersection_all2_funcs[1] = {&intersection_all2_func};
 
 static char polygonize_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
 static void polygonize_func(char** args, npy_intp* dimensions, npy_intp* steps,
@@ -3526,6 +3530,13 @@ TODO relate functions
                                   PyUFunc_ReorderableNone, #NAME, "", 0);        \
   PyDict_SetItemString(d, #NAME, ufunc)
 
+#define DEFINE_Y_Y_reduce(NAME)                                               \
+  ufunc = PyUFunc_FromFuncAndDataAndSignature(Y_Y_reduce_funcs, NAME##_data,  \
+                                              Y_Y_reduce_dtypes, 1, 1, 1,     \
+                                              PyUFunc_None, #NAME, "", 0,     \
+                                              "(d)->()");                     \
+  PyDict_SetItemString(d, #NAME, ufunc)
+
 #define DEFINE_Y_d(NAME)                                                       \
   ufunc = PyUFunc_FromFuncAndData(Y_d_funcs, NAME##_data, Y_d_dtypes, 1, 1, 1, \
                                   PyUFunc_None, #NAME, "", 0);                 \
@@ -3636,6 +3647,9 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_YY_Y_REORDERABLE(union);
   DEFINE_YY_Y(shared_paths);
 
+  DEFINE_Y_Y_reduce(intersection_all);
+  DEFINE_Y_Y_reduce(symmetric_difference_all);
+
   DEFINE_Y_d(get_x);
   DEFINE_Y_d(get_y);
   DEFINE_Y_d(area);
@@ -3669,7 +3683,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_CUSTOM(is_valid_reason, 1);
   DEFINE_CUSTOM(relate, 2);
   DEFINE_CUSTOM(relate_pattern, 3);
-  DEFINE_GENERALIZED(intersection_all2, 1, "(d)->()");
   DEFINE_GENERALIZED(polygonize, 1, "(d)->()");
   DEFINE_GENERALIZED_NOUT4(polygonize_full, 1, "(d)->(),(),(),()");
   DEFINE_CUSTOM(shortest_line, 2);
