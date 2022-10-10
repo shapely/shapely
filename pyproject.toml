@@ -1,8 +1,8 @@
 [build-system]
 requires = [
-    "cython",
+    "cython>=0.29.32",
     "oldest-supported-numpy",
-    "setuptools>=61.0.0",
+    "setuptools>=63",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -42,6 +42,7 @@ dependencies = [
 [project.optional-dependencies]
 test = ["pytest"]
 docs = ["sphinx", "numpydoc"]
+dev = ["descartes>=1.0.1", "matplotlib", "pytest", "pytest-cov", "wheel"]
 
 [project.urls]
 Documentation = "https://shapely.readthedocs.io/"
