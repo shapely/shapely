@@ -147,22 +147,16 @@ def test_set_operation_reduce_two_none(func, related_func, none_position):
 @pytest.mark.parametrize("n", range(1, 3))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
 def test_set_operation_reduce_all_none(n, func, related_func):
-    if func is shapely.union_all:
-        assert_geometries_equal(func([None] * n), GeometryCollection([]))
-    else:
-        assert func([None] * n) is None
+    assert_geometries_equal(func([None] * n), GeometryCollection([]))
 
 
 @pytest.mark.parametrize("n", range(1, 3))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
 def test_set_operation_reduce_all_none_arr(n, func, related_func):
-    if func is shapely.union_all:
-        assert func([[None] * n] * 2, axis=1).tolist() == [
-            GeometryCollection([]),
-            GeometryCollection([]),
-        ]
-    else:
-        assert func([[None] * n] * 2, axis=1).tolist() == [None, None]
+    assert func([[None] * n] * 2, axis=1).tolist() == [
+        GeometryCollection([]),
+        GeometryCollection([]),
+    ]
 
 
 @pytest.mark.skipif(shapely.geos_version >= (3, 9, 0), reason="GEOS >= 3.9")
