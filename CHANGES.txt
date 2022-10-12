@@ -1,6 +1,20 @@
 Changes
 =======
 
+1.8.5 (2022-10-12)
+------------------
+
+Packaging:
+
+Python 3.11 wheels have been added to the matrix for all platforms.
+
+Bug fixes:
+
+- Assign _lgeos in the macos frozen app check, fixing a bug introduced in 1.8.2
+  (#1528).
+- An exception is now raised when nan is passed to buffer and parallel_offset,
+  preventing segmentation faults (#1516).
+
 1.8.4 (2022-08-17)
 ------------------
 
