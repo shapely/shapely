@@ -1,6 +1,14 @@
 Changes
 =======
 
+1.8.5.post1 (2022-10-13)
+------------------------
+
+Packaging:
+
+Wheels are provided for Python versions 3.6-3.11 and Cython 0.29.32 is used to
+generate C extension module code.
+
 1.8.5 (2022-10-12)
 ------------------
 
