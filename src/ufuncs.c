@@ -883,25 +883,18 @@ static void Y_Y_reduce_func(char** args, npy_intp* dimensions, npy_intp* steps,
                                    void* data) {
   FuncGEOS_YY_Y* func = (FuncGEOS_YY_Y*)data;
   GEOSGeometry* geom = NULL;
-  GEOSGeometry* ret_ptr = NULL;
-  int n_geoms;
+  GEOSGeometry* temp = NULL;
 
   CHECK_NO_INPLACE_OUTPUT(1);
 
   GEOS_INIT;
-
-  GEOSGeometry** geoms = malloc(sizeof(void*) * dimensions[1]);
-  if (geoms == NULL) {
-    errstate = PGERR_NO_MALLOC;
-    goto finish;
-  }
 
   SINGLE_COREDIM_LOOP_OUTER {
     CHECK_SIGNALS(i);
     if (errstate == PGERR_PYSIGNAL) {
       goto finish;
     }
-    n_geoms = 0;
+    GEOSGeometry* ret_ptr = NULL;
     SINGLE_COREDIM_LOOP_INNER {
       if (!get_geom(*(GeometryObject**)cp1, &geom)) {
         errstate = PGERR_NOT_A_GEOMETRY;
@@ -910,29 +903,28 @@ static void Y_Y_reduce_func(char** args, npy_intp* dimensions, npy_intp* steps,
       if (geom == NULL) {
         continue;
       }
-      geoms[n_geoms] = geom;
-      n_geoms++;
-    }
-    if (n_geoms == 0) {
-      ret_ptr = GEOSGeom_createEmptyCollection_r(ctx, 7);
-    } else {
-      ret_ptr = GEOSGeom_clone_r(ctx, geoms[0]);
-      int j;
-      for (j = 1; j < n_geoms; j++) {
-        ret_ptr = func(ctx, ret_ptr, geoms[j]);
+      if (ret_ptr == NULL) {
+        // clone first geometry we encounter (in case this gets returned)
+        ret_ptr = GEOSGeom_clone_r(ctx, geom);
+      } else {
+        // subsequenct geometries
+        temp = func(ctx, ret_ptr, geom);
+        GEOSGeom_destroy_r(ctx, ret_ptr);
+        ret_ptr = temp;
         if (ret_ptr == NULL) {
           errstate = PGERR_GEOS_EXCEPTION;
           goto finish;
         }
       }
     }
+    if (ret_ptr == NULL) {
+      // dimension didn't have geometries (empty or all-None)
+      ret_ptr = GEOSGeom_createEmptyCollection_r(ctx, 7);
+    }
     OUTPUT_Y;
   }
 
 finish:
-  if (geoms != NULL) {
-    free(geoms);
-  }
   GEOS_FINISH;
 }
 static PyUFuncGenericFunction Y_Y_reduce_funcs[1] = {&Y_Y_reduce_func};
