@@ -3424,11 +3424,6 @@ TODO relate functions
                                   PyUFunc_None, #NAME, "", 0);                   \
   PyDict_SetItemString(d, #NAME, ufunc)
 
-#define DEFINE_YY_Y_REORDERABLE(NAME)                                            \
-  ufunc = PyUFunc_FromFuncAndData(YY_Y_funcs, NAME##_data, YY_Y_dtypes, 1, 2, 1, \
-                                  PyUFunc_ReorderableNone, #NAME, "", 0);        \
-  PyDict_SetItemString(d, #NAME, ufunc)
-
 #define DEFINE_Y_Y_reduce(NAME)                                               \
   ufunc = PyUFunc_FromFuncAndDataAndSignature(Y_Y_reduce_funcs, NAME##_data,  \
                                               Y_Y_reduce_dtypes, 1, 1, 1,     \
@@ -3537,13 +3532,10 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Yd_Y(simplify_preserve_topology);
   DEFINE_Yd_Y(force_3d);
 
-  // 'REORDERABLE' sets PyUFunc_ReorderableNone instead of PyUFunc_None as 'identity',
-  // meaning that the order of arguments does not matter. This enables reduction over
-  // multiple (or all) axes.
-  DEFINE_YY_Y_REORDERABLE(intersection);
+  DEFINE_YY_Y(intersection);
   DEFINE_YY_Y(difference);
-  DEFINE_YY_Y_REORDERABLE(symmetric_difference);
-  DEFINE_YY_Y_REORDERABLE(union);
+  DEFINE_YY_Y(symmetric_difference);
+  DEFINE_YY_Y(union);
   DEFINE_YY_Y(shared_paths);
 
   DEFINE_Y_Y_reduce(intersection_all);
