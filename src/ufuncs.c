@@ -884,20 +884,27 @@ static void Y_Y_reduce_func(char** args, npy_intp* dimensions, npy_intp* steps,
   FuncGEOS_YY_Y* func = (FuncGEOS_YY_Y*)data;
   GEOSGeometry* geom = NULL;
   GEOSGeometry* temp = NULL;
+  GEOSGeometry** geom_arr;
 
   CHECK_NO_INPLACE_OUTPUT(1);
 
-  GEOS_INIT;
+  // allocate a temporary array to store output GEOSGeometry objects
+  geom_arr = malloc(sizeof(void*) * dimensions[0]);
+  CHECK_ALLOC(geom_arr);
+
+  GEOS_INIT_THREADS;
 
   SINGLE_COREDIM_LOOP_OUTER {
     CHECK_SIGNALS(i);
     if (errstate == PGERR_PYSIGNAL) {
+      destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
     GEOSGeometry* ret_ptr = NULL;
     SINGLE_COREDIM_LOOP_INNER {
       if (!get_geom(*(GeometryObject**)cp1, &geom)) {
         errstate = PGERR_NOT_A_GEOMETRY;
+        destroy_geom_arr(ctx, geom_arr, i - 1);
         goto finish;
       }
       if (geom == NULL) {
@@ -913,6 +920,7 @@ static void Y_Y_reduce_func(char** args, npy_intp* dimensions, npy_intp* steps,
         ret_ptr = temp;
         if (ret_ptr == NULL) {
           errstate = PGERR_GEOS_EXCEPTION;
+          destroy_geom_arr(ctx, geom_arr, i - 1);
           goto finish;
         }
       }
@@ -921,11 +929,17 @@ static void Y_Y_reduce_func(char** args, npy_intp* dimensions, npy_intp* steps,
       // dimension didn't have geometries (empty or all-None)
       ret_ptr = GEOSGeom_createEmptyCollection_r(ctx, 7);
     }
-    OUTPUT_Y;
+    geom_arr[i] = ret_ptr;
   }
 
 finish:
-  GEOS_FINISH;
+  GEOS_FINISH_THREADS;
+
+  // fill the numpy array with PyObjects while holding the GIL
+  if (errstate == PGERR_SUCCESS) {
+    geom_arr_to_npy(geom_arr, args[1], steps[1], dimensions[0]);
+  }
+  free(geom_arr);
 }
 static PyUFuncGenericFunction Y_Y_reduce_funcs[1] = {&Y_Y_reduce_func};
 
