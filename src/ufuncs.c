@@ -826,121 +826,12 @@ static void* union_data[1] = {GEOSUnion_r};
 static void* shared_paths_data[1] = {GEOSSharedPaths_r};
 typedef void* FuncGEOS_YY_Y(void* context, void* a, void* b);
 static char YY_Y_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
-
-/* There are two inner loop functions for the YY_Y. This is because this
- * pattern allows for ufunc.reduce.
- * A reduce operation requires special attention, because we output the
- * result in a temporary array. NumPy expects that the output array is
- * filled during the inner loop, so that it can take the first input of
- * the reduction operation to be the output array. Easiest to show by
- * example:
-
- * function called:         out = intersection.reduce(in)
- * initialization by numpy: out[0] = in[0]; in1 = out; in2[:] = in[:]
- * first loop:              out[0] = func(in1[0], in2[1])  [ = func(out[0], in2[1]) ]
- * second loop:             out[0] = func(in1[0], in2[2])  [ = func(out[0], in2[2]) ]
- */
-static void YY_Y_func_reduce(char** args, npy_intp* dimensions, npy_intp* steps,
-                             void* data) {
-  FuncGEOS_YY_Y* func = (FuncGEOS_YY_Y*)data;
-  GEOSGeometry *in1 = NULL, *in2 = NULL, *out = NULL;
-
-  // Whether to destroy a temporary intermediate value of `out`:
-  char out_ownership = 0;
-
-  GEOS_INIT_THREADS;
-
-  if (!get_geom(*(GeometryObject**)args[0], &out)) {
-    errstate = PGERR_NOT_A_GEOMETRY;
-  } else {
-    BINARY_LOOP {
-      CHECK_SIGNALS_THREADS(i);
-      if (errstate == PGERR_PYSIGNAL) {
-        break;
-      }
-      // Get the geometry inputs; in1 from previous iteration, in2 from array
-      in1 = out;
-      if (!get_geom(*(GeometryObject**)ip2, &in2)) {
-        errstate = PGERR_NOT_A_GEOMETRY;
-        break;
-      }
-
-      /* Either (or both) in1 and in2 could be NULL (Python: None).
-       * Reduction operations should skip None values. We have 4 possible combinations:
-       */
-
-      // 1. (not NULL, not NULL); run the GEOS function
-      if ((in1 != NULL) && (in2 != NULL)) {
-        out = func(ctx, in1, in2);
-
-        // Discard in1 if it was a temporary intermediate
-        if (out_ownership) {
-          GEOSGeom_destroy_r(ctx, in1);
-        }
-
-        // Mark the newly generated geometry as intermediate. Note: out will become in1.
-        out_ownership = 1;
-
-        // Break on error (we do this after discarding in1 to avoid memleaks)
-        if (out == NULL) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          break;
-        }
-      }
-
-      // 2. (NULL, not NULL); When the first element of the reduction axis is None
-      else if ((in1 == NULL) && (in2 != NULL)) {
-        // Keep in2 as 'outcome' of the operation.
-        out = in2;
-        // Ensure that it will not be destroyed (it is owned by python)
-        out_ownership = 0;
-      }
-
-      // 3. (not NULL, NULL); When a None value is encountered after a not-None
-      //    Don't do `out = in1`, as that is already the case.
-      // 4. (NULL, NULL); When we have not yet encountered any not-None
-      //    Do nothing; out will remain NULL
-    }
-  }
-
-  // In case we do not own the output, make a clone (else we end up with 2 PyObjects
-  // referencing the same GEOS Geometry)
-  if ((errstate == PGERR_SUCCESS) && (!out_ownership)) {
-    out = GEOSGeom_clone_r(ctx, out);
-    if (out == NULL) {
-      errstate = PGERR_GEOS_EXCEPTION;
-    }
-  }
-
-  GEOS_FINISH_THREADS;
-
-  // fill the numpy array with a single PyObject while holding the GIL
-  if (errstate == PGERR_SUCCESS) {
-    geom_arr_to_npy(&out, args[2], steps[2], 1);
-  }
-}
-
 static void YY_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* data) {
-  // A reduce is characterized by multiple iterations (dimension[0] > 1) that
-  // are output on the same place in memory (steps[2] == 0).
-  if ((steps[2] == 0) && (dimensions[0] > 1)) {
-    if (args[0] == args[2]) {
-      YY_Y_func_reduce(args, dimensions, steps, data);
-      return;
-    } else {
-      // Fail if inputs do not have the expected structure.
-      PyErr_Format(PyExc_NotImplementedError,
-                   "Unknown ufunc mode with args=[%p, %p, %p], steps=[%ld, %ld, %ld], "
-                   "dimensions=[%ld].",
-                   args[0], args[1], args[2], steps[0], steps[1], steps[2],
-                   dimensions[0]);
-      return;
-    }
-  }
-
   FuncGEOS_YY_Y* func = (FuncGEOS_YY_Y*)data;
   GEOSGeometry *in1 = NULL, *in2 = NULL;
   GEOSGeometry** geom_arr;
+
+  CHECK_NO_INPLACE_OUTPUT(2);
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
@@ -983,6 +874,74 @@ static void YY_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
   free(geom_arr);
 }
 static PyUFuncGenericFunction YY_Y_funcs[1] = {&YY_Y_func};
+
+/* Define the reducing geoms -> geom functions (Y_Y_reduce) */
+static void* intersection_all_data[1] = {GEOSIntersection_r};
+static void* symmetric_difference_all_data[1] = {GEOSSymDifference_r};
+static char Y_Y_reduce_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
+static void Y_Y_reduce_func(char** args, npy_intp* dimensions, npy_intp* steps,
+                                   void* data) {
+  FuncGEOS_YY_Y* func = (FuncGEOS_YY_Y*)data;
+  GEOSGeometry* geom = NULL;
+  GEOSGeometry* temp = NULL;
+  GEOSGeometry** geom_arr;
+
+  CHECK_NO_INPLACE_OUTPUT(1);
+
+  // allocate a temporary array to store output GEOSGeometry objects
+  geom_arr = malloc(sizeof(void*) * dimensions[0]);
+  CHECK_ALLOC(geom_arr);
+
+  GEOS_INIT_THREADS;
+
+  SINGLE_COREDIM_LOOP_OUTER {
+    CHECK_SIGNALS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      goto finish;
+    }
+    GEOSGeometry* ret_ptr = NULL;
+    SINGLE_COREDIM_LOOP_INNER {
+      if (!get_geom(*(GeometryObject**)cp1, &geom)) {
+        errstate = PGERR_NOT_A_GEOMETRY;
+        destroy_geom_arr(ctx, geom_arr, i - 1);
+        goto finish;
+      }
+      if (geom == NULL) {
+        continue;
+      }
+      if (ret_ptr == NULL) {
+        // clone first geometry we encounter (in case this gets returned)
+        ret_ptr = GEOSGeom_clone_r(ctx, geom);
+      } else {
+        // subsequenct geometries
+        temp = func(ctx, ret_ptr, geom);
+        GEOSGeom_destroy_r(ctx, ret_ptr);
+        ret_ptr = temp;
+        if (ret_ptr == NULL) {
+          errstate = PGERR_GEOS_EXCEPTION;
+          destroy_geom_arr(ctx, geom_arr, i - 1);
+          goto finish;
+        }
+      }
+    }
+    if (ret_ptr == NULL) {
+      // dimension didn't have geometries (empty or all-None)
+      ret_ptr = GEOSGeom_createEmptyCollection_r(ctx, 7);
+    }
+    geom_arr[i] = ret_ptr;
+  }
+
+finish:
+  GEOS_FINISH_THREADS;
+
+  // fill the numpy array with PyObjects while holding the GIL
+  if (errstate == PGERR_SUCCESS) {
+    geom_arr_to_npy(geom_arr, args[1], steps[1], dimensions[0]);
+  }
+  free(geom_arr);
+}
+static PyUFuncGenericFunction Y_Y_reduce_funcs[1] = {&Y_Y_reduce_func};
 
 /* Define the geom -> double functions (Y_d) */
 static int GetX(void* context, void* a, double* b) {
@@ -3465,9 +3424,11 @@ TODO relate functions
                                   PyUFunc_None, #NAME, "", 0);                   \
   PyDict_SetItemString(d, #NAME, ufunc)
 
-#define DEFINE_YY_Y_REORDERABLE(NAME)                                            \
-  ufunc = PyUFunc_FromFuncAndData(YY_Y_funcs, NAME##_data, YY_Y_dtypes, 1, 2, 1, \
-                                  PyUFunc_ReorderableNone, #NAME, "", 0);        \
+#define DEFINE_Y_Y_reduce(NAME)                                               \
+  ufunc = PyUFunc_FromFuncAndDataAndSignature(Y_Y_reduce_funcs, NAME##_data,  \
+                                              Y_Y_reduce_dtypes, 1, 1, 1,     \
+                                              PyUFunc_None, #NAME, "", 0,     \
+                                              "(d)->()");                     \
   PyDict_SetItemString(d, #NAME, ufunc)
 
 #define DEFINE_Y_d(NAME)                                                       \
@@ -3571,14 +3532,14 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Yd_Y(simplify_preserve_topology);
   DEFINE_Yd_Y(force_3d);
 
-  // 'REORDERABLE' sets PyUFunc_ReorderableNone instead of PyUFunc_None as 'identity',
-  // meaning that the order of arguments does not matter. This enables reduction over
-  // multiple (or all) axes.
-  DEFINE_YY_Y_REORDERABLE(intersection);
+  DEFINE_YY_Y(intersection);
   DEFINE_YY_Y(difference);
-  DEFINE_YY_Y_REORDERABLE(symmetric_difference);
-  DEFINE_YY_Y_REORDERABLE(union);
+  DEFINE_YY_Y(symmetric_difference);
+  DEFINE_YY_Y(union);
   DEFINE_YY_Y(shared_paths);
+
+  DEFINE_Y_Y_reduce(intersection_all);
+  DEFINE_Y_Y_reduce(symmetric_difference_all);
 
   DEFINE_Y_d(get_x);
   DEFINE_Y_d(get_y);
