@@ -84,6 +84,6 @@ Other differences
   functions was renamed to ``quad_segs``.
 - The ``preserve_topology`` keyword of ``simplify()`` now defaults to
   ``True`` instead of ``False``.
-- The behaviour of ``union_all()`` was changed to return an empty
-  GeometryCollection for an empty or all-None sequence as input (instead of
-  returning None).
+- The behaviour of ``union_all()`` / ``intersection_all()`` / ``symmetric_difference_all``
+  was changed to return an empty GeometryCollection for an empty or all-None
+  sequence as input (instead of returning None).
