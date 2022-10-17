@@ -60,7 +60,7 @@ jobs:
             numpy: 1.19.5
           # pypy
           - os: ubuntu-latest
-            python: "pypy3.9"
+            python: "pypy3.8"
             geos: 3.11.0
             numpy: 1.23.3
 
