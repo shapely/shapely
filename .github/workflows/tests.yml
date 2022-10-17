@@ -58,6 +58,11 @@ jobs:
             python: 3.9
             geos: 3.10.3
             numpy: 1.19.5
+          # pypy
+          - os: ubuntu-latest
+            python: "pypy3.9"
+            geos: 3.11.0
+            numpy: 1.23.3
 
     env:
       GEOS_VERSION: ${{ matrix.geos }}
