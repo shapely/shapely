@@ -38,7 +38,7 @@ install:
     export PATH=$HOME/geosinstall/geos-$GEOS_VERSION/bin:$PATH
     pip install .[test]
   else
-    python3 -m pip install cibuildwheel==2.3.0
+    python3 -m pip install cibuildwheel==2.10.2
   fi
 
 script:
