@@ -61,5 +61,7 @@ deploy:
     secure: "hU7JzC2F1GomDVpSOw9L3WHV/qwVWkc3NI6YCkkqUArMyYnJPSMBJck9ugeZIJ6OrIKORs50vIAdGrYQnjbhcntQzwc384mfnNO3FNPMnkBaxi4y0ofERy/ygqysM+tEOXINzJpFcYyylpknQdSnuzLSgYhdm+OXfob5Sqy/ABX+dXEuz1pb7UWvK0oYcLC1PYkfneFK4IcUIHYuMhia48y0jfxlez9gFZMAos3PKtn6m9CRN4xU370RgNjvy7Ey/hXwiTlm4rrX4KbEFj1q/SoaXvgK+mQqofM7n/4MakA8VFzKtz5a/L64f4iiJy0V2WgO/DiO2fLFwfEFmr+23WY8TTkMV/p7IAjZzeMY9ZmODymzXRKaJxIVt0MerLiwdul7nVCmXbJ/HkQwW2p32IUxzL37XaEk6ZN4lTb+5BhPA9e6jCZdgRY8sfJrrOzFxNNVm0wuf9nbve662PYhmgq9sETk4sdvqK8ODem/TSqMZzsq6FPRf2JCeFGZn+2TAKp+nwAFTByoJ/mMNsTc3TjtAzFhhtd2DUQriGadD+aNPZexA+yKCVSY/EGDYxpbnyS1h1fJv17kgyLxQfUi5FDBwrcGX0Ld01IyqcQbaw57DLDTQYYK4yvrfsYaQJDIQlySe8BkwgtJ5Dz9WP13MUZJ7VrISYMdTRU805eTvRE="
   skip_cleanup: true
   skip_existing: true
+  distributions: ""
   on:
     tags: true
+    condition: $CIBUILDWHEEL = 1
