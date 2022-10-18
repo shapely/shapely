@@ -6,7 +6,7 @@
 #
 # 1) Installing from a source distribution, whether via
 #
-#      ``python setup.py install``
+#      ``pip install .``
 #
 #    after downloading a source distribution, or
 #
@@ -67,6 +67,9 @@ from setuptools.command.build_ext import build_ext as distutils_build_ext
 from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
 
+# ensure the current directory is on sys.path so versioneer can be imported
+# when pip uses PEP 517/518 build rules.
+sys.path.append(os.path.dirname(__file__))
 from _vendor.packaging.version import Version
 
 logging.basicConfig()
