@@ -1,37 +1,25 @@
-from shapely.geometry import Point, MultiPoint, Polygon, GeometryCollection
+import pytest
+
+from shapely.geometry import GeometryCollection, LineString, MultiPoint, Point
 
 
-def test_point():
-    g = Point(0, 0)
-    try:
-        assert hash(g)
-        return False
-    except TypeError:
-        return True
-
-
-def test_multipoint():
-    g = MultiPoint([(0, 0)])
-    try:
-        assert hash(g)
-        return False
-    except TypeError:
-        return True
-
-
-def test_polygon():
-    g = Point(0, 0).buffer(1.0)
-    try:
-        assert hash(g)
-        return False
-    except TypeError:
-        return True
-
-
-def test_collection():
-    g = GeometryCollection([Point(0, 0)])
-    try:
-        assert hash(g)
-        return False
-    except TypeError:
-        return True
+@pytest.mark.parametrize(
+    "geom",
+    [
+        Point(1, 2),
+        MultiPoint([(1, 2), (3, 4)]),
+        LineString([(1, 2), (3, 4)]),
+        Point(0, 0).buffer(1.0),
+        GeometryCollection([Point(1, 2), LineString([(1, 2), (3, 4)])]),
+    ],
+    ids=[
+        "Point",
+        "MultiPoint",
+        "LineString",
+        "Polygon",
+        "GeometryCollection",
+    ],
+)
+def test_hash(geom):
+    with pytest.raises(TypeError, match="unhashable type"):
+        hash(geom)
