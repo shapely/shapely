@@ -71,10 +71,13 @@ class Point(BaseGeometry):
             geom = shapely.points(coords)
         else:
             # 2 or 3 args
-            geom = shapely.points(np.array(args))
+            geom = shapely.points(np.array(args).T)
 
         if not isinstance(geom, Point):
-            raise ValueError("Invalid values passed to Point constructor")
+            if isinstance(geom, np.ndarray) and geom.size == 1:
+                geom = geom.item()
+            else:
+                raise ValueError("Invalid values passed to Point constructor")
         return geom
 
     # Coordinate getters and setters

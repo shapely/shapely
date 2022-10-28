@@ -53,6 +53,14 @@ def test_from_numpy():
     assert p.coords[:] == [(1.0, 2.0, 3.0)]
 
 
+def test_from_numpy_xy():
+    # Construct from separate x, y numpy arrays - if those are length 1,
+    # this is allowed for compat with shapely 1.8
+    # (https://github.com/shapely/shapely/issues/1587)
+    p = Point(np.array([1.0]), np.array([2.0]))
+    assert p.coords[:] == [(1.0, 2.0)]
+
+
 def test_from_point():
     # From another point
     p = Point(3.0, 4.0)
