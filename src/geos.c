@@ -891,6 +891,33 @@ GEOSGeometry* PyGEOSForce3D(GEOSContextHandle_t ctx, GEOSGeometry* geom, double 
   return force_dims(ctx, geom, 3, z);
 }
 
+
+/* Count the number of finite coordinates in a buffer
+ *
+ * A coordinate is finite if x, y and optionally z are all not NaN or Inf.
+ */
+unsigned int count_finite(const double* buf, unsigned int size, unsigned int dims,
+                          npy_intp cs1, npy_intp cs2) {
+  char *cp1, *cp2;
+  unsigned int result = 0;
+  char has_non_finite = 0;
+
+  cp1 = (char*)buf;
+  for (i = 0; i < size; i++, cp1 += cs1) {
+    has_non_finite = 0;
+    for (j = 0; j < dims; j++, cp2 += cs2) {
+      if !(npy_isfinite(*(double*)cp2)) {
+        has_non_finite = 1;
+        break;
+      }
+    }
+    if (!has_non_finite) {
+      result++;
+    }
+  }
+  return result;
+}
+
 /* Create a GEOSCoordSequence from an array
  *
  * Note: this function assumes that the dimension of the buffer is already
@@ -905,12 +932,28 @@ GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* b
                                         npy_intp cs2) {
   GEOSCoordSequence* coord_seq;
   char *cp1, *cp2;
-  unsigned int i, j;
+  unsigned int i, j, actual_size;
   double first_coord;
+
+  switch (handle_nans)
+  ​{
+      case PYGEOS_HANDLE_NANS_ALLOW:
+        actual_size = size;
+        break;
+      case PYGEOS_HANDLE_NANS_IGNORE:
+        actual_size = count_finite(buf, size, dims, cs1, cs2);
+        break;
+      case PYGEOS_HANDLE_NANS_RAISE:
+        actual_size = count_finite(buf, size, dims, cs1, cs2);
+        if (actual_size != size) {
+          return NULL;  // TODO better error msg
+        }
+        break;
+  }
 
 #if GEOS_SINCE_3_10_0
 
-  if (!ring_closure) {
+  if ((!ring_closure) && (actual_size == size)) {
     if ((cs1 == dims * 8) && (cs2 == 8)) {
       /* C-contiguous memory */
       int hasZ = dims == 3;
