@@ -58,7 +58,7 @@ def _check_out_array(object out, Py_ssize_t size):
  
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def simple_geometries_1d(object coordinates, object indices, int geometry_type, object out = None):
+def simple_geometries_1d(object coordinates, object indices, int geometry_type, char handle_nans = 1, object out = None):
     cdef Py_ssize_t idx = 0
     cdef unsigned int coord_idx = 0
     cdef Py_ssize_t geom_idx = 0
@@ -133,7 +133,7 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type, 
                     # the error equals PGERR_LINEARRING_NCOORDS (in shapely/src/geos.h)
                     raise ValueError("A linearring requires at least 4 coordinates.")
 
-            seq = PyGEOS_CoordSeq_FromBuffer(geos_handle, &coord_view[idx, 0], geom_size, dims, ring_closure)
+            seq = PyGEOS_CoordSeq_FromBuffer(geos_handle, &coord_view[idx, 0], geom_size, dims, ring_closure, handle_nans)
             if seq == NULL:
                 return  # GEOSException is raised by get_geos_handle
             idx += geom_size

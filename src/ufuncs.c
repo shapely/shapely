@@ -880,7 +880,7 @@ static void* intersection_all_data[1] = {GEOSIntersection_r};
 static void* symmetric_difference_all_data[1] = {GEOSSymDifference_r};
 static char Y_Y_reduce_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
 static void Y_Y_reduce_func(char** args, npy_intp* dimensions, npy_intp* steps,
-                                   void* data) {
+                            void* data) {
   FuncGEOS_YY_Y* func = (FuncGEOS_YY_Y*)data;
   GEOSGeometry* geom = NULL;
   GEOSGeometry* temp = NULL;
@@ -2357,6 +2357,7 @@ static void linestrings_func(char** args, npy_intp* dimensions, npy_intp* steps,
                              void* data) {
   GEOSCoordSequence* coord_seq = NULL;
   GEOSGeometry** geom_arr;
+  char handle_nans = PYGEOS_HANDLE_NANS_RAISE;
 
   // check the ordinate dimension before calling coordseq_from_buffer
   if (dimensions[2] < 2 || dimensions[2] > 3) {
@@ -2378,7 +2379,8 @@ static void linestrings_func(char** args, npy_intp* dimensions, npy_intp* steps,
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
-    coord_seq = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, 0, cs1, cs2);
+    coord_seq =
+        coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, 0, handle_nans, cs1, cs2);
     if (coord_seq == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
       destroy_geom_arr(ctx, geom_arr, i - 1);
@@ -2411,6 +2413,7 @@ static void linearrings_func(char** args, npy_intp* dimensions, npy_intp* steps,
   GEOSCoordSequence* coord_seq = NULL;
   GEOSGeometry** geom_arr;
   char ring_closure = 0;
+  char handle_nans = PYGEOS_HANDLE_NANS_RAISE;
   double first_coord, last_coord;
 
   // check the ordinate dimension before calling coordseq_from_buffer
@@ -2454,8 +2457,8 @@ static void linearrings_func(char** args, npy_intp* dimensions, npy_intp* steps,
       goto finish;
     }
     /* fill the coordinate sequence */
-    coord_seq =
-        coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, ring_closure, cs1, cs2);
+    coord_seq = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, ring_closure,
+                                     handle_nans, cs1, cs2);
     if (coord_seq == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
       destroy_geom_arr(ctx, geom_arr, i - 1);
@@ -2740,12 +2743,10 @@ static void bounds_func(char** args, npy_intp* dimensions, npy_intp* steps, void
     if (in1 == NULL) { /* no geometry => bbox becomes (nan, nan, nan, nan) */
       *x1 = *y1 = *x2 = *y2 = NPY_NAN;
     } else {
-
 #if GEOS_SINCE_3_11_0
       if (GEOSisEmpty_r(ctx, in1)) {
         *x1 = *y1 = *x2 = *y2 = NPY_NAN;
-      }
-      else {
+      } else {
         if (!GEOSGeom_getExtent_r(ctx, in1, x1, y1, x2, y2)) {
           errstate = PGERR_GEOS_EXCEPTION;
           goto finish;
@@ -3424,11 +3425,10 @@ TODO relate functions
                                   PyUFunc_None, #NAME, "", 0);                   \
   PyDict_SetItemString(d, #NAME, ufunc)
 
-#define DEFINE_Y_Y_reduce(NAME)                                               \
-  ufunc = PyUFunc_FromFuncAndDataAndSignature(Y_Y_reduce_funcs, NAME##_data,  \
-                                              Y_Y_reduce_dtypes, 1, 1, 1,     \
-                                              PyUFunc_None, #NAME, "", 0,     \
-                                              "(d)->()");                     \
+#define DEFINE_Y_Y_reduce(NAME)                                                         \
+  ufunc = PyUFunc_FromFuncAndDataAndSignature(Y_Y_reduce_funcs, NAME##_data,            \
+                                              Y_Y_reduce_dtypes, 1, 1, 1, PyUFunc_None, \
+                                              #NAME, "", 0, "(d)->()");                 \
   PyDict_SetItemString(d, #NAME, ufunc)
 
 #define DEFINE_Y_d(NAME)                                                       \

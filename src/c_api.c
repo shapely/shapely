@@ -16,16 +16,18 @@
 #include "geos.h"
 #include "pygeom.h"
 
-
-extern PyObject* PyGEOS_CreateGeometry(GEOSGeometry *ptr, GEOSContextHandle_t ctx) {
-    return GeometryObject_FromGEOS(ptr, ctx);
+extern PyObject* PyGEOS_CreateGeometry(GEOSGeometry* ptr, GEOSContextHandle_t ctx) {
+  return GeometryObject_FromGEOS(ptr, ctx);
 }
 
-extern char PyGEOS_GetGEOSGeometry(PyObject *obj, GEOSGeometry **out) {
-    return get_geom((GeometryObject*)obj, out);
+extern char PyGEOS_GetGEOSGeometry(PyObject* obj, GEOSGeometry** out) {
+  return get_geom((GeometryObject*)obj, out);
 }
 
-extern GEOSCoordSequence* PyGEOS_CoordSeq_FromBuffer(GEOSContextHandle_t ctx, const double* buf,
-                                                    unsigned int size, unsigned int dims, char ring_closure) {
-    return coordseq_from_buffer(ctx, buf, size, dims, ring_closure, dims * 8, 8);
+extern GEOSCoordSequence* PyGEOS_CoordSeq_FromBuffer(GEOSContextHandle_t ctx,
+                                                     const double* buf, unsigned int size,
+                                                     unsigned int dims, char ring_closure,
+                                                     char handle_nans) {
+  return coordseq_from_buffer(ctx, buf, size, dims, ring_closure, handle_nans, dims * 8,
+                              8);
 }

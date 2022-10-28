@@ -8,7 +8,8 @@
 #include <numpy/npy_math.h>
 #include <structmember.h>
 
-/* This initializes a globally accessible GEOS Context, only to be used when holding the GIL */
+/* This initializes a globally accessible GEOS Context, only to be used when holding the
+ * GIL */
 void* geos_context[1] = {NULL};
 
 /* This initializes a globally accessible GEOSException object */
@@ -17,7 +18,8 @@ PyObject* geos_exception[1] = {NULL};
 int init_geos(PyObject* m) {
   PyObject* base_class = PyErr_NewException("shapely.errors.ShapelyError", NULL, NULL);
   PyModule_AddObject(m, "ShapelyError", base_class);
-  geos_exception[0] = PyErr_NewException("shapely.errors.GEOSException", base_class, NULL);
+  geos_exception[0] =
+      PyErr_NewException("shapely.errors.GEOSException", base_class, NULL);
   PyModule_AddObject(m, "GEOSException", geos_exception[0]);
   return 0;
 
@@ -26,7 +28,6 @@ int init_geos(PyObject* m) {
   // only used where error handling is not used)
   // GEOSContext_setErrorMessageHandler_r(context_handle, geos_error_handler, last_error);
   geos_context[0] = context_handle;
-
 }
 
 void destroy_geom_arr(void* context, GEOSGeometry** array, int length) {
@@ -895,10 +896,13 @@ GEOSGeometry* PyGEOSForce3D(GEOSContextHandle_t ctx, GEOSGeometry* geom, double 
  * Note: this function assumes that the dimension of the buffer is already
  * checked before calling this function, so the buffer and the dims argument
  * is only 2D or 3D.
+ *
+ * handle_nans: 0 means 'raise', 1 means 'allow', 2 means 'ignore'
  */
 GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
-                                        unsigned int size, unsigned int dims, char ring_closure,
-                                        npy_intp cs1, npy_intp cs2) {
+                                        unsigned int size, unsigned int dims,
+                                        char ring_closure, char handle_nans, npy_intp cs1,
+                                        npy_intp cs2) {
   GEOSCoordSequence* coord_seq;
   char *cp1, *cp2;
   unsigned int i, j;
@@ -912,12 +916,11 @@ GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* b
       int hasZ = dims == 3;
       coord_seq = GEOSCoordSeq_copyFromBuffer_r(ctx, buf, size, hasZ, 0);
       return coord_seq;
-    }
-    else if ((cs1 == 8) && (cs2 == size * 8)) {
+    } else if ((cs1 == 8) && (cs2 == size * 8)) {
       /* F-contiguous memory (note: this for the subset, so we don't necessarily
       end up here if the full array is F-contiguous) */
       const double* x = buf;
-      const double* y =  (double*)((char*)buf + cs2);
+      const double* y = (double*)((char*)buf + cs2);
       const double* z = (dims == 3) ? (double*)((char*)buf + 2 * cs2) : NULL;
       coord_seq = GEOSCoordSeq_copyFromArrays_r(ctx, x, y, z, NULL, size);
       return coord_seq;
@@ -942,7 +945,7 @@ GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* b
   }
   /* add the closing coordinate if necessary */
   if (ring_closure) {
-    for (j = 0; j < dims; j++){
+    for (j = 0; j < dims; j++) {
       first_coord = *(double*)((char*)buf + j * cs2);
       if (!GEOSCoordSeq_setOrdinate_r(ctx, coord_seq, size, j, first_coord)) {
         GEOSCoordSeq_destroy_r(ctx, coord_seq);
@@ -962,7 +965,6 @@ GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* b
  */
 int coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq,
                        double* buf, unsigned int size, unsigned int dims) {
-
 #if GEOS_SINCE_3_10_0
 
   int hasZ = dims == 3;

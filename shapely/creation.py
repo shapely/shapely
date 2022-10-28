@@ -73,7 +73,7 @@ def points(coords, y=None, z=None, indices=None, out=None, **kwargs):
     if indices is None:
         return lib.points(coords, out=out, **kwargs)
     else:
-        return simple_geometries_1d(coords, indices, GeometryType.POINT, out=out)
+        return simple_geometries_1d(coords, indices, GeometryType.POINT, handle_nans=1, out=out)
 
 
 @multithreading_enabled
@@ -119,7 +119,7 @@ def linestrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
     if indices is None:
         return lib.linestrings(coords, out=out, **kwargs)
     else:
-        return simple_geometries_1d(coords, indices, GeometryType.LINESTRING, out=out)
+        return simple_geometries_1d(coords, indices, GeometryType.LINESTRING, handle_nans=1, out=out)
 
 
 @multithreading_enabled
@@ -172,7 +172,7 @@ def linearrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
     if indices is None:
         return lib.linearrings(coords, out=out, **kwargs)
     else:
-        return simple_geometries_1d(coords, indices, GeometryType.LINEARRING, out=out)
+        return simple_geometries_1d(coords, indices, GeometryType.LINEARRING, handle_nans=1, out=out)
 
 
 @multithreading_enabled

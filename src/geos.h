@@ -112,7 +112,7 @@ enum {
       PyErr_WarnFormat(PyExc_Warning, 0,                                                 \
                        "Invalid GeoJSON: geometry is returned as None. %s", last_error); \
       break;                                                                             \
-    case PGERR_PYSIGNAL:                                                         \
+    case PGERR_PYSIGNAL:                                                                 \
       break;                                                                             \
     default:                                                                             \
       PyErr_Format(PyExc_RuntimeError,                                                   \
@@ -180,10 +180,16 @@ GEOSGeometry* create_point(GEOSContextHandle_t ctx, double x, double y);
 GEOSGeometry* PyGEOSForce2D(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 GEOSGeometry* PyGEOSForce3D(GEOSContextHandle_t ctx, GEOSGeometry* geom, double z);
 
+enum {
+  PYGEOS_HANDLE_NANS_RAISE,
+  PYGEOS_HANDLE_NANS_ALLOW,
+  PYGEOS_HANDLE_NANS_IGNORE,
+};
 GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
-                                        unsigned int size, unsigned int dims, char ring_closure,
-                                        npy_intp cs1, npy_intp cs2);
+                                        unsigned int size, unsigned int dims,
+                                        char ring_closure, char handle_nans, npy_intp cs1,
+                                        npy_intp cs2);
 extern int coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq,
-                               double* buf, unsigned int size, unsigned int dims);
+                              double* buf, unsigned int size, unsigned int dims);
 
 #endif  // _GEOS_H
