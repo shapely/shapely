@@ -156,11 +156,13 @@ Semantic for format specification
   precision: `digit`+
   type: "f" | "F" | "g" | "G" | "x" | "X"
 
-Format types ``'f'`` and ``'F'`` are to use a fixed-point notation.
+Format types ``'f'`` and ``'F'`` are to use a fixed-point notation, which is
+activated by setting GEOS' trim option off.
 The upper case variant converts ``nan`` to ``NAN`` and ``inf`` to ``INF``.
 
 Format types ``'g'`` and ``'G'`` are to use a "general format",
-where unnecessary digits are trimmed. The upper case variant is similar to
+where unnecessary digits are trimmed. This notation is activated by setting
+GEOS' trim option on. The upper case variant is similar to
 ``'F'``, and may also display an upper-case ``"E"`` if scientific notation
 is required. Note that this representation may be different for GEOS 3.10.0
 and later, which does not use scientific notation.
