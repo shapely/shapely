@@ -92,7 +92,7 @@ def buffer(
     **kwargs
 ):
     """
-    Computes the buffer of a geometry for positive and negative buffer radius.
+    Computes the buffer of a geometry for positive and negative buffer distance.
 
     The buffer of a geometry is defined as the Minkowski sum (or difference,
     for negative distance) of the geometry with a circle with radius equal
