@@ -87,3 +87,4 @@ Other differences
 - The behaviour of ``union_all()`` / ``intersection_all()`` / ``symmetric_difference_all``
   was changed to return an empty GeometryCollection for an empty or all-None
   sequence as input (instead of returning None).
+- The ``radius`` keyword of the ``buffer()`` funtion was renamed to ``distance``.
