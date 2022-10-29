@@ -65,19 +65,14 @@ class Point(BaseGeometry):
             if not hasattr(coords, "__getitem__"):  # generators
                 coords = list(coords)
 
-            if isinstance(coords[0], tuple):
-                coords = coords[0]
-
-            geom = shapely.points(coords)
+            coords = np.asarray(coords).squeeze()
         else:
             # 2 or 3 args
-            geom = shapely.points(np.array(args).T)
+            coords = np.array(args).squeeze()
 
+        geom = shapely.points(coords)
         if not isinstance(geom, Point):
-            if isinstance(geom, np.ndarray) and geom.size == 1:
-                geom = geom.item()
-            else:
-                raise ValueError("Invalid values passed to Point constructor")
+            raise ValueError("Invalid values passed to Point constructor")
         return geom
 
     # Coordinate getters and setters

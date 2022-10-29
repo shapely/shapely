@@ -34,6 +34,8 @@ def test_from_sequence():
     # From coordinate sequence
     p = Point([(3.0, 4.0)])
     assert p.coords[:] == [(3.0, 4.0)]
+    p = Point([[3.0, 4.0]])
+    assert p.coords[:] == [(3.0, 4.0)]
 
     # 3D
     p = Point((3.0, 4.0, 5.0))
@@ -59,6 +61,9 @@ def test_from_numpy_xy():
     # (https://github.com/shapely/shapely/issues/1587)
     p = Point(np.array([1.0]), np.array([2.0]))
     assert p.coords[:] == [(1.0, 2.0)]
+
+    p = Point(np.array([1.0]), np.array([2.0]), np.array([3.0]))
+    assert p.coords[:] == [(1.0, 2.0, 3.0)]
 
 
 def test_from_point():
