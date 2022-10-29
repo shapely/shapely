@@ -5,6 +5,7 @@ geometry objects, but has no effect on geometric analysis. All
 operations are performed in the x-y plane. Thus, geometries with
 different z values may intersect or be equal.
 """
+import re
 from warnings import warn
 
 import numpy as np
@@ -102,6 +103,51 @@ class BaseGeometry(shapely.Geometry):
 
     def __nonzero__(self):
         return self.__bool__()
+
+    def __format__(self, format_spec):
+        """Format a geometry using a format specification."""
+        # bypass reqgexp for simple cases
+        if format_spec == "":
+            return shapely.to_wkt(self, rounding_precision=-1)
+        elif format_spec == "x":
+            return shapely.to_wkb(self, hex=True).lower()
+        elif format_spec == "X":
+            return shapely.to_wkb(self, hex=True)
+
+        # fmt: off
+        format_spec_regexp = (
+            "(?:0?\\.(?P<prec>[0-9]+))?"
+            "(?P<fmt_code>[fFgGxX]?)"
+        )
+        # fmt: on
+        match = re.fullmatch(format_spec_regexp, format_spec)
+        if match is None:
+            raise ValueError(f"invalid format specifier: {format_spec}")
+
+        prec, fmt_code = match.groups()
+
+        if prec:
+            prec = int(prec)
+        else:
+            # GEOS has a default rounding_precision -1
+            prec = -1
+
+        if not fmt_code:
+            fmt_code = "g"
+
+        if fmt_code in ("g", "G"):
+            res = shapely.to_wkt(self, rounding_precision=prec, trim=True)
+        elif fmt_code in ("f", "F"):
+            res = shapely.to_wkt(self, rounding_precision=prec, trim=False)
+        elif fmt_code in ("x", "X"):
+            raise ValueError("hex representation does not specify precision")
+        else:
+            raise NotImplementedError(f"unhandled fmt_code: {fmt_code}")
+
+        if fmt_code.isupper():
+            return res.upper()
+        else:
+            return res
 
     def __repr__(self):
         try:
