@@ -1,6 +1,17 @@
 Changes
 =======
 
+2.0b2 (2022-10-29)
+------------------
+
+Relevant changes in behaviour compared to 2.0b1:
+
+- Fix for compatibility with PyPy (#1577).
+- Fix to the ``Point()`` constructor to accept arrays of length 1 for the x and y
+  coordinates (fix compatibility with Shapely 1.8).
+- Raise ValueError for non-finite distance in the ``buffer()`` and ``offset_curve()``
+  methods on the Geometry classes (consistent with Shapely 1.8).
+
 2.0b1 (2022-10-17)
 ------------------
 
