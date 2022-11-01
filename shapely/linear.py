@@ -1,5 +1,6 @@
 from . import lib
 from .decorators import multithreading_enabled
+from .errors import UnsupportedGEOSVersionError
 
 __all__ = [
     "line_interpolate_point",
@@ -99,6 +100,7 @@ def line_merge(line, directed=False, **kwargs):
     line : Geometry or array_like
     directed : bool, default False
         Only combine lines if possible without changing point order.
+        Requires GEOS >= 3.11.0
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -116,6 +118,12 @@ def line_merge(line, directed=False, **kwargs):
     <MULTILINESTRING ((0 0, 1 0), (0 0, 3 0))>
     """
     if directed:
+        if lib.geos_version < (3, 11, 0):
+            raise UnsupportedGEOSVersionError(
+                "'{}' requires at least GEOS {}.{}.{}.".format(
+                    "line_merge", *(3, 11, 0)
+                )
+            )
         return lib.line_merge_directed(line, **kwargs)
     return lib.line_merge(line, **kwargs)
 
