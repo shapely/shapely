@@ -4,6 +4,7 @@ import pytest
 import shapely
 from shapely import GeometryCollection, LinearRing, LineString, MultiLineString, Point
 from shapely.testing import assert_geometries_equal
+from shapely.errors import UnsupportedGEOSVersionError
 
 from .common import (
     empty_line_string,
@@ -136,12 +137,20 @@ def test_line_merge_geom_array():
     assert_geometries_equal(actual[1], LineString([(0, 0), (1, 2)]))
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11.0")
 def test_line_merge_directed():
     lines = MultiLineString([[(0, 0), (1, 0)], [(0, 0), (3, 0)]])
     result = shapely.line_merge(lines)
     assert_geometries_equal(result, LineString([(1, 0), (0, 0), (3, 0)]))
     result = shapely.line_merge(lines, directed=True)
     assert_geometries_equal(result, lines)
+
+
+@pytest.mark.skipif(shapely.geos_version >= (3, 11, 0), reason="GEOS >= 3.11.0")
+def test_line_merge_error():
+    lines = MultiLineString([[(0, 0), (1, 0)], [(0, 0), (3, 0)]])
+    with pytest.raises(UnsupportedGEOSVersionError):
+        shapely.line_merge(lines, directed=True)
 
 
 def test_shared_paths_linestring():
