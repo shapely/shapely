@@ -4,6 +4,7 @@ from . import Geometry, GeometryType, lib
 from ._geometry_helpers import collections_1d, simple_geometries_1d
 from .decorators import multithreading_enabled
 from .io import from_wkt
+from .enum import ParamEnum
 
 __all__ = [
     "points",
@@ -19,6 +20,12 @@ __all__ = [
     "destroy_prepared",
     "empty",
 ]
+
+
+class HandleNans(ParamEnum):
+    allow = 0
+    ignore = 1
+    error = 2
 
 
 def _xyz_to_coords(x, y, z):
@@ -73,11 +80,11 @@ def points(coords, y=None, z=None, indices=None, out=None, **kwargs):
     if indices is None:
         return lib.points(coords, out=out, **kwargs)
     else:
-        return simple_geometries_1d(coords, indices, GeometryType.POINT, handle_nans=1, out=out)
+        return simple_geometries_1d(coords, indices, GeometryType.POINT, handle_nans=HandleNans.allow, out=out)
 
 
 @multithreading_enabled
-def linestrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
+def linestrings(coords, y=None, z=None, indices=None, handle_nans=HandleNans.allow, out=None, **kwargs):
     """Create an array of linestrings.
 
     This function will raise an exception if a linestring contains less than
@@ -96,6 +103,8 @@ def linestrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
         indices should be an array of shape (N,) with integers in increasing
         order. Missing indices result in a ValueError unless ``out`` is
         provided, in which case the original value in ``out`` is kept.
+    handle_nans : shapely.HandleNans or {'allow', 'ignore', 'error'}, default 'allow'
+        Specifies what to do when a NaN or Inf is encountered in the coordinates.
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
@@ -116,14 +125,16 @@ def linestrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
       Instead provide the coordinates as a ``(..., 2)`` or ``(..., 3)`` array using only ``coords``.
     """
     coords = _xyz_to_coords(coords, y, z)
+    if isinstance(handle_nans, str):
+        handle_nans = HandleNans.get_value(handle_nans)
     if indices is None:
-        return lib.linestrings(coords, out=out, **kwargs)
+        return lib.linestrings(coords, np.intc(handle_nans), out=out, **kwargs)
     else:
-        return simple_geometries_1d(coords, indices, GeometryType.LINESTRING, handle_nans=1, out=out)
+        return simple_geometries_1d(coords, indices, GeometryType.LINESTRING, handle_nans=handle_nans, out=out)
 
 
 @multithreading_enabled
-def linearrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
+def linearrings(coords, y=None, z=None, indices=None, handle_nans=HandleNans.allow, out=None, **kwargs):
     """Create an array of linearrings.
 
     If the provided coords do not constitute a closed linestring, or if there
@@ -145,6 +156,8 @@ def linearrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
         indices should be an array of shape (N,) with integers in increasing
         order. Missing indices result in a ValueError unless ``out`` is
         provided, in which case the original value in ``out`` is kept.
+    handle_nans : shapely.HandleNans or {'allow', 'ignore', 'error'}, default 'allow'
+        Specifies what to do when a NaN or Inf is encountered in the coordinates.
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
@@ -169,10 +182,12 @@ def linearrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
       Instead provide the coordinates as a ``(..., 2)`` or ``(..., 3)`` array using only ``coords``.
     """
     coords = _xyz_to_coords(coords, y, z)
+    if isinstance(handle_nans, str):
+        handle_nans = HandleNans.get_value(handle_nans)
     if indices is None:
-        return lib.linearrings(coords, out=out, **kwargs)
+        return lib.linearrings(coords, np.intc(handle_nans), out=out, **kwargs)
     else:
-        return simple_geometries_1d(coords, indices, GeometryType.LINEARRING, handle_nans=1, out=out)
+        return simple_geometries_1d(coords, indices, GeometryType.LINEARRING, handle_nans=handle_nans, out=out)
 
 
 @multithreading_enabled

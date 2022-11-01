@@ -2352,12 +2352,11 @@ finish:
 }
 static PyUFuncGenericFunction points_funcs[1] = {&points_func};
 
-static char linestrings_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
+static char linestrings_dtypes[3] = {NPY_DOUBLE, NPY_INT, NPY_OBJECT};
 static void linestrings_func(char** args, npy_intp* dimensions, npy_intp* steps,
                              void* data) {
   GEOSCoordSequence* coord_seq = NULL;
   GEOSGeometry** geom_arr;
-  char handle_nans = PYGEOS_HANDLE_NANS_RAISE;
 
   // check the ordinate dimension before calling coordseq_from_buffer
   if (dimensions[2] < 2 || dimensions[2] > 3) {
@@ -2366,6 +2365,12 @@ static void linestrings_func(char** args, npy_intp* dimensions, npy_intp* steps,
                  dimensions[2]);
     return;
   }
+
+  if (steps[1] != 0) {
+    PyErr_Format(PyExc_ValueError, "Linestrings function called with non-scalar parameters");
+    return;
+  }
+  int handle_nans = *(int*)args[1];
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
@@ -2401,19 +2406,18 @@ finish:
 
   // fill the numpy array with PyObjects while holding the GIL
   if (errstate == PGERR_SUCCESS) {
-    geom_arr_to_npy(geom_arr, args[1], steps[1], dimensions[0]);
+    geom_arr_to_npy(geom_arr, args[2], steps[2], dimensions[0]);
   }
   free(geom_arr);
 }
 static PyUFuncGenericFunction linestrings_funcs[1] = {&linestrings_func};
 
-static char linearrings_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
+static char linearrings_dtypes[3] = {NPY_DOUBLE, NPY_INT, NPY_OBJECT};
 static void linearrings_func(char** args, npy_intp* dimensions, npy_intp* steps,
                              void* data) {
   GEOSCoordSequence* coord_seq = NULL;
   GEOSGeometry** geom_arr;
   char ring_closure = 0;
-  char handle_nans = PYGEOS_HANDLE_NANS_RAISE;
   double first_coord, last_coord;
 
   // check the ordinate dimension before calling coordseq_from_buffer
@@ -2423,6 +2427,13 @@ static void linearrings_func(char** args, npy_intp* dimensions, npy_intp* steps,
                  dimensions[2]);
     return;
   }
+
+  if (steps[1] != 0) {
+    PyErr_Format(PyExc_ValueError, "Linearrings function called with non-scalar parameters");
+    return;
+  }
+  int handle_nans = *(int*)args[1];
+
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
@@ -2479,7 +2490,7 @@ finish:
 
   // fill the numpy array with PyObjects while holding the GIL
   if (errstate == PGERR_SUCCESS) {
-    geom_arr_to_npy(geom_arr, args[1], steps[1], dimensions[0]);
+    geom_arr_to_npy(geom_arr, args[2], steps[2], dimensions[0]);
   }
   free(geom_arr);
 }
@@ -3579,8 +3590,8 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_CUSTOM(shortest_line, 2);
 
   DEFINE_GENERALIZED(points, 1, "(d)->()");
-  DEFINE_GENERALIZED(linestrings, 1, "(i, d)->()");
-  DEFINE_GENERALIZED(linearrings, 1, "(i, d)->()");
+  DEFINE_GENERALIZED(linestrings, 2, "(i, d),()->()");
+  DEFINE_GENERALIZED(linearrings, 2, "(i, d),()->()");
   DEFINE_GENERALIZED(bounds, 1, "()->(n)");
   DEFINE_GENERALIZED(polygons, 2, "(),(i)->()");
   DEFINE_GENERALIZED(create_collection, 2, "(i),()->()");

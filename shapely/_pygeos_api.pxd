@@ -32,4 +32,4 @@ cdef extern from "c_api.h":
     char PyGEOS_GetGEOSGeometry(PyObject *obj, GEOSGeometry **out) nogil
     GEOSCoordSequence* PyGEOS_CoordSeq_FromBuffer(GEOSContextHandle_t ctx, const double* buf,
                                                  unsigned int size, unsigned int dims,
-                                                 char ring_closure) nogil
+                                                 char ring_closure, int handle_nans) nogil

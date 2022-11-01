@@ -58,7 +58,7 @@ def _check_out_array(object out, Py_ssize_t size):
  
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def simple_geometries_1d(object coordinates, object indices, int geometry_type, char handle_nans = 1, object out = None):
+def simple_geometries_1d(object coordinates, object indices, int geometry_type, int handle_nans = 1, object out = None):
     cdef Py_ssize_t idx = 0
     cdef unsigned int coord_idx = 0
     cdef Py_ssize_t geom_idx = 0

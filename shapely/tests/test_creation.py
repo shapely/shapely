@@ -150,6 +150,17 @@ def test_linestrings_invalid_ndim():
         shapely.linestrings(coords)
 
 
+
+def test_linestrings_ignore_nan():
+    actual = shapely.linestrings([[0, 1], [2, float("nan")], [2, 3]], handle_nans="ignore")
+    assert_geometries_equal(actual, LineString([(0, 1), (2, 3)]))
+
+
+def test_linestrings_error_nan():
+    with pytest.raises(shapely.GEOSException):
+        shapely.linestrings([[0, 1], [2, float("nan")], [2, 3]], handle_nans="error")
+
+
 def test_linearrings():
     actual = shapely.linearrings(box_tpl(0, 0, 1, 1))
     assert_geometries_equal(

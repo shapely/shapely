@@ -901,12 +901,14 @@ unsigned int count_finite(const double* buf, unsigned int size, unsigned int dim
   char *cp1, *cp2;
   unsigned int result = 0;
   char has_non_finite = 0;
+  unsigned int i, j;
 
   cp1 = (char*)buf;
   for (i = 0; i < size; i++, cp1 += cs1) {
+    cp2 = cp1;
     has_non_finite = 0;
     for (j = 0; j < dims; j++, cp2 += cs2) {
-      if !(npy_isfinite(*(double*)cp2)) {
+      if (!(npy_isfinite(*(double*)cp2))) {
         has_non_finite = 1;
         break;
       }
@@ -928,15 +930,16 @@ unsigned int count_finite(const double* buf, unsigned int size, unsigned int dim
  */
 GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
                                         unsigned int size, unsigned int dims,
-                                        char ring_closure, char handle_nans, npy_intp cs1,
+                                        char ring_closure, int handle_nans, npy_intp cs1,
                                         npy_intp cs2) {
   GEOSCoordSequence* coord_seq;
   char *cp1, *cp2;
-  unsigned int i, j, actual_size;
-  double first_coord;
+  unsigned int i, j, current, first, actual_size;
+  double coord;
+  char all_finite;
 
   switch (handle_nans)
-  ​{
+  {
       case PYGEOS_HANDLE_NANS_ALLOW:
         actual_size = size;
         break;
@@ -949,6 +952,8 @@ GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* b
           return NULL;  // TODO better error msg
         }
         break;
+      default:
+        return NULL;
   }
 
 #if GEOS_SINCE_3_10_0
@@ -972,25 +977,39 @@ GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* b
 
 #endif
 
-  coord_seq = GEOSCoordSeq_create_r(ctx, size + ring_closure, dims);
+  coord_seq = GEOSCoordSeq_create_r(ctx, actual_size + ring_closure, dims);
   if (coord_seq == NULL) {
     return NULL;
   }
+  current = 0;
+  first = size + 1;
   cp1 = (char*)buf;
   for (i = 0; i < size; i++, cp1 += cs1) {
     cp2 = cp1;
+    all_finite = 1;
     for (j = 0; j < dims; j++, cp2 += cs2) {
-      if (!GEOSCoordSeq_setOrdinate_r(ctx, coord_seq, i, j, *(double*)cp2)) {
+      coord = *(double*)cp2;
+      if ((size != actual_size) && !npy_isfinite(coord)) {
+        all_finite = 0;
+        break;
+      }
+      if (!GEOSCoordSeq_setOrdinate_r(ctx, coord_seq, current, j, coord)) {
         GEOSCoordSeq_destroy_r(ctx, coord_seq);
         return NULL;
+      }
+    }
+    if (all_finite) {
+      current++;
+      if (first == size + 1) {
+        first = i;
       }
     }
   }
   /* add the closing coordinate if necessary */
   if (ring_closure) {
     for (j = 0; j < dims; j++) {
-      first_coord = *(double*)((char*)buf + j * cs2);
-      if (!GEOSCoordSeq_setOrdinate_r(ctx, coord_seq, size, j, first_coord)) {
+      coord = *(double*)((char*)buf + first * cs1 + j * cs2);
+      if (!GEOSCoordSeq_setOrdinate_r(ctx, coord_seq, actual_size, j, coord)) {
         GEOSCoordSeq_destroy_r(ctx, coord_seq);
         return NULL;
       }
