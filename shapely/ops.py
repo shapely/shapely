@@ -111,9 +111,7 @@ class CollectionOperator:
         if source is None:
             raise ValueError(f"Cannot linemerge {lines}")
         if directed:
-            print("her2?")
             return shapely.line_merge_directed(source)
-        print("test2")
         return shapely.line_merge(source)
 
     def cascaded_union(self, geoms):
