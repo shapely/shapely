@@ -3,8 +3,8 @@ import pytest
 
 import shapely
 from shapely import GeometryCollection, LinearRing, LineString, MultiLineString, Point
-from shapely.testing import assert_geometries_equal
 from shapely.errors import UnsupportedGEOSVersionError
+from shapely.testing import assert_geometries_equal
 
 from .common import (
     empty_line_string,
