@@ -622,6 +622,7 @@ static void* segmentize_data[1] = {GEOSDensify_r};
 
 #if GEOS_SINCE_3_11_0
 static void* remove_repeated_points_data[1] = {GEOSRemoveRepeatedPoints_r};
+static void* line_merge_directed_data[1] = {GEOSLineMergeDirected_r};
 #endif
 
 typedef void* FuncGEOS_Yd_Y(void* context, void* a, double b);
@@ -3630,6 +3631,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 
 #if GEOS_SINCE_3_11_0
   DEFINE_Yd_Y(remove_repeated_points);
+  DEFINE_Y_Y(line_merge_directed);
 #endif
 
   Py_DECREF(ufunc);

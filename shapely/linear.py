@@ -90,13 +90,15 @@ def line_locate_point(line, other, normalized=False, **kwargs):
 
 
 @multithreading_enabled
-def line_merge(line, **kwargs):
+def line_merge(line, directed=False, **kwargs):
     """Returns (multi)linestrings formed by combining the lines in a
-    multilinestrings.
+    MultiLineString.
 
     Parameters
     ----------
     line : Geometry or array_like
+    directed : bool, default False
+        Only combine lines if possible without changing point order.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -110,7 +112,11 @@ def line_merge(line, **kwargs):
     <MULTILINESTRING ((0 2, 0 10), (0 11, 5 10))>
     >>> line_merge(MultiLineString())
     <GEOMETRYCOLLECTION EMPTY>
+    >>> line_merge(MultiLineString([[(0, 0), (1, 0)], [(0, 0), (3, 0)]]), directed=True)
+    <MULTILINESTRING ((0 0, 1 0), (0 0, 3 0))>
     """
+    if directed:
+        return lib.line_merge_directed(line, **kwargs)
     return lib.line_merge(line, **kwargs)
 
 

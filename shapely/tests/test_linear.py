@@ -136,6 +136,14 @@ def test_line_merge_geom_array():
     assert_geometries_equal(actual[1], LineString([(0, 0), (1, 2)]))
 
 
+def test_line_merge_directed():
+    lines = MultiLineString([[(0, 0), (1, 0)], [(0, 0), (3, 0)]])
+    result = shapely.line_merge(lines)
+    assert_geometries_equal(result, LineString([(1, 0), (0, 0), (3, 0)]))
+    result = shapely.line_merge(lines, directed=True)
+    assert_geometries_equal(result, lines)
+
+
 def test_shared_paths_linestring():
     g1 = shapely.linestrings([(0, 0), (1, 0), (1, 1)])
     g2 = shapely.linestrings([(0, 0), (1, 0)])
