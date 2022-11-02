@@ -41,6 +41,7 @@ jobs:
             geos: 3.11.0
             numpy: 1.23.3
             matplotlib: true
+            doctest: true
             # TODO(shapely-2.0) temporary allow warnings
             # extra_pytest_args: "-W error"  # error on warnings
           # dev
@@ -169,12 +170,12 @@ jobs:
 
       # Only run doctests on 1 runner (because of typographic differences in doctest results)
       - name: Run doctests
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.11' }}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.doctest }}
         run: |
           python -m pytest --doctest-modules docs/manual.rst
 
       - name: Run doctests (part 2)
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.11' && matrix.geos == '3.11.0'}}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.doctest }}
         run: |
           pytest --doctest-modules shapely --ignore=shapely/tests
 
