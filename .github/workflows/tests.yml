@@ -59,7 +59,7 @@ jobs:
             python: 3.9
             geos: 3.10.3
             numpy: 1.19.5
-          # pypy (don't use ubuntu-latest to not overwrite existing geos 3.11.0 build)
+          # pypy (use explicit ubuntu version to not overwrite existing ubuntu-latest + geos 3.11.0 build)
           - os: ubuntu-20.04
             python: "pypy3.8"
             geos: 3.11.0
