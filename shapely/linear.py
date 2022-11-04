@@ -92,12 +92,19 @@ def line_locate_point(line, other, normalized=False, **kwargs):
 
 @multithreading_enabled
 def line_merge(line, directed=False, **kwargs):
-    """Returns (multi)linestrings formed by combining the lines in a
+    """Returns (Multi)LineStrings formed by combining the lines in a
     MultiLineString.
 
-Lines are joined together at their endpoints in case two lines are intersecting. Lines are not joined when 3 or more lines are intersecting at the endpoints. Line elements that cannot be joined are kept as is in the resulting MultiLineString.
+    Lines are joined together at their endpoints in case two lines are
+    intersecting. Lines are not joined when 3 or more lines are intersecting at
+    the endpoints. Line elements that cannot be joined are kept as is in the
+    resulting MultiLineString.
 
-The direction of each merged LineString will be that of the majority of the LineStrings from which it was derived. Except if ``directed=True`` is specified, then the operation will not change the order of points within lines and so only lines which can be joined with no change in direction are merged.
+    The direction of each merged LineString will be that of the majority of the
+    LineStrings from which it was derived. Except if ``directed=True`` is
+    specified, then the operation will not change the order of points within
+    lines and so only lines which can be joined with no change in direction
+    are merged.
 
     Parameters
     ----------

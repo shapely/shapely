@@ -317,6 +317,7 @@ Several (new) functions from GEOS are now exposed in Shapely:
 * :func:`.segmentize` (GEOS >= 3.10)
 * :func:`.dwithin` (GEOS >= 3.10)
 * :func:`.remove_repeated_points` (GEOS >= 3.11)
+* :func:`.line_merge`  (GEOS > 3.11) added `directed` parameter.
 
 In addition some aliases for existing methods have been added to provide a
 method name consistent with GEOS or PostGIS:
@@ -330,9 +331,6 @@ method name consistent with GEOS or PostGIS:
 * :func:`.voronoi_polygons` (``ops.voronoi_diagram``)
 * :func:`.shortest_line` (``ops.nearest_points``)
 * :func:`.is_valid_reason` (``validation.explain_validity``)
-
-Functions with additional parameters introduced with new GEOS versions:
-* :func:`.line_merge`  (GEOS > 3.11) added `directed` parameter.
 
 
 Getting information / parts / coordinates from geometries
