@@ -114,6 +114,8 @@ def line_merge(line, directed=False, **kwargs):
     <MULTILINESTRING ((0 2, 0 10), (0 11, 5 10))>
     >>> line_merge(MultiLineString())
     <GEOMETRYCOLLECTION EMPTY>
+    >>> line_merge(MultiLineString([[(0, 0), (1, 0)], [(0, 0), (3, 0)]]))
+    <LINESTRING (1 0, 0 0, 3 0)>
     >>> line_merge(MultiLineString([[(0, 0), (1, 0)], [(0, 0), (3, 0)]]), directed=True)
     <MULTILINESTRING ((0 0, 1 0), (0 0, 3 0))>
     """
