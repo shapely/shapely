@@ -140,8 +140,11 @@ def test_line_merge_geom_array():
 @pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11.0")
 def test_line_merge_directed():
     lines = MultiLineString([[(0, 0), (1, 0)], [(0, 0), (3, 0)]])
+    # Merge lines without directed, this requires changing the vertex ordering
     result = shapely.line_merge(lines)
     assert_geometries_equal(result, LineString([(1, 0), (0, 0), (3, 0)]))
+    # Since the lines can't be merged when directed is specified
+    # the original geometry is returned
     result = shapely.line_merge(lines, directed=True)
     assert_geometries_equal(result, lines)
 
