@@ -476,6 +476,9 @@ static void* reverse_data[1] = {GEOSReverse_r};
 #if GEOS_SINCE_3_6_0
 static void* oriented_envelope_data[1] = {GEOSMinimumRotatedRectangle_r};
 #endif
+#if GEOS_SINCE_3_11_0
+static void* line_merge_directed_data[1] = {GEOSLineMergeDirected_r};
+#endif
 typedef void* FuncGEOS_Y_Y(void* context, void* a);
 static char Y_Y_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
 static void Y_Y_func(char** args, npy_intp* dimensions, npy_intp* steps, void* data) {
@@ -622,7 +625,6 @@ static void* segmentize_data[1] = {GEOSDensify_r};
 
 #if GEOS_SINCE_3_11_0
 static void* remove_repeated_points_data[1] = {GEOSRemoveRepeatedPoints_r};
-static void* line_merge_directed_data[1] = {GEOSLineMergeDirected_r};
 #endif
 
 typedef void* FuncGEOS_Yd_Y(void* context, void* a, double b);
