@@ -320,7 +320,7 @@ class BaseGeometry(shapely.Geometry):
     @property
     def length(self):
         """Unitless length of the geometry (float)"""
-        return _maybe_unpack(shapely.length(self), float)
+        return float(shapely.length(self))
 
     @property
     def minimum_clearance(self):
