@@ -64,6 +64,14 @@ def dump_coords(geom):
         raise GeometryTypeError("Unhandled geometry type: " + repr(geom.geom_type))
 
 
+def _maybe_unpack(result, typ):
+    if result.ndim == 0:
+        return typ(result)
+    else:
+        # >=1 dim array
+        return result
+
+
 class CAP_STYLE:
     round = BufferCapStyle.round
     flat = BufferCapStyle.flat
@@ -303,16 +311,16 @@ class BaseGeometry(shapely.Geometry):
 
     def distance(self, other):
         """Unitless distance to other geometry (float)"""
-        return float(shapely.distance(self, other))
+        return _maybe_unpack(shapely.distance(self, other), float)
 
     def hausdorff_distance(self, other):
         """Unitless hausdorff distance to other geometry (float)"""
-        return float(shapely.hausdorff_distance(self, other))
+        return _maybe_unpack(shapely.hausdorff_distance(self, other), float)
 
     @property
     def length(self):
         """Unitless length of the geometry (float)"""
-        return float(shapely.length(self))
+        return _maybe_unpack(shapely.length(self), float)
 
     @property
     def minimum_clearance(self):
@@ -635,23 +643,23 @@ class BaseGeometry(shapely.Geometry):
 
     def covers(self, other):
         """Returns True if the geometry covers the other, else False"""
-        return bool(shapely.covers(self, other))
+        return _maybe_unpack(shapely.covers(self, other), bool)
 
     def covered_by(self, other):
         """Returns True if the geometry is covered by the other, else False"""
-        return bool(shapely.covered_by(self, other))
+        return _maybe_unpack(shapely.covered_by(self, other), bool)
 
     def contains(self, other):
         """Returns True if the geometry contains the other, else False"""
-        return bool(shapely.contains(self, other))
+        return _maybe_unpack(shapely.contains(self, other), bool)
 
     def crosses(self, other):
         """Returns True if the geometries cross, else False"""
-        return bool(shapely.crosses(self, other))
+        return _maybe_unpack(shapely.crosses(self, other), bool)
 
     def disjoint(self, other):
         """Returns True if geometries are disjoint, else False"""
-        return bool(shapely.disjoint(self, other))
+        return _maybe_unpack(shapely.disjoint(self, other), bool)
 
     def equals(self, other):
         """Returns True if geometries are equal, else False.
@@ -674,23 +682,23 @@ class BaseGeometry(shapely.Geometry):
         bool
 
         """
-        return bool(shapely.equals(self, other))
+        return _maybe_unpack(shapely.equals(self, other), bool)
 
     def intersects(self, other):
         """Returns True if geometries intersect, else False"""
-        return bool(shapely.intersects(self, other))
+        return _maybe_unpack(shapely.intersects(self, other), bool)
 
     def overlaps(self, other):
         """Returns True if geometries overlap, else False"""
-        return bool(shapely.overlaps(self, other))
+        return _maybe_unpack(shapely.overlaps(self, other), bool)
 
     def touches(self, other):
         """Returns True if geometries touch, else False"""
-        return bool(shapely.touches(self, other))
+        return _maybe_unpack(shapely.touches(self, other), bool)
 
     def within(self, other):
         """Returns True if geometry is within the other, else False"""
-        return bool(shapely.within(self, other))
+        return _maybe_unpack(shapely.within(self, other), bool)
 
     def dwithin(self, other, distance):
         """
@@ -698,7 +706,7 @@ class BaseGeometry(shapely.Geometry):
 
         Refer to `shapely.dwithin` for full documentation.
         """
-        return bool(shapely.dwithin(self, other, distance))
+        return _maybe_unpack(shapely.dwithin(self, other, distance), bool)
 
     def equals_exact(self, other, tolerance):
         """True if geometries are equal to within a specified
@@ -733,7 +741,7 @@ class BaseGeometry(shapely.Geometry):
         bool
 
         """
-        return bool(shapely.equals_exact(self, other, tolerance))
+        return _maybe_unpack(shapely.equals_exact(self, other, tolerance), bool)
 
     def almost_equals(self, other, decimal=6):
         """True if geometries are equal at all coordinates to a
@@ -776,7 +784,7 @@ class BaseGeometry(shapely.Geometry):
     def relate_pattern(self, other, pattern):
         """Returns True if the DE-9IM string code for the relationship between
         the geometries satisfies the pattern, else False"""
-        return bool(shapely.relate_pattern(self, other, pattern))
+        return _maybe_unpack(shapely.relate_pattern(self, other, pattern), bool)
 
     # Linear referencing
     # ------------------
