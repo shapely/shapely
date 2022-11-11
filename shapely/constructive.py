@@ -337,6 +337,7 @@ def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
     )
 
 
+@requires_geos("3.11.0")
 @multithreading_enabled
 def concave_hull(geometry, ratio=0.0, allow_holes=False, **kwargs):
     """Computes a concave geometry that encloses an input geometry.

@@ -966,6 +966,7 @@ def test_minimum_rotated_rectangle(geometry, expected):
     assert shapely.equals(actual, expected).all()
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
 def test_concave_hull_kwargs():
     p = Point(10, 10)
     mp = MultiPoint(p.buffer(5).exterior.coords[:] + p.buffer(4).exterior.coords[:])
