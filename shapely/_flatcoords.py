@@ -172,6 +172,12 @@ def to_ragged_array(arr):
 def _point_from_flatcoords(coords):
     result = creation.points(coords.reshape(-1, 2))
 
+    # Older versions of GEOS (<= 3.9) don't automatically convert NaNs
+    # to empty points -> do manually
+    empties = np.isnan(coords.reshape(-1, 2)).all(axis=1)
+    if empties.any():
+        result[empties] = creation.empty(1, geom_type=GeometryType.POINT).item()
+
     return result
 
 
