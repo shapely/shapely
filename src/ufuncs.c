@@ -1606,6 +1606,8 @@ static void snap_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
 }
 static PyUFuncGenericFunction snap_funcs[1] = {&snap_func};
 
+#if GEOS_SINCE_3_11_0
+
 static char concave_hull_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
 
 static void concave_hull_func(char** args, npy_intp* dimensions, npy_intp* steps,
@@ -1664,6 +1666,8 @@ static void concave_hull_func(char** args, npy_intp* dimensions, npy_intp* steps
   free(geom_arr);
 }
 static PyUFuncGenericFunction concave_hull_funcs[1] = {&concave_hull_func};
+
+#endif  // GEOS_SINCE_3_11_0
 
 static char clip_by_rect_dtypes[6] = {NPY_OBJECT, NPY_DOUBLE, NPY_DOUBLE,
                                       NPY_DOUBLE, NPY_DOUBLE, NPY_OBJECT};
