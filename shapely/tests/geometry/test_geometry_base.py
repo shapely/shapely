@@ -189,7 +189,13 @@ def test_array_argument_binary_predicates(op):
 @pytest.mark.parametrize(
     "op, kwargs",
     [
-        ("dwithin", dict(distance=0.5)),
+        pytest.param(
+            "dwithin",
+            dict(distance=0.5),
+            marks=pytest.mark.skipif(
+                shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10"
+            ),
+        ),
         ("equals_exact", dict(tolerance=0.01)),
         ("relate_pattern", dict(pattern="T*F**F***")),
     ],
