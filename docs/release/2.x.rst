@@ -384,12 +384,14 @@ prepared. Helper functions :func:`.destroy_prepared` and :func:`.is_prepared`
 are also available.
 
 
-GeoJSON IO
-~~~~~~~~~~
+New IO methods (GeoJSON, ragged arrays)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Added GeoJSON input/output capabilities :func:`.from_geojson` and
-  :func:`.to_geojson` for GEOS >= 3.10 (#413).
-
+  :func:`.to_geojson` for GEOS >= 3.10.
+* Added conversion to/from ragged array representation using a contiguous array
+  of coordinates and offset arrays: :func:`.to_ragged_array` and
+  :func:`.from_ragged_array`.
 
 Other improvements
 ~~~~~~~~~~~~~~~~~~

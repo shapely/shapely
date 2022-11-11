@@ -1,3 +1,32 @@
+"""
+This modules provides a conversion to / from a ragged (or "jagged") array
+representation of the geometries.
+
+A ragged array is an irregular array of arrays of which each element can have
+a different length. As a result, such an array cannot be represented as a
+standard, rectangular nD array.
+The coordinates of geometries can be represented as arrays of arrays of
+coordinate pairs (possibly multiple levels of nesting, depending on the
+geometry type).
+
+There are different ways that ragged arrays can efficiently be represented
+in memory using contiguous arrays. The actual values are stacked sequentially
+in a single contiguous array (of coordinates, in case of geometries). In
+addition, another data structure keeps track of which data in the single
+contiguous values array belongs to which array element in the ragged array.
+Typical ways to do this are using offsets, counts or indices.
+
+The ragged array representation currently supported by this module uses the
+one based on offsets as defined by the Apache Arrow project as "variable size list array"
+(https://arrow.apache.org/docs/format/Columnar.html#variable-size-list-layout).
+See for example https://cfconventions.org/Data/cf-conventions/cf-conventions-1.9/cf-conventions.html#representations-features
+for different options.
+
+The exact usage of the Arrow list array with varying degrees of nesting for the
+different geometry types is defined by the GeoArrow project:
+https://github.com/geoarrow/geoarrow/blob/main/format.md
+
+"""
 import numpy as np
 
 from . import creation
@@ -103,7 +132,18 @@ def _get_arrays_multipolygon(arr):
 
 def to_ragged_array(arr):
     """
-    Converts to a flat array of coordinates and offset arrays.
+    Converts to ragged array representation using a flat array of coordinates
+    and offset arrays.
+
+    This function converts an array of geometries to a ragged array
+    (i.e. irregular array of arrays) of coordinates, represented in memory
+    using a single contiguous array of the coordinates, and in addition
+    0, 1 or up to 3 offset arrays that keep track where each sub-array
+    starts and ends.
+
+    This follows the in-memory layout of the variable size list arrays defined
+    by Apache Arrow, as specified for geometries by the GeoArrow project:
+    https://github.com/geoarrow/geoarrow.
 
     Parameters
     ----------
@@ -119,7 +159,65 @@ def to_ragged_array(arr):
     offsets: tuple of np.ndarray
         Offset arrays that allow to reconstruct the geometries based on the
         flat coordinates array. Number of offset arrays depends on the
-        geometry type.
+        geometry type. See
+        https://github.com/geoarrow/geoarrow/blob/main/format.md for details.
+
+    See also
+    --------
+    from_ragged_array
+
+    Examples
+    --------
+    Consider a Polygon with one hole (interior ring):
+
+    >>> import shapely
+    >>> polygon = shapely.Polygon(
+    ...     [(0, 0), (10, 0), (10, 10), (0, 10)],
+    ...     holes=[[(2, 2), (3, 2), (2, 3)]]
+    ... )
+    >>> polygon
+    <POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (2 2, 3 2, 2 3, 2 2))>
+
+    This polygon can be thought of as a list of rings (first ring the exterior
+    ring, subsequent rings the interior rings), and each ring as a list of
+    coordinate pairs. This is very similar to how GeoJSON represents the
+    coordinates:
+
+    >>> import json
+    >>> json.loads(shapely.to_geojson(polygon))["coordinates"]
+    [[[0.0, 0.0], [10.0, 0.0], [10.0, 10.0], [0.0, 10.0], [0.0, 0.0]],
+     [[2.0, 2.0], [3.0, 2.0], [2.0, 3.0], [2.0, 2.0]]]
+
+    This function will semantically return such a list of lists of lists, but
+    using a single contiguous array of coordinates, and multiple arrays of
+    offsets:
+
+    >>> typ, coords, offsets = shapely.to_ragged_array([polygon])
+    >>> typ
+    <GeometryType.POLYGON: 3>
+    >>> coords
+    array([ 0.,  0., 10.,  0., 10., 10.,  0., 10.,  0.,  0.,  2.,  2.,  3.,
+            2.,  2.,  3.,  2.,  2.])
+    >>> offsets
+    (array([0, 5, 9]), array([0, 2]))
+
+    As an example how to interpret the offsets: the i-th ring in the
+    coordinates is represented by ``offsets[0][i]`` to ``offsets[0][i+1]``:
+
+    >>> ring1_start, ring1_end = offsets[0][0], offsets[0][1]
+    >>> coords[ring1_start*2:ring1_end*2]
+    array([ 0.,  0., 10.,  0., 10., 10.,  0., 10.,  0.,  0.])
+
+    The ``* 2`` is needed because the coordinates are returned as a 1D array
+    but represent X and Y coordinates:
+
+    >>> coords.reshape((-1, 2))[ring1_start:ring1_end]
+    array([[ 0.,  0.],
+           [10.,  0.],
+           [10., 10.],
+           [ 0., 10.],
+           [ 0.,  0.]])
+
     """
     geom_types = np.unique(get_type_id(arr))
     # ignore missing values (type of -1)
@@ -274,7 +372,14 @@ def from_ragged_array(typ, coords, offsets=None):
     """
     Creates geometries from a flat array of coordinates and offset arrays.
 
-    Converts to a flat array of coordinates and offset arrays.
+    This function creates geometries from the ragged array representation
+    as returned by ``to_ragged_array``.
+
+    This follows the in-memory layout of the variable size list arrays defined
+    by Apache Arrow, as specified for geometries by the GeoArrow project:
+    https://github.com/geoarrow/geoarrow.
+
+    See :func:`to_ragged_array` for more details.
 
     Parameters
     ----------
@@ -291,6 +396,10 @@ def from_ragged_array(typ, coords, offsets=None):
     ----------
     np.ndarray
         Array of geometries (1-dimensional).
+
+    See Also
+    --------
+    to_ragged_array
 
     """
     if typ == GeometryType.POINT:

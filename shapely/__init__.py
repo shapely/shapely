@@ -13,7 +13,6 @@ from .linear import *  # NOQA
 from .coordinates import *  # NOQA
 from .strtree import *  # NOQA
 from .io import *  # NOQA
-from ._flatcoords import *  # NOQA
 
 # Submodule always needs to be imported to ensure Geometry subclasses are registered
 from shapely.geometry import (  # NOQA
