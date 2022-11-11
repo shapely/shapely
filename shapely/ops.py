@@ -90,7 +90,7 @@ class CollectionOperator:
             obs = [self.shapeup(line) for line in source]
         return shapely.polygonize_full(obs)
 
-    def linemerge(self, lines):
+    def linemerge(self, lines, directed=False):
         """Merges all connected lines from a source
 
         The source may be a MultiLineString, a sequence of LineString objects,
@@ -110,6 +110,8 @@ class CollectionOperator:
                 source = MultiLineString(lines)
         if source is None:
             raise ValueError(f"Cannot linemerge {lines}")
+        if directed:
+            return shapely.line_merge_directed(source)
         return shapely.line_merge(source)
 
     def cascaded_union(self, geoms):

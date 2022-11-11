@@ -1,9 +1,11 @@
 Linestring operations
 =====================
 
-.. automodule:: shapely.linear
-   :members:
-   :undoc-members:
-   :special-members:
-   :inherited-members:
-   :show-inheritance:
+.. currentmodule:: shapely
+
+.. autosummary::
+   :toctree: reference/
+
+{% for function in get_module_functions("linear") %}
+   {{ function }}
+{% endfor %}

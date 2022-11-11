@@ -267,7 +267,7 @@ def test_offset_curve_distance_array():
 def test_offset_curve_kwargs():
     # check that kwargs are passed through
     result1 = shapely.offset_curve(
-        line_string, -2.0, quadsegs=2, join_style="mitre", mitre_limit=2.0
+        line_string, -2.0, quad_segs=2, join_style="mitre", mitre_limit=2.0
     )
     result2 = shapely.offset_curve(line_string, -2.0)
     assert result1 != result2
@@ -276,7 +276,7 @@ def test_offset_curve_kwargs():
 def test_offset_curve_non_scalar_kwargs():
     msg = "only accepts scalar values"
     with pytest.raises(TypeError, match=msg):
-        shapely.offset_curve([line_string, line_string], 1, quadsegs=np.array([8, 9]))
+        shapely.offset_curve([line_string, line_string], 1, quad_segs=np.array([8, 9]))
 
     with pytest.raises(TypeError, match=msg):
         shapely.offset_curve(
@@ -290,6 +290,86 @@ def test_offset_curve_non_scalar_kwargs():
 def test_offset_curve_join_style_invalid():
     with pytest.raises(ValueError, match="'invalid' is not a valid option"):
         shapely.offset_curve(line_string, 1.0, join_style="invalid")
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
+@pytest.mark.parametrize(
+    "geom,expected",
+    [
+        (LineString([(0, 0), (0, 0), (1, 0)]), LineString([(0, 0), (1, 0)])),
+        (
+            LinearRing([(0, 0), (1, 2), (1, 2), (1, 3), (0, 0)]),
+            LinearRing([(0, 0), (1, 2), (1, 3), (0, 0)]),
+        ),
+        (
+            Polygon([(0, 0), (0, 0), (1, 0), (1, 1), (1, 0), (0, 0)]),
+            Polygon([(0, 0), (1, 0), (1, 1), (1, 0), (0, 0)]),
+        ),
+        (
+            Polygon(
+                [(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)],
+                holes=[[(2, 2), (2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]],
+            ),
+            Polygon(
+                [(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)],
+                holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]],
+            ),
+        ),
+        (
+            MultiPolygon(
+                [
+                    Polygon([(0, 0), (0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]),
+                    Polygon([(2, 2), (2, 2), (2, 3), (3, 3), (3, 2), (2, 2)]),
+                ]
+            ),
+            MultiPolygon(
+                [
+                    Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]),
+                    Polygon([(2, 2), (2, 3), (3, 3), (3, 2), (2, 2)]),
+                ]
+            ),
+        ),
+        # points are unchanged
+        (point, point),
+        (point_z, point_z),
+        (multi_point, multi_point),
+        # empty geometries are unchanged
+        (empty_point, empty_point),
+        (empty_line_string, empty_line_string),
+        (empty, empty),
+        (empty_polygon, empty_polygon),
+    ],
+)
+def test_remove_repeated_points(geom, expected):
+    assert_geometries_equal(shapely.remove_repeated_points(geom, 0), expected)
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
+@pytest.mark.parametrize(
+    "geom, tolerance", [[Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]), 2]]
+)
+def test_remove_repeated_points_invalid_result(geom, tolerance):
+    with pytest.raises(shapely.GEOSException, match="Invalid number of points"):
+        shapely.remove_repeated_points(geom, tolerance)
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
+def test_remove_repeated_points_none():
+    assert shapely.remove_repeated_points(None, 1) is None
+    assert shapely.remove_repeated_points([None], 1).tolist() == [None]
+
+    geometry = LineString([(0, 0), (0, 0), (1, 1)])
+    expected = LineString([(0, 0), (1, 1)])
+    result = shapely.remove_repeated_points([None, geometry], 1)
+    assert result[0] is None
+    assert_geometries_equal(result[1], expected)
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
+@pytest.mark.parametrize("geom, tolerance", [("Not a geometry", 1), (1, 1)])
+def test_remove_repeated_points_invalid_type(geom, tolerance):
+    with pytest.raises(TypeError, match="One of the arguments is of incorrect type"):
+        shapely.remove_repeated_points(geom, tolerance)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
@@ -650,16 +730,16 @@ def test_polygonize_full_missing():
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize("geometry", all_types)
-@pytest.mark.parametrize("tolerance", [-1, 0])
-def test_segmentize_invalid_tolerance(geometry, tolerance):
+@pytest.mark.parametrize("max_segment_length", [-1, 0])
+def test_segmentize_invalid_max_segment_length(geometry, max_segment_length):
     with pytest.raises(GEOSException, match="IllegalArgumentException"):
-        shapely.segmentize(geometry, tolerance=tolerance)
+        shapely.segmentize(geometry, max_segment_length=max_segment_length)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize("geometry", all_types)
-def test_segmentize_tolerance_nan(geometry):
-    actual = shapely.segmentize(geometry, tolerance=np.nan)
+def test_segmentize_max_segment_length_nan(geometry):
+    actual = shapely.segmentize(geometry, max_segment_length=np.nan)
     assert actual is None
 
 
@@ -668,20 +748,20 @@ def test_segmentize_tolerance_nan(geometry):
     "geometry", [empty, empty_point, empty_line_string, empty_polygon]
 )
 def test_segmentize_empty(geometry):
-    actual = shapely.segmentize(geometry, tolerance=5)
+    actual = shapely.segmentize(geometry, max_segment_length=5)
     assert_geometries_equal(actual, geometry)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize("geometry", [point, point_z, multi_point])
 def test_segmentize_no_change(geometry):
-    actual = shapely.segmentize(geometry, tolerance=5)
+    actual = shapely.segmentize(geometry, max_segment_length=5)
     assert_geometries_equal(actual, geometry)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 def test_segmentize_none():
-    assert shapely.segmentize(None, tolerance=5) is None
+    assert shapely.segmentize(None, max_segment_length=5) is None
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")

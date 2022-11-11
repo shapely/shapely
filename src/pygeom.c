@@ -38,18 +38,22 @@ PyObject* GeometryObject_FromGEOS(GEOSGeometry* ptr, GEOSContextHandle_t ctx) {
   } else {
     self->ptr = ptr;
     self->ptr_prepared = NULL;
+    self->weakreflist = (PyObject *)NULL;
     return (PyObject*)self;
   }
 }
 
 static void GeometryObject_dealloc(GeometryObject* self) {
+  if (self->weakreflist != NULL) {
+    PyObject_ClearWeakRefs((PyObject *)self);
+  }
   if (self->ptr != NULL) {
-    GEOS_INIT;
+    // not using GEOS_INIT, but using global context instead
+    GEOSContextHandle_t ctx = geos_context[0];
     GEOSGeom_destroy_r(ctx, self->ptr);
     if (self->ptr_prepared != NULL) {
       GEOSPreparedGeom_destroy_r(ctx, self->ptr_prepared);
     }
-    GEOS_FINISH;
   }
   Py_TYPE(self)->tp_free((PyObject*)self);
 }
@@ -396,6 +400,7 @@ PyTypeObject GeometryType = {
     .tp_repr = (reprfunc)GeometryObject_repr,
     .tp_hash = (hashfunc)GeometryObject_hash,
     .tp_richcompare = (richcmpfunc)GeometryObject_richcompare,
+    .tp_weaklistoffset = offsetof(GeometryObject, weakreflist),
     .tp_str = (reprfunc)GeometryObject_str,
 };
 

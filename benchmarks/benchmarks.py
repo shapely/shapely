@@ -53,6 +53,12 @@ class IOSuite:
         shapely.from_wkb(self.to_read_wkb)
 
 
+class ConstructorsSuite:
+    """Microbenchmarks for the Geometry class constructors"""
+    
+    def time_point(self):
+        shapely.Point(1.0, 2.0)
+
 class ConstructiveSuite:
     """Benchmarks constructive functions on a set of 10,000 points"""
 
@@ -326,7 +332,7 @@ class STRtree:
         # use an arbitrary search tolerance that seems appropriate for the density of
         # geometries
         tolerance = 200
-        b = shapely.buffer(self.points, tolerance, quadsegs=1)
+        b = shapely.buffer(self.points, tolerance, quad_segs=1)
         left, right = self.tree.query(b)
         dist = shapely.distance(self.points.take(left), self.polygons.take(right))
 

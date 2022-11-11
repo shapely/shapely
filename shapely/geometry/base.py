@@ -5,14 +5,14 @@ geometry objects, but has no effect on geometric analysis. All
 operations are performed in the x-y plane. Thus, geometries with
 different z values may intersect or be equal.
 """
-import math
-from itertools import islice
+import re
 from warnings import warn
 
 import numpy as np
 
 import shapely
-from shapely.affinity import affine_transform
+from shapely._geometry_helpers import _geom_factory
+from shapely.constructive import BufferCapStyle, BufferJoinStyle
 from shapely.coords import CoordinateSequence
 from shapely.errors import GeometryTypeError, GEOSException, ShapelyDeprecationWarning
 
@@ -26,6 +26,25 @@ GEOMETRY_TYPES = [
     "MultiPolygon",
     "GeometryCollection",
 ]
+
+
+def geom_factory(g, parent=None):
+    """
+    Creates a Shapely geometry instance from a pointer to a GEOS geometry.
+
+    WARNING: the GEOS library used to create the the GEOS geometry pointer
+    and the GEOS library used by Shapely must be exactly the same, or
+    unexpected results or segfaults may occur.
+
+    Deprecated in Shapely 2.0, and will be removed in a future version.
+    """
+    warn(
+        "The 'geom_factory' function is deprecated in Shapely 2.0, and will be "
+        "removed in a future version",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return _geom_factory(g)
 
 
 def dump_coords(geom):
@@ -46,15 +65,15 @@ def dump_coords(geom):
 
 
 class CAP_STYLE:
-    round = 1
-    flat = 2
-    square = 3
+    round = BufferCapStyle.round
+    flat = BufferCapStyle.flat
+    square = BufferCapStyle.square
 
 
 class JOIN_STYLE:
-    round = 1
-    mitre = 2
-    bevel = 3
+    round = BufferJoinStyle.round
+    mitre = BufferJoinStyle.mitre
+    bevel = BufferJoinStyle.bevel
 
 
 class BaseGeometry(shapely.Geometry):
@@ -84,6 +103,51 @@ class BaseGeometry(shapely.Geometry):
 
     def __nonzero__(self):
         return self.__bool__()
+
+    def __format__(self, format_spec):
+        """Format a geometry using a format specification."""
+        # bypass reqgexp for simple cases
+        if format_spec == "":
+            return shapely.to_wkt(self, rounding_precision=-1)
+        elif format_spec == "x":
+            return shapely.to_wkb(self, hex=True).lower()
+        elif format_spec == "X":
+            return shapely.to_wkb(self, hex=True)
+
+        # fmt: off
+        format_spec_regexp = (
+            "(?:0?\\.(?P<prec>[0-9]+))?"
+            "(?P<fmt_code>[fFgGxX]?)"
+        )
+        # fmt: on
+        match = re.fullmatch(format_spec_regexp, format_spec)
+        if match is None:
+            raise ValueError(f"invalid format specifier: {format_spec}")
+
+        prec, fmt_code = match.groups()
+
+        if prec:
+            prec = int(prec)
+        else:
+            # GEOS has a default rounding_precision -1
+            prec = -1
+
+        if not fmt_code:
+            fmt_code = "g"
+
+        if fmt_code in ("g", "G"):
+            res = shapely.to_wkt(self, rounding_precision=prec, trim=True)
+        elif fmt_code in ("f", "F"):
+            res = shapely.to_wkt(self, rounding_precision=prec, trim=False)
+        elif fmt_code in ("x", "X"):
+            raise ValueError("hex representation does not specify precision")
+        else:
+            raise NotImplementedError(f"unhandled fmt_code: {fmt_code}")
+
+        if fmt_code.isupper():
+            return res.upper()
+        else:
+            return res
 
     def __repr__(self):
         try:
@@ -308,53 +372,42 @@ class BaseGeometry(shapely.Geometry):
         return shapely.envelope(self)
 
     @property
-    def minimum_rotated_rectangle(self):
-        """Returns the general minimum bounding rectangle of
-        the geometry. Can possibly be rotated. If the convex hull
-        of the object is a degenerate (line or point) this same degenerate
-        is returned.
+    def oriented_envelope(self):
         """
-        # first compute the convex hull
-        hull = self.convex_hull
-        try:
-            coords = hull.exterior.coords
-        except AttributeError:  # may be a Point or a LineString
-            return hull
-        # generate the edge vectors between the convex hull's coords
-        edges = (
-            (pt2[0] - pt1[0], pt2[1] - pt1[1])
-            for pt1, pt2 in zip(coords, islice(coords, 1, None))
-        )
+        Returns the oriented envelope (minimum rotated rectangle) that
+        encloses the geometry.
 
-        def _transformed_rects():
-            for dx, dy in edges:
-                # compute the normalized direction vector of the edge
-                # vector.
-                length = math.sqrt(dx**2 + dy**2)
-                ux, uy = dx / length, dy / length
-                # compute the normalized perpendicular vector
-                vx, vy = -uy, ux
-                # transform hull from the original coordinate system to
-                # the coordinate system defined by the edge and compute
-                # the axes-parallel bounding rectangle.
-                transf_rect = affine_transform(hull, (ux, uy, vx, vy, 0, 0)).envelope
-                # yield the transformed rectangle and a matrix to
-                # transform it back to the original coordinate system.
-                yield (transf_rect, (ux, vx, uy, vy, 0, 0))
+        Unlike envelope this rectangle is not constrained to be parallel to the
+        coordinate axes. If the convex hull of the object is a degenerate (line
+        or point) this degenerate is returned.
 
-        # check for the minimum area rectangle and return it
-        transf_rect, inv_matrix = min(_transformed_rects(), key=lambda r: r[0].area)
-        return affine_transform(transf_rect, inv_matrix)
+        Alias of `minimum_rotated_rectangle`.
+        """
+        return shapely.oriented_envelope(self)
+
+    @property
+    def minimum_rotated_rectangle(self):
+        """
+        Returns the oriented envelope (minimum rotated rectangle) that
+        encloses the geometry.
+
+        Unlike `envelope` this rectangle is not constrained to be parallel to the
+        coordinate axes. If the convex hull of the object is a degenerate (line
+        or point) this degenerate is returned.
+
+        Alias of `oriented_envelope`.
+        """
+        return shapely.oriented_envelope(self)
 
     def buffer(
         self,
         distance,
-        resolution=16,
-        quadsegs=None,
-        cap_style=CAP_STYLE.round,
-        join_style=JOIN_STYLE.round,
+        quad_segs=16,
+        cap_style="round",
+        join_style="round",
         mitre_limit=5.0,
         single_sided=False,
+        **kwargs,
     ):
         """Get a geometry that represents all points within a distance
         of this geometry.
@@ -370,17 +423,21 @@ class BaseGeometry(shapely.Geometry):
         resolution : int, optional
             The resolution of the buffer around each vertex of the
             object.
-        quadsegs : int, optional
+        quad_segs : int, optional
             Sets the number of line segments used to approximate an
-            angle fillet.  Note: the use of a `quadsegs` parameter is
+            angle fillet.  Note: the use of a `quad_segs` parameter is
             deprecated and will be gone from the next major release.
-        cap_style : int, optional
-            The styles of caps are: CAP_STYLE.round (1), CAP_STYLE.flat
-            (2), and CAP_STYLE.square (3).
-        join_style : int, optional
-            The styles of joins between offset segments are:
-            JOIN_STYLE.round (1), JOIN_STYLE.mitre (2), and
-            JOIN_STYLE.bevel (3).
+        cap_style : shapely.BufferCapStyle or {'round', 'square', 'flat'}, default 'round'
+            Specifies the shape of buffered line endings. BufferCapStyle.round ('round')
+            results in circular line endings (see ``quadsegs``). Both BufferCapStyle.square
+            ('square') and BufferCapStyle.flat ('flat') result in rectangular line endings,
+            only BufferCapStyle.flat ('flat') will end at the original vertex,
+            while BufferCapStyle.square ('square') involves adding the buffer width.
+        join_style : shapely.BufferJoinStyle or {'round', 'mitre', 'bevel'}, default 'round'
+            Specifies the shape of buffered line midpoints. BufferJoinStyle.ROUND ('round')
+            results in rounded shapes. BufferJoinStyle.bevel ('bevel') results in a beveled
+            edge that touches the original vertex. BufferJoinStyle.mitre ('mitre') results
+            in a single vertex that is beveled depending on the ``mitre_limit`` parameter.
         mitre_limit : float, optional
             The mitre limit ratio is used for very sharp corners. The
             mitre ratio is the ratio of the distance from the corner to
@@ -429,26 +486,37 @@ class BaseGeometry(shapely.Geometry):
 
         >>> g.buffer(1.0, 3).area
         3.0
-        >>> list(g.buffer(1.0, cap_style=CAP_STYLE.square).exterior.coords)
+        >>> list(g.buffer(1.0, cap_style=BufferCapStyle.square).exterior.coords)
         [(1.0, 1.0), (1.0, -1.0), (-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0)]
-        >>> g.buffer(1.0, cap_style=CAP_STYLE.square).area
+        >>> g.buffer(1.0, cap_style=BufferCapStyle.square).area
         4.0
 
         """
+        quadsegs = kwargs.pop("quadsegs", None)
         if quadsegs is not None:
             warn(
-                "The `quadsegs` argument is deprecated. Use `resolution`.",
-                DeprecationWarning,
+                "The `quadsegs` argument is deprecated. Use `quad_segs` instead.",
+                FutureWarning,
             )
-            resolution = quadsegs
+            quad_segs = quadsegs
+
+        # TODO deprecate `resolution` keyword in the future as well
+        resolution = kwargs.pop("resolution", None)
+        if resolution is not None:
+            quad_segs = resolution
+        if kwargs:
+            kwarg = list(kwargs.keys())[0]  # noqa
+            raise TypeError("buffer() got an unexpected keyword argument '{kwarg}'")
 
         if mitre_limit == 0.0:
             raise ValueError("Cannot compute offset from zero-length line segment")
+        elif not np.isfinite(distance):
+            raise ValueError("buffer distance must be finite")
 
         return shapely.buffer(
             self,
             distance,
-            quadsegs=resolution,
+            quad_segs=quad_segs,
             cap_style=cap_style,
             join_style=join_style,
             mitre_limit=mitre_limit,
@@ -624,6 +692,14 @@ class BaseGeometry(shapely.Geometry):
         """Returns True if geometry is within the other, else False"""
         return bool(shapely.within(self, other))
 
+    def dwithin(self, other, distance):
+        """
+        Returns True if geometry is within a given distance from the other, else False.
+
+        Refer to `shapely.dwithin` for full documentation.
+        """
+        return bool(shapely.dwithin(self, other, distance))
+
     def equals_exact(self, other, tolerance):
         """True if geometries are equal to within a specified
         tolerance.
@@ -753,31 +829,31 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
-    def segmentize(self, tolerance):
-        """Adds vertices to line segments based on tolerance.
+    def segmentize(self, max_segment_length):
+        """Adds vertices to line segments based on maximum segment length.
 
         Additional vertices will be added to every line segment in an input geometry
-        so that segments are no greater than tolerance.  New vertices will evenly
-        subdivide each segment.
+        so that segments are no longer than the provided maximum segment length. New
+        vertices will evenly subdivide each segment.
 
         Only linear components of input geometries are densified; other geometries
         are returned unmodified.
 
         Parameters
         ----------
-        tolerance : float or array_like
+        max_segment_length : float or array_like
             Additional vertices will be added so that all line segments are no
-            greater than this value.  Must be greater than 0.
+            longer this value.  Must be greater than 0.
 
         Examples
         --------
         >>> from shapely import LineString, Polygon
-        >>> LineString([(0, 0), (0, 10)]).segmentize(tolerance=5)
+        >>> LineString([(0, 0), (0, 10)]).segmentize(max_segment_length=5)
         <LINESTRING (0 0, 0 5, 0 10)>
-        >>> Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]).segmentize(tolerance=5)
+        >>> Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]).segmentize(max_segment_length=5)
         <POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
         """
-        return shapely.segmentize(self, tolerance)
+        return shapely.segmentize(self, max_segment_length)
 
     def reverse(self):
         """Returns a copy of this geometry with the order of coordinates reversed.

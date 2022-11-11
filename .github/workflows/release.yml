@@ -21,14 +21,14 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.8"
+          python-version: "3.10"
 
       - name: Build a source tarball
         run: |
@@ -37,7 +37,7 @@ jobs:
           python -m build --sdist
           twine check --strict dist/*
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           path: ./dist/*.tar.gz
           retention-days: 30
@@ -46,7 +46,7 @@ jobs:
     name: Build ${{ matrix.arch }} wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     env:
-      GEOS_VERSION: "3.10.3"
+      GEOS_VERSION: "3.11.0"
     strategy:
       fail-fast: false
       matrix:
@@ -79,12 +79,12 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
       - name: Cache GEOS build
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
           key: ${{ matrix.os }}-${{ matrix.arch }}-${{ env.GEOS_VERSION }}-${{ hashFiles('ci/*') }}
@@ -113,7 +113,7 @@ jobs:
         if: ${{ matrix.msvc_arch }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.3.0
+        uses: pypa/cibuildwheel@v2.10.2
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_SKIP: cp36-* pp* *musllinux* cp310-manylinux_i686
@@ -140,7 +140,7 @@ jobs:
           CIBW_TEST_COMMAND: pytest --pyargs shapely.tests
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: ./wheelhouse/*.whl
           retention-days: 5
@@ -152,7 +152,7 @@ jobs:
     # release on every tag
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: artifact
           path: dist
@@ -186,7 +186,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Upload Release Assets to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.4.2
+        uses: pypa/gh-action-pypi-publish@v1.5.1
         with:
           user: __token__
           password: ${{ secrets.pypi_password }}

@@ -1,9 +1,11 @@
 Predicates
 ==========
 
-.. automodule:: shapely.predicates
-   :members:
-   :undoc-members:
-   :special-members:
-   :inherited-members:
-   :show-inheritance:
+.. currentmodule:: shapely
+
+.. autosummary::
+   :toctree: reference/
+
+{% for function in get_module_functions("predicates") %}
+   {{ function }}
+{% endfor %}

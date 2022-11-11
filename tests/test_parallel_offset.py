@@ -1,7 +1,16 @@
+import pytest
+
 from . import unittest
 from shapely.geometry import LineString, LinearRing
 from shapely.testing import assert_geometries_equal
-from shapely.wkt import loads
+
+
+@pytest.mark.parametrize("distance", [float("nan"), float("inf")])
+def test_non_finite_distance(distance):
+    g = LineString([(0, 0), (10, 0)])
+    with pytest.raises(ValueError, match="distance must be finite"):
+        g.parallel_offset(distance)
+
 
 class OperationsTestCase(unittest.TestCase):
 
@@ -27,8 +36,12 @@ class OperationsTestCase(unittest.TestCase):
                                 LineString([(0, 2), (7, 2), (7, -5)]))
         # offset_curve alias
         assert_geometries_equal(
-            line1.offset_curve(2, 'left', resolution=1),
+            line1.offset_curve(2, quad_segs=1),
             line1.parallel_offset(2, 'left', resolution=1)
+        )
+        assert_geometries_equal(
+            line1.offset_curve(-2, quad_segs=1),
+            line1.parallel_offset(2, 'right', resolution=1)
         )
 
     def test_parallel_offset_linear_ring(self):
@@ -37,6 +50,6 @@ class OperationsTestCase(unittest.TestCase):
                                 LineString([(2, 2), (3, 2), (3, 3), (2, 3), (2, 2)]))
         # offset_curve alias
         assert_geometries_equal(
-            lr1.offset_curve(2, 'left', resolution=1),
+            lr1.offset_curve(2, quad_segs=1),
             lr1.parallel_offset(2, 'left', resolution=1)
         )

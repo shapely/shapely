@@ -5,7 +5,7 @@ The Shapely User Manual
 =======================
 
 :Author: Sean Gillies, <sean.gillies@gmail.com>
-:Version: 1.7.0
+:Version: |release|
 :Date: |today|
 :Copyright:
   This work is licensed under a `Creative Commons Attribution 3.0
@@ -207,9 +207,9 @@ General Attributes and Methods
   This can be thought of as a measure of the robustness of a geometry, where larger values of
   minimum clearance indicate a more robust geometry. If no minimum clearance exists for a geometry,
   such as a point, this will return `math.infinity`.
-  
+
   `New in Shapely 1.7.1`
-  
+
   Requires GEOS 3.6 or higher.
 
 .. code-block:: pycon
@@ -570,7 +570,7 @@ To obtain a polygon with a known orientation, use
 
   Returns a properly oriented copy of the given polygon. The signed area of the
   result will have the given sign. A sign of 1.0 means that the coordinates of
-  the product's exterior ring will be oriented counter-clockwise and the interior 
+  the product's exterior ring will be oriented counter-clockwise and the interior
   rings (holes) will be oriented clockwise.
 
   `New in version 1.2.10`.
@@ -1144,14 +1144,14 @@ A line's endpoints are part of its `boundary` and are therefore not contained.
 
   Returns ``True`` if every point of `other` is a point on the interior or
   boundary of `object`. This is similar to ``object.contains(other)`` except
-  that this does not require any interior points of `other` to lie in the 
+  that this does not require any interior points of `other` to lie in the
   interior of `object`.
 
 .. method:: object.covered_by(other)
 
   Returns ``True`` if every point of `object` is a point on the interior or
   boundary of `other`. This is equivalent to ``other.covers(object)``.
-  
+
   `New in version 1.8`.
 
 .. method:: object.crosses(other)
@@ -1358,7 +1358,7 @@ available as a read-only attribute.
   These methods will `always` return a geometric object. An intersection of
   disjoint geometries for example will return an empty `GeometryCollection`,
   not `None` or `False`. To test for a non-empty result, use the geometry's
-  :ref:`is_empty` property.
+  :attr:`is_empty` property.
 
 .. attribute:: object.boundary
 
@@ -1517,20 +1517,20 @@ Constructive Methods
 Shapely geometric object have several methods that yield new objects not
 derived from set-theoretic analysis.
 
-.. method:: object.buffer(distance, resolution=16, cap_style=1, join_style=1, mitre_limit=5.0, single_sided=False)
+.. method:: object.buffer(distance, quad_segs=16, cap_style=1, join_style=1, mitre_limit=5.0, single_sided=False)
 
   Returns an approximate representation of all points within a given `distance`
   of the this geometric object.
 
   The styles of caps are specified by integer values: 1 (round), 2 (flat),
   3 (square). These values are also enumerated by the object
-  :class:`shapely.geometry.CAP_STYLE` (see below).
+  :class:`shapely.BufferCapStyle` (see below).
 
   The styles of joins between offset segments are specified by integer values:
   1 (round), 2 (mitre), and 3 (bevel). These values are also enumerated by the
-  object :class:`shapely.geometry.JOIN_STYLE` (see below).
+  object :class:`shapely.BufferJoinStyle` (see below).
 
-.. data:: shapely.geometry.CAP_STYLE
+.. data:: shapely.BufferCapStyle
 
    ========= =====
    Attribute Value
@@ -1540,7 +1540,7 @@ derived from set-theoretic analysis.
    square       3
    ========= =====
 
-.. data:: shapely.geometry.JOIN_STYLE
+.. data:: shapely.BufferJoinStyle
 
    ========= =====
    Attribute Value
@@ -1552,14 +1552,14 @@ derived from set-theoretic analysis.
 
 .. code-block:: pycon
 
-  >>> from shapely.geometry import CAP_STYLE, JOIN_STYLE
-  >>> CAP_STYLE.flat
+  >>> from shapely import BufferCapStyle, BufferJoinStyle
+  >>> BufferCapStyle.flat.value
   2
-  >>> JOIN_STYLE.bevel
+  >>> BufferJoinStyle.bevel.value
   3
 
 A positive distance has an effect of dilation; a negative distance, erosion.
-The optional `resolution` argument determines the number of segments used to
+The optional `quad_segs` argument determines the number of segments used to
 approximate a quarter circle around a point.
 
 .. code-block:: pycon
@@ -1573,7 +1573,7 @@ approximate a quarter circle around a point.
 Figure 9. Dilation of a line (left) and erosion of a polygon (right). New
 object is shown in blue.
 
-The default (`resolution` of 16) buffer of a point is a polygonal patch with
+The default (`quad_segs` of 16) buffer of a point is a polygonal patch with
 99.8% of the area of the circular disk it approximates.
 
 .. code-block:: pycon
@@ -1584,7 +1584,7 @@ The default (`resolution` of 16) buffer of a point is a polygonal patch with
   >>> p.area
   313.6548490545941
 
-With a `resolution` of 1, the buffer is a square patch.
+With a `quad_segs` of 1, the buffer is a square patch.
 
 .. code-block:: pycon
 
@@ -1614,7 +1614,7 @@ Figure 10. Single sided buffer of 0.5 left hand (left) and of 0.3 right hand (ri
 
 The single-sided buffer of point geometries is the same as the regular buffer.
 The End Cap Style for single-sided buffers is always ignored, and forced to
-the equivalent of `CAP_STYLE.flat`.
+the equivalent of `BufferCapStyle.flat`.
 
 Passed a `distance` of 0, :meth:`buffer` can sometimes be used to "clean" self-touching
 or self-crossing polygons such as the classic "bowtie". Users have reported
@@ -1687,7 +1687,7 @@ Figure 11. Convex hull (blue) of 2 points (left) and of 6 points (right).
   >>> Point(0, 0).minimum_rotated_rectangle
   <POINT (0 0)>
   >>> MultiPoint([(0,0),(1,1),(2,0.5)]).minimum_rotated_rectangle
-  <POLYGON ((1.824 1.206, -0.176 0.706, 0 0, 2 0.5, 1.824 1.206))>
+  <POLYGON ((2 0.5, 1.824 1.206, -0.176 0.706, 0 0, 2 0.5))>
 
 .. plot:: code/minimum_rotated_rectangle.py
 
@@ -1699,26 +1699,36 @@ linestring feature (right).
   Returns a LineString or MultiLineString geometry at a distance from the
   object on its right or its left side.
 
-  Alias method to :meth:`offset_curve` method.
+  Older alternative method to the :meth:`offset_curve` method, but uses
+  `resolution` instead of `quad_segs` and a `side` keyword ('left' or
+  'right') instead of sign of the distance. This method is kept for backwards
+  compatibility for now, but is is recommended to use :meth:`offset_curve`
+  instead.
 
-.. method:: object.offset_curve(distance, side, resolution=16, join_style=1, mitre_limit=5.0)
+.. method:: object.offset_curve(distance, quad_segs=16, join_style=1, mitre_limit=5.0)
 
   Returns a LineString or MultiLineString geometry at a distance from the
   object on its right or its left side.
 
-  The `distance` parameter must be a positive float value.
+  The `distance` parameter must be a float value.
 
-  The `side` parameter may be 'left' or 'right'. Left and right are determined
+  The side is determined by the sign of the `distance` parameter (negative for right
+  side offset, positive for left side offset). Left and right are determined
   by following the direction of the given geometric points of the LineString.
-  Right hand offsets are returned in the reverse direction of the original
-  LineString or LineRing, while left side offsets flow in the same direction.
 
-  The `resolution` of the offset around each vertex of the object is
-  parameterized as in the :meth:`buffer` method.
+  Note: the behaviour regarding orientation of the resulting line depends
+  on the GEOS version. With GEOS < 3.11, the line retains the same
+  direction for a left offset (positive distance) or has reverse direction
+  for a right offset (negative distance), and this behaviour was documented
+  as such in previous Shapely versions. Starting with GEOS 3.11, the
+  function tries to preserve the orientation of the original line.
+
+  The resolution of the offset around each vertex of the object is
+  parameterized as in the :meth:`buffer` method (using `quad_segs`).
 
   The `join_style` is for outside corners between line segments. Accepted integer
   values are 1 (round), 2 (mitre), and 3 (bevel). See also
-  :data:`shapely.geometry.JOIN_STYLE`.
+  :data:`shapely.BufferJoinStyle`.
 
   Severely mitered corners can be controlled by the `mitre_limit` parameter
   (spelled in British English, en-gb). The corners of a parallel line will
@@ -2309,7 +2319,7 @@ Voronoi diagram from a collection points, or the vertices of any geometry.
   >>> from shapely.ops import voronoi_diagram
   >>> points = MultiPoint([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
   >>> regions = voronoi_diagram(points)
-  >>> list(regions.geoms) 
+  >>> list(regions.geoms)
   [<POLYGON ((2 1, 2 0.5, 0.5 0.5, 0 1, 1 2, 2 1))>,
    <POLYGON ((6 -3, 3.75 -3, 2 0.5, 2 1, 6 5, 6 -3))>,
    <POLYGON ((-3 -3, -3 1, 0 1, 0.5 0.5, 0.5 -3, -3 -3))>,
@@ -2617,6 +2627,7 @@ object. Query-only means that once created, the `STRtree` is immutable. You
 cannot add or remove geometries.
 
 .. class:: strtree.STRtree(geometries)
+  :noindex:
 
   The `STRtree` constructor takes a sequence of geometric objects.
 
@@ -2625,6 +2636,7 @@ cannot add or remove geometries.
   `New in version 1.4.0`.
 
   .. method:: strtree.query(geom)
+    :noindex:
 
     Returns the integer indices of all geometries in the `strtree` whose extents
     intersect the extent of `geom`. This means that a subsequent search through the returned
@@ -2647,6 +2659,7 @@ cannot add or remove geometries.
       ['POINT (2 2)']
 
   .. method:: strtree.nearest(geom)
+    :noindex:
 
     Returns the nearest geometry in `strtree` to `geom`.
 

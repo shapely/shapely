@@ -38,7 +38,7 @@ class SvgTestCase(unittest.TestCase):
             svg_path = os.path.join(svg_output_dir, fname + '.svg')
             with open(svg_path, 'w') as fp:
                 fp.write(doc.toprettyxml())
-        self.assertEqual(svg_elem, expected)
+        assert svg_elem == expected
 
     def test_point(self):
         # Empty

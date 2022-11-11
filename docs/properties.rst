@@ -1,9 +1,11 @@
 Geometry properties
-=================
+===================
 
-.. automodule:: shapely._geometry
-  :members:
-  :exclude-members: GeometryType
-  :special-members:
-  :inherited-members:
-  :show-inheritance:
+.. currentmodule:: shapely
+
+.. autosummary::
+   :toctree: reference/
+
+{% for function in get_module_functions("_geometry") %}
+   {{ function }}
+{% endfor %}
