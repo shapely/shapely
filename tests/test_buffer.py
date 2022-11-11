@@ -6,6 +6,13 @@ from shapely.geometry.base import CAP_STYLE, JOIN_STYLE
 from shapely.constructive import BufferCapStyle, BufferJoinStyle
 
 
+@pytest.mark.parametrize("distance", [float("nan"), float("inf")])
+def test_non_finite_distance(distance):
+    g = geometry.Point(0, 0)
+    with pytest.raises(ValueError, match="distance must be finite"):
+        g.buffer(distance)
+
+
 class BufferTests(unittest.TestCase):
     """Test Buffer Point/Line/Polygon with and without single_sided params"""
 

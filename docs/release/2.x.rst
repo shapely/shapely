@@ -318,6 +318,7 @@ Several (new) functions from GEOS are now exposed in Shapely:
 * :func:`.segmentize` (GEOS >= 3.10)
 * :func:`.dwithin` (GEOS >= 3.10)
 * :func:`.remove_repeated_points` (GEOS >= 3.11)
+* :func:`.line_merge` added `directed` parameter (GEOS > 3.11)
 
 In addition some aliases for existing methods have been added to provide a
 method name consistent with GEOS or PostGIS:
@@ -403,7 +404,7 @@ Other improvements
   or with empty geometries.
 * Performance improvement in constructing LineStrings or LinearRings from
   numpy arrays for GEOS >= 3.10.
-* Updated the :func:`box() <shapely.creation.box>` ufunc to use internal C
+* Updated the :func:`~shapely.box` ufunc to use internal C
   function for creating polygon (about 2x faster) and added ``ccw`` parameter
   to create polygon in counterclockwise (default) or clockwise direction.
 * Start of a benchmarking suite using ASV.

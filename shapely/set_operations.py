@@ -138,7 +138,8 @@ def intersection_all(geometries, axis=None, **kwargs):
     """Returns the intersection of multiple geometries.
 
     This function ignores None values when other Geometry elements are present.
-    If all elements of the given axis are None, None is returned.
+    If all elements of the given axis are None, an empty GeometryCollection is
+    returned.
 
     Parameters
     ----------
@@ -165,8 +166,16 @@ def intersection_all(geometries, axis=None, **kwargs):
     <LINESTRING (1 1, 2 2)>
     >>> intersection_all([[line1, line2, None]], axis=1).tolist()
     [<LINESTRING (1 1, 2 2)>]
+    >>> intersection_all([line1, None])
+    <LINESTRING (0 0, 2 2)>
     """
-    return lib.intersection.reduce(geometries, axis=axis, **kwargs)
+    geometries = np.asarray(geometries)
+    if axis is None:
+        geometries = geometries.ravel()
+    else:
+        geometries = np.rollaxis(geometries, axis=axis, start=geometries.ndim)
+
+    return lib.intersection_all(geometries, **kwargs)
 
 
 @multithreading_enabled
@@ -231,7 +240,8 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
     """Returns the symmetric difference of multiple geometries.
 
     This function ignores None values when other Geometry elements are present.
-    If all elements of the given axis are None, None is returned.
+    If all elements of the given axis are None an empty GeometryCollection is
+    returned.
 
     Parameters
     ----------
@@ -258,8 +268,18 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
     <MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>
     >>> symmetric_difference_all([[line1, line2, None]], axis=1).tolist()
     [<MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>]
+    >>> symmetric_difference_all([line1, None])
+    <LINESTRING (0 0, 2 2)>
+    >>> symmetric_difference_all([None, None])
+    <GEOMETRYCOLLECTION EMPTY>
     """
-    return lib.symmetric_difference.reduce(geometries, axis=axis, **kwargs)
+    geometries = np.asarray(geometries)
+    if axis is None:
+        geometries = geometries.ravel()
+    else:
+        geometries = np.rollaxis(geometries, axis=axis, start=geometries.ndim)
+
+    return lib.symmetric_difference_all(geometries, **kwargs)
 
 
 @multithreading_enabled
@@ -325,7 +345,8 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
     """Returns the union of multiple geometries.
 
     This function ignores None values when other Geometry elements are present.
-    If all elements of the given axis are None, None is returned.
+    If all elements of the given axis are None an empty GeometryCollection is
+    returned.
 
     If grid_size is nonzero, input coordinates will be snapped to a precision
     grid of that size and resulting coordinates will be snapped to that same
@@ -358,7 +379,7 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
 
     Examples
     --------
-    >>> from shapely import box, LineString, normalize
+    >>> from shapely import box, LineString, normalize, Point
     >>> line1 = LineString([(0, 0), (2, 2)])
     >>> line2 = LineString([(2, 2), (3, 3)])
     >>> union_all([line1, line2])
@@ -372,7 +393,12 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
     >>> box1 = box(0.1, 0.2, 2.1, 2.1)
     >>> union_all([box1, box2], grid_size=1)
     <POLYGON ((2 0, 0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0))>
-
+    >>> union_all([None, Point(0, 1)])
+    <POINT (0 1)>
+    >>> union_all([None, None])
+    <GEOMETRYCOLLECTION EMPTY>
+    >>> union_all([])
+    <GEOMETRYCOLLECTION EMPTY>
     """
     # for union_all, GEOS provides an efficient route through first creating
     # GeometryCollections
@@ -381,9 +407,8 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
     if axis is None:
         geometries = geometries.ravel()
     else:
-        geometries = np.rollaxis(
-            np.asarray(geometries), axis=axis, start=geometries.ndim
-        )
+        geometries = np.rollaxis(geometries, axis=axis, start=geometries.ndim)
+
     # create_collection acts on the inner axis
     collections = lib.create_collection(geometries, GeometryType.GEOMETRYCOLLECTION)
 
@@ -396,18 +421,9 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
         if not np.isscalar(grid_size):
             raise ValueError("grid_size parameter only accepts scalar values")
 
-        result = lib.unary_union_prec(collections, grid_size, **kwargs)
+        return lib.unary_union_prec(collections, grid_size, **kwargs)
 
-    else:
-        result = lib.unary_union(collections, **kwargs)
-    # for consistency with other _all functions, we replace GEOMETRY COLLECTION EMPTY
-    # if the original collection had no geometries
-    only_none = lib.get_num_geometries(collections) == 0
-    if np.isscalar(only_none):
-        return result if not only_none else None
-    else:
-        result[only_none] = None
-        return result
+    return lib.unary_union(collections, **kwargs)
 
 
 unary_union = union_all
@@ -452,6 +468,10 @@ def coverage_union_all(geometries, axis=None, **kwargs):
     This is an optimized version of union which assumes the polygons
     to be non-overlapping.
 
+    This function ignores None values when other Geometry elements are present.
+    If all elements of the given axis are None, an empty MultiPolygon is
+    returned.
+
     Parameters
     ----------
     geometries : array_like
@@ -475,6 +495,10 @@ def coverage_union_all(geometries, axis=None, **kwargs):
     >>> polygon_2 = Polygon([(1, 0), (1, 1), (2, 1), (2, 0), (1, 0)])
     >>> normalize(coverage_union_all([polygon_1, polygon_2]))
     <POLYGON ((0 0, 0 1, 1 1, 2 1, 2 0, 1 0, 0 0))>
+    >>> normalize(coverage_union_all([polygon_1, None]))
+    <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
+    >>> normalize(coverage_union_all([None, None]))
+    <MULTIPOLYGON EMPTY>
     """
     # coverage union in GEOS works over GeometryCollections
     # first roll the aggregation axis backwards

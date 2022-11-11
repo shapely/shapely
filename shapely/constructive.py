@@ -83,7 +83,7 @@ MultiLineString, MultiPoint, Point, Polygon
 @multithreading_enabled
 def buffer(
     geometry,
-    radius,
+    distance,
     quad_segs=8,
     cap_style="round",
     join_style="round",
@@ -92,11 +92,11 @@ def buffer(
     **kwargs
 ):
     """
-    Computes the buffer of a geometry for positive and negative buffer radius.
+    Computes the buffer of a geometry for positive and negative buffer distance.
 
     The buffer of a geometry is defined as the Minkowski sum (or difference,
-    for negative width) of the geometry with a circle with radius equal to the
-    absolute value of the buffer radius.
+    for negative distance) of the geometry with a circle with radius equal
+    to the absolute value of the buffer distance.
 
     The buffer operation always returns a polygonal result. The negative
     or zero-distance buffer of lines and points is always empty.
@@ -104,7 +104,7 @@ def buffer(
     Parameters
     ----------
     geometry : Geometry or array_like
-    width : float or array_like
+    distance : float or array_like
         Specifies the circle radius in the Minkowski sum (or difference).
     quad_segs : int, default 8
         Specifies the number of linear segments in a quarter circle in the
@@ -178,7 +178,7 @@ def buffer(
         raise TypeError("single_sided only accepts scalar values")
     return lib.buffer(
         geometry,
-        radius,
+        distance,
         np.intc(quad_segs),
         np.intc(cap_style),
         np.intc(join_style),
@@ -688,7 +688,7 @@ def remove_repeated_points(geometry, tolerance=0.0, **kwargs):
         Use 0.0 to remove only exactly repeated points.
 
     Examples
-    ----------
+    --------
     >>> from shapely import LineString, Polygon
     >>> remove_repeated_points(LineString([(0,0), (0,0), (1,0)]), tolerance=0)
     <LINESTRING (0 0, 1 0)>

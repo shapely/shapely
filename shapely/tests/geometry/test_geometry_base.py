@@ -1,3 +1,4 @@
+import platform
 import weakref
 
 import numpy as np
@@ -45,6 +46,10 @@ geometries_all_types = [
 ]
 
 
+@pytest.mark.skipif(
+    platform.python_implementation() == "PyPy",
+    reason="Setting custom attributes doesn't fail on PyPy",
+)
 @pytest.mark.parametrize("geom", geometries_all_types)
 def test_setattr_disallowed(geom):
     with pytest.raises(AttributeError):

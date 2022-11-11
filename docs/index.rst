@@ -12,6 +12,7 @@
    installation
    User Manual <manual>
    migration
+   migration_pygeos
    release
 
 

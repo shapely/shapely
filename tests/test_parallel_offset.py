@@ -1,6 +1,15 @@
+import pytest
+
 from . import unittest
 from shapely.geometry import LineString, LinearRing
 from shapely.testing import assert_geometries_equal
+
+
+@pytest.mark.parametrize("distance", [float("nan"), float("inf")])
+def test_non_finite_distance(distance):
+    g = LineString([(0, 0), (10, 0)])
+    with pytest.raises(ValueError, match="distance must be finite"):
+        g.parallel_offset(distance)
 
 
 class OperationsTestCase(unittest.TestCase):
