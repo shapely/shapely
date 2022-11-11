@@ -518,7 +518,7 @@ class BaseGeometry(shapely.Geometry):
 
         if mitre_limit == 0.0:
             raise ValueError("Cannot compute offset from zero-length line segment")
-        elif not np.isfinite(distance):
+        elif not np.isfinite(distance).all():
             raise ValueError("buffer distance must be finite")
 
         return shapely.buffer(

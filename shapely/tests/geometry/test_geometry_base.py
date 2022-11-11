@@ -16,6 +16,7 @@ from shapely import (
     Polygon,
 )
 from shapely.errors import ShapelyDeprecationWarning
+from shapely.testing import assert_geometries_equal
 
 
 def test_polygon():
@@ -203,6 +204,25 @@ def test_array_argument_binary_predicates2(op, kwargs):
     np.testing.assert_array_equal(result, expected)
 
 
+@pytest.mark.parametrize(
+    "op",
+    [
+        "difference",
+        "intersection",
+        "symmetric_difference",
+        "union",
+    ],
+)
+def test_array_argument_binary_geo(op):
+    box = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
+    polygons = shapely.buffer(shapely.points([(0, 0), (0.5, 0.5), (1, 1)]), 0.5)
+
+    result = getattr(box, op)(polygons)
+    assert isinstance(result, np.ndarray)
+    expected = np.array([getattr(box, op)(g) for g in polygons], dtype=object)
+    assert_geometries_equal(result, expected)
+
+
 @pytest.mark.parametrize("op", ["distance", "hausdorff_distance"])
 def test_array_argument_float(op):
     polygon = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
@@ -212,3 +232,30 @@ def test_array_argument_float(op):
     assert isinstance(result, np.ndarray)
     expected = np.array([getattr(polygon, op)(p) for p in points], dtype="float64")
     np.testing.assert_array_equal(result, expected)
+
+
+def test_array_argument_linear():
+    line = LineString([(0, 0), (0, 1), (1, 1)])
+    distances = np.array([0, 0.5, 1])
+    result = line.line_interpolate_point(distances)
+    assert isinstance(result, np.ndarray)
+    expected = np.array(
+        [line.line_interpolate_point(d) for d in distances], dtype=object
+    )
+    assert_geometries_equal(result, expected)
+
+    points = shapely.points([(0, 0), (0.5, 0.5), (1, 1)])
+    result = line.line_locate_point(points)
+    assert isinstance(result, np.ndarray)
+    expected = np.array([line.line_locate_point(p) for p in points], dtype="float64")
+    np.testing.assert_array_equal(result, expected)
+
+
+def test_array_argument_buffer():
+    point = Point(1, 1)
+    distances = np.array([0, 0.5, 1])
+
+    result = point.buffer(distances)
+    assert isinstance(result, np.ndarray)
+    expected = np.array([point.buffer(d) for d in distances], dtype=object)
+    assert_geometries_equal(result, expected)
