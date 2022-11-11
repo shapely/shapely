@@ -88,6 +88,10 @@ def test_from_invalid():
     with pytest.raises(TypeError, match="takes at most 3 arguments"):
         Point(1, 2, 3, 4)
 
+    # this worked in shapely 1.x, just ignoring the other coords
+    with pytest.raises(ValueError, match="Invalid values passed"):
+        Point([(2, 3), (11, 4)])
+
 
 class TestPoint:
     def test_point(self):
