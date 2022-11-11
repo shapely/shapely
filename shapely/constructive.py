@@ -358,9 +358,9 @@ def concave_hull(geometry, ratio=0.0, allow_holes=False, **kwargs):
     --------
     >>> from shapely import MultiPoint, Polygon
     >>> concave_hull(MultiPoint([(0, 0), (0, 3), (1, 1), (3, 0), (3, 3)]), ratio=0.1)
-    <POLYGON ((1 1, 3 3, 3 0, 0 0, 0 3, 1 1))>
+    <POLYGON ((0 0, 0 3, 1 1, 3 3, 3 0, 0 0))>
     >>> concave_hull(MultiPoint([(0, 0), (0, 3), (1, 1), (3, 0), (3, 3)]), ratio=1.0)
-    <POLYGON ((0 3, 3 3, 3 0, 0 0, 0 3))>
+    <POLYGON ((0 0, 0 3, 3 3, 3 0, 0 0))>
     >>> concave_hull(Polygon())
     <POLYGON EMPTY>
     """
