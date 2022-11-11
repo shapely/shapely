@@ -1626,7 +1626,7 @@ static void concave_hull_func(char** args, npy_intp* dimensions, npy_intp* steps
   }
 
   double ratio = *(double*)ip2;
-  unsigned int allowHoles = *(unsigned int*)ip3;
+  unsigned int allowHoles = (unsigned int)(*(npy_bool*)ip3);
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * n);
