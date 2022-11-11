@@ -12,7 +12,8 @@
    installation
    User Manual <manual>
    migration
-   changelog
+   migration_pygeos
+   release
 
 
 .. toctree::
@@ -20,6 +21,7 @@
    :hidden:
 
    geometry
+   properties
    creation
    io
    measurement

@@ -1,5 +1,6 @@
 """Points and related utilities
 """
+import numpy as np
 
 import shapely
 from shapely.errors import DimensionError
@@ -54,9 +55,7 @@ class Point(BaseGeometry):
             # TODO better constructor
             return shapely.from_wkt("POINT EMPTY")
         elif len(args) > 3:
-            raise TypeError(
-                "Point() takes at most 3 arguments ({} given)".format(len(args))
-            )
+            raise TypeError(f"Point() takes at most 3 arguments ({len(args)} given)")
         elif len(args) == 1:
             coords = args[0]
             if isinstance(coords, Point):
@@ -66,14 +65,12 @@ class Point(BaseGeometry):
             if not hasattr(coords, "__getitem__"):  # generators
                 coords = list(coords)
 
-            if isinstance(coords[0], tuple):
-                coords = coords[0]
-
-            geom = shapely.points(coords)
+            coords = np.asarray(coords).squeeze()
         else:
             # 2 or 3 args
-            geom = shapely.points(*args)
+            coords = np.array(args).squeeze()
 
+        geom = shapely.points(coords)
         if not isinstance(geom, Point):
             raise ValueError("Invalid values passed to Point constructor")
         return geom

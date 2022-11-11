@@ -1,10 +1,10 @@
-from matplotlib import pyplot
+import matplotlib.pyplot as plt
 from shapely.geometry import MultiPolygon
-from descartes.patch import PolygonPatch
+from shapely.plotting import plot_polygon, plot_points
 
-from figures import BLUE, SIZE, set_limits, plot_coords, color_isvalid
+from figures import SIZE, BLUE, GRAY, RED, set_limits
     
-fig = pyplot.figure(1, figsize=SIZE, dpi=90)
+fig = plt.figure(1, figsize=SIZE, dpi=90)
 
 # 1: valid multi-polygon
 ax = fig.add_subplot(121)
@@ -14,10 +14,8 @@ b = [(1, 1), (1, 2), (2, 2), (2, 1), (1, 1)]
 
 multi1 = MultiPolygon([[a, []], [b, []]])
 
-for polygon in multi1:
-    plot_coords(ax, polygon.exterior)
-    patch = PolygonPatch(polygon, facecolor=color_isvalid(multi1), edgecolor=color_isvalid(multi1, valid=BLUE), alpha=0.5, zorder=2)
-    ax.add_patch(patch)
+plot_polygon(multi1, ax=ax, add_points=False, color=BLUE)
+plot_points(multi1, ax=ax, color=GRAY, alpha=0.7)
 
 ax.set_title('a) valid')
 
@@ -31,14 +29,11 @@ d = [(1, 0.5), (1, 2), (2, 2), (2, 0.5), (1, 0.5)]
 
 multi2 = MultiPolygon([[c, []], [d, []]])
 
-for polygon in multi2:
-    plot_coords(ax, polygon.exterior)
-    patch = PolygonPatch(polygon, facecolor=color_isvalid(multi2), edgecolor=color_isvalid(multi2, valid=BLUE), alpha=0.5, zorder=2)
-    ax.add_patch(patch)
+plot_polygon(multi2, ax=ax, add_points=False, color=RED)
+plot_points(multi2, ax=ax, color=GRAY, alpha=0.7)
 
 ax.set_title('b) invalid')
 
 set_limits(ax, -1, 3, -1, 3)
 
-pyplot.show()
-
+plt.show()

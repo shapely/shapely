@@ -19,10 +19,6 @@ you can update your code to be future-proof.
 For more background, see
 `RFC 1: Roadmap for Shapely 2.0 <https://github.com/shapely/shapely-rfc/pull/1>`__.
 
-.. contents:: Table of Contents
-  :backlinks: none
-  :local:
-
 
 Geometry objects will become immutable
 ======================================
@@ -143,8 +139,8 @@ support those features, and for those classes there is no change in behaviour
 for this aspect.
 
 
-Interopability with NumPy and the array interface
-=================================================
+Interoperability with NumPy and the array interface
+===================================================
 
 Conversion of the coordinates to (NumPy) arrays
 -----------------------------------------------
@@ -261,9 +257,9 @@ manager that can be copied into your project::
     import contextlib
     import shapely
     import warnings
-    from distutils.version import LooseVersion
+    from packaging import version  # https://packaging.pypa.io/
 
-    SHAPELY_GE_20 = str(shapely.__version__) >= LooseVersion("2.0")
+    SHAPELY_GE_20 = version.parse(shapely.__version__) >= version.parse("2.0a1")
 
     try:
         from shapely.errors import ShapelyDeprecationWarning as shapely_warning
@@ -296,7 +292,7 @@ Consistent creation of empty geometries
 Shapely 1.x is inconsistent in creating empty geometries between various
 creation methods. A small example for an empty Polygon geometry:
 
-.. code-block:: python
+.. code-block:: pycon
 
     # Using an empty constructor results in a GeometryCollection
     >>> from shapely.geometry import Polygon

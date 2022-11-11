@@ -5,22 +5,16 @@ geometry objects, but has no effect on geometric analysis. All
 operations are performed in the x-y plane. Thus, geometries with
 different z values may intersect or be equal.
 """
-import math
-from itertools import islice
+import re
 from warnings import warn
 
+import numpy as np
+
 import shapely
-from shapely.affinity import affine_transform
+from shapely._geometry_helpers import _geom_factory
+from shapely.constructive import BufferCapStyle, BufferJoinStyle
 from shapely.coords import CoordinateSequence
 from shapely.errors import GeometryTypeError, GEOSException, ShapelyDeprecationWarning
-
-try:
-    import numpy as np
-
-    integer_types = (int, np.integer)
-except ImportError:
-    integer_types = (int,)
-
 
 GEOMETRY_TYPES = [
     "Point",
@@ -34,33 +28,52 @@ GEOMETRY_TYPES = [
 ]
 
 
+def geom_factory(g, parent=None):
+    """
+    Creates a Shapely geometry instance from a pointer to a GEOS geometry.
+
+    WARNING: the GEOS library used to create the the GEOS geometry pointer
+    and the GEOS library used by Shapely must be exactly the same, or
+    unexpected results or segfaults may occur.
+
+    Deprecated in Shapely 2.0, and will be removed in a future version.
+    """
+    warn(
+        "The 'geom_factory' function is deprecated in Shapely 2.0, and will be "
+        "removed in a future version",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return _geom_factory(g)
+
+
 def dump_coords(geom):
     """Dump coordinates of a geometry in the same order as data packing"""
     if not isinstance(geom, BaseGeometry):
         raise ValueError(
             "Must be instance of a geometry class; found " + geom.__class__.__name__
         )
-    elif geom.type in ("Point", "LineString", "LinearRing"):
+    elif geom.geom_type in ("Point", "LineString", "LinearRing"):
         return geom.coords[:]
-    elif geom.type == "Polygon":
+    elif geom.geom_type == "Polygon":
         return geom.exterior.coords[:] + [i.coords[:] for i in geom.interiors]
-    elif geom.type.startswith("Multi") or geom.type == "GeometryCollection":
+    elif geom.geom_type.startswith("Multi") or geom.geom_type == "GeometryCollection":
         # Recursive call
         return [dump_coords(part) for part in geom.geoms]
     else:
-        raise GeometryTypeError("Unhandled geometry type: " + repr(geom.type))
+        raise GeometryTypeError("Unhandled geometry type: " + repr(geom.geom_type))
 
 
 class CAP_STYLE:
-    round = 1
-    flat = 2
-    square = 3
+    round = BufferCapStyle.round
+    flat = BufferCapStyle.flat
+    square = BufferCapStyle.square
 
 
 class JOIN_STYLE:
-    round = 1
-    mitre = 2
-    bevel = 3
+    round = BufferJoinStyle.round
+    mitre = BufferJoinStyle.mitre
+    bevel = BufferJoinStyle.bevel
 
 
 class BaseGeometry(shapely.Geometry):
@@ -91,20 +104,66 @@ class BaseGeometry(shapely.Geometry):
     def __nonzero__(self):
         return self.__bool__()
 
+    def __format__(self, format_spec):
+        """Format a geometry using a format specification."""
+        # bypass reqgexp for simple cases
+        if format_spec == "":
+            return shapely.to_wkt(self, rounding_precision=-1)
+        elif format_spec == "x":
+            return shapely.to_wkb(self, hex=True).lower()
+        elif format_spec == "X":
+            return shapely.to_wkb(self, hex=True)
+
+        # fmt: off
+        format_spec_regexp = (
+            "(?:0?\\.(?P<prec>[0-9]+))?"
+            "(?P<fmt_code>[fFgGxX]?)"
+        )
+        # fmt: on
+        match = re.fullmatch(format_spec_regexp, format_spec)
+        if match is None:
+            raise ValueError(f"invalid format specifier: {format_spec}")
+
+        prec, fmt_code = match.groups()
+
+        if prec:
+            prec = int(prec)
+        else:
+            # GEOS has a default rounding_precision -1
+            prec = -1
+
+        if not fmt_code:
+            fmt_code = "g"
+
+        if fmt_code in ("g", "G"):
+            res = shapely.to_wkt(self, rounding_precision=prec, trim=True)
+        elif fmt_code in ("f", "F"):
+            res = shapely.to_wkt(self, rounding_precision=prec, trim=False)
+        elif fmt_code in ("x", "X"):
+            raise ValueError("hex representation does not specify precision")
+        else:
+            raise NotImplementedError(f"unhandled fmt_code: {fmt_code}")
+
+        if fmt_code.isupper():
+            return res.upper()
+        else:
+            return res
+
     def __repr__(self):
-        class_name = str(self.__class__.__name__)
         try:
             wkt = super().__str__()
         except (GEOSException, ValueError):
             # we never want a repr() to fail; that can be very confusing
-            return "<shapely.{} Exception in WKT writer>".format(class_name)
+            return "<shapely.{} Exception in WKT writer>".format(
+                self.__class__.__name__
+            )
 
-        # the total length is limited to 80 characters
-        max_length = 80 - (11 + len(class_name))
+        # the total length is limited to 80 characters including brackets
+        max_length = 78
         if len(wkt) > max_length:
-            return "<shapely.{} {}...>".format(class_name, wkt[: max_length - 3])
-        else:
-            return "<shapely.{} {}>".format(class_name, wkt)
+            return f"<{wkt[: max_length - 3]}...>"
+
+        return f"<{wkt}>"
 
     def __str__(self):
         return self.wkt
@@ -162,6 +221,12 @@ class BaseGeometry(shapely.Geometry):
 
     @property
     def type(self):
+        warn(
+            "The 'type' attribute is deprecated, and will be removed in "
+            "the future. You can use the 'geom_type' attribute instead.",
+            ShapelyDeprecationWarning,
+            stacklevel=2,
+        )
         return self.geom_type
 
     @property
@@ -215,8 +280,8 @@ class BaseGeometry(shapely.Geometry):
                 scale_factor = max([dx, dy]) / max([width, height])
             except ZeroDivisionError:
                 scale_factor = 1.0
-            view_box = "{} {} {} {}".format(xmin, ymin, dx, dy)
-            transform = "matrix(1,0,0,-1,0,{})".format(ymax + ymin)
+            view_box = f"{xmin} {ymin} {dx} {dy}"
+            transform = f"matrix(1,0,0,-1,0,{ymax + ymin})"
             return svg_top + (
                 'width="{1}" height="{2}" viewBox="{0}" '
                 'preserveAspectRatio="xMinYMin meet">'
@@ -307,53 +372,42 @@ class BaseGeometry(shapely.Geometry):
         return shapely.envelope(self)
 
     @property
-    def minimum_rotated_rectangle(self):
-        """Returns the general minimum bounding rectangle of
-        the geometry. Can possibly be rotated. If the convex hull
-        of the object is a degenerate (line or point) this same degenerate
-        is returned.
+    def oriented_envelope(self):
         """
-        # first compute the convex hull
-        hull = self.convex_hull
-        try:
-            coords = hull.exterior.coords
-        except AttributeError:  # may be a Point or a LineString
-            return hull
-        # generate the edge vectors between the convex hull's coords
-        edges = (
-            (pt2[0] - pt1[0], pt2[1] - pt1[1])
-            for pt1, pt2 in zip(coords, islice(coords, 1, None))
-        )
+        Returns the oriented envelope (minimum rotated rectangle) that
+        encloses the geometry.
 
-        def _transformed_rects():
-            for dx, dy in edges:
-                # compute the normalized direction vector of the edge
-                # vector.
-                length = math.sqrt(dx**2 + dy**2)
-                ux, uy = dx / length, dy / length
-                # compute the normalized perpendicular vector
-                vx, vy = -uy, ux
-                # transform hull from the original coordinate system to
-                # the coordinate system defined by the edge and compute
-                # the axes-parallel bounding rectangle.
-                transf_rect = affine_transform(hull, (ux, uy, vx, vy, 0, 0)).envelope
-                # yield the transformed rectangle and a matrix to
-                # transform it back to the original coordinate system.
-                yield (transf_rect, (ux, vx, uy, vy, 0, 0))
+        Unlike envelope this rectangle is not constrained to be parallel to the
+        coordinate axes. If the convex hull of the object is a degenerate (line
+        or point) this degenerate is returned.
 
-        # check for the minimum area rectangle and return it
-        transf_rect, inv_matrix = min(_transformed_rects(), key=lambda r: r[0].area)
-        return affine_transform(transf_rect, inv_matrix)
+        Alias of `minimum_rotated_rectangle`.
+        """
+        return shapely.oriented_envelope(self)
+
+    @property
+    def minimum_rotated_rectangle(self):
+        """
+        Returns the oriented envelope (minimum rotated rectangle) that
+        encloses the geometry.
+
+        Unlike `envelope` this rectangle is not constrained to be parallel to the
+        coordinate axes. If the convex hull of the object is a degenerate (line
+        or point) this degenerate is returned.
+
+        Alias of `oriented_envelope`.
+        """
+        return shapely.oriented_envelope(self)
 
     def buffer(
         self,
         distance,
-        resolution=16,
-        quadsegs=None,
-        cap_style=CAP_STYLE.round,
-        join_style=JOIN_STYLE.round,
+        quad_segs=16,
+        cap_style="round",
+        join_style="round",
         mitre_limit=5.0,
         single_sided=False,
+        **kwargs,
     ):
         """Get a geometry that represents all points within a distance
         of this geometry.
@@ -369,17 +423,21 @@ class BaseGeometry(shapely.Geometry):
         resolution : int, optional
             The resolution of the buffer around each vertex of the
             object.
-        quadsegs : int, optional
+        quad_segs : int, optional
             Sets the number of line segments used to approximate an
-            angle fillet.  Note: the use of a `quadsegs` parameter is
+            angle fillet.  Note: the use of a `quad_segs` parameter is
             deprecated and will be gone from the next major release.
-        cap_style : int, optional
-            The styles of caps are: CAP_STYLE.round (1), CAP_STYLE.flat
-            (2), and CAP_STYLE.square (3).
-        join_style : int, optional
-            The styles of joins between offset segments are:
-            JOIN_STYLE.round (1), JOIN_STYLE.mitre (2), and
-            JOIN_STYLE.bevel (3).
+        cap_style : shapely.BufferCapStyle or {'round', 'square', 'flat'}, default 'round'
+            Specifies the shape of buffered line endings. BufferCapStyle.round ('round')
+            results in circular line endings (see ``quadsegs``). Both BufferCapStyle.square
+            ('square') and BufferCapStyle.flat ('flat') result in rectangular line endings,
+            only BufferCapStyle.flat ('flat') will end at the original vertex,
+            while BufferCapStyle.square ('square') involves adding the buffer width.
+        join_style : shapely.BufferJoinStyle or {'round', 'mitre', 'bevel'}, default 'round'
+            Specifies the shape of buffered line midpoints. BufferJoinStyle.ROUND ('round')
+            results in rounded shapes. BufferJoinStyle.bevel ('bevel') results in a beveled
+            edge that touches the original vertex. BufferJoinStyle.mitre ('mitre') results
+            in a single vertex that is beveled depending on the ``mitre_limit`` parameter.
         mitre_limit : float, optional
             The mitre limit ratio is used for very sharp corners. The
             mitre ratio is the ratio of the distance from the corner to
@@ -413,32 +471,52 @@ class BaseGeometry(shapely.Geometry):
         --------
         >>> from shapely.wkt import loads
         >>> g = loads('POINT (0.0 0.0)')
-        >>> g.buffer(1.0).area        # 16-gon approx of a unit radius circle
+
+        16-gon approx of a unit radius circle:
+
+        >>> g.buffer(1.0).area  # doctest: +ELLIPSIS
         3.1365484905459...
-        >>> g.buffer(1.0, 128).area   # 128-gon approximation
+
+        128-gon approximation:
+
+        >>> g.buffer(1.0, 128).area  # doctest: +ELLIPSIS
         3.141513801144...
-        >>> g.buffer(1.0, 3).area     # triangle approximation
+
+        triangle approximation:
+
+        >>> g.buffer(1.0, 3).area
         3.0
-        >>> list(g.buffer(1.0, cap_style=CAP_STYLE.square).exterior.coords)
+        >>> list(g.buffer(1.0, cap_style=BufferCapStyle.square).exterior.coords)
         [(1.0, 1.0), (1.0, -1.0), (-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0)]
-        >>> g.buffer(1.0, cap_style=CAP_STYLE.square).area
+        >>> g.buffer(1.0, cap_style=BufferCapStyle.square).area
         4.0
 
         """
+        quadsegs = kwargs.pop("quadsegs", None)
         if quadsegs is not None:
             warn(
-                "The `quadsegs` argument is deprecated. Use `resolution`.",
-                DeprecationWarning,
+                "The `quadsegs` argument is deprecated. Use `quad_segs` instead.",
+                FutureWarning,
             )
-            resolution = quadsegs
+            quad_segs = quadsegs
+
+        # TODO deprecate `resolution` keyword in the future as well
+        resolution = kwargs.pop("resolution", None)
+        if resolution is not None:
+            quad_segs = resolution
+        if kwargs:
+            kwarg = list(kwargs.keys())[0]  # noqa
+            raise TypeError("buffer() got an unexpected keyword argument '{kwarg}'")
 
         if mitre_limit == 0.0:
             raise ValueError("Cannot compute offset from zero-length line segment")
+        elif not np.isfinite(distance):
+            raise ValueError("buffer distance must be finite")
 
         return shapely.buffer(
             self,
             distance,
-            quadsegs=resolution,
+            quad_segs=quad_segs,
             cap_style=cap_style,
             join_style=join_style,
             mitre_limit=mitre_limit,
@@ -465,32 +543,47 @@ class BaseGeometry(shapely.Geometry):
 
         Examples
         --------
-        >>> from shapely.wkt import loads
-        >>> p = loads("MULTILINESTRING((0 0, 1 1), (3 3, 2 2))")
-        >>> p.normalize().wkt
-        'MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))'
+        >>> from shapely import MultiLineString
+        >>> line = MultiLineString([[(0, 0), (1, 1)], [(3, 3), (2, 2)]])
+        >>> line.normalize()
+        <MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))>
         """
         return shapely.normalize(self)
 
-    # Binary operations
-    # -----------------
+    # Overlay operations
+    # ---------------------------
 
-    def difference(self, other):
-        """Returns the difference of the geometries"""
-        return shapely.difference(self, other)
+    def difference(self, other, grid_size=None):
+        """
+        Returns the difference of the geometries.
 
-    def intersection(self, other):
-        """Returns the intersection of the geometries"""
-        return shapely.intersection(self, other)
+        Refer to `shapely.difference` for full documentation.
+        """
+        return shapely.difference(self, other, grid_size=grid_size)
 
-    def symmetric_difference(self, other):
-        """Returns the symmetric difference of the geometries
-        (Shapely geometry)"""
-        return shapely.symmetric_difference(self, other)
+    def intersection(self, other, grid_size=None):
+        """
+        Returns the intersection of the geometries.
 
-    def union(self, other):
-        """Returns the union of the geometries (Shapely geometry)"""
-        return shapely.union(self, other)
+        Refer to `shapely.intersection` for full documentation.
+        """
+        return shapely.intersection(self, other, grid_size=grid_size)
+
+    def symmetric_difference(self, other, grid_size=None):
+        """
+        Returns the symmetric difference of the geometries.
+
+        Refer to `shapely.symmetric_difference` for full documentation.
+        """
+        return shapely.symmetric_difference(self, other, grid_size=grid_size)
+
+    def union(self, other, grid_size=None):
+        """
+        Returns the union of the geometries.
+
+        Refer to `shapely.union` for full documentation.
+        """
+        return shapely.union(self, other, grid_size=grid_size)
 
     # Unary predicates
     # ----------------
@@ -598,6 +691,14 @@ class BaseGeometry(shapely.Geometry):
     def within(self, other):
         """Returns True if geometry is within the other, else False"""
         return bool(shapely.within(self, other))
+
+    def dwithin(self, other, distance):
+        """
+        Returns True if geometry is within a given distance from the other, else False.
+
+        Refer to `shapely.dwithin` for full documentation.
+        """
+        return bool(shapely.dwithin(self, other, distance))
 
     def equals_exact(self, other, tolerance):
         """True if geometries are equal to within a specified
@@ -728,6 +829,54 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
+    def segmentize(self, max_segment_length):
+        """Adds vertices to line segments based on maximum segment length.
+
+        Additional vertices will be added to every line segment in an input geometry
+        so that segments are no longer than the provided maximum segment length. New
+        vertices will evenly subdivide each segment.
+
+        Only linear components of input geometries are densified; other geometries
+        are returned unmodified.
+
+        Parameters
+        ----------
+        max_segment_length : float or array_like
+            Additional vertices will be added so that all line segments are no
+            longer this value.  Must be greater than 0.
+
+        Examples
+        --------
+        >>> from shapely import LineString, Polygon
+        >>> LineString([(0, 0), (0, 10)]).segmentize(max_segment_length=5)
+        <LINESTRING (0 0, 0 5, 0 10)>
+        >>> Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]).segmentize(max_segment_length=5)
+        <POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
+        """
+        return shapely.segmentize(self, max_segment_length)
+
+    def reverse(self):
+        """Returns a copy of this geometry with the order of coordinates reversed.
+
+        If the geometry is a polygon with interior rings, the interior rings are also
+        reversed.
+
+        Points are unchanged.
+
+        See also
+        --------
+        is_ccw : Checks if a geometry is clockwise.
+
+        Examples
+        --------
+        >>> from shapely import LineString, Polygon
+        >>> LineString([(0, 0), (1, 2)]).reverse()
+        <LINESTRING (1 2, 0 0)>
+        >>> Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]).reverse()
+        <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
+        """
+        return shapely.reverse(self)
+
 
 class BaseMultipartGeometry(BaseGeometry):
 
@@ -772,26 +921,26 @@ class GeometrySequence:
 
     # Attributes
     # ----------
-    # __p__ : object
+    # _parent : object
     #     Parent (Shapely) geometry
-    __p__ = None
+    _parent = None
 
     def __init__(self, parent):
-        self.__p__ = parent
+        self._parent = parent
 
     def _get_geom_item(self, i):
-        return shapely.get_geometry(self.__p__, i)
+        return shapely.get_geometry(self._parent, i)
 
     def __iter__(self):
         for i in range(self.__len__()):
             yield self._get_geom_item(i)
 
     def __len__(self):
-        return shapely.get_num_geometries(self.__p__)
+        return shapely.get_num_geometries(self._parent)
 
     def __getitem__(self, key):
         m = self.__len__()
-        if isinstance(key, integer_types):
+        if isinstance(key, (int, np.integer)):
             if key + m < 0 or key >= m:
                 raise IndexError("index out of range")
             if key < 0:
@@ -804,7 +953,7 @@ class GeometrySequence:
             start, stop, stride = key.indices(m)
             for i in range(start, stop, stride):
                 res.append(self._get_geom_item(i))
-            return type(self.__p__)(res or None)
+            return type(self._parent)(res or None)
         else:
             raise TypeError("key must be an index or slice")
 

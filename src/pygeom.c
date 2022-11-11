@@ -38,18 +38,22 @@ PyObject* GeometryObject_FromGEOS(GEOSGeometry* ptr, GEOSContextHandle_t ctx) {
   } else {
     self->ptr = ptr;
     self->ptr_prepared = NULL;
+    self->weakreflist = (PyObject *)NULL;
     return (PyObject*)self;
   }
 }
 
 static void GeometryObject_dealloc(GeometryObject* self) {
+  if (self->weakreflist != NULL) {
+    PyObject_ClearWeakRefs((PyObject *)self);
+  }
   if (self->ptr != NULL) {
-    GEOS_INIT;
+    // not using GEOS_INIT, but using global context instead
+    GEOSContextHandle_t ctx = geos_context[0];
     GEOSGeom_destroy_r(ctx, self->ptr);
     if (self->ptr_prepared != NULL) {
       GEOSPreparedGeom_destroy_r(ctx, self->ptr_prepared);
     }
-    GEOS_FINISH;
   }
   Py_TYPE(self)->tp_free((PyObject*)self);
 }
@@ -380,21 +384,6 @@ finish:
   return result;
 }
 
-static PyObject* GeometryObject_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
-  PyObject* value;
-
-  if (!PyArg_ParseTuple(args, "O", &value)) {
-    return NULL;
-  } else if (PyUnicode_Check(value)) {
-    return GeometryObject_FromWKT(value);
-  } else if (PyBytes_Check(value)) {
-    return GeometryObject_FromWKB(value);
-  } else {
-    PyErr_Format(PyExc_TypeError, "Expected string, got %s", value->ob_type->tp_name);
-    return NULL;
-  }
-}
-
 static PyMethodDef GeometryObject_methods[] = {
     {NULL} /* Sentinel */
 };
@@ -405,13 +394,13 @@ PyTypeObject GeometryType = {
     .tp_basicsize = sizeof(GeometryObject),
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    .tp_new = GeometryObject_new,
     .tp_dealloc = (destructor)GeometryObject_dealloc,
     .tp_members = GeometryObject_members,
     .tp_methods = GeometryObject_methods,
     .tp_repr = (reprfunc)GeometryObject_repr,
     .tp_hash = (hashfunc)GeometryObject_hash,
     .tp_richcompare = (richcmpfunc)GeometryObject_richcompare,
+    .tp_weaklistoffset = offsetof(GeometryObject, weakreflist),
     .tp_str = (reprfunc)GeometryObject_str,
 };
 

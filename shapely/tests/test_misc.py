@@ -29,7 +29,7 @@ def test_version():
 
 
 def test_geos_version():
-    expected = "{0:d}.{1:d}.{2:d}".format(*shapely.geos_version)
+    expected = "{}.{}.{}".format(*shapely.geos_version)
     actual = shapely.geos_version_string
 
     # strip any beta / dev qualifiers
@@ -46,7 +46,7 @@ def test_geos_version():
     reason="GEOS_C_API_VERSION broken for GEOS 3.7.x on Windows",
 )
 def test_geos_capi_version():
-    expected = "{0:d}.{1:d}.{2:d}-CAPI-{3:d}.{4:d}.{5:d}".format(
+    expected = "{}.{}.{}-CAPI-{}.{}.{}".format(
         *(shapely.geos_version + shapely.geos_capi_version)
     )
 
@@ -62,9 +62,7 @@ def test_geos_capi_version():
         actual_geos_version = actual_geos_version.rstrip(ascii_letters)
     actual_geos_version = actual_geos_version.rstrip(ascii_letters)
 
-    assert (
-        "{0}-CAPI-{1}".format(actual_geos_version, actual_geos_api_version) == expected
-    )
+    assert f"{actual_geos_version}-CAPI-{actual_geos_api_version}" == expected
 
 
 def func():

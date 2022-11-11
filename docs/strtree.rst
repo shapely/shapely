@@ -1,6 +1,5 @@
 STRTree
 =======
 
-.. automodule:: shapely.strtree
-   :members: STRtree
-   :exclude-members: BinaryPredicate
+.. autoclass:: shapely.STRtree
+   :members:

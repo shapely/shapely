@@ -2,13 +2,46 @@
 Shapely
 =======
 
-|github-actions| |coveralls|
+.. Documentation at RTD — https://readthedocs.org
+
+.. image:: https://readthedocs.org/projects/shapely/badge/?version=stable
+   :alt: Documentation Status
+   :target: https://shapely.readthedocs.io/en/stable/
+
+.. Github Actions status — https://github.com/shapely/shapely/actions
 
 .. |github-actions| image:: https://github.com/shapely/shapely/workflows/Tests/badge.svg?branch=main
+   :alt: Github Actions status
    :target: https://github.com/shapely/shapely/actions?query=branch%3Amain
+
+.. Travis CI status -- https://travis-ci.com
+
+.. image:: https://travis-ci.com/shapely/shapely.svg?branch=main
+   :alt: Travis CI status
+   :target: https://travis-ci.com/github/shapely/shapely
+
+.. PyPI
+
+.. image:: https://img.shields.io/pypi/v/shapely.svg
+   :alt: PyPI
+   :target: https://pypi.org/project/shapely/
+
+.. Anaconda
+
+.. image:: https://img.shields.io/conda/vn/conda-forge/shapely
+   :alt: Anaconda
+   :target: https://anaconda.org/conda-forge/shapely
+
+.. Coverage
 
 .. |coveralls| image:: https://coveralls.io/repos/github/shapely/shapely/badge.svg?branch=main
    :target: https://coveralls.io/github/shapely/shapely?branch=main
+
+.. Zenodo
+
+.. .. image:: https://zenodo.org/badge/191151963.svg
+..   :alt: Zenodo
+..   :target: https://zenodo.org/badge/latestdoi/191151963
 
 Manipulation and analysis of geometric objects in the Cartesian plane.
 
@@ -17,41 +50,70 @@ Manipulation and analysis of geometric objects in the Cartesian plane.
    :height: 378
 
 Shapely is a BSD-licensed Python package for manipulation and analysis of
-planar geometric objects. It is based on the widely deployed `GEOS
-<https://libgeos.org/>`__ (the engine of `PostGIS
-<https://postgis.net/>`__) and `JTS
-<https://locationtech.github.io/jts/>`__ (from which GEOS is ported)
-libraries. Shapely is not concerned with data formats or coordinate systems,
-but can be readily integrated with packages that are. For more details, see:
+planar geometric objects. It is using the widely deployed open-source
+geometry library `GEOS <https://libgeos.org/>`__ (the engine of `PostGIS
+<https://postgis.net/>`__, and a port of `JTS <https://locationtech.github.io/jts/>`__).
+Shapely wraps GEOS geometries and operations to provide both a feature rich
+`Geometry` interface for singular (scalar) geometries and higher-performance
+NumPy ufuncs for operations using arrays of geometries.
+Shapely is not primarily focused on data serialization formats or coordinate
+systems, but can be readily integrated with packages that are.
 
-* `Shapely GitHub repository <https://github.com/shapely/shapely>`__
-* `Shapely documentation and manual <https://shapely.readthedocs.io/en/latest/>`__
+What is a ufunc?
+----------------
+
+A universal function (or ufunc for short) is a function that operates on
+*n*-dimensional arrays on an element-by-element fashion and supports array
+broadcasting. The underlying ``for`` loops are implemented in C to reduce the
+overhead of the Python interpreter.
+
+Multithreading
+--------------
+
+Shapely functions generally support multithreading by releasing the Global
+Interpreter Lock (GIL) during execution. Normally in Python, the GIL prevents
+multiple threads from computing at the same time. Shapely functions
+internally release this constraint so that the heavy lifting done by GEOS can
+be done in parallel, from a single Python process.
 
 Usage
 =====
 
 Here is the canonical example of building an approximately circular patch by
-buffering a point.
+buffering a point, using the scalar Geometry interface:
 
 .. code-block:: pycon
 
-    >>> from shapely.geometry import Point
+    >>> from shapely import Point
     >>> patch = Point(0.0, 0.0).buffer(10.0)
     >>> patch
-    <shapely.geometry.polygon.Polygon object at 0x...>
+    <POLYGON ((10 0, 9.952 -0.98, 9.808 -1.951, 9.569 -2.903, 9.239 -3.827, 8.81...>
     >>> patch.area
-    313.65484905459385
+    313.6548490545941
 
-See the manual for more examples and guidance.
+Using the vectorized ufunc interface (instead of using a manual for loop),
+compare an array of points with a polygon:
+
+.. code:: python
+
+    >>> import shapely
+    >>> import numpy as np
+    >>> geoms = np.array([Point(0, 0), Point(1, 1), Point(2, 2)])
+    >>> polygon = shapely.box(0, 0, 2, 2)
+
+    >>> shapely.contains(polygon, geoms)
+    array([False,  True, False])
+
+See the documentation for more examples and guidance: https://shapely.readthedocs.io
 
 Requirements
 ============
 
 Shapely 2.0 requires
 
-* Python >=3.6
+* Python >=3.7
 * GEOS >=3.5
-* NumPy >=1.13
+* NumPy >=1.14
 
 Installing Shapely
 ==================
@@ -90,7 +152,7 @@ dicts.
     >>> from shapely.geometry import mapping, shape
     >>> s = shape(json.loads('{"type": "Point", "coordinates": [0.0, 0.0]}'))
     >>> s
-    <shapely.geometry.point.Point object at 0x...>
+    <POINT (0 0)>
     >>> print(json.dumps(mapping(s)))
     {"type": "Point", "coordinates": [0.0, 0.0]}
 
@@ -102,3 +164,9 @@ Questions about using Shapely may be asked on the `GIS StackExchange
 tag.
 
 Bugs may be reported at https://github.com/shapely/shapely/issues.
+
+Copyright & License
+===================
+
+Shapely is licensed under BSD 3-Clause license.
+GEOS is available under the terms of GNU Lesser General Public License (LGPL) 2.1 at https://libgeos.org.

@@ -12,13 +12,13 @@ class TestMultiLineString(MultiGeometryTestCase):
     def test_multilinestring(self):
 
         # From coordinate tuples
-        geom = MultiLineString((((1.0, 2.0), (3.0, 4.0)),))
+        geom = MultiLineString([[(1.0, 2.0), (3.0, 4.0)]])
         assert isinstance(geom, MultiLineString)
         assert len(geom.geoms) == 1
         assert dump_coords(geom) == [[(1.0, 2.0), (3.0, 4.0)]]
 
         # From lines
-        a = LineString(((1.0, 2.0), (3.0, 4.0)))
+        a = LineString([(1.0, 2.0), (3.0, 4.0)])
         ml = MultiLineString([a])
         assert len(ml.geoms) == 1
         assert dump_coords(ml) == [[(1.0, 2.0), (3.0, 4.0)]]

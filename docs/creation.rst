@@ -1,9 +1,11 @@
 Geometry creation
 =================
 
-.. automodule:: shapely.creation
-   :members:
-   :exclude-members:
-   :special-members:
-   :inherited-members:
-   :show-inheritance:
+.. currentmodule:: shapely
+
+.. autosummary::
+   :toctree: reference/
+
+{% for function in get_module_functions("creation") %}
+   {{ function }}
+{% endfor %}

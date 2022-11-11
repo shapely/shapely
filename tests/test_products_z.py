@@ -8,6 +8,6 @@ class ProductZTestCase(unittest.TestCase):
         line1 = LineString([(0, 0, 0), (1, 1, 1)])
         line2 = LineString([(0, 1, 1), (1, 0, 0)])
         interxn = line1.intersection(line2)
-        self.assertTrue(interxn.has_z)
-        self.assertEqual(interxn._ndim, 3)
-        self.assertTrue(0.0 <= interxn.z <= 1.0)
+        assert interxn.has_z
+        assert interxn._ndim == 3
+        assert 0.0 <= interxn.z <= 1.0
