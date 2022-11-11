@@ -20,6 +20,7 @@ __all__ = [
     "build_area",
     "make_valid",
     "normalize",
+    "node",
     "point_on_surface",
     "polygonize",
     "polygonize_full",
@@ -557,6 +558,40 @@ def point_on_surface(geometry, **kwargs):
     return lib.point_on_surface(geometry, **kwargs)
 
 
+@multithreading_enabled
+def node(geometry, **kwargs):
+    """
+    Returns the fully noded version of the linear input as MultiLineString.
+
+    Given a linear input geometry, this function returns a new MultiLineString
+    in which no lines cross each other but only touch at and points. To
+    obtain this, all intersections between segments are computed and added
+    to the segments, and duplicate segments are removed.
+
+    Non-linear input (points) will result in an empty MultiLineString.
+
+    This function can for example be used to create a fully-noded linework
+    suitable to passed as input to ``polygonize``.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    Examples
+    --------
+    >>> from shapely import LineString, Point
+    >>> line = LineString([(0, 0), (1,1), (0, 1), (1, 0)])
+    >>> node(line)
+    <MULTILINESTRING ((0 0, 0.5 0.5), (0.5 0.5, 1 1, 0 1, 0.5 0.5), (0.5 0.5, 1 0))>
+    >>> node(Point(1, 1))
+    <MULTILINESTRING EMPTY>
+    """
+    return lib.node(geometry, **kwargs)
+
+
 def polygonize(geometries, **kwargs):
     """Creates polygons formed from the linework of a set of Geometries.
 
@@ -595,6 +630,7 @@ def polygonize(geometries, **kwargs):
     --------
     get_parts, get_geometry
     polygonize_full
+    node
 
     Examples
     --------
