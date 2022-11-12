@@ -56,8 +56,18 @@ class IOSuite:
 class ConstructorsSuite:
     """Microbenchmarks for the Geometry class constructors"""
     
+    def setup(self):
+        self.coords = np.random.random((1000, 2))
+
     def time_point(self):
         shapely.Point(1.0, 2.0)
+
+    def time_linestring_from_numpy(self):
+        shapely.LineString(self.coords)
+
+    def time_linearring_from_numpy(self):
+        shapely.LinearRing(self.coords)
+
 
 class ConstructiveSuite:
     """Benchmarks constructive functions on a set of 10,000 points"""
