@@ -76,9 +76,12 @@ class LinearRing(LineString):
                 coordinates = coordinates.coords
 
         else:
-            arr = np.asarray(coordinates)
-            if np.issubdtype(arr.dtype, np.number):
-                coordinates = arr
+            if hasattr(coordinates, "__array__"):
+                coordinates = np.asarray(coordinates)
+            if isinstance(coordinates, np.ndarray) and np.issubdtype(
+                coordinates.dtype, np.number
+            ):
+                pass
             else:
                 # check coordinates on points
                 def _coords(o):
