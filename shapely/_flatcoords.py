@@ -163,7 +163,7 @@ def to_ragged_array(arr, include_z=False):
         all input geometries.
     offsets: tuple of np.ndarray
         Offset arrays that allow to reconstruct the geometries based on the
-        flat coordinates array. Number of offset arrays depends on the
+        flat coordinates array. The number of offset arrays depends on the
         geometry type. See
         https://github.com/geoarrow/geoarrow/blob/main/format.md for details.
 
@@ -375,7 +375,7 @@ def _multipolygons_from_flatcoords(coords, offsets1, offsets2, offsets3):
 
 def from_ragged_array(typ, coords, offsets=None):
     """
-    Creates geometries from a flat array of coordinates and offset arrays.
+    Creates geometries from a contiguous array of coordinates and offset arrays.
 
     This function creates geometries from the ragged array representation
     as returned by ``to_ragged_array``.
@@ -391,11 +391,13 @@ def from_ragged_array(typ, coords, offsets=None):
     typ : GeometryType
         The type of geometry to create.
     coords : np.ndarray
-        Flat array of all coordinates for the geometries.
+        Contiguous array of shape (n, 2) ro (n, 3) of all coordinates
+        for the geometries.
     offsets: tuple of np.ndarray
         Offset arrays that allow to reconstruct the geometries based on the
-        flat coordinates array. Number of offset arrays depends on the
-        geometry type.
+        flat coordinates array. The number of offset arrays depends on the
+        geometry type. See
+        https://github.com/geoarrow/geoarrow/blob/main/format.md for details.
 
     Returns
     ----------

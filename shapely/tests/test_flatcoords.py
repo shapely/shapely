@@ -3,6 +3,7 @@ import pytest
 from numpy.testing import assert_allclose
 
 import shapely
+from shapely import MultiLineString, MultiPoint, MultiPolygon
 from shapely.testing import assert_geometries_equal
 
 from .common import (
@@ -324,3 +325,27 @@ def test_multipolygons():
 
     result = shapely.from_ragged_array(typ, coords, offsets)
     assert_geometries_equal(result, arr)
+
+
+def test_mixture_point_multipoint():
+    typ, coords, offsets = shapely.to_ragged_array([point, multi_point])
+    assert typ == shapely.GeometryType.MULTIPOINT
+    result = shapely.from_ragged_array(typ, coords, offsets)
+    expected = np.array([MultiPoint([point]), multi_point])
+    assert_geometries_equal(result, expected)
+
+
+def test_mixture_linestring_multilinestring():
+    typ, coords, offsets = shapely.to_ragged_array([line_string, multi_line_string])
+    assert typ == shapely.GeometryType.MULTILINESTRING
+    result = shapely.from_ragged_array(typ, coords, offsets)
+    expected = np.array([MultiLineString([line_string]), multi_line_string])
+    assert_geometries_equal(result, expected)
+
+
+def test_mixture_polygon_multipolygon():
+    typ, coords, offsets = shapely.to_ragged_array([polygon, multi_polygon])
+    assert typ == shapely.GeometryType.MULTIPOLYGON
+    result = shapely.from_ragged_array(typ, coords, offsets)
+    expected = np.array([MultiPolygon([polygon]), multi_polygon])
+    assert_geometries_equal(result, expected)
