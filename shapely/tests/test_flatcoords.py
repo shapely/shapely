@@ -5,17 +5,79 @@ from numpy.testing import assert_allclose
 import shapely
 from shapely.testing import assert_geometries_equal
 
-from .common import all_types
+from .common import (
+    geometry_collection,
+    line_string,
+    line_string_z,
+    linear_ring,
+    multi_line_string,
+    multi_line_string_z,
+    multi_point,
+    multi_point_z,
+    multi_polygon,
+    multi_polygon_z,
+    point,
+    point_z,
+    polygon,
+    polygon_z,
+)
+
+all_types = (
+    point,
+    line_string,
+    polygon,
+    multi_point,
+    multi_line_string,
+    multi_polygon,
+)
+
+all_types_3d = (
+    point_z,
+    line_string_z,
+    polygon_z,
+    multi_point_z,
+    multi_line_string_z,
+    multi_polygon_z,
+)
+
+all_types_not_supported = (
+    linear_ring,
+    geometry_collection,
+)
 
 
 @pytest.mark.parametrize("geom", all_types)
 def test_roundtrip(geom):
-    if geom.geom_type in ("GeometryCollection", "LinearRing"):
-        with pytest.raises(ValueError):
-            shapely.to_ragged_array([geom, geom])
-        return
     actual = shapely.from_ragged_array(*shapely.to_ragged_array([geom, geom]))
     assert_geometries_equal(actual, [geom, geom])
+
+
+@pytest.mark.parametrize("geom", all_types_3d)
+def test_roundtrip_3d(geom):
+    actual = shapely.from_ragged_array(
+        *shapely.to_ragged_array([geom, geom], include_z=True)
+    )
+    assert_geometries_equal(actual, [geom, geom])
+
+
+@pytest.mark.parametrize("geom", all_types)
+def test_include_z(geom):
+    _, coords, _ = shapely.to_ragged_array([geom, geom], include_z=True)
+    # For 2D geoms, z coords are filled in with NaN
+    assert np.isnan(coords[:, 2]).all()
+
+
+@pytest.mark.parametrize("geom", all_types_3d)
+def test_include_z_false(geom):
+    _, coords, _ = shapely.to_ragged_array([geom, geom], include_z=False)
+    # For 3D geoms, z coords are dropped
+    assert coords.shape[1] == 2
+
+
+@pytest.mark.parametrize("geom", all_types_not_supported)
+def test_raise_geometry_type(geom):
+    with pytest.raises(ValueError):
+        shapely.to_ragged_array([geom, geom])
 
 
 def test_points():
@@ -31,7 +93,7 @@ def test_points():
     )
     typ, result, offsets = shapely.to_ragged_array(arr)
     expected = np.array(
-        [0, 0, 1, 1, np.nan, np.nan, np.nan, np.nan, 4, 4, np.nan, np.nan]
+        [[0, 0], [1, 1], [np.nan, np.nan], [np.nan, np.nan], [4, 4], [np.nan, np.nan]]
     )
     assert typ == shapely.GeometryType.POINT
     assert_allclose(result, expected)
@@ -55,26 +117,16 @@ def test_linestrings():
     typ, coords, offsets = shapely.to_ragged_array(arr)
     expected = np.array(
         [
-            30.0,
-            10.0,
-            10.0,
-            30.0,
-            40.0,
-            40.0,
-            40.0,
-            40.0,
-            30.0,
-            30.0,
-            40.0,
-            20.0,
-            30.0,
-            10.0,
-            10.0,
-            10.0,
-            20.0,
-            20.0,
-            10.0,
-            40.0,
+            [30.0, 10.0],
+            [10.0, 30.0],
+            [40.0, 40.0],
+            [40.0, 40.0],
+            [30.0, 30.0],
+            [40.0, 20.0],
+            [30.0, 10.0],
+            [10.0, 10.0],
+            [20.0, 20.0],
+            [10.0, 40.0],
         ]
     )
     expected_offsets = np.array([0, 3, 7, 7, 7, 10, 10])
@@ -101,44 +153,25 @@ def test_polygons():
     typ, coords, offsets = shapely.to_ragged_array(arr)
     expected = np.array(
         [
-            30.0,
-            10.0,
-            40.0,
-            40.0,
-            20.0,
-            40.0,
-            10.0,
-            20.0,
-            30.0,
-            10.0,
-            35.0,
-            10.0,
-            45.0,
-            45.0,
-            15.0,
-            40.0,
-            10.0,
-            20.0,
-            35.0,
-            10.0,
-            20.0,
-            30.0,
-            35.0,
-            35.0,
-            30.0,
-            20.0,
-            20.0,
-            30.0,
-            30.0,
-            10.0,
-            40.0,
-            40.0,
-            20.0,
-            40.0,
-            10.0,
-            20.0,
-            30.0,
-            10.0,
+            [30.0, 10.0],
+            [40.0, 40.0],
+            [20.0, 40.0],
+            [10.0, 20.0],
+            [30.0, 10.0],
+            [35.0, 10.0],
+            [45.0, 45.0],
+            [15.0, 40.0],
+            [10.0, 20.0],
+            [35.0, 10.0],
+            [20.0, 30.0],
+            [35.0, 35.0],
+            [30.0, 20.0],
+            [20.0, 30.0],
+            [30.0, 10.0],
+            [40.0, 40.0],
+            [20.0, 40.0],
+            [10.0, 20.0],
+            [30.0, 10.0],
         ]
     )
     expected_offsets1 = np.array([0, 5, 10, 14, 19])
@@ -168,22 +201,14 @@ def test_multipoints():
     typ, coords, offsets = shapely.to_ragged_array(arr)
     expected = np.array(
         [
-            10.0,
-            40.0,
-            40.0,
-            30.0,
-            20.0,
-            20.0,
-            30.0,
-            10.0,
-            30.0,
-            10.0,
-            30.0,
-            10.0,
-            10.0,
-            30.0,
-            40.0,
-            40.0,
+            [10.0, 40.0],
+            [40.0, 30.0],
+            [20.0, 20.0],
+            [30.0, 10.0],
+            [30.0, 10.0],
+            [30.0, 10.0],
+            [10.0, 30.0],
+            [40.0, 40.0],
         ]
     )
     expected_offsets = np.array([0, 4, 5, 5, 5, 8, 8])
@@ -211,40 +236,23 @@ def test_multilinestrings():
     typ, coords, offsets = shapely.to_ragged_array(arr)
     expected = np.array(
         [
-            30.0,
-            10.0,
-            10.0,
-            30.0,
-            40.0,
-            40.0,
-            10.0,
-            10.0,
-            20.0,
-            20.0,
-            10.0,
-            40.0,
-            40.0,
-            40.0,
-            30.0,
-            30.0,
-            40.0,
-            20.0,
-            30.0,
-            10.0,
-            35.0,
-            10.0,
-            45.0,
-            45.0,
-            15.0,
-            40.0,
-            10.0,
-            20.0,
-            30.0,
-            10.0,
-            10.0,
-            30.0,
-            40.0,
-            40.0,
+            [30.0, 10.0],
+            [10.0, 30.0],
+            [40.0, 40.0],
+            [10.0, 10.0],
+            [20.0, 20.0],
+            [10.0, 40.0],
+            [40.0, 40.0],
+            [30.0, 30.0],
+            [40.0, 20.0],
+            [30.0, 10.0],
+            [35.0, 10.0],
+            [45.0, 45.0],
+            [15.0, 40.0],
+            [10.0, 20.0],
+            [30.0, 10.0],
+            [10.0, 30.0],
+            [40.0, 40.0],
         ]
     )
     expected_offsets1 = np.array([0, 3, 6, 10, 12, 14, 17])
@@ -274,60 +282,33 @@ def test_multipolygons():
     typ, coords, offsets = shapely.to_ragged_array(arr)
     expected = np.array(
         [
-            35.0,
-            10.0,
-            45.0,
-            45.0,
-            15.0,
-            40.0,
-            10.0,
-            20.0,
-            35.0,
-            10.0,
-            20.0,
-            30.0,
-            35.0,
-            35.0,
-            30.0,
-            20.0,
-            20.0,
-            30.0,
-            40.0,
-            40.0,
-            20.0,
-            45.0,
-            45.0,
-            30.0,
-            40.0,
-            40.0,
-            20.0,
-            35.0,
-            10.0,
-            30.0,
-            10.0,
-            10.0,
-            30.0,
-            5.0,
-            45.0,
-            20.0,
-            20.0,
-            35.0,
-            30.0,
-            20.0,
-            20.0,
-            15.0,
-            20.0,
-            25.0,
-            30.0,
-            20.0,
-            40.0,
-            40.0,
-            20.0,
-            45.0,
-            45.0,
-            30.0,
-            40.0,
-            40.0,
+            [35.0, 10.0],
+            [45.0, 45.0],
+            [15.0, 40.0],
+            [10.0, 20.0],
+            [35.0, 10.0],
+            [20.0, 30.0],
+            [35.0, 35.0],
+            [30.0, 20.0],
+            [20.0, 30.0],
+            [40.0, 40.0],
+            [20.0, 45.0],
+            [45.0, 30.0],
+            [40.0, 40.0],
+            [20.0, 35.0],
+            [10.0, 30.0],
+            [10.0, 10.0],
+            [30.0, 5.0],
+            [45.0, 20.0],
+            [20.0, 35.0],
+            [30.0, 20.0],
+            [20.0, 15.0],
+            [20.0, 25.0],
+            [30.0, 20.0],
+            [40.0, 40.0],
+            [20.0, 45.0],
+            [45.0, 30.0],
+            [40.0, 40.0],
         ]
     )
     expected_offsets1 = np.array([0, 5, 9, 13, 19, 23, 27])

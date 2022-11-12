@@ -36,12 +36,13 @@ from .predicates import is_empty
 
 __all__ = ["to_ragged_array", "from_ragged_array"]
 
-# # GEOS -> coords/offset arrays
+
+# # GEOS -> coords/offset arrays (to_ragged_array)
 
 
-def _get_arrays_point(arr):
+def _get_arrays_point(arr, include_z):
     # only one array of coordinates
-    coords = get_coordinates(arr)
+    coords = get_coordinates(arr, include_z=include_z)
 
     # empty points are represented by NaNs
     empties = is_empty(arr)
@@ -50,7 +51,7 @@ def _get_arrays_point(arr):
         indices = indices - np.arange(len(indices))
         coords = np.insert(coords, indices, np.nan, axis=0)
 
-    return coords.ravel(), ()
+    return coords, ()
 
 
 def _indices_to_offsets(indices, n):
@@ -66,53 +67,53 @@ def _indices_to_offsets(indices, n):
     return offsets
 
 
-def _get_arrays_multipoint(arr):
+def _get_arrays_multipoint(arr, include_z):
     # explode/flatten the MultiPoints
     _, part_indices = get_parts(arr, return_index=True)
     # the offsets into the multipoint parts
     offsets = _indices_to_offsets(part_indices, len(arr))
 
     # only one array of coordinates
-    coords = get_coordinates(arr)
+    coords = get_coordinates(arr, include_z=include_z)
 
-    return coords.ravel(), (offsets,)
+    return coords, (offsets,)
 
 
-def _get_arrays_linestring(arr):
+def _get_arrays_linestring(arr, include_z):
     # the coords and offsets into the coordinates of the linestrings
-    coords, indices = get_coordinates(arr, return_index=True)
+    coords, indices = get_coordinates(arr, return_index=True, include_z=include_z)
     offsets = _indices_to_offsets(indices, len(arr))
 
-    return coords.ravel(), (offsets,)
+    return coords, (offsets,)
 
 
-def _get_arrays_multilinestring(arr):
+def _get_arrays_multilinestring(arr, include_z):
     # explode/flatten the MultiLineStrings
     arr_flat, part_indices = get_parts(arr, return_index=True)
     # the offsets into the multilinestring parts
     offsets2 = _indices_to_offsets(part_indices, len(arr))
 
     # the coords and offsets into the coordinates of the linestrings
-    coords, indices = get_coordinates(arr_flat, return_index=True)
+    coords, indices = get_coordinates(arr_flat, return_index=True, include_z=include_z)
     offsets1 = np.insert(np.bincount(indices).cumsum(), 0, 0)
 
-    return coords.ravel(), (offsets1, offsets2)
+    return coords, (offsets1, offsets2)
 
 
-def _get_arrays_polygon(arr):
+def _get_arrays_polygon(arr, include_z):
     # explode/flatten the Polygons into Rings
     arr_flat, ring_indices = get_rings(arr, return_index=True)
     # the offsets into the exterior/interior rings of the multipolygon parts
     offsets2 = _indices_to_offsets(ring_indices, len(arr))
 
     # the coords and offsets into the coordinates of the rings
-    coords, indices = get_coordinates(arr_flat, return_index=True)
+    coords, indices = get_coordinates(arr_flat, return_index=True, include_z=include_z)
     offsets1 = np.insert(np.bincount(indices).cumsum(), 0, 0)
 
-    return coords.ravel(), (offsets1, offsets2)
+    return coords, (offsets1, offsets2)
 
 
-def _get_arrays_multipolygon(arr):
+def _get_arrays_multipolygon(arr, include_z):
     # explode/flatten the MultiPolygons
     arr_flat, part_indices = get_parts(arr, return_index=True)
     # the offsets into the multipolygon parts
@@ -124,16 +125,16 @@ def _get_arrays_multipolygon(arr):
     offsets2 = np.insert(np.bincount(ring_indices).cumsum(), 0, 0)
 
     # the coords and offsets into the coordinates of the rings
-    coords, indices = get_coordinates(arr_flat2, return_index=True)
+    coords, indices = get_coordinates(arr_flat2, return_index=True, include_z=include_z)
     offsets1 = np.insert(np.bincount(indices).cumsum(), 0, 0)
 
-    return coords.ravel(), (offsets1, offsets2, offsets3)
+    return coords, (offsets1, offsets2, offsets3)
 
 
-def to_ragged_array(arr):
+def to_ragged_array(arr, include_z=False):
     """
-    Converts to ragged array representation using a flat array of coordinates
-    and offset arrays.
+    Converts to ragged array representation using a contiguous array of
+    coordinates and offset arrays.
 
     This function converts an array of geometries to a ragged array
     (i.e. irregular array of arrays) of coordinates, represented in memory
@@ -149,13 +150,17 @@ def to_ragged_array(arr):
     ----------
     arr : array_like
         Array of geometries (1-dimensional).
+    include_z : bool, default False
+        If True, include the third dimension in the output. If a geometry
+        has no third dimension, the z-coordinates will be NaN.
 
     Returns
     -------
     typ : GeometryType
         The type of the input geometries (required information for rountrip).
     coords : np.ndarray
-        Flat array of all coordinates of all input geometries.
+        Contiguous array of shape (n, 2) or (n, 3) of all coordinates of
+        all input geometries.
     offsets: tuple of np.ndarray
         Offset arrays that allow to reconstruct the geometries based on the
         flat coordinates array. Number of offset arrays depends on the
@@ -196,8 +201,16 @@ def to_ragged_array(arr):
     >>> typ
     <GeometryType.POLYGON: 3>
     >>> coords
-    array([ 0.,  0., 10.,  0., 10., 10.,  0., 10.,  0.,  0.,  2.,  2.,  3.,
-            2.,  2.,  3.,  2.,  2.])
+    array([[ 0.,  0.],
+           [10.,  0.],
+           [10., 10.],
+           [ 0., 10.],
+           [ 0.,  0.],
+           [ 2.,  2.],
+           [ 3.,  2.],
+           [ 2.,  3.],
+           [ 2.,  2.]])
+
     >>> offsets
     (array([0, 5, 9]), array([0, 2]))
 
@@ -205,13 +218,7 @@ def to_ragged_array(arr):
     coordinates is represented by ``offsets[0][i]`` to ``offsets[0][i+1]``:
 
     >>> ring1_start, ring1_end = offsets[0][0], offsets[0][1]
-    >>> coords[ring1_start*2:ring1_end*2]
-    array([ 0.,  0., 10.,  0., 10., 10.,  0., 10.,  0.,  0.])
-
-    The ``* 2`` is needed because the coordinates are returned as a 1D array
-    but represent X and Y coordinates:
-
-    >>> coords.reshape((-1, 2))[ring1_start:ring1_end]
+    >>> coords[ring1_start:ring1_end]
     array([[ 0.,  0.],
            [10.,  0.],
            [10., 10.],
@@ -226,30 +233,30 @@ def to_ragged_array(arr):
     if len(geom_types) == 1:
         typ = GeometryType(geom_types[0])
         if typ == GeometryType.POINT:
-            coords, offsets = _get_arrays_point(arr)
+            coords, offsets = _get_arrays_point(arr, include_z)
         elif typ == GeometryType.LINESTRING:
-            coords, offsets = _get_arrays_linestring(arr)
+            coords, offsets = _get_arrays_linestring(arr, include_z)
         elif typ == GeometryType.POLYGON:
-            coords, offsets = _get_arrays_polygon(arr)
+            coords, offsets = _get_arrays_polygon(arr, include_z)
         elif typ == GeometryType.MULTIPOINT:
-            coords, offsets = _get_arrays_multipoint(arr)
+            coords, offsets = _get_arrays_multipoint(arr, include_z)
         elif typ == GeometryType.MULTILINESTRING:
-            coords, offsets = _get_arrays_multilinestring(arr)
+            coords, offsets = _get_arrays_multilinestring(arr, include_z)
         elif typ == GeometryType.MULTIPOLYGON:
-            coords, offsets = _get_arrays_multipolygon(arr)
+            coords, offsets = _get_arrays_multipolygon(arr, include_z)
         else:
             raise ValueError(f"Geometry type {typ.name} is not supported")
 
     elif len(geom_types) == 2:
         if set(geom_types) == {GeometryType.POINT, GeometryType.MULTIPOINT}:
             typ = GeometryType.MULTIPOINT
-            coords, offsets = _get_arrays_multipoint(arr)
+            coords, offsets = _get_arrays_multipoint(arr, include_z)
         elif set(geom_types) == {GeometryType.LINESTRING, GeometryType.MULTILINESTRING}:
             typ = GeometryType.MULTILINESTRING
-            coords, offsets = _get_arrays_multilinestring(arr)
+            coords, offsets = _get_arrays_multilinestring(arr, include_z)
         elif set(geom_types) == {GeometryType.POLYGON, GeometryType.MULTIPOLYGON}:
             typ = GeometryType.MULTIPOLYGON
-            coords, offsets = _get_arrays_multipolygon(arr)
+            coords, offsets = _get_arrays_multipolygon(arr, include_z)
         else:
             raise ValueError(
                 "Geometry type combination is not supported "
@@ -264,15 +271,15 @@ def to_ragged_array(arr):
     return typ, coords, offsets
 
 
-# # coords/offset arrays -> GEOS
+# # coords/offset arrays -> GEOS (from_ragged_array)
 
 
 def _point_from_flatcoords(coords):
-    result = creation.points(coords.reshape(-1, 2))
+    result = creation.points(coords)
 
     # Older versions of GEOS (<= 3.9) don't automatically convert NaNs
     # to empty points -> do manually
-    empties = np.isnan(coords.reshape(-1, 2)).all(axis=1)
+    empties = np.isnan(coords).all(axis=1)
     if empties.any():
         result[empties] = creation.empty(1, geom_type=GeometryType.POINT).item()
 
@@ -281,7 +288,7 @@ def _point_from_flatcoords(coords):
 
 def _multipoint_from_flatcoords(coords, offsets):
     # recreate points
-    points = creation.points(coords.reshape(-1, 2))
+    points = creation.points(coords)
 
     # recreate multipoints
     multipoint_parts = np.diff(offsets)
@@ -302,9 +309,7 @@ def _linestring_from_flatcoords(coords, offsets):
     linestring_indices = np.repeat(np.arange(len(linestring_n)), linestring_n)
 
     result = np.empty(len(offsets) - 1, dtype=object)
-    result = creation.linestrings(
-        coords.reshape(-1, 2), indices=linestring_indices, out=result
-    )
+    result = creation.linestrings(coords, indices=linestring_indices, out=result)
     result[linestring_n == 0] = creation.empty(
         1, geom_type=GeometryType.LINESTRING
     ).item()
@@ -336,7 +341,7 @@ def _polygon_from_flatcoords(coords, offsets1, offsets2):
     # recreate rings
     ring_lengths = np.diff(offsets1)
     ring_indices = np.repeat(np.arange(len(ring_lengths)), ring_lengths)
-    rings = creation.linearrings(coords.reshape(-1, 2), indices=ring_indices)
+    rings = creation.linearrings(coords, indices=ring_indices)
 
     # recreate polygons
     polygon_rings_n = np.diff(offsets2)
