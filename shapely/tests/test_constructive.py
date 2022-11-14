@@ -41,6 +41,7 @@ CONSTRUCTIVE_NO_ARGS = (
     ),
     shapely.envelope,
     shapely.extract_unique_points,
+    shapely.node,
     shapely.normalize,
     shapely.point_on_surface,
 )
