@@ -113,7 +113,7 @@ class LinearRing(LineString):
     def is_simple(self):
         """True if the geometry is simple, meaning that any self-intersections
         are only at boundary points, else False"""
-        return shapely.is_simple(self)
+        return bool(shapely.is_simple(self))
 
 
 shapely.lib.registry[2] = LinearRing
