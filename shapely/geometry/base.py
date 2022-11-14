@@ -7,6 +7,7 @@ different z values may intersect or be equal.
 """
 import re
 from warnings import warn
+from xml.etree import ElementTree as ET
 
 import numpy as np
 
@@ -26,6 +27,11 @@ GEOMETRY_TYPES = [
     "MultiPolygon",
     "GeometryCollection",
 ]
+
+SVG_NAMESPACE = "http://www.w3.org/2000/svg"
+SVG_XLINK_NAMESPACE = "http://www.w3.org/1999/xlink"
+ET.register_namespace("", SVG_NAMESPACE)
+ET.register_namespace("xlink", SVG_XLINK_NAMESPACE)
 
 
 def geom_factory(g, parent=None):
@@ -258,15 +264,40 @@ class BaseGeometry(shapely.Geometry):
         """Raises NotImplementedError"""
         raise NotImplementedError
 
+    def svg_path_element(self, yflip="transform", **kwargs):
+        """Returns SVG XML Element for the geometry.
+
+        The y-axis of SVG is flipped compared to a Shapely geometry: SVG is
+        y-down while Shapely is y-up. The 'yflip' parameter specifies how to
+        handle the y-axis flip. If yflip is 'transform', then the y-axis flip
+        is encoded in a transform matrix in the SVG. If yflip is None, then
+        the y-axis flip is not handled (aka no transform matrix is included).
+
+        Parameters
+        ==========
+        yflip : string
+            How to address the y-axis flip of SVG compared to Shapely
+            geometry. Options are 'transform' (default) and None.
+        kwargs: Keyword arguments to pass on to the class 'svg' method. See
+            svg() for the given class for valid arguments.
+        """
+        # manage y-flip: svg is y-down, shapely is y-up
+        if self.is_empty or not yflip:
+            path = ET.fromstring(self.svg(**kwargs))
+        elif yflip == "transform":
+            path = ET.fromstring(self.svg(**kwargs))
+            _, ymin, _, ymax = self.bounds
+            path.set("transform", f"matrix(1,0,0,-1,0,{ymax + ymin})")
+        else:
+            raise ValueError("yflip parameter must be 'transform', 'scale', or None.")
+        return path
+
     def _repr_svg_(self):
         """SVG representation for iPython notebook"""
-        svg_top = (
-            '<svg xmlns="http://www.w3.org/2000/svg" '
-            'xmlns:xlink="http://www.w3.org/1999/xlink" '
-        )
-        if self.is_empty:
-            return svg_top + "/>"
-        else:
+        doc = ET.Element("svg", xmlns=SVG_NAMESPACE)
+        doc.set("xmlns:xlink", SVG_XLINK_NAMESPACE)
+
+        if not self.is_empty:
             # Establish SVG canvas that will fit all the data + small space
             xmin, ymin, xmax, ymax = self.bounds
             if xmin == xmax and ymin == ymax:
@@ -289,13 +320,18 @@ class BaseGeometry(shapely.Geometry):
                 scale_factor = max([dx, dy]) / max([width, height])
             except ZeroDivisionError:
                 scale_factor = 1.0
-            view_box = f"{xmin} {ymin} {dx} {dy}"
-            transform = f"matrix(1,0,0,-1,0,{ymax + ymin})"
-            return svg_top + (
-                'width="{1}" height="{2}" viewBox="{0}" '
-                'preserveAspectRatio="xMinYMin meet">'
-                '<g transform="{3}">{4}</g></svg>'
-            ).format(view_box, width, height, transform, self.svg(scale_factor))
+
+            doc = ET.Element("svg", xmlns=SVG_NAMESPACE)
+            doc.set("xmlns:xlink", SVG_XLINK_NAMESPACE)
+            doc.set("width", f"{width}")
+            doc.set("height", f"{height}")
+            doc.set("viewBox", f"{xmin} {ymin} {xmax - xmin} {ymax - ymin}")
+            doc.set("preserveAspectRatio", "xMinYMin meet")
+            doc.append(
+                self.svg_path_element(yflip="transform", scale_factor=scale_factor)
+            )
+
+        return ET.tostring(doc, encoding="unicode")
 
     @property
     def geom_type(self):
