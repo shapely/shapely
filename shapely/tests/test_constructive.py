@@ -33,6 +33,12 @@ CONSTRUCTIVE_NO_ARGS = (
     shapely.boundary,
     shapely.centroid,
     shapely.convex_hull,
+    pytest.param(
+        shapely.concave_hull,
+        marks=pytest.mark.skipif(
+            shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11"
+        ),
+    ),
     shapely.envelope,
     shapely.extract_unique_points,
     shapely.normalize,
@@ -958,3 +964,18 @@ def test_oriented_envelope(geometry, expected):
 def test_minimum_rotated_rectangle(geometry, expected):
     actual = shapely.minimum_rotated_rectangle(geometry)
     assert shapely.equals(actual, expected).all()
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
+def test_concave_hull_kwargs():
+    p = Point(10, 10)
+    mp = MultiPoint(p.buffer(5).exterior.coords[:] + p.buffer(4).exterior.coords[:])
+
+    result1 = shapely.concave_hull(mp, ratio=0.5)
+    assert len(result1.interiors) == 0
+    result2 = shapely.concave_hull(mp, ratio=0.5, allow_holes=True)
+    assert len(result2.interiors) == 1
+
+    result3 = shapely.concave_hull(mp, ratio=0)
+    result4 = shapely.concave_hull(mp, ratio=1)
+    assert shapely.get_num_coordinates(result4) < shapely.get_num_coordinates(result3)
