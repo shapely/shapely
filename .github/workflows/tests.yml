@@ -39,13 +39,13 @@ jobs:
           # 2022
           - python: "3.11"
             geos: 3.11.0
-            numpy: 1.23.3
+            numpy: 1.23.4
             matplotlib: true
             doctest: true
             # TODO(shapely-2.0) temporary allow warnings
             # extra_pytest_args: "-W error"  # error on warnings
           # dev
-          - python: "3.10"
+          - python: "3.11"
             geos: main
             extra_pytest_args: "-W error" # error on warnings
           # enable two 32-bit windows builds:
@@ -63,7 +63,7 @@ jobs:
           - os: ubuntu-20.04
             python: "pypy3.8"
             geos: 3.11.0
-            numpy: 1.23.3
+            numpy: 1.23.4
 
     env:
       GEOS_VERSION: ${{ matrix.geos }}
