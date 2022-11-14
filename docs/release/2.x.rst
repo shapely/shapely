@@ -158,6 +158,9 @@ Some additional backwards incompatible API changes were included in Shapely
 * A ``GeometryCollection`` that consists of all empty sub-geometries now
   returns those empty geometries from its ``.geoms`` attribute instead of
   returning an empty list (#1420).
+* The ``Point(..)`` constructor no longer accepts a sequence of coordinates
+  consisting of more than one coordinate pair (previously, subsequent
+  coordinates were ignored) (#1600).
 * The unused ``shape_factory()`` method and ``HeterogeneousGeometrySequence``
   class are removed (#1421).
 * The undocumented ``__geom__`` attribute has been removed. If necessary
