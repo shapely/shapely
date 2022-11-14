@@ -1,7 +1,0 @@
-cython==0.29.21
-matplotlib
-numpy>=1.4.1
-pytest
-pytest-cov
-setuptools
-wheel
