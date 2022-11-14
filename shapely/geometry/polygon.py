@@ -76,14 +76,21 @@ class LinearRing(LineString):
                 coordinates = coordinates.coords
 
         else:
-            # check coordinates on points
-            def _coords(o):
-                if isinstance(o, Point):
-                    return o.coords[0]
-                else:
-                    return o
+            if hasattr(coordinates, "__array__"):
+                coordinates = np.asarray(coordinates)
+            if isinstance(coordinates, np.ndarray) and np.issubdtype(
+                coordinates.dtype, np.number
+            ):
+                pass
+            else:
+                # check coordinates on points
+                def _coords(o):
+                    if isinstance(o, Point):
+                        return o.coords[0]
+                    else:
+                        return o
 
-            coordinates = [_coords(o) for o in coordinates]
+                coordinates = [_coords(o) for o in coordinates]
 
         if len(coordinates) == 0:
             # empty geometry
