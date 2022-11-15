@@ -150,6 +150,13 @@ def test_dwithin():
     assert point.dwithin(line, 1.5) is True
 
 
+def test_contains_properly():
+    polygon = Polygon([(0, 0), (10, 10), (10, -10)])
+    line = LineString([(0, 0), (10, 0)])
+    assert polygon.contains_properly(line) is False
+    assert polygon.contains(line) is True
+
+
 @pytest.mark.parametrize(
     "op", ["convex_hull", "envelope", "oriented_envelope", "minimum_rotated_rectangle"]
 )
@@ -165,7 +172,7 @@ def test_constructive_properties(op):
     [
         "crosses",
         "contains",
-        # "contains_properly",
+        "contains_properly",
         "covered_by",
         "covers",
         "disjoint",

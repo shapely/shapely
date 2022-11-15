@@ -654,6 +654,15 @@ class BaseGeometry(shapely.Geometry):
         """Returns True if the geometry contains the other, else False"""
         return _maybe_unpack(shapely.contains(self, other))
 
+    def contains_properly(self, other):
+        """
+        Returns True if the geometry completely contains the other, with no
+        common boundary points, else False
+
+        Refer to `shapely.contains_properly` for full documentation.
+        """
+        return _maybe_unpack(shapely.contains_properly(self, other))
+
     def crosses(self, other):
         """Returns True if the geometries cross, else False"""
         return _maybe_unpack(shapely.crosses(self, other))
