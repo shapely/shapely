@@ -757,8 +757,9 @@ class BaseGeometry(shapely.Geometry):
         """True if geometries are equal at all coordinates to a
         specified decimal place.
 
-        .. deprecated:: 1.8.0 The 'almost_equals()' method is deprecated
-            and will be removed in Shapely 2.0 because the name is
+        .. deprecated:: 1.8.0
+            The 'almost_equals()' method is deprecated
+            and will be removed in Shapely 2.1 because the name is
             confusing. The 'equals_exact()' method should be used
             instead.
 
@@ -785,7 +786,8 @@ class BaseGeometry(shapely.Geometry):
 
         """
         warn(
-            "The 'almost_equals()' method is deprecated and will be removed in Shapely 2.0",
+            "The 'almost_equals()' method is deprecated and will be "
+            "removed in Shapely 2.1; use 'equals_exact()' instead",
             ShapelyDeprecationWarning,
             stacklevel=2,
         )
