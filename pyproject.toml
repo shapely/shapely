@@ -41,8 +41,17 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest"]
-docs = ["sphinx", "numpydoc"]
+test = [
+    "pytest",
+    "pytest-cov",
+]
+docs = [
+    "numpydoc==1.1.*",
+    "matplotlib",
+    "sphinx",
+    "sphinx-book-theme",
+    "sphinx-remove-toctrees",
+]
 
 [project.urls]
 Documentation = "https://shapely.readthedocs.io/"

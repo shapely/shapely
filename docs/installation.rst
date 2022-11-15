@@ -79,8 +79,7 @@ using ``venv``:
 
     $ python3 -m venv .
     $ source bin/activate
-    (env) $ pip install -r requirements-dev.txt
-    (env) $ pip install -e .
+    (env) $ pip install -e .[test]
 
 Or using ``conda``:
 
