@@ -32,11 +32,13 @@ def geom_factory(g, parent=None):
     """
     Creates a Shapely geometry instance from a pointer to a GEOS geometry.
 
-    WARNING: the GEOS library used to create the the GEOS geometry pointer
-    and the GEOS library used by Shapely must be exactly the same, or
-    unexpected results or segfaults may occur.
+    .. warning::
+        The GEOS library used to create the the GEOS geometry pointer
+        and the GEOS library used by Shapely must be exactly the same, or
+        unexpected results or segfaults may occur.
 
-    Deprecated in Shapely 2.0, and will be removed in a future version.
+    .. deprecated:: 2.0
+        Deprecated in Shapely 2.0, and will be removed in a future version.
     """
     warn(
         "The 'geom_factory' function is deprecated in Shapely 2.0, and will be "
@@ -115,7 +117,7 @@ class BaseGeometry(shapely.Geometry):
 
     def __format__(self, format_spec):
         """Format a geometry using a format specification."""
-        # bypass reqgexp for simple cases
+        # bypass regexp for simple cases
         if format_spec == "":
             return shapely.to_wkt(self, rounding_precision=-1)
         elif format_spec == "x":
@@ -434,11 +436,10 @@ class BaseGeometry(shapely.Geometry):
             object.
         quad_segs : int, optional
             Sets the number of line segments used to approximate an
-            angle fillet.  Note: the use of a `quad_segs` parameter is
-            deprecated and will be gone from the next major release.
+            angle fillet.
         cap_style : shapely.BufferCapStyle or {'round', 'square', 'flat'}, default 'round'
             Specifies the shape of buffered line endings. BufferCapStyle.round ('round')
-            results in circular line endings (see ``quadsegs``). Both BufferCapStyle.square
+            results in circular line endings (see ``quad_segs``). Both BufferCapStyle.square
             ('square') and BufferCapStyle.flat ('flat') result in rectangular line endings,
             only BufferCapStyle.flat ('flat') will end at the original vertex,
             while BufferCapStyle.square ('square') involves adding the buffer width.
@@ -466,6 +467,8 @@ class BaseGeometry(shapely.Geometry):
             the regular buffer.  The End Cap Style for single-sided
             buffers is always ignored, and forced to the equivalent of
             CAP_FLAT.
+        quadsegs : int, optional
+            Deprecated alias for `quad_segs`.
 
         Returns
         -------
@@ -509,13 +512,13 @@ class BaseGeometry(shapely.Geometry):
             )
             quad_segs = quadsegs
 
-        # TODO deprecate `resolution` keyword in the future as well
+        # TODO deprecate `resolution` keyword for shapely 2.1
         resolution = kwargs.pop("resolution", None)
         if resolution is not None:
             quad_segs = resolution
         if kwargs:
             kwarg = list(kwargs.keys())[0]  # noqa
-            raise TypeError("buffer() got an unexpected keyword argument '{kwarg}'")
+            raise TypeError(f"buffer() got an unexpected keyword argument '{kwarg}'")
 
         if mitre_limit == 0.0:
             raise ValueError("Cannot compute offset from zero-length line segment")
