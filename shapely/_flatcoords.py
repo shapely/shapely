@@ -9,16 +9,15 @@ The coordinates of geometries can be represented as arrays of arrays of
 coordinate pairs (possibly multiple levels of nesting, depending on the
 geometry type).
 
-There are different ways that ragged arrays can efficiently be represented
-in memory using contiguous arrays. The actual values are stacked sequentially
-in a single contiguous array (of coordinates, in case of geometries). In
-addition, another data structure keeps track of which data in the single
-contiguous values array belongs to which array element in the ragged array.
-Typical ways to do this are using offsets, counts or indices.
 
-The ragged array representation currently supported by this module uses the
-one based on offsets as defined by the Apache Arrow project as "variable size list array"
-(https://arrow.apache.org/docs/format/Columnar.html#variable-size-list-layout).
+Geometries, as a ragged array of coordinates, can be efficiently represented
+as contiguous arrays of coordinates provided that there is another data
+structure that keeps track of which range of coordinate values corresponds
+to a given geometry. This can be done using offsets, counts, or indices.
+
+This module currently implements offsets into the coordinates array. This
+is the ragged array representation defined by the the Apache Arrow project
+as "variable size list array" (https://arrow.apache.org/docs/format/Columnar.html#variable-size-list-layout).
 See for example https://cfconventions.org/Data/cf-conventions/cf-conventions-1.9/cf-conventions.html#representations-features
 for different options.
 
@@ -133,8 +132,8 @@ def _get_arrays_multipolygon(arr, include_z):
 
 def to_ragged_array(geometries, include_z=False):
     """
-    Converts geometries to a ragged array representation using a contiguous array of
-    coordinates and offset arrays.
+    Converts geometries to a ragged array representation using a contiguous
+    array of coordinates and offset arrays.
 
     This function converts an array of geometries to a ragged array
     (i.e. irregular array of arrays) of coordinates, represented in memory
@@ -148,7 +147,7 @@ def to_ragged_array(geometries, include_z=False):
 
     Parameters
     ----------
-    arr : array_like
+    geometries : array_like
         Array of geometries (1-dimensional).
     include_z : bool, default False
         If True, include the third dimension in the output. If a geometry
@@ -156,16 +155,26 @@ def to_ragged_array(geometries, include_z=False):
 
     Returns
     -------
-    typ : GeometryType
-        The type of the input geometries (required information for roundtrip).
-    coords : np.ndarray
-        Contiguous array of shape (n, 2) or (n, 3) of all coordinates of
-        all input geometries.
-    offsets: tuple of np.ndarray
-        Offset arrays that make it possible to reconstruct the geometries from the
-        flat coordinates array. The number of offset arrays depends on the
-        geometry type. See
-        https://github.com/geoarrow/geoarrow/blob/main/format.md for details.
+    tuple of (geometry_type, coords, offsets)
+        geometry_type : GeometryType
+            The type of the input geometries (required information for
+            roundtrip).
+        coords : np.ndarray
+            Contiguous array of shape (n, 2) or (n, 3) of all coordinates
+            of all input geometries.
+        offsets: tuple of np.ndarray
+            Offset arrays that make it possible to reconstruct the
+            geometries from the flat coordinates array. The number of
+            offset arrays depends on the geometry type. See
+            https://github.com/geoarrow/geoarrow/blob/main/format.md
+            for details.
+
+    Notes
+    -----
+    Mixed singular and multi geometry types of the same basic type are
+    allowed (e.g., Point and MultiPoint) and all singular types will be
+    treated as multi types.
+    GeometryCollections and other mixed geometry types are not supported.
 
     See also
     --------
@@ -183,10 +192,10 @@ def to_ragged_array(geometries, include_z=False):
     >>> polygon
     <POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (2 2, 3 2, 2 3, 2 2))>
 
-    This polygon can be thought of as a list of rings (first ring is the exterior
-    ring, subsequent rings are the interior rings), and each ring as a list of
-    coordinate pairs. This is very similar to how GeoJSON represents the
-    coordinates:
+    This polygon can be thought of as a list of rings (first ring is the
+    exterior ring, subsequent rings are the interior rings), and each ring
+    as a list of coordinate pairs. This is very similar to how GeoJSON
+    represents the coordinates:
 
     >>> import json
     >>> json.loads(shapely.to_geojson(polygon))["coordinates"]
@@ -198,7 +207,7 @@ def to_ragged_array(geometries, include_z=False):
     offsets:
 
     >>> geometry_type, coords, offsets = shapely.to_ragged_array([polygon])
-    >>> typ
+    >>> geometry_type
     <GeometryType.POLYGON: 3>
     >>> coords
     array([[ 0.,  0.],
@@ -218,7 +227,7 @@ def to_ragged_array(geometries, include_z=False):
     coordinates is represented by ``offsets[0][i]`` to ``offsets[0][i+1]``:
 
     >>> exterior_ring_start, exterior_ring_end = offsets[0][0], offsets[0][1]
-    >>> coords[ring1_start:ring1_end]
+    >>> coords[exterior_ring_start:exterior_ring_end]
     array([[ 0.,  0.],
            [10.,  0.],
            [10., 10.],
@@ -226,37 +235,37 @@ def to_ragged_array(geometries, include_z=False):
            [ 0.,  0.]])
 
     """
-    geom_types = np.unique(get_type_id(arr))
+    geom_types = np.unique(get_type_id(geometries))
     # ignore missing values (type of -1)
     geom_types = geom_types[geom_types >= 0]
 
     if len(geom_types) == 1:
         typ = GeometryType(geom_types[0])
         if typ == GeometryType.POINT:
-            coords, offsets = _get_arrays_point(arr, include_z)
+            coords, offsets = _get_arrays_point(geometries, include_z)
         elif typ == GeometryType.LINESTRING:
-            coords, offsets = _get_arrays_linestring(arr, include_z)
+            coords, offsets = _get_arrays_linestring(geometries, include_z)
         elif typ == GeometryType.POLYGON:
-            coords, offsets = _get_arrays_polygon(arr, include_z)
+            coords, offsets = _get_arrays_polygon(geometries, include_z)
         elif typ == GeometryType.MULTIPOINT:
-            coords, offsets = _get_arrays_multipoint(arr, include_z)
+            coords, offsets = _get_arrays_multipoint(geometries, include_z)
         elif typ == GeometryType.MULTILINESTRING:
-            coords, offsets = _get_arrays_multilinestring(arr, include_z)
+            coords, offsets = _get_arrays_multilinestring(geometries, include_z)
         elif typ == GeometryType.MULTIPOLYGON:
-            coords, offsets = _get_arrays_multipolygon(arr, include_z)
+            coords, offsets = _get_arrays_multipolygon(geometries, include_z)
         else:
             raise ValueError(f"Geometry type {typ.name} is not supported")
 
     elif len(geom_types) == 2:
         if set(geom_types) == {GeometryType.POINT, GeometryType.MULTIPOINT}:
             typ = GeometryType.MULTIPOINT
-            coords, offsets = _get_arrays_multipoint(arr, include_z)
+            coords, offsets = _get_arrays_multipoint(geometries, include_z)
         elif set(geom_types) == {GeometryType.LINESTRING, GeometryType.MULTILINESTRING}:
             typ = GeometryType.MULTILINESTRING
-            coords, offsets = _get_arrays_multilinestring(arr, include_z)
+            coords, offsets = _get_arrays_multilinestring(geometries, include_z)
         elif set(geom_types) == {GeometryType.POLYGON, GeometryType.MULTIPOLYGON}:
             typ = GeometryType.MULTIPOLYGON
-            coords, offsets = _get_arrays_multipolygon(arr, include_z)
+            coords, offsets = _get_arrays_multipolygon(geometries, include_z)
         else:
             raise ValueError(
                 "Geometry type combination is not supported "
@@ -375,7 +384,8 @@ def _multipolygons_from_flatcoords(coords, offsets1, offsets2, offsets3):
 
 def from_ragged_array(geometry_type, coords, offsets=None):
     """
-    Creates geometries from a contiguous array of coordinates and offset arrays.
+    Creates geometries from a contiguous array of coordinates
+    and offset arrays.
 
     This function creates geometries from the ragged array representation
     as returned by ``to_ragged_array``.
@@ -388,7 +398,7 @@ def from_ragged_array(geometry_type, coords, offsets=None):
 
     Parameters
     ----------
-    typ : GeometryType
+    geometry_type : GeometryType
         The type of geometry to create.
     coords : np.ndarray
         Contiguous array of shape (n, 2) ro (n, 3) of all coordinates
@@ -400,7 +410,7 @@ def from_ragged_array(geometry_type, coords, offsets=None):
         https://github.com/geoarrow/geoarrow/blob/main/format.md for details.
 
     Returns
-    ----------
+    -------
     np.ndarray
         Array of geometries (1-dimensional).
 
@@ -409,18 +419,18 @@ def from_ragged_array(geometry_type, coords, offsets=None):
     to_ragged_array
 
     """
-    if typ == GeometryType.POINT:
+    if geometry_type == GeometryType.POINT:
         assert offsets is None or len(offsets) == 0
         return _point_from_flatcoords(coords)
-    if typ == GeometryType.LINESTRING:
+    if geometry_type == GeometryType.LINESTRING:
         return _linestring_from_flatcoords(coords, *offsets)
-    if typ == GeometryType.POLYGON:
+    if geometry_type == GeometryType.POLYGON:
         return _polygon_from_flatcoords(coords, *offsets)
-    elif typ == GeometryType.MULTIPOINT:
+    elif geometry_type == GeometryType.MULTIPOINT:
         return _multipoint_from_flatcoords(coords, *offsets)
-    elif typ == GeometryType.MULTILINESTRING:
+    elif geometry_type == GeometryType.MULTILINESTRING:
         return _multilinestrings_from_flatcoords(coords, *offsets)
-    elif typ == GeometryType.MULTIPOLYGON:
+    elif geometry_type == GeometryType.MULTIPOLYGON:
         return _multipolygons_from_flatcoords(coords, *offsets)
     else:
-        raise ValueError(f"Geometry type {typ.name} is not supported")
+        raise ValueError(f"Geometry type {geometry_type.name} is not supported")
