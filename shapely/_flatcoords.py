@@ -24,7 +24,7 @@ for different options.
 
 The exact usage of the Arrow list array with varying degrees of nesting for the
 different geometry types is defined by the GeoArrow project:
-https://github.com/geoarrow/geoarrow/blob/main/format.md
+https://github.com/geoarrow/geoarrow
 
 """
 import numpy as np
@@ -131,15 +131,15 @@ def _get_arrays_multipolygon(arr, include_z):
     return coords, (offsets1, offsets2, offsets3)
 
 
-def to_ragged_array(arr, include_z=False):
+def to_ragged_array(geometries, include_z=False):
     """
-    Converts to ragged array representation using a contiguous array of
+    Converts geometries to a ragged array representation using a contiguous array of
     coordinates and offset arrays.
 
     This function converts an array of geometries to a ragged array
     (i.e. irregular array of arrays) of coordinates, represented in memory
-    using a single contiguous array of the coordinates, and in addition
-    0, 1 or up to 3 offset arrays that keep track where each sub-array
+    using a single contiguous array of the coordinates, and
+    up to 3 offset arrays that keep track where each sub-array
     starts and ends.
 
     This follows the in-memory layout of the variable size list arrays defined
@@ -157,12 +157,12 @@ def to_ragged_array(arr, include_z=False):
     Returns
     -------
     typ : GeometryType
-        The type of the input geometries (required information for rountrip).
+        The type of the input geometries (required information for roundtrip).
     coords : np.ndarray
         Contiguous array of shape (n, 2) or (n, 3) of all coordinates of
         all input geometries.
     offsets: tuple of np.ndarray
-        Offset arrays that allow to reconstruct the geometries based on the
+        Offset arrays that make it possible to reconstruct the geometries from the
         flat coordinates array. The number of offset arrays depends on the
         geometry type. See
         https://github.com/geoarrow/geoarrow/blob/main/format.md for details.
@@ -183,8 +183,8 @@ def to_ragged_array(arr, include_z=False):
     >>> polygon
     <POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (2 2, 3 2, 2 3, 2 2))>
 
-    This polygon can be thought of as a list of rings (first ring the exterior
-    ring, subsequent rings the interior rings), and each ring as a list of
+    This polygon can be thought of as a list of rings (first ring is the exterior
+    ring, subsequent rings are the interior rings), and each ring as a list of
     coordinate pairs. This is very similar to how GeoJSON represents the
     coordinates:
 
@@ -193,11 +193,11 @@ def to_ragged_array(arr, include_z=False):
     [[[0.0, 0.0], [10.0, 0.0], [10.0, 10.0], [0.0, 10.0], [0.0, 0.0]],
      [[2.0, 2.0], [3.0, 2.0], [2.0, 3.0], [2.0, 2.0]]]
 
-    This function will semantically return such a list of lists of lists, but
+    This function will return a similar list of lists of lists, but
     using a single contiguous array of coordinates, and multiple arrays of
     offsets:
 
-    >>> typ, coords, offsets = shapely.to_ragged_array([polygon])
+    >>> geometry_type, coords, offsets = shapely.to_ragged_array([polygon])
     >>> typ
     <GeometryType.POLYGON: 3>
     >>> coords
@@ -217,7 +217,7 @@ def to_ragged_array(arr, include_z=False):
     As an example how to interpret the offsets: the i-th ring in the
     coordinates is represented by ``offsets[0][i]`` to ``offsets[0][i+1]``:
 
-    >>> ring1_start, ring1_end = offsets[0][0], offsets[0][1]
+    >>> exterior_ring_start, exterior_ring_end = offsets[0][0], offsets[0][1]
     >>> coords[ring1_start:ring1_end]
     array([[ 0.,  0.],
            [10.,  0.],
@@ -373,7 +373,7 @@ def _multipolygons_from_flatcoords(coords, offsets1, offsets2, offsets3):
     return result
 
 
-def from_ragged_array(typ, coords, offsets=None):
+def from_ragged_array(geometry_type, coords, offsets=None):
     """
     Creates geometries from a contiguous array of coordinates and offset arrays.
 
