@@ -36,9 +36,10 @@ def setUpModule():
 
 
 def tearDownModule():
-    if sys.platform == 'win32':
+    if sys.platform == 'win32' or sys.version_info[0:2] >= (3, 11):
         locale.setlocale(locale.LC_ALL, "")
     else:
+        # Deprecated since version 3.11, will be removed in version 3.13
         locale.resetlocale()
 
 

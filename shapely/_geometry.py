@@ -784,9 +784,6 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
         3. `'keep_collapsed'`: Like the default mode, except that collapsed linear geometry
            elements are preserved. Collapsed polygonal input elements are removed. Duplicate
            vertices are removed.
-    preserve_topology : bool, optional
-        .. deprecated:: 0.11
-          This parameter is ignored. Use ``mode`` instead.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -817,13 +814,6 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
         mode = SetPrecisionMode.get_value(mode)
     elif not np.isscalar(mode):
         raise TypeError("mode only accepts scalar values")
-    if "preserve_topology" in kwargs:
-        warnings.warn(
-            "preserve_topology is deprecated (ignored), use 'mode' instead",
-            UserWarning,
-            stacklevel=2,
-        )
-        del kwargs["preserve_topology"]
     if mode == SetPrecisionMode.pointwise and geos_version < (3, 10, 0):
         warnings.warn(
             "'pointwise' is only supported for GEOS 3.10",

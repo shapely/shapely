@@ -424,6 +424,7 @@ static void* unary_union_data[1] = {GEOSUnaryUnion_r};
 static void* point_on_surface_data[1] = {GEOSPointOnSurface_r};
 static void* centroid_data[1] = {GEOSGetCentroid_r};
 static void* line_merge_data[1] = {GEOSLineMerge_r};
+static void* node_data[1] = {GEOSNode_r};
 static void* extract_unique_points_data[1] = {GEOSGeom_extractUniquePoints_r};
 static void* GetExteriorRing(void* context, void* geom) {
   char typ = GEOSGeomTypeId_r(context, geom);
@@ -475,6 +476,9 @@ static void* reverse_data[1] = {GEOSReverse_r};
 #endif
 #if GEOS_SINCE_3_6_0
 static void* oriented_envelope_data[1] = {GEOSMinimumRotatedRectangle_r};
+#endif
+#if GEOS_SINCE_3_11_0
+static void* line_merge_directed_data[1] = {GEOSLineMergeDirected_r};
 #endif
 typedef void* FuncGEOS_Y_Y(void* context, void* a);
 static char Y_Y_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
@@ -1602,6 +1606,69 @@ static void snap_func(char** args, npy_intp* dimensions, npy_intp* steps, void* 
   free(geom_arr);
 }
 static PyUFuncGenericFunction snap_funcs[1] = {&snap_func};
+
+#if GEOS_SINCE_3_11_0
+
+static char concave_hull_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
+
+static void concave_hull_func(char** args, npy_intp* dimensions, npy_intp* steps,
+                              void* data) {
+  char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2];
+  npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2];
+  npy_intp n = dimensions[0];
+  npy_intp i;
+  GEOSGeometry** geom_arr;
+  GEOSGeometry* in1 = NULL;
+
+  CHECK_NO_INPLACE_OUTPUT(3);
+
+  if ((is2 != 0) || (is3 != 0)) {
+    PyErr_Format(PyExc_ValueError,
+                 "concave_hull function called with non-scalar parameters");
+    return;
+  }
+
+  double ratio = *(double*)ip2;
+  unsigned int allowHoles = (unsigned int)(*(npy_bool*)ip3);
+
+  // allocate a temporary array to store output GEOSGeometry objects
+  geom_arr = malloc(sizeof(void*) * n);
+  CHECK_ALLOC(geom_arr);
+
+  GEOS_INIT_THREADS;
+
+  for (i = 0; i < n; i++, ip1 += is1) {
+    /* get the geometry: return on error */
+    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
+      errstate = PGERR_NOT_A_GEOMETRY;
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      break;
+    }
+
+    if (in1 == NULL) {
+      // in case of a missing value: return NULL (None)
+      geom_arr[i] = NULL;
+    } else {
+      geom_arr[i] = GEOSConcaveHull_r(ctx, in1, ratio, allowHoles);
+      if (geom_arr[i] == NULL) {
+        errstate = PGERR_GEOS_EXCEPTION;
+        destroy_geom_arr(ctx, geom_arr, i - 1);
+        break;
+      }
+    }
+  }
+
+  GEOS_FINISH_THREADS;
+
+  // fill the numpy array with PyObjects while holding the GIL
+  if (errstate == PGERR_SUCCESS) {
+    geom_arr_to_npy(geom_arr, args[3], steps[3], dimensions[0]);
+  }
+  free(geom_arr);
+}
+static PyUFuncGenericFunction concave_hull_funcs[1] = {&concave_hull_func};
+
+#endif  // GEOS_SINCE_3_11_0
 
 static char clip_by_rect_dtypes[6] = {NPY_OBJECT, NPY_DOUBLE, NPY_DOUBLE,
                                       NPY_DOUBLE, NPY_DOUBLE, NPY_OBJECT};
@@ -3513,6 +3580,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Y_Y(point_on_surface);
   DEFINE_Y_Y(centroid);
   DEFINE_Y_Y(line_merge);
+  DEFINE_Y_Y(node);
   DEFINE_Y_Y(extract_unique_points);
   DEFINE_Y_Y(get_exterior_ring);
   DEFINE_Y_Y(normalize);
@@ -3630,6 +3698,8 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 
 #if GEOS_SINCE_3_11_0
   DEFINE_Yd_Y(remove_repeated_points);
+  DEFINE_Y_Y(line_merge_directed);
+  DEFINE_CUSTOM(concave_hull, 3);
 #endif
 
   Py_DECREF(ufunc);
