@@ -57,8 +57,8 @@ BINARY_PREDICATES = (
 BINARY_PREPARED_PREDICATES = BINARY_PREDICATES[:-2]
 
 XY_PREDICATES = (
-    (shapely.contains, shapely.contains),
-    (shapely.intersects, shapely.intersects),
+    (shapely.contains_xy, shapely.contains),
+    (shapely.intersects_xy, shapely.intersects),
 )
 
 
@@ -117,7 +117,7 @@ def test_xy_array(a, func, func_bin):
     with ignore_invalid(shapely.is_empty(a)):
         # Empty geometries give 'invalid value encountered' in all predicates
         # (see https://github.com/libgeos/geos/issues/515)
-        actual = func([a, a], (2, 3))
+        actual = func([a, a], 2, 3)
         expected = func_bin([a, a], Point(2, 3))
     assert actual.shape == (2,)
     assert actual.dtype == np.bool_
@@ -130,7 +130,7 @@ def test_xy_array_broadcast(a, func, func_bin):
     with ignore_invalid(shapely.is_empty(a)):
         # Empty geometries give 'invalid value encountered' in all predicates
         # (see https://github.com/libgeos/geos/issues/515)
-        actual = func(a, np.array([[0, 1, 2], [1, 2, 3]]).T)
+        actual = func(a, [0, 1, 2], [1, 2, 3])
         expected = func_bin(a, [Point(0, 1), Point(1, 2), Point(2, 3)])
     np.testing.assert_allclose(actual, expected)
 
@@ -138,7 +138,7 @@ def test_xy_array_broadcast(a, func, func_bin):
 @pytest.mark.parametrize("func", [funcs[0] for funcs in XY_PREDICATES])
 def test_xy_with_kwargs(func):
     out = np.empty((), dtype=np.uint8)
-    actual = func(point, (point.x, point.y), out=out)
+    actual = func(point, point.x, point.y, out=out)
     assert actual is out
     assert actual.dtype == np.uint8
 
@@ -147,13 +147,8 @@ def test_xy_with_kwargs(func):
 def test_xy_missing(func):
     actual = func(
         np.array([point, point, point, None]),
-        np.stack(
-            (
-                np.array([point.x, np.nan, point.x, point.x]),
-                np.array([point.y, point.y, np.nan, point.y]),
-            ),
-            axis=-1,
-        ),
+        np.array([point.x, np.nan, point.x, point.x]),
+        np.array([point.y, point.y, np.nan, point.y]),
     )
     np.testing.assert_allclose(actual, [True, False, False, False])
 

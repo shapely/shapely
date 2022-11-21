@@ -43,7 +43,7 @@ def contains(geometry, x, y):
     if isinstance(geometry, PreparedGeometry):
         geometry = geometry.context
     shapely.prepare(geometry)
-    return shapely.lib.contains_xy(geometry, x, y)
+    return shapely.contains_xy(geometry, x, y)
 
 
 def touches(geometry, x, y):
@@ -72,4 +72,4 @@ def touches(geometry, x, y):
     # Touches(geom, point) == Intersects(Boundary(geom), point)
     boundary = geometry.boundary
     shapely.prepare(boundary)
-    return shapely.lib.intersects_xy(boundary, x, y)
+    return shapely.intersects_xy(boundary, x, y)

@@ -1,7 +1,5 @@
 import warnings
 
-import numpy as np
-
 from . import lib
 from .decorators import multithreading_enabled, requires_geos
 
@@ -20,6 +18,7 @@ __all__ = [
     "is_valid_reason",
     "crosses",
     "contains",
+    "contains_xy",
     "contains_properly",
     "covered_by",
     "covers",
@@ -27,6 +26,7 @@ __all__ = [
     "dwithin",
     "equals",
     "intersects",
+    "intersects_xy",
     "overlaps",
     "touches",
     "within",
@@ -535,15 +535,6 @@ def contains(a, b, **kwargs):
     >>> contains(area, None)
     False
     """
-    b = np.asarray(b)
-    if np.issubdtype(b.dtype, np.number):
-        # geom2 are float coordinates
-        ndim = b.ndim
-        b = np.atleast_2d(b)
-        x, y = b[:, 0], b[:, 1]
-        if ndim == 1:
-            x, y = x.squeeze(), y.squeeze()
-        return lib.contains_xy(a, x, y, **kwargs)
     return lib.contains(a, b, **kwargs)
 
 
@@ -802,15 +793,6 @@ def intersects(a, b, **kwargs):
     >>> intersects(None, None)
     False
     """
-    b = np.asarray(b)
-    if np.issubdtype(b.dtype, np.number):
-        # geom2 are float coordinates
-        ndim = b.ndim
-        b = np.atleast_2d(b)
-        x, y = b[:, 0], b[:, 1]
-        if ndim == 1:
-            x, y = x.squeeze(), y.squeeze()
-        return lib.intersects_xy(a, x, y, **kwargs)
     return lib.intersects(a, b, **kwargs)
 
 
@@ -1100,3 +1082,73 @@ def dwithin(a, b, distance, **kwargs):
     False
     """
     return lib.dwithin(a, b, distance, **kwargs)
+
+
+@multithreading_enabled
+def contains_xy(geom, x, y, **kwargs):
+    """
+    Returns True if the Point (x, y) is completely inside geometry A.
+
+    This is a special-case (and faster) variant of the `contains` function
+    which avoids having to create a Point object if you start from x/y
+    coordinates.
+
+    See the docstring of `contains` for more details about the predicate.
+
+    Parameters
+    ----------
+    geom : Geometry or array_like
+    x, y : float or array_like
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    See also
+    --------
+    contains : variant taking two geometries as input
+
+    Examples
+    --------
+    >>> from shapely import Point, Polygon
+    >>> area = Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
+    >>> contains(area, Point(0.5, 0.5))
+    True
+    >>> contains_xy(area, 0.5, 0.5)
+    True
+    """
+    return lib.contains_xy(geom, x, y, **kwargs)
+
+
+@multithreading_enabled
+def intersects_xy(geom, x, y, **kwargs):
+    """
+    Returns True if A and the Point (x, y) share any portion of space.
+
+    This is a special-case (and faster) variant of the `intersects` function
+    which avoids having to create a Point object if you start from x/y
+    coordinates.
+
+    See the docstring of `intersects` for more details about the predicate.
+
+    Parameters
+    ----------
+    geom : Geometry or array_like
+    x, y : float or array_like
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    See also
+    --------
+    intersects : variant taking two geometries as input
+
+    Examples
+    --------
+    >>> from shapely import LineString, Point
+    >>> line = LineString([(0, 0), (1, 1)])
+    >>> intersects(line, Point(0, 0))
+    True
+    >>> intersects_xy(line, 0, 0)
+    True
+    """
+    return lib.intersects_xy(geom, x, y, **kwargs)
