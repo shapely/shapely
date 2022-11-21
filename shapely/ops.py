@@ -117,8 +117,8 @@ class CollectionOperator:
     def cascaded_union(self, geoms):
         """Returns the union of a sequence of geometries
 
-        This function is deprecated, as it was superseded by
-        :meth:`unary_union`.
+        .. deprecated:: 1.8
+            This function was superseded by :meth:`unary_union`.
         """
         warn(
             "The 'cascaded_union()' function is deprecated. "
@@ -131,8 +131,8 @@ class CollectionOperator:
     def unary_union(self, geoms):
         """Returns the union of a sequence of geometries
 
-        This method replaces :meth:`cascaded_union` as the
-        preferred method for dissolving many polygons.
+        Usually used to convert a collection into the smallest set of polygons
+        that cover the same area.
         """
         return shapely.union_all(geoms, axis=None)
 

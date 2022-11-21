@@ -158,6 +158,9 @@ Some additional backwards incompatible API changes were included in Shapely
 * A ``GeometryCollection`` that consists of all empty sub-geometries now
   returns those empty geometries from its ``.geoms`` attribute instead of
   returning an empty list (#1420).
+* The ``Point(..)`` constructor no longer accepts a sequence of coordinates
+  consisting of more than one coordinate pair (previously, subsequent
+  coordinates were ignored) (#1600).
 * The unused ``shape_factory()`` method and ``HeterogeneousGeometrySequence``
   class are removed (#1421).
 * The undocumented ``__geom__`` attribute has been removed. If necessary
@@ -311,6 +314,7 @@ Several (new) functions from GEOS are now exposed in Shapely:
 * :func:`.contains_properly`
 * :func:`.extract_unique_points`
 * :func:`.reverse`
+* :func:`.node`
 * :func:`.contains_xy` and :func:`.intersects_xy`
 * :func:`.build_area` (GEOS >= 3.8)
 * :func:`.minimum_bounding_circle` and :func:`.minimum_bounding_radius` (GEOS >= 3.8)
@@ -319,6 +323,7 @@ Several (new) functions from GEOS are now exposed in Shapely:
 * :func:`.dwithin` (GEOS >= 3.10)
 * :func:`.remove_repeated_points` (GEOS >= 3.11)
 * :func:`.line_merge` added `directed` parameter (GEOS > 3.11)
+* :func:`.concave_hull` (GEOS >= 3.11)
 
 In addition some aliases for existing methods have been added to provide a
 method name consistent with GEOS or PostGIS:

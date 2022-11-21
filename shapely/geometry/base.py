@@ -32,11 +32,13 @@ def geom_factory(g, parent=None):
     """
     Creates a Shapely geometry instance from a pointer to a GEOS geometry.
 
-    WARNING: the GEOS library used to create the the GEOS geometry pointer
-    and the GEOS library used by Shapely must be exactly the same, or
-    unexpected results or segfaults may occur.
+    .. warning::
+        The GEOS library used to create the the GEOS geometry pointer
+        and the GEOS library used by Shapely must be exactly the same, or
+        unexpected results or segfaults may occur.
 
-    Deprecated in Shapely 2.0, and will be removed in a future version.
+    .. deprecated:: 2.0
+        Deprecated in Shapely 2.0, and will be removed in a future version.
     """
     warn(
         "The 'geom_factory' function is deprecated in Shapely 2.0, and will be "
@@ -62,6 +64,15 @@ def dump_coords(geom):
         return [dump_coords(part) for part in geom.geoms]
     else:
         raise GeometryTypeError("Unhandled geometry type: " + repr(geom.geom_type))
+
+
+def _maybe_unpack(result):
+    if result.ndim == 0:
+        # convert numpy 0-d array / scalar to python scalar
+        return result.item()
+    else:
+        # >=1 dim array
+        return result
 
 
 class CAP_STYLE:
@@ -106,7 +117,7 @@ class BaseGeometry(shapely.Geometry):
 
     def __format__(self, format_spec):
         """Format a geometry using a format specification."""
-        # bypass reqgexp for simple cases
+        # bypass regexp for simple cases
         if format_spec == "":
             return shapely.to_wkt(self, rounding_precision=-1)
         elif format_spec == "x":
@@ -303,11 +314,11 @@ class BaseGeometry(shapely.Geometry):
 
     def distance(self, other):
         """Unitless distance to other geometry (float)"""
-        return float(shapely.distance(self, other))
+        return _maybe_unpack(shapely.distance(self, other))
 
     def hausdorff_distance(self, other):
         """Unitless hausdorff distance to other geometry (float)"""
-        return float(shapely.hausdorff_distance(self, other))
+        return _maybe_unpack(shapely.hausdorff_distance(self, other))
 
     @property
     def length(self):
@@ -425,11 +436,10 @@ class BaseGeometry(shapely.Geometry):
             object.
         quad_segs : int, optional
             Sets the number of line segments used to approximate an
-            angle fillet.  Note: the use of a `quad_segs` parameter is
-            deprecated and will be gone from the next major release.
+            angle fillet.
         cap_style : shapely.BufferCapStyle or {'round', 'square', 'flat'}, default 'round'
             Specifies the shape of buffered line endings. BufferCapStyle.round ('round')
-            results in circular line endings (see ``quadsegs``). Both BufferCapStyle.square
+            results in circular line endings (see ``quad_segs``). Both BufferCapStyle.square
             ('square') and BufferCapStyle.flat ('flat') result in rectangular line endings,
             only BufferCapStyle.flat ('flat') will end at the original vertex,
             while BufferCapStyle.square ('square') involves adding the buffer width.
@@ -457,6 +467,8 @@ class BaseGeometry(shapely.Geometry):
             the regular buffer.  The End Cap Style for single-sided
             buffers is always ignored, and forced to the equivalent of
             CAP_FLAT.
+        quadsegs : int, optional
+            Deprecated alias for `quad_segs`.
 
         Returns
         -------
@@ -500,17 +512,17 @@ class BaseGeometry(shapely.Geometry):
             )
             quad_segs = quadsegs
 
-        # TODO deprecate `resolution` keyword in the future as well
+        # TODO deprecate `resolution` keyword for shapely 2.1
         resolution = kwargs.pop("resolution", None)
         if resolution is not None:
             quad_segs = resolution
         if kwargs:
             kwarg = list(kwargs.keys())[0]  # noqa
-            raise TypeError("buffer() got an unexpected keyword argument '{kwarg}'")
+            raise TypeError(f"buffer() got an unexpected keyword argument '{kwarg}'")
 
         if mitre_limit == 0.0:
             raise ValueError("Cannot compute offset from zero-length line segment")
-        elif not np.isfinite(distance):
+        elif not np.isfinite(distance).all():
             raise ValueError("buffer distance must be finite")
 
         return shapely.buffer(
@@ -635,23 +647,32 @@ class BaseGeometry(shapely.Geometry):
 
     def covers(self, other):
         """Returns True if the geometry covers the other, else False"""
-        return bool(shapely.covers(self, other))
+        return _maybe_unpack(shapely.covers(self, other))
 
     def covered_by(self, other):
         """Returns True if the geometry is covered by the other, else False"""
-        return bool(shapely.covered_by(self, other))
+        return _maybe_unpack(shapely.covered_by(self, other))
 
     def contains(self, other):
         """Returns True if the geometry contains the other, else False"""
-        return bool(shapely.contains(self, other))
+        return _maybe_unpack(shapely.contains(self, other))
+
+    def contains_properly(self, other):
+        """
+        Returns True if the geometry completely contains the other, with no
+        common boundary points, else False
+
+        Refer to `shapely.contains_properly` for full documentation.
+        """
+        return _maybe_unpack(shapely.contains_properly(self, other))
 
     def crosses(self, other):
         """Returns True if the geometries cross, else False"""
-        return bool(shapely.crosses(self, other))
+        return _maybe_unpack(shapely.crosses(self, other))
 
     def disjoint(self, other):
         """Returns True if geometries are disjoint, else False"""
-        return bool(shapely.disjoint(self, other))
+        return _maybe_unpack(shapely.disjoint(self, other))
 
     def equals(self, other):
         """Returns True if geometries are equal, else False.
@@ -674,23 +695,23 @@ class BaseGeometry(shapely.Geometry):
         bool
 
         """
-        return bool(shapely.equals(self, other))
+        return _maybe_unpack(shapely.equals(self, other))
 
     def intersects(self, other):
         """Returns True if geometries intersect, else False"""
-        return bool(shapely.intersects(self, other))
+        return _maybe_unpack(shapely.intersects(self, other))
 
     def overlaps(self, other):
         """Returns True if geometries overlap, else False"""
-        return bool(shapely.overlaps(self, other))
+        return _maybe_unpack(shapely.overlaps(self, other))
 
     def touches(self, other):
         """Returns True if geometries touch, else False"""
-        return bool(shapely.touches(self, other))
+        return _maybe_unpack(shapely.touches(self, other))
 
     def within(self, other):
         """Returns True if geometry is within the other, else False"""
-        return bool(shapely.within(self, other))
+        return _maybe_unpack(shapely.within(self, other))
 
     def dwithin(self, other, distance):
         """
@@ -698,7 +719,7 @@ class BaseGeometry(shapely.Geometry):
 
         Refer to `shapely.dwithin` for full documentation.
         """
-        return bool(shapely.dwithin(self, other, distance))
+        return _maybe_unpack(shapely.dwithin(self, other, distance))
 
     def equals_exact(self, other, tolerance):
         """True if geometries are equal to within a specified
@@ -733,7 +754,7 @@ class BaseGeometry(shapely.Geometry):
         bool
 
         """
-        return bool(shapely.equals_exact(self, other, tolerance))
+        return _maybe_unpack(shapely.equals_exact(self, other, tolerance))
 
     def almost_equals(self, other, decimal=6):
         """True if geometries are equal at all coordinates to a
@@ -776,7 +797,7 @@ class BaseGeometry(shapely.Geometry):
     def relate_pattern(self, other, pattern):
         """Returns True if the DE-9IM string code for the relationship between
         the geometries satisfies the pattern, else False"""
-        return bool(shapely.relate_pattern(self, other, pattern))
+        return _maybe_unpack(shapely.relate_pattern(self, other, pattern))
 
     # Linear referencing
     # ------------------

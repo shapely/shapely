@@ -12,6 +12,7 @@ __all__ = [
     "offset_curve",
     "centroid",
     "clip_by_rect",
+    "concave_hull",
     "convex_hull",
     "delaunay_triangles",
     "segmentize",
@@ -20,6 +21,7 @@ __all__ = [
     "build_area",
     "make_valid",
     "normalize",
+    "node",
     "point_on_surface",
     "polygonize",
     "polygonize_full",
@@ -336,6 +338,40 @@ def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
     )
 
 
+@requires_geos("3.11.0")
+@multithreading_enabled
+def concave_hull(geometry, ratio=0.0, allow_holes=False, **kwargs):
+    """Computes a concave geometry that encloses an input geometry.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    ratio : float, default 0.0
+        Number in the range [0, 1]. Higher numbers will include fewer vertices
+        in the hull.
+    allow_holes : bool, default False
+        If set to True, the concave hull may have holes.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    Examples
+    --------
+    >>> from shapely import MultiPoint, Polygon
+    >>> concave_hull(MultiPoint([(0, 0), (0, 3), (1, 1), (3, 0), (3, 3)]), ratio=0.1)
+    <POLYGON ((0 0, 0 3, 1 1, 3 3, 3 0, 0 0))>
+    >>> concave_hull(MultiPoint([(0, 0), (0, 3), (1, 1), (3, 0), (3, 3)]), ratio=1.0)
+    <POLYGON ((0 0, 0 3, 3 3, 3 0, 0 0))>
+    >>> concave_hull(Polygon())
+    <POLYGON EMPTY>
+    """
+    if not np.isscalar(ratio):
+        raise TypeError("ratio must be scalar")
+    if not np.isscalar(allow_holes):
+        raise TypeError("allow_holes must be scalar")
+    return lib.concave_hull(geometry, np.double(ratio), np.bool_(allow_holes), **kwargs)
+
+
 @multithreading_enabled
 def convex_hull(geometry, **kwargs):
     """Computes the minimum convex geometry that encloses an input geometry.
@@ -557,6 +593,40 @@ def point_on_surface(geometry, **kwargs):
     return lib.point_on_surface(geometry, **kwargs)
 
 
+@multithreading_enabled
+def node(geometry, **kwargs):
+    """
+    Returns the fully noded version of the linear input as MultiLineString.
+
+    Given a linear input geometry, this function returns a new MultiLineString
+    in which no lines cross each other but only touch at and points. To
+    obtain this, all intersections between segments are computed and added
+    to the segments, and duplicate segments are removed.
+
+    Non-linear input (points) will result in an empty MultiLineString.
+
+    This function can for example be used to create a fully-noded linework
+    suitable to passed as input to ``polygonize``.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    Examples
+    --------
+    >>> from shapely import LineString, Point
+    >>> line = LineString([(0, 0), (1,1), (0, 1), (1, 0)])
+    >>> node(line)
+    <MULTILINESTRING ((0 0, 0.5 0.5), (0.5 0.5, 1 1, 0 1, 0.5 0.5), (0.5 0.5, 1 0))>
+    >>> node(Point(1, 1))
+    <MULTILINESTRING EMPTY>
+    """
+    return lib.node(geometry, **kwargs)
+
+
 def polygonize(geometries, **kwargs):
     """Creates polygons formed from the linework of a set of Geometries.
 
@@ -595,6 +665,7 @@ def polygonize(geometries, **kwargs):
     --------
     get_parts, get_geometry
     polygonize_full
+    node
 
     Examples
     --------
