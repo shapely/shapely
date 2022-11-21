@@ -383,86 +383,25 @@ finish:
 static PyUFuncGenericFunction YY_b_p_funcs[1] = {&YY_b_p_func};
 
 /* Define the geom, X, Y -> bool functions (Ydd_b) prepared */
-static char GEOSContainsXY(void* context, void* g1, void* pg1, double x, double y) {
-  GEOSGeometry *geom = NULL;
-  const GEOSPreparedGeometry* prepared_geom_tmp = NULL;
-  char ret;
-
-  char destroy_prepared = 0;
-  if (pg1 == NULL) {
-    prepared_geom_tmp = GEOSPrepare_r(context, g1);
-    if (prepared_geom_tmp == NULL) {
-      return 2;
-    }
-    destroy_prepared = 1;
-  } else {
-    prepared_geom_tmp = pg1;
-  }
-
 #if GEOS_SINCE_3_12_0
-  ret = GEOSPreparedContainsXY_r(context, prepared_geom_tmp, x, y);
+static void* contains_xy_data[1] = {GEOSPreparedContainsXY_r};
+static void* intersects_xy_data[1] = {GEOSPreparedIntersectsXY_r};
 #else
-  geom = create_point(context, x, y);
-  if (geom == NULL) {
-    if (destroy_prepared) {
-      GEOSPreparedGeom_destroy_r(context, prepared_geom_tmp);
-    }
-    return 2;
-  }
-  ret = GEOSPreparedContains_r(context, prepared_geom_tmp, geom);
-  GEOSGeom_destroy_r(context, geom);
+static void* contains_xy_data[1] = {GEOSPreparedContains_r};
+static void* intersects_xy_data[1] = {GEOSPreparedIntersects_r};
 #endif
-
-  if (destroy_prepared) {
-    GEOSPreparedGeom_destroy_r(context, prepared_geom_tmp);
-  }
-  return ret;
-}
-static void* contains_xy_data[1] = {GEOSContainsXY};
-
-static char GEOSIntersectsXY(void* context, void* g1, void* pg1, double x, double y) {
-  GEOSGeometry *geom = NULL;
-  const GEOSPreparedGeometry* prepared_geom_tmp = NULL;
-  char ret;
-
-  char destroy_prepared = 0;
-  if (pg1 == NULL) {
-    prepared_geom_tmp = GEOSPrepare_r(context, g1);
-    if (prepared_geom_tmp == NULL) {
-      return 2;
-    }
-    destroy_prepared = 1;
-  } else {
-    prepared_geom_tmp = pg1;
-  }
-
-#if GEOS_SINCE_3_12_0
-  ret = GEOSPreparedIntersectsXY_r(context, prepared_geom_tmp, x, y);
-#else
-  geom = create_point(context, x, y);
-  if (geom == NULL) {
-    if (destroy_prepared) {
-      GEOSPreparedGeom_destroy_r(context, prepared_geom_tmp);
-    }
-    return 2;
-  }
-  ret = GEOSPreparedIntersects_r(context, prepared_geom_tmp, geom);
-  GEOSGeom_destroy_r(context, geom);
-#endif
-
-  if (destroy_prepared) {
-    GEOSPreparedGeom_destroy_r(context, prepared_geom_tmp);
-  }
-  return ret;
-}
-static void* intersects_xy_data[1] = {GEOSIntersectsXY};
-
 typedef char FuncGEOS_Ydd_b(void* context, void* g, void* pg, double x, double y);
 static char Ydd_b_p_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_DOUBLE, NPY_BOOL};
 static void Ydd_b_p_func(char** args, npy_intp* dimensions, npy_intp* steps, void* data) {
+#if GEOS_SINCE_3_12_0
   FuncGEOS_Ydd_b* func = (FuncGEOS_Ydd_b*)data;
+#else
+  FuncGEOS_YY_b* func = (FuncGEOS_YY_b*)data;
+#endif
   GEOSGeometry* in1 = NULL;
   GEOSPreparedGeometry* in1_prepared = NULL;
+  GEOSGeometry *geom = NULL;
+  const GEOSPreparedGeometry* prepared_geom_tmp = NULL;
   char ret;
 
   GEOS_INIT_THREADS;
@@ -483,7 +422,37 @@ static void Ydd_b_p_func(char** args, npy_intp* dimensions, npy_intp* steps, voi
       /* in case of a missing value: return 0 (False) */
       ret = 0;
     } else {
-      ret = func(ctx, in1, in1_prepared, in2, in3);
+      /* if input geometry is not yet prepared, prepare (and destroy) on the fly*/
+      char destroy_prepared = 0;
+      if (in1_prepared == NULL) {
+        prepared_geom_tmp = GEOSPrepare_r(ctx, in1);
+        if (prepared_geom_tmp == NULL) {
+          errstate = PGERR_GEOS_EXCEPTION;
+          goto finish;
+        }
+        destroy_prepared = 1;
+      } else {
+        prepared_geom_tmp = in1_prepared;
+      }
+
+#if GEOS_SINCE_3_12_0
+      ret = func(ctx, prepared_geom_tmp, in2, in3);
+#else
+      geom = create_point(ctx, in2, in3);
+      if (geom == NULL) {
+        if (destroy_prepared) {
+          GEOSPreparedGeom_destroy_r(ctx, prepared_geom_tmp);
+        }
+        errstate = PGERR_GEOS_EXCEPTION;
+        goto finish;
+      }
+      ret = func(ctx, prepared_geom_tmp, geom);
+      GEOSGeom_destroy_r(ctx, geom);
+#endif
+
+      if (destroy_prepared) {
+        GEOSPreparedGeom_destroy_r(ctx, prepared_geom_tmp);
+      }
       /* return for illegal values */
       if (ret == 2) {
         errstate = PGERR_GEOS_EXCEPTION;
