@@ -388,13 +388,6 @@ static char GEOSContainsXY(void* context, void* g1, void* pg1, double x, double 
   const GEOSPreparedGeometry* prepared_geom_tmp = NULL;
   char ret;
 
-#if !GEOS_SINCE_3_12_0
-  geom = create_point(context, x, y);
-  if (geom == NULL) {
-    return 2;
-  }
-#endif
-
   char destroy_prepared = 0;
   if (pg1 == NULL) {
     prepared_geom_tmp = GEOSPrepare_r(context, g1);
@@ -409,14 +402,20 @@ static char GEOSContainsXY(void* context, void* g1, void* pg1, double x, double 
 #if GEOS_SINCE_3_12_0
   ret = GEOSPreparedContainsXY_r(context, prepared_geom_tmp, x, y);
 #else
+  geom = create_point(context, x, y);
+  if (geom == NULL) {
+    if (destroy_prepared) {
+      GEOSPreparedGeom_destroy_r(context, prepared_geom_tmp);
+    }
+    return 2;
+  }
   ret = GEOSPreparedContains_r(context, prepared_geom_tmp, geom);
+  GEOSGeom_destroy_r(context, geom);
 #endif
+
   if (destroy_prepared) {
     GEOSPreparedGeom_destroy_r(context, prepared_geom_tmp);
   }
-#if !GEOS_SINCE_3_12_0
-  GEOSGeom_destroy_r(context, geom);
-#endif
   return ret;
 }
 static void* contains_xy_data[1] = {GEOSContainsXY};
@@ -425,13 +424,6 @@ static char GEOSIntersectsXY(void* context, void* g1, void* pg1, double x, doubl
   GEOSGeometry *geom = NULL;
   const GEOSPreparedGeometry* prepared_geom_tmp = NULL;
   char ret;
-
-#if !GEOS_SINCE_3_12_0
-  geom = create_point(context, x, y);
-  if (geom == NULL) {
-    return 2;
-  }
-#endif
 
   char destroy_prepared = 0;
   if (pg1 == NULL) {
@@ -447,14 +439,20 @@ static char GEOSIntersectsXY(void* context, void* g1, void* pg1, double x, doubl
 #if GEOS_SINCE_3_12_0
   ret = GEOSPreparedIntersectsXY_r(context, prepared_geom_tmp, x, y);
 #else
+  geom = create_point(context, x, y);
+  if (geom == NULL) {
+    if (destroy_prepared) {
+      GEOSPreparedGeom_destroy_r(context, prepared_geom_tmp);
+    }
+    return 2;
+  }
   ret = GEOSPreparedIntersects_r(context, prepared_geom_tmp, geom);
+  GEOSGeom_destroy_r(context, geom);
 #endif
+
   if (destroy_prepared) {
     GEOSPreparedGeom_destroy_r(context, prepared_geom_tmp);
   }
-#if !GEOS_SINCE_3_12_0
-  GEOSGeom_destroy_r(context, geom);
-#endif
   return ret;
 }
 static void* intersects_xy_data[1] = {GEOSIntersectsXY};
