@@ -1093,6 +1093,9 @@ def contains_xy(geom, x, y, **kwargs):
     which avoids having to create a Point object if you start from x/y
     coordinates.
 
+    Note that in the case of points, the `contains_properly` predicate is
+    equivalent to `contains`.
+
     See the docstring of `contains` for more details about the predicate.
 
     Parameters
