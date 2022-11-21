@@ -1,5 +1,7 @@
 import warnings
 
+import numpy as np
+
 from . import lib
 from .decorators import multithreading_enabled, requires_geos
 
@@ -1084,8 +1086,18 @@ def dwithin(a, b, distance, **kwargs):
     return lib.dwithin(a, b, distance, **kwargs)
 
 
+def _xyz_to_coords(x, y, z):
+    if y is None:
+        return x
+    if z is None:
+        coords = np.broadcast_arrays(x, y)
+    else:
+        coords = np.broadcast_arrays(x, y, z)
+    return np.stack(coords, axis=-1)
+
+
 @multithreading_enabled
-def contains_xy(geom, x, y, **kwargs):
+def contains_xy(geom, x, y=None, **kwargs):
     """
     Returns True if the Point (x, y) is completely inside geometry A.
 
@@ -1102,6 +1114,8 @@ def contains_xy(geom, x, y, **kwargs):
     ----------
     geom : Geometry or array_like
     x, y : float or array_like
+        Coordinates as separate x and y arrays, or a single array of
+        coordinate x, y tuples.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -1119,11 +1133,14 @@ def contains_xy(geom, x, y, **kwargs):
     >>> contains_xy(area, 0.5, 0.5)
     True
     """
+    if y is None:
+        coords = np.asarray(x)
+        x, y = coords[:, 0], coords[:, 1]
     return lib.contains_xy(geom, x, y, **kwargs)
 
 
 @multithreading_enabled
-def intersects_xy(geom, x, y, **kwargs):
+def intersects_xy(geom, x, y=None, **kwargs):
     """
     Returns True if A and the Point (x, y) share any portion of space.
 
@@ -1137,6 +1154,8 @@ def intersects_xy(geom, x, y, **kwargs):
     ----------
     geom : Geometry or array_like
     x, y : float or array_like
+        Coordinates as separate x and y arrays, or a single array of
+        coordinate x, y tuples.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -1154,4 +1173,7 @@ def intersects_xy(geom, x, y, **kwargs):
     >>> intersects_xy(line, 0, 0)
     True
     """
+    if y is None:
+        coords = np.asarray(x)
+        x, y = coords[:, 0], coords[:, 1]
     return lib.intersects_xy(geom, x, y, **kwargs)
