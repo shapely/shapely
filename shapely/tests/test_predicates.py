@@ -135,6 +135,13 @@ def test_xy_array_broadcast(a, func, func_bin):
     np.testing.assert_allclose(actual, expected)
 
 
+@pytest.mark.parametrize("func, func_bin", XY_PREDICATES)
+def test_xy_prepared(func, func_bin):
+    actual = func(_prepare_with_copy([polygon, line_string]), 2, 3)
+    expected = func_bin([polygon, line_string], Point(2, 3))
+    np.testing.assert_allclose(actual, expected)
+
+
 @pytest.mark.parametrize("func", [funcs[0] for funcs in XY_PREDICATES])
 def test_xy_with_kwargs(func):
     out = np.empty((), dtype=np.uint8)
