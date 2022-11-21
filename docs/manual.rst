@@ -1097,10 +1097,9 @@ differently.
   >>> b == c
   False
 
-.. method:: object.almost_equals(other[, decimal=6])
+.. method:: object.equals_exact(other, tolerance)
 
-  Returns ``True`` if the object is approximately equal to the `other` at all
-  points to specified `decimal` place precision.
+  Returns ``True`` if the object is within a specified `tolerance`.
 
 .. method:: object.contains(other)
 
