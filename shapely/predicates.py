@@ -1086,16 +1086,6 @@ def dwithin(a, b, distance, **kwargs):
     return lib.dwithin(a, b, distance, **kwargs)
 
 
-def _xyz_to_coords(x, y, z):
-    if y is None:
-        return x
-    if z is None:
-        coords = np.broadcast_arrays(x, y)
-    else:
-        coords = np.broadcast_arrays(x, y, z)
-    return np.stack(coords, axis=-1)
-
-
 @multithreading_enabled
 def contains_xy(geom, x, y=None, **kwargs):
     """
