@@ -21,9 +21,6 @@ int check_signals_interval[1] = {10000};
 unsigned long main_thread_id[1] = {0};
 
 PyObject* PySetupSignalChecks(PyObject* self, PyObject* args) {
-  npy_intp ret;
-  int interval;
-  unsigned long thread_id;
 
   if (!PyArg_ParseTuple(args, "ik", check_signals_interval, main_thread_id)) {
     return NULL;
@@ -2780,7 +2777,6 @@ static void bounds_func(char** args, npy_intp* dimensions, npy_intp* steps, void
   GEOSGeometry *envelope = NULL, *in1;
   const GEOSGeometry* ring;
   const GEOSCoordSequence* coord_seq;
-  int size;
   char *ip1 = args[0], *op1 = args[1];
   double *x1, *y1, *x2, *y2;
 

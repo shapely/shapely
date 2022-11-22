@@ -142,10 +142,10 @@ if "clean" in sys.argv:
     # delete any previously Cythonized or compiled files in pygeos
     p = Path(".")
     for pattern in [
-        "build/lib.*/pygeos/*.so",
-        "pygeos/*.c",
-        "pygeos/*.so",
-        "pygeos/*.pyd",
+        "build/lib.*/shapely/*.so",
+        "shapely/*.c",
+        "shapely/*.so",
+        "shapely/*.pyd",
     ]:
         for filename in p.glob(pattern):
             print(f"removing '{filename}'")

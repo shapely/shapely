@@ -65,44 +65,6 @@ FuncGEOS_YpY_b* get_predicate_func(int predicate_id) {
   }
 }
 
-/* Calculate indices of tree geometries.
- * This uses pointer offsets of geometries from the head of tree geometries to calculate
- * corresponding indices.
- *
- * Parameters
- * ----------
- * tree_geoms: array of tree geometries
- *
- * arr: dynamic vector of addresses of geometries within tree geometries array
- */
-static PyArrayObject* tree_geom_offsets_to_npy_arr(GeometryObject** tree_geoms,
-                                                   tree_geom_vec_t* geoms) {
-  size_t i;
-  size_t size = kv_size(*geoms);
-  npy_intp geom_index;
-  char* head_ptr = (char*)tree_geoms;  // head of tree geometry array
-
-  npy_intp dims[1] = {size};
-  // the following raises a compiler warning based on how the macro is defined
-  // in numpy.  There doesn't appear to be anything we can do to avoid it.
-  PyArrayObject* result = (PyArrayObject*)PyArray_SimpleNew(1, dims, NPY_INTP);
-  if (result == NULL) {
-    PyErr_SetString(PyExc_RuntimeError, "could not allocate numpy array");
-    return NULL;
-  }
-
-  for (i = 0; i < size; i++) {
-    // Calculate index using offset of its address compared to head of tree geometries
-    geom_index =
-        (npy_intp)(((char*)kv_A(*geoms, i) - head_ptr) / sizeof(GeometryObject*));
-
-    // assign value into numpy array
-    *(npy_intp*)PyArray_GETPTR1(result, i) = geom_index;
-  }
-
-  return (PyArrayObject*)result;
-}
-
 static void STRtree_dealloc(STRtreeObject* self) {
   size_t i;
 
