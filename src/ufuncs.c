@@ -2777,6 +2777,7 @@ static void bounds_func(char** args, npy_intp* dimensions, npy_intp* steps, void
   GEOSGeometry *envelope = NULL, *in1;
   const GEOSGeometry* ring;
   const GEOSCoordSequence* coord_seq;
+  int size;
   char *ip1 = args[0], *op1 = args[1];
   double *x1, *y1, *x2, *y2;
 
