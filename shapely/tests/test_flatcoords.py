@@ -76,11 +76,11 @@ def test_include_z_default():
     _, coords, _ = shapely.to_ragged_array([line_string, line_string_z])
     assert coords.shape[1] == 3
 
-    # empty singular
+    # only empties -> always 2D
     _, coords, _ = shapely.to_ragged_array([empty_line_string])
     assert coords.shape[1] == 2
     _, coords, _ = shapely.to_ragged_array([empty_line_string_z])
-    assert coords.shape[1] == 3
+    assert coords.shape[1] == 2
     # empty collection -> GEOS indicates 2D
     _, coords, _ = shapely.to_ragged_array(shapely.from_wkt(["MULTIPOLYGON Z EMPTY"]))
     assert coords.shape[1] == 2

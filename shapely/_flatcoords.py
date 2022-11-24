@@ -243,8 +243,11 @@ def to_ragged_array(geometries, include_z=None):
            [ 0.,  0.]])
 
     """
+    geometries = np.asarray(geometries)
     if include_z is None:
-        include_z = np.any(get_coordinate_dimension(geometries) == 3)
+        include_z = np.any(
+            get_coordinate_dimension(geometries[~is_empty(geometries)]) == 3
+        )
 
     geom_types = np.unique(get_type_id(geometries))
     # ignore missing values (type of -1)
