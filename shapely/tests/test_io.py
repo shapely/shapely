@@ -404,6 +404,9 @@ def test_to_wkb_exceptions():
     with pytest.raises(shapely.GEOSException):
         shapely.to_wkb(point, output_dimension=4)
 
+    with pytest.raises(ValueError):
+        shapely.to_wkb(point, flavor="other")
+
 
 def test_to_wkb_byte_order():
     point = shapely.points(1.0, 1.0)
@@ -433,6 +436,17 @@ def test_to_wkb_srid():
     point_with_srid = shapely.set_srid(point, np.int32(4326))
     result = shapely.to_wkb(point_with_srid, include_srid=True, byte_order=1)
     assert np.frombuffer(result[5:9], "<u4").item() == 4326
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10.0")
+def test_to_wkb_flavor():
+    # http://libgeos.org/specifications/wkb/#extended-wkb
+    actual = shapely.to_wkb(point_z)  # default "extended"
+    assert actual.hex()[2:10] == "01000080"
+    actual = shapely.to_wkb(point_z, flavor="extended")
+    assert actual.hex()[2:10] == "01000080"
+    actual = shapely.to_wkb(point_z, flavor="iso")
+    assert actual.hex()[2:10] == "e9030000"
 
 
 @pytest.mark.parametrize(

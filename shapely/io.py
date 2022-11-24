@@ -3,6 +3,7 @@ import numpy as np
 from . import lib
 from .decorators import requires_geos
 from .enum import ParamEnum
+from .errors import UnsupportedGEOSVersionError
 
 __all__ = [
     "from_geojson",
@@ -19,6 +20,8 @@ __all__ = [
 DecodingErrorOptions = ParamEnum(
     "DecodingErrorOptions", {"ignore": 0, "warn": 1, "raise": 2}
 )
+
+WKBFlavorOptions = ParamEnum("WKBFlavorOptions", {"extended": 1, "iso": 2})
 
 
 def to_wkt(
@@ -106,7 +109,13 @@ def to_wkt(
 
 
 def to_wkb(
-    geometry, hex=False, output_dimension=3, byte_order=-1, include_srid=False, **kwargs
+    geometry,
+    hex=False,
+    output_dimension=3,
+    byte_order=-1,
+    include_srid=False,
+    flavor="extended",
+    **kwargs,
 ):
     r"""
     Converts to the Well-Known Binary (WKB) representation of a Geometry.
@@ -138,6 +147,12 @@ def to_wkb(
     include_srid : bool, default False
         If True, the SRID is be included in WKB (this is an extension
         to the OGC WKB specification).
+    flavor : {"iso", "extended"}, default "extended"
+        Which flavor of WKB will be returned. The flavor determines how
+        extra dimensionality is encoded with the type number, and whether
+        SRID can be included in the WKB (ISO flavor does not support SRID
+        embedding). ISO flavor is "more standard" for 3D output.
+        The `from_wkb` function can read both flavors.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -159,6 +174,13 @@ def to_wkb(
         raise TypeError("byte_order only accepts scalar values")
     if not np.isscalar(include_srid):
         raise TypeError("include_srid only accepts scalar values")
+    if not np.isscalar(flavor):
+        raise TypeError("flavor only accepts scalar values")
+    if lib.geos_version < (3, 10, 0) and flavor != "extended":
+        raise UnsupportedGEOSVersionError(
+            'The "iso" option requires at least GEOS 3.10.0'
+        )
+    flavor = WKBFlavorOptions.get_value(flavor)
 
     return lib.to_wkb(
         geometry,
@@ -166,6 +188,7 @@ def to_wkb(
         np.intc(output_dimension),
         np.intc(byte_order),
         np.bool_(include_srid),
+        np.intc(flavor),
         **kwargs,
     )
 
