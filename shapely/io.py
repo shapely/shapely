@@ -157,6 +157,13 @@ def to_wkb(
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
+    Notes
+    -----
+
+    Standard WKB is returned by setting ``output_dimension=2`` and
+    ``include_srid=False``, regardless of ``flavor`` choice (in this subset,
+    both flavors are equivalent).
+
     Examples
     --------
     >>> from shapely import Point
