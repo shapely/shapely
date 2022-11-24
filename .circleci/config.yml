@@ -22,6 +22,10 @@ jobs:
           name: Build the Linux aarch64 wheels.
           command: |
             python3 -m pip install --user cibuildwheel==2.11.2
+            echo 'export GEOS_INSTALL=~/linux-aarch64-wheels/geosinstall/geos-"$GEOS_VERSION"' >> "$BASH_ENV"
+            echo 'export GEOS_CONFIG="$GEOS_INSTALL"/bin/geos-config' >> "$BASH_ENV"
+            echo 'export LD_LIBRARY_PATH="$GEOS_INSTALL"/lib' >> "$BASH_ENV"
+            source "$BASH_ENV"
             python3 -m cibuildwheel --output-dir wheelhouse
       - store_artifacts:
           path: wheelhouse/
