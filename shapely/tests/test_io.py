@@ -8,6 +8,7 @@ import pytest
 
 import shapely
 from shapely import GeometryCollection, LineString, Point, Polygon
+from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 
 from .common import all_types, empty_point, empty_point_z, point, point_z
@@ -447,6 +448,18 @@ def test_to_wkb_flavor():
     assert actual.hex()[2:10] == "01000080"
     actual = shapely.to_wkb(point_z, flavor="iso")
     assert actual.hex()[2:10] == "e9030000"
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10.0")
+def test_to_wkb_flavor_srid():
+    with pytest.raises(ValueError, match="cannot be used together"):
+        shapely.to_wkb(point_z, include_srid=True, flavor="iso")
+
+
+@pytest.mark.skipif(shapely.geos_version >= (3, 10, 0), reason="GEOS < 3.10.0")
+def test_to_wkb_flavor_unsupported_geos():
+    with pytest.raises(UnsupportedGEOSVersionError):
+        shapely.to_wkb(point_z, flavor="iso")
 
 
 @pytest.mark.parametrize(

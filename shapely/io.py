@@ -180,6 +180,8 @@ def to_wkb(
         raise UnsupportedGEOSVersionError(
             'The "iso" option requires at least GEOS 3.10.0'
         )
+    if flavor == "iso" and include_srid:
+        raise ValueError('flavor="iso" and include_srid=True cannot be used together')
     flavor = WKBFlavorOptions.get_value(flavor)
 
     return lib.to_wkb(
