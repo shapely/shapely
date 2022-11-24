@@ -7,6 +7,8 @@ from shapely import MultiLineString, MultiPoint, MultiPolygon
 from shapely.testing import assert_geometries_equal
 
 from .common import (
+    empty_line_string,
+    empty_line_string_z,
     geometry_collection,
     line_string,
     line_string_z,
@@ -47,17 +49,9 @@ all_types_not_supported = (
 )
 
 
-@pytest.mark.parametrize("geom", all_types)
+@pytest.mark.parametrize("geom", all_types + all_types_3d)
 def test_roundtrip(geom):
     actual = shapely.from_ragged_array(*shapely.to_ragged_array([geom, geom]))
-    assert_geometries_equal(actual, [geom, geom])
-
-
-@pytest.mark.parametrize("geom", all_types_3d)
-def test_roundtrip_3d(geom):
-    actual = shapely.from_ragged_array(
-        *shapely.to_ragged_array([geom, geom], include_z=True)
-    )
     assert_geometries_equal(actual, [geom, geom])
 
 
@@ -72,6 +66,23 @@ def test_include_z(geom):
 def test_include_z_false(geom):
     _, coords, _ = shapely.to_ragged_array([geom, geom], include_z=False)
     # For 3D geoms, z coords are dropped
+    assert coords.shape[1] == 2
+
+
+def test_include_z_default():
+    # corner cases for inferring dimensionality
+
+    # mixed 2D and 3D -> 3D
+    _, coords, _ = shapely.to_ragged_array([line_string, line_string_z])
+    assert coords.shape[1] == 3
+
+    # empty singular
+    _, coords, _ = shapely.to_ragged_array([empty_line_string])
+    assert coords.shape[1] == 2
+    _, coords, _ = shapely.to_ragged_array([empty_line_string_z])
+    assert coords.shape[1] == 3
+    # empty collection -> GEOS indicates 2D
+    _, coords, _ = shapely.to_ragged_array(shapely.from_wkt(["MULTIPOLYGON Z EMPTY"]))
     assert coords.shape[1] == 2
 
 

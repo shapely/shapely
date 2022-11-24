@@ -29,7 +29,13 @@ https://github.com/geoarrow/geoarrow
 import numpy as np
 
 from . import creation
-from ._geometry import GeometryType, get_parts, get_rings, get_type_id
+from ._geometry import (
+    GeometryType,
+    get_coordinate_dimension,
+    get_parts,
+    get_rings,
+    get_type_id,
+)
 from .coordinates import get_coordinates
 from .predicates import is_empty
 
@@ -130,7 +136,7 @@ def _get_arrays_multipolygon(arr, include_z):
     return coords, (offsets1, offsets2, offsets3)
 
 
-def to_ragged_array(geometries, include_z=False):
+def to_ragged_array(geometries, include_z=None):
     """
     Converts geometries to a ragged array representation using a contiguous
     array of coordinates and offset arrays.
@@ -149,9 +155,11 @@ def to_ragged_array(geometries, include_z=False):
     ----------
     geometries : array_like
         Array of geometries (1-dimensional).
-    include_z : bool, default False
-        If True, include the third dimension in the output. If a geometry
-        has no third dimension, the z-coordinates will be NaN.
+    include_z : bool, default None
+        If True, include the third dimension in the output. If False, return
+        2D geometries (if a geometry has no third dimension, the z-coordinates
+        will be NaN). By default, will infer the dimensionality from the
+        input geometries.
 
     Returns
     -------
@@ -235,6 +243,9 @@ def to_ragged_array(geometries, include_z=False):
            [ 0.,  0.]])
 
     """
+    if include_z is None:
+        include_z = np.any(get_coordinate_dimension(geometries) == 3)
+
     geom_types = np.unique(get_type_id(geometries))
     # ignore missing values (type of -1)
     geom_types = geom_types[geom_types >= 0]
