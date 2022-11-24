@@ -177,7 +177,7 @@ print("done")
 )
 @pytest.mark.filterwarnings("ignore:Creating an ndarray from ragged nested sequences:")
 def test_query_invalid_geometry(tree, geometry):
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, ValueError):
         tree.query(geometry)
 
 
