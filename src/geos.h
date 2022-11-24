@@ -154,6 +154,7 @@ enum {
 #define GEOS_SINCE_3_9_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 9))
 #define GEOS_SINCE_3_10_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 10))
 #define GEOS_SINCE_3_11_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 11))
+#define GEOS_SINCE_3_12_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 12))
 
 extern void* geos_context[1];
 extern PyObject* geos_exception[1];

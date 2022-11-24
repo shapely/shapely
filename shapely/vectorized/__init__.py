@@ -40,11 +40,10 @@ def contains(geometry, x, y):
     Mask of points contained by the given `geometry`.
 
     """
-    points = _construct_points(x, y)
     if isinstance(geometry, PreparedGeometry):
         geometry = geometry.context
     shapely.prepare(geometry)
-    return shapely.contains(geometry, points)
+    return shapely.contains_xy(geometry, x, y)
 
 
 def touches(geometry, x, y):
@@ -68,8 +67,9 @@ def touches(geometry, x, y):
     Mask of points which touch the exterior of the given `geometry`.
 
     """
-    points = _construct_points(x, y)
     if isinstance(geometry, PreparedGeometry):
         geometry = geometry.context
-    shapely.prepare(geometry)
-    return shapely.touches(geometry, points)
+    # Touches(geom, point) == Intersects(Boundary(geom), point)
+    boundary = geometry.boundary
+    shapely.prepare(boundary)
+    return shapely.intersects_xy(boundary, x, y)
