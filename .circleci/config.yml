@@ -8,6 +8,13 @@ jobs:
     # resource_class is what tells CircleCI to use an ARM worker for native arm builds
     # https://circleci.com/product/features/resource-classes/
     resource_class: arm.medium
+    environment:
+      CIBUILDWHEEL=1
+      CIBW_BUILD="cp*-manylinux_aarch64"
+      CIBW_ENVIRONMENT_PASS_LINUX="GEOS_VERSION GEOS_INSTALL GEOS_CONFIG LD_LIBRARY_PATH"
+      CIBW_BEFORE_ALL="./ci/install_geos.sh"
+      CIBW_TEST_REQUIRES="pytest"
+      CIBW_TEST_COMMAND="pytest --pyargs shapely.tests"
     steps:
       - checkout
       - run:
