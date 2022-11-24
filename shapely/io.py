@@ -176,7 +176,7 @@ def to_wkb(
         raise TypeError("include_srid only accepts scalar values")
     if not np.isscalar(flavor):
         raise TypeError("flavor only accepts scalar values")
-    if lib.geos_version < (3, 10, 0) and flavor != "extended":
+    if lib.geos_version < (3, 10, 0) and flavor == "iso":
         raise UnsupportedGEOSVersionError(
             'The "iso" option requires at least GEOS 3.10.0'
         )
