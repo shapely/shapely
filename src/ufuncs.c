@@ -21,9 +21,6 @@ int check_signals_interval[1] = {10000};
 unsigned long main_thread_id[1] = {0};
 
 PyObject* PySetupSignalChecks(PyObject* self, PyObject* args) {
-  npy_intp ret;
-  int interval;
-  unsigned long thread_id;
 
   if (!PyArg_ParseTuple(args, "ik", check_signals_interval, main_thread_id)) {
     return NULL;
