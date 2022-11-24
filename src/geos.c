@@ -19,7 +19,6 @@ int init_geos(PyObject* m) {
   PyModule_AddObject(m, "ShapelyError", base_class);
   geos_exception[0] = PyErr_NewException("shapely.errors.GEOSException", base_class, NULL);
   PyModule_AddObject(m, "GEOSException", geos_exception[0]);
-  return 0;
 
   void* context_handle = GEOS_init_r();
   // TODO: the error handling is not yet set up for the global context (it is right now
@@ -27,6 +26,7 @@ int init_geos(PyObject* m) {
   // GEOSContext_setErrorMessageHandler_r(context_handle, geos_error_handler, last_error);
   geos_context[0] = context_handle;
 
+  return 0;
 }
 
 void destroy_geom_arr(void* context, GEOSGeometry** array, int length) {
