@@ -156,10 +156,12 @@ def to_ragged_array(geometries, include_z=None):
     geometries : array_like
         Array of geometries (1-dimensional).
     include_z : bool, default None
-        If True, include the third dimension in the output. If False, return
-        2D geometries (if a geometry has no third dimension, the z-coordinates
+        If False, return 2D geometries. If True, include the third dimension
+        in the output (if a geometry has no third dimension, the z-coordinates
         will be NaN). By default, will infer the dimensionality from the
-        input geometries.
+        input geometries. Note that this inference can be unreliable with
+        empty geometries (for a guaranteed result, it is recommended to
+        specify the keyword).
 
     Returns
     -------
