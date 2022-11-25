@@ -30,27 +30,28 @@ class STRtree:
     A query-only R-tree spatial index created using the
     Sort-Tile-Recursive (STR) [1]_ algorithm.
 
-    The tree indexes two-dimensional axis-aligned bounding boxes of each
-    geometry; any Z values present in geometries are ignored for purposes of
-    indexing within the tree.  The tree is constructed directly at
-    initialization and nodes cannot be added or removed after it has been
-    created.
-
-    The tree is more efficient for querying when there are fewer geometries that
-    have overlapping bounding boxes and where there is greater similarity
-    between the outer boundary of a geometry and its bounding box.  For example,
-    a MultiPolygon composed of widely-spaced individual Polygons will have a
-    large overall bounding box compared to the boundaries of its individual
-    Polygons, and the bounding box may also potentially overlap many other
-    geometries within the tree.  This means that the resulting tree may be less
-    efficient to query than a tree constructed from individual Polygons.
+    The tree indexes the bounding boxes of each geometry.  The tree is constructed directly at initialization
+    and nodes cannot be added or removed after it has been created.
 
     All operations return indices of the input geometries.  These indices
     can be used to index into anything associated with the input geometries,
     including the input geometries themselves, or custom items stored in
     another object of the same length as the geometries.
 
+    Bounding boxes limited to two dimensions and are axis-aligned (equivalent to
+    the ``bounds`` property of a geometry); any Z values present in geometries
+    are ignored for purposes of indexing within the tree.
+
     Any mixture of geometry types may be stored in the tree.
+
+    Note: the tree is more efficient for querying when there are fewer
+    geometries that have overlapping bounding boxes and where there is greater
+    similarity between the outer boundary of a geometry and its bounding box.
+    For example, a MultiPolygon composed of widely-spaced individual Polygons
+    will have a large overall bounding box compared to the boundaries of its
+    individual Polygons, and the bounding box may also potentially overlap many
+    other geometries within the tree.  This means that the resulting tree may be
+    less efficient to query than a tree constructed from individual Polygons.
 
     Parameters
     ----------
@@ -105,8 +106,8 @@ class STRtree:
     def query(self, geometry, predicate=None, distance=None):
         """
         Return the integer indices of all combinations of each input geometry
-        and tree geometries where the two-dimensional axis-aligned bounding box
-        of each input geometry intersects the bounding box of a tree geometry.
+        and tree geometries where the bounding box of each input geometry
+        intersects the bounding box of a tree geometry.
 
         If the input geometry is a scalar, this returns an array of shape (n, ) with
         the indices of the matching tree geometries.  If the input geometry is an
@@ -124,9 +125,12 @@ class STRtree:
 
         The 'dwithin' predicate requires GEOS >= 3.10.
 
+        Bounding boxes are limited to two dimensions and are axis-aligned
+        (equivalent to the ``bounds`` property of a geometry); any Z values
+        present in input geometries are ignored when querying the tree.
+
         Any input geometry that is None or empty will never match geometries in
-        the tree.  Any Z values present in input geometries are ignored when
-        querying the tree.
+        the tree.
 
         Parameters
         ----------
