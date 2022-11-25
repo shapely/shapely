@@ -146,23 +146,18 @@ def to_wkb(
         and 1 for little endian.
     include_srid : bool, default False
         If True, the SRID is be included in WKB (this is an extension
-        to the OGC WKB specification).
+        to the OGC WKB specification). Not allowed when flavor is "iso".
     flavor : {"iso", "extended"}, default "extended"
         Which flavor of WKB will be returned. The flavor determines how
         extra dimensionality is encoded with the type number, and whether
-        SRID can be included in the WKB (ISO flavor does not support SRID
-        embedding). ISO flavor is "more standard" for 3D output.
+        SRID can be included in the WKB. ISO flavor is "more standard" for
+        3D output, and does not support SRID embedding.
+        Both flavors are equivalent when ``output_dimension=2`` (or with 2D
+        geometries) and ``include_srid=False``.
         The `from_wkb` function can read both flavors.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
-
-    Notes
-    -----
-
-    Standard WKB is returned by setting ``output_dimension=2`` and
-    ``include_srid=False``, regardless of ``flavor`` choice (in this subset,
-    both flavors are equivalent).
 
     Examples
     --------
