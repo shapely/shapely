@@ -1,14 +1,19 @@
 import numpy as np
 
 from . import lib
+
+# include ragged array functions here for reference documentation purpose
+from ._ragged_array import from_ragged_array, to_ragged_array
 from .decorators import requires_geos
 from .enum import ParamEnum
 
 __all__ = [
     "from_geojson",
+    "from_ragged_array",
     "from_wkb",
     "from_wkt",
     "to_geojson",
+    "to_ragged_array",
     "to_wkb",
     "to_wkt",
 ]
