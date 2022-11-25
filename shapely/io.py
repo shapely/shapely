@@ -3,7 +3,7 @@ import numpy as np
 from . import lib
 
 # include ragged array functions here for reference documentation purpose
-from ._flatcoords import from_ragged_array, to_ragged_array
+from ._ragged_array import from_ragged_array, to_ragged_array
 from .decorators import requires_geos
 from .enum import ParamEnum
 
