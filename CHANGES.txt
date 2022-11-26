@@ -1,6 +1,19 @@
 Changes
 =======
 
+2.0rc1 (2022-10-26)
+-------------------
+
+Relevant changes in behaviour compared to 2.0b2:
+
+- The ``Point(..)`` constructor no longer accepts a sequence of coordinates
+  consisting of more than one coordinate pair (previously, subsequent
+  coordinates were ignored) (#1600).
+- Fix performance regression in the ``LineString()`` constructor when passing
+  a numpy array of coordinates (#1602).
+
+Wheels for 2.0rc1 published on PyPI include GEOS 3.11.1.
+
 2.0b2 (2022-10-29)
 ------------------
 
