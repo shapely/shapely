@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 import shapely
-from shapely import Geometry
+from shapely import LinearRing, LineString, Point
 
 from .common import (
     all_types,
@@ -56,6 +56,11 @@ BINARY_PREDICATES = (
 
 BINARY_PREPARED_PREDICATES = BINARY_PREDICATES[:-2]
 
+XY_PREDICATES = (
+    (shapely.contains_xy, shapely.contains),
+    (shapely.intersects_xy, shapely.intersects),
+)
+
 
 @pytest.mark.parametrize("geometry", all_types)
 @pytest.mark.parametrize("func", UNARY_PREDICATES)
@@ -104,6 +109,62 @@ def test_binary_with_kwargs(func):
 def test_binary_missing(func):
     actual = func(np.array([point, None, None]), np.array([None, point, None]))
     assert (~actual).all()
+
+
+@pytest.mark.parametrize("a", all_types)
+@pytest.mark.parametrize("func, func_bin", XY_PREDICATES)
+def test_xy_array(a, func, func_bin):
+    with ignore_invalid(shapely.is_empty(a)):
+        # Empty geometries give 'invalid value encountered' in all predicates
+        # (see https://github.com/libgeos/geos/issues/515)
+        actual = func([a, a], 2, 3)
+        expected = func_bin([a, a], Point(2, 3))
+    assert actual.shape == (2,)
+    assert actual.dtype == np.bool_
+    np.testing.assert_allclose(actual, expected)
+
+
+@pytest.mark.parametrize("a", all_types)
+@pytest.mark.parametrize("func, func_bin", XY_PREDICATES)
+def test_xy_array_broadcast(a, func, func_bin):
+    with ignore_invalid(shapely.is_empty(a)):
+        # Empty geometries give 'invalid value encountered' in all predicates
+        # (see https://github.com/libgeos/geos/issues/515)
+        actual = func(a, [0, 1, 2], [1, 2, 3])
+        expected = func_bin(a, [Point(0, 1), Point(1, 2), Point(2, 3)])
+    np.testing.assert_allclose(actual, expected)
+
+
+@pytest.mark.parametrize("func", [funcs[0] for funcs in XY_PREDICATES])
+def test_xy_array_2D(func):
+    actual = func(polygon, [0, 1, 2], [1, 2, 3])
+    expected = func(polygon, [[0, 1], [1, 2], [2, 3]])
+    np.testing.assert_allclose(actual, expected)
+
+
+@pytest.mark.parametrize("func, func_bin", XY_PREDICATES)
+def test_xy_prepared(func, func_bin):
+    actual = func(_prepare_with_copy([polygon, line_string]), 2, 3)
+    expected = func_bin([polygon, line_string], Point(2, 3))
+    np.testing.assert_allclose(actual, expected)
+
+
+@pytest.mark.parametrize("func", [funcs[0] for funcs in XY_PREDICATES])
+def test_xy_with_kwargs(func):
+    out = np.empty((), dtype=np.uint8)
+    actual = func(point, point.x, point.y, out=out)
+    assert actual is out
+    assert actual.dtype == np.uint8
+
+
+@pytest.mark.parametrize("func", [funcs[0] for funcs in XY_PREDICATES])
+def test_xy_missing(func):
+    actual = func(
+        np.array([point, point, point, None]),
+        np.array([point.x, np.nan, point.x, point.x]),
+        np.array([point.y, point.y, np.nan, point.y]),
+    )
+    np.testing.assert_allclose(actual, [True, False, False, False])
 
 
 def test_equals_exact_tolerance():
@@ -212,12 +273,12 @@ def test_relate_pattern_non_scalar():
 @pytest.mark.parametrize(
     "geom, expected",
     [
-        (Geometry("LINEARRING (0 0, 0 1, 1 1, 0 0)"), False),
-        (Geometry("LINEARRING (0 0, 1 1, 0 1, 0 0)"), True),
-        (Geometry("LINESTRING (0 0, 0 1, 1 1, 0 0)"), False),
-        (Geometry("LINESTRING (0 0, 1 1, 0 1, 0 0)"), True),
-        (Geometry("LINESTRING (0 0, 1 1, 0 1)"), False),
-        (Geometry("LINESTRING (0 0, 0 1, 1 1)"), False),
+        (LinearRing([(0, 0), (0, 1), (1, 1), (0, 0)]), False),
+        (LinearRing([(0, 0), (1, 1), (0, 1), (0, 0)]), True),
+        (LineString([(0, 0), (0, 1), (1, 1), (0, 0)]), False),
+        (LineString([(0, 0), (1, 1), (0, 1), (0, 0)]), True),
+        (LineString([(0, 0), (1, 1), (0, 1)]), False),
+        (LineString([(0, 0), (0, 1), (1, 1)]), False),
         (point, False),
         (polygon, False),
         (geometry_collection, False),
@@ -230,7 +291,7 @@ def test_is_ccw(geom, expected):
 
 def _prepare_with_copy(geometry):
     """Prepare without modifying inplace"""
-    geometry = shapely.apply(geometry, lambda x: x)  # makes a copy
+    geometry = shapely.transform(geometry, lambda x: x)  # makes a copy
     shapely.prepare(geometry)
     return geometry
 

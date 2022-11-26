@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
+from shapely import Point
 from shapely.coords import CoordinateSequence
 from shapely.errors import DimensionError
-from shapely.geometry import Point
 
 
 def test_from_coordinates():
@@ -34,6 +34,8 @@ def test_from_sequence():
     # From coordinate sequence
     p = Point([(3.0, 4.0)])
     assert p.coords[:] == [(3.0, 4.0)]
+    p = Point([[3.0, 4.0]])
+    assert p.coords[:] == [(3.0, 4.0)]
 
     # 3D
     p = Point((3.0, 4.0, 5.0))
@@ -50,6 +52,17 @@ def test_from_numpy():
     assert p.coords[:] == [(1.0, 2.0)]
 
     p = Point(np.array([1.0, 2.0, 3.0]))
+    assert p.coords[:] == [(1.0, 2.0, 3.0)]
+
+
+def test_from_numpy_xy():
+    # Construct from separate x, y numpy arrays - if those are length 1,
+    # this is allowed for compat with shapely 1.8
+    # (https://github.com/shapely/shapely/issues/1587)
+    p = Point(np.array([1.0]), np.array([2.0]))
+    assert p.coords[:] == [(1.0, 2.0)]
+
+    p = Point(np.array([1.0]), np.array([2.0]), np.array([3.0]))
     assert p.coords[:] == [(1.0, 2.0, 3.0)]
 
 
@@ -74,6 +87,10 @@ def test_from_invalid():
 
     with pytest.raises(TypeError, match="takes at most 3 arguments"):
         Point(1, 2, 3, 4)
+
+    # this worked in shapely 1.x, just ignoring the other coords
+    with pytest.raises(ValueError, match="Invalid values passed"):
+        Point([(2, 3), (11, 4)])
 
 
 class TestPoint:
@@ -129,15 +146,6 @@ class TestPoint:
         assert a.ndim == 1
         assert a.size == 3
         assert a.shape == (3,)
-
-
-def test_empty_point_bounds():
-    """The bounds of an empty point is an empty tuple"""
-    p = Point()
-    # TODO keep this empty tuple or change to (nan, nan, nan, nan)?
-    assert p.bounds == ()
-    # assert len(p.bounds) == 4
-    # assert all(math.isnan(v) for v in p.bounds)
 
 
 def test_point_immutable():

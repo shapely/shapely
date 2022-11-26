@@ -1,5 +1,67 @@
 [build-system]
-requires = ["setuptools", "wheel", "cython", "oldest-supported-numpy"]
+requires = [
+    "cython",
+    "oldest-supported-numpy",
+    "setuptools>=61.0.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shapely"
+dynamic = ["version"]
+authors = [
+    {name = "Sean Gillies"},
+]
+maintainers = [
+    {name = "Shapely contributors"},
+]
+description = "Manipulation and analysis of geometric objects"
+readme = "README.rst"
+keywords = ["geometry", "topology", "gis"]
+license = {text = "BSD 3-Clause"}
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: Unix",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: GIS",
+]
+requires-python = ">=3.7"
+dependencies = [
+    "numpy>=1.14",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-cov",
+]
+docs = [
+    "numpydoc==1.1.*",
+    "matplotlib",
+    "sphinx",
+    "sphinx-book-theme",
+    "sphinx-remove-toctrees",
+]
+
+[project.urls]
+Documentation = "https://shapely.readthedocs.io/"
+Repository = "https://github.com/shapely/shapely"
+
+[tool.setuptools.packages.find]
+include = [
+    "shapely",
+    "shapely.*",
+]
 
 [tool.coverage.run]
 source = ["shapely"]

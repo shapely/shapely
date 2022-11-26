@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
+from shapely import MultiPoint, Point
 from shapely.errors import EmptyPartError
-from shapely.geometry import MultiPoint, Point
 from shapely.geometry.base import dump_coords
 
 from .test_multi import MultiGeometryTestCase
@@ -12,12 +12,12 @@ class TestMultiPoint(MultiGeometryTestCase):
     def test_multipoint(self):
 
         # From coordinate tuples
-        geom = MultiPoint(((1.0, 2.0), (3.0, 4.0)))
+        geom = MultiPoint([(1.0, 2.0), (3.0, 4.0)])
         assert len(geom.geoms) == 2
         assert dump_coords(geom) == [[(1.0, 2.0)], [(3.0, 4.0)]]
 
         # From points
-        geom = MultiPoint((Point(1.0, 2.0), Point(3.0, 4.0)))
+        geom = MultiPoint([Point(1.0, 2.0), Point(3.0, 4.0)])
         assert len(geom.geoms) == 2
         assert dump_coords(geom) == [[(1.0, 2.0)], [(3.0, 4.0)]]
 
@@ -58,7 +58,7 @@ class TestMultiPoint(MultiGeometryTestCase):
 
 
 def test_multipoint_array_coercion():
-    geom = MultiPoint(((1.0, 2.0), (3.0, 4.0)))
+    geom = MultiPoint([(1.0, 2.0), (3.0, 4.0)])
     arr = np.array(geom)
     assert arr.ndim == 0
     assert arr.size == 1
@@ -67,7 +67,7 @@ def test_multipoint_array_coercion():
 
 
 def test_numpy_object_array():
-    geom = MultiPoint(((1.0, 2.0), (3.0, 4.0)))
+    geom = MultiPoint([(1.0, 2.0), (3.0, 4.0)])
     ar = np.empty(1, object)
     ar[:] = [geom]
     assert ar[0] == geom

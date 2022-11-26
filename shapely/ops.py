@@ -90,7 +90,7 @@ class CollectionOperator:
             obs = [self.shapeup(line) for line in source]
         return shapely.polygonize_full(obs)
 
-    def linemerge(self, lines):
+    def linemerge(self, lines, directed=False):
         """Merges all connected lines from a source
 
         The source may be a MultiLineString, a sequence of LineString objects,
@@ -98,7 +98,7 @@ class CollectionOperator:
         LineString or MultiLineString when lines are not contiguous.
         """
         source = None
-        if hasattr(lines, "type") and lines.type == "MultiLineString":
+        if getattr(lines, "geom_type", None) == "MultiLineString":
             source = lines
         elif hasattr(lines, "geoms"):
             # other Multi geometries
@@ -109,14 +109,16 @@ class CollectionOperator:
             except AttributeError:
                 source = MultiLineString(lines)
         if source is None:
-            raise ValueError("Cannot linemerge %s" % lines)
+            raise ValueError(f"Cannot linemerge {lines}")
+        if directed:
+            return shapely.line_merge_directed(source)
         return shapely.line_merge(source)
 
     def cascaded_union(self, geoms):
         """Returns the union of a sequence of geometries
 
-        This function is deprecated, as it was superseded by
-        :meth:`unary_union`.
+        .. deprecated:: 1.8
+            This function was superseded by :meth:`unary_union`.
         """
         warn(
             "The 'cascaded_union()' function is deprecated. "
@@ -129,8 +131,8 @@ class CollectionOperator:
     def unary_union(self, geoms):
         """Returns the union of a sequence of geometries
 
-        This method replaces :meth:`cascaded_union` as the
-        preferred method for dissolving many polygons.
+        Usually used to convert a collection into the smallest set of polygons
+        that cover the same area.
         """
         return shapely.union_all(geoms, axis=None)
 
@@ -210,12 +212,12 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
         )
     except shapely.GEOSException as err:
         errstr = "Could not create Voronoi Diagram with the specified inputs "
-        errstr += "({}).".format(str(err))
+        errstr += f"({err!s})."
         if tolerance:
             errstr += " Try running again with default tolerance value."
         raise ValueError(errstr) from err
 
-    if result.type != "GeometryCollection":
+    if result.geom_type != "GeometryCollection":
         return GeometryCollection([result])
     return result
 
@@ -263,16 +265,16 @@ def transform(func, geom):
     """
     if geom.is_empty:
         return geom
-    if geom.type in ("Point", "LineString", "LinearRing", "Polygon"):
+    if geom.geom_type in ("Point", "LineString", "LinearRing", "Polygon"):
 
         # First we try to apply func to x, y, z sequences. When func is
         # optimized for sequences, this is the fastest, though zipping
         # the results up to go back into the geometry constructors adds
         # extra cost.
         try:
-            if geom.type in ("Point", "LineString", "LinearRing"):
+            if geom.geom_type in ("Point", "LineString", "LinearRing"):
                 return type(geom)(zip(*func(*zip(*geom.coords))))
-            elif geom.type == "Polygon":
+            elif geom.geom_type == "Polygon":
                 shell = type(geom.exterior)(zip(*func(*zip(*geom.exterior.coords))))
                 holes = list(
                     type(ring)(zip(*func(*zip(*ring.coords))))
@@ -283,9 +285,9 @@ def transform(func, geom):
         # A func that assumes x, y, z are single values will likely raise a
         # TypeError, in which case we'll try again.
         except TypeError:
-            if geom.type in ("Point", "LineString", "LinearRing"):
+            if geom.geom_type in ("Point", "LineString", "LinearRing"):
                 return type(geom)([func(*c) for c in geom.coords])
-            elif geom.type == "Polygon":
+            elif geom.geom_type == "Polygon":
                 shell = type(geom.exterior)([func(*c) for c in geom.exterior.coords])
                 holes = list(
                     type(ring)([func(*c) for c in ring.coords])
@@ -293,10 +295,10 @@ def transform(func, geom):
                 )
                 return type(geom)(shell, holes)
 
-    elif geom.type.startswith("Multi") or geom.type == "GeometryCollection":
+    elif geom.geom_type.startswith("Multi") or geom.geom_type == "GeometryCollection":
         return type(geom)([transform(func, part) for part in geom.geoms])
     else:
-        raise GeometryTypeError("Type %r not recognized" % geom.type)
+        raise GeometryTypeError(f"Type {geom.geom_type!r} not recognized")
 
 
 def nearest_points(g1, g2):
@@ -394,7 +396,7 @@ class SplitOp:
         """Split a LineString with another (Multi)LineString or (Multi)Polygon"""
 
         # if splitter is a polygon, pick it's boundary
-        if splitter.type in ("Polygon", "MultiPolygon"):
+        if splitter.geom_type in ("Polygon", "MultiPolygon"):
             splitter = splitter.boundary
 
         if not isinstance(line, LineString):
@@ -451,7 +453,7 @@ class SplitOp:
             point2 = coords[i + 1]
             dx = point1[0] - point2[0]
             dy = point1[1] - point2[1]
-            segment_length = (dx ** 2 + dy ** 2) ** 0.5
+            segment_length = (dx**2 + dy**2) ** 0.5
             current_position += segment_length
             if distance_on_line == current_position:
                 # splitter is exactly on a vertex
@@ -514,39 +516,39 @@ class SplitOp:
         'GEOMETRYCOLLECTION (LINESTRING (0 0, 1 1), LINESTRING (1 1, 2 2))'
         """
 
-        if geom.type in ("MultiLineString", "MultiPolygon"):
+        if geom.geom_type in ("MultiLineString", "MultiPolygon"):
             return GeometryCollection(
                 [i for part in geom.geoms for i in SplitOp.split(part, splitter).geoms]
             )
 
-        elif geom.type == "LineString":
-            if splitter.type in (
+        elif geom.geom_type == "LineString":
+            if splitter.geom_type in (
                 "LineString",
                 "MultiLineString",
                 "Polygon",
                 "MultiPolygon",
             ):
                 split_func = SplitOp._split_line_with_line
-            elif splitter.type in ("Point"):
+            elif splitter.geom_type == "Point":
                 split_func = SplitOp._split_line_with_point
-            elif splitter.type in ("MultiPoint"):
+            elif splitter.geom_type == "MultiPoint":
                 split_func = SplitOp._split_line_with_multipoint
             else:
                 raise GeometryTypeError(
-                    "Splitting a LineString with a %s is not supported" % splitter.type
+                    f"Splitting a LineString with a {splitter.geom_type} is not supported"
                 )
 
-        elif geom.type == "Polygon":
-            if splitter.type == "LineString":
+        elif geom.geom_type == "Polygon":
+            if splitter.geom_type == "LineString":
                 split_func = SplitOp._split_polygon_with_line
             else:
                 raise GeometryTypeError(
-                    "Splitting a Polygon with a %s is not supported" % splitter.type
+                    f"Splitting a Polygon with a {splitter.geom_type} is not supported"
                 )
 
         else:
             raise GeometryTypeError(
-                "Splitting %s geometry is not supported" % geom.type
+                f"Splitting {geom.geom_type} geometry is not supported"
             )
 
         return GeometryCollection(split_func(geom, splitter))
@@ -616,8 +618,8 @@ def substring(geom, start_dist, end_dist, normalized=False):
 
     if not isinstance(geom, LineString):
         raise GeometryTypeError(
-            "Can only calculate a substring of LineString geometries. A %s was provided."
-            % geom.type
+            "Can only calculate a substring of LineString geometries. "
+            f"A {geom.geom_type} was provided."
         )
 
     # Filter out cases in which to return a point

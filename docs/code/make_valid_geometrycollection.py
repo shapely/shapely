@@ -1,33 +1,28 @@
+import matplotlib.pyplot as plt
 from shapely.geometry import Polygon
 from shapely.validation import make_valid
+from shapely.plotting import plot_polygon, plot_line
 
-from matplotlib import pyplot
-from descartes.patch import PolygonPatch
-from figures import SIZE, BLUE, RED, set_limits, plot_line
+from figures import SIZE, BLUE, RED, set_limits
 
 
 invalid_poly = Polygon([(0, 2), (0, 1), (2, 0), (0, 0), (0, 2)])
 valid_poly = make_valid(invalid_poly)
 
-fig = pyplot.figure(1, figsize=SIZE, dpi=90)
-fig.set_frameon(True)
-
+fig = plt.figure(1, figsize=SIZE, dpi=90)
 
 invalid_ax = fig.add_subplot(121)
 
-patch = PolygonPatch(invalid_poly, facecolor=BLUE, edgecolor=BLUE, alpha=0.5, zorder=2)
-invalid_ax.add_patch(patch)
+plot_polygon(invalid_poly, ax=invalid_ax, add_points=False, color=BLUE)
 
 set_limits(invalid_ax, -1, 3, -1, 3)
 
 
 valid_ax = fig.add_subplot(122)
 
-patch = PolygonPatch(valid_poly[0], facecolor=BLUE, edgecolor=BLUE, alpha=0.5, zorder=2)
-valid_ax.add_patch(patch)
-
-plot_line(valid_ax, valid_poly[1], color=RED, linewidth=1)
+plot_polygon(valid_poly.geoms[0], ax=valid_ax, add_points=False, color=BLUE)
+plot_line(valid_poly.geoms[1], ax=valid_ax, add_points=False, color=RED)
 
 set_limits(valid_ax, -1, 3, -1, 3)
 
-pyplot.show()
+plt.show()

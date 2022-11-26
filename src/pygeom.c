@@ -38,26 +38,30 @@ PyObject* GeometryObject_FromGEOS(GEOSGeometry* ptr, GEOSContextHandle_t ctx) {
   } else {
     self->ptr = ptr;
     self->ptr_prepared = NULL;
+    self->weakreflist = (PyObject *)NULL;
     return (PyObject*)self;
   }
 }
 
 static void GeometryObject_dealloc(GeometryObject* self) {
+  if (self->weakreflist != NULL) {
+    PyObject_ClearWeakRefs((PyObject *)self);
+  }
   if (self->ptr != NULL) {
-    GEOS_INIT;
+    // not using GEOS_INIT, but using global context instead
+    GEOSContextHandle_t ctx = geos_context[0];
     GEOSGeom_destroy_r(ctx, self->ptr);
     if (self->ptr_prepared != NULL) {
       GEOSPreparedGeom_destroy_r(ctx, self->ptr_prepared);
     }
-    GEOS_FINISH;
   }
   Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static PyMemberDef GeometryObject_members[] = {
-    {"_ptr", T_PYSSIZET, offsetof(GeometryObject, ptr), READONLY,
+    {"_geom", T_PYSSIZET, offsetof(GeometryObject, ptr), READONLY,
      "pointer to GEOSGeometry"},
-    {"_ptr_prepared", T_PYSSIZET, offsetof(GeometryObject, ptr_prepared), READONLY,
+    {"_geom_prepared", T_PYSSIZET, offsetof(GeometryObject, ptr_prepared), READONLY,
      "pointer to PreparedGEOSGeometry"},
     {NULL} /* Sentinel */
 };
@@ -287,114 +291,6 @@ static PyObject* GeometryObject_richcompare(GeometryObject* self, PyObject* othe
   return result;
 }
 
-static PyObject* GeometryObject_FromWKT(PyObject* value) {
-  PyObject* result = NULL;
-  const char* wkt;
-  GEOSGeometry* geom;
-  GEOSWKTReader* reader;
-
-  /* Cast the PyObject str to char* */
-  if (PyUnicode_Check(value)) {
-    wkt = PyUnicode_AsUTF8(value);
-    if (wkt == NULL) {
-      return NULL;
-    }
-  } else {
-    PyErr_Format(PyExc_TypeError, "Expected bytes, found %s", value->ob_type->tp_name);
-    return NULL;
-  }
-
-  GEOS_INIT;
-
-  reader = GEOSWKTReader_create_r(ctx);
-  if (reader == NULL) {
-    errstate = PGERR_GEOS_EXCEPTION;
-    goto finish;
-  }
-  geom = GEOSWKTReader_read_r(ctx, reader, wkt);
-  GEOSWKTReader_destroy_r(ctx, reader);
-  if (geom == NULL) {
-    errstate = PGERR_GEOS_EXCEPTION;
-    goto finish;
-  }
-  result = GeometryObject_FromGEOS(geom, ctx);
-  if (result == NULL) {
-    GEOSGeom_destroy_r(ctx, geom);
-    PyErr_Format(PyExc_RuntimeError, "Could not instantiate a new Geometry object");
-  }
-
-finish:
-  GEOS_FINISH;
-  if (errstate == PGERR_SUCCESS) {
-    return result;
-  } else {
-    return NULL;
-  }
-}
-
-static PyObject* GeometryObject_FromWKB(PyObject* value) {
-  PyObject* result = NULL;
-  unsigned char* wkb = NULL;
-  Py_ssize_t size;
-  GEOSGeometry* geom = NULL;
-  GEOSWKBReader* reader = NULL;
-
-  /* Cast the PyObject bytes to char* */
-  if (!PyBytes_Check(value)) {
-    PyErr_Format(PyExc_TypeError, "Expected bytes, found %s", value->ob_type->tp_name);
-    return NULL;
-  }
-  size = PyBytes_Size(value);
-  wkb = (unsigned char*)PyBytes_AsString(value);
-  if (wkb == NULL) {
-    return NULL;
-  }
-
-  GEOS_INIT;
-
-  reader = GEOSWKBReader_create_r(ctx);
-  if (reader == NULL) {
-    errstate = PGERR_GEOS_EXCEPTION;
-    goto finish;
-  }
-  geom = GEOSWKBReader_read_r(ctx, reader, wkb, size);
-  if (geom == NULL) {
-    errstate = PGERR_GEOS_EXCEPTION;
-    goto finish;
-  }
-
-  result = GeometryObject_FromGEOS(geom, ctx);
-  if (result == NULL) {
-    GEOSGeom_destroy_r(ctx, geom);
-    PyErr_Format(PyExc_RuntimeError, "Could not instantiate a new Geometry object");
-  }
-
-finish:
-
-  if (reader != NULL) {
-    GEOSWKBReader_destroy_r(ctx, reader);
-  }
-
-  GEOS_FINISH;
-
-  return result;
-}
-
-static PyObject* GeometryObject_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
-  PyObject* value;
-
-  if (!PyArg_ParseTuple(args, "O", &value)) {
-    return NULL;
-  } else if (PyUnicode_Check(value)) {
-    return GeometryObject_FromWKT(value);
-  } else if (PyBytes_Check(value)) {
-    return GeometryObject_FromWKB(value);
-  } else {
-    PyErr_Format(PyExc_TypeError, "Expected string, got %s", value->ob_type->tp_name);
-    return NULL;
-  }
-}
-
 static PyMethodDef GeometryObject_methods[] = {
     {NULL} /* Sentinel */
 };
@@ -405,13 +301,13 @@ PyTypeObject GeometryType = {
     .tp_basicsize = sizeof(GeometryObject),
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    .tp_new = GeometryObject_new,
     .tp_dealloc = (destructor)GeometryObject_dealloc,
     .tp_members = GeometryObject_members,
     .tp_methods = GeometryObject_methods,
     .tp_repr = (reprfunc)GeometryObject_repr,
     .tp_hash = (hashfunc)GeometryObject_hash,
     .tp_richcompare = (richcmpfunc)GeometryObject_richcompare,
+    .tp_weaklistoffset = offsetof(GeometryObject, weakreflist),
     .tp_str = (reprfunc)GeometryObject_str,
 };
 

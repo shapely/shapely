@@ -1,12 +1,11 @@
 import numpy as np
 
-from . import Geometry  # NOQA
 from . import lib
 
-__all__ = ["apply", "count_coordinates", "get_coordinates", "set_coordinates"]
+__all__ = ["transform", "count_coordinates", "get_coordinates", "set_coordinates"]
 
 
-def apply(geometry, transformation, include_z=False):
+def transform(geometry, transformation, include_z=False):
     """Returns a copy of a geometry array with a function applied to its
     coordinates.
 
@@ -29,21 +28,22 @@ def apply(geometry, transformation, include_z=False):
 
     Examples
     --------
-    >>> apply(Geometry("POINT (0 0)"), lambda x: x + 1)
-    <pygeos.Geometry POINT (1 1)>
-    >>> apply(Geometry("LINESTRING (2 2, 4 4)"), lambda x: x * [2, 3])
-    <pygeos.Geometry LINESTRING (4 6, 8 12)>
-    >>> apply(None, lambda x: x) is None
+    >>> from shapely import LineString, Point
+    >>> transform(Point(0, 0), lambda x: x + 1)
+    <POINT (1 1)>
+    >>> transform(LineString([(2, 2), (4, 4)]), lambda x: x * [2, 3])
+    <LINESTRING (4 6, 8 12)>
+    >>> transform(None, lambda x: x) is None
     True
-    >>> apply([Geometry("POINT (0 0)"), None], lambda x: x).tolist()
-    [<pygeos.Geometry POINT (0 0)>, None]
+    >>> transform([Point(0, 0), None], lambda x: x).tolist()
+    [<POINT (0 0)>, None]
 
     By default, the third dimension is ignored:
 
-    >>> apply(Geometry("POINT Z (0 0 0)"), lambda x: x + 1)
-    <pygeos.Geometry POINT (1 1)>
-    >>> apply(Geometry("POINT Z (0 0 0)"), lambda x: x + 1, include_z=True)
-    <pygeos.Geometry POINT Z (1 1 1)>
+    >>> transform(Point(0, 0, 0), lambda x: x + 1)
+    <POINT (1 1)>
+    >>> transform(Point(0, 0, 0), lambda x: x + 1, include_z=True)
+    <POINT Z (1 1 1)>
     """
     geometry_arr = np.array(geometry, dtype=np.object_)  # makes a copy
     coordinates = lib.get_coordinates(geometry_arr, include_z, False)
@@ -54,13 +54,13 @@ def apply(geometry, transformation, include_z=False):
     if new_coordinates.dtype != np.float64:
         raise ValueError(
             "The provided transformation returned an array with an unexpected "
-            "dtype ({})".format(new_coordinates.dtype)
+            f"dtype ({new_coordinates.dtype})"
         )
     if new_coordinates.shape != coordinates.shape:
         # if the shape is too small we will get a segfault
         raise ValueError(
             "The provided transformation returned an array with an unexpected "
-            "shape ({})".format(new_coordinates.shape)
+            f"shape ({new_coordinates.shape})"
         )
     geometry_arr = lib.set_coordinates(geometry_arr, new_coordinates)
     if geometry_arr.ndim == 0 and not isinstance(geometry, np.ndarray):
@@ -77,13 +77,14 @@ def count_coordinates(geometry):
 
     Examples
     --------
-    >>> count_coordinates(Geometry("POINT (0 0)"))
+    >>> from shapely import LineString, Point
+    >>> count_coordinates(Point(0, 0))
     1
-    >>> count_coordinates(Geometry("LINESTRING (2 2, 4 4)"))
+    >>> count_coordinates(LineString([(2, 2), (4, 2)]))
     2
     >>> count_coordinates(None)
     0
-    >>> count_coordinates([Geometry("POINT (0 0)"), None])
+    >>> count_coordinates([Point(0, 0), None])
     1
     """
     return lib.count_coordinates(np.asarray(geometry, dtype=np.object_))
@@ -110,23 +111,24 @@ def get_coordinates(geometry, include_z=False, return_index=False):
 
     Examples
     --------
-    >>> get_coordinates(Geometry("POINT (0 0)")).tolist()
+    >>> from shapely import LineString, Point
+    >>> get_coordinates(Point(0, 0)).tolist()
     [[0.0, 0.0]]
-    >>> get_coordinates(Geometry("LINESTRING (2 2, 4 4)")).tolist()
+    >>> get_coordinates(LineString([(2, 2), (4, 4)])).tolist()
     [[2.0, 2.0], [4.0, 4.0]]
     >>> get_coordinates(None)
     array([], shape=(0, 2), dtype=float64)
 
     By default the third dimension is ignored:
 
-    >>> get_coordinates(Geometry("POINT Z (0 0 0)")).tolist()
+    >>> get_coordinates(Point(0, 0, 0)).tolist()
     [[0.0, 0.0]]
-    >>> get_coordinates(Geometry("POINT Z (0 0 0)"), include_z=True).tolist()
+    >>> get_coordinates(Point(0, 0, 0), include_z=True).tolist()
     [[0.0, 0.0, 0.0]]
 
     When return_index=True, indexes are returned also:
 
-    >>> geometries = [Geometry("LINESTRING (2 2, 4 4)"), Geometry("POINT (0 0)")]
+    >>> geometries = [LineString([(2, 2), (4, 4)]), Point(0, 0)]
     >>> coordinates, index = get_coordinates(geometries, return_index=True)
     >>> coordinates.tolist(), index.tolist()
     ([[2.0, 2.0], [4.0, 4.0], [0.0, 0.0]], [0, 0, 1])
@@ -157,37 +159,38 @@ def set_coordinates(geometry, coordinates):
 
     See Also
     --------
-    apply : Returns a copy of a geometry array with a function applied to its
+    transform : Returns a copy of a geometry array with a function applied to its
         coordinates.
 
     Examples
     --------
-    >>> set_coordinates(Geometry("POINT (0 0)"), [[1, 1]])
-    <pygeos.Geometry POINT (1 1)>
-    >>> set_coordinates([Geometry("POINT (0 0)"), Geometry("LINESTRING (0 0, 0 0)")], [[1, 2], [3, 4], [5, 6]]).tolist()
-    [<pygeos.Geometry POINT (1 2)>, <pygeos.Geometry LINESTRING (3 4, 5 6)>]
-    >>> set_coordinates([None, Geometry("POINT (0 0)")], [[1, 2]]).tolist()
-    [None, <pygeos.Geometry POINT (1 2)>]
+    >>> from shapely import LineString, Point
+    >>> set_coordinates(Point(0, 0), [[1, 1]])
+    <POINT (1 1)>
+    >>> set_coordinates([Point(0, 0), LineString([(0, 0), (0, 0)])], [[1, 2], [3, 4], [5, 6]]).tolist()
+    [<POINT (1 2)>, <LINESTRING (3 4, 5 6)>]
+    >>> set_coordinates([None, Point(0, 0)], [[1, 2]]).tolist()
+    [None, <POINT (1 2)>]
 
     Third dimension of input geometry is discarded if coordinates array does
     not include one:
 
-    >>> set_coordinates(Geometry("POINT Z (0 0 0)"), [[1, 1]])
-    <pygeos.Geometry POINT (1 1)>
-    >>> set_coordinates(Geometry("POINT Z (0 0 0)"), [[1, 1, 1]])
-    <pygeos.Geometry POINT Z (1 1 1)>
+    >>> set_coordinates(Point(0, 0, 0), [[1, 1]])
+    <POINT (1 1)>
+    >>> set_coordinates(Point(0, 0, 0), [[1, 1, 1]])
+    <POINT Z (1 1 1)>
     """
     geometry_arr = np.asarray(geometry, dtype=np.object_)
     coordinates = np.atleast_2d(np.asarray(coordinates)).astype(np.float64)
     if coordinates.ndim != 2:
         raise ValueError(
             "The coordinate array should have dimension of 2 "
-            "(has {})".format(coordinates.ndim)
+            f"(has {coordinates.ndim})"
         )
     n_coords = lib.count_coordinates(geometry_arr)
     if (coordinates.shape[0] != n_coords) or (coordinates.shape[1] not in {2, 3}):
         raise ValueError(
-            "The coordinate array has an invalid shape {}".format(coordinates.shape)
+            f"The coordinate array has an invalid shape {coordinates.shape}"
         )
     lib.set_coordinates(geometry_arr, coordinates)
     if geometry_arr.ndim == 0 and not isinstance(geometry, np.ndarray):

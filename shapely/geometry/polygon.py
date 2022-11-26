@@ -24,35 +24,42 @@ def _unpickle_linearring(wkb):
 
 class LinearRing(LineString):
     """
-    A closed one-dimensional feature comprising one or more line segments
+    A geometry type composed of one or more line segments
+    that forms a closed loop.
 
+    A LinearRing is a closed, one-dimensional feature.
     A LinearRing that crosses itself or touches itself at a single point is
     invalid and operations on it may fail.
+
+    Parameters
+    ----------
+    coordinates : sequence
+        A sequence of (x, y [,z]) numeric coordinate pairs or triples, or
+        an array-like with shape (N, 2) or (N, 3).
+        Also can be a sequence of Point objects.
+
+    Notes
+    -----
+    Rings are automatically closed. There is no need to specify a final
+    coordinate pair identical to the first.
+
+    Examples
+    --------
+    Construct a square ring.
+
+    >>> ring = LinearRing( ((0, 0), (0, 1), (1 ,1 ), (1 , 0)) )
+    >>> ring.is_closed
+    True
+    >>> list(ring.coords)
+    [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)]
+    >>> ring.length
+    4.0
+
     """
 
     __slots__ = []
 
     def __new__(self, coordinates=None):
-        """
-        Parameters
-        ----------
-        coordinates : sequence
-            A sequence of (x, y [,z]) numeric coordinate pairs or triples.
-            Also can be a sequence of Point objects.
-
-        Rings are implicitly closed. There is no need to specific a final
-        coordinate pair identical to the first.
-
-        Example
-        -------
-        Construct a square ring.
-
-          >>> ring = LinearRing( ((0, 0), (0, 1), (1 ,1 ), (1 , 0)) )
-          >>> ring.is_closed
-          True
-          >>> ring.length
-          4.0
-        """
         if coordinates is None:
             # empty geometry
             # TODO better way?
@@ -69,14 +76,21 @@ class LinearRing(LineString):
                 coordinates = coordinates.coords
 
         else:
-            # check coordinates on points
-            def _coords(o):
-                if isinstance(o, Point):
-                    return o.coords[0]
-                else:
-                    return o
+            if hasattr(coordinates, "__array__"):
+                coordinates = np.asarray(coordinates)
+            if isinstance(coordinates, np.ndarray) and np.issubdtype(
+                coordinates.dtype, np.number
+            ):
+                pass
+            else:
+                # check coordinates on points
+                def _coords(o):
+                    if isinstance(o, Point):
+                        return o.coords[0]
+                    else:
+                        return o
 
-            coordinates = [_coords(o) for o in coordinates]
+                coordinates = [_coords(o) for o in coordinates]
 
         if len(coordinates) == 0:
             # empty geometry
@@ -106,7 +120,7 @@ class LinearRing(LineString):
     def is_simple(self):
         """True if the geometry is simple, meaning that any self-intersections
         are only at boundary points, else False"""
-        return shapely.is_simple(self)
+        return bool(shapely.is_simple(self))
 
 
 shapely.lib.registry[2] = LinearRing
@@ -114,18 +128,13 @@ shapely.lib.registry[2] = LinearRing
 
 class InteriorRingSequence:
 
-    _factory = None
-    _geom = None
-    __p__ = None
+    _parent = None
     _ndim = None
     _index = 0
     _length = 0
-    __rings__ = None
-    _gtag = None
 
     def __init__(self, parent):
-        self.__p__ = parent
-        self._geom = parent._geom
+        self._parent = parent
         self._ndim = parent._ndim
 
     def __iter__(self):
@@ -142,7 +151,7 @@ class InteriorRingSequence:
             raise StopIteration
 
     def __len__(self):
-        return shapely.get_num_interior_rings(self.__p__)
+        return shapely.get_num_interior_rings(self._parent)
 
     def __getitem__(self, key):
         m = self.__len__()
@@ -163,20 +172,28 @@ class InteriorRingSequence:
         else:
             raise TypeError("key must be an index or slice")
 
-    def gtag(self):
-        return hash(repr(self.__p__))
-
     def _get_ring(self, i):
-        return shapely.get_interior_ring(self.__p__, i)
+        return shapely.get_interior_ring(self._parent, i)
 
 
 class Polygon(BaseGeometry):
     """
-    A two-dimensional figure bounded by a linear ring
+    A geometry type representing an area that is enclosed by a linear ring.
 
-    A polygon has a non-zero area. It may have one or more negative-space
-    "holes" which are also bounded by linear rings. If any rings cross each
-    other, the feature is invalid and operations on it may fail.
+    A polygon is a two-dimensional feature and has a non-zero area. It may
+    have one or more negative-space "holes" which are also bounded by linear
+    rings. If any rings cross each other, the feature is invalid and
+    operations on it may fail.
+
+    Parameters
+    ----------
+    shell : sequence
+        A sequence of (x, y [,z]) numeric coordinate pairs or triples, or
+        an array-like with shape (N, 2) or (N, 3).
+        Also can be a sequence of Point objects.
+    holes : sequence
+        A sequence of objects which satisfy the same requirements as the
+        shell parameters above
 
     Attributes
     ----------
@@ -184,30 +201,20 @@ class Polygon(BaseGeometry):
         The ring which bounds the positive space of the polygon.
     interiors : sequence
         A sequence of rings which bound all existing holes.
+
+    Examples
+    --------
+    Create a square polygon with no holes
+
+    >>> coords = ((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.))
+    >>> polygon = Polygon(coords)
+    >>> polygon.area
+    1.0
     """
 
     __slots__ = []
 
     def __new__(self, shell=None, holes=None):
-        """
-        Parameters
-        ----------
-        shell : sequence
-            A sequence of (x, y [,z]) numeric coordinate pairs or triples.
-            Also can be a sequence of Point objects.
-        holes : sequence
-            A sequence of objects which satisfy the same requirements as the
-            shell parameters above
-
-        Example
-        -------
-        Create a square polygon with no holes
-
-          >>> coords = ((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.))
-          >>> polygon = Polygon(coords)
-          >>> polygon.area
-          1.0
-        """
         if shell is None:
             # empty geometry
             # TODO better way?

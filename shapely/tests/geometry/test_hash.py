@@ -1,35 +1,28 @@
+import pytest
+
+import shapely
+from shapely.affinity import translate
 from shapely.geometry import GeometryCollection, LineString, MultiPoint, Point
 
 
-def test_point():
-    g = Point(1, 2)
-    assert hash(g) == hash(Point(1, 2))
-    assert hash(g) != hash(Point(1, 3))
-
-
-def test_multipoint():
-    g = MultiPoint([(1, 2), (3, 4)])
-    assert hash(g) == hash(MultiPoint([(1, 2), (3, 4)]))
-    assert hash(g) != hash(MultiPoint([(1, 2), (3, 3)]))
-
-
-def test_linestring():
-    g = LineString([(1, 2), (3, 4)])
-    assert hash(g) == hash(LineString([(1, 2), (3, 4)]))
-    assert hash(g) != hash(LineString([(1, 2), (3, 3)]))
-
-
-def test_polygon():
-    g = Point(0, 0).buffer(1.0)
-    assert hash(g) == hash(Point(0, 0).buffer(1.0))
-    assert hash(g) != hash(Point(0, 0).buffer(1.1))
-
-
-def test_collection():
-    g = GeometryCollection([Point(1, 2), LineString([(1, 2), (3, 4)])])
-    assert hash(g) == hash(
-        GeometryCollection([Point(1, 2), LineString([(1, 2), (3, 4)])])
-    )
-    assert hash(g) != hash(
-        GeometryCollection([Point(1, 2), LineString([(1, 2), (3, 3)])])
-    )
+@pytest.mark.parametrize(
+    "geom",
+    [
+        Point(1, 2),
+        MultiPoint([(1, 2), (3, 4)]),
+        LineString([(1, 2), (3, 4)]),
+        Point(0, 0).buffer(1.0),
+        GeometryCollection([Point(1, 2), LineString([(1, 2), (3, 4)])]),
+    ],
+    ids=[
+        "Point",
+        "MultiPoint",
+        "LineString",
+        "Polygon",
+        "GeometryCollection",
+    ],
+)
+def test_hash(geom):
+    h1 = hash(geom)
+    assert h1 == hash(shapely.from_wkb(geom.wkb))
+    assert h1 != hash(translate(geom, 1.0, 2.0))

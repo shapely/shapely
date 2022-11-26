@@ -1,21 +1,17 @@
 import json
 import pickle
 import struct
+import warnings
 
 import numpy as np
 import pytest
 
 import shapely
+from shapely import GeometryCollection, LineString, Point, Polygon
+from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 
-from .common import (
-    all_types,
-    empty_point,
-    empty_point_z,
-    point,
-    point_z,
-    shapely20_todo,
-)
+from .common import all_types, empty_point, empty_point_z, point, point_z
 
 # fmt: off
 POINT11_WKB = b"\x01\x01\x00\x00\x00" + struct.pack("<2d", 1.0, 1.0)
@@ -94,51 +90,6 @@ GEOJSON_COLLECTION_EXPECTED = [
 ]
 
 
-class ShapelyGeometryMock:
-    def __init__(self, g):
-        self.g = g
-        self.__geom__ = g._ptr if hasattr(g, "_ptr") else g
-
-    @property
-    def __array_interface__(self):
-        # this should not be called
-        # (starting with numpy 1.20 it is called, but not used)
-        return np.array([1.0, 2.0]).__array_interface__
-
-    @property
-    def wkb(self):
-        return shapely.to_wkb(self.g)
-
-    @property
-    def geom_type(self):
-        idx = shapely.get_type_id(self.g)
-        return [
-            "None",
-            "Point",
-            "LineString",
-            "LinearRing",
-            "Polygon",
-            "MultiPoint",
-            "MultiLineString",
-            "MultiPolygon",
-            "GeometryCollection",
-        ][idx]
-
-    @property
-    def is_empty(self):
-        return shapely.is_empty(self.g)
-
-
-class ShapelyPreparedMock:
-    def __init__(self, g):
-        self.context = ShapelyGeometryMock(g)
-
-
-def shapely_wkb_loads_mock(wkb):
-    geom = shapely.from_wkb(wkb)
-    return ShapelyGeometryMock(geom)
-
-
 def test_from_wkt():
     expected = shapely.points(1, 1)
     actual = shapely.from_wkt("POINT (1 1)")
@@ -175,10 +126,12 @@ def test_from_wkt_warn_on_invalid():
 
 
 def test_from_wkb_ignore_on_invalid():
-    with pytest.warns(None):
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
         shapely.from_wkt("", on_invalid="ignore")
 
-    with pytest.warns(None):
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
         shapely.from_wkt("NOT A WKT STRING", on_invalid="ignore")
 
 
@@ -257,16 +210,16 @@ def test_from_wkb_warn_on_invalid_warn():
 
 def test_from_wkb_ignore_on_invalid_ignore():
     # invalid WKB
-    with pytest.warns(None) as w:
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")  # no warning
         result = shapely.from_wkb(b"\x01\x01\x00\x00\x00\x00", on_invalid="ignore")
         assert result is None
-        assert len(w) == 0  # no warning
 
     # invalid ring in WKB
-    with pytest.warns(None) as w:
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")  # no warning
         result = shapely.from_wkb(INVALID_WKB, on_invalid="ignore")
         assert result is None
-        assert len(w) == 0  # no warning
 
 
 def test_from_wkb_on_invalid_unsupported_option():
@@ -286,11 +239,11 @@ def test_from_wkb_all_types(geom, use_hex, byte_order):
 
 
 @pytest.mark.parametrize(
-    "wkt",
-    ("POINT EMPTY", "LINESTRING EMPTY", "POLYGON EMPTY", "GEOMETRYCOLLECTION EMPTY"),
+    "geom",
+    (Point(), LineString(), Polygon(), GeometryCollection()),
 )
-def test_from_wkb_empty(wkt):
-    wkb = shapely.to_wkb(shapely.Geometry(wkt))
+def test_from_wkb_empty(geom):
+    wkb = shapely.to_wkb(geom)
     geom = shapely.from_wkb(wkb)
     assert shapely.is_geometry(geom).all()
     assert shapely.is_empty(geom).all()
@@ -355,7 +308,7 @@ def test_to_wkt_point_empty():
     ],
 )
 def test_to_wkt_empty_z(wkt):
-    assert shapely.to_wkt(shapely.Geometry(wkt)) == wkt
+    assert shapely.to_wkt(shapely.from_wkt(wkt)) == wkt
 
 
 def test_to_wkt_geometrycollection_with_point_empty():
@@ -385,12 +338,10 @@ def test_to_wkt_multipoint_with_point_empty_errors():
         shapely.to_wkt(geom)
 
 
-@shapely20_todo
 def test_repr():
-    assert repr(point) == "<pygeos.Geometry POINT (2 3)>"
+    assert repr(point) == "<POINT (2 3)>"
 
 
-@shapely20_todo
 def test_repr_max_length():
     # the repr is limited to 80 characters
     geom = shapely.linestrings(np.arange(1000), np.arange(1000))
@@ -399,7 +350,6 @@ def test_repr_max_length():
     assert representation.endswith("...>")
 
 
-@shapely20_todo
 @pytest.mark.skipif(
     shapely.geos_version >= (3, 9, 0),
     reason="MULTIPOINT (EMPTY, 2 3) gives Exception on GEOS < 3.9",
@@ -407,16 +357,15 @@ def test_repr_max_length():
 def test_repr_multipoint_with_point_empty():
     # Test if segfault is prevented
     geom = shapely.multipoints([point, empty_point])
-    assert repr(geom) == "<pygeos.Geometry Exception in WKT writer>"
+    assert repr(geom) == "<shapely.MultiPoint Exception in WKT writer>"
 
 
-@shapely20_todo
 @pytest.mark.skipif(
     shapely.geos_version < (3, 9, 0),
     reason="Empty geometries have no dimensionality on GEOS < 3.9",
 )
 def test_repr_point_z_empty():
-    assert repr(empty_point_z) == "<pygeos.Geometry POINT Z EMPTY>"
+    assert repr(empty_point_z) == "<POINT Z EMPTY>"
 
 
 def test_to_wkb():
@@ -456,6 +405,9 @@ def test_to_wkb_exceptions():
     with pytest.raises(shapely.GEOSException):
         shapely.to_wkb(point, output_dimension=4)
 
+    with pytest.raises(ValueError):
+        shapely.to_wkb(point, flavor="other")
+
 
 def test_to_wkb_byte_order():
     point = shapely.points(1.0, 1.0)
@@ -485,6 +437,29 @@ def test_to_wkb_srid():
     point_with_srid = shapely.set_srid(point, np.int32(4326))
     result = shapely.to_wkb(point_with_srid, include_srid=True, byte_order=1)
     assert np.frombuffer(result[5:9], "<u4").item() == 4326
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10.0")
+def test_to_wkb_flavor():
+    # http://libgeos.org/specifications/wkb/#extended-wkb
+    actual = shapely.to_wkb(point_z)  # default "extended"
+    assert actual.hex()[2:10] == "01000080"
+    actual = shapely.to_wkb(point_z, flavor="extended")
+    assert actual.hex()[2:10] == "01000080"
+    actual = shapely.to_wkb(point_z, flavor="iso")
+    assert actual.hex()[2:10] == "e9030000"
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10.0")
+def test_to_wkb_flavor_srid():
+    with pytest.raises(ValueError, match="cannot be used together"):
+        shapely.to_wkb(point_z, include_srid=True, flavor="iso")
+
+
+@pytest.mark.skipif(shapely.geos_version >= (3, 10, 0), reason="GEOS < 3.10.0")
+def test_to_wkb_flavor_unsupported_geos():
+    with pytest.raises(UnsupportedGEOSVersionError):
+        shapely.to_wkb(point_z, flavor="iso")
 
 
 @pytest.mark.parametrize(
@@ -670,7 +645,8 @@ def test_from_geojson_warn_on_invalid():
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_from_geojson_ignore_on_invalid():
-    with pytest.warns(None):
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
         assert shapely.from_geojson("", on_invalid="ignore") is None
 
 

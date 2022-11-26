@@ -1,9 +1,8 @@
 import numpy as np
 import pytest
 
-from shapely import wkt
-from shapely.geometry import LineString, shape
-from shapely.geometry.collection import GeometryCollection
+from shapely import GeometryCollection, LineString, Point, wkt
+from shapely.geometry import shape
 
 
 @pytest.fixture()
@@ -22,24 +21,22 @@ def geometrycollection_geojson():
     [
         GeometryCollection(),
         shape({"type": "GeometryCollection", "geometries": []}),
-        shape(
-            {
-                "type": "GeometryCollection",
-                "geometries": [
-                    {"type": "Point", "coordinates": ()},
-                    {"type": "LineString", "coordinates": (())},
-                ],
-            }
-        ),
         wkt.loads("GEOMETRYCOLLECTION EMPTY"),
     ],
 )
 def test_empty(geom):
-    assert geom.type == "GeometryCollection"
-    assert geom.type == geom.geom_type
+    assert geom.geom_type == "GeometryCollection"
     assert geom.is_empty
     assert len(geom.geoms) == 0
-    assert geom.geoms == []
+    assert list(geom.geoms) == []
+
+
+def test_empty_subgeoms():
+    geom = GeometryCollection([Point(), LineString()])
+    assert geom.geom_type == "GeometryCollection"
+    assert geom.is_empty
+    assert len(geom.geoms) == 2
+    assert list(geom.geoms) == [Point(), LineString()]
 
 
 def test_child_with_deleted_parent():

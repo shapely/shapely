@@ -47,7 +47,7 @@ if __name__ == "__main__":
     
     # Write the number of patches and the total patch area to the figure
     pylab.text(-25, 25, 
-        "Patches: %d, total area: %.2f" % (len(patches.geoms), patches.area))
+        f"Patches: {len(patches.geoms)}, total area: {patches.area:.2f}")
     
     pylab.savefig('dissolve.png')
     

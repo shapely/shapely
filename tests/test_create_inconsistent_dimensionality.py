@@ -10,7 +10,9 @@ any dimension which is not present in every coordinate.
 import pytest
 
 from shapely import wkt
+from shapely.errors import GEOSException
 from shapely.geometry import shape, LineString, Polygon
+from shapely.geos import geos_version
 
 
 geojson_cases = [
@@ -42,21 +44,29 @@ wkt_cases = [
 ]
 
 
+@pytest.mark.filterwarnings("ignore:Creating an ndarray from ragged nested sequences:")
 @pytest.mark.parametrize('geojson', geojson_cases)
 def test_create_from_geojson(geojson):
-    with pytest.raises(ValueError) as exc:
+    # exact error depends on numpy version
+    with pytest.raises((ValueError, TypeError)) as exc:
         wkt = shape(geojson).wkt
-    assert exc.match("Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions")
+    assert exc.match("Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions|ufunc 'linestrings' not supported for the input types|setting an array element with a sequence. The requested array has an inhomogeneous shape")
 
 
+@pytest.mark.filterwarnings("ignore:Creating an ndarray from ragged nested sequences:")
 @pytest.mark.parametrize('constructor, args', direct_cases)
 def test_create_directly(constructor, args):
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises((ValueError, TypeError)) as exc:
         geom = constructor(*args)
-    assert exc.match("Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions")
+    assert exc.match("Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions|ufunc 'linestrings' not supported for the input types|setting an array element with a sequence. The requested array has an inhomogeneous shape")
 
 
 @pytest.mark.parametrize('wkt_geom,expected', wkt_cases)
 def test_create_from_wkt(wkt_geom, expected):
-    geom = wkt.loads(wkt_geom)
-    assert geom.wkt == expected
+    if geos_version >= (3, 12, 0):
+        # https://github.com/shapely/shapely/issues/1541
+        with pytest.raises(GEOSException):
+            wkt.loads(wkt_geom)
+    else:
+        geom = wkt.loads(wkt_geom)
+        assert geom.wkt == expected
