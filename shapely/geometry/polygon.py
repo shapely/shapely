@@ -4,7 +4,7 @@
 import numpy as np
 
 import shapely
-from shapely.algorithms.cga import is_ccw_impl
+from shapely.algorithms.cga import is_ccw_impl, signed_area
 from shapely.errors import TopologicalError
 from shapely.geometry.base import BaseGeometry
 from shapely.geometry.linestring import LineString
@@ -327,15 +327,15 @@ shapely.lib.registry[3] = Polygon
 
 
 def orient(polygon, sign=1.0):
-    reverse_orientation = float(sign) < 0
+    s = float(sign)
     rings = []
     ring = polygon.exterior
-    if ring.is_ccw ^ reverse_orientation:
+    if signed_area(ring) / s >= 0.0:
         rings.append(ring)
     else:
         rings.append(list(ring.coords)[::-1])
     for ring in polygon.interiors:
-        if (not ring.is_ccw) ^ reverse_orientation:
+        if signed_area(ring) / s <= 0.0:
             rings.append(ring)
         else:
             rings.append(list(ring.coords)[::-1])
