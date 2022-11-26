@@ -3169,13 +3169,14 @@ finish:
 }
 static PyUFuncGenericFunction from_wkt_funcs[1] = {&from_wkt_func};
 
-static char to_wkb_dtypes[6] = {NPY_OBJECT, NPY_BOOL, NPY_INT,
-                                NPY_INT,    NPY_BOOL, NPY_OBJECT};
+static char to_wkb_dtypes[7] = {NPY_OBJECT, NPY_BOOL, NPY_INT,
+                                NPY_INT,    NPY_BOOL, NPY_INT,
+                                NPY_OBJECT};
 static void to_wkb_func(char** args, npy_intp* dimensions, npy_intp* steps, void* data) {
   char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2], *ip4 = args[3], *ip5 = args[4],
-       *op1 = args[5];
+       *ip6 = args[5], *op1 = args[6];
   npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2], is4 = steps[3], is5 = steps[4],
-           os1 = steps[5];
+           is6 = steps[5], os1 = steps[6];
   npy_intp n = dimensions[0];
   npy_intp i;
 
@@ -3187,7 +3188,7 @@ static void to_wkb_func(char** args, npy_intp* dimensions, npy_intp* steps, void
   char has_empty;
 #endif  // !GEOS_SINCE_3_9_0
 
-  if ((is2 != 0) || (is3 != 0) || (is4 != 0) || (is5 != 0)) {
+  if ((is2 != 0) || (is3 != 0) || (is4 != 0) || (is5 != 0) || (is6 != 0)) {
     PyErr_Format(PyExc_ValueError, "to_wkb function called with non-scalar parameters");
     return;
   }
@@ -3208,6 +3209,10 @@ static void to_wkb_func(char** args, npy_intp* dimensions, npy_intp* steps, void
     GEOSWKBWriter_setByteOrder_r(ctx, writer, *(int*)ip4);
   }
   GEOSWKBWriter_setIncludeSRID_r(ctx, writer, *(npy_bool*)ip5);
+
+#if GEOS_SINCE_3_10_0
+  GEOSWKBWriter_setFlavor_r(ctx, writer, *(int*)ip6);
+#endif
 
   // Check if the above functions caused a GEOS exception
   if (last_error[0] != 0) {
@@ -3745,7 +3750,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 
   DEFINE_CUSTOM(from_wkb, 2);
   DEFINE_CUSTOM(from_wkt, 2);
-  DEFINE_CUSTOM(to_wkb, 5);
+  DEFINE_CUSTOM(to_wkb, 6);
   DEFINE_CUSTOM(to_wkt, 5);
 
 #if GEOS_SINCE_3_6_0
