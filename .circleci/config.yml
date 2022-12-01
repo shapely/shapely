@@ -33,7 +33,7 @@ jobs:
 workflows:
   wheel-build:
     jobs:
-      - linux-aarch64-wheels
+      - linux-aarch64-wheels:
           filters:
             branches:
               only:
