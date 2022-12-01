@@ -442,11 +442,11 @@ def test_to_wkb_srid():
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10.0")
 def test_to_wkb_flavor():
     # http://libgeos.org/specifications/wkb/#extended-wkb
-    actual = shapely.to_wkb(point_z)  # default "extended"
+    actual = shapely.to_wkb(point_z, byte_order=1)  # default "extended"
     assert actual.hex()[2:10] == "01000080"
-    actual = shapely.to_wkb(point_z, flavor="extended")
+    actual = shapely.to_wkb(point_z, byte_order=1, flavor="extended")
     assert actual.hex()[2:10] == "01000080"
-    actual = shapely.to_wkb(point_z, flavor="iso")
+    actual = shapely.to_wkb(point_z, byte_order=1, flavor="iso")
     assert actual.hex()[2:10] == "e9030000"
 
 
