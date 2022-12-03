@@ -350,9 +350,15 @@ def test_remove_repeated_points(geom, expected):
     "geom, tolerance", [[Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]), 2]]
 )
 def test_remove_repeated_points_invalid_result(geom, tolerance):
+    print(geom)
+    print(shapely.get_coordinates(geom))
     with pytest.raises(shapely.GEOSException, match="Invalid number of points"):
+
         result = shapely.remove_repeated_points(geom, tolerance)
         print(result)
+        print(shapely.get_coordinates(result))
+        print(result.exterior)
+        print(result.exterior.is_valid)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
