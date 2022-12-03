@@ -183,7 +183,13 @@ def test_from_wkb_exceptions():
         shapely.from_wkb(1)
 
     # invalid WKB
-    with pytest.raises(shapely.GEOSException, match="Unexpected EOF parsing WKB"):
+    with pytest.raises(
+        shapely.GEOSException,
+        match=(
+            "Unexpected EOF parsing WKB|"
+            "ParseException: Input buffer is smaller than requested object size"
+        ),
+    ):
         result = shapely.from_wkb(b"\x01\x01\x00\x00\x00\x00")
         assert result is None
 
@@ -287,7 +293,7 @@ def test_to_wkt_exceptions():
         shapely.to_wkt(1)
 
     with pytest.raises(shapely.GEOSException):
-        shapely.to_wkt(point, output_dimension=4)
+        shapely.to_wkt(point, output_dimension=5)
 
 
 def test_to_wkt_point_empty():
@@ -403,7 +409,7 @@ def test_to_wkb_exceptions():
         shapely.to_wkb(1)
 
     with pytest.raises(shapely.GEOSException):
-        shapely.to_wkb(point, output_dimension=4)
+        shapely.to_wkb(point, output_dimension=5)
 
     with pytest.raises(ValueError):
         shapely.to_wkb(point, flavor="other")
