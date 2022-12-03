@@ -439,8 +439,13 @@ People with a "+" by their names contributed a patch for the first time.
 
 * Adam J. Stewart +
 * Alan D. Snow +
+* Ariel Kadouri
+* Ben Beasley
 * Brendan Ward +
 * Casper van der Wel +
+* Ewout ter Hoeven +
+* Geir Arne Hjelle +
+* James Gaboardi
 * James Myatt +
 * Joris Van den Bossche
 * Keith Jenkins +
@@ -449,9 +454,13 @@ People with a "+" by their names contributed a patch for the first time.
 * Martin Fleischmann +
 * Martin Lackner +
 * Mike Taves
+* Phil Chiu +
 * Tanguy Ophoff +
 * Tom Clancy
 * Sean Gillies
 * Giorgos Papadokostakis +
 * Mattijn van Hoek +
+* enrico ferreguti +
+* gpapadok +
+* mattijn +
 * odidev +
