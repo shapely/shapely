@@ -351,7 +351,8 @@ def test_remove_repeated_points(geom, expected):
 )
 def test_remove_repeated_points_invalid_result(geom, tolerance):
     with pytest.raises(shapely.GEOSException, match="Invalid number of points"):
-        shapely.remove_repeated_points(geom, tolerance)
+        result = shapely.remove_repeated_points(geom, tolerance)
+        print(result)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")

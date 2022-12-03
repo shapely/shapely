@@ -166,7 +166,7 @@ jobs:
         # Enable this if we have failures on GEOS main
         # continue-on-error: ${{ matrix.geos == 'main' }}
         run: |
-          pytest shapely/tests tests --cov --cov-report term-missing ${{ matrix.extra_pytest_args }}
+          pytest shapely/tests tests -s -v --cov --cov-report term-missing ${{ matrix.extra_pytest_args }}
 
       # Only run doctests on 1 runner (because of typographic differences in doctest results)
       - name: Run doctests
