@@ -113,7 +113,7 @@ jobs:
         if: ${{ matrix.msvc_arch }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.11.2
+        uses: pypa/cibuildwheel@v2.11.3
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_SKIP: cp36-* pp* *musllinux* cp310-manylinux_i686
