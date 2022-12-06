@@ -1114,6 +1114,12 @@ def contains_xy(geom, x, y=None, **kwargs):
     --------
     contains : variant taking two geometries as input
 
+    Notes
+    -----
+    If you compare a small number of polygons or lines with many points,
+    it can be beneficial to prepare the geometries in advance using
+    :func:`shapely.prepare`.
+
     Examples
     --------
     >>> from shapely import Point, Polygon
@@ -1153,6 +1159,15 @@ def intersects_xy(geom, x, y=None, **kwargs):
     See also
     --------
     intersects : variant taking two geometries as input
+
+    Notes
+    -----
+    If you compare a single or few geometries with many points, it can be
+    beneficial to prepare the geometries in advance using
+    :func:`shapely.prepare`.
+
+    The `touches` predicate can be determined with this function by getting
+    the boundary of the geometries: ``intersects_xy(boundary(geom), x, y)``.
 
     Examples
     --------
