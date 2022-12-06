@@ -30,16 +30,29 @@ class STRtree:
     A query-only R-tree spatial index created using the
     Sort-Tile-Recursive (STR) [1]_ algorithm.
 
-    For two-dimensional spatial data. The tree is constructed directly
-    at initialization. The tree is immutable and query-only, meaning that
-    once created nodes cannot be added or removed.
+    The tree indexes the bounding boxes of each geometry.  The tree is
+    constructed directly at initialization and nodes cannot be added or
+    removed after it has been created.
 
     All operations return indices of the input geometries.  These indices
     can be used to index into anything associated with the input geometries,
     including the input geometries themselves, or custom items stored in
     another object of the same length as the geometries.
 
+    Bounding boxes limited to two dimensions and are axis-aligned (equivalent to
+    the ``bounds`` property of a geometry); any Z values present in geometries
+    are ignored for purposes of indexing within the tree.
+
     Any mixture of geometry types may be stored in the tree.
+
+    Note: the tree is more efficient for querying when there are fewer
+    geometries that have overlapping bounding boxes and where there is greater
+    similarity between the outer boundary of a geometry and its bounding box.
+    For example, a MultiPolygon composed of widely-spaced individual Polygons
+    will have a large overall bounding box compared to the boundaries of its
+    individual Polygons, and the bounding box may also potentially overlap many
+    other geometries within the tree.  This means that the resulting tree may be
+    less efficient to query than a tree constructed from individual Polygons.
 
     Parameters
     ----------
@@ -94,8 +107,8 @@ class STRtree:
     def query(self, geometry, predicate=None, distance=None):
         """
         Return the integer indices of all combinations of each input geometry
-        and tree geometries where the extent of each input geometry intersects
-        the extent of a tree geometry.
+        and tree geometries where the bounding box of each input geometry
+        intersects the bounding box of a tree geometry.
 
         If the input geometry is a scalar, this returns an array of shape (n, ) with
         the indices of the matching tree geometries.  If the input geometry is an
@@ -105,15 +118,20 @@ class STRtree:
         input geometry index and tree geometry index, simply transpose the
         result.
 
-        If a predicate is provided, the tree geometries are further filtered to
-        those that meet the predicate when comparing the input geometry to the
-        tree geometry:
-        predicate(geom, tree_geometry)
+        If a predicate is provided, the tree geometries are first queried based
+        on the bounding box of the input geometry and then are further filtered
+        to those that meet the predicate when comparing the input geometry to
+        the tree geometry:
+        predicate(geometry, tree_geometry)
 
         The 'dwithin' predicate requires GEOS >= 3.10.
 
-        Any input geometry that is None or empty will never match geometries
-        in the tree.
+        Bounding boxes are limited to two dimensions and are axis-aligned
+        (equivalent to the ``bounds`` property of a geometry); any Z values
+        present in input geometries are ignored when querying the tree.
+
+        Any input geometry that is None or empty will never match geometries in
+        the tree.
 
         Parameters
         ----------
@@ -123,7 +141,7 @@ class STRtree:
         predicate : {None, 'intersects', 'within', 'contains', 'overlaps', 'crosses',\
 'touches', 'covers', 'covered_by', 'contains_properly', 'dwithin'}, optional
             The predicate to use for testing geometries from the tree
-            that are within the input geometry's extent.
+            that are within the input geometry's bounding box.
         distance : number or array_like, optional
             Distances around each input geometry within which to query the tree
             for the 'dwithin' predicate.  If array_like, shape must be
@@ -210,10 +228,10 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
         -----
         In the context of a spatial join, input geometries are the "left"
         geometries that determine the order of the results, and tree geometries
-        are "right" geometries that are joined against the left geometries.
-        This effectively performs an inner join, where only those combinations
-        of geometries that can be joined based on overlapping extents or optional
-        predicate are returned.
+        are "right" geometries that are joined against the left geometries. This
+        effectively performs an inner join, where only those combinations of
+        geometries that can be joined based on overlapping bounding boxes or
+        optional predicate are returned.
         """
 
         geometry = np.asarray(geometry)
@@ -256,14 +274,18 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
     def nearest(self, geometry) -> Union[Any, None]:
         """
         Return the index of the nearest geometry in the tree for each input
-        geometry.
+        geometry based on distance within two-dimensional Cartesian space.
+
+        This distance will be 0 when input geometries intersect tree geometries.
 
         If there are multiple equidistant or intersected geometries in the tree,
         only a single result is returned for each input geometry, based on the
         order that tree geometries are visited; this order may be
         nondeterministic.
 
-        If any input geometry is None or empty, an error is raised.
+        If any input geometry is None or empty, an error is raised.  Any Z
+        values present in input geometries are ignored when finding nearest
+        tree geometries.
 
         Parameters
         ----------
@@ -338,8 +360,10 @@ and optional distances
         exclusive=False,
         all_matches=True,
     ):
-        """Returns the index of the nearest geometries in the tree for each input
-        geometry.
+        """Return the index of the nearest geometries in the tree for each input
+        geometry based on distance within two-dimensional Cartesian space.
+
+        This distance will be 0 when input geometries intersect tree geometries.
 
         If there are multiple equidistant or intersected geometries in tree and
         `all_matches` is True (the default), all matching tree geometries are
@@ -360,7 +384,8 @@ and optional distances
         the tree.
 
         Any geometry that is None or empty in the input geometries is omitted
-        from the output.
+        from the output.  Any Z values present in input geometries are ignored
+        when finding nearest tree geometries.
 
         Parameters
         ----------
