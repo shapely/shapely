@@ -1116,7 +1116,7 @@ def contains_xy(geom, x, y=None, **kwargs):
 
     Notes
     -----
-    If you compare a single or few geometries with many points, it can be
+    If you compare a small number of polygons or lines with many points, it can be
     beneficial to prepare the geometries in advance using
     :func:`shapely.prepare`.
 
