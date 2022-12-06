@@ -30,8 +30,9 @@ class STRtree:
     A query-only R-tree spatial index created using the
     Sort-Tile-Recursive (STR) [1]_ algorithm.
 
-    The tree indexes the bounding boxes of each geometry.  The tree is constructed directly at initialization
-    and nodes cannot be added or removed after it has been created.
+    The tree indexes the bounding boxes of each geometry.  The tree is
+    constructed directly at initialization and nodes cannot be added or
+    removed after it has been created.
 
     All operations return indices of the input geometries.  These indices
     can be used to index into anything associated with the input geometries,
