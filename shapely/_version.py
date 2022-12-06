@@ -41,8 +41,8 @@ def get_config():
     cfg.VCS = "git"
     cfg.style = "pep440"
     cfg.tag_prefix = ""
-    cfg.parentdir_prefix = "None"
-    cfg.versionfile_source = "pygeos/_version.py"
+    cfg.parentdir_prefix = "shapely-"
+    cfg.versionfile_source = "shapely/_version.py"
     cfg.verbose = False
     return cfg
 
