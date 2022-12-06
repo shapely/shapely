@@ -55,11 +55,7 @@ class MultiPolygon(BaseMultipartGeometry):
             return polygons
 
         polygons = getattr(polygons, "geoms", polygons)
-        polygons = [
-            p
-            for p in polygons
-            if p and not (isinstance(p, polygon.Polygon) and p.is_empty)
-        ]
+        polygons = [p for p in polygons if p]
 
         L = len(polygons)
 
