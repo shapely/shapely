@@ -345,11 +345,13 @@ def test_remove_repeated_points(geom, expected):
     assert_geometries_equal(shapely.remove_repeated_points(geom, 0), expected)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
 @pytest.mark.parametrize(
     "geom, tolerance", [[Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]), 2]]
 )
 def test_remove_repeated_points_invalid_result(geom, tolerance):
+    # Requiring GEOS 3.12 instead of 3.11
+    # (GEOS 3.11 had a bug causing this to intermittently not fail)
     with pytest.raises(shapely.GEOSException, match="Invalid number of points"):
         shapely.remove_repeated_points(geom, tolerance)
 
