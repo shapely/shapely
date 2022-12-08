@@ -38,14 +38,14 @@ PyObject* GeometryObject_FromGEOS(GEOSGeometry* ptr, GEOSContextHandle_t ctx) {
   } else {
     self->ptr = ptr;
     self->ptr_prepared = NULL;
-    self->weakreflist = (PyObject *)NULL;
+    self->weakreflist = (PyObject*)NULL;
     return (PyObject*)self;
   }
 }
 
 static void GeometryObject_dealloc(GeometryObject* self) {
   if (self->weakreflist != NULL) {
-    PyObject_ClearWeakRefs((PyObject *)self);
+    PyObject_ClearWeakRefs((PyObject*)self);
   }
   if (self->ptr != NULL) {
     // not using GEOS_INIT, but using global context instead
@@ -291,7 +291,64 @@ static PyObject* GeometryObject_richcompare(GeometryObject* self, PyObject* othe
   return result;
 }
 
+
+static PyObject* GeometryObject_SetState(PyObject* self, PyObject* value) {
+  unsigned char* wkb = NULL;
+  Py_ssize_t size;
+  GEOSGeometry* geom = NULL;
+  GEOSWKBReader* reader = NULL;
+
+  PyErr_WarnFormat(PyExc_UserWarning, 0,
+                   "Unpickling a shapely <2.0 geometry object. Please save the pickle "
+                   "again; shapely 2.1 will not have this compatibility.");
+
+  /* Cast the PyObject bytes to char */
+  if (!PyBytes_Check(value)) {
+    PyErr_Format(PyExc_TypeError, "Expected bytes, found %s", value->ob_type->tp_name);
+    return NULL;
+  }
+  size = PyBytes_Size(value);
+  wkb = (unsigned char*)PyBytes_AsString(value);
+  if (wkb == NULL) {
+    return NULL;
+  }
+
+  GEOS_INIT;
+
+  reader = GEOSWKBReader_create_r(ctx);
+  if (reader == NULL) {
+    errstate = PGERR_GEOS_EXCEPTION;
+    goto finish;
+  }
+  geom = GEOSWKBReader_read_r(ctx, reader, wkb, size);
+  if (geom == NULL) {
+    errstate = PGERR_GEOS_EXCEPTION;
+    goto finish;
+  }
+
+  if (((GeometryObject*)self)->ptr != NULL) {
+    GEOSGeom_destroy_r(ctx, ((GeometryObject*)self)->ptr);
+  }
+  ((GeometryObject*)self)->ptr = geom; 
+
+finish:
+
+  if (reader != NULL) {
+    GEOSWKBReader_destroy_r(ctx, reader);
+  }
+
+  GEOS_FINISH;
+
+  if (errstate == PGERR_SUCCESS) {
+    Py_INCREF(Py_None);
+    return Py_None;
+  }
+}
+
+
 static PyMethodDef GeometryObject_methods[] = {
+    {"__setstate__", (PyCFunction)GeometryObject_SetState, METH_O,
+     "For unpickling pre-shapely 2.0 pickles"},
     {NULL} /* Sentinel */
 };
 
