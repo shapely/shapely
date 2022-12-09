@@ -417,7 +417,7 @@ def from_ragged_array(geometry_type, coords, offsets=None):
     geometry_type : GeometryType
         The type of geometry to create.
     coords : np.ndarray
-        Contiguous array of shape (n, 2) ro (n, 3) of all coordinates
+        Contiguous array of shape (n, 2) or (n, 3) of all coordinates
         for the geometries.
     offsets: tuple of np.ndarray
         Offset arrays that allow to reconstruct the geometries based on the
