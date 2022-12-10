@@ -1,7 +1,17 @@
 Changes
 =======
 
-2.0rc1 (2022-10-26)
+2.0.0 (2022-12-12)
+------------------
+
+Shapely version 2.0.0 is a major release featuring a complete refactor of the
+internals and new vectorized (element-wise) array operations providing
+considerable performance improvements. 
+
+For a full changelog, see
+https://shapely.readthedocs.io/en/latest/release/2.x.html#version-2-0-0
+
+2.0rc1 (2022-11-26)
 -------------------
 
 Relevant changes in behaviour compared to 2.0b2:
