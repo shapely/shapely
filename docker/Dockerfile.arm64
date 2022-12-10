@@ -1,8 +1,8 @@
-# This docker container is used for testing pygeos in ARM64 emulation mode.
+# This docker container is used for testing shapely in ARM64 emulation mode.
 # To build it:
-# docker build . -f ./docker/Dockerfile.arm64 -t pygeos/arm64
-# Then run the pygeos test suite:
-# docker run --rm pygeos/arm64:latest python3 -m pytest -vv
+# docker build . -f ./docker/Dockerfile.arm64 -t shapely/arm64
+# Then run the shapely test suite:
+# docker run --rm shapely/arm64:latest python3 -m pytest -vv
 
 FROM --platform=linux/arm64/v8 arm64v8/ubuntu:20.04
 
