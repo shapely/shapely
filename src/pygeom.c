@@ -38,14 +38,14 @@ PyObject* GeometryObject_FromGEOS(GEOSGeometry* ptr, GEOSContextHandle_t ctx) {
   } else {
     self->ptr = ptr;
     self->ptr_prepared = NULL;
-    self->weakreflist = (PyObject *)NULL;
+    self->weakreflist = (PyObject*)NULL;
     return (PyObject*)self;
   }
 }
 
 static void GeometryObject_dealloc(GeometryObject* self) {
   if (self->weakreflist != NULL) {
-    PyObject_ClearWeakRefs((PyObject *)self);
+    PyObject_ClearWeakRefs((PyObject*)self);
   }
   if (self->ptr != NULL) {
     // not using GEOS_INIT, but using global context instead
@@ -291,7 +291,87 @@ static PyObject* GeometryObject_richcompare(GeometryObject* self, PyObject* othe
   return result;
 }
 
+
+static PyObject* GeometryObject_SetState(PyObject* self, PyObject* value) {
+  unsigned char* wkb = NULL;
+  Py_ssize_t size;
+  GEOSGeometry* geom = NULL;
+  GEOSWKBReader* reader = NULL;
+
+  PyErr_WarnFormat(PyExc_UserWarning, 0,
+                   "Unpickling a shapely <2.0 geometry object. Please save the pickle "
+                   "again; shapely 2.1 will not have this compatibility.");
+
+  /* Cast the PyObject bytes to char */
+  if (!PyBytes_Check(value)) {
+    PyErr_Format(PyExc_TypeError, "Expected bytes, found %s", value->ob_type->tp_name);
+    return NULL;
+  }
+  size = PyBytes_Size(value);
+  wkb = (unsigned char*)PyBytes_AsString(value);
+  if (wkb == NULL) {
+    return NULL;
+  }
+
+  PyObject* linearring_type_obj = PyList_GET_ITEM(geom_registry[0], 2);
+  if (linearring_type_obj == NULL) {
+    return NULL;
+  }
+  if (!PyType_Check(linearring_type_obj)) {
+    PyErr_Format(PyExc_RuntimeError, "Invalid registry value");
+    return NULL;
+  }
+  PyTypeObject* linearring_type = (PyTypeObject*)linearring_type_obj;
+
+  GEOS_INIT;
+
+  reader = GEOSWKBReader_create_r(ctx);
+  if (reader == NULL) {
+    errstate = PGERR_GEOS_EXCEPTION;
+    goto finish;
+  }
+  geom = GEOSWKBReader_read_r(ctx, reader, wkb, size);
+  if (geom == NULL) {
+    errstate = PGERR_GEOS_EXCEPTION;
+    goto finish;
+  }
+  if (Py_TYPE(self) == linearring_type) {
+    const GEOSCoordSequence* coord_seq = GEOSGeom_getCoordSeq_r(ctx, geom);
+    if (coord_seq == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
+    geom = GEOSGeom_createLinearRing_r(ctx, (GEOSCoordSequence*)coord_seq);
+    if (geom == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
+  }
+
+  if (((GeometryObject*)self)->ptr != NULL) {
+    GEOSGeom_destroy_r(ctx, ((GeometryObject*)self)->ptr);
+  }
+  ((GeometryObject*)self)->ptr = geom; 
+
+finish:
+
+  if (reader != NULL) {
+    GEOSWKBReader_destroy_r(ctx, reader);
+  }
+
+  GEOS_FINISH;
+
+  if (errstate == PGERR_SUCCESS) {
+    Py_INCREF(Py_None);
+    return Py_None;
+  }
+  return NULL;
+}
+
+
 static PyMethodDef GeometryObject_methods[] = {
+    {"__setstate__", (PyCFunction)GeometryObject_SetState, METH_O,
+     "For unpickling pre-shapely 2.0 pickles"},
     {NULL} /* Sentinel */
 };
 
