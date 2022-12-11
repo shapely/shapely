@@ -71,6 +71,8 @@ def test_unpickle_pre_20(fname):
         with pytest.warns(UserWarning):
             result = pickle.load(f)
     
+    if geom_type == "emptypolygon" and "1.7.1" in fname.name:
+        expected = wkt.loads("POLYGON Z EMPTY")
     assert_geometries_equal(result, expected)
 
 
