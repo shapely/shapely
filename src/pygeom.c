@@ -313,6 +313,16 @@ static PyObject* GeometryObject_SetState(PyObject* self, PyObject* value) {
     return NULL;
   }
 
+  PyObject* linearring_type_obj = PyList_GET_ITEM(geom_registry[0], 2);
+  if (linearring_type_obj == NULL) {
+    return NULL;
+  }
+  if (!PyType_Check(linearring_type_obj)) {
+    PyErr_Format(PyExc_RuntimeError, "Invalid registry value");
+    return NULL;
+  }
+  PyTypeObject* linearring_type = (PyTypeObject*)linearring_type_obj;
+
   GEOS_INIT;
 
   reader = GEOSWKBReader_create_r(ctx);
@@ -324,6 +334,18 @@ static PyObject* GeometryObject_SetState(PyObject* self, PyObject* value) {
   if (geom == NULL) {
     errstate = PGERR_GEOS_EXCEPTION;
     goto finish;
+  }
+  if (Py_IS_TYPE(self, linearring_type)) {
+    const GEOSCoordSequence* coord_seq = GEOSGeom_getCoordSeq_r(ctx, geom);
+    if (coord_seq == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
+    geom = GEOSGeom_createLinearRing_r(ctx, (GEOSCoordSequence*)coord_seq);
+    if (geom == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
   }
 
   if (((GeometryObject*)self)->ptr != NULL) {
@@ -343,6 +365,7 @@ finish:
     Py_INCREF(Py_None);
     return Py_None;
   }
+  return NULL;
 }
 
 
