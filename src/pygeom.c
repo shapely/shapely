@@ -335,7 +335,7 @@ static PyObject* GeometryObject_SetState(PyObject* self, PyObject* value) {
     errstate = PGERR_GEOS_EXCEPTION;
     goto finish;
   }
-  if (Py_IS_TYPE(self, linearring_type)) {
+  if (Py_TYPE(self) == linearring_type) {
     const GEOSCoordSequence* coord_seq = GEOSGeom_getCoordSeq_r(ctx, geom);
     if (coord_seq == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
