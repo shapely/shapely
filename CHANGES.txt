@@ -1,6 +1,13 @@
 Changes
 =======
 
+
+2.0rc4 (2022-10-26)
+-------------------
+
+- Added temporary for unpickling shapely<2.0 geometries.
+
+
 2.0rc1 (2022-10-26)
 -------------------
 
