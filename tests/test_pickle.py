@@ -7,8 +7,10 @@ import shapely
 from shapely.geometry import Point, LineString, LinearRing, Polygon, MultiLineString, MultiPoint, MultiPolygon, GeometryCollection, box
 from shapely import wkt
 
-
 import pytest
+
+
+HERE = pathlib.Path(__file__).parent
 
 
 TEST_DATA = {
@@ -39,48 +41,24 @@ def test_pickle_round_trip(geom1):
     assert geom2.wkt == geom1.wkt
 
 
-SHAPELY_18_PICKLE = (
-    b'\x80\x04\x95\x8c\x00\x00\x00\x00\x00\x00\x00\x8c\x18shapely.geometry.polygon'
-    b'\x94\x8c\x07Polygon\x94\x93\x94)R\x94C]\x01\x03\x00\x00\x00\x01\x00\x00\x00'
-    b'\x05\x00\x00\x00\x00\x00\x00\x00\x00\x00$@\x00\x00\x00\x00\x00\x00\x00\x00'
-    b'\x00\x00\x00\x00\x00\x00$@\x00\x00\x00\x00\x00\x00$@\x00\x00\x00\x00\x00\x00'
-    b'\x00\x00\x00\x00\x00\x00\x00\x00$@\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-    b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00$@\x00\x00\x00\x00\x00\x00\x00\x00'
-    b'\x94b.'
-)
-
-
-def test_unpickle_shapely_18():
-    from shapely.testing import assert_geometries_equal
-
-    with pytest.warns(UserWarning):
-        geom = loads(SHAPELY_18_PICKLE)
-    assert_geometries_equal(geom, box(0, 0, 10, 10))
-
-
-HERE = pathlib.Path(__file__).parent
-
 @pytest.mark.parametrize("fname", (HERE / "data").glob("*.pickle"), ids=lambda fname: fname.name)
 def test_unpickle_pre_20(fname):
     from shapely.testing import assert_geometries_equal
 
     geom_type = fname.name.split("_")[0]
     expected = TEST_DATA[geom_type]
-    
+
     with open(fname, "rb") as f:
         with pytest.warns(UserWarning):
             result = pickle.load(f)
-    
-    if geom_type == "emptypolygon" and "1.7.1" in fname.name:
-        expected = wkt.loads("POLYGON Z EMPTY")
+
     assert_geometries_equal(result, expected)
 
 
 if __name__ == "__main__":
-    HERE = pathlib.Path(__file__).parent
     datadir = HERE / "data"
     datadir.mkdir(exist_ok=True)
-    
+
     shapely_version = shapely.__version__
     print(shapely_version)
     print(shapely.geos.geos_version)
