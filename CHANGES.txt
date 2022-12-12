@@ -1,14 +1,22 @@
 Changes
 =======
 
+2.0.0 (2022-12-12)
+------------------
 
-2.0rc4 (2022-10-26)
--------------------
+Shapely version 2.0.0 is a major release featuring a complete refactor of the
+internals and new vectorized (element-wise) array operations providing
+considerable performance improvements. 
 
-- Added temporary for unpickling shapely<2.0 geometries.
+For a full changelog, see
+https://shapely.readthedocs.io/en/latest/release/2.x.html#version-2-0-0
 
 
-2.0rc1 (2022-10-26)
+Relevant changes in behaviour compared to 2.0rc3:
+
+- Added temporary support for unpickling shapely<2.0 geometries.
+
+2.0rc1 (2022-11-26)
 -------------------
 
 Relevant changes in behaviour compared to 2.0b2:
@@ -62,6 +70,28 @@ operations providing considerable performance improvements. For a full
 changelog, see https://shapely.readthedocs.io/en/latest/release/2.x.html#version-2-0-0
 
 Wheels for 2.0a1 published on PyPI include GEOS 3.10.3.
+
+1.8.5.post1 (2022-10-13)
+------------------------
+
+Packaging:
+
+Wheels are provided for Python versions 3.6-3.11 and Cython 0.29.32 is used to
+generate C extension module code.
+
+1.8.5 (2022-10-12)
+------------------
+
+Packaging:
+
+Python 3.11 wheels have been added to the matrix for all platforms.
+
+Bug fixes:
+
+- Assign _lgeos in the macos frozen app check, fixing a bug introduced in 1.8.2
+  (#1528).
+- An exception is now raised when nan is passed to buffer and parallel_offset,
+  preventing segmentation faults (#1516).
 
 1.8.4 (2022-08-17)
 ------------------
