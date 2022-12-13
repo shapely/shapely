@@ -852,7 +852,7 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
     tolerance : float or array_like
         The maximum allowed geometry displacement. The higher this value, the
         smaller the number of vertices in the resulting geometry.
-    preserve_topology : bool, default False
+    preserve_topology : bool, default True
         By default (True), the operation will avoid creating invalid
         geometries (checking for collapses, ring-intersections, etc), but
         this is computationally more expensive.
