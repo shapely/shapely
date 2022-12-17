@@ -54,7 +54,7 @@ or WKB (Well-Known Binary) representation:
   <POINT (1 1)>
 
 A more efficient way of constructing geometries is by making use of the (vectorized)
-functions described in :mod:`shapely.creation`.
+functions described in :ref:`ref-creation`.
 
 Pickling
 ~~~~~~~~
@@ -91,7 +91,7 @@ Therefore, geometries are equal if and only if their WKB representations are equ
              See :func:`shapely.to_wkb`.
 
 Comparing two geometries directly is also supported.
-This is the same as using :func:`shapely.predicates.equals_exact` with a ``tolerance`` value of zero.
+This is the same as using :func:`shapely.equals_exact` with a ``tolerance`` value of zero.
 
   >>> point_1 == point_2
   False
