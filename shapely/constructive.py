@@ -887,9 +887,20 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
 def snap(geometry, reference, tolerance, **kwargs):
     """Snaps an input geometry to reference geometry's vertices.
 
-    The tolerance is used to control where snapping is performed.
+    Vertices of the first geometry are snapped to vertices of the second.
+    geometry. The input geometries are not modified.
     The result geometry is the input geometry with the vertices snapped.
     If no snapping occurs then the input geometry is returned unchanged.
+    The tolerance is used to control where snapping is performed.
+
+    Snapping one geometry to another can improve robustness for overlay
+    operations by eliminating nearly-coincident edges
+    (which cause problems during noding and intersection calculation).
+
+    Too much snapping can result in invalid topology being created,
+    so the number and location of snapped vertices is decided using
+    heuristics to determine when it is safe to snap.
+    This can result in some potential snaps being omitted, however.
 
     Parameters
     ----------
@@ -902,7 +913,7 @@ def snap(geometry, reference, tolerance, **kwargs):
 
     Examples
     --------
-    >>> from shapely import LineString, Point, Polygon
+    >>> from shapely import snap, distance, LineString, Point, Polygon, MultiPolygon
     >>> point = Point(0.5, 2.5)
     >>> target_point = Point(0, 2)
     >>> snap(point, target_point, tolerance=1)
@@ -914,6 +925,21 @@ def snap(geometry, reference, tolerance, **kwargs):
     <POLYGON ((0 0, 0 10, 8 10, 10 0, 0 0))>
     >>> snap(polygon, LineString([(8, 10), (8, 0)]), tolerance=5)
     <POLYGON ((0 0, 0 10, 8 10, 8 0, 0 0))>
+    >>> # example from: https://postgis.net/docs/ST_Snap.html
+    >>> poly = MultiPolygon([
+    ...     ([(26, 125), (26, 200), (126, 200), (126, 125), (26, 125)],
+    ...      [[(51, 150), (101, 150), (76, 175), (51, 150)]]),
+    ...     ([(151, 100), (151, 200), (176, 175), (151, 100)], [])
+    ... ])
+    >>> line = LineString([(5, 107), (54, 84), (101, 100)])
+    >>> snap(poly, line, distance(poly, line) * 1.01)
+    <MULTIPOLYGON (((26 125, 26 200, 126 200, 126 125, 101 100, 26 125), (51 150...>
+    >>> snap(poly, line, distance(poly, line) * 1.25)
+    <MULTIPOLYGON (((5 107, 26 200, 126 200, 126 125, 101 100, 54 84, 5 107), (5...>
+    >>> snap(line, poly, distance(poly, line) * 1.01)
+    <LINESTRING (5 107, 26 125, 54 84, 101 100)>
+    >>> snap(line, poly, distance(poly, line) * 1.25)
+    <LINESTRING (26 125, 54 84, 101 100)>
     """
     return lib.snap(geometry, reference, tolerance, **kwargs)
 
