@@ -66,6 +66,12 @@ def test_linearring_from_too_short_linestring():
         LinearRing(line)
 
 
+def test_linearring_from_linearring():
+    coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)]
+    ring = LinearRing(coords)
+    assert ring.coords[:] == coords
+
+
 def test_linearring_from_generator():
     coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
     gen = (coord for coord in coords)
