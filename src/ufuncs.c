@@ -1165,7 +1165,7 @@ static int GetNumPoints(void* context, void* geom, int n) {
 static void* get_num_points_func_tuple[3] = {GetNumPoints, (void*)-1, (void*)0};
 static void* get_num_points_data[1] = {get_num_points_func_tuple};
 
-static int GetNumInteriorRings(void* context, void* geom, int n) {
+static int GetNumInteriorRings(void* context, void* geom) {
   char typ = GEOSGeomTypeId_r(context, geom);
   if (typ == 3) { /* Polygon */
     return GEOSGetNumInteriorRings_r(context, geom);
