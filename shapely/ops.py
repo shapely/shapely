@@ -1,6 +1,6 @@
 """Support for various GEOS geometry operations
 """
-
+from typing import Optional
 from warnings import warn
 
 import shapely
@@ -224,79 +224,26 @@ def validate(geom):
     return shapely.is_valid_reason(geom)
 
 
-def transform(func, geom):
-    """Applies `func` to all coordinates of `geom` and returns a new
-    geometry of the same type from the transformed coordinates.
+def transform(
+    func,
+    geom,
+    include_z: Optional[bool] = None,
+    interleaved: bool = False,
+    rebuild: bool = True,
+):
+    """Returns a copy of a geometry array with a function applied to its coordinates.
 
-    `func` maps x, y, and optionally z to output xp, yp, zp. The input
-    parameters may iterable types like lists or arrays or single values.
-    The output shall be of the same type. Scalars in, scalars out.
-    Lists in, lists out.
-
-    For example, here is an identity function applicable to both types
-    of input.
-
-      def id_func(x, y, z=None):
-          return tuple(filter(None, [x, y, z]))
-
-      g2 = transform(id_func, g1)
-
-    Using pyproj >= 2.1, this example will accurately project Shapely geometries:
-
-      import pyproj
-
-      wgs84 = pyproj.CRS('EPSG:4326')
-      utm = pyproj.CRS('EPSG:32618')
-
-      project = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True).transform
-
-      g2 = transform(project, g1)
-
-    Note that the always_xy kwarg is required here as Shapely geometries only support
-    X,Y coordinate ordering.
-
-    Lambda expressions such as the one in
-
-      g2 = transform(lambda x, y, z=None: (x+1.0, y+1.0), g1)
-
-    also satisfy the requirements for `func`.
+    This function is equivalent to `shapely.transform_extra` but uses different default values
+    (``rebuild=True``, ``interleaved=False``).
+    Refer to `shapely.transform_extra` for full documentation.
     """
-    if geom.is_empty:
-        return geom
-    if geom.geom_type in ("Point", "LineString", "LinearRing", "Polygon"):
-
-        # First we try to apply func to x, y, z sequences. When func is
-        # optimized for sequences, this is the fastest, though zipping
-        # the results up to go back into the geometry constructors adds
-        # extra cost.
-        try:
-            if geom.geom_type in ("Point", "LineString", "LinearRing"):
-                return type(geom)(zip(*func(*zip(*geom.coords))))
-            elif geom.geom_type == "Polygon":
-                shell = type(geom.exterior)(zip(*func(*zip(*geom.exterior.coords))))
-                holes = list(
-                    type(ring)(zip(*func(*zip(*ring.coords))))
-                    for ring in geom.interiors
-                )
-                return type(geom)(shell, holes)
-
-        # A func that assumes x, y, z are single values will likely raise a
-        # TypeError, in which case we'll try again.
-        except TypeError:
-            if geom.geom_type in ("Point", "LineString", "LinearRing"):
-                return type(geom)([func(*c) for c in geom.coords])
-            elif geom.geom_type == "Polygon":
-                shell = type(geom.exterior)([func(*c) for c in geom.exterior.coords])
-                holes = list(
-                    type(ring)([func(*c) for c in ring.coords])
-                    for ring in geom.interiors
-                )
-                return type(geom)(shell, holes)
-
-    elif geom.geom_type.startswith("Multi") or geom.geom_type == "GeometryCollection":
-        return type(geom)([transform(func, part) for part in geom.geoms])
-    else:
-        raise GeometryTypeError(f"Type {geom.geom_type!r} not recognized")
+    return shapely.transform_extra(
+        geometry=geom,
+        transformation=func,
+        include_z=include_z,
+        interleaved=interleaved,
+        rebuild=rebuild,
+    )
 
 
 def nearest_points(g1, g2):
