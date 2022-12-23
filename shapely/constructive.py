@@ -13,6 +13,7 @@ __all__ = [
     "centroid",
     "clip_by_rect",
     "concave_hull",
+    "constrained_delaunay_triangles",
     "convex_hull",
     "delaunay_triangles",
     "segmentize",
@@ -434,6 +435,40 @@ tolerance=2)
     <GEOMETRYCOLLECTION EMPTY>
     """
     return lib.delaunay_triangles(geometry, tolerance, only_edges, **kwargs)
+
+
+@requires_geos("3.10.0")
+@multithreading_enabled
+def constrained_delaunay_triangles(geometry, **kwargs):
+    """Computes a constrained Delaunay triangulation around the vertices of an input
+    Polygon or MultiPolygon.
+
+    The output is a GeometryCollection of Polygons.
+
+    For non-polygonal inputs, returns an empty geometry collection.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    Examples
+    --------
+    >>> from shapely import MultiPoint, MultiPolygon, Polygon
+    >>> constrained_delaunay_triangles(Polygon([(10, 10), (20, 40), (90, 90), (90, 10), (10, 10)]))
+    <GEOMETRYCOLLECTION (POLYGON ((90 10, 20 40, 90 90, 90 10)), POLYGON ((20 40...>
+    >>> constrained_delaunay_triangles(Polygon())
+    <GEOMETRYCOLLECTION EMPTY>
+    >>> constrained_delaunay_triangles(MultiPolygon([Polygon(((50, 30), (60, 30), (100, 100), (50, 30))), Polygon(((10, 10), (20, 40), (90, 90), (90, 10), (10, 10)))]))
+    <GEOMETRYCOLLECTION (POLYGON ((50 30, 100 100, 60 30, 50 30)), POLYGON ((90 ...>
+    >>> constrained_delaunay_triangles(MultiPolygon())
+    <GEOMETRYCOLLECTION EMPTY>
+    >>> constrained_delaunay_triangles(MultiPoint([(50, 30), (51, 30), (60, 30), (100, 100)]))
+    <GEOMETRYCOLLECTION EMPTY>
+    """
+    return lib.constrained_delaunay_triangles(geometry, **kwargs)
 
 
 @multithreading_enabled
