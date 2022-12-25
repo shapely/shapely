@@ -1097,9 +1097,10 @@ differently.
   >>> b == c
   False
 
-.. method:: object.equals_exact(other, tolerance)
+.. method:: object.equals_exact(other, tolerance=0, normalize=False)
 
-  Returns ``True`` if the object is within a specified `tolerance`.
+  Returns ``True`` if the geometries are structurally equal, within a specified `tolerance`.
+  See the equivalent function :meth:`predicates.equals_exact()` for full details.
 
 .. method:: object.contains(other)
 

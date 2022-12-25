@@ -947,29 +947,44 @@ def within(a, b, **kwargs):
 
 
 @multithreading_enabled
-def equals_exact(a, b, tolerance=0.0, **kwargs):
-    """Returns True if A and B are structurally equal.
+def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
+    """Returns True if A and B are structurally equal, within a specified tolerance.
 
-    This method uses exact coordinate equality, which requires coordinates
-    to be equal (within specified tolerance) and and in the same order for all
+    This method uses exact coordinate equality, which requires coordinates to be
+    equal (within specified tolerance) and in the same order for all
     components of a geometry. This is in contrast with the ``equals`` function
     which uses spatial (topological) equality.
+    For two given geometries, it is thus possible for ``equals`` to be True
+    while ``equals_exact`` is False.
+    The order of the coordinates can be normalized (by setting the `normalize`
+    keyword to True) so that the functions becomes closer to checking
+    approximate topological equality. However, for Polygons with multiple holes
+    and MultiPolygons, two topologically equal geometries can still be
+    structurally different even with `normalize` set to True if the order of the
+    rings or Polygons differs.
 
     Parameters
     ----------
     a, b : Geometry or array_like
     tolerance : float or array_like
+    normalize : bool, optional (default: False)
+        Normalize the two geometries so that the coordinates are in the
+        same order.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
+    Returns
+    -------
+    bool or array_like
+
     See Also
     --------
-    equals : Check if A and B are spatially equal.
+    equals : Check if A and B are topologically equal.
 
     Examples
     --------
-    >>> from shapely import Point, Polygon
+    >>> from shapely import Point, Polygon, LineString
     >>> point1 = Point(50, 50)
     >>> point2 = Point(50.1, 50.1)
     >>> equals_exact(point1, point2)
@@ -978,6 +993,11 @@ def equals_exact(a, b, tolerance=0.0, **kwargs):
     True
     >>> equals_exact(point1, None, tolerance=0.2)
     False
+    >>> ls1 = LineString([(0, 0), (2, 2)])
+    >>> ls2 = LineString([(0, 0), (1, 1), (2, 2)])
+    >>> equals_exact(ls1, ls2, 1e-6)
+    False
+
 
     Difference between structucal and spatial equality:
 
@@ -988,6 +1008,10 @@ def equals_exact(a, b, tolerance=0.0, **kwargs):
     >>> equals(polygon1, polygon2)
     True
     """
+    if normalize:
+        a = lib.normalize(a)
+        b = lib.normalize(b)
+
     return lib.equals_exact(a, b, tolerance, **kwargs)
 
 
