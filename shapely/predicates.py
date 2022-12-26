@@ -947,25 +947,36 @@ def within(a, b, **kwargs):
 
 
 @multithreading_enabled
-def equals_exact(a, b, tolerance=0.0, **kwargs):
+def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
     """Returns True if A and B are structurally equal.
 
-    This method uses exact coordinate equality, which requires coordinates
-    to be equal (within specified tolerance) and and in the same order for all
+    This method uses exact coordinate equality, which requires coordinates to be
+    equal (within specified tolerance) and in the same order for all
     components of a geometry. This is in contrast with the ``equals`` function
     which uses spatial (topological) equality.
+    For two given geometries, it is thus possible for ``equals`` to be True
+    while ``equals_exact`` is False.
+    The order of the coordinates can be normalized (by setting the `normalize`
+    keyword to True) so that the functions becomes closer to checking
+    approximate topological equality. However, for Polygons with multiple holes
+    and MultiPolygons, two topologically equal geometries can still be
+    structurally different even with `normalize` set to True if the order of the
+    rings or Polygons differs.
 
     Parameters
     ----------
     a, b : Geometry or array_like
-    tolerance : float or array_like
+    tolerance : float or array_like (default: 0.)
+    normalize : bool, optional (default: False)
+        Normalize the two geometries so that the coordinates are in the
+        same order.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     See Also
     --------
-    equals : Check if A and B are spatially equal.
+    equals : Check if A and B are topologically equal.
 
     Examples
     --------
@@ -988,6 +999,10 @@ def equals_exact(a, b, tolerance=0.0, **kwargs):
     >>> equals(polygon1, polygon2)
     True
     """
+    if normalize:
+        a = lib.normalize(a)
+        b = lib.normalize(b)
+
     return lib.equals_exact(a, b, tolerance, **kwargs)
 
 

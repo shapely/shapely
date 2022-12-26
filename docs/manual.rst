@@ -1097,9 +1097,35 @@ differently.
   >>> b == c
   False
 
-.. method:: object.equals_exact(other, tolerance)
+.. method:: object.equals_exact(other, tolerance=0.0, normalize=False)
 
-  Returns ``True`` if the object is within a specified `tolerance`.
+    Returns True if the geometries are structurally equal within a given
+    tolerance.
+
+    This method uses exact coordinate equality, which requires coordinates
+    to be equal (within specified tolerance) and in the same order for
+    all components of a geometry. This is in contrast with the
+    :meth:`~object.equals` function which uses spatial (topological) equality.
+    For two given geometries, it is thus possible for :meth:`~object.equals` to
+    be True while :meth:`~object.equals_exact` is False.
+    The order of the coordinates can be normalized (by setting the
+    `normalize` keyword to True) so that the functions becomes closer to
+    checking approximate topological equality. However, for :class:`Polygon`
+    objects with multiple holes and or a :class:`MultiPolygon`, two
+    topologically equal geometries can still be structurally different even with
+    `normalize` set to True if the order of the rings or polygons differs.
+
+.. code-block:: pycon
+
+  >>> p1 = Point(1.0, 1.0)
+  >>> p2 = Point(2.0, 2.0)
+  >>> p3 = Point(1.0, 1.0 + 1e-7)
+  >>> p1.equals_exact(p2)
+  False
+  >>> p1.equals_exact(p3)
+  False
+  >>> p1.equals_exact(p3, tolerance=1e-6)
+  True
 
 .. method:: object.contains(other)
 
