@@ -1,11 +1,11 @@
 import numpy as np
 
 from . import lib
+from ._enum import ParamEnum
 
 # include ragged array functions here for reference documentation purpose
 from ._ragged_array import from_ragged_array, to_ragged_array
 from .decorators import requires_geos
-from .enum import ParamEnum
 from .errors import UnsupportedGEOSVersionError
 
 __all__ = [
