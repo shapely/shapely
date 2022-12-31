@@ -164,16 +164,6 @@ def triangulate(geom, tolerance=0.0, edges=False):
     return [g for g in collection.geoms]
 
 
-def constrained_triangulate(geom):
-    """Creates the constrained Delaunay triangulation and returns a list of polygons
-
-    The source may be any geometry type, but only Polygon or Multipolygon will result
-    in a non-empty list.
-    """
-    collection = shapely.constrained_delaunay_triangles(geom)
-    return [g for g in collection.geoms]
-
-
 def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
     """
     Constructs a Voronoi Diagram [1] from the given geometry.

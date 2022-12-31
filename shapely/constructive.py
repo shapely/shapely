@@ -400,10 +400,6 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     """Computes a Delaunay triangulation around the vertices of an input
     geometry.
 
-    The output is a geometrycollection containing polygons (default)
-    or linestrings (see only_edges). Returns an None if an input geometry
-    contains less than 3 vertices.
-
     Parameters
     ----------
     geometry : Geometry or array_like
@@ -415,6 +411,17 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    Returns
+    ----------
+    The output is a geometrycollection containing polygons (default)
+    or linestrings (see only_edges). Returns an None if an input geometry
+    contains less than 3 vertices.
+
+
+    See Also
+    ----------
+    constrained_delaunay_triangles
 
     Examples
     --------
@@ -443,9 +450,10 @@ def constrained_delaunay_triangles(geometry, **kwargs):
     """Computes a constrained Delaunay triangulation around the vertices of an input
     Polygon or MultiPolygon.
 
-    The output is a GeometryCollection of Polygons.
-
-    For non-polygonal inputs, returns an empty geometry collection.
+    A constrained Delaunay triangulation requires the edges of the input polygon(s) to
+    be in the set of resulting triangle edges. An unconstrained delaunay triangulation only
+    triangulates based on the vertices, hence triangle edges could cross polygon
+    boundaries.
 
     Parameters
     ----------
@@ -453,6 +461,15 @@ def constrained_delaunay_triangles(geometry, **kwargs):
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    Returns
+    ----------
+    * GeometryCollection of polygons, given polygonal input
+    * GeometryCollection() (empty), given non-polygonal input
+
+    See Also
+    ----------
+    delaunay_triangles
 
     Examples
     --------
