@@ -5,14 +5,17 @@ Note: this module is experimental, and mainly targetting (interactive)
 exploration, debugging and illustration purposes.
 
 """
+
+from matplotlib import colors
+from matplotlib.patches import PathPatch
+from matplotlib.path import Path
+import matplotlib.pyplot as plt
 import numpy as np
 
 import shapely
 
 
 def _default_ax():
-    import matplotlib.pyplot as plt
-
     ax = plt.gca()
     ax.grid(True)
     ax.set_aspect("equal")
@@ -20,13 +23,44 @@ def _default_ax():
 
 
 def _path_from_polygon(polygon):
-    from matplotlib.path import Path
+    if isinstance(polygon, shapely.MultiPolygon):
+        return Path.make_compound_path(
+            *[_path_from_polygon(poly) for poly in polygon.geoms]
+        )
+    else:
+        return Path.make_compound_path(
+            Path(np.asarray(polygon.exterior.coords)[:, :2]),
+            *[Path(np.asarray(ring.coords)[:, :2]) for ring in polygon.interiors],
+        )
 
-    path = Path.make_compound_path(
-        Path(np.asarray(polygon.exterior.coords)[:, :2]),
-        *[Path(np.asarray(ring.coords)[:, :2]) for ring in polygon.interiors],
+
+def patch_from_polygon(polygon, facecolor=None, edgecolor=None, linewidth=None, **kwargs):
+    """
+    Gets a Matplotlib patch from a (Multi)Polygon.
+
+    Note: this function is experimental, and mainly targetting (interactive)
+    exploration, debugging and illustration purposes.
+
+    Parameters
+    ----------
+    polygon : shapely.Polygon or shapely.MultiPolygon
+    facecolor : matplotlib color specification
+        Color for the polygon fill.
+    edgecolor : matplotlib color specification
+        Color for the polygon boundary.
+    linewidth : float
+        The line width for the polygon boundary.
+    **kwargs
+        Additional keyword arguments passed to the matplotlib Patch.
+
+    Returns
+    -------
+    Matplotlib artist (PathPatch)
+    """
+    path = _path_from_polygon(polygon)
+    return PathPatch(
+        path, facecolor=facecolor, edgecolor=edgecolor, linewidth=linewidth, **kwargs
     )
-    return path
 
 
 def plot_polygon(
@@ -68,14 +102,11 @@ def plot_polygon(
 
     Returns
     -------
-    Matplotlib artist (PathPatch)
+    Matplotlib artist (PathPatch), if `add_points` is false.
+    A tuple of Matplotlib artists (PatchPatch, Line2D), if `add_points` is true.
     """
     if ax is None:
         ax = _default_ax()
-
-    from matplotlib import colors
-    from matplotlib.patches import PathPatch
-    from matplotlib.path import Path
 
     if color is None:
         color = "C0"
@@ -89,15 +120,7 @@ def plot_polygon(
     if edgecolor is None:
         edgecolor = color
 
-    if isinstance(polygon, shapely.MultiPolygon):
-        path = Path.make_compound_path(
-            *[_path_from_polygon(poly) for poly in polygon.geoms]
-        )
-    else:
-        path = _path_from_polygon(polygon)
-    patch = PathPatch(
-        path, facecolor=facecolor, edgecolor=edgecolor, linewidth=linewidth, **kwargs
-    )
+    patch = patch_from_polygon(polygon, facecolor, edgecolor, linewidth, **kwargs)
     ax.add_patch(patch)
     ax.autoscale_view()
 
@@ -136,9 +159,6 @@ def plot_line(line, ax=None, add_points=True, color=None, linewidth=2, **kwargs)
     """
     if ax is None:
         ax = _default_ax()
-
-    from matplotlib.patches import PathPatch
-    from matplotlib.path import Path
 
     if color is None:
         color = "C0"
