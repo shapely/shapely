@@ -6,11 +6,11 @@ exploration, debugging and illustration purposes.
 
 """
 
+import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib import colors
 from matplotlib.patches import PathPatch
 from matplotlib.path import Path
-import matplotlib.pyplot as plt
-import numpy as np
 
 import shapely
 
@@ -34,7 +34,7 @@ def _path_from_polygon(polygon):
         )
 
 
-def patch_from_polygon(polygon, facecolor=None, edgecolor=None, linewidth=None, **kwargs):
+def patch_from_polygon(polygon, **kwargs):
     """
     Gets a Matplotlib patch from a (Multi)Polygon.
 
@@ -44,12 +44,6 @@ def patch_from_polygon(polygon, facecolor=None, edgecolor=None, linewidth=None, 
     Parameters
     ----------
     polygon : shapely.Polygon or shapely.MultiPolygon
-    facecolor : matplotlib color specification
-        Color for the polygon fill.
-    edgecolor : matplotlib color specification
-        Color for the polygon boundary.
-    linewidth : float
-        The line width for the polygon boundary.
     **kwargs
         Additional keyword arguments passed to the matplotlib Patch.
 
@@ -57,10 +51,7 @@ def patch_from_polygon(polygon, facecolor=None, edgecolor=None, linewidth=None, 
     -------
     Matplotlib artist (PathPatch)
     """
-    path = _path_from_polygon(polygon)
-    return PathPatch(
-        path, facecolor=facecolor, edgecolor=edgecolor, linewidth=linewidth, **kwargs
-    )
+    return PathPatch(_path_from_polygon(polygon), **kwargs)
 
 
 def plot_polygon(
@@ -120,7 +111,9 @@ def plot_polygon(
     if edgecolor is None:
         edgecolor = color
 
-    patch = patch_from_polygon(polygon, facecolor, edgecolor, linewidth, **kwargs)
+    patch = patch_from_polygon(
+        polygon, facecolor=facecolor, edgecolor=edgecolor, linewidth=linewidth, **kwargs
+    )
     ax.add_patch(patch)
     ax.autoscale_view()
 
