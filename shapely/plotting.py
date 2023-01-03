@@ -103,7 +103,7 @@ def plot_polygon(
     Returns
     -------
     Matplotlib artist (PathPatch), if `add_points` is false.
-    A tuple of Matplotlib artists (PatchPatch, Line2D), if `add_points` is true.
+    A tuple of Matplotlib artists (PathPatch, Line2D), if `add_points` is true.
     """
     if ax is None:
         ax = _default_ax()
