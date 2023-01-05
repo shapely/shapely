@@ -900,74 +900,56 @@ def test_oriented_envelope_all_types(geometry):
     assert actual is None
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
-@pytest.mark.parametrize(
-    "geometry, expected",
-    [
-        (
-            MultiPoint([(0, 0), (10, 0), (10, 10)]),
-            Polygon([(0, 0), (5, -5), (15, 5), (10, 10), (0, 0)]),
-        ),
-        (
-            LineString([(1, 1), (5, 1), (10, 10)]),
-            Polygon([(1, 1), (3, -1), (12, 8), (10, 10), (1, 1)]),
-        ),
-        (
-            Polygon([(1, 1), (15, 1), (5, 10), (1, 1)]),
-            Polygon([(15, 1), (15, 10), (1, 10), (1, 1), (15, 1)]),
-        ),
-        (
-            LineString([(1, 1), (10, 1)]),
-            LineString([(1, 1), (10, 1)]),
-        ),
-        (
-            Point(2, 2),
-            Point(2, 2),
-        ),
-        (
-            GeometryCollection(),
-            Polygon(),
-        ),
-    ],
-)
-def test_oriented_envelope(geometry, expected):
-    actual = shapely.oriented_envelope(geometry)
-    assert shapely.equals(actual, expected).all()
+oriented_envelop_cases = [
+    (
+        MultiPoint([(0, 0), (10, 0), (10, 10)]),
+        Polygon([(0, 0), (5, -5), (15, 5), (10, 10), (0, 0)]),
+    ),
+    (
+        LineString([(1, 1), (5, 1), (10, 10)]),
+        Polygon([(1, 1), (3, -1), (12, 8), (10, 10), (1, 1)]),
+    ),
+    (
+        Polygon([(1, 1), (15, 1), (5, 10), (1, 1)]),
+        Polygon([(15, 1), (15, 10), (1, 10), (1, 1), (15, 1)]),
+    ),
+    (
+        LineString([(1, 1), (10, 1)]),
+        LineString([(1, 1), (10, 1)]),
+    ),
+    (
+        Point(2, 2),
+        Point(2, 2),
+    ),
+    (
+        GeometryCollection(),
+        Polygon(),
+    ),
+]
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
-@pytest.mark.parametrize(
-    "geometry, expected",
-    [
-        (
-            MultiPoint([(0, 0), (10, 0), (10, 10)]),
-            Polygon([(0, 0), (5, -5), (15, 5), (10, 10), (0, 0)]),
-        ),
-        (
-            LineString([(1, 1), (5, 1), (10, 10)]),
-            Polygon([(1, 1), (3, -1), (12, 8), (10, 10), (1, 1)]),
-        ),
-        (
-            Polygon([(1, 1), (15, 1), (5, 10), (1, 1)]),
-            Polygon([(15, 1), (15, 10), (1, 10), (1, 1), (15, 1)]),
-        ),
-        (
-            LineString([(1, 1), (10, 1)]),
-            LineString([(1, 1), (10, 1)]),
-        ),
-        (
-            Point(2, 2),
-            Point(2, 2),
-        ),
-        (
-            GeometryCollection(),
-            Polygon(),
-        ),
-    ],
-)
-def test_minimum_rotated_rectangle(geometry, expected):
-    actual = shapely.minimum_rotated_rectangle(geometry)
-    assert shapely.equals(actual, expected).all()
+@pytest.mark.parametrize("geometry, expected", oriented_envelop_cases)
+@pytest.mark.parametrize("method", [None, "geos"])
+def test_oriented_envelope(geometry, expected, method):
+    actual = shapely.oriented_envelope(geometry, method).normalize()
+    assert_geometries_equal(actual, expected, normalize=True)
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize("geometry, expected", oriented_envelop_cases)
+@pytest.mark.parametrize("method", [None, "geos"])
+def test_minimum_rotated_rectangle(geometry, expected, method):
+    actual = shapely.minimum_rotated_rectangle(geometry, method=method)
+    assert_geometries_equal(actual, expected, normalize=True)
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.parametrize("geometry", [Point(2, 2)])
+@pytest.mark.parametrize("method", ["unknown"])
+def test_oriented_envelope_unsupported_method(geometry, method):
+    with pytest.raises(ValueError, match=f"Unknown method {method}"):
+        shapely.oriented_envelope(geometry, method)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")

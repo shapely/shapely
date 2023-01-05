@@ -1,7 +1,10 @@
+from typing import Optional
+
 import numpy as np
 
 from shapely import lib
 from shapely._enum import ParamEnum
+from shapely.algorithms.oriented_envelope_custom import oriented_envelope_min_area
 from shapely.decorators import multithreading_enabled, requires_geos
 
 __all__ = [
@@ -91,7 +94,7 @@ def buffer(
     join_style="round",
     mitre_limit=5.0,
     single_sided=False,
-    **kwargs
+    **kwargs,
 ):
     """
     Computes the buffer of a geometry for positive and negative buffer distance.
@@ -186,7 +189,7 @@ def buffer(
         np.intc(join_style),
         mitre_limit,
         np.bool_(single_sided),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -253,7 +256,7 @@ def offset_curve(
         np.intc(quad_segs),
         np.intc(join_style),
         np.double(mitre_limit),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -334,7 +337,7 @@ def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
         np.double(ymin),
         np.double(xmax),
         np.double(ymax),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -1012,39 +1015,85 @@ def voronoi_polygons(
 
 @requires_geos("3.6.0")
 @multithreading_enabled
-def oriented_envelope(geometry, **kwargs):
+def oriented_envelope_geos(geometry, **kwargs):
     """
-    Computes the oriented envelope (minimum rotated rectangle)
-    that encloses an input geometry.
+    Computes the oriented envelope (minimum rotated rectangle) that encloses an input geometry.
+
+    Refer to `shapely.oriented_envelope` with `method=...` for full documentation.
+    """
+    return lib.oriented_envelope(geometry, **kwargs)
+
+
+def oriented_envelope(geometry, method: Optional[str] = None, **kwargs):
+    """
+    Computes the oriented envelope (minimum rotated rectangle) that encloses an input geometry.
 
     Unlike envelope this rectangle is not constrained to be parallel to the
     coordinate axes. If the convex hull of the object is a degenerate (line
     or point) this degenerate is returned.
 
+    Note: the results in the examples below are normalized to be consistent
+    between different implementations of this function.
+    The results are as valid also without normalization.
+
+    The default implementation is `shapely.oriented_envelope`.
+    For more details: https://github.com/shapely/shapely/issues/1670
+
     Parameters
     ----------
     geometry : Geometry or array_like
+    method: str, optional
+        Determinates which method to use, supported methods:
+            * None - returns the oriented envelope with the minimal area. Slower, default.
+            This gives the same results as in Shapely<2, and is slower than the GEOS implementation.
+            * "geos" - returns the oriented envelope using the GEOS implementation,
+            which currently calculates an oriented envelope with the minimumal diameter, faster.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Examples
     --------
-    >>> from shapely import GeometryCollection, LineString, MultiPoint, Point, Polygon
-    >>> oriented_envelope(MultiPoint([(0, 0), (10, 0), (10, 10)]))
-    <POLYGON ((0 0, 5 -5, 15 5, 10 10, 0 0))>
-    >>> oriented_envelope(LineString([(1, 1), (5, 1), (10, 10)]))
-    <POLYGON ((1 1, 3 -1, 12 8, 10 10, 1 1))>
-    >>> oriented_envelope(Polygon([(1, 1), (15, 1), (5, 10), (1, 1)]))
-    <POLYGON ((15 1, 15 10, 1 10, 1 1, 15 1))>
-    >>> oriented_envelope(LineString([(1, 1), (10, 1)]))
+    >>> from shapely import from_wkt, GeometryCollection, LineString, MultiPoint, Point, Polygon
+    >>> oriented_envelope(MultiPoint([(0, 0), (10, 0), (10, 10)])).normalize()
+    <POLYGON ((0 0, 10 10, 15 5, 5 -5, 0 0))>
+    >>> oriented_envelope(LineString([(1, 1), (5, 1), (10, 10)])).normalize()
+    <POLYGON ((1 1, 10 10, 12 8, 3 -1, 1 1))>
+    >>> oriented_envelope(Polygon([(1, 1), (15, 1), (5, 10), (1, 1)])).normalize()
+    <POLYGON ((1 1, 1 10, 15 10, 15 1, 1 1))>
+    >>> oriented_envelope(LineString([(1, 1), (10, 1)])).normalize()
     <LINESTRING (1 1, 10 1)>
     >>> oriented_envelope(Point(2, 2))
     <POINT (2 2)>
     >>> oriented_envelope(GeometryCollection([]))
     <POLYGON EMPTY>
+
+    An example that shows the difference between the methods: minimum area (default) and minimum diameter (geos)
+    Refer to hhttps://github.com/shapely/shapely/issues/1670 for more details.
+    >>> pts = from_wkt("MULTIPOINT (1 1, 1 5, 3 6, 4 2, 5 5)")
+    >>> oriented_envelope_minimum_area = oriented_envelope(pts, method="min_area")
+    >>> oriented_envelope_minimum_area
+    <POLYGON ((5 1, 5 6, 1 6, 1 1, 5 1))>
+    >>> oriented_envelope_minimum_area.area
+    20.0
+    >>> Point(1, 1).distance(Point(5, 1))
+    4.0
+
+    >>> oriented_envelope_minimum_diameter = oriented_envelope(pts, method=...)
+    >>> oriented_envelope_minimum_diameter
+    <POLYGON ((5.1 5.3, 1.5 6.5, -0.2 1.4, 3.4 0.2, 5.1 5.3))>
+    >>> oriented_envelope_minimum_diameter.area
+    20.400000000000006
+    >>> Point(-0.2, 1.4).distance(Point(3.4, 0.2))
+    3.794733192202055
     """
-    return lib.oriented_envelope(geometry, **kwargs)
+    if method is None or method == "min_area":
+        f = oriented_envelope_min_area
+    elif method == "geos":
+        f = oriented_envelope_geos
+    else:
+        raise ValueError(f"Unknown method {method}")
+    return f(geometry, **kwargs)
 
 
 minimum_rotated_rectangle = oriented_envelope
