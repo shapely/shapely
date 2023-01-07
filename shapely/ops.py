@@ -1,6 +1,6 @@
 """Support for various GEOS geometry operations
 """
-
+from typing import Callable, List, Optional, Tuple, Union
 from warnings import warn
 
 import shapely
@@ -11,11 +11,12 @@ from shapely.geometry import (
     LineString,
     MultiLineString,
     MultiPoint,
+    MultiPolygon,
     Point,
     Polygon,
     shape,
 )
-from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
+from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry, GeometrySequence
 from shapely.geometry.polygon import orient as orient_
 from shapely.prepared import prep
 
@@ -39,9 +40,20 @@ __all__ = [
     "substring",
 ]
 
+from shapely.shapely_typing import (
+    GeoJSONlikeDict,
+    GeometryArrayNLike,
+    LineStringsLikeSource,
+    MaybeArrayN,
+    MaybeArrayNLike,
+    MaybeGeometryArrayN,
+    MaybeGeometryArrayNLike,
+    Tuple4,
+)
+
 
 class CollectionOperator:
-    def shapeup(self, ob):
+    def shapeup(self, ob: Union[GeoJSONlikeDict, "BaseGeometry"]) -> "BaseGeometry":
         if isinstance(ob, BaseGeometry):
             return ob
         else:
@@ -50,12 +62,13 @@ class CollectionOperator:
             except (ValueError, AttributeError):
                 return LineString(ob)
 
-    def polygonize(self, lines):
-        """Creates polygons from a source of lines
+    def polygonize(self, lines: LineStringsLikeSource) -> "GeometrySequence":
+        """Creates polygons formed from the linework of a source of lines
 
+        This function calls ``shapely.polygonize()`` but accepts a different source:
         The source may be a MultiLineString, a sequence of LineString objects,
         or a sequence of objects than can be adapted to LineStrings.
-        """
+        Refer to `shapely.polygonize` for full documentation."""
         source = getattr(lines, "geoms", None) or lines
         try:
             source = iter(source)
@@ -66,21 +79,20 @@ class CollectionOperator:
         collection = shapely.polygonize(obs)
         return collection.geoms
 
-    def polygonize_full(self, lines):
-        """Creates polygons from a source of lines, returning the polygons
-        and leftover geometries.
+    def polygonize_full(
+        self, lines: LineStringsLikeSource
+    ) -> Tuple4[GeometryCollection]:
+        """Creates polygons formed from the linework of a set of Geometries and
+        return all extra leftover geometries as well.
 
+        This function calls ``shapely.polygonize_full()`` but accepts a different source:
         The source may be a MultiLineString, a sequence of LineString objects,
         or a sequence of objects than can be adapted to LineStrings.
 
         Returns a tuple of objects: (polygons, cut edges, dangles, invalid ring
         lines). Each are a geometry collection.
 
-        Dangles are edges which have one or both ends which are not incident on
-        another edge endpoint. Cut edges are connected at both ends but do not
-        form part of polygon. Invalid ring lines form rings which are invalid
-        (bowties, etc).
-        """
+        Refer to `shapely.polygonize_full` for full documentation."""
         source = getattr(lines, "geoms", None) or lines
         try:
             source = iter(source)
@@ -90,13 +102,19 @@ class CollectionOperator:
             obs = [self.shapeup(line) for line in source]
         return shapely.polygonize_full(obs)
 
-    def linemerge(self, lines, directed=False):
-        """Merges all connected lines from a source
+    def linemerge(
+        self,
+        lines: Union[BaseMultipartGeometry, GeometryArrayNLike, MultiLineString],
+        directed: bool = False,
+    ) -> Union["LineString", "MultiLineString", "GeometryCollection"]:
+        """Returns (Multi)LineStrings formed by combining all connected lines
+        from the source.
 
+        This function calls ``shapely.linemerge()`` but accepts a different source:
         The source may be a MultiLineString, a sequence of LineString objects,
-        or a sequence of objects than can be adapted to LineStrings.  Returns a
-        LineString or MultiLineString when lines are not contiguous.
-        """
+        or a sequence of objects than can be adapted to LineStrings.
+        Returns a LineString or MultiLineString when lines are not contiguous.
+        Refer to `shapely.linemerge` for full documentation."""
         source = None
         if getattr(lines, "geom_type", None) == "MultiLineString":
             source = lines
@@ -112,7 +130,7 @@ class CollectionOperator:
             raise ValueError(f"Cannot linemerge {lines}")
         return shapely.line_merge(source, directed=directed)
 
-    def cascaded_union(self, geoms):
+    def cascaded_union(self, geoms: GeometryArrayNLike) -> BaseGeometry:
         """Returns the union of a sequence of geometries
 
         .. deprecated:: 1.8
@@ -126,12 +144,10 @@ class CollectionOperator:
         )
         return shapely.union_all(geoms, axis=None)
 
-    def unary_union(self, geoms):
+    def unary_union(self, geoms: GeometryArrayNLike) -> BaseGeometry:
         """Returns the union of a sequence of geometries
 
-        Usually used to convert a collection into the smallest set of polygons
-        that cover the same area.
-        """
+        Refer to `shapely.union_all` for full documentation."""
         return shapely.union_all(geoms, axis=None)
 
 
@@ -143,66 +159,31 @@ cascaded_union = operator.cascaded_union
 unary_union = operator.unary_union
 
 
-def triangulate(geom, tolerance=0.0, edges=False):
-    """Creates the Delaunay triangulation and returns a list of geometries
+def triangulate(
+    geom: BaseGeometry, tolerance: float = 0.0, edges: bool = False
+) -> List[BaseGeometry]:
+    """Computes a Delaunay triangulation around the vertices of an input
+    geometry.
 
-    The source may be any geometry type. All vertices of the geometry will be
-    used as the points of the triangulation.
-
-    From the GEOS documentation:
-    tolerance is the snapping tolerance used to improve the robustness of
-    the triangulation computation. A tolerance of 0.0 specifies that no
-    snapping will take place.
-
-    If edges is False, a list of Polygons (triangles) will be returned.
-    Otherwise the list of LineString edges is returned.
-
+    This function calls `shapely.delaunay_triangles()` and returns a list of geometries,
+    instead of a GeometryCollection.
+    Refer to `shapely.delaunay_triangles` for full documentation.
     """
     collection = shapely.delaunay_triangles(geom, tolerance=tolerance, only_edges=edges)
     return [g for g in collection.geoms]
 
 
-def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
-    """
-    Constructs a Voronoi Diagram [1] from the given geometry.
-    Returns a list of geometries.
+def voronoi_diagram(
+    geom: BaseGeometry,
+    envelope: Optional[BaseGeometry] = None,
+    tolerance: float = 0.0,
+    edges: bool = False,
+) -> GeometryCollection:
+    """Computes a Voronoi diagram [1] from the vertices of an input geometry.
 
-    Parameters
-    ----------
-    geom: geometry
-        the input geometry whose vertices will be used to calculate
-        the final diagram.
-    envelope: geometry, None
-        clipping envelope for the returned diagram, automatically
-        determined if None. The diagram will be clipped to the larger
-        of this envelope or an envelope surrounding the sites.
-    tolerance: float, 0.0
-        sets the snapping tolerance used to improve the robustness
-        of the computation. A tolerance of 0.0 specifies that no
-        snapping will take place.
-    edges: bool, False
-        If False, return regions as polygons. Else, return only
-        edges e.g. LineStrings.
-
-    GEOS documentation can be found at [2]
-
-    Returns
-    -------
-    GeometryCollection
-        geometries representing the Voronoi regions.
-
-    Notes
-    -----
-    The tolerance `argument` can be finicky and is known to cause the
-    algorithm to fail in several cases. If you're using `tolerance`
-    and getting a failure, try removing it. The test cases in
-    tests/test_voronoi_diagram.py show more details.
-
-
-    References
-    ----------
-    [1] https://en.wikipedia.org/wiki/Voronoi_diagram
-    [2] https://geos.osgeo.org/doxygen/geos__c_8h_source.html  (line 730)
+    This function calls `shapely.voronoi_polygons()`
+    and forces the output to be a GeometryCollection.
+    Refer to `shapely.voronoi_polygons` for full documentation.
     """
     try:
         result = shapely.voronoi_polygons(
@@ -220,11 +201,11 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
     return result
 
 
-def validate(geom):
+def validate(geom: MaybeGeometryArrayNLike) -> MaybeArrayN[bool]:
     return shapely.is_valid_reason(geom)
 
 
-def transform(func, geom):
+def transform(func: Callable, geom: BaseGeometry) -> BaseGeometry:
     """Applies `func` to all coordinates of `geom` and returns a new
     geometry of the same type from the transformed coordinates.
 
@@ -299,7 +280,7 @@ def transform(func, geom):
         raise GeometryTypeError(f"Type {geom.geom_type!r} not recognized")
 
 
-def nearest_points(g1, g2):
+def nearest_points(g1: BaseGeometry, g2: BaseGeometry) -> Tuple[Point, Point]:
     """Returns the calculated nearest points in the input geometries
 
     The points are returned in the same order as the input geometries.
@@ -316,31 +297,24 @@ def nearest_points(g1, g2):
     return (p1, p2)
 
 
-def snap(g1, g2, tolerance):
+def snap(
+    g1: MaybeGeometryArrayNLike,
+    g2: MaybeGeometryArrayNLike,
+    tolerance: MaybeArrayNLike[float],
+) -> MaybeGeometryArrayN:
     """
     Snaps an input geometry (g1) to reference (g2) geometry's vertices.
 
-    For full details, see documentation of: shapely.snap()
+    Refer to `shapely.snap` for full documentation.
     """
 
     return shapely.snap(g1, g2, tolerance)
 
 
-def shared_paths(g1, g2):
-    """Find paths shared between the two given lineal geometries
+def shared_paths(g1: "LineString", g2: "LineString") -> "GeometryCollection":
+    """Returns the shared paths between the two given LineString geometries.
 
-    Returns a GeometryCollection with two elements:
-     - First element is a MultiLineString containing shared paths with the
-       same direction for both inputs.
-     - Second element is a MultiLineString containing shared paths with the
-       opposite direction for the two inputs.
-
-    Parameters
-    ----------
-    g1 : geometry
-        The first geometry
-    g2 : geometry
-        The second geometry
+    Refer to `shapely.shared_paths` for full documentation.
     """
     if not isinstance(g1, LineString):
         raise GeometryTypeError("First geometry must be a LineString")
@@ -351,7 +325,9 @@ def shared_paths(g1, g2):
 
 class SplitOp:
     @staticmethod
-    def _split_polygon_with_line(poly, splitter):
+    def _split_polygon_with_line(
+        poly: Polygon, splitter: LineString
+    ) -> List["BaseGeometry"]:
         """Split a Polygon with a LineString"""
         if not isinstance(poly, Polygon):
             raise GeometryTypeError("First argument must be a Polygon")
@@ -373,10 +349,12 @@ class SplitOp:
         ]
 
     @staticmethod
-    def _split_line_with_line(line, splitter):
+    def _split_line_with_line(
+        line: LineString, splitter: Union[Polygon, MultiPolygon]
+    ) -> Union[MultiLineString, List[LineString]]:
         """Split a LineString with another (Multi)LineString or (Multi)Polygon"""
 
-        # if splitter is a polygon, pick it's boundary
+        # if splitter is a polygon, pick its boundary
         if splitter.geom_type in ("Polygon", "MultiPolygon"):
             splitter = splitter.boundary
 
@@ -406,7 +384,7 @@ class SplitOp:
             return [line]
 
     @staticmethod
-    def _split_line_with_point(line, splitter):
+    def _split_line_with_point(line: LineString, splitter: Point) -> List[LineString]:
         """Split a LineString with a Point"""
         if not isinstance(line, LineString):
             raise GeometryTypeError("First argument must be a LineString")
@@ -448,7 +426,9 @@ class SplitOp:
         return [line]
 
     @staticmethod
-    def _split_line_with_multipoint(line, splitter):
+    def _split_line_with_multipoint(
+        line: LineString, splitter: MultiPoint
+    ) -> List[LineString]:
         """Split a LineString with a MultiPoint"""
 
         if not isinstance(line, LineString):
@@ -467,7 +447,17 @@ class SplitOp:
         return chunks
 
     @staticmethod
-    def split(geom, splitter):
+    def split(
+        geom: Union["MultiLineString", "MultiPolygon", "LineString", "Polygon"],
+        splitter: Union[
+            "LineString",
+            "MultiLineString",
+            "Polygon",
+            "MultiPolygon",
+            "Point",
+            "MultiPoint",
+        ],
+    ) -> GeometryCollection:
         """
         Splits a geometry by another geometry and returns a collection of geometries. This function is the theoretical
         opposite of the union of the split geometry parts. If the splitter does not split the geometry, a collection
@@ -538,7 +528,9 @@ class SplitOp:
 split = SplitOp.split
 
 
-def substring(geom, start_dist, end_dist, normalized=False):
+def substring(
+    geom: LineString, start_dist: float, end_dist: float, normalized: bool = False
+) -> Union[Point, LineString]:
     """Return a line segment between specified distances along a LineString
 
     Negative distance values are taken as measured in the reverse
@@ -665,37 +657,19 @@ def substring(geom, start_dist, end_dist, normalized=False):
     return LineString(vertex_list)
 
 
-def clip_by_rect(geom, xmin, ymin, xmax, ymax):
+def clip_by_rect(
+    geom: BaseGeometry, xmin: float, ymin: float, xmax: float, ymax: float
+) -> BaseGeometry:
     """Returns the portion of a geometry within a rectangle
 
-    The geometry is clipped in a fast but possibly dirty way. The output is
-    not guaranteed to be valid. No exceptions will be raised for topological
-    errors.
-
-    Parameters
-    ----------
-    geom : geometry
-        The geometry to be clipped
-    xmin : float
-        Minimum x value of the rectangle
-    ymin : float
-        Minimum y value of the rectangle
-    xmax : float
-        Maximum x value of the rectangle
-    ymax : float
-        Maximum y value of the rectangle
-
-    Notes
-    -----
-    Requires GEOS >= 3.5.0
-    New in 1.7.
+    Refer to `shapely.clip_by_rect` for full documentation.
     """
     if geom.is_empty:
         return geom
     return shapely.clip_by_rect(geom, xmin, ymin, xmax, ymax)
 
 
-def orient(geom, sign=1.0):
+def orient(geom: BaseGeometry, sign: float = 1.0) -> BaseGeometry:
     """A properly oriented copy of the given geometry.
 
     The signed area of the result will have the given sign. A sign of

@@ -1,4 +1,4 @@
-from typing import Any, Iterable, Union
+from typing import Iterable, Optional, Tuple, Union
 
 import numpy as np
 
@@ -9,6 +9,8 @@ from .geometry.base import BaseGeometry
 from .predicates import is_empty, is_missing
 
 __all__ = ["STRtree"]
+
+from .shapely_typing import MaybeArrayN, MaybeArrayNLike, MaybeGeometryArrayNLike
 
 
 class BinaryPredicate(ParamEnum):
@@ -103,7 +105,12 @@ class STRtree:
         """
         return self._geometries
 
-    def query(self, geometry, predicate=None, distance=None):
+    def query(
+        self,
+        geometry: MaybeGeometryArrayNLike,
+        predicate: Optional[str] = None,
+        distance: Optional[MaybeArrayNLike[float]] = None,
+    ):
         """
         Return the integer indices of all combinations of each input geometry
         and tree geometries where the bounding box of each input geometry
@@ -134,7 +141,7 @@ class STRtree:
 
         Parameters
         ----------
-        geometry : Geometry or array_like
+        geometry: MaybeGeometryArrayNLike
             Input geometries to query the tree and filter results using the
             optional predicate.
         predicate : {None, 'intersects', 'within', 'contains', 'overlaps', 'crosses',\
@@ -270,7 +277,7 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
         return indices[1] if is_scalar else indices
 
     @requires_geos("3.6.0")
-    def nearest(self, geometry) -> Union[Any, None]:
+    def nearest(self, geometry: MaybeGeometryArrayNLike) -> MaybeArrayN[float]:
         """
         Return the index of the nearest geometry in the tree for each input
         geometry based on distance within two-dimensional Cartesian space.
@@ -288,7 +295,7 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
 
         Parameters
         ----------
-        geometry : Geometry or array_like
+        geometry: MaybeGeometryArrayNLike
             Input geometries to query the tree.
 
         Returns
@@ -353,12 +360,12 @@ and optional distances
     @requires_geos("3.6.0")
     def query_nearest(
         self,
-        geometry,
-        max_distance=None,
-        return_distance=False,
-        exclusive=False,
-        all_matches=True,
-    ):
+        geometry: MaybeGeometryArrayNLike,
+        max_distance: Optional[float] = None,
+        return_distance: bool = False,
+        exclusive: bool = False,
+        all_matches: bool = True,
+    ) -> Union[MaybeArrayN[int], Tuple[MaybeArrayN[int], MaybeArrayN[float]]]:
         """Return the index of the nearest geometries in the tree for each input
         geometry based on distance within two-dimensional Cartesian space.
 
@@ -388,7 +395,7 @@ and optional distances
 
         Parameters
         ----------
-        geometry : Geometry or array_like
+        geometry: MaybeGeometryArrayNLike
             Input geometries to query the tree.
         max_distance : float, optional
             Maximum distance within which to query for nearest items in tree.

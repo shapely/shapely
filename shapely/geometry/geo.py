@@ -1,17 +1,22 @@
 """
 Geometry factories based on the geo interface
 """
+from typing import TYPE_CHECKING
+
 import numpy as np
 
 from shapely.errors import GeometryTypeError
+from shapely.geometry.collection import GeometryCollection
+from shapely.geometry.linestring import LineString
+from shapely.geometry.multilinestring import MultiLineString
+from shapely.geometry.multipoint import MultiPoint
+from shapely.geometry.multipolygon import MultiPolygon
+from shapely.geometry.point import Point
+from shapely.geometry.polygon import LinearRing, Polygon
+from shapely.shapely_typing import GeoJSONlikeDict
 
-from .collection import GeometryCollection
-from .linestring import LineString
-from .multilinestring import MultiLineString
-from .multipoint import MultiPoint
-from .multipolygon import MultiPolygon
-from .point import Point
-from .polygon import LinearRing, Polygon
+if TYPE_CHECKING:
+    from shapely import BaseGeometry
 
 
 def _is_coordinates_empty(coordinates):
@@ -54,7 +59,7 @@ def box(minx, miny, maxx, maxy, ccw=True):
     return Polygon(coords)
 
 
-def shape(context):
+def shape(context: GeoJSONlikeDict) -> "BaseGeometry":
     """
     Returns a new, independent geometry with coordinates *copied* from the
     context. Changes to the original context will not be reflected in the
@@ -113,7 +118,7 @@ def shape(context):
         raise GeometryTypeError(f"Unknown geometry type: {geom_type!r}")
 
 
-def mapping(ob):
+def mapping(ob: "BaseGeometry") -> GeoJSONlikeDict:
     """
     Returns a GeoJSON-like mapping from a Geometry or any
     object which implements __geo_interface__

@@ -25,22 +25,22 @@ class Cell:
         self.max_distance = self.distance + h * 1.4142135623730951  # sqrt(2)
 
     # rich comparison operators for sorting in minimum priority queue
-    def __lt__(self, other):
+    def __lt__(self, other: "Cell"):
         return self.max_distance > other.max_distance
 
-    def __le__(self, other):
+    def __le__(self, other: "Cell"):
         return self.max_distance >= other.max_distance
 
-    def __eq__(self, other):
+    def __eq__(self, other: "Cell"):
         return self.max_distance == other.max_distance
 
-    def __ne__(self, other):
+    def __ne__(self, other: "Cell"):
         return self.max_distance != other.max_distance
 
-    def __gt__(self, other):
+    def __gt__(self, other: "Cell"):
         return self.max_distance < other.max_distance
 
-    def __ge__(self, other):
+    def __ge__(self, other: "Cell"):
         return self.max_distance <= other.max_distance
 
     def _dist(self, polygon):

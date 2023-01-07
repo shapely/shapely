@@ -1,6 +1,7 @@
 """Affine transforms, both in general and specific, named transforms."""
 
 from math import cos, pi, sin, tan
+from typing import TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -8,8 +9,15 @@ import shapely
 
 __all__ = ["affine_transform", "rotate", "scale", "skew", "translate"]
 
+from shapely.shapely_typing import NumpyArrayNLike, Tuple2or3Floats
 
-def affine_transform(geom, matrix):
+if TYPE_CHECKING:
+    from shapely import BaseGeometry
+
+
+def affine_transform(
+    geom: "BaseGeometry", matrix: NumpyArrayNLike[float]
+) -> "BaseGeometry":
     r"""Return a transformed geometry using an affine transformation matrix.
 
     The coefficient matrix is provided as a list or tuple with 6 or 12 items
@@ -74,7 +82,12 @@ def affine_transform(geom, matrix):
     return shapely.transform(geom, _affine_coords, include_z=ndim == 3)
 
 
-def interpret_origin(geom, origin, ndim):
+OriginLike = Union[Tuple2or3Floats, str]
+
+
+def interpret_origin(
+    geom: "BaseGeometry", origin: OriginLike, ndim: int
+) -> Tuple2or3Floats:
     """Returns interpreted coordinate tuple for origin parameter.
 
     This is a helper function for other transform functions.
@@ -107,7 +120,12 @@ def interpret_origin(geom, origin, ndim):
             return origin
 
 
-def rotate(geom, angle, origin="center", use_radians=False):
+def rotate(
+    geom: "BaseGeometry",
+    angle: float,
+    origin: OriginLike = "center",
+    use_radians: bool = False,
+) -> "BaseGeometry":
     r"""Returns a rotated geometry on a 2D plane.
 
     The angle of rotation can be specified in either degrees (default) or
@@ -150,7 +168,13 @@ def rotate(geom, angle, origin="center", use_radians=False):
     return affine_transform(geom, matrix)
 
 
-def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin="center"):
+def scale(
+    geom: "BaseGeometry",
+    xfact: float = 1.0,
+    yfact: float = 1.0,
+    zfact: float = 1.0,
+    origin: OriginLike = "center",
+) -> "BaseGeometry":
     r"""Returns a scaled geometry, scaled by factors along each dimension.
 
     The point of origin can be a keyword 'center' for the 2D bounding box
@@ -185,7 +209,13 @@ def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin="center"):
     return affine_transform(geom, matrix)
 
 
-def skew(geom, xs=0.0, ys=0.0, origin="center", use_radians=False):
+def skew(
+    geom: "BaseGeometry",
+    xs: float = 0.0,
+    ys: float = 0.0,
+    origin: OriginLike = "center",
+    use_radians: bool = False,
+) -> "BaseGeometry":
     r"""Returns a skewed geometry, sheared by angles along x and y dimensions.
 
     The shear angle can be specified in either degrees (default) or radians
@@ -228,7 +258,9 @@ def skew(geom, xs=0.0, ys=0.0, origin="center", use_radians=False):
     return affine_transform(geom, matrix)
 
 
-def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
+def translate(
+    geom: "BaseGeometry", xoff: float = 0.0, yoff: float = 0.0, zoff: float = 0.0
+) -> "BaseGeometry":
     r"""Returns a translated geometry shifted by offsets along each dimension.
 
     The general 3D affine transformation matrix for translation is:

@@ -6,8 +6,18 @@ import shapely
 
 __all__ = ["assert_geometries_equal"]
 
+from shapely.shapely_typing import (
+    GeometryArrayN,
+    MaybeArrayNLike,
+    MaybeGeometryArrayNLike,
+)
 
-def _equals_exact_with_ndim(x, y, tolerance):
+
+def _equals_exact_with_ndim(
+    x: MaybeGeometryArrayNLike,
+    y: MaybeGeometryArrayNLike,
+    tolerance: MaybeArrayNLike[float],
+):
     dimension_equals = shapely.get_coordinate_dimension(
         x
     ) == shapely.get_coordinate_dimension(y)
@@ -21,7 +31,13 @@ def _replace_nan(arr):
     return np.where(np.isnan(arr), 0.0, arr)
 
 
-def _assert_nan_coords_same(x, y, tolerance, err_msg, verbose):
+def _assert_nan_coords_same(
+    x: MaybeGeometryArrayNLike,
+    y: MaybeGeometryArrayNLike,
+    tolerance: MaybeArrayNLike[float],
+    err_msg: str,
+    verbose: bool,
+):
     x, y = np.broadcast_arrays(x, y)
     x_coords = shapely.get_coordinates(x, include_z=True)
     y_coords = shapely.get_coordinates(y, include_z=True)
@@ -48,7 +64,9 @@ def _assert_nan_coords_same(x, y, tolerance, err_msg, verbose):
     return _equals_exact_with_ndim(x_no_nan, y_no_nan, tolerance=tolerance)
 
 
-def _assert_none_same(x, y, err_msg, verbose):
+def _assert_none_same(
+    x: GeometryArrayN, y: GeometryArrayN, err_msg: str, verbose: bool
+):
     x_id = shapely.is_missing(x)
     y_id = shapely.is_missing(y)
 
@@ -71,14 +89,14 @@ def _assert_none_same(x, y, err_msg, verbose):
 
 
 def assert_geometries_equal(
-    x,
-    y,
-    tolerance=1e-7,
-    equal_none=True,
-    equal_nan=True,
-    normalize=False,
-    err_msg="",
-    verbose=True,
+    x: MaybeGeometryArrayNLike,
+    y: MaybeGeometryArrayNLike,
+    tolerance: MaybeArrayNLike[float] = 1e-7,
+    equal_none: bool = True,
+    equal_nan: bool = True,
+    normalize: bool = False,
+    err_msg: str = "",
+    verbose: bool = True,
 ):
     """Raises an AssertionError if two geometry array_like objects are not equal.
 

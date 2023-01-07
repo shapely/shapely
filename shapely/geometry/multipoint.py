@@ -1,5 +1,6 @@
 """Collections of points and related utilities
 """
+from typing import Any, Dict, Optional
 
 import shapely
 from shapely.errors import EmptyPartError
@@ -7,6 +8,8 @@ from shapely.geometry import point
 from shapely.geometry.base import BaseMultipartGeometry
 
 __all__ = ["MultiPoint"]
+
+from shapely.shapely_typing import MultiPointLike
 
 
 class MultiPoint(BaseMultipartGeometry):
@@ -40,7 +43,7 @@ class MultiPoint(BaseMultipartGeometry):
 
     __slots__ = []
 
-    def __new__(self, points=None):
+    def __new__(cls, points: Optional[MultiPointLike] = None):
         if points is None:
             # allow creation of empty multipoints, to support unpickling
             # TODO better empty constructor
@@ -62,13 +65,18 @@ class MultiPoint(BaseMultipartGeometry):
         return shapely.multipoints(subs)
 
     @property
-    def __geo_interface__(self):
+    def __geo_interface__(self) -> Dict[str, Any]:
         return {
             "type": "MultiPoint",
             "coordinates": tuple(g.coords[0] for g in self.geoms),
         }
 
-    def svg(self, scale_factor=1.0, fill_color=None, opacity=None):
+    def svg(
+        self,
+        scale_factor: float = 1.0,
+        fill_color: Optional[str] = None,
+        opacity: Optional[float] = None,
+    ):
         """Returns a group of SVG circle elements for the MultiPoint geometry.
 
         Parameters
@@ -78,7 +86,7 @@ class MultiPoint(BaseMultipartGeometry):
         fill_color : str, optional
             Hex string for fill color. Default is to use "#66cc99" if
             geometry is valid, and "#ff3333" if invalid.
-        opacity : float
+        opacity : float, optional
             Float number between 0 and 1 for color opacity. Default value is 0.6
         """
         if self.is_empty:

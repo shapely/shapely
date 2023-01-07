@@ -2,6 +2,8 @@
 """
 from array import array
 
+from shapely.shapely_typing import NumpyArrayN2orN3, XYArrayTuple
+
 
 class CoordinateSequence:
     """
@@ -17,7 +19,7 @@ class CoordinateSequence:
 
     """
 
-    def __init__(self, coords):
+    def __init__(self, coords: NumpyArrayN2orN3):
         self._coords = coords
 
     def __len__(self):
@@ -50,7 +52,7 @@ class CoordinateSequence:
         return self._coords
 
     @property
-    def xy(self):
+    def xy(self) -> XYArrayTuple:
         """X and Y arrays"""
         m = self.__len__()
         x = array("d")

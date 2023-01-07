@@ -1,4 +1,5 @@
 import warnings
+from typing import Optional, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -17,14 +18,27 @@ __all__ = [
     "minimum_bounding_radius",
 ]
 
+from shapely.shapely_typing import (
+    MaybeArrayN,
+    MaybeArrayN4,
+    MaybeArrayNLike,
+    MaybeGeometryArrayNLike,
+    NumpyArray4,
+)
+
+if TYPE_CHECKING:
+    from shapely import LineString, MultiLineString, MultiPolygon, Polygon
+
 
 @multithreading_enabled
-def area(geometry, **kwargs):
-    """Computes the area of a (multi)polygon.
+def area(
+    geometry: MaybeArrayNLike[Union["Polygon", "MultiPolygon"]], **kwargs
+) -> MaybeArrayN[float]:
+    """Computes the unitless area of a (multi)polygon.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeArrayNLike[Union["Polygon", "MultiPolygon"]]
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -46,12 +60,14 @@ def area(geometry, **kwargs):
 
 
 @multithreading_enabled
-def distance(a, b, **kwargs):
-    """Computes the Cartesian distance between two geometries.
+def distance(
+    a: MaybeGeometryArrayNLike, b: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeArrayN[float]:
+    """Computes the Unitless Cartesian distance between two geometries.
 
     Parameters
     ----------
-    a, b : Geometry or array_like
+    a, b : MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -75,17 +91,22 @@ def distance(a, b, **kwargs):
 
 
 @multithreading_enabled
-def bounds(geometry, **kwargs):
+def bounds(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeArrayN4[np.float64]:
     """Computes the bounds (extent) of a geometry.
-
-    For each geometry these 4 numbers are returned: min x, min y, max x, max y.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    Returns
+    -------
+    numpy array
+        For each geometry these 4 numbers are returned: [xmin, ymin, xmax, ymax]
+        For single geoemtry - Returned array shape is: 4
+        For n geometry-array - Returned array shape is: (n,4)
 
     Examples
     --------
@@ -106,19 +127,22 @@ def bounds(geometry, **kwargs):
     return lib.bounds(geometry_arr, out=out, **kwargs)
 
 
-def total_bounds(geometry, **kwargs):
+def total_bounds(
+    geometry: MaybeGeometryArrayNLike, **kwargs
+) -> NumpyArray4[np.float64]:
     """Computes the total bounds (extent) of the geometry.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Returns
     -------
-    numpy ndarray of [xmin, ymin, xmax, ymax]
+    numpy ndarray
+        Holding these 4 numbers: [xmin, ymin, xmax, ymax]
 
     Examples
     --------
@@ -157,12 +181,17 @@ def total_bounds(geometry, **kwargs):
 
 
 @multithreading_enabled
-def length(geometry, **kwargs):
-    """Computes the length of a (multi)linestring or polygon perimeter.
+def length(
+    geometry: MaybeArrayNLike[
+        Union["LineString", "MultiLineString", "Polygon", "MultiPolygon"]
+    ],
+    **kwargs
+) -> MaybeArrayN[float]:
+    """Computes the Unitless length of a (multi)linestring or (multi)polygon perimeter.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeArrayNLike[Union["LineString", "MultiLineString", "Polygon", "MultiPolygon"]
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -188,8 +217,13 @@ def length(geometry, **kwargs):
 
 
 @multithreading_enabled
-def hausdorff_distance(a, b, densify=None, **kwargs):
-    """Compute the discrete Hausdorff distance between two geometries.
+def hausdorff_distance(
+    a: MaybeGeometryArrayNLike,
+    b: MaybeGeometryArrayNLike,
+    densify: Optional[MaybeArrayNLike[float]] = None,
+    **kwargs
+) -> MaybeArrayN[float]:
+    """Compute the Unitless discrete Hausdorff distance between two geometries.
 
     The Hausdorff distance is a measure of similarity: it is the greatest
     distance between any point in A and the closest point in B. The discrete
@@ -199,8 +233,8 @@ def hausdorff_distance(a, b, densify=None, **kwargs):
 
     Parameters
     ----------
-    a, b : Geometry or array_like
-    densify : float or array_like, optional
+    a, b : MaybeGeometryArrayNLike
+    densify : Optional[MaybeArrayNLike[float]]
         The value of densify is required to be between 0 and 1.
     **kwargs
         For other keyword-only arguments, see the
@@ -228,7 +262,12 @@ def hausdorff_distance(a, b, densify=None, **kwargs):
 
 @requires_geos("3.7.0")
 @multithreading_enabled
-def frechet_distance(a, b, densify=None, **kwargs):
+def frechet_distance(
+    a: MaybeGeometryArrayNLike,
+    b: MaybeGeometryArrayNLike,
+    densify: Optional[MaybeArrayNLike[float]] = None,
+    **kwargs
+) -> MaybeArrayN[float]:
     """Compute the discrete Fréchet distance between two geometries.
 
     The Fréchet distance is a measure of similarity: it is the greatest
@@ -243,8 +282,8 @@ def frechet_distance(a, b, densify=None, **kwargs):
 
     Parameters
     ----------
-    a, b : Geometry or array_like
-    densify : float or array_like, optional
+    a, b : MaybeGeometryArrayNLike
+    densify : Optional[MaybeArrayNLike[float]]
         The value of densify is required to be between 0 and 1.
     **kwargs
         For other keyword-only arguments, see the
@@ -271,8 +310,10 @@ def frechet_distance(a, b, densify=None, **kwargs):
 
 @requires_geos("3.6.0")
 @multithreading_enabled
-def minimum_clearance(geometry, **kwargs):
-    """Computes the Minimum Clearance distance.
+def minimum_clearance(
+    geometry: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeArrayN[float]:
+    """Computes the Unitless Minimum Clearance distance.
 
     A geometry's "minimum clearance" is the smallest distance by which
     a vertex of the geometry could be moved to produce an invalid geometry.
@@ -282,7 +323,7 @@ def minimum_clearance(geometry, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -303,12 +344,14 @@ def minimum_clearance(geometry, **kwargs):
 
 @requires_geos("3.8.0")
 @multithreading_enabled
-def minimum_bounding_radius(geometry, **kwargs):
+def minimum_bounding_radius(
+    geometry: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeArrayN[float]:
     """Computes the radius of the minimum bounding circle that encloses an input geometry.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.

@@ -1,5 +1,6 @@
 """Collections of linestrings and related utilities
 """
+from typing import Optional
 
 import shapely
 from shapely.errors import EmptyPartError
@@ -7,6 +8,8 @@ from shapely.geometry import linestring
 from shapely.geometry.base import BaseMultipartGeometry
 
 __all__ = ["MultiLineString"]
+
+from shapely.shapely_typing import MultiLineStringLike
 
 
 class MultiLineString(BaseMultipartGeometry):
@@ -35,7 +38,7 @@ class MultiLineString(BaseMultipartGeometry):
 
     __slots__ = []
 
-    def __new__(self, lines=None):
+    def __new__(cls, lines: Optional[MultiLineStringLike] = None):
         if not lines:
             # allow creation of empty multilinestrings, to support unpickling
             # TODO better empty constructor
@@ -66,7 +69,12 @@ class MultiLineString(BaseMultipartGeometry):
             "coordinates": tuple(tuple(c for c in g.coords) for g in self.geoms),
         }
 
-    def svg(self, scale_factor=1.0, stroke_color=None, opacity=None):
+    def svg(
+        self,
+        scale_factor: float = 1.0,
+        stroke_color: Optional[str] = None,
+        opacity: Optional[float] = None,
+    ):
         """Returns a group of SVG polyline elements for the LineString geometry.
 
         Parameters
@@ -76,7 +84,7 @@ class MultiLineString(BaseMultipartGeometry):
         stroke_color : str, optional
             Hex string for stroke color. Default is to use "#66cc99" if
             geometry is valid, and "#ff3333" if invalid.
-        opacity : float
+        opacity : float, optional
             Float number between 0 and 1 for color opacity. Default value is 0.8
         """
         if self.is_empty:

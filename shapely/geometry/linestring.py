@@ -1,12 +1,17 @@
 """Line strings and related utilities
 """
+from typing import Optional, Union
+
 import numpy as np
 
 import shapely
+from shapely import BufferJoinStyle
 from shapely.geometry.base import BaseGeometry, JOIN_STYLE
 from shapely.geometry.point import Point
 
 __all__ = ["LineString"]
+
+from shapely.shapely_typing import LineStringLike, XYArrayTuple
 
 
 class LineString(BaseGeometry):
@@ -35,7 +40,7 @@ class LineString(BaseGeometry):
 
     __slots__ = []
 
-    def __new__(self, coordinates=None):
+    def __new__(cls, coordinates: Optional[LineStringLike] = None):
         if coordinates is None:
             # empty geometry
             # TODO better constructor
@@ -79,7 +84,12 @@ class LineString(BaseGeometry):
     def __geo_interface__(self):
         return {"type": "LineString", "coordinates": tuple(self.coords)}
 
-    def svg(self, scale_factor=1.0, stroke_color=None, opacity=None):
+    def svg(
+        self,
+        scale_factor: float = 1.0,
+        stroke_color: Optional[str] = None,
+        opacity: Optional[float] = None,
+    ):
         """Returns SVG polyline element for the LineString geometry.
 
         Parameters
@@ -89,7 +99,7 @@ class LineString(BaseGeometry):
         stroke_color : str, optional
             Hex string for stroke color. Default is to use "#66cc99" if
             geometry is valid, and "#ff3333" if invalid.
-        opacity : float
+        opacity : float, optional
             Float number between 0 and 1 for color opacity. Default value is 0.8
         """
         if self.is_empty:
@@ -105,7 +115,7 @@ class LineString(BaseGeometry):
         ).format(pnt_format, 2.0 * scale_factor, stroke_color, opacity)
 
     @property
-    def xy(self):
+    def xy(self) -> XYArrayTuple:
         """Separate arrays of X and Y coordinate values
 
         Example:
@@ -120,38 +130,15 @@ class LineString(BaseGeometry):
 
     def offset_curve(
         self,
-        distance,
-        quad_segs=16,
-        join_style=JOIN_STYLE.round,
-        mitre_limit=5.0,
+        distance: float,
+        quad_segs: int = 16,
+        join_style: Union[BufferJoinStyle, str] = JOIN_STYLE.round,
+        mitre_limit: float = 5.0,
     ):
-        """Returns a LineString or MultiLineString geometry at a distance from
-        the object on its right or its left side.
+        """Returns a (Multi)LineString at a distance from the object
+        on its right or its left side.
 
-        The side is determined by the sign of the `distance` parameter
-        (negative for right side offset, positive for left side offset). The
-        resolution of the buffer around each vertex of the object increases
-        by increasing the `quad_segs` keyword parameter.
-
-        The join style is for outside corners between line segments. Accepted
-        values are JOIN_STYLE.round (1), JOIN_STYLE.mitre (2), and
-        JOIN_STYLE.bevel (3).
-
-        The mitre ratio limit is used for very sharp corners. It is the ratio
-        of the distance from the corner to the end of the mitred offset corner.
-        When two line segments meet at a sharp angle, a miter join will extend
-        far beyond the original geometry. To prevent unreasonable geometry, the
-        mitre limit allows controlling the maximum length of the join corner.
-        Corners with a ratio which exceed the limit will be beveled.
-
-        Note: the behaviour regarding orientation of the resulting line
-        depends on the GEOS version. With GEOS < 3.11, the line retains the
-        same direction for a left offset (positive distance) or has reverse
-        direction for a right offset (negative distance), and this behaviour
-        was documented as such in previous Shapely versions. Starting with
-        GEOS 3.11, the function tries to preserve the orientation of the
-        original line.
-        """
+        Refer to `shapely.offset_curve` for full documentation."""
         if mitre_limit == 0.0:
             raise ValueError("Cannot compute offset from zero-length line segment")
         elif not np.isfinite(distance):
@@ -160,21 +147,21 @@ class LineString(BaseGeometry):
 
     def parallel_offset(
         self,
-        distance,
-        side="right",
-        resolution=16,
-        join_style=JOIN_STYLE.round,
-        mitre_limit=5.0,
+        distance: float,
+        side: str = "right",
+        resolution: int = 16,
+        join_style: Union[BufferJoinStyle, str] = JOIN_STYLE.round,
+        mitre_limit: float = 5.0,
     ):
         """
-        Alternative method to :meth:`offset_curve` method.
+        Alternative method to :meth:`shapely.offset_curve` method.
 
         Older alternative method to the :meth:`offset_curve` method, but uses
         ``resolution`` instead of ``quad_segs`` and a ``side`` keyword
         ('left' or 'right') instead of sign of the distance. This method is
-        kept for backwards compatibility for now, but is is recommended to
-        use :meth:`offset_curve` instead.
-        """
+        kept for backwards compatibility for now, but is recommended to
+        use :meth:`shapely.offset_curve` instead.
+        Refer to `shapely.offset_curve` for full documentation."""
         if side == "right":
             distance *= -1
         return self.offset_curve(

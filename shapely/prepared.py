@@ -27,11 +27,11 @@ class PreparedGeometry:
             self.context = context
         self.prepared = True
 
-    def contains(self, other):
+    def contains(self, other: "PreparedGeometry"):
         """Returns True if the geometry contains the other, else False"""
         return self.context.contains(other)
 
-    def contains_properly(self, other):
+    def contains_properly(self, other: "PreparedGeometry"):
         """Returns True if the geometry properly contains the other, else False"""
         # TODO temporary hack until shapely exposes contains properly as predicate function
         from shapely import STRtree
@@ -40,31 +40,31 @@ class PreparedGeometry:
         idx = tree.query(self.context, predicate="contains_properly")
         return bool(len(idx))
 
-    def covers(self, other):
+    def covers(self, other: "PreparedGeometry"):
         """Returns True if the geometry covers the other, else False"""
         return self.context.covers(other)
 
-    def crosses(self, other):
+    def crosses(self, other: "PreparedGeometry"):
         """Returns True if the geometries cross, else False"""
         return self.context.crosses(other)
 
-    def disjoint(self, other):
+    def disjoint(self, other: "PreparedGeometry"):
         """Returns True if geometries are disjoint, else False"""
         return self.context.disjoint(other)
 
-    def intersects(self, other):
+    def intersects(self, other: "PreparedGeometry"):
         """Returns True if geometries intersect, else False"""
         return self.context.intersects(other)
 
-    def overlaps(self, other):
+    def overlaps(self, other: "PreparedGeometry"):
         """Returns True if geometries overlap, else False"""
         return self.context.overlaps(other)
 
-    def touches(self, other):
+    def touches(self, other: "PreparedGeometry"):
         """Returns True if geometries touch, else False"""
         return self.context.touches(other)
 
-    def within(self, other):
+    def within(self, other: "PreparedGeometry"):
         """Returns True if geometry is within the other, else False"""
         return self.context.within(other)
 

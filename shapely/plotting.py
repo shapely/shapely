@@ -1,14 +1,18 @@
 """
 Plot single geometries using Matplotlib.
 
-Note: this module is experimental, and mainly targetting (interactive)
+Note: this module is experimental, and mainly targeting (interactive)
 exploration, debugging and illustration purposes.
 
 """
-
+from typing import Optional, TYPE_CHECKING, Union
 import numpy as np
 
 import shapely
+
+if TYPE_CHECKING:
+    from shapely import LinearRing, LineString, MultiLineString, MultiPolygon, Polygon
+    from shapely.geometry.base import BaseGeometry
 
 
 def _default_ax():
@@ -20,7 +24,7 @@ def _default_ax():
     return ax
 
 
-def _path_from_polygon(polygon):
+def _path_from_polygon(polygon: "Polygon"):
     from matplotlib.path import Path
 
     if isinstance(polygon, shapely.MultiPolygon):
@@ -57,13 +61,13 @@ def patch_from_polygon(polygon, **kwargs):
 
 
 def plot_polygon(
-    polygon,
+    polygon: Union["Polygon", "MultiPolygon"],
     ax=None,
-    add_points=True,
+    add_points: bool = True,
     color=None,
     facecolor=None,
     edgecolor=None,
-    linewidth=None,
+    linewidth: Optional[float] = None,
     **kwargs
 ):
     """
@@ -128,7 +132,14 @@ def plot_polygon(
     return patch
 
 
-def plot_line(line, ax=None, add_points=True, color=None, linewidth=2, **kwargs):
+def plot_line(
+    line: Union["LineString", "MultiLineString", "LinearRing"],
+    ax=None,
+    add_points: bool = True,
+    color=None,
+    linewidth: float = 2,
+    **kwargs
+):
     """
     Plot a (Multi)LineString/LinearRing.
 
@@ -183,7 +194,7 @@ def plot_line(line, ax=None, add_points=True, color=None, linewidth=2, **kwargs)
     return patch
 
 
-def plot_points(geom, ax=None, color=None, marker="o", **kwargs):
+def plot_points(geom: "BaseGeometry", ax=None, color=None, marker: str = "o", **kwargs):
     """
     Plot a Point/MultiPoint or the vertices of any other geometry type.
 

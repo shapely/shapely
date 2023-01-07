@@ -1,3 +1,5 @@
+from typing import Optional, TYPE_CHECKING, Union
+
 import numpy as np
 
 from . import lib
@@ -19,6 +21,15 @@ __all__ = [
     "to_wkt",
 ]
 
+from shapely.shapely_typing import (
+    MaybeArrayN,
+    MaybeArrayNLike,
+    MaybeGeometryArrayN,
+    MaybeGeometryArrayNLike,
+)
+
+if TYPE_CHECKING:
+    from shapely.geometry.base import BaseGeometry
 
 # Allowed options for handling WKB/WKT decoding errors
 # Note: cannot use standard constructor since "raise" is a keyword
@@ -30,15 +41,15 @@ WKBFlavorOptions = ParamEnum("WKBFlavorOptions", {"extended": 1, "iso": 2})
 
 
 def to_wkt(
-    geometry,
-    rounding_precision=6,
-    trim=True,
-    output_dimension=3,
-    old_3d=False,
+    geometry: MaybeGeometryArrayNLike,
+    rounding_precision: int = 6,
+    trim: bool = True,
+    output_dimension: int = 3,
+    old_3d: bool = False,
     **kwargs,
-):
+) -> MaybeArrayN[str]:
     """
-    Converts to the Well-Known Text (WKT) representation of a Geometry.
+    Returns the Well-Known Text (WKT) representation of a Geometry as a string.
 
     The Well-known Text format is defined in the `OGC Simple Features
     Specification for SQL <https://www.opengeospatial.org/standards/sfs>`__.
@@ -52,23 +63,30 @@ def to_wkt(
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
+        A geometry object(s) of any type to be dumped to WKT.
     rounding_precision : int, default 6
-        The rounding precision when writing the WKT string. Set to a value of
-        -1 to indicate the full precision.
+        The rounding precision (specified number of digits) when writing the WKT string.
+        Set to a value of -1 to indicate the full precision.
+        Default behavior returns full precision.
     trim : bool, default True
-        If True, trim unnecessary decimals (trailing zeros).
+        If True, trim excess unnecessary decimals (trailing zeros) from the WKT.
     output_dimension : int, default 3
         The output dimension for the WKT string. Supported values are 2 and 3.
+        Force removal of dimensions above the one specified.
         Specifying 3 means that up to 3 dimensions will be written but 2D
         geometries will still be represented as 2D in the WKT string.
     old_3d : bool, default False
         Enable old style 3D/4D WKT generation. By default, new style 3D/4D WKT
-        (ie. "POINT Z (10 20 30)") is returned, but with ``old_3d=True``
+        (i.e. "POINT Z (10 20 30)") is returned, but with ``old_3d=True``
         the WKT will be formatted in the style "POINT (10 20 30)".
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    Returns
+    -------
+    MaybeArrayN[str], input geometry(ies) as WKT string(s)
 
     Examples
     --------
@@ -114,16 +132,17 @@ def to_wkt(
 
 
 def to_wkb(
-    geometry,
-    hex=False,
-    output_dimension=3,
-    byte_order=-1,
-    include_srid=False,
-    flavor="extended",
+    geometry: MaybeGeometryArrayNLike,
+    hex: bool = False,
+    output_dimension: int = 3,
+    byte_order: int = -1,
+    include_srid: bool = False,
+    flavor: str = "extended",
     **kwargs,
-):
+) -> MaybeArrayN[Union[bytes, str]]:
     r"""
     Converts to the Well-Known Binary (WKB) representation of a Geometry.
+    Output is to a byte string, or a hex-encoded string if ``hex=True``.
 
     The Well-Known Binary format is defined in the `OGC Simple Features
     Specification for SQL <https://www.opengeospatial.org/standards/sfs>`__.
@@ -138,7 +157,7 @@ def to_wkb(
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
     hex : bool, default False
         If true, export the WKB as a hexidecimal string. The default is to
         return a binary bytes object.
@@ -150,7 +169,7 @@ def to_wkb(
         Defaults to native machine byte order (-1). Use 0 to force big endian
         and 1 for little endian.
     include_srid : bool, default False
-        If True, the SRID is be included in WKB (this is an extension
+        If True, the SRID will be included in WKB (this is an extension
         to the OGC WKB specification). Not allowed when flavor is "iso".
     flavor : {"iso", "extended"}, default "extended"
         Which flavor of WKB will be returned. The flavor determines how
@@ -203,7 +222,11 @@ def to_wkb(
 
 
 @requires_geos("3.10.0")
-def to_geojson(geometry, indent=None, **kwargs):
+def to_geojson(
+    geometry: MaybeArrayNLike[Union[str, bytes, "BaseGeometry"]],
+    indent: Optional[int] = None,
+    **kwargs,
+) -> MaybeArrayN[str]:
     """Converts to the GeoJSON representation of a Geometry.
 
     The GeoJSON format is defined in the `RFC 7946 <https://geojson.org/>`__.
@@ -253,7 +276,11 @@ def to_geojson(geometry, indent=None, **kwargs):
     return lib.to_geojson(geometry, np.intc(indent), **kwargs)
 
 
-def from_wkt(geometry, on_invalid="raise", **kwargs):
+def from_wkt(
+    geometry: MaybeArrayNLike[Union[str, "BaseGeometry"]],
+    on_invalid: str = "raise",
+    **kwargs,
+) -> MaybeGeometryArrayN:
     """
     Creates geometries from the Well-Known Text (WKT) representation.
 
@@ -273,6 +300,10 @@ def from_wkt(geometry, on_invalid="raise", **kwargs):
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
+    Returns
+    -------
+    MaybeGeometryArrayN, Shapely geometry(ies)
+
     Examples
     --------
     >>> from_wkt('POINT (0 0)')
@@ -286,7 +317,11 @@ def from_wkt(geometry, on_invalid="raise", **kwargs):
     return lib.from_wkt(geometry, invalid_handler, **kwargs)
 
 
-def from_wkb(geometry, on_invalid="raise", **kwargs):
+def from_wkb(
+    geometry: MaybeArrayNLike[Union[str, "BaseGeometry"]],
+    on_invalid: str = "raise",
+    **kwargs,
+) -> MaybeGeometryArrayN:
     r"""
     Creates geometries from the Well-Known Binary (WKB) representation.
 
@@ -326,7 +361,11 @@ def from_wkb(geometry, on_invalid="raise", **kwargs):
 
 
 @requires_geos("3.10.1")
-def from_geojson(geometry, on_invalid="raise", **kwargs):
+def from_geojson(
+    geometry: MaybeArrayNLike[Union[str, bytes, "BaseGeometry"]],
+    on_invalid: str = "raise",
+    **kwargs,
+) -> MaybeGeometryArrayN:
     """Creates geometries from GeoJSON representations (strings).
 
     If a GeoJSON is a FeatureCollection, it is read as a single geometry

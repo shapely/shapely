@@ -1,11 +1,14 @@
 """Collections of polygons and related utilities
 """
+from typing import Optional
 
 import shapely
 from shapely.geometry import polygon
 from shapely.geometry.base import BaseMultipartGeometry
 
 __all__ = ["MultiPolygon"]
+
+from shapely.shapely_typing import MultiPolygonLike
 
 
 class MultiPolygon(BaseMultipartGeometry):
@@ -46,7 +49,10 @@ class MultiPolygon(BaseMultipartGeometry):
 
     __slots__ = []
 
-    def __new__(self, polygons=None):
+    def __new__(
+        cls,
+        polygons: Optional[MultiPolygonLike] = None,
+    ):
         if not polygons:
             # allow creation of empty multipolygons, to support unpickling
             # TODO better empty constructor
@@ -96,7 +102,12 @@ class MultiPolygon(BaseMultipartGeometry):
             allcoords.append(tuple(coords))
         return {"type": "MultiPolygon", "coordinates": allcoords}
 
-    def svg(self, scale_factor=1.0, fill_color=None, opacity=None):
+    def svg(
+        self,
+        scale_factor: float = 1.0,
+        fill_color: Optional[float] = None,
+        opacity: Optional[float] = None,
+    ):
         """Returns group of SVG path elements for the MultiPolygon geometry.
 
         Parameters
@@ -106,7 +117,7 @@ class MultiPolygon(BaseMultipartGeometry):
         fill_color : str, optional
             Hex string for fill color. Default is to use "#66cc99" if
             geometry is valid, and "#ff3333" if invalid.
-        opacity : float
+        opacity : float, optional
             Float number between 0 and 1 for color opacity. Default value is 0.6
         """
         if self.is_empty:

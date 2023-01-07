@@ -1,8 +1,10 @@
 """Multi-part collections of geometries
 """
+from typing import Optional, Union
 
 import shapely
 from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
+from shapely.shapely_typing import GeometryArrayNLike
 
 
 class GeometryCollection(BaseMultipartGeometry):
@@ -33,7 +35,9 @@ class GeometryCollection(BaseMultipartGeometry):
 
     __slots__ = []
 
-    def __new__(self, geoms=None):
+    def __new__(
+        cls, geoms: Optional[Union[BaseGeometry, GeometryArrayNLike]] = None
+    ) -> "GeometryCollection":
         if not geoms:
             # TODO better empty constructor
             return shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")

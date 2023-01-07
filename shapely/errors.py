@@ -4,7 +4,7 @@ import threading
 from shapely.lib import _setup_signal_checks, GEOSException, ShapelyError  # NOQA
 
 
-def setup_signal_checks(interval=10000):
+def setup_signal_checks(interval: int = 10000):
     """This enables Python signal checks in the ufunc inner loops.
 
     Doing so allows termination (using CTRL+C) of operations on large arrays of vectors.

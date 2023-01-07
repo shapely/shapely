@@ -1,5 +1,6 @@
 """Polygons and their linear ring components
 """
+from typing import Optional
 
 import numpy as np
 
@@ -11,6 +12,8 @@ from shapely.geometry.linestring import LineString
 from shapely.geometry.point import Point
 
 __all__ = ["Polygon", "LinearRing"]
+
+from shapely.shapely_typing import LinearRingHolesLike, LinearRingLike, PolygonLike
 
 
 def _unpickle_linearring(wkb):
@@ -59,7 +62,7 @@ class LinearRing(LineString):
 
     __slots__ = []
 
-    def __new__(self, coordinates=None):
+    def __new__(cls, coordinates: Optional[LinearRingLike] = None):
         if coordinates is None:
             # empty geometry
             # TODO better way?
@@ -116,7 +119,7 @@ class LinearRing(LineString):
         return (_unpickle_linearring, (shapely.to_wkb(self, include_srid=True),))
 
     @property
-    def is_ccw(self):
+    def is_ccw(self) -> bool:
         """True is the ring is oriented counter clock-wise"""
         return bool(is_ccw_impl()(self))
 
@@ -137,7 +140,7 @@ class InteriorRingSequence:
     _index = 0
     _length = 0
 
-    def __init__(self, parent):
+    def __init__(self, parent: "Polygon"):
         self._parent = parent
         self._ndim = parent._ndim
 
@@ -146,7 +149,7 @@ class InteriorRingSequence:
         self._length = self.__len__()
         return self
 
-    def __next__(self):
+    def __next__(self) -> LinearRing:
         if self._index < self._length:
             ring = self._get_ring(self._index)
             self._index += 1
@@ -154,7 +157,7 @@ class InteriorRingSequence:
         else:
             raise StopIteration
 
-    def __len__(self):
+    def __len__(self) -> int:
         return shapely.get_num_interior_rings(self._parent)
 
     def __getitem__(self, key):
@@ -176,7 +179,7 @@ class InteriorRingSequence:
         else:
             raise TypeError("key must be an index or slice")
 
-    def _get_ring(self, i):
+    def _get_ring(self, i) -> LinearRing:
         return shapely.get_interior_ring(self._parent, i)
 
 
@@ -218,7 +221,11 @@ class Polygon(BaseGeometry):
 
     __slots__ = []
 
-    def __new__(self, shell=None, holes=None):
+    def __new__(
+        cls,
+        shell: PolygonLike = None,
+        holes: LinearRingHolesLike = None,
+    ):
         if shell is None:
             # empty geometry
             # TODO better way?
@@ -267,7 +274,12 @@ class Polygon(BaseGeometry):
                 coords.append(tuple(hole.coords))
         return {"type": "Polygon", "coordinates": tuple(coords)}
 
-    def svg(self, scale_factor=1.0, fill_color=None, opacity=None):
+    def svg(
+        self,
+        scale_factor: float = 1.0,
+        fill_color: Optional[float] = None,
+        opacity: Optional[float] = None,
+    ):
         """Returns SVG path element for the Polygon geometry.
 
         Parameters
@@ -277,7 +289,7 @@ class Polygon(BaseGeometry):
         fill_color : str, optional
             Hex string for fill color. Default is to use "#66cc99" if
             geometry is valid, and "#ff3333" if invalid.
-        opacity : float
+        opacity : float, optional
             Float number between 0 and 1 for color opacity. Default value is 0.6
         """
         if self.is_empty:
@@ -310,7 +322,10 @@ class Polygon(BaseGeometry):
 shapely.lib.registry[3] = Polygon
 
 
-def orient(polygon, sign=1.0):
+def orient(polygon: Polygon, sign: float = 1.0):
+    """A properly oriented copy of the given geometry.
+
+    Refer to `shapely.ops.orient` for full documentation."""
     s = float(sign)
     rings = []
     ring = polygon.exterior

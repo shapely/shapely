@@ -1,5 +1,6 @@
 import warnings
 from enum import IntEnum
+from typing import Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -33,6 +34,18 @@ __all__ = [
     "force_3d",
 ]
 
+from shapely.shapely_typing import (
+    GeometryArrayNLike,
+    MaybeArrayN,
+    MaybeArrayNLike,
+    MaybeGeometryArrayN,
+    MaybeGeometryArrayNLike,
+    NumpyArrayNLike,
+)
+
+if TYPE_CHECKING:
+    from shapely import LinearRing, LineString, Point, Polygon
+
 
 class GeometryType(IntEnum):
     """The enumeration of GEOS geometry types"""
@@ -52,7 +65,7 @@ class GeometryType(IntEnum):
 
 
 @multithreading_enabled
-def get_type_id(geometry, **kwargs):
+def get_type_id(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeArrayN[int]:
     """Returns the type ID of a geometry.
 
     - None (missing) is -1
@@ -67,7 +80,7 @@ def get_type_id(geometry, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -88,7 +101,7 @@ def get_type_id(geometry, **kwargs):
 
 
 @multithreading_enabled
-def get_dimensions(geometry, **kwargs):
+def get_dimensions(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeArrayN[int]:
     """Returns the inherent dimensionality of a geometry.
 
     The inherent dimension is 0 for points, 1 for linestrings and linearrings,
@@ -97,7 +110,7 @@ def get_dimensions(geometry, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -122,7 +135,9 @@ def get_dimensions(geometry, **kwargs):
 
 
 @multithreading_enabled
-def get_coordinate_dimension(geometry, **kwargs):
+def get_coordinate_dimension(
+    geometry: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeArrayN[int]:
     """Returns the dimensionality of the coordinates in a geometry (2 or 3).
 
     Returns -1 for missing geometries (``None`` values). Note that if the first Z
@@ -130,7 +145,7 @@ def get_coordinate_dimension(geometry, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -151,14 +166,16 @@ def get_coordinate_dimension(geometry, **kwargs):
 
 
 @multithreading_enabled
-def get_num_coordinates(geometry, **kwargs):
+def get_num_coordinates(
+    geometry: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeArrayN[int]:
     """Returns the total number of coordinates in a geometry.
 
     Returns 0 for not-a-geometry values.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -183,14 +200,14 @@ def get_num_coordinates(geometry, **kwargs):
 
 
 @multithreading_enabled
-def get_srid(geometry, **kwargs):
+def get_srid(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeArrayN[int]:
     """Returns the SRID of a geometry.
 
     Returns -1 for not-a-geometry values.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -213,12 +230,14 @@ def get_srid(geometry, **kwargs):
 
 
 @multithreading_enabled
-def set_srid(geometry, srid, **kwargs):
+def set_srid(
+    geometry: MaybeGeometryArrayNLike, srid: int, **kwargs
+) -> MaybeGeometryArrayN:
     """Returns a geometry with its SRID set.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
     srid : int
     **kwargs
         For other keyword-only arguments, see the
@@ -245,12 +264,12 @@ def set_srid(geometry, srid, **kwargs):
 
 
 @multithreading_enabled
-def get_x(point, **kwargs):
+def get_x(point: MaybeArrayNLike["Point"], **kwargs) -> MaybeArrayN[float]:
     """Returns the x-coordinate of a point
 
     Parameters
     ----------
-    point : Geometry or array_like
+    point : MaybeArrayNLike["Point"]
         Non-point geometries will result in NaN being returned.
     **kwargs
         For other keyword-only arguments, see the
@@ -272,12 +291,12 @@ def get_x(point, **kwargs):
 
 
 @multithreading_enabled
-def get_y(point, **kwargs):
+def get_y(point: MaybeArrayNLike["Point"], **kwargs) -> MaybeArrayN[float]:
     """Returns the y-coordinate of a point
 
     Parameters
     ----------
-    point : Geometry or array_like
+    point : MaybeArrayNLike["Point"]
         Non-point geometries will result in NaN being returned.
     **kwargs
         For other keyword-only arguments, see the
@@ -300,12 +319,12 @@ def get_y(point, **kwargs):
 
 @requires_geos("3.7.0")
 @multithreading_enabled
-def get_z(point, **kwargs):
+def get_z(point: MaybeArrayNLike["Point"], **kwargs) -> MaybeArrayN[float]:
     """Returns the z-coordinate of a point.
 
     Parameters
     ----------
-    point : Geometry or array_like
+    point : MaybeArrayNLike["Point"]
         Non-point geometries or geometries without 3rd dimension will result
         in NaN being returned.
     **kwargs
@@ -333,12 +352,16 @@ def get_z(point, **kwargs):
 
 
 @multithreading_enabled
-def get_point(geometry, index, **kwargs):
+def get_point(
+    geometry: MaybeArrayNLike[Union["LineString", "LinearRing"]],
+    index: MaybeArrayNLike[int],
+    **kwargs
+) -> MaybeArrayN["Point"]:
     """Returns the nth point of a linestring or linearring.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeArrayNLike[Union["LineString", "LinearRing"]]
     index : int or array_like
         Negative values count from the end of the linestring backwards.
     **kwargs
@@ -376,14 +399,16 @@ def get_point(geometry, index, **kwargs):
 
 
 @multithreading_enabled
-def get_num_points(geometry, **kwargs):
+def get_num_points(
+    geometry: MaybeArrayNLike[Union["LineString", "LinearRing"]], **kwargs
+) -> MaybeArrayN[int]:
     """Returns number of points in a linestring or linearring.
 
     Returns 0 for not-a-geometry values.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeArrayNLike[Union["LineString", "LinearRing"]]
         The number of points in geometries other than linestring or linearring
         equals zero.
     **kwargs
@@ -412,12 +437,14 @@ def get_num_points(geometry, **kwargs):
 
 
 @multithreading_enabled
-def get_exterior_ring(geometry, **kwargs):
+def get_exterior_ring(
+    geometry: MaybeArrayNLike["Polygon"], **kwargs
+) -> MaybeArrayN["LinearRing"]:
     """Returns the exterior ring of a polygon.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeArrayNLike["Polygon"]
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -438,12 +465,14 @@ def get_exterior_ring(geometry, **kwargs):
 
 
 @multithreading_enabled
-def get_interior_ring(geometry, index, **kwargs):
+def get_interior_ring(
+    geometry: MaybeArrayNLike["Polygon"], index: MaybeArrayNLike[int], **kwargs
+) -> MaybeArrayN["LinearRing"]:
     """Returns the nth interior ring of a polygon.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeArrayNLike["Polygon"]
     index : int or array_like
         Negative values count from the end of the interior rings backwards.
     **kwargs
@@ -476,14 +505,16 @@ def get_interior_ring(geometry, index, **kwargs):
 
 
 @multithreading_enabled
-def get_num_interior_rings(geometry, **kwargs):
+def get_num_interior_rings(
+    geometry: MaybeArrayNLike["Polygon"], **kwargs
+) -> MaybeArrayN[int]:
     """Returns number of internal rings in a polygon
 
     Returns 0 for not-a-geometry values.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeArrayNLike["Polygon"]
         The number of interior rings in non-polygons equals zero.
     **kwargs
         For other keyword-only arguments, see the
@@ -518,12 +549,14 @@ def get_num_interior_rings(geometry, **kwargs):
 
 
 @multithreading_enabled
-def get_geometry(geometry, index, **kwargs):
+def get_geometry(
+    geometry: MaybeGeometryArrayNLike, index: MaybeArrayNLike[int], **kwargs
+) -> MaybeGeometryArrayN:
     """Returns the nth geometry from a collection of geometries.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
     index : int or array_like
         Negative values count from the end of the collection backwards.
     **kwargs
@@ -557,7 +590,9 @@ def get_geometry(geometry, index, **kwargs):
     return lib.get_geometry(geometry, np.intc(index), **kwargs)
 
 
-def get_parts(geometry, return_index=False):
+def get_parts(
+    geometry: MaybeGeometryArrayNLike, return_index: bool = False
+) -> MaybeArrayN[GeometryArrayNLike]:
     """Gets parts of each GeometryCollection or Multi* geometry object; returns
     a copy of each geometry in the GeometryCollection or Multi* geometry object.
 
@@ -567,7 +602,7 @@ def get_parts(geometry, return_index=False):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
     return_index : bool, default False
         If True, will return a tuple of ndarrays of (parts, indexes), where indexes
         are the indexes of the original geometries in the source array.
@@ -604,7 +639,14 @@ return_index=True)
     return _geometry_helpers.get_parts(geometry)[0]
 
 
-def get_rings(geometry, return_index=False):
+def get_rings(
+    geometry: MaybeGeometryArrayNLike, return_index: bool = False
+) -> Union[
+    MaybeArrayN[NumpyArrayNLike["LinearRing"]],
+    Tuple[
+        MaybeArrayN[NumpyArrayNLike["LinearRing"]], MaybeArrayN[NumpyArrayNLike[int]]
+    ],
+]:
     """Gets rings of Polygon geometry object.
 
     For each Polygon, the first returned ring is always the exterior ring
@@ -615,7 +657,7 @@ def get_rings(geometry, return_index=False):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
     return_index : bool, default False
         If True, will return a tuple of ndarrays of (rings, indexes), where
         indexes are the indexes of the original geometries in the source array.
@@ -663,14 +705,14 @@ def get_rings(geometry, return_index=False):
 
 
 @multithreading_enabled
-def get_num_geometries(geometry, **kwargs):
+def get_num_geometries(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeArrayN[int]:
     """Returns number of geometries in a collection.
 
     Returns 0 for not-a-geometry values.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
         The number of geometries in points, linestrings, linearrings and
         polygons equals one.
     **kwargs
@@ -697,7 +739,7 @@ def get_num_geometries(geometry, **kwargs):
 
 @requires_geos("3.6.0")
 @multithreading_enabled
-def get_precision(geometry, **kwargs):
+def get_precision(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeArrayN[float]:
     """Get the precision of a geometry.
 
     If a precision has not been previously set, it will be 0 (double
@@ -708,7 +750,7 @@ def get_precision(geometry, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -740,7 +782,12 @@ class SetPrecisionMode(ParamEnum):
 
 @requires_geos("3.6.0")
 @multithreading_enabled
-def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
+def set_precision(
+    geometry: MaybeGeometryArrayNLike,
+    grid_size: float,
+    mode: str = "valid_output",
+    **kwargs
+) -> MaybeGeometryArrayN:
     """Returns geometry with the precision set to a precision grid size.
 
     By default, geometries use double precision coordinates (grid_size = 0).
@@ -762,7 +809,7 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
     grid_size : float
         Precision grid size. If 0, will use double precision (will not modify
         geometry if precision grid size was not previously set). If this
@@ -824,12 +871,12 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
 
 
 @multithreading_enabled
-def force_2d(geometry, **kwargs):
+def force_2d(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeGeometryArrayN:
     """Forces the dimensionality of a geometry to 2D.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -852,7 +899,9 @@ def force_2d(geometry, **kwargs):
 
 
 @multithreading_enabled
-def force_3d(geometry, z=0.0, **kwargs):
+def force_3d(
+    geometry: MaybeGeometryArrayNLike, z: MaybeArrayNLike[float] = 0.0, **kwargs
+) -> MaybeGeometryArrayN:
     """Forces the dimensionality of a geometry to 3D.
 
     2D geometries will get the provided Z coordinate; Z coordinates of 3D geometries
@@ -863,7 +912,7 @@ def force_3d(geometry, z=0.0, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
     z : float or array_like, default 0.0
     **kwargs
         For other keyword-only arguments, see the

@@ -1,3 +1,5 @@
+from typing import Optional, TYPE_CHECKING, Union
+
 import numpy as np
 
 from . import lib
@@ -35,6 +37,28 @@ __all__ = [
     "minimum_bounding_circle",
 ]
 
+from shapely.shapely_typing import (
+    GeometryArrayLike,
+    GeometryArrayNLike,
+    MaybeArrayN,
+    MaybeArrayNLike,
+    MaybeGeometryArrayN,
+    MaybeGeometryArrayNLike,
+    Tuple4,
+)
+
+if TYPE_CHECKING:
+    from shapely import (
+        EmptyGeometry,
+        GeometryCollection,
+        LineString,
+        MultiLineString,
+        MultiPoint,
+        Point,
+        Polygon,
+    )
+    from shapely.geometry.base import BaseGeometry
+
 
 class BufferCapStyle(ParamEnum):
     round = 1
@@ -49,12 +73,17 @@ class BufferJoinStyle(ParamEnum):
 
 
 @multithreading_enabled
-def boundary(geometry, **kwargs):
-    """Returns the topological boundary of a geometry.
+def boundary(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeGeometryArrayN:
+    """Returns the topological boundary of a geometry
+    (lower dimension geometry that bounds the object).
+
+    The boundary of a polygon is a line.
+    the boundary of a line is a collection of points.
+    The boundary of a point is an empty (null) collection.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
         This function will return None for geometrycollections.
     **kwargs
         For other keyword-only arguments, see the
@@ -84,17 +113,20 @@ MultiLineString, MultiPoint, Point, Polygon
 
 @multithreading_enabled
 def buffer(
-    geometry,
-    distance,
-    quad_segs=8,
-    cap_style="round",
-    join_style="round",
-    mitre_limit=5.0,
-    single_sided=False,
+    geometry: MaybeGeometryArrayNLike,
+    distance: MaybeArrayNLike[float],
+    quad_segs: int = 8,
+    cap_style: Union[BufferCapStyle, str] = "round",
+    join_style: Union[BufferJoinStyle, str] = "round",
+    mitre_limit: float = 5.0,
+    single_sided: bool = False,
     **kwargs
-):
-    """
-    Computes the buffer of a geometry for positive and negative buffer distance.
+) -> MaybeGeometryArrayN:
+    """Computes the buffer of a geometry for positive and negative buffer distance,
+    A geometry that represents all points within a distance of this geometry.
+
+    A positive distance produces a dilation, a negative distance an erosion.
+    A very small or zero distance may sometimes be used to "tidy" a polygon.
 
     The buffer of a geometry is defined as the Minkowski sum (or difference,
     for negative distance) of the geometry with a circle with radius equal
@@ -105,41 +137,77 @@ def buffer(
 
     Parameters
     ----------
-    geometry : Geometry or array_like
-    distance : float or array_like
-        Specifies the circle radius in the Minkowski sum (or difference).
+    geometry : MaybeGeometryArrayNLike
+    distance : MaybeArrayNLike[float]
+        Specifies the circle radius (distance to buffer around the object)
+        in the Minkowski sum (or difference).
     quad_segs : int, default 8
         Specifies the number of linear segments in a quarter circle in the
         approximation of circular arcs.
     cap_style : shapely.BufferCapStyle or {'round', 'square', 'flat'}, default 'round'
-        Specifies the shape of buffered line endings. BufferCapStyle.round ('round')
-        results in circular line endings (see ``quad_segs``). Both BufferCapStyle.square
-        ('square') and BufferCapStyle.flat ('flat') result in rectangular line endings,
-        only BufferCapStyle.flat ('flat') will end at the original vertex,
-        while BufferCapStyle.square ('square') involves adding the buffer width.
+        Specifies the shape of buffered line endings.
+        'round' results in circular line endings (see ``quad_segs``).
+        Both 'square' and 'flat' result in rectangular line endings,
+        only 'flat' will end at the original vertex,
+        while 'square' involves adding the buffer width.
     join_style : shapely.BufferJoinStyle or {'round', 'mitre', 'bevel'}, default 'round'
-        Specifies the shape of buffered line midpoints. BufferJoinStyle.round ('round')
-        results in rounded shapes. BufferJoinStyle.bevel ('bevel') results in a beveled
-        edge that touches the original vertex. BufferJoinStyle.mitre ('mitre') results
-        in a single vertex that is beveled depending on the ``mitre_limit`` parameter.
+        Specifies the shape of buffered line midpoints.
+        'round' results in rounded shapes.
+        'bevel' results in a beveled edge that touches the original vertex.
+        'mitre' results in a single vertex that is beveled depending on the
+        ``mitre_limit`` parameter.
     mitre_limit : float, default 5.0
         Crops of 'mitre'-style joins if the point is displaced from the
         buffered vertex by more than this limit.
+        The mitre ratio limit is used for very sharp corners. It is the ratio
+        of the distance from the corner to the end of the mitred offset corner.
+        When two line segments meet at a sharp angle, a miter join will extend
+        far beyond the original geometry. To prevent unreasonable geometry, the
+        mitre limit allows controlling the maximum length of the join corner.
+        Corners with a ratio which exceed the limit will be beveled.
     single_sided : bool, default False
         Only buffer at one side of the geometry.
+        The side used is determined by the sign of the buffer distance:
+            a positive distance indicates the left-hand side
+            a negative distance indicates the right-hand side
+        The single-sided buffer of point geometries is the same as the regular buffer.
+        The End Cap Style for single-sided buffers is always ignored, and forced to
+        the equivalent of CAP_FLAT.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
+    Notes
+    -----
+    The return value is a strictly two-dimensional geometry. All
+    Z coordinates of the original geometry will be ignored.
+
     Examples
     --------
     >>> from shapely import LineString, Point, Polygon, BufferCapStyle, BufferJoinStyle
-    >>> buffer(Point(10, 10), 2, quad_segs=1)
+
+    Ocatagon, 128-gon, triangle approximations of a unit radius circle:
+    >>> p = Point(0, 0)
+    >>> buffer(p, 1).area  # doctest: +ELLIPSIS
+    3.121445152258...
+    >>> buffer(p, 1, quad_segs=128).area  # doctest: +ELLIPSIS
+    3.141513801144...
+    >>> buffer(p, 1, quad_segs=3).area
+    3.0
+
+    >>> list(buffer(p, 1.0, cap_style="square").exterior.coords)
+    [(1.0, 1.0), (1.0, -1.0), (-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0)]
+    >>> buffer(p, 1.0, cap_style="square").area
+    4.0
+
+    >>> p = Point(10, 10)
+    >>> buffer(p, 2, quad_segs=1)
     <POLYGON ((12 10, 10 8, 8 10, 10 12, 12 10))>
-    >>> buffer(Point(10, 10), 2, quad_segs=2)
+    >>> buffer(p, 2, quad_segs=2)  # doctest: +ELLIPSIS
     <POLYGON ((12 10, 11.414 8.586, 10 8, 8.586 8.586, 8 10, 8.5...>
-    >>> buffer(Point(10, 10), -2, quad_segs=1)
+    >>> buffer(p, -2, quad_segs=1)
     <POLYGON EMPTY>
+
     >>> line = LineString([(10, 10), (20, 10)])
     >>> buffer(line, 2, cap_style="square")
     <POLYGON ((20 12, 22 12, 22 8, 10 8, 8 8, 8 12, 20 12))>
@@ -147,6 +215,7 @@ def buffer(
     <POLYGON ((20 12, 20 8, 10 8, 10 12, 20 12))>
     >>> buffer(line, 2, single_sided=True, cap_style="flat")
     <POLYGON ((20 10, 10 10, 10 12, 20 12, 20 10))>
+
     >>> line2 = LineString([(10, 10), (20, 10), (20, 20)])
     >>> buffer(line2, 2, cap_style="flat", join_style="bevel")
     <POLYGON ((18 12, 18 20, 22 20, 22 10, 20 8, 10 8, 10 12, 18 12))>
@@ -154,6 +223,7 @@ def buffer(
     <POLYGON ((18 12, 18 20, 22 20, 22 8, 10 8, 10 12, 18 12))>
     >>> buffer(line2, 2, cap_style="flat", join_style="mitre", mitre_limit=1)
     <POLYGON ((18 12, 18 20, 22 20, 22 9.172, 20.828 8, 10 8, 10 12, 18 12))>
+
     >>> square = Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)])
     >>> buffer(square, 2, join_style="mitre")
     <POLYGON ((-2 -2, -2 12, 12 12, 12 -2, -2 -2))>
@@ -192,14 +262,19 @@ def buffer(
 
 @multithreading_enabled
 def offset_curve(
-    geometry, distance, quad_segs=8, join_style="round", mitre_limit=5.0, **kwargs
-):
-    """
-    Returns a (Multi)LineString at a distance from the object
+    geometry: MaybeGeometryArrayNLike,
+    distance: MaybeArrayNLike[float],
+    quad_segs: int = 8,
+    join_style: Union[BufferJoinStyle, str] = "round",
+    mitre_limit: float = 5.0,
+    **kwargs
+) -> MaybeArrayNLike[Union["LineString", "MultiLineString"]]:
+    """Returns a (Multi)LineString at a distance from the object
     on its right or its left side.
 
-    For positive distance the offset will be at the left side of the input
-    line. For a negative distance it will be at the right side. In general,
+    The side is determined by the sign of the `distance` parameter.
+    For positive distance the offset will be on the left side of the input
+    line. For a negative distance it will be on the right side. In general,
     this function tries to preserve the direction of the input.
 
     Note: the behaviour regarding orientation of the resulting line depends
@@ -211,21 +286,30 @@ def offset_curve(
 
     Parameters
     ----------
-    geometry : Geometry or array_like
-    distance : float or array_like
-        Specifies the offset distance from the input geometry. Negative
-        for right side offset, positive for left side offset.
+    geometry : MaybeGeometryArrayNLike
+    distance : MaybeArrayNLike[float]
+        Specifies the offset distance from the input geometry.
+        Negative for right side offset, positive for left side offset.
     quad_segs : int, default 8
         Specifies the number of linear segments in a quarter circle in the
         approximation of circular arcs.
-    join_style : {'round', 'bevel', 'mitre'}, default 'round'
-        Specifies the shape of outside corners. 'round' results in
-        rounded shapes. 'bevel' results in a beveled edge that touches the
-        original vertex. 'mitre' results in a single vertex that is beveled
-        depending on the ``mitre_limit`` parameter.
+        The resolution of the buffer around each vertex of the object increases
+        by increasing the `quad_segs` parameter.
+    join_style : shapely.BufferJoinStyle or {'round', 'mitre', 'bevel'}, default 'round'
+        Specifies the shape of outside corners between line segments.
+        'round' results in rounded shapes.
+        'bevel' results in a beveled edge that touches the original vertex.
+        'mitre' results in a single vertex that is beveled depending on the
+        ``mitre_limit`` parameter.
     mitre_limit : float, default 5.0
         Crops of 'mitre'-style joins if the point is displaced from the
         buffered vertex by more than this limit.
+        The mitre ratio limit is used for very sharp corners. It is the ratio
+        of the distance from the corner to the end of the mitred offset corner.
+        When two line segments meet at a sharp angle, a miter join will extend
+        far beyond the original geometry. To prevent unreasonable geometry, the
+        mitre limit allows controlling the maximum length of the join corner.
+        Corners with a ratio which exceed the limit will be beveled.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -258,7 +342,7 @@ def offset_curve(
 
 
 @multithreading_enabled
-def centroid(geometry, **kwargs):
+def centroid(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeArrayN["Point"]:
     """Computes the geometric center (center-of-mass) of a geometry.
 
     For multipoints this is computed as the mean of the input coordinates.
@@ -268,7 +352,7 @@ def centroid(geometry, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -289,7 +373,14 @@ def centroid(geometry, **kwargs):
 
 
 @multithreading_enabled
-def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
+def clip_by_rect(
+    geometry: MaybeGeometryArrayNLike,
+    xmin: float,
+    ymin: float,
+    xmax: float,
+    ymax: float,
+    **kwargs
+) -> MaybeGeometryArrayN:
     """
     Returns the portion of a geometry within a rectangle.
 
@@ -302,8 +393,8 @@ def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
-        The geometry to be clipped
+    geometry : MaybeGeometryArrayNLike
+        The geometries to be clipped
     xmin : float
         Minimum x value of the rectangle
     ymin : float
@@ -340,12 +431,17 @@ def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
 
 @requires_geos("3.11.0")
 @multithreading_enabled
-def concave_hull(geometry, ratio=0.0, allow_holes=False, **kwargs):
+def concave_hull(
+    geometry: MaybeGeometryArrayNLike,
+    ratio: float = 0.0,
+    allow_holes: bool = False,
+    **kwargs
+) -> MaybeGeometryArrayN:
     """Computes a concave geometry that encloses an input geometry.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
     ratio : float, default 0.0
         Number in the range [0, 1]. Higher numbers will include fewer vertices
         in the hull.
@@ -373,12 +469,16 @@ def concave_hull(geometry, ratio=0.0, allow_holes=False, **kwargs):
 
 
 @multithreading_enabled
-def convex_hull(geometry, **kwargs):
+def convex_hull(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeGeometryArrayN:
     """Computes the minimum convex geometry that encloses an input geometry.
+    Imagine an elastic band stretched around the geometry:
+    that's a convex hull, more or less.
+
+    The convex hull of a three member multipoint, for example, is a triangular polygon.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -395,22 +495,43 @@ def convex_hull(geometry, **kwargs):
 
 
 @multithreading_enabled
-def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
+def delaunay_triangles(
+    geometry: MaybeGeometryArrayNLike,
+    tolerance: MaybeArrayNLike[float] = 0.0,
+    only_edges: MaybeArrayNLike[bool] = False,
+    **kwargs
+) -> MaybeArrayN["GeometryCollection"]:
+    """Creates the Delaunay triangulation and returns a list of geometries
+
+    The source may be any geometry type. All vertices of the geometry will be
+    used as the points of the triangulation.
+
+    From the GEOS documentation:
+    tolerance is the snapping tolerance used to improve the robustness of
+    the triangulation computation. A tolerance of 0.0 specifies that no
+    snapping will take place.
+
+    If edges is False, a list of Polygons (triangles) will be returned.
+    Otherwise, the list of LineString edges is returned.
+    """
+
     """Computes a Delaunay triangulation around the vertices of an input
     geometry.
 
     The output is a geometrycollection containing polygons (default)
-    or linestrings (see only_edges). Returns an None if an input geometry
+    or linestrings (see only_edges). Returns a None if an input geometry
     contains less than 3 vertices.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
     tolerance : float or array_like, default 0.0
         Snap input vertices together if their distance is less than this value.
+        snapping tolerance used to improve the robustness of the triangulation
+        computation. A tolerance of 0.0 specifies that no snapping will take place.
     only_edges : bool or array_like, default False
-        If set to True, the triangulation will return a collection of
-        linestrings instead of polygons.
+        If False, the triangulation will return a collection of polygons (triangles).
+        Otherwise, a collection of LineString edges.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -437,12 +558,12 @@ tolerance=2)
 
 
 @multithreading_enabled
-def envelope(geometry, **kwargs):
+def envelope(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeGeometryArrayN:
     """Computes the minimum bounding box that encloses an input geometry.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -463,7 +584,9 @@ def envelope(geometry, **kwargs):
 
 
 @multithreading_enabled
-def extract_unique_points(geometry, **kwargs):
+def extract_unique_points(
+    geometry: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeArrayN["MultiPoint"]:
     """Returns all distinct vertices of an input geometry as a multipoint.
 
     Note that only 2 dimensions of the vertices are considered when testing
@@ -471,7 +594,7 @@ def extract_unique_points(geometry, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -495,14 +618,14 @@ def extract_unique_points(geometry, **kwargs):
 
 @requires_geos("3.8.0")
 @multithreading_enabled
-def build_area(geometry, **kwargs):
+def build_area(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeGeometryArrayN:
     """Creates an areal geometry formed by the constituent linework of given geometry.
 
     Equivalent of the PostGIS ST_BuildArea() function.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -520,15 +643,30 @@ def build_area(geometry, **kwargs):
 
 @requires_geos("3.8.0")
 @multithreading_enabled
-def make_valid(geometry, **kwargs):
-    """Repairs invalid geometries.
+def make_valid(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeGeometryArrayN:
+    """Returns repaired geometries according to the GEOS MakeValid algorithm.
+
+    If the input geometry is already valid, then it will be returned.
+
+    If the geometry must be split into multiple parts of the same type to be made valid,
+    then a multi-part geometry will be returned.
+
+    If the geometry must be split into multiple parts of different types to be made valid,
+    then a GeometryCollection will be returned.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
+        Shapely geometry object(s) which should be made valid. If the object is already valid,
+        it will be returned as-is.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    Returns
+    -------
+    MaybeGeometryArrayN
+        The input geometry object(s), made valid according to the GEOS MakeValid algorithm.
 
     Examples
     --------
@@ -543,7 +681,7 @@ def make_valid(geometry, **kwargs):
 
 
 @multithreading_enabled
-def normalize(geometry, **kwargs):
+def normalize(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeGeometryArrayN:
     """Converts Geometry to normal form (or canonical form).
 
     This method orders the coordinates, rings of a polygon and parts of
@@ -552,7 +690,7 @@ def normalize(geometry, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -568,12 +706,14 @@ def normalize(geometry, **kwargs):
 
 
 @multithreading_enabled
-def point_on_surface(geometry, **kwargs):
-    """Returns a point that intersects an input geometry.
+def point_on_surface(
+    geometry: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeArrayN["Point"]:
+    """Returns a point that intersects (guaranteed to be within) an input geometry, cheaply.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -594,7 +734,7 @@ def point_on_surface(geometry, **kwargs):
 
 
 @multithreading_enabled
-def node(geometry, **kwargs):
+def node(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeArrayN["MultiLineString"]:
     """
     Returns the fully noded version of the linear input as MultiLineString.
 
@@ -610,7 +750,7 @@ def node(geometry, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -627,7 +767,9 @@ def node(geometry, **kwargs):
     return lib.node(geometry, **kwargs)
 
 
-def polygonize(geometries, **kwargs):
+def polygonize(
+    geometries: GeometryArrayNLike, **kwargs
+) -> MaybeArrayN["GeometryCollection"]:
     """Creates polygons formed from the linework of a set of Geometries.
 
     Polygonizes an array of Geometries that contain linework which
@@ -647,7 +789,7 @@ def polygonize(geometries, **kwargs):
 
     Parameters
     ----------
-    geometries : array_like
+    geometries : GeometryArrayLike
         An array of geometries.
     axis : int
         Axis along which the geometries are polygonized.
@@ -681,9 +823,11 @@ def polygonize(geometries, **kwargs):
     return lib.polygonize(geometries, **kwargs)
 
 
-def polygonize_full(geometries, **kwargs):
+def polygonize_full(
+    geometries: GeometryArrayLike, **kwargs
+) -> Tuple4["GeometryCollection"]:
     """Creates polygons formed from the linework of a set of Geometries and
-    return all extra outputs as well.
+    return all extra leftover geometries as well.
 
     Polygonizes an array of Geometries that contain linework which
     represents the edges of a planar graph. Any type of Geometry may be
@@ -694,23 +838,24 @@ def polygonize_full(geometries, **kwargs):
     not only return the polygonal result but all extra outputs as well. The
     return value consists of 4 elements:
 
-    * The polygonal valid output
-    * **Cut edges**: edges connected on both ends but not part of polygonal output
-    * **dangles**: edges connected on one end but not part of polygonal output
-    * **invalid rings**: polygons formed but which are not valid
+    * The polygonal valid output.
+    * **Cut edges**: edges connected on both ends but not part of polygonal output.
+    * **dangles**: edges with one or both ends that are not incident on another edge endpoint.
+    * **invalid rings**: polygons formed but which are not valid (bowties, etc).
 
-    This function returns the geometries within GeometryCollections.
+    This function returns a tuple of 4 GeometryCollections.
     Individual geometries can be obtained using ``get_geometry`` to get
     a single geometry or ``get_parts`` to get an array of geometries.
 
     Parameters
     ----------
-    geometries : array_like
+    geometries : GeometryArrayLike
         An array of geometries.
     axis : int
         Axis along which the geometries are polygonized.
         The default is to perform a reduction over the last dimension
         of the input array. A 1D array results in a scalar geometry.
+        Note: axis keyword is passed to the ufunc via **kwargs (NumPy>=1.15).
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -743,7 +888,9 @@ def polygonize_full(geometries, **kwargs):
 
 @requires_geos("3.11.0")
 @multithreading_enabled
-def remove_repeated_points(geometry, tolerance=0.0, **kwargs):
+def remove_repeated_points(
+    geometry: MaybeGeometryArrayNLike, tolerance: MaybeArrayNLike[float] = 0.0, **kwargs
+) -> MaybeGeometryArrayN:
     """Returns a copy of a Geometry with repeated points removed.
 
     From the start of the coordinate sequence, each next point within the
@@ -754,7 +901,7 @@ def remove_repeated_points(geometry, tolerance=0.0, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
     tolerance : float or array_like, default=0.0
         Use 0.0 to remove only exactly repeated points.
 
@@ -771,7 +918,7 @@ def remove_repeated_points(geometry, tolerance=0.0, **kwargs):
 
 @requires_geos("3.7.0")
 @multithreading_enabled
-def reverse(geometry, **kwargs):
+def reverse(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeGeometryArrayN:
     """Returns a copy of a Geometry with the order of coordinates reversed.
 
     If a Geometry is a polygon with interior rings, the interior rings are also
@@ -781,7 +928,7 @@ def reverse(geometry, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -806,7 +953,11 @@ def reverse(geometry, **kwargs):
 
 @requires_geos("3.10.0")
 @multithreading_enabled
-def segmentize(geometry, max_segment_length, **kwargs):
+def segmentize(
+    geometry: MaybeGeometryArrayNLike,
+    max_segment_length: MaybeArrayNLike[float],
+    **kwargs
+) -> MaybeGeometryArrayN:
     """Adds vertices to line segments based on maximum segment length.
 
     Additional vertices will be added to every line segment in an input geometry
@@ -818,7 +969,7 @@ def segmentize(geometry, max_segment_length, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
     max_segment_length : float or array_like
         Additional vertices will be added so that all line segments are no
         longer than this value.  Must be greater than 0.
@@ -842,13 +993,23 @@ def segmentize(geometry, max_segment_length, **kwargs):
 
 
 @multithreading_enabled
-def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
+def simplify(
+    geometry: MaybeGeometryArrayNLike,
+    tolerance: MaybeArrayNLike[float],
+    preserve_topology: bool = True,
+    **kwargs
+) -> MaybeGeometryArrayN:
     """Returns a simplified version of an input geometry using the
     Douglas-Peucker algorithm.
 
+    Coordinates of the simplified geometry will be no more than the
+    tolerance distance from the original. Unless the topology preserving
+    option is used, the algorithm may produce self-intersecting or
+    otherwise invalid geometries.
+
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
     tolerance : float or array_like
         The maximum allowed geometry displacement. The higher this value, the
         smaller the number of vertices in the resulting geometry.
@@ -884,7 +1045,12 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
 
 
 @multithreading_enabled
-def snap(geometry, reference, tolerance, **kwargs):
+def snap(
+    geometry: MaybeGeometryArrayNLike,
+    reference: MaybeGeometryArrayNLike,
+    tolerance: MaybeArrayNLike[float],
+    **kwargs
+) -> MaybeGeometryArrayN:
     """Snaps an input geometry to reference geometry's vertices.
 
     Vertices of the first geometry are snapped to vertices of the second.
@@ -904,8 +1070,8 @@ def snap(geometry, reference, tolerance, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
-    reference : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
+    reference : MaybeGeometryArrayNLike
     tolerance : float or array_like
     **kwargs
         For other keyword-only arguments, see the
@@ -946,9 +1112,13 @@ def snap(geometry, reference, tolerance, **kwargs):
 
 @multithreading_enabled
 def voronoi_polygons(
-    geometry, tolerance=0.0, extend_to=None, only_edges=False, **kwargs
-):
-    """Computes a Voronoi diagram from the vertices of an input geometry.
+    geometry: MaybeGeometryArrayNLike,
+    tolerance: MaybeArrayNLike[float] = 0.0,
+    extend_to: Optional[MaybeArrayNLike["BaseGeometry"]] = None,
+    only_edges: MaybeArrayNLike[bool] = False,
+    **kwargs
+) -> MaybeGeometryArrayN:
+    """Computes a Voronoi diagram [1] from the vertices of an input geometries.
 
     The output is a geometrycollection containing polygons (default)
     or linestrings (see only_edges). Returns empty if an input geometry
@@ -956,18 +1126,43 @@ def voronoi_polygons(
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
+        The input geometries whose vertices will be used to calculate
+        the final diagram.
     tolerance : float or array_like, default 0.0
         Snap input vertices together if their distance is less than this value.
-    extend_to : Geometry or array_like, optional
-        If provided, the diagram will be extended to cover the envelope of this
+        Snapping tolerance is used to improve the robustness of the computation.
+        A tolerance of 0.0 specifies that no snapping will take place.
+    extend_to : MaybeGeometryArrayNLike, optional
+        If None, the clipping envelope will be automatically determined.
+        Otherwise, the diagram will be extended to cover the envelope of this
         geometry (unless this envelope is smaller than the input geometry).
     only_edges : bool or array_like, default False
-        If set to True, the triangulation will return a collection of
-        linestrings instead of polygons.
+        If False, the triangulation will return a collection of polygons.
+        Otherwise, a collection of LineString edges.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    GEOS documentation can be found at [2]
+
+    Returns
+    -------
+    GeometryCollection
+        geometries representing the Voronoi regions.
+
+    Notes
+    -----
+    The tolerance `argument` can be finicky and is known to cause the
+    algorithm to fail in several cases. If you're using `tolerance`
+    and getting a failure, try removing it. The test cases in
+    tests/test_voronoi_diagram.py show more details.
+
+
+    References
+    ----------
+    [1] https://en.wikipedia.org/wiki/Voronoi_diagram
+    [2] https://geos.osgeo.org/doxygen/geos__c_8h_source.html  (line 730)
 
     Examples
     --------
@@ -991,9 +1186,10 @@ def voronoi_polygons(
 
 @requires_geos("3.6.0")
 @multithreading_enabled
-def oriented_envelope(geometry, **kwargs):
-    """
-    Computes the oriented envelope (minimum rotated rectangle)
+def oriented_envelope(
+    geometry: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeGeometryArrayN:
+    """Computes the oriented envelope (minimum rotated rectangle)
     that encloses an input geometry.
 
     Unlike envelope this rectangle is not constrained to be parallel to the
@@ -1002,7 +1198,7 @@ def oriented_envelope(geometry, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -1031,12 +1227,14 @@ minimum_rotated_rectangle = oriented_envelope
 
 @requires_geos("3.8.0")
 @multithreading_enabled
-def minimum_bounding_circle(geometry, **kwargs):
+def minimum_bounding_circle(
+    geometry: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeArrayNLike[Union["Polygon", "Point", "EmptyGeometry"]]:
     """Computes the minimum bounding circle that encloses an input geometry.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.

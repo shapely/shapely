@@ -1,4 +1,5 @@
 import warnings
+from typing import Optional
 
 import numpy as np
 
@@ -36,10 +37,11 @@ __all__ = [
     "relate",
     "relate_pattern",
 ]
+from shapely.shapely_typing import MaybeArrayN, MaybeArrayNLike, MaybeGeometryArrayNLike
 
 
 @multithreading_enabled
-def has_z(geometry, **kwargs):
+def has_z(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeArrayN[bool]:
     """Returns True if a geometry has a Z coordinate.
 
     Note that this function returns False if the (first) Z coordinate equals NaN or
@@ -47,7 +49,7 @@ def has_z(geometry, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -71,7 +73,7 @@ def has_z(geometry, **kwargs):
 
 @requires_geos("3.7.0")
 @multithreading_enabled
-def is_ccw(geometry, **kwargs):
+def is_ccw(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeArrayN[bool]:
     """Returns True if a linestring or linearring is counterclockwise.
 
     Note that there are no checks on whether lines are actually closed and
@@ -81,7 +83,7 @@ def is_ccw(geometry, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
         This function will return False for non-linear goemetries and for
         lines with fewer than 4 points (including the closing point).
     **kwargs
@@ -109,12 +111,12 @@ def is_ccw(geometry, **kwargs):
 
 
 @multithreading_enabled
-def is_closed(geometry, **kwargs):
+def is_closed(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeArrayN[bool]:
     """Returns True if a linestring's first and last points are equal.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
         This function will return False for non-linestrings.
     **kwargs
         For other keyword-only arguments, see the
@@ -138,12 +140,12 @@ def is_closed(geometry, **kwargs):
 
 
 @multithreading_enabled
-def is_empty(geometry, **kwargs):
+def is_empty(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeArrayN[bool]:
     """Returns True if a geometry is an empty point, polygon, etc.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
         Any geometry type is accepted.
     **kwargs
         For other keyword-only arguments, see the
@@ -167,7 +169,7 @@ def is_empty(geometry, **kwargs):
 
 
 @multithreading_enabled
-def is_geometry(geometry, **kwargs):
+def is_geometry(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeArrayN[bool]:
     """Returns True if the object is a geometry
 
     Parameters
@@ -198,7 +200,7 @@ def is_geometry(geometry, **kwargs):
 
 
 @multithreading_enabled
-def is_missing(geometry, **kwargs):
+def is_missing(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeArrayN[bool]:
     """Returns True if the object is not a geometry (None)
 
     Parameters
@@ -230,7 +232,7 @@ def is_missing(geometry, **kwargs):
 
 
 @multithreading_enabled
-def is_prepared(geometry, **kwargs):
+def is_prepared(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeArrayN[bool]:
     """Returns True if a Geometry is prepared.
 
     Note that it is not necessary to check if a geometry is already prepared
@@ -241,7 +243,7 @@ def is_prepared(geometry, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -267,7 +269,7 @@ def is_prepared(geometry, **kwargs):
 
 
 @multithreading_enabled
-def is_valid_input(geometry, **kwargs):
+def is_valid_input(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeArrayN[bool]:
     """Returns True if the object is a geometry or None
 
     Parameters
@@ -300,12 +302,12 @@ def is_valid_input(geometry, **kwargs):
 
 
 @multithreading_enabled
-def is_ring(geometry, **kwargs):
+def is_ring(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeArrayN[bool]:
     """Returns True if a linestring is closed and simple.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
         This function will return False for non-linestrings.
     **kwargs
         For other keyword-only arguments, see the
@@ -335,7 +337,7 @@ def is_ring(geometry, **kwargs):
 
 
 @multithreading_enabled
-def is_simple(geometry, **kwargs):
+def is_simple(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeArrayN[bool]:
     """Returns True if a Geometry has no anomalous geometric points, such as
     self-intersections or self tangency.
 
@@ -344,7 +346,7 @@ def is_simple(geometry, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
         This function will return False for geometrycollections.
     **kwargs
         For other keyword-only arguments, see the
@@ -369,12 +371,12 @@ def is_simple(geometry, **kwargs):
 
 
 @multithreading_enabled
-def is_valid(geometry, **kwargs):
+def is_valid(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeArrayN[bool]:
     """Returns True if a geometry is well formed.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
         Any geometry type is accepted. Returns False for missing values.
     **kwargs
         For other keyword-only arguments, see the
@@ -403,16 +405,23 @@ def is_valid(geometry, **kwargs):
     return result
 
 
-def is_valid_reason(geometry, **kwargs):
+def is_valid_reason(geometry: MaybeGeometryArrayNLike, **kwargs) -> MaybeArrayN[str]:
     """Returns a string stating if a geometry is valid and if not, why.
+    The explanation might include a location if there is a self-intersection or a
+    ring self-intersection.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
         Any geometry type is accepted. Returns None for missing values.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    Returns
+    -------
+    str, or array of str
+        A string describing the reason the geometry is invalid.
 
     See also
     --------
@@ -432,7 +441,9 @@ def is_valid_reason(geometry, **kwargs):
 
 
 @multithreading_enabled
-def crosses(a, b, **kwargs):
+def crosses(
+    a: MaybeGeometryArrayNLike, b: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeArrayN[bool]:
     """Returns True if A and B spatially cross.
 
     A crosses B if they have some but not all interior points in common,
@@ -441,7 +452,7 @@ def crosses(a, b, **kwargs):
 
     Parameters
     ----------
-    a, b : Geometry or array_like
+    a, b: MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -483,7 +494,9 @@ def crosses(a, b, **kwargs):
 
 
 @multithreading_enabled
-def contains(a, b, **kwargs):
+def contains(
+    a: MaybeGeometryArrayNLike, b: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeArrayN[bool]:
     """Returns True if geometry B is completely inside geometry A.
 
     A contains B if no points of B lie in the exterior of A and at least one
@@ -495,7 +508,7 @@ def contains(a, b, **kwargs):
 
     Parameters
     ----------
-    a, b : Geometry or array_like
+    a, b: MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -541,7 +554,9 @@ def contains(a, b, **kwargs):
 
 
 @multithreading_enabled
-def contains_properly(a, b, **kwargs):
+def contains_properly(
+    a: MaybeGeometryArrayNLike, b: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeArrayN[bool]:
     """Returns True if geometry B is completely inside geometry A, with no
     common boundary points.
 
@@ -556,7 +571,7 @@ def contains_properly(a, b, **kwargs):
 
     Parameters
     ----------
-    a, b : Geometry or array_like
+    a, b: MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -591,12 +606,14 @@ def contains_properly(a, b, **kwargs):
 
 
 @multithreading_enabled
-def covered_by(a, b, **kwargs):
+def covered_by(
+    a: MaybeGeometryArrayNLike, b: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeArrayN[bool]:
     """Returns True if no point in geometry A is outside geometry B.
 
     Parameters
     ----------
-    a, b : Geometry or array_like
+    a, b: MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -640,12 +657,14 @@ def covered_by(a, b, **kwargs):
 
 
 @multithreading_enabled
-def covers(a, b, **kwargs):
+def covers(
+    a: MaybeGeometryArrayNLike, b: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeArrayN[bool]:
     """Returns True if no point in geometry B is outside geometry A.
 
     Parameters
     ----------
-    a, b : Geometry or array_like
+    a, b: MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -689,7 +708,9 @@ def covers(a, b, **kwargs):
 
 
 @multithreading_enabled
-def disjoint(a, b, **kwargs):
+def disjoint(
+    a: MaybeGeometryArrayNLike, b: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeArrayN[bool]:
     """Returns True if A and B do not share any point in space.
 
     Disjoint implies that overlaps, touches, within, and intersects are False.
@@ -697,7 +718,7 @@ def disjoint(a, b, **kwargs):
 
     Parameters
     ----------
-    a, b : Geometry or array_like
+    a, b: MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -731,15 +752,20 @@ def disjoint(a, b, **kwargs):
 
 
 @multithreading_enabled
-def equals(a, b, **kwargs):
+def equals(
+    a: MaybeGeometryArrayNLike, b: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeArrayN[bool]:
     """Returns True if A and B are spatially equal.
 
-    If A is within B and B is within A, A and B are considered equal. The
-    ordering of points can be different.
+    If A is within B and B is within A, A and B are considered equal.
+    The ordering of points can be different.
+
+    This method considers point-set equality (or topological equality),
+    and is equivalent to (shapely.within(a, b) & shapely.contains(a, b)).
 
     Parameters
     ----------
-    a, b : Geometry or array_like
+    a, b: MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -752,8 +778,8 @@ def equals(a, b, **kwargs):
     Examples
     --------
     >>> from shapely import GeometryCollection, LineString, Polygon
-    >>> line = LineString([(0, 0), (5, 5), (10, 10)])
-    >>> equals(line, LineString([(0, 0), (10, 10)]))
+    >>> line = LineString([(0, 0), (1, 1), (2, 2)])
+    >>> equals(line, LineString([(0, 0), (2, 2)]))
     True
     >>> equals(Polygon(), GeometryCollection())
     True
@@ -764,14 +790,16 @@ def equals(a, b, **kwargs):
 
 
 @multithreading_enabled
-def intersects(a, b, **kwargs):
+def intersects(
+    a: MaybeGeometryArrayNLike, b: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeArrayN[bool]:
     """Returns True if A and B share any portion of space.
 
-    Intersects implies that overlaps, touches and within are True.
+    `intersects` implies that overlaps, touches and within are True.
 
     Parameters
     ----------
-    a, b : Geometry or array_like
+    a, b: MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -799,7 +827,9 @@ def intersects(a, b, **kwargs):
 
 
 @multithreading_enabled
-def overlaps(a, b, **kwargs):
+def overlaps(
+    a: MaybeGeometryArrayNLike, b: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeArrayN[bool]:
     """Returns True if A and B spatially overlap.
 
     A and B overlap if they have some but not all points in common, have the
@@ -811,7 +841,7 @@ def overlaps(a, b, **kwargs):
 
     Parameters
     ----------
-    a, b : Geometry or array_like
+    a, b: MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -854,13 +884,15 @@ def overlaps(a, b, **kwargs):
 
 
 @multithreading_enabled
-def touches(a, b, **kwargs):
+def touches(
+    a: MaybeGeometryArrayNLike, b: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeArrayN[bool]:
     """Returns True if the only points shared between A and B are on the
     boundary of A and B.
 
     Parameters
     ----------
-    a, b : Geometry or array_like
+    a, b: MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -895,7 +927,9 @@ def touches(a, b, **kwargs):
 
 
 @multithreading_enabled
-def within(a, b, **kwargs):
+def within(
+    a: MaybeGeometryArrayNLike, b: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeArrayN[bool]:
     """Returns True if geometry A is completely inside geometry B.
 
     A is within B if no points of A lie in the exterior of B and at least one
@@ -903,7 +937,7 @@ def within(a, b, **kwargs):
 
     Parameters
     ----------
-    a, b : Geometry or array_like
+    a, b: MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -947,8 +981,13 @@ def within(a, b, **kwargs):
 
 
 @multithreading_enabled
-def equals_exact(a, b, tolerance=0.0, **kwargs):
-    """Returns True if A and B are structurally equal.
+def equals_exact(
+    a: MaybeGeometryArrayNLike,
+    b: MaybeGeometryArrayNLike,
+    tolerance: MaybeArrayNLike[float] = 0.0,
+    **kwargs
+) -> MaybeArrayN[bool]:
+    """Returns True if A and B are structurally equal, within a specified tolerance.
 
     This method uses exact coordinate equality, which requires coordinates
     to be equal (within specified tolerance) and and in the same order for all
@@ -957,7 +996,7 @@ def equals_exact(a, b, tolerance=0.0, **kwargs):
 
     Parameters
     ----------
-    a, b : Geometry or array_like
+    a, b: MaybeGeometryArrayNLike
     tolerance : float or array_like
     **kwargs
         For other keyword-only arguments, see the
@@ -991,13 +1030,15 @@ def equals_exact(a, b, tolerance=0.0, **kwargs):
     return lib.equals_exact(a, b, tolerance, **kwargs)
 
 
-def relate(a, b, **kwargs):
+def relate(
+    a: MaybeGeometryArrayNLike, b: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeArrayN[str]:
     """
     Returns a string representation of the DE-9IM intersection matrix.
 
     Parameters
     ----------
-    a, b : Geometry or array_like
+    a, b: MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -1014,9 +1055,10 @@ def relate(a, b, **kwargs):
 
 
 @multithreading_enabled
-def relate_pattern(a, b, pattern, **kwargs):
-    """
-    Returns True if the DE-9IM string code for the relationship between
+def relate_pattern(
+    a: MaybeGeometryArrayNLike, b: MaybeGeometryArrayNLike, pattern: str, **kwargs
+) -> MaybeArrayN[str]:
+    """Returns True if the DE-9IM string code for the relationship between
     the geometries satisfies the pattern, else False.
 
     This function compares the DE-9IM code string for two geometries
@@ -1028,7 +1070,7 @@ def relate_pattern(a, b, pattern, **kwargs):
 
     Parameters
     ----------
-    a, b : Geometry or array_like
+    a, b: MaybeGeometryArrayNLike
     pattern : string
     **kwargs
         For other keyword-only arguments, see the
@@ -1049,7 +1091,9 @@ def relate_pattern(a, b, pattern, **kwargs):
 
 @multithreading_enabled
 @requires_geos("3.10.0")
-def dwithin(a, b, distance, **kwargs):
+def dwithin(
+    a: MaybeGeometryArrayNLike, b: MaybeGeometryArrayNLike, distance: float, **kwargs
+) -> MaybeArrayN[bool]:
     """
     Returns True if the geometries are within a given distance.
 
@@ -1058,7 +1102,7 @@ def dwithin(a, b, distance, **kwargs):
 
     Parameters
     ----------
-    a, b : Geometry or array_like
+    a, b: MaybeGeometryArrayNLike
     distance : float
         Negative distances always return False.
     **kwargs
@@ -1087,7 +1131,12 @@ def dwithin(a, b, distance, **kwargs):
 
 
 @multithreading_enabled
-def contains_xy(geom, x, y=None, **kwargs):
+def contains_xy(
+    geom: MaybeGeometryArrayNLike,
+    x: MaybeArrayNLike[float],
+    y: Optional[MaybeArrayNLike[float]] = None,
+    **kwargs
+) -> MaybeArrayN[bool]:
     """
     Returns True if the Point (x, y) is completely inside geometry A.
 
@@ -1102,8 +1151,8 @@ def contains_xy(geom, x, y=None, **kwargs):
 
     Parameters
     ----------
-    geom : Geometry or array_like
-    x, y : float or array_like
+    geom : MaybeGeometryArrayNLike
+    x, y : MaybeArrayNLike[float]
         Coordinates as separate x and y arrays, or a single array of
         coordinate x, y tuples.
     **kwargs
@@ -1136,7 +1185,12 @@ def contains_xy(geom, x, y=None, **kwargs):
 
 
 @multithreading_enabled
-def intersects_xy(geom, x, y=None, **kwargs):
+def intersects_xy(
+    geom: MaybeGeometryArrayNLike,
+    x: MaybeArrayNLike[float],
+    y: Optional[MaybeArrayNLike[float]] = None,
+    **kwargs
+) -> MaybeArrayN[bool]:
     """
     Returns True if A and the Point (x, y) share any portion of space.
 

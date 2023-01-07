@@ -1,11 +1,24 @@
+from typing import Callable, Union
+
 import numpy as np
 
 from . import lib
 
 __all__ = ["transform", "count_coordinates", "get_coordinates", "set_coordinates"]
 
+from shapely.shapely_typing import (
+    MaybeArrayN,
+    MaybeGeometryArrayN,
+    MaybeGeometryArrayNLike,
+    NumpyArrayN2orN3,
+)
 
-def transform(geometry, transformation, include_z=False):
+
+def transform(
+    geometry: MaybeGeometryArrayNLike,
+    transformation: Callable,
+    include_z: Union[bool, int] = False,
+) -> MaybeGeometryArrayN:
     """Returns a copy of a geometry array with a function applied to its
     coordinates.
 
@@ -16,7 +29,7 @@ def transform(geometry, transformation, include_z=False):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
     transformation : function
         A function that transforms a (N, 2) or (N, 3) ndarray of float64 to
         another (N, 2) or (N, 3) ndarray of float64.
@@ -68,12 +81,12 @@ def transform(geometry, transformation, include_z=False):
     return geometry_arr
 
 
-def count_coordinates(geometry):
+def count_coordinates(geometry: MaybeGeometryArrayNLike) -> MaybeArrayN[int]:
     """Counts the number of coordinate pairs in a geometry array.
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
 
     Examples
     --------
@@ -90,7 +103,11 @@ def count_coordinates(geometry):
     return lib.count_coordinates(np.asarray(geometry, dtype=np.object_))
 
 
-def get_coordinates(geometry, include_z=False, return_index=False):
+def get_coordinates(
+    geometry: MaybeGeometryArrayNLike,
+    include_z: bool = False,
+    return_index: bool = False,
+) -> NumpyArrayN2orN3:
     """Gets coordinates from a geometry array as an array of floats.
 
     The shape of the returned array is (N, 2), with N being the number of
@@ -100,7 +117,7 @@ def get_coordinates(geometry, include_z=False, return_index=False):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
     include_z : bool, default False
         If, True include the third dimension in the output. If a geometry
         has no third dimension, the z-coordinates will be NaN.
@@ -119,7 +136,7 @@ def get_coordinates(geometry, include_z=False, return_index=False):
     >>> get_coordinates(None)
     array([], shape=(0, 2), dtype=float64)
 
-    By default the third dimension is ignored:
+    By default, the third dimension is ignored:
 
     >>> get_coordinates(Point(0, 0, 0)).tolist()
     [[0.0, 0.0]]
@@ -138,7 +155,7 @@ def get_coordinates(geometry, include_z=False, return_index=False):
     )
 
 
-def set_coordinates(geometry, coordinates):
+def set_coordinates(geometry: MaybeGeometryArrayNLike, coordinates: NumpyArrayN2orN3):
     """Adapts the coordinates of a geometry array in-place.
 
     If the coordinates array has shape (N, 2), all returned geometries
@@ -154,7 +171,7 @@ def set_coordinates(geometry, coordinates):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
     coordinates: array_like
 
     See Also
