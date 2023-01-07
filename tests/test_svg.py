@@ -2,7 +2,7 @@
 import os
 from xml.dom.minidom import parseString as parse_xml_string
 
-from . import unittest
+import unittest
 from shapely.geometry import Point, MultiPoint, LineString, MultiLineString,\
     Polygon, MultiPolygon
 from shapely.geometry.collection import GeometryCollection

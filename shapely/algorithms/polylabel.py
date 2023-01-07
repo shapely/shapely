@@ -1,7 +1,7 @@
 from heapq import heappop, heappush
 
-from ..errors import TopologicalError
-from ..geometry import Point
+from shapely.errors import TopologicalError
+from shapely.geometry import Point
 
 
 class Cell:

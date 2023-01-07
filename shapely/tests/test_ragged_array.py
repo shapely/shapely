@@ -5,8 +5,7 @@ from numpy.testing import assert_allclose
 import shapely
 from shapely import MultiLineString, MultiPoint, MultiPolygon
 from shapely.testing import assert_geometries_equal
-
-from .common import (
+from shapely.tests.common import (
     empty_line_string,
     empty_line_string_z,
     geometry_collection,

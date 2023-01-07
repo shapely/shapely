@@ -5,7 +5,7 @@ from functools import reduce
 
 import numpy as np
 
-from . import unittest
+import unittest
 from shapely import geometry
 
 

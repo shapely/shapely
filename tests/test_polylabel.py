@@ -1,4 +1,4 @@
-from . import unittest
+import unittest
 import pytest
 from shapely.algorithms.polylabel import polylabel, Cell
 from shapely.geometry import LineString, Point, Polygon

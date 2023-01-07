@@ -13,8 +13,7 @@ import shapely
 from shapely import box, geos_version, MultiPoint, Point, STRtree
 from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
-
-from .common import empty, empty_line_string, empty_point, point
+from shapely.tests.common import empty, empty_line_string, empty_point, point
 
 # the distance between 2 points spaced at whole numbers along a diagonal
 HALF_UNIT_DIAG = math.sqrt(2) / 2

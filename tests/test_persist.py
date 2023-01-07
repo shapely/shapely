@@ -1,6 +1,6 @@
 """Persistence tests
 """
-from . import unittest
+import unittest
 import pickle
 from shapely import wkb, wkt
 from shapely.geometry import Point

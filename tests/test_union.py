@@ -1,4 +1,4 @@
-from . import unittest
+import unittest
 import pytest
 import random
 from itertools import islice

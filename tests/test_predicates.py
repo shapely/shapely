@@ -1,6 +1,6 @@
 """Test GEOS predicates
 """
-from . import unittest
+import unittest
 from shapely.geometry import Point, Polygon
 import pytest
 

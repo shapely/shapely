@@ -1,6 +1,6 @@
 '''Test locale independence of WKT
 '''
-from . import unittest
+import unittest
 import sys
 import locale
 from shapely.wkt import loads, dumps

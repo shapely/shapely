@@ -1,4 +1,4 @@
-from . import unittest
+import unittest
 from shapely.geometry import Point, mapping, Polygon
 
 

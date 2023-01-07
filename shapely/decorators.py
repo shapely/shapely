@@ -3,8 +3,8 @@ from functools import wraps
 
 import numpy as np
 
-from . import lib
-from .errors import UnsupportedGEOSVersionError
+from shapely import lib
+from shapely.errors import UnsupportedGEOSVersionError
 
 
 class requires_geos:

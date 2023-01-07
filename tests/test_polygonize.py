@@ -1,4 +1,4 @@
-from . import unittest
+import unittest
 from shapely.geometry import Point, LineString, Polygon
 from shapely.geometry.base import dump_coords
 from shapely.ops import polygonize, polygonize_full

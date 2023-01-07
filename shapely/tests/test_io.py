@@ -10,8 +10,7 @@ import shapely
 from shapely import GeometryCollection, LineString, Point, Polygon
 from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
-
-from .common import all_types, empty_point, empty_point_z, point, point_z
+from shapely.tests.common import all_types, empty_point, empty_point_z, point, point_z
 
 # fmt: off
 POINT11_WKB = b"\x01\x01\x00\x00\x00" + struct.pack("<2d", 1.0, 1.0)

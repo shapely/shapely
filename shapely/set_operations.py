@@ -1,8 +1,8 @@
 import numpy as np
 
-from . import GeometryType, lib
-from .decorators import multithreading_enabled, requires_geos
-from .errors import UnsupportedGEOSVersionError
+from shapely import GeometryType, lib
+from shapely.decorators import multithreading_enabled, requires_geos
+from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
     "difference",

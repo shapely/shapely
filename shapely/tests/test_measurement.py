@@ -4,8 +4,7 @@ from numpy.testing import assert_allclose, assert_array_equal
 
 import shapely
 from shapely import GeometryCollection, LineString, MultiPoint, Point, Polygon
-
-from .common import (
+from shapely.tests.common import (
     empty,
     geometry_collection,
     ignore_invalid,

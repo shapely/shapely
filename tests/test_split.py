@@ -1,6 +1,6 @@
 from shapely.ops import split
 
-from . import unittest
+import unittest
 import pytest
 
 from shapely.errors import GeometryTypeError
