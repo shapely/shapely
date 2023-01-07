@@ -2123,7 +2123,7 @@ using functions in the :mod:`shapely.ops` module.
   The source may be a MultiLineString, a sequence of LineString objects,
   or a sequence of objects than can be adapted to LineStrings.
 
-  Returns a tuple of objects: (polygons, dangles, cut edges, invalid ring
+  Returns a tuple of objects: (polygons, cut edges, dangles, invalid ring
   lines). Each are a geometry collection.
 
   Dangles are edges which have one or both ends which are not incident on
@@ -2145,12 +2145,12 @@ using functions in the :mod:`shapely.ops` module.
     ...     ((5, 5), (6, 6)),
     ...     ((1, 1), (100, 100)),
     ...     ]
-    >>> result, dangles, cuts, invalids = polygonize_full(lines)
+    >>> result, cuts, dangles, invalids = polygonize_full(lines)
     >>> len(result.geoms)
     2
     >>> list(result.geoms)
     [<POLYGON ((0 0, 1 1, 1 0, 0 0))>, <POLYGON ((1 1, 0 0, 0 1, 1 1))>]
-    >>> list(cuts.geoms)
+    >>> list(dangles.geoms)
     [<LINESTRING (1 1, 100 100)>, <LINESTRING (5 5, 6 6)>]
 
 .. function:: shapely.ops.linemerge(lines)

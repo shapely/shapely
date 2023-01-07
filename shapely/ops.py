@@ -73,7 +73,7 @@ class CollectionOperator:
         The source may be a MultiLineString, a sequence of LineString objects,
         or a sequence of objects than can be adapted to LineStrings.
 
-        Returns a tuple of objects: (polygons, dangles, cut edges, invalid ring
+        Returns a tuple of objects: (polygons, cut edges, dangles, invalid ring
         lines). Each are a geometry collection.
 
         Dangles are edges which have one or both ends which are not incident on
