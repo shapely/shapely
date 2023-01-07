@@ -34,7 +34,7 @@ questions addressable using non-statistical spatial analysis, and more
 specifically, computational geometry.
 
 Shapely is a Python package for set-theoretic analysis and manipulation of
-planar features using (via Python's :mod:`ctypes` module) functions from the
+planar features using functions from the
 well known and widely deployed GEOS_ library. GEOS, a port of the `Java
 Topology Suite`_ (JTS), is the geometry engine of the PostGIS_ spatial
 extension for the PostgreSQL RDBMS. The designs of JTS and GEOS are largely
@@ -855,8 +855,8 @@ fraction of the geometric object's length.
   `other` object.
 
 If the `normalized` arg is ``True``, return the distance normalized to the
-length of the object. The :meth:`project` method is the inverse of
-:meth:`interpolate`.
+length of the object. The :meth:`~object.project` method is the inverse of
+:meth:`~object.interpolate`.
 
 .. code-block:: pycon
 
@@ -964,9 +964,10 @@ A ring with an undesired orientation can be reversed like this:
 
 .. note::
 
-   With the help of the :mod:`operator` module's :func:`attrgetter` function,
+   With the help of the :external+python:mod:`operator` module's
+   :external+python:func:`~operator.attrgetter` function,
    unary predicates such as ``is_empty`` can be easily used as predicates for
-   the built in :func:`filter` or :func:`itertools.ifilter`.
+   the built in :external+python:func:`filter`.
 
 .. code-block:: pycon
 
@@ -1107,7 +1108,7 @@ differently.
   and at least one point of the interior of `other` lies in the interior of
   `object`.
 
-This predicate applies to all types, and is inverse to :meth:`within`. The
+This predicate applies to all types, and is inverse to :meth:`~object.within`. The
 expression ``a.contains(b) == b.within(a)`` always evaluates to ``True``.
 
 .. code-block:: pycon
@@ -1181,7 +1182,7 @@ A line does not cross a point that it contains.
   >>> Point(0, 0).disjoint(Point(1, 1))
   True
 
-This predicate applies to all types and is the inverse of :meth:`intersects`.
+This predicate applies to all types and is the inverse of :meth:`~object.intersects`.
 
 .. method:: object.intersects(other)
 
@@ -1217,9 +1218,9 @@ example, the following lines touch at ``(1, 1)``, but do not overlap.
   Returns ``True`` if the object's `boundary` and `interior` intersect only
   with the `interior` of the other (not its `boundary` or `exterior`).
 
-This applies to all types and is the inverse of :meth:`contains`.
+This applies to all types and is the inverse of :meth:`~object.contains`.
 
-Used in a ``sorted()`` `key`, :meth:`within` makes it easy to spatially sort
+Used in a ``sorted()`` `key`, :meth:`~object.within` makes it easy to spatially sort
 objects. Let's say we have 4 stereotypic features: a point that is contained by
 a polygon which is itself contained by another polygon, and a free spirited
 point contained by none
@@ -1241,7 +1242,7 @@ that we'd prefer to have ordered as ``[d, c, c, b, a]`` in reverse containment
 order. As explained in the Python `Sorting HowTo`_, we can define a key
 function that operates on each list element and returns a value for comparison.
 Our key function will be a wrapper class that implements ``__lt__()`` using
-Shapely's binary :meth:`within` predicate.
+Shapely's binary :meth:`~object.within` predicate.
 
 .. code-block:: python
 
@@ -1270,7 +1271,7 @@ It also works on the list of features, producing the order we want.
 DE-9IM Relationships
 --------------------
 
-The :meth:`relate` method tests all the DE-9IM [4]_ relationships between
+The :meth:`~object.relate` method tests all the DE-9IM [4]_ relationships between
 objects, of which the named relationship predicates above are a subset.
 
 .. method:: object.relate(other)
@@ -1279,8 +1280,8 @@ objects, of which the named relationship predicates above are a subset.
     between an object's `interior`, `boundary`, `exterior` and those of another
     geometric object.
 
-The named relationship predicates (:meth:`contains`, etc.) are typically
-implemented as wrappers around :meth:`relate`.
+The named relationship predicates (:meth:`~object.contains`, etc.) are typically
+implemented as wrappers around :meth:`~object.relate`.
 
 Two different points have mainly ``F`` (false) values in their matrix; the
 intersection of their `external` sets (the 9th element) is a ``2`` dimensional
@@ -1306,7 +1307,7 @@ elements.
     Returns True if the DE-9IM string code for the relationship between the
     geometries satisfies the pattern, otherwise False.
 
-The :meth:`relate_pattern` compares the DE-9IM code string for two geometries
+The :meth:`~object.relate_pattern` compares the DE-9IM code string for two geometries
 against a specified pattern. If the string matches the pattern then ``True`` is
 returned, otherwise ``False``. The pattern specified can be an exact match
 (``0``, ``1`` or ``2``), a boolean match (``T`` or ``F``), or a wildcard
@@ -1357,7 +1358,7 @@ available as a read-only attribute.
   These methods will `always` return a geometric object. An intersection of
   disjoint geometries for example will return an empty `GeometryCollection`,
   not `None` or `False`. To test for a non-empty result, use the geometry's
-  :attr:`is_empty` property.
+  :attr:`~object.is_empty` property.
 
 .. attribute:: object.boundary
 
@@ -1409,7 +1410,7 @@ illustration of lines and their boundaries.
 
 .. note::
 
-  The :meth:`buffer` method is used to produce approximately circular polygons
+  The :meth:`~object.buffer` method is used to produce approximately circular polygons
   in the examples of this section; it will be explained in detail later in this
   manual.
 
@@ -1436,7 +1437,7 @@ Figure 8. Differences between two approximately circular polygons.
   >>> a.intersection(b)
   <POLYGON ((2.493 0.853, 2.471 0.707, 2.435 0.565, 2.386 0.426, 2.323 0.293, ...>
 
-See the figure under :meth:`symmetric_difference` below.
+See the figure under :meth:`~object.symmetric_difference` below.
 
 .. method:: object.symmetric_difference(other)
 
@@ -1483,8 +1484,8 @@ boundaries.
 
 .. note::
 
-  :meth:`union` is an expensive way to find the cumulative union
-  of many objects. See :func:`shapely.ops.unary_union` for a more effective
+  :meth:`~object.union` is an expensive way to find the cumulative union
+  of many objects. See :func:`shapely.unary_union` for a more effective
   method.
 
 Several of these set-theoretic methods can be invoked using overloaded operators:
@@ -1615,7 +1616,7 @@ The single-sided buffer of point geometries is the same as the regular buffer.
 The End Cap Style for single-sided buffers is always ignored, and forced to
 the equivalent of `BufferCapStyle.flat`.
 
-Passed a `distance` of 0, :meth:`buffer` can sometimes be used to "clean" self-touching
+Passed a `distance` of 0, :meth:`~object.buffer` can sometimes be used to "clean" self-touching
 or self-crossing polygons such as the classic "bowtie". Users have reported
 that very small distance values sometimes produce cleaner results than 0. Your
 mileage may vary when cleaning surfaces.
@@ -1698,10 +1699,10 @@ linestring feature (right).
   Returns a LineString or MultiLineString geometry at a distance from the
   object on its right or its left side.
 
-  Older alternative method to the :meth:`offset_curve` method, but uses
+  Older alternative method to the :meth:`~object.offset_curve` method, but uses
   `resolution` instead of `quad_segs` and a `side` keyword ('left' or
   'right') instead of sign of the distance. This method is kept for backwards
-  compatibility for now, but is is recommended to use :meth:`offset_curve`
+  compatibility for now, but is is recommended to use :meth:`~object.offset_curve`
   instead.
 
 .. method:: object.offset_curve(distance, quad_segs=16, join_style=1, mitre_limit=5.0)
@@ -1723,7 +1724,7 @@ linestring feature (right).
   function tries to preserve the orientation of the original line.
 
   The resolution of the offset around each vertex of the object is
-  parameterized as in the :meth:`buffer` method (using `quad_segs`).
+  parameterized as in the :meth:`~object.buffer` method (using `quad_segs`).
 
   The `join_style` is for outside corners between line segments. Accepted integer
   values are 1 (round), 2 (mitre), and 3 (bevel). See also
@@ -2203,7 +2204,7 @@ Efficient Unions
 ----------------
 
 The :func:`~shapely.ops.unary_union` function in `shapely.ops` is more
-efficient than accumulating with :meth:`union`.
+efficient than accumulating with :meth:`~object.union`.
 
 .. plot:: code/unary_union.py
 
@@ -2223,7 +2224,7 @@ efficient than accumulating with :meth:`union`.
 
   Because the union merges the areas of overlapping `Polygons` it can be
   used in an attempt to fix invalid `MultiPolygons`. As with the zero
-  distance :meth:`buffer` trick, your mileage may vary when using this.
+  distance :meth:`~object.buffer` trick, your mileage may vary when using this.
 
   .. code-block:: pycon
 
@@ -2577,19 +2578,17 @@ be parsed out.
   `Requires GEOS > 3.8`
 
 The Shapely version, GEOS library version, and GEOS C API version are
-accessible via :attr:`shapely.__version__`,
-:attr:`shapely.geos.geos_version_string`, and
-:attr:`shapely.geos.geos_capi_version`.
+accessible via ``shapely.__version__``, ``shapely.geos_version_string``, and
+``shapely.geos_capi_version``.
 
 .. code-block:: pycon
 
   >>> import shapely
   >>> shapely.__version__  # doctest: +SKIP
   '2.0.0'
-  >>> import shapely.geos
-  >>> shapely.geos.geos_version  # doctest: +SKIP
+  >>> shapely.geos_version  # doctest: +SKIP
   (3, 10, 2)
-  >>> shapely.geos.geos_version_string  # doctest: +SKIP
+  >>> shapely.geos_capi_version_string  # doctest: +SKIP
   '3.10.2-CAPI-1.16.0'
 
 Polylabel
@@ -2679,7 +2678,7 @@ Well-Known Formats
 ------------------
 
 A `Well Known Text` (WKT) or `Well Known Binary` (WKB) representation [1]_ of
-any geometric object can be had via its :attr:`wkt` or :attr:`wkb` attribute.
+any geometric object can be had via its ``wkt`` or ``wkb`` attribute.
 These representations allow interchange with many GIS programs. PostGIS, for
 example, trades in hex-encoded WKB.
 
@@ -2764,7 +2763,7 @@ adapted to Numpy arrays.
          [1., 1.]])
 
 The coordinates of the same types of geometric objects can be had as standard
-Python arrays of `x` and `y` values via the :attr:`xy` attribute.
+Python arrays of `x` and `y` values via the ``xy`` attribute.
 
 .. code-block:: pycon
 
