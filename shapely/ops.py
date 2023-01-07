@@ -110,9 +110,7 @@ class CollectionOperator:
                 source = MultiLineString(lines)
         if source is None:
             raise ValueError(f"Cannot linemerge {lines}")
-        if directed:
-            return shapely.line_merge_directed(source)
-        return shapely.line_merge(source)
+        return shapely.line_merge(source, directed=directed)
 
     def cascaded_union(self, geoms):
         """Returns the union of a sequence of geometries
