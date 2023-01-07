@@ -1,8 +1,8 @@
 import numpy as np
 
 from . import lib
+from ._enum import ParamEnum
 from .decorators import multithreading_enabled, requires_geos
-from .enum import ParamEnum
 
 __all__ = [
     "BufferCapStyle",

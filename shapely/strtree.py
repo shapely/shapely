@@ -3,8 +3,8 @@ from typing import Any, Iterable, Union
 import numpy as np
 
 from . import lib
+from ._enum import ParamEnum
 from .decorators import requires_geos, UnsupportedGEOSVersionError
-from .enum import ParamEnum
 from .geometry.base import BaseGeometry
 from .predicates import is_empty, is_missing
 
