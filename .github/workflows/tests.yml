@@ -47,6 +47,7 @@ jobs:
           # dev
           - python: "3.11"
             geos: main
+            matplotlib: true
             extra_pytest_args: "-W error" # error on warnings
           # enable two 32-bit windows builds:
           - os: windows-2019
