@@ -40,14 +40,12 @@ jobs:
           - python: "3.11"
             geos: 3.11.1
             numpy: 1.23.4
-            matplotlib: true
             doctest: true
             # TODO(shapely-2.0) temporary allow warnings
             # extra_pytest_args: "-W error"  # error on warnings
           # dev
           - python: "3.11"
             geos: main
-            matplotlib: true
             extra_pytest_args: "-W error" # error on warnings
           # enable two 32-bit windows builds:
           - os: windows-2019
@@ -129,9 +127,7 @@ jobs:
           else
             pip install --upgrade Cython numpy==${{ matrix.numpy }} pytest pytest-cov coveralls;
           fi
-          if [ -n "${{ matrix.numpy }}" ]; then
-            pip install matplotlib
-          fi
+          pip install matplotlib
           pip list
 
       - name: Set environment variables (Linux)
