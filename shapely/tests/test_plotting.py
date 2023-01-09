@@ -1,10 +1,7 @@
-import pytest
 from numpy.testing import assert_allclose
 
 from shapely import box, get_coordinates, LineString, MultiLineString, Point
 from shapely.plotting import patch_from_polygon, plot_line, plot_points, plot_polygon
-
-pytest.importorskip("matplotlib")
 
 
 def test_patch_from_polygon():
