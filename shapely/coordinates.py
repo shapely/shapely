@@ -107,7 +107,7 @@ def get_coordinates(
     geometry: MaybeGeometryArrayNLike,
     include_z: bool = False,
     return_index: bool = False,
-) -> NumpyArrayN2orN3:
+) -> NumpyArrayN2orN3[float]:
     """Gets coordinates from a geometry array as an array of floats.
 
     The shape of the returned array is (N, 2), with N being the number of
