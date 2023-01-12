@@ -78,15 +78,18 @@ GeometryArrayLike = NumpyArrayLike["BaseGeometry"]
 
 GeoJSONlikeDict = Dict[str, Any]
 
-PointsLike = NumpyArrayN2orN3Like[float]
-Points2DLike = NumpyArrayN2Like[float]
-Points3DLike = NumpyArrayN3Like[float]
-
 Tuple2Floats = Tuple2[float]
 Tuple3Floats = Tuple3[float]
 Tuple2or3Floats = Tuple2or3[float]
 
+Point2DLike = NumpyArray2Like[float]
+Point3DLike = NumpyArray3Like[float]
 PointLike = NumpyArray2or3Like[float]
+
+Points2DLike = NumpyArrayN2Like[float]
+Points3DLike = NumpyArrayN3Like[float]
+PointsLike = NumpyArrayN2orN3Like[float]
+
 LineStringsLike = PointsLike
 LinearStringsLike = PointsLike
 PolygonsLike = Union[NumpyArrayNLike["LinearRing"], PointsLike]
