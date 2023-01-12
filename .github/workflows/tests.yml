@@ -128,7 +128,7 @@ jobs:
           else
             pip install --upgrade Cython numpy==${{ matrix.numpy }} pytest pytest-cov coveralls;
           fi
-          if [ -n "${{ matrix.numpy }}" ]; then
+          if [ -n "${{ matrix.matplotlib }}" ]; then
             pip install matplotlib
           fi
           pip list

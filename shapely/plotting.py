@@ -6,16 +6,14 @@ exploration, debugging and illustration purposes.
 
 """
 
-import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib import colors
-from matplotlib.patches import PathPatch
-from matplotlib.path import Path
 
 import shapely
 
 
 def _default_ax():
+    import matplotlib.pyplot as plt
+
     ax = plt.gca()
     ax.grid(True)
     ax.set_aspect("equal")
@@ -23,6 +21,8 @@ def _default_ax():
 
 
 def _path_from_polygon(polygon):
+    from matplotlib.path import Path
+
     if isinstance(polygon, shapely.MultiPolygon):
         return Path.make_compound_path(
             *[_path_from_polygon(poly) for poly in polygon.geoms]
@@ -51,6 +51,8 @@ def patch_from_polygon(polygon, **kwargs):
     -------
     Matplotlib artist (PathPatch)
     """
+    from matplotlib.patches import PathPatch
+
     return PathPatch(_path_from_polygon(polygon), **kwargs)
 
 
@@ -96,6 +98,8 @@ def plot_polygon(
     Matplotlib artist (PathPatch), if `add_points` is false.
     A tuple of Matplotlib artists (PathPatch, Line2D), if `add_points` is true.
     """
+    from matplotlib import colors
+
     if ax is None:
         ax = _default_ax()
 
@@ -150,6 +154,9 @@ def plot_line(line, ax=None, add_points=True, color=None, linewidth=2, **kwargs)
     -------
     Matplotlib artist (PathPatch)
     """
+    from matplotlib.patches import PathPatch
+    from matplotlib.path import Path
+
     if ax is None:
         ax = _default_ax()
 
