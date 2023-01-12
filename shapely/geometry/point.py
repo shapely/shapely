@@ -10,7 +10,7 @@ from shapely.geometry.base import BaseGeometry
 
 __all__ = ["Point"]
 
-from shapely.shapely_typing import XYArrayTuple
+from shapely._typing import XYArrayTuple
 
 
 class Point(BaseGeometry):

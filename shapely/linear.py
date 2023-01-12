@@ -12,7 +12,7 @@ __all__ = [
     "shortest_line",
 ]
 
-from shapely.shapely_typing import MaybeArrayN, MaybeArrayNLike, MaybeGeometryArrayNLike
+from shapely._typing import MaybeArrayN, MaybeArrayNLike, MaybeGeometryArrayNLike
 
 if TYPE_CHECKING:
     from shapely import GeometryCollection, LineString, MultiLineString, Point

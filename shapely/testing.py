@@ -6,11 +6,7 @@ import shapely
 
 __all__ = ["assert_geometries_equal"]
 
-from shapely.shapely_typing import (
-    GeometryArrayN,
-    MaybeArrayNLike,
-    MaybeGeometryArrayNLike,
-)
+from shapely._typing import GeometryArrayN, MaybeArrayNLike, MaybeGeometryArrayNLike
 
 
 def _equals_exact_with_ndim(

@@ -19,7 +19,7 @@ __all__ = [
     "coverage_union_all",
 ]
 
-from shapely.shapely_typing import (
+from shapely._typing import (
     GeometryArrayNLike,
     MaybeGeometryArrayN,
     MaybeGeometryArrayNLike,

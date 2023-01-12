@@ -2,7 +2,7 @@
 """
 from array import array
 
-from shapely.shapely_typing import NumpyArrayN2orN3, XYArrayTuple
+from shapely._typing import NumpyArrayN2orN3, XYArrayTuple
 
 
 class CoordinateSequence:

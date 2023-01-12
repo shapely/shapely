@@ -13,7 +13,7 @@ from shapely.geometry.point import Point
 
 __all__ = ["Polygon", "LinearRing"]
 
-from shapely.shapely_typing import LinearRingHolesLike, LinearRingLike, PolygonLike
+from shapely._typing import LinearRingHolesLike, LinearRingLike, PolygonLike
 
 
 def _unpickle_linearring(wkb):

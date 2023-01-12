@@ -5,7 +5,7 @@ import shapely
 
 __all__ = ["explain_validity", "make_valid"]
 
-from shapely.shapely_typing import MaybeArrayN, MaybeGeometryArrayNLike
+from shapely._typing import MaybeArrayN, MaybeGeometryArrayNLike
 
 if TYPE_CHECKING:
     from shapely.geometry.base import BaseGeometry

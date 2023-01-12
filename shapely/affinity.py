@@ -9,7 +9,7 @@ import shapely
 
 __all__ = ["affine_transform", "rotate", "scale", "skew", "translate"]
 
-from shapely.shapely_typing import NumpyArrayNLike, Tuple2or3Floats
+from shapely._typing import NumpyArrayNLike, Tuple2or3Floats
 
 if TYPE_CHECKING:
     from shapely import BaseGeometry

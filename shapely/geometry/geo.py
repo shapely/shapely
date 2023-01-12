@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from shapely._typing import GeoJSONlikeDict
 from shapely.errors import GeometryTypeError
 from shapely.geometry.collection import GeometryCollection
 from shapely.geometry.linestring import LineString
@@ -13,7 +14,6 @@ from shapely.geometry.multipoint import MultiPoint
 from shapely.geometry.multipolygon import MultiPolygon
 from shapely.geometry.point import Point
 from shapely.geometry.polygon import LinearRing, Polygon
-from shapely.shapely_typing import GeoJSONlikeDict
 
 if TYPE_CHECKING:
     from shapely import BaseGeometry

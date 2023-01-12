@@ -34,7 +34,7 @@ __all__ = [
     "force_3d",
 ]
 
-from shapely.shapely_typing import (
+from shapely._typing import (
     GeometryArrayNLike,
     MaybeArrayN,
     MaybeArrayNLike,

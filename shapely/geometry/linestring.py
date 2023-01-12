@@ -11,7 +11,7 @@ from shapely.geometry.point import Point
 
 __all__ = ["LineString"]
 
-from shapely.shapely_typing import LineStringLike, XYArrayTuple
+from shapely._typing import LineStringLike, XYArrayTuple
 
 
 class LineString(BaseGeometry):

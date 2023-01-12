@@ -3,8 +3,8 @@
 from typing import Optional, Union
 
 import shapely
+from shapely._typing import GeometryArrayNLike
 from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
-from shapely.shapely_typing import GeometryArrayNLike
 
 
 class GeometryCollection(BaseMultipartGeometry):

@@ -9,7 +9,7 @@ from shapely.geometry.base import BaseMultipartGeometry
 
 __all__ = ["MultiLineString"]
 
-from shapely.shapely_typing import MultiLineStringLike
+from shapely._typing import MultiLineStringLike
 
 
 class MultiLineString(BaseMultipartGeometry):

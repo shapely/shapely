@@ -37,7 +37,7 @@ __all__ = [
     "relate",
     "relate_pattern",
 ]
-from shapely.shapely_typing import MaybeArrayN, MaybeArrayNLike, MaybeGeometryArrayNLike
+from shapely._typing import MaybeArrayN, MaybeArrayNLike, MaybeGeometryArrayNLike
 
 
 @multithreading_enabled

@@ -21,7 +21,7 @@ __all__ = [
     "to_wkt",
 ]
 
-from shapely.shapely_typing import (
+from shapely._typing import (
     MaybeArrayN,
     MaybeArrayNLike,
     MaybeGeometryArrayN,

@@ -18,7 +18,7 @@ __all__ = [
     "minimum_bounding_radius",
 ]
 
-from shapely.shapely_typing import (
+from shapely._typing import (
     MaybeArrayN,
     MaybeArrayN4,
     MaybeArrayNLike,

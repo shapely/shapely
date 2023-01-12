@@ -40,7 +40,7 @@ __all__ = [
     "substring",
 ]
 
-from shapely.shapely_typing import (
+from shapely._typing import (
     GeoJSONlikeDict,
     GeometryArrayNLike,
     LineStringsLikeSource,

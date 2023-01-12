@@ -6,7 +6,7 @@ from . import lib
 
 __all__ = ["transform", "count_coordinates", "get_coordinates", "set_coordinates"]
 
-from shapely.shapely_typing import (
+from shapely._typing import (
     MaybeArrayN,
     MaybeGeometryArrayN,
     MaybeGeometryArrayNLike,

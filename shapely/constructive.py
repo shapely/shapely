@@ -37,7 +37,7 @@ __all__ = [
     "minimum_bounding_circle",
 ]
 
-from shapely.shapely_typing import (
+from shapely._typing import (
     GeometryArrayLike,
     GeometryArrayNLike,
     MaybeArrayN,

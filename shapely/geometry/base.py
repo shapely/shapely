@@ -14,10 +14,7 @@ import numpy as np
 import shapely
 from shapely import Geometry
 from shapely._geometry_helpers import _geom_factory
-from shapely.constructive import BufferCapStyle, BufferJoinStyle
-from shapely.coords import CoordinateSequence
-from shapely.errors import GeometryTypeError, GEOSException, ShapelyDeprecationWarning
-from shapely.shapely_typing import (
+from shapely._typing import (
     MaybeArray,
     MaybeArrayN,
     MaybeArrayNLike,
@@ -26,6 +23,9 @@ from shapely.shapely_typing import (
     NumpyArray,
     T,
 )
+from shapely.constructive import BufferCapStyle, BufferJoinStyle
+from shapely.coords import CoordinateSequence
+from shapely.errors import GeometryTypeError, GEOSException, ShapelyDeprecationWarning
 
 if TYPE_CHECKING:
     from shapely import Point

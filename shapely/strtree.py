@@ -10,7 +10,7 @@ from .predicates import is_empty, is_missing
 
 __all__ = ["STRtree"]
 
-from .shapely_typing import MaybeArrayN, MaybeArrayNLike, MaybeGeometryArrayNLike
+from ._typing import MaybeArrayN, MaybeArrayNLike, MaybeGeometryArrayNLike
 
 
 class BinaryPredicate(ParamEnum):

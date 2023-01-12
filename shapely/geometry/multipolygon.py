@@ -8,7 +8,7 @@ from shapely.geometry.base import BaseMultipartGeometry
 
 __all__ = ["MultiPolygon"]
 
-from shapely.shapely_typing import MultiPolygonLike
+from shapely._typing import MultiPolygonLike
 
 
 class MultiPolygon(BaseMultipartGeometry):

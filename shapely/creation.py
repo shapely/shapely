@@ -22,7 +22,7 @@ __all__ = [
     "empty",
 ]
 
-from shapely.shapely_typing import (
+from shapely._typing import (
     GeometryArrayNLike,
     LinearStringsLike,
     LineStringsLike,

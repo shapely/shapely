@@ -9,7 +9,7 @@ from shapely.geometry.base import BaseMultipartGeometry
 
 __all__ = ["MultiPoint"]
 
-from shapely.shapely_typing import MultiPointLike
+from shapely._typing import MultiPointLike
 
 
 class MultiPoint(BaseMultipartGeometry):
