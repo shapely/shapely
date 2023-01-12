@@ -10,6 +10,13 @@ import numpy as np
 
 import shapely
 
+__all__ = [
+    "patch_from_polygon",
+    "plot_polygon",
+    "plot_line",
+    "plot_points",
+]
+
 
 def _default_ax():
     import matplotlib.pyplot as plt

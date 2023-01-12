@@ -6,7 +6,10 @@
 
 # set an environment variable for shapely.decorators.requires_geos to see if we
 # are in a doc build
+import importlib
+
 import os
+
 os.environ["SPHINX_DOC_BUILD"] = "1"
 
 # -- Project information -----------------------------------------------------
@@ -102,7 +105,7 @@ def rstjinja(app, docname, source):
 def get_module_functions(module, exclude=None):
     """Return a list of function names for the given submodule."""
     
-    mod = getattr(shapely, module)
+    mod = importlib.import_module(f"shapely.{module}")
     return mod.__all__
 
 
@@ -130,7 +133,7 @@ template = """
 
 modules = [
     "_geometry", "creation", "constructive", "coordinates", "io", "linear",
-    "measurement", "predicates", "set_operations"]
+    "measurement", "predicates", "set_operations", "plotting"]
 functions = [func for mod in modules for func in get_module_functions(mod)]
 
 template += "   " + "\n   ".join(functions)

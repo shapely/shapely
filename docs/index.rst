@@ -31,6 +31,7 @@
    linear
    coordinates
    strtree
+   plotting
    testing
 
 Indices and tables
