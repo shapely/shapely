@@ -6,7 +6,7 @@ from shapely import Geometry, GeometryCollection, Polygon
 from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 
-from .common import all_types, empty, multi_polygon, point, polygon
+from .common import all_types, empty, geometry_collection, multi_polygon, point, polygon
 
 # fixed-precision operations raise GEOS exceptions on mixed dimension geometry collections
 all_single_types = [g for g in all_types if not shapely.get_type_id(g) == 7]
@@ -47,6 +47,15 @@ non_polygon_types = [
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 def test_set_operation_array(a, func):
+    if (
+        func == shapely.difference
+        and a == geometry_collection
+        and shapely.geos_version >= (3, 12, 0)
+    ):
+        pytest.xfail("https://github.com/libgeos/geos/issues/797")
+    actual = func(a, point)
+    assert isinstance(actual, Geometry)
+
     actual = func([a, a], point)
     assert actual.shape == (2,)
     assert isinstance(actual[0], Geometry)
