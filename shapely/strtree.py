@@ -45,6 +45,11 @@ class STRtree:
 
     Any mixture of geometry types may be stored in the tree.
 
+    The tree automatically adds a write lock to the input geometry array to
+    prevent modification of geometries indexed in the tree.  You can avoid this
+    by passing a copy of the geometry array as input or by deleting the tree
+    before modifying elements of the input geometry array.
+
     Note: the tree is more efficient for querying when there are fewer
     geometries that have overlapping bounding boxes and where there is greater
     similarity between the outer boundary of a geometry and its bounding box.
@@ -77,10 +82,15 @@ class STRtree:
         # Keep references to geoms
         self._geometries = np.asarray(geoms, dtype=np.object_)
         # prevent modification
+        self._prev_writeable = self._geometries.flags.writeable
         self._geometries.flags.writeable = False
 
         # initialize GEOS STRtree
         self._tree = lib.STRtree(self.geometries, node_capacity)
+
+    def __del__(self):
+        # release write lock on geometry array
+        self._geometries.flags.writeable = self._prev_writeable
 
     def __len__(self):
         return self._tree.count

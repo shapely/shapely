@@ -73,6 +73,27 @@ def test_init(geometry, count, hits):
     assert tree.query(box(0, 0, 100, 100)).size == hits
 
 
+def test_write_lock():
+    geoms = shapely.points(np.arange(10), np.arange(10))
+    assert geoms.flags.writeable is True
+
+    # creating tree locks geoms
+    tree = STRtree(geoms)
+    assert tree.geometries.flags.writeable is False
+    assert geoms.flags.writeable is False
+
+    # deleting tree releases lock
+    del tree
+    assert geoms.flags.writeable is True
+    geoms[0] = shapely.Point(100, 100)
+    assert_array_equal(shapely.get_coordinates(geoms[0])[0], [100, 100])
+
+    # creating a tree from a copy of geoms does not lock geoms
+    tree = STRtree(geoms.copy())
+    assert tree.geometries.flags.writeable is False
+    assert geoms.flags.writeable is True
+
+
 def test_init_with_invalid_geometry():
     with pytest.raises(TypeError):
         STRtree(["Not a geometry"])
