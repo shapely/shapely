@@ -90,7 +90,11 @@ class STRtree:
 
     def __del__(self):
         # release write lock on geometry array
-        self._geometries.flags.writeable = self._prev_writeable
+        # (in try/catch in case any attributes are out of scope when this runs)
+        try:
+            self._geometries.flags.writeable = self._prev_writeable
+        except AttributeError:
+            pass
 
     def __len__(self):
         return self._tree.count
