@@ -83,14 +83,15 @@ def test_write_lock():
     assert geoms.flags.writeable is False
 
     # deleting tree releases lock
-    del tree
+    # del tree also works except on PyPy
+    tree.__del__()
     assert geoms.flags.writeable is True
     geoms[0] = shapely.Point(100, 100)
     assert_array_equal(shapely.get_coordinates(geoms[0])[0], [100, 100])
 
     # creating a tree from a copy of geoms does not lock geoms
-    tree = STRtree(geoms.copy())
-    assert tree.geometries.flags.writeable is False
+    tree2 = STRtree(geoms.copy())
+    assert tree2.geometries.flags.writeable is False
     assert geoms.flags.writeable is True
 
 
