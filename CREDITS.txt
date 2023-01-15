@@ -47,6 +47,7 @@ Shapely is written by:
 * Henry Walshaw <henry.walshaw@gmail.com>
 * Howard Butler <hobu.inc@gmail.com>
 * Hugo <hugovk@users.noreply.github.com>
+* Idan Miara <idan@miara.com>
 * Jacob Wasserman <jwasserman@gmail.com>
 * Jaeha Lee <jaehaaheaj@gmail.com>
 * James Douglass <jamesdouglassusa@gmail.com>
