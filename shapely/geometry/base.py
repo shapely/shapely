@@ -207,6 +207,18 @@ class BaseGeometry(shapely.Geometry):
         return CoordinateSequence(coords_array)
 
     @property
+    def coords_array(self):
+        """Access to geometry's full coordinates array [N, 2|3] (xy/xyz depending on coordinate dimensionality)"""
+        coords_array = shapely.get_coordinates(self, include_z=self.has_z)
+        return coords_array
+
+    @property
+    def xy_array(self):
+        """Access to geometry's xy coordinates array [N, 2] (regardless of coordinate dimensionality)"""
+        coords_array = shapely.get_coordinates(self)
+        return coords_array
+
+    @property
     def xy(self):
         """Separate arrays of X and Y coordinate values"""
         raise NotImplementedError

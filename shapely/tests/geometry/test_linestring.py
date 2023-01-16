@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 import shapely
 from shapely import LinearRing, LineString, Point
@@ -8,18 +9,28 @@ from shapely.coords import CoordinateSequence
 
 def test_from_coordinate_sequence():
     # From coordinate tuples
-    line = LineString([(1.0, 2.0), (3.0, 4.0)])
+    coords_xy = [(1.0, 2.0), (3.0, 4.0)]
+    xy = [(1.0, 3.0), (2.0, 4.0)]
+    line = LineString(coords_xy)
     assert len(line.coords) == 2
-    assert line.coords[:] == [(1.0, 2.0), (3.0, 4.0)]
-
-    line = LineString([(1.0, 2.0), (3.0, 4.0)])
-    assert line.coords[:] == [(1.0, 2.0), (3.0, 4.0)]
+    assert line.coords[:] == coords_xy
+    assert_array_equal(line.coords_array, coords_xy)
+    assert_array_equal(line.xy_array, coords_xy)
+    assert_array_equal(line.xy_array.T, xy)
+    assert_array_equal(line.xy, xy)
 
 
 def test_from_coordinate_sequence_3D():
-    line = LineString([(1.0, 2.0, 3.0), (3.0, 4.0, 5.0)])
+    coords_xyz = [(1.0, 2.0, 3.0), (3.0, 4.0, 5.0)]
+    coords_xy = [(1.0, 2.0), (3.0, 4.0)]
+    xy = [(1.0, 3.0), (2.0, 4.0)]
+    line = LineString(coords_xyz)
     assert line.has_z
-    assert line.coords[:] == [(1.0, 2.0, 3.0), (3.0, 4.0, 5.0)]
+    assert line.coords[:] == coords_xyz
+    assert_array_equal(line.coords_array, coords_xyz)
+    assert_array_equal(line.xy_array, coords_xy)
+    assert_array_equal(line.xy_array.T, xy)
+    assert_array_equal(line.xy, xy)
 
 
 def test_from_points():

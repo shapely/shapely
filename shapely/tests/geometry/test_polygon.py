@@ -2,6 +2,7 @@
 """
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 from shapely import LinearRing, LineString, Point, Polygon
 from shapely.coords import CoordinateSequence
@@ -127,6 +128,7 @@ def test_polygon_from_coordinate_sequence():
     polygon = Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0)])
     assert polygon.exterior.coords[:] == coords
     assert len(polygon.interiors) == 0
+    assert_array_equal(polygon.coords_array, coords)
 
     polygon = Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0)])
     assert polygon.exterior.coords[:] == coords
@@ -135,12 +137,16 @@ def test_polygon_from_coordinate_sequence():
 
 def test_polygon_from_coordinate_sequence_with_holes():
     coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)]
+    hole = [(0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25)]
+    hole_closed = hole + [hole[0]]
 
     # Interior rings (holes)
-    polygon = Polygon(coords, [[(0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25)]])
+    polygon = Polygon(coords, [hole])
     assert polygon.exterior.coords[:] == coords
     assert len(polygon.interiors) == 1
     assert len(polygon.interiors[0].coords) == 5
+
+    assert_array_equal(polygon.coords_array, coords + hole_closed)
 
     # Multiple interior rings with different length
     coords = [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]
@@ -153,6 +159,8 @@ def test_polygon_from_coordinate_sequence_with_holes():
     assert len(polygon.interiors) == 2
     assert len(polygon.interiors[0].coords) == 5
     assert len(polygon.interiors[1].coords) == 6
+
+    assert_array_equal(polygon.coords_array, coords + holes[0] + holes[1])
 
 
 def test_polygon_from_linearring():
