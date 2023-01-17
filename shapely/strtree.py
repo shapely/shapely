@@ -76,7 +76,7 @@ class STRtree:
     ):
         # Keep references to geoms in a copied array so that this array is not
         # modified while the tree depends on it remaining the same
-        self._geometries = np.asarray(geoms, dtype=np.object_).copy()
+        self._geometries = np.array(geoms, dtype=np.object_, copy=True)
 
         # initialize GEOS STRtree
         self._tree = lib.STRtree(self.geometries, node_capacity)
