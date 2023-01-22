@@ -441,7 +441,7 @@ def test_query_predicate_errors(tree, predicate):
         pytest.param(
             [MultiPoint([[5, 5], [7, 7]])],
             [[0, 0], [5, 7]],
-            marks=pytest.mark.xfail(reason="GEOS 3.5"),
+            marks=pytest.mark.xfail(geos_version < (3, 6, 0), reason="GEOS 3.5"),
         ),
         # envelope of points contains points, but points do not intersect
         (MultiPoint([[5, 7], [7, 5]]), []),
@@ -455,7 +455,7 @@ def test_query_predicate_errors(tree, predicate):
         pytest.param(
             [MultiPoint([[5, 7], [7, 7]])],
             [[0], [7]],
-            marks=pytest.mark.xfail(reason="GEOS 3.5"),
+            marks=pytest.mark.xfail(geos_version < (3, 6, 0), reason="GEOS 3.5"),
         ),
     ],
 )
@@ -1568,7 +1568,9 @@ def test_nearest_points(tree, geometry, expected):
 
 
 @pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
-@pytest.mark.xfail(reason="equidistant geometries may produce nondeterministic results")
+@pytest.mark.xfail(
+    reason="equidistant geometries may produce nondeterministic results", strict=False
+)
 @pytest.mark.parametrize(
     "geometry,expected",
     [
@@ -1600,7 +1602,9 @@ def test_nearest_lines(line_tree, geometry, expected):
 
 
 @pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
-@pytest.mark.xfail(reason="equidistant geometries may produce nondeterministic results")
+@pytest.mark.xfail(
+    reason="equidistant geometries may produce nondeterministic results", strict=False
+)
 @pytest.mark.parametrize(
     "geometry,expected",
     [
@@ -1642,7 +1646,9 @@ def test_nearest_polygons(poly_tree, geometry, expected):
 
 
 @pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
-@pytest.mark.xfail(reason="equidistant geometries may produce nondeterministic results")
+@pytest.mark.xfail(
+    reason="equidistant geometries may produce nondeterministic results", strict=False
+)
 @pytest.mark.parametrize(
     "geometry,expected",
     [
