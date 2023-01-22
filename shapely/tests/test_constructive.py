@@ -77,7 +77,9 @@ def test_float_arg_array(geometry, func):
     # voronoi_polygons emits an "invalid" warning when supplied with an empty
     # point (see https://github.com/libgeos/geos/issues/515)
     with ignore_invalid(
-        func is shapely.voronoi_polygons and shapely.get_type_id(geometry) == 0
+        func is shapely.voronoi_polygons
+        and shapely.get_type_id(geometry) == 0
+        and shapely.geos_version < (3, 12, 0)
     ):
         actual = func([geometry, geometry], 0.0)
     assert actual.shape == (2,)
@@ -251,7 +253,7 @@ def test_normalize(geom, expected):
 
 
 def test_offset_curve_empty():
-    with ignore_invalid():
+    with ignore_invalid(shapely.geos_version < (3, 12, 0)):
         # Empty geometries emit an "invalid" warning
         # (see https://github.com/libgeos/geos/issues/515)
         actual = shapely.offset_curve(empty_line_string, 2.0)

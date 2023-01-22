@@ -89,7 +89,7 @@ def test_unary_missing(func):
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func", BINARY_PREDICATES)
 def test_binary_array(a, func):
-    with ignore_invalid(shapely.is_empty(a)):
+    with ignore_invalid(shapely.is_empty(a) and shapely.geos_version < (3, 12, 0)):
         # Empty geometries give 'invalid value encountered' in all predicates
         # (see https://github.com/libgeos/geos/issues/515)
         actual = func([a, a], point)
@@ -111,10 +111,20 @@ def test_binary_missing(func):
     assert (~actual).all()
 
 
+def test_binary_empty_result():
+    a = LineString([(0, 0), (3, 0), (3, 3), (0, 3)])
+    b = LineString([(5, 1), (6, 1)])
+    with ignore_invalid(shapely.geos_version < (3, 12, 0)):
+        # Intersection resulting in empty geometries give 'invalid value encountered'
+        # (https://github.com/shapely/shapely/issues/1345)
+        actual = shapely.intersection(a, b)
+    assert actual.is_empty
+
+
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func, func_bin", XY_PREDICATES)
 def test_xy_array(a, func, func_bin):
-    with ignore_invalid(shapely.is_empty(a)):
+    with ignore_invalid(shapely.is_empty(a) and shapely.geos_version < (3, 12, 0)):
         # Empty geometries give 'invalid value encountered' in all predicates
         # (see https://github.com/libgeos/geos/issues/515)
         actual = func([a, a], 2, 3)
@@ -127,7 +137,7 @@ def test_xy_array(a, func, func_bin):
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func, func_bin", XY_PREDICATES)
 def test_xy_array_broadcast(a, func, func_bin):
-    with ignore_invalid(shapely.is_empty(a)):
+    with ignore_invalid(shapely.is_empty(a) and shapely.geos_version < (3, 12, 0)):
         # Empty geometries give 'invalid value encountered' in all predicates
         # (see https://github.com/libgeos/geos/issues/515)
         actual = func(a, [0, 1, 2], [1, 2, 3])
@@ -239,7 +249,7 @@ def test_relate_pattern():
 
 
 def test_relate_pattern_empty():
-    with ignore_invalid():
+    with ignore_invalid(shapely.geos_version < (3, 12, 0)):
         # Empty geometries give 'invalid value encountered' in all predicates
         # (see https://github.com/libgeos/geos/issues/515)
         assert shapely.relate_pattern(empty, empty, "*" * 9).item() is True
@@ -299,7 +309,7 @@ def _prepare_with_copy(geometry):
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func", BINARY_PREPARED_PREDICATES)
 def test_binary_prepared(a, func):
-    with ignore_invalid(shapely.is_empty(a)):
+    with ignore_invalid(shapely.is_empty(a) and shapely.geos_version < (3, 12, 0)):
         # Empty geometries give 'invalid value encountered' in all predicates
         # (see https://github.com/libgeos/geos/issues/515)
         actual = func(a, point)
