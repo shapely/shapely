@@ -12,15 +12,9 @@ from numpy.testing import assert_array_equal
 import shapely
 from shapely import box, geos_version, MultiPoint, Point, STRtree
 from shapely.errors import UnsupportedGEOSVersionError
+from shapely.testing import assert_geometries_equal
 
-from .common import (
-    assert_decreases_refcount,
-    assert_increases_refcount,
-    empty,
-    empty_line_string,
-    empty_point,
-    point,
-)
+from .common import empty, empty_line_string, empty_point, point
 
 # the distance between 2 points spaced at whole numbers along a diagonal
 HALF_UNIT_DIAG = math.sqrt(2) / 2
@@ -78,19 +72,6 @@ def test_init_with_invalid_geometry():
         STRtree(["Not a geometry"])
 
 
-def test_init_increases_refcount():
-    arr = np.array([point])
-    with assert_increases_refcount(point):
-        _ = STRtree(arr)
-
-
-def test_del_decreases_refcount():
-    arr = np.array([point])
-    tree = STRtree(arr)
-    with assert_decreases_refcount(point):
-        del tree
-
-
 def test_references():
     point1 = Point()
     point2 = Point(0, 1)
@@ -114,7 +95,6 @@ def test_flush_geometries():
     tree = STRtree(arr)
 
     # Dereference geometries
-    tree._geometries.flags.writeable = True
     arr[:] = None
     import gc
 
@@ -126,7 +106,11 @@ def test_flush_geometries():
 def test_geometries_property():
     arr = np.array([point])
     tree = STRtree(arr)
-    assert arr is tree.geometries
+    assert_geometries_equal(arr, tree.geometries)
+
+    # modifying elements of input should not modify tree.geometries
+    arr[0] = shapely.Point(0, 0)
+    assert_geometries_equal(point, tree.geometries[0])
 
 
 # TODO(shapely-2.0) this fails on Appveyor, see

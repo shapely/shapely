@@ -74,10 +74,9 @@ class STRtree:
         geoms: Iterable[BaseGeometry],
         node_capacity: int = 10,
     ):
-        # Keep references to geoms
-        self._geometries = np.asarray(geoms, dtype=np.object_)
-        # prevent modification
-        self._geometries.flags.writeable = False
+        # Keep references to geoms in a copied array so that this array is not
+        # modified while the tree depends on it remaining the same
+        self._geometries = np.array(geoms, dtype=np.object_, copy=True)
 
         # initialize GEOS STRtree
         self._tree = lib.STRtree(self.geometries, node_capacity)
