@@ -168,7 +168,7 @@ def test_point_empty():
     assert all(math.isnan(val) for val in coords)
 
 
-@pytest.mark.xfail(reason="Fails with latest pygeos")
+@pytest.mark.xfail(geos_version < (3, 9, 0), reason="GEOS >= 3.9.0 is required")
 def test_point_z_empty():
     g = wkt.loads("POINT Z EMPTY")
     assert g.wkb_hex == hostorder(
