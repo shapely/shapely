@@ -484,10 +484,12 @@ def prepare(geometry, **kwargs):
     This function does not recompute previously prepared geometries;
     it is efficient to call this function on an array that partially contains prepared geometries.
 
+    This function does not return any values; geometries are modified in place.
+
     Parameters
     ----------
     geometry : Geometry or array_like
-        Geometries are changed inplace
+        Geometries are changed in place
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -496,6 +498,14 @@ def prepare(geometry, **kwargs):
     --------
     is_prepared : Identify whether a geometry is prepared already.
     destroy_prepared : Destroy the prepared part of a geometry.
+
+    Examples
+    --------
+    >>> from shapely import Point, buffer, prepare, contains_properly
+    >>> poly = buffer(Point(1.0, 1.0), 1)
+    >>> prepare(poly)
+    >>> contains_properly(poly, [Point(0.0, 0.0), Point(0.5, 0.5)]).tolist()
+    [False, True]
     """
     lib.prepare(geometry, **kwargs)
 
