@@ -51,34 +51,29 @@ items3d = [
     [(90.0, 10, 3.0), (110.0, 10.0, 4.0), (100.0, 30.0, 5.0), (90.0, 10.0, 6.0)],
 ]
 
+all_geoms = [
+    [
+        Point(items[0][0]),
+        Point(*items[0][0]),
+        MultiPoint(items[0]),
+        LinearRing(items[0]),
+        LineString(items[0]),
+        MultiLineString(items),
+        Polygon(items[0]),
+        MultiPolygon(
+            [
+                Polygon(items[2]),
+                Polygon(items[0], holes=items[1:]),
+                Polygon(items[0], holes=items[2:]),
+            ]
+        ),
+        GeometryCollection([Point(items[0][0]), Polygon(items[0])]),
+    ]
+    for items in [items2d, to_decimal(items2d), items3d, to_decimal(items3d)]
+]
 
-@pytest.mark.parametrize("items", [items2d, items3d])
-def test_decimal(items):
-    assert Point(items[0][0]) == Point(to_decimal(items[0][0]))
-    assert Point(*items[0][0]) == Point(*to_decimal(items[0][0]))
-    assert MultiPoint(items[0]) == MultiPoint(to_decimal(items[0]))
-    assert LinearRing(items[0]) == LinearRing(to_decimal(items[0]))
-    assert LineString(items[0]) == LineString(to_decimal(items[0]))
-    assert MultiLineString(items) == MultiLineString(to_decimal(items))
-    assert Polygon(items[0]) == Polygon(to_decimal(items[0]))
-    assert Polygon(items[0], holes=items[1:]) == Polygon(
-        to_decimal(items[0]), holes=to_decimal(items[1:])
-    )
-    assert MultiPolygon(
-        [
-            Polygon(items[2]),
-            Polygon(items[0], holes=items[1:]),
-            Polygon(items[0], holes=items[2:]),
-        ]
-    ) == MultiPolygon(
-        [
-            Polygon(to_decimal(items[2])),
-            Polygon(to_decimal(items[0]), holes=to_decimal(items[1:])),
-            Polygon(to_decimal(items[0]), holes=to_decimal(items[2:])),
-        ]
-    )
-    assert GeometryCollection(
-        [Point(items[0][0]), Polygon(items[0])]
-    ) == GeometryCollection(
-        [Point(to_decimal(items[0][0])), Polygon(to_decimal(items[0]))]
-    )
+
+@pytest.mark.parametrize("geoms", list(zip(*all_geoms)))
+def test_decimal(geoms):
+    assert geoms[0] == geoms[1]
+    assert geoms[2] == geoms[3]
