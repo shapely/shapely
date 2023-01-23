@@ -52,6 +52,16 @@ def test_distance_missing():
     assert np.isnan(actual)
 
 
+def test_distance_duplicated():
+    a = Point(1, 2)
+    b = LineString([(0, 0), (0, 0), (1, 1)])
+    with ignore_invalid(shapely.geos_version < (3, 12, 0)):
+        # https://github.com/shapely/shapely/issues/1552
+        # GEOS < 3.12 raises "invalid" floating point errors
+        actual = shapely.distance(a, b)
+    assert actual == 1.0
+
+
 @pytest.mark.parametrize(
     "geom,expected",
     [
@@ -145,7 +155,7 @@ def test_hausdorff_distance():
     # example from GEOS docs
     a = shapely.linestrings([[0, 0], [100, 0], [10, 100], [10, 100]])
     b = shapely.linestrings([[0, 100], [0, 10], [80, 10]])
-    with ignore_invalid():
+    with ignore_invalid(shapely.geos_version < (3, 12, 0)):
         # Hausdorff distance emits "invalid value encountered"
         # (see https://github.com/libgeos/geos/issues/515)
         actual = shapely.hausdorff_distance(a, b)
@@ -156,7 +166,7 @@ def test_hausdorff_distance_densify():
     # example from GEOS docs
     a = shapely.linestrings([[0, 0], [100, 0], [10, 100], [10, 100]])
     b = shapely.linestrings([[0, 100], [0, 10], [80, 10]])
-    with ignore_invalid():
+    with ignore_invalid(shapely.geos_version < (3, 12, 0)):
         # Hausdorff distance emits "invalid value encountered"
         # (see https://github.com/libgeos/geos/issues/515)
         actual = shapely.hausdorff_distance(a, b, densify=0.001)

@@ -42,8 +42,7 @@ jobs:
             numpy: 1.23.4
             matplotlib: true
             doctest: true
-            # TODO(shapely-2.0) temporary allow warnings
-            # extra_pytest_args: "-W error"  # error on warnings
+            extra_pytest_args: "-W error"  # error on warnings
           # dev
           - python: "3.11"
             geos: main
