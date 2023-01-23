@@ -118,7 +118,6 @@ def test_binary_empty_result():
         # Intersection resulting in empty geometries give 'invalid value encountered'
         # (https://github.com/shapely/shapely/issues/1345)
         assert shapely.intersection(a, b).is_empty
-    assert actual.is_empty
 
 
 @pytest.mark.parametrize("a", all_types)
