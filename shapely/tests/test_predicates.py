@@ -117,7 +117,7 @@ def test_binary_empty_result():
     with ignore_invalid(shapely.geos_version < (3, 12, 0)):
         # Intersection resulting in empty geometries give 'invalid value encountered'
         # (https://github.com/shapely/shapely/issues/1345)
-        actual = shapely.intersection(a, b)
+        assert shapely.intersection(a, b).is_empty
     assert actual.is_empty
 
 
