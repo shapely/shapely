@@ -13,42 +13,74 @@ from shapely import (
     Polygon,
 )
 
-
-def to_decimal(x):
-    if isinstance(x, (int, float)):
-        return Decimal(x)
-    if isinstance(x, tuple):
-        return tuple([to_decimal(x) for x in x])
-    if isinstance(x, list):
-        return list([to_decimal(x) for x in x])
-    return x
-
-
-def test_to_decimal():
-    assert to_decimal(1) == Decimal(1)
-    assert to_decimal([1]) == [Decimal(1)]
-    assert to_decimal([1, 2]) == [Decimal(1), Decimal(2)]
-    assert to_decimal((1, 2)) == (Decimal(1), Decimal(2))
-    assert to_decimal([(1, 2), [3], 4, [5, 6, 7]]) == [
-        (Decimal(1), Decimal(2)),
-        [Decimal(3)],
-        Decimal(4),
-        [Decimal(5), Decimal(6), Decimal(7)],
-    ]
-
-
 items2d = [
     [(0.0, 0.0), (70.0, 120.0), (140.0, 0.0), (0.0, 0.0)],
     [(60.0, 80.0), (80.0, 80.0), (70.0, 60.0), (60.0, 80.0)],
-    [(30.0, 10.0), (50.0, 10.0), (40.0, 30.0), (30.0, 10.0)],
-    [(90.0, 10), (110.0, 10.0), (100.0, 30.0), (90.0, 10.0)],
+]
+
+items2d_mixed = [
+    [
+        (Decimal(0.0), Decimal(0.0)),
+        (Decimal(70.0), 120.0),
+        (140.0, Decimal(0.0)),
+        (0.0, 0.0),
+    ],
+    [
+        (Decimal(60.0), Decimal(80.0)),
+        (Decimal(80.0), 80.0),
+        (70.0, Decimal(60.0)),
+        (60.0, 80.0),
+    ],
+]
+
+items2d_decimal = [
+    [
+        (Decimal(0.0), Decimal(0.0)),
+        (Decimal(70.0), Decimal(120.0)),
+        (Decimal(140.0), Decimal(0.0)),
+        (Decimal(0.0), Decimal(0.0)),
+    ],
+    [
+        (Decimal(60.0), Decimal(80.0)),
+        (Decimal(80.0), Decimal(80.0)),
+        (Decimal(70.0), Decimal(60.0)),
+        (Decimal(60.0), Decimal(80.0)),
+    ],
 ]
 
 items3d = [
-    [(0.0, 0.0, 1.0), (70.0, 120.0, 2.0), (140.0, 0.0, 3.0), (0.0, 0.0, 1.0)],
-    [(60.0, 80.0, 1.0), (80.0, 80.0, 2.0), (70.0, 60.0, 3.0), (60.0, 80.0, 1.0)],
-    [(30.0, 10.0, 2.0), (50.0, 10.0, 3.0), (40.0, 30.0, 4.0), (30.0, 10.0, 2.0)],
-    [(90.0, 10, 3.0), (110.0, 10.0, 4.0), (100.0, 30.0, 5.0), (90.0, 10.0, 6.0)],
+    [(0.0, 0.0, 1), (70.0, 120.0, 2), (140.0, 0.0, 3), (0.0, 0.0, 1)],
+    [(60.0, 80.0, 1), (80.0, 80.0, 2), (70.0, 60.0, 3), (60.0, 80.0, 1)],
+]
+
+items3d_mixed = [
+    [
+        (Decimal(0.0), Decimal(0.0), Decimal(1)),
+        (Decimal(70.0), 120.0, Decimal(2)),
+        (140.0, Decimal(0.0), 3),
+        (0.0, 0.0, 1),
+    ],
+    [
+        (Decimal(60.0), Decimal(80.0), Decimal(1)),
+        (Decimal(80.0), 80.0, 2),
+        (70.0, Decimal(60.0), Decimal(3)),
+        (60.0, 80.0, 1),
+    ],
+]
+
+items3d_decimal = [
+    [
+        (Decimal(0.0), Decimal(0.0), Decimal(1)),
+        (Decimal(70.0), Decimal(120.0), Decimal(2)),
+        (Decimal(140.0), Decimal(0.0), Decimal(3)),
+        (Decimal(0.0), Decimal(0.0), Decimal(1)),
+    ],
+    [
+        (Decimal(60.0), Decimal(80.0), Decimal(1)),
+        (Decimal(80.0), Decimal(80.0), Decimal(2)),
+        (Decimal(70.0), Decimal(60.0), Decimal(3)),
+        (Decimal(60.0), Decimal(80.0), Decimal(1)),
+    ],
 ]
 
 all_geoms = [
@@ -62,18 +94,24 @@ all_geoms = [
         Polygon(items[0]),
         MultiPolygon(
             [
-                Polygon(items[2]),
+                Polygon(items[1]),
                 Polygon(items[0], holes=items[1:]),
-                Polygon(items[0], holes=items[2:]),
             ]
         ),
         GeometryCollection([Point(items[0][0]), Polygon(items[0])]),
     ]
-    for items in [items2d, to_decimal(items2d), items3d, to_decimal(items3d)]
+    for items in [
+        items2d,
+        items2d_mixed,
+        items2d_decimal,
+        items3d,
+        items3d_mixed,
+        items3d_decimal,
+    ]
 ]
 
 
 @pytest.mark.parametrize("geoms", list(zip(*all_geoms)))
 def test_decimal(geoms):
-    assert geoms[0] == geoms[1]
-    assert geoms[2] == geoms[3]
+    assert geoms[0] == geoms[1] == geoms[2]
+    assert geoms[3] == geoms[4] == geoms[5]

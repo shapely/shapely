@@ -71,8 +71,7 @@ class Point(BaseGeometry):
 
         if coords.ndim > 1:
             raise ValueError(
-                "Invalid values passed to Point constructor, "
-                "only size-1 arrays are accepted"
+                f"Point() takes only scalar or 1-size vector arguments, got {args}"
             )
         if not np.issubdtype(coords.dtype, np.number):
             coords = [float(c) for c in coords]
