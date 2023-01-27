@@ -94,7 +94,7 @@ small name deviations, such as the ``.wkt`` attribute being available as a
 functions from the ``shapely.ops`` submodule such as ``polygonize()``) are
 also made available in a vectorized version as top-level function.
 
-A full list of functions can be found in the API docs. TODO add link
+A full list of functions can be found in the API docs (see the pages listed under "API REFERENCE" in the left sidebar).
 
 * Vectorized constructor functions
 * Optionally output to a user-specified array (``out`` keyword argument) when constructing
