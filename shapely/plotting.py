@@ -6,6 +6,7 @@ exploration, debugging and illustration purposes.
 
 """
 from typing import Optional, TYPE_CHECKING, Union
+
 import numpy as np
 
 import shapely
