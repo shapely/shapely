@@ -88,7 +88,7 @@ class LinearRing(LineString):
                     if isinstance(o, Point):
                         return o.coords[0]
                     else:
-                        return o
+                        return [float(c) for c in o]
 
                 coordinates = np.array([_coords(o) for o in coordinates])
                 if not np.issubdtype(coordinates.dtype, np.number):
