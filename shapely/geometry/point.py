@@ -76,6 +76,8 @@ class Point(BaseGeometry):
         if not np.issubdtype(coords.dtype, np.number):
             coords = [float(c) for c in coords]
         geom = shapely.points(coords)
+        if not isinstance(geom, Point):
+            raise ValueError("Invalid values passed to Point constructor")
         return geom
 
     # Coordinate getters and setters
