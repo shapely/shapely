@@ -14,14 +14,7 @@ import numpy as np
 import shapely
 from shapely import Geometry
 from shapely._geometry_helpers import _geom_factory
-from shapely._typing import (
-    GeometryMaybeArray,
-    GeometryMaybeArrayLike,
-    MaybeArray,
-    MaybeArrayLike,
-    NumpyArray,
-    T,
-)
+from shapely._typing import NumpyArray, ScalarOrArray, ScalarOrArrayLike, T
 from shapely.constructive import BufferCapStyle, BufferJoinStyle
 from shapely.coords import CoordinateSequence
 from shapely.errors import GeometryTypeError, GEOSException, ShapelyDeprecationWarning
@@ -79,7 +72,7 @@ def dump_coords(geom: Geometry):
         raise GeometryTypeError("Unhandled geometry type: " + repr(geom.geom_type))
 
 
-def _maybe_unpack(result: NumpyArray[T]) -> MaybeArray[T]:
+def _maybe_unpack(result: NumpyArray[T]) -> ScalarOrArray[T]:
     if result.ndim == 0:
         # convert numpy 0-d array / scalar to python scalar
         return result.item()
@@ -325,11 +318,13 @@ class BaseGeometry(Geometry):
         """Unitless area of the geometry"""
         return float(shapely.area(self))
 
-    def distance(self, other: GeometryMaybeArrayLike) -> MaybeArray[float]:
+    def distance(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[float]:
         """Unitless distance to other geometry (float)"""
         return _maybe_unpack(shapely.distance(self, other))
 
-    def hausdorff_distance(self, other: GeometryMaybeArrayLike) -> MaybeArray[float]:
+    def hausdorff_distance(
+        self, other: ScalarOrArrayLike["Geometry"]
+    ) -> ScalarOrArray[float]:
         """Unitless hausdorff distance to other geometry"""
         return _maybe_unpack(shapely.hausdorff_distance(self, other))
 
@@ -579,8 +574,8 @@ class BaseGeometry(Geometry):
     # ---------------------------
 
     def difference(
-        self, other: GeometryMaybeArrayLike, grid_size: Optional[float] = None
-    ) -> GeometryMaybeArray:
+        self, other: ScalarOrArrayLike["Geometry"], grid_size: Optional[float] = None
+    ) -> ScalarOrArray["Geometry"]:
         """
         Returns the difference of the geometries.
 
@@ -589,8 +584,8 @@ class BaseGeometry(Geometry):
         return shapely.difference(self, other, grid_size=grid_size)
 
     def intersection(
-        self, other: GeometryMaybeArrayLike, grid_size: Optional[float] = None
-    ) -> GeometryMaybeArray:
+        self, other: ScalarOrArrayLike["Geometry"], grid_size: Optional[float] = None
+    ) -> ScalarOrArray["Geometry"]:
         """
         Returns the intersection of the geometries.
 
@@ -599,8 +594,8 @@ class BaseGeometry(Geometry):
         return shapely.intersection(self, other, grid_size=grid_size)
 
     def symmetric_difference(
-        self, other: GeometryMaybeArrayLike, grid_size: Optional[float] = None
-    ) -> GeometryMaybeArray:
+        self, other: ScalarOrArrayLike["Geometry"], grid_size: Optional[float] = None
+    ) -> ScalarOrArray["Geometry"]:
         """
         Returns the symmetric difference of the geometries.
 
@@ -609,8 +604,8 @@ class BaseGeometry(Geometry):
         return shapely.symmetric_difference(self, other, grid_size=grid_size)
 
     def union(
-        self, other: GeometryMaybeArrayLike, grid_size: Optional[float] = None
-    ) -> GeometryMaybeArray:
+        self, other: ScalarOrArrayLike["Geometry"], grid_size: Optional[float] = None
+    ) -> ScalarOrArray["Geometry"]:
         """
         Returns the union of the geometries.
 
@@ -661,24 +656,26 @@ class BaseGeometry(Geometry):
     # Binary predicates
     # -----------------
 
-    def relate(self, other: GeometryMaybeArray) -> MaybeArray[str]:
+    def relate(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[str]:
         """Returns the DE-9IM intersection matrix for the two geometries
         (string)"""
         return shapely.relate(self, other)
 
-    def covers(self, other: GeometryMaybeArray) -> MaybeArray[bool]:
+    def covers(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if the geometry covers the other, else False"""
         return _maybe_unpack(shapely.covers(self, other))
 
-    def covered_by(self, other: GeometryMaybeArray) -> MaybeArray[bool]:
+    def covered_by(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if the geometry is covered by the other, else False"""
         return _maybe_unpack(shapely.covered_by(self, other))
 
-    def contains(self, other: GeometryMaybeArray) -> MaybeArray[bool]:
+    def contains(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if the geometry contains the other, else False"""
         return _maybe_unpack(shapely.contains(self, other))
 
-    def contains_properly(self, other: GeometryMaybeArray) -> MaybeArray[bool]:
+    def contains_properly(
+        self, other: ScalarOrArray["Geometry"]
+    ) -> ScalarOrArray[bool]:
         """
         Returns True if the geometry completely contains the other, with no
         common boundary points, else False
@@ -687,15 +684,15 @@ class BaseGeometry(Geometry):
         """
         return _maybe_unpack(shapely.contains_properly(self, other))
 
-    def crosses(self, other: GeometryMaybeArray) -> MaybeArray[bool]:
+    def crosses(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if the geometries cross, else False"""
         return _maybe_unpack(shapely.crosses(self, other))
 
-    def disjoint(self, other: GeometryMaybeArray) -> MaybeArray[bool]:
+    def disjoint(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if geometries are disjoint, else False"""
         return _maybe_unpack(shapely.disjoint(self, other))
 
-    def equals(self, other: GeometryMaybeArray) -> MaybeArray[bool]:
+    def equals(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if geometries are equal, else False.
 
         This method considers point-set equality (or topological
@@ -718,23 +715,25 @@ class BaseGeometry(Geometry):
         """
         return _maybe_unpack(shapely.equals(self, other))
 
-    def intersects(self, other: GeometryMaybeArray) -> MaybeArray[bool]:
+    def intersects(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if geometries intersect, else False"""
         return _maybe_unpack(shapely.intersects(self, other))
 
-    def overlaps(self, other: GeometryMaybeArray) -> MaybeArray[bool]:
+    def overlaps(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if geometries overlap, else False"""
         return _maybe_unpack(shapely.overlaps(self, other))
 
-    def touches(self, other: GeometryMaybeArray) -> MaybeArray[bool]:
+    def touches(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if geometries touch, else False"""
         return _maybe_unpack(shapely.touches(self, other))
 
-    def within(self, other: GeometryMaybeArray) -> MaybeArray[bool]:
+    def within(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if geometry is within the other, else False"""
         return _maybe_unpack(shapely.within(self, other))
 
-    def dwithin(self, other: GeometryMaybeArray, distance: float) -> MaybeArray[bool]:
+    def dwithin(
+        self, other: ScalarOrArray["Geometry"], distance: float
+    ) -> ScalarOrArray[bool]:
         """
         Returns True if geometry is within a given distance from the other, else False.
 
@@ -744,9 +743,9 @@ class BaseGeometry(Geometry):
 
     def equals_exact(
         self,
-        other: GeometryMaybeArray,
+        other: ScalarOrArray["Geometry"],
         tolerance: float,
-    ) -> MaybeArray[bool]:
+    ) -> ScalarOrArray[bool]:
         """True if geometries are equal to within a specified
         tolerance.
 
@@ -782,8 +781,8 @@ class BaseGeometry(Geometry):
         return _maybe_unpack(shapely.equals_exact(self, other, tolerance))
 
     def almost_equals(
-        self, other: GeometryMaybeArray, decimal: int = 6
-    ) -> MaybeArray[bool]:
+        self, other: ScalarOrArray["Geometry"], decimal: int = 6
+    ) -> ScalarOrArray[bool]:
         """True if geometries are equal at all coordinates to a
         specified decimal place.
 
@@ -824,8 +823,8 @@ class BaseGeometry(Geometry):
         return self.equals_exact(other, 0.5 * 10 ** (-decimal))
 
     def relate_pattern(
-        self, other: GeometryMaybeArray, pattern: str
-    ) -> MaybeArray[str]:
+        self, other: ScalarOrArray["Geometry"], pattern: str
+    ) -> ScalarOrArray[str]:
         """Returns True if the DE-9IM string code for the relationship between
         the geometries satisfies the pattern, else False"""
         return _maybe_unpack(shapely.relate_pattern(self, other, pattern))
@@ -834,8 +833,8 @@ class BaseGeometry(Geometry):
     # ------------------
 
     def line_locate_point(
-        self, other: GeometryMaybeArray, normalized: bool = False
-    ) -> MaybeArray[float]:
+        self, other: ScalarOrArray["Geometry"], normalized: bool = False
+    ) -> ScalarOrArray[float]:
         """Returns the distance along this geometry to a point nearest the
         specified point
 
@@ -847,8 +846,8 @@ class BaseGeometry(Geometry):
         return shapely.line_locate_point(self, other, normalized=normalized)
 
     def project(
-        self, other: GeometryMaybeArray, normalized: bool = False
-    ) -> MaybeArray[float]:
+        self, other: ScalarOrArray["Geometry"], normalized: bool = False
+    ) -> ScalarOrArray[float]:
         """Returns the distance along this geometry to a point nearest the
         specified point
 
@@ -860,8 +859,8 @@ class BaseGeometry(Geometry):
         return shapely.line_locate_point(self, other, normalized=normalized)
 
     def line_interpolate_point(
-        self, distance: MaybeArrayLike[float], normalized: bool = False
-    ) -> MaybeArray["Point"]:
+        self, distance: ScalarOrArrayLike[float], normalized: bool = False
+    ) -> ScalarOrArray["Point"]:
         """Return a point at the specified distance along a linear geometry
 
         Negative length values are taken as measured in the reverse
@@ -875,8 +874,8 @@ class BaseGeometry(Geometry):
         return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
     def interpolate(
-        self, distance: MaybeArrayLike[float], normalized: bool = False
-    ) -> MaybeArray["Point"]:
+        self, distance: ScalarOrArrayLike[float], normalized: bool = False
+    ) -> ScalarOrArray["Point"]:
         """Return a point at the specified distance along a linear geometry
 
         Negative length values are taken as measured in the reverse
@@ -890,8 +889,8 @@ class BaseGeometry(Geometry):
         return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
     def segmentize(
-        self, max_segment_length: MaybeArrayLike[float]
-    ) -> GeometryMaybeArray:
+        self, max_segment_length: ScalarOrArrayLike[float]
+    ) -> ScalarOrArray["Geometry"]:
         """Adds vertices to line segments based on maximum segment length.
 
         Additional vertices will be added to every line segment in an input geometry

@@ -16,11 +16,5 @@ except ImportError:
     NumpyArray = Union[np.ndarray, Sequence[T]]
     ArrayLike = Union[NumpyArray[T], Sequence[T]]
 
-if TYPE_CHECKING:
-    from shapely import Geometry  # NOQA
-
-MaybeArray = Union[T, NumpyArray[T]]
-MaybeArrayLike = Union[T, ArrayLike[T]]
-
-GeometryMaybeArray = MaybeArray["Geometry"]
-GeometryMaybeArrayLike = MaybeArrayLike["Geometry"]
+ScalarOrArray = Union[T, NumpyArray[T]]
+ScalarOrArrayLike = Union[T, ArrayLike[T]]
