@@ -68,6 +68,19 @@ all_types = (
     empty,
 )
 
+all_types_z = (
+    point_z,
+    line_string_z,
+    polygon_z,
+    multi_point_z,
+    multi_line_string_z,
+    multi_polygon_z,
+    polygon_with_hole_z,
+    geometry_collection_z,
+    empty_point_z,
+    empty_line_string_z,
+)
+
 
 @contextmanager
 def ignore_invalid(condition=True):
