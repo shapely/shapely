@@ -14,12 +14,7 @@ import numpy as np
 import shapely
 from shapely import Geometry
 from shapely._geometry_helpers import _geom_factory
-from shapely._typing import (
-    ScalarOrArray,
-    ScalarOrArrayLike,
-    NumpyArray,
-    T,
-)
+from shapely._typing import NumpyArray, ScalarOrArray, ScalarOrArrayLike, T
 from shapely.constructive import BufferCapStyle, BufferJoinStyle
 from shapely.coords import CoordinateSequence
 from shapely.errors import GeometryTypeError, GEOSException, ShapelyDeprecationWarning
@@ -327,7 +322,9 @@ class BaseGeometry(Geometry):
         """Unitless distance to other geometry (float)"""
         return _maybe_unpack(shapely.distance(self, other))
 
-    def hausdorff_distance(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[float]:
+    def hausdorff_distance(
+        self, other: ScalarOrArrayLike["Geometry"]
+    ) -> ScalarOrArray[float]:
         """Unitless hausdorff distance to other geometry"""
         return _maybe_unpack(shapely.hausdorff_distance(self, other))
 
@@ -676,7 +673,9 @@ class BaseGeometry(Geometry):
         """Returns True if the geometry contains the other, else False"""
         return _maybe_unpack(shapely.contains(self, other))
 
-    def contains_properly(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
+    def contains_properly(
+        self, other: ScalarOrArrayLike["Geometry"]
+    ) -> ScalarOrArray[bool]:
         """
         Returns True if the geometry completely contains the other, with no
         common boundary points, else False
@@ -732,7 +731,9 @@ class BaseGeometry(Geometry):
         """Returns True if geometry is within the other, else False"""
         return _maybe_unpack(shapely.within(self, other))
 
-    def dwithin(self, other: ScalarOrArrayLike["Geometry"], distance: float) -> ScalarOrArray[bool]:
+    def dwithin(
+        self, other: ScalarOrArrayLike["Geometry"], distance: float
+    ) -> ScalarOrArray[bool]:
         """
         Returns True if geometry is within a given distance from the other, else False.
 

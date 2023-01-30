@@ -1,4 +1,4 @@
-from typing import Sequence, TYPE_CHECKING, TypeVar, Union
+from typing import Sequence, TypeVar, Union
 
 T = TypeVar("T")
 
