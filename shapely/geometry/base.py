@@ -14,7 +14,12 @@ import numpy as np
 import shapely
 from shapely import Geometry
 from shapely._geometry_helpers import _geom_factory
-from shapely._typing import NumpyArray, ScalarOrArray, ScalarOrArrayLike, T
+from shapely._typing import (
+    ScalarOrArray,
+    ScalarOrArrayLike,
+    NumpyArray,
+    T,
+)
 from shapely.constructive import BufferCapStyle, BufferJoinStyle
 from shapely.coords import CoordinateSequence
 from shapely.errors import GeometryTypeError, GEOSException, ShapelyDeprecationWarning
@@ -322,9 +327,7 @@ class BaseGeometry(Geometry):
         """Unitless distance to other geometry (float)"""
         return _maybe_unpack(shapely.distance(self, other))
 
-    def hausdorff_distance(
-        self, other: ScalarOrArrayLike["Geometry"]
-    ) -> ScalarOrArray[float]:
+    def hausdorff_distance(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[float]:
         """Unitless hausdorff distance to other geometry"""
         return _maybe_unpack(shapely.hausdorff_distance(self, other))
 
@@ -656,26 +659,24 @@ class BaseGeometry(Geometry):
     # Binary predicates
     # -----------------
 
-    def relate(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[str]:
+    def relate(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[str]:
         """Returns the DE-9IM intersection matrix for the two geometries
         (string)"""
         return shapely.relate(self, other)
 
-    def covers(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[bool]:
+    def covers(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if the geometry covers the other, else False"""
         return _maybe_unpack(shapely.covers(self, other))
 
-    def covered_by(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[bool]:
+    def covered_by(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if the geometry is covered by the other, else False"""
         return _maybe_unpack(shapely.covered_by(self, other))
 
-    def contains(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[bool]:
+    def contains(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if the geometry contains the other, else False"""
         return _maybe_unpack(shapely.contains(self, other))
 
-    def contains_properly(
-        self, other: ScalarOrArray["Geometry"]
-    ) -> ScalarOrArray[bool]:
+    def contains_properly(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
         """
         Returns True if the geometry completely contains the other, with no
         common boundary points, else False
@@ -684,15 +685,15 @@ class BaseGeometry(Geometry):
         """
         return _maybe_unpack(shapely.contains_properly(self, other))
 
-    def crosses(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[bool]:
+    def crosses(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if the geometries cross, else False"""
         return _maybe_unpack(shapely.crosses(self, other))
 
-    def disjoint(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[bool]:
+    def disjoint(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if geometries are disjoint, else False"""
         return _maybe_unpack(shapely.disjoint(self, other))
 
-    def equals(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[bool]:
+    def equals(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if geometries are equal, else False.
 
         This method considers point-set equality (or topological
@@ -715,25 +716,23 @@ class BaseGeometry(Geometry):
         """
         return _maybe_unpack(shapely.equals(self, other))
 
-    def intersects(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[bool]:
+    def intersects(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if geometries intersect, else False"""
         return _maybe_unpack(shapely.intersects(self, other))
 
-    def overlaps(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[bool]:
+    def overlaps(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if geometries overlap, else False"""
         return _maybe_unpack(shapely.overlaps(self, other))
 
-    def touches(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[bool]:
+    def touches(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if geometries touch, else False"""
         return _maybe_unpack(shapely.touches(self, other))
 
-    def within(self, other: ScalarOrArray["Geometry"]) -> ScalarOrArray[bool]:
+    def within(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if geometry is within the other, else False"""
         return _maybe_unpack(shapely.within(self, other))
 
-    def dwithin(
-        self, other: ScalarOrArray["Geometry"], distance: float
-    ) -> ScalarOrArray[bool]:
+    def dwithin(self, other: ScalarOrArrayLike["Geometry"], distance: float) -> ScalarOrArray[bool]:
         """
         Returns True if geometry is within a given distance from the other, else False.
 
@@ -743,7 +742,7 @@ class BaseGeometry(Geometry):
 
     def equals_exact(
         self,
-        other: ScalarOrArray["Geometry"],
+        other: ScalarOrArrayLike["Geometry"],
         tolerance: float,
     ) -> ScalarOrArray[bool]:
         """True if geometries are equal to within a specified
@@ -781,7 +780,7 @@ class BaseGeometry(Geometry):
         return _maybe_unpack(shapely.equals_exact(self, other, tolerance))
 
     def almost_equals(
-        self, other: ScalarOrArray["Geometry"], decimal: int = 6
+        self, other: ScalarOrArrayLike["Geometry"], decimal: int = 6
     ) -> ScalarOrArray[bool]:
         """True if geometries are equal at all coordinates to a
         specified decimal place.
@@ -823,7 +822,7 @@ class BaseGeometry(Geometry):
         return self.equals_exact(other, 0.5 * 10 ** (-decimal))
 
     def relate_pattern(
-        self, other: ScalarOrArray["Geometry"], pattern: str
+        self, other: ScalarOrArrayLike["Geometry"], pattern: str
     ) -> ScalarOrArray[str]:
         """Returns True if the DE-9IM string code for the relationship between
         the geometries satisfies the pattern, else False"""
@@ -833,7 +832,7 @@ class BaseGeometry(Geometry):
     # ------------------
 
     def line_locate_point(
-        self, other: ScalarOrArray["Geometry"], normalized: bool = False
+        self, other: ScalarOrArrayLike["Geometry"], normalized: bool = False
     ) -> ScalarOrArray[float]:
         """Returns the distance along this geometry to a point nearest the
         specified point
@@ -846,7 +845,7 @@ class BaseGeometry(Geometry):
         return shapely.line_locate_point(self, other, normalized=normalized)
 
     def project(
-        self, other: ScalarOrArray["Geometry"], normalized: bool = False
+        self, other: ScalarOrArrayLike["Geometry"], normalized: bool = False
     ) -> ScalarOrArray[float]:
         """Returns the distance along this geometry to a point nearest the
         specified point
