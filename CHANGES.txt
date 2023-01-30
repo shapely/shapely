@@ -1,6 +1,27 @@
 Changes
 =======
 
+2.0.1 (2023-01-30)
+------------------
+
+Bug fixes:
+
+- Fix regression in the ``Polygon()`` constructor taking a sequence of Points (#1662).
+- Fix regression in the geometry constructors when passing ``decimal.Decimal``
+  coordinate values (#1707).
+- Fix ``STRtree()`` to not make the passed geometry array immutable as side-effect of
+  the constructor (#1714).
+- Fix the ``directed`` keyword in ``shapely.ops.linemerge()`` (#1695).
+
+Improvements:
+
+- Expose the function to get a matplotlib Patch object from a (Multi)Polygon (without
+  already plotting it) publicly as :func:`shapely.plotting.patch_from_polygon` (#1704).
+
+For a full changelog, see
+https://shapely.readthedocs.io/en/latest/release/2.x.html#version-2-0-1
+
+
 2.0.0 (2022-12-12)
 ------------------
 
