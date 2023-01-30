@@ -19,6 +19,7 @@ copyright = '2011-2022, Sean Gillies and Shapely contributors'
 
 # The full version, including alpha/beta/rc tags.
 import shapely
+
 release = shapely.__version__.split("+")[0]
 
 # -- General configuration ---------------------------------------------------
@@ -69,8 +70,8 @@ add_module_names = False
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'Shapely.tex', 'Shapely Documentation',
-   'Sean Gillies', 'manual'),
+    ('index', 'Shapely.tex', 'Shapely Documentation',
+     'Sean Gillies', 'manual'),
 ]
 
 #  --Options for sphinx extensions -----------------------------------------------
@@ -91,6 +92,7 @@ numpydoc_show_class_members = False
 autosummary_generate = True
 remove_from_toctrees = ["reference/*"]
 
+
 def rstjinja(app, docname, source):
     """
     Render our pages as a jinja template for fancy templating goodness.
@@ -104,15 +106,16 @@ def rstjinja(app, docname, source):
 
 def get_module_functions(module, exclude=None):
     """Return a list of function names for the given submodule."""
-    
     mod = importlib.import_module(f"shapely.{module}")
-    return mod.__all__
+    mod_functions = mod.__all__
+    # mod_functions = [(f if f in shapely.__dict__ else f"{module}.{f}") for f in mod_functions]
+    # assert mod_functions == mod.__all__, module
+    return mod_functions
 
 
 html_context = {
     'get_module_functions': get_module_functions
 }
-
 
 # write dummy _reference.rst with all functions listed to ensure the reference/
 # stub pages are crated (the autogeneration of those stub pages by autosummary 
@@ -133,10 +136,26 @@ template = """
 
 modules = [
     "_geometry", "creation", "constructive", "coordinates", "io", "linear",
-    "measurement", "predicates", "set_operations", "plotting"]
+    "measurement", "predicates", "set_operations"]
+
 functions = [func for mod in modules for func in get_module_functions(mod)]
 
 template += "   " + "\n   ".join(functions)
+
+submodules = ["plotting"]
+
+module_tempalte = """
+
+.. currentmodule:: shapely.{module}
+
+.. autosummary::
+   :toctree: reference/
+
+"""
+for module in submodules:
+    template += module_tempalte.format(module=module)
+    functions = get_module_functions(module)
+    template += "   " + "\n   ".join(functions)
 
 with open("_reference.rst", "w") as f:
     f.write(template)
