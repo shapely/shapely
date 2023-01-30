@@ -1,15 +1,19 @@
-from . import unittest
-import pytest
 import random
-from itertools import islice
 from functools import partial
+from itertools import islice
+
+import pytest
+
 from shapely.errors import ShapelyDeprecationWarning
-from shapely.geometry import Point, MultiPolygon
+from shapely.geometry import MultiPolygon, Point
 from shapely.ops import cascaded_union, unary_union
+
+from . import unittest
 
 
 def halton(base):
     """Returns an iterator over an infinite Halton sequence"""
+
     def value(index):
         result = 0.0
         f = 1.0 / base
@@ -19,6 +23,7 @@ def halton(base):
             i = i // base
             f = f / base
         return result
+
     i = 1
     while i > 0:
         yield value(i)
@@ -26,7 +31,6 @@ def halton(base):
 
 
 class UnionTestCase(unittest.TestCase):
-
     def test_cascaded_union(self):
         # cascaded_union is deprecated, as it was superseded by unary_union
 
@@ -43,7 +47,7 @@ class UnionTestCase(unittest.TestCase):
         # into a collection of polygon patches
         with pytest.warns(ShapelyDeprecationWarning, match="is deprecated"):
             u = cascaded_union(spots)
-        assert u.geom_type in ('Polygon', 'MultiPolygon')
+        assert u.geom_type in ("Polygon", "MultiPolygon")
 
     def setUp(self):
         # Instead of random points, use deterministic, pseudo-random Halton
@@ -56,7 +60,7 @@ class UnionTestCase(unittest.TestCase):
     def test_unary_union(self):
         patches = [Point(xy).buffer(0.05) for xy in self.coords]
         u = unary_union(patches)
-        assert u.geom_type == 'MultiPolygon'
+        assert u.geom_type == "MultiPolygon"
         assert u.area == pytest.approx(0.718572540569)
 
     def test_unary_union_multi(self):

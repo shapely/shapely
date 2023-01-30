@@ -5,13 +5,14 @@ There are some expected differences due to Shapely's handling of empty
 geometries.
 """
 
-from shapely.ops import clip_by_rect
-from shapely.wkt import loads as load_wkt, dumps as dump_wkt
-from shapely.geos import geos_version
 import pytest
 
+from shapely.geos import geos_version
+from shapely.ops import clip_by_rect
+from shapely.wkt import dumps as dump_wkt
+from shapely.wkt import loads as load_wkt
 
-pytestmark = pytest.mark.skipif(geos_version < (3, 5, 0), reason='GEOS 3.5.0 required')
+pytestmark = pytest.mark.skipif(geos_version < (3, 5, 0), reason="GEOS 3.5.0 required")
 
 
 def test_point_outside():
@@ -68,7 +69,10 @@ def test_polygon_shell_ccw_fully_on_rectangle_boundary():
     """Polygon shell (CCW) fully on rectangle boundary"""
     geom1 = load_wkt("POLYGON ((10 10, 20 10, 20 20, 10 20, 10 10))")
     geom2 = clip_by_rect(geom1, 10, 10, 20, 20)
-    assert dump_wkt(geom2, rounding_precision=0) == "POLYGON ((10 10, 20 10, 20 20, 10 20, 10 10))"
+    assert (
+        dump_wkt(geom2, rounding_precision=0)
+        == "POLYGON ((10 10, 20 10, 20 20, 10 20, 10 10))"
+    )
 
 
 @pytest.mark.xfail(reason="TODO issue to CW")
@@ -76,19 +80,26 @@ def test_polygon_shell_cc_fully_on_rectangle_boundary():
     """Polygon shell (CW) fully on rectangle boundary"""
     geom1 = load_wkt("POLYGON ((10 10, 10 20, 20 20, 20 10, 10 10))")
     geom2 = clip_by_rect(geom1, 10, 10, 20, 20)
-    assert dump_wkt(geom2, rounding_precision=0) == "POLYGON ((10 10, 20 10, 20 20, 10 20, 10 10))"
+    assert (
+        dump_wkt(geom2, rounding_precision=0)
+        == "POLYGON ((10 10, 20 10, 20 20, 10 20, 10 10))"
+    )
 
 
 def polygon_hole_ccw_fully_on_rectangle_boundary():
     """Polygon hole (CCW) fully on rectangle boundary"""
-    geom1 = load_wkt("POLYGON ((0 0, 0 30, 30 30, 30 0, 0 0), (10 10, 20 10, 20 20, 10 20, 10 10))")
+    geom1 = load_wkt(
+        "POLYGON ((0 0, 0 30, 30 30, 30 0, 0 0), (10 10, 20 10, 20 20, 10 20, 10 10))"
+    )
     geom2 = clip_by_rect(geom1, 10, 10, 20, 20)
     assert dump_wkt(geom2, rounding_precision=0) == "GEOMETRYCOLLECTION EMPTY"
 
 
 def polygon_hole_cw_fully_on_rectangle_boundary():
     """Polygon hole (CW) fully on rectangle boundary"""
-    geom1 = load_wkt("POLYGON ((0 0, 0 30, 30 30, 30 0, 0 0), (10 10, 10 20, 20 20, 20 10, 10 10))")
+    geom1 = load_wkt(
+        "POLYGON ((0 0, 0 30, 30 30, 30 0, 0 0), (10 10, 10 20, 20 20, 20 10, 10 10))"
+    )
     geom2 = clip_by_rect(geom1, 10, 10, 20, 20)
     assert dump_wkt(geom2, rounding_precision=0) == "GEOMETRYCOLLECTION EMPTY"
 
@@ -106,4 +117,7 @@ def polygon_overlapping_rectangle():
     wkt = "POLYGON ((0 0, 0 30, 30 30, 30 0, 0 0), (10 10, 20 10, 20 20, 10 20, 10 10))"
     geom1 = load_wkt(wkt)
     geom2 = clip_by_rect(geom1, 5, 5, 15, 15)
-    assert dump_wkt(geom2, rounding_precision=0) == "POLYGON ((5 5, 5 15, 10 15, 10 10, 15 10, 15 5, 5 5))"
+    assert (
+        dump_wkt(geom2, rounding_precision=0)
+        == "POLYGON ((5 5, 5 15, 10 15, 10 10, 15 10, 15 5, 5 5))"
+    )

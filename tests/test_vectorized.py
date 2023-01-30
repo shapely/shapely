@@ -1,16 +1,18 @@
-from . import unittest, numpy
-from shapely.geometry import Point, box, MultiPolygon
+import numpy as np
 
 import shapely.vectorized
-import numpy as np
+from shapely.geometry import box, MultiPolygon, Point
+
+from . import numpy, unittest
 
 
 class VectorizedContainsTestCase(unittest.TestCase):
     def assertContainsResults(self, geom, x, y):
         from shapely.vectorized import contains
+
         result = contains(geom, x, y)
         x = np.asanyarray(x)
-        y = np.asanyarray(y) 
+        y = np.asanyarray(y)
 
         self.assertIsInstance(result, np.ndarray)
         self.assertEqual(result.dtype, bool)
@@ -35,11 +37,11 @@ class VectorizedContainsTestCase(unittest.TestCase):
     def test_contains_point(self):
         y, x = np.mgrid[-10:10:5j], np.mgrid[-5:15:5j]
         self.assertContainsResults(Point(x[0], y[0]), x, y)
-    
+
     def test_contains_linestring(self):
         y, x = np.mgrid[-10:10:5j], np.mgrid[-5:15:5j]
         self.assertContainsResults(Point(x[0], y[0]), x, y)
-    
+
     def test_contains_multipoly(self):
         y, x = np.mgrid[-10:10:5j], np.mgrid[-5:15:5j]
         # Construct a geometry of the torus cut in half vertically.
@@ -50,21 +52,21 @@ class VectorizedContainsTestCase(unittest.TestCase):
 
     def test_y_array_order(self):
         y, x = np.mgrid[-10:10:5j, -5:15:5j]
-        y = y.copy('f')
+        y = y.copy("f")
         self.assertContainsResults(self.construct_torus(), x, y)
 
     def test_x_array_order(self):
         y, x = np.mgrid[-10:10:5j, -5:15:5j]
-        x = x.copy('f')
+        x = x.copy("f")
         self.assertContainsResults(self.construct_torus(), x, y)
 
     def test_xy_array_order(self):
         y, x = np.mgrid[-10:10:5j, -5:15:5j]
-        x = x.copy('f')
-        y = y.copy('f')
+        x = x.copy("f")
+        y = y.copy("f")
         result = self.assertContainsResults(self.construct_torus(), x, y)
         # Preserve the order
-        assert result.flags['F_CONTIGUOUS']
+        assert result.flags["F_CONTIGUOUS"]
 
     def test_array_dtype(self):
         y, x = np.mgrid[-10:10:5j], np.mgrid[-5:15:5j]
@@ -84,14 +86,21 @@ class VectorizedContainsTestCase(unittest.TestCase):
 class VectorizedTouchesTestCase(unittest.TestCase):
     def test_touches(self):
         from shapely.vectorized import touches
+
         y, x = np.mgrid[-2:3:6j, -1:3:5j]
         geom = box(0, -1, 2, 2)
         result = touches(geom, x, y)
-        expected = np.array([[False, False, False, False, False],
-                             [False, True, True, True, False],
-                             [False, True, False, True, False],
-                             [False, True, False, True, False],
-                             [False, True, True, True, False],
-                             [False, False, False, False, False]], dtype=bool)
+        expected = np.array(
+            [
+                [False, False, False, False, False],
+                [False, True, True, True, False],
+                [False, True, False, True, False],
+                [False, True, False, True, False],
+                [False, True, True, True, False],
+                [False, False, False, False, False],
+            ],
+            dtype=bool,
+        )
         from numpy.testing import assert_array_equal
+
         assert_array_equal(result, expected)

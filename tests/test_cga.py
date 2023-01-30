@@ -1,6 +1,8 @@
-from . import unittest
 import pytest
+
 from shapely.geometry.polygon import LinearRing, orient, Polygon, signed_area
+
+from . import unittest
 
 
 class SignedAreaTestCase(unittest.TestCase):
@@ -11,8 +13,10 @@ class SignedAreaTestCase(unittest.TestCase):
     def test_square(self):
         xmin, xmax = (-1, 1)
         ymin, ymax = (-2, 3)
-        rect = LinearRing([(xmin, ymin), (xmax, ymin), (xmax, ymax), (xmin, ymax), (xmin, ymin)])
-        assert signed_area(rect) == pytest.approx(10.)
+        rect = LinearRing(
+            [(xmin, ymin), (xmax, ymin), (xmax, ymax), (xmin, ymax), (xmin, ymin)]
+        )
+        assert signed_area(rect) == pytest.approx(10.0)
 
 
 class RingOrientationTestCase(unittest.TestCase):
@@ -34,8 +38,9 @@ class PolygonOrienterTestCase(unittest.TestCase):
         assert polygon.exterior.is_ccw
 
     def test_holes(self):
-        polygon = Polygon([(0, 0), (0, 1), (1, 0)],
-                          [[(0.5, 0.25), (0.25, 0.5), (0.25, 0.25)]])
+        polygon = Polygon(
+            [(0, 0), (0, 1), (1, 0)], [[(0.5, 0.25), (0.25, 0.5), (0.25, 0.25)]]
+        )
         assert not polygon.exterior.is_ccw
         assert polygon.interiors[0].is_ccw
         polygon = orient(polygon, 1)

@@ -1,11 +1,18 @@
-from shapely.ops import split
-
-from . import unittest
 import pytest
 
 from shapely.errors import GeometryTypeError
-from shapely.geometry import Point, MultiPoint, LineString, MultiLineString, Polygon, MultiPolygon, GeometryCollection
-from shapely.ops import linemerge, unary_union
+from shapely.geometry import (
+    GeometryCollection,
+    LineString,
+    MultiLineString,
+    MultiPoint,
+    MultiPolygon,
+    Point,
+    Polygon,
+)
+from shapely.ops import linemerge, split, unary_union
+
+from . import unittest
 
 
 class TestSplitGeometry(unittest.TestCase):
@@ -16,9 +23,9 @@ class TestSplitGeometry(unittest.TestCase):
         assert len(s.geoms) == expected_chunks
         if expected_chunks > 1:
             # split --> expected collection that when merged is again equal to original geometry
-            if s.geoms[0].geom_type == 'LineString':
+            if s.geoms[0].geom_type == "LineString":
                 self.assertTrue(linemerge(s).simplify(0.000001).equals(geom))
-            elif s.geoms[0].geom_type == 'Polygon':
+            elif s.geoms[0].geom_type == "Polygon":
                 union = unary_union(s).simplify(0.000001)
                 assert union.equals(geom)
                 assert union.area == geom.area
@@ -38,7 +45,10 @@ class TestSplitGeometry(unittest.TestCase):
 
 class TestSplitPolygon(TestSplitGeometry):
     poly_simple = Polygon([(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)])
-    poly_hole = Polygon([(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)], [[(0.5, 0.5), (0.5, 1.5), (1.5, 1.5), (1.5, 0.5), (0.5, 0.5)]])
+    poly_hole = Polygon(
+        [(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)],
+        [[(0.5, 0.5), (0.5, 1.5), (1.5, 1.5), (1.5, 0.5), (0.5, 0.5)]],
+    )
 
     def test_split_poly_with_line(self):
         # crossing at 2 points --> return 2 segments
@@ -57,7 +67,7 @@ class TestSplitPolygon(TestSplitGeometry):
         self.helper(self.poly_hole, splitter, 1)
 
         # outside the polygon --> return equal
-        splitter = LineString([(0, 3), (3, 3) , (3, 0)])
+        splitter = LineString([(0, 3), (3, 3), (3, 0)])
         self.helper(self.poly_simple, splitter, 1)
         self.helper(self.poly_hole, splitter, 1)
 
@@ -92,7 +102,7 @@ class TestSplitLine(TestSplitGeometry):
 
     def test_split_line_with_multipoint(self):
         # points on line interior --> return 4 segments
-        splitter = MultiPoint([(1,1), (1.5, 1.5), (0.5, 0.5)])
+        splitter = MultiPoint([(1, 1), (1.5, 1.5), (0.5, 0.5)])
         self.helper(self.ls, splitter, 4)
 
         # points on line interior and boundary -> return 2 segments
@@ -164,13 +174,20 @@ class TestSplitLine(TestSplitGeometry):
 
         # exterior crosses at one point and touches at (0, 0)
         # interior crosses at two points
-        splitter = Polygon([(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)], [[(0.5, 0.5), (0.5, 1.5), (1.5, 1.5), (1.5, 0.5), (0.5, 0.5)]])
+        splitter = Polygon(
+            [(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)],
+            [[(0.5, 0.5), (0.5, 1.5), (1.5, 1.5), (1.5, 0.5), (0.5, 0.5)]],
+        )
         self.helper(self.ls, splitter, 4)
 
     def test_split_line_with_multipolygon(self):
-        poly1 = Polygon([(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)]) # crosses at one point and touches at (0, 0)
-        poly2 = Polygon([(0.5, 0.5), (0.5, 1.5), (1.5, 1.5), (1.5, 0.5), (0.5, 0.5)]) # crosses at two points
-        poly3 = Polygon([(0, 0), (0, -2), (-2, -2), (-2, 0), (0, 0)]) # not crossing
+        poly1 = Polygon(
+            [(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)]
+        )  # crosses at one point and touches at (0, 0)
+        poly2 = Polygon(
+            [(0.5, 0.5), (0.5, 1.5), (1.5, 1.5), (1.5, 0.5), (0.5, 0.5)]
+        )  # crosses at two points
+        poly3 = Polygon([(0, 0), (0, -2), (-2, -2), (-2, 0), (0, 0)])  # not crossing
         splitter = MultiPolygon([poly1, poly2, poly3])
         self.helper(self.ls, splitter, 4)
 
@@ -200,7 +217,6 @@ class TestSplitClosedRing(TestSplitGeometry):
 
 
 class TestSplitMulti(TestSplitGeometry):
-
     def test_split_multiline_with_point(self):
         # a cross-like multilinestring with a point in the middle --> return 4 line segments
         l1 = LineString([(0, 1), (2, 1)])

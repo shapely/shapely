@@ -1,7 +1,9 @@
-from . import unittest
 import pytest
+
 from shapely import geometry
 from shapely.ops import transform
+
+from . import unittest
 
 
 class IdentityTestCase(unittest.TestCase):
