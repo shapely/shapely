@@ -1,8 +1,10 @@
-from . import unittest
 import pytest
-from shapely.algorithms.polylabel import polylabel, Cell
-from shapely.geometry import LineString, Point, Polygon
+
+from shapely.algorithms.polylabel import Cell, polylabel
 from shapely.errors import TopologicalError
+from shapely.geometry import LineString, Point, Polygon
+
+from . import unittest
 
 
 class PolylabelTestCase(unittest.TestCase):
@@ -11,8 +13,9 @@ class PolylabelTestCase(unittest.TestCase):
         Finds pole of inaccessibility for a polygon with a tolerance of 10
 
         """
-        polygon = LineString([(0, 0), (50, 200), (100, 100), (20, 50),
-                              (-100, -20), (-150, -200)]).buffer(100)
+        polygon = LineString(
+            [(0, 0), (50, 200), (100, 100), (20, 50), (-100, -20), (-150, -200)]
+        ).buffer(100)
         label = polylabel(polygon, tolerance=10)
         expected = Point(59.35615556364569, 121.8391962974644)
         assert expected.equals_exact(label, 1e-6)
@@ -23,8 +26,9 @@ class PolylabelTestCase(unittest.TestCase):
         an invalid polygon.
 
         """
-        bowtie_polygon = Polygon([(0, 0), (0, 20), (10, 10), (20, 20),
-                                  (20, 0), (10, 10), (0, 0)])
+        bowtie_polygon = Polygon(
+            [(0, 0), (0, 20), (10, 10), (20, 20), (20, 0), (10, 10), (0, 0)]
+        )
         with pytest.raises(TopologicalError):
             polylabel(bowtie_polygon)
 
@@ -55,8 +59,9 @@ class PolylabelTestCase(unittest.TestCase):
         the point is inside.
 
         """
-        concave_polygon = LineString([(500, 0), (0, 0), (0, 500),
-                                      (500, 500)]).buffer(100)
+        concave_polygon = LineString([(500, 0), (0, 0), (0, 500), (500, 500)]).buffer(
+            100
+        )
         label = polylabel(concave_polygon)
         assert concave_polygon.contains(label)
 
@@ -67,8 +72,14 @@ class PolylabelTestCase(unittest.TestCase):
         that this special case is handled correctly.
         https://github.com/mapbox/polylabel/issues/3
         """
-        polygon = Polygon([(32.71997, -117.19310), (32.71997, -117.21065),
-                           (32.72408, -117.21065), (32.72408, -117.19310)])
+        polygon = Polygon(
+            [
+                (32.71997, -117.19310),
+                (32.71997, -117.21065),
+                (32.72408, -117.21065),
+                (32.72408, -117.19310),
+            ]
+        )
         label = polylabel(polygon)
         assert label.coords[:] == [(32.722025, -117.201875)]
 

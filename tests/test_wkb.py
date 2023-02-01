@@ -4,13 +4,12 @@ import struct
 import sys
 
 import pytest
+from tests.conftest import shapely20_todo
 
 from shapely import wkt
 from shapely.geometry import Point
 from shapely.geos import geos_version
-from shapely.wkb import dumps, loads, dump, load
-
-from tests.conftest import shapely20_todo
+from shapely.wkb import dump, dumps, load, loads
 
 
 @pytest.fixture(scope="module")
@@ -46,25 +45,31 @@ def hostorder(fmt, value):
     if hexorder == sysorder:
         return value  # Nothing to do
 
-    return bin2hex(struct.pack(
-        sysorder + fmt,
-        {">": 0, "<": 1}[sysorder],
-        *struct.unpack(hexorder + fmt, hex2bin(value))[1:]))
+    return bin2hex(
+        struct.pack(
+            sysorder + fmt,
+            {">": 0, "<": 1}[sysorder],
+            *struct.unpack(hexorder + fmt, hex2bin(value))[1:]
+        )
+    )
 
 
 def test_dumps_srid(some_point):
     result = dumps(some_point)
     assert bin2hex(result) == hostorder(
-        "BIdd", "0101000000333333333333F33F3333333333330B40")
+        "BIdd", "0101000000333333333333F33F3333333333330B40"
+    )
     result = dumps(some_point, srid=4326)
     assert bin2hex(result) == hostorder(
-        "BIIdd", "0101000020E6100000333333333333F33F3333333333330B40")
+        "BIIdd", "0101000020E6100000333333333333F33F3333333333330B40"
+    )
 
 
 def test_dumps_endianness(some_point):
     result = dumps(some_point)
     assert bin2hex(result) == hostorder(
-        "BIdd", "0101000000333333333333F33F3333333333330B40")
+        "BIdd", "0101000000333333333333F33F3333333333330B40"
+    )
     result = dumps(some_point, big_endian=False)
     assert bin2hex(result) == "0101000000333333333333F33F3333333333330B40"
     result = dumps(some_point, big_endian=True)
@@ -73,8 +78,7 @@ def test_dumps_endianness(some_point):
 
 def test_dumps_hex(some_point):
     result = dumps(some_point, hex=True)
-    assert result == hostorder(
-        "BIdd", "0101000000333333333333F33F3333333333330B40")
+    assert result == hostorder("BIdd", "0101000000333333333333F33F3333333333330B40")
 
 
 def test_loads_srid():
@@ -85,15 +89,18 @@ def test_loads_srid():
     # by default srid is not exported
     result = dumps(geom)
     assert bin2hex(result) == hostorder(
-        "BIdd", "0101000000333333333333F33F3333333333330B40")
+        "BIdd", "0101000000333333333333F33F3333333333330B40"
+    )
     # include the srid in the output
     result = dumps(geom, include_srid=True)
     assert bin2hex(result) == hostorder(
-        "BIIdd", "0101000020E6100000333333333333F33F3333333333330B40")
+        "BIIdd", "0101000020E6100000333333333333F33F3333333333330B40"
+    )
     # replace geometry srid with another
     result = dumps(geom, srid=27700)
     assert bin2hex(result) == hostorder(
-        "BIIdd", "0101000020346C0000333333333333F33F3333333333330B40")
+        "BIIdd", "0101000020346C0000333333333333F33F3333333333330B40"
+    )
 
 
 def test_loads_hex(some_point):
@@ -141,7 +148,7 @@ def test_dump_binary_load_hex(some_point, tmpdir):
 
     # TODO(shapely-2.0) on windows this doesn't seem to error with pygeos,
     # but you get back a point with garbage coordinates
-    if sys.platform == 'win32':
+    if sys.platform == "win32":
         with open(file, "r") as file_pointer:
             restored = load(file_pointer, hex=True)
         assert some_point != restored
@@ -153,7 +160,8 @@ def test_dump_binary_load_hex(some_point, tmpdir):
 
 
 requires_geos_380 = pytest.mark.xfail(
-    geos_version < (3, 8, 0), reason="GEOS >= 3.8.0 is required", strict=True)
+    geos_version < (3, 8, 0), reason="GEOS >= 3.8.0 is required", strict=True
+)
 
 
 @requires_geos_380
@@ -162,7 +170,7 @@ def test_point_empty():
     result = dumps(g, big_endian=False)
     # Use math.isnan for second part of the WKB representation  there are
     # many byte representations for NaN)
-    assert result[: -2 * 8] == b'\x01\x01\x00\x00\x00'
+    assert result[: -2 * 8] == b"\x01\x01\x00\x00\x00"
     coords = struct.unpack("<2d", result[-2 * 8 :])
     assert len(coords) == 2
     assert all(math.isnan(val) for val in coords)
@@ -172,4 +180,5 @@ def test_point_empty():
 def test_point_z_empty():
     g = wkt.loads("POINT Z EMPTY")
     assert g.wkb_hex == hostorder(
-        "BIddd", "0101000080000000000000F87F000000000000F87F000000000000F87F")
+        "BIddd", "0101000080000000000000F87F000000000000F87F000000000000F87F"
+    )

@@ -1,14 +1,16 @@
-from . import unittest
 import pytest
 
 from shapely.geometry import Point
 from shapely.ops import nearest_points
 
+from . import unittest
+
 
 class Nearest(unittest.TestCase):
     def test_nearest(self):
         first, second = nearest_points(
-            Point(0, 0).buffer(1.0), Point(3, 0).buffer(1.0),
+            Point(0, 0).buffer(1.0),
+            Point(3, 0).buffer(1.0),
         )
         assert first.x == pytest.approx(1.0)
         assert second.x == pytest.approx(2.0)

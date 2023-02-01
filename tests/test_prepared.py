@@ -1,8 +1,8 @@
-import pytest
 import numpy as np
+import pytest
 
 from shapely.geometry import Point, Polygon
-from shapely.prepared import PreparedGeometry, prep
+from shapely.prepared import prep, PreparedGeometry
 
 
 def test_prepared_geometry():
@@ -33,12 +33,8 @@ def test_predicate_not_allowed():
 
 def test_prepared_predicates():
     # check prepared predicates give the same result as regular predicates
-    polygon1 = Polygon([
-        (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)
-    ])
-    polygon2 = Polygon([
-        (0.5, 0.5), (1.5, 0.5), (1.0, 1.0), (0.5, 0.5)
-    ])
+    polygon1 = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
+    polygon2 = Polygon([(0.5, 0.5), (1.5, 0.5), (1.0, 1.0), (0.5, 0.5)])
     point2 = Point(0.5, 0.5)
     polygon_empty = Polygon()
     prepared_polygon1 = PreparedGeometry(polygon1)

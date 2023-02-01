@@ -1,12 +1,13 @@
 """Test recovery from operation on invalid geometries
 """
 
-from . import unittest
-from shapely.geometry import Polygon
-from shapely.errors import TopologicalError
+import pytest
 
 import shapely
-import pytest
+from shapely.errors import TopologicalError
+from shapely.geometry import Polygon
+
+from . import unittest
 
 
 class InvalidGeometriesTestCase(unittest.TestCase):

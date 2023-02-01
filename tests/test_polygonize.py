@@ -1,7 +1,8 @@
-from . import unittest
-from shapely.geometry import Point, LineString, Polygon
+from shapely.geometry import LineString, Point, Polygon
 from shapely.geometry.base import dump_coords
 from shapely.ops import polygonize, polygonize_full
+
+from . import unittest
 
 
 class PolygonizeTestCase(unittest.TestCase):
@@ -36,5 +37,8 @@ class PolygonizeTestCase(unittest.TestCase):
         assert list(cuts.geoms) == []
         assert all(isinstance(x, LineString) for x in dangles.geoms)
 
-        assert dump_coords(dangles) == [[(1.0, 1.0), (100.0, 100.0)], [(5.0, 5.0), (6.0, 6.0)]]
+        assert dump_coords(dangles) == [
+            [(1.0, 1.0), (100.0, 100.0)],
+            [(5.0, 5.0), (6.0, 6.0)],
+        ]
         assert list(invalids.geoms) == []
