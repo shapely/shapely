@@ -2,27 +2,24 @@
 
 Also provides pickle-like convenience functions.
 """
+from typing import TYPE_CHECKING
 
 import shapely
 
+if TYPE_CHECKING:
+    from shapely.geometry.base import BaseGeometry
 
-def loads(data):
+
+def loads(data: str) -> "BaseGeometry":
     """
-    Load a geometry from a WKT string.
+    Creates geometry from the Well-Known Text (WKT) representation.
 
-    Parameters
-    ----------
-    data : str
-        A WKT string
-
-    Returns
-    -------
-    Shapely geometry object
+    Refer to `shapely.from_wkt` for full documentation.
     """
     return shapely.from_wkt(data)
 
 
-def load(fp):
+def load(fp) -> "BaseGeometry":
     """
     Load a geometry from an open file.
 
@@ -39,49 +36,26 @@ def load(fp):
     return loads(data)
 
 
-def dumps(ob, trim=False, rounding_precision=-1, **kw):
+def dumps(
+    ob: "BaseGeometry", trim: bool = False, rounding_precision: int = -1, **kwargs
+):
+    """Returns the Well-Known Text (WKT) representation of a Geometry as a string.
+
+    Default behavior returns full precision, without trimming trailing zeros.
+    Refer to `shapely.to_wkt` for full documentation.
     """
-    Dump a WKT representation of a geometry to a string.
-
-    Parameters
-    ----------
-    ob :
-        A geometry object of any type to be dumped to WKT.
-    trim : bool, default False
-        Remove excess decimals from the WKT.
-    rounding_precision : int
-        Round output to the specified number of digits.
-        Default behavior returns full precision.
-    output_dimension : int, default 3
-        Force removal of dimensions above the one specified.
-
-    Returns
-    -------
-    input geometry as WKT string
-    """
-    return shapely.to_wkt(ob, trim=trim, rounding_precision=rounding_precision, **kw)
+    return shapely.to_wkt(
+        ob, trim=trim, rounding_precision=rounding_precision, **kwargs
+    )
 
 
-def dump(ob, fp, **settings):
+def dump(ob, fp, trim: bool = False, rounding_precision: int = -1, **kwargs):
     """
     Dump a geometry to an open file.
 
-    Parameters
-    ----------
-    ob :
-        A geometry object of any type to be dumped to WKT.
-    fp :
-        A file-like object which implements a `write` method.
-    trim : bool, default False
-        Remove excess decimals from the WKT.
-    rounding_precision : int
-        Round output to the specified number of digits.
-        Default behavior returns full precision.
-    output_dimension : int, default 3
-        Force removal of dimensions above the one specified.
-
-    Returns
-    -------
-    None
+    This function writes the output of `shapely.to_wkt()` to a file.
+    For full parameter details see `shapely.to_wkt()`.
     """
-    fp.write(dumps(ob, **settings))
+    fp.write(
+        shapely.to_wkt(ob, trim=trim, rounding_precision=rounding_precision, **kwargs)
+    )

@@ -1,5 +1,7 @@
 """Points and related utilities
 """
+from typing import Any, Dict, Optional
+
 import numpy as np
 
 import shapely
@@ -7,6 +9,8 @@ from shapely.errors import DimensionError
 from shapely.geometry.base import BaseGeometry
 
 __all__ = ["Point"]
+
+from shapely._typing import XYArrayTuple
 
 
 class Point(BaseGeometry):
@@ -49,7 +53,7 @@ class Point(BaseGeometry):
 
     __slots__ = []
 
-    def __new__(self, *args):
+    def __new__(cls, *args):
         if len(args) == 0:
             # empty geometry
             # TODO better constructor
@@ -83,17 +87,17 @@ class Point(BaseGeometry):
     # Coordinate getters and setters
 
     @property
-    def x(self):
+    def x(self) -> float:
         """Return x coordinate."""
         return shapely.get_x(self)
 
     @property
-    def y(self):
+    def y(self) -> float:
         """Return y coordinate."""
         return shapely.get_y(self)
 
     @property
-    def z(self):
+    def z(self) -> float:
         """Return z coordinate."""
         if not shapely.has_z(self):
             raise DimensionError("This point has no z coordinate.")
@@ -101,10 +105,15 @@ class Point(BaseGeometry):
         return self.coords[0][2]
 
     @property
-    def __geo_interface__(self):
+    def __geo_interface__(self) -> Dict[str, Any]:
         return {"type": "Point", "coordinates": self.coords[0]}
 
-    def svg(self, scale_factor=1.0, fill_color=None, opacity=None):
+    def svg(
+        self,
+        scale_factor: float = 1.0,
+        fill_color: Optional[float] = None,
+        opacity: Optional[float] = None,
+    ):
         """Returns SVG circle element for the Point geometry.
 
         Parameters
@@ -114,7 +123,7 @@ class Point(BaseGeometry):
         fill_color : str, optional
             Hex string for fill color. Default is to use "#66cc99" if
             geometry is valid, and "#ff3333" if invalid.
-        opacity : float
+        opacity : float, optional
             Float number between 0 and 1 for color opacity. Default value is 0.6
         """
         if self.is_empty:
@@ -129,7 +138,7 @@ class Point(BaseGeometry):
         ).format(self, 3.0 * scale_factor, 1.0 * scale_factor, fill_color, opacity)
 
     @property
-    def xy(self):
+    def xy(self) -> XYArrayTuple:
         """Separate arrays of X and Y coordinate values
 
         Example:

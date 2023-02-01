@@ -153,7 +153,7 @@ def to_ragged_array(geometries, include_z=None):
 
     Parameters
     ----------
-    geometries : array_like
+    geometries : GeometryArrayLike
         Array of geometries (1-dimensional).
     include_z : bool, default None
         If False, return 2D geometries. If True, include the third dimension

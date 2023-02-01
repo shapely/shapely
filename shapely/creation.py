@@ -1,3 +1,5 @@
+from typing import Optional, Tuple, TYPE_CHECKING, Union
+
 import numpy as np
 
 from . import Geometry, GeometryType, lib
@@ -20,8 +22,42 @@ __all__ = [
     "empty",
 ]
 
+from shapely._typing import (
+    GeometryArrayNLike,
+    LinearStringsLike,
+    LineStringsLike,
+    MaybeArrayN,
+    MaybeArrayNLike,
+    MaybeGeometryArrayNLike,
+    MultiLineStringsLike,
+    MultiPointsLike,
+    MultiPolygonsLike,
+    NumpyArrayN,
+    NumpyArrayN2orN3,
+    NumpyArrayN2orN3Like,
+    NumpyArrayNLike,
+    PointsLike,
+    PolygonsLike,
+)
 
-def _xyz_to_coords(x, y, z):
+if TYPE_CHECKING:
+    from shapely import (
+        GeometryCollection,
+        LinearRing,
+        LineString,
+        MultiLineString,
+        MultiPoint,
+        MultiPolygon,
+        Point,
+        Polygon,
+    )
+
+
+def _xyz_to_coords(
+    x: Union[NumpyArrayNLike, NumpyArrayN2orN3],
+    y: Optional[NumpyArrayNLike],
+    z: Optional[NumpyArrayNLike],
+) -> NumpyArrayN2orN3:
     if y is None:
         return x
     if z is None:
@@ -32,7 +68,14 @@ def _xyz_to_coords(x, y, z):
 
 
 @multithreading_enabled
-def points(coords, y=None, z=None, indices=None, out=None, **kwargs):
+def points(
+    coords: Union[NumpyArrayNLike, PointsLike],
+    y: Optional[NumpyArrayNLike] = None,
+    z: Optional[NumpyArrayNLike] = None,
+    indices: Optional[NumpyArrayNLike[int]] = None,
+    out: Optional[NumpyArrayN[object]] = None,
+    **kwargs
+) -> MaybeArrayN["Point"]:
     """Create an array of points.
 
     Parameters
@@ -66,8 +109,8 @@ def points(coords, y=None, z=None, indices=None, out=None, **kwargs):
     -----
 
     - GEOS >=3.10 automatically converts POINT (nan nan) to POINT EMPTY.
-    - Usage of the ``y`` and ``z`` arguments will prevents lazy evaluation in ``dask``.
-      Instead provide the coordinates as an array with shape ``(..., 2)`` or ``(..., 3)`` using only the ``coords`` argument.
+    - Usage of the ``y`` and ``z`` arguments will prevent lazy evaluation in ``dask``.
+      Instead, provide the coordinates as an array with shape ``(..., 2)`` or ``(..., 3)`` using only the ``coords`` argument.
     """
     coords = _xyz_to_coords(coords, y, z)
     if indices is None:
@@ -77,7 +120,14 @@ def points(coords, y=None, z=None, indices=None, out=None, **kwargs):
 
 
 @multithreading_enabled
-def linestrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
+def linestrings(
+    coords: Union[NumpyArrayNLike, LineStringsLike],
+    y: Optional[NumpyArrayNLike] = None,
+    z: Optional[NumpyArrayNLike] = None,
+    indices: Optional[NumpyArrayNLike[int]] = None,
+    out: Optional[NumpyArrayN[object]] = None,
+    **kwargs
+) -> MaybeArrayN["LineString"]:
     """Create an array of linestrings.
 
     This function will raise an exception if a linestring contains less than
@@ -112,8 +162,8 @@ def linestrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
 
     Notes
     -----
-    - Usage of the ``y`` and ``z`` arguments will prevents lazy evaluation in ``dask``.
-      Instead provide the coordinates as a ``(..., 2)`` or ``(..., 3)`` array using only ``coords``.
+    - Usage of the ``y`` and ``z`` arguments will prevent lazy evaluation in ``dask``.
+      Instead, provide the coordinates as a ``(..., 2)`` or ``(..., 3)`` array using only ``coords``.
     """
     coords = _xyz_to_coords(coords, y, z)
     if indices is None:
@@ -123,7 +173,14 @@ def linestrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
 
 
 @multithreading_enabled
-def linearrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
+def linearrings(
+    coords: Union[NumpyArrayNLike, LinearStringsLike],
+    y: Optional[NumpyArrayNLike] = None,
+    z: Optional[NumpyArrayNLike] = None,
+    indices: Optional[NumpyArrayNLike[int]] = None,
+    out: Optional[NumpyArrayN[object]] = None,
+    **kwargs
+) -> MaybeArrayN["LinearRing"]:
     """Create an array of linearrings.
 
     If the provided coords do not constitute a closed linestring, or if there
@@ -165,8 +222,8 @@ def linearrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
 
     Notes
     -----
-    - Usage of the ``y`` and ``z`` arguments will prevents lazy evaluation in ``dask``.
-      Instead provide the coordinates as a ``(..., 2)`` or ``(..., 3)`` array using only ``coords``.
+    - Usage of the ``y`` and ``z`` arguments will prevent lazy evaluation in ``dask``.
+      Instead, provide the coordinates as a ``(..., 2)`` or ``(..., 3)`` array using only ``coords``.
     """
     coords = _xyz_to_coords(coords, y, z)
     if indices is None:
@@ -175,16 +232,23 @@ def linearrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
         return simple_geometries_1d(coords, indices, GeometryType.LINEARRING, out=out)
 
 
+# LinearRingLike = Union["LinearRing", LineString, NumpyArrayNLike[Point]]
 @multithreading_enabled
-def polygons(geometries, holes=None, indices=None, out=None, **kwargs):
+def polygons(
+    geometries: PolygonsLike,
+    holes: Optional[Union[NumpyArrayN2orN3Like, MaybeArrayN["LinearRing"]]] = None,
+    indices: Optional[NumpyArrayNLike[int]] = None,
+    out: Optional[NumpyArrayN[object]] = None,
+    **kwargs
+) -> NumpyArrayN["Polygon"]:
     """Create an array of polygons.
 
     Parameters
     ----------
-    geometries : array_like
+    geometries : GeometryArrayLike
         An array of linearrings or coordinates (see linearrings).
         Unless ``indices`` are given (see description below), this
-        include the outer shells only. The ``holes`` argument should be used
+        includes the outer shells only. The ``holes`` argument should be used
         to create polygons with holes.
     holes : array_like, optional
         An array of lists of linearrings that constitute holes for each shell.
@@ -269,7 +333,14 @@ def polygons(geometries, holes=None, indices=None, out=None, **kwargs):
 
 
 @multithreading_enabled
-def box(xmin, ymin, xmax, ymax, ccw=True, **kwargs):
+def box(
+    xmin: MaybeArrayNLike[float],
+    ymin: MaybeArrayNLike[float],
+    xmax: MaybeArrayNLike[float],
+    ymax: MaybeArrayNLike[float],
+    ccw: bool = True,
+    **kwargs
+) -> NumpyArrayN["Polygon"]:
     """Create box polygons.
 
     Parameters
@@ -299,12 +370,17 @@ def box(xmin, ymin, xmax, ymax, ccw=True, **kwargs):
 
 
 @multithreading_enabled
-def multipoints(geometries, indices=None, out=None, **kwargs):
+def multipoints(
+    geometries: MultiPointsLike,
+    indices: Optional[NumpyArrayNLike[int]] = None,
+    out: Optional[NumpyArrayN[object]] = None,
+    **kwargs
+) -> NumpyArrayN["MultiPoint"]:
     """Create multipoints from arrays of points
 
     Parameters
     ----------
-    geometries : array_like
+    geometries : GeometryArrayLike
         An array of points or coordinates (see points).
     indices : array_like, optional
         Indices into the target array where input geometries belong. If
@@ -364,12 +440,17 @@ def multipoints(geometries, indices=None, out=None, **kwargs):
 
 
 @multithreading_enabled
-def multilinestrings(geometries, indices=None, out=None, **kwargs):
+def multilinestrings(
+    geometries: MultiLineStringsLike,
+    indices: Optional[NumpyArrayNLike[int]] = None,
+    out: Optional[NumpyArrayN[object]] = None,
+    **kwargs
+) -> NumpyArrayN["MultiLineString"]:
     """Create multilinestrings from arrays of linestrings
 
     Parameters
     ----------
-    geometries : array_like
+    geometries : GeometryArrayLike
         An array of linestrings or coordinates (see linestrings).
     indices : array_like, optional
         Indices into the target array where input geometries belong. If
@@ -402,12 +483,17 @@ def multilinestrings(geometries, indices=None, out=None, **kwargs):
 
 
 @multithreading_enabled
-def multipolygons(geometries, indices=None, out=None, **kwargs):
+def multipolygons(
+    geometries: MultiPolygonsLike,
+    indices: Optional[NumpyArrayNLike[int]] = None,
+    out: Optional[NumpyArrayN[object]] = None,
+    **kwargs
+) -> NumpyArrayN["MultiPolygon"]:
     """Create multipolygons from arrays of polygons
 
     Parameters
     ----------
-    geometries : array_like
+    geometries : GeometryArrayLike
         An array of polygons or coordinates (see polygons).
     indices : array_like, optional
         Indices into the target array where input geometries belong. If
@@ -439,12 +525,17 @@ def multipolygons(geometries, indices=None, out=None, **kwargs):
 
 
 @multithreading_enabled
-def geometrycollections(geometries, indices=None, out=None, **kwargs):
-    """Create geometrycollections from arrays of geometries
+def geometrycollections(
+    geometries: GeometryArrayNLike,
+    indices: Optional[NumpyArrayNLike[int]] = None,
+    out: Optional[NumpyArrayN[object]] = None,
+    **kwargs
+) -> MaybeArrayN["GeometryCollection"]:
+    """Create geometrycollection from arrays of geometries
 
     Parameters
     ----------
-    geometries : array_like
+    geometries : GeometryArrayLike
         An array of geometries
     indices : array_like, optional
         Indices into the target array where input geometries belong. If
@@ -452,6 +543,7 @@ def geometrycollections(geometries, indices=None, out=None, **kwargs):
         sizes. Indices should be in increasing order. Missing indices result
         in a ValueError unless ``out`` is  provided, in which case the original
         value in ``out`` is kept.
+        If None, a single GeometryCollection is returned
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
@@ -470,7 +562,7 @@ def geometrycollections(geometries, indices=None, out=None, **kwargs):
         return collections_1d(geometries, indices, typ, out=out)
 
 
-def prepare(geometry, **kwargs):
+def prepare(geometry: MaybeGeometryArrayNLike, **kwargs):
     """Prepare a geometry, improving performance of other operations.
 
     A prepared geometry is a normal geometry with added information such as an
@@ -488,7 +580,7 @@ def prepare(geometry, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry : MaybeGeometryArrayNLike
         Geometries are changed in place
     **kwargs
         For other keyword-only arguments, see the
@@ -510,7 +602,7 @@ def prepare(geometry, **kwargs):
     lib.prepare(geometry, **kwargs)
 
 
-def destroy_prepared(geometry, **kwargs):
+def destroy_prepared(geometry: MaybeGeometryArrayNLike, **kwargs):
     """Destroy the prepared part of a geometry, freeing up memory.
 
     Note that the prepared geometry will always be cleaned up if the geometry itself
@@ -519,7 +611,7 @@ def destroy_prepared(geometry, **kwargs):
 
     Parameters
     ----------
-    geometry : Geometry or array_like
+    geometry: MaybeGeometryArrayNLike
         Geometries are changed inplace
     **kwargs
         For other keyword-only arguments, see the
@@ -532,7 +624,11 @@ def destroy_prepared(geometry, **kwargs):
     lib.destroy_prepared(geometry, **kwargs)
 
 
-def empty(shape, geom_type=None, order="C"):
+def empty(
+    shape: Union[int, Tuple[int, int]],
+    geom_type: Optional[GeometryType] = None,
+    order="C",
+):
     """Create a geometry array prefilled with None or with empty geometries.
 
     Parameters

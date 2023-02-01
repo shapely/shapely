@@ -1,9 +1,14 @@
+from typing import Callable, TYPE_CHECKING
+
 import numpy as np
 
 import shapely
 
+if TYPE_CHECKING:
+    from shapely import LinearRing
 
-def signed_area(ring):
+
+def signed_area(ring: "LinearRing") -> float:
     """Return the signed area enclosed by a ring in linear time using the
     algorithm at: https://web.archive.org/web/20080209143651/http://cgafaq.info:80/wiki/Polygon_Area
     """
@@ -12,7 +17,7 @@ def signed_area(ring):
     return np.sum(xs[1:-1] * (ys[2:] - ys[:-2])) / 2.0
 
 
-def is_ccw_impl(name=None):
+def is_ccw_impl(name=None) -> Callable:
     """Predicate implementation"""
 
     def is_ccw_op(ring):

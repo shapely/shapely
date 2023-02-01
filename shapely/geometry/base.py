@@ -6,15 +6,29 @@ operations are performed in the x-y plane. Thus, geometries with
 different z values may intersect or be equal.
 """
 import re
+from typing import Optional, Tuple, TYPE_CHECKING, Union
 from warnings import warn
 
 import numpy as np
 
 import shapely
+from shapely import Geometry
 from shapely._geometry_helpers import _geom_factory
+from shapely._typing import (
+    MaybeArray,
+    MaybeArrayN,
+    MaybeArrayNLike,
+    MaybeGeometryArrayN,
+    MaybeGeometryArrayNLike,
+    NumpyArray,
+    T,
+)
 from shapely.constructive import BufferCapStyle, BufferJoinStyle
 from shapely.coords import CoordinateSequence
 from shapely.errors import GeometryTypeError, GEOSException, ShapelyDeprecationWarning
+
+if TYPE_CHECKING:
+    from shapely import Point
 
 GEOMETRY_TYPES = [
     "Point",
@@ -33,7 +47,7 @@ def geom_factory(g, parent=None):
     Creates a Shapely geometry instance from a pointer to a GEOS geometry.
 
     .. warning::
-        The GEOS library used to create the the GEOS geometry pointer
+        The GEOS library used to create the GEOS geometry pointer
         and the GEOS library used by Shapely must be exactly the same, or
         unexpected results or segfaults may occur.
 
@@ -49,7 +63,7 @@ def geom_factory(g, parent=None):
     return _geom_factory(g)
 
 
-def dump_coords(geom):
+def dump_coords(geom: "BaseGeometry"):
     """Dump coordinates of a geometry in the same order as data packing"""
     if not isinstance(geom, BaseGeometry):
         raise ValueError(
@@ -66,7 +80,7 @@ def dump_coords(geom):
         raise GeometryTypeError("Unhandled geometry type: " + repr(geom.geom_type))
 
 
-def _maybe_unpack(result):
+def _maybe_unpack(result: NumpyArray[T]) -> MaybeArray[T]:
     if result.ndim == 0:
         # convert numpy 0-d array / scalar to python scalar
         return result.item()
@@ -87,7 +101,7 @@ class JOIN_STYLE:
     bevel = BufferJoinStyle.bevel
 
 
-class BaseGeometry(shapely.Geometry):
+class BaseGeometry(Geometry):
     """
     Provides GEOS spatial predicates and topological operations.
 
@@ -95,7 +109,7 @@ class BaseGeometry(shapely.Geometry):
 
     __slots__ = []
 
-    def __new__(self):
+    def __new__(cls):
         warn(
             "Directly calling the base class 'BaseGeometry()' is deprecated, and "
             "will raise an error in the future. To create an empty geometry, "
@@ -106,16 +120,16 @@ class BaseGeometry(shapely.Geometry):
         return shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")
 
     @property
-    def _ndim(self):
+    def _ndim(self) -> int:
         return shapely.get_coordinate_dimension(self)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return self.is_empty is False
 
-    def __nonzero__(self):
+    def __nonzero__(self) -> bool:
         return self.__bool__()
 
-    def __format__(self, format_spec):
+    def __format__(self, format_spec: str) -> str:
         """Format a geometry using a format specification."""
         # bypass regexp for simple cases
         if format_spec == "":
@@ -160,7 +174,7 @@ class BaseGeometry(shapely.Geometry):
         else:
             return res
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         try:
             wkt = super().__str__()
         except (GEOSException, ValueError):
@@ -176,7 +190,7 @@ class BaseGeometry(shapely.Geometry):
 
         return f"<{wkt}>"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.wkt
 
     def __reduce__(self):
@@ -185,16 +199,16 @@ class BaseGeometry(shapely.Geometry):
     # Operators
     # ---------
 
-    def __and__(self, other):
+    def __and__(self, other: "BaseGeometry") -> "BaseGeometry":
         return self.intersection(other)
 
-    def __or__(self, other):
+    def __or__(self, other: "BaseGeometry") -> "BaseGeometry":
         return self.union(other)
 
-    def __sub__(self, other):
+    def __sub__(self, other: "BaseGeometry") -> "BaseGeometry":
         return self.difference(other)
 
-    def __xor__(self, other):
+    def __xor__(self, other: "BaseGeometry") -> "BaseGeometry":
         return self.symmetric_difference(other)
 
     # Coordinate access
@@ -308,202 +322,116 @@ class BaseGeometry(shapely.Geometry):
     # ----------------------------------
 
     @property
-    def area(self):
-        """Unitless area of the geometry (float)"""
+    def area(self) -> float:
+        """Unitless area of the geometry"""
         return float(shapely.area(self))
 
-    def distance(self, other):
-        """Unitless distance to other geometry (float)"""
+    def distance(self, other: MaybeGeometryArrayNLike) -> MaybeArrayN[float]:
+        """Unitless Cartesian distance to other geometry"""
         return _maybe_unpack(shapely.distance(self, other))
 
-    def hausdorff_distance(self, other):
-        """Unitless hausdorff distance to other geometry (float)"""
+    def hausdorff_distance(self, other: MaybeGeometryArrayNLike) -> MaybeArrayN[float]:
+        """Unitless hausdorff distance to other geometry"""
         return _maybe_unpack(shapely.hausdorff_distance(self, other))
 
     @property
-    def length(self):
-        """Unitless length of the geometry (float)"""
+    def length(self) -> float:
+        """Unitless length of the geometry"""
         return float(shapely.length(self))
 
     @property
-    def minimum_clearance(self):
-        """Unitless distance by which a node could be moved to produce an invalid geometry (float)"""
+    def minimum_clearance(self) -> float:
+        """Unitless distance by which a node could be moved to produce an invalid geometry"""
         return float(shapely.minimum_clearance(self))
 
     # Topological properties
     # ----------------------
 
     @property
-    def boundary(self):
-        """Returns a lower dimension geometry that bounds the object
+    def boundary(self) -> "BaseGeometry":
+        """Returns the topological boundary of a geometry
+        (lower dimension geometry that bounds the object).
 
-        The boundary of a polygon is a line, the boundary of a line is a
-        collection of points. The boundary of a point is an empty (null)
-        collection.
-        """
+        Refer to `shapely.boundary` for full documentation."""
         return shapely.boundary(self)
 
     @property
-    def bounds(self):
+    def bounds(self) -> Tuple[float, float, float, float]:
         """Returns minimum bounding region (minx, miny, maxx, maxy)"""
         return tuple(shapely.bounds(self).tolist())
 
     @property
     def centroid(self):
-        """Returns the geometric center of the object"""
+        """Computes the geometric center (center-of-mass) of a geometry.
+
+        Refer to `shapely.centroid` for full documentation."""
         return shapely.centroid(self)
 
     def point_on_surface(self):
-        """Returns a point guaranteed to be within the object, cheaply.
+        """Returns a point that intersects (guaranteed to be within) an input geometry, cheaply.
 
         Alias of `representative_point`.
-        """
+        Refer to `shapely.point_on_surface` for full documentation."""
         return shapely.point_on_surface(self)
 
     def representative_point(self):
-        """Returns a point guaranteed to be within the object, cheaply.
+        """Returns a point that intersects (guaranteed to be within) an input geometry, cheaply.
 
         Alias of `point_on_surface`.
-        """
+        Refer to `shapely.point_on_surface` for full documentation."""
         return shapely.point_on_surface(self)
 
     @property
     def convex_hull(self):
-        """Imagine an elastic band stretched around the geometry: that's a
-        convex hull, more or less
+        """Computes the minimum convex geometry that encloses an input geometry.
+        Imagine an elastic band stretched around the geometry:
+        that's a convex hull, more or less.
 
-        The convex hull of a three member multipoint, for example, is a
-        triangular polygon.
-        """
+        Refer to `shapely.convex_hull` for full documentation."""
         return shapely.convex_hull(self)
 
     @property
     def envelope(self):
-        """A figure that envelopes the geometry"""
+        """Computes the minimum bounding box that encloses an input geometry.
+
+        Refer to `shapely.envelope` for full documentation."""
         return shapely.envelope(self)
 
     @property
     def oriented_envelope(self):
-        """
-        Returns the oriented envelope (minimum rotated rectangle) that
-        encloses the geometry.
-
-        Unlike envelope this rectangle is not constrained to be parallel to the
-        coordinate axes. If the convex hull of the object is a degenerate (line
-        or point) this degenerate is returned.
+        """Computes the oriented envelope (minimum rotated rectangle)
+        that encloses an input geometry.
 
         Alias of `minimum_rotated_rectangle`.
-        """
+        Refer to `shapely.oriented_envelope` for full documentation."""
         return shapely.oriented_envelope(self)
 
     @property
     def minimum_rotated_rectangle(self):
-        """
-        Returns the oriented envelope (minimum rotated rectangle) that
-        encloses the geometry.
-
-        Unlike `envelope` this rectangle is not constrained to be parallel to the
-        coordinate axes. If the convex hull of the object is a degenerate (line
-        or point) this degenerate is returned.
+        """Computes the oriented envelope (minimum rotated rectangle)
+        that encloses an input geometry.
 
         Alias of `oriented_envelope`.
-        """
+        Refer to `shapely.oriented_envelope` for full documentation."""
         return shapely.oriented_envelope(self)
 
     def buffer(
         self,
-        distance,
-        quad_segs=16,
-        cap_style="round",
-        join_style="round",
-        mitre_limit=5.0,
-        single_sided=False,
+        distance: float,
+        quad_segs: int = 16,
+        cap_style: Union[BufferCapStyle, str] = "round",
+        join_style: Union[BufferJoinStyle, str] = "round",
+        mitre_limit: float = 5.0,
+        single_sided: bool = False,
         **kwargs,
     ):
-        """Get a geometry that represents all points within a distance
-        of this geometry.
+        """Computes the buffer of a geometry for positive and negative buffer distance,
+        A geometry that represents all points within a distance of this geometry.
 
-        A positive distance produces a dilation, a negative distance an
-        erosion. A very small or zero distance may sometimes be used to
-        "tidy" a polygon.
-
-        Parameters
-        ----------
-        distance : float
-            The distance to buffer around the object.
-        resolution : int, optional
-            The resolution of the buffer around each vertex of the
-            object.
-        quad_segs : int, optional
-            Sets the number of line segments used to approximate an
-            angle fillet.
-        cap_style : shapely.BufferCapStyle or {'round', 'square', 'flat'}, default 'round'
-            Specifies the shape of buffered line endings. BufferCapStyle.round ('round')
-            results in circular line endings (see ``quad_segs``). Both BufferCapStyle.square
-            ('square') and BufferCapStyle.flat ('flat') result in rectangular line endings,
-            only BufferCapStyle.flat ('flat') will end at the original vertex,
-            while BufferCapStyle.square ('square') involves adding the buffer width.
-        join_style : shapely.BufferJoinStyle or {'round', 'mitre', 'bevel'}, default 'round'
-            Specifies the shape of buffered line midpoints. BufferJoinStyle.ROUND ('round')
-            results in rounded shapes. BufferJoinStyle.bevel ('bevel') results in a beveled
-            edge that touches the original vertex. BufferJoinStyle.mitre ('mitre') results
-            in a single vertex that is beveled depending on the ``mitre_limit`` parameter.
-        mitre_limit : float, optional
-            The mitre limit ratio is used for very sharp corners. The
-            mitre ratio is the ratio of the distance from the corner to
-            the end of the mitred offset corner. When two line segments
-            meet at a sharp angle, a miter join will extend the original
-            geometry. To prevent unreasonable geometry, the mitre limit
-            allows controlling the maximum length of the join corner.
-            Corners with a ratio which exceed the limit will be beveled.
-        single_side : bool, optional
-            The side used is determined by the sign of the buffer
-            distance:
-
-                a positive distance indicates the left-hand side
-                a negative distance indicates the right-hand side
-
-            The single-sided buffer of point geometries is the same as
-            the regular buffer.  The End Cap Style for single-sided
-            buffers is always ignored, and forced to the equivalent of
-            CAP_FLAT.
-        quadsegs : int, optional
-            Deprecated alias for `quad_segs`.
-
-        Returns
-        -------
-        Geometry
-
-        Notes
-        -----
-        The return value is a strictly two-dimensional geometry. All
-        Z coordinates of the original geometry will be ignored.
-
-        Examples
-        --------
-        >>> from shapely.wkt import loads
-        >>> g = loads('POINT (0.0 0.0)')
-
-        16-gon approx of a unit radius circle:
-
-        >>> g.buffer(1.0).area  # doctest: +ELLIPSIS
-        3.1365484905459...
-
-        128-gon approximation:
-
-        >>> g.buffer(1.0, 128).area  # doctest: +ELLIPSIS
-        3.141513801144...
-
-        triangle approximation:
-
-        >>> g.buffer(1.0, 3).area
-        3.0
-        >>> list(g.buffer(1.0, cap_style=BufferCapStyle.square).exterior.coords)
-        [(1.0, 1.0), (1.0, -1.0), (-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0)]
-        >>> g.buffer(1.0, cap_style=BufferCapStyle.square).area
-        4.0
-
-        """
+        This function calls `shapely.buffer()` but also accepts the following aliases
+        for `quad_segs` parameter:
+        `quadsegs` (deprecated) and `resolution` (will be deprecated in Shapely 2.1)
+        Refer to `shapely.buffer` for full documentation."""
         quadsegs = kwargs.pop("quadsegs", None)
         if quadsegs is not None:
             warn(
@@ -536,88 +464,74 @@ class BaseGeometry(shapely.Geometry):
         )
 
     def simplify(self, tolerance, preserve_topology=True):
-        """Returns a simplified geometry produced by the Douglas-Peucker
-        algorithm
+        """Returns a simplified version of an input geometry using the
+        Douglas-Peucker algorithm.
 
-        Coordinates of the simplified geometry will be no more than the
-        tolerance distance from the original. Unless the topology preserving
-        option is used, the algorithm may produce self-intersecting or
-        otherwise invalid geometries.
-        """
+        Refer to `shapely.simplify` for full documentation."""
         return shapely.simplify(self, tolerance, preserve_topology=preserve_topology)
 
     def normalize(self):
         """Converts geometry to normal form (or canonical form).
 
-        This method orders the coordinates, rings of a polygon and parts of
-        multi geometries consistently. Typically useful for testing purposes
-        (for example in combination with `equals_exact`).
-
-        Examples
-        --------
-        >>> from shapely import MultiLineString
-        >>> line = MultiLineString([[(0, 0), (1, 1)], [(3, 3), (2, 2)]])
-        >>> line.normalize()
-        <MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))>
-        """
+        Refer to `shapely.normalize` for full documentation."""
         return shapely.normalize(self)
 
     # Overlay operations
     # ---------------------------
 
-    def difference(self, other, grid_size=None):
-        """
-        Returns the difference of the geometries.
+    def difference(
+        self, other: MaybeGeometryArrayNLike, grid_size: Optional[float] = None
+    ) -> MaybeGeometryArrayN:
+        """Returns the difference of the geometries.
 
-        Refer to `shapely.difference` for full documentation.
-        """
+        Refer to `shapely.difference` for full documentation."""
         return shapely.difference(self, other, grid_size=grid_size)
 
-    def intersection(self, other, grid_size=None):
-        """
-        Returns the intersection of the geometries.
+    def intersection(
+        self, other: MaybeGeometryArrayNLike, grid_size: Optional[float] = None
+    ) -> MaybeGeometryArrayN:
+        """Returns the intersection of the geometries.
 
-        Refer to `shapely.intersection` for full documentation.
-        """
+        Refer to `shapely.intersection` for full documentation."""
         return shapely.intersection(self, other, grid_size=grid_size)
 
-    def symmetric_difference(self, other, grid_size=None):
-        """
-        Returns the symmetric difference of the geometries.
+    def symmetric_difference(
+        self, other: MaybeGeometryArrayNLike, grid_size: Optional[float] = None
+    ) -> MaybeGeometryArrayN:
+        """Returns the symmetric difference of the geometries.
 
-        Refer to `shapely.symmetric_difference` for full documentation.
-        """
+        Refer to `shapely.symmetric_difference` for full documentation."""
         return shapely.symmetric_difference(self, other, grid_size=grid_size)
 
-    def union(self, other, grid_size=None):
-        """
-        Returns the union of the geometries.
+    def union(
+        self, other: MaybeGeometryArrayNLike, grid_size: Optional[float] = None
+    ) -> MaybeGeometryArrayN:
+        """Returns the union of the geometries.
 
-        Refer to `shapely.union` for full documentation.
-        """
+        Refer to `shapely.union` for full documentation."""
         return shapely.union(self, other, grid_size=grid_size)
 
     # Unary predicates
     # ----------------
 
     @property
-    def has_z(self):
+    def has_z(self) -> bool:
         """True if the geometry's coordinate sequence(s) have z values (are
         3-dimensional)"""
         return bool(shapely.has_z(self))
 
     @property
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """True if the set of points in this geometry is empty, else False"""
         return bool(shapely.is_empty(self))
 
     @property
-    def is_ring(self):
+    def is_ring(self) -> bool:
         """True if the geometry is a closed ring, else False"""
         return bool(shapely.is_ring(self))
 
     @property
-    def is_closed(self):
+    def is_closed(self) -> bool:
         """True if the geometry is closed, else False
 
         Applicable only to 1-D geometries."""
@@ -626,13 +540,13 @@ class BaseGeometry(shapely.Geometry):
         return bool(shapely.is_closed(self))
 
     @property
-    def is_simple(self):
+    def is_simple(self) -> bool:
         """True if the geometry is simple, meaning that any self-intersections
         are only at boundary points, else False"""
         return bool(shapely.is_simple(self))
 
     @property
-    def is_valid(self):
+    def is_valid(self) -> bool:
         """True if the geometry is valid (definition depends on sub-class),
         else False"""
         return bool(shapely.is_valid(self))
@@ -640,123 +554,88 @@ class BaseGeometry(shapely.Geometry):
     # Binary predicates
     # -----------------
 
-    def relate(self, other):
+    def relate(self, other: MaybeGeometryArrayN) -> MaybeArrayN[str]:
         """Returns the DE-9IM intersection matrix for the two geometries
         (string)"""
         return shapely.relate(self, other)
 
-    def covers(self, other):
+    def covers(self, other: MaybeGeometryArrayN) -> MaybeArrayN[bool]:
         """Returns True if the geometry covers the other, else False"""
         return _maybe_unpack(shapely.covers(self, other))
 
-    def covered_by(self, other):
+    def covered_by(self, other: MaybeGeometryArrayN) -> MaybeArrayN[bool]:
         """Returns True if the geometry is covered by the other, else False"""
         return _maybe_unpack(shapely.covered_by(self, other))
 
-    def contains(self, other):
+    def contains(self, other: MaybeGeometryArrayN) -> MaybeArrayN[bool]:
         """Returns True if the geometry contains the other, else False"""
         return _maybe_unpack(shapely.contains(self, other))
 
-    def contains_properly(self, other):
-        """
-        Returns True if the geometry completely contains the other, with no
+    def contains_properly(self, other: MaybeGeometryArrayN) -> MaybeArrayN[bool]:
+        """Returns True if the geometry completely contains the other, with no
         common boundary points, else False
 
-        Refer to `shapely.contains_properly` for full documentation.
-        """
+        Refer to `shapely.contains_properly` for full documentation."""
         return _maybe_unpack(shapely.contains_properly(self, other))
 
-    def crosses(self, other):
+    def crosses(self, other: MaybeGeometryArrayN) -> MaybeArrayN[bool]:
         """Returns True if the geometries cross, else False"""
         return _maybe_unpack(shapely.crosses(self, other))
 
-    def disjoint(self, other):
+    def disjoint(self, other: MaybeGeometryArrayN) -> MaybeArrayN[bool]:
         """Returns True if geometries are disjoint, else False"""
         return _maybe_unpack(shapely.disjoint(self, other))
 
-    def equals(self, other):
-        """Returns True if geometries are equal, else False.
+    def equals(self, other: MaybeGeometryArrayN) -> MaybeArrayN[bool]:
+        """Returns True if geometries are spatially equal.
 
-        This method considers point-set equality (or topological
-        equality), and is equivalent to (self.within(other) &
-        self.contains(other)).
-
-        Examples
-        --------
-        >>> LineString(
-        ...     [(0, 0), (2, 2)]
-        ... ).equals(
-        ...     LineString([(0, 0), (1, 1), (2, 2)])
-        ... )
-        True
-
-        Returns
-        -------
-        bool
-
-        """
+        Refer to `shapely.equals` for full documentation."""
         return _maybe_unpack(shapely.equals(self, other))
 
-    def intersects(self, other):
-        """Returns True if geometries intersect, else False"""
+    def intersects(self, other: MaybeGeometryArrayN) -> MaybeArrayN[bool]:
+        """Returns True if geometries share any portion of space.
+
+        Refer to `shapely.intersects` for full documentation."""
         return _maybe_unpack(shapely.intersects(self, other))
 
-    def overlaps(self, other):
-        """Returns True if geometries overlap, else False"""
+    def overlaps(self, other: MaybeGeometryArrayN) -> MaybeArrayN[bool]:
+        """Returns True if geometries spatially overlap
+
+        Refer to `shapely.overlaps` for full documentation."""
         return _maybe_unpack(shapely.overlaps(self, other))
 
-    def touches(self, other):
-        """Returns True if geometries touch, else False"""
+    def touches(self, other: MaybeGeometryArrayN) -> MaybeArrayN[bool]:
+        """Returns True if the only points shared between the geometries
+        are on ir boundary.
+
+        Refer to `shapely.touches` for full documentation."""
         return _maybe_unpack(shapely.touches(self, other))
 
-    def within(self, other):
-        """Returns True if geometry is within the other, else False"""
+    def within(self, other: MaybeGeometryArrayN) -> MaybeArrayN[bool]:
+        """Returns True if geometry is completely inside the other
+
+        Refer to `shapely.within` for full documentation."""
         return _maybe_unpack(shapely.within(self, other))
 
-    def dwithin(self, other, distance):
-        """
-        Returns True if geometry is within a given distance from the other, else False.
+    def dwithin(self, other: MaybeGeometryArrayN, distance: float) -> MaybeArrayN[bool]:
+        """Returns True if geometry is within a given distance from the other.
 
-        Refer to `shapely.dwithin` for full documentation.
-        """
+        Refer to `shapely.dwithin` for full documentation."""
         return _maybe_unpack(shapely.dwithin(self, other, distance))
 
-    def equals_exact(self, other, tolerance):
-        """True if geometries are equal to within a specified
-        tolerance.
+    def equals_exact(
+        self,
+        other: MaybeGeometryArrayN,
+        tolerance: float,
+    ) -> MaybeArrayN[bool]:
+        """Returns True if A and B are structurally equal, within a specified tolerance.
 
-        Parameters
-        ----------
-        other : BaseGeometry
-            The other geometry object in this comparison.
-        tolerance : float
-            Absolute tolerance in the same units as coordinates.
-
-        This method considers coordinate equality, which requires
-        coordinates to be equal and in the same order for all components
-        of a geometry.
-
-        Because of this it is possible for "equals()" to be True for two
-        geometries and "equals_exact()" to be False.
-
-        Examples
-        --------
-        >>> LineString(
-        ...     [(0, 0), (2, 2)]
-        ... ).equals_exact(
-        ...     LineString([(0, 0), (1, 1), (2, 2)]),
-        ...     1e-6
-        ... )
-        False
-
-        Returns
-        -------
-        bool
-
-        """
+        Refer to `shapely.equals_exact` for full documentation."""
         return _maybe_unpack(shapely.equals_exact(self, other, tolerance))
 
-    def almost_equals(self, other, decimal=6):
+    def almost_equals(
+        self, other: MaybeGeometryArrayN, decimal: int = 6
+    ) -> MaybeArrayN[bool]:
         """True if geometries are equal at all coordinates to a
         specified decimal place.
 
@@ -796,108 +675,71 @@ class BaseGeometry(shapely.Geometry):
         )
         return self.equals_exact(other, 0.5 * 10 ** (-decimal))
 
-    def relate_pattern(self, other, pattern):
-        """Returns True if the DE-9IM string code for the relationship between
-        the geometries satisfies the pattern, else False"""
+    def relate_pattern(
+        self, other: MaybeGeometryArrayN, pattern: str
+    ) -> MaybeArrayN[str]:
+        """
+        Returns True if the DE-9IM string code for the relationship between
+        the geometries satisfies the pattern, else False
+
+        Refer to `shapely.relate_pattern` for full documentation."""
         return _maybe_unpack(shapely.relate_pattern(self, other, pattern))
 
     # Linear referencing
     # ------------------
 
-    def line_locate_point(self, other, normalized=False):
-        """Returns the distance along this geometry to a point nearest the
-        specified point
-
-        If the normalized arg is True, return the distance normalized to the
-        length of the linear geometry.
+    def line_locate_point(
+        self, other: MaybeGeometryArrayN, normalized: bool = False
+    ) -> MaybeArrayN[float]:
+        """Returns the distance to the line origin of given point.
+        (distance along this geometry to a point nearest the given point)
 
         Alias of `project`.
-        """
+        Refer to `shapely.line_locate_point` for full documentation."""
         return shapely.line_locate_point(self, other, normalized=normalized)
 
-    def project(self, other, normalized=False):
-        """Returns the distance along this geometry to a point nearest the
-        specified point
-
-        If the normalized arg is True, return the distance normalized to the
-        length of the linear geometry.
+    def project(
+        self, other: MaybeGeometryArrayN, normalized: bool = False
+    ) -> MaybeArrayN[float]:
+        """Returns the distance to the line origin of given point.
+        (distance along this geometry to a point nearest the given point)
 
         Alias of `line_locate_point`.
-        """
+        Refer to `shapely.line_locate_point` for full documentation."""
         return shapely.line_locate_point(self, other, normalized=normalized)
 
-    def line_interpolate_point(self, distance, normalized=False):
-        """Return a point at the specified distance along a linear geometry
-
-        Negative length values are taken as measured in the reverse
-        direction from the end of the geometry. Out-of-range index
-        values are handled by clamping them to the valid range of values.
-        If the normalized arg is True, the distance will be interpreted as a
-        fraction of the geometry's length.
+    def line_interpolate_point(
+        self, distance: MaybeArrayNLike[float], normalized: bool = False
+    ) -> MaybeArrayN["Point"]:
+        """Returns a point interpolated at given distance on a line.
+        (a point at the specified distance along a linear geometry)
 
         Alias of `interpolate`.
-        """
+        Refer to `shapely.line_interpolate_point` for full documentation."""
         return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
-    def interpolate(self, distance, normalized=False):
-        """Return a point at the specified distance along a linear geometry
-
-        Negative length values are taken as measured in the reverse
-        direction from the end of the geometry. Out-of-range index
-        values are handled by clamping them to the valid range of values.
-        If the normalized arg is True, the distance will be interpreted as a
-        fraction of the geometry's length.
+    def interpolate(
+        self, distance: MaybeArrayNLike[float], normalized: bool = False
+    ) -> MaybeArrayN["Point"]:
+        """Returns a point interpolated at given distance on a line.
+        (a point at the specified distance along a linear geometry)
 
         Alias of `line_interpolate_point`.
-        """
+        Refer to `shapely.line_interpolate_point` for full documentation."""
         return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
-    def segmentize(self, max_segment_length):
+    def segmentize(
+        self, max_segment_length: MaybeArrayNLike[float]
+    ) -> MaybeGeometryArrayN:
         """Adds vertices to line segments based on maximum segment length.
 
-        Additional vertices will be added to every line segment in an input geometry
-        so that segments are no longer than the provided maximum segment length. New
-        vertices will evenly subdivide each segment.
-
-        Only linear components of input geometries are densified; other geometries
-        are returned unmodified.
-
-        Parameters
-        ----------
-        max_segment_length : float or array_like
-            Additional vertices will be added so that all line segments are no
-            longer this value.  Must be greater than 0.
-
-        Examples
-        --------
-        >>> from shapely import LineString, Polygon
-        >>> LineString([(0, 0), (0, 10)]).segmentize(max_segment_length=5)
-        <LINESTRING (0 0, 0 5, 0 10)>
-        >>> Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]).segmentize(max_segment_length=5)
-        <POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
-        """
+        Refer to `shapely.segmentize` for full documentation."""
         return shapely.segmentize(self, max_segment_length)
 
-    def reverse(self):
+    def reverse(self) -> "BaseGeometry":
         """Returns a copy of this geometry with the order of coordinates reversed.
 
-        If the geometry is a polygon with interior rings, the interior rings are also
-        reversed.
-
-        Points are unchanged.
-
-        See also
-        --------
-        is_ccw : Checks if a geometry is clockwise.
-
-        Examples
-        --------
-        >>> from shapely import LineString, Polygon
-        >>> LineString([(0, 0), (1, 2)]).reverse()
-        <LINESTRING (1 2, 0 0)>
-        >>> Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]).reverse()
-        <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
-        """
+        Refer to `shapely.reverse` for full documentation."""
         return shapely.reverse(self)
 
 
@@ -913,13 +755,13 @@ class BaseMultipartGeometry(BaseGeometry):
         )
 
     @property
-    def geoms(self):
+    def geoms(self) -> "GeometrySequence":
         return GeometrySequence(self)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return self.is_empty is False
 
-    def svg(self, scale_factor=1.0, color=None):
+    def svg(self, scale_factor: float = 1.0, color: Optional[str] = None) -> str:
         """Returns a group of SVG elements for the multipart geometry.
 
         Parameters
@@ -958,7 +800,7 @@ class GeometrySequence:
         for i in range(self.__len__()):
             yield self._get_geom_item(i)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return shapely.get_num_geometries(self._parent)
 
     def __getitem__(self, key):
@@ -982,7 +824,7 @@ class GeometrySequence:
 
 
 class EmptyGeometry(BaseGeometry):
-    def __new__(self):
+    def __new__(cls):
         """Create an empty geometry."""
         warn(
             "The 'EmptyGeometry()' constructor to create an empty geometry is "

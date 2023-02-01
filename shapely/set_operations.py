@@ -1,3 +1,5 @@
+from typing import Optional, TYPE_CHECKING
+
 import numpy as np
 
 from . import GeometryType, lib
@@ -17,9 +19,23 @@ __all__ = [
     "coverage_union_all",
 ]
 
+from shapely._typing import (
+    GeometryArrayNLike,
+    MaybeGeometryArrayN,
+    MaybeGeometryArrayNLike,
+)
+
+if TYPE_CHECKING:
+    from shapely.geometry.base import BaseGeometry
+
 
 @multithreading_enabled
-def difference(a, b, grid_size=None, **kwargs):
+def difference(
+    a: MaybeGeometryArrayNLike,
+    b: MaybeGeometryArrayNLike,
+    grid_size: Optional[float] = None,
+    **kwargs
+) -> MaybeGeometryArrayN:
     """Returns the part of geometry A that does not intersect with geometry B.
 
     If grid_size is nonzero, input coordinates will be snapped to a precision
@@ -31,8 +47,7 @@ def difference(a, b, grid_size=None, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-    b : Geometry or array_like
+    a, b : MaybeGeometryArrayNLike
     grid_size : float, optional
         Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
         precision of the inputs by default.
@@ -78,7 +93,12 @@ def difference(a, b, grid_size=None, **kwargs):
 
 
 @multithreading_enabled
-def intersection(a, b, grid_size=None, **kwargs):
+def intersection(
+    a: MaybeGeometryArrayNLike,
+    b: MaybeGeometryArrayNLike,
+    grid_size: Optional[float] = None,
+    **kwargs
+) -> MaybeGeometryArrayN:
     """Returns the geometry that is shared between input geometries.
 
     If grid_size is nonzero, input coordinates will be snapped to a precision
@@ -90,8 +110,7 @@ def intersection(a, b, grid_size=None, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-    b : Geometry or array_like
+    a, b : MaybeGeometryArrayNLike
     grid_size : float, optional
         Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
         precision of the inputs by default.
@@ -134,7 +153,9 @@ def intersection(a, b, grid_size=None, **kwargs):
 
 
 @multithreading_enabled
-def intersection_all(geometries, axis=None, **kwargs):
+def intersection_all(
+    geometries: GeometryArrayNLike, axis: Optional[int] = None, **kwargs
+) -> "BaseGeometry":
     """Returns the intersection of multiple geometries.
 
     This function ignores None values when other Geometry elements are present.
@@ -143,7 +164,7 @@ def intersection_all(geometries, axis=None, **kwargs):
 
     Parameters
     ----------
-    geometries : array_like
+    geometries : GeometryArrayLike
     axis : int, optional
         Axis along which the operation is performed. The default (None)
         performs the operation over all axes, returning a scalar value.
@@ -179,7 +200,12 @@ def intersection_all(geometries, axis=None, **kwargs):
 
 
 @multithreading_enabled
-def symmetric_difference(a, b, grid_size=None, **kwargs):
+def symmetric_difference(
+    a: MaybeGeometryArrayNLike,
+    b: MaybeGeometryArrayNLike,
+    grid_size: Optional[float] = None,
+    **kwargs
+) -> MaybeGeometryArrayN:
     """Returns the geometry that represents the portions of input geometries
     that do not intersect.
 
@@ -192,8 +218,7 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-    b : Geometry or array_like
+    a, MaybeGeometryArrayNLike : MaybeGeometryArrayNLike
     grid_size : float, optional
         Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
         precision of the inputs by default.
@@ -236,7 +261,9 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
 
 
 @multithreading_enabled
-def symmetric_difference_all(geometries, axis=None, **kwargs):
+def symmetric_difference_all(
+    geometries: GeometryArrayNLike, axis: Optional[int] = None, **kwargs
+) -> "BaseGeometry":
     """Returns the symmetric difference of multiple geometries.
 
     This function ignores None values when other Geometry elements are present.
@@ -245,7 +272,7 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
 
     Parameters
     ----------
-    geometries : array_like
+    geometries : GeometryArrayLike
     axis : int, optional
         Axis along which the operation is performed. The default (None)
         performs the operation over all axes, returning a scalar value.
@@ -283,7 +310,12 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
 
 
 @multithreading_enabled
-def union(a, b, grid_size=None, **kwargs):
+def union(
+    a: MaybeGeometryArrayNLike,
+    b: MaybeGeometryArrayNLike,
+    grid_size: Optional[float] = None,
+    **kwargs
+) -> MaybeGeometryArrayN:
     """Merges geometries into one.
 
     If grid_size is nonzero, input coordinates will be snapped to a precision
@@ -295,8 +327,7 @@ def union(a, b, grid_size=None, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-    b : Geometry or array_like
+    a, b : MaybeGeometryArrayNLike
     grid_size : float, optional
         Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
         precision of the inputs by default.
@@ -341,25 +372,33 @@ def union(a, b, grid_size=None, **kwargs):
 
 
 @multithreading_enabled
-def union_all(geometries, grid_size=None, axis=None, **kwargs):
+def union_all(
+    geometries: GeometryArrayNLike,
+    grid_size: Optional[float] = None,
+    axis: Optional[int] = None,
+    **kwargs
+) -> "BaseGeometry":
     """Returns the union of multiple geometries.
 
+    Usually used to convert a collection into the smallest set of polygons
+    that cover the same area.
+
     This function ignores None values when other Geometry elements are present.
-    If all elements of the given axis are None an empty GeometryCollection is
+    If all elements of the given axis are None an empty ``GeometryCollection`` is
     returned.
 
     If grid_size is nonzero, input coordinates will be snapped to a precision
     grid of that size and resulting coordinates will be snapped to that same
     grid.  If 0, this operation will use double precision coordinates.  If None,
     the highest precision of the inputs will be used, which may be previously
-    set using set_precision.  Note: returned geometry does not have precision
+    set using ``set_precision``.  Note: returned geometry does not have precision
     set unless specified previously by set_precision.
 
     `unary_union` is an alias of `union_all`.
 
     Parameters
     ----------
-    geometries : array_like
+    geometries : GeometryArrayLike
     grid_size : float, optional
         Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
         precision of the inputs by default.
@@ -431,14 +470,15 @@ unary_union = union_all
 
 @requires_geos("3.8.0")
 @multithreading_enabled
-def coverage_union(a, b, **kwargs):
+def coverage_union(
+    a: MaybeGeometryArrayNLike, b: MaybeGeometryArrayNLike, **kwargs
+) -> MaybeGeometryArrayN:
     """Merges multiple polygons into one. This is an optimized version of
     union which assumes the polygons to be non-overlapping.
 
     Parameters
     ----------
-    a : Geometry or array_like
-    b : Geometry or array_like
+    a, b : MaybeGeometryArrayNLike
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -463,7 +503,9 @@ def coverage_union(a, b, **kwargs):
 
 @requires_geos("3.8.0")
 @multithreading_enabled
-def coverage_union_all(geometries, axis=None, **kwargs):
+def coverage_union_all(
+    geometries: GeometryArrayNLike, axis: Optional[int] = None, **kwargs
+) -> "BaseGeometry":
     """Returns the union of multiple polygons of a geometry collection.
     This is an optimized version of union which assumes the polygons
     to be non-overlapping.
@@ -474,7 +516,7 @@ def coverage_union_all(geometries, axis=None, **kwargs):
 
     Parameters
     ----------
-    geometries : array_like
+    geometries : GeometryArrayLike
     axis : int, optional
         Axis along which the operation is performed. The default (None)
         performs the operation over all axes, returning a scalar value.
