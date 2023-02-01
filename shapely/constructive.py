@@ -914,7 +914,7 @@ def snap(geometry, reference, tolerance, **kwargs):
 
     Examples
     --------
-    >>> from shapely import snap, distance, LineString, Point, Polygon, MultiPolygon, MultiPoint, box
+    >>> from shapely import snap, distance, LineString, Point, Polygon, MultiPoint, box
 
     >>> point = Point(0.5, 2.5)
     >>> target_point = Point(0, 2)
