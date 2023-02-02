@@ -897,7 +897,7 @@ def snap(geometry, reference, tolerance, **kwargs):
     however, it does not guarantee that output geometries will be valid.  It is
     the responsibility of the caller to check for and handle invalid geometries.
 
-    Because too much snapping can result in invalid  being created,
+    Because too much snapping can result in invalid geometries being created,
     heuristics are used to determine the number and location of snapped
     vertices that are likely safe to snap. These heuristics may omit
     some potential snaps that are otherwise within the tolerance.
