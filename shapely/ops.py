@@ -317,11 +317,8 @@ def nearest_points(g1, g2):
 
 
 def snap(g1, g2, tolerance):
-    """Snap one geometry to another with a given tolerance
-
-    Vertices of the first geometry are snapped to vertices of the second
-    geometry. The resulting snapped geometry is returned. The input geometries
-    are not modified.
+    """
+    Snaps an input geometry (g1) to reference (g2) geometry's vertices.
 
     Parameters
     ----------
@@ -332,14 +329,9 @@ def snap(g1, g2, tolerance):
     tolerance : float
         The snapping tolerance
 
-    Example
-    -------
-    >>> square = Polygon([(1,1), (2, 1), (2, 2), (1, 2), (1, 1)])
-    >>> line = LineString([(0,0), (0.8, 0.8), (1.8, 0.95), (2.6, 0.5)])
-    >>> result = snap(line, square, 0.5)
-    >>> result.wkt
-    'LINESTRING (0 0, 1 1, 2 1, 2.6 0.5)'
+    Refer to :func:`shapely.snap` for full documentation.
     """
+
     return shapely.snap(g1, g2, tolerance)
 
 
