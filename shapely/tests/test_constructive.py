@@ -932,7 +932,7 @@ oriented_envelop_cases = [
 @pytest.mark.parametrize("geometry, expected", oriented_envelop_cases)
 @pytest.mark.parametrize("method", [None, "geos"])
 def test_oriented_envelope(geometry, expected, method):
-    actual = shapely.oriented_envelope(geometry, method).normalize()
+    actual = shapely.oriented_envelope(geometry, method)
     assert_geometries_equal(actual, expected, normalize=True)
 
 
