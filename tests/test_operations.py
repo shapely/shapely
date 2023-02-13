@@ -1,10 +1,11 @@
-from . import unittest
 import pytest
-from shapely.geometry import Point, LineString, Polygon, MultiPoint, GeometryCollection
-from shapely.wkt import loads
-from shapely.errors import TopologicalError
 
 import shapely
+from shapely.errors import TopologicalError
+from shapely.geometry import GeometryCollection, LineString, MultiPoint, Point, Polygon
+from shapely.wkt import loads
+
+from . import unittest
 
 
 class OperationsTestCase(unittest.TestCase):

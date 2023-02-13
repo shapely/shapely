@@ -1,14 +1,23 @@
 import pathlib
 import pickle
-from pickle import dumps, loads, HIGHEST_PROTOCOL
 import warnings
-
-import shapely
-from shapely.geometry import Point, LineString, LinearRing, Polygon, MultiLineString, MultiPoint, MultiPolygon, GeometryCollection, box
-from shapely import wkt
+from pickle import dumps, HIGHEST_PROTOCOL, loads
 
 import pytest
 
+import shapely
+from shapely import wkt
+from shapely.geometry import (
+    box,
+    GeometryCollection,
+    LinearRing,
+    LineString,
+    MultiLineString,
+    MultiPoint,
+    MultiPolygon,
+    Point,
+    Polygon,
+)
 
 HERE = pathlib.Path(__file__).parent
 
@@ -20,7 +29,9 @@ TEST_DATA = {
     "linearring": LinearRing([(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]),
     "polygon": Polygon([(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]),
     "multipoint": MultiPoint([(1.0, 2.0), (3.0, 4.0), (5.0, 6.0)]),
-    "multilinestring": MultiLineString([[(0.0, 0.0), (1.0, 1.0)], [(1.0, 2.0), (3.0, 3.0)]]),
+    "multilinestring": MultiLineString(
+        [[(0.0, 0.0), (1.0, 1.0)], [(1.0, 2.0), (3.0, 3.0)]]
+    ),
     "multipolygon": MultiPolygon([box(0, 0, 1, 1), box(2, 2, 3, 3)]),
     "geometrycollection": GeometryCollection([Point(1.0, 2.0), box(0, 0, 1, 1)]),
     "emptypoint": wkt.loads("POINT EMPTY"),
@@ -41,7 +52,9 @@ def test_pickle_round_trip(geom1):
     assert geom2.wkt == geom1.wkt
 
 
-@pytest.mark.parametrize("fname", (HERE / "data").glob("*.pickle"), ids=lambda fname: fname.name)
+@pytest.mark.parametrize(
+    "fname", (HERE / "data").glob("*.pickle"), ids=lambda fname: fname.name
+)
 def test_unpickle_pre_20(fname):
     from shapely.testing import assert_geometries_equal
 

@@ -1,8 +1,9 @@
-from . import unittest
-from shapely.geometry import Point, LineString, MultiLineString
+import pytest
 
 import shapely
-import pytest
+from shapely.geometry import LineString, MultiLineString, Point
+
+from . import unittest
 
 
 class LinearReferencingTestCase(unittest.TestCase):
@@ -24,7 +25,9 @@ class LinearReferencingTestCase(unittest.TestCase):
 
     def test_line2_project(self):
         assert self.line2.project(self.point) == 1.0
-        assert self.line2.project(self.point, normalized=True) == pytest.approx(0.16666666666, 8)
+        assert self.line2.project(self.point, normalized=True) == pytest.approx(
+            0.16666666666, 8
+        )
 
     def test_multiline_project(self):
         assert self.multiline.project(self.point) == 1.0
@@ -47,8 +50,12 @@ class LinearReferencingTestCase(unittest.TestCase):
     def test_alias_interpolate(self):
         assert self.line1.line_interpolate_point(0.5).equals(Point(0.5, 0.0))
         assert self.line1.line_interpolate_point(-0.5).equals(Point(1.5, 0.0))
-        assert self.line1.line_interpolate_point(0.5, normalized=True).equals(Point(1, 0))
-        assert self.line1.line_interpolate_point(-0.5, normalized=True).equals(Point(1, 0))
+        assert self.line1.line_interpolate_point(0.5, normalized=True).equals(
+            Point(1, 0)
+        )
+        assert self.line1.line_interpolate_point(-0.5, normalized=True).equals(
+            Point(1, 0)
+        )
 
     def test_line2_interpolate(self):
         assert self.line2.interpolate(0.5).equals(Point(3.0, 0.5))

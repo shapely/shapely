@@ -5,12 +5,12 @@ from functools import reduce
 
 import numpy as np
 
-from . import unittest
 from shapely import geometry
+
+from . import unittest
 
 
 class TransposeTestCase(unittest.TestCase):
-
     def test_multipoint(self):
         arr = np.array([[1.0, 1.0, 2.0, 2.0, 1.0], [3.0, 4.0, 4.0, 3.0, 3.0]])
         tarr = arr.T
@@ -22,10 +22,22 @@ class TransposeTestCase(unittest.TestCase):
         a = np.array([[1.0, 1.0, 2.0, 2.0, 1.0], [3.0, 4.0, 4.0, 3.0, 3.0]])
         t = a.T
         s = geometry.LineString(t)
-        assert list(s.coords) == [(1.0, 3.0), (1.0, 4.0), (2.0, 4.0), (2.0, 3.0), (1.0, 3.0)]
+        assert list(s.coords) == [
+            (1.0, 3.0),
+            (1.0, 4.0),
+            (2.0, 4.0),
+            (2.0, 3.0),
+            (1.0, 3.0),
+        ]
 
     def test_polygon(self):
         a = np.array([[1.0, 1.0, 2.0, 2.0, 1.0], [3.0, 4.0, 4.0, 3.0, 3.0]])
         t = a.T
         s = geometry.Polygon(t)
-        assert list(s.exterior.coords) == [(1.0, 3.0), (1.0, 4.0), (2.0, 4.0), (2.0, 3.0), (1.0, 3.0)]
+        assert list(s.exterior.coords) == [
+            (1.0, 3.0),
+            (1.0, 4.0),
+            (2.0, 4.0),
+            (2.0, 3.0),
+            (1.0, 3.0),
+        ]

@@ -1,9 +1,9 @@
-from . import unittest
 from shapely.geometry import LineString
+
+from . import unittest
 
 
 class ProductZTestCase(unittest.TestCase):
-
     def test_line_intersection(self):
         line1 = LineString([(0, 0, 0), (1, 1, 1)])
         line2 = LineString([(0, 1, 1), (1, 0, 0)])

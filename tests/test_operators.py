@@ -1,5 +1,6 @@
+from shapely.geometry import LineString, MultiPoint, Point, Polygon
+
 from . import unittest
-from shapely.geometry import Point, MultiPoint, Polygon, LineString
 
 
 class OperatorsTestCase(unittest.TestCase):

@@ -1,6 +1,7 @@
-from . import unittest
 from shapely.geometry import LineString, MultiLineString
 from shapely.ops import linemerge
+
+from . import unittest
 
 
 class LineMergeTestCase(unittest.TestCase):

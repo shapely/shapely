@@ -1,6 +1,41 @@
 Version 2.x
 ===========
 
+.. _version-2-0-1:
+
+Version 2.0.1 (2023-01-30)
+--------------------------
+
+Bug fixes:
+
+- Fix regression in the ``Polygon()`` constructor taking a sequence of Points (#1662).
+- Fix regression in the geometry constructors when passing ``decimal.Decimal``
+  coordinate values (#1707).
+- Fix ``STRtree()`` to not make the passed geometry array immutable as side-effect of
+  the constructor (#1714).
+- Fix the ``directed`` keyword in ``shapely.ops.linemerge()`` (#1695).
+
+Improvements:
+
+- Expose the function to get a matplotlib Patch object from a (Multi)Polygon (without
+  already plotting it) publicly as :func:`shapely.plotting.patch_from_polygon` (#1704).
+
+Acknowledgments
+^^^^^^^^^^^^^^^
+
+Thanks to everyone who contributed to this release!
+People with a "+" by their names contributed a patch for the first time.
+
+* Brendan Ward
+* Erik Pettersson +
+* Hood Chatham +
+* Idan Miara +
+* Joris Van den Bossche
+* Martin Fleischmann
+* Michał Górny +
+* Sebastian Castro +
+
+
 .. _version-2-0-0:
 
 Version 2.0.0 (2022-12-12)
@@ -94,7 +129,7 @@ small name deviations, such as the ``.wkt`` attribute being available as a
 functions from the ``shapely.ops`` submodule such as ``polygonize()``) are
 also made available in a vectorized version as top-level function.
 
-A full list of functions can be found in the API docs. TODO add link
+A full list of functions can be found in the API docs (see the pages listed under "API REFERENCE" in the left sidebar).
 
 * Vectorized constructor functions
 * Optionally output to a user-specified array (``out`` keyword argument) when constructing

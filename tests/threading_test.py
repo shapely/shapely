@@ -10,8 +10,10 @@ def main():
         # Run core code
         runShapelyBuilding()
     else:
-        threads = [threading.Thread(target=runShapelyBuilding, name=str(i),
-                                    args=(i,)) for i in range(num_threads)]
+        threads = [
+            threading.Thread(target=runShapelyBuilding, name=str(i), args=(i,))
+            for i in range(num_threads)
+        ]
         for t in threads:
             t.start()
         for t in threads:
@@ -21,9 +23,11 @@ def main():
 def runShapelyBuilding(num):
     print("%s: Running shapely tests on wkb" % num)
     import shapely.geos
+
     print("%s GEOS Handle: %s" % (num, shapely.geos.lgeos.geos_handle))
-    import shapely.wkt
     import shapely.wkb
+    import shapely.wkt
+
     p = shapely.wkt.loads("POINT (0 0)")
     print("%s WKT: %s" % (num, shapely.wkt.dumps(p)))
     wkb = shapely.wkb.dumps(p)
@@ -36,5 +40,5 @@ def runShapelyBuilding(num):
     print("Done %s" % num)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -85,6 +85,17 @@ def test_include_z_default():
     assert coords.shape[1] == 2
 
 
+@pytest.mark.parametrize("geom", all_types)
+def test_read_only_arrays(geom):
+    # https://github.com/shapely/shapely/pull/1744
+    typ, coords, offsets = shapely.to_ragged_array([geom, geom])
+    coords.flags.writeable = False
+    for arr in offsets:
+        arr.flags.writeable = False
+    result = shapely.from_ragged_array(typ, coords, offsets)
+    assert_geometries_equal(result, [geom, geom])
+
+
 @pytest.mark.parametrize("geom", all_types_not_supported)
 def test_raise_geometry_type(geom):
     with pytest.raises(ValueError):

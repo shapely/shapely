@@ -1,9 +1,10 @@
-from . import unittest
 import pytest
 
 from shapely.errors import GeometryTypeError
-from shapely.geometry import Point, LineString, MultiLineString, GeometryCollection
+from shapely.geometry import GeometryCollection, LineString, MultiLineString, Point
 from shapely.ops import shared_paths
+
+from . import unittest
 
 
 class SharedPaths(unittest.TestCase):
