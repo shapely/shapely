@@ -4,8 +4,7 @@ import pytest
 from shapely import MultiPoint, Point
 from shapely.errors import EmptyPartError
 from shapely.geometry.base import dump_coords
-
-from .test_multi import MultiGeometryTestCase
+from shapely.tests.geometry.test_multi import MultiGeometryTestCase
 
 
 class TestMultiPoint(MultiGeometryTestCase):

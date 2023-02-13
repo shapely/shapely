@@ -1,8 +1,8 @@
 import numpy as np
 
-from . import lib
-from ._enum import ParamEnum
-from .decorators import multithreading_enabled, requires_geos
+from shapely import lib
+from shapely._enum import ParamEnum
+from shapely.decorators import multithreading_enabled, requires_geos
 
 __all__ = [
     "BufferCapStyle",

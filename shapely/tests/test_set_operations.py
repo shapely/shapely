@@ -5,8 +5,14 @@ import shapely
 from shapely import Geometry, GeometryCollection, Polygon
 from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
-
-from .common import all_types, empty, geometry_collection, multi_polygon, point, polygon
+from shapely.tests.common import (
+    all_types,
+    empty,
+    geometry_collection,
+    multi_polygon,
+    point,
+    polygon,
+)
 
 # fixed-precision operations raise GEOS exceptions on mixed dimension geometry collections
 all_single_types = [g for g in all_types if not shapely.get_type_id(g) == 7]
