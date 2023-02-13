@@ -928,7 +928,7 @@ oriented_envelop_cases = [
 ]
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 @pytest.mark.parametrize("geometry, expected", oriented_envelop_cases)
 @pytest.mark.parametrize("method", [None, "geos"])
 def test_oriented_envelope(geometry, expected, method):
@@ -936,7 +936,7 @@ def test_oriented_envelope(geometry, expected, method):
     assert_geometries_equal(actual, expected, normalize=True)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 @pytest.mark.parametrize("geometry, expected", oriented_envelop_cases)
 @pytest.mark.parametrize("method", [None, "geos"])
 def test_minimum_rotated_rectangle(geometry, expected, method):
