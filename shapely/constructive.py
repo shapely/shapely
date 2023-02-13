@@ -1073,7 +1073,7 @@ def oriented_envelope(geometry, method: Optional[str] = None, **kwargs):
     >>> Point(1, 1).distance(Point(5, 1))
     4.0
 
-    >>> oriented_envelope_minimum_diameter = oriented_envelope(pts, method=...)
+    >>> oriented_envelope_minimum_diameter = oriented_envelope(pts, method=None)
     >>> oriented_envelope_minimum_diameter
     <POLYGON ((5.1 5.3, 1.5 6.5, -0.2 1.4, 3.4 0.2, 5.1 5.3))>
     >>> oriented_envelope_minimum_diameter.area
