@@ -1,4 +1,4 @@
-import unittest
+from . import unittest
 import pytest
 from shapely.geometry import Point, LineString, Polygon, MultiPoint, GeometryCollection
 from shapely.wkt import loads

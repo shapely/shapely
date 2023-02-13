@@ -1,4 +1,4 @@
-import unittest
+from . import unittest
 from shapely.geometry import Point
 from shapely.validation import explain_validity
 

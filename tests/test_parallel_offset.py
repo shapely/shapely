@@ -1,6 +1,6 @@
 import pytest
 
-import unittest
+from . import unittest
 from shapely.geometry import LineString, LinearRing
 from shapely.testing import assert_geometries_equal
 

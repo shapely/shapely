@@ -1,7 +1,7 @@
 """Test recovery from operation on invalid geometries
 """
 
-import unittest
+from . import unittest
 from shapely.geometry import Polygon
 from shapely.errors import TopologicalError
 

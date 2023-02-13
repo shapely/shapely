@@ -1,4 +1,4 @@
-import unittest
+from . import unittest
 import pytest
 from shapely.geometry.polygon import LinearRing, orient, Polygon, signed_area
 

@@ -1,6 +1,6 @@
 import json
 import pytest
-import unittest
+from . import unittest
 from shapely.errors import GeometryTypeError
 from shapely.ops import substring
 from shapely.geometry import Point, LineString, shape

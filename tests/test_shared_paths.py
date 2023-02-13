@@ -1,4 +1,4 @@
-import unittest
+from . import unittest
 import pytest
 
 from shapely.errors import GeometryTypeError

@@ -1,4 +1,4 @@
-import unittest
+from . import unittest, numpy
 from shapely.geometry import Point, box, MultiPolygon
 
 import shapely.vectorized

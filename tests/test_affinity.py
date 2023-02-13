@@ -7,7 +7,7 @@ from shapely import affinity
 from shapely.wkt import loads as load_wkt
 from shapely.geometry import Point
 
-import unittest
+from . import unittest
 
 
 class AffineTestCase(unittest.TestCase):

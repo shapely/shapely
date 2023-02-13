@@ -1,4 +1,6 @@
-import unittest
+from . import unittest, shapely20_deprecated
+
+import pytest
 
 from shapely.geometry import shape
 from shapely.geometry.multipoint import MultiPoint

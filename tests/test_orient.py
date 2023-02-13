@@ -1,4 +1,4 @@
-import unittest
+from . import unittest
 from shapely.geometry import (
     Point,
     MultiPoint,
