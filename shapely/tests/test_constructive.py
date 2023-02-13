@@ -945,11 +945,9 @@ def test_minimum_rotated_rectangle(geometry, expected, method):
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
-@pytest.mark.parametrize("geometry", [Point(2, 2)])
-@pytest.mark.parametrize("method", ["unknown"])
-def test_oriented_envelope_unsupported_method(geometry, method):
-    with pytest.raises(ValueError, match=f"Unknown method {method}"):
-        shapely.oriented_envelope(geometry, method)
+def test_oriented_envelope_unsupported_method():
+    with pytest.raises(ValueError, match="Unknown method unknown"):
+        shapely.oriented_envelope(Point(2, 2), method="unknown")
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
