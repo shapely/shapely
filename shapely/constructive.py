@@ -1016,11 +1016,6 @@ def voronoi_polygons(
 @requires_geos("3.6.0")
 @multithreading_enabled
 def oriented_envelope_geos(geometry, **kwargs):
-    """
-    Computes the oriented envelope (minimum rotated rectangle) that encloses an input geometry.
-
-    Refer to `shapely.oriented_envelope` with `method=...` for full documentation.
-    """
     return lib.oriented_envelope(geometry, **kwargs)
 
 
