@@ -1032,9 +1032,6 @@ def oriented_envelope(geometry, method: Optional[str] = None, **kwargs):
     between different implementations of this function.
     The results are as valid also without normalization.
 
-    The default implementation is `shapely.oriented_envelope`.
-    For more details: https://github.com/shapely/shapely/issues/1670
-
     Parameters
     ----------
     geometry : Geometry or array_like
@@ -1044,6 +1041,7 @@ def oriented_envelope(geometry, method: Optional[str] = None, **kwargs):
             This gives the same results as in Shapely<2, and is slower than the GEOS implementation.
             * "geos" - returns the oriented envelope using the GEOS implementation,
             which currently calculates an oriented envelope with the minimumal diameter, faster.
+            For more details: https://github.com/shapely/shapely/issues/1670
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
