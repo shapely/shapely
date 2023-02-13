@@ -1026,7 +1026,8 @@ def oriented_envelope_geos(geometry, **kwargs):
 
 def oriented_envelope(geometry, method: Optional[str] = None, **kwargs):
     """
-    Computes the oriented envelope (minimum rotated rectangle) that encloses an input geometry.
+    Computes the oriented envelope (minimum rotated rectangle)
+    that encloses an input geometry.
 
     Unlike envelope this rectangle is not constrained to be parallel to the
     coordinate axes. If the convex hull of the object is a degenerate (line
