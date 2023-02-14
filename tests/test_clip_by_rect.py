@@ -7,12 +7,9 @@ geometries.
 
 import pytest
 
-from shapely.geos import geos_version
 from shapely.ops import clip_by_rect
 from shapely.wkt import dumps as dump_wkt
 from shapely.wkt import loads as load_wkt
-
-pytestmark = pytest.mark.skipif(geos_version < (3, 5, 0), reason="GEOS 3.5.0 required")
 
 
 def test_point_outside():
