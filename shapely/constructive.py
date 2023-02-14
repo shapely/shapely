@@ -1065,7 +1065,7 @@ def oriented_envelope(geometry, method: Optional[str] = None, **kwargs):
     An example that shows the difference between the methods: minimum area (default) and minimum diameter (geos)
     Refer to hhttps://github.com/shapely/shapely/issues/1670 for more details.
     >>> pts = from_wkt("MULTIPOINT (1 1, 1 5, 3 6, 4 2, 5 5)")
-    >>> oriented_envelope_minimum_area = oriented_envelope(pts, method="min_area")
+    >>> oriented_envelope_minimum_area = oriented_envelope(pts, method=None)
     >>> oriented_envelope_minimum_area
     <POLYGON ((5 1, 5 6, 1 6, 1 1, 5 1))>
     >>> oriented_envelope_minimum_area.area
@@ -1073,7 +1073,7 @@ def oriented_envelope(geometry, method: Optional[str] = None, **kwargs):
     >>> Point(1, 1).distance(Point(5, 1))
     4.0
 
-    >>> oriented_envelope_minimum_diameter = oriented_envelope(pts, method=None)
+    >>> oriented_envelope_minimum_diameter = oriented_envelope(pts, method="geos")
     >>> oriented_envelope_minimum_diameter
     <POLYGON ((5.1 5.3, 1.5 6.5, -0.2 1.4, 3.4 0.2, 5.1 5.3))>
     >>> oriented_envelope_minimum_diameter.area
