@@ -166,7 +166,7 @@ jobs:
         # continue-on-error: ${{ matrix.geos == 'main' }}
         run: |
           python -c "import shapely; print(f'GEOS version: {shapely.geos_version_string}')"
-          pytest shapely/tests tests -r a --cov --cov-report term-missing ${{ matrix.extra_pytest_args }}
+          pytest shapely/tests -r a --cov --cov-report term-missing ${{ matrix.extra_pytest_args }}
 
       # Only run doctests on 1 runner (because of typographic differences in doctest results)
       - name: Run doctests

@@ -3,8 +3,7 @@ import pytest
 
 import shapely
 from shapely.testing import assert_geometries_equal
-
-from .common import (
+from shapely.tests.common import (
     all_types,
     empty,
     empty_line_string,

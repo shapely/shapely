@@ -1,12 +1,12 @@
 import numpy as np
 
-from . import lib
-from ._enum import ParamEnum
+from shapely import lib
+from shapely._enum import ParamEnum
 
 # include ragged array functions here for reference documentation purpose
-from ._ragged_array import from_ragged_array, to_ragged_array
-from .decorators import requires_geos
-from .errors import UnsupportedGEOSVersionError
+from shapely._ragged_array import from_ragged_array, to_ragged_array
+from shapely.decorators import requires_geos
+from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
     "from_geojson",

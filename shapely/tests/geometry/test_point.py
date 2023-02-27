@@ -89,7 +89,9 @@ def test_from_invalid():
         Point(1, 2, 3, 4)
 
     # this worked in shapely 1.x, just ignoring the other coords
-    with pytest.raises(ValueError, match="Invalid values passed"):
+    with pytest.raises(
+        ValueError, match="takes only scalar or 1-size vector arguments"
+    ):
         Point([(2, 3), (11, 4)])
 
 

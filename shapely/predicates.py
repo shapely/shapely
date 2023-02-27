@@ -2,8 +2,8 @@ import warnings
 
 import numpy as np
 
-from . import lib
-from .decorators import multithreading_enabled, requires_geos
+from shapely import lib
+from shapely.decorators import multithreading_enabled, requires_geos
 
 __all__ = [
     "has_z",

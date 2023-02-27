@@ -2,11 +2,11 @@ from typing import Any, Iterable, Union
 
 import numpy as np
 
-from . import lib
-from ._enum import ParamEnum
-from .decorators import requires_geos, UnsupportedGEOSVersionError
-from .geometry.base import BaseGeometry
-from .predicates import is_empty, is_missing
+from shapely import lib
+from shapely._enum import ParamEnum
+from shapely.decorators import requires_geos, UnsupportedGEOSVersionError
+from shapely.geometry.base import BaseGeometry
+from shapely.predicates import is_empty, is_missing
 
 __all__ = ["STRtree"]
 

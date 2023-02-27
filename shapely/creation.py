@@ -1,9 +1,9 @@
 import numpy as np
 
-from . import Geometry, GeometryType, lib
-from ._geometry_helpers import collections_1d, simple_geometries_1d
-from .decorators import multithreading_enabled
-from .io import from_wkt
+from shapely import Geometry, GeometryType, lib
+from shapely._geometry_helpers import collections_1d, simple_geometries_1d
+from shapely.decorators import multithreading_enabled
+from shapely.io import from_wkt
 
 __all__ = [
     "points",
