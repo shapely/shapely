@@ -1,6 +1,6 @@
 import numpy as np
 
-from . import lib
+from shapely import lib
 
 __all__ = ["transform", "count_coordinates", "get_coordinates", "set_coordinates"]
 

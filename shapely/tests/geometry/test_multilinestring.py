@@ -4,8 +4,7 @@ import pytest
 from shapely import LineString, MultiLineString
 from shapely.errors import EmptyPartError
 from shapely.geometry.base import dump_coords
-
-from .test_multi import MultiGeometryTestCase
+from shapely.tests.geometry.test_multi import MultiGeometryTestCase
 
 
 class TestMultiLineString(MultiGeometryTestCase):

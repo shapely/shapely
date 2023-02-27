@@ -1,6 +1,6 @@
-from . import lib
-from .decorators import multithreading_enabled
-from .errors import UnsupportedGEOSVersionError
+from shapely import lib
+from shapely.decorators import multithreading_enabled
+from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
     "line_interpolate_point",

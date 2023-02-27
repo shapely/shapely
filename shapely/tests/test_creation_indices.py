@@ -4,8 +4,7 @@ import pytest
 import shapely
 from shapely import LinearRing, Polygon
 from shapely.testing import assert_geometries_equal
-
-from .common import empty_point, line_string, linear_ring, point, polygon
+from shapely.tests.common import empty_point, line_string, linear_ring, point, polygon
 
 pnts = shapely.points
 lstrs = shapely.linestrings
