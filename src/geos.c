@@ -963,17 +963,17 @@ GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* b
  * Returns 0 on error, 1 on success.
  */
 int coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq,
-                       double* buf, unsigned int size, unsigned int dims) {
+                       double* buf, unsigned int size, int hasZ, int hasM) {
 
 #if GEOS_SINCE_3_10_0
 
-  int hasZ = dims == 3;
-  return GEOSCoordSeq_copyToBuffer_r(ctx, coord_seq, buf, hasZ, 0);
+  return GEOSCoordSeq_copyToBuffer_r(ctx, coord_seq, buf, hasZ, hasM);
 
 #else
 
   char *cp1, *cp2;
   unsigned int i, j;
+  unsigned int dims = 2 + hasZ + hasM;
 
   cp1 = (char*)buf;
   for (i = 0; i < size; i++, cp1 += 8 * dims) {

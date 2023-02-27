@@ -50,12 +50,12 @@ char coordseq_identical(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_
   }
 
   buf1 = malloc(sizeof(double) * n1 * dims1);
-  if (GEOSCoordSeq_copyToBuffer_r(ctx, coord_seq1, buf1, hasZ, hasM) == 0) {
+  if (coordseq_to_buffer(ctx, coord_seq1, buf1, n1, hasZ, hasM) == 0) {
     free(buf1);
     return 2;
   }
   buf2 = malloc(sizeof(double) * n1 * dims1);
-  if (GEOSCoordSeq_copyToBuffer_r(ctx, coord_seq2, buf2, hasZ, hasM) == 0) {
+  if (coordseq_to_buffer(ctx, coord_seq2, buf2, n1, hasZ, hasM) == 0) {
     free(buf1);
     free(buf2);
     return 2;
