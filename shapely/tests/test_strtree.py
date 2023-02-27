@@ -13,7 +13,13 @@ import shapely
 from shapely import box, geos_version, MultiPoint, Point, STRtree
 from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
-from shapely.tests.common import empty, empty_line_string, empty_point, point
+from shapely.tests.common import (
+    empty,
+    empty_line_string,
+    empty_point,
+    ignore_invalid,
+    point,
+)
 
 # the distance between 2 points spaced at whole numbers along a diagonal
 HALF_UNIT_DIAG = math.sqrt(2) / 2
@@ -391,8 +397,10 @@ def test_query_with_partially_prepared_inputs(tree):
     ],
 )
 def test_query_predicate_errors(tree, predicate):
+    with ignore_invalid():
+        line_nan = shapely.linestrings([1, 1], [1, float("nan")])
     with pytest.raises(shapely.GEOSException):
-        tree.query(shapely.linestrings([1, 1], [1, float("nan")]), predicate=predicate)
+        tree.query(line_nan, predicate=predicate)
 
 
 ### predicate == 'intersects'
