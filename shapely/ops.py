@@ -650,9 +650,9 @@ def substring(geom, start_dist, end_dist, normalized=False):
         start_dist = 0  # to avoid duplicating the first vertex
 
     if reverse:
-        vertex_list = [(end_point.x, end_point.y)]
+        vertex_list = [tuple(*end_point.coords)]
     else:
-        vertex_list = [(start_point.x, start_point.y)]
+        vertex_list = [tuple(*start_point.coords)]
 
     coords = list(geom.coords)
     current_distance = 0
@@ -665,11 +665,11 @@ def substring(geom, start_dist, end_dist, normalized=False):
         current_distance += ((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2) ** 0.5
 
     if reverse:
-        vertex_list.append((start_point.x, start_point.y))
+        vertex_list.append(tuple(*start_point.coords))
         # reverse direction result
         vertex_list = reversed(vertex_list)
     else:
-        vertex_list.append((end_point.x, end_point.y))
+        vertex_list.append(tuple(*end_point.coords))
 
     return LineString(vertex_list)
 
