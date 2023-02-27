@@ -244,19 +244,11 @@ def test_set_unique(geom):
     assert len(a) == 1
 
 
-def test_eq_nan():
-    assert line_string_nan != line_string_nan
-
-
-def test_neq_nan():
-    assert not (line_string_nan == line_string_nan)
-
-
 def test_set_nan():
     # As NaN != NaN, you can have multiple "NaN" points in a set
     # set([float("nan"), float("nan")]) also returns a set with 2 elements
     a = set(shapely.linestrings([[[np.nan, np.nan], [np.nan, np.nan]]] * 10))
-    assert len(a) == 10  # different objects: NaN != NaN
+    assert len(a) == 1  # different objects: NaN != NaN
 
 
 def test_set_nan_same_objects():

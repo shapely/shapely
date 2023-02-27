@@ -9,14 +9,21 @@ from shapely.tests.common import all_types, all_types_z
 @pytest.mark.parametrize("geom", all_types + all_types_z)
 def test_equality(geom):
     assert geom == geom
+    transformed = shapely.transform(geom, lambda x: x, include_z=True)
+    assert geom == transformed
+    assert not (geom != transformed)
 
 
 @pytest.mark.parametrize(
     "left, right",
     [
+        # (slightly) different coordinate values
         (LineString([(0, 0), (1, 1)]), LineString([(0, 0), (1, 2)])),
         (LineString([(0, 0), (1, 1)]), LineString([(0, 0), (1, 1 + 1e-12)])),
         (LineString([(0, 0), (1, 1)]), LineString([(1, 1), (0, 0)])),
+        # different number of coordinates (but spatially equal)
+        (LineString([(0, 0), (1, 1)]), LineString([(0, 0), (1, 1), (1, 1)])),
+        (LineString([(0, 0), (1, 1)]), LineString([(0, 0), (0.5, 0.5), (1, 1)])),
         # different order of sub-geometries
         (
             MultiLineString([[(1, 1), (2, 2)], [(2, 2), (3, 3)]]),
@@ -38,6 +45,10 @@ def test_equality_false(left, right):
         ),
         (LineString([(np.nan, 1), (2, 3)]), LineString([(np.nan, 1), (2, 3)])),
         (LineString([(0, np.nan), (2, 3)]), LineString([(0, np.nan), (2, 3)])),
+        (
+            LineString([(np.nan, np.nan), (np.nan, np.nan)]),
+            LineString([(np.nan, np.nan), (np.nan, np.nan)]),
+        ),
         # NaN as explicit Z coordinate
         (
             LineString([(0, 1, np.nan), (2, 3, np.nan)]),
@@ -47,27 +58,43 @@ def test_equality_false(left, right):
 )
 def test_equality_with_nan(left, right):
     assert left == right
+    assert not (left != right)
 
 
 @pytest.mark.parametrize(
     "left, right",
     [
         (LineString([(0, 1), (2, np.nan)]), LineString([(0, 1), (2, 3)])),
-        (
-            LineString([(0, 1, np.nan), (2, 3, np.nan)]),
-            LineString([(0, 1, np.nan), (2, 3, 4)]),
-        ),
     ],
 )
 def test_equality_with_nan_false(left, right):
     assert left != right
 
 
+@pytest.mark.parametrize(
+    "left, right",
+    [
+        (
+            LineString([(0, 1, np.nan), (2, 3, np.nan)]),
+            LineString([(0, 1, np.nan), (2, 3, 4)]),
+        ),
+    ],
+)
+def test_equality_with_nan_z_false(left, right):
+    if shapely.geos_version < (3, 12, 0):
+        # older GEOS versions ignore NaN for Z also when explicitly created with 3D
+        assert left == right
+    else:
+        assert left != right
+
+
 def test_equality_z():
+    # different dimensionality
     geom1 = Point(0, 1)
     geom2 = Point(0, 1, 2)
     assert geom1 != geom2
 
+    # different dimensionality with NaN z
     geom2 = Point(0, 1, np.nan)
     if shapely.geos_version < (3, 12, 0):
         # older GEOS versions ignore NaN for Z also when explicitly created with 3D
