@@ -176,7 +176,10 @@ def test_point_empty():
     assert all(math.isnan(val) for val in coords)
 
 
-@pytest.mark.xfail(geos_version < (3, 9, 0), reason="GEOS >= 3.9.0 is required")
+@pytest.mark.xfail(
+    geos_version < (3, 9, 0) and sys.platform != "darwin",
+    reason="GEOS >= 3.9.0 is required",
+)
 def test_point_z_empty():
     g = wkt.loads("POINT Z EMPTY")
     assert g.wkb_hex == hostorder(
