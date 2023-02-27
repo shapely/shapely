@@ -13,6 +13,8 @@
 #include <stdio.h>
 
 
+/* Check the coordinates of a single pair of CoordSequences.
+Returns 1 on true, 0 on false, 2 on exception */
 char coordseq_identical(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq1,
                         const GEOSCoordSequence* coord_seq2, int hasZ) {
   unsigned int n1, n2, dims1, dims2;
@@ -65,6 +67,7 @@ char coordseq_identical(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_
   for (i = 0; i < n1 * dims1; i++) {
     const double a = buf1[i];
     const double b = buf2[i];
+    // NaN coordinates in same position are considered equal
     if (a != b && !(npy_isnan(a) && npy_isnan(b))) {
       ret = 0;
       break;
@@ -76,6 +79,8 @@ char coordseq_identical(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_
   return ret;
 }
 
+/* Check simple geometries (Point, LineString, LinearRing; backed by a single CoordSequence).
+Returns 1 on true, 0 on false, 2 on exception */
 char equals_identical_simple(GEOSContextHandle_t ctx, const GEOSGeometry* geom1,
                              const GEOSGeometry* geom2) {
   char hasZ1, hasZ2;
@@ -105,6 +110,8 @@ char equals_identical_simple(GEOSContextHandle_t ctx, const GEOSGeometry* geom1,
   return coordseq_identical(ctx, coord_seq1, coord_seq2, (int)hasZ1);
 }
 
+/* Check the exterior/interior rings of Polygons.
+Returns 1 on true, 0 on false, 2 on exception */
 char equals_identical_polygon(GEOSContextHandle_t ctx, const GEOSGeometry* geom1,
                               const GEOSGeometry* geom2) {
   int i, n1, n2;
@@ -156,9 +163,14 @@ char equals_identical_polygon(GEOSContextHandle_t ctx, const GEOSGeometry* geom1
   return 1;
 }
 
+/* Note: forward declaration of the final function that is defined further below,
+so that it can be used in equals_identical_collection just below (due to the
+recursive nature of the implementation). */
 char equals_identical(GEOSContextHandle_t ctx, const GEOSGeometry* geom1,
                       const GEOSGeometry* geom2);
 
+/* Check the sub-geometries of Multi-part geometries.
+Returns 1 on true, 0 on false, 2 on exception */
 char equals_identical_collection(GEOSContextHandle_t ctx, const GEOSGeometry* geom1,
                                  const GEOSGeometry* geom2) {
   int i, n1, n2;
@@ -195,6 +207,8 @@ char equals_identical_collection(GEOSContextHandle_t ctx, const GEOSGeometry* ge
   return 1;
 }
 
+/* Check geometries for being identical.
+Returns 1 on true, 0 on false, 2 on exception */
 char equals_identical(GEOSContextHandle_t ctx, const GEOSGeometry* geom1,
                       const GEOSGeometry* geom2) {
   int type1, type2;

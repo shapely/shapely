@@ -11,20 +11,56 @@ def test_equality(geom):
     assert geom == geom
 
 
-def test_equality_false():
-    geom1 = LineString([(0, 0), (1, 1)])
-    geom2 = LineString([(0, 0), (1, 2)])
-    assert geom1 != geom2
+@pytest.mark.parametrize(
+    "left, right",
+    [
+        (LineString([(0, 0), (1, 1)]), LineString([(0, 0), (1, 2)])),
+        (LineString([(0, 0), (1, 1)]), LineString([(0, 0), (1, 1 + 1e-12)])),
+        (LineString([(0, 0), (1, 1)]), LineString([(1, 1), (0, 0)])),
+        # different order of sub-geometries
+        (
+            MultiLineString([[(1, 1), (2, 2)], [(2, 2), (3, 3)]]),
+            MultiLineString([[(2, 2), (3, 3)], [(1, 1), (2, 2)]]),
+        ),
+    ],
+)
+def test_equality_false(left, right):
+    assert left != right
 
 
-def test_equality_with_nan():
-    geom1 = LineString([(0, 1), (3, np.nan)])
-    geom2 = LineString([(0, 1), (3, np.nan)])
-    assert geom1 == geom2
+@pytest.mark.parametrize(
+    "left, right",
+    [
+        (LineString([(0, 1), (2, np.nan)]), LineString([(0, 1), (2, np.nan)])),
+        (
+            LineString([(0, 1), (np.nan, np.nan)]),
+            LineString([(0, 1), (np.nan, np.nan)]),
+        ),
+        (LineString([(np.nan, 1), (2, 3)]), LineString([(np.nan, 1), (2, 3)])),
+        (LineString([(0, np.nan), (2, 3)]), LineString([(0, np.nan), (2, 3)])),
+        # NaN as explicit Z coordinate
+        (
+            LineString([(0, 1, np.nan), (2, 3, np.nan)]),
+            LineString([(0, 1, np.nan), (2, 3, np.nan)]),
+        ),
+    ],
+)
+def test_equality_with_nan(left, right):
+    assert left == right
 
-    geom1 = LineString([(0, 1, np.nan), (3, 4, np.nan)])
-    geom2 = LineString([(0, 1, np.nan), (3, 4, np.nan)])
-    assert geom1 == geom2
+
+@pytest.mark.parametrize(
+    "left, right",
+    [
+        (LineString([(0, 1), (2, np.nan)]), LineString([(0, 1), (2, 3)])),
+        (
+            LineString([(0, 1, np.nan), (2, 3, np.nan)]),
+            LineString([(0, 1, np.nan), (2, 3, 4)]),
+        ),
+    ],
+)
+def test_equality_with_nan_false(left, right):
+    assert left != right
 
 
 def test_equality_z():
@@ -49,15 +85,9 @@ def test_equality_exact_type():
     assert geom1 != geom3
     assert geom2 != geom3
 
-    # emtpy with different type
+    # empty with different type
     geom1 = shapely.from_wkt("POINT EMPTY")
     geom2 = shapely.from_wkt("LINESTRING EMPTY")
-    assert geom1 != geom2
-
-
-def test_equality_different_order():
-    geom1 = MultiLineString([[(1, 1), (2, 2)], [(2, 2), (3, 3)]])
-    geom2 = MultiLineString([[(2, 2), (3, 3)], [(1, 1), (2, 2)]])
     assert geom1 != geom2
 
 
