@@ -100,6 +100,9 @@ def test_equality_z():
 
     # different dimensionality with NaN z
     geom2 = Point(0, 1, np.nan)
+    if shapely.geos_version < (3, 8, 0):
+        # GEOS < 3.8 fill the NaN with 0, so the z dimension is different
+        assert geom1 != geom2
     if shapely.geos_version < (3, 12, 0):
         # older GEOS versions ignore NaN for Z also when explicitly created with 3D
         assert geom1 == geom2
