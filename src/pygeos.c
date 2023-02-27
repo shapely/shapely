@@ -84,7 +84,8 @@ Returns 1 on true, 0 on false, 2 on exception */
 char equals_identical_simple(GEOSContextHandle_t ctx, const GEOSGeometry* geom1,
                              const GEOSGeometry* geom2) {
   char hasZ1, hasZ2;
-  const GEOSCoordSequence *coord_seq1, *coord_seq2;
+  const GEOSCoordSequence *coord_seq1 = NULL;
+  const GEOSCoordSequence *coord_seq2 = NULL;
 
   hasZ1 = GEOSHasZ_r(ctx, geom1);
   if (hasZ1 == 2) {
@@ -115,7 +116,8 @@ Returns 1 on true, 0 on false, 2 on exception */
 char equals_identical_polygon(GEOSContextHandle_t ctx, const GEOSGeometry* geom1,
                               const GEOSGeometry* geom2) {
   int i, n1, n2;
-  const GEOSGeometry *ring1, *ring2;
+  const GEOSGeometry *ring1 = NULL;
+  const GEOSGeometry *ring2 = NULL;
   char ret;
 
   n1 = GEOSGetNumInteriorRings_r(ctx, geom1);
@@ -174,7 +176,8 @@ Returns 1 on true, 0 on false, 2 on exception */
 char equals_identical_collection(GEOSContextHandle_t ctx, const GEOSGeometry* geom1,
                                  const GEOSGeometry* geom2) {
   int i, n1, n2;
-  const GEOSGeometry *sub_geom1, *sub_geom2;
+  const GEOSGeometry *sub_geom1 = NULL;
+  const GEOSGeometry *sub_geom2 = NULL;
   char ret;
 
   n1 = GEOSGetNumGeometries_r(ctx, geom1);
@@ -240,7 +243,7 @@ char equals_identical(GEOSContextHandle_t ctx, const GEOSGeometry* geom1,
  * Determine pointwise equivalence of two geometries by checking
  * that the structure, ordering, and values of all vertices are
  * identical in all dimensions. NaN values are considered to be
- * equal to other NaN values.
+ * equal to other NaN values in the same position within coordinate sequences.
  * \returns 1 on true, 0 on false, 2 on exception
  */
 char PyGEOSEqualsIdentical(GEOSContextHandle_t ctx, const GEOSGeometry* geom1,
