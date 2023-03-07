@@ -948,28 +948,31 @@ def within(a, b, **kwargs):
 
 @multithreading_enabled
 def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
-    """Returns True if A and B are structurally equal.
+    """Returns True if the geometries are structurally equivalent within a
+    given tolerance.
 
-    This method uses exact coordinate equality, which requires coordinates to be
-    equal (within specified tolerance) and in the same order for all
-    components of a geometry. This is in contrast with the ``equals`` function
-    which uses spatial (topological) equality.
-    For two given geometries, it is thus possible for ``equals`` to be True
-    while ``equals_exact`` is False.
-    The order of the coordinates can be normalized (by setting the `normalize`
-    keyword to True) so that the functions becomes closer to checking
-    approximate topological equality. However, for Polygons with multiple holes
-    and MultiPolygons, two topologically equal geometries can still be
-    structurally different even with `normalize` set to True if the order of the
-    rings or Polygons differs.
+    This method uses exact coordinate equality, which requires coordinates
+    to be equal (within specified tolerance) and in the same order for
+    all components (vertices, rings, or parts) of a geometry. This is in
+    contrast with the :meth:`~object.equals` function which uses spatial
+    (topological) equality and does not require all components to be in the
+    same order.
+    Because of this, it is thus possible for :meth:`~object.equals` to be True
+    while :meth:`~object.equals_exact` is False.
+    The order of the coordinates can be normalized (by setting the
+    `normalize` keyword to True) so that this function will return `True` when
+    geometries are structurally equivalent but differ only in the ordering of
+    vertices.  However, this function will still return False if the order of
+    interior rings within a :class:`Polygon` or the order of geometries within
+    a multi geometry are different.
 
     Parameters
     ----------
     a, b : Geometry or array_like
     tolerance : float or array_like (default: 0.)
     normalize : bool, optional (default: False)
-        Normalize the two geometries so that the coordinates are in the
-        same order.
+        If True, normalize the two geometries so that the coordinates are
+        in the same order.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
