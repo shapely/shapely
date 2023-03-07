@@ -28,16 +28,16 @@ https://github.com/geoarrow/geoarrow
 """
 import numpy as np
 
-from . import creation
-from ._geometry import (
+from shapely import creation
+from shapely._geometry import (
     GeometryType,
     get_coordinate_dimension,
     get_parts,
     get_rings,
     get_type_id,
 )
-from .coordinates import get_coordinates
-from .predicates import is_empty
+from shapely.coordinates import get_coordinates
+from shapely.predicates import is_empty
 
 __all__ = ["to_ragged_array", "from_ragged_array"]
 

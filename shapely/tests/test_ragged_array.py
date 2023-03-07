@@ -5,8 +5,7 @@ from numpy.testing import assert_allclose
 import shapely
 from shapely import MultiLineString, MultiPoint, MultiPolygon
 from shapely.testing import assert_geometries_equal
-
-from .common import (
+from shapely.tests.common import (
     empty_line_string,
     empty_line_string_z,
     geometry_collection,
@@ -84,6 +83,17 @@ def test_include_z_default():
     # empty collection -> GEOS indicates 2D
     _, coords, _ = shapely.to_ragged_array(shapely.from_wkt(["MULTIPOLYGON Z EMPTY"]))
     assert coords.shape[1] == 2
+
+
+@pytest.mark.parametrize("geom", all_types)
+def test_read_only_arrays(geom):
+    # https://github.com/shapely/shapely/pull/1744
+    typ, coords, offsets = shapely.to_ragged_array([geom, geom])
+    coords.flags.writeable = False
+    for arr in offsets:
+        arr.flags.writeable = False
+    result = shapely.from_ragged_array(typ, coords, offsets)
+    assert_geometries_equal(result, [geom, geom])
 
 
 @pytest.mark.parametrize("geom", all_types_not_supported)

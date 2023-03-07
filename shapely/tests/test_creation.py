@@ -15,8 +15,7 @@ from shapely import (
     Polygon,
 )
 from shapely.testing import assert_geometries_equal
-
-from .common import (
+from shapely.tests.common import (
     empty_polygon,
     geometry_collection,
     line_string,

@@ -12,15 +12,8 @@ from numpy.testing import assert_array_equal
 import shapely
 from shapely import box, geos_version, MultiPoint, Point, STRtree
 from shapely.errors import UnsupportedGEOSVersionError
-
-from .common import (
-    assert_decreases_refcount,
-    assert_increases_refcount,
-    empty,
-    empty_line_string,
-    empty_point,
-    point,
-)
+from shapely.testing import assert_geometries_equal
+from shapely.tests.common import empty, empty_line_string, empty_point, point
 
 # the distance between 2 points spaced at whole numbers along a diagonal
 HALF_UNIT_DIAG = math.sqrt(2) / 2
@@ -78,19 +71,6 @@ def test_init_with_invalid_geometry():
         STRtree(["Not a geometry"])
 
 
-def test_init_increases_refcount():
-    arr = np.array([point])
-    with assert_increases_refcount(point):
-        _ = STRtree(arr)
-
-
-def test_del_decreases_refcount():
-    arr = np.array([point])
-    tree = STRtree(arr)
-    with assert_decreases_refcount(point):
-        del tree
-
-
 def test_references():
     point1 = Point()
     point2 = Point(0, 1)
@@ -114,7 +94,6 @@ def test_flush_geometries():
     tree = STRtree(arr)
 
     # Dereference geometries
-    tree._geometries.flags.writeable = True
     arr[:] = None
     import gc
 
@@ -126,7 +105,11 @@ def test_flush_geometries():
 def test_geometries_property():
     arr = np.array([point])
     tree = STRtree(arr)
-    assert arr is tree.geometries
+    assert_geometries_equal(arr, tree.geometries)
+
+    # modifying elements of input should not modify tree.geometries
+    arr[0] = shapely.Point(0, 0)
+    assert_geometries_equal(point, tree.geometries[0])
 
 
 # TODO(shapely-2.0) this fails on Appveyor, see
@@ -381,10 +364,7 @@ def test_query_with_partially_prepared_inputs(tree):
 @pytest.mark.parametrize(
     "predicate",
     [
-        pytest.param(
-            "intersects",
-            marks=pytest.mark.xfail(reason="intersects does not raise exception"),
-        ),
+        # intersects is intentionally omitted; it does not raise an exception
         pytest.param(
             "within",
             marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
@@ -418,8 +398,6 @@ def test_query_predicate_errors(tree, predicate):
 ### predicate == 'intersects'
 
 
-# TEMPORARY xfail: MultiPoint intersects with prepared geometries does not work
-# properly on GEOS 3.5.x; it was fixed in 3.6+
 @pytest.mark.parametrize(
     "geometry,expected",
     [
@@ -449,29 +427,25 @@ def test_query_predicate_errors(tree, predicate):
             [[0, 0, 0], [2, 3, 4]],
         ),
         # multipoints intersect
-        pytest.param(
+        (
             MultiPoint([[5, 5], [7, 7]]),
             [5, 7],
-            marks=pytest.mark.xfail(geos_version < (3, 6, 0), reason="GEOS 3.5"),
         ),
-        pytest.param(
+        (
             [MultiPoint([[5, 5], [7, 7]])],
             [[0, 0], [5, 7]],
-            marks=pytest.mark.xfail(reason="GEOS 3.5"),
         ),
         # envelope of points contains points, but points do not intersect
         (MultiPoint([[5, 7], [7, 5]]), []),
         ([MultiPoint([[5, 7], [7, 5]])], [[], []]),
         # only one point of multipoint intersects
-        pytest.param(
+        (
             MultiPoint([[5, 7], [7, 7]]),
             [7],
-            marks=pytest.mark.xfail(geos_version < (3, 6, 0), reason="GEOS 3.5"),
         ),
-        pytest.param(
+        (
             [MultiPoint([[5, 7], [7, 7]])],
             [[0], [7]],
-            marks=pytest.mark.xfail(reason="GEOS 3.5"),
         ),
     ],
 )
@@ -1532,28 +1506,23 @@ def test_query_dwithin_polygons(poly_tree, geometry, distance, expected):
 ### STRtree nearest
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_nearest_empty_tree():
     tree = STRtree([])
-    # TODO what do we want here?
     assert tree.nearest(point) is None
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize("geometry", ["I am not a geometry"])
 def test_nearest_invalid_geom(tree, geometry):
     with pytest.raises(TypeError):
         tree.nearest(geometry)
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize("geometry", [None, [None], [Point(1, 1), None]])
 def test_nearest_none(tree, geometry):
     with pytest.raises(ValueError):
         tree.nearest(geometry)
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
     "geometry", [empty_point, [empty_point], [Point(1, 1), empty_point]]
 )
@@ -1562,7 +1531,6 @@ def test_nearest_empty(tree, geometry):
         tree.nearest(geometry)
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
     "geometry,expected",
     [
@@ -1583,8 +1551,6 @@ def test_nearest_points(tree, geometry, expected):
     assert_array_equal(tree.nearest(geometry), expected)
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
-@pytest.mark.xfail(reason="equidistant geometries may produce nondeterministic results")
 @pytest.mark.parametrize(
     "geometry,expected",
     [
@@ -1597,11 +1563,13 @@ def test_nearest_points(tree, geometry, expected):
     ],
 )
 def test_nearest_points_equidistant(tree, geometry, expected):
+    # results are returned in order they are traversed when searching the tree,
+    # which can vary between GEOS versions, so we test that one of the valid
+    # results is present
     result = tree.nearest(geometry)
     assert result in expected
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
     "geometry,expected",
     [
@@ -1615,8 +1583,6 @@ def test_nearest_lines(line_tree, geometry, expected):
     assert_array_equal(line_tree.nearest(geometry), expected)
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
-@pytest.mark.xfail(reason="equidistant geometries may produce nondeterministic results")
 @pytest.mark.parametrize(
     "geometry,expected",
     [
@@ -1639,11 +1605,13 @@ def test_nearest_lines(line_tree, geometry, expected):
     ],
 )
 def test_nearest_lines_equidistant(line_tree, geometry, expected):
+    # results are returned in order they are traversed when searching the tree,
+    # which can vary between GEOS versions, so we test that one of the valid
+    # results is present
     result = line_tree.nearest(geometry)
     assert result in expected
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
     "geometry,expected",
     [
@@ -1657,8 +1625,6 @@ def test_nearest_polygons(poly_tree, geometry, expected):
     assert_array_equal(poly_tree.nearest(geometry), expected)
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
-@pytest.mark.xfail(reason="equidistant geometries may produce nondeterministic results")
 @pytest.mark.parametrize(
     "geometry,expected",
     [
@@ -1677,25 +1643,25 @@ def test_nearest_polygons(poly_tree, geometry, expected):
     ],
 )
 def test_nearest_polygons_equidistant(poly_tree, geometry, expected):
+    # results are returned in order they are traversed when searching the tree,
+    # which can vary between GEOS versions, so we test that one of the valid
+    # results is present
     result = poly_tree.nearest(geometry)
     assert result in expected
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_query_nearest_empty_tree():
     tree = STRtree([])
     assert_array_equal(tree.query_nearest(point), [])
     assert_array_equal(tree.query_nearest([point]), [[], []])
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize("geometry", ["I am not a geometry", ["still not a geometry"]])
 def test_query_nearest_invalid_geom(tree, geometry):
     with pytest.raises(TypeError):
         tree.query_nearest(geometry)
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
     "geometry,return_distance,expected",
     [
@@ -1715,7 +1681,6 @@ def test_query_nearest_none(tree, geometry, return_distance, expected):
         assert_array_equal(tree.query_nearest(geometry), expected)
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
     "geometry,expected",
     [(empty, []), ([empty], [[], []]), ([empty, point], [[1, 1], [2, 3]])],
@@ -1724,7 +1689,6 @@ def test_query_nearest_empty_geom(tree, geometry, expected):
     assert_array_equal(tree.query_nearest(geometry), expected)
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
     "geometry,expected",
     [
@@ -1765,7 +1729,6 @@ def test_query_nearest_points(tree, geometry, expected):
     assert_array_equal(tree.query_nearest(geometry), expected)
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
     "geometry,expected",
     [
@@ -1801,7 +1764,6 @@ def test_query_nearest_lines(line_tree, geometry, expected):
     assert_array_equal(line_tree.query_nearest(geometry), expected)
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
     "geometry,expected",
     [
@@ -1836,7 +1798,6 @@ def test_query_nearest_polygons(poly_tree, geometry, expected):
     assert_array_equal(poly_tree.query_nearest(geometry), expected)
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
     "geometry,max_distance,expected",
     [
@@ -1859,7 +1820,6 @@ def test_query_nearest_max_distance(tree, geometry, max_distance, expected):
     )
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
     "geometry,max_distance",
     [
@@ -1874,13 +1834,11 @@ def test_query_nearest_invalid_max_distance(tree, geometry, max_distance):
         tree.query_nearest(geometry, max_distance=max_distance)
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_query_nearest_nonscalar_max_distance(tree):
     with pytest.raises(ValueError, match="parameter only accepts scalar values"):
         tree.query_nearest(Point(0.5, 0.5), max_distance=[1])
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
     "geometry,expected",
     [
@@ -1901,7 +1859,6 @@ def test_query_nearest_return_distance(tree, geometry, expected):
     assert_array_equal(np.round(actual_dist, 4), expected_dist)
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
     "geometry,exclusive,expected",
     [
@@ -1916,7 +1873,6 @@ def test_query_nearest_exclusive(tree, geometry, exclusive, expected):
     assert_array_equal(tree.query_nearest(geometry, exclusive=exclusive), expected)
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
     "geometry,expected",
     [
@@ -1929,7 +1885,6 @@ def test_query_nearest_exclusive_no_results(tree, geometry, expected):
     assert_array_equal(tree.query_nearest(geometry, exclusive=True), expected)
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
     "geometry,exclusive",
     [
@@ -1945,7 +1900,6 @@ def test_query_nearest_invalid_exclusive(tree, geometry, exclusive):
         tree.query_nearest(geometry, exclusive=exclusive)
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize(
     "geometry,all_matches",
     [
@@ -1961,7 +1915,6 @@ def test_query_nearest_invalid_all_matches(tree, geometry, all_matches):
         tree.query_nearest(geometry, all_matches=all_matches)
 
 
-@pytest.mark.skipif(geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_query_nearest_all_matches(tree):
     point = Point(0.5, 0.5)
     assert_array_equal(tree.query_nearest(point, all_matches=True), [0, 1])

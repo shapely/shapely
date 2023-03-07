@@ -42,8 +42,7 @@ jobs:
             numpy: 1.23.4
             matplotlib: true
             doctest: true
-            # TODO(shapely-2.0) temporary allow warnings
-            # extra_pytest_args: "-W error"  # error on warnings
+            extra_pytest_args: "-W error"  # error on warnings
           # dev
           - python: "3.11"
             geos: main
@@ -128,7 +127,7 @@ jobs:
           else
             pip install --upgrade Cython numpy==${{ matrix.numpy }} pytest pytest-cov coveralls;
           fi
-          if [ -n "${{ matrix.numpy }}" ]; then
+          if [ -n "${{ matrix.matplotlib }}" ]; then
             pip install matplotlib
           fi
           pip list
@@ -166,7 +165,8 @@ jobs:
         # Enable this if we have failures on GEOS main
         # continue-on-error: ${{ matrix.geos == 'main' }}
         run: |
-          pytest shapely/tests tests --cov --cov-report term-missing ${{ matrix.extra_pytest_args }}
+          python -c "import shapely; print(f'GEOS version: {shapely.geos_version_string}')"
+          pytest shapely/tests --cov --cov-report term-missing ${{ matrix.extra_pytest_args }}
 
       # Only run doctests on 1 runner (because of typographic differences in doctest results)
       - name: Run doctests

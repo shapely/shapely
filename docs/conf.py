@@ -12,7 +12,7 @@ os.environ["SPHINX_DOC_BUILD"] = "1"
 # -- Project information -----------------------------------------------------
 
 project = 'Shapely'
-copyright = '2011-2022, Sean Gillies and Shapely contributors'
+copyright = '2011-2023, Sean Gillies and Shapely contributors'
 
 # The full version, including alpha/beta/rc tags.
 import shapely
@@ -74,6 +74,7 @@ latex_documents = [
 
 # connect docs in other projects
 intersphinx_mapping = {
+    'python': ('https://docs.python.org/3/', None),
     'numpy': ('https://numpy.org/doc/stable/', None),
 }
 

@@ -1,8 +1,8 @@
 import numpy as np
 
-from . import lib
-from .decorators import multithreading_enabled, requires_geos
-from .enum import ParamEnum
+from shapely import lib
+from shapely._enum import ParamEnum
+from shapely.decorators import multithreading_enabled, requires_geos
 
 __all__ = [
     "BufferCapStyle",
@@ -717,7 +717,7 @@ def polygonize_full(geometries, **kwargs):
 
     Returns
     -------
-    (polgyons, cuts, dangles, invalid)
+    (polygons, cuts, dangles, invalid)
         tuple of 4 GeometryCollections or arrays of GeometryCollections
 
     See Also
@@ -887,9 +887,20 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
 def snap(geometry, reference, tolerance, **kwargs):
     """Snaps an input geometry to reference geometry's vertices.
 
-    The tolerance is used to control where snapping is performed.
+    Vertices of the first geometry are snapped to vertices of the second.
+    geometry, returning a new geometry; the input geometries are not modified.
     The result geometry is the input geometry with the vertices snapped.
     If no snapping occurs then the input geometry is returned unchanged.
+    The tolerance is used to control where snapping is performed.
+
+    Where possible, this operation tries to avoid creating invalid geometries;
+    however, it does not guarantee that output geometries will be valid.  It is
+    the responsibility of the caller to check for and handle invalid geometries.
+
+    Because too much snapping can result in invalid geometries being created,
+    heuristics are used to determine the number and location of snapped
+    vertices that are likely safe to snap. These heuristics may omit
+    some potential snaps that are otherwise within the tolerance.
 
     Parameters
     ----------
@@ -902,18 +913,54 @@ def snap(geometry, reference, tolerance, **kwargs):
 
     Examples
     --------
-    >>> from shapely import LineString, Point, Polygon
+    >>> from shapely import snap, distance, LineString, Point, Polygon, MultiPoint, box
+
     >>> point = Point(0.5, 2.5)
     >>> target_point = Point(0, 2)
     >>> snap(point, target_point, tolerance=1)
     <POINT (0 2)>
     >>> snap(point, target_point, tolerance=0.49)
     <POINT (0.5 2.5)>
+
     >>> polygon = Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
     >>> snap(polygon, Point(8, 10), tolerance=5)
     <POLYGON ((0 0, 0 10, 8 10, 10 0, 0 0))>
     >>> snap(polygon, LineString([(8, 10), (8, 0)]), tolerance=5)
     <POLYGON ((0 0, 0 10, 8 10, 8 0, 0 0))>
+
+    You can snap one line to another, for example to clean imprecise coordinates:
+
+    >>> line1 = LineString([(0.1, 0.1), (0.49, 0.51), (1.01, 0.89)])
+    >>> line2 = LineString([(0, 0), (0.5, 0.5), (1.0, 1.0)])
+    >>> snap(line1, line2, 0.25)
+    <LINESTRING (0 0, 0.5 0.5, 1 1)>
+
+    Snapping also supports Z coordinates:
+
+    >>> point1 = Point(0.1, 0.1, 0.5)
+    >>> multipoint = MultiPoint([(0, 0, 1), (0, 0, 0)])
+    >>> snap(point1, multipoint, 1)
+    <POINT Z (0 0 1)>
+
+    Snapping to an empty geometry has no effect:
+
+    >>> snap(line1, LineString([]), 0.25)
+    <LINESTRING (0.1 0.1, 0.49 0.51, 1.01 0.89)>
+
+    Snapping to a non-geometry (None) will always return None:
+
+    >>> snap(line1, None, 0.25) is None
+    True
+
+    Only one vertex of a polygon is snapped to a target point,
+    even if all vertices are equidistant to it,
+    in order to prevent collapse of the polygon:
+
+    >>> poly = box(0, 0, 1, 1)
+    >>> poly
+    <POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))>
+    >>> snap(poly, Point(0.5, 0.5), 1)
+    <POLYGON ((0.5 0.5, 1 1, 0 1, 0 0, 0.5 0.5))>
     """
     return lib.snap(geometry, reference, tolerance, **kwargs)
 
