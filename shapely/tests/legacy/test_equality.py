@@ -26,6 +26,7 @@ def test_equals_exact():
     p3 = Polygon(shell, holes=[hole2])
     assert not p1.equals_exact(p3, 1e-5)
 
+
 def test_almost_equals_default():
     p1 = Point(1.0, 1.0)
     p2 = Point(1.0 + 1e-7, 1.0 + 1e-7)  # almost equal to 6 places
