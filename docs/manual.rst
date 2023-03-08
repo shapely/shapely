@@ -1112,9 +1112,9 @@ differently.
     be ``True`` while :meth:`~object.equals_exact` is ``False``.
 
     The order of the coordinates can be normalized (by setting the `normalize`
-    keyword to True) so that this function will return `True` when geometries
+    keyword to ``True``) so that this function will return ``True`` when geometries
     are structurally equivalent but differ only in the ordering of vertices.
-    However, this function will still return False if the order of interior
+    However, this function will still return ``False`` if the order of interior
     rings within a :class:`Polygon` or the order of geometries within a multi
     geometry are different.
 
