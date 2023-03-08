@@ -722,10 +722,10 @@ class BaseGeometry(shapely.Geometry):
         return _maybe_unpack(shapely.dwithin(self, other, distance))
 
     def equals_exact(self, other, tolerance=0.0, normalize=False):
-        """Returns True if the geometries are structurally equivalent within a
-        given tolerance.
+        """Returns ``True`` if the geometries are structurally equivalent
+        within a given tolerance.
 
-        Refer to `shapely.equals_exact` for full documentation.
+        Refer to :func:`~shapely.equals_exact` for full documentation.
 
         Parameters
         ----------

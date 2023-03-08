@@ -948,7 +948,7 @@ def within(a, b, **kwargs):
 
 @multithreading_enabled
 def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
-    """Returns True if the geometries are structurally equivalent within a
+    """Returns ``True`` if the geometries are structurally equivalent within a
     given tolerance.
 
     This method uses exact coordinate equality, which requires coordinates
@@ -956,15 +956,15 @@ def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
     all components (vertices, rings, or parts) of a geometry. This is in
     contrast with the :meth:`~object.equals` function which uses spatial
     (topological) equality and does not require all components to be in the
-    same order.
-    Because of this, it is thus possible for :meth:`~object.equals` to be True
-    while :meth:`~object.equals_exact` is False.
-    The order of the coordinates can be normalized (by setting the
-    `normalize` keyword to True) so that this function will return `True` when
-    geometries are structurally equivalent but differ only in the ordering of
-    vertices.  However, this function will still return False if the order of
-    interior rings within a :class:`Polygon` or the order of geometries within
-    a multi geometry are different.
+    same order. Because of this, it is possible for :meth:`~object.equals` to
+    be ``True`` while :meth:`~object.equals_exact` is ``False``.
+
+    The order of the coordinates can be normalized (by setting the `normalize`
+    keyword to True) so that this function will return `True` when geometries
+    are structurally equivalent but differ only in the ordering of vertices.
+    However, this function will still return False if the order of interior
+    rings within a :class:`Polygon` or the order of geometries within a multi
+    geometry are different.
 
     Parameters
     ----------
@@ -979,7 +979,7 @@ def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
 
     See Also
     --------
-    equals : Check if A and B are topologically equal.
+    equals : Check if `a` and `b` are spatially (topologically) equal.
 
     Examples
     --------
