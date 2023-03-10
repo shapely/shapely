@@ -42,7 +42,6 @@ empty_line_string = shapely.from_wkt("LINESTRING EMPTY")
 empty_line_string_z = shapely.from_wkt("LINESTRING Z EMPTY")
 empty_polygon = shapely.from_wkt("POLYGON EMPTY")
 empty = shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")
-line_string_nan = shapely.LineString([(np.nan, np.nan), (np.nan, np.nan)])
 multi_point_z = shapely.MultiPoint([(0, 0, 4), (1, 2, 4)])
 multi_line_string_z = shapely.MultiLineString([[(0, 0, 4), (1, 2, 4)]])
 multi_polygon_z = shapely.multipolygons(
@@ -76,3 +75,7 @@ def ignore_invalid(condition=True):
             yield
     else:
         yield
+
+
+with ignore_invalid():
+    line_string_nan = shapely.LineString([(np.nan, np.nan), (np.nan, np.nan)])
