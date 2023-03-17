@@ -257,6 +257,20 @@ def test_linearrings_buffer(dim, order):
     assert_geometries_equal(result3, result1[0])
 
 
+def test_linearrings_ignore_nan():
+    actual = shapely.linearrings(
+        [0, 1, float("nan"), 2, 0], [3, 4, 5, 5, 3], handle_nans="ignore"
+    )
+    assert_geometries_equal(actual, LinearRing([(0, 3), (1, 4), (2, 5), (0, 3)]))
+
+
+def test_linearrings_error_nan():
+    with pytest.raises(shapely.GEOSException):
+        shapely.linearrings(
+            [0, 1, float("nan"), 2, 0], [3, 4, 5, 5, 3], handle_nans="error"
+        )
+
+
 def test_polygon_from_linearring():
     actual = shapely.polygons(shapely.linearrings(box_tpl(0, 0, 1, 1)))
     assert_geometries_equal(actual, Polygon([(1, 0), (1, 1), (0, 1), (0, 0), (1, 0)]))
