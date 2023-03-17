@@ -1,10 +1,10 @@
 import numpy as np
 
 from shapely import Geometry, GeometryType, lib
+from shapely._enum import ParamEnum
 from shapely._geometry_helpers import collections_1d, simple_geometries_1d
 from shapely.decorators import multithreading_enabled
 from shapely.io import from_wkt
-from shapely._enum import ParamEnum
 
 __all__ = [
     "points",
@@ -80,11 +80,21 @@ def points(coords, y=None, z=None, indices=None, out=None, **kwargs):
     if indices is None:
         return lib.points(coords, out=out, **kwargs)
     else:
-        return simple_geometries_1d(coords, indices, GeometryType.POINT, handle_nans=HandleNans.allow, out=out)
+        return simple_geometries_1d(
+            coords, indices, GeometryType.POINT, handle_nans=HandleNans.allow, out=out
+        )
 
 
 @multithreading_enabled
-def linestrings(coords, y=None, z=None, indices=None, handle_nans=HandleNans.allow, out=None, **kwargs):
+def linestrings(
+    coords,
+    y=None,
+    z=None,
+    indices=None,
+    handle_nans=HandleNans.allow,
+    out=None,
+    **kwargs
+):
     """Create an array of linestrings.
 
     This function will raise an exception if a linestring contains less than
@@ -130,11 +140,21 @@ def linestrings(coords, y=None, z=None, indices=None, handle_nans=HandleNans.all
     if indices is None:
         return lib.linestrings(coords, np.intc(handle_nans), out=out, **kwargs)
     else:
-        return simple_geometries_1d(coords, indices, GeometryType.LINESTRING, handle_nans=handle_nans, out=out)
+        return simple_geometries_1d(
+            coords, indices, GeometryType.LINESTRING, handle_nans=handle_nans, out=out
+        )
 
 
 @multithreading_enabled
-def linearrings(coords, y=None, z=None, indices=None, handle_nans=HandleNans.allow, out=None, **kwargs):
+def linearrings(
+    coords,
+    y=None,
+    z=None,
+    indices=None,
+    handle_nans=HandleNans.allow,
+    out=None,
+    **kwargs
+):
     """Create an array of linearrings.
 
     If the provided coords do not constitute a closed linestring, or if there
@@ -187,7 +207,9 @@ def linearrings(coords, y=None, z=None, indices=None, handle_nans=HandleNans.all
     if indices is None:
         return lib.linearrings(coords, np.intc(handle_nans), out=out, **kwargs)
     else:
-        return simple_geometries_1d(coords, indices, GeometryType.LINEARRING, handle_nans=handle_nans, out=out)
+        return simple_geometries_1d(
+            coords, indices, GeometryType.LINEARRING, handle_nans=handle_nans, out=out
+        )
 
 
 @multithreading_enabled

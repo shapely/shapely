@@ -152,9 +152,10 @@ def test_linestrings_invalid_ndim():
         shapely.linestrings(coords)
 
 
-
 def test_linestrings_ignore_nan():
-    actual = shapely.linestrings([[0, 1], [2, float("nan")], [2, 3]], handle_nans="ignore")
+    actual = shapely.linestrings(
+        [[0, 1], [2, float("nan")], [2, 3]], handle_nans="ignore"
+    )
     assert_geometries_equal(actual, LineString([(0, 1), (2, 3)]))
 
 
