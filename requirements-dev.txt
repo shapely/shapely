@@ -1,8 +1,0 @@
-cython==0.29.21
-descartes==1.0.1
-matplotlib
-numpy>=1.4.1
-pytest
-pytest-cov
-setuptools
-wheel

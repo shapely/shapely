@@ -38,11 +38,15 @@ PyObject* GeometryObject_FromGEOS(GEOSGeometry* ptr, GEOSContextHandle_t ctx) {
   } else {
     self->ptr = ptr;
     self->ptr_prepared = NULL;
+    self->weakreflist = (PyObject*)NULL;
     return (PyObject*)self;
   }
 }
 
 static void GeometryObject_dealloc(GeometryObject* self) {
+  if (self->weakreflist != NULL) {
+    PyObject_ClearWeakRefs((PyObject*)self);
+  }
   if (self->ptr != NULL) {
     // not using GEOS_INIT, but using global context instead
     GEOSContextHandle_t ctx = geos_context[0];
@@ -287,59 +291,18 @@ static PyObject* GeometryObject_richcompare(GeometryObject* self, PyObject* othe
   return result;
 }
 
-static PyObject* GeometryObject_FromWKT(PyObject* value) {
-  PyObject* result = NULL;
-  const char* wkt;
-  GEOSGeometry* geom;
-  GEOSWKTReader* reader;
 
-  /* Cast the PyObject str to char* */
-  if (PyUnicode_Check(value)) {
-    wkt = PyUnicode_AsUTF8(value);
-    if (wkt == NULL) {
-      return NULL;
-    }
-  } else {
-    PyErr_Format(PyExc_TypeError, "Expected bytes, found %s", value->ob_type->tp_name);
-    return NULL;
-  }
-
-  GEOS_INIT;
-
-  reader = GEOSWKTReader_create_r(ctx);
-  if (reader == NULL) {
-    errstate = PGERR_GEOS_EXCEPTION;
-    goto finish;
-  }
-  geom = GEOSWKTReader_read_r(ctx, reader, wkt);
-  GEOSWKTReader_destroy_r(ctx, reader);
-  if (geom == NULL) {
-    errstate = PGERR_GEOS_EXCEPTION;
-    goto finish;
-  }
-  result = GeometryObject_FromGEOS(geom, ctx);
-  if (result == NULL) {
-    GEOSGeom_destroy_r(ctx, geom);
-    PyErr_Format(PyExc_RuntimeError, "Could not instantiate a new Geometry object");
-  }
-
-finish:
-  GEOS_FINISH;
-  if (errstate == PGERR_SUCCESS) {
-    return result;
-  } else {
-    return NULL;
-  }
-}
-
-static PyObject* GeometryObject_FromWKB(PyObject* value) {
-  PyObject* result = NULL;
+static PyObject* GeometryObject_SetState(PyObject* self, PyObject* value) {
   unsigned char* wkb = NULL;
   Py_ssize_t size;
   GEOSGeometry* geom = NULL;
   GEOSWKBReader* reader = NULL;
 
-  /* Cast the PyObject bytes to char* */
+  PyErr_WarnFormat(PyExc_UserWarning, 0,
+                   "Unpickling a shapely <2.0 geometry object. Please save the pickle "
+                   "again; shapely 2.1 will not have this compatibility.");
+
+  /* Cast the PyObject bytes to char */
   if (!PyBytes_Check(value)) {
     PyErr_Format(PyExc_TypeError, "Expected bytes, found %s", value->ob_type->tp_name);
     return NULL;
@@ -349,6 +312,16 @@ static PyObject* GeometryObject_FromWKB(PyObject* value) {
   if (wkb == NULL) {
     return NULL;
   }
+
+  PyObject* linearring_type_obj = PyList_GET_ITEM(geom_registry[0], 2);
+  if (linearring_type_obj == NULL) {
+    return NULL;
+  }
+  if (!PyType_Check(linearring_type_obj)) {
+    PyErr_Format(PyExc_RuntimeError, "Invalid registry value");
+    return NULL;
+  }
+  PyTypeObject* linearring_type = (PyTypeObject*)linearring_type_obj;
 
   GEOS_INIT;
 
@@ -362,12 +335,23 @@ static PyObject* GeometryObject_FromWKB(PyObject* value) {
     errstate = PGERR_GEOS_EXCEPTION;
     goto finish;
   }
-
-  result = GeometryObject_FromGEOS(geom, ctx);
-  if (result == NULL) {
-    GEOSGeom_destroy_r(ctx, geom);
-    PyErr_Format(PyExc_RuntimeError, "Could not instantiate a new Geometry object");
+  if (Py_TYPE(self) == linearring_type) {
+    const GEOSCoordSequence* coord_seq = GEOSGeom_getCoordSeq_r(ctx, geom);
+    if (coord_seq == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
+    geom = GEOSGeom_createLinearRing_r(ctx, (GEOSCoordSequence*)coord_seq);
+    if (geom == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
   }
+
+  if (((GeometryObject*)self)->ptr != NULL) {
+    GEOSGeom_destroy_r(ctx, ((GeometryObject*)self)->ptr);
+  }
+  ((GeometryObject*)self)->ptr = geom; 
 
 finish:
 
@@ -377,10 +361,17 @@ finish:
 
   GEOS_FINISH;
 
-  return result;
+  if (errstate == PGERR_SUCCESS) {
+    Py_INCREF(Py_None);
+    return Py_None;
+  }
+  return NULL;
 }
 
+
 static PyMethodDef GeometryObject_methods[] = {
+    {"__setstate__", (PyCFunction)GeometryObject_SetState, METH_O,
+     "For unpickling pre-shapely 2.0 pickles"},
     {NULL} /* Sentinel */
 };
 
@@ -396,6 +387,7 @@ PyTypeObject GeometryType = {
     .tp_repr = (reprfunc)GeometryObject_repr,
     .tp_hash = (hashfunc)GeometryObject_hash,
     .tp_richcompare = (richcmpfunc)GeometryObject_richcompare,
+    .tp_weaklistoffset = offsetof(GeometryObject, weakreflist),
     .tp_str = (reprfunc)GeometryObject_str,
 };
 

@@ -14,7 +14,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2019]
         architecture: [x64]
-        geos: [3.6.5, 3.7.5, 3.8.3, 3.9.3, 3.10.3, 3.11.0, main]
+        geos: [3.6.5, 3.7.5, 3.8.3, 3.9.3, 3.10.3, 3.11.1, main]
         include:
           # 2017
           - python: 3.7  # 3.6 is dropped
@@ -37,14 +37,14 @@ jobs:
             geos: 3.10.3
             numpy: 1.21.3
           # 2022
-          - python: "3.11-dev" # switch to "3.11" when released (PEP 664)
-            geos: 3.11.0
-            numpy: 1.23.3
+          - python: "3.11"
+            geos: 3.11.1
+            numpy: 1.23.4
             matplotlib: true
-            # TODO(shapely-2.0) temporary allow warnings
-            # extra_pytest_args: "-W error"  # error on warnings
+            doctest: true
+            extra_pytest_args: "-W error"  # error on warnings
           # dev
-          - python: "3.10"
+          - python: "3.11"
             geos: main
             extra_pytest_args: "-W error" # error on warnings
           # enable two 32-bit windows builds:
@@ -58,6 +58,11 @@ jobs:
             python: 3.9
             geos: 3.10.3
             numpy: 1.19.5
+          # pypy (use explicit ubuntu version to not overwrite existing ubuntu-latest + geos 3.11.0 build)
+          - os: ubuntu-20.04
+            python: "pypy3.8"
+            geos: 3.11.1
+            numpy: 1.23.4
 
     env:
       GEOS_VERSION: ${{ matrix.geos }}
@@ -122,7 +127,7 @@ jobs:
           else
             pip install --upgrade Cython numpy==${{ matrix.numpy }} pytest pytest-cov coveralls;
           fi
-          if [ -n "${{ matrix.numpy }}" ]; then
+          if [ -n "${{ matrix.matplotlib }}" ]; then
             pip install matplotlib
           fi
           pip list
@@ -131,7 +136,7 @@ jobs:
         run: |
           echo "${{ env.GEOS_INSTALL }}/bin" >> $GITHUB_PATH
           echo "LD_LIBRARY_PATH=${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
 
       - name: Set environment variables (OSX)
         run: |
@@ -160,16 +165,17 @@ jobs:
         # Enable this if we have failures on GEOS main
         # continue-on-error: ${{ matrix.geos == 'main' }}
         run: |
-          pytest shapely/tests tests --cov --cov-report term-missing ${{ matrix.extra_pytest_args }}
+          python -c "import shapely; print(f'GEOS version: {shapely.geos_version_string}')"
+          pytest shapely/tests --cov --cov-report term-missing ${{ matrix.extra_pytest_args }}
 
       # Only run doctests on 1 runner (because of typographic differences in doctest results)
       - name: Run doctests
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.10' }}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.doctest }}
         run: |
           python -m pytest --doctest-modules docs/manual.rst
 
       - name: Run doctests (part 2)
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.10' && matrix.geos == '3.11.0'}}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.doctest }}
         run: |
           pytest --doctest-modules shapely --ignore=shapely/tests
 

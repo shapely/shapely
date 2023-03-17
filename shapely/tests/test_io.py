@@ -8,9 +8,9 @@ import pytest
 
 import shapely
 from shapely import GeometryCollection, LineString, Point, Polygon
+from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
-
-from .common import all_types, empty_point, empty_point_z, point, point_z
+from shapely.tests.common import all_types, empty_point, empty_point_z, point, point_z
 
 # fmt: off
 POINT11_WKB = b"\x01\x01\x00\x00\x00" + struct.pack("<2d", 1.0, 1.0)
@@ -182,7 +182,13 @@ def test_from_wkb_exceptions():
         shapely.from_wkb(1)
 
     # invalid WKB
-    with pytest.raises(shapely.GEOSException, match="Unexpected EOF parsing WKB"):
+    with pytest.raises(
+        shapely.GEOSException,
+        match=(
+            "Unexpected EOF parsing WKB|"
+            "ParseException: Input buffer is smaller than requested object size"
+        ),
+    ):
         result = shapely.from_wkb(b"\x01\x01\x00\x00\x00\x00")
         assert result is None
 
@@ -286,7 +292,7 @@ def test_to_wkt_exceptions():
         shapely.to_wkt(1)
 
     with pytest.raises(shapely.GEOSException):
-        shapely.to_wkt(point, output_dimension=4)
+        shapely.to_wkt(point, output_dimension=5)
 
 
 def test_to_wkt_point_empty():
@@ -402,7 +408,10 @@ def test_to_wkb_exceptions():
         shapely.to_wkb(1)
 
     with pytest.raises(shapely.GEOSException):
-        shapely.to_wkb(point, output_dimension=4)
+        shapely.to_wkb(point, output_dimension=5)
+
+    with pytest.raises(ValueError):
+        shapely.to_wkb(point, flavor="other")
 
 
 def test_to_wkb_byte_order():
@@ -433,6 +442,29 @@ def test_to_wkb_srid():
     point_with_srid = shapely.set_srid(point, np.int32(4326))
     result = shapely.to_wkb(point_with_srid, include_srid=True, byte_order=1)
     assert np.frombuffer(result[5:9], "<u4").item() == 4326
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10.0")
+def test_to_wkb_flavor():
+    # http://libgeos.org/specifications/wkb/#extended-wkb
+    actual = shapely.to_wkb(point_z, byte_order=1)  # default "extended"
+    assert actual.hex()[2:10] == "01000080"
+    actual = shapely.to_wkb(point_z, byte_order=1, flavor="extended")
+    assert actual.hex()[2:10] == "01000080"
+    actual = shapely.to_wkb(point_z, byte_order=1, flavor="iso")
+    assert actual.hex()[2:10] == "e9030000"
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10.0")
+def test_to_wkb_flavor_srid():
+    with pytest.raises(ValueError, match="cannot be used together"):
+        shapely.to_wkb(point_z, include_srid=True, flavor="iso")
+
+
+@pytest.mark.skipif(shapely.geos_version >= (3, 10, 0), reason="GEOS < 3.10.0")
+def test_to_wkb_flavor_unsupported_geos():
+    with pytest.raises(UnsupportedGEOSVersionError):
+        shapely.to_wkb(point_z, flavor="iso")
 
 
 @pytest.mark.parametrize(

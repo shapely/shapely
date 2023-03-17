@@ -64,15 +64,18 @@ class Point(BaseGeometry):
             # Accept either (x, y) or [(x, y)]
             if not hasattr(coords, "__getitem__"):  # generators
                 coords = list(coords)
-
-            if isinstance(coords[0], tuple):
-                coords = coords[0]
-
-            geom = shapely.points(coords)
+            coords = np.asarray(coords).squeeze()
         else:
             # 2 or 3 args
-            geom = shapely.points(np.array(args))
+            coords = np.array(args).squeeze()
 
+        if coords.ndim > 1:
+            raise ValueError(
+                f"Point() takes only scalar or 1-size vector arguments, got {args}"
+            )
+        if not np.issubdtype(coords.dtype, np.number):
+            coords = [float(c) for c in coords]
+        geom = shapely.points(coords)
         if not isinstance(geom, Point):
             raise ValueError("Invalid values passed to Point constructor")
         return geom

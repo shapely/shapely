@@ -1,14 +1,20 @@
 import numpy as np
 
-from . import lib
-from .decorators import requires_geos
-from .enum import ParamEnum
+from shapely import lib
+from shapely._enum import ParamEnum
+
+# include ragged array functions here for reference documentation purpose
+from shapely._ragged_array import from_ragged_array, to_ragged_array
+from shapely.decorators import requires_geos
+from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
     "from_geojson",
+    "from_ragged_array",
     "from_wkb",
     "from_wkt",
     "to_geojson",
+    "to_ragged_array",
     "to_wkb",
     "to_wkt",
 ]
@@ -19,6 +25,8 @@ __all__ = [
 DecodingErrorOptions = ParamEnum(
     "DecodingErrorOptions", {"ignore": 0, "warn": 1, "raise": 2}
 )
+
+WKBFlavorOptions = ParamEnum("WKBFlavorOptions", {"extended": 1, "iso": 2})
 
 
 def to_wkt(
@@ -106,7 +114,13 @@ def to_wkt(
 
 
 def to_wkb(
-    geometry, hex=False, output_dimension=3, byte_order=-1, include_srid=False, **kwargs
+    geometry,
+    hex=False,
+    output_dimension=3,
+    byte_order=-1,
+    include_srid=False,
+    flavor="extended",
+    **kwargs,
 ):
     r"""
     Converts to the Well-Known Binary (WKB) representation of a Geometry.
@@ -137,7 +151,15 @@ def to_wkb(
         and 1 for little endian.
     include_srid : bool, default False
         If True, the SRID is be included in WKB (this is an extension
-        to the OGC WKB specification).
+        to the OGC WKB specification). Not allowed when flavor is "iso".
+    flavor : {"iso", "extended"}, default "extended"
+        Which flavor of WKB will be returned. The flavor determines how
+        extra dimensionality is encoded with the type number, and whether
+        SRID can be included in the WKB. ISO flavor is "more standard" for
+        3D output, and does not support SRID embedding.
+        Both flavors are equivalent when ``output_dimension=2`` (or with 2D
+        geometries) and ``include_srid=False``.
+        The `from_wkb` function can read both flavors.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -159,6 +181,15 @@ def to_wkb(
         raise TypeError("byte_order only accepts scalar values")
     if not np.isscalar(include_srid):
         raise TypeError("include_srid only accepts scalar values")
+    if not np.isscalar(flavor):
+        raise TypeError("flavor only accepts scalar values")
+    if lib.geos_version < (3, 10, 0) and flavor == "iso":
+        raise UnsupportedGEOSVersionError(
+            'The "iso" option requires at least GEOS 3.10.0'
+        )
+    if flavor == "iso" and include_srid:
+        raise ValueError('flavor="iso" and include_srid=True cannot be used together')
+    flavor = WKBFlavorOptions.get_value(flavor)
 
     return lib.to_wkb(
         geometry,
@@ -166,6 +197,7 @@ def to_wkb(
         np.intc(output_dimension),
         np.intc(byte_order),
         np.bool_(include_srid),
+        np.intc(flavor),
         **kwargs,
     )
 

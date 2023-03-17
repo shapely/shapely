@@ -1,8 +1,8 @@
 import numpy as np
 
-from . import lib
-from .decorators import multithreading_enabled, requires_geos
-from .enum import ParamEnum
+from shapely import lib
+from shapely._enum import ParamEnum
+from shapely.decorators import multithreading_enabled, requires_geos
 
 __all__ = [
     "BufferCapStyle",
@@ -12,6 +12,7 @@ __all__ = [
     "offset_curve",
     "centroid",
     "clip_by_rect",
+    "concave_hull",
     "convex_hull",
     "delaunay_triangles",
     "segmentize",
@@ -20,6 +21,7 @@ __all__ = [
     "build_area",
     "make_valid",
     "normalize",
+    "node",
     "point_on_surface",
     "polygonize",
     "polygonize_full",
@@ -83,7 +85,7 @@ MultiLineString, MultiPoint, Point, Polygon
 @multithreading_enabled
 def buffer(
     geometry,
-    radius,
+    distance,
     quad_segs=8,
     cap_style="round",
     join_style="round",
@@ -92,11 +94,11 @@ def buffer(
     **kwargs
 ):
     """
-    Computes the buffer of a geometry for positive and negative buffer radius.
+    Computes the buffer of a geometry for positive and negative buffer distance.
 
     The buffer of a geometry is defined as the Minkowski sum (or difference,
-    for negative width) of the geometry with a circle with radius equal to the
-    absolute value of the buffer radius.
+    for negative distance) of the geometry with a circle with radius equal
+    to the absolute value of the buffer distance.
 
     The buffer operation always returns a polygonal result. The negative
     or zero-distance buffer of lines and points is always empty.
@@ -104,7 +106,7 @@ def buffer(
     Parameters
     ----------
     geometry : Geometry or array_like
-    width : float or array_like
+    distance : float or array_like
         Specifies the circle radius in the Minkowski sum (or difference).
     quad_segs : int, default 8
         Specifies the number of linear segments in a quarter circle in the
@@ -178,7 +180,7 @@ def buffer(
         raise TypeError("single_sided only accepts scalar values")
     return lib.buffer(
         geometry,
-        radius,
+        distance,
         np.intc(quad_segs),
         np.intc(cap_style),
         np.intc(join_style),
@@ -334,6 +336,40 @@ def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
         np.double(ymax),
         **kwargs
     )
+
+
+@requires_geos("3.11.0")
+@multithreading_enabled
+def concave_hull(geometry, ratio=0.0, allow_holes=False, **kwargs):
+    """Computes a concave geometry that encloses an input geometry.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    ratio : float, default 0.0
+        Number in the range [0, 1]. Higher numbers will include fewer vertices
+        in the hull.
+    allow_holes : bool, default False
+        If set to True, the concave hull may have holes.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    Examples
+    --------
+    >>> from shapely import MultiPoint, Polygon
+    >>> concave_hull(MultiPoint([(0, 0), (0, 3), (1, 1), (3, 0), (3, 3)]), ratio=0.1)
+    <POLYGON ((0 0, 0 3, 1 1, 3 3, 3 0, 0 0))>
+    >>> concave_hull(MultiPoint([(0, 0), (0, 3), (1, 1), (3, 0), (3, 3)]), ratio=1.0)
+    <POLYGON ((0 0, 0 3, 3 3, 3 0, 0 0))>
+    >>> concave_hull(Polygon())
+    <POLYGON EMPTY>
+    """
+    if not np.isscalar(ratio):
+        raise TypeError("ratio must be scalar")
+    if not np.isscalar(allow_holes):
+        raise TypeError("allow_holes must be scalar")
+    return lib.concave_hull(geometry, np.double(ratio), np.bool_(allow_holes), **kwargs)
 
 
 @multithreading_enabled
@@ -557,6 +593,40 @@ def point_on_surface(geometry, **kwargs):
     return lib.point_on_surface(geometry, **kwargs)
 
 
+@multithreading_enabled
+def node(geometry, **kwargs):
+    """
+    Returns the fully noded version of the linear input as MultiLineString.
+
+    Given a linear input geometry, this function returns a new MultiLineString
+    in which no lines cross each other but only touch at and points. To
+    obtain this, all intersections between segments are computed and added
+    to the segments, and duplicate segments are removed.
+
+    Non-linear input (points) will result in an empty MultiLineString.
+
+    This function can for example be used to create a fully-noded linework
+    suitable to passed as input to ``polygonize``.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    Examples
+    --------
+    >>> from shapely import LineString, Point
+    >>> line = LineString([(0, 0), (1,1), (0, 1), (1, 0)])
+    >>> node(line)
+    <MULTILINESTRING ((0 0, 0.5 0.5), (0.5 0.5, 1 1, 0 1, 0.5 0.5), (0.5 0.5, 1 0))>
+    >>> node(Point(1, 1))
+    <MULTILINESTRING EMPTY>
+    """
+    return lib.node(geometry, **kwargs)
+
+
 def polygonize(geometries, **kwargs):
     """Creates polygons formed from the linework of a set of Geometries.
 
@@ -595,6 +665,7 @@ def polygonize(geometries, **kwargs):
     --------
     get_parts, get_geometry
     polygonize_full
+    node
 
     Examples
     --------
@@ -646,7 +717,7 @@ def polygonize_full(geometries, **kwargs):
 
     Returns
     -------
-    (polgyons, cuts, dangles, invalid)
+    (polygons, cuts, dangles, invalid)
         tuple of 4 GeometryCollections or arrays of GeometryCollections
 
     See Also
@@ -781,7 +852,7 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
     tolerance : float or array_like
         The maximum allowed geometry displacement. The higher this value, the
         smaller the number of vertices in the resulting geometry.
-    preserve_topology : bool, default False
+    preserve_topology : bool, default True
         By default (True), the operation will avoid creating invalid
         geometries (checking for collapses, ring-intersections, etc), but
         this is computationally more expensive.
@@ -816,9 +887,20 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
 def snap(geometry, reference, tolerance, **kwargs):
     """Snaps an input geometry to reference geometry's vertices.
 
-    The tolerance is used to control where snapping is performed.
+    Vertices of the first geometry are snapped to vertices of the second.
+    geometry, returning a new geometry; the input geometries are not modified.
     The result geometry is the input geometry with the vertices snapped.
     If no snapping occurs then the input geometry is returned unchanged.
+    The tolerance is used to control where snapping is performed.
+
+    Where possible, this operation tries to avoid creating invalid geometries;
+    however, it does not guarantee that output geometries will be valid.  It is
+    the responsibility of the caller to check for and handle invalid geometries.
+
+    Because too much snapping can result in invalid geometries being created,
+    heuristics are used to determine the number and location of snapped
+    vertices that are likely safe to snap. These heuristics may omit
+    some potential snaps that are otherwise within the tolerance.
 
     Parameters
     ----------
@@ -831,18 +913,54 @@ def snap(geometry, reference, tolerance, **kwargs):
 
     Examples
     --------
-    >>> from shapely import LineString, Point, Polygon
+    >>> from shapely import snap, distance, LineString, Point, Polygon, MultiPoint, box
+
     >>> point = Point(0.5, 2.5)
     >>> target_point = Point(0, 2)
     >>> snap(point, target_point, tolerance=1)
     <POINT (0 2)>
     >>> snap(point, target_point, tolerance=0.49)
     <POINT (0.5 2.5)>
+
     >>> polygon = Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
     >>> snap(polygon, Point(8, 10), tolerance=5)
     <POLYGON ((0 0, 0 10, 8 10, 10 0, 0 0))>
     >>> snap(polygon, LineString([(8, 10), (8, 0)]), tolerance=5)
     <POLYGON ((0 0, 0 10, 8 10, 8 0, 0 0))>
+
+    You can snap one line to another, for example to clean imprecise coordinates:
+
+    >>> line1 = LineString([(0.1, 0.1), (0.49, 0.51), (1.01, 0.89)])
+    >>> line2 = LineString([(0, 0), (0.5, 0.5), (1.0, 1.0)])
+    >>> snap(line1, line2, 0.25)
+    <LINESTRING (0 0, 0.5 0.5, 1 1)>
+
+    Snapping also supports Z coordinates:
+
+    >>> point1 = Point(0.1, 0.1, 0.5)
+    >>> multipoint = MultiPoint([(0, 0, 1), (0, 0, 0)])
+    >>> snap(point1, multipoint, 1)
+    <POINT Z (0 0 1)>
+
+    Snapping to an empty geometry has no effect:
+
+    >>> snap(line1, LineString([]), 0.25)
+    <LINESTRING (0.1 0.1, 0.49 0.51, 1.01 0.89)>
+
+    Snapping to a non-geometry (None) will always return None:
+
+    >>> snap(line1, None, 0.25) is None
+    True
+
+    Only one vertex of a polygon is snapped to a target point,
+    even if all vertices are equidistant to it,
+    in order to prevent collapse of the polygon:
+
+    >>> poly = box(0, 0, 1, 1)
+    >>> poly
+    <POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))>
+    >>> snap(poly, Point(0.5, 0.5), 1)
+    <POLYGON ((0.5 0.5, 1 1, 0 1, 0 0, 0.5 0.5))>
     """
     return lib.snap(geometry, reference, tolerance, **kwargs)
 

@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "cython",
+    "Cython~=0.29",
     "oldest-supported-numpy",
     "setuptools>=61.0.0",
 ]
@@ -32,6 +32,7 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Topic :: Scientific/Engineering :: GIS",
 ]
 requires-python = ">=3.7"
@@ -40,18 +41,30 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest"]
-docs = ["sphinx", "numpydoc"]
+test = [
+    "pytest",
+    "pytest-cov",
+]
+docs = [
+    "numpydoc==1.1.*",
+    "matplotlib",
+    "sphinx",
+    "sphinx-book-theme",
+    "sphinx-remove-toctrees",
+]
 
 [project.urls]
 Documentation = "https://shapely.readthedocs.io/"
 Repository = "https://github.com/shapely/shapely"
 
+[tool.setuptools]
+include-package-data = false
+
 [tool.setuptools.packages.find]
-include = [
-    "shapely",
-    "shapely.*",
-]
+include = ["shapely", "shapely.*"]
+
+[tool.setuptools.package-data]
+"shapely" = ["*.pxd"]
 
 [tool.coverage.run]
 source = ["shapely"]

@@ -15,8 +15,7 @@ from shapely import (
     Polygon,
 )
 from shapely.testing import assert_geometries_equal
-
-from .common import (
+from shapely.tests.common import (
     all_types,
     empty,
     empty_line_string,
@@ -33,8 +32,15 @@ CONSTRUCTIVE_NO_ARGS = (
     shapely.boundary,
     shapely.centroid,
     shapely.convex_hull,
+    pytest.param(
+        shapely.concave_hull,
+        marks=pytest.mark.skipif(
+            shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11"
+        ),
+    ),
     shapely.envelope,
     shapely.extract_unique_points,
+    shapely.node,
     shapely.normalize,
     shapely.point_on_surface,
 )
@@ -70,7 +76,9 @@ def test_float_arg_array(geometry, func):
     # voronoi_polygons emits an "invalid" warning when supplied with an empty
     # point (see https://github.com/libgeos/geos/issues/515)
     with ignore_invalid(
-        func is shapely.voronoi_polygons and shapely.get_type_id(geometry) == 0
+        func is shapely.voronoi_polygons
+        and shapely.get_type_id(geometry) == 0
+        and shapely.geos_version < (3, 12, 0)
     ):
         actual = func([geometry, geometry], 0.0)
     assert actual.shape == (2,)
@@ -244,7 +252,7 @@ def test_normalize(geom, expected):
 
 
 def test_offset_curve_empty():
-    with ignore_invalid():
+    with ignore_invalid(shapely.geos_version < (3, 12, 0)):
         # Empty geometries emit an "invalid" warning
         # (see https://github.com/libgeos/geos/issues/515)
         actual = shapely.offset_curve(empty_line_string, 2.0)
@@ -338,11 +346,13 @@ def test_remove_repeated_points(geom, expected):
     assert_geometries_equal(shapely.remove_repeated_points(geom, 0), expected)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
 @pytest.mark.parametrize(
     "geom, tolerance", [[Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]), 2]]
 )
 def test_remove_repeated_points_invalid_result(geom, tolerance):
+    # Requiring GEOS 3.12 instead of 3.11
+    # (GEOS 3.11 had a bug causing this to intermittently not fail)
     with pytest.raises(shapely.GEOSException, match="Invalid number of points"):
         shapely.remove_repeated_points(geom, tolerance)
 
@@ -958,3 +968,18 @@ def test_oriented_envelope(geometry, expected):
 def test_minimum_rotated_rectangle(geometry, expected):
     actual = shapely.minimum_rotated_rectangle(geometry)
     assert shapely.equals(actual, expected).all()
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
+def test_concave_hull_kwargs():
+    p = Point(10, 10)
+    mp = MultiPoint(p.buffer(5).exterior.coords[:] + p.buffer(4).exterior.coords[:])
+
+    result1 = shapely.concave_hull(mp, ratio=0.5)
+    assert len(result1.interiors) == 0
+    result2 = shapely.concave_hull(mp, ratio=0.5, allow_holes=True)
+    assert len(result2.interiors) == 1
+
+    result3 = shapely.concave_hull(mp, ratio=0)
+    result4 = shapely.concave_hull(mp, ratio=1)
+    assert shapely.get_num_coordinates(result4) < shapely.get_num_coordinates(result3)

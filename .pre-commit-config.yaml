@@ -1,16 +1,15 @@
 files: 'shapely/'
-exclude: 'shapely/examples'
 repos:
 -   repo: https://github.com/psf/black
     rev: 22.3.0
     hooks:
     - id: black
--   repo: https://gitlab.com/pycqa/flake8
-    rev: 3.9.2
+-   repo: https://github.com/pycqa/flake8
+    rev: 5.0.4
     hooks:
     - id: flake8
 -   repo: https://github.com/pycqa/isort
-    rev: 5.10.1
+    rev: 5.12.0
     hooks:
     - id: isort
       exclude: shapely/__init__.py

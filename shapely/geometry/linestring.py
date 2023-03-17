@@ -1,5 +1,6 @@
 """Line strings and related utilities
 """
+import numpy as np
 
 import shapely
 from shapely.geometry.base import BaseGeometry, JOIN_STYLE
@@ -48,14 +49,21 @@ class LineString(BaseGeometry):
                 # TODO convert LinearRing to LineString more directly
                 coordinates = coordinates.coords
         else:
-            # check coordinates on points
-            def _coords(o):
-                if isinstance(o, Point):
-                    return o.coords[0]
-                else:
-                    return o
+            if hasattr(coordinates, "__array__"):
+                coordinates = np.asarray(coordinates)
+            if isinstance(coordinates, np.ndarray) and np.issubdtype(
+                coordinates.dtype, np.number
+            ):
+                pass
+            else:
+                # check coordinates on points
+                def _coords(o):
+                    if isinstance(o, Point):
+                        return o.coords[0]
+                    else:
+                        return [float(c) for c in o]
 
-            coordinates = [_coords(o) for o in coordinates]
+                coordinates = [_coords(o) for o in coordinates]
 
         if len(coordinates) == 0:
             # empty geometry
@@ -146,6 +154,8 @@ class LineString(BaseGeometry):
         """
         if mitre_limit == 0.0:
             raise ValueError("Cannot compute offset from zero-length line segment")
+        elif not np.isfinite(distance):
+            raise ValueError("offset_curve distance must be finite")
         return shapely.offset_curve(self, distance, quad_segs, join_style, mitre_limit)
 
     def parallel_offset(

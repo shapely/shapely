@@ -1,10 +1,45 @@
 Version 2.x
 ===========
 
+.. _version-2-0-1:
+
+Version 2.0.1 (2023-01-30)
+--------------------------
+
+Bug fixes:
+
+- Fix regression in the ``Polygon()`` constructor taking a sequence of Points (#1662).
+- Fix regression in the geometry constructors when passing ``decimal.Decimal``
+  coordinate values (#1707).
+- Fix ``STRtree()`` to not make the passed geometry array immutable as side-effect of
+  the constructor (#1714).
+- Fix the ``directed`` keyword in ``shapely.ops.linemerge()`` (#1695).
+
+Improvements:
+
+- Expose the function to get a matplotlib Patch object from a (Multi)Polygon (without
+  already plotting it) publicly as :func:`shapely.plotting.patch_from_polygon` (#1704).
+
+Acknowledgments
+^^^^^^^^^^^^^^^
+
+Thanks to everyone who contributed to this release!
+People with a "+" by their names contributed a patch for the first time.
+
+* Brendan Ward
+* Erik Pettersson +
+* Hood Chatham +
+* Idan Miara +
+* Joris Van den Bossche
+* Martin Fleischmann
+* Michał Górny +
+* Sebastian Castro +
+
+
 .. _version-2-0-0:
 
-Version 2.0.0 (in progress)
----------------------------
+Version 2.0.0 (2022-12-12)
+--------------------------
 
 Shapely 2.0 version is a major release featuring a complete refactor of the
 internals and new vectorized (element-wise) array operations, providing
@@ -94,7 +129,7 @@ small name deviations, such as the ``.wkt`` attribute being available as a
 functions from the ``shapely.ops`` submodule such as ``polygonize()``) are
 also made available in a vectorized version as top-level function.
 
-A full list of functions can be found in the API docs. TODO add link
+A full list of functions can be found in the API docs (see the pages listed under "API REFERENCE" in the left sidebar).
 
 * Vectorized constructor functions
 * Optionally output to a user-specified array (``out`` keyword argument) when constructing
@@ -158,6 +193,9 @@ Some additional backwards incompatible API changes were included in Shapely
 * A ``GeometryCollection`` that consists of all empty sub-geometries now
   returns those empty geometries from its ``.geoms`` attribute instead of
   returning an empty list (#1420).
+* The ``Point(..)`` constructor no longer accepts a sequence of coordinates
+  consisting of more than one coordinate pair (previously, subsequent
+  coordinates were ignored) (#1600).
 * The unused ``shape_factory()`` method and ``HeterogeneousGeometrySequence``
   class are removed (#1421).
 * The undocumented ``__geom__`` attribute has been removed. If necessary
@@ -311,12 +349,16 @@ Several (new) functions from GEOS are now exposed in Shapely:
 * :func:`.contains_properly`
 * :func:`.extract_unique_points`
 * :func:`.reverse`
+* :func:`.node`
+* :func:`.contains_xy` and :func:`.intersects_xy`
 * :func:`.build_area` (GEOS >= 3.8)
 * :func:`.minimum_bounding_circle` and :func:`.minimum_bounding_radius` (GEOS >= 3.8)
 * :func:`.coverage_union` and :func:`.coverage_union_all` (GEOS >= 3.8)
 * :func:`.segmentize` (GEOS >= 3.10)
 * :func:`.dwithin` (GEOS >= 3.10)
 * :func:`.remove_repeated_points` (GEOS >= 3.11)
+* :func:`.line_merge` added `directed` parameter (GEOS > 3.11)
+* :func:`.concave_hull` (GEOS >= 3.11)
 
 In addition some aliases for existing methods have been added to provide a
 method name consistent with GEOS or PostGIS:
@@ -384,12 +426,14 @@ prepared. Helper functions :func:`.destroy_prepared` and :func:`.is_prepared`
 are also available.
 
 
-GeoJSON IO
-~~~~~~~~~~
+New IO methods (GeoJSON, ragged arrays)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Added GeoJSON input/output capabilities :func:`.from_geojson` and
-  :func:`.to_geojson` for GEOS >= 3.10 (#413).
-
+  :func:`.to_geojson` for GEOS >= 3.10.
+* Added conversion to/from ragged array representation using a contiguous array
+  of coordinates and offset arrays: :func:`.to_ragged_array` and
+  :func:`.from_ragged_array`.
 
 Other improvements
 ~~~~~~~~~~~~~~~~~~
@@ -430,19 +474,30 @@ People with a "+" by their names contributed a patch for the first time.
 
 * Adam J. Stewart +
 * Alan D. Snow +
+* Ariel Kadouri
+* Bas Couwenberg
+* Ben Beasley
 * Brendan Ward +
 * Casper van der Wel +
+* Ewout ter Hoeven +
+* Geir Arne Hjelle +
+* James Gaboardi
 * James Myatt +
 * Joris Van den Bossche
 * Keith Jenkins +
 * Kian Meng Ang +
 * Krishna Chaitanya +
+* Kyle Barron
 * Martin Fleischmann +
 * Martin Lackner +
 * Mike Taves
+* Phil Chiu +
 * Tanguy Ophoff +
 * Tom Clancy
 * Sean Gillies
 * Giorgos Papadokostakis +
 * Mattijn van Hoek +
+* enrico ferreguti +
+* gpapadok +
+* mattijn +
 * odidev +

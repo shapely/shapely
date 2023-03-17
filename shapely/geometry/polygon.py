@@ -76,14 +76,25 @@ class LinearRing(LineString):
                 coordinates = coordinates.coords
 
         else:
-            # check coordinates on points
-            def _coords(o):
-                if isinstance(o, Point):
-                    return o.coords[0]
-                else:
-                    return o
+            if hasattr(coordinates, "__array__"):
+                coordinates = np.asarray(coordinates)
+            if isinstance(coordinates, np.ndarray) and np.issubdtype(
+                coordinates.dtype, np.number
+            ):
+                pass
+            else:
+                # check coordinates on points
+                def _coords(o):
+                    if isinstance(o, Point):
+                        return o.coords[0]
+                    else:
+                        return [float(c) for c in o]
 
-            coordinates = [_coords(o) for o in coordinates]
+                coordinates = np.array([_coords(o) for o in coordinates])
+                if not np.issubdtype(coordinates.dtype, np.number):
+                    # conversion of coords to 2D array failed, this might be due
+                    # to inconsistent coordinate dimensionality
+                    raise ValueError("Inconsistent coordinate dimensionality")
 
         if len(coordinates) == 0:
             # empty geometry
@@ -113,7 +124,7 @@ class LinearRing(LineString):
     def is_simple(self):
         """True if the geometry is simple, meaning that any self-intersections
         are only at boundary points, else False"""
-        return shapely.is_simple(self)
+        return bool(shapely.is_simple(self))
 
 
 shapely.lib.registry[2] = LinearRing
@@ -215,10 +226,8 @@ class Polygon(BaseGeometry):
         elif isinstance(shell, Polygon):
             # return original objects since geometries are immutable
             return shell
-        # else:
-        #     geom_shell = LinearRing(shell)
-        #     if holes is not None:
-        #         geom_holes = [LinearRing(h) for h in holes]
+        else:
+            shell = LinearRing(shell)
 
         if holes is not None:
             if len(holes) == 0:
@@ -226,24 +235,6 @@ class Polygon(BaseGeometry):
                 holes = None
             else:
                 holes = [LinearRing(ring) for ring in holes]
-
-        if not isinstance(shell, BaseGeometry):
-            if not isinstance(shell, (list, np.ndarray)):
-                # eg emtpy generator not handled well by np.asarray
-                shell = list(shell)
-            shell = np.asarray(shell)
-
-            if len(shell) == 0:
-                # empty geometry
-                # TODO better constructor + should shapely.polygons handle this?
-                return shapely.from_wkt("POLYGON EMPTY")
-
-            if not np.issubdtype(shell.dtype, np.number):
-                # conversion of coords to 2D array failed, this might be due
-                # to inconsistent coordinate dimensionality
-                raise ValueError("Inconsistent coordinate dimensionality")
-        elif not isinstance(shell, LinearRing):
-            shell = LinearRing(shell)
 
         geom = shapely.polygons(shell, holes=holes)
         if not isinstance(geom, Polygon):

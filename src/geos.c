@@ -21,13 +21,14 @@ int init_geos(PyObject* m) {
   geos_exception[0] =
       PyErr_NewException("shapely.errors.GEOSException", base_class, NULL);
   PyModule_AddObject(m, "GEOSException", geos_exception[0]);
-  return 0;
 
   void* context_handle = GEOS_init_r();
   // TODO: the error handling is not yet set up for the global context (it is right now
   // only used where error handling is not used)
   // GEOSContext_setErrorMessageHandler_r(context_handle, geos_error_handler, last_error);
   geos_context[0] = context_handle;
+
+  return 0;
 }
 
 void destroy_geom_arr(void* context, GEOSGeometry** array, int length) {
@@ -659,11 +660,13 @@ GEOSGeometry* create_point(GEOSContextHandle_t ctx, double x, double y) {
   if (coord_seq == NULL) {
     return NULL;
   }
-  for (int j = 0; j < 2; j++) {
-    if (!GEOSCoordSeq_setOrdinate_r(ctx, coord_seq, 0, j, 0.0)) {
-      GEOSCoordSeq_destroy_r(ctx, coord_seq);
-      return NULL;
-    }
+  if (!GEOSCoordSeq_setX_r(ctx, coord_seq, 0, x)) {
+    GEOSCoordSeq_destroy_r(ctx, coord_seq);
+    return NULL;
+  }
+  if (!GEOSCoordSeq_setY_r(ctx, coord_seq, 0, y)) {
+    GEOSCoordSeq_destroy_r(ctx, coord_seq);
+    return NULL;
   }
   geom = GEOSGeom_createPoint_r(ctx, coord_seq);
   if (geom == NULL) {
@@ -926,7 +929,7 @@ unsigned int count_finite(const double* buf, unsigned int size, unsigned int dim
  * checked before calling this function, so the buffer and the dims argument
  * is only 2D or 3D.
  *
- * handle_nans: 0 means 'raise', 1 means 'allow', 2 means 'ignore'
+ * handle_nans: 0 means 'allow', 1 means 'ignore', 2 means 'raise'
  */
 GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
                                         unsigned int size, unsigned int dims,

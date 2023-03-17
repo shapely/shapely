@@ -4,14 +4,13 @@ Geometry factories based on the geo interface
 import numpy as np
 
 from shapely.errors import GeometryTypeError
-
-from .collection import GeometryCollection
-from .linestring import LineString
-from .multilinestring import MultiLineString
-from .multipoint import MultiPoint
-from .multipolygon import MultiPolygon
-from .point import Point
-from .polygon import LinearRing, Polygon
+from shapely.geometry.collection import GeometryCollection
+from shapely.geometry.linestring import LineString
+from shapely.geometry.multilinestring import MultiLineString
+from shapely.geometry.multipoint import MultiPoint
+from shapely.geometry.multipolygon import MultiPolygon
+from shapely.geometry.point import Point
+from shapely.geometry.polygon import LinearRing, Polygon
 
 
 def _is_coordinates_empty(coordinates):

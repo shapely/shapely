@@ -1,4 +1,3 @@
-import sys
 from contextlib import contextmanager
 
 import numpy as np
@@ -43,7 +42,6 @@ empty_line_string = shapely.from_wkt("LINESTRING EMPTY")
 empty_line_string_z = shapely.from_wkt("LINESTRING Z EMPTY")
 empty_polygon = shapely.from_wkt("POLYGON EMPTY")
 empty = shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")
-line_string_nan = shapely.LineString([(np.nan, np.nan), (np.nan, np.nan)])
 multi_point_z = shapely.MultiPoint([(0, 0, 4), (1, 2, 4)])
 multi_line_string_z = shapely.MultiLineString([[(0, 0, 4), (1, 2, 4)]])
 multi_polygon_z = shapely.multipolygons(
@@ -71,29 +69,13 @@ all_types = (
 
 
 @contextmanager
-def assert_increases_refcount(obj):
-    try:
-        before = sys.getrefcount(obj)
-    except AttributeError:  # happens on Pypy
-        pytest.skip("sys.getrefcount is not available.")
-    yield
-    assert sys.getrefcount(obj) == before + 1
-
-
-@contextmanager
-def assert_decreases_refcount(obj):
-    try:
-        before = sys.getrefcount(obj)
-    except AttributeError:  # happens on Pypy
-        pytest.skip("sys.getrefcount is not available.")
-    yield
-    assert sys.getrefcount(obj) == before - 1
-
-
-@contextmanager
 def ignore_invalid(condition=True):
     if condition:
         with np.errstate(invalid="ignore"):
             yield
     else:
         yield
+
+
+with ignore_invalid():
+    line_string_nan = shapely.LineString([(np.nan, np.nan), (np.nan, np.nan)])

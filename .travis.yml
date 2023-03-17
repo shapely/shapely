@@ -7,7 +7,7 @@ if: (branch = main OR tag IS present) AND (type = push)
 
 env:
   global:
-  - GEOS_VERSION=3.11.0
+  - GEOS_VERSION=3.11.1
 
 cache:
   directories:
@@ -19,47 +19,16 @@ jobs:
   - arch: ppc64le
   - arch: s390x
   - arch: arm64
-  - arch: arm64
-    dist: bionic  # docker pull gives TLS handshake timeouts on focal
-    services: docker
-    env:
-    - CIBUILDWHEEL=1
-    - CIBW_BUILD="cp*-manylinux_aarch64"
-    - CIBW_ENVIRONMENT_PASS_LINUX="GEOS_VERSION GEOS_INSTALL GEOS_CONFIG LD_LIBRARY_PATH"
-    - CIBW_BEFORE_ALL="./ci/install_geos.sh"
-    - CIBW_TEST_REQUIRES="pytest"
-    - CIBW_TEST_COMMAND="pytest --pyargs shapely.tests"
 
 install:
 - |
-  if [[ -z $CIBUILDWHEEL ]]; then
-    export GEOS_INSTALL=$HOME/geosinstall/geos-$GEOS_VERSION
-    ./ci/install_geos.sh
-    export PATH=$HOME/geosinstall/geos-$GEOS_VERSION/bin:$PATH
-    pip install .[test]
-  else
-    python3 -m pip install cibuildwheel==2.10.2
-  fi
+  export GEOS_INSTALL=$HOME/geosinstall/geos-$GEOS_VERSION
+  ./ci/install_geos.sh
+  export PATH=$HOME/geosinstall/geos-$GEOS_VERSION/bin:$PATH
+  pip install .[test]
 
 script:
 - |
-  if [[ -z $CIBUILDWHEEL ]]; then
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/geosinstall/geos-$GEOS_VERSION/lib
-    cd ..
-    pytest -v --pyargs shapely.tests
-  else
-    export GEOS_INSTALL=/host$HOME/geosinstall/geos-$GEOS_VERSION
-    export GEOS_CONFIG=$GEOS_INSTALL/bin/geos-config
-    export LD_LIBRARY_PATH=$GEOS_INSTALL/lib
-    python3 -m cibuildwheel --output-dir dist
-  fi
-
-deploy:
-  provider: pypi
-  username: "__token__"
-  password:
-    secure: "hU7JzC2F1GomDVpSOw9L3WHV/qwVWkc3NI6YCkkqUArMyYnJPSMBJck9ugeZIJ6OrIKORs50vIAdGrYQnjbhcntQzwc384mfnNO3FNPMnkBaxi4y0ofERy/ygqysM+tEOXINzJpFcYyylpknQdSnuzLSgYhdm+OXfob5Sqy/ABX+dXEuz1pb7UWvK0oYcLC1PYkfneFK4IcUIHYuMhia48y0jfxlez9gFZMAos3PKtn6m9CRN4xU370RgNjvy7Ey/hXwiTlm4rrX4KbEFj1q/SoaXvgK+mQqofM7n/4MakA8VFzKtz5a/L64f4iiJy0V2WgO/DiO2fLFwfEFmr+23WY8TTkMV/p7IAjZzeMY9ZmODymzXRKaJxIVt0MerLiwdul7nVCmXbJ/HkQwW2p32IUxzL37XaEk6ZN4lTb+5BhPA9e6jCZdgRY8sfJrrOzFxNNVm0wuf9nbve662PYhmgq9sETk4sdvqK8ODem/TSqMZzsq6FPRf2JCeFGZn+2TAKp+nwAFTByoJ/mMNsTc3TjtAzFhhtd2DUQriGadD+aNPZexA+yKCVSY/EGDYxpbnyS1h1fJv17kgyLxQfUi5FDBwrcGX0Ld01IyqcQbaw57DLDTQYYK4yvrfsYaQJDIQlySe8BkwgtJ5Dz9WP13MUZJ7VrISYMdTRU805eTvRE="
-  skip_cleanup: true
-  skip_existing: true
-  on:
-    tags: true
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/geosinstall/geos-$GEOS_VERSION/lib
+  cd ..
+  pytest -v --pyargs shapely.tests

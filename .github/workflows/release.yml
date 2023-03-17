@@ -46,7 +46,7 @@ jobs:
     name: Build ${{ matrix.arch }} wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     env:
-      GEOS_VERSION: "3.11.0"
+      GEOS_VERSION: "3.11.1"
     strategy:
       fail-fast: false
       matrix:
@@ -113,7 +113,7 @@ jobs:
         if: ${{ matrix.msvc_arch }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.10.2
+        uses: pypa/cibuildwheel@v2.12.0
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_SKIP: cp36-* pp* *musllinux* cp310-manylinux_i686
@@ -186,7 +186,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Upload Release Assets to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.5.1
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
           password: ${{ secrets.pypi_password }}

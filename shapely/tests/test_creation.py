@@ -15,8 +15,7 @@ from shapely import (
     Polygon,
 )
 from shapely.testing import assert_geometries_equal
-
-from .common import (
+from shapely.tests.common import (
     empty_polygon,
     geometry_collection,
     line_string,
@@ -49,8 +48,11 @@ def test_points_from_xyz():
 
 
 def test_points_invalid_ndim():
-    with pytest.raises(shapely.GEOSException):
+    with pytest.raises(ValueError, match="dimension should be 2 or 3, got 4"):
         shapely.points([0, 1, 2, 3])
+
+    with pytest.raises(ValueError, match="dimension should be 2 or 3, got 1"):
+        shapely.points([0])
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")

@@ -31,7 +31,7 @@ clean:
 	-rm -rf $(BUILDDIR)/* build/plot_directive/* reference/* _reference.rst
 
 html:
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
+	$(SPHINXBUILD) -n -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 
