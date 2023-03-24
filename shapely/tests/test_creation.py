@@ -257,10 +257,17 @@ def test_linearrings_buffer(dim, order):
     assert_geometries_equal(result3, result1[0])
 
 
-def test_linearrings_ignore_nan():
-    actual = shapely.linearrings(
-        [0, 1, float("nan"), 2, 0], [3, 4, 5, 5, 3], handle_nans="ignore"
-    )
+@pytest.mark.parametrize(
+    "x,y",
+    [
+        ([0, 1, float("nan"), 2, 0], [3, 4, 5, 5, 3]),
+        ([0, 1, 1, 2, 0], [3, 4, float("nan"), 5, 3]),
+        ([0, 1, 2, 0, float("nan")], [3, 4, 5, 3, 3]),
+        ([float("nan"), 0, 1, 2, 0], [3, 3, 4, 5, 3]),
+    ],
+)
+def test_linearrings_ignore_nan(x, y):
+    actual = shapely.linearrings(x, y, handle_nans="ignore")
     assert_geometries_equal(actual, LinearRing([(0, 3), (1, 4), (2, 5), (0, 3)]))
 
 
