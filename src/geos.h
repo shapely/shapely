@@ -55,6 +55,8 @@ enum {
   PGERR_EMPTY_GEOMETRY,
   PGERR_GEOJSON_EMPTY_POINT,
   PGERR_LINEARRING_NCOORDS,
+  PGERR_NAN_COORD,
+  PGWARN_NAN_COORD,
   PGWARN_INVALID_WKB,  // raise the GEOS WKB error as a warning instead of exception
   PGWARN_INVALID_WKT,  // raise the GEOS WKT error as a warning instead of exception
   PGWARN_INVALID_GEOJSON,
@@ -99,6 +101,17 @@ enum {
     case PGERR_LINEARRING_NCOORDS:                                                       \
       PyErr_SetString(PyExc_ValueError,                                                  \
                       "A linearring requires at least 4 coordinates.");                  \
+      break;                                                                             \
+    case PGERR_NAN_COORD:                                                                \
+      PyErr_SetString(PyExc_ValueError,                                                  \
+                      "A NaN, Inf or -Inf coordinate was supplied. Remove the "          \
+                      "coordinate or adapt the 'handle_nans' parameter.");               \
+      break;                                                                             \
+    case PGWARN_NAN_COORD:                                                               \
+      PyErr_WarnFormat(PyExc_Warning, 0,                                                 \
+                       "A NaN, Inf or -Inf coordinate was supplied. Remove the "         \
+                       "coordinate or adapt the 'handle_nans' parameter to silence "     \
+                       "this warning.");                                                 \
       break;                                                                             \
     case PGWARN_INVALID_WKB:                                                             \
       PyErr_WarnFormat(PyExc_Warning, 0,                                                 \
@@ -181,15 +194,11 @@ GEOSGeometry* create_point(GEOSContextHandle_t ctx, double x, double y);
 GEOSGeometry* PyGEOSForce2D(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 GEOSGeometry* PyGEOSForce3D(GEOSContextHandle_t ctx, GEOSGeometry* geom, double z);
 
-enum {
-  PYGEOS_HANDLE_NANS_ALLOW,
-  PYGEOS_HANDLE_NANS_IGNORE,
-  PYGEOS_HANDLE_NANS_RAISE
-};
-GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
-                                        unsigned int size, unsigned int dims,
-                                        char is_ring, int handle_nans, npy_intp cs1,
-                                        npy_intp cs2);
+enum { PYGEOS_HANDLE_NANS_ALLOW, PYGEOS_HANDLE_NANS_IGNORE, PYGEOS_HANDLE_NANS_RAISE };
+extern int coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
+                                unsigned int size, unsigned int dims, char is_ring,
+                                int handle_nans, npy_intp cs1, npy_intp cs2,
+                                GEOSCoordSequence* coord_seq);
 extern int coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq,
                               double* buf, unsigned int size, unsigned int dims);
 

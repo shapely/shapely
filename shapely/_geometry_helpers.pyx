@@ -122,8 +122,7 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type, 
                         f"Index {geom_idx} is missing from the input indices."
                     )
 
-            seq = PyGEOS_CoordSeq_FromBuffer(geos_handle, &coord_view[idx, 0], geom_size, dims, is_ring, handle_nans)
-            if seq == NULL:
+            if PyGEOS_CoordSeq_FromBuffer(geos_handle, &coord_view[idx, 0], geom_size, dims, is_ring, handle_nans, seq) != 0:
                 return  # GEOSException is raised by get_geos_handle
             # check the resulting size to prevent invalid rings
             if is_ring == 1:

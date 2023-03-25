@@ -77,10 +77,10 @@
 
 /** (ip1, cp1, cp2) -> (op1) */
 #define DOUBLE_COREDIM_LOOP_OUTER                                          \
-  char *ip1 = args[0], *op1 = args[1], *cp1, *cp2;                         \
+  char *ip1 = args[0], *op1 = args[1];                         \
   npy_intp is1 = steps[0], os1 = steps[1], cs1 = steps[3], cs2 = steps[4]; \
   npy_intp n = dimensions[0], n_c1 = dimensions[1], n_c2 = dimensions[2];  \
-  npy_intp i, i_c1, i_c2;                                                  \
+  npy_intp i;                                                  \
   for (i = 0; i < n; i++, ip1 += is1, op1 += os1)
 
 #define DOUBLE_COREDIM_LOOP_INNER_1 \

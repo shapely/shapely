@@ -30,6 +30,7 @@ cdef extern from "c_api.h":
     # they are declared that way in the header file).
     object PyGEOS_CreateGeometry(GEOSGeometry *ptr, GEOSContextHandle_t ctx)
     char PyGEOS_GetGEOSGeometry(PyObject *obj, GEOSGeometry **out) nogil
-    GEOSCoordSequence* PyGEOS_CoordSeq_FromBuffer(GEOSContextHandle_t ctx, const double* buf,
-                                                 unsigned int size, unsigned int dims,
-                                                 char is_ring, int handle_nans) nogil
+    int PyGEOS_CoordSeq_FromBuffer(GEOSContextHandle_t ctx, const double* buf,
+                                   unsigned int size, unsigned int dims,
+                                   char is_ring, int handle_nans,
+                                   GEOSCoordSequence* coord_seq) nogil
