@@ -13,6 +13,7 @@ import shapely
 
 from shapely._geos cimport (
     GEOSContextHandle_t,
+    GEOSCoordSeq_getSize_r,
     GEOSCoordSequence,
     GEOSGeom_clone_r,
     GEOSGeom_createCollection_r,
@@ -63,6 +64,7 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type, 
     cdef unsigned int coord_idx = 0
     cdef Py_ssize_t geom_idx = 0
     cdef unsigned int geom_size = 0
+    cdef unsigned int actual_geom_size = 0
     cdef unsigned int ring_closure = 0
     cdef GEOSGeometry *geom = NULL
     cdef GEOSCoordSequence *seq = NULL
@@ -85,6 +87,8 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type, 
 
     if geometry_type not in {0, 1, 2}:
         raise ValueError(f"Invalid geometry_type: {geometry_type}.")
+
+    cdef char is_ring = 1 if geometry_type == 2 else 0
 
     if coordinates.shape[0] == 0:
         # return immediately if there are no geometries to return
@@ -118,24 +122,17 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type, 
                         f"Index {geom_idx} is missing from the input indices."
                     )
 
-            # check if we need to close a linearring
-            if geometry_type == 2:
-                ring_closure = 0
-                if geom_size == 3:
-                    ring_closure = 1
-                else:
-                    for coord_idx in range(dims):
-                        if coord_view[idx, coord_idx] != coord_view[idx + geom_size - 1, coord_idx]:
-                            ring_closure = 1
-                            break
-                # check the resulting size to prevent invalid rings
-                if geom_size + ring_closure < 4:
+            seq = PyGEOS_CoordSeq_FromBuffer(geos_handle, &coord_view[idx, 0], geom_size, dims, is_ring, handle_nans)
+            if seq == NULL:
+                return  # GEOSException is raised by get_geos_handle
+            # check the resulting size to prevent invalid rings
+            if is_ring == 1:
+                if GEOSCoordSeq_getSize_r(geos_handle, seq, &actual_geom_size) == 0:
+                    return  # GEOSException is raised by get_geos_handle
+                if actual_geom_size < 4:
                     # the error equals PGERR_LINEARRING_NCOORDS (in shapely/src/geos.h)
                     raise ValueError("A linearring requires at least 4 coordinates.")
 
-            seq = PyGEOS_CoordSeq_FromBuffer(geos_handle, &coord_view[idx, 0], geom_size, dims, ring_closure, handle_nans)
-            if seq == NULL:
-                return  # GEOSException is raised by get_geos_handle
             idx += geom_size
 
             if geometry_type == 0:

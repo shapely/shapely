@@ -923,6 +923,59 @@ unsigned int count_finite(const double* buf, unsigned int size, unsigned int dim
   return result;
 }
 
+
+/* Compare the first and last coordinates in the buffer, skipping nonfinite coordinates.
+ */
+char ending_coordinates_equal(const double* buf, unsigned int size, unsigned int dims,
+                              npy_intp cs1, npy_intp cs2, int handle_nans) {
+  char *cp_first = (char*)buf;
+  char *cp_last = (char*)buf + cs1 * (size - 1);
+  char *cp_inner;
+  unsigned int result = 0;
+  char has_non_finite = 0;
+  unsigned int i, j;
+
+  if (handle_nans == PYGEOS_HANDLE_NANS_IGNORE) {
+    /* Find the first finite coordinate index */
+    for (i = 0; i < size; i++, cp_first += cs1) {
+      cp_inner = cp_first;
+      has_non_finite = 0;
+      for (j = 0; j < dims; j++, cp_inner += cs2) {
+        if (!(npy_isfinite(*(double*)cp_inner))) {
+          has_non_finite = 1;
+          break;
+        }
+      }
+      if (!has_non_finite) {
+        break;
+      }
+    }
+    /* Find the last finite coordinate index */
+    for (i = size - 1; i >= 0; i--, cp_last -= cs1) {
+      cp_inner = cp_last;
+      has_non_finite = 0;
+      for (j = 0; j < dims; j++, cp_inner += cs2) {
+        if (!(npy_isfinite(*(double*)cp_inner))) {
+          has_non_finite = 1;
+          break;
+        }
+      }
+      if (!has_non_finite) {
+        break;
+      }
+    }
+  }
+
+  /* Compare the coordinates */
+  for (j = 0; j < dims; j++, cp_first += cs2, cp_last += cs2) {
+    if (*(double*)cp_first != *(double*)cp_last) {
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
 /* Create a GEOSCoordSequence from an array
  *
  * Note: this function assumes that the dimension of the buffer is already
@@ -933,13 +986,14 @@ unsigned int count_finite(const double* buf, unsigned int size, unsigned int dim
  */
 GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
                                         unsigned int size, unsigned int dims,
-                                        char ring_closure, int handle_nans, npy_intp cs1,
+                                        char is_ring, int handle_nans, npy_intp cs1,
                                         npy_intp cs2) {
   GEOSCoordSequence* coord_seq;
   char *cp1, *cp2;
   unsigned int i, j, current, first, actual_size;
   double coord;
   char all_finite;
+  char ring_closure = 0;
 
   switch (handle_nans)
   {
@@ -958,6 +1012,17 @@ GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* b
       default:
         return NULL;
   }
+
+  /* Rings automatically get an extra (closing) coordinate if they have
+     only 3 or if the first and last are not equal. */
+  if (is_ring) {
+    if (actual_size <= 3) {
+      ring_closure = 1;
+    } else {
+      ring_closure = ending_coordinates_equal(buf, size, dims, cs1, cs2, handle_nans);
+    }
+  }
+  
 
 #if GEOS_SINCE_3_10_0
 

@@ -188,7 +188,7 @@ enum {
 };
 GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
                                         unsigned int size, unsigned int dims,
-                                        char ring_closure, int handle_nans, npy_intp cs1,
+                                        char is_ring, int handle_nans, npy_intp cs1,
                                         npy_intp cs2);
 extern int coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq,
                               double* buf, unsigned int size, unsigned int dims);

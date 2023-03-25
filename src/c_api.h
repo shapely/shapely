@@ -39,7 +39,7 @@
 #define PyGEOS_CoordSeq_FromBuffer_RETURN GEOSCoordSequence*
 #define PyGEOS_CoordSeq_FromBuffer_PROTO                                             \
   (GEOSContextHandle_t ctx, const double* buf, unsigned int size, unsigned int dims, \
-   char ring_closure, int handle_nans)
+   char is_ring, int handle_nans)
 
 /* Total number of C API pointers */
 #define PyGEOS_API_num_pointers 3

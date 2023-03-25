@@ -2575,8 +2575,7 @@ static void linearrings_func(char** args, const npy_intp* dimensions, const npy_
                              void* data) {
   GEOSCoordSequence* coord_seq = NULL;
   GEOSGeometry** geom_arr;
-  char ring_closure = 0;
-  double first_coord, last_coord;
+  unsigned int size;
 
   // check the ordinate dimension before calling coordseq_from_buffer
   if (dimensions[2] < 2 || dimensions[2] > 3) {
@@ -2605,31 +2604,22 @@ static void linearrings_func(char** args, const npy_intp* dimensions, const npy_
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
-    /* check if first and last coords are equal; duplicate if necessary */
-    ring_closure = 0;
-    if (n_c1 == 3) {
-      ring_closure = 1;
-    } else {
-      DOUBLE_COREDIM_LOOP_INNER_2 {
-        first_coord = *(double*)(ip1 + i_c2 * cs2);
-        last_coord = *(double*)(ip1 + (n_c1 - 1) * cs1 + i_c2 * cs2);
-        if (first_coord != last_coord) {
-          ring_closure = 1;
-          break;
-        }
-      }
-    }
-    /* the minimum number of coordinates in a linearring is 4 */
-    if (n_c1 + ring_closure < 4) {
-      errstate = PGERR_LINEARRING_NCOORDS;
-      destroy_geom_arr(ctx, geom_arr, i - 1);
-      goto finish;
-    }
     /* fill the coordinate sequence */
-    coord_seq = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, ring_closure,
+    coord_seq = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, 1,
                                      handle_nans, cs1, cs2);
     if (coord_seq == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      goto finish;
+    }
+    /* the minimum number of coordinates in a linearring is 4 */
+    if (!GEOSCoordSeq_getSize_r(ctx, coord_seq, &size)) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      goto finish;
+    }
+    if (size < 4) {
+      errstate = PGERR_LINEARRING_NCOORDS;
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
