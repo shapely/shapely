@@ -198,7 +198,7 @@ enum { PYGEOS_HANDLE_NANS_ALLOW, PYGEOS_HANDLE_NANS_IGNORE, PYGEOS_HANDLE_NANS_R
 extern int coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
                                 unsigned int size, unsigned int dims, char is_ring,
                                 int handle_nans, npy_intp cs1, npy_intp cs2,
-                                GEOSCoordSequence* coord_seq);
+                                GEOSCoordSequence** coord_seq);
 extern int coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq,
                               double* buf, unsigned int size, unsigned int dims);
 

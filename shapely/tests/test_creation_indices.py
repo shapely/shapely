@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import shapely
-from shapely import LinearRing, Polygon
+from shapely import LinearRing, LineString, Polygon
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import empty_point, line_string, linear_ring, point, polygon
 
@@ -197,8 +197,15 @@ def test_linestrings_ignore_nan_invalid():
         )
 
 
+def test_linestrings_ignore_nan_only_nan():
+    actual = shapely.linestrings(
+        np.full((3, 2), fill_value=np.nan), indices=[0, 0, 0], handle_nans="ignore"
+    )
+    assert_geometries_equal(actual, LineString(None))
+
+
 def test_linestrings_error_nan():
-    with pytest.raises(shapely.GEOSException):
+    with pytest.raises(ValueError, match=".*NaN.*"):
         shapely.linestrings(
             [[0, 0], [float("nan"), 0], [1, 1]], indices=[0, 0, 0], handle_nans="error"
         )
@@ -292,14 +299,21 @@ def test_linearrings_ignore_nan(coordinates):
 
 def test_linearrings_ignore_nan_invalid():
     # the NaN makes the linearring too short
-    with pytest.raises(shapely.GEOSException):
+    with pytest.raises(ValueError):
         shapely.linearrings(
-            [[1, 1], [float("nan"), 1], [1, 1]], indices=[0, 0, 0], ignore_nan="ignore"
+            [[1, 1], [float("nan"), 1], [1, 1]], indices=[0, 0, 0], handle_nans="ignore"
         )
 
 
+def test_linearrings_ignore_nan_only_nan():
+    actual = shapely.linearrings(
+        np.full((5, 2), fill_value=np.nan), indices=[0] * 5, handle_nans="ignore"
+    )
+    assert_geometries_equal(actual, LinearRing(None))
+
+
 def test_linearrings_error_nan():
-    with pytest.raises(shapely.GEOSException):
+    with pytest.raises(ValueError, match=".*NaN.*"):
         shapely.linearrings(
             [[1, 1], [2, 1], [2, 2], [2, float("nan")], [1, 1]],
             indices=[0, 0, 0, 0, 0],

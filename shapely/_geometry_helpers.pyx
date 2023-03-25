@@ -122,13 +122,19 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type, 
                         f"Index {geom_idx} is missing from the input indices."
                     )
 
-            if PyGEOS_CoordSeq_FromBuffer(geos_handle, &coord_view[idx, 0], geom_size, dims, is_ring, handle_nans, seq) != 0:
+            errstate = PyGEOS_CoordSeq_FromBuffer(geos_handle, &coord_view[idx, 0], geom_size, dims, is_ring, handle_nans, &seq)
+            if errstate == 9:  # PGERR_NAN_COORD (in shapely/src/geos.h)
+                raise ValueError(
+                    "A NaN, Inf or -Inf coordinate was supplied. Remove the "
+                    "coordinate or adapt the 'handle_nans' parameter."
+                )
+            elif errstate != 0:
                 return  # GEOSException is raised by get_geos_handle
             # check the resulting size to prevent invalid rings
             if is_ring == 1:
                 if GEOSCoordSeq_getSize_r(geos_handle, seq, &actual_geom_size) == 0:
                     return  # GEOSException is raised by get_geos_handle
-                if actual_geom_size < 4:
+                if 0 < actual_geom_size < 4:
                     # the error equals PGERR_LINEARRING_NCOORDS (in shapely/src/geos.h)
                     raise ValueError("A linearring requires at least 4 coordinates.")
 

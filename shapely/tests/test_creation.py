@@ -159,8 +159,21 @@ def test_linestrings_ignore_nan():
     assert_geometries_equal(actual, LineString([(0, 1), (2, 3)]))
 
 
-def test_linestrings_error_nan():
+def test_linestrings_ignore_nan_invalid():
     with pytest.raises(shapely.GEOSException):
+        shapely.linestrings([[0, 1], [2, float("nan")]], handle_nans="ignore")
+
+
+def test_linestrings_ignore_nan_only_nan():
+    # all-nan becomes an empty linestring
+    actual = shapely.linestrings(
+        np.full((3, 2), fill_value=np.nan), handle_nans="ignore"
+    )
+    assert_geometries_equal(actual, LineString(None))
+
+
+def test_linestrings_error_nan():
+    with pytest.raises(ValueError, match=".*NaN.*"):
         shapely.linestrings([[0, 1], [2, float("nan")], [2, 3]], handle_nans="error")
 
 
@@ -271,8 +284,20 @@ def test_linearrings_ignore_nan(x, y):
     assert_geometries_equal(actual, LinearRing([(0, 3), (1, 4), (2, 5), (0, 3)]))
 
 
+def test_linearrings_ignore_nan_invalid():
+    with pytest.raises(ValueError):
+        shapely.linearrings([1, 2], [np.nan, 2], handle_nans="ignore")
+
+
+def test_linearrings_ignore_nan_only_nan():
+    actual = shapely.linearrings(
+        np.full((5, 2), fill_value=np.nan), handle_nans="ignore"
+    )
+    assert_geometries_equal(actual, LinearRing(None))
+
+
 def test_linearrings_error_nan():
-    with pytest.raises(shapely.GEOSException):
+    with pytest.raises(ValueError, match=".*NaN.*"):
         shapely.linearrings(
             [0, 1, float("nan"), 2, 0], [3, 4, 5, 5, 3], handle_nans="error"
         )

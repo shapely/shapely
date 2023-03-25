@@ -33,4 +33,4 @@ cdef extern from "c_api.h":
     int PyGEOS_CoordSeq_FromBuffer(GEOSContextHandle_t ctx, const double* buf,
                                    unsigned int size, unsigned int dims,
                                    char is_ring, int handle_nans,
-                                   GEOSCoordSequence* coord_seq) nogil
+                                   GEOSCoordSequence** coord_seq) nogil
