@@ -900,8 +900,7 @@ GEOSGeometry* PyGEOSForce3D(GEOSContextHandle_t ctx, GEOSGeometry* geom, double 
  * A coordinate is finite if x, y and optionally z are all not NaN or Inf.
  * 
  * The first and last finite coordinate indices are stored in the 'first_i'
- * and 'last_i' arguments. If there are no finite coordinates, both will
- * be set to 0.
+ * and 'last_i' arguments.
  */
 unsigned int count_finite(const double* buf, unsigned int size, unsigned int dims,
                           npy_intp cs1, npy_intp cs2,
@@ -930,10 +929,6 @@ unsigned int count_finite(const double* buf, unsigned int size, unsigned int dim
       }
       *last_i = i;
     }
-  }
-  if (actual_size == 0) {
-    first_i = 0;
-    last_i = 0;
   }
   return actual_size;
 }
@@ -993,18 +988,27 @@ int coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf, unsigned in
       return PGERR_NAN_COORD;
   }
 
-  /* Initialize cp1 so that it points to the first coordinate (possibly skipping NaN)*/
-  cp1 = (char*)buf + cs1 * first_i;
+  if (actual_size == 0) {
+    coord_seq = GEOSCoordSeq_create_r(ctx, 0, dims);
+    if (coord_seq == NULL) {
+      return PGERR_GEOS_EXCEPTION;
+    }
+    *ret_ptr = coord_seq;
+    return PGERR_SUCCESS;
+  }
 
   /* Rings automatically get an extra (closing) coordinate if they have
      only 3 or if the first and last are not equal. */
-  if (is_ring && (actual_size > 0)) {
+  if (is_ring) {
     if (actual_size == 3) {
       ring_closure = 1;
     } else {
       ring_closure = !check_coordinates_equal(buf, dims, cs1, cs2, first_i, last_i);
     }
   }
+
+  /* Initialize cp1 so that it points to the first coordinate (possibly skipping NaN)*/
+  cp1 = (char*)buf + cs1 * first_i;
 
 #if GEOS_SINCE_3_10_0
   if ((!ring_closure) && ((last_i - first_i + 1) == actual_size)) {
@@ -1039,7 +1043,7 @@ int coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf, unsigned in
     return PGERR_GEOS_EXCEPTION;
   }
   current = 0;
-  for (i = first_i; i < first_i + actual_size; i++, cp1 += cs1) {
+  for (i = first_i; i <= last_i; i++, cp1 += cs1) {
     cp2 = cp1;
     this_coord_is_finite = 1;
     for (j = 0; j < dims; j++, cp2 += cs2) {
