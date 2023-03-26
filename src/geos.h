@@ -107,12 +107,6 @@ enum {
                       "A NaN, Inf or -Inf coordinate was supplied. Remove the "          \
                       "coordinate or adapt the 'handle_nans' parameter.");               \
       break;                                                                             \
-    case PGWARN_NAN_COORD:                                                               \
-      PyErr_WarnFormat(PyExc_Warning, 0,                                                 \
-                       "A NaN, Inf or -Inf coordinate was supplied. Remove the "         \
-                       "coordinate or adapt the 'handle_nans' parameter to silence "     \
-                       "this warning.");                                                 \
-      break;                                                                             \
     case PGWARN_INVALID_WKB:                                                             \
       PyErr_WarnFormat(PyExc_Warning, 0,                                                 \
                        "Invalid WKB: geometry is returned as None. %s", last_error);     \
