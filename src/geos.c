@@ -900,7 +900,8 @@ GEOSGeometry* PyGEOSForce3D(GEOSContextHandle_t ctx, GEOSGeometry* geom, double 
  * A coordinate is finite if x, y and optionally z are all not NaN or Inf.
  * 
  * The first and last finite coordinate indices are stored in the 'first_i'
- * and 'last_i' arguments.
+ * and 'last_i' arguments. If there are no finite coordinates, both will
+ * be set to 0.
  */
 unsigned int count_finite(const double* buf, unsigned int size, unsigned int dims,
                           npy_intp cs1, npy_intp cs2,
@@ -929,6 +930,10 @@ unsigned int count_finite(const double* buf, unsigned int size, unsigned int dim
       }
       *last_i = i;
     }
+  }
+  if (actual_size == 0) {
+    first_i = 0;
+    last_i = 0;
   }
   return actual_size;
 }
@@ -988,6 +993,9 @@ int coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf, unsigned in
       return PGERR_NAN_COORD;
   }
 
+  /* Initialize cp1 so that it points to the first coordinate (possibly skipping NaN)*/
+  cp1 = (char*)buf + cs1 * first_i;
+
   /* Rings automatically get an extra (closing) coordinate if they have
      only 3 or if the first and last are not equal. */
   if (is_ring && (actual_size > 0)) {
@@ -1000,13 +1008,10 @@ int coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf, unsigned in
 
 #if GEOS_SINCE_3_10_0
   if ((!ring_closure) && ((last_i - first_i) == size)) {
-    /* Offset the buffer with (in case we are ignoring NaN)*/
-    cp1 = (char*)buf + cs1 * first_i;
-
     if ((cs1 == dims * 8) && (cs2 == 8)) {
       /* C-contiguous memory */
       int hasZ = dims == 3;
-      coord_seq = GEOSCoordSeq_copyFromBuffer_r(ctx, (const double*)cp1, actual_size, hasZ, 0);
+      coord_seq = GEOSCoordSeq_copyFromBuffer_r(ctx, (double*)cp1, actual_size, hasZ, 0);
       if (coord_seq == NULL) {
         return PGERR_GEOS_EXCEPTION;
       }
@@ -1015,7 +1020,7 @@ int coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf, unsigned in
     } else if ((cs1 == 8) && (cs2 == size * 8)) {
       /* F-contiguous memory (note: this for the subset, so we don't necessarily
       end up here if the full array is F-contiguous) */
-      const double* x = (const double*) cp1;
+      const double* x = (double*) cp1;
       const double* y = (double*)(cp1 + cs2);
       const double* z = (dims == 3) ? (double*)(cp1 + 2 * cs2) : NULL;
       coord_seq = GEOSCoordSeq_copyFromArrays_r(ctx, x, y, z, NULL, size);
@@ -1034,7 +1039,6 @@ int coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf, unsigned in
     return PGERR_GEOS_EXCEPTION;
   }
   current = 0;
-  cp1 = (char*)buf;
   for (i = first_i; i <= last_i; i++, cp1 += cs1) {
     cp2 = cp1;
     this_coord_is_finite = 1;
