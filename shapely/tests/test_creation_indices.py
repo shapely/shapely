@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import shapely
-from shapely import LinearRing, LineString, Polygon
+from shapely import LinearRing, Polygon
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import empty_point, line_string, linear_ring, point, polygon
 
@@ -201,7 +201,7 @@ def test_linestrings_ignore_nan_only_nan():
     actual = shapely.linestrings(
         np.full((3, 2), fill_value=np.nan), indices=[0, 0, 0], handle_nans="ignore"
     )
-    assert_geometries_equal(actual, LineString(None))
+    assert actual[0].is_empty
 
 
 def test_linestrings_error_nan():
@@ -309,7 +309,8 @@ def test_linearrings_ignore_nan_only_nan():
     actual = shapely.linearrings(
         np.full((5, 2), fill_value=np.nan), indices=[0] * 5, handle_nans="ignore"
     )
-    assert_geometries_equal(actual, LinearRing(None))
+
+    assert actual[0].is_empty
 
 
 def test_linearrings_error_nan():

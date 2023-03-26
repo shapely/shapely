@@ -193,7 +193,7 @@ def test_linestrings_ignore_nan_only_nan():
     actual = shapely.linestrings(
         np.full((3, 2), fill_value=np.nan), handle_nans="ignore"
     )
-    assert_geometries_equal(actual, LineString(None))
+    assert actual.is_empty
 
 
 def test_linestrings_error_nan():
@@ -333,7 +333,7 @@ def test_linearrings_ignore_nan_only_nan():
     actual = shapely.linearrings(
         np.full((5, 2), fill_value=np.nan), handle_nans="ignore"
     )
-    assert_geometries_equal(actual, LinearRing(None))
+    assert actual.is_empty
 
 
 def test_linearrings_error_nan():
