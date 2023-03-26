@@ -56,7 +56,6 @@ enum {
   PGERR_GEOJSON_EMPTY_POINT,
   PGERR_LINEARRING_NCOORDS,
   PGERR_NAN_COORD,
-  PGWARN_NAN_COORD,
   PGWARN_INVALID_WKB,  // raise the GEOS WKB error as a warning instead of exception
   PGWARN_INVALID_WKT,  // raise the GEOS WKT error as a warning instead of exception
   PGWARN_INVALID_GEOJSON,

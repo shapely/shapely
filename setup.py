@@ -135,6 +135,7 @@ class build_ext(_build_ext):
 
         self.include_dirs.append(numpy.get_include())
 
+
 ext_modules = []
 
 if "clean" in sys.argv:

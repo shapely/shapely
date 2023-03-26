@@ -2904,7 +2904,8 @@ static void bounds_func(char** args, const npy_intp* dimensions, const npy_intp*
 #if GEOS_SINCE_3_11_0
       if (GEOSisEmpty_r(ctx, in1)) {
         *x1 = *y1 = *x2 = *y2 = NPY_NAN;
-      } else {
+      }
+      else {
         if (!GEOSGeom_getExtent_r(ctx, in1, x1, y1, x2, y2)) {
           errstate = PGERR_GEOS_EXCEPTION;
           goto finish;
