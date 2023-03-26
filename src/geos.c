@@ -1007,7 +1007,7 @@ int coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf, unsigned in
   }
 
 #if GEOS_SINCE_3_10_0
-  if ((!ring_closure) && ((last_i - first_i) == size)) {
+  if ((!ring_closure) && ((last_i - first_i + 1) == actual_size)) {
     if ((cs1 == dims * 8) && (cs2 == 8)) {
       /* C-contiguous memory */
       int hasZ = dims == 3;
@@ -1023,7 +1023,7 @@ int coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf, unsigned in
       const double* x = (double*) cp1;
       const double* y = (double*)(cp1 + cs2);
       const double* z = (dims == 3) ? (double*)(cp1 + 2 * cs2) : NULL;
-      coord_seq = GEOSCoordSeq_copyFromArrays_r(ctx, x, y, z, NULL, size);
+      coord_seq = GEOSCoordSeq_copyFromArrays_r(ctx, x, y, z, NULL, actual_size);
       if (coord_seq == NULL) {
         return PGERR_GEOS_EXCEPTION;
       }
@@ -1039,7 +1039,7 @@ int coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf, unsigned in
     return PGERR_GEOS_EXCEPTION;
   }
   current = 0;
-  for (i = first_i; i <= last_i; i++, cp1 += cs1) {
+  for (i = first_i; i < first_i + actual_size; i++, cp1 += cs1) {
     cp2 = cp1;
     this_coord_is_finite = 1;
     for (j = 0; j < dims; j++, cp2 += cs2) {
