@@ -19,6 +19,7 @@ from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
     empty_polygon,
     geometry_collection,
+    ignore_invalid,
     line_string,
     linear_ring,
     multi_line_string,
@@ -164,7 +165,8 @@ def test_linestrings_invalid_ndim():
     ],
 )
 def test_linestrings_allow_nan(coords):
-    actual = shapely.linestrings(coords, handle_nans="allow")
+    with ignore_invalid():
+        actual = shapely.linestrings(coords, handle_nans="allow")
     actual = shapely.get_coordinates(actual, include_z=len(coords[0]) == 3)
 
     assert_array_equal(actual, coords)
@@ -304,7 +306,8 @@ def test_linearrings_buffer(dim, order):
     ],
 )
 def test_linearrings_allow_nan(coords):
-    actual = shapely.linearrings(coords, handle_nans="allow")
+    with ignore_invalid():
+        actual = shapely.linearrings(coords, handle_nans="allow")
     actual = shapely.get_coordinates(actual, include_z=len(coords[0]) == 3)
 
     assert_array_equal(actual, coords)
