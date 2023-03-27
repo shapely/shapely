@@ -1087,7 +1087,7 @@ def minimum_bounding_circle(geometry, **kwargs):
 
 @requires_geos("3.9.0")
 @multithreading_enabled
-def maximum_inscribed_circle(geometry, tolerance=0, **kwargs):
+def maximum_inscribed_circle(geometry, tolerance=None, **kwargs):
     """Finds the largest circle that is fully contained within the input geometry.
 
     Constructs the "maximum inscribed circle" (MIC) for a polygonal geometry,
@@ -1108,8 +1108,10 @@ def maximum_inscribed_circle(geometry, tolerance=0, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
-    tolerance : float or array_like
-        Stop the algorithm when the search area is smaller than this tolerance
+    tolerance : float or array_like, optional
+        Stop the algorithm when the search area is smaller than this tolerance.
+        When not specified, uses `max(width, height) / 1000` per geometry as
+        the default.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -1123,12 +1125,14 @@ def maximum_inscribed_circle(geometry, tolerance=0, **kwargs):
     --------
     minimum_bounding_circle
     """
+    if tolerance is None:
+        tolerance = 0.0
     return lib.maximum_inscribed_circle(geometry, tolerance, **kwargs)
 
 
 @requires_geos("3.9.0")
 @multithreading_enabled
-def largest_empty_circle(geometry, boundary=None, tolerance=0, **kwargs):
+def largest_empty_circle(geometry, boundary=None, tolerance=None, **kwargs):
     """Finds the largest circle that is fully contained within the convex hull
     of the input geometry, using the input as further boundaries.
 
@@ -1149,8 +1153,10 @@ def largest_empty_circle(geometry, boundary=None, tolerance=0, **kwargs):
         The geometries that the LEC must fit within without covering
     boundary : Geometry or array_like
         The area within which the LEC must reside
-    tolerance : float or array_like
-        Stop the algorithm when the search area is smaller than this tolerance
+    tolerance : float or array_like, optional
+        Stop the algorithm when the search area is smaller than this tolerance.
+        When not specified, uses `max(width, height) / 1000` per geometry as
+        the default.
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
@@ -1165,5 +1171,7 @@ def largest_empty_circle(geometry, boundary=None, tolerance=0, **kwargs):
     """
     if boundary is None:
         boundary = envelope(geometry)
+    if tolerance is None:
+        tolerance = 0.0
 
     return lib.largest_empty_circle(geometry, boundary, tolerance, **kwargs)
