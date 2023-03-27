@@ -16,6 +16,7 @@ from shapely.tests.common import (
     empty_polygon,
     geometry_collection,
     geometry_collection_z,
+    ignore_invalid,
     line_string,
     line_string_nan,
     line_string_z,
@@ -255,7 +256,8 @@ def test_neq_nan():
 def test_set_nan():
     # As NaN != NaN, you can have multiple "NaN" points in a set
     # set([float("nan"), float("nan")]) also returns a set with 2 elements
-    a = set(shapely.linestrings([[[np.nan, np.nan], [np.nan, np.nan]]] * 10))
+    with ignore_invalid():
+        a = set(shapely.linestrings([[[np.nan, np.nan], [np.nan, np.nan]]] * 10))
     assert len(a) == 10  # different objects: NaN != NaN
 
 
