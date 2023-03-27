@@ -4,6 +4,7 @@ Credits
 Shapely is written by:
 
 * Adi Shavit <adishavit@gmail.com>
+* Alan D. Snow <alansnow21@gmail.com>
 * Alberto Rubiales <arubiales11@gmail.com>
 * Allan Adair <allan.m.adair@gmail.com>
 * Andrew Blakey <ablakey@gmail.com>
@@ -18,7 +19,9 @@ Shapely is written by:
 * Bhavika Tekwani <4955119+bhavika@users.noreply.github.com>
 * Bi0T1N <Bi0T1N@users.noreply.github.com>
 * Brad Hards <bradh@frogmouth.net>
+* Brendan Ward <bcward@astutespruce.com>
 * Brandon Wood <btwood@geometeor.com>
+* Casper van der Wel <caspervdw@gmail.com>
 * Chad Hawkins <cwh@chadwhawkins.com>
 * Christian Prior <cprior@gmail.com>
 * Christian Quest <github@cquest.org>
@@ -30,7 +33,9 @@ Shapely is written by:
 * David Baumgold <david@davidbaumgold.com>
 * David Swinkels <davidswinkelss@gmail.com>
 * Denis Rykov <rykovd@gmail.com>
+* Enrico Ferreguti <enricofer@gmail.com>
 * Erwin Sterrenburg <e.w.sterrenburg@gmail.com>
+* Ewout ter Hoeven <E.M.terHoeven@student.tudelft.nl>
 * Felix Divo <4403130+felixdivo@users.noreply.github.com>
 * Felix Yan <felixonmars@archlinux.org>
 * Filipe Fernandes <ocefpaf@gmail.com>
@@ -42,6 +47,7 @@ Shapely is written by:
 * Henry Walshaw <henry.walshaw@gmail.com>
 * Howard Butler <hobu.inc@gmail.com>
 * Hugo <hugovk@users.noreply.github.com>
+* Idan Miara <idan@miara.com>
 * Jacob Wasserman <jwasserman@gmail.com>
 * Jaeha Lee <jaehaaheaj@gmail.com>
 * James Douglass <jamesdouglassusa@gmail.com>
@@ -66,6 +72,7 @@ Shapely is written by:
 * Kevin Wurster <wursterk@gmail.com>
 * Konstantin Veretennicov <kveretennicov@gmail.com>
 * Koshy Thomas <koshy1123@gmail.com>
+* Krishna Chaitanya <bkchaitan94@gmail.com>
 * Kristian Evers <kristianevers@gmail.com>
 * Kyle Barron <kylebarron2@gmail.com>
 * Leandro Lima <leandro@limaesilva.com.br>
@@ -74,6 +81,7 @@ Shapely is written by:
 * Maarten Vermeyen <maarten.vermeyen@rwo.vlaanderen.be>
 * Marc Jansen <jansen@terrestris.de>
 * Marco De Nadai <me@marcodena.it>
+* Martin Fleischmann <martin@martinfleischmann.net>
 * Mathieu <mathieu.nivel@gmail.com>
 * Matt Amos <matt.amos@mapzen.com>
 * Matthias Cuntz <mcuntz@users.noreply.github.com>
@@ -116,6 +124,7 @@ Shapely is written by:
 * davidh-ssec <david.hoese@ssec.wisc.edu>
 * georgeouzou <geothrock@gmail.com>
 * giumas <gmasetti@ccom.unh.edu>
+* gpapadok <38889721+gpapadok@users.noreply.github.com>
 * joelostblom <joelostblom@users.noreply.github.com>
 * ljwolf <levi.john.wolf@gmail.com>
 * mindw <grizzly.nyo@gmail.com>

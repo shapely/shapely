@@ -42,8 +42,8 @@ def _assert_nan_coords_same(x, y, tolerance, err_msg, verbose):
         raise AssertionError(msg)
 
     # If this passed, replace NaN with a number to be able to use equals_exact
-    x_no_nan = shapely.apply(x, _replace_nan, include_z=True)
-    y_no_nan = shapely.apply(y, _replace_nan, include_z=True)
+    x_no_nan = shapely.transform(x, _replace_nan, include_z=True)
+    y_no_nan = shapely.transform(y, _replace_nan, include_z=True)
 
     return _equals_exact_with_ndim(x_no_nan, y_no_nan, tolerance=tolerance)
 

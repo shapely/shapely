@@ -16,7 +16,7 @@ def test_empty_linearring_coords():
 def test_linearring_from_coordinate_sequence():
     expected_coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)]
 
-    ring = LinearRing(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0)))
+    ring = LinearRing([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0)])
     assert ring.coords[:] == expected_coords
 
     ring = LinearRing([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0)])
@@ -66,6 +66,12 @@ def test_linearring_from_too_short_linestring():
         LinearRing(line)
 
 
+def test_linearring_from_linearring():
+    coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)]
+    ring = LinearRing(coords)
+    assert ring.coords[:] == coords
+
+
 def test_linearring_from_generator():
     coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
     gen = (coord for coord in coords)
@@ -96,7 +102,7 @@ def test_linearring_from_numpy():
 def test_numpy_linearring_coords():
     from numpy.testing import assert_array_equal
 
-    ring = LinearRing(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0)))
+    ring = LinearRing([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0)])
     ra = np.asarray(ring.coords)
     expected = np.asarray([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)])
     assert_array_equal(ra, expected)
@@ -118,7 +124,7 @@ def test_polygon_from_coordinate_sequence():
     coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)]
 
     # Construct a polygon, exterior ring only
-    polygon = Polygon(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0)))
+    polygon = Polygon([(0.0, 0.0), (0.0, 1.0), (1.0, 1.0)])
     assert polygon.exterior.coords[:] == coords
     assert len(polygon.interiors) == 0
 
@@ -131,7 +137,7 @@ def test_polygon_from_coordinate_sequence_with_holes():
     coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)]
 
     # Interior rings (holes)
-    polygon = Polygon(coords, [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))])
+    polygon = Polygon(coords, [[(0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25)]])
     assert polygon.exterior.coords[:] == coords
     assert len(polygon.interiors) == 1
     assert len(polygon.interiors[0].coords) == 5
@@ -183,9 +189,15 @@ def test_polygon_from_linestring():
     assert polygon.exterior.coords[:] == coords
 
 
+def test_polygon_from_points():
+    polygon = Polygon([Point(0.0, 0.0), Point(0.0, 1.0), Point(1.0, 1.0)])
+    expected_coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)]
+    assert polygon.exterior.coords[:] == expected_coords
+
+
 def test_polygon_from_polygon():
     coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)]
-    polygon = Polygon(coords, [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))])
+    polygon = Polygon(coords, [[(0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25)]])
 
     # Test from another Polygon
     copy = Polygon(polygon)
@@ -223,6 +235,13 @@ def test_polygon_from_numpy():
         (0.0, 0.0),
     ]
     assert len(polygon.interiors) == 0
+
+
+def test_polygon_from_generator():
+    coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
+    gen = (coord for coord in coords)
+    polygon = Polygon(gen)
+    assert polygon.exterior.coords[:] == coords
 
 
 class TestPolygon:
@@ -327,7 +346,7 @@ class TestPolygon:
 
         # Attribute Chaining
         # See also ticket #151.
-        p = Polygon(((0.0, 0.0), (0.0, 1.0), (-1.0, 1.0), (-1.0, 0.0)))
+        p = Polygon([(0.0, 0.0), (0.0, 1.0), (-1.0, 1.0), (-1.0, 0.0)])
         assert list(p.boundary.coords) == [
             (0.0, 0.0),
             (0.0, 1.0),
@@ -341,8 +360,8 @@ class TestPolygon:
 
         # Test chained access to interiors
         p = Polygon(
-            ((0.0, 0.0), (0.0, 1.0), (-1.0, 1.0), (-1.0, 0.0)),
-            [((-0.25, 0.25), (-0.25, 0.75), (-0.75, 0.75), (-0.75, 0.25))],
+            [(0.0, 0.0), (0.0, 1.0), (-1.0, 1.0), (-1.0, 0.0)],
+            [[(-0.25, 0.25), (-0.25, 0.75), (-0.75, 0.75), (-0.75, 0.25)]],
         )
         assert p.area == 0.75
 
@@ -369,8 +388,8 @@ class TestPolygon:
         # see issue #338
 
         point1 = Point(0, 0)
-        polygon1 = Polygon(((0.0, 0.0), (0.0, 1.0), (-1.0, 1.0), (-1.0, 0.0)))
-        polygon2 = Polygon(((0.0, 0.0), (0.0, 1.0), (-1.0, 1.0), (-1.0, 0.0)))
+        polygon1 = Polygon([(0.0, 0.0), (0.0, 1.0), (-1.0, 1.0), (-1.0, 0.0)])
+        polygon2 = Polygon([(0.0, 0.0), (0.0, 1.0), (-1.0, 1.0), (-1.0, 0.0)])
         polygon_empty1 = Polygon()
         polygon_empty2 = Polygon()
 

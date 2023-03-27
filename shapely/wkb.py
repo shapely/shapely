@@ -43,8 +43,8 @@ def dumps(ob, hex=False, srid=None, **kw):
     srid : int
         Spatial reference system ID to include in the output. The default value
         means no SRID is included.
-    **kw : kwargs
-        See available keyword output settings in ``shapely.geos.WKBWriter``.
+    **kw : kwargs, optional
+        Keyword output options passed to :func:`~shapely.to_wkb`.
     """
     if srid is not None:
         # clone the object and set the SRID before dumping

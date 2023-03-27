@@ -3,6 +3,7 @@
 cimport cython
 from cpython cimport PyObject
 from cython cimport view
+from libc.stdint cimport uintptr_t
 
 import numpy as np
 
@@ -49,12 +50,12 @@ def _check_out_array(object out, Py_ssize_t size):
     if out.dtype != object:
         raise TypeError("out array dtype must be object")
     if out.ndim != 1:
-        raise TypeError("out must be a one-dimensional array.") 
+        raise TypeError("out must be a one-dimensional array.")
     if out.shape[0] < size:
-        raise ValueError(f"out array is too small ({out.shape[0]} < {size})") 
+        raise ValueError(f"out array is too small ({out.shape[0]} < {size})")
     return out
 
- 
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def simple_geometries_1d(object coordinates, object indices, int geometry_type, object out = None):
@@ -90,9 +91,9 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type, 
         return np.empty(shape=(0, ), dtype=np.object_)
 
     if np.any(indices[1:] < indices[:indices.shape[0] - 1]):
-        raise ValueError("The indices must be sorted.")  
+        raise ValueError("The indices must be sorted.")
 
-    cdef double[:, :] coord_view = coordinates
+    cdef const double[:, :] coord_view = coordinates
 
     # get the geometry count per collection (this raises on negative indices)
     cdef unsigned int[:] coord_counts = np.bincount(indices).astype(np.uint32)
@@ -295,7 +296,7 @@ def collections_1d(object geometries, object indices, int geometry_type = 7, obj
         return np.empty(shape=(0, ), dtype=object)
 
     if np.any(indices[1:] < indices[:indices.shape[0] - 1]):
-        raise ValueError("The indices should be sorted.")  
+        raise ValueError("The indices should be sorted.")
 
     # get the geometry count per collection (this raises on negative indices)
     cdef int[:] collection_size = np.bincount(indices).astype(np.int32)
@@ -348,11 +349,11 @@ def collections_1d(object geometries, object indices, int geometry_type = 7, obj
                             f"One of the arguments has unexpected geometry type {curr_type}."
                         )
 
-                # assign to the temporary geometry array  
+                # assign to the temporary geometry array
                 geom = GEOSGeom_clone_r(geos_handle, geom)
                 if geom == NULL:
                     _deallocate_arr(geos_handle, temp_geoms_view, coll_size)
-                    return  # GEOSException is raised by get_geos_handle           
+                    return  # GEOSException is raised by get_geos_handle
                 temp_geoms_view[coll_size] = <np.intp_t>geom
                 coll_size += 1
 
@@ -360,7 +361,7 @@ def collections_1d(object geometries, object indices, int geometry_type = 7, obj
             if geometry_type != 3:  # Collection
                 coll = GEOSGeom_createCollection_r(
                     geos_handle,
-                    geometry_type, 
+                    geometry_type,
                     <GEOSGeometry**> &temp_geoms_view[0],
                     coll_size
                 )
@@ -384,3 +385,11 @@ def collections_1d(object geometries, object indices, int geometry_type = 7, obj
             geom_idx_1 += collection_size[coll_idx]
 
     return out
+
+
+def _geom_factory(uintptr_t g):
+
+    with get_geos_handle() as geos_handle:
+        geom = PyGEOS_CreateGeometry(<GEOSGeometry *>g, geos_handle)
+
+    return geom

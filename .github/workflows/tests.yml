@@ -14,45 +14,55 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2019]
         architecture: [x64]
-        geos: [3.6.5, 3.7.3, 3.8.1, 3.9.2, 3.10.1, main]
+        geos: [3.6.5, 3.7.5, 3.8.3, 3.9.3, 3.10.3, 3.11.1, main]
         include:
           # 2017
-          - python: 3.6
+          - python: 3.7  # 3.6 is dropped
             geos: 3.6.5
-            numpy: 1.13.3
+            numpy: 1.14.6
           # 2018
           - python: 3.7
-            geos: 3.7.3
+            geos: 3.7.5
             numpy: 1.15.4
           # 2019
           - python: 3.8
-            geos: 3.8.1
+            geos: 3.8.3
             numpy: 1.17.5
           # 2020
           - python: 3.9
-            geos: 3.9.2
+            geos: 3.9.3
             numpy: 1.19.5
           # 2021
           - python: "3.10"
-            geos: 3.10.1
+            geos: 3.10.3
             numpy: 1.21.3
-            # TODO(shapely-2.0) temporary allow warnings
-            # extra_pytest_args: "-W error"  # error on warnings
-          # dev
-          - python: "3.10"
-            geos: main
+          # 2022
+          - python: "3.11"
+            geos: 3.11.1
+            numpy: 1.23.4
+            matplotlib: true
+            doctest: true
             extra_pytest_args: "-W error"  # error on warnings
+          # dev
+          - python: "3.11"
+            geos: main
+            extra_pytest_args: "-W error" # error on warnings
           # enable two 32-bit windows builds:
           - os: windows-2019
             architecture: x86
-            python: 3.6
-            geos: 3.6.5
-            numpy: 1.13.3
+            python: 3.7
+            geos: 3.7.5
+            numpy: 1.15.4
           - os: windows-2019
             architecture: x86
             python: 3.9
-            geos: 3.10.1
+            geos: 3.10.3
             numpy: 1.19.5
+          # pypy (use explicit ubuntu version to not overwrite existing ubuntu-latest + geos 3.11.0 build)
+          - os: ubuntu-20.04
+            python: "pypy3.8"
+            geos: 3.11.1
+            numpy: 1.23.4
 
     env:
       GEOS_VERSION: ${{ matrix.geos }}
@@ -68,10 +78,10 @@ jobs:
         if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Checkout Shapely
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Checkout GEOS (main)
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: libgeos/geos
           ref: main
@@ -85,13 +95,13 @@ jobs:
         if: ${{ matrix.geos == 'main' }}
 
       - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
           architecture: ${{ matrix.architecture }}
 
       - name: Cache GEOS and pip packages
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           key: ${{ matrix.os }}-${{ matrix.architecture }}-geos-${{ env.GEOS_VERSION_SPEC }}-${{ hashFiles('ci/install_geos.sh') }}
           path: |
@@ -117,13 +127,16 @@ jobs:
           else
             pip install --upgrade Cython numpy==${{ matrix.numpy }} pytest pytest-cov coveralls;
           fi
+          if [ -n "${{ matrix.matplotlib }}" ]; then
+            pip install matplotlib
+          fi
           pip list
 
       - name: Set environment variables (Linux)
         run: |
           echo "${{ env.GEOS_INSTALL }}/bin" >> $GITHUB_PATH
           echo "LD_LIBRARY_PATH=${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
 
       - name: Set environment variables (OSX)
         run: |
@@ -133,7 +146,7 @@ jobs:
 
       # Windows requires special treatment:
       # - geos-config does not exist, so we specify include and library paths
-      # - Python >=3.8 ignores the PATH for finding DLLs, so we copy them into the package 
+      # - Python >=3.8 ignores the PATH for finding DLLs, so we copy them into the package
       - name: Set environment variables + copy DLLs (Windows)
         run: |
           cp geosinstall/geos-${{ matrix.geos }}/bin/*.dll shapely
@@ -143,8 +156,7 @@ jobs:
 
       - name: Build and install Shapely
         run: |
-          python setup.py build_ext --inplace
-          pip install . --no-build-isolation
+          pip install -e .
 
       - name: Overview of the Python environment (pip list)
         run: pip list
@@ -153,14 +165,19 @@ jobs:
         # Enable this if we have failures on GEOS main
         # continue-on-error: ${{ matrix.geos == 'main' }}
         run: |
-          pytest shapely/tests tests --cov --cov-report term-missing ${{ matrix.extra_pytest_args }}
+          python -c "import shapely; print(f'GEOS version: {shapely.geos_version_string}')"
+          pytest shapely/tests --cov --cov-report term-missing ${{ matrix.extra_pytest_args }}
 
       # Only run doctests on 1 runner (because of typographic differences in doctest results)
       - name: Run doctests
-        run: pytest --doctest-modules shapely --ignore=shapely/tests
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python == '3.10' }}
-        # TODO(shapely-2.0) temporary allow doctest failures
-        continue-on-error: true
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.doctest }}
+        run: |
+          python -m pytest --doctest-modules docs/manual.rst
+
+      - name: Run doctests (part 2)
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.doctest }}
+        run: |
+          pytest --doctest-modules shapely --ignore=shapely/tests
 
       - name: Upload coverage
         env:
@@ -176,9 +193,9 @@ jobs:
     runs-on: ubuntu-latest
     container: python:3-slim
     steps:
-    - name: Finished
-      run: |
-        pip3 install --upgrade coveralls
-        coveralls --finish || echo "!! intermittent coveralls failure"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Finished
+        run: |
+          pip3 install --upgrade coveralls
+          coveralls --finish || echo "!! intermittent coveralls failure"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

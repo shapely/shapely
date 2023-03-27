@@ -1,5 +1,6 @@
 """Points and related utilities
 """
+import numpy as np
 
 import shapely
 from shapely.errors import DimensionError
@@ -10,46 +11,51 @@ __all__ = ["Point"]
 
 class Point(BaseGeometry):
     """
-    A zero dimensional feature
+    A geometry type that represents a single coordinate with
+    x,y and possibly z values.
 
-    A point has zero length and zero area.
+    A point is a zero-dimensional feature and has zero length and zero area.
+
+    Parameters
+    ----------
+    args : float, or sequence of floats
+        The coordinates can either be passed as a single parameter, or as
+        individual float values using multiple parameters:
+
+        1) 1 parameter: a sequence or array-like of with 2 or 3 values.
+        2) 2 or 3 parameters (float): x, y, and possibly z.
 
     Attributes
     ----------
     x, y, z : float
         Coordinate values
 
-    Example
-    -------
-      >>> p = Point(1.0, -1.0)
-      >>> print(p)
-      POINT (1 -1)
-      >>> p.y
-      -1.0
-      >>> p.x
-      1.0
+    Examples
+    --------
+    Constructing the Point using separate parameters for x and y:
+
+    >>> p = Point(1.0, -1.0)
+
+    Constructing the Point using a list of x, y coordinates:
+
+    >>> p = Point([1.0, -1.0])
+    >>> print(p)
+    POINT (1 -1)
+    >>> p.y
+    -1.0
+    >>> p.x
+    1.0
     """
 
     __slots__ = []
 
     def __new__(self, *args):
-        """
-        Parameters
-        ----------
-        There are 2 cases:
-
-        1) 1 parameter: this must satisfy the numpy array protocol.
-        2) 2 or more parameters: x, y, z : float
-            Easting, northing, and elevation.
-        """
         if len(args) == 0:
             # empty geometry
             # TODO better constructor
             return shapely.from_wkt("POINT EMPTY")
         elif len(args) > 3:
-            raise TypeError(
-                "Point() takes at most 3 arguments ({} given)".format(len(args))
-            )
+            raise TypeError(f"Point() takes at most 3 arguments ({len(args)} given)")
         elif len(args) == 1:
             coords = args[0]
             if isinstance(coords, Point):
@@ -58,15 +64,18 @@ class Point(BaseGeometry):
             # Accept either (x, y) or [(x, y)]
             if not hasattr(coords, "__getitem__"):  # generators
                 coords = list(coords)
-
-            if isinstance(coords[0], tuple):
-                coords = coords[0]
-
-            geom = shapely.points(coords)
+            coords = np.asarray(coords).squeeze()
         else:
             # 2 or 3 args
-            geom = shapely.points(*args)
+            coords = np.array(args).squeeze()
 
+        if coords.ndim > 1:
+            raise ValueError(
+                f"Point() takes only scalar or 1-size vector arguments, got {args}"
+            )
+        if not np.issubdtype(coords.dtype, np.number):
+            coords = [float(c) for c in coords]
+        geom = shapely.points(coords)
         if not isinstance(geom, Point):
             raise ValueError("Invalid values passed to Point constructor")
         return geom

@@ -8,6 +8,9 @@
 #include <numpy/npy_math.h>
 #include <structmember.h>
 
+/* This initializes a globally accessible GEOS Context, only to be used when holding the GIL */
+void* geos_context[1] = {NULL};
+
 /* This initializes a globally accessible GEOSException object */
 PyObject* geos_exception[1] = {NULL};
 
@@ -16,6 +19,13 @@ int init_geos(PyObject* m) {
   PyModule_AddObject(m, "ShapelyError", base_class);
   geos_exception[0] = PyErr_NewException("shapely.errors.GEOSException", base_class, NULL);
   PyModule_AddObject(m, "GEOSException", geos_exception[0]);
+
+  void* context_handle = GEOS_init_r();
+  // TODO: the error handling is not yet set up for the global context (it is right now
+  // only used where error handling is not used)
+  // GEOSContext_setErrorMessageHandler_r(context_handle, geos_error_handler, last_error);
+  geos_context[0] = context_handle;
+
   return 0;
 }
 
@@ -648,11 +658,13 @@ GEOSGeometry* create_point(GEOSContextHandle_t ctx, double x, double y) {
   if (coord_seq == NULL) {
     return NULL;
   }
-  for (int j = 0; j < 2; j++) {
-    if (!GEOSCoordSeq_setOrdinate_r(ctx, coord_seq, 0, j, 0.0)) {
-      GEOSCoordSeq_destroy_r(ctx, coord_seq);
-      return NULL;
-    }
+  if (!GEOSCoordSeq_setX_r(ctx, coord_seq, 0, x)) {
+    GEOSCoordSeq_destroy_r(ctx, coord_seq);
+    return NULL;
+  }
+  if (!GEOSCoordSeq_setY_r(ctx, coord_seq, 0, y)) {
+    GEOSCoordSeq_destroy_r(ctx, coord_seq);
+    return NULL;
   }
   geom = GEOSGeom_createPoint_r(ctx, coord_seq);
   if (geom == NULL) {
@@ -941,4 +953,38 @@ GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* b
     }
   }
   return coord_seq;
+}
+
+/* Copy coordinates of a GEOSCoordSequence to an array
+ *
+ * Note: this function assumes that the buffer is from a C-contiguous array,
+ * and that the dimension of the buffer is only 2D or 3D.
+ *
+ * Returns 0 on error, 1 on success.
+ */
+int coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq,
+                       double* buf, unsigned int size, unsigned int dims) {
+
+#if GEOS_SINCE_3_10_0
+
+  int hasZ = dims == 3;
+  return GEOSCoordSeq_copyToBuffer_r(ctx, coord_seq, buf, hasZ, 0);
+
+#else
+
+  char *cp1, *cp2;
+  unsigned int i, j;
+
+  cp1 = (char*)buf;
+  for (i = 0; i < size; i++, cp1 += 8 * dims) {
+    cp2 = cp1;
+    for (j = 0; j < dims; j++, cp2 += 8) {
+      if (!GEOSCoordSeq_getOrdinate_r(ctx, coord_seq, i, j, (double*)cp2)) {
+        return 0;
+      }
+    }
+  }
+  return 1;
+
+#endif
 }

@@ -6,12 +6,20 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
       - name: Run black, flake8 and isort
-        uses: pre-commit/action@v2.0.0
+        uses: pre-commit/action@v3.0.0
+
+      - name: Validate citation file
+        shell: bash
+        run: |
+          python -m pip install cffconvert
+          cffconvert --validate
+          cffconvert -f bibtex
+          cffconvert -f apalike

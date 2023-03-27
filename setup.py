@@ -9,6 +9,10 @@ from pkg_resources import parse_version
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext as _build_ext
 
+# ensure the current directory is on sys.path so versioneer can be imported
+# when pip uses PEP 517/518 build rules.
+# https://github.com/python-versioneer/python-versioneer/issues/193
+sys.path.insert(0, os.path.dirname(__file__))
 import versioneer
 
 # Skip Cython build if not available
@@ -138,13 +142,13 @@ if "clean" in sys.argv:
     # delete any previously Cythonized or compiled files in pygeos
     p = Path(".")
     for pattern in [
-        "build/lib.*/pygeos/*.so",
-        "pygeos/*.c",
-        "pygeos/*.so",
-        "pygeos/*.pyd",
+        "build/lib.*/shapely/*.so",
+        "shapely/*.c",
+        "shapely/*.so",
+        "shapely/*.pyd",
     ]:
         for filename in p.glob(pattern):
-            print("removing '{}'".format(filename))
+            print(f"removing '{filename}'")
             filename.unlink()
 elif "sdist" in sys.argv:
     if Path("LICENSE_GEOS").exists() or Path("LICENSE_win32").exists():
@@ -200,24 +204,13 @@ else:
     )
 
 
-try:
-    descr = open(os.path.join(os.path.dirname(__file__), "README.rst")).read()
-except IOError:
-    descr = ""
-
-
-version = versioneer.get_version()
 cmdclass = versioneer.get_cmdclass()
 cmdclass["build_ext"] = build_ext
 
 
+# see pyproject.toml for static project metadata
 setup(
-    name="shapely",
-    version=version,
-    packages=find_packages(include=["shapely", "shapely.*"]),
-    install_requires=["numpy>=1.13"],
-    python_requires=">=3.6",
-    include_package_data=True,
+    version=versioneer.get_version(),
     ext_modules=ext_modules,
     cmdclass=cmdclass,
 )

@@ -1,6 +1,6 @@
-from . import Geometry  # NOQA
-from . import lib
-from .decorators import multithreading_enabled
+from shapely import lib
+from shapely.decorators import multithreading_enabled
+from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
     "line_interpolate_point",
@@ -33,17 +33,18 @@ def line_interpolate_point(line, distance, normalized=False, **kwargs):
 
     Examples
     --------
-    >>> line = Geometry("LINESTRING(0 2, 0 10)")
+    >>> from shapely import LineString, Point
+    >>> line = LineString([(0, 2), (0, 10)])
     >>> line_interpolate_point(line, 2)
-    <pygeos.Geometry POINT (0 4)>
+    <POINT (0 4)>
     >>> line_interpolate_point(line, 100)
-    <pygeos.Geometry POINT (0 10)>
+    <POINT (0 10)>
     >>> line_interpolate_point(line, -2)
-    <pygeos.Geometry POINT (0 8)>
+    <POINT (0 8)>
     >>> line_interpolate_point(line, [0.25, -0.25], normalized=True).tolist()
-    [<pygeos.Geometry POINT (0 4)>, <pygeos.Geometry POINT (0 8)>]
-    >>> line_interpolate_point(Geometry("LINESTRING EMPTY"), 1)
-    <pygeos.Geometry POINT EMPTY>
+    [<POINT (0 4)>, <POINT (0 8)>]
+    >>> line_interpolate_point(LineString(), 1)
+    <POINT EMPTY>
     """
     if normalized:
         return lib.line_interpolate_point_normalized(line, distance)
@@ -71,14 +72,16 @@ def line_locate_point(line, other, normalized=False, **kwargs):
 
     Examples
     --------
-    >>> line = Geometry("LINESTRING(0 2, 0 10)")
-    >>> line_locate_point(line, Geometry("POINT(4 4)"))
+    >>> from shapely import LineString, Point
+    >>> line = LineString([(0, 2), (0, 10)])
+    >>> point = Point(4, 4)
+    >>> line_locate_point(line, point)
     2.0
-    >>> line_locate_point(line, Geometry("POINT(4 4)"), normalized=True)
+    >>> line_locate_point(line, point, normalized=True)
     0.25
-    >>> line_locate_point(line, Geometry("POINT(0 18)"))
+    >>> line_locate_point(line, Point(0, 18))
     8.0
-    >>> line_locate_point(Geometry("LINESTRING EMPTY"), Geometry("POINT(4 4)"))
+    >>> line_locate_point(LineString(), point)
     nan
     """
     if normalized:
@@ -88,26 +91,53 @@ def line_locate_point(line, other, normalized=False, **kwargs):
 
 
 @multithreading_enabled
-def line_merge(line, **kwargs):
-    """Returns (multi)linestrings formed by combining the lines in a
-    multilinestrings.
+def line_merge(line, directed=False, **kwargs):
+    """Returns (Multi)LineStrings formed by combining the lines in a
+    MultiLineString.
+
+    Lines are joined together at their endpoints in case two lines are
+    intersecting. Lines are not joined when 3 or more lines are intersecting at
+    the endpoints. Line elements that cannot be joined are kept as is in the
+    resulting MultiLineString.
+
+    The direction of each merged LineString will be that of the majority of the
+    LineStrings from which it was derived. Except if ``directed=True`` is
+    specified, then the operation will not change the order of points within
+    lines and so only lines which can be joined with no change in direction
+    are merged.
 
     Parameters
     ----------
     line : Geometry or array_like
+    directed : bool, default False
+        Only combine lines if possible without changing point order.
+        Requires GEOS >= 3.11.0
     **kwargs
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Examples
     --------
-    >>> line_merge(Geometry("MULTILINESTRING((0 2, 0 10), (0 10, 5 10))"))
-    <pygeos.Geometry LINESTRING (0 2, 0 10, 5 10)>
-    >>> line_merge(Geometry("MULTILINESTRING((0 2, 0 10), (0 11, 5 10))"))
-    <pygeos.Geometry MULTILINESTRING ((0 2, 0 10), (0 11, 5 10))>
-    >>> line_merge(Geometry("LINESTRING EMPTY"))
-    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
+    >>> from shapely import MultiLineString
+    >>> line_merge(MultiLineString([[(0, 2), (0, 10)], [(0, 10), (5, 10)]]))
+    <LINESTRING (0 2, 0 10, 5 10)>
+    >>> line_merge(MultiLineString([[(0, 2), (0, 10)], [(0, 11), (5, 10)]]))
+    <MULTILINESTRING ((0 2, 0 10), (0 11, 5 10))>
+    >>> line_merge(MultiLineString())
+    <GEOMETRYCOLLECTION EMPTY>
+    >>> line_merge(MultiLineString([[(0, 0), (1, 0)], [(0, 0), (3, 0)]]))
+    <LINESTRING (1 0, 0 0, 3 0)>
+    >>> line_merge(MultiLineString([[(0, 0), (1, 0)], [(0, 0), (3, 0)]]), directed=True)
+    <MULTILINESTRING ((0 0, 1 0), (0 0, 3 0))>
     """
+    if directed:
+        if lib.geos_version < (3, 11, 0):
+            raise UnsupportedGEOSVersionError(
+                "'{}' requires at least GEOS {}.{}.{}.".format(
+                    "line_merge", *(3, 11, 0)
+                )
+            )
+        return lib.line_merge_directed(line, **kwargs)
     return lib.line_merge(line, **kwargs)
 
 
@@ -132,10 +162,14 @@ def shared_paths(a, b, **kwargs):
 
     Examples
     --------
-    >>> geom1 = Geometry("LINESTRING (0 0, 1 0, 1 1, 0 1, 0 0)")
-    >>> geom2 = Geometry("LINESTRING (1 0, 2 0, 2 1, 1 1, 1 0)")
-    >>> shared_paths(geom1, geom2)
-    <pygeos.Geometry GEOMETRYCOLLECTION (MULTILINESTRING EMPTY, MULTILINESTRING ...>
+    >>> from shapely import LineString
+    >>> line1 = LineString([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
+    >>> line2 = LineString([(1, 0), (2, 0), (2, 1), (1, 1), (1, 0)])
+    >>> shared_paths(line1, line2).wkt
+    'GEOMETRYCOLLECTION (MULTILINESTRING EMPTY, MULTILINESTRING ((1 0, 1 1)))'
+    >>> line3 = LineString([(1, 1), (0, 1)])
+    >>> shared_paths(line1, line3).wkt
+    'GEOMETRYCOLLECTION (MULTILINESTRING ((1 1, 0 1)), MULTILINESTRING EMPTY)'
     """
     return lib.shared_paths(a, b, **kwargs)
 
@@ -165,9 +199,10 @@ def shortest_line(a, b, **kwargs):
 
     Examples
     --------
-    >>> geom1 = Geometry("LINESTRING (0 0, 1 0, 1 1, 0 1, 0 0)")
-    >>> geom2 = Geometry("LINESTRING (0 3, 3 0, 5 3)")
-    >>> shortest_line(geom1, geom2)
-    <pygeos.Geometry LINESTRING (1 1, 1.5 1.5)>
+    >>> from shapely import LineString
+    >>> line1 = LineString([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
+    >>> line2 = LineString([(0, 3), (3, 0), (5, 3)])
+    >>> shortest_line(line1, line2)
+    <LINESTRING (1 1, 1.5 1.5)>
     """
     return lib.shortest_line(a, b, **kwargs)
