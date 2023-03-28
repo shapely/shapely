@@ -2529,7 +2529,7 @@ static void linestrings_func(char** args, const npy_intp* dimensions, const npy_
                  "Linestrings function called with non-scalar parameters");
     return;
   }
-  int handle_nans = *(int*)args[1];
+  int handle_nan = *(int*)args[1];
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
@@ -2543,7 +2543,7 @@ static void linestrings_func(char** args, const npy_intp* dimensions, const npy_
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
-    errstate = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, 0, handle_nans, cs1,
+    errstate = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, 0, handle_nan, cs1,
                                     cs2, &coord_seq);
     if (errstate != PGERR_SUCCESS) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
@@ -2590,7 +2590,7 @@ static void linearrings_func(char** args, const npy_intp* dimensions, const npy_
                  "Linearrings function called with non-scalar parameters");
     return;
   }
-  int handle_nans = *(int*)args[1];
+  int handle_nan = *(int*)args[1];
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
@@ -2605,7 +2605,7 @@ static void linearrings_func(char** args, const npy_intp* dimensions, const npy_
       goto finish;
     }
     /* fill the coordinate sequence */
-    errstate = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, 1, handle_nans, cs1,
+    errstate = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, 1, handle_nan, cs1,
                                     cs2, &coord_seq);
     if (errstate != PGERR_SUCCESS) {
       destroy_geom_arr(ctx, geom_arr, i - 1);

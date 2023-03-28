@@ -45,7 +45,7 @@ finish:
 */
 
 // Define the error states
-enum {
+enum ShapelyErrorCode {
   PGERR_SUCCESS,
   PGERR_NOT_A_GEOMETRY,
   PGERR_GEOS_EXCEPTION,
@@ -104,7 +104,7 @@ enum {
     case PGERR_NAN_COORD:                                                                \
       PyErr_SetString(PyExc_ValueError,                                                  \
                       "A NaN, Inf or -Inf coordinate was supplied. Remove the "          \
-                      "coordinate or adapt the 'handle_nans' parameter.");               \
+                      "coordinate or adapt the 'handle_nan' parameter.");               \
       break;                                                                             \
     case PGWARN_INVALID_WKB:                                                             \
       PyErr_WarnFormat(PyExc_Warning, 0,                                                 \
@@ -187,10 +187,13 @@ GEOSGeometry* create_point(GEOSContextHandle_t ctx, double x, double y);
 GEOSGeometry* PyGEOSForce2D(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 GEOSGeometry* PyGEOSForce3D(GEOSContextHandle_t ctx, GEOSGeometry* geom, double z);
 
-enum { PYGEOS_HANDLE_NANS_ALLOW, PYGEOS_HANDLE_NANS_IGNORE, PYGEOS_HANDLE_NANS_RAISE };
-extern int coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
+
+enum ShapelyHandleNan { SHAPELY_HANDLE_NAN_ALLOW, SHAPELY_HANDLE_NAN_SKIP, SHAPELY_HANDLE_NANS_ERROR };
+
+
+extern enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
                                 unsigned int size, unsigned int dims, char is_ring,
-                                int handle_nans, npy_intp cs1, npy_intp cs2,
+                                int handle_nan, npy_intp cs1, npy_intp cs2,
                                 GEOSCoordSequence** coord_seq);
 extern int coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq,
                               double* buf, unsigned int size, unsigned int dims);

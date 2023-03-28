@@ -965,7 +965,7 @@ char fill_coord_seq(GEOSContextHandle_t ctx, GEOSCoordSequence* coord_seq,
   return PGERR_SUCCESS;
 }
 
-char fill_coord_seq_ignore_nan(GEOSContextHandle_t ctx, GEOSCoordSequence* coord_seq,
+char fill_coord_seq_skip_nan(GEOSContextHandle_t ctx, GEOSCoordSequence* coord_seq,
                                const double* buf, unsigned int dims, npy_intp cs1,
                                npy_intp cs2, unsigned int first_i, unsigned int last_i) {
   unsigned int i, j, current = 0;
@@ -1000,29 +1000,29 @@ char fill_coord_seq_ignore_nan(GEOSContextHandle_t ctx, GEOSCoordSequence* coord
  * checked before calling this function, so the buffer and the dims argument
  * is only 2D or 3D.
  *
- * handle_nans: 0 means 'allow', 1 means 'ignore', 2 means 'raise'
+ * handle_nan: 0 means 'allow', 1 means 'skip', 2 means 'error'
  *
  * Returns an error state (PGERR_SUCCESS / PGERR_GEOS_EXCEPTION / PGERR_NAN_COORD).
  */
-int coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf, unsigned int size,
-                         unsigned int dims, char is_ring, int handle_nans, npy_intp cs1,
+enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf, unsigned int size,
+                         unsigned int dims, char is_ring, int handle_nan, npy_intp cs1,
                          npy_intp cs2, GEOSCoordSequence** coord_seq) {
-  char *cp1, *cp2;
-  unsigned int i, j, current, first_i, last_i, actual_size;
+  char *cp1;
+  unsigned int i, j, first_i, last_i, actual_size;
   double coord;
   char errstate;
   char ring_closure = 0;
 
-  switch (handle_nans) {
-    case PYGEOS_HANDLE_NANS_ALLOW:
+  switch (handle_nan) {
+    case SHAPELY_HANDLE_NAN_ALLOW:
       actual_size = size;
       first_i = 0;
       last_i = size - 1;
       break;
-    case PYGEOS_HANDLE_NANS_IGNORE:
+    case SHAPELY_HANDLE_NAN_SKIP:
       actual_size = count_finite(buf, size, dims, cs1, cs2, &first_i, &last_i);
       break;
-    case PYGEOS_HANDLE_NANS_RAISE:
+    case SHAPELY_HANDLE_NANS_ERROR:
       actual_size = count_finite(buf, size, dims, cs1, cs2, &first_i, &last_i);
       if (actual_size != size) {
         return PGERR_NAN_COORD;
@@ -1073,8 +1073,8 @@ int coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf, unsigned in
   if (*coord_seq == NULL) {
     return PGERR_GEOS_EXCEPTION;
   }
-  if (handle_nans == PYGEOS_HANDLE_NANS_IGNORE) {
-    errstate = fill_coord_seq_ignore_nan(ctx, *coord_seq, buf, dims, cs1, cs2, first_i, last_i);
+  if (handle_nan == SHAPELY_HANDLE_NAN_SKIP) {
+    errstate = fill_coord_seq_skip_nan(ctx, *coord_seq, buf, dims, cs1, cs2, first_i, last_i);
   } else {
     errstate = fill_coord_seq(ctx, *coord_seq, buf, size, dims, cs1, cs2);
   }

@@ -34,12 +34,12 @@
 
 /* extern int PyGEOS_CoordSeq_FromBuffer(GEOSContextHandle_t ctx, const double* buf,
                                       unsigned int size, unsigned int dims, char is_ring,
-                                      int handle_nans, GEOSCoordSequence** coord_seq)*/
+                                      int handle_nan, GEOSCoordSequence** coord_seq)*/
 #define PyGEOS_CoordSeq_FromBuffer_NUM 2
 #define PyGEOS_CoordSeq_FromBuffer_RETURN int
 #define PyGEOS_CoordSeq_FromBuffer_PROTO                                             \
   (GEOSContextHandle_t ctx, const double* buf, unsigned int size, unsigned int dims, \
-   char is_ring, int handle_nans, GEOSCoordSequence** coord_seq)
+   char is_ring, int handle_nan, GEOSCoordSequence** coord_seq)
 
 /* Total number of C API pointers */
 #define PyGEOS_API_num_pointers 3

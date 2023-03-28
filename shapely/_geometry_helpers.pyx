@@ -32,9 +32,12 @@ from shapely._geos cimport (
 )
 from shapely._pygeos_api cimport (
     import_shapely_c_api,
+    PGERR_NAN_COORD,
+    PGERR_SUCCESS,
     PyGEOS_CoordSeq_FromBuffer,
     PyGEOS_CreateGeometry,
     PyGEOS_GetGEOSGeometry,
+    ShapelyHandleNan,
 )
 
 # initialize Shapely C API
@@ -59,7 +62,7 @@ def _check_out_array(object out, Py_ssize_t size):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def simple_geometries_1d(object coordinates, object indices, int geometry_type, int handle_nans = 1, object out = None):
+def simple_geometries_1d(object coordinates, object indices, int geometry_type, int handle_nan, object out = None):
     cdef Py_ssize_t idx = 0
     cdef unsigned int coord_idx = 0
     cdef Py_ssize_t geom_idx = 0
@@ -121,14 +124,16 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type, 
                     raise ValueError(
                         f"Index {geom_idx} is missing from the input indices."
                     )
-
-            errstate = PyGEOS_CoordSeq_FromBuffer(geos_handle, &coord_view[idx, 0], geom_size, dims, is_ring, handle_nans, &seq)
-            if errstate == 9:  # PGERR_NAN_COORD (in shapely/src/geos.h)
+            errstate = PyGEOS_CoordSeq_FromBuffer(
+                geos_handle, &coord_view[idx, 0], geom_size, dims,
+                is_ring, handle_nan, &seq
+            )
+            if errstate == PGERR_NAN_COORD:
                 raise ValueError(
                     "A NaN, Inf or -Inf coordinate was supplied. Remove the "
-                    "coordinate or adapt the 'handle_nans' parameter."
+                    "coordinate or adapt the 'handle_nan' parameter."
                 )
-            elif errstate != 0:
+            elif errstate != PGERR_SUCCESS:
                 return  # GEOSException is raised by get_geos_handle
             # check the resulting size to prevent invalid rings
             if is_ring == 1:
