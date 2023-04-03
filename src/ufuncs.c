@@ -2451,7 +2451,8 @@ static PyUFuncGenericFunction set_precision_funcs[1] = {&set_precision_func};
 
 /* define double -> geometry construction functions */
 static char points_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
-static void points_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
+static void points_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                        void* data) {
   GEOSCoordSequence* coord_seq = NULL;
   GEOSGeometry** geom_arr;
 
@@ -2475,12 +2476,8 @@ static void points_func(char** args, const npy_intp* dimensions, const npy_intp*
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
-    geom_arr[i] = create_point(
-      ctx,
-      *(double*)ip1,
-      *(double*)(ip1 + cs1),
-      n_c1 == 3 ? (double*)(ip1 + 2 * cs1) : NULL
-    );
+    geom_arr[i] = create_point(ctx, *(double*)ip1, *(double*)(ip1 + cs1),
+                               n_c1 == 3 ? (double*)(ip1 + 2 * cs1) : NULL);
     if (geom_arr[i] == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
       destroy_geom_arr(ctx, geom_arr, i - 1);
