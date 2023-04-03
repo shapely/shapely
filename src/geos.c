@@ -676,12 +676,9 @@ GEOSGeometry* create_point(GEOSContextHandle_t ctx, double x, double y, double* 
       return NULL;
     }
   }
-  geom = GEOSGeom_createPoint_r(ctx, coord_seq);
-  if (geom == NULL) {
-    GEOSCoordSeq_destroy_r(ctx, coord_seq);
-    return NULL;
-  }
-  return geom;
+  // Note: coordinate sequence is owned by point; if point fails to construct, it will
+  // automatically clean up the coordinate sequence
+  return GEOSGeom_createPoint_r(ctx, coord_seq);
 }
 
 /* Create a 3D empty Point
