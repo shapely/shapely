@@ -2510,7 +2510,7 @@ finish:
 }
 static PyUFuncGenericFunction points_funcs[1] = {&points_func};
 
-static char linestrings_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
+static char linestrings_dtypes[3] = {NPY_DOUBLE, NPY_INT, NPY_OBJECT};
 static void linestrings_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                              void* data) {
   GEOSCoordSequence* coord_seq = NULL;
@@ -2524,6 +2524,13 @@ static void linestrings_func(char** args, const npy_intp* dimensions, const npy_
     return;
   }
 
+  if (steps[1] != 0) {
+    PyErr_Format(PyExc_ValueError,
+                 "Linestrings function called with non-scalar parameters");
+    return;
+  }
+  int handle_nan = *(int*)args[1];
+
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
   CHECK_ALLOC(geom_arr);
@@ -2536,9 +2543,9 @@ static void linestrings_func(char** args, const npy_intp* dimensions, const npy_
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
-    coord_seq = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, 0, cs1, cs2);
-    if (coord_seq == NULL) {
-      errstate = PGERR_GEOS_EXCEPTION;
+    errstate = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, 0, handle_nan, cs1,
+                                    cs2, &coord_seq);
+    if (errstate != PGERR_SUCCESS) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
@@ -2557,19 +2564,18 @@ finish:
 
   // fill the numpy array with PyObjects while holding the GIL
   if (errstate == PGERR_SUCCESS) {
-    geom_arr_to_npy(geom_arr, args[1], steps[1], dimensions[0]);
+    geom_arr_to_npy(geom_arr, args[2], steps[2], dimensions[0]);
   }
   free(geom_arr);
 }
 static PyUFuncGenericFunction linestrings_funcs[1] = {&linestrings_func};
 
-static char linearrings_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
+static char linearrings_dtypes[3] = {NPY_DOUBLE, NPY_INT, NPY_OBJECT};
 static void linearrings_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                              void* data) {
   GEOSCoordSequence* coord_seq = NULL;
   GEOSGeometry** geom_arr;
-  char ring_closure = 0;
-  double first_coord, last_coord;
+  unsigned int size;
 
   // check the ordinate dimension before calling coordseq_from_buffer
   if (dimensions[2] < 2 || dimensions[2] > 3) {
@@ -2578,6 +2584,13 @@ static void linearrings_func(char** args, const npy_intp* dimensions, const npy_
                  dimensions[2]);
     return;
   }
+
+  if (steps[1] != 0) {
+    PyErr_Format(PyExc_ValueError,
+                 "Linearrings function called with non-scalar parameters");
+    return;
+  }
+  int handle_nan = *(int*)args[1];
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
@@ -2591,31 +2604,21 @@ static void linearrings_func(char** args, const npy_intp* dimensions, const npy_
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
-    /* check if first and last coords are equal; duplicate if necessary */
-    ring_closure = 0;
-    if (n_c1 == 3) {
-      ring_closure = 1;
-    } else {
-      DOUBLE_COREDIM_LOOP_INNER_2 {
-        first_coord = *(double*)(ip1 + i_c2 * cs2);
-        last_coord = *(double*)(ip1 + (n_c1 - 1) * cs1 + i_c2 * cs2);
-        if (first_coord != last_coord) {
-          ring_closure = 1;
-          break;
-        }
-      }
-    }
-    /* the minimum number of coordinates in a linearring is 4 */
-    if (n_c1 + ring_closure < 4) {
-      errstate = PGERR_LINEARRING_NCOORDS;
+    /* fill the coordinate sequence */
+    errstate = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, 1, handle_nan, cs1,
+                                    cs2, &coord_seq);
+    if (errstate != PGERR_SUCCESS) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
-    /* fill the coordinate sequence */
-    coord_seq =
-        coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, ring_closure, cs1, cs2);
-    if (coord_seq == NULL) {
+    /* the minimum number of coordinates in a linearring is 4 */
+    if (!GEOSCoordSeq_getSize_r(ctx, coord_seq, &size)) {
       errstate = PGERR_GEOS_EXCEPTION;
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      goto finish;
+    }
+    if ((size > 0) && (size < 4)) {
+      errstate = PGERR_LINEARRING_NCOORDS;
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
@@ -2634,7 +2637,7 @@ finish:
 
   // fill the numpy array with PyObjects while holding the GIL
   if (errstate == PGERR_SUCCESS) {
-    geom_arr_to_npy(geom_arr, args[1], steps[1], dimensions[0]);
+    geom_arr_to_npy(geom_arr, args[2], steps[2], dimensions[0]);
   }
   free(geom_arr);
 }
@@ -2898,7 +2901,6 @@ static void bounds_func(char** args, const npy_intp* dimensions, const npy_intp*
     if (in1 == NULL) { /* no geometry => bbox becomes (nan, nan, nan, nan) */
       *x1 = *y1 = *x2 = *y2 = NPY_NAN;
     } else {
-
 #if GEOS_SINCE_3_11_0
       if (GEOSisEmpty_r(ctx, in1)) {
         *x1 = *y1 = *x2 = *y2 = NPY_NAN;
@@ -3592,11 +3594,10 @@ TODO relate functions
                                   PyUFunc_None, #NAME, "", 0);                   \
   PyDict_SetItemString(d, #NAME, ufunc)
 
-#define DEFINE_Y_Y_reduce(NAME)                                               \
-  ufunc = PyUFunc_FromFuncAndDataAndSignature(Y_Y_reduce_funcs, NAME##_data,  \
-                                              Y_Y_reduce_dtypes, 1, 1, 1,     \
-                                              PyUFunc_None, #NAME, "", 0,     \
-                                              "(d)->()");                     \
+#define DEFINE_Y_Y_reduce(NAME)                                                         \
+  ufunc = PyUFunc_FromFuncAndDataAndSignature(Y_Y_reduce_funcs, NAME##_data,            \
+                                              Y_Y_reduce_dtypes, 1, 1, 1, PyUFunc_None, \
+                                              #NAME, "", 0, "(d)->()");                 \
   PyDict_SetItemString(d, #NAME, ufunc)
 
 #define DEFINE_Y_d(NAME)                                                       \
@@ -3750,8 +3751,8 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_CUSTOM(shortest_line, 2);
 
   DEFINE_GENERALIZED(points, 1, "(d)->()");
-  DEFINE_GENERALIZED(linestrings, 1, "(i, d)->()");
-  DEFINE_GENERALIZED(linearrings, 1, "(i, d)->()");
+  DEFINE_GENERALIZED(linestrings, 2, "(i, d),()->()");
+  DEFINE_GENERALIZED(linearrings, 2, "(i, d),()->()");
   DEFINE_GENERALIZED(bounds, 1, "()->(n)");
   DEFINE_GENERALIZED(polygons, 2, "(),(i)->()");
   DEFINE_GENERALIZED(create_collection, 2, "(i),()->()");
