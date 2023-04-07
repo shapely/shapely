@@ -696,7 +696,6 @@ def clip_by_rect(geom, xmin, ymin, xmax, ymax):
 
     Notes
     -----
-    Requires GEOS >= 3.5.0
     New in 1.7.
     """
     if geom.is_empty:

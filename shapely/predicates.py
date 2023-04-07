@@ -69,7 +69,6 @@ def has_z(geometry, **kwargs):
     return lib.has_z(geometry, **kwargs)
 
 
-@requires_geos("3.7.0")
 @multithreading_enabled
 def is_ccw(geometry, **kwargs):
     """Returns True if a linestring or linearring is counterclockwise.

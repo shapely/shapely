@@ -769,7 +769,6 @@ def remove_repeated_points(geometry, tolerance=0.0, **kwargs):
     return lib.remove_repeated_points(geometry, tolerance, **kwargs)
 
 
-@requires_geos("3.7.0")
 @multithreading_enabled
 def reverse(geometry, **kwargs):
     """Returns a copy of a Geometry with the order of coordinates reversed.
@@ -1010,7 +1009,6 @@ def voronoi_polygons(
     return lib.voronoi_polygons(geometry, tolerance, extend_to, only_edges, **kwargs)
 
 
-@requires_geos("3.6.0")
 @multithreading_enabled
 def oriented_envelope(geometry, **kwargs):
     """

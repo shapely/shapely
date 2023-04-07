@@ -14,31 +14,27 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2019]
         architecture: [x64]
-        geos: [3.6.5, 3.7.5, 3.8.3, 3.9.3, 3.10.3, 3.11.1, main]
+        geos: [3.7.5, 3.8.3, 3.9.4, 3.10.5, 3.11.2, main]
         include:
-          # 2017
-          - python: 3.7  # 3.6 is dropped
-            geos: 3.6.5
-            numpy: 1.14.6
           # 2018
-          - python: 3.7
+          - python: 3.8  # 3.7 is dropped
             geos: 3.7.5
-            numpy: 1.15.4
+            numpy: 1.16.2
           # 2019
           - python: 3.8
             geos: 3.8.3
-            numpy: 1.17.5
+            numpy: 1.16.2
           # 2020
           - python: 3.9
-            geos: 3.9.3
+            geos: 3.9.4
             numpy: 1.19.5
           # 2021
           - python: "3.10"
-            geos: 3.10.3
+            geos: 3.10.5
             numpy: 1.21.3
           # 2022
           - python: "3.11"
-            geos: 3.11.1
+            geos: 3.11.2
             numpy: 1.23.4
             matplotlib: true
             doctest: true
@@ -50,9 +46,9 @@ jobs:
           # enable two 32-bit windows builds:
           - os: windows-2019
             architecture: x86
-            python: 3.7
+            python: 3.8
             geos: 3.7.5
-            numpy: 1.15.4
+            numpy: 1.16.2
           - os: windows-2019
             architecture: x86
             python: 3.9
@@ -61,7 +57,7 @@ jobs:
           # pypy (use explicit ubuntu version to not overwrite existing ubuntu-latest + geos 3.11.0 build)
           - os: ubuntu-20.04
             python: "pypy3.8"
-            geos: 3.11.1
+            geos: 3.11.2
             numpy: 1.23.4
 
     env:
