@@ -9,12 +9,13 @@ from shapely.geometry.multilinestring import MultiLineString
 from shapely.geometry.multipoint import MultiPoint
 from shapely.geometry.multipolygon import MultiPolygon
 from shapely.geometry.point import Point
-from shapely.geometry.polygon import LinearRing, Polygon
+from shapely.geometry.polygon import orient, LinearRing, Polygon
 
 __all__ = [
     "box",
     "shape",
     "mapping",
+    "orient",
     "Point",
     "LineString",
     "Polygon",
