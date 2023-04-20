@@ -463,79 +463,11 @@ int get_bounds(GEOSContextHandle_t ctx, GEOSGeometry* geom, double* xmin, double
     return 1;
   }
 
-#if GEOS_SINCE_3_7_0
   // use min / max coordinates
-
   if (!(GEOSGeom_getXMin_r(ctx, geom, xmin) && GEOSGeom_getYMin_r(ctx, geom, ymin) &&
         GEOSGeom_getXMax_r(ctx, geom, xmax) && GEOSGeom_getYMax_r(ctx, geom, ymax))) {
     return 0;
   }
-
-#else
-  // extract coordinates from envelope
-
-  GEOSGeometry* envelope = NULL;
-  const GEOSGeometry* ring = NULL;
-  const GEOSCoordSequence* coord_seq = NULL;
-  int size;
-
-  /* construct the envelope */
-  envelope = GEOSEnvelope_r(ctx, geom);
-  if (envelope == NULL) {
-    return 0;
-  }
-
-  size = GEOSGetNumCoordinates_r(ctx, envelope);
-
-  /* get the bbox depending on the number of coordinates in the envelope */
-  if (size == 0) { /* Envelope is empty */
-    *xmin = *ymin = *xmax = *ymax = NPY_NAN;
-  } else if (size == 1) { /* Envelope is a point */
-    if (!GEOSGeomGetX_r(ctx, envelope, xmin)) {
-      retval = 0;
-      goto finish;
-    }
-    if (!GEOSGeomGetY_r(ctx, envelope, ymin)) {
-      retval = 0;
-      goto finish;
-    }
-    *xmax = *xmin;
-    *ymax = *ymin;
-  } else if (size == 5) { /* Envelope is a box */
-    ring = GEOSGetExteriorRing_r(ctx, envelope);
-    if (ring == NULL) {
-      retval = 0;
-      goto finish;
-    }
-    coord_seq = GEOSGeom_getCoordSeq_r(ctx, ring);
-    if (coord_seq == NULL) {
-      retval = 0;
-      goto finish;
-    }
-    if (!GEOSCoordSeq_getX_r(ctx, coord_seq, 0, xmin)) {
-      retval = 0;
-      goto finish;
-    }
-    if (!GEOSCoordSeq_getY_r(ctx, coord_seq, 0, ymin)) {
-      retval = 0;
-      goto finish;
-    }
-    if (!GEOSCoordSeq_getX_r(ctx, coord_seq, 2, xmax)) {
-      retval = 0;
-      goto finish;
-    }
-    if (!GEOSCoordSeq_getY_r(ctx, coord_seq, 2, ymax)) {
-      retval = 0;
-      goto finish;
-    }
-  }
-
-finish:
-  if (envelope != NULL) {
-    GEOSGeom_destroy_r(ctx, envelope);
-  }
-
-#endif
 
   return retval;
 }

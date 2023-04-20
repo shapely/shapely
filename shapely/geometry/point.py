@@ -97,8 +97,7 @@ class Point(BaseGeometry):
         """Return z coordinate."""
         if not shapely.has_z(self):
             raise DimensionError("This point has no z coordinate.")
-        # return shapely.get_z(self) -> get_z only supported for GEOS 3.7+
-        return self.coords[0][2]
+        return shapely.get_z(self)
 
     @property
     def __geo_interface__(self):

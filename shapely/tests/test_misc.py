@@ -13,8 +13,8 @@ from shapely.decorators import multithreading_enabled, requires_geos
 
 @pytest.fixture
 def mocked_geos_version():
-    with mock.patch.object(shapely.lib, "geos_version", new=(3, 7, 1)):
-        yield "3.7.1"
+    with mock.patch.object(shapely.lib, "geos_version", new=(3, 10, 1)):
+        yield "3.10.1"
 
 
 @pytest.fixture
@@ -91,13 +91,14 @@ expected_docstring = """Docstring that will be mocked.
 {indent}"""
 
 
-@pytest.mark.parametrize("version", ["3.7.0", "3.7.1", "3.6.2"])
+@pytest.mark.parametrize("version", ["3.10.0", "3.10.1", "3.9.2"])
 def test_requires_geos_ok(version, mocked_geos_version):
     wrapped = requires_geos(version)(func)
+    wrapped()
     assert wrapped is func
 
 
-@pytest.mark.parametrize("version", ["3.7.2", "3.8.0", "3.8.1"])
+@pytest.mark.parametrize("version", ["3.10.2", "3.11.0", "3.11.1"])
 def test_requires_geos_not_ok(version, mocked_geos_version):
     wrapped = requires_geos(version)(func)
     with pytest.raises(shapely.errors.UnsupportedGEOSVersionError):
@@ -106,7 +107,7 @@ def test_requires_geos_not_ok(version, mocked_geos_version):
     assert wrapped.__doc__ == expected_docstring.format(version=version, indent=" " * 4)
 
 
-@pytest.mark.parametrize("version", ["3.6.0", "3.8.0"])
+@pytest.mark.parametrize("version", ["3.9.0", "3.10.0"])
 def test_requires_geos_doc_build(version, mocked_geos_version, sphinx_doc_build):
     """The requires_geos decorator always adapts the docstring."""
     wrapped = requires_geos(version)(func)
@@ -114,7 +115,7 @@ def test_requires_geos_doc_build(version, mocked_geos_version, sphinx_doc_build)
     assert wrapped.__doc__ == expected_docstring.format(version=version, indent=" " * 4)
 
 
-@pytest.mark.parametrize("version", ["3.6.0", "3.8.0"])
+@pytest.mark.parametrize("version", ["3.9.0", "3.10.0"])
 def test_requires_geos_method(version, mocked_geos_version, sphinx_doc_build):
     """The requires_geos decorator adjusts methods docstrings correctly"""
     wrapped = requires_geos(version)(SomeClass.func)

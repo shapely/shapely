@@ -135,7 +135,6 @@ static char GEOSisClosedAllTypes_r(void* context, void* geom) {
 static void* is_closed_data[1] = {GEOSisClosedAllTypes_r};
 static void* is_valid_data[1] = {GEOSisValid_r};
 
-#if GEOS_SINCE_3_7_0
 static char GEOSGeom_isCCW_r(void* context, void* geom) {
   const GEOSCoordSequence* coord_seq;
   char is_ccw = 2;  // return value of 2 means GEOSException
@@ -170,7 +169,6 @@ static char GEOSGeom_isCCW_r(void* context, void* geom) {
   return is_ccw;
 }
 static void* is_ccw_data[1] = {GEOSGeom_isCCW_r};
-#endif
 
 typedef char FuncGEOS_Y_b(void* context, void* a);
 static char Y_b_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
@@ -554,12 +552,8 @@ static void* GEOSMinimumBoundingCircleWithReturn(void* context, void* geom) {
 }
 static void* minimum_bounding_circle_data[1] = {GEOSMinimumBoundingCircleWithReturn};
 #endif
-#if GEOS_SINCE_3_7_0
 static void* reverse_data[1] = {GEOSReverse_r};
-#endif
-#if GEOS_SINCE_3_6_0
 static void* oriented_envelope_data[1] = {GEOSMinimumRotatedRectangle_r};
-#endif
 #if GEOS_SINCE_3_11_0
 static void* line_merge_directed_data[1] = {GEOSLineMergeDirected_r};
 #endif
@@ -1051,7 +1045,6 @@ static int GetY(void* context, void* a, double* b) {
   }
 }
 static void* get_y_data[1] = {GetY};
-#if GEOS_SINCE_3_7_0
 static int GetZ(void* context, void* a, double* b) {
   char typ = GEOSGeomTypeId_r(context, a);
   if (typ != 0) {
@@ -1062,11 +1055,9 @@ static int GetZ(void* context, void* a, double* b) {
   }
 }
 static void* get_z_data[1] = {GetZ};
-#endif
 static void* area_data[1] = {GEOSArea_r};
 static void* length_data[1] = {GEOSLength_r};
 
-#if GEOS_SINCE_3_6_0
 static int GetPrecision(void* context, void* a, double* b) {
   // GEOS returns -1 on error; 0 indicates double precision; > 0 indicates a precision
   // grid size was set for this geometry.
@@ -1090,7 +1081,6 @@ static int MinimumClearance(void* context, void* a, double* b) {
   }
 }
 static void* minimum_clearance_data[1] = {MinimumClearance};
-#endif
 #if GEOS_SINCE_3_8_0
 static int GEOSMinimumBoundingRadius(void* context, GEOSGeometry* geom, double* radius) {
   GEOSGeometry* center = NULL;
@@ -1230,7 +1220,6 @@ static PyUFuncGenericFunction Y_i_funcs[1] = {&Y_i_func};
 /* Define the geom, geom -> double functions (YY_d) */
 static void* distance_data[1] = {GEOSDistance_r};
 static void* hausdorff_distance_data[1] = {GEOSHausdorffDistance_r};
-#if GEOS_SINCE_3_7_0
 static int GEOSFrechetDistanceWrapped_r(void* context, void* a, void* b, double* c) {
   /* Handle empty geometries (they give segfaults) */
   if (GEOSisEmpty_r(context, a) || GEOSisEmpty_r(context, b)) {
@@ -1240,7 +1229,7 @@ static int GEOSFrechetDistanceWrapped_r(void* context, void* a, void* b, double*
   return GEOSFrechetDistance_r(context, a, b, c);
 }
 static void* frechet_distance_data[1] = {GEOSFrechetDistanceWrapped_r};
-#endif
+
 /* Project and ProjectNormalize don't return error codes. wrap them. */
 static int GEOSProjectWrapped_r(void* context, void* a, void* b, double* c) {
   /* Handle empty points (they give segfaults (for b) or give exception (for a)) */
@@ -1326,9 +1315,7 @@ static PyUFuncGenericFunction YY_d_funcs[1] = {&YY_d_func};
 
 /* Define the geom, geom, double -> double functions (YYd_d) */
 static void* hausdorff_distance_densify_data[1] = {GEOSHausdorffDistanceDensify_r};
-#if GEOS_SINCE_3_7_0
 static void* frechet_distance_densify_data[1] = {GEOSFrechetDistanceDensify_r};
-#endif
 typedef int FuncGEOS_YYd_d(void* context, void* a, void* b, double c, double* d);
 static char YYd_d_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_DOUBLE};
 static void YYd_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
@@ -2376,7 +2363,6 @@ static void shortest_line_func(char** args, const npy_intp* dimensions, const np
 }
 static PyUFuncGenericFunction shortest_line_funcs[1] = {&shortest_line_func};
 
-#if GEOS_SINCE_3_6_0
 static char set_precision_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_INT, NPY_OBJECT};
 static void set_precision_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                                void* data) {
@@ -2447,7 +2433,6 @@ static void set_precision_func(char** args, const npy_intp* dimensions, const np
 }
 
 static PyUFuncGenericFunction set_precision_funcs[1] = {&set_precision_func};
-#endif
 
 /* define double -> geometry construction functions */
 static char points_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
@@ -2912,7 +2897,7 @@ static void bounds_func(char** args, const npy_intp* dimensions, const npy_intp*
         }
       }
 
-#elif GEOS_SINCE_3_7_0
+#else
       if (GEOSisEmpty_r(ctx, in1)) {
         *x1 = *y1 = *x2 = *y2 = NPY_NAN;
       } else {
@@ -2933,62 +2918,6 @@ static void bounds_func(char** args, const npy_intp* dimensions, const npy_intp*
           goto finish;
         }
       }
-#else
-      /* construct the envelope */
-      envelope = GEOSEnvelope_r(ctx, in1);
-      if (envelope == NULL) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        goto finish;
-      }
-      size = GEOSGetNumCoordinates_r(ctx, envelope);
-
-      /* get the bbox depending on the number of coordinates in the envelope */
-      if (size == 0) { /* Envelope is empty */
-        *x1 = *y1 = *x2 = *y2 = NPY_NAN;
-      } else if (size == 1) { /* Envelope is a point */
-        if (!GEOSGeomGetX_r(ctx, envelope, x1)) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          goto finish;
-        }
-        if (!GEOSGeomGetY_r(ctx, envelope, y1)) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          goto finish;
-        }
-        *x2 = *x1;
-        *y2 = *y1;
-      } else if (size == 5) { /* Envelope is a box */
-        ring = GEOSGetExteriorRing_r(ctx, envelope);
-        if (ring == NULL) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          goto finish;
-        }
-        coord_seq = GEOSGeom_getCoordSeq_r(ctx, ring);
-        if (coord_seq == NULL) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          goto finish;
-        }
-        if (!GEOSCoordSeq_getX_r(ctx, coord_seq, 0, x1)) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          goto finish;
-        }
-        if (!GEOSCoordSeq_getY_r(ctx, coord_seq, 0, y1)) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          goto finish;
-        }
-        if (!GEOSCoordSeq_getX_r(ctx, coord_seq, 2, x2)) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          goto finish;
-        }
-        if (!GEOSCoordSeq_getY_r(ctx, coord_seq, 2, y2)) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          goto finish;
-        }
-      } else {
-        errstate = PGERR_GEOMETRY_TYPE;
-        goto finish;
-      }
-      GEOSGeom_destroy_r(ctx, envelope);
-      envelope = NULL;
 #endif
     }
   }
@@ -3650,6 +3579,7 @@ TODO relate functions
 int init_ufuncs(PyObject* m, PyObject* d) {
   PyObject* ufunc;
 
+  DEFINE_Y_b(is_ccw);
   DEFINE_Y_b(is_empty);
   DEFINE_Y_b(is_simple);
   DEFINE_Y_b(is_geometry);
@@ -3689,6 +3619,8 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Y_Y(get_exterior_ring);
   DEFINE_Y_Y(normalize);
   DEFINE_Y_Y(force_2d);
+  DEFINE_Y_Y(oriented_envelope);
+  DEFINE_Y_Y(reverse);
 
   DEFINE_Y(prepare);
   DEFINE_Y(destroy_prepared);
@@ -3713,10 +3645,13 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Y_Y_reduce(intersection_all);
   DEFINE_Y_Y_reduce(symmetric_difference_all);
 
+  DEFINE_Y_d(get_precision);
   DEFINE_Y_d(get_x);
   DEFINE_Y_d(get_y);
+  DEFINE_Y_d(get_z);
   DEFINE_Y_d(area);
   DEFINE_Y_d(length);
+  DEFINE_Y_d(minimum_clearance);
 
   DEFINE_Y_i(get_type_id);
   DEFINE_Y_i(get_dimensions);
@@ -3728,10 +3663,12 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Y_i(get_num_coordinates);
 
   DEFINE_YY_d(distance);
+  DEFINE_YY_d(frechet_distance);
   DEFINE_YY_d(hausdorff_distance);
   DEFINE_YY_d(line_locate_point);
   DEFINE_YY_d(line_locate_point_normalized);
 
+  DEFINE_YYd_d(frechet_distance_densify);
   DEFINE_YYd_d(hausdorff_distance_densify);
 
   DEFINE_CUSTOM(box, 5);
@@ -3753,7 +3690,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_GENERALIZED(points, 1, "(d)->()");
   DEFINE_GENERALIZED(linestrings, 2, "(i, d),()->()");
   DEFINE_GENERALIZED(linearrings, 2, "(i, d),()->()");
-  DEFINE_GENERALIZED(bounds, 1, "()->(n)");
+  DEFINE_GENERALIZED(bounds, 1, "()->(4)");
   DEFINE_GENERALIZED(polygons, 2, "(),(i)->()");
   DEFINE_GENERALIZED(create_collection, 2, "(i),()->()");
 
@@ -3761,21 +3698,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_CUSTOM(from_wkt, 2);
   DEFINE_CUSTOM(to_wkb, 6);
   DEFINE_CUSTOM(to_wkt, 5);
-
-#if GEOS_SINCE_3_6_0
-  DEFINE_Y_d(minimum_clearance);
-  DEFINE_Y_d(get_precision);
-  DEFINE_Y_Y(oriented_envelope);
   DEFINE_CUSTOM(set_precision, 3);
-#endif
-
-#if GEOS_SINCE_3_7_0
-  DEFINE_Y_b(is_ccw);
-  DEFINE_Y_d(get_z);
-  DEFINE_Y_Y(reverse);
-  DEFINE_YY_d(frechet_distance);
-  DEFINE_YYd_d(frechet_distance_densify);
-#endif
 
 #if GEOS_SINCE_3_8_0
   DEFINE_Y_Y(make_valid);
