@@ -586,8 +586,8 @@ GEOSGeometry* create_box(GEOSContextHandle_t ctx, double xmin, double ymin, doub
  */
 enum ShapelyErrorCode create_point(GEOSContextHandle_t ctx, double x, double y, double* z,
                                    int handle_nan, GEOSGeometry** out) {
+  // Identify NaNs unless they are allowed
   char is_finite = 1;
-
   if (handle_nan != SHAPELY_HANDLE_NAN_ALLOW) {
     is_finite = npy_isfinite(x) && npy_isfinite(y);
     if (z != NULL) {
@@ -596,14 +596,24 @@ enum ShapelyErrorCode create_point(GEOSContextHandle_t ctx, double x, double y, 
     if ((!is_finite) && (handle_nan == SHAPELY_HANDLE_NANS_ERROR)) {
       return PGERR_NAN_COORD;
     }
+    if ((!is_finite) && (z == NULL)) {
+      // There is no 3D equivalent for GEOSGeom_createEmptyPoint_r
+      // instead, it is constructed from an empty (3D) coord seq.
+      *out = GEOSGeom_createEmptyPoint_r(ctx);
+      return (*out != NULL) ? PGERR_SUCCESS : PGERR_GEOS_EXCEPTION;
+    }
   }
 
 #if GEOS_SINCE_3_8_0
-  if (z == NULL) {
+  if (is_finite && (z == NULL)) {
+    // There is no 3D equivalent for GEOSGeom_createPointFromXY_r
+    // instead, it is constructed from a coord seq.
     *out = GEOSGeom_createPointFromXY_r(ctx, x, y);
     return (*out != NULL) ? PGERR_SUCCESS : PGERR_GEOS_EXCEPTION;
   }
 #endif
+
+  // Fallback point construction (GEOS < 3.8.0 or 3D (empty) point)
   GEOSCoordSequence* coord_seq = NULL;
   GEOSGeometry* geom = NULL;
 
@@ -612,18 +622,18 @@ enum ShapelyErrorCode create_point(GEOSContextHandle_t ctx, double x, double y, 
     return PGERR_GEOS_EXCEPTION;
   }
   if (is_finite) {
-  if (!GEOSCoordSeq_setX_r(ctx, coord_seq, 0, x)) {
-    GEOSCoordSeq_destroy_r(ctx, coord_seq);
-      return PGERR_GEOS_EXCEPTION;
-  }
-  if (!GEOSCoordSeq_setY_r(ctx, coord_seq, 0, y)) {
-    GEOSCoordSeq_destroy_r(ctx, coord_seq);
-      return PGERR_GEOS_EXCEPTION;
-  }
-
-  if (z != NULL) {
-    if (!GEOSCoordSeq_setZ_r(ctx, coord_seq, 0, *z)) {
+    if (!GEOSCoordSeq_setX_r(ctx, coord_seq, 0, x)) {
       GEOSCoordSeq_destroy_r(ctx, coord_seq);
+        return PGERR_GEOS_EXCEPTION;
+    }
+    if (!GEOSCoordSeq_setY_r(ctx, coord_seq, 0, y)) {
+      GEOSCoordSeq_destroy_r(ctx, coord_seq);
+        return PGERR_GEOS_EXCEPTION;
+    }
+
+    if (z != NULL) {
+      if (!GEOSCoordSeq_setZ_r(ctx, coord_seq, 0, *z)) {
+        GEOSCoordSeq_destroy_r(ctx, coord_seq);
         return PGERR_GEOS_EXCEPTION;
       }
     }

@@ -63,6 +63,55 @@ def test_points_nan_becomes_empty():
     assert_geometries_equal(actual, shapely.Point())
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+@pytest.mark.parametrize(
+    "coords,handle_nan,expected_wkt",
+    [
+        ([np.nan, np.nan], "allow", "POINT (nan nan)"),
+        ([np.nan, np.nan, np.nan], "allow", "POINT Z (nan nan nan)"),
+        ([np.nan, 1], "allow", "POINT (nan 1)"),
+        ([np.nan, 1, np.nan], "allow", "POINT Z (nan 1 nan)"),
+        ([0, 1, np.nan], "allow", "POINT Z (0 1 nan)"),
+    ],
+)
+def test_points_handle_nan(coords, handle_nan, expected_wkt):
+    actual = shapely.points(coords, handle_nan=handle_nan)
+    assert actual.wkt == expected_wkt
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
+@pytest.mark.parametrize(
+    "coords,handle_nan,expected_wkt",
+    [
+        ([0, np.nan], "skip", "POINT EMPTY"),
+        ([np.nan, 0], "skip", "POINT EMPTY"),
+        ([0, np.nan, 1], "skip", "POINT Z EMPTY"),
+        ([0, 1, np.nan], "skip", "POINT Z EMPTY"),
+        ([0, 1], "error", "POINT (0 1)"),
+        ([0, 1, 2], "error", "POINT Z (0 1 2)"),
+        ([0, np.inf], "skip", "POINT EMPTY"),
+    ],
+)
+def test_points_handle_nan_allow(coords, handle_nan, expected_wkt):
+    actual = shapely.points(coords, handle_nan=handle_nan)
+    assert actual.wkt == expected_wkt
+
+
+@pytest.mark.parametrize(
+    "coords",
+    [
+        [0, np.nan],
+        [np.nan, 0],
+        [0, 0, np.nan],
+        [0, np.inf],
+        [0, -np.inf],
+    ],
+)
+def test_points_nan_err(coords):
+    with pytest.raises(ValueError, match=".*NaN.*"):
+        shapely.points(coords, handle_nan="error")
+
+
 def test_linestrings_from_coords():
     actual = shapely.linestrings([[[0, 0], [1, 1]], [[0, 0], [2, 2]]])
     assert_geometries_equal(
