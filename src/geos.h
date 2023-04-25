@@ -185,6 +185,7 @@ extern enum ShapelyErrorCode create_point(GEOSContextHandle_t ctx, double x, dou
 GEOSGeometry* PyGEOSForce2D(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 GEOSGeometry* PyGEOSForce3D(GEOSContextHandle_t ctx, GEOSGeometry* geom, double z);
 
+enum ShapelyHandleNan { SHAPELY_HANDLE_NAN_ALLOW, SHAPELY_HANDLE_NAN_SKIP, SHAPELY_HANDLE_NANS_ERROR };
 
 extern enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx,
                                                   const double* buf, unsigned int size,
