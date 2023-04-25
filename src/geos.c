@@ -564,6 +564,34 @@ GEOSGeometry* create_box(GEOSContextHandle_t ctx, double xmin, double ymin, doub
   return geom;
 }
 
+
+#if !GEOS_SINCE_3_8_0
+/* Create a 3D empty Point
+ *
+ * Works around a limitation of the GEOS < 3.8 C API by constructing the point
+ * from its WKT representation (POINT Z EMPTY).
+ * (the limitation is that we can't have length-0 coord seqs)
+ *
+ * Returns
+ * -------
+ * GEOSGeometry* on success (owned by caller) or NULL on failure
+ */
+GEOSGeometry* PyGEOS_create3DEmptyPoint(GEOSContextHandle_t ctx) {
+  const char* wkt = "POINT Z EMPTY";
+  GEOSGeometry* geom;
+  GEOSWKTReader* reader;
+
+  reader = GEOSWKTReader_create_r(ctx);
+  if (reader == NULL) {
+    return NULL;
+  }
+  geom = GEOSWKTReader_read_r(ctx, reader, wkt);
+  GEOSWKTReader_destroy_r(ctx, reader);
+  return geom;
+}
+#endif // !GEOS_SINCE_3_8_0
+
+
 /* Create a Point from x and y coordinates.
  *
  * Must be called from within a GEOS_INIT_THREADS / GEOS_FINISH_THREADS
@@ -652,31 +680,6 @@ enum ShapelyErrorCode create_point(GEOSContextHandle_t ctx, double x, double y, 
   return (*out != NULL) ? PGERR_SUCCESS : PGERR_GEOS_EXCEPTION;
 }
 
-#if !GEOS_SINCE_3_8_0
-/* Create a 3D empty Point
- *
- * Works around a limitation of the GEOS < 3.8 C API by constructing the point
- * from its WKT representation (POINT Z EMPTY).
- * (the limitation is that we can't have length-0 coord seqs)
- *
- * Returns
- * -------
- * GEOSGeometry* on success (owned by caller) or NULL on failure
- */
-GEOSGeometry* PyGEOS_create3DEmptyPoint(GEOSContextHandle_t ctx) {
-  const char* wkt = "POINT Z EMPTY";
-  GEOSGeometry* geom;
-  GEOSWKTReader* reader;
-
-  reader = GEOSWKTReader_create_r(ctx);
-  if (reader == NULL) {
-    return NULL;
-  }
-  geom = GEOSWKTReader_read_r(ctx, reader, wkt);
-  GEOSWKTReader_destroy_r(ctx, reader);
-  return geom;
-}
-#endif // !GEOS_SINCE_3_8_0
 
 /* Force the coordinate dimensionality (2D / 3D) of any geometry
  *
