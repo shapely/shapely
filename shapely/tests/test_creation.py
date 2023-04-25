@@ -71,6 +71,8 @@ def test_points_nan_all_nan_becomes_empty():
         ([np.nan, np.nan, np.nan], "allow", "POINT Z EMPTY"),
         ([np.nan, np.inf], "allow", "POINT (NaN Infinity)"),
         ([np.nan, np.inf, np.nan], "allow", "POINT Z (NaN Infinity NaN)"),
+        ([np.nan, np.nan, np.inf], "allow", "POINT Z EMPTY"),
+        ([np.nan, np.nan, 1], "allow", "POINT Z EMPTY"),
         ([1, np.nan], "allow", "POINT (1 NaN)"),
         ([np.nan, 1], "allow", "POINT (NaN 1)"),
         ([np.nan, 1, np.nan], "allow", "POINT Z (NaN 1 NaN)"),
