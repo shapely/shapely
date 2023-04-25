@@ -1,6 +1,19 @@
 Version 2.x
 ===========
 
+.. _version-2-1-0:
+
+Version 2.1.0 (unreleased)
+--------------------------
+
+Improvements:
+
+- Require GEOS >= 3.7, NumPy >= 1.16, and Python >= 3.8 (#1802)
+- Add a ``handle_nan`` parameter to ``shapely.linestrings()`` and ``shapely.linearrings()``
+  to allow, skip, or error on nonfinite (NaN / Inf) coordinates. The default
+  behaviour (allow) is backwards compatible (#1594).
+
+
 .. _version-2-0-1:
 
 Version 2.0.1 (2023-01-30)

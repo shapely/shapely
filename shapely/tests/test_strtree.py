@@ -130,15 +130,14 @@ def test_pickle_persistence(tmp_path):
 import pickle
 import sys
 
-from shapely import Point, geos_version
+from shapely import Point
 
 pickled_strtree = sys.stdin.buffer.read()
 print("received pickled strtree:", repr(pickled_strtree))
 tree = pickle.loads(pickled_strtree)
 
 tree.query(Point(0, 0))
-if geos_version >= (3, 6, 0):
-    tree.nearest(Point(0, 0))
+tree.nearest(Point(0, 0))
 print("done")
 """
 

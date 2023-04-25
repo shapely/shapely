@@ -5,7 +5,7 @@ import numpy as np
 
 from shapely import _geometry_helpers, geos_version, lib
 from shapely._enum import ParamEnum
-from shapely.decorators import multithreading_enabled, requires_geos
+from shapely.decorators import multithreading_enabled
 
 __all__ = [
     "GeometryType",
@@ -298,7 +298,6 @@ def get_y(point, **kwargs):
     return lib.get_y(point, **kwargs)
 
 
-@requires_geos("3.7.0")
 @multithreading_enabled
 def get_z(point, **kwargs):
     """Returns the z-coordinate of a point.
@@ -695,7 +694,6 @@ def get_num_geometries(geometry, **kwargs):
     return lib.get_num_geometries(geometry, **kwargs)
 
 
-@requires_geos("3.6.0")
 @multithreading_enabled
 def get_precision(geometry, **kwargs):
     """Get the precision of a geometry.
@@ -738,7 +736,6 @@ class SetPrecisionMode(ParamEnum):
     keep_collapsed = 2
 
 
-@requires_geos("3.6.0")
 @multithreading_enabled
 def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
     """Returns geometry with the precision set to a precision grid size.

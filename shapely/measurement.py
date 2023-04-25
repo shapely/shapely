@@ -99,11 +99,7 @@ def bounds(geometry, **kwargs):
     >>> bounds(None).tolist()
     [nan, nan, nan, nan]
     """
-    # We need to provide the `out` argument here for compatibility with
-    # numpy < 1.16. See https://github.com/numpy/numpy/issues/14949
-    geometry_arr = np.asarray(geometry, dtype=np.object_)
-    out = np.empty(geometry_arr.shape + (4,), dtype="float64")
-    return lib.bounds(geometry_arr, out=out, **kwargs)
+    return lib.bounds(geometry, **kwargs)
 
 
 def total_bounds(geometry, **kwargs):
@@ -226,7 +222,6 @@ def hausdorff_distance(a, b, densify=None, **kwargs):
         return lib.hausdorff_distance_densify(a, b, densify, **kwargs)
 
 
-@requires_geos("3.7.0")
 @multithreading_enabled
 def frechet_distance(a, b, densify=None, **kwargs):
     """Compute the discrete Fréchet distance between two geometries.
@@ -269,7 +264,6 @@ def frechet_distance(a, b, densify=None, **kwargs):
     return lib.frechet_distance_densify(a, b, densify, **kwargs)
 
 
-@requires_geos("3.6.0")
 @multithreading_enabled
 def minimum_clearance(geometry, **kwargs):
     """Computes the Minimum Clearance distance.

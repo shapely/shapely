@@ -574,8 +574,6 @@ int query_nearest_distance_callback(const void* item1, const void* item2,
   return 1;
 }
 
-#if GEOS_SINCE_3_6_0
-
 /* Find the nearest singular item in the tree to each input geometry.
  * Returns indices of source array and tree items.
  *
@@ -950,8 +948,6 @@ static PyObject* STRtree_query_nearest(STRtreeObject* self, PyObject* args) {
   return (PyObject*)result;
 }
 
-#endif  // GEOS_SINCE_3_6_0
-
 #if GEOS_SINCE_3_10_0
 
 static PyObject* STRtree_dwithin(STRtreeObject* self, PyObject* args) {
@@ -1185,12 +1181,10 @@ static PyMethodDef STRtree_methods[] = {
      "Queries the index for all items whose extents intersect the given search "
      "geometries, and optionally tests them "
      "against predicate function if provided. "},
-#if GEOS_SINCE_3_6_0
     {"nearest", (PyCFunction)STRtree_nearest, METH_O,
      "Queries the index for the nearest item to each of the given search geometries"},
     {"query_nearest", (PyCFunction)STRtree_query_nearest, METH_VARARGS,
      "Queries the index for all nearest item(s) to each of the given search geometries"},
-#endif  // GEOS_SINCE_3_6_0
 #if GEOS_SINCE_3_10_0
     {"dwithin", (PyCFunction)STRtree_dwithin, METH_VARARGS,
      "Queries the index for all item(s) in the tree within given distance of search "

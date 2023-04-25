@@ -1,6 +1,7 @@
 import numpy as np
 
 from shapely import Geometry, GeometryType, lib
+from shapely._enum import ParamEnum
 from shapely._geometry_helpers import collections_1d, simple_geometries_1d
 from shapely.decorators import multithreading_enabled
 from shapely.io import from_wkt
@@ -19,6 +20,12 @@ __all__ = [
     "destroy_prepared",
     "empty",
 ]
+
+
+class HandleNaN(ParamEnum):
+    allow = 0
+    skip = 1
+    error = 2
 
 
 def _xyz_to_coords(x, y, z):
@@ -73,11 +80,15 @@ def points(coords, y=None, z=None, indices=None, out=None, **kwargs):
     if indices is None:
         return lib.points(coords, out=out, **kwargs)
     else:
-        return simple_geometries_1d(coords, indices, GeometryType.POINT, out=out)
+        return simple_geometries_1d(
+            coords, indices, GeometryType.POINT, handle_nan=HandleNaN.allow, out=out
+        )
 
 
 @multithreading_enabled
-def linestrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
+def linestrings(
+    coords, y=None, z=None, indices=None, handle_nan=HandleNaN.allow, out=None, **kwargs
+):
     """Create an array of linestrings.
 
     This function will raise an exception if a linestring contains less than
@@ -96,6 +107,22 @@ def linestrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
         indices should be an array of shape (N,) with integers in increasing
         order. Missing indices result in a ValueError unless ``out`` is
         provided, in which case the original value in ``out`` is kept.
+    handle_nan : shapely.HandleNaN or {'allow', 'skip', 'error'}, default 'allow'
+        Specifies what to do when a NaN or Inf is encountered in the coordinates:
+
+        - 'allow': the geometries are created with NaN or Inf coordinates.
+          Note that this can result in unexpected behaviour in subsequent
+          operations, and generally it is discouraged to have non-finite
+          coordinate values. One can use this option if you know all
+          coordinates are finite and want to avoid the overhead of checking
+          for this.
+        - 'skip': the coordinate pairs where any of x, y or z values are
+          NaN or Inf are ignored. If this results in ignoring all coordinates
+          for one geometry, an empty geometry is created.
+        - 'error': if any NaN or Inf is detected in the coordinates, a ValueError
+          is raised. This option ensures that the created geometries have all
+          finite coordinate values.
+
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
@@ -116,14 +143,20 @@ def linestrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
       Instead provide the coordinates as a ``(..., 2)`` or ``(..., 3)`` array using only ``coords``.
     """
     coords = _xyz_to_coords(coords, y, z)
+    if isinstance(handle_nan, str):
+        handle_nan = HandleNaN.get_value(handle_nan)
     if indices is None:
-        return lib.linestrings(coords, out=out, **kwargs)
+        return lib.linestrings(coords, np.intc(handle_nan), out=out, **kwargs)
     else:
-        return simple_geometries_1d(coords, indices, GeometryType.LINESTRING, out=out)
+        return simple_geometries_1d(
+            coords, indices, GeometryType.LINESTRING, handle_nan=handle_nan, out=out
+        )
 
 
 @multithreading_enabled
-def linearrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
+def linearrings(
+    coords, y=None, z=None, indices=None, handle_nan=HandleNaN.allow, out=None, **kwargs
+):
     """Create an array of linearrings.
 
     If the provided coords do not constitute a closed linestring, or if there
@@ -145,6 +178,21 @@ def linearrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
         indices should be an array of shape (N,) with integers in increasing
         order. Missing indices result in a ValueError unless ``out`` is
         provided, in which case the original value in ``out`` is kept.
+    handle_nan : shapely.HandleNaN or {'allow', 'skip', 'error'}, default 'allow'
+        Specifies what to do when a NaN or Inf is encountered in the coordinates:
+
+        - 'allow': the geometries are created with NaN or Inf coordinates.
+          Note that this can result in unexpected behaviour in subsequent
+          operations, and generally it is discouraged to have non-finite
+          coordinate values. One can use this option if you know all
+          coordinates are finite and want to avoid the overhead of checking
+          for this.
+        - 'skip': the coordinate pairs where any of x, y or z values are
+          NaN or Inf are ignored. If this results in ignoring all coordinates
+          for one geometry, an empty geometry is created.
+        - 'error': if any NaN or Inf is detected in the coordinates, a ValueError
+          is raised. This option ensures that the created geometries have all
+          finite coordinate values.
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
@@ -169,10 +217,14 @@ def linearrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
       Instead provide the coordinates as a ``(..., 2)`` or ``(..., 3)`` array using only ``coords``.
     """
     coords = _xyz_to_coords(coords, y, z)
+    if isinstance(handle_nan, str):
+        handle_nan = HandleNaN.get_value(handle_nan)
     if indices is None:
-        return lib.linearrings(coords, out=out, **kwargs)
+        return lib.linearrings(coords, np.intc(handle_nan), out=out, **kwargs)
     else:
-        return simple_geometries_1d(coords, indices, GeometryType.LINEARRING, out=out)
+        return simple_geometries_1d(
+            coords, indices, GeometryType.LINEARRING, handle_nan=handle_nan, out=out
+        )
 
 
 @multithreading_enabled
@@ -234,7 +286,7 @@ def polygons(geometries, holes=None, indices=None, out=None, **kwargs):
     >>> polygons([ring_1, ring_2], indices=[0, 0])[0]
     <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 6, 2 7, 3 7, 3 6, 2 6))>
 
-    Missing input values (``None``) are ignored and may result in an
+    Missing input values (``None``) are skipd and may result in an
     empty polygon:
 
     >>> polygons(None)
@@ -341,7 +393,7 @@ def multipoints(geometries, indices=None, out=None, **kwargs):
     >>> multipoints([point_1, point_2, point_2], indices=[0, 0, 1]).tolist()
     [<MULTIPOINT (1 1, 2 2)>, <MULTIPOINT (2 2)>]
 
-    Missing input values (``None``) are ignored and may result in an
+    Missing input values (``None``) are skipd and may result in an
     empty multipoint:
 
     >>> multipoints([None])
