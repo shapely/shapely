@@ -2476,6 +2476,8 @@ static void points_func(char** args, const npy_intp* dimensions, const npy_intp*
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
+    // the per-point coordinates are retrieved by looping 2 or 3 (=n_c1) times
+    // over "ip1" with a stride of "cs1"
     geom_arr[i] = create_point(ctx, *(double*)ip1, *(double*)(ip1 + cs1),
                                n_c1 == 3 ? (double*)(ip1 + 2 * cs1) : NULL);
     if (geom_arr[i] == NULL) {
