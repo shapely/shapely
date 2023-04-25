@@ -164,7 +164,7 @@ static PyObject* STRtree_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 
   // A dummy query to trigger the build of the tree (only if the tree is not empty)
   if (count_indexed > 0) {
-    GEOSGeometry* dummy = create_point(ctx, 0.0, 0.0);
+    GEOSGeometry* dummy = create_point(ctx, 0.0, 0.0, NULL);
     if (dummy == NULL) {
       GEOSSTRtree_destroy_r(ctx, tree);
       GEOS_FINISH;

@@ -576,19 +576,22 @@ GEOSGeometry* create_box(GEOSContextHandle_t ctx, double xmin, double ymin, doub
  * ctx: GEOS context handle
  * x: X value
  * y: Y value
+ * z: Z value pointer (point will be 2D if this is NULL)
  *
  * Returns
  * -------
  * GEOSGeometry* on success (owned by caller) or NULL on failure
  */
-GEOSGeometry* create_point(GEOSContextHandle_t ctx, double x, double y) {
+GEOSGeometry* create_point(GEOSContextHandle_t ctx, double x, double y, double* z) {
 #if GEOS_SINCE_3_8_0
-  return GEOSGeom_createPointFromXY_r(ctx, x, y);
-#else
+  if (z == NULL) {
+    return GEOSGeom_createPointFromXY_r(ctx, x, y);
+  }
+#endif
   GEOSCoordSequence* coord_seq = NULL;
   GEOSGeometry* geom = NULL;
 
-  coord_seq = GEOSCoordSeq_create_r(ctx, 1, 2);
+  coord_seq = GEOSCoordSeq_create_r(ctx, 1, z == NULL ? 2 : 3);
   if (coord_seq == NULL) {
     return NULL;
   }
@@ -600,13 +603,16 @@ GEOSGeometry* create_point(GEOSContextHandle_t ctx, double x, double y) {
     GEOSCoordSeq_destroy_r(ctx, coord_seq);
     return NULL;
   }
-  geom = GEOSGeom_createPoint_r(ctx, coord_seq);
-  if (geom == NULL) {
-    GEOSCoordSeq_destroy_r(ctx, coord_seq);
-    return NULL;
+
+  if (z != NULL) {
+    if (!GEOSCoordSeq_setZ_r(ctx, coord_seq, 0, *z)) {
+      GEOSCoordSeq_destroy_r(ctx, coord_seq);
+      return NULL;
+    }
   }
-  return geom;
-#endif
+  // Note: coordinate sequence is owned by point; if point fails to construct, it will
+  // automatically clean up the coordinate sequence
+  return GEOSGeom_createPoint_r(ctx, coord_seq);
 }
 
 /* Create a 3D empty Point

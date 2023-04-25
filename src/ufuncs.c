@@ -433,7 +433,7 @@ static void Ydd_b_p_func(char** args, const npy_intp* dimensions, const npy_intp
 #if GEOS_SINCE_3_12_0
       ret = func(ctx, prepared_geom_tmp, in2, in3);
 #else
-      geom = create_point(ctx, in2, in3);
+      geom = create_point(ctx, in2, in3, NULL);
       if (geom == NULL) {
         if (destroy_prepared) {
           GEOSPreparedGeom_destroy_r(ctx, prepared_geom_tmp);
@@ -2436,7 +2436,8 @@ static PyUFuncGenericFunction set_precision_funcs[1] = {&set_precision_func};
 
 /* define double -> geometry construction functions */
 static char points_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
-static void points_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
+static void points_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                        void* data) {
   GEOSCoordSequence* coord_seq = NULL;
   GEOSGeometry** geom_arr;
 
@@ -2460,24 +2461,10 @@ static void points_func(char** args, const npy_intp* dimensions, const npy_intp*
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
-
-    coord_seq = GEOSCoordSeq_create_r(ctx, 1, n_c1);
-    if (coord_seq == NULL) {
-      errstate = PGERR_GEOS_EXCEPTION;
-      destroy_geom_arr(ctx, geom_arr, i - 1);
-      goto finish;
-    }
-    SINGLE_COREDIM_LOOP_INNER {
-      if (!GEOSCoordSeq_setOrdinate_r(ctx, coord_seq, 0, i_c1, *(double*)cp1)) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        GEOSCoordSeq_destroy_r(ctx, coord_seq);
-        destroy_geom_arr(ctx, geom_arr, i - 1);
-        goto finish;
-      }
-    }
-    geom_arr[i] = GEOSGeom_createPoint_r(ctx, coord_seq);
-    // Note: coordinate sequence is owned by point; if point fails to construct, it will
-    // automatically clean up the coordinate sequence
+    // the per-point coordinates are retrieved by looping 2 or 3 (=n_c1) times
+    // over "ip1" with a stride of "cs1"
+    geom_arr[i] = create_point(ctx, *(double*)ip1, *(double*)(ip1 + cs1),
+                               n_c1 == 3 ? (double*)(ip1 + 2 * cs1) : NULL);
     if (geom_arr[i] == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
       destroy_geom_arr(ctx, geom_arr, i - 1);
