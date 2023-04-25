@@ -593,14 +593,22 @@ enum ShapelyErrorCode create_point(GEOSContextHandle_t ctx, double x, double y, 
     if (z != NULL) {
       is_finite = is_finite && npy_isfinite(*z);
     }
-    if ((!is_finite) && (handle_nan == SHAPELY_HANDLE_NANS_ERROR)) {
-      return PGERR_NAN_COORD;
-    }
-    if ((!is_finite) && (z == NULL)) {
-      // There is no 3D equivalent for GEOSGeom_createEmptyPoint_r
-      // instead, it is constructed from an empty (3D) coord seq.
-      *out = GEOSGeom_createEmptyPoint_r(ctx);
+    if (!is_finite) {
+      if (handle_nan == SHAPELY_HANDLE_NANS_ERROR) {
+        return PGERR_NAN_COORD;
+      }
+      // Construct an empty point.
+      // - for 2D: use the C API function
+      // - for 3D, GEOS >=3.8: construct it from a 0-length coord seq
+      // - for 3D, GEOS < 3.8: go through the function that does it via WKT
+      if (z == NULL) {
+        *out = GEOSGeom_createEmptyPoint_r(ctx);
+        return (*out != NULL) ? PGERR_SUCCESS : PGERR_GEOS_EXCEPTION;
+      }
+      #if !GEOS_SINCE_3_8_0
+      *out = PyGEOS_create3DEmptyPoint(ctx)
       return (*out != NULL) ? PGERR_SUCCESS : PGERR_GEOS_EXCEPTION;
+      #endif
     }
   }
 
@@ -644,10 +652,12 @@ enum ShapelyErrorCode create_point(GEOSContextHandle_t ctx, double x, double y, 
   return (*out != NULL) ? PGERR_SUCCESS : PGERR_GEOS_EXCEPTION;
 }
 
+#if !GEOS_SINCE_3_8_0
 /* Create a 3D empty Point
  *
- * Works around a limitation of the GEOS C API by constructing the point
+ * Works around a limitation of the GEOS < 3.8 C API by constructing the point
  * from its WKT representation (POINT Z EMPTY).
+ * (the limitation is that we can't have length-0 coord seqs)
  *
  * Returns
  * -------
@@ -666,6 +676,7 @@ GEOSGeometry* PyGEOS_create3DEmptyPoint(GEOSContextHandle_t ctx) {
   GEOSWKTReader_destroy_r(ctx, reader);
   return geom;
 }
+#endif // !GEOS_SINCE_3_8_0
 
 /* Force the coordinate dimensionality (2D / 3D) of any geometry
  *
@@ -688,7 +699,8 @@ GEOSGeometry* force_dims_simple(GEOSContextHandle_t ctx, GEOSGeometry* geom, int
   double coord;
   const GEOSCoordSequence* seq = GEOSGeom_getCoordSeq_r(ctx, geom);
 
-  /* Special case for POINT EMPTY (Point coordinate list cannot be 0-length) */
+  /* Special case for POINT EMPTY (on GEOS < 3.8, point coordinate list cannot be 0-length) */
+  #if !GEOS_SINCE_3_8_0
   if ((type == 0) && (GEOSisEmpty_r(ctx, geom) == 1)) {
     if (dims == 2) {
       return GEOSGeom_createEmptyPoint_r(ctx);
@@ -698,6 +710,7 @@ GEOSGeometry* force_dims_simple(GEOSContextHandle_t ctx, GEOSGeometry* geom, int
       return NULL;
     }
   }
+  #endif  // !GEOS_SINCE_3_8_0
 
   /* Investigate the coordinate sequence, return when already of correct dimensionality */
   if (GEOSCoordSeq_getDimensions_r(ctx, seq, &actual_dims) == 0) {
