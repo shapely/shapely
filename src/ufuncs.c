@@ -433,12 +433,11 @@ static void Ydd_b_p_func(char** args, const npy_intp* dimensions, const npy_intp
 #if GEOS_SINCE_3_12_0
       ret = func(ctx, prepared_geom_tmp, in2, in3);
 #else
-      geom = create_point(ctx, in2, in3, NULL);
-      if (geom == NULL) {
+      errstate = create_point(ctx, in2, in3, NULL, SHAPELY_HANDLE_NAN_ALLOW, &geom);
+      if (errstate != PGERR_SUCCESS) {
         if (destroy_prepared) {
           GEOSPreparedGeom_destroy_r(ctx, prepared_geom_tmp);
         }
-        errstate = PGERR_GEOS_EXCEPTION;
         goto finish;
       }
       ret = func(ctx, prepared_geom_tmp, geom);
@@ -2463,10 +2462,10 @@ static void points_func(char** args, const npy_intp* dimensions, const npy_intp*
     }
     // the per-point coordinates are retrieved by looping 2 or 3 (=n_c1) times
     // over "ip1" with a stride of "cs1"
-    geom_arr[i] = create_point(ctx, *(double*)ip1, *(double*)(ip1 + cs1),
-                               n_c1 == 3 ? (double*)(ip1 + 2 * cs1) : NULL);
-    if (geom_arr[i] == NULL) {
-      errstate = PGERR_GEOS_EXCEPTION;
+    errstate = create_point(ctx, *(double*)ip1, *(double*)(ip1 + cs1),
+                            n_c1 == 3 ? (double*)(ip1 + 2 * cs1) : NULL,
+                            SHAPELY_HANDLE_NAN_ALLOW, &(geom_arr[i]));
+    if (errstate != PGERR_SUCCESS) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }

@@ -577,42 +577,61 @@ GEOSGeometry* create_box(GEOSContextHandle_t ctx, double xmin, double ymin, doub
  * x: X value
  * y: Y value
  * z: Z value pointer (point will be 2D if this is NULL)
+ * handle_nan: 0 means 'allow', 1 means 'skip', 2 means 'error'
+ * out: pointer to the resulting point geometry
  *
  * Returns
  * -------
- * GEOSGeometry* on success (owned by caller) or NULL on failure
+ * Returns an error state (PGERR_SUCCESS / PGERR_GEOS_EXCEPTION / PGERR_NAN_COORD)
  */
-GEOSGeometry* create_point(GEOSContextHandle_t ctx, double x, double y, double* z) {
+enum ShapelyErrorCode create_point(GEOSContextHandle_t ctx, double x, double y, double* z,
+                                   int handle_nan, GEOSGeometry** out) {
+  char is_finite = 1;
+
+  if (handle_nan != SHAPELY_HANDLE_NAN_ALLOW) {
+    is_finite = npy_isfinite(x) && npy_isfinite(y);
+    if (z != NULL) {
+      is_finite = is_finite && npy_isfinite(*z);
+    }
+    if ((!is_finite) && (handle_nan == SHAPELY_HANDLE_NANS_ERROR)) {
+      return PGERR_NAN_COORD;
+    }
+  }
+
 #if GEOS_SINCE_3_8_0
   if (z == NULL) {
-    return GEOSGeom_createPointFromXY_r(ctx, x, y);
+    *out = GEOSGeom_createPointFromXY_r(ctx, x, y);
+    return (*out != NULL) ? PGERR_SUCCESS : PGERR_GEOS_EXCEPTION;
   }
 #endif
   GEOSCoordSequence* coord_seq = NULL;
   GEOSGeometry* geom = NULL;
 
-  coord_seq = GEOSCoordSeq_create_r(ctx, 1, z == NULL ? 2 : 3);
+  coord_seq = GEOSCoordSeq_create_r(ctx, is_finite, z == NULL ? 2 : 3);
   if (coord_seq == NULL) {
-    return NULL;
+    return PGERR_GEOS_EXCEPTION;
   }
+  if (is_finite) {
   if (!GEOSCoordSeq_setX_r(ctx, coord_seq, 0, x)) {
     GEOSCoordSeq_destroy_r(ctx, coord_seq);
-    return NULL;
+      return PGERR_GEOS_EXCEPTION;
   }
   if (!GEOSCoordSeq_setY_r(ctx, coord_seq, 0, y)) {
     GEOSCoordSeq_destroy_r(ctx, coord_seq);
-    return NULL;
+      return PGERR_GEOS_EXCEPTION;
   }
 
   if (z != NULL) {
     if (!GEOSCoordSeq_setZ_r(ctx, coord_seq, 0, *z)) {
       GEOSCoordSeq_destroy_r(ctx, coord_seq);
-      return NULL;
+        return PGERR_GEOS_EXCEPTION;
+      }
     }
   }
   // Note: coordinate sequence is owned by point; if point fails to construct, it will
   // automatically clean up the coordinate sequence
-  return GEOSGeom_createPoint_r(ctx, coord_seq);
+  *out = GEOSGeom_createPoint_r(ctx, coord_seq);
+  return (*out != NULL) ? PGERR_SUCCESS : PGERR_GEOS_EXCEPTION;
 }
 
 /* Create a 3D empty Point
