@@ -58,28 +58,30 @@ def test_points_invalid_ndim():
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
-def test_points_nan_becomes_empty():
+def test_points_nan_all_nan_becomes_empty():
     actual = shapely.points(np.nan, np.nan)
-    assert_geometries_equal(actual, shapely.Point())
+    assert actual.wkt == "POINT EMPTY"
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
 @pytest.mark.parametrize(
     "coords,handle_nan,expected_wkt",
     [
-        ([np.nan, np.nan], "allow", "POINT (nan nan)"),
-        ([np.nan, np.nan, np.nan], "allow", "POINT Z (nan nan nan)"),
-        ([np.nan, 1], "allow", "POINT (nan 1)"),
-        ([np.nan, 1, np.nan], "allow", "POINT Z (nan 1 nan)"),
-        ([0, 1, np.nan], "allow", "POINT Z (0 1 nan)"),
+        ([np.nan, np.nan], "allow", "POINT EMPTY"),
+        ([np.nan, np.nan, np.nan], "allow", "POINT Z EMPTY"),
+        ([np.nan, np.inf], "allow", "POINT (NaN Infinity)"),
+        ([np.nan, np.inf, np.nan], "allow", "POINT Z (NaN Infinity NaN)"),
+        ([1, np.nan], "allow", "POINT (1 NaN)"),
+        ([np.nan, 1], "allow", "POINT (NaN 1)"),
+        ([np.nan, 1, np.nan], "allow", "POINT Z (NaN 1 NaN)"),
+        ([0, 1, np.nan], "allow", "POINT Z (0 1 NaN)"),
     ],
 )
-def test_points_handle_nan(coords, handle_nan, expected_wkt):
+def test_points_handle_nan_allow(coords, handle_nan, expected_wkt):
     actual = shapely.points(coords, handle_nan=handle_nan)
     assert actual.wkt == expected_wkt
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize(
     "coords,handle_nan,expected_wkt",
     [
@@ -92,9 +94,14 @@ def test_points_handle_nan(coords, handle_nan, expected_wkt):
         ([0, np.inf], "skip", "POINT EMPTY"),
     ],
 )
-def test_points_handle_nan_allow(coords, handle_nan, expected_wkt):
+def test_points_handle_nan(coords, handle_nan, expected_wkt):
     actual = shapely.points(coords, handle_nan=handle_nan)
-    assert actual.wkt == expected_wkt
+    # empty points have no dimensionality for GEOS < 3.9
+    if expected_wkt == "POINT Z EMPTY" and shapely.geos_version < (3, 9, 0):
+        allowed = {"POINT EMPTY", "POINT Z EMPTY"}
+    else:
+        allowed = {expected_wkt}
+    assert actual.wkt in allowed
 
 
 @pytest.mark.parametrize(
