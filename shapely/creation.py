@@ -66,7 +66,9 @@ def points(
           coordinate values. One can use this option if you know all
           coordinates are finite and want to avoid the overhead of checking
           for this.
-        - 'skip': if one of x, y or z values are NaN or Inf, an empty point
+          Note that GEOS >= 3.10 will convert points with only NaN coordinates to
+          empty points.
+        - 'skip': if any of x, y or z values are NaN or Inf, an empty point
           will be created.
         - 'error': if any NaN or Inf is detected in the coordinates, a ValueError
           is raised. This option ensures that the created geometries have all
@@ -88,7 +90,6 @@ def points(
     Notes
     -----
 
-    - GEOS >=3.10 automatically converts POINT (nan nan) to POINT EMPTY.
     - Usage of the ``y`` and ``z`` arguments will prevents lazy evaluation in ``dask``.
       Instead provide the coordinates as an array with shape ``(..., 2)`` or ``(..., 3)`` using only the ``coords`` argument.
     """

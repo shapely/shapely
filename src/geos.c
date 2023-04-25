@@ -606,7 +606,7 @@ enum ShapelyErrorCode create_point(GEOSContextHandle_t ctx, double x, double y, 
         return (*out != NULL) ? PGERR_SUCCESS : PGERR_GEOS_EXCEPTION;
       }
       #if !GEOS_SINCE_3_8_0
-      *out = PyGEOS_create3DEmptyPoint(ctx)
+      *out = PyGEOS_create3DEmptyPoint(ctx);
       return (*out != NULL) ? PGERR_SUCCESS : PGERR_GEOS_EXCEPTION;
       #endif
     }
