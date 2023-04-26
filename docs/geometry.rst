@@ -145,7 +145,7 @@ A format specification may also be used to control the format and precision.
     or hex-encoded as 0101000000cf6a813d263d65c0bdaab35a60ff32c0
 
 Shapely has a format specification inspired from Python's
-:ref:`formatspec`, described next.
+:ref:`python:formatspec`, described next.
 
 Semantic for format specification
 ---------------------------------
