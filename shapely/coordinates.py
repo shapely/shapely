@@ -3,12 +3,12 @@ from typing import Optional
 import numpy as np
 
 import shapely
-from shapely import lib
+from shapely import lib, GeometryType
 from shapely.lib import Geometry
 
 __all__ = [
+    "transform_interleaved",
     "transform",
-    "transform_extra",
     "transform_planar",
     "transform_rebuild_planar",
     "transform_rebuild",
@@ -20,7 +20,7 @@ __all__ = [
 from shapely.errors import GeometryTypeError
 
 
-def transform(geometry, transformation, include_z: bool = False):
+def transform_interleaved(geometry, transformation, include_z: bool = False):
     """Returns a copy of a geometry array with a function applied to its
     coordinates.
 
@@ -44,20 +44,20 @@ def transform(geometry, transformation, include_z: bool = False):
     Examples
     --------
     >>> from shapely import LineString, Point
-    >>> transform(Point(0, 0), lambda x: x + 1)
+    >>> transform_interleaved(Point(0, 0), lambda x: x + 1)
     <POINT (1 1)>
-    >>> transform(LineString([(2, 2), (4, 4)]), lambda x: x * [2, 3])
+    >>> transform_interleaved(LineString([(2, 2), (4, 4)]), lambda x: x * [2, 3])
     <LINESTRING (4 6, 8 12)>
-    >>> transform(None, lambda x: x) is None
+    >>> transform_interleaved(None, lambda x: x) is None
     True
-    >>> transform([Point(0, 0), None], lambda x: x).tolist()
+    >>> transform_interleaved([Point(0, 0), None], lambda x: x).tolist()
     [<POINT (0 0)>, None]
 
     By default, the third dimension is ignored:
 
-    >>> transform(Point(0, 0, 0), lambda x: x + 1)
+    >>> transform_interleaved(Point(0, 0, 0), lambda x: x + 1)
     <POINT (1 1)>
-    >>> transform(Point(0, 0, 0), lambda x: x + 1, include_z=True)
+    >>> transform_interleaved(Point(0, 0, 0), lambda x: x + 1, include_z=True)
     <POINT Z (1 1 1)>
     """
     geometry_arr = np.array(geometry, dtype=np.object_)  # makes a copy
@@ -83,7 +83,7 @@ def transform(geometry, transformation, include_z: bool = False):
     return geometry_arr
 
 
-def transform_extra(
+def transform(
     geometry,
     transformation,
     include_z: Optional[bool] = False,
@@ -106,65 +106,53 @@ def transform_extra(
     ----------
     geometry : Geometry or array_like
     transformation : function
-        A function that transforms coordinates, in ``interleaved=True`` mode:
-        the function transforms a (N, 2) or (N, 3) ndarray of float64 to
-        another (N, 2) or (N, 3) ndarray of float64.
-        in ``interleaved=False`` mode: the function transform 2 or 3 N ndarray
-        of float64 to another 2 or 3 ndarray of float64.
-        With the default ``rebuild=False``, the transform function must also
-        return N sized array(s).
+        A function that transforms coordinates. If the default value of ``interleaved=True``
+        is used, the function must transform a (N, 2) or (N, 3) ndarray
+        of float64 to another (N, 2) or (N, 3) ndarray of float64.
+        Unless ``rebuild=True``, the function may not change N.
     include_z : bool, optional, default False
         If True, include the third dimension in the coordinates array
         that is passed to the ``transformation`` function. If a
         geometry has no third dimension, the z-coordinates passed to the
         function will be NaN.
-        If False, The third-dimension of the geometries (if exist),
-        would not be included in the input to transform function.
-        If None Include the third dimension in the coordinates array that is passed to the
-        ``transformation`` function only if the geoemtries are three-dimensional.
+        If False, the third dimension will never be passed into the function.
+        If None, the third dimension is only passed if present.
     interleaved: bool, default True
-        How to pass coordinates to the transform function:
-        if True, pass them as a single interleaved (xyxy) argument
-        (2D array in case of multiple coordinates)
-        Otherwise, Pass them as separate x, y(, z) arguments
-        (separate 1D arrays in case of multiple coordinates)
+        If set to False, the transformation function should accept 2 or 3 separate
+        one-dimensional arrays (x, y and optional x).
     rebuild: bool, default False
-        If False, output geometries will preserve the coordinate number and
-        dimnensionality as the input geometries (but in include_z=False,
-        two-dimension geometries are always returned).
-        Otherwise, output geometries will get rebuilt from the transformation
-        output, so they might have different number of coordinate or
-        a different coordiante-dimensionality.
+        If set to True, the transformation function is allowed to change the number
+        of coordinates per geometry and its coordiante-dimensionality.
 
     Examples
     --------
     >>> from shapely import LineString, Point
-    >>> transform_extra(Point(0, 0), lambda x: x + 1)
+    >>> transform(Point(0, 0), lambda x: x + 1)
     <POINT (1 1)>
-    >>> transform_extra(LineString([(2, 2), (4, 4)]), lambda x: x * [2, 3])
+    >>> transform(LineString([(2, 2), (4, 4)]), lambda x: x * [2, 3])
     <LINESTRING (4 6, 8 12)>
-    >>> transform_extra(None, lambda x: x) is None
+    >>> transform(None, lambda x: x) is None
     True
-    >>> transform_extra([Point(0, 0), None], lambda x: x).tolist()
+    >>> transform([Point(0, 0), None], lambda x: x).tolist()
     [<POINT (0 0)>, None]
 
     By default, the third dimension is ignored:
 
-    >>> transform_extra(Point(0, 0, 0), lambda x: x + 1)
+    >>> transform(Point(0, 0, 0), lambda x: x + 1)
     <POINT (1 1)>
-    >>> transform_extra(Point(0, 0, 0), lambda x: x + 1, include_z=True)
+    >>> transform(Point(0, 0, 0), lambda x: x + 1, include_z=True)
     <POINT Z (1 1 1)>
 
     An identity function applicable to both types of input with interleaved=False
 
     >>> g1 = LineString([(1, 2), (3, 4)])
 
-    >>> transform_extra(g1, lambda x, y, z=None: tuple(filter(None, [x, y, z])), interleaved=False)
+    >>> transform(g1, lambda x, y, z=None: tuple(filter(None, [x, y, z])), interleaved=False)
     <LINESTRING (1 2, 3 4)>
 
     example of another lambda expression:
 
-    >>> transform_extra(g1, lambda x, y, z=None: (x+1.0, y+1.0), interleaved=False)
+    >>> transform(g1, lambda x, y, z=None: (x+1.0, y+1.0), interleaved=False)
     <LINESTRING (2 3, 4 5)>
 
     Using pyproj >= 2.1, the following example will accurately project Shapely geometries
@@ -173,8 +161,8 @@ def transform_extra(
 
     >>> try:
     ...     import pyproj
-    ...     project = pyproj.Transformer.from_crs(4326, 32618, always_xy=True).transform
-    ...     p = transform_extra(Point(-75, 50), project, interleaved=False)
+    ...     project = pyproj.Transformer.from_crs(4326, 32618, always_xy=True).transform_interleaved
+    ...     p = transform(Point(-75, 50), project, interleaved=False)
     ...     assert (round(p.x), round(p.y)) == (500000, 5538631)
     ... except ImportError:
     ...     pass
@@ -187,7 +175,7 @@ def transform_extra(
         )
         vectorize = not isinstance(geometry, Geometry)
     else:
-        transform_wrapper = transform if interleaved else transform_planar
+        transform_wrapper = transform_interleaved if interleaved else transform_planar
         vectorize = False
         if not np.isscalar(include_z):
             if np.all(include_z == include_z[0]):
@@ -207,11 +195,11 @@ def transform_extra(
 def transform_planar(geometry, transformation, include_z: bool = False):
     """Returns a copy of a geometry array with a function applied to its coordinates.
 
-    Refer to `shapely.transform_extra` (``rebuild=False``, ``interleaved=False``) for full documentation.
+    Refer to `shapely.transform` (``rebuild=False``, ``interleaved=False``) for full documentation.
     """
     try:
         # First we try to apply func to x, y, z vectors.
-        return transform(
+        return transform_interleaved(
             geometry,
             lambda coords: np.array(transformation(*coords.T)).T,
             include_z=include_z,
@@ -219,7 +207,7 @@ def transform_planar(geometry, transformation, include_z: bool = False):
     except Exception:
         # A func that assumes x, y, z are single values will likely raise a
         # TypeError or a ValueError in which case we'll try again.
-        return transform(
+        return transform_interleaved(
             geometry,
             lambda coords: np.array([transformation(*c) for c in coords]),
             include_z=include_z,
@@ -233,18 +221,17 @@ def transform_rebuild(
 ):
     """Returns a copy of a geometry array with a function applied to its coordinates.
 
-    Refer to `shapely.transform_extra` (``rebuild=True``, ``interleaved=True``) for full documentation.
+    Refer to `shapely.transform` (``rebuild=True``, ``interleaved=True``) for full documentation.
     """
     if geometry.is_empty:
         return geometry
-    if geometry.geom_type in ("Point", "LineString", "LinearRing", "Polygon"):
+    geom_type = shapely.get_type_id(geometry)
+    if geom_type in [GeometryType.POINT, GeometryType.LINESTRING, GeometryType.LINEARRING, GeometryType.POLYGON]:
         return transform_rebuild_single_part(
             geometry, transformation, include_z=include_z
         )
-    elif (
-        geometry.geom_type.startswith("Multi")
-        or geometry.geom_type == "GeometryCollection"
-    ):
+    elif geom_type in [GeometryType.MULTIPOINT, GeometryType.MULTIPOLYGON,
+                       GeometryType.MULTILINESTRING, GeometryType.GEOMETRYCOLLECTION]:
         return type(geometry)(
             [
                 transform_rebuild(part, transformation, include_z=include_z)
@@ -252,7 +239,7 @@ def transform_rebuild(
             ]
         )
     else:
-        raise GeometryTypeError(f"Type {geometry.geom_type!r} not recognized")
+        raise GeometryTypeError(f"Type {geom_type} not recognized")
 
 
 def transform_rebuild_planar(
@@ -262,11 +249,12 @@ def transform_rebuild_planar(
 ):
     """Returns a copy of a geometry array with a function applied to its coordinates.
 
-    Refer to `shapely.transform_extra` (``rebuild=True``, ``interleaved=False``) for full documentation.
+    Refer to `shapely.transform` (``rebuild=True``, ``interleaved=False``) for full documentation.
     """
     if geometry.is_empty:
         return geometry
-    if geometry.geom_type in ("Point", "LineString", "LinearRing", "Polygon"):
+    geom_type = shapely.get_type_id(geometry)
+    if geom_type in [GeometryType.POINT, GeometryType.LINESTRING, GeometryType.LINEARRING, GeometryType.POLYGON]:
         try:
             # First we try to apply func to x, y, z vectors.
             return transform_rebuild_single_part(
@@ -282,10 +270,8 @@ def transform_rebuild_planar(
                 lambda coords: [transformation(*c) for c in coords],
                 include_z=include_z,
             )
-    elif (
-        geometry.geom_type.startswith("Multi")
-        or geometry.geom_type == "GeometryCollection"
-    ):
+    elif geom_type in [GeometryType.MULTIPOINT, GeometryType.MULTIPOLYGON,
+                       GeometryType.MULTILINESTRING, GeometryType.GEOMETRYCOLLECTION]:
         return type(geometry)(
             [
                 transform_rebuild_planar(part, transformation, include_z=include_z)
@@ -293,18 +279,19 @@ def transform_rebuild_planar(
             ]
         )
     else:
-        raise GeometryTypeError(f"Type {geometry.geom_type!r} not recognized")
+        raise GeometryTypeError(f"Type {geom_type} not recognized")
 
 
 def transform_rebuild_single_part(geometry, transformation, include_z: bool = False):
     """Helper function for shapely.transform_rebuild, and shapely.transform_rebuild_planar
     for a single part geometries
     """
-    if geometry.geom_type in ("Point", "LineString", "LinearRing"):
+    geom_type = shapely.get_type_id(geometry)
+    if geom_type in [GeometryType.POINT, GeometryType.LINESTRING, GeometryType.LINEARRING]:
         return type(geometry)(
             transformation(get_coordinates(geometry, include_z=include_z))
         )
-    elif geometry.geom_type == "Polygon":
+    elif geom_type == GeometryType.POLYGON:
         shell = type(geometry.exterior)(
             transformation(get_coordinates(geometry.exterior, include_z=include_z))
         )

@@ -233,11 +233,11 @@ def transform(
 ):
     """Returns a copy of a geometry array with a function applied to its coordinates.
 
-    This function is equivalent to `shapely.transform_extra` but uses different default values
+    This function is equivalent to `shapely.transform` but uses different default values
     (``rebuild=True``, ``interleaved=False``).
-    Refer to `shapely.transform_extra` for full documentation.
+    Refer to `shapely.transform` for full documentation.
     """
-    return shapely.transform_extra(
+    return shapely.transform(
         geometry=geom,
         transformation=func,
         include_z=include_z,
