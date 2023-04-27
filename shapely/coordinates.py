@@ -192,22 +192,26 @@ def transform(
     )
 
 
-def transform_planar(geometry, transformation, include_z: bool = False):
+def transform_planar(geometry, transformation, include_z: bool = False, _rebuild_single_part: bool = False):
     """Returns a copy of a geometry array with a function applied to its coordinates.
+    This function tries to run a vectorized transformation (all coordinates at once),
+    and if it fails it fallbacks to non-vectorized call.
 
+    Refer to `transform_rebuild_planar` for the ``rebuild=True`` version of `transform_planar`.
     Refer to `shapely.transform` (``rebuild=False``, ``interleaved=False``) for full documentation.
     """
+    f = transform_rebuild_single_part if _rebuild_single_part else transform_interleaved
     try:
         # First we try to apply func to x, y, z vectors.
-        return transform_interleaved(
+        return f(
             geometry,
-            lambda coords: np.array(transformation(*coords.T)).T,
+            lambda coords: np.array(transformation(*np.array(coords).T)).T,
             include_z=include_z,
         )
     except Exception:
         # A func that assumes x, y, z are single values will likely raise a
         # TypeError or a ValueError in which case we'll try again.
-        return transform_interleaved(
+        return f(
             geometry,
             lambda coords: np.array([transformation(*c) for c in coords]),
             include_z=include_z,
@@ -255,21 +259,7 @@ def transform_rebuild_planar(
         return geometry
     geom_type = shapely.get_type_id(geometry)
     if geom_type in [GeometryType.POINT, GeometryType.LINESTRING, GeometryType.LINEARRING, GeometryType.POLYGON]:
-        try:
-            # First we try to apply func to x, y, z vectors.
-            return transform_rebuild_single_part(
-                geometry,
-                lambda coords: np.array(transformation(*np.array(coords).T)).T,
-                include_z=include_z,
-            )
-        except Exception:
-            # A func that assumes x, y, z are single values will likely raise a
-            # TypeError or a ValueError in which case we'll try again.
-            return transform_rebuild_single_part(
-                geometry,
-                lambda coords: [transformation(*c) for c in coords],
-                include_z=include_z,
-            )
+        return transform_planar(geometry, transformation, include_z=include_z, _rebuild_single_part=True)
     elif geom_type in [GeometryType.MULTIPOINT, GeometryType.MULTIPOLYGON,
                        GeometryType.MULTILINESTRING, GeometryType.GEOMETRYCOLLECTION]:
         return type(geometry)(
@@ -353,7 +343,7 @@ def get_coordinates(geometry, include_z=False, return_index=False):
     >>> get_coordinates(None)
     array([], shape=(0, 2), dtype=float64)
 
-    By default the third dimension is ignored:
+    By default, the third dimension is ignored:
 
     >>> get_coordinates(Point(0, 0, 0)).tolist()
     [[0.0, 0.0]]
