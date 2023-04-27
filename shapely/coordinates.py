@@ -3,7 +3,7 @@ from typing import Optional
 import numpy as np
 
 import shapely
-from shapely import lib, GeometryType
+from shapely import GeometryType, lib
 from shapely.lib import Geometry
 
 __all__ = [
@@ -129,11 +129,7 @@ def transform(
     )
 
 
-def transform_interleaved(
-    geometry,
-    transformation,
-    include_z: bool = False
-):
+def transform_interleaved(geometry, transformation, include_z: bool = False):
     """Returns a copy of a geometry array with a function applied to its
     coordinates.
 
@@ -200,7 +196,7 @@ def transform_planar(
     geometry,
     transformation,
     include_z: bool = False,
-    _rebuild_single_part: bool = False
+    _rebuild_single_part: bool = False,
 ):
     """Returns a copy of a geometry array with a function applied to its coordinates.
     This function tries to run a vectorized transformation (all coordinates at once),
@@ -209,7 +205,11 @@ def transform_planar(
     Refer to `transform_rebuild_planar` for the ``rebuild=True`` version of `transform_planar`.
     Refer to `shapely.transform` (``rebuild=False``, ``interleaved=False``) for full documentation.
     """
-    f = _transform_rebuild_single_part if _rebuild_single_part else transform_interleaved
+    f = (
+        _transform_rebuild_single_part
+        if _rebuild_single_part
+        else transform_interleaved
+    )
     try:
         # First we try to apply func to x, y, z vectors.
         return f(
@@ -239,12 +239,21 @@ def transform_interleaved_rebuild(
     if geometry.is_empty:
         return geometry
     geom_type = shapely.get_type_id(geometry)
-    if geom_type in [GeometryType.POINT, GeometryType.LINESTRING, GeometryType.LINEARRING, GeometryType.POLYGON]:
+    if geom_type in [
+        GeometryType.POINT,
+        GeometryType.LINESTRING,
+        GeometryType.LINEARRING,
+        GeometryType.POLYGON,
+    ]:
         return _transform_rebuild_single_part(
             geometry, transformation, include_z=include_z
         )
-    elif geom_type in [GeometryType.MULTIPOINT, GeometryType.MULTIPOLYGON,
-                       GeometryType.MULTILINESTRING, GeometryType.GEOMETRYCOLLECTION]:
+    elif geom_type in [
+        GeometryType.MULTIPOINT,
+        GeometryType.MULTIPOLYGON,
+        GeometryType.MULTILINESTRING,
+        GeometryType.GEOMETRYCOLLECTION,
+    ]:
         return type(geometry)(
             [
                 transform_interleaved_rebuild(part, transformation, include_z=include_z)
@@ -267,10 +276,21 @@ def transform_planar_rebuild(
     if geometry.is_empty:
         return geometry
     geom_type = shapely.get_type_id(geometry)
-    if geom_type in [GeometryType.POINT, GeometryType.LINESTRING, GeometryType.LINEARRING, GeometryType.POLYGON]:
-        return transform_planar(geometry, transformation, include_z=include_z, _rebuild_single_part=True)
-    elif geom_type in [GeometryType.MULTIPOINT, GeometryType.MULTIPOLYGON,
-                       GeometryType.MULTILINESTRING, GeometryType.GEOMETRYCOLLECTION]:
+    if geom_type in [
+        GeometryType.POINT,
+        GeometryType.LINESTRING,
+        GeometryType.LINEARRING,
+        GeometryType.POLYGON,
+    ]:
+        return transform_planar(
+            geometry, transformation, include_z=include_z, _rebuild_single_part=True
+        )
+    elif geom_type in [
+        GeometryType.MULTIPOINT,
+        GeometryType.MULTIPOLYGON,
+        GeometryType.MULTILINESTRING,
+        GeometryType.GEOMETRYCOLLECTION,
+    ]:
         return type(geometry)(
             [
                 transform_planar_rebuild(part, transformation, include_z=include_z)
@@ -281,16 +301,16 @@ def transform_planar_rebuild(
         raise GeometryTypeError(f"Type {geom_type} not recognized")
 
 
-def _transform_rebuild_single_part(
-    geometry,
-    transformation,
-    include_z: bool = False
-):
+def _transform_rebuild_single_part(geometry, transformation, include_z: bool = False):
     """Helper function for shapely.transform_rebuild, and shapely.transform_rebuild_planar
     for a single part geometries
     """
     geom_type = shapely.get_type_id(geometry)
-    if geom_type in [GeometryType.POINT, GeometryType.LINESTRING, GeometryType.LINEARRING]:
+    if geom_type in [
+        GeometryType.POINT,
+        GeometryType.LINESTRING,
+        GeometryType.LINEARRING,
+    ]:
         return type(geometry)(
             transformation(get_coordinates(geometry, include_z=include_z))
         )
