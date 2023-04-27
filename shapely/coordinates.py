@@ -7,8 +7,8 @@ from shapely import lib, GeometryType
 from shapely.lib import Geometry
 
 __all__ = [
-    "transform_interleaved",
     "transform",
+    "transform_interleaved",
     "transform_planar",
     "transform_rebuild_planar",
     "transform_rebuild",
@@ -18,69 +18,6 @@ __all__ = [
 ]
 
 from shapely.errors import GeometryTypeError
-
-
-def transform_interleaved(geometry, transformation, include_z: bool = False):
-    """Returns a copy of a geometry array with a function applied to its
-    coordinates.
-
-    With the default of ``include_z=False``, all returned geometries will be
-    two-dimensional; the third dimension will be discarded, if present.
-    When specifying ``include_z=True``, the returned geometries preserve
-    the dimensionality of the respective input geometries.
-
-    Parameters
-    ----------
-    geometry : Geometry or array_like
-    transformation : function
-        A function that transforms a (N, 2) or (N, 3) ndarray of float64 to
-        another (N, 2) or (N, 3) ndarray of float64.
-    include_z : bool, default False
-        If True, include the third dimension in the coordinates array
-        that is passed to the ``transformation`` function. If a
-        geometry has no third dimension, the z-coordinates passed to the
-        function will be NaN.
-
-    Examples
-    --------
-    >>> from shapely import LineString, Point
-    >>> transform_interleaved(Point(0, 0), lambda x: x + 1)
-    <POINT (1 1)>
-    >>> transform_interleaved(LineString([(2, 2), (4, 4)]), lambda x: x * [2, 3])
-    <LINESTRING (4 6, 8 12)>
-    >>> transform_interleaved(None, lambda x: x) is None
-    True
-    >>> transform_interleaved([Point(0, 0), None], lambda x: x).tolist()
-    [<POINT (0 0)>, None]
-
-    By default, the third dimension is ignored:
-
-    >>> transform_interleaved(Point(0, 0, 0), lambda x: x + 1)
-    <POINT (1 1)>
-    >>> transform_interleaved(Point(0, 0, 0), lambda x: x + 1, include_z=True)
-    <POINT Z (1 1 1)>
-    """
-    geometry_arr = np.array(geometry, dtype=np.object_)  # makes a copy
-    coordinates = lib.get_coordinates(geometry_arr, include_z, False)
-    new_coordinates = transformation(coordinates)
-    # check the array to yield understandable error messages
-    if not isinstance(new_coordinates, np.ndarray):
-        raise ValueError("The provided transformation did not return a numpy array")
-    if new_coordinates.dtype != np.float64:
-        raise ValueError(
-            "The provided transformation returned an array with an unexpected "
-            f"dtype ({new_coordinates.dtype}, but expected {coordinates.dtype})"
-        )
-    if new_coordinates.shape != coordinates.shape:
-        # if the shape is too small we will get a segfault
-        raise ValueError(
-            "The provided transformation returned an array with an unexpected "
-            f"shape ({new_coordinates.shape}, but expected {coordinates.shape})"
-        )
-    geometry_arr = lib.set_coordinates(geometry_arr, new_coordinates)
-    if geometry_arr.ndim == 0 and not isinstance(geometry, np.ndarray):
-        return geometry_arr.item()
-    return geometry_arr
 
 
 def transform(
@@ -190,6 +127,69 @@ def transform(
         transformation,
         include_z,
     )
+
+
+def transform_interleaved(geometry, transformation, include_z: bool = False):
+    """Returns a copy of a geometry array with a function applied to its
+    coordinates.
+
+    With the default of ``include_z=False``, all returned geometries will be
+    two-dimensional; the third dimension will be discarded, if present.
+    When specifying ``include_z=True``, the returned geometries preserve
+    the dimensionality of the respective input geometries.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    transformation : function
+        A function that transforms a (N, 2) or (N, 3) ndarray of float64 to
+        another (N, 2) or (N, 3) ndarray of float64.
+    include_z : bool, default False
+        If True, include the third dimension in the coordinates array
+        that is passed to the ``transformation`` function. If a
+        geometry has no third dimension, the z-coordinates passed to the
+        function will be NaN.
+
+    Examples
+    --------
+    >>> from shapely import LineString, Point
+    >>> transform_interleaved(Point(0, 0), lambda x: x + 1)
+    <POINT (1 1)>
+    >>> transform_interleaved(LineString([(2, 2), (4, 4)]), lambda x: x * [2, 3])
+    <LINESTRING (4 6, 8 12)>
+    >>> transform_interleaved(None, lambda x: x) is None
+    True
+    >>> transform_interleaved([Point(0, 0), None], lambda x: x).tolist()
+    [<POINT (0 0)>, None]
+
+    By default, the third dimension is ignored:
+
+    >>> transform_interleaved(Point(0, 0, 0), lambda x: x + 1)
+    <POINT (1 1)>
+    >>> transform_interleaved(Point(0, 0, 0), lambda x: x + 1, include_z=True)
+    <POINT Z (1 1 1)>
+    """
+    geometry_arr = np.array(geometry, dtype=np.object_)  # makes a copy
+    coordinates = lib.get_coordinates(geometry_arr, include_z, False)
+    new_coordinates = transformation(coordinates)
+    # check the array to yield understandable error messages
+    if not isinstance(new_coordinates, np.ndarray):
+        raise ValueError("The provided transformation did not return a numpy array")
+    if new_coordinates.dtype != np.float64:
+        raise ValueError(
+            "The provided transformation returned an array with an unexpected "
+            f"dtype ({new_coordinates.dtype}, but expected {coordinates.dtype})"
+        )
+    if new_coordinates.shape != coordinates.shape:
+        # if the shape is too small we will get a segfault
+        raise ValueError(
+            "The provided transformation returned an array with an unexpected "
+            f"shape ({new_coordinates.shape}, but expected {coordinates.shape})"
+        )
+    geometry_arr = lib.set_coordinates(geometry_arr, new_coordinates)
+    if geometry_arr.ndim == 0 and not isinstance(geometry, np.ndarray):
+        return geometry_arr.item()
+    return geometry_arr
 
 
 def transform_planar(geometry, transformation, include_z: bool = False, _rebuild_single_part: bool = False):
