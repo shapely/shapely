@@ -37,8 +37,7 @@ def difference(a, b, grid_size=None, **kwargs):
         Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
         precision of the inputs by default.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -96,8 +95,7 @@ def intersection(a, b, grid_size=None, **kwargs):
         Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
         precision of the inputs by default.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -150,8 +148,7 @@ def intersection_all(geometries, axis=None, **kwargs):
         Axis may be negative, in which case it counts from the last to the
         first axis.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc.reduce docs <https://numpy.org/doc/stable/reference/generated/numpy.ufunc.reduce.html#numpy.ufunc.reduce>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -198,8 +195,7 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
         Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
         precision of the inputs by default.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -252,8 +248,7 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
         Axis may be negative, in which case it counts from the last to the
         first axis.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc.reduce docs <https://numpy.org/doc/stable/reference/generated/numpy.ufunc.reduce.html#numpy.ufunc.reduce>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -301,8 +296,7 @@ def union(a, b, grid_size=None, **kwargs):
         Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
         precision of the inputs by default.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -369,8 +363,7 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
         Axis may be negative, in which case it counts from the last to the
         first axis.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -440,8 +433,7 @@ def coverage_union(a, b, **kwargs):
     a : Geometry or array_like
     b : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -481,8 +473,7 @@ def coverage_union_all(geometries, axis=None, **kwargs):
         Axis may be negative, in which case it counts from the last to the
         first axis.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
