@@ -95,8 +95,7 @@ both more verbose to use and has a large performance overhead.
 
 Shapely 2.0 exposes GEOS operations as vectorized functions that operate
 on arrays of geometries using a familiar NumPy interface. Those functions are
-implemented as
-`NumPy *universal functions* <https://numpy.org/doc/stable/reference/ufuncs.html>`__
+implemented as :ref:`NumPy universal functions <ufuncs>`
 (or ufunc for short). A universal function is a function that operates on
 n-dimensional arrays in an element-by-element fashion and supports array
 broadcasting. All loops over geometries are implemented in C, which results

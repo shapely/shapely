@@ -145,8 +145,7 @@ A format specification may also be used to control the format and precision.
     or hex-encoded as 0101000000cf6a813d263d65c0bdaab35a60ff32c0
 
 Shapely has a format specification inspired from Python's
-`Format Specification Mini-Language
-<https://docs.python.org/3/library/string.html#formatspec>`_ described next.
+:ref:`python:formatspec`, described next.
 
 Semantic for format specification
 ---------------------------------
@@ -154,6 +153,7 @@ Semantic for format specification
 .. productionlist:: format-spec
   format_spec: [0][.`precision`][`type`]
   precision: `digit`+
+  digit: "0"..."9"
   type: "f" | "F" | "g" | "G" | "x" | "X"
 
 Format types ``'f'`` and ``'F'`` are to use a fixed-point notation, which is

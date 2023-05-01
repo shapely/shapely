@@ -57,8 +57,7 @@ def boundary(geometry, **kwargs):
     geometry : Geometry or array_like
         This function will return None for geometrycollections.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -128,8 +127,7 @@ def buffer(
     single_sided : bool, default False
         Only buffer at one side of the geometry.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -227,8 +225,7 @@ def offset_curve(
         Crops of 'mitre'-style joins if the point is displaced from the
         buffered vertex by more than this limit.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -270,8 +267,7 @@ def centroid(geometry, **kwargs):
     ----------
     geometry : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -313,8 +309,7 @@ def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
     ymax : float
         Maximum y value of the rectangle
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -352,8 +347,7 @@ def concave_hull(geometry, ratio=0.0, allow_holes=False, **kwargs):
     allow_holes : bool, default False
         If set to True, the concave hull may have holes.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -380,8 +374,7 @@ def convex_hull(geometry, **kwargs):
     ----------
     geometry : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -412,8 +405,7 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
         If set to True, the triangulation will return a collection of
         linestrings instead of polygons.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -444,8 +436,7 @@ def envelope(geometry, **kwargs):
     ----------
     geometry : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -473,8 +464,7 @@ def extract_unique_points(geometry, **kwargs):
     ----------
     geometry : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -504,8 +494,7 @@ def build_area(geometry, **kwargs):
     ----------
     geometry : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -527,8 +516,7 @@ def make_valid(geometry, **kwargs):
     ----------
     geometry : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -554,8 +542,7 @@ def normalize(geometry, **kwargs):
     ----------
     geometry : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -575,8 +562,7 @@ def point_on_surface(geometry, **kwargs):
     ----------
     geometry : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -612,8 +598,7 @@ def node(geometry, **kwargs):
     ----------
     geometry : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -654,8 +639,7 @@ def polygonize(geometries, **kwargs):
         The default is to perform a reduction over the last dimension
         of the input array. A 1D array results in a scalar geometry.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Returns
     -------
@@ -712,8 +696,7 @@ def polygonize_full(geometries, **kwargs):
         The default is to perform a reduction over the last dimension
         of the input array. A 1D array results in a scalar geometry.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Returns
     -------
@@ -782,8 +765,7 @@ def reverse(geometry, **kwargs):
     ----------
     geometry : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -822,8 +804,7 @@ def segmentize(geometry, max_segment_length, **kwargs):
         Additional vertices will be added so that all line segments are no
         longer than this value.  Must be greater than 0.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -856,8 +837,7 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
         geometries (checking for collapses, ring-intersections, etc), but
         this is computationally more expensive.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -907,8 +887,7 @@ def snap(geometry, reference, tolerance, **kwargs):
     reference : Geometry or array_like
     tolerance : float or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -986,8 +965,7 @@ def voronoi_polygons(
         If set to True, the triangulation will return a collection of
         linestrings instead of polygons.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -1023,8 +1001,7 @@ def oriented_envelope(geometry, **kwargs):
     ----------
     geometry : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -1057,8 +1034,7 @@ def minimum_bounding_circle(geometry, **kwargs):
     ----------
     geometry : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
