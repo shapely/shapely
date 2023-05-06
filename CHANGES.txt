@@ -7,6 +7,7 @@ Changes
 Improvements:
 
 - Require GEOS >= 3.7, NumPy >= 1.16, and Python >= 3.8 (#1802)
+- Handle ``Feature`` type in ``shapely.geometry.shape`` (#1815)
 - Add a ``handle_nan`` parameter to ``shapely.linestrings()`` and ``shapely.linearrings()``
   to allow, skip, or error on nonfinite (NaN / Inf) coordinates. The default
   behaviour (allow) is backwards compatible (#1594).
@@ -38,7 +39,7 @@ https://shapely.readthedocs.io/en/latest/release/2.x.html#version-2-0-1
 
 Shapely version 2.0.0 is a major release featuring a complete refactor of the
 internals and new vectorized (element-wise) array operations providing
-considerable performance improvements. 
+considerable performance improvements.
 
 For a full changelog, see
 https://shapely.readthedocs.io/en/latest/release/2.x.html#version-2-0-0
