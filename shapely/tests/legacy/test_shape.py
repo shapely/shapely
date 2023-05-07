@@ -1,6 +1,6 @@
 import pytest
 
-from shapely.geometry import MultiLineString, Polygon, Point, shape
+from shapely.geometry import MultiLineString, Point, Polygon, shape
 from shapely.geometry.geo import _is_coordinates_empty
 
 
@@ -53,8 +53,10 @@ def test_feature_from_geo_interface():
     class Feature:
         @property
         def __geo_interface__(self):
-            return {'type': "Feature", "geometry": {'type': "Point", "coordinates": [0, 0]}}
-
+            return {
+                "type": "Feature",
+                "geometry": {"type": "Point", "coordinates": [0, 0]},
+            }
 
     expected = Point([0, 0])
     result = shape(Feature())
