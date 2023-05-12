@@ -2,6 +2,7 @@ import unittest
 
 import pytest
 
+import shapely
 from shapely.geometry.polygon import LinearRing, orient, Polygon, signed_area
 
 
@@ -29,6 +30,7 @@ class RingOrientationTestCase(unittest.TestCase):
         assert not ring.is_ccw
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 class PolygonOrienterTestCase(unittest.TestCase):
     def test_no_holes(self):
         ring = LinearRing([(0, 0), (0, 1), (1, 0)])
