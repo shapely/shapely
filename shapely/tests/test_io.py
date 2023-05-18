@@ -325,11 +325,16 @@ def test_to_wkt_geometrycollection_with_point_empty():
 
 @pytest.mark.skipif(
     shapely.geos_version < (3, 9, 0),
-    reason="MULTIPOINT (EMPTY, 2 3) only works for GEOS >= 3.9",
+    reason="MULTIPOINT (EMPTY, (2 3)) only works for GEOS >= 3.9",
 )
 def test_to_wkt_multipoint_with_point_empty():
     geom = shapely.multipoints([empty_point, point])
-    assert shapely.to_wkt(geom) == "MULTIPOINT (EMPTY, 2 3)"
+    if shapely.geos_version >= (3, 12, 0):
+        expected = "MULTIPOINT (EMPTY, (2 3))"
+    else:
+        # invalid WKT form
+        expected = "MULTIPOINT (EMPTY, 2 3)"
+    assert shapely.to_wkt(geom) == expected
 
 
 @pytest.mark.skipif(
