@@ -6,15 +6,21 @@ operations are performed in the x-y plane. Thus, geometries with
 different z values may intersect or be equal.
 """
 import re
+from typing import Optional, Tuple, TYPE_CHECKING, Union
 from warnings import warn
 
 import numpy as np
 
 import shapely
+from shapely import Geometry
 from shapely._geometry_helpers import _geom_factory
+from shapely._typing import NumpyArray, ScalarOrArray, ScalarOrArrayLike, T
 from shapely.constructive import BufferCapStyle, BufferJoinStyle
 from shapely.coords import CoordinateSequence
 from shapely.errors import GeometryTypeError, GEOSException, ShapelyDeprecationWarning
+
+if TYPE_CHECKING:
+    from shapely import Point
 
 GEOMETRY_TYPES = [
     "Point",
@@ -49,7 +55,7 @@ def geom_factory(g, parent=None):
     return _geom_factory(g)
 
 
-def dump_coords(geom):
+def dump_coords(geom: Geometry):
     """Dump coordinates of a geometry in the same order as data packing"""
     if not isinstance(geom, BaseGeometry):
         raise ValueError(
@@ -66,7 +72,7 @@ def dump_coords(geom):
         raise GeometryTypeError("Unhandled geometry type: " + repr(geom.geom_type))
 
 
-def _maybe_unpack(result):
+def _maybe_unpack(result: NumpyArray[T]) -> ScalarOrArray[T]:
     if result.ndim == 0:
         # convert numpy 0-d array / scalar to python scalar
         return result.item()
@@ -87,7 +93,7 @@ class JOIN_STYLE:
     bevel = BufferJoinStyle.bevel
 
 
-class BaseGeometry(shapely.Geometry):
+class BaseGeometry(Geometry):
     """
     Provides GEOS spatial predicates and topological operations.
 
@@ -95,7 +101,7 @@ class BaseGeometry(shapely.Geometry):
 
     __slots__ = []
 
-    def __new__(self):
+    def __new__(cls):
         warn(
             "Directly calling the base class 'BaseGeometry()' is deprecated, and "
             "will raise an error in the future. To create an empty geometry, "
@@ -106,16 +112,16 @@ class BaseGeometry(shapely.Geometry):
         return shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")
 
     @property
-    def _ndim(self):
+    def _ndim(self) -> int:
         return shapely.get_coordinate_dimension(self)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return self.is_empty is False
 
-    def __nonzero__(self):
+    def __nonzero__(self) -> bool:
         return self.__bool__()
 
-    def __format__(self, format_spec):
+    def __format__(self, format_spec: str) -> str:
         """Format a geometry using a format specification."""
         # bypass regexp for simple cases
         if format_spec == "":
@@ -160,7 +166,7 @@ class BaseGeometry(shapely.Geometry):
         else:
             return res
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         try:
             wkt = super().__str__()
         except (GEOSException, ValueError):
@@ -176,7 +182,7 @@ class BaseGeometry(shapely.Geometry):
 
         return f"<{wkt}>"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.wkt
 
     def __reduce__(self):
@@ -185,16 +191,16 @@ class BaseGeometry(shapely.Geometry):
     # Operators
     # ---------
 
-    def __and__(self, other):
+    def __and__(self, other: "Geometry") -> "Geometry":
         return self.intersection(other)
 
-    def __or__(self, other):
+    def __or__(self, other: "Geometry") -> "Geometry":
         return self.union(other)
 
-    def __sub__(self, other):
+    def __sub__(self, other: "Geometry") -> "Geometry":
         return self.difference(other)
 
-    def __xor__(self, other):
+    def __xor__(self, other: "Geometry") -> "Geometry":
         return self.symmetric_difference(other)
 
     # Coordinate access
@@ -308,33 +314,35 @@ class BaseGeometry(shapely.Geometry):
     # ----------------------------------
 
     @property
-    def area(self):
-        """Unitless area of the geometry (float)"""
+    def area(self) -> float:
+        """Unitless area of the geometry"""
         return float(shapely.area(self))
 
-    def distance(self, other):
+    def distance(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[float]:
         """Unitless distance to other geometry (float)"""
         return _maybe_unpack(shapely.distance(self, other))
 
-    def hausdorff_distance(self, other):
-        """Unitless hausdorff distance to other geometry (float)"""
+    def hausdorff_distance(
+        self, other: ScalarOrArrayLike["Geometry"]
+    ) -> ScalarOrArray[float]:
+        """Unitless hausdorff distance to other geometry"""
         return _maybe_unpack(shapely.hausdorff_distance(self, other))
 
     @property
-    def length(self):
-        """Unitless length of the geometry (float)"""
+    def length(self) -> float:
+        """Unitless length of the geometry"""
         return float(shapely.length(self))
 
     @property
-    def minimum_clearance(self):
-        """Unitless distance by which a node could be moved to produce an invalid geometry (float)"""
+    def minimum_clearance(self) -> float:
+        """Unitless distance by which a node could be moved to produce an invalid geometry"""
         return float(shapely.minimum_clearance(self))
 
     # Topological properties
     # ----------------------
 
     @property
-    def boundary(self):
+    def boundary(self) -> "Geometry":
         """Returns a lower dimension geometry that bounds the object
 
         The boundary of a polygon is a line, the boundary of a line is a
@@ -344,23 +352,23 @@ class BaseGeometry(shapely.Geometry):
         return shapely.boundary(self)
 
     @property
-    def bounds(self):
+    def bounds(self) -> Tuple[float, float, float, float]:
         """Returns minimum bounding region (minx, miny, maxx, maxy)"""
         return tuple(shapely.bounds(self).tolist())
 
     @property
-    def centroid(self):
+    def centroid(self) -> "Point":
         """Returns the geometric center of the object"""
         return shapely.centroid(self)
 
-    def point_on_surface(self):
+    def point_on_surface(self) -> "Point":
         """Returns a point guaranteed to be within the object, cheaply.
 
         Alias of `representative_point`.
         """
         return shapely.point_on_surface(self)
 
-    def representative_point(self):
+    def representative_point(self) -> "Point":
         """Returns a point guaranteed to be within the object, cheaply.
 
         Alias of `point_on_surface`.
@@ -368,7 +376,7 @@ class BaseGeometry(shapely.Geometry):
         return shapely.point_on_surface(self)
 
     @property
-    def convex_hull(self):
+    def convex_hull(self) -> "Geometry":
         """Imagine an elastic band stretched around the geometry: that's a
         convex hull, more or less
 
@@ -378,12 +386,12 @@ class BaseGeometry(shapely.Geometry):
         return shapely.convex_hull(self)
 
     @property
-    def envelope(self):
+    def envelope(self) -> "Geometry":
         """A figure that envelopes the geometry"""
         return shapely.envelope(self)
 
     @property
-    def oriented_envelope(self):
+    def oriented_envelope(self) -> "Geometry":
         """
         Returns the oriented envelope (minimum rotated rectangle) that
         encloses the geometry.
@@ -397,7 +405,7 @@ class BaseGeometry(shapely.Geometry):
         return shapely.oriented_envelope(self)
 
     @property
-    def minimum_rotated_rectangle(self):
+    def minimum_rotated_rectangle(self) -> "Geometry":
         """
         Returns the oriented envelope (minimum rotated rectangle) that
         encloses the geometry.
@@ -412,14 +420,14 @@ class BaseGeometry(shapely.Geometry):
 
     def buffer(
         self,
-        distance,
-        quad_segs=16,
-        cap_style="round",
-        join_style="round",
-        mitre_limit=5.0,
-        single_sided=False,
+        distance: float,
+        quad_segs: int = 16,
+        cap_style: Union[BufferCapStyle, str] = "round",
+        join_style: Union[BufferJoinStyle, str] = "round",
+        mitre_limit: float = 5.0,
+        single_sided: bool = False,
         **kwargs,
-    ):
+    ) -> "Geometry":
         """Get a geometry that represents all points within a distance
         of this geometry.
 
@@ -535,7 +543,7 @@ class BaseGeometry(shapely.Geometry):
             single_sided=single_sided,
         )
 
-    def simplify(self, tolerance, preserve_topology=True):
+    def simplify(self, tolerance, preserve_topology=True) -> "Geometry":
         """Returns a simplified geometry produced by the Douglas-Peucker
         algorithm
 
@@ -546,7 +554,7 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.simplify(self, tolerance, preserve_topology=preserve_topology)
 
-    def normalize(self):
+    def normalize(self) -> "Geometry":
         """Converts geometry to normal form (or canonical form).
 
         This method orders the coordinates, rings of a polygon and parts of
@@ -565,7 +573,9 @@ class BaseGeometry(shapely.Geometry):
     # Overlay operations
     # ---------------------------
 
-    def difference(self, other, grid_size=None):
+    def difference(
+        self, other: ScalarOrArrayLike["Geometry"], grid_size: Optional[float] = None
+    ) -> ScalarOrArray["Geometry"]:
         """
         Returns the difference of the geometries.
 
@@ -573,7 +583,9 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.difference(self, other, grid_size=grid_size)
 
-    def intersection(self, other, grid_size=None):
+    def intersection(
+        self, other: ScalarOrArrayLike["Geometry"], grid_size: Optional[float] = None
+    ) -> ScalarOrArray["Geometry"]:
         """
         Returns the intersection of the geometries.
 
@@ -581,7 +593,9 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.intersection(self, other, grid_size=grid_size)
 
-    def symmetric_difference(self, other, grid_size=None):
+    def symmetric_difference(
+        self, other: ScalarOrArrayLike["Geometry"], grid_size: Optional[float] = None
+    ) -> ScalarOrArray["Geometry"]:
         """
         Returns the symmetric difference of the geometries.
 
@@ -589,7 +603,9 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.symmetric_difference(self, other, grid_size=grid_size)
 
-    def union(self, other, grid_size=None):
+    def union(
+        self, other: ScalarOrArrayLike["Geometry"], grid_size: Optional[float] = None
+    ) -> ScalarOrArray["Geometry"]:
         """
         Returns the union of the geometries.
 
@@ -601,23 +617,23 @@ class BaseGeometry(shapely.Geometry):
     # ----------------
 
     @property
-    def has_z(self):
+    def has_z(self) -> bool:
         """True if the geometry's coordinate sequence(s) have z values (are
         3-dimensional)"""
         return bool(shapely.has_z(self))
 
     @property
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """True if the set of points in this geometry is empty, else False"""
         return bool(shapely.is_empty(self))
 
     @property
-    def is_ring(self):
+    def is_ring(self) -> bool:
         """True if the geometry is a closed ring, else False"""
         return bool(shapely.is_ring(self))
 
     @property
-    def is_closed(self):
+    def is_closed(self) -> bool:
         """True if the geometry is closed, else False
 
         Applicable only to 1-D geometries."""
@@ -626,13 +642,13 @@ class BaseGeometry(shapely.Geometry):
         return bool(shapely.is_closed(self))
 
     @property
-    def is_simple(self):
+    def is_simple(self) -> bool:
         """True if the geometry is simple, meaning that any self-intersections
         are only at boundary points, else False"""
         return bool(shapely.is_simple(self))
 
     @property
-    def is_valid(self):
+    def is_valid(self) -> bool:
         """True if the geometry is valid (definition depends on sub-class),
         else False"""
         return bool(shapely.is_valid(self))
@@ -640,24 +656,26 @@ class BaseGeometry(shapely.Geometry):
     # Binary predicates
     # -----------------
 
-    def relate(self, other):
+    def relate(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[str]:
         """Returns the DE-9IM intersection matrix for the two geometries
         (string)"""
         return shapely.relate(self, other)
 
-    def covers(self, other):
+    def covers(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if the geometry covers the other, else False"""
         return _maybe_unpack(shapely.covers(self, other))
 
-    def covered_by(self, other):
+    def covered_by(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if the geometry is covered by the other, else False"""
         return _maybe_unpack(shapely.covered_by(self, other))
 
-    def contains(self, other):
+    def contains(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if the geometry contains the other, else False"""
         return _maybe_unpack(shapely.contains(self, other))
 
-    def contains_properly(self, other):
+    def contains_properly(
+        self, other: ScalarOrArrayLike["Geometry"]
+    ) -> ScalarOrArray[bool]:
         """
         Returns True if the geometry completely contains the other, with no
         common boundary points, else False
@@ -666,15 +684,15 @@ class BaseGeometry(shapely.Geometry):
         """
         return _maybe_unpack(shapely.contains_properly(self, other))
 
-    def crosses(self, other):
+    def crosses(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if the geometries cross, else False"""
         return _maybe_unpack(shapely.crosses(self, other))
 
-    def disjoint(self, other):
+    def disjoint(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if geometries are disjoint, else False"""
         return _maybe_unpack(shapely.disjoint(self, other))
 
-    def equals(self, other):
+    def equals(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if geometries are equal, else False.
 
         This method considers point-set equality (or topological
@@ -697,23 +715,25 @@ class BaseGeometry(shapely.Geometry):
         """
         return _maybe_unpack(shapely.equals(self, other))
 
-    def intersects(self, other):
+    def intersects(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if geometries intersect, else False"""
         return _maybe_unpack(shapely.intersects(self, other))
 
-    def overlaps(self, other):
+    def overlaps(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if geometries overlap, else False"""
         return _maybe_unpack(shapely.overlaps(self, other))
 
-    def touches(self, other):
+    def touches(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if geometries touch, else False"""
         return _maybe_unpack(shapely.touches(self, other))
 
-    def within(self, other):
+    def within(self, other: ScalarOrArrayLike["Geometry"]) -> ScalarOrArray[bool]:
         """Returns True if geometry is within the other, else False"""
         return _maybe_unpack(shapely.within(self, other))
 
-    def dwithin(self, other, distance):
+    def dwithin(
+        self, other: ScalarOrArrayLike["Geometry"], distance: float
+    ) -> ScalarOrArray[bool]:
         """
         Returns True if geometry is within a given distance from the other, else False.
 
@@ -721,7 +741,11 @@ class BaseGeometry(shapely.Geometry):
         """
         return _maybe_unpack(shapely.dwithin(self, other, distance))
 
-    def equals_exact(self, other, tolerance):
+    def equals_exact(
+        self,
+        other: ScalarOrArrayLike["Geometry"],
+        tolerance: float,
+    ) -> ScalarOrArray[bool]:
         """True if geometries are equal to within a specified
         tolerance.
 
@@ -756,7 +780,9 @@ class BaseGeometry(shapely.Geometry):
         """
         return _maybe_unpack(shapely.equals_exact(self, other, tolerance))
 
-    def almost_equals(self, other, decimal=6):
+    def almost_equals(
+        self, other: ScalarOrArrayLike["Geometry"], decimal: int = 6
+    ) -> ScalarOrArray[bool]:
         """True if geometries are equal at all coordinates to a
         specified decimal place.
 
@@ -796,7 +822,9 @@ class BaseGeometry(shapely.Geometry):
         )
         return self.equals_exact(other, 0.5 * 10 ** (-decimal))
 
-    def relate_pattern(self, other, pattern):
+    def relate_pattern(
+        self, other: ScalarOrArrayLike["Geometry"], pattern: str
+    ) -> ScalarOrArray[str]:
         """Returns True if the DE-9IM string code for the relationship between
         the geometries satisfies the pattern, else False"""
         return _maybe_unpack(shapely.relate_pattern(self, other, pattern))
@@ -804,7 +832,9 @@ class BaseGeometry(shapely.Geometry):
     # Linear referencing
     # ------------------
 
-    def line_locate_point(self, other, normalized=False):
+    def line_locate_point(
+        self, other: ScalarOrArrayLike["Geometry"], normalized: bool = False
+    ) -> ScalarOrArray[float]:
         """Returns the distance along this geometry to a point nearest the
         specified point
 
@@ -815,7 +845,9 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.line_locate_point(self, other, normalized=normalized)
 
-    def project(self, other, normalized=False):
+    def project(
+        self, other: ScalarOrArrayLike["Geometry"], normalized: bool = False
+    ) -> ScalarOrArray[float]:
         """Returns the distance along this geometry to a point nearest the
         specified point
 
@@ -826,7 +858,9 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.line_locate_point(self, other, normalized=normalized)
 
-    def line_interpolate_point(self, distance, normalized=False):
+    def line_interpolate_point(
+        self, distance: ScalarOrArrayLike[float], normalized: bool = False
+    ) -> ScalarOrArray["Point"]:
         """Return a point at the specified distance along a linear geometry
 
         Negative length values are taken as measured in the reverse
@@ -839,7 +873,9 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
-    def interpolate(self, distance, normalized=False):
+    def interpolate(
+        self, distance: ScalarOrArrayLike[float], normalized: bool = False
+    ) -> ScalarOrArray["Point"]:
         """Return a point at the specified distance along a linear geometry
 
         Negative length values are taken as measured in the reverse
@@ -852,7 +888,9 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
-    def segmentize(self, max_segment_length):
+    def segmentize(
+        self, max_segment_length: ScalarOrArrayLike[float]
+    ) -> ScalarOrArray["Geometry"]:
         """Adds vertices to line segments based on maximum segment length.
 
         Additional vertices will be added to every line segment in an input geometry
@@ -878,7 +916,7 @@ class BaseGeometry(shapely.Geometry):
         """
         return shapely.segmentize(self, max_segment_length)
 
-    def reverse(self):
+    def reverse(self) -> "Geometry":
         """Returns a copy of this geometry with the order of coordinates reversed.
 
         If the geometry is a polygon with interior rings, the interior rings are also
@@ -913,13 +951,13 @@ class BaseMultipartGeometry(BaseGeometry):
         )
 
     @property
-    def geoms(self):
+    def geoms(self) -> "GeometrySequence":
         return GeometrySequence(self)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return self.is_empty is False
 
-    def svg(self, scale_factor=1.0, color=None):
+    def svg(self, scale_factor: float = 1.0, color: Optional[str] = None) -> str:
         """Returns a group of SVG elements for the multipart geometry.
 
         Parameters
@@ -948,20 +986,20 @@ class GeometrySequence:
     #     Parent (Shapely) geometry
     _parent = None
 
-    def __init__(self, parent):
+    def __init__(self, parent) -> None:
         self._parent = parent
 
-    def _get_geom_item(self, i):
+    def _get_geom_item(self, i) -> "Geometry":
         return shapely.get_geometry(self._parent, i)
 
-    def __iter__(self):
+    def __iter__(self) -> "Geometry":
         for i in range(self.__len__()):
             yield self._get_geom_item(i)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return shapely.get_num_geometries(self._parent)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> "Geometry":
         m = self.__len__()
         if isinstance(key, (int, np.integer)):
             if key + m < 0 or key >= m:
@@ -982,7 +1020,7 @@ class GeometrySequence:
 
 
 class EmptyGeometry(BaseGeometry):
-    def __new__(self):
+    def __new__(cls):
         """Create an empty geometry."""
         warn(
             "The 'EmptyGeometry()' constructor to create an empty geometry is "
