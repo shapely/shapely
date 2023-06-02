@@ -118,6 +118,7 @@ def test_equality_with_nan_false(left, right):
 def test_equality_with_nan_z_false(left, right):
     if shapely.geos_version < (3, 10, 0):
         # GEOS <= 3.9 fill the NaN with 0, so the z dimension is different
+        print(left.has_z, list(left.coords), right.has_z, list(right.coords))
         assert left != right
     elif shapely.geos_version < (3, 12, 0):
         # GEOS 3.10-3.11 ignore NaN for Z also when explicitly created with 3D
