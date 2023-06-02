@@ -211,3 +211,20 @@ def test_comparison_notimplemented(geom):
     result = geom != arr
     assert isinstance(result, np.ndarray)
     assert not result.any()
+
+
+def test_comparison_not_supported():
+    geom1 = Point(1, 1)
+    geom2 = Point(2, 2)
+
+    with pytest.raises(TypeError, match="not supported between instances"):
+        geom1 > geom2
+
+    with pytest.raises(TypeError, match="not supported between instances"):
+        geom1 < geom2
+
+    with pytest.raises(TypeError, match="not supported between instances"):
+        geom1 >= geom2
+
+    with pytest.raises(TypeError, match="not supported between instances"):
+        geom1 <= geom2
