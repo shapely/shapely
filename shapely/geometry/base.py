@@ -721,23 +721,21 @@ class BaseGeometry(shapely.Geometry):
         """
         return _maybe_unpack(shapely.dwithin(self, other, distance))
 
-    def equals_exact(self, other, tolerance):
-        """True if geometries are equal to within a specified
-        tolerance.
+    def equals_exact(self, other, tolerance=0.0, normalize=False):
+        """Returns ``True`` if the geometries are structurally equivalent
+        within a given tolerance.
+
+        Refer to :func:`~shapely.equals_exact` for full documentation.
 
         Parameters
         ----------
         other : BaseGeometry
             The other geometry object in this comparison.
-        tolerance : float
+        tolerance : float, optional (default: 0.)
             Absolute tolerance in the same units as coordinates.
-
-        This method considers coordinate equality, which requires
-        coordinates to be equal and in the same order for all components
-        of a geometry.
-
-        Because of this it is possible for "equals()" to be True for two
-        geometries and "equals_exact()" to be False.
+        normalize : bool, optional (default: False)
+            If True, normalize the two geometries so that the coordinates are
+            in the same order.
 
         Examples
         --------
@@ -754,7 +752,7 @@ class BaseGeometry(shapely.Geometry):
         bool
 
         """
-        return _maybe_unpack(shapely.equals_exact(self, other, tolerance))
+        return _maybe_unpack(shapely.equals_exact(self, other, tolerance, normalize))
 
     def almost_equals(self, other, decimal=6):
         """True if geometries are equal at all coordinates to a
