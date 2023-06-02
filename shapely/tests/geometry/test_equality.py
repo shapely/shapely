@@ -89,8 +89,12 @@ def test_equality_with_nan(left, right):
 )
 def test_equality_with_nan_z(left, right):
     # TODO: those are currently considered equal because z dimension is ignored
-    assert left == right
-    assert not (left != right)
+    if shapely.geos_version < (3, 12, 0):
+        assert left == right
+        assert not (left != right)
+    else:
+        # on GEOS main z dimension is not ignored -> NaNs cause inequality
+        assert left != right
 
 
 @pytest.mark.parametrize(
@@ -118,8 +122,9 @@ def test_equality_with_nan_false(left, right):
 def test_equality_with_nan_z_false(left, right):
     if shapely.geos_version < (3, 10, 0):
         # GEOS <= 3.9 fill the NaN with 0, so the z dimension is different
-        print(left.has_z, list(left.coords), right.has_z, list(right.coords))
-        assert left != right
+        # however, has_z still returns False, so z dimension is ignored in .coords
+        # assert left != right
+        assert left == right
     elif shapely.geos_version < (3, 12, 0):
         # GEOS 3.10-3.11 ignore NaN for Z also when explicitly created with 3D
         # and so the geometries are considered as 2D (and thus z dimension is ignored)
@@ -138,7 +143,9 @@ def test_equality_z():
     geom2 = Point(0, 1, np.nan)
     if shapely.geos_version < (3, 8, 0):
         # GEOS < 3.8 fill the NaN with 0, so the z dimension is different
-        assert geom1 != geom2
+        # however, has_z still returns False, so z dimension is ignored in .coords
+        # assert geom1 != geom2
+        assert geom1 == geom2
     elif shapely.geos_version < (3, 12, 0):
         # older GEOS versions ignore NaN for Z also when explicitly created with 3D
         assert geom1 == geom2
