@@ -11,6 +11,13 @@ Improvements:
   to allow, skip, or error on nonfinite (NaN / Inf) coordinates. The default
   behaviour (allow) is backwards compatible (#1594).
 
+Version 2.0.2 (unreleased)
+--------------------------
+
+Bug fixes:
+
+- Fix regression in the (in)equality comparison (``geom1 == geom2``) using ``__eq__`` to
+  not ignore the z-coordinates (#1732).
 
 2.0.1 (2023-01-30)
 ------------------
