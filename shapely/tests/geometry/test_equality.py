@@ -3,7 +3,11 @@ import pytest
 
 import shapely
 from shapely import LinearRing, LineString, MultiLineString, Point, Polygon
-from shapely.tests.common import all_types, all_types_z
+from shapely.tests.common import all_types, all_types_z, ignore_invalid
+
+# pytestmark = pytest.mark.filterwarnings("ignore::RuntimeWarning")
+
+pytestmark = pytest.mark.filterwarnings("error")
 
 
 @pytest.mark.parametrize("geom", all_types + all_types_z)
@@ -36,9 +40,8 @@ def test_equality_false(left, right):
     assert left != right
 
 
-@pytest.mark.parametrize(
-    "left, right",
-    [
+with ignore_invalid():
+    cases1 = [
         (LineString([(0, 1), (2, np.nan)]), LineString([(0, 1), (2, np.nan)])),
         (
             LineString([(0, 1), (np.nan, np.nan)]),
@@ -64,8 +67,10 @@ def test_equality_false(left, right):
         #     LineString([(0, 1, np.nan), (2, 3, 4)]),
         #     LineString([(0, 1, np.nan), (2, 3, 4)]),
         # ),
-    ],
-)
+    ]
+
+
+@pytest.mark.parametrize("left, right", cases1)
 def test_equality_with_nan(left, right):
     # TODO currently those evaluate as not equal, but we are considering to change this
     # assert left == right
@@ -74,9 +79,8 @@ def test_equality_with_nan(left, right):
     assert left != right
 
 
-@pytest.mark.parametrize(
-    "left, right",
-    [
+with ignore_invalid():
+    cases2 = [
         (
             LineString([(0, 1, np.nan), (2, 3, np.nan)]),
             LineString([(0, 1, np.nan), (2, 3, np.nan)]),
@@ -85,8 +89,10 @@ def test_equality_with_nan(left, right):
             LineString([(0, 1, np.nan), (2, 3, 4)]),
             LineString([(0, 1, np.nan), (2, 3, 4)]),
         ),
-    ],
-)
+    ]
+
+
+@pytest.mark.parametrize("left, right", cases2)
 def test_equality_with_nan_z(left, right):
     # TODO: those are currently considered equal because z dimension is ignored
     if shapely.geos_version < (3, 12, 0):
@@ -97,29 +103,25 @@ def test_equality_with_nan_z(left, right):
         assert left != right
 
 
-@pytest.mark.parametrize(
-    "left, right",
-    [
+with ignore_invalid():
+    cases3 = [
         (LineString([(0, np.nan), (2, 3)]), LineString([(0, 1), (2, 3)])),
         (LineString([(0, 1), (2, np.nan)]), LineString([(0, 1), (2, 3)])),
         (LineString([(0, 1, np.nan), (2, 3, 4)]), LineString([(0, 1, 2), (2, 3, 4)])),
         (LineString([(0, 1, 2), (2, 3, np.nan)]), LineString([(0, 1, 2), (2, 3, 4)])),
-    ],
-)
+    ]
+
+
+@pytest.mark.parametrize("left, right", cases3)
 def test_equality_with_nan_false(left, right):
     assert left != right
 
 
-@pytest.mark.parametrize(
-    "left, right",
-    [
-        (
-            LineString([(0, 1, np.nan), (2, 3, np.nan)]),
-            LineString([(0, 1, np.nan), (2, 3, 4)]),
-        ),
-    ],
-)
-def test_equality_with_nan_z_false(left, right):
+def test_equality_with_nan_z_false():
+    with ignore_invalid():
+        left = LineString([(0, 1, np.nan), (2, 3, np.nan)])
+        right = LineString([(0, 1, np.nan), (2, 3, 4)])
+
     if shapely.geos_version < (3, 10, 0):
         # GEOS <= 3.9 fill the NaN with 0, so the z dimension is different
         # however, has_z still returns False, so z dimension is ignored in .coords
