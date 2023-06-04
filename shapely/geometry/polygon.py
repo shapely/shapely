@@ -267,15 +267,20 @@ class Polygon(BaseGeometry):
             return True
         elif any(check_empty):
             return False
-        my_coords = [
-            tuple(self.exterior.coords),
-            [tuple(interior.coords) for interior in self.interiors],
+        my_coords = [self.exterior.coords] + [
+            interior.coords for interior in self.interiors
         ]
-        other_coords = [
-            tuple(other.exterior.coords),
-            [tuple(interior.coords) for interior in other.interiors],
+        other_coords = [other.exterior.coords] + [
+            interior.coords for interior in other.interiors
         ]
-        return my_coords == other_coords
+        if not len(my_coords) == len(other_coords):
+            return False
+        return np.all(
+            [
+                np.array_equal(left, right, equal_nan=False)
+                for left, right in zip(my_coords, other_coords)
+            ]
+        )
 
     def __hash__(self):
         return super().__hash__()

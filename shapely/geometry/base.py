@@ -200,7 +200,9 @@ class BaseGeometry(shapely.Geometry):
     def __eq__(self, other):
         if not isinstance(other, BaseGeometry):
             return NotImplemented
-        return type(other) == type(self) and tuple(self.coords) == tuple(other.coords)
+        return type(other) == type(self) and np.array_equal(
+            self.coords, other.coords, equal_nan=False
+        )
 
     def __ne__(self, other):
         if not isinstance(other, BaseGeometry):
