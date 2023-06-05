@@ -200,8 +200,9 @@ class BaseGeometry(shapely.Geometry):
     def __eq__(self, other):
         if not isinstance(other, BaseGeometry):
             return NotImplemented
+        # equal_nan=False is the default, but not yet available for older numpy
         return type(other) == type(self) and np.array_equal(
-            self.coords, other.coords, equal_nan=False
+            self.coords, other.coords  # , equal_nan=False
         )
 
     def __ne__(self, other):
