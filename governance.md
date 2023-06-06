@@ -1,5 +1,5 @@
 Shapely project governance and decision-making
-===============================================
+==============================================
 
 The purpose of this document is to formalize the governance process used by the
 Shapely project in both ordinary and extraordinary situations, and to clarify
@@ -41,6 +41,11 @@ The Project Community consists of all Contributors and Users of the Project.
 Contributors work on behalf of and are responsible to the larger Project
 Community and we strive to keep the barrier between Contributors and Users as
 low as possible.
+
+Shapely relies on the [GEOS project](https://libgeos.org) and expresses, in
+Python, much of the GEOS API. The sets of contributors for these projects
+overlap, but they are organized separately and have different forms of
+governance.
 
 # Governance
 
@@ -107,9 +112,11 @@ If one does need to invoke a formal veto, then it should consist of:
 
 * an unambiguous statement that a veto is being invoked,
 * an explanation of why it is being invoked, and
-* a description of what conditions (if any) would convince the vetoer to withdraw their veto.
+* a description of what conditions (if any) would convince the vetoer to
+  withdraw their veto.
 
-If all proposals for resolving some issue are vetoed, then the status quo wins by default.
+If all proposals for resolving some issue are vetoed, then the status quo wins
+by default.
 
 In the worst case, if a Contributor is genuinely misusing their veto in an
 obstructive fashion to the detriment of the project, then they can be ejected
