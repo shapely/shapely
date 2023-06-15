@@ -14,7 +14,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2019]
         architecture: [x64]
-        geos: [3.11.2, 3.12.0beta2, main]
+        geos: [3.7.5, 3.8.3, 3.9.4, 3.10.5, 3.11.2, 3.12.0beta2, main]
         include:
           # 2018
           - python: 3.8  # 3.7 is dropped
@@ -39,6 +39,10 @@ jobs:
             matplotlib: true
             doctest: true
             extra_pytest_args: "-W error"  # error on warnings
+          # beta2
+          - python: "3.11"
+            geos: 3.12.0beta2
+            extra_pytest_args: "-W error" # error on warnings
           # dev
           - python: "3.11"
             geos: main
