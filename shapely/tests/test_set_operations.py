@@ -8,7 +8,6 @@ from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
     all_types,
     empty,
-    geometry_collection,
     ignore_invalid,
     multi_polygon,
     point,
@@ -53,15 +52,7 @@ non_polygon_types = [
 
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func", SET_OPERATIONS)
-def test_set_operation_array(request, a, func):
-    if (
-        func == shapely.difference
-        and a == geometry_collection
-        and shapely.geos_version >= (3, 12, 0)
-    ):
-        request.node.add_marker(
-            pytest.mark.xfail(reason="https://github.com/libgeos/geos/issues/797")
-        )
+def test_set_operation_array(a, func):
     actual = func(a, point)
     assert isinstance(actual, Geometry)
 
