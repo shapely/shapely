@@ -201,6 +201,7 @@ class BaseGeometry(shapely.Geometry):
         if not isinstance(other, BaseGeometry):
             return NotImplemented
         # equal_nan=False is the default, but not yet available for older numpy
+        # TODO updated once we require numpy >= 1.19
         return type(other) == type(self) and np.array_equal(
             self.coords, other.coords  # , equal_nan=False
         )
