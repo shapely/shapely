@@ -939,7 +939,7 @@ class BaseMultipartGeometry(BaseGeometry):
         return (
             type(other) == type(self)
             and len(self.geoms) == len(other.geoms)
-            and all(x == y for x, y in zip(self.geoms, other.geoms))
+            and all(a == b for a, b in zip(self.geoms, other.geoms))
         )
 
     def __hash__(self):
