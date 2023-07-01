@@ -1,8 +1,8 @@
 from math import sqrt
 from shapely import affinity
 
-GM = (sqrt(5)-1.0)/2.0
-W = 8.0
+GM = (sqrt(5) - 1) / 2
+W = 8
 H = W*GM
 SIZE = (W, H)
 

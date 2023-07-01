@@ -94,7 +94,7 @@ def polylabel(polygon, tolerance=1.0):
     width = maxx - minx
     height = maxy - miny
     cell_size = min(width, height)
-    h = cell_size / 2.0
+    h = cell_size / 2
     cell_queue = []
 
     # First best cell approximation is one constructed from the centroid
@@ -103,7 +103,7 @@ def polylabel(polygon, tolerance=1.0):
     best_cell = Cell(x, y, 0, polygon)
 
     # Special case for rectangular polygons avoiding floating point error
-    bbox_cell = Cell(minx + width / 2.0, miny + height / 2, 0, polygon)
+    bbox_cell = Cell(minx + width / 2, miny + height / 2, 0, polygon)
     if bbox_cell.distance > best_cell.distance:
         best_cell = bbox_cell
 
@@ -130,7 +130,7 @@ def polylabel(polygon, tolerance=1.0):
             continue
 
         # split the cell into quadrants
-        h = cell.h / 2.0
+        h = cell.h / 2
         heappush(cell_queue, Cell(cell.x - h, cell.y - h, h, polygon))
         heappush(cell_queue, Cell(cell.x + h, cell.y - h, h, polygon))
         heappush(cell_queue, Cell(cell.x - h, cell.y + h, h, polygon))

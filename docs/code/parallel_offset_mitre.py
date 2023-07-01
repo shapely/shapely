@@ -6,8 +6,8 @@ from figures import SIZE, BLUE, GRAY, set_limits
 
 line = LineString([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
 line_bounds = line.bounds
-ax_range = [int(line_bounds[0] - 1.0), int(line_bounds[2] + 1.0)]
-ay_range = [int(line_bounds[1] - 1.0), int(line_bounds[3] + 1.0)]
+ax_range = [int(line_bounds[0] - 1), int(line_bounds[2] + 1)]
+ay_range = [int(line_bounds[1] - 1), int(line_bounds[3] + 1)]
 
 fig = plt.figure(1, figsize=(SIZE[0], 1.5 * SIZE[1]), dpi=90)
 

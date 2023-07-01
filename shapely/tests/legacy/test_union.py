@@ -15,7 +15,7 @@ def halton(base):
 
     def value(index):
         result = 0.0
-        f = 1.0 / base
+        f = 1 / base
         i = index
         while i > 0:
             result += f * (i % base)

@@ -79,7 +79,7 @@ class LineString(BaseGeometry):
     def __geo_interface__(self):
         return {"type": "LineString", "coordinates": tuple(self.coords)}
 
-    def svg(self, scale_factor=1.0, stroke_color=None, opacity=None):
+    def svg(self, scale_factor=1, stroke_color=None, opacity=None):
         """Returns SVG polyline element for the LineString geometry.
 
         Parameters
@@ -102,7 +102,7 @@ class LineString(BaseGeometry):
         return (
             '<polyline fill="none" stroke="{2}" stroke-width="{1}" '
             'points="{0}" opacity="{3}" />'
-        ).format(pnt_format, 2.0 * scale_factor, stroke_color, opacity)
+        ).format(pnt_format, 2 * scale_factor, stroke_color, opacity)
 
     @property
     def xy(self):

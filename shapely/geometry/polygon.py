@@ -267,7 +267,7 @@ class Polygon(BaseGeometry):
                 coords.append(tuple(hole.coords))
         return {"type": "Polygon", "coordinates": tuple(coords)}
 
-    def svg(self, scale_factor=1.0, fill_color=None, opacity=None):
+    def svg(self, scale_factor=1, fill_color=None, opacity=None):
         """Returns SVG path element for the Polygon geometry.
 
         Parameters
@@ -299,7 +299,7 @@ class Polygon(BaseGeometry):
         return (
             '<path fill-rule="evenodd" fill="{2}" stroke="#555555" '
             'stroke-width="{0}" opacity="{3}" d="{1}" />'
-        ).format(2.0 * scale_factor, path, fill_color, opacity)
+        ).format(2 * scale_factor, path, fill_color, opacity)
 
     @classmethod
     def from_bounds(cls, xmin, ymin, xmax, ymax):
@@ -310,16 +310,16 @@ class Polygon(BaseGeometry):
 shapely.lib.registry[3] = Polygon
 
 
-def orient(polygon, sign=1.0):
+def orient(polygon, sign=1):
     s = float(sign)
     rings = []
     ring = polygon.exterior
-    if signed_area(ring) / s >= 0.0:
+    if signed_area(ring) / s >= 0:
         rings.append(ring)
     else:
         rings.append(list(ring.coords)[::-1])
     for ring in polygon.interiors:
-        if signed_area(ring) / s <= 0.0:
+        if signed_area(ring) / s <= 0:
             rings.append(ring)
         else:
             rings.append(list(ring.coords)[::-1])

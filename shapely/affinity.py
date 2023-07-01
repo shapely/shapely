@@ -1,6 +1,6 @@
 """Affine transforms, both in general and specific, named transforms."""
 
-from math import cos, pi, sin, tan
+from math import cos, radians, sin, tan
 
 import numpy as np
 
@@ -87,7 +87,7 @@ def interpret_origin(geom, origin, ndim):
     if origin == "center":
         # bounding box center
         minx, miny, maxx, maxy = geom.bounds
-        origin = ((maxx + minx) / 2.0, (maxy + miny) / 2.0)
+        origin = ((maxx + minx) / 2, (maxy + miny) / 2)
     elif origin == "centroid":
         origin = geom.centroid.coords[0]
     elif isinstance(origin, str):
@@ -132,7 +132,7 @@ def rotate(geom, angle, origin="center", use_radians=False):
     if geom.is_empty:
         return geom
     if not use_radians:  # convert from degrees
-        angle = angle * pi / 180.0
+        angle = radians(angle)
     cosp = cos(angle)
     sinp = sin(angle)
     if abs(cosp) < 2.5e-16:
@@ -209,8 +209,8 @@ def skew(geom, xs=0.0, ys=0.0, origin="center", use_radians=False):
     if geom.is_empty:
         return geom
     if not use_radians:  # convert from degrees
-        xs = xs * pi / 180.0
-        ys = ys * pi / 180.0
+        xs = radians(xs)
+        ys = radians(ys)
     tanx = tan(xs)
     tany = tan(ys)
     if abs(tanx) < 2.5e-16:
