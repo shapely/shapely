@@ -1,11 +1,16 @@
 import numpy as np
-
+from typing import Optional
 from shapely import lib
 
 __all__ = ["transform", "count_coordinates", "get_coordinates", "set_coordinates"]
 
 
-def transform(geometry, transformation, include_z=False):
+def transform(
+    geometry,
+    transformation,
+    include_z: Optional[bool] = False,
+    interleaved: bool = True,
+):
     """Returns a copy of a geometry array with a function applied to its
     coordinates.
 
@@ -20,11 +25,17 @@ def transform(geometry, transformation, include_z=False):
     transformation : function
         A function that transforms a (N, 2) or (N, 3) ndarray of float64 to
         another (N, 2) or (N, 3) ndarray of float64.
-    include_z : bool, default False
-        If True, include the third dimension in the coordinates array
-        that is passed to the ``transformation`` function. If a
-        geometry has no third dimension, the z-coordinates passed to the
-        function will be NaN.
+        The function may not change N.
+    include_z : bool, optional, default False
+        If False, return 2D geometries. If True, include the third dimension
+        in the output (if a geometry has no third dimension, the z-coordinates
+        will be NaN). By default, will infer the dimensionality from the
+        input geometries. Note that this inference can be unreliable with
+        empty geometries (for a guaranteed result, it is recommended to
+        specify the keyword).
+    interleaved: bool, default True
+        If set to False, the transformation function should accept 2 or 3 separate
+        one-dimensional arrays (x, y and optional z).
 
     Examples
     --------
@@ -44,13 +55,41 @@ def transform(geometry, transformation, include_z=False):
     <POINT (1 1)>
     >>> transform(Point(0, 0, 0), lambda x: x + 1, include_z=True)
     <POINT Z (1 1 1)>
+
+    With interleaved=False, the call signature of the transformation is different:
+
+    >>> transform(LineString([(1, 2), (3, 4)]), lambda x, y: (x + 1, y), interleaved=False)
+    <LINESTRING (2 3, 3 4)>
+    
+    Or with a z coordinate:
+
+    >>> transform(Point(0, 0, 0), lambda x, y, z: (x + 1, y, z + 2), interleaved=False)
+    <POINT Z (1 0 2)>
+
+    Using pyproj >= 2.1, the following example will reproject Shapely geometries
+    from EPSG 4326 to EPSG 32618:
+
+    >>> from pyproj import Transformer
+    ... transformer = Transformer.from_crs(4326, 32618, always_xy=True)
+    ... p = transform(Point(-75, 50), transformer.transform, interleaved=False)
+    ... shapely.to_wkt(p, rounding_precision=2)
+    ... 'POINT (500000 5538630.7)'
     """
     geometry_arr = np.array(geometry, dtype=np.object_)  # makes a copy
+    if include_z is None:
+        include_z = np.any(
+            lib.get_coordinate_dimension(geometry_arr[~lib.is_empty(geometry_arr)]) == 3
+        )
     coordinates = lib.get_coordinates(geometry_arr, include_z, False)
-    new_coordinates = transformation(coordinates)
+    if interleaved:
+        new_coordinates = transformation(coordinates)
+    else:
+        new_coordinates = np.asarray(transformation(*coordinates.T), dtype=np.float64).T
     # check the array to yield understandable error messages
-    if not isinstance(new_coordinates, np.ndarray):
-        raise ValueError("The provided transformation did not return a numpy array")
+    if not isinstance(new_coordinates, np.ndarray) or new_coordinates.ndim != 2:
+        raise ValueError(
+            "The provided transformation did not return a two-dimensional numpy array"
+        )
     if new_coordinates.dtype != np.float64:
         raise ValueError(
             "The provided transformation returned an array with an unexpected "

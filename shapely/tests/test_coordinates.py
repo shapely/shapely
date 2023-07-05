@@ -211,10 +211,17 @@ def test_set_coords_mixed_dimension(include_z):
     "geoms",
     [[], [empty], [None, point, None], [nested_3], [point, point_z], [line_string_z]],
 )
-def test_transform(geoms, include_z):
+@pytest.mark.parametrize("interleaved", [True, False])
+def test_transform(geoms, include_z, interleaved):
     geoms = np.array(geoms, np.object_)
     coordinates_before = get_coordinates(geoms, include_z=include_z)
-    new_geoms = transform(geoms, lambda x: x + 1, include_z=include_z)
+    if interleaved:
+        transformation = lambda coords: coords + 1
+    elif not include_z:
+        transformation = lambda x, y: (x + 1, y + 1)
+    else:
+        transformation = lambda x, y, z: (x + 1, y + 1, z + 1)
+    new_geoms = transform(geoms, transformation, include_z=include_z, interleaved=interleaved)
     assert new_geoms is not geoms
     coordinates_after = get_coordinates(new_geoms, include_z=include_z)
     assert_allclose(coordinates_before + 1, coordinates_after, equal_nan=True)
@@ -264,3 +271,13 @@ def test_transform_remove_z(geom):
     assert shapely.get_coordinate_dimension(geom) == 3
     new_geom = transform(geom, lambda x: x + 1, include_z=False)
     assert shapely.get_coordinate_dimension(new_geom) == 2
+
+
+@pytest.mark.parametrize("geom,expected", [
+    (line_string, 2),
+    (line_string_z, 3),
+])
+def test_transform_auto_coordinate_dimension(geom,expected):
+    # ensure that new geometry is 2D with include_z=False
+    new_geom = transform(geom, lambda x: x + 1, include_z=None)
+    assert (shapely.get_coordinate_dimension(new_geom) == expected).all()
