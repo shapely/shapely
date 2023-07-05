@@ -1,5 +1,7 @@
-import numpy as np
 from typing import Optional
+
+import numpy as np
+
 from shapely import lib
 
 __all__ = ["transform", "count_coordinates", "get_coordinates", "set_coordinates"]
@@ -59,8 +61,8 @@ def transform(
     With interleaved=False, the call signature of the transformation is different:
 
     >>> transform(LineString([(1, 2), (3, 4)]), lambda x, y: (x + 1, y), interleaved=False)
-    <LINESTRING (2 3, 3 4)>
-    
+    <LINESTRING (2 2, 4 4)>
+
     Or with a z coordinate:
 
     >>> transform(Point(0, 0, 0), lambda x, y, z: (x + 1, y, z + 2), interleaved=False)

@@ -216,11 +216,11 @@ def test_transform(geoms, include_z, interleaved):
     geoms = np.array(geoms, np.object_)
     coordinates_before = get_coordinates(geoms, include_z=include_z)
     if interleaved:
-        transformation = lambda coords: coords + 1
+        transformation = lambda coords: coords + 1  # noqa: E731
     elif not include_z:
-        transformation = lambda x, y: (x + 1, y + 1)
+        transformation = lambda x, y: (x + 1, y + 1)  # noqa: E731
     else:
-        transformation = lambda x, y, z: (x + 1, y + 1, z + 1)
+        transformation = lambda x, y, z: (x + 1, y + 1, z + 1)  # noqa: E731
     new_geoms = transform(geoms, transformation, include_z=include_z, interleaved=interleaved)
     assert new_geoms is not geoms
     coordinates_after = get_coordinates(new_geoms, include_z=include_z)
@@ -277,7 +277,6 @@ def test_transform_remove_z(geom):
     (line_string, 2),
     (line_string_z, 3),
 ])
-def test_transform_auto_coordinate_dimension(geom,expected):
-    # ensure that new geometry is 2D with include_z=False
+def test_transform_auto_coordinate_dimension(geom, expected):
     new_geom = transform(geom, lambda x: x + 1, include_z=None)
     assert (shapely.get_coordinate_dimension(new_geom) == expected).all()
