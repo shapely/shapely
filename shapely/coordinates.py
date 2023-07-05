@@ -2,6 +2,7 @@ from typing import Optional
 
 import numpy as np
 
+import shapely
 from shapely import lib
 
 __all__ = ["transform", "count_coordinates", "get_coordinates", "set_coordinates"]
@@ -10,7 +11,7 @@ __all__ = ["transform", "count_coordinates", "get_coordinates", "set_coordinates
 def transform(
     geometry,
     transformation,
-    include_z: Optional[bool] = False,
+    include_z: Optional[bool] = None,
     interleaved: bool = True,
 ):
     """Returns a copy of a geometry array with a function applied to its
@@ -51,12 +52,13 @@ def transform(
     >>> transform([Point(0, 0), None], lambda x: x).tolist()
     [<POINT (0 0)>, None]
 
-    By default, the third dimension is ignored:
+    The presence of a third dimension is automatically detected, but can be
+    controlled explicitly:
 
     >>> transform(Point(0, 0, 0), lambda x: x + 1)
-    <POINT (1 1)>
-    >>> transform(Point(0, 0, 0), lambda x: x + 1, include_z=True)
     <POINT Z (1 1 1)>
+    >>> transform(Point(0, 0, 0), lambda x: x + 1, include_z=False)
+    <POINT (1 1)>
 
     With interleaved=False, the call signature of the transformation is different:
 
@@ -65,22 +67,25 @@ def transform(
 
     Or with a z coordinate:
 
-    >>> transform(Point(0, 0, 0), lambda x, y, z: (x + 1, y, z + 2), interleaved=False)
+    >>> transform(Point(0, 0, 0), lambda x, y, z: (x + 1, y, z + 2), interleaved=False, include_z=True)
     <POINT Z (1 0 2)>
 
     Using pyproj >= 2.1, the following example will reproject Shapely geometries
     from EPSG 4326 to EPSG 32618:
 
     >>> from pyproj import Transformer
-    ... transformer = Transformer.from_crs(4326, 32618, always_xy=True)
-    ... p = transform(Point(-75, 50), transformer.transform, interleaved=False)
-    ... shapely.to_wkt(p, rounding_precision=2)
-    ... 'POINT (500000 5538630.7)'
+    >>> transformer = Transformer.from_crs(4326, 32618, always_xy=True)
+    >>> p = transform(Point(-75, 50), transformer.transform, interleaved=False)
+    >>> shapely.to_wkt(p, rounding_precision=2)
+    'POINT (500000 5538630.7)'
     """
     geometry_arr = np.array(geometry, dtype=np.object_)  # makes a copy
     if include_z is None:
         include_z = np.any(
-            lib.get_coordinate_dimension(geometry_arr[~lib.is_empty(geometry_arr)]) == 3
+            shapely.get_coordinate_dimension(
+                geometry_arr[~shapely.is_empty(geometry_arr)]
+            )
+            == 3
         )
     coordinates = lib.get_coordinates(geometry_arr, include_z, False)
     if interleaved:

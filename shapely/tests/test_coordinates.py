@@ -278,5 +278,5 @@ def test_transform_remove_z(geom):
     (line_string_z, 3),
 ])
 def test_transform_auto_coordinate_dimension(geom, expected):
-    new_geom = transform(geom, lambda x: x + 1, include_z=None)
+    new_geom = transform(geom, lambda x: x + 1)
     assert (shapely.get_coordinate_dimension(new_geom) == expected).all()
