@@ -989,7 +989,7 @@ class GeometrySequence:
     def __init__(self, parent) -> None:
         self._parent = parent
 
-    def _get_geom_item(self, i) -> "Geometry":
+    def _get_geom_item(self, i: int) -> "Geometry":
         return shapely.get_geometry(self._parent, i)
 
     def __iter__(self) -> "Geometry":
