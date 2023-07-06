@@ -543,7 +543,7 @@ class BaseGeometry(Geometry):
             single_sided=single_sided,
         )
 
-    def simplify(self, tolerance, preserve_topology=True) -> "Geometry":
+    def simplify(self, tolerance: float, preserve_topology: bool = True) -> "Geometry":
         """Returns a simplified geometry produced by the Douglas-Peucker
         algorithm
 
