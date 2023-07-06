@@ -999,7 +999,7 @@ class GeometrySequence:
     def __len__(self) -> int:
         return shapely.get_num_geometries(self._parent)
 
-    def __getitem__(self, key) -> "Geometry":
+    def __getitem__(self, key: Union[int, np.integer, slice]) -> "Geometry":
         m = self.__len__()
         if isinstance(key, (int, np.integer)):
             if key + m < 0 or key >= m:
