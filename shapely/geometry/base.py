@@ -986,7 +986,7 @@ class GeometrySequence:
     #     Parent (Shapely) geometry
     _parent = None
 
-    def __init__(self, parent) -> None:
+    def __init__(self, parent: Geometry) -> None:
         self._parent = parent
 
     def _get_geom_item(self, i: int) -> "Geometry":
