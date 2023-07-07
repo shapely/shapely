@@ -30,6 +30,25 @@ class TestMultiPolygon(MultiGeometryTestCase):
             ]
         ]
 
+        # Or without holes
+        coords2 = [
+            (
+                ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)),
+            )
+        ]
+        geom = MultiPolygon(coords2)
+        assert isinstance(geom, MultiPolygon)
+        assert len(geom.geoms) == 1
+        assert dump_coords(geom) == [
+            [
+                (0.0, 0.0),
+                (0.0, 1.0),
+                (1.0, 1.0),
+                (1.0, 0.0),
+                (0.0, 0.0),
+            ]
+        ]
+
         # Or from polygons
         p = Polygon(
             ((0, 0), (0, 1), (1, 1), (1, 0)),
