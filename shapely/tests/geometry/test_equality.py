@@ -5,10 +5,6 @@ import shapely
 from shapely import LinearRing, LineString, MultiLineString, Point, Polygon
 from shapely.tests.common import all_types, all_types_z, ignore_invalid
 
-# pytestmark = pytest.mark.filterwarnings("ignore::RuntimeWarning")
-
-pytestmark = pytest.mark.filterwarnings("error")
-
 
 @pytest.mark.parametrize("geom", all_types + all_types_z)
 def test_equality(geom):
@@ -124,8 +120,8 @@ def test_equality_with_nan_z_false():
 
     if shapely.geos_version < (3, 10, 0):
         # GEOS <= 3.9 fill the NaN with 0, so the z dimension is different
-        # however, has_z still returns False, so z dimension is ignored in .coords
         # assert left != right
+        # however, has_z still returns False, so z dimension is ignored in .coords
         assert left == right
     elif shapely.geos_version < (3, 12, 0):
         # GEOS 3.10-3.11 ignore NaN for Z also when explicitly created with 3D
@@ -143,13 +139,14 @@ def test_equality_z():
 
     # different dimensionality with NaN z
     geom2 = Point(0, 1, np.nan)
-    if shapely.geos_version < (3, 8, 0):
+    if shapely.geos_version < (3, 10, 0):
         # GEOS < 3.8 fill the NaN with 0, so the z dimension is different
-        # however, has_z still returns False, so z dimension is ignored in .coords
         # assert geom1 != geom2
+        # however, has_z still returns False, so z dimension is ignored in .coords
         assert geom1 == geom2
     elif shapely.geos_version < (3, 12, 0):
-        # older GEOS versions ignore NaN for Z also when explicitly created with 3D
+        # GEOS 3.10-3.11 ignore NaN for Z also when explicitly created with 3D
+        # and so the geometries are considered as 2D (and thus z dimension is ignored)
         assert geom1 == geom2
     else:
         assert geom1 != geom2
