@@ -1,6 +1,16 @@
 Version 2.x
 ===========
 
+.. _version-2-0-2:
+
+Version 2.0.2 (unreleased)
+--------------------------
+
+Bug fixes:
+
+- Fix ``MultiPolygon()`` constructor to accept polygons without holes (#1850).
+
+
 .. _version-2-0-1:
 
 Version 2.0.1 (2023-01-30)

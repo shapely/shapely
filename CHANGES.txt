@@ -1,6 +1,13 @@
 Changes
 =======
 
+2.0.2 (unreleased)
+------------------
+
+Bug fixes:
+
+- Fix ``MultiPolygon()`` constructor to accept polygons without holes (#1850).
+
 2.0.1 (2023-01-30)
 ------------------
 
@@ -20,7 +27,6 @@ Improvements:
 
 For a full changelog, see
 https://shapely.readthedocs.io/en/latest/release/2.x.html#version-2-0-1
-
 
 2.0.0 (2022-12-12)
 ------------------
