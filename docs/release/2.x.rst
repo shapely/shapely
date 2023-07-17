@@ -13,6 +13,10 @@ Improvements:
   to allow, skip, or error on nonfinite (NaN / Inf) coordinates. The default
   behaviour (allow) is backwards compatible (#1594).
 
+Bug fixes:
+
+- Fix ``MultiPolygon()`` constructor to accept polygons without holes (#1850).
+
 
 .. _version-2-0-1:
 
