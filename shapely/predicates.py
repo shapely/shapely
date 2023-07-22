@@ -49,8 +49,7 @@ def has_z(geometry, **kwargs):
     ----------
     geometry : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -69,7 +68,6 @@ def has_z(geometry, **kwargs):
     return lib.has_z(geometry, **kwargs)
 
 
-@requires_geos("3.7.0")
 @multithreading_enabled
 def is_ccw(geometry, **kwargs):
     """Returns True if a linestring or linearring is counterclockwise.
@@ -85,8 +83,7 @@ def is_ccw(geometry, **kwargs):
         This function will return False for non-linear goemetries and for
         lines with fewer than 4 points (including the closing point).
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -117,8 +114,7 @@ def is_closed(geometry, **kwargs):
     geometry : Geometry or array_like
         This function will return False for non-linestrings.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -146,8 +142,7 @@ def is_empty(geometry, **kwargs):
     geometry : Geometry or array_like
         Any geometry type is accepted.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -174,8 +169,7 @@ def is_geometry(geometry, **kwargs):
     ----------
     geometry : any object or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -205,8 +199,7 @@ def is_missing(geometry, **kwargs):
     ----------
     geometry : any object or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -243,8 +236,7 @@ def is_prepared(geometry, **kwargs):
     ----------
     geometry : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -274,8 +266,7 @@ def is_valid_input(geometry, **kwargs):
     ----------
     geometry : any object or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -308,8 +299,7 @@ def is_ring(geometry, **kwargs):
     geometry : Geometry or array_like
         This function will return False for non-linestrings.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -347,8 +337,7 @@ def is_simple(geometry, **kwargs):
     geometry : Geometry or array_like
         This function will return False for geometrycollections.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -377,8 +366,7 @@ def is_valid(geometry, **kwargs):
     geometry : Geometry or array_like
         Any geometry type is accepted. Returns False for missing values.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -411,8 +399,7 @@ def is_valid_reason(geometry, **kwargs):
     geometry : Geometry or array_like
         Any geometry type is accepted. Returns None for missing values.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -443,8 +430,7 @@ def crosses(a, b, **kwargs):
     ----------
     a, b : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -497,8 +483,7 @@ def contains(a, b, **kwargs):
     ----------
     a, b : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -558,8 +543,7 @@ def contains_properly(a, b, **kwargs):
     ----------
     a, b : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -598,8 +582,7 @@ def covered_by(a, b, **kwargs):
     ----------
     a, b : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -647,8 +630,7 @@ def covers(a, b, **kwargs):
     ----------
     a, b : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -699,8 +681,7 @@ def disjoint(a, b, **kwargs):
     ----------
     a, b : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -741,8 +722,7 @@ def equals(a, b, **kwargs):
     ----------
     a, b : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See Also
     --------
@@ -773,8 +753,7 @@ def intersects(a, b, **kwargs):
     ----------
     a, b : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -813,8 +792,7 @@ def overlaps(a, b, **kwargs):
     ----------
     a, b : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -862,8 +840,7 @@ def touches(a, b, **kwargs):
     ----------
     a, b : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -905,8 +882,7 @@ def within(a, b, **kwargs):
     ----------
     a, b : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -947,25 +923,38 @@ def within(a, b, **kwargs):
 
 
 @multithreading_enabled
-def equals_exact(a, b, tolerance=0.0, **kwargs):
-    """Returns True if A and B are structurally equal.
+def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
+    """Returns True if the geometries are structurally equivalent within a
+    given tolerance.
 
     This method uses exact coordinate equality, which requires coordinates
-    to be equal (within specified tolerance) and and in the same order for all
-    components of a geometry. This is in contrast with the ``equals`` function
-    which uses spatial (topological) equality.
+    to be equal (within specified tolerance) and in the same order for
+    all components (vertices, rings, or parts) of a geometry. This is in
+    contrast with the :func:`equals` function which uses spatial
+    (topological) equality and does not require all components to be in the
+    same order. Because of this, it is possible for :func:`equals` to
+    be ``True`` while :func:`equals_exact` is ``False``.
+
+    The order of the coordinates can be normalized (by setting the `normalize`
+    keyword to ``True``) so that this function will return ``True`` when geometries
+    are structurally equivalent but differ only in the ordering of vertices.
+    However, this function will still return ``False`` if the order of interior
+    rings within a :class:`Polygon` or the order of geometries within a multi
+    geometry are different.
 
     Parameters
     ----------
     a, b : Geometry or array_like
-    tolerance : float or array_like
+    tolerance : float or array_like (default: 0.)
+    normalize : bool, optional (default: False)
+        If True, normalize the two geometries so that the coordinates are
+        in the same order.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See Also
     --------
-    equals : Check if A and B are spatially equal.
+    equals : Check if `a` and `b` are spatially (topologically) equal.
 
     Examples
     --------
@@ -988,6 +977,10 @@ def equals_exact(a, b, tolerance=0.0, **kwargs):
     >>> equals(polygon1, polygon2)
     True
     """
+    if normalize:
+        a = lib.normalize(a)
+        b = lib.normalize(b)
+
     return lib.equals_exact(a, b, tolerance, **kwargs)
 
 
@@ -999,8 +992,7 @@ def relate(a, b, **kwargs):
     ----------
     a, b : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -1031,8 +1023,7 @@ def relate_pattern(a, b, pattern, **kwargs):
     a, b : Geometry or array_like
     pattern : string
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -1062,8 +1053,7 @@ def dwithin(a, b, distance, **kwargs):
     distance : float
         Negative distances always return False.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -1107,8 +1097,7 @@ def contains_xy(geom, x, y=None, **kwargs):
         Coordinates as separate x and y arrays, or a single array of
         coordinate x, y tuples.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -1153,8 +1142,7 @@ def intersects_xy(geom, x, y=None, **kwargs):
         Coordinates as separate x and y arrays, or a single array of
         coordinate x, y tuples.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------

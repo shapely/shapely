@@ -1,6 +1,21 @@
 Changes
 =======
 
+2.1.0 (unreleased)
+------------------
+
+Improvements:
+
+- Require GEOS >= 3.7, NumPy >= 1.16, and Python >= 3.8 (#1802)
+- Add a ``handle_nan`` parameter to ``shapely.linestrings()`` and ``shapely.linearrings()``
+  to allow, skip, or error on nonfinite (NaN / Inf) coordinates. The default
+  behaviour (allow) is backwards compatible (#1594).
+
+Bug fixes:
+
+- Fix ``MultiPolygon()`` constructor to accept polygons without holes (#1850).
+
+
 2.0.1 (2023-01-30)
 ------------------
 

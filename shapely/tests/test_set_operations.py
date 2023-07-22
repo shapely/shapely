@@ -8,7 +8,7 @@ from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
     all_types,
     empty,
-    geometry_collection,
+    ignore_invalid,
     multi_polygon,
     point,
     polygon,
@@ -52,15 +52,7 @@ non_polygon_types = [
 
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func", SET_OPERATIONS)
-def test_set_operation_array(request, a, func):
-    if (
-        func == shapely.difference
-        and a == geometry_collection
-        and shapely.geos_version >= (3, 12, 0)
-    ):
-        request.node.add_marker(
-            pytest.mark.xfail(reason="https://github.com/libgeos/geos/issues/797")
-        )
+def test_set_operation_array(a, func):
     actual = func(a, point)
     assert isinstance(actual, Geometry)
 
@@ -312,15 +304,20 @@ def test_coverage_union_reduce_axis():
 @pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 def test_coverage_union_overlapping_inputs():
     polygon = Polygon([(1, 1), (1, 0), (0, 0), (0, 1), (1, 1)])
+    other = Polygon([(1, 0), (0.9, 1), (2, 1), (2, 0), (1, 0)])
 
-    # Overlapping polygons raise an error
-    with pytest.raises(
-        shapely.GEOSException,
-        match="CoverageUnion cannot process incorrectly noded inputs.",
-    ):
-        shapely.coverage_union(
-            polygon, Polygon([(1, 0), (0.9, 1), (2, 1), (2, 0), (1, 0)])
-        )
+    if shapely.geos_version >= (3, 12, 0):
+        # Return mostly unchaged output
+        result = shapely.coverage_union(polygon, other)
+        expected = shapely.multipolygons([polygon, other])
+        assert_geometries_equal(result, expected, normalize=True)
+    else:
+        # Overlapping polygons raise an error
+        with pytest.raises(
+            shapely.GEOSException,
+            match="CoverageUnion cannot process incorrectly noded inputs.",
+        ):
+            shapely.coverage_union(polygon, other)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
@@ -336,11 +333,34 @@ def test_coverage_union_overlapping_inputs():
     ],
 )
 def test_coverage_union_non_polygon_inputs(geom_1, geom_2):
-    # Non polygon geometries raise an error
-    with pytest.raises(
-        shapely.GEOSException, match="Unhandled geometry type in CoverageUnion."
-    ):
-        shapely.coverage_union(geom_1, geom_2)
+    if shapely.geos_version >= (3, 12, 0):
+
+        def effective_geom_types(geom):
+            if hasattr(geom, "geoms") and not geom.is_empty:
+                gts = set()
+                for geom in geom.geoms:
+                    gts |= effective_geom_types(geom)
+                return gts
+            return {geom.geom_type.lstrip("Multi").replace("LinearRing", "LineString")}
+
+        geom_types_1 = effective_geom_types(geom_1)
+        geom_types_2 = effective_geom_types(geom_2)
+        if len(geom_types_1) == 1 and geom_types_1 == geom_types_2:
+            with ignore_invalid():
+                # these show "invalid value encountered in coverage_union"
+                result = shapely.coverage_union(geom_1, geom_2)
+            assert geom_types_1 == effective_geom_types(result)
+        else:
+            with pytest.raises(
+                shapely.GEOSException, match="Overlay input is mixed-dimension"
+            ):
+                shapely.coverage_union(geom_1, geom_2)
+    else:
+        # Non polygon geometries raise an error
+        with pytest.raises(
+            shapely.GEOSException, match="Unhandled geometry type in CoverageUnion."
+        ):
+            shapely.coverage_union(geom_1, geom_2)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
