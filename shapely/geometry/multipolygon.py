@@ -77,7 +77,10 @@ class MultiPolygon(BaseMultipartGeometry):
             ob = polygons[i]
             if not isinstance(ob, polygon.Polygon):
                 shell = ob[0]
-                holes = ob[1]
+                if len(ob) > 1:
+                    holes = ob[1]
+                else:
+                    holes = None
                 p = polygon.Polygon(shell, holes)
             else:
                 p = polygon.Polygon(ob)
