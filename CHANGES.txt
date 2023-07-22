@@ -6,6 +6,8 @@ Changes
 
 Bug fixes:
 
+- Fix regression in the (in)equality comparison (``geom1 == geom2``) using ``__eq__`` to
+  not ignore the z-coordinates (#1732).
 - Fix ``MultiPolygon()`` constructor to accept polygons without holes (#1850).
 
 Improvements:

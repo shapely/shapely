@@ -245,14 +245,6 @@ def test_set_unique(geom):
     assert len(a) == 1
 
 
-def test_eq_nan():
-    assert line_string_nan != line_string_nan
-
-
-def test_neq_nan():
-    assert not (line_string_nan == line_string_nan)
-
-
 def test_set_nan():
     # As NaN != NaN, you can have multiple "NaN" points in a set
     # set([float("nan"), float("nan")]) also returns a set with 2 elements
