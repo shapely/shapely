@@ -27,7 +27,7 @@ def difference(a, b, grid_size=None, **kwargs):
         differenced with b.
       - If a is a single geometry and b is arraylike, an array of length b is
         returned. Each element contains geometry a differenced with the
-        corresponding element in b. 
+        corresponding element in b.
       - If a is arraylike and b a single geometry, an array of length a is
         returned. Each element contains the corresponding geometry in array a
         differenced with geometry b.
