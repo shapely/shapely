@@ -22,6 +22,17 @@ __all__ = [
 def difference(a, b, grid_size=None, **kwargs):
     """Returns the part of geometry A that does not intersect with geometry B.
 
+    If grid_size is nonzero, input coordinates will be snapped to a precision
+    grid of that size and resulting coordinates will be snapped to that same
+    grid.  If 0, this operation will use double precision coordinates.  If None,
+    the highest precision of the inputs will be used, which may be previously
+    set using set_precision.  Note: returned geometry does not have precision
+    set unless specified previously by set_precision.
+
+    Especially for larger geometries, running difference between geometries
+    that don't intersect can take significantly longer than checking for this
+    first using :meth:`~intersects`.
+
     The values returned depend on the input geometries:
       - If a and b are single geometries, a single geometry is returned: a
         differenced with b.
@@ -35,17 +46,6 @@ def difference(a, b, grid_size=None, **kwargs):
         ValueError is raised. An array of this length is returned and each
         element contains the difference between the corresponding element in
         array a and array b.
-
-    If grid_size is nonzero, input coordinates will be snapped to a precision
-    grid of that size and resulting coordinates will be snapped to that same
-    grid.  If 0, this operation will use double precision coordinates.  If None,
-    the highest precision of the inputs will be used, which may be previously
-    set using set_precision.  Note: returned geometry does not have precision
-    set unless specified previously by set_precision.
-
-    Especially for larger geometries, running difference between geometries
-    that don't intersect can take significantly longer than checking for this
-    first using :meth:`~interects`.
 
     Parameters
     ----------
