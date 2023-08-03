@@ -32,9 +32,9 @@ def difference(a, b, grid_size=None, **kwargs):
         returned. Each element contains the corresponding geometry in array a
         differenced with geometry b.
       - If both a and b are arraylike, they should be the same length or a
-        ValueError is raised. An array of this length returned and each element
-        contains the difference between the corresponding element in array a
-        and array b.
+        ValueError is raised. An array of this length is returned and each
+        element contains the difference between the corresponding element in
+        array a and array b.
 
     If grid_size is nonzero, input coordinates will be snapped to a precision
     grid of that size and resulting coordinates will be snapped to that same
