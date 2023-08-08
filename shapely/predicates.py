@@ -784,7 +784,8 @@ def overlaps(a, b, **kwargs):
     A and B overlap if they have some but not all points/portion of space in common,
     have the same dimension, and the intersection of the interiors of the two geometries
     has the same dimension as the geometries themselves. That is, only polyons
-    can overlap other polygons and only lines can overlap other lines.
+    can overlap other polygons and only lines can overlap other lines. If A covers or is
+    within B, overlaps won't be True.
 
     If either A or B are None, the output is always False.
 
