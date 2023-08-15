@@ -237,6 +237,12 @@ def test_transform_0dim():
     assert actual.ndim == 0
 
 
+def test_transform_no_geoms():
+    # a geometry input returns a geometry
+    actual = transform([], lambda x: x + 1)
+    assert actual.shape == (0,)
+
+
 def test_transform_check_shape():
     def remove_coord(arr):
         return arr[:-1]
@@ -280,3 +286,24 @@ def test_transform_remove_z(geom):
 def test_transform_auto_coordinate_dimension(geom, expected):
     new_geom = transform(geom, lambda x: x + 1)
     assert (shapely.get_coordinate_dimension(new_geom) == expected).all()
+
+
+def test_transform_auto_coordinate_dimension_mixed():
+    new_geom = transform([line_string, line_string_z], lambda x: x + 1)
+    assert_equal(shapely.get_coordinate_dimension(new_geom), [2, 3])
+    assert_equal(shapely.get_coordinates(line_string, include_z=False) + 1, shapely.get_coordinates(new_geom[0], include_z=False))
+    assert_equal(shapely.get_coordinates(line_string_z, include_z=True) + 1, shapely.get_coordinates(new_geom[1], include_z=True))
+
+
+def transform_non_interleaved(x, y, z=None):
+    if z is None:
+        return [x + 1, y + 2]
+    else:
+        return [x + 1, y + 2, z + 3]
+
+
+def test_transform_auto_coordinate_dimension_mixed_interleaved():
+    new_geom = transform([line_string, line_string_z], transform_non_interleaved, interleaved=False)
+    assert_equal(shapely.get_coordinate_dimension(new_geom), [2, 3])
+    assert_equal(shapely.get_coordinates(line_string, include_z=False) + [1, 2], shapely.get_coordinates(new_geom[0], include_z=False))
+    assert_equal(shapely.get_coordinates(line_string_z, include_z=True) + [1, 2, 3], shapely.get_coordinates(new_geom[1], include_z=True))

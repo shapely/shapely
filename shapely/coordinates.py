@@ -29,18 +29,24 @@ def transform(
         A function that transforms a (N, 2) or (N, 3) ndarray of float64 to
         another (N, 2) or (N, 3) ndarray of float64.
         The function may not change N.
-    include_z : bool, optional
+    include_z : bool, optional, default None
         If False, return 2D geometries. If True, the data being passed to the
         transformation function will include the third dimension
         (if a geometry has no third dimension, the z-coordinates
-        will be NaN). By default, will infer the dimensionality from the
-        input geometries. Note that this inference can be unreliable with
-        empty geometries (for a guaranteed result, it is recommended to
-        specify the keyword).
+        will be NaN). By default, will infer the dimensionality per
+        input geometry using ``has_z``, which may result in 2 calls to
+        the transformation function. Note that this inference
+        can be unreliable with empty geometries or NaN coordinates: for a
+        guaranteed result, it is recommended to specify the keyword).
     interleaved : bool, default True
         If set to False, the transformation function should accept 2 or 3 separate
         one-dimensional arrays (x, y and optional z) instead of a single
         two-dimensional array.
+
+    See Also
+    --------
+    has_z : Returns a copy of a geometry array with a function applied to its
+        coordinates.
 
     Examples
     --------
@@ -82,37 +88,42 @@ def transform(
     """
     geometry_arr = np.array(geometry, dtype=np.object_)  # makes a copy
     if include_z is None:
-        include_z = np.any(
-            shapely.get_coordinate_dimension(
-                geometry_arr[~shapely.is_empty(geometry_arr)]
-            )
-            == 3
+        has_z = shapely.has_z(geometry_arr)
+        result = np.empty_like(geometry_arr)
+        result[has_z] = transform(
+            geometry_arr[has_z], transformation, True, interleaved
         )
-    coordinates = lib.get_coordinates(geometry_arr, include_z, False)
-    if interleaved:
-        new_coordinates = transformation(coordinates)
+        result[~has_z] = transform(
+            geometry_arr[~has_z], transformation, False, interleaved
+        )
     else:
-        new_coordinates = np.asarray(transformation(*coordinates.T), dtype=np.float64).T
-    # check the array to yield understandable error messages
-    if not isinstance(new_coordinates, np.ndarray) or new_coordinates.ndim != 2:
-        raise ValueError(
-            "The provided transformation did not return a two-dimensional numpy array"
-        )
-    if new_coordinates.dtype != np.float64:
-        raise ValueError(
-            "The provided transformation returned an array with an unexpected "
-            f"dtype ({new_coordinates.dtype})"
-        )
-    if new_coordinates.shape != coordinates.shape:
-        # if the shape is too small we will get a segfault
-        raise ValueError(
-            "The provided transformation returned an array with an unexpected "
-            f"shape ({new_coordinates.shape})"
-        )
-    geometry_arr = lib.set_coordinates(geometry_arr, new_coordinates)
-    if geometry_arr.ndim == 0 and not isinstance(geometry, np.ndarray):
-        return geometry_arr.item()
-    return geometry_arr
+        coordinates = lib.get_coordinates(geometry_arr, include_z, False)
+        if interleaved:
+            new_coordinates = transformation(coordinates)
+        else:
+            new_coordinates = np.asarray(
+                transformation(*coordinates.T), dtype=np.float64
+            ).T
+        # check the array to yield understandable error messages
+        if not isinstance(new_coordinates, np.ndarray) or new_coordinates.ndim != 2:
+            raise ValueError(
+                "The provided transformation did not return a two-dimensional numpy array"
+            )
+        if new_coordinates.dtype != np.float64:
+            raise ValueError(
+                "The provided transformation returned an array with an unexpected "
+                f"dtype ({new_coordinates.dtype})"
+            )
+        if new_coordinates.shape != coordinates.shape:
+            # if the shape is too small we will get a segfault
+            raise ValueError(
+                "The provided transformation returned an array with an unexpected "
+                f"shape ({new_coordinates.shape})"
+            )
+        result = lib.set_coordinates(geometry_arr, new_coordinates)
+    if result.ndim == 0 and not isinstance(geometry, np.ndarray):
+        return result.item()
+    return result
 
 
 def count_coordinates(geometry):
