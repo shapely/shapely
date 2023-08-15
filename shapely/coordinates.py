@@ -29,16 +29,18 @@ def transform(
         A function that transforms a (N, 2) or (N, 3) ndarray of float64 to
         another (N, 2) or (N, 3) ndarray of float64.
         The function may not change N.
-    include_z : bool, optional, default False
-        If False, return 2D geometries. If True, include the third dimension
-        in the output (if a geometry has no third dimension, the z-coordinates
+    include_z : bool, optional
+        If False, return 2D geometries. If True, the data being passed to the
+        transformation function will include the third dimension
+        (if a geometry has no third dimension, the z-coordinates
         will be NaN). By default, will infer the dimensionality from the
         input geometries. Note that this inference can be unreliable with
         empty geometries (for a guaranteed result, it is recommended to
         specify the keyword).
-    interleaved: bool, default True
+    interleaved : bool, default True
         If set to False, the transformation function should accept 2 or 3 separate
-        one-dimensional arrays (x, y and optional z).
+        one-dimensional arrays (x, y and optional z) instead of a single
+        two-dimensional array.
 
     Examples
     --------
@@ -75,9 +77,8 @@ def transform(
 
     >>> from pyproj import Transformer
     >>> transformer = Transformer.from_crs(4326, 32618, always_xy=True)
-    >>> p = transform(Point(-75, 50), transformer.transform, interleaved=False)
-    >>> shapely.to_wkt(p, rounding_precision=2)
-    'POINT (500000 5538630.7)'
+    >>> transform(Point(-75, 50), transformer.transform, interleaved=False)
+    <POINT (500000 5538630.703)>
     """
     geometry_arr = np.array(geometry, dtype=np.object_)  # makes a copy
     if include_z is None:
