@@ -47,7 +47,7 @@ class MultiPolygon(BaseMultipartGeometry):
     __slots__ = []
 
     def __new__(self, polygons=None):
-        if not polygons:
+        if polygons is None:
             # allow creation of empty multipolygons, to support unpickling
             # TODO better empty constructor
             return shapely.from_wkt("MULTIPOLYGON EMPTY")
