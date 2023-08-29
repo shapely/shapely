@@ -11,7 +11,7 @@ __all__ = ["transform", "count_coordinates", "get_coordinates", "set_coordinates
 def transform(
     geometry,
     transformation,
-    include_z: Optional[bool] = None,
+    include_z: Optional[bool] = False,
     interleaved: bool = True,
 ):
     """Returns a copy of a geometry array with a function applied to its
@@ -29,11 +29,12 @@ def transform(
         A function that transforms a (N, 2) or (N, 3) ndarray of float64 to
         another (N, 2) or (N, 3) ndarray of float64.
         The function may not change N.
-    include_z : bool, optional, default None
-        If False, return 2D geometries. If True, the data being passed to the
+    include_z : bool, optional, default False
+        If False, always return 2D geometries.
+        If True, the data being passed to the
         transformation function will include the third dimension
         (if a geometry has no third dimension, the z-coordinates
-        will be NaN). By default, will infer the dimensionality per
+        will be NaN). If None, will infer the dimensionality per
         input geometry using ``has_z``, which may result in 2 calls to
         the transformation function. Note that this inference
         can be unreliable with empty geometries or NaN coordinates: for a
@@ -60,13 +61,15 @@ def transform(
     >>> transform([Point(0, 0), None], lambda x: x).tolist()
     [<POINT (0 0)>, None]
 
-    The presence of a third dimension is automatically detected, but can be
+    The presence of a third dimension can be automatically detected, or
     controlled explicitly:
 
     >>> transform(Point(0, 0, 0), lambda x: x + 1)
-    <POINT Z (1 1 1)>
-    >>> transform(Point(0, 0, 0), lambda x: x + 1, include_z=False)
     <POINT (1 1)>
+    >>> transform(Point(0, 0, 0), lambda x: x + 1, include_z=True)
+    <POINT Z (1 1 1)>
+    >>> transform(Point(0, 0, 0), lambda x: x + 1, include_z=None)
+    <POINT Z (1 1 1)>
 
     With interleaved=False, the call signature of the transformation is different:
 

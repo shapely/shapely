@@ -4,14 +4,6 @@ Changes
 2.1.0 (unreleased)
 ------------------
 
-Breaking:
-
-- The ``include_z`` parameter in ``shapely.transform()`` now defaults to ``None``, which
-  let it automatically detect the dimensionality of the input geometries. Expect the
-  transformation function to be called with three coordinate columns when this parameter
-  is not specified explicitly and 3D geometries are supplied to ``shapely.transform()``.
-
-
 Improvements:
 
 - Require GEOS >= 3.7, NumPy >= 1.16, and Python >= 3.8 (#1802)
@@ -19,7 +11,9 @@ Improvements:
   to allow, skip, or error on nonfinite (NaN / Inf) coordinates. The default
   behaviour (allow) is backwards compatible (#1594).
 - Add an ``interleaved`` parameter to ``shapely.transform()`` allowing a transposed call
-  signaturein the ``transformation`` function.
+  signature in the ``transformation`` function.
+- The ``include_z`` in ``shapely.transform()`` now also allows ``None``, which
+  lets it automatically detect the dimensionality of each input geometry.
 
 
 2.0.2 (unreleased)
