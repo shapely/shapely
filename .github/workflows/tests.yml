@@ -78,10 +78,10 @@ jobs:
         if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Checkout Shapely
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Checkout GEOS (main)
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: libgeos/geos
           ref: main
