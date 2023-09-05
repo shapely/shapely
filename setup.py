@@ -43,7 +43,7 @@ def get_geos_config(option):
     cmd = os.environ.get("GEOS_CONFIG", "geos-config")
     try:
         stdout, stderr = subprocess.Popen(
-            [cmd, option], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            ['bash', '-c', cmd+' '+option], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
         ).communicate()
     except OSError:
         return
