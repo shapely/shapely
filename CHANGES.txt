@@ -10,6 +10,11 @@ Improvements:
 - Add a ``handle_nan`` parameter to ``shapely.linestrings()`` and ``shapely.linearrings()``
   to allow, skip, or error on nonfinite (NaN / Inf) coordinates. The default
   behaviour (allow) is backwards compatible (#1594).
+- Add an ``interleaved`` parameter to ``shapely.transform()`` allowing a transposed call
+  signature in the ``transformation`` function.
+- The ``include_z`` in ``shapely.transform()`` now also allows ``None``, which
+  lets it automatically detect the dimensionality of each input geometry.
+
 
 2.0.2 (unreleased)
 ------------------

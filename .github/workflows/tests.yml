@@ -126,6 +126,9 @@ jobs:
           if [ -n "${{ matrix.matplotlib }}" ]; then
             pip install matplotlib
           fi
+          if [ -n "${{ matrix.doctest }}" ]; then
+            pip install pyproj
+          fi
           pip list
 
       - name: Set environment variables (Linux)
