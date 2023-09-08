@@ -38,7 +38,7 @@ def transform(
         input geometry using ``has_z``, which may result in 2 calls to
         the transformation function. Note that this inference
         can be unreliable with empty geometries or NaN coordinates: for a
-        guaranteed result, it is recommended to specify the keyword).
+        guaranteed result, it is recommended to specify ``include_z`` explicitly.
     interleaved : bool, default True
         If set to False, the transformation function should accept 2 or 3 separate
         one-dimensional arrays (x, y and optional z) instead of a single
