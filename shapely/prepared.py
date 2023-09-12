@@ -33,12 +33,7 @@ class PreparedGeometry:
 
     def contains_properly(self, other):
         """Returns True if the geometry properly contains the other, else False"""
-        # TODO temporary hack until shapely exposes contains properly as predicate function
-        from shapely import STRtree
-
-        tree = STRtree([other])
-        idx = tree.query(self.context, predicate="contains_properly")
-        return bool(len(idx))
+        return self.context.contains_properly(other)
 
     def covers(self, other):
         """Returns True if the geometry covers the other, else False"""
