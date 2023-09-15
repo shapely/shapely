@@ -57,10 +57,10 @@ def test_points_invalid_ndim():
         shapely.points([0])
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
-def test_points_nan_stays_points_nan():
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
+def test_points_nan_becomes_empty():
     actual = shapely.points(np.nan, np.nan)
-    assert actual.wkt == "POINT (NaN NaN)"
+    assert_geometries_equal(actual, shapely.Point())
 
 
 def test_linestrings_from_coords():
