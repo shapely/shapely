@@ -372,20 +372,20 @@ def multipoints(geometries, indices=None, out=None, **kwargs):
     >>> point_1 = points([1, 1])
     >>> point_2 = points([2, 2])
     >>> multipoints([point_1, point_2])
-    <MULTIPOINT (1 1, 2 2)>
+    <MULTIPOINT ((1 1), (2 2))>
     >>> multipoints([[point_1, point_2], [point_2, None]]).tolist()
-    [<MULTIPOINT (1 1, 2 2)>, <MULTIPOINT (2 2)>]
+    [<MULTIPOINT ((1 1), (2 2))>, <MULTIPOINT ((2 2))>]
 
     Or from coordinates directly:
 
     >>> multipoints([[0, 0], [2, 2], [3, 3]])
-    <MULTIPOINT (0 0, 2 2, 3 3)>
+    <MULTIPOINT ((0 0), (2 2), (3 3))>
 
     Multiple multipoints of different sizes can be constructed efficiently using the
     ``indices`` keyword argument:
 
     >>> multipoints([point_1, point_2, point_2], indices=[0, 0, 1]).tolist()
-    [<MULTIPOINT (1 1, 2 2)>, <MULTIPOINT (2 2)>]
+    [<MULTIPOINT ((1 1), (2 2))>, <MULTIPOINT ((2 2))>]
 
     Missing input values (``None``) are skipd and may result in an
     empty multipoint:
@@ -393,9 +393,9 @@ def multipoints(geometries, indices=None, out=None, **kwargs):
     >>> multipoints([None])
     <MULTIPOINT EMPTY>
     >>> multipoints([point_1, None], indices=[0, 0]).tolist()
-    [<MULTIPOINT (1 1)>]
+    [<MULTIPOINT ((1 1))>]
     >>> multipoints([point_1, None], indices=[0, 1]).tolist()
-    [<MULTIPOINT (1 1)>, <MULTIPOINT EMPTY>]
+    [<MULTIPOINT ((1 1))>, <MULTIPOINT EMPTY>]
     """
     typ = GeometryType.MULTIPOINT
     geometries = np.asarray(geometries)

@@ -655,7 +655,7 @@ sequence of `Point` instances, thereby making copies.
 .. code-block:: pycon
 
   >>> MultiPoint([Point(0, 0), Point(1, 1)])
-  <MULTIPOINT (0 0, 1 1)>
+  <MULTIPOINT ((0 0), (1 1))>
 
 .. _multilinestrings:
 
@@ -1399,7 +1399,7 @@ points. The boundary of a point is an empty collection.
   >>> coords = [((0, 0), (1, 1)), ((-1, 0), (1, 0))]
   >>> lines = MultiLineString(coords)
   >>> lines.boundary
-  <MULTIPOINT (-1 0, 0 0, 1 0, 1 1)>
+  <MULTIPOINT ((-1 0), (0 0), (1 0), (1 1))>
   >>> list(lines.boundary.geoms)
   [<POINT (-1 0)>, <POINT (0 0)>, <POINT (1 0)>, <POINT (1 1)>]
   >>> lines.boundary.boundary

@@ -66,7 +66,7 @@ MultiLineString, MultiPoint, Point, Polygon
     >>> boundary(Point(0, 0))
     <GEOMETRYCOLLECTION EMPTY>
     >>> boundary(LineString([(0, 0), (1, 1), (1, 2)]))
-    <MULTIPOINT (0 0, 1 2)>
+    <MULTIPOINT ((0 0), (1 2))>
     >>> boundary(LinearRing([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]))
     <MULTIPOINT EMPTY>
     >>> boundary(Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]))
@@ -74,7 +74,7 @@ MultiLineString, MultiPoint, Point, Polygon
     >>> boundary(MultiPoint([(0, 0), (1, 2)]))
     <GEOMETRYCOLLECTION EMPTY>
     >>> boundary(MultiLineString([[(0, 0), (1, 1)], [(0, 1), (1, 0)]]))
-    <MULTIPOINT (0 0, 0 1, 1 0, 1 1)>
+    <MULTIPOINT ((0 0), (0 1), (1 0), (1 1))>
     >>> boundary(GeometryCollection([Point(0, 0)])) is None
     True
     """
@@ -470,13 +470,13 @@ def extract_unique_points(geometry, **kwargs):
     --------
     >>> from shapely import LineString, MultiPoint, Point, Polygon
     >>> extract_unique_points(Point(0, 0))
-    <MULTIPOINT (0 0)>
+    <MULTIPOINT ((0 0))>
     >>> extract_unique_points(LineString([(0, 0), (1, 1), (1, 1)]))
-    <MULTIPOINT (0 0, 1 1)>
+    <MULTIPOINT ((0 0), (1 1))>
     >>> extract_unique_points(Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]))
-    <MULTIPOINT (0 0, 1 0, 1 1, 0 1)>
+    <MULTIPOINT ((0 0), (1 0), (1 1), (0 1))>
     >>> extract_unique_points(MultiPoint([(0, 0), (1, 1), (0, 0)]))
-    <MULTIPOINT (0 0, 1 1)>
+    <MULTIPOINT ((0 0), (1 1))>
     >>> extract_unique_points(LineString())
     <MULTIPOINT EMPTY>
     """
@@ -745,7 +745,7 @@ def remove_repeated_points(geometry, tolerance=0.0, **kwargs):
     >>> remove_repeated_points(LineString([(0,0), (0,0), (1,0)]), tolerance=0)
     <LINESTRING (0 0, 1 0)>
     >>> remove_repeated_points(Polygon([(0, 0), (0, .5), (0, 1), (.5, 1), (0,0)]), tolerance=.5)
-    <POLYGON ((0 0, 0 1, 0 0, 0 0))>
+    <POLYGON ((0 0, 0 1, 0 0))>
     """
     return lib.remove_repeated_points(geometry, tolerance, **kwargs)
 
@@ -850,7 +850,7 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
     ...     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]]
     ... )
     >>> simplify(polygon_with_hole, tolerance=4, preserve_topology=True)
-    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2...>
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (4 2, 2 4, 4 4, 4 2))>
     >>> simplify(polygon_with_hole, tolerance=4, preserve_topology=False)
     <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
     """
@@ -969,16 +969,16 @@ def voronoi_polygons(
     --------
     >>> from shapely import LineString, MultiPoint, normalize, Point
     >>> points = MultiPoint([(2, 2), (4, 2)])
-    >>> normalize(voronoi_polygons(points))
+    >>> voronoi_polygons(points).normalize()
     <GEOMETRYCOLLECTION (POLYGON ((3 0, 3 4, 6 4, 6 0, 3 0)), POLYGON ((0 0, 0 4...>
     >>> voronoi_polygons(points, only_edges=True)
-    <LINESTRING (3 4, 3 0)>
+    <MULTILINESTRING ((3 4, 3 0))>
     >>> voronoi_polygons(MultiPoint([(2, 2), (4, 2), (4.2, 2)]), 0.5, only_edges=True)
-    <LINESTRING (3 4.2, 3 -0.2)>
+    <MULTILINESTRING ((3 4.2, 3 -0.2))>
     >>> voronoi_polygons(points, extend_to=LineString([(0, 0), (10, 10)]), only_edges=True)
-    <LINESTRING (3 10, 3 0)>
+    <MULTILINESTRING ((3 10, 3 0))>
     >>> voronoi_polygons(LineString([(2, 2), (4, 2)]), only_edges=True)
-    <LINESTRING (3 4, 3 0)>
+    <MULTILINESTRING ((3 4, 3 0))>
     >>> voronoi_polygons(Point(2, 2))
     <GEOMETRYCOLLECTION EMPTY>
     """
@@ -1011,11 +1011,11 @@ def oriented_envelope(geometry, **kwargs):
     --------
     >>> from shapely import GeometryCollection, LineString, MultiPoint, Point, Polygon
     >>> oriented_envelope(MultiPoint([(0, 0), (10, 0), (10, 10)])).normalize()
-    <POLYGON ((0 0, 10 10, 15 5, 5 -5, 0 0))>
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
     >>> oriented_envelope(LineString([(1, 1), (5, 1), (10, 10)])).normalize()
     <POLYGON ((1 1, 10 10, 12 8, 3 -1, 1 1))>
     >>> oriented_envelope(Polygon([(1, 1), (15, 1), (5, 10), (1, 1)])).normalize()
-    <POLYGON ((1 1, 1 10, 15 10, 15 1, 1 1))>
+    <POLYGON ((1 1, 5 10, 16.691 4.804, 12.691 -4.196, 1 1))>
     >>> oriented_envelope(LineString([(1, 1), (10, 1)])).normalize()
     <LINESTRING (1 1, 10 1)>
     >>> oriented_envelope(Point(2, 2))

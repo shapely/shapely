@@ -459,8 +459,8 @@ def coverage_union_all(geometries, axis=None, **kwargs):
     to be non-overlapping.
 
     This function ignores None values when other Geometry elements are present.
-    If all elements of the given axis are None, an empty MultiPolygon is
-    returned.
+    If all elements of the given axis are None, an empty GeometryCollection is
+    returned (before GEOS 3.12 this was an empty MultiPolygon).
 
     Parameters
     ----------
@@ -487,7 +487,7 @@ def coverage_union_all(geometries, axis=None, **kwargs):
     >>> normalize(coverage_union_all([polygon_1, None]))
     <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
     >>> normalize(coverage_union_all([None, None]))
-    <MULTIPOLYGON EMPTY>
+    <GEOMETRYCOLLECTION EMPTY>
     """
     # coverage union in GEOS works over GeometryCollections
     # first roll the aggregation axis backwards

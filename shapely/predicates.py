@@ -42,8 +42,8 @@ __all__ = [
 def has_z(geometry, **kwargs):
     """Returns True if a geometry has a Z coordinate.
 
-    Note that this function returns False if the (first) Z coordinate equals NaN or
-    if the geometry is empty.
+    Note that for GEOS < 3.12 this function returns False if the (first) Z coordinate
+    equals NaN.
 
     Parameters
     ----------
@@ -62,7 +62,7 @@ def has_z(geometry, **kwargs):
     False
     >>> has_z(Point(0, 0, 0))
     True
-    >>> has_z(Point(0, 0, float("nan")))
+    >>> has_z(Point())
     False
     """
     return lib.has_z(geometry, **kwargs)
@@ -411,7 +411,7 @@ def is_valid_reason(geometry, **kwargs):
     >>> is_valid_reason(LineString([(0, 0), (1, 1)]))
     'Valid Geometry'
     >>> is_valid_reason(Polygon([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)]))
-    'Ring Self-intersection[1 1]'
+    'Self-intersection[1 2]'
     >>> is_valid_reason(None) is None
     True
     """
