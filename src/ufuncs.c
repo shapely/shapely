@@ -536,7 +536,6 @@ static void* GEOSNormalize_r_with_clone(void* context, void* geom) {
 }
 static void* normalize_data[1] = {GEOSNormalize_r_with_clone};
 static void* force_2d_data[1] = {PyGEOSForce2D};
-#if GEOS_SINCE_3_8_0
 static void* build_area_data[1] = {GEOSBuildArea_r};
 static void* make_valid_data[1] = {GEOSMakeValid_r};
 static void* coverage_union_data[1] = {GEOSCoverageUnion_r};
@@ -551,7 +550,6 @@ static void* GEOSMinimumBoundingCircleWithReturn(void* context, void* geom) {
   return ret;
 }
 static void* minimum_bounding_circle_data[1] = {GEOSMinimumBoundingCircleWithReturn};
-#endif
 static void* reverse_data[1] = {GEOSReverse_r};
 static void* oriented_envelope_data[1] = {GEOSMinimumRotatedRectangle_r};
 #if GEOS_SINCE_3_11_0
@@ -1081,7 +1079,6 @@ static int MinimumClearance(void* context, void* a, double* b) {
   }
 }
 static void* minimum_clearance_data[1] = {MinimumClearance};
-#if GEOS_SINCE_3_8_0
 static int GEOSMinimumBoundingRadius(void* context, GEOSGeometry* geom, double* radius) {
   GEOSGeometry* center = NULL;
   GEOSGeometry* ret = GEOSMinimumBoundingCircle_r(context, geom, radius, &center);
@@ -1093,7 +1090,6 @@ static int GEOSMinimumBoundingRadius(void* context, GEOSGeometry* geom, double* 
   return 1;  // success code
 }
 static void* minimum_bounding_radius_data[1] = {GEOSMinimumBoundingRadius};
-#endif
 typedef int FuncGEOS_Y_d(void* context, void* a, double* b);
 static char Y_d_dtypes[2] = {NPY_OBJECT, NPY_DOUBLE};
 static void Y_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
@@ -3608,6 +3604,10 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Y_Y(force_2d);
   DEFINE_Y_Y(oriented_envelope);
   DEFINE_Y_Y(reverse);
+  DEFINE_Y_Y(make_valid);
+  DEFINE_Y_Y(build_area);
+  DEFINE_Y_Y(coverage_union);
+  DEFINE_Y_Y(minimum_bounding_circle);
 
   DEFINE_Y(prepare);
   DEFINE_Y(destroy_prepared);
@@ -3639,6 +3639,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Y_d(area);
   DEFINE_Y_d(length);
   DEFINE_Y_d(minimum_clearance);
+  DEFINE_Y_d(minimum_bounding_radius);
 
   DEFINE_Y_i(get_type_id);
   DEFINE_Y_i(get_dimensions);
@@ -3686,14 +3687,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_CUSTOM(to_wkb, 6);
   DEFINE_CUSTOM(to_wkt, 5);
   DEFINE_CUSTOM(set_precision, 3);
-
-#if GEOS_SINCE_3_8_0
-  DEFINE_Y_Y(make_valid);
-  DEFINE_Y_Y(build_area);
-  DEFINE_Y_Y(coverage_union);
-  DEFINE_Y_Y(minimum_bounding_circle);
-  DEFINE_Y_d(minimum_bounding_radius);
-#endif
 
 #if GEOS_SINCE_3_9_0
   DEFINE_YYd_Y(difference_prec);

@@ -483,7 +483,6 @@ def extract_unique_points(geometry, **kwargs):
     return lib.extract_unique_points(geometry, **kwargs)
 
 
-@requires_geos("3.8.0")
 @multithreading_enabled
 def build_area(geometry, **kwargs):
     """Creates an areal geometry formed by the constituent linework of given geometry.
@@ -507,7 +506,6 @@ def build_area(geometry, **kwargs):
     return lib.build_area(geometry, **kwargs)
 
 
-@requires_geos("3.8.0")
 @multithreading_enabled
 def make_valid(geometry, **kwargs):
     """Repairs invalid geometries.
@@ -1031,7 +1029,6 @@ def oriented_envelope(geometry, **kwargs):
 minimum_rotated_rectangle = oriented_envelope
 
 
-@requires_geos("3.8.0")
 @multithreading_enabled
 def minimum_bounding_circle(geometry, **kwargs):
     """Computes the minimum bounding circle that encloses an input geometry.

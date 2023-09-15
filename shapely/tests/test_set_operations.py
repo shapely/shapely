@@ -266,13 +266,11 @@ def test_set_operation_prec_reduce_all_none(n, func, related_func):
     assert_geometries_equal(func([None] * n, grid_size=1), GeometryCollection([]))
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 @pytest.mark.parametrize("n", range(1, 4))
 def test_coverage_union_reduce_1dim(n):
     """
-    This is tested seperately from other set operations as it differs in two ways:
-      1. It expects only non-overlapping polygons
-      2. It expects GEOS 3.8.0+
+    This is tested seperately from other set operations as it expects only
+    non-overlapping polygons
     """
     test_data = [
         shapely.box(0, 0, 1, 1),
@@ -287,7 +285,6 @@ def test_coverage_union_reduce_1dim(n):
     assert_geometries_equal(actual, expected, normalize=True)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 def test_coverage_union_reduce_axis():
     # shape = (3, 2), all polygons - none of them overlapping
     data = [[shapely.box(i, j, i + 1, j + 1) for i in range(2)] for j in range(3)]
@@ -301,7 +298,6 @@ def test_coverage_union_reduce_axis():
     assert actual.shape == (3,)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 def test_coverage_union_overlapping_inputs():
     polygon = Polygon([(1, 1), (1, 0), (0, 0), (0, 1), (1, 1)])
     other = Polygon([(1, 0), (0.9, 1), (2, 1), (2, 0), (1, 0)])
@@ -320,7 +316,6 @@ def test_coverage_union_overlapping_inputs():
             shapely.coverage_union(polygon, other)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 @pytest.mark.parametrize(
     "geom_1, geom_2",
     # All possible polygon, non_polygon combinations

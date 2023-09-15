@@ -1,7 +1,7 @@
 import numpy as np
 
 from shapely import GeometryType, lib
-from shapely.decorators import multithreading_enabled, requires_geos
+from shapely.decorators import multithreading_enabled
 from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
@@ -422,7 +422,6 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
 unary_union = union_all
 
 
-@requires_geos("3.8.0")
 @multithreading_enabled
 def coverage_union(a, b, **kwargs):
     """Merges multiple polygons into one. This is an optimized version of
@@ -453,7 +452,6 @@ def coverage_union(a, b, **kwargs):
     return coverage_union_all([a, b], **kwargs)
 
 
-@requires_geos("3.8.0")
 @multithreading_enabled
 def coverage_union_all(geometries, axis=None, **kwargs):
     """Returns the union of multiple polygons of a geometry collection.

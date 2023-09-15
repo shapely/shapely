@@ -133,13 +133,11 @@ def test_snap_nan_float(geometry):
     assert actual is None
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 def test_build_area_none():
     actual = shapely.build_area(None)
     assert actual is None
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 @pytest.mark.parametrize(
     "geom,expected",
     [
@@ -168,13 +166,11 @@ def test_build_area(geom, expected):
     assert actual == expected
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 def test_make_valid_none():
     actual = shapely.make_valid(None)
     assert actual is None
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 @pytest.mark.parametrize(
     "geom,expected",
     [
@@ -205,7 +201,6 @@ def test_make_valid(geom, expected):
     assert shapely.normalize(actual) == expected
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 @pytest.mark.parametrize(
     "geom,expected",
     [
@@ -836,7 +831,6 @@ def test_segmentize(geometry, tolerance, expected):
     assert_geometries_equal(actual, expected)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 @pytest.mark.parametrize("geometry", all_types)
 def test_minimum_bounding_circle_all_types(geometry):
     actual = shapely.minimum_bounding_circle([geometry, geometry])
@@ -847,7 +841,6 @@ def test_minimum_bounding_circle_all_types(geometry):
     assert actual is None
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 @pytest.mark.parametrize(
     "geometry, expected",
     [

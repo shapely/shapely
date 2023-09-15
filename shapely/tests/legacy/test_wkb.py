@@ -159,12 +159,6 @@ def test_dump_binary_load_hex(some_point, tmpdir):
             load(file_pointer, hex=True)
 
 
-requires_geos_380 = pytest.mark.xfail(
-    geos_version < (3, 8, 0), reason="GEOS >= 3.8.0 is required", strict=True
-)
-
-
-@requires_geos_380
 def test_point_empty():
     g = wkt.loads("POINT EMPTY")
     result = dumps(g, big_endian=False)

@@ -532,10 +532,6 @@ def test_to_wkb_point_empty_3d(geom, expected):
     assert np.isnan(struct.unpack("<3d", actual[header_length:])).all()
 
 
-@pytest.mark.xfail(
-    shapely.geos_version < (3, 8, 0),
-    reason="GEOS<3.8 always outputs 3D empty points if output_dimension=3",
-)
 @pytest.mark.parametrize(
     "geom,expected",
     [
