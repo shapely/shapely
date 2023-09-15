@@ -991,11 +991,17 @@ def voronoi_polygons(
 def oriented_envelope(geometry, **kwargs):
     """
     Computes the oriented envelope (minimum rotated rectangle)
-    that encloses an input geometry.
+    that encloses an input geometry, such that the resulting rectangle has
+    minimum area.
 
     Unlike envelope this rectangle is not constrained to be parallel to the
     coordinate axes. If the convex hull of the object is a degenerate (line
     or point) this degenerate is returned.
+
+    .. warning::
+
+        With GEOS 3.11 or earlier the implementation optimized for minimal
+        width of one of the rectangle sides rather than the minimum area.
 
     Parameters
     ----------
@@ -1006,13 +1012,13 @@ def oriented_envelope(geometry, **kwargs):
     Examples
     --------
     >>> from shapely import GeometryCollection, LineString, MultiPoint, Point, Polygon
-    >>> oriented_envelope(MultiPoint([(0, 0), (10, 0), (10, 10)]))
-    <POLYGON ((0 0, 5 -5, 15 5, 10 10, 0 0))>
-    >>> oriented_envelope(LineString([(1, 1), (5, 1), (10, 10)]))
-    <POLYGON ((1 1, 3 -1, 12 8, 10 10, 1 1))>
-    >>> oriented_envelope(Polygon([(1, 1), (15, 1), (5, 10), (1, 1)]))
-    <POLYGON ((15 1, 15 10, 1 10, 1 1, 15 1))>
-    >>> oriented_envelope(LineString([(1, 1), (10, 1)]))
+    >>> oriented_envelope(MultiPoint([(0, 0), (10, 0), (10, 10)])).normalize()
+    <POLYGON ((0 0, 10 10, 15 5, 5 -5, 0 0))>
+    >>> oriented_envelope(LineString([(1, 1), (5, 1), (10, 10)])).normalize()
+    <POLYGON ((1 1, 10 10, 12 8, 3 -1, 1 1))>
+    >>> oriented_envelope(Polygon([(1, 1), (15, 1), (5, 10), (1, 1)])).normalize()
+    <POLYGON ((1 1, 1 10, 15 10, 15 1, 1 1))>
+    >>> oriented_envelope(LineString([(1, 1), (10, 1)])).normalize()
     <LINESTRING (1 1, 10 1)>
     >>> oriented_envelope(Point(2, 2))
     <POINT (2 2)>

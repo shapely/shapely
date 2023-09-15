@@ -888,6 +888,50 @@ def test_oriented_envelope_all_types(geometry):
     assert actual is None
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+@pytest.mark.parametrize(
+    "func", [shapely.oriented_envelope, shapely.minimum_rotated_rectangle]
+)
+@pytest.mark.parametrize(
+    "geometry, expected",
+    [
+        (
+            MultiPoint([(0, 0), (10, 0), (10, 10)]),
+            Polygon([[10.0, 10.0], [10.0, 0.0], [0.0, 0.0], [0.0, 10.0], [10.0, 10.0]]),
+        ),
+        (
+            LineString([(1, 1), (5, 1), (10, 10)]),
+            Polygon([(1, 1), (3, -1), (12, 8), (10, 10), (1, 1)]),
+        ),
+        (
+            Polygon([(1, 1), (15, 1), (5, 10), (1, 1)]),
+            Polygon(
+                [[1.0, 1.0], [5.0, 10.0], [16.691, 4.804], [12.691, -4.196], [1.0, 1.0]]
+            ),
+        ),
+        (
+            LineString([(1, 1), (10, 1)]),
+            LineString([(1, 1), (10, 1)]),
+        ),
+        (
+            Point(2, 2),
+            Point(2, 2),
+        ),
+        (
+            GeometryCollection(),
+            Polygon(),
+        ),
+    ],
+)
+def test_oriented_envelope(geometry, expected, func):
+    actual = func(geometry)
+    assert_geometries_equal(actual, expected, normalize=True, tolerance=1e-3)
+
+
+@pytest.mark.skipif(shapely.geos_version >= (3, 12, 0), reason="GEOS >= 3.12")
+@pytest.mark.parametrize(
+    "func", [shapely.oriented_envelope, shapely.minimum_rotated_rectangle]
+)
 @pytest.mark.parametrize(
     "geometry, expected",
     [
@@ -917,43 +961,9 @@ def test_oriented_envelope_all_types(geometry):
         ),
     ],
 )
-def test_oriented_envelope(geometry, expected):
-    actual = shapely.oriented_envelope(geometry)
-    assert shapely.equals(actual, expected).all()
-
-
-@pytest.mark.parametrize(
-    "geometry, expected",
-    [
-        (
-            MultiPoint([(0, 0), (10, 0), (10, 10)]),
-            Polygon([(0, 0), (5, -5), (15, 5), (10, 10), (0, 0)]),
-        ),
-        (
-            LineString([(1, 1), (5, 1), (10, 10)]),
-            Polygon([(1, 1), (3, -1), (12, 8), (10, 10), (1, 1)]),
-        ),
-        (
-            Polygon([(1, 1), (15, 1), (5, 10), (1, 1)]),
-            Polygon([(15, 1), (15, 10), (1, 10), (1, 1), (15, 1)]),
-        ),
-        (
-            LineString([(1, 1), (10, 1)]),
-            LineString([(1, 1), (10, 1)]),
-        ),
-        (
-            Point(2, 2),
-            Point(2, 2),
-        ),
-        (
-            GeometryCollection(),
-            Polygon(),
-        ),
-    ],
-)
-def test_minimum_rotated_rectangle(geometry, expected):
-    actual = shapely.minimum_rotated_rectangle(geometry)
-    assert shapely.equals(actual, expected).all()
+def test_oriented_envelope_pre_geos_312(geometry, expected, func):
+    actual = func(geometry)
+    assert_geometries_equal(actual, expected, normalize=True, tolerance=1e-3)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
