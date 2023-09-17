@@ -314,7 +314,6 @@ def test_minimum_clearance_missing():
     assert np.isnan(actual)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 @pytest.mark.parametrize(
     "geometry, expected",
     [
