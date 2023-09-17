@@ -33,7 +33,7 @@ all_types = (
     multi_polygon,
 )
 
-all_types_3d = (
+all_types_z = (
     point_z,
     line_string_z,
     polygon_z,
@@ -48,7 +48,7 @@ all_types_not_supported = (
 )
 
 
-@pytest.mark.parametrize("geom", all_types + all_types_3d)
+@pytest.mark.parametrize("geom", all_types + all_types_z)
 def test_roundtrip(geom):
     actual = shapely.from_ragged_array(*shapely.to_ragged_array([geom, geom]))
     assert_geometries_equal(actual, [geom, geom])
@@ -61,7 +61,7 @@ def test_include_z(geom):
     assert np.isnan(coords[:, 2]).all()
 
 
-@pytest.mark.parametrize("geom", all_types_3d)
+@pytest.mark.parametrize("geom", all_types_z)
 def test_include_z_false(geom):
     _, coords, _ = shapely.to_ragged_array([geom, geom], include_z=False)
     # For 3D geoms, z coords are dropped

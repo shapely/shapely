@@ -7,6 +7,7 @@ import shapely
 from shapely import LinearRing, LineString, Point
 from shapely.tests.common import (
     all_types,
+    all_types_z,
     empty,
     geometry_collection,
     ignore_invalid,
@@ -58,7 +59,7 @@ XY_PREDICATES = (
 )
 
 
-@pytest.mark.parametrize("geometry", all_types)
+@pytest.mark.parametrize("geometry", all_types + all_types_z)
 @pytest.mark.parametrize("func", UNARY_PREDICATES)
 def test_unary_array(geometry, func):
     actual = func([geometry, geometry])
@@ -216,6 +217,20 @@ def test_dwithin():
     np.testing.assert_allclose(actual, [False, True, False])
 
 
+@pytest.mark.parametrize("geometry", all_types)
+def test_has_z_all_types(geometry):
+    assert not shapely.has_z(geometry)
+
+
+@pytest.mark.parametrize("geometry", all_types_z)
+def test_has_z_all_types_z(geometry):
+    if shapely.is_empty(geometry):
+        # https://github.com/libgeos/geos/issues/888
+        pytest.xfail("GEOSHasZ with EMPTY geometries is inconsistent")
+    else:
+        assert shapely.has_z(geometry)
+
+
 @pytest.mark.parametrize(
     "geometry,expected",
     [
@@ -319,12 +334,12 @@ def test_binary_prepared(a, func):
     assert actual == result
 
 
-@pytest.mark.parametrize("geometry", all_types + (empty,))
+@pytest.mark.parametrize("geometry", all_types)
 def test_is_prepared_true(geometry):
     assert shapely.is_prepared(_prepare_with_copy(geometry))
 
 
-@pytest.mark.parametrize("geometry", all_types + (empty, None))
+@pytest.mark.parametrize("geometry", all_types + (None,))
 def test_is_prepared_false(geometry):
     assert not shapely.is_prepared(geometry)
 
