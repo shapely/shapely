@@ -967,7 +967,7 @@ def voronoi_polygons(
 
     Examples
     --------
-    >>> from shapely import LineString, MultiPoint, normalize, Point
+    >>> from shapely import LineString, MultiPoint, Point
     >>> points = MultiPoint([(2, 2), (4, 2)])
     >>> voronoi_polygons(points).normalize()
     <GEOMETRYCOLLECTION (POLYGON ((3 0, 3 4, 6 4, 6 0, 3 0)), POLYGON ((0 0, 0 4...>
