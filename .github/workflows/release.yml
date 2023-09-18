@@ -53,8 +53,9 @@ jobs:
         include:
         - os: ubuntu-20.04
           arch: x86_64
-        - os: ubuntu-20.04
-          arch: i686
+        # Numpy no longer builds i686 packages
+        # - os: ubuntu-20.04
+        #   arch: i686
         # The aarch64 build has been transferred to Travis
         # - os: ubuntu-20.04
         #   arch: aarch64
@@ -116,7 +117,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.16.0
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
-          CIBW_SKIP: cp36-* pp* *musllinux* cp310-manylinux_i686 cp312-*
+          CIBW_SKIP: cp36-* pp* *musllinux* *-manylinux_i686 cp312-*
           CIBW_ENVIRONMENT_LINUX:
             GEOS_VERSION=${{ env.GEOS_VERSION }}
             GEOS_INSTALL=/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
