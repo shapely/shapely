@@ -13,6 +13,17 @@ Improvements:
   to allow, skip, or error on nonfinite (NaN / Inf) coordinates. The default
   behaviour (allow) is backwards compatible (#1594).
 
+.. _version-2-0-2:
+
+Version 2.0.2 (unreleased)
+--------------------------
+
+Bug fixes:
+
+- Fix regression in the (in)equality comparison (``geom1 == geom2``) using ``__eq__`` to
+  not ignore the z-coordinates (#1732).
+- Fix ``MultiPolygon()`` constructor to accept polygons without holes (#1850).
+
 
 .. _version-2-0-1:
 
@@ -95,8 +106,7 @@ both more verbose to use and has a large performance overhead.
 
 Shapely 2.0 exposes GEOS operations as vectorized functions that operate
 on arrays of geometries using a familiar NumPy interface. Those functions are
-implemented as
-`NumPy *universal functions* <https://numpy.org/doc/stable/reference/ufuncs.html>`__
+implemented as :ref:`NumPy universal functions <ufuncs>`
 (or ufunc for short). A universal function is a function that operates on
 n-dimensional arrays in an element-by-element fashion and supports array
 broadcasting. All loops over geometries are implemented in C, which results

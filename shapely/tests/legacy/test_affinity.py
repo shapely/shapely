@@ -170,14 +170,14 @@ class TransformOpsTestCase(unittest.TestCase):
         ls = load_wkt("LINESTRING(240 400, 240 300, 300 300)")
         els = load_wkt("LINESTRING(220 320, 320 320, 320 380)")
         # check with degrees
-        theta = np.array([90.0])
+        theta = np.array(90.0)
         rls = affinity.rotate(ls, theta)
-        assert theta[0] == 90.0
+        assert theta.item() == 90.0
         assert rls.equals(els)
         # check with radians
-        theta = np.array([pi / 2])
+        theta = np.array(pi / 2)
         rls = affinity.rotate(ls, theta, use_radians=True)
-        assert theta[0] == pi / 2
+        assert theta.item() == pi / 2
         assert rls.equals(els)
 
     def test_scale(self):
@@ -276,13 +276,13 @@ class TransformOpsTestCase(unittest.TestCase):
         )
         # check with degrees
         xs_ys = np.array([15.0, -30.0])
-        sls = affinity.skew(ls, xs_ys[0:1], xs_ys[1:2])
+        sls = affinity.skew(ls, xs_ys[0, ...], xs_ys[1, ...])
         assert xs_ys[0] == 15.0
         assert xs_ys[1] == -30.0
         assert sls.equals_exact(els, 1e-6)
         # check with radians
         xs_ys = np.array([pi / 12, -pi / 6])
-        sls = affinity.skew(ls, xs_ys[0:1], xs_ys[1:2], use_radians=True)
+        sls = affinity.skew(ls, xs_ys[0, ...], xs_ys[1, ...], use_radians=True)
         assert xs_ys[0] == pi / 12
         assert xs_ys[1] == -pi / 6
         assert sls.equals_exact(els, 1e-6)

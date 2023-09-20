@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -46,15 +46,16 @@ jobs:
     name: Build ${{ matrix.arch }} wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     env:
-      GEOS_VERSION: "3.11.2"
+      GEOS_VERSION: "3.12.0"
     strategy:
       fail-fast: false
       matrix:
         include:
         - os: ubuntu-20.04
           arch: x86_64
-        - os: ubuntu-20.04
-          arch: i686
+        # Numpy no longer builds i686 packages
+        # - os: ubuntu-20.04
+        #   arch: i686
         # The aarch64 build has been transferred to Travis
         # - os: ubuntu-20.04
         #   arch: aarch64
@@ -79,7 +80,7 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -113,10 +114,10 @@ jobs:
         if: ${{ matrix.msvc_arch }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.12.0
+        uses: pypa/cibuildwheel@v2.16.0
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
-          CIBW_SKIP: cp36-* pp* *musllinux* cp310-manylinux_i686
+          CIBW_SKIP: cp36-* pp* *musllinux* *-manylinux_i686 cp312-*
           CIBW_ENVIRONMENT_LINUX:
             GEOS_VERSION=${{ env.GEOS_VERSION }}
             GEOS_INSTALL=/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}

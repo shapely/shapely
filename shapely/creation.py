@@ -76,8 +76,7 @@ def points(
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
 
     Examples
@@ -145,8 +144,7 @@ def linestrings(
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
 
     Examples
@@ -215,8 +213,7 @@ def linearrings(
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
 
     See also
@@ -271,8 +268,7 @@ def polygons(geometries, holes=None, indices=None, out=None, **kwargs):
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
 
     Examples
@@ -355,8 +351,7 @@ def box(xmin, ymin, xmax, ymax, ccw=True, **kwargs):
         If False, box will be created in clockwise direction starting from
         bottom left coordinate (xmin, ymin).
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -386,8 +381,7 @@ def multipoints(geometries, indices=None, out=None, **kwargs):
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
 
     Examples
@@ -397,20 +391,20 @@ def multipoints(geometries, indices=None, out=None, **kwargs):
     >>> point_1 = points([1, 1])
     >>> point_2 = points([2, 2])
     >>> multipoints([point_1, point_2])
-    <MULTIPOINT (1 1, 2 2)>
+    <MULTIPOINT ((1 1), (2 2))>
     >>> multipoints([[point_1, point_2], [point_2, None]]).tolist()
-    [<MULTIPOINT (1 1, 2 2)>, <MULTIPOINT (2 2)>]
+    [<MULTIPOINT ((1 1), (2 2))>, <MULTIPOINT ((2 2))>]
 
     Or from coordinates directly:
 
     >>> multipoints([[0, 0], [2, 2], [3, 3]])
-    <MULTIPOINT (0 0, 2 2, 3 3)>
+    <MULTIPOINT ((0 0), (2 2), (3 3))>
 
     Multiple multipoints of different sizes can be constructed efficiently using the
     ``indices`` keyword argument:
 
     >>> multipoints([point_1, point_2, point_2], indices=[0, 0, 1]).tolist()
-    [<MULTIPOINT (1 1, 2 2)>, <MULTIPOINT (2 2)>]
+    [<MULTIPOINT ((1 1), (2 2))>, <MULTIPOINT ((2 2))>]
 
     Missing input values (``None``) are skipd and may result in an
     empty multipoint:
@@ -418,9 +412,9 @@ def multipoints(geometries, indices=None, out=None, **kwargs):
     >>> multipoints([None])
     <MULTIPOINT EMPTY>
     >>> multipoints([point_1, None], indices=[0, 0]).tolist()
-    [<MULTIPOINT (1 1)>]
+    [<MULTIPOINT ((1 1))>]
     >>> multipoints([point_1, None], indices=[0, 1]).tolist()
-    [<MULTIPOINT (1 1)>, <MULTIPOINT EMPTY>]
+    [<MULTIPOINT ((1 1))>, <MULTIPOINT EMPTY>]
     """
     typ = GeometryType.MULTIPOINT
     geometries = np.asarray(geometries)
@@ -451,8 +445,7 @@ def multilinestrings(geometries, indices=None, out=None, **kwargs):
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
 
     See also
@@ -489,8 +482,7 @@ def multipolygons(geometries, indices=None, out=None, **kwargs):
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
 
     See also
@@ -526,8 +518,7 @@ def geometrycollections(geometries, indices=None, out=None, **kwargs):
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
 
     See also
@@ -562,8 +553,7 @@ def prepare(geometry, **kwargs):
     geometry : Geometry or array_like
         Geometries are changed in place
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -593,8 +583,7 @@ def destroy_prepared(geometry, **kwargs):
     geometry : Geometry or array_like
         Geometries are changed inplace
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------

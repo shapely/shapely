@@ -564,7 +564,6 @@ GEOSGeometry* create_box(GEOSContextHandle_t ctx, double xmin, double ymin, doub
   return geom;
 }
 
-
 #if !GEOS_SINCE_3_8_0
 /* Create a 3D empty Point
  *
