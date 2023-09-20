@@ -93,7 +93,7 @@ def test_points_nan_3D_all_nan_becomes_empty():
             ),
         ),
         pytest.param(
-            [np.nan, np.nan],
+            [np.nan, np.nan, np.nan],
             "POINT Z (NaN NaN NaN)",
             marks=pytest.mark.skipif(
                 shapely.geos_version < (3, 13, 0), reason="GEOS < 3.13"
@@ -142,7 +142,7 @@ def test_points_handle_nan(coords, handle_nan, expected_wkt):
         [0, -np.inf],
     ],
 )
-def test_points_nan_err(coords):
+def test_points_nan_handle_nan_err(coords):
     with pytest.raises(ValueError, match=".*NaN.*"):
         shapely.points(coords, handle_nan="error")
 
