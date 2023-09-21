@@ -64,7 +64,8 @@ def points(coords, y=None, z=None, indices=None, out=None, **kwargs):
     Notes
     -----
 
-    - GEOS >=3.10 automatically converts POINT (nan nan) to POINT EMPTY.
+    - GEOS 3.10, 3.11 and 3.12 automatically converts POINT (nan nan) to POINT EMPTY.
+    - GEOS 3.10 and 3.11 will transform a 3D point to 2D if its Z coordinate is NaN.
     - Usage of the ``y`` and ``z`` arguments will prevents lazy evaluation in ``dask``.
       Instead provide the coordinates as an array with shape ``(..., 2)`` or ``(..., 3)`` using only the ``coords`` argument.
     """
