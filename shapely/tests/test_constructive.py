@@ -941,7 +941,7 @@ def test_oriented_envelope(geometry, expected, func):
 
 
 @pytest.mark.skipif(
-    shapely.geos_version >= (3, 12, 0) or shapely.geos_version < (3, 6, 0),
+    shapely.geos_version >= (3, 12, 0) or shapely.geos_version < (3, 8, 0),
     reason="GEOS >= 3.12",
 )
 @pytest.mark.parametrize(
@@ -978,7 +978,11 @@ def test_oriented_envelope(geometry, expected, func):
 )
 def test_oriented_envelope_pre_geos_312(geometry, expected, func):
     actual = func(geometry)
-    assert_geometries_equal(actual, expected, normalize=True, tolerance=1e-3)
+    if shapely.geos_version < (3, 8, 0):
+        # For GEOS 3.7, the function returns 3D which was ignored in the old test:
+        assert shapely.equals(actual, expected).all()
+    else:
+        assert_geometries_equal(actual, expected, normalize=True, tolerance=1e-3)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
