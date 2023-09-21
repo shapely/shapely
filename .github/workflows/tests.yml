@@ -162,7 +162,7 @@ jobs:
 
       - name: Run tests
         # Enable this if we have failures on GEOS main
-        continue-on-error: ${{ matrix.geos == 'main' }}
+        # continue-on-error: ${{ matrix.geos == 'main' }}
         run: |
           python -c "import shapely; print(f'GEOS version: {shapely.geos_version_string}')"
           pytest shapely/tests -r a --cov --cov-report term-missing ${{ matrix.extra_pytest_args }}

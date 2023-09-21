@@ -39,7 +39,9 @@ def _xyz_to_coords(x, y, z):
 
 
 @multithreading_enabled
-def points(coords, y=None, z=None, indices=None, out=None, **kwargs):
+def points(
+    coords, y=None, z=None, indices=None, handle_nan=HandleNaN.allow, out=None, **kwargs
+):
     """Create an array of points.
 
     Parameters
@@ -55,6 +57,20 @@ def points(coords, y=None, z=None, indices=None, out=None, **kwargs):
         indices should be an array of shape (N,) with integers in increasing
         order. Missing indices result in a ValueError unless ``out`` is
         provided, in which case the original value in ``out`` is kept.
+    handle_nan : shapely.HandleNaN or {'allow', 'skip', 'error'}, default 'allow'
+        Specifies what to do when a NaN or Inf is encountered in the coordinates:
+
+        - 'allow': the geometries are created with NaN or Inf coordinates.
+          Note that this can result in unexpected behaviour in subsequent
+          operations, and generally it is discouraged to have non-finite
+          coordinate values. One can use this option if you know all
+          coordinates are finite and want to avoid the overhead of checking
+          for this.
+        - 'skip': if any of x, y or z values are NaN or Inf, an empty point
+          will be created.
+        - 'error': if any NaN or Inf is detected in the coordinates, a ValueError
+          is raised. This option ensures that the created geometries have all
+          finite coordinate values.
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
@@ -71,16 +87,19 @@ def points(coords, y=None, z=None, indices=None, out=None, **kwargs):
     Notes
     -----
 
-    - GEOS >=3.10 automatically converts POINT (nan nan) to POINT EMPTY.
+    - GEOS 3.10, 3.11 and 3.12 automatically converts POINT (nan nan) to POINT EMPTY.
+    - GEOS 3.10 and 3.11 will transform a 3D point to 2D if its Z coordinate is NaN.
     - Usage of the ``y`` and ``z`` arguments will prevents lazy evaluation in ``dask``.
       Instead provide the coordinates as an array with shape ``(..., 2)`` or ``(..., 3)`` using only the ``coords`` argument.
     """
     coords = _xyz_to_coords(coords, y, z)
+    if isinstance(handle_nan, str):
+        handle_nan = HandleNaN.get_value(handle_nan)
     if indices is None:
-        return lib.points(coords, out=out, **kwargs)
+        return lib.points(coords, np.intc(handle_nan), out=out, **kwargs)
     else:
         return simple_geometries_1d(
-            coords, indices, GeometryType.POINT, handle_nan=HandleNaN.allow, out=out
+            coords, indices, GeometryType.POINT, handle_nan=handle_nan, out=out
         )
 
 
