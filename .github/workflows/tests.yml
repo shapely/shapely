@@ -39,6 +39,9 @@ jobs:
             matplotlib: true
             doctest: true
             extra_pytest_args: "-W error"  # error on warnings
+          - python: "3.12"
+            geos: 3.12.0
+            numpy: 1.26.0
           # dev
           - python: "3.11"
             geos: main
@@ -95,6 +98,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           architecture: ${{ matrix.architecture }}
+          allow-prereleases: true
 
       - name: Cache GEOS and pip packages
         uses: actions/cache@v3
