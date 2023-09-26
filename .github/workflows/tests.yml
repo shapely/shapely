@@ -38,12 +38,14 @@ jobs:
             numpy: 1.24.4
             matplotlib: true
             doctest: true
+            extra_pytest_args: "-W error -W ignore:datetime.datetime.utcfromtimestamp\(\) is deprecated and scheduled for removal:DeprecationWarning" # error on warnings
           - python: "3.12"
             geos: 3.12.0
             numpy: 1.26.0
           # dev
           - python: "3.11"
             geos: main
+            extra_pytest_args: "-W error -W ignore:datetime.datetime.utcfromtimestamp\(\) is deprecated and scheduled for removal:DeprecationWarning" # error on warnings
           # enable two 32-bit windows builds:
           - os: windows-2019
             architecture: x86
