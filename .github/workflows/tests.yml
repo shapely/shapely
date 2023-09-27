@@ -33,16 +33,18 @@ jobs:
             geos: 3.11.2
             numpy: 1.23.4
           # 2023
-          - python: "3.11"
+          - python: "3.12"
             geos: 3.12.0
-            numpy: 1.24.4
+            numpy: 1.26.0
             matplotlib: true
             doctest: true
-            extra_pytest_args: "-W error"  # error on warnings
+            # extra ignore for dateutil Python 3.12 warning fixed upstream (waiting on release 2.8.3+)
+            extra_pytest_args: "-W error -W ignore:datetime.datetime.utcfromtimestamp:DeprecationWarning" # error on warnings
           # dev
-          - python: "3.11"
+          - python: "3.12"
             geos: main
-            extra_pytest_args: "-W error" # error on warnings
+            # extra ignore for dateutil Python 3.12 warning fixed upstream (waiting on release 2.8.3+)
+            extra_pytest_args: "-W error -W ignore:datetime.datetime.utcfromtimestamp:DeprecationWarning" # error on warnings
           # enable two 32-bit windows builds:
           - os: windows-2019
             architecture: x86
@@ -95,6 +97,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           architecture: ${{ matrix.architecture }}
+          allow-prereleases: true
 
       - name: Cache GEOS and pip packages
         uses: actions/cache@v3
