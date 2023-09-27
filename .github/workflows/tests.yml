@@ -41,7 +41,7 @@ jobs:
             # extra ignore for dateutil Python 3.12 warning fixed upstream (waiting on release 2.8.3+)
             extra_pytest_args: "-W error -W ignore:datetime.datetime.utcfromtimestamp:DeprecationWarning" # error on warnings
           # dev
-          - python: "3.11"
+          - python: "3.12"
             geos: main
             # extra ignore for dateutil Python 3.12 warning fixed upstream (waiting on release 2.8.3+)
             extra_pytest_args: "-W error -W ignore:datetime.datetime.utcfromtimestamp:DeprecationWarning" # error on warnings
