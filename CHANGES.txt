@@ -8,6 +8,12 @@ Bug fixes:
 
 - Fix ``MultiPolygon()`` constructor to accept polygons without holes (#1850).
 
+Improvements:
+
+- Fixed unittests and adapted docstrings for ``point()`` and ``oriented_envelope()``
+  on GEOS 3.12 (#1892).
+
+
 2.0.1 (2023-01-30)
 ------------------
 
