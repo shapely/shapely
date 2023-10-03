@@ -1079,7 +1079,7 @@ def dwithin(a, b, distance, **kwargs):
 @multithreading_enabled
 def contains_xy(geom, x, y=None, **kwargs):
     """
-    Returns True if the Point (x, y) is completely inside geometry A.
+    Returns True if the Point (x, y) is completely inside geom.
 
     This is a special-case (and faster) variant of the `contains` function
     which avoids having to create a Point object if you start from x/y
@@ -1127,7 +1127,7 @@ def contains_xy(geom, x, y=None, **kwargs):
 @multithreading_enabled
 def intersects_xy(geom, x, y=None, **kwargs):
     """
-    Returns True if A and the Point (x, y) share any portion of space.
+    Returns True if geom and the Point (x, y) share any portion of space.
 
     This is a special-case (and faster) variant of the `intersects` function
     which avoids having to create a Point object if you start from x/y
