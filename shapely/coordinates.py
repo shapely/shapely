@@ -22,6 +22,12 @@ def transform(
     When specifying ``include_z=True``, the returned geometries preserve
     the dimensionality of the respective input geometries.
 
+    This function differs with `transform_resize` in the following ways:
+
+    - It also accepts arrays of Geometry objects.
+    - The parameters to the transformation function are numpy arrays.
+    - The number of coordinates per Geometry is not allowed to change.
+
     Parameters
     ----------
     geometry : Geometry or array_like
@@ -48,6 +54,7 @@ def transform(
     --------
     has_z : Returns a copy of a geometry array with a function applied to its
         coordinates.
+    transform_resize : Transform single Geometry objects, optionally resizing them.
 
     Examples
     --------
@@ -127,6 +134,65 @@ def transform(
     if result.ndim == 0 and not isinstance(geometry, np.ndarray):
         return result.item()
     return result
+
+
+def transform_resize(
+    geometry: shapely.Geometry,
+    transformation,
+    include_z: Optional[bool] = False,
+):
+    """Apply a function to the coordinates of a Geometry object, optionally changing the number
+    of coordinate pairs.
+
+    This function differs with `transform` in the following ways:
+
+    - The number of coordinates per Geometry is allowed to change.
+    - The input parameters to the transformation function are (tuple of) float, not array.
+    - It only accepts scalar Geometry objects, not arrays.
+
+    We recommend only using this function only if 1) the number of coordinates in your Geometry
+    should change or 2) the transformation can't be made to accept numpy arrays.
+
+    Parameters
+    ----------
+    geometry : Geometry
+    transformation : function
+        A function that maps x, y, and optionally z to output xp, yp, zp.
+        The input parameters are preferably tuples of float, however if that raises
+        a TypeError the input parameters are floats. The output shall be of the same
+        type as the input. When doing tuples, the output tuples may be shorter or longer
+        than the input tuples.
+    include_z : bool, optional, default False
+        If False, always return 2D geometries.
+        If True, the data being passed to the
+        transformation function will include the third dimension
+        (if a geometry has no third dimension, the z-coordinates
+        will be NaN). If None, will infer the dimensionality using
+        ``has_z``. Note that this inference
+        can be unreliable with empty geometries or NaN coordinates: for a
+        guaranteed result, it is recommended to specify ``include_z`` explicitly.
+
+    See Also
+    --------
+    has_z : Returns a copy of a geometry array with a function applied to its
+        coordinates.
+    transform : Transform arrays of Geometry objects.
+
+    Examples
+    --------
+    >>> from shapely import LineString, Point
+
+    Reduce a linestring to only its first 2 points:
+
+    >>> transform_resize(LineString([(2, 2), (4, 4), (6, 6)]), lambda x, y: x[:2], y:2))
+    <LINESTRING (2 2, 4 4)>
+
+    Transform a point using a lambda function that accepts only scalars:
+
+    >>> transform_resize(Point(0, 0), lambda x, y: (x + 1, y + 2))
+    <POINT (1 2)>
+    """
+    ...
 
 
 def count_coordinates(geometry):
