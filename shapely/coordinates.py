@@ -137,7 +137,7 @@ def transform(
 
 
 def transform_resize(
-    geometry: shapely.Geometry,
+    geom: shapely.Geometry,
     transformation,
     include_z: Optional[bool] = False,
 ):
@@ -155,7 +155,7 @@ def transform_resize(
 
     Parameters
     ----------
-    geometry : Geometry
+    geom : Geometry
     transformation : function
         A function that maps x, y, and optionally z to output xp, yp, zp.
         The input parameters are preferably tuples of float, however if that raises
@@ -192,7 +192,52 @@ def transform_resize(
     >>> transform_resize(Point(0, 0), lambda x, y: (x + 1, y + 2))
     <POINT (1 2)>
     """
-    ...
+    assert include_z is None
+    if geom.is_empty:
+        return geom
+    if geom.geom_type in ("Point", "LineString", "LinearRing", "Polygon"):
+
+        # First we try to apply func to x, y, z sequences. When func is
+        # optimized for sequences, this is the fastest, though zipping
+        # the results up to go back into the geometry constructors adds
+        # extra cost.
+        try:
+            if geom.geom_type in ("Point", "LineString", "LinearRing"):
+                return type(geom)(zip(*transformation(*zip(*geom.coords))))
+            elif geom.geom_type == "Polygon":
+                shell = type(geom.exterior)(
+                    zip(*transformation(*zip(*geom.exterior.coords)))
+                )
+                holes = list(
+                    type(ring)(zip(*transformation(*zip(*ring.coords))))
+                    for ring in geom.interiors
+                )
+                return type(geom)(shell, holes)
+
+        # A func that assumes x, y, z are single values will likely raise a
+        # TypeError, in which case we'll try again.
+        except TypeError:
+            if geom.geom_type in ("Point", "LineString", "LinearRing"):
+                return type(geom)([transformation(*c) for c in geom.coords])
+            elif geom.geom_type == "Polygon":
+                shell = type(geom.exterior)(
+                    [transformation(*c) for c in geom.exterior.coords]
+                )
+                holes = list(
+                    type(ring)([transformation(*c) for c in ring.coords])
+                    for ring in geom.interiors
+                )
+                return type(geom)(shell, holes)
+
+    elif geom.geom_type.startswith("Multi") or geom.geom_type == "GeometryCollection":
+        return type(geom)(
+            [
+                transform_resize(part, transformation, include_z=include_z)
+                for part in geom.geoms
+            ]
+        )
+    else:
+        raise TypeError(f"Type {geom.geom_type!r} not recognized")
 
 
 def count_coordinates(geometry):

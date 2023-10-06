@@ -5,6 +5,7 @@ from warnings import warn
 
 import shapely
 from shapely.algorithms.polylabel import polylabel  # noqa
+from shapely.coordinates import transform_resize
 from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
 from shapely.geometry import (
     GeometryCollection,
@@ -261,42 +262,16 @@ def transform(func, geom):
 
     also satisfy the requirements for `func`.
     """
-    if geom.is_empty:
-        return geom
-    if geom.geom_type in ("Point", "LineString", "LinearRing", "Polygon"):
-
-        # First we try to apply func to x, y, z sequences. When func is
-        # optimized for sequences, this is the fastest, though zipping
-        # the results up to go back into the geometry constructors adds
-        # extra cost.
-        try:
-            if geom.geom_type in ("Point", "LineString", "LinearRing"):
-                return type(geom)(zip(*func(*zip(*geom.coords))))
-            elif geom.geom_type == "Polygon":
-                shell = type(geom.exterior)(zip(*func(*zip(*geom.exterior.coords))))
-                holes = list(
-                    type(ring)(zip(*func(*zip(*ring.coords))))
-                    for ring in geom.interiors
-                )
-                return type(geom)(shell, holes)
-
-        # A func that assumes x, y, z are single values will likely raise a
-        # TypeError, in which case we'll try again.
-        except TypeError:
-            if geom.geom_type in ("Point", "LineString", "LinearRing"):
-                return type(geom)([func(*c) for c in geom.coords])
-            elif geom.geom_type == "Polygon":
-                shell = type(geom.exterior)([func(*c) for c in geom.exterior.coords])
-                holes = list(
-                    type(ring)([func(*c) for c in ring.coords])
-                    for ring in geom.interiors
-                )
-                return type(geom)(shell, holes)
-
-    elif geom.geom_type.startswith("Multi") or geom.geom_type == "GeometryCollection":
-        return type(geom)([transform(func, part) for part in geom.geoms])
-    else:
-        raise GeometryTypeError(f"Type {geom.geom_type!r} not recognized")
+    warn(
+        "The 'ops.transform()' function is deprecated. "
+        "Use 'transform()' or 'transform_resize()' instead.",
+        ShapelyDeprecationWarning,
+        stacklevel=2,
+    )
+    try:
+        return transform_resize(geom, func, include_z=None)
+    except TypeError as e:
+        raise GeometryTypeError(str(e))
 
 
 def nearest_points(g1, g2):
