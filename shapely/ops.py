@@ -269,7 +269,7 @@ def transform(func, geom):
         stacklevel=2,
     )
     try:
-        return transform_resize(geom, func, include_z=None)
+        return transform_resize(geom, func, include_z=None, interleaved=False)
     except TypeError as e:
         raise GeometryTypeError(str(e))
 

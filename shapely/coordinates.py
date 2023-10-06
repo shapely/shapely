@@ -5,7 +5,13 @@ import numpy as np
 import shapely
 from shapely import lib
 
-__all__ = ["transform", "count_coordinates", "get_coordinates", "set_coordinates"]
+__all__ = [
+    "transform",
+    "count_coordinates",
+    "get_coordinates",
+    "set_coordinates",
+    "transform_resize",
+]
 
 
 def transform(
@@ -140,6 +146,7 @@ def transform_resize(
     geom: shapely.Geometry,
     transformation,
     include_z: Optional[bool] = False,
+    interleaved: bool = True,
 ):
     """Apply a function to the coordinates of a Geometry object, optionally changing the number
     of coordinate pairs.
@@ -193,6 +200,7 @@ def transform_resize(
     <POINT (1 2)>
     """
     assert include_z is None
+    assert interleaved is False
     if geom.is_empty:
         return geom
     if geom.geom_type in ("Point", "LineString", "LinearRing", "Polygon"):
@@ -232,7 +240,9 @@ def transform_resize(
     elif geom.geom_type.startswith("Multi") or geom.geom_type == "GeometryCollection":
         return type(geom)(
             [
-                transform_resize(part, transformation, include_z=include_z)
+                transform_resize(
+                    part, transformation, include_z=include_z, interleaved=interleaved
+                )
                 for part in geom.geoms
             ]
         )

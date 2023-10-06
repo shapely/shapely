@@ -3,7 +3,13 @@ import pytest
 from numpy.testing import assert_allclose, assert_equal
 
 import shapely
-from shapely import count_coordinates, get_coordinates, set_coordinates, transform
+from shapely import (
+    count_coordinates,
+    get_coordinates,
+    set_coordinates,
+    transform,
+    transform_resize,
+)
 from shapely.tests.common import (
     empty,
     empty_line_string_z,
@@ -224,6 +230,33 @@ def test_transform(geoms, include_z, interleaved):
     new_geoms = transform(geoms, transformation, include_z=include_z, interleaved=interleaved)
     assert new_geoms is not geoms
     coordinates_after = get_coordinates(new_geoms, include_z=include_z)
+    assert_allclose(coordinates_before + 1, coordinates_after, equal_nan=True)
+
+
+@pytest.mark.parametrize("include_z", [True, False])
+@pytest.mark.parametrize(
+    "geom",
+    [empty, point, nested_3, point_z, line_string_z],
+)
+@pytest.mark.parametrize("interleaved", [True, False])
+@pytest.mark.parametrize("accepts_tuples", [True, False])
+def test_transform_resize(geom, include_z, interleaved, accepts_tuples):
+    coordinates_before = get_coordinates(geom, include_z=include_z)
+    if interleaved and accepts_tuples:
+        transformation = lambda coords: [[c + 1 for c in coord] for coord in coords]  # noqa: E731
+    elif interleaved and not accepts_tuples:
+        transformation = lambda coords: [c + 1 for c in coords]  # noqa: E731
+    elif include_z and accepts_tuples:
+        transformation = lambda x, y, z: [[c + 1 for c in coord] for coord in (x, y, z)]  # noqa: E731
+    elif include_z and not accepts_tuples:
+        transformation = lambda x, y, z: (x + 1, y + 1, z + 1)  # noqa: E731
+    elif accepts_tuples:
+        transformation = lambda x, y: [[c + 1 for c in coord] for coord in (x, y)]  # noqa: E731
+    else:
+        transformation = lambda x, y: (x + 1, y + 1)  # noqa: E731
+    new_geom = transform_resize(geom, transformation, include_z=include_z, interleaved=interleaved)
+    assert new_geom is not geom
+    coordinates_after = get_coordinates(new_geom, include_z=include_z)
     assert_allclose(coordinates_before + 1, coordinates_after, equal_nan=True)
 
 
