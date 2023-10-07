@@ -199,52 +199,32 @@ def transform_resize(
     >>> transform_resize(Point(0, 0), lambda x, y: (x + 1, y + 2))
     <POINT (1 2)>
     """
-    assert include_z is None
     assert interleaved is False
-    if geom.is_empty:
-        return geom
     geom_type = shapely.get_type_id(geom)
+
+    def wrapped(simple_geom):
+        # First we try to apply func to x, y, z sequences. When func is
+        # optimized for sequences, this is the fastest, though zipping
+        # the results up to go back into the geometry constructors adds
+        # extra cost.
+        coords = get_coordinates(simple_geom, include_z=include_z)
+        try:
+            return zip(*transformation(*coords.T.tolist()))
+        except TypeError:
+            # A func that assumes x, y, z are single values will likely raise a
+            # TypeError, in which case we'll try again.
+            return [transformation(*c.tolist()) for c in coords]
+
     if geom_type in (
         GeometryType.POINT,
         GeometryType.LINESTRING,
         GeometryType.LINEARRING,
     ):
-        # First we try to apply func to x, y, z sequences. When func is
-        # optimized for sequences, this is the fastest, though zipping
-        # the results up to go back into the geometry constructors adds
-        # extra cost.
-        try:
-            return type(geom)(zip(*transformation(*zip(*geom.coords))))
-        # A func that assumes x, y, z are single values will likely raise a
-        # TypeError, in which case we'll try again.
-        except TypeError:
-            return type(geom)([transformation(*c) for c in geom.coords])
+        return type(geom)(wrapped(geom))
     elif geom_type == GeometryType.POLYGON:
-        # First we try to apply func to x, y, z sequences. When func is
-        # optimized for sequences, this is the fastest, though zipping
-        # the results up to go back into the geometry constructors adds
-        # extra cost.
-        try:
-            shell = type(geom.exterior)(
-                zip(*transformation(*zip(*geom.exterior.coords)))
-            )
-            holes = list(
-                type(ring)(zip(*transformation(*zip(*ring.coords))))
-                for ring in geom.interiors
-            )
-            return type(geom)(shell, holes)
-
-        # A func that assumes x, y, z are single values will likely raise a
-        # TypeError, in which case we'll try again.
-        except TypeError:
-            shell = type(geom.exterior)(
-                [transformation(*c) for c in geom.exterior.coords]
-            )
-            holes = list(
-                type(ring)([transformation(*c) for c in ring.coords])
-                for ring in geom.interiors
-            )
-            return type(geom)(shell, holes)
+        shell = type(geom.exterior)(wrapped(geom.exterior))
+        holes = list(type(ring)(wrapped(ring)) for ring in geom.interiors)
+        return type(geom)(shell, holes)
     elif geom_type in (
         GeometryType.MULTIPOINT,
         GeometryType.MULTILINESTRING,
