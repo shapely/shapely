@@ -3,6 +3,8 @@
 
 from warnings import warn
 
+import numpy as np
+
 import shapely
 from shapely.algorithms.polylabel import polylabel  # noqa
 from shapely.coordinates import transform_resize
@@ -268,8 +270,13 @@ def transform(func, geom):
         ShapelyDeprecationWarning,
         stacklevel=2,
     )
+
+    # wrap the transformation function to transform arrays to tuples
+    def _func_wrapped(*args):
+        return func(*[tuple(x) if isinstance(x, np.ndarray) else x for x in args])
+
     try:
-        return transform_resize(geom, func, include_z=None, interleaved=False)
+        return transform_resize(geom, _func_wrapped, include_z=None, interleaved=False)
     except TypeError as e:
         raise GeometryTypeError(str(e))
 

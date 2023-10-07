@@ -164,11 +164,9 @@ def transform_resize(
     ----------
     geom : Geometry
     transformation : function
-        A function that maps x, y, and optionally z to output xp, yp, zp.
-        The input parameters are preferably tuples of float, however if that raises
-        a TypeError the input parameters are floats. The output shall be of the same
-        type as the input. When doing tuples, the output tuples may be shorter or longer
-        than the input tuples.
+        A function that transforms a (N, 2) or (N, 3) ndarray of float64 to
+        another (N, 2) or (N, 3) ndarray of float64.
+        The function may change the value of N.
     include_z : bool, optional, default False
         If False, always return 2D geometries.
         If True, the data being passed to the
@@ -178,6 +176,12 @@ def transform_resize(
         ``has_z``. Note that this inference
         can be unreliable with empty geometries or NaN coordinates: for a
         guaranteed result, it is recommended to specify ``include_z`` explicitly.
+    interleaved : bool, default True
+        If set to False, the transformation function should accept 2 or 3 separate
+        arguments (x, y and optional z) instead of a single one. The return value
+        must be a tuple of (x, y and optional z). The arguments and return values
+        are one-dimensional arrays, however, if a TypeError is raised by the
+        supplied transformation function, it will be called with scalar floats.
 
     See Also
     --------
@@ -191,39 +195,48 @@ def transform_resize(
 
     Reduce a linestring to only its first 2 points:
 
-    >>> transform_resize(LineString([(2, 2), (4, 4), (6, 6)]), lambda x, y: x[:2], y:2))
+    >>> transform_resize(LineString([(2, 2), (4, 4), (6, 6)]), lambda coords: coords[:2]))
+    <LINESTRING (2 2, 4 4)>
+
+    The same with an function that accepts separate x, y arrays:
+
+    >>> transform_resize(LineString([(2, 2), (4, 4), (6, 6)]), lambda x, y: x[:2], y:2), interleaved=False)
     <LINESTRING (2 2, 4 4)>
 
     Transform a point using a lambda function that accepts only scalars:
 
-    >>> transform_resize(Point(0, 0), lambda x, y: (x + 1, y + 2))
+    >>> transform_resize(Point(0, 0), lambda x, y: (x + 1, y + 2), interleaved=False)
     <POINT (1 2)>
     """
-    assert interleaved is False
+    if geom.is_empty:
+        return geom
+
     geom_type = shapely.get_type_id(geom)
 
-    def wrapped(simple_geom):
+    def _transform_internal(simple_geom):
         # First we try to apply func to x, y, z sequences. When func is
         # optimized for sequences, this is the fastest, though zipping
         # the results up to go back into the geometry constructors adds
         # extra cost.
         coords = get_coordinates(simple_geom, include_z=include_z)
+        if interleaved:
+            return transformation(coords)
         try:
-            return zip(*transformation(*coords.T.tolist()))
+            return zip(*transformation(*coords.T))
         except TypeError:
             # A func that assumes x, y, z are single values will likely raise a
             # TypeError, in which case we'll try again.
-            return [transformation(*c.tolist()) for c in coords]
+            return [transformation(*c) for c in coords]
 
     if geom_type in (
         GeometryType.POINT,
         GeometryType.LINESTRING,
         GeometryType.LINEARRING,
     ):
-        return type(geom)(wrapped(geom))
+        return type(geom)(_transform_internal(geom))
     elif geom_type == GeometryType.POLYGON:
-        shell = type(geom.exterior)(wrapped(geom.exterior))
-        holes = list(type(ring)(wrapped(ring)) for ring in geom.interiors)
+        shell = type(geom.exterior)(_transform_internal(geom.exterior))
+        holes = list(type(ring)(_transform_internal(ring)) for ring in geom.interiors)
         return type(geom)(shell, holes)
     elif geom_type in (
         GeometryType.MULTIPOINT,
