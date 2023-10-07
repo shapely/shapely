@@ -3,7 +3,7 @@ from typing import Optional
 import numpy as np
 
 import shapely
-from shapely import lib
+from shapely import GeometryType, lib
 
 __all__ = [
     "transform",
@@ -203,41 +203,54 @@ def transform_resize(
     assert interleaved is False
     if geom.is_empty:
         return geom
-    if geom.geom_type in ("Point", "LineString", "LinearRing", "Polygon"):
-
+    geom_type = shapely.get_type_id(geom)
+    if geom_type in (
+        GeometryType.POINT,
+        GeometryType.LINESTRING,
+        GeometryType.LINEARRING,
+    ):
         # First we try to apply func to x, y, z sequences. When func is
         # optimized for sequences, this is the fastest, though zipping
         # the results up to go back into the geometry constructors adds
         # extra cost.
         try:
-            if geom.geom_type in ("Point", "LineString", "LinearRing"):
-                return type(geom)(zip(*transformation(*zip(*geom.coords))))
-            elif geom.geom_type == "Polygon":
-                shell = type(geom.exterior)(
-                    zip(*transformation(*zip(*geom.exterior.coords)))
-                )
-                holes = list(
-                    type(ring)(zip(*transformation(*zip(*ring.coords))))
-                    for ring in geom.interiors
-                )
-                return type(geom)(shell, holes)
+            return type(geom)(zip(*transformation(*zip(*geom.coords))))
+        # A func that assumes x, y, z are single values will likely raise a
+        # TypeError, in which case we'll try again.
+        except TypeError:
+            return type(geom)([transformation(*c) for c in geom.coords])
+    elif geom_type == GeometryType.POLYGON:
+        # First we try to apply func to x, y, z sequences. When func is
+        # optimized for sequences, this is the fastest, though zipping
+        # the results up to go back into the geometry constructors adds
+        # extra cost.
+        try:
+            shell = type(geom.exterior)(
+                zip(*transformation(*zip(*geom.exterior.coords)))
+            )
+            holes = list(
+                type(ring)(zip(*transformation(*zip(*ring.coords))))
+                for ring in geom.interiors
+            )
+            return type(geom)(shell, holes)
 
         # A func that assumes x, y, z are single values will likely raise a
         # TypeError, in which case we'll try again.
         except TypeError:
-            if geom.geom_type in ("Point", "LineString", "LinearRing"):
-                return type(geom)([transformation(*c) for c in geom.coords])
-            elif geom.geom_type == "Polygon":
-                shell = type(geom.exterior)(
-                    [transformation(*c) for c in geom.exterior.coords]
-                )
-                holes = list(
-                    type(ring)([transformation(*c) for c in ring.coords])
-                    for ring in geom.interiors
-                )
-                return type(geom)(shell, holes)
-
-    elif geom.geom_type.startswith("Multi") or geom.geom_type == "GeometryCollection":
+            shell = type(geom.exterior)(
+                [transformation(*c) for c in geom.exterior.coords]
+            )
+            holes = list(
+                type(ring)([transformation(*c) for c in ring.coords])
+                for ring in geom.interiors
+            )
+            return type(geom)(shell, holes)
+    elif geom_type in (
+        GeometryType.MULTIPOINT,
+        GeometryType.MULTILINESTRING,
+        GeometryType.MULTIPOLYGON,
+        GeometryType.GEOMETRYCOLLECTION,
+    ):
         return type(geom)(
             [
                 transform_resize(
@@ -247,7 +260,7 @@ def transform_resize(
             ]
         )
     else:
-        raise TypeError(f"Type {geom.geom_type!r} not recognized")
+        raise TypeError(f"Type {geom_type} not recognized")
 
 
 def count_coordinates(geometry):
