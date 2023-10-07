@@ -209,7 +209,12 @@ def transform_resize(
     <POINT (1 2)>
     """
     if geom.is_empty:
-        return geom
+        if include_z is True:
+            return shapely.force_3d(geom)
+        elif include_z is False:
+            return shapely.force_2d(geom)
+        else:
+            return geom
 
     geom_type = shapely.get_type_id(geom)
 

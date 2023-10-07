@@ -11,6 +11,8 @@ from shapely import (
     transform_resize,
 )
 from shapely.tests.common import (
+    all_types,
+    all_types_z,
     empty,
     empty_line_string_z,
     empty_point,
@@ -233,31 +235,38 @@ def test_transform(geoms, include_z, interleaved):
     assert_allclose(coordinates_before + 1, coordinates_after, equal_nan=True)
 
 
-@pytest.mark.parametrize("include_z", [True, False])
-@pytest.mark.parametrize(
-    "geom",
-    [empty, point, nested_3, point_z, line_string_z],
-)
-@pytest.mark.parametrize("interleaved", [True, False])
-@pytest.mark.parametrize("accepts_tuples", [True, False])
-def test_transform_resize(geom, include_z, interleaved, accepts_tuples):
+@pytest.mark.parametrize("geom", [g for g in all_types if not g.is_empty])
+@pytest.mark.parametrize("interleaved,transformation", [
+    (True, lambda coords: [c + 1 for c in coords]),
+    (False, lambda x, y: [[c + 1 for c in coord] for coord in (x, y)]),
+    (False, lambda x, y: (x + 1, y + 1)),
+])
+def test_transform_resize(geom, interleaved, transformation):
+    coordinates_before = get_coordinates(geom)
+    new_geom = transform_resize(geom, transformation, interleaved=interleaved)
+    coordinates_after = get_coordinates(new_geom)
+    assert_allclose(coordinates_before + 1, coordinates_after, equal_nan=True)
+
+
+@pytest.mark.parametrize("geom", [g for g in all_types_z if not g.is_empty])
+@pytest.mark.parametrize("interleaved,include_z,transformation", [
+    (True, True, lambda coords: [c + 1 for c in coords]),
+    (True, False, lambda coords: [c + 1 for c in coords]),
+    (False, False, lambda x, y: [[c + 1 for c in coord] for coord in (x, y)]),
+    (False, False, lambda x, y: (x + 1, y + 1)),
+    (False, True, lambda x, y, z: [[c + 1 for c in coord] for coord in (x, y, z)]),
+    (False, True, lambda x, y, z: (x + 1, y + 1, z + 1)),
+])
+def test_transform_resize_3d(geom, include_z, interleaved, transformation):
     coordinates_before = get_coordinates(geom, include_z=include_z)
-    if interleaved and accepts_tuples:
-        transformation = lambda coords: [[c + 1 for c in coord] for coord in coords]  # noqa: E731
-    elif interleaved and not accepts_tuples:
-        transformation = lambda coords: [c + 1 for c in coords]  # noqa: E731
-    elif include_z and accepts_tuples:
-        transformation = lambda x, y, z: [[c + 1 for c in coord] for coord in (x, y, z)]  # noqa: E731
-    elif include_z and not accepts_tuples:
-        transformation = lambda x, y, z: (x + 1, y + 1, z + 1)  # noqa: E731
-    elif accepts_tuples:
-        transformation = lambda x, y: [[c + 1 for c in coord] for coord in (x, y)]  # noqa: E731
-    else:
-        transformation = lambda x, y: (x + 1, y + 1)  # noqa: E731
     new_geom = transform_resize(geom, transformation, include_z=include_z, interleaved=interleaved)
-    assert new_geom is not geom
+    assert new_geom.has_z is include_z
     coordinates_after = get_coordinates(new_geom, include_z=include_z)
     assert_allclose(coordinates_before + 1, coordinates_after, equal_nan=True)
+
+
+def test_transform_resize_empty():
+    assert transform_resize(empty, include_z=None) is empty
 
 
 def test_transform_0dim():
@@ -340,3 +349,12 @@ def test_transform_auto_coordinate_dimension_mixed_interleaved():
     assert_equal(shapely.get_coordinate_dimension(new_geom), [2, 3])
     assert_equal(shapely.get_coordinates(line_string, include_z=False) + [1, 2], shapely.get_coordinates(new_geom[0], include_z=False))
     assert_equal(shapely.get_coordinates(line_string_z, include_z=True) + [1, 2, 3], shapely.get_coordinates(new_geom[1], include_z=True))
+
+
+@pytest.mark.parametrize("geom,expected", [
+    (line_string, 2),
+    (line_string_z, 3),
+])
+def test_transform_resize_auto_coordinate_dimension(geom, expected):
+    new_geom = transform_resize(geom, lambda x: x + 1, include_z=None)
+    assert (shapely.get_coordinate_dimension(new_geom) == expected).all()
