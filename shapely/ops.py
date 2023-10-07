@@ -231,38 +231,8 @@ def transform(func, geom):
     """Applies `func` to all coordinates of `geom` and returns a new
     geometry of the same type from the transformed coordinates.
 
-    `func` maps x, y, and optionally z to output xp, yp, zp. The input
-    parameters may iterable types like lists or arrays or single values.
-    The output shall be of the same type. Scalars in, scalars out.
-    Lists in, lists out.
-
-    For example, here is an identity function applicable to both types
-    of input.
-
-      def id_func(x, y, z=None):
-          return tuple(filter(None, [x, y, z]))
-
-      g2 = transform(id_func, g1)
-
-    Using pyproj >= 2.1, this example will accurately project Shapely geometries:
-
-      import pyproj
-
-      wgs84 = pyproj.CRS('EPSG:4326')
-      utm = pyproj.CRS('EPSG:32618')
-
-      project = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True).transform
-
-      g2 = transform(project, g1)
-
-    Note that the always_xy kwarg is required here as Shapely geometries only support
-    X,Y coordinate ordering.
-
-    Lambda expressions such as the one in
-
-      g2 = transform(lambda x, y, z=None: (x+1.0, y+1.0), g1)
-
-    also satisfy the requirements for `func`.
+    .. deprecated:: 2.1
+      This function was superseded by :meth:`shapely.transform` and :meth:`shapely.transform_resize`.
     """
     warn(
         "The 'ops.transform()' function is deprecated. "
