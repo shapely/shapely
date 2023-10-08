@@ -210,8 +210,6 @@ General Attributes and Methods
 
   `New in Shapely 1.7.1`
 
-  Requires GEOS 3.6 or higher.
-
 .. code-block:: pycon
 
   >>> from shapely import Polygon
@@ -657,7 +655,7 @@ sequence of `Point` instances, thereby making copies.
 .. code-block:: pycon
 
   >>> MultiPoint([Point(0, 0), Point(1, 1)])
-  <MULTIPOINT (0 0, 1 1)>
+  <MULTIPOINT ((0 0), (1 1))>
 
 .. _multilinestrings:
 
@@ -1098,9 +1096,37 @@ differently.
   >>> b == c
   False
 
-.. method:: object.equals_exact(other, tolerance)
+.. method:: object.equals_exact(other, tolerance=0.0, normalize=False)
 
-  Returns ``True`` if the object is within a specified `tolerance`.
+    Returns ``True`` if the geometries are structurally equivalent within a
+    given tolerance.
+
+    This method uses exact coordinate equality, which requires coordinates
+    to be equal (within specified tolerance) and in the same order for
+    all components (vertices, rings, or parts) of a geometry. This is in
+    contrast with the :meth:`~object.equals` function which uses spatial
+    (topological) equality and does not require all components to be in the
+    same order. Because of this, it is possible for :meth:`~object.equals` to
+    be ``True`` while :meth:`~object.equals_exact` is ``False``.
+
+    The order of the coordinates can be normalized (by setting the `normalize`
+    keyword to ``True``) so that this function will return ``True`` when geometries
+    are structurally equivalent but differ only in the ordering of vertices.
+    However, this function will still return ``False`` if the order of interior
+    rings within a :class:`Polygon` or the order of geometries within a multi
+    geometry are different.
+
+.. code-block:: pycon
+
+  >>> p1 = Point(1.0, 1.0)
+  >>> p2 = Point(2.0, 2.0)
+  >>> p3 = Point(1.0, 1.0 + 1e-7)
+  >>> p1.equals_exact(p2)
+  False
+  >>> p1.equals_exact(p3)
+  False
+  >>> p1.equals_exact(p3, tolerance=1e-6)
+  True
 
 .. method:: object.contains(other)
 
@@ -1373,7 +1399,7 @@ points. The boundary of a point is an empty collection.
   >>> coords = [((0, 0), (1, 1)), ((-1, 0), (1, 0))]
   >>> lines = MultiLineString(coords)
   >>> lines.boundary
-  <MULTIPOINT (-1 0, 0 0, 1 0, 1 1)>
+  <MULTIPOINT ((-1 0), (0 0), (1 0), (1 1))>
   >>> list(lines.boundary.geoms)
   [<POINT (-1 0)>, <POINT (0 0)>, <POINT (1 0)>, <POINT (1 1)>]
   >>> lines.boundary.boundary
@@ -1686,8 +1712,8 @@ Figure 11. Convex hull (blue) of 2 points (left) and of 6 points (right).
 
   >>> Point(0, 0).minimum_rotated_rectangle
   <POINT (0 0)>
-  >>> MultiPoint([(0,0),(1,1),(2,0.5)]).minimum_rotated_rectangle
-  <POLYGON ((2 0.5, 1.824 1.206, -0.176 0.706, 0 0, 2 0.5))>
+  >>> MultiPoint([(0,0),(1,1),(2,0.5)]).minimum_rotated_rectangle.normalize()
+  <POLYGON ((-0.176 0.706, 1.824 1.206, 2 0.5, 0 0, -0.176 0.706))>
 
 .. plot:: code/minimum_rotated_rectangle.py
 
@@ -2186,8 +2212,6 @@ portion of a geometry within a rectangle.
     errors.
 
     `New in version 1.7.`
-
-    Requires GEOS 3.5.0 or higher
 
 .. code-block:: python
 

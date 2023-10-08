@@ -2,7 +2,7 @@
 
 import pytest
 
-from .linestring import LineString
+from shapely.geometry.linestring import LineString
 
 
 @pytest.fixture(autouse=True)

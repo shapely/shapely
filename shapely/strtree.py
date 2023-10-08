@@ -2,11 +2,11 @@ from typing import Any, Iterable, Union
 
 import numpy as np
 
-from . import lib
-from ._enum import ParamEnum
-from .decorators import requires_geos, UnsupportedGEOSVersionError
-from .geometry.base import BaseGeometry
-from .predicates import is_empty, is_missing
+from shapely import lib
+from shapely._enum import ParamEnum
+from shapely.decorators import UnsupportedGEOSVersionError
+from shapely.geometry.base import BaseGeometry
+from shapely.predicates import is_empty, is_missing
 
 __all__ = ["STRtree"]
 
@@ -74,10 +74,9 @@ class STRtree:
         geoms: Iterable[BaseGeometry],
         node_capacity: int = 10,
     ):
-        # Keep references to geoms
-        self._geometries = np.asarray(geoms, dtype=np.object_)
-        # prevent modification
-        self._geometries.flags.writeable = False
+        # Keep references to geoms in a copied array so that this array is not
+        # modified while the tree depends on it remaining the same
+        self._geometries = np.array(geoms, dtype=np.object_, copy=True)
 
         # initialize GEOS STRtree
         self._tree = lib.STRtree(self.geometries, node_capacity)
@@ -270,7 +269,6 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
         indices = self._tree.query(geometry, predicate)
         return indices[1] if is_scalar else indices
 
-    @requires_geos("3.6.0")
     def nearest(self, geometry) -> Union[Any, None]:
         """
         Return the index of the nearest geometry in the tree for each input
@@ -351,7 +349,6 @@ and optional distances
         else:
             return indices
 
-    @requires_geos("3.6.0")
     def query_nearest(
         self,
         geometry,

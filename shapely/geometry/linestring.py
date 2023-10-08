@@ -61,7 +61,7 @@ class LineString(BaseGeometry):
                     if isinstance(o, Point):
                         return o.coords[0]
                     else:
-                        return o
+                        return [float(c) for c in o]
 
                 coordinates = [_coords(o) for o in coordinates]
 

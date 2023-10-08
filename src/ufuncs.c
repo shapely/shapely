@@ -135,7 +135,6 @@ static char GEOSisClosedAllTypes_r(void* context, void* geom) {
 static void* is_closed_data[1] = {GEOSisClosedAllTypes_r};
 static void* is_valid_data[1] = {GEOSisValid_r};
 
-#if GEOS_SINCE_3_7_0
 static char GEOSGeom_isCCW_r(void* context, void* geom) {
   const GEOSCoordSequence* coord_seq;
   char is_ccw = 2;  // return value of 2 means GEOSException
@@ -170,7 +169,6 @@ static char GEOSGeom_isCCW_r(void* context, void* geom) {
   return is_ccw;
 }
 static void* is_ccw_data[1] = {GEOSGeom_isCCW_r};
-#endif
 
 typedef char FuncGEOS_Y_b(void* context, void* a);
 static char Y_b_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
@@ -435,12 +433,11 @@ static void Ydd_b_p_func(char** args, const npy_intp* dimensions, const npy_intp
 #if GEOS_SINCE_3_12_0
       ret = func(ctx, prepared_geom_tmp, in2, in3);
 #else
-      geom = create_point(ctx, in2, in3);
-      if (geom == NULL) {
+      errstate = create_point(ctx, in2, in3, NULL, SHAPELY_HANDLE_NAN_ALLOW, &geom);
+      if (errstate != PGERR_SUCCESS) {
         if (destroy_prepared) {
           GEOSPreparedGeom_destroy_r(ctx, prepared_geom_tmp);
         }
-        errstate = PGERR_GEOS_EXCEPTION;
         goto finish;
       }
       ret = func(ctx, prepared_geom_tmp, geom);
@@ -538,7 +535,6 @@ static void* GEOSNormalize_r_with_clone(void* context, void* geom) {
 }
 static void* normalize_data[1] = {GEOSNormalize_r_with_clone};
 static void* force_2d_data[1] = {PyGEOSForce2D};
-#if GEOS_SINCE_3_8_0
 static void* build_area_data[1] = {GEOSBuildArea_r};
 static void* make_valid_data[1] = {GEOSMakeValid_r};
 static void* coverage_union_data[1] = {GEOSCoverageUnion_r};
@@ -553,13 +549,8 @@ static void* GEOSMinimumBoundingCircleWithReturn(void* context, void* geom) {
   return ret;
 }
 static void* minimum_bounding_circle_data[1] = {GEOSMinimumBoundingCircleWithReturn};
-#endif
-#if GEOS_SINCE_3_7_0
 static void* reverse_data[1] = {GEOSReverse_r};
-#endif
-#if GEOS_SINCE_3_6_0
 static void* oriented_envelope_data[1] = {GEOSMinimumRotatedRectangle_r};
-#endif
 #if GEOS_SINCE_3_11_0
 static void* line_merge_directed_data[1] = {GEOSLineMergeDirected_r};
 #endif
@@ -1051,7 +1042,6 @@ static int GetY(void* context, void* a, double* b) {
   }
 }
 static void* get_y_data[1] = {GetY};
-#if GEOS_SINCE_3_7_0
 static int GetZ(void* context, void* a, double* b) {
   char typ = GEOSGeomTypeId_r(context, a);
   if (typ != 0) {
@@ -1062,11 +1052,9 @@ static int GetZ(void* context, void* a, double* b) {
   }
 }
 static void* get_z_data[1] = {GetZ};
-#endif
 static void* area_data[1] = {GEOSArea_r};
 static void* length_data[1] = {GEOSLength_r};
 
-#if GEOS_SINCE_3_6_0
 static int GetPrecision(void* context, void* a, double* b) {
   // GEOS returns -1 on error; 0 indicates double precision; > 0 indicates a precision
   // grid size was set for this geometry.
@@ -1090,8 +1078,6 @@ static int MinimumClearance(void* context, void* a, double* b) {
   }
 }
 static void* minimum_clearance_data[1] = {MinimumClearance};
-#endif
-#if GEOS_SINCE_3_8_0
 static int GEOSMinimumBoundingRadius(void* context, GEOSGeometry* geom, double* radius) {
   GEOSGeometry* center = NULL;
   GEOSGeometry* ret = GEOSMinimumBoundingCircle_r(context, geom, radius, &center);
@@ -1103,7 +1089,6 @@ static int GEOSMinimumBoundingRadius(void* context, GEOSGeometry* geom, double* 
   return 1;  // success code
 }
 static void* minimum_bounding_radius_data[1] = {GEOSMinimumBoundingRadius};
-#endif
 typedef int FuncGEOS_Y_d(void* context, void* a, double* b);
 static char Y_d_dtypes[2] = {NPY_OBJECT, NPY_DOUBLE};
 static void Y_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
@@ -1230,7 +1215,6 @@ static PyUFuncGenericFunction Y_i_funcs[1] = {&Y_i_func};
 /* Define the geom, geom -> double functions (YY_d) */
 static void* distance_data[1] = {GEOSDistance_r};
 static void* hausdorff_distance_data[1] = {GEOSHausdorffDistance_r};
-#if GEOS_SINCE_3_7_0
 static int GEOSFrechetDistanceWrapped_r(void* context, void* a, void* b, double* c) {
   /* Handle empty geometries (they give segfaults) */
   if (GEOSisEmpty_r(context, a) || GEOSisEmpty_r(context, b)) {
@@ -1240,7 +1224,7 @@ static int GEOSFrechetDistanceWrapped_r(void* context, void* a, void* b, double*
   return GEOSFrechetDistance_r(context, a, b, c);
 }
 static void* frechet_distance_data[1] = {GEOSFrechetDistanceWrapped_r};
-#endif
+
 /* Project and ProjectNormalize don't return error codes. wrap them. */
 static int GEOSProjectWrapped_r(void* context, void* a, void* b, double* c) {
   /* Handle empty points (they give segfaults (for b) or give exception (for a)) */
@@ -1326,9 +1310,7 @@ static PyUFuncGenericFunction YY_d_funcs[1] = {&YY_d_func};
 
 /* Define the geom, geom, double -> double functions (YYd_d) */
 static void* hausdorff_distance_densify_data[1] = {GEOSHausdorffDistanceDensify_r};
-#if GEOS_SINCE_3_7_0
 static void* frechet_distance_densify_data[1] = {GEOSFrechetDistanceDensify_r};
-#endif
 typedef int FuncGEOS_YYd_d(void* context, void* a, void* b, double c, double* d);
 static char YYd_d_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_DOUBLE};
 static void YYd_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
@@ -2376,7 +2358,6 @@ static void shortest_line_func(char** args, const npy_intp* dimensions, const np
 }
 static PyUFuncGenericFunction shortest_line_funcs[1] = {&shortest_line_func};
 
-#if GEOS_SINCE_3_6_0
 static char set_precision_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_INT, NPY_OBJECT};
 static void set_precision_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                                void* data) {
@@ -2447,11 +2428,11 @@ static void set_precision_func(char** args, const npy_intp* dimensions, const np
 }
 
 static PyUFuncGenericFunction set_precision_funcs[1] = {&set_precision_func};
-#endif
 
 /* define double -> geometry construction functions */
-static char points_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
-static void points_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
+static char points_dtypes[3] = {NPY_DOUBLE, NPY_INT, NPY_OBJECT};
+static void points_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                        void* data) {
   GEOSCoordSequence* coord_seq = NULL;
   GEOSGeometry** geom_arr;
 
@@ -2463,38 +2444,35 @@ static void points_func(char** args, const npy_intp* dimensions, const npy_intp*
     return;
   }
 
+  if (steps[1] != 0) {
+    PyErr_Format(PyExc_ValueError,
+                 "points function called with non-scalar parameters");
+    return;
+  }
+  int handle_nan = *(int*)args[1];
+
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
   CHECK_ALLOC(geom_arr);
 
   GEOS_INIT_THREADS;
 
-  SINGLE_COREDIM_LOOP_OUTER {
+  char *ip1 = args[0];               
+  npy_intp is1 = steps[0], cs1 = steps[3]; 
+  npy_intp n = dimensions[0], n_c1 = dimensions[1];        
+  npy_intp i;                                        
+  for (i = 0; i < n; i++, ip1 += is1) {
     CHECK_SIGNALS_THREADS(i);
     if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
-
-    coord_seq = GEOSCoordSeq_create_r(ctx, 1, n_c1);
-    if (coord_seq == NULL) {
-      errstate = PGERR_GEOS_EXCEPTION;
-      destroy_geom_arr(ctx, geom_arr, i - 1);
-      goto finish;
-    }
-    SINGLE_COREDIM_LOOP_INNER {
-      if (!GEOSCoordSeq_setOrdinate_r(ctx, coord_seq, 0, i_c1, *(double*)cp1)) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        GEOSCoordSeq_destroy_r(ctx, coord_seq);
-        destroy_geom_arr(ctx, geom_arr, i - 1);
-        goto finish;
-      }
-    }
-    geom_arr[i] = GEOSGeom_createPoint_r(ctx, coord_seq);
-    // Note: coordinate sequence is owned by point; if point fails to construct, it will
-    // automatically clean up the coordinate sequence
-    if (geom_arr[i] == NULL) {
-      errstate = PGERR_GEOS_EXCEPTION;
+    // the per-point coordinates are retrieved by looping 2 or 3 (=n_c1) times
+    // over "ip1" with a stride of "cs1"
+    errstate = create_point(ctx, *(double*)ip1, *(double*)(ip1 + cs1),
+                            n_c1 == 3 ? (double*)(ip1 + 2 * cs1) : NULL,
+                            handle_nan, &(geom_arr[i]));
+    if (errstate != PGERR_SUCCESS) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
@@ -2504,13 +2482,13 @@ finish:
   GEOS_FINISH_THREADS;
   // fill the numpy array with PyObjects while holding the GIL
   if (errstate == PGERR_SUCCESS) {
-    geom_arr_to_npy(geom_arr, args[1], steps[1], dimensions[0]);
+    geom_arr_to_npy(geom_arr, args[2], steps[2], dimensions[0]);
   }
   free(geom_arr);
 }
 static PyUFuncGenericFunction points_funcs[1] = {&points_func};
 
-static char linestrings_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
+static char linestrings_dtypes[3] = {NPY_DOUBLE, NPY_INT, NPY_OBJECT};
 static void linestrings_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                              void* data) {
   GEOSCoordSequence* coord_seq = NULL;
@@ -2524,6 +2502,13 @@ static void linestrings_func(char** args, const npy_intp* dimensions, const npy_
     return;
   }
 
+  if (steps[1] != 0) {
+    PyErr_Format(PyExc_ValueError,
+                 "Linestrings function called with non-scalar parameters");
+    return;
+  }
+  int handle_nan = *(int*)args[1];
+
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
   CHECK_ALLOC(geom_arr);
@@ -2536,9 +2521,9 @@ static void linestrings_func(char** args, const npy_intp* dimensions, const npy_
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
-    coord_seq = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, 0, cs1, cs2);
-    if (coord_seq == NULL) {
-      errstate = PGERR_GEOS_EXCEPTION;
+    errstate = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, 0, handle_nan, cs1,
+                                    cs2, &coord_seq);
+    if (errstate != PGERR_SUCCESS) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
@@ -2557,19 +2542,18 @@ finish:
 
   // fill the numpy array with PyObjects while holding the GIL
   if (errstate == PGERR_SUCCESS) {
-    geom_arr_to_npy(geom_arr, args[1], steps[1], dimensions[0]);
+    geom_arr_to_npy(geom_arr, args[2], steps[2], dimensions[0]);
   }
   free(geom_arr);
 }
 static PyUFuncGenericFunction linestrings_funcs[1] = {&linestrings_func};
 
-static char linearrings_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
+static char linearrings_dtypes[3] = {NPY_DOUBLE, NPY_INT, NPY_OBJECT};
 static void linearrings_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                              void* data) {
   GEOSCoordSequence* coord_seq = NULL;
   GEOSGeometry** geom_arr;
-  char ring_closure = 0;
-  double first_coord, last_coord;
+  unsigned int size;
 
   // check the ordinate dimension before calling coordseq_from_buffer
   if (dimensions[2] < 2 || dimensions[2] > 3) {
@@ -2578,6 +2562,13 @@ static void linearrings_func(char** args, const npy_intp* dimensions, const npy_
                  dimensions[2]);
     return;
   }
+
+  if (steps[1] != 0) {
+    PyErr_Format(PyExc_ValueError,
+                 "Linearrings function called with non-scalar parameters");
+    return;
+  }
+  int handle_nan = *(int*)args[1];
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
@@ -2591,31 +2582,21 @@ static void linearrings_func(char** args, const npy_intp* dimensions, const npy_
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
-    /* check if first and last coords are equal; duplicate if necessary */
-    ring_closure = 0;
-    if (n_c1 == 3) {
-      ring_closure = 1;
-    } else {
-      DOUBLE_COREDIM_LOOP_INNER_2 {
-        first_coord = *(double*)(ip1 + i_c2 * cs2);
-        last_coord = *(double*)(ip1 + (n_c1 - 1) * cs1 + i_c2 * cs2);
-        if (first_coord != last_coord) {
-          ring_closure = 1;
-          break;
-        }
-      }
-    }
-    /* the minimum number of coordinates in a linearring is 4 */
-    if (n_c1 + ring_closure < 4) {
-      errstate = PGERR_LINEARRING_NCOORDS;
+    /* fill the coordinate sequence */
+    errstate = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, 1, handle_nan, cs1,
+                                    cs2, &coord_seq);
+    if (errstate != PGERR_SUCCESS) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
-    /* fill the coordinate sequence */
-    coord_seq =
-        coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, ring_closure, cs1, cs2);
-    if (coord_seq == NULL) {
+    /* the minimum number of coordinates in a linearring is 4 */
+    if (!GEOSCoordSeq_getSize_r(ctx, coord_seq, &size)) {
       errstate = PGERR_GEOS_EXCEPTION;
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      goto finish;
+    }
+    if ((size > 0) && (size < 4)) {
+      errstate = PGERR_LINEARRING_NCOORDS;
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
@@ -2634,7 +2615,7 @@ finish:
 
   // fill the numpy array with PyObjects while holding the GIL
   if (errstate == PGERR_SUCCESS) {
-    geom_arr_to_npy(geom_arr, args[1], steps[1], dimensions[0]);
+    geom_arr_to_npy(geom_arr, args[2], steps[2], dimensions[0]);
   }
   free(geom_arr);
 }
@@ -2898,7 +2879,6 @@ static void bounds_func(char** args, const npy_intp* dimensions, const npy_intp*
     if (in1 == NULL) { /* no geometry => bbox becomes (nan, nan, nan, nan) */
       *x1 = *y1 = *x2 = *y2 = NPY_NAN;
     } else {
-
 #if GEOS_SINCE_3_11_0
       if (GEOSisEmpty_r(ctx, in1)) {
         *x1 = *y1 = *x2 = *y2 = NPY_NAN;
@@ -2910,7 +2890,7 @@ static void bounds_func(char** args, const npy_intp* dimensions, const npy_intp*
         }
       }
 
-#elif GEOS_SINCE_3_7_0
+#else
       if (GEOSisEmpty_r(ctx, in1)) {
         *x1 = *y1 = *x2 = *y2 = NPY_NAN;
       } else {
@@ -2931,62 +2911,6 @@ static void bounds_func(char** args, const npy_intp* dimensions, const npy_intp*
           goto finish;
         }
       }
-#else
-      /* construct the envelope */
-      envelope = GEOSEnvelope_r(ctx, in1);
-      if (envelope == NULL) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        goto finish;
-      }
-      size = GEOSGetNumCoordinates_r(ctx, envelope);
-
-      /* get the bbox depending on the number of coordinates in the envelope */
-      if (size == 0) { /* Envelope is empty */
-        *x1 = *y1 = *x2 = *y2 = NPY_NAN;
-      } else if (size == 1) { /* Envelope is a point */
-        if (!GEOSGeomGetX_r(ctx, envelope, x1)) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          goto finish;
-        }
-        if (!GEOSGeomGetY_r(ctx, envelope, y1)) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          goto finish;
-        }
-        *x2 = *x1;
-        *y2 = *y1;
-      } else if (size == 5) { /* Envelope is a box */
-        ring = GEOSGetExteriorRing_r(ctx, envelope);
-        if (ring == NULL) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          goto finish;
-        }
-        coord_seq = GEOSGeom_getCoordSeq_r(ctx, ring);
-        if (coord_seq == NULL) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          goto finish;
-        }
-        if (!GEOSCoordSeq_getX_r(ctx, coord_seq, 0, x1)) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          goto finish;
-        }
-        if (!GEOSCoordSeq_getY_r(ctx, coord_seq, 0, y1)) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          goto finish;
-        }
-        if (!GEOSCoordSeq_getX_r(ctx, coord_seq, 2, x2)) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          goto finish;
-        }
-        if (!GEOSCoordSeq_getY_r(ctx, coord_seq, 2, y2)) {
-          errstate = PGERR_GEOS_EXCEPTION;
-          goto finish;
-        }
-      } else {
-        errstate = PGERR_GEOMETRY_TYPE;
-        goto finish;
-      }
-      GEOSGeom_destroy_r(ctx, envelope);
-      envelope = NULL;
 #endif
     }
   }
@@ -3592,11 +3516,10 @@ TODO relate functions
                                   PyUFunc_None, #NAME, "", 0);                   \
   PyDict_SetItemString(d, #NAME, ufunc)
 
-#define DEFINE_Y_Y_reduce(NAME)                                               \
-  ufunc = PyUFunc_FromFuncAndDataAndSignature(Y_Y_reduce_funcs, NAME##_data,  \
-                                              Y_Y_reduce_dtypes, 1, 1, 1,     \
-                                              PyUFunc_None, #NAME, "", 0,     \
-                                              "(d)->()");                     \
+#define DEFINE_Y_Y_reduce(NAME)                                                         \
+  ufunc = PyUFunc_FromFuncAndDataAndSignature(Y_Y_reduce_funcs, NAME##_data,            \
+                                              Y_Y_reduce_dtypes, 1, 1, 1, PyUFunc_None, \
+                                              #NAME, "", 0, "(d)->()");                 \
   PyDict_SetItemString(d, #NAME, ufunc)
 
 #define DEFINE_Y_d(NAME)                                                       \
@@ -3649,6 +3572,7 @@ TODO relate functions
 int init_ufuncs(PyObject* m, PyObject* d) {
   PyObject* ufunc;
 
+  DEFINE_Y_b(is_ccw);
   DEFINE_Y_b(is_empty);
   DEFINE_Y_b(is_simple);
   DEFINE_Y_b(is_geometry);
@@ -3688,6 +3612,12 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Y_Y(get_exterior_ring);
   DEFINE_Y_Y(normalize);
   DEFINE_Y_Y(force_2d);
+  DEFINE_Y_Y(oriented_envelope);
+  DEFINE_Y_Y(reverse);
+  DEFINE_Y_Y(make_valid);
+  DEFINE_Y_Y(build_area);
+  DEFINE_Y_Y(coverage_union);
+  DEFINE_Y_Y(minimum_bounding_circle);
 
   DEFINE_Y(prepare);
   DEFINE_Y(destroy_prepared);
@@ -3712,10 +3642,14 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Y_Y_reduce(intersection_all);
   DEFINE_Y_Y_reduce(symmetric_difference_all);
 
+  DEFINE_Y_d(get_precision);
   DEFINE_Y_d(get_x);
   DEFINE_Y_d(get_y);
+  DEFINE_Y_d(get_z);
   DEFINE_Y_d(area);
   DEFINE_Y_d(length);
+  DEFINE_Y_d(minimum_clearance);
+  DEFINE_Y_d(minimum_bounding_radius);
 
   DEFINE_Y_i(get_type_id);
   DEFINE_Y_i(get_dimensions);
@@ -3727,10 +3661,12 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Y_i(get_num_coordinates);
 
   DEFINE_YY_d(distance);
+  DEFINE_YY_d(frechet_distance);
   DEFINE_YY_d(hausdorff_distance);
   DEFINE_YY_d(line_locate_point);
   DEFINE_YY_d(line_locate_point_normalized);
 
+  DEFINE_YYd_d(frechet_distance_densify);
   DEFINE_YYd_d(hausdorff_distance_densify);
 
   DEFINE_CUSTOM(box, 5);
@@ -3749,10 +3685,10 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_GENERALIZED_NOUT4(polygonize_full, 1, "(d)->(),(),(),()");
   DEFINE_CUSTOM(shortest_line, 2);
 
-  DEFINE_GENERALIZED(points, 1, "(d)->()");
-  DEFINE_GENERALIZED(linestrings, 1, "(i, d)->()");
-  DEFINE_GENERALIZED(linearrings, 1, "(i, d)->()");
-  DEFINE_GENERALIZED(bounds, 1, "()->(n)");
+  DEFINE_GENERALIZED(points, 2, "(d),()->()");
+  DEFINE_GENERALIZED(linestrings, 2, "(i, d),()->()");
+  DEFINE_GENERALIZED(linearrings, 2, "(i, d),()->()");
+  DEFINE_GENERALIZED(bounds, 1, "()->(4)");
   DEFINE_GENERALIZED(polygons, 2, "(),(i)->()");
   DEFINE_GENERALIZED(create_collection, 2, "(i),()->()");
 
@@ -3760,29 +3696,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_CUSTOM(from_wkt, 2);
   DEFINE_CUSTOM(to_wkb, 6);
   DEFINE_CUSTOM(to_wkt, 5);
-
-#if GEOS_SINCE_3_6_0
-  DEFINE_Y_d(minimum_clearance);
-  DEFINE_Y_d(get_precision);
-  DEFINE_Y_Y(oriented_envelope);
   DEFINE_CUSTOM(set_precision, 3);
-#endif
-
-#if GEOS_SINCE_3_7_0
-  DEFINE_Y_b(is_ccw);
-  DEFINE_Y_d(get_z);
-  DEFINE_Y_Y(reverse);
-  DEFINE_YY_d(frechet_distance);
-  DEFINE_YYd_d(frechet_distance_densify);
-#endif
-
-#if GEOS_SINCE_3_8_0
-  DEFINE_Y_Y(make_valid);
-  DEFINE_Y_Y(build_area);
-  DEFINE_Y_Y(coverage_union);
-  DEFINE_Y_Y(minimum_bounding_circle);
-  DEFINE_Y_d(minimum_bounding_radius);
-#endif
 
 #if GEOS_SINCE_3_9_0
   DEFINE_YYd_Y(difference_prec);

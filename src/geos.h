@@ -45,7 +45,7 @@ finish:
 */
 
 // Define the error states
-enum {
+enum ShapelyErrorCode {
   PGERR_SUCCESS,
   PGERR_NOT_A_GEOMETRY,
   PGERR_GEOS_EXCEPTION,
@@ -55,6 +55,7 @@ enum {
   PGERR_EMPTY_GEOMETRY,
   PGERR_GEOJSON_EMPTY_POINT,
   PGERR_LINEARRING_NCOORDS,
+  PGERR_NAN_COORD,
   PGWARN_INVALID_WKB,  // raise the GEOS WKB error as a warning instead of exception
   PGWARN_INVALID_WKT,  // raise the GEOS WKT error as a warning instead of exception
   PGWARN_INVALID_GEOJSON,
@@ -100,6 +101,11 @@ enum {
       PyErr_SetString(PyExc_ValueError,                                                  \
                       "A linearring requires at least 4 coordinates.");                  \
       break;                                                                             \
+    case PGERR_NAN_COORD:                                                                \
+      PyErr_SetString(PyExc_ValueError,                                                  \
+                      "A NaN, Inf or -Inf coordinate was supplied. Remove the "          \
+                      "coordinate or adapt the 'handle_nan' parameter.");               \
+      break;                                                                             \
     case PGWARN_INVALID_WKB:                                                             \
       PyErr_WarnFormat(PyExc_Warning, 0,                                                 \
                        "Invalid WKB: geometry is returned as None. %s", last_error);     \
@@ -112,7 +118,7 @@ enum {
       PyErr_WarnFormat(PyExc_Warning, 0,                                                 \
                        "Invalid GeoJSON: geometry is returned as None. %s", last_error); \
       break;                                                                             \
-    case PGERR_PYSIGNAL:                                                         \
+    case PGERR_PYSIGNAL:                                                                 \
       break;                                                                             \
     default:                                                                             \
       PyErr_Format(PyExc_RuntimeError,                                                   \
@@ -147,10 +153,6 @@ enum {
   GEOS_finish_r(ctx);       \
   Py_END_ALLOW_THREADS GEOS_HANDLE_ERR
 
-#define GEOS_SINCE_3_5_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 5))
-#define GEOS_SINCE_3_6_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 6))
-#define GEOS_SINCE_3_7_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 7))
-#define GEOS_SINCE_3_8_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 8))
 #define GEOS_SINCE_3_9_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 9))
 #define GEOS_SINCE_3_10_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 10))
 #define GEOS_SINCE_3_11_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 11))
@@ -177,14 +179,20 @@ int get_bounds(GEOSContextHandle_t ctx, GEOSGeometry* geom, double* xmin, double
                double* xmax, double* ymax);
 GEOSGeometry* create_box(GEOSContextHandle_t ctx, double xmin, double ymin, double xmax,
                          double ymax, char ccw);
-GEOSGeometry* create_point(GEOSContextHandle_t ctx, double x, double y);
+extern enum ShapelyErrorCode create_point(GEOSContextHandle_t ctx, double x, double y,
+                                          double* z, int handle_nan, GEOSGeometry** out);
 GEOSGeometry* PyGEOSForce2D(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 GEOSGeometry* PyGEOSForce3D(GEOSContextHandle_t ctx, GEOSGeometry* geom, double z);
 
-GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
-                                        unsigned int size, unsigned int dims, char ring_closure,
-                                        npy_intp cs1, npy_intp cs2);
+enum ShapelyHandleNan { SHAPELY_HANDLE_NAN_ALLOW, SHAPELY_HANDLE_NAN_SKIP, SHAPELY_HANDLE_NANS_ERROR };
+
+extern enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx,
+                                                  const double* buf, unsigned int size,
+                                                  unsigned int dims, char is_ring,
+                                                  int handle_nan, npy_intp cs1,
+                                                  npy_intp cs2,
+                                GEOSCoordSequence** coord_seq);
 extern int coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq,
-                               double* buf, unsigned int size, unsigned int dims);
+                              double* buf, unsigned int size, unsigned int dims);
 
 #endif  // _GEOS_H

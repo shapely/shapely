@@ -1,6 +1,65 @@
 Version 2.x
 ===========
 
+.. _version-2-1-0:
+
+Version 2.1.0 (unreleased)
+--------------------------
+
+Improvements:
+
+- Require GEOS >= 3.7, NumPy >= 1.16, and Python >= 3.8 (#1802)
+- Add a ``handle_nan`` parameter to ``shapely.linestrings()`` and ``shapely.linearrings()``
+  to allow, skip, or error on nonfinite (NaN / Inf) coordinates. The default
+  behaviour (allow) is backwards compatible (#1594).
+
+.. _version-2-0-2:
+
+Version 2.0.2 (unreleased)
+--------------------------
+
+Bug fixes:
+
+- Fix regression in the (in)equality comparison (``geom1 == geom2``) using ``__eq__`` to
+  not ignore the z-coordinates (#1732).
+- Fix ``MultiPolygon()`` constructor to accept polygons without holes (#1850).
+
+
+.. _version-2-0-1:
+
+Version 2.0.1 (2023-01-30)
+--------------------------
+
+Bug fixes:
+
+- Fix regression in the ``Polygon()`` constructor taking a sequence of Points (#1662).
+- Fix regression in the geometry constructors when passing ``decimal.Decimal``
+  coordinate values (#1707).
+- Fix ``STRtree()`` to not make the passed geometry array immutable as side-effect of
+  the constructor (#1714).
+- Fix the ``directed`` keyword in ``shapely.ops.linemerge()`` (#1695).
+
+Improvements:
+
+- Expose the function to get a matplotlib Patch object from a (Multi)Polygon (without
+  already plotting it) publicly as :func:`shapely.plotting.patch_from_polygon` (#1704).
+
+Acknowledgments
+^^^^^^^^^^^^^^^
+
+Thanks to everyone who contributed to this release!
+People with a "+" by their names contributed a patch for the first time.
+
+* Brendan Ward
+* Erik Pettersson +
+* Hood Chatham +
+* Idan Miara +
+* Joris Van den Bossche
+* Martin Fleischmann
+* Michał Górny +
+* Sebastian Castro +
+
+
 .. _version-2-0-0:
 
 Version 2.0.0 (2022-12-12)
@@ -47,8 +106,7 @@ both more verbose to use and has a large performance overhead.
 
 Shapely 2.0 exposes GEOS operations as vectorized functions that operate
 on arrays of geometries using a familiar NumPy interface. Those functions are
-implemented as
-`NumPy *universal functions* <https://numpy.org/doc/stable/reference/ufuncs.html>`__
+implemented as :ref:`NumPy universal functions <ufuncs>`
 (or ufunc for short). A universal function is a function that operates on
 n-dimensional arrays in an element-by-element fashion and supports array
 broadcasting. All loops over geometries are implemented in C, which results
@@ -94,7 +152,7 @@ small name deviations, such as the ``.wkt`` attribute being available as a
 functions from the ``shapely.ops`` submodule such as ``polygonize()``) are
 also made available in a vectorized version as top-level function.
 
-A full list of functions can be found in the API docs. TODO add link
+A full list of functions can be found in the API docs (see the pages listed under "API REFERENCE" in the left sidebar).
 
 * Vectorized constructor functions
 * Optionally output to a user-specified array (``out`` keyword argument) when constructing

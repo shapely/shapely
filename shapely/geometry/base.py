@@ -197,6 +197,23 @@ class BaseGeometry(shapely.Geometry):
     def __xor__(self, other):
         return self.symmetric_difference(other)
 
+    def __eq__(self, other):
+        if not isinstance(other, BaseGeometry):
+            return NotImplemented
+        # equal_nan=False is the default, but not yet available for older numpy
+        # TODO updated once we require numpy >= 1.19
+        return type(other) == type(self) and np.array_equal(
+            self.coords, other.coords  # , equal_nan=False
+        )
+
+    def __ne__(self, other):
+        if not isinstance(other, BaseGeometry):
+            return NotImplemented
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return super().__hash__()
+
     # Coordinate access
     # -----------------
 
@@ -721,23 +738,21 @@ class BaseGeometry(shapely.Geometry):
         """
         return _maybe_unpack(shapely.dwithin(self, other, distance))
 
-    def equals_exact(self, other, tolerance):
-        """True if geometries are equal to within a specified
-        tolerance.
+    def equals_exact(self, other, tolerance=0.0, normalize=False):
+        """Returns ``True`` if the geometries are structurally equivalent
+        within a given tolerance.
+
+        Refer to :func:`~shapely.equals_exact` for full documentation.
 
         Parameters
         ----------
         other : BaseGeometry
             The other geometry object in this comparison.
-        tolerance : float
+        tolerance : float, optional (default: 0.)
             Absolute tolerance in the same units as coordinates.
-
-        This method considers coordinate equality, which requires
-        coordinates to be equal and in the same order for all components
-        of a geometry.
-
-        Because of this it is possible for "equals()" to be True for two
-        geometries and "equals_exact()" to be False.
+        normalize : bool, optional (default: False)
+            If True, normalize the two geometries so that the coordinates are
+            in the same order.
 
         Examples
         --------
@@ -754,7 +769,7 @@ class BaseGeometry(shapely.Geometry):
         bool
 
         """
-        return _maybe_unpack(shapely.equals_exact(self, other, tolerance))
+        return _maybe_unpack(shapely.equals_exact(self, other, tolerance, normalize))
 
     def almost_equals(self, other, decimal=6):
         """True if geometries are equal at all coordinates to a
@@ -918,6 +933,18 @@ class BaseMultipartGeometry(BaseGeometry):
 
     def __bool__(self):
         return self.is_empty is False
+
+    def __eq__(self, other):
+        if not isinstance(other, BaseGeometry):
+            return NotImplemented
+        return (
+            type(other) == type(self)
+            and len(self.geoms) == len(other.geoms)
+            and all(a == b for a, b in zip(self.geoms, other.geoms))
+        )
+
+    def __hash__(self):
+        return super().__hash__()
 
     def svg(self, scale_factor=1.0, color=None):
         """Returns a group of SVG elements for the multipart geometry.

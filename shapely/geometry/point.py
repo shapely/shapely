@@ -64,12 +64,17 @@ class Point(BaseGeometry):
             # Accept either (x, y) or [(x, y)]
             if not hasattr(coords, "__getitem__"):  # generators
                 coords = list(coords)
-
             coords = np.asarray(coords).squeeze()
         else:
             # 2 or 3 args
             coords = np.array(args).squeeze()
 
+        if coords.ndim > 1:
+            raise ValueError(
+                f"Point() takes only scalar or 1-size vector arguments, got {args}"
+            )
+        if not np.issubdtype(coords.dtype, np.number):
+            coords = [float(c) for c in coords]
         geom = shapely.points(coords)
         if not isinstance(geom, Point):
             raise ValueError("Invalid values passed to Point constructor")
@@ -92,8 +97,7 @@ class Point(BaseGeometry):
         """Return z coordinate."""
         if not shapely.has_z(self):
             raise DimensionError("This point has no z coordinate.")
-        # return shapely.get_z(self) -> get_z only supported for GEOS 3.7+
-        return self.coords[0][2]
+        return shapely.get_z(self)
 
     @property
     def __geo_interface__(self):

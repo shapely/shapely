@@ -1,6 +1,6 @@
-from . import lib
-from .decorators import multithreading_enabled
-from .errors import UnsupportedGEOSVersionError
+from shapely import lib
+from shapely.decorators import multithreading_enabled
+from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
     "line_interpolate_point",
@@ -28,8 +28,7 @@ def line_interpolate_point(line, distance, normalized=False, **kwargs):
         If True, the distance is a fraction of the total
         line length instead of the absolute distance.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -67,8 +66,7 @@ def line_locate_point(line, other, normalized=False, **kwargs):
         If True, the distance is a fraction of the total
         line length instead of the absolute distance.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -113,8 +111,7 @@ def line_merge(line, directed=False, **kwargs):
         Only combine lines if possible without changing point order.
         Requires GEOS >= 3.11.0
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -157,8 +154,7 @@ def shared_paths(a, b, **kwargs):
     a : Geometry or array_like
     b : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -190,8 +186,7 @@ def shortest_line(a, b, **kwargs):
     a : Geometry or array_like
     b : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------

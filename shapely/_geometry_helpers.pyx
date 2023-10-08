@@ -13,6 +13,7 @@ import shapely
 
 from shapely._geos cimport (
     GEOSContextHandle_t,
+    GEOSCoordSeq_getSize_r,
     GEOSCoordSequence,
     GEOSGeom_clone_r,
     GEOSGeom_createCollection_r,
@@ -31,9 +32,12 @@ from shapely._geos cimport (
 )
 from shapely._pygeos_api cimport (
     import_shapely_c_api,
+    PGERR_NAN_COORD,
+    PGERR_SUCCESS,
     PyGEOS_CoordSeq_FromBuffer,
     PyGEOS_CreateGeometry,
     PyGEOS_GetGEOSGeometry,
+    ShapelyHandleNan,
 )
 
 # initialize Shapely C API
@@ -50,19 +54,20 @@ def _check_out_array(object out, Py_ssize_t size):
     if out.dtype != object:
         raise TypeError("out array dtype must be object")
     if out.ndim != 1:
-        raise TypeError("out must be a one-dimensional array.") 
+        raise TypeError("out must be a one-dimensional array.")
     if out.shape[0] < size:
-        raise ValueError(f"out array is too small ({out.shape[0]} < {size})") 
+        raise ValueError(f"out array is too small ({out.shape[0]} < {size})")
     return out
 
- 
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def simple_geometries_1d(object coordinates, object indices, int geometry_type, object out = None):
+def simple_geometries_1d(object coordinates, object indices, int geometry_type, int handle_nan, object out = None):
     cdef Py_ssize_t idx = 0
     cdef unsigned int coord_idx = 0
     cdef Py_ssize_t geom_idx = 0
     cdef unsigned int geom_size = 0
+    cdef unsigned int actual_geom_size = 0
     cdef unsigned int ring_closure = 0
     cdef GEOSGeometry *geom = NULL
     cdef GEOSCoordSequence *seq = NULL
@@ -86,14 +91,16 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type, 
     if geometry_type not in {0, 1, 2}:
         raise ValueError(f"Invalid geometry_type: {geometry_type}.")
 
+    cdef char is_ring = 1 if geometry_type == 2 else 0
+
     if coordinates.shape[0] == 0:
         # return immediately if there are no geometries to return
         return np.empty(shape=(0, ), dtype=np.object_)
 
     if np.any(indices[1:] < indices[:indices.shape[0] - 1]):
-        raise ValueError("The indices must be sorted.")  
+        raise ValueError("The indices must be sorted.")
 
-    cdef double[:, :] coord_view = coordinates
+    cdef const double[:, :] coord_view = coordinates
 
     # get the geometry count per collection (this raises on negative indices)
     cdef unsigned int[:] coord_counts = np.bincount(indices).astype(np.uint32)
@@ -117,25 +124,25 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type, 
                     raise ValueError(
                         f"Index {geom_idx} is missing from the input indices."
                     )
-
-            # check if we need to close a linearring
-            if geometry_type == 2:
-                ring_closure = 0
-                if geom_size == 3:
-                    ring_closure = 1
-                else:
-                    for coord_idx in range(dims):
-                        if coord_view[idx, coord_idx] != coord_view[idx + geom_size - 1, coord_idx]:
-                            ring_closure = 1
-                            break
-                # check the resulting size to prevent invalid rings
-                if geom_size + ring_closure < 4:
+            errstate = PyGEOS_CoordSeq_FromBuffer(
+                geos_handle, &coord_view[idx, 0], geom_size, dims,
+                is_ring, handle_nan, &seq
+            )
+            if errstate == PGERR_NAN_COORD:
+                raise ValueError(
+                    "A NaN, Inf or -Inf coordinate was supplied. Remove the "
+                    "coordinate or adapt the 'handle_nan' parameter."
+                )
+            elif errstate != PGERR_SUCCESS:
+                return  # GEOSException is raised by get_geos_handle
+            # check the resulting size to prevent invalid rings
+            if is_ring == 1:
+                if GEOSCoordSeq_getSize_r(geos_handle, seq, &actual_geom_size) == 0:
+                    return  # GEOSException is raised by get_geos_handle
+                if 0 < actual_geom_size < 4:
                     # the error equals PGERR_LINEARRING_NCOORDS (in shapely/src/geos.h)
                     raise ValueError("A linearring requires at least 4 coordinates.")
 
-            seq = PyGEOS_CoordSeq_FromBuffer(geos_handle, &coord_view[idx, 0], geom_size, dims, ring_closure)
-            if seq == NULL:
-                return  # GEOSException is raised by get_geos_handle
             idx += geom_size
 
             if geometry_type == 0:
@@ -296,7 +303,7 @@ def collections_1d(object geometries, object indices, int geometry_type = 7, obj
         return np.empty(shape=(0, ), dtype=object)
 
     if np.any(indices[1:] < indices[:indices.shape[0] - 1]):
-        raise ValueError("The indices should be sorted.")  
+        raise ValueError("The indices should be sorted.")
 
     # get the geometry count per collection (this raises on negative indices)
     cdef int[:] collection_size = np.bincount(indices).astype(np.int32)
@@ -349,11 +356,11 @@ def collections_1d(object geometries, object indices, int geometry_type = 7, obj
                             f"One of the arguments has unexpected geometry type {curr_type}."
                         )
 
-                # assign to the temporary geometry array  
+                # assign to the temporary geometry array
                 geom = GEOSGeom_clone_r(geos_handle, geom)
                 if geom == NULL:
                     _deallocate_arr(geos_handle, temp_geoms_view, coll_size)
-                    return  # GEOSException is raised by get_geos_handle           
+                    return  # GEOSException is raised by get_geos_handle
                 temp_geoms_view[coll_size] = <np.intp_t>geom
                 coll_size += 1
 
@@ -361,7 +368,7 @@ def collections_1d(object geometries, object indices, int geometry_type = 7, obj
             if geometry_type != 3:  # Collection
                 coll = GEOSGeom_createCollection_r(
                     geos_handle,
-                    geometry_type, 
+                    geometry_type,
                     <GEOSGeometry**> &temp_geoms_view[0],
                     coll_size
                 )

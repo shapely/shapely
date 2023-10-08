@@ -4,14 +4,13 @@ Geometry factories based on the geo interface
 import numpy as np
 
 from shapely.errors import GeometryTypeError
-
-from .collection import GeometryCollection
-from .linestring import LineString
-from .multilinestring import MultiLineString
-from .multipoint import MultiPoint
-from .multipolygon import MultiPolygon
-from .point import Point
-from .polygon import LinearRing, Polygon
+from shapely.geometry.collection import GeometryCollection
+from shapely.geometry.linestring import LineString
+from shapely.geometry.multilinestring import MultiLineString
+from shapely.geometry.multipoint import MultiPoint
+from shapely.geometry.multipolygon import MultiPolygon
+from shapely.geometry.point import Point
+from shapely.geometry.polygon import LinearRing, Polygon
 
 
 def _is_coordinates_empty(coordinates):
@@ -90,6 +89,12 @@ def shape(context):
     else:
         ob = context
     geom_type = ob.get("type").lower()
+
+    if geom_type == "feature":
+        # GeoJSON features must have a 'geometry' field.
+        ob = ob["geometry"]
+        geom_type = ob.get("type").lower()
+
     if "coordinates" in ob and _is_coordinates_empty(ob["coordinates"]):
         return _empty_shape_for_no_coordinates(geom_type)
     elif geom_type == "point":

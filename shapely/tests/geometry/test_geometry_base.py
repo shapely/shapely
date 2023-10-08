@@ -62,34 +62,6 @@ def test_weakrefable(geom):
     _ = weakref.ref(geom)
 
 
-@pytest.mark.parametrize("geom", geometries_all_types)
-def test_comparison_notimplemented(geom):
-    # comparing to a non-geometry class should return NotImplemented in __eq__
-    # to ensure proper delegation to other (eg to ensure comparison of scalar
-    # with array works)
-    # https://github.com/shapely/shapely/issues/1056
-    assert geom.__eq__(1) is NotImplemented
-
-    # with array
-    arr = np.array([geom, geom], dtype=object)
-
-    result = arr == geom
-    assert isinstance(result, np.ndarray)
-    assert result.all()
-
-    result = geom == arr
-    assert isinstance(result, np.ndarray)
-    assert result.all()
-
-    result = arr != geom
-    assert isinstance(result, np.ndarray)
-    assert not result.any()
-
-    result = geom != arr
-    assert isinstance(result, np.ndarray)
-    assert not result.any()
-
-
 def test_base_class_not_callable():
     with pytest.raises(TypeError):
         shapely.Geometry("POINT (1 1)")
@@ -120,7 +92,6 @@ def test_segmentize():
     assert result.equals(LineString([(0, 0), (0, 5), (0, 10)]))
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 def test_reverse():
     coords = [(0, 0), (1, 2)]
     line = LineString(coords)

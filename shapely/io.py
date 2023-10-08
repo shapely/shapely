@@ -1,12 +1,12 @@
 import numpy as np
 
-from . import lib
-from ._enum import ParamEnum
+from shapely import lib
+from shapely._enum import ParamEnum
 
 # include ragged array functions here for reference documentation purpose
-from ._ragged_array import from_ragged_array, to_ragged_array
-from .decorators import requires_geos
-from .errors import UnsupportedGEOSVersionError
+from shapely._ragged_array import from_ragged_array, to_ragged_array
+from shapely.decorators import requires_geos
+from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
     "from_geojson",
@@ -67,8 +67,7 @@ def to_wkt(
         (ie. "POINT Z (10 20 30)") is returned, but with ``old_3d=True``
         the WKT will be formatted in the style "POINT (10 20 30)".
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -161,8 +160,7 @@ def to_wkb(
         geometries) and ``include_srid=False``.
         The `from_wkb` function can read both flavors.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -222,8 +220,7 @@ def to_geojson(geometry, indent=None, **kwargs):
         An indent level of 0 will only insert newlines. None (the default)
         selects the most compact representation.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -270,8 +267,7 @@ def from_wkt(geometry, on_invalid="raise", **kwargs):
           returned as ``None``.
         - ignore: invalid WKT geometries will be returned as ``None`` without a warning.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -304,8 +300,7 @@ def from_wkb(geometry, on_invalid="raise", **kwargs):
           returned as ``None``.
         - ignore: invalid WKB geometries will be returned as ``None`` without a warning.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -350,8 +345,7 @@ def from_geojson(geometry, on_invalid="raise", **kwargs):
           returned as ``None``.
         - ignore: invalid input geometries will be returned as ``None`` without a warning.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------

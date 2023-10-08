@@ -5,8 +5,7 @@ import pytest
 
 import shapely
 from shapely import LinearRing, LineString, Point
-
-from .common import (
+from shapely.tests.common import (
     all_types,
     empty,
     geometry_collection,
@@ -27,10 +26,7 @@ UNARY_PREDICATES = (
     shapely.is_geometry,
     shapely.is_valid_input,
     shapely.is_prepared,
-    pytest.param(
-        shapely.is_ccw,
-        marks=pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7"),
-    ),
+    shapely.is_ccw,
 )
 
 BINARY_PREDICATES = (
@@ -89,7 +85,7 @@ def test_unary_missing(func):
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func", BINARY_PREDICATES)
 def test_binary_array(a, func):
-    with ignore_invalid(shapely.is_empty(a)):
+    with ignore_invalid(shapely.is_empty(a) and shapely.geos_version < (3, 12, 0)):
         # Empty geometries give 'invalid value encountered' in all predicates
         # (see https://github.com/libgeos/geos/issues/515)
         actual = func([a, a], point)
@@ -111,10 +107,19 @@ def test_binary_missing(func):
     assert (~actual).all()
 
 
+def test_binary_empty_result():
+    a = LineString([(0, 0), (3, 0), (3, 3), (0, 3)])
+    b = LineString([(5, 1), (6, 1)])
+    with ignore_invalid(shapely.geos_version < (3, 12, 0)):
+        # Intersection resulting in empty geometries give 'invalid value encountered'
+        # (https://github.com/shapely/shapely/issues/1345)
+        assert shapely.intersection(a, b).is_empty
+
+
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func, func_bin", XY_PREDICATES)
 def test_xy_array(a, func, func_bin):
-    with ignore_invalid(shapely.is_empty(a)):
+    with ignore_invalid(shapely.is_empty(a) and shapely.geos_version < (3, 12, 0)):
         # Empty geometries give 'invalid value encountered' in all predicates
         # (see https://github.com/libgeos/geos/issues/515)
         actual = func([a, a], 2, 3)
@@ -127,7 +132,7 @@ def test_xy_array(a, func, func_bin):
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func, func_bin", XY_PREDICATES)
 def test_xy_array_broadcast(a, func, func_bin):
-    with ignore_invalid(shapely.is_empty(a)):
+    with ignore_invalid(shapely.is_empty(a) and shapely.geos_version < (3, 12, 0)):
         # Empty geometries give 'invalid value encountered' in all predicates
         # (see https://github.com/libgeos/geos/issues/515)
         actual = func(a, [0, 1, 2], [1, 2, 3])
@@ -187,6 +192,14 @@ def test_equals_exact_tolerance():
     np.testing.assert_allclose(actual, [False, True, False])
 
 
+def test_equals_exact_normalize():
+    l1 = LineString([(0, 0), (1, 1)])
+    l2 = LineString([(1, 1), (0, 0)])
+    # default requirs same order of coordinates
+    assert not shapely.equals_exact(l1, l2)
+    assert shapely.equals_exact(l1, l2, normalize=True)
+
+
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 def test_dwithin():
     p1 = shapely.points(50, 4)
@@ -239,7 +252,7 @@ def test_relate_pattern():
 
 
 def test_relate_pattern_empty():
-    with ignore_invalid():
+    with ignore_invalid(shapely.geos_version < (3, 12, 0)):
         # Empty geometries give 'invalid value encountered' in all predicates
         # (see https://github.com/libgeos/geos/issues/515)
         assert shapely.relate_pattern(empty, empty, "*" * 9).item() is True
@@ -269,7 +282,6 @@ def test_relate_pattern_non_scalar():
         shapely.relate_pattern([point] * 2, polygon, ["*********"] * 2)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 @pytest.mark.parametrize(
     "geom, expected",
     [
@@ -299,7 +311,7 @@ def _prepare_with_copy(geometry):
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func", BINARY_PREPARED_PREDICATES)
 def test_binary_prepared(a, func):
-    with ignore_invalid(shapely.is_empty(a)):
+    with ignore_invalid(shapely.is_empty(a) and shapely.geos_version < (3, 12, 0)):
         # Empty geometries give 'invalid value encountered' in all predicates
         # (see https://github.com/libgeos/geos/issues/515)
         actual = func(a, point)

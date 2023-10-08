@@ -12,7 +12,7 @@ from setuptools.command.build_ext import build_ext as _build_ext
 # ensure the current directory is on sys.path so versioneer can be imported
 # when pip uses PEP 517/518 build rules.
 # https://github.com/python-versioneer/python-versioneer/issues/193
-sys.path.append(os.path.dirname(__file__))
+sys.path.insert(0, os.path.dirname(__file__))
 import versioneer
 
 # Skip Cython build if not available
@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 ch = logging.StreamHandler()
 log.addHandler(ch)
 
-MIN_GEOS_VERSION = "3.5"
+MIN_GEOS_VERSION = "3.8"
 
 if "all" in sys.warnoptions:
     # show GEOS messages in console with: python -W all

@@ -15,8 +15,7 @@ from shapely import (
     Polygon,
 )
 from shapely.testing import assert_geometries_equal
-
-from .common import (
+from shapely.tests.common import (
     all_types,
     empty,
     empty_line_string,
@@ -77,7 +76,9 @@ def test_float_arg_array(geometry, func):
     # voronoi_polygons emits an "invalid" warning when supplied with an empty
     # point (see https://github.com/libgeos/geos/issues/515)
     with ignore_invalid(
-        func is shapely.voronoi_polygons and shapely.get_type_id(geometry) == 0
+        func is shapely.voronoi_polygons
+        and shapely.get_type_id(geometry) == 0
+        and shapely.geos_version < (3, 12, 0)
     ):
         actual = func([geometry, geometry], 0.0)
     assert actual.shape == (2,)
@@ -132,13 +133,11 @@ def test_snap_nan_float(geometry):
     assert actual is None
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 def test_build_area_none():
     actual = shapely.build_area(None)
     assert actual is None
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 @pytest.mark.parametrize(
     "geom,expected",
     [
@@ -167,13 +166,11 @@ def test_build_area(geom, expected):
     assert actual == expected
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 def test_make_valid_none():
     actual = shapely.make_valid(None)
     assert actual is None
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 @pytest.mark.parametrize(
     "geom,expected",
     [
@@ -204,7 +201,6 @@ def test_make_valid(geom, expected):
     assert shapely.normalize(actual) == expected
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 @pytest.mark.parametrize(
     "geom,expected",
     [
@@ -251,7 +247,7 @@ def test_normalize(geom, expected):
 
 
 def test_offset_curve_empty():
-    with ignore_invalid():
+    with ignore_invalid(shapely.geos_version < (3, 12, 0)):
         # Empty geometries emit an "invalid" warning
         # (see https://github.com/libgeos/geos/issues/515)
         actual = shapely.offset_curve(empty_line_string, 2.0)
@@ -375,7 +371,6 @@ def test_remove_repeated_points_invalid_type(geom, tolerance):
         shapely.remove_repeated_points(geom, tolerance)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 @pytest.mark.parametrize(
     "geom,expected",
     [
@@ -434,7 +429,6 @@ def test_reverse(geom, expected):
     assert_geometries_equal(shapely.reverse(geom), expected)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 def test_reverse_none():
     assert shapely.reverse(None) is None
     assert shapely.reverse([None]).tolist() == [None]
@@ -446,7 +440,6 @@ def test_reverse_none():
     assert_geometries_equal(result[1], expected)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 @pytest.mark.parametrize("geom", ["Not a geometry", 1])
 def test_reverse_invalid_type(geom):
     with pytest.raises(TypeError, match="One of the arguments is of incorrect type"):
@@ -606,10 +599,6 @@ def test_polygonize_array():
         assert res == expected
 
 
-@pytest.mark.skipif(
-    np.__version__ < "1.15",
-    reason="axis keyword for generalized ufunc introduced in np 1.15",
-)
 def test_polygonize_array_axis():
     lines = [
         LineString([(0, 0), (1, 1)]),
@@ -705,10 +694,6 @@ def test_polygonize_full_array():
             assert res == GeometryCollection()
 
 
-@pytest.mark.skipif(
-    np.__version__ < "1.15",
-    reason="axis keyword for generalized ufunc introduced in np 1.15",
-)
 def test_polygonize_full_array_axis():
     lines = [
         LineString([(0, 0), (1, 1)]),
@@ -846,7 +831,6 @@ def test_segmentize(geometry, tolerance, expected):
     assert_geometries_equal(actual, expected)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 @pytest.mark.parametrize("geometry", all_types)
 def test_minimum_bounding_circle_all_types(geometry):
     actual = shapely.minimum_bounding_circle([geometry, geometry])
@@ -857,7 +841,6 @@ def test_minimum_bounding_circle_all_types(geometry):
     assert actual is None
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 @pytest.mark.parametrize(
     "geometry, expected",
     [
@@ -888,7 +871,6 @@ def test_minimum_bounding_circle(geometry, expected):
     assert_geometries_equal(actual, expected)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize("geometry", all_types)
 def test_oriented_envelope_all_types(geometry):
     actual = shapely.oriented_envelope([geometry, geometry])
@@ -899,7 +881,50 @@ def test_oriented_envelope_all_types(geometry):
     assert actual is None
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+@pytest.mark.parametrize(
+    "func", [shapely.oriented_envelope, shapely.minimum_rotated_rectangle]
+)
+@pytest.mark.parametrize(
+    "geometry, expected",
+    [
+        (
+            MultiPoint([(0, 0), (10, 0), (10, 10)]),
+            Polygon([[10.0, 10.0], [10.0, 0.0], [0.0, 0.0], [0.0, 10.0], [10.0, 10.0]]),
+        ),
+        (
+            LineString([(1, 1), (5, 1), (10, 10)]),
+            Polygon([(1, 1), (3, -1), (12, 8), (10, 10), (1, 1)]),
+        ),
+        (
+            Polygon([(1, 1), (15, 1), (5, 10), (1, 1)]),
+            Polygon(
+                [[1.0, 1.0], [5.0, 10.0], [16.691, 4.804], [12.691, -4.196], [1.0, 1.0]]
+            ),
+        ),
+        (
+            LineString([(1, 1), (10, 1)]),
+            LineString([(1, 1), (10, 1)]),
+        ),
+        (
+            Point(2, 2),
+            Point(2, 2),
+        ),
+        (
+            GeometryCollection(),
+            Polygon(),
+        ),
+    ],
+)
+def test_oriented_envelope(geometry, expected, func):
+    actual = func(geometry)
+    assert_geometries_equal(actual, expected, normalize=True, tolerance=1e-3)
+
+
+@pytest.mark.skipif(shapely.geos_version >= (3, 12, 0), reason="GEOS >= 3.12")
+@pytest.mark.parametrize(
+    "func", [shapely.oriented_envelope, shapely.minimum_rotated_rectangle]
+)
 @pytest.mark.parametrize(
     "geometry, expected",
     [
@@ -929,44 +954,9 @@ def test_oriented_envelope_all_types(geometry):
         ),
     ],
 )
-def test_oriented_envelope(geometry, expected):
-    actual = shapely.oriented_envelope(geometry)
-    assert shapely.equals(actual, expected).all()
-
-
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
-@pytest.mark.parametrize(
-    "geometry, expected",
-    [
-        (
-            MultiPoint([(0, 0), (10, 0), (10, 10)]),
-            Polygon([(0, 0), (5, -5), (15, 5), (10, 10), (0, 0)]),
-        ),
-        (
-            LineString([(1, 1), (5, 1), (10, 10)]),
-            Polygon([(1, 1), (3, -1), (12, 8), (10, 10), (1, 1)]),
-        ),
-        (
-            Polygon([(1, 1), (15, 1), (5, 10), (1, 1)]),
-            Polygon([(15, 1), (15, 10), (1, 10), (1, 1), (15, 1)]),
-        ),
-        (
-            LineString([(1, 1), (10, 1)]),
-            LineString([(1, 1), (10, 1)]),
-        ),
-        (
-            Point(2, 2),
-            Point(2, 2),
-        ),
-        (
-            GeometryCollection(),
-            Polygon(),
-        ),
-    ],
-)
-def test_minimum_rotated_rectangle(geometry, expected):
-    actual = shapely.minimum_rotated_rectangle(geometry)
-    assert shapely.equals(actual, expected).all()
+def test_oriented_envelope_pre_geos_312(geometry, expected, func):
+    actual = func(geometry)
+    assert_geometries_equal(actual, expected, normalize=True, tolerance=1e-3)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")

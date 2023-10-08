@@ -32,11 +32,14 @@
 #define PyGEOS_GetGEOSGeometry_RETURN char
 #define PyGEOS_GetGEOSGeometry_PROTO (PyObject * obj, GEOSGeometry * *out)
 
-/* GEOSCoordSequence* PyGEOS_CoordSeq_FromBuffer(GEOSContextHandle_t ctx, const double* buf,
-                                                unsigned int size, unsigned int dims, char ring_closure)*/
+/* extern int PyGEOS_CoordSeq_FromBuffer(GEOSContextHandle_t ctx, const double* buf,
+                                      unsigned int size, unsigned int dims, char is_ring,
+                                      int handle_nan, GEOSCoordSequence** coord_seq)*/
 #define PyGEOS_CoordSeq_FromBuffer_NUM 2
-#define PyGEOS_CoordSeq_FromBuffer_RETURN GEOSCoordSequence*
-#define PyGEOS_CoordSeq_FromBuffer_PROTO (GEOSContextHandle_t ctx, const double* buf, unsigned int size, unsigned int dims, char ring_closure)
+#define PyGEOS_CoordSeq_FromBuffer_RETURN int
+#define PyGEOS_CoordSeq_FromBuffer_PROTO                                             \
+  (GEOSContextHandle_t ctx, const double* buf, unsigned int size, unsigned int dims, \
+   char is_ring, int handle_nan, GEOSCoordSequence** coord_seq)
 
 /* Total number of C API pointers */
 #define PyGEOS_API_num_pointers 3
@@ -54,7 +57,7 @@ extern PyGEOS_CoordSeq_FromBuffer_RETURN PyGEOS_CoordSeq_FromBuffer PyGEOS_Coord
 /* This section is used in modules that use the PyGEOS C API
  * Each API function needs to provide the lookup into PyGEOS_API as a
  * define statement.
-*/
+ */
 
 static void **PyGEOS_API;
 
@@ -78,7 +81,7 @@ static int
 import_shapely_c_api(void)
 {
     PyGEOS_API = (void **)PyCapsule_Import("shapely.lib._C_API", 0);
-    return (PyGEOS_API == NULL) ? -1 : 0;
+  return (PyGEOS_API == NULL) ? -1 : 0;
 }
 
 #endif

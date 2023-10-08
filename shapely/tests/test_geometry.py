@@ -6,10 +6,9 @@ import pytest
 import shapely
 from shapely import LinearRing, LineString, MultiPolygon, Point, Polygon
 from shapely.testing import assert_geometries_equal
-
-from .common import all_types
-from .common import empty as empty_geometry_collection
-from .common import (
+from shapely.tests.common import all_types
+from shapely.tests.common import empty as empty_geometry_collection
+from shapely.tests.common import (
     empty_line_string,
     empty_line_string_z,
     empty_point,
@@ -17,6 +16,7 @@ from .common import (
     empty_polygon,
     geometry_collection,
     geometry_collection_z,
+    ignore_invalid,
     line_string,
     line_string_nan,
     line_string_z,
@@ -174,12 +174,7 @@ def test_get_set_srid():
     [
         shapely.get_x,
         shapely.get_y,
-        pytest.param(
-            shapely.get_z,
-            marks=pytest.mark.skipif(
-                shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7"
-            ),
-        ),
+        shapely.get_z,
     ],
 )
 @pytest.mark.parametrize("geom", all_types[1:])
@@ -195,12 +190,10 @@ def test_get_y():
     assert shapely.get_y([point, point_z]).tolist() == [3.0, 3.0]
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 def test_get_z():
     assert shapely.get_z([point_z]).tolist() == [4.0]
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 def test_get_z_2d():
     assert np.isnan(shapely.get_z(point))
 
@@ -245,18 +238,11 @@ def test_set_unique(geom):
     assert len(a) == 1
 
 
-def test_eq_nan():
-    assert line_string_nan != line_string_nan
-
-
-def test_neq_nan():
-    assert not (line_string_nan == line_string_nan)
-
-
 def test_set_nan():
     # As NaN != NaN, you can have multiple "NaN" points in a set
     # set([float("nan"), float("nan")]) also returns a set with 2 elements
-    a = set(shapely.linestrings([[[np.nan, np.nan], [np.nan, np.nan]]] * 10))
+    with ignore_invalid():
+        a = set(shapely.linestrings([[[np.nan, np.nan], [np.nan, np.nan]]] * 10))
     assert len(a) == 10  # different objects: NaN != NaN
 
 
@@ -438,7 +424,6 @@ def test_get_rings_invalid_dimensions(geom):
         shapely.get_parts(geom)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_get_precision():
     geometries = all_types + (point_z, empty_point, empty_line_string, empty_polygon)
     # default is 0
@@ -450,12 +435,10 @@ def test_get_precision():
     assert actual == [1] * len(geometries)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_get_precision_none():
     assert np.all(np.isnan(shapely.get_precision([None])))
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize("mode", ("valid_output", "pointwise", "keep_collapsed"))
 def test_set_precision(mode):
     initial_geometry = Point(0.9, 0.9)
@@ -472,7 +455,6 @@ def test_set_precision(mode):
     assert_geometries_equal(initial_geometry, Point(0.9, 0.9))
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_set_precision_drop_coords():
     # setting precision of 0 will not drop duplicated points in original
     geometry = shapely.set_precision(LineString([(0, 0), (0, 0), (0, 1), (1, 1)]), 0)
@@ -483,7 +465,6 @@ def test_set_precision_drop_coords():
     assert_geometries_equal(geometry, LineString([(0, 0), (0, 1), (1, 1)]))
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize("mode", ("valid_output", "pointwise", "keep_collapsed"))
 def test_set_precision_z(mode):
     with warnings.catch_warnings():
@@ -493,7 +474,6 @@ def test_set_precision_z(mode):
         assert_geometries_equal(geometry, Point(1, 1, 0.9))
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 @pytest.mark.parametrize("mode", ("valid_output", "pointwise", "keep_collapsed"))
 def test_set_precision_nan(mode):
     with warnings.catch_warnings():
@@ -502,12 +482,10 @@ def test_set_precision_nan(mode):
         assert_geometries_equal(actual, line_string_nan)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_set_precision_none():
     assert shapely.set_precision(None, 0) is None
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_set_precision_grid_size_nan():
     assert shapely.set_precision(Point(0.9, 0.9), np.nan) is None
 
@@ -621,7 +599,6 @@ def test_set_precision_collapse(geometry, mode, expected):
         assert_geometries_equal(shapely.force_2d(actual), expected)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_set_precision_intersection():
     """Operations should use the most precise presision grid size of the inputs"""
 
