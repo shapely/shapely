@@ -13,7 +13,13 @@ import shapely
 from shapely import box, geos_version, MultiPoint, Point, STRtree
 from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
-from shapely.tests.common import empty, empty_line_string, empty_point, point
+from shapely.tests.common import (
+    empty,
+    empty_line_string,
+    empty_point,
+    ignore_invalid,
+    point,
+)
 
 # the distance between 2 points spaced at whole numbers along a diagonal
 HALF_UNIT_DIAG = math.sqrt(2) / 2
@@ -124,15 +130,14 @@ def test_pickle_persistence(tmp_path):
 import pickle
 import sys
 
-from shapely import Point, geos_version
+from shapely import Point
 
 pickled_strtree = sys.stdin.buffer.read()
 print("received pickled strtree:", repr(pickled_strtree))
 tree = pickle.loads(pickled_strtree)
 
 tree.query(Point(0, 0))
-if geos_version >= (3, 6, 0):
-    tree.nearest(Point(0, 0))
+tree.nearest(Point(0, 0))
 print("done")
 """
 
@@ -365,34 +370,21 @@ def test_query_with_partially_prepared_inputs(tree):
     "predicate",
     [
         # intersects is intentionally omitted; it does not raise an exception
-        pytest.param(
-            "within",
-            marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
-        ),
-        pytest.param(
-            "contains",
-            marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
-        ),
+        "within",
+        "contains",
         "overlaps",
         "crosses",
         "touches",
-        pytest.param(
-            "covers",
-            marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
-        ),
-        pytest.param(
-            "covered_by",
-            marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
-        ),
-        pytest.param(
-            "contains_properly",
-            marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
-        ),
+        "covers",
+        "covered_by",
+        "contains_properly",
     ],
 )
 def test_query_predicate_errors(tree, predicate):
+    with ignore_invalid():
+        line_nan = shapely.linestrings([1, 1], [1, float("nan")])
     with pytest.raises(shapely.GEOSException):
-        tree.query(shapely.linestrings([1, 1], [1, float("nan")]), predicate=predicate)
+        tree.query(line_nan, predicate=predicate)
 
 
 ### predicate == 'intersects'

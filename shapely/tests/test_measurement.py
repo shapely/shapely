@@ -199,7 +199,6 @@ def test_hausdorff_distance_densify_empty():
     assert np.isnan(actual)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 @pytest.mark.parametrize(
     "geom1, geom2, expected",
     [
@@ -241,7 +240,6 @@ def test_frechet_distance(geom1, geom2, expected):
     assert actual == pytest.approx(expected, abs=1e-12)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 @pytest.mark.parametrize(
     "geom1, geom2, densify, expected",
     [
@@ -259,7 +257,6 @@ def test_frechet_distance_densify(geom1, geom2, densify, expected):
     assert actual == pytest.approx(expected, abs=1e-12)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 @pytest.mark.parametrize(
     "geom1, geom2",
     [
@@ -276,7 +273,6 @@ def test_frechet_distance_nan_for_invalid_geometry_inputs(geom1, geom2):
     assert np.isnan(actual)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 def test_frechet_densify_ndarray():
     actual = shapely.frechet_distance(
         shapely.linestrings([[0, 0], [100, 0]]),
@@ -287,44 +283,37 @@ def test_frechet_densify_ndarray():
     np.testing.assert_array_almost_equal(actual, expected)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 def test_frechet_densify_nan():
     actual = shapely.frechet_distance(line_string, line_string, densify=np.nan)
     assert np.isnan(actual)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 @pytest.mark.parametrize("densify", [0, -1, 2])
 def test_frechet_densify_invalid_values(densify):
     with pytest.raises(shapely.GEOSException, match="Fraction is not in range"):
         shapely.frechet_distance(line_string, line_string, densify=densify)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 def test_frechet_distance_densify_empty():
     actual = shapely.frechet_distance(line_string, empty, densify=0.2)
     assert np.isnan(actual)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_minimum_clearance():
     actual = shapely.minimum_clearance([polygon, polygon_with_hole, multi_polygon])
     assert_allclose(actual, [2.0, 2.0, 0.1])
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_minimum_clearance_nonexistent():
     actual = shapely.minimum_clearance([point, empty])
     assert np.isinf(actual).all()
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_minimum_clearance_missing():
     actual = shapely.minimum_clearance(None)
     assert np.isnan(actual)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 @pytest.mark.parametrize(
     "geometry, expected",
     [

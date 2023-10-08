@@ -14,55 +14,53 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2019]
         architecture: [x64]
-        geos: [3.6.5, 3.7.5, 3.8.3, 3.9.3, 3.10.3, 3.11.1, main]
+        geos: [3.8.3, 3.9.4, 3.10.5, 3.11.2, 3.12.0, main]
         include:
-          # 2017
-          - python: 3.7  # 3.6 is dropped
-            geos: 3.6.5
-            numpy: 1.14.6
-          # 2018
-          - python: 3.7
-            geos: 3.7.5
-            numpy: 1.15.4
           # 2019
           - python: 3.8
             geos: 3.8.3
-            numpy: 1.17.5
+            numpy: 1.16.2
           # 2020
           - python: 3.9
-            geos: 3.9.3
+            geos: 3.9.4
             numpy: 1.19.5
           # 2021
           - python: "3.10"
-            geos: 3.10.3
+            geos: 3.10.5
             numpy: 1.21.3
           # 2022
           - python: "3.11"
-            geos: 3.11.1
+            geos: 3.11.2
             numpy: 1.23.4
+          # 2023
+          - python: "3.12"
+            geos: 3.12.0
+            numpy: 1.26.0
             matplotlib: true
             doctest: true
-            extra_pytest_args: "-W error"  # error on warnings
+            # extra ignore for dateutil Python 3.12 warning fixed upstream (waiting on release 2.8.3+)
+            extra_pytest_args: "-W error -W ignore:datetime.datetime.utcfromtimestamp:DeprecationWarning" # error on warnings
           # dev
-          - python: "3.11"
+          - python: "3.12"
             geos: main
-            extra_pytest_args: "-W error" # error on warnings
+            # extra ignore for dateutil Python 3.12 warning fixed upstream (waiting on release 2.8.3+)
+            extra_pytest_args: "-W error -W ignore:datetime.datetime.utcfromtimestamp:DeprecationWarning" # error on warnings
           # enable two 32-bit windows builds:
           - os: windows-2019
             architecture: x86
-            python: 3.7
-            geos: 3.7.5
-            numpy: 1.15.4
+            python: 3.8
+            geos: 3.8.3
+            numpy: 1.16.2
           - os: windows-2019
             architecture: x86
-            python: 3.9
-            geos: 3.10.3
-            numpy: 1.19.5
+            python: "3.11"
+            geos: 3.12.0
+            numpy: 1.24.4
           # pypy (use explicit ubuntu version to not overwrite existing ubuntu-latest + geos 3.11.0 build)
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             python: "pypy3.8"
-            geos: 3.11.1
-            numpy: 1.23.4
+            geos: 3.12.0
+            numpy: 1.24.4
 
     env:
       GEOS_VERSION: ${{ matrix.geos }}
@@ -78,10 +76,10 @@ jobs:
         if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Checkout Shapely
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Checkout GEOS (main)
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: libgeos/geos
           ref: main
@@ -99,6 +97,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           architecture: ${{ matrix.architecture }}
+          allow-prereleases: true
 
       - name: Cache GEOS and pip packages
         uses: actions/cache@v3
@@ -129,6 +128,9 @@ jobs:
           fi
           if [ -n "${{ matrix.matplotlib }}" ]; then
             pip install matplotlib
+          fi
+          if [ -n "${{ matrix.doctest }}" ]; then
+            pip install pyproj
           fi
           pip list
 
@@ -166,7 +168,7 @@ jobs:
         # continue-on-error: ${{ matrix.geos == 'main' }}
         run: |
           python -c "import shapely; print(f'GEOS version: {shapely.geos_version_string}')"
-          pytest shapely/tests tests --cov --cov-report term-missing ${{ matrix.extra_pytest_args }}
+          pytest shapely/tests -r a --cov --cov-report term-missing ${{ matrix.extra_pytest_args }}
 
       # Only run doctests on 1 runner (because of typographic differences in doctest results)
       - name: Run doctests
