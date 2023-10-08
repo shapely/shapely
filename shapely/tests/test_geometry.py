@@ -239,7 +239,7 @@ def test_set_unique(geom):
 
 
 def test_set_nan():
-    # As NaN != NaN, you can have multiple "NaN" points in a set
+    # Although NaN != NaN, you cannot have multiple "NaN" points in a set
     # This is because "NaN" coordinates in a geometry are considered as equal.
     with ignore_invalid():
         a = set(shapely.linestrings([[[np.nan, np.nan], [np.nan, np.nan]]] * 10))
