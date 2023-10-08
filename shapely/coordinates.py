@@ -31,7 +31,7 @@ def transform(
     This function differs with `transform_resize` in the following ways:
 
     - It also accepts arrays of Geometry objects.
-    - The parameters to the transformation function are numpy arrays.
+    - The parameters to the transformation function are always numpy arrays.
     - The number of coordinates per Geometry is not allowed to change.
 
     Parameters
@@ -154,7 +154,7 @@ def transform_resize(
     This function differs with `transform` in the following ways:
 
     - The number of coordinates per Geometry is allowed to change.
-    - The input parameters to the transformation function are (tuple of) float, not array.
+    - The input parameters to the transformation function can also be (scalar) floats.
     - It only accepts scalar Geometry objects, not arrays.
 
     We recommend only using this function only if 1) the number of coordinates in your Geometry
