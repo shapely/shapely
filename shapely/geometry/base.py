@@ -197,23 +197,6 @@ class BaseGeometry(shapely.Geometry):
     def __xor__(self, other):
         return self.symmetric_difference(other)
 
-    def __eq__(self, other):
-        if not isinstance(other, BaseGeometry):
-            return NotImplemented
-        # equal_nan=False is the default, but not yet available for older numpy
-        # TODO updated once we require numpy >= 1.19
-        return type(other) == type(self) and np.array_equal(
-            self.coords, other.coords  # , equal_nan=False
-        )
-
-    def __ne__(self, other):
-        if not isinstance(other, BaseGeometry):
-            return NotImplemented
-        return not self.__eq__(other)
-
-    def __hash__(self):
-        return super().__hash__()
-
     # Coordinate access
     # -----------------
 

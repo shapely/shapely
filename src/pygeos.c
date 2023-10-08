@@ -10,7 +10,6 @@
 #include <numpy/npy_math.h>
 
 #include "geos.h"
-#include <stdio.h>
 
 
 /* Check the coordinates of a single pair of CoordSequences.
