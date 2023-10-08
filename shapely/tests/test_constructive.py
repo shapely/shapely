@@ -915,15 +915,9 @@ def test_oriented_envelope_all_types(geometry):
         ),
     ],
 )
-@pytest.mark.parametrize("method", [None, "geos"])
-def test_oriented_envelope(geometry, expected, method, func):
-    actual = func(geometry, method)
+def test_oriented_envelope(geometry, expected, func):
+    actual = func(geometry)
     assert_geometries_equal(actual, expected, normalize=True, tolerance=1e-3)
-
-
-def test_oriented_envelope_unsupported_method():
-    with pytest.raises(ValueError, match="Unknown method unknown"):
-        shapely.oriented_envelope(Point(2, 2), method="unknown")
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")

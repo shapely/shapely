@@ -1,5 +1,3 @@
-from typing import Optional
-
 import numpy as np
 
 from shapely import lib
@@ -93,7 +91,7 @@ def buffer(
     join_style="round",
     mitre_limit=5.0,
     single_sided=False,
-    **kwargs,
+    **kwargs
 ):
     """
     Computes the buffer of a geometry for positive and negative buffer distance.
@@ -187,7 +185,7 @@ def buffer(
         np.intc(join_style),
         mitre_limit,
         np.bool_(single_sided),
-        **kwargs,
+        **kwargs
     )
 
 
@@ -253,7 +251,7 @@ def offset_curve(
         np.intc(quad_segs),
         np.intc(join_style),
         np.double(mitre_limit),
-        **kwargs,
+        **kwargs
     )
 
 
@@ -332,7 +330,7 @@ def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
         np.double(ymin),
         np.double(xmax),
         np.double(ymax),
-        **kwargs,
+        **kwargs
     )
 
 
@@ -989,11 +987,11 @@ def voronoi_polygons(
 
 
 @multithreading_enabled
-def oriented_envelope_geos(geometry, **kwargs):
+def _oriented_envelope_geos(geometry, **kwargs):
     return lib.oriented_envelope(geometry, **kwargs)
 
 
-def oriented_envelope(geometry, method: Optional[str] = None, **kwargs):
+def oriented_envelope(geometry, **kwargs):
     """
     Computes the oriented envelope (minimum rotated rectangle)
     that encloses an input geometry, such that the resulting rectangle has
@@ -1003,25 +1001,9 @@ def oriented_envelope(geometry, method: Optional[str] = None, **kwargs):
     coordinate axes. If the convex hull of the object is a degenerate (line
     or point) this degenerate is returned.
 
-    Note: the results in the examples below are normalized to be consistent
-    between different implementations of this function.
-    The results are as valid also without normalization.
-
-    .. warning::
-
-        With GEOS 3.11 or earlier the implementation optimized for minimal
-        width of one of the rectangle sides rather than the minimum area.
-
     Parameters
     ----------
     geometry : Geometry or array_like
-    method: str, optional
-        Determinates which method to use, supported methods:
-            * None - returns the oriented envelope with the minimal area. Slower, default.
-            This gives the same results as in Shapely<2, and is slower than the GEOS implementation.
-            * "geos" - returns the oriented envelope using the GEOS implementation,
-            which currently calculates an oriented envelope with the minimumal diameter, faster.
-            For more details: https://github.com/shapely/shapely/issues/1670
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -1060,15 +1042,10 @@ def oriented_envelope(geometry, method: Optional[str] = None, **kwargs):
     >>> Point(-0.2, 1.4).distance(Point(3.4, 0.2))
     3.794733192202055
     """
-    if method is None or method == "min_area":
-        if lib.geos_version < (3, 12, 0):
-            f = oriented_envelope_min_area
-        else:
-            f = oriented_envelope_geos
-    elif method == "geos":
-        f = oriented_envelope_geos
+    if lib.geos_version < (3, 12, 0):
+        f = oriented_envelope_min_area
     else:
-        raise ValueError(f"Unknown method {method}")
+        f = _oriented_envelope_geos
     return f(geometry, **kwargs)
 
 
