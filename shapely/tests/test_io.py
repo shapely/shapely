@@ -349,10 +349,16 @@ def test_to_wkt_multipoint_with_point_empty_errors():
         shapely.to_wkt(geom)
 
 
-@pytest.mark.parametrize("coord", [1e36, 1e279])
+def test_to_wkt_large_float_ok():
+    # https://github.com/shapely/shapely/issues/1903
+    may_segfault(shapely.to_wkt)(Point([1e135, 0.0]))
+
+
+@pytest.mark.parametrize("coord", [1e136, 1e279])
 def test_to_wkt_large_floats(coord):
     # https://github.com/shapely/shapely/issues/1903
-    may_segfault(shapely.to_wkt)(Point([coord, 0.0]))
+    with pytest.raises(ValueError, match="WKT output of coordinates greater than.*"):
+        may_segfault(shapely.to_wkt)(Point([coord, 0.0]))
 
 
 def test_repr():

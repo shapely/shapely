@@ -77,6 +77,10 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
   }
 
   GEOS_INIT;
+  errstate = check_to_wkt_coord_out_of_bounds(ctx, geom);
+  if (errstate != PGERR_SUCCESS) {
+    goto finish;
+  }
 
 #if GEOS_SINCE_3_9_0
   errstate = wkt_empty_3d_geometry(ctx, geom, &wkt);

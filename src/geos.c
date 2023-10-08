@@ -304,39 +304,30 @@ char check_to_wkt_compatible(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
   }
 }
 
-
-/* Checks whether the geometry contains coordinate greater than 1E+135
+/* Checks whether the geometry contains a coordinate greater than 1E+135
  *
- * These end in an Abort with the following message;
  * See also:
- * 
- * https://github.com/shapely/shapely/issues/1903 necessary for GEOS 3.7.3, 3.8.2, or 3.9. When these versions are out, we
- * should add version conditionals and test.
  *
- * The return value is one of:
- * - PGERR_SUCCESS
- * - PGERR_MULTIPOINT_WITH_POINT_EMPTY
- * - PGERR_GEOS_EXCEPTION
+ * https://github.com/shapely/shapely/issues/1903
  */
-char check_to_wkt_compatible(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
-  char geom_type, is_empty;
+char check_to_wkt_coord_out_of_bounds(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
+  char is_empty;
+  double xmax = 0.0;
+  double ymax = 0.0;
 
-  geom_type = GEOSGeomTypeId_r(ctx, geom);
-  if (geom_type == -1) {
-    return PGERR_GEOS_EXCEPTION;
-  }
-  if (geom_type != GEOS_MULTIPOINT) {
+  if (GEOSisEmpty_r(ctx, geom)) {
     return PGERR_SUCCESS;
   }
 
-  is_empty = multipoint_has_point_empty(ctx, geom);
-  if (is_empty == 0) {
-    return PGERR_SUCCESS;
-  } else if (is_empty == 1) {
-    return PGERR_MULTIPOINT_WITH_POINT_EMPTY;
-  } else {
+  // use max coordinates to check if any coordinate is too large
+  if (!(GEOSGeom_getXMax_r(ctx, geom, &xmax) && GEOSGeom_getYMax_r(ctx, geom, &ymax))) {
     return PGERR_GEOS_EXCEPTION;
   }
+
+  if ((xmax > 1E135) || (ymax > 1E135)) {
+    return PGERR_COORD_OUT_OF_BOUNDS;
+  }
+  return PGERR_SUCCESS;
 }
 
 #if GEOS_SINCE_3_9_0

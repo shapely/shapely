@@ -3269,6 +3269,10 @@ static void to_wkt_func(char** args, const npy_intp* dimensions, const npy_intp*
       Py_INCREF(Py_None);
       *out = Py_None;
     } else {
+      errstate = check_to_wkt_coord_out_of_bounds(ctx, in1);
+      if (errstate != PGERR_SUCCESS) {
+        goto finish;
+      }
 #if GEOS_SINCE_3_9_0
       errstate = wkt_empty_3d_geometry(ctx, in1, &wkt);
       if (errstate != PGERR_SUCCESS) {
