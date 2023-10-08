@@ -1061,7 +1061,10 @@ def oriented_envelope(geometry, method: Optional[str] = None, **kwargs):
     3.794733192202055
     """
     if method is None or method == "min_area":
-        f = oriented_envelope_min_area
+        if lib.geos_version < (3, 12, 0):
+            f = oriented_envelope_min_area
+        else:
+            f = oriented_envelope_geos
     elif method == "geos":
         f = oriented_envelope_geos
     else:
