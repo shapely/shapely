@@ -8,7 +8,6 @@ import pytest
 
 import shapely
 from shapely import GeometryCollection, LineString, Point, Polygon
-from shapely.decorators import may_segfault
 from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import all_types, empty_point, empty_point_z, point, point_z
@@ -351,14 +350,18 @@ def test_to_wkt_multipoint_with_point_empty_errors():
 
 def test_to_wkt_large_float_ok():
     # https://github.com/shapely/shapely/issues/1903
-    may_segfault(shapely.to_wkt)(Point([1e135, 0.0]))
+    g = Point([1e135, 0.0])
+    shapely.to_wkt(g)
+    repr(g)
 
 
 @pytest.mark.parametrize("coord", [1e136, 1e279])
 def test_to_wkt_large_floats(coord):
     # https://github.com/shapely/shapely/issues/1903
+    g = Point([coord, 0.0])
     with pytest.raises(ValueError, match="WKT output of coordinates greater than.*"):
-        may_segfault(shapely.to_wkt)(Point([coord, 0.0]))
+        shapely.to_wkt(Point([coord, 0.0]))
+    assert repr(g) == "<shapely.Point Exception in WKT writer>"
 
 
 def test_repr():
