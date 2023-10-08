@@ -8,6 +8,11 @@ from shapely.tests.geometry.test_multi import MultiGeometryTestCase
 
 class TestMultiPolygon(MultiGeometryTestCase):
     def test_multipolygon(self):
+        # Empty
+        geom = MultiPolygon([])
+        assert geom.is_empty
+        assert len(geom.geoms) == 0
+
         # From coordinate tuples
         coords = [
             (
@@ -61,6 +66,15 @@ class TestMultiPolygon(MultiGeometryTestCase):
                 [(0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25), (0.25, 0.25)],
             ]
         ]
+
+        # Or from a list of multiple polygons
+        geom_multiple_from_list = MultiPolygon([p, p])
+        assert len(geom_multiple_from_list.geoms) == 2
+        assert all(p == geom.geoms[0] for p in geom_multiple_from_list.geoms)
+
+        # Or from a np.array of polygons
+        geom_multiple_from_array = MultiPolygon(np.array([p, p]))
+        assert geom_multiple_from_array == geom_multiple_from_list
 
         # Or from another multi-polygon
         geom2 = MultiPolygon(geom)
