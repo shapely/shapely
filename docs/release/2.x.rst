@@ -15,7 +15,7 @@ Improvements:
 
 .. _version-2-0-2:
 
-Version 2.0.2 (unreleased)
+Version 2.0.2 (2023-10-09)
 --------------------------
 
 Bug fixes:
@@ -24,6 +24,7 @@ Bug fixes:
   not ignore the z-coordinates (#1732).
 - Fix ``MultiPolygon()`` constructor to accept polygons without holes (#1850).
 
+Wheels are available for Python 3.12 (and still include GEOS 3.11.2).
 
 .. _version-2-0-1:
 
