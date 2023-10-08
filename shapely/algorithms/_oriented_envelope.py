@@ -7,16 +7,18 @@ import shapely
 from shapely.affinity import affine_transform
 
 
-def oriented_envelope_min_area(geometry, **kwargs):
+def _oriented_envelope_min_area(geometry, **kwargs):
     """
-    Computes the oriented envelope (minimum rotated rectangle) that encloses an input geometry.
+    Computes the oriented envelope (minimum rotated rectangle) that encloses
+    an input geometry.
 
-    Refer to `shapely.oriented_envelope` with `method=min_area` for full documentation.
+    This is a fallback implementation for GEOS < 3.12 to have the correct
+    minimum area behaviour.
     """
     if geometry is None:
         return None
     if not hasattr(geometry, "geom_type"):
-        return np.array([oriented_envelope_min_area(g) for g in geometry])
+        return np.array([_oriented_envelope_min_area(g) for g in geometry])
     if geometry.is_empty:
         return shapely.from_wkt("POLYGON EMPTY")
 
