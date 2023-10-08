@@ -5,7 +5,7 @@ dependencies:
   - python=3.10
   - geos=3.11
   - numpy
-  - cython=0.29
+  - cython
   - sphinx-book-theme
   - sphinx-remove-toctrees
   - numpydoc=1.1
