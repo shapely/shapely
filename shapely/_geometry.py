@@ -123,8 +123,10 @@ def get_dimensions(geometry, **kwargs):
 def get_coordinate_dimension(geometry, **kwargs):
     """Returns the dimensionality of the coordinates in a geometry (2 or 3).
 
-    Returns -1 for missing geometries (``None`` values). Note that if the first Z
-    coordinate equals ``nan``, this function will return ``2``.
+    Returns -1 for missing geometries (``None`` values).
+
+    Note that with GEOS < 3.12, if the first Z coordinate equals ``nan``, this function
+    will return ``2``.
 
     Parameters
     ----------
@@ -141,8 +143,6 @@ def get_coordinate_dimension(geometry, **kwargs):
     3
     >>> get_coordinate_dimension(None)
     -1
-    >>> get_coordinate_dimension(Point(0, 0, float("nan")))
-    2
     """
     return lib.get_coordinate_dimension(geometry, **kwargs)
 

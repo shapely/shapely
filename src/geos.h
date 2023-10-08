@@ -153,7 +153,6 @@ enum ShapelyErrorCode {
   GEOS_finish_r(ctx);       \
   Py_END_ALLOW_THREADS GEOS_HANDLE_ERR
 
-#define GEOS_SINCE_3_8_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 8))
 #define GEOS_SINCE_3_9_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 9))
 #define GEOS_SINCE_3_10_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 10))
 #define GEOS_SINCE_3_11_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 11))
@@ -180,17 +179,18 @@ int get_bounds(GEOSContextHandle_t ctx, GEOSGeometry* geom, double* xmin, double
                double* xmax, double* ymax);
 GEOSGeometry* create_box(GEOSContextHandle_t ctx, double xmin, double ymin, double xmax,
                          double ymax, char ccw);
-GEOSGeometry* create_point(GEOSContextHandle_t ctx, double x, double y, double* z);
+extern enum ShapelyErrorCode create_point(GEOSContextHandle_t ctx, double x, double y,
+                                          double* z, int handle_nan, GEOSGeometry** out);
 GEOSGeometry* PyGEOSForce2D(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 GEOSGeometry* PyGEOSForce3D(GEOSContextHandle_t ctx, GEOSGeometry* geom, double z);
 
-
 enum ShapelyHandleNan { SHAPELY_HANDLE_NAN_ALLOW, SHAPELY_HANDLE_NAN_SKIP, SHAPELY_HANDLE_NANS_ERROR };
 
-
-extern enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
-                                unsigned int size, unsigned int dims, char is_ring,
-                                int handle_nan, npy_intp cs1, npy_intp cs2,
+extern enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx,
+                                                  const double* buf, unsigned int size,
+                                                  unsigned int dims, char is_ring,
+                                                  int handle_nan, npy_intp cs1,
+                                                  npy_intp cs2,
                                 GEOSCoordSequence** coord_seq);
 extern int coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq,
                               double* buf, unsigned int size, unsigned int dims);

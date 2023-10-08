@@ -42,8 +42,8 @@ __all__ = [
 def has_z(geometry, **kwargs):
     """Returns True if a geometry has a Z coordinate.
 
-    Note that this function returns False if the (first) Z coordinate equals NaN or
-    if the geometry is empty.
+    Note that for GEOS < 3.12 this function returns False if the (first) Z coordinate
+    equals NaN.
 
     Parameters
     ----------
@@ -62,7 +62,7 @@ def has_z(geometry, **kwargs):
     False
     >>> has_z(Point(0, 0, 0))
     True
-    >>> has_z(Point(0, 0, float("nan")))
+    >>> has_z(Point())
     False
     """
     return lib.has_z(geometry, **kwargs)
@@ -411,7 +411,7 @@ def is_valid_reason(geometry, **kwargs):
     >>> is_valid_reason(LineString([(0, 0), (1, 1)]))
     'Valid Geometry'
     >>> is_valid_reason(Polygon([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)]))
-    'Ring Self-intersection[1 1]'
+    'Self-intersection[1 2]'
     >>> is_valid_reason(None) is None
     True
     """
@@ -923,24 +923,38 @@ def within(a, b, **kwargs):
 
 
 @multithreading_enabled
-def equals_exact(a, b, tolerance=0.0, **kwargs):
-    """Returns True if A and B are structurally equal.
+def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
+    """Returns True if the geometries are structurally equivalent within a
+    given tolerance.
 
     This method uses exact coordinate equality, which requires coordinates
-    to be equal (within specified tolerance) and and in the same order for all
-    components of a geometry. This is in contrast with the ``equals`` function
-    which uses spatial (topological) equality.
+    to be equal (within specified tolerance) and in the same order for
+    all components (vertices, rings, or parts) of a geometry. This is in
+    contrast with the :func:`equals` function which uses spatial
+    (topological) equality and does not require all components to be in the
+    same order. Because of this, it is possible for :func:`equals` to
+    be ``True`` while :func:`equals_exact` is ``False``.
+
+    The order of the coordinates can be normalized (by setting the `normalize`
+    keyword to ``True``) so that this function will return ``True`` when geometries
+    are structurally equivalent but differ only in the ordering of vertices.
+    However, this function will still return ``False`` if the order of interior
+    rings within a :class:`Polygon` or the order of geometries within a multi
+    geometry are different.
 
     Parameters
     ----------
     a, b : Geometry or array_like
-    tolerance : float or array_like
+    tolerance : float or array_like (default: 0.)
+    normalize : bool, optional (default: False)
+        If True, normalize the two geometries so that the coordinates are
+        in the same order.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See Also
     --------
-    equals : Check if A and B are spatially equal.
+    equals : Check if `a` and `b` are spatially (topologically) equal.
 
     Examples
     --------
@@ -963,6 +977,10 @@ def equals_exact(a, b, tolerance=0.0, **kwargs):
     >>> equals(polygon1, polygon2)
     True
     """
+    if normalize:
+        a = lib.normalize(a)
+        b = lib.normalize(b)
+
     return lib.equals_exact(a, b, tolerance, **kwargs)
 
 
@@ -1061,7 +1079,7 @@ def dwithin(a, b, distance, **kwargs):
 @multithreading_enabled
 def contains_xy(geom, x, y=None, **kwargs):
     """
-    Returns True if the Point (x, y) is completely inside geometry A.
+    Returns True if the Point (x, y) is completely inside geom.
 
     This is a special-case (and faster) variant of the `contains` function
     which avoids having to create a Point object if you start from x/y
@@ -1109,7 +1127,7 @@ def contains_xy(geom, x, y=None, **kwargs):
 @multithreading_enabled
 def intersects_xy(geom, x, y=None, **kwargs):
     """
-    Returns True if A and the Point (x, y) share any portion of space.
+    Returns True if geom and the Point (x, y) share any portion of space.
 
     This is a special-case (and faster) variant of the `intersects` function
     which avoids having to create a Point object if you start from x/y

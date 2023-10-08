@@ -8,7 +8,6 @@ from shapely.tests.geometry.test_multi import MultiGeometryTestCase
 
 class TestMultiPolygon(MultiGeometryTestCase):
     def test_multipolygon(self):
-
         # From coordinate tuples
         coords = [
             (
@@ -27,6 +26,21 @@ class TestMultiPolygon(MultiGeometryTestCase):
                 (1.0, 0.0),
                 (0.0, 0.0),
                 [(0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25), (0.25, 0.25)],
+            ]
+        ]
+
+        # Or without holes
+        coords2 = [(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)),)]
+        geom = MultiPolygon(coords2)
+        assert isinstance(geom, MultiPolygon)
+        assert len(geom.geoms) == 1
+        assert dump_coords(geom) == [
+            [
+                (0.0, 0.0),
+                (0.0, 1.0),
+                (1.0, 1.0),
+                (1.0, 0.0),
+                (0.0, 0.0),
             ]
         ]
 
