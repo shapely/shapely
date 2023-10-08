@@ -3,7 +3,7 @@ import pytest
 
 import shapely
 from shapely import LinearRing, LineString, MultiLineString, Point, Polygon
-from shapely.tests.common import all_types, all_types_z
+from shapely.tests.common import all_types, all_types_z, ignore_invalid
 
 
 @pytest.mark.parametrize("geom", all_types + all_types_z)
@@ -20,6 +20,7 @@ def test_equality(geom):
         # (slightly) different coordinate values
         (LineString([(0, 0), (1, 1)]), LineString([(0, 0), (1, 2)])),
         (LineString([(0, 0), (1, 1)]), LineString([(0, 0), (1, 1 + 1e-12)])),
+        # different coordinate order
         (LineString([(0, 0), (1, 1)]), LineString([(1, 1), (0, 0)])),
         # different number of coordinates (but spatially equal)
         (LineString([(0, 0), (1, 1)]), LineString([(0, 0), (1, 1), (1, 1)])),
@@ -35,9 +36,8 @@ def test_equality_false(left, right):
     assert left != right
 
 
-@pytest.mark.parametrize(
-    "left, right",
-    [
+with ignore_invalid():
+    cases1 = [
         (LineString([(0, 1), (2, np.nan)]), LineString([(0, 1), (2, np.nan)])),
         (
             LineString([(0, 1), (np.nan, np.nan)]),
@@ -50,40 +50,71 @@ def test_equality_false(left, right):
             LineString([(np.nan, np.nan), (np.nan, np.nan)]),
         ),
         # NaN as explicit Z coordinate
+        # TODO: if first z is NaN -> considered as 2D -> tested below explicitly
+        # (
+        #     LineString([(0, 1, np.nan), (2, 3, np.nan)]),
+        #     LineString([(0, 1, np.nan), (2, 3, np.nan)]),
+        # ),
         (
-            LineString([(0, 1, np.nan), (2, 3, np.nan)]),
-            LineString([(0, 1, np.nan), (2, 3, np.nan)]),
+            LineString([(0, 1, 2), (2, 3, np.nan)]),
+            LineString([(0, 1, 2), (2, 3, np.nan)]),
         ),
-    ],
-)
+        # (
+        #     LineString([(0, 1, np.nan), (2, 3, 4)]),
+        #     LineString([(0, 1, np.nan), (2, 3, 4)]),
+        # ),
+    ]
+
+
+@pytest.mark.parametrize("left, right", cases1)
 def test_equality_with_nan(left, right):
     assert left == right
     assert not (left != right)
 
 
-@pytest.mark.parametrize(
-    "left, right",
-    [
+with ignore_invalid():
+    cases2 = [
+        (
+            LineString([(0, 1, np.nan), (2, 3, np.nan)]),
+            LineString([(0, 1, np.nan), (2, 3, np.nan)]),
+        ),
+        (
+            LineString([(0, 1, np.nan), (2, 3, 4)]),
+            LineString([(0, 1, np.nan), (2, 3, 4)]),
+        ),
+    ]
+
+
+@pytest.mark.parametrize("left, right", cases2)
+def test_equality_with_nan_z(left, right):
+    assert left == right
+    assert not (left != right)
+
+
+with ignore_invalid():
+    cases3 = [
+        (LineString([(0, np.nan), (2, 3)]), LineString([(0, 1), (2, 3)])),
         (LineString([(0, 1), (2, np.nan)]), LineString([(0, 1), (2, 3)])),
-    ],
-)
+        (LineString([(0, 1, np.nan), (2, 3, 4)]), LineString([(0, 1, 2), (2, 3, 4)])),
+        (LineString([(0, 1, 2), (2, 3, np.nan)]), LineString([(0, 1, 2), (2, 3, 4)])),
+    ]
+
+
+@pytest.mark.parametrize("left, right", cases3)
 def test_equality_with_nan_false(left, right):
     assert left != right
 
 
-@pytest.mark.parametrize(
-    "left, right",
-    [
-        (
-            LineString([(0, 1, np.nan), (2, 3, np.nan)]),
-            LineString([(0, 1, np.nan), (2, 3, 4)]),
-        ),
-    ],
-)
-def test_equality_with_nan_z_false(left, right):
+def test_equality_with_nan_z_false():
+    with ignore_invalid():
+        left = LineString([(0, 1, np.nan), (2, 3, np.nan)])
+        right = LineString([(0, 1, np.nan), (2, 3, 4)])
+
     if shapely.geos_version < (3, 10, 0):
         # GEOS <= 3.9 fill the NaN with 0, so the z dimension is different
-        assert left != right
+        # assert left != right
+        # however, has_z still returns False, so z dimension is ignored in .coords
+        assert left == right
     elif shapely.geos_version < (3, 12, 0):
         # GEOS 3.10-3.11 ignore NaN for Z also when explicitly created with 3D
         # and so the geometries are considered as 2D (and thus z dimension is ignored)
@@ -100,11 +131,14 @@ def test_equality_z():
 
     # different dimensionality with NaN z
     geom2 = Point(0, 1, np.nan)
-    if shapely.geos_version < (3, 8, 0):
+    if shapely.geos_version < (3, 10, 0):
         # GEOS < 3.8 fill the NaN with 0, so the z dimension is different
-        assert geom1 != geom2
+        # assert geom1 != geom2
+        # however, has_z still returns False, so z dimension is ignored in .coords
+        assert geom1 == geom2
     elif shapely.geos_version < (3, 12, 0):
-        # older GEOS versions ignore NaN for Z also when explicitly created with 3D
+        # GEOS 3.10-3.11 ignore NaN for Z also when explicitly created with 3D
+        # and so the geometries are considered as 2D (and thus z dimension is ignored)
         assert geom1 == geom2
     else:
         assert geom1 != geom2
@@ -148,3 +182,48 @@ def test_equality_polygon():
         "POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (1 1, 2 1, 2 2, 1 1), (3 3, 4 3, 4 4, 3 3))"
     )
     assert geom1 != geom2
+
+
+@pytest.mark.parametrize("geom", all_types)
+def test_comparison_notimplemented(geom):
+    # comparing to a non-geometry class should return NotImplemented in __eq__
+    # to ensure proper delegation to other (eg to ensure comparison of scalar
+    # with array works)
+    # https://github.com/shapely/shapely/issues/1056
+    assert geom.__eq__(1) is NotImplemented
+
+    # with array
+    arr = np.array([geom, geom], dtype=object)
+
+    result = arr == geom
+    assert isinstance(result, np.ndarray)
+    assert result.all()
+
+    result = geom == arr
+    assert isinstance(result, np.ndarray)
+    assert result.all()
+
+    result = arr != geom
+    assert isinstance(result, np.ndarray)
+    assert not result.any()
+
+    result = geom != arr
+    assert isinstance(result, np.ndarray)
+    assert not result.any()
+
+
+def test_comparison_not_supported():
+    geom1 = Point(1, 1)
+    geom2 = Point(2, 2)
+
+    with pytest.raises(TypeError, match="not supported between instances"):
+        geom1 > geom2
+
+    with pytest.raises(TypeError, match="not supported between instances"):
+        geom1 < geom2
+
+    with pytest.raises(TypeError, match="not supported between instances"):
+        geom1 >= geom2
+
+    with pytest.raises(TypeError, match="not supported between instances"):
+        geom1 <= geom2

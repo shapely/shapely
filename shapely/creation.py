@@ -1,6 +1,7 @@
 import numpy as np
 
 from shapely import Geometry, GeometryType, lib
+from shapely._enum import ParamEnum
 from shapely._geometry_helpers import collections_1d, simple_geometries_1d
 from shapely.decorators import multithreading_enabled
 from shapely.io import from_wkt
@@ -21,6 +22,12 @@ __all__ = [
 ]
 
 
+class HandleNaN(ParamEnum):
+    allow = 0
+    skip = 1
+    error = 2
+
+
 def _xyz_to_coords(x, y, z):
     if y is None:
         return x
@@ -32,7 +39,9 @@ def _xyz_to_coords(x, y, z):
 
 
 @multithreading_enabled
-def points(coords, y=None, z=None, indices=None, out=None, **kwargs):
+def points(
+    coords, y=None, z=None, indices=None, handle_nan=HandleNaN.allow, out=None, **kwargs
+):
     """Create an array of points.
 
     Parameters
@@ -48,11 +57,24 @@ def points(coords, y=None, z=None, indices=None, out=None, **kwargs):
         indices should be an array of shape (N,) with integers in increasing
         order. Missing indices result in a ValueError unless ``out`` is
         provided, in which case the original value in ``out`` is kept.
+    handle_nan : shapely.HandleNaN or {'allow', 'skip', 'error'}, default 'allow'
+        Specifies what to do when a NaN or Inf is encountered in the coordinates:
+
+        - 'allow': the geometries are created with NaN or Inf coordinates.
+          Note that this can result in unexpected behaviour in subsequent
+          operations, and generally it is discouraged to have non-finite
+          coordinate values. One can use this option if you know all
+          coordinates are finite and want to avoid the overhead of checking
+          for this.
+        - 'skip': if any of x, y or z values are NaN or Inf, an empty point
+          will be created.
+        - 'error': if any NaN or Inf is detected in the coordinates, a ValueError
+          is raised. This option ensures that the created geometries have all
+          finite coordinate values.
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
 
     Examples
@@ -65,19 +87,26 @@ def points(coords, y=None, z=None, indices=None, out=None, **kwargs):
     Notes
     -----
 
-    - GEOS >=3.10 automatically converts POINT (nan nan) to POINT EMPTY.
+    - GEOS 3.10, 3.11 and 3.12 automatically converts POINT (nan nan) to POINT EMPTY.
+    - GEOS 3.10 and 3.11 will transform a 3D point to 2D if its Z coordinate is NaN.
     - Usage of the ``y`` and ``z`` arguments will prevents lazy evaluation in ``dask``.
       Instead provide the coordinates as an array with shape ``(..., 2)`` or ``(..., 3)`` using only the ``coords`` argument.
     """
     coords = _xyz_to_coords(coords, y, z)
+    if isinstance(handle_nan, str):
+        handle_nan = HandleNaN.get_value(handle_nan)
     if indices is None:
-        return lib.points(coords, out=out, **kwargs)
+        return lib.points(coords, np.intc(handle_nan), out=out, **kwargs)
     else:
-        return simple_geometries_1d(coords, indices, GeometryType.POINT, out=out)
+        return simple_geometries_1d(
+            coords, indices, GeometryType.POINT, handle_nan=handle_nan, out=out
+        )
 
 
 @multithreading_enabled
-def linestrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
+def linestrings(
+    coords, y=None, z=None, indices=None, handle_nan=HandleNaN.allow, out=None, **kwargs
+):
     """Create an array of linestrings.
 
     This function will raise an exception if a linestring contains less than
@@ -96,11 +125,26 @@ def linestrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
         indices should be an array of shape (N,) with integers in increasing
         order. Missing indices result in a ValueError unless ``out`` is
         provided, in which case the original value in ``out`` is kept.
+    handle_nan : shapely.HandleNaN or {'allow', 'skip', 'error'}, default 'allow'
+        Specifies what to do when a NaN or Inf is encountered in the coordinates:
+
+        - 'allow': the geometries are created with NaN or Inf coordinates.
+          Note that this can result in unexpected behaviour in subsequent
+          operations, and generally it is discouraged to have non-finite
+          coordinate values. One can use this option if you know all
+          coordinates are finite and want to avoid the overhead of checking
+          for this.
+        - 'skip': the coordinate pairs where any of x, y or z values are
+          NaN or Inf are ignored. If this results in ignoring all coordinates
+          for one geometry, an empty geometry is created.
+        - 'error': if any NaN or Inf is detected in the coordinates, a ValueError
+          is raised. This option ensures that the created geometries have all
+          finite coordinate values.
+
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
 
     Examples
@@ -116,14 +160,20 @@ def linestrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
       Instead provide the coordinates as a ``(..., 2)`` or ``(..., 3)`` array using only ``coords``.
     """
     coords = _xyz_to_coords(coords, y, z)
+    if isinstance(handle_nan, str):
+        handle_nan = HandleNaN.get_value(handle_nan)
     if indices is None:
-        return lib.linestrings(coords, out=out, **kwargs)
+        return lib.linestrings(coords, np.intc(handle_nan), out=out, **kwargs)
     else:
-        return simple_geometries_1d(coords, indices, GeometryType.LINESTRING, out=out)
+        return simple_geometries_1d(
+            coords, indices, GeometryType.LINESTRING, handle_nan=handle_nan, out=out
+        )
 
 
 @multithreading_enabled
-def linearrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
+def linearrings(
+    coords, y=None, z=None, indices=None, handle_nan=HandleNaN.allow, out=None, **kwargs
+):
     """Create an array of linearrings.
 
     If the provided coords do not constitute a closed linestring, or if there
@@ -145,11 +195,25 @@ def linearrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
         indices should be an array of shape (N,) with integers in increasing
         order. Missing indices result in a ValueError unless ``out`` is
         provided, in which case the original value in ``out`` is kept.
+    handle_nan : shapely.HandleNaN or {'allow', 'skip', 'error'}, default 'allow'
+        Specifies what to do when a NaN or Inf is encountered in the coordinates:
+
+        - 'allow': the geometries are created with NaN or Inf coordinates.
+          Note that this can result in unexpected behaviour in subsequent
+          operations, and generally it is discouraged to have non-finite
+          coordinate values. One can use this option if you know all
+          coordinates are finite and want to avoid the overhead of checking
+          for this.
+        - 'skip': the coordinate pairs where any of x, y or z values are
+          NaN or Inf are ignored. If this results in ignoring all coordinates
+          for one geometry, an empty geometry is created.
+        - 'error': if any NaN or Inf is detected in the coordinates, a ValueError
+          is raised. This option ensures that the created geometries have all
+          finite coordinate values.
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
 
     See also
@@ -169,10 +233,14 @@ def linearrings(coords, y=None, z=None, indices=None, out=None, **kwargs):
       Instead provide the coordinates as a ``(..., 2)`` or ``(..., 3)`` array using only ``coords``.
     """
     coords = _xyz_to_coords(coords, y, z)
+    if isinstance(handle_nan, str):
+        handle_nan = HandleNaN.get_value(handle_nan)
     if indices is None:
-        return lib.linearrings(coords, out=out, **kwargs)
+        return lib.linearrings(coords, np.intc(handle_nan), out=out, **kwargs)
     else:
-        return simple_geometries_1d(coords, indices, GeometryType.LINEARRING, out=out)
+        return simple_geometries_1d(
+            coords, indices, GeometryType.LINEARRING, handle_nan=handle_nan, out=out
+        )
 
 
 @multithreading_enabled
@@ -200,8 +268,7 @@ def polygons(geometries, holes=None, indices=None, out=None, **kwargs):
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
 
     Examples
@@ -234,7 +301,7 @@ def polygons(geometries, holes=None, indices=None, out=None, **kwargs):
     >>> polygons([ring_1, ring_2], indices=[0, 0])[0]
     <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 6, 2 7, 3 7, 3 6, 2 6))>
 
-    Missing input values (``None``) are ignored and may result in an
+    Missing input values (``None``) are skipd and may result in an
     empty polygon:
 
     >>> polygons(None)
@@ -284,8 +351,7 @@ def box(xmin, ymin, xmax, ymax, ccw=True, **kwargs):
         If False, box will be created in clockwise direction starting from
         bottom left coordinate (xmin, ymin).
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -315,8 +381,7 @@ def multipoints(geometries, indices=None, out=None, **kwargs):
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
 
     Examples
@@ -326,30 +391,30 @@ def multipoints(geometries, indices=None, out=None, **kwargs):
     >>> point_1 = points([1, 1])
     >>> point_2 = points([2, 2])
     >>> multipoints([point_1, point_2])
-    <MULTIPOINT (1 1, 2 2)>
+    <MULTIPOINT ((1 1), (2 2))>
     >>> multipoints([[point_1, point_2], [point_2, None]]).tolist()
-    [<MULTIPOINT (1 1, 2 2)>, <MULTIPOINT (2 2)>]
+    [<MULTIPOINT ((1 1), (2 2))>, <MULTIPOINT ((2 2))>]
 
     Or from coordinates directly:
 
     >>> multipoints([[0, 0], [2, 2], [3, 3]])
-    <MULTIPOINT (0 0, 2 2, 3 3)>
+    <MULTIPOINT ((0 0), (2 2), (3 3))>
 
     Multiple multipoints of different sizes can be constructed efficiently using the
     ``indices`` keyword argument:
 
     >>> multipoints([point_1, point_2, point_2], indices=[0, 0, 1]).tolist()
-    [<MULTIPOINT (1 1, 2 2)>, <MULTIPOINT (2 2)>]
+    [<MULTIPOINT ((1 1), (2 2))>, <MULTIPOINT ((2 2))>]
 
-    Missing input values (``None``) are ignored and may result in an
+    Missing input values (``None``) are skipd and may result in an
     empty multipoint:
 
     >>> multipoints([None])
     <MULTIPOINT EMPTY>
     >>> multipoints([point_1, None], indices=[0, 0]).tolist()
-    [<MULTIPOINT (1 1)>]
+    [<MULTIPOINT ((1 1))>]
     >>> multipoints([point_1, None], indices=[0, 1]).tolist()
-    [<MULTIPOINT (1 1)>, <MULTIPOINT EMPTY>]
+    [<MULTIPOINT ((1 1))>, <MULTIPOINT EMPTY>]
     """
     typ = GeometryType.MULTIPOINT
     geometries = np.asarray(geometries)
@@ -380,8 +445,7 @@ def multilinestrings(geometries, indices=None, out=None, **kwargs):
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
 
     See also
@@ -418,8 +482,7 @@ def multipolygons(geometries, indices=None, out=None, **kwargs):
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
 
     See also
@@ -455,8 +518,7 @@ def geometrycollections(geometries, indices=None, out=None, **kwargs):
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
         Ignored if ``indices`` is provided.
 
     See also
@@ -491,8 +553,7 @@ def prepare(geometry, **kwargs):
     geometry : Geometry or array_like
         Geometries are changed in place
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -522,8 +583,7 @@ def destroy_prepared(geometry, **kwargs):
     geometry : Geometry or array_like
         Geometries are changed inplace
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------

@@ -159,12 +159,6 @@ def test_dump_binary_load_hex(some_point, tmpdir):
             load(file_pointer, hex=True)
 
 
-requires_geos_380 = pytest.mark.xfail(
-    geos_version < (3, 8, 0), reason="GEOS >= 3.8.0 is required", strict=True
-)
-
-
-@requires_geos_380
 def test_point_empty():
     g = wkt.loads("POINT EMPTY")
     result = dumps(g, big_endian=False)
@@ -176,7 +170,16 @@ def test_point_empty():
     assert all(math.isnan(val) for val in coords)
 
 
-@pytest.mark.xfail(reason="Fails with latest pygeos")
+# Generally GEOS only serializes this correctly starting with GEOS 3.9
+# For some reason MacOS has different behaviour (it's actually correct for
+# older GEOS versions, but not for GEOS 3.8)
+@pytest.mark.xfail(
+    (
+        geos_version < (3, 9, 0)
+        and not (geos_version < (3, 8, 0) and sys.platform == "darwin")
+    ),
+    reason="GEOS >= 3.9.0 is required",
+)
 def test_point_z_empty():
     g = wkt.loads("POINT Z EMPTY")
     assert g.wkb_hex == hostorder(

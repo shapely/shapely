@@ -32,6 +32,7 @@
    coordinates
    strtree
    testing
+   plotting
 
 Indices and tables
 ==================

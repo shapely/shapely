@@ -26,10 +26,7 @@ UNARY_PREDICATES = (
     shapely.is_geometry,
     shapely.is_valid_input,
     shapely.is_prepared,
-    pytest.param(
-        shapely.is_ccw,
-        marks=pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7"),
-    ),
+    shapely.is_ccw,
 )
 
 BINARY_PREDICATES = (
@@ -195,6 +192,14 @@ def test_equals_exact_tolerance():
     np.testing.assert_allclose(actual, [False, True, False])
 
 
+def test_equals_exact_normalize():
+    l1 = LineString([(0, 0), (1, 1)])
+    l2 = LineString([(1, 1), (0, 0)])
+    # default requirs same order of coordinates
+    assert not shapely.equals_exact(l1, l2)
+    assert shapely.equals_exact(l1, l2, normalize=True)
+
+
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 def test_dwithin():
     p1 = shapely.points(50, 4)
@@ -277,7 +282,6 @@ def test_relate_pattern_non_scalar():
         shapely.relate_pattern([point] * 2, polygon, ["*********"] * 2)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 @pytest.mark.parametrize(
     "geom, expected",
     [

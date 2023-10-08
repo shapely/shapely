@@ -1,7 +1,7 @@
 import numpy as np
 
 from shapely import GeometryType, lib
-from shapely.decorators import multithreading_enabled, requires_geos
+from shapely.decorators import multithreading_enabled
 from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
@@ -37,8 +37,7 @@ def difference(a, b, grid_size=None, **kwargs):
         Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
         precision of the inputs by default.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -96,8 +95,7 @@ def intersection(a, b, grid_size=None, **kwargs):
         Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
         precision of the inputs by default.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -150,8 +148,7 @@ def intersection_all(geometries, axis=None, **kwargs):
         Axis may be negative, in which case it counts from the last to the
         first axis.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc.reduce docs <https://numpy.org/doc/stable/reference/generated/numpy.ufunc.reduce.html#numpy.ufunc.reduce>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -198,8 +195,7 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
         Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
         precision of the inputs by default.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -252,8 +248,7 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
         Axis may be negative, in which case it counts from the last to the
         first axis.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc.reduce docs <https://numpy.org/doc/stable/reference/generated/numpy.ufunc.reduce.html#numpy.ufunc.reduce>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -301,8 +296,7 @@ def union(a, b, grid_size=None, **kwargs):
         Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
         precision of the inputs by default.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -369,8 +363,7 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
         Axis may be negative, in which case it counts from the last to the
         first axis.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -429,7 +422,6 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
 unary_union = union_all
 
 
-@requires_geos("3.8.0")
 @multithreading_enabled
 def coverage_union(a, b, **kwargs):
     """Merges multiple polygons into one. This is an optimized version of
@@ -440,8 +432,7 @@ def coverage_union(a, b, **kwargs):
     a : Geometry or array_like
     b : Geometry or array_like
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -461,7 +452,6 @@ def coverage_union(a, b, **kwargs):
     return coverage_union_all([a, b], **kwargs)
 
 
-@requires_geos("3.8.0")
 @multithreading_enabled
 def coverage_union_all(geometries, axis=None, **kwargs):
     """Returns the union of multiple polygons of a geometry collection.
@@ -469,8 +459,8 @@ def coverage_union_all(geometries, axis=None, **kwargs):
     to be non-overlapping.
 
     This function ignores None values when other Geometry elements are present.
-    If all elements of the given axis are None, an empty MultiPolygon is
-    returned.
+    If all elements of the given axis are None, an empty GeometryCollection is
+    returned (before GEOS 3.12 this was an empty MultiPolygon).
 
     Parameters
     ----------
@@ -481,8 +471,7 @@ def coverage_union_all(geometries, axis=None, **kwargs):
         Axis may be negative, in which case it counts from the last to the
         first axis.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
@@ -498,7 +487,7 @@ def coverage_union_all(geometries, axis=None, **kwargs):
     >>> normalize(coverage_union_all([polygon_1, None]))
     <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
     >>> normalize(coverage_union_all([None, None]))
-    <MULTIPOLYGON EMPTY>
+    <GEOMETRYCOLLECTION EMPTY>
     """
     # coverage union in GEOS works over GeometryCollections
     # first roll the aggregation axis backwards
