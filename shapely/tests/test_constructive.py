@@ -920,6 +920,43 @@ def test_oriented_envelope(geometry, expected, func):
     assert_geometries_equal(actual, expected, normalize=True, tolerance=1e-3)
 
 
+@pytest.mark.skipif(shapely.geos_version >= (3, 12, 0), reason="GEOS >= 3.12")
+@pytest.mark.parametrize(
+    "geometry, expected",
+    [
+        (
+            MultiPoint([(0, 0), (10, 0), (10, 10)]),
+            Polygon([(0, 0), (5, -5), (15, 5), (10, 10), (0, 0)]),
+        ),
+        (
+            LineString([(1, 1), (5, 1), (10, 10)]),
+            Polygon([(1, 1), (3, -1), (12, 8), (10, 10), (1, 1)]),
+        ),
+        (
+            Polygon([(1, 1), (15, 1), (5, 10), (1, 1)]),
+            Polygon([(15, 1), (15, 10), (1, 10), (1, 1), (15, 1)]),
+        ),
+        (
+            LineString([(1, 1), (10, 1)]),
+            LineString([(1, 1), (10, 1)]),
+        ),
+        (
+            Point(2, 2),
+            Point(2, 2),
+        ),
+        (
+            GeometryCollection(),
+            Polygon(),
+        ),
+    ],
+)
+def test_oriented_envelope_pre_geos_312(geometry, expected):
+    # use private method (similar as direct shapely.lib.oriented_envelope)
+    # to cover the C code for older GEOS versions
+    actual = shapely.constructive._oriented_envelope_geos(geometry)
+    assert_geometries_equal(actual, expected, normalize=True, tolerance=1e-3)
+
+
 @pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
 def test_concave_hull_kwargs():
     p = Point(10, 10)
