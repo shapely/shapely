@@ -324,7 +324,7 @@ char check_to_wkt_coord_out_of_bounds(GEOSContextHandle_t ctx, GEOSGeometry* geo
     return PGERR_GEOS_EXCEPTION;
   }
 
-  if ((xmax > 1E135) || (ymax > 1E135)) {
+  if ((npy_isfinite(xmax) && (xmax > 1E135)) || (npy_isfinite(ymax) && (ymax > 1E135))) {
     return PGERR_COORD_OUT_OF_BOUNDS;
   }
   return PGERR_SUCCESS;
