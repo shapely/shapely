@@ -89,3 +89,28 @@ class LambdaTestCase(unittest.TestCase):
         assert g.area == pytest.approx(h.area)
         assert h.centroid.x == pytest.approx(1.0)
         assert h.centroid.y == pytest.approx(3.5)
+
+
+class TypeTestCase(unittest.TestCase):
+    """With the shapely 2.1 implemenation func gets the expected types"""
+
+    def test_func_gets_tuples(self):
+        def func(x, y):
+            for coord in (x, y):
+                assert type(coord) is tuple
+                assert all(type(elem) is float for elem in coord)
+            return (x, y)
+
+        with pytest.warns(ShapelyDeprecationWarning):
+            transform(func, geometry.LineString([(0, 1), (2, 3)]))
+
+    def test_func_fallback_gets_floats(self):
+        def func(x, y):
+            if isinstance(x, tuple):
+                raise TypeError("float expected")
+            for coord in (x, y):
+                assert type(coord) is float
+            return (x, y)
+
+        with pytest.warns(ShapelyDeprecationWarning):
+            transform(func, geometry.LineString([(0, 1), (2, 3)]))

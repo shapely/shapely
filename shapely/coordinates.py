@@ -195,12 +195,12 @@ def transform_resize(
 
     Reduce a linestring to only its first 2 points:
 
-    >>> transform_resize(LineString([(2, 2), (4, 4), (6, 6)]), lambda coords: coords[:2]))
+    >>> transform_resize(LineString([(2, 2), (4, 4), (6, 6)]), lambda coords: coords[:2])
     <LINESTRING (2 2, 4 4)>
 
-    The same with an function that accepts separate x, y arrays:
+    The same with a function that accepts separate x, y arrays:
 
-    >>> transform_resize(LineString([(2, 2), (4, 4), (6, 6)]), lambda x, y: x[:2], y:2), interleaved=False)
+    >>> transform_resize(LineString([(2, 2), (4, 4), (6, 6)]), lambda x, y: (x[:2], y[:2]), interleaved=False)
     <LINESTRING (2 2, 4 4)>
 
     Transform a point using a lambda function that accepts only scalars:

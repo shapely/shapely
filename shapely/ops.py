@@ -241,9 +241,14 @@ def transform(func, geom):
         stacklevel=2,
     )
 
-    # wrap the transformation function to transform arrays to tuples
+    # wrap the transformation function to get rid of numpy types
     def _func_wrapped(*args):
-        return func(*[tuple(x) if isinstance(x, np.ndarray) else x for x in args])
+        return func(
+            *[
+                tuple(x.tolist()) if isinstance(x, np.ndarray) else x.item()
+                for x in args
+            ]
+        )
 
     try:
         return transform_resize(geom, _func_wrapped, include_z=None, interleaved=False)
