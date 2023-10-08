@@ -221,19 +221,18 @@ def transform_resize(
         include_z = geom.has_z
 
     def _transform_internal(simple_geom):
-        # First we try to apply func to x, y, z sequences. When func is
-        # optimized for sequences, this is the fastest, though zipping
-        # the results up to go back into the geometry constructors adds
-        # extra cost.
         coords = get_coordinates(simple_geom, include_z=include_z)
         if interleaved:
             return transformation(coords)
-        try:
-            return zip(*transformation(*coords.T))
-        except TypeError:
-            # A func that assumes x, y, z are single values will likely raise a
+        else:
+            # A transformation that assumes x, y, z are single values will likely raise a
             # TypeError, in which case we'll try again.
-            return [transformation(*c) for c in coords]
+            try:
+                return zip(*transformation(*coords.T))
+            except TypeError:
+                # A func that assumes x, y, z are single values will likely raise a
+                # TypeError, in which case we'll try again.
+                return [transformation(*c) for c in coords]
 
     geom_type = shapely.get_type_id(geom)
     if geom_type in (
