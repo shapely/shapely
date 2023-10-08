@@ -89,6 +89,12 @@ def shape(context):
     else:
         ob = context
     geom_type = ob.get("type").lower()
+
+    if geom_type == "feature":
+        # GeoJSON features must have a 'geometry' field.
+        ob = ob["geometry"]
+        geom_type = ob.get("type").lower()
+
     if "coordinates" in ob and _is_coordinates_empty(ob["coordinates"]):
         return _empty_shape_for_no_coordinates(geom_type)
     elif geom_type == "point":
