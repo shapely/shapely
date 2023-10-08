@@ -143,7 +143,7 @@ def transform(
 
 
 def transform_resize(
-    geom: shapely.Geometry,
+    geom: Optional[shapely.Geometry],
     transformation,
     include_z: Optional[bool] = False,
     interleaved: bool = True,
@@ -162,7 +162,7 @@ def transform_resize(
 
     Parameters
     ----------
-    geom : Geometry
+    geom : Geometry or None
     transformation : function
         A function that transforms a (N, 2) or (N, 3) ndarray of float64 to
         another (N, 2) or (N, 3) ndarray of float64.
@@ -208,6 +208,8 @@ def transform_resize(
     >>> transform_resize(Point(0, 0), lambda x, y: (x + 1, y + 2), interleaved=False)
     <POINT (1 2)>
     """
+    if geom is None:
+        return geom
     if geom.is_empty:
         if include_z is True:
             return shapely.force_3d(geom)
@@ -215,8 +217,8 @@ def transform_resize(
             return shapely.force_2d(geom)
         else:
             return geom
-
-    geom_type = shapely.get_type_id(geom)
+    if include_z is None:
+        include_z = geom.has_z
 
     def _transform_internal(simple_geom):
         # First we try to apply func to x, y, z sequences. When func is
@@ -233,6 +235,7 @@ def transform_resize(
             # TypeError, in which case we'll try again.
             return [transformation(*c) for c in coords]
 
+    geom_type = shapely.get_type_id(geom)
     if geom_type in (
         GeometryType.POINT,
         GeometryType.LINESTRING,
