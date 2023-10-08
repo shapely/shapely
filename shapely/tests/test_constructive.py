@@ -956,15 +956,34 @@ def test_minimum_rotated_rectangle(geometry, expected):
     assert shapely.equals(actual, expected).all()
 
 
-# @pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
-# @pytest.mark.parametrize("geometry", all_types)
-# def test_maximum_inscribed_circle_all_types(geometry):
-#     actual = shapely.maximum_inscribed_circle([geometry, geometry])
-#     assert actual.shape == (2,)
-#     assert actual[0] is None or isinstance(actual[0], Geometry)
+@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
+@pytest.mark.parametrize("geometry", all_types)
+def test_maximum_inscribed_circle_all_types(geometry):
 
-#     actual = shapely.maximum_inscribed_circle(None)
-#     assert actual is None
+    if (
+        shapely.get_type_id(geometry) == shapely.GeometryType.GEOMETRYCOLLECTION
+        and geometry.is_empty
+    ):
+        # an upstream bug that empty geometry collection doesn't raise proper error
+        with pytest.raises(TypeError):
+            shapely.maximum_inscribed_circle(geometry)
+        return
+
+    if shapely.get_type_id(geometry) not in [3, 6]:
+        # Maximum Inscribed Circle is only supported for (MultiPolygon) input
+        with pytest.raises(
+            GEOSException,
+            match="Input geometry must be a Polygon or MultiPolygon|Operation not supported by GeometryCollection",
+        ):
+            shapely.maximum_inscribed_circle(geometry)
+        return
+
+    actual = shapely.maximum_inscribed_circle([geometry, geometry])
+    assert actual.shape == (2,)
+    assert actual[0] is None or isinstance(actual[0], Geometry)
+
+    actual = shapely.maximum_inscribed_circle(None)
+    assert actual is None
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")

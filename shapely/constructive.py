@@ -1112,7 +1112,7 @@ def largest_empty_circle(geometry, boundary=None, tolerance=None, **kwargs):
 
     Constructs the "largest empty circle" (LEC) for a set of obstacle
     geometries, up to a specified tolerance. The obstacles are point and line
-    geometries. Polygonal obstacles willl be treated as linear features. The
+    geometries. Polygonal obstacles will be treated as linear features. The
     LEC is the largest circle which has its **center** inside the boundary,
     and whose interior does not intersect with any obstacle. If no boundary
     is provided, the convex hull of the obstacles is used as the boundary.
