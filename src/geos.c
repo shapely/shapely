@@ -304,6 +304,41 @@ char check_to_wkt_compatible(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
   }
 }
 
+
+/* Checks whether the geometry contains coordinate greater than 1E+135
+ *
+ * These end in an Abort with the following message;
+ * See also:
+ * 
+ * https://github.com/shapely/shapely/issues/1903 necessary for GEOS 3.7.3, 3.8.2, or 3.9. When these versions are out, we
+ * should add version conditionals and test.
+ *
+ * The return value is one of:
+ * - PGERR_SUCCESS
+ * - PGERR_MULTIPOINT_WITH_POINT_EMPTY
+ * - PGERR_GEOS_EXCEPTION
+ */
+char check_to_wkt_compatible(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
+  char geom_type, is_empty;
+
+  geom_type = GEOSGeomTypeId_r(ctx, geom);
+  if (geom_type == -1) {
+    return PGERR_GEOS_EXCEPTION;
+  }
+  if (geom_type != GEOS_MULTIPOINT) {
+    return PGERR_SUCCESS;
+  }
+
+  is_empty = multipoint_has_point_empty(ctx, geom);
+  if (is_empty == 0) {
+    return PGERR_SUCCESS;
+  } else if (is_empty == 1) {
+    return PGERR_MULTIPOINT_WITH_POINT_EMPTY;
+  } else {
+    return PGERR_GEOS_EXCEPTION;
+  }
+}
+
 #if GEOS_SINCE_3_9_0
 
 /* Checks whether the geometry is a 3D empty geometry and, if so, create the WKT string
