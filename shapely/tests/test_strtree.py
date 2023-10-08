@@ -370,29 +370,14 @@ def test_query_with_partially_prepared_inputs(tree):
     "predicate",
     [
         # intersects is intentionally omitted; it does not raise an exception
-        pytest.param(
-            "within",
-            marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
-        ),
-        pytest.param(
-            "contains",
-            marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
-        ),
+        "within",
+        "contains",
         "overlaps",
         "crosses",
         "touches",
-        pytest.param(
-            "covers",
-            marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
-        ),
-        pytest.param(
-            "covered_by",
-            marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
-        ),
-        pytest.param(
-            "contains_properly",
-            marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
-        ),
+        "covers",
+        "covered_by",
+        "contains_properly",
     ],
 )
 def test_query_predicate_errors(tree, predicate):

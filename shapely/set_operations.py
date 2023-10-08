@@ -1,7 +1,7 @@
 import numpy as np
 
 from shapely import GeometryType, lib
-from shapely.decorators import multithreading_enabled, requires_geos
+from shapely.decorators import multithreading_enabled
 from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
@@ -422,7 +422,6 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
 unary_union = union_all
 
 
-@requires_geos("3.8.0")
 @multithreading_enabled
 def coverage_union(a, b, **kwargs):
     """Merges multiple polygons into one. This is an optimized version of
@@ -453,7 +452,6 @@ def coverage_union(a, b, **kwargs):
     return coverage_union_all([a, b], **kwargs)
 
 
-@requires_geos("3.8.0")
 @multithreading_enabled
 def coverage_union_all(geometries, axis=None, **kwargs):
     """Returns the union of multiple polygons of a geometry collection.
@@ -461,8 +459,8 @@ def coverage_union_all(geometries, axis=None, **kwargs):
     to be non-overlapping.
 
     This function ignores None values when other Geometry elements are present.
-    If all elements of the given axis are None, an empty MultiPolygon is
-    returned.
+    If all elements of the given axis are None, an empty GeometryCollection is
+    returned (before GEOS 3.12 this was an empty MultiPolygon).
 
     Parameters
     ----------
@@ -489,7 +487,7 @@ def coverage_union_all(geometries, axis=None, **kwargs):
     >>> normalize(coverage_union_all([polygon_1, None]))
     <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
     >>> normalize(coverage_union_all([None, None]))
-    <MULTIPOLYGON EMPTY>
+    <GEOMETRYCOLLECTION EMPTY>
     """
     # coverage union in GEOS works over GeometryCollections
     # first roll the aggregation axis backwards

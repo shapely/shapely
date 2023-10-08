@@ -42,8 +42,8 @@ __all__ = [
 def has_z(geometry, **kwargs):
     """Returns True if a geometry has a Z coordinate.
 
-    Note that this function returns False if the (first) Z coordinate equals NaN or
-    if the geometry is empty.
+    Note that for GEOS < 3.12 this function returns False if the (first) Z coordinate
+    equals NaN.
 
     Parameters
     ----------
@@ -62,7 +62,7 @@ def has_z(geometry, **kwargs):
     False
     >>> has_z(Point(0, 0, 0))
     True
-    >>> has_z(Point(0, 0, float("nan")))
+    >>> has_z(Point())
     False
     """
     return lib.has_z(geometry, **kwargs)
@@ -411,7 +411,7 @@ def is_valid_reason(geometry, **kwargs):
     >>> is_valid_reason(LineString([(0, 0), (1, 1)]))
     'Valid Geometry'
     >>> is_valid_reason(Polygon([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)]))
-    'Ring Self-intersection[1 1]'
+    'Self-intersection[1 2]'
     >>> is_valid_reason(None) is None
     True
     """
@@ -1079,7 +1079,7 @@ def dwithin(a, b, distance, **kwargs):
 @multithreading_enabled
 def contains_xy(geom, x, y=None, **kwargs):
     """
-    Returns True if the Point (x, y) is completely inside geometry A.
+    Returns True if the Point (x, y) is completely inside geom.
 
     This is a special-case (and faster) variant of the `contains` function
     which avoids having to create a Point object if you start from x/y
@@ -1127,7 +1127,7 @@ def contains_xy(geom, x, y=None, **kwargs):
 @multithreading_enabled
 def intersects_xy(geom, x, y=None, **kwargs):
     """
-    Returns True if A and the Point (x, y) share any portion of space.
+    Returns True if geom and the Point (x, y) share any portion of space.
 
     This is a special-case (and faster) variant of the `intersects` function
     which avoids having to create a Point object if you start from x/y

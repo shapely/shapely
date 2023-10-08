@@ -655,7 +655,7 @@ sequence of `Point` instances, thereby making copies.
 .. code-block:: pycon
 
   >>> MultiPoint([Point(0, 0), Point(1, 1)])
-  <MULTIPOINT (0 0, 1 1)>
+  <MULTIPOINT ((0 0), (1 1))>
 
 .. _multilinestrings:
 
@@ -1399,7 +1399,7 @@ points. The boundary of a point is an empty collection.
   >>> coords = [((0, 0), (1, 1)), ((-1, 0), (1, 0))]
   >>> lines = MultiLineString(coords)
   >>> lines.boundary
-  <MULTIPOINT (-1 0, 0 0, 1 0, 1 1)>
+  <MULTIPOINT ((-1 0), (0 0), (1 0), (1 1))>
   >>> list(lines.boundary.geoms)
   [<POINT (-1 0)>, <POINT (0 0)>, <POINT (1 0)>, <POINT (1 1)>]
   >>> lines.boundary.boundary
@@ -1712,8 +1712,8 @@ Figure 11. Convex hull (blue) of 2 points (left) and of 6 points (right).
 
   >>> Point(0, 0).minimum_rotated_rectangle
   <POINT (0 0)>
-  >>> MultiPoint([(0,0),(1,1),(2,0.5)]).minimum_rotated_rectangle
-  <POLYGON ((2 0.5, 1.824 1.206, -0.176 0.706, 0 0, 2 0.5))>
+  >>> MultiPoint([(0,0),(1,1),(2,0.5)]).minimum_rotated_rectangle.normalize()
+  <POLYGON ((-0.176 0.706, 1.824 1.206, 2 0.5, 0 0, -0.176 0.706))>
 
 .. plot:: code/minimum_rotated_rectangle.py
 
