@@ -55,6 +55,7 @@ class MultiPolygon(BaseMultipartGeometry):
             return polygons
 
         polygons = getattr(polygons, "geoms", polygons)
+        # remove None and empty polygons from list of Polygons
         polygons = [p for p in polygons if p]
 
         L = len(polygons)
