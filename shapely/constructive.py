@@ -1009,7 +1009,7 @@ def oriented_envelope(geometry, **kwargs):
 
     Examples
     --------
-    >>> from shapely import from_wkt, GeometryCollection, LineString, MultiPoint, Point, Polygon
+    >>> from shapely import GeometryCollection, LineString, MultiPoint, Point, Polygon
     >>> oriented_envelope(MultiPoint([(0, 0), (10, 0), (10, 10)])).normalize()
     <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
     >>> oriented_envelope(LineString([(1, 1), (5, 1), (10, 10)])).normalize()
