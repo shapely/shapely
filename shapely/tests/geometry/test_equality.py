@@ -10,6 +10,14 @@ from shapely.tests.common import all_types, all_types_z, ignore_invalid
 def test_equality(geom):
     assert geom == geom
     transformed = shapely.transform(geom, lambda x: x, include_z=True)
+    if (
+        shapely.geos_version < (3, 9, 0)
+        and isinstance(geom, Point)
+        and geom.is_empty
+        and not geom.has_z
+    ):
+        # the transformed empty 2D point has become 3D on GEOS 3.8
+        transformed = shapely.force_2d(geom)
     assert geom == transformed
     assert not (geom != transformed)
 
@@ -112,9 +120,7 @@ def test_equality_with_nan_z_false():
 
     if shapely.geos_version < (3, 10, 0):
         # GEOS <= 3.9 fill the NaN with 0, so the z dimension is different
-        # assert left != right
-        # however, has_z still returns False, so z dimension is ignored in .coords
-        assert left == right
+        assert left != right
     elif shapely.geos_version < (3, 12, 0):
         # GEOS 3.10-3.11 ignore NaN for Z also when explicitly created with 3D
         # and so the geometries are considered as 2D (and thus z dimension is ignored)
