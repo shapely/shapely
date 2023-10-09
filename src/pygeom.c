@@ -77,7 +77,7 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
   }
 
   GEOS_INIT;
-  errstate = check_to_wkt_coord_out_of_bounds(ctx, geom);
+  errstate = check_to_wkt_trim_compatible(ctx, geom);
   if (errstate != PGERR_SUCCESS) {
     goto finish;
   }

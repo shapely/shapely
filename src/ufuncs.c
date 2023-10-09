@@ -3234,6 +3234,8 @@ static void to_wkt_func(char** args, const npy_intp* dimensions, const npy_intp*
     return;
   }
 
+  npy_bool trim = *(npy_bool*)ip3;
+
   GEOS_INIT;
 
   /* Create the WKT writer */
@@ -3243,7 +3245,7 @@ static void to_wkt_func(char** args, const npy_intp* dimensions, const npy_intp*
     goto finish;
   }
   GEOSWKTWriter_setRoundingPrecision_r(ctx, writer, *(int*)ip2);
-  GEOSWKTWriter_setTrim_r(ctx, writer, *(npy_bool*)ip3);
+  GEOSWKTWriter_setTrim_r(ctx, writer, trim);
   GEOSWKTWriter_setOutputDimension_r(ctx, writer, *(int*)ip4);
   GEOSWKTWriter_setOld3D_r(ctx, writer, *(npy_bool*)ip5);
 
@@ -3269,9 +3271,11 @@ static void to_wkt_func(char** args, const npy_intp* dimensions, const npy_intp*
       Py_INCREF(Py_None);
       *out = Py_None;
     } else {
-      errstate = check_to_wkt_coord_out_of_bounds(ctx, in1);
-      if (errstate != PGERR_SUCCESS) {
-        goto finish;
+      if (trim) {
+        errstate = check_to_wkt_trim_compatible(ctx, in1);
+        if (errstate != PGERR_SUCCESS) {
+          goto finish;
+        }
       }
 #if GEOS_SINCE_3_9_0
       errstate = wkt_empty_3d_geometry(ctx, in1, &wkt);

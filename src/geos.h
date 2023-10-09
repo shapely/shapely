@@ -93,7 +93,7 @@ enum ShapelyErrorCode {
       break;                                                                             \
     case PGERR_COORD_OUT_OF_BOUNDS:                                                      \
       PyErr_SetString(PyExc_ValueError,                                                  \
-                      "WKT output of coordinates greater than 1E+135 is unsupported on " \
+                      "WKT output of coordinates greater than 1E+100 is unsupported on " \
                       "this version of GEOS.");                                          \
       break;                                                                             \
     case PGERR_EMPTY_GEOMETRY:                                                           \
@@ -173,7 +173,7 @@ extern char has_point_empty(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 extern GEOSGeometry* point_empty_to_nan_all_geoms(GEOSContextHandle_t ctx,
                                                   GEOSGeometry* geom);
 extern char check_to_wkt_compatible(GEOSContextHandle_t ctx, GEOSGeometry* geom);
-extern char check_to_wkt_coord_out_of_bounds(GEOSContextHandle_t ctx, GEOSGeometry* geom);
+extern char check_to_wkt_trim_compatible(GEOSContextHandle_t ctx, const GEOSGeometry* geom);
 #if GEOS_SINCE_3_9_0
 extern char wkt_empty_3d_geometry(GEOSContextHandle_t ctx, GEOSGeometry* geom,
                                   char** wkt);
