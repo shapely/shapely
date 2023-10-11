@@ -39,7 +39,8 @@ Bug fixes:
   not ignore the z-coordinates (#1732).
 - Fix ``MultiPolygon()`` constructor to accept polygons without holes (#1850).
 
-Wheels are available for Python 3.12 (and still include GEOS 3.11.2).
+Wheels are available for Python 3.12 (and still include GEOS 3.11.2). Building
+from source is now compatible with Cython 3.
 
 2.0.1 (2023-01-30)
 ------------------
