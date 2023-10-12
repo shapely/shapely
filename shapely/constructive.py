@@ -2,6 +2,7 @@ import numpy as np
 
 from shapely import lib
 from shapely._enum import ParamEnum
+from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area
 from shapely.decorators import multithreading_enabled, requires_geos
 
 __all__ = [
@@ -990,6 +991,10 @@ def voronoi_polygons(
 
 @requires_geos("3.6.0")
 @multithreading_enabled
+def _oriented_envelope_geos(geometry, **kwargs):
+    return lib.oriented_envelope(geometry, **kwargs)
+
+
 def oriented_envelope(geometry, **kwargs):
     """
     Computes the oriented envelope (minimum rotated rectangle)
@@ -999,11 +1004,6 @@ def oriented_envelope(geometry, **kwargs):
     Unlike envelope this rectangle is not constrained to be parallel to the
     coordinate axes. If the convex hull of the object is a degenerate (line
     or point) this degenerate is returned.
-
-    .. warning::
-
-        With GEOS 3.11 or earlier the implementation optimized for minimal
-        width of one of the rectangle sides rather than the minimum area.
 
     Parameters
     ----------
@@ -1027,7 +1027,11 @@ def oriented_envelope(geometry, **kwargs):
     >>> oriented_envelope(GeometryCollection([]))
     <POLYGON EMPTY>
     """
-    return lib.oriented_envelope(geometry, **kwargs)
+    if lib.geos_version < (3, 12, 0):
+        f = _oriented_envelope_min_area
+    else:
+        f = _oriented_envelope_geos
+    return f(geometry, **kwargs)
 
 
 minimum_rotated_rectangle = oriented_envelope

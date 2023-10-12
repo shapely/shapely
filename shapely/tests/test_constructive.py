@@ -900,7 +900,6 @@ def test_oriented_envelope_all_types(geometry):
     assert actual is None
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
 @pytest.mark.parametrize(
     "func", [shapely.oriented_envelope, shapely.minimum_rotated_rectangle]
 )
@@ -908,18 +907,16 @@ def test_oriented_envelope_all_types(geometry):
     "geometry, expected",
     [
         (
-            MultiPoint([(0, 0), (10, 0), (10, 10)]),
-            Polygon([[10.0, 10.0], [10.0, 0.0], [0.0, 0.0], [0.0, 10.0], [10.0, 10.0]]),
+            MultiPoint([(1.0, 1.0), (1.0, 5.0), (3.0, 6.0), (4.0, 2.0), (5.0, 5.0)]),
+            Polygon([(1.0, 1.0), (1.0, 6.0), (5.0, 6.0), (5.0, 1.0), (1.0, 1.0)]),
         ),
         (
             LineString([(1, 1), (5, 1), (10, 10)]),
             Polygon([(1, 1), (3, -1), (12, 8), (10, 10), (1, 1)]),
         ),
         (
-            Polygon([(1, 1), (15, 1), (5, 10), (1, 1)]),
-            Polygon(
-                [[1.0, 1.0], [5.0, 10.0], [16.691, 4.804], [12.691, -4.196], [1.0, 1.0]]
-            ),
+            Polygon([(1, 1), (15, 1), (5, 9), (1, 1)]),
+            Polygon([(1.0, 1.0), (5.0, 9.0), (16.2, 3.4), (12.2, -4.6), (1.0, 1.0)]),
         ),
         (
             LineString([(1, 1), (10, 1)]),
@@ -945,22 +942,19 @@ def test_oriented_envelope(geometry, expected, func):
     reason="GEOS >= 3.12",
 )
 @pytest.mark.parametrize(
-    "func", [shapely.oriented_envelope, shapely.minimum_rotated_rectangle]
-)
-@pytest.mark.parametrize(
     "geometry, expected",
     [
         (
-            MultiPoint([(0, 0), (10, 0), (10, 10)]),
-            Polygon([(0, 0), (5, -5), (15, 5), (10, 10), (0, 0)]),
+            MultiPoint([(1.0, 1.0), (1.0, 5.0), (3.0, 6.0), (4.0, 2.0), (5.0, 5.0)]),
+            Polygon([(-0.2, 1.4), (1.5, 6.5), (5.1, 5.3), (3.4, 0.2), (-0.2, 1.4)]),
         ),
         (
             LineString([(1, 1), (5, 1), (10, 10)]),
             Polygon([(1, 1), (3, -1), (12, 8), (10, 10), (1, 1)]),
         ),
         (
-            Polygon([(1, 1), (15, 1), (5, 10), (1, 1)]),
-            Polygon([(15, 1), (15, 10), (1, 10), (1, 1), (15, 1)]),
+            Polygon([(1, 1), (15, 1), (5, 9), (1, 1)]),
+            Polygon([(1.0, 1.0), (1.0, 9.0), (15.0, 9.0), (15.0, 1.0), (1.0, 1.0)]),
         ),
         (
             LineString([(1, 1), (10, 1)]),
@@ -976,8 +970,10 @@ def test_oriented_envelope(geometry, expected, func):
         ),
     ],
 )
-def test_oriented_envelope_pre_geos_312(geometry, expected, func):
-    actual = func(geometry)
+def test_oriented_envelope_pre_geos_312(geometry, expected):
+    # use private method (similar as direct shapely.lib.oriented_envelope)
+    # to cover the C code for older GEOS versions
+    actual = shapely.constructive._oriented_envelope_geos(geometry)
     if shapely.geos_version < (3, 8, 0):
         # For GEOS 3.7, the function returns 3D which was ignored in the old test:
         assert shapely.equals(actual, expected).all()
