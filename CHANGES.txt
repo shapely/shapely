@@ -41,10 +41,15 @@ Bug fixes:
 - Fix ``minimum_rotated_rectangle`` (``oriented_envelope``) to always return
   the minimum area solution (instead of minimum width). In practice, it will use the
   GEOS implementation only for GEOS 3.12+, and for older GEOS versions fall back to the
-  implementation that was included in Shapely < 2.
+  implementation that was included in Shapely < 2 (#1670).
+- Fix ``from_ragged_array`` to work with read-only array input (#1744).
+- Fix the handling of z coordinates ``shapely.ops.substring`` (#1699).
 
 Wheels are available for Python 3.12 (and still include GEOS 3.11.2). Building
 from source is now compatible with Cython 3.
+
+For a full changelog, see
+https://shapely.readthedocs.io/en/latest/release/2.x.html#version-2-0-2
 
 2.0.1 (2023-01-30)
 ------------------
