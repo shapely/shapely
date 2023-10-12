@@ -38,7 +38,10 @@ Bug fixes:
 - Fix regression in the (in)equality comparison (``geom1 == geom2``) using ``__eq__`` to
   not ignore the z-coordinates (#1732).
 - Fix ``MultiPolygon()`` constructor to accept polygons without holes (#1850).
-
+- Fix ``minimum_rotated_rectangle`` (``oriented_envelope``) to always return
+  the minimum area solution (instead of minimum width). In practice, it will use the
+  GEOS implementation only for GEOS 3.12+, and for older GEOS versions fall back to the
+  implementation that was included in Shapely < 2.
 
 2.0.1 (2023-01-30)
 ------------------
