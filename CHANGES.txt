@@ -30,7 +30,7 @@ Breaking changes in GEOS 3.12.0:
   to "MULTIPOINT ((0 0), (1 1))". (#1885)
 
 
-2.0.2 (unreleased)
+2.0.2 (2023-10-12)
 ------------------
 
 Bug fixes:
@@ -42,6 +42,9 @@ Bug fixes:
   the minimum area solution (instead of minimum width). In practice, it will use the
   GEOS implementation only for GEOS 3.12+, and for older GEOS versions fall back to the
   implementation that was included in Shapely < 2.
+
+Wheels are available for Python 3.12 (and still include GEOS 3.11.2). Building
+from source is now compatible with Cython 3.
 
 2.0.1 (2023-01-30)
 ------------------
