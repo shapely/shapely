@@ -15,7 +15,7 @@ Improvements:
 
 .. _version-2-0-2:
 
-Version 2.0.2 (2023-10-09)
+Version 2.0.2 (2023-10-12)
 --------------------------
 
 Bug fixes:
