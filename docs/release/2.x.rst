@@ -23,13 +23,29 @@ Bug fixes:
 - Fix regression in the (in)equality comparison (``geom1 == geom2``) using ``__eq__`` to
   not ignore the z-coordinates (#1732).
 - Fix ``MultiPolygon()`` constructor to accept polygons without holes (#1850).
-- Fix :func:`minimum_rotated_rectangle` (:func:`oriented_envelope`) to always return
+- Fix :func:`.minimum_rotated_rectangle` (:func:`.oriented_envelope`) to always return
   the minimum area solution (instead of minimum width). In practice, it will use the
   GEOS implementation only for GEOS 3.12+, and for older GEOS versions fall back to the
-  implementation that was included in Shapely < 2.
+  implementation that was included in Shapely < 2 (#1670).
+- Fix :func:`.from_ragged_array` to work with read-only array input (#1744).
+- Fix the handling of z coordinates :func:`shapely.ops.substring` (#1699).
 
 Wheels are available for Python 3.12 (and still include GEOS 3.11.2). Building
 from source is now compatible with Cython 3.
+
+Acknowledgments
+^^^^^^^^^^^^^^^
+
+Thanks to everyone who contributed to this release!
+People with a "+" by their names contributed a patch for the first time.
+
+* Casper van der Wel
+* Gareth Simons +
+* Idan Miara
+* Joris Van den Bossche
+* Kyle Barron
+* Marek Czaplicki +
+* Mike Taves
 
 .. _version-2-0-1:
 
