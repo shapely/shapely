@@ -15,7 +15,7 @@ build:
       - git fetch --tags
     pre_install:
       # to avoid "dirty" version
-      - git update-index --assume-unchanged environment.yml docs/conf.py
+      - git update-index --assume-unchanged docs/environment.yml docs/conf.py
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
