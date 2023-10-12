@@ -46,6 +46,9 @@ def test_prepared_predicates():
             assert polygon1.crosses(geom2) == prepared_polygon1.crosses(geom2)
             assert polygon1.within(geom2) == prepared_polygon1.within(geom2)
             assert polygon1.contains(geom2) == prepared_polygon1.contains(geom2)
+            assert polygon1.contains_properly(
+                geom2
+            ) == prepared_polygon1.contains_properly(geom2)
             assert polygon1.overlaps(geom2) == prepared_polygon1.overlaps(geom2)
 
 

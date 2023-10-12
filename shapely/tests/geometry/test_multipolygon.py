@@ -67,6 +67,10 @@ class TestMultiPolygon(MultiGeometryTestCase):
             ]
         ]
 
+        # None and empty polygons are dropped
+        geom_from_list_with_empty = MultiPolygon([p, None, Polygon()])
+        assert geom_from_list_with_empty == geom
+
         # Or from a list of multiple polygons
         geom_multiple_from_list = MultiPolygon([p, p])
         assert len(geom_multiple_from_list.geoms) == 2
