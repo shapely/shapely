@@ -21,6 +21,7 @@ int check_signals_interval[1] = {10000};
 unsigned long main_thread_id[1] = {0};
 
 PyObject* PySetupSignalChecks(PyObject* self, PyObject* args) {
+
   if (!PyArg_ParseTuple(args, "ik", check_signals_interval, main_thread_id)) {
     return NULL;
   }
@@ -171,8 +172,7 @@ static void* is_ccw_data[1] = {GEOSGeom_isCCW_r};
 
 typedef char FuncGEOS_Y_b(void* context, void* a);
 static char Y_b_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
-static void Y_b_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                     void* data) {
+static void Y_b_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   FuncGEOS_Y_b* func = (FuncGEOS_Y_b*)data;
   GEOSGeometry* in1 = NULL;
   char ret;
@@ -233,8 +233,7 @@ static char IsValidInput(void* context, PyObject* obj) {
 static void* is_valid_input_data[1] = {IsValidInput};
 typedef char FuncGEOS_O_b(void* context, PyObject* obj);
 static char O_b_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
-static void O_b_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                     void* data) {
+static void O_b_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   FuncGEOS_O_b* func = (FuncGEOS_O_b*)data;
   GEOS_INIT_THREADS;
   UNARY_LOOP {
@@ -252,8 +251,7 @@ static PyUFuncGenericFunction O_b_funcs[1] = {&O_b_func};
 static void* equals_data[1] = {GEOSEquals_r};
 typedef char FuncGEOS_YY_b(void* context, void* a, void* b);
 static char YY_b_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_BOOL};
-static void YY_b_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                      void* data) {
+static void YY_b_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   FuncGEOS_YY_b* func = (FuncGEOS_YY_b*)data;
   GEOSGeometry *in1 = NULL, *in2 = NULL;
   char ret;
@@ -329,8 +327,7 @@ static void* touches_data[1] = {touches_func_tuple};
 static void* within_func_tuple[2] = {GEOSWithin_r, GEOSPreparedWithin_r};
 static void* within_data[1] = {within_func_tuple};
 static char YY_b_p_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_BOOL};
-static void YY_b_p_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                        void* data) {
+static void YY_b_p_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   FuncGEOS_YY_b* func = ((FuncGEOS_YY_b**)data)[0];
   FuncGEOS_YY_b* func_prepared = ((FuncGEOS_YY_b**)data)[1];
 
@@ -390,8 +387,7 @@ static void* intersects_xy_data[1] = {GEOSPreparedIntersects_r};
 #endif
 typedef char FuncGEOS_Ydd_b(void* context, void* pg, double x, double y);
 static char Ydd_b_p_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_DOUBLE, NPY_BOOL};
-static void Ydd_b_p_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                         void* data) {
+static void Ydd_b_p_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
 #if GEOS_SINCE_3_12_0
   FuncGEOS_Ydd_b* func = (FuncGEOS_Ydd_b*)data;
 #else
@@ -399,7 +395,7 @@ static void Ydd_b_p_func(char** args, const npy_intp* dimensions, const npy_intp
 #endif
   GEOSGeometry* in1 = NULL;
   GEOSPreparedGeometry* in1_prepared = NULL;
-  GEOSGeometry* geom = NULL;
+  GEOSGeometry *geom = NULL;
   const GEOSPreparedGeometry* prepared_geom_tmp = NULL;
   char ret;
 
@@ -467,8 +463,8 @@ finish:
 static PyUFuncGenericFunction Ydd_b_p_funcs[1] = {&Ydd_b_p_func};
 
 static char is_prepared_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
-static void is_prepared_func(char** args, const npy_intp* dimensions,
-                             const npy_intp* steps, void* data) {
+static void is_prepared_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                             void* data) {
   GEOSGeometry* in1 = NULL;
   GEOSPreparedGeometry* in1_prepared = NULL;
 
@@ -560,8 +556,7 @@ static void* line_merge_directed_data[1] = {GEOSLineMergeDirected_r};
 #endif
 typedef void* FuncGEOS_Y_Y(void* context, void* a);
 static char Y_Y_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
-static void Y_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                     void* data) {
+static void Y_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   FuncGEOS_Y_Y* func = (FuncGEOS_Y_Y*)data;
   GEOSGeometry* in1 = NULL;
   GEOSGeometry** geom_arr;
@@ -634,8 +629,7 @@ static void* prepare_data[1] = {PrepareGeometryObject};
 static void* destroy_prepared_data[1] = {DestroyPreparedGeometryObject};
 typedef char FuncPyGEOS_Y(void* ctx, GeometryObject* geom);
 static char Y_dtypes[1] = {NPY_OBJECT};
-static void Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                   void* data) {
+static void Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   FuncPyGEOS_Y* func = (FuncPyGEOS_Y*)data;
   GEOSGeometry* in1 = NULL;
   GeometryObject* geom_obj = NULL;
@@ -710,8 +704,7 @@ static void* remove_repeated_points_data[1] = {GEOSRemoveRepeatedPoints_r};
 
 typedef void* FuncGEOS_Yd_Y(void* context, void* a, double b);
 static char Yd_Y_dtypes[3] = {NPY_OBJECT, NPY_DOUBLE, NPY_OBJECT};
-static void Yd_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                      void* data) {
+static void Yd_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   FuncGEOS_Yd_Y* func = (FuncGEOS_Yd_Y*)data;
   GEOSGeometry* in1 = NULL;
   GEOSGeometry** geom_arr;
@@ -851,8 +844,7 @@ static void* GEOSSetSRID_r_with_clone(void* context, void* geom, int srid) {
 static void* set_srid_data[1] = {GEOSSetSRID_r_with_clone};
 typedef void* FuncGEOS_Yi_Y(void* context, void* a, int b);
 static char Yi_Y_dtypes[3] = {NPY_OBJECT, NPY_INT, NPY_OBJECT};
-static void Yi_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                      void* data) {
+static void Yi_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   FuncGEOS_Yi_Y* func = (FuncGEOS_Yi_Y*)data;
   GEOSGeometry* in1 = NULL;
   GEOSGeometry** geom_arr;
@@ -912,8 +904,7 @@ static void* union_data[1] = {GEOSUnion_r};
 static void* shared_paths_data[1] = {GEOSSharedPaths_r};
 typedef void* FuncGEOS_YY_Y(void* context, void* a, void* b);
 static char YY_Y_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
-static void YY_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                      void* data) {
+static void YY_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   FuncGEOS_YY_Y* func = (FuncGEOS_YY_Y*)data;
   GEOSGeometry *in1 = NULL, *in2 = NULL;
   GEOSGeometry** geom_arr;
@@ -966,8 +957,8 @@ static PyUFuncGenericFunction YY_Y_funcs[1] = {&YY_Y_func};
 static void* intersection_all_data[1] = {GEOSIntersection_r};
 static void* symmetric_difference_all_data[1] = {GEOSSymDifference_r};
 static char Y_Y_reduce_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
-static void Y_Y_reduce_func(char** args, const npy_intp* dimensions,
-                            const npy_intp* steps, void* data) {
+static void Y_Y_reduce_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                                   void* data) {
   FuncGEOS_YY_Y* func = (FuncGEOS_YY_Y*)data;
   GEOSGeometry* geom = NULL;
   GEOSGeometry* temp = NULL;
@@ -1100,8 +1091,7 @@ static int GEOSMinimumBoundingRadius(void* context, GEOSGeometry* geom, double* 
 static void* minimum_bounding_radius_data[1] = {GEOSMinimumBoundingRadius};
 typedef int FuncGEOS_Y_d(void* context, void* a, double* b);
 static char Y_d_dtypes[2] = {NPY_OBJECT, NPY_DOUBLE};
-static void Y_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                     void* data) {
+static void Y_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   FuncGEOS_Y_d* func = (FuncGEOS_Y_d*)data;
   GEOSGeometry* in1 = NULL;
 
@@ -1182,8 +1172,7 @@ static void* get_num_coordinates_data[1] = {get_num_coordinates_func_tuple};
 
 typedef int FuncGEOS_Y_i(void* context, void* a);
 static char Y_i_dtypes[2] = {NPY_OBJECT, NPY_INT};
-static void Y_i_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                     void* data) {
+static void Y_i_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   FuncGEOS_Y_i* func = ((FuncGEOS_Y_i**)data)[0];
   int errcode = (int)((int**)data)[1];
   int none_value = (int)((int**)data)[2];
@@ -1276,8 +1265,7 @@ static int GEOSProjectNormalizedWrapped_r(void* context, void* a, void* b, doubl
 static void* line_locate_point_normalized_data[1] = {GEOSProjectNormalizedWrapped_r};
 typedef int FuncGEOS_YY_d(void* context, void* a, void* b, double* c);
 static char YY_d_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE};
-static void YY_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                      void* data) {
+static void YY_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   FuncGEOS_YY_d* func = (FuncGEOS_YY_d*)data;
   GEOSGeometry *in1 = NULL, *in2 = NULL;
 
@@ -1325,8 +1313,7 @@ static void* hausdorff_distance_densify_data[1] = {GEOSHausdorffDistanceDensify_
 static void* frechet_distance_densify_data[1] = {GEOSFrechetDistanceDensify_r};
 typedef int FuncGEOS_YYd_d(void* context, void* a, void* b, double c, double* d);
 static char YYd_d_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_DOUBLE};
-static void YYd_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                       void* data) {
+static void YYd_d_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   FuncGEOS_YYd_d* func = (FuncGEOS_YYd_d*)data;
   GEOSGeometry *in1 = NULL, *in2 = NULL;
 
@@ -1374,8 +1361,7 @@ static void* union_prec_data[1] = {GEOSUnionPrec_r};
 typedef void* FuncGEOS_YYd_Y(void* context, void* a, void* b, double c);
 static char YYd_Y_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_OBJECT};
 
-static void YYd_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                       void* data) {
+static void YYd_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   FuncGEOS_YYd_Y* func = (FuncGEOS_YYd_Y*)data;
   GEOSGeometry *in1 = NULL, *in2 = NULL;
   GEOSGeometry** geom_arr;
@@ -1427,8 +1413,7 @@ static PyUFuncGenericFunction YYd_Y_funcs[1] = {&YYd_Y_func};
 /* Define functions with unique call signatures */
 static char box_dtypes[6] = {NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE,
                              NPY_DOUBLE, NPY_BOOL,   NPY_OBJECT};
-static void box_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                     void* data) {
+static void box_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2], *ip4 = args[3], *ip5 = args[4];
   npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2], is4 = steps[3], is5 = steps[4];
   npy_intp n = dimensions[0];
@@ -1498,8 +1483,7 @@ static char buffer_inner(void* ctx, GEOSBufferParams* params, void* ip1, void* i
 
 static char buffer_dtypes[8] = {NPY_OBJECT, NPY_DOUBLE, NPY_INT,  NPY_INT,
                                 NPY_INT,    NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
-static void buffer_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                        void* data) {
+static void buffer_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2], *ip4 = args[3], *ip5 = args[4],
        *ip6 = args[5], *ip7 = args[6];
   npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2], is4 = steps[3], is5 = steps[4],
@@ -1573,8 +1557,8 @@ static PyUFuncGenericFunction buffer_funcs[1] = {&buffer_func};
 
 static char offset_curve_dtypes[6] = {NPY_OBJECT, NPY_DOUBLE, NPY_INT,
                                       NPY_INT,    NPY_DOUBLE, NPY_OBJECT};
-static void offset_curve_func(char** args, const npy_intp* dimensions,
-                              const npy_intp* steps, void* data) {
+static void offset_curve_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                              void* data) {
   char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2], *ip4 = args[3], *ip5 = args[4];
   npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2], is4 = steps[3], is5 = steps[4];
   npy_intp n = dimensions[0];
@@ -1639,8 +1623,7 @@ static void offset_curve_func(char** args, const npy_intp* dimensions,
 static PyUFuncGenericFunction offset_curve_funcs[1] = {&offset_curve_func};
 
 static char snap_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_OBJECT};
-static void snap_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                      void* data) {
+static void snap_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   GEOSGeometry *in1 = NULL, *in2 = NULL;
   GEOSGeometry** geom_arr;
 
@@ -1693,8 +1676,8 @@ static PyUFuncGenericFunction snap_funcs[1] = {&snap_func};
 
 static char concave_hull_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
 
-static void concave_hull_func(char** args, const npy_intp* dimensions,
-                              const npy_intp* steps, void* data) {
+static void concave_hull_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                              void* data) {
   char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2];
   npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2];
   npy_intp n = dimensions[0];
@@ -1754,8 +1737,8 @@ static PyUFuncGenericFunction concave_hull_funcs[1] = {&concave_hull_func};
 
 static char clip_by_rect_dtypes[6] = {NPY_OBJECT, NPY_DOUBLE, NPY_DOUBLE,
                                       NPY_DOUBLE, NPY_DOUBLE, NPY_OBJECT};
-static void clip_by_rect_func(char** args, const npy_intp* dimensions,
-                              const npy_intp* steps, void* data) {
+static void clip_by_rect_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                              void* data) {
   char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2], *ip4 = args[3], *ip5 = args[4];
   npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2], is4 = steps[3], is5 = steps[4];
   npy_intp n = dimensions[0];
@@ -1819,8 +1802,8 @@ static void clip_by_rect_func(char** args, const npy_intp* dimensions,
 static PyUFuncGenericFunction clip_by_rect_funcs[1] = {&clip_by_rect_func};
 
 static char equals_exact_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_BOOL};
-static void equals_exact_func(char** args, const npy_intp* dimensions,
-                              const npy_intp* steps, void* data) {
+static void equals_exact_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                              void* data) {
   GEOSGeometry *in1 = NULL, *in2 = NULL;
   double in3;
   npy_bool ret;
@@ -1863,8 +1846,7 @@ static PyUFuncGenericFunction equals_exact_funcs[1] = {&equals_exact_func};
 #if GEOS_SINCE_3_10_0
 
 static char dwithin_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_BOOL};
-static void dwithin_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                         void* data) {
+static void dwithin_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   GEOSGeometry *in1 = NULL, *in2 = NULL;
   GEOSPreparedGeometry* in1_prepared = NULL;
   double in3;
@@ -1916,8 +1898,8 @@ static PyUFuncGenericFunction dwithin_funcs[1] = {&dwithin_func};
 #endif  // GEOS_SINCE_3_10_0
 
 static char delaunay_triangles_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
-static void delaunay_triangles_func(char** args, const npy_intp* dimensions,
-                                    const npy_intp* steps, void* data) {
+static void delaunay_triangles_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                                    void* data) {
   GEOSGeometry* in1 = NULL;
   GEOSGeometry** geom_arr;
 
@@ -1968,8 +1950,8 @@ static PyUFuncGenericFunction delaunay_triangles_funcs[1] = {&delaunay_triangles
 
 static char voronoi_polygons_dtypes[5] = {NPY_OBJECT, NPY_DOUBLE, NPY_OBJECT, NPY_BOOL,
                                           NPY_OBJECT};
-static void voronoi_polygons_func(char** args, const npy_intp* dimensions,
-                                  const npy_intp* steps, void* data) {
+static void voronoi_polygons_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                                  void* data) {
   GEOSGeometry *in1 = NULL, *in3 = NULL;
   GEOSGeometry** geom_arr;
 
@@ -2020,8 +2002,8 @@ static void voronoi_polygons_func(char** args, const npy_intp* dimensions,
 static PyUFuncGenericFunction voronoi_polygons_funcs[1] = {&voronoi_polygons_func};
 
 static char is_valid_reason_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
-static void is_valid_reason_func(char** args, const npy_intp* dimensions,
-                                 const npy_intp* steps, void* data) {
+static void is_valid_reason_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                                 void* data) {
   char* reason;
   GEOSGeometry* in1 = NULL;
 
@@ -2062,8 +2044,7 @@ finish:
 static PyUFuncGenericFunction is_valid_reason_funcs[1] = {&is_valid_reason_func};
 
 static char relate_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
-static void relate_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                        void* data) {
+static void relate_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   char* pattern;
   GEOSGeometry *in1 = NULL, *in2 = NULL;
 
@@ -2108,8 +2089,8 @@ finish:
 static PyUFuncGenericFunction relate_funcs[1] = {&relate_func};
 
 static char relate_pattern_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_BOOL};
-static void relate_pattern_func(char** args, const npy_intp* dimensions,
-                                const npy_intp* steps, void* data) {
+static void relate_pattern_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                                void* data) {
   GEOSGeometry *in1 = NULL, *in2 = NULL;
   const char* pattern = NULL;
   npy_bool ret;
@@ -2172,8 +2153,8 @@ finish:
 static PyUFuncGenericFunction relate_pattern_funcs[1] = {&relate_pattern_func};
 
 static char polygonize_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
-static void polygonize_func(char** args, const npy_intp* dimensions,
-                            const npy_intp* steps, void* data) {
+static void polygonize_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                            void* data) {
   GEOSGeometry* geom = NULL;
   unsigned int n_geoms;
 
@@ -2221,8 +2202,8 @@ static PyUFuncGenericFunction polygonize_funcs[1] = {&polygonize_func};
 
 static char polygonize_full_dtypes[5] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT,
                                          NPY_OBJECT};
-static void polygonize_full_func(char** args, const npy_intp* dimensions,
-                                 const npy_intp* steps, void* data) {
+static void polygonize_full_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                                 void* data) {
   GEOSGeometry* geom = NULL;
   GEOSGeometry* geom_copy = NULL;
   unsigned int n_geoms;
@@ -2301,8 +2282,8 @@ finish:
 static PyUFuncGenericFunction polygonize_full_funcs[1] = {&polygonize_full_func};
 
 static char shortest_line_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
-static void shortest_line_func(char** args, const npy_intp* dimensions,
-                               const npy_intp* steps, void* data) {
+static void shortest_line_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                               void* data) {
   GEOSGeometry* in1 = NULL;
   GEOSGeometry* in2 = NULL;
   GEOSPreparedGeometry* in1_prepared = NULL;
@@ -2378,8 +2359,8 @@ static void shortest_line_func(char** args, const npy_intp* dimensions,
 static PyUFuncGenericFunction shortest_line_funcs[1] = {&shortest_line_func};
 
 static char set_precision_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_INT, NPY_OBJECT};
-static void set_precision_func(char** args, const npy_intp* dimensions,
-                               const npy_intp* steps, void* data) {
+static void set_precision_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                               void* data) {
   GEOSGeometry* in1 = NULL;
   GEOSGeometry** geom_arr;
   int flags;
@@ -2464,7 +2445,8 @@ static void points_func(char** args, const npy_intp* dimensions, const npy_intp*
   }
 
   if (steps[1] != 0) {
-    PyErr_Format(PyExc_ValueError, "points function called with non-scalar parameters");
+    PyErr_Format(PyExc_ValueError,
+                 "points function called with non-scalar parameters");
     return;
   }
   int handle_nan = *(int*)args[1];
@@ -2475,7 +2457,7 @@ static void points_func(char** args, const npy_intp* dimensions, const npy_intp*
 
   GEOS_INIT_THREADS;
 
-  char* ip1 = args[0];
+  char *ip1 = args[0];               
   npy_intp is1 = steps[0], cs1 = steps[3];
   npy_intp n = dimensions[0], n_c1 = dimensions[1];
   npy_intp i;
@@ -2488,8 +2470,8 @@ static void points_func(char** args, const npy_intp* dimensions, const npy_intp*
     // the per-point coordinates are retrieved by looping 2 or 3 (=n_c1) times
     // over "ip1" with a stride of "cs1"
     errstate = create_point(ctx, *(double*)ip1, *(double*)(ip1 + cs1),
-                            n_c1 == 3 ? (double*)(ip1 + 2 * cs1) : NULL, handle_nan,
-                            &(geom_arr[i]));
+                            n_c1 == 3 ? (double*)(ip1 + 2 * cs1) : NULL,
+                            handle_nan, &(geom_arr[i]));
     if (errstate != PGERR_SUCCESS) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
@@ -2507,8 +2489,8 @@ finish:
 static PyUFuncGenericFunction points_funcs[1] = {&points_func};
 
 static char linestrings_dtypes[3] = {NPY_DOUBLE, NPY_INT, NPY_OBJECT};
-static void linestrings_func(char** args, const npy_intp* dimensions,
-                             const npy_intp* steps, void* data) {
+static void linestrings_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                             void* data) {
   GEOSCoordSequence* coord_seq = NULL;
   GEOSGeometry** geom_arr;
 
@@ -2567,8 +2549,8 @@ finish:
 static PyUFuncGenericFunction linestrings_funcs[1] = {&linestrings_func};
 
 static char linearrings_dtypes[3] = {NPY_DOUBLE, NPY_INT, NPY_OBJECT};
-static void linearrings_func(char** args, const npy_intp* dimensions,
-                             const npy_intp* steps, void* data) {
+static void linearrings_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                             void* data) {
   GEOSCoordSequence* coord_seq = NULL;
   GEOSGeometry** geom_arr;
   unsigned int size;
@@ -2757,8 +2739,8 @@ finish:
 static PyUFuncGenericFunction polygons_funcs[1] = {&polygons_func};
 
 static char create_collection_dtypes[3] = {NPY_OBJECT, NPY_INT, NPY_OBJECT};
-static void create_collection_func(char** args, const npy_intp* dimensions,
-                                   const npy_intp* steps, void* data) {
+static void create_collection_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                                   void* data) {
   GEOSGeometry *g, *g_copy;
   int n_geoms, type, actual_type, expected_type, alt_expected_type;
   GEOSGeometry **temp_geoms, **geom_arr;
@@ -2866,8 +2848,7 @@ finish:
 static PyUFuncGenericFunction create_collection_funcs[1] = {&create_collection_func};
 
 static char bounds_dtypes[2] = {NPY_OBJECT, NPY_DOUBLE};
-static void bounds_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                        void* data) {
+static void bounds_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   GEOSGeometry *envelope = NULL, *in1;
   const GEOSGeometry* ring;
   const GEOSCoordSequence* coord_seq;
@@ -2901,7 +2882,8 @@ static void bounds_func(char** args, const npy_intp* dimensions, const npy_intp*
 #if GEOS_SINCE_3_11_0
       if (GEOSisEmpty_r(ctx, in1)) {
         *x1 = *y1 = *x2 = *y2 = NPY_NAN;
-      } else {
+      }
+      else {
         if (!GEOSGeom_getExtent_r(ctx, in1, x1, y1, x2, y2)) {
           errstate = PGERR_GEOS_EXCEPTION;
           goto finish;
@@ -3119,10 +3101,10 @@ finish:
 }
 static PyUFuncGenericFunction from_wkt_funcs[1] = {&from_wkt_func};
 
-static char to_wkb_dtypes[7] = {NPY_OBJECT, NPY_BOOL, NPY_INT,   NPY_INT,
-                                NPY_BOOL,   NPY_INT,  NPY_OBJECT};
-static void to_wkb_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                        void* data) {
+static char to_wkb_dtypes[7] = {NPY_OBJECT, NPY_BOOL, NPY_INT,
+                                NPY_INT,    NPY_BOOL, NPY_INT,
+                                NPY_OBJECT};
+static void to_wkb_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2], *ip4 = args[3], *ip5 = args[4],
        *ip6 = args[5], *op1 = args[6];
   npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2], is4 = steps[3], is5 = steps[4],
@@ -3253,8 +3235,10 @@ static void to_wkt_func(char** args, const npy_intp* dimensions, const npy_intp*
     return;
   }
 
+  int precision = *(int*)ip2;
   npy_bool trim = *(npy_bool*)ip3;
   int dimension = *(int*)ip4;
+  int use_old_3d = *(npy_bool*)ip5;
 
   GEOS_INIT;
 
@@ -3264,10 +3248,10 @@ static void to_wkt_func(char** args, const npy_intp* dimensions, const npy_intp*
     errstate = PGERR_GEOS_EXCEPTION;
     goto finish;
   }
-  GEOSWKTWriter_setRoundingPrecision_r(ctx, writer, *(int*)ip2);
+  GEOSWKTWriter_setRoundingPrecision_r(ctx, writer, precision);
   GEOSWKTWriter_setTrim_r(ctx, writer, trim);
   GEOSWKTWriter_setOutputDimension_r(ctx, writer, dimension);
-  GEOSWKTWriter_setOld3D_r(ctx, writer, *(npy_bool*)ip5);
+  GEOSWKTWriter_setOld3D_r(ctx, writer, use_old_3d);
 
   // Check if the above functions caused a GEOS exception
   if (last_error[0] != 0) {
@@ -3334,8 +3318,8 @@ static PyUFuncGenericFunction to_wkt_funcs[1] = {&to_wkt_func};
 #if GEOS_SINCE_3_10_0
 
 static char from_geojson_dtypes[3] = {NPY_OBJECT, NPY_UINT8, NPY_OBJECT};
-static void from_geojson_func(char** args, const npy_intp* dimensions,
-                              const npy_intp* steps, void* data) {
+static void from_geojson_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                              void* data) {
   char *ip1 = args[0], *ip2 = args[1], *op1 = args[2];
   npy_intp is1 = steps[0], is2 = steps[1], os1 = steps[2];
   PyObject* in1;
@@ -3416,8 +3400,8 @@ finish:
 static PyUFuncGenericFunction from_geojson_funcs[1] = {&from_geojson_func};
 
 static char to_geojson_dtypes[3] = {NPY_OBJECT, NPY_INT, NPY_OBJECT};
-static void to_geojson_func(char** args, const npy_intp* dimensions,
-                            const npy_intp* steps, void* data) {
+static void to_geojson_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                            void* data) {
   char *ip1 = args[0], *ip2 = args[1], *op1 = args[2];
   npy_intp is1 = steps[0], is2 = steps[1], os1 = steps[2];
   npy_intp n = dimensions[0];
