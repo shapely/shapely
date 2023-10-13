@@ -368,9 +368,27 @@ def test_to_wkt_multipoint_with_point_empty_errors():
     "geom",
     [
         Point([1e100, 0.0]),
-        LineString([(0, 0, np.nan), (0, 0, 1e101)]),
-        Polygon([(0, 0, np.nan), (0, 1, 0), (1, 0, 1e101), (0, 0, 0)]),
-        GeometryCollection([Point(0, 0), Point(0, 0, 1e101)]),
+        pytest.param(
+            LineString([(0, 0, np.nan), (0, 0, 1e101)]),
+            marks=pytest.mark.skipif(
+                shapely.geos_version >= (3, 12, 0),
+                reason="Geometries with first Z NaN get has_z=True on GEOS 3.12",
+            ),
+        ),
+        pytest.param(
+            Polygon([(0, 0, np.nan), (0, 1, 0), (1, 0, 1e101), (0, 0, 0)]),
+            marks=pytest.mark.skipif(
+                shapely.geos_version >= (3, 12, 0),
+                reason="Geometries with first Z NaN get has_z=True on GEOS 3.12",
+            ),
+        ),
+        pytest.param(
+            GeometryCollection([Point(0, 0), Point(0, 0, 1e101)]),
+            marks=pytest.mark.skipif(
+                shapely.geos_version >= (3, 12, 0),
+                reason="Geometries with first Z NaN get has_z=True on GEOS 3.12",
+            ),
+        ),
     ],
 )
 def test_to_wkt_large_float_ok(geom):
@@ -402,6 +420,27 @@ def test_to_wkt_large_float_ok(geom):
         ),
         GeometryCollection([point_z, Point(0, 0, 1e101)]),
         GeometryCollection([GeometryCollection([Point(0, 0, 1e101)])]),
+        pytest.param(
+            LineString([(0, 0, np.nan), (0, 0, 1e101)]),
+            marks=pytest.mark.skipif(
+                shapely.geos_version < (3, 12, 0),
+                reason="Geometries with first Z NaN get has_z=False on GEOS<=3.11",
+            ),
+        ),
+        pytest.param(
+            Polygon([(0, 0, np.nan), (0, 1, 0), (1, 0, 1e101), (0, 0, 0)]),
+            marks=pytest.mark.skipif(
+                shapely.geos_version < (3, 12, 0),
+                reason="Geometries with first Z NaN get has_z=False on GEOS<=3.11",
+            ),
+        ),
+        pytest.param(
+            GeometryCollection([Point(0, 0), Point(0, 0, 1e101)]),
+            marks=pytest.mark.skipif(
+                shapely.geos_version < (3, 12, 0),
+                reason="Geometries with first Z NaN get has_z=False on GEOS<=3.11",
+            ),
+        ),
     ],
 )
 def test_to_wkt_large_float(geom):
