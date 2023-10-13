@@ -4,6 +4,10 @@ Changes
 2.1.0 (unreleased)
 ------------------
 
+Bug fixes:
+
+- Prevent crash when serializing a number > 1e100 to WKT. (#1907)
+
 Improvements:
 
 - Require GEOS >= 3.8, NumPy >= 1.16, and Python >= 3.8 (#1802, #1885)

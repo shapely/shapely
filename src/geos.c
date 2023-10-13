@@ -402,7 +402,8 @@ char get_zmax_collection(GEOSContextHandle_t ctx, const GEOSGeometry* geom,
   return 1;
 }
 
-char check_to_wkt_trim_compatible(GEOSContextHandle_t ctx, const GEOSGeometry* geom) {
+char check_to_wkt_trim_compatible(GEOSContextHandle_t ctx, const GEOSGeometry* geom,
+                                  int dimension) {
   char is_empty;
   double xmax = 0.0;
   double ymax = 0.0;
@@ -413,9 +414,14 @@ char check_to_wkt_trim_compatible(GEOSContextHandle_t ctx, const GEOSGeometry* g
   }
 
   // use max coordinates to check if any coordinate is too large
-  if (!(GEOSGeom_getXMax_r(ctx, geom, &xmax) && GEOSGeom_getYMax_r(ctx, geom, &ymax) &&
-        get_zmax(ctx, geom, &zmax))) {
+  if (!(GEOSGeom_getXMax_r(ctx, geom, &xmax) && GEOSGeom_getYMax_r(ctx, geom, &ymax))) {
     return PGERR_GEOS_EXCEPTION;
+  }
+
+  if ((dimension > 2) && GEOSHasZ_r(ctx, geom)) {
+    if (!get_zmax(ctx, geom, &zmax)) {
+      return PGERR_GEOS_EXCEPTION;
+    }
   }
 
   if ((npy_isfinite(xmax) && (xmax > 1E100)) || (npy_isfinite(ymax) && (ymax > 1E100)) ||

@@ -23,11 +23,9 @@ from shapely.tests.common import (
     all_types,
     empty_point,
     empty_point_z,
-    line_string,
-    linear_ring,
     point,
     point_z,
-    polygon,
+    polygon_z,
 )
 
 # fmt: off
@@ -366,9 +364,18 @@ def test_to_wkt_multipoint_with_point_empty_errors():
         shapely.to_wkt(geom)
 
 
-def test_to_wkt_large_float_ok():
+@pytest.mark.parametrize(
+    "geom",
+    [
+        Point([1e100, 0.0]),
+        LineString([(0, 0, np.nan), (0, 0, 1e101)]),
+        Polygon([(0, 0, np.nan), (0, 1, 0), (1, 0, 1e101), (0, 0, 0)]),
+        GeometryCollection([Point(0, 0), Point(0, 0, 1e101)]),
+    ],
+)
+def test_to_wkt_large_float_ok(geom):
     # https://github.com/shapely/shapely/issues/1903
-    shapely.to_wkt(Point([1e100, 0.0]))
+    shapely.to_wkt(geom)
 
 
 def test_to_wkt_large_float_not_ok():
@@ -380,19 +387,26 @@ def test_to_wkt_large_float_not_ok():
 @pytest.mark.parametrize(
     "geom",
     [
-        Point(1e101, 0, 0),
-        Point(0, 1e101, 0),
+        # We use GEOSGeom_getXMax_r / GEOSGeom_getYMax_r, so just test with 2 2D geometries
+        Point(1e101, 0),
+        Point(0, 1e101),
+        # We implemented our own "GetZMax", so go through all geometry types:
         Point(0, 0, 1e101),
         LineString([(0, 0, 0), (0, 0, 1e101)]),
         LinearRing([(0, 0, 0), (0, 1, 0), (1, 0, 1e101), (0, 0, 0)]),
         Polygon([(0, 0, 0), (0, 1, 0), (1, 0, 1e101), (0, 0, 0)]),
-        Polygon(linear_ring, [[(0, 0, 0), (0, 1, 0), (1, 0, 1e101), (0, 0, 0)]]),
-        MultiPoint([(0, 0, 0), (0, 0, 1e101)]),
-        MultiLineString([line_string, LineString([(0, 0, 0), (0, 0, 1e101)])]),
-        MultiPolygon(
-            [polygon, Polygon([(0, 0, 0), (0, 1, 0), (1, 0, 1e101), (0, 0, 0)])]
+        Polygon(
+            [(0, 0, 0), (0, 10, 0), (10, 0, 0), (0, 0, 0)],
+            [[(0, 0, 0), (0, 1, 0), (1, 0, 1e101), (0, 0, 0)]],
         ),
-        GeometryCollection([point, Point(0, 0, 1e101)]),
+        MultiPoint([(0, 0, 0), (0, 0, 1e101)]),
+        MultiLineString(
+            [LineString([(0, 0, 0), (0, 1, 0)]), LineString([(0, 0, 0), (0, 1, 1e101)])]
+        ),
+        MultiPolygon(
+            [polygon_z, Polygon([(0, 0, 0), (0, 1, 0), (1, 0, 1e101), (0, 0, 0)])]
+        ),
+        GeometryCollection([point_z, Point(0, 0, 1e101)]),
         GeometryCollection([GeometryCollection([Point(0, 0, 1e101)])]),
     ],
 )
@@ -401,6 +415,15 @@ def test_to_wkt_large_float(geom):
     with pytest.raises(ValueError, match="WKT output of coordinates greater than.*"):
         shapely.to_wkt(geom)
     assert "Exception in WKT writer" in repr(geom)
+
+
+def test_to_wkt_large_float_skip_z():
+    assert shapely.to_wkt(Point(0, 0, 1e101), output_dimension=2) == "POINT (0 0)"
+
+
+def test_to_wkt_large_float_no_trim():
+    # don't test the exact number, it is ridiculously large and probably platform dependent
+    assert shapely.to_wkt(Point(1e101, 0), trim=False).startswith("POINT (")
 
 
 def test_repr():
