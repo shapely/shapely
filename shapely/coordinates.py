@@ -30,8 +30,7 @@ def transform(
 
     This function differs with `transform_resize` in the following ways:
 
-    - It also accepts arrays of Geometry objects.
-    - The parameters to the transformation function are numpy arrays.
+    - It accepts arrays of Geometry objects.
     - The number of coordinates per Geometry is not allowed to change.
 
     Parameters
@@ -148,17 +147,19 @@ def transform_resize(
     include_z: Optional[bool] = False,
     interleaved: bool = True,
 ):
-    """Apply a function to the coordinates of a Geometry object, optionally changing the number
-    of coordinate pairs.
+    """Apply a function to the coordinates in a Geometry object, optionally
+    changing the number of coordinate pairs.
+
+    The transformation function is applied per coordiante sequence. For polygons this
+    means: per ring. For collections this means: per element.
 
     This function differs with `transform` in the following ways:
 
-    - The number of coordinates per Geometry is allowed to change.
-    - The input parameters to the transformation function are (tuple of) float, not array.
     - It only accepts scalar Geometry objects, not arrays.
+    - The number of coordinates per coordinate sequence is allowed to change.
 
-    We recommend only using this function only if 1) the number of coordinates in your Geometry
-    should change or 2) the transformation can't be made to accept numpy arrays.
+    We recommend only using this function only if the number of coordinates in your
+    coordinate sequence should change.
 
     Parameters
     ----------
@@ -180,8 +181,7 @@ def transform_resize(
         If set to False, the transformation function should accept 2 or 3 separate
         arguments (x, y and optional z) instead of a single one. The return value
         must be a tuple of (x, y and optional z). The arguments and return values
-        are one-dimensional arrays, however, if a TypeError is raised by the
-        supplied transformation function, it will be called with scalar floats.
+        are one-dimensional arrays.
 
     See Also
     --------
@@ -202,11 +202,6 @@ def transform_resize(
 
     >>> transform_resize(LineString([(2, 2), (4, 4), (6, 6)]), lambda x, y: (x[:2], y[:2]), interleaved=False)
     <LINESTRING (2 2, 4 4)>
-
-    Transform a point using a lambda function that accepts only scalars:
-
-    >>> transform_resize(Point(0, 0), lambda x, y: (x + 1, y + 2), interleaved=False)
-    <POINT (1 2)>
     """
     if geom is None:
         return geom
@@ -225,14 +220,7 @@ def transform_resize(
         if interleaved:
             return transformation(coords)
         else:
-            # A transformation that assumes x, y, z are single values will likely raise a
-            # TypeError, in which case we'll try again.
-            try:
-                return zip(*transformation(*coords.T))
-            except TypeError:
-                # A func that assumes x, y, z are single values will likely raise a
-                # TypeError, in which case we'll try again.
-                return [transformation(*c) for c in coords]
+            return zip(*transformation(*coords.T))
 
     geom_type = shapely.get_type_id(geom)
     if geom_type in (

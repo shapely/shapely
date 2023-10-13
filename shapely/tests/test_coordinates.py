@@ -233,19 +233,10 @@ def test_transform(geoms, include_z, interleaved, transformation):
     assert_allclose(coordinates_before + 1, coordinates_after, equal_nan=True)
 
 
-def _ensure_scalar(x):
-    # Raises TypeError when called with ndarray, to test the scalar fallback
-    # transform_resize
-    if isinstance(x, np.ndarray):
-        raise TypeError("x must not be an ndarray")
-    return x
-
-
 @pytest.mark.parametrize("geom", [g for g in all_types if not g.is_empty])
 @pytest.mark.parametrize("interleaved,transformation", [
     (True, lambda coords: [c + 1 for c in coords]),
     (False, lambda x, y: (x + 1, y + 1)),
-    (False, lambda x, y: (_ensure_scalar(x) + 1, y + 1)),
 ])
 def test_transform_resize(geom, interleaved, transformation):
     coordinates_before = get_coordinates(geom)
@@ -257,12 +248,10 @@ def test_transform_resize(geom, interleaved, transformation):
 
 @pytest.mark.parametrize("geom", [g for g in all_types_z if not g.is_empty])
 @pytest.mark.parametrize("interleaved,include_z,transformation", [
-    (True, True, lambda coords: [c + 1 for c in coords]),
     (True, False, lambda coords: [c + 1 for c in coords]),
+    (True, True, lambda coords: [c + 1 for c in coords]),
     (False, False, lambda x, y: (x + 1, y + 1)),
-    (False, False, lambda x, y: (_ensure_scalar(x) + 1, y + 1)),
     (False, True, lambda x, y, z: (x + 1, y + 1, z + 1)),
-    (False, True, lambda x, y, z: (_ensure_scalar(x) + 1, y + 1, z + 1)),
 ])
 def test_transform_resize_3d(geom, include_z, interleaved, transformation):
     coordinates_before = get_coordinates(geom, include_z=include_z)

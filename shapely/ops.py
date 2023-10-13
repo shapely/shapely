@@ -241,14 +241,17 @@ def transform(func, geom):
         stacklevel=2,
     )
 
-    # wrap the transformation function to get rid of numpy types
     def _func_wrapped(*args):
-        return func(
-            *[
-                tuple(x.tolist()) if isinstance(x, np.ndarray) else x.item()
-                for x in args
-            ]
-        )
+        # wrap the transformation function to get rid of numpy types
+        coords = [
+            tuple(x.tolist()) if isinstance(x, np.ndarray) else x.item() for x in args
+        ]
+        try:
+            return func(*coords)
+        except TypeError:
+            # A func that assumes x, y, z are single values will likely raise a
+            # TypeError, in which case we'll try again.
+            return zip(*[func(*c) for c in zip(*coords)])
 
     try:
         return transform_resize(geom, _func_wrapped, include_z=None, interleaved=False)
