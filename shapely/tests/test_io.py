@@ -378,12 +378,6 @@ def test_to_wkt_large_float_ok(geom):
     shapely.to_wkt(geom)
 
 
-def test_to_wkt_large_float_not_ok():
-    # https://github.com/shapely/shapely/issues/1903
-    with pytest.raises(ValueError, match="WKT output of coordinates greater than.*"):
-        shapely.to_wkt(Point([1e101, 0.0]))
-
-
 @pytest.mark.parametrize(
     "geom",
     [
@@ -418,10 +412,12 @@ def test_to_wkt_large_float(geom):
 
 
 def test_to_wkt_large_float_skip_z():
+    # https://github.com/shapely/shapely/issues/1903
     assert shapely.to_wkt(Point(0, 0, 1e101), output_dimension=2) == "POINT (0 0)"
 
 
 def test_to_wkt_large_float_no_trim():
+    # https://github.com/shapely/shapely/issues/1903
     # don't test the exact number, it is ridiculously large and probably platform dependent
     assert shapely.to_wkt(Point(1e101, 0), trim=False).startswith("POINT (")
 

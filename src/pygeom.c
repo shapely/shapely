@@ -81,7 +81,9 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
   }
 
   GEOS_INIT;
-  errstate = check_to_wkt_trim_compatible(ctx, geom, 3);
+  if (trim) {
+    errstate = check_to_wkt_trim_compatible(ctx, geom, dimension);
+  }
   if (errstate != PGERR_SUCCESS) {
     goto finish;
   }
