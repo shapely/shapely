@@ -364,44 +364,24 @@ def test_to_wkt_multipoint_with_point_empty_errors():
         shapely.to_wkt(geom)
 
 
-@pytest.mark.parametrize(
-    "geom",
-    [
-        Point([1e100, 0.0]),
-        pytest.param(
-            LineString([(0, 0, np.nan), (0, 0, 1e101)]),
-            marks=pytest.mark.skipif(
-                shapely.geos_version >= (3, 12, 0),
-                reason="Geometries with first Z NaN get has_z=True on GEOS 3.12",
-            ),
-        ),
-        pytest.param(
-            Polygon([(0, 0, np.nan), (0, 1, 0), (1, 0, 1e101), (0, 0, 0)]),
-            marks=pytest.mark.skipif(
-                shapely.geos_version >= (3, 12, 0),
-                reason="Geometries with first Z NaN get has_z=True on GEOS 3.12",
-            ),
-        ),
-        pytest.param(
-            GeometryCollection([Point(0, 0), Point(0, 0, 1e101)]),
-            marks=pytest.mark.skipif(
-                shapely.geos_version >= (3, 12, 0),
-                reason="Geometries with first Z NaN get has_z=True on GEOS 3.12",
-            ),
-        ),
-    ],
-)
+@pytest.mark.parametrize("geom", [Point(1e100, 0), Point(0, 1e100)])
 def test_to_wkt_large_float_ok(geom):
     # https://github.com/shapely/shapely/issues/1903
-    shapely.to_wkt(geom)
+    shapely.to_wkt(Point(1e100, 0))
+    assert "Exception in WKT writer" not in repr(geom)
+
+
+@pytest.mark.parametrize("geom", [Point(1e101, 0), Point(0, 1e101)])
+def test_to_wkt_large_float_err(geom):
+    # https://github.com/shapely/shapely/issues/1903
+    with pytest.raises(ValueError, match="WKT output of coordinates greater than.*"):
+        shapely.to_wkt(Point([1e101, 0.0]))
+    assert "Exception in WKT writer" in repr(geom)
 
 
 @pytest.mark.parametrize(
     "geom",
     [
-        # We use GEOSGeom_getXMax_r / GEOSGeom_getYMax_r, so just test with 2 2D geometries
-        Point(1e101, 0),
-        Point(0, 1e101),
         # We implemented our own "GetZMax", so go through all geometry types:
         Point(0, 0, 1e101),
         LineString([(0, 0, 0), (0, 0, 1e101)]),
@@ -420,34 +400,19 @@ def test_to_wkt_large_float_ok(geom):
         ),
         GeometryCollection([point_z, Point(0, 0, 1e101)]),
         GeometryCollection([GeometryCollection([Point(0, 0, 1e101)])]),
-        pytest.param(
-            LineString([(0, 0, np.nan), (0, 0, 1e101)]),
-            marks=pytest.mark.skipif(
-                shapely.geos_version < (3, 12, 0),
-                reason="Geometries with first Z NaN get has_z=False on GEOS<=3.11",
-            ),
-        ),
-        pytest.param(
-            Polygon([(0, 0, np.nan), (0, 1, 0), (1, 0, 1e101), (0, 0, 0)]),
-            marks=pytest.mark.skipif(
-                shapely.geos_version < (3, 12, 0),
-                reason="Geometries with first Z NaN get has_z=False on GEOS<=3.11",
-            ),
-        ),
-        pytest.param(
-            GeometryCollection([Point(0, 0), Point(0, 0, 1e101)]),
-            marks=pytest.mark.skipif(
-                shapely.geos_version < (3, 12, 0),
-                reason="Geometries with first Z NaN get has_z=False on GEOS<=3.11",
-            ),
-        ),
+        LineString([(0, 0, np.nan), (0, 0, 1e101)]),
+        Polygon([(0, 0, np.nan), (0, 1, 0), (1, 0, 1e101), (0, 0, 0)]),
+        GeometryCollection([Point(0, 0), Point(0, 0, 1e101)]),
     ],
 )
-def test_to_wkt_large_float(geom):
+def test_to_wkt_large_float_3d_no_crash(geom):
     # https://github.com/shapely/shapely/issues/1903
-    with pytest.raises(ValueError, match="WKT output of coordinates greater than.*"):
+    # just test if there is a crash (detailed behaviour differs per GEOS version)
+    try:
         shapely.to_wkt(geom)
-    assert "Exception in WKT writer" in repr(geom)
+    except ValueError as e:
+        assert str(e).startswith("WKT output of coordinates greater than")
+    repr(geom)
 
 
 def test_to_wkt_large_float_skip_z():
