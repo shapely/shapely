@@ -9,6 +9,13 @@ build:
   os: "ubuntu-20.04"
   tools:
     python: "mambaforge-4.10"
+  jobs:
+    post_checkout:
+      # we need the tags for versioneer to work
+      - git fetch --tags
+    pre_install:
+      # to avoid "dirty" version
+      - git update-index --assume-unchanged docs/environment.yml docs/conf.py
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
@@ -23,5 +30,5 @@ conda:
 
 python:
   install:
-    - method: setuptools
+    - method: pip
       path: .
