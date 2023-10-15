@@ -7,10 +7,26 @@ import numpy as np
 import pytest
 
 import shapely
-from shapely import GeometryCollection, LineString, Point, Polygon
+from shapely import (
+    GeometryCollection,
+    LinearRing,
+    LineString,
+    MultiLineString,
+    MultiPoint,
+    MultiPolygon,
+    Point,
+    Polygon,
+)
 from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
-from shapely.tests.common import all_types, empty_point, empty_point_z, point, point_z
+from shapely.tests.common import (
+    all_types,
+    empty_point,
+    empty_point_z,
+    point,
+    point_z,
+    polygon_z,
+)
 
 # fmt: off
 POINT11_WKB = b"\x01\x01\x00\x00\x00" + struct.pack("<2d", 1.0, 1.0)
@@ -346,6 +362,68 @@ def test_to_wkt_multipoint_with_point_empty_errors():
     geom = shapely.multipoints([empty_point, point])
     with pytest.raises(ValueError):
         shapely.to_wkt(geom)
+
+
+@pytest.mark.parametrize("geom", [Point(1e100, 0), Point(0, 1e100)])
+def test_to_wkt_large_float_ok(geom):
+    # https://github.com/shapely/shapely/issues/1903
+    shapely.to_wkt(geom)
+    assert "Exception in WKT writer" not in repr(geom)
+
+
+@pytest.mark.parametrize("geom", [Point(1e101, 0), Point(0, 1e101)])
+def test_to_wkt_large_float_err(geom):
+    # https://github.com/shapely/shapely/issues/1903
+    with pytest.raises(ValueError, match="WKT output of coordinates greater than.*"):
+        shapely.to_wkt(geom)
+    assert "Exception in WKT writer" in repr(geom)
+
+
+@pytest.mark.parametrize(
+    "geom",
+    [
+        # We implemented our own "GetZMax", so go through all geometry types:
+        Point(0, 0, 1e101),
+        LineString([(0, 0, 0), (0, 0, 1e101)]),
+        LinearRing([(0, 0, 0), (0, 1, 0), (1, 0, 1e101), (0, 0, 0)]),
+        Polygon([(0, 0, 0), (0, 1, 0), (1, 0, 1e101), (0, 0, 0)]),
+        Polygon(
+            [(0, 0, 0), (0, 10, 0), (10, 0, 0), (0, 0, 0)],
+            [[(0, 0, 0), (0, 1, 0), (1, 0, 1e101), (0, 0, 0)]],
+        ),
+        MultiPoint([(0, 0, 0), (0, 0, 1e101)]),
+        MultiLineString(
+            [LineString([(0, 0, 0), (0, 1, 0)]), LineString([(0, 0, 0), (0, 1, 1e101)])]
+        ),
+        MultiPolygon(
+            [polygon_z, Polygon([(0, 0, 0), (0, 1, 0), (1, 0, 1e101), (0, 0, 0)])]
+        ),
+        GeometryCollection([point_z, Point(0, 0, 1e101)]),
+        GeometryCollection([GeometryCollection([Point(0, 0, 1e101)])]),
+        LineString([(0, 0, np.nan), (0, 0, 1e101)]),
+        Polygon([(0, 0, np.nan), (0, 1, 0), (1, 0, 1e101), (0, 0, 0)]),
+        GeometryCollection([Point(0, 0), Point(0, 0, 1e101)]),
+    ],
+)
+def test_to_wkt_large_float_3d_no_crash(geom):
+    # https://github.com/shapely/shapely/issues/1903
+    # just test if there is a crash (detailed behaviour differs per GEOS version)
+    try:
+        shapely.to_wkt(geom)
+    except ValueError as e:
+        assert str(e).startswith("WKT output of coordinates greater than")
+    repr(geom)
+
+
+def test_to_wkt_large_float_skip_z():
+    # https://github.com/shapely/shapely/issues/1903
+    assert shapely.to_wkt(Point(0, 0, 1e101), output_dimension=2) == "POINT (0 0)"
+
+
+def test_to_wkt_large_float_no_trim():
+    # https://github.com/shapely/shapely/issues/1903
+    # don't test the exact number, it is ridiculously large and probably platform dependent
+    assert shapely.to_wkt(Point(1e101, 0), trim=False).startswith("POINT (")
 
 
 def test_repr():

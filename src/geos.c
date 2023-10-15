@@ -304,6 +304,134 @@ char check_to_wkt_compatible(GEOSContextHandle_t ctx, GEOSGeometry* geom) {
   }
 }
 
+/* Checks whether the geometry contains a coordinate greater than 1E+100
+ *
+ * See also:
+ *
+ * https://github.com/shapely/shapely/issues/1903
+ */
+char get_zmax(GEOSContextHandle_t, const GEOSGeometry*, double*);
+char get_zmax_simple(GEOSContextHandle_t, const GEOSGeometry*, double*);
+char get_zmax_polygon(GEOSContextHandle_t, const GEOSGeometry*, double*);
+char get_zmax_collection(GEOSContextHandle_t, const GEOSGeometry*, double*);
+
+char get_zmax(GEOSContextHandle_t ctx, const GEOSGeometry* geom, double* zmax) {
+  int type = GEOSGeomTypeId_r(ctx, geom);
+  if ((type == 0) || (type == 1) || (type == 2)) {
+    return get_zmax_simple(ctx, geom, zmax);
+  } else if (type == 3) {
+    return get_zmax_polygon(ctx, geom, zmax);
+  } else if ((type >= 4) && (type <= 7)) {
+    return get_zmax_collection(ctx, geom, zmax);
+  } else {
+    return 0;
+  }
+}
+
+char get_zmax_simple(GEOSContextHandle_t ctx, const GEOSGeometry* geom, double* zmax) {
+  const GEOSCoordSequence* seq;
+  unsigned int n, i;
+  double coord;
+
+  seq = GEOSGeom_getCoordSeq_r(ctx, geom);
+  if (seq == NULL) {
+    return 0;
+  }
+  if (GEOSCoordSeq_getSize_r(ctx, seq, &n) == 0) {
+    return 0;
+  }
+
+  for (i = 0; i < n; i++) {
+    if (!GEOSCoordSeq_getZ_r(ctx, seq, i, &coord)) {
+      return 0;
+    }
+    if (npy_isfinite(coord) && (coord > *zmax)) {
+      *zmax = coord;
+    }
+  }
+  return 1;
+}
+
+char get_zmax_polygon(GEOSContextHandle_t ctx, const GEOSGeometry* geom, double* zmax) {
+  const GEOSGeometry* ring;
+  int n, i;
+
+  ring = GEOSGetExteriorRing_r(ctx, geom);
+  if (ring == NULL) {
+    return 0;
+  }
+  if (!get_zmax_simple(ctx, ring, zmax)) {
+    return 0;
+  }
+  n = GEOSGetNumInteriorRings_r(ctx, geom);
+  if (n == -1) {
+    return 0;
+  }
+
+  for (i = 0; i < n; i++) {
+    ring = GEOSGetInteriorRingN_r(ctx, geom, i);
+    if (ring == NULL) {
+      return 0;
+    }
+    if (!get_zmax_simple(ctx, ring, zmax)) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+char get_zmax_collection(GEOSContextHandle_t ctx, const GEOSGeometry* geom,
+                         double* zmax) {
+  const GEOSGeometry* elem;
+  int n, i;
+
+  n = GEOSGetNumGeometries_r(ctx, geom);
+  if (n == -1) {
+    return 0;
+  }
+
+  for (i = 0; i < n; i++) {
+    elem = GEOSGetGeometryN_r(ctx, geom, i);
+    if (elem == NULL) {
+      return 0;
+    }
+    if (!get_zmax(ctx, elem, zmax)) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+char check_to_wkt_trim_compatible(GEOSContextHandle_t ctx, const GEOSGeometry* geom,
+                                  int dimension) {
+  char is_empty;
+  double xmax = 0.0;
+  double ymax = 0.0;
+  double zmax = 0.0;
+
+  if (GEOSisEmpty_r(ctx, geom)) {
+    return PGERR_SUCCESS;
+  }
+
+  // use max coordinates to check if any coordinate is too large
+  if (!(GEOSGeom_getXMax_r(ctx, geom, &xmax) && GEOSGeom_getYMax_r(ctx, geom, &ymax))) {
+    return PGERR_GEOS_EXCEPTION;
+  }
+
+  if ((dimension > 2) && GEOSHasZ_r(ctx, geom)) {
+    if (!get_zmax(ctx, geom, &zmax)) {
+      return PGERR_GEOS_EXCEPTION;
+    }
+  }
+
+  if ((npy_isfinite(xmax) && (xmax > 1E100)) || (npy_isfinite(ymax) && (ymax > 1E100)) ||
+      (npy_isfinite(zmax) && (zmax > 1E100))) {
+    return PGERR_COORD_OUT_OF_BOUNDS;
+  }
+
+  return PGERR_SUCCESS;
+}
+
 #if GEOS_SINCE_3_9_0
 
 /* Checks whether the geometry is a 3D empty geometry and, if so, create the WKT string
