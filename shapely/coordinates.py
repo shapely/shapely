@@ -20,8 +20,7 @@ def transform(
     include_z: Optional[bool] = False,
     interleaved: bool = True,
 ):
-    """Returns a copy of a geometry array with a function applied to its
-    coordinates.
+    """Apply a transformation to the coordinates in a geometry or geometry array.
 
     With the default of ``include_z=False``, all returned geometries will be
     two-dimensional; the third dimension will be discarded, if present.
@@ -52,8 +51,9 @@ def transform(
         guaranteed result, it is recommended to specify ``include_z`` explicitly.
     interleaved : bool, default True
         If set to False, the transformation function should accept 2 or 3 separate
-        one-dimensional arrays (x, y and optional z) instead of a single
-        two-dimensional array.
+        one-dimensional coordinate arrays as arguments (x, y and optional z) instead
+        of a single one. The return value must be a tuple of (x, y and optional z).
+
 
     See Also
     --------
@@ -147,19 +147,19 @@ def transform_resize(
     include_z: Optional[bool] = False,
     interleaved: bool = True,
 ):
-    """Apply a function to the coordinates in a Geometry object, optionally
+    """Apply a function to the coordinates in a geometry, optionally
     changing the number of coordinate pairs.
 
-    The transformation function is applied per coordiante sequence. For polygons this
+    The transformation function is applied per coordinate sequence. For polygons this
     means: per ring. For collections this means: per element.
 
     This function differs with `transform` in the following ways:
 
     - It only accepts scalar Geometry objects, not arrays.
-    - The number of coordinates per coordinate sequence is allowed to change.
+    - The number of coordinate pairs per coordinate sequence is allowed to change.
 
-    We recommend only using this function only if the number of coordinates in your
-    coordinate sequence should change.
+    The `transform` function is the more performant option, so we recommend using this
+    function when changing the number of coordinate pairs.
 
     Parameters
     ----------
@@ -179,9 +179,8 @@ def transform_resize(
         guaranteed result, it is recommended to specify ``include_z`` explicitly.
     interleaved : bool, default True
         If set to False, the transformation function should accept 2 or 3 separate
-        arguments (x, y and optional z) instead of a single one. The return value
-        must be a tuple of (x, y and optional z). The arguments and return values
-        are one-dimensional arrays.
+        one-dimensional coordinate arrays as arguments (x, y and optional z) instead
+        of a single one. The return value must be a tuple of (x, y and optional z).
 
     See Also
     --------
