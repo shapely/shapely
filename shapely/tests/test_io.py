@@ -24,6 +24,7 @@ from shapely.tests.common import (
     all_types_z,
     empty_point,
     empty_point_z,
+    equal_geometries_abnormally_yield_unequal,
     multi_point_empty,
     multi_point_empty_z,
     point,
@@ -159,7 +160,6 @@ def test_from_wkt_on_invalid_unsupported_option():
 
 @pytest.mark.parametrize("geom", all_types)
 def test_from_wkt_all_types(geom):
-    assert_geometries_not_equal = False
     if geom.is_empty and shapely.get_num_geometries(geom) > 0:
         # Older GEOS versions have various issues
         if shapely.geos_version < (3, 9, 0) and geom.geom_type == "MultiPoint":
@@ -169,15 +169,10 @@ def test_from_wkt_all_types(geom):
                 "GEOS < 3.9.0 does not support WKT of multipoint with empty points"
             )
 
-        if shapely.geos_version < (3, 10, 0) and geom.geom_type == "GeometryCollection":
-            assert_geometries_not_equal = True
-        if shapely.geos_version < (3, 13, 0) and geom.geom_type.startswith("Multi"):
-            assert_geometries_not_equal = True
-
     wkt = shapely.to_wkt(geom)
     actual = shapely.from_wkt(wkt)
 
-    if assert_geometries_not_equal:
+    if equal_geometries_abnormally_yield_unequal(geom):
         # check abnormal test
         with pytest.raises(AssertionError):
             assert_geometries_equal(actual, geom)
