@@ -226,7 +226,7 @@ def test_has_z_all_types(geometry):
 def test_has_z_all_types_z(geometry):
     if shapely.is_empty(geometry):
         # https://github.com/libgeos/geos/issues/888
-        pytest.xfail("GEOSHasZ with EMPTY geometries is inconsistent")
+        pytest.skip("GEOSHasZ with EMPTY geometries is inconsistent")
     else:
         assert shapely.has_z(geometry)
 

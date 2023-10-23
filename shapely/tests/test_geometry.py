@@ -212,7 +212,7 @@ def test_new_from_wkt(geom):
         if shapely.geos_version < (3, 9, 0) and geom.geom_type == "MultiPoint":
             with pytest.raises(ValueError):
                 str(geom)
-            pytest.xfail(
+            pytest.skip(
                 "GEOS < 3.9.0 does not support WKT of multipoint with empty points"
             )
 
