@@ -141,13 +141,13 @@ def test_get_geometry_collection(geom):
 
 
 def test_get_type_id():
-    actual = shapely.get_type_id(all_types).tolist()
-    assert actual == [0, 1, 2, 3, 3, 4, 5, 6, 7, 7, 0, 1, 3, 4, 5, 6, 4, 5, 6, 7]
+    actual = shapely.get_type_id(all_types + (None,)).tolist()
+    assert actual == [0, 1, 2, 3, 3, 4, 5, 6, 7, 7, 0, 1, 3, 4, 5, 6, 4, 5, 6, 7, -1]
 
 
 def test_get_dimensions():
-    actual = shapely.get_dimensions(all_types).tolist()
-    assert actual == [0, 1, 1, 2, 2, 0, 1, 2, 1, -1, 0, 1, 2, 0, 1, 2, 0, 1, 2, 1]
+    actual = shapely.get_dimensions(all_types + (None,)).tolist()
+    assert actual == [0, 1, 1, 2, 2, 0, 1, 2, 1, -1, 0, 1, 2, 0, 1, 2, 0, 1, 2, 1, -1]
 
 
 def test_get_coordinate_dimension():
