@@ -8,7 +8,7 @@ import warnings
 from shapely import GEOSException
 
 
-cdef void geos_message_handler(const char* message, void* userdata):
+cdef void geos_message_handler(const char* message, void* userdata) noexcept:
     snprintf(<char *>userdata, 1024, "%s", message)
 
 

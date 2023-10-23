@@ -52,6 +52,7 @@ enum ShapelyErrorCode {
   PGERR_NO_MALLOC,
   PGERR_GEOMETRY_TYPE,
   PGERR_MULTIPOINT_WITH_POINT_EMPTY,
+  PGERR_COORD_OUT_OF_BOUNDS,
   PGERR_EMPTY_GEOMETRY,
   PGERR_GEOJSON_EMPTY_POINT,
   PGERR_LINEARRING_NCOORDS,
@@ -88,6 +89,11 @@ enum ShapelyErrorCode {
     case PGERR_MULTIPOINT_WITH_POINT_EMPTY:                                              \
       PyErr_SetString(PyExc_ValueError,                                                  \
                       "WKT output of multipoints with an empty point is unsupported on " \
+                      "this version of GEOS.");                                          \
+      break;                                                                             \
+    case PGERR_COORD_OUT_OF_BOUNDS:                                                      \
+      PyErr_SetString(PyExc_ValueError,                                                  \
+                      "WKT output of coordinates greater than 1E+100 is unsupported on " \
                       "this version of GEOS.");                                          \
       break;                                                                             \
     case PGERR_EMPTY_GEOMETRY:                                                           \
@@ -167,6 +173,7 @@ extern char has_point_empty(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 extern GEOSGeometry* point_empty_to_nan_all_geoms(GEOSContextHandle_t ctx,
                                                   GEOSGeometry* geom);
 extern char check_to_wkt_compatible(GEOSContextHandle_t ctx, GEOSGeometry* geom);
+extern char check_to_wkt_trim_compatible(GEOSContextHandle_t ctx, const GEOSGeometry* geom, int dimension);
 #if GEOS_SINCE_3_9_0
 extern char wkt_empty_3d_geometry(GEOSContextHandle_t ctx, GEOSGeometry* geom,
                                   char** wkt);
@@ -179,17 +186,18 @@ int get_bounds(GEOSContextHandle_t ctx, GEOSGeometry* geom, double* xmin, double
                double* xmax, double* ymax);
 GEOSGeometry* create_box(GEOSContextHandle_t ctx, double xmin, double ymin, double xmax,
                          double ymax, char ccw);
-GEOSGeometry* create_point(GEOSContextHandle_t ctx, double x, double y, double* z);
+extern enum ShapelyErrorCode create_point(GEOSContextHandle_t ctx, double x, double y,
+                                          double* z, int handle_nan, GEOSGeometry** out);
 GEOSGeometry* PyGEOSForce2D(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 GEOSGeometry* PyGEOSForce3D(GEOSContextHandle_t ctx, GEOSGeometry* geom, double z);
 
-
 enum ShapelyHandleNan { SHAPELY_HANDLE_NAN_ALLOW, SHAPELY_HANDLE_NAN_SKIP, SHAPELY_HANDLE_NANS_ERROR };
 
-
-extern enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
-                                unsigned int size, unsigned int dims, char is_ring,
-                                int handle_nan, npy_intp cs1, npy_intp cs2,
+extern enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx,
+                                                  const double* buf, unsigned int size,
+                                                  unsigned int dims, char is_ring,
+                                                  int handle_nan, npy_intp cs1,
+                                                  npy_intp cs2,
                                 GEOSCoordSequence** coord_seq);
 extern int coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq,
                               double* buf, unsigned int size, unsigned int dims);

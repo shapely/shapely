@@ -433,12 +433,11 @@ static void Ydd_b_p_func(char** args, const npy_intp* dimensions, const npy_intp
 #if GEOS_SINCE_3_12_0
       ret = func(ctx, prepared_geom_tmp, in2, in3);
 #else
-      geom = create_point(ctx, in2, in3, NULL);
-      if (geom == NULL) {
+      errstate = create_point(ctx, in2, in3, NULL, SHAPELY_HANDLE_NAN_ALLOW, &geom);
+      if (errstate != PGERR_SUCCESS) {
         if (destroy_prepared) {
           GEOSPreparedGeom_destroy_r(ctx, prepared_geom_tmp);
         }
-        errstate = PGERR_GEOS_EXCEPTION;
         goto finish;
       }
       ret = func(ctx, prepared_geom_tmp, geom);
@@ -2431,7 +2430,7 @@ static void set_precision_func(char** args, const npy_intp* dimensions, const np
 static PyUFuncGenericFunction set_precision_funcs[1] = {&set_precision_func};
 
 /* define double -> geometry construction functions */
-static char points_dtypes[2] = {NPY_DOUBLE, NPY_OBJECT};
+static char points_dtypes[3] = {NPY_DOUBLE, NPY_INT, NPY_OBJECT};
 static void points_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                         void* data) {
   GEOSCoordSequence* coord_seq = NULL;
@@ -2445,13 +2444,24 @@ static void points_func(char** args, const npy_intp* dimensions, const npy_intp*
     return;
   }
 
+  if (steps[1] != 0) {
+    PyErr_Format(PyExc_ValueError,
+                 "points function called with non-scalar parameters");
+    return;
+  }
+  int handle_nan = *(int*)args[1];
+
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
   CHECK_ALLOC(geom_arr);
 
   GEOS_INIT_THREADS;
 
-  SINGLE_COREDIM_LOOP_OUTER {
+  char *ip1 = args[0];               
+  npy_intp is1 = steps[0], cs1 = steps[3];
+  npy_intp n = dimensions[0], n_c1 = dimensions[1];
+  npy_intp i;
+  for (i = 0; i < n; i++, ip1 += is1) {
     CHECK_SIGNALS_THREADS(i);
     if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
@@ -2459,10 +2469,10 @@ static void points_func(char** args, const npy_intp* dimensions, const npy_intp*
     }
     // the per-point coordinates are retrieved by looping 2 or 3 (=n_c1) times
     // over "ip1" with a stride of "cs1"
-    geom_arr[i] = create_point(ctx, *(double*)ip1, *(double*)(ip1 + cs1),
-                               n_c1 == 3 ? (double*)(ip1 + 2 * cs1) : NULL);
-    if (geom_arr[i] == NULL) {
-      errstate = PGERR_GEOS_EXCEPTION;
+    errstate = create_point(ctx, *(double*)ip1, *(double*)(ip1 + cs1),
+                            n_c1 == 3 ? (double*)(ip1 + 2 * cs1) : NULL,
+                            handle_nan, &(geom_arr[i]));
+    if (errstate != PGERR_SUCCESS) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
@@ -2472,7 +2482,7 @@ finish:
   GEOS_FINISH_THREADS;
   // fill the numpy array with PyObjects while holding the GIL
   if (errstate == PGERR_SUCCESS) {
-    geom_arr_to_npy(geom_arr, args[1], steps[1], dimensions[0]);
+    geom_arr_to_npy(geom_arr, args[2], steps[2], dimensions[0]);
   }
   free(geom_arr);
 }
@@ -3207,7 +3217,8 @@ static PyUFuncGenericFunction to_wkb_funcs[1] = {&to_wkb_func};
 
 static char to_wkt_dtypes[6] = {NPY_OBJECT, NPY_INT,  NPY_BOOL,
                                 NPY_INT,    NPY_BOOL, NPY_OBJECT};
-static void to_wkt_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
+static void to_wkt_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                        void* data) {
   char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2], *ip4 = args[3], *ip5 = args[4],
        *op1 = args[5];
   npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2], is4 = steps[3], is5 = steps[4],
@@ -3224,6 +3235,11 @@ static void to_wkt_func(char** args, const npy_intp* dimensions, const npy_intp*
     return;
   }
 
+  int precision = *(int*)ip2;
+  npy_bool trim = *(npy_bool*)ip3;
+  int dimension = *(int*)ip4;
+  int use_old_3d = *(npy_bool*)ip5;
+
   GEOS_INIT;
 
   /* Create the WKT writer */
@@ -3232,10 +3248,10 @@ static void to_wkt_func(char** args, const npy_intp* dimensions, const npy_intp*
     errstate = PGERR_GEOS_EXCEPTION;
     goto finish;
   }
-  GEOSWKTWriter_setRoundingPrecision_r(ctx, writer, *(int*)ip2);
-  GEOSWKTWriter_setTrim_r(ctx, writer, *(npy_bool*)ip3);
-  GEOSWKTWriter_setOutputDimension_r(ctx, writer, *(int*)ip4);
-  GEOSWKTWriter_setOld3D_r(ctx, writer, *(npy_bool*)ip5);
+  GEOSWKTWriter_setRoundingPrecision_r(ctx, writer, precision);
+  GEOSWKTWriter_setTrim_r(ctx, writer, trim);
+  GEOSWKTWriter_setOutputDimension_r(ctx, writer, dimension);
+  GEOSWKTWriter_setOld3D_r(ctx, writer, use_old_3d);
 
   // Check if the above functions caused a GEOS exception
   if (last_error[0] != 0) {
@@ -3259,6 +3275,12 @@ static void to_wkt_func(char** args, const npy_intp* dimensions, const npy_intp*
       Py_INCREF(Py_None);
       *out = Py_None;
     } else {
+      if (trim) {
+        errstate = check_to_wkt_trim_compatible(ctx, in1, dimension);
+        if (errstate != PGERR_SUCCESS) {
+          goto finish;
+        }
+      }
 #if GEOS_SINCE_3_9_0
       errstate = wkt_empty_3d_geometry(ctx, in1, &wkt);
       if (errstate != PGERR_SUCCESS) {
@@ -3675,7 +3697,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_GENERALIZED_NOUT4(polygonize_full, 1, "(d)->(),(),(),()");
   DEFINE_CUSTOM(shortest_line, 2);
 
-  DEFINE_GENERALIZED(points, 1, "(d)->()");
+  DEFINE_GENERALIZED(points, 2, "(d),()->()");
   DEFINE_GENERALIZED(linestrings, 2, "(i, d),()->()");
   DEFINE_GENERALIZED(linearrings, 2, "(i, d),()->()");
   DEFINE_GENERALIZED(bounds, 1, "()->(4)");
