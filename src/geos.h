@@ -91,7 +91,7 @@ enum ShapelyErrorCode {
                       "WKT output of multipoints with an empty point is unsupported on " \
                       "this version of GEOS.");                                          \
       break;                                                                             \
-    case PGERR_COORD_OUT_OF_BOUNDS:                                                      \
+    case PGERR_COORD_OUT_OF_BOUNDS:  /* applies to GEOS <3.13.0 with trim enabled  */    \
       PyErr_SetString(PyExc_ValueError,                                                  \
                       "WKT output of coordinates greater than 1E+100 is unsupported on " \
                       "this version of GEOS.");                                          \
@@ -163,6 +163,7 @@ enum ShapelyErrorCode {
 #define GEOS_SINCE_3_10_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 10))
 #define GEOS_SINCE_3_11_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 11))
 #define GEOS_SINCE_3_12_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 12))
+#define GEOS_SINCE_3_13_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 13))
 
 extern void* geos_context[1];
 extern PyObject* geos_exception[1];
@@ -173,7 +174,9 @@ extern char has_point_empty(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 extern GEOSGeometry* point_empty_to_nan_all_geoms(GEOSContextHandle_t ctx,
                                                   GEOSGeometry* geom);
 extern char check_to_wkt_compatible(GEOSContextHandle_t ctx, GEOSGeometry* geom);
+#if !GEOS_SINCE_3_13_0
 extern char check_to_wkt_trim_compatible(GEOSContextHandle_t ctx, const GEOSGeometry* geom, int dimension);
+#endif  // !GEOS_SINCE_3_13_0
 #if GEOS_SINCE_3_9_0
 extern char wkt_empty_3d_geometry(GEOSContextHandle_t ctx, GEOSGeometry* geom,
                                   char** wkt);

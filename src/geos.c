@@ -402,6 +402,7 @@ char get_zmax_collection(GEOSContextHandle_t ctx, const GEOSGeometry* geom,
   return 1;
 }
 
+#if !GEOS_SINCE_3_13_0
 char check_to_wkt_trim_compatible(GEOSContextHandle_t ctx, const GEOSGeometry* geom,
                                   int dimension) {
   char is_empty;
@@ -431,6 +432,7 @@ char check_to_wkt_trim_compatible(GEOSContextHandle_t ctx, const GEOSGeometry* g
 
   return PGERR_SUCCESS;
 }
+#endif  // !GEOS_SINCE_3_13_0
 
 #if GEOS_SINCE_3_9_0
 

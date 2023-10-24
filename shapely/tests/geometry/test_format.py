@@ -93,7 +93,12 @@ def test_format_polygon():
     )
 
     # 'g' format varies depending on GEOS version
-    if geos_version < (3, 10, 0):
+    if geos_version >= (3, 13, 0):
+        expected_2G = (
+            "POLYGON ((10 0, 7.07 -7.07, 6.12E-16 -10, -7.07 -7.07, "
+            "-10 -1.22E-15, -7.07 7.07, -1.84E-15 10, 7.07 7.07, 10 0))"
+        )
+    elif geos_version < (3, 10, 0):
         expected_2G = (
             "POLYGON ((10 0, 7.1 -7.1, 1.6E-14 -10, -7.1 -7.1, "
             "-10 -3.2E-14, -7.1 7.1, -4.6E-14 10, 7.1 7.1, 10 0))"

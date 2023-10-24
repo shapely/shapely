@@ -6,7 +6,7 @@ Changes
 
 Bug fixes:
 
-- Prevent crash when serializing a number > 1e100 to WKT. (#1907)
+- Prevent crash when serializing a number > 1e100 to WKT with GEOS < 3.13. (#1907)
 
 Improvements:
 
