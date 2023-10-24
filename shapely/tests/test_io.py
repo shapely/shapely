@@ -21,27 +21,30 @@ from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
     all_types,
+    all_types_z,
     empty_point,
     empty_point_z,
+    equal_geometries_abnormally_yield_unequal,
+    multi_point_empty,
+    multi_point_empty_z,
     point,
     point_z,
     polygon_z,
 )
 
-# fmt: off
-POINT11_WKB = b"\x01\x01\x00\x00\x00" + struct.pack("<2d", 1.0, 1.0)
+EWKBZ = 0x80000000
+ISOWKBZ = 1000
+POINT11_WKB = struct.pack("<BI2d", 1, 1, 1.0, 1.0)
 NAN = struct.pack("<d", float("nan"))
-POINT_NAN_WKB = b'\x01\x01\x00\x00\x00' + (NAN * 2)
-POINTZ_NAN_WKB = b'\x01\x01\x00\x00\x80' + (NAN * 3)
-MULTIPOINT_NAN_WKB = b'\x01\x04\x00\x00\x00\x01\x00\x00\x00\x01\x01\x00\x00\x00' + (NAN * 2)
-MULTIPOINTZ_NAN_WKB = b'\x01\x04\x00\x00\x80\x01\x00\x00\x00\x01\x01\x00\x00\x80' + (NAN * 3)
-GEOMETRYCOLLECTION_NAN_WKB = b'\x01\x07\x00\x00\x00\x01\x00\x00\x00\x01\x01\x00\x00\x00' + (NAN * 2)
-GEOMETRYCOLLECTIONZ_NAN_WKB = b'\x01\x07\x00\x00\x80\x01\x00\x00\x00\x01\x01\x00\x00\x80' + (NAN * 3)
-NESTED_COLLECTION_NAN_WKB = b'\x01\x07\x00\x00\x00\x01\x00\x00\x00\x01\x04\x00\x00\x00\x01\x00\x00\x00\x01\x01\x00\x00\x00' + (NAN * 2)
-NESTED_COLLECTIONZ_NAN_WKB = b'\x01\x07\x00\x00\x80\x01\x00\x00\x00\x01\x04\x00\x00\x80\x01\x00\x00\x00\x01\x01\x00\x00\x80' + (NAN * 3)
+POINT_NAN_WKB = struct.pack("<BI", 1, 1) + (NAN * 2)
+POINTZ_NAN_WKB = struct.pack("<BI", 1, 1 | EWKBZ) + (NAN * 3)
+MULTIPOINT_NAN_WKB = struct.pack("<BII", 1, 4, 1) + POINT_NAN_WKB
+MULTIPOINTZ_NAN_WKB = struct.pack("<BII", 1, 4 | EWKBZ, 1) + POINTZ_NAN_WKB
+GEOMETRYCOLLECTION_NAN_WKB = struct.pack("<BII", 1, 7, 1) + POINT_NAN_WKB
+GEOMETRYCOLLECTIONZ_NAN_WKB = struct.pack("<BII", 1, 7 | EWKBZ, 1) + POINTZ_NAN_WKB
+NESTED_COLLECTION_NAN_WKB = struct.pack("<BII", 1, 7, 1) + MULTIPOINT_NAN_WKB
+NESTED_COLLECTIONZ_NAN_WKB = struct.pack("<BII", 1, 7 | EWKBZ, 1) + MULTIPOINTZ_NAN_WKB
 INVALID_WKB = "01030000000100000002000000507daec600b1354100de02498e5e3d41306ea321fcb03541a011a53d905e3d41"
-# fmt: on
-
 
 GEOJSON_GEOMETRY = json.dumps({"type": "Point", "coordinates": [125.6, 10.1]}, indent=4)
 GEOJSON_FEATURE = json.dumps(
@@ -152,14 +155,30 @@ def test_from_wkb_ignore_on_invalid():
 
 def test_from_wkt_on_invalid_unsupported_option():
     with pytest.raises(ValueError, match="not a valid option"):
-        shapely.from_wkt(b"\x01\x01\x00\x00\x00\x00", on_invalid="unsupported_option")
+        shapely.from_wkt("NOT A WKT STRING", on_invalid="unsupported_option")
 
 
 @pytest.mark.parametrize("geom", all_types)
 def test_from_wkt_all_types(geom):
+    if geom.is_empty and shapely.get_num_geometries(geom) > 0:
+        # Older GEOS versions have various issues
+        if shapely.geos_version < (3, 9, 0) and geom.geom_type == "MultiPoint":
+            with pytest.raises(ValueError):
+                shapely.to_wkt(geom)
+            pytest.skip(
+                "GEOS < 3.9.0 does not support WKT of multipoint with empty points"
+            )
+
     wkt = shapely.to_wkt(geom)
     actual = shapely.from_wkt(wkt)
-    assert_geometries_equal(actual, geom)
+
+    if equal_geometries_abnormally_yield_unequal(geom):
+        # check abnormal test
+        with pytest.raises(AssertionError):
+            assert_geometries_equal(actual, geom)
+    else:
+        # normal test
+        assert_geometries_equal(actual, geom)
 
 
 @pytest.mark.parametrize(
@@ -259,6 +278,17 @@ def test_from_wkb_all_types(geom, use_hex, byte_order):
     assert_geometries_equal(actual, geom)
 
 
+@pytest.mark.parametrize("geom", all_types_z)
+@pytest.mark.parametrize("use_hex", [False, True])
+@pytest.mark.parametrize("byte_order", [0, 1])
+def test_from_wkb_all_types_z(geom, use_hex, byte_order):
+    if shapely.get_type_id(geom) == shapely.GeometryType.LINEARRING:
+        pytest.skip("Linearrings are not preserved in WKB")
+    wkb = shapely.to_wkb(geom, hex=use_hex, byte_order=byte_order)
+    actual = shapely.from_wkb(wkb)
+    assert_geometries_equal(actual, geom)
+
+
 @pytest.mark.parametrize(
     "geom",
     (Point(), LineString(), Polygon(), GeometryCollection()),
@@ -283,19 +313,13 @@ def test_to_wkt():
     assert actual == "POINT (1.000 1.000)"
 
 
-def test_to_wkt_3D():
-    # 3D points
-    point_z = shapely.points(1, 1, 1)
-    actual = shapely.to_wkt(point_z)
-    assert actual == "POINT Z (1 1 1)"
-    actual = shapely.to_wkt(point_z, output_dimension=3)
-    assert actual == "POINT Z (1 1 1)"
+def test_to_wkt_z():
+    point = shapely.points(1, 2, 3)
 
-    actual = shapely.to_wkt(point_z, output_dimension=2)
-    assert actual == "POINT (1 1)"
-
-    actual = shapely.to_wkt(point_z, old_3d=True)
-    assert actual == "POINT (1 1 1)"
+    assert shapely.to_wkt(point) == "POINT Z (1 2 3)"
+    assert shapely.to_wkt(point, output_dimension=2) == "POINT (1 2)"
+    assert shapely.to_wkt(point, output_dimension=3) == "POINT Z (1 2 3)"
+    assert shapely.to_wkt(point, old_3d=True) == "POINT (1 2 3)"
 
 
 def test_to_wkt_none():
@@ -428,6 +452,7 @@ def test_to_wkt_large_float_no_trim():
 
 def test_repr():
     assert repr(point) == "<POINT (2 3)>"
+    assert repr(point_z) == "<POINT Z (2 3 4)>"
 
 
 def test_repr_max_length():
@@ -471,14 +496,15 @@ def test_to_wkb_hex():
     assert actual == le + point_type + 2 * coord
 
 
-def test_to_wkb_3D():
-    point_z = shapely.points(1, 1, 1)
-    actual = shapely.to_wkb(point_z, byte_order=1)
-    # fmt: off
-    assert actual == b"\x01\x01\x00\x00\x80\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?"  # noqa
-    # fmt: on
-    actual = shapely.to_wkb(point_z, output_dimension=2, byte_order=1)
-    assert actual == POINT11_WKB
+def test_to_wkb_z():
+    point = shapely.points(1, 2, 3)
+
+    expected_wkb = struct.pack("<BI2d", 1, 1, 1.0, 2.0)
+    expected_wkb_z = struct.pack("<BI3d", 1, 1 | EWKBZ, 1.0, 2.0, 3.0)
+
+    assert shapely.to_wkb(point, byte_order=1) == expected_wkb_z
+    assert shapely.to_wkb(point, output_dimension=2, byte_order=1) == expected_wkb
+    assert shapely.to_wkb(point, output_dimension=3, byte_order=1) == expected_wkb_z
 
 
 def test_to_wkb_none():
@@ -531,11 +557,11 @@ def test_to_wkb_srid():
 def test_to_wkb_flavor():
     # http://libgeos.org/specifications/wkb/#extended-wkb
     actual = shapely.to_wkb(point_z, byte_order=1)  # default "extended"
-    assert actual.hex()[2:10] == "01000080"
+    assert actual.hex()[2:10] == struct.pack("<I", 1 | EWKBZ).hex()
     actual = shapely.to_wkb(point_z, byte_order=1, flavor="extended")
-    assert actual.hex()[2:10] == "01000080"
+    assert actual.hex()[2:10] == struct.pack("<I", 1 | EWKBZ).hex()
     actual = shapely.to_wkb(point_z, byte_order=1, flavor="iso")
-    assert actual.hex()[2:10] == "e9030000"
+    assert actual.hex()[2:10] == struct.pack("<I", 1 | ISOWKBZ).hex()
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10.0")
@@ -553,19 +579,37 @@ def test_to_wkb_flavor_unsupported_geos():
 @pytest.mark.parametrize(
     "geom,expected",
     [
-        (empty_point, POINT_NAN_WKB),
-        (empty_point_z, POINT_NAN_WKB),
-        (shapely.multipoints([empty_point]), MULTIPOINT_NAN_WKB),
-        (shapely.multipoints([empty_point_z]), MULTIPOINT_NAN_WKB),
-        (shapely.geometrycollections([empty_point]), GEOMETRYCOLLECTION_NAN_WKB),
-        (shapely.geometrycollections([empty_point_z]), GEOMETRYCOLLECTION_NAN_WKB),
-        (
-            shapely.geometrycollections([shapely.multipoints([empty_point])]),
-            NESTED_COLLECTION_NAN_WKB,
+        pytest.param(empty_point, POINT_NAN_WKB, id="POINT EMPTY"),
+        pytest.param(empty_point_z, POINT_NAN_WKB, id="POINT Z EMPTY"),
+        pytest.param(
+            multi_point_empty,
+            MULTIPOINT_NAN_WKB,
+            id="MULTIPOINT EMPTY",
         ),
-        (
-            shapely.geometrycollections([shapely.multipoints([empty_point_z])]),
+        pytest.param(
+            multi_point_empty_z,
+            MULTIPOINT_NAN_WKB,
+            id="MULTIPOINT Z EMPTY",
+        ),
+        pytest.param(
+            shapely.geometrycollections([empty_point]),
+            GEOMETRYCOLLECTION_NAN_WKB,
+            id="GEOMETRYCOLLECTION (POINT EMPTY)",
+        ),
+        pytest.param(
+            shapely.geometrycollections([empty_point_z]),
+            GEOMETRYCOLLECTION_NAN_WKB,
+            id="GEOMETRYCOLLECTION (POINT Z EMPTY)",
+        ),
+        pytest.param(
+            shapely.geometrycollections([multi_point_empty]),
             NESTED_COLLECTION_NAN_WKB,
+            id="GEOMETRYCOLLECTION (MULTIPOINT EMPTY)",
+        ),
+        pytest.param(
+            shapely.geometrycollections([multi_point_empty_z]),
+            NESTED_COLLECTION_NAN_WKB,
+            id="GEOMETRYCOLLECTION (MULTIPOINT Z EMPTY)",
         ),
     ],
 )
@@ -588,19 +632,28 @@ def test_to_wkb_point_empty_2d(geom, expected):
 @pytest.mark.parametrize(
     "geom,expected",
     [
-        (empty_point_z, POINTZ_NAN_WKB),
-        (shapely.multipoints([empty_point_z]), MULTIPOINTZ_NAN_WKB),
-        (shapely.geometrycollections([empty_point_z]), GEOMETRYCOLLECTIONZ_NAN_WKB),
-        (
-            shapely.geometrycollections([shapely.multipoints([empty_point_z])]),
+        pytest.param(empty_point_z, POINTZ_NAN_WKB, id="POINT Z EMPTY"),
+        pytest.param(
+            multi_point_empty_z,
+            MULTIPOINTZ_NAN_WKB,
+            id="MULTIPOINT Z EMPTY",
+        ),
+        pytest.param(
+            shapely.geometrycollections([empty_point_z]),
+            GEOMETRYCOLLECTIONZ_NAN_WKB,
+            id="GEOMETRYCOLLECTION (POINT Z EMPTY)",
+        ),
+        pytest.param(
+            shapely.geometrycollections([multi_point_empty_z]),
             NESTED_COLLECTIONZ_NAN_WKB,
+            id="GEOMETRYCOLLECTION (MULTIPOINT Z EMPTY)",
         ),
     ],
 )
-def test_to_wkb_point_empty_3d(geom, expected):
+def test_to_wkb_point_empty_z(geom, expected):
     actual = shapely.to_wkb(geom, output_dimension=3, byte_order=1)
     # Split 'actual' into header and coordinates
-    coordinate_length = 24
+    coordinate_length = 8 * 3
     header_length = len(expected) - coordinate_length
     # Check the total length (this checks the correct dimensionality)
     assert len(actual) == header_length + coordinate_length
@@ -613,12 +666,17 @@ def test_to_wkb_point_empty_3d(geom, expected):
 @pytest.mark.parametrize(
     "geom,expected",
     [
-        (empty_point, POINT_NAN_WKB),
-        (shapely.multipoints([empty_point]), MULTIPOINT_NAN_WKB),
-        (shapely.geometrycollections([empty_point]), GEOMETRYCOLLECTION_NAN_WKB),
-        (
-            shapely.geometrycollections([shapely.multipoints([empty_point])]),
+        pytest.param(empty_point, POINT_NAN_WKB, id="POINT EMPTY"),
+        pytest.param(multi_point_empty, MULTIPOINT_NAN_WKB, id="MULTIPOINT EMPTY"),
+        pytest.param(
+            shapely.geometrycollections([empty_point]),
+            GEOMETRYCOLLECTION_NAN_WKB,
+            id="GEOMETRYCOLLECTION (POINT EMPTY)",
+        ),
+        pytest.param(
+            shapely.geometrycollections([multi_point_empty]),
             NESTED_COLLECTION_NAN_WKB,
+            id="GEOMETRYCOLLECTION (MULTIPOINT EMPTY)",
         ),
     ],
 )
@@ -638,14 +696,16 @@ def test_to_wkb_point_empty_2d_output_dim_3(geom, expected):
 @pytest.mark.parametrize(
     "wkb,expected_type,expected_dim",
     [
-        (POINT_NAN_WKB, 0, 2),
-        (POINTZ_NAN_WKB, 0, 3),
-        (MULTIPOINT_NAN_WKB, 4, 2),
-        (MULTIPOINTZ_NAN_WKB, 4, 3),
-        (GEOMETRYCOLLECTION_NAN_WKB, 7, 2),
-        (GEOMETRYCOLLECTIONZ_NAN_WKB, 7, 3),
-        (NESTED_COLLECTION_NAN_WKB, 7, 2),
-        (NESTED_COLLECTIONZ_NAN_WKB, 7, 3),
+        pytest.param(POINT_NAN_WKB, 0, 2, id="POINT_NAN_WKB"),
+        pytest.param(POINTZ_NAN_WKB, 0, 3, id="POINTZ_NAN_WKB"),
+        pytest.param(MULTIPOINT_NAN_WKB, 4, 2, id="MULTIPOINT_NAN_WKB"),
+        pytest.param(MULTIPOINTZ_NAN_WKB, 4, 3, id="MULTIPOINTZ_NAN_WKB"),
+        pytest.param(GEOMETRYCOLLECTION_NAN_WKB, 7, 2, id="GEOMETRYCOLLECTION_NAN_WKB"),
+        pytest.param(
+            GEOMETRYCOLLECTIONZ_NAN_WKB, 7, 3, id="GEOMETRYCOLLECTIONZ_NAN_WKB"
+        ),
+        pytest.param(NESTED_COLLECTION_NAN_WKB, 7, 2, id="NESTED_COLLECTION_NAN_WKB"),
+        pytest.param(NESTED_COLLECTIONZ_NAN_WKB, 7, 3, id="NESTED_COLLECTIONZ_NAN_WKB"),
     ],
 )
 def test_from_wkb_point_empty(wkb, expected_type, expected_dim):
@@ -671,6 +731,20 @@ def test_pickle(geom):
     assert_geometries_equal(pickle.loads(pickled), geom, tolerance=0)
 
 
+@pytest.mark.parametrize("geom", all_types_z)
+def test_pickle_z(geom):
+    if shapely.get_type_id(geom) == shapely.GeometryType.LINEARRING:
+        # https://github.com/shapely/shapely/pull/1808#discussion_r1182174077
+        pytest.xfail("TODO: Z gets dropped for LinearRing")
+    pickled = pickle.dumps(geom)
+    actual = pickle.loads(pickled)
+    assert_geometries_equal(actual, geom, tolerance=0)
+    if actual.is_empty:
+        pass  # GEOSHasZ with EMPTY geometries is inconsistent
+    else:
+        assert actual.has_z
+
+
 @pytest.mark.parametrize("geom", all_types + (point_z, empty_point))
 def test_pickle_with_srid(geom):
     geom = shapely.set_srid(geom, 4326)
@@ -682,15 +756,26 @@ def test_pickle_with_srid(geom):
 @pytest.mark.parametrize(
     "geojson,expected",
     [
-        (GEOJSON_GEOMETRY, GEOJSON_GEOMETRY_EXPECTED),
-        (GEOJSON_FEATURE, GEOJSON_GEOMETRY_EXPECTED),
-        (
+        pytest.param(
+            GEOJSON_GEOMETRY, GEOJSON_GEOMETRY_EXPECTED, id="GEOJSON_GEOMETRY"
+        ),
+        pytest.param(GEOJSON_FEATURE, GEOJSON_GEOMETRY_EXPECTED, id="GEOJSON_FEATURE"),
+        pytest.param(
             GEOJSON_FEATURECOLECTION,
             shapely.geometrycollections(GEOJSON_COLLECTION_EXPECTED),
+            id="GEOJSON_FEATURECOLECTION",
         ),
-        ([GEOJSON_GEOMETRY] * 2, [GEOJSON_GEOMETRY_EXPECTED] * 2),
-        (None, None),
-        ([GEOJSON_GEOMETRY, None], [GEOJSON_GEOMETRY_EXPECTED, None]),
+        pytest.param(
+            [GEOJSON_GEOMETRY] * 2,
+            [GEOJSON_GEOMETRY_EXPECTED] * 2,
+            id="GEOJSON_GEOMETRYx2",
+        ),
+        pytest.param(None, None, id="None"),
+        pytest.param(
+            [GEOJSON_GEOMETRY, None],
+            [GEOJSON_GEOMETRY_EXPECTED, None],
+            id="GEOJSON_GEOMETRY_None",
+        ),
     ],
 )
 def test_from_geojson(geojson, expected):
@@ -744,10 +829,20 @@ def test_from_geojson_on_invalid_unsupported_option():
 @pytest.mark.parametrize(
     "expected,geometry",
     [
-        (GEOJSON_GEOMETRY, GEOJSON_GEOMETRY_EXPECTED),
-        ([GEOJSON_GEOMETRY] * 2, [GEOJSON_GEOMETRY_EXPECTED] * 2),
-        (None, None),
-        ([GEOJSON_GEOMETRY, None], [GEOJSON_GEOMETRY_EXPECTED, None]),
+        pytest.param(
+            GEOJSON_GEOMETRY, GEOJSON_GEOMETRY_EXPECTED, id="GEOJSON_GEOMETRY"
+        ),
+        pytest.param(
+            [GEOJSON_GEOMETRY] * 2,
+            [GEOJSON_GEOMETRY_EXPECTED] * 2,
+            id="GEOJSON_GEOMETRYx2",
+        ),
+        pytest.param(None, None, id="None"),
+        pytest.param(
+            [GEOJSON_GEOMETRY, None],
+            [GEOJSON_GEOMETRY_EXPECTED, None],
+            id="GEOJSON_GEOMETRY_None",
+        ),
     ],
 )
 def test_to_geojson(geometry, expected):
@@ -793,8 +888,25 @@ def test_to_geojson_point_empty(geom):
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 @pytest.mark.parametrize("geom", all_types)
 def test_geojson_all_types(geom):
-    if shapely.get_type_id(geom) == shapely.GeometryType.LINEARRING:
+    type_id = shapely.get_type_id(geom)
+    if type_id == shapely.GeometryType.LINEARRING:
         pytest.skip("Linearrings are not preserved in GeoJSON")
+    elif geom.is_empty and (
+        type_id == shapely.GeometryType.POINT
+        or (
+            type_id == shapely.GeometryType.MULTIPOINT
+            and shapely.get_num_geometries(geom) > 0
+        )
+    ):
+        with pytest.raises(ValueError):  # same as test_to_geojson_point_empty
+            assert shapely.to_geojson(geom)
+        return
     geojson = shapely.to_geojson(geom)
     actual = shapely.from_geojson(geojson)
-    assert_geometries_equal(actual, geom)
+    assert not actual.has_z
+    geoms_are_empty = shapely.is_empty([geom, actual])
+    if geoms_are_empty.any():
+        # Ensure both are EMPTY
+        assert geoms_are_empty.all()
+    else:
+        assert_geometries_equal(actual, geom)

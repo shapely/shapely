@@ -57,6 +57,13 @@ CONSTRUCTIVE_FLOAT_ARG = (
 @pytest.mark.parametrize("geometry", all_types)
 @pytest.mark.parametrize("func", CONSTRUCTIVE_NO_ARGS)
 def test_no_args_array(geometry, func):
+    if (
+        geometry.is_empty
+        and shapely.get_num_geometries(geometry) > 0
+        and func is shapely.node
+        and shapely.geos_version < (3, 8, 3)
+    ):
+        pytest.xfail("GEOS < 3.8.3 crashes with empty geometries")  # GEOS GH-601
     actual = func([geometry, geometry])
     assert actual.shape == (2,)
     assert actual[0] is None or isinstance(actual[0], Geometry)
@@ -65,6 +72,13 @@ def test_no_args_array(geometry, func):
 @pytest.mark.parametrize("geometry", all_types)
 @pytest.mark.parametrize("func", CONSTRUCTIVE_FLOAT_ARG)
 def test_float_arg_array(geometry, func):
+    if (
+        geometry.is_empty
+        and shapely.get_num_geometries(geometry) > 0
+        and (func is shapely.delaunay_triangles or func is shapely.voronoi_polygons)
+        and shapely.geos_version < (3, 8, 1)
+    ):
+        pytest.xfail("GEOS < 3.8.1 crashes with empty geometries")
     if (
         func is shapely.offset_curve
         and shapely.get_type_id(geometry) not in [1, 2]
@@ -521,6 +535,15 @@ def test_clip_by_rect_polygon(geom, rect, expected):
 
 @pytest.mark.parametrize("geometry", all_types)
 def test_clip_by_rect_array(geometry):
+    if (
+        geometry.is_empty
+        and geometry.geom_type == "Point"
+        and shapely.geos_version < (3, 12, 0)
+    ):
+        with pytest.raises(shapely.errors.GEOSException):
+            shapely.clip_by_rect([geometry, geometry], 0.0, 0.0, 1.0, 1.0)
+        pytest.xfail("GEOS < 3.12 does not support POINT EMPTY")  # GEOS GH-913
+
     actual = shapely.clip_by_rect([geometry, geometry], 0.0, 0.0, 1.0, 1.0)
     assert actual.shape == (2,)
     assert actual[0] is None or isinstance(actual[0], Geometry)

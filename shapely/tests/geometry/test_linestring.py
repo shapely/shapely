@@ -16,7 +16,7 @@ def test_from_coordinate_sequence():
     assert line.coords[:] == [(1.0, 2.0), (3.0, 4.0)]
 
 
-def test_from_coordinate_sequence_3D():
+def test_from_coordinate_sequence_z():
     line = LineString([(1.0, 2.0, 3.0), (3.0, 4.0, 5.0)])
     assert line.has_z
     assert line.coords[:] == [(1.0, 2.0, 3.0), (3.0, 4.0, 5.0)]
