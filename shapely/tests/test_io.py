@@ -396,11 +396,17 @@ def test_to_wkt_large_float_ok(geom):
 
 
 @pytest.mark.parametrize("geom", [Point(1e101, 0), Point(0, 1e101)])
-def test_to_wkt_large_float_err(geom):
-    # https://github.com/shapely/shapely/issues/1903
-    with pytest.raises(ValueError, match="WKT output of coordinates greater than.*"):
-        shapely.to_wkt(geom)
-    assert "Exception in WKT writer" in repr(geom)
+def test_to_wkt_large_float(geom):
+    if shapely.geos_version >= (3, 13, 0):
+        # round-trip WKT
+        assert geom.equals(shapely.from_wkt(shapely.to_wkt(geom)))
+    else:
+        # https://github.com/shapely/shapely/issues/1903
+        with pytest.raises(
+            ValueError, match="WKT output of coordinates greater than.*"
+        ):
+            shapely.to_wkt(geom)
+        assert "Exception in WKT writer" in repr(geom)
 
 
 @pytest.mark.parametrize(

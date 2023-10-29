@@ -81,12 +81,14 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
   }
 
   GEOS_INIT;
+#if !GEOS_SINCE_3_13_0
   if (trim) {
     errstate = check_to_wkt_trim_compatible(ctx, geom, dimension);
   }
   if (errstate != PGERR_SUCCESS) {
     goto finish;
   }
+#endif  // !GEOS_SINCE_3_13_0
 
 #if GEOS_SINCE_3_9_0
   errstate = wkt_empty_3d_geometry(ctx, geom, &wkt);

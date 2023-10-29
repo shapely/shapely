@@ -3275,12 +3275,14 @@ static void to_wkt_func(char** args, const npy_intp* dimensions, const npy_intp*
       Py_INCREF(Py_None);
       *out = Py_None;
     } else {
+#if !GEOS_SINCE_3_13_0
       if (trim) {
         errstate = check_to_wkt_trim_compatible(ctx, in1, dimension);
         if (errstate != PGERR_SUCCESS) {
           goto finish;
         }
       }
+#endif  // !GEOS_SINCE_3_13_0
 #if GEOS_SINCE_3_9_0
       errstate = wkt_empty_3d_geometry(ctx, in1, &wkt);
       if (errstate != PGERR_SUCCESS) {
