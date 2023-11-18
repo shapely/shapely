@@ -7,12 +7,12 @@ from shapely.errors import DimensionError
 
 
 def test_from_coordinates():
-    # 2D points
+    # Point
     p = Point(1.0, 2.0)
     assert p.coords[:] == [(1.0, 2.0)]
     assert p.has_z is False
 
-    # 3D Point
+    # PointZ
     p = Point(1.0, 2.0, 3.0)
     assert p.coords[:] == [(1.0, 2.0, 3.0)]
     assert p.has_z
@@ -37,7 +37,7 @@ def test_from_sequence():
     p = Point([[3.0, 4.0]])
     assert p.coords[:] == [(3.0, 4.0)]
 
-    # 3D
+    # PointZ
     p = Point((3.0, 4.0, 5.0))
     assert p.coords[:] == [(3.0, 4.0, 5.0)]
     p = Point([3.0, 4.0, 5.0])
@@ -108,7 +108,7 @@ class TestPoint:
         with pytest.raises(DimensionError):
             p.z
 
-        # Check 3D
+        # Check Z-dim
         p = Point(1.0, 2.0, 3.0)
         assert p.coords[:] == [(1.0, 2.0, 3.0)]
         assert str(p) == p.wkt

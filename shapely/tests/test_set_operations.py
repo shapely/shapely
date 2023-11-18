@@ -5,17 +5,13 @@ import shapely
 from shapely import Geometry, GeometryCollection, Polygon
 from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
-from shapely.tests.common import (
-    all_types,
-    empty,
-    ignore_invalid,
-    multi_polygon,
-    point,
-    polygon,
-)
+from shapely.tests.common import all_types, empty, ignore_invalid, point, polygon
 
 # fixed-precision operations raise GEOS exceptions on mixed dimension geometry collections
-all_single_types = [g for g in all_types if not shapely.get_type_id(g) == 7]
+all_single_types = np.array(all_types)[
+    ~shapely.is_empty(all_types)
+    & (shapely.get_type_id(all_types) != shapely.GeometryType.GEOMETRYCOLLECTION)
+]
 
 SET_OPERATIONS = (
     shapely.difference,
@@ -43,10 +39,8 @@ reduce_test_data = [
     shapely.box(5, 5, 10, 10),
 ]
 
-non_polygon_types = [
-    geom
-    for geom in all_types
-    if (not shapely.is_empty(geom) and geom not in (polygon, multi_polygon))
+non_polygon_types = np.array(all_types)[
+    ~shapely.is_empty(all_types) & (shapely.get_dimensions(all_types) != 2)
 ]
 
 

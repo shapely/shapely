@@ -71,6 +71,10 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
   char* wkt;
   PyObject* result;
   GEOSGeometry* geom = obj->ptr;
+  char trim = 1;
+  int precision = 3;
+  int dimension = 3;
+  int use_old_3d = 0;
 
   if (geom == NULL) {
     Py_INCREF(Py_None);
@@ -78,6 +82,14 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
   }
 
   GEOS_INIT;
+#if !GEOS_SINCE_3_13_0
+  if (trim) {
+    errstate = check_to_wkt_trim_compatible(ctx, geom, dimension);
+  }
+  if (errstate != PGERR_SUCCESS) {
+    goto finish;
+  }
+#endif  // !GEOS_SINCE_3_13_0
 
 #if GEOS_SINCE_3_9_0
   errstate = wkt_empty_3d_geometry(ctx, geom, &wkt);
@@ -102,10 +114,6 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
     goto finish;
   }
 
-  char trim = 1;
-  int precision = 3;
-  int dimension = 3;
-  int use_old_3d = 0;
   GEOSWKTWriter_setRoundingPrecision_r(ctx, writer, precision);
   GEOSWKTWriter_setTrim_r(ctx, writer, trim);
   GEOSWKTWriter_setOutputDimension_r(ctx, writer, dimension);
