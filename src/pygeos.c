@@ -247,5 +247,9 @@ char equals_identical(GEOSContextHandle_t ctx, const GEOSGeometry* geom1,
  */
 char PyGEOSEqualsIdentical(GEOSContextHandle_t ctx, const GEOSGeometry* geom1,
                            const GEOSGeometry* geom2) {
+#if GEOS_SINCE_3_12_0
+  return GEOSEqualsIdentical_r(ctx, geom1, geom2);
+#else
   return equals_identical(ctx, geom1, geom2);
+#endif
 }
