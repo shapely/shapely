@@ -37,8 +37,6 @@ from shapely.tests.common import (
     polygon_z,
 )
 
-all_non_empty_types = np.array(all_types)[~shapely.is_empty(all_types)]
-
 
 def test_get_num_points():
     actual = shapely.get_num_points(all_types + (None,)).tolist()
