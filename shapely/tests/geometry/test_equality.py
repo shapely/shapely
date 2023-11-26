@@ -3,7 +3,11 @@ import pytest
 
 import shapely
 from shapely import LinearRing, LineString, MultiLineString, Point, Polygon
-from shapely.tests.common import all_types, all_types_z, ignore_invalid
+from shapely.tests.common import all_types, all_types_z, empty_point, ignore_invalid
+
+all_non_empty_types = np.array(all_types + all_types_z)[
+    ~shapely.is_empty(all_types + all_types_z)
+]
 
 
 @pytest.mark.parametrize("geom", all_types + all_types_z)
@@ -12,6 +16,13 @@ def test_equality(geom):
     transformed = shapely.transform(geom, lambda x: x, include_z=True)
     assert geom == transformed
     assert not (geom != transformed)
+
+
+@pytest.mark.parametrize("geom", all_non_empty_types)
+def test_inequality(geom):
+    transformed = shapely.transform(geom, lambda x: x + 1)
+    assert geom != transformed
+    assert not (geom == transformed)
 
 
 @pytest.mark.parametrize(
@@ -235,3 +246,27 @@ def test_comparison_not_supported():
 
     with pytest.raises(TypeError, match="not supported between instances"):
         geom1 <= geom2
+
+
+@pytest.mark.parametrize(
+    "geom", all_types + (shapely.points(np.nan, np.nan), empty_point)
+)
+def test_hash_same_equal(geom):
+    hash1 = hash(geom)
+    hash2 = hash(shapely.transform(geom, lambda x: x))
+    if (
+        geom.is_empty
+        and shapely.get_num_geometries(geom) > 0
+        and geom.geom_type not in {"MultiPoint", "Point"}
+        and shapely.geos_version < (3, 9, 0)
+    ):
+        # abnormal test for older GEOS version
+        assert hash1 != hash2, geom
+    else:
+        # normal test
+        assert hash1 == hash2, geom
+
+
+@pytest.mark.parametrize("geom", all_non_empty_types)
+def test_hash_same_not_equal(geom):
+    assert hash(geom) != hash(shapely.transform(geom, lambda x: x + 1))
