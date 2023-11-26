@@ -87,18 +87,18 @@ def expected_docstring(**kwds):
     doc = """Docstring that will be mocked.
 {indent}A multiline.
 
-{indent}{extra_indent}.. note:: 'func' requires at least GEOS {version}.
+{indent}.. note:: 'func' requires at least GEOS {version}.
 
 {indent}Some description.
-{indent}"""
+{indent}""".format(
+        **kwds
+    )
     if sys.version_info[:2] >= (3, 13):
         # There are subtle differences between inspect.cleandoc() and
         # _PyCompile_CleanDoc(). Most significantly, the latter does not remove
-        # leading or trailing blank lines. The extra_indent is required because
-        # the algorithm in shapely.decorators.requires_geos assumes a minimum
-        # indent of two spaces.
-        return cleandoc(doc.format(extra_indent="  ", **kwds)) + "\n"
-    return doc.format(extra_indent="", **kwds)
+        # leading or trailing blank lines.
+        return cleandoc(doc) + "\n"
+    return doc
 
 
 @pytest.mark.parametrize("version", ["3.10.0", "3.10.1", "3.9.2"])
