@@ -49,6 +49,7 @@ BINARY_PREDICATES = (
     ),
     shapely.equals,
     shapely.equals_exact,
+    shapely.equals_identical,
 )
 
 BINARY_PREPARED_PREDICATES = BINARY_PREDICATES[:-2]
@@ -199,6 +200,27 @@ def test_equals_exact_normalize():
     # default requirs same order of coordinates
     assert not shapely.equals_exact(l1, l2)
     assert shapely.equals_exact(l1, l2, normalize=True)
+
+
+def test_equals_identical():
+    # more elaborate tests are done at the Geometry.__eq__ level
+    # requires same order of coordinates
+    l1 = LineString([(0, 0), (1, 1)])
+    l2 = LineString([(1, 1), (0, 0)])
+    assert not shapely.equals_identical(l1, l2)
+
+    # checks z-dimension (in contrast to equals_exact)
+    l1 = LineString([(0, 0, 0), (1, 1, 0)])
+    l2 = LineString([(0, 0, 1), (1, 1, 1)])
+    assert not shapely.equals_identical(l1, l2)
+    assert shapely.equals_exact(l1, l2)
+
+    # NaNs in same place are equal (in contrast to equals_exact)
+    with ignore_invalid():
+        l1 = LineString([(0, np.nan), (1, 1)])
+        l2 = LineString([(0, np.nan), (1, 1)])
+    assert shapely.equals_identical(l1, l2)
+    assert not shapely.equals_exact(l1, l2)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
