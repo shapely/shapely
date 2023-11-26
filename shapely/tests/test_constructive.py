@@ -966,6 +966,7 @@ def test_maximum_inscribed_circle_all_types(geometry):
     if (
         shapely.get_type_id(geometry) == shapely.GeometryType.GEOMETRYCOLLECTION
         and geometry.is_empty
+        and shapely.geos_version < (3, 11, 0)
     ):
         # an upstream bug that empty geometry collection doesn't raise proper error
         with pytest.raises(TypeError):
@@ -973,7 +974,7 @@ def test_maximum_inscribed_circle_all_types(geometry):
         return
 
     if shapely.get_type_id(geometry) not in [3, 6]:
-        # Maximum Inscribed Circle is only supported for (MultiPolygon) input
+        # Maximum Inscribed Circle is only supported for (Multi)Polygon input
         with pytest.raises(
             GEOSException,
             match="Input geometry must be a Polygon or MultiPolygon|Operation not supported by GeometryCollection",
@@ -1003,6 +1004,19 @@ def test_maximum_inscribed_circle(geometry, expected):
     geometry, expected = shapely.from_wkt(geometry), shapely.from_wkt(expected)
     actual = shapely.maximum_inscribed_circle(geometry)
     assert_geometries_equal(actual, expected)
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
+def test_maximum_inscribed_circle_empty():
+    geometry = shapely.from_wkt("POINT EMPTY")
+    with pytest.raises(
+        GEOSException, match="Input geometry must be a Polygon or MultiPolygon"
+    ):
+        shapely.maximum_inscribed_circle(geometry)
+
+    geometry = shapely.from_wkt("POLYGON EMPTY")
+    with pytest.raises(GEOSException, match="Empty input geometry is not supported"):
+        shapely.maximum_inscribed_circle(geometry)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")

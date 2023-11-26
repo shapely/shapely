@@ -694,7 +694,7 @@ static void* force_3d_data[1] = {PyGEOSForce3D};
 static void* unary_union_prec_data[1] = {GEOSUnaryUnionPrec_r};
 static void* GEOSMaximumInscribedCircleWithDefaultTolerance(void* context, void* a, double b) {
   double tolerance;
-  if (b == 0.0) {
+  if (b == 0.0 && !GEOSisEmpty_r(context, a)) {
     double xmin, xmax, ymin, ymax;
     double width, height, size;
 
