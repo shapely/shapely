@@ -258,7 +258,16 @@ def test_hash_same_not_equal(geom):
 
 @pytest.mark.parametrize("geom", all_types)
 def test_eq(geom):
-    assert geom == shapely.transform(geom, lambda x: x)
+    transformed = shapely.transform(geom, lambda x: x, include_z=True)
+    if (
+        shapely.geos_version < (3, 9, 0)
+        and isinstance(geom, Point)
+        and geom.is_empty
+        and not geom.has_z
+    ):
+        # the transformed empty 2D Point has become 3D on GEOS 3.8
+        transformed = shapely.force_2d(transformed)
+    assert geom == transformed
 
 
 @pytest.mark.parametrize("geom", all_non_empty_types)
