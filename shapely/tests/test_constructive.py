@@ -1019,36 +1019,8 @@ def test_maximum_inscribed_circle_empty():
         shapely.maximum_inscribed_circle(geometry)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
-@pytest.mark.parametrize(
-    "geometry, expected",
-    [
-        ("POLYGON ((0 5, 5 10, 10 5, 5 0, 0 5))", "LINESTRING (5 5, 2.5 7.5)"),
-        # (
-        #     "LINESTRING (1 0, 1 10)",
-        #     "LINESTRING (10 1.0000000000000004, 5.5 5.5)"
-        # ),
-        # (
-        #     "MULTIPOINT (2 2, 4 2)",
-        #     "LINESTRING (3 2, 2 2)",
-        # ),
-        ("POINT (2 2)", "LINESTRING (2 2, 2 2)"),
-    ],
-)
-def test_largest_empty_circle(geometry, expected):
-    geometry, expected = shapely.from_wkt(geometry), shapely.from_wkt(expected)
-    actual = shapely.largest_empty_circle(geometry)
-    assert_geometries_equal(actual, expected)
-
-
-def test_largest_empty_circle_invalid_input():
-    with pytest.raises(GEOSException):
-        shapely.largest_empty_circle(LineString([]))
-
-
 # TODO: test for:
 #     - negative tolerance
-#     - empty input, empty boundary
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")

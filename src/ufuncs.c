@@ -1377,25 +1377,6 @@ static void* intersection_prec_data[1] = {GEOSIntersectionPrec_r};
 static void* difference_prec_data[1] = {GEOSDifferencePrec_r};
 static void* symmetric_difference_prec_data[1] = {GEOSSymDifferencePrec_r};
 static void* union_prec_data[1] = {GEOSUnionPrec_r};
-static void* GEOSLargestEmptyCircleWithDefaultTolerance(void* context, void* a, void* b, double c) {
-  double tolerance;
-  if (c == 0.0) {
-    double xmin, xmax, ymin, ymax;
-    double width, height, size;
-
-    if (!GEOSGeom_getExtent_r(context, a, &xmin, &ymin, &xmax, &ymax)) {
-      return NULL;
-    }
-    width = xmax - xmin;
-    height = ymax - ymin;
-    size = width > height ? width : height;
-    tolerance = size / 1000.0;
-  } else {
-    tolerance = c;
-  }
-  return GEOSLargestEmptyCircle_r(context, a, b, tolerance);
-}
-static void* largest_empty_circle_data[1] = {GEOSLargestEmptyCircleWithDefaultTolerance};
 typedef void* FuncGEOS_YYd_Y(void* context, void* a, void* b, double c);
 static char YYd_Y_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_OBJECT};
 
@@ -3743,7 +3724,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_YYd_Y(union_prec);
   DEFINE_Yd_Y(unary_union_prec);
   DEFINE_Yd_Y(maximum_inscribed_circle);
-  DEFINE_YYd_Y(largest_empty_circle);
 #endif
 
 #if GEOS_SINCE_3_10_0

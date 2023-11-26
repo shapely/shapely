@@ -34,7 +34,6 @@ __all__ = [
     "minimum_rotated_rectangle",
     "minimum_bounding_circle",
     "maximum_inscribed_circle",
-    "largest_empty_circle",
 ]
 
 
@@ -1105,50 +1104,3 @@ def maximum_inscribed_circle(geometry, tolerance=None, **kwargs):
     if tolerance is None:
         tolerance = 0.0
     return lib.maximum_inscribed_circle(geometry, tolerance, **kwargs)
-
-
-@requires_geos("3.9.0")
-@multithreading_enabled
-def largest_empty_circle(geometry, boundary=None, tolerance=None, **kwargs):
-    """Finds the largest circle that is fully contained within the convex hull
-    of the input geometry, using the input as further boundaries.
-
-    Constructs the "largest empty circle" (LEC) for a set of obstacle
-    geometries, up to a specified tolerance. The obstacles are point and line
-    geometries. Polygonal obstacles will be treated as linear features. The
-    LEC is the largest circle which has its **center** inside the boundary,
-    and whose interior does not intersect with any obstacle. If no boundary
-    is provided, the convex hull of the obstacles is used as the boundary.
-    The LEC center is the point in the interior of the boundary which has the
-    farthest distance from the obstacles (up to tolerance). The LEC is
-    determined by the center point and a point lying on an obstacle
-    indicating the circle radius.
-
-    Parameters
-    ----------
-    geometry : Geometry or array_like
-        The geometries that the LEC must fit within without covering
-    boundary : Geometry or array_like
-        The area within which the LEC must reside
-    tolerance : float or array_like, optional
-        Stop the algorithm when the search area is smaller than this tolerance.
-        When not specified, uses `max(width, height) / 1000` per geometry as
-        the default.
-    **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
-
-    Examples
-    --------
-    >>> largest_empty_circle(Geometry("POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))"))
-    <shapely.geometry.LineString LINESTRING (5 5, 0 5)>
-    >>> largest_empty_circle(Geometry("MULTIPOINT (2 2, 4 2)"))
-    <shapely.geometry.LineString LINESTRING (3 2, 2 2)>
-
-    """
-    if boundary is None:
-        boundary = envelope(geometry)
-    if tolerance is None:
-        tolerance = 0.0
-
-    return lib.largest_empty_circle(geometry, boundary, tolerance, **kwargs)
