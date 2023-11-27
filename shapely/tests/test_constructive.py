@@ -982,16 +982,6 @@ def test_oriented_envelope_pre_geos_312(geometry, expected):
 @pytest.mark.parametrize("geometry", all_types)
 def test_maximum_inscribed_circle_all_types(geometry):
 
-    if (
-        shapely.get_type_id(geometry) == shapely.GeometryType.GEOMETRYCOLLECTION
-        and geometry.is_empty
-        and shapely.geos_version < (3, 11, 0)
-    ):
-        # an upstream bug that empty geometry collection doesn't raise proper error
-        with pytest.raises(TypeError):
-            shapely.maximum_inscribed_circle(geometry)
-        return
-
     if shapely.get_type_id(geometry) not in [3, 6]:
         # Maximum Inscribed Circle is only supported for (Multi)Polygon input
         with pytest.raises(
