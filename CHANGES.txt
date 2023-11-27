@@ -19,6 +19,7 @@ Improvements:
   signature in the ``transformation`` function.
 - The ``include_z`` in ``shapely.transform()`` now also allows ``None``, which
   lets it automatically detect the dimensionality of each input geometry.
+- Add parameters ``method`` and ``keep_collapsed`` to ``shapely.make_valid()`` (#1941)
 - Upgraded the GEOS version in the binary wheel distributions to 3.12.0.
 
 Breaking changes in GEOS 3.12.0:
