@@ -127,7 +127,7 @@ def test_get_coords_index_multidim(order):
         ([point, empty_point], [2], [3], [np.nan]),
     ],
 )  # fmt: on
-def test_get_coords_3d(geoms, x, y, z, include_z):
+def test_get_coords_z(geoms, x, y, z, include_z):
     actual = get_coordinates(np.array(geoms, np.object_), include_z=include_z)
     if include_z:
         expected = np.array([x, y, z], np.float64).T
