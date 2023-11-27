@@ -554,6 +554,9 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
 
         return lib.make_valid_with_params(geometry, 1, keep_collapsed, **kwargs)
 
+    else:
+        raise ValueError(f"Unknown method: {method}")
+
 
 @multithreading_enabled
 def normalize(geometry, **kwargs):
