@@ -698,9 +698,24 @@ static void* GEOSMaximumInscribedCircleWithDefaultTolerance(void* context, void*
     double xmin, xmax, ymin, ymax;
     double width, height, size;
 
+#if GEOS_SINCE_3_11_0
     if (!GEOSGeom_getExtent_r(context, a, &xmin, &ymin, &xmax, &ymax)) {
       return NULL;
     }
+#else
+    if (!GEOSGeom_getXMin_r(context, a, &xmin)) {
+      return NULL;
+    }
+    if (!GEOSGeom_getYMin_r(context, a, &ymin)) {
+      return NULL;
+    }
+    if (!GEOSGeom_getXMax_r(context, a, &xmax)) {
+      return NULL;
+    }
+    if (!GEOSGeom_getYMax_r(context, a, &ymax)) {
+      return NULL;
+    }
+#endif
     width = xmax - xmin;
     height = ymax - ymin;
     size = width > height ? width : height;
