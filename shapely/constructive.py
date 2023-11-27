@@ -1098,8 +1098,9 @@ def maximum_inscribed_circle(geometry, tolerance=None, **kwargs):
 
     Examples
     --------
-    >>> maximum_inscribed_circle(Geometry("POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))"))
-    <shapely.geometry.LineString LINESTRING (5 5, 0 5)>
+    >>> from shapely import Polygon
+    >>> maximum_inscribed_circle(Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]))
+    <LINESTRING (5 5, 0 5)>
 
     See also
     --------

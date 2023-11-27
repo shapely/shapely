@@ -88,8 +88,8 @@ def polylabel(polygon, tolerance=1.0):
     >>> from shapely import LineString
     >>> polygon = LineString([(0, 0), (50, 200), (100, 100), (20, 50),
     ... (-100, -20), (-150, -200)]).buffer(100)
-    >>> polylabel(polygon, tolerance=10).wkt
-    'POINT (59.35615556364569 121.83919629746435)'
+    >>> polylabel(polygon, tolerance=0.001)
+    <POINT (59.733 111.33)>
     """
     if lib.geos_version >= (3, 9, 0):
         line = maximum_inscribed_circle(polygon, tolerance)
