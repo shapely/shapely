@@ -16,9 +16,9 @@ class PolylabelTestCase(unittest.TestCase):
         polygon = LineString(
             [(0, 0), (50, 200), (100, 100), (20, 50), (-100, -20), (-150, -200)]
         ).buffer(100)
-        label = polylabel(polygon, tolerance=10)
-        expected = Point(59.35615556364569, 121.8391962974644)
-        assert expected.equals_exact(label, 1e-6)
+        label = polylabel(polygon, tolerance=0.001)
+        expected = Point(59.733, 111.330)
+        assert expected.equals_exact(label, 1e-3)
 
     def test_concave_polygon(self):
         """
@@ -48,7 +48,7 @@ class PolylabelTestCase(unittest.TestCase):
             ]
         )
         label = polylabel(polygon)
-        if shapely.geos_version < (3, 9, 0):
+        if (shapely.geos_version < (3, 9, 0)) or (shapely.geos_version >= (3, 12, 0)):
             # our own implementation corrects for this
             assert label.coords[:] == [(32.722025, -117.201875)]
         else:
