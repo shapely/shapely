@@ -247,6 +247,66 @@ def test_make_valid_1d(geom, expected):
 @pytest.mark.parametrize(
     "geom,expected",
     [
+        (point, point),  # a valid geometry stays the same (but is copied)
+        # an L shaped polygon without area is converted to a linestring
+        (
+            Polygon([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)]),
+            LineString([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)]),
+        ),
+        # a polygon with self-intersection (bowtie) is converted into polygons
+        (
+            Polygon([(0, 0), (2, 2), (2, 0), (0, 2), (0, 0)]),
+            MultiPolygon(
+                [
+                    Polygon([(1, 1), (2, 2), (2, 0), (1, 1)]),
+                    Polygon([(0, 0), (0, 2), (1, 1), (0, 0)]),
+                ]
+            ),
+        ),
+        (empty, empty),
+        ([empty], [empty]),
+    ],
+)
+def test_make_valid_structure(geom, expected):
+    actual = shapely.make_valid(geom, method="structure")
+    assert actual is not expected
+    # normalize needed to handle variation in output across GEOS versions
+    assert shapely.normalize(actual) == expected
+
+
+@pytest.mark.parametrize(
+    "geom,expected",
+    [
+        (point, point),  # a valid geometry stays the same (but is copied)
+        # an L shaped polygon without area is converted to Empty Polygon
+        (
+            Polygon([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)]),
+            Polygon(),
+        ),
+        # a polygon with self-intersection (bowtie) is converted into polygons
+        (
+            Polygon([(0, 0), (2, 2), (2, 0), (0, 2), (0, 0)]),
+            MultiPolygon(
+                [
+                    Polygon([(1, 1), (2, 2), (2, 0), (1, 1)]),
+                    Polygon([(0, 0), (0, 2), (1, 1), (0, 0)]),
+                ]
+            ),
+        ),
+        (empty, empty),
+        ([empty], [empty]),
+    ],
+)
+def test_make_valid_structure_keep_collapsed_false(geom, expected):
+    actual = shapely.make_valid(geom, method="structure", keep_collapsed=False)
+    assert actual is not expected
+    # normalize needed to handle variation in output across GEOS versions
+    assert shapely.normalize(actual) == expected
+
+
+@pytest.mark.parametrize(
+    "geom,expected",
+    [
         (point, point),  # a point is always in normalized form
         # order coordinates of linestrings and parts of multi-linestring
         (

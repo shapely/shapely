@@ -91,7 +91,7 @@ def buffer(
     join_style="round",
     mitre_limit=5.0,
     single_sided=False,
-    **kwargs
+    **kwargs,
 ):
     """
     Computes the buffer of a geometry for positive and negative buffer distance.
@@ -185,7 +185,7 @@ def buffer(
         np.intc(join_style),
         mitre_limit,
         np.bool_(single_sided),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -251,7 +251,7 @@ def offset_curve(
         np.intc(quad_segs),
         np.intc(join_style),
         np.double(mitre_limit),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -330,7 +330,7 @@ def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
         np.double(ymin),
         np.double(xmax),
         np.double(ymax),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -508,12 +508,22 @@ def build_area(geometry, **kwargs):
 
 
 @multithreading_enabled
-def make_valid(geometry, **kwargs):
+def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
     """Repairs invalid geometries.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+    method:  {'linework', 'structure'}, default 'linework'
+        Algorithm to use when repairing geometry. The linework algorithm combines all
+        rings into a set of noded lines and then extracts valid polygons from that
+        linework. The structure algorithm first makes all rings valid, then merges
+        shells and subtracts holes from shells to generate valid result. It assumes that
+        holes and shells are correctly categorized.
+    keep_collapsed: bool, default True
+        For the 'structure' method, True will keep components that have collapsed into a
+        lower dimensionality. For example, a ring collapsing to a line, or a line
+        collapsing to a point.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -525,8 +535,24 @@ def make_valid(geometry, **kwargs):
     False
     >>> make_valid(polygon)
     <MULTILINESTRING ((0 0, 1 1), (1 1, 1 2))>
+    >>> make_valid(polygon, method="structure", keep_collapsed=False)
+    <POLYGON EMPTY>
     """
-    return lib.make_valid(geometry, **kwargs)
+    if method == "linework":
+        if keep_collapsed is False:
+            raise ValueError(
+                "The 'linework' method does not support 'keep_collapsed=False'"
+            )
+
+        return lib.make_valid(geometry, **kwargs)
+
+    elif method == "structure":
+        if lib.geos_version < (3, 10, 0):
+            raise ValueError(
+                "The 'structure' method is only available in GEOS >= 3.10.0"
+            )
+
+        return lib.make_valid_with_params(geometry, 1, keep_collapsed, **kwargs)
 
 
 @multithreading_enabled

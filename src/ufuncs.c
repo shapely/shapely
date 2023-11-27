@@ -1555,6 +1555,99 @@ static void buffer_func(char** args, const npy_intp* dimensions, const npy_intp*
 }
 static PyUFuncGenericFunction buffer_funcs[1] = {&buffer_func};
 
+static char make_valid_with_params_inner(void* ctx, GEOSMakeValidParams* params,
+                                         void* ip1, GEOSGeometry** geom_arr,
+                                         npy_intp i) {
+  GEOSGeometry* in1 = NULL;
+
+  /* get the geometry: return on error */
+  if (!get_geom(*(GeometryObject**)ip1, &in1)) {
+    return PGERR_NOT_A_GEOMETRY;
+  }
+  /* handle NULL geometries */
+  if (in1 == NULL) {
+    geom_arr[i] = NULL;
+  } else {
+    geom_arr[i] = GEOSMakeValidWithParams_r(ctx, in1, params);
+    if (geom_arr[i] == NULL) {
+      return PGERR_GEOS_EXCEPTION;
+    }
+  }
+  return PGERR_SUCCESS;
+}
+
+static char make_valid_with_params_dtypes[8] = {NPY_OBJECT, NPY_INT, NPY_BOOL, 
+                                                NPY_OBJECT};
+static void make_valid_with_params_func(char** args, const npy_intp* dimensions,
+                                        const npy_intp* steps, void* data) {
+  char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2];
+  npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2];
+  npy_intp n = dimensions[0];
+  npy_intp i;
+  GEOSGeometry** geom_arr;
+
+  CHECK_NO_INPLACE_OUTPUT(3);
+
+  if ((is2 != 0) || (is3 != 0)) {
+    PyErr_Format(PyExc_ValueError, "make_valid function called with non-scalar parameters");
+    return;
+  }
+
+  // allocate a temporary array to store output GEOSGeometry objects
+  geom_arr = malloc(sizeof(void*) * n);
+  CHECK_ALLOC(geom_arr);
+
+  GEOS_INIT_THREADS;
+
+  GEOSMakeValidParams* params = GEOSMakeValidParams_create_r(ctx);
+  if (params != 0) {
+    if (!GEOSMakeValidParams_setMethod_r(ctx, params, *(int*)ip2)) {
+      errstate = PGERR_GEOS_EXCEPTION;
+    }
+    if (!GEOSMakeValidParams_setKeepCollapsed_r(ctx, params, *(npy_bool*)ip3)) {
+      errstate = PGERR_GEOS_EXCEPTION;
+    }
+  } else {
+    errstate = PGERR_GEOS_EXCEPTION;
+  }
+
+  if (errstate == PGERR_SUCCESS) {
+    for (i = 0; i < n; i++, ip1 += is1) {
+      CHECK_SIGNALS_THREADS(i);
+      if (errstate == PGERR_PYSIGNAL) {
+        destroy_geom_arr(ctx, geom_arr, i - 1);
+        break;
+      }
+      errstate = make_valid_with_params_inner(ctx, params, ip1, geom_arr, i);
+      if (errstate != PGERR_SUCCESS) {
+        destroy_geom_arr(ctx, geom_arr, i - 1);
+        break;
+      }
+    }
+  }
+
+  if (params != 0) {
+    GEOSMakeValidParams_destroy_r(ctx, params);
+  }
+
+  GEOS_FINISH_THREADS;
+
+  // fill the numpy array with PyObjects while holding the GIL
+  if (errstate == PGERR_SUCCESS) {
+    geom_arr_to_npy(geom_arr, args[3], steps[3], dimensions[0]);
+  }
+  free(geom_arr);
+}
+static PyUFuncGenericFunction make_valid_with_params_funcs[1] = {&make_valid_with_params_func};
+
+
+
+
+
+
+
+
+
 static char offset_curve_dtypes[6] = {NPY_OBJECT, NPY_DOUBLE, NPY_INT,
                                       NPY_INT,    NPY_DOUBLE, NPY_OBJECT};
 static void offset_curve_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
@@ -3721,6 +3814,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 #endif
 
 #if GEOS_SINCE_3_10_0
+  DEFINE_CUSTOM(make_valid_with_params, 3);
   DEFINE_Yd_Y(segmentize);
   DEFINE_CUSTOM(dwithin, 3);
   DEFINE_CUSTOM(from_geojson, 2);
