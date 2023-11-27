@@ -244,6 +244,7 @@ def test_make_valid_1d(geom, expected):
     assert np.all(shapely.normalize(actual) == shapely.normalize(expected))
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize(
     "geom,expected",
     [
@@ -274,6 +275,7 @@ def test_make_valid_structure(geom, expected):
     assert shapely.normalize(actual) == expected
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize(
     "geom,expected",
     [
