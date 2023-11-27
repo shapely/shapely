@@ -1001,6 +1001,13 @@ def test_maximum_inscribed_circle_all_types(geometry):
             shapely.maximum_inscribed_circle(geometry)
         return
 
+    if geometry.is_empty:
+        with pytest.raises(
+            GEOSException, match="Empty input geometry is not supported"
+        ):
+            shapely.maximum_inscribed_circle(geometry)
+        return
+
     actual = shapely.maximum_inscribed_circle([geometry, geometry])
     assert actual.shape == (2,)
     assert actual[0] is None or isinstance(actual[0], Geometry)
