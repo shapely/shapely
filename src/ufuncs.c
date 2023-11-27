@@ -1640,14 +1640,6 @@ static void make_valid_with_params_func(char** args, const npy_intp* dimensions,
 }
 static PyUFuncGenericFunction make_valid_with_params_funcs[1] = {&make_valid_with_params_func};
 
-
-
-
-
-
-
-
-
 static char offset_curve_dtypes[6] = {NPY_OBJECT, NPY_DOUBLE, NPY_INT,
                                       NPY_INT,    NPY_DOUBLE, NPY_OBJECT};
 static void offset_curve_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
