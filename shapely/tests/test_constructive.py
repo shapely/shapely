@@ -306,6 +306,25 @@ def test_make_valid_structure_keep_collapsed_false(geom, expected):
     assert shapely.normalize(actual) == expected
 
 
+@pytest.mark.skipif(shapely.geos_version >= (3, 10, 0), reason="GEOS >= 3.10")
+def test_make_valid_structure_unsupported_geos():
+    with pytest.raises(
+        ValueError, match="The 'structure' method is only available in GEOS >= 3.10.0"
+    ):
+        _ = shapely.make_valid(Point(), method="structure")
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
+def test_make_valid_invalid_params():
+    with pytest.raises(ValueError, match="Unknown method: unknown"):
+        _ = shapely.make_valid(Point(), method="unknown")
+    with pytest.raises(
+        ValueError,
+        match="The 'linework' method does not support 'keep_collapsed=False'",
+    ):
+        _ = shapely.make_valid(Point(), method="linework", keep_collapsed=False)
+
+
 @pytest.mark.parametrize(
     "geom,expected",
     [
