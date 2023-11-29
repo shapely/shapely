@@ -1555,6 +1555,8 @@ static void buffer_func(char** args, const npy_intp* dimensions, const npy_intp*
 }
 static PyUFuncGenericFunction buffer_funcs[1] = {&buffer_func};
 
+#if GEOS_SINCE_3_10_0
+
 static char make_valid_with_params_inner(void* ctx, GEOSMakeValidParams* params,
                                          void* ip1, GEOSGeometry** geom_arr,
                                          npy_intp i) {
@@ -1639,6 +1641,8 @@ static void make_valid_with_params_func(char** args, const npy_intp* dimensions,
   free(geom_arr);
 }
 static PyUFuncGenericFunction make_valid_with_params_funcs[1] = {&make_valid_with_params_func};
+
+#endif  // GEOS_SINCE_3_10_0
 
 static char offset_curve_dtypes[6] = {NPY_OBJECT, NPY_DOUBLE, NPY_INT,
                                       NPY_INT,    NPY_DOUBLE, NPY_OBJECT};
