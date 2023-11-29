@@ -538,6 +538,11 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
     >>> make_valid(polygon, method="structure", keep_collapsed=False)
     <POLYGON EMPTY>
     """
+    if not np.isscalar(method):
+        raise TypeError("method only accepts scalar values")
+    if not np.isscalar(keep_collapsed):
+        raise TypeError("keep_collapsed only accepts scalar values")
+
     if method == "linework":
         if keep_collapsed is False:
             raise ValueError(
@@ -552,7 +557,9 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
                 "The 'structure' method is only available in GEOS >= 3.10.0"
             )
 
-        return lib.make_valid_with_params(geometry, 1, keep_collapsed, **kwargs)
+        return lib.make_valid_with_params(
+            geometry, np.intc(1), np.bool_(keep_collapsed), **kwargs
+        )
 
     else:
         raise ValueError(f"Unknown method: {method}")
