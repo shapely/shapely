@@ -1578,7 +1578,7 @@ static char make_valid_with_params_inner(void* ctx, GEOSMakeValidParams* params,
   return PGERR_SUCCESS;
 }
 
-static char make_valid_with_params_dtypes[8] = {NPY_OBJECT, NPY_INT, NPY_BOOL, 
+static char make_valid_with_params_dtypes[4] = {NPY_OBJECT, NPY_INT, NPY_BOOL, 
                                                 NPY_OBJECT};
 static void make_valid_with_params_func(char** args, const npy_intp* dimensions,
                                         const npy_intp* steps, void* data) {
