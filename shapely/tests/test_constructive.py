@@ -316,6 +316,11 @@ def test_make_valid_structure_unsupported_geos():
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 def test_make_valid_invalid_params():
+    with pytest.raises(TypeError, match="method only accepts scalar values"):
+        _ = shapely.make_valid(Point(), method=np.array(["linework", "structure"]))
+    with pytest.raises(TypeError, match="keep_collapsed only accepts scalar values"):
+        _ = shapely.make_valid(Point(), keep_collapsed=[True, False])
+
     with pytest.raises(ValueError, match="Unknown method: unknown"):
         _ = shapely.make_valid(Point(), method="unknown")
     with pytest.raises(
