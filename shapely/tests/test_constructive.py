@@ -315,19 +315,33 @@ def test_make_valid_structure_unsupported_geos():
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
-def test_make_valid_invalid_params():
-    with pytest.raises(TypeError, match="method only accepts scalar values"):
-        _ = shapely.make_valid(Point(), method=np.array(["linework", "structure"]))
-    with pytest.raises(TypeError, match="keep_collapsed only accepts scalar values"):
-        _ = shapely.make_valid(Point(), keep_collapsed=[True, False])
-
-    with pytest.raises(ValueError, match="Unknown method: unknown"):
-        _ = shapely.make_valid(Point(), method="unknown")
-    with pytest.raises(
-        ValueError,
-        match="The 'linework' method does not support 'keep_collapsed=False'",
-    ):
-        _ = shapely.make_valid(Point(), method="linework", keep_collapsed=False)
+@pytest.mark.parametrize(
+    "method, keep_collapsed, error_type, error",
+    [
+        (
+            np.array(["linework", "structure"]),
+            True,
+            TypeError,
+            "method only accepts scalar values",
+        ),
+        (
+            "linework",
+            [True, False],
+            TypeError,
+            "keep_collapsed only accepts scalar values",
+        ),
+        ("unknown", True, ValueError, "Unknown method: unknown"),
+        (
+            "linework",
+            False,
+            ValueError,
+            "The 'linework' method does not support 'keep_collapsed=False'",
+        ),
+    ],
+)
+def test_make_valid_invalid_params(method, keep_collapsed, error_type, error):
+    with pytest.raises(error_type, match=error):
+        _ = shapely.make_valid(Point(), method=method, keep_collapsed=keep_collapsed)
 
 
 @pytest.mark.parametrize(

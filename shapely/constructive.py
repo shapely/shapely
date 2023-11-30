@@ -519,11 +519,11 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
         rings into a set of noded lines and then extracts valid polygons from that
         linework. The structure algorithm first makes all rings valid, then merges
         shells and subtracts holes from shells to generate valid result. It assumes that
-        holes and shells are correctly categorized.
+        holes and shells are correctly categorized. 'structure' requires GEOS >= 3.10.
     keep_collapsed: bool, default True
         For the 'structure' method, True will keep components that have collapsed into a
         lower dimensionality. For example, a ring collapsing to a line, or a line
-        collapsing to a point.
+        collapsing to a point. Must be True for the 'linework' method.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -535,6 +535,8 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
     False
     >>> make_valid(polygon)
     <MULTILINESTRING ((0 0, 1 1), (1 1, 1 2))>
+    >>> make_valid(polygon, method="structure", keep_collapsed=True)
+    <LINESTRING (0 0, 1 1, 1 2, 1 1, 0 0)>
     >>> make_valid(polygon, method="structure", keep_collapsed=False)
     <POLYGON EMPTY>
     """

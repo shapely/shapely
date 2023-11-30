@@ -1506,7 +1506,7 @@ static void buffer_func(char** args, const npy_intp* dimensions, const npy_intp*
   GEOS_INIT_THREADS;
 
   GEOSBufferParams* params = GEOSBufferParams_create_r(ctx);
-  if (params != 0) {
+  if (params != NULL) {
     if (!GEOSBufferParams_setQuadrantSegments_r(ctx, params, *(int*)ip3)) {
       errstate = PGERR_GEOS_EXCEPTION;
     }
@@ -1541,7 +1541,7 @@ static void buffer_func(char** args, const npy_intp* dimensions, const npy_intp*
     }
   }
 
-  if (params != 0) {
+  if (params != NULL) {
     GEOSBufferParams_destroy_r(ctx, params);
   }
 
@@ -1591,7 +1591,8 @@ static void make_valid_with_params_func(char** args, const npy_intp* dimensions,
   CHECK_NO_INPLACE_OUTPUT(3);
 
   if ((is2 != 0) || (is3 != 0)) {
-    PyErr_Format(PyExc_ValueError, "make_valid function called with non-scalar parameters");
+    PyErr_Format(PyExc_ValueError,
+                 "make_valid_with_params function called with non-scalar parameters");
     return;
   }
 
@@ -1602,7 +1603,7 @@ static void make_valid_with_params_func(char** args, const npy_intp* dimensions,
   GEOS_INIT_THREADS;
 
   GEOSMakeValidParams* params = GEOSMakeValidParams_create_r(ctx);
-  if (params != 0) {
+  if (params != NULL) {
     if (!GEOSMakeValidParams_setMethod_r(ctx, params, *(int*)ip2)) {
       errstate = PGERR_GEOS_EXCEPTION;
     }
@@ -1628,7 +1629,7 @@ static void make_valid_with_params_func(char** args, const npy_intp* dimensions,
     }
   }
 
-  if (params != 0) {
+  if (params != NULL) {
     GEOSMakeValidParams_destroy_r(ctx, params);
   }
 
