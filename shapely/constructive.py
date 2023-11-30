@@ -549,6 +549,10 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
                 "The 'linework' method does not support 'keep_collapsed=False'"
             )
 
+        # The make_valid code can be removed once support for GEOS < 3.10 is dropped.
+        # In GEOS >= 3.10, make_valid just calls make_valid_with_params with
+        # method="linework" and keep_collapsed=True, so there is no advantage to keep
+        # both code paths in shapely on long term.
         return lib.make_valid(geometry, **kwargs)
 
     elif method == "structure":
