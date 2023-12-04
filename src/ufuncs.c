@@ -2178,7 +2178,7 @@ static void polygonize_func(char** args, const npy_intp* dimensions, const npy_i
 
   GEOS_INIT;
 
-  GEOSGeometry** geoms = malloc(sizeof(void*) * dimensions[1]);
+  const GEOSGeometry** geoms = malloc(sizeof(void*) * dimensions[1]);
   if (geoms == NULL) {
     errstate = PGERR_NO_MALLOC;
     goto finish;
