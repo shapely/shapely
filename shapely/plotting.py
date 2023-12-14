@@ -197,7 +197,7 @@ def plot_points(geom, ax=None, color=None, marker="o", **kwargs):
         current active axes or create a new figure.
     color : matplotlib color specification
         Color for the filled points. You can use `markeredgecolor` and
-        `markeredgecolor` to have different edge and fill colors.
+        `markerfacecolor` to have different edge and fill colors.
     marker : str, default "o"
         The matplotlib marker for the points.
     **kwargs
