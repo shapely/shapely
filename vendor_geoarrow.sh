@@ -5,6 +5,8 @@ curl -L \
 
 unzip -d . geoarrow.zip
 
+CMAKE_DIR="$(dirname geoarrow-c-*/**/CMakeLists.txt)"
+
 mkdir geoarrow-cmake
 pushd geoarrow-cmake
 cmake ../../geoarrow-c -DGEOARROW_BUNDLE=ON -DGEOARROW_USE_RYU=OFF -DGEOARROW_USE_FAST_FLOAT=OFF
