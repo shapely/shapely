@@ -1,8 +1,9 @@
 
-from libc.stdint cimport uintptr_t
+from libc.stdint cimport int64_t
+from libc.stdlib cimport malloc, free
 from cpython.pycapsule cimport PyCapsule_GetPointer
 
-from shapely._geos cimport GEOSContextHandle_t, GEOSGeometry, get_geos_handle
+from shapely._geos cimport GEOSContextHandle_t, GEOSGeometry, get_geos_handle, GEOSGeom_destroy_r
 
 
 from shapely._pygeos_api cimport (
@@ -13,9 +14,10 @@ from shapely._pygeos_api cimport (
 # initialize Shapely C API
 import_shapely_c_api()
 
-cdef extern from "geoarrow_geos.h":
+cdef extern from "geoarrow_geos.h" nogil:
     struct ArrowSchema
-    struct ArrowArray
+    struct ArrowArray:
+        int64_t length
     struct GeoArrowGEOSArrayReader
 
     ctypedef int GeoArrowGEOSErrorCode
@@ -41,6 +43,42 @@ class GeoArrowGEOSException(Exception):
         super().__init__(f"{what} failed with code {code}: {msg}")
 
 
+cdef class GEOSGeometryArray:
+    cdef GEOSGeometry** _ptr
+    cdef size_t _n
+
+    def __cinit__(self,  size_t n):
+        self._n = 0
+        self._ptr = <GEOSGeometry**>malloc(n)
+        if self._ptr == NULL:
+            raise MemoryError()
+        self._n = n
+        for i in range(n):
+            self._ptr[i] = NULL
+
+    def to_pylist(self, size_t n):
+        out = []
+        with get_geos_handle() as handle:
+            for i in range(n):
+                if self._ptr[i] != NULL:
+                    geom = PyGEOS_CreateGeometry(self._ptr[i], handle)
+                    self._ptr[i] = NULL
+                    out.append(geom)
+                else:
+                    out.append(None)
+
+        return out
+
+    def __dealloc__(self):
+        with get_geos_handle() as handle:
+            for i in range(self._n):
+                if self._ptr[i] != NULL:
+                    GEOSGeom_destroy_r(handle, self._ptr[i])
+
+        if self._ptr != NULL:
+            free(self._ptr)
+
+
 cdef class ArrayReader:
     cdef get_geos_handle _handle
     cdef GeoArrowGEOSArrayReader* _ptr
@@ -51,14 +89,35 @@ cdef class ArrayReader:
         self._handle = get_geos_handle()
         cdef int rc = GeoArrowGEOSArrayReaderCreate(self._handle.__enter__(), schema, &self._ptr)
         if rc != GEOARROW_GEOS_OK:
-            self._raise_last_error(rc)
+            self._raise_last_error(rc, "GeoArrowGEOSArrayReaderCreate()")
 
     def __dealloc__(self):
         if self._ptr != NULL:
             GeoArrowGEOSArrayReaderDestroy(self._ptr)
         self._handle.__exit__(None, None, None)
 
-    def _raise_last_error(self, what, code):
+    def read(self, object array_capsule):
+        self._assert_valid()
+
+        cdef ArrowArray* array = <ArrowArray*>PyCapsule_GetPointer(array_capsule, "arrow_array")
+        cdef size_t n_out = 0
+        cdef GEOSGeometryArray out = GEOSGeometryArray(array.length)
+        cdef int rc
+        with nogil:
+            rc = GeoArrowGEOSArrayReaderRead(self._ptr, array, 0, array.length, out._ptr, &n_out)
+        if rc != GEOARROW_GEOS_OK:
+            self._raise_last_error(rc, "GeoArrowGEOSArrayReaderCreate()")
+
+        if n_out != array.length:
+            raise RuntimeError(f"Expected {array.length} values but got {n_out}: {self._last_error()}")
+
+        return out.to_pylist(n_out)
+
+    def _assert_valid(self):
+        if self._ptr == NULL:
+           raise RuntimeError("GeoArrowGEOSArrayReader not valid")
+
+    def _last_error(self):
         cdef const char* msg = NULL
         if self._ptr == NULL:
             msg = NULL
@@ -68,4 +127,7 @@ cdef class ArrayReader:
         if msg == NULL:
             msg = "<NULL>"
 
-        raise GeoArrowGEOSException(what, code, msg.decode("UTF-8"))
+        return msg.decode("UTF-8")
+
+    def _raise_last_error(self, what, code):
+        raise GeoArrowGEOSException(what, code, self._last_error())
