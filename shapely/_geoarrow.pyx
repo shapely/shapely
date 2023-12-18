@@ -56,16 +56,15 @@ cdef class GEOSGeometryArray:
         for i in range(n):
             self._ptr[i] = NULL
 
-    def to_pylist(self, size_t n):
+    cdef to_pylist(self, GEOSContextHandle_t handle, size_t n):
         out = []
-        with get_geos_handle() as handle:
-            for i in range(n):
-                if self._ptr[i] != NULL:
-                    geom = PyGEOS_CreateGeometry(self._ptr[i], handle)
-                    self._ptr[i] = NULL
-                    out.append(geom)
-                else:
-                    out.append(None)
+        for i in range(n):
+            if self._ptr[i] != NULL:
+                geom = PyGEOS_CreateGeometry(self._ptr[i], handle)
+                self._ptr[i] = NULL
+                out.append(geom)
+            else:
+                out.append(None)
 
         return out
 
@@ -81,13 +80,15 @@ cdef class GEOSGeometryArray:
 
 cdef class ArrayReader:
     cdef get_geos_handle _handle
+    cdef GEOSContextHandle_t _geos_handle
     cdef GeoArrowGEOSArrayReader* _ptr
 
     def __cinit__(self, object schema_capsule):
         cdef ArrowSchema* schema = <ArrowSchema*>PyCapsule_GetPointer(schema_capsule, "arrow_schema")
         self._ptr = NULL
         self._handle = get_geos_handle()
-        cdef int rc = GeoArrowGEOSArrayReaderCreate(self._handle.__enter__(), schema, &self._ptr)
+        self._geos_handle = self._handle.__enter__()
+        cdef int rc = GeoArrowGEOSArrayReaderCreate(self._geos_handle, schema, &self._ptr)
         if rc != GEOARROW_GEOS_OK:
             self._raise_last_error(rc, "GeoArrowGEOSArrayReaderCreate()")
 
@@ -111,7 +112,7 @@ cdef class ArrayReader:
         if n_out != array.length:
             raise RuntimeError(f"Expected {array.length} values but got {n_out}: {self._last_error()}")
 
-        return out.to_pylist(n_out)
+        return out.to_pylist(self._geos_handle, n_out)
 
     def _assert_valid(self):
         if self._ptr == NULL:
