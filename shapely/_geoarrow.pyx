@@ -1,15 +1,15 @@
 
-from libc.stdint cimport int64_t
-from libc.stdlib cimport malloc, free
 from cpython.pycapsule cimport PyCapsule_GetPointer
+from libc.stdint cimport int64_t
+from libc.stdlib cimport free, malloc
 
-from shapely._geos cimport GEOSContextHandle_t, GEOSGeometry, get_geos_handle, GEOSGeom_destroy_r
-
-
-from shapely._pygeos_api cimport (
-    import_shapely_c_api,
-    PyGEOS_CreateGeometry,
+from shapely._geos cimport (
+    GEOSContextHandle_t,
+    GEOSGeom_destroy_r,
+    GEOSGeometry,
+    get_geos_handle,
 )
+from shapely._pygeos_api cimport import_shapely_c_api, PyGEOS_CreateGeometry
 
 # initialize Shapely C API
 import_shapely_c_api()

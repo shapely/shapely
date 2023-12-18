@@ -1,7 +1,6 @@
-
 import numpy as np
 
-from shapely._geoarrow import ArrayReader, GeoArrowGEOSException
+from shapely._geoarrow import ArrayReader, GeoArrowGEOSException  # NOQA
 
 
 def from_arrow(arrays, schema):
