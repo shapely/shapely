@@ -8449,78 +8449,6 @@ void GeoArrowArrayWriterReset(struct GeoArrowArrayWriter* writer) {
 
   ArrowFree(private_data);
 }
-
-#include <errno.h>
-#include <stdlib.h>
-#include <string.h>
-
-
-
-#if !defined(GEOARROW_USE_FAST_FLOAT) || !GEOARROW_USE_FAST_FLOAT
-
-GeoArrowErrorCode GeoArrowFromChars(const char* first, const char* last, double* out) {
-  if (first == last) {
-    return EINVAL;
-  }
-
-  int64_t size_bytes = last - first;
-
-  // There is no guarantee that src.data is null-terminated. The maximum size of
-  // a double is 24 characters, but if we can't fit all of src for some reason, error.
-  char src_copy[64];
-  if (size_bytes >= ((int64_t)sizeof(src_copy))) {
-    return EINVAL;
-  }
-
-  memcpy(src_copy, first, size_bytes);
-  char* last_copy = src_copy + size_bytes;
-  *last_copy = '\0';
-
-  char* end_ptr;
-  double result = strtod(src_copy, &end_ptr);
-  if (end_ptr != last_copy) {
-    return EINVAL;
-  } else {
-    *out = result;
-    return GEOARROW_OK;
-  }
-}
-
-#endif
-
-
-
-#if defined(GEOARROW_USE_RYU) && GEOARROW_USE_RYU
-
-#include "ryu/ryu.h"
-
-int64_t GeoArrowPrintDouble(double f, uint32_t precision, char* result) {
-  return GeoArrowd2sfixed_buffered_n(f, precision, result);
-}
-
-#else
-
-#include <stdio.h>
-
-int64_t GeoArrowPrintDouble(double f, uint32_t precision, char* result) {
-  int64_t n_chars = snprintf(result, 128, "%0.*f", precision, f);
-
-  // Strip trailing zeroes + decimal
-  for (int64_t i = n_chars - 1; i >= 0; i--) {
-    if (result[i] == '0') {
-      n_chars--;
-    } else if (result[i] == '.') {
-      n_chars--;
-      break;
-    } else {
-      break;
-    }
-  }
-
-  return n_chars;
-}
-
-#endif
 // Licensed to the Apache Software Foundation (ASF) under one
 // or more contributor license agreements.  See the NOTICE file
 // distributed with this work for additional information
@@ -11624,3 +11552,75 @@ ArrowErrorCode ArrowBasicArrayStreamValidate(const struct ArrowArrayStream* arra
   ArrowArrayViewReset(&array_view);
   return NANOARROW_OK;
 }
+
+
+
+#if defined(GEOARROW_USE_RYU) && GEOARROW_USE_RYU
+
+#include "ryu/ryu.h"
+
+int64_t GeoArrowPrintDouble(double f, uint32_t precision, char* result) {
+  return GeoArrowd2sfixed_buffered_n(f, precision, result);
+}
+
+#else
+
+#include <stdio.h>
+
+int64_t GeoArrowPrintDouble(double f, uint32_t precision, char* result) {
+  int64_t n_chars = snprintf(result, 128, "%0.*f", precision, f);
+
+  // Strip trailing zeroes + decimal
+  for (int64_t i = n_chars - 1; i >= 0; i--) {
+    if (result[i] == '0') {
+      n_chars--;
+    } else if (result[i] == '.') {
+      n_chars--;
+      break;
+    } else {
+      break;
+    }
+  }
+
+  return n_chars;
+}
+
+#endif
+
+#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+
+#if !defined(GEOARROW_USE_FAST_FLOAT) || !GEOARROW_USE_FAST_FLOAT
+
+GeoArrowErrorCode GeoArrowFromChars(const char* first, const char* last, double* out) {
+  if (first == last) {
+    return EINVAL;
+  }
+
+  int64_t size_bytes = last - first;
+
+  // There is no guarantee that src.data is null-terminated. The maximum size of
+  // a double is 24 characters, but if we can't fit all of src for some reason, error.
+  char src_copy[64];
+  if (size_bytes >= ((int64_t)sizeof(src_copy))) {
+    return EINVAL;
+  }
+
+  memcpy(src_copy, first, size_bytes);
+  char* last_copy = src_copy + size_bytes;
+  *last_copy = '\0';
+
+  char* end_ptr;
+  double result = strtod(src_copy, &end_ptr);
+  if (end_ptr != last_copy) {
+    return EINVAL;
+  } else {
+    *out = result;
+    return GEOARROW_OK;
+  }
+}
+
+#endif
