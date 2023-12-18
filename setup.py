@@ -196,6 +196,13 @@ else:
             ],
             **ext_options,
         ),
+        Extension(
+            "shapely._geoarrow",
+            [
+                "shapely/_geoarrow.pyx",
+            ],
+            **ext_options,
+        ),
     ]
 
     ext_modules += cythonize(
