@@ -1,3 +1,5 @@
 shapely/_version.py export-subst
 src/geoarrow.h linguist-vendored
 src/geoarrow.c linguist-vendored
+src/geoarrow_c_geos.h linguist-vendored
+src/geoarrow_c_geos.c linguist-vendored

@@ -170,7 +170,8 @@ else:
                 "src/strtree.c",
                 "src/ufuncs.c",
                 "src/vector.c",
-                "src/geoarrow.c"
+                "src/geoarrow.c",
+                "src/geoarrow_geos.c",
             ],
             **ext_options,
         )
