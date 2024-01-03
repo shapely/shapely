@@ -1,5 +1,6 @@
 """Collections of points and related utilities
 """
+import numpy as np
 
 import shapely
 from shapely.errors import EmptyPartError
@@ -47,6 +48,12 @@ class MultiPoint(BaseMultipartGeometry):
             return shapely.from_wkt("MULTIPOINT EMPTY")
         elif isinstance(points, MultiPoint):
             return points
+
+        if isinstance(points, np.ndarray) and np.issubdtype(points.dtype, np.number):
+            geom = shapely.multipoints(points)
+            if not isinstance(geom, MultiPoint):
+                raise ValueError("Invalid values passed to MultiPoint constructor")
+            return geom
 
         m = len(points)
         subs = []
