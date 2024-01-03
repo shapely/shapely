@@ -473,7 +473,7 @@ class BaseGeometry(shapely.Geometry):
             geometry. To prevent unreasonable geometry, the mitre limit
             allows controlling the maximum length of the join corner.
             Corners with a ratio which exceed the limit will be beveled.
-        single_side : bool, optional
+        single_sided : bool, optional
             The side used is determined by the sign of the buffer
             distance:
 
