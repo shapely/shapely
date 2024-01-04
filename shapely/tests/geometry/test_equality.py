@@ -18,16 +18,11 @@ def test_equality(geom):
     assert not (geom != transformed)
 
 
-@pytest.mark.parametrize("geom", all_non_empty_types)
-def test_inequality(geom):
-    transformed = shapely.transform(geom, lambda x: x + 1)
-    assert geom != transformed
-    assert not (geom == transformed)
-
-
 @pytest.mark.parametrize(
     "left, right",
-    [
+    # automated test cases with transformed coordinate values
+    [(geom, shapely.transform(geom, lambda x: x + 1)) for geom in all_non_empty_types]
+    + [
         # (slightly) different coordinate values
         (LineString([(0, 0), (1, 1)]), LineString([(0, 0), (1, 2)])),
         (LineString([(0, 0), (1, 1)]), LineString([(0, 0), (1, 1 + 1e-12)])),
@@ -45,6 +40,7 @@ def test_inequality(geom):
 )
 def test_equality_false(left, right):
     assert left != right
+    assert not (left == right)
 
 
 with ignore_invalid():
