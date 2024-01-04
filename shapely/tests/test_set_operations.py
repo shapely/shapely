@@ -53,6 +53,13 @@ non_polygon_types = [
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 def test_set_operation_array(a, func):
+    if (
+        func is shapely.difference
+        and a.geom_type == "GeometryCollection"
+        and shapely.get_num_geometries(a) == 2
+        and shapely.geos_version == (3, 9, 5)
+    ):
+        pytest.xfail("GEOS 3.9.5 crashes with mixed collection")
     actual = func(a, point)
     assert isinstance(actual, Geometry)
 
