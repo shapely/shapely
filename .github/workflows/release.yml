@@ -39,7 +39,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: sdist
+          name: release-sdist
           path: ./dist/*.tar.gz
           retention-days: 30
 
@@ -144,7 +144,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: whl-${{ matrix.os }}-${{ matrix.arch }}
+          name: release-${{ matrix.os }}-${{ matrix.arch }}
           path: ./wheelhouse/*.whl
           retention-days: 5
 
@@ -157,7 +157,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: artifact
+          pattern: release-*
+          merge-multiple: true
           path: dist
 
       - name: Create GitHub Release
