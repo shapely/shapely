@@ -48,23 +48,23 @@ class MultiPoint(BaseMultipartGeometry):
             return shapely.from_wkt("MULTIPOINT EMPTY")
         elif isinstance(points, MultiPoint):
             return points
+        elif len(points) == 0:
+            return shapely.from_wkt("MULTIPOINT EMPTY")
 
         if isinstance(points, np.ndarray) and np.issubdtype(points.dtype, np.number):
-            geom = shapely.multipoints(points)
-            if not isinstance(geom, MultiPoint):
+            subs = shapely.points(points)
+            if not subs.ndim == 1:
                 raise ValueError("Invalid values passed to MultiPoint constructor")
-            return geom
-
-        m = len(points)
-        subs = []
-        for i in range(m):
-            p = point.Point(points[i])
-            if p.is_empty:
+            if shapely.is_empty(subs).any():
                 raise EmptyPartError("Can't create MultiPoint with empty component")
-            subs.append(p)
-
-        if len(points) == 0:
-            return shapely.from_wkt("MULTIPOINT EMPTY")
+        else:
+            m = len(points)
+            subs = []
+            for i in range(m):
+                p = point.Point(points[i])
+                if p.is_empty:
+                    raise EmptyPartError("Can't create MultiPoint with empty component")
+                subs.append(p)
 
         return shapely.multipoints(subs)
 
