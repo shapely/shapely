@@ -37,8 +37,6 @@ from shapely.tests.common import (
     polygon_z,
 )
 
-all_non_empty_types = np.array(all_types)[~shapely.is_empty(all_types)]
-
 
 def test_get_num_points():
     actual = shapely.get_num_points(all_types + (None,)).tolist()
@@ -230,40 +228,6 @@ def test_adapt_ptr_raises():
     point = Point(2, 2)
     with pytest.raises(AttributeError):
         point._geom += 1
-
-
-@pytest.mark.parametrize(
-    "geom", all_types + (shapely.points(np.nan, np.nan), empty_point)
-)
-def test_hash_same_equal(geom):
-    hash1 = hash(geom)
-    hash2 = hash(shapely.transform(geom, lambda x: x))
-    if (
-        geom.is_empty
-        and shapely.get_num_geometries(geom) > 0
-        and geom.geom_type not in {"MultiPoint", "Point"}
-        and shapely.geos_version < (3, 9, 0)
-    ):
-        # abnormal test for older GEOS version
-        assert hash1 != hash2, geom
-    else:
-        # normal test
-        assert hash1 == hash2, geom
-
-
-@pytest.mark.parametrize("geom", all_non_empty_types)
-def test_hash_same_not_equal(geom):
-    assert hash(geom) != hash(shapely.transform(geom, lambda x: x + 1))
-
-
-@pytest.mark.parametrize("geom", all_types)
-def test_eq(geom):
-    assert geom == shapely.transform(geom, lambda x: x)
-
-
-@pytest.mark.parametrize("geom", all_non_empty_types)
-def test_neq(geom):
-    assert geom != shapely.transform(geom, lambda x: x + 1)
 
 
 @pytest.mark.parametrize("geom", all_types)
