@@ -1,6 +1,20 @@
 import numpy as np
 
-from shapely._geoarrow import ArrayReader, GeoArrowGEOSException  # NOQA
+from shapely._geoarrow import ArrayBuilder, ArrayReader, GeoArrowGEOSException  # NOQA
+
+
+def to_pyarrow(obj, schema_to):
+    import pyarrow as pa
+
+    builder = ArrayBuilder(schema_to.__arrow_c_schema__())
+    builder.append(obj)
+
+    chunks_pyarrow = []
+    for holder in builder.finish():
+        array = pa.Array._import_from_c(holder._addr(), schema_to.__arrow_c_schema__())
+        chunks_pyarrow.append(array)
+
+    return pa.chunked_array(chunks_pyarrow, type=schema_to)
 
 
 def from_arrow(arrays, schema):

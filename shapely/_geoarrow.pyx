@@ -1,6 +1,7 @@
 
+from cpython cimport PyObject
 from cpython.pycapsule cimport PyCapsule_GetPointer
-from libc.stdint cimport int64_t
+from libc.stdint cimport int64_t, uintptr_t
 from libc.stdlib cimport free, malloc
 
 from shapely._geos cimport (
@@ -9,7 +10,7 @@ from shapely._geos cimport (
     GEOSGeometry,
     get_geos_handle,
 )
-from shapely._pygeos_api cimport import_shapely_c_api, PyGEOS_CreateGeometry
+from shapely._pygeos_api cimport import_shapely_c_api, PyGEOS_CreateGeometry, PyGEOS_GetGEOSGeometry
 
 # initialize Shapely C API
 import_shapely_c_api()
@@ -18,6 +19,8 @@ cdef extern from "geoarrow_geos.h" nogil:
     struct ArrowSchema
     struct ArrowArray:
         int64_t length
+        void (*release)(ArrowArray*)
+
     struct GeoArrowGEOSArrayReader
 
     ctypedef int GeoArrowGEOSErrorCode
@@ -37,6 +40,24 @@ cdef extern from "geoarrow_geos.h" nogil:
     void GeoArrowGEOSArrayReaderDestroy(GeoArrowGEOSArrayReader* reader)
 
 
+    struct GeoArrowGEOSArrayBuilder
+
+    GeoArrowGEOSErrorCode GeoArrowGEOSArrayBuilderCreate(
+        GEOSContextHandle_t handle, ArrowSchema* schema,
+        GeoArrowGEOSArrayBuilder** out)
+
+    void GeoArrowGEOSArrayBuilderDestroy(GeoArrowGEOSArrayBuilder* builder)
+
+    const char* GeoArrowGEOSArrayBuilderGetLastError(GeoArrowGEOSArrayBuilder* builder)
+
+    GeoArrowGEOSErrorCode GeoArrowGEOSArrayBuilderAppend(
+        GeoArrowGEOSArrayBuilder* builder, GEOSGeometry** geom, size_t geom_size,
+        size_t* n_appended)
+
+    GeoArrowGEOSErrorCode GeoArrowGEOSArrayBuilderFinish(GeoArrowGEOSArrayBuilder* builder,
+        ArrowArray* out)
+
+
 class GeoArrowGEOSException(Exception):
 
     def __init__(self, what, code, msg):
@@ -47,7 +68,7 @@ cdef class GEOSGeometryArray:
     cdef GEOSGeometry** _ptr
     cdef size_t _n
 
-    def __cinit__(self,  size_t n):
+    def __cinit__(self, size_t n):
         self._n = 0
         self._ptr = <GEOSGeometry**>malloc(n)
         if self._ptr == NULL:
@@ -78,6 +99,115 @@ cdef class GEOSGeometryArray:
             free(self._ptr)
 
 
+cdef class ArrowArrayHolder:
+    cdef ArrowArray _array
+
+    def __cinit__(self):
+        self._array.release = NULL
+
+    def __dealloc__(self):
+        if self._array.release != NULL:
+            self._array.release(&self._array)
+
+    def _ptr(self):
+        return <uintptr_t>(&self._array)
+
+
+cdef class ArrayBuilder:
+    cdef get_geos_handle _handle
+    cdef GEOSContextHandle_t _geos_handle
+    cdef GeoArrowGEOSArrayBuilder* _ptr
+    cdef list _chunks_out
+
+    def __cinit__(self, object schema_capsule):
+        cdef ArrowSchema* schema = <ArrowSchema*>PyCapsule_GetPointer(schema_capsule, "arrow_schema")
+        self._ptr = NULL
+        self._handle = get_geos_handle()
+        self._geos_handle = self._handle.__enter__()
+        cdef int rc = GeoArrowGEOSArrayBuilderCreate(self._geos_handle, schema, &self._ptr)
+        if rc != GEOARROW_GEOS_OK:
+            self._raise_last_error(rc, "GeoArrowGEOSArrayReaderCreate()")
+
+        self._chunks_out = []
+
+    def __dealloc__(self):
+        if self._ptr != NULL:
+            GeoArrowGEOSArrayBuilderDestroy(self._ptr)
+        self._handle.__exit__(None, None, None)
+
+    def _finish_chunk(self):
+        chunk = ArrowArrayHolder()
+        cdef int rc = GeoArrowGEOSArrayBuilderFinish(self._ptr, <ArrowArray*>chunk._ptr)
+        if rc != GEOARROW_GEOS_OK:
+            self._raise_last_error(rc, "GeoArrowGEOSArrayBuilderFinish()")
+        self._chunks_out.append(chunk)
+
+    def append(self, object geometries):
+        if len(geometries) == 0:
+            return
+
+        self._assert_valid()
+
+        cdef GEOSGeometry* input_chunk[1024]
+        cdef int rc
+        cdef size_t n_appended = 0
+        n_appended_total = 0
+
+        for chunk_in_i in range(len(geometries) // 1024):
+            i_begin = (chunk_in_i * 1024)
+            i_end = chunk_in_i + 1024
+            for geom, chunk_i in zip(geometries[i_begin:i_end], range(1024)):
+                if not PyGEOS_GetGEOSGeometry(<PyObject*>geom, &(input_chunk[chunk_i])):
+                    raise RuntimeError(f"PyGEOS_GetGEOSGeometry() failed at chunk {chunk_in_i}[{chunk_i}]")
+
+            with nogil:
+                rc = GeoArrowGEOSArrayBuilderAppend(self._ptr, input_chunk, 1024, &n_appended)
+            # TODO: check EOVERFLOW, e.g., WKB >2GB reached so we add a chunk and try again
+            if rc != GEOARROW_GEOS_OK:
+                self._raise_last_error(rc, "GeoArrowGEOSArrayBuilderAppend()")
+
+            self._finish_chunk()
+            n_appended_total += n_appended
+
+        # Last chunk
+        i_begin = len(geometries) // 1024 * 1024
+        i_end = len(geometries)
+        cdef size_t n_remaining = i_end - i_begin
+        for geom, chunk_i in zip(geometries[i_begin:i_end], range(i_end - i_begin)):
+            if not PyGEOS_GetGEOSGeometry(<PyObject*>geom, &(input_chunk[chunk_i])):
+                    raise RuntimeError(f"PyGEOS_GetGEOSGeometry() failed at last chunk[{chunk_i}]")
+        with nogil:
+                rc = GeoArrowGEOSArrayBuilderAppend(self._ptr, input_chunk, n_remaining, &n_appended)
+        # TODO: check EOVERFLOW, e.g., WKB >2GB reached so we add a chunk and try again
+        if rc != GEOARROW_GEOS_OK:
+            self._raise_last_error(rc, "GeoArrowGEOSArrayBuilderAppend()")
+
+        self._finish_chunk()
+        n_appended_total += n_appended
+
+        return n_appended_total
+
+
+    def finish(self):
+        self._assert_valid()
+        return self._chunks_out
+
+    def _assert_valid(self):
+        if self._ptr == NULL:
+            raise RuntimeError("GeoArrowGEOSArrayBuilder not valid")
+
+    def _last_error(self):
+        cdef const char* msg = NULL
+        if self._ptr == NULL:
+            msg = NULL
+        else:
+            msg = GeoArrowGEOSArrayBuilderGetLastError(self._ptr)
+
+        if msg == NULL:
+            msg = "<NULL>"
+
+        return msg.decode("UTF-8")
+
 cdef class ArrayReader:
     cdef get_geos_handle _handle
     cdef GEOSContextHandle_t _geos_handle
@@ -107,7 +237,7 @@ cdef class ArrayReader:
         with nogil:
             rc = GeoArrowGEOSArrayReaderRead(self._ptr, array, 0, array.length, out._ptr, &n_out)
         if rc != GEOARROW_GEOS_OK:
-            self._raise_last_error(rc, "GeoArrowGEOSArrayReaderCreate()")
+            self._raise_last_error(rc, "GeoArrowGEOSArrayReaderRead()")
 
         if n_out != array.length:
             raise RuntimeError(f"Expected {array.length} values but got {n_out}: {self._last_error()}")
