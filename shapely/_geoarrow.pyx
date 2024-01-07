@@ -109,7 +109,7 @@ cdef class ArrowArrayHolder:
         if self._array.release != NULL:
             self._array.release(&self._array)
 
-    def _ptr(self):
+    def _addr(self):
         return <uintptr_t>(&self._array)
 
 
@@ -136,11 +136,13 @@ cdef class ArrayBuilder:
         self._handle.__exit__(None, None, None)
 
     def _finish_chunk(self):
-        chunk = ArrowArrayHolder()
-        cdef int rc = GeoArrowGEOSArrayBuilderFinish(self._ptr, <ArrowArray*>chunk._ptr)
+        cdef ArrowArrayHolder chunk = ArrowArrayHolder()
+        cdef int rc = GeoArrowGEOSArrayBuilderFinish(self._ptr, &chunk._array)
         if rc != GEOARROW_GEOS_OK:
             self._raise_last_error(rc, "GeoArrowGEOSArrayBuilderFinish()")
-        self._chunks_out.append(chunk)
+
+        if chunk._array.length > 0:
+            self._chunks_out.append(chunk)
 
     def append(self, object geometries):
         if len(geometries) == 0:
@@ -152,10 +154,11 @@ cdef class ArrayBuilder:
         cdef int rc
         cdef size_t n_appended = 0
         n_appended_total = 0
+        cdef size_t n_full_chunks_in = len(geometries) // 1024
 
-        for chunk_in_i in range(len(geometries) // 1024):
+        for chunk_in_i in range(n_full_chunks_in):
             i_begin = (chunk_in_i * 1024)
-            i_end = chunk_in_i + 1024
+            i_end = i_begin + 1024
             for geom, chunk_i in zip(geometries[i_begin:i_end], range(1024)):
                 if not PyGEOS_GetGEOSGeometry(<PyObject*>geom, &(input_chunk[chunk_i])):
                     raise RuntimeError(f"PyGEOS_GetGEOSGeometry() failed at chunk {chunk_in_i}[{chunk_i}]")
@@ -166,25 +169,26 @@ cdef class ArrayBuilder:
             if rc != GEOARROW_GEOS_OK:
                 self._raise_last_error(rc, "GeoArrowGEOSArrayBuilderAppend()")
 
-            self._finish_chunk()
             n_appended_total += n_appended
 
         # Last chunk
-        i_begin = len(geometries) // 1024 * 1024
+        i_begin = n_full_chunks_in * 1024
         i_end = len(geometries)
         cdef size_t n_remaining = i_end - i_begin
-        for geom, chunk_i in zip(geometries[i_begin:i_end], range(i_end - i_begin)):
-            if not PyGEOS_GetGEOSGeometry(<PyObject*>geom, &(input_chunk[chunk_i])):
-                    raise RuntimeError(f"PyGEOS_GetGEOSGeometry() failed at last chunk[{chunk_i}]")
-        with nogil:
-                rc = GeoArrowGEOSArrayBuilderAppend(self._ptr, input_chunk, n_remaining, &n_appended)
-        # TODO: check EOVERFLOW, e.g., WKB >2GB reached so we add a chunk and try again
-        if rc != GEOARROW_GEOS_OK:
-            self._raise_last_error(rc, "GeoArrowGEOSArrayBuilderAppend()")
+
+        if n_remaining > 0:
+            for geom, chunk_i in zip(geometries[i_begin:i_end], range(n_remaining)):
+                if not PyGEOS_GetGEOSGeometry(<PyObject*>geom, &(input_chunk[chunk_i])):
+                        raise RuntimeError(f"PyGEOS_GetGEOSGeometry() failed at last chunk[{chunk_i}]")
+            with nogil:
+                    rc = GeoArrowGEOSArrayBuilderAppend(self._ptr, input_chunk, n_remaining, &n_appended)
+            # TODO: check EOVERFLOW, e.g., WKB >2GB reached so we add a chunk and try again
+            if rc != GEOARROW_GEOS_OK:
+                self._raise_last_error(rc, "GeoArrowGEOSArrayBuilderAppend()")
+
+            n_appended_total += n_appended
 
         self._finish_chunk()
-        n_appended_total += n_appended
-
         return n_appended_total
 
 

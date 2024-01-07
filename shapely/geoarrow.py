@@ -11,7 +11,7 @@ def to_pyarrow(obj, schema_to):
 
     chunks_pyarrow = []
     for holder in builder.finish():
-        array = pa.Array._import_from_c(holder._addr(), schema_to.__arrow_c_schema__())
+        array = pa.Array._import_from_c(holder._addr(), schema_to)
         chunks_pyarrow.append(array)
 
     return pa.chunked_array(chunks_pyarrow, type=schema_to)
