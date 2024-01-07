@@ -1,7 +1,7 @@
 
 from cpython cimport PyObject
 from cpython.pycapsule cimport PyCapsule_GetPointer
-from libc.stdint cimport int64_t, uintptr_t
+from libc.stdint cimport int32_t, int64_t, uintptr_t
 from libc.stdlib cimport free, malloc
 
 from shapely._geos cimport (
@@ -16,7 +16,9 @@ from shapely._pygeos_api cimport import_shapely_c_api, PyGEOS_CreateGeometry, Py
 import_shapely_c_api()
 
 cdef extern from "geoarrow_geos.h" nogil:
-    struct ArrowSchema
+    struct ArrowSchema:
+        void (*release)(ArrowSchema*)
+
     struct ArrowArray:
         int64_t length
         void (*release)(ArrowArray*)
@@ -56,6 +58,16 @@ cdef extern from "geoarrow_geos.h" nogil:
 
     GeoArrowGEOSErrorCode GeoArrowGEOSArrayBuilderFinish(GeoArrowGEOSArrayBuilder* builder,
         ArrowArray* out)
+
+    enum GeoArrowGEOSEncoding:
+        GEOARROW_GEOS_ENCODING_UNKNOWN
+        GEOARROW_GEOS_ENCODING_WKT
+        GEOARROW_GEOS_ENCODING_WKB
+        GEOARROW_GEOS_ENCODING_GEOARROW
+        GEOARROW_GEOS_ENCODING_GEOARROW_INTERLEAVED
+
+    GeoArrowGEOSErrorCode GeoArrowGEOSMakeSchema(int32_t encoding, int32_t wkb_type,
+        ArrowSchema* out)
 
 
 class GeoArrowGEOSException(Exception):
@@ -111,6 +123,35 @@ cdef class ArrowArrayHolder:
 
     def _addr(self):
         return <uintptr_t>(&self._array)
+
+
+cdef class ArrowSchemaHolder:
+    cdef ArrowSchema _schema
+
+    def __cinit__(self):
+        self._schema.release = NULL
+
+    def __dealloc__(self):
+        if self._schema.release != NULL:
+            self._schema.release(&self._schema)
+
+    def _addr(self):
+        return <uintptr_t>(&self._schema)
+
+cdef class SchemaCalculator:
+    ENCODING_UNKNOWN = GeoArrowGEOSEncoding.GEOARROW_GEOS_ENCODING_UNKNOWN
+    ENCODING_WKB = GeoArrowGEOSEncoding.GEOARROW_GEOS_ENCODING_WKB
+    ENCODING_WKT = GeoArrowGEOSEncoding.GEOARROW_GEOS_ENCODING_WKT
+    ENCODING_GEOARROW = GeoArrowGEOSEncoding.GEOARROW_GEOS_ENCODING_GEOARROW
+    ENCODING_GEOARROW_INTERLEAVED = GeoArrowGEOSEncoding.GEOARROW_GEOS_ENCODING_GEOARROW_INTERLEAVED
+
+    @staticmethod
+    def from_wkb_type(int32_t encoding, int32_t wkb_type = 0):
+        cdef ArrowSchemaHolder out = ArrowSchemaHolder()
+        cdef int rc = GeoArrowGEOSMakeSchema(encoding, wkb_type, &(out._schema))
+        if rc != GEOARROW_GEOS_OK:
+            raise GeoArrowGEOSException("GeoArrowGEOSMakeSchema()", rc, "<none>")
+        return out
 
 
 cdef class ArrayBuilder:

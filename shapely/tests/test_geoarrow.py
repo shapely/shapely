@@ -5,12 +5,53 @@ import pytest
 from numpy import testing
 
 import shapely
-from shapely.geoarrow import to_pyarrow, from_arrow, GeoArrowGEOSException
+from shapely.geoarrow import (
+    Encoding,
+    type_pyarrow,
+    to_pyarrow,
+    from_arrow,
+    GeoArrowGEOSException,
+)
 
 
-def test_from_arrow_error_construct():
-    with pytest.raises(GeoArrowGEOSException, match="Expected extension type"):
-        from_arrow([], pa.float64())
+def test_type_pyarrow():
+    assert type_pyarrow(Encoding.WKB) == ga.wkb()
+    assert type_pyarrow(Encoding.WKT) == ga.wkt()
+
+    assert type_pyarrow(Encoding.GEOARROW, shapely.GeometryType.POINT) == ga.point()
+    assert (
+        type_pyarrow(Encoding.GEOARROW, shapely.GeometryType.LINESTRING)
+        == ga.linestring()
+    )
+    assert type_pyarrow(Encoding.GEOARROW, shapely.GeometryType.POLYGON) == ga.polygon()
+    assert (
+        type_pyarrow(Encoding.GEOARROW, shapely.GeometryType.MULTIPOINT)
+        == ga.multipoint()
+    )
+    assert (
+        type_pyarrow(Encoding.GEOARROW, shapely.GeometryType.MULTILINESTRING)
+        == ga.multilinestring()
+    )
+    assert (
+        type_pyarrow(Encoding.GEOARROW, shapely.GeometryType.MULTIPOLYGON)
+        == ga.multipolygon()
+    )
+
+    assert type_pyarrow(
+        Encoding.GEOARROW_INTERLEAVED, shapely.GeometryType.POINT
+    ) == ga.point().with_coord_type(ga.CoordType.INTERLEAVED)
+
+    assert type_pyarrow(
+        Encoding.GEOARROW, shapely.GeometryType.POINT, "xyz"
+    ) == ga.point().with_dimensions(ga.Dimensions.XYZ)
+
+    assert type_pyarrow(
+        Encoding.GEOARROW, shapely.GeometryType.POINT, "xym"
+    ) == ga.point().with_dimensions(ga.Dimensions.XYM)
+
+    assert type_pyarrow(
+        Encoding.GEOARROW, shapely.GeometryType.POINT, "xyzm"
+    ) == ga.point().with_dimensions(ga.Dimensions.XYZM)
 
 
 def test_to_pyarrow_empty():
@@ -52,6 +93,11 @@ def test_to_pyarrow_point():
         [shapely.from_wkt("POINT (0 1)"), shapely.from_wkt("POINT (2 3)")], ga.point()
     )
     assert out == pa.chunked_array([ga.as_geoarrow(["POINT (0 1)", "POINT (2 3)"])])
+
+
+def test_from_arrow_error_construct():
+    with pytest.raises(GeoArrowGEOSException, match="Expected extension type"):
+        from_arrow([], pa.float64())
 
 
 def test_from_arrow_empty():
