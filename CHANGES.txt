@@ -20,9 +20,9 @@ Improvements:
 - The ``include_z`` in ``shapely.transform()`` now also allows ``None``, which
   lets it automatically detect the dimensionality of each input geometry.
 - Add parameters ``method`` and ``keep_collapsed`` to ``shapely.make_valid()`` (#1941)
-- Upgraded the GEOS version in the binary wheel distributions to 3.12.0.
+- Upgraded the GEOS version in the binary wheel distributions to 3.12.1.
 
-Breaking changes in GEOS 3.12.0:
+Breaking changes in GEOS 3.12:
 
 - ``oriented_envelope`` / ``minimum_rotated_rectangle`` changed its implementation
   in GEOS 3.12. Be aware that results will change when updating GEOS. Coincidentally
