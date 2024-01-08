@@ -732,6 +732,7 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
     grid_size. Z values, if present, will not be modified.
 
     Notes:
+
     * subsequent operations will always be performed in the precision of
       the geometry with higher precision (smaller "grid_size"). That same
       precision will be attached to the operation outputs.
