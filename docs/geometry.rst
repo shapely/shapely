@@ -173,3 +173,17 @@ specified, rounding precision will be disabled showing full precision.
 Format types ``'x'`` and ``'X'`` show a hex-encoded string representation of
 WKB or Well-Known Binary, with the case of the output matched the
 case of the format type character.
+
+.. _canonical-form:
+
+Canonical form
+--------------
+When geometries are constructed, they are created according to some conventions:
+
+* the coordinates of exterior rings follow a clockwise orientation, interior rings
+  have a counter-clockwise orientation. This is the opposite of the OGC specifications
+  because the choise was made before this was included in the standard.
+* the starting point of rings is lower left.
+* collections are ordered by geometry type.
+
+It is important to note that input geometries do not have to follow these conventions.

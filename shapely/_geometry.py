@@ -731,14 +731,14 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
     collapse to empty geometries if all vertices are closer together than
     grid_size. Z values, if present, will not be modified.
 
-    Note: subsequent operations will always be performed in the precision of
-    the geometry with higher precision (smaller "grid_size"). That same
-    precision will be attached to the operation outputs.
-
-    Also note: input geometries should be geometrically valid; unexpected
-    results may occur if input geometries are not.
-
-    Returns None if geometry is None.
+    Notes:
+    * subsequent operations will always be performed in the precision of
+      the geometry with higher precision (smaller "grid_size"). That same
+      precision will be attached to the operation outputs.
+    * input geometries should be geometrically valid; unexpected results may
+      occur if input geometries are not.
+    * the geometry returned will be in :ref:`canonical form <canonical-form>`.
+    * returns None if geometry is None.
 
     Parameters
     ----------
