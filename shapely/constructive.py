@@ -524,6 +524,10 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
       from the shells to generate valid result. It assumes that holes and shells are
       correctly categorized in the input geometry.
 
+    Example:
+
+    |make_valid|
+
     Parameters
     ----------
     geometry : Geometry or array_like
@@ -549,6 +553,10 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
     <LINESTRING (0 0, 1 1, 1 2, 1 1, 0 0)>
     >>> make_valid(polygon, method="structure", keep_collapsed=False)
     <POLYGON EMPTY>
+
+    .. |make_valid| image:: ../_static/images/make_valid.png
+        :alt: Example file for make_valid
+    
     """
     if not np.isscalar(method):
         raise TypeError("method only accepts scalar values")
