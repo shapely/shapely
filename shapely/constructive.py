@@ -511,15 +511,25 @@ def build_area(geometry, **kwargs):
 def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
     """Repairs invalid geometries.
 
+    Two ``methods`` are available:
+
+    * the 'linework' algorithm tries to preserve every edge and vertex in the input. It
+      combines all rings into a set of noded lines and then extracts valid polygons from
+      that linework. An alternating even-odd strategy is used to assign areas as
+      interior or exterior. A disadvantage is that for some relatively simple invalid
+      geometries this produces rather complex results.
+    * the 'structure' algorithm tries to reason from the structure of the input to find
+      the 'correct' repair: exterior rings bound area, interior holes exclude area.
+      It first makes all rings valid, then shells are merged and holes are subtracted 
+      from the shells to generate valid result. It assumes that holes and shells are
+      correctly categorized in the input geometry.
+
     Parameters
     ----------
     geometry : Geometry or array_like
     method : {'linework', 'structure'}, default 'linework'
-        Algorithm to use when repairing geometry. The linework algorithm combines all
-        rings into a set of noded lines and then extracts valid polygons from that
-        linework. The structure algorithm first makes all rings valid, then merges
-        shells and subtracts holes from shells to generate valid result. It assumes that
-        holes and shells are correctly categorized. 'structure' requires GEOS >= 3.10.
+        Algorithm to use when repairing geometry. 'structure'
+        requires GEOS >= 3.10.
     keep_collapsed : bool, default True
         For the 'structure' method, True will keep components that have collapsed into a
         lower dimensionality. For example, a ring collapsing to a line, or a line
