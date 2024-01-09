@@ -526,7 +526,11 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
 
     Example:
 
-    |make_valid|
+    |make_valid_methods|
+
+    When using ``make_valid`` on a polygon, the result can be a GeometryCollection. For
+    this example this is the case when the 'linestring' method is used. LineStrings in
+    the result are drawn in red.
 
     Parameters
     ----------
@@ -554,8 +558,8 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
     >>> make_valid(polygon, method="structure", keep_collapsed=False)
     <POLYGON EMPTY>
 
-    .. |make_valid| image:: ../_static/images/make_valid.png
-        :alt: Example file for make_valid
+    .. |make_valid_methods| image:: ../_static/images/make_valid_methods.png
+        :alt: Example file for make_valid methods
     
     """
     if not np.isscalar(method):
