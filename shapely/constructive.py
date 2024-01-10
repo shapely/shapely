@@ -526,8 +526,7 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
 
     Example:
 
-    .. figure:: /images/make_valid_methods.png
-        Example file for make_valid methods
+    .. plot:: code/make_valid_methods.py
 
     When using ``make_valid`` on a Polygon, the result can be a GeometryCollection. For
     this example this is the case when the 'linework' ``method`` is used. LineStrings in
