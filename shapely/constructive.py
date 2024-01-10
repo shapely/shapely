@@ -520,13 +520,14 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
       geometries this produces rather complex results.
     * the 'structure' algorithm tries to reason from the structure of the input to find
       the 'correct' repair: exterior rings bound area, interior holes exclude area.
-      It first makes all rings valid, then shells are merged and holes are subtracted 
+      It first makes all rings valid, then shells are merged and holes are subtracted
       from the shells to generate valid result. It assumes that holes and shells are
       correctly categorized in the input geometry.
 
     Example:
 
-    |make_valid_methods|
+    .. image:: /images/make_valid_methods.png
+        :alt: Example file for make_valid methods
 
     When using ``make_valid`` on a Polygon, the result can be a GeometryCollection. For
     this example this is the case when the 'linework' ``method`` is used. LineStrings in
@@ -557,10 +558,6 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
     <LINESTRING (0 0, 1 1, 1 2, 1 1, 0 0)>
     >>> make_valid(polygon, method="structure", keep_collapsed=False)
     <POLYGON EMPTY>
-
-    .. |make_valid_methods| image:: ../_static/images/make_valid_methods.png
-        :alt: Example file for make_valid methods
-    
     """
     if not np.isscalar(method):
         raise TypeError("method only accepts scalar values")
