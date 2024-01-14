@@ -182,7 +182,7 @@ When geometries are constructed, they are created according to some conventions:
 
 * the coordinates of exterior rings follow a clockwise orientation, interior rings
   have a counter-clockwise orientation. This is the opposite of the OGC specifications
-  because the choise was made before this was included in the standard.
+  because the choice was made before this was included in the standard.
 * the starting point of rings is lower left.
 * collections are ordered by geometry type.
 
