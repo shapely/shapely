@@ -535,15 +535,6 @@ def test_clip_by_rect_polygon(geom, rect, expected):
 
 @pytest.mark.parametrize("geometry", all_types)
 def test_clip_by_rect_array(geometry):
-    if (
-        geometry.is_empty
-        and geometry.geom_type == "Point"
-        and shapely.geos_version < (3, 12, 0)
-    ):
-        with pytest.raises(shapely.errors.GEOSException):
-            shapely.clip_by_rect([geometry, geometry], 0.0, 0.0, 1.0, 1.0)
-        pytest.xfail("GEOS < 3.12 does not support POINT EMPTY")  # GEOS GH-913
-
     actual = shapely.clip_by_rect([geometry, geometry], 0.0, 0.0, 1.0, 1.0)
     assert actual.shape == (2,)
     assert actual[0] is None or isinstance(actual[0], Geometry)
