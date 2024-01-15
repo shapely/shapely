@@ -106,6 +106,10 @@ class BaseGeometry(shapely.Geometry):
         return shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")
 
     @property
+    def geoms(self):
+        return GeometrySequence(self)
+
+    @property
     def _ndim(self):
         return shapely.get_coordinate_dimension(self)
 

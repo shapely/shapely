@@ -243,3 +243,24 @@ def test_array_argument_buffer():
     assert isinstance(result, np.ndarray)
     expected = np.array([point.buffer(d) for d in distances], dtype=object)
     assert_geometries_equal(result, expected)
+
+geometries_simple = [
+    Point(1, 1),
+    LinearRing([(0, 0), (1, 1), (0, 1), (0, 0)]),
+    LineString([(0, 0), (1, 1), (0, 1), (0, 0)]),
+    Polygon([(0, 0), (1, 1), (0, 1), (0, 0)]),
+]
+
+@pytest.mark.parametrize("geom", geometries_simple)
+def test_geoms(geom):
+    result = geom.geoms
+
+    assert (len(result)==1)
+
+    for i, g in enumerate(result):
+        assert_geometries_equal(result[i],g)
+
+    with pytest.raises(IndexError):  # index out of range
+        result[1]
+    
+    
