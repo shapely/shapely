@@ -262,5 +262,3 @@ def test_geoms(geom):
 
     with pytest.raises(IndexError):  # index out of range
         result[1]
-    
-    
