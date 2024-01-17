@@ -64,6 +64,9 @@ def infer_pyarrow_type(obj, encoding=None):
     else:
         encoding = Encoding(encoding).value
 
+    # Note: faster to iterate over np.array(obj)
+    obj = np.array(obj)
+
     calculator = SchemaCalculator()
     calculator.ingest_geometry(obj)
     holder = calculator.finish(encoding)
@@ -73,6 +76,9 @@ def infer_pyarrow_type(obj, encoding=None):
 
 def to_pyarrow(obj, schema_to):
     import pyarrow as pa
+
+    # Note: faster to iterate over np.array(obj)
+    obj = np.array(obj)
 
     builder = ArrayBuilder(schema_to.__arrow_c_schema__())
     builder.append(obj)
