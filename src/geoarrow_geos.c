@@ -1015,7 +1015,7 @@ GeoArrowGEOSErrorCode GeoArrowGEOSSchemaCalculatorFinish(
     case GEOARROW_GEOS_ENCODING_WKB:
       return GeoArrowGEOSMakeSchema(encoding, 0, out);
     case GEOARROW_GEOS_ENCODING_GEOARROW:
-      coord_type = GEOARROW_COORD_TYPE_INTERLEAVED;
+      coord_type = GEOARROW_COORD_TYPE_SEPARATE;
       break;
     case GEOARROW_GEOS_ENCODING_GEOARROW_INTERLEAVED:
       coord_type = GEOARROW_COORD_TYPE_INTERLEAVED;

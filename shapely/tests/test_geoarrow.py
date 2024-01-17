@@ -10,6 +10,7 @@ from shapely.geoarrow import (
     type_pyarrow,
     to_pyarrow,
     from_arrow,
+    infer_pyarrow_type,
     GeoArrowGEOSException,
 )
 
@@ -52,6 +53,37 @@ def test_type_pyarrow():
     assert type_pyarrow(
         Encoding.GEOARROW, shapely.GeometryType.POINT, "xyzm"
     ) == ga.point().with_dimensions(ga.Dimensions.XYZM)
+
+
+def test_infer_pyarrow_type():
+    type = infer_pyarrow_type(
+        [shapely.from_wkt("POINT (0 1)"), shapely.from_wkt("POINT (2 3)")]
+    )
+    assert type == ga.point()
+
+    type = infer_pyarrow_type(
+        [shapely.from_wkt("POINT (0 1)"), shapely.from_wkt("POINT (2 3)")],
+        encoding=Encoding.GEOARROW_INTERLEAVED,
+    )
+    assert type == ga.point().with_coord_type(ga.CoordType.INTERLEAVED)
+
+    type = infer_pyarrow_type(
+        [shapely.from_wkt("POINT (0 1)"), shapely.from_wkt("MULTIPOINT (2 3)")]
+    )
+    assert type == ga.multipoint()
+
+    type = infer_pyarrow_type(
+        [shapely.from_wkt("POINT (0 1)"), shapely.from_wkt("LINESTRING (2 3, 4 5)")]
+    )
+    assert type == ga.wkb()
+
+
+def test_infer_pyarrow_type_more_than_chunk_size():
+    chunk1 = [shapely.from_wkt("POINT (0 1)"), shapely.from_wkt("POINT (2 3)")] * 512
+    chunk2 = [shapely.from_wkt("LINESTRING (0 1, 2 3)")]
+
+    type = infer_pyarrow_type(chunk1 + chunk2)
+    assert type == ga.wkb()
 
 
 def test_to_pyarrow_empty():

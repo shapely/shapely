@@ -69,6 +69,23 @@ cdef extern from "geoarrow_geos.h" nogil:
     GeoArrowGEOSErrorCode GeoArrowGEOSMakeSchema(int32_t encoding, int32_t wkb_type,
         ArrowSchema* out)
 
+    struct GeoArrowGEOSSchemaCalculator
+
+    GeoArrowGEOSErrorCode GeoArrowGEOSSchemaCalculatorCreate(
+        GeoArrowGEOSSchemaCalculator** out)
+
+    void GeoArrowGEOSSchemaCalculatorIngest(GeoArrowGEOSSchemaCalculator* calc,
+                                            const int32_t* wkb_type, size_t n)
+
+    GeoArrowGEOSErrorCode GeoArrowGEOSSchemaCalculatorFinish(
+        GeoArrowGEOSSchemaCalculator* calc, GeoArrowGEOSEncoding encoding,
+        ArrowSchema* out)
+
+    void GeoArrowGEOSSchemaCalculatorDestroy(GeoArrowGEOSSchemaCalculator* calc)
+
+    int32_t GeoArrowGEOSWKBType(GEOSContextHandle_t handle,
+                                const GEOSGeometry* geom)
+
 
 class GeoArrowGEOSException(Exception):
 
@@ -139,11 +156,64 @@ cdef class ArrowSchemaHolder:
         return <uintptr_t>(&self._schema)
 
 cdef class SchemaCalculator:
+    cdef GeoArrowGEOSSchemaCalculator* _ptr
+
     ENCODING_UNKNOWN = GeoArrowGEOSEncoding.GEOARROW_GEOS_ENCODING_UNKNOWN
     ENCODING_WKB = GeoArrowGEOSEncoding.GEOARROW_GEOS_ENCODING_WKB
     ENCODING_WKT = GeoArrowGEOSEncoding.GEOARROW_GEOS_ENCODING_WKT
     ENCODING_GEOARROW = GeoArrowGEOSEncoding.GEOARROW_GEOS_ENCODING_GEOARROW
     ENCODING_GEOARROW_INTERLEAVED = GeoArrowGEOSEncoding.GEOARROW_GEOS_ENCODING_GEOARROW_INTERLEAVED
+
+    def __cinit__(self):
+        self._ptr = NULL
+        cdef int rc = GeoArrowGEOSSchemaCalculatorCreate(&self._ptr)
+        if rc != GEOARROW_GEOS_OK:
+            raise GeoArrowGEOSException("GeoArrowGEOSSchemaCalculatorCreate()", rc, "<none>")
+
+    def __dealloc__(self):
+        if self._ptr != NULL:
+            GeoArrowGEOSSchemaCalculatorDestroy(self._ptr)
+
+    def ingest_wkb_type(self, int32_t[:] wkb_types):
+        GeoArrowGEOSSchemaCalculatorIngest(self._ptr, &(wkb_types[0]), len(wkb_types))
+
+    def ingest_geometry(self, object geometries):
+        cdef int32_t wkb_types[1024]
+        cdef int64_t n_wkb_types = 0
+        cdef GEOSGeometry* geos_geom
+
+        n_geometries = len(geometries)
+        n_chunks = n_geometries // 1024
+        cdef int64_t i = 0
+
+        with get_geos_handle() as handle:
+            for chunk_in_i in range(n_chunks):
+                for chunk_i in range(1024):
+                    if not PyGEOS_GetGEOSGeometry(<PyObject*>(geometries[i]), &geos_geom):
+                        raise RuntimeError(
+                            f"PyGEOS_GetGEOSGeometry(geometries[{i}]) failed")
+                    wkb_types[chunk_i] = GeoArrowGEOSWKBType(handle, geos_geom)
+                    i += 1
+                n_wkb_types = 1024
+                GeoArrowGEOSSchemaCalculatorIngest(self._ptr, wkb_types, n_wkb_types)
+
+            for chunk_i in range(n_geometries % 1024):
+                if not PyGEOS_GetGEOSGeometry(<PyObject*>(geometries[i]), &geos_geom):
+                    raise RuntimeError(
+                        f"PyGEOS_GetGEOSGeometry(geometries[{i}]) failed")
+                wkb_types[chunk_i] = GeoArrowGEOSWKBType(handle, geos_geom)
+                i += 1
+
+            n_wkb_types = n_geometries % 1024
+            GeoArrowGEOSSchemaCalculatorIngest(self._ptr, wkb_types, n_wkb_types)
+
+    def finish(self, int32_t encoding):
+        cdef ArrowSchemaHolder out = ArrowSchemaHolder()
+        cdef int rc = GeoArrowGEOSSchemaCalculatorFinish(
+            self._ptr, <GeoArrowGEOSEncoding>encoding, &(out._schema))
+        if rc != GEOARROW_GEOS_OK:
+            raise GeoArrowGEOSException("GeoArrowGEOSSchemaCalculatorFinish()", rc, "<none>")
+        return out
 
     @staticmethod
     def from_wkb_type(int32_t encoding, int32_t wkb_type = 0):

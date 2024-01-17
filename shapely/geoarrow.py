@@ -56,6 +56,21 @@ def type_pyarrow(encoding, geometry_type=None, dimensions=None):
     return pa.DataType._import_from_c(holder._addr())
 
 
+def infer_pyarrow_type(obj, encoding=None):
+    import pyarrow as pa
+
+    if encoding is None:
+        encoding = Encoding.GEOARROW.value
+    else:
+        encoding = Encoding(encoding).value
+
+    calculator = SchemaCalculator()
+    calculator.ingest_geometry(obj)
+    holder = calculator.finish(encoding)
+
+    return pa.DataType._import_from_c(holder._addr())
+
+
 def to_pyarrow(obj, schema_to):
     import pyarrow as pa
 
