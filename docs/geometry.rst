@@ -178,12 +178,16 @@ case of the format type character.
 
 Canonical form
 --------------
-When geometries are constructed, they are created according to some conventions:
+When operations are applied on geometries the result is returned according to some
+conventions.
 
-* the coordinates of exterior rings follow a clockwise orientation, interior rings
-  have a counter-clockwise orientation. This is the opposite of the OGC specifications
-  because the choice was made before this was included in the standard.
-* the starting point of rings is lower left.
-* collections are ordered by geometry type.
+As a general rule, the coordinates of exterior rings follow a clockwise orientation and
+interior rings have a counter-clockwise orientation. This is the opposite of the OGC
+specifications because the choice was made before this was included in the standard.
+
+The starting point of rings and the order of geometry types in a collection can be
+changed, but the result is undefined. When :func:`~shapely.normalize` is used though, it
+will make sure that the starting point of rings is lower left and that collections are
+ordered by geometry type.
 
 It is important to note that input geometries do not have to follow these conventions.
