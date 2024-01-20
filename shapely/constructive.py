@@ -91,7 +91,7 @@ def buffer(
     join_style="round",
     mitre_limit=5.0,
     single_sided=False,
-    **kwargs
+    **kwargs,
 ):
     """
     Computes the buffer of a geometry for positive and negative buffer distance.
@@ -185,7 +185,7 @@ def buffer(
         np.intc(join_style),
         mitre_limit,
         np.bool_(single_sided),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -251,7 +251,7 @@ def offset_curve(
         np.intc(quad_segs),
         np.intc(join_style),
         np.double(mitre_limit),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -330,7 +330,7 @@ def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
         np.double(ymin),
         np.double(xmax),
         np.double(ymax),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -944,7 +944,7 @@ def snap(geometry, reference, tolerance, **kwargs):
 
 @multithreading_enabled
 def voronoi_polygons(
-    geometry, tolerance=0.0, extend_to=None, only_edges=False, **kwargs
+    geometry, tolerance=0.0, extend_to=None, only_edges=False, ordered=False, **kwargs
 ):
     """Computes a Voronoi diagram from the vertices of an input geometry.
 
@@ -963,6 +963,10 @@ def voronoi_polygons(
     only_edges : bool or array_like, default False
         If set to True, the triangulation will return a collection of
         linestrings instead of polygons.
+    ordered : bool or array_like, default False
+        If set to True, polygons within the GeometryCollection will be ordered
+        according to the order of the input vertices. Note that this may slow
+        down the computation.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -982,8 +986,12 @@ def voronoi_polygons(
     <MULTILINESTRING ((3 4, 3 0))>
     >>> voronoi_polygons(Point(2, 2))
     <GEOMETRYCOLLECTION EMPTY>
+    >>> voronoi_polygons(points, ordered=True)
+    <GEOMETRYCOLLECTION (POLYGON ((0 0, 0 4, 3 4, 3 0, 0 0)), POLYGON ((6 4, 6 0...>
     """
-    return lib.voronoi_polygons(geometry, tolerance, extend_to, only_edges, **kwargs)
+    return lib.voronoi_polygons(
+        geometry, tolerance, extend_to, only_edges, ordered, **kwargs
+    )
 
 
 @multithreading_enabled

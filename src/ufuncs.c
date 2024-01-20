@@ -1948,14 +1948,14 @@ static void delaunay_triangles_func(char** args, const npy_intp* dimensions, con
 }
 static PyUFuncGenericFunction delaunay_triangles_funcs[1] = {&delaunay_triangles_func};
 
-static char voronoi_polygons_dtypes[5] = {NPY_OBJECT, NPY_DOUBLE, NPY_OBJECT, NPY_BOOL,
-                                          NPY_OBJECT};
+static char voronoi_polygons_dtypes[6] = {NPY_OBJECT, NPY_DOUBLE, NPY_OBJECT, NPY_BOOL,
+                                          NPY_BOOL, NPY_OBJECT};
 static void voronoi_polygons_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                                   void* data) {
   GEOSGeometry *in1 = NULL, *in3 = NULL;
   GEOSGeometry** geom_arr;
 
-  CHECK_NO_INPLACE_OUTPUT(4);
+  CHECK_NO_INPLACE_OUTPUT(5);
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
@@ -1963,7 +1963,7 @@ static void voronoi_polygons_func(char** args, const npy_intp* dimensions, const
 
   GEOS_INIT_THREADS;
 
-  QUATERNARY_LOOP {
+  QUINARY_LOOP {
     CHECK_SIGNALS_THREADS(i);
     if (errstate == PGERR_PYSIGNAL) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
@@ -1978,11 +1978,18 @@ static void voronoi_polygons_func(char** args, const npy_intp* dimensions, const
     }
     double in2 = *(double*)ip2;
     npy_bool in4 = *(npy_bool*)ip4;
+    npy_bool in5 = *(npy_bool*)ip5;
+    int last_arg = 0;
+    if (in4) {
+      last_arg = 1;
+    } else if (in5) {
+      last_arg = 2;
+    }
     if ((in1 == NULL) || npy_isnan(in2)) {
       /* propagate NULL geometries; in3 = NULL is actually supported */
       geom_arr[i] = NULL;
     } else {
-      geom_arr[i] = GEOSVoronoiDiagram_r(ctx, in1, in3, in2, (int)in4);
+      geom_arr[i] = GEOSVoronoiDiagram_r(ctx, in1, in3, in2, last_arg);
       if (geom_arr[i] == NULL) {
         errstate = PGERR_GEOS_EXCEPTION;
         destroy_geom_arr(ctx, geom_arr, i - 1);
@@ -1995,7 +2002,7 @@ static void voronoi_polygons_func(char** args, const npy_intp* dimensions, const
 
   // fill the numpy array with PyObjects while holding the GIL
   if (errstate == PGERR_SUCCESS) {
-    geom_arr_to_npy(geom_arr, args[4], steps[4], dimensions[0]);
+    geom_arr_to_npy(geom_arr, args[5], steps[5], dimensions[0]);
   }
   free(geom_arr);
 }
@@ -2457,7 +2464,7 @@ static void points_func(char** args, const npy_intp* dimensions, const npy_intp*
 
   GEOS_INIT_THREADS;
 
-  char *ip1 = args[0];               
+  char *ip1 = args[0];
   npy_intp is1 = steps[0], cs1 = steps[3];
   npy_intp n = dimensions[0], n_c1 = dimensions[1];
   npy_intp i;
@@ -3691,7 +3698,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_CUSTOM(equals_exact, 3);
 
   DEFINE_CUSTOM(delaunay_triangles, 3);
-  DEFINE_CUSTOM(voronoi_polygons, 4);
+  DEFINE_CUSTOM(voronoi_polygons, 5);
   DEFINE_CUSTOM(is_valid_reason, 1);
   DEFINE_CUSTOM(relate, 2);
   DEFINE_CUSTOM(relate_pattern, 3);
