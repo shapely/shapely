@@ -1979,17 +1979,17 @@ static void voronoi_polygons_func(char** args, const npy_intp* dimensions, const
     double in2 = *(double*)ip2;
     npy_bool in4 = *(npy_bool*)ip4;
     npy_bool in5 = *(npy_bool*)ip5;
-    int last_arg = 0;
+    int flag = 0;
     if (in4) {
-      last_arg = 1;
+      flag = 1;
     } else if (in5) {
-      last_arg = 2;
+      flag = 2;
     }
     if ((in1 == NULL) || npy_isnan(in2)) {
       /* propagate NULL geometries; in3 = NULL is actually supported */
       geom_arr[i] = NULL;
     } else {
-      geom_arr[i] = GEOSVoronoiDiagram_r(ctx, in1, in3, in2, last_arg);
+      geom_arr[i] = GEOSVoronoiDiagram_r(ctx, in1, in3, in2, flag);
       if (geom_arr[i] == NULL) {
         errstate = PGERR_GEOS_EXCEPTION;
         destroy_geom_arr(ctx, geom_arr, i - 1);

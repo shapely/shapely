@@ -4,6 +4,7 @@ from shapely import lib
 from shapely._enum import ParamEnum
 from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area
 from shapely.decorators import multithreading_enabled, requires_geos
+from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
     "BufferCapStyle",
@@ -966,7 +967,7 @@ def voronoi_polygons(
     ordered : bool or array_like, default False
         If set to True, polygons within the GeometryCollection will be ordered
         according to the order of the input vertices. Note that this may slow
-        down the computation.
+        down the computation. Requires GEOS >= 3.12.0
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -989,6 +990,11 @@ def voronoi_polygons(
     >>> voronoi_polygons(points, ordered=True)
     <GEOMETRYCOLLECTION (POLYGON ((0 0, 0 4, 3 4, 3 0, 0 0)), POLYGON ((6 4, 6 0...>
     """
+    if ordered and lib.geos_version < (3, 12, 0):
+        raise UnsupportedGEOSVersionError(
+            "Ordered Voronoi polygons require GEOS >= 3.12.0, "
+            f"found {lib.geos_version_string}"
+        )
     return lib.voronoi_polygons(
         geometry, tolerance, extend_to, only_edges, ordered, **kwargs
     )
