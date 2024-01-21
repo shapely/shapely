@@ -2457,7 +2457,7 @@ static void points_func(char** args, const npy_intp* dimensions, const npy_intp*
 
   GEOS_INIT_THREADS;
 
-  char *ip1 = args[0];               
+  char *ip1 = args[0];
   npy_intp is1 = steps[0], cs1 = steps[3];
   npy_intp n = dimensions[0], n_c1 = dimensions[1];
   npy_intp i;
@@ -3474,6 +3474,57 @@ static PyUFuncGenericFunction to_geojson_funcs[1] = {&to_geojson_func};
 
 #endif  // GEOS_SINCE_3_10_0
 
+static char coverage_simplify_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
+static void coverage_simplify_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                                    void* data) {
+  GEOSGeometry* in1 = NULL;
+  GEOSGeometry** geom_arr;
+
+  CHECK_NO_INPLACE_OUTPUT(3);
+
+  // allocate a temporary array to store output GEOSGeometry objects
+  geom_arr = malloc(sizeof(void*) * dimensions[0]);
+  CHECK_ALLOC(geom_arr);
+
+  GEOS_INIT_THREADS;
+
+  TERNARY_LOOP {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      break;
+    }
+    // get the geometry: return on error
+    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
+      errstate = PGERR_NOT_A_GEOMETRY;
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      break;
+    }
+    double in2 = *(double*)ip2;
+    npy_bool in3 = !(*(npy_bool*)ip3);
+    if ((in1 == NULL) || npy_isnan(in2)) {
+      // in case of a missing value: return NULL (None)
+      geom_arr[i] = NULL;
+    } else {
+      geom_arr[i] = GEOSCoverageSimplifyVW_r(ctx, in1, in2, (int)in3);
+      if (geom_arr[i] == NULL) {
+        errstate = PGERR_GEOS_EXCEPTION;
+        destroy_geom_arr(ctx, geom_arr, i - 1);
+        break;
+      }
+    }
+  }
+
+  GEOS_FINISH_THREADS;
+
+  // fill the numpy array with PyObjects while holding the GIL
+  if (errstate == PGERR_SUCCESS) {
+    geom_arr_to_npy(geom_arr, args[3], steps[3], dimensions[0]);
+  }
+  free(geom_arr);
+}
+static PyUFuncGenericFunction coverage_simplify_funcs[1] = {&coverage_simplify_func};
+
 /*
 TODO polygonizer functions
 TODO prepared geometry predicate functions
@@ -3698,6 +3749,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_GENERALIZED(polygonize, 1, "(d)->()");
   DEFINE_GENERALIZED_NOUT4(polygonize_full, 1, "(d)->(),(),(),()");
   DEFINE_CUSTOM(shortest_line, 2);
+  DEFINE_CUSTOM(coverage_simplify, 3);
 
   DEFINE_GENERALIZED(points, 2, "(d),()->()");
   DEFINE_GENERALIZED(linestrings, 2, "(i, d),()->()");

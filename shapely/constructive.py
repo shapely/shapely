@@ -91,7 +91,7 @@ def buffer(
     join_style="round",
     mitre_limit=5.0,
     single_sided=False,
-    **kwargs
+    **kwargs,
 ):
     """
     Computes the buffer of a geometry for positive and negative buffer distance.
@@ -185,7 +185,7 @@ def buffer(
         np.intc(join_style),
         mitre_limit,
         np.bool_(single_sided),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -251,7 +251,7 @@ def offset_curve(
         np.intc(quad_segs),
         np.intc(join_style),
         np.double(mitre_limit),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -330,7 +330,7 @@ def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
         np.double(ymin),
         np.double(xmax),
         np.double(ymax),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -859,6 +859,11 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
         return lib.simplify_preserve_topology(geometry, tolerance, **kwargs)
     else:
         return lib.simplify(geometry, tolerance, **kwargs)
+
+
+@multithreading_enabled
+def coverage_simplify(geometry, tolerance, simplify_boundary=True, **kwargs):
+    return lib.coverage_simplify(geometry, tolerance, simplify_boundary, **kwargs)
 
 
 @multithreading_enabled
