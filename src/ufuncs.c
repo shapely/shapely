@@ -3505,15 +3505,36 @@ static void coverage_simplify_func(char** args, const npy_intp* dimensions, cons
     if ((in1 == NULL) || npy_isnan(in2)) {
       // in case of a missing value: return NULL (None)
       geom_arr[i] = NULL;
+    }
+    else if
+       (GEOSGeomTypeId_r(ctx, in1) != GEOS_MULTIPOLYGON &&
+        GEOSGeomTypeId_r(ctx, in1) != GEOS_GEOMETRYCOLLECTION) {
+        geom_arr[i] = GEOSGeom_clone_r(ctx, in1);
     } else {
-      geom_arr[i] = GEOSCoverageSimplifyVW_r(ctx, in1, in2, (int)in3);
-      if (geom_arr[i] == NULL) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        destroy_geom_arr(ctx, geom_arr, i - 1);
-        break;
+      int isValid = 1;
+      if (GEOSGeomTypeId_r(ctx, in1) == GEOS_GEOMETRYCOLLECTION) {
+        int numGeoms = GEOSGetNumGeometries_r(ctx, in1);
+        for (int j = 0; j < numGeoms; j++) {
+          GEOSGeometry* geom = GEOSGetGeometryN_r(ctx, in1, j);
+          if (GEOSGeomTypeId_r(ctx, geom) != GEOS_POLYGON && GEOSGeomTypeId_r(ctx, geom) != GEOS_MULTIPOLYGON) {
+              isValid = 0;
+              break;
+          }
+        }
+      }
+      if (!isValid) {
+        geom_arr[i] = GEOSGeom_clone_r(ctx, in1);
+      } else {
+        geom_arr[i] = GEOSCoverageSimplifyVW_r(ctx, in1, in2, (int)in3);
+        if (geom_arr[i] == NULL) {
+          errstate = PGERR_GEOS_EXCEPTION;
+          destroy_geom_arr(ctx, geom_arr, i - 1);
+          break;
+        }
       }
     }
   }
+
 
   GEOS_FINISH_THREADS;
 
