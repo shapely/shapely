@@ -982,3 +982,11 @@ def test_concave_hull_kwargs():
     result3 = shapely.concave_hull(mp, ratio=0)
     result4 = shapely.concave_hull(mp, ratio=1)
     assert shapely.get_num_coordinates(result4) < shapely.get_num_coordinates(result3)
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+@pytest.mark.parametrize("geometry", all_types)
+def test_coverage_simplify_geom_types(geometry):
+    actual = shapely.coverage_simplify([geometry, geometry], 0.0)
+    assert actual.shape == (2,)
+    assert isinstance(actual[0], Geometry)
