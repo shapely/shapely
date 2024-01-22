@@ -862,6 +862,7 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
         return lib.simplify(geometry, tolerance, **kwargs)
 
 
+@requires_geos("3.12.0")
 @multithreading_enabled
 def coverage_simplify(geometry, tolerance, simplify_boundary=True, **kwargs):
     return lib.coverage_simplify(geometry, tolerance, simplify_boundary, **kwargs)

@@ -3474,6 +3474,7 @@ static PyUFuncGenericFunction to_geojson_funcs[1] = {&to_geojson_func};
 
 #endif  // GEOS_SINCE_3_10_0
 
+#if GEOS_SINCE_3_12_0
 static char coverage_simplify_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
 static void coverage_simplify_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                                     void* data) {
@@ -3546,6 +3547,7 @@ static void coverage_simplify_func(char** args, const npy_intp* dimensions, cons
 }
 static PyUFuncGenericFunction coverage_simplify_funcs[1] = {&coverage_simplify_func};
 
+#endif  // GEOS_SINCE_3_12_0
 /*
 TODO polygonizer functions
 TODO prepared geometry predicate functions
