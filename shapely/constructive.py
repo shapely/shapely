@@ -865,6 +865,37 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
 @requires_geos("3.12.0")
 @multithreading_enabled
 def coverage_simplify(geometry, tolerance, simplify_boundary=True, **kwargs):
+    """Returns a simplified version of an input geometry using the coverage simplification
+
+    Assumes that the geometry forms a polygonal coverage, i.e. that the boundaries of
+    the polygons are shared with neighboring polygons. Under this assumption, the
+    function simplifies the edges using the Visvalingam-Whyatt algorithm, while
+    preserving a valid coverage. In the most simplified case, polygons are reduced to
+    triangles.
+
+    The function allows simplification of all edges inclduing the boundaries of the
+    coverage or simplification of the inner (shared) edges only.
+
+    Invalid polygons within the collections and geometry types other than MultiPolygons
+    or GeometryCollections of Polygons and MultiPolygons are returned unchanged.
+
+    If the geometry is polygonal but does not form a valid coverage due to overlaps,
+    it will be simplified but it may result in invalid topology.
+
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    tolerance : float or array_like
+        The degree of simplification roughly equal to the square root of the area
+        of triangles that will be removed.
+    simplify_boundary : bool, optional
+        By default (True), simplifiies both internal edges of the coverage as well
+        as its boundary. If set to False, only simplifies internal edges.
+    **kwargs
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    """
     return lib.coverage_simplify(geometry, tolerance, simplify_boundary, **kwargs)
 
 
