@@ -873,8 +873,8 @@ def coverage_simplify(geometry, tolerance, simplify_boundary=True, **kwargs):
     preserving a valid coverage. In the most simplified case, polygons are reduced to
     triangles.
 
-    The function allows simplification of all edges inclduing the boundaries of the
-    coverage or simplification of the inner (shared) edges only.
+    The function allows simplification of all edges including the outer boundaries of the
+    coverage or simplification of only the inner (shared) edges.
 
     Invalid polygons within the collections and geometry types other than MultiPolygons
     or GeometryCollections of Polygons and MultiPolygons are returned unchanged.
@@ -890,7 +890,7 @@ def coverage_simplify(geometry, tolerance, simplify_boundary=True, **kwargs):
         The degree of simplification roughly equal to the square root of the area
         of triangles that will be removed.
     simplify_boundary : bool, optional
-        By default (True), simplifiies both internal edges of the coverage as well
+        By default (True), simplifies both internal edges of the coverage as well
         as its boundary. If set to False, only simplifies internal edges.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
