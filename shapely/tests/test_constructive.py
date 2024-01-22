@@ -1012,6 +1012,7 @@ def test_coverage_simplify_multipolygon():
     )
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
 def test_coverage_simplify_collection():
     mp = shapely.GeometryCollection(
         [
