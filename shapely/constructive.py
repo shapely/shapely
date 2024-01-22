@@ -34,6 +34,7 @@ __all__ = [
     "oriented_envelope",
     "minimum_rotated_rectangle",
     "minimum_bounding_circle",
+    "coverage_simplify",
 ]
 
 
