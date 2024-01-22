@@ -3523,15 +3523,15 @@ static void coverage_simplify_func(char** args, const npy_intp* dimensions, cons
           }
         }
       }
-      if (!isValid) {
-        geom_arr[i] = GEOSGeom_clone_r(ctx, in1);
-      } else {
+      if (isValid) {
         geom_arr[i] = GEOSCoverageSimplifyVW_r(ctx, in1, in2, (int)in3);
         if (geom_arr[i] == NULL) {
           errstate = PGERR_GEOS_EXCEPTION;
           destroy_geom_arr(ctx, geom_arr, i - 1);
           break;
         }
+      } else {
+        geom_arr[i] = GEOSGeom_clone_r(ctx, in1);
       }
     }
   }
