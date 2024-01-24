@@ -37,8 +37,9 @@ jobs:
           python -m build --sdist
           twine check --strict dist/*
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: release-sdist
           path: ./dist/*.tar.gz
           retention-days: 30
 
@@ -141,8 +142,9 @@ jobs:
           CIBW_TEST_COMMAND: pytest --pyargs shapely.tests
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
+          name: release-${{ matrix.os }}-${{ matrix.arch }}
           path: ./wheelhouse/*.whl
           retention-days: 5
 
@@ -153,9 +155,10 @@ jobs:
     # release on every tag
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: artifact
+          pattern: release-*
+          merge-multiple: true
           path: dist
 
       - name: Create GitHub Release
