@@ -867,11 +867,15 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
 def coverage_simplify(geometry, tolerance, simplify_boundary=True, **kwargs):
     """Returns a simplified version of an input geometry using the coverage simplification
 
-    Assumes that the geometry forms a polygonal coverage, i.e. that the boundaries of
-    the polygons are shared with neighboring polygons. Under this assumption, the
+    Assumes that the geometry forms a polygonal coverage. Under this assumption, the
     function simplifies the edges using the Visvalingam-Whyatt algorithm, while
     preserving a valid coverage. In the most simplified case, polygons are reduced to
     triangles.
+
+    A collection of valid polygons is considered a coverage if the polygons are:
+
+    * **Non-overlapping** - polygons do not overlap (their interiors do not intersect)
+    * **Edge-Matched** - vertices along shared edges are identical
 
     The function allows simplification of all edges including the outer boundaries of the
     coverage or simplification of only the inner (shared) edges.
