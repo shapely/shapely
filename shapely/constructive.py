@@ -990,7 +990,7 @@ def voronoi_polygons(
     >>> voronoi_polygons(points, ordered=True)
     <GEOMETRYCOLLECTION (POLYGON ((0 0, 0 4, 3 4, 3 0, 0 0)), POLYGON ((6 4, 6 0...>
     """
-    if ordered and lib.geos_version < (3, 12, 0):
+    if ordered is not False and lib.geos_version < (3, 12, 0):
         raise UnsupportedGEOSVersionError(
             "Ordered Voronoi polygons require GEOS >= 3.12.0, "
             f"found {lib.geos_version_string}"
