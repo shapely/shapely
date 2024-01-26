@@ -122,7 +122,8 @@ jobs:
           python -m pip install --disable-pip-version-check --upgrade pip
           pip install --upgrade wheel setuptools
           if [ -z "${{ matrix.numpy }}" ]; then
-            pip install --upgrade --pre Cython numpy pytest pytest-cov coveralls;
+            pip install --upgrade --pre Cython pytest pytest-cov coveralls;
+            pip install --upgrade --pre --only-binary :all: -i https://pypi.anaconda.org/scipy-wheels-nightly/simple numpy
           else
             pip install --upgrade Cython numpy==${{ matrix.numpy }} pytest pytest-cov coveralls;
           fi
