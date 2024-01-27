@@ -84,23 +84,28 @@ def test_format_polygon():
     assert format(poly, "X") == poly.wkb_hex
 
     # Use f-strings with extra characters and rounding precision
-    assert f"<{poly:.2f}>" == (
-        "<POLYGON ((10.00 0.00, 7.07 -7.07, 0.00 -10.00, -7.07 -7.07, "
-        "-10.00 -0.00, -7.07 7.07, -0.00 10.00, 7.07 7.07, 10.00 0.00))>"
-    )
+    if geos_version < (3, 13, 0):
+        assert f"<{poly:.2f}>" == (
+            "<POLYGON ((10.00 0.00, 7.07 -7.07, 0.00 -10.00, -7.07 -7.07, "
+            "-10.00 -0.00, -7.07 7.07, -0.00 10.00, 7.07 7.07, 10.00 0.00))>"
+        )
+    else:
+        assert f"<{poly:.2f}>" == (
+            "<POLYGON ((10.00 0.00, 7.07 -7.07, 0.00 -10.00, -7.07 -7.07, "
+            "-10.00 0.00, -7.07 7.07, 0.00 10.00, 7.07 7.07, 10.00 0.00))>"
+        )
 
     # 'g' format varies depending on GEOS version
     if geos_version < (3, 10, 0):
-        expected_2G = (
+        assert f"{poly:.2G}" == (
             "POLYGON ((10 0, 7.1 -7.1, 1.6E-14 -10, -7.1 -7.1, "
             "-10 -3.2E-14, -7.1 7.1, -4.6E-14 10, 7.1 7.1, 10 0))"
         )
     else:
-        expected_2G = (
+        assert f"{poly:.2G}" == (
             "POLYGON ((10 0, 7.07 -7.07, 0 -10, -7.07 -7.07, "
             "-10 0, -7.07 7.07, 0 10, 7.07 7.07, 10 0))"
         )
-    assert f"{poly:.2G}" == expected_2G
 
     # check empty
     empty = Polygon()
