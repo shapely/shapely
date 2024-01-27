@@ -413,16 +413,16 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     >>> from shapely import GeometryCollection, LineString, MultiPoint, Polygon
     >>> points = MultiPoint([(50, 30), (60, 30), (100, 100)])
     >>> delaunay_triangles(points)
-    <GEOMETRYCOLLECTION (POLYGON ((100 100, 50 30, 60 30, 100 100)))>
+    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
     >>> delaunay_triangles(points, only_edges=True)
     <MULTILINESTRING ((50 30, 100 100), (50 30, 60 30), ...>
     >>> delaunay_triangles(MultiPoint([(50, 30), (51, 30), (60, 30), (100, 100)]), \
 tolerance=2)
-    <GEOMETRYCOLLECTION (POLYGON ((100 100, 50 30, 60 30, 100 100)))>
+    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
     >>> delaunay_triangles(Polygon([(50, 30), (60, 30), (100, 100), (50, 30)]))
-    <GEOMETRYCOLLECTION (POLYGON ((100 100, 50 30, 60 30, 100 100)))>
+    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
     >>> delaunay_triangles(LineString([(50, 30), (60, 30), (100, 100)]))
-    <GEOMETRYCOLLECTION (POLYGON ((100 100, 50 30, 60 30, 100 100)))>
+    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
     >>> delaunay_triangles(GeometryCollection([]))
     <GEOMETRYCOLLECTION EMPTY>
     """
