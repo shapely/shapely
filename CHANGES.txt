@@ -20,6 +20,9 @@ Improvements:
 - The ``include_z`` in ``shapely.transform()`` now also allows ``None``, which
   lets it automatically detect the dimensionality of each input geometry.
 - Upgraded the GEOS version in the binary wheel distributions to 3.12.1.
+- Add ``disjoint_subset_union`` and ``disjoint_subset_union_all`` as an optimized
+  version of union and union_all, assuming inputs can be divided into subsets that do
+  not intersect.
 
 Breaking changes in GEOS 3.12:
 
