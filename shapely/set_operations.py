@@ -547,7 +547,7 @@ def disjoint_subset_union(a, b, **kwargs):
         pass
     elif isinstance(a, Geometry) or a is None:
         a = np.full_like(b, a)
-    elif isinstance(b, Geometry) or a is None:
+    elif isinstance(b, Geometry) or b is None:
         b = np.full_like(a, b)
     elif len(a) != len(b):
         raise ValueError("Arrays a and b must have the same length")
