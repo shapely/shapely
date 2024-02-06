@@ -542,7 +542,7 @@ def disjoint_subset_union(a, b, **kwargs):
     <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
     """
     if (isinstance(a, Geometry) or a is None) and (
-        isinstance(b, Geometry) or a is None
+        isinstance(b, Geometry) or b is None
     ):
         pass
     elif isinstance(a, Geometry) or a is None:
