@@ -2457,7 +2457,7 @@ static void points_func(char** args, const npy_intp* dimensions, const npy_intp*
 
   GEOS_INIT_THREADS;
 
-  char *ip1 = args[0];               
+  char *ip1 = args[0];
   npy_intp is1 = steps[0], cs1 = steps[3];
   npy_intp n = dimensions[0], n_c1 = dimensions[1];
   npy_intp i;
@@ -3474,6 +3474,11 @@ static PyUFuncGenericFunction to_geojson_funcs[1] = {&to_geojson_func};
 
 #endif  // GEOS_SINCE_3_10_0
 
+#if GEOS_SINCE_3_12_0
+
+static void* disjoint_subset_union_data[1] = {GEOSDisjointSubsetUnion_r};
+
+#endif  // GEOS_SINCE_3_12_0
 /*
 TODO polygonizer functions
 TODO prepared geometry predicate functions
@@ -3731,6 +3736,10 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Yd_Y(remove_repeated_points);
   DEFINE_Y_Y(line_merge_directed);
   DEFINE_CUSTOM(concave_hull, 3);
+#endif
+
+#if GEOS_SINCE_3_12_0
+  DEFINE_Y_Y(disjoint_subset_union);
 #endif
 
   Py_DECREF(ufunc);
