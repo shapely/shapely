@@ -541,11 +541,13 @@ def disjoint_subset_union(a, b, **kwargs):
     >>> normalize(disjoint_subset_union(polygon_1, None))
     <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
     """
-    if isinstance(a, Geometry | None) and isinstance(b, Geometry | None):
+    if (isinstance(a, Geometry) or a is None) and (
+        isinstance(b, Geometry) or a is None
+    ):
         pass
-    elif isinstance(a, Geometry | None):
+    elif isinstance(a, Geometry) or a is None:
         a = np.full_like(b, a)
-    elif isinstance(b, Geometry | None):
+    elif isinstance(b, Geometry) or a is None:
         b = np.full_like(a, b)
     elif len(a) != len(b):
         raise ValueError("Arrays a and b must have the same length")
