@@ -537,7 +537,8 @@ def disjoint_subset_union(a, b, **kwargs):
     >>> normalize(disjoint_subset_union(polygon_1, polygon_2))
     <POLYGON ((0 0, 0 1, 1 1, 2 1, 2 0, 1 0, 0 0))>
 
-    Union with None returns same polygon
+    Union with None returns same polygon:
+
     >>> normalize(disjoint_subset_union(polygon_1, None))
     <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
     """
@@ -582,7 +583,9 @@ def disjoint_subset_union_all(geometries, axis=None, **kwargs):
 
     See also
     --------
-    coverage_union
+    coverage_union_all
+    union_all
+    disjoint_subset_union
 
     Examples
     --------
