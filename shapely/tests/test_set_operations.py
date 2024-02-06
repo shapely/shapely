@@ -19,6 +19,7 @@ SET_OPERATIONS = (
     shapely.symmetric_difference,
     shapely.union,
     # shapely.coverage_union is tested seperately
+    shapely.disjoint_subset_union,
 )
 
 REDUCE_SET_OPERATIONS = (
@@ -26,6 +27,7 @@ REDUCE_SET_OPERATIONS = (
     (shapely.symmetric_difference_all, shapely.symmetric_difference),
     (shapely.union_all, shapely.union),
     #  shapely.coverage_union_all, shapely.coverage_union) is tested seperately
+    (shapely.disjoint_subset_union_all, shapely.disjoint_subset_union),
 )
 
 # operations that support fixed precision
@@ -47,6 +49,8 @@ non_polygon_types = np.array(all_types)[
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 def test_set_operation_array(a, func):
+    if func is shapely.disjoint_subset_union and shapely.geos_version < (3, 12, 0):
+        pytest.skip("disjoint_subset_union requires GEOS 3.12")
     if (
         func is shapely.difference
         and a.geom_type == "GeometryCollection"
@@ -66,6 +70,8 @@ def test_set_operation_array(a, func):
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 @pytest.mark.parametrize("grid_size", [0, 1])
 def test_set_operations_prec_not_supported(func, grid_size):
+    if func is shapely.disjoint_subset_union:
+        pytest.skip("disjoint_subset_union does not support grid_size")
     with pytest.raises(
         UnsupportedGEOSVersionError, match="grid_size parameter requires GEOS >= 3.9.0"
     ):
@@ -75,6 +81,8 @@ def test_set_operations_prec_not_supported(func, grid_size):
 @pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 def test_set_operation_prec_nonscalar_grid_size(func):
+    if func is shapely.disjoint_subset_union:
+        pytest.skip("disjoint_subset_union does not support grid_size")
     with pytest.raises(
         ValueError, match="grid_size parameter only accepts scalar values"
     ):
@@ -86,6 +94,8 @@ def test_set_operation_prec_nonscalar_grid_size(func):
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 @pytest.mark.parametrize("grid_size", [0, 1, 2])
 def test_set_operation_prec_array(a, func, grid_size):
+    if func is shapely.disjoint_subset_union:
+        pytest.skip("disjoint_subset_union does not support grid_size")
     actual = func([a, a], point, grid_size=grid_size)
     assert actual.shape == (2,)
     assert isinstance(actual[0], Geometry)

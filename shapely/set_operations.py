@@ -1,6 +1,6 @@
 import numpy as np
 
-from shapely import GeometryType, lib
+from shapely import Geometry, GeometryType, lib
 from shapely.decorators import multithreading_enabled
 from shapely.errors import UnsupportedGEOSVersionError
 
@@ -512,7 +512,9 @@ def disjoint_subset_union(a, b, **kwargs):
 
     If there is only one such subset, performance can be expected to be worse than
     :func:`union`. As such, it is recommeded to use ``disjoint_subset_union`` with
-    GeometryCollections of polygons rather than individual polygons.
+    GeometryCollections rather than individual geometries.
+
+    Requires GEOS >= 3.12.0
 
     Parameters
     ----------
@@ -539,6 +541,14 @@ def disjoint_subset_union(a, b, **kwargs):
     >>> normalize(disjoint_subset_union(polygon_1, None))
     <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
     """
+    if isinstance(a, Geometry | None) and isinstance(b, Geometry | None):
+        pass
+    elif isinstance(a, Geometry | None):
+        a = np.full_like(b, a)
+    elif isinstance(b, Geometry | None):
+        b = np.full_like(a, b)
+    elif len(a) != len(b):
+        raise ValueError("Arrays a and b must have the same length")
     return disjoint_subset_union_all([a, b], axis=0, **kwargs)
 
 
@@ -554,6 +564,8 @@ def disjoint_subset_union_all(geometries, axis=None, **kwargs):
     This function ignores None values when other Geometry elements are present.
     If all elements of the given axis are None, an empty GeometryCollection is
     returned.
+
+    Requires GEOS >= 3.12.0
 
     Parameters
     ----------
