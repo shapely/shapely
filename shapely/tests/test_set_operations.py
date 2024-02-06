@@ -1,3 +1,5 @@
+import inspect
+
 import numpy as np
 import pytest
 
@@ -19,7 +21,6 @@ SET_OPERATIONS = (
     shapely.symmetric_difference,
     shapely.union,
     # shapely.coverage_union is tested seperately
-    shapely.disjoint_subset_union,
 )
 
 REDUCE_SET_OPERATIONS = (
@@ -27,12 +28,16 @@ REDUCE_SET_OPERATIONS = (
     (shapely.symmetric_difference_all, shapely.symmetric_difference),
     (shapely.union_all, shapely.union),
     #  shapely.coverage_union_all, shapely.coverage_union) is tested seperately
-    (shapely.disjoint_subset_union_all, shapely.disjoint_subset_union),
 )
 
 # operations that support fixed precision
 REDUCE_SET_OPERATIONS_PREC = ((shapely.union_all, shapely.union),)
 
+if shapely.geos_version >= (3, 12, 0):
+    SET_OPERATIONS += (shapely.disjoint_subset_union,)
+    REDUCE_SET_OPERATIONS += (
+        (shapely.disjoint_subset_union_all, shapely.disjoint_subset_union),
+    )
 
 reduce_test_data = [
     shapely.box(0, 0, 5, 5),
@@ -49,8 +54,6 @@ non_polygon_types = np.array(all_types)[
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 def test_set_operation_array(a, func):
-    if func is shapely.disjoint_subset_union and shapely.geos_version < (3, 12, 0):
-        pytest.skip("disjoint_subset_union requires GEOS 3.12")
     if (
         func is shapely.difference
         and a.geom_type == "GeometryCollection"
@@ -70,8 +73,8 @@ def test_set_operation_array(a, func):
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 @pytest.mark.parametrize("grid_size", [0, 1])
 def test_set_operations_prec_not_supported(func, grid_size):
-    if func is shapely.disjoint_subset_union:
-        pytest.skip("disjoint_subset_union does not support grid_size")
+    if "grid_size" not in inspect.signature(func).parameters:
+        pytest.skip("function does not support grid_size")
     with pytest.raises(
         UnsupportedGEOSVersionError, match="grid_size parameter requires GEOS >= 3.9.0"
     ):
@@ -81,8 +84,8 @@ def test_set_operations_prec_not_supported(func, grid_size):
 @pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 def test_set_operation_prec_nonscalar_grid_size(func):
-    if func is shapely.disjoint_subset_union:
-        pytest.skip("disjoint_subset_union does not support grid_size")
+    if "grid_size" not in inspect.signature(func).parameters:
+        pytest.skip("function does not support grid_size")
     with pytest.raises(
         ValueError, match="grid_size parameter only accepts scalar values"
     ):
@@ -94,8 +97,8 @@ def test_set_operation_prec_nonscalar_grid_size(func):
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 @pytest.mark.parametrize("grid_size", [0, 1, 2])
 def test_set_operation_prec_array(a, func, grid_size):
-    if func is shapely.disjoint_subset_union:
-        pytest.skip("disjoint_subset_union does not support grid_size")
+    if "grid_size" not in inspect.signature(func).parameters:
+        pytest.skip("function does not support grid_size")
     actual = func([a, a], point, grid_size=grid_size)
     assert actual.shape == (2,)
     assert isinstance(actual[0], Geometry)
@@ -112,8 +115,6 @@ def test_set_operation_prec_array(a, func, grid_size):
 @pytest.mark.parametrize("n", range(1, 5))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
 def test_set_operation_reduce_1dim(n, func, related_func):
-    if func is shapely.disjoint_subset_union and shapely.geos_version < (3, 12, 0):
-        pytest.skip("disjoint_subset_union requires GEOS 3.12")
     actual = func(reduce_test_data[:n])
     # perform the reduction in a python loop and compare
     expected = reduce_test_data[0]
@@ -124,8 +125,6 @@ def test_set_operation_reduce_1dim(n, func, related_func):
 
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
 def test_set_operation_reduce_single_geom(func, related_func):
-    if func is shapely.disjoint_subset_union and shapely.geos_version < (3, 12, 0):
-        pytest.skip("disjoint_subset_union requires GEOS 3.12")
     geom = shapely.Point(1, 1)
     actual = func([geom, None, None])
     assert shapely.equals(actual, geom)
@@ -133,8 +132,6 @@ def test_set_operation_reduce_single_geom(func, related_func):
 
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
 def test_set_operation_reduce_axis(func, related_func):
-    if func is shapely.disjoint_subset_union and shapely.geos_version < (3, 12, 0):
-        pytest.skip("disjoint_subset_union requires GEOS 3.12")
     data = [[point] * 2] * 3  # shape = (3, 2)
     actual = func(data, axis=None)  # default
     assert isinstance(actual, Geometry)  # scalar output
@@ -148,8 +145,6 @@ def test_set_operation_reduce_axis(func, related_func):
 
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
 def test_set_operation_reduce_empty(func, related_func):
-    if func is shapely.disjoint_subset_union_all and shapely.geos_version < (3, 12, 0):
-        pytest.skip("disjoint_subset_union requires GEOS 3.12")
     assert func(np.empty((0,), dtype=object)) == empty
     arr_empty_2D = np.empty((0, 2), dtype=object)
     assert func(arr_empty_2D) == empty
@@ -160,8 +155,6 @@ def test_set_operation_reduce_empty(func, related_func):
 @pytest.mark.parametrize("none_position", range(3))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
 def test_set_operation_reduce_one_none(func, related_func, none_position):
-    if func is shapely.disjoint_subset_union_all and shapely.geos_version < (3, 12, 0):
-        pytest.skip("disjoint_subset_union requires GEOS 3.12")
     # API change: before, intersection_all and symmetric_difference_all returned
     # None if any input geometry was None.
     # The new behaviour is to ignore None values.
@@ -175,8 +168,6 @@ def test_set_operation_reduce_one_none(func, related_func, none_position):
 @pytest.mark.parametrize("none_position", range(3))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
 def test_set_operation_reduce_two_none(func, related_func, none_position):
-    if func is shapely.disjoint_subset_union_all and shapely.geos_version < (3, 12, 0):
-        pytest.skip("disjoint_subset_union requires GEOS 3.12")
     test_data = reduce_test_data[:2]
     test_data.insert(none_position, None)
     test_data.insert(none_position, None)
@@ -187,8 +178,6 @@ def test_set_operation_reduce_two_none(func, related_func, none_position):
 
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
 def test_set_operation_reduce_some_none_len2(func, related_func):
-    if func is shapely.disjoint_subset_union_all and shapely.geos_version < (3, 12, 0):
-        pytest.skip("disjoint_subset_union requires GEOS 3.12")
     # in a previous implementation, this would take a different code path
     # and return wrong result
     assert func([empty, None]) == empty
@@ -197,16 +186,12 @@ def test_set_operation_reduce_some_none_len2(func, related_func):
 @pytest.mark.parametrize("n", range(1, 3))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
 def test_set_operation_reduce_all_none(n, func, related_func):
-    if func is shapely.disjoint_subset_union_all and shapely.geos_version < (3, 12, 0):
-        pytest.skip("disjoint_subset_union requires GEOS 3.12")
     assert_geometries_equal(func([None] * n), GeometryCollection([]))
 
 
 @pytest.mark.parametrize("n", range(1, 3))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS)
 def test_set_operation_reduce_all_none_arr(n, func, related_func):
-    if func is shapely.disjoint_subset_union_all and shapely.geos_version < (3, 12, 0):
-        pytest.skip("disjoint_subset_union requires GEOS 3.12")
     assert func([[None] * n] * 2, axis=1).tolist() == [empty, empty]
     assert func([[None] * 2] * n, axis=0).tolist() == [empty, empty]
 
