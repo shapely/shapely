@@ -12,6 +12,7 @@ build:
   jobs:
     post_checkout:
       # we need the tags for versioneer to work
+      - git fetch origin --depth 150
       - git fetch --tags
     pre_install:
       # to avoid "dirty" version
