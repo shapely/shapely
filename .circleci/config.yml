@@ -9,7 +9,7 @@ jobs:
     # https://circleci.com/product/features/resource-classes/
     resource_class: arm.medium
     environment:
-      GEOS_VERSION: 3.12.0
+      GEOS_VERSION: 3.12.1
       CIBUILDWHEEL: 1
       CIBW_BUILD: "cp*-manylinux_aarch64"
       CIBW_ENVIRONMENT_PASS_LINUX: "GEOS_VERSION GEOS_INSTALL GEOS_CONFIG LD_LIBRARY_PATH"
@@ -21,7 +21,7 @@ jobs:
       - run:
           name: Build the Linux aarch64 wheels.
           command: |
-            python3 -m pip install --user cibuildwheel==2.16.2
+            python3 -m pip install --user cibuildwheel==2.16.4
             echo 'export GEOS_INSTALL=~/linux-aarch64-wheels/geosinstall/geos-"$GEOS_VERSION"' >> "$BASH_ENV"
             echo 'export GEOS_CONFIG="$GEOS_INSTALL"/bin/geos-config' >> "$BASH_ENV"
             echo 'export LD_LIBRARY_PATH="$GEOS_INSTALL"/lib' >> "$BASH_ENV"
