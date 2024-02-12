@@ -1,5 +1,3 @@
-import inspect
-
 import numpy as np
 import pytest
 
@@ -84,8 +82,8 @@ def test_set_operations_prec_not_supported(func, grid_size):
 @pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 def test_set_operation_prec_nonscalar_grid_size(func):
-    if "grid_size" not in inspect.signature(func).parameters:
-        pytest.skip("function does not support grid_size")
+    if func is shapely.disjoint_subset_union:
+        pytest.skip("disjoint_subset_union does not support grid_size")
     with pytest.raises(
         ValueError, match="grid_size parameter only accepts scalar values"
     ):
@@ -97,8 +95,8 @@ def test_set_operation_prec_nonscalar_grid_size(func):
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 @pytest.mark.parametrize("grid_size", [0, 1, 2])
 def test_set_operation_prec_array(a, func, grid_size):
-    if "grid_size" not in inspect.signature(func).parameters:
-        pytest.skip("function does not support grid_size")
+    if func is shapely.disjoint_subset_union:
+        pytest.skip("disjoint_subset_union does not support grid_size")
     actual = func([a, a], point, grid_size=grid_size)
     assert actual.shape == (2,)
     assert isinstance(actual[0], Geometry)
