@@ -17,6 +17,7 @@ from shapely import (
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
     all_types,
+    ArrayLike,
     empty,
     empty_line_string,
     empty_point,
@@ -979,6 +980,17 @@ def test_oriented_envelope_pre_geos_312(geometry, expected):
         assert shapely.equals(actual, expected).all()
     else:
         assert_geometries_equal(actual, expected, normalize=True, tolerance=1e-3)
+
+
+def test_oriented_evelope_array_like():
+    # https://github.com/shapely/shapely/issues/1929
+    # because we have a custom python implementation, need to ensure this has
+    # the same capabilities as numpy ufuncs to work with array-likes
+    geometries = [Point(1, 1).buffer(1), Point(2, 2).buffer(1)]
+    actual = shapely.oriented_envelope(ArrayLike(geometries))
+    assert isinstance(actual, ArrayLike)
+    expected = shapely.oriented_envelope(geometries)
+    assert_geometries_equal(np.asarray(actual), expected)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
