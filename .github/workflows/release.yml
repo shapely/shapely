@@ -120,7 +120,7 @@ jobs:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_SKIP: cp36-* pp* *musllinux* *-manylinux_i686
           CIBW_ENVIRONMENT: "PIP_PRE=1 PIP_EXTRA_INDEX_URL=https://pypi.anaconda.org/scientific-python-nightly-wheels/simple"
-          CIBW_BUILD_FRONTEND: pip; args: --no-build-isolation
+          CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
           CIBW_ENVIRONMENT_LINUX:
             GEOS_VERSION=${{ env.GEOS_VERSION }}
             GEOS_INSTALL=/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
