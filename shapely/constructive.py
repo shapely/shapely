@@ -2,7 +2,7 @@ import numpy as np
 
 from shapely import lib
 from shapely._enum import ParamEnum
-from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area
+from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area_vectorized
 from shapely.decorators import multithreading_enabled, requires_geos
 
 __all__ = [
@@ -1028,7 +1028,7 @@ def oriented_envelope(geometry, **kwargs):
     <POLYGON EMPTY>
     """
     if lib.geos_version < (3, 12, 0):
-        f = _oriented_envelope_min_area
+        f = _oriented_envelope_min_area_vectorized
     else:
         f = _oriented_envelope_geos
     return f(geometry, **kwargs)
