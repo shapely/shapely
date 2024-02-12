@@ -1,7 +1,7 @@
 import numpy as np
 
 from shapely import Geometry, GeometryType, lib
-from shapely.decorators import multithreading_enabled
+from shapely.decorators import multithreading_enabled, requires_geos
 from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
@@ -505,6 +505,7 @@ def coverage_union_all(geometries, axis=None, **kwargs):
     return lib.coverage_union(collections, **kwargs)
 
 
+@requires_geos("3.12.0")
 @multithreading_enabled
 def disjoint_subset_union(a, b, **kwargs):
     """Merges multiple polygons into one. This is an optimized version of
@@ -555,9 +556,10 @@ def disjoint_subset_union(a, b, **kwargs):
     return disjoint_subset_union_all([a, b], axis=0, **kwargs)
 
 
+@requires_geos("3.12.0")
 @multithreading_enabled
 def disjoint_subset_union_all(geometries, axis=None, **kwargs):
-    """Returns the union of multiple polygons of a geometry collection.
+    """Returns the union of multiple polygons.
     This is an optimized version of union which assumes inputs can be divided into
     subsets that do not intersect.
 

@@ -73,8 +73,8 @@ def test_set_operation_array(a, func):
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 @pytest.mark.parametrize("grid_size", [0, 1])
 def test_set_operations_prec_not_supported(func, grid_size):
-    if "grid_size" not in inspect.signature(func).parameters:
-        pytest.skip("function does not support grid_size")
+    if func is shapely.disjoint_subset_union:
+        pytest.skip("disjoint_subset_union does not support grid_size")
     with pytest.raises(
         UnsupportedGEOSVersionError, match="grid_size parameter requires GEOS >= 3.9.0"
     ):
