@@ -37,8 +37,9 @@ jobs:
           python -m build --sdist
           twine check --strict dist/*
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: release-sdist
           path: ./dist/*.tar.gz
           retention-days: 30
 
@@ -85,7 +86,7 @@ jobs:
           fetch-depth: 0
 
       - name: Cache GEOS build
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
           key: ${{ matrix.os }}-${{ matrix.arch }}-${{ env.GEOS_VERSION }}-${{ hashFiles('ci/*') }}
@@ -114,7 +115,7 @@ jobs:
         if: ${{ matrix.msvc_arch }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.2
+        uses: pypa/cibuildwheel@v2.16.5
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_SKIP: cp36-* pp* *musllinux* *-manylinux_i686
@@ -135,14 +136,22 @@ jobs:
             GEOS_INCLUDE_PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\include'
           CIBW_BEFORE_ALL: ./ci/install_geos.sh
           CIBW_BEFORE_ALL_WINDOWS: ci\install_geos.cmd
-          CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
+          # TEMP don't use automated/isolated build environment, but manually
+          # install build dependencies so we can build with numpy 2.0
+          # once numpy 2.0 is out, this can be removed again
+          CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
+          CIBW_BEFORE_BUILD: pip install --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple numpy setuptools cython
+          CIBW_BEFORE_BUILD_WINDOWS:
+            pip install --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple numpy setuptools cython
+            pip install delvewheel
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} {wheel}
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: pytest --pyargs shapely.tests
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
+          name: release-${{ matrix.os }}-${{ matrix.arch }}
           path: ./wheelhouse/*.whl
           retention-days: 5
 
@@ -153,9 +162,10 @@ jobs:
     # release on every tag
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: artifact
+          pattern: release-*
+          merge-multiple: true
           path: dist
 
       - name: Create GitHub Release
