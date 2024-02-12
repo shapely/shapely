@@ -7,7 +7,7 @@ if: (branch = main OR tag IS present) AND (type = push)
 
 env:
   global:
-  - GEOS_VERSION=3.11.2
+  - GEOS_VERSION=3.11.3
 
 cache:
   directories:

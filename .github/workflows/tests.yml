@@ -14,7 +14,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2019]
         architecture: [x64]
-        geos: [3.6.6, 3.7.5, 3.8.3, 3.9.4, 3.10.5, 3.11.2, 3.12.0, main]
+        geos: [3.6.6, 3.7.5, 3.8.4, 3.9.5, 3.10.6, 3.11.3, 3.12.1, main]
         include:
           # 2017
           - python: 3.7  # 3.6 is dropped
@@ -26,26 +26,26 @@ jobs:
             numpy: 1.15.4
           # 2019
           - python: 3.8
-            geos: 3.8.3
+            geos: 3.8.4
             numpy: 1.16.2
           # 2020
           - python: 3.9
-            geos: 3.9.4
+            geos: 3.9.5
             numpy: 1.19.5
           # 2021
           - python: "3.10"
-            geos: 3.10.5
+            geos: 3.10.6
             numpy: 1.21.3
           # 2022
           - python: "3.11"
-            geos: 3.11.2
+            geos: 3.11.3
             numpy: 1.23.4
             matplotlib: true
             doctest: true
             extra_pytest_args: "-W error"  # error on warnings
           # 2023
           - python: "3.12"
-            geos: 3.12.0
+            geos: 3.12.1
             numpy: 1.26.0
           # dev
           - python: "3.12"
@@ -61,12 +61,12 @@ jobs:
           - os: windows-2019
             architecture: x86
             python: 3.9
-            geos: 3.10.3
+            geos: 3.10.6
             numpy: 1.19.5
           # pypy (use explicit ubuntu version to not overwrite existing ubuntu-latest + geos 3.11.0 build)
           - os: ubuntu-20.04
             python: "pypy3.8"
-            geos: 3.11.2
+            geos: 3.11.3
             numpy: 1.23.4
 
     env:
