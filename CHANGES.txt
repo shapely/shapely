@@ -20,6 +20,9 @@ Improvements:
 - The ``include_z`` in ``shapely.transform()`` now also allows ``None``, which
   lets it automatically detect the dimensionality of each input geometry.
 - Upgraded the GEOS version in the binary wheel distributions to 3.12.1.
+- The ``voronoi_polygons`` now accepts the ``ordered`` keyword, optionally forcing the
+  order of polygons within the GeometryCollection to follow the order of input
+  coordinates. Requires at least GEOS 3.12. (#1968)
 
 Breaking changes in GEOS 3.12:
 

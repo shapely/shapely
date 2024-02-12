@@ -14,6 +14,7 @@ from shapely import (
     Point,
     Polygon,
 )
+from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
     all_types,
@@ -994,3 +995,26 @@ def test_concave_hull_kwargs():
     result3 = shapely.concave_hull(mp, ratio=0)
     result4 = shapely.concave_hull(mp, ratio=1)
     assert shapely.get_num_coordinates(result4) < shapely.get_num_coordinates(result3)
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+def test_voronoi_polygons_ordered():
+    mp = MultiPoint([(3.0, 1.0), (3.0, 2.0), (1.0, 2.0), (1.0, 1.0)])
+    result = shapely.voronoi_polygons(mp, ordered=False)
+    assert result.geoms[0].equals(
+        Polygon([(-1, -1), (-1, 1.5), (2, 1.5), (2, -1), (-1, -1)])
+    )
+
+    result_ordered = shapely.voronoi_polygons(mp, ordered=True)
+    assert result_ordered.geoms[0].equals(
+        Polygon([(5, -1), (2, -1), (2, 1.5), (5, 1.5), (5, -1)])
+    )
+
+
+@pytest.mark.skipif(shapely.geos_version >= (3, 12, 0), reason="GEOS >= 3.12")
+def test_voronoi_polygons_ordered_raise():
+    mp = MultiPoint([(3.0, 1.0), (3.0, 2.0), (1.0, 2.0), (1.0, 1.0)])
+    with pytest.raises(
+        UnsupportedGEOSVersionError, match="Ordered Voronoi polygons require GEOS"
+    ):
+        shapely.voronoi_polygons(mp, ordered=True)
