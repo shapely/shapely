@@ -246,6 +246,106 @@ def test_make_valid_1d(geom, expected):
     assert np.all(shapely.normalize(actual) == shapely.normalize(expected))
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
+@pytest.mark.parametrize(
+    "geom,expected",
+    [
+        (point, point),  # a valid geometry stays the same (but is copied)
+        # an L shaped polygon without area is converted to a linestring
+        (
+            Polygon([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)]),
+            LineString([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)]),
+        ),
+        # a polygon with self-intersection (bowtie) is converted into polygons
+        (
+            Polygon([(0, 0), (2, 2), (2, 0), (0, 2), (0, 0)]),
+            MultiPolygon(
+                [
+                    Polygon([(1, 1), (2, 2), (2, 0), (1, 1)]),
+                    Polygon([(0, 0), (0, 2), (1, 1), (0, 0)]),
+                ]
+            ),
+        ),
+        (empty, empty),
+        ([empty], [empty]),
+    ],
+)
+def test_make_valid_structure(geom, expected):
+    actual = shapely.make_valid(geom, method="structure")
+    assert actual is not expected
+    # normalize needed to handle variation in output across GEOS versions
+    assert shapely.normalize(actual) == expected
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
+@pytest.mark.parametrize(
+    "geom,expected",
+    [
+        (point, point),  # a valid geometry stays the same (but is copied)
+        # an L shaped polygon without area is converted to Empty Polygon
+        (
+            Polygon([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)]),
+            Polygon(),
+        ),
+        # a polygon with self-intersection (bowtie) is converted into polygons
+        (
+            Polygon([(0, 0), (2, 2), (2, 0), (0, 2), (0, 0)]),
+            MultiPolygon(
+                [
+                    Polygon([(1, 1), (2, 2), (2, 0), (1, 1)]),
+                    Polygon([(0, 0), (0, 2), (1, 1), (0, 0)]),
+                ]
+            ),
+        ),
+        (empty, empty),
+        ([empty], [empty]),
+    ],
+)
+def test_make_valid_structure_keep_collapsed_false(geom, expected):
+    actual = shapely.make_valid(geom, method="structure", keep_collapsed=False)
+    assert actual is not expected
+    # normalize needed to handle variation in output across GEOS versions
+    assert shapely.normalize(actual) == expected
+
+
+@pytest.mark.skipif(shapely.geos_version >= (3, 10, 0), reason="GEOS >= 3.10")
+def test_make_valid_structure_unsupported_geos():
+    with pytest.raises(
+        ValueError, match="The 'structure' method is only available in GEOS >= 3.10.0"
+    ):
+        _ = shapely.make_valid(Point(), method="structure")
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
+@pytest.mark.parametrize(
+    "method, keep_collapsed, error_type, error",
+    [
+        (
+            np.array(["linework", "structure"]),
+            True,
+            TypeError,
+            "method only accepts scalar values",
+        ),
+        (
+            "linework",
+            [True, False],
+            TypeError,
+            "keep_collapsed only accepts scalar values",
+        ),
+        ("unknown", True, ValueError, "Unknown method: unknown"),
+        (
+            "linework",
+            False,
+            ValueError,
+            "The 'linework' method does not support 'keep_collapsed=False'",
+        ),
+    ],
+)
+def test_make_valid_invalid_params(method, keep_collapsed, error_type, error):
+    with pytest.raises(error_type, match=error):
+        _ = shapely.make_valid(Point(), method=method, keep_collapsed=keep_collapsed)
+
+
 @pytest.mark.parametrize(
     "geom,expected",
     [

@@ -509,12 +509,40 @@ def build_area(geometry, **kwargs):
 
 
 @multithreading_enabled
-def make_valid(geometry, **kwargs):
+def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
     """Repairs invalid geometries.
+
+    Two ``methods`` are available:
+
+    * the 'linework' algorithm tries to preserve every edge and vertex in the input. It
+      combines all rings into a set of noded lines and then extracts valid polygons from
+      that linework. An alternating even-odd strategy is used to assign areas as
+      interior or exterior. A disadvantage is that for some relatively simple invalid
+      geometries this produces rather complex results.
+    * the 'structure' algorithm tries to reason from the structure of the input to find
+      the 'correct' repair: exterior rings bound area, interior holes exclude area.
+      It first makes all rings valid, then shells are merged and holes are subtracted
+      from the shells to generate valid result. It assumes that holes and shells are
+      correctly categorized in the input geometry.
+
+    Example:
+
+    .. plot:: code/make_valid_methods.py
+
+    When using ``make_valid`` on a Polygon, the result can be a GeometryCollection. For
+    this example this is the case when the 'linework' ``method`` is used. LineStrings in
+    the result are drawn in red.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+    method : {'linework', 'structure'}, default 'linework'
+        Algorithm to use when repairing geometry. 'structure'
+        requires GEOS >= 3.10.
+    keep_collapsed : bool, default True
+        For the 'structure' method, True will keep components that have collapsed into a
+        lower dimensionality. For example, a ring collapsing to a line, or a line
+        collapsing to a point. Must be True for the 'linework' method.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -526,8 +554,40 @@ def make_valid(geometry, **kwargs):
     False
     >>> make_valid(polygon)
     <MULTILINESTRING ((0 0, 1 1), (1 1, 1 2))>
+    >>> make_valid(polygon, method="structure", keep_collapsed=True)
+    <LINESTRING (0 0, 1 1, 1 2, 1 1, 0 0)>
+    >>> make_valid(polygon, method="structure", keep_collapsed=False)
+    <POLYGON EMPTY>
     """
-    return lib.make_valid(geometry, **kwargs)
+    if not np.isscalar(method):
+        raise TypeError("method only accepts scalar values")
+    if not np.isscalar(keep_collapsed):
+        raise TypeError("keep_collapsed only accepts scalar values")
+
+    if method == "linework":
+        if keep_collapsed is False:
+            raise ValueError(
+                "The 'linework' method does not support 'keep_collapsed=False'"
+            )
+
+        # The make_valid code can be removed once support for GEOS < 3.10 is dropped.
+        # In GEOS >= 3.10, make_valid just calls make_valid_with_params with
+        # method="linework" and keep_collapsed=True, so there is no advantage to keep
+        # both code paths in shapely on long term.
+        return lib.make_valid(geometry, **kwargs)
+
+    elif method == "structure":
+        if lib.geos_version < (3, 10, 0):
+            raise ValueError(
+                "The 'structure' method is only available in GEOS >= 3.10.0"
+            )
+
+        return lib.make_valid_with_params(
+            geometry, np.intc(1), np.bool_(keep_collapsed), **kwargs
+        )
+
+    else:
+        raise ValueError(f"Unknown method: {method}")
 
 
 @multithreading_enabled
