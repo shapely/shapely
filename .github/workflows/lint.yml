@@ -14,7 +14,7 @@ jobs:
           python-version: 3.8
 
       - name: Run black, flake8 and isort
-        uses: pre-commit/action@v3.0.0
+        uses: pre-commit/action@v3.0.1
 
       - name: Validate citation file
         shell: bash
