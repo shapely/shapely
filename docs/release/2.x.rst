@@ -13,6 +13,22 @@ Improvements:
   to allow, skip, or error on nonfinite (NaN / Inf) coordinates. The default
   behaviour (allow) is backwards compatible (#1594).
 
+.. _version-2-0-3:
+
+Version 2.0.3 (2024-02-??)
+--------------------------
+
+Bug fixes:
+
+- Fix regression in the ``oriented_envelope`` ufunc to accept array-like input
+  in case of GEOS<3.12 (#1929).
+
+Packaging related:
+
+- The binary wheels are not yet compatible with a future NumPy 2.0 release,
+  therefore a ``numpy<2`` upper pin was added to the requirements (#1972).
+- Upgraded the GEOS version in the binary wheel distributions to 3.11.3.
+
 .. _version-2-0-2:
 
 Version 2.0.2 (2023-10-12)
