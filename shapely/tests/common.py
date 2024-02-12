@@ -155,3 +155,34 @@ def equal_geometries_abnormally_yield_unequal(geom):
         if shapely.geos_version < (3, 13, 0) and geom.geom_type.startswith("Multi"):
             return True
     return False
+
+
+class ArrayLike:
+    """
+    Simple numpy Array like class that implements the
+    ufunc protocol.
+    """
+
+    def __init__(self, array):
+        self._array = np.asarray(array)
+
+    def __len__(self):
+        return len(self._array)
+
+    def __getitem(self, key):
+        return self._array[key]
+
+    def __iter__(self):
+        return self._array.__iter__()
+
+    def __array__(self):
+        return np.asarray(self._array)
+
+    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        if method == "__call__":
+            inputs = [
+                arg._array if isinstance(arg, self.__class__) else arg for arg in inputs
+            ]
+            return self.__class__(ufunc(*inputs, **kwargs))
+        else:
+            return NotImplemented

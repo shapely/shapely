@@ -2,7 +2,7 @@ import numpy as np
 
 from shapely import lib
 from shapely._enum import ParamEnum
-from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area
+from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area_vectorized
 from shapely.decorators import multithreading_enabled, requires_geos
 
 __all__ = [
@@ -413,16 +413,16 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     >>> from shapely import GeometryCollection, LineString, MultiPoint, Polygon
     >>> points = MultiPoint([(50, 30), (60, 30), (100, 100)])
     >>> delaunay_triangles(points)
-    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
+    <GEOMETRYCOLLECTION (POLYGON ((100 100, 50 30, 60 30, 100 100)))>
     >>> delaunay_triangles(points, only_edges=True)
     <MULTILINESTRING ((50 30, 100 100), (50 30, 60 30), ...>
     >>> delaunay_triangles(MultiPoint([(50, 30), (51, 30), (60, 30), (100, 100)]), \
 tolerance=2)
-    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
+    <GEOMETRYCOLLECTION (POLYGON ((100 100, 50 30, 60 30, 100 100)))>
     >>> delaunay_triangles(Polygon([(50, 30), (60, 30), (100, 100), (50, 30)]))
-    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
+    <GEOMETRYCOLLECTION (POLYGON ((100 100, 50 30, 60 30, 100 100)))>
     >>> delaunay_triangles(LineString([(50, 30), (60, 30), (100, 100)]))
-    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
+    <GEOMETRYCOLLECTION (POLYGON ((100 100, 50 30, 60 30, 100 100)))>
     >>> delaunay_triangles(GeometryCollection([]))
     <GEOMETRYCOLLECTION EMPTY>
     """
@@ -1024,7 +1024,7 @@ def oriented_envelope(geometry, **kwargs):
     <POLYGON EMPTY>
     """
     if lib.geos_version < (3, 12, 0):
-        f = _oriented_envelope_min_area
+        f = _oriented_envelope_min_area_vectorized
     else:
         f = _oriented_envelope_geos
     return f(geometry, **kwargs)

@@ -17,6 +17,7 @@ from shapely import (
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
     all_types,
+    ArrayLike,
     empty,
     empty_line_string,
     empty_point,
@@ -535,15 +536,6 @@ def test_clip_by_rect_polygon(geom, rect, expected):
 
 @pytest.mark.parametrize("geometry", all_types)
 def test_clip_by_rect_array(geometry):
-    if (
-        geometry.is_empty
-        and geometry.geom_type == "Point"
-        and shapely.geos_version < (3, 12, 0)
-    ):
-        with pytest.raises(shapely.errors.GEOSException):
-            shapely.clip_by_rect([geometry, geometry], 0.0, 0.0, 1.0, 1.0)
-        pytest.xfail("GEOS < 3.12 does not support POINT EMPTY")  # GEOS GH-913
-
     actual = shapely.clip_by_rect([geometry, geometry], 0.0, 0.0, 1.0, 1.0)
     assert actual.shape == (2,)
     assert actual[0] is None or isinstance(actual[0], Geometry)
@@ -976,6 +968,17 @@ def test_oriented_envelope_pre_geos_312(geometry, expected):
     # to cover the C code for older GEOS versions
     actual = shapely.constructive._oriented_envelope_geos(geometry)
     assert_geometries_equal(actual, expected, normalize=True, tolerance=1e-3)
+
+
+def test_oriented_evelope_array_like():
+    # https://github.com/shapely/shapely/issues/1929
+    # because we have a custom python implementation, need to ensure this has
+    # the same capabilities as numpy ufuncs to work with array-likes
+    geometries = [Point(1, 1).buffer(1), Point(2, 2).buffer(1)]
+    actual = shapely.oriented_envelope(ArrayLike(geometries))
+    assert isinstance(actual, ArrayLike)
+    expected = shapely.oriented_envelope(geometries)
+    assert_geometries_equal(np.asarray(actual), expected)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")

@@ -14,28 +14,28 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2019]
         architecture: [x64]
-        geos: [3.8.3, 3.9.4, 3.10.5, 3.11.2, 3.12.0, main]
+        geos: [3.8.4, 3.9.5, 3.10.6, 3.11.3, 3.12.1, main]
         include:
           # 2019
           - python: 3.8
-            geos: 3.8.3
+            geos: 3.8.4
             numpy: 1.17.3
           # 2020
           - python: 3.9
-            geos: 3.9.4
+            geos: 3.9.5
             numpy: 1.19.5
           # 2021
           - python: "3.10"
-            geos: 3.10.5
+            geos: 3.10.6
             numpy: 1.21.3
           # 2022
           - python: "3.11"
-            geos: 3.11.2
+            geos: 3.11.3
             numpy: 1.23.4
           # 2023
           - python: "3.12"
-            geos: 3.12.0
-            numpy: 1.26.0
+            geos: 3.12.1
+            numpy: 1.26.2
             matplotlib: true
             doctest: true
             # extra ignore for dateutil Python 3.12 warning fixed upstream (waiting on release 2.8.3+)
@@ -49,17 +49,17 @@ jobs:
           - os: windows-2019
             architecture: x86
             python: 3.8
-            geos: 3.8.3
+            geos: 3.8.4
             numpy: 1.16.2
           - os: windows-2019
             architecture: x86
             python: "3.11"
-            geos: 3.12.0
+            geos: 3.12.1
             numpy: 1.24.4
           # pypy (use explicit ubuntu version to not overwrite existing ubuntu-latest + geos 3.11.0 build)
           - os: ubuntu-22.04
             python: "pypy3.8"
-            geos: 3.12.0
+            geos: 3.12.1
             numpy: 1.24.4
 
     env:
@@ -100,7 +100,7 @@ jobs:
           allow-prereleases: true
 
       - name: Cache GEOS and pip packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           key: ${{ matrix.os }}-${{ matrix.architecture }}-geos-${{ env.GEOS_VERSION_SPEC }}-${{ hashFiles('ci/install_geos.sh') }}
           path: |
@@ -122,7 +122,8 @@ jobs:
           python -m pip install --disable-pip-version-check --upgrade pip
           pip install --upgrade wheel setuptools
           if [ -z "${{ matrix.numpy }}" ]; then
-            pip install --upgrade --pre Cython numpy pytest pytest-cov coveralls;
+            pip install --upgrade --pre Cython pytest pytest-cov coveralls;
+            pip install --upgrade --pre --only-binary :all: -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple numpy
           else
             pip install --upgrade Cython numpy==${{ matrix.numpy }} pytest pytest-cov coveralls;
           fi
@@ -157,8 +158,15 @@ jobs:
         if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Build and install Shapely
+        # for the numpy nightly build, we temporarily need to build without
+        # the standard build isolation based on build-system.requires, to
+        # ensure we build against numpy nightly (numpy 2.0 compat)
         run: |
-          pip install -e .
+          if [ -z "${{ matrix.numpy }}" ]; then
+            pip install -e . --no-build-isolation
+          else
+            pip install -e .
+          fi
 
       - name: Overview of the Python environment (pip list)
         run: pip list
