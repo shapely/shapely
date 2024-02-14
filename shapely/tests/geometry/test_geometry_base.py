@@ -255,10 +255,10 @@ geometries_simple = [
 def test_geoms(geom):
     result = geom.geoms
 
-    assert (len(result)==1)
+    assert len(result) == 1
 
     for i, g in enumerate(result):
-        assert_geometries_equal(result[i],g)
+        assert_geometries_equal(result[i], g)
 
     with pytest.raises(IndexError):  # index out of range
         result[1]
