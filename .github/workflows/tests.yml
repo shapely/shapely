@@ -100,7 +100,7 @@ jobs:
           allow-prereleases: true
 
       - name: Cache GEOS and pip packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           key: ${{ matrix.os }}-${{ matrix.architecture }}-geos-${{ env.GEOS_VERSION_SPEC }}-${{ hashFiles('ci/install_geos.sh') }}
           path: |
@@ -122,7 +122,8 @@ jobs:
           python -m pip install --disable-pip-version-check --upgrade pip
           pip install --upgrade wheel setuptools
           if [ -z "${{ matrix.numpy }}" ]; then
-            pip install --upgrade --pre Cython numpy pytest pytest-cov coveralls;
+            pip install --upgrade --pre Cython pytest pytest-cov coveralls;
+            pip install --upgrade --pre --only-binary :all: -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple numpy
           else
             pip install --upgrade Cython numpy==${{ matrix.numpy }} pytest pytest-cov coveralls;
           fi
@@ -157,8 +158,15 @@ jobs:
         if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Build and install Shapely
+        # for the numpy nightly build, we temporarily need to build without
+        # the standard build isolation based on build-system.requires, to
+        # ensure we build against numpy nightly (numpy 2.0 compat)
         run: |
-          pip install -e .
+          if [ -z "${{ matrix.numpy }}" ]; then
+            pip install -e . --no-build-isolation
+          else
+            pip install -e .
+          fi
 
       - name: Overview of the Python environment (pip list)
         run: pip list
