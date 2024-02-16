@@ -738,7 +738,7 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
       precision will be attached to the operation outputs.
     * input geometries should be geometrically valid; unexpected results may
       occur if input geometries are not.
-    * the geometry returned will be in :ref:`canonical form <canonical-form>`.
+    * the geometry returned will be in :ref:`mild canonical form <canonical-form>`.
     * returns None if geometry is None.
 
     Parameters
