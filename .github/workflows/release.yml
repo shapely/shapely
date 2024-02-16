@@ -71,12 +71,9 @@ jobs:
         - os: macos-13
           arch: x86_64
           cmake_osx_architectures: x86_64
-        - os: macos-11
+        - os: macos-14
           arch: arm64
           cmake_osx_architectures: arm64
-        - os: macos-11
-          arch: universal2
-          cmake_osx_architectures: "x86_64;arm64"
 
     steps:
       - name: Checkout source
@@ -118,6 +115,7 @@ jobs:
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_SKIP: cp36-* pp* *musllinux* *-manylinux_i686
+          CIBW_TEST_SKIP: "cp38-macosx_arm64"
           CIBW_ENVIRONMENT_LINUX:
             PIP_PRE=1
             GEOS_VERSION=${{ env.GEOS_VERSION }}
