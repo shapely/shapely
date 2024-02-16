@@ -33,7 +33,7 @@ Breaking changes in GEOS 3.12:
 - The WKT representation of a MULTIPOINT changed from for example "MULTIPOINT (0 0, 1 1)"
   to "MULTIPOINT ((0 0), (1 1))". (#1885)
 
-2.0.3 (2024-02-??)
+2.0.3 (2024-02-16)
 ------------------
 
 - Fix regression in the ``oriented_envelope`` ufunc to accept array-like input
