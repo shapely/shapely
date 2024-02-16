@@ -17,8 +17,6 @@ def _oriented_envelope_min_area(geometry, **kwargs):
     """
     if geometry is None:
         return None
-    if not hasattr(geometry, "geom_type"):
-        return np.array([_oriented_envelope_min_area(g) for g in geometry])
     if geometry.is_empty:
         return shapely.from_wkt("POLYGON EMPTY")
 
@@ -53,3 +51,8 @@ def _oriented_envelope_min_area(geometry, **kwargs):
     # check for the minimum area rectangle and return it
     transf_rect, inv_matrix = min(_transformed_rects(), key=lambda r: r[0].area)
     return affine_transform(transf_rect, inv_matrix)
+
+
+_oriented_envelope_min_area_vectorized = np.frompyfunc(
+    _oriented_envelope_min_area, 1, 1
+)
