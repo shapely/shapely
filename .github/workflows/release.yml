@@ -13,6 +13,9 @@ on:
       - "MANIFEST.in"
       - "pyproject.toml"
       - "setup.py"
+  schedule:
+    # in addition run weekly for nightly upload in case no other commits happened
+    - cron: '34 2 * * 0'
 
 jobs:
   build_sdist:
