@@ -156,11 +156,21 @@ jobs:
           path: ./wheelhouse/*.whl
           retention-days: 5
 
-      - name: Upload nightly wheels
-        if: github.repository_owner == 'shapely' && github.ref == 'refs/heads/main'
+  nightly_upload:
+    name: Upload nightly wheels
+    needs: [build_wheels]
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'shapely' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: dist
+      - name: Upload wheels to Anaconda Cloud
         uses: scientific-python/upload-nightly-action@b67d7fcc0396e1128a474d1ab2b48aa94680f9fc # 0.5.0
         with:
-          artifacts_path: wheelhouse
+          artifacts_path: dist
           anaconda_nightly_upload_token: ${{secrets.ANACONDA_ORG_UPLOAD_TOKEN}}
 
   publish:
