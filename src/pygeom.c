@@ -119,6 +119,8 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
 
   GEOSWKTWriter_setRoundingPrecision_r(ctx, writer, precision);
 #if !GEOS_SINCE_3_12_0
+  // Override defaults only for older versions
+  // See https://github.com/libgeos/geos/pull/915
   GEOSWKTWriter_setTrim_r(ctx, writer, trim);
   GEOSWKTWriter_setOutputDimension_r(ctx, writer, dimension);
   // GEOSWKTWriter_setOld3D_r(ctx, writer, use_old_3d);
@@ -183,6 +185,7 @@ static PyObject* GeometryObject_ToWKB(GeometryObject* obj) {
   }
 #if !GEOS_SINCE_3_12_0
   // Allow 3D output for GEOS<3.12 (it is default 4 afterwards)
+  // See https://github.com/libgeos/geos/pull/908
   GEOSWKBWriter_setOutputDimension_r(ctx, writer, 3);
 #endif  // !GEOS_SINCE_3_12_0
   // include SRID

@@ -584,7 +584,9 @@ def test_repr_point_z_empty():
     assert repr(empty_point_z) == "<POINT Z EMPTY>"
 
 
-@pytest.mark.xfail(reason="TODO: fix WKT for empty M and ZM geometries", strict=True)
+@pytest.mark.xfail(
+    reason="TODO: fix WKT for empty M and ZM geometries; see GH-2004", strict=True
+)
 @pytest.mark.skipif(
     shapely.geos_version < (3, 12, 0),
     reason="M coordinates not supported with GEOS < 3.12",
@@ -951,10 +953,6 @@ def test_to_wkb_point_empty_zm(geom, expected):
     assert np.isnan(struct.unpack("<4d", actual[header_length:])).all()
 
 
-@pytest.mark.xfail(
-    shapely.geos_version < (3, 8, 0),
-    reason="GEOS<3.8 always outputs 3D empty points if output_dimension=3",
-)
 @pytest.mark.parametrize(
     "geom,expected",
     [
@@ -1092,7 +1090,7 @@ def test_pickle_z(geom):
 @pytest.mark.parametrize("geom", all_types_m)
 def test_pickle_m(geom):
     if shapely.get_type_id(geom) == shapely.GeometryType.LINEARRING:
-        pytest.xfail("TODO: M gets dropped for some reason")
+        pytest.xfail("TODO: M gets dropped for LinearRing types; see GH-2005")
     pickled = pickle.dumps(geom)
     actual = pickle.loads(pickled)
     assert_geometries_equal(actual, geom, tolerance=0)
@@ -1107,7 +1105,7 @@ def test_pickle_m(geom):
 @pytest.mark.parametrize("geom", all_types_zm)
 def test_pickle_zm(geom):
     if shapely.get_type_id(geom) == shapely.GeometryType.LINEARRING:
-        pytest.xfail("TODO: ZM gets dropped for some reason")
+        pytest.xfail("TODO: ZM gets dropped for LinearRing types; see GH-2005")
     pickled = pickle.dumps(geom)
     actual = pickle.loads(pickled)
     assert_geometries_equal(actual, geom, tolerance=0)
