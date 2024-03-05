@@ -1,6 +1,6 @@
 import numpy as np
 
-from shapely import lib
+from shapely import geos_version, lib
 from shapely._enum import ParamEnum
 
 # include ragged array functions here for reference documentation purpose
@@ -33,7 +33,7 @@ def to_wkt(
     geometry,
     rounding_precision=6,
     trim=True,
-    output_dimension=3,
+    output_dimension=None,
     old_3d=False,
     **kwargs,
 ):
@@ -58,8 +58,10 @@ def to_wkt(
         -1 to indicate the full precision.
     trim : bool, default True
         If True, trim unnecessary decimals (trailing zeros).
-    output_dimension : int, default 3
-        The output dimension for the WKT string. Supported values are 2 and 3.
+    output_dimension : int, default None
+        The output dimension for the WKT string. Supported values are 2, 3 and
+        4 for GEOS 3.12+. Default None will automatically choose 3 or 4,
+        depending on the version of GEOS.
         Specifying 3 means that up to 3 dimensions will be written but 2D
         geometries will still be represented as 2D in the WKT string.
     old_3d : bool, default False
@@ -97,7 +99,9 @@ def to_wkt(
         raise TypeError("rounding_precision only accepts scalar values")
     if not np.isscalar(trim):
         raise TypeError("trim only accepts scalar values")
-    if not np.isscalar(output_dimension):
+    if output_dimension is None:
+        output_dimension = 3 if geos_version < (3, 12, 0) else 4
+    elif not np.isscalar(output_dimension):
         raise TypeError("output_dimension only accepts scalar values")
     if not np.isscalar(old_3d):
         raise TypeError("old_3d only accepts scalar values")
@@ -115,7 +119,7 @@ def to_wkt(
 def to_wkb(
     geometry,
     hex=False,
-    output_dimension=3,
+    output_dimension=None,
     byte_order=-1,
     include_srid=False,
     flavor="extended",
@@ -141,8 +145,10 @@ def to_wkb(
     hex : bool, default False
         If true, export the WKB as a hexidecimal string. The default is to
         return a binary bytes object.
-    output_dimension : int, default 3
-        The output dimension for the WKB. Supported values are 2 and 3.
+    output_dimension : int, default None
+        The output dimension for the WKB. Supported values are 2, 3 and 4 for
+        GEOS 3.12+. Default None will automatically choose 3 or 4, depending on
+        the version of GEOS.
         Specifying 3 means that up to 3 dimensions will be written but 2D
         geometries will still be represented as 2D in the WKB represenation.
     byte_order : int, default -1
@@ -173,7 +179,9 @@ def to_wkb(
     """
     if not np.isscalar(hex):
         raise TypeError("hex only accepts scalar values")
-    if not np.isscalar(output_dimension):
+    if output_dimension is None:
+        output_dimension = 3 if geos_version < (3, 12, 0) else 4
+    elif not np.isscalar(output_dimension):
         raise TypeError("output_dimension only accepts scalar values")
     if not np.isscalar(byte_order):
         raise TypeError("byte_order only accepts scalar values")
