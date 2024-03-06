@@ -25,6 +25,15 @@ Shapely is available on the conda-forge channel. Install as follows::
 
     $ conda install shapely --channel conda-forge
 
+Installation of the development version using nightly wheels
+------------------------------------------------------------
+
+If you want to test the latest development version of Shapely, the easiest way
+to get this version is by installing it from the Scientific Python index of
+nightly wheel packages::
+
+    python -m pip install --pre --upgrade --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple shapely
+
 
 Installation from source with custom GEOS libary
 ------------------------------------------------
