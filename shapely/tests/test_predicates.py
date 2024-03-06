@@ -7,7 +7,9 @@ import shapely
 from shapely import LinearRing, LineString, Point
 from shapely.tests.common import (
     all_types,
+    all_types_m,
     all_types_z,
+    all_types_zm,
     empty,
     geometry_collection,
     ignore_invalid,
@@ -18,6 +20,13 @@ from shapely.tests.common import (
 )
 
 UNARY_PREDICATES = (
+    shapely.has_z,
+    pytest.param(
+        shapely.has_m,
+        marks=pytest.mark.skipif(
+            shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12"
+        ),
+    ),
     shapely.is_empty,
     shapely.is_simple,
     shapely.is_ring,
@@ -218,17 +227,47 @@ def test_dwithin():
 
 
 @pytest.mark.parametrize("geometry", all_types)
-def test_has_z_all_types(geometry):
+def test_has_z_has_m_all_types(geometry):
     assert not shapely.has_z(geometry)
+    if shapely.geos_version >= (3, 12, 0):
+        assert not shapely.has_m(geometry)
+
+
+# The next few tests skip has_z/has_m with empty geometries
+# See https://github.com/libgeos/geos/issues/888
 
 
 @pytest.mark.parametrize("geometry", all_types_z)
-def test_has_z_all_types_z(geometry):
+def test_has_z_has_m_all_types_z(geometry):
     if shapely.is_empty(geometry):
-        # https://github.com/libgeos/geos/issues/888
         pytest.skip("GEOSHasZ with EMPTY geometries is inconsistent")
-    else:
-        assert shapely.has_z(geometry)
+    assert shapely.has_z(geometry)
+    if shapely.geos_version >= (3, 12, 0):
+        assert not shapely.has_m(geometry)
+
+
+@pytest.mark.skipif(
+    shapely.geos_version < (3, 12, 0),
+    reason="M coordinates not supported with GEOS < 3.12",
+)
+@pytest.mark.parametrize("geometry", all_types_m)
+def test_has_m_all_types_m(geometry):
+    if shapely.is_empty(geometry):
+        pytest.skip("GEOSHasM with EMPTY geometries is inconsistent")
+    assert not shapely.has_z(geometry)
+    assert shapely.has_m(geometry)
+
+
+@pytest.mark.skipif(
+    shapely.geos_version < (3, 12, 0),
+    reason="M coordinates not supported with GEOS < 3.12",
+)
+@pytest.mark.parametrize("geometry", all_types_zm)
+def test_has_m_all_types_zm(geometry):
+    if shapely.is_empty(geometry):
+        pytest.skip("GEOSHasZ with EMPTY geometries is inconsistent")
+    assert shapely.has_z(geometry)
+    assert shapely.has_m(geometry)
 
 
 @pytest.mark.parametrize(

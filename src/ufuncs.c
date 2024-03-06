@@ -121,6 +121,9 @@ static char GEOSisSimpleAllTypes_r(void* context, void* geom) {
 static void* is_simple_data[1] = {GEOSisSimpleAllTypes_r};
 static void* is_ring_data[1] = {GEOSisRing_r};
 static void* has_z_data[1] = {GEOSHasZ_r};
+#if GEOS_SINCE_3_12_0
+static void* has_m_data[1] = {GEOSHasM_r};
+#endif
 /* the GEOSisClosed_r function fails on non-linestrings */
 static char GEOSisClosedAllTypes_r(void* context, void* geom) {
   int type = GEOSGeomTypeId_r(context, geom);
@@ -3829,6 +3832,10 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Yd_Y(remove_repeated_points);
   DEFINE_Y_Y(line_merge_directed);
   DEFINE_CUSTOM(concave_hull, 3);
+#endif
+
+#if GEOS_SINCE_3_12_0
+  DEFINE_Y_b(has_m);
 #endif
 
   Py_DECREF(ufunc);
