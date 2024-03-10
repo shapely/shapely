@@ -12,72 +12,6 @@
 #include "geos.h"
 
 
-/* Check the coordinates of a single pair of CoordSequences.
-Returns 1 on true, 0 on false, 2 on exception */
-char coordseq_identical(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq1,
-                        const GEOSCoordSequence* coord_seq2, int hasZ) {
-  unsigned int n1, n2, dims1, dims2;
-  double* buf1 = NULL;
-  double* buf2 = NULL;
-  npy_intp i;
-  char ret;
-
-  if (GEOSCoordSeq_getSize_r(ctx, coord_seq1, &n1) == 0) {
-    return 2;
-  }
-  if (GEOSCoordSeq_getSize_r(ctx, coord_seq2, &n2) == 0) {
-    return 2;
-  }
-  if (n1 != n2) {
-    return 0;
-  }
-
-  if (GEOSCoordSeq_getDimensions_r(ctx, coord_seq1, &dims1) == 0) {
-    return 2;
-  }
-  if (GEOSCoordSeq_getDimensions_r(ctx, coord_seq2, &dims2) == 0) {
-    return 2;
-  }
-  if (dims1 != dims2) {
-    return 0;
-  }
-
-  int hasM = 0;
-  if ((dims1 == 3) & (hasZ == 0)) {
-    hasM = 1;
-  }
-  if (dims1 == 4) {
-    hasM = 1;
-  }
-
-  buf1 = malloc(sizeof(double) * n1 * dims1);
-  if (coordseq_to_buffer(ctx, coord_seq1, buf1, n1, hasZ, hasM) == 0) {
-    free(buf1);
-    return 2;
-  }
-  buf2 = malloc(sizeof(double) * n1 * dims1);
-  if (coordseq_to_buffer(ctx, coord_seq2, buf2, n1, hasZ, hasM) == 0) {
-    free(buf1);
-    free(buf2);
-    return 2;
-  }
-
-  ret = 1;
-  for (i = 0; i < n1 * dims1; i++) {
-    const double a = buf1[i];
-    const double b = buf2[i];
-    // NaN coordinates in same position are considered equal
-    if (a != b && !(npy_isnan(a) && npy_isnan(b))) {
-      ret = 0;
-      break;
-    }
-  }
-
-  free(buf1);
-  free(buf2);
-  return ret;
-}
-
 /* Check simple geometries (Point, LineString, LinearRing; backed by a single CoordSequence).
 Returns 1 on true, 0 on false, 2 on exception */
 char equals_identical_simple(GEOSContextHandle_t ctx, const GEOSGeometry* geom1,
@@ -85,6 +19,11 @@ char equals_identical_simple(GEOSContextHandle_t ctx, const GEOSGeometry* geom1,
   char hasZ1, hasZ2;
   const GEOSCoordSequence *coord_seq1 = NULL;
   const GEOSCoordSequence *coord_seq2 = NULL;
+  unsigned int n1, n2, dims1, dims2;
+  double* buf1 = NULL;
+  double* buf2 = NULL;
+  npy_intp i;
+  char ret;
 
   hasZ1 = GEOSHasZ_r(ctx, geom1);
   if (hasZ1 == 2) {
@@ -107,7 +46,60 @@ char equals_identical_simple(GEOSContextHandle_t ctx, const GEOSGeometry* geom1,
     return 2;
   }
 
-  return coordseq_identical(ctx, coord_seq1, coord_seq2, (int)hasZ1);
+  if (GEOSCoordSeq_getSize_r(ctx, coord_seq1, &n1) == 0) {
+    return 2;
+  }
+  if (GEOSCoordSeq_getSize_r(ctx, coord_seq2, &n2) == 0) {
+    return 2;
+  }
+  if (n1 != n2) {
+    return 0;
+  }
+
+  if (GEOSCoordSeq_getDimensions_r(ctx, coord_seq1, &dims1) == 0) {
+    return 2;
+  }
+  if (GEOSCoordSeq_getDimensions_r(ctx, coord_seq2, &dims2) == 0) {
+    return 2;
+  }
+  if (dims1 != dims2) {
+    return 0;
+  }
+
+  int hasM = 0;
+  if ((dims1 == 3) & (hasZ1 == 0)) {
+    hasM = 1;
+  }
+  if (dims1 == 4) {
+    hasM = 1;
+  }
+
+  buf1 = malloc(sizeof(double) * n1 * dims1);
+  if (coordseq_to_buffer(ctx, coord_seq1, buf1, n1, hasZ1, hasM) == 0) {
+    free(buf1);
+    return 2;
+  }
+  buf2 = malloc(sizeof(double) * n1 * dims1);
+  if (coordseq_to_buffer(ctx, coord_seq2, buf2, n1, hasZ1, hasM) == 0) {
+    free(buf1);
+    free(buf2);
+    return 2;
+  }
+
+  ret = 1;
+  for (i = 0; i < n1 * dims1; i++) {
+    const double a = buf1[i];
+    const double b = buf2[i];
+    // NaN coordinates in same position are considered equal
+    if (a != b && !(npy_isnan(a) && npy_isnan(b))) {
+      ret = 0;
+      break;
+    }
+  }
+
+  free(buf1);
+  free(buf2);
+  return ret;
 }
 
 /* Check the exterior/interior rings of Polygons.
