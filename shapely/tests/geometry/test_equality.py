@@ -46,10 +46,19 @@ def test_equality(geom):
             MultiLineString([[(2, 2), (3, 3)], [(1, 1), (2, 2)]]),
         ),
         # M coordinates (don't work yet with automated cases)
-        (shapely.from_wkt("POINT M (0 0 0)"), shapely.from_wkt("POINT M (0 0 1)")),
-        (
+        pytest.param(
+            shapely.from_wkt("POINT M (0 0 0)"),
+            shapely.from_wkt("POINT M (0 0 1)"),
+            marks=pytest.mark.skipif(
+                shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12"
+            ),
+        ),
+        pytest.param(
             shapely.from_wkt("POINT ZM (0 0 0 0)"),
             shapely.from_wkt("POINT ZM (0 0 0 1)"),
+            marks=pytest.mark.skipif(
+                shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12"
+            ),
         ),
     ],
 )
@@ -119,10 +128,19 @@ with ignore_invalid():
         (LineString([(0, 1), (2, np.nan)]), LineString([(0, 1), (2, 3)])),
         (LineString([(0, 1, np.nan), (2, 3, 4)]), LineString([(0, 1, 2), (2, 3, 4)])),
         (LineString([(0, 1, 2), (2, 3, np.nan)]), LineString([(0, 1, 2), (2, 3, 4)])),
-        (shapely.from_wkt("POINT M (0 0 0)"), shapely.from_wkt("POINT M (0 0 NaN)")),
-        (
+        pytest.param(
+            shapely.from_wkt("POINT M (0 0 0)"),
+            shapely.from_wkt("POINT M (0 0 NaN)"),
+            marks=pytest.mark.skipif(
+                shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12"
+            ),
+        ),
+        pytest.param(
             shapely.from_wkt("POINT ZM (0 0 0 0)"),
             shapely.from_wkt("POINT ZM (0 0 0 NaN)"),
+            marks=pytest.mark.skipif(
+                shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12"
+            ),
         ),
     ]
 
