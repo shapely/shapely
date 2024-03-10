@@ -1154,10 +1154,12 @@ def maximum_inscribed_circle(geometry, tolerance=None, **kwargs):
     The radius length of the MIC is a  measure of how "narrow" a polygon is.
     It is the distance at which the negative buffer becomes empty.
 
-    The class supports polygons with holes and multipolygons.
+    The function supports polygons with holes and multipolygons.
 
     Returns a two-point linestring, with the first point at the center of the
     inscribed circle and the second on the boundary of the inscribed circle.
+
+    .. versionadded:: 2.1.0
 
     Parameters
     ----------
@@ -1182,4 +1184,6 @@ def maximum_inscribed_circle(geometry, tolerance=None, **kwargs):
     """
     if tolerance is None:
         tolerance = 0.0
+    elif np.isscalar(tolerance) and tolerance < 0:
+        raise ValueError("'tolerance' should be positive")
     return lib.maximum_inscribed_circle(geometry, tolerance, **kwargs)

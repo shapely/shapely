@@ -1177,5 +1177,8 @@ def test_maximum_inscribed_circle_empty():
         shapely.maximum_inscribed_circle(geometry)
 
 
-# TODO: test for:
-#     - negative tolerance
+@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
+def test_maximum_inscribed_circle_invalid_tolerance():
+    geometry = shapely.from_wkt("POLYGON ((0 5, 5 10, 10 5, 5 0, 0 5))")
+    with pytest.raises(ValueError, match="'tolerance' should be positive"):
+        shapely.maximum_inscribed_circle(geometry, tolerance=-1)
