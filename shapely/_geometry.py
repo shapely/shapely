@@ -121,12 +121,18 @@ def get_dimensions(geometry, **kwargs):
 
 @multithreading_enabled
 def get_coordinate_dimension(geometry, **kwargs):
-    """Returns the dimensionality of the coordinates in a geometry (2 or 3).
+    """Returns the dimensionality of the coordinates in a geometry (2, 3 or 4).
 
-    Returns -1 for missing geometries (``None`` values).
+    The return value can be one of the following:
+
+    * Return 2 for geometries with XY coordinate types,
+    * Return 3 for XYZ or XYM coordinate types
+      (distinguished by :meth:`has_z` or :meth:`has_m`),
+    * Return 4 for XYZM coordinate types,
+    * Return -1 for missing geometries (``None`` values).
 
     Note that with GEOS < 3.12, if the first Z coordinate equals ``nan``, this function
-    will return ``2``.
+    will return ``2``. Geometries with M coordinates are supported with GEOS >= 3.12.
 
     Parameters
     ----------

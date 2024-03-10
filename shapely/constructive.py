@@ -2,8 +2,9 @@ import numpy as np
 
 from shapely import lib
 from shapely._enum import ParamEnum
-from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area
+from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area_vectorized
 from shapely.decorators import multithreading_enabled, requires_geos
+from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
     "BufferCapStyle",
@@ -92,7 +93,7 @@ def buffer(
     join_style="round",
     mitre_limit=5.0,
     single_sided=False,
-    **kwargs
+    **kwargs,
 ):
     """
     Computes the buffer of a geometry for positive and negative buffer distance.
@@ -186,7 +187,7 @@ def buffer(
         np.intc(join_style),
         mitre_limit,
         np.bool_(single_sided),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -252,7 +253,7 @@ def offset_curve(
         np.intc(quad_segs),
         np.intc(join_style),
         np.double(mitre_limit),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -331,7 +332,7 @@ def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
         np.double(ymin),
         np.double(xmax),
         np.double(ymax),
-        **kwargs
+        **kwargs,
     )
 
 
@@ -414,16 +415,16 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     >>> from shapely import GeometryCollection, LineString, MultiPoint, Polygon
     >>> points = MultiPoint([(50, 30), (60, 30), (100, 100)])
     >>> delaunay_triangles(points)
-    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
+    <GEOMETRYCOLLECTION (POLYGON ((100 100, 50 30, 60 30, 100 100)))>
     >>> delaunay_triangles(points, only_edges=True)
     <MULTILINESTRING ((50 30, 100 100), (50 30, 60 30), ...>
     >>> delaunay_triangles(MultiPoint([(50, 30), (51, 30), (60, 30), (100, 100)]), \
 tolerance=2)
-    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
+    <GEOMETRYCOLLECTION (POLYGON ((100 100, 50 30, 60 30, 100 100)))>
     >>> delaunay_triangles(Polygon([(50, 30), (60, 30), (100, 100), (50, 30)]))
-    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
+    <GEOMETRYCOLLECTION (POLYGON ((100 100, 50 30, 60 30, 100 100)))>
     >>> delaunay_triangles(LineString([(50, 30), (60, 30), (100, 100)]))
-    <GEOMETRYCOLLECTION (POLYGON ((50 30, 60 30, 100 100, 50 30)))>
+    <GEOMETRYCOLLECTION (POLYGON ((100 100, 50 30, 60 30, 100 100)))>
     >>> delaunay_triangles(GeometryCollection([]))
     <GEOMETRYCOLLECTION EMPTY>
     """
@@ -509,12 +510,40 @@ def build_area(geometry, **kwargs):
 
 
 @multithreading_enabled
-def make_valid(geometry, **kwargs):
+def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
     """Repairs invalid geometries.
+
+    Two ``methods`` are available:
+
+    * the 'linework' algorithm tries to preserve every edge and vertex in the input. It
+      combines all rings into a set of noded lines and then extracts valid polygons from
+      that linework. An alternating even-odd strategy is used to assign areas as
+      interior or exterior. A disadvantage is that for some relatively simple invalid
+      geometries this produces rather complex results.
+    * the 'structure' algorithm tries to reason from the structure of the input to find
+      the 'correct' repair: exterior rings bound area, interior holes exclude area.
+      It first makes all rings valid, then shells are merged and holes are subtracted
+      from the shells to generate valid result. It assumes that holes and shells are
+      correctly categorized in the input geometry.
+
+    Example:
+
+    .. plot:: code/make_valid_methods.py
+
+    When using ``make_valid`` on a Polygon, the result can be a GeometryCollection. For
+    this example this is the case when the 'linework' ``method`` is used. LineStrings in
+    the result are drawn in red.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+    method : {'linework', 'structure'}, default 'linework'
+        Algorithm to use when repairing geometry. 'structure'
+        requires GEOS >= 3.10.
+    keep_collapsed : bool, default True
+        For the 'structure' method, True will keep components that have collapsed into a
+        lower dimensionality. For example, a ring collapsing to a line, or a line
+        collapsing to a point. Must be True for the 'linework' method.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -526,8 +555,40 @@ def make_valid(geometry, **kwargs):
     False
     >>> make_valid(polygon)
     <MULTILINESTRING ((0 0, 1 1), (1 1, 1 2))>
+    >>> make_valid(polygon, method="structure", keep_collapsed=True)
+    <LINESTRING (0 0, 1 1, 1 2, 1 1, 0 0)>
+    >>> make_valid(polygon, method="structure", keep_collapsed=False)
+    <POLYGON EMPTY>
     """
-    return lib.make_valid(geometry, **kwargs)
+    if not np.isscalar(method):
+        raise TypeError("method only accepts scalar values")
+    if not np.isscalar(keep_collapsed):
+        raise TypeError("keep_collapsed only accepts scalar values")
+
+    if method == "linework":
+        if keep_collapsed is False:
+            raise ValueError(
+                "The 'linework' method does not support 'keep_collapsed=False'"
+            )
+
+        # The make_valid code can be removed once support for GEOS < 3.10 is dropped.
+        # In GEOS >= 3.10, make_valid just calls make_valid_with_params with
+        # method="linework" and keep_collapsed=True, so there is no advantage to keep
+        # both code paths in shapely on long term.
+        return lib.make_valid(geometry, **kwargs)
+
+    elif method == "structure":
+        if lib.geos_version < (3, 10, 0):
+            raise ValueError(
+                "The 'structure' method is only available in GEOS >= 3.10.0"
+            )
+
+        return lib.make_valid_with_params(
+            geometry, np.intc(1), np.bool_(keep_collapsed), **kwargs
+        )
+
+    else:
+        raise ValueError(f"Unknown method: {method}")
 
 
 @multithreading_enabled
@@ -945,7 +1006,7 @@ def snap(geometry, reference, tolerance, **kwargs):
 
 @multithreading_enabled
 def voronoi_polygons(
-    geometry, tolerance=0.0, extend_to=None, only_edges=False, **kwargs
+    geometry, tolerance=0.0, extend_to=None, only_edges=False, ordered=False, **kwargs
 ):
     """Computes a Voronoi diagram from the vertices of an input geometry.
 
@@ -964,6 +1025,10 @@ def voronoi_polygons(
     only_edges : bool or array_like, default False
         If set to True, the triangulation will return a collection of
         linestrings instead of polygons.
+    ordered : bool or array_like, default False
+        If set to True, polygons within the GeometryCollection will be ordered
+        according to the order of the input vertices. Note that this may slow
+        down the computation. Requires GEOS >= 3.12.0
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -983,8 +1048,17 @@ def voronoi_polygons(
     <MULTILINESTRING ((3 4, 3 0))>
     >>> voronoi_polygons(Point(2, 2))
     <GEOMETRYCOLLECTION EMPTY>
+    >>> voronoi_polygons(points, ordered=True)
+    <GEOMETRYCOLLECTION (POLYGON ((0 0, 0 4, 3 4, 3 0, 0 0)), POLYGON ((6 4, 6 0...>
     """
-    return lib.voronoi_polygons(geometry, tolerance, extend_to, only_edges, **kwargs)
+    if ordered is not False and lib.geos_version < (3, 12, 0):
+        raise UnsupportedGEOSVersionError(
+            "Ordered Voronoi polygons require GEOS >= 3.12.0, "
+            f"found {lib.geos_version_string}"
+        )
+    return lib.voronoi_polygons(
+        geometry, tolerance, extend_to, only_edges, ordered, **kwargs
+    )
 
 
 @multithreading_enabled
@@ -1025,7 +1099,7 @@ def oriented_envelope(geometry, **kwargs):
     <POLYGON EMPTY>
     """
     if lib.geos_version < (3, 12, 0):
-        f = _oriented_envelope_min_area
+        f = _oriented_envelope_min_area_vectorized
     else:
         f = _oriented_envelope_geos
     return f(geometry, **kwargs)
