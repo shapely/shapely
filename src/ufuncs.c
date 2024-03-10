@@ -3351,8 +3351,9 @@ static void to_wkt_func(char** args, const npy_intp* dimensions, const npy_intp*
         goto finish;
       }
       if (wkt != NULL) {
+        Py_XDECREF(*out);
         *out = PyUnicode_FromString(wkt);
-        goto finish;
+        continue;
       }
 
 #else

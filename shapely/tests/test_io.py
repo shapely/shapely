@@ -287,6 +287,15 @@ def test_to_wkt_none():
     assert shapely.to_wkt(None) is None
 
 
+def test_to_wkt_array_with_empty_z():
+    # See GH-2004
+    empty_wkt = ["POINT Z EMPTY", None, "POLYGON Z EMPTY"]
+    empty_geoms = shapely.from_wkt(empty_wkt)
+    if shapely.geos_version < (3, 9, 0):
+        empty_wkt = ["POINT EMPTY", None, "POLYGON EMPTY"]
+    assert list(shapely.to_wkt(empty_geoms)) == empty_wkt
+
+
 def test_to_wkt_exceptions():
     with pytest.raises(TypeError):
         shapely.to_wkt(1)
