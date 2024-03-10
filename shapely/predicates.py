@@ -1033,6 +1033,8 @@ def equals_identical(a, b, **kwargs):
     This function is the vectorized equivalent of scalar equality of
     geometry objects (``a == b``, i.e. ``__eq__``).
 
+    .. versionadded:: 2.1
+
     Parameters
     ----------
     a, b : Geometry or array_like
