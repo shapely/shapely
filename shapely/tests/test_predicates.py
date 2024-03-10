@@ -263,7 +263,7 @@ def test_has_m_all_types_m(geometry):
     reason="M coordinates not supported with GEOS < 3.12",
 )
 @pytest.mark.parametrize("geometry", all_types_zm)
-def test_has_m_all_types_zm(geometry):
+def test_has_z_has_m_all_types_zm(geometry):
     if shapely.is_empty(geometry):
         pytest.skip("GEOSHasZ with EMPTY geometries is inconsistent")
     assert shapely.has_z(geometry)
