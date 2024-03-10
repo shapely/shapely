@@ -1037,7 +1037,7 @@ def test_from_wkb_point_empty_m(wkb, expected_type):
     assert shapely.get_type_id(geom) == expected_type
     assert shapely.get_coordinate_dimension(geom) == 3
     assert not shapely.has_z(geom)
-    # TODO: assert shapely.has_m(geom)
+    assert shapely.has_m(geom)
 
 
 @pytest.mark.skipif(
@@ -1062,7 +1062,7 @@ def test_from_wkb_point_empty_zm(wkb, expected_type):
     assert shapely.get_type_id(geom) == expected_type
     assert shapely.get_coordinate_dimension(geom) == 4
     assert shapely.has_z(geom)
-    # TODO: assert shapely.has_m(geom)
+    assert shapely.has_m(geom)
 
 
 def test_to_wkb_point_empty_srid():
@@ -1086,10 +1086,10 @@ def test_pickle_z(geom):
     pickled = pickle.dumps(geom)
     actual = pickle.loads(pickled)
     assert_geometries_equal(actual, geom, tolerance=0)
-    if actual.is_empty:
-        pass  # GEOSHasZ with EMPTY geometries is inconsistent
-    else:
+    if not actual.is_empty:  # GEOSHasZ with EMPTY geometries is inconsistent
         assert actual.has_z
+    if shapely.geos_version >= (3, 12, 0):
+        assert not actual.has_m
 
 
 @pytest.mark.skipif(
@@ -1104,7 +1104,8 @@ def test_pickle_m(geom):
     actual = pickle.loads(pickled)
     assert_geometries_equal(actual, geom, tolerance=0)
     assert not actual.has_z
-    # TODO: assert actual.has_m
+    if not actual.is_empty:  # GEOSHasM with EMPTY geometries is inconsistent
+        assert actual.has_m
 
 
 @pytest.mark.skipif(
@@ -1118,11 +1119,9 @@ def test_pickle_zm(geom):
     pickled = pickle.dumps(geom)
     actual = pickle.loads(pickled)
     assert_geometries_equal(actual, geom, tolerance=0)
-    if actual.is_empty:
-        pass  # GEOSHasZ with EMPTY geometries is inconsistent
-    else:
+    if not actual.is_empty:  # GEOSHasZ with EMPTY geometries is inconsistent
         assert actual.has_z
-    # TODO: assert actual.has_m
+        assert actual.has_m
 
 
 @pytest.mark.parametrize("geom", all_types + (point_z, empty_point))
