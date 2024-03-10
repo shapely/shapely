@@ -74,6 +74,8 @@ def has_z(geometry, **kwargs):
 def has_m(geometry, **kwargs):
     """Returns True if a geometry has M coordinates.
 
+    .. versionadded:: 2.1.0
+
     Parameters
     ----------
     geometry : Geometry or array_like
@@ -980,6 +982,8 @@ def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
     normalize : bool, optional (default: False)
         If True, normalize the two geometries so that the coordinates are
         in the same order.
+
+        .. versionadded:: 2.1.0
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 

@@ -758,6 +758,8 @@ class BaseGeometry(shapely.Geometry):
             If True, normalize the two geometries so that the coordinates are
             in the same order.
 
+            .. versionadded:: 2.1.0
+
         Examples
         --------
         >>> LineString(
