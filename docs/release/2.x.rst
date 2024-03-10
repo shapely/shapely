@@ -15,7 +15,7 @@ API changes:
 
 Improvements:
 
-- Require GEOS >= 3.8, NumPy >= 1.16, and Python >= 3.8 (#1802, #1885)
+- Require GEOS >= 3.7, NumPy >= 1.16, and Python >= 3.8 (#1802)
 - Add a ``handle_nan`` parameter to ``shapely.linestrings()`` and ``shapely.linearrings()``
   to allow, skip, or error on nonfinite (NaN / Inf) coordinates. The default
   behaviour (allow) is backwards compatible (#1594).

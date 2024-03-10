@@ -10,6 +10,7 @@ all_non_empty_types = np.array(all_types + all_types_z)[
 ]
 
 
+# TODO add all_types_m and all_types_zm once tranform supports M coordinates
 @pytest.mark.parametrize("geom", all_types + all_types_z)
 def test_equality(geom):
     assert geom == geom
@@ -43,6 +44,12 @@ def test_equality(geom):
         (
             MultiLineString([[(1, 1), (2, 2)], [(2, 2), (3, 3)]]),
             MultiLineString([[(2, 2), (3, 3)], [(1, 1), (2, 2)]]),
+        ),
+        # M coordinates (don't work yet with automated cases)
+        (shapely.from_wkt("POINT M (0 0 0)"), shapely.from_wkt("POINT M (0 0 1)")),
+        (
+            shapely.from_wkt("POINT ZM (0 0 0 0)"),
+            shapely.from_wkt("POINT ZM (0 0 0 1)"),
         ),
     ],
 )
@@ -112,6 +119,11 @@ with ignore_invalid():
         (LineString([(0, 1), (2, np.nan)]), LineString([(0, 1), (2, 3)])),
         (LineString([(0, 1, np.nan), (2, 3, 4)]), LineString([(0, 1, 2), (2, 3, 4)])),
         (LineString([(0, 1, 2), (2, 3, np.nan)]), LineString([(0, 1, 2), (2, 3, 4)])),
+        (shapely.from_wkt("POINT M (0 0 0)"), shapely.from_wkt("POINT M (0 0 NaN)")),
+        (
+            shapely.from_wkt("POINT ZM (0 0 0 0)"),
+            shapely.from_wkt("POINT ZM (0 0 0 NaN)"),
+        ),
     ]
 
 
