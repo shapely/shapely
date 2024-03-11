@@ -3383,7 +3383,14 @@ static void to_wkt_func(char** args, const npy_intp* dimensions, const npy_intp*
         }
       }
 #endif  // !GEOS_SINCE_3_13_0
-#if GEOS_SINCE_3_9_0
+#if !GEOS_SINCE_3_9_0
+      // Before GEOS 3.9.0, there was as segfault on e.g. MULTIPOINT (1 1, EMPTY)
+      errstate = check_to_wkt_compatible(ctx, in1);
+      if (errstate != PGERR_SUCCESS) {
+        goto finish;
+      }
+#elif !GEOS_SINCE_3_12_0
+      // Since GEOS 3.9.0 and before 3.12.0 further handling required
       errstate = wkt_empty_3d_geometry(ctx, in1, &wkt);
       if (errstate != PGERR_SUCCESS) {
         goto finish;
@@ -3392,13 +3399,6 @@ static void to_wkt_func(char** args, const npy_intp* dimensions, const npy_intp*
         Py_XDECREF(*out);
         *out = PyUnicode_FromString(wkt);
         continue;
-      }
-
-#else
-      // Before GEOS 3.9.0, there was as segfault on e.g. MULTIPOINT (1 1, EMPTY)
-      errstate = check_to_wkt_compatible(ctx, in1);
-      if (errstate != PGERR_SUCCESS) {
-        goto finish;
       }
 #endif
       wkt = GEOSWKTWriter_write_r(ctx, writer, in1);

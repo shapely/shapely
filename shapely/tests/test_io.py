@@ -593,9 +593,6 @@ def test_repr_point_z_empty():
     assert repr(empty_point_z) == "<POINT Z EMPTY>"
 
 
-@pytest.mark.xfail(
-    reason="TODO: fix WKT for empty M and ZM geometries; see GH-2004", strict=True
-)
 @pytest.mark.skipif(
     shapely.geos_version < (3, 12, 0),
     reason="M coordinates not supported with GEOS < 3.12",
