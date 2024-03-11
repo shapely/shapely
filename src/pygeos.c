@@ -219,14 +219,20 @@ char equals_identical(GEOSContextHandle_t ctx, const GEOSGeometry* geom1,
     return 0;
   }
 
-  if ((type1 == 0) || (type1 == 1) || (type1 == 2)) {
-    return equals_identical_simple(ctx, geom1, geom2);
-  } else if (type1 == 3) {
-    return equals_identical_polygon(ctx, geom1, geom2);
-  } else if ((type1 >= 4) && (type1 <= 7)) {
-    return equals_identical_collection(ctx, geom1, geom2);
-  } else {
-    return 2;
+  switch (type1) {
+    case GEOS_POINT:
+    case GEOS_LINESTRING:
+    case GEOS_LINEARRING:
+      return equals_identical_simple(ctx, geom1, geom2);
+    case GEOS_POLYGON:
+      return equals_identical_polygon(ctx, geom1, geom2);
+    case GEOS_MULTIPOINT:
+    case GEOS_MULTILINESTRING:
+    case GEOS_MULTIPOLYGON:
+    case GEOS_GEOMETRYCOLLECTION:
+      return equals_identical_collection(ctx, geom1, geom2);
+    default:
+      return 2;
   }
 }
 

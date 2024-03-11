@@ -1027,7 +1027,7 @@ def equals_identical(a, b, **kwargs):
     components (vertices, rings, or parts) of a geometry. However, in
     contrast :func:`equals_exact`, this function does not allow to specify
     a tolerance, but does require all dimensions to be the same
-    (:func:`equals_exact` ignores the z-dimension), and NaN values are
+    (:func:`equals_exact` ignores the Z and M dimensions), and NaN values are
     considered to be equal to other NaN values.
 
     This function is the vectorized equivalent of scalar equality of
@@ -1050,10 +1050,10 @@ def equals_identical(a, b, **kwargs):
     Examples
     --------
     >>> from shapely import Point
-    >>> point1 = Point(50, 50, 1)
-    >>> point2 = Point(50, 50, 1)
-    >>> equals_identical(point1, point2)
+    >>> equals_identical(Point(1, 2, 3), Point(1, 2, 3))
     True
+    >>> equals_identical(Point(1, 2, 3), Point(1, 2, 0))
+    False
     """
     return lib.equals_identical(a, b, **kwargs)
 
