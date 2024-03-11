@@ -1027,8 +1027,8 @@ def equals_identical(a, b, **kwargs):
     components (vertices, rings, or parts) of a geometry. However, in
     contrast :func:`equals_exact`, this function does not allow to specify
     a tolerance, but does require all dimensions to be the same
-    (:func:`equals_exact` ignores the Z and M dimensions), and NaN values are
-    considered to be equal to other NaN values.
+    (:func:`equals_exact` ignores the Z and M dimensions), and NaN values
+    are considered to be equal to other NaN values.
 
     This function is the vectorized equivalent of scalar equality of
     geometry objects (``a == b``, i.e. ``__eq__``).
