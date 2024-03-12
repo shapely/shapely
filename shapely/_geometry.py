@@ -725,11 +725,13 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
 
     By default, geometries use double precision coordinates (grid_size = 0).
 
-    Coordinates will be rounded if a precision grid is less precise than the
-    input geometry. Duplicated vertices will be dropped from lines and
-    polygons for grid sizes greater than 0. Line and polygon geometries may
-    collapse to empty geometries if all vertices are closer together than
-    grid_size. Z values, if present, will not be modified.
+    Coordinates will be rounded if a precision grid is less precise than the input
+    geometry. Duplicated vertices will be dropped from lines and polygons for grid sizes
+    greater than 0. Line and polygon geometries may collapse to empty geometries if all
+    vertices are closer together than ``grid_size``. Spikes or sections in Polygons
+    narrower than ``grid_size`` after rounding the vertices will be removed, which can
+    lead to MultiPolygons or empty geometries. Z values, if present, will not be
+    modified.
 
     Notes:
 
@@ -750,7 +752,8 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
         value is more precise than input geometry, the input geometry will
         not be modified.
     mode :  {'valid_output', 'pointwise', 'keep_collapsed'}, default 'valid_output'
-        This parameter determines how to handle invalid output geometries. There are three modes:
+        This parameter determines the way a precision reduction is applied on the
+        geometry. There are three modes:
 
         1. `'valid_output'` (default):  The output is always valid. Collapsed geometry elements
            (including both polygons and lines) are removed. Duplicate vertices are removed.
