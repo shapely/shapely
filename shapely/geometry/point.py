@@ -3,6 +3,7 @@
 import numpy as np
 
 import shapely
+from shapely.decorators import requires_geos
 from shapely.errors import DimensionError
 from shapely.geometry.base import BaseGeometry
 
@@ -12,7 +13,7 @@ __all__ = ["Point"]
 class Point(BaseGeometry):
     """
     A geometry type that represents a single coordinate with
-    x,y and possibly z values.
+    x, y and possibly z and/or m values.
 
     A point is a zero-dimensional feature and has zero length and zero area.
 
@@ -27,7 +28,7 @@ class Point(BaseGeometry):
 
     Attributes
     ----------
-    x, y, z : float
+    x, y, z, m : float
         Coordinate values
 
     Examples
@@ -98,6 +99,14 @@ class Point(BaseGeometry):
         if not shapely.has_z(self):
             raise DimensionError("This point has no z coordinate.")
         return shapely.get_z(self)
+
+    @property
+    @requires_geos("3.12.0")
+    def m(self):
+        """Return m coordinate."""
+        if not shapely.has_m(self):
+            raise DimensionError("This point has no m coordinate.")
+        return shapely.get_m(self)
 
     @property
     def __geo_interface__(self):

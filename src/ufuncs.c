@@ -1055,6 +1055,18 @@ static int GetZ(void* context, void* a, double* b) {
   }
 }
 static void* get_z_data[1] = {GetZ};
+#if GEOS_SINCE_3_12_0
+static int GetM(void* context, void* a, double* b) {
+  char typ = GEOSGeomTypeId_r(context, a);
+  if (typ != 0) {
+    *(double*)b = NPY_NAN;
+    return 1;
+  } else {
+    return GEOSGeomGetM_r(context, a, b);
+  }
+}
+static void* get_m_data[1] = {GetM};
+#endif
 static void* area_data[1] = {GEOSArea_r};
 static void* length_data[1] = {GEOSLength_r};
 
@@ -3837,6 +3849,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 
 #if GEOS_SINCE_3_12_0
   DEFINE_Y_b(has_m);
+  DEFINE_Y_d(get_m);
 #endif
 
   Py_DECREF(ufunc);
