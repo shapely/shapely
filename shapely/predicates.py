@@ -7,6 +7,7 @@ from shapely.decorators import multithreading_enabled, requires_geos
 
 __all__ = [
     "has_z",
+    "has_m",
     "is_ccw",
     "is_closed",
     "is_empty",
@@ -40,7 +41,7 @@ __all__ = [
 
 @multithreading_enabled
 def has_z(geometry, **kwargs):
-    """Returns True if a geometry has a Z coordinate.
+    """Returns True if a geometry has Z coordinates.
 
     Note that for GEOS < 3.12 this function returns False if the (first) Z coordinate
     equals NaN.
@@ -53,7 +54,7 @@ def has_z(geometry, **kwargs):
 
     See also
     --------
-    get_coordinate_dimension
+    get_coordinate_dimension, has_m
 
     Examples
     --------
@@ -66,6 +67,36 @@ def has_z(geometry, **kwargs):
     False
     """
     return lib.has_z(geometry, **kwargs)
+
+
+@multithreading_enabled
+@requires_geos("3.12.0")
+def has_m(geometry, **kwargs):
+    """Returns True if a geometry has M coordinates.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    **kwargs
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    See also
+    --------
+    get_coordinate_dimension, has_z
+
+    Examples
+    --------
+    >>> from shapely import from_wkt
+    >>> has_m(from_wkt("POINT (0 0)"))
+    False
+    >>> has_m(from_wkt("POINT Z (0 0 0)"))
+    False
+    >>> has_m(from_wkt("POINT M (0 0 0)"))
+    True
+    >>> has_m(from_wkt("POINT ZM (0 0 0 0)"))
+    True
+    """
+    return lib.has_m(geometry, **kwargs)
 
 
 @multithreading_enabled
