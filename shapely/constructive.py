@@ -1,6 +1,6 @@
 import numpy as np
 
-from shapely import lib
+from shapely import GeometryType, lib
 from shapely._enum import ParamEnum
 from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area_vectorized
 from shapely.decorators import multithreading_enabled, requires_geos
@@ -925,7 +925,7 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
 
 @requires_geos("3.12.0")
 @multithreading_enabled
-def coverage_simplify(geometry, tolerance, simplify_boundary=True, **kwargs):
+def coverage_simplify(geometry, tolerance, simplify_boundary=True, axis=None, **kwargs):
     """Returns a simplified version of an input geometry using the coverage simplification
 
     Assumes that the geometry forms a polygonal coverage. Under this assumption, the
@@ -941,12 +941,12 @@ def coverage_simplify(geometry, tolerance, simplify_boundary=True, **kwargs):
     The function allows simplification of all edges including the outer boundaries of the
     coverage or simplification of only the inner (shared) edges.
 
-    Invalid polygons within the collections and geometry types other than MultiPolygons
-    or GeometryCollections of Polygons and MultiPolygons are returned unchanged.
+    If there are other geometry types than Polygons or MultiPolygons present, the
+    resulting GeometryCollection will not undergo simplification and geometries are
+    returned collected but unchanged.
 
     If the geometry is polygonal but does not form a valid coverage due to overlaps,
     it will be simplified but it may result in invalid topology.
-
 
     Parameters
     ----------
@@ -957,11 +957,25 @@ def coverage_simplify(geometry, tolerance, simplify_boundary=True, **kwargs):
     simplify_boundary : bool, optional
         By default (True), simplifies both internal edges of the coverage as well
         as its boundary. If set to False, only simplifies internal edges.
+    axis : int, optional
+        Axis along which the operation is performed. The default (None)
+        performs the operation over all axes, returning a scalar value.
+        Axis may be negative, in which case it counts from the last to the
+        first axis.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     """
-    return lib.coverage_simplify(geometry, tolerance, simplify_boundary, **kwargs)
+    geometries = np.asarray(geometry)
+    if axis is None:
+        geometries = geometries.ravel()
+    else:
+        geometries = np.rollaxis(geometries, axis=axis, start=geometries.ndim)
+
+    # create_collection acts on the inner axis
+    collections = lib.create_collection(geometries, GeometryType.GEOMETRYCOLLECTION)
+
+    return lib.coverage_simplify(collections, tolerance, simplify_boundary, **kwargs)
 
 
 @multithreading_enabled

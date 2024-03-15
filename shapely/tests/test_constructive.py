@@ -1101,11 +1101,11 @@ def test_concave_hull_kwargs():
 @pytest.mark.parametrize("geometry", all_types)
 def test_coverage_simplify_geom_types(geometry):
     actual = shapely.coverage_simplify([geometry, geometry], 0.0)
-    assert actual.shape == (2,)
-    assert isinstance(actual[0], Geometry)
+    assert isinstance(actual, Geometry)
+    assert shapely.get_type_id(actual) == 7
     # Anything other than MultiPolygon or a GeometryCollection is returned as-is
-    if shapely.get_type_id(geometry) not in (6, 7):
-        assert actual[0].equals(geometry)
+    if shapely.get_type_id(geometry) not in (3, 6):
+        assert actual.geoms[0].equals(geometry)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
@@ -1119,25 +1119,25 @@ def test_coverage_simplify_multipolygon():
     actual = shapely.coverage_simplify(mp, 1)
     assert actual.equals(
         shapely.from_wkt(
-            "GEOMETRYCOLLECTION (POLYGON ((0 1, 1 1, 1 0, 0 1)), "
-            "POLYGON ((2 3, 3 3, 3 2, 2 3)))"
+            "GEOMETRYCOLLECTION (MULTIPOLYGON (((0 1, 1 1, 1 0, 0 1)), "
+            "((2 3, 3 3, 3 2, 2 3))))"
         )
     )
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
-def test_coverage_simplify_collection():
-    mp = shapely.GeometryCollection(
+def test_coverage_simplify_array():
+    polygons = np.array(
         [
             shapely.Polygon([(0, 0), (20, 0), (20, 10), (10, 5), (0, 10), (0, 0)]),
             shapely.Polygon([(0, 10), (10, 5), (20, 10), (20, 20), (0, 20), (0, 10)]),
         ]
     )
-    low_tolerance = shapely.coverage_simplify(mp, 1)
-    mid_tolerance = shapely.coverage_simplify(mp, 8)
-    high_tolerance = shapely.coverage_simplify(mp, 10)
+    low_tolerance = shapely.coverage_simplify(polygons, 1)
+    mid_tolerance = shapely.coverage_simplify(polygons, 8)
+    high_tolerance = shapely.coverage_simplify(polygons, 10)
 
-    assert low_tolerance.equals(mp.normalize())
+    assert low_tolerance.equals(shapely.GeometryCollection(list(polygons)).normalize())
     assert mid_tolerance.equals(
         shapely.from_wkt(
             "GEOMETRYCOLLECTION (POLYGON ((20 10, 0 10, 0 0, 20 0, 20 10)), "
@@ -1151,7 +1151,7 @@ def test_coverage_simplify_collection():
         )
     )
 
-    no_boundary = shapely.coverage_simplify(mp, 10, simplify_boundary=False)
+    no_boundary = shapely.coverage_simplify(polygons, 10, simplify_boundary=False)
     assert no_boundary.equals(
         shapely.from_wkt(
             "GEOMETRYCOLLECTION (POLYGON ((20 10, 0 10, 0 0, 20 0, 20 10)), "
