@@ -177,10 +177,10 @@ extern char check_to_wkt_compatible(GEOSContextHandle_t ctx, GEOSGeometry* geom)
 #if !GEOS_SINCE_3_13_0
 extern char check_to_wkt_trim_compatible(GEOSContextHandle_t ctx, const GEOSGeometry* geom, int dimension);
 #endif  // !GEOS_SINCE_3_13_0
-#if GEOS_SINCE_3_9_0
+#if GEOS_SINCE_3_9_0 && !GEOS_SINCE_3_12_0
 extern char wkt_empty_3d_geometry(GEOSContextHandle_t ctx, GEOSGeometry* geom,
                                   char** wkt);
-#endif  // GEOS_SINCE_3_9_0
+#endif  // GEOS_SINCE_3_9_0 && !GEOS_SINCE_3_12_0
 extern char geos_interpolate_checker(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 
 extern int init_geos(PyObject* m);

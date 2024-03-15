@@ -31,7 +31,7 @@ class MultiPolygon(BaseMultipartGeometry):
     --------
     Construct a MultiPolygon from a sequence of coordinate tuples
 
-    >>> from shapely import Polygon
+    >>> from shapely import MultiPolygon, Polygon
     >>> ob = MultiPolygon([
     ...     (
     ...     ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)),
