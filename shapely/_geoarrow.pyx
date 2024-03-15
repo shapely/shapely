@@ -3,6 +3,7 @@ from cpython cimport PyObject
 from cpython.pycapsule cimport PyCapsule_GetPointer
 from libc.stdint cimport int32_t, int64_t, uintptr_t
 from libc.stdlib cimport free, malloc
+from libc.string cimport memset
 
 from shapely._geos cimport (
     GEOSContextHandle_t,
@@ -155,6 +156,35 @@ cdef class ArrowSchemaHolder:
     def _addr(self):
         return <uintptr_t>(&self._schema)
 
+
+cdef class DecodedGeometryArray:
+    cdef object _base
+    cdef const GEOSGeometry* _geometries[1024]
+
+    def __cinit__(self):
+        memset(self._geometries, 0, sizeof(self._geometries))
+
+    def set_chunk(self, obj, int64_t offset, int64_t length):
+        memset(self._geometries, 0, sizeof(self._geometries))
+        self._base = None
+
+        cdef int64_t end = offset + length
+        if end > len(obj):
+            end = len(obj)
+
+        length = end - offset
+        if length <= 0:
+            return 0
+
+        self._base = obj
+        for i, item in enumerate(obj[offset: (offset + length)]):
+            if not PyGEOS_GetGEOSGeometry(<PyObject*>(item), &(self._geometries[i])):
+                raise RuntimeError(
+                    f"PyGEOS_GetGEOSGeometry(geometries[{i}]) failed")
+
+        return i + 1
+
+
 cdef class SchemaCalculator:
     cdef GeoArrowGEOSSchemaCalculator* _ptr
 
@@ -261,39 +291,31 @@ cdef class ArrayBuilder:
 
         self._assert_valid()
 
-        cdef GEOSGeometry* input_chunk[1024]
         cdef int rc
         cdef size_t n_appended = 0
         cdef int64_t n_appended_total = 0
         cdef int64_t i = 0
+        cdef int64_t chunk_size = 0
 
-        for chunk_in_i in range(len(geometries) // 1024):
-            for chunk_i in range(1024):
-                if not PyGEOS_GetGEOSGeometry(<PyObject*>(geometries[i]), &(input_chunk[chunk_i])):
-                    raise RuntimeError(f"PyGEOS_GetGEOSGeometry(geometries[{i}])")
-                i += 1
+        cdef DecodedGeometryArray decoded_chunk = DecodedGeometryArray()
+        chunk_size = decoded_chunk.set_chunk(geometries, i, 1024)
 
+        while chunk_size > 0:
             with nogil:
-                rc = GeoArrowGEOSArrayBuilderAppend(self._ptr, input_chunk, 1024, &n_appended)
+                rc = GeoArrowGEOSArrayBuilderAppend(
+                    self._ptr,
+                    decoded_chunk._geometries,
+                    chunk_size,
+                    &n_appended
+                )
+
             # TODO: check EOVERFLOW, e.g., WKB >2GB reached so we add a chunk and try again
             if rc != GEOARROW_GEOS_OK:
                 self._raise_last_error(rc, "GeoArrowGEOSArrayBuilderAppend()")
 
             n_appended_total += n_appended
-
-        cdef int64_t n_remaining = len(geometries) % 1024
-        for chunk_i in range(n_remaining):
-            if not PyGEOS_GetGEOSGeometry(<PyObject*>(geometries[i]), &(input_chunk[chunk_i])):
-                raise RuntimeError(f"PyGEOS_GetGEOSGeometry() failed at last chunk[{chunk_i}]")
-            i += 1
-
-        with nogil:
-                rc = GeoArrowGEOSArrayBuilderAppend(self._ptr, input_chunk, n_remaining, &n_appended)
-        # TODO: check EOVERFLOW, e.g., WKB >2GB reached so we add a chunk and try again
-        if rc != GEOARROW_GEOS_OK:
-            self._raise_last_error(rc, "GeoArrowGEOSArrayBuilderAppend()")
-
-            n_appended_total += n_appended
+            i += chunk_size
+            chunk_size = decoded_chunk.set_chunk(geometries, i, 1024)
 
         self._finish_chunk()
         return n_appended_total
