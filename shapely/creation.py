@@ -71,6 +71,8 @@ def points(
         - 'error': if any NaN or Inf is detected in the coordinates, a ValueError
           is raised. This option ensures that the created geometries have all
           finite coordinate values.
+
+        .. versionadded:: 2.1.0
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
@@ -141,6 +143,8 @@ def linestrings(
           is raised. This option ensures that the created geometries have all
           finite coordinate values.
 
+          .. versionadded:: 2.1.0
+
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
@@ -210,6 +214,9 @@ def linearrings(
         - 'error': if any NaN or Inf is detected in the coordinates, a ValueError
           is raised. This option ensures that the created geometries have all
           finite coordinate values.
+
+        .. versionadded:: 2.1.0
+
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs

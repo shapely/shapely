@@ -44,6 +44,8 @@ def transform(
         one-dimensional arrays (x, y and optional z) instead of a single
         two-dimensional array.
 
+        .. versionadded:: 2.1.0
+
     See Also
     --------
     has_z : Returns a copy of a geometry array with a function applied to its
