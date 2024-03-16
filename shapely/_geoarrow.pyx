@@ -160,29 +160,31 @@ cdef class ArrowSchemaHolder:
 cdef class GeometryArrayIterator:
     cdef object _obj
     cdef int64_t _target_chunk_size
-    cdef const GEOSGeometry* _geometries[1024]
+    cdef const GEOSGeometry* geometries[1024]
 
     def __cinit__(self, obj):
         self._obj = obj
-        memset(self._geometries, 0, sizeof(self._geometries))
+        memset(self.geometries, 0, sizeof(self.geometries))
         self._target_chunk_size = 1024
 
     def __iter__(self):
         cdef int64_t start = 0
         cdef int64_t end
         cdef int64_t length
+        cdef GEOSGeometry* geom
 
         while start < len(self._obj):
-            memset(self._geometries, 0, sizeof(self._geometries))
+            memset(self.geometries, 0, sizeof(self.geometries))
             end = start + self._target_chunk_size
             if end > len(self._obj):
                 end = len(self._obj)
             length = end - start
 
             for i in range(length):
-                if not PyGEOS_GetGEOSGeometry(<PyObject*>(self._obj[start + i]), &(self._geometries[i])):
+                if not PyGEOS_GetGEOSGeometry(<PyObject*>(self._obj[start + i]), &geom):
                     raise RuntimeError(
-                        f"PyGEOS_GetGEOSGeometry(geometries[{i}]) failed")
+                        f"PyGEOS_GetGEOSGeometry(obj[{start + i}]) failed")
+                self.geometries[i] = geom
 
             yield length
             start += self._target_chunk_size
@@ -217,7 +219,7 @@ cdef class SchemaCalculator:
         with get_geos_handle() as handle:
             for chunk_size in array_iterator:
                 for i in range(chunk_size):
-                    wkb_types[i] = GeoArrowGEOSWKBType(handle, array_iterator._geometries[i])
+                    wkb_types[i] = GeoArrowGEOSWKBType(handle, array_iterator.geometries[i])
                 GeoArrowGEOSSchemaCalculatorIngest(self._ptr, wkb_types, chunk_size)
 
     def finish(self, int32_t encoding):
@@ -285,7 +287,7 @@ cdef class ArrayBuilder:
             with nogil:
                 rc = GeoArrowGEOSArrayBuilderAppend(
                     self._ptr,
-                    array_iterator._geometries,
+                    array_iterator.geometries,
                     c_chunk_size,
                     &n_appended
                 )
@@ -319,6 +321,7 @@ cdef class ArrayBuilder:
 
         return msg.decode("UTF-8")
 
+
 cdef class ArrayReader:
     cdef get_geos_handle _handle
     cdef GEOSContextHandle_t _geos_handle
@@ -350,7 +353,7 @@ cdef class ArrayReader:
         if rc != GEOARROW_GEOS_OK:
             self._raise_last_error(rc, "GeoArrowGEOSArrayReaderRead()")
 
-        if n_out != array.length:
+        if n_out != (<size_t>array.length):
             raise RuntimeError(f"Expected {array.length} values but got {n_out}: {self._last_error()}")
 
         return out.to_pylist(self._geos_handle, n_out)
