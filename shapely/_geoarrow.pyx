@@ -212,33 +212,13 @@ cdef class SchemaCalculator:
 
     def ingest_geometry(self, object geometries):
         cdef int32_t wkb_types[1024]
-        cdef int64_t n_wkb_types = 0
-        cdef GEOSGeometry* geos_geom
-
-        n_geometries = len(geometries)
-        n_chunks = n_geometries // 1024
-        cdef int64_t i = 0
+        cdef GeometryArrayIterator array_iterator = GeometryArrayIterator(geometries)
 
         with get_geos_handle() as handle:
-            for chunk_in_i in range(n_chunks):
-                for chunk_i in range(1024):
-                    if not PyGEOS_GetGEOSGeometry(<PyObject*>(geometries[i]), &geos_geom):
-                        raise RuntimeError(
-                            f"PyGEOS_GetGEOSGeometry(geometries[{i}]) failed")
-                    wkb_types[chunk_i] = GeoArrowGEOSWKBType(handle, geos_geom)
-                    i += 1
-                n_wkb_types = 1024
-                GeoArrowGEOSSchemaCalculatorIngest(self._ptr, wkb_types, n_wkb_types)
-
-            for chunk_i in range(n_geometries % 1024):
-                if not PyGEOS_GetGEOSGeometry(<PyObject*>(geometries[i]), &geos_geom):
-                    raise RuntimeError(
-                        f"PyGEOS_GetGEOSGeometry(geometries[{i}]) failed")
-                wkb_types[chunk_i] = GeoArrowGEOSWKBType(handle, geos_geom)
-                i += 1
-
-            n_wkb_types = n_geometries % 1024
-            GeoArrowGEOSSchemaCalculatorIngest(self._ptr, wkb_types, n_wkb_types)
+            for chunk_size in array_iterator:
+                for i in range(chunk_size):
+                    wkb_types[i] = GeoArrowGEOSWKBType(handle, array_iterator._geometries[i])
+                GeoArrowGEOSSchemaCalculatorIngest(self._ptr, wkb_types, chunk_size)
 
     def finish(self, int32_t encoding):
         cdef ArrowSchemaHolder out = ArrowSchemaHolder()
@@ -300,7 +280,6 @@ cdef class ArrayBuilder:
         cdef int64_t c_chunk_size
 
         cdef GeometryArrayIterator array_iterator = GeometryArrayIterator(geometries)
-
         for chunk_size in array_iterator:
             c_chunk_size = chunk_size
             with nogil:
