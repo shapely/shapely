@@ -15,6 +15,8 @@ from shapely._geos cimport (
 )
 from shapely._pygeos_api cimport import_shapely_c_api, PyGEOS_CreateGeometry, PyGEOS_GetGEOSGeometry
 
+import numpy as np
+
 # initialize Shapely C API
 import_shapely_c_api()
 
@@ -109,17 +111,14 @@ cdef class GEOSGeometryArray:
         for i in range(n):
             self._ptr[i] = NULL
 
-    cdef to_pylist(self, GEOSContextHandle_t handle, size_t n):
-        out = []
+    cdef assign_into(self, GEOSContextHandle_t handle, out, int64_t out_offset, size_t n):
         for i in range(n):
             if self._ptr[i] != NULL:
                 geom = PyGEOS_CreateGeometry(self._ptr[i], handle)
                 self._ptr[i] = NULL
-                out.append(geom)
+                out[out_offset + i] = geom
             else:
-                out.append(None)
-
-        return out
+                out[out_offset + i] = None
 
     def __dealloc__(self):
         with get_geos_handle() as handle:
@@ -176,7 +175,6 @@ cdef class GeometryArrayIterator:
         cdef GEOSGeometry* geom
 
         while start < len(self._obj):
-            memset(self.geometries, 0, sizeof(self.geometries))
             end = start + self._target_chunk_size
             if end > len(self._obj):
                 end = len(self._obj)
@@ -325,6 +323,8 @@ cdef class ArrayBuilder:
 cdef class ArrayReader:
     cdef GEOSContextHandle_t _geos_handle
     cdef GeoArrowGEOSArrayReader* _ptr
+    cdef object _out
+    cdef int64_t _out_size
 
     def __cinit__(self, object schema_capsule):
         cdef ArrowSchema* schema = <ArrowSchema*>PyCapsule_GetPointer(schema_capsule, "arrow_schema")
@@ -334,10 +334,20 @@ cdef class ArrayReader:
         if rc != GEOARROW_GEOS_OK:
             self._raise_last_error("GeoArrowGEOSArrayReaderCreate()", rc)
 
+        self._out = np.array([], dtype="O")
+
     def __dealloc__(self):
         if self._ptr != NULL:
             GeoArrowGEOSArrayReaderDestroy(self._ptr)
         GEOS_finish_r(self._geos_handle)
+
+    def reserve(self, int64_t additional_size):
+        if (self._out_size + additional_size) <= len(self._out):
+            return
+
+        out = np.repeat([None], self._out_size + additional_size)
+        out[:self._out_size] = self._out
+        self._out = out
 
     def read(self, object array_capsule):
         self._assert_valid()
@@ -354,7 +364,20 @@ cdef class ArrayReader:
         if n_out != (<size_t>array.length):
             raise RuntimeError(f"Expected {array.length} values but got {n_out}: {self._last_error()}")
 
-        return out.to_pylist(self._geos_handle, n_out)
+        self.reserve(n_out)
+        out.assign_into(self._geos_handle, self._out, self._out_size, n_out)
+        self._out_size += n_out
+        return n_out
+
+    def finish(self):
+        if self._out_size == len(self._out):
+            out = self._out
+        else:
+            out = self._out[:self._out_size]
+
+        self._out = np.array([], dtype="O")
+        self._out_size = 0
+        return out
 
     def _assert_valid(self):
         if self._ptr == NULL:

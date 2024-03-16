@@ -91,15 +91,15 @@ def to_pyarrow(obj, schema_to):
     return pa.chunked_array(chunks_pyarrow, type=schema_to)
 
 
-def from_arrow(arrays, schema):
+def from_arrow(arrays, schema, n=None):
     schema = schema.__arrow_c_schema__()
     reader = ArrayReader(schema)
-    geom_arrays = []
+
+    if n is not None:
+        reader.reserve(n)
+
     for array in arrays:
         _, array = array.__arrow_c_array__()
-        geom_arrays.append(reader.read(array))
+        reader.read(array)
 
-    if geom_arrays:
-        return np.concatenate(geom_arrays)
-    else:
-        return np.array([], dtype=object)
+    return reader.finish()
