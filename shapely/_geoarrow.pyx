@@ -102,7 +102,7 @@ cdef class GEOSGeometryArray:
 
     def __cinit__(self, size_t n):
         self._n = 0
-        self._ptr = <GEOSGeometry**>malloc(n)
+        self._ptr = <GEOSGeometry**>malloc(n * sizeof(GEOSGeometry*))
         if self._ptr == NULL:
             raise MemoryError()
         self._n = n
@@ -252,7 +252,7 @@ cdef class ArrayBuilder:
         self._geos_handle = GEOS_init_r()
         cdef int rc = GeoArrowGEOSArrayBuilderCreate(self._geos_handle, schema, &self._ptr)
         if rc != GEOARROW_GEOS_OK:
-            self._raise_last_error(rc, "GeoArrowGEOSArrayReaderCreate()")
+            self._raise_last_error("GeoArrowGEOSArrayReaderCreate()", rc)
 
         self._chunks_out = []
 
@@ -265,7 +265,7 @@ cdef class ArrayBuilder:
         cdef ArrowArrayHolder chunk = ArrowArrayHolder()
         cdef int rc = GeoArrowGEOSArrayBuilderFinish(self._ptr, &chunk._array)
         if rc != GEOARROW_GEOS_OK:
-            self._raise_last_error(rc, "GeoArrowGEOSArrayBuilderFinish()")
+            self._raise_last_error("GeoArrowGEOSArrayBuilderFinish()", rc)
 
         if chunk._array.length > 0:
             self._chunks_out.append(chunk)
@@ -294,7 +294,7 @@ cdef class ArrayBuilder:
 
             # TODO: check EOVERFLOW, e.g., WKB >2GB reached so we add a chunk and try again
             if rc != GEOARROW_GEOS_OK:
-                self._raise_last_error(rc, "GeoArrowGEOSArrayBuilderAppend()")
+                self._raise_last_error("GeoArrowGEOSArrayBuilderAppend()", rc)
 
             n_appended_total += n_appended
 
@@ -332,7 +332,7 @@ cdef class ArrayReader:
         self._geos_handle = GEOS_init_r()
         cdef int rc = GeoArrowGEOSArrayReaderCreate(self._geos_handle, schema, &self._ptr)
         if rc != GEOARROW_GEOS_OK:
-            self._raise_last_error(rc, "GeoArrowGEOSArrayReaderCreate()")
+            self._raise_last_error("GeoArrowGEOSArrayReaderCreate()", rc)
 
     def __dealloc__(self):
         if self._ptr != NULL:
@@ -349,7 +349,7 @@ cdef class ArrayReader:
         with nogil:
             rc = GeoArrowGEOSArrayReaderRead(self._ptr, array, 0, array.length, out._ptr, &n_out)
         if rc != GEOARROW_GEOS_OK:
-            self._raise_last_error(rc, "GeoArrowGEOSArrayReaderRead()")
+            self._raise_last_error("GeoArrowGEOSArrayReaderRead()", rc)
 
         if n_out != (<size_t>array.length):
             raise RuntimeError(f"Expected {array.length} values but got {n_out}: {self._last_error()}")
