@@ -6,6 +6,8 @@ from libc.stdlib cimport free, malloc
 from libc.string cimport memset
 
 from shapely._geos cimport (
+    GEOS_init_r,
+    GEOS_finish_r,
     GEOSContextHandle_t,
     GEOSGeom_destroy_r,
     GEOSGeometry,
@@ -240,7 +242,6 @@ cdef class SchemaCalculator:
 
 
 cdef class ArrayBuilder:
-    cdef get_geos_handle _handle
     cdef GEOSContextHandle_t _geos_handle
     cdef GeoArrowGEOSArrayBuilder* _ptr
     cdef list _chunks_out
@@ -248,8 +249,7 @@ cdef class ArrayBuilder:
     def __cinit__(self, object schema_capsule):
         cdef ArrowSchema* schema = <ArrowSchema*>PyCapsule_GetPointer(schema_capsule, "arrow_schema")
         self._ptr = NULL
-        self._handle = get_geos_handle()
-        self._geos_handle = self._handle.__enter__()
+        self._geos_handle = GEOS_init_r()
         cdef int rc = GeoArrowGEOSArrayBuilderCreate(self._geos_handle, schema, &self._ptr)
         if rc != GEOARROW_GEOS_OK:
             self._raise_last_error(rc, "GeoArrowGEOSArrayReaderCreate()")
@@ -259,7 +259,7 @@ cdef class ArrayBuilder:
     def __dealloc__(self):
         if self._ptr != NULL:
             GeoArrowGEOSArrayBuilderDestroy(self._ptr)
-        self._handle.__exit__(None, None, None)
+        GEOS_finish_r(self._geos_handle)
 
     def _finish_chunk(self):
         cdef ArrowArrayHolder chunk = ArrowArrayHolder()
@@ -323,15 +323,13 @@ cdef class ArrayBuilder:
 
 
 cdef class ArrayReader:
-    cdef get_geos_handle _handle
     cdef GEOSContextHandle_t _geos_handle
     cdef GeoArrowGEOSArrayReader* _ptr
 
     def __cinit__(self, object schema_capsule):
         cdef ArrowSchema* schema = <ArrowSchema*>PyCapsule_GetPointer(schema_capsule, "arrow_schema")
         self._ptr = NULL
-        self._handle = get_geos_handle()
-        self._geos_handle = self._handle.__enter__()
+        self._geos_handle = GEOS_init_r()
         cdef int rc = GeoArrowGEOSArrayReaderCreate(self._geos_handle, schema, &self._ptr)
         if rc != GEOARROW_GEOS_OK:
             self._raise_last_error(rc, "GeoArrowGEOSArrayReaderCreate()")
@@ -339,7 +337,7 @@ cdef class ArrayReader:
     def __dealloc__(self):
         if self._ptr != NULL:
             GeoArrowGEOSArrayReaderDestroy(self._ptr)
-        self._handle.__exit__(None, None, None)
+        GEOS_finish_r(self._geos_handle)
 
     def read(self, object array_capsule):
         self._assert_valid()
