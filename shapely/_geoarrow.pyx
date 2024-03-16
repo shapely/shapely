@@ -157,32 +157,35 @@ cdef class ArrowSchemaHolder:
         return <uintptr_t>(&self._schema)
 
 
-cdef class DecodedGeometryArray:
-    cdef object _base
+cdef class GeometryArrayIterator:
+    cdef object _obj
+    cdef int64_t _target_chunk_size
     cdef const GEOSGeometry* _geometries[1024]
 
-    def __cinit__(self):
+    def __cinit__(self, obj):
+        self._obj = obj
         memset(self._geometries, 0, sizeof(self._geometries))
+        self._target_chunk_size = 1024
 
-    def set_chunk(self, obj, int64_t offset, int64_t length):
-        memset(self._geometries, 0, sizeof(self._geometries))
-        self._base = None
+    def __iter__(self):
+        cdef int64_t start = 0
+        cdef int64_t end
+        cdef int64_t length
 
-        cdef int64_t end = offset + length
-        if end > len(obj):
-            end = len(obj)
+        while start < len(self._obj):
+            memset(self._geometries, 0, sizeof(self._geometries))
+            end = start + self._target_chunk_size
+            if end > len(self._obj):
+                end = len(self._obj)
+            length = end - start
 
-        length = end - offset
-        if length <= 0:
-            return 0
+            for i in range(length):
+                if not PyGEOS_GetGEOSGeometry(<PyObject*>(self._obj[start + i]), &(self._geometries[i])):
+                    raise RuntimeError(
+                        f"PyGEOS_GetGEOSGeometry(geometries[{i}]) failed")
 
-        self._base = obj
-        for i, item in enumerate(obj[offset: (offset + length)]):
-            if not PyGEOS_GetGEOSGeometry(<PyObject*>(item), &(self._geometries[i])):
-                raise RuntimeError(
-                    f"PyGEOS_GetGEOSGeometry(geometries[{i}]) failed")
-
-        return i + 1
+            yield length
+            start += self._target_chunk_size
 
 
 cdef class SchemaCalculator:
@@ -294,18 +297,17 @@ cdef class ArrayBuilder:
         cdef int rc
         cdef size_t n_appended = 0
         cdef int64_t n_appended_total = 0
-        cdef int64_t i = 0
-        cdef int64_t chunk_size = 0
+        cdef int64_t c_chunk_size
 
-        cdef DecodedGeometryArray decoded_chunk = DecodedGeometryArray()
-        chunk_size = decoded_chunk.set_chunk(geometries, i, 1024)
+        cdef GeometryArrayIterator array_iterator = GeometryArrayIterator(geometries)
 
-        while chunk_size > 0:
+        for chunk_size in array_iterator:
+            c_chunk_size = chunk_size
             with nogil:
                 rc = GeoArrowGEOSArrayBuilderAppend(
                     self._ptr,
-                    decoded_chunk._geometries,
-                    chunk_size,
+                    array_iterator._geometries,
+                    c_chunk_size,
                     &n_appended
                 )
 
@@ -314,12 +316,9 @@ cdef class ArrayBuilder:
                 self._raise_last_error(rc, "GeoArrowGEOSArrayBuilderAppend()")
 
             n_appended_total += n_appended
-            i += chunk_size
-            chunk_size = decoded_chunk.set_chunk(geometries, i, 1024)
 
         self._finish_chunk()
         return n_appended_total
-
 
     def finish(self):
         self._assert_valid()
