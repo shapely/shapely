@@ -3,7 +3,6 @@
 import numpy as np
 
 import shapely
-from shapely.decorators import requires_geos
 from shapely.errors import DimensionError
 from shapely.geometry.base import BaseGeometry
 
@@ -101,9 +100,12 @@ class Point(BaseGeometry):
         return shapely.get_z(self)
 
     @property
-    @requires_geos("3.12.0")
     def m(self):
-        """Return m coordinate."""
+        """Return m coordinate.
+
+        .. versionadded:: 2.1.0
+           Also requires GEOS 3.12.0 or later.
+        """
         if not shapely.has_m(self):
             raise DimensionError("This point has no m coordinate.")
         return shapely.get_m(self)
