@@ -52,8 +52,8 @@ def type_pyarrow(encoding, geometry_type=None, dimensions=None):
     elif dimensions == "xyzm":
         wkb_type += 3000
 
-    holder = SchemaCalculator.from_wkb_type(encoding, wkb_type)
-    return pa.DataType._import_from_c(holder._addr())
+    capsule = SchemaCalculator.from_wkb_type(encoding, wkb_type)
+    return pa.DataType._import_from_c_capsule(capsule)
 
 
 def infer_pyarrow_type(obj, encoding=None):
@@ -69,26 +69,16 @@ def infer_pyarrow_type(obj, encoding=None):
 
     calculator = SchemaCalculator()
     calculator.ingest_geometry(obj)
-    holder = calculator.finish(encoding)
+    capsule = calculator.finish(encoding)
 
-    return pa.DataType._import_from_c(holder._addr())
+    return pa.DataType._import_from_c_capsule(capsule)
 
 
-def to_pyarrow(obj, schema_to):
+def to_pyarrow(obj, preferred_encoding=None):
     import pyarrow as pa
 
-    # Note: faster to iterate over np.array(obj)
-    obj = np.array(obj)
-
-    builder = ArrayBuilder(schema_to.__arrow_c_schema__())
-    builder.append(obj)
-
-    chunks_pyarrow = []
-    for holder in builder.finish():
-        array = pa.Array._import_from_c(holder._addr(), schema_to)
-        chunks_pyarrow.append(array)
-
-    return pa.chunked_array(chunks_pyarrow, type=schema_to)
+    exporter = GeoArrowExporter(obj, preferred_encoding=preferred_encoding)
+    return pa.array(exporter)
 
 
 def from_arrow(arrays, schema, n=None):
@@ -103,3 +93,54 @@ def from_arrow(arrays, schema, n=None):
         reader.read(array)
 
     return reader.finish()
+
+
+class GeoArrowExporter:
+
+    def __init__(self, geometries, *, preferred_encoding=None) -> None:
+        self._geometries = np.array(geometries)
+
+        if preferred_encoding is None:
+            self._preferred_encoding = Encoding.GEOARROW.value
+        else:
+            self._preferred_encoding = Encoding(preferred_encoding).value
+
+    def __arrow_c_schema__(self):
+        if self._preferred_encoding == Encoding.WKB.value:
+            return SchemaCalculator.from_wkb_type(self._preferred_encoding)
+
+        calculator = SchemaCalculator()
+        calculator.ingest_geometry(self._geometries)
+        return calculator.finish(self._preferred_encoding)
+
+    def __arrow_c_array__(self, requested_schema=None):
+        if requested_schema is None:
+            requested_schema = self.__arrow_c_schema__()
+
+        builder = ArrayBuilder(requested_schema)
+        builder.append(self._geometries)
+        chunks = builder.finish(ensure_non_empty=True)
+
+        if len(chunks) == 1:
+            return requested_schema, chunks[0]
+        else:
+            raise ValueError(
+                f"Can't export geometries to single chunk ({len(chunks)} required)"
+            )
+
+    def __arrow_c_stream__(self, requested_schema=None):
+        from nanoarrow.c_lib import CArrayStream, c_array, c_schema
+
+        if requested_schema is None:
+            requested_schema = self.__arrow_c_schema__()
+
+        builder = ArrayBuilder(requested_schema)
+        builder.append(self._geometries)
+        chunks = builder.finish()
+
+        na_schema = c_schema(requested_schema)
+        na_chunks = [c_array(chunk) for chunk in chunks]
+        na_stream = CArrayStream.from_array_list(
+            na_chunks, na_schema, validate=False, move=True
+        )
+        return na_stream.__arrow_c_stream__()

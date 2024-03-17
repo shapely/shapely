@@ -1,6 +1,6 @@
 
 from cpython cimport PyObject
-from cpython.pycapsule cimport PyCapsule_GetPointer
+from cpython.pycapsule cimport PyCapsule_GetPointer, PyCapsule_New
 from libc.stdint cimport int32_t, int64_t, uintptr_t
 from libc.stdlib cimport free, malloc
 from libc.string cimport memset
@@ -92,6 +92,38 @@ cdef extern from "geoarrow_geos.h" nogil:
                                 const GEOSGeometry* geom)
 
 
+cdef void pycapsule_schema_deleter(object schema_capsule) noexcept:
+    cdef ArrowSchema* schema = <ArrowSchema*>PyCapsule_GetPointer(
+        schema_capsule, 'arrow_schema'
+    )
+    if schema.release != NULL:
+        schema.release(schema)
+
+    free(schema)
+
+
+cdef object alloc_c_schema(ArrowSchema** c_schema) noexcept:
+    c_schema[0] = <ArrowSchema*> malloc(sizeof(ArrowSchema))
+    c_schema[0].release = NULL
+    return PyCapsule_New(c_schema[0], 'arrow_schema', &pycapsule_schema_deleter)
+
+
+cdef void pycapsule_array_deleter(object array_capsule) noexcept:
+    cdef ArrowArray* array = <ArrowArray*>PyCapsule_GetPointer(
+        array_capsule, 'arrow_array'
+    )
+    if array.release != NULL:
+        array.release(array)
+
+    free(array)
+
+
+cdef object alloc_c_array(ArrowArray** c_array) noexcept:
+    c_array[0] = <ArrowArray*> malloc(sizeof(ArrowArray))
+    c_array[0].release = NULL
+    return PyCapsule_New(c_array[0], 'arrow_array', &pycapsule_array_deleter)
+
+
 class GeoArrowGEOSException(Exception):
 
     def __init__(self, what, code, msg):
@@ -128,34 +160,6 @@ cdef class GEOSGeometryArray:
 
         if self._ptr != NULL:
             free(self._ptr)
-
-
-cdef class ArrowArrayHolder:
-    cdef ArrowArray _array
-
-    def __cinit__(self):
-        self._array.release = NULL
-
-    def __dealloc__(self):
-        if self._array.release != NULL:
-            self._array.release(&self._array)
-
-    def _addr(self):
-        return <uintptr_t>(&self._array)
-
-
-cdef class ArrowSchemaHolder:
-    cdef ArrowSchema _schema
-
-    def __cinit__(self):
-        self._schema.release = NULL
-
-    def __dealloc__(self):
-        if self._schema.release != NULL:
-            self._schema.release(&self._schema)
-
-    def _addr(self):
-        return <uintptr_t>(&self._schema)
 
 
 cdef class GeometryArrayIterator:
@@ -223,20 +227,24 @@ cdef class SchemaCalculator:
                 GeoArrowGEOSSchemaCalculatorIngest(self._ptr, wkb_types, chunk_size)
 
     def finish(self, int32_t encoding):
-        cdef ArrowSchemaHolder out = ArrowSchemaHolder()
+        cdef ArrowSchema* schema
+        schema_capsule = alloc_c_schema(&schema)
+
         cdef int rc = GeoArrowGEOSSchemaCalculatorFinish(
-            self._ptr, <GeoArrowGEOSEncoding>encoding, &(out._schema))
+            self._ptr, <GeoArrowGEOSEncoding>encoding, schema)
         if rc != GEOARROW_GEOS_OK:
             raise GeoArrowGEOSException("GeoArrowGEOSSchemaCalculatorFinish()", rc, "<none>")
-        return out
+        return schema_capsule
 
     @staticmethod
     def from_wkb_type(int32_t encoding, int32_t wkb_type = 0):
-        cdef ArrowSchemaHolder out = ArrowSchemaHolder()
-        cdef int rc = GeoArrowGEOSMakeSchema(encoding, wkb_type, &(out._schema))
+        cdef ArrowSchema* schema
+        schema_capsule = alloc_c_schema(&schema)
+
+        cdef int rc = GeoArrowGEOSMakeSchema(encoding, wkb_type, schema)
         if rc != GEOARROW_GEOS_OK:
             raise GeoArrowGEOSException("GeoArrowGEOSMakeSchema()", rc, "<none>")
-        return out
+        return schema_capsule
 
 
 cdef class ArrayBuilder:
@@ -259,13 +267,15 @@ cdef class ArrayBuilder:
             GeoArrowGEOSArrayBuilderDestroy(self._ptr)
         GEOS_finish_r(self._geos_handle)
 
-    def _finish_chunk(self):
-        cdef ArrowArrayHolder chunk = ArrowArrayHolder()
-        cdef int rc = GeoArrowGEOSArrayBuilderFinish(self._ptr, &chunk._array)
+    def _finish_chunk(self, append_empty=False):
+        cdef ArrowArray* array
+        chunk = alloc_c_array(&array)
+
+        cdef int rc = GeoArrowGEOSArrayBuilderFinish(self._ptr, array)
         if rc != GEOARROW_GEOS_OK:
             self._raise_last_error("GeoArrowGEOSArrayBuilderFinish()", rc)
 
-        if chunk._array.length > 0:
+        if array.length > 0 or append_empty:
             self._chunks_out.append(chunk)
 
     def append(self, object geometries):
@@ -290,7 +300,8 @@ cdef class ArrayBuilder:
                     &n_appended
                 )
 
-            # TODO: check EOVERFLOW, e.g., WKB >2GB reached so we add a chunk and try again
+            # For EOVERFLOW (e.g., WKB >2GB reached) we could add a chunk and attempt
+            # appending the rest.
             if rc != GEOARROW_GEOS_OK:
                 self._raise_last_error("GeoArrowGEOSArrayBuilderAppend()", rc)
 
@@ -299,9 +310,14 @@ cdef class ArrayBuilder:
         self._finish_chunk()
         return n_appended_total
 
-    def finish(self):
+    def finish(self, ensure_non_empty=False):
         self._assert_valid()
-        return self._chunks_out
+        if len(self._chunks_out) == 0 and ensure_non_empty:
+            self._finish_chunk(append_empty=True)
+
+        out = self._chunks_out
+        self._chunks_out = []
+        return out
 
     def _assert_valid(self):
         if self._ptr == NULL:

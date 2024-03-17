@@ -87,15 +87,15 @@ def test_infer_pyarrow_type_more_than_chunk_size():
 
 
 def test_to_pyarrow_empty():
-    out = to_pyarrow([], ga.point())
-    assert out == pa.chunked_array([], type=ga.point())
+    out = to_pyarrow([])
+    assert out == pa.array([], type=ga.wkb())
 
 
 def test_to_pyarrow_wkt():
     out = to_pyarrow(
-        [shapely.from_wkt("POINT (0 1)"), shapely.from_wkt("POINT (2 3)")], ga.wkt()
+        [shapely.from_wkt("POINT (0 1)"), shapely.from_wkt("POINT (2 3)")], Encoding.WKT
     )
-    assert out == pa.chunked_array([ga.as_wkt(["POINT (0 1)", "POINT (2 3)"])])
+    assert out == ga.as_wkt(["POINT (0 1)", "POINT (2 3)"])
 
 
 def test_to_pyarrow_more_than_chunk_size():
@@ -104,27 +104,26 @@ def test_to_pyarrow_more_than_chunk_size():
     chunk2 = [shapely.from_wkt("POINT (4 5)"), shapely.from_wkt("POINT (6 7)")] * 512
     chunk3 = [shapely.from_wkt("POINT (8 9)")]
     chunk_all = chunk1 + chunk2 + chunk3
-    out = to_pyarrow(chunk_all, ga.wkt())
+    out = to_pyarrow(chunk_all, Encoding.WKT)
 
-    assert len(out) == len(chunk_all)
-    assert out.num_chunks == 1
-    assert out.chunk(0)[0:2] == ga.as_wkt(["POINT (0 1)", "POINT (2 3)"])
-    assert out.chunk(0)[1024:1026] == ga.as_wkt(["POINT (4 5)", "POINT (6 7)"])
-    assert out.chunk(0)[2048:2049] == ga.as_wkt(["POINT (8 9)"])
+    assert out[0:2] == ga.as_wkt(["POINT (0 1)", "POINT (2 3)"])
+    assert out[1024:1026] == ga.as_wkt(["POINT (4 5)", "POINT (6 7)"])
+    assert out[2048:2049] == ga.as_wkt(["POINT (8 9)"])
 
 
 def test_to_pyarrow_wkb():
     out = to_pyarrow(
-        [shapely.from_wkt("POINT (0 1)"), shapely.from_wkt("POINT (2 3)")], ga.wkb()
+        [shapely.from_wkt("POINT (0 1)"), shapely.from_wkt("POINT (2 3)")], Encoding.WKB
     )
-    assert out == pa.chunked_array([ga.as_wkb(["POINT (0 1)", "POINT (2 3)"])])
+    assert out == ga.as_wkb(["POINT (0 1)", "POINT (2 3)"])
 
 
 def test_to_pyarrow_point():
     out = to_pyarrow(
-        [shapely.from_wkt("POINT (0 1)"), shapely.from_wkt("POINT (2 3)")], ga.point()
+        [shapely.from_wkt("POINT (0 1)"), shapely.from_wkt("POINT (2 3)")],
+        Encoding.GEOARROW,
     )
-    assert out == pa.chunked_array([ga.as_geoarrow(["POINT (0 1)", "POINT (2 3)"])])
+    assert out == ga.as_geoarrow(["POINT (0 1)", "POINT (2 3)"])
 
 
 def test_from_arrow_error_construct():
