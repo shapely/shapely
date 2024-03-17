@@ -128,16 +128,24 @@ def test_to_pyarrow_point():
 
 def test_from_arrow_error_construct():
     with pytest.raises(GeoArrowGEOSException, match="Expected extension type"):
-        from_arrow([], pa.float64())
+        from_arrow(pa.array([], pa.float64()))
 
 
 def test_from_arrow_empty():
-    testing.assert_array_equal(from_arrow([], ga.point()), np.array([], dtype=object))
+    testing.assert_array_equal(from_arrow(pa.array([], ga.point())), np.array([], dtype=object))
 
 
 def test_from_arrow_wkt():
     array = ga.as_wkt(["POINT (0 1)", "POINT (2 3)"])
-    out = from_arrow([array], array.type)
+    out = from_arrow(array)
+    assert len(out) == 2
+    assert out[0] == shapely.from_wkt("POINT (0 1)")
+    assert out[1] == shapely.from_wkt("POINT (2 3)")
+
+def test_from_arrow_chunked_array():
+    array = ga.as_wkt(["POINT (0 1)", "POINT (2 3)"])
+    chunked_array = pa.chunked_array([array])
+    out = from_arrow(chunked_array)
     assert len(out) == 2
     assert out[0] == shapely.from_wkt("POINT (0 1)")
     assert out[1] == shapely.from_wkt("POINT (2 3)")

@@ -139,16 +139,25 @@ def to_pyarrow(obj, preferred_encoding=None):
     return pa.array(exporter)
 
 
-def from_arrow(arrays, schema, n=None):
+def from_arrow(obj, schema=None):
+    import nanoarrow as na
 
-    schema = schema.__arrow_c_schema__()
-    reader = ArrayReader(schema)
+    # For compatability with pyarrow <16.0.0
+    if type(obj).__name__ == "ChunkedArray":
+        schema = obj.type.__arrow_c_schema__()
+        reader = ArrayReader(schema)
+        for array in obj.chunks:
+            _, array = array.__arrow_c_array__()
+            reader.read(array)
 
-    if n is not None:
-        reader.reserve(n)
+        return reader.finish()
 
-    for array in arrays:
-        _, array = array.__arrow_c_array__()
-        reader.read(array)
+    with na.c_array_stream(obj, schema=schema) as stream:
+        schema = stream.get_schema().__arrow_c_schema__()
+        reader = ArrayReader(schema)
 
-    return reader.finish()
+        for array in stream:
+            _, array = array.__arrow_c_array__()
+            reader.read(array)
+
+        return reader.finish()
