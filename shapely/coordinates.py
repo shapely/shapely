@@ -3,9 +3,15 @@ from typing import Optional
 import numpy as np
 
 import shapely
-from shapely import lib
+from shapely import GeometryType, lib
 
-__all__ = ["transform", "count_coordinates", "get_coordinates", "set_coordinates"]
+__all__ = [
+    "transform",
+    "count_coordinates",
+    "get_coordinates",
+    "set_coordinates",
+    "transform_resize",
+]
 
 
 def transform(
@@ -14,13 +20,17 @@ def transform(
     include_z: Optional[bool] = False,
     interleaved: bool = True,
 ):
-    """Returns a copy of a geometry array with a function applied to its
-    coordinates.
+    """Apply a transformation to the coordinates in a geometry or geometry array.
 
     With the default of ``include_z=False``, all returned geometries will be
     two-dimensional; the third dimension will be discarded, if present.
     When specifying ``include_z=True``, the returned geometries preserve
     the dimensionality of the respective input geometries.
+
+    This function differs with `transform_resize` in the following ways:
+
+    - It accepts arrays of Geometry objects.
+    - The number of coordinates per Geometry is not allowed to change.
 
     Parameters
     ----------
@@ -41,8 +51,9 @@ def transform(
         guaranteed result, it is recommended to specify ``include_z`` explicitly.
     interleaved : bool, default True
         If set to False, the transformation function should accept 2 or 3 separate
-        one-dimensional arrays (x, y and optional z) instead of a single
-        two-dimensional array.
+        one-dimensional coordinate arrays as arguments (x, y and optional z) instead
+        of a single one. The return value must be a tuple of (x, y and optional z).
+
 
         .. versionadded:: 2.1.0
 
@@ -50,6 +61,7 @@ def transform(
     --------
     has_z : Returns a copy of a geometry array with a function applied to its
         coordinates.
+    transform_resize : Transform single Geometry objects, optionally resizing them.
 
     Examples
     --------
@@ -129,6 +141,115 @@ def transform(
     if result.ndim == 0 and not isinstance(geometry, np.ndarray):
         return result.item()
     return result
+
+
+def transform_resize(
+    geom: Optional[shapely.Geometry],
+    transformation,
+    include_z: Optional[bool] = False,
+    interleaved: bool = True,
+):
+    """Apply a function to the coordinates in a geometry, optionally
+    changing the number of coordinate pairs.
+
+    The transformation function is applied per coordinate sequence. For polygons this
+    means: per ring. For collections this means: per element.
+
+    This function differs with `transform` in the following ways:
+
+    - It only accepts scalar Geometry objects, not arrays.
+    - The number of coordinate pairs per coordinate sequence is allowed to change.
+
+    The `transform` function is the more performant option, so we recommend using this
+    function when changing the number of coordinate pairs.
+
+    Parameters
+    ----------
+    geom : Geometry or None
+    transformation : function
+        A function that transforms a (N, 2) or (N, 3) ndarray of float64 to
+        another (N, 2) or (N, 3) ndarray of float64.
+        The function may change the value of N.
+    include_z : bool, optional, default False
+        If False, always return 2D geometries.
+        If True, the data being passed to the
+        transformation function will include the third dimension
+        (if a geometry has no third dimension, the z-coordinates
+        will be NaN). If None, will infer the dimensionality using
+        ``has_z``. Note that this inference
+        can be unreliable with empty geometries or NaN coordinates: for a
+        guaranteed result, it is recommended to specify ``include_z`` explicitly.
+    interleaved : bool, default True
+        If set to False, the transformation function should accept 2 or 3 separate
+        one-dimensional coordinate arrays as arguments (x, y and optional z) instead
+        of a single one. The return value must be a tuple of (x, y and optional z).
+
+    See Also
+    --------
+    has_z : Returns a copy of a geometry array with a function applied to its
+        coordinates.
+    transform : Transform arrays of Geometry objects.
+
+    Examples
+    --------
+    >>> from shapely import LineString, Point
+
+    Reduce a linestring to only its first 2 points:
+
+    >>> transform_resize(LineString([(2, 2), (4, 4), (6, 6)]), lambda coords: coords[:2])
+    <LINESTRING (2 2, 4 4)>
+
+    The same with a function that accepts separate x, y arrays:
+
+    >>> transform_resize(LineString([(2, 2), (4, 4), (6, 6)]), lambda x, y: (x[:2], y[:2]), interleaved=False)
+    <LINESTRING (2 2, 4 4)>
+    """
+    if geom is None:
+        return geom
+    if geom.is_empty:
+        if include_z is True:
+            return shapely.force_3d(geom)
+        elif include_z is False:
+            return shapely.force_2d(geom)
+        else:
+            return geom
+    if include_z is None:
+        include_z = geom.has_z
+
+    def _transform_internal(simple_geom):
+        coords = get_coordinates(simple_geom, include_z=include_z)
+        if interleaved:
+            return transformation(coords)
+        else:
+            return zip(*transformation(*coords.T))
+
+    geom_type = shapely.get_type_id(geom)
+    if geom_type in (
+        GeometryType.POINT,
+        GeometryType.LINESTRING,
+        GeometryType.LINEARRING,
+    ):
+        return type(geom)(_transform_internal(geom))
+    elif geom_type == GeometryType.POLYGON:
+        shell = type(geom.exterior)(_transform_internal(geom.exterior))
+        holes = list(type(ring)(_transform_internal(ring)) for ring in geom.interiors)
+        return type(geom)(shell, holes)
+    elif geom_type in (
+        GeometryType.MULTIPOINT,
+        GeometryType.MULTILINESTRING,
+        GeometryType.MULTIPOLYGON,
+        GeometryType.GEOMETRYCOLLECTION,
+    ):
+        return type(geom)(
+            [
+                transform_resize(
+                    part, transformation, include_z=include_z, interleaved=interleaved
+                )
+                for part in geom.geoms
+            ]
+        )
+    else:
+        raise TypeError(f"Type {geom_type} not recognized")
 
 
 def count_coordinates(geometry):
