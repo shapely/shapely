@@ -203,6 +203,6 @@ extern enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx,
                                                   npy_intp cs2,
                                 GEOSCoordSequence** coord_seq);
 extern int coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq,
-                              double* buf, unsigned int size, unsigned int dims);
+                              double* buf, unsigned int size, int hasZ, int hasM);
 
 #endif  // _GEOS_H
