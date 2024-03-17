@@ -132,7 +132,9 @@ def test_from_arrow_error_construct():
 
 
 def test_from_arrow_empty():
-    testing.assert_array_equal(from_arrow(pa.array([], ga.point())), np.array([], dtype=object))
+    testing.assert_array_equal(
+        from_arrow(pa.array([], ga.point())), np.array([], dtype=object)
+    )
 
 
 def test_from_arrow_wkt():
@@ -141,6 +143,7 @@ def test_from_arrow_wkt():
     assert len(out) == 2
     assert out[0] == shapely.from_wkt("POINT (0 1)")
     assert out[1] == shapely.from_wkt("POINT (2 3)")
+
 
 def test_from_arrow_chunked_array():
     array = ga.as_wkt(["POINT (0 1)", "POINT (2 3)"])
