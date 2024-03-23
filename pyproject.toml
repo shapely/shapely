@@ -48,6 +48,7 @@ dependencies = [
 test = [
     "pytest",
     "pytest-cov",
+    "geoarrow-pyarrow",
 ]
 docs = [
     "numpydoc==1.1.*",
