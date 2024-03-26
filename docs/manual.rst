@@ -2192,7 +2192,7 @@ Sequences of touching lines can be merged into `MultiLineStrings` or `Polygons`.
     >>> list(dangles.geoms)
     [<LINESTRING (1 1, 100 100)>, <LINESTRING (5 5, 6 6)>]
 
-.. function:: shapely.linemerge(lines)
+.. function:: shapely.line_merge(lines)
 
   Returns a `LineString` or `MultiLineString` representing the merger of all
   contiguous elements of `lines`.
