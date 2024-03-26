@@ -2433,12 +2433,15 @@ geometries.
 Splitting
 ---------
 
-The :func:`~shapely.ops.split` function in `shapely.ops` splits a geometry by another geometry.
+The :func:`~shapely.ops.split` function in `shapely.ops` splits a geometry by another
+geometry.
 
 .. function:: shapely.ops.split(geom, splitter)
 
-   Splits a geometry by another geometry and returns a collection of geometries. This function is the theoretical
-   opposite of the union of the split geometry parts. If the splitter does not split the geometry, a  collection with a single geometry equal to the input geometry is returned.
+   Splits a geometry by another geometry and returns a collection of geometries. This
+   function is the theoretical opposite of the union of the split geometry parts. If the
+   splitter does not split the geometry, a collection with a single geometry equal to
+   the input geometry is returned.
 
    The function supports:
 
@@ -2446,9 +2449,11 @@ The :func:`~shapely.ops.split` function in `shapely.ops` splits a geometry by an
 
    * Splitting a (Multi)Polygon by a LineString
 
-   It may be convenient to snap the splitter with low tolerance to the geometry. For example in the case of splitting a line by a point, the point must be exactly on the line, for the line to be correctly split.
-   When splitting a line by a polygon, the boundary of the polygon is used for the operation.
-   When splitting a line by another line, a ValueError is raised if the two overlap at some segment.
+   It may be convenient to snap the splitter with low tolerance to the geometry. For
+   example in the case of splitting a line by a point, the point must be exactly on the
+   line, for the line to be correctly split. When splitting a line by a polygon, the
+   boundary of the polygon is used for the operation. When splitting a line by another
+   line, a ValueError is raised if the two overlap at some segment.
 
    `New in version 1.6.0`
 
