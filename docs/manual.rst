@@ -2152,7 +2152,7 @@ Sequences of touching lines can be merged into `MultiLineStrings` or `Polygons`.
     ...     LineString([(1, 1), (1, 0)]),
     ...     LineString([(1, 0), (0, 0)]),
     ...     ]
-    >>> polygonize(lines)
+    >>> list(polygonize(lines).geoms)
     [<POLYGON ((0 0, 1 1, 1 0, 0 0))>, <POLYGON ((1 1, 0 0, 0 1, 1 1))>]
 
 .. function:: shapely.polygonize_full(lines)
