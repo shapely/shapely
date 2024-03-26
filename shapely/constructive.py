@@ -1,6 +1,6 @@
 import numpy as np
 
-from shapely import lib
+from shapely import GeometryType, lib
 from shapely._enum import ParamEnum
 from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area_vectorized
 from shapely.decorators import multithreading_enabled, requires_geos
@@ -35,6 +35,7 @@ __all__ = [
     "oriented_envelope",
     "minimum_rotated_rectangle",
     "minimum_bounding_circle",
+    "coverage_simplify",
 ]
 
 
@@ -924,6 +925,61 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
         return lib.simplify_preserve_topology(geometry, tolerance, **kwargs)
     else:
         return lib.simplify(geometry, tolerance, **kwargs)
+
+
+@requires_geos("3.12.0")
+@multithreading_enabled
+def coverage_simplify(geometry, tolerance, simplify_boundary=True, axis=None, **kwargs):
+    """Returns a simplified version of an input geometry using the coverage simplification
+
+    Assumes that the geometry forms a polygonal coverage. Under this assumption, the
+    function simplifies the edges using the Visvalingam-Whyatt algorithm, while
+    preserving a valid coverage. In the most simplified case, polygons are reduced to
+    triangles.
+
+    A collection of valid polygons is considered a coverage if the polygons are:
+
+    * **Non-overlapping** - polygons do not overlap (their interiors do not intersect)
+    * **Edge-Matched** - vertices along shared edges are identical
+
+    The function allows simplification of all edges including the outer boundaries of the
+    coverage or simplification of only the inner (shared) edges.
+
+    If there are other geometry types than Polygons or MultiPolygons present, the
+    resulting GeometryCollection will not undergo simplification and geometries are
+    returned collected but unchanged.
+
+    If the geometry is polygonal but does not form a valid coverage due to overlaps,
+    it will be simplified but it may result in invalid topology.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    tolerance : float or array_like
+        The degree of simplification roughly equal to the square root of the area
+        of triangles that will be removed.
+    simplify_boundary : bool, optional
+        By default (True), simplifies both internal edges of the coverage as well
+        as its boundary. If set to False, only simplifies internal edges.
+    axis : int, optional
+        Axis along which the operation is performed. The default (None)
+        performs the operation over all axes, returning a scalar value.
+        Axis may be negative, in which case it counts from the last to the
+        first axis.
+    **kwargs
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    """
+    geometries = np.asarray(geometry)
+    if axis is None:
+        geometries = geometries.ravel()
+    else:
+        geometries = np.rollaxis(geometries, axis=axis, start=geometries.ndim)
+
+    # create_collection acts on the inner axis
+    collections = lib.create_collection(geometries, GeometryType.GEOMETRYCOLLECTION)
+
+    return lib.coverage_simplify(collections, tolerance, simplify_boundary, **kwargs)
 
 
 @multithreading_enabled
