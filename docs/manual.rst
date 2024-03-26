@@ -2140,18 +2140,17 @@ Sequences of touching lines can be merged into `MultiLineStrings` or `Polygons`.
 
   Returns an iterator over polygons constructed from the input `lines`.
 
-  As with the :class:`MultiLineString` constructor, the input elements may be
-  any line-like object.
+  The source should be a sequence of LineString objects.
 
   .. code-block:: pycon
 
     >>> from shapely import polygonize
     >>> lines = [
-    ...     ((0, 0), (1, 1)),
-    ...     ((0, 0), (0, 1)),
-    ...     ((0, 1), (1, 1)),
-    ...     ((1, 1), (1, 0)),
-    ...     ((1, 0), (0, 0))
+    ...     LineString([(0, 0), (1, 1)]),
+    ...     LineString([(0, 0), (0, 1)]),
+    ...     LineString([(0, 1), (1, 1)]),
+    ...     LineString([(1, 1), (1, 0)]),
+    ...     LineString([(1, 0), (0, 0)])
     ...     ]
     >>> list(polygonize(lines))
     [<POLYGON ((0 0, 1 1, 1 0, 0 0))>, <POLYGON ((1 1, 0 0, 0 1, 1 1))>]
@@ -2161,8 +2160,7 @@ Sequences of touching lines can be merged into `MultiLineStrings` or `Polygons`.
   Creates polygons from a source of lines, returning the polygons
   and leftover geometries.
 
-  The source may be a MultiLineString, a sequence of LineString objects,
-  or a sequence of objects than can be adapted to LineStrings.
+  The source should be a sequence of LineString objects.
 
   Returns a tuple of objects: (polygons, cut edges, dangles, invalid ring
   lines). Each are a geometry collection.
@@ -2178,13 +2176,13 @@ Sequences of touching lines can be merged into `MultiLineStrings` or `Polygons`.
 
     >>> from shapely import polygonize_full
     >>> lines = [
-    ...     ((0, 0), (1, 1)),
-    ...     ((0, 0), (0, 1)),
-    ...     ((0, 1), (1, 1)),
-    ...     ((1, 1), (1, 0)),
-    ...     ((1, 0), (0, 0)),
-    ...     ((5, 5), (6, 6)),
-    ...     ((1, 1), (100, 100)),
+    ...     LineString([(0, 0), (1, 1)]),
+    ...     LineString([(0, 0), (0, 1)]),
+    ...     LineString([(0, 1), (1, 1)]),
+    ...     LineString([(1, 1), (1, 0)]),
+    ...     LineString([(1, 0), (0, 0)]),
+    ...     LineString([(5, 5), (6, 6)]),
+    ...     LineString([(1, 1), (100, 100)]),
     ...     ]
     >>> result, cuts, dangles, invalids = polygonize_full(lines)
     >>> len(result.geoms)
@@ -2198,9 +2196,6 @@ Sequences of touching lines can be merged into `MultiLineStrings` or `Polygons`.
 
   Returns a `LineString` or `MultiLineString` representing the merger of all
   contiguous elements of `lines`.
-
-  As with :func:`shapely.polygonize`, the input elements may be any
-  line-like object.
 
 .. code-block:: python
 
