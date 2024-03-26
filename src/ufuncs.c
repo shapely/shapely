@@ -695,6 +695,40 @@ static void* force_3d_data[1] = {PyGEOSForce3D};
 
 #if GEOS_SINCE_3_9_0
 static void* unary_union_prec_data[1] = {GEOSUnaryUnionPrec_r};
+static void* GEOSMaximumInscribedCircleWithDefaultTolerance(void* context, void* a, double b) {
+  double tolerance;
+  if (b == 0.0 && !GEOSisEmpty_r(context, a)) {
+    double xmin, xmax, ymin, ymax;
+    double width, height, size;
+
+#if GEOS_SINCE_3_11_0
+    if (!GEOSGeom_getExtent_r(context, a, &xmin, &ymin, &xmax, &ymax)) {
+      return NULL;
+    }
+#else
+    if (!GEOSGeom_getXMin_r(context, a, &xmin)) {
+      return NULL;
+    }
+    if (!GEOSGeom_getYMin_r(context, a, &ymin)) {
+      return NULL;
+    }
+    if (!GEOSGeom_getXMax_r(context, a, &xmax)) {
+      return NULL;
+    }
+    if (!GEOSGeom_getYMax_r(context, a, &ymax)) {
+      return NULL;
+    }
+#endif
+    width = xmax - xmin;
+    height = ymax - ymin;
+    size = width > height ? width : height;
+    tolerance = size / 1000.0;
+  } else {
+    tolerance = b;
+  }
+  return GEOSMaximumInscribedCircle_r(context, a, tolerance);
+}
+static void* maximum_inscribed_circle_data[1] = {GEOSMaximumInscribedCircleWithDefaultTolerance};
 #endif
 
 #if GEOS_SINCE_3_10_0
@@ -3831,6 +3865,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_YYd_Y(symmetric_difference_prec);
   DEFINE_YYd_Y(union_prec);
   DEFINE_Yd_Y(unary_union_prec);
+  DEFINE_Yd_Y(maximum_inscribed_circle);
 #endif
 
 #if GEOS_SINCE_3_10_0
