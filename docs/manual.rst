@@ -2371,7 +2371,7 @@ of geometries.
   >>> triangle = Polygon([(0, 0), (1, 0), (0.5, 1), (0, 0)])
   >>> square = Polygon([(0, 2), (1, 2), (1, 3), (0, 3), (0, 2)])
   >>> shortest_line(triangle, square)
-  <POINT (0.5 1)>, <POINT (0.5 2)>
+  <LINESTRING (0.5 1, 0.5 2)>
 
 
 Note that the nearest points may not be existing vertices in the geometries.
