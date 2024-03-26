@@ -2144,13 +2144,13 @@ Sequences of touching lines can be merged into `MultiLineStrings` or `Polygons`.
 
   .. code-block:: pycon
 
-    >>> from shapely import polygonize
+    >>> from shapely import LineString, polygonize
     >>> lines = [
     ...     LineString([(0, 0), (1, 1)]),
     ...     LineString([(0, 0), (0, 1)]),
     ...     LineString([(0, 1), (1, 1)]),
     ...     LineString([(1, 1), (1, 0)]),
-    ...     LineString([(1, 0), (0, 0)])
+    ...     LineString([(1, 0), (0, 0)]),
     ...     ]
     >>> list(polygonize(lines))
     [<POLYGON ((0 0, 1 1, 1 0, 0 0))>, <POLYGON ((1 1, 0 0, 0 1, 1 1))>]
@@ -2174,7 +2174,7 @@ Sequences of touching lines can be merged into `MultiLineStrings` or `Polygons`.
 
   .. code-block:: pycon
 
-    >>> from shapely import polygonize_full
+    >>> from shapely import LineString, polygonize_full
     >>> lines = [
     ...     LineString([(0, 0), (1, 1)]),
     ...     LineString([(0, 0), (0, 1)]),
