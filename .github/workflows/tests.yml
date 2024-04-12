@@ -165,7 +165,6 @@ jobs:
         # the standard build isolation based on build-system.requires, to
         # ensure we build against numpy nightly (numpy 2.0 compat)
         run: |
-          pip install -e .
           if [ -z "${{ matrix.numpy }}" ]; then
             pip install -e . --no-build-isolation
           else
