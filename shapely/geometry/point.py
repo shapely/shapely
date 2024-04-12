@@ -3,6 +3,7 @@
 import numpy as np
 
 import shapely
+from shapely import _geometry_helpers
 from shapely.errors import DimensionError
 from shapely.geometry.base import BaseGeometry
 
@@ -85,7 +86,7 @@ class Point(BaseGeometry):
     @property
     def x(self):
         """Return x coordinate."""
-        return shapely.get_x(self)
+        return _geometry_helpers.point_x(self)
 
     @property
     def y(self):

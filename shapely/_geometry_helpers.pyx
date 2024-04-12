@@ -24,6 +24,7 @@ from shapely._geos cimport (
     GEOSGeom_createPolygon_r,
     GEOSGeom_destroy_r,
     GEOSGeometry,
+    GEOSGeomGetX_r,
     GEOSGeomTypeId_r,
     GEOSGetExteriorRing_r,
     GEOSGetGeometryN_r,
@@ -392,6 +393,21 @@ def collections_1d(object geometries, object indices, int geometry_type = 7, obj
             geom_idx_1 += collection_size[coll_idx]
 
     return out
+
+
+def point_x(point):
+    cdef GEOSGeometry *geom = NULL
+    cdef double result
+
+    with get_geos_handle() as geos_handle:
+        if PyGEOS_GetGEOSGeometry(<PyObject *>point, &geom) == 0:
+            raise TypeError("One of the arguments is of incorrect type. "
+                            "Please provide only Geometry objects.")
+
+        if GEOSGeomGetX_r(geos_handle, geom, &result) == 0:
+            return  # GEOSException is raised by get_geos_handle
+
+    return result
 
 
 def _geom_factory(uintptr_t g):
