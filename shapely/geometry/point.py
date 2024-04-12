@@ -96,7 +96,7 @@ class Point(BaseGeometry):
     def z(self):
         """Return z coordinate."""
         z = shapely.get_z(self)
-        if np.isnan(z):
+        if np.isnan(z) and not shapely.has_z(self):
             raise DimensionError("This point has no z coordinate.")
         return z
 
