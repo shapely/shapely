@@ -13,9 +13,11 @@ jobs:
       CIBUILDWHEEL: 1
       CIBW_BUILD: "cp*-manylinux_aarch64"
       CIBW_ENVIRONMENT_PASS_LINUX: "GEOS_VERSION GEOS_INSTALL GEOS_CONFIG LD_LIBRARY_PATH"
+      CIBW_ENVIRONMENT: "PIP_PRE=1"
       CIBW_BEFORE_ALL: "./ci/install_geos.sh"
       CIBW_TEST_REQUIRES: "pytest"
       CIBW_TEST_COMMAND: "pytest --pyargs shapely.tests"
+      CIBW_BUILD_VERBOSITY: 1
     steps:
       - checkout
       - run:
