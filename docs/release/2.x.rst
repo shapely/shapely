@@ -16,7 +16,7 @@ Improvements:
 
 .. _version-2-0-4:
 
-Version 2.0.4 (2024-04-15)
+Version 2.0.4 (2024-04-16)
 --------------------------
 
 Bug fixes:

@@ -38,7 +38,7 @@ Breaking changes in GEOS 3.12:
   to "MULTIPOINT ((0 0), (1 1))". (#1885)
 
 
-2.0.4 (2024-04-15)
+2.0.4 (2024-04-16)
 ------------------
 
 Wheels for Python versions >= 3.9 will be compatible with the upcoming NumPy 2.0
