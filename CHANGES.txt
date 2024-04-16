@@ -1,6 +1,17 @@
 Changes
 =======
 
+2.0.4 (2024-04-16)
+------------------
+
+Wheels for Python versions >= 3.9 will be compatible with the upcoming NumPy 2.0
+release (as well as with supported NumPy 1.x versions).
+
+Bug fixes:
+
+- Fix bug in ``to_wkt`` with multiple empty Z geometries (#2012).
+- Fix bug in ``to_ragged_array`` for an array of Points with missing values (#2034).
+
 2.0.3 (2024-02-16)
 ------------------
 
