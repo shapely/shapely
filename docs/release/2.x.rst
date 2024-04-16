@@ -13,6 +13,20 @@ Improvements:
   to allow, skip, or error on nonfinite (NaN / Inf) coordinates. The default
   behaviour (allow) is backwards compatible (#1594).
 
+
+.. _version-2-0-4:
+
+Version 2.0.4 (2024-04-16)
+--------------------------
+
+Bug fixes:
+
+- Fix bug in ``to_wkt`` with multiple empty Z geometries (#2012).
+- Fix bug in ``to_ragged_array`` for an array of Points with missing values (#2034).
+
+Wheels for Python versions >= 3.9 will be compatible with the upcoming NumPy 2.0
+release (as well as with supported NumPy 1.x versions).
+
 .. _version-2-0-3:
 
 Version 2.0.3 (2024-02-16)
