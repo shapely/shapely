@@ -178,26 +178,33 @@ case of the format type character.
 
 Canonical form
 --------------
-When operations are applied on geometries the result is returned according to some
-conventions.
+When operations are applied on geometries the result is returned according to
+some conventions.
 
-In most cases, geometries will be returned in "mild" canonical form. There is no goal
-to keep this form stable, so it is expected to change in future versions of GEOS:
+In most cases, geometries will be returned in "mild" canonical form. There is no
+goal to keep this form stable, so it is expected to change in future versions of
+GEOS:
 
 - the coordinates of exterior rings follow a clockwise orientation and interior
   rings have a counter-clockwise orientation. This is the opposite of the OGC
-  specifications because the choice was made before this was included in the standard.
-- the starting point of rings can be changed, but it is undefined
+  specifications because the choice was made before this was included in the
+  standard.
+- the starting point of rings can be changed in the output, but the exact order
+  is undefined and should not be relied upon
 - the order of geometry types in a collection can be changed, but the order is
   undefined
 
-When :func:`~shapely.normalize` is used, the "strict" canonical form is applied. This
-type of normalization is meant to be stable, so changes to it will be avoided if
-possible:
+When :func:`~shapely.normalize` is used, the "strict" canonical form is applied.
+This type of normalization is meant to be stable, so changes to it will be
+avoided if possible:
 
 - the coordinates of exterior rings follow a clockwise orientation and interior
   rings have a counter-clockwise orientation
 - the starting point of rings is lower left
-- elements in collections are ordered by geometry type
+- elements in collections are ordered by geometry type: by descending dimension
+  and multi-types first (MultiPolygon, Polygon, MultiLineString, LineString,
+  MultiPoint, Point). Multiple elements from the same type are ordered from
+  right to left and from top to bottom.
 
-It is important to note that input geometries do not have to follow these conventions.
+It is important to note that input geometries do not have to follow these
+conventions.
