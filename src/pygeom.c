@@ -72,8 +72,12 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
   GEOSGeometry* geom = obj->ptr;
   char trim = 1;
   int precision = 3;
+#if GEOS_SINCE_3_12_0
+  int dimension = 4;
+#else
   int dimension = 3;
-  int use_old_3d = 0;
+#endif
+  // int use_old_3d = 0;  // default is false
 
   if (geom == NULL) {
     Py_INCREF(Py_None);
@@ -90,19 +94,20 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
   }
 #endif  // !GEOS_SINCE_3_13_0
 
-#if GEOS_SINCE_3_9_0
+#if !GEOS_SINCE_3_9_0
+  // Before GEOS 3.9.0, there was as segfault on e.g. MULTIPOINT (1 1, EMPTY)
+  errstate = check_to_wkt_compatible(ctx, geom);
+  if (errstate != PGERR_SUCCESS) {
+    goto finish;
+  }
+#elif !GEOS_SINCE_3_12_0
+  // Since GEOS 3.9.0 and before 3.12.0 further handling required
   errstate = wkt_empty_3d_geometry(ctx, geom, &wkt);
   if (errstate != PGERR_SUCCESS) {
     goto finish;
   }
   if (wkt != NULL) {
     result = PyUnicode_FromString(wkt);
-    goto finish;
-  }
-#else
-  // Before GEOS 3.9.0, there was as segfault on e.g. MULTIPOINT (1 1, EMPTY)
-  errstate = check_to_wkt_compatible(ctx, geom);
-  if (errstate != PGERR_SUCCESS) {
     goto finish;
   }
 #endif
@@ -114,9 +119,13 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
   }
 
   GEOSWKTWriter_setRoundingPrecision_r(ctx, writer, precision);
+#if !GEOS_SINCE_3_12_0
+  // Override defaults only for older versions
+  // See https://github.com/libgeos/geos/pull/915
   GEOSWKTWriter_setTrim_r(ctx, writer, trim);
   GEOSWKTWriter_setOutputDimension_r(ctx, writer, dimension);
-  GEOSWKTWriter_setOld3D_r(ctx, writer, use_old_3d);
+  // GEOSWKTWriter_setOld3D_r(ctx, writer, use_old_3d);
+#endif  // !GEOS_SINCE_3_12_0
 
   // Check if the above functions caused a GEOS exception
   if (last_error[0] != 0) {
@@ -175,8 +184,12 @@ static PyObject* GeometryObject_ToWKB(GeometryObject* obj) {
     errstate = PGERR_GEOS_EXCEPTION;
     goto finish;
   }
-  // Allow 3D output and include SRID
+#if !GEOS_SINCE_3_12_0
+  // Allow 3D output for GEOS<3.12 (it is default 4 afterwards)
+  // See https://github.com/libgeos/geos/pull/908
   GEOSWKBWriter_setOutputDimension_r(ctx, writer, 3);
+#endif  // !GEOS_SINCE_3_12_0
+  // include SRID
   GEOSWKBWriter_setIncludeSRID_r(ctx, writer, 1);
   // Check if the above functions caused a GEOS exception
   if (last_error[0] != 0) {

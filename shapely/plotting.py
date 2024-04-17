@@ -1,7 +1,7 @@
 """
 Plot single geometries using Matplotlib.
 
-Note: this module is experimental, and mainly targetting (interactive)
+Note: this module is experimental, and mainly targeting (interactive)
 exploration, debugging and illustration purposes.
 
 """
@@ -41,7 +41,7 @@ def patch_from_polygon(polygon, **kwargs):
     """
     Gets a Matplotlib patch from a (Multi)Polygon.
 
-    Note: this function is experimental, and mainly targetting (interactive)
+    Note: this function is experimental, and mainly targeting (interactive)
     exploration, debugging and illustration purposes.
 
     Parameters
@@ -72,7 +72,7 @@ def plot_polygon(
     """
     Plot a (Multi)Polygon.
 
-    Note: this function is experimental, and mainly targetting (interactive)
+    Note: this function is experimental, and mainly targeting (interactive)
     exploration, debugging and illustration purposes.
 
     Parameters
@@ -135,7 +135,7 @@ def plot_line(line, ax=None, add_points=True, color=None, linewidth=2, **kwargs)
     """
     Plot a (Multi)LineString/LinearRing.
 
-    Note: this function is experimental, and mainly targetting (interactive)
+    Note: this function is experimental, and mainly targeting (interactive)
     exploration, debugging and illustration purposes.
 
     Parameters
@@ -147,7 +147,7 @@ def plot_line(line, ax=None, add_points=True, color=None, linewidth=2, **kwargs)
     add_points : bool, default True
         If True, also plot the coordinates (vertices) as points.
     color : matplotlib color specification
-        Color for the line (edgecolor under the hood) and pointes.
+        Color for the line (edgecolor under the hood) and points.
     linewidth : float, default 2
         The line width for the polygon boundary.
     **kwargs

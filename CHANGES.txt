@@ -20,19 +20,45 @@ Improvements:
   signature in the ``transformation`` function.
 - The ``include_z`` in ``shapely.transform()`` now also allows ``None``, which
   lets it automatically detect the dimensionality of each input geometry.
+- Add parameters ``method`` and ``keep_collapsed`` to ``shapely.make_valid()`` (#1941)
 - Upgraded the GEOS version in the binary wheel distributions to 3.12.1.
+- The ``voronoi_polygons`` now accepts the ``ordered`` keyword, optionally forcing the
+  order of polygons within the GeometryCollection to follow the order of input
+  coordinates. Requires at least GEOS 3.12. (#1968)
 
 Breaking changes in GEOS 3.12:
 
 - ``oriented_envelope`` / ``minimum_rotated_rectangle`` changed its implementation
   in GEOS 3.12. Be aware that results will change when updating GEOS. Coincidentally
-  the implemenation is similar to the shapely 1.x approach. (#1885)
+  the implementation is similar to the shapely 1.x approach. (#1885)
 - ``get_coordinate_dimension`` / ``has_z`` now considers geometries three dimensional if
   they have a NaN z coordinate. (#1885)
 - ``voronoi_polygons`` changed its output from a LINESTRING to a MULTILINESTRING in case
   ``only_edges=True``. (#1885)
 - The WKT representation of a MULTIPOINT changed from for example "MULTIPOINT (0 0, 1 1)"
   to "MULTIPOINT ((0 0), (1 1))". (#1885)
+
+
+2.0.4 (2024-04-16)
+------------------
+
+Wheels for Python versions >= 3.9 will be compatible with the upcoming NumPy 2.0
+release (as well as with supported NumPy 1.x versions).
+
+Bug fixes:
+
+- Fix bug in ``to_wkt`` with multiple empty Z geometries (#2012).
+- Fix bug in ``to_ragged_array`` for an array of Points with missing values (#2034).
+
+
+2.0.3 (2024-02-16)
+------------------
+
+- Fix regression in the ``oriented_envelope`` ufunc to accept array-like input
+  in case of GEOS<3.12 (#1929).
+- The binary wheels are not yet compatible with a future NumPy 2.0 release,
+  therefore a ``numpy<2`` upper pin was added to the requirements (#1972).
+- Upgraded the GEOS version in the binary wheel distributions to 3.11.3.
 
 
 2.0.2 (2023-10-12)
