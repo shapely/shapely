@@ -308,7 +308,7 @@ def polygons(geometries, holes=None, indices=None, out=None, **kwargs):
     >>> polygons([ring_1, ring_2], indices=[0, 0])[0]
     <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 6, 2 7, 3 7, 3 6, 2 6))>
 
-    Missing input values (``None``) are skipd and may result in an
+    Missing input values (``None``) are skipped and may result in an
     empty polygon:
 
     >>> polygons(None)
@@ -413,7 +413,7 @@ def multipoints(geometries, indices=None, out=None, **kwargs):
     >>> multipoints([point_1, point_2, point_2], indices=[0, 0, 1]).tolist()
     [<MULTIPOINT ((1 1), (2 2))>, <MULTIPOINT ((2 2))>]
 
-    Missing input values (``None``) are skipd and may result in an
+    Missing input values (``None``) are skipped and may result in an
     empty multipoint:
 
     >>> multipoints([None])
@@ -588,7 +588,7 @@ def destroy_prepared(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
-        Geometries are changed inplace
+        Geometries are changed in-place
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
