@@ -18,14 +18,14 @@ SET_OPERATIONS = (
     shapely.intersection,
     shapely.symmetric_difference,
     shapely.union,
-    # shapely.coverage_union is tested seperately
+    # shapely.coverage_union is tested separately
 )
 
 REDUCE_SET_OPERATIONS = (
     (shapely.intersection_all, shapely.intersection),
     (shapely.symmetric_difference_all, shapely.symmetric_difference),
     (shapely.union_all, shapely.union),
-    #  shapely.coverage_union_all, shapely.coverage_union) is tested seperately
+    #  shapely.coverage_union_all, shapely.coverage_union) is tested separately
 )
 
 # operations that support fixed precision
@@ -270,7 +270,7 @@ def test_set_operation_prec_reduce_all_none(n, func, related_func):
 @pytest.mark.parametrize("n", range(1, 4))
 def test_coverage_union_reduce_1dim(n):
     """
-    This is tested seperately from other set operations as it expects only
+    This is tested separately from other set operations as it expects only
     non-overlapping polygons
     """
     test_data = [
@@ -304,7 +304,7 @@ def test_coverage_union_overlapping_inputs():
     other = Polygon([(1, 0), (0.9, 1), (2, 1), (2, 0), (1, 0)])
 
     if shapely.geos_version >= (3, 12, 0):
-        # Return mostly unchaged output
+        # Return mostly unchanged output
         result = shapely.coverage_union(polygon, other)
         expected = shapely.multipolygons([polygon, other])
         assert_geometries_equal(result, expected, normalize=True)

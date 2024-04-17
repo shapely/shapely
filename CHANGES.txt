@@ -29,7 +29,7 @@ Breaking changes in GEOS 3.12:
 
 - ``oriented_envelope`` / ``minimum_rotated_rectangle`` changed its implementation
   in GEOS 3.12. Be aware that results will change when updating GEOS. Coincidentally
-  the implemenation is similar to the shapely 1.x approach. (#1885)
+  the implementation is similar to the shapely 1.x approach. (#1885)
 - ``get_coordinate_dimension`` / ``has_z`` now considers geometries three dimensional if
   they have a NaN z coordinate. (#1885)
 - ``voronoi_polygons`` changed its output from a LINESTRING to a MULTILINESTRING in case
