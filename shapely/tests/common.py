@@ -76,6 +76,64 @@ multi_point_empty_z = shapely.multipoints([empty_point_z])
 multi_line_stringt_empty_z = shapely.multilinestrings([empty_line_string_z])
 multi_polygon_empty_z = shapely.multipolygons([empty_polygon_z])
 geometry_collection_empty_z = shapely.geometrycollections([empty_line_string_z])
+# XYM
+point_m = shapely.from_wkt("POINT M (2 3 5)")
+line_string_m = shapely.from_wkt("LINESTRING M (0 0 1, 1 0 2, 1 1 3)")
+linear_ring_m = shapely.from_wkt("LINEARRING M (0 0 1, 1 0 2, 1 1 3, 0 1 2, 0 0 1)")
+polygon_m = shapely.from_wkt("POLYGON M ((0 0 1, 2 0 2, 2 2 3, 0 2 2, 0 0 1))")
+polygon_with_hole_m = shapely.from_wkt(
+    """POLYGON M ((0 0 1, 0 10 2, 10 10 3, 10 0 2, 0 0 1),
+                  (2 2 6, 2 4 5, 4 4 4, 4 2 5, 2 2 6))"""
+)
+multi_point_m = shapely.from_wkt("MULTIPOINT M ((0 0 3), (1 2 5))")
+multi_line_string_m = shapely.from_wkt("MULTILINESTRING M ((0 0 3, 1 2 5))")
+multi_polygon_m = shapely.from_wkt(
+    """MULTIPOLYGON M (((0 0 1, 2 0 2, 2 2 3, 0 2 2, 0 0 1)),
+       ((2.1 2.1 1.1, 2.2 2.1 1.2, 2.2 2.2 1.3, 2.1 2.2 1.4, 2.1 2.1 1.1)))"""
+)
+geometry_collection_m = shapely.GeometryCollection([point_m, line_string_m])
+empty_geometry_collection_m = shapely.from_wkt("GEOMETRYCOLLECTION M EMPTY")
+empty_point_m = shapely.from_wkt("POINT M EMPTY")
+empty_line_string_m = shapely.from_wkt("LINESTRING M EMPTY")
+empty_polygon_m = shapely.from_wkt("POLYGON M EMPTY")
+empty_multi_point_m = shapely.from_wkt("MULTIPOINT M EMPTY")
+empty_multi_line_string_m = shapely.from_wkt("MULTILINESTRING M EMPTY")
+empty_multi_polygon_m = shapely.from_wkt("MULTIPOLYGON M EMPTY")
+multi_point_empty_m = shapely.multipoints([empty_point_m])
+multi_line_stringt_empty_m = shapely.multilinestrings([empty_line_string_m])
+multi_polygon_empty_m = shapely.multipolygons([empty_polygon_m])
+geometry_collection_empty_m = shapely.geometrycollections([empty_line_string_m])
+# XYZM
+point_zm = shapely.from_wkt("POINT ZM (2 3 4 5)")
+line_string_zm = shapely.from_wkt("LINESTRING ZM (0 0 4 1, 1 0 4 2, 1 1 4 3)")
+linear_ring_zm = shapely.from_wkt(
+    "LINEARRING ZM (0 0 1 8, 1 0 2 7, 1 1 3 6, 0 1 2 9, 0 0 1 8)"
+)
+polygon_zm = shapely.from_wkt(
+    "POLYGON ZM ((0 0 4 1, 2 0 4 2, 2 2 4 3, 0 2 4 2, 0 0 4 1))"
+)
+polygon_with_hole_zm = shapely.from_wkt(
+    """POLYGON ZM ((0 0 4 1, 0 10 4 2, 10 10 4 3, 10 0 4 2, 0 0 4 1),
+       (2 2 4 6, 2 4 4 5, 4 4 4 4, 4 2 4 5, 2 2 4 6))"""
+)
+multi_point_zm = shapely.from_wkt("MULTIPOINT ZM ((0 0 4 3), (1 2 4 5))")
+multi_line_string_zm = shapely.from_wkt("MULTILINESTRING ZM ((0 0 4 3, 1 2 4 5))")
+multi_polygon_zm = shapely.from_wkt(
+    """MULTIPOLYGON ZM (((0 0 4 1, 2 0 4 2, 2 2 4 3, 0 2 4 2, 0 0 4 1)),
+       ((2.1 2.1 4 1.1, 2.2 2.1 4 1.2, 2.2 2.2 4 1.3, 2.1 2.2 4 1.4, 2.1 2.1 4 1.1)))"""
+)
+geometry_collection_zm = shapely.GeometryCollection([point_zm, line_string_zm])
+empty_geometry_collection_zm = shapely.from_wkt("GEOMETRYCOLLECTION ZM EMPTY")
+empty_point_zm = shapely.from_wkt("POINT ZM EMPTY")
+empty_line_string_zm = shapely.from_wkt("LINESTRING ZM EMPTY")
+empty_polygon_zm = shapely.from_wkt("POLYGON ZM EMPTY")
+empty_multi_point_zm = shapely.from_wkt("MULTIPOINT ZM EMPTY")
+empty_multi_line_string_zm = shapely.from_wkt("MULTILINESTRING ZM EMPTY")
+empty_multi_polygon_zm = shapely.from_wkt("MULTIPOLYGON ZM EMPTY")
+multi_point_empty_zm = shapely.multipoints([empty_point_zm])
+multi_line_stringt_empty_zm = shapely.multilinestrings([empty_line_string_zm])
+multi_polygon_empty_zm = shapely.multipolygons([empty_polygon_zm])
+geometry_collection_empty_zm = shapely.geometrycollections([empty_line_string_zm])
 
 all_types = (
     point,
@@ -122,6 +180,50 @@ all_types_z = (
     multi_polygon_empty_z,
     geometry_collection_empty_z,
 )
+all_types_m = (
+    point_m,
+    line_string_m,
+    linear_ring_m,
+    polygon_m,
+    polygon_with_hole_m,
+    multi_point_m,
+    multi_line_string_m,
+    multi_polygon_m,
+    geometry_collection_m,
+    empty_geometry_collection_m,
+    empty_point_m,
+    empty_line_string_m,
+    empty_polygon_m,
+    empty_multi_point_m,
+    empty_multi_line_string_m,
+    empty_multi_polygon_m,
+    multi_point_empty_m,
+    multi_line_stringt_empty_m,
+    multi_polygon_empty_m,
+    geometry_collection_empty_m,
+)
+all_types_zm = (
+    point_zm,
+    line_string_zm,
+    linear_ring_zm,
+    polygon_zm,
+    polygon_with_hole_zm,
+    multi_point_zm,
+    multi_line_string_zm,
+    multi_polygon_zm,
+    geometry_collection_zm,
+    empty_geometry_collection_zm,
+    empty_point_zm,
+    empty_line_string_zm,
+    empty_polygon_zm,
+    empty_multi_point_zm,
+    empty_multi_line_string_zm,
+    empty_multi_polygon_zm,
+    multi_point_empty_zm,
+    multi_line_stringt_empty_zm,
+    multi_polygon_empty_zm,
+    geometry_collection_empty_zm,
+)
 
 
 @contextmanager
@@ -155,3 +257,34 @@ def equal_geometries_abnormally_yield_unequal(geom):
         if shapely.geos_version < (3, 13, 0) and geom.geom_type.startswith("Multi"):
             return True
     return False
+
+
+class ArrayLike:
+    """
+    Simple numpy Array like class that implements the
+    ufunc protocol.
+    """
+
+    def __init__(self, array):
+        self._array = np.asarray(array)
+
+    def __len__(self):
+        return len(self._array)
+
+    def __getitem(self, key):
+        return self._array[key]
+
+    def __iter__(self):
+        return self._array.__iter__()
+
+    def __array__(self):
+        return np.asarray(self._array)
+
+    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        if method == "__call__":
+            inputs = [
+                arg._array if isinstance(arg, self.__class__) else arg for arg in inputs
+            ]
+            return self.__class__(ufunc(*inputs, **kwargs))
+        else:
+            return NotImplemented

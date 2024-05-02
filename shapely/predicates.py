@@ -7,6 +7,7 @@ from shapely.decorators import multithreading_enabled, requires_geos
 
 __all__ = [
     "has_z",
+    "has_m",
     "is_ccw",
     "is_closed",
     "is_empty",
@@ -40,7 +41,7 @@ __all__ = [
 
 @multithreading_enabled
 def has_z(geometry, **kwargs):
-    """Returns True if a geometry has a Z coordinate.
+    """Returns True if a geometry has Z coordinates.
 
     Note that for GEOS < 3.12 this function returns False if the (first) Z coordinate
     equals NaN.
@@ -53,7 +54,7 @@ def has_z(geometry, **kwargs):
 
     See also
     --------
-    get_coordinate_dimension
+    get_coordinate_dimension, has_m
 
     Examples
     --------
@@ -69,6 +70,38 @@ def has_z(geometry, **kwargs):
 
 
 @multithreading_enabled
+@requires_geos("3.12.0")
+def has_m(geometry, **kwargs):
+    """Returns True if a geometry has M coordinates.
+
+    .. versionadded:: 2.1.0
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    **kwargs
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    See also
+    --------
+    get_coordinate_dimension, has_z
+
+    Examples
+    --------
+    >>> from shapely import from_wkt
+    >>> has_m(from_wkt("POINT (0 0)"))
+    False
+    >>> has_m(from_wkt("POINT Z (0 0 0)"))
+    False
+    >>> has_m(from_wkt("POINT M (0 0 0)"))
+    True
+    >>> has_m(from_wkt("POINT ZM (0 0 0 0)"))
+    True
+    """
+    return lib.has_m(geometry, **kwargs)
+
+
+@multithreading_enabled
 def is_ccw(geometry, **kwargs):
     """Returns True if a linestring or linearring is counterclockwise.
 
@@ -80,7 +113,7 @@ def is_ccw(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
-        This function will return False for non-linear goemetries and for
+        This function will return False for non-linear geometries and for
         lines with fewer than 4 points (including the closing point).
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
@@ -949,6 +982,8 @@ def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
     normalize : bool, optional (default: False)
         If True, normalize the two geometries so that the coordinates are
         in the same order.
+
+        .. versionadded:: 2.1.0
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 

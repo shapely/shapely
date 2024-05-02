@@ -5,7 +5,7 @@ import numpy as np
 
 from shapely import _geometry_helpers, geos_version, lib
 from shapely._enum import ParamEnum
-from shapely.decorators import multithreading_enabled
+from shapely.decorators import multithreading_enabled, requires_geos
 
 __all__ = [
     "GeometryType",
@@ -18,6 +18,7 @@ __all__ = [
     "get_x",
     "get_y",
     "get_z",
+    "get_m",
     "get_exterior_ring",
     "get_num_points",
     "get_num_interior_rings",
@@ -121,12 +122,18 @@ def get_dimensions(geometry, **kwargs):
 
 @multithreading_enabled
 def get_coordinate_dimension(geometry, **kwargs):
-    """Returns the dimensionality of the coordinates in a geometry (2 or 3).
+    """Returns the dimensionality of the coordinates in a geometry (2, 3 or 4).
 
-    Returns -1 for missing geometries (``None`` values).
+    The return value can be one of the following:
+
+    * Return 2 for geometries with XY coordinate types,
+    * Return 3 for XYZ or XYM coordinate types
+      (distinguished by :meth:`has_z` or :meth:`has_m`),
+    * Return 4 for XYZM coordinate types,
+    * Return -1 for missing geometries (``None`` values).
 
     Note that with GEOS < 3.12, if the first Z coordinate equals ``nan``, this function
-    will return ``2``.
+    will return ``2``. Geometries with M coordinates are supported with GEOS >= 3.12.
 
     Parameters
     ----------
@@ -251,7 +258,7 @@ def get_x(point, **kwargs):
 
     See also
     --------
-    get_y, get_z
+    get_y, get_z, get_m
 
     Examples
     --------
@@ -277,7 +284,7 @@ def get_y(point, **kwargs):
 
     See also
     --------
-    get_x, get_z
+    get_x, get_z, get_m
 
     Examples
     --------
@@ -297,14 +304,14 @@ def get_z(point, **kwargs):
     Parameters
     ----------
     point : Geometry or array_like
-        Non-point geometries or geometries without 3rd dimension will result
+        Non-point geometries or geometries without Z dimension will result
         in NaN being returned.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     See also
     --------
-    get_x, get_y
+    get_x, get_y, get_m
 
     Examples
     --------
@@ -317,6 +324,40 @@ def get_z(point, **kwargs):
     nan
     """
     return lib.get_z(point, **kwargs)
+
+
+@multithreading_enabled
+@requires_geos("3.12.0")
+def get_m(point, **kwargs):
+    """Returns the m-coordinate of a point.
+
+    .. versionadded:: 2.1.0
+
+    Parameters
+    ----------
+    point : Geometry or array_like
+        Non-point geometries or geometries without M dimension will result
+        in NaN being returned.
+    **kwargs
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    See also
+    --------
+    get_x, get_y, get_z
+
+    Examples
+    --------
+    >>> from shapely import Point, from_wkt
+    >>> get_m(from_wkt("POINT ZM (1 2 3 4)"))
+    4.0
+    >>> get_m(from_wkt("POINT M (1 2 4)"))
+    4.0
+    >>> get_m(Point(1, 2, 3))
+    nan
+    >>> get_m(from_wkt("MULTIPOINT M ((1 1 1), (2 2 2))"))
+    nan
+    """
+    return lib.get_m(point, **kwargs)
 
 
 # linestrings
