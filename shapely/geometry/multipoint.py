@@ -30,7 +30,7 @@ class MultiPoint(BaseMultipartGeometry):
     --------
     Construct a MultiPoint containing two Points
 
-    >>> from shapely import Point
+    >>> from shapely import MultiPoint, Point
     >>> ob = MultiPoint([[0.0, 0.0], [1.0, 2.0]])
     >>> len(ob.geoms)
     2

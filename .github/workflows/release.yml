@@ -115,7 +115,7 @@ jobs:
         if: ${{ matrix.msvc_arch }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.5
+        uses: pypa/cibuildwheel@v2.17.0
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_SKIP: cp36-* pp* *musllinux* *-manylinux_i686
@@ -128,7 +128,6 @@ jobs:
           CIBW_ENVIRONMENT_MACOS:
             GEOS_INSTALL=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
             GEOS_CONFIG=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
-            LDFLAGS=-Wl,-rpath,${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/lib
             MACOSX_DEPLOYMENT_TARGET=10.9
             CMAKE_OSX_ARCHITECTURES='${{ matrix.cmake_osx_architectures }}'
           CIBW_ENVIRONMENT_WINDOWS:

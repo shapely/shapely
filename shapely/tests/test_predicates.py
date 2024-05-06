@@ -206,7 +206,7 @@ def test_equals_exact_tolerance():
 def test_equals_exact_normalize():
     l1 = LineString([(0, 0), (1, 1)])
     l2 = LineString([(1, 1), (0, 0)])
-    # default requirs same order of coordinates
+    # default requires same order of coordinates
     assert not shapely.equals_exact(l1, l2)
     assert shapely.equals_exact(l1, l2, normalize=True)
 
@@ -378,7 +378,7 @@ def test_is_ccw(geom, expected):
 
 
 def _prepare_with_copy(geometry):
-    """Prepare without modifying inplace"""
+    """Prepare without modifying in-place"""
     geometry = shapely.transform(geometry, lambda x: x)  # makes a copy
     shapely.prepare(geometry)
     return geometry

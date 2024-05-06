@@ -95,19 +95,20 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
   }
 #endif  // !GEOS_SINCE_3_13_0
 
-#if GEOS_SINCE_3_9_0
+#if !GEOS_SINCE_3_9_0
+  // Before GEOS 3.9.0, there was as segfault on e.g. MULTIPOINT (1 1, EMPTY)
+  errstate = check_to_wkt_compatible(ctx, geom);
+  if (errstate != PGERR_SUCCESS) {
+    goto finish;
+  }
+#elif !GEOS_SINCE_3_12_0
+  // Since GEOS 3.9.0 and before 3.12.0 further handling required
   errstate = wkt_empty_3d_geometry(ctx, geom, &wkt);
   if (errstate != PGERR_SUCCESS) {
     goto finish;
   }
   if (wkt != NULL) {
     result = PyUnicode_FromString(wkt);
-    goto finish;
-  }
-#else
-  // Before GEOS 3.9.0, there was as segfault on e.g. MULTIPOINT (1 1, EMPTY)
-  errstate = check_to_wkt_compatible(ctx, geom);
-  if (errstate != PGERR_SUCCESS) {
     goto finish;
   }
 #endif

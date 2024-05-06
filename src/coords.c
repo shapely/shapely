@@ -370,7 +370,7 @@ npy_intp CountCoords(PyArrayObject* arr) {
       result = -1;
       goto finish;
     }
-    /* skip incase obj was None */
+    /* skip in case obj was None */
     if (geom == NULL) {
       continue;
     }
@@ -518,7 +518,7 @@ PyObject* SetCoords(PyArrayObject* geoms, PyArrayObject* coords) {
   PyObject* new_obj;
   GEOSGeometry *geom, *new_geom;
 
-  /* SetCoords acts implace: if the array is zero-sized, just return the
+  /* SetCoords acts in-place: if the array is zero-sized, just return the
   same object */
   if (PyArray_SIZE(geoms) == 0) {
     Py_INCREF((PyObject*)geoms);

@@ -30,7 +30,9 @@ from shapely.tests.common import (
     multi_polygon,
     multi_polygon_z,
     point,
+    point_m,
     point_z,
+    point_zm,
     polygon,
     polygon_with_hole,
     polygon_with_hole_z,
@@ -177,6 +179,12 @@ def test_get_set_srid():
         shapely.get_x,
         shapely.get_y,
         shapely.get_z,
+        pytest.param(
+            shapely.get_m,
+            marks=pytest.mark.skipif(
+                shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12"
+            ),
+        ),
     ],
 )
 @pytest.mark.parametrize(
@@ -201,6 +209,16 @@ def test_get_z():
 
 def test_get_z_2d():
     assert np.isnan(shapely.get_z(point))
+
+
+@pytest.mark.skipif(
+    shapely.geos_version < (3, 12, 0),
+    reason="M coordinates not supported with GEOS < 3.12",
+)
+def test_get_m():
+    assert shapely.get_m([point_m, point_zm]).tolist() == [5.0, 5.0]
+    assert np.isnan(shapely.get_m(point))
+    assert np.isnan(shapely.get_m(point_z))
 
 
 @pytest.mark.parametrize("geom", all_types)
@@ -256,7 +274,7 @@ def test_set_nan():
 
 def test_set_nan_same_objects():
     # You can't put identical objects in a set.
-    # x = float("nan"); set([x, x]) also retuns a set with 1 element
+    # x = float("nan"); set([x, x]) also returns a set with 1 element
     a = set([line_string_nan] * 10)
     assert len(a) == 1
 
