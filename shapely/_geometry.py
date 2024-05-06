@@ -728,20 +728,26 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
 
     By default, geometries use double precision coordinates (grid_size = 0).
 
-    Coordinates will be rounded if a precision grid is less precise than the
-    input geometry. Duplicated vertices will be dropped from lines and
+    Coordinates will be rounded if the precision grid specified is less precise
+    than the input geometry. Duplicated vertices will be dropped from lines and
     polygons for grid sizes greater than 0. Line and polygon geometries may
     collapse to empty geometries if all vertices are closer together than
-    grid_size. Z values, if present, will not be modified.
+    ``grid_size`` or if a polygon becomes significantly narrower than
+    ``grid_size``. Spikes or sections in polygons narrower than ``grid_size``
+    after rounding the vertices will be removed, which can lead to multipolygons
+    or empty geometries. Z values, if present, will not be modified.
 
-    Note: subsequent operations will always be performed in the precision of
-    the geometry with higher precision (smaller "grid_size"). That same
-    precision will be attached to the operation outputs.
+    Notes:
 
-    Also note: input geometries should be geometrically valid; unexpected
-    results may occur if input geometries are not.
-
-    Returns None if geometry is None.
+    * subsequent operations will always be performed in the precision of the
+      geometry with higher precision (smaller "grid_size"). That same precision
+      will be attached to the operation outputs.
+    * input geometries should be geometrically valid; unexpected results may
+      occur if input geometries are not.
+    * the geometry returned will be in
+      :ref:`mild canonical form <canonical-form>`, and the order of vertices can
+      change and should not be relied upon.
+    * returns None if geometry is None.
 
     Parameters
     ----------
@@ -752,21 +758,24 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
         value is more precise than input geometry, the input geometry will
         not be modified.
     mode :  {'valid_output', 'pointwise', 'keep_collapsed'}, default 'valid_output'
-        This parameter determines how to handle invalid output geometries. There are three modes:
+        This parameter determines the way a precision reduction is applied on
+        the geometry. There are three modes:
 
-        1. `'valid_output'` (default):  The output is always valid. Collapsed geometry elements
-           (including both polygons and lines) are removed. Duplicate vertices are removed.
-        2. `'pointwise'`: Precision reduction is performed pointwise. Output geometry
-           may be invalid due to collapse or self-intersection. Duplicate vertices are not
-           removed. In GEOS this option is called NO_TOPO.
+        1. `'valid_output'` (default):  The output is always valid. Collapsed
+           geometry elements (including both polygons and lines) are removed.
+           Duplicate vertices are removed.
+        2. `'pointwise'`: Precision reduction is performed pointwise. Output
+           geometry may be invalid due to collapse or self-intersection.
+           Duplicate vertices are not removed. In GEOS this option is called
+           NO_TOPO.
 
            .. note::
 
-             'pointwise' mode requires at least GEOS 3.10. It is accepted in earlier versions,
-             but the results may be unexpected.
-        3. `'keep_collapsed'`: Like the default mode, except that collapsed linear geometry
-           elements are preserved. Collapsed polygonal input elements are removed. Duplicate
-           vertices are removed.
+             'pointwise' mode requires at least GEOS 3.10. It is accepted in
+             earlier versions, but the results may be unexpected.
+        3. `'keep_collapsed'`: Like the default mode, except that collapsed
+           linear geometry elements are preserved. Collapsed polygonal input
+           elements are removed. Duplicate vertices are removed.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
