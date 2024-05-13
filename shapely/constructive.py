@@ -30,6 +30,7 @@ __all__ = [
     "remove_repeated_points",
     "reverse",
     "simplify",
+    "polygonhull_simplify",
     "snap",
     "voronoi_polygons",
     "oriented_envelope",
@@ -924,6 +925,59 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
         return lib.simplify_preserve_topology(geometry, tolerance, **kwargs)
     else:
         return lib.simplify(geometry, tolerance, **kwargs)
+
+
+@multithreading_enabled
+def polygonhull_simplify(
+    geometry, parameter, parameter_mode="area", is_outer=True, **kwargs
+):
+    """Computes a boundary-respecting hull of a polygonal geometry, with hull
+    shape determined by a target parameter specifying the fraction of the input
+    vertices or the input geometry's area retained retained in the result.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    parameter : float or array_like
+        Larger values produce less concave results.
+        A value of 1 produces the convex hull;
+        a value of 0 produces the original geometry.
+    parameter_mode : str
+        vertice - Fraction of input vertices retained
+        area - Ratio of simplified hull area to input area
+    is_outer : bool, default True
+        By default (True), an outer hull is computed.
+        An inner hull is computed if it is negative.
+    **kwargs
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Examples
+    --------
+    >>> from shapely import Polygon, polygonhull_simplify
+    >>> polygonhull_simplify(Polygon([(0,0), (0, 4), (1,3), (3,4), (10, 4), (10, 0), (0, 0)]), 0.1, "vertice", False)
+    <POLYGON ((0 0, 10 0, 3 4, 0 0))>
+    >>> polygonhull_simplify(Polygon([(0,0), (0, 4), (1,3), (3,4), (10, 4), (10, 0), (0, 0)]), 0.1, "vertice", True)
+    <POLYGON ((0 0, 0 4, 10 4, 10 0, 0 0))>
+    >>> polygonhull_simplify(Polygon([(0,0), (0, 4), (1,3), (3,4), (10, 4), (10, 0), (0, 0)]), 0.1, "area", False)
+    <POLYGON ((0 0, 10 0, 10 4, 3 4, 1 3, 0 0))>
+    >>> polygonhull_simplify(Polygon([(0,0), (0, 4), (1,3), (3,4), (10, 4), (10, 0), (0, 0)]), 0.1, "area", True)
+    <POLYGON ((0 0, 0 4, 10 4, 10 0, 0 0))>
+    """
+    if lib.geos_version < (3, 11, 0):
+        raise UnsupportedGEOSVersionError(
+            "Polygonhull Simplifier require GEOS >= 3.11.0, "
+            f"found {lib.geos_version_string}"
+        )
+    else:
+        if parameter_mode == "area":
+            parameter_mode = 2
+        elif parameter_mode == "vertice":
+            parameter_mode = 1
+        else:
+            raise ValueError("The 'parameter_mode' only support 'area' or 'vertice'")
+        return lib.simplify_polygon_hull(
+            geometry, is_outer, parameter_mode, parameter, **kwargs
+        )
 
 
 @multithreading_enabled
