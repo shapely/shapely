@@ -939,12 +939,10 @@ def polygonhull_simplify(
     ----------
     geometry : Geometry or array_like
     parameter : float or array_like
-        Larger values produce less concave results.
-        A value of 1 produces the convex hull;
-        a value of 0 produces the original geometry.
+        Larger values produce less concave results. A value of 1 produces
+        the convex hull; a value of 0 produces the original geometry.
     parameter_mode : str
-        vertice - Fraction of input vertices retained
-        area - Ratio of simplified hull area to input area
+        vertice - Fraction of input vertices retained, area - Ratio of simplified hull area to input area
     is_outer : bool, default True
         By default (True), an outer hull is computed.
         An inner hull is computed if it is negative.
@@ -976,7 +974,11 @@ def polygonhull_simplify(
         else:
             raise ValueError("The 'parameter_mode' only support 'area' or 'vertice'")
         return lib.simplify_polygon_hull(
-            geometry, is_outer, parameter_mode, parameter, **kwargs
+            geometry,
+            np.bool_(is_outer),
+            np.intc(parameter_mode),
+            np.double(parameter),
+            **kwargs,
         )
 
 

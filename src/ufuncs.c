@@ -717,7 +717,7 @@ static void simplify_polygon_hull_func(char** args, const npy_intp* dimensions, 
 
   CHECK_NO_INPLACE_OUTPUT(4);
 
-  if ((is2 != 0) || (is3 != 0) || (is4 != 0)) {
+  if ((is2 != 0) || (is3 != 0)) {
     PyErr_Format(PyExc_ValueError,
                  "polygonhull_simplify function called with non-scalar parameters");
     return;
@@ -725,7 +725,6 @@ static void simplify_polygon_hull_func(char** args, const npy_intp* dimensions, 
 
   unsigned int isOuter = (unsigned int)(*(npy_bool*)ip2);
   unsigned int parameterMode = *(unsigned int*)ip3;
-  double parameter = *(double*)ip4;
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * n);
@@ -741,7 +740,8 @@ static void simplify_polygon_hull_func(char** args, const npy_intp* dimensions, 
       break;
     }
 
-    if (in1 == NULL) {
+    double parameter = *(double*)ip4;
+    if ((in1 == NULL) || (npy_isnan(parameter))) {
       // in case of a missing value: return NULL (None)
       geom_arr[i] = NULL;
     } else {
