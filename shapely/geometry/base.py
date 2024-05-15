@@ -107,7 +107,7 @@ class BaseGeometry(shapely.Geometry):
 
     @property
     def geoms(self):
-        return GeometrySequence(self)
+        raise NotImplementedError
 
     @property
     def _ndim(self):
