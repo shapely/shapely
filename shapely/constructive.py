@@ -935,6 +935,9 @@ def simplify_polygon_hull(
     """Computes a boundary-respecting hull of a polygonal geometry, with hull
     shape determined by a target parameter specifying the fraction of the input
     vertices or the input geometry's area retained retained in the result.
+    
+    The simplified geometry is ensured to entirely cover the input geometry if ``is_outer=True``
+    or to be entirely within the input geometry if ``is_outer=True``.
 
     Parameters
     ----------
