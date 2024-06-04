@@ -955,14 +955,15 @@ def simplify_polygon_hull(
 
     Examples
     --------
-    >>> from shapely import Polygon, polygonhull_simplify
-    >>> polygonhull_simplify(Polygon([(0,0), (0, 4), (1,3), (3,4), (10, 4), (10, 0), (0, 0)]), 0.1, "vertice", False)
+    >>> from shapely import Polygon
+    >>> polygon = Polygon([(0,0), (0, 4), (1,3), (3,4), (10, 4), (10, 0), (0, 0)])
+    >>> simplify_polygon_hull(polygon, 0.1, parameter_mode="vertex", is_outer=False)
     <POLYGON ((0 0, 10 0, 3 4, 0 0))>
-    >>> polygonhull_simplify(Polygon([(0,0), (0, 4), (1,3), (3,4), (10, 4), (10, 0), (0, 0)]), 0.1, "vertice", True)
+    >>> simplify_polygon_hull(polygon, 0.1, parameter_mode="vertex", is_outer=True)
     <POLYGON ((0 0, 0 4, 10 4, 10 0, 0 0))>
-    >>> polygonhull_simplify(Polygon([(0,0), (0, 4), (1,3), (3,4), (10, 4), (10, 0), (0, 0)]), 0.1, "area", False)
+    >>> simplify_polygon_hull(polygon, 0.1, parameter_mode="area", is_outer=False)
     <POLYGON ((0 0, 10 0, 10 4, 3 4, 1 3, 0 0))>
-    >>> polygonhull_simplify(Polygon([(0,0), (0, 4), (1,3), (3,4), (10, 4), (10, 0), (0, 0)]), 0.1, "area", True)
+    >>> simplify_polygon_hull(polygon, 0.1, parameter_mode="area", is_outer=True)
     <POLYGON ((0 0, 0 4, 10 4, 10 0, 0 0))>
     """
     if parameter_mode == "area":
