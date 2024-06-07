@@ -934,19 +934,34 @@ def simplify_polygon_hull(
 ):
     """Computes a boundary-respecting hull of a polygonal geometry, with hull
     shape determined by a target parameter specifying the fraction of the input
-    vertices or the input geometry's area retained retained in the result.
-    
+    vertices retained in the result or the ratio of the change in area of result
+    to the input area.
+
     The simplified geometry is ensured to entirely cover the input geometry if ``is_outer=True``
     or to be entirely within the input geometry if ``is_outer=True``.
 
     Parameters
     ----------
     geometry : Geometry or array_like
-    parameter : float or array_like
-        Larger values produce less concave results. A value of 1 produces
-        the convex hull; a value of 0 produces the original geometry.
+    tolerance : float or array_like
+        work differently depends on ``parameter_mode``
+        * vertex : the tolerance means Vertex Number fraction.
+                      Value 1 produces the original geometry.
+                      Smaller values produce less concave results.
+                      For outer hulls, value 0 produces the convex hull (with triangles for any holes).
+                      For inner hulls, value 0 produces a triangle (if no holes are present).
+                      The value should be in the range [0,1].
+
+        * area : the tolerance means Area Delta ratio.
+                   The ratio of the change in area to the input area.
+                   Value 0 produces the original geometry.
+                   Larger values produce less concave results.
+                   The value must be 0 or greater.
+
     parameter_mode : str
-        vertex - Fraction of input vertices retained, area - Ratio of simplified hull area to input area
+        * vertex - simplify by the fraction of input vertices retained
+        * area - simplify by the ratio of the change in area to the input area
+
     is_outer : bool, default True
         By default (True), an outer hull is computed.
         An inner hull is computed if it is negative.
