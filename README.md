@@ -12,7 +12,10 @@ Programming language: Python
 
 ## Coverage measurement
 
-### Existing tool
+### Existing tool - coverage.py
+
+<img width="1355" alt="Screenshot 2024-06-07 at 15 30 43" src="https://github.com/Papajo-boban/shapely/assets/134519958/f66d2f91-a251-4718-880d-c556f777512e">
+
 
 <Inform the name of the existing tool that was executed and how it was executed>
 
