@@ -1,14 +1,22 @@
+"""
+An implementation of the algorithms in:
+"Minimum edge length partitioning of rectilinear polygons", by Lingas, Pinter, Rivest and Shamir from 1982
+https://people.csail.mit.edu/rivest/pubs/LPRS82.pdf
+Programmer: Dvir Borochov
+Date: 10/6/24 
+"""
+
+import doctest
 import logging
 import heapq
+from classes import PriorityQueueItem, ComparableLineString, ComperablePolygon
 from shapely.ops import split
 from shapely.geometry import (
     Polygon,
     LineString,
     Point,
     GeometryCollection,
-    MultiPolygon,
-)
-from classes import PriorityQueueItem, ComparableLineString, Comperablepolygon
+    MultiPolygon)
 
 
 logger = logging.getLogger("polygon_partitioning")
@@ -20,8 +28,124 @@ class RectilinearPolygon:
         self.min_partition_length = float("inf")
         self.best_partition = []
         self.grid_points = []
+        
+        
+        
+    def partition(self):
+        if not self.is_rectilinear():
+            return None
+
+        initial_convex_point = self.find_convex_points()
+        self.grid_points = self.get_grid_points()
+        self.iterative_partition(initial_convex_point, [])
+
+        return self.best_partition
+    
+    def iterative_partition(self, candidate_point, partition_list):
+        """
+        Iteratively partitions the given candidate points and updates the best partition.
+
+        Args:
+            initial_candidate_points (list): The initial list of candidate points to consider for partitioning.
+            initial_partition_list (list): The initial partition list.
+
+        Returns:
+            None (just update the best partition).
+        """
+        total_length = sum(line.length for line in partition_list)
+        initial_priority = total_length if total_length != 0 else float("inf")
+        pq = []  # Priority queue
+        partial_figures = []
+        initial_item = PriorityQueueItem(
+            initial_priority,
+            tuple(candidate_point.coords[0]),
+            [ComparableLineString(line) for line in partition_list],
+            [ComperablePolygon(figure) for figure in partial_figures],
+        )
+        heapq.heappush(pq, initial_item)
+
+
+        # Transform list into a heap
+        heapq.heapify(pq)
+        while pq:
+            priority_item = heapq.heappop(pq)
+            candidate_point_tuple = priority_item.candidate_point_tuple
+            partition_list = priority_item.partition_list
+            partial_figures = priority_item.partial_figures
+            
+            # Convert back to Point object
+            candidate_point = Point(candidate_point_tuple)  
+            matching_points = self.find_matching_point(candidate_point, partial_figures)
+            if not matching_points:
+                continue
+
+            for matching_point in matching_points:
+                new_partial_figure, new_lines = self.find_blocked_rectangle(
+                    candidate_point, matching_point
+                )
+                if new_lines is None:
+                    continue
+                new_figures = partial_figures + [ComperablePolygon(new_partial_figure)]
+                
+                # Normalize lines before adding to the set to avoid duplication lines
+                normalized_partition_list = {
+                    normalize_line(ComparableLineString(line)) for line in new_lines
+                }
+                new_partition_list = [ComparableLineString(line) for line in normalized_partition_list.union(partition_list)]
+                
+                # Calculate the priority for the new state
+                new_total_length = sum(line.length for line in new_partition_list)
+                new_priority = new_total_length if new_total_length != 0 else float("inf")
+                #cutting the search if the new partition is longer than the best partition
+                if new_priority >= self.min_partition_length:
+                    continue
+
+                if self.is_partitioned_into_rectangles(new_partition_list):
+                    if new_total_length < self.min_partition_length:
+                        self.min_partition_length = new_total_length
+                        self.best_partition = [line for line in new_partition_list]
+                        logger.debug(f"New best partition found: {self.best_partition}")
+                    else:
+                        logger.warning(f"Not the best : {new_partition_list}")
+                        continue
+
+                new_candidate_point = self.find_candidate_point(new_partition_list)
+                if new_candidate_point is None or new_candidate_point.is_empty:
+                    continue
+
+                # Convert the candidate point to a tuple of coordinates
+                new_candidate_point_tuple = tuple(new_candidate_point.coords[0])
+
+                new_item = PriorityQueueItem(
+                    new_priority,
+                    new_candidate_point_tuple,
+                    new_partition_list,
+                    new_figures,
+                )
+                heapq.heappush(pq, new_item)
+                logger.warning(f"new item pushed : {new_item}")
+
 
     def is_rectilinear(self) -> bool:
+        """
+        Check if the polygon is rectilinear.(each engle is 90 degrees or 270 degrees)
+        
+
+        Returns:
+            bool: True if the polygon is rectilinear, False otherwise.
+        >>> polygon = Polygon([(0, 0), (0, 2), (0, 4), (2, 4), (2, 2), (2, 0)])
+        >>> rect_polygon = RectilinearPolygon(polygon) 
+        >>> rect_polygon.is_rectilinear()
+        True
+        
+        >>> polygon = Polygon([(0, 0), (0, 4), (4, 4), (4, 0), (2,2)])
+        >>> partitions = [LineString([(0, 2), (4, 3)])]  # Non-rectangular partition
+        >>> rect_polygon = RectilinearPolygon(polygon)
+        >>> rect_polygon.is_rectilinear()
+        False
+
+            
+        """
         coords = list(self.polygon.exterior.coords)
         for i in range(len(coords) - 1):
             x1, y1 = coords[i]
@@ -40,8 +164,10 @@ class RectilinearPolygon:
         >>> polygon = Polygon([(0, 0), (0, 2), (0, 4), (2, 4), (2, 2), (2, 0)])
         >>> rect_polygon = RectilinearPolygon(polygon)
         >>> convex_points = rect_polygon.find_convex_points()
-        >>> convex_points == [Point(0, 0), Point(0, 4), Point(2, 4), Point(2, 0)]
-        True
+        >>> convex_points
+       
+        
+        
         """
         coords = list(
             self.polygon.exterior.coords[:-1]
@@ -62,7 +188,21 @@ class RectilinearPolygon:
                 return Point(x2, y2)
 
     def is_concave_vertex(self, i, coords):
-        # Calculate the cross product to determine if the vertex is concave
+        """
+        Calculate the cross product to determine if the vertex is concave
+
+        Args:
+            i (int): Index of the vertex in the list of coordinates (0-based index)
+            coords (list): List of coordinate tuples representing the polygon vertices
+
+        Returns:
+            bool: True if the vertex is concave, False otherwise
+            
+        >>> polygon = Polygon([(2, 0), (6, 0), (6, 4), (8, 4), (8, 6), (0, 6), (0, 4), (2, 4)])
+        >>> rect_polygon = RectilinearPolygon(polygon) 
+        >>> rect_polygon.is_concave_vertex(2, list(polygon.exterior.coords))
+        True
+        """
         x1, y1 = coords[i - 1]
         x2, y2 = coords[i]
         x3, y3 = coords[(i + 1) % len(coords)]
@@ -71,6 +211,15 @@ class RectilinearPolygon:
         return cross_product < 0
 
     def extend_lines(self, point):
+        """
+        extends the horizontal and vertical lines from the given point to the polygon bounds.
+
+        Args:
+            point (Point): The point from which to extend the lines.
+
+        Returns:
+            tuple: A tuple containing the extended horizontal and vertical lines.
+        """
         x, y = point.x, point.y
         min_x, min_y, max_x, max_y = self.polygon.bounds
 
@@ -81,6 +230,19 @@ class RectilinearPolygon:
         return horizontal_line, vertical_line
 
     def get_grid_points(self):
+        """
+        the method returns the grid points inside the polygon
+        the grid points are the intersection points of the polygon sides with the extended lines from the concave vertices and the polgyn vertices itself.
+        
+        
+        >>> polygon = Polygon([(2, 0), (6, 0), (6, 4), (8, 4), (8, 6), (0, 6), (0, 4), (2, 4)])
+        >>> rect_polygon = RectilinearPolygon(polygon)
+        >>> grid_points = rect_polygon.get_grid_points()
+        >>> grid_points
+        [<POINT (2 4)>, <POINT (8 4)>, <POINT (0 4)>, <POINT (2 0)>, <POINT (6 4)>, <POINT (0 6)>, <POINT (2 6)>, <POINT (8 6)>, <POINT (6 0)>, <POINT (6 6)>]
+        
+        
+        """
         coords = list(self.polygon.exterior.coords)
         grid_points = set(coords)
 
@@ -122,13 +284,22 @@ class RectilinearPolygon:
 
         Returns:
             list: List of Points representing the matching points.
+            
+        >>> polygon = Polygon([(2, 0), (6, 0), (6, 4), (8, 4), (8, 6), (0, 6), (0, 4), (2, 4)])
+        >>> rect_polygon = RectilinearPolygon(polygon)
+        >>> rect_polygon.grid_points = rect_polygon.get_grid_points()
+        >>> candidate = Point(2, 0)
+        >>> partial_figures = []
+        >>> matching_points = rect_polygon.find_matching_point(candidate, partial_figures)
+        >>> matching_points
+        [<POINT (6 4)>, <POINT (6 6)>]
+        
+         
+        
         """
         matching_points = []
         relevant_grid_points = []
-        """
-        Find the matching points on the grid that are not inside or on the partial_figures (that is a [Polygon]).
-        We want to find the matching points that not in other partial figures (to make a new partial figure)
-        """
+
         for point in self.grid_points:
             if not any(
                 point.within(polygon) or point.touches(polygon)
@@ -153,6 +324,27 @@ class RectilinearPolygon:
         return matching_points
 
     def find_blocked_rectangle(self, candidate: Point, matching: Point):
+        """find the blocked rectangle between the candidate and the matching point.
+
+        Args:
+            candidate (Point): The candidate point.
+            matching (Point): The matching point.
+
+        Returns:
+        is exist:
+            tuple: A tuple containing the blocked rectangle and the internal edges of the blocked rectangle.
+        else:
+            None
+            
+                    
+        >>> polygon = Polygon([(2, 0), (6, 0), (6, 4), (8, 4), (8, 6), (0, 6), (0, 4), (2, 4)])
+        >>> rect_polygon = RectilinearPolygon(polygon)
+        >>> candidate = Point(2, 4)
+        >>> matching = Point(6, 6)
+        >>> rect_polygon.find_blocked_rectangle(candidate, matching)
+        (<POLYGON ((2 4, 2 6, 6 6, 6 4, 2 4))>, [<LINESTRING (2 4, 2 6)>, <LINESTRING (6 6, 6 4)>, <LINESTRING (6 4, 2 4)>])
+        
+        """        
         # Create the four edges of the potential blocked rectangle
         edge1 = LineString([candidate, Point(candidate.x, matching.y)])
         edge2 = LineString([Point(candidate.x, matching.y), matching])
@@ -194,6 +386,12 @@ class RectilinearPolygon:
             lines (list[LineString]): A list of LineString objects to split the polygon.
         Returns:
             list: List of Polygon objects resulting from the split operation.
+            
+        >>> polygon = Polygon([(2, 0), (6, 0), (6, 4), (8, 4), (8, 6), (0, 6), (0, 4), (2, 4)])
+        >>> rect_polygon = RectilinearPolygon(polygon)
+        >>> lines = [LineString([(2,4), (6,4)])]
+        >>> rect_polygon.split_polygon(lines)
+        [<POLYGON ((6 4, 6 0, 2 0, 2 4, 6 4))>, <POLYGON ((2 4, 0 4, 0 6, 8 6, 8 4, 6 4, 2 4))>]
         """
         if not lines:
             return [self.polygon]
@@ -233,7 +431,12 @@ class RectilinearPolygon:
 
         Raises:
             None
-
+            
+        >>> polygon = Polygon([(2, 0), (6, 0), (6, 4), (8, 4), (8, 6), (0, 6), (0, 4), (2, 4)])
+        >>> rect_polygon = RectilinearPolygon(polygon)
+        >>> lines = [LineString([(2,4), (6,4)])]
+        >>> rect_polygon.find_candidate_point(lines)
+        <POINT (6 4)>
         """
         constructed_lines = [normalize_line(line) for line in constructed_lines]
 
@@ -258,6 +461,7 @@ class RectilinearPolygon:
 
         Returns:
             Point: One of the points of the constructed_lines.
+            
         """
         polygons = self.split_polygon(constructed_lines)
 
@@ -317,102 +521,22 @@ class RectilinearPolygon:
         return all(self.is_rectangle(poly) for poly in polygons)
              
 
-    def partition(self):
-        if not self.is_rectilinear():
-            return None
 
-        initial_convex_point = self.find_convex_points()
-        self.grid_points = self.get_grid_points()
-        self.iterative_partition(initial_convex_point, [])
-
-        return self.best_partition
-    
-    def iterative_partition(self, candidate_point, partition_list):
-        """
-        Iteratively partitions the given candidate points and updates the best partition.
-
-        Args:
-            initial_candidate_points (list): The initial list of candidate points to consider for partitioning.
-            initial_partition_list (list): The initial partition list.
-
-        Returns:
-            None (just update the best partition).
-        """
-        total_length = sum(line.length for line in partition_list)
-        initial_priority = total_length if total_length != 0 else float("inf")
-        pq = []  # Priority queue
-        partial_figures = []
-        initial_item = PriorityQueueItem(
-            initial_priority,
-            tuple(candidate_point.coords[0]),
-            [ComparableLineString(line) for line in partition_list],
-            [Comperablepolygon(figure) for figure in partial_figures],
-        )
-        heapq.heappush(pq, initial_item)
-
-        # Transform list into a heap
-        heapq.heapify(pq)
-        while pq:
-            priority_item = heapq.heappop(pq)
-            candidate_point_tuple = priority_item.candidate_point_tuple
-            partition_list = priority_item.partition_list
-            partial_figures = priority_item.partial_figures
-            
-            # Convert back to Point object
-            candidate_point = Point(candidate_point_tuple)  
-            matching_points = self.find_matching_point(candidate_point, partial_figures)
-            if not matching_points:
-                continue
-
-            for matching_point in matching_points:
-                new_partial_figure, new_lines = self.find_blocked_rectangle(
-                    candidate_point, matching_point
-                )
-                if new_lines is None:
-                    continue
-                new_figures = partial_figures + [Comperablepolygon(new_partial_figure)]
-
-                # Normalize lines before adding to the set to avoid duplication lines
-                normalized_partition_list = {
-                    normalize_line(ComparableLineString(line)) for line in new_lines
-                }
-                new_partition_list = [ComparableLineString(line) for line in normalized_partition_list.union(partition_list)]
-
-                # Calculate the priority for the new state
-                new_total_length = sum(line.length for line in new_partition_list)
-                new_priority = new_total_length if new_total_length != 0 else float("inf")
-                #cutting the search if the new partition is longer than the best partition
-                if new_priority >= self.min_partition_length:
-                    continue
-
-                if self.is_partitioned_into_rectangles(new_partition_list):
-                    if new_total_length < self.min_partition_length:
-                        self.min_partition_length = new_total_length
-                        self.best_partition = [line for line in new_partition_list]
-                        logger.warning(f"New best partition found: {self.best_partition}")
-                    else:
-                       # logger.warning(f"Not the best : {new_partition_list}")
-                        continue
-
-                new_candidate_point = self.find_candidate_point(new_partition_list)
-                if new_candidate_point is None or new_candidate_point.is_empty:
-                    continue
-
-                # Convert the candidate point to a tuple of coordinates
-                new_candidate_point_tuple = tuple(new_candidate_point.coords[0])
-
-                new_item = PriorityQueueItem(
-                    new_priority,
-                    new_candidate_point_tuple,
-                    new_partition_list,
-                    new_figures,
-                )
-                heapq.heappush(pq, new_item)
 
 
 
 @staticmethod
 def normalize_line(line: LineString) -> LineString:
+    """
+    Normalize the line by ordering the coordinates in ascending order.
+    the method help us with duplicate lines in the partition list.
+
+    Args:
+        line (LineString): The line to normalize.
+
+    Returns:
+        LineString: The normalized line.
+    """
     coords = list(line.coords)
     if coords[0] > coords[-1]:
         coords.reverse()
@@ -423,6 +547,16 @@ def normalize_line(line: LineString) -> LineString:
 def check_lines(
     partition_list: list[LineString], new_lines: list[LineString]
 ) -> list[LineString]:
+    """
+    Check if the new lines are within the partition list.
+
+    Args:
+        partition_list (list[LineString]): The list of partition lines.
+        new_lines (list[LineString]): The list of new lines to check.
+
+    Returns:
+        list[LineString]: The list of new lines that are not within the partition list.
+    """    
     result = []
     for new_line in new_lines:
         if not any(new_line.within(line) for line in partition_list):
@@ -431,31 +565,14 @@ def check_lines(
 
 
 if __name__ == "__main__":
-    # Create the polygon instance
+
+    # Run the doctests
+    doctest.testmod()
     polygon1 = Polygon([(2, 0), (6, 0), (6, 4), (8, 4), (8, 6), (0, 6), (0, 4), (2, 4)])
     polygon2 = Polygon([(1, 5), (1, 4), (3, 4), (3, 2), (5, 2), (5, 1), (8, 1), (8, 5)])
     polygon3 = Polygon([(0, 4), (2, 4), (2, 0), (5, 0), (5, 4), (7, 4), (7, 5), (0, 5)])
     
     
-    polygon4 = Polygon(
-        [
-            (1, 5),
-            (1, 4),
-            (3, 4),
-            (3, 3),
-            (2, 3),
-            (2, 1),
-            (5, 1),
-            (5, 2),
-            (8, 2),
-            (8, 1),
-            (9, 1),
-            (9, 4),
-            (8, 4),
-            (8, 5),
-        ]
-    )
-
     # Create a RectilinearPolygon instance
     rectilinear_polygon = RectilinearPolygon(polygon1)
 

@@ -1,10 +1,10 @@
 import unittest
-from shapely.geometry import Polygon, Point
-from partition import RectilinearPolygon
 
+from shapely.algorithms.min_partition import RectilinearPolygon
+from shapely.geometry import Polygon, Point
 
 class TestRectilinearPolygon(unittest.TestCase):
-    # Define the polygons as class attributes
+    # Define the polygons as class attributes shapely\algorithms\min_partition.py
     polygon1 = RectilinearPolygon(
         Polygon([(2, 0), (6, 0), (6, 4), (8, 4), (8, 6), (0, 6), (0, 4), (2, 4)])
     )
