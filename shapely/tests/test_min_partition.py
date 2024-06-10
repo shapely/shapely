@@ -1,5 +1,10 @@
-import unittest
+'''
+test the min_partition module
+Programmer: Dvir Borochov
+Date: 10/6/24 
+'''
 
+import unittest
 from shapely.algorithms.min_partition import RectilinearPolygon
 from shapely.geometry import Polygon, Point
 
