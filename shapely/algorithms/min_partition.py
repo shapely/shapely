@@ -19,8 +19,22 @@ from shapely.geometry import (
     MultiPolygon,
 )
 
-
 logger = logging.getLogger("polygon_partitioning")
+
+
+def partition_polygon(polygon: Polygon):
+    """
+    The main function that partitions the given rectilinear polygon into rectangles of minimum total edge length.
+
+    """
+    rectilinear_polygon = RectilinearPolygon(polygon)
+    if not rectilinear_polygon.is_rectilinear():
+        return None
+
+    initial_convex_point = rectilinear_polygon.find_convex_points()
+    rectilinear_polygon.grid_points = rectilinear_polygon.get_grid_points()
+    rectilinear_polygon.iterative_partition(initial_convex_point, [])
+    return rectilinear_polygon.best_partition
 
 
 class RectilinearPolygon:
@@ -30,20 +44,9 @@ class RectilinearPolygon:
         self.best_partition = []
         self.grid_points = []
 
-    def partition(self):
-        """
-        the main method that partitions the polygon into rectangles.
-        test in a seperate file (shapely/tests/test_min_partition.py)
-        """
-        if not self.is_rectilinear():
-            return None
-
-        initial_convex_point = self.find_convex_points()
-        self.grid_points = self.get_grid_points()
-        self.iterative_partition(initial_convex_point, [])
-        return self.best_partition
-
-    def iterative_partition(self, candidate_point, partition_list):
+    def iterative_partition(
+        self, candidate_point: Point, partition_list: list[LineString]
+    ):
         """
         Iteratively partitions the given candidate points and updates the best partition.
 
@@ -66,7 +69,6 @@ class RectilinearPolygon:
         )
         heapq.heappush(pq, initial_item)
 
-        # Transform list into a heap
         heapq.heapify(pq)
         while pq:
             priority_item = heapq.heappop(pq)
@@ -74,7 +76,8 @@ class RectilinearPolygon:
             partition_list = priority_item.partition_list
             partial_figures = priority_item.partial_figures
 
-            # Convert back to Point object
+            logger.info(f"Processing item: {priority_item}")
+
             candidate_point = Point(candidate_point_tuple)
             matching_points = self.find_matching_point(candidate_point, partial_figures)
             if not matching_points:
@@ -85,10 +88,11 @@ class RectilinearPolygon:
                     candidate_point, matching_point
                 )
                 if new_lines is None:
+                    logger.info("No new lines found.")
                     continue
                 new_figures = partial_figures + [ComperablePolygon(new_partial_figure)]
 
-                # Normalize lines before adding to the set to avoid duplication lines
+                logger.info(f"Normalized new lines: {new_lines}")
                 normalized_partition_list = {
                     normalize_line(ComparableLineString(line)) for line in new_lines
                 }
@@ -96,14 +100,16 @@ class RectilinearPolygon:
                     ComparableLineString(line)
                     for line in normalized_partition_list.union(partition_list)
                 ]
-
-                # Calculate the priority for the new state
+                logger.info(f"New partition list: {new_partition_list}")
+                
+                
                 new_total_length = sum(line.length for line in new_partition_list)
                 new_priority = (
                     new_total_length if new_total_length != 0 else float("inf")
                 )
-                # cutting the search if the new partition is longer than the best partition
+                
                 if new_priority >= self.min_partition_length:
+                    logger.info(f"cutting the search -  the new partition is longer than the best partition")
                     continue
 
                 if self.is_partitioned_into_rectangles(new_partition_list):
@@ -129,7 +135,7 @@ class RectilinearPolygon:
                     new_figures,
                 )
                 heapq.heappush(pq, new_item)
-                logger.warning(f"new item pushed : {new_item}")
+                logger.info(f"new item pushed : {new_item}")
 
     def is_rectilinear(self) -> bool:
         """
@@ -447,12 +453,14 @@ class RectilinearPolygon:
         constructed_lines = [normalize_line(line) for line in constructed_lines]
 
         if len(constructed_lines) == 1:
+            logger.info("Only one line constructed.")
             return Point(constructed_lines[0].coords[1])
         elif len(constructed_lines) == 2:
             line1 = constructed_lines[0]
             line2 = constructed_lines[1]
             common_point = line1.intersection(line2)
             if common_point:
+                logger.info(f"Common point found: {common_point}")
                 return Point(common_point)
         else:
             return self.find_unsplit_subpolygon_point(constructed_lines)
@@ -576,14 +584,12 @@ if __name__ == "__main__":
     polygon2 = Polygon([(1, 5), (1, 4), (3, 4), (3, 2), (5, 2), (5, 1), (8, 1), (8, 5)])
     polygon3 = Polygon([(0, 4), (2, 4), (2, 0), (5, 0), (5, 4), (7, 4), (7, 5), (0, 5)])
 
-    # Create a RectilinearPolygon instance
-    rectilinear_polygon = RectilinearPolygon(polygon1)
+    partition_result_1 = partition_polygon(polygon1)
+    partition_result_2 = partition_polygon(polygon2)
+    partition_result_3 = partition_polygon(polygon3)
 
-    # Get the partition result``
-    partition_result = rectilinear_polygon.partition()
-
-    if partition_result:
+    if partition_result_1:
         # Process the partition result
-        print("Partition result:", partition_result)
+        print("Partition result:", partition_result_3)
     else:
         print("Partition could not be found.")
