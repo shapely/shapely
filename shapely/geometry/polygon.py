@@ -10,7 +10,7 @@ from shapely.geometry.base import BaseGeometry
 from shapely.geometry.linestring import LineString
 from shapely.geometry.point import Point
 
-__all__ = ["Polygon", "LinearRing"]
+__all__ = ["orient", "Polygon", "LinearRing"]
 
 
 def _unpickle_linearring(wkb):

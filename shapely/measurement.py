@@ -3,7 +3,7 @@ import warnings
 import numpy as np
 
 from shapely import lib
-from shapely.decorators import multithreading_enabled, requires_geos
+from shapely.decorators import multithreading_enabled
 
 __all__ = [
     "area",
@@ -287,7 +287,6 @@ def minimum_clearance(geometry, **kwargs):
     return lib.minimum_clearance(geometry, **kwargs)
 
 
-@requires_geos("3.8.0")
 @multithreading_enabled
 def minimum_bounding_radius(geometry, **kwargs):
     """Computes the radius of the minimum bounding circle that encloses an input geometry.

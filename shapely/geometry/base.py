@@ -473,7 +473,7 @@ class BaseGeometry(shapely.Geometry):
             geometry. To prevent unreasonable geometry, the mitre limit
             allows controlling the maximum length of the join corner.
             Corners with a ratio which exceed the limit will be beveled.
-        single_side : bool, optional
+        single_sided : bool, optional
             The side used is determined by the sign of the buffer
             distance:
 
@@ -619,9 +619,13 @@ class BaseGeometry(shapely.Geometry):
 
     @property
     def has_z(self):
-        """True if the geometry's coordinate sequence(s) have z values (are
-        3-dimensional)"""
+        """True if the geometry's coordinate sequence(s) have z values"""
         return bool(shapely.has_z(self))
+
+    @property
+    def has_m(self):
+        """True if the geometry's coordinate sequence(s) have m values"""
+        return bool(shapely.has_m(self))
 
     @property
     def is_empty(self):
@@ -753,6 +757,8 @@ class BaseGeometry(shapely.Geometry):
         normalize : bool, optional (default: False)
             If True, normalize the two geometries so that the coordinates are
             in the same order.
+
+            .. versionadded:: 2.1.0
 
         Examples
         --------

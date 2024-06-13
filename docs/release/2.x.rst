@@ -13,9 +13,39 @@ Improvements:
   to allow, skip, or error on nonfinite (NaN / Inf) coordinates. The default
   behaviour (allow) is backwards compatible (#1594).
 
+
+.. _version-2-0-4:
+
+Version 2.0.4 (2024-04-16)
+--------------------------
+
+Bug fixes:
+
+- Fix bug in ``to_wkt`` with multiple empty Z geometries (#2012).
+- Fix bug in ``to_ragged_array`` for an array of Points with missing values (#2034).
+
+Wheels for Python versions >= 3.9 will be compatible with the upcoming NumPy 2.0
+release (as well as with supported NumPy 1.x versions).
+
+.. _version-2-0-3:
+
+Version 2.0.3 (2024-02-16)
+--------------------------
+
+Bug fixes:
+
+- Fix regression in the ``oriented_envelope`` ufunc to accept array-like input
+  in case of GEOS<3.12 (#1929).
+
+Packaging related:
+
+- The binary wheels are not yet compatible with a future NumPy 2.0 release,
+  therefore a ``numpy<2`` upper pin was added to the requirements (#1972).
+- Upgraded the GEOS version in the binary wheel distributions to 3.11.3.
+
 .. _version-2-0-2:
 
-Version 2.0.2 (unreleased)
+Version 2.0.2 (2023-10-12)
 --------------------------
 
 Bug fixes:
@@ -23,7 +53,29 @@ Bug fixes:
 - Fix regression in the (in)equality comparison (``geom1 == geom2``) using ``__eq__`` to
   not ignore the z-coordinates (#1732).
 - Fix ``MultiPolygon()`` constructor to accept polygons without holes (#1850).
+- Fix :func:`.minimum_rotated_rectangle` (:func:`.oriented_envelope`) to always return
+  the minimum area solution (instead of minimum width). In practice, it will use the
+  GEOS implementation only for GEOS 3.12+, and for older GEOS versions fall back to the
+  implementation that was included in Shapely < 2 (#1670).
+- Fix :func:`.from_ragged_array` to work with read-only array input (#1744).
+- Fix the handling of z coordinates :func:`shapely.ops.substring` (#1699).
 
+Wheels are available for Python 3.12 (and still include GEOS 3.11.2). Building
+from source is now compatible with Cython 3.
+
+Acknowledgments
+^^^^^^^^^^^^^^^
+
+Thanks to everyone who contributed to this release!
+People with a "+" by their names contributed a patch for the first time.
+
+* Casper van der Wel
+* Gareth Simons +
+* Idan Miara
+* Joris Van den Bossche
+* Kyle Barron
+* Marek Czaplicki +
+* Mike Taves
 
 .. _version-2-0-1:
 
@@ -428,7 +480,7 @@ Methods to extract all parts or coordinates at once have been added:
 * The :func:`.get_rings` function, similar as ``get_parts`` but specifically
   to extract the rings of Polygon geometries.
 * The :func:`.get_coordinates` function to get all coordinates from a
-  geometry or array of goemetries as an array of floats.
+  geometry or array of geometries as an array of floats.
 
 Each of those three functions has an optional ``return_index`` keyword, which
 allows to also return the indexes of the original geometries in the source

@@ -5,31 +5,27 @@ import shapely
 from shapely import Geometry, GeometryCollection, Polygon
 from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
-from shapely.tests.common import (
-    all_types,
-    empty,
-    ignore_invalid,
-    multi_polygon,
-    point,
-    polygon,
-)
+from shapely.tests.common import all_types, empty, ignore_invalid, point, polygon
 
 # fixed-precision operations raise GEOS exceptions on mixed dimension geometry collections
-all_single_types = [g for g in all_types if not shapely.get_type_id(g) == 7]
+all_single_types = np.array(all_types)[
+    ~shapely.is_empty(all_types)
+    & (shapely.get_type_id(all_types) != shapely.GeometryType.GEOMETRYCOLLECTION)
+]
 
 SET_OPERATIONS = (
     shapely.difference,
     shapely.intersection,
     shapely.symmetric_difference,
     shapely.union,
-    # shapely.coverage_union is tested seperately
+    # shapely.coverage_union is tested separately
 )
 
 REDUCE_SET_OPERATIONS = (
     (shapely.intersection_all, shapely.intersection),
     (shapely.symmetric_difference_all, shapely.symmetric_difference),
     (shapely.union_all, shapely.union),
-    #  shapely.coverage_union_all, shapely.coverage_union) is tested seperately
+    #  shapely.coverage_union_all, shapely.coverage_union) is tested separately
 )
 
 # operations that support fixed precision
@@ -43,16 +39,21 @@ reduce_test_data = [
     shapely.box(5, 5, 10, 10),
 ]
 
-non_polygon_types = [
-    geom
-    for geom in all_types
-    if (not shapely.is_empty(geom) and geom not in (polygon, multi_polygon))
+non_polygon_types = np.array(all_types)[
+    ~shapely.is_empty(all_types) & (shapely.get_dimensions(all_types) != 2)
 ]
 
 
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 def test_set_operation_array(a, func):
+    if (
+        func is shapely.difference
+        and a.geom_type == "GeometryCollection"
+        and shapely.get_num_geometries(a) == 2
+        and shapely.geos_version == (3, 9, 5)
+    ):
+        pytest.xfail("GEOS 3.9.5 crashes with mixed collection")
     actual = func(a, point)
     assert isinstance(actual, Geometry)
 
@@ -266,13 +267,11 @@ def test_set_operation_prec_reduce_all_none(n, func, related_func):
     assert_geometries_equal(func([None] * n, grid_size=1), GeometryCollection([]))
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 @pytest.mark.parametrize("n", range(1, 4))
 def test_coverage_union_reduce_1dim(n):
     """
-    This is tested seperately from other set operations as it differs in two ways:
-      1. It expects only non-overlapping polygons
-      2. It expects GEOS 3.8.0+
+    This is tested separately from other set operations as it expects only
+    non-overlapping polygons
     """
     test_data = [
         shapely.box(0, 0, 1, 1),
@@ -287,7 +286,6 @@ def test_coverage_union_reduce_1dim(n):
     assert_geometries_equal(actual, expected, normalize=True)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 def test_coverage_union_reduce_axis():
     # shape = (3, 2), all polygons - none of them overlapping
     data = [[shapely.box(i, j, i + 1, j + 1) for i in range(2)] for j in range(3)]
@@ -301,13 +299,12 @@ def test_coverage_union_reduce_axis():
     assert actual.shape == (3,)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 def test_coverage_union_overlapping_inputs():
     polygon = Polygon([(1, 1), (1, 0), (0, 0), (0, 1), (1, 1)])
     other = Polygon([(1, 0), (0.9, 1), (2, 1), (2, 0), (1, 0)])
 
     if shapely.geos_version >= (3, 12, 0):
-        # Return mostly unchaged output
+        # Return mostly unchanged output
         result = shapely.coverage_union(polygon, other)
         expected = shapely.multipolygons([polygon, other])
         assert_geometries_equal(result, expected, normalize=True)
@@ -320,7 +317,6 @@ def test_coverage_union_overlapping_inputs():
             shapely.coverage_union(polygon, other)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 @pytest.mark.parametrize(
     "geom_1, geom_2",
     # All possible polygon, non_polygon combinations
