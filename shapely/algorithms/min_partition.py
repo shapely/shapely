@@ -9,6 +9,8 @@ Date: 10/6/24
 import doctest
 import logging
 import heapq
+from matplotlib.patches import Polygon as MplPolygon
+from matplotlib import pyplot as plt
 from classes import PriorityQueueItem, ComparableLineString, ComperablePolygon
 from shapely.ops import split
 from shapely.geometry import (
@@ -90,9 +92,9 @@ class RectilinearPolygon:
                 if new_lines is None:
                     logger.info("No new lines found.")
                     continue
-                new_figures = partial_figures + [ComperablePolygon(new_partial_figure)]
+                new_figures = partial_figures + [ComperablePolygon(new_partial_figure)] #TODo
 
-                logger.info(f"Normalized new lines: {new_lines}")
+                logger.info(f"Normalized new lines: {new_lines}")#TODo
                 normalized_partition_list = {
                     normalize_line(ComparableLineString(line)) for line in new_lines
                 }
@@ -335,7 +337,8 @@ class RectilinearPolygon:
         return matching_points
 
     def find_blocked_rectangle(self, candidate: Point, matching: Point):
-        """find the blocked rectangle between the candidate and the matching point.
+        """
+        find the blocked rectangle between the candidate and the matching point.
 
         Args:
             candidate (Point): The candidate point.
@@ -369,7 +372,7 @@ class RectilinearPolygon:
         coords_list = [list(edge.coords) for edge in all_edges]
 
         # Concatenate the coordinate lists, removing duplicates
-        coords = list(dict.fromkeys(sum(coords_list, [])))
+        coords = list(dict.fromkeys(sum(coords_list, []))) #TODO: fix and rerfactor
 
         # Construct the partial polygon
         polygon = Polygon(coords)
@@ -378,6 +381,7 @@ class RectilinearPolygon:
         internal_edges = []
         for edge in all_edges:
             difference = edge.difference(self.polygon.boundary)
+            logger.debug(f"Difference: {difference}")
             if not difference.is_empty:
                 if difference.geom_type == "MultiLineString":
                     for (
@@ -431,7 +435,7 @@ class RectilinearPolygon:
 
         return polygons
 
-    def find_candidate_point(self, constructed_lines: list[LineString]) -> list[Point]:
+    def find_candidate_point(self, constructed_lines: list[LineString]) -> Point:
         """
         Find candidate point based on the constructed lines.
 
@@ -450,7 +454,8 @@ class RectilinearPolygon:
         >>> rect_polygon.find_candidate_point(lines)
         <POINT (6 4)>
         """
-        constructed_lines = [normalize_line(line) for line in constructed_lines]
+        constructed_lines = [normalize_line(line) for line in constructed_lines]#check
+        
 
         if len(constructed_lines) == 1:
             logger.info("Only one line constructed.")
@@ -463,7 +468,7 @@ class RectilinearPolygon:
                 logger.info(f"Common point found: {common_point}")
                 return Point(common_point)
         else:
-            return self.find_unsplit_subpolygon_point(constructed_lines)
+            return self.find_unsplit_subpolygon_point(constructed_lines) #check
 
     def find_unsplit_subpolygon_point(
         self, constructed_lines: list[LineString]
@@ -575,7 +580,13 @@ def check_lines(
             result.append(new_line)
     return result
 
+"""
+the mian change that I need to to is to find the next candidate 
 
+
+
+
+"""
 if __name__ == "__main__":
 
     # Run the doctests
@@ -583,13 +594,40 @@ if __name__ == "__main__":
     polygon1 = Polygon([(2, 0), (6, 0), (6, 4), (8, 4), (8, 6), (0, 6), (0, 4), (2, 4)])
     polygon2 = Polygon([(1, 5), (1, 4), (3, 4), (3, 2), (5, 2), (5, 1), (8, 1), (8, 5)])
     polygon3 = Polygon([(0, 4), (2, 4), (2, 0), (5, 0), (5, 4), (7, 4), (7, 5), (0, 5)])
+    '''
+    '''
+    polygon4 = Polygon([(1,5), (1,4), (3,4), (3,3), (2,3),(2,1), (5,1), (5,2), (8,2),(8,1), (9,1), (9,4),(8,4), (8,5)])
+    
 
-    partition_result_1 = partition_polygon(polygon1)
-    partition_result_2 = partition_polygon(polygon2)
-    partition_result_3 = partition_polygon(polygon3)
+    partition_result = partition_polygon(polygon4)
+    # partition_result_2 = partition_polygon(polygon2)
+    # partition_result_3 = partition_polygon(polygon3)
 
-    if partition_result_1:
+    if partition_result:
         # Process the partition result
-        print("Partition result:", partition_result_3)
+        print("Partition result:", partition_result)
     else:
         print("Partition could not be found.")
+
+
+    # Create a figure and an axes
+    fig, ax = plt.subplots()
+
+    # Create a Polygon patch and add it to the plot
+    polygon_patch = MplPolygon(list(polygon4.exterior.coords), closed=True, edgecolor='blue', facecolor='lightblue')
+    ax.add_patch(polygon_patch)
+    
+    # Plot the LineString objects in a different color
+    for line in partition_result:
+        x, y = line.xy
+        ax.plot(x, y, color='red')
+
+    # Set the limits of the plot
+    ax.set_xlim(-1, 9)
+    ax.set_ylim(-1, 7)
+
+    # Set the aspect of the plot to be equal
+    ax.set_aspect('equal')
+
+    # Show the plot
+    plt.show()
