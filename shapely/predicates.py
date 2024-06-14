@@ -781,7 +781,7 @@ def equals(a, b, **kwargs):
 def intersects(a, b, **kwargs):
     """Returns True if A and B share any portion of space.
 
-    Intersects implies that overlaps, touches and within are True.
+    Intersects implies that overlaps, touches, covers, or within are True.
 
     Parameters
     ----------
