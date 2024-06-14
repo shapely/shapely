@@ -74,6 +74,8 @@ def has_z(geometry, **kwargs):
 def has_m(geometry, **kwargs):
     """Returns True if a geometry has M coordinates.
 
+    .. versionadded:: 2.1.0
+
     Parameters
     ----------
     geometry : Geometry or array_like
@@ -111,7 +113,7 @@ def is_ccw(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
-        This function will return False for non-linear goemetries and for
+        This function will return False for non-linear geometries and for
         lines with fewer than 4 points (including the closing point).
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
@@ -778,7 +780,7 @@ def equals(a, b, **kwargs):
 def intersects(a, b, **kwargs):
     """Returns True if A and B share any portion of space.
 
-    Intersects implies that overlaps, touches and within are True.
+    Intersects implies that overlaps, touches, covers, or within are True.
 
     Parameters
     ----------
@@ -980,6 +982,8 @@ def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
     normalize : bool, optional (default: False)
         If True, normalize the two geometries so that the coordinates are
         in the same order.
+
+        .. versionadded:: 2.1.0
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 

@@ -302,7 +302,7 @@ Its `x-y` bounding box is a ``(minx, miny, maxx, maxy)`` tuple.
   >>> point.bounds
   (0.0, 0.0, 0.0, 0.0)
 
-Coordinate values are accessed via `coords`, `x`, `y`, and `z` properties.
+Coordinate values are accessed via `coords`, `x`, `y`, `z`, and `m` properties.
 
 .. code-block:: pycon
 

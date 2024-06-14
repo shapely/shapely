@@ -56,6 +56,7 @@ build_geos(){
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=${GEOS_INSTALL} \
         -DCMAKE_INSTALL_LIBDIR=lib \
+        -DCMAKE_INSTALL_NAME_DIR=${GEOS_INSTALL}/lib \
         ${BUILD_TESTING} \
         ..
     cmake --build . -j 4

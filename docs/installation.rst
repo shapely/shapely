@@ -35,8 +35,8 @@ nightly wheel packages::
     python -m pip install --pre --upgrade --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple shapely
 
 
-Installation from source with custom GEOS libary
-------------------------------------------------
+Installation from source with custom GEOS library
+-------------------------------------------------
 
 You may want to use a specific GEOS version or a GEOS distribution that is
 already present on your system (for compatibility with other modules that

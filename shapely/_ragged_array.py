@@ -37,7 +37,7 @@ from shapely._geometry import (
     get_type_id,
 )
 from shapely.coordinates import get_coordinates
-from shapely.predicates import is_empty
+from shapely.predicates import is_empty, is_missing
 
 __all__ = ["to_ragged_array", "from_ragged_array"]
 
@@ -50,7 +50,8 @@ def _get_arrays_point(arr, include_z):
     coords = get_coordinates(arr, include_z=include_z)
 
     # empty points are represented by NaNs
-    empties = is_empty(arr)
+    # + missing geometries should also be present with some value
+    empties = is_empty(arr) | is_missing(arr)
     if empties.any():
         indices = np.nonzero(empties)[0]
         indices = indices - np.arange(len(indices))
