@@ -108,13 +108,9 @@ def polylabel(polygon, tolerance=1.0):
         best_cell = bbox_cell
 
     # build a regular square grid covering the polygon
-    x = minx
-    while x < maxx:
-        y = miny
-        while y < maxy:
+    for x in range(int(minx), int(maxx)):
+        for y in range(int(miny), int(maxy), int(cell_size)):
             heappush(cell_queue, Cell(x + h, y + h, h, polygon))
-            y += cell_size
-        x += cell_size
 
     # minimum priority queue
     while cell_queue:
