@@ -14,7 +14,7 @@ from matplotlib import pyplot as plt
 from classes import PriorityQueueItem, ComperablePolygon
 from shapely.geometry.collection import GeometryCollection
 from shapely.geometry.multipolygon import MultiPolygon
-from shapely.ops import split, unary_union
+from shapely.ops import split
 from shapely.geometry import Polygon, LineString, Point
 
 """
@@ -117,7 +117,7 @@ class RectilinearPolygon:
                         self.min_partition_length = new_total_length
                         self.best_partition = new_partition_list
                         logger.debug(f"New best partition found: {self.best_partition}")
-                        
+
                 new_candidates_and_figures = candidates_and_figures + [
                     (ComperablePolygon(fig), point) for fig, point in new_figures
                 ]
@@ -158,23 +158,26 @@ class RectilinearPolygon:
         if not isinstance(polygon, Polygon):
             polygon = Polygon(polygon)
 
-        # Split the polygon with each line
+        # Split the polygon iteratively with each line
         split_polygons = [polygon]
         for line in lines:
             new_split_polygons = []
             for poly in split_polygons:
                 if line.intersects(poly):
-                    split_result = split(poly, line)
-                    if isinstance(split_result, GeometryCollection):
-                        new_split_polygons.extend([geom for geom in split_result.geoms 
-                                                if isinstance(geom, Polygon)])
-                    elif isinstance(split_result, MultiPolygon):
-                        new_split_polygons.extend(list(split_result.geoms))
-                    elif isinstance(split_result, Polygon):
-                        new_split_polygons.append(split_result)
+                    result = split(poly, line)
+                    if isinstance(result, Polygon):
+                        new_split_polygons.append(result)
+                    elif isinstance(result, (MultiPolygon, GeometryCollection)):
+                        for geom in result.geoms:
+                            if isinstance(geom, Polygon):
+                                new_split_polygons.append(geom)
+                            else:
+                                logger.debug(f"Non-Polygon geometry found: {geom}")
                 else:
                     new_split_polygons.append(poly)
             split_polygons = new_split_polygons
+
+        logger.debug(f"Split polygons: {split_polygons}")
 
         # Process the split polygons and find candidate points
         result = []
@@ -187,8 +190,9 @@ class RectilinearPolygon:
                     result.append((poly, candidate_point))
             else:
                 # For rectangles, use the centroid as the candidate point
-                logger.debug("no candidate point found for rectangle")
+                result.append((poly, poly.centroid))
 
+        logger.debug(f"Result: {result}")
         return result
 
     def find_candidate_point_from_boundary(self, polygon, lines):
@@ -287,8 +291,6 @@ class RectilinearPolygon:
         >>> rect_polygon = RectilinearPolygon(polygon)
         >>> rect_polygon.is_rectilinear()
         False
-
-
         """
         coords = list(self.polygon.exterior.coords)
         for i in range(len(coords) - 1):
@@ -309,9 +311,6 @@ class RectilinearPolygon:
         >>> rect_polygon = RectilinearPolygon(polygon)
         >>> convex_points = rect_polygon.find_convex_points()
         >>> convex_points
-
-
-
         """
         coords = list(
             self.polygon.exterior.coords[:-1]
@@ -471,7 +470,9 @@ class RectilinearPolygon:
         if not partitions:
             logger.info("No partitions provided.")
             return self.is_rectangle(self.polygon)
-        polygons = self.split_polygon(partial_figure, partitions)
+        polygons = self.split_polygon(partial_figure, partitions) #TODO: check for empty list
+        if not polygons:
+            return False
         return all(self.is_rectangle(poly) for poly, _ in polygons)
 
     def is_rectangle(self, poly: Polygon) -> bool:
@@ -494,11 +495,11 @@ if __name__ == "__main__":
     polygon1 = Polygon([(2, 0), (6, 0), (6, 4), (8, 4), (8, 6), (0, 6), (0, 4), (2, 4)])
     polygon2 = Polygon([(1, 5), (1, 4), (3, 4), (3, 2), (5, 2), (5, 1), (8, 1), (8, 5)])
     polygon3 = Polygon([(0, 4), (2, 4), (2, 0), (5, 0), (5, 4), (7, 4), (7, 5), (0, 5)])
-    """
-    """
     polygon4 = Polygon([(1, 5), (1, 4), (3, 4), (3, 3), (2, 3), (2, 1), (5, 1), (5, 5)])
+    polygon5 = Polygon([(1, 5), (1, 4), (3, 4), (3, 3), (2, 3), (2, 1), (5, 1), (5, 2), (8,2),(8,1), (9,1), (9,4), (8,4), (8,5)])
 
-    partition_result = partition_polygon(polygon2)
+
+    partition_result = partition_polygon(polygon5)
     # partition_result_2 = partition_polygon(polygon2)
     # partition_result_3 = partition_polygon(polygon3)
 
@@ -513,7 +514,7 @@ if __name__ == "__main__":
 
     # Create a Polygon patch and add it to the plot
     polygon_patch = MplPolygon(
-        list(polygon2.exterior.coords),
+        list(polygon5.exterior.coords),
         closed=True,
         edgecolor="blue",
         facecolor="lightblue",
