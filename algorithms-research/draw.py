@@ -1,28 +1,38 @@
 import matplotlib.pyplot as plt
+from matplotlib.patches import Polygon as MplPolygon
+from shapely.geometry import Polygon, LineString
 
-def draw_polygon(points):
-    # Extract x and y coordinates from the list of tuples
-    x_coords, y_coords = zip(*points)
+def partition_polygon(polygon):
+    # Dummy implementation for demonstration
+    return [
+        LineString([(2, 0), (2, 4)]),
+        LineString([(6, 0), (6, 4)]),
+        LineString([(0, 4), (8, 4)]),
+        LineString([(8, 4), (8, 6)]),
+    ]
 
-    # Create a figure and axes
+if __name__ == "__main__":
+    polygon1 = Polygon([(2, 0), (6, 0), (6, 4), (8, 4), (8, 6), (0, 6), (0, 4), (2, 4)])
+    partition_result_1 = partition_polygon(polygon1)
+
+    # Create a figure and an axes
     fig, ax = plt.subplots()
 
-    # Plot the edges between vertices
-    for i in range(len(points)):
-        x1, y1 = points[i]
-        if i == len(points) - 1:
-            x2, y2 = points[0]  # Connect the last point to the first point
-        else:
-            x2, y2 = points[i + 1]
-        ax.plot([x1, x2], [y1, y2], 'b-')
+    # Create a Polygon patch and add it to the plot
+    polygon_patch = MplPolygon(list(polygon1.exterior.coords), closed=True, edgecolor='blue', facecolor='lightblue')
+    ax.add_patch(polygon_patch)
 
-    # Set aspect ratio and axis limits
+    # Plot the LineString objects in a different color
+    for line in partition_result_1:
+        x, y = line.xy
+        ax.plot(x, y, color='red')
+
+    # Set the limits of the plot
+    ax.set_xlim(-1, 9)
+    ax.set_ylim(-1, 7)
+
+    # Set the aspect of the plot to be equal
     ax.set_aspect('equal')
-    ax.autoscale()
 
     # Show the plot
     plt.show()
-
-# Example usage
-points = [(2, 0), (6, 0), (4, 6), (4, 8), (6, 8), (0, 6), (0, 4), (4, 2)]
-draw_polygon(points)

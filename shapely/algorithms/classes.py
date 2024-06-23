@@ -21,14 +21,14 @@ class PriorityQueueItem:
             partial_figures (list): A list of partial figures.
 
         Returns:
-            None
-    """
-    def __init__(self, priority, candidate_point_tuple, partition_list, partial_figures):
+            None (priority, partition_list, [(figure, candidate_point)] 
+    """ 
+    def __init__(self, priority, partition_list, candidates_and_figures):
         self.priority = priority
-        self.candidate_point_tuple = candidate_point_tuple
         self.partition_list = partition_list
-        self.partial_figures = partial_figures
-
+        self.candidates_and_figures = candidates_and_figures
+        
+        
     def __lt__(self, other):
         if not isinstance(other, PriorityQueueItem):
             return NotImplemented
