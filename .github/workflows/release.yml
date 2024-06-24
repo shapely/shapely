@@ -72,7 +72,7 @@ jobs:
         - os: windows-2019
           arch: AMD64
           msvc_arch: x64
-        - os: macos-11
+        - os: macos-13
           arch: x86_64
           cmake_osx_architectures: x86_64
         - os: macos-14
