@@ -97,12 +97,13 @@ class RectilinearPolygon:
                     continue
                 
                 splited_area, new_figures = self.split_polygon(partial_figure, blocked_rect, new_internal_edges)
+                logger.debug(f"new figures: {new_figures}")
+                
                 current_area =  splited_area + item.splited_area
+                logger.debug(f"current area: {current_area}")
                 new_partition_list = (
                     partition_list + new_internal_edges
-                )  # need to make it set
-                
-
+                ) # Add the new internal edges to the partition list
                 new_total_length = sum(line.length for line in new_partition_list)
                 new_priority = self.check_priority(new_total_length, new_figures)
 

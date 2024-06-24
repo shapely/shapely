@@ -23,10 +23,11 @@ class PriorityQueueItem:
         Returns:
             None (priority, partition_list, [(figure, candidate_point)] 
     """ 
-    def __init__(self, priority, partition_list, candidates_and_figures):
+    def __init__(self, priority, partition_list, candidates_and_figures, splited_area):
         self.priority = priority
         self.partition_list = partition_list
         self.candidates_and_figures = candidates_and_figures
+        self.splited_area = splited_area
         
         
     def __lt__(self, other):
