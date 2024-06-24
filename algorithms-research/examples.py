@@ -1,110 +1,104 @@
-            # for matching_point in matching_points:
-            #     new_partial_figure, new_lines = self.find_blocked_rectangle(
-            #         candidate_point, matching_point
-            #     )
-            #     if new_lines is None:
-            #         logger.info("No new lines found.")
-            #         continue
-            #     new_figures = partial_figures + [
-            #         ComperablePolygon(new_partial_figure)
-            #     ]  
+from shapely.geometry import Polygon, LineString, MultiPolygon
+from shapely.ops import split
+import numpy as np
+import logging
 
-            #     normalized_partition_list = {
-            #         normalize_line(ComparableLineString(line)) for line in new_lines
-            #     }
-            #     new_partition_list = [
-            #         ComparableLineString(line)
-            #         for line in normalized_partition_list.union(partition_list)
-            #     ]
-            #     logger.info(f"New partition list: {new_partition_list}")
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
-            #     new_total_length = sum(line.length for line in new_partition_list)
-            #     new_priority = (
-            #         new_total_length if new_total_length != 0 else float("inf")
-            #     )
+class RectilinearPolygon:
+    def __init__(self, polygon: Polygon):
+        self.polygon = polygon
 
-            #     if new_priority >= self.min_partition_length:
-            #         logger.info(
-            #             f"cutting the search -  the new partition is longer than the best partition"
-            #         )
-            #         continue
+    def is_partitioned_into_rectangles(
+        self, partial_figure: Polygon, partitions: list[LineString]
+    ) -> bool:
+        """
+        Checks if the polygon is partitioned into rectangles.
 
-            #     if self.is_partitioned_into_rectangles(new_partition_list):
-            #         if new_total_length < self.min_partition_length:
-            #             self.min_partition_length = new_total_length
-            #             self.best_partition = [line for line in new_partition_list]
-            #             logger.debug(f"New best partition found: {self.best_partition}")
-            #         else:
-            #             logger.warning(f"Not the best : {new_partition_list}")
-            #             continue
+        Args:
+            partial_figure (Polygon): The partial figure to be checked.
+            partitions (list[LineString]): A list of LineString objects representing the partitions.
 
-            #     new_candidate_point = self.find_candidate_point(new_partition_list)
-            #     if new_candidate_point is None or new_candidate_point.is_empty:
-            #         continue
+        Returns:
+            bool: True if the polygon is partitioned into rectangles, False otherwise.
+        """
+        logger.debug(f"Starting with partial figure: {partial_figure}")
+        polygons = [partial_figure]
+        
+        for i, partition in enumerate(partitions):
+            logger.debug(f"Processing partition {i}: {partition}")
+            new_polygons = []
+            for poly in polygons:
+                if partition.intersects(poly):
+                    logger.debug(f"Partition intersects polygon: {poly}")
+                    split_result = split(poly, partition)
+                    logger.debug(f"Split result: {split_result}")
+                    if isinstance(split_result, MultiPolygon):
+                        new_polygons.extend(list(split_result.geoms))
+                    elif isinstance(split_result, Polygon):
+                        new_polygons.append(split_result)
+                    else:
+                        new_polygons.append(poly)
+                        logger.warning(f"Unexpected split result type: {type(split_result)}")
+                else:
+                    new_polygons.append(poly)
+            polygons = new_polygons
+            logger.debug(f"Polygons after partition {i}: {polygons}")
+        
+        logger.debug(f"Final number of partitioned polygons: {len(polygons)}")
+        
+        for i, polygon in enumerate(polygons):
+            logger.debug(f"Checking if polygon {i} is a rectangle: {polygon}")
+            if not self.is_rectangle(polygon):
+                logger.debug(f"Polygon {i} is not a rectangle")
+                return False
+            else:
+                logger.debug(f"Polygon {i} is a rectangle")
+        
+        reconstructed_figure = MultiPolygon(polygons)
+        logger.debug(f"Reconstructed figure: {reconstructed_figure}")
+        logger.debug(f"Original partial figure: {partial_figure}")
+        if not self.geometries_almost_equal(reconstructed_figure, partial_figure):
+            logger.debug("Reconstructed figure does not match the original partial figure")
+            return False
+        
+        logger.debug(f"Polygon is successfully partitioned into {len(polygons)} rectangles")
+        return True
 
-            #     # Convert the candidate point to a tuple of coordinates
-            #     new_candidate_point_tuple = tuple(new_candidate_point.coords[0])
+    def is_rectangle(self, polygon: Polygon, tolerance: float = 1e-6) -> bool:
+        coords = list(polygon.exterior.coords)
+        logger.debug(f"Checking rectangle: coords = {coords}")
+        if len(coords) != 5:
+            logger.debug(f"Not a rectangle: {len(coords)} coords instead of 5")
+            return False
+        
+        for i in range(4):
+            p1, p2, p3 = coords[i], coords[(i+1) % 4], coords[(i+2) % 4]
+            v1 = np.array([p2[0] - p1[0], p2[1] - p1[1]])
+            v2 = np.array([p3[0] - p2[0], p3[1] - p2[1]])
+            dot_product = np.dot(v1, v2)
+            logger.debug(f"Angle {i}: dot product = {dot_product}")
+            if abs(dot_product) > tolerance:
+                logger.debug(f"Not a rectangle: angle {i} is not 90 degrees")
+                return False
+        
+        return True
 
-            #     new_item = PriorityQueueItem(
-            #         new_priority,
-            #         new_candidate_point_tuple,
-            #         new_partition_list,
-            #         new_figures,
-            #     )
-            #     heapq.heappush(pq, new_item)
-            #     logger.info(f"new item pushed : {new_item}")
-            
-        #         def find_blocked_rectangle(self, candidate: Point, matching: Point):
-        # """
-        # find the blocked rectangle between the candidate and the matching point.
+    def geometries_almost_equal(self, geom1, geom2, tolerance: float = 1e-6) -> bool:
+        """Check if two geometries are almost equal, accounting for floating point precision."""
+        diff = geom1.symmetric_difference(geom2)
+        logger.debug(f"Difference area: {diff.area}")
+        return diff.area < tolerance
 
-        # Args:
-        #     candidate (Point): The candidate point.
-        #     matching (Point): The matching point.
+# Example usage
+polygon4 = Polygon([(1, 5), (1, 4), (3, 4), (3,2), (5,2), (5, 1),(8,1), (8,5)])
+partitions = [
+    LineString([(5,5), (5,4)]),
+    LineString([(5,4), (3,4)]),
+    LineString([(5,4), (5,2)])
+]
 
-        # Returns:
-        # is exist:
-        #     tuple: A tuple containing the blocked rectangle and the internal edges of the blocked rectangle.
-        # else:
-        #     None
-
-
-        # >>> polygon = Polygon([(2, 0), (6, 0), (6, 4), (8, 4), (8, 6), (0, 6), (0, 4), (2, 4)])
-        # >>> rect_polygon = RectilinearPolygon(polygon)
-        # >>> candidate = Point(2, 4)
-        # >>> matching = Point(6, 6)
-        # >>> rect_polygon.find_blocked_rectangle(candidate, matching)
-        # (<POLYGON ((2 4, 2 6, 6 6, 6 4, 2 4))>, [<LINESTRING (2 4, 2 6)>, <LINESTRING (6 6, 6 4)>, <LINESTRING (6 4, 2 4)>])
-
-        # """
-        # # Create the four edges of the potential blocked rectangle
-        # edge1 = LineString([candidate, Point(candidate.x, matching.y)])
-        # edge2 = LineString([Point(candidate.x, matching.y), matching])
-        # edge3 = LineString([matching, Point(matching.x, candidate.y)])
-        # edge4 = LineString([Point(matching.x, candidate.y), candidate])
-
-        # # Collect all edges
-        # all_edges = [edge1, edge2, edge3, edge4]
-
-        # # Convert each LineString to a list of coordinate tuples
-        # coords_list = [list(edge.coords) for edge in all_edges]
-
-        # # Concatenate the coordinate lists, removing duplicates
-        # coords = list(dict.fromkeys(sum(coords_list, [])))  # TODO: fix and rerfactor
-
-        # # Construct the partial polygon
-        # polygon = Polygon(coords)
-
-        # # Find the segments of each edge that are not part of the polygon boundary
-        # internal_edges = []
-        # for edge in all_edges:
-        #     difference = edge.difference(self.polygon.boundary)  # TODO: explain this..
-        #     logger.debug(f"Difference: {difference}")
-        #     if not difference.is_empty:
-        #         if difference.geom_type == "MultiLineString":
-        #             for (
-        #                 line
-        #             ) in difference.geoms:  # Use .geoms to iterate over MultiLineString
-        #                 internal_edges.append(line)
-        #         else:
-        #             internal_edges.append(difference)
+rect_polygon = RectilinearPolygon(polygon4)
+result = rect_polygon.is_partitioned_into_rectangles(polygon4, partitions)
+print(f"Is the polygon partitioned into rectangles? {result}")

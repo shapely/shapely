@@ -69,6 +69,7 @@ class RectilinearPolygon:
             initial_priority,
             partial_figures,
             [(ComperablePolygon(self.polygon), candidate_point)],
+            0 #splited area
         )
 
         heapq.heappush(pq, initial_item)
@@ -94,11 +95,13 @@ class RectilinearPolygon:
                 if not new_internal_edges:
                     logger.warning("No new internal edges found.")
                     continue
-
+                
+                splited_area, new_figures = self.split_polygon(partial_figure, blocked_rect, new_internal_edges)
+                current_area =  splited_area + item.splited_area
                 new_partition_list = (
                     partition_list + new_internal_edges
                 )  # need to make it set
-                new_figures = self.split_polygon(partial_figure, new_internal_edges)
+                
 
                 new_total_length = sum(line.length for line in new_partition_list)
                 new_priority = self.check_priority(new_total_length, new_figures)
@@ -109,9 +112,7 @@ class RectilinearPolygon:
                     )
                     continue
 
-                if self.is_partitioned_into_rectangles(
-                    self.polygon, new_partition_list
-                ):
+                if self.polygon.area == current_area:
                     new_total_length = sum(line.length for line in new_partition_list)
                     if new_total_length < self.min_partition_length:
                         self.min_partition_length = new_total_length
@@ -122,7 +123,7 @@ class RectilinearPolygon:
                     (ComperablePolygon(fig), point) for fig, point in new_figures
                 ]
                 new_item = PriorityQueueItem(
-                    new_priority, new_partition_list, new_candidates_and_figures
+                    new_priority, new_partition_list, new_candidates_and_figures, current_area
                 )
                 heapq.heappush(pq, new_item)
 
@@ -142,7 +143,7 @@ class RectilinearPolygon:
         return new_total_length / total_area if total_area > 0 else float("inf")
 
     def split_polygon(
-        self, polygon: Polygon, lines: list[LineString]
+        self, polygon: Polygon, blocked_rect: Polygon, lines: list[LineString]
     ) -> list[tuple[Polygon, Point]]:
         """
         Split a polygon with multiple lines and return polygons with candidate points.
@@ -155,45 +156,37 @@ class RectilinearPolygon:
             list[tuple[Polygon, Point]]: A list of tuples, each containing a polygon
                                         and a candidate point for further processing.
         """
-        if not isinstance(polygon, Polygon):
-            polygon = Polygon(polygon)
+        
+        splited_area  = blocked_rect.area
+        split_result = polygon.difference(blocked_rect)
+        logger.debug(f"Split result: {split_result}")
 
-        # Split the polygon iteratively with each line
-        split_polygons = [polygon]
-        for line in lines:
-            new_split_polygons = []
-            for poly in split_polygons:
-                if line.intersects(poly):
-                    result = split(poly, line)
-                    if isinstance(result, Polygon):
-                        new_split_polygons.append(result)
-                    elif isinstance(result, (MultiPolygon, GeometryCollection)):
-                        for geom in result.geoms:
-                            if isinstance(geom, Polygon):
-                                new_split_polygons.append(geom)
-                            else:
-                                logger.debug(f"Non-Polygon geometry found: {geom}")
-                else:
-                    new_split_polygons.append(poly)
-            split_polygons = new_split_polygons
-
-        logger.debug(f"Split polygons: {split_polygons}")
-
+        # Handle different possible types of split_result
+        if isinstance(split_result, Polygon):
+            split_polygons = [split_result]
+        elif isinstance(split_result, MultiPolygon):
+            split_polygons = list(split_result.geoms)
+        elif isinstance(split_result, GeometryCollection):
+            split_polygons = [geom for geom in split_result.geoms if isinstance(geom, Polygon)]
+        else:
+            split_polygons = []
+        
         # Process the split polygons and find candidate points
         result = []
         for poly in split_polygons:
             if poly.is_empty or not poly.is_valid:
                 continue
-            if not self.is_rectangle(poly):
+            if self.is_rectangle(poly):
+                splited_area += poly.area
+            else:
                 candidate_point = self.find_candidate_point_from_boundary(poly, lines)
                 if candidate_point:
                     result.append((poly, candidate_point))
-            else:
-                # For rectangles, use the centroid as the candidate point
-                result.append((poly, poly.centroid))
+                else:
+                    logger.debug(f"No candidate point found for polygon: {poly}")
 
         logger.debug(f"Result: {result}")
-        return result
+        return splited_area, result
 
     def find_candidate_point_from_boundary(self, polygon, lines):
         """
@@ -454,27 +447,6 @@ class RectilinearPolygon:
 
         return matching_and_blocks
 
-    def is_partitioned_into_rectangles(
-        self, partial_figure: Polygon, partitions: list[LineString]
-    ) -> bool:
-        """
-        Checks if the polygon is partitioned into rectangles.
-
-        Args:
-            partitions (list[LineString]): A list of LineString objects representing the partitions.
-
-        Returns:
-            bool: True if the polygon is partitioned into rectangles, False otherwise.
-
-        """
-        if not partitions:
-            logger.info("No partitions provided.")
-            return self.is_rectangle(self.polygon)
-        polygons = self.split_polygon(partial_figure, partitions) #TODO: check for empty list
-        if not polygons:
-            return False
-        return all(self.is_rectangle(poly) for poly, _ in polygons)
-
     def is_rectangle(self, poly: Polygon) -> bool:
         """
         Check if a given polygon is a rectangle.
@@ -495,7 +467,7 @@ if __name__ == "__main__":
     polygon1 = Polygon([(2, 0), (6, 0), (6, 4), (8, 4), (8, 6), (0, 6), (0, 4), (2, 4)])
     polygon2 = Polygon([(1, 5), (1, 4), (3, 4), (3, 2), (5, 2), (5, 1), (8, 1), (8, 5)])
     polygon3 = Polygon([(0, 4), (2, 4), (2, 0), (5, 0), (5, 4), (7, 4), (7, 5), (0, 5)])
-    polygon4 = Polygon([(1, 5), (1, 4), (3, 4), (3, 3), (2, 3), (2, 1), (5, 1), (5, 5)])
+    polygon4 = Polygon([(1, 5), (1, 4), (3, 4), (3,2), (5,2), (5, 1),(8,1), (8,5)])
     polygon5 = Polygon([(1, 5), (1, 4), (3, 4), (3, 3), (2, 3), (2, 1), (5, 1), (5, 2), (8,2),(8,1), (9,1), (9,4), (8,4), (8,5)])
 
 
