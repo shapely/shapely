@@ -9,6 +9,7 @@ Date: 10/6/24
 import doctest
 import logging
 import heapq
+import random
 from matplotlib.patches import Polygon as MplPolygon
 from matplotlib import pyplot as plt
 from classes import PriorityQueueItem, ComperablePolygon
@@ -17,22 +18,23 @@ from shapely.geometry.multipolygon import MultiPolygon
 from shapely.ops import split
 from shapely.geometry import Polygon, LineString, Point
 
-"""
-
-TODO:
-- change the PriorityQueueItem strucure to be : (priority, partition_list, [(figure, candidate_point)]  
-"""
-
+# Set up logging
 logger = logging.getLogger("polygon_partitioning")
 
-
+@staticmethod
 def partition_polygon(polygon: Polygon):
     """
     The main function that partitions the given rectilinear polygon into rectangles of minimum total edge length.
 
     """
+    # Check if the polygon is already a rectangle
+    if polygon.area == polygon.minimum_rotated_rectangle.area:
+        logger.error("The polygon is already a rectangle.")
+        return None
+    
     rectilinear_polygon = RectilinearPolygon(polygon)
     if not rectilinear_polygon.is_rectilinear():
+        logger.error("The polygon is not rectilinear.")
         return None
 
     initial_convex_point = rectilinear_polygon.find_convex_points()
@@ -459,7 +461,52 @@ class RectilinearPolygon:
             bool: True if the polygon is a rectangle, False otherwise.
         """
         return poly.area == poly.minimum_rotated_rectangle.area
+    
+@staticmethod
+def plot_and_partition(polygon: Polygon):
+    """
+    Plot the given polygon and its partition.
 
+    Args:
+        polygon (Polygon): The polygon to plot and partition.
+    """
+    partition_result = partition_polygon(polygon)
+
+    if not partition_result:
+        # Process the partition result
+        logger.error("Partition could not be found.")
+    else:
+        logger.debug("Partition result:", partition_result)
+
+        # Create a figure and an axes
+        fig, ax = plt.subplots()
+
+        # Create a Polygon patch and add it to the plot
+        polygon_patch = MplPolygon(
+            list(polygon.exterior.coords),
+            closed=True,
+            edgecolor="blue",
+            facecolor="lightblue",
+        )
+        ax.add_patch(polygon_patch)
+
+        # Plot the LineString objects in a different color
+        for line in partition_result:
+            x, y = line.xy
+            ax.plot(x, y, color="red")
+
+        # Set the limits of the plot
+        ax.set_xlim(-1, 9)
+        ax.set_ylim(-1, 7)
+
+        # Set the aspect of the plot to be equal
+        ax.set_aspect("equal")
+
+        # Show the plot
+        plt.show()
+
+
+            
 
 if __name__ == "__main__":
 
@@ -470,41 +517,10 @@ if __name__ == "__main__":
     polygon3 = Polygon([(0, 4), (2, 4), (2, 0), (5, 0), (5, 4), (7, 4), (7, 5), (0, 5)])
     polygon4 = Polygon([(1, 5), (1, 4), (3, 4), (3,2), (5,2), (5, 1),(8,1), (8,5)])
     polygon5 = Polygon([(1, 5), (1, 4), (3, 4), (3, 3), (2, 3), (2, 1), (5, 1), (5, 2), (8,2),(8,1), (9,1), (9,4), (8,4), (8,5)])
+    polygon6 = Polygon([(1,1), (1,9), (9,9), (9,1)]) # Rectangle
+    polygon7 = Polygon([(1,1), (1,9), (9,9), (9,7)]) # not rectlinear polygno
+    
+    
+    plot_and_partition(polygon1)
 
 
-    partition_result = partition_polygon(polygon5)
-    # partition_result_2 = partition_polygon(polygon2)
-    # partition_result_3 = partition_polygon(polygon3)
-
-    if partition_result:
-        # Process the partition result
-        print("Partition result:", partition_result)
-    else:
-        print("Partition could not be found.")
-
-    # Create a figure and an axes
-    fig, ax = plt.subplots()
-
-    # Create a Polygon patch and add it to the plot
-    polygon_patch = MplPolygon(
-        list(polygon5.exterior.coords),
-        closed=True,
-        edgecolor="blue",
-        facecolor="lightblue",
-    )
-    ax.add_patch(polygon_patch)
-
-    # Plot the LineString objects in a different color
-    for line in partition_result:
-        x, y = line.xy
-        ax.plot(x, y, color="red")
-
-    # Set the limits of the plot
-    ax.set_xlim(-1, 9)
-    ax.set_ylim(-1, 7)
-
-    # Set the aspect of the plot to be equal
-    ax.set_aspect("equal")
-
-    # Show the plot
-    plt.show()
