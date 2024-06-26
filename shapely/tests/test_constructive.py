@@ -1118,3 +1118,48 @@ def test_voronoi_polygons_ordered_raise():
         UnsupportedGEOSVersionError, match="Ordered Voronoi polygons require GEOS"
     ):
         shapely.voronoi_polygons(mp, ordered=True)
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 11, 0), reason="GEOS < 3.11")
+def test_simplify_polygon_hull_kwargs():
+    p = Polygon([(0, 0), (0, 2), (1, 1), (3, 2), (10, 2), (10, 0), (0, 0)])
+    result1 = shapely.simplify_polygon_hull(
+        p, parameter=0.1, parameter_mode="vertex", is_outer=False
+    )
+    assert p.contains(result1)
+
+    result2 = shapely.simplify_polygon_hull(
+        p, parameter=0.1, parameter_mode="vertex", is_outer=True
+    )
+    assert result2.contains(p)
+
+    result3 = shapely.simplify_polygon_hull(
+        p, parameter=0.1, parameter_mode="area", is_outer=False
+    )
+    assert p.contains(result3)
+
+    result4 = shapely.simplify_polygon_hull(
+        p, parameter=0.1, parameter_mode="area", is_outer=True
+    )
+    assert result4.contains(p)
+
+    polygons = [p for i in range(10)]
+    result5 = shapely.simplify_polygon_hull(
+        polygons, parameter=0.1, parameter_mode="vertex", is_outer=False
+    )
+    assert len(result5) == len(polygons)
+
+    result6 = shapely.simplify_polygon_hull(
+        polygons, parameter=0.1, parameter_mode="vertex", is_outer=True
+    )
+    assert len(result6) == len(polygons)
+
+    result7 = shapely.simplify_polygon_hull(
+        polygons, parameter=0.1, parameter_mode="area", is_outer=False
+    )
+    assert len(result7) == len(polygons)
+
+    result8 = shapely.simplify_polygon_hull(
+        polygons, parameter=0.1, parameter_mode="area", is_outer=True
+    )
+    assert len(result8) == len(polygons)
