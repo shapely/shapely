@@ -558,8 +558,16 @@ def render_pep440_old(pieces):
             rendered += ".dev0"
     return rendered
 
+render_git_describe_branches = [False] * 5
+def save_git_render_branches(render_git_describe_branches):
+    with open ("render_git_describe_coverage.txt", "w") as file:
+        for i in range(len(render_git_describe_branches)):
+            file.write(f"branch {i}: {render_git_describe_branches[i]}\n")
 
 def render_git_describe(pieces):
+    global render_git_describe_branches
+    render_git_describe_branches[0] = True
+    save_git_render_branches(render_git_describe_branches)
     """TAG[-DISTANCE-gHEX][-dirty].
 
     Like 'git describe --tags --dirty --always'.
@@ -568,15 +576,28 @@ def render_git_describe(pieces):
     1: no tags. HEX[-dirty]  (note: no 'g' prefix)
     """
     if pieces["closest-tag"]:
+        render_git_describe_branches[1] = True
+        save_git_render_branches(render_git_describe_branches)
         rendered = pieces["closest-tag"]
         if pieces["distance"]:
+            render_git_describe_branches[2] = True
+            save_git_render_branches(render_git_describe_branches)
+            save_render_branches
             rendered += "-%d-g%s" % (pieces["distance"], pieces["short"])
     else:
+        render_git_describe_branches[3] = True
+        save_git_render_branches(render_git_describe_branches)
+        save_render_branches
         # exception #1
         rendered = pieces["short"]
     if pieces["dirty"]:
+        render_git_describe_branches[4] = True
+        save_git_render_branches(render_git_describe_branches)
+        save_render_branches
         rendered += "-dirty"
     return rendered
+
+
 
 
 def render_git_describe_long(pieces):
@@ -598,10 +619,20 @@ def render_git_describe_long(pieces):
         rendered += "-dirty"
     return rendered
 
+render_branches = [False] * 12
+def save_render_branches(render_branches):
+    with open ("render_coverage.txt", "w") as file:
+        for i in range(len(render_branches)):
+            file.write(f"branch {i}: {render_branches[i]}\n")
 
 def render(pieces, style):
+    global render_branches
+    render_branches[0] = True
+    save_render_branches(render_branches)
     """Render the given version pieces into the requested style."""
     if pieces["error"]:
+        render_branches[1] = True
+        save_render_branches(render_branches)
         return {
             "version": "unknown",
             "full-revisionid": pieces.get("long"),
@@ -611,25 +642,45 @@ def render(pieces, style):
         }
 
     if not style or style == "default":
+        render_branches[2] = True
+        save_render_branches(render_branches)
         style = "pep440"  # the default
 
     if style == "pep440":
+        render_branches[3] = True
+        save_render_branches(render_branches)
         rendered = render_pep440(pieces)
     elif style == "pep440-branch":
+        render_branches[4] = True
+        save_render_branches(render_branches)
         rendered = render_pep440_branch(pieces)
     elif style == "pep440-pre":
+        render_branches[5] = True
+        save_render_branches(render_branches)
         rendered = render_pep440_pre(pieces)
     elif style == "pep440-post":
+        render_branches[6] = True
+        save_render_branches(render_branches)
         rendered = render_pep440_post(pieces)
     elif style == "pep440-post-branch":
+        render_branches[7] = True
+        save_render_branches(render_branches)
         rendered = render_pep440_post_branch(pieces)
     elif style == "pep440-old":
+        render_branches[8] = True
+        save_render_branches(render_branches)
         rendered = render_pep440_old(pieces)
     elif style == "git-describe":
+        render_branches[9] = True
+        save_render_branches(render_branches)
         rendered = render_git_describe(pieces)
     elif style == "git-describe-long":
+        render_branches[10] = True
+        save_render_branches(render_branches)
         rendered = render_git_describe_long(pieces)
     else:
+        render_branches[11] = True
+        save_render_branches(render_branches)
         raise ValueError("unknown style '%s'" % style)
 
     return {
