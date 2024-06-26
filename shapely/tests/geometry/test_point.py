@@ -101,7 +101,9 @@ class TestPoint:
         # Test XY point
         p = Point(1.0, 2.0)
         assert p.x == 1.0
+        assert type(p.x) is float
         assert p.y == 2.0
+        assert type(p.y) is float
         assert p.coords[:] == [(1.0, 2.0)]
         assert str(p) == p.wkt
         assert p.has_z is False
@@ -121,6 +123,7 @@ class TestPoint:
         assert str(p) == p.wkt
         assert p.has_z is True
         assert p.z == 3.0
+        assert type(p.z) is float
         if geos_version >= (3, 12, 0):
             assert p.has_m is False
             with pytest.raises(DimensionError):
