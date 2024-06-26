@@ -150,6 +150,9 @@ class Point(BaseGeometry):
           [0.0]
         """
         return self.coords.xy
-
+    
+    @property
+    def geoms(self):
+        return [self]
 
 shapely.lib.registry[0] = Point

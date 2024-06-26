@@ -183,6 +183,9 @@ class LineString(BaseGeometry):
             join_style=join_style,
             mitre_limit=mitre_limit,
         )
-
+    
+    @property
+    def geoms(self):
+        return [self]
 
 shapely.lib.registry[1] = LineString

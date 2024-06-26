@@ -335,7 +335,9 @@ class Polygon(BaseGeometry):
         """Construct a `Polygon()` from spatial bounds."""
         return cls([(xmin, ymin), (xmin, ymax), (xmax, ymax), (xmax, ymin)])
 
-
+    @property
+    def geoms(self):
+        return [self]
 shapely.lib.registry[3] = Polygon
 
 
