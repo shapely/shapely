@@ -10,6 +10,7 @@ import doctest
 import logging
 import heapq
 import random
+from typing import List, Tuple
 from matplotlib.patches import Polygon as MplPolygon
 from matplotlib import pyplot as plt
 from classes import PriorityQueueItem, ComperablePolygon
@@ -17,11 +18,15 @@ from shapely.geometry.collection import GeometryCollection
 from shapely.geometry.multipolygon import MultiPolygon
 from shapely.ops import split
 from shapely.geometry import Polygon, LineString, Point
+from shapely.geometry import box as shapely_box
+from threading import Lock
+import concurrent.futures
+
 
 # Set up logging
 logger = logging.getLogger("polygon_partitioning")
 
-@staticmethod
+
 def partition_polygon(polygon: Polygon):
     """
     The main function that partitions the given rectilinear polygon into rectangles of minimum total edge length.
@@ -31,7 +36,7 @@ def partition_polygon(polygon: Polygon):
     if polygon.area == polygon.minimum_rotated_rectangle.area:
         logger.error("The polygon is already a rectangle.")
         return None
-    
+
     rectilinear_polygon = RectilinearPolygon(polygon)
     if not rectilinear_polygon.is_rectilinear():
         logger.error("The polygon is not rectilinear.")
@@ -49,86 +54,89 @@ class RectilinearPolygon:
         self.min_partition_length = float("inf")
         self.best_partition = []
         self.grid_points = set(self.get_grid_points())
+        self.lock = Lock()
 
     def iterative_partition(
-        self, candidate_point: Point, partition_list: list[LineString]
+        self, candidate_point: Point, partition_list: List[LineString]
     ):
-        """
-        Iteratively partitions the given candidate points and updates the best partition.
-
-        Args:
-            initial_candidate_points (list): The initial list of candidate points to consider for partitioning.
-            initial_partition_list (list): The initial partition list.
-
-        Returns:
-            None (just update the best partition).
-        """
-
         initial_priority = float("inf")
-        pq = []  # Priority queue
-        partial_figures = []
+        pq = []
         initial_item = PriorityQueueItem(
             initial_priority,
-            partial_figures,
+            partition_list,
             [(ComperablePolygon(self.polygon), candidate_point)],
-            0 #splited area
+            0,
         )
 
         heapq.heappush(pq, initial_item)
-        while pq:
-            item: PriorityQueueItem = heapq.heappop(pq)
-            partition_list = item.partition_list
-            candidates_and_figures = item.candidates_and_figures
-            if not candidates_and_figures:
-                logger.warning("No candidates and figures found.")
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            while pq:
+                item: PriorityQueueItem = heapq.heappop(pq)
+                if not item.candidates_and_figures:
+                    continue
+
+                futures = []
+                for _ in range(
+                    min(len(item.candidates_and_figures), 4)
+                ):  # Process up to 4 candidates concurrently
+                    if item.candidates_and_figures:
+                        figure_candidate = item.candidates_and_figures.pop()
+                        futures.append(
+                            executor.submit(
+                                self.process_candidate, item, figure_candidate
+                            )
+                        )
+
+                for future in concurrent.futures.as_completed(futures):
+                    new_items = future.result()
+                    for new_item in new_items:
+                        heapq.heappush(pq, new_item)
+                        
+                        
+    def process_candidate(
+    self, item: PriorityQueueItem, figure_candidate: Tuple[ComperablePolygon, Point]
+    ):
+        partial_figure, candidate_point = figure_candidate
+
+        matching_and_blocks = self.find_matching_point(candidate_point, partial_figure)
+        new_items = []
+
+        for matching_point, blocked_rect in matching_and_blocks:
+            new_internal_edges = self.get_new_internal_edges(blocked_rect)
+            if not new_internal_edges:
                 continue
-            figure_candidate = candidates_and_figures.pop()
-            partial_figure = figure_candidate[0]
-            candidate_point = figure_candidate[1]
 
-            logger.info(f"Processing candidate point: {candidate_point}")
-
-            matching_and_blocks = self.find_matching_point(
-                candidate_point, partial_figure
+            splited_area, new_figures = self.split_polygon(
+                partial_figure, blocked_rect, new_internal_edges
             )
-            new_partition_list = []
-            for matching_point, blocked_rect in matching_and_blocks:
-                new_internal_edges = self.get_new_internal_edges(blocked_rect)
-                if not new_internal_edges:
-                    logger.warning("No new internal edges found.")
-                    continue
-                
-                splited_area, new_figures = self.split_polygon(partial_figure, blocked_rect, new_internal_edges)
-                logger.debug(f"new figures: {new_figures}")
-                
-                current_area =  splited_area + item.splited_area
-                logger.debug(f"current area: {current_area}")
-                new_partition_list = (
-                    partition_list + new_internal_edges
-                ) # Add the new internal edges to the partition list
-                new_total_length = sum(line.length for line in new_partition_list)
-                new_priority = self.check_priority(new_total_length, new_figures)
 
-                if new_total_length >= self.min_partition_length:
-                    logger.debug(
-                        "Cutting the search - new partition is longer than the best partition"
-                    )
-                    continue
+            current_area = splited_area + item.splited_area
+            new_partition_list = item.partition_list + new_internal_edges
+            new_total_length = sum(line.length for line in new_partition_list)
+            new_priority = self.check_priority(new_total_length, new_figures)
 
+            if new_total_length >= self.min_partition_length:
+                continue
+
+            with self.lock:
                 if self.polygon.area == current_area:
-                    new_total_length = sum(line.length for line in new_partition_list)
                     if new_total_length < self.min_partition_length:
                         self.min_partition_length = new_total_length
                         self.best_partition = new_partition_list
-                        logger.debug(f"New best partition found: {self.best_partition}")
 
-                new_candidates_and_figures = candidates_and_figures + [
-                    (ComperablePolygon(fig), point) for fig, point in new_figures
-                ]
-                new_item = PriorityQueueItem(
-                    new_priority, new_partition_list, new_candidates_and_figures, current_area
-                )
-                heapq.heappush(pq, new_item)
+            new_candidates_and_figures = item.candidates_and_figures + [
+                (ComperablePolygon(fig), point) for fig, point in new_figures
+            ]
+            new_item = PriorityQueueItem(
+                new_priority,
+                new_partition_list,
+                new_candidates_and_figures,
+                current_area,
+            )
+            new_items.append(new_item)
+
+        return new_items
 
     def check_priority(self, new_total_length, new_figure_candidate):
         """
@@ -159,8 +167,8 @@ class RectilinearPolygon:
             list[tuple[Polygon, Point]]: A list of tuples, each containing a polygon
                                         and a candidate point for further processing.
         """
-        
-        splited_area  = blocked_rect.area
+
+        splited_area = blocked_rect.area
         split_result = polygon.difference(blocked_rect)
         logger.debug(f"Split result: {split_result}")
 
@@ -170,10 +178,12 @@ class RectilinearPolygon:
         elif isinstance(split_result, MultiPolygon):
             split_polygons = list(split_result.geoms)
         elif isinstance(split_result, GeometryCollection):
-            split_polygons = [geom for geom in split_result.geoms if isinstance(geom, Polygon)]
+            split_polygons = [
+                geom for geom in split_result.geoms if isinstance(geom, Polygon)
+            ]
         else:
             split_polygons = []
-        
+
         # Process the split polygons and find candidate points
         result = []
         for poly in split_polygons:
@@ -461,7 +471,8 @@ class RectilinearPolygon:
             bool: True if the polygon is a rectangle, False otherwise.
         """
         return poly.area == poly.minimum_rotated_rectangle.area
-    
+
+
 @staticmethod
 def plot_and_partition(polygon: Polygon):
     """
@@ -506,7 +517,90 @@ def plot_and_partition(polygon: Polygon):
         plt.show()
 
 
-            
+def generate_rectilinear_polygon(
+    canvas_width: int = 20,
+    canvas_height: int = 20,
+    min_rectangles: int = 5,
+    max_rectangles: int = 15,
+    min_size: int = 1,
+    max_size: int = 5,
+    increments: int = 100,
+) -> Polygon:
+    """
+    Generate a rectilinear polygon composed of touching rectangles.
+
+    :param canvas_width: Width of the canvas
+    :param canvas_height: Height of the canvas
+    :param min_rectangles: Minimum number of rectangles
+    :param max_rectangles: Maximum number of rectangles
+    :param min_size: Minimum size of a rectangle
+    :param max_size: Maximum size of a rectangle
+    :param increments: Size increment for positioning and sizing
+    :return: Shapely Polygon representing the rectilinear polygon
+    source: https://github.com/stepmat/rectilinear_polygon_generator/blob/master/generate_polygon.py
+    """
+    num_rect = random.randint(min_rectangles, max_rectangles)
+    boxes = []
+
+    for _ in range(num_rect):
+        valid = False
+        while not valid:
+            width = random.randint(min_size, max_size) * increments
+            height = random.randint(min_size, max_size) * increments
+            pos_x = (
+                random.randint(max_size + 1, canvas_width - max_size - 1) * increments
+            )
+            pos_y = (
+                random.randint(max_size + 1, canvas_height - max_size - 1) * increments
+            )
+
+            touching = False
+            for box in boxes:
+                if abs(pos_x - box[0]) * 2 < (width + box[2]) and abs(
+                    pos_y - box[1]
+                ) * 2 < (height + box[3]):
+                    touching = True
+                    break
+
+            if touching or not boxes:
+                valid = True
+
+        boxes.append((pos_x, pos_y, width, height))
+
+    # Extend rectangles to the ground
+    bottom_ground = max(box[1] + box[3] // 2 for box in boxes)
+
+    for i, box in enumerate(boxes):
+        x, y, width, height = box
+        bottom = y + height // 2
+
+        if bottom < bottom_ground:
+            intersects = any(
+                x - width // 2 < other[0] + other[2] // 2
+                and x + width // 2 > other[0] - other[2] // 2
+                and bottom < other[1] + other[3] // 2
+                for j, other in enumerate(boxes)
+                if i != j
+            )
+
+            if not intersects:
+                new_height = height + (bottom_ground - bottom) * 2
+                new_y = y + (bottom_ground - bottom)
+                boxes[i] = (x, new_y, width, new_height)
+
+    # Convert rectangles to Shapely Polygons and union them
+    shapely_polygons = [
+        shapely_box(x - w / 2, y - h / 2, x + w / 2, y + h / 2) for x, y, w, h in boxes
+    ]
+    union_polygon = shapely_polygons[0]
+    for polygon in shapely_polygons[1:]:
+        union_polygon = union_polygon.union(polygon)
+
+    # Simplify the polygon to remove unnecessary points
+    simplified_polygon = union_polygon.simplify(1, preserve_topology=True)
+
+    return simplified_polygon
+
 
 if __name__ == "__main__":
 
@@ -515,12 +609,27 @@ if __name__ == "__main__":
     polygon1 = Polygon([(2, 0), (6, 0), (6, 4), (8, 4), (8, 6), (0, 6), (0, 4), (2, 4)])
     polygon2 = Polygon([(1, 5), (1, 4), (3, 4), (3, 2), (5, 2), (5, 1), (8, 1), (8, 5)])
     polygon3 = Polygon([(0, 4), (2, 4), (2, 0), (5, 0), (5, 4), (7, 4), (7, 5), (0, 5)])
-    polygon4 = Polygon([(1, 5), (1, 4), (3, 4), (3,2), (5,2), (5, 1),(8,1), (8,5)])
-    polygon5 = Polygon([(1, 5), (1, 4), (3, 4), (3, 3), (2, 3), (2, 1), (5, 1), (5, 2), (8,2),(8,1), (9,1), (9,4), (8,4), (8,5)])
-    polygon6 = Polygon([(1,1), (1,9), (9,9), (9,1)]) # Rectangle
-    polygon7 = Polygon([(1,1), (1,9), (9,9), (9,7)]) # not rectlinear polygno
-    
-    
-    plot_and_partition(polygon1)
+    polygon4 = Polygon([(1, 5), (1, 4), (3, 4), (3, 2), (5, 2), (5, 1), (8, 1), (8, 5)])
+    polygon5 = Polygon(
+        [
+            (1, 5),
+            (1, 4),
+            (3, 4),
+            (3, 3),
+            (2, 3),
+            (2, 1),
+            (5, 1),
+            (5, 2),
+            (8, 2),
+            (8, 1),
+            (9, 1),
+            (9, 4),
+            (8, 4),
+            (8, 5),
+        ]
+    )
+    polygon6 = Polygon([(1, 1), (1, 9), (9, 9), (9, 1)])  # Rectangle
+    polygon7 = Polygon([(1, 1), (1, 9), (9, 9), (9, 7)])  # not rectlinear polygno
 
-
+    poly = generate_rectilinear_polygon()
+    plot_and_partition(poly)
