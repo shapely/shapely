@@ -11,16 +11,15 @@ import logging
 import heapq
 import random
 from typing import List, Tuple
-from matplotlib.patches import Polygon as MplPolygon
-from matplotlib import pyplot as plt
 from classes import PriorityQueueItem, ComperablePolygon
 from shapely.geometry.collection import GeometryCollection
 from shapely.geometry.multipolygon import MultiPolygon
-from shapely.ops import split
 from shapely.geometry import Polygon, LineString, Point
 from shapely.geometry import box as shapely_box
 from threading import Lock
 import concurrent.futures
+
+from shapely.plot_poly import plot_poly
 
 
 # Set up logging
@@ -489,32 +488,8 @@ def plot_and_partition(polygon: Polygon):
     else:
         logger.debug("Partition result:", partition_result)
 
-        # Create a figure and an axes
-        fig, ax = plt.subplots()
-
-        # Create a Polygon patch and add it to the plot
-        polygon_patch = MplPolygon(
-            list(polygon.exterior.coords),
-            closed=True,
-            edgecolor="blue",
-            facecolor="lightblue",
-        )
-        ax.add_patch(polygon_patch)
-
-        # Plot the LineString objects in a different color
-        for line in partition_result:
-            x, y = line.xy
-            ax.plot(x, y, color="red")
-
-        # Set the limits of the plot
-        ax.set_xlim(-1, 9)
-        ax.set_ylim(-1, 7)
-
-        # Set the aspect of the plot to be equal
-        ax.set_aspect("equal")
-
-        # Show the plot
-        plt.show()
+    plot_poly(polygon, partition_result)
+    
 
 
 def generate_rectilinear_polygon(
@@ -631,5 +606,5 @@ if __name__ == "__main__":
     polygon6 = Polygon([(1, 1), (1, 9), (9, 9), (9, 1)])  # Rectangle
     polygon7 = Polygon([(1, 1), (1, 9), (9, 9), (9, 7)])  # not rectlinear polygno
 
-    poly = generate_rectilinear_polygon()
-    plot_and_partition(poly)
+    #poly = generate_rectilinear_polygon()
+    plot_and_partition(polygon5)
