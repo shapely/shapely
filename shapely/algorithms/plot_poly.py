@@ -9,7 +9,7 @@ import logging
 # Set up logging
 logger = logging.getLogger("polygon_partitioning")
 
-def plot_poly(polygon: Polygon, partition_result):
+def plotting(polygon: Polygon, partition_result):
     """
     Plot the given polygon and its partition.
 
