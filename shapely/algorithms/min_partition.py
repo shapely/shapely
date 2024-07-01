@@ -18,6 +18,7 @@ from shapely.geometry.collection import GeometryCollection
 from shapely.geometry.multipolygon import MultiPolygon
 from shapely.ops import split
 from shapely.geometry import Polygon, LineString, Point
+from plot_poly import plotting
 
 from numba import jit
 
@@ -491,41 +492,7 @@ def plot_and_partition(polygon: Polygon):
     else:
         logger.debug("Partition result:", partition_result)
 
-
-    # Create a figure and an axes
-    fig, ax = plt.subplots()
-
-    # Create a Polygon patch and add it to the plot
-    polygon_patch = MplPolygon(
-        list(polygon.exterior.coords),
-        closed=True,
-        edgecolor="blue",
-        facecolor="lightblue",
-    )
-    ax.add_patch(polygon_patch)
-
-    # Plot the LineString objects in a different color
-    for line in partition_result:
-        x, y = line.xy
-        ax.plot(x, y, color="red")
-
-    # Calculate the bounds of the polygon
-    min_x, min_y, max_x, max_y = polygon.bounds
-
-    # Add a margin to the bounds to ensure the shape is not cut off
-    margin = 1  # Adjust the margin as needed
-    ax.set_xlim(min_x - margin, max_x + margin)
-    ax.set_ylim(min_y - margin, max_y + margin)
-
-    # Set the aspect of the plot to be equal
-    ax.set_aspect("equal")
-
-    # Center the plot
-    ax.set_xlim((min_x + max_x) / 2 - (max_x - min_x) / 2 - margin, (min_x + max_x) / 2 + (max_x - min_x) / 2 + margin)
-    ax.set_ylim((min_y + max_y) / 2 - (max_y - min_y) / 2 - margin, (min_y + max_y) / 2 + (max_y - min_y) / 2 + margin)
-
-    # Show the plot
-    plt.show()
+    plotting(polygon, partition_result)
 
             
 
