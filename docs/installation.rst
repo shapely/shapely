@@ -26,8 +26,8 @@ Shapely is available on the conda-forge channel. Install as follows::
     $ conda install shapely --channel conda-forge
 
 
-Installation from source with custom GEOS libary
-------------------------------------------------
+Installation from source with custom GEOS library
+-------------------------------------------------
 
 You may want to use a specific GEOS version or a GEOS distribution that is
 already present on your system (for compatibility with other modules that

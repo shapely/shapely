@@ -47,7 +47,7 @@ def test_format_point():
             ("g", xy2, "POINT (-169.910918 -18.997564)", False),
             ("0.2g", xy2, "POINT (-169.91 -19)", False),
         ]
-    # without precsions test GEOS rounding_precision=-1; different than Python
+    # without precisions test GEOS rounding_precision=-1; different than Python
     test_list += [
         ("f", (1, 2), f"POINT ({1:.16f} {2:.16f})", False),
         ("F", xyz3, "POINT Z ({:.16f} {:.16f} {:.16f})".format(*xyz3), False),

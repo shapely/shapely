@@ -255,7 +255,7 @@ def test_set_nan():
 
 def test_set_nan_same_objects():
     # You can't put identical objects in a set.
-    # x = float("nan"); set([x, x]) also retuns a set with 1 element
+    # x = float("nan"); set([x, x]) also returns a set with 1 element
     a = set([line_string_nan] * 10)
     assert len(a) == 1
 

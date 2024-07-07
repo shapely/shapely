@@ -81,7 +81,7 @@ def is_ccw(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
-        This function will return False for non-linear goemetries and for
+        This function will return False for non-linear geometries and for
         lines with fewer than 4 points (including the closing point).
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.

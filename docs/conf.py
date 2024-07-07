@@ -112,7 +112,7 @@ html_context = {
 
 
 # write dummy _reference.rst with all functions listed to ensure the reference/
-# stub pages are crated (the autogeneration of those stub pages by autosummary 
+# stub pages are created (the autogeneration of those stub pages by autosummary 
 # happens before the jinja rendering is done, and thus at that point the
 # autosummary directives do not yet contain the final content
 

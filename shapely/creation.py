@@ -511,7 +511,7 @@ def destroy_prepared(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
-        Geometries are changed inplace
+        Geometries are changed in-place
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
