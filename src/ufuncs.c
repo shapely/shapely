@@ -522,7 +522,7 @@ static void* GetExteriorRing(void* context, void* geom) {
   return ret;
 }
 static void* get_exterior_ring_data[1] = {GetExteriorRing};
-/* the normalize funcion acts inplace */
+/* the normalize function acts in-place */
 static void* GEOSNormalize_r_with_clone(void* context, void* geom) {
   int ret;
   void* new_geom = GEOSGeom_clone_r(context, geom);
@@ -841,7 +841,7 @@ static void* GetGeometryN(void* context, void* geom, int n) {
   return ret;
 }
 static void* get_geometry_data[1] = {GetGeometryN};
-/* the set srid funcion acts inplace */
+/* the set srid function acts in-place */
 static void* GEOSSetSRID_r_with_clone(void* context, void* geom, int srid) {
   void* ret = GEOSGeom_clone_r(context, geom);
   if (ret == NULL) {
@@ -1310,7 +1310,7 @@ static void YY_d_func(char** args, const npy_intp* dimensions, const npy_intp* s
         errstate = PGERR_GEOS_EXCEPTION;
         goto finish;
       }
-      /* incase the outcome is 0.0, check the inputs for emptyness */
+      /* in case the outcome is 0.0, check the inputs for emptyness */
       if (*op1 == 0.0) {
         if (GEOSisEmpty_r(ctx, in1) || GEOSisEmpty_r(ctx, in2)) {
           *(double*)op1 = NPY_NAN;
