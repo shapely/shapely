@@ -85,12 +85,12 @@ class Point(BaseGeometry):
     @property
     def x(self):
         """Return x coordinate."""
-        return shapely.get_x(self)
+        return float(shapely.get_x(self))
 
     @property
     def y(self):
         """Return y coordinate."""
-        return shapely.get_y(self)
+        return float(shapely.get_y(self))
 
     @property
     def z(self):
