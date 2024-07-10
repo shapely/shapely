@@ -10,7 +10,7 @@ The Versioneer
 * https://github.com/python-versioneer/python-versioneer
 * Brian Warner
 * License: Public Domain (Unlicense)
-* Compatible with: Python 3.7, 3.8, 3.9, 3.10 and pypy3
+* Compatible with: Python 3.9, 3.10, 3.11, 3.12 and pypy3
 * [![Latest Version][pypi-image]][pypi-url]
 * [![Build Status][travis-image]][travis-url]
 

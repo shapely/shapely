@@ -14,12 +14,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-13, windows-2019]
         architecture: [x64]
-        geos: [3.8.4, 3.9.5, 3.10.6, 3.11.3, 3.12.1, main]
+        geos: [3.9.5, 3.10.6, 3.11.3, 3.12.1, main]
         include:
-          # 2019
-          - python: 3.8
-            geos: 3.8.4
-            numpy: 1.17.3
           # 2020
           - python: 3.9
             geos: 3.9.5
@@ -48,17 +44,12 @@ jobs:
           # enable two 32-bit windows builds:
           - os: windows-2019
             architecture: x86
-            python: 3.8
-            geos: 3.8.4
-            numpy: 1.16.2
-          - os: windows-2019
-            architecture: x86
             python: "3.11"
             geos: 3.12.1
             numpy: 1.24.4
           # pypy (use explicit ubuntu version to not overwrite existing ubuntu-latest + geos 3.11.0 build)
           - os: ubuntu-22.04
-            python: "pypy3.8"
+            python: "pypy3.9"
             geos: 3.12.1
             numpy: 1.24.4
 
