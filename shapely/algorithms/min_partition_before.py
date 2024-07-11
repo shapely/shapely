@@ -1,11 +1,14 @@
 import doctest
 import logging
 import heapq
+import time
 from classes import PriorityQueueItem, ComperablePolygon
 from shapely.geometry.collection import GeometryCollection
 from shapely.geometry.multipolygon import MultiPolygon
 from shapely.geometry import Polygon, LineString, Point
+from plot_poly import plotting
 
+from rand_rect_poly import generate_rectilinear_polygon
 
 
 # Set up logging
@@ -459,3 +462,53 @@ class RectilinearPolygon_before:
             bool: True if the polygon is a rectangle, False otherwise.
         """
         return poly.area == poly.minimum_rotated_rectangle.area
+
+
+@staticmethod
+def plot_and_partition(polygon: Polygon):
+    """
+    Plot the given polygon and its partition.
+
+    Args:
+        polygon (Polygon): The polygon to plot and partition.
+    """
+    start = time.time()
+    partition_result = partition_polygon(polygon)
+    end = time.time()
+    logger.warning(f"Partitioning took {end - start:.4f} seconds.")
+
+    if not partition_result:
+        # Process the partition result
+        logger.error("Partition could not be found.")
+    else:
+        logger.debug("Partition result:", partition_result)
+
+    plotting(polygon, partition_result)
+
+if __name__ == "__main__":
+
+    polygon5 = Polygon(
+        [
+            (1, 5),
+            (1, 4),
+            (3, 4),
+            (3, 3),
+            (2, 3),
+            (2, 1),
+            (5, 1),
+            (5, 2),
+            (8, 2),
+            (8, 1),
+            (9, 1),
+            (9, 0),
+            (10, 0),
+            (10, 5),
+            (9, 5),
+            (9, 4),
+            (8, 4),
+            (8, 5),
+        ]
+    )
+    poly = generate_rectilinear_polygon()
+    plotting(poly, [])
+    plot_and_partition(poly)

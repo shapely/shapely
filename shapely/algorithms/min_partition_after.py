@@ -426,9 +426,9 @@ class RectilinearPolygon_after:
 
     def find_matching_point(
         self, candidate: Point, partial_figure: Polygon
-    ) -> tuple[Point, Polygon] :
+    ) -> list[tuple[Point, Polygon]]:
         """
-        Finds the matching point on the grid inside the polygon and kitty-corner to the candidate point
+        Finds matching points on the grid inside the polygon and kitty-corner to the candidate point
         within the largest blocked rectangle inside the polygon.
 
         Args:
@@ -436,11 +436,11 @@ class RectilinearPolygon_after:
             partial_figure (Polygon): The partial figure polygon.
 
         Returns:
-            tuple: A tuple containing the Point representing the matching point and its corresponding blocked rectangle,
-                   or None if no matching point is found.
+            list: A list of tuples, each containing a Point representing a matching point and its 
+                corresponding blocked rectangle. Returns an empty list if no matching points are found.
         """
         relevant_grid_points = []
-        p_r= []
+        potential_matches = []
         boundary = partial_figure.boundary
 
         for point in self.grid_points:
@@ -448,7 +448,7 @@ class RectilinearPolygon_after:
                 relevant_grid_points.append(point)
 
         largest_blocked_rect = None
-        max_area = None
+        max_area = 0  # Initialize to 0 instead of None
 
         for point in relevant_grid_points:
             if point != candidate:  # Exclude candidate point
@@ -462,24 +462,26 @@ class RectilinearPolygon_after:
                 )
 
                 if blocked_rect.within(self.polygon):
-                    # area = blocked_rect.area
-                    # if max_area is None or area > max_area:
-                    #     max_area = area
-                    #     largest_blocked_rect = blocked_rect
-                    p_r.append((point, blocked_rect))
-         
-        # if largest_blocked_rect is None:
-        #     logger.error("No matching point found.")
-        return p_r           
+                    area = blocked_rect.area
+                    if area > max_area:
+                        max_area = area
+                        largest_blocked_rect = blocked_rect
+                    potential_matches.append((point, blocked_rect))
+        
+        if largest_blocked_rect is None:
+            logger.warning("No valid blocked rectangle found.")
+            return []
         
         candidate_quadrant = self.get_relative_quadrant(candidate, largest_blocked_rect)
-        ans = []
-        for point, blocked_rect in p_r:
-            q = self.get_relative_quadrant(point, largest_blocked_rect)
-            if q != candidate_quadrant:
-                
-                ans.append((point, blocked_rect))
-        return ans
+        matching_points = []
+
+        for point, blocked_rect in potential_matches:
+            if blocked_rect.area == max_area:  # Only consider rectangles with max area
+                q = self.get_relative_quadrant(point, largest_blocked_rect)
+                if q != candidate_quadrant:
+                    matching_points.append((point, blocked_rect))
+
+        return matching_points
                     
         
     def get_relative_quadrant(self, point: Point, rect: Polygon) -> int:
@@ -547,5 +549,5 @@ if __name__ == "__main__":
         ]
     )    
     poly = generate_rectilinear_polygon()
-    # plotting(poly, [])
-    plot_and_partition(polygon5)
+    plotting(poly, [])
+    plot_and_partition(poly)
