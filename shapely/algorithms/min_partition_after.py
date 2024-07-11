@@ -64,7 +64,7 @@ def partition_polygon(polygon: Polygon):
         logger.error("The polygon is already a rectangle.")
         return None
     
-    rectilinear_polygon = RectilinearPolygon(polygon)
+    rectilinear_polygon = RectilinearPolygon_after(polygon)
     cords = np.array(rectilinear_polygon.polygon.exterior.coords)
     if not is_rectilinear(cords):
         logger.error("The polygon is not rectilinear.")
@@ -75,7 +75,7 @@ def partition_polygon(polygon: Polygon):
     return rectilinear_polygon.best_partition
 
 
-class RectilinearPolygon:
+class RectilinearPolygon_after:
     def __init__(self, polygon: Polygon):
         self.polygon = polygon  # the main rectilinear polygon
         self.min_partition_length = float("inf")
@@ -273,7 +273,7 @@ class RectilinearPolygon:
             list[LineString]: A list of new internal edges (LineString instances) added by the blocked rectangle.
 
         >>> polygon = Polygon([(2, 0), (6, 0), (6, 4), (8, 4), (8, 6), (0, 6), (0, 4), (2, 4)])
-        >>> rect_polygon = RectilinearPolygon(polygon)
+        >>> rect_polygon = RectilinearPolygon_after(polygon)
         >>> blocked_rect = Polygon([(2,4), (6,4), (6, 0), (2, 0)])
         >>> new_internal_edges = rect_polygon.get_new_internal_edges(blocked_rect)
         >>> new_internal_edges
@@ -315,7 +315,7 @@ class RectilinearPolygon:
             list: List of Points representing the convex points of the polygon.
 
         >>> polygon = Polygon([(0, 0), (0, 2), (0, 4), (2, 4), (2, 2), (2, 0)])
-        >>> rect_polygon = RectilinearPolygon(polygon)
+        >>> rect_polygon = RectilinearPolygon_after(polygon)
         >>> convex_points = rect_polygon.find_convex_points()
         >>> convex_points
         """
@@ -349,7 +349,7 @@ class RectilinearPolygon:
             bool: True if the vertex is concave, False otherwise
 
         >>> polygon = Polygon([(2, 0), (6, 0), (6, 4), (8, 4), (8, 6), (0, 6), (0, 4), (2, 4)])
-        >>> rect_polygon = RectilinearPolygon(polygon)
+        >>> rect_polygon = RectilinearPolygon_after(polygon)
         >>> rect_polygon.is_concave_vertex(2, list(polygon.exterior.coords))
         True
         """
@@ -386,7 +386,7 @@ class RectilinearPolygon:
 
 
         >>> polygon = Polygon([(2, 0), (6, 0), (6, 4), (8, 4), (8, 6), (0, 6), (0, 4), (2, 4)])
-        >>> rect_polygon = RectilinearPolygon(polygon)
+        >>> rect_polygon = RectilinearPolygon_after(polygon)
         >>> grid_points = rect_polygon.get_grid_points()
         >>> grid_points
         [<POINT (2 4)>, <POINT (8 4)>, <POINT (0 4)>, <POINT (2 0)>, <POINT (6 4)>, <POINT (0 6)>, <POINT (2 6)>, <POINT (8 6)>, <POINT (6 0)>, <POINT (6 6)>]
@@ -462,12 +462,16 @@ class RectilinearPolygon:
                 )
 
                 if blocked_rect.within(self.polygon):
-                    area = blocked_rect.area
-                    if max_area is None or area > max_area:
-                        max_area = area
-                        largest_blocked_rect = blocked_rect
+                    # area = blocked_rect.area
+                    # if max_area is None or area > max_area:
+                    #     max_area = area
+                    #     largest_blocked_rect = blocked_rect
                     p_r.append((point, blocked_rect))
-       # return p_r               
+         
+        # if largest_blocked_rect is None:
+        #     logger.error("No matching point found.")
+        return p_r           
+        
         candidate_quadrant = self.get_relative_quadrant(candidate, largest_blocked_rect)
         ans = []
         for point, blocked_rect in p_r:
@@ -543,5 +547,5 @@ if __name__ == "__main__":
         ]
     )    
     poly = generate_rectilinear_polygon()
-    plotting(poly, [])
-    plot_and_partition(poly)
+    # plotting(poly, [])
+    plot_and_partition(polygon5)

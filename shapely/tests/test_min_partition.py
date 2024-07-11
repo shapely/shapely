@@ -5,7 +5,7 @@ Date: 10/6/24
 '''
 
 import unittest
-from shapely.algorithms.min_partition import RectilinearPolygon
+from shapely.algorithms.min_partition_after import RectilinearPolygon
 from shapely.geometry import Polygon, Point
 
 class TestRectilinearPolygon(unittest.TestCase):
