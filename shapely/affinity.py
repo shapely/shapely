@@ -61,15 +61,31 @@ def affine_transform(geom, matrix):
             ndim = 2
     else:
         raise ValueError("'matrix' expects either 6 or 12 coefficients")
-    if ndim == 2:
-        A = np.array([[a, b], [d, e]], dtype=float)
-        off = np.array([xoff, yoff], dtype=float)
-    else:
-        A = np.array([[a, b, c], [d, e, f], [g, h, i]], dtype=float)
-        off = np.array([xoff, yoff, zoff], dtype=float)
+
+    # if ndim == 2:
+    #     A = np.array([[a, b], [d, e]], dtype=float)
+    #     off = np.array([xoff, yoff], dtype=float)
+    # else:
+    #     A = np.array([[a, b, c], [d, e, f], [g, h, i]], dtype=float)
+    #     off = np.array([xoff, yoff, zoff], dtype=float)
 
     def _affine_coords(coords):
-        return np.matmul(A, coords.T).T + off
+        # These are equivalent, but unfortunately not robust
+        #   result = np.matmul(coords, A.T) + off
+        #   result = np.matmul(A, coords.T).T + off
+        # Therefore, manual matrix multiplication is needed
+        if ndim == 2:
+            x, y = coords.T
+            xp = a * x + b * y + xoff
+            yp = d * x + e * y + yoff
+            result = np.stack([xp, yp]).T
+        elif ndim == 3:
+            x, y, z = coords.T
+            xp = a * x + b * y + c * z + xoff
+            yp = d * x + e * y + f * z + yoff
+            zp = g * x + h * y + i * z + zoff
+            result = np.stack([xp, yp, zp]).T
+        return result
 
     return shapely.transform(geom, _affine_coords, include_z=ndim == 3)
 
