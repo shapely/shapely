@@ -38,6 +38,19 @@ Breaking changes in GEOS 3.12:
   to "MULTIPOINT ((0 0), (1 1))". (#1885)
 
 
+2.0.5 (2024-07-13)
+------------------
+
+Binary wheels on PyPI include GEOS 3.11.4 from 2024-06-05. Furthermore,
+universal2 wheels are removed for macOS since both x86_64 and arm64 wheels are
+provided.
+
+Bug fixes:
+
+- Fix Point x/y/z attributes to return Python floats (#2074).
+- Fix affinity for Apple silicon with NumPy 2.0 by reverting matmul, and
+  use direct matrix multiplication instead (#2085).
+
 2.0.4 (2024-04-16)
 ------------------
 
