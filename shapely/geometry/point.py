@@ -12,7 +12,7 @@ __all__ = ["Point"]
 class Point(BaseGeometry):
     """
     A geometry type that represents a single coordinate with
-    x,y and possibly z values.
+    x, y and possibly z and/or m values.
 
     A point is a zero-dimensional feature and has zero length and zero area.
 
@@ -27,7 +27,7 @@ class Point(BaseGeometry):
 
     Attributes
     ----------
-    x, y, z : float
+    x, y, z, m : float
         Coordinate values
 
     Examples
@@ -85,19 +85,30 @@ class Point(BaseGeometry):
     @property
     def x(self):
         """Return x coordinate."""
-        return shapely.get_x(self)
+        return float(shapely.get_x(self))
 
     @property
     def y(self):
         """Return y coordinate."""
-        return shapely.get_y(self)
+        return float(shapely.get_y(self))
 
     @property
     def z(self):
         """Return z coordinate."""
         if not shapely.has_z(self):
             raise DimensionError("This point has no z coordinate.")
-        return shapely.get_z(self)
+        return float(shapely.get_z(self))
+
+    @property
+    def m(self):
+        """Return m coordinate.
+
+        .. versionadded:: 2.1.0
+           Also requires GEOS 3.12.0 or later.
+        """
+        if not shapely.has_m(self):
+            raise DimensionError("This point has no m coordinate.")
+        return float(shapely.get_m(self))
 
     @property
     def __geo_interface__(self):

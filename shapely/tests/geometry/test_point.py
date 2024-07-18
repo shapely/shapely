@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from shapely import Point
+from shapely import geos_version, Point
 from shapely.coords import CoordinateSequence
-from shapely.errors import DimensionError
+from shapely.errors import DimensionError, UnsupportedGEOSVersionError
 
 
 def test_from_coordinates():
@@ -98,22 +98,38 @@ def test_from_invalid():
 class TestPoint:
     def test_point(self):
 
-        # Test 2D points
+        # Test XY point
         p = Point(1.0, 2.0)
         assert p.x == 1.0
+        assert type(p.x) is float
         assert p.y == 2.0
+        assert type(p.y) is float
         assert p.coords[:] == [(1.0, 2.0)]
         assert str(p) == p.wkt
         assert p.has_z is False
         with pytest.raises(DimensionError):
             p.z
+        if geos_version >= (3, 12, 0):
+            assert p.has_m is False
+            with pytest.raises(DimensionError):
+                p.m
+        else:
+            with pytest.raises(UnsupportedGEOSVersionError):
+                p.m
 
-        # Check Z-dim
+        # Check XYZ point
         p = Point(1.0, 2.0, 3.0)
         assert p.coords[:] == [(1.0, 2.0, 3.0)]
         assert str(p) == p.wkt
         assert p.has_z is True
         assert p.z == 3.0
+        assert type(p.z) is float
+        if geos_version >= (3, 12, 0):
+            assert p.has_m is False
+            with pytest.raises(DimensionError):
+                p.m
+
+            # TODO: Check XYM and XYZM points
 
         # Coordinate access
         p = Point((3.0, 4.0))

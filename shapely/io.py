@@ -143,14 +143,14 @@ def to_wkb(
     ----------
     geometry : Geometry or array_like
     hex : bool, default False
-        If true, export the WKB as a hexidecimal string. The default is to
+        If true, export the WKB as a hexadecimal string. The default is to
         return a binary bytes object.
     output_dimension : int, default None
         The output dimension for the WKB. Supported values are 2, 3 and 4 for
         GEOS 3.12+. Default None will automatically choose 3 or 4, depending on
         the version of GEOS.
         Specifying 3 means that up to 3 dimensions will be written but 2D
-        geometries will still be represented as 2D in the WKB represenation.
+        geometries will still be represented as 2D in the WKB representation.
     byte_order : int, default -1
         Defaults to native machine byte order (-1). Use 0 to force big endian
         and 1 for little endian.

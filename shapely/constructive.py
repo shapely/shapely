@@ -540,10 +540,14 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
     method : {'linework', 'structure'}, default 'linework'
         Algorithm to use when repairing geometry. 'structure'
         requires GEOS >= 3.10.
+
+        .. versionadded:: 2.1.0
     keep_collapsed : bool, default True
         For the 'structure' method, True will keep components that have collapsed into a
         lower dimensionality. For example, a ring collapsing to a line, or a line
         collapsing to a point. Must be True for the 'linework' method.
+
+        .. versionadded:: 2.1.0
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -593,11 +597,11 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
 
 @multithreading_enabled
 def normalize(geometry, **kwargs):
-    """Converts Geometry to normal form (or canonical form).
+    """Converts Geometry to strict normal form (or canonical form).
 
-    This method orders the coordinates, rings of a polygon and parts of
-    multi geometries consistently. Typically useful for testing purposes
-    (for example in combination with ``equals_exact``).
+    In :ref:`strict canonical form <canonical-form>`, the coordinates, rings of a polygon and
+    parts of multi geometries are ordered consistently. Typically useful for testing
+    purposes (for example in combination with ``equals_exact``).
 
     Parameters
     ----------
@@ -1083,7 +1087,9 @@ def voronoi_polygons(
     ordered : bool or array_like, default False
         If set to True, polygons within the GeometryCollection will be ordered
         according to the order of the input vertices. Note that this may slow
-        down the computation. Requires GEOS >= 3.12.0
+        down the computation. Requires GEOS >= 3.12.0.
+
+        .. versionadded:: 2.1.0
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 

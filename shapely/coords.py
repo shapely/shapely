@@ -46,8 +46,13 @@ class CoordinateSequence:
         else:
             raise TypeError("key must be an index or slice")
 
-    def __array__(self, dtype=None):
-        return self._coords
+    def __array__(self, dtype=None, copy=None):
+        if copy is False:
+            raise ValueError("`copy=False` isn't supported. A copy is always created.")
+        elif copy is True:
+            return self._coords.copy()
+        else:
+            return self._coords
 
     @property
     def xy(self):
