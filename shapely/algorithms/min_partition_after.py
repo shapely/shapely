@@ -428,8 +428,7 @@ class RectilinearPolygon_after:
         self, candidate: Point, partial_figure: Polygon
     ) -> list[tuple[Point, Polygon]]:
         """
-        Finds matching points on the grid inside the polygon and kitty-corner to the candidate point
-        within the largest blocked rectangle inside the polygon.
+        
 
         Args:
             candidate (Point): The candidate point.
@@ -476,10 +475,9 @@ class RectilinearPolygon_after:
         matching_points = []
 
         for point, blocked_rect in potential_matches:
-            if blocked_rect.area == max_area:  # Only consider rectangles with max area
-                q = self.get_relative_quadrant(point, largest_blocked_rect)
-                if q != candidate_quadrant:
-                    matching_points.append((point, blocked_rect))
+            q = self.get_relative_quadrant(point, largest_blocked_rect)
+            if q != candidate_quadrant:
+                matching_points.append((point, blocked_rect))
 
         return matching_points
                     

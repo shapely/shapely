@@ -36,6 +36,7 @@ def run_comparison_experiment(num_trials: int, output_file: str):
         for instance in range(num_trials):
             poly = generate_rectilinear_polygon()
             plotting(poly, [])
+            # plot_partition_comparison(poly, [], [], instance)
 
             # Test 'after' implementation
             start = time.time()
@@ -43,7 +44,7 @@ def run_comparison_experiment(num_trials: int, output_file: str):
             end = time.time()
             run_time_after = end - start
             partition_length_after = sum_edge_lengths(partition_result_after)
-            logger.warning(f"Partition length after: {partition_length_after}")
+            print(f"Partition length after: {partition_length_after}")
             plotting(poly, partition_result_after)
 
             # Test 'before' implementation
@@ -66,6 +67,9 @@ def run_comparison_experiment(num_trials: int, output_file: str):
             results.append(
                 {
                     "trial": instance,
+                    "polygon": poly,
+                    "before_partition": partition_result_before,
+                    "after_partition": partition_result_after,
                     "before_time": run_time_before,
                     "before_length": partition_length_before,
                     "after_time": run_time_after,
@@ -74,7 +78,13 @@ def run_comparison_experiment(num_trials: int, output_file: str):
             )
 
             # Write the data to the CSV file
-            writer.writerow(results[-1])
+            writer.writerow({
+                "trial": instance,
+                "before_time": run_time_before,
+                "before_length": partition_length_before,
+                "after_time": run_time_after,
+                "after_length": partition_length_after,
+            })
 
     return results
 
@@ -83,39 +93,38 @@ def sum_edge_lengths(partition: List[LineString]) -> float:
     return sum([line.length for line in partition])
 
 
-def plot_comparison(results):
-    trials = [r["trial"] for r in results]
-    before_times = [r["before_time"] for r in results]
-    after_times = [r["after_time"] for r in results]
-    before_lengths = [r["before_length"] for r in results]
-    after_lengths = [r["after_length"] for r in results]
+def plot_partition_comparison(poly, before_partition, after_partition, trial):
+    fig, axes = plt.subplots(1, 2, figsize=(12, 6))
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 12))
+    # Plot the 'before' partition
+    axes[0].set_title(f"Trial {trial} - Before Partition")
+    axes[0].plot(*poly.exterior.xy, color="black")
+    for line in before_partition:
+        axes[0].plot(*line.xy, color="red") # Plot the inner partition
 
-    # Runtime comparison
-    ax1.plot(trials, before_times, label="Before", marker="o")
-    ax1.plot(trials, after_times, label="After", marker="s")
-    ax1.set_xlabel("Trial")
-    ax1.set_ylabel("Runtime (seconds)")
-    ax1.set_title("Runtime Comparison")
-    ax1.legend()
-
-    # Partition length comparison
-    ax2.plot(trials, before_lengths, label="Before", marker="o")
-    ax2.plot(trials, after_lengths, label="After", marker="s")
-    ax2.set_xlabel("Trial")
-    ax2.set_ylabel("Partition Length")
-    ax2.set_title("Partition Length Comparison")
-    ax2.legend()
+    # Plot the 'after' partition
+    axes[1].set_title(f"Trial {trial} - After Partition")
+    axes[1].plot(*poly.exterior.xy, color="black")
+    for line in after_partition:
+        axes[1].plot(*line.xy, color="green") # Plot the inner partition
 
     plt.tight_layout()
-    plt.savefig("performance_comparison.png")
+    plt.savefig(f"comparison_trial_{trial}.png")
     plt.close()
+
+def plot_comparison(results):
+    for result in results:
+        trial = result["trial"]
+        poly = result["polygon"]
+        before_partition = result["before_partition"]
+        after_partition = result["after_partition"]
+
+        plot_partition_comparison(poly, before_partition, after_partition, trial)
 
 
 if __name__ == "__main__":
     results = run_comparison_experiment(1, "comparison_results.csv")
     plot_comparison(results)
     print(
-        "Experiment completed. Results saved in 'comparison_results.csv' and 'performance_comparison.png'."
+        "Experiment completed. Results saved in 'comparison_results.csv' and 'comparison_trial_{trial}.png'."
     )

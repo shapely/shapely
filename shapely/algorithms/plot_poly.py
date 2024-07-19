@@ -1,13 +1,6 @@
-
-
+import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon as MplPolygon
-from matplotlib import pyplot as plt
 from shapely.geometry import Polygon
-import logging
-
-
-# Set up logging
-logger = logging.getLogger("polygon_partitioning")
 
 def plotting(polygon: Polygon, partition_result):
     """
@@ -44,10 +37,6 @@ def plotting(polygon: Polygon, partition_result):
 
     # Set the aspect of the plot to be equal
     ax.set_aspect("equal")
-
-    # Center the plot
-    ax.set_xlim((min_x + max_x) / 2 - (max_x - min_x) / 2 - margin, (min_x + max_x) / 2 + (max_x - min_x) / 2 + margin)
-    ax.set_ylim((min_y + max_y) / 2 - (max_y - min_y) / 2 - margin, (min_y + max_y) / 2 + (max_y - min_y) / 2 + margin)
 
     # Show the plot
     plt.show()
