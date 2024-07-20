@@ -38,12 +38,11 @@ jobs:
             numpy: 1.26.2
             matplotlib: true
             doctest: true
-          # 2024
-          - python: "3.12"  # update to "3.13" after binary wheels for numpy are available
-            geos: 3.12.2
-            numpy: 2.0.0
-            # extra ignore for dateutil Python 3.12 warning fixed upstream (waiting on release 2.8.3+)
-            extra_pytest_args: "-W error -W ignore:datetime.datetime.utcfromtimestamp:DeprecationWarning" # error on warnings
+            extra_pytest_args: "-W error"  # error on warnings
+          # 2024 -- wait until Python 3.13 with binary wheels for numpy are available
+          # - python: "3.13"
+          #   geos: 3.13.0
+          #   numpy: 2.0.0
           # apple silicon
           - os: macos-14
             python: "3.12"
@@ -52,8 +51,7 @@ jobs:
           # dev
           - python: "3.12"
             geos: main
-            # extra ignore for dateutil Python 3.12 warning fixed upstream (waiting on release 2.8.3+)
-            extra_pytest_args: "-W error -W ignore:datetime.datetime.utcfromtimestamp:DeprecationWarning" # error on warnings
+            extra_pytest_args: "-W error"  # error on warnings
           # enable two 32-bit windows builds:
           - os: windows-2019
             architecture: x86
@@ -129,6 +127,7 @@ jobs:
       - name: Install python dependencies
         run: |
           python -m pip install --disable-pip-version-check --upgrade pip
+          pip config set global.progress_bar off
           pip install --upgrade wheel setuptools
           if [ -z "${{ matrix.numpy }}" ]; then
             pip install --upgrade --pre Cython pytest pytest-cov coveralls;
