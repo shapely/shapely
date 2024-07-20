@@ -831,7 +831,7 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
     >>> set_precision(LineString([(0, 0), (0, 0.1), (0, 1), (1, 1)]), 1.0)
     <LINESTRING (0 0, 0 1, 1 1)>
     >>> set_precision(LineString([(0, 0), (0, 0.1), (0.1, 0.1)]), 1.0, mode="valid_output")
-    <LINESTRING Z EMPTY>
+    <LINESTRING EMPTY>
     >>> set_precision(LineString([(0, 0), (0, 0.1), (0.1, 0.1)]), 1.0, mode="pointwise")
     <LINESTRING (0 0, 0 0, 0 0)>
     >>> set_precision(LineString([(0, 0), (0, 0.1), (0.1, 0.1)]), 1.0, mode="keep_collapsed")
