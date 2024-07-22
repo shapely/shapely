@@ -2,7 +2,7 @@
 
 import threading
 
-from shapely.lib import ShapelyError, _setup_signal_checks
+from shapely.lib import GEOSException, ShapelyError, _setup_signal_checks  # noqa: F401
 
 
 def setup_signal_checks(interval=10000):
