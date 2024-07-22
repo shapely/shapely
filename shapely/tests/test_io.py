@@ -269,14 +269,9 @@ def test_from_wkb_none():
             b"\x01\x01\x00\x00\x00\x00",
             "raise",
             GEOSException,
-            "Input buffer is smaller than requested object size",
+            "Unexpected EOF parsing WKB",
         ),
-        (
-            b"\x01\x01\x00\x00\x00\x00",
-            "warn",
-            Warning,
-            "Input buffer is smaller than requested object size",
-        ),
+        (b"\x01\x01\x00\x00\x00\x00", "warn", Warning, "Unexpected EOF parsing WKB"),
         (INVALID_WKB, "ignore", None, None),
         (
             INVALID_WKB,
