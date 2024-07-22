@@ -1,8 +1,8 @@
-from contextlib import nullcontext
 import json
 import pickle
 import struct
 import warnings
+from contextlib import nullcontext
 
 import numpy as np
 import pytest
