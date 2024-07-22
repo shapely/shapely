@@ -163,6 +163,8 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 # ignore pydocstyle errors in tests
 "**/tests/*" = ["D"]
+# the order of imports in __init__ is a bit tricky, so keep manual
+"shapely/__init__.py" = ["F401", "F403", "I"]
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
