@@ -90,7 +90,7 @@ def transform(
     >>> transformer = Transformer.from_crs(4326, 32618, always_xy=True)
     >>> transform(Point(-75, 50), transformer.transform, interleaved=False)
     <POINT (500000 5538630.703)>
-    """
+    """  # noqa: E501
     geometry_arr = np.array(geometry, dtype=np.object_)  # makes a copy
     if include_z is None:
         has_z = shapely.has_z(geometry_arr)
@@ -112,7 +112,8 @@ def transform(
         # check the array to yield understandable error messages
         if not isinstance(new_coordinates, np.ndarray) or new_coordinates.ndim != 2:
             raise ValueError(
-                "The provided transformation did not return a two-dimensional numpy array"
+                "The provided transformation did not return a two-dimensional numpy "
+                "array"
             )
         if new_coordinates.dtype != np.float64:
             raise ValueError(
@@ -242,7 +243,7 @@ def set_coordinates(geometry, coordinates):
     <POINT (1 1)>
     >>> set_coordinates(Point(0, 0, 0), [[1, 1, 1]])
     <POINT Z (1 1 1)>
-    """
+    """  # noqa: E501
     geometry_arr = np.asarray(geometry, dtype=np.object_)
     coordinates = np.atleast_2d(np.asarray(coordinates)).astype(np.float64)
     if coordinates.ndim != 2:

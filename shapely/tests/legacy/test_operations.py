@@ -31,7 +31,8 @@ class OperationsTestCase(unittest.TestCase):
 
         # Simplify
         p = loads(
-            "POLYGON ((120 120, 140 199, 160 200, 180 199, 220 120, 122 122, 121 121, 120 120))"
+            "POLYGON ((120 120, 140 199, 160 200, 180 199, 220 120, 122 122, 121 121, "
+            "120 120))"
         )
         expected = loads(
             "POLYGON ((120 120, 140 199, 160 200, 180 199, 220 120, 120 120))"
@@ -76,7 +77,8 @@ class OperationsTestCase(unittest.TestCase):
 
         # issue #294: should raise TopologicalError on exception
         invalid_polygon = loads(
-            "POLYGON ((40 100, 80 100, 80 60, 40 60, 40 100), (60 60, 80 60, 80 40, 60 40, 60 60))"
+            "POLYGON ((40 100, 80 100, 80 60, 40 60, 40 100), "
+            "(60 60, 80 60, 80 40, 60 40, 60 60))"
         )
         assert not invalid_polygon.is_valid
         with pytest.raises((TopologicalError, shapely.GEOSException)):

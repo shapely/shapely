@@ -1,5 +1,4 @@
-"""Collections of points and related utilities
-"""
+"""Collections of points and related utilities"""
 
 import shapely
 from shapely.errors import EmptyPartError

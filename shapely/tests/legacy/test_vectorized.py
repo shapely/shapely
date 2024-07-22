@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from shapely.geometry import box, MultiPolygon, Point
+from shapely.geometry import MultiPolygon, Point, box
 
 
 class VectorizedContainsTestCase(unittest.TestCase):

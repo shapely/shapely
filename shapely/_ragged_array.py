@@ -26,6 +26,7 @@ different geometry types is defined by the GeoArrow project:
 https://github.com/geoarrow/geoarrow
 
 """
+
 import numpy as np
 
 from shapely import creation

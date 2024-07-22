@@ -186,7 +186,6 @@ def build_err_msg(
             msg.append(err_msg)
     if verbose:
         for i, a in enumerate(arrays):
-
             if isinstance(a, np.ndarray):
                 # precision argument is only needed if the objects are ndarrays
                 r_func = partial(np.array_repr, precision=precision)

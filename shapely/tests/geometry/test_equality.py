@@ -12,7 +12,7 @@ all_non_empty_types = np.array(all_types + all_types_z)[
 
 @pytest.mark.parametrize("geom", all_types + all_types_z)
 def test_equality(geom):
-    assert geom == geom
+    assert geom == geom  # noqa: PLR0124
     transformed = shapely.transform(geom, lambda x: x, include_z=True)
     assert geom == transformed
     assert not (geom != transformed)
@@ -185,16 +185,19 @@ def test_equality_polygon():
         "POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (1 1, 2 1, 2 2, 1 1))"
     )
     geom2 = shapely.from_wkt(
-        "POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (1 1, 2 1, 2 2, 1 1), (3 3, 4 3, 4 4, 3 3))"
+        "POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (1 1, 2 1, 2 2, 1 1), "
+        "(3 3, 4 3, 4 4, 3 3))"
     )
     assert geom1 != geom2
 
     # different order of holes
     geom1 = shapely.from_wkt(
-        "POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (3 3, 4 3, 4 4, 3 3), (1 1, 2 1, 2 2, 1 1))"
+        "POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (3 3, 4 3, 4 4, 3 3), "
+        "(1 1, 2 1, 2 2, 1 1))"
     )
     geom2 = shapely.from_wkt(
-        "POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (1 1, 2 1, 2 2, 1 1), (3 3, 4 3, 4 4, 3 3))"
+        "POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (1 1, 2 1, 2 2, 1 1), "
+        "(3 3, 4 3, 4 4, 3 3))"
     )
     assert geom1 != geom2
 
@@ -232,16 +235,16 @@ def test_comparison_not_supported():
     geom2 = Point(2, 2)
 
     with pytest.raises(TypeError, match="not supported between instances"):
-        geom1 > geom2
+        assert geom1 > geom2
 
     with pytest.raises(TypeError, match="not supported between instances"):
-        geom1 < geom2
+        assert geom1 < geom2
 
     with pytest.raises(TypeError, match="not supported between instances"):
-        geom1 >= geom2
+        assert geom1 >= geom2
 
     with pytest.raises(TypeError, match="not supported between instances"):
-        geom1 <= geom2
+        assert geom1 <= geom2
 
 
 @pytest.mark.parametrize(

@@ -1,32 +1,35 @@
-from shapely.lib import GEOSException  # NOQA
-from shapely.lib import Geometry  # NOQA
-from shapely.lib import geos_version, geos_version_string  # NOQA
-from shapely.lib import geos_capi_version, geos_capi_version_string  # NOQA
-from shapely.errors import setup_signal_checks  # NOQA
-from shapely._geometry import *  # NOQA
-from shapely.creation import *  # NOQA
-from shapely.constructive import *  # NOQA
-from shapely.predicates import *  # NOQA
-from shapely.measurement import *  # NOQA
-from shapely.set_operations import *  # NOQA
-from shapely.linear import *  # NOQA
-from shapely.coordinates import *  # NOQA
-from shapely.strtree import *  # NOQA
-from shapely.io import *  # NOQA
+from shapely import _version
+from shapely._geometry import *  # noqa: F403
+from shapely.constructive import *  # noqa: F403
+from shapely.coordinates import *  # noqa: F403
+from shapely.creation import *  # noqa: F403
+from shapely.errors import setup_signal_checks
 
 # Submodule always needs to be imported to ensure Geometry subclasses are registered
-from shapely.geometry import (  # NOQA
-    Point,
-    LineString,
-    Polygon,
-    MultiPoint,
-    MultiLineString,
-    MultiPolygon,
-    GeometryCollection,
-    LinearRing,
+from shapely.geometry import (
+    GeometryCollection,  # noqa: F401
+    LinearRing,  # noqa: F401
+    LineString,  # noqa: F401
+    MultiLineString,  # noqa: F401
+    MultiPoint,  # noqa: F401
+    MultiPolygon,  # noqa: F401
+    Point,  # noqa: F401
+    Polygon,  # noqa: F401
 )
-
-from shapely import _version
+from shapely.io import *  # noqa: F403
+from shapely.lib import (
+    Geometry,  # noqa: F401
+    GEOSException,  # noqa: F401
+    geos_capi_version,  # noqa: F401
+    geos_capi_version_string,  # noqa: F401
+    geos_version,  # noqa: F401
+    geos_version_string,  # noqa: F401
+)
+from shapely.linear import *  # noqa: F403
+from shapely.measurement import *  # noqa: F403
+from shapely.predicates import *  # noqa: F403
+from shapely.set_operations import *  # noqa: F403
+from shapely.strtree import *  # noqa: F403
 
 __version__ = _version.get_versions()["version"]
 

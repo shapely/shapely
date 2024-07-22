@@ -1,5 +1,5 @@
-"""Points and related utilities
-"""
+"""Points and related utilities"""
+
 import numpy as np
 
 import shapely
@@ -134,9 +134,10 @@ class Point(BaseGeometry):
         if opacity is None:
             opacity = 0.6
         return (
-            '<circle cx="{0.x}" cy="{0.y}" r="{1}" '
-            'stroke="#555555" stroke-width="{2}" fill="{3}" opacity="{4}" />'
-        ).format(self, 3.0 * scale_factor, 1.0 * scale_factor, fill_color, opacity)
+            f'<circle cx="{self.x}" cy="{self.y}" r="{3.0 * scale_factor}" '
+            f'stroke="#555555" stroke-width="{1.0 * scale_factor}" fill="{fill_color}" '
+            f'opacity="{opacity}" />'
+        )
 
     @property
     def xy(self):

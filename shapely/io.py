@@ -314,7 +314,7 @@ def from_wkb(geometry, on_invalid="raise", **kwargs):
     --------
     >>> from_wkb(b'\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?')
     <POINT (1 1)>
-    """
+    """  # noqa: E501
 
     if not np.isscalar(on_invalid):
         raise TypeError("on_invalid only accepts scalar values")
@@ -351,7 +351,8 @@ def from_geojson(geometry, on_invalid="raise", **kwargs):
         - raise: an exception will be raised if an input GeoJSON is invalid.
         - warn: a warning will be raised and invalid input geometries will be
           returned as ``None``.
-        - ignore: invalid input geometries will be returned as ``None`` without a warning.
+        - ignore: invalid input geometries will be returned as ``None`` without
+          a warning.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 

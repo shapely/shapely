@@ -32,17 +32,17 @@ def make_valid(ob):
 
     If the input geometry is already valid, then it will be returned.
 
-    If the geometry must be split into multiple parts of the same type to be made valid,
-    then a multi-part geometry will be returned.
+    If the geometry must be split into multiple parts of the same type to be
+    made valid, then a multi-part geometry will be returned.
 
-    If the geometry must be split into multiple parts of different types to be made valid,
-    then a GeometryCollection will be returned.
+    If the geometry must be split into multiple parts of different types to be
+    made valid, then a GeometryCollection will be returned.
 
     Parameters
     ----------
     ob : Geometry
-        A shapely geometry object which should be made valid. If the object is already valid,
-        it will be returned as-is.
+        A shapely geometry object which should be made valid. If the object is
+        already valid, it will be returned as-is.
 
     Returns
     -------

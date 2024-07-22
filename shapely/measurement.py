@@ -40,7 +40,7 @@ def area(geometry, **kwargs):
     0.0
     >>> area(None)
     nan
-    """
+    """  # noqa: E501
     return lib.area(geometry, **kwargs)
 
 
@@ -289,7 +289,8 @@ def minimum_clearance(geometry, **kwargs):
 
 @multithreading_enabled
 def minimum_bounding_radius(geometry, **kwargs):
-    """Computes the radius of the minimum bounding circle that encloses an input geometry.
+    """Computes the radius of the minimum bounding circle that encloses an input
+    geometry.
 
     Parameters
     ----------
