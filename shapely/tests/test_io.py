@@ -179,6 +179,10 @@ def test_from_wkt_on_invalid(wkt, on_invalid, error, message):
         assert result is None
 
 
+@pytest.mark.skipif(
+    shapely.geos_version < (3, 11, 0),
+    reason="on_invalid='fix' not supported with GEOS < 3.11",
+)
 @pytest.mark.parametrize(
     "wkt, expected_wkt",
     [
@@ -303,6 +307,10 @@ def test_from_wkb_on_invalid(wkb, on_invalid, error, message):
         assert result is None
 
 
+@pytest.mark.skipif(
+    shapely.geos_version < (3, 11, 0),
+    reason="on_invalid='fix' not supported with GEOS < 3.11",
+)
 @pytest.mark.parametrize(
     "wkb, expected_wkt",
     [
