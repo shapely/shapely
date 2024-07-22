@@ -265,13 +265,8 @@ def test_from_wkb_none():
         ("", "warn", Warning, "Unexpected EOF parsing WKB"),
         ("", "unsupported_option", ValueError, "not a valid option"),
         (b"\x01\x01\x00\x00\x00\x00", "ignore", None, None),
-        (
-            b"\x01\x01\x00\x00\x00\x00",
-            "raise",
-            GEOSException,
-            "Unexpected EOF parsing WKB",
-        ),
-        (b"\x01\x01\x00\x00\x00\x00", "warn", Warning, "Unexpected EOF parsing WKB"),
+        (b"\x01\x01\x00\x00\x00\x00", "raise", GEOSException, "ParseException"),
+        (b"\x01\x01\x00\x00\x00\x00", "warn", Warning, "ParseException"),
         (INVALID_WKB, "ignore", None, None),
         (
             INVALID_WKB,
