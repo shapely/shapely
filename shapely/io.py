@@ -270,10 +270,10 @@ def from_wkt(geometry, on_invalid="raise", **kwargs):
     geometry : str or array_like
         The WKT string(s) to convert.
     on_invalid : {"raise", "warn", "ignore", "fix"}, default "raise"
-        Indicate what to do when an invalid WKT string is encountered. Note that
-        it involves very basic validations, e.g. the minimum number of points
-        for the geometry type. For a thorough check, use :func:`is_valid`.
-        Valid options are:
+        Indicates what to do when an invalid WKT string is encountered. Note
+        that the validations involved are very basic, e.g. the minimum number of
+        points for the geometry type. For a thorough check, use
+        :func:`is_valid` after conversion to geometries. Valid options are:
 
         - raise: an exception will be raised if any input geometry is invalid.
         - warn: a warning will be raised and invalid WKT geometries will be
@@ -312,10 +312,10 @@ def from_wkb(geometry, on_invalid="raise", **kwargs):
     geometry : str or array_like
         The WKB byte object(s) to convert.
     on_invalid : {"raise", "warn", "ignore", "fix"}, default "raise"
-        Indicate what to do when an invalid WKB string is encountered. Note that
-        it involves very basic validations, e.g. the minimum number of points
-        for the geometry type. For a thorough check, use :func:`is_valid`.
-        Valid options are:
+        Indicates what to do when an invalid WKB is encountered. Note that the
+        validations involved are very basic, e.g. the minimum number of points
+        for the geometry type. For a thorough check, use :func:`is_valid` after
+        conversion to geometries. Valid options are:
 
         - raise: an exception will be raised if any input geometry is invalid.
         - warn: a warning will be raised and invalid WKT geometries will be
