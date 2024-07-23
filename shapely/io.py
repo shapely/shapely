@@ -280,9 +280,9 @@ def from_wkt(geometry, on_invalid="raise", **kwargs):
           returned as ``None``.
         - ignore: invalid geometries will be returned as ``None`` without a
           warning.
-        - fix: an effort is made to fix invalid input geometries. If this is not
-          possible, they are returned as ``None`` without a warning. Requires
-          GEOS >= 3.11.
+        - fix: an effort is made to fix invalid input geometries (currently just
+          unclosed rings). If this is not possible, they are returned as
+          ``None`` without a warning. Requires GEOS >= 3.11.
 
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
@@ -323,9 +323,9 @@ def from_wkb(geometry, on_invalid="raise", **kwargs):
           returned as ``None``.
         - ignore: invalid geometries will be returned as ``None`` without a
           warning.
-        - fix: an effort is made to fix invalid input geometries. If this is not
-          possible, they are returned as ``None`` without a warning. Requires
-          GEOS >= 3.11.
+        - fix: an effort is made to fix invalid input geometries (currently just
+          unclosed rings). If this is not possible, they are returned as
+          ``None`` without a warning. Requires GEOS >= 3.11.
 
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
