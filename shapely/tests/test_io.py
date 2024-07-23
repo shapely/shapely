@@ -209,7 +209,7 @@ def test_from_wkt_on_invalid_fix(wkt, expected_wkt):
 def test_from_wkt_on_invalid_fix_unsupported_geos():
     """on_invalid="fix" not supported with GEOS < 3.11"""
     with pytest.raises(
-        GEOSException, match="on_invalid='fix' only supported for GEOS >= 3.11"
+        ValueError, match="on_invalid='fix' only supported for GEOS >= 3.11"
     ):
         _ = shapely.from_wkt("", on_invalid="fix")
 
@@ -340,7 +340,7 @@ def test_from_wkb_on_invalid_fix(wkb, expected_wkt):
 def test_from_wkb_on_invalid_fix_unsupported_geos():
     """on_invalid="fix" not supported with GEOS < 3.11"""
     with pytest.raises(
-        GEOSException, match="on_invalid='fix' only supported for GEOS >= 3.11"
+        ValueError, match="on_invalid='fix' only supported for GEOS >= 3.11"
     ):
         _ = shapely.from_wkb(b"", on_invalid="fix")
 
