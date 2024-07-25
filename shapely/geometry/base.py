@@ -830,7 +830,9 @@ class BaseGeometry(shapely.Geometry):
 
         Alias of `project`.
         """
-        return shapely.line_locate_point(self, other, normalized=normalized)
+        return _maybe_unpack(
+            shapely.line_locate_point(self, other, normalized=normalized)
+        )
 
     def project(self, other, normalized=False):
         """Returns the distance along this geometry to a point nearest the
@@ -841,7 +843,9 @@ class BaseGeometry(shapely.Geometry):
 
         Alias of `line_locate_point`.
         """
-        return shapely.line_locate_point(self, other, normalized=normalized)
+        return _maybe_unpack(
+            shapely.line_locate_point(self, other, normalized=normalized)
+        )
 
     def line_interpolate_point(self, distance, normalized=False):
         """Return a point at the specified distance along a linear geometry
