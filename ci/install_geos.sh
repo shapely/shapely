@@ -57,7 +57,6 @@ build_geos(){
         -D CMAKE_INSTALL_PREFIX=${GEOS_INSTALL} \
         -D CMAKE_INSTALL_LIBDIR=lib \
         -D CMAKE_INSTALL_NAME_DIR=${GEOS_INSTALL}/lib \
-        -D CMAKE_PLATFORM_NO_VERSIONED_SONAME=ON \
         ${BUILD_TESTING} \
         ..
     cmake --build . -j 4
