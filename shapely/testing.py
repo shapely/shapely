@@ -106,8 +106,8 @@ def assert_geometries_equal(
     if normalize:
         x = shapely.normalize(x)
         y = shapely.normalize(y)
-    x = np.array(x, copy=False)
-    y = np.array(y, copy=False)
+    x = np.asarray(x)
+    y = np.asarray(y)
 
     is_scalar = x.ndim == 0 or y.ndim == 0
 

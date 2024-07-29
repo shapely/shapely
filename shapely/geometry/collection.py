@@ -25,7 +25,7 @@ class GeometryCollection(BaseMultipartGeometry):
     --------
     Create a GeometryCollection with a Point and a LineString
 
-    >>> from shapely import LineString, Point
+    >>> from shapely import GeometryCollection, LineString, Point
     >>> p = Point(51, -1)
     >>> l = LineString([(52, -1), (49, 2)])
     >>> gc = GeometryCollection([p, l])

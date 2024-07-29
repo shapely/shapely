@@ -10,7 +10,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 import shapely
-from shapely import box, geos_version, MultiPoint, Point, STRtree
+from shapely import box, geos_version, LineString, MultiPoint, Point, STRtree
 from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
@@ -370,29 +370,14 @@ def test_query_with_partially_prepared_inputs(tree):
     "predicate",
     [
         # intersects is intentionally omitted; it does not raise an exception
-        pytest.param(
-            "within",
-            marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
-        ),
-        pytest.param(
-            "contains",
-            marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
-        ),
+        "within",
+        "contains",
         "overlaps",
         "crosses",
         "touches",
-        pytest.param(
-            "covers",
-            marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
-        ),
-        pytest.param(
-            "covered_by",
-            marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
-        ),
-        pytest.param(
-            "contains_properly",
-            marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
-        ),
+        "covers",
+        "covered_by",
+        "contains_properly",
     ],
 )
 def test_query_predicate_errors(tree, predicate):
@@ -927,12 +912,12 @@ def test_query_crosses_polygons(poly_tree, geometry, expected):
         # box contains points but touches only those at edges
         (box(3, 3, 6, 6), [3, 6]),
         ([box(3, 3, 6, 6)], [[0, 0], [3, 6]]),
-        # buffer completely contains point in tree
+        # polygon completely contains point in tree
         (shapely.buffer(Point(3, 3), 1), []),
         ([shapely.buffer(Point(3, 3), 1)], [[], []]),
-        # buffer intersects 2 points but touches only one
-        (shapely.buffer(Point(0, 1), 1), [1]),
-        ([shapely.buffer(Point(0, 1), 1)], [[0], [1]]),
+        # linestring intersects 2 points but touches only one
+        (LineString([(-1, -1), (1, 1)]), [1]),
+        ([LineString([(-1, -1), (1, 1)])], [[0], [1]]),
         # multipoints intersect but not valid relation
         (MultiPoint([[5, 5], [7, 7]]), []),
         ([MultiPoint([[5, 5], [7, 7]])], [[], []]),

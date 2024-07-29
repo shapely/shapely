@@ -5,8 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from pkg_resources import parse_version
-from setuptools import Extension, find_packages, setup
+from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext as _build_ext
 
 # ensure the current directory is on sys.path so versioneer can be imported
@@ -26,7 +25,7 @@ log = logging.getLogger(__name__)
 ch = logging.StreamHandler()
 log.addHandler(ch)
 
-MIN_GEOS_VERSION = "3.7"
+MIN_GEOS_VERSION = "3.8"
 
 if "all" in sys.warnoptions:
     # show GEOS messages in console with: python -W all
@@ -42,15 +41,13 @@ def get_geos_config(option):
     """
     cmd = os.environ.get("GEOS_CONFIG", "geos-config")
     try:
-        stdout, stderr = subprocess.Popen(
-            [cmd, option], stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        ).communicate()
+        proc = subprocess.run([cmd, option], capture_output=True, text=True)
     except OSError:
         return
-    if stderr and not stdout:
-        log.warning("geos-config %s returned '%s'", option, stderr.decode().strip())
+    if proc.stderr and not proc.stdout:
+        log.warning("geos-config %s returned '%s'", option, proc.stderr.strip())
         return
-    result = stdout.decode().strip()
+    result = proc.stdout.strip()
     log.debug("geos-config %s returned '%s'", option, result)
     return result
 
@@ -86,11 +83,12 @@ def get_geos_paths():
         )
         return {}
 
-    if parse_version(geos_version) < parse_version(MIN_GEOS_VERSION):
+    def version_tuple(ver):
+        return tuple(int(itm) if itm.isnumeric() else itm for itm in ver.split("."))
+
+    if version_tuple(geos_version) < version_tuple(MIN_GEOS_VERSION):
         raise ImportError(
-            "GEOS version should be >={}, found {}".format(
-                MIN_GEOS_VERSION, geos_version
-            )
+            f"GEOS version should be >={MIN_GEOS_VERSION}, found {geos_version}"
         )
 
     libraries = []
@@ -133,7 +131,7 @@ class build_ext(_build_ext):
 
         import numpy
 
-        self.include_dirs.append(numpy.get_include())
+        self.include_dirs.insert(0, numpy.get_include())
 
 
 ext_modules = []

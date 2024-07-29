@@ -473,7 +473,7 @@ class BaseGeometry(shapely.Geometry):
             geometry. To prevent unreasonable geometry, the mitre limit
             allows controlling the maximum length of the join corner.
             Corners with a ratio which exceed the limit will be beveled.
-        single_side : bool, optional
+        single_sided : bool, optional
             The side used is determined by the sign of the buffer
             distance:
 
@@ -619,9 +619,13 @@ class BaseGeometry(shapely.Geometry):
 
     @property
     def has_z(self):
-        """True if the geometry's coordinate sequence(s) have z values (are
-        3-dimensional)"""
+        """True if the geometry's coordinate sequence(s) have z values"""
         return bool(shapely.has_z(self))
+
+    @property
+    def has_m(self):
+        """True if the geometry's coordinate sequence(s) have m values"""
+        return bool(shapely.has_m(self))
 
     @property
     def is_empty(self):
@@ -754,6 +758,8 @@ class BaseGeometry(shapely.Geometry):
             If True, normalize the two geometries so that the coordinates are
             in the same order.
 
+            .. versionadded:: 2.1.0
+
         Examples
         --------
         >>> LineString(
@@ -828,7 +834,9 @@ class BaseGeometry(shapely.Geometry):
 
         Alias of `project`.
         """
-        return shapely.line_locate_point(self, other, normalized=normalized)
+        return _maybe_unpack(
+            shapely.line_locate_point(self, other, normalized=normalized)
+        )
 
     def project(self, other, normalized=False):
         """Returns the distance along this geometry to a point nearest the
@@ -839,7 +847,9 @@ class BaseGeometry(shapely.Geometry):
 
         Alias of `line_locate_point`.
         """
-        return shapely.line_locate_point(self, other, normalized=normalized)
+        return _maybe_unpack(
+            shapely.line_locate_point(self, other, normalized=normalized)
+        )
 
     def line_interpolate_point(self, distance, normalized=False):
         """Return a point at the specified distance along a linear geometry

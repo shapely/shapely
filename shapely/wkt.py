@@ -49,11 +49,11 @@ def dumps(ob, trim=False, rounding_precision=-1, **kw):
         A geometry object of any type to be dumped to WKT.
     trim : bool, default False
         Remove excess decimals from the WKT.
-    rounding_precision : int
+    rounding_precision : int, default -1
         Round output to the specified number of digits.
         Default behavior returns full precision.
-    output_dimension : int, default 3
-        Force removal of dimensions above the one specified.
+    **kw : kwargs, optional
+        Keyword output options passed to :func:`~shapely.to_wkt`.
 
     Returns
     -------
@@ -72,13 +72,8 @@ def dump(ob, fp, **settings):
         A geometry object of any type to be dumped to WKT.
     fp :
         A file-like object which implements a `write` method.
-    trim : bool, default False
-        Remove excess decimals from the WKT.
-    rounding_precision : int
-        Round output to the specified number of digits.
-        Default behavior returns full precision.
-    output_dimension : int, default 3
-        Force removal of dimensions above the one specified.
+    **settings : kwargs, optional
+        Keyword output options passed to :func:`~shapely.wkt.dumps`.
 
     Returns
     -------
