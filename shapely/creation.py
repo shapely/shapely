@@ -430,7 +430,7 @@ def multipoints(geometries, indices=None, out=None, **kwargs):
     ):
         geometries = points(geometries)
     if indices is None:
-        return lib.create_collection(geometries, int(typ), out=out, **kwargs)
+        return lib.create_collection(geometries, np.intc(typ), out=out, **kwargs)
     else:
         return collections_1d(geometries, indices, typ, out=out)
 
@@ -467,7 +467,7 @@ def multilinestrings(geometries, indices=None, out=None, **kwargs):
         geometries = linestrings(geometries)
 
     if indices is None:
-        return lib.create_collection(geometries, int(typ), out=out, **kwargs)
+        return lib.create_collection(geometries, np.intc(typ), out=out, **kwargs)
     else:
         return collections_1d(geometries, indices, typ, out=out)
 
@@ -503,7 +503,7 @@ def multipolygons(geometries, indices=None, out=None, **kwargs):
     ):
         geometries = polygons(geometries)
     if indices is None:
-        return lib.create_collection(geometries, int(typ), out=out, **kwargs)
+        return lib.create_collection(geometries, np.intc(typ), out=out, **kwargs)
     else:
         return collections_1d(geometries, indices, typ, out=out)
 
@@ -534,7 +534,7 @@ def geometrycollections(geometries, indices=None, out=None, **kwargs):
     """
     typ = GeometryType.GEOMETRYCOLLECTION
     if indices is None:
-        return lib.create_collection(geometries, int(typ), out=out, **kwargs)
+        return lib.create_collection(geometries, np.intc(typ), out=out, **kwargs)
     else:
         return collections_1d(geometries, indices, typ, out=out)
 

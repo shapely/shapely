@@ -404,7 +404,7 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
 
     # create_collection acts on the inner axis
     collections = lib.create_collection(
-        geometries, int(GeometryType.GEOMETRYCOLLECTION)
+        geometries, np.intc(GeometryType.GEOMETRYCOLLECTION)
     )
 
     if grid_size is not None:
@@ -502,6 +502,6 @@ def coverage_union_all(geometries, axis=None, **kwargs):
         )
     # create_collection acts on the inner axis
     collections = lib.create_collection(
-        geometries, int(GeometryType.GEOMETRYCOLLECTION)
+        geometries, np.intc(GeometryType.GEOMETRYCOLLECTION)
     )
     return lib.coverage_union(collections, **kwargs)
