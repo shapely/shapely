@@ -180,8 +180,7 @@ def test_polygons():
     arr = shapely.from_wkt(
         [
             "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))",
-            "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), "
-            "(20 30, 35 35, 30 20, 20 30))",
+            "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (20 30, 35 35, 30 20, 20 30))",  # noqa: E501
             "POLYGON EMPTY",
             "POLYGON EMPTY",
             "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))",
@@ -270,7 +269,7 @@ def test_multilinestrings():
     arr = shapely.from_wkt(
         [
             "MULTILINESTRING ((30 10, 10 30, 40 40))",
-            "MULTILINESTRING ((10 10, 20 20, 10 40),(40 40, 30 30, 40 20, 30 10))",
+            "MULTILINESTRING ((10 10, 20 20, 10 40), (40 40, 30 30, 40 20, 30 10))",
             "MULTILINESTRING EMPTY",
             "MULTILINESTRING EMPTY",
             "MULTILINESTRING ((35 10, 45 45), (15 40, 10 20), (30 10, 10 30, 40 40))",
@@ -318,10 +317,8 @@ def test_multilinestrings():
 def test_multipolygons():
     arr = shapely.from_wkt(
         [
-            "MULTIPOLYGON (((35 10, 45 45, 15 40, 10 20, 35 10), "
-            "(20 30, 35 35, 30 20, 20 30)))",
-            "MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),"
-            "((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),(30 20, 20 15, 20 25, 30 20)))",
+            "MULTIPOLYGON (((35 10, 45 45, 15 40, 10 20, 35 10), (20 30, 35 35, 30 20, 20 30)))",  # noqa: E501
+            "MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)), ((20 35, 10 30, 10 10, 30 5, 45 20, 20 35), (30 20, 20 15, 20 25, 30 20)))",  # noqa: E501
             "MULTIPOLYGON EMPTY",
             "MULTIPOLYGON EMPTY",
             "MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)))",
