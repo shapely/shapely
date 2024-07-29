@@ -333,8 +333,8 @@ def from_geojson(geometry, on_invalid="raise", **kwargs):
     """Creates geometries from GeoJSON representations (strings).
 
     If a GeoJSON is a FeatureCollection, it is read as a single geometry
-    (with type GEOMETRYCOLLECTION). This may be unpacked using ``shapely.get_parts``.
-    Properties are not read.
+    (with type GEOMETRYCOLLECTION). This may be unpacked using
+    :meth:`shapely.get_parts`. Properties are not read.
 
     The GeoJSON format is defined in `RFC 7946 <https://geojson.org/>`__.
 
