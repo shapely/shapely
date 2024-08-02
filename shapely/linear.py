@@ -177,7 +177,7 @@ def shortest_line(a, b, **kwargs):
 
     The resulting line consists of two points, representing the nearest
     points between the geometry pair. The line always starts in the first
-    geometry `a` and ends in he second geometry `b`. The endpoints of the
+    geometry `a` and ends in the second geometry `b`. The endpoints of the
     line will not necessarily be existing vertices of the input geometries
     `a` and `b`, but can also be a point along a line segment.
 
