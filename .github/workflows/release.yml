@@ -108,7 +108,7 @@ jobs:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_SKIP: pp* *i686
           CIBW_TEST_SKIP: "cp38-macosx_arm64"
-          CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/mwtoews/manylinux_2_28_x86_64_geos:${{ env.GEOS_VERSION }}
+          CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/mwtoews/manylinux2014_x86_64_geos:${{ env.GEOS_VERSION }}
           CIBW_MUSLLINUX_X86_64_IMAGE: ghcr.io/mwtoews/musllinux_1_2_aarch64_geos:${{ env.GEOS_VERSION }}
           CIBW_ENVIRONMENT_LINUX:
             PIP_PRE=1
