@@ -11,6 +11,7 @@ jobs:
     environment:
       CIBUILDWHEEL: 1
       CIBW_BUILD: "cp*_aarch64"
+      CIBW_SKIP: "pp* *i686 cp37-musl* cp38-musl*"
       CIBW_MANYLINUX_AARCH64_IMAGE: ghcr.io/shapely/manylinux2014_aarch64_geos:3.11.4
       CIBW_MUSLLINUX_AARCH64_IMAGE: ghcr.io/shapely/musllinux_1_2_aarch64_geos:3.11.4
       CIBW_ENVIRONMENT: "PIP_PRE=1"

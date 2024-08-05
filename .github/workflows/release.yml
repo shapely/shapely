@@ -106,7 +106,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.19.2
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
-          CIBW_SKIP: pp* *i686
+          CIBW_SKIP: pp* *i686 cp37-musl* cp38-musl*
           CIBW_TEST_SKIP: "cp38-macosx_arm64"
           CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/mwtoews/manylinux2014_x86_64_geos:${{ env.GEOS_VERSION }}
           CIBW_MUSLLINUX_X86_64_IMAGE: ghcr.io/mwtoews/musllinux_1_1_x86_64_geos:${{ env.GEOS_VERSION }}
