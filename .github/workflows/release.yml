@@ -51,17 +51,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - os: ubuntu-20.04
+        - os: ubuntu-latest
           arch: x86_64
-        # Numpy no longer builds i686 packages
-        # - os: ubuntu-20.04
-        #   arch: i686
-        # The aarch64 build has been transferred to Travis
-        # - os: ubuntu-20.04
-        #   arch: aarch64
-        #   qemu_platform: arm64
-        # Note: Numpy doesn't have ppc64le & s390x wheels
-        # Also, some GEOS tests fail on s390x.
         - os: windows-2019
           arch: x86
           msvc_arch: x86
@@ -86,6 +77,7 @@ jobs:
         with:
           path: ${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
           key: ${{ matrix.os }}-${{ matrix.arch }}-${{ env.GEOS_VERSION }}-${{ hashFiles('ci/*') }}
+        if: ${{ matrix.os != 'ubuntu-latest' }}
 
       - name: Add GEOS LICENSE
         run: |
@@ -116,8 +108,8 @@ jobs:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_SKIP: pp* *i686
           CIBW_TEST_SKIP: "cp38-macosx_arm64"
-          CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/shapely/manylinux_2_28_x86_64_geos:${{ env.GEOS_VERSION }}
-          CIBW_MUSLLINUX_X86_64_IMAGE: ghcr.io/shapely/musllinux_1_2_aarch64_geos:${{ env.GEOS_VERSION }}
+          CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/mwtoews/manylinux_2_28_x86_64_geos:${{ env.GEOS_VERSION }}
+          CIBW_MUSLLINUX_X86_64_IMAGE: ghcr.io/mwtoews/musllinux_1_2_aarch64_geos:${{ env.GEOS_VERSION }}
           CIBW_ENVIRONMENT_LINUX:
             PIP_PRE=1
           CIBW_ENVIRONMENT_MACOS:
