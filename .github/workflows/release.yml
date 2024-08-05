@@ -114,14 +114,12 @@ jobs:
         uses: pypa/cibuildwheel@v2.19.2
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
-          CIBW_SKIP: pp* *-musllinux_i686 *-manylinux_i686
+          CIBW_SKIP: pp* *i686
           CIBW_TEST_SKIP: "cp38-macosx_arm64"
+          CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/shapely/manylinux_2_28_x86_64_geos:${{ env.GEOS_VERSION }}
+          CIBW_MUSLLINUX_X86_64_IMAGE: ghcr.io/shapely/musllinux_1_2_aarch64_geos:${{ env.GEOS_VERSION }}
           CIBW_ENVIRONMENT_LINUX:
             PIP_PRE=1
-            GEOS_VERSION=${{ env.GEOS_VERSION }}
-            GEOS_INSTALL=/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
-            GEOS_CONFIG=/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
-            LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/lib
           CIBW_ENVIRONMENT_MACOS:
             PIP_PRE=1
             GEOS_INSTALL=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
@@ -134,7 +132,7 @@ jobs:
             GEOS_INSTALL='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}'
             GEOS_LIBRARY_PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\lib'
             GEOS_INCLUDE_PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\include'
-          CIBW_BEFORE_ALL: ./ci/install_geos.sh
+          CIBW_BEFORE_ALL_MACOS: ./ci/install_geos.sh
           CIBW_BEFORE_ALL_WINDOWS: ci\install_geos.cmd
           CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} {wheel}
