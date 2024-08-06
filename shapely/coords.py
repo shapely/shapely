@@ -1,5 +1,5 @@
-"""Coordinate sequence utilities
-"""
+"""Coordinate sequence utilities"""
+
 from array import array
 
 

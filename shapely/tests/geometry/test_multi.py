@@ -8,4 +8,4 @@ class MultiGeometryTestCase:
         geom = cls(geoms)
         for t in test_int_types:
             for i, g in enumerate(geoms):
-                assert geom.geoms[t(i)] == geoms[i]
+                assert geom.geoms[t(i)] == g

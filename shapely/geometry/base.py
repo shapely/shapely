@@ -5,6 +5,7 @@ geometry objects, but has no effect on geometric analysis. All
 operations are performed in the x-y plane. Thus, geometries with
 different z values may intersect or be equal.
 """
+
 import re
 from warnings import warn
 
@@ -165,9 +166,7 @@ class BaseGeometry(shapely.Geometry):
             wkt = super().__str__()
         except (GEOSException, ValueError):
             # we never want a repr() to fail; that can be very confusing
-            return "<shapely.{} Exception in WKT writer>".format(
-                self.__class__.__name__
-            )
+            return f"<shapely.{self.__class__.__name__} Exception in WKT writer>"
 
         # the total length is limited to 80 characters including brackets
         max_length = 78
@@ -202,8 +201,9 @@ class BaseGeometry(shapely.Geometry):
             return NotImplemented
         # equal_nan=False is the default, but not yet available for older numpy
         # TODO updated once we require numpy >= 1.19
-        return type(other) == type(self) and np.array_equal(
-            self.coords, other.coords  # , equal_nan=False
+        return type(other) is type(self) and np.array_equal(
+            self.coords,
+            other.coords,  # , equal_nan=False
         )
 
     def __ne__(self, other):
@@ -310,11 +310,11 @@ class BaseGeometry(shapely.Geometry):
                 scale_factor = 1.0
             view_box = f"{xmin} {ymin} {dx} {dy}"
             transform = f"matrix(1,0,0,-1,0,{ymax + ymin})"
-            return svg_top + (
-                'width="{1}" height="{2}" viewBox="{0}" '
+            return (
+                f'{svg_top}width="{width}" height="{height}" viewBox="{view_box}" '
                 'preserveAspectRatio="xMinYMin meet">'
-                '<g transform="{3}">{4}</g></svg>'
-            ).format(view_box, width, height, transform, self.svg(scale_factor))
+                f'<g transform="{transform}">{self.svg(scale_factor)}</g></svg>'
+            )
 
     @property
     def geom_type(self):
@@ -344,7 +344,8 @@ class BaseGeometry(shapely.Geometry):
 
     @property
     def minimum_clearance(self):
-        """Unitless distance by which a node could be moved to produce an invalid geometry (float)"""
+        """Unitless distance by which a node could be moved to produce an
+        invalid geometry (float)"""
         return float(shapely.minimum_clearance(self))
 
     # Topological properties
@@ -455,16 +456,19 @@ class BaseGeometry(shapely.Geometry):
             Sets the number of line segments used to approximate an
             angle fillet.
         cap_style : shapely.BufferCapStyle or {'round', 'square', 'flat'}, default 'round'
-            Specifies the shape of buffered line endings. BufferCapStyle.round ('round')
-            results in circular line endings (see ``quad_segs``). Both BufferCapStyle.square
-            ('square') and BufferCapStyle.flat ('flat') result in rectangular line endings,
-            only BufferCapStyle.flat ('flat') will end at the original vertex,
-            while BufferCapStyle.square ('square') involves adding the buffer width.
+            Specifies the shape of buffered line endings. BufferCapStyle.round
+            ('round') results in circular line endings (see ``quad_segs``). Both
+            BufferCapStyle.square ('square') and BufferCapStyle.flat ('flat')
+            result in rectangular line endings, only BufferCapStyle.flat
+            ('flat') will end at the original vertex, while
+            BufferCapStyle.square ('square') involves adding the buffer width.
         join_style : shapely.BufferJoinStyle or {'round', 'mitre', 'bevel'}, default 'round'
-            Specifies the shape of buffered line midpoints. BufferJoinStyle.ROUND ('round')
-            results in rounded shapes. BufferJoinStyle.bevel ('bevel') results in a beveled
-            edge that touches the original vertex. BufferJoinStyle.mitre ('mitre') results
-            in a single vertex that is beveled depending on the ``mitre_limit`` parameter.
+            Specifies the shape of buffered line midpoints.
+            BufferJoinStyle.ROUND ('round') results in rounded shapes.
+            BufferJoinStyle.bevel ('bevel') results in a beveled edge that
+            touches the original vertex. BufferJoinStyle.mitre ('mitre') results
+            in a single vertex that is beveled depending on the ``mitre_limit``
+            parameter.
         mitre_limit : float, optional
             The mitre limit ratio is used for very sharp corners. The
             mitre ratio is the ratio of the distance from the corner to
@@ -520,12 +524,13 @@ class BaseGeometry(shapely.Geometry):
         >>> g.buffer(1.0, cap_style=BufferCapStyle.square).area
         4.0
 
-        """
+        """  # noqa: E501
         quadsegs = kwargs.pop("quadsegs", None)
         if quadsegs is not None:
             warn(
                 "The `quadsegs` argument is deprecated. Use `quad_segs` instead.",
                 FutureWarning,
+                stacklevel=2,
             )
             quad_segs = quadsegs
 
@@ -900,7 +905,7 @@ class BaseGeometry(shapely.Geometry):
         <LINESTRING (0 0, 0 5, 0 10)>
         >>> Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]).segmentize(max_segment_length=5)
         <POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
-        """
+        """  # noqa: E501
         return shapely.segmentize(self, max_segment_length)
 
     def reverse(self):
@@ -927,7 +932,6 @@ class BaseGeometry(shapely.Geometry):
 
 
 class BaseMultipartGeometry(BaseGeometry):
-
     __slots__ = []
 
     @property
@@ -948,7 +952,7 @@ class BaseMultipartGeometry(BaseGeometry):
         if not isinstance(other, BaseGeometry):
             return NotImplemented
         return (
-            type(other) == type(self)
+            type(other) is type(self)
             and len(self.geoms) == len(other.geoms)
             and all(a == b for a, b in zip(self.geoms, other.geoms))
         )

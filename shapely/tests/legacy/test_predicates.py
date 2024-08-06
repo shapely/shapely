@@ -1,5 +1,5 @@
-"""Test GEOS predicates
-"""
+"""Test GEOS predicates"""
+
 import unittest
 
 import pytest
@@ -10,7 +10,6 @@ from shapely.geometry import Point, Polygon
 
 class PredicatesTestCase(unittest.TestCase):
     def test_binary_predicates(self):
-
         point = Point(0.0, 0.0)
         point2 = Point(2.0, 2.0)
 
@@ -29,7 +28,6 @@ class PredicatesTestCase(unittest.TestCase):
         assert not point.covers(Point(-1.0, -1.0))
 
     def test_unary_predicates(self):
-
         point = Point(0.0, 0.0)
 
         assert not point.is_empty
@@ -39,7 +37,6 @@ class PredicatesTestCase(unittest.TestCase):
         assert not point.has_z
 
     def test_binary_predicate_exceptions(self):
-
         p1 = [
             (339, 346),
             (459, 346),
@@ -71,7 +68,6 @@ class PredicatesTestCase(unittest.TestCase):
             Polygon(p1).within(Polygon(p2))
 
     def test_relate_pattern(self):
-
         # a pair of partially overlapping polygons, and a nearby point
         g1 = Polygon([(0, 0), (0, 1), (3, 1), (3, 0), (0, 0)])
         g2 = Polygon([(1, -1), (1, 2), (2, 2), (2, -1), (1, -1)])

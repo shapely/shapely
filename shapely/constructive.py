@@ -413,17 +413,18 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     --------
     >>> from shapely import GeometryCollection, LineString, MultiPoint, Polygon
     >>> points = MultiPoint([(50, 30), (60, 30), (100, 100)])
-    >>> delaunay_triangles(points)
-    <GEOMETRYCOLLECTION (POLYGON ((100 100, 50 30, 60 30, 100 100)))>
+    >>> delaunay_triangles(points).normalize()
+    <GEOMETRYCOLLECTION (POLYGON ((50 30, 100 100, 60 30, 50 30)))>
     >>> delaunay_triangles(points, only_edges=True)
     <MULTILINESTRING ((50 30, 100 100), (50 30, 60 30), ...>
     >>> delaunay_triangles(MultiPoint([(50, 30), (51, 30), (60, 30), (100, 100)]), \
-tolerance=2)
-    <GEOMETRYCOLLECTION (POLYGON ((100 100, 50 30, 60 30, 100 100)))>
-    >>> delaunay_triangles(Polygon([(50, 30), (60, 30), (100, 100), (50, 30)]))
-    <GEOMETRYCOLLECTION (POLYGON ((100 100, 50 30, 60 30, 100 100)))>
-    >>> delaunay_triangles(LineString([(50, 30), (60, 30), (100, 100)]))
-    <GEOMETRYCOLLECTION (POLYGON ((100 100, 50 30, 60 30, 100 100)))>
+tolerance=2).normalize()
+    <GEOMETRYCOLLECTION (POLYGON ((50 30, 100 100, 60 30, 50 30)))>
+    >>> delaunay_triangles(Polygon([(50, 30), (60, 30), (100, 100), (50, 30)]))\
+.normalize()
+    <GEOMETRYCOLLECTION (POLYGON ((50 30, 100 100, 60 30, 50 30)))>
+    >>> delaunay_triangles(LineString([(50, 30), (60, 30), (100, 100)])).normalize()
+    <GEOMETRYCOLLECTION (POLYGON ((50 30, 100 100, 60 30, 50 30)))>
     >>> delaunay_triangles(GeometryCollection([]))
     <GEOMETRYCOLLECTION EMPTY>
     """
@@ -598,9 +599,10 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
 def normalize(geometry, **kwargs):
     """Converts Geometry to strict normal form (or canonical form).
 
-    In :ref:`strict canonical form <canonical-form>`, the coordinates, rings of a polygon and
-    parts of multi geometries are ordered consistently. Typically useful for testing
-    purposes (for example in combination with ``equals_exact``).
+    In :ref:`strict canonical form <canonical-form>`, the coordinates, rings of
+    a polygon and parts of multi geometries are ordered consistently. Typically
+    useful for testing purposes (for example in combination with
+    ``equals_exact``).
 
     Parameters
     ----------
@@ -812,7 +814,7 @@ def remove_repeated_points(geometry, tolerance=0.0, **kwargs):
     <LINESTRING (0 0, 1 0)>
     >>> remove_repeated_points(Polygon([(0, 0), (0, .5), (0, 1), (.5, 1), (0,0)]), tolerance=.5)
     <POLYGON ((0 0, 0 1, 0 0))>
-    """
+    """  # noqa: E501
     return lib.remove_repeated_points(geometry, tolerance, **kwargs)
 
 
@@ -1055,7 +1057,7 @@ def voronoi_polygons(
     <GEOMETRYCOLLECTION EMPTY>
     >>> voronoi_polygons(points, ordered=True)
     <GEOMETRYCOLLECTION (POLYGON ((0 0, 0 4, 3 4, 3 0, 0 0)), POLYGON ((6 4, 6 0...>
-    """
+    """  # noqa: E501
     if ordered is not False and lib.geos_version < (3, 12, 0):
         raise UnsupportedGEOSVersionError(
             "Ordered Voronoi polygons require GEOS >= 3.12.0, "

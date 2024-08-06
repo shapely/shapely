@@ -1,5 +1,4 @@
-"""Collections of polygons and related utilities
-"""
+"""Collections of polygons and related utilities"""
 
 import shapely
 from shapely.geometry import polygon

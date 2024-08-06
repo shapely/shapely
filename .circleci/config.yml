@@ -9,7 +9,7 @@ jobs:
     # https://circleci.com/product/features/resource-classes/
     resource_class: arm.medium
     environment:
-      GEOS_VERSION: 3.12.1
+      GEOS_VERSION: 3.12.2
       CIBUILDWHEEL: 1
       CIBW_BUILD: "cp*-manylinux_aarch64"
       CIBW_ENVIRONMENT_PASS_LINUX: "GEOS_VERSION GEOS_INSTALL GEOS_CONFIG LD_LIBRARY_PATH"

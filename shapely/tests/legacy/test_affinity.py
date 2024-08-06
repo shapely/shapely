@@ -23,7 +23,6 @@ class AffineTestCase(unittest.TestCase):
             affinity.affine_transform(None, [1, 2, 3, 4, 5, 6])
 
     def test_affine_geom_types(self):
-
         # identity matrices, which should result with no transformation
         matrix2d = (1, 0, 0, 1, 0, 0)
         matrix3d = (1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
@@ -42,7 +41,6 @@ class AffineTestCase(unittest.TestCase):
                 a3 = affinity.affine_transform(g3, matrix3d)
                 assert a3.has_z
                 assert g3.equals(a3)
-            return
 
         pt2d = load_wkt("POINT(12.3 45.6)")
         pt3d = load_wkt("POINT(12.3 45.6 7.89)")
@@ -117,10 +115,10 @@ class AffineTestCase(unittest.TestCase):
         # 2D equality checks
         expected2d = load_wkt("LINESTRING(-0.2 14.35, -0.2 11.6, 1 11.6)")
         expected3d = load_wkt(
-            "LINESTRING(-0.2 14.35 130.54096, " "-0.2 11.6 140.47744, 1 11.6 139.19728)"
+            "LINESTRING(-0.2 14.35 130.54096, -0.2 11.6 140.47744, 1 11.6 139.19728)"
         )
         expected32 = load_wkt(
-            "LINESTRING(-0.2 14.35 100.2, " "-0.2 11.6 132.8, 1 11.6 128.6)"
+            "LINESTRING(-0.2 14.35 100.2, -0.2 11.6 132.8, 1 11.6 128.6)"
         )
         assert a22.equals_exact(expected2d, 1e-6)
         assert a23.equals_exact(expected2d, 1e-6)
@@ -250,7 +248,7 @@ class TransformOpsTestCase(unittest.TestCase):
         # around the second coordinate tuple
         sls = affinity.skew(ls, 15, -30, origin=ls.coords[1])
         els = load_wkt(
-            "LINESTRING(266.7949192431123038 400, 240 300, " "300 265.3589838486224153)"
+            "LINESTRING(266.7949192431123038 400, 240 300, 300 265.3589838486224153)"
         )
         assert sls.equals_exact(els, 1e-6)
         # around the absolute Point of origin

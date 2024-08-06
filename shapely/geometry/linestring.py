@@ -1,9 +1,9 @@
-"""Line strings and related utilities
-"""
+"""Line strings and related utilities"""
+
 import numpy as np
 
 import shapely
-from shapely.geometry.base import BaseGeometry, JOIN_STYLE
+from shapely.geometry.base import JOIN_STYLE, BaseGeometry
 from shapely.geometry.point import Point
 
 __all__ = ["LineString"]
@@ -41,7 +41,7 @@ class LineString(BaseGeometry):
             # TODO better constructor
             return shapely.from_wkt("LINESTRING EMPTY")
         elif isinstance(coordinates, LineString):
-            if type(coordinates) == LineString:
+            if type(coordinates) is LineString:
                 # return original objects since geometries are immutable
                 return coordinates
             else:
@@ -100,9 +100,10 @@ class LineString(BaseGeometry):
             opacity = 0.8
         pnt_format = " ".join(["{},{}".format(*c) for c in self.coords])
         return (
-            '<polyline fill="none" stroke="{2}" stroke-width="{1}" '
-            'points="{0}" opacity="{3}" />'
-        ).format(pnt_format, 2.0 * scale_factor, stroke_color, opacity)
+            f'<polyline fill="none" stroke="{stroke_color}" '
+            f'stroke-width="{2.0 * scale_factor}" '
+            f'points="{pnt_format}" opacity="{opacity}" />'
+        )
 
     @property
     def xy(self):
