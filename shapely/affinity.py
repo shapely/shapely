@@ -113,7 +113,7 @@ def interpret_origin(geom, origin, ndim):
 
     # origin should now be tuple-like
     if len(origin) not in (2, 3):
-        raise ValueError("Expected number of items in 'origin' to be " "either 2 or 3")
+        raise ValueError("Expected number of items in 'origin' to be either 2 or 3")
     if ndim == 2:
         return origin[0:2]
     else:  # 3D coordinate

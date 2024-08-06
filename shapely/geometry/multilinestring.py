@@ -1,5 +1,4 @@
-"""Collections of linestrings and related utilities
-"""
+"""Collections of linestrings and related utilities"""
 
 import shapely
 from shapely.errors import EmptyPartError

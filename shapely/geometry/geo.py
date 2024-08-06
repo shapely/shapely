@@ -1,6 +1,7 @@
 """
 Geometry factories based on the geo interface
 """
+
 import numpy as np
 
 from shapely.errors import GeometryTypeError

@@ -6,7 +6,6 @@ When we use mixed dimensions in a WKT geometry, the parser strips
 any dimension which is not present in every coordinate.
 """
 
-
 import pytest
 
 from shapely import wkt
@@ -189,7 +188,9 @@ def test_create_from_geojson(geojson):
     with pytest.raises((ValueError, TypeError)) as exc:
         shape(geojson).wkt
     assert exc.match(
-        "Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions|ufunc 'linestrings' not supported for the input types|setting an array element with a sequence. The requested array has an inhomogeneous shape"
+        "Inconsistent coordinate dimensionality|Input operand 0 does not have enough "
+        "dimensions|ufunc 'linestrings' not supported for the input types|setting an "
+        "array element with a sequence. The requested array has an inhomogeneous shape"
     )
 
 
@@ -199,7 +200,9 @@ def test_create_directly(constructor, args):
     with pytest.raises((ValueError, TypeError)) as exc:
         constructor(*args)
     assert exc.match(
-        "Inconsistent coordinate dimensionality|Input operand 0 does not have enough dimensions|ufunc 'linestrings' not supported for the input types|setting an array element with a sequence. The requested array has an inhomogeneous shape"
+        "Inconsistent coordinate dimensionality|Input operand 0 does not have enough "
+        "dimensions|ufunc 'linestrings' not supported for the input types|setting an "
+        "array element with a sequence. The requested array has an inhomogeneous shape"
     )
 
 

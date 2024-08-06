@@ -116,6 +116,7 @@ def get_dimensions(geometry, **kwargs):
     -1
     >>> get_dimensions(None)
     -1
+
     """
     return lib.get_dimensions(geometry, **kwargs)
 
@@ -838,7 +839,7 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
     <LINESTRING (0 0, 0 0)>
     >>> set_precision(None, 1.0) is None
     True
-    """
+    """  # noqa: E501
     if isinstance(mode, str):
         mode = SetPrecisionMode.get_value(mode)
     elif not np.isscalar(mode):

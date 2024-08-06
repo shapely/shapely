@@ -10,7 +10,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 import shapely
-from shapely import box, geos_version, LineString, MultiPoint, Point, STRtree
+from shapely import LineString, MultiPoint, Point, STRtree, box, geos_version
 from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
@@ -1042,7 +1042,8 @@ def test_query_covers_points(tree, geometry, expected):
         # envelope of points overlaps lines but intersects none
         (MultiPoint([[5, 7], [7, 5]]), []),
         ([MultiPoint([[5, 7], [7, 5]])], [[], []]),
-        # only one point of multipoint intersects a line, but does not completely cover it
+        # only one point of multipoint intersects a line, but does not completely cover
+        # it
         (MultiPoint([[5, 7], [7, 7]]), []),
         ([MultiPoint([[5, 7], [7, 7]])], [[], []]),
         # both points intersect but do not cover any lines (not valid relation)
@@ -1292,7 +1293,8 @@ def test_query_contains_properly_lines(line_tree, geometry, expected):
         # point does not contain any polygons (not valid relation)
         (Point(0, 0), []),
         ([Point(0, 0)], [[], []]),
-        # line intersects multiple polygons but does not contain any (not valid relation)
+        # line intersects multiple polygons but does not contain any (not valid
+        # relation)
         (shapely.linestrings([[0, 0], [2, 2]]), []),
         ([shapely.linestrings([[0, 0], [2, 2]])], [[], []]),
         # box overlaps envelope of 2 polygons but contains neither

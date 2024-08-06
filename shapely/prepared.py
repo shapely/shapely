@@ -1,6 +1,7 @@
 """
 Support for GEOS prepared geometry operations.
 """
+
 from pickle import PicklingError
 
 import shapely

@@ -91,8 +91,9 @@ def points(
 
     - GEOS 3.10, 3.11 and 3.12 automatically converts POINT (nan nan) to POINT EMPTY.
     - GEOS 3.10 and 3.11 will transform a 3D point to 2D if its Z coordinate is NaN.
-    - Usage of the ``y`` and ``z`` arguments will prevents lazy evaluation in ``dask``.
-      Instead provide the coordinates as an array with shape ``(..., 2)`` or ``(..., 3)`` using only the ``coords`` argument.
+    - Usage of the ``y`` and ``z`` arguments will prevents lazy evaluation in
+      ``dask``. Instead provide the coordinates as an array with shape
+      ``(..., 2)`` or ``(..., 3)`` using only the ``coords`` argument.
     """
     coords = _xyz_to_coords(coords, y, z)
     if isinstance(handle_nan, str):
@@ -160,9 +161,10 @@ def linestrings(
 
     Notes
     -----
-    - Usage of the ``y`` and ``z`` arguments will prevents lazy evaluation in ``dask``.
-      Instead provide the coordinates as a ``(..., 2)`` or ``(..., 3)`` array using only ``coords``.
-    """
+    - Usage of the ``y`` and ``z`` arguments will prevents lazy evaluation in
+      ``dask``. Instead provide the coordinates as a ``(..., 2)`` or
+      ``(..., 3)`` array using only ``coords``.
+    """  # noqa: E501
     coords = _xyz_to_coords(coords, y, z)
     if isinstance(handle_nan, str):
         handle_nan = HandleNaN.get_value(handle_nan)
@@ -236,8 +238,9 @@ def linearrings(
 
     Notes
     -----
-    - Usage of the ``y`` and ``z`` arguments will prevents lazy evaluation in ``dask``.
-      Instead provide the coordinates as a ``(..., 2)`` or ``(..., 3)`` array using only ``coords``.
+    - Usage of the ``y`` and ``z`` arguments will prevents lazy evaluation in
+      ``dask``. Instead provide the coordinates as a ``(..., 2)`` or
+      ``(..., 3)`` array using only ``coords``.
     """
     coords = _xyz_to_coords(coords, y, z)
     if isinstance(handle_nan, str):
@@ -270,8 +273,9 @@ def polygons(geometries, holes=None, indices=None, out=None, **kwargs):
         the first geometry for each index is the outer shell
         and all subsequent geometries in that index are the holes.
         Both geometries and indices should be 1D and have matching sizes.
-        Indices should be in increasing order. Missing indices result in a ValueError
-        unless ``out`` is  provided, in which case the original value in ``out`` is kept.
+        Indices should be in increasing order. Missing indices result in a
+        ValueError unless ``out`` is  provided, in which case the original value
+        in ``out`` is kept.
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.
     **kwargs
@@ -543,15 +547,16 @@ def prepare(geometry, **kwargs):
     """Prepare a geometry, improving performance of other operations.
 
     A prepared geometry is a normal geometry with added information such as an
-    index on the line segments. This improves the performance of the following operations:
-    contains, contains_properly, covered_by, covers, crosses, disjoint, intersects,
-    overlaps, touches, and within.
+    index on the line segments. This improves the performance of the following
+    operations: contains, contains_properly, covered_by, covers, crosses,
+    disjoint, intersects, overlaps, touches, and within.
 
-    Note that if a prepared geometry is modified, the newly created Geometry object is
-    not prepared. In that case, ``prepare`` should be called again.
+    Note that if a prepared geometry is modified, the newly created Geometry
+    object is not prepared. In that case, ``prepare`` should be called again.
 
     This function does not recompute previously prepared geometries;
-    it is efficient to call this function on an array that partially contains prepared geometries.
+    it is efficient to call this function on an array that partially contains
+    prepared geometries.
 
     This function does not return any values; geometries are modified in place.
 

@@ -1,14 +1,13 @@
 import pathlib
 import pickle
 import warnings
-from pickle import dumps, HIGHEST_PROTOCOL, loads
+from pickle import HIGHEST_PROTOCOL, dumps, loads
 
 import pytest
 
 import shapely
 from shapely import wkt
 from shapely.geometry import (
-    box,
     GeometryCollection,
     LinearRing,
     LineString,
@@ -17,6 +16,7 @@ from shapely.geometry import (
     MultiPolygon,
     Point,
     Polygon,
+    box,
 )
 
 HERE = pathlib.Path(__file__).parent

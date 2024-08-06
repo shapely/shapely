@@ -21,7 +21,8 @@ class TestSplitGeometry(unittest.TestCase):
         assert s.geom_type == "GeometryCollection"
         assert len(s.geoms) == expected_chunks
         if expected_chunks > 1:
-            # split --> expected collection that when merged is again equal to original geometry
+            # split --> expected collection that when merged is again equal to original
+            # geometry
             if s.geoms[0].geom_type == "LineString":
                 self.assertTrue(linemerge(s).simplify(0.000001).equals(geom))
             elif s.geoms[0].geom_type == "Polygon":
@@ -217,7 +218,8 @@ class TestSplitClosedRing(TestSplitGeometry):
 
 class TestSplitMulti(TestSplitGeometry):
     def test_split_multiline_with_point(self):
-        # a cross-like multilinestring with a point in the middle --> return 4 line segments
+        # a cross-like multilinestring with a point in the middle --> return 4 line
+        # segments
         l1 = LineString([(0, 1), (2, 1)])
         l2 = LineString([(1, 0), (1, 2)])
         ml = MultiLineString([l1, l2])
@@ -225,7 +227,8 @@ class TestSplitMulti(TestSplitGeometry):
         self.helper(ml, splitter, 4)
 
     def test_split_multiline_with_multipoint(self):
-        # a cross-like multilinestring with a point in middle, a point on one of the lines and a point in the exterior
+        # a cross-like multilinestring with a point in middle, a point on one of the
+        # lines and a point in the exterior
         # --> return 4+1 line segments
         l1 = LineString([(0, 1), (3, 1)])
         l2 = LineString([(1, 0), (1, 2)])
