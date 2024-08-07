@@ -1,3 +1,5 @@
+"""Input/output functions for Shapely geometries."""
+
 import numpy as np
 
 from shapely import geos_version, lib
@@ -37,8 +39,7 @@ def to_wkt(
     old_3d=False,
     **kwargs,
 ):
-    """
-    Converts to the Well-Known Text (WKT) representation of a Geometry.
+    """Convert to the Well-Known Text (WKT) representation of a Geometry.
 
     The Well-known Text format is defined in the `OGC Simple Features
     Specification for SQL <https://www.opengeospatial.org/standards/sfs>`__.
@@ -53,6 +54,7 @@ def to_wkt(
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to convert to WKT.
     rounding_precision : int, default 6
         The rounding precision when writing the WKT string. Set to a value of
         -1 to indicate the full precision.
@@ -125,8 +127,7 @@ def to_wkb(
     flavor="extended",
     **kwargs,
 ):
-    r"""
-    Converts to the Well-Known Binary (WKB) representation of a Geometry.
+    r"""Convert to the Well-Known Binary (WKB) representation of a Geometry.
 
     The Well-Known Binary format is defined in the `OGC Simple Features
     Specification for SQL <https://www.opengeospatial.org/standards/sfs>`__.
@@ -142,6 +143,7 @@ def to_wkb(
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to convert to WKB.
     hex : bool, default False
         If true, export the WKB as a hexadecimal string. The default is to
         return a binary bytes object.
@@ -176,6 +178,7 @@ def to_wkb(
     b'\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?'
     >>> to_wkb(point, hex=True, byte_order=1)
     '0101000000000000000000F03F000000000000F03F'
+
     """
     if not np.isscalar(hex):
         raise TypeError("hex only accepts scalar values")
@@ -210,7 +213,7 @@ def to_wkb(
 
 @requires_geos("3.10.0")
 def to_geojson(geometry, indent=None, **kwargs):
-    """Converts to the GeoJSON representation of a Geometry.
+    """Convert to the GeoJSON representation of a Geometry.
 
     The GeoJSON format is defined in the `RFC 7946 <https://geojson.org/>`__.
     NaN (not-a-number) coordinates will be written as 'null'.
@@ -223,6 +226,7 @@ def to_geojson(geometry, indent=None, **kwargs):
     Parameters
     ----------
     geometry : str, bytes or array_like
+        Geometry or geometries to convert to GeoJSON.
     indent : int, optional
         If indent is a non-negative integer, then GeoJSON will be formatted.
         An indent level of 0 will only insert newlines. None (the default)
@@ -244,6 +248,7 @@ def to_geojson(geometry, indent=None, **kwargs):
           1.0
       ]
     }
+
     """
     # GEOS Tickets:
     # - handle linearrings: https://trac.osgeo.org/geos/ticket/1140
@@ -259,8 +264,7 @@ def to_geojson(geometry, indent=None, **kwargs):
 
 
 def from_wkt(geometry, on_invalid="raise", **kwargs):
-    """
-    Creates geometries from the Well-Known Text (WKT) representation.
+    """Create geometries from the Well-Known Text (WKT) representation.
 
     The Well-known Text format is defined in the `OGC Simple Features
     Specification for SQL <https://www.opengeospatial.org/standards/sfs>`__.
@@ -281,6 +285,7 @@ def from_wkt(geometry, on_invalid="raise", **kwargs):
     --------
     >>> from_wkt('POINT (0 0)')
     <POINT (0 0)>
+
     """
     if not np.isscalar(on_invalid):
         raise TypeError("on_invalid only accepts scalar values")
@@ -291,12 +296,10 @@ def from_wkt(geometry, on_invalid="raise", **kwargs):
 
 
 def from_wkb(geometry, on_invalid="raise", **kwargs):
-    r"""
-    Creates geometries from the Well-Known Binary (WKB) representation.
+    r"""Create geometries from the Well-Known Binary (WKB) representation.
 
     The Well-Known Binary format is defined in the `OGC Simple Features
     Specification for SQL <https://www.opengeospatial.org/standards/sfs>`__.
-
 
     Parameters
     ----------
@@ -314,8 +317,8 @@ def from_wkb(geometry, on_invalid="raise", **kwargs):
     --------
     >>> from_wkb(b'\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?')
     <POINT (1 1)>
-    """  # noqa: E501
 
+    """  # noqa: E501
     if not np.isscalar(on_invalid):
         raise TypeError("on_invalid only accepts scalar values")
 
@@ -330,7 +333,7 @@ def from_wkb(geometry, on_invalid="raise", **kwargs):
 
 @requires_geos("3.10.1")
 def from_geojson(geometry, on_invalid="raise", **kwargs):
-    """Creates geometries from GeoJSON representations (strings).
+    """Create geometries from GeoJSON representations (strings).
 
     If a GeoJSON is a FeatureCollection, it is read as a single geometry
     (with type GEOMETRYCOLLECTION). This may be unpacked using
@@ -356,7 +359,7 @@ def from_geojson(geometry, on_invalid="raise", **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     get_parts
 
@@ -364,6 +367,7 @@ def from_geojson(geometry, on_invalid="raise", **kwargs):
     --------
     >>> from_geojson('{"type": "Point","coordinates": [1, 2]}')
     <POINT (1 2)>
+
     """
     # GEOS Tickets:
     # - support 3D: https://trac.osgeo.org/geos/ticket/1141

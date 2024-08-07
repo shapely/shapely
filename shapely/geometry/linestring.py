@@ -1,4 +1,4 @@
-"""Line strings and related utilities"""
+"""Line strings and related utilities."""
 
 import numpy as np
 
@@ -10,8 +10,7 @@ __all__ = ["LineString"]
 
 
 class LineString(BaseGeometry):
-    """
-    A geometry type composed of one or more line segments.
+    """A geometry type composed of one or more line segments.
 
     A LineString is a one-dimensional feature and has a non-zero length but
     zero area. It may approximate a curve and need not be straight. Unlike a
@@ -31,11 +30,13 @@ class LineString(BaseGeometry):
     >>> a = LineString([[0, 0], [1, 0], [1, 1]])
     >>> a.length
     2.0
+
     """
 
     __slots__ = []
 
     def __new__(self, coordinates=None):
+        """Create a new LineString geometry."""
         if coordinates is None:
             # empty geometry
             # TODO better constructor
@@ -77,13 +78,14 @@ class LineString(BaseGeometry):
 
     @property
     def __geo_interface__(self):
+        """Return a GeoJSON-like mapping of the LineString geometry."""
         return {"type": "LineString", "coordinates": tuple(self.coords)}
 
     def svg(self, scale_factor=1.0, stroke_color=None, opacity=None):
-        """Returns SVG polyline element for the LineString geometry.
+        """Return SVG polyline element for the LineString geometry.
 
         Parameters
-        ==========
+        ----------
         scale_factor : float
             Multiplication factor for the SVG stroke-width.  Default is 1.
         stroke_color : str, optional
@@ -91,6 +93,7 @@ class LineString(BaseGeometry):
             geometry is valid, and "#ff3333" if invalid.
         opacity : float
             Float number between 0 and 1 for color opacity. Default value is 0.8
+
         """
         if self.is_empty:
             return "<g />"
@@ -107,15 +110,16 @@ class LineString(BaseGeometry):
 
     @property
     def xy(self):
-        """Separate arrays of X and Y coordinate values
+        """Separate arrays of X and Y coordinate values.
 
         Example:
-
+        -------
           >>> x, y = LineString([(0, 0), (1, 1)]).xy
           >>> list(x)
           [0.0, 1.0]
           >>> list(y)
           [0.0, 1.0]
+
         """
         return self.coords.xy
 
@@ -126,13 +130,12 @@ class LineString(BaseGeometry):
         join_style=JOIN_STYLE.round,
         mitre_limit=5.0,
     ):
-        """Returns a LineString or MultiLineString geometry at a distance from
-        the object on its right or its left side.
+        """Return a (Multi)LineString at a distance from the object.
 
-        The side is determined by the sign of the `distance` parameter
-        (negative for right side offset, positive for left side offset). The
-        resolution of the buffer around each vertex of the object increases
-        by increasing the `quad_segs` keyword parameter.
+        The side, left or right, is determined by the sign of the `distance`
+        parameter (negative for right side offset, positive for left side
+        offset). The resolution of the buffer around each vertex of the object
+        increases by increasing the `quad_segs` keyword parameter.
 
         The join style is for outside corners between line segments. Accepted
         values are JOIN_STYLE.round (1), JOIN_STYLE.mitre (2), and
@@ -167,8 +170,7 @@ class LineString(BaseGeometry):
         join_style=JOIN_STYLE.round,
         mitre_limit=5.0,
     ):
-        """
-        Alternative method to :meth:`offset_curve` method.
+        """Alternative method to :meth:`offset_curve` method.
 
         Older alternative method to the :meth:`offset_curve` method, but uses
         ``resolution`` instead of ``quad_segs`` and a ``side`` keyword

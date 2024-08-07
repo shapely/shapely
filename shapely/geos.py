@@ -1,6 +1,4 @@
-"""
-Proxies for libgeos, GEOS-specific exceptions, and utilities
-"""
+"""Proxies for libgeos, GEOS-specific exceptions, and utilities."""
 
 import shapely
 

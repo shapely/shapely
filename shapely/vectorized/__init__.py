@@ -20,9 +20,9 @@ def _construct_points(x, y):
 
 
 def contains(geometry, x, y):
-    """
-    Vectorized (element-wise) version of `contains` which checks whether
-    multiple points are contained by a single geometry.
+    """Check whether multiple points are contained by a single geometry.
+
+    Vectorized (element-wise) version of `contains`.
 
     Parameters
     ----------
@@ -47,9 +47,9 @@ def contains(geometry, x, y):
 
 
 def touches(geometry, x, y):
-    """
-    Vectorized (element-wise) version of `touches` which checks whether
-    multiple points touch the exterior of a single geometry.
+    """Check whether multiple points touch the exterior of a single geometry.
+
+    Vectorized (element-wise) version of `touches`.
 
     Parameters
     ----------

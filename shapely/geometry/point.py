@@ -1,4 +1,4 @@
-"""Points and related utilities"""
+"""Points and related utilities."""
 
 import numpy as np
 
@@ -10,9 +10,9 @@ __all__ = ["Point"]
 
 
 class Point(BaseGeometry):
-    """
-    A geometry type that represents a single coordinate with
-    x, y and possibly z and/or m values.
+    """A geometry type that represents a single coordinate.
+
+    Each coordinate has x, y and possibly z and/or m values.
 
     A point is a zero-dimensional feature and has zero length and zero area.
 
@@ -45,11 +45,13 @@ class Point(BaseGeometry):
     -1.0
     >>> p.x
     1.0
+
     """
 
     __slots__ = []
 
     def __new__(self, *args):
+        """Create a new Point geometry."""
         if len(args) == 0:
             # empty geometry
             # TODO better constructor
@@ -112,13 +114,14 @@ class Point(BaseGeometry):
 
     @property
     def __geo_interface__(self):
+        """Return a GeoJSON-like mapping of the Point geometry."""
         return {"type": "Point", "coordinates": self.coords[0]}
 
     def svg(self, scale_factor=1.0, fill_color=None, opacity=None):
-        """Returns SVG circle element for the Point geometry.
+        """Return SVG circle element for the Point geometry.
 
         Parameters
-        ==========
+        ----------
         scale_factor : float
             Multiplication factor for the SVG circle diameter.  Default is 1.
         fill_color : str, optional
@@ -126,6 +129,7 @@ class Point(BaseGeometry):
             geometry is valid, and "#ff3333" if invalid.
         opacity : float
             Float number between 0 and 1 for color opacity. Default value is 0.6
+
         """
         if self.is_empty:
             return "<g />"
@@ -141,14 +145,16 @@ class Point(BaseGeometry):
 
     @property
     def xy(self):
-        """Separate arrays of X and Y coordinate values
+        """Separate arrays of X and Y coordinate values.
 
         Example:
+        -------
           >>> x, y = Point(0, 0).xy
           >>> list(x)
           [0.0]
           >>> list(y)
           [0.0]
+
         """
         return self.coords.xy
 

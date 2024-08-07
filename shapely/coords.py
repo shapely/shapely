@@ -1,15 +1,13 @@
-"""Coordinate sequence utilities"""
+"""Coordinate sequence utilities."""
 
 from array import array
 
 
 class CoordinateSequence:
-    """
-    Iterative access to coordinate tuples from the parent geometry's coordinate
-    sequence.
+    """Access to coordinate tuples from the parent geometry's coordinate sequence.
 
     Example:
-
+    -------
       >>> from shapely.wkt import loads
       >>> g = loads('POINT (0.0 0.0)')
       >>> list(g.coords)
@@ -18,16 +16,44 @@ class CoordinateSequence:
     """
 
     def __init__(self, coords):
+        """Initialize the CoordinateSequence.
+
+        Args:
+        ----
+            coords : array
+                The coordinate array.
+
+        """
         self._coords = coords
 
     def __len__(self):
+        """Return the length of the CoordinateSequence.
+
+        Returns
+        -------
+            int: The length of the CoordinateSequence.
+
+        """
         return self._coords.shape[0]
 
     def __iter__(self):
+        """Iterate over the CoordinateSequence."""
         for i in range(self.__len__()):
             yield tuple(self._coords[i].tolist())
 
     def __getitem__(self, key):
+        """Get the item at the specified index or slice.
+
+        Args:
+        ----
+            key : int or slice
+                The index or slice.
+
+        Returns:
+        -------
+            tuple or list: The item at the specified index or slice.
+
+        """
         m = self.__len__()
         if isinstance(key, int):
             if key + m < 0 or key >= m:
@@ -47,6 +73,25 @@ class CoordinateSequence:
             raise TypeError("key must be an index or slice")
 
     def __array__(self, dtype=None, copy=None):
+        """Return a copy of the coordinate array.
+
+        Args:
+        ----
+            dtype : data-type, optional
+                The desired data-type for the array.
+            copy : bool, optional
+                If True (default), a copy of the array is returned.
+                If False, the array is returned as-is.
+
+        Returns:
+        -------
+            array : The coordinate array.
+
+        Raises:
+        ------
+            ValueError : If `copy=False` is specified.
+
+        """
         if copy is False:
             raise ValueError("`copy=False` isn't supported. A copy is always created.")
         elif copy is True:
@@ -56,7 +101,7 @@ class CoordinateSequence:
 
     @property
     def xy(self):
-        """X and Y arrays"""
+        """X and Y arrays."""
         m = self.__len__()
         x = array("d")
         y = array("d")

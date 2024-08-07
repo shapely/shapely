@@ -1,3 +1,5 @@
+"""Shapely geometry objects, predicates, and operations."""
+
 from shapely.lib import GEOSException
 from shapely.lib import Geometry
 from shapely.lib import geos_version, geos_version_string
