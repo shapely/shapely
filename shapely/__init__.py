@@ -1,4 +1,4 @@
-"""Shapely geometry objects, predicates, and operations."""
+"""Manipulation and analysis of geometric objects in the Cartesian plane."""
 
 from shapely.lib import GEOSException
 from shapely.lib import Geometry
