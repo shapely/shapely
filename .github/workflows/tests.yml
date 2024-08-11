@@ -39,10 +39,10 @@ jobs:
             matplotlib: true
             doctest: true
             extra_pytest_args: "-W error"  # error on warnings
-          # 2024 -- wait until Python 3.13 with binary wheels for numpy are available
-          # - python: "3.13"
-          #   geos: 3.13.0
-          #   numpy: 2.0.0
+          # 2024
+          - python: "3.13"
+            geos: 3.12.2  # update to 3.13.0 when released
+            numpy: 2.1.0
           # apple silicon
           - os: macos-14
             python: "3.12"
