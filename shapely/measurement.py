@@ -283,6 +283,11 @@ def minimum_clearance(geometry, **kwargs):
     inf
     >>> minimum_clearance(None)
     nan
+
+    See Also
+    --------
+    minimum_clearance_line
+
     """
     return lib.minimum_clearance(geometry, **kwargs)
 
