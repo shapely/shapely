@@ -33,13 +33,12 @@ jobs:
 workflows:
   wheel-build:
     jobs:
-      - linux-aarch64-wheels
-      # - linux-aarch64-wheels:
-      #     filters:
-      #       branches:
-      #         only:
-      #           - main
-      #           - maint-2.0
-      #           - wheels-linux-aarch64
-      #       tags:
-      #         only: /.*/
+      - linux-aarch64-wheels:
+          filters:
+            branches:
+              only:
+                - main
+                - maint-2.0
+                - wheels-linux-aarch64
+            tags:
+              only: /.*/

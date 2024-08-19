@@ -6,7 +6,7 @@ on:
       - main  # just build the sdist & wheel, skip release
     tags:
       - "*"
-  pull_request:  # also build on PRs touching this file (temp change to trigger)
+  pull_request:  # also build on PRs touching this file
     paths:
       - ".github/workflows/release.yml"
       - "ci/*"
