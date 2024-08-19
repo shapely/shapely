@@ -1,6 +1,15 @@
 Version 2.x
 ===========
 
+.. _version-2-0-6:
+
+Version 2.0.6 (2024-08-19)
+--------------------------
+
+Bug fixes:
+
+- Fix compatibility with NumPy 2.1.0 (#2099).
+
 .. _version-2-0-5:
 
 Version 2.0.5 (2024-07-13)
