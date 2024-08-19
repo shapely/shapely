@@ -48,9 +48,9 @@ jobs:
             geos: 3.12.2
             numpy: 1.26.0
           # 2024
-          - python: "3.12"  # update to "3.13" after binary wheels for numpy are available
+          - python: "3.13"
             geos: 3.12.2
-            numpy: 2.0.0
+            numpy: 2.1.0
           # apple silicon
           - os: macos-14
             python: "3.12"

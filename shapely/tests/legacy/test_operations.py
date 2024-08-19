@@ -3,6 +3,7 @@ import unittest
 import pytest
 
 import shapely
+from shapely import geos_version
 from shapely.errors import TopologicalError
 from shapely.geometry import GeometryCollection, LineString, MultiPoint, Point, Polygon
 from shapely.wkt import loads
@@ -79,8 +80,11 @@ class OperationsTestCase(unittest.TestCase):
             "POLYGON ((40 100, 80 100, 80 60, 40 60, 40 100), (60 60, 80 60, 80 40, 60 40, 60 60))"
         )
         assert not invalid_polygon.is_valid
-        with pytest.raises((TopologicalError, shapely.GEOSException)):
-            invalid_polygon.relate(invalid_polygon)
+        if geos_version < (3, 13, 0):
+            with pytest.raises((TopologicalError, shapely.GEOSException)):
+                invalid_polygon.relate(invalid_polygon)
+        else:  # resolved with RelateNG
+            assert invalid_polygon.relate(invalid_polygon) == "2FFF1FFF2"
 
     def test_hausdorff_distance(self):
         point = Point(1, 1)
