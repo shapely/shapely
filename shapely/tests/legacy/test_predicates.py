@@ -5,6 +5,7 @@ import unittest
 import pytest
 
 import shapely
+from shapely import geos_version
 from shapely.geometry import Point, Polygon
 
 
@@ -67,8 +68,15 @@ class PredicatesTestCase(unittest.TestCase):
             (339, 207),
         ]
 
-        with pytest.raises(shapely.GEOSException):
-            Polygon(p1).within(Polygon(p2))
+        g1 = Polygon(p1)
+        g2 = Polygon(p2)
+        assert not g1.is_valid
+        assert not g2.is_valid
+        if geos_version < (3, 13, 0):
+            with pytest.raises(shapely.GEOSException):
+                g1.within(g2)
+        else:  # resolved with RelateNG
+            assert not g1.within(g2)
 
     def test_relate_pattern(self):
 

@@ -368,39 +368,51 @@ def test_query_with_partially_prepared_inputs(tree):
 
 
 @pytest.mark.parametrize(
-    "predicate",
+    "predicate,expected",
     [
-        # intersects is intentionally omitted; it does not raise an exception
+        pytest.param(
+            "intersects",
+            [1],
+            marks=pytest.mark.xfail(geos_version < (3, 13, 0), reason="GEOS < 3.13"),
+        ),
         pytest.param(
             "within",
+            [],
             marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
         ),
         pytest.param(
             "contains",
+            [],
             marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
         ),
-        "overlaps",
-        "crosses",
-        "touches",
+        ("overlaps", []),
+        ("crosses", [1]),
+        ("touches", []),
         pytest.param(
             "covers",
+            [],
             marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
         ),
         pytest.param(
             "covered_by",
+            [],
             marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
         ),
         pytest.param(
             "contains_properly",
+            [],
             marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
         ),
     ],
 )
-def test_query_predicate_errors(tree, predicate):
+def test_query_predicate_errors(tree, predicate, expected):
     with ignore_invalid():
         line_nan = shapely.linestrings([1, 1], [1, float("nan")])
-    with pytest.raises(shapely.GEOSException):
-        tree.query(line_nan, predicate=predicate)
+    if geos_version < (3, 13, 0):
+        with pytest.raises(shapely.GEOSException):
+            tree.query(line_nan, predicate=predicate)
+    else:
+        assert_array_equal(tree.query(line_nan, predicate=predicate), expected)
 
 
 ### predicate == 'intersects'
