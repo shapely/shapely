@@ -1,20 +1,23 @@
 """Shapely errors."""
+
 import threading
 
-from shapely.lib import _setup_signal_checks, GEOSException, ShapelyError  # NOQA
+from shapely.lib import GEOSException, ShapelyError, _setup_signal_checks  # noqa: F401
 
 
 def setup_signal_checks(interval=10000):
     """This enables Python signal checks in the ufunc inner loops.
 
-    Doing so allows termination (using CTRL+C) of operations on large arrays of vectors.
+    Doing so allows termination (using CTRL+C) of operations on large arrays of
+    vectors.
 
     Parameters
     ----------
     interval : int, default 10000
-        Check for interrupts every x iterations. The higher the number, the slower
-        shapely will respond to a signal. However, at low values there will be a negative effect
-        on performance. The default of 10000 does not have any measureable effects on performance.
+        Check for interrupts every x iterations. The higher the number, the
+        slower shapely will respond to a signal. However, at low values there
+        will be a negative effect on performance. The default of 10000 does not
+        have any measureable effects on performance.
 
     Notes
     -----

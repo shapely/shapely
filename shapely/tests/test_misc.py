@@ -90,9 +90,7 @@ def expected_docstring(**kwds):
 {indent}.. note:: 'func' requires at least GEOS {version}.
 
 {indent}Some description.
-{indent}""".format(
-        **kwds
-    )
+{indent}""".format(**kwds)
     if sys.version_info[:2] >= (3, 13):
         # There are subtle differences between inspect.cleandoc() and
         # _PyCompile_CleanDoc(). Most significantly, the latter does not remove

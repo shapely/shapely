@@ -599,9 +599,10 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
 def normalize(geometry, **kwargs):
     """Converts Geometry to strict normal form (or canonical form).
 
-    In :ref:`strict canonical form <canonical-form>`, the coordinates, rings of a polygon and
-    parts of multi geometries are ordered consistently. Typically useful for testing
-    purposes (for example in combination with ``equals_exact``).
+    In :ref:`strict canonical form <canonical-form>`, the coordinates, rings of
+    a polygon and parts of multi geometries are ordered consistently. Typically
+    useful for testing purposes (for example in combination with
+    ``equals_exact``).
 
     Parameters
     ----------
@@ -813,7 +814,7 @@ def remove_repeated_points(geometry, tolerance=0.0, **kwargs):
     <LINESTRING (0 0, 1 0)>
     >>> remove_repeated_points(Polygon([(0, 0), (0, .5), (0, 1), (.5, 1), (0,0)]), tolerance=.5)
     <POLYGON ((0 0, 0 1, 0 0))>
-    """
+    """  # noqa: E501
     return lib.remove_repeated_points(geometry, tolerance, **kwargs)
 
 
@@ -1056,7 +1057,7 @@ def voronoi_polygons(
     <GEOMETRYCOLLECTION EMPTY>
     >>> voronoi_polygons(points, ordered=True)
     <GEOMETRYCOLLECTION (POLYGON ((0 0, 0 4, 3 4, 3 0, 0 0)), POLYGON ((6 4, 6 0...>
-    """
+    """  # noqa: E501
     if ordered is not False and lib.geos_version < (3, 12, 0):
         raise UnsupportedGEOSVersionError(
             "Ordered Voronoi polygons require GEOS >= 3.12.0, "

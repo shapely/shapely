@@ -493,7 +493,7 @@ and optional distances
         >>> items = np.array([record["value"] for record in records])
         >>> items.take(tree.query_nearest(Point(0.5, 0.5))).tolist()
         ['A']
-        """
+        """  # noqa: E501
 
         geometry = np.asarray(geometry, dtype=object)
         is_scalar = False

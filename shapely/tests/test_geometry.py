@@ -6,9 +6,9 @@ import pytest
 import shapely
 from shapely import LinearRing, LineString, MultiPolygon, Point, Polygon
 from shapely.testing import assert_geometries_equal
-from shapely.tests.common import all_types
-from shapely.tests.common import empty as empty_geometry_collection
 from shapely.tests.common import (
+    all_types,
+    empty as empty_geometry_collection,
     empty_line_string,
     empty_line_string_z,
     empty_point,
@@ -302,7 +302,7 @@ def test_get_parts(geom):
     if expected_num_parts == 0:
         expected_parts = []
     else:
-        expected_parts = shapely.get_geometry(geom, range(0, expected_num_parts))
+        expected_parts = shapely.get_geometry(geom, range(expected_num_parts))
 
     parts = shapely.get_parts(geom)
     assert len(parts) == expected_num_parts
@@ -315,7 +315,7 @@ def test_get_parts_array():
     geom = np.array([None, empty_line_string, multi_point, point, multi_polygon])
     expected_parts = []
     for g in geom:
-        for i in range(0, shapely.get_num_geometries(g)):
+        for i in range(shapely.get_num_geometries(g)):
             expected_parts.append(shapely.get_geometry(g, i))
 
     parts = shapely.get_parts(geom)
@@ -330,7 +330,7 @@ def test_get_parts_geometry_collection_multi():
     """
     geom = shapely.geometrycollections([multi_point, multi_line_string, multi_polygon])
     expected_num_parts = shapely.get_num_geometries(geom)
-    expected_parts = shapely.get_geometry(geom, range(0, expected_num_parts))
+    expected_parts = shapely.get_geometry(geom, range(expected_num_parts))
 
     parts = shapely.get_parts(geom)
     assert len(parts) == expected_num_parts
@@ -338,7 +338,7 @@ def test_get_parts_geometry_collection_multi():
 
     expected_subparts = []
     for g in np.asarray(expected_parts):
-        for i in range(0, shapely.get_num_geometries(g)):
+        for i in range(shapely.get_num_geometries(g)):
             expected_subparts.append(shapely.get_geometry(g, i))
 
     subparts = shapely.get_parts(parts)
@@ -351,7 +351,7 @@ def test_get_parts_return_index():
     expected_parts = []
     expected_index = []
     for i, g in enumerate(geom):
-        for j in range(0, shapely.get_num_geometries(g)):
+        for j in range(shapely.get_num_geometries(g)):
             expected_parts.append(shapely.get_geometry(g, j))
             expected_index.append(i)
 
@@ -433,7 +433,7 @@ def test_get_rings_return_index():
             continue
         expected_parts.append(shapely.get_exterior_ring(g))
         expected_index.append(i)
-        for j in range(0, shapely.get_num_interior_rings(g)):
+        for j in range(shapely.get_num_interior_rings(g)):
             expected_parts.append(shapely.get_interior_ring(g, j))
             expected_index.append(i)
 

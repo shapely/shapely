@@ -1,5 +1,4 @@
-"""Multi-part collections of geometries
-"""
+"""Multi-part collections of geometries"""
 
 import shapely
 from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry

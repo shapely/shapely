@@ -403,7 +403,9 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
         geometries = np.rollaxis(geometries, axis=axis, start=geometries.ndim)
 
     # create_collection acts on the inner axis
-    collections = lib.create_collection(geometries, GeometryType.GEOMETRYCOLLECTION)
+    collections = lib.create_collection(
+        geometries, np.intc(GeometryType.GEOMETRYCOLLECTION)
+    )
 
     if grid_size is not None:
         if lib.geos_version < (3, 9, 0):
@@ -448,7 +450,7 @@ def coverage_union(a, b, **kwargs):
     Union with None returns same polygon
     >>> normalize(coverage_union(polygon, None))
     <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
-    """
+    """  # noqa: E501
     return coverage_union_all([a, b], **kwargs)
 
 
@@ -499,5 +501,7 @@ def coverage_union_all(geometries, axis=None, **kwargs):
             np.asarray(geometries), axis=axis, start=geometries.ndim
         )
     # create_collection acts on the inner axis
-    collections = lib.create_collection(geometries, GeometryType.GEOMETRYCOLLECTION)
+    collections = lib.create_collection(
+        geometries, np.intc(GeometryType.GEOMETRYCOLLECTION)
+    )
     return lib.coverage_union(collections, **kwargs)

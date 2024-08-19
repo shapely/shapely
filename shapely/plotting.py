@@ -64,7 +64,7 @@ def plot_polygon(
     facecolor=None,
     edgecolor=None,
     linewidth=None,
-    **kwargs
+    **kwargs,
 ):
     """
     Plot a (Multi)Polygon.

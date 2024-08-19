@@ -1,5 +1,4 @@
-"""Support for various GEOS geometry operations
-"""
+"""Support for various GEOS geometry operations"""
 
 from warnings import warn
 
@@ -159,7 +158,7 @@ def triangulate(geom, tolerance=0.0, edges=False):
 
     """
     collection = shapely.delaunay_triangles(geom, tolerance=tolerance, only_edges=edges)
-    return [g for g in collection.geoms]
+    return list(collection.geoms)
 
 
 def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
@@ -264,7 +263,6 @@ def transform(func, geom):
     if geom.is_empty:
         return geom
     if geom.geom_type in ("Point", "LineString", "LinearRing", "Polygon"):
-
         # First we try to apply func to x, y, z sequences. When func is
         # optimized for sequences, this is the fastest, though zipping
         # the results up to go back into the geometry constructors adds
@@ -274,10 +272,10 @@ def transform(func, geom):
                 return type(geom)(zip(*func(*zip(*geom.coords))))
             elif geom.geom_type == "Polygon":
                 shell = type(geom.exterior)(zip(*func(*zip(*geom.exterior.coords))))
-                holes = list(
+                holes = [
                     type(ring)(zip(*func(*zip(*ring.coords))))
                     for ring in geom.interiors
-                )
+                ]
                 return type(geom)(shell, holes)
 
         # A func that assumes x, y, z are single values will likely raise a
@@ -287,10 +285,10 @@ def transform(func, geom):
                 return type(geom)([func(*c) for c in geom.coords])
             elif geom.geom_type == "Polygon":
                 shell = type(geom.exterior)([func(*c) for c in geom.exterior.coords])
-                holes = list(
+                holes = [
                     type(ring)([func(*c) for c in ring.coords])
                     for ring in geom.interiors
-                )
+                ]
                 return type(geom)(shell, holes)
 
     elif geom.geom_type.startswith("Multi") or geom.geom_type == "GeometryCollection":
@@ -400,18 +398,20 @@ class SplitOp:
 
         # |    s\l   | Interior | Boundary | Exterior |
         # |----------|----------|----------|----------|
-        # | Interior |  0 or F  |    *     |    *     |   At least one of these two must be 0
-        # | Boundary |  0 or F  |    *     |    *     |   So either '0********' or '[0F]**0*****'
-        # | Exterior |    *     |    *     |    *     |   No overlapping interiors ('1********')
+        # | Interior |  0 or F  |    *     |    *     |   At least one of these two must be 0  # noqa: E501
+        # | Boundary |  0 or F  |    *     |    *     |   So either '0********' or '[0F]**0*****'  # noqa: E501
+        # | Exterior |    *     |    *     |    *     |   No overlapping interiors ('1********')  # noqa: E501
         relation = splitter.relate(line)
         if relation[0] == "1":
             # The lines overlap at some segment (linear intersection of interiors)
             raise ValueError("Input geometry segment overlaps with the splitter.")
         elif relation[0] == "0" or relation[3] == "0":
-            # The splitter crosses or touches the line's interior --> return multilinestring from the split
+            # The splitter crosses or touches the line's interior
+            # --> return multilinestring from the split
             return line.difference(splitter)
         else:
-            # The splitter does not cross or touch the line's interior --> return collection with identity line
+            # The splitter does not cross or touch the line's interior
+            # --> return collection with identity line
             return [line]
 
     @staticmethod
@@ -426,8 +426,8 @@ class SplitOp:
         if not line.relate_pattern(splitter, "0********"):
             # point not on line interior --> return collection with single identity line
             # (REASONING: Returning a list with the input line reference and creating a
-            # GeometryCollection at the general split function prevents unnecessary copying
-            # of linestrings in multipoint splitting function)
+            # GeometryCollection at the general split function prevents unnecessary
+            # copying of linestrings in multipoint splitting function)
             return [line]
         elif line.coords[0] == splitter.coords[0]:
             # if line is a closed ring the previous test doesn't behave as desired
@@ -478,17 +478,25 @@ class SplitOp:
     @staticmethod
     def split(geom, splitter):
         """
-        Splits a geometry by another geometry and returns a collection of geometries. This function is the theoretical
-        opposite of the union of the split geometry parts. If the splitter does not split the geometry, a collection
-        with a single geometry equal to the input geometry is returned.
+        Splits a geometry by another geometry and returns a collection of
+        geometries.
+
+        This function is the theoretical opposite of the union of
+        the split geometry parts. If the splitter does not split the geometry, a
+        collection with a single geometry equal to the input geometry is
+        returned.
+
         The function supports:
-          - Splitting a (Multi)LineString by a (Multi)Point or (Multi)LineString or (Multi)Polygon
+          - Splitting a (Multi)LineString by a (Multi)Point or (Multi)LineString
+            or (Multi)Polygon
           - Splitting a (Multi)Polygon by a LineString
 
-        It may be convenient to snap the splitter with low tolerance to the geometry. For example in the case
-        of splitting a line by a point, the point must be exactly on the line, for the line to be correctly split.
-        When splitting a line by a polygon, the boundary of the polygon is used for the operation.
-        When splitting a line by another line, a ValueError is raised if the two overlap at some segment.
+        It may be convenient to snap the splitter with low tolerance to the
+        geometry. For example in the case of splitting a line by a point, the
+        point must be exactly on the line, for the line to be correctly split.
+        When splitting a line by a polygon, the boundary of the polygon is used
+        for the operation. When splitting a line by another line, a ValueError
+        is raised if the two overlap at some segment.
 
         Parameters
         ----------
@@ -525,7 +533,8 @@ class SplitOp:
                 split_func = SplitOp._split_line_with_multipoint
             else:
                 raise GeometryTypeError(
-                    f"Splitting a LineString with a {splitter.geom_type} is not supported"
+                    f"Splitting a LineString with a {splitter.geom_type} is "
+                    "not supported"
                 )
 
         elif geom.geom_type == "Polygon":
@@ -724,14 +733,7 @@ def orient(geom, sign=1.0):
 
     """
     if isinstance(geom, BaseMultipartGeometry):
-        return geom.__class__(
-            list(
-                map(
-                    lambda geom: orient(geom, sign),
-                    geom.geoms,
-                )
-            )
-        )
+        return geom.__class__([orient(geom, sign) for geom in geom.geoms])
     if isinstance(geom, (Polygon,)):
         return orient_(geom, sign)
     return geom

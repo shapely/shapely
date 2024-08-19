@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from shapely import geos_version, Point
+from shapely import Point, geos_version
 from shapely.coords import CoordinateSequence
 from shapely.errors import DimensionError, UnsupportedGEOSVersionError
 
@@ -84,7 +84,6 @@ def test_from_generator():
 
 
 def test_from_invalid():
-
     with pytest.raises(TypeError, match="takes at most 3 arguments"):
         Point(1, 2, 3, 4)
 
@@ -97,7 +96,6 @@ def test_from_invalid():
 
 class TestPoint:
     def test_point(self):
-
         # Test XY point
         p = Point(1.0, 2.0)
         assert p.x == 1.0

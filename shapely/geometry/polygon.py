@@ -1,5 +1,4 @@
-"""Polygons and their linear ring components
-"""
+"""Polygons and their linear ring components"""
 
 import numpy as np
 
@@ -65,7 +64,7 @@ class LinearRing(LineString):
             # TODO better way?
             return shapely.from_wkt("LINEARRING EMPTY")
         elif isinstance(coordinates, LineString):
-            if type(coordinates) == LinearRing:
+            if type(coordinates) is LinearRing:
                 # return original objects since geometries are immutable
                 return coordinates
             elif not coordinates.is_valid:
@@ -131,7 +130,6 @@ shapely.lib.registry[2] = LinearRing
 
 
 class InteriorRingSequence:
-
     _parent = None
     _ndim = None
     _index = 0
@@ -326,9 +324,9 @@ class Polygon(BaseGeometry):
             ]
         )
         return (
-            '<path fill-rule="evenodd" fill="{2}" stroke="#555555" '
-            'stroke-width="{0}" opacity="{3}" d="{1}" />'
-        ).format(2.0 * scale_factor, path, fill_color, opacity)
+            f'<path fill-rule="evenodd" fill="{fill_color}" stroke="#555555" '
+            f'stroke-width="{2.0 * scale_factor}" opacity="{opacity}" d="{path}" />'
+        )
 
     @classmethod
     def from_bounds(cls, xmin, ymin, xmax, ymax):
