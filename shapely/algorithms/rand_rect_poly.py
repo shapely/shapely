@@ -7,9 +7,9 @@ def generate_rectilinear_polygon(
     canvas_width: int = 20,
     canvas_height: int = 20,
     min_rectangles: int = 5,
-    max_rectangles: int = 10,
+    max_rectangles: int = 8,
     min_size: int = 1,
-    max_size: int = 5,
+    max_size: int = 4,
     increments: int = 5
 ) -> Polygon:
     """

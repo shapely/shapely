@@ -139,14 +139,9 @@ class RectilinearPolygon_after:
                     partition_list + new_internal_edges
                 )  # Add the new internal edges to the partition list
                 new_total_length = sum(line.length for line in new_partition_list)
-                total_area = sum(polygon.area for polygon, _ in new_figures)
-                new_priority = check_priority(new_total_length, total_area)
-                # Improved lower bound estimation
-                lower_bound = new_total_length + self.estimate_remaining_length(
-                    new_figures
-                )
+                new_priority = self.check_priority(new_total_length, new_figures)
 
-                if lower_bound >= self.min_partition_length:
+                if new_total_length >= self.min_partition_length:
                     logger.debug(
                         "Cutting the search - new partition is longer than the best partition"
                     )
@@ -162,7 +157,6 @@ class RectilinearPolygon_after:
                 new_candidates_and_figures = candidates_and_figures + [
                     (ComperablePolygon(fig), point) for fig, point in new_figures
                 ]
-                
                 new_item = PriorityQueueItem(
                     new_priority,
                     new_partition_list,
@@ -171,13 +165,22 @@ class RectilinearPolygon_after:
                 )
                 heapq.heappush(pq, new_item)
 
-    def estimate_remaining_length(self, figures):
-        # Implement a function to estimate the minimum additional length
-        # needed to complete the partition based on the remaining figures
-        total_perimeter = sum(fig.length for fig, _ in figures)
-        return total_perimeter / 2  # A simple heuristic, can be improved
 
 
+    def check_priority(self, new_total_length, new_figure_candidate):
+        """
+        Calculate the ratio between the area of the new figure candidate and the new total length.
+
+        Args:
+            new_total_length (float): The new total length.
+            new_figure_candidate (Polygon): The new figure candidate.
+
+        Returns:
+            float: The ratio between the area and the length.
+
+        """
+        total_area = sum(polygon.area for polygon, _ in new_figure_candidate)
+        return new_total_length / total_area if total_area > 0 else float("inf")
 
     def split_polygon(
         self, polygon: Polygon, blocked_rect: Polygon, lines: list[LineString]
@@ -598,7 +601,6 @@ class RectilinearPolygon_after:
             kitty_corner = Point(horizontal_point.x, vertical_point.y)
 
             # Ensure the kitty-corner point is within the polygon
-            print(partial_figure)
             if not partial_figure.intersects(kitty_corner) or not partial_figure.touches(kitty_corner):
                 raise ValueError("The resulting rectangle is not within the original polygon")
 
@@ -709,6 +711,9 @@ if __name__ == "__main__":
             (8, 5),
         ]
     )    
+    
+    pp = Polygon([(1,1), (5,1),(5,3), (4,3), (4,4), (5,4), (5,5), (1,5), (1,4), (2,4), (2,3), (1,3)])
+    
     poly = generate_rectilinear_polygon()
     plotting(poly, [])
     plot_and_partition(poly)

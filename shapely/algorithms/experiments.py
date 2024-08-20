@@ -36,7 +36,6 @@ def run_comparison_experiment(num_trials: int, output_file: str):
         for instance in range(num_trials):
             poly = generate_rectilinear_polygon()
             plotting(poly, [])
-            # plot_partition_comparison(poly, [], [], instance)
 
             # Test 'after' implementation
             start = time.time()
