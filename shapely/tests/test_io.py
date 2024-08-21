@@ -1276,7 +1276,7 @@ def test_to_geojson_point_empty(geom):
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 2), reason="GEOS < 3.10.2")
 @pytest.mark.parametrize("geom", [empty_point])
-def test_to_geojson_point_empty(geom):
+def test_to_geojson_single_point_empty(geom):
     geojson = shapely.to_geojson(geom)
     assert geojson == '{"type":"Point","coordinates":[]}'
 
