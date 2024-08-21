@@ -3543,6 +3543,7 @@ static void to_geojson_func(char** args, const npy_intp* dimensions, const npy_i
       Py_INCREF(Py_None);
       *out = Py_None;
     } else {
+      #if (GEOS_VERSION_PATCH < 2) 
       // Check for empty points (https://trac.osgeo.org/geos/ticket/1139)
       point_empty_error = has_point_empty(ctx, in1);
       if (point_empty_error == 2) {
@@ -3552,6 +3553,7 @@ static void to_geojson_func(char** args, const npy_intp* dimensions, const npy_i
         errstate = PGERR_GEOJSON_EMPTY_POINT;
         goto finish;
       }
+      #endif  // GEOS_SINCE_3_10_0
       geojson = GEOSGeoJSONWriter_writeGeometry_r(ctx, writer, in1, indent);
       if (geojson == NULL) {
         errstate = PGERR_GEOS_EXCEPTION;
