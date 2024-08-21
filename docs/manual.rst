@@ -169,7 +169,7 @@ In all constructors, numeric values are converted to type ``float``. In other
 words, ``Point(0, 0)`` and ``Point(0.0, 0.0)`` produce geometrically equivalent
 instances. Shapely does not check the topological simplicity or validity of
 instances when they are constructed as the cost is unwarranted in most cases.
-Validating factories are easily implemented using the :attr:``is_valid``
+Validating factories are easily implemented using the :attr:`~object.is_valid`
 predicate by users that require them.
 
 .. note::
@@ -1025,8 +1025,8 @@ Operations on non-simple `LineStrings` are fully supported by Shapely.
 
 .. note::
 
-   The validity test is meaningful only for `Polygons` and `MultiPolygons`.
-   ``True`` is always returned for other types of geometries.
+   The validity test is meaningful only for `Polygons`, `LinearRings`,
+   and some `LineStrings`. Other geometry types always return ``True``.
 
 A valid `Polygon` may not possess any overlapping exterior or interior rings. A
 valid `MultiPolygon` may not collect any overlapping polygons. Operations on
