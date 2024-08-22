@@ -45,9 +45,12 @@ class BufferCapStyle(ParamEnum):
 
     Attributes
     ----------
-        round (int): Represents a round cap style.
-        flat (int): Represents a flat cap style.
-        square (int): Represents a square cap style.
+    round : int
+        Represents a round cap style.
+    flat : int
+        Represents a flat cap style.
+    square : int
+        Represents a square cap style.
 
     """
 
@@ -61,9 +64,12 @@ class BufferJoinStyle(ParamEnum):
 
     Attributes
     ----------
-        round (int): Specifies a round join style.
-        mitre (int): Specifies a mitre join style.
-        bevel (int): Specifies a bevel join style.
+    round : int
+        Specifies a round join style.
+    mitre : int
+        Specifies a mitre join style.
+    bevel : int
+        Specifies a bevel join style.
 
     """
 
