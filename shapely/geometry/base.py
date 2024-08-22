@@ -258,8 +258,8 @@ class BaseGeometry(shapely.Geometry):
     def geometryType(self):
         """Get the geometry type (deprecated).
 
-        It will be removed in the future. You can use the 'geom_type' attribute
-        instead.
+        .. deprecated:: 2.0
+           Use the :py:attr:`geom_type` attribute instead.
         """
         warn(
             "The 'GeometryType()' method is deprecated, and will be removed in "
@@ -273,8 +273,8 @@ class BaseGeometry(shapely.Geometry):
     def type(self):
         """Get the geometry type (deprecated).
 
-        It will be removed in the future. You can use the 'geom_type' attribute
-        instead.
+        .. deprecated:: 2.0
+           Use the :py:attr:`geom_type` attribute instead.
         """
         warn(
             "The 'type' attribute is deprecated, and will be removed in "
