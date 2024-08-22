@@ -5,8 +5,8 @@ from rand_rect_poly import generate_rectilinear_polygon
 import experiments_csv as excsv
 from shapely.geometry.linestring import LineString
 import matplotlib.pyplot as plt
-from min_partition_before import partition_polygon as partition_polygon_before
-from min_partition_after import partition_polygon as partition_polygon_after
+from min_partition_heuristic import partition_polygon as partition_polygon_huristic
+from min_partition import partition_polygon as partition_polygon
 from plot_poly import plotting
 
 
@@ -34,12 +34,12 @@ def run_comparison_experiment(num_trials: int, output_file: str):
         writer.writeheader()
 
         for instance in range(num_trials):
-            poly = generate_rectilinear_polygon()
+            poly = generate_rectilinear_polygon(10)
             plotting(poly, [])
 
             # Test 'after' implementation
             start = time.time()
-            partition_result_after = partition_polygon_after(poly)
+            partition_result_after = partition_polygon(poly)
             end = time.time()
             run_time_after = end - start
             partition_length_after = sum_edge_lengths(partition_result_after)
@@ -48,7 +48,7 @@ def run_comparison_experiment(num_trials: int, output_file: str):
 
             # Test 'before' implementation
             start = time.time()
-            partition_result_before = partition_polygon_before(poly)
+            partition_result_before = partition_polygon_huristic(poly)
             end = time.time()
             run_time_before = end - start
             partition_length_before = sum_edge_lengths(partition_result_before)

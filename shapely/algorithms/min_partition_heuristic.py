@@ -1,55 +1,19 @@
-"""
-An implementation of the algorithms in:
-"Minimum edge length partitioning of rectilinear polygons", by Lingas, Pinter, Rivest and Shamir from 1982
-https://people.csail.mit.edu/rivest/pubs/LPRS82.pdf
-Programmer: Dvir Borochov
-Date: 10/6/24 
-"""
-
 import doctest
 import logging
 import heapq
 import time
-
-from matplotlib import pyplot as plt
-import numpy as np
 from classes import PriorityQueueItem, ComperablePolygon
 from shapely.geometry.collection import GeometryCollection
 from shapely.geometry.multipolygon import MultiPolygon
 from shapely.geometry import Polygon, LineString, Point
 from plot_poly import plotting
+
 from rand_rect_poly import generate_rectilinear_polygon
-from numba import jit
+
 
 # Set up logging
 logger = logging.getLogger("polygon_partitioning")
-logger.setLevel(logging.DEBUG) # this should allow all messages to be displayed
-
-
-
-@jit(nopython=True)
-def is_rectilinear(coords):
-    for i in range(len(coords) - 1):
-        x1, y1 = coords[i]
-        x2, y2 = coords[i + 1]
-        if not (x1 == x2 or y1 == y2):
-            return False
-    return True
-
-@jit(nopython=True)
-def check_priority(new_total_length, total_area):
-    """
-    Calculate the ratio between the area of the new figure candidate and the new total length.
-
-    Args:
-        new_total_length (float): The new total length.
-        new_figure_candidate (Polygon): The new figure candidate.
-
-    Returns:
-        float: The ratio between the area and the length.
-
-    """
-    return new_total_length / total_area if total_area > 0 else float("inf")
+logger.setLevel(logging.DEBUG)  # this should allow all messages to be displayed
 
 
 @staticmethod
@@ -62,10 +26,9 @@ def partition_polygon(polygon: Polygon):
     if polygon.area == polygon.minimum_rotated_rectangle.area:
         logger.error("The polygon is already a rectangle.")
         return None
-    
-    rectilinear_polygon = RectilinearPolygon_after(polygon)
-    cords = np.array(rectilinear_polygon.polygon.exterior.coords)
-    if not is_rectilinear(cords):
+
+    rectilinear_polygon = RectilinearPolygon_before(polygon)
+    if not rectilinear_polygon.is_rectilinear():
         logger.error("The polygon is not rectilinear.")
         return None
 
@@ -74,7 +37,7 @@ def partition_polygon(polygon: Polygon):
     return rectilinear_polygon.best_partition
 
 
-class RectilinearPolygon_after:
+class RectilinearPolygon_before:
     def __init__(self, polygon: Polygon):
         self.polygon = polygon  # the main rectilinear polygon
         self.min_partition_length = float("inf")
@@ -166,8 +129,6 @@ class RectilinearPolygon_after:
                 )
                 heapq.heappush(pq, new_item)
 
-
-
     def check_priority(self, new_total_length, new_figure_candidate):
         """
         Calculate the ratio between the area of the new figure candidate and the new total length.
@@ -197,8 +158,8 @@ class RectilinearPolygon_after:
             list[tuple[Polygon, Point]]: A list of tuples, each containing a polygon
                                         and a candidate point for further processing.
         """
-        
-        splited_area  = blocked_rect.area
+
+        splited_area = blocked_rect.area
         split_result = polygon.difference(blocked_rect)
         logger.debug(f"Split result: {split_result}")
 
@@ -208,10 +169,12 @@ class RectilinearPolygon_after:
         elif isinstance(split_result, MultiPolygon):
             split_polygons = list(split_result.geoms)
         elif isinstance(split_result, GeometryCollection):
-            split_polygons = [geom for geom in split_result.geoms if isinstance(geom, Polygon)]
+            split_polygons = [
+                geom for geom in split_result.geoms if isinstance(geom, Polygon)
+            ]
         else:
             split_polygons = []
-        
+
         # Process the split polygons and find candidate points
         result = []
         for poly in split_polygons:
@@ -275,7 +238,7 @@ class RectilinearPolygon_after:
             list[LineString]: A list of new internal edges (LineString instances) added by the blocked rectangle.
 
         >>> polygon = Polygon([(2, 0), (6, 0), (6, 4), (8, 4), (8, 6), (0, 6), (0, 4), (2, 4)])
-        >>> rect_polygon = RectilinearPolygon_after(polygon)
+        >>> rect_polygon = RectilinearPolygon_before(polygon)
         >>> blocked_rect = Polygon([(2,4), (6,4), (6, 0), (2, 0)])
         >>> new_internal_edges = rect_polygon.get_new_internal_edges(blocked_rect)
         >>> new_internal_edges
@@ -308,6 +271,31 @@ class RectilinearPolygon_after:
 
         return internal_edges
 
+    def is_rectilinear(self) -> bool:
+        """
+        Check if the polygon is rectilinear (each internal engle is 90 degrees or 270 degrees)
+
+
+        Returns:
+            bool: True if the polygon is rectilinear, False otherwise.
+        >>> polygon = Polygon([(0, 0), (0, 2), (0, 4), (2, 4), (2, 2), (2, 0)])
+        >>> rect_polygon = RectilinearPolygon_before(polygon)
+        >>> rect_polygon.is_rectilinear()
+        True
+
+        >>> polygon = Polygon([(0, 0), (0, 4), (4, 4), (4, 0), (2,2)])
+        >>> partitions = [LineString([(0, 2), (4, 3)])]  # Non-rectangular partition
+        >>> rect_polygon = RectilinearPolygon_before(polygon)
+        >>> rect_polygon.is_rectilinear()
+        False
+        """
+        coords = list(self.polygon.exterior.coords)
+        for i in range(len(coords) - 1):
+            x1, y1 = coords[i]
+            x2, y2 = coords[i + 1]
+            if not (x1 == x2 or y1 == y2):
+                return False
+        return True
 
     def find_convex_points(self):
         """
@@ -317,7 +305,7 @@ class RectilinearPolygon_after:
             list: List of Points representing the convex points of the polygon.
 
         >>> polygon = Polygon([(0, 0), (0, 2), (0, 4), (2, 4), (2, 2), (2, 0)])
-        >>> rect_polygon = RectilinearPolygon_after(polygon)
+        >>> rect_polygon = RectilinearPolygon_before(polygon)
         >>> convex_points = rect_polygon.find_convex_points()
         >>> convex_points
         """
@@ -351,7 +339,7 @@ class RectilinearPolygon_after:
             bool: True if the vertex is concave, False otherwise
 
         >>> polygon = Polygon([(2, 0), (6, 0), (6, 4), (8, 4), (8, 6), (0, 6), (0, 4), (2, 4)])
-        >>> rect_polygon = RectilinearPolygon_after(polygon)
+        >>> rect_polygon = RectilinearPolygon_before(polygon)
         >>> rect_polygon.is_concave_vertex(2, list(polygon.exterior.coords))
         True
         """
@@ -388,7 +376,7 @@ class RectilinearPolygon_after:
 
 
         >>> polygon = Polygon([(2, 0), (6, 0), (6, 4), (8, 4), (8, 6), (0, 6), (0, 4), (2, 4)])
-        >>> rect_polygon = RectilinearPolygon_after(polygon)
+        >>> rect_polygon = RectilinearPolygon_before(polygon)
         >>> grid_points = rect_polygon.get_grid_points()
         >>> grid_points
         [<POINT (2 4)>, <POINT (8 4)>, <POINT (0 4)>, <POINT (2 0)>, <POINT (6 4)>, <POINT (0 6)>, <POINT (2 6)>, <POINT (8 6)>, <POINT (6 0)>, <POINT (6 6)>]
@@ -430,228 +418,38 @@ class RectilinearPolygon_after:
         self, candidate: Point, partial_figure: Polygon
     ) -> list[tuple[Point, Polygon]]:
         """
-        Find matching points for a given candidate point within a polygon. The matching points
-        are determined based on whether the candidate point is convex or concave.
+        Finds matching points on the grid inside the polygon and kitty-corner to the candidate point
+        within a blocked rectangle inside the polygon.
 
         Args:
             candidate (Point): The candidate point.
-            partial_figure (Polygon): The partial figure polygon.
 
         Returns:
-            list[tuple[Point, Polygon]]: A list of tuples, each containing a matching point and its 
-                                        corresponding blocked rectangle. 
-                                        Returns an empty list if no matching points are found.
+            list: List of tuples containing Points representing the matching points and their corresponding blocked rectangles.
         """
+        matching_and_blocks = []
+        relevant_grid_points = []
+        boundary = partial_figure.boundary
 
-        # Step 1: Filter relevant grid points within or on the boundary of the partial figure
-        relevant_grid_points = [
-            point for point in self.grid_points 
-            if point.within(partial_figure) or point.intersects(partial_figure.boundary)
-        ]
-        
-        # Step 2: Find incident lines of the candidate point
-        constructed_lines = self.find_incident_lines(partial_figure, candidate)
-        
-        # Step 3: Initialize the list to store matching points
-        matching_points = []
-        
-        # Step 4: Handle the case where the candidate point is convex
+        for point in self.grid_points:
+            if point.within(partial_figure) or point.intersects(boundary):
+                relevant_grid_points.append(point)
 
-        if self.is_convex_point(partial_figure, candidate):
-            blocked_rect = self.find_blocked_rectangle(partial_figure, candidate, constructed_lines[0], constructed_lines[1])
-            
-            # Filter grid points that are not within the blocked rectangle and are not the candidate itself
-            relevant_matching_points = [
-                point for point in relevant_grid_points 
-                if not point.within(blocked_rect) and point != candidate
-            ]
-        
-        # Step 5: Handle the case where the candidate point is concave
-        else:
-            relevant_matching_points = [
-                point for point in relevant_grid_points 
-                if point != candidate and (
-                    self.has_projection(point, constructed_lines[0]) or
-                    self.has_projection(point, constructed_lines[1])
+        for point in relevant_grid_points:
+            if point != candidate:  # Exclude candidate point
+                # Check if the point is kitty-corner to the candidate within a blocked rectangle
+                min_x = min(candidate.x, point.x)
+                max_x = max(candidate.x, point.x)
+                min_y = min(candidate.y, point.y)
+                max_y = max(candidate.y, point.y)
+                blocked_rect = Polygon(
+                    [(min_x, min_y), (min_x, max_y), (max_x, max_y), (max_x, min_y)]
                 )
-            ]
-        
-        # Step 6: For each relevant matching point, check if it forms a valid blocked rectangle
-        for point in relevant_matching_points:
-            min_x = min(candidate.x, point.x)
-            max_x = max(candidate.x, point.x)
-            min_y = min(candidate.y, point.y)
-            max_y = max(candidate.y, point.y)
 
-            blocked_rect = Polygon([
-                (min_x, min_y), 
-                (min_x, max_y), 
-                (max_x, max_y), 
-                (max_x, min_y)
-            ])
+                if blocked_rect.within(self.polygon):
+                    matching_and_blocks.append((point, blocked_rect))
 
-            # Only add the point if the blocked rectangle is within the original polygon
-            if blocked_rect.within(self.polygon):
-                matching_points.append((point, blocked_rect))
-        
-        return matching_points
-                    
-                    
-    def has_projection(self, point: Point, line: LineString) -> bool:
-        """
-        Check if there exists a straight line (either horizontal or vertical)
-        that passes through both the given point and the provided line segment.
-
-        Args:
-            point (Point): The point to check.
-            line (LineString): The line segment to check against.
-
-        Returns:
-            bool: True if such a projection exists, False otherwise.
-        """
-        px, py = point.x, point.y
-        x1, y1 = line.coords[0]
-        x2, y2 = line.coords[1]
-
-        # Check if a vertical line through the point intersects the line segment
-        if x1 == x2 and min(y1, y2) <= py <= max(y1, y2):
-            return True
-
-        # Check if a horizontal line through the point intersects the line segment
-        if y1 == y2 and min(x1, x2) <= px <= max(x1, x2):
-            return True
-
-        return False
-        
-        
-    def is_convex_point(self, partial_figure: Polygon, point: Point) -> bool:
-        """
-        Determines if a given point is a convex point in the polygon.
-
-        Args:
-            point (Point): The point to check.
-
-        Returns:
-            bool: True if the point is convex, False if it is concave.
-        """
-        coords = list(partial_figure.exterior.coords[:-1])  # Exclude the last point, which is the same as the first
-
-        if point not in [Point(coord) for coord in coords]:
-            raise ValueError("The given point is not a vertex of the partial_figure.")
-        
-        point_index = coords.index((point.x, point.y))
-        prev_point = Point(coords[point_index - 1])
-        next_point = Point(coords[(point_index + 1) % len(coords)])
-
-        # Vector from prev_point to point
-        vec1 = (point.x - prev_point.x, point.y - prev_point.y)
-        # Vector from point to next_point
-        vec2 = (next_point.x - point.x, point.y - next_point.y)
-
-        # Cross product of vec1 and vec2
-        cross_product = vec1[0] * vec2[1] - vec1[1] * vec2[0]
-
-        # Determine the orientation of the polygon (clockwise or counterclockwise)
-        # Shapely's `signed_area` can be used to determine the winding direction
-        orientation = partial_figure.exterior.is_ccw
-
-        # Adjust convexity check based on the polygon's orientation
-        if orientation:  # Counterclockwise orientation
-            return True
-        else:  # Clockwise orientation -  negative cross-product indicates a convex point.
-            return False
-        
-    def find_blocked_rectangle(self,partial_figure: Polygon, candidate: Point, line1: LineString, line2: LineString) -> Polygon:
-            """
-            Find the blocked rectangle formed using two adjacent linestrings and the rest of the polygon.
-
-            Args:
-                candidate (Point): The common point of the two linestrings.
-                line1 (LineString): The first linestring.
-                line2 (LineString): The second linestring.
-
-            Returns:
-                Polygon: The blocked rectangle inside the given polygon.
-            """
-            # Ensure the candidate point is part of both linestrings
-            if not (candidate.equals(Point(line1.coords[0])) or candidate.equals(Point(line1.coords[1]))):
-                raise ValueError("The candidate point must be part of the first linestring")
-            if not (candidate.equals(Point(line2.coords[0])) or candidate.equals(Point(line2.coords[1]))):
-                raise ValueError("The candidate point must be part of the second linestring")
-
-            # Get the endpoints of the linestrings excluding the candidate point
-            other_points = []
-            for line in [line1, line2]:
-                for coord in line.coords:
-                    if not candidate.equals(Point(coord)):
-                        other_points.append(Point(coord))
-
-            # Ensure there are exactly two other points
-            if len(other_points) != 2:
-                raise ValueError("The linestrings must form a valid rectangle")
-
-            # Determine which point forms the vertical line and which forms the horizontal line
-            if other_points[0].x == candidate.x:
-                vertical_point = other_points[0]
-                horizontal_point = other_points[1]
-            else:
-                vertical_point = other_points[1]
-                horizontal_point = other_points[0]
-
-            # Find the kitty-corner point
-            kitty_corner = Point(horizontal_point.x, vertical_point.y)
-
-            # Ensure the kitty-corner point is within the polygon
-            if not partial_figure.intersects(kitty_corner) or not partial_figure.touches(kitty_corner):
-                raise ValueError("The resulting rectangle is not within the original polygon")
-
-            # Create the blocked rectangle
-            blocked_rect_coords = [
-                (candidate.x, candidate.y),
-                (vertical_point.x, vertical_point.y),
-                (kitty_corner.x, kitty_corner.y),
-                (horizontal_point.x, horizontal_point.y),
-                (candidate.x, candidate.y)
-            ]
-
-            blocked_rect = Polygon(blocked_rect_coords)
-
-            # Ensure the blocked rectangle is within the original polygon
-            if not partial_figure.contains(blocked_rect):
-                # ValueError("The resulting rectangle is not within the original polygon")
-                logger.debug(f"The resulting rectangle is not within the original polygon")
-            return blocked_rect
-
-    
-    def find_incident_lines(self, partial_figure: Polygon,  point: Point) -> list[LineString]:
-        """
-        Find the two LineString objects incident to a given point in the polygon.
-
-        Args:
-            point (Point): The point to check.
-
-        Returns:
-            list[LineString]: A list of two LineString objects incident to the point.
-        """
-        if not partial_figure.contains(point) and not partial_figure.touches(point):
-            raise ValueError("The given point is not a vertex or on the boundary of the polygon")
-
-
-        coords = list(partial_figure.exterior.coords)
-        incident_lines = []
-
-        # Iterate through polygon edges
-        for i in range(len(coords) - 1):  
-            line = LineString([coords[i], coords[i + 1]])
-            if line.intersects(point):
-                incident_lines.append(line)
-                    
-        if len(incident_lines) != 2:
-            raise ValueError("The given point is not a vertex or does not have exactly two incident lines")
-
-        return incident_lines                
-        
-
+        return matching_and_blocks
 
     def is_rectangle(self, poly: Polygon) -> bool:
         """
@@ -664,7 +462,8 @@ class RectilinearPolygon_after:
             bool: True if the polygon is a rectangle, False otherwise.
         """
         return poly.area == poly.minimum_rotated_rectangle.area
-    
+
+
 @staticmethod
 def plot_and_partition(polygon: Polygon):
     """
@@ -673,9 +472,10 @@ def plot_and_partition(polygon: Polygon):
     Args:
         polygon (Polygon): The polygon to plot and partition.
     """
+    start = time.time()
     partition_result = partition_polygon(polygon)
-    
-    
+    end = time.time()
+    logger.warning(f"Partitioning took {end - start:.4f} seconds.")
 
     if not partition_result:
         # Process the partition result
@@ -683,45 +483,32 @@ def plot_and_partition(polygon: Polygon):
     else:
         logger.debug("Partition result:", partition_result)
 
-    # plotting(polygon, partition_result)
-
-          
-
+    plotting(polygon, partition_result)
 
 if __name__ == "__main__":
 
-    times = []
-    max_rectangles_list = []
-    max_rectangles = 10
-    partition_time = -1
-
-    while partition_time < 120:  # Continue until partitioning time exceeds 120 seconds
-        
-        poly = generate_rectilinear_polygon(max_rectangles)
-        # plotting(poly, [])
-        
-        start = time.time()
-        plot_and_partition(poly)
-        end = time.time()
-        
-        partition_time = end - start
-        logger.warning(f"Partitioning took {partition_time:.4f} seconds.")
-        
-        times.append(partition_time)
-        max_rectangles_list.append(max_rectangles)
-        
-        max_rectangles += 1
-
-    # Plotting the results
-    plt.figure(figsize=(10, 6))
-    plt.plot(max_rectangles_list, times, marker='o', linestyle='-', color='b')
-    plt.title('Partition Time vs Number of Rectangles')
-    plt.xlabel('Number of Rectangles (max_rectangles)')
-    plt.ylabel('Partition Time (seconds)')
-    plt.grid(True)
-    plt.show()
-        
-        
-           
-    
-    
+    polygon5 = Polygon(
+        [
+            (1, 5),
+            (1, 4),
+            (3, 4),
+            (3, 3),
+            (2, 3),
+            (2, 1),
+            (5, 1),
+            (5, 2),
+            (8, 2),
+            (8, 1),
+            (9, 1),
+            (9, 0),
+            (10, 0),
+            (10, 5),
+            (9, 5),
+            (9, 4),
+            (8, 4),
+            (8, 5),
+        ]
+    )
+    poly = generate_rectilinear_polygon(8)
+    plotting(poly, [])
+    plot_and_partition(poly)
