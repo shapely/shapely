@@ -667,7 +667,7 @@ class BaseGeometry(shapely.Geometry):
     def is_closed(self):
         """True if the geometry is closed, else False.
 
-        Applicable only to 1-D geometries.
+        Applicable only to linear geometries.
         """
         if self.geom_type == "LinearRing":
             return True

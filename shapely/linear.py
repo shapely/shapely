@@ -112,7 +112,7 @@ def line_merge(line, directed=False, **kwargs):
     Parameters
     ----------
     line : Geometry or array_like
-        MultiLineString(s) to merge.
+        Linear geometry or geometries to merge.
     directed : bool, default False
         Only combine lines if possible without changing point order.
         Requires GEOS >= 3.11.0
