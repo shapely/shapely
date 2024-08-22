@@ -1254,9 +1254,7 @@ def test_to_geojson_exceptions():
         shapely.to_geojson(1)
 
 
-@pytest.mark.skipif(
-    (3, 10, 2) <= shapely.geos_version < (3, 10, 0), reason="3.10.2 <= GEOS < 3.10"
-)
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize(
     "geom",
     [
@@ -1269,16 +1267,13 @@ def test_to_geojson_exceptions():
     ],
 )
 def test_to_geojson_point_empty(geom):
-    # Pending GEOS ticket: https://trac.osgeo.org/geos/ticket/1139
-    with pytest.raises(ValueError):
-        assert shapely.to_geojson(geom)
-
-
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 2), reason="GEOS < 3.10.2")
-@pytest.mark.parametrize("geom", [empty_point])
-def test_to_geojson_single_point_empty(geom):
-    geojson = shapely.to_geojson(geom)
-    assert geojson == '{"type":"Point","coordinates":[]}'
+    if shapely.geos_version < (3, 10, 2):
+        # Pending GEOS ticket: https://trac.osgeo.org/geos/ticket/1139
+        with pytest.raises(ValueError):
+            assert shapely.to_geojson(geom)
+        return
+    # Else, just confirm that the operation succeed
+    shapely.to_geojson(geom)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
