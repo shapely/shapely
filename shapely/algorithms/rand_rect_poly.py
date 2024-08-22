@@ -3,11 +3,12 @@ from shapely.geometry import Polygon
 from shapely.geometry import box as shapely_box
 
 
+
 def generate_rectilinear_polygon(
+    max_rectangles,
     canvas_width: int = 20,
     canvas_height: int = 20,
-    min_rectangles: int = 5,
-    max_rectangles: int = 8,
+    min_rectangles: int = 4,
     min_size: int = 1,
     max_size: int = 4,
     increments: int = 5
@@ -15,10 +16,10 @@ def generate_rectilinear_polygon(
     """
     Generate a rectilinear polygon composed of touching rectangles.
     
+    :param max_rectangles: Maximum number of rectangles
     :param canvas_width: Width of the canvas
     :param canvas_height: Height of the canvas
     :param min_rectangles: Minimum number of rectangles
-    :param max_rectangles: Maximum number of rectangles
     :param min_size: Minimum size of a rectangle
     :param max_size: Maximum size of a rectangle
     :param increments: Size increment for positioning and sizing

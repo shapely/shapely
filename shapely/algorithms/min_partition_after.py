@@ -11,6 +11,7 @@ import logging
 import heapq
 import time
 
+from matplotlib import pyplot as plt
 import numpy as np
 from classes import PriorityQueueItem, ComperablePolygon
 from shapely.geometry.collection import GeometryCollection
@@ -672,10 +673,9 @@ def plot_and_partition(polygon: Polygon):
     Args:
         polygon (Polygon): The polygon to plot and partition.
     """
-    start = time.time()
     partition_result = partition_polygon(polygon)
-    end = time.time()
-    logger.warning(f"Partitioning took {end - start:.4f} seconds.")
+    
+    
 
     if not partition_result:
         # Process the partition result
@@ -683,37 +683,45 @@ def plot_and_partition(polygon: Polygon):
     else:
         logger.debug("Partition result:", partition_result)
 
-    plotting(polygon, partition_result)
+    # plotting(polygon, partition_result)
 
-            
+          
+
 
 if __name__ == "__main__":
 
-    polygon5 = Polygon(
-        [
-            (1, 5),
-            (1, 4),
-            (3, 4),
-            (3, 3),
-            (2, 3),
-            (2, 1),
-            (5, 1),
-            (5, 2),
-            (8, 2),
-            (8, 1),
-            (9, 1),
-            (9, 0),
-            (10, 0),
-            (10, 5),
-            (9, 5),
-            (9, 4),
-            (8, 4),
-            (8, 5),
-        ]
-    )    
+    times = []
+    max_rectangles_list = []
+    max_rectangles = 10
+    partition_time = -1
+
+    while partition_time < 120:  # Continue until partitioning time exceeds 120 seconds
+        
+        poly = generate_rectilinear_polygon(max_rectangles)
+        # plotting(poly, [])
+        
+        start = time.time()
+        plot_and_partition(poly)
+        end = time.time()
+        
+        partition_time = end - start
+        logger.warning(f"Partitioning took {partition_time:.4f} seconds.")
+        
+        times.append(partition_time)
+        max_rectangles_list.append(max_rectangles)
+        
+        max_rectangles += 1
+
+    # Plotting the results
+    plt.figure(figsize=(10, 6))
+    plt.plot(max_rectangles_list, times, marker='o', linestyle='-', color='b')
+    plt.title('Partition Time vs Number of Rectangles')
+    plt.xlabel('Number of Rectangles (max_rectangles)')
+    plt.ylabel('Partition Time (seconds)')
+    plt.grid(True)
+    plt.show()
+        
+        
+           
     
-    pp = Polygon([(1,1), (5,1),(5,3), (4,3), (4,4), (5,4), (5,5), (1,5), (1,4), (2,4), (2,3), (1,3)])
     
-    poly = generate_rectilinear_polygon()
-    plotting(poly, [])
-    plot_and_partition(poly)
