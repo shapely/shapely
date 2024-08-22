@@ -467,6 +467,7 @@ def coverage_union(a, b, **kwargs):
     <POLYGON ((0 0, 0 1, 1 1, 2 1, 2 0, 1 0, 0 0))>
 
     Union with None returns same polygon
+
     >>> normalize(coverage_union(polygon, None))
     <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
 

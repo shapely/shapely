@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: "Please cite this software using these metadata."
 type: software
 title: Shapely
-version: "2.0.5"
-date-released: "2024-07-13"
+version: "2.0.6"
+date-released: "2024-08-19"
 doi: 10.5281/zenodo.5597138
 abstract: "Manipulation and analysis of geometric objects in the Cartesian plane."
 repository-artifact: https://pypi.org/project/Shapely
