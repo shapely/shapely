@@ -513,7 +513,7 @@ class BaseGeometry(shapely.Geometry):
             CAP_FLAT.
         quadsegs : int, optional
             Deprecated alias for `quad_segs`.
-        kwargs : dict, optional
+        **kwargs : dict, optional
             For backwards compatibility, will be ignored.
 
         Returns
