@@ -6,8 +6,8 @@ from array import array
 class CoordinateSequence:
     """Access to coordinate tuples from the parent geometry's coordinate sequence.
 
-    Example:
-    -------
+    Examples
+    --------
       >>> from shapely.wkt import loads
       >>> g = loads('POINT (0.0 0.0)')
       >>> list(g.coords)
@@ -18,8 +18,8 @@ class CoordinateSequence:
     def __init__(self, coords):
         """Initialize the CoordinateSequence.
 
-        Args:
-        ----
+        Parameters
+        ----------
             coords : array
                 The coordinate array.
 
@@ -44,12 +44,12 @@ class CoordinateSequence:
     def __getitem__(self, key):
         """Get the item at the specified index or slice.
 
-        Args:
-        ----
+        Parameters
+        ----------
             key : int or slice
                 The index or slice.
 
-        Returns:
+        Returns
         -------
             tuple or list: The item at the specified index or slice.
 
@@ -75,19 +75,19 @@ class CoordinateSequence:
     def __array__(self, dtype=None, copy=None):
         """Return a copy of the coordinate array.
 
-        Args:
-        ----
+        Parameters
+        ----------
             dtype : data-type, optional
                 The desired data-type for the array.
             copy : bool, optional
                 If True (default), a copy of the array is returned.
                 If False, the array is returned as-is.
 
-        Returns:
+        Returns
         -------
             array : The coordinate array.
 
-        Raises:
+        Raises
         ------
             ValueError : If `copy=False` is specified.
 
