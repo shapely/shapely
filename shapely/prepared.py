@@ -8,8 +8,8 @@ import shapely
 class PreparedGeometry:
     """A geometry prepared for efficient comparison to a set of other geometries.
 
-    Example:
-    -------
+    Examples
+    --------
       >>> from shapely.geometry import Point, Polygon
       >>> triangle = Polygon([(0.0, 0.0), (1.0, 1.0), (1.0, -1.0)])
       >>> p = prep(triangle)

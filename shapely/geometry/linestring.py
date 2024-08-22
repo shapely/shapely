@@ -112,8 +112,8 @@ class LineString(BaseGeometry):
     def xy(self):
         """Separate arrays of X and Y coordinate values.
 
-        Example:
-        -------
+        Examples
+        --------
           >>> x, y = LineString([(0, 0), (1, 1)]).xy
           >>> list(x)
           [0.0, 1.0]

@@ -147,8 +147,8 @@ class Point(BaseGeometry):
     def xy(self):
         """Separate arrays of X and Y coordinate values.
 
-        Example:
-        -------
+        Examples
+        --------
           >>> x, y = Point(0, 0).xy
           >>> list(x)
           [0.0]
