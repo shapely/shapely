@@ -19,10 +19,8 @@ class Cell:
 
         Parameters
         ----------
-        x : float
-            The x-coordinate of the cell centroid.
-        y : float
-            The y-coordinate of the cell centroid.
+        x, y : float
+            The x- and y-coordinates of the cell centroid.
         h : float
             Half of the cell size.
         polygon : shapely.geometry.Polygon

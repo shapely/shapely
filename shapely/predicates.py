@@ -492,9 +492,7 @@ def crosses(a, b, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to check.
-    b : Geometry or array_like
+    a, b : Geometry or array_like
         Geometry or geometries to check.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
@@ -549,9 +547,7 @@ def contains(a, b, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to check.
-    b : Geometry or array_like
+    a, b : Geometry or array_like
         Geometry or geometries to check.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
@@ -614,9 +610,7 @@ def contains_properly(a, b, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to check.
-    b : Geometry or array_like
+    a, b : Geometry or array_like
         Geometry or geometries to check.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
@@ -657,9 +651,7 @@ def covered_by(a, b, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to check.
-    b : Geometry or array_like
+    a, b : Geometry or array_like
         Geometry or geometries to check.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
@@ -709,9 +701,7 @@ def covers(a, b, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to check.
-    b : Geometry or array_like
+    a, b : Geometry or array_like
         Geometry or geometries to check.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
@@ -764,9 +754,7 @@ def disjoint(a, b, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to check.
-    b : Geometry or array_like
+    a, b : Geometry or array_like
         Geometry or geometries to check.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
@@ -809,9 +797,7 @@ def equals(a, b, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to check.
-    b : Geometry or array_like
+    a, b : Geometry or array_like
         Geometry or geometries to check.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
@@ -844,9 +830,7 @@ def intersects(a, b, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to check.
-    b : Geometry or array_like
+    a, b : Geometry or array_like
         Geometry or geometries to check.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
@@ -887,9 +871,7 @@ def overlaps(a, b, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to check.
-    b : Geometry or array_like
+    a, b : Geometry or array_like
         Geometry or geometries to check.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
@@ -938,9 +920,7 @@ def touches(a, b, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to check.
-    b : Geometry or array_like
+    a, b : Geometry or array_like
         Geometry or geometries to check.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
@@ -984,9 +964,7 @@ def within(a, b, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to check.
-    b : Geometry or array_like
+    a, b : Geometry or array_like
         Geometry or geometries to check.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
@@ -1051,9 +1029,7 @@ def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to check.
-    b : Geometry or array_like
+    a, b : Geometry or array_like
         Geometry or geometries to check.
     tolerance : float or array_like (default: 0.)
         The tolerance to use in the comparison.
@@ -1081,7 +1057,7 @@ def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
     >>> equals_exact(point1, None, tolerance=0.2)
     False
 
-    Difference between structucal and spatial equality:
+    Difference between structural and spatial equality:
 
     >>> polygon1 = Polygon([(0, 0), (1, 1), (0, 1), (0, 0)])
     >>> polygon2 = Polygon([(0, 0), (0, 1), (1, 1), (0, 0)])
@@ -1103,9 +1079,7 @@ def relate(a, b, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to check.
-    b : Geometry or array_like
+    a, b : Geometry or array_like
         Geometry or geometries to check.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
@@ -1135,9 +1109,7 @@ def relate_pattern(a, b, pattern, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to check.
-    b : Geometry or array_like
+    a, b : Geometry or array_like
         Geometry or geometries to check.
     pattern : string
         The pattern to match the DE-9IM relationship code against.
@@ -1168,9 +1140,7 @@ def dwithin(a, b, distance, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to check.
-    b : Geometry or array_like
+    a, b : Geometry or array_like
         Geometry or geometries to check.
     distance : float
         Negative distances always return False.

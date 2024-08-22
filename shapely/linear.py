@@ -158,9 +158,7 @@ def shared_paths(a, b, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Linestring or linestrings to compare.
-    b : Geometry or array_like
+    a, b : Geometry or array_like
         Linestring or linestrings to compare.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
@@ -192,10 +190,8 @@ def shortest_line(a, b, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
+    a, b : Geometry or array_like
         Geometry or geometries to compare.
-    b : Geometry or array_like
-        Geometry or geometries to compare
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 

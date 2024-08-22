@@ -93,10 +93,8 @@ def intersection(a, b, grid_size=None, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to intersect with b.
-    b : Geometry or array_like
-        Geometry or geometries to intersect with a.
+    a, b : Geometry or array_like
+        Geometry or geometries to intersect with.
     grid_size : float, optional
         Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
         precision of the inputs by default.
@@ -196,10 +194,8 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to "symmetric_difference" with b.
-    b : Geometry or array_like
-        Geometry or geometries to "symmetric_difference" with a.
+    a, b : Geometry or array_like
+        Geometry or geometries to evaluate symmetric difference with.
     grid_size : float, optional
         Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
         precision of the inputs by default.
@@ -301,10 +297,8 @@ def union(a, b, grid_size=None, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to merge with b.
-    b : Geometry or array_like
-        Geometry or geometries to merge with a.
+    a, b : Geometry or array_like
+        Geometry or geometries to merge (union).
     grid_size : float, optional
         Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
         precision of the inputs by default.
@@ -448,10 +442,8 @@ def coverage_union(a, b, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to be merged with b.
-    b : Geometry or array_like
-        Geometry or geometries to be merged with a.
+    a, b : Geometry or array_like
+        Geometry or geometries to merge (union).
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 

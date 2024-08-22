@@ -54,9 +54,7 @@ def distance(a, b, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to compute the distance between.
-    b : Geometry or array_like
+    a, b : Geometry or array_like
         Geometry or geometries to compute the distance between.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
@@ -204,9 +202,7 @@ def hausdorff_distance(a, b, densify=None, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to compute the distance between.
-    b : Geometry or array_like
+    a, b : Geometry or array_like
         Geometry or geometries to compute the distance between.
     densify : float or array_like, optional
         The value of densify is required to be between 0 and 1.
@@ -250,9 +246,7 @@ def frechet_distance(a, b, densify=None, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-        Geometry or geometries to compute the distance between.
-    b : Geometry or array_like
+    a, b : Geometry or array_like
         Geometry or geometries to compute the distance between.
     densify : float or array_like, optional
         The value of densify is required to be between 0 and 1.

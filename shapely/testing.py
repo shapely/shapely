@@ -91,9 +91,7 @@ def assert_geometries_equal(
 
     Parameters
     ----------
-    x : Geometry or array_like
-        Geometry or geometries to compare.
-    y : Geometry or array_like
+    x, y : Geometry or array_like
         Geometry or geometries to compare.
     tolerance: float, default 1e-7
         The tolerance to use when comparing geometries.
