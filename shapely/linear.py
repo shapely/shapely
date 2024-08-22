@@ -191,7 +191,6 @@ def shortest_line(a, b, **kwargs):
     See also
     --------
     prepare : improve performance by preparing ``a`` (the first argument)
-              (for GEOS>=3.9)
 
     Examples
     --------

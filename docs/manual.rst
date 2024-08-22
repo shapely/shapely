@@ -2614,7 +2614,6 @@ be parsed out.
 .. plot:: code/make_valid_geometrycollection.py
 
   `New in version 1.8`
-  `Requires GEOS > 3.8`
 
 The Shapely version, GEOS library version, and GEOS C API version are
 accessible via ``shapely.__version__``, ``shapely.geos_version_string``, and

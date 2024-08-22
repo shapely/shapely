@@ -42,10 +42,6 @@ def test_geos_version():
     assert actual == expected
 
 
-@pytest.mark.skipif(
-    sys.platform.startswith("win") and shapely.geos_version[:2] == (3, 7),
-    reason="GEOS_C_API_VERSION broken for GEOS 3.7.x on Windows",
-)
 def test_geos_capi_version():
     expected = "{}.{}.{}-CAPI-{}.{}.{}".format(
         *(shapely.geos_version + shapely.geos_capi_version)
