@@ -82,8 +82,8 @@ class CoordinateSequence:
         dtype : data-type, optional
             The desired data-type for the array.
         copy : bool, optional
-            If True (default), a copy of the array is returned. If False, the
-            array is returned as-is.
+            If None (default) or True, a copy of the array is always returned.
+            If False, a ValueError is raised as this is not supported.
 
         Returns
         -------
