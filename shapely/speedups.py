@@ -1,4 +1,9 @@
-"""Speedups for Shapely geometry operations."""
+"""Speedups for Shapely geometry operations.
+
+.. deprecated:: 2.0
+        Deprecated in Shapely 2.0, and will be removed in a future version.
+
+"""
 
 import warnings
 
