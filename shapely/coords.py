@@ -20,8 +20,8 @@ class CoordinateSequence:
 
         Parameters
         ----------
-            coords : array
-                The coordinate array.
+        coords : array
+            The coordinate array.
 
         """
         self._coords = coords
@@ -31,7 +31,8 @@ class CoordinateSequence:
 
         Returns
         -------
-            int: The length of the CoordinateSequence.
+        int
+            The length of the CoordinateSequence.
 
         """
         return self._coords.shape[0]
@@ -46,12 +47,13 @@ class CoordinateSequence:
 
         Parameters
         ----------
-            key : int or slice
-                The index or slice.
+        key : int or slice
+            The index or slice.
 
         Returns
         -------
-            tuple or list: The item at the specified index or slice.
+        tuple or list
+            The item at the specified index or slice.
 
         """
         m = self.__len__()
@@ -77,19 +79,21 @@ class CoordinateSequence:
 
         Parameters
         ----------
-            dtype : data-type, optional
-                The desired data-type for the array.
-            copy : bool, optional
-                If True (default), a copy of the array is returned.
-                If False, the array is returned as-is.
+        dtype : data-type, optional
+            The desired data-type for the array.
+        copy : bool, optional
+            If True (default), a copy of the array is returned. If False, the
+            array is returned as-is.
 
         Returns
         -------
-            array : The coordinate array.
+        array
+            The coordinate array.
 
         Raises
         ------
-            ValueError : If `copy=False` is specified.
+        ValueError
+            If `copy=False` is specified.
 
         """
         if copy is False:
