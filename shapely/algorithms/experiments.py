@@ -122,7 +122,7 @@ def plot_comparison(results):
 
 
 if __name__ == "__main__":
-    results = run_comparison_experiment(1, "comparison_results.csv")
+    results = run_comparison_experiment(1, "./algorithms/comparison_results.csv")
     plot_comparison(results)
     print(
         "Experiment completed. Results saved in 'comparison_results.csv' and 'comparison_trial_{trial}.png'."

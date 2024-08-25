@@ -165,6 +165,7 @@ class RectilinearPolygon:
                     current_area,
                 )
                 heapq.heappush(pq, new_item)
+                logger.warning(f"New item pushed to the priority queue")
 
 
 
@@ -683,7 +684,7 @@ def plot_and_partition(polygon: Polygon):
     else:
         logger.debug("Partition result:", partition_result)
 
-    plotting(polygon, partition_result)
+    # plotting(polygon, partition_result)
 
           
 

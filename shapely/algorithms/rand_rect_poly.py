@@ -1,9 +1,10 @@
+import logging
 import random
 from shapely.geometry import Polygon
 from shapely.geometry import box as shapely_box
 
 
-
+logger = logging.getLogger(__name__)
 def generate_rectilinear_polygon(
     max_rectangles,
     canvas_width: int = 20,
@@ -25,10 +26,11 @@ def generate_rectilinear_polygon(
     :param increments: Size increment for positioning and sizing
     :return: Shapely Polygon representing the rectilinear polygon
     """
-    num_rect = random.randint(min_rectangles, max_rectangles)
+    # num_rect = random.randint(min_rectangles, max_rectangles)
+    # logger.warning(f"Generating {num_rect} rectangles")
     boxes = []
 
-    for _ in range(num_rect):
+    for _ in range(max_rectangles):
         valid = False
         while not valid:
             width = random.randint(min_size, max_size) * increments
