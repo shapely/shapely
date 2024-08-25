@@ -21,7 +21,7 @@ class LineString(BaseGeometry):
     coordinates : sequence
         A sequence of (x, y, [,z]) numeric coordinate pairs or triples, or
         an array-like with shape (N, 2) or (N, 3).
-        Also can be a sequence of Point objects.
+        Also can be a sequence of Point objects, or combination of both.
 
     Examples
     --------
