@@ -111,7 +111,7 @@ select = [
     # isort
     "I",
     # pydocstyle
-    #"D",
+    "D",
 ]
 
 ignore = [
@@ -169,3 +169,6 @@ ignore = [
 [tool.ruff.lint.isort]
 combine-as-imports = true
 extra-standard-library = ["packaging"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"

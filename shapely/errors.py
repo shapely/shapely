@@ -6,7 +6,7 @@ from shapely.lib import GEOSException, ShapelyError, _setup_signal_checks  # noq
 
 
 def setup_signal_checks(interval=10000):
-    """This enables Python signal checks in the ufunc inner loops.
+    """Enable Python signal checks in the ufunc inner loops.
 
     Doing so allows termination (using CTRL+C) of operations on large arrays of
     vectors.
@@ -24,6 +24,7 @@ def setup_signal_checks(interval=10000):
     For more information on signals consult the Python docs:
 
     https://docs.python.org/3/library/signal.html
+
     """
     if interval <= 0:
         raise ValueError("Signal checks interval must be greater than zero.")
@@ -44,10 +45,7 @@ class TopologicalError(ShapelyError):
 
 
 class ShapelyDeprecationWarning(FutureWarning):
-    """
-    Warning for features that will be removed or behaviour that will be
-    changed in a future release.
-    """
+    """Warning for features that will be removed or changed in a future release."""
 
 
 class EmptyPartError(ShapelyError):
@@ -55,10 +53,7 @@ class EmptyPartError(ShapelyError):
 
 
 class GeometryTypeError(ShapelyError):
-    """
-    An error raised when the type of the geometry in question is
-    unrecognized or inappropriate.
-    """
+    """An error raised when the geometry has an unrecognized or inappropriate type."""
 
 
 def __getattr__(name):
