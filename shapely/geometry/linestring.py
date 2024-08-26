@@ -13,8 +13,8 @@ class LineString(BaseGeometry):
     """A geometry type composed of one or more line segments.
 
     A LineString is a one-dimensional feature and has a non-zero length but
-    zero area. It may approximate a curve and need not be straight. Unlike a
-    LinearRing, a LineString is not closed.
+    zero area. It may approximate a curve and need not be straight. A LineString may
+    be closed.
 
     Parameters
     ----------
