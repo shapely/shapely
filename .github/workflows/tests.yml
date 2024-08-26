@@ -18,7 +18,7 @@ jobs:
         include:
           # 2019
           - python: 3.8
-            geos: 3.9.0
+            geos: 3.9.0  # this older version is here temporarily to allow matrix to work
             numpy: 1.17.3
           # 2020
           - python: 3.9

@@ -45,7 +45,7 @@ def to_wkt(
 
     The following limitations apply to WKT serialization:
 
-    - only simple empty geometries can be 3D, collections are always 2D
+    - only simple empty geometries can be 3D, empty collections are always 2D
 
     Parameters
     ----------
