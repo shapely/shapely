@@ -14,11 +14,11 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-13, windows-2019]
         architecture: [x64]
-        geos: [3.9.0, 3.9.5, 3.10.6, 3.11.4, 3.12.2, 3.13.0beta1, main]
+        geos: [3.9.5, 3.10.6, 3.11.4, 3.12.2, 3.13.0beta1, main]
         include:
           # 2019
           - python: 3.8
-            geos: 3.9.0  # this older version is here temporarily to allow matrix to work
+            geos: 3.9.5  # this is here temporarily to allow matrix to work
             numpy: 1.17.3
           # 2020
           - python: 3.9
