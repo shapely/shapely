@@ -1,3 +1,5 @@
+"""Set-theoretic operations on geometry objects."""
+
 import numpy as np
 
 from shapely import GeometryType, lib
@@ -20,7 +22,7 @@ __all__ = [
 
 @multithreading_enabled
 def difference(a, b, grid_size=None, **kwargs):
-    """Returns the part of geometry A that does not intersect with geometry B.
+    """Return the part of geometry A that does not intersect with geometry B.
 
     If grid_size is nonzero, input coordinates will be snapped to a precision
     grid of that size and resulting coordinates will be snapped to that same
@@ -32,14 +34,16 @@ def difference(a, b, grid_size=None, **kwargs):
     Parameters
     ----------
     a : Geometry or array_like
+        Geometry or geometries to subtract b from.
     b : Geometry or array_like
+        Geometry or geometries to subtract from a.
     grid_size : float, optional
         Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
         precision of the inputs by default.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     set_precision
 
@@ -60,8 +64,8 @@ def difference(a, b, grid_size=None, **kwargs):
     >>> box1 = box(0.1, 0.2, 2.1, 2.1)
     >>> difference(box1, box2, grid_size=1)
     <POLYGON ((2 0, 0 0, 0 2, 1 2, 1 1, 2 1, 2 0))>
-    """
 
+    """
     if grid_size is not None:
         if lib.geos_version < (3, 9, 0):
             raise UnsupportedGEOSVersionError(
@@ -78,7 +82,7 @@ def difference(a, b, grid_size=None, **kwargs):
 
 @multithreading_enabled
 def intersection(a, b, grid_size=None, **kwargs):
-    """Returns the geometry that is shared between input geometries.
+    """Return the geometry that is shared between input geometries.
 
     If grid_size is nonzero, input coordinates will be snapped to a precision
     grid of that size and resulting coordinates will be snapped to that same
@@ -89,15 +93,15 @@ def intersection(a, b, grid_size=None, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-    b : Geometry or array_like
+    a, b : Geometry or array_like
+        Geometry or geometries to intersect with.
     grid_size : float, optional
         Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
         precision of the inputs by default.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     intersection_all
     set_precision
@@ -115,8 +119,8 @@ def intersection(a, b, grid_size=None, **kwargs):
     >>> box1 = box(0.1, 0.2, 2.1, 2.1)
     >>> intersection(box1, box2, grid_size=1)
     <POLYGON ((2 2, 2 1, 1 1, 1 2, 2 2))>
-    """
 
+    """
     if grid_size is not None:
         if lib.geos_version < (3, 9, 0):
             raise UnsupportedGEOSVersionError(
@@ -133,7 +137,7 @@ def intersection(a, b, grid_size=None, **kwargs):
 
 @multithreading_enabled
 def intersection_all(geometries, axis=None, **kwargs):
-    """Returns the intersection of multiple geometries.
+    """Return the intersection of multiple geometries.
 
     This function ignores None values when other Geometry elements are present.
     If all elements of the given axis are None, an empty GeometryCollection is
@@ -142,6 +146,7 @@ def intersection_all(geometries, axis=None, **kwargs):
     Parameters
     ----------
     geometries : array_like
+        Geometries to calculate the intersection of.
     axis : int, optional
         Axis along which the operation is performed. The default (None)
         performs the operation over all axes, returning a scalar value.
@@ -150,7 +155,7 @@ def intersection_all(geometries, axis=None, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     intersection
 
@@ -165,6 +170,7 @@ def intersection_all(geometries, axis=None, **kwargs):
     [<LINESTRING (1 1, 2 2)>]
     >>> intersection_all([line1, None])
     <LINESTRING (0 0, 2 2)>
+
     """
     geometries = np.asarray(geometries)
     if axis is None:
@@ -177,8 +183,7 @@ def intersection_all(geometries, axis=None, **kwargs):
 
 @multithreading_enabled
 def symmetric_difference(a, b, grid_size=None, **kwargs):
-    """Returns the geometry that represents the portions of input geometries
-    that do not intersect.
+    """Return the geometry with the portions of input geometries that do not intersect.
 
     If grid_size is nonzero, input coordinates will be snapped to a precision
     grid of that size and resulting coordinates will be snapped to that same
@@ -189,15 +194,15 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-    b : Geometry or array_like
+    a, b : Geometry or array_like
+        Geometry or geometries to evaluate symmetric difference with.
     grid_size : float, optional
         Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
         precision of the inputs by default.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     symmetric_difference_all
     set_precision
@@ -215,8 +220,8 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
     >>> box1 = box(0.1, 0.2, 2.1, 2.1)
     >>> symmetric_difference(box1, box2, grid_size=1)
     <MULTIPOLYGON (((2 0, 0 0, 0 2, 1 2, 1 1, 2 1, 2 0)), ((2 2, 1 2, 1 3, 3 3, ...>
-    """
 
+    """
     if grid_size is not None:
         if lib.geos_version < (3, 9, 0):
             raise UnsupportedGEOSVersionError(
@@ -233,7 +238,7 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
 
 @multithreading_enabled
 def symmetric_difference_all(geometries, axis=None, **kwargs):
-    """Returns the symmetric difference of multiple geometries.
+    """Return the symmetric difference of multiple geometries.
 
     This function ignores None values when other Geometry elements are present.
     If all elements of the given axis are None an empty GeometryCollection is
@@ -242,6 +247,7 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
     Parameters
     ----------
     geometries : array_like
+        Geometries to calculate the combined symmetric difference of.
     axis : int, optional
         Axis along which the operation is performed. The default (None)
         performs the operation over all axes, returning a scalar value.
@@ -250,7 +256,7 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     symmetric_difference
 
@@ -267,6 +273,7 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
     <LINESTRING (0 0, 2 2)>
     >>> symmetric_difference_all([None, None])
     <GEOMETRYCOLLECTION EMPTY>
+
     """
     geometries = np.asarray(geometries)
     if axis is None:
@@ -279,7 +286,7 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
 
 @multithreading_enabled
 def union(a, b, grid_size=None, **kwargs):
-    """Merges geometries into one.
+    """Merge geometries into one.
 
     If grid_size is nonzero, input coordinates will be snapped to a precision
     grid of that size and resulting coordinates will be snapped to that same
@@ -290,15 +297,15 @@ def union(a, b, grid_size=None, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-    b : Geometry or array_like
+    a, b : Geometry or array_like
+        Geometry or geometries to merge (union).
     grid_size : float, optional
         Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
         precision of the inputs by default.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     union_all
     set_precision
@@ -318,8 +325,8 @@ def union(a, b, grid_size=None, **kwargs):
     >>> box1 = box(0.1, 0.2, 2.1, 2.1)
     >>> union(box1, box2, grid_size=1)
     <POLYGON ((2 0, 0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0))>
-    """
 
+    """
     if grid_size is not None:
         if lib.geos_version < (3, 9, 0):
             raise UnsupportedGEOSVersionError(
@@ -336,7 +343,7 @@ def union(a, b, grid_size=None, **kwargs):
 
 @multithreading_enabled
 def union_all(geometries, grid_size=None, axis=None, **kwargs):
-    """Returns the union of multiple geometries.
+    """Return the union of multiple geometries.
 
     This function ignores None values when other Geometry elements are present.
     If all elements of the given axis are None an empty GeometryCollection is
@@ -354,6 +361,7 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
     Parameters
     ----------
     geometries : array_like
+        Geometries to merge/union.
     grid_size : float, optional
         Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
         precision of the inputs by default.
@@ -365,7 +373,7 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     union
     set_precision
@@ -392,6 +400,7 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
     <GEOMETRYCOLLECTION EMPTY>
     >>> union_all([])
     <GEOMETRYCOLLECTION EMPTY>
+
     """
     # for union_all, GEOS provides an efficient route through first creating
     # GeometryCollections
@@ -403,7 +412,9 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
         geometries = np.rollaxis(geometries, axis=axis, start=geometries.ndim)
 
     # create_collection acts on the inner axis
-    collections = lib.create_collection(geometries, GeometryType.GEOMETRYCOLLECTION)
+    collections = lib.create_collection(
+        geometries, np.intc(GeometryType.GEOMETRYCOLLECTION)
+    )
 
     if grid_size is not None:
         if lib.geos_version < (3, 9, 0):
@@ -424,17 +435,19 @@ unary_union = union_all
 
 @multithreading_enabled
 def coverage_union(a, b, **kwargs):
-    """Merges multiple polygons into one. This is an optimized version of
-    union which assumes the polygons to be non-overlapping.
+    """Merge multiple polygons into one.
+
+    This is an optimized version of union which assumes the polygons to be
+    non-overlapping.
 
     Parameters
     ----------
-    a : Geometry or array_like
-    b : Geometry or array_like
+    a, b : Geometry or array_like
+        Geometry or geometries to merge (union).
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     coverage_union_all
 
@@ -446,15 +459,18 @@ def coverage_union(a, b, **kwargs):
     <POLYGON ((0 0, 0 1, 1 1, 2 1, 2 0, 1 0, 0 0))>
 
     Union with None returns same polygon
+
     >>> normalize(coverage_union(polygon, None))
     <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
-    """
+
+    """  # noqa: E501
     return coverage_union_all([a, b], **kwargs)
 
 
 @multithreading_enabled
 def coverage_union_all(geometries, axis=None, **kwargs):
-    """Returns the union of multiple polygons of a geometry collection.
+    """Return the union of multiple polygons of a geometry collection.
+
     This is an optimized version of union which assumes the polygons
     to be non-overlapping.
 
@@ -465,6 +481,7 @@ def coverage_union_all(geometries, axis=None, **kwargs):
     Parameters
     ----------
     geometries : array_like
+        Geometries to merge/union.
     axis : int, optional
         Axis along which the operation is performed. The default (None)
         performs the operation over all axes, returning a scalar value.
@@ -473,7 +490,7 @@ def coverage_union_all(geometries, axis=None, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     coverage_union
 
@@ -488,6 +505,7 @@ def coverage_union_all(geometries, axis=None, **kwargs):
     <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
     >>> normalize(coverage_union_all([None, None]))
     <GEOMETRYCOLLECTION EMPTY>
+
     """
     # coverage union in GEOS works over GeometryCollections
     # first roll the aggregation axis backwards
@@ -499,5 +517,7 @@ def coverage_union_all(geometries, axis=None, **kwargs):
             np.asarray(geometries), axis=axis, start=geometries.ndim
         )
     # create_collection acts on the inner axis
-    collections = lib.create_collection(geometries, GeometryType.GEOMETRYCOLLECTION)
+    collections = lib.create_collection(
+        geometries, np.intc(GeometryType.GEOMETRYCOLLECTION)
+    )
     return lib.coverage_union(collections, **kwargs)

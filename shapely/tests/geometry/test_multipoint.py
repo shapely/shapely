@@ -9,7 +9,6 @@ from shapely.tests.geometry.test_multi import MultiGeometryTestCase
 
 class TestMultiPoint(MultiGeometryTestCase):
     def test_multipoint(self):
-
         # From coordinate tuples
         geom = MultiPoint([(1.0, 2.0), (3.0, 4.0)])
         assert len(geom.geoms) == 2

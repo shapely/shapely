@@ -66,7 +66,7 @@ NESTED_COLLECTIONM_NAN_WKB = struct.pack("<BII", 1, 7 | EWKBM, 1) + MULTIPOINTM_
 NESTED_COLLECTIONZM_NAN_WKB = (
     struct.pack("<BII", 1, 7 | EWKBZM, 1) + MULTIPOINTZM_NAN_WKB
 )
-INVALID_WKB = "01030000000100000002000000507daec600b1354100de02498e5e3d41306ea321fcb03541a011a53d905e3d41"
+INVALID_WKB = "01030000000100000002000000507daec600b1354100de02498e5e3d41306ea321fcb03541a011a53d905e3d41"  # noqa: E501
 
 GEOJSON_GEOMETRY = json.dumps({"type": "Point", "coordinates": [125.6, 10.1]}, indent=4)
 GEOJSON_FEATURE = json.dumps(
@@ -549,7 +549,8 @@ def test_to_wkt_large_float_skip_z():
 
 def test_to_wkt_large_float_no_trim():
     # https://github.com/shapely/shapely/issues/1903
-    # don't test the exact number, it is ridiculously large and probably platform dependent
+    # don't test the exact number, it is ridiculously large and probably platform
+    # dependent
     assert shapely.to_wkt(Point(1e101, 0), trim=False).startswith("POINT (")
 
 
@@ -832,7 +833,8 @@ def test_to_wkb_point_empty_2d(geom, expected):
     assert len(actual) == header_length + coordinate_length
     # Check the header
     assert actual[:header_length] == expected[:header_length]
-    # Check the coordinates (using numpy.isnan; there are many byte representations for NaN)
+    # Check the coordinates (using numpy.isnan; there are many byte representations for
+    # NaN)
     assert np.isnan(struct.unpack("<2d", actual[header_length:])).all()
 
 
@@ -885,7 +887,8 @@ def test_to_wkb_point_empty_z(geom, expected):
     assert len(actual) == header_length + coordinate_length
     # Check the header
     assert actual[:header_length] == expected[:header_length]
-    # Check the coordinates (using numpy.isnan; there are many byte representations for NaN)
+    # Check the coordinates (using numpy.isnan; there are many byte representations for
+    # NaN)
     assert np.isnan(struct.unpack("<3d", actual[header_length:])).all()
 
 
@@ -985,7 +988,8 @@ def test_to_wkb_point_empty_2d_output_dim_3(geom, expected):
     assert len(actual) == header_length + coordinate_length
     # Check the header
     assert actual[:header_length] == expected[:header_length]
-    # Check the coordinates (using numpy.isnan; there are many byte representations for NaN)
+    # Check the coordinates (using numpy.isnan; there are many byte representations for
+    # NaN)
     assert np.isnan(struct.unpack("<2d", actual[header_length:])).all()
 
 
