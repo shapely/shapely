@@ -997,7 +997,7 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
 @requires_geos("3.12.0")
 @multithreading_enabled
 def coverage_simplify(geometry, tolerance, simplify_boundary=True, axis=None, **kwargs):
-    """Returns a simplified version of an input geometry using the coverage simplification
+    """Return a simplified version of an input geometry using coverage simplification.
 
     Assumes that the geometry forms a polygonal coverage. Under this assumption, the
     function simplifies the edges using the Visvalingam-Whyatt algorithm, while
@@ -1009,8 +1009,8 @@ def coverage_simplify(geometry, tolerance, simplify_boundary=True, axis=None, **
     * **Non-overlapping** - polygons do not overlap (their interiors do not intersect)
     * **Edge-Matched** - vertices along shared edges are identical
 
-    The function allows simplification of all edges including the outer boundaries of the
-    coverage or simplification of only the inner (shared) edges.
+    The function allows simplification of all edges including the outer boundaries of
+    the coverage or simplification of only the inner (shared) edges.
 
     If there are other geometry types than Polygons or MultiPolygons present, the
     resulting GeometryCollection will not undergo simplification and geometries are
