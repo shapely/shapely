@@ -1044,7 +1044,9 @@ def coverage_simplify(geometry, tolerance, simplify_boundary=True, axis=None, **
         geometries = np.rollaxis(geometries, axis=axis, start=geometries.ndim)
 
     # create_collection acts on the inner axis
-    collections = lib.create_collection(geometries, GeometryType.GEOMETRYCOLLECTION)
+    collections = lib.create_collection(
+        geometries, np.intc(GeometryType.GEOMETRYCOLLECTION)
+    )
 
     return lib.coverage_simplify(collections, tolerance, simplify_boundary, **kwargs)
 
