@@ -17,8 +17,8 @@ from shapely import (
 from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
-    all_types,
     ArrayLike,
+    all_types,
     empty,
     empty_line_string,
     empty_point,

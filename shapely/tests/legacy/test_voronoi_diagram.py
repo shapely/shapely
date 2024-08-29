@@ -98,7 +98,7 @@ def test_from_polygon_without_floating_point_coordinates():
 
 
 def test_from_multipoint_without_floating_point_coordinates():
-    """A Multipoint with the same "shape" as the above Polygon raises the same error..."""
+    """A Multipoint with the same "shape" as the above Polygon raises the same error."""
     mp = load_wkt("MULTIPOINT (0 0, 1 0, 1 1, 0 1)")
 
     with pytest.raises(ValueError) as exc:

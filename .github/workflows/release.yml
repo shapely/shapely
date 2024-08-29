@@ -13,6 +13,9 @@ on:
       - "MANIFEST.in"
       - "pyproject.toml"
       - "setup.py"
+  schedule:
+    # in addition run weekly for nightly upload in case no other commits happened
+    - cron: '34 2 * * 0'
 
 jobs:
   build_sdist:
@@ -47,7 +50,7 @@ jobs:
     name: Build ${{ matrix.arch }} wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     env:
-      GEOS_VERSION: "3.12.1"
+      GEOS_VERSION: "3.12.2"
     strategy:
       fail-fast: false
       matrix:
@@ -69,15 +72,12 @@ jobs:
         - os: windows-2019
           arch: AMD64
           msvc_arch: x64
-        - os: macos-11
+        - os: macos-13
           arch: x86_64
           cmake_osx_architectures: x86_64
-        - os: macos-11
+        - os: macos-14
           arch: arm64
           cmake_osx_architectures: arm64
-        - os: macos-11
-          arch: universal2
-          cmake_osx_architectures: "x86_64;arm64"
 
     steps:
       - name: Checkout source
@@ -115,10 +115,11 @@ jobs:
         if: ${{ matrix.msvc_arch }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.5
+        uses: pypa/cibuildwheel@v2.20.0
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_SKIP: cp36-* pp* *musllinux* *-manylinux_i686
+          CIBW_TEST_SKIP: "cp38-macosx_arm64"
           CIBW_ENVIRONMENT_LINUX:
             GEOS_VERSION=${{ env.GEOS_VERSION }}
             GEOS_INSTALL=/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
@@ -127,23 +128,16 @@ jobs:
           CIBW_ENVIRONMENT_MACOS:
             GEOS_INSTALL=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
             GEOS_CONFIG=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
-            LDFLAGS=-Wl,-rpath,${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/lib
             MACOSX_DEPLOYMENT_TARGET=10.9
             CMAKE_OSX_ARCHITECTURES='${{ matrix.cmake_osx_architectures }}'
+            CFLAGS='-Wno-error=incompatible-function-pointer-types'
           CIBW_ENVIRONMENT_WINDOWS:
             GEOS_INSTALL='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}'
             GEOS_LIBRARY_PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\lib'
             GEOS_INCLUDE_PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\include'
           CIBW_BEFORE_ALL: ./ci/install_geos.sh
           CIBW_BEFORE_ALL_WINDOWS: ci\install_geos.cmd
-          # TEMP don't use automated/isolated build environment, but manually
-          # install build dependencies so we can build with numpy 2.0
-          # once numpy 2.0 is out, this can be removed again
-          CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
-          CIBW_BEFORE_BUILD: pip install --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple numpy setuptools cython
-          CIBW_BEFORE_BUILD_WINDOWS:
-            pip install --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple numpy setuptools cython
-            pip install delvewheel
+          CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} {wheel}
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: pytest --pyargs shapely.tests
@@ -154,6 +148,23 @@ jobs:
           name: release-${{ matrix.os }}-${{ matrix.arch }}
           path: ./wheelhouse/*.whl
           retention-days: 5
+
+  nightly_upload:
+    name: Upload nightly wheels
+    needs: [build_wheels]
+    runs-on: ubuntu-latest
+    if: github.repository == 'shapely/shapely' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: dist
+      - name: Upload wheels to Anaconda Cloud
+        uses: scientific-python/upload-nightly-action@b67d7fcc0396e1128a474d1ab2b48aa94680f9fc # 0.5.0
+        with:
+          artifacts_path: dist
+          anaconda_nightly_upload_token: ${{secrets.ANACONDA_ORG_UPLOAD_TOKEN}}
 
   publish:
     name: Publish on GitHub and PyPI

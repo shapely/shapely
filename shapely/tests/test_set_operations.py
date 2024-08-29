@@ -7,7 +7,8 @@ from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import all_types, empty, ignore_invalid, point, polygon
 
-# fixed-precision operations raise GEOS exceptions on mixed dimension geometry collections
+# fixed-precision operations raise GEOS exceptions on mixed dimension geometry
+# collections
 all_single_types = np.array(all_types)[
     ~shapely.is_empty(all_types)
     & (shapely.get_type_id(all_types) != shapely.GeometryType.GEOMETRYCOLLECTION)
@@ -18,14 +19,14 @@ SET_OPERATIONS = (
     shapely.intersection,
     shapely.symmetric_difference,
     shapely.union,
-    # shapely.coverage_union is tested seperately
+    # shapely.coverage_union is tested separately
 )
 
 REDUCE_SET_OPERATIONS = (
     (shapely.intersection_all, shapely.intersection),
     (shapely.symmetric_difference_all, shapely.symmetric_difference),
     (shapely.union_all, shapely.union),
-    #  shapely.coverage_union_all, shapely.coverage_union) is tested seperately
+    #  shapely.coverage_union_all, shapely.coverage_union) is tested separately
 )
 
 # operations that support fixed precision
@@ -281,7 +282,7 @@ def test_set_operation_prec_reduce_all_none(n, func, related_func):
 @pytest.mark.parametrize("n", range(1, 4))
 def test_coverage_union_reduce_1dim(n):
     """
-    This is tested seperately from other set operations as it expects only
+    This is tested separately from other set operations as it expects only
     non-overlapping polygons
     """
     test_data = [
@@ -315,7 +316,7 @@ def test_coverage_union_overlapping_inputs():
     other = Polygon([(1, 0), (0.9, 1), (2, 1), (2, 0), (1, 0)])
 
     if shapely.geos_version >= (3, 12, 0):
-        # Return mostly unchaged output
+        # Return mostly unchanged output
         result = shapely.coverage_union(polygon, other)
         expected = shapely.multipolygons([polygon, other])
         assert_geometries_equal(result, expected, normalize=True)
@@ -345,8 +346,8 @@ def test_coverage_union_non_polygon_inputs(geom_1, geom_2):
         def effective_geom_types(geom):
             if hasattr(geom, "geoms") and not geom.is_empty:
                 gts = set()
-                for geom in geom.geoms:
-                    gts |= effective_geom_types(geom)
+                for part in geom.geoms:
+                    gts |= effective_geom_types(part)
                 return gts
             return {geom.geom_type.lstrip("Multi").replace("LinearRing", "LineString")}
 

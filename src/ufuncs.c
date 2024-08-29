@@ -121,6 +121,9 @@ static char GEOSisSimpleAllTypes_r(void* context, void* geom) {
 static void* is_simple_data[1] = {GEOSisSimpleAllTypes_r};
 static void* is_ring_data[1] = {GEOSisRing_r};
 static void* has_z_data[1] = {GEOSHasZ_r};
+#if GEOS_SINCE_3_12_0
+static void* has_m_data[1] = {GEOSHasM_r};
+#endif
 /* the GEOSisClosed_r function fails on non-linestrings */
 static char GEOSisClosedAllTypes_r(void* context, void* geom) {
   int type = GEOSGeomTypeId_r(context, geom);
@@ -519,7 +522,7 @@ static void* GetExteriorRing(void* context, void* geom) {
   return ret;
 }
 static void* get_exterior_ring_data[1] = {GetExteriorRing};
-/* the normalize funcion acts inplace */
+/* the normalize function acts in-place */
 static void* GEOSNormalize_r_with_clone(void* context, void* geom) {
   int ret;
   void* new_geom = GEOSGeom_clone_r(context, geom);
@@ -835,7 +838,7 @@ static void* GetGeometryN(void* context, void* geom, int n) {
   return ret;
 }
 static void* get_geometry_data[1] = {GetGeometryN};
-/* the set srid funcion acts inplace */
+/* the set srid function acts in-place */
 static void* GEOSSetSRID_r_with_clone(void* context, void* geom, int srid) {
   void* ret = GEOSGeom_clone_r(context, geom);
   if (ret == NULL) {
@@ -1055,6 +1058,18 @@ static int GetZ(void* context, void* a, double* b) {
   }
 }
 static void* get_z_data[1] = {GetZ};
+#if GEOS_SINCE_3_12_0
+static int GetM(void* context, void* a, double* b) {
+  char typ = GEOSGeomTypeId_r(context, a);
+  if (typ != 0) {
+    *(double*)b = NPY_NAN;
+    return 1;
+  } else {
+    return GEOSGeomGetM_r(context, a, b);
+  }
+}
+static void* get_m_data[1] = {GetM};
+#endif
 static void* area_data[1] = {GEOSArea_r};
 static void* length_data[1] = {GEOSLength_r};
 
@@ -1297,7 +1312,7 @@ static void YY_d_func(char** args, const npy_intp* dimensions, const npy_intp* s
         errstate = PGERR_GEOS_EXCEPTION;
         goto finish;
       }
-      /* incase the outcome is 0.0, check the inputs for emptyness */
+      /* in case the outcome is 0.0, check the inputs for emptyness */
       if (*op1 == 0.0) {
         if (GEOSisEmpty_r(ctx, in1) || GEOSisEmpty_r(ctx, in2)) {
           *(double*)op1 = NPY_NAN;
@@ -1581,7 +1596,7 @@ static char make_valid_with_params_inner(void* ctx, GEOSMakeValidParams* params,
   return PGERR_SUCCESS;
 }
 
-static char make_valid_with_params_dtypes[4] = {NPY_OBJECT, NPY_INT, NPY_BOOL, 
+static char make_valid_with_params_dtypes[4] = {NPY_OBJECT, NPY_INT, NPY_BOOL,
                                                 NPY_OBJECT};
 static void make_valid_with_params_func(char** args, const npy_intp* dimensions,
                                         const npy_intp* steps, void* data) {
@@ -3383,21 +3398,22 @@ static void to_wkt_func(char** args, const npy_intp* dimensions, const npy_intp*
         }
       }
 #endif  // !GEOS_SINCE_3_13_0
-#if GEOS_SINCE_3_9_0
+#if !GEOS_SINCE_3_9_0
+      // Before GEOS 3.9.0, there was as segfault on e.g. MULTIPOINT (1 1, EMPTY)
+      errstate = check_to_wkt_compatible(ctx, in1);
+      if (errstate != PGERR_SUCCESS) {
+        goto finish;
+      }
+#elif !GEOS_SINCE_3_12_0
+      // Since GEOS 3.9.0 and before 3.12.0 further handling required
       errstate = wkt_empty_3d_geometry(ctx, in1, &wkt);
       if (errstate != PGERR_SUCCESS) {
         goto finish;
       }
       if (wkt != NULL) {
+        Py_XDECREF(*out);
         *out = PyUnicode_FromString(wkt);
-        goto finish;
-      }
-
-#else
-      // Before GEOS 3.9.0, there was as segfault on e.g. MULTIPOINT (1 1, EMPTY)
-      errstate = check_to_wkt_compatible(ctx, in1);
-      if (errstate != PGERR_SUCCESS) {
-        goto finish;
+        continue;
       }
 #endif
       wkt = GEOSWKTWriter_write_r(ctx, writer, in1);
@@ -3836,6 +3852,8 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 
 #if GEOS_SINCE_3_12_0
   DEFINE_Y_Y(disjoint_subset_union);
+  DEFINE_Y_b(has_m);
+  DEFINE_Y_d(get_m);
 #endif
 
   Py_DECREF(ufunc);

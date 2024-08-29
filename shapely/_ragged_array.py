@@ -1,10 +1,8 @@
-"""
-This modules provides a conversion to / from a ragged (or "jagged") array
-representation of the geometries.
+"""Provides a conversion to / from a ragged array representation of geometries.
 
-A ragged array is an irregular array of arrays of which each element can have
-a different length. As a result, such an array cannot be represented as a
-standard, rectangular nD array.
+A ragged (or "jagged") array is an irregular array of arrays of which each
+element can havea  different length. As a result, such an array cannot be
+represented as a standard, rectangular nD array.
 The coordinates of geometries can be represented as arrays of arrays of
 coordinate pairs (possibly multiple levels of nesting, depending on the
 geometry type).
@@ -26,6 +24,7 @@ different geometry types is defined by the GeoArrow project:
 https://github.com/geoarrow/geoarrow
 
 """
+
 import numpy as np
 
 from shapely import creation
@@ -37,7 +36,7 @@ from shapely._geometry import (
     get_type_id,
 )
 from shapely.coordinates import get_coordinates
-from shapely.predicates import is_empty
+from shapely.predicates import is_empty, is_missing
 
 __all__ = ["to_ragged_array", "from_ragged_array"]
 
@@ -50,7 +49,8 @@ def _get_arrays_point(arr, include_z):
     coords = get_coordinates(arr, include_z=include_z)
 
     # empty points are represented by NaNs
-    empties = is_empty(arr)
+    # + missing geometries should also be present with some value
+    empties = is_empty(arr) | is_missing(arr)
     if empties.any():
         indices = np.nonzero(empties)[0]
         indices = indices - np.arange(len(indices))
@@ -137,9 +137,7 @@ def _get_arrays_multipolygon(arr, include_z):
 
 
 def to_ragged_array(geometries, include_z=None):
-    """
-    Converts geometries to a ragged array representation using a contiguous
-    array of coordinates and offset arrays.
+    """Convert geometries to a ragged array representation.
 
     This function converts an array of geometries to a ragged array
     (i.e. irregular array of arrays) of coordinates, represented in memory
@@ -186,7 +184,7 @@ def to_ragged_array(geometries, include_z=None):
     treated as multi types.
     GeometryCollections and other mixed geometry types are not supported.
 
-    See also
+    See Also
     --------
     from_ragged_array
 
@@ -399,9 +397,7 @@ def _multipolygons_from_flatcoords(coords, offsets1, offsets2, offsets3):
 
 
 def from_ragged_array(geometry_type, coords, offsets=None):
-    """
-    Creates geometries from a contiguous array of coordinates
-    and offset arrays.
+    """Create geometries from a contiguous array of coordinates and offset arrays.
 
     This function creates geometries from the ragged array representation
     as returned by ``to_ragged_array``.

@@ -1,5 +1,6 @@
 import os
 import sys
+from inspect import cleandoc
 from itertools import chain
 from string import ascii_letters, digits
 from unittest import mock
@@ -82,13 +83,20 @@ class SomeClass:
         """
 
 
-expected_docstring = """Docstring that will be mocked.
+def expected_docstring(**kwds):
+    doc = """Docstring that will be mocked.
 {indent}A multiline.
 
 {indent}.. note:: 'func' requires at least GEOS {version}.
 
 {indent}Some description.
-{indent}"""
+{indent}""".format(**kwds)
+    if sys.version_info[:2] >= (3, 13):
+        # There are subtle differences between inspect.cleandoc() and
+        # _PyCompile_CleanDoc(). Most significantly, the latter does not remove
+        # leading or trailing blank lines.
+        return cleandoc(doc) + "\n"
+    return doc
 
 
 @pytest.mark.parametrize("version", ["3.10.0", "3.10.1", "3.9.2"])
@@ -104,7 +112,7 @@ def test_requires_geos_not_ok(version, mocked_geos_version):
     with pytest.raises(shapely.errors.UnsupportedGEOSVersionError):
         wrapped()
 
-    assert wrapped.__doc__ == expected_docstring.format(version=version, indent=" " * 4)
+    assert wrapped.__doc__ == expected_docstring(version=version, indent=" " * 4)
 
 
 @pytest.mark.parametrize("version", ["3.9.0", "3.10.0"])
@@ -112,7 +120,7 @@ def test_requires_geos_doc_build(version, mocked_geos_version, sphinx_doc_build)
     """The requires_geos decorator always adapts the docstring."""
     wrapped = requires_geos(version)(func)
 
-    assert wrapped.__doc__ == expected_docstring.format(version=version, indent=" " * 4)
+    assert wrapped.__doc__ == expected_docstring(version=version, indent=" " * 4)
 
 
 @pytest.mark.parametrize("version", ["3.9.0", "3.10.0"])
@@ -120,7 +128,7 @@ def test_requires_geos_method(version, mocked_geos_version, sphinx_doc_build):
     """The requires_geos decorator adjusts methods docstrings correctly"""
     wrapped = requires_geos(version)(SomeClass.func)
 
-    assert wrapped.__doc__ == expected_docstring.format(version=version, indent=" " * 8)
+    assert wrapped.__doc__ == expected_docstring(version=version, indent=" " * 8)
 
 
 @multithreading_enabled
