@@ -632,6 +632,8 @@ def disjoint_subset_union_all(geometries, axis=None, **kwargs):
             np.asarray(geometries), axis=axis, start=geometries.ndim
         )
     # create_collection acts on the inner axis
-    collections = lib.create_collection(geometries, GeometryType.GEOMETRYCOLLECTION)
+    collections = lib.create_collection(
+        geometries, np.intc(GeometryType.GEOMETRYCOLLECTION)
+    )
 
     return lib.disjoint_subset_union(collections, **kwargs)
