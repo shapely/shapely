@@ -4,7 +4,6 @@ import numpy as np
 
 from shapely import GeometryType, lib
 from shapely.decorators import multithreading_enabled
-from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
     "difference",
@@ -38,8 +37,7 @@ def difference(a, b, grid_size=None, **kwargs):
     b : Geometry or array_like
         Geometry or geometries to subtract from a.
     grid_size : float, optional
-        Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
-        precision of the inputs by default.
+        Precision grid size; will use the highest precision of the inputs by default.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -67,11 +65,6 @@ def difference(a, b, grid_size=None, **kwargs):
 
     """
     if grid_size is not None:
-        if lib.geos_version < (3, 9, 0):
-            raise UnsupportedGEOSVersionError(
-                "grid_size parameter requires GEOS >= 3.9.0"
-            )
-
         if not np.isscalar(grid_size):
             raise ValueError("grid_size parameter only accepts scalar values")
 
@@ -96,8 +89,7 @@ def intersection(a, b, grid_size=None, **kwargs):
     a, b : Geometry or array_like
         Geometry or geometries to intersect with.
     grid_size : float, optional
-        Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
-        precision of the inputs by default.
+        Precision grid size; will use the highest precision of the inputs by default.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -122,11 +114,6 @@ def intersection(a, b, grid_size=None, **kwargs):
 
     """
     if grid_size is not None:
-        if lib.geos_version < (3, 9, 0):
-            raise UnsupportedGEOSVersionError(
-                "grid_size parameter requires GEOS >= 3.9.0"
-            )
-
         if not np.isscalar(grid_size):
             raise ValueError("grid_size parameter only accepts scalar values")
 
@@ -197,8 +184,7 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
     a, b : Geometry or array_like
         Geometry or geometries to evaluate symmetric difference with.
     grid_size : float, optional
-        Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
-        precision of the inputs by default.
+        Precision grid size; will use the highest precision of the inputs by default.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -223,11 +209,6 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
 
     """
     if grid_size is not None:
-        if lib.geos_version < (3, 9, 0):
-            raise UnsupportedGEOSVersionError(
-                "grid_size parameter requires GEOS >= 3.9.0"
-            )
-
         if not np.isscalar(grid_size):
             raise ValueError("grid_size parameter only accepts scalar values")
 
@@ -300,8 +281,7 @@ def union(a, b, grid_size=None, **kwargs):
     a, b : Geometry or array_like
         Geometry or geometries to merge (union).
     grid_size : float, optional
-        Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
-        precision of the inputs by default.
+        Precision grid size; will use the highest precision of the inputs by default.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -328,11 +308,6 @@ def union(a, b, grid_size=None, **kwargs):
 
     """
     if grid_size is not None:
-        if lib.geos_version < (3, 9, 0):
-            raise UnsupportedGEOSVersionError(
-                "grid_size parameter requires GEOS >= 3.9.0"
-            )
-
         if not np.isscalar(grid_size):
             raise ValueError("grid_size parameter only accepts scalar values")
 
@@ -363,8 +338,7 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
     geometries : array_like
         Geometries to merge/union.
     grid_size : float, optional
-        Precision grid size; requires GEOS >= 3.9.0.  Will use the highest
-        precision of the inputs by default.
+        Precision grid size; will use the highest precision of the inputs by default.
     axis : int, optional
         Axis along which the operation is performed. The default (None)
         performs the operation over all axes, returning a scalar value.
@@ -417,11 +391,6 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
     )
 
     if grid_size is not None:
-        if lib.geos_version < (3, 9, 0):
-            raise UnsupportedGEOSVersionError(
-                "grid_size parameter requires GEOS >= 3.9.0"
-            )
-
         if not np.isscalar(grid_size):
             raise ValueError("grid_size parameter only accepts scalar values")
 
