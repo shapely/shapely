@@ -31,6 +31,11 @@ REDUCE_SET_OPERATIONS = (
 # operations that support fixed precision
 REDUCE_SET_OPERATIONS_PREC = ((shapely.union_all, shapely.union),)
 
+if shapely.geos_version >= (3, 12, 0):
+    SET_OPERATIONS += (shapely.disjoint_subset_union,)
+    REDUCE_SET_OPERATIONS += (
+        (shapely.disjoint_subset_union_all, shapely.disjoint_subset_union),
+    )
 
 reduce_test_data = [
     shapely.box(0, 0, 5, 5),
@@ -64,6 +69,8 @@ def test_set_operation_array(a, func):
 
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 def test_set_operation_prec_nonscalar_grid_size(func):
+    if func is shapely.disjoint_subset_union:
+        pytest.skip("disjoint_subset_union does not support grid_size")
     with pytest.raises(
         ValueError, match="grid_size parameter only accepts scalar values"
     ):
@@ -74,6 +81,8 @@ def test_set_operation_prec_nonscalar_grid_size(func):
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 @pytest.mark.parametrize("grid_size", [0, 1, 2])
 def test_set_operation_prec_array(a, func, grid_size):
+    if func is shapely.disjoint_subset_union:
+        pytest.skip("disjoint_subset_union does not support grid_size")
     actual = func([a, a], point, grid_size=grid_size)
     assert actual.shape == (2,)
     assert isinstance(actual[0], Geometry)

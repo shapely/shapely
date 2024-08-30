@@ -21,6 +21,9 @@ Improvements:
   lets it automatically detect the dimensionality of each input geometry.
 - Add parameters ``method`` and ``keep_collapsed`` to ``shapely.make_valid()`` (#1941)
 - Upgraded the GEOS version in the binary wheel distributions to 3.12.1.
+- Add ``disjoint_subset_union`` and ``disjoint_subset_union_all`` as an optimized
+  version of union and union_all, assuming inputs can be divided into subsets that do
+  not intersect. Requires at least GEOS 3.12.
 - The ``voronoi_polygons`` now accepts the ``ordered`` keyword, optionally forcing the
   order of polygons within the GeometryCollection to follow the order of input
   coordinates. Requires at least GEOS 3.12. (#1968)
