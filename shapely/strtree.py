@@ -1,6 +1,7 @@
 """STRtree spatial index for efficient spatial queries."""
 
-from typing import Any, Iterable, Union
+from collections.abc import Iterable
+from typing import Any, Union
 
 import numpy as np
 
