@@ -99,7 +99,6 @@ def test_reverse():
     assert result.coords[:] == coords[::-1]
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize(
     "op", ["union", "intersection", "difference", "symmetric_difference"]
 )
