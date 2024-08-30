@@ -52,7 +52,7 @@ jobs:
           compression-level: 0
 
   build_wheels_linux:
-    name: Build wheels on Linux with ${{ matrix.baseimage }}
+    name: Build ${{ matrix.baseimage }} wheels
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -184,7 +184,6 @@ jobs:
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_SKIP: pp* *musllinux* *-manylinux_i686
-          CIBW_TEST_SKIP: "cp38-macosx_arm64"
           CIBW_ENVIRONMENT_MACOS:
             GEOS_INSTALL=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
             GEOS_CONFIG=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
