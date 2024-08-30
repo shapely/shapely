@@ -506,12 +506,10 @@ def disjoint_subset_union(a, b, **kwargs):
     :func:`union`. As such, it is recommeded to use ``disjoint_subset_union`` with
     GeometryCollections rather than individual geometries.
 
-    Requires GEOS >= 3.12.0
-
     Parameters
     ----------
-    a : Geometry or array_like
-    b : Geometry or array_like
+    a, b : Geometry or array_like
+        Geometry or geometries to merge (union).
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -562,11 +560,10 @@ def disjoint_subset_union_all(geometries, axis=None, **kwargs):
     If all elements of the given axis are None, an empty GeometryCollection is
     returned.
 
-    Requires GEOS >= 3.12.0
-
     Parameters
     ----------
     geometries : array_like
+        Geometries to union.
     axis : int, optional
         Axis along which the operation is performed. The default (None)
         performs the operation over all axes, returning a scalar value.
