@@ -274,13 +274,7 @@ def test_transform_correct_coordinate_dimension():
 
 
 @pytest.mark.parametrize("geom", [
-    pytest.param(
-        empty_point_z,
-        marks=pytest.mark.skipif(
-            shapely.geos_version < (3, 9, 0),
-            reason="Empty points don't have a dimensionality before GEOS 3.9",
-        ),
-    ),
+    empty_point_z,
     empty_line_string_z,
 ])
 def test_transform_empty_preserve_z(geom):
@@ -290,13 +284,7 @@ def test_transform_empty_preserve_z(geom):
 
 
 @pytest.mark.parametrize("geom", [
-    pytest.param(
-        empty_point_z,
-        marks=pytest.mark.skipif(
-            shapely.geos_version < (3, 9, 0),
-            reason="Empty points don't have a dimensionality before GEOS 3.9",
-        ),
-    ),
+    empty_point_z,
     empty_line_string_z,
 ])
 def test_transform_remove_z(geom):

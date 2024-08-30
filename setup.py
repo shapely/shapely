@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 ch = logging.StreamHandler()
 log.addHandler(ch)
 
-MIN_GEOS_VERSION = "3.8"
+MIN_GEOS_VERSION = "3.9"
 
 if "all" in sys.warnoptions:
     # show GEOS messages in console with: python -W all

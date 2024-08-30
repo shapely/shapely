@@ -46,10 +46,7 @@ def to_wkt(
 
     The following limitations apply to WKT serialization:
 
-    - for GEOS <= 3.8 a multipoint with an empty sub-geometry will raise an exception
-    - for GEOS <= 3.8 empty geometries are always serialized to 2D
-    - for GEOS >= 3.9 only simple empty geometries can be 3D, collections are still
-      always 2D
+    - only simple empty geometries can be 3D, empty collections are always 2D
 
     Parameters
     ----------
@@ -136,9 +133,6 @@ def to_wkb(
 
     - linearrings will be converted to linestrings
     - a point with only NaN coordinates is converted to an empty point
-    - for GEOS <= 3.7, empty points are always serialized to 3D if
-      output_dimension=3, and to 2D if output_dimension=2
-    - for GEOS == 3.8, empty points are always serialized to 2D
 
     Parameters
     ----------

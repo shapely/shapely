@@ -124,12 +124,7 @@ def test_points_handle_nan_allow(coords, expected_wkt):
 )
 def test_points_handle_nan(coords, handle_nan, expected_wkt):
     actual = shapely.points(coords, handle_nan=handle_nan)
-    # empty points have no dimensionality for GEOS < 3.9
-    if expected_wkt == "POINT Z EMPTY" and shapely.geos_version < (3, 9, 0):
-        allowed = {"POINT EMPTY", "POINT Z EMPTY"}
-    else:
-        allowed = {expected_wkt}
-    assert actual.wkt in allowed
+    assert actual.wkt in expected_wkt
 
 
 @pytest.mark.parametrize(

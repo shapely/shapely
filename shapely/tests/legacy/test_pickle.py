@@ -77,8 +77,5 @@ if __name__ == "__main__":
     print(shapely.geos.geos_version)
 
     for name, geom in TEST_DATA.items():
-        if name == "emptypoint" and shapely.geos.geos_version < (3, 9, 0):
-            # Empty Points cannot be represented in WKB
-            continue
         with open(datadir / f"{name}_{shapely_version}.pickle", "wb") as f:
             pickle.dump(geom, f)
