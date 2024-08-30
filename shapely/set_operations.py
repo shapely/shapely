@@ -499,8 +499,8 @@ def coverage_union_all(geometries, axis=None, **kwargs):
 def disjoint_subset_union(a, b, **kwargs):
     """Merge multiple polygons into one using algorithm optimised for subsets.
 
-    This is an optimized version of
-    union which assumes inputs can be divided into subsets that do not intersect.
+    This is an optimized version of union which assumes inputs can be
+    divided into subsets that do not intersect.
 
     If there is only one such subset, performance can be expected to be worse than
     :func:`union`. As such, it is recommeded to use ``disjoint_subset_union`` with
