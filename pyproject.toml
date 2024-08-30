@@ -39,9 +39,9 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
-    "numpy>=1.16",
+    "numpy>=1.19",
 ]
 
 [project.optional-dependencies]
