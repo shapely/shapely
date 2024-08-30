@@ -57,7 +57,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        basetag: [2024.08.12-1]
         include:
           - baseimage: manylinux2014_x86_64
             cibw_build: "*manylinux_x86_64"
@@ -71,6 +70,8 @@ jobs:
           - baseimage: musllinux_1_2_aarch64
             cibw_build: "*musllinux_aarch64"
             arch: aarch64
+    env:
+      basetag: 2024.08.12-1
 
     steps:
       - name: Checkout source
@@ -100,7 +101,7 @@ jobs:
           platforms: linux/${{ matrix.arch }}
           tags: ${{ matrix.baseimage }}_geos:${{ env.GEOS_VERSION }}
           build-args: |
-            BASEIMAGE=quay.io/pypa/${{ matrix.baseimage }}:${{ matrix.basetag }}
+            BASEIMAGE=quay.io/pypa/${{ matrix.baseimage }}:${{ env.basetag }}
             GEOS_VERSION=${{ env.GEOS_VERSION }}
           push: false
           load: true
