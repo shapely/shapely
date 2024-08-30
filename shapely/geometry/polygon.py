@@ -283,10 +283,9 @@ class Polygon(BaseGeometry):
         ]
         if not len(my_coords) == len(other_coords):
             return False
-        # equal_nan=False is the default, but not yet available for older numpy
         return np.all(
             [
-                np.array_equal(left, right)  # , equal_nan=False)
+                np.array_equal(left, right, equal_nan=False)
                 for left, right in zip(my_coords, other_coords)
             ]
         )

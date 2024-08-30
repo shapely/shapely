@@ -19,7 +19,7 @@ jobs:
           # 2020
           - python: 3.9
             geos: 3.9.5
-            numpy: 1.19.5
+            numpy: 1.20.3
           # 2021
           - python: "3.10"
             geos: 3.10.6
@@ -53,7 +53,7 @@ jobs:
             architecture: x86
             python: 3.9
             geos: 3.9.5
-            numpy: 1.16.2
+            numpy: 1.20.3
           - os: windows-2019
             architecture: x86
             python: "3.11"
