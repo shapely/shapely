@@ -557,6 +557,9 @@ static void* oriented_envelope_data[1] = {GEOSMinimumRotatedRectangle_r};
 #if GEOS_SINCE_3_11_0
 static void* line_merge_directed_data[1] = {GEOSLineMergeDirected_r};
 #endif
+#if GEOS_SINCE_3_12_0
+static void* disjoint_subset_union_data[1] = {GEOSDisjointSubsetUnion_r};
+#endif  // GEOS_SINCE_3_12_0
 typedef void* FuncGEOS_Y_Y(void* context, void* a);
 static char Y_Y_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
 static void Y_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
@@ -3872,6 +3875,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 
 #if GEOS_SINCE_3_12_0
   DEFINE_CUSTOM(coverage_simplify, 3);
+  DEFINE_Y_Y(disjoint_subset_union);
   DEFINE_Y_b(has_m);
   DEFINE_Y_d(get_m);
 #endif

@@ -214,11 +214,8 @@ class BaseGeometry(shapely.Geometry):
         """Return True if geometries are equal, else False."""
         if not isinstance(other, BaseGeometry):
             return NotImplemented
-        # equal_nan=False is the default, but not yet available for older numpy
-        # TODO updated once we require numpy >= 1.19
         return type(other) is type(self) and np.array_equal(
-            self.coords,
-            other.coords,  # , equal_nan=False
+            self.coords, other.coords, equal_nan=False
         )
 
     def __ne__(self, other):
