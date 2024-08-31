@@ -1228,7 +1228,7 @@ def minimum_bounding_circle(geometry, **kwargs):
 @requires_geos("3.9.0")
 @multithreading_enabled
 def maximum_inscribed_circle(geometry, tolerance=None, **kwargs):
-    """Finds the largest circle that is fully contained within the input geometry.
+    """Find the largest circle that is fully contained within the input geometry.
 
     Constructs the "maximum inscribed circle" (MIC) for a polygonal geometry,
     up to a specified tolerance. The MIC is determined by a point in the
@@ -1264,7 +1264,7 @@ def maximum_inscribed_circle(geometry, tolerance=None, **kwargs):
     >>> maximum_inscribed_circle(Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]))
     <LINESTRING (5 5, 0 5)>
 
-    See also
+    See Also
     --------
     minimum_bounding_circle
     """
