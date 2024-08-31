@@ -1077,7 +1077,9 @@ def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
 
 @multithreading_enabled
 def equals_identical(a, b, **kwargs):
-    """Returns True if the geometries are pointwise equivalent by checking
+    """Return True if the geometries are identical.
+
+    This function verifies whether geometries are pointwise equivalent by checking
     that the structure, ordering, and values of all vertices are identical
     in all dimensions.
 
@@ -1097,6 +1099,7 @@ def equals_identical(a, b, **kwargs):
     Parameters
     ----------
     a, b : Geometry or array_like
+        Geometry or geometries to check.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
