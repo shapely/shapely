@@ -17,8 +17,8 @@ from shapely import (
 from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
-    all_types,
     ArrayLike,
+    all_types,
     empty,
     empty_line_string,
     empty_point,
@@ -63,9 +63,9 @@ def test_no_args_array(geometry, func):
         geometry.is_empty
         and shapely.get_num_geometries(geometry) > 0
         and func is shapely.node
-        and shapely.geos_version < (3, 8, 3)
+        and shapely.geos_version < (3, 9, 3)
     ):
-        pytest.xfail("GEOS < 3.8.3 crashes with empty geometries")  # GEOS GH-601
+        pytest.xfail("GEOS < 3.9.3 crashes with empty geometries")  # GEOS GH-601
     actual = func([geometry, geometry])
     assert actual.shape == (2,)
     assert actual[0] is None or isinstance(actual[0], Geometry)
@@ -74,13 +74,6 @@ def test_no_args_array(geometry, func):
 @pytest.mark.parametrize("geometry", all_types)
 @pytest.mark.parametrize("func", CONSTRUCTIVE_FLOAT_ARG)
 def test_float_arg_array(geometry, func):
-    if (
-        geometry.is_empty
-        and shapely.get_num_geometries(geometry) > 0
-        and (func is shapely.delaunay_triangles or func is shapely.voronoi_polygons)
-        and shapely.geos_version < (3, 8, 1)
-    ):
-        pytest.xfail("GEOS < 3.8.1 crashes with empty geometries")
     if (
         func is shapely.offset_curve
         and shapely.get_type_id(geometry) not in [1, 2]
@@ -509,12 +502,9 @@ def test_remove_repeated_points_invalid_type(geom, tolerance):
                 holes=[[(2, 2), (4, 2), (4, 4), (2, 4), (2, 2)]],
             ),
         ),
-        pytest.param(
+        (
             MultiLineString([[(0, 0), (1, 2)], [(3, 3), (4, 4)]]),
             MultiLineString([[(1, 2), (0, 0)], [(4, 4), (3, 3)]]),
-            marks=pytest.mark.skipif(
-                shapely.geos_version < (3, 8, 1), reason="GEOS < 3.8.1"
-            ),
         ),
         (
             MultiPolygon(
@@ -637,6 +627,15 @@ def test_clip_by_rect_polygon(geom, rect, expected):
 
 @pytest.mark.parametrize("geometry", all_types)
 def test_clip_by_rect_array(geometry):
+    if (
+        geometry.is_empty
+        and shapely.get_type_id(geometry) == 0
+        and shapely.geos_version < (3, 9, 5)
+    ):
+        # GEOS GH-913
+        with pytest.raises(GEOSException):
+            shapely.clip_by_rect([geometry, geometry], 0.0, 0.0, 1.0, 1.0)
+        return
     actual = shapely.clip_by_rect([geometry, geometry], 0.0, 0.0, 1.0, 1.0)
     assert actual.shape == (2,)
     assert actual[0] is None or isinstance(actual[0], Geometry)
@@ -1120,15 +1119,16 @@ def test_voronoi_polygons_ordered_raise():
         shapely.voronoi_polygons(mp, ordered=True)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("geometry", all_types)
 def test_maximum_inscribed_circle_all_types(geometry):
-
     if shapely.get_type_id(geometry) not in [3, 6]:
         # Maximum Inscribed Circle is only supported for (Multi)Polygon input
         with pytest.raises(
             GEOSException,
-            match="Input geometry must be a Polygon or MultiPolygon|Operation not supported by GeometryCollection",
+            match=(
+                "Input geometry must be a Polygon or MultiPolygon|"
+                "Operation not supported by GeometryCollection"
+            ),
         ):
             shapely.maximum_inscribed_circle(geometry)
         return
@@ -1148,7 +1148,6 @@ def test_maximum_inscribed_circle_all_types(geometry):
     assert actual is None
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize(
     "geometry, expected",
     [
@@ -1164,7 +1163,6 @@ def test_maximum_inscribed_circle(geometry, expected):
     assert_geometries_equal(actual, expected)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 def test_maximum_inscribed_circle_empty():
     geometry = shapely.from_wkt("POINT EMPTY")
     with pytest.raises(
@@ -1177,7 +1175,6 @@ def test_maximum_inscribed_circle_empty():
         shapely.maximum_inscribed_circle(geometry)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 def test_maximum_inscribed_circle_invalid_tolerance():
     geometry = shapely.from_wkt("POLYGON ((0 5, 5 10, 10 5, 5 0, 0 5))")
     with pytest.raises(ValueError, match="'tolerance' should be positive"):

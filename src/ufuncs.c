@@ -557,6 +557,9 @@ static void* oriented_envelope_data[1] = {GEOSMinimumRotatedRectangle_r};
 #if GEOS_SINCE_3_11_0
 static void* line_merge_directed_data[1] = {GEOSLineMergeDirected_r};
 #endif
+#if GEOS_SINCE_3_12_0
+static void* disjoint_subset_union_data[1] = {GEOSDisjointSubsetUnion_r};
+#endif  // GEOS_SINCE_3_12_0
 typedef void* FuncGEOS_Y_Y(void* context, void* a);
 static char Y_Y_dtypes[2] = {NPY_OBJECT, NPY_OBJECT};
 static void Y_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
@@ -693,8 +696,8 @@ static void* simplify_data[1] = {GEOSSimplify_r};
 static void* simplify_preserve_topology_data[1] = {GEOSTopologyPreserveSimplify_r};
 static void* force_3d_data[1] = {PyGEOSForce3D};
 
-#if GEOS_SINCE_3_9_0
 static void* unary_union_prec_data[1] = {GEOSUnaryUnionPrec_r};
+
 static void* GEOSMaximumInscribedCircleWithDefaultTolerance(void* context, void* a, double b) {
   double tolerance;
   if (b == 0.0 && !GEOSisEmpty_r(context, a)) {
@@ -729,7 +732,6 @@ static void* GEOSMaximumInscribedCircleWithDefaultTolerance(void* context, void*
   return GEOSMaximumInscribedCircle_r(context, a, tolerance);
 }
 static void* maximum_inscribed_circle_data[1] = {GEOSMaximumInscribedCircleWithDefaultTolerance};
-#endif
 
 #if GEOS_SINCE_3_10_0
 static void* segmentize_data[1] = {GEOSDensify_r};
@@ -1400,8 +1402,6 @@ finish:
 }
 static PyUFuncGenericFunction YYd_d_funcs[1] = {&YYd_d_func};
 
-#if GEOS_SINCE_3_9_0
-
 /* Define the geom, geom, double -> geom functions (YYd_Y) */
 static void* intersection_prec_data[1] = {GEOSIntersectionPrec_r};
 static void* difference_prec_data[1] = {GEOSDifferencePrec_r};
@@ -1457,7 +1457,6 @@ static void YYd_Y_func(char** args, const npy_intp* dimensions, const npy_intp* 
   free(geom_arr);
 }
 static PyUFuncGenericFunction YYd_Y_funcs[1] = {&YYd_Y_func};
-#endif
 
 /* Define functions with unique call signatures */
 static char box_dtypes[6] = {NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE,
@@ -1627,7 +1626,7 @@ static char make_valid_with_params_inner(void* ctx, GEOSMakeValidParams* params,
   return PGERR_SUCCESS;
 }
 
-static char make_valid_with_params_dtypes[4] = {NPY_OBJECT, NPY_INT, NPY_BOOL, 
+static char make_valid_with_params_dtypes[4] = {NPY_OBJECT, NPY_INT, NPY_BOOL,
                                                 NPY_OBJECT};
 static void make_valid_with_params_func(char** args, const npy_intp* dimensions,
                                         const npy_intp* steps, void* data) {
@@ -2470,15 +2469,11 @@ static void shortest_line_func(char** args, const npy_intp* dimensions, const np
       geom_arr[i] = NULL;
       continue;
     }
-#if GEOS_SINCE_3_9_0
     if (in1_prepared != NULL) {
       coord_seq = GEOSPreparedNearestPoints_r(ctx, in1_prepared, in2);
     } else {
       coord_seq = GEOSNearestPoints_r(ctx, in1, in2);
     }
-#else
-    coord_seq = GEOSNearestPoints_r(ctx, in1, in2);
-#endif
     if (coord_seq == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
       destroy_geom_arr(ctx, geom_arr, i - 1);
@@ -3262,9 +3257,6 @@ static void to_wkb_func(char** args, const npy_intp* dimensions, const npy_intp*
   GEOSWKBWriter* writer;
   unsigned char* wkb;
   size_t size;
-#if !GEOS_SINCE_3_9_0
-  char has_empty;
-#endif  // !GEOS_SINCE_3_9_0
 
   if ((is2 != 0) || (is3 != 0) || (is4 != 0) || (is5 != 0) || (is6 != 0)) {
     PyErr_Format(PyExc_ValueError, "to_wkb function called with non-scalar parameters");
@@ -3314,33 +3306,12 @@ static void to_wkb_func(char** args, const npy_intp* dimensions, const npy_intp*
       Py_INCREF(Py_None);
       *out = Py_None;
     } else {
-#if !GEOS_SINCE_3_9_0
-      // WKB Does not allow empty points in GEOS<3.9.
-      // We check for that and patch the POINT EMPTY if necessary
-      has_empty = has_point_empty(ctx, in1);
-      if (has_empty == 2) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        goto finish;
-      }
-      if (has_empty) {
-        temp_geom = point_empty_to_nan_all_geoms(ctx, in1);
-      } else {
-        temp_geom = in1;
-      }
-#else
       temp_geom = in1;
-#endif  // !GEOS_SINCE_3_9_0
       if (hex) {
         wkb = GEOSWKBWriter_writeHEX_r(ctx, writer, temp_geom, &size);
       } else {
         wkb = GEOSWKBWriter_write_r(ctx, writer, temp_geom, &size);
       }
-#if !GEOS_SINCE_3_9_0
-      // Destroy the temp_geom if it was patched (POINT EMPTY patch)
-      if (has_empty) {
-        GEOSGeom_destroy_r(ctx, temp_geom);
-      }
-#endif  // !GEOS_SINCE_3_9_0
       if (wkb == NULL) {
         errstate = PGERR_GEOS_EXCEPTION;
         goto finish;
@@ -3429,13 +3400,7 @@ static void to_wkt_func(char** args, const npy_intp* dimensions, const npy_intp*
         }
       }
 #endif  // !GEOS_SINCE_3_13_0
-#if !GEOS_SINCE_3_9_0
-      // Before GEOS 3.9.0, there was as segfault on e.g. MULTIPOINT (1 1, EMPTY)
-      errstate = check_to_wkt_compatible(ctx, in1);
-      if (errstate != PGERR_SUCCESS) {
-        goto finish;
-      }
-#elif !GEOS_SINCE_3_12_0
+#if !GEOS_SINCE_3_12_0
       // Since GEOS 3.9.0 and before 3.12.0 further handling required
       errstate = wkt_empty_3d_geometry(ctx, in1, &wkt);
       if (errstate != PGERR_SUCCESS) {
@@ -3446,7 +3411,7 @@ static void to_wkt_func(char** args, const npy_intp* dimensions, const npy_intp*
         *out = PyUnicode_FromString(wkt);
         continue;
       }
-#endif
+#endif  // !GEOS_SINCE_3_12_0
       wkt = GEOSWKTWriter_write_r(ctx, writer, in1);
       if (wkt == NULL) {
         errstate = PGERR_GEOS_EXCEPTION;
@@ -3793,6 +3758,8 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Yd_Y(simplify);
   DEFINE_Yd_Y(simplify_preserve_topology);
   DEFINE_Yd_Y(force_3d);
+  DEFINE_Yd_Y(unary_union_prec);
+  DEFINE_Yd_Y(maximum_inscribed_circle);
 
   DEFINE_YY_Y(intersection);
   DEFINE_YY_Y(difference);
@@ -3859,14 +3826,10 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_CUSTOM(to_wkt, 5);
   DEFINE_CUSTOM(set_precision, 3);
 
-#if GEOS_SINCE_3_9_0
   DEFINE_YYd_Y(difference_prec);
   DEFINE_YYd_Y(intersection_prec);
   DEFINE_YYd_Y(symmetric_difference_prec);
   DEFINE_YYd_Y(union_prec);
-  DEFINE_Yd_Y(unary_union_prec);
-  DEFINE_Yd_Y(maximum_inscribed_circle);
-#endif
 
 #if GEOS_SINCE_3_10_0
   DEFINE_CUSTOM(make_valid_with_params, 3);
@@ -3883,6 +3846,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 #endif
 
 #if GEOS_SINCE_3_12_0
+  DEFINE_Y_Y(disjoint_subset_union);
   DEFINE_Y_b(has_m);
   DEFINE_Y_d(get_m);
 #endif

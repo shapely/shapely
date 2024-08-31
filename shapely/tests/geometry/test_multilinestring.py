@@ -9,7 +9,6 @@ from shapely.tests.geometry.test_multi import MultiGeometryTestCase
 
 class TestMultiLineString(MultiGeometryTestCase):
     def test_multilinestring(self):
-
         # From coordinate tuples
         geom = MultiLineString([[(1.0, 2.0), (3.0, 4.0)]])
         assert isinstance(geom, MultiLineString)
