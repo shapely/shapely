@@ -119,10 +119,10 @@ jobs:
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_BUILD: ${{ matrix.cibw_build }}
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014_x86_64_geos:${{ env.GEOS_VERSION }}
-          CIBW_MUSLLINUX_X86_64_IMAGE: musllinux_1_1_x86_64_geos:${{ env.GEOS_VERSION }}
-          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014_aarch64_geos:${{ env.GEOS_VERSION }}
-          CIBW_MUSLLINUX_AARCH64_IMAGE: musllinux_1_2_aarch64_geos:${{ env.GEOS_VERSION }}
+          CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.baseimage }}_geos:${{ env.GEOS_VERSION }}
+          CIBW_MUSLLINUX_X86_64_IMAGE: ${{ matrix.baseimage }}_geos:${{ env.GEOS_VERSION }}
+          CIBW_MANYLINUX_AARCH64_IMAGE: ${{ matrix.baseimage }}_geos:${{ env.GEOS_VERSION }}
+          CIBW_MUSLLINUX_AARCH64_IMAGE: ${{ matrix.baseimage }}_geos:${{ env.GEOS_VERSION }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
