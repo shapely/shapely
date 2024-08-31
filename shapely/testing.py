@@ -1,3 +1,5 @@
+"""Utilities for testing with shapely geometries."""
+
 from functools import partial
 
 import numpy as np
@@ -80,17 +82,19 @@ def assert_geometries_equal(
     err_msg="",
     verbose=True,
 ):
-    """Raises an AssertionError if two geometry array_like objects are not equal.
+    """Raise an AssertionError if two geometry array_like objects are not equal.
 
-    Given two array_like objects, check that the shape is equal and all elements of
-    these objects are equal. An exception is raised at shape mismatch or conflicting
-    values. In contrast to the standard usage in shapely, no assertion is raised if
-    both objects have NaNs/Nones in the same positions.
+    Given two array_like objects, check that the shape is equal and all elements
+    of these objects are equal. An exception is raised at shape mismatch or
+    conflicting values. In contrast to the standard usage in shapely, no
+    assertion is raised if both objects have NaNs/Nones in the same positions.
 
     Parameters
     ----------
-    x : Geometry or array_like
-    y : Geometry or array_like
+    x, y : Geometry or array_like
+        Geometry or geometries to compare.
+    tolerance: float, default 1e-7
+        The tolerance to use when comparing geometries.
     equal_none : bool, default True
         Whether to consider None elements equal to other None elements.
     equal_nan : bool, default True
@@ -101,6 +105,7 @@ def assert_geometries_equal(
         The error message to be printed in case of failure.
     verbose : bool, optional
         If True, the conflicting values are appended to the error message.
+
     """
     __tracebackhide__ = True  # Hide traceback for py.test
     if normalize:
@@ -186,7 +191,6 @@ def build_err_msg(
             msg.append(err_msg)
     if verbose:
         for i, a in enumerate(arrays):
-
             if isinstance(a, np.ndarray):
                 # precision argument is only needed if the objects are ndarrays
                 r_func = partial(np.array_repr, precision=precision)
