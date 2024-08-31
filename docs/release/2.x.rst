@@ -6,6 +6,13 @@ Version 2.x
 Version 2.1.0 (unreleased)
 --------------------------
 
+API changes:
+
+- Equality of geometries (``geom1 == geom2``) now considers NaN coordinate values
+  in the same location to be equal (#1775). It is recommended however to ensure
+  geometries don't have NaN values in the first place, for which you can now use
+  the ``handle_nan`` parameter in construction functions.
+
 Improvements:
 
 - Require GEOS >= 3.9, NumPy >= 1.20, and Python >= 3.9 (#1802, #1885, #2124)

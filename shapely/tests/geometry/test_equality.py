@@ -10,10 +10,19 @@ all_non_empty_types = np.array(all_types + all_types_z)[
 ]
 
 
+# TODO add all_types_m and all_types_zm once tranform supports M coordinates
 @pytest.mark.parametrize("geom", all_types + all_types_z)
 def test_equality(geom):
     assert geom == geom  # noqa: PLR0124
     transformed = shapely.transform(geom, lambda x: x, include_z=True)
+    if (
+        shapely.geos_version < (3, 9, 0)
+        and isinstance(geom, Point)
+        and geom.is_empty
+        and not geom.has_z
+    ):
+        # the transformed empty 2D point has become 3D on GEOS 3.8
+        transformed = shapely.force_2d(geom)
     assert geom == transformed
     assert not (geom != transformed)
 
@@ -35,6 +44,21 @@ def test_equality(geom):
         (
             MultiLineString([[(1, 1), (2, 2)], [(2, 2), (3, 3)]]),
             MultiLineString([[(2, 2), (3, 3)], [(1, 1), (2, 2)]]),
+        ),
+        # M coordinates (don't work yet with automated cases)
+        pytest.param(
+            shapely.from_wkt("POINT M (0 0 0)"),
+            shapely.from_wkt("POINT M (0 0 1)"),
+            marks=pytest.mark.skipif(
+                shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12"
+            ),
+        ),
+        pytest.param(
+            shapely.from_wkt("POINT ZM (0 0 0 0)"),
+            shapely.from_wkt("POINT ZM (0 0 0 1)"),
+            marks=pytest.mark.skipif(
+                shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12"
+            ),
         ),
     ],
 )
@@ -75,11 +99,8 @@ with ignore_invalid():
 
 @pytest.mark.parametrize("left, right", cases1)
 def test_equality_with_nan(left, right):
-    # TODO currently those evaluate as not equal, but we are considering to change this
-    # assert left == right
-    assert not (left == right)
-    # assert not (left != right)
-    assert left != right
+    assert left == right
+    assert not (left != right)
 
 
 with ignore_invalid():
@@ -97,13 +118,8 @@ with ignore_invalid():
 
 @pytest.mark.parametrize("left, right", cases2)
 def test_equality_with_nan_z(left, right):
-    # TODO: those are currently considered equal because z dimension is ignored
-    if shapely.geos_version < (3, 12, 0):
-        assert left == right
-        assert not (left != right)
-    else:
-        # on GEOS main z dimension is not ignored -> NaNs cause inequality
-        assert left != right
+    assert left == right
+    assert not (left != right)
 
 
 with ignore_invalid():
@@ -112,6 +128,20 @@ with ignore_invalid():
         (LineString([(0, 1), (2, np.nan)]), LineString([(0, 1), (2, 3)])),
         (LineString([(0, 1, np.nan), (2, 3, 4)]), LineString([(0, 1, 2), (2, 3, 4)])),
         (LineString([(0, 1, 2), (2, 3, np.nan)]), LineString([(0, 1, 2), (2, 3, 4)])),
+        pytest.param(
+            shapely.from_wkt("POINT M (0 0 0)"),
+            shapely.from_wkt("POINT M (0 0 NaN)"),
+            marks=pytest.mark.skipif(
+                shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12"
+            ),
+        ),
+        pytest.param(
+            shapely.from_wkt("POINT ZM (0 0 0 0)"),
+            shapely.from_wkt("POINT ZM (0 0 0 NaN)"),
+            marks=pytest.mark.skipif(
+                shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12"
+            ),
+        ),
     ]
 
 
@@ -127,9 +157,7 @@ def test_equality_with_nan_z_false():
 
     if shapely.geos_version < (3, 10, 0):
         # GEOS <= 3.9 fill the NaN with 0, so the z dimension is different
-        # assert left != right
-        # however, has_z still returns False, so z dimension is ignored in .coords
-        assert left == right
+        assert left != right
     elif shapely.geos_version < (3, 12, 0):
         # GEOS 3.10-3.11 ignore NaN for Z also when explicitly created with 3D
         # and so the geometries are considered as 2D (and thus z dimension is ignored)

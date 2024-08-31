@@ -14,6 +14,7 @@
 
 #include "fast_loop_macros.h"
 #include "geos.h"
+#include "pygeos.h"
 #include "pygeom.h"
 
 /* This initializes a global value for interrupt checking */
@@ -252,6 +253,7 @@ static PyUFuncGenericFunction O_b_funcs[1] = {&O_b_func};
 
 /* Define the geom, geom -> bool functions (YY_b) */
 static void* equals_data[1] = {GEOSEquals_r};
+static void* equals_identical_data[1] = {PyGEOSEqualsIdentical};
 typedef char FuncGEOS_YY_b(void* context, void* a, void* b);
 static char YY_b_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_BOOL};
 static void YY_b_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
@@ -3685,6 +3687,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_YY_b_p(contains_properly);
   DEFINE_YY_b_p(overlaps);
   DEFINE_YY_b(equals);
+  DEFINE_YY_b(equals_identical);
   DEFINE_YY_b_p(covers);
   DEFINE_YY_b_p(covered_by);
   DEFINE_Ydd_b_p(contains_xy);
