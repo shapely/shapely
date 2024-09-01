@@ -105,8 +105,8 @@ jobs:
             GEOS_VERSION=${{ env.GEOS_VERSION }}
           push: false
           load: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ matrix.baseimage }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.baseimage }}
         env:
           BUILDKIT_PROGRESS: plain
 
