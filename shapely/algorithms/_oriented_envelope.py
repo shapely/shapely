@@ -8,9 +8,7 @@ from shapely.affinity import affine_transform
 
 
 def _oriented_envelope_min_area(geometry, **kwargs):
-    """
-    Computes the oriented envelope (minimum rotated rectangle) that encloses
-    an input geometry.
+    """Compute the oriented envelope (minimum rotated rectangle).
 
     This is a fallback implementation for GEOS < 3.12 to have the correct
     minimum area behaviour.

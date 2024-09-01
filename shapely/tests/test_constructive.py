@@ -64,9 +64,9 @@ def test_no_args_array(geometry, func):
         geometry.is_empty
         and shapely.get_num_geometries(geometry) > 0
         and func is shapely.node
-        and shapely.geos_version < (3, 8, 3)
+        and shapely.geos_version < (3, 9, 3)
     ):
-        pytest.xfail("GEOS < 3.8.3 crashes with empty geometries")  # GEOS GH-601
+        pytest.xfail("GEOS < 3.9.3 crashes with empty geometries")  # GEOS GH-601
     actual = func([geometry, geometry])
     assert actual.shape == (2,)
     assert actual[0] is None or isinstance(actual[0], Geometry)
@@ -75,13 +75,6 @@ def test_no_args_array(geometry, func):
 @pytest.mark.parametrize("geometry", all_types)
 @pytest.mark.parametrize("func", CONSTRUCTIVE_FLOAT_ARG)
 def test_float_arg_array(geometry, func):
-    if (
-        geometry.is_empty
-        and shapely.get_num_geometries(geometry) > 0
-        and (func is shapely.delaunay_triangles or func is shapely.voronoi_polygons)
-        and shapely.geos_version < (3, 8, 1)
-    ):
-        pytest.xfail("GEOS < 3.8.1 crashes with empty geometries")
     if (
         func is shapely.offset_curve
         and shapely.get_type_id(geometry) not in [1, 2]
@@ -510,12 +503,9 @@ def test_remove_repeated_points_invalid_type(geom, tolerance):
                 holes=[[(2, 2), (4, 2), (4, 4), (2, 4), (2, 2)]],
             ),
         ),
-        pytest.param(
+        (
             MultiLineString([[(0, 0), (1, 2)], [(3, 3), (4, 4)]]),
             MultiLineString([[(1, 2), (0, 0)], [(4, 4), (3, 3)]]),
-            marks=pytest.mark.skipif(
-                shapely.geos_version < (3, 8, 1), reason="GEOS < 3.8.1"
-            ),
         ),
         (
             MultiPolygon(
@@ -638,6 +628,15 @@ def test_clip_by_rect_polygon(geom, rect, expected):
 
 @pytest.mark.parametrize("geometry", all_types)
 def test_clip_by_rect_array(geometry):
+    if (
+        geometry.is_empty
+        and shapely.get_type_id(geometry) == 0
+        and shapely.geos_version < (3, 9, 5)
+    ):
+        # GEOS GH-913
+        with pytest.raises(GEOSException):
+            shapely.clip_by_rect([geometry, geometry], 0.0, 0.0, 1.0, 1.0)
+        return
     actual = shapely.clip_by_rect([geometry, geometry], 0.0, 0.0, 1.0, 1.0)
     assert actual.shape == (2,)
     assert actual[0] is None or isinstance(actual[0], Geometry)

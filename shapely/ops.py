@@ -1,4 +1,4 @@
-"""Support for various GEOS geometry operations"""
+"""Support for various GEOS geometry operations."""
 
 from warnings import warn
 
@@ -50,7 +50,7 @@ class CollectionOperator:
                 return LineString(ob)
 
     def polygonize(self, lines):
-        """Creates polygons from a source of lines
+        """Create polygons from a source of lines.
 
         The source may be a MultiLineString, a sequence of LineString objects,
         or a sequence of objects than can be adapted to LineStrings.
@@ -66,8 +66,9 @@ class CollectionOperator:
         return collection.geoms
 
     def polygonize_full(self, lines):
-        """Creates polygons from a source of lines, returning the polygons
-        and leftover geometries.
+        """Create polygons from a source of lines.
+
+        The polygons and leftover geometries are returned as well.
 
         The source may be a MultiLineString, a sequence of LineString objects,
         or a sequence of objects than can be adapted to LineStrings.
@@ -90,7 +91,7 @@ class CollectionOperator:
         return shapely.polygonize_full(obs)
 
     def linemerge(self, lines, directed=False):
-        """Merges all connected lines from a source
+        """Merge all connected lines from a source.
 
         The source may be a MultiLineString, a sequence of LineString objects,
         or a sequence of objects than can be adapted to LineStrings.  Returns a
@@ -112,7 +113,7 @@ class CollectionOperator:
         return shapely.line_merge(source, directed=directed)
 
     def cascaded_union(self, geoms):
-        """Returns the union of a sequence of geometries
+        """Return the union of a sequence of geometries.
 
         .. deprecated:: 1.8
             This function was superseded by :meth:`unary_union`.
@@ -126,7 +127,7 @@ class CollectionOperator:
         return shapely.union_all(geoms, axis=None)
 
     def unary_union(self, geoms):
-        """Returns the union of a sequence of geometries
+        """Return the union of a sequence of geometries.
 
         Usually used to convert a collection into the smallest set of polygons
         that cover the same area.
@@ -143,7 +144,7 @@ unary_union = operator.unary_union
 
 
 def triangulate(geom, tolerance=0.0, edges=False):
-    """Creates the Delaunay triangulation and returns a list of geometries
+    """Create the Delaunay triangulation and return a list of geometries.
 
     The source may be any geometry type. All vertices of the geometry will be
     used as the points of the triangulation.
@@ -162,8 +163,8 @@ def triangulate(geom, tolerance=0.0, edges=False):
 
 
 def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
-    """
-    Constructs a Voronoi Diagram [1] from the given geometry.
+    """Construct a Voronoi Diagram [1] from the given geometry.
+
     Returns a list of geometries.
 
     Parameters
@@ -202,6 +203,7 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
     ----------
     [1] https://en.wikipedia.org/wiki/Voronoi_diagram
     [2] https://geos.osgeo.org/doxygen/geos__c_8h_source.html  (line 730)
+
     """
     try:
         result = shapely.voronoi_polygons(
@@ -220,12 +222,14 @@ def voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False):
 
 
 def validate(geom):
+    """Return True if the geometry is valid."""
     return shapely.is_valid_reason(geom)
 
 
 def transform(func, geom):
-    """Applies `func` to all coordinates of `geom` and returns a new
-    geometry of the same type from the transformed coordinates.
+    """Apply `func` to all coordinates of `geom`.
+
+    Returns a new geometry of the same type from the transformed coordinates.
 
     `func` maps x, y, and optionally z to output xp, yp, zp. The input
     parameters may iterable types like lists or arrays or single values.
@@ -298,7 +302,7 @@ def transform(func, geom):
 
 
 def nearest_points(g1, g2):
-    """Returns the calculated nearest points in the input geometries
+    """Return the calculated nearest points in the input geometries.
 
     The points are returned in the same order as the input geometries.
     """
@@ -315,8 +319,7 @@ def nearest_points(g1, g2):
 
 
 def snap(g1, g2, tolerance):
-    """
-    Snaps an input geometry (g1) to reference (g2) geometry's vertices.
+    """Snaps an input geometry (g1) to reference (g2) geometry's vertices.
 
     Parameters
     ----------
@@ -328,13 +331,13 @@ def snap(g1, g2, tolerance):
         The snapping tolerance
 
     Refer to :func:`shapely.snap` for full documentation.
-    """
 
+    """
     return shapely.snap(g1, g2, tolerance)
 
 
 def shared_paths(g1, g2):
-    """Find paths shared between the two given lineal geometries
+    """Find paths shared between the two given lineal geometries.
 
     Returns a GeometryCollection with two elements:
      - First element is a MultiLineString containing shared paths with the
@@ -348,6 +351,7 @@ def shared_paths(g1, g2):
         The first geometry
     g2 : geometry
         The second geometry
+
     """
     if not isinstance(g1, LineString):
         raise GeometryTypeError("First geometry must be a LineString")
@@ -359,7 +363,7 @@ def shared_paths(g1, g2):
 class SplitOp:
     @staticmethod
     def _split_polygon_with_line(poly, splitter):
-        """Split a Polygon with a LineString"""
+        """Split a Polygon with a LineString."""
         if not isinstance(poly, Polygon):
             raise GeometryTypeError("First argument must be a Polygon")
         if not isinstance(splitter, LineString):
@@ -381,8 +385,7 @@ class SplitOp:
 
     @staticmethod
     def _split_line_with_line(line, splitter):
-        """Split a LineString with another (Multi)LineString or (Multi)Polygon"""
-
+        """Split a LineString with another (Multi)LineString or (Multi)Polygon."""
         # if splitter is a polygon, pick it's boundary
         if splitter.geom_type in ("Polygon", "MultiPolygon"):
             splitter = splitter.boundary
@@ -416,7 +419,7 @@ class SplitOp:
 
     @staticmethod
     def _split_line_with_point(line, splitter):
-        """Split a LineString with a Point"""
+        """Split a LineString with a Point."""
         if not isinstance(line, LineString):
             raise GeometryTypeError("First argument must be a LineString")
         if not isinstance(splitter, Point):
@@ -458,8 +461,7 @@ class SplitOp:
 
     @staticmethod
     def _split_line_with_multipoint(line, splitter):
-        """Split a LineString with a MultiPoint"""
-
+        """Split a LineString with a MultiPoint."""
         if not isinstance(line, LineString):
             raise GeometryTypeError("First argument must be a LineString")
         if not isinstance(splitter, MultiPoint):
@@ -477,9 +479,7 @@ class SplitOp:
 
     @staticmethod
     def split(geom, splitter):
-        """
-        Splits a geometry by another geometry and returns a collection of
-        geometries.
+        """Split a geometry by another geometry and return a collection of geometries.
 
         This function is the theoretical opposite of the union of
         the split geometry parts. If the splitter does not split the geometry, a
@@ -512,8 +512,8 @@ class SplitOp:
         >>> result = split(line, pt)
         >>> result.wkt
         'GEOMETRYCOLLECTION (LINESTRING (0 0, 1 1), LINESTRING (1 1, 2 2))'
-        """
 
+        """
         if geom.geom_type in ("MultiLineString", "MultiPolygon"):
             return GeometryCollection(
                 [i for part in geom.geoms for i in SplitOp.split(part, splitter).geoms]
@@ -557,7 +557,7 @@ split = SplitOp.split
 
 
 def substring(geom, start_dist, end_dist, normalized=False):
-    """Return a line segment between specified distances along a LineString
+    """Return a line segment between specified distances along a LineString.
 
     Negative distance values are taken as measured in the reverse
     direction from the end of the geometry. Out-of-range index
@@ -613,8 +613,8 @@ def substring(geom, start_dist, end_dist, normalized=False):
 
     >>> substring(ls, 2.5, -2.5).wkt
     'POINT (2.5 0)'
-    """
 
+    """
     if not isinstance(geom, LineString):
         raise GeometryTypeError(
             "Can only calculate a substring of LineString geometries. "
@@ -684,7 +684,7 @@ def substring(geom, start_dist, end_dist, normalized=False):
 
 
 def clip_by_rect(geom, xmin, ymin, xmax, ymax):
-    """Returns the portion of a geometry within a rectangle
+    """Return the portion of a geometry within a rectangle.
 
     The geometry is clipped in a fast but possibly dirty way. The output is
     not guaranteed to be valid. No exceptions will be raised for topological
@@ -706,6 +706,7 @@ def clip_by_rect(geom, xmin, ymin, xmax, ymax):
     Notes
     -----
     New in 1.7.
+
     """
     if geom.is_empty:
         return geom
@@ -713,7 +714,7 @@ def clip_by_rect(geom, xmin, ymin, xmax, ymax):
 
 
 def orient(geom, sign=1.0):
-    """A properly oriented copy of the given geometry.
+    """Return a properly oriented copy of the given geometry.
 
     The signed area of the result will have the given sign. A sign of
     1.0 means that the coordinates of the product's exterior rings will
