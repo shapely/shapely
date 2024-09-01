@@ -647,7 +647,13 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
 def minimum_clearance_line(geometry, **kwargs):
     """Return a LineString whose endpoints define the minimum clearance.
 
-    If the geometry has no minimum clearance, an empty LineString will be returned.
+    A geometry's "minimum clearance" is the smallest distance by which a vertex
+    of the geometry could be moved to produce an invalid geometry.
+
+    If the geometry has no minimum clearance, an empty LineString will be
+    returned.
+
+    .. versionadded:: 2.1.0
 
     Parameters
     ----------
