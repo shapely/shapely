@@ -1,12 +1,11 @@
 """Provides a conversion to / from a ragged array representation of geometries.
 
 A ragged (or "jagged") array is an irregular array of arrays of which each
-element can havea  different length. As a result, such an array cannot be
+element can have a different length. As a result, such an array cannot be
 represented as a standard, rectangular nD array.
 The coordinates of geometries can be represented as arrays of arrays of
 coordinate pairs (possibly multiple levels of nesting, depending on the
 geometry type).
-
 
 Geometries, as a ragged array of coordinates, can be efficiently represented
 as contiguous arrays of coordinates provided that there is another data

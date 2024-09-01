@@ -596,9 +596,8 @@ def contains(a, b, **kwargs):
 
 @multithreading_enabled
 def contains_properly(a, b, **kwargs):
-    """Return True if geometry B is completely inside geometry A.
-
-    They should have no common boundary points.
+    """Return True if geometry B is completely inside geometry A, with no common
+    boundary points.
 
     A contains B properly if B intersects the interior of A but not the
     boundary (or exterior). This means that a geometry A does not
@@ -642,7 +641,7 @@ def contains_properly(a, b, **kwargs):
     >>> contains_properly(area1, area3)
     True
 
-    """
+    """  # noqa: D205
     return lib.contains_properly(a, b, **kwargs)
 
 
@@ -1011,7 +1010,8 @@ def within(a, b, **kwargs):
 
 @multithreading_enabled
 def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
-    """Return True if the geometries are equivalent within a given tolerance.
+    """Return True if the geometries are structurally equivalent within a given
+    tolerance.
 
     This method uses exact coordinate equality, which requires coordinates
     to be equal (within specified tolerance) and in the same order for
@@ -1067,7 +1067,7 @@ def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
     >>> equals(polygon1, polygon2)
     True
 
-    """
+    """  # noqa: D205
     if normalize:
         a = lib.normalize(a)
         b = lib.normalize(b)

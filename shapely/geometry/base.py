@@ -493,7 +493,8 @@ class BaseGeometry(shapely.Geometry):
         quadsegs : int, optional
             Deprecated alias for `quad_segs`.
         **kwargs : dict, optional
-            For backwards compatibility, will be ignored.
+            For backwards compatibility of renamed parameters. If an unsupported
+            kwarg is passed, a `ValueError` will be raised.
 
         Returns
         -------
