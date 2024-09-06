@@ -25,6 +25,7 @@ __all__ = [
     "build_area",
     "make_valid",
     "normalize",
+    "minimum_clearance_line",
     "node",
     "point_on_surface",
     "polygonize",
@@ -640,6 +641,41 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
 
     else:
         raise ValueError(f"Unknown method: {method}")
+
+
+@multithreading_enabled
+def minimum_clearance_line(geometry, **kwargs):
+    """Return a LineString whose endpoints define the minimum clearance.
+
+    A geometry's "minimum clearance" is the smallest distance by which a vertex
+    of the geometry could be moved to produce an invalid geometry.
+
+    If the geometry has no minimum clearance, an empty LineString will be
+    returned.
+
+    .. versionadded:: 2.1.0
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+        Geometry or geometries to determine the minimum clearance line for.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    Examples
+    --------
+    >>> from shapely import Polygon
+    >>> poly = Polygon([(0, 0), (10, 0), (10, 10), (5, 5), (0, 10), (0, 0)])
+    >>> minimum_clearance_line(poly)
+    <LINESTRING (5 5, 5 0)>
+
+    See Also
+    --------
+    minimum_clearance
+
+    """
+    return lib.minimum_clearance_line(geometry, **kwargs)
 
 
 @multithreading_enabled
