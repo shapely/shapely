@@ -1,5 +1,3 @@
-# distutils: define_macros=GEOS_USE_ONLY_R_API
-
 cimport cython
 from cpython cimport PyObject
 from cython cimport view

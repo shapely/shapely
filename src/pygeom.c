@@ -1,5 +1,4 @@
 #define PY_SSIZE_T_CLEAN
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 #include "pygeom.h"
 
@@ -7,6 +6,7 @@
 #include <structmember.h>
 
 #include "geos.h"
+#include "pygeos.h"
 
 /* This initializes a global geometry type registry */
 PyObject* geom_registry[1] = {NULL};
@@ -94,13 +94,7 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
   }
 #endif  // !GEOS_SINCE_3_13_0
 
-#if !GEOS_SINCE_3_9_0
-  // Before GEOS 3.9.0, there was as segfault on e.g. MULTIPOINT (1 1, EMPTY)
-  errstate = check_to_wkt_compatible(ctx, geom);
-  if (errstate != PGERR_SUCCESS) {
-    goto finish;
-  }
-#elif !GEOS_SINCE_3_12_0
+#if !GEOS_SINCE_3_12_0
   // Since GEOS 3.9.0 and before 3.12.0 further handling required
   errstate = wkt_empty_3d_geometry(ctx, geom, &wkt);
   if (errstate != PGERR_SUCCESS) {
@@ -110,7 +104,7 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
     result = PyUnicode_FromString(wkt);
     goto finish;
   }
-#endif
+#endif // !GEOS_SINCE_3_12_0
 
   GEOSWKTWriter* writer = GEOSWKTWriter_create_r(ctx);
   if (writer == NULL) {
@@ -160,23 +154,7 @@ static PyObject* GeometryObject_ToWKB(GeometryObject* obj) {
   }
 
   GEOS_INIT;
-
-#if !GEOS_SINCE_3_9_0
-  // WKB Does not allow empty points in GEOS < 3.9.
-  // We check for that and patch the POINT EMPTY if necessary
-  has_empty = has_point_empty(ctx, obj->ptr);
-  if (has_empty == 2) {
-    errstate = PGERR_GEOS_EXCEPTION;
-    goto finish;
-  }
-  if (has_empty == 1) {
-    geom = point_empty_to_nan_all_geoms(ctx, obj->ptr);
-  } else {
-    geom = obj->ptr;
-  }
-#else
   geom = obj->ptr;
-#endif  // !GEOS_SINCE_3_9_0
 
   /* Create the WKB writer */
   writer = GEOSWKBWriter_create_r(ctx);
@@ -293,11 +271,11 @@ static PyObject* GeometryObject_richcompare(GeometryObject* self, PyObject* othe
         break;
       case Py_EQ:
         result =
-            GEOSEqualsExact_r(ctx, self->ptr, other_geom->ptr, 0) ? Py_True : Py_False;
+            PyGEOSEqualsIdentical(ctx, self->ptr, other_geom->ptr) ? Py_True : Py_False;
         break;
       case Py_NE:
         result =
-            GEOSEqualsExact_r(ctx, self->ptr, other_geom->ptr, 0) ? Py_False : Py_True;
+            PyGEOSEqualsIdentical(ctx, self->ptr, other_geom->ptr) ? Py_False : Py_True;
         break;
       case Py_GT:
         result = Py_NotImplemented;

@@ -14,16 +14,12 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-13, windows-2019]
         architecture: [x64]
-        geos: [3.8.4, 3.9.5, 3.10.6, 3.11.4, 3.12.2, main]
+        geos: [3.9.5, 3.10.6, 3.11.4, 3.12.2, 3.13.0beta1, main]
         include:
-          # 2019
-          - python: 3.8
-            geos: 3.8.4
-            numpy: 1.17.3
           # 2020
           - python: 3.9
             geos: 3.9.5
-            numpy: 1.19.5
+            numpy: 1.20.3
           # 2021
           - python: "3.10"
             geos: 3.10.6
@@ -39,10 +35,10 @@ jobs:
             matplotlib: true
             doctest: true
             extra_pytest_args: "-W error"  # error on warnings
-          # 2024 -- wait until Python 3.13 with binary wheels for numpy are available
-          # - python: "3.13"
-          #   geos: 3.13.0
-          #   numpy: 2.0.0
+          # 2024
+          - python: "3.13"
+            geos: 3.13.0beta1
+            numpy: 2.1.0
           # apple silicon
           - os: macos-14
             python: "3.12"
@@ -55,9 +51,9 @@ jobs:
           # enable two 32-bit windows builds:
           - os: windows-2019
             architecture: x86
-            python: 3.8
-            geos: 3.8.4
-            numpy: 1.16.2
+            python: 3.9
+            geos: 3.9.5
+            numpy: 1.20.3
           - os: windows-2019
             architecture: x86
             python: "3.11"
@@ -65,7 +61,7 @@ jobs:
             numpy: 1.24.4
           # pypy (use explicit ubuntu version to not overwrite existing ubuntu-latest + geos 3.11.0 build)
           - os: ubuntu-22.04
-            python: "pypy3.8"
+            python: "pypy3.10"
             geos: 3.12.2
             numpy: 1.24.4
 
@@ -157,7 +153,7 @@ jobs:
 
       # Windows requires special treatment:
       # - geos-config does not exist, so we specify include and library paths
-      # - Python >=3.8 ignores the PATH for finding DLLs, so we copy them into the package
+      # - Python ignores the PATH for finding DLLs, so we copy them into the package
       - name: Set environment variables + copy DLLs (Windows)
         run: |
           cp geosinstall/geos-${{ matrix.geos }}/bin/*.dll shapely
@@ -171,9 +167,9 @@ jobs:
         # ensure we build against numpy nightly (numpy 2.0 compat)
         run: |
           if [ -z "${{ matrix.numpy }}" ]; then
-            pip install -e . --no-build-isolation
+            pip install -v -e . --no-build-isolation
           else
-            pip install -e .
+            pip install -v -e .
           fi
 
       - name: Overview of the Python environment (pip list)

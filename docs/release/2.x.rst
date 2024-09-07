@@ -6,12 +6,30 @@ Version 2.x
 Version 2.1.0 (unreleased)
 --------------------------
 
+API changes:
+
+- Equality of geometries (``geom1 == geom2``) now considers NaN coordinate values
+  in the same location to be equal (#1775). It is recommended however to ensure
+  geometries don't have NaN values in the first place, for which you can now use
+  the ``handle_nan`` parameter in construction functions.
+
 Improvements:
 
-- Require GEOS >= 3.7, NumPy >= 1.16, and Python >= 3.8 (#1802)
+- Require GEOS >= 3.9, NumPy >= 1.20, and Python >= 3.9 (#1802, #1885, #2124)
 - Add a ``handle_nan`` parameter to ``shapely.linestrings()`` and ``shapely.linearrings()``
   to allow, skip, or error on nonfinite (NaN / Inf) coordinates. The default
   behaviour (allow) is backwards compatible (#1594).
+
+.. _version-2-0-6:
+
+Version 2.0.6 (2024-08-19)
+--------------------------
+
+Bug fixes:
+
+- Fix compatibility with NumPy 2.1.0 (#2099).
+
+Wheels are available for Python 3.13 (and still include GEOS 3.11.4).
 
 .. _version-2-0-5:
 

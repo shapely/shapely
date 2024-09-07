@@ -91,7 +91,7 @@ def affine_transform(geom, matrix):
 
 
 def interpret_origin(geom, origin, ndim):
-    """Returns interpreted coordinate tuple for origin parameter.
+    """Return interpreted coordinate tuple for origin parameter.
 
     This is a helper function for other transform functions.
 
@@ -113,7 +113,7 @@ def interpret_origin(geom, origin, ndim):
 
     # origin should now be tuple-like
     if len(origin) not in (2, 3):
-        raise ValueError("Expected number of items in 'origin' to be " "either 2 or 3")
+        raise ValueError("Expected number of items in 'origin' to be either 2 or 3")
     if ndim == 2:
         return origin[0:2]
     else:  # 3D coordinate
@@ -124,7 +124,7 @@ def interpret_origin(geom, origin, ndim):
 
 
 def rotate(geom, angle, origin="center", use_radians=False):
-    r"""Returns a rotated geometry on a 2D plane.
+    r"""Return a rotated geometry on a 2D plane.
 
     The angle of rotation can be specified in either degrees (default) or
     radians by setting ``use_radians=True``. Positive angles are
@@ -167,7 +167,7 @@ def rotate(geom, angle, origin="center", use_radians=False):
 
 
 def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin="center"):
-    r"""Returns a scaled geometry, scaled by factors along each dimension.
+    r"""Return a scaled geometry, scaled by factors along each dimension.
 
     The point of origin can be a keyword 'center' for the 2D bounding box
     center (default), 'centroid' for the geometry's 2D centroid, a Point
@@ -202,7 +202,7 @@ def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin="center"):
 
 
 def skew(geom, xs=0.0, ys=0.0, origin="center", use_radians=False):
-    r"""Returns a skewed geometry, sheared by angles along x and y dimensions.
+    r"""Return a skewed geometry, sheared by angles along x and y dimensions.
 
     The shear angle can be specified in either degrees (default) or radians
     by setting ``use_radians=True``.
@@ -245,7 +245,7 @@ def skew(geom, xs=0.0, ys=0.0, origin="center", use_radians=False):
 
 
 def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
-    r"""Returns a translated geometry shifted by offsets along each dimension.
+    r"""Return a translated geometry shifted by offsets along each dimension.
 
     The general 3D affine transformation matrix for translation is:
 
