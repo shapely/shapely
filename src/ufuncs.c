@@ -3058,6 +3058,16 @@ static void from_wkb_func(char** args, const npy_intp* dimensions, const npy_int
     goto finish;
   }
 
+  /* If on_invalid is 3, try to fix invalid geometries */
+  if (on_invalid == 3) {
+    #if GEOS_SINCE_3_11_0
+      GEOSWKBReader_setFixStructure_r(ctx, reader, 1);
+    #else
+      PyErr_Format(PyExc_ValueError, "on_invalid='fix' only supported for GEOS >= 3.11");
+      goto finish;
+    #endif
+  }
+
   for (i = 0; i < n; i++, ip1 += is1, op1 += os1) {
     CHECK_SIGNALS(i);
     if (errstate == PGERR_PYSIGNAL) {
@@ -3149,6 +3159,16 @@ static void from_wkt_func(char** args, const npy_intp* dimensions, const npy_int
   if (reader == NULL) {
     errstate = PGERR_GEOS_EXCEPTION;
     goto finish;
+  }
+
+  /* If on_invalid is 3, try to fix invalid geometries */
+  if (on_invalid == 3) {
+    #if GEOS_SINCE_3_11_0
+      GEOSWKTReader_setFixStructure_r(ctx, reader, 1);
+    #else
+      PyErr_Format(PyExc_ValueError, "on_invalid='fix' only supported for GEOS >= 3.11");
+      goto finish;
+    #endif
   }
 
   for (i = 0; i < n; i++, ip1 += is1, op1 += os1) {

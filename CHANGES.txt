@@ -27,6 +27,7 @@ Improvements:
 - The ``voronoi_polygons`` now accepts the ``ordered`` keyword, optionally forcing the
   order of polygons within the GeometryCollection to follow the order of input
   coordinates. Requires at least GEOS 3.12. (#1968)
+- Add option on ``invalid="fix"`` to ``from_wkb`` and ``from_wkt`` (#2094)
 - Add function ``minimum_clearance_line`` (#2106)
 
 Breaking changes in GEOS 3.12:
