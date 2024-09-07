@@ -44,10 +44,10 @@ class PolylabelTestCase(unittest.TestCase):
         assert cell1 < cell2
         assert cell1 <= cell2
         assert (cell2 <= cell1) is False
-        assert cell1 == cell1
+        assert cell1 == cell1  # noqa: PLR0124
         assert (cell1 == cell2) is False
         assert cell1 != cell2
-        assert (cell1 != cell1) is False
+        assert (cell1 != cell1) is False  # noqa: PLR0124
         assert cell2 > cell1
         assert (cell1 > cell2) is False
         assert cell2 >= cell1
