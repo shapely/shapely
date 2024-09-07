@@ -1,6 +1,5 @@
-"""
-Proxies for libgeos, GEOS-specific exceptions, and utilities
-"""
+"""Proxies for libgeos, GEOS-specific exceptions, and utilities."""
+
 import shapely
 
 geos_version_string = shapely.geos_capi_version_string

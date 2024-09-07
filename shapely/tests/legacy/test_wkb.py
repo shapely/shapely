@@ -7,7 +7,6 @@ import pytest
 
 from shapely import wkt
 from shapely.geometry import Point
-from shapely.geos import geos_version
 from shapely.tests.legacy.conftest import shapely20_todo
 from shapely.wkb import dump, dumps, load, loads
 
@@ -49,7 +48,7 @@ def hostorder(fmt, value):
         struct.pack(
             sysorder + fmt,
             {">": 0, "<": 1}[sysorder],
-            *struct.unpack(hexorder + fmt, hex2bin(value))[1:]
+            *struct.unpack(hexorder + fmt, hex2bin(value))[1:],
         )
     )
 
@@ -121,7 +120,7 @@ def test_dump_load_hex(some_point, tmpdir):
     file = tmpdir.join("test.wkb")
     with open(file, "w") as file_pointer:
         dump(some_point, file_pointer, hex=True)
-    with open(file, "r") as file_pointer:
+    with open(file) as file_pointer:
         restored = load(file_pointer, hex=True)
 
     assert some_point == restored
@@ -149,22 +148,16 @@ def test_dump_binary_load_hex(some_point, tmpdir):
     # TODO(shapely-2.0) on windows this doesn't seem to error with pygeos,
     # but you get back a point with garbage coordinates
     if sys.platform == "win32":
-        with open(file, "r") as file_pointer:
+        with open(file) as file_pointer:
             restored = load(file_pointer, hex=True)
         assert some_point != restored
         return
 
     with pytest.raises((UnicodeEncodeError, UnicodeDecodeError)):
-        with open(file, "r") as file_pointer:
+        with open(file) as file_pointer:
             load(file_pointer, hex=True)
 
 
-requires_geos_380 = pytest.mark.xfail(
-    geos_version < (3, 8, 0), reason="GEOS >= 3.8.0 is required", strict=True
-)
-
-
-@requires_geos_380
 def test_point_empty():
     g = wkt.loads("POINT EMPTY")
     result = dumps(g, big_endian=False)
@@ -176,16 +169,6 @@ def test_point_empty():
     assert all(math.isnan(val) for val in coords)
 
 
-# Generally GEOS only serializes this correctly starting with GEOS 3.9
-# For some reason MacOS has different behaviour (it's actually correct for
-# older GEOS versions, but not for GEOS 3.8)
-@pytest.mark.xfail(
-    (
-        geos_version < (3, 9, 0)
-        and not (geos_version < (3, 8, 0) and sys.platform == "darwin")
-    ),
-    reason="GEOS >= 3.9.0 is required",
-)
 def test_point_z_empty():
     g = wkt.loads("POINT Z EMPTY")
     assert g.wkb_hex == hostorder(

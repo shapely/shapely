@@ -1,7 +1,6 @@
-"""
-Plot single geometries using Matplotlib.
+"""Plot single geometries using Matplotlib.
 
-Note: this module is experimental, and mainly targetting (interactive)
+Note: this module is experimental, and mainly targeting (interactive)
 exploration, debugging and illustration purposes.
 
 """
@@ -35,21 +34,22 @@ def _path_from_polygon(polygon):
 
 
 def patch_from_polygon(polygon, **kwargs):
-    """
-    Gets a Matplotlib patch from a (Multi)Polygon.
+    """Get a Matplotlib patch from a (Multi)Polygon.
 
-    Note: this function is experimental, and mainly targetting (interactive)
+    Note: this function is experimental, and mainly targeting (interactive)
     exploration, debugging and illustration purposes.
 
     Parameters
     ----------
     polygon : shapely.Polygon or shapely.MultiPolygon
+        The polygon to convert to a Matplotlib Patch.
     **kwargs
         Additional keyword arguments passed to the matplotlib Patch.
 
     Returns
     -------
     Matplotlib artist (PathPatch)
+
     """
     from matplotlib.patches import PathPatch
 
@@ -64,17 +64,17 @@ def plot_polygon(
     facecolor=None,
     edgecolor=None,
     linewidth=None,
-    **kwargs
+    **kwargs,
 ):
-    """
-    Plot a (Multi)Polygon.
+    """Plot a (Multi)Polygon.
 
-    Note: this function is experimental, and mainly targetting (interactive)
+    Note: this function is experimental, and mainly targeting (interactive)
     exploration, debugging and illustration purposes.
 
     Parameters
     ----------
     polygon : shapely.Polygon or shapely.MultiPolygon
+        The polygon to plot.
     ax : matplotlib Axes, default None
         The axes on which to draw the plot. If not specified, will get the
         current active axes or create a new figure.
@@ -97,6 +97,7 @@ def plot_polygon(
     -------
     Matplotlib artist (PathPatch), if `add_points` is false.
     A tuple of Matplotlib artists (PathPatch, Line2D), if `add_points` is true.
+
     """
     from matplotlib import colors
 
@@ -129,22 +130,22 @@ def plot_polygon(
 
 
 def plot_line(line, ax=None, add_points=True, color=None, linewidth=2, **kwargs):
-    """
-    Plot a (Multi)LineString/LinearRing.
+    """Plot a (Multi)LineString/LinearRing.
 
-    Note: this function is experimental, and mainly targetting (interactive)
+    Note: this function is experimental, and mainly targeting (interactive)
     exploration, debugging and illustration purposes.
 
     Parameters
     ----------
     line : shapely.LineString or shapely.LinearRing
+        The line to plot.
     ax : matplotlib Axes, default None
         The axes on which to draw the plot. If not specified, will get the
         current active axes or create a new figure.
     add_points : bool, default True
         If True, also plot the coordinates (vertices) as points.
     color : matplotlib color specification
-        Color for the line (edgecolor under the hood) and pointes.
+        Color for the line (edgecolor under the hood) and points.
     linewidth : float, default 2
         The line width for the polygon boundary.
     **kwargs
@@ -153,6 +154,7 @@ def plot_line(line, ax=None, add_points=True, color=None, linewidth=2, **kwargs)
     Returns
     -------
     Matplotlib artist (PathPatch)
+
     """
     from matplotlib.patches import PathPatch
     from matplotlib.path import Path
@@ -184,8 +186,7 @@ def plot_line(line, ax=None, add_points=True, color=None, linewidth=2, **kwargs)
 
 
 def plot_points(geom, ax=None, color=None, marker="o", **kwargs):
-    """
-    Plot a Point/MultiPoint or the vertices of any other geometry type.
+    """Plot a Point/MultiPoint or the vertices of any other geometry type.
 
     Parameters
     ----------
@@ -197,7 +198,7 @@ def plot_points(geom, ax=None, color=None, marker="o", **kwargs):
         current active axes or create a new figure.
     color : matplotlib color specification
         Color for the filled points. You can use `markeredgecolor` and
-        `markeredgecolor` to have different edge and fill colors.
+        `markerfacecolor` to have different edge and fill colors.
     marker : str, default "o"
         The matplotlib marker for the points.
     **kwargs
@@ -206,6 +207,7 @@ def plot_points(geom, ax=None, color=None, marker="o", **kwargs):
     Returns
     -------
     Matplotlib artist (Line2D)
+
     """
     if ax is None:
         ax = _default_ax()
