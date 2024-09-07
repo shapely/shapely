@@ -1,5 +1,4 @@
 #define PY_SSIZE_T_CLEAN
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 #include <Python.h>
 #include <math.h>
@@ -400,7 +399,6 @@ static void Ydd_b_p_func(char** args, const npy_intp* dimensions, const npy_intp
 #endif
   GEOSGeometry* in1 = NULL;
   GEOSPreparedGeometry* in1_prepared = NULL;
-  GEOSGeometry *geom = NULL;
   const GEOSPreparedGeometry* prepared_geom_tmp = NULL;
   char ret;
 
@@ -438,6 +436,7 @@ static void Ydd_b_p_func(char** args, const npy_intp* dimensions, const npy_intp
 #if GEOS_SINCE_3_12_0
       ret = func(ctx, prepared_geom_tmp, in2, in3);
 #else
+      GEOSGeometry *geom = NULL;
       errstate = create_point(ctx, in2, in3, NULL, SHAPELY_HANDLE_NAN_ALLOW, &geom);
       if (errstate != PGERR_SUCCESS) {
         if (destroy_prepared) {
@@ -2542,7 +2541,6 @@ static PyUFuncGenericFunction set_precision_funcs[1] = {&set_precision_func};
 static char points_dtypes[3] = {NPY_DOUBLE, NPY_INT, NPY_OBJECT};
 static void points_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                         void* data) {
-  GEOSCoordSequence* coord_seq = NULL;
   GEOSGeometry** geom_arr;
 
   // check the ordinate dimension before calling GEOSCoordSeq_create_r
@@ -2959,9 +2957,6 @@ static PyUFuncGenericFunction create_collection_funcs[1] = {&create_collection_f
 static char bounds_dtypes[2] = {NPY_OBJECT, NPY_DOUBLE};
 static void bounds_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   GEOSGeometry *envelope = NULL, *in1;
-  const GEOSGeometry* ring;
-  const GEOSCoordSequence* coord_seq;
-  int size;
   char *ip1 = args[0], *op1 = args[1];
   double *x1, *y1, *x2, *y2;
 
@@ -3214,8 +3209,10 @@ static char to_wkb_dtypes[7] = {NPY_OBJECT, NPY_BOOL, NPY_INT,
                                 NPY_INT,    NPY_BOOL, NPY_INT,
                                 NPY_OBJECT};
 static void to_wkb_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
-  char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2], *ip4 = args[3], *ip5 = args[4],
-       *ip6 = args[5], *op1 = args[6];
+  char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2], *ip4 = args[3], *ip5 = args[4], *op1 = args[6];
+#if GEOS_SINCE_3_10_0
+  char *ip6 = args[5];
+#endif
   npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2], is4 = steps[3], is5 = steps[4],
            is6 = steps[5], os1 = steps[6];
   npy_intp n = dimensions[0];

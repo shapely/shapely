@@ -167,9 +167,9 @@ jobs:
         # ensure we build against numpy nightly (numpy 2.0 compat)
         run: |
           if [ -z "${{ matrix.numpy }}" ]; then
-            pip install -e . --no-build-isolation
+            pip install -v -e . --no-build-isolation
           else
-            pip install -e .
+            pip install -v -e .
           fi
 
       - name: Overview of the Python environment (pip list)
