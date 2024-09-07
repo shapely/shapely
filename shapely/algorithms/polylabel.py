@@ -1,3 +1,5 @@
+"""Provides functions for finding the pole of inaccessibility for a given polygon."""
+
 from heapq import heappop, heappush
 
 from shapely.errors import TopologicalError
@@ -5,14 +7,26 @@ from shapely.geometry import Point
 
 
 class Cell:
-    """A `Cell`'s centroid property is a potential solution to finding the pole
-    of inaccessibility for a given polygon. Rich comparison operators are used
-    for sorting `Cell` objects in a priority queue based on the potential
-    maximum distance of any theoretical point within a cell to a given
-    polygon's exterior boundary.
+    """A `Cell`'s centroid is a potential solution to find the pole of inaccessibility.
+
+    Rich comparison operators are used for sorting `Cell` objects in a priority
+    queue based on the potential maximum distance of any theoretical point
+    within a cell to a given polygon's exterior boundary.
     """
 
     def __init__(self, x, y, h, polygon):
+        """Initialize a Cell object.
+
+        Parameters
+        ----------
+        x, y : float
+            The x- and y-coordinates of the cell centroid.
+        h : float
+            Half of the cell size.
+        polygon : shapely.geometry.Polygon
+            The polygon associated with the cell.
+
+        """
         self.x = x
         self.y = y
         self.h = h  # half of cell size
@@ -26,27 +40,34 @@ class Cell:
 
     # rich comparison operators for sorting in minimum priority queue
     def __lt__(self, other):
+        """Compare Cell objects based on their maximum distance."""
         return self.max_distance > other.max_distance
 
     def __le__(self, other):
+        """Compare Cell objects based on their maximum distance."""
         return self.max_distance >= other.max_distance
 
     def __eq__(self, other):
+        """Compare Cell objects based on their maximum distance."""
         return self.max_distance == other.max_distance
 
     def __ne__(self, other):
+        """Compare Cell objects based on their maximum distance."""
         return self.max_distance != other.max_distance
 
     def __gt__(self, other):
+        """Compare Cell objects based on their maximum distance."""
         return self.max_distance < other.max_distance
 
     def __ge__(self, other):
+        """Compare Cell objects based on their maximum distance."""
         return self.max_distance <= other.max_distance
 
     def _dist(self, polygon):
-        """Signed distance from Cell centroid to polygon outline. The returned
-        value is negative if the point is outside of the polygon exterior
-        boundary.
+        """Signed distance from Cell centroid to polygon outline.
+
+        The returned value is negative if the point is outside of the polygon
+        exterior boundary.
         """
         inside = polygon.contains(self.centroid)
         distance = self.centroid.distance(polygon.exterior)
@@ -58,12 +79,14 @@ class Cell:
 
 
 def polylabel(polygon, tolerance=1.0):
-    """Finds pole of inaccessibility for a given polygon. Based on
-    Vladimir Agafonkin's https://github.com/mapbox/polylabel
+    """Find pole of inaccessibility for a given polygon.
+
+    Based on Vladimir Agafonkin's https://github.com/mapbox/polylabel
 
     Parameters
     ----------
     polygon : shapely.geometry.Polygon
+        Polygon for which to find the pole of inaccessibility.
     tolerance : int or float, optional
                 `tolerance` represents the highest resolution in units of the
                 input geometry that will be considered for a solution. (default
@@ -87,6 +110,7 @@ def polylabel(polygon, tolerance=1.0):
     ... (-100, -20), (-150, -200)]).buffer(100)
     >>> polylabel(polygon, tolerance=10).wkt
     'POINT (59.35615556364569 121.83919629746435)'
+
     """
     if not polygon.is_valid:
         raise TopologicalError("Invalid polygon")

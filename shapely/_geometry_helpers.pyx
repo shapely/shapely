@@ -1,5 +1,3 @@
-# distutils: define_macros=GEOS_USE_ONLY_R_API
-
 cimport cython
 from cpython cimport PyObject
 from cython cimport view
@@ -309,7 +307,7 @@ def collections_1d(object geometries, object indices, int geometry_type = 7, obj
     cdef int[:] collection_size = np.bincount(indices).astype(np.int32)
 
     # A temporary array for the geometries that will be given to CreateCollection.
-    # Its size equals max(collection_size) to accomodate the largest collection.
+    # Its size equals max(collection_size) to accommodate the largest collection.
     temp_geoms = np.empty(shape=(np.max(collection_size), ), dtype=np.intp)
     cdef np.intp_t[:] temp_geoms_view = temp_geoms
 

@@ -29,12 +29,6 @@ EMPTY_GEOMS = (
 line_string_reversed = shapely.linestrings([(0, 0), (1, 0), (1, 1)][::-1])
 
 
-PRE_GEOS_390 = pytest.mark.skipif(
-    shapely.geos_version < (3, 9, 0),
-    reason="2D and 3D empty geometries did not have dimensionality before GEOS 3.9",
-)
-
-
 def make_array(left, right, use_array):
     if use_array in ("left", "both"):
         left = np.array([left] * 3, dtype=object)
@@ -56,8 +50,8 @@ def test_assert_geometries_equal(geom, use_array):
         (point, line_string),
         (line_string, line_string_z),
         (empty_point, empty_polygon),
-        pytest.param(empty_point, empty_point_z, marks=PRE_GEOS_390),
-        pytest.param(empty_line_string, empty_line_string_z, marks=PRE_GEOS_390),
+        (empty_point, empty_point_z),
+        (empty_line_string, empty_line_string_z),
     ],
 )
 def test_assert_geometries_not_equal(geom1, geom2, use_array):
