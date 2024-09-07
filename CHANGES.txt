@@ -37,6 +37,10 @@ Breaking changes in GEOS 3.12:
 - The WKT representation of a MULTIPOINT changed from for example "MULTIPOINT (0 0, 1 1)"
   to "MULTIPOINT ((0 0), (1 1))". (#1885)
 
+Packaging:
+
+- Binary wheels are now built for musllinux (Alpine) x86_64 platforms (#1996).
+
 
 2.0.6 (2024-08-19)
 ------------------
