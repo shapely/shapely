@@ -70,10 +70,13 @@ include = ["shapely", "shapely.*"]
 "shapely" = ["*.pxd"]
 
 [tool.cibuildwheel]
-skip = ["pp*", "*_i686", "*_ppc64le", "*_s390x"]
+# Skip building free-threaded compatible wheels on Windows because numpy
+# hasn't uploaded those yet
+skip = ["pp*", "*_i686", "*_ppc64le", "*_s390x", "*t-win*"]
 build-verbosity = 1
 test-requires = "pytest"
 test-command = "pytest --pyargs shapely.tests"
+free-threaded-support = true
 
 [tool.coverage.run]
 source = ["shapely"]

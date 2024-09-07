@@ -39,6 +39,10 @@ jobs:
           - python: "3.13"
             geos: 3.13.0
             numpy: 2.1.1
+          # free threaded Python (no numpy version to indicate installing nightly cython and numpy)
+          - os: ubuntu-22.04
+            python: "3.13t"
+            geos: 3.13.0
           # apple silicon
           - os: macos-14
             python: "3.12"
@@ -97,10 +101,19 @@ jobs:
 
       - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v5
+        if: matrix.python != '3.13t'
         with:
           python-version: ${{ matrix.python }}
           architecture: ${{ matrix.architecture }}
           allow-prereleases: true
+
+      # Remove once the main setup-python adds python free threading
+      - name: Set up Python ${{ matrix.python }} (free threading)
+        uses: deadsnakes/action@6c8b9b82fe0b4344f4b98f2775fcc395df45e494  # v3.1.0
+        if: matrix.python == '3.13t'
+        with:
+          python-version: '3.13'
+          nogil: true
 
       - name: Cache GEOS and pip packages
         uses: actions/cache@v4
@@ -126,8 +139,8 @@ jobs:
           pip config set global.progress_bar off
           pip install --upgrade wheel setuptools
           if [ -z "${{ matrix.numpy }}" ]; then
-            pip install --upgrade --pre Cython pytest pytest-cov coveralls;
-            pip install --upgrade --pre --only-binary :all: -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple numpy
+            pip install --upgrade --pre pytest pytest-cov coveralls;
+            pip install --upgrade --pre --only-binary :all: -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple cython numpy
           else
             pip install --upgrade Cython numpy==${{ matrix.numpy }} pytest pytest-cov coveralls;
           fi
