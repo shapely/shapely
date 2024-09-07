@@ -350,7 +350,7 @@ static PyObject* GeometryObject_SetState(PyObject* self, PyObject* value) {
   if (((GeometryObject*)self)->ptr != NULL) {
     GEOSGeom_destroy_r(ctx, ((GeometryObject*)self)->ptr);
   }
-  ((GeometryObject*)self)->ptr = geom; 
+  ((GeometryObject*)self)->ptr = geom;
 
 finish:
 
