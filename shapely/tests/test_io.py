@@ -191,6 +191,15 @@ def test_from_wkt_on_invalid(wkt, on_invalid, error, message):
         ("NOT A WKT STRING", None),
         ("POLYGON ((0 0, 0 0))", None),
         ("POLYGON ((0 0, 1 1))", "POLYGON ((0 0, 1 1, 0 0))"),
+        ("MULTIPOLYGON (((5 5, 6 6, 6 5, 5 5)), ((0 0, 0 0)))", None),
+        (
+            "MULTIPOLYGON (((5 5, 6 6, 6 5, 5 5)), ((0 0, 1 1)))",
+            "MULTIPOLYGON (((5 5, 6 6, 6 5, 5 5)), ((0 0, 1 1, 0 0)))",
+        ),
+        (
+            "GEOMETRYCOLLECTION (POLYGON ((5 5, 6 6, 6 5, 5 5)), POLYGON ((0 0, 0 0)))",
+            None,
+        ),
     ],
 )
 def test_from_wkt_on_invalid_fix(wkt, expected_wkt):
