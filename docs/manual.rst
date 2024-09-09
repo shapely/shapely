@@ -2355,10 +2355,10 @@ of geometries.
 
 .. function:: shapely.shortest_line(geom1, geom2)
 
-   Returns a tuple of shortest line between the input geometries. The points are
+   Returns a tuple of the shortest line between the input geometries. The points are
    returned in the same order as the input geometries.
 
-   `New in version 1.4.0`.
+   `New in version 2.0`.
 
 .. code-block:: pycon
 
@@ -2369,7 +2369,7 @@ of geometries.
   <LINESTRING (0.5 1, 0.5 2)>
 
 
-Note that the nearest points may not be existing vertices in the geometries.
+Note that the shortest line may not connect to vertices of the input geometries.
 
 Snapping
 --------
@@ -2449,8 +2449,6 @@ geometry.
    line, for the line to be correctly split. When splitting a line by a polygon, the
    boundary of the polygon is used for the operation. When splitting a line by another
    line, a ValueError is raised if the two overlap at some segment.
-
-   `New in version 1.6.0`
 
 .. code-block:: pycon
 
