@@ -2129,7 +2129,8 @@ Other Operations
 Merging Linear Features
 -----------------------
 
-Sequences of touching lines can be merged into `MultiLineStrings` or `Polygons`.
+Sequences of touching lines can be merged into `MultiLineStrings` or
+`Polygons`.
 
 .. function:: shapely.polygonize(lines)
 
@@ -2189,8 +2190,8 @@ Sequences of touching lines can be merged into `MultiLineStrings` or `Polygons`.
 
 .. function:: shapely.line_merge(multilinestring)
 
-  Returns `LineString(s)` or `MultiLineString(s)` representing the merger of all
-  contiguous elements of the input `MultiLineString(s)`.
+  Returns `LineString(s)` or `MultiLineString(s)` representing the merger of
+  all contiguous elements of the input `MultiLineString(s)`.
 
 .. code-block:: python
 
@@ -2206,8 +2207,8 @@ Sequences of touching lines can be merged into `MultiLineStrings` or `Polygons`.
 
 Efficient Rectangle Clipping
 ----------------------------
-The :func:`~shapely.clip_by_rect` function returns the portion of a geometry within a
-rectangle.
+The :func:`~shapely.clip_by_rect` function returns the portion of a geometry
+within a rectangle.
 
 .. function:: shapely.clip_by_rect(geom, xmin, ymin, xmax, ymax)
 
@@ -2231,8 +2232,8 @@ rectangle.
 Efficient Unions
 ----------------
 
-The :func:`~shapely.unary_union` function is more efficient than accumulating with
-:meth:`~object.union`.
+The :func:`~shapely.unary_union` function is more efficient than accumulating
+with :meth:`~object.union`.
 
 .. plot:: code/unary_union.py
 
@@ -2269,8 +2270,8 @@ The :func:`~shapely.unary_union` function is more efficient than accumulating wi
 Delaunay triangulation
 ----------------------
 
-The :func:`~shapely.delaunay_triangles` function calculates a Delaunay triangulation
-from a collection of points.
+The :func:`~shapely.delaunay_triangles` function calculates a Delaunay
+triangulation from a collection of points.
 
 .. plot:: code/triangulate.py
 
@@ -2282,8 +2283,8 @@ from a collection of points.
    used as the points of the triangulation.
 
    The `tolerance` keyword argument sets the snapping tolerance used to improve
-   the robustness of the triangulation computation. A tolerance of 0.0 specifies
-   that no snapping will take place.
+   the robustness of the triangulation computation. A tolerance of 0.0
+   specifies that no snapping will take place.
 
    If the `edges` keyword argument is `False` a list of `Polygon` triangles
    will be returned. Otherwise a list of `LineString` edges is returned.
@@ -2305,8 +2306,8 @@ from a collection of points.
 Voronoi Diagram
 ---------------
 
-The :func:`~shapely.voronoi_polygons` function constructs a Voronoi diagram from a
-collection points, or the vertices of any geometry.
+The :func:`~shapely.voronoi_polygons` function constructs a Voronoi diagram
+from a collection points, or the vertices of any geometry.
 
 .. plot:: code/voronoi_diagram.py
 
@@ -2350,13 +2351,13 @@ collection points, or the vertices of any geometry.
 Nearest points/shortest line
 ----------------------------
 
-The :func:`~shapely.shortest_line` function calculates the shortest line between a pair
-of geometries.
+The :func:`~shapely.shortest_line` function calculates the shortest line
+between a pair of geometries.
 
 .. function:: shapely.shortest_line(geom1, geom2)
 
-   Returns a tuple of the shortest line between the input geometries. The points are
-   returned in the same order as the input geometries.
+   Returns a tuple of the shortest line between the input geometries. The
+   points are returned in the same order as the input geometries.
 
    `New in version 2.0`.
 
@@ -2369,13 +2370,14 @@ of geometries.
   <LINESTRING (0.5 1, 0.5 2)>
 
 
-Note that the shortest line may not connect to vertices of the input geometries.
+Note that the shortest line may not connect to vertices of the input
+geometries.
 
 Snapping
 --------
 
-The :func:`~shapely.snap` snaps the vertices in one geometry to the vertices in a second
-geometry with a given tolerance.
+The :func:`~shapely.snap` snaps the vertices in one geometry to the vertices in
+a second geometry with a given tolerance.
 
 .. function:: shapely.snap(geom1, geom2, tolerance)
 
@@ -2399,8 +2401,8 @@ geometry with a given tolerance.
 Shared paths
 ------------
 
-The :func:`~shapely.shared_paths` function finds the shared paths between two linear
-geometries.
+The :func:`~shapely.shared_paths` function finds the shared paths between two
+linear geometries.
 
 .. function:: shapely.shared_paths(geom1, geom2)
 
@@ -2428,27 +2430,29 @@ geometries.
 Splitting
 ---------
 
-The :func:`~shapely.ops.split` function in `shapely.ops` splits a geometry by another
-geometry.
+The :func:`~shapely.ops.split` function in `shapely.ops` splits a geometry by
+another geometry.
 
 .. function:: shapely.ops.split(geom, splitter)
 
-   Splits a geometry by another geometry and returns a collection of geometries. This
-   function is the theoretical opposite of the union of the split geometry parts. If the
-   splitter does not split the geometry, a collection with a single geometry equal to
-   the input geometry is returned.
+   Splits a geometry by another geometry and returns a collection of
+   geometries. This function is the theoretical opposite of the union of the
+   split geometry parts. If the splitter does not split the geometry, a
+   collection with a single geometry equal to the input geometry is returned.
 
    The function supports:
 
-   * Splitting a (Multi)LineString by a (Multi)Point or (Multi)LineString or (Multi)Polygon boundary
+   * Splitting a (Multi)LineString by a (Multi)Point or (Multi)LineString or 
+     (Multi)Polygon boundary
 
    * Splitting a (Multi)Polygon by a LineString
 
-   It may be convenient to snap the splitter with low tolerance to the geometry. For
-   example in the case of splitting a line by a point, the point must be exactly on the
-   line, for the line to be correctly split. When splitting a line by a polygon, the
-   boundary of the polygon is used for the operation. When splitting a line by another
-   line, a ValueError is raised if the two overlap at some segment.
+   It may be convenient to snap the splitter with low tolerance to the
+   geometry. For example in the case of splitting a line by a point, the point
+   must be exactly on the line, for the line to be correctly split. When
+   splitting a line by a polygon, the boundary of the polygon is used for the
+   operation. When splitting a line by another line, a ValueError is raised if
+   the two overlap at some segment.
 
 .. code-block:: pycon
 
@@ -2462,8 +2466,8 @@ geometry.
 Substring
 ---------
 
-The :func:`~shapely.ops.substring` function in :mod:`shapely.ops` returns a line segment
-between specified distances along a `LineString`.
+The :func:`~shapely.ops.substring` function in :mod:`shapely.ops` returns a
+line segment between specified distances along a `LineString`.
 
 .. function:: shapely.ops.substring(geom, start_dist, end_dist[, normalized=False])
 
