@@ -56,7 +56,7 @@ jobs:
         # Numpy no longer builds i686 packages
         # - os: ubuntu-20.04
         #   arch: i686
-        # The aarch64 build has been transferred to Travis
+        # The aarch64 build has been transferred to CircleCI
         # - os: ubuntu-20.04
         #   arch: aarch64
         #   qemu_platform: arm64
