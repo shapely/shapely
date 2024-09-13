@@ -67,3 +67,13 @@ class PolylabelTestCase(unittest.TestCase):
         label = polylabel(polygon, 0.05)
         assert label.x == pytest.approx(7.65625)
         assert label.y == pytest.approx(7.65625)
+
+    def test_polygon_infinite_loop(self):
+        # https://github.com/shapely/shapely/issues/1836
+        # corner case that caused an infinite loop in the old custom implemetation
+        polygon = shapely.from_wkt(
+            "POLYGON ((536520.0679737709 5438764.374763639, 536520.0679737704 5438764.374763602, 536520.0679737709 5438764.374763642, 536520.0679737709 5438764.374763639))"  # noqa: E501
+        )
+        label = polylabel(polygon)
+        assert label.x == pytest.approx(536520.068)
+        assert label.y == pytest.approx(5438764.375)
