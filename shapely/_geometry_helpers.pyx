@@ -66,7 +66,7 @@ cdef int _create_simple_geometry(
     GEOSContextHandle_t geos_handle,
     const double[:, :] coord_view,
     Py_ssize_t idx,
-    unsigned int geom_size,
+    unsigned int n_coords,
     unsigned int dims,
     int geometry_type,
     char is_ring,
@@ -79,10 +79,10 @@ cdef int _create_simple_geometry(
     """
     cdef GEOSCoordSequence *seq = NULL
     cdef int errstate
-    cdef unsigned int actual_geom_size = 0
+    cdef unsigned int actual_n_coords = 0
 
     errstate = PyGEOS_CoordSeq_FromBuffer(
-        geos_handle, &coord_view[idx, 0], geom_size, dims,
+        geos_handle, &coord_view[idx, 0], n_coords, dims,
         is_ring, handle_nan, &seq
     )
     if errstate != PGERR_SUCCESS:
@@ -94,9 +94,9 @@ cdef int _create_simple_geometry(
         geom[0] = GEOSGeom_createLineString_r(geos_handle, seq)
     elif geometry_type == 2:
         # check the resulting size to prevent invalid rings
-        if GEOSCoordSeq_getSize_r(geos_handle, seq, &actual_geom_size) == 0:
+        if GEOSCoordSeq_getSize_r(geos_handle, seq, &actual_n_coords) == 0:
             return PGERR_GEOS_EXCEPTION
-        if 0 < actual_geom_size < 4:
+        if 0 < actual_n_coords < 4:
             return PGERR_LINEARRING_NCOORDS
         geom[0] = GEOSGeom_createLinearRing_r(geos_handle, seq)
 
@@ -130,8 +130,7 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type, 
     cdef Py_ssize_t idx = 0
     cdef unsigned int coord_idx = 0
     cdef Py_ssize_t geom_idx = 0
-    cdef unsigned int geom_size = 0
-    cdef unsigned int actual_geom_size = 0
+    cdef unsigned int n_coords = 0
     cdef unsigned int ring_closure = 0
     cdef GEOSGeometry *geom = NULL
     cdef GEOSCoordSequence *seq = NULL
@@ -179,9 +178,9 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type, 
 
     with get_geos_handle() as geos_handle:
         for geom_idx in range(n_geoms):
-            geom_size = coord_counts[geom_idx]
+            n_coords = coord_counts[geom_idx]
 
-            if geom_size == 0:
+            if n_coords == 0:
                 if allow_missing:
                     continue
                 else:
@@ -189,13 +188,13 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type, 
                         f"Index {geom_idx} is missing from the input indices."
                     )
             errstate = _create_simple_geometry(
-                geos_handle, coord_view, idx, geom_size, dims, geometry_type,
+                geos_handle, coord_view, idx, n_coords, dims, geometry_type,
                 is_ring, handle_nan, &geom
             )
             if errstate != PGERR_SUCCESS:
                 return _create_simple_geometry_raise_error(errstate)
 
-            idx += geom_size
+            idx += n_coords
 
             out_view[geom_idx] = PyGEOS_CreateGeometry(geom, geos_handle)
 
