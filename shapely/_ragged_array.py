@@ -364,6 +364,10 @@ def _multilinestrings_from_flatcoords(coords, offsets1, offsets2):
 
 
 def _polygon_from_flatcoords(coords, offsets1, offsets2):
+    # ensure correct dtypes
+    offsets1 = np.asarray(offsets1, dtype="int64")
+    offsets2 = np.asarray(offsets2, dtype="int64")
+
     # recreate polygons
     result = _from_ragged_array_polygon(coords, offsets1, offsets2)
     return result
