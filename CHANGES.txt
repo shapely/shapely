@@ -45,7 +45,8 @@ Breaking changes in GEOS 3.12:
 Deprecations:
 
 - The ``shapely.geos`` module is deprecated. All GEOS-version related attributes are
-  available directly from the top-level ``shapely`` namespace as well (already since shapely 2.0).
+  available directly from the top-level ``shapely`` namespace as well (already since
+  shapely 2.0) (#2145).
 
 Packaging:
 

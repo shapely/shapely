@@ -6,8 +6,8 @@ import shapely
 
 warnings.warn(
     "The 'shapely.geos' module is deprecated, and will be removed in a future version. "
-    "All attributes of 'shapely.geos' are now available directly from the top-level "
-    "'shapely' namespace.",
+    "All attributes of 'shapely.geos' are available directly from the top-level "
+    "'shapely' namespace (since shapely 2.0.0).",
     DeprecationWarning,
     stacklevel=2,
 )
