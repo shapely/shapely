@@ -7,7 +7,9 @@ import shapely
 from shapely import LinearRing, LineString, Point
 from shapely.tests.common import (
     all_types,
+    all_types_m,
     all_types_z,
+    all_types_zm,
     empty,
     geometry_collection,
     ignore_invalid,
@@ -18,6 +20,13 @@ from shapely.tests.common import (
 )
 
 UNARY_PREDICATES = (
+    shapely.has_z,
+    pytest.param(
+        shapely.has_m,
+        marks=pytest.mark.skipif(
+            shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12"
+        ),
+    ),
     shapely.is_empty,
     shapely.is_simple,
     shapely.is_ring,
@@ -49,6 +58,7 @@ BINARY_PREDICATES = (
     ),
     shapely.equals,
     shapely.equals_exact,
+    shapely.equals_identical,
 )
 
 BINARY_PREPARED_PREDICATES = BINARY_PREDICATES[:-2]
@@ -196,9 +206,30 @@ def test_equals_exact_tolerance():
 def test_equals_exact_normalize():
     l1 = LineString([(0, 0), (1, 1)])
     l2 = LineString([(1, 1), (0, 0)])
-    # default requirs same order of coordinates
+    # default requires same order of coordinates
     assert not shapely.equals_exact(l1, l2)
     assert shapely.equals_exact(l1, l2, normalize=True)
+
+
+def test_equals_identical():
+    # more elaborate tests are done at the Geometry.__eq__ level
+    # requires same order of coordinates
+    l1 = LineString([(0, 0), (1, 1)])
+    l2 = LineString([(1, 1), (0, 0)])
+    assert not shapely.equals_identical(l1, l2)
+
+    # checks z-dimension (in contrast to equals_exact)
+    l1 = LineString([(0, 0, 0), (1, 1, 0)])
+    l2 = LineString([(0, 0, 1), (1, 1, 1)])
+    assert not shapely.equals_identical(l1, l2)
+    assert shapely.equals_exact(l1, l2)
+
+    # NaNs in same place are equal (in contrast to equals_exact)
+    with ignore_invalid():
+        l1 = LineString([(0, np.nan), (1, 1)])
+        l2 = LineString([(0, np.nan), (1, 1)])
+    assert shapely.equals_identical(l1, l2)
+    assert not shapely.equals_exact(l1, l2)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
@@ -218,17 +249,47 @@ def test_dwithin():
 
 
 @pytest.mark.parametrize("geometry", all_types)
-def test_has_z_all_types(geometry):
+def test_has_z_has_m_all_types(geometry):
     assert not shapely.has_z(geometry)
+    if shapely.geos_version >= (3, 12, 0):
+        assert not shapely.has_m(geometry)
+
+
+# The next few tests skip has_z/has_m with empty geometries
+# See https://github.com/libgeos/geos/issues/888
 
 
 @pytest.mark.parametrize("geometry", all_types_z)
-def test_has_z_all_types_z(geometry):
+def test_has_z_has_m_all_types_z(geometry):
     if shapely.is_empty(geometry):
-        # https://github.com/libgeos/geos/issues/888
         pytest.skip("GEOSHasZ with EMPTY geometries is inconsistent")
-    else:
-        assert shapely.has_z(geometry)
+    assert shapely.has_z(geometry)
+    if shapely.geos_version >= (3, 12, 0):
+        assert not shapely.has_m(geometry)
+
+
+@pytest.mark.skipif(
+    shapely.geos_version < (3, 12, 0),
+    reason="M coordinates not supported with GEOS < 3.12",
+)
+@pytest.mark.parametrize("geometry", all_types_m)
+def test_has_m_all_types_m(geometry):
+    if shapely.is_empty(geometry):
+        pytest.skip("GEOSHasM with EMPTY geometries is inconsistent")
+    assert not shapely.has_z(geometry)
+    assert shapely.has_m(geometry)
+
+
+@pytest.mark.skipif(
+    shapely.geos_version < (3, 12, 0),
+    reason="M coordinates not supported with GEOS < 3.12",
+)
+@pytest.mark.parametrize("geometry", all_types_zm)
+def test_has_z_has_m_all_types_zm(geometry):
+    if shapely.is_empty(geometry):
+        pytest.skip("GEOSHasZ with EMPTY geometries is inconsistent")
+    assert shapely.has_z(geometry)
+    assert shapely.has_m(geometry)
 
 
 @pytest.mark.parametrize(
@@ -317,7 +378,7 @@ def test_is_ccw(geom, expected):
 
 
 def _prepare_with_copy(geometry):
-    """Prepare without modifying inplace"""
+    """Prepare without modifying in-place"""
     geometry = shapely.transform(geometry, lambda x: x)  # makes a copy
     shapely.prepare(geometry)
     return geometry

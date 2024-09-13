@@ -1,5 +1,5 @@
-"""Collections of points and related utilities
-"""
+"""Collections of points and related utilities."""
+
 import numpy as np
 
 import shapely
@@ -11,8 +11,7 @@ __all__ = ["MultiPoint"]
 
 
 class MultiPoint(BaseMultipartGeometry):
-    """
-    A collection of one or more Points.
+    """A collection of one or more Points.
 
     A MultiPoint has zero area and zero length.
 
@@ -31,17 +30,19 @@ class MultiPoint(BaseMultipartGeometry):
     --------
     Construct a MultiPoint containing two Points
 
-    >>> from shapely import Point
+    >>> from shapely import MultiPoint, Point
     >>> ob = MultiPoint([[0.0, 0.0], [1.0, 2.0]])
     >>> len(ob.geoms)
     2
     >>> type(ob.geoms[0]) == Point
     True
+
     """
 
     __slots__ = []
 
     def __new__(self, points=None):
+        """Create a new MultiPoint geometry."""
         if points is None:
             # allow creation of empty multipoints, to support unpickling
             # TODO better empty constructor
@@ -70,16 +71,17 @@ class MultiPoint(BaseMultipartGeometry):
 
     @property
     def __geo_interface__(self):
+        """Return a GeoJSON-like mapping interface for this MultiPoint."""
         return {
             "type": "MultiPoint",
             "coordinates": tuple(g.coords[0] for g in self.geoms),
         }
 
     def svg(self, scale_factor=1.0, fill_color=None, opacity=None):
-        """Returns a group of SVG circle elements for the MultiPoint geometry.
+        """Return a group of SVG circle elements for the MultiPoint geometry.
 
         Parameters
-        ==========
+        ----------
         scale_factor : float
             Multiplication factor for the SVG circle diameters.  Default is 1.
         fill_color : str, optional
@@ -87,6 +89,7 @@ class MultiPoint(BaseMultipartGeometry):
             geometry is valid, and "#ff3333" if invalid.
         opacity : float
             Float number between 0 and 1 for color opacity. Default value is 0.6
+
         """
         if self.is_empty:
             return "<g />"
