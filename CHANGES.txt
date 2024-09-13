@@ -43,6 +43,12 @@ Breaking changes in GEOS 3.12:
 - The WKT representation of a MULTIPOINT changed from for example "MULTIPOINT (0 0, 1 1)"
   to "MULTIPOINT ((0 0), (1 1))". (#1885)
 
+Deprecations:
+
+- The ``shapely.geos`` module is deprecated. All GEOS-version related attributes are
+  available directly from the top-level ``shapely`` namespace as well (already since
+  shapely 2.0) (#2145).
+
 Packaging:
 
 - Binary wheels are now built for musllinux (Alpine) x86_64 platforms (#1996).
