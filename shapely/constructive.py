@@ -1261,7 +1261,6 @@ def minimum_bounding_circle(geometry, **kwargs):
     return lib.minimum_bounding_circle(geometry, **kwargs)
 
 
-@requires_geos("3.9.0")
 @multithreading_enabled
 def maximum_inscribed_circle(geometry, tolerance=None, **kwargs):
     """Find the largest circle that is fully contained within the input geometry.
