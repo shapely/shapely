@@ -397,3 +397,43 @@ def test_mixture_polygon_multipolygon():
     result = shapely.from_ragged_array(typ, coords, offsets)
     expected = np.array([MultiPolygon([polygon]), multi_polygon])
     assert_geometries_equal(result, expected)
+
+
+def test_from_ragged_incorrect_rings():
+    # too few coordinates for linearring
+    coords = np.array([[0, 0], [1, 1]], dtype="float64")
+    offsets1 = np.array([0, 2])
+    offsets2 = np.array([0, 1])
+    offsets3 = np.array([0, 1])
+
+    with pytest.raises(
+        ValueError, match="A linearring requires at least 4 coordinates"
+    ):
+        shapely.from_ragged_array(
+            shapely.GeometryType.MULTIPOLYGON, coords, (offsets1, offsets2, offsets3)
+        )
+
+    with pytest.raises(
+        ValueError, match="A linearring requires at least 4 coordinates"
+    ):
+        shapely.from_ragged_array(
+            shapely.GeometryType.POLYGON, coords, (offsets1, offsets2)
+        )
+
+    coords = np.full((4, 2), np.nan)
+    offsets1 = np.array([0, 4])
+    with pytest.raises(
+        shapely.GEOSException,
+        match="Points of LinearRing do not form a closed linestring",
+    ):
+        shapely.from_ragged_array(
+            shapely.GeometryType.MULTIPOLYGON, coords, (offsets1, offsets2, offsets3)
+        )
+
+    with pytest.raises(
+        shapely.GEOSException,
+        match="Points of LinearRing do not form a closed linestring",
+    ):
+        shapely.from_ragged_array(
+            shapely.GeometryType.POLYGON, coords, (offsets1, offsets2)
+        )
