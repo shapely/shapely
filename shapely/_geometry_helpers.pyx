@@ -88,18 +88,16 @@ cdef int _create_simple_geometry(
     if errstate != PGERR_SUCCESS:
         return errstate
 
-    # check the resulting size to prevent invalid rings
-    if is_ring == 1:
-        if GEOSCoordSeq_getSize_r(geos_handle, seq, &actual_geom_size) == 0:
-            return PGERR_GEOS_EXCEPTION
-        if 0 < actual_geom_size < 4:
-            return PGERR_LINEARRING_NCOORDS
-
     if geometry_type == 0:
         geom[0] = GEOSGeom_createPoint_r(geos_handle, seq)
     elif geometry_type == 1:
         geom[0] = GEOSGeom_createLineString_r(geos_handle, seq)
     elif geometry_type == 2:
+        # check the resulting size to prevent invalid rings
+        if GEOSCoordSeq_getSize_r(geos_handle, seq, &actual_geom_size) == 0:
+            return PGERR_GEOS_EXCEPTION
+        if 0 < actual_geom_size < 4:
+            return PGERR_LINEARRING_NCOORDS
         geom[0] = GEOSGeom_createLinearRing_r(geos_handle, seq)
 
     if geom[0] == NULL:
@@ -152,7 +150,7 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type, 
 
     cdef unsigned int dims = coordinates.shape[1]
     if dims not in {2, 3}:
-        raise ValueError("coordinates should N by 2 or N by 3.")
+        raise ValueError("coordinates should be N by 2 or N by 3.")
 
     if geometry_type not in {0, 1, 2}:
         raise ValueError(f"Invalid geometry_type: {geometry_type}.")
@@ -477,10 +475,9 @@ def _from_ragged_array_polygon(
 
     cdef unsigned int dims = coordinates.shape[1]
     if dims not in {2, 3}:
-        raise ValueError("coordinates should N by 2 or N by 3.")
+        raise ValueError("coordinates should be N by 2 or N by 3.")
 
     cdef int ring_type = 2
-    cdef int geometry_type = 6  # MultiPolygon
     cdef char is_ring = 1
     cdef int handle_nan = 0
 
@@ -579,7 +576,7 @@ def _from_ragged_array_multipolygon(
 
     cdef unsigned int dims = coordinates.shape[1]
     if dims not in {2, 3}:
-        raise ValueError("coordinates should N by 2 or N by 3.")
+        raise ValueError("coordinates should be N by 2 or N by 3.")
 
     cdef int ring_type = 2
     cdef int geometry_type = 6  # MultiPolygon
@@ -638,6 +635,7 @@ def _from_ragged_array_multipolygon(
                         _deallocate_arr(geos_handle, temp_geoms_view, i - 1)
                         with gil:
                             return  # GEOSException is raised by get_geos_handle
+
                     temp_parts_view[parts_idx] = <np.intp_t>part
                     parts_idx += 1
 
