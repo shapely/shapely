@@ -68,6 +68,9 @@ class PolylabelTestCase(unittest.TestCase):
         assert label.x == pytest.approx(7.65625)
         assert label.y == pytest.approx(7.65625)
 
+    @pytest.mark.skipif(
+        shapely.geos_version < (3, 12, 0), reason="Fails with GEOS < 3.12"
+    )
     def test_polygon_infinite_loop(self):
         # https://github.com/shapely/shapely/issues/1836
         # corner case that caused an infinite loop in the old custom implemetation
