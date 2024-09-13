@@ -2,7 +2,6 @@ import unittest
 
 import pytest
 
-import shapely
 from shapely.algorithms.polylabel import polylabel
 from shapely.geometry import LineString, Point, Polygon
 
@@ -48,12 +47,10 @@ class PolylabelTestCase(unittest.TestCase):
             ]
         )
         label = polylabel(polygon)
-        if shapely.geos_version >= (3, 12, 0):
-            # our own implementation corrects for this
-            assert label.coords[:] == [(32.722025, -117.201875)]
-        else:
-            # the upstream GEOS implementation does not
-            assert label.coords[:] == [(32.722025, -117.208595)]
+        # correct result would be:
+        # assert label.coords[:] == [(32.722025, -117.201875)]
+        # the upstream GEOS implementation does not
+        assert label.coords[:] == [(32.722025, -117.208595)]
 
     def test_polygon_with_hole(self):
         """
