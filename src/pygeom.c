@@ -1,5 +1,4 @@
 #define PY_SSIZE_T_CLEAN
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 #include "pygeom.h"
 
@@ -7,6 +6,7 @@
 #include <structmember.h>
 
 #include "geos.h"
+#include "pygeos.h"
 
 /* This initializes a global geometry type registry */
 PyObject* geom_registry[1] = {NULL};
@@ -271,11 +271,11 @@ static PyObject* GeometryObject_richcompare(GeometryObject* self, PyObject* othe
         break;
       case Py_EQ:
         result =
-            GEOSEqualsExact_r(ctx, self->ptr, other_geom->ptr, 0) ? Py_True : Py_False;
+            PyGEOSEqualsIdentical(ctx, self->ptr, other_geom->ptr) ? Py_True : Py_False;
         break;
       case Py_NE:
         result =
-            GEOSEqualsExact_r(ctx, self->ptr, other_geom->ptr, 0) ? Py_False : Py_True;
+            PyGEOSEqualsIdentical(ctx, self->ptr, other_geom->ptr) ? Py_False : Py_True;
         break;
       case Py_GT:
         result = Py_NotImplemented;

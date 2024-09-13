@@ -42,6 +42,7 @@ CONSTRUCTIVE_NO_ARGS = (
     ),
     shapely.envelope,
     shapely.extract_unique_points,
+    shapely.minimum_clearance_line,
     shapely.node,
     shapely.normalize,
     shapely.point_on_surface,

@@ -210,24 +210,6 @@ class BaseGeometry(shapely.Geometry):
         """Return the symmetric difference of the geometries."""
         return self.symmetric_difference(other)
 
-    def __eq__(self, other):
-        """Return True if geometries are equal, else False."""
-        if not isinstance(other, BaseGeometry):
-            return NotImplemented
-        return type(other) is type(self) and np.array_equal(
-            self.coords, other.coords, equal_nan=False
-        )
-
-    def __ne__(self, other):
-        """Return True if geometries are not equal, else False."""
-        if not isinstance(other, BaseGeometry):
-            return NotImplemented
-        return not self.__eq__(other)
-
-    def __hash__(self):
-        """Return the hash value of the geometry."""
-        return super().__hash__()
-
     # Coordinate access
     # -----------------
 
@@ -511,7 +493,8 @@ class BaseGeometry(shapely.Geometry):
         quadsegs : int, optional
             Deprecated alias for `quad_segs`.
         **kwargs : dict, optional
-            For backwards compatibility, will be ignored.
+            For backwards compatibility of renamed parameters. If an unsupported
+            kwarg is passed, a `ValueError` will be raised.
 
         Returns
         -------

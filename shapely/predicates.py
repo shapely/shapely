@@ -36,6 +36,7 @@ __all__ = [
     "touches",
     "within",
     "equals_exact",
+    "equals_identical",
     "relate",
     "relate_pattern",
 ]
@@ -595,9 +596,8 @@ def contains(a, b, **kwargs):
 
 @multithreading_enabled
 def contains_properly(a, b, **kwargs):
-    """Return True if geometry B is completely inside geometry A.
-
-    They should have no common boundary points.
+    """Return True if geometry B is completely inside geometry A, with no common
+    boundary points.
 
     A contains B properly if B intersects the interior of A but not the
     boundary (or exterior). This means that a geometry A does not
@@ -641,7 +641,7 @@ def contains_properly(a, b, **kwargs):
     >>> contains_properly(area1, area3)
     True
 
-    """
+    """  # noqa: D205
     return lib.contains_properly(a, b, **kwargs)
 
 
@@ -1010,7 +1010,8 @@ def within(a, b, **kwargs):
 
 @multithreading_enabled
 def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
-    """Return True if the geometries are equivalent within a given tolerance.
+    """Return True if the geometries are structurally equivalent within a given
+    tolerance.
 
     This method uses exact coordinate equality, which requires coordinates
     to be equal (within specified tolerance) and in the same order for
@@ -1066,12 +1067,57 @@ def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
     >>> equals(polygon1, polygon2)
     True
 
-    """
+    """  # noqa: D205
     if normalize:
         a = lib.normalize(a)
         b = lib.normalize(b)
 
     return lib.equals_exact(a, b, tolerance, **kwargs)
+
+
+@multithreading_enabled
+def equals_identical(a, b, **kwargs):
+    """Return True if the geometries are identical.
+
+    This function verifies whether geometries are pointwise equivalent by checking
+    that the structure, ordering, and values of all vertices are identical
+    in all dimensions.
+
+    Similarly to :func:`equals_exact`, this function uses exact coordinate
+    equality and requires coordinates to be in the same order for all
+    components (vertices, rings, or parts) of a geometry. However, in
+    contrast :func:`equals_exact`, this function does not allow to specify
+    a tolerance, but does require all dimensions to be the same
+    (:func:`equals_exact` ignores the Z and M dimensions), and NaN values
+    are considered to be equal to other NaN values.
+
+    This function is the vectorized equivalent of scalar equality of
+    geometry objects (``a == b``, i.e. ``__eq__``).
+
+    .. versionadded:: 2.1
+
+    Parameters
+    ----------
+    a, b : Geometry or array_like
+        Geometry or geometries to check.
+    **kwargs
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    See Also
+    --------
+    equals_exact : Check if geometries are structurally equal given a specified
+        tolerance.
+    equals : Check if geometries are spatially (topologically) equal.
+
+    Examples
+    --------
+    >>> from shapely import Point
+    >>> equals_identical(Point(1, 2, 3), Point(1, 2, 3))
+    True
+    >>> equals_identical(Point(1, 2, 3), Point(1, 2, 0))
+    False
+    """
+    return lib.equals_identical(a, b, **kwargs)
 
 
 def relate(a, b, **kwargs):

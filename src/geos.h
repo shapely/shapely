@@ -10,10 +10,16 @@
 #endif
 
 // wrap geos.h import to silence geos gcc warnings
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-prototypes"
+#endif
+
 #include <geos_c.h>
+
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 
 /* Macros to setup GEOS Context and error handlers
 
@@ -201,6 +207,6 @@ extern enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx,
                                                   npy_intp cs2,
                                 GEOSCoordSequence** coord_seq);
 extern int coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq,
-                              double* buf, unsigned int size, unsigned int dims);
+                              double* buf, unsigned int size, int has_z, int has_m);
 
 #endif  // _GEOS_H
