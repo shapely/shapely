@@ -178,7 +178,7 @@ def test_from_wkt_on_invalid_ignore(wkt):
 def test_from_wkt_on_invalid_raises(wkt, error, message):
     """Raises on invalid WKT."""
     with pytest.raises(error, match=message):
-        _ = shapely.from_wkt(wkt, on_invalid="raises")
+        _ = shapely.from_wkt(wkt, on_invalid="raise")
 
 
 @pytest.mark.parametrize(
@@ -193,7 +193,7 @@ def test_from_wkt_on_invalid_raises(wkt, error, message):
 def test_from_wkt_on_invalid_warns(wkt, error, message):
     """Raises on invalid input."""
     with pytest.warns(Warning, match=message):
-        result = shapely.from_wkt(wkt, on_invalid="warns")
+        result = shapely.from_wkt(wkt, on_invalid="warn")
 
     assert result is None
 
