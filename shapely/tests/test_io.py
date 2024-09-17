@@ -146,7 +146,7 @@ def test_from_wkt_none():
     assert shapely.from_wkt(None) is None
 
 
-def test_from_wkt_unsupported_option_value(wkt):
+def test_from_wkt_unsupported_option_value():
     """Raise if if_invalid has an unsupported value."""
     with pytest.raises(ValueError, match="not a valid option"):
         _ = shapely.from_wkt(" ", on_invalid=True)
@@ -190,8 +190,8 @@ def test_from_wkt_on_invalid_raises(wkt, error, message):
         ("POLYGON ((0 0, 0 0))", "Invalid number of points"),
     ],
 )
-def test_from_wkt_on_invalid_warns(wkt, error, message):
-    """Raises on invalid input."""
+def test_from_wkt_on_invalid_warns(wkt, message):
+    """Warns on invalid input."""
     with pytest.warns(Warning, match=message):
         result = shapely.from_wkt(wkt, on_invalid="warn")
 
