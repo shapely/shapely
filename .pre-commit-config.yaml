@@ -1,7 +1,10 @@
-files: 'shapely/'
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.5.2"
+    rev: v0.5.2
     hooks:
       - id: ruff-format
       - id: ruff
+  - repo: https://github.com/PyCQA/doc8
+    rev: v1.1.2
+    hooks:
+      - id: doc8

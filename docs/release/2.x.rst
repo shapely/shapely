@@ -8,17 +8,17 @@ Version 2.1.0 (unreleased)
 
 API changes:
 
-- Equality of geometries (``geom1 == geom2``) now considers NaN coordinate values
-  in the same location to be equal (#1775). It is recommended however to ensure
-  geometries don't have NaN values in the first place, for which you can now use
-  the ``handle_nan`` parameter in construction functions.
+- Equality of geometries (``geom1 == geom2``) now considers NaN coordinate
+  values in the same location to be equal (#1775). It is recommended however to
+  ensure geometries don't have NaN values in the first place, for which you can
+  now use the ``handle_nan`` parameter in construction functions.
 
 Improvements:
 
 - Require GEOS >= 3.9, NumPy >= 1.20, and Python >= 3.9 (#1802, #1885, #2124)
-- Add a ``handle_nan`` parameter to ``shapely.linestrings()`` and ``shapely.linearrings()``
-  to allow, skip, or error on nonfinite (NaN / Inf) coordinates. The default
-  behaviour (allow) is backwards compatible (#1594).
+- Add a ``handle_nan`` parameter to ``shapely.linestrings()`` and
+  ``shapely.linearrings()`` to allow, skip, or error on nonfinite (NaN / Inf)
+  coordinates. The default behaviour (allow) is backwards compatible (#1594).
 
 .. _version-2-0-6:
 
@@ -57,10 +57,11 @@ Version 2.0.4 (2024-04-16)
 Bug fixes:
 
 - Fix bug in ``to_wkt`` with multiple empty Z geometries (#2012).
-- Fix bug in ``to_ragged_array`` for an array of Points with missing values (#2034).
+- Fix bug in ``to_ragged_array`` for an array of Points with missing values
+  (#2034).
 
-Wheels for Python versions >= 3.9 will be compatible with the upcoming NumPy 2.0
-release (as well as with supported NumPy 1.x versions).
+Wheels for Python versions >= 3.9 will be compatible with the upcoming
+NumPy 2.0 release (as well as with supported NumPy 1.x versions).
 
 .. _version-2-0-3:
 
@@ -85,13 +86,14 @@ Version 2.0.2 (2023-10-12)
 
 Bug fixes:
 
-- Fix regression in the (in)equality comparison (``geom1 == geom2``) using ``__eq__`` to
-  not ignore the z-coordinates (#1732).
+- Fix regression in the (in)equality comparison (``geom1 == geom2``) using
+  ``__eq__`` to not ignore the z-coordinates (#1732).
 - Fix ``MultiPolygon()`` constructor to accept polygons without holes (#1850).
-- Fix :func:`.minimum_rotated_rectangle` (:func:`.oriented_envelope`) to always return
-  the minimum area solution (instead of minimum width). In practice, it will use the
-  GEOS implementation only for GEOS 3.12+, and for older GEOS versions fall back to the
-  implementation that was included in Shapely < 2 (#1670).
+- Fix :func:`.minimum_rotated_rectangle` (:func:`.oriented_envelope`) to always
+  return the minimum area solution (instead of minimum width). In practice, it
+  will use the GEOS implementation only for GEOS 3.12+, and for older GEOS
+  versions fall back to the implementation that was included in Shapely < 2
+  (#1670).
 - Fix :func:`.from_ragged_array` to work with read-only array input (#1744).
 - Fix the handling of z coordinates :func:`shapely.ops.substring` (#1699).
 
@@ -119,17 +121,19 @@ Version 2.0.1 (2023-01-30)
 
 Bug fixes:
 
-- Fix regression in the ``Polygon()`` constructor taking a sequence of Points (#1662).
+- Fix regression in the ``Polygon()`` constructor taking a sequence of Points
+  (#1662).
 - Fix regression in the geometry constructors when passing ``decimal.Decimal``
   coordinate values (#1707).
-- Fix ``STRtree()`` to not make the passed geometry array immutable as side-effect of
-  the constructor (#1714).
+- Fix ``STRtree()`` to not make the passed geometry array immutable as
+  side-effect of the constructor (#1714).
 - Fix the ``directed`` keyword in ``shapely.ops.linemerge()`` (#1695).
 
 Improvements:
 
-- Expose the function to get a matplotlib Patch object from a (Multi)Polygon (without
-  already plotting it) publicly as :func:`shapely.plotting.patch_from_polygon` (#1704).
+- Expose the function to get a matplotlib Patch object from a (Multi)Polygon
+  (without already plotting it) publicly as
+  :func:`shapely.plotting.patch_from_polygon` (#1704).
 
 Acknowledgments
 ^^^^^^^^^^^^^^^
@@ -239,11 +243,12 @@ small name deviations, such as the ``.wkt`` attribute being available as a
 functions from the ``shapely.ops`` submodule such as ``polygonize()``) are
 also made available in a vectorized version as top-level function.
 
-A full list of functions can be found in the API docs (see the pages listed under "API REFERENCE" in the left sidebar).
+A full list of functions can be found in the API docs (see the pages listed
+under "API REFERENCE" in the left sidebar).
 
 * Vectorized constructor functions
-* Optionally output to a user-specified array (``out`` keyword argument) when constructing
-  geometries from ``indices``.
+* Optionally output to a user-specified array (``out`` keyword argument) when
+  constructing geometries from ``indices``.
 * Enable bulk construction of geometries with different number of coordinates
   by optionally taking index arrays in all creation functions.
 
@@ -462,7 +467,8 @@ Several (new) functions from GEOS are now exposed in Shapely:
 * :func:`.node`
 * :func:`.contains_xy` and :func:`.intersects_xy`
 * :func:`.build_area` (GEOS >= 3.8)
-* :func:`.minimum_bounding_circle` and :func:`.minimum_bounding_radius` (GEOS >= 3.8)
+* :func:`.minimum_bounding_circle` and :func:`.minimum_bounding_radius`
+  (GEOS >= 3.8)
 * :func:`.coverage_union` and :func:`.coverage_union_all` (GEOS >= 3.8)
 * :func:`.segmentize` (GEOS >= 3.10)
 * :func:`.dwithin` (GEOS >= 3.10)
@@ -498,7 +504,7 @@ A set of GEOS getter functions are now also exposed to inspect geometries:
 * :func:`.get_num_coordinates`
 * :func:`.get_precision`
 
-Several functions are added to extract parts: 
+Several functions are added to extract parts:
 
 * :func:`.get_geometry` to get a geometry from a GeometryCollection or
   Multi-part geometry.

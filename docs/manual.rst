@@ -826,9 +826,9 @@ sequences are stored on their component geometries.
 Linear Referencing Methods
 --------------------------
 
-It can be useful to specify position along linear features such as `LineStrings`
-and `MultiLineStrings` with a 1-dimensional referencing system. Shapely
-supports linear referencing based on length or distance, evaluating the
+It can be useful to specify position along linear features such as
+`LineStrings` and `MultiLineStrings` with a 1-dimensional referencing system.
+Shapely supports linear referencing based on length or distance, evaluating the
 distance along a geometric object to the projection of a given point, or the
 point at a given distance along the object.
 
@@ -1144,8 +1144,8 @@ differently.
   and at least one point of the interior of `other` lies in the interior of
   `object`.
 
-This predicate applies to all types, and is inverse to :meth:`~object.within`. The
-expression ``a.contains(b) == b.within(a)`` always evaluates to ``True``.
+This predicate applies to all types, and is inverse to :meth:`~object.within`.
+The expression ``a.contains(b) == b.within(a)`` always evaluates to ``True``.
 
 .. code-block:: pycon
 
@@ -1218,7 +1218,8 @@ A line does not cross a point that it contains.
   >>> Point(0, 0).disjoint(Point(1, 1))
   True
 
-This predicate applies to all types and is the inverse of :meth:`~object.intersects`.
+This predicate applies to all types and is the inverse of
+:meth:`~object.intersects`.
 
 .. method:: object.intersects(other)
 
@@ -1230,9 +1231,9 @@ interior point in common.
 
 .. method:: object.overlaps(other)
 
-  Returns ``True`` if the geometries have more than one but not all points in common,
-  have the same dimension, and the intersection of the interiors of the geometries
-  has the same dimension as the geometries themselves.
+  Returns ``True`` if the geometries have more than one but not all points in
+  common, have the same dimension, and the intersection of the interiors of the
+  geometries has the same dimension as the geometries themselves.
 
 .. method:: object.touches(other)
 
@@ -1256,10 +1257,10 @@ example, the following lines touch at ``(1, 1)``, but do not overlap.
 
 This applies to all types and is the inverse of :meth:`~object.contains`.
 
-Used in a ``sorted()`` `key`, :meth:`~object.within` makes it easy to spatially sort
-objects. Let's say we have 4 stereotypic features: a point that is contained by
-a polygon which is itself contained by another polygon, and a free spirited
-point contained by none
+Used in a ``sorted()`` `key`, :meth:`~object.within` makes it easy to spatially
+sort objects. Let's say we have 4 stereotypic features: a point that is
+contained by a polygon which is itself contained by another polygon, and a free
+spirited point contained by none
 
 .. code-block:: pycon
 
@@ -1307,8 +1308,8 @@ It also works on the list of features, producing the order we want.
 DE-9IM Relationships
 --------------------
 
-The :meth:`~object.relate` method tests all the DE-9IM [4]_ relationships between
-objects, of which the named relationship predicates above are a subset.
+The :meth:`~object.relate` method tests all the DE-9IM [4]_ relationships
+between objects, of which the named relationship predicates above are a subset.
 
 .. method:: object.relate(other)
 
@@ -1316,8 +1317,8 @@ objects, of which the named relationship predicates above are a subset.
     between an object's `interior`, `boundary`, `exterior` and those of another
     geometric object.
 
-The named relationship predicates (:meth:`~object.contains`, etc.) are typically
-implemented as wrappers around :meth:`~object.relate`.
+The named relationship predicates (:meth:`~object.contains`, etc.) are
+typically implemented as wrappers around :meth:`~object.relate`.
 
 Two different points have mainly ``F`` (false) values in their matrix; the
 intersection of their `external` sets (the 9th element) is a ``2`` dimensional
@@ -1343,11 +1344,12 @@ elements.
     Returns True if the DE-9IM string code for the relationship between the
     geometries satisfies the pattern, otherwise False.
 
-The :meth:`~object.relate_pattern` compares the DE-9IM code string for two geometries
-against a specified pattern. If the string matches the pattern then ``True`` is
-returned, otherwise ``False``. The pattern specified can be an exact match
-(``0``, ``1`` or ``2``), a boolean match (``T`` or ``F``), or a wildcard
-(``*``). For example, the pattern for the `within` predicate is ``T*****FF*``.
+The :meth:`~object.relate_pattern` compares the DE-9IM code string for two
+geometries against a specified pattern. If the string matches the pattern then
+``True`` is returned, otherwise ``False``. The pattern specified can be an
+exact match (``0``, ``1`` or ``2``), a boolean match (``T`` or ``F``), or a
+wildcard (``*``). For example, the pattern for the `within` predicate is
+``T*****FF*``.
 
 .. code-block:: pycon
 
@@ -1524,7 +1526,8 @@ boundaries.
   of many objects. See :func:`shapely.unary_union` for a more effective
   method.
 
-Several of these set-theoretic methods can be invoked using overloaded operators:
+Several of these set-theoretic methods can be invoked using overloaded
+operators:
 
 - `intersection` can be accessed with and, `&`
 - `union` can be accessed with or, `|`
@@ -1646,16 +1649,17 @@ The side used is determined by the sign of the buffer distance:
 
 .. plot:: code/buffer_single_side.py
 
-Figure 10. Single sided buffer of 0.5 left hand (left) and of 0.3 right hand (right).
+Figure 10. Single sided buffer of 0.5 left hand (left) and of 0.3 right hand
+(right).
 
 The single-sided buffer of point geometries is the same as the regular buffer.
 The End Cap Style for single-sided buffers is always ignored, and forced to
 the equivalent of `BufferCapStyle.flat`.
 
-Passed a `distance` of 0, :meth:`~object.buffer` can sometimes be used to "clean" self-touching
-or self-crossing polygons such as the classic "bowtie". Users have reported
-that very small distance values sometimes produce cleaner results than 0. Your
-mileage may vary when cleaning surfaces.
+Passed a `distance` of 0, :meth:`~object.buffer` can sometimes be used to
+"clean" self-touching or self-crossing polygons such as the classic "bowtie".
+Users have reported that very small distance values sometimes produce cleaner
+results than 0. Your mileage may vary when cleaning surfaces.
 
 .. code-block:: pycon
 
@@ -1713,8 +1717,8 @@ Figure 11. Convex hull (blue) of 2 points (left) and of 6 points (right).
 
   Returns the general minimum bounding rectangle that contains the object.
   Unlike envelope this rectangle is not constrained to be parallel to the
-  coordinate axes. If the convex hull of the object is a degenerate (line or point)
-  this degenerate is returned.
+  coordinate axes. If the convex hull of the object is a degenerate (line or
+  point) this degenerate is returned.
 
   `New in Shapely 1.6.0`
 
@@ -1738,8 +1742,8 @@ linestring feature (right).
   Older alternative method to the :meth:`~object.offset_curve` method, but uses
   `resolution` instead of `quad_segs` and a `side` keyword ('left' or
   'right') instead of sign of the distance. This method is kept for backwards
-  compatibility for now, but is is recommended to use :meth:`~object.offset_curve`
-  instead.
+  compatibility for now, but is is recommended to use
+  :meth:`~object.offset_curve` instead.
 
 .. method:: object.offset_curve(distance, quad_segs=16, join_style=1, mitre_limit=5.0)
 
@@ -1748,9 +1752,10 @@ linestring feature (right).
 
   The `distance` parameter must be a float value.
 
-  The side is determined by the sign of the `distance` parameter (negative for right
-  side offset, positive for left side offset). Left and right are determined
-  by following the direction of the given geometric points of the LineString.
+  The side is determined by the sign of the `distance` parameter (negative for
+  right side offset, positive for left side offset). Left and right are
+  determined by following the direction of the given geometric points of the
+  LineString.
 
   Note: the behaviour regarding orientation of the resulting line depends
   on the GEOS version. With GEOS < 3.11, the line retains the same
@@ -1762,15 +1767,15 @@ linestring feature (right).
   The resolution of the offset around each vertex of the object is
   parameterized as in the :meth:`~object.buffer` method (using `quad_segs`).
 
-  The `join_style` is for outside corners between line segments. Accepted integer
-  values are 1 (round), 2 (mitre), and 3 (bevel). See also
+  The `join_style` is for outside corners between line segments. Accepted
+  integer values are 1 (round), 2 (mitre), and 3 (bevel). See also
   :data:`shapely.BufferJoinStyle`.
 
   Severely mitered corners can be controlled by the `mitre_limit` parameter
   (spelled in British English, en-gb). The corners of a parallel line will
-  be further from the original than most places with the mitre join style. The
-  ratio of this further distance to the specified `distance` is the miter ratio.
-  Corners with a ratio which exceed the limit will be beveled.
+  be further from the original than most places with the mitre join style.
+  The ratio of this further distance to the specified `distance` is the miter
+  ratio. Corners with a ratio which exceed the limit will be beveled.
 
   .. note::
 
@@ -2043,7 +2048,8 @@ preserved or supported by 3D affine transformations.
 Other Transformations
 =====================
 
-Shapely supports map projections and other arbitrary transformations of geometric objects.
+Shapely supports map projections and other arbitrary transformations of
+geometric objects.
 
 .. function:: shapely.ops.transform(func, geom)
 
@@ -2092,8 +2098,10 @@ If using `pyproj>=2.1.0`, the preferred method to project geometries is:
     project = pyproj.Transformer.from_crs(wgs84, utm, always_xy=True).transform
     utm_point = transform(project, wgs84_pt)
 
-It is important to note that in the example above, the `always_xy` kwarg is required as Shapely only supports coordinates in X,Y
-order, and in PROJ 6 the WGS84 CRS uses the EPSG-defined Lat/Lon coordinate order instead of the expected Lon/Lat.
+It is important to note that in the example above, the `always_xy` kwarg is
+required as Shapely only supports coordinates in X,Y order, and in PROJ 6 the
+WGS84 CRS uses the EPSG-defined Lat/Lon coordinate order instead of the
+expected Lon/Lat.
 
 If using `pyproj < 2.1`, then the canonical example is:
 
@@ -2442,7 +2450,7 @@ another geometry.
 
    The function supports:
 
-   * Splitting a (Multi)LineString by a (Multi)Point or (Multi)LineString or 
+   * Splitting a (Multi)LineString by a (Multi)Point or (Multi)LineString or
      (Multi)Polygon boundary
 
    * Splitting a (Multi)Polygon by a LineString
