@@ -2129,36 +2129,34 @@ Other Operations
 Merging Linear Features
 -----------------------
 
-Sequences of touching lines can be merged into `MultiLineStrings` or `Polygons`
-using functions in the :mod:`shapely.ops` module.
+Sequences of touching lines can be merged into `MultiLineStrings` or
+`Polygons`.
 
-.. function:: shapely.ops.polygonize(lines)
+.. function:: shapely.polygonize(lines)
 
   Returns an iterator over polygons constructed from the input `lines`.
 
-  As with the :class:`MultiLineString` constructor, the input elements may be
-  any line-like object.
+  The source should be a sequence of LineString objects.
 
   .. code-block:: pycon
 
-    >>> from shapely.ops import polygonize
+    >>> from shapely import polygonize
     >>> lines = [
-    ...     ((0, 0), (1, 1)),
-    ...     ((0, 0), (0, 1)),
-    ...     ((0, 1), (1, 1)),
-    ...     ((1, 1), (1, 0)),
-    ...     ((1, 0), (0, 0))
+    ...     LineString([(0, 0), (1, 1)]),
+    ...     LineString([(0, 0), (0, 1)]),
+    ...     LineString([(0, 1), (1, 1)]),
+    ...     LineString([(1, 1), (1, 0)]),
+    ...     LineString([(1, 0), (0, 0)]),
     ...     ]
-    >>> list(polygonize(lines))
+    >>> list(polygonize(lines).geoms)
     [<POLYGON ((0 0, 1 1, 1 0, 0 0))>, <POLYGON ((1 1, 0 0, 0 1, 1 1))>]
 
-.. function:: shapely.ops.polygonize_full(lines)
+.. function:: shapely.polygonize_full(lines)
 
   Creates polygons from a source of lines, returning the polygons
   and leftover geometries.
 
-  The source may be a MultiLineString, a sequence of LineString objects,
-  or a sequence of objects than can be adapted to LineStrings.
+  The source should be a sequence of LineString objects.
 
   Returns a tuple of objects: (polygons, cut edges, dangles, invalid ring
   lines). Each are a geometry collection.
@@ -2172,15 +2170,15 @@ using functions in the :mod:`shapely.ops` module.
 
   .. code-block:: pycon
 
-    >>> from shapely.ops import polygonize_full
+    >>> from shapely import polygonize_full
     >>> lines = [
-    ...     ((0, 0), (1, 1)),
-    ...     ((0, 0), (0, 1)),
-    ...     ((0, 1), (1, 1)),
-    ...     ((1, 1), (1, 0)),
-    ...     ((1, 0), (0, 0)),
-    ...     ((5, 5), (6, 6)),
-    ...     ((1, 1), (100, 100)),
+    ...     LineString([(0, 0), (1, 1)]),
+    ...     LineString([(0, 0), (0, 1)]),
+    ...     LineString([(0, 1), (1, 1)]),
+    ...     LineString([(1, 1), (1, 0)]),
+    ...     LineString([(1, 0), (0, 0)]),
+    ...     LineString([(5, 5), (6, 6)]),
+    ...     LineString([(1, 1), (100, 100)]),
     ...     ]
     >>> result, cuts, dangles, invalids = polygonize_full(lines)
     >>> len(result.geoms)
@@ -2190,20 +2188,17 @@ using functions in the :mod:`shapely.ops` module.
     >>> list(dangles.geoms)
     [<LINESTRING (1 1, 100 100)>, <LINESTRING (5 5, 6 6)>]
 
-.. function:: shapely.ops.linemerge(lines)
+.. function:: shapely.line_merge(multilinestring)
 
-  Returns a `LineString` or `MultiLineString` representing the merger of all
-  contiguous elements of `lines`.
-
-  As with :func:`shapely.ops.polygonize`, the input elements may be any
-  line-like object.
+  Returns `LineString(s)` or `MultiLineString(s)` representing the merger of
+  all contiguous elements of the input `MultiLineString(s)`.
 
 .. code-block:: python
 
-    >>> from shapely.ops import linemerge
-    >>> linemerge(lines)
+    >>> from shapely import line_merge
+    >>> line_merge(MultiLineString(lines))
     <MULTILINESTRING ((1 1, 1 0, 0 0), (0 0, 1 1), (0 0, 0 1, 1 1), (1 1, 100 10...>
-    >>> list(linemerge(lines).geoms)
+    >>> list(line_merge(MultiLineString(lines)).geoms)
     [<LINESTRING (1 1, 1 0, 0 0)>,
      <LINESTRING (0 0, 1 1)>,
      <LINESTRING (0 0, 0 1, 1 1)>,
@@ -2212,10 +2207,10 @@ using functions in the :mod:`shapely.ops` module.
 
 Efficient Rectangle Clipping
 ----------------------------
-The :func:`~shapely.ops.clip_by_rect` function in `shapely.ops` returns the
-portion of a geometry within a rectangle.
+The :func:`~shapely.clip_by_rect` function returns the portion of a geometry
+within a rectangle.
 
-.. function:: shapely.ops.clip_by_rect(geom, xmin, ymin, xmax, ymax)
+.. function:: shapely.clip_by_rect(geom, xmin, ymin, xmax, ymax)
 
     The geometry is clipped in a fast but possibly dirty way. The output is
     not guaranteed to be valid. No exceptions will be raised for topological
@@ -2225,7 +2220,7 @@ portion of a geometry within a rectangle.
 
 .. code-block:: python
 
-  >>> from shapely.ops import clip_by_rect
+  >>> from shapely import clip_by_rect
   >>> polygon = Polygon(
   ...     shell=[(0, 0), (0, 30), (30, 30), (30, 0), (0, 0)],
   ...     holes=[[(10, 10), (20, 10), (20, 20), (10, 20), (10, 10)]],
@@ -2237,12 +2232,12 @@ portion of a geometry within a rectangle.
 Efficient Unions
 ----------------
 
-The :func:`~shapely.ops.unary_union` function in `shapely.ops` is more
-efficient than accumulating with :meth:`~object.union`.
+The :func:`~shapely.unary_union` function is more efficient than accumulating
+with :meth:`~object.union`.
 
 .. plot:: code/unary_union.py
 
-.. function:: shapely.ops.unary_union(geoms)
+.. function:: shapely.unary_union(geoms)
 
   Returns a representation of the union of the given geometric objects.
 
@@ -2251,7 +2246,7 @@ efficient than accumulating with :meth:`~object.union`.
 
   .. code-block:: pycon
 
-    >>> from shapely.ops import unary_union
+    >>> from shapely import unary_union
     >>> polygons = [Point(i, 0).buffer(0.7) for i in range(5)]
     >>> unary_union(polygons)
     <POLYGON ((0.444 -0.541, 0.389 -0.582, 0.33 -0.617, 0.268 -0.647, 0.203 -0.6...>
@@ -2272,24 +2267,15 @@ efficient than accumulating with :meth:`~object.union`.
     >>> unary_union(m).is_valid
     True
 
-.. function:: shapely.ops.cascaded_union(geoms)
-
-  Returns a representation of the union of the given geometric objects.
-
-  .. note::
-
-     In 1.8.0 :func:`shapely.ops.cascaded_union` is deprecated, as it was
-     superseded by :func:`shapely.ops.unary_union`.
-
 Delaunay triangulation
 ----------------------
 
-The :func:`~shapely.ops.triangulate` function in `shapely.ops` calculates a
-Delaunay triangulation from a collection of points.
+The :func:`~shapely.delaunay_triangles` function calculates a Delaunay
+triangulation from a collection of points.
 
 .. plot:: code/triangulate.py
 
-.. function:: shapely.ops.triangulate(geom, tolerance=0.0, edges=False)
+.. function:: shapely.delaunay_triangles(geom, tolerance=0.0, edges=False)
 
    Returns a Delaunay triangulation of the vertices of the input geometry.
 
@@ -2297,8 +2283,8 @@ Delaunay triangulation from a collection of points.
    used as the points of the triangulation.
 
    The `tolerance` keyword argument sets the snapping tolerance used to improve
-   the robustness of the triangulation computation. A tolerance of 0.0 specifies
-   that no snapping will take place.
+   the robustness of the triangulation computation. A tolerance of 0.0
+   specifies that no snapping will take place.
 
    If the `edges` keyword argument is `False` a list of `Polygon` triangles
    will be returned. Otherwise a list of `LineString` edges is returned.
@@ -2307,9 +2293,9 @@ Delaunay triangulation from a collection of points.
 
 .. code-block:: pycon
 
-  >>> from shapely.ops import triangulate
+  >>> from shapely import delaunay_triangles
   >>> points = MultiPoint([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
-  >>> triangulate(points)
+  >>> list(delaunay_triangles(points).geoms)
   [<POLYGON ((0 2, 0 0, 1 1, 0 2))>,
    <POLYGON ((0 2, 1 1, 2 2, 0 2))>,
    <POLYGON ((2 2, 1 1, 3 1, 2 2))>,
@@ -2320,12 +2306,12 @@ Delaunay triangulation from a collection of points.
 Voronoi Diagram
 ---------------
 
-The :func:`~shapely.ops.voronoi_diagram` function in `shapely.ops` constructs a
-Voronoi diagram from a collection points, or the vertices of any geometry.
+The :func:`~shapely.voronoi_polygons` function constructs a Voronoi diagram
+from a collection points, or the vertices of any geometry.
 
 .. plot:: code/voronoi_diagram.py
 
-.. function:: shapely.ops.voronoi_diagram(geom, envelope=None, tolerance=0.0, edges=False)
+.. function:: shapely.voronoi_polygons(geom, envelope=None, tolerance=0.0, edges=False)
 
    Constructs a Voronoi diagram from the vertices of the input geometry.
 
@@ -2350,9 +2336,9 @@ Voronoi diagram from a collection points, or the vertices of any geometry.
 
 .. code-block:: pycon
 
-  >>> from shapely.ops import voronoi_diagram
+  >>> from shapely import voronoi_polygons
   >>> points = MultiPoint([(0, 0), (1, 1), (0, 2), (2, 2), (3, 1), (1, 0)])
-  >>> regions = voronoi_diagram(points)
+  >>> regions = voronoi_polygons(points)
   >>> list(regions.geoms)
   [<POLYGON ((2 1, 2 0.5, 0.5 0.5, 0 1, 1 2, 2 1))>,
    <POLYGON ((6 -3, 3.75 -3, 2 0.5, 2 1, 6 5, 6 -3))>,
@@ -2362,37 +2348,38 @@ Voronoi diagram from a collection points, or the vertices of any geometry.
    <POLYGON ((6 5, 2 1, 1 2, 1 5, 6 5))>]
 
 
-Nearest points
---------------
+Nearest points/shortest line
+----------------------------
 
-The :func:`~shapely.ops.nearest_points` function in `shapely.ops` calculates
-the nearest points in a pair of geometries.
+The :func:`~shapely.shortest_line` function calculates the shortest line
+between a pair of geometries.
 
-.. function:: shapely.ops.nearest_points(geom1, geom2)
+.. function:: shapely.shortest_line(geom1, geom2)
 
-   Returns a tuple of the nearest points in the input geometries. The points are
-   returned in the same order as the input geometries.
+   Returns a tuple of the shortest line between the input geometries. The
+   points are returned in the same order as the input geometries.
 
-   `New in version 1.4.0`.
+   `New in version 2.0`.
 
 .. code-block:: pycon
 
-  >>> from shapely.ops import nearest_points
+  >>> from shapely import shortest_line
   >>> triangle = Polygon([(0, 0), (1, 0), (0.5, 1), (0, 0)])
   >>> square = Polygon([(0, 2), (1, 2), (1, 3), (0, 3), (0, 2)])
-  >>> list(nearest_points(triangle, square))
-  [<POINT (0.5 1)>, <POINT (0.5 2)>]
+  >>> shortest_line(triangle, square)
+  <LINESTRING (0.5 1, 0.5 2)>
 
 
-Note that the nearest points may not be existing vertices in the geometries.
+Note that the shortest line may not connect to vertices of the input
+geometries.
 
 Snapping
 --------
 
-The :func:`~shapely.ops.snap` function in `shapely.ops` snaps the vertices in
-one geometry to the vertices in a second geometry with a given tolerance.
+The :func:`~shapely.snap` snaps the vertices in one geometry to the vertices in
+a second geometry with a given tolerance.
 
-.. function:: shapely.ops.snap(geom1, geom2, tolerance)
+.. function:: shapely.snap(geom1, geom2, tolerance)
 
    Snaps vertices in `geom1` to vertices in the `geom2`. A copy of the snapped
    geometry is returned. The input geometries are not modified.
@@ -2404,7 +2391,7 @@ one geometry to the vertices in a second geometry with a given tolerance.
 
 .. code-block:: pycon
 
-  >>> from shapely.ops import snap
+  >>> from shapely import snap
   >>> square = Polygon([(1,1), (2, 1), (2, 2), (1, 2), (1, 1)])
   >>> line = LineString([(0,0), (0.8, 0.8), (1.8, 0.95), (2.6, 0.5)])
   >>> result = snap(line, square, 0.5)
@@ -2414,10 +2401,10 @@ one geometry to the vertices in a second geometry with a given tolerance.
 Shared paths
 ------------
 
-The :func:`~shapely.ops.shared_paths` function in `shapely.ops` finds the shared
-paths between two linear geometries.
+The :func:`~shapely.shared_paths` function finds the shared paths between two
+linear geometries.
 
-.. function:: shapely.ops.shared_paths(geom1, geom2)
+.. function:: shapely.shared_paths(geom1, geom2)
 
    Finds the shared paths between `geom1` and `geom2`, where both geometries
    are `LineStrings`.
@@ -2431,7 +2418,7 @@ paths between two linear geometries.
 
 .. code-block:: pycon
 
-  >>> from shapely.ops import shared_paths
+  >>> from shapely import shared_paths
   >>> g1 = LineString([(0, 0), (10, 0), (10, 5), (20, 5)])
   >>> g2 = LineString([(5, 0), (30, 0), (30, 5), (0, 5)])
   >>> forward, backward = shared_paths(g1, g2).geoms
@@ -2443,24 +2430,29 @@ paths between two linear geometries.
 Splitting
 ---------
 
-The :func:`~shapely.ops.split` function in `shapely.ops` splits a geometry by another geometry.
+The :func:`~shapely.ops.split` function in `shapely.ops` splits a geometry by
+another geometry.
 
 .. function:: shapely.ops.split(geom, splitter)
 
-   Splits a geometry by another geometry and returns a collection of geometries. This function is the theoretical
-   opposite of the union of the split geometry parts. If the splitter does not split the geometry, a  collection with a single geometry equal to the input geometry is returned.
+   Splits a geometry by another geometry and returns a collection of
+   geometries. This function is the theoretical opposite of the union of the
+   split geometry parts. If the splitter does not split the geometry, a
+   collection with a single geometry equal to the input geometry is returned.
 
    The function supports:
 
-   * Splitting a (Multi)LineString by a (Multi)Point or (Multi)LineString or (Multi)Polygon boundary
+   * Splitting a (Multi)LineString by a (Multi)Point or (Multi)LineString or 
+     (Multi)Polygon boundary
 
    * Splitting a (Multi)Polygon by a LineString
 
-   It may be convenient to snap the splitter with low tolerance to the geometry. For example in the case of splitting a line by a point, the point must be exactly on the line, for the line to be correctly split.
-   When splitting a line by a polygon, the boundary of the polygon is used for the operation.
-   When splitting a line by another line, a ValueError is raised if the two overlap at some segment.
-
-   `New in version 1.6.0`
+   It may be convenient to snap the splitter with low tolerance to the
+   geometry. For example in the case of splitting a line by a point, the point
+   must be exactly on the line, for the line to be correctly split. When
+   splitting a line by a polygon, the boundary of the polygon is used for the
+   operation. When splitting a line by another line, a ValueError is raised if
+   the two overlap at some segment.
 
 .. code-block:: pycon
 
@@ -2474,8 +2466,8 @@ The :func:`~shapely.ops.split` function in `shapely.ops` splits a geometry by an
 Substring
 ---------
 
-The :func:`~shapely.ops.substring` function in :mod:`shapely.ops` returns a line segment
-between specified distances along a `LineString`.
+The :func:`~shapely.ops.substring` function in :mod:`shapely.ops` returns a
+line segment between specified distances along a `LineString`.
 
 .. function:: shapely.ops.substring(geom, start_dist, end_dist[, normalized=False])
 
