@@ -484,6 +484,7 @@ def is_valid_reason(geometry, **kwargs):
     return lib.is_valid_reason(geometry, **kwargs)
 
 
+@requires_geos("3.12.0")
 def is_valid_coverage(geometry, **kwargs):
     """Verify if a coverage is valid.
 
