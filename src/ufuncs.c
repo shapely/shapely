@@ -2393,6 +2393,78 @@ finish:
 }
 static PyUFuncGenericFunction polygonize_full_funcs[1] = {&polygonize_full_func};
 
+#if GEOS_SINCE_3_12_0
+
+static char is_valid_coverage_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
+static void is_valid_coverage_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                                   void* data) {
+  GEOSGeometry* geom = NULL;
+  GEOSGeometry* collection = NULL;
+  GEOSGeometry** collection_parts;
+  unsigned int n_parts;
+  unsigned int n_geoms;
+  int ret;
+
+  GEOS_INIT_THREADS;
+
+  GEOSGeometry** geoms = malloc(sizeof(void*) * dimensions[1]);
+  if (geoms == NULL) {
+    errstate = PGERR_NO_MALLOC;
+    goto finish;
+  }
+
+  SINGLE_COREDIM_LOOP_OUTER {
+    CHECK_SIGNALS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      goto finish;
+    }
+    n_geoms = 0;
+    SINGLE_COREDIM_LOOP_INNER {
+      if (!get_geom(*(GeometryObject**)cp1, &geom)) {
+        errstate = PGERR_NOT_A_GEOMETRY;
+        goto finish;
+      }
+      if (geom == NULL) {
+        continue;
+      }
+      // we do not clone the geometries, so have to release the collection later
+      geoms[n_geoms] = geom;
+      n_geoms++;
+    }
+    collection =
+        GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, geoms, n_geoms);
+    if (collection == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
+
+    ret = GEOSCoverageIsValid_r(ctx, collection, 0, NULL);
+    if (ret == 2) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
+    *(npy_bool*)op1 = ret;
+    collection_parts = GEOSGeom_releaseCollection_r(ctx, collection, &n_parts);
+    GEOSFree_r(ctx, collection_parts);
+    GEOSGeom_destroy_r(ctx, collection);
+    collection = NULL;
+  }
+
+finish:
+  if (collection != NULL) {
+    collection_parts = GEOSGeom_releaseCollection_r(ctx, collection, &n_parts);
+    GEOSFree_r(ctx, collection_parts);
+    GEOSGeom_destroy_r(ctx, collection);
+  }
+  if (geoms != NULL) {
+    free(geoms);
+  }
+  GEOS_FINISH_THREADS;
+}
+static PyUFuncGenericFunction is_valid_coverage_funcs[1] = {&is_valid_coverage_func};
+
+#endif
+
 static char shortest_line_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
 static void shortest_line_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                                void* data) {
@@ -3826,6 +3898,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Y_Y(disjoint_subset_union);
   DEFINE_Y_b(has_m);
   DEFINE_Y_d(get_m);
+  DEFINE_GENERALIZED(is_valid_coverage, 1, "(d)->()");
 #endif
 
   Py_DECREF(ufunc);

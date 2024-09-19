@@ -19,6 +19,7 @@ __all__ = [
     "is_ring",
     "is_simple",
     "is_valid",
+    "is_valid_coverage",
     "is_valid_input",
     "is_valid_reason",
     "crosses",
@@ -481,6 +482,32 @@ def is_valid_reason(geometry, **kwargs):
 
     """
     return lib.is_valid_reason(geometry, **kwargs)
+
+
+def is_valid_coverage(geometry, **kwargs):
+    """Verify if a coverage is valid.
+
+    The coverage is represented by an array of polygonal geometries with
+    exactly matching edges and no overlap.
+
+    Geometries that are not Polygon or MultiPolygon are ignored.
+
+    Parameters
+    ----------
+    geometry : array_like
+        Array of geometries to verify.
+    **kwargs
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Returns
+    -------
+    bool
+
+    """
+    geometries = np.asarray(geometry)
+    # we always consider the full array as a single coverage -> ravel the input
+    # to pass a 1D array
+    return lib.is_valid_coverage(geometries.ravel(order="K"), **kwargs)
 
 
 @multithreading_enabled
