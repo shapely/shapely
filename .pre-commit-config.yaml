@@ -13,7 +13,6 @@ repos:
         args: [ --fix ]
       # Run the formatter.
       - id: ruff-format
-      - id: ruff
   - repo: https://github.com/PyCQA/doc8
     rev: v1.1.2
     hooks:
