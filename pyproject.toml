@@ -83,6 +83,7 @@ omit = ["shapely/tests/*"]
 include = ["docs"]
 ignore = ["D000", "D004"]
 allow-long-titles = true
+max-line-length = 79
 
 [tool.ruff]
 line-length = 88
