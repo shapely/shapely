@@ -97,9 +97,10 @@ class Point(BaseGeometry):
     @property
     def z(self):
         """Return z coordinate."""
-        if not shapely.has_z(self):
+        z = shapely.get_z(self)
+        if np.isnan(z) and not shapely.has_z(self):
             raise DimensionError("This point has no z coordinate.")
-        return float(shapely.get_z(self))
+        return float(z)
 
     @property
     def m(self):
@@ -115,7 +116,8 @@ class Point(BaseGeometry):
     @property
     def __geo_interface__(self):
         """Return a GeoJSON-like mapping of the Point geometry."""
-        return {"type": "Point", "coordinates": self.coords[0]}
+        coords = self.coords
+        return {"type": "Point", "coordinates": coords[0] if len(coords) > 0 else ()}
 
     def svg(self, scale_factor=1.0, fill_color=None, opacity=None):
         """Return SVG circle element for the Point geometry.

@@ -7,6 +7,8 @@ Changes
 Bug fixes:
 
 - Prevent crash when serializing a number > 1e100 to WKT with GEOS < 3.13. (#1907)
+- Fixes GeoJSON serialization of empty points (#2118)
+- Fixes `__geo_interface__` handling of empty points (#2120)
 
 Improvements:
 
@@ -41,6 +43,12 @@ Breaking changes in GEOS 3.12:
   ``only_edges=True``. (#1885)
 - The WKT representation of a MULTIPOINT changed from for example "MULTIPOINT (0 0, 1 1)"
   to "MULTIPOINT ((0 0), (1 1))". (#1885)
+
+Deprecations:
+
+- The ``shapely.geos`` module is deprecated. All GEOS-version related attributes are
+  available directly from the top-level ``shapely`` namespace as well (already since
+  shapely 2.0) (#2145).
 
 Packaging:
 

@@ -1267,9 +1267,7 @@ def test_to_geojson_exceptions():
     ],
 )
 def test_to_geojson_point_empty(geom):
-    # Pending GEOS ticket: https://trac.osgeo.org/geos/ticket/1139
-    with pytest.raises(ValueError):
-        assert shapely.to_geojson(geom)
+    assert geom.equals(shapely.from_geojson(shapely.to_geojson(geom)))
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
@@ -1278,16 +1276,6 @@ def test_geojson_all_types(geom):
     type_id = shapely.get_type_id(geom)
     if type_id == shapely.GeometryType.LINEARRING:
         pytest.skip("Linearrings are not preserved in GeoJSON")
-    elif geom.is_empty and (
-        type_id == shapely.GeometryType.POINT
-        or (
-            type_id == shapely.GeometryType.MULTIPOINT
-            and shapely.get_num_geometries(geom) > 0
-        )
-    ):
-        with pytest.raises(ValueError):  # same as test_to_geojson_point_empty
-            assert shapely.to_geojson(geom)
-        return
     geojson = shapely.to_geojson(geom)
     actual = shapely.from_geojson(geojson)
     assert not actual.has_z
