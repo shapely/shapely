@@ -33,6 +33,7 @@ __all__ = [
     "remove_repeated_points",
     "reverse",
     "simplify",
+    "simplify_polygon_hull",
     "snap",
     "voronoi_polygons",
     "oriented_envelope",
@@ -1027,6 +1028,75 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
         return lib.simplify_preserve_topology(geometry, tolerance, **kwargs)
     else:
         return lib.simplify(geometry, tolerance, **kwargs)
+
+
+@requires_geos("3.11.0")
+@multithreading_enabled
+def simplify_polygon_hull(
+    geometry, parameter, parameter_mode="area", is_outer=True, **kwargs
+):
+    """Computes a boundary-respecting hull of a polygonal geometry, with hull
+    shape determined by a target parameter specifying the fraction of the input
+    vertices retained in the result or the ratio of the change in area of result
+    to the input area.
+
+    The simplified geometry is ensured to entirely cover the input geometry if ``is_outer=True``
+    or to be entirely within the input geometry if ``is_outer=True``.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    tolerance : float or array_like
+        work differently depends on ``parameter_mode``
+        * vertex : the tolerance means Vertex Number fraction.
+                      Value 1 produces the original geometry.
+                      Smaller values produce less concave results.
+                      For outer hulls, value 0 produces the convex hull (with triangles for any holes).
+                      For inner hulls, value 0 produces a triangle (if no holes are present).
+                      The value should be in the range [0,1].
+
+        * area : the tolerance means Area Delta ratio.
+                   The ratio of the change in area to the input area.
+                   Value 0 produces the original geometry.
+                   Larger values produce less concave results.
+                   The value must be 0 or greater.
+
+    parameter_mode : str
+        * vertex - simplify by the fraction of input vertices retained
+        * area - simplify by the ratio of the change in area to the input area
+
+    is_outer : bool, default True
+        By default (True), an outer hull is computed.
+        An inner hull is computed if it is negative.
+    **kwargs
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Examples
+    --------
+    >>> from shapely import Polygon
+    >>> polygon = Polygon([(0,0), (0, 4), (1,3), (3,4), (10, 4), (10, 0), (0, 0)])
+    >>> simplify_polygon_hull(polygon, 0.1, parameter_mode="vertex", is_outer=False)
+    <POLYGON ((0 0, 10 0, 3 4, 0 0))>
+    >>> simplify_polygon_hull(polygon, 0.1, parameter_mode="vertex", is_outer=True)
+    <POLYGON ((0 0, 0 4, 10 4, 10 0, 0 0))>
+    >>> simplify_polygon_hull(polygon, 0.1, parameter_mode="area", is_outer=False)
+    <POLYGON ((0 0, 10 0, 10 4, 3 4, 1 3, 0 0))>
+    >>> simplify_polygon_hull(polygon, 0.1, parameter_mode="area", is_outer=True)
+    <POLYGON ((0 0, 0 4, 10 4, 10 0, 0 0))>
+    """
+    if parameter_mode == "area":
+        parameter_mode = 2
+    elif parameter_mode == "vertex":
+        parameter_mode = 1
+    else:
+        raise ValueError("The 'parameter_mode' only support 'area' or 'vertex'")
+    return lib.simplify_polygon_hull(
+        geometry,
+        np.bool_(is_outer),
+        np.intc(parameter_mode),
+        np.double(parameter),
+        **kwargs,
+    )
 
 
 @multithreading_enabled
