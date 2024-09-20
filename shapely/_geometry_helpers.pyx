@@ -640,7 +640,7 @@ def _from_ragged_array_multipolygon(
 
                 geom = GEOSGeom_createCollection_r(
                     geos_handle,
-                    geometry_type, 
+                    geometry_type,
                     <GEOSGeometry**> &temp_parts_view[0],
                     parts_idx
                     )
