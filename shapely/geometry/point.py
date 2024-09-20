@@ -116,7 +116,8 @@ class Point(BaseGeometry):
     @property
     def __geo_interface__(self):
         """Return a GeoJSON-like mapping of the Point geometry."""
-        return {"type": "Point", "coordinates": self.coords[0]}
+        coords = self.coords
+        return {"type": "Point", "coordinates": coords[0] if len(coords) > 0 else ()}
 
     def svg(self, scale_factor=1.0, fill_color=None, opacity=None):
         """Return SVG circle element for the Point geometry.
