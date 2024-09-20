@@ -208,7 +208,6 @@ def test_from_wkt_on_invalid_fix(wkt, expected_wkt):
 
     Geometries that cannot be fixed are returned as None.
     """
-    # Test
     geom = shapely.from_wkt(wkt, on_invalid="fix")
     assert shapely.to_wkt(geom) == expected_wkt
 
