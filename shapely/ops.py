@@ -3,6 +3,7 @@
 from warnings import warn
 
 import shapely
+from shapely import lib
 from shapely.algorithms.polylabel import polylabel  # noqa
 from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
 from shapely.geometry import (
@@ -733,6 +734,8 @@ def orient(geom, sign=1.0):
     Geometry
 
     """
+    if lib.geos_version >= (3, 12, 0):
+        return shapely.orient_polygons(geom, exterior_cw=sign < 0)
     if isinstance(geom, BaseMultipartGeometry):
         return geom.__class__([orient(geom, sign) for geom in geom.geoms])
     if isinstance(geom, (Polygon,)):
