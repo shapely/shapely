@@ -2,8 +2,9 @@
 
 import numpy as np
 
-from shapely import GeometryType, lib
+from shapely import Geometry, GeometryType, lib
 from shapely._enum import ParamEnum
+from shapely._geometry import get_parts
 from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area_vectorized
 from shapely.decorators import multithreading_enabled, requires_geos
 from shapely.errors import UnsupportedGEOSVersionError
@@ -996,7 +997,7 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
 
 @requires_geos("3.12.0")
 @multithreading_enabled
-def coverage_simplify(geometry, tolerance, simplify_boundary=True, axis=None, **kwargs):
+def coverage_simplify(geometry, tolerance, simplify_boundary=True, **kwargs):
     """Return a simplified version of an input geometry using coverage simplification.
 
     Assumes that the geometry forms a polygonal coverage. Under this assumption, the
@@ -1028,27 +1029,24 @@ def coverage_simplify(geometry, tolerance, simplify_boundary=True, axis=None, **
     simplify_boundary : bool, optional
         By default (True), simplifies both internal edges of the coverage as well
         as its boundary. If set to False, only simplifies internal edges.
-    axis : int, optional
-        Axis along which the operation is performed. The default (None)
-        performs the operation over all axes, returning a scalar value.
-        Axis may be negative, in which case it counts from the last to the
-        first axis.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     """
+    if isinstance(geometry, Geometry):
+        return lib.coverage_simplify(geometry, tolerance, simplify_boundary)
+
     geometries = np.asarray(geometry)
-    if axis is None:
-        geometries = geometries.ravel()
-    else:
-        geometries = np.rollaxis(geometries, axis=axis, start=geometries.ndim)
+    shape = geometries.shape
+    geometries = geometries.ravel()
 
     # create_collection acts on the inner axis
     collections = lib.create_collection(
         geometries, np.intc(GeometryType.GEOMETRYCOLLECTION)
     )
 
-    return lib.coverage_simplify(collections, tolerance, simplify_boundary, **kwargs)
+    simplified = lib.coverage_simplify(collections, tolerance, simplify_boundary)
+    return get_parts(simplified).reshape(shape)
 
 
 @multithreading_enabled
