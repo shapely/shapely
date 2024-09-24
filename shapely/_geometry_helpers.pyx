@@ -439,6 +439,100 @@ def collections_1d(object geometries, object indices, int geometry_type = 7, obj
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+def _from_ragged_array_multilinestring(
+    const double[:, ::1] coordinates,
+    const np.int64_t[:] offsets1,
+    const np.int64_t[:] offsets2,
+):
+    """
+    Create MultiLineStrings from coordinate and offset arrays.
+    """
+    cdef:
+        Py_ssize_t n_geoms
+        Py_ssize_t i, k
+        Py_ssize_t i1, i2, k1, k2
+        Py_ssize_t n_coords, lines_idx
+        int errstate
+        GEOSContextHandle_t geos_handle
+        GEOSGeometry *line = NULL
+        GEOSGeometry *geom = NULL
+
+    n_geoms = offsets2.shape[0] - 1
+
+    # A temporary array for the geometries that will be given to CreatePolygon.
+    # For simplicity, we use n_geoms instead of calculating
+    # the max needed size (trading performance for a bit more memory usage)
+    temp_lines = np.empty(shape=(n_geoms, ), dtype=np.intp)
+    cdef np.intp_t[:] temp_lines_view = temp_lines
+    # A temporary array for resulting geometries
+    temp_geoms = np.empty(shape=(n_geoms, ), dtype=np.intp)
+    cdef np.intp_t[:] temp_geoms_view = temp_geoms
+
+    # The final target array
+    result = np.empty(shape=(n_geoms, ), dtype=object)
+    cdef object[:] result_view = result
+
+    cdef unsigned int dims = coordinates.shape[1]
+    if dims not in {2, 3}:
+        raise ValueError("coordinates should be N by 2 or N by 3.")
+
+    cdef int line_type = 1
+    cdef int geometry_type = 5  # MultiLineString
+    cdef char is_ring = 0
+    cdef int handle_nan = 0
+
+    with get_geos_handle() as geos_handle:
+        with nogil:
+            # iterating through the MultiLineStrings
+            for i in range(n_geoms):
+
+                i1 = offsets2[i]
+                i2 = offsets2[i + 1]
+
+                # iterating through the lines
+                lines_idx = 0
+                for k in range(i1, i2):
+
+                    # each line consists of certain number of coords
+                    k1 = offsets1[k]
+                    k2 = offsets1[k + 1]
+                    n_coords = k2 - k1
+                    errstate = _create_simple_geometry(
+                        geos_handle, coordinates, k1, n_coords, dims, line_type,
+                        is_ring, handle_nan, &line
+                    )
+                    if errstate != PGERR_SUCCESS:
+                        _deallocate_arr(geos_handle, temp_lines_view, lines_idx)
+                        _deallocate_arr(geos_handle, temp_geoms_view, i - 1)
+                        with gil:
+                            return _create_simple_geometry_raise_error(errstate)
+
+                    temp_lines_view[lines_idx] = <np.intp_t>line
+                    lines_idx += 1
+
+                geom = GEOSGeom_createCollection_r(
+                    geos_handle,
+                    geometry_type,
+                    <GEOSGeometry**> &temp_lines_view[0],
+                    lines_idx
+                )
+
+                if geom == NULL:
+                    _deallocate_arr(geos_handle, temp_lines_view, lines_idx - 1)
+                    _deallocate_arr(geos_handle, temp_geoms_view, i - 1)
+                    with gil:
+                        return  # GEOSException is raised by get_geos_handle
+
+                temp_geoms_view[i] = <np.intp_t>geom
+
+        for i in range(n_geoms):
+            result_view[i] = PyGEOS_CreateGeometry(<GEOSGeometry *>temp_geoms_view[i], geos_handle)
+
+    return result
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def _from_ragged_array_polygon(
     const double[:, ::1] coordinates,
     const np.int64_t[:] offsets1,
