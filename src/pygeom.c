@@ -23,6 +23,16 @@ PyObject* GeometryObject_FromGEOS(GEOSGeometry* ptr, GEOSContextHandle_t ctx) {
   if (type_id == -1) {
     return NULL;
   }
+
+  // Nonlinear types (CircularString, CompoundCurve, MultiCurve, CurvePolygon,
+  // MultiSurface are not currently supported
+  // TODO: this can be removed once these types are added to the type registry
+  if (type_id >= 8) {
+    PyErr_Format(PyExc_NotImplementedError,
+                 "Nonlinear geometry types are not currently supported");
+    return NULL;
+  }
+
   PyObject* type_obj = PyList_GET_ITEM(geom_registry[0], type_id);
   if (type_obj == NULL) {
     return NULL;
