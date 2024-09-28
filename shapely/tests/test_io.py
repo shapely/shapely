@@ -260,7 +260,7 @@ def test_from_wkt_nonlinear_unsupported(wkt):
 
     else:
         # prior to GEOS 3.13 nonlinear types were rejected by GEOS on read from WKT
-        with pytest.raises(shapely.errors.GEOSException, message="Unknown type"):
+        with pytest.raises(shapely.errors.GEOSException, match="Unknown type"):
             shapely.from_wkt(wkt)
 
 
@@ -451,7 +451,7 @@ def test_from_wkb_nonlinear_unsupported(wkb):
 
     else:
         # prior to GEOS 3.13 nonlinear types were rejected by GEOS on read from WKB
-        with pytest.raises(shapely.errors.GEOSException, message="Unknown type"):
+        with pytest.raises(shapely.errors.GEOSException, match="Unknown type"):
             shapely.from_wkb(wkb)
 
 
