@@ -9,6 +9,10 @@ Bug fixes:
 - Prevent crash when serializing a number > 1e100 to WKT with GEOS < 3.13. (#1907)
 - Fixes GeoJSON serialization of empty points (#2118)
 - Fixes `__geo_interface__` handling of empty points (#2120)
+- Fixes crash when reading nonlinear geometry types (CircularString,
+  CompoundCurve, MultiCurve, CurvePolygon, MultiSurface) from WKB/WKT with
+  GEOS >= 3.13; these types are not yet supported in Shapely and now raise a
+  ``NotImplementedError`` (#2160)
 
 Improvements:
 
