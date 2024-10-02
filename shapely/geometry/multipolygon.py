@@ -66,7 +66,7 @@ class MultiPolygon(BaseMultipartGeometry):
 
         # This function does not accept sequences of MultiPolygons: there is
         # no implicit flattening.
-        if isinstance(polygons[0], MultiPolygon):
+        if any(isinstance(p, MultiPolygon) for p in polygons):
             raise ValueError("Sequences of multi-polygons are not valid arguments")
 
         subs = []
