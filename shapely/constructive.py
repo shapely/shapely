@@ -38,6 +38,7 @@ __all__ = [
     "oriented_envelope",
     "minimum_rotated_rectangle",
     "minimum_bounding_circle",
+    "orient_polygons",
 ]
 
 
@@ -1258,3 +1259,25 @@ def minimum_bounding_circle(geometry, **kwargs):
 
     """
     return lib.minimum_bounding_circle(geometry, **kwargs)
+
+
+def orient_polygons(geometry, exterior_cw=False, **kwargs):
+    """Enforce a ring orientation on all polygonal elements in the input geometry.
+
+    Non-polygonal geometries will not be modified.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+        Geometry or geometries to orient consistently.
+    exterior_cw : bool, default False
+        If True, exterior rings will be clockwise and interior rings
+        will be counter-clockwise.
+    **kwargs
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Examples
+    --------
+    ...
+    """
+    return lib.orient_polygons(geometry, exterior_cw, **kwargs)
