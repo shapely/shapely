@@ -706,6 +706,66 @@ static void* segmentize_data[1] = {GEOSDensify_r};
 
 #if GEOS_SINCE_3_11_0
 static void* remove_repeated_points_data[1] = {GEOSRemoveRepeatedPoints_r};
+
+static char simplify_polygon_hull_dtypes[5] = {NPY_OBJECT, NPY_BOOL, NPY_INT, NPY_DOUBLE, NPY_OBJECT};
+
+static void simplify_polygon_hull_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                              void* data) {
+  char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2], *ip4 = args[3];
+  npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2], is4 = steps[3];
+  npy_intp n = dimensions[0];
+  npy_intp i;
+  GEOSGeometry** geom_arr;
+  GEOSGeometry* in1 = NULL;
+
+  CHECK_NO_INPLACE_OUTPUT(4);
+
+  if ((is2 != 0) || (is3 != 0)) {
+    PyErr_Format(PyExc_ValueError,
+                 "polygonhull_simplify function called with non-scalar parameters");
+    return;
+  }
+
+  unsigned int isOuter = (unsigned int)(*(npy_bool*)ip2);
+  unsigned int parameterMode = *(unsigned int*)ip3;
+
+  // allocate a temporary array to store output GEOSGeometry objects
+  geom_arr = malloc(sizeof(void*) * n);
+  CHECK_ALLOC(geom_arr);
+
+  GEOS_INIT_THREADS;
+
+  for (i = 0; i < n; i++, ip1 += is1) {
+    /* get the geometry: return on error */
+    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
+      errstate = PGERR_NOT_A_GEOMETRY;
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      break;
+    }
+
+    double parameter = *(double*)ip4;
+    if ((in1 == NULL) || (npy_isnan(parameter))) {
+      // in case of a missing value: return NULL (None)
+      geom_arr[i] = NULL;
+    } else {
+      geom_arr[i] = GEOSPolygonHullSimplifyMode_r(ctx, in1, isOuter, parameterMode, parameter);
+      if (geom_arr[i] == NULL) {
+        errstate = PGERR_GEOS_EXCEPTION;
+        destroy_geom_arr(ctx, geom_arr, i - 1);
+        break;
+      }
+    }
+  }
+
+  GEOS_FINISH_THREADS;
+
+  // fill the numpy array with PyObjects while holding the GIL
+  if (errstate == PGERR_SUCCESS) {
+    geom_arr_to_npy(geom_arr, args[4], steps[4], dimensions[0]);
+  }
+  free(geom_arr);
+}
+static PyUFuncGenericFunction simplify_polygon_hull_funcs[1] = {&simplify_polygon_hull_func};
 #endif
 
 typedef void* FuncGEOS_Yd_Y(void* context, void* a, double b);
@@ -3820,6 +3880,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Yd_Y(remove_repeated_points);
   DEFINE_Y_Y(line_merge_directed);
   DEFINE_CUSTOM(concave_hull, 3);
+  DEFINE_CUSTOM(simplify_polygon_hull, 4);
 #endif
 
 #if GEOS_SINCE_3_12_0
