@@ -2442,7 +2442,7 @@ another geometry.
 
    The function supports:
 
-   * Splitting a (Multi)LineString by a (Multi)Point or (Multi)LineString or 
+   * Splitting a (Multi)LineString by a (Multi)Point or (Multi)LineString or
      (Multi)Polygon boundary
 
    * Splitting a (Multi)Polygon by a LineString
@@ -2636,9 +2636,9 @@ Polylabel
   >>> from shapely.ops import polylabel
   >>> polygon = LineString([(0, 0), (50, 200), (100, 100), (20, 50),
   ... (-100, -20), (-150, -200)]).buffer(100)
-  >>> label = polylabel(polygon, tolerance=10)
+  >>> label = polylabel(polygon, tolerance=0.001)
   >>> label
-  <POINT (59.356 121.839)>
+  <POINT (59.733 111.33)>
 
 STR-packed R-tree
 =================

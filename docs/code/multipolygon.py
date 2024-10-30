@@ -3,7 +3,7 @@ from shapely.geometry import MultiPolygon
 from shapely.plotting import plot_polygon, plot_points
 
 from figures import SIZE, BLUE, GRAY, RED, set_limits
-    
+
 fig = plt.figure(1, figsize=SIZE, dpi=90)
 
 # 1: valid multi-polygon

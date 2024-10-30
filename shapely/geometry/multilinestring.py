@@ -44,10 +44,9 @@ class MultiLineString(BaseMultipartGeometry):
             return lines
 
         lines = getattr(lines, "geoms", lines)
-        m = len(lines)
         subs = []
-        for i in range(m):
-            line = linestring.LineString(lines[i])
+        for item in lines:
+            line = linestring.LineString(item)
             if line.is_empty:
                 raise EmptyPartError(
                     "Can't create MultiLineString with empty component"

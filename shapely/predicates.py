@@ -1261,6 +1261,8 @@ def contains_xy(geom, x, y=None, **kwargs):
     if y is None:
         coords = np.asarray(x)
         x, y = coords[:, 0], coords[:, 1]
+    if isinstance(geom, lib.Geometry):
+        lib.prepare(geom)
     return lib.contains_xy(geom, x, y, **kwargs)
 
 
@@ -1310,4 +1312,6 @@ def intersects_xy(geom, x, y=None, **kwargs):
     if y is None:
         coords = np.asarray(x)
         x, y = coords[:, 0], coords[:, 1]
+    if isinstance(geom, lib.Geometry):
+        lib.prepare(geom)
     return lib.intersects_xy(geom, x, y, **kwargs)

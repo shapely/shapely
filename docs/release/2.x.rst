@@ -498,7 +498,7 @@ A set of GEOS getter functions are now also exposed to inspect geometries:
 * :func:`.get_num_coordinates`
 * :func:`.get_precision`
 
-Several functions are added to extract parts: 
+Several functions are added to extract parts:
 
 * :func:`.get_geometry` to get a geometry from a GeometryCollection or
   Multi-part geometry.
