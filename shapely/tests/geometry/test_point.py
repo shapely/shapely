@@ -151,6 +151,8 @@ class TestPoint:
         assert p_null.coords[:] == []
         assert p_null.area == 0.0
 
+        assert p_null.__geo_interface__ == {"type": "Point", "coordinates": ()}
+
     def test_coords(self):
         # From Array.txt
         p = Point(0.0, 0.0, 1.0)

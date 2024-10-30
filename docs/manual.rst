@@ -2442,7 +2442,7 @@ another geometry.
 
    The function supports:
 
-   * Splitting a (Multi)LineString by a (Multi)Point or (Multi)LineString or 
+   * Splitting a (Multi)LineString by a (Multi)Point or (Multi)LineString or
      (Multi)Polygon boundary
 
    * Splitting a (Multi)Polygon by a LineString

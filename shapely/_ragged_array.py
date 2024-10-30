@@ -34,6 +34,10 @@ from shapely._geometry import (
     get_rings,
     get_type_id,
 )
+from shapely._geometry_helpers import (
+    _from_ragged_array_multipolygon,
+    _from_ragged_array_polygon,
+)
 from shapely.coordinates import get_coordinates
 from shapely.predicates import is_empty, is_missing
 
@@ -360,38 +364,23 @@ def _multilinestrings_from_flatcoords(coords, offsets1, offsets2):
 
 
 def _polygon_from_flatcoords(coords, offsets1, offsets2):
-    # recreate rings
-    ring_lengths = np.diff(offsets1)
-    ring_indices = np.repeat(np.arange(len(ring_lengths)), ring_lengths)
-    rings = creation.linearrings(coords, indices=ring_indices)
+    # ensure correct dtypes
+    offsets1 = np.asarray(offsets1, dtype="int64")
+    offsets2 = np.asarray(offsets2, dtype="int64")
 
     # recreate polygons
-    polygon_rings_n = np.diff(offsets2)
-    polygon_indices = np.repeat(np.arange(len(polygon_rings_n)), polygon_rings_n)
-    result = np.empty(len(offsets2) - 1, dtype=object)
-    result = creation.polygons(rings, indices=polygon_indices, out=result)
-    result[polygon_rings_n == 0] = creation.empty(
-        1, geom_type=GeometryType.POLYGON
-    ).item()
-
+    result = _from_ragged_array_polygon(coords, offsets1, offsets2)
     return result
 
 
 def _multipolygons_from_flatcoords(coords, offsets1, offsets2, offsets3):
-    # recreate polygons
-    polygons = _polygon_from_flatcoords(coords, offsets1, offsets2)
+    # ensure correct dtypes
+    offsets1 = np.asarray(offsets1, dtype="int64")
+    offsets2 = np.asarray(offsets2, dtype="int64")
+    offsets3 = np.asarray(offsets3, dtype="int64")
 
     # recreate multipolygons
-    multipolygon_parts = np.diff(offsets3)
-    multipolygon_indices = np.repeat(
-        np.arange(len(multipolygon_parts)), multipolygon_parts
-    )
-    result = np.empty(len(offsets3) - 1, dtype=object)
-    result = creation.multipolygons(polygons, indices=multipolygon_indices, out=result)
-    result[multipolygon_parts == 0] = creation.empty(
-        1, geom_type=GeometryType.MULTIPOLYGON
-    ).item()
-
+    result = _from_ragged_array_multipolygon(coords, offsets1, offsets2, offsets3)
     return result
 
 
@@ -430,6 +419,8 @@ def from_ragged_array(geometry_type, coords, offsets=None):
     to_ragged_array
 
     """
+    coords = np.asarray(coords, dtype="float64")
+
     if geometry_type == GeometryType.POINT:
         assert offsets is None or len(offsets) == 0
         return _point_from_flatcoords(coords)

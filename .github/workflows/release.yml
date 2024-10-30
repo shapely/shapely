@@ -116,7 +116,7 @@ jobs:
         shell: bash
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.20.0
+        uses: pypa/cibuildwheel@v2.21.3
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_BUILD: ${{ matrix.cibw_build }}
@@ -181,7 +181,7 @@ jobs:
         if: ${{ matrix.msvc_arch }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.20.0
+        uses: pypa/cibuildwheel@v2.21.3
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_ENVIRONMENT_MACOS:
@@ -219,7 +219,7 @@ jobs:
           merge-multiple: true
           path: dist
       - name: Upload wheels to Anaconda Cloud
-        uses: scientific-python/upload-nightly-action@b67d7fcc0396e1128a474d1ab2b48aa94680f9fc # 0.5.0
+        uses: scientific-python/upload-nightly-action@82396a2ed4269ba06c6b2988bb4fd568ef3c3d6b # 0.6.1
         with:
           artifacts_path: dist
           anaconda_nightly_upload_token: ${{secrets.ANACONDA_ORG_UPLOAD_TOKEN}}

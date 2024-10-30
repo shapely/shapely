@@ -81,7 +81,7 @@ omit = ["shapely/tests/*"]
 
 [tool.ruff]
 line-length = 88
-extend-exclude = ["docs/*", "benchmarks/*", "shapely/_version.py"]
+extend-exclude = ["docs/*", "benchmarks/*", "shapely/_version.py", "versioneer.py"]
 
 [tool.ruff.lint]
 select = [
