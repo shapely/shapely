@@ -1118,3 +1118,25 @@ def test_voronoi_polygons_ordered_raise():
         UnsupportedGEOSVersionError, match="Ordered Voronoi polygons require GEOS"
     ):
         shapely.voronoi_polygons(mp, ordered=True)
+
+
+def test_orient_polygons():
+    # polygon with both shell and hole having clockwise orientation
+    polygon = Polygon(
+        [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+        holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]],
+    )
+
+    result = shapely.orient_polygons(polygon)
+    assert result.exterior.is_ccw
+    assert not result.interiors[0].is_ccw
+
+    result = shapely.orient_polygons(polygon, exterior_cw=True)
+    assert not result.exterior.is_ccw
+    assert result.interiors[0].is_ccw
+
+
+def test_orient_polygons_non_polygonal_input():
+    arr = np.array([Point(0, 0), LineString([(0, 0), (1, 1)]), None])
+    result = shapely.orient_polygons(arr)
+    assert_geometries_equal(result, arr)
