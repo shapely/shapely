@@ -70,7 +70,7 @@ AttributeError in Shapely 2.0.
 **How do I update my code?** There is no direct alternative for adding custom
 attributes to geometry objects. You can use other Python data structures such as
 (GeoJSON-like) dictionaries or GeoPandas' GeoDataFrames to store attributes
-alongside geometry features. 
+alongside geometry features.
 
 Multi-part geometries will no longer be "sequences" (length, iterable, indexable)
 =================================================================================
@@ -171,7 +171,7 @@ In addition, there are also the explicit ``array_interface()`` method and
 This functionality is available for Point, LineString, LinearRing and MultiPoint.
 
 For more robust interoperability with NumPy, this array interface will be removed
-from those geometry classes, and limited to the ``coords``. 
+from those geometry classes, and limited to the ``coords``.
 
 Starting with Shapely 1.8, converting a geometry object to a NumPy array
 directly will start raising a warning::
@@ -225,7 +225,7 @@ way (first creating an empty array and then filling it)::
     arr[:] = geoms
 
 This code snippet results in the same array as the example above, and works
-for all geometry types and Shapely/NumPy versions. 
+for all geometry types and Shapely/NumPy versions.
 
 However, starting with Shapely 1.8, the above code will show deprecation
 warnings that cannot be avoided (depending on the geometry type, NumPy tries
