@@ -54,6 +54,9 @@ Deprecations:
 - The ``shapely.geos`` module is deprecated. All GEOS-version related attributes are
   available directly from the top-level ``shapely`` namespace as well (already since
   shapely 2.0) (#2145).
+- The ``shapely.vectorized`` module is deprecated. The two functions (``contains and
+  ``touches``) can be replaced by the top-level vectorized functions ``contains_xy``
+  and ``intersects_xy`` (#1630).
 
 Packaging:
 
