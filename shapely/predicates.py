@@ -862,10 +862,12 @@ def intersects(a, b, **kwargs):
 def overlaps(a, b, **kwargs):
     """Return True if A and B spatially overlap.
 
-    A and B overlap if they have some but not all points in common, have the
-    same dimension, and the intersection of the interiors of the two geometries
-    has the same dimension as the geometries themselves.  That is, only polyons
-    can overlap other polygons and only lines can overlap other lines.
+    A and B overlap if they have some but not all points/space in
+    common, have the same dimension, and the intersection of the
+    interiors of the two geometries has the same dimension as the
+    geometries themselves. That is, only polyons can overlap other
+    polygons and only lines can overlap other lines. If A covers or is
+    within B, overlaps won't be True.
 
     If either A or B are None, the output is always False.
 
@@ -874,7 +876,8 @@ def overlaps(a, b, **kwargs):
     a, b : Geometry or array_like
         Geometry or geometries to check.
     **kwargs
-        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword
+        arguments.
 
     See Also
     --------
