@@ -881,7 +881,7 @@ def overlaps(a, b, **kwargs):
 
     See Also
     --------
-    prepare : improve performance by preparing ``a`` (the 1st argument)
+    prepare : improve performance by preparing ``a`` (the first argument)
 
     Examples
     --------
