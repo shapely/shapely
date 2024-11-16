@@ -35,6 +35,7 @@ Improvements:
   coordinates. Requires at least GEOS 3.12. (#1968)
 - Add option on ``invalid="fix"`` to ``from_wkb`` and ``from_wkt`` (#2094)
 - Add function ``minimum_clearance_line`` (#2106)
+- Add function ``maximum_inscribed_circle`` (#1307)
 
 Breaking changes in GEOS 3.12:
 
@@ -53,6 +54,9 @@ Deprecations:
 - The ``shapely.geos`` module is deprecated. All GEOS-version related attributes are
   available directly from the top-level ``shapely`` namespace as well (already since
   shapely 2.0) (#2145).
+- The ``shapely.vectorized`` module is deprecated. The two functions (``contains and
+  ``touches``) can be replaced by the top-level vectorized functions ``contains_xy``
+  and ``intersects_xy`` (#1630).
 
 Packaging:
 

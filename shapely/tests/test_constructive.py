@@ -1120,6 +1120,68 @@ def test_voronoi_polygons_ordered_raise():
         shapely.voronoi_polygons(mp, ordered=True)
 
 
+@pytest.mark.parametrize("geometry", all_types)
+def test_maximum_inscribed_circle_all_types(geometry):
+    if shapely.get_type_id(geometry) not in [3, 6]:
+        # Maximum Inscribed Circle is only supported for (Multi)Polygon input
+        with pytest.raises(
+            GEOSException,
+            match=(
+                "Input geometry must be a Polygon or MultiPolygon|"
+                "Operation not supported by GeometryCollection"
+            ),
+        ):
+            shapely.maximum_inscribed_circle(geometry)
+        return
+
+    if geometry.is_empty:
+        with pytest.raises(
+            GEOSException, match="Empty input geometry is not supported"
+        ):
+            shapely.maximum_inscribed_circle(geometry)
+        return
+
+    actual = shapely.maximum_inscribed_circle([geometry, geometry])
+    assert actual.shape == (2,)
+    assert actual[0] is None or isinstance(actual[0], Geometry)
+
+    actual = shapely.maximum_inscribed_circle(None)
+    assert actual is None
+
+
+@pytest.mark.parametrize(
+    "geometry, expected",
+    [
+        (
+            "POLYGON ((0 5, 5 10, 10 5, 5 0, 0 5))",
+            "LINESTRING (5 5, 2.5 7.5)",
+        ),
+    ],
+)
+def test_maximum_inscribed_circle(geometry, expected):
+    geometry, expected = shapely.from_wkt(geometry), shapely.from_wkt(expected)
+    actual = shapely.maximum_inscribed_circle(geometry)
+    assert_geometries_equal(actual, expected)
+
+
+def test_maximum_inscribed_circle_empty():
+    geometry = shapely.from_wkt("POINT EMPTY")
+    with pytest.raises(
+        GEOSException, match="Input geometry must be a Polygon or MultiPolygon"
+    ):
+        shapely.maximum_inscribed_circle(geometry)
+
+    geometry = shapely.from_wkt("POLYGON EMPTY")
+    with pytest.raises(GEOSException, match="Empty input geometry is not supported"):
+        shapely.maximum_inscribed_circle(geometry)
+
+
+def test_maximum_inscribed_circle_invalid_tolerance():
+    geometry = shapely.from_wkt("POLYGON ((0 5, 5 10, 10 5, 5 0, 0 5))")
+    with pytest.raises(ValueError, match="'tolerance' should be positive"):
+        shapely.maximum_inscribed_circle(geometry, tolerance=-1)
+
+
 def test_orient_polygons():
     # polygon with both shell and hole having clockwise orientation
     polygon = Polygon(
