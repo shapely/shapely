@@ -79,6 +79,12 @@ test-command = "pytest --pyargs shapely.tests"
 source = ["shapely"]
 omit = ["shapely/tests/*"]
 
+[tool.doc8]
+include = ["docs"]
+ignore = ["D000", "D004"]
+allow-long-titles = true
+max-line-length = 79
+
 [tool.ruff]
 line-length = 88
 extend-exclude = ["docs/*", "benchmarks/*", "shapely/_version.py", "versioneer.py"]

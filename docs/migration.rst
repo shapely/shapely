@@ -68,8 +68,8 @@ In Shapely 1.8, this will start raising a warning, and will raise an
 AttributeError in Shapely 2.0.
 
 **How do I update my code?** There is no direct alternative for adding custom
-attributes to geometry objects. You can use other Python data structures such as
-(GeoJSON-like) dictionaries or GeoPandas' GeoDataFrames to store attributes
+attributes to geometry objects. You can use other Python data structures such
+as (GeoJSON-like) dictionaries or GeoPandas' GeoDataFrames to store attributes
 alongside geometry features.
 
 Multi-part geometries will no longer be "sequences" (length, iterable, indexable)
@@ -168,10 +168,11 @@ In addition, there are also the explicit ``array_interface()`` method and
      'data': <shapely.geometry.linestring.c_double_Array_6 at 0x7f752664ae40>,
      'shape': (3, 2)}
 
-This functionality is available for Point, LineString, LinearRing and MultiPoint.
+This functionality is available for Point, LineString, LinearRing and
+MultiPoint.
 
-For more robust interoperability with NumPy, this array interface will be removed
-from those geometry classes, and limited to the ``coords``.
+For more robust interoperability with NumPy, this array interface will be
+removed from those geometry classes, and limited to the ``coords``.
 
 Starting with Shapely 1.8, converting a geometry object to a NumPy array
 directly will start raising a warning::
@@ -341,4 +342,5 @@ as well:
 - The ``empty()`` method on a geometry object is deprecated.
 
 - The ``shapely.ops.cascaded_union`` function is deprecated. Use
-  ``shapely.ops.unary_union`` instead, which internally already uses a cascaded union operation for better performance.
+  ``shapely.ops.unary_union`` instead, which internally already uses a cascaded
+  union operation for better performance.
