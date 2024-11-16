@@ -1330,6 +1330,26 @@ def orient_polygons(geometry, exterior_cw=False, **kwargs):
 
     Examples
     --------
-    ...
+    A polygon with both shell and hole having clockwise orientation:
+
+    >>> from shapely import Polygon, orient_polygons
+    >>> polygon = Polygon(
+    ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+    ...     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]],
+    ... )
+    >>> polygon
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))>
+
+    By default, the exterior ring is oriented counter-clockwise and
+    the holes clockwise:
+
+    >>> orient_polygons(polygon)
+    <POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))>
+
+    Asking for the opposite orientation:
+
+    >>> orient_polygons(polygon, exterior_cw=True)
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 4 2, 4 4, 2 4, 2 2))>
+
     """
     return lib.orient_polygons(geometry, exterior_cw, **kwargs)
