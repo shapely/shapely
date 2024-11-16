@@ -1311,6 +1311,8 @@ def maximum_inscribed_circle(geometry, tolerance=None, **kwargs):
     return lib.maximum_inscribed_circle(geometry, tolerance, **kwargs)
 
 
+@requires_geos("3.12.0")
+@multithreading_enabled
 def orient_polygons(geometry, exterior_cw=False, **kwargs):
     """Enforce a ring orientation on all polygonal elements in the input geometry.
 

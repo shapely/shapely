@@ -1182,6 +1182,7 @@ def test_maximum_inscribed_circle_invalid_tolerance():
         shapely.maximum_inscribed_circle(geometry, tolerance=-1)
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
 def test_orient_polygons():
     # polygon with both shell and hole having clockwise orientation
     polygon = Polygon(
@@ -1198,6 +1199,7 @@ def test_orient_polygons():
     assert result.interiors[0].is_ccw
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
 def test_orient_polygons_non_polygonal_input():
     arr = np.array([Point(0, 0), LineString([(0, 0), (1, 1)]), None])
     result = shapely.orient_polygons(arr)
