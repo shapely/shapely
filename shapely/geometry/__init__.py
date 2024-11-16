@@ -1,5 +1,4 @@
-"""Geometry classes and factories
-"""
+"""Geometry classes and factories."""
 
 from shapely.geometry.base import CAP_STYLE, JOIN_STYLE
 from shapely.geometry.collection import GeometryCollection

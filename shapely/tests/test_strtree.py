@@ -10,7 +10,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 import shapely
-from shapely import box, geos_version, MultiPoint, Point, STRtree
+from shapely import LineString, MultiPoint, Point, STRtree, box, geos_version
 from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
@@ -130,15 +130,14 @@ def test_pickle_persistence(tmp_path):
 import pickle
 import sys
 
-from shapely import Point, geos_version
+from shapely import Point
 
 pickled_strtree = sys.stdin.buffer.read()
 print("received pickled strtree:", repr(pickled_strtree))
 tree = pickle.loads(pickled_strtree)
 
 tree.query(Point(0, 0))
-if geos_version >= (3, 6, 0):
-    tree.nearest(Point(0, 0))
+tree.nearest(Point(0, 0))
 print("done")
 """
 
@@ -368,39 +367,31 @@ def test_query_with_partially_prepared_inputs(tree):
 
 
 @pytest.mark.parametrize(
-    "predicate",
+    "predicate,expected",
     [
-        # intersects is intentionally omitted; it does not raise an exception
         pytest.param(
-            "within",
-            marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
+            "intersects",
+            [1],
+            marks=pytest.mark.xfail(geos_version < (3, 13, 0), reason="GEOS < 3.13"),
         ),
-        pytest.param(
-            "contains",
-            marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
-        ),
-        "overlaps",
-        "crosses",
-        "touches",
-        pytest.param(
-            "covers",
-            marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
-        ),
-        pytest.param(
-            "covered_by",
-            marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
-        ),
-        pytest.param(
-            "contains_properly",
-            marks=pytest.mark.xfail(geos_version < (3, 8, 0), reason="GEOS < 3.8"),
-        ),
+        ("within", []),
+        ("contains", []),
+        ("overlaps", []),
+        ("crosses", [1]),
+        ("touches", []),
+        ("covers", []),
+        ("covered_by", []),
+        ("contains_properly", []),
     ],
 )
-def test_query_predicate_errors(tree, predicate):
+def test_query_predicate_errors(tree, predicate, expected):
     with ignore_invalid():
         line_nan = shapely.linestrings([1, 1], [1, float("nan")])
-    with pytest.raises(shapely.GEOSException):
-        tree.query(line_nan, predicate=predicate)
+    if geos_version < (3, 13, 0):
+        with pytest.raises(shapely.GEOSException):
+            tree.query(line_nan, predicate=predicate)
+    else:
+        assert_array_equal(tree.query(line_nan, predicate=predicate), expected)
 
 
 ### predicate == 'intersects'
@@ -928,12 +919,12 @@ def test_query_crosses_polygons(poly_tree, geometry, expected):
         # box contains points but touches only those at edges
         (box(3, 3, 6, 6), [3, 6]),
         ([box(3, 3, 6, 6)], [[0, 0], [3, 6]]),
-        # buffer completely contains point in tree
+        # polygon completely contains point in tree
         (shapely.buffer(Point(3, 3), 1), []),
         ([shapely.buffer(Point(3, 3), 1)], [[], []]),
-        # buffer intersects 2 points but touches only one
-        (shapely.buffer(Point(0, 1), 1), [1]),
-        ([shapely.buffer(Point(0, 1), 1)], [[0], [1]]),
+        # linestring intersects 2 points but touches only one
+        (LineString([(-1, -1), (1, 1)]), [1]),
+        ([LineString([(-1, -1), (1, 1)])], [[0], [1]]),
         # multipoints intersect but not valid relation
         (MultiPoint([[5, 5], [7, 7]]), []),
         ([MultiPoint([[5, 5], [7, 7]])], [[], []]),
@@ -1058,7 +1049,8 @@ def test_query_covers_points(tree, geometry, expected):
         # envelope of points overlaps lines but intersects none
         (MultiPoint([[5, 7], [7, 5]]), []),
         ([MultiPoint([[5, 7], [7, 5]])], [[], []]),
-        # only one point of multipoint intersects a line, but does not completely cover it
+        # only one point of multipoint intersects a line, but does not completely cover
+        # it
         (MultiPoint([[5, 7], [7, 7]]), []),
         ([MultiPoint([[5, 7], [7, 7]])], [[], []]),
         # both points intersect but do not cover any lines (not valid relation)
@@ -1308,7 +1300,8 @@ def test_query_contains_properly_lines(line_tree, geometry, expected):
         # point does not contain any polygons (not valid relation)
         (Point(0, 0), []),
         ([Point(0, 0)], [[], []]),
-        # line intersects multiple polygons but does not contain any (not valid relation)
+        # line intersects multiple polygons but does not contain any (not valid
+        # relation)
         (shapely.linestrings([[0, 0], [2, 2]]), []),
         ([shapely.linestrings([[0, 0], [2, 2]])], [[], []]),
         # box overlaps envelope of 2 polygons but contains neither

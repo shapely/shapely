@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Build and install GEOS on a POSIX system, save cache for later
 #
@@ -36,13 +36,29 @@ build_geos(){
     pip install cmake
 
     echo "Building geos-$GEOS_VERSION"
+    rm -rf build
     mkdir build
     cd build
-     # Use Ninja on windows, otherwise, use the platform's default
+    # Use Ninja on Windows, otherwise, use the platform's default
     if [ "$RUNNER_OS" = "Windows" ]; then
         export CMAKE_GENERATOR=Ninja
     fi
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$GEOS_INSTALL -DCMAKE_INSTALL_LIBDIR=lib ..
+    # Avoid building tests, depends on version
+    case ${GEOS_VERSION} in
+        3.7.*)
+            BUILD_TESTING="";;
+        3.8.*)
+            BUILD_TESTING="-DBUILD_TESTING=ON";;
+        *)
+            BUILD_TESTING="-DBUILD_TESTING=OFF";;
+    esac
+    cmake \
+        -D CMAKE_BUILD_TYPE=Release \
+        -D CMAKE_INSTALL_PREFIX=${GEOS_INSTALL} \
+        -D CMAKE_INSTALL_LIBDIR=lib \
+        -D CMAKE_INSTALL_NAME_DIR=${GEOS_INSTALL}/lib \
+        ${BUILD_TESTING} \
+        ..
     cmake --build . -j 4
     cmake --install .
 }

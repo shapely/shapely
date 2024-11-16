@@ -1,7 +1,6 @@
 import pytest
 
-from shapely import Point, Polygon
-from shapely.geos import geos_version
+from shapely import Point, Polygon, geos_version
 
 
 def test_format_invalid():
@@ -18,13 +17,10 @@ def test_format_invalid():
             format(pt, format_spec)
 
 
-def test_format_point():
-    # example coordinate data
+def get_tst_format_point_params():
     xy1 = (0.12345678901234567, 1.2345678901234567e10)
     xy2 = (-169.910918, -18.997564)
     xyz3 = (630084, 4833438, 76)
-
-    # list of tuples to test; see structure at top of the for-loop
     test_list = [
         (".0f", xy1, "POINT (0 12345678901)", True),
         (".1f", xy1, "POINT (0.1 12345678901.2)", True),
@@ -47,32 +43,38 @@ def test_format_point():
             ("g", xy2, "POINT (-169.910918 -18.997564)", False),
             ("0.2g", xy2, "POINT (-169.91 -19)", False),
         ]
-    # without precsions test GEOS rounding_precision=-1; different than Python
+    # without precisions test GEOS rounding_precision=-1; different than Python
     test_list += [
         ("f", (1, 2), f"POINT ({1:.16f} {2:.16f})", False),
         ("F", xyz3, "POINT Z ({:.16f} {:.16f} {:.16f})".format(*xyz3), False),
         ("g", xyz3, "POINT Z (630084 4833438 76)", False),
     ]
-    for format_spec, coords, expt_wkt, same_python_float in test_list:
-        pt = Point(*coords)
-        # basic checks
-        assert f"{pt}" == pt.wkt
-        assert format(pt, "") == pt.wkt
-        assert format(pt, "x") == pt.wkb_hex.lower()
-        assert format(pt, "X") == pt.wkb_hex
-        # check formatted WKT to expected
-        assert format(pt, format_spec) == expt_wkt, format_spec
-        # check Python's format consistency
-        text_coords = expt_wkt[expt_wkt.index("(") + 1 : expt_wkt.index(")")]
-        is_same = []
-        for coord, expt_coord in zip(coords, text_coords.split()):
-            py_fmt_float = format(float(coord), format_spec)
-            if same_python_float:
-                assert py_fmt_float == expt_coord, format_spec
-            else:
-                is_same.append(py_fmt_float == expt_coord)
-        if not same_python_float:
-            assert not all(is_same), f"{format_spec!r} with {expt_wkt}"
+    return test_list
+
+
+@pytest.mark.parametrize(
+    "format_spec, coords, expt_wkt, same_python_float", get_tst_format_point_params()
+)
+def test_format_point(format_spec, coords, expt_wkt, same_python_float):
+    pt = Point(*coords)
+    # basic checks
+    assert f"{pt}" == pt.wkt
+    assert format(pt, "") == pt.wkt
+    assert format(pt, "x") == pt.wkb_hex.lower()
+    assert format(pt, "X") == pt.wkb_hex
+    # check formatted WKT to expected
+    assert format(pt, format_spec) == expt_wkt, format_spec
+    # check Python's format consistency
+    text_coords = expt_wkt[expt_wkt.index("(") + 1 : expt_wkt.index(")")]
+    is_same = []
+    for coord, expt_coord in zip(coords, text_coords.split()):
+        py_fmt_float = format(float(coord), format_spec)
+        if same_python_float:
+            assert py_fmt_float == expt_coord, format_spec
+        else:
+            is_same.append(py_fmt_float == expt_coord)
+    if not same_python_float:
+        assert not all(is_same), f"{format_spec!r} with {expt_wkt}"
 
 
 def test_format_polygon():
@@ -84,23 +86,28 @@ def test_format_polygon():
     assert format(poly, "X") == poly.wkb_hex
 
     # Use f-strings with extra characters and rounding precision
-    assert f"<{poly:.2f}>" == (
-        "<POLYGON ((10.00 0.00, 7.07 -7.07, 0.00 -10.00, -7.07 -7.07, "
-        "-10.00 -0.00, -7.07 7.07, -0.00 10.00, 7.07 7.07, 10.00 0.00))>"
-    )
+    if geos_version < (3, 13, 0):
+        assert f"<{poly:.2f}>" == (
+            "<POLYGON ((10.00 0.00, 7.07 -7.07, 0.00 -10.00, -7.07 -7.07, "
+            "-10.00 -0.00, -7.07 7.07, -0.00 10.00, 7.07 7.07, 10.00 0.00))>"
+        )
+    else:
+        assert f"<{poly:.2f}>" == (
+            "<POLYGON ((10.00 0.00, 7.07 -7.07, 0.00 -10.00, -7.07 -7.07, "
+            "-10.00 0.00, -7.07 7.07, 0.00 10.00, 7.07 7.07, 10.00 0.00))>"
+        )
 
     # 'g' format varies depending on GEOS version
     if geos_version < (3, 10, 0):
-        expected_2G = (
+        assert f"{poly:.2G}" == (
             "POLYGON ((10 0, 7.1 -7.1, 1.6E-14 -10, -7.1 -7.1, "
             "-10 -3.2E-14, -7.1 7.1, -4.6E-14 10, 7.1 7.1, 10 0))"
         )
     else:
-        expected_2G = (
+        assert f"{poly:.2G}" == (
             "POLYGON ((10 0, 7.07 -7.07, 0 -10, -7.07 -7.07, "
             "-10 0, -7.07 7.07, 0 10, 7.07 7.07, 10 0))"
         )
-    assert f"{poly:.2G}" == expected_2G
 
     # check empty
     empty = Polygon()

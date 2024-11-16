@@ -29,7 +29,7 @@ def test_dump_load(some_point, tmpdir):
     file = tmpdir.join("test.wkt")
     with open(file, "w") as file_pointer:
         dump(some_point, file_pointer)
-    with open(file, "r") as file_pointer:
+    with open(file) as file_pointer:
         restored = load(file_pointer)
 
     assert some_point == restored
@@ -39,7 +39,7 @@ def test_dump_load_null_geometry(empty_geometry, tmpdir):
     file = tmpdir.join("test.wkt")
     with open(file, "w") as file_pointer:
         dump(empty_geometry, file_pointer)
-    with open(file, "r") as file_pointer:
+    with open(file) as file_pointer:
         restored = load(file_pointer)
 
     # This is does not work with __eq__():

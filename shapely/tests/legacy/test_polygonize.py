@@ -20,7 +20,6 @@ class PolygonizeTestCase(unittest.TestCase):
         assert all(isinstance(x, Polygon) for x in result)
 
     def test_polygonize_full(self):
-
         lines2 = [
             [(0, 0), (1, 1)],
             [(0, 0), (0, 1)],

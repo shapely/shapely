@@ -10,16 +10,10 @@ import numpy as np
 import pytest
 
 from shapely.geometry import MultiPoint
-from shapely.geos import geos_version
 from shapely.ops import voronoi_diagram
 from shapely.wkt import loads as load_wkt
 
-requires_geos_35 = pytest.mark.skipif(
-    geos_version < (3, 5, 0), reason="GEOS >= 3.5.0 is required."
-)
 
-
-@requires_geos_35
 def test_no_regions():
     mp = MultiPoint(points=[(0.5, 0.5)])
     with np.errstate(invalid="ignore"):
@@ -28,7 +22,6 @@ def test_no_regions():
     assert len(regions.geoms) == 0
 
 
-@requires_geos_35
 def test_two_regions():
     mp = MultiPoint(points=[(0.5, 0.5), (1.0, 1.0)])
     regions = voronoi_diagram(mp)
@@ -36,7 +29,6 @@ def test_two_regions():
     assert len(regions.geoms) == 2
 
 
-@requires_geos_35
 def test_edges():
     mp = MultiPoint(points=[(0.5, 0.5), (1.0, 1.0)])
     regions = voronoi_diagram(mp, edges=True)
@@ -46,7 +38,6 @@ def test_edges():
     assert all(r.geom_type.endswith("LineString") for r in regions.geoms)
 
 
-@requires_geos_35
 def test_smaller_envelope():
     mp = MultiPoint(points=[(0.5, 0.5), (1.0, 1.0)])
     poly = load_wkt("POLYGON ((0 0, 0.5 0, 0.5 0.5, 0 0.5, 0 0))")
@@ -57,7 +48,6 @@ def test_smaller_envelope():
     assert sum(r.area for r in regions.geoms) > poly.area
 
 
-@requires_geos_35
 def test_larger_envelope():
     """When the envelope we specify is larger than the
     area of the input feature, the created regions should
@@ -71,7 +61,6 @@ def test_larger_envelope():
     assert sum(r.area for r in regions.geoms) == poly.area
 
 
-@requires_geos_35
 def test_from_polygon():
     poly = load_wkt("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))")
     regions = voronoi_diagram(poly)
@@ -79,7 +68,6 @@ def test_from_polygon():
     assert len(regions.geoms) == 4
 
 
-@requires_geos_35
 def test_from_polygon_with_enough_tolerance():
     poly = load_wkt("POLYGON ((0 0, 0.5 0, 0.5 0.5, 0 0.5, 0 0))")
     regions = voronoi_diagram(poly, tolerance=1.0)
@@ -87,7 +75,6 @@ def test_from_polygon_with_enough_tolerance():
     assert len(regions.geoms) == 2
 
 
-@requires_geos_35
 def test_from_polygon_without_enough_tolerance():
     poly = load_wkt("POLYGON ((0 0, 0.5 0, 0.5 0.5, 0 0.5, 0 0))")
     with pytest.raises(ValueError) as exc:
@@ -99,7 +86,6 @@ def test_from_polygon_without_enough_tolerance():
     assert "Try running again with default tolerance value." in str(exc.value)
 
 
-@requires_geos_35
 def test_from_polygon_without_floating_point_coordinates():
     poly = load_wkt("POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))")
     with pytest.raises(ValueError) as exc:
@@ -111,9 +97,8 @@ def test_from_polygon_without_floating_point_coordinates():
     assert "Try running again with default tolerance value." in str(exc.value)
 
 
-@requires_geos_35
 def test_from_multipoint_without_floating_point_coordinates():
-    """A Multipoint with the same "shape" as the above Polygon raises the same error..."""
+    """A Multipoint with the same "shape" as the above Polygon raises the same error."""
     mp = load_wkt("MULTIPOINT (0 0, 1 0, 1 1, 0 1)")
 
     with pytest.raises(ValueError) as exc:
@@ -125,7 +110,6 @@ def test_from_multipoint_without_floating_point_coordinates():
     assert "Try running again with default tolerance value." in str(exc.value)
 
 
-@requires_geos_35
 def test_from_multipoint_with_tolerace_without_floating_point_coordinates():
     """This multipoint will not work with a tolerance value."""
     mp = load_wkt("MULTIPOINT (0 0, 1 0, 1 2, 0 1)")
@@ -138,7 +122,6 @@ def test_from_multipoint_with_tolerace_without_floating_point_coordinates():
     assert "Try running again with default tolerance value." in str(exc.value)
 
 
-@requires_geos_35
 def test_from_multipoint_without_tolerace_without_floating_point_coordinates():
     """But it's fine without it."""
     mp = load_wkt("MULTIPOINT (0 0, 1 0, 1 2, 0 1)")

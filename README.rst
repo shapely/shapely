@@ -14,12 +14,6 @@ Shapely
    :alt: Github Actions status
    :target: https://github.com/shapely/shapely/actions?query=branch%3Amain
 
-.. Travis CI status -- https://travis-ci.com
-
-.. image:: https://travis-ci.com/shapely/shapely.svg?branch=main
-   :alt: Travis CI status
-   :target: https://travis-ci.com/github/shapely/shapely
-
 .. PyPI
 
 .. image:: https://img.shields.io/pypi/v/shapely.svg
@@ -109,11 +103,11 @@ See the documentation for more examples and guidance: https://shapely.readthedoc
 Requirements
 ============
 
-Shapely 2.0 requires
+Shapely 2.1 requires
 
-* Python >=3.7
-* GEOS >=3.5
-* NumPy >=1.14
+* Python >=3.9
+* GEOS >=3.9
+* NumPy >=1.20
 
 Installing Shapely
 ==================

@@ -4,12 +4,12 @@ jobs:
   linux-aarch64-wheels:
     working_directory: ~/linux-aarch64-wheels
     machine:
-      image: ubuntu-2004:2022.04.1
+      image: default
     # resource_class is what tells CircleCI to use an ARM worker for native arm builds
     # https://circleci.com/product/features/resource-classes/
     resource_class: arm.medium
     environment:
-      GEOS_VERSION: 3.11.1
+      GEOS_VERSION: 3.12.2
       CIBUILDWHEEL: 1
       CIBW_BUILD: "cp*-manylinux_aarch64"
       CIBW_ENVIRONMENT_PASS_LINUX: "GEOS_VERSION GEOS_INSTALL GEOS_CONFIG LD_LIBRARY_PATH"
@@ -21,7 +21,7 @@ jobs:
       - run:
           name: Build the Linux aarch64 wheels.
           command: |
-            python3 -m pip install --user cibuildwheel==2.11.2
+            python3 -m pip install --user cibuildwheel==2.21.3
             echo 'export GEOS_INSTALL=~/linux-aarch64-wheels/geosinstall/geos-"$GEOS_VERSION"' >> "$BASH_ENV"
             echo 'export GEOS_CONFIG="$GEOS_INSTALL"/bin/geos-config' >> "$BASH_ENV"
             echo 'export LD_LIBRARY_PATH="$GEOS_INSTALL"/lib' >> "$BASH_ENV"
@@ -38,5 +38,7 @@ workflows:
             branches:
               only:
                 - main
+                - maint-2.0
+                - wheels-linux-aarch64
             tags:
               only: /.*/

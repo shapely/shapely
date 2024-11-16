@@ -1,9 +1,11 @@
+"""Methods for measuring (between) geometries."""
+
 import warnings
 
 import numpy as np
 
 from shapely import lib
-from shapely.decorators import multithreading_enabled, requires_geos
+from shapely.decorators import multithreading_enabled
 
 __all__ = [
     "area",
@@ -20,14 +22,14 @@ __all__ = [
 
 @multithreading_enabled
 def area(geometry, **kwargs):
-    """Computes the area of a (multi)polygon.
+    """Compute the area of a (multi)polygon.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the area.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -41,20 +43,21 @@ def area(geometry, **kwargs):
     0.0
     >>> area(None)
     nan
-    """
+
+    """  # noqa: E501
     return lib.area(geometry, **kwargs)
 
 
 @multithreading_enabled
 def distance(a, b, **kwargs):
-    """Computes the Cartesian distance between two geometries.
+    """Compute the Cartesian distance between two geometries.
 
     Parameters
     ----------
     a, b : Geometry or array_like
+        Geometry or geometries to compute the distance between.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -70,22 +73,23 @@ def distance(a, b, **kwargs):
     nan
     >>> distance(None, point)
     nan
+
     """
     return lib.distance(a, b, **kwargs)
 
 
 @multithreading_enabled
 def bounds(geometry, **kwargs):
-    """Computes the bounds (extent) of a geometry.
+    """Compute the bounds (extent) of a geometry.
 
     For each geometry these 4 numbers are returned: min x, min y, max x, max y.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the bounds.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -98,23 +102,20 @@ def bounds(geometry, **kwargs):
     [nan, nan, nan, nan]
     >>> bounds(None).tolist()
     [nan, nan, nan, nan]
+
     """
-    # We need to provide the `out` argument here for compatibility with
-    # numpy < 1.16. See https://github.com/numpy/numpy/issues/14949
-    geometry_arr = np.asarray(geometry, dtype=np.object_)
-    out = np.empty(geometry_arr.shape + (4,), dtype="float64")
-    return lib.bounds(geometry_arr, out=out, **kwargs)
+    return lib.bounds(geometry, **kwargs)
 
 
 def total_bounds(geometry, **kwargs):
-    """Computes the total bounds (extent) of the geometry.
+    """Compute the total bounds (extent) of the geometry.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the total bounds.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Returns
     -------
@@ -138,6 +139,7 @@ def total_bounds(geometry, **kwargs):
     [2.0, 3.0, 2.0, 3.0]
     >>> total_bounds(None).tolist()
     [nan, nan, nan, nan]
+
     """
     b = bounds(geometry, **kwargs)
     if b.ndim == 1:
@@ -158,14 +160,14 @@ def total_bounds(geometry, **kwargs):
 
 @multithreading_enabled
 def length(geometry, **kwargs):
-    """Computes the length of a (multi)linestring or polygon perimeter.
+    """Compute the length of a (multi)linestring or polygon perimeter.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the length.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -183,6 +185,7 @@ def length(geometry, **kwargs):
     0.0
     >>> length(None)
     nan
+
     """
     return lib.length(geometry, **kwargs)
 
@@ -200,11 +203,11 @@ def hausdorff_distance(a, b, densify=None, **kwargs):
     Parameters
     ----------
     a, b : Geometry or array_like
+        Geometry or geometries to compute the distance between.
     densify : float or array_like, optional
         The value of densify is required to be between 0 and 1.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -219,6 +222,7 @@ def hausdorff_distance(a, b, densify=None, **kwargs):
     nan
     >>> hausdorff_distance(line1, None)
     nan
+
     """
     if densify is None:
         return lib.hausdorff_distance(a, b, **kwargs)
@@ -226,7 +230,6 @@ def hausdorff_distance(a, b, densify=None, **kwargs):
         return lib.hausdorff_distance_densify(a, b, densify, **kwargs)
 
 
-@requires_geos("3.7.0")
 @multithreading_enabled
 def frechet_distance(a, b, densify=None, **kwargs):
     """Compute the discrete Fréchet distance between two geometries.
@@ -244,11 +247,11 @@ def frechet_distance(a, b, densify=None, **kwargs):
     Parameters
     ----------
     a, b : Geometry or array_like
+        Geometry or geometries to compute the distance between.
     densify : float or array_like, optional
         The value of densify is required to be between 0 and 1.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -263,16 +266,16 @@ def frechet_distance(a, b, densify=None, **kwargs):
     nan
     >>> frechet_distance(line1, None)
     nan
+
     """
     if densify is None:
         return lib.frechet_distance(a, b, **kwargs)
     return lib.frechet_distance_densify(a, b, densify, **kwargs)
 
 
-@requires_geos("3.6.0")
 @multithreading_enabled
 def minimum_clearance(geometry, **kwargs):
-    """Computes the Minimum Clearance distance.
+    """Compute the Minimum Clearance distance.
 
     A geometry's "minimum clearance" is the smallest distance by which
     a vertex of the geometry could be moved to produce an invalid geometry.
@@ -283,9 +286,9 @@ def minimum_clearance(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the minimum clearance.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -297,21 +300,25 @@ def minimum_clearance(geometry, **kwargs):
     inf
     >>> minimum_clearance(None)
     nan
+
+    See Also
+    --------
+    minimum_clearance_line
+
     """
     return lib.minimum_clearance(geometry, **kwargs)
 
 
-@requires_geos("3.8.0")
 @multithreading_enabled
 def minimum_bounding_radius(geometry, **kwargs):
-    """Computes the radius of the minimum bounding circle that encloses an input geometry.
+    """Compute the radius of the minimum bounding circle of an input geometry.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the minimum bounding radius.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
 
     Examples
@@ -328,8 +335,9 @@ def minimum_bounding_radius(geometry, **kwargs):
     >>> minimum_bounding_radius(GeometryCollection())
     0.0
 
-    See also
+    See Also
     --------
     minimum_bounding_circle
+
     """
     return lib.minimum_bounding_radius(geometry, **kwargs)

@@ -1,14 +1,13 @@
 import pathlib
 import pickle
 import warnings
-from pickle import dumps, HIGHEST_PROTOCOL, loads
+from pickle import HIGHEST_PROTOCOL, dumps, loads
 
 import pytest
 
 import shapely
 from shapely import wkt
 from shapely.geometry import (
-    box,
     GeometryCollection,
     LinearRing,
     LineString,
@@ -17,6 +16,7 @@ from shapely.geometry import (
     MultiPolygon,
     Point,
     Polygon,
+    box,
 )
 
 HERE = pathlib.Path(__file__).parent
@@ -74,11 +74,8 @@ if __name__ == "__main__":
 
     shapely_version = shapely.__version__
     print(shapely_version)
-    print(shapely.geos.geos_version)
+    print(shapely.geos_version)
 
     for name, geom in TEST_DATA.items():
-        if name == "emptypoint" and shapely.geos.geos_version < (3, 9, 0):
-            # Empty Points cannot be represented in WKB
-            continue
         with open(datadir / f"{name}_{shapely_version}.pickle", "wb") as f:
             pickle.dump(geom, f)

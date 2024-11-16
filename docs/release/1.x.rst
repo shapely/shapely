@@ -388,7 +388,7 @@ utility at run-time.
 In addition to the changes listed under the alpha and beta pre-releases below,
 the following change has been made to the project:
 
-- Project documentation is now hosted at 
+- Project documentation is now hosted at
   https://shapely.readthedocs.io/en/latest/.
 
 Thank you all for using, promoting, and contributing to the Shapely project.
@@ -523,7 +523,7 @@ Packaging:
 1.5.14 (2016-03-27)
 -------------------
 - Bug fix: use ``type()`` instead of ``isinstance()`` when evaluating geometry
-  equality, preventing instances of base and derived classes from 
+  equality, preventing instances of base and derived classes from
   being mistaken for equals (#317).
 - Bug fix: ensure that empty geometries are created when constructors have no
   args (#332, #333).
@@ -554,7 +554,7 @@ Packaging:
 
 1.5.11 (2015-08-23)
 -------------------
-- Remove packaging module requirement added in 1.5.10 (#305). Distutils can't 
+- Remove packaging module requirement added in 1.5.10 (#305). Distutils can't
   parse versions using 'rc', but if we stick to 'a' and 'b' we will be fine.
 
 1.5.10 (2015-08-22)
