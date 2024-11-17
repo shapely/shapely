@@ -2745,7 +2745,7 @@ while this is not the case for `dumps()`, though it can be replicated by setting
 
 .. code-block:: pycon
 
-  >>> from shapely import wkb
+  >>> from shapely import wkb, Point
   >>> pt = Point(0, 0)
   >>> wkb.dumps(pt)
   b'\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
@@ -2767,14 +2767,13 @@ All of Shapely's geometry types are supported by these functions.
 
 .. code-block:: pycon
 
-  >>> from shapely import wkt
+  >>> from shapely import wkt, Point
   >>> pt = Point(0, 0)
-  >>> thewkt = wkt.dumps(pt)
-  >>> thewkt
+  >>> wkt.dumps(pt)
   'POINT (0.0000000000000000 0.0000000000000000)'
   >>> pt.wkt
   'POINT (0 0)'
-  >>> wkt.dumps(pt, trim=True)
+  >>> wkt.loads(pt.wkt).wkt
   'POINT (0 0)'
 
 .. _array-interface:
