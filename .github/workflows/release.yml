@@ -124,7 +124,9 @@ jobs:
           # once Cython has an official release that supports free threading we can remove this
           CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
           CIBW_BEFORE_BUILD: |
-            pip install --pre cython &&
+            # For free threading support in Cython install a pre-release version of Cython
+            PRE_FLAG="$(python -c"import sysconfig; print('--pre' if sysconfig.get_config_var('Py_GIL_DISABLED') else '')")" &&
+            pip install $PRE_FLAG cython &&
             pip install numpy setuptools wheel
           CIBW_BUILD: ${{ matrix.cibw_build }}
           CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.baseimage }}_geos:${{ env.GEOS_VERSION }}
@@ -208,10 +210,14 @@ jobs:
           # once Cython and numpy have official releases that support free threading we can remove this
           CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
           CIBW_BEFORE_BUILD: |
-            pip install --pre cython &&
+            # For free threading support in Cython install a pre-release version of Cython
+            PRE_FLAG="$(python -c"import sysconfig; print('--pre' if sysconfig.get_config_var('Py_GIL_DISABLED') else '')")" &&
+            pip install $PRE_FLAG cython &&
             pip install numpy setuptools wheel
           CIBW_BEFORE_BUILD_WINDOWS:
-            pip install --pre cython &&
+            # For free threading support in Cython install a pre-release version of Cython
+            PRE_FLAG="$(python -c"import sysconfig; print('--pre' if sysconfig.get_config_var('Py_GIL_DISABLED') else '')")" &&
+            pip install $PRE_FLAG cython &&
             pip install numpy setuptools wheel &&
             pip install delvewheel
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} {wheel}
