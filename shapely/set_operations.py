@@ -49,7 +49,7 @@ def difference(a, b, grid_size=None, **kwargs):
 
     Examples
     --------
-    >>> from shapely import box, LineString, normalize, Polygon
+    >>> from shapely import box, difference, LineString, normalize, Polygon
     >>> line = LineString([(0, 0), (2, 2)])
     >>> difference(line, LineString([(1, 1), (3, 3)]))
     <LINESTRING (0 0, 1 1)>
@@ -102,7 +102,7 @@ def intersection(a, b, grid_size=None, **kwargs):
 
     Examples
     --------
-    >>> from shapely import box, LineString, normalize, Polygon
+    >>> from shapely import box, intersection, LineString, normalize, Polygon
     >>> line = LineString([(0, 0), (2, 2)])
     >>> intersection(line, LineString([(1, 1), (3, 3)]))
     <LINESTRING (1 1, 2 2)>
@@ -150,7 +150,7 @@ def intersection_all(geometries, axis=None, **kwargs):
 
     Examples
     --------
-    >>> from shapely import LineString
+    >>> from shapely import intersection_all, LineString
     >>> line1 = LineString([(0, 0), (2, 2)])
     >>> line2 = LineString([(1, 1), (3, 3)])
     >>> intersection_all([line1, line2])
@@ -197,7 +197,7 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
 
     Examples
     --------
-    >>> from shapely import box, LineString, normalize
+    >>> from shapely import box, LineString, normalize, symmetric_difference
     >>> line = LineString([(0, 0), (2, 2)])
     >>> symmetric_difference(line, LineString([(1, 1), (3, 3)]))
     <MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>
@@ -245,7 +245,7 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
 
     Examples
     --------
-    >>> from shapely import LineString
+    >>> from shapely import LineString, symmetric_difference_all
     >>> line1 = LineString([(0, 0), (2, 2)])
     >>> line2 = LineString([(1, 1), (3, 3)])
     >>> symmetric_difference_all([line1, line2])
@@ -294,7 +294,7 @@ def union(a, b, grid_size=None, **kwargs):
 
     Examples
     --------
-    >>> from shapely import box, LineString, normalize
+    >>> from shapely import box, LineString, normalize, union
     >>> line = LineString([(0, 0), (2, 2)])
     >>> union(line, LineString([(2, 2), (3, 3)]))
     <MULTILINESTRING ((0 0, 2 2), (2 2, 3 3))>
@@ -356,7 +356,7 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
 
     Examples
     --------
-    >>> from shapely import box, LineString, normalize, Point
+    >>> from shapely import box, LineString, normalize, Point, union_all
     >>> line1 = LineString([(0, 0), (2, 2)])
     >>> line2 = LineString([(2, 2), (3, 3)])
     >>> union_all([line1, line2])
@@ -424,7 +424,7 @@ def coverage_union(a, b, **kwargs):
 
     Examples
     --------
-    >>> from shapely import normalize, Polygon
+    >>> from shapely import coverage_union, normalize, Polygon
     >>> polygon = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
     >>> normalize(coverage_union(polygon, Polygon([(1, 0), (1, 1), (2, 1), (2, 0), (1, 0)])))
     <POLYGON ((0 0, 0 1, 1 1, 2 1, 2 0, 1 0, 0 0))>
@@ -467,7 +467,7 @@ def coverage_union_all(geometries, axis=None, **kwargs):
 
     Examples
     --------
-    >>> from shapely import normalize, Polygon
+    >>> from shapely import coverage_union_all, normalize, Polygon
     >>> polygon_1 = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
     >>> polygon_2 = Polygon([(1, 0), (1, 1), (2, 1), (2, 0), (1, 0)])
     >>> normalize(coverage_union_all([polygon_1, polygon_2]))
@@ -523,7 +523,7 @@ def disjoint_subset_union(a, b, **kwargs):
 
     Examples
     --------
-    >>> from shapely import normalize, Polygon
+    >>> from shapely import disjoint_subset_union, normalize, Polygon
     >>> polygon_1 = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
     >>> polygon_2 = Polygon([(1, 0), (1, 1), (2, 1), (2, 0), (1, 0)])
     >>> normalize(disjoint_subset_union(polygon_1, polygon_2))
@@ -584,7 +584,7 @@ def disjoint_subset_union_all(geometries, axis=None, **kwargs):
 
     Examples
     --------
-    >>> from shapely import normalize, Polygon
+    >>> from shapely import disjoint_subset_union_all, normalize, Polygon
     >>> polygon_1 = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
     >>> polygon_2 = Polygon([(1, 0), (1, 1), (2, 1), (2, 0), (1, 0)])
     >>> normalize(disjoint_subset_union_all([polygon_1, polygon_2]))
