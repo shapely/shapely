@@ -883,6 +883,21 @@ static void* GEOSSetSRID_r_with_clone(void* context, void* geom, int srid) {
   return ret;
 }
 static void* set_srid_data[1] = {GEOSSetSRID_r_with_clone};
+#if GEOS_SINCE_3_12_0
+static void* GEOSOrientPolygons_r_with_clone(void* context, void* geom, int exteriorCW) {
+  int ret;
+  void* cloned = GEOSGeom_clone_r(context, geom);
+  if (cloned == NULL) {
+    return NULL;
+  }
+  ret = GEOSOrientPolygons_r(context, cloned, exteriorCW);
+  if (ret == -1) {
+    return NULL;
+  }
+  return cloned;
+}
+static void* orient_polygons_data[1] = {GEOSOrientPolygons_r_with_clone};
+#endif
 typedef void* FuncGEOS_Yi_Y(void* context, void* a, int b);
 static char Yi_Y_dtypes[3] = {NPY_OBJECT, NPY_INT, NPY_OBJECT};
 static void Yi_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
@@ -3862,6 +3877,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Y_Y(disjoint_subset_union);
   DEFINE_Y_b(has_m);
   DEFINE_Y_d(get_m);
+  DEFINE_Yi_Y(orient_polygons);
 #endif
 
   Py_DECREF(ufunc);
