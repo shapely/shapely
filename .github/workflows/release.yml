@@ -119,6 +119,14 @@ jobs:
         uses: pypa/cibuildwheel@v2.21.3
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
+          # TEMP don't use automated/isolated build environment, but manually
+          # install build dependencies so we can build with cython 3.1.0a0
+          # once Cython has an official release that supports free threading we can remove this
+          CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
+          CIBW_BEFORE_BUILD: |
+            # For free threading support in Cython install a pre-release version of Cython
+            python -c "import sysconfig, subprocess; subprocess.check_call(['pip', 'install', '--pre', 'cython'] if sysconfig.get_config_var('Py_GIL_DISABLED') else ['pip', 'install', 'cython'])" &&
+            pip install numpy setuptools wheel
           CIBW_BUILD: ${{ matrix.cibw_build }}
           CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.baseimage }}_geos:${{ env.GEOS_VERSION }}
           CIBW_MUSLLINUX_X86_64_IMAGE: ${{ matrix.baseimage }}_geos:${{ env.GEOS_VERSION }}
@@ -196,7 +204,19 @@ jobs:
             GEOS_INCLUDE_PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\include'
           CIBW_BEFORE_ALL_MACOS: ./ci/install_geos.sh
           CIBW_BEFORE_ALL_WINDOWS: ci\install_geos.cmd
-          CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
+          # TEMP don't use automated/isolated build environment, but manually
+          # install build dependencies so we can build with cython 3.1.0a0
+          # once Cython and numpy have official releases that support free threading we can remove this
+          CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
+          CIBW_BEFORE_BUILD: |
+            # For free threading support in Cython install a pre-release version of Cython
+            python -c "import sysconfig, subprocess; subprocess.check_call(['pip', 'install', '--pre', 'cython'] if sysconfig.get_config_var('Py_GIL_DISABLED') else ['pip', 'install', 'cython'])" &&
+            pip install numpy setuptools wheel
+          CIBW_BEFORE_BUILD_WINDOWS:
+            # For free threading support in Cython install a pre-release version of Cython
+            python -c "import sysconfig, subprocess; subprocess.check_call(['pip', 'install', '--pre', 'cython'] if sysconfig.get_config_var('Py_GIL_DISABLED') else ['pip', 'install', 'cython'])" &&
+            pip install numpy setuptools wheel &&
+            pip install delvewheel
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} {wheel}
 
       - name: Upload artifacts

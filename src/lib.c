@@ -43,6 +43,11 @@ PyMODINIT_FUNC PyInit_lib(void) {
     return NULL;
   }
 
+  /* Work with freethreaded Python */
+  #ifdef Py_GIL_DISABLED
+    PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED);
+  #endif
+
   if (init_geos(m) < 0) {
     return NULL;
   };
