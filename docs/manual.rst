@@ -321,7 +321,7 @@ Coordinates may also be sliced. `New in version 1.2.14`.
   [(0.0, 0.0)]
 
 The `Point` constructor also accepts another `Point` instance, thereby making
-a shallow .
+a shallow copy.
 
 .. code-block:: pycon
 
@@ -386,7 +386,7 @@ Coordinates may also be sliced. `New in version 1.2.14`.
   [(1.0, 1.0)]
 
 The constructor also accepts another `LineString` instance, thereby making a
-shallow .
+shallow copy.
 
 .. code-block:: pycon
 
