@@ -321,7 +321,7 @@ Coordinates may also be sliced. `New in version 1.2.14`.
   [(0.0, 0.0)]
 
 The `Point` constructor also accepts another `Point` instance, thereby making
-a copy.
+a shallow copy.
 
 .. code-block:: pycon
 
@@ -386,7 +386,7 @@ Coordinates may also be sliced. `New in version 1.2.14`.
   [(1.0, 1.0)]
 
 The constructor also accepts another `LineString` instance, thereby making a
-copy.
+shallow copy.
 
 .. code-block:: pycon
 
@@ -457,7 +457,7 @@ Defining coordinate values are accessed via the `coords` property.
   [(0.0, 0.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)]
 
 The `LinearRing` constructor also accepts another `LineString` or `LinearRing`
-instance, thereby making a copy.
+instance, thereby making a shallow copy.
 
 .. code-block:: pycon
 
@@ -566,10 +566,10 @@ To obtain a polygon with a known orientation, use
 
 .. function:: shapely.geometry.polygon.orient(polygon, sign=1.0)
 
-  Returns a properly oriented copy of the given polygon. The signed area of the
-  result will have the given sign. A sign of 1.0 means that the coordinates of
-  the product's exterior ring will be oriented counter-clockwise and the interior
-  rings (holes) will be oriented clockwise.
+  Returns a properly oriented deep copy of the given polygon. The signed area
+  of the result will have the given sign. A sign of 1.0 means that the
+  coordinates of the product's exterior ring will be oriented counter-clockwise
+  and the interior rings (holes) will be oriented clockwise.
 
   `New in version 1.2.10`.
 
@@ -1461,7 +1461,7 @@ Figure 8. Differences between two approximately circular polygons.
   Shapely can not represent the difference between an object and a lower
   dimensional object (such as the difference between a polygon and a line or
   point) as a single object, and in these cases the difference method returns a
-  copy of the object named ``self``.
+  deep copy of the object named ``self``.
 
 .. method:: object.intersection(other)
 
@@ -2389,8 +2389,8 @@ a second geometry with a given tolerance.
 
 .. function:: shapely.snap(geom1, geom2, tolerance)
 
-   Snaps vertices in `geom1` to vertices in the `geom2`. A copy of the snapped
-   geometry is returned. The input geometries are not modified.
+   Snaps vertices in `geom1` to vertices in the `geom2`. A deep copy of the
+   snapped geometry is returned. The input geometries are not modified.
 
    The `tolerance` argument specifies the minimum distance between vertices for
    them to be snapped.
