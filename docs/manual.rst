@@ -321,7 +321,7 @@ Coordinates may also be sliced. `New in version 1.2.14`.
   [(0.0, 0.0)]
 
 The `Point` constructor also accepts another `Point` instance, thereby making
-a shallow copy.
+a shallow .
 
 .. code-block:: pycon
 
@@ -386,7 +386,7 @@ Coordinates may also be sliced. `New in version 1.2.14`.
   [(1.0, 1.0)]
 
 The constructor also accepts another `LineString` instance, thereby making a
-shallow copy.
+shallow .
 
 .. code-block:: pycon
 
@@ -457,7 +457,7 @@ Defining coordinate values are accessed via the `coords` property.
   [(0.0, 0.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)]
 
 The `LinearRing` constructor also accepts another `LineString` or `LinearRing`
-instance, thereby making a shallow copy.
+instance, making a deep copy or a shallow copy, respectively.
 
 .. code-block:: pycon
 
