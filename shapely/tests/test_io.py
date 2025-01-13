@@ -648,6 +648,9 @@ def test_to_wkt_large_float_no_trim():
 def test_repr():
     assert repr(point) == "<POINT (2 3)>"
     assert repr(point_z) == "<POINT Z (2 3 4)>"
+    # Default preserves precision; GH-2199
+    geom = shapely.from_wkt("LINESTRING (0.1 0.1, 0.49 0.51, 1.01 0.89)")
+    assert repr(geom) == "<LINESTRING (0.1 0.1, 0.49 0.51, 1.01 0.89)>"
 
 
 @pytest.mark.skipif(

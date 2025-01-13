@@ -171,7 +171,7 @@ class BaseGeometry(shapely.Geometry):
     def __repr__(self):
         """Return a string representation of the geometry."""
         try:
-            wkt = super().__str__()
+            wkt = super().__str__()  # GeometryObject_ToWKT
         except (GEOSException, ValueError):
             # we never want a repr() to fail; that can be very confusing
             return f"<shapely.{self.__class__.__name__} Exception in WKT writer>"

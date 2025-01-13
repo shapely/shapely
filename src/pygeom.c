@@ -80,15 +80,11 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
   char* wkt;
   PyObject* result;
   GEOSGeometry* geom = obj->ptr;
-  char trim = 1;
-  int precision = 3;
 #if GEOS_SINCE_3_12_0
   int dimension = 4;
 #else
   int dimension = 3;
 #endif
-  // int use_old_3d = 0;  // default is false
-
   if (geom == NULL) {
     Py_INCREF(Py_None);
     return Py_None;
@@ -96,9 +92,7 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
 
   GEOS_INIT;
 #if !GEOS_SINCE_3_13_0
-  if (trim) {
-    errstate = check_to_wkt_trim_compatible(ctx, geom, dimension);
-  }
+  errstate = check_to_wkt_trim_compatible(ctx, geom, dimension);
   if (errstate != PGERR_SUCCESS) {
     goto finish;
   }
@@ -122,13 +116,12 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
     goto finish;
   }
 
-  GEOSWKTWriter_setRoundingPrecision_r(ctx, writer, precision);
+  // Assume GEOSWKTWriter options trim=on and precision=-1 (full)
 #if !GEOS_SINCE_3_12_0
   // Override defaults only for older versions
   // See https://github.com/libgeos/geos/pull/915
-  GEOSWKTWriter_setTrim_r(ctx, writer, trim);
+  GEOSWKTWriter_setTrim_r(ctx, writer, 1);
   GEOSWKTWriter_setOutputDimension_r(ctx, writer, dimension);
-  // GEOSWKTWriter_setOld3D_r(ctx, writer, use_old_3d);
 #endif  // !GEOS_SINCE_3_12_0
 
   // Check if the above functions caused a GEOS exception
@@ -207,27 +200,6 @@ finish:
 
   GEOS_FINISH;
 
-  return result;
-}
-
-static PyObject* GeometryObject_repr(GeometryObject* self) {
-  PyObject *result, *wkt, *truncated;
-
-  wkt = GeometryObject_ToWKT(self);
-  // we never want a repr() to fail; that can be very confusing
-  if (wkt == NULL) {
-    PyErr_Clear();
-    return PyUnicode_FromString("<shapely.Geometry Exception in WKT writer>");
-  }
-  // the total length is limited to 80 characters
-  if (PyUnicode_GET_LENGTH(wkt) > 62) {
-    truncated = PyUnicode_Substring(wkt, 0, 59);
-    result = PyUnicode_FromFormat("<shapely.Geometry %U...>", truncated);
-    Py_XDECREF(truncated);
-  } else {
-    result = PyUnicode_FromFormat("<shapely.Geometry %U>", wkt);
-  }
-  Py_XDECREF(wkt);
   return result;
 }
 
@@ -393,7 +365,6 @@ PyTypeObject GeometryType = {
     .tp_dealloc = (destructor)GeometryObject_dealloc,
     .tp_members = GeometryObject_members,
     .tp_methods = GeometryObject_methods,
-    .tp_repr = (reprfunc)GeometryObject_repr,
     .tp_hash = (hashfunc)GeometryObject_hash,
     .tp_richcompare = (richcmpfunc)GeometryObject_richcompare,
     .tp_weaklistoffset = offsetof(GeometryObject, weakreflist),
