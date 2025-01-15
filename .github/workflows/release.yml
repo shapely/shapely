@@ -61,7 +61,7 @@ jobs:
           - baseimage: manylinux2014_x86_64
             cibw_build: "*manylinux_x86_64"
             arch: x86_64
-          - baseimage: musllinux_1_1_x86_64
+          - baseimage: musllinux_1_2_x86_64
             cibw_build: "*musllinux_x86_64"
             arch: x86_64
           # Wait until native arm64 runners are available
