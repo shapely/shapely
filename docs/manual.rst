@@ -320,8 +320,9 @@ Coordinates may also be sliced. `New in version 1.2.14`.
   >>> point.coords[:]
   [(0.0, 0.0)]
 
-The `Point` constructor also accepts another `Point` instance, thereby making
-a copy.
+When a `Point` instance is passed to the `Point` constructor, it returns a
+reference to the passed instance. It does not make a copy, as geometry objects
+are immutable.
 
 .. code-block:: pycon
 
@@ -385,8 +386,8 @@ Coordinates may also be sliced. `New in version 1.2.14`.
   >>> line.coords[1:]
   [(1.0, 1.0)]
 
-The constructor also accepts another `LineString` instance, thereby making a
-copy.
+When the constructor is passed another `LineString` instance, a reference to
+the instance is returned.
 
 .. code-block:: pycon
 
@@ -457,7 +458,8 @@ Defining coordinate values are accessed via the `coords` property.
   [(0.0, 0.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)]
 
 The `LinearRing` constructor also accepts another `LineString` or `LinearRing`
-instance, thereby making a copy.
+instance, returning a new `LinearRing` instance or a reference to the passed
+instance, respectively.
 
 .. code-block:: pycon
 
@@ -566,10 +568,11 @@ To obtain a polygon with a known orientation, use
 
 .. function:: shapely.geometry.polygon.orient(polygon, sign=1.0)
 
-  Returns a properly oriented copy of the given polygon. The signed area of the
-  result will have the given sign. A sign of 1.0 means that the coordinates of
-  the product's exterior ring will be oriented counter-clockwise and the interior
-  rings (holes) will be oriented clockwise.
+  Returns a new `Polygon` instance with the coordinates of the given polygon in
+  proper orientation. The signed area of the result will have the given sign. A
+  sign of 1.0 means that the coordinates of the product's exterior ring will be
+  oriented counter-clockwise and the interior rings (holes) will be oriented
+  clockwise.
 
   `New in version 1.2.10`.
 
@@ -1461,7 +1464,7 @@ Figure 8. Differences between two approximately circular polygons.
   Shapely can not represent the difference between an object and a lower
   dimensional object (such as the difference between a polygon and a line or
   point) as a single object, and in these cases the difference method returns a
-  copy of the object named ``self``.
+  deep copy of the object named ``self``.
 
 .. method:: object.intersection(other)
 
@@ -2389,8 +2392,8 @@ a second geometry with a given tolerance.
 
 .. function:: shapely.snap(geom1, geom2, tolerance)
 
-   Snaps vertices in `geom1` to vertices in the `geom2`. A copy of the snapped
-   geometry is returned. The input geometries are not modified.
+   Snaps vertices in `geom1` to vertices in the `geom2`. A new instance of type
+   `geom1` is returned. The input geometries are not modified.
 
    The `tolerance` argument specifies the minimum distance between vertices for
    them to be snapped.
