@@ -70,9 +70,10 @@ jobs:
             baseimage: manylinux2014_aarch64
             cibw_build: "*manylinux_aarch64"
             arch: aarch64
-          # - baseimage: musllinux_1_2_aarch64
-          #   cibw_build: "*musllinux_aarch64"
-          #   arch: aarch64
+          - os: ubuntu-24.04-arm
+            baseimage: musllinux_1_2_aarch64
+            cibw_build: "*musllinux_aarch64"
+            arch: aarch64
     env:
       basetag: 2024.08.12-1
 
@@ -127,7 +128,7 @@ jobs:
           CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.baseimage }}_geos:${{ env.GEOS_VERSION }}
           CIBW_MUSLLINUX_X86_64_IMAGE: ${{ matrix.baseimage }}_geos:${{ env.GEOS_VERSION }}
           CIBW_MANYLINUX_AARCH64_IMAGE: ${{ matrix.baseimage }}_geos:${{ env.GEOS_VERSION }}
-          # CIBW_MUSLLINUX_AARCH64_IMAGE: ${{ matrix.baseimage }}_geos:${{ env.GEOS_VERSION }}
+          CIBW_MUSLLINUX_AARCH64_IMAGE: ${{ matrix.baseimage }}_geos:${{ env.GEOS_VERSION }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
