@@ -36,6 +36,7 @@ Improvements:
 - Add option on ``invalid="fix"`` to ``from_wkb`` and ``from_wkt`` (#2094)
 - Add function ``minimum_clearance_line`` (#2106)
 - Add function ``maximum_inscribed_circle`` (#1307)
+- Add support to split polygons by multilinestrings (#2206)
 
 Breaking changes in GEOS 3.12:
 
