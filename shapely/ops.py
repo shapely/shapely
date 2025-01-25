@@ -366,8 +366,8 @@ class SplitOp:
         """Split a Polygon with a LineString."""
         if not isinstance(poly, Polygon):
             raise GeometryTypeError("First argument must be a Polygon")
-        if not isinstance(splitter, LineString):
-            raise GeometryTypeError("Second argument must be a LineString")
+        if not isinstance(splitter, (LineString, MultiLineString)):
+            raise GeometryTypeError("Second argument must be a (Multi)LineString")
 
         union = poly.boundary.union(splitter)
 
@@ -538,7 +538,7 @@ class SplitOp:
                 )
 
         elif geom.geom_type == "Polygon":
-            if splitter.geom_type == "LineString":
+            if splitter.geom_type in ("LineString", "MultiLineString"):
                 split_func = SplitOp._split_polygon_with_line
             else:
                 raise GeometryTypeError(
