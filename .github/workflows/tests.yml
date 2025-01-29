@@ -49,8 +49,8 @@ jobs:
             numpy: 1.26.0
           # 2024
           - python: "3.13"
-            geos: 3.12.2
-            numpy: 2.1.0
+            geos: 3.13.0
+            numpy: 2.1.1
           # apple silicon
           - os: macos-14
             python: "3.12"
