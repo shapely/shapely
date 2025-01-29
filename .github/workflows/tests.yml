@@ -17,13 +17,11 @@ jobs:
         geos: [3.6.6, 3.7.5, 3.8.4, 3.9.5, 3.10.6, 3.11.4, 3.12.2, 3.13.0, main]
         include:
           # 2017
-          - os: ubuntu-20.04
-            python: 3.7  # 3.6 is dropped
+          - python: 3.7  # 3.6 is dropped
             geos: 3.6.6
             numpy: 1.14.6
           # 2018
-          - os: ubuntu-20.04
-            python: 3.7
+          - python: 3.7
             geos: 3.7.5
             numpy: 1.15.4
           # 2019
@@ -79,6 +77,17 @@ jobs:
             python: "pypy3.8"
             geos: 3.11.4
             numpy: 1.23.4
+        exclude:
+          # 2017
+          - os: ubuntu-latest
+            python: 3.7  # 3.6 is dropped
+            geos: 3.6.6
+            numpy: 1.14.6
+          # 2018
+          - os: ubuntu-latest
+            python: 3.7
+            geos: 3.7.5
+            numpy: 1.15.4
 
     env:
       GEOS_VERSION: ${{ matrix.geos }}
