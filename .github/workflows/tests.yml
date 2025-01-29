@@ -17,11 +17,13 @@ jobs:
         geos: [3.6.6, 3.7.5, 3.8.4, 3.9.5, 3.10.6, 3.11.4, 3.12.2, 3.13.0, main]
         include:
           # 2017
-          - python: 3.7  # 3.6 is dropped
+          - os: ubuntu-20.04
+            python: 3.7  # 3.6 is dropped
             geos: 3.6.6
             numpy: 1.14.6
           # 2018
-          - python: 3.7
+          - os: ubuntu-20.04
+            python: 3.7
             geos: 3.7.5
             numpy: 1.15.4
           # 2019
