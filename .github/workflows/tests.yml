@@ -136,7 +136,7 @@ jobs:
       - name: Install python dependencies
         run: |
           python -m pip install --disable-pip-version-check --upgrade pip
-          pip install --upgrade wheel setuptools
+          pip install wheel setuptools
           if [ -z "${{ matrix.numpy }}" ]; then
             pip install --upgrade --pre Cython numpy pytest pytest-cov coveralls;
           else
