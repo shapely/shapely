@@ -80,14 +80,10 @@ jobs:
         exclude:
           # 2017
           - os: ubuntu-latest
-            python: 3.7  # 3.6 is dropped
             geos: 3.6.6
-            numpy: 1.14.6
           # 2018
           - os: ubuntu-latest
-            python: 3.7
             geos: 3.7.5
-            numpy: 1.15.4
 
     env:
       GEOS_VERSION: ${{ matrix.geos }}
