@@ -20,6 +20,17 @@ Improvements:
   ``shapely.linearrings()`` to allow, skip, or error on nonfinite (NaN / Inf)
   coordinates. The default behaviour (allow) is backwards compatible (#1594).
 
+.. _version-2-0-7:
+
+Version 2.0.7 (2025-01-30)
+--------------------------
+
+Bug fixes:
+
+- Fix compilation error on certain Linux platforms, such as Alpine (#1945).
+- Fix to prevent crash when reading nonlinear types from WKB/WKT (#2160).
+- Fix the ``project`` method to return a Python float (#2093).
+
 .. _version-2-0-6:
 
 Version 2.0.6 (2024-08-19)
