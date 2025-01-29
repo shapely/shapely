@@ -117,13 +117,11 @@ jobs:
           CIBW_SKIP: cp36-* pp* *musllinux* *-manylinux_i686
           CIBW_TEST_SKIP: "cp38-macosx_arm64"
           CIBW_ENVIRONMENT_LINUX:
-            PIP_PRE=1
             GEOS_VERSION=${{ env.GEOS_VERSION }}
             GEOS_INSTALL=/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
             GEOS_CONFIG=/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
             LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/lib
           CIBW_ENVIRONMENT_MACOS:
-            PIP_PRE=1
             GEOS_INSTALL=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
             GEOS_CONFIG=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
             LDFLAGS=-Wl,-rpath,${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/lib
@@ -131,7 +129,6 @@ jobs:
             CMAKE_OSX_ARCHITECTURES='${{ matrix.cmake_osx_architectures }}'
             CFLAGS='-Wno-error=incompatible-function-pointer-types'
           CIBW_ENVIRONMENT_WINDOWS:
-            PIP_PRE=1
             GEOS_INSTALL='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}'
             GEOS_LIBRARY_PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\lib'
             GEOS_INCLUDE_PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\include'
