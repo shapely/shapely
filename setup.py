@@ -16,6 +16,7 @@ import versioneer
 
 # Skip Cython build if not available
 try:
+    import cython
     from Cython.Build import cythonize
 except ImportError:
     cythonize = None
@@ -183,10 +184,12 @@ else:
             **ext_options,
         ),
     ]
-
+    compiler_directives = {"language_level": "3"}
+    if cython.__version__ >= "3.1.0":
+        compiler_directives.update({"freethreading_compatible": True})
     ext_modules += cythonize(
         cython_modules,
-        compiler_directives={"language_level": "3"},
+        compiler_directives=compiler_directives,
     )
 
 

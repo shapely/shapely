@@ -74,10 +74,17 @@ skip = ["pp*", "*_i686", "*_ppc64le", "*_s390x"]
 build-verbosity = 1
 test-requires = "pytest"
 test-command = "pytest --pyargs shapely.tests"
+free-threaded-support = true
 
 [tool.coverage.run]
 source = ["shapely"]
 omit = ["shapely/tests/*"]
+
+[tool.doc8]
+include = ["docs"]
+ignore = ["D000", "D004"]
+allow-long-titles = true
+max-line-length = 79
 
 [tool.ruff]
 line-length = 88
