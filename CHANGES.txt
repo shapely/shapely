@@ -32,6 +32,7 @@ Improvements:
 - Add option on ``invalid="fix"`` to ``from_wkb`` and ``from_wkt`` (#2094)
 - Add function ``minimum_clearance_line`` (#2106)
 - Add function ``maximum_inscribed_circle`` (#1307)
+- Add function ``orient_polygons`` (#2147)
 
 Breaking changes in GEOS 3.12:
 
