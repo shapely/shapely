@@ -37,7 +37,7 @@ jobs:
           python -m build --sdist
           twine check --strict dist/*
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: ./dist/*.tar.gz
           retention-days: 30
@@ -141,7 +141,7 @@ jobs:
           CIBW_BUILD_VERBOSITY: 1
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           path: ./wheelhouse/*.whl
           retention-days: 5
