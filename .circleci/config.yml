@@ -4,7 +4,7 @@ jobs:
   linux-aarch64-wheels:
     working_directory: ~/linux-aarch64-wheels
     machine:
-      image: ubuntu-2004:2022.04.1
+      image: default
     # resource_class is what tells CircleCI to use an ARM worker for native arm builds
     # https://circleci.com/product/features/resource-classes/
     resource_class: arm.medium
