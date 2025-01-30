@@ -12,7 +12,7 @@ os.environ["SPHINX_DOC_BUILD"] = "1"
 # -- Project information -----------------------------------------------------
 
 project = 'Shapely'
-copyright = '2011-2023, Sean Gillies and Shapely contributors'
+copyright = '2011-2025, Sean Gillies and Shapely contributors'
 
 # The full version, including alpha/beta/rc tags.
 import shapely
