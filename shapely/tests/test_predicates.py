@@ -5,6 +5,7 @@ import pytest
 
 import shapely
 from shapely import LinearRing, LineString, Point, Polygon
+from shapely.errors import UnsupportedGEOSVersionError
 from shapely.tests.common import (
     all_types,
     all_types_m,
@@ -414,6 +415,7 @@ def test_contains_properly():
     assert shapely.contains_properly(polygon, polygon).item() is False
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="requires >= 3.12")
 @pytest.mark.parametrize("geometry", all_types + all_types_z)
 def test_coverage_is_valid(geometry):
     actual = shapely.coverage_is_valid([geometry])
@@ -422,6 +424,7 @@ def test_coverage_is_valid(geometry):
     assert actual.item() is True
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="requires >= 3.12")
 def test_coverage_is_valid_non_polygonal():
     # non-polygonal geometries are ignored to validate the coverage
     # (e.g. even if you have crossing linestrings)
@@ -433,6 +436,7 @@ def test_coverage_is_valid_non_polygonal():
     assert shapely.coverage_is_valid(geoms)
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="requires >= 3.12")
 def test_coverage_is_valid_polygonal():
     geoms = [
         Polygon([(0, 0), (1, 1), (1, 0), (0, 0)]),
@@ -445,3 +449,13 @@ def test_coverage_is_valid_polygonal():
         Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]),
     ]
     assert not shapely.coverage_is_valid(geoms)
+
+
+@pytest.mark.skipif(shapely.geos_version >= (3, 12, 0), reason="requires >= 3.12")
+def test_coverage_is_valid_unsupported_geos():
+    geoms = [
+        Polygon([(0, 0), (1, 1), (1, 0), (0, 0)]),
+        Polygon([(0, 0), (1, 1), (0, 1), (0, 0)]),
+    ]
+    with pytest.raises(UnsupportedGEOSVersionError):
+        shapely.coverage_is_valid(geoms)
