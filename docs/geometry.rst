@@ -53,8 +53,8 @@ or WKB (Well-Known Binary) representation:
   >>> from_wkb(b"\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?")
   <POINT (1 1)>
 
-A more efficient way of constructing geometries is by making use of the (vectorized)
-functions described in :ref:`ref-creation`.
+A more efficient way of constructing geometries is by making use of the
+(vectorized) functions described in :ref:`ref-creation`.
 
 Pickling
 ~~~~~~~~
@@ -181,9 +181,9 @@ Canonical form
 When operations are applied on geometries the result is returned according to
 some conventions.
 
-In most cases, geometries will be returned in "mild" canonical form. There is no
-goal to keep this form stable, so it is expected to change in future versions of
-GEOS:
+In most cases, geometries will be returned in "mild" canonical form. There is
+no goal to keep this form stable, so it is expected to change in future
+versions of GEOS:
 
 - the coordinates of exterior rings follow a clockwise orientation and interior
   rings have a counter-clockwise orientation. This is the opposite of the OGC
@@ -194,9 +194,9 @@ GEOS:
 - the order of geometry types in a collection can be changed, but the order is
   undefined
 
-When :func:`~shapely.normalize` is used, the "strict" canonical form is applied.
-This type of normalization is meant to be stable, so changes to it will be
-avoided if possible:
+When :func:`~shapely.normalize` is used, the "strict" canonical form is
+applied. This type of normalization is meant to be stable, so changes to it
+will be avoided if possible:
 
 - the coordinates of exterior rings follow a clockwise orientation and interior
   rings have a counter-clockwise orientation

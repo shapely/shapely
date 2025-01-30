@@ -700,6 +700,41 @@ static void* force_3d_data[1] = {PyGEOSForce3D};
 
 static void* unary_union_prec_data[1] = {GEOSUnaryUnionPrec_r};
 
+static void* GEOSMaximumInscribedCircleWithDefaultTolerance(void* context, void* a, double b) {
+  double tolerance;
+  if (b == 0.0 && !GEOSisEmpty_r(context, a)) {
+    double xmin, xmax, ymin, ymax;
+    double width, height, size;
+
+#if GEOS_SINCE_3_11_0
+    if (!GEOSGeom_getExtent_r(context, a, &xmin, &ymin, &xmax, &ymax)) {
+      return NULL;
+    }
+#else
+    if (!GEOSGeom_getXMin_r(context, a, &xmin)) {
+      return NULL;
+    }
+    if (!GEOSGeom_getYMin_r(context, a, &ymin)) {
+      return NULL;
+    }
+    if (!GEOSGeom_getXMax_r(context, a, &xmax)) {
+      return NULL;
+    }
+    if (!GEOSGeom_getYMax_r(context, a, &ymax)) {
+      return NULL;
+    }
+#endif
+    width = xmax - xmin;
+    height = ymax - ymin;
+    size = width > height ? width : height;
+    tolerance = size / 1000.0;
+  } else {
+    tolerance = b;
+  }
+  return GEOSMaximumInscribedCircle_r(context, a, tolerance);
+}
+static void* maximum_inscribed_circle_data[1] = {GEOSMaximumInscribedCircleWithDefaultTolerance};
+
 #if GEOS_SINCE_3_10_0
 static void* segmentize_data[1] = {GEOSDensify_r};
 #endif
@@ -848,6 +883,21 @@ static void* GEOSSetSRID_r_with_clone(void* context, void* geom, int srid) {
   return ret;
 }
 static void* set_srid_data[1] = {GEOSSetSRID_r_with_clone};
+#if GEOS_SINCE_3_12_0
+static void* GEOSOrientPolygons_r_with_clone(void* context, void* geom, int exteriorCW) {
+  int ret;
+  void* cloned = GEOSGeom_clone_r(context, geom);
+  if (cloned == NULL) {
+    return NULL;
+  }
+  ret = GEOSOrientPolygons_r(context, cloned, exteriorCW);
+  if (ret == -1) {
+    return NULL;
+  }
+  return cloned;
+}
+static void* orient_polygons_data[1] = {GEOSOrientPolygons_r_with_clone};
+#endif
 typedef void* FuncGEOS_Yi_Y(void* context, void* a, int b);
 static char Yi_Y_dtypes[3] = {NPY_OBJECT, NPY_INT, NPY_OBJECT};
 static void Yi_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
@@ -3809,6 +3859,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Yd_Y(simplify_preserve_topology);
   DEFINE_Yd_Y(force_3d);
   DEFINE_Yd_Y(unary_union_prec);
+  DEFINE_Yd_Y(maximum_inscribed_circle);
 
   DEFINE_YY_Y(intersection);
   DEFINE_YY_Y(difference);
@@ -3899,6 +3950,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Y_b(has_m);
   DEFINE_Y_d(get_m);
   DEFINE_GENERALIZED(is_valid_coverage, 1, "(d)->()");
+  DEFINE_Yi_Y(orient_polygons);
 #endif
 
   Py_DECREF(ufunc);
