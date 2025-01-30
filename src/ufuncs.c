@@ -2445,8 +2445,8 @@ static PyUFuncGenericFunction polygonize_full_funcs[1] = {&polygonize_full_func}
 
 #if GEOS_SINCE_3_12_0
 
-static char is_valid_coverage_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
-static void is_valid_coverage_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+static char coverage_is_valid_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
+static void coverage_is_valid_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                                    void* data) {
   GEOSGeometry* geom = NULL;
   GEOSGeometry* collection = NULL;
@@ -2511,7 +2511,7 @@ finish:
   }
   GEOS_FINISH_THREADS;
 }
-static PyUFuncGenericFunction is_valid_coverage_funcs[1] = {&is_valid_coverage_func};
+static PyUFuncGenericFunction coverage_is_valid_funcs[1] = {&coverage_is_valid_func};
 
 #endif
 
@@ -3949,7 +3949,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Y_Y(disjoint_subset_union);
   DEFINE_Y_b(has_m);
   DEFINE_Y_d(get_m);
-  DEFINE_GENERALIZED(is_valid_coverage, 1, "(d)->()");
+  DEFINE_GENERALIZED(coverage_is_valid, 1, "(d)->()");
   DEFINE_Yi_Y(orient_polygons);
 #endif
 

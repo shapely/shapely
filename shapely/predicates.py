@@ -19,7 +19,7 @@ __all__ = [
     "is_ring",
     "is_simple",
     "is_valid",
-    "is_valid_coverage",
+    "coverage_is_valid",
     "is_valid_input",
     "is_valid_reason",
     "crosses",
@@ -485,7 +485,7 @@ def is_valid_reason(geometry, **kwargs):
 
 
 @requires_geos("3.12.0")
-def is_valid_coverage(geometry, **kwargs):
+def coverage_is_valid(geometry, **kwargs):
     """Verify if a coverage is valid.
 
     The coverage is represented by an array of polygonal geometries with
@@ -508,7 +508,7 @@ def is_valid_coverage(geometry, **kwargs):
     geometries = np.asarray(geometry)
     # we always consider the full array as a single coverage -> ravel the input
     # to pass a 1D array
-    return lib.is_valid_coverage(geometries.ravel(order="K"), **kwargs)
+    return lib.coverage_is_valid(geometries.ravel(order="K"), **kwargs)
 
 
 @multithreading_enabled
