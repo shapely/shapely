@@ -1,5 +1,4 @@
 #define PY_SSIZE_T_CLEAN
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 #include "geos.h"
 
@@ -1059,8 +1058,7 @@ enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx, const double
                                            unsigned int size, unsigned int dims,
                                            char is_ring, int handle_nan, npy_intp cs1,
                                            npy_intp cs2, GEOSCoordSequence** coord_seq) {
-  char* cp1;
-  unsigned int i, j, first_i, last_i, actual_size;
+  unsigned int first_i, last_i, actual_size;
   double coord;
   char errstate;
   char ring_closure = 0;
@@ -1102,7 +1100,7 @@ enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx, const double
 #if GEOS_SINCE_3_10_0
   if ((!ring_closure) && ((last_i - first_i + 1) == actual_size)) {
     /* Initialize cp1 so that it points to the first coordinate (possibly skipping NaN)*/
-    cp1 = (char*)buf + cs1 * first_i;
+    char* cp1 = (char*)buf + cs1 * first_i;
     if ((cs1 == dims * 8) && (cs2 == 8)) {
       /* C-contiguous memory */
       int hasZ = dims == 3;
@@ -1137,7 +1135,7 @@ enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx, const double
   }
   /* add the closing coordinate if necessary */
   if (ring_closure) {
-    for (j = 0; j < dims; j++) {
+    for (unsigned int j = 0; j < dims; j++) {
       coord = *(double*)((char*)buf + first_i * cs1 + j * cs2);
       if (!GEOSCoordSeq_setOrdinate_r(ctx, *coord_seq, actual_size, j, coord)) {
         GEOSCoordSeq_destroy_r(ctx, *coord_seq);
@@ -1156,16 +1154,17 @@ enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx, const double
  * Returns 0 on error, 1 on success.
  */
 int coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq,
-                       double* buf, unsigned int size, unsigned int dims) {
+                       double* buf, unsigned int size, int has_z, int has_m) {
+
 #if GEOS_SINCE_3_10_0
 
-  int hasZ = dims == 3;
-  return GEOSCoordSeq_copyToBuffer_r(ctx, coord_seq, buf, hasZ, 0);
+  return GEOSCoordSeq_copyToBuffer_r(ctx, coord_seq, buf, has_z, has_m);
 
 #else
 
   char *cp1, *cp2;
   unsigned int i, j;
+  unsigned int dims = 2 + has_z + has_m;
 
   cp1 = (char*)buf;
   for (i = 0; i < size; i++, cp1 += 8 * dims) {

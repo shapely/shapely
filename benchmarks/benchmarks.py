@@ -55,7 +55,7 @@ class IOSuite:
 
 class ConstructorsSuite:
     """Microbenchmarks for the Geometry class constructors"""
-    
+
     def setup(self):
         self.coords = np.random.random((1000, 2))
 

@@ -1,5 +1,4 @@
 #define PY_SSIZE_T_CLEAN
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 #include "pygeom.h"
 
@@ -7,6 +6,7 @@
 #include <structmember.h>
 
 #include "geos.h"
+#include "pygeos.h"
 
 /* This initializes a global geometry type registry */
 PyObject* geom_registry[1] = {NULL};
@@ -23,6 +23,16 @@ PyObject* GeometryObject_FromGEOS(GEOSGeometry* ptr, GEOSContextHandle_t ctx) {
   if (type_id == -1) {
     return NULL;
   }
+
+  // Nonlinear types (CircularString, CompoundCurve, MultiCurve, CurvePolygon,
+  // MultiSurface are not currently supported
+  // TODO: this can be removed once these types are added to the type registry
+  if (type_id >= 8) {
+    PyErr_Format(PyExc_NotImplementedError,
+                 "Nonlinear geometry types are not currently supported");
+    return NULL;
+  }
+
   PyObject* type_obj = PyList_GET_ITEM(geom_registry[0], type_id);
   if (type_obj == NULL) {
     return NULL;
@@ -271,11 +281,11 @@ static PyObject* GeometryObject_richcompare(GeometryObject* self, PyObject* othe
         break;
       case Py_EQ:
         result =
-            GEOSEqualsExact_r(ctx, self->ptr, other_geom->ptr, 0) ? Py_True : Py_False;
+            PyGEOSEqualsIdentical(ctx, self->ptr, other_geom->ptr) ? Py_True : Py_False;
         break;
       case Py_NE:
         result =
-            GEOSEqualsExact_r(ctx, self->ptr, other_geom->ptr, 0) ? Py_False : Py_True;
+            PyGEOSEqualsIdentical(ctx, self->ptr, other_geom->ptr) ? Py_False : Py_True;
         break;
       case Py_GT:
         result = Py_NotImplemented;
@@ -350,7 +360,7 @@ static PyObject* GeometryObject_SetState(PyObject* self, PyObject* value) {
   if (((GeometryObject*)self)->ptr != NULL) {
     GEOSGeom_destroy_r(ctx, ((GeometryObject*)self)->ptr);
   }
-  ((GeometryObject*)self)->ptr = geom; 
+  ((GeometryObject*)self)->ptr = geom;
 
 finish:
 

@@ -506,6 +506,8 @@ def disjoint_subset_union(a, b, **kwargs):
     :func:`union`. As such, it is recommeded to use ``disjoint_subset_union`` with
     GeometryCollections rather than individual geometries.
 
+    .. versionadded:: 2.1.0
+
     Parameters
     ----------
     a, b : Geometry or array_like
@@ -559,6 +561,8 @@ def disjoint_subset_union_all(geometries, axis=None, **kwargs):
     This function ignores None values when other Geometry elements are present.
     If all elements of the given axis are None, an empty GeometryCollection is
     returned.
+
+    .. versionadded:: 2.1.0
 
     Parameters
     ----------

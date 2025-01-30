@@ -48,10 +48,9 @@ class MultiPoint(BaseMultipartGeometry):
         elif isinstance(points, MultiPoint):
             return points
 
-        m = len(points)
         subs = []
-        for i in range(m):
-            p = point.Point(points[i])
+        for item in points:
+            p = point.Point(item)
             if p.is_empty:
                 raise EmptyPartError("Can't create MultiPoint with empty component")
             subs.append(p)

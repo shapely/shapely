@@ -19,6 +19,7 @@ __all__ = [
     "clip_by_rect",
     "concave_hull",
     "convex_hull",
+    "coverage_simplify",
     "delaunay_triangles",
     "segmentize",
     "envelope",
@@ -26,6 +27,7 @@ __all__ = [
     "build_area",
     "make_valid",
     "normalize",
+    "minimum_clearance_line",
     "node",
     "point_on_surface",
     "polygonize",
@@ -38,7 +40,7 @@ __all__ = [
     "oriented_envelope",
     "minimum_rotated_rectangle",
     "minimum_bounding_circle",
-    "coverage_simplify",
+    "maximum_inscribed_circle",
 ]
 
 
@@ -642,6 +644,41 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
 
     else:
         raise ValueError(f"Unknown method: {method}")
+
+
+@multithreading_enabled
+def minimum_clearance_line(geometry, **kwargs):
+    """Return a LineString whose endpoints define the minimum clearance.
+
+    A geometry's "minimum clearance" is the smallest distance by which a vertex
+    of the geometry could be moved to produce an invalid geometry.
+
+    If the geometry has no minimum clearance, an empty LineString will be
+    returned.
+
+    .. versionadded:: 2.1.0
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+        Geometry or geometries to determine the minimum clearance line for.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    Examples
+    --------
+    >>> from shapely import Polygon
+    >>> poly = Polygon([(0, 0), (10, 0), (10, 10), (5, 5), (0, 10), (0, 0)])
+    >>> minimum_clearance_line(poly)
+    <LINESTRING (5 5, 5 0)>
+
+    See Also
+    --------
+    minimum_clearance
+
+    """
+    return lib.minimum_clearance_line(geometry, **kwargs)
 
 
 @multithreading_enabled
@@ -1274,7 +1311,56 @@ def minimum_bounding_circle(geometry, **kwargs):
 
     See Also
     --------
-    minimum_bounding_radius
+    minimum_bounding_radius, maximum_inscribed_circle
 
     """
     return lib.minimum_bounding_circle(geometry, **kwargs)
+
+
+@multithreading_enabled
+def maximum_inscribed_circle(geometry, tolerance=None, **kwargs):
+    """Find the largest circle that is fully contained within the input geometry.
+
+    Constructs the "maximum inscribed circle" (MIC) for a polygonal geometry,
+    up to a specified tolerance. The MIC is determined by a point in the
+    interior of the area which has the farthest distance from the area
+    boundary, along with a boundary point at that distance. In the context of
+    geography the center of the MIC is known as the "pole of inaccessibility".
+    A cartographic use case is to determine a suitable point to place a map
+    label within a polygon.
+    The radius length of the MIC is a  measure of how "narrow" a polygon is.
+    It is the distance at which the negative buffer becomes empty.
+
+    The function supports polygons with holes and multipolygons.
+
+    Returns a two-point linestring, with the first point at the center of the
+    inscribed circle and the second on the boundary of the inscribed circle.
+
+    .. versionadded:: 2.1.0
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    tolerance : float or array_like, optional
+        Stop the algorithm when the search area is smaller than this tolerance.
+        When not specified, uses `max(width, height) / 1000` per geometry as
+        the default.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    Examples
+    --------
+    >>> from shapely import Polygon
+    >>> maximum_inscribed_circle(Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]))
+    <LINESTRING (5 5, 0 5)>
+
+    See Also
+    --------
+    minimum_bounding_circle
+    """
+    if tolerance is None:
+        tolerance = 0.0
+    elif np.isscalar(tolerance) and tolerance < 0:
+        raise ValueError("'tolerance' should be positive")
+    return lib.maximum_inscribed_circle(geometry, tolerance, **kwargs)

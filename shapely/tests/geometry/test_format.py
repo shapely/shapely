@@ -1,7 +1,6 @@
 import pytest
 
-from shapely import Point, Polygon
-from shapely.geos import geos_version
+from shapely import Point, Polygon, geos_version
 
 
 def test_format_invalid():

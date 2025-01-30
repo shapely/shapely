@@ -264,36 +264,6 @@ class Polygon(BaseGeometry):
             "Component rings have coordinate sequences, but the polygon does not"
         )
 
-    def __eq__(self, other):
-        """Test for equality with another geometry."""
-        if not isinstance(other, BaseGeometry):
-            return NotImplemented
-        if not isinstance(other, Polygon):
-            return False
-        check_empty = (self.is_empty, other.is_empty)
-        if all(check_empty):
-            return True
-        elif any(check_empty):
-            return False
-        my_coords = [self.exterior.coords] + [
-            interior.coords for interior in self.interiors
-        ]
-        other_coords = [other.exterior.coords] + [
-            interior.coords for interior in other.interiors
-        ]
-        if not len(my_coords) == len(other_coords):
-            return False
-        return np.all(
-            [
-                np.array_equal(left, right, equal_nan=False)
-                for left, right in zip(my_coords, other_coords)
-            ]
-        )
-
-    def __hash__(self):
-        """Hash the polygon."""
-        return super().__hash__()
-
     @property
     def __geo_interface__(self):
         """Return a GeoJSON-like mapping of the Polygon geometry."""

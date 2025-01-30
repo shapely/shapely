@@ -7,6 +7,12 @@ Changes
 Bug fixes:
 
 - Prevent crash when serializing a number > 1e100 to WKT with GEOS < 3.13. (#1907)
+- Fixes GeoJSON serialization of empty points (#2118)
+- Fixes `__geo_interface__` handling of empty points (#2120)
+- Fixes crash when reading nonlinear geometry types (CircularString,
+  CompoundCurve, MultiCurve, CurvePolygon, MultiSurface) from WKB/WKT with
+  GEOS >= 3.13; these types are not yet supported in Shapely and now raise a
+  ``NotImplementedError`` (#2160)
 
 Improvements:
 
@@ -27,6 +33,9 @@ Improvements:
 - The ``voronoi_polygons`` now accepts the ``ordered`` keyword, optionally forcing the
   order of polygons within the GeometryCollection to follow the order of input
   coordinates. Requires at least GEOS 3.12. (#1968)
+- Add option on ``invalid="fix"`` to ``from_wkb`` and ``from_wkt`` (#2094)
+- Add function ``minimum_clearance_line`` (#2106)
+- Add function ``maximum_inscribed_circle`` (#1307)
 
 Breaking changes in GEOS 3.12:
 
@@ -39,6 +48,19 @@ Breaking changes in GEOS 3.12:
   ``only_edges=True``. (#1885)
 - The WKT representation of a MULTIPOINT changed from for example "MULTIPOINT (0 0, 1 1)"
   to "MULTIPOINT ((0 0), (1 1))". (#1885)
+
+Deprecations:
+
+- The ``shapely.geos`` module is deprecated. All GEOS-version related attributes are
+  available directly from the top-level ``shapely`` namespace as well (already since
+  shapely 2.0) (#2145).
+- The ``shapely.vectorized`` module is deprecated. The two functions (``contains and
+  ``touches``) can be replaced by the top-level vectorized functions ``contains_xy``
+  and ``intersects_xy`` (#1630).
+
+Packaging:
+
+- Binary wheels are now built for musllinux (Alpine) x86_64 platforms (#1996).
 
 
 2.0.6 (2024-08-19)

@@ -57,6 +57,7 @@ def get_type_id(geometry, **kwargs):
     """Return the type ID of a geometry.
 
     Possible values are:
+
     - None (missing) is -1
     - POINT is 0
     - LINESTRING is 1
@@ -491,6 +492,8 @@ def get_exterior_ring(geometry, **kwargs):
 @multithreading_enabled
 def get_interior_ring(geometry, index, **kwargs):
     """Return the nth interior ring of a polygon.
+
+    The number of interior rings in non-polygons equals zero.
 
     Parameters
     ----------

@@ -150,7 +150,7 @@ def linestrings(
           is raised. This option ensures that the created geometries have all
           finite coordinate values.
 
-          .. versionadded:: 2.1.0
+        .. versionadded:: 2.1.0
 
     out : ndarray, optional
         An array (with dtype object) to output the geometries into.

@@ -3,10 +3,8 @@ requires = [
     "Cython",
     # Starting with NumPy 1.25, NumPy is (by default) as far back compatible
     # as oldest-support-numpy was (customizable with a NPY_TARGET_VERSION
-    # define).  For older Python versions (where NumPy 1.25 is not yet available)
-    # continue using oldest-support-numpy.
-    "oldest-supported-numpy; python_version<'3.9'",
-    "numpy>=1.25; python_version>='3.9'",
+    # define).
+    "numpy>=1.25,<3",
     "setuptools>=61.0.0",
 ]
 build-backend = "setuptools.build_meta"
@@ -71,13 +69,26 @@ include = ["shapely", "shapely.*"]
 [tool.setuptools.package-data]
 "shapely" = ["*.pxd"]
 
+[tool.cibuildwheel]
+skip = ["pp*", "*_i686", "*_ppc64le", "*_s390x"]
+build-verbosity = 1
+test-requires = "pytest"
+test-command = "pytest --pyargs shapely.tests"
+free-threaded-support = true
+
 [tool.coverage.run]
 source = ["shapely"]
 omit = ["shapely/tests/*"]
 
+[tool.doc8]
+include = ["docs"]
+ignore = ["D000", "D004"]
+allow-long-titles = true
+max-line-length = 79
+
 [tool.ruff]
 line-length = 88
-extend-exclude = ["docs/*", "benchmarks/*", "shapely/_version.py"]
+extend-exclude = ["docs/*", "benchmarks/*", "shapely/_version.py", "versioneer.py"]
 
 [tool.ruff.lint]
 select = [

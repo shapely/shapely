@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
     shapely_version = shapely.__version__
     print(shapely_version)
-    print(shapely.geos.geos_version)
+    print(shapely.geos_version)
 
     for name, geom in TEST_DATA.items():
         with open(datadir / f"{name}_{shapely_version}.pickle", "wb") as f:

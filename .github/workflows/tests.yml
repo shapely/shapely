@@ -14,7 +14,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-13, windows-2019]
         architecture: [x64]
-        geos: [3.9.5, 3.10.6, 3.11.4, 3.12.2, 3.13.0beta1, main]
+        geos: [3.9.5, 3.10.6, 3.11.4, 3.12.2, 3.13.0, main]
         include:
           # 2020
           - python: 3.9
@@ -37,8 +37,12 @@ jobs:
             extra_pytest_args: "-W error"  # error on warnings
           # 2024
           - python: "3.13"
-            geos: 3.13.0beta1
-            numpy: 2.1.0
+            geos: 3.13.0
+            numpy: 2.1.1
+          # free threaded Python (no numpy version to indicate installing nightly cython and numpy)
+          - os: ubuntu-22.04
+            python: "3.13t"
+            geos: 3.13.0
           # apple silicon
           - os: macos-14
             python: "3.12"
@@ -96,7 +100,7 @@ jobs:
         if: ${{ matrix.geos == 'main' }}
 
       - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v5
+        uses: Quansight-Labs/setup-python@b9ab292c751a42bcd2bb465b7fa202ea2c3f5796  # v5.3.1
         with:
           python-version: ${{ matrix.python }}
           architecture: ${{ matrix.architecture }}
@@ -126,8 +130,8 @@ jobs:
           pip config set global.progress_bar off
           pip install --upgrade wheel setuptools
           if [ -z "${{ matrix.numpy }}" ]; then
-            pip install --upgrade --pre Cython pytest pytest-cov coveralls;
-            pip install --upgrade --pre --only-binary :all: -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple numpy
+            pip install --upgrade --pre pytest pytest-cov coveralls;
+            pip install --upgrade --pre --only-binary :all: -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple cython numpy
           else
             pip install --upgrade Cython numpy==${{ matrix.numpy }} pytest pytest-cov coveralls;
           fi
@@ -167,9 +171,9 @@ jobs:
         # ensure we build against numpy nightly (numpy 2.0 compat)
         run: |
           if [ -z "${{ matrix.numpy }}" ]; then
-            pip install -e . --no-build-isolation
+            pip install -v -e . --no-build-isolation
           else
-            pip install -e .
+            pip install -v -e .
           fi
 
       - name: Overview of the Python environment (pip list)
