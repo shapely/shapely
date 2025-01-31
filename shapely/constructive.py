@@ -1068,13 +1068,14 @@ def coverage_simplify(geometry, tolerance, simplify_boundary=True):
 
     Returns
     -------
-    numpy.ndarray
+    numpy.ndarray | shapely.Geometry
 
     Examples
     --------
-    >>> from shapely import Polygon
+    >>> from shapely import Polygon, MultiPolygon
     >>> poly = Polygon([(0, 0), (20, 0), (20, 10), (10, 5), (0, 10), (0, 0)])
-
+    >>> coverage_simplify(poly, tolerance=2)
+    <POLYGON ((0 0, 20 0, 20 10, 10 5, 0 10, 0 0))>
     """
     scalar = False
     if isinstance(geometry, Geometry):
