@@ -1034,7 +1034,7 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
 
 @requires_geos("3.12.0")
 @multithreading_enabled
-def coverage_simplify(geometry, tolerance, simplify_boundary=True, **kwargs):
+def coverage_simplify(geometry, tolerance, simplify_boundary=True):
     """Return a simplified version of an input geometry using coverage simplification.
 
     Assumes that the geometry forms a polygonal coverage. Under this assumption, the
@@ -1051,8 +1051,7 @@ def coverage_simplify(geometry, tolerance, simplify_boundary=True, **kwargs):
     the coverage or simplification of only the inner (shared) edges.
 
     If there are other geometry types than Polygons or MultiPolygons present, the
-    resulting GeometryCollection will not undergo simplification and geometries are
-    returned collected but unchanged.
+    array will not undergo simplification and geometries are returned unchanged.
 
     If the geometry is polygonal but does not form a valid coverage due to overlaps,
     it will be simplified but it may result in invalid topology.
@@ -1066,9 +1065,10 @@ def coverage_simplify(geometry, tolerance, simplify_boundary=True, **kwargs):
     simplify_boundary : bool, optional
         By default (True), simplifies both internal edges of the coverage as well
         as its boundary. If set to False, only simplifies internal edges.
-    **kwargs
-        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
+    Returns
+    -------
+    numpy.ndarray
     """
     if isinstance(geometry, Geometry):
         return lib.coverage_simplify(geometry, tolerance, simplify_boundary)
