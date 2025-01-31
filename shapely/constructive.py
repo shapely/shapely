@@ -1069,9 +1069,16 @@ def coverage_simplify(geometry, tolerance, simplify_boundary=True):
     Returns
     -------
     numpy.ndarray
+
+    Examples
+    --------
+    >>> from shapely import Polygon
+    >>> poly = Polygon([(0, 0), (20, 0), (20, 10), (10, 5), (0, 10), (0, 0)])
+
     """
+    scalar = False
     if isinstance(geometry, Geometry):
-        return lib.coverage_simplify(geometry, tolerance, simplify_boundary)
+        scalar = True
 
     geometries = np.asarray(geometry)
     shape = geometries.shape
@@ -1083,7 +1090,10 @@ def coverage_simplify(geometry, tolerance, simplify_boundary=True):
     )
 
     simplified = lib.coverage_simplify(collections, tolerance, simplify_boundary)
-    return get_parts(simplified).reshape(shape)
+    parts = get_parts(simplified).reshape(shape)
+    if scalar:
+        return parts.item()
+    return parts
 
 
 @multithreading_enabled
