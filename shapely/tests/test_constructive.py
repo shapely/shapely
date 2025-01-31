@@ -1261,3 +1261,27 @@ def test_maximum_inscribed_circle_invalid_tolerance():
     geometry = shapely.from_wkt("POLYGON ((0 5, 5 10, 10 5, 5 0, 0 5))")
     with pytest.raises(ValueError, match="'tolerance' should be positive"):
         shapely.maximum_inscribed_circle(geometry, tolerance=-1)
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+def test_orient_polygons():
+    # polygon with both shell and hole having clockwise orientation
+    polygon = Polygon(
+        [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+        holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]],
+    )
+
+    result = shapely.orient_polygons(polygon)
+    assert result.exterior.is_ccw
+    assert not result.interiors[0].is_ccw
+
+    result = shapely.orient_polygons(polygon, exterior_cw=True)
+    assert not result.exterior.is_ccw
+    assert result.interiors[0].is_ccw
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+def test_orient_polygons_non_polygonal_input():
+    arr = np.array([Point(0, 0), LineString([(0, 0), (1, 1)]), None])
+    result = shapely.orient_polygons(arr)
+    assert_geometries_equal(result, arr)
