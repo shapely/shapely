@@ -33,6 +33,8 @@ Improvements:
 - Add function ``minimum_clearance_line`` (#2106)
 - Add function ``maximum_inscribed_circle`` (#1307)
 - Add function ``orient_polygons`` (#2147)
+- Add function ``coverage_simplify`` to allow topological simplification of polygonal
+  coverages (#1969)
 
 Breaking changes in GEOS 3.12:
 
