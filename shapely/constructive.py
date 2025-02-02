@@ -39,6 +39,7 @@ __all__ = [
     "minimum_rotated_rectangle",
     "minimum_bounding_circle",
     "maximum_inscribed_circle",
+    "orient_polygons",
 ]
 
 
@@ -1308,3 +1309,47 @@ def maximum_inscribed_circle(geometry, tolerance=None, **kwargs):
     elif np.isscalar(tolerance) and tolerance < 0:
         raise ValueError("'tolerance' should be positive")
     return lib.maximum_inscribed_circle(geometry, tolerance, **kwargs)
+
+
+@requires_geos("3.12.0")
+@multithreading_enabled
+def orient_polygons(geometry, exterior_cw=False, **kwargs):
+    """Enforce a ring orientation on all polygonal elements in the input geometry.
+
+    Non-polygonal geometries will not be modified.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+        Geometry or geometries to orient consistently.
+    exterior_cw : bool, default False
+        If True, exterior rings will be clockwise and interior rings
+        will be counter-clockwise.
+    **kwargs
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Examples
+    --------
+    A polygon with both shell and hole having clockwise orientation:
+
+    >>> from shapely import Polygon, orient_polygons
+    >>> polygon = Polygon(
+    ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+    ...     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]],
+    ... )
+    >>> polygon
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))>
+
+    By default, the exterior ring is oriented counter-clockwise and
+    the holes clockwise:
+
+    >>> orient_polygons(polygon)
+    <POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))>
+
+    Asking for the opposite orientation:
+
+    >>> orient_polygons(polygon, exterior_cw=True)
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 4 2, 4 4, 2 4, 2 2))>
+
+    """
+    return lib.orient_polygons(geometry, exterior_cw, **kwargs)
