@@ -14,6 +14,10 @@ from shapely.ops import orient
 
 
 class OrientTestCase(unittest.TestCase):
+    def test_empty(self):
+        polygon = Polygon()
+        assert orient(polygon) == polygon
+
     def test_point(self):
         point = Point(0, 0)
         assert orient(point, 1) == point
