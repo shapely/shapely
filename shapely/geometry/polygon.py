@@ -321,6 +321,9 @@ shapely.lib.registry[3] = Polygon
 
 def orient(polygon, sign=1.0):
     """Return an oriented polygon."""
+    if polygon.is_empty:
+        return polygon
+
     s = float(sign)
     rings = []
     ring = polygon.exterior
