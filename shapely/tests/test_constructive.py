@@ -1102,8 +1102,7 @@ def test_concave_hull_kwargs():
 def test_coverage_simplify_scalars(geometry):
     actual = shapely.coverage_simplify(geometry, 0.0)
     assert isinstance(actual, Geometry)
-    # in some cases, a collection may be returned
-    assert shapely.get_type_id(actual) in (shapely.get_type_id(geometry), 7)
+    assert shapely.get_type_id(actual) == shapely.get_type_id(geometry)
     # Anything other than MultiPolygon or a GeometryCollection is returned as-is
     if shapely.get_type_id(geometry) not in (3, 6):
         assert actual.equals(geometry)
