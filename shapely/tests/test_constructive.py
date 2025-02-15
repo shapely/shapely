@@ -1098,6 +1098,86 @@ def test_concave_hull_kwargs():
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+@pytest.mark.parametrize("geometry", all_types)
+def test_coverage_simplify_scalars(geometry):
+    actual = shapely.coverage_simplify(geometry, 0.0)
+    assert isinstance(actual, Geometry)
+    assert shapely.get_type_id(actual) == shapely.get_type_id(geometry)
+    # Anything other than MultiPolygon or a GeometryCollection is returned as-is
+    if shapely.get_type_id(geometry) not in (3, 6):
+        assert actual.equals(geometry)
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+@pytest.mark.parametrize("geometry", all_types)
+def test_coverage_simplify_geom_types(geometry):
+    actual = shapely.coverage_simplify([geometry, geometry], 0.0)
+    assert isinstance(actual, np.ndarray)
+    assert actual.shape == (2,)
+    assert (shapely.get_type_id(actual) == shapely.get_type_id(geometry)).all()
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+def test_coverage_simplify_multipolygon():
+    mp = MultiPolygon(
+        [
+            Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)]),
+            Polygon([(2, 2), (2, 3), (3, 3), (3, 2), (2, 2)]),
+        ]
+    )
+    actual = shapely.coverage_simplify(mp, 1)
+    assert actual.equals(
+        shapely.from_wkt(
+            "MULTIPOLYGON (((0 1, 1 1, 1 0, 0 1)), ((2 3, 3 3, 3 2, 2 3)))"
+        )
+    )
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+def test_coverage_simplify_array():
+    polygons = np.array(
+        [
+            shapely.Polygon([(0, 0), (20, 0), (20, 10), (10, 5), (0, 10), (0, 0)]),
+            shapely.Polygon([(0, 10), (10, 5), (20, 10), (20, 20), (0, 20), (0, 10)]),
+        ]
+    )
+    low_tolerance = shapely.coverage_simplify(polygons, 1)
+    mid_tolerance = shapely.coverage_simplify(polygons, 8)
+    high_tolerance = shapely.coverage_simplify(polygons, 10)
+
+    assert shapely.equals(low_tolerance, shapely.normalize(polygons)).all()
+    assert shapely.equals(
+        mid_tolerance,
+        shapely.from_wkt(
+            [
+                "POLYGON ((20 10, 0 10, 0 0, 20 0, 20 10))",
+                "POLYGON ((20 10, 0 10, 0 20, 20 20, 20 10))",
+            ]
+        ),
+    ).all()
+    assert shapely.equals(
+        high_tolerance,
+        shapely.from_wkt(
+            [
+                "POLYGON ((20 10, 0 10, 20 0, 20 10))",
+                "POLYGON ((20 10, 0 10, 0 20, 20 10))",
+            ]
+        ),
+    ).all()
+
+    no_boundary = shapely.coverage_simplify(polygons, 10, simplify_boundary=False)
+    assert shapely.equals(
+        no_boundary,
+        shapely.from_wkt(
+            [
+                "POLYGON ((20 10, 0 10, 0 0, 20 0, 20 10))",
+                "POLYGON ((20 10, 0 10, 0 20, 20 20, 20 10))",
+            ]
+        ),
+    ).all()
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
 def test_voronoi_polygons_ordered():
     mp = MultiPoint([(3.0, 1.0), (3.0, 2.0), (1.0, 2.0), (1.0, 1.0)])
     result = shapely.voronoi_polygons(mp, ordered=False)
