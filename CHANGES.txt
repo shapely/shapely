@@ -7,6 +7,7 @@ Changes
 Bug fixes:
 
 - Prevent crash when serializing a number > 1e100 to WKT with GEOS < 3.13. (#1907)
+- Ensure ``plot_polygon`` does not color the interiors of polygons (#1933).
 - Fixes GeoJSON serialization of empty points (#2118)
 - Fixes `__geo_interface__` handling of empty points (#2120)
 
