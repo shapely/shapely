@@ -2,8 +2,9 @@
 
 import numpy as np
 
-from shapely import lib
+from shapely import Geometry, GeometryType, lib
 from shapely._enum import ParamEnum
+from shapely._geometry import get_parts
 from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area_vectorized
 from shapely.decorators import multithreading_enabled, requires_geos
 from shapely.errors import UnsupportedGEOSVersionError
@@ -18,6 +19,7 @@ __all__ = [
     "clip_by_rect",
     "concave_hull",
     "convex_hull",
+    "coverage_simplify",
     "delaunay_triangles",
     "segmentize",
     "envelope",
@@ -38,6 +40,8 @@ __all__ = [
     "oriented_envelope",
     "minimum_rotated_rectangle",
     "minimum_bounding_circle",
+    "maximum_inscribed_circle",
+    "orient_polygons",
 ]
 
 
@@ -1029,6 +1033,71 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
         return lib.simplify(geometry, tolerance, **kwargs)
 
 
+@requires_geos("3.12.0")
+@multithreading_enabled
+def coverage_simplify(geometry, tolerance, simplify_boundary=True):
+    """Return a simplified version of an input geometry using coverage simplification.
+
+    Assumes that the geometry forms a polygonal coverage. Under this assumption, the
+    function simplifies the edges using the Visvalingam-Whyatt algorithm, while
+    preserving a valid coverage. In the most simplified case, polygons are reduced to
+    triangles.
+
+    A collection of valid polygons is considered a coverage if the polygons are:
+
+    * **Non-overlapping** - polygons do not overlap (their interiors do not intersect)
+    * **Edge-Matched** - vertices along shared edges are identical
+
+    The function allows simplification of all edges including the outer boundaries of
+    the coverage or simplification of only the inner (shared) edges.
+
+    If there are other geometry types than Polygons or MultiPolygons present, the
+    array will not undergo simplification and geometries are returned unchanged.
+
+    If the geometry is polygonal but does not form a valid coverage due to overlaps,
+    it will be simplified but it may result in invalid topology.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    tolerance : float or array_like
+        The degree of simplification roughly equal to the square root of the area
+        of triangles that will be removed.
+    simplify_boundary : bool, optional
+        By default (True), simplifies both internal edges of the coverage as well
+        as its boundary. If set to False, only simplifies internal edges.
+
+    Returns
+    -------
+    numpy.ndarray | shapely.Geometry
+
+    Examples
+    --------
+    >>> from shapely import Polygon, MultiPolygon
+    >>> poly = Polygon([(0, 0), (20, 0), (20, 10), (10, 5), (0, 10), (0, 0)])
+    >>> coverage_simplify(poly, tolerance=2)
+    <POLYGON ((0 0, 20 0, 20 10, 10 5, 0 10, 0 0))>
+    """
+    scalar = False
+    if isinstance(geometry, Geometry):
+        scalar = True
+
+    geometries = np.asarray(geometry)
+    shape = geometries.shape
+    geometries = geometries.ravel()
+
+    # create_collection acts on the inner axis
+    collections = lib.create_collection(
+        geometries, np.intc(GeometryType.GEOMETRYCOLLECTION)
+    )
+
+    simplified = lib.coverage_simplify(collections, tolerance, simplify_boundary)
+    parts = get_parts(simplified).reshape(shape)
+    if scalar:
+        return parts.item()
+    return parts
+
+
 @multithreading_enabled
 def snap(geometry, reference, tolerance, **kwargs):
     """Snap an input geometry to reference geometry's vertices.
@@ -1254,7 +1323,100 @@ def minimum_bounding_circle(geometry, **kwargs):
 
     See Also
     --------
-    minimum_bounding_radius
+    minimum_bounding_radius, maximum_inscribed_circle
 
     """
     return lib.minimum_bounding_circle(geometry, **kwargs)
+
+
+@multithreading_enabled
+def maximum_inscribed_circle(geometry, tolerance=None, **kwargs):
+    """Find the largest circle that is fully contained within the input geometry.
+
+    Constructs the "maximum inscribed circle" (MIC) for a polygonal geometry,
+    up to a specified tolerance. The MIC is determined by a point in the
+    interior of the area which has the farthest distance from the area
+    boundary, along with a boundary point at that distance. In the context of
+    geography the center of the MIC is known as the "pole of inaccessibility".
+    A cartographic use case is to determine a suitable point to place a map
+    label within a polygon.
+    The radius length of the MIC is a  measure of how "narrow" a polygon is.
+    It is the distance at which the negative buffer becomes empty.
+
+    The function supports polygons with holes and multipolygons.
+
+    Returns a two-point linestring, with the first point at the center of the
+    inscribed circle and the second on the boundary of the inscribed circle.
+
+    .. versionadded:: 2.1.0
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    tolerance : float or array_like, optional
+        Stop the algorithm when the search area is smaller than this tolerance.
+        When not specified, uses `max(width, height) / 1000` per geometry as
+        the default.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    Examples
+    --------
+    >>> from shapely import Polygon
+    >>> maximum_inscribed_circle(Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]))
+    <LINESTRING (5 5, 0 5)>
+
+    See Also
+    --------
+    minimum_bounding_circle
+    """
+    if tolerance is None:
+        tolerance = 0.0
+    elif np.isscalar(tolerance) and tolerance < 0:
+        raise ValueError("'tolerance' should be positive")
+    return lib.maximum_inscribed_circle(geometry, tolerance, **kwargs)
+
+
+@requires_geos("3.12.0")
+@multithreading_enabled
+def orient_polygons(geometry, exterior_cw=False, **kwargs):
+    """Enforce a ring orientation on all polygonal elements in the input geometry.
+
+    Non-polygonal geometries will not be modified.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+        Geometry or geometries to orient consistently.
+    exterior_cw : bool, default False
+        If True, exterior rings will be clockwise and interior rings
+        will be counter-clockwise.
+    **kwargs
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Examples
+    --------
+    A polygon with both shell and hole having clockwise orientation:
+
+    >>> from shapely import Polygon, orient_polygons
+    >>> polygon = Polygon(
+    ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+    ...     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]],
+    ... )
+    >>> polygon
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))>
+
+    By default, the exterior ring is oriented counter-clockwise and
+    the holes clockwise:
+
+    >>> orient_polygons(polygon)
+    <POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))>
+
+    Asking for the opposite orientation:
+
+    >>> orient_polygons(polygon, exterior_cw=True)
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 4 2, 4 4, 2 4, 2 2))>
+
+    """
+    return lib.orient_polygons(geometry, exterior_cw, **kwargs)

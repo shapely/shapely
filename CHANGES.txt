@@ -7,6 +7,9 @@ Changes
 Bug fixes:
 
 - Prevent crash when serializing a number > 1e100 to WKT with GEOS < 3.13. (#1907)
+- Ensure ``plot_polygon`` does not color the interiors of polygons (#1933).
+- Fixes GeoJSON serialization of empty points (#2118)
+- Fixes `__geo_interface__` handling of empty points (#2120)
 
 Improvements:
 
@@ -29,6 +32,10 @@ Improvements:
   coordinates. Requires at least GEOS 3.12. (#1968)
 - Add option on ``invalid="fix"`` to ``from_wkb`` and ``from_wkt`` (#2094)
 - Add function ``minimum_clearance_line`` (#2106)
+- Add function ``maximum_inscribed_circle`` (#1307)
+- Add function ``orient_polygons`` (#2147)
+- Add function ``coverage_simplify`` to allow topological simplification of polygonal
+  coverages (#1969)
 
 Breaking changes in GEOS 3.12:
 
@@ -42,10 +49,30 @@ Breaking changes in GEOS 3.12:
 - The WKT representation of a MULTIPOINT changed from for example "MULTIPOINT (0 0, 1 1)"
   to "MULTIPOINT ((0 0), (1 1))". (#1885)
 
+Deprecations:
+
+- The ``shapely.geos`` module is deprecated. All GEOS-version related attributes are
+  available directly from the top-level ``shapely`` namespace as well (already since
+  shapely 2.0) (#2145).
+- The ``shapely.vectorized`` module is deprecated. The two functions (``contains and
+  ``touches``) can be replaced by the top-level vectorized functions ``contains_xy``
+  and ``intersects_xy`` (#1630).
+
 Packaging:
 
 - Binary wheels are now built for musllinux (Alpine) x86_64 platforms (#1996).
 
+2.0.7 (2025-01-30)
+------------------
+
+Bug fixes:
+
+- Fix compilation error on certain Linux platforms, such as Alpine (#1945).
+- Fixes crash when reading nonlinear geometry types (CircularString,
+  CompoundCurve, MultiCurve, CurvePolygon, MultiSurface) from WKB/WKT with
+  GEOS >= 3.13; these types are not yet supported in Shapely and now raise a
+  ``NotImplementedError`` (#2160)
+- Fix the ``project`` method to return a Python float (#2093).
 
 2.0.6 (2024-08-19)
 ------------------

@@ -700,6 +700,41 @@ static void* force_3d_data[1] = {PyGEOSForce3D};
 
 static void* unary_union_prec_data[1] = {GEOSUnaryUnionPrec_r};
 
+static void* GEOSMaximumInscribedCircleWithDefaultTolerance(void* context, void* a, double b) {
+  double tolerance;
+  if (b == 0.0 && !GEOSisEmpty_r(context, a)) {
+    double xmin, xmax, ymin, ymax;
+    double width, height, size;
+
+#if GEOS_SINCE_3_11_0
+    if (!GEOSGeom_getExtent_r(context, a, &xmin, &ymin, &xmax, &ymax)) {
+      return NULL;
+    }
+#else
+    if (!GEOSGeom_getXMin_r(context, a, &xmin)) {
+      return NULL;
+    }
+    if (!GEOSGeom_getYMin_r(context, a, &ymin)) {
+      return NULL;
+    }
+    if (!GEOSGeom_getXMax_r(context, a, &xmax)) {
+      return NULL;
+    }
+    if (!GEOSGeom_getYMax_r(context, a, &ymax)) {
+      return NULL;
+    }
+#endif
+    width = xmax - xmin;
+    height = ymax - ymin;
+    size = width > height ? width : height;
+    tolerance = size / 1000.0;
+  } else {
+    tolerance = b;
+  }
+  return GEOSMaximumInscribedCircle_r(context, a, tolerance);
+}
+static void* maximum_inscribed_circle_data[1] = {GEOSMaximumInscribedCircleWithDefaultTolerance};
+
 #if GEOS_SINCE_3_10_0
 static void* segmentize_data[1] = {GEOSDensify_r};
 #endif
@@ -848,6 +883,21 @@ static void* GEOSSetSRID_r_with_clone(void* context, void* geom, int srid) {
   return ret;
 }
 static void* set_srid_data[1] = {GEOSSetSRID_r_with_clone};
+#if GEOS_SINCE_3_12_0
+static void* GEOSOrientPolygons_r_with_clone(void* context, void* geom, int exteriorCW) {
+  int ret;
+  void* cloned = GEOSGeom_clone_r(context, geom);
+  if (cloned == NULL) {
+    return NULL;
+  }
+  ret = GEOSOrientPolygons_r(context, cloned, exteriorCW);
+  if (ret == -1) {
+    return NULL;
+  }
+  return cloned;
+}
+static void* orient_polygons_data[1] = {GEOSOrientPolygons_r_with_clone};
+#endif
 typedef void* FuncGEOS_Yi_Y(void* context, void* a, int b);
 static char Yi_Y_dtypes[3] = {NPY_OBJECT, NPY_INT, NPY_OBJECT};
 static void Yi_Y_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
@@ -3543,15 +3593,6 @@ static void to_geojson_func(char** args, const npy_intp* dimensions, const npy_i
       Py_INCREF(Py_None);
       *out = Py_None;
     } else {
-      // Check for empty points (https://trac.osgeo.org/geos/ticket/1139)
-      point_empty_error = has_point_empty(ctx, in1);
-      if (point_empty_error == 2) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        goto finish;
-      } else if (point_empty_error == 1) {
-        errstate = PGERR_GEOJSON_EMPTY_POINT;
-        goto finish;
-      }
       geojson = GEOSGeoJSONWriter_writeGeometry_r(ctx, writer, in1, indent);
       if (geojson == NULL) {
         errstate = PGERR_GEOS_EXCEPTION;
@@ -3571,6 +3612,70 @@ static PyUFuncGenericFunction to_geojson_funcs[1] = {&to_geojson_func};
 
 #endif  // GEOS_SINCE_3_10_0
 
+#if GEOS_SINCE_3_12_0
+static char coverage_simplify_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
+static void coverage_simplify_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                                    void* data) {
+  GEOSGeometry* in1 = NULL;
+  GEOSGeometry** geom_arr;
+
+  CHECK_NO_INPLACE_OUTPUT(3);
+
+  // allocate a temporary array to store output GEOSGeometry objects
+  geom_arr = malloc(sizeof(void*) * dimensions[0]);
+  CHECK_ALLOC(geom_arr);
+
+  GEOS_INIT_THREADS;
+
+  TERNARY_LOOP {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      break;
+    }
+    // get the geometry: return on error
+    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
+      errstate = PGERR_NOT_A_GEOMETRY;
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      break;
+    }
+    double in2 = *(double*)ip2;
+    npy_bool in3 = !(*(npy_bool*)ip3);
+
+    int isValid = 1;
+    int numGeoms = GEOSGetNumGeometries_r(ctx, in1);
+    for (int j = 0; j < numGeoms; j++) {
+      GEOSGeometry* geom = GEOSGetGeometryN_r(ctx, in1, j);
+      if (GEOSGeomTypeId_r(ctx, geom) != GEOS_POLYGON && GEOSGeomTypeId_r(ctx, geom) != GEOS_MULTIPOLYGON) {
+          isValid = 0;
+          break;
+      }
+    }
+    if (isValid) {
+      geom_arr[i] = GEOSCoverageSimplifyVW_r(ctx, in1, in2, (int)in3);
+      if (geom_arr[i] == NULL) {
+        errstate = PGERR_GEOS_EXCEPTION;
+        destroy_geom_arr(ctx, geom_arr, i - 1);
+        break;
+      }
+    } else {
+      geom_arr[i] = GEOSGeom_clone_r(ctx, in1);
+    }
+
+  }
+
+
+  GEOS_FINISH_THREADS;
+
+  // fill the numpy array with PyObjects while holding the GIL
+  if (errstate == PGERR_SUCCESS) {
+    geom_arr_to_npy(geom_arr, args[3], steps[3], dimensions[0]);
+  }
+  free(geom_arr);
+}
+static PyUFuncGenericFunction coverage_simplify_funcs[1] = {&coverage_simplify_func};
+
+#endif  // GEOS_SINCE_3_12_0
 /*
 TODO polygonizer functions
 TODO prepared geometry predicate functions
@@ -3746,6 +3851,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Yd_Y(simplify_preserve_topology);
   DEFINE_Yd_Y(force_3d);
   DEFINE_Yd_Y(unary_union_prec);
+  DEFINE_Yd_Y(maximum_inscribed_circle);
 
   DEFINE_YY_Y(intersection);
   DEFINE_YY_Y(difference);
@@ -3832,9 +3938,11 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 #endif
 
 #if GEOS_SINCE_3_12_0
+  DEFINE_CUSTOM(coverage_simplify, 3);
   DEFINE_Y_Y(disjoint_subset_union);
   DEFINE_Y_b(has_m);
   DEFINE_Y_d(get_m);
+  DEFINE_Yi_Y(orient_polygons);
 #endif
 
   Py_DECREF(ufunc);
