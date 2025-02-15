@@ -56,9 +56,6 @@ def test_line_interpolate_point_float_array():
     ],
 )
 def test_line_interpolate_point_empty(geom, normalized):
-    # These geometries segfault in some versions of GEOS (in 3.8.0, still
-    # some of them segfault). Instead, we patched this to return POINT EMPTY.
-    # This matches GEOS 3.8.0 behavior on simple empty geometries.
     assert_geometries_equal(
         shapely.line_interpolate_point(geom, 0.2, normalized=normalized), empty_point
     )

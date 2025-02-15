@@ -1,10 +1,13 @@
-"""
-Provides a wrapper for GEOS types and functions.
+"""Provides a wrapper for GEOS types and functions.
 
-Note: GEOS functions in Cython must be called using the get_geos_handle context manager.
-Example:
+Note: GEOS functions in Cython must be called using the get_geos_handle context
+manager.
+
+Examples
+--------
     with get_geos_handle() as geos_handle:
         SomeGEOSFunc(geos_handle, ...<other params>)
+
 """
 
 cdef extern from "geos_c.h":

@@ -10,10 +10,16 @@
 #endif
 
 // wrap geos.h import to silence geos gcc warnings
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-prototypes"
+#endif
+
 #include <geos_c.h>
+
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 
 /* Macros to setup GEOS Context and error handlers
 
@@ -159,7 +165,6 @@ enum ShapelyErrorCode {
   GEOS_finish_r(ctx);       \
   Py_END_ALLOW_THREADS GEOS_HANDLE_ERR
 
-#define GEOS_SINCE_3_9_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 9))
 #define GEOS_SINCE_3_10_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 10))
 #define GEOS_SINCE_3_11_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 11))
 #define GEOS_SINCE_3_12_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 12))
@@ -173,14 +178,13 @@ extern void destroy_geom_arr(void* context, GEOSGeometry** array, int length);
 extern char has_point_empty(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 extern GEOSGeometry* point_empty_to_nan_all_geoms(GEOSContextHandle_t ctx,
                                                   GEOSGeometry* geom);
-extern char check_to_wkt_compatible(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 #if !GEOS_SINCE_3_13_0
 extern char check_to_wkt_trim_compatible(GEOSContextHandle_t ctx, const GEOSGeometry* geom, int dimension);
 #endif  // !GEOS_SINCE_3_13_0
-#if GEOS_SINCE_3_9_0 && !GEOS_SINCE_3_12_0
+#if !GEOS_SINCE_3_12_0
 extern char wkt_empty_3d_geometry(GEOSContextHandle_t ctx, GEOSGeometry* geom,
                                   char** wkt);
-#endif  // GEOS_SINCE_3_9_0 && !GEOS_SINCE_3_12_0
+#endif  // !GEOS_SINCE_3_12_0
 extern char geos_interpolate_checker(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 
 extern int init_geos(PyObject* m);
@@ -203,6 +207,6 @@ extern enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx,
                                                   npy_intp cs2,
                                 GEOSCoordSequence** coord_seq);
 extern int coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq,
-                              double* buf, unsigned int size, unsigned int dims);
+                              double* buf, unsigned int size, int has_z, int has_m);
 
 #endif  // _GEOS_H

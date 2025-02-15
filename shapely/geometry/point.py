@@ -1,5 +1,5 @@
-"""Points and related utilities
-"""
+"""Points and related utilities."""
+
 import numpy as np
 
 import shapely
@@ -10,9 +10,9 @@ __all__ = ["Point"]
 
 
 class Point(BaseGeometry):
-    """
-    A geometry type that represents a single coordinate with
-    x, y and possibly z and/or m values.
+    """A geometry type that represents a single coordinate.
+
+    Each coordinate has x, y and possibly z and/or m values.
 
     A point is a zero-dimensional feature and has zero length and zero area.
 
@@ -45,11 +45,13 @@ class Point(BaseGeometry):
     -1.0
     >>> p.x
     1.0
+
     """
 
     __slots__ = []
 
     def __new__(self, *args):
+        """Create a new Point geometry."""
         if len(args) == 0:
             # empty geometry
             # TODO better constructor
@@ -85,19 +87,20 @@ class Point(BaseGeometry):
     @property
     def x(self):
         """Return x coordinate."""
-        return shapely.get_x(self)
+        return float(shapely.get_x(self))
 
     @property
     def y(self):
         """Return y coordinate."""
-        return shapely.get_y(self)
+        return float(shapely.get_y(self))
 
     @property
     def z(self):
         """Return z coordinate."""
-        if not shapely.has_z(self):
+        z = shapely.get_z(self)
+        if np.isnan(z) and not shapely.has_z(self):
             raise DimensionError("This point has no z coordinate.")
-        return shapely.get_z(self)
+        return float(z)
 
     @property
     def m(self):
@@ -108,17 +111,19 @@ class Point(BaseGeometry):
         """
         if not shapely.has_m(self):
             raise DimensionError("This point has no m coordinate.")
-        return shapely.get_m(self)
+        return float(shapely.get_m(self))
 
     @property
     def __geo_interface__(self):
-        return {"type": "Point", "coordinates": self.coords[0]}
+        """Return a GeoJSON-like mapping of the Point geometry."""
+        coords = self.coords
+        return {"type": "Point", "coordinates": coords[0] if len(coords) > 0 else ()}
 
     def svg(self, scale_factor=1.0, fill_color=None, opacity=None):
-        """Returns SVG circle element for the Point geometry.
+        """Return SVG circle element for the Point geometry.
 
         Parameters
-        ==========
+        ----------
         scale_factor : float
             Multiplication factor for the SVG circle diameter.  Default is 1.
         fill_color : str, optional
@@ -126,6 +131,7 @@ class Point(BaseGeometry):
             geometry is valid, and "#ff3333" if invalid.
         opacity : float
             Float number between 0 and 1 for color opacity. Default value is 0.6
+
         """
         if self.is_empty:
             return "<g />"
@@ -134,20 +140,23 @@ class Point(BaseGeometry):
         if opacity is None:
             opacity = 0.6
         return (
-            '<circle cx="{0.x}" cy="{0.y}" r="{1}" '
-            'stroke="#555555" stroke-width="{2}" fill="{3}" opacity="{4}" />'
-        ).format(self, 3.0 * scale_factor, 1.0 * scale_factor, fill_color, opacity)
+            f'<circle cx="{self.x}" cy="{self.y}" r="{3.0 * scale_factor}" '
+            f'stroke="#555555" stroke-width="{1.0 * scale_factor}" fill="{fill_color}" '
+            f'opacity="{opacity}" />'
+        )
 
     @property
     def xy(self):
-        """Separate arrays of X and Y coordinate values
+        """Separate arrays of X and Y coordinate values.
 
-        Example:
+        Examples
+        --------
           >>> x, y = Point(0, 0).xy
           >>> list(x)
           [0.0]
           >>> list(y)
           [0.0]
+
         """
         return self.coords.xy
 

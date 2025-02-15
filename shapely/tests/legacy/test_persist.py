@@ -1,5 +1,5 @@
-"""Persistence tests
-"""
+"""Persistence tests"""
+
 import pickle
 import struct
 import unittest
@@ -10,14 +10,12 @@ from shapely.geometry import Point
 
 class PersistTestCase(unittest.TestCase):
     def test_pickle(self):
-
         p = Point(0.0, 0.0)
         data = pickle.dumps(p)
         q = pickle.loads(data)
         assert q.equals(p)
 
     def test_wkb(self):
-
         p = Point(0.0, 0.0)
         wkb_big_endian = wkb.dumps(p, big_endian=True)
         wkb_little_endian = wkb.dumps(p, big_endian=False)
@@ -27,7 +25,6 @@ class PersistTestCase(unittest.TestCase):
         assert p.equals(wkb.loads(wkb_little_endian))
 
     def test_wkb_dumps_endianness(self):
-
         p = Point(0.5, 2.0)
         wkb_big_endian = wkb.dumps(p, big_endian=True)
         wkb_little_endian = wkb.dumps(p, big_endian=False)

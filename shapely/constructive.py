@@ -1,7 +1,10 @@
+"""Methods that yield new objects not derived from set-theoretic analysis."""
+
 import numpy as np
 
-from shapely import lib
+from shapely import Geometry, GeometryType, lib
 from shapely._enum import ParamEnum
+from shapely._geometry import get_parts
 from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area_vectorized
 from shapely.decorators import multithreading_enabled, requires_geos
 from shapely.errors import UnsupportedGEOSVersionError
@@ -16,6 +19,7 @@ __all__ = [
     "clip_by_rect",
     "concave_hull",
     "convex_hull",
+    "coverage_simplify",
     "delaunay_triangles",
     "segmentize",
     "envelope",
@@ -23,6 +27,7 @@ __all__ = [
     "build_area",
     "make_valid",
     "normalize",
+    "minimum_clearance_line",
     "node",
     "point_on_surface",
     "polygonize",
@@ -35,16 +40,44 @@ __all__ = [
     "oriented_envelope",
     "minimum_rotated_rectangle",
     "minimum_bounding_circle",
+    "maximum_inscribed_circle",
+    "orient_polygons",
 ]
 
 
 class BufferCapStyle(ParamEnum):
+    """Enumeration of buffer cap styles.
+
+    Attributes
+    ----------
+    round : int
+        Represents a round cap style.
+    flat : int
+        Represents a flat cap style.
+    square : int
+        Represents a square cap style.
+
+    """
+
     round = 1
     flat = 2
     square = 3
 
 
 class BufferJoinStyle(ParamEnum):
+    """Enumeration of buffer join styles.
+
+    Attributes
+    ----------
+    round : int
+        Specifies a round join style.
+    mitre : int
+        Specifies a mitre join style.
+    bevel : int
+        Specifies a bevel join style.
+
+    """
+
     round = 1
     mitre = 2
     bevel = 3
@@ -52,12 +85,14 @@ class BufferJoinStyle(ParamEnum):
 
 @multithreading_enabled
 def boundary(geometry, **kwargs):
-    """Returns the topological boundary of a geometry.
+    """Return the topological boundary of a geometry.
+
+    This function will return None for geometrycollections.
 
     Parameters
     ----------
     geometry : Geometry or array_like
-        This function will return None for geometrycollections.
+        Geometry for which to return the boundary.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -79,6 +114,7 @@ MultiLineString, MultiPoint, Point, Polygon
     <MULTIPOINT ((0 0), (0 1), (1 0), (1 1))>
     >>> boundary(GeometryCollection([Point(0, 0)])) is None
     True
+
     """
     return lib.boundary(geometry, **kwargs)
 
@@ -94,8 +130,7 @@ def buffer(
     single_sided=False,
     **kwargs,
 ):
-    """
-    Computes the buffer of a geometry for positive and negative buffer distance.
+    """Compute the buffer of a geometry for positive and negative buffer distance.
 
     The buffer of a geometry is defined as the Minkowski sum (or difference,
     for negative distance) of the geometry with a circle with radius equal
@@ -107,6 +142,7 @@ def buffer(
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the buffer.
     distance : float or array_like
         Specifies the circle radius in the Minkowski sum (or difference).
     quad_segs : int, default 8
@@ -163,6 +199,7 @@ def buffer(
     <POLYGON EMPTY>
     >>> buffer(line, float("nan")) is None
     True
+
     """
     if isinstance(cap_style, str):
         cap_style = BufferCapStyle.get_value(cap_style)
@@ -194,9 +231,7 @@ def buffer(
 def offset_curve(
     geometry, distance, quad_segs=8, join_style="round", mitre_limit=5.0, **kwargs
 ):
-    """
-    Returns a (Multi)LineString at a distance from the object
-    on its right or its left side.
+    """Return a (Multi)LineString at a distance from the object.
 
     For positive distance the offset will be at the left side of the input
     line. For a negative distance it will be at the right side. In general,
@@ -212,6 +247,7 @@ def offset_curve(
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the offset.
     distance : float or array_like
         Specifies the offset distance from the input geometry. Negative
         for right side offset, positive for left side offset.
@@ -237,6 +273,7 @@ def offset_curve(
     <LINESTRING (-2 0, -2 2)>
     >>> offset_curve(line, -2)
     <LINESTRING (2 0, 2 2)>
+
     """
     if isinstance(join_style, str):
         join_style = BufferJoinStyle.get_value(join_style)
@@ -258,7 +295,7 @@ def offset_curve(
 
 @multithreading_enabled
 def centroid(geometry, **kwargs):
-    """Computes the geometric center (center-of-mass) of a geometry.
+    """Compute the geometric center (center-of-mass) of a geometry.
 
     For multipoints this is computed as the mean of the input coordinates.
     For multilinestrings the centroid is weighted by the length of each
@@ -268,6 +305,7 @@ def centroid(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the centroid.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -282,14 +320,14 @@ def centroid(geometry, **kwargs):
     <POINT (5 5)>
     >>> centroid(Polygon())
     <POINT EMPTY>
+
     """
     return lib.centroid(geometry, **kwargs)
 
 
 @multithreading_enabled
 def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
-    """
-    Returns the portion of a geometry within a rectangle.
+    """Return the portion of a geometry within a rectangle.
 
     The geometry is clipped in a fast but possibly dirty way. The output is
     not guaranteed to be valid. No exceptions will be raised for topological
@@ -301,15 +339,15 @@ def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
-        The geometry to be clipped
+        The geometry to be clipped.
     xmin : float
-        Minimum x value of the rectangle
+        Minimum x value of the rectangle.
     ymin : float
-        Minimum y value of the rectangle
+        Minimum y value of the rectangle.
     xmax : float
-        Maximum x value of the rectangle
+        Maximum x value of the rectangle.
     ymax : float
-        Maximum y value of the rectangle
+        Maximum y value of the rectangle.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -322,6 +360,7 @@ def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
     >>> polygon = Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)])
     >>> clip_by_rect(polygon, 0., 0., 1., 1.)
     <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
+
     """
     if not all(np.isscalar(val) for val in [xmin, ymin, xmax, ymax]):
         raise TypeError("xmin/ymin/xmax/ymax only accepts scalar values")
@@ -338,11 +377,12 @@ def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
 @requires_geos("3.11.0")
 @multithreading_enabled
 def concave_hull(geometry, ratio=0.0, allow_holes=False, **kwargs):
-    """Computes a concave geometry that encloses an input geometry.
+    """Compute a concave geometry that encloses an input geometry.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the concave hull.
     ratio : float, default 0.0
         Number in the range [0, 1]. Higher numbers will include fewer vertices
         in the hull.
@@ -360,6 +400,7 @@ def concave_hull(geometry, ratio=0.0, allow_holes=False, **kwargs):
     <POLYGON ((0 0, 0 3, 3 3, 3 0, 0 0))>
     >>> concave_hull(Polygon())
     <POLYGON EMPTY>
+
     """
     if not np.isscalar(ratio):
         raise TypeError("ratio must be scalar")
@@ -370,11 +411,12 @@ def concave_hull(geometry, ratio=0.0, allow_holes=False, **kwargs):
 
 @multithreading_enabled
 def convex_hull(geometry, **kwargs):
-    """Computes the minimum convex geometry that encloses an input geometry.
+    """Compute the minimum convex geometry that encloses an input geometry.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the convex hull.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -385,14 +427,14 @@ def convex_hull(geometry, **kwargs):
     <POLYGON ((0 0, 10 10, 10 0, 0 0))>
     >>> convex_hull(Polygon())
     <GEOMETRYCOLLECTION EMPTY>
+
     """
     return lib.convex_hull(geometry, **kwargs)
 
 
 @multithreading_enabled
 def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
-    """Computes a Delaunay triangulation around the vertices of an input
-    geometry.
+    """Compute a Delaunay triangulation around the vertices of an input geometry.
 
     The output is a geometrycollection containing polygons (default)
     or linestrings (see only_edges). Returns an None if an input geometry
@@ -401,6 +443,7 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the Delaunay triangulation.
     tolerance : float or array_like, default 0.0
         Snap input vertices together if their distance is less than this value.
     only_edges : bool or array_like, default False
@@ -413,30 +456,33 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     --------
     >>> from shapely import GeometryCollection, LineString, MultiPoint, Polygon
     >>> points = MultiPoint([(50, 30), (60, 30), (100, 100)])
-    >>> delaunay_triangles(points)
-    <GEOMETRYCOLLECTION (POLYGON ((100 100, 50 30, 60 30, 100 100)))>
+    >>> delaunay_triangles(points).normalize()
+    <GEOMETRYCOLLECTION (POLYGON ((50 30, 100 100, 60 30, 50 30)))>
     >>> delaunay_triangles(points, only_edges=True)
     <MULTILINESTRING ((50 30, 100 100), (50 30, 60 30), ...>
     >>> delaunay_triangles(MultiPoint([(50, 30), (51, 30), (60, 30), (100, 100)]), \
-tolerance=2)
-    <GEOMETRYCOLLECTION (POLYGON ((100 100, 50 30, 60 30, 100 100)))>
-    >>> delaunay_triangles(Polygon([(50, 30), (60, 30), (100, 100), (50, 30)]))
-    <GEOMETRYCOLLECTION (POLYGON ((100 100, 50 30, 60 30, 100 100)))>
-    >>> delaunay_triangles(LineString([(50, 30), (60, 30), (100, 100)]))
-    <GEOMETRYCOLLECTION (POLYGON ((100 100, 50 30, 60 30, 100 100)))>
+tolerance=2).normalize()
+    <GEOMETRYCOLLECTION (POLYGON ((50 30, 100 100, 60 30, 50 30)))>
+    >>> delaunay_triangles(Polygon([(50, 30), (60, 30), (100, 100), (50, 30)]))\
+.normalize()
+    <GEOMETRYCOLLECTION (POLYGON ((50 30, 100 100, 60 30, 50 30)))>
+    >>> delaunay_triangles(LineString([(50, 30), (60, 30), (100, 100)])).normalize()
+    <GEOMETRYCOLLECTION (POLYGON ((50 30, 100 100, 60 30, 50 30)))>
     >>> delaunay_triangles(GeometryCollection([]))
     <GEOMETRYCOLLECTION EMPTY>
+
     """
     return lib.delaunay_triangles(geometry, tolerance, only_edges, **kwargs)
 
 
 @multithreading_enabled
 def envelope(geometry, **kwargs):
-    """Computes the minimum bounding box that encloses an input geometry.
+    """Compute the minimum bounding box that encloses an input geometry.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the envelope.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -451,13 +497,14 @@ def envelope(geometry, **kwargs):
     <POINT (0 0)>
     >>> envelope(GeometryCollection([]))
     <POINT EMPTY>
+
     """
     return lib.envelope(geometry, **kwargs)
 
 
 @multithreading_enabled
 def extract_unique_points(geometry, **kwargs):
-    """Returns all distinct vertices of an input geometry as a multipoint.
+    """Return all distinct vertices of an input geometry as a multipoint.
 
     Note that only 2 dimensions of the vertices are considered when testing
     for equality.
@@ -465,6 +512,7 @@ def extract_unique_points(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to extract unique points.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -481,19 +529,21 @@ def extract_unique_points(geometry, **kwargs):
     <MULTIPOINT ((0 0), (1 1))>
     >>> extract_unique_points(LineString())
     <MULTIPOINT EMPTY>
+
     """
     return lib.extract_unique_points(geometry, **kwargs)
 
 
 @multithreading_enabled
 def build_area(geometry, **kwargs):
-    """Creates an areal geometry formed by the constituent linework of given geometry.
+    """Create an areal geometry formed by the constituent linework of given geometry.
 
     Equivalent of the PostGIS ST_BuildArea() function.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to build an area.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -504,13 +554,14 @@ def build_area(geometry, **kwargs):
     >>> polygon2 = Polygon([(1, 1), (1, 2), (2, 2), (1, 1)])
     >>> build_area(GeometryCollection([polygon1, polygon2]))
     <POLYGON ((0 0, 0 3, 3 3, 3 0, 0 0), (1 1, 2 2, 1 2, 1 1))>
+
     """
     return lib.build_area(geometry, **kwargs)
 
 
 @multithreading_enabled
 def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
-    """Repairs invalid geometries.
+    """Repair invalid geometries.
 
     Two ``methods`` are available:
 
@@ -536,6 +587,7 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to repair.
     method : {'linework', 'structure'}, default 'linework'
         Algorithm to use when repairing geometry. 'structure'
         requires GEOS >= 3.10.
@@ -562,6 +614,7 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
     <LINESTRING (0 0, 1 1, 1 2, 1 1, 0 0)>
     >>> make_valid(polygon, method="structure", keep_collapsed=False)
     <POLYGON EMPTY>
+
     """
     if not np.isscalar(method):
         raise TypeError("method only accepts scalar values")
@@ -595,16 +648,53 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
 
 
 @multithreading_enabled
-def normalize(geometry, **kwargs):
-    """Converts Geometry to strict normal form (or canonical form).
+def minimum_clearance_line(geometry, **kwargs):
+    """Return a LineString whose endpoints define the minimum clearance.
 
-    In :ref:`strict canonical form <canonical-form>`, the coordinates, rings of a polygon and
-    parts of multi geometries are ordered consistently. Typically useful for testing
-    purposes (for example in combination with ``equals_exact``).
+    A geometry's "minimum clearance" is the smallest distance by which a vertex
+    of the geometry could be moved to produce an invalid geometry.
+
+    If the geometry has no minimum clearance, an empty LineString will be
+    returned.
+
+    .. versionadded:: 2.1.0
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to determine the minimum clearance line for.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    Examples
+    --------
+    >>> from shapely import Polygon
+    >>> poly = Polygon([(0, 0), (10, 0), (10, 10), (5, 5), (0, 10), (0, 0)])
+    >>> minimum_clearance_line(poly)
+    <LINESTRING (5 5, 5 0)>
+
+    See Also
+    --------
+    minimum_clearance
+
+    """
+    return lib.minimum_clearance_line(geometry, **kwargs)
+
+
+@multithreading_enabled
+def normalize(geometry, **kwargs):
+    """Convert Geometry to strict normal form (or canonical form).
+
+    In :ref:`strict canonical form <canonical-form>`, the coordinates, rings of
+    a polygon and parts of multi geometries are ordered consistently. Typically
+    useful for testing purposes (for example in combination with
+    ``equals_exact``).
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+        Geometry or geometries to normalize.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -614,17 +704,19 @@ def normalize(geometry, **kwargs):
     >>> line = MultiLineString([[(0, 0), (1, 1)], [(2, 2), (3, 3)]])
     >>> normalize(line)
     <MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))>
+
     """
     return lib.normalize(geometry, **kwargs)
 
 
 @multithreading_enabled
 def point_on_surface(geometry, **kwargs):
-    """Returns a point that intersects an input geometry.
+    """Return a point that intersects an input geometry.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute a point on the surface.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -639,14 +731,14 @@ def point_on_surface(geometry, **kwargs):
     <POINT (0 0)>
     >>> point_on_surface(Polygon())
     <POINT EMPTY>
+
     """
     return lib.point_on_surface(geometry, **kwargs)
 
 
 @multithreading_enabled
 def node(geometry, **kwargs):
-    """
-    Returns the fully noded version of the linear input as MultiLineString.
+    """Return the fully noded version of the linear input as MultiLineString.
 
     Given a linear input geometry, this function returns a new MultiLineString
     in which no lines cross each other but only touch at and points. To
@@ -661,6 +753,7 @@ def node(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the noded version.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -672,12 +765,13 @@ def node(geometry, **kwargs):
     <MULTILINESTRING ((0 0, 0.5 0.5), (0.5 0.5, 1 1, 0 1, 0.5 0.5), (0.5 0.5, 1 0))>
     >>> node(Point(1, 1))
     <MULTILINESTRING EMPTY>
+
     """
     return lib.node(geometry, **kwargs)
 
 
 def polygonize(geometries, **kwargs):
-    """Creates polygons formed from the linework of a set of Geometries.
+    """Create polygons formed from the linework of a set of Geometries.
 
     Polygonizes an array of Geometries that contain linework which
     represents the edges of a planar graph. Any type of Geometry may be
@@ -725,13 +819,15 @@ def polygonize(geometries, **kwargs):
     ... ]
     >>> polygonize(lines)
     <GEOMETRYCOLLECTION (POLYGON ((1 1, 0 0, 0 1, 1 1)))>
+
     """
     return lib.polygonize(geometries, **kwargs)
 
 
 def polygonize_full(geometries, **kwargs):
-    """Creates polygons formed from the linework of a set of Geometries and
-    return all extra outputs as well.
+    """Create polygons formed from the linework of a set of Geometries.
+
+    All extra outputs are returned as well.
 
     Polygonizes an array of Geometries that contain linework which
     represents the edges of a planar graph. Any type of Geometry may be
@@ -784,6 +880,7 @@ def polygonize_full(geometries, **kwargs):
      <GEOMETRYCOLLECTION EMPTY>,
      <GEOMETRYCOLLECTION (LINESTRING (0 1, 1 1))>,
      <GEOMETRYCOLLECTION EMPTY>)
+
     """
     return lib.polygonize_full(geometries, **kwargs)
 
@@ -791,7 +888,7 @@ def polygonize_full(geometries, **kwargs):
 @requires_geos("3.11.0")
 @multithreading_enabled
 def remove_repeated_points(geometry, tolerance=0.0, **kwargs):
-    """Returns a copy of a Geometry with repeated points removed.
+    """Return a copy of a Geometry with repeated points removed.
 
     From the start of the coordinate sequence, each next point within the
     tolerance is removed.
@@ -802,8 +899,11 @@ def remove_repeated_points(geometry, tolerance=0.0, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to remove repeated points from.
     tolerance : float or array_like, default=0.0
         Use 0.0 to remove only exactly repeated points.
+    **kwargs
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
@@ -812,13 +912,14 @@ def remove_repeated_points(geometry, tolerance=0.0, **kwargs):
     <LINESTRING (0 0, 1 0)>
     >>> remove_repeated_points(Polygon([(0, 0), (0, .5), (0, 1), (.5, 1), (0,0)]), tolerance=.5)
     <POLYGON ((0 0, 0 1, 0 0))>
-    """
+
+    """  # noqa: E501
     return lib.remove_repeated_points(geometry, tolerance, **kwargs)
 
 
 @multithreading_enabled
 def reverse(geometry, **kwargs):
-    """Returns a copy of a Geometry with the order of coordinates reversed.
+    """Return a copy of a Geometry with the order of coordinates reversed.
 
     If a Geometry is a polygon with interior rings, the interior rings are also
     reversed.
@@ -828,10 +929,11 @@ def reverse(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to reverse the coordinates of.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     is_ccw : Checks if a Geometry is clockwise.
 
@@ -844,15 +946,15 @@ def reverse(geometry, **kwargs):
     <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
     >>> reverse(None) is None
     True
-    """
 
+    """
     return lib.reverse(geometry, **kwargs)
 
 
 @requires_geos("3.10.0")
 @multithreading_enabled
 def segmentize(geometry, max_segment_length, **kwargs):
-    """Adds vertices to line segments based on maximum segment length.
+    """Add vertices to line segments based on maximum segment length.
 
     Additional vertices will be added to every line segment in an input geometry
     so that segments are no longer than the provided maximum segment length. New
@@ -864,6 +966,7 @@ def segmentize(geometry, max_segment_length, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to segmentize.
     max_segment_length : float or array_like
         Additional vertices will be added so that all line segments are no
         longer than this value.  Must be greater than 0.
@@ -881,18 +984,21 @@ def segmentize(geometry, max_segment_length, **kwargs):
     <POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
     >>> segmentize(None, max_segment_length=5) is None
     True
+
     """
     return lib.segmentize(geometry, max_segment_length, **kwargs)
 
 
 @multithreading_enabled
 def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
-    """Returns a simplified version of an input geometry using the
-    Douglas-Peucker algorithm.
+    """Return a simplified version of an input geometry.
+
+    The Douglas-Peucker algorithm is used to simplify the geometry.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to simplify.
     tolerance : float or array_like
         The maximum allowed geometry displacement. The higher this value, the
         smaller the number of vertices in the resulting geometry.
@@ -919,6 +1025,7 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
     <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (4 2, 2 4, 4 4, 4 2))>
     >>> simplify(polygon_with_hole, tolerance=4, preserve_topology=False)
     <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
+
     """
     if preserve_topology:
         return lib.simplify_preserve_topology(geometry, tolerance, **kwargs)
@@ -926,9 +1033,74 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
         return lib.simplify(geometry, tolerance, **kwargs)
 
 
+@requires_geos("3.12.0")
+@multithreading_enabled
+def coverage_simplify(geometry, tolerance, simplify_boundary=True):
+    """Return a simplified version of an input geometry using coverage simplification.
+
+    Assumes that the geometry forms a polygonal coverage. Under this assumption, the
+    function simplifies the edges using the Visvalingam-Whyatt algorithm, while
+    preserving a valid coverage. In the most simplified case, polygons are reduced to
+    triangles.
+
+    A collection of valid polygons is considered a coverage if the polygons are:
+
+    * **Non-overlapping** - polygons do not overlap (their interiors do not intersect)
+    * **Edge-Matched** - vertices along shared edges are identical
+
+    The function allows simplification of all edges including the outer boundaries of
+    the coverage or simplification of only the inner (shared) edges.
+
+    If there are other geometry types than Polygons or MultiPolygons present, the
+    array will not undergo simplification and geometries are returned unchanged.
+
+    If the geometry is polygonal but does not form a valid coverage due to overlaps,
+    it will be simplified but it may result in invalid topology.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    tolerance : float or array_like
+        The degree of simplification roughly equal to the square root of the area
+        of triangles that will be removed.
+    simplify_boundary : bool, optional
+        By default (True), simplifies both internal edges of the coverage as well
+        as its boundary. If set to False, only simplifies internal edges.
+
+    Returns
+    -------
+    numpy.ndarray | shapely.Geometry
+
+    Examples
+    --------
+    >>> from shapely import Polygon, MultiPolygon
+    >>> poly = Polygon([(0, 0), (20, 0), (20, 10), (10, 5), (0, 10), (0, 0)])
+    >>> coverage_simplify(poly, tolerance=2)
+    <POLYGON ((0 0, 20 0, 20 10, 10 5, 0 10, 0 0))>
+    """
+    scalar = False
+    if isinstance(geometry, Geometry):
+        scalar = True
+
+    geometries = np.asarray(geometry)
+    shape = geometries.shape
+    geometries = geometries.ravel()
+
+    # create_collection acts on the inner axis
+    collections = lib.create_collection(
+        geometries, np.intc(GeometryType.GEOMETRYCOLLECTION)
+    )
+
+    simplified = lib.coverage_simplify(collections, tolerance, simplify_boundary)
+    parts = get_parts(simplified).reshape(shape)
+    if scalar:
+        return parts.item()
+    return parts
+
+
 @multithreading_enabled
 def snap(geometry, reference, tolerance, **kwargs):
-    """Snaps an input geometry to reference geometry's vertices.
+    """Snap an input geometry to reference geometry's vertices.
 
     Vertices of the first geometry are snapped to vertices of the second.
     geometry, returning a new geometry; the input geometries are not modified.
@@ -937,7 +1109,7 @@ def snap(geometry, reference, tolerance, **kwargs):
     The tolerance is used to control where snapping is performed.
 
     Where possible, this operation tries to avoid creating invalid geometries;
-    however, it does not guarantee that output geometries will be valid.  It is
+    however, it does not guarantee that output geometries will be valid. It is
     the responsibility of the caller to check for and handle invalid geometries.
 
     Because too much snapping can result in invalid geometries being created,
@@ -948,8 +1120,12 @@ def snap(geometry, reference, tolerance, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to snap.
     reference : Geometry or array_like
+        Geometry or geometries to snap to.
     tolerance : float or array_like
+        The maximum distance between the input and reference geometries for
+        snapping to occur. A value of 0 will snap only identical points.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -1003,6 +1179,7 @@ def snap(geometry, reference, tolerance, **kwargs):
     <POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))>
     >>> snap(poly, Point(0.5, 0.5), 1)
     <POLYGON ((0.5 0.5, 1 1, 0 1, 0 0, 0.5 0.5))>
+
     """
     return lib.snap(geometry, reference, tolerance, **kwargs)
 
@@ -1011,7 +1188,7 @@ def snap(geometry, reference, tolerance, **kwargs):
 def voronoi_polygons(
     geometry, tolerance=0.0, extend_to=None, only_edges=False, ordered=False, **kwargs
 ):
-    """Computes a Voronoi diagram from the vertices of an input geometry.
+    """Compute a Voronoi diagram from the vertices of an input geometry.
 
     The output is a geometrycollection containing polygons (default)
     or linestrings (see only_edges). Returns empty if an input geometry
@@ -1020,6 +1197,7 @@ def voronoi_polygons(
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the Voronoi diagram.
     tolerance : float or array_like, default 0.0
         Snap input vertices together if their distance is less than this value.
     extend_to : Geometry or array_like, optional
@@ -1055,7 +1233,8 @@ def voronoi_polygons(
     <GEOMETRYCOLLECTION EMPTY>
     >>> voronoi_polygons(points, ordered=True)
     <GEOMETRYCOLLECTION (POLYGON ((0 0, 0 4, 3 4, 3 0, 0 0)), POLYGON ((6 4, 6 0...>
-    """
+
+    """  # noqa: E501
     if ordered is not False and lib.geos_version < (3, 12, 0):
         raise UnsupportedGEOSVersionError(
             "Ordered Voronoi polygons require GEOS >= 3.12.0, "
@@ -1072,18 +1251,21 @@ def _oriented_envelope_geos(geometry, **kwargs):
 
 
 def oriented_envelope(geometry, **kwargs):
-    """
-    Computes the oriented envelope (minimum rotated rectangle)
-    that encloses an input geometry, such that the resulting rectangle has
-    minimum area.
+    """Compute the oriented envelope (minimum rotated rectangle) of the input geometry.
+
+    The oriented envelope encloses an input geometry, such that the resulting
+    rectangle has minimum area.
 
     Unlike envelope this rectangle is not constrained to be parallel to the
     coordinate axes. If the convex hull of the object is a degenerate (line
     or point) this degenerate is returned.
 
+    ``minimum_rotated_rectangle`` is an alias for ``oriented_envelope``.
+
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the oriented envelope.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -1102,6 +1284,7 @@ def oriented_envelope(geometry, **kwargs):
     <POINT (2 2)>
     >>> oriented_envelope(GeometryCollection([]))
     <POLYGON EMPTY>
+
     """
     if lib.geos_version < (3, 12, 0):
         f = _oriented_envelope_min_area_vectorized
@@ -1115,11 +1298,12 @@ minimum_rotated_rectangle = oriented_envelope
 
 @multithreading_enabled
 def minimum_bounding_circle(geometry, **kwargs):
-    """Computes the minimum bounding circle that encloses an input geometry.
+    """Compute the minimum bounding circle that encloses an input geometry.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the minimum bounding circle.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -1137,8 +1321,102 @@ def minimum_bounding_circle(geometry, **kwargs):
     >>> minimum_bounding_circle(GeometryCollection([]))
     <POLYGON EMPTY>
 
-    See also
+    See Also
     --------
-    minimum_bounding_radius
+    minimum_bounding_radius, maximum_inscribed_circle
+
     """
     return lib.minimum_bounding_circle(geometry, **kwargs)
+
+
+@multithreading_enabled
+def maximum_inscribed_circle(geometry, tolerance=None, **kwargs):
+    """Find the largest circle that is fully contained within the input geometry.
+
+    Constructs the "maximum inscribed circle" (MIC) for a polygonal geometry,
+    up to a specified tolerance. The MIC is determined by a point in the
+    interior of the area which has the farthest distance from the area
+    boundary, along with a boundary point at that distance. In the context of
+    geography the center of the MIC is known as the "pole of inaccessibility".
+    A cartographic use case is to determine a suitable point to place a map
+    label within a polygon.
+    The radius length of the MIC is a  measure of how "narrow" a polygon is.
+    It is the distance at which the negative buffer becomes empty.
+
+    The function supports polygons with holes and multipolygons.
+
+    Returns a two-point linestring, with the first point at the center of the
+    inscribed circle and the second on the boundary of the inscribed circle.
+
+    .. versionadded:: 2.1.0
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    tolerance : float or array_like, optional
+        Stop the algorithm when the search area is smaller than this tolerance.
+        When not specified, uses `max(width, height) / 1000` per geometry as
+        the default.
+    **kwargs
+        For other keyword-only arguments, see the
+        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+
+    Examples
+    --------
+    >>> from shapely import Polygon
+    >>> maximum_inscribed_circle(Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]))
+    <LINESTRING (5 5, 0 5)>
+
+    See Also
+    --------
+    minimum_bounding_circle
+    """
+    if tolerance is None:
+        tolerance = 0.0
+    elif np.isscalar(tolerance) and tolerance < 0:
+        raise ValueError("'tolerance' should be positive")
+    return lib.maximum_inscribed_circle(geometry, tolerance, **kwargs)
+
+
+@requires_geos("3.12.0")
+@multithreading_enabled
+def orient_polygons(geometry, exterior_cw=False, **kwargs):
+    """Enforce a ring orientation on all polygonal elements in the input geometry.
+
+    Non-polygonal geometries will not be modified.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+        Geometry or geometries to orient consistently.
+    exterior_cw : bool, default False
+        If True, exterior rings will be clockwise and interior rings
+        will be counter-clockwise.
+    **kwargs
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Examples
+    --------
+    A polygon with both shell and hole having clockwise orientation:
+
+    >>> from shapely import Polygon, orient_polygons
+    >>> polygon = Polygon(
+    ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+    ...     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]],
+    ... )
+    >>> polygon
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))>
+
+    By default, the exterior ring is oriented counter-clockwise and
+    the holes clockwise:
+
+    >>> orient_polygons(polygon)
+    <POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0), (2 2, 2 4, 4 4, 4 2, 2 2))>
+
+    Asking for the opposite orientation:
+
+    >>> orient_polygons(polygon, exterior_cw=True)
+    <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 4 2, 4 4, 2 4, 2 2))>
+
+    """
+    return lib.orient_polygons(geometry, exterior_cw, **kwargs)

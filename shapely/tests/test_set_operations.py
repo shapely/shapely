@@ -3,11 +3,11 @@ import pytest
 
 import shapely
 from shapely import Geometry, GeometryCollection, Polygon
-from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import all_types, empty, ignore_invalid, point, polygon
 
-# fixed-precision operations raise GEOS exceptions on mixed dimension geometry collections
+# fixed-precision operations raise GEOS exceptions on mixed dimension geometry
+# collections
 all_single_types = np.array(all_types)[
     ~shapely.is_empty(all_types)
     & (shapely.get_type_id(all_types) != shapely.GeometryType.GEOMETRYCOLLECTION)
@@ -31,6 +31,11 @@ REDUCE_SET_OPERATIONS = (
 # operations that support fixed precision
 REDUCE_SET_OPERATIONS_PREC = ((shapely.union_all, shapely.union),)
 
+if shapely.geos_version >= (3, 12, 0):
+    SET_OPERATIONS += (shapely.disjoint_subset_union,)
+    REDUCE_SET_OPERATIONS += (
+        (shapely.disjoint_subset_union_all, shapely.disjoint_subset_union),
+    )
 
 reduce_test_data = [
     shapely.box(0, 0, 5, 5),
@@ -62,30 +67,22 @@ def test_set_operation_array(a, func):
     assert isinstance(actual[0], Geometry)
 
 
-@pytest.mark.skipif(shapely.geos_version >= (3, 9, 0), reason="GEOS >= 3.9")
-@pytest.mark.parametrize("func", SET_OPERATIONS)
-@pytest.mark.parametrize("grid_size", [0, 1])
-def test_set_operations_prec_not_supported(func, grid_size):
-    with pytest.raises(
-        UnsupportedGEOSVersionError, match="grid_size parameter requires GEOS >= 3.9.0"
-    ):
-        func(point, point, grid_size)
-
-
-@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 def test_set_operation_prec_nonscalar_grid_size(func):
+    if func is shapely.disjoint_subset_union:
+        pytest.skip("disjoint_subset_union does not support grid_size")
     with pytest.raises(
         ValueError, match="grid_size parameter only accepts scalar values"
     ):
         func(point, point, grid_size=[1])
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("a", all_single_types)
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 @pytest.mark.parametrize("grid_size", [0, 1, 2])
 def test_set_operation_prec_array(a, func, grid_size):
+    if func is shapely.disjoint_subset_union:
+        pytest.skip("disjoint_subset_union does not support grid_size")
     actual = func([a, a], point, grid_size=grid_size)
     assert actual.shape == (2,)
     assert isinstance(actual[0], Geometry)
@@ -183,17 +180,6 @@ def test_set_operation_reduce_all_none_arr(n, func, related_func):
     assert func([[None] * 2] * n, axis=0).tolist() == [empty, empty]
 
 
-@pytest.mark.skipif(shapely.geos_version >= (3, 9, 0), reason="GEOS >= 3.9")
-@pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS_PREC)
-@pytest.mark.parametrize("grid_size", [0, 1])
-def test_set_operation_prec_reduce_not_supported(func, related_func, grid_size):
-    with pytest.raises(
-        UnsupportedGEOSVersionError, match="grid_size parameter requires GEOS >= 3.9.0"
-    ):
-        func([point, point], grid_size)
-
-
-@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS_PREC)
 def test_set_operation_prec_reduce_nonscalar_grid_size(func, related_func):
     with pytest.raises(
@@ -202,14 +188,12 @@ def test_set_operation_prec_reduce_nonscalar_grid_size(func, related_func):
         func([point, point], grid_size=[1])
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS_PREC)
 def test_set_operation_prec_reduce_grid_size_nan(func, related_func):
     actual = func([point, point], grid_size=np.nan)
     assert actual is None
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("n", range(1, 5))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS_PREC)
 @pytest.mark.parametrize("grid_size", [0, 1])
@@ -223,7 +207,6 @@ def test_set_operation_prec_reduce_1dim(n, func, related_func, grid_size):
     assert shapely.equals(actual, expected)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS_PREC)
 def test_set_operation_prec_reduce_axis(func, related_func):
     data = [[point] * 2] * 3  # shape = (3, 2)
@@ -237,7 +220,6 @@ def test_set_operation_prec_reduce_axis(func, related_func):
     assert actual.shape == (3,)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("none_position", range(3))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS_PREC)
 def test_set_operation_prec_reduce_one_none(func, related_func, none_position):
@@ -248,7 +230,6 @@ def test_set_operation_prec_reduce_one_none(func, related_func, none_position):
     assert_geometries_equal(actual, expected)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("none_position", range(3))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS_PREC)
 def test_set_operation_prec_reduce_two_none(func, related_func, none_position):
@@ -260,7 +241,6 @@ def test_set_operation_prec_reduce_two_none(func, related_func, none_position):
     assert_geometries_equal(actual, expected)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize("n", range(1, 3))
 @pytest.mark.parametrize("func, related_func", REDUCE_SET_OPERATIONS_PREC)
 def test_set_operation_prec_reduce_all_none(n, func, related_func):
@@ -334,8 +314,8 @@ def test_coverage_union_non_polygon_inputs(geom_1, geom_2):
         def effective_geom_types(geom):
             if hasattr(geom, "geoms") and not geom.is_empty:
                 gts = set()
-                for geom in geom.geoms:
-                    gts |= effective_geom_types(geom)
+                for part in geom.geoms:
+                    gts |= effective_geom_types(part)
                 return gts
             return {geom.geom_type.lstrip("Multi").replace("LinearRing", "LineString")}
 
@@ -359,7 +339,6 @@ def test_coverage_union_non_polygon_inputs(geom_1, geom_2):
             shapely.coverage_union(geom_1, geom_2)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 @pytest.mark.parametrize(
     "geom,grid_size,expected",
     [
@@ -425,7 +404,6 @@ def test_union_all_prec(geom, grid_size, expected):
     assert shapely.equals(actual, expected)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="GEOS < 3.9")
 def test_uary_union_alias():
     geoms = [shapely.box(0.1, 0.1, 5, 5), shapely.box(0, 0.2, 5.1, 10)]
     actual = shapely.unary_union(geoms, grid_size=1)

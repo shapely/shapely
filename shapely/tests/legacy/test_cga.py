@@ -2,7 +2,7 @@ import unittest
 
 import pytest
 
-from shapely.geometry.polygon import LinearRing, orient, Polygon, signed_area
+from shapely.geometry.polygon import LinearRing, Polygon, orient, signed_area
 
 
 class SignedAreaTestCase(unittest.TestCase):

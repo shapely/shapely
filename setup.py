@@ -1,13 +1,12 @@
-import builtins
+"""Setuptools build."""
+
 import logging
 import os
 import subprocess
 import sys
 from pathlib import Path
 
-from pkg_resources import parse_version
-from setuptools import Extension, find_packages, setup
-from setuptools.command.build_ext import build_ext as _build_ext
+from setuptools import Extension, setup
 
 # ensure the current directory is on sys.path so versioneer can be imported
 # when pip uses PEP 517/518 build rules.
@@ -17,6 +16,7 @@ import versioneer
 
 # Skip Cython build if not available
 try:
+    import cython
     from Cython.Build import cythonize
 except ImportError:
     cythonize = None
@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 ch = logging.StreamHandler()
 log.addHandler(ch)
 
-MIN_GEOS_VERSION = "3.8"
+MIN_GEOS_VERSION = "3.9"
 
 if "all" in sys.warnoptions:
     # show GEOS messages in console with: python -W all
@@ -34,7 +34,7 @@ if "all" in sys.warnoptions:
 
 
 def get_geos_config(option):
-    """Get configuration option from the `geos-config` development utility
+    """Get configuration option from the `geos-config` development utility.
 
     The PATH environment variable should include the path where geos-config is
     located, or the GEOS_CONFIG environment variable should point to the
@@ -42,21 +42,19 @@ def get_geos_config(option):
     """
     cmd = os.environ.get("GEOS_CONFIG", "geos-config")
     try:
-        stdout, stderr = subprocess.Popen(
-            [cmd, option], stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        ).communicate()
+        proc = subprocess.run([cmd, option], capture_output=True, text=True, check=True)
     except OSError:
         return
-    if stderr and not stdout:
-        log.warning("geos-config %s returned '%s'", option, stderr.decode().strip())
+    if proc.stderr and not proc.stdout:
+        log.warning("geos-config %s returned '%s'", option, proc.stderr.strip())
         return
-    result = stdout.decode().strip()
+    result = proc.stdout.strip()
     log.debug("geos-config %s returned '%s'", option, result)
     return result
 
 
-def get_geos_paths():
-    """Obtain the paths for compiling and linking with the GEOS C-API
+def get_ext_options():
+    """Get Extension options to build using GEOS and NumPy C API.
 
     First the presence of the GEOS_INCLUDE_PATH and GEOS_INCLUDE_PATH environment
     variables is checked. If they are both present, these are taken.
@@ -64,76 +62,69 @@ def get_geos_paths():
     If one of the two paths was not present, geos-config is called (it should be on the
     PATH variable). geos-config provides all the paths.
 
-    If geos-config was not found, no additional paths are provided to the extension. It is
-    still possible to compile in this case using custom arguments to setup.py.
+    If geos-config was not found, no additional paths are provided to the extension.
+    It is still possible to compile in this case using custom arguments to setup.py.
     """
+    import numpy
+
+    opts = {
+        "define_macros": [
+            # avoid accidental use of non-reentrant functions
+            ("GEOS_USE_ONLY_R_API", None),
+            # silence warnings
+            ("NPY_NO_DEPRECATED_API", "0"),
+            # minimum numpy version
+            ("NPY_TARGET_VERSION", "NPY_1_20_API_VERSION"),
+        ],
+        "include_dirs": ["./src"],
+        "library_dirs": [],
+        "extra_link_args": [],
+        "libraries": [],
+    }
+
+    if include_dir := numpy.get_include():
+        opts["include_dirs"].append(include_dir)
+
+    # Without geos-config (e.g. MSVC), specify these two vars
     include_dir = os.environ.get("GEOS_INCLUDE_PATH")
     library_dir = os.environ.get("GEOS_LIBRARY_PATH")
     if include_dir and library_dir:
-        return {
-            "include_dirs": ["./src", include_dir],
-            "library_dirs": [library_dir],
-            "libraries": ["geos_c"],
-        }
+        opts["include_dirs"].append(include_dir)
+        opts["library_dirs"].append(library_dir)
+        opts["libraries"].append("geos_c")
+        return opts
 
     geos_version = get_geos_config("--version")
     if not geos_version:
         log.warning(
-            "Could not find geos-config executable. Either append the path to geos-config"
-            " to PATH or manually provide the include_dirs, library_dirs, libraries and "
-            "other link args for compiling against a GEOS version >=%s.",
+            "Could not find geos-config executable. Either append the path to "
+            "geos-config to PATH or manually provide the include_dirs, library_dirs, "
+            "libraries and other link args for compiling against a GEOS version >=%s.",
             MIN_GEOS_VERSION,
         )
         return {}
 
-    if parse_version(geos_version) < parse_version(MIN_GEOS_VERSION):
+    def version_tuple(ver):
+        return tuple(int(itm) if itm.isnumeric() else itm for itm in ver.split("."))
+
+    if version_tuple(geos_version) < version_tuple(MIN_GEOS_VERSION):
         raise ImportError(
-            "GEOS version should be >={}, found {}".format(
-                MIN_GEOS_VERSION, geos_version
-            )
+            f"GEOS version should be >={MIN_GEOS_VERSION}, found {geos_version}"
         )
 
-    libraries = []
-    library_dirs = []
-    include_dirs = ["./src"]
-    extra_link_args = []
     for item in get_geos_config("--cflags").split():
         if item.startswith("-I"):
-            include_dirs.extend(item[2:].split(":"))
+            opts["include_dirs"].extend(item[2:].split(":"))
 
     for item in get_geos_config("--clibs").split():
         if item.startswith("-L"):
-            library_dirs.extend(item[2:].split(":"))
+            opts["library_dirs"].extend(item[2:].split(":"))
         elif item.startswith("-l"):
-            libraries.append(item[2:])
+            opts["libraries"].append(item[2:])
         else:
-            extra_link_args.append(item)
+            opts["extra_link_args"].append(item)
 
-    return {
-        "include_dirs": include_dirs,
-        "library_dirs": library_dirs,
-        "libraries": libraries,
-        "extra_link_args": extra_link_args,
-    }
-
-
-class build_ext(_build_ext):
-    def finalize_options(self):
-        _build_ext.finalize_options(self)
-
-        # Add numpy include dirs without importing numpy on module level.
-        # derived from scikit-hep:
-        # https://github.com/scikit-hep/root_numpy/pull/292
-
-        # Prevent numpy from thinking it is still in its setup process:
-        try:
-            del builtins.__NUMPY_SETUP__
-        except AttributeError:
-            pass
-
-        import numpy
-
-        self.include_dirs.append(numpy.get_include())
+    return opts
 
 
 ext_modules = []
@@ -153,10 +144,11 @@ if "clean" in sys.argv:
 elif "sdist" in sys.argv:
     if Path("LICENSE_GEOS").exists() or Path("LICENSE_win32").exists():
         raise FileExistsError(
-            "Source distributions should not pack LICENSE_GEOS or LICENSE_win32. Please remove the files."
+            "Source distributions should not pack LICENSE_GEOS or LICENSE_win32. "
+            "Please remove the files."
         )
 else:
-    ext_options = get_geos_paths()
+    ext_options = get_ext_options()
 
     ext_modules = [
         Extension(
@@ -167,6 +159,7 @@ else:
                 "src/geos.c",
                 "src/lib.c",
                 "src/pygeom.c",
+                "src/pygeos.c",
                 "src/strtree.c",
                 "src/ufuncs.c",
                 "src/vector.c",
@@ -182,30 +175,25 @@ else:
     cython_modules = [
         Extension(
             "shapely._geometry_helpers",
-            [
-                "shapely/_geometry_helpers.pyx",
-            ],
+            ["shapely/_geometry_helpers.pyx"],
             **ext_options,
         ),
         Extension(
             "shapely._geos",
-            [
-                "shapely/_geos.pyx",
-            ],
+            ["shapely/_geos.pyx"],
             **ext_options,
         ),
     ]
-
+    compiler_directives = {"language_level": "3"}
+    if cython.__version__ >= "3.1.0":
+        compiler_directives.update({"freethreading_compatible": True})
     ext_modules += cythonize(
         cython_modules,
-        compiler_directives={"language_level": "3"},
-        # enable once Cython >= 0.3 is released
-        # define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
+        compiler_directives=compiler_directives,
     )
 
 
 cmdclass = versioneer.get_cmdclass()
-cmdclass["build_ext"] = build_ext
 
 
 # see pyproject.toml for static project metadata

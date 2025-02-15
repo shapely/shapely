@@ -1,5 +1,7 @@
 """Provides multi-point element-wise operations such as ``contains``."""
 
+import warnings
+
 import numpy as np
 
 import shapely
@@ -20,9 +22,9 @@ def _construct_points(x, y):
 
 
 def contains(geometry, x, y):
-    """
-    Vectorized (element-wise) version of `contains` which checks whether
-    multiple points are contained by a single geometry.
+    """Check whether multiple points are contained by a single geometry.
+
+    Vectorized (element-wise) version of `contains`.
 
     Parameters
     ----------
@@ -40,6 +42,13 @@ def contains(geometry, x, y):
     Mask of points contained by the given `geometry`.
 
     """
+    warnings.warn(
+        "The 'shapely.vectorized.contains' function is deprecated and will be "
+        "removed a future version. Use 'shapely.contains_xy' instead (available "
+        "since shapely 2.0.0).",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     if isinstance(geometry, PreparedGeometry):
         geometry = geometry.context
     shapely.prepare(geometry)
@@ -47,9 +56,9 @@ def contains(geometry, x, y):
 
 
 def touches(geometry, x, y):
-    """
-    Vectorized (element-wise) version of `touches` which checks whether
-    multiple points touch the exterior of a single geometry.
+    """Check whether multiple points touch the exterior of a single geometry.
+
+    Vectorized (element-wise) version of `touches`.
 
     Parameters
     ----------
@@ -67,6 +76,13 @@ def touches(geometry, x, y):
     Mask of points which touch the exterior of the given `geometry`.
 
     """
+    warnings.warn(
+        "The 'shapely.vectorized.touches' function is deprecated and will be "
+        "removed a future version. Use 'shapely.intersects_xy(geometry.boundary, x, y)'"
+        " instead (available since shapely 2.0.0).",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     if isinstance(geometry, PreparedGeometry):
         geometry = geometry.context
     # Touches(geom, point) == Intersects(Boundary(geom), point)

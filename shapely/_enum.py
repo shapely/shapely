@@ -11,7 +11,7 @@ class ParamEnum(IntEnum):
 
     @classmethod
     def get_value(cls, item):
-        """Validate incoming item and raise a ValueError with valid options if not present."""
+        """Validate item and raise a ValueError with valid options if not present."""
         try:
             return cls[item].value
         except KeyError:

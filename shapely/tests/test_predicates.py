@@ -58,6 +58,7 @@ BINARY_PREDICATES = (
     ),
     shapely.equals,
     shapely.equals_exact,
+    shapely.equals_identical,
 )
 
 BINARY_PREPARED_PREDICATES = BINARY_PREDICATES[:-2]
@@ -142,18 +143,20 @@ def test_xy_array(a, func, func_bin):
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func, func_bin", XY_PREDICATES)
 def test_xy_array_broadcast(a, func, func_bin):
+    a2 = shapely.transform(a, lambda x: x)  # makes a copy
     with ignore_invalid(shapely.is_empty(a) and shapely.geos_version < (3, 12, 0)):
         # Empty geometries give 'invalid value encountered' in all predicates
         # (see https://github.com/libgeos/geos/issues/515)
-        actual = func(a, [0, 1, 2], [1, 2, 3])
+        actual = func(a2, [0, 1, 2], [1, 2, 3])
         expected = func_bin(a, [Point(0, 1), Point(1, 2), Point(2, 3)])
     np.testing.assert_allclose(actual, expected)
 
 
 @pytest.mark.parametrize("func", [funcs[0] for funcs in XY_PREDICATES])
 def test_xy_array_2D(func):
-    actual = func(polygon, [0, 1, 2], [1, 2, 3])
-    expected = func(polygon, [[0, 1], [1, 2], [2, 3]])
+    polygon2 = shapely.transform(polygon, lambda x: x)  # makes a copy
+    actual = func(polygon2, [0, 1, 2], [1, 2, 3])
+    expected = func(polygon2, [[0, 1], [1, 2], [2, 3]])
     np.testing.assert_allclose(actual, expected)
 
 
@@ -167,7 +170,8 @@ def test_xy_prepared(func, func_bin):
 @pytest.mark.parametrize("func", [funcs[0] for funcs in XY_PREDICATES])
 def test_xy_with_kwargs(func):
     out = np.empty((), dtype=np.uint8)
-    actual = func(point, point.x, point.y, out=out)
+    point2 = shapely.transform(point, lambda x: x)  # makes a copy
+    actual = func(point2, point2.x, point2.y, out=out)
     assert actual is out
     assert actual.dtype == np.uint8
 
@@ -208,6 +212,27 @@ def test_equals_exact_normalize():
     # default requires same order of coordinates
     assert not shapely.equals_exact(l1, l2)
     assert shapely.equals_exact(l1, l2, normalize=True)
+
+
+def test_equals_identical():
+    # more elaborate tests are done at the Geometry.__eq__ level
+    # requires same order of coordinates
+    l1 = LineString([(0, 0), (1, 1)])
+    l2 = LineString([(1, 1), (0, 0)])
+    assert not shapely.equals_identical(l1, l2)
+
+    # checks z-dimension (in contrast to equals_exact)
+    l1 = LineString([(0, 0, 0), (1, 1, 0)])
+    l2 = LineString([(0, 0, 1), (1, 1, 1)])
+    assert not shapely.equals_identical(l1, l2)
+    assert shapely.equals_exact(l1, l2)
+
+    # NaNs in same place are equal (in contrast to equals_exact)
+    with ignore_invalid():
+        l1 = LineString([(0, np.nan), (1, 1)])
+        l2 = LineString([(0, np.nan), (1, 1)])
+    assert shapely.equals_identical(l1, l2)
+    assert not shapely.equals_exact(l1, l2)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")

@@ -1,3 +1,5 @@
+"""Methods for measuring (between) geometries."""
+
 import warnings
 
 import numpy as np
@@ -20,11 +22,12 @@ __all__ = [
 
 @multithreading_enabled
 def area(geometry, **kwargs):
-    """Computes the area of a (multi)polygon.
+    """Compute the area of a (multi)polygon.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the area.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -40,17 +43,19 @@ def area(geometry, **kwargs):
     0.0
     >>> area(None)
     nan
-    """
+
+    """  # noqa: E501
     return lib.area(geometry, **kwargs)
 
 
 @multithreading_enabled
 def distance(a, b, **kwargs):
-    """Computes the Cartesian distance between two geometries.
+    """Compute the Cartesian distance between two geometries.
 
     Parameters
     ----------
     a, b : Geometry or array_like
+        Geometry or geometries to compute the distance between.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -68,19 +73,21 @@ def distance(a, b, **kwargs):
     nan
     >>> distance(None, point)
     nan
+
     """
     return lib.distance(a, b, **kwargs)
 
 
 @multithreading_enabled
 def bounds(geometry, **kwargs):
-    """Computes the bounds (extent) of a geometry.
+    """Compute the bounds (extent) of a geometry.
 
     For each geometry these 4 numbers are returned: min x, min y, max x, max y.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the bounds.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -95,16 +102,18 @@ def bounds(geometry, **kwargs):
     [nan, nan, nan, nan]
     >>> bounds(None).tolist()
     [nan, nan, nan, nan]
+
     """
     return lib.bounds(geometry, **kwargs)
 
 
 def total_bounds(geometry, **kwargs):
-    """Computes the total bounds (extent) of the geometry.
+    """Compute the total bounds (extent) of the geometry.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the total bounds.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -130,6 +139,7 @@ def total_bounds(geometry, **kwargs):
     [2.0, 3.0, 2.0, 3.0]
     >>> total_bounds(None).tolist()
     [nan, nan, nan, nan]
+
     """
     b = bounds(geometry, **kwargs)
     if b.ndim == 1:
@@ -150,11 +160,12 @@ def total_bounds(geometry, **kwargs):
 
 @multithreading_enabled
 def length(geometry, **kwargs):
-    """Computes the length of a (multi)linestring or polygon perimeter.
+    """Compute the length of a (multi)linestring or polygon perimeter.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the length.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -174,6 +185,7 @@ def length(geometry, **kwargs):
     0.0
     >>> length(None)
     nan
+
     """
     return lib.length(geometry, **kwargs)
 
@@ -191,6 +203,7 @@ def hausdorff_distance(a, b, densify=None, **kwargs):
     Parameters
     ----------
     a, b : Geometry or array_like
+        Geometry or geometries to compute the distance between.
     densify : float or array_like, optional
         The value of densify is required to be between 0 and 1.
     **kwargs
@@ -209,6 +222,7 @@ def hausdorff_distance(a, b, densify=None, **kwargs):
     nan
     >>> hausdorff_distance(line1, None)
     nan
+
     """
     if densify is None:
         return lib.hausdorff_distance(a, b, **kwargs)
@@ -233,6 +247,7 @@ def frechet_distance(a, b, densify=None, **kwargs):
     Parameters
     ----------
     a, b : Geometry or array_like
+        Geometry or geometries to compute the distance between.
     densify : float or array_like, optional
         The value of densify is required to be between 0 and 1.
     **kwargs
@@ -251,6 +266,7 @@ def frechet_distance(a, b, densify=None, **kwargs):
     nan
     >>> frechet_distance(line1, None)
     nan
+
     """
     if densify is None:
         return lib.frechet_distance(a, b, **kwargs)
@@ -259,7 +275,7 @@ def frechet_distance(a, b, densify=None, **kwargs):
 
 @multithreading_enabled
 def minimum_clearance(geometry, **kwargs):
-    """Computes the Minimum Clearance distance.
+    """Compute the Minimum Clearance distance.
 
     A geometry's "minimum clearance" is the smallest distance by which
     a vertex of the geometry could be moved to produce an invalid geometry.
@@ -270,6 +286,7 @@ def minimum_clearance(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the minimum clearance.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -283,17 +300,23 @@ def minimum_clearance(geometry, **kwargs):
     inf
     >>> minimum_clearance(None)
     nan
+
+    See Also
+    --------
+    minimum_clearance_line
+
     """
     return lib.minimum_clearance(geometry, **kwargs)
 
 
 @multithreading_enabled
 def minimum_bounding_radius(geometry, **kwargs):
-    """Computes the radius of the minimum bounding circle that encloses an input geometry.
+    """Compute the radius of the minimum bounding circle of an input geometry.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the minimum bounding radius.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -312,8 +335,9 @@ def minimum_bounding_radius(geometry, **kwargs):
     >>> minimum_bounding_radius(GeometryCollection())
     0.0
 
-    See also
+    See Also
     --------
     minimum_bounding_circle
+
     """
     return lib.minimum_bounding_radius(geometry, **kwargs)

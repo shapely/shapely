@@ -1,3 +1,5 @@
+"""Methods that operate on the coordinates of geometries."""
+
 from typing import Optional
 
 import numpy as np
@@ -14,8 +16,7 @@ def transform(
     include_z: Optional[bool] = False,
     interleaved: bool = True,
 ):
-    """Returns a copy of a geometry array with a function applied to its
-    coordinates.
+    """Apply a function to the coordinates of a geometry.
 
     With the default of ``include_z=False``, all returned geometries will be
     two-dimensional; the third dimension will be discarded, if present.
@@ -25,6 +26,7 @@ def transform(
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to transform.
     transformation : function
         A function that transforms a (N, 2) or (N, 3) ndarray of float64 to
         another (N, 2) or (N, 3) ndarray of float64.
@@ -48,8 +50,7 @@ def transform(
 
     See Also
     --------
-    has_z : Returns a copy of a geometry array with a function applied to its
-        coordinates.
+    has_z
 
     Examples
     --------
@@ -90,7 +91,8 @@ def transform(
     >>> transformer = Transformer.from_crs(4326, 32618, always_xy=True)
     >>> transform(Point(-75, 50), transformer.transform, interleaved=False)
     <POINT (500000 5538630.703)>
-    """
+
+    """  # noqa: E501
     geometry_arr = np.array(geometry, dtype=np.object_)  # makes a copy
     if include_z is None:
         has_z = shapely.has_z(geometry_arr)
@@ -112,7 +114,8 @@ def transform(
         # check the array to yield understandable error messages
         if not isinstance(new_coordinates, np.ndarray) or new_coordinates.ndim != 2:
             raise ValueError(
-                "The provided transformation did not return a two-dimensional numpy array"
+                "The provided transformation did not return a two-dimensional numpy "
+                "array"
             )
         if new_coordinates.dtype != np.float64:
             raise ValueError(
@@ -132,11 +135,12 @@ def transform(
 
 
 def count_coordinates(geometry):
-    """Counts the number of coordinate pairs in a geometry array.
+    """Count the number of coordinate pairs in a geometry array.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to count the coordinates of.
 
     Examples
     --------
@@ -149,12 +153,13 @@ def count_coordinates(geometry):
     0
     >>> count_coordinates([Point(0, 0), None])
     1
+
     """
     return lib.count_coordinates(np.asarray(geometry, dtype=np.object_))
 
 
 def get_coordinates(geometry, include_z=False, return_index=False):
-    """Gets coordinates from a geometry array as an array of floats.
+    """Get coordinates from a geometry array as an array of floats.
 
     The shape of the returned array is (N, 2), with N being the number of
     coordinate pairs. With the default of ``include_z=False``, three-dimensional
@@ -164,6 +169,7 @@ def get_coordinates(geometry, include_z=False, return_index=False):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to get the coordinates of.
     include_z : bool, default False
         If, True include the third dimension in the output. If a geometry
         has no third dimension, the z-coordinates will be NaN.
@@ -195,6 +201,7 @@ def get_coordinates(geometry, include_z=False, return_index=False):
     >>> coordinates, index = get_coordinates(geometries, return_index=True)
     >>> coordinates.tolist(), index.tolist()
     ([[2.0, 2.0], [4.0, 4.0], [0.0, 0.0]], [0, 0, 1])
+
     """
     return lib.get_coordinates(
         np.asarray(geometry, dtype=np.object_), include_z, return_index
@@ -218,7 +225,9 @@ def set_coordinates(geometry, coordinates):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to set the coordinates of.
     coordinates: array_like
+        An array of coordinates to set.
 
     See Also
     --------
@@ -242,7 +251,8 @@ def set_coordinates(geometry, coordinates):
     <POINT (1 1)>
     >>> set_coordinates(Point(0, 0, 0), [[1, 1, 1]])
     <POINT Z (1 1 1)>
-    """
+
+    """  # noqa: E501
     geometry_arr = np.asarray(geometry, dtype=np.object_)
     coordinates = np.atleast_2d(np.asarray(coordinates)).astype(np.float64)
     if coordinates.ndim != 2:

@@ -1,10 +1,12 @@
 import unittest
 
 import numpy as np
+import pytest
 
-from shapely.geometry import box, MultiPolygon, Point
+from shapely.geometry import MultiPolygon, Point, box
 
 
+@pytest.mark.filterwarnings("ignore:The 'shapely.vectorized:")
 class VectorizedContainsTestCase(unittest.TestCase):
     def assertContainsResults(self, geom, x, y):
         from shapely.vectorized import contains
@@ -82,6 +84,7 @@ class VectorizedContainsTestCase(unittest.TestCase):
         self.assertContainsResults(self.construct_torus(), *g.exterior.xy)
 
 
+@pytest.mark.filterwarnings("ignore:The 'shapely.vectorized:")
 class VectorizedTouchesTestCase(unittest.TestCase):
     def test_touches(self):
         from shapely.vectorized import touches

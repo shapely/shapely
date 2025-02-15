@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from shapely import geos_version, Point
+from shapely import Point, geos_version
 from shapely.coords import CoordinateSequence
 from shapely.errors import DimensionError, UnsupportedGEOSVersionError
 
@@ -84,7 +84,6 @@ def test_from_generator():
 
 
 def test_from_invalid():
-
     with pytest.raises(TypeError, match="takes at most 3 arguments"):
         Point(1, 2, 3, 4)
 
@@ -97,11 +96,12 @@ def test_from_invalid():
 
 class TestPoint:
     def test_point(self):
-
         # Test XY point
         p = Point(1.0, 2.0)
         assert p.x == 1.0
+        assert type(p.x) is float
         assert p.y == 2.0
+        assert type(p.y) is float
         assert p.coords[:] == [(1.0, 2.0)]
         assert str(p) == p.wkt
         assert p.has_z is False
@@ -121,6 +121,7 @@ class TestPoint:
         assert str(p) == p.wkt
         assert p.has_z is True
         assert p.z == 3.0
+        assert type(p.z) is float
         if geos_version >= (3, 12, 0):
             assert p.has_m is False
             with pytest.raises(DimensionError):
@@ -149,6 +150,8 @@ class TestPoint:
         assert p_null.wkt == "POINT EMPTY"
         assert p_null.coords[:] == []
         assert p_null.area == 0.0
+
+        assert p_null.__geo_interface__ == {"type": "Point", "coordinates": ()}
 
     def test_coords(self):
         # From Array.txt

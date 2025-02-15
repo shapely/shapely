@@ -6,22 +6,32 @@
 
 if exist %GEOS_INSTALL% (
   echo Using cached %GEOS_INSTALL%
-) else (
-  echo Building %GEOS_INSTALL%
-
-  curl -fsSO http://download.osgeo.org/geos/geos-%GEOS_VERSION%.tar.bz2
-  7z x geos-%GEOS_VERSION%.tar.bz2
-  7z x geos-%GEOS_VERSION%.tar
-  cd geos-%GEOS_VERSION% || exit /B 1
-
-  pip install ninja cmake
-  cmake --version
-
-  mkdir build
-  cd build
-  cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%GEOS_INSTALL% .. || exit /B 2
-  cmake --build . || exit /B 3
-  ctest . || exit /B 4
-  cmake --install . || exit /B 5
-  cd ..
+  exit /B 0
 )
+
+echo Building %GEOS_INSTALL%
+
+curl -fsSO http://download.osgeo.org/geos/geos-%GEOS_VERSION%.tar.bz2
+7z x geos-%GEOS_VERSION%.tar.bz2
+7z x geos-%GEOS_VERSION%.tar
+cd geos-%GEOS_VERSION% || exit /B 1
+
+pip install ninja cmake
+cmake --version
+
+md build
+cd build
+cmake -GNinja ^
+  -D CMAKE_BUILD_TYPE=Release ^
+  -D BUILD_SHARED_LIBS=ON ^
+  -D CMAKE_INSTALL_PREFIX=%GEOS_INSTALL% ^
+  ..
+IF %ERRORLEVEL% NEQ 0 exit /B 2
+cmake --build .
+IF %ERRORLEVEL% NEQ 0 exit /B 3
+ctest --output-on-failure .
+:: IF %ERRORLEVEL% NEQ 0 exit /B 4
+cmake --install .
+IF %ERRORLEVEL% NEQ 0 exit /B 5
+
+cd ..

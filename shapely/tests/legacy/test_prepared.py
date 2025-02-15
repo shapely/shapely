@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from shapely.geometry import Point, Polygon
-from shapely.prepared import prep, PreparedGeometry
+from shapely.prepared import PreparedGeometry, prep
 
 
 def test_prepared_geometry():

@@ -1,4 +1,4 @@
-"""Load/dump geometries using the well-known text (WKT) format
+"""Load/dump geometries using the well-known text (WKT) format.
 
 Also provides pickle-like convenience functions.
 """
@@ -7,8 +7,7 @@ import shapely
 
 
 def loads(data):
-    """
-    Load a geometry from a WKT string.
+    """Load a geometry from a WKT string.
 
     Parameters
     ----------
@@ -18,13 +17,13 @@ def loads(data):
     Returns
     -------
     Shapely geometry object
+
     """
     return shapely.from_wkt(data)
 
 
 def load(fp):
-    """
-    Load a geometry from an open file.
+    """Load a geometry from an open file.
 
     Parameters
     ----------
@@ -34,14 +33,14 @@ def load(fp):
     Returns
     -------
     Shapely geometry object
+
     """
     data = fp.read()
     return loads(data)
 
 
 def dumps(ob, trim=False, rounding_precision=-1, **kw):
-    """
-    Dump a WKT representation of a geometry to a string.
+    """Dump a WKT representation of a geometry to a string.
 
     Parameters
     ----------
@@ -58,13 +57,13 @@ def dumps(ob, trim=False, rounding_precision=-1, **kw):
     Returns
     -------
     input geometry as WKT string
+
     """
     return shapely.to_wkt(ob, trim=trim, rounding_precision=rounding_precision, **kw)
 
 
 def dump(ob, fp, **settings):
-    """
-    Dump a geometry to an open file.
+    """Dump a geometry to an open file.
 
     Parameters
     ----------
@@ -78,5 +77,6 @@ def dump(ob, fp, **settings):
     Returns
     -------
     None
+
     """
     fp.write(dumps(ob, **settings))

@@ -6,7 +6,6 @@ from shapely.ops import linemerge
 
 class LineMergeTestCase(unittest.TestCase):
     def test_linemerge(self):
-
         lines = MultiLineString([[(0, 0), (1, 1)], [(2, 0), (2, 1), (1, 1)]])
         result = linemerge(lines)
         assert isinstance(result, LineString)

@@ -36,7 +36,7 @@ __all__ = [
 
 
 class GeometryType(IntEnum):
-    """The enumeration of GEOS geometry types"""
+    """The enumeration of GEOS geometry types."""
 
     MISSING = -1
     POINT = 0
@@ -54,7 +54,9 @@ class GeometryType(IntEnum):
 
 @multithreading_enabled
 def get_type_id(geometry, **kwargs):
-    """Returns the type ID of a geometry.
+    """Return the type ID of a geometry.
+
+    Possible values are:
 
     - None (missing) is -1
     - POINT is 0
@@ -69,10 +71,11 @@ def get_type_id(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to get the type ID of.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     GeometryType
 
@@ -83,13 +86,14 @@ def get_type_id(geometry, **kwargs):
     1
     >>> get_type_id([Point(1, 2), Point(2, 3)]).tolist()
     [0, 0]
+
     """
     return lib.get_type_id(geometry, **kwargs)
 
 
 @multithreading_enabled
 def get_dimensions(geometry, **kwargs):
-    """Returns the inherent dimensionality of a geometry.
+    """Return the inherent dimensionality of a geometry.
 
     The inherent dimension is 0 for points, 1 for linestrings and linearrings,
     and 2 for polygons. For geometrycollections it is the max of the containing
@@ -98,6 +102,7 @@ def get_dimensions(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to get the dimensionality of.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -116,13 +121,14 @@ def get_dimensions(geometry, **kwargs):
     -1
     >>> get_dimensions(None)
     -1
+
     """
     return lib.get_dimensions(geometry, **kwargs)
 
 
 @multithreading_enabled
 def get_coordinate_dimension(geometry, **kwargs):
-    """Returns the dimensionality of the coordinates in a geometry (2, 3 or 4).
+    """Return the dimensionality of the coordinates in a geometry (2, 3 or 4).
 
     The return value can be one of the following:
 
@@ -138,6 +144,7 @@ def get_coordinate_dimension(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to get the coordinate dimension of.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -150,19 +157,21 @@ def get_coordinate_dimension(geometry, **kwargs):
     3
     >>> get_coordinate_dimension(None)
     -1
+
     """
     return lib.get_coordinate_dimension(geometry, **kwargs)
 
 
 @multithreading_enabled
 def get_num_coordinates(geometry, **kwargs):
-    """Returns the total number of coordinates in a geometry.
+    """Return the total number of coordinates in a geometry.
 
     Returns 0 for not-a-geometry values.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to get the number of coordinates of.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -181,23 +190,25 @@ def get_num_coordinates(geometry, **kwargs):
     3
     >>> get_num_coordinates(None)
     0
+
     """
     return lib.get_num_coordinates(geometry, **kwargs)
 
 
 @multithreading_enabled
 def get_srid(geometry, **kwargs):
-    """Returns the SRID of a geometry.
+    """Return the SRID of a geometry.
 
     Returns -1 for not-a-geometry values.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to get the SRID of.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     set_srid
 
@@ -210,22 +221,25 @@ def get_srid(geometry, **kwargs):
     >>> with_srid = set_srid(point, 4326)
     >>> get_srid(with_srid)
     4326
+
     """
     return lib.get_srid(geometry, **kwargs)
 
 
 @multithreading_enabled
 def set_srid(geometry, srid, **kwargs):
-    """Returns a geometry with its SRID set.
+    """Return a geometry with its SRID set.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to set the SRID of.
     srid : int
+        The SRID to set on the geometry.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     get_srid
 
@@ -238,6 +252,7 @@ def set_srid(geometry, srid, **kwargs):
     >>> with_srid = set_srid(point, 4326)
     >>> get_srid(with_srid)
     4326
+
     """
     return lib.set_srid(geometry, np.intc(srid), **kwargs)
 
@@ -247,7 +262,7 @@ def set_srid(geometry, srid, **kwargs):
 
 @multithreading_enabled
 def get_x(point, **kwargs):
-    """Returns the x-coordinate of a point
+    """Return the x-coordinate of a point.
 
     Parameters
     ----------
@@ -256,7 +271,7 @@ def get_x(point, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     get_y, get_z, get_m
 
@@ -267,13 +282,14 @@ def get_x(point, **kwargs):
     1.0
     >>> get_x(MultiPoint([(1, 1), (1, 2)]))
     nan
+
     """
     return lib.get_x(point, **kwargs)
 
 
 @multithreading_enabled
 def get_y(point, **kwargs):
-    """Returns the y-coordinate of a point
+    """Return the y-coordinate of a point.
 
     Parameters
     ----------
@@ -282,7 +298,7 @@ def get_y(point, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     get_x, get_z, get_m
 
@@ -293,13 +309,14 @@ def get_y(point, **kwargs):
     2.0
     >>> get_y(MultiPoint([(1, 1), (1, 2)]))
     nan
+
     """
     return lib.get_y(point, **kwargs)
 
 
 @multithreading_enabled
 def get_z(point, **kwargs):
-    """Returns the z-coordinate of a point.
+    """Return the z-coordinate of a point.
 
     Parameters
     ----------
@@ -309,7 +326,7 @@ def get_z(point, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     get_x, get_y, get_m
 
@@ -322,6 +339,7 @@ def get_z(point, **kwargs):
     nan
     >>> get_z(MultiPoint([(1, 1, 1), (2, 2, 2)]))
     nan
+
     """
     return lib.get_z(point, **kwargs)
 
@@ -329,7 +347,7 @@ def get_z(point, **kwargs):
 @multithreading_enabled
 @requires_geos("3.12.0")
 def get_m(point, **kwargs):
-    """Returns the m-coordinate of a point.
+    """Return the m-coordinate of a point.
 
     .. versionadded:: 2.1.0
 
@@ -341,7 +359,7 @@ def get_m(point, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     get_x, get_y, get_z
 
@@ -356,6 +374,7 @@ def get_m(point, **kwargs):
     nan
     >>> get_m(from_wkt("MULTIPOINT M ((1 1 1), (2 2 2))"))
     nan
+
     """
     return lib.get_m(point, **kwargs)
 
@@ -365,17 +384,18 @@ def get_m(point, **kwargs):
 
 @multithreading_enabled
 def get_point(geometry, index, **kwargs):
-    """Returns the nth point of a linestring or linearring.
+    """Return the nth point of a linestring or linearring.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to get the point of.
     index : int or array_like
         Negative values count from the end of the linestring backwards.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     get_num_points
 
@@ -390,7 +410,7 @@ def get_point(geometry, index, **kwargs):
     >>> get_point(line, [0, 3]).tolist()
     [<POINT (0 0)>, <POINT (3 3)>]
 
-    The functcion works the same for LinearRing input:
+    The function works the same for LinearRing input:
 
     >>> get_point(LinearRing([(0, 0), (1, 1), (2, 2), (0, 0)]), 1)
     <POINT (1 1)>
@@ -401,25 +421,26 @@ def get_point(geometry, index, **kwargs):
     True
     >>> get_point(Point(1, 1), 0) is None
     True
+
     """
     return lib.get_point(geometry, np.intc(index), **kwargs)
 
 
 @multithreading_enabled
 def get_num_points(geometry, **kwargs):
-    """Returns number of points in a linestring or linearring.
+    """Return the number of points in a linestring or linearring.
 
-    Returns 0 for not-a-geometry values.
+    Returns 0 for not-a-geometry values. The number of points in geometries
+    other than linestring or linearring equals zero.
 
     Parameters
     ----------
     geometry : Geometry or array_like
-        The number of points in geometries other than linestring or linearring
-        equals zero.
+        Geometry or geometries to get the number of points of.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     get_point
     get_num_geometries
@@ -433,6 +454,7 @@ def get_num_points(geometry, **kwargs):
     0
     >>> get_num_points(None)
     0
+
     """
     return lib.get_num_points(geometry, **kwargs)
 
@@ -442,15 +464,16 @@ def get_num_points(geometry, **kwargs):
 
 @multithreading_enabled
 def get_exterior_ring(geometry, **kwargs):
-    """Returns the exterior ring of a polygon.
+    """Return the exterior ring of a polygon.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to get the exterior ring of.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     get_interior_ring
 
@@ -461,23 +484,27 @@ def get_exterior_ring(geometry, **kwargs):
     <LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>
     >>> get_exterior_ring(Point(1, 1)) is None
     True
+
     """
     return lib.get_exterior_ring(geometry, **kwargs)
 
 
 @multithreading_enabled
 def get_interior_ring(geometry, index, **kwargs):
-    """Returns the nth interior ring of a polygon.
+    """Return the nth interior ring of a polygon.
+
+    The number of interior rings in non-polygons equals zero.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to get the interior ring of.
     index : int or array_like
         Negative values count from the end of the interior rings backwards.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     get_exterior_ring
     get_num_interior_rings
@@ -498,24 +525,25 @@ def get_interior_ring(geometry, index, **kwargs):
     True
     >>> get_interior_ring(Point(0, 0), 0) is None
     True
+
     """
     return lib.get_interior_ring(geometry, np.intc(index), **kwargs)
 
 
 @multithreading_enabled
 def get_num_interior_rings(geometry, **kwargs):
-    """Returns number of internal rings in a polygon
+    """Return number of internal rings in a polygon.
 
     Returns 0 for not-a-geometry values.
 
     Parameters
     ----------
     geometry : Geometry or array_like
-        The number of interior rings in non-polygons equals zero.
+        Geometry or geometries to get the number of interior rings of.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     get_exterior_ring
     get_interior_ring
@@ -536,6 +564,7 @@ def get_num_interior_rings(geometry, **kwargs):
     0
     >>> get_num_interior_rings(None)
     0
+
     """
     return lib.get_num_interior_rings(geometry, **kwargs)
 
@@ -545,11 +574,12 @@ def get_num_interior_rings(geometry, **kwargs):
 
 @multithreading_enabled
 def get_geometry(geometry, index, **kwargs):
-    """Returns the nth geometry from a collection of geometries.
+    """Return the nth geometry from a collection of geometries.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to get the nth geometry of.
     index : int or array_like
         Negative values count from the end of the collection backwards.
     **kwargs
@@ -560,7 +590,7 @@ def get_geometry(geometry, index, **kwargs):
     - simple geometries act as length-1 collections
     - out-of-range values return None
 
-    See also
+    See Also
     --------
     get_num_geometries, get_parts
 
@@ -578,30 +608,35 @@ def get_geometry(geometry, index, **kwargs):
     <POINT (1 1)>
     >>> get_geometry(Point(1, 1), 1) is None
     True
+
     """
     return lib.get_geometry(geometry, np.intc(index), **kwargs)
 
 
 def get_parts(geometry, return_index=False):
-    """Gets parts of each GeometryCollection or Multi* geometry object; returns
-    a copy of each geometry in the GeometryCollection or Multi* geometry object.
+    """Get parts of each GeometryCollection or Multi* geometry object.
 
-    Note: This does not return the individual parts of Multi* geometry objects in
-    a GeometryCollection.  You may need to call this function multiple times to
-    return individual parts of Multi* geometry objects in a GeometryCollection.
+    A copy of each geometry in the GeometryCollection or Multi* geometry object
+    is returned.
+
+    Note: This does not return the individual parts of Multi* geometry objects
+    in a GeometryCollection. You may need to call this function multiple times
+    to return individual parts of Multi* geometry objects in a
+    GeometryCollection.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to get the parts of.
     return_index : bool, default False
-        If True, will return a tuple of ndarrays of (parts, indexes), where indexes
-        are the indexes of the original geometries in the source array.
+        If True, will return a tuple of ndarrays of (parts, indexes), where
+        indexes are the indexes of the original geometries in the source array.
 
     Returns
     -------
     ndarray of parts or tuple of (parts, indexes)
 
-    See also
+    See Also
     --------
     get_geometry, get_rings
 
@@ -616,6 +651,7 @@ return_index=True)
     [<POINT (0 1)>, <POINT (4 5)>, <POINT (6 7)>]
     >>> index.tolist()
     [0, 1, 1]
+
     """
     geometry = np.asarray(geometry, dtype=np.object_)
     geometry = np.atleast_1d(geometry)
@@ -630,7 +666,7 @@ return_index=True)
 
 
 def get_rings(geometry, return_index=False):
-    """Gets rings of Polygon geometry object.
+    """Get rings of Polygon geometry object.
 
     For each Polygon, the first returned ring is always the exterior ring
     and potential subsequent rings are interior rings.
@@ -641,6 +677,7 @@ def get_rings(geometry, return_index=False):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to get the rings of.
     return_index : bool, default False
         If True, will return a tuple of ndarrays of (rings, indexes), where
         indexes are the indexes of the original geometries in the source array.
@@ -649,7 +686,7 @@ def get_rings(geometry, return_index=False):
     -------
     ndarray of rings or tuple of (rings, indexes)
 
-    See also
+    See Also
     --------
     get_exterior_ring, get_interior_ring, get_parts
 
@@ -674,6 +711,7 @@ def get_rings(geometry, return_index=False):
      <LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>]
     >>> index.tolist()
     [0, 1, 1]
+
     """
     geometry = np.asarray(geometry, dtype=np.object_)
     geometry = np.atleast_1d(geometry)
@@ -689,19 +727,19 @@ def get_rings(geometry, return_index=False):
 
 @multithreading_enabled
 def get_num_geometries(geometry, **kwargs):
-    """Returns number of geometries in a collection.
+    """Return number of geometries in a collection.
 
-    Returns 0 for not-a-geometry values.
+    Returns 0 for not-a-geometry values. The number of geometries in points,
+    linestrings, linearrings and polygons equals one.
 
     Parameters
     ----------
     geometry : Geometry or array_like
-        The number of geometries in points, linestrings, linearrings and
-        polygons equals one.
+        Geometry or geometries to get the number of geometries of.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     get_num_points
     get_geometry
@@ -715,6 +753,7 @@ def get_num_geometries(geometry, **kwargs):
     1
     >>> get_num_geometries(None)
     0
+
     """
     return lib.get_num_geometries(geometry, **kwargs)
 
@@ -732,10 +771,11 @@ def get_precision(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to get the precision of.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     set_precision
 
@@ -750,6 +790,7 @@ def get_precision(geometry, **kwargs):
     1.0
     >>> get_precision(None)
     nan
+
     """
     return lib.get_precision(geometry, **kwargs)
 
@@ -762,7 +803,7 @@ class SetPrecisionMode(ParamEnum):
 
 @multithreading_enabled
 def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
-    """Returns geometry with the precision set to a precision grid size.
+    """Return geometry with the precision set to a precision grid size.
 
     By default, geometries use double precision coordinates (grid_size = 0).
 
@@ -775,8 +816,8 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
     after rounding the vertices will be removed, which can lead to multipolygons
     or empty geometries. Z values, if present, will not be modified.
 
-    Notes:
-
+    Notes
+    -----
     * subsequent operations will always be performed in the precision of the
       geometry with higher precision (smaller "grid_size"). That same precision
       will be attached to the operation outputs.
@@ -790,12 +831,13 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to set the precision of.
     grid_size : float
         Precision grid size. If 0, will use double precision (will not modify
         geometry if precision grid size was not previously set). If this
         value is more precise than input geometry, the input geometry will
         not be modified.
-    mode :  {'valid_output', 'pointwise', 'keep_collapsed'}, default 'valid_output'
+    mode : {'valid_output', 'pointwise', 'keep_collapsed'}, default 'valid_output'
         This parameter determines the way a precision reduction is applied on
         the geometry. There are three modes:
 
@@ -817,7 +859,7 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
     get_precision
 
@@ -831,14 +873,15 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
     >>> set_precision(LineString([(0, 0), (0, 0.1), (0, 1), (1, 1)]), 1.0)
     <LINESTRING (0 0, 0 1, 1 1)>
     >>> set_precision(LineString([(0, 0), (0, 0.1), (0.1, 0.1)]), 1.0, mode="valid_output")
-    <LINESTRING Z EMPTY>
+    <LINESTRING EMPTY>
     >>> set_precision(LineString([(0, 0), (0, 0.1), (0.1, 0.1)]), 1.0, mode="pointwise")
     <LINESTRING (0 0, 0 0, 0 0)>
     >>> set_precision(LineString([(0, 0), (0, 0.1), (0.1, 0.1)]), 1.0, mode="keep_collapsed")
     <LINESTRING (0 0, 0 0)>
     >>> set_precision(None, 1.0) is None
     True
-    """
+
+    """  # noqa: E501
     if isinstance(mode, str):
         mode = SetPrecisionMode.get_value(mode)
     elif not np.isscalar(mode):
@@ -854,11 +897,12 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
 
 @multithreading_enabled
 def force_2d(geometry, **kwargs):
-    """Forces the dimensionality of a geometry to 2D.
+    """Force the dimensionality of a geometry to 2D.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to force to 2D.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -875,13 +919,14 @@ def force_2d(geometry, **kwargs):
     <POLYGON EMPTY>
     >>> force_2d(None) is None
     True
+
     """
     return lib.force_2d(geometry, **kwargs)
 
 
 @multithreading_enabled
 def force_3d(geometry, z=0.0, **kwargs):
-    """Forces the dimensionality of a geometry to 3D.
+    """Force the dimensionality of a geometry to 3D.
 
     2D geometries will get the provided Z coordinate; Z coordinates of 3D geometries
     are unchanged (unless they are nan).
@@ -892,7 +937,9 @@ def force_3d(geometry, z=0.0, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries to force to 3D.
     z : float or array_like, default 0.0
+        The Z coordinate value to set on the geometry.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -907,6 +954,7 @@ def force_3d(geometry, z=0.0, **kwargs):
     <LINESTRING Z (0 0 0, 0 1 0, 1 1 0)>
     >>> force_3d(None) is None
     True
+
     """
     if np.isnan(z).any():
         raise ValueError("It is not allowed to set the Z coordinate to NaN.")
