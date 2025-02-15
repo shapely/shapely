@@ -164,10 +164,11 @@ def test_linestrings():
             [10.0, 40.0],
         ]
     )
-    expected_offsets = np.array([0, 3, 7, 7, 7, 10, 10, 10])
+    expected_offsets = np.array([0, 3, 7, 7, 7, 10, 10, 10], dtype="int32")
     assert typ == shapely.GeometryType.LINESTRING
     assert_allclose(coords, expected)
     assert len(offsets) == 1
+    assert offsets[0].dtype == np.int32
     assert_allclose(offsets[0], expected_offsets)
 
     result = shapely.from_ragged_array(typ, coords, offsets)
@@ -218,6 +219,8 @@ def test_polygons():
     assert typ == shapely.GeometryType.POLYGON
     assert_allclose(coords, expected)
     assert len(offsets) == 2
+    assert offsets[0].dtype == np.int32
+    assert offsets[1].dtype == np.int32
     assert_allclose(offsets[0], expected_offsets1)
     assert_allclose(offsets[1], expected_offsets2)
 
@@ -257,6 +260,7 @@ def test_multipoints():
     assert typ == shapely.GeometryType.MULTIPOINT
     assert_allclose(coords, expected)
     assert len(offsets) == 1
+    assert offsets[0].dtype == np.int32
     assert_allclose(offsets[0], expected_offsets)
 
     result = shapely.from_ragged_array(typ, coords, offsets)
@@ -305,6 +309,8 @@ def test_multilinestrings():
     assert typ == shapely.GeometryType.MULTILINESTRING
     assert_allclose(coords, expected)
     assert len(offsets) == 2
+    assert offsets[0].dtype == np.int32
+    assert offsets[1].dtype == np.int32
     assert_allclose(offsets[0], expected_offsets1)
     assert_allclose(offsets[1], expected_offsets2)
 
@@ -365,6 +371,9 @@ def test_multipolygons():
     assert typ == shapely.GeometryType.MULTIPOLYGON
     assert_allclose(coords, expected)
     assert len(offsets) == 3
+    assert offsets[0].dtype == np.int32
+    assert offsets[1].dtype == np.int32
+    assert offsets[2].dtype == np.int32
     assert_allclose(offsets[0], expected_offsets1)
     assert_allclose(offsets[1], expected_offsets2)
     assert_allclose(offsets[2], expected_offsets3)
