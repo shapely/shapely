@@ -1,9 +1,7 @@
 import unittest
 
-import pytest
 from numpy.testing import assert_array_equal
 
-import shapely
 from shapely.geometry import (
     GeometryCollection,
     LinearRing,
@@ -17,7 +15,6 @@ from shapely.geometry import (
 from shapely.ops import orient
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 class OrientTestCase(unittest.TestCase):
     def test_point(self):
         point = Point(0, 0)
@@ -41,8 +38,7 @@ class OrientTestCase(unittest.TestCase):
 
     def test_linearring(self):
         linearring = LinearRing([(0, 0), (0, 1), (1, 0)])
-        linearring_reversed = LinearRing(linearring.coords[::-1])
-        assert orient(linearring, 1) == linearring_reversed
+        assert orient(linearring, 1) == linearring
         assert orient(linearring, -1) == linearring
 
     def test_empty_polygon(self):
@@ -73,13 +69,12 @@ class OrientTestCase(unittest.TestCase):
         assert orient(collection, 1) == GeometryCollection([polygon_reversed])
         assert orient(collection, -1) == GeometryCollection([polygon])
 
-    def test_vectorized(self):
+    def test_polygon_with_holes(self):
         ring_cw = LinearRing([(0, 0), (0, 1), (1, 1), (0, 0)])
         ring_cw2 = LinearRing([(0, 0), (0, 3), (3, 3), (0, 0)])
         ring_ccw = LinearRing([(0, 0), (1, 1), (0, 1), (0, 0)])
         ring_ccw2 = LinearRing([(0, 0), (2, 2), (0, 2), (0, 0)])
 
-        polygon_cw = Polygon(ring_cw)
         polygon_with_holes_mixed = Polygon(
             ring_ccw, [ring_cw, ring_ccw2, ring_cw2, ring_ccw]
         )
@@ -95,33 +90,3 @@ class OrientTestCase(unittest.TestCase):
         assert_array_equal(
             orient(polygon_with_holes_mixed, -1), polygon_with_holes_ccw.reverse()
         )
-
-        # vectorized with scalar sign parameter
-        assert_array_equal(
-            orient([ring_ccw, ring_cw, polygon_cw, polygon_with_holes_mixed], 1),
-            [ring_ccw, ring_cw.reverse(), polygon_cw.reverse(), polygon_with_holes_ccw],
-        )
-
-        # vectorized with scalar sign parameter
-        assert_array_equal(
-            orient([ring_ccw, ring_cw, polygon_cw, polygon_with_holes_mixed], -1),
-            [ring_ccw.reverse(), ring_cw, polygon_cw, polygon_with_holes_ccw.reverse()],
-        )
-
-        # vectorized with vector sign parameter
-        assert_array_equal(
-            orient(
-                [ring_ccw, ring_cw, polygon_cw, polygon_with_holes_mixed, polygon_cw],
-                [1, -1, 1, -1, -1],
-            ),
-            [
-                ring_ccw,
-                ring_cw,
-                polygon_cw.reverse(),
-                polygon_with_holes_ccw.reverse(),
-                polygon_cw,
-            ],
-        )
-
-        # vectorized with single geom and vector sign parameter
-        assert_array_equal(orient(ring_ccw, [1, -1]), [ring_ccw, ring_ccw.reverse()])

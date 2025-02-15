@@ -1262,7 +1262,16 @@ def test_maximum_inscribed_circle_invalid_tolerance():
         shapely.maximum_inscribed_circle(geometry, tolerance=-1)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+@pytest.mark.parametrize("geometry", all_types)
+def test_orient_polygons_all_types(geometry):
+    actual = shapely.orient_polygons([geometry, geometry])
+    assert actual.shape == (2,)
+    assert isinstance(actual[0], Geometry)
+
+    actual = shapely.orient_polygons(None)
+    assert actual is None
+
+
 def test_orient_polygons():
     # polygon with both shell and hole having clockwise orientation
     polygon = Polygon(
@@ -1278,9 +1287,59 @@ def test_orient_polygons():
     assert not result.exterior.is_ccw
     assert result.interiors[0].is_ccw
 
+    # in a MultiPolygon
+    mp = MultiPolygon([polygon, polygon])
+    result = shapely.orient_polygons(mp)
+    assert len(result.geoms) == 2
+    for geom in result.geoms:
+        assert geom.exterior.is_ccw
+        assert not geom.interiors[0].is_ccw
 
-@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+    result = shapely.orient_polygons([mp], exterior_cw=True)[0]
+    assert len(result.geoms) == 2
+    for geom in result.geoms:
+        assert not geom.exterior.is_ccw
+        assert geom.interiors[0].is_ccw
+
+    # in a GeometryCollection
+    gc = GeometryCollection([Point(1, 1), polygon, mp])
+    result = shapely.orient_polygons(gc)
+    assert len(result.geoms) == 3
+    assert result.geoms[0] == Point(1, 1)
+    assert result.geoms[1] == shapely.orient_polygons(polygon)
+    assert result.geoms[2] == shapely.orient_polygons(mp)
+
+
 def test_orient_polygons_non_polygonal_input():
     arr = np.array([Point(0, 0), LineString([(0, 0), (1, 1)]), None])
     result = shapely.orient_polygons(arr)
     assert_geometries_equal(result, arr)
+
+
+def test_orient_polygons_array():
+    # because we have a custom python implementation for older GEOS, need to
+    # ensure this has the same capabilities as numpy ufuncs to work with array-likes
+    polygon = Polygon(
+        [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+        holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]],
+    )
+    geometries = np.array([[polygon] * 3] * 2)
+    actual = shapely.orient_polygons(geometries)
+    assert isinstance(actual, np.ndarray)
+    assert actual.shape == (2, 3)
+    expected = shapely.orient_polygons(polygon)
+    assert (actual == expected).all()
+
+
+def test_orient_polygons_array_like():
+    # because we have a custom python implementation for older GEOS, need to
+    # ensure this has the same capabilities as numpy ufuncs to work with array-likes
+    polygon = Polygon(
+        [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
+        holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]],
+    )
+    geometries = [polygon, Point(2, 2).buffer(1)]
+    actual = shapely.orient_polygons(ArrayLike(geometries))
+    assert isinstance(actual, ArrayLike)
+    expected = shapely.orient_polygons(geometries)
+    assert_geometries_equal(np.asarray(actual), expected)

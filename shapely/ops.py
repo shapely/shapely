@@ -3,7 +3,6 @@
 from warnings import warn
 
 import shapely
-from shapely.algorithms.cga import orient
 from shapely.algorithms.polylabel import polylabel  # noqa
 from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
 from shapely.geometry import (
@@ -711,3 +710,26 @@ def clip_by_rect(geom, xmin, ymin, xmax, ymax):
     if geom.is_empty:
         return geom
     return shapely.clip_by_rect(geom, xmin, ymin, xmax, ymax)
+
+
+def orient(geom, sign=1.0):
+    """Return a properly oriented copy of the given geometry.
+
+    The signed area of the result will have the given sign. A sign of
+    1.0 means that the coordinates of the product's exterior rings will
+    be oriented counter-clockwise.
+
+    Parameters
+    ----------
+    geom : Geometry
+        The original geometry. May be a Polygon, MultiPolygon, or
+        GeometryCollection.
+    sign : float, optional.
+        The sign of the result's signed area.
+
+    Returns
+    -------
+    Geometry
+
+    """
+    return shapely.orient_polygons(geom, exterior_cw=sign < 0)

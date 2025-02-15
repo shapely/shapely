@@ -3,7 +3,7 @@
 import numpy as np
 
 import shapely
-from shapely.algorithms.cga import orient
+from shapely.algorithms.cga import signed_area  # noqa
 from shapely.errors import TopologicalError
 from shapely.geometry.base import BaseGeometry
 from shapely.geometry.linestring import LineString
@@ -317,3 +317,24 @@ class Polygon(BaseGeometry):
 
 
 shapely.lib.registry[3] = Polygon
+
+
+def orient(polygon, sign=1.0):
+    """Return an oriented polygon.
+
+    Parameters
+    ----------
+    geom : Geometry or array_like
+        The original geometry. Either a Polygon, MultiPolygon, or GeometryCollection.
+    sign : float, default 1.
+        The sign of the result's signed area.
+        A non-negative sign means that the coordinates of the geometry's exterior
+        rings will be oriented counter-clockwise.
+
+    Returns
+    -------
+    Geometry or array_like
+    Refer to `shapely.force_ccw` for full documentation.
+
+    """
+    return shapely.orient_polygons(polygon, sign < 0.0)
