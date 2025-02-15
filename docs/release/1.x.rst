@@ -361,7 +361,7 @@ Bug fixes:
 1.6.1 (2017-09-01)
 ------------------
 
-- Avoid ``STRTree`` crashes due to dangling references (#505) by maintaining
+- Avoid ``STRtree`` crashes due to dangling references (#505) by maintaining
   references to added geometries.
 - Reduce log level to debug when reporting on calls to ctypes ``CDLL()`` that
   don't succeed and are retried (#515).
