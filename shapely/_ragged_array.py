@@ -422,11 +422,18 @@ def from_ragged_array(geometry_type, coords, offsets=None):
     coords = np.asarray(coords, dtype="float64")
 
     if geometry_type == GeometryType.POINT:
-        assert offsets is None or len(offsets) == 0
+        if not (offsets is None or len(offsets) == 0):
+            raise ValueError("'offsets' should not be provided for geometry type Point")
         return _point_from_flatcoords(coords)
+
+    if offsets is None:
+        raise ValueError(
+            "'offsets' must be provided for any geometry type except for Point"
+        )
+
     if geometry_type == GeometryType.LINESTRING:
         return _linestring_from_flatcoords(coords, *offsets)
-    if geometry_type == GeometryType.POLYGON:
+    elif geometry_type == GeometryType.POLYGON:
         return _polygon_from_flatcoords(coords, *offsets)
     elif geometry_type == GeometryType.MULTIPOINT:
         return _multipoint_from_flatcoords(coords, *offsets)

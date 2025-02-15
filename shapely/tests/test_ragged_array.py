@@ -443,3 +443,17 @@ def test_from_ragged_incorrect_rings_unclosed():
         shapely.from_ragged_array(
             shapely.GeometryType.POLYGON, coords, (offsets1, offsets2)
         )
+
+
+def test_from_ragged_wrong_offsets():
+    with pytest.raises(ValueError, match="'offsets' must be provided"):
+        shapely.from_ragged_array(
+            shapely.GeometryType.LINESTRING, np.array([[0, 0], [0, 1]])
+        )
+
+    with pytest.raises(ValueError, match="'offsets' should not be provided"):
+        shapely.from_ragged_array(
+            shapely.GeometryType.POINT,
+            np.array([[0, 0], [0, 1]]),
+            offsets=(np.array([0, 1]),),
+        )
