@@ -1,5 +1,4 @@
-"""Collections of points and related utilities
-"""
+"""Collections of points and related utilities."""
 
 import shapely
 from shapely.errors import EmptyPartError
@@ -10,39 +9,38 @@ __all__ = ["MultiPoint"]
 
 
 class MultiPoint(BaseMultipartGeometry):
-
-    """A collection of one or more points
+    """A collection of one or more Points.
 
     A MultiPoint has zero area and zero length.
+
+    Parameters
+    ----------
+    points : sequence
+        A sequence of Points, or a sequence of (x, y [,z]) numeric coordinate
+        pairs or triples, or an array-like of shape (N, 2) or (N, 3).
 
     Attributes
     ----------
     geoms : sequence
         A sequence of Points
+
+    Examples
+    --------
+    Construct a MultiPoint containing two Points
+
+    >>> from shapely import MultiPoint, Point
+    >>> ob = MultiPoint([[0.0, 0.0], [1.0, 2.0]])
+    >>> len(ob.geoms)
+    2
+    >>> type(ob.geoms[0]) == Point
+    True
+
     """
 
     __slots__ = []
 
     def __new__(self, points=None):
-        """
-        Parameters
-        ----------
-        points : sequence
-            A sequence of (x, y [,z]) numeric coordinate pairs or triples or a
-            sequence of objects that implement the numpy array interface,
-            including instances of Point.
-
-        Example
-        -------
-        Construct a 2 point collection
-
-          >>> from shapely.geometry import Point
-          >>> ob = MultiPoint([[0.0, 0.0], [1.0, 2.0]])
-          >>> len(ob.geoms)
-          2
-          >>> type(ob.geoms[0]) == Point
-          True
-        """
+        """Create a new MultiPoint geometry."""
         if points is None:
             # allow creation of empty multipoints, to support unpickling
             # TODO better empty constructor
@@ -50,10 +48,9 @@ class MultiPoint(BaseMultipartGeometry):
         elif isinstance(points, MultiPoint):
             return points
 
-        m = len(points)
         subs = []
-        for i in range(m):
-            p = point.Point(points[i])
+        for item in points:
+            p = point.Point(item)
             if p.is_empty:
                 raise EmptyPartError("Can't create MultiPoint with empty component")
             subs.append(p)
@@ -63,21 +60,19 @@ class MultiPoint(BaseMultipartGeometry):
 
         return shapely.multipoints(subs)
 
-    def shape_factory(self, *args):
-        return point.Point(*args)
-
     @property
     def __geo_interface__(self):
+        """Return a GeoJSON-like mapping interface for this MultiPoint."""
         return {
             "type": "MultiPoint",
-            "coordinates": tuple([g.coords[0] for g in self.geoms]),
+            "coordinates": tuple(g.coords[0] for g in self.geoms),
         }
 
     def svg(self, scale_factor=1.0, fill_color=None, opacity=None):
-        """Returns a group of SVG circle elements for the MultiPoint geometry.
+        """Return a group of SVG circle elements for the MultiPoint geometry.
 
         Parameters
-        ==========
+        ----------
         scale_factor : float
             Multiplication factor for the SVG circle diameters.  Default is 1.
         fill_color : str, optional
@@ -85,6 +80,7 @@ class MultiPoint(BaseMultipartGeometry):
             geometry is valid, and "#ff3333" if invalid.
         opacity : float
             Float number between 0 and 1 for color opacity. Default value is 0.6
+
         """
         if self.is_empty:
             return "<g />"

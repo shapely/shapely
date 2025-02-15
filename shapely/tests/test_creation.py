@@ -1,13 +1,25 @@
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 import shapely
-from shapely import GeometryType
-from shapely.testing import assert_geometries_equal
 
-from .common import (
+# Note: Point is not imported because it is overridden for testing
+from shapely import (
+    GeometryCollection,
+    GeometryType,
+    LinearRing,
+    LineString,
+    MultiLineString,
+    MultiPoint,
+    MultiPolygon,
+    Polygon,
+)
+from shapely.testing import assert_geometries_equal
+from shapely.tests.common import (
     empty_polygon,
     geometry_collection,
+    ignore_invalid,
     line_string,
     linear_ring,
     multi_line_string,
@@ -24,34 +36,110 @@ def box_tpl(x1, y1, x2, y2):
 
 def test_points_from_coords():
     actual = shapely.points([[0, 0], [2, 2]])
-    assert_geometries_equal(
-        actual, [shapely.Geometry("POINT (0 0)"), shapely.Geometry("POINT (2 2)")]
-    )
+    assert_geometries_equal(actual, [shapely.Point(0, 0), shapely.Point(2, 2)])
 
 
 def test_points_from_xy():
     actual = shapely.points(2, [0, 1])
-    assert_geometries_equal(
-        actual, [shapely.Geometry("POINT (2 0)"), shapely.Geometry("POINT (2 1)")]
-    )
+    assert_geometries_equal(actual, [shapely.Point(2, 0), shapely.Point(2, 1)])
 
 
 def test_points_from_xyz():
     actual = shapely.points(1, 1, [0, 1])
-    assert_geometries_equal(
-        actual, [shapely.Geometry("POINT Z (1 1 0)"), shapely.Geometry("POINT (1 1 1)")]
-    )
+    assert_geometries_equal(actual, [shapely.Point(1, 1, 0), shapely.Point(1, 1, 1)])
 
 
 def test_points_invalid_ndim():
-    with pytest.raises(shapely.GEOSException):
+    with pytest.raises(ValueError, match="dimension should be 2 or 3, got 4"):
         shapely.points([0, 1, 2, 3])
 
+    with pytest.raises(ValueError, match="dimension should be 2 or 3, got 1"):
+        shapely.points([0])
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
-def test_points_nan_becomes_empty():
+
+@pytest.mark.skipif(
+    shapely.geos_version[:2] not in ((3, 10), (3, 11), (3, 12)),
+    reason="GEOS not in 3.10, 3.11, 3.12",
+)
+def test_points_nan_all_nan_becomes_empty():
     actual = shapely.points(np.nan, np.nan)
-    assert_geometries_equal(actual, shapely.Geometry("POINT EMPTY"))
+    assert actual.wkt == "POINT EMPTY"
+
+
+@pytest.mark.skipif(
+    shapely.geos_version[:2] not in ((3, 10), (3, 11)),
+    reason="GEOS not in 3.10, 3.11",
+)
+def test_points_nan_3D_all_nan_becomes_empty_2D():
+    actual = shapely.points(np.nan, np.nan, np.nan)
+    assert actual.wkt == "POINT EMPTY"
+
+
+@pytest.mark.skipif(shapely.geos_version[:2] != (3, 12), reason="GEOS != 3.12")
+def test_points_nan_3D_all_nan_becomes_empty():
+    actual = shapely.points(np.nan, np.nan, np.nan)
+    assert actual.wkt == "POINT Z EMPTY"
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+@pytest.mark.parametrize(
+    "coords,expected_wkt",
+    [
+        pytest.param(
+            [np.nan, np.nan],
+            "POINT (NaN NaN)",
+            marks=pytest.mark.skipif(
+                shapely.geos_version < (3, 13, 0), reason="GEOS < 3.13"
+            ),
+        ),
+        pytest.param(
+            [np.nan, np.nan, np.nan],
+            "POINT Z (NaN NaN NaN)",
+            marks=pytest.mark.skipif(
+                shapely.geos_version < (3, 13, 0), reason="GEOS < 3.13"
+            ),
+        ),
+        ([1, np.nan], "POINT (1 NaN)"),
+        ([np.nan, 1], "POINT (NaN 1)"),
+        ([np.nan, 1, np.nan], "POINT Z (NaN 1 NaN)"),
+        ([np.nan, np.nan, 1], "POINT Z (NaN NaN 1)"),
+    ],
+)
+def test_points_handle_nan_allow(coords, expected_wkt):
+    actual = shapely.points(coords, handle_nan="allow")
+    assert actual.wkt == expected_wkt
+
+
+@pytest.mark.parametrize(
+    "coords,handle_nan,expected_wkt",
+    [
+        ([0, np.nan], "skip", "POINT EMPTY"),
+        ([np.nan, 0], "skip", "POINT EMPTY"),
+        ([0, np.nan, 1], "skip", "POINT Z EMPTY"),
+        ([0, 1, np.nan], "skip", "POINT Z EMPTY"),
+        ([0, 1], "error", "POINT (0 1)"),
+        ([0, 1, 2], "error", "POINT Z (0 1 2)"),
+        ([0, np.inf], "skip", "POINT EMPTY"),
+    ],
+)
+def test_points_handle_nan(coords, handle_nan, expected_wkt):
+    actual = shapely.points(coords, handle_nan=handle_nan)
+    assert actual.wkt in expected_wkt
+
+
+@pytest.mark.parametrize(
+    "coords",
+    [
+        [0, np.nan],
+        [np.nan, 0],
+        [0, 0, np.nan],
+        [0, np.inf],
+        [0, -np.inf],
+    ],
+)
+def test_points_nan_handle_nan_err(coords):
+    with pytest.raises(ValueError, match=".*NaN.*"):
+        shapely.points(coords, handle_nan="error")
 
 
 def test_linestrings_from_coords():
@@ -59,15 +147,15 @@ def test_linestrings_from_coords():
     assert_geometries_equal(
         actual,
         [
-            shapely.Geometry("LINESTRING (0 0, 1 1)"),
-            shapely.Geometry("LINESTRING (0 0, 2 2)"),
+            LineString([(0, 0), (1, 1)]),
+            LineString([(0, 0), (2, 2)]),
         ],
     )
 
 
 def test_linestrings_from_xy():
     actual = shapely.linestrings([0, 1], [2, 3])
-    assert_geometries_equal(actual, shapely.Geometry("LINESTRING (0 2, 1 3)"))
+    assert_geometries_equal(actual, LineString([(0, 2), (1, 3)]))
 
 
 def test_linestrings_from_xy_broadcast():
@@ -77,15 +165,15 @@ def test_linestrings_from_xy_broadcast():
     assert_geometries_equal(
         actual,
         [
-            shapely.Geometry("LINESTRING (0 2, 1 3)"),
-            shapely.Geometry("LINESTRING (0 4, 1 5)"),
+            LineString([(0, 2), (1, 3)]),
+            LineString([(0, 4), (1, 5)]),
         ],
     )
 
 
 def test_linestrings_from_xyz():
     actual = shapely.linestrings([0, 1], [2, 3], 0)
-    assert_geometries_equal(actual, shapely.Geometry("LINESTRING Z (0 2 0, 1 3 0)"))
+    assert_geometries_equal(actual, LineString([(0, 2, 0), (1, 3, 0)]))
 
 
 @pytest.mark.parametrize("dim", [2, 3])
@@ -103,6 +191,11 @@ def test_linestrings_buffer(dim):
     coords3 = np.swapaxes(np.swapaxes(coords3, 0, 2), 1, 2)
     result3 = shapely.linestrings(coords3)
     assert_geometries_equal(result1, result3)
+
+
+def test_linestrings_empty():
+    actual = shapely.linestrings(np.empty((0, 2)))
+    assert actual.is_empty
 
 
 def test_linestrings_invalid_shape_scalar():
@@ -145,28 +238,80 @@ def test_linestrings_invalid_ndim():
         shapely.linestrings(coords)
 
 
+@pytest.mark.parametrize(
+    "coords",
+    [
+        [[0, 1], [2, float("nan")]],
+        [[0, 1, float("nan")], [2, 2, float("nan")]],
+        [[0, 1, 2], [2, 2, float("nan")]],
+        [[0, 1, float("nan")], [2, 2, 3]],
+        [[float("nan"), float("nan")], [float("nan"), float("nan")]],
+    ],
+)
+def test_linestrings_allow_nan(coords):
+    with ignore_invalid():
+        actual = shapely.linestrings(coords, handle_nan="allow")
+    actual = shapely.get_coordinates(actual, include_z=len(coords[0]) == 3)
+
+    assert_array_equal(actual, coords)
+
+
+@pytest.mark.parametrize(
+    "coords",
+    [
+        [[2, float("nan")], [0, 1], [2, 3]],
+        [[0, 1], [2, float("nan")], [2, 3]],
+        [[0, 1], [2, 3], [2, float("nan")]],
+    ],
+)
+def test_linestrings_skip_nan(coords):
+    actual = shapely.linestrings(coords, handle_nan="skip")
+    assert_geometries_equal(actual, LineString([(0, 1), (2, 3)]))
+
+
+def test_linestrings_skip_nan_invalid():
+    with pytest.raises(shapely.GEOSException):
+        shapely.linestrings([[0, 1], [2, float("nan")]], handle_nan="skip")
+
+
+def test_linestrings_skip_nan_only_nan():
+    # all-nan becomes an empty linestring
+    actual = shapely.linestrings(np.full((3, 2), fill_value=np.nan), handle_nan="skip")
+    assert actual.is_empty
+
+
+def test_linestrings_error_nan():
+    with pytest.raises(ValueError, match=".*NaN.*"):
+        shapely.linestrings([[0, 1], [2, float("nan")], [2, 3]], handle_nan="error")
+
+
 def test_linearrings():
     actual = shapely.linearrings(box_tpl(0, 0, 1, 1))
     assert_geometries_equal(
-        actual, shapely.Geometry("LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)")
+        actual, LinearRing([(1, 0), (1, 1), (0, 1), (0, 0), (1, 0)])
     )
+
+
+def test_linearrings_empty():
+    actual = shapely.linearrings(np.empty((0, 2)))
+    assert actual.is_empty
 
 
 def test_linearrings_from_xy():
     actual = shapely.linearrings([0, 1, 2, 0], [3, 4, 5, 3])
-    assert_geometries_equal(actual, shapely.Geometry("LINEARRING (0 3, 1 4, 2 5, 0 3)"))
+    assert_geometries_equal(actual, LinearRing([(0, 3), (1, 4), (2, 5), (0, 3)]))
 
 
 def test_linearrings_unclosed():
     actual = shapely.linearrings(box_tpl(0, 0, 1, 1)[:-1])
     assert_geometries_equal(
-        actual, shapely.Geometry("LINEARRING (1 0, 1 1, 0 1, 0 0, 1 0)")
+        actual, LinearRing([(1, 0), (1, 1), (0, 1), (0, 0), (1, 0)])
     )
 
 
 def test_linearrings_unclosed_all_coords_equal():
     actual = shapely.linearrings([(0, 0), (0, 0), (0, 0)])
-    assert_geometries_equal(actual, shapely.Geometry("LINEARRING (0 0, 0 0, 0 0, 0 0)"))
+    assert_geometries_equal(actual, LinearRing([(0, 0), (0, 0), (0, 0), (0, 0)]))
 
 
 def test_linearrings_invalid_shape_scalar():
@@ -238,11 +383,57 @@ def test_linearrings_buffer(dim, order):
     assert_geometries_equal(result3, result1[0])
 
 
+@pytest.mark.parametrize(
+    "coords",
+    [
+        [[0, 2], [1, float("nan")], [1, 3], [0, 2]],
+        [[0, 2], [float("nan"), 0], [1, 3], [0, 2]],
+        [[0, 2, 5], [float("nan"), 2, 5], [1, 3, 5], [0, 2, 5]],
+        [[0, 2, 5], [1, 2, float("nan")], [1, 3, 5], [0, 2, 5]],
+    ],
+)
+def test_linearrings_allow_nan(coords):
+    with ignore_invalid():
+        actual = shapely.linearrings(coords, handle_nan="allow")
+    actual = shapely.get_coordinates(actual, include_z=len(coords[0]) == 3)
+
+    assert_array_equal(actual, coords)
+
+
+@pytest.mark.parametrize(
+    "x,y",
+    [
+        ([0, 1, float("nan"), 2, 0], [3, 4, 5, 5, 3]),
+        ([0, 1, 1, 2, 0], [3, 4, float("nan"), 5, 3]),
+        ([0, 1, 2, 0, float("nan")], [3, 4, 5, 3, 3]),
+        ([float("nan"), 0, 1, 2, 0], [3, 3, 4, 5, 3]),
+    ],
+)
+def test_linearrings_skip_nan(x, y):
+    actual = shapely.linearrings(x, y, handle_nan="skip")
+    assert_geometries_equal(actual, LinearRing([(0, 3), (1, 4), (2, 5), (0, 3)]))
+
+
+def test_linearrings_skip_nan_invalid():
+    with pytest.raises(ValueError):
+        shapely.linearrings([0, float("nan"), 0], [3, 4, 3], handle_nan="skip")
+
+
+def test_linearrings_skip_nan_only_nan():
+    actual = shapely.linearrings(np.full((5, 2), fill_value=np.nan), handle_nan="skip")
+    assert actual.is_empty
+
+
+def test_linearrings_error_nan():
+    with pytest.raises(ValueError, match=".*NaN.*"):
+        shapely.linearrings(
+            [0, 1, float("nan"), 2, 0], [3, 4, 5, 5, 3], handle_nan="error"
+        )
+
+
 def test_polygon_from_linearring():
     actual = shapely.polygons(shapely.linearrings(box_tpl(0, 0, 1, 1)))
-    assert_geometries_equal(
-        actual, shapely.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))")
-    )
+    assert_geometries_equal(actual, Polygon([(1, 0), (1, 1), (0, 1), (0, 0), (1, 0)]))
 
 
 def test_polygons_none():
@@ -252,9 +443,7 @@ def test_polygons_none():
 
 def test_polygons():
     actual = shapely.polygons(box_tpl(0, 0, 1, 1))
-    assert_geometries_equal(
-        actual, shapely.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))")
-    )
+    assert_geometries_equal(actual, Polygon([(1, 0), (1, 1), (0, 1), (0, 0), (1, 0)]))
 
 
 def test_polygon_no_hole_list_raises():
@@ -381,15 +570,15 @@ def test_polygons_not_enough_points_in_holes(shape):
 @pytest.mark.parametrize(
     "func,expected",
     [
-        (shapely.multipoints, "MULTIPOINT EMPTY"),
-        (shapely.multilinestrings, "MULTILINESTRING EMPTY"),
-        (shapely.multipolygons, "MULTIPOLYGON EMPTY"),
-        (shapely.geometrycollections, "GEOMETRYCOLLECTION EMPTY"),
+        (shapely.multipoints, MultiPoint()),
+        (shapely.multilinestrings, MultiLineString()),
+        (shapely.multipolygons, MultiPolygon()),
+        (shapely.geometrycollections, GeometryCollection()),
     ],
 )
 def test_create_collection_only_none(func, expected):
     actual = func(np.array([None], dtype=object))
-    assert_geometries_equal(actual, shapely.Geometry(expected))
+    assert_geometries_equal(actual, expected)
 
 
 @pytest.mark.parametrize(
@@ -450,8 +639,12 @@ def test_create_collection_wrong_geom_type(func, sub_geom):
 @pytest.mark.parametrize(
     "coords,ccw,expected",
     [
-        ((0, 0, 1, 1), True, shapely.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))")),
-        ((0, 0, 1, 1), False, shapely.Geometry("POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))")),
+        ((0, 0, 1, 1), True, Polygon([(1, 0), (1, 1), (0, 1), (0, 0), (1, 0)])),
+        (
+            (0, 0, 1, 1),
+            False,
+            Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)]),
+        ),
     ],
 )
 def test_box(coords, ccw, expected):
@@ -466,16 +659,16 @@ def test_box(coords, ccw, expected):
             (0, 0, [1, 2], [1, 2]),
             True,
             [
-                shapely.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"),
-                shapely.Geometry("POLYGON ((2 0, 2 2, 0 2, 0 0, 2 0))"),
+                Polygon([(1, 0), (1, 1), (0, 1), (0, 0), (1, 0)]),
+                Polygon([(2, 0), (2, 2), (0, 2), (0, 0), (2, 0)]),
             ],
         ),
         (
             (0, 0, [1, 2], [1, 2]),
             [True, False],
             [
-                shapely.Geometry("POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))"),
-                shapely.Geometry("POLYGON ((0 0, 0 2, 2 2, 2 0, 0 0))"),
+                Polygon([(1, 0), (1, 1), (0, 1), (0, 0), (1, 0)]),
+                Polygon([(0, 0), (0, 2), (2, 2), (2, 0), (0, 0)]),
             ],
         ),
     ],
@@ -499,70 +692,31 @@ def test_box_nan(coords):
     assert shapely.box(*coords) is None
 
 
-class BaseGeometry(shapely.Geometry):
-    @property
-    def type_id(self):
-        return shapely.get_type_id(self)
-
-
-class Point(BaseGeometry):
-    @property
-    def x(self):
-        return shapely.get_x(self)
-
-    @property
-    def y(self):
-        return shapely.get_y(self)
-
-
-@pytest.fixture
-def with_point_in_registry():
-    orig = shapely.lib.registry[0]
-    shapely.lib.registry[0] = Point
-    yield
-    shapely.lib.registry[0] = orig
-
-
-def test_subclasses(with_point_in_registry):
-    for _point in [Point("POINT (1 1)"), shapely.points(1, 1)]:
-        assert isinstance(_point, Point)
-        assert shapely.get_type_id(_point) == shapely.GeometryType.POINT
-        assert _point.x == 1
-
-
 def test_prepare():
     arr = np.array([shapely.points(1, 1), None, shapely.box(0, 0, 1, 1)])
-    assert arr[0]._ptr_prepared == 0
-    assert arr[2]._ptr_prepared == 0
+    assert arr[0]._geom_prepared == 0
+    assert arr[2]._geom_prepared == 0
     shapely.prepare(arr)
-    assert arr[0]._ptr_prepared != 0
+    assert arr[0]._geom_prepared != 0
     assert arr[1] is None
-    assert arr[2]._ptr_prepared != 0
+    assert arr[2]._geom_prepared != 0
 
     # preparing again actually does nothing
-    original = arr[0]._ptr_prepared
+    original = arr[0]._geom_prepared
     shapely.prepare(arr)
-    assert arr[0]._ptr_prepared == original
+    assert arr[0]._geom_prepared == original
 
 
 def test_destroy_prepared():
     arr = np.array([shapely.points(1, 1), None, shapely.box(0, 0, 1, 1)])
     shapely.prepare(arr)
-    assert arr[0]._ptr_prepared != 0
-    assert arr[2]._ptr_prepared != 0
+    assert arr[0]._geom_prepared != 0
+    assert arr[2]._geom_prepared != 0
     shapely.destroy_prepared(arr)
-    assert arr[0]._ptr_prepared == 0
+    assert arr[0]._geom_prepared == 0
     assert arr[1] is None
-    assert arr[2]._ptr_prepared == 0
+    assert arr[2]._geom_prepared == 0
     shapely.destroy_prepared(arr)  # does not error
-
-
-def test_subclass_is_geometry(with_point_in_registry):
-    assert shapely.is_geometry(Point("POINT (1 1)"))
-
-
-def test_subclass_is_valid_input(with_point_in_registry):
-    assert shapely.is_valid_input(Point("POINT (1 1)"))
 
 
 @pytest.mark.parametrize("geom_type", [None, GeometryType.MISSING, -1])

@@ -3,7 +3,7 @@ name: Build and publish
 on:
   push:
     branches:
-      - master  # just build the sdist & wheel, skip release
+      - main  # just build the sdist & wheel, skip release
     tags:
       - "*"
   pull_request:  # also build on PRs touching this file
@@ -13,6 +13,13 @@ on:
       - "MANIFEST.in"
       - "pyproject.toml"
       - "setup.py"
+  schedule:
+    # in addition run weekly for nightly upload in case no other commits happened
+    - cron: '34 2 * * 0'
+  workflow_dispatch:
+
+env:
+  GEOS_VERSION: "3.13.0"
 
 jobs:
   build_sdist:
@@ -21,83 +28,156 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.8"
+          python-version: "3.x"
 
       - name: Build a source tarball
         run: |
-          python -m pip install --upgrade pip build
+          python -m pip install --upgrade pip
+          python -m pip install build twine
           python -m build --sdist
+          twine check --strict dist/*
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
+          name: release-sdist
           path: ./dist/*.tar.gz
           retention-days: 30
+          compression-level: 0
 
-  build_wheels:
-    name: Build ${{ matrix.arch }} wheels on ${{ matrix.os }}
+  build_wheels_linux:
+    name: Build ${{ matrix.baseimage }} wheels
     runs-on: ${{ matrix.os }}
-    env:
-      GEOS_VERSION: "3.10.1"
     strategy:
       fail-fast: false
       matrix:
         include:
-        - os: ubuntu-20.04
-          arch: x86_64
-        - os: ubuntu-20.04
-          arch: i686
-        # The aarch64 build has been transferred to Travis
-        # - os: ubuntu-20.04
-        #   arch: aarch64
-        #   qemu_platform: arm64
-        # Note: Numpy doesn't have ppc64le & s390x wheels
-        # Also, some GEOS tests fail on s390x.
-        - os: windows-2019
-          arch: x86
-          msvc_arch: x86
-        - os: windows-2019
-          arch: AMD64
-          msvc_arch: x64
-        - os: macos-10.15
-          arch: x86_64
-          cmake_osx_architectures: x86_64
-        - os: macos-10.15
-          arch: arm64
-          cmake_osx_architectures: arm64
-        - os: macos-10.15
-          arch: universal2
-          cmake_osx_architectures: "x86_64;arm64"
+          - os: ubuntu-latest
+            baseimage: manylinux2014_x86_64
+            cibw_build: "*manylinux_x86_64"
+            arch: x86_64
+          - os: ubuntu-latest
+            baseimage: musllinux_1_2_x86_64
+            cibw_build: "*musllinux_x86_64"
+            arch: x86_64
+          - os: ubuntu-24.04-arm
+            baseimage: manylinux2014_aarch64
+            cibw_build: "*manylinux_aarch64"
+            arch: aarch64
+          - os: ubuntu-24.04-arm
+            baseimage: musllinux_1_2_aarch64
+            cibw_build: "*musllinux_aarch64"
+            arch: aarch64
+    env:
+      basetag: 2024.08.12-1
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          install: true
+          buildkitd-flags: --debug
+
+      - name: Build Docker image with GEOS
+        # using build-push-action (without push) to make use of cache arguments
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ci/Dockerfile
+          platforms: linux/${{ matrix.arch }}
+          tags: ${{ matrix.baseimage }}_geos:${{ env.GEOS_VERSION }}
+          build-args: |
+            BASEIMAGE=quay.io/pypa/${{ matrix.baseimage }}:${{ env.basetag }}
+            GEOS_VERSION=${{ env.GEOS_VERSION }}
+          push: false
+          load: true
+          cache-from: type=gha,scope=${{ matrix.baseimage }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.baseimage }}
+        env:
+          BUILDKIT_PROGRESS: plain
+
+      - name: Add GEOS LICENSE
+        run: cp ci/wheelbuilder/LICENSE_GEOS .
+        shell: bash
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.22.0
+        env:
+          CIBW_ARCHS: ${{ matrix.arch }}
+          # TEMP don't use automated/isolated build environment, but manually
+          # install build dependencies so we can build with cython 3.1.0a0
+          # once Cython has an official release that supports free threading we can remove this
+          CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
+          CIBW_BEFORE_BUILD: |
+            # For free threading support in Cython install a pre-release version of Cython
+            python -c "import sysconfig, subprocess; subprocess.check_call(['pip', 'install', '--pre', 'cython'] if sysconfig.get_config_var('Py_GIL_DISABLED') else ['pip', 'install', 'cython'])" &&
+            pip install numpy setuptools wheel
+          CIBW_BUILD: ${{ matrix.cibw_build }}
+          CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.baseimage }}_geos:${{ env.GEOS_VERSION }}
+          CIBW_MUSLLINUX_X86_64_IMAGE: ${{ matrix.baseimage }}_geos:${{ env.GEOS_VERSION }}
+          CIBW_MANYLINUX_AARCH64_IMAGE: ${{ matrix.baseimage }}_geos:${{ env.GEOS_VERSION }}
+          CIBW_MUSLLINUX_AARCH64_IMAGE: ${{ matrix.baseimage }}_geos:${{ env.GEOS_VERSION }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-linux-${{ matrix.baseimage }}
+          path: ./wheelhouse/*.whl
+          retention-days: 30
+          compression-level: 0
+
+  build_wheels_mac_win:
+    name: Build ${{ matrix.arch }} wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2019
+            arch: x86
+            msvc_arch: x86
+          - os: windows-2019
+            arch: AMD64
+            msvc_arch: x64
+          - os: macos-13
+            arch: x86_64
+            cmake_osx_architectures: x86_64
+          - os: macos-14
+            arch: arm64
+            cmake_osx_architectures: arm64
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Cache GEOS build
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
           key: ${{ matrix.os }}-${{ matrix.arch }}-${{ env.GEOS_VERSION }}-${{ hashFiles('ci/*') }}
 
       - name: Add GEOS LICENSE
-        run: |
-          cp ci/wheelbuilder/LICENSE_GEOS .
+        run: cp ci/wheelbuilder/LICENSE_GEOS .
         shell: bash
 
       - name: Add MSVC LICENSE
-        run: |
-          cp ci/wheelbuilder/LICENSE_win32 .
+        run: cp ci/wheelbuilder/LICENSE_win32 .
         shell: bash
         if: ${{ matrix.os == 'windows-2019' }}
-
-      # - name: Set up QEMU
-      #   uses: docker/setup-qemu-action@v1
-      #   with:
-      #     platforms: ${{ matrix.qemu_platform }}
-      #   if: ${{ matrix.qemu_platform }}
 
       - name: Activate MSVC
         uses: ilammy/msvc-dev-cmd@v1
@@ -106,50 +186,72 @@ jobs:
         if: ${{ matrix.msvc_arch }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.3.0
+        uses: pypa/cibuildwheel@v2.22.0
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
-          CIBW_SKIP: pp* *musllinux* cp310-win32 cp310-macosx_x86_64 cp310-manylinux_i686
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2010
-          CIBW_MANYLINUX_I686_IMAGE: manylinux2010
-          CIBW_ENVIRONMENT_LINUX:
-            GEOS_VERSION=${{ env.GEOS_VERSION }}
-            GEOS_INSTALL=/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
-            GEOS_CONFIG=/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
-            LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/host${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/lib
           CIBW_ENVIRONMENT_MACOS:
             GEOS_INSTALL=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}
             GEOS_CONFIG=${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/bin/geos-config
-            LDFLAGS=-Wl,-rpath,${{ runner.temp }}/geos-${{ env.GEOS_VERSION }}/lib
             MACOSX_DEPLOYMENT_TARGET=10.9
             CMAKE_OSX_ARCHITECTURES='${{ matrix.cmake_osx_architectures }}'
+            CFLAGS='-Wno-error=incompatible-function-pointer-types'
           CIBW_ENVIRONMENT_WINDOWS:
             GEOS_INSTALL='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}'
             GEOS_LIBRARY_PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\lib'
             GEOS_INCLUDE_PATH='${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\include'
-          CIBW_BEFORE_ALL: ./ci/install_geos.sh
+          CIBW_BEFORE_ALL_MACOS: ./ci/install_geos.sh
           CIBW_BEFORE_ALL_WINDOWS: ci\install_geos.cmd
-          CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
+          # TEMP don't use automated/isolated build environment, but manually
+          # install build dependencies so we can build with cython 3.1.0a0
+          # once Cython and numpy have official releases that support free threading we can remove this
+          CIBW_BUILD_FRONTEND: "pip; args: --no-build-isolation"
+          CIBW_BEFORE_BUILD: |
+            # For free threading support in Cython install a pre-release version of Cython
+            python -c "import sysconfig, subprocess; subprocess.check_call(['pip', 'install', '--pre', 'cython'] if sysconfig.get_config_var('Py_GIL_DISABLED') else ['pip', 'install', 'cython'])" &&
+            pip install numpy setuptools wheel
+          CIBW_BEFORE_BUILD_WINDOWS:
+            # For free threading support in Cython install a pre-release version of Cython
+            python -c "import sysconfig, subprocess; subprocess.check_call(['pip', 'install', '--pre', 'cython'] if sysconfig.get_config_var('Py_GIL_DISABLED') else ['pip', 'install', 'cython'])" &&
+            pip install numpy setuptools wheel &&
+            pip install delvewheel
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} {wheel}
-          CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: pytest --pyargs pygeos.tests
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
+          name: release-${{ matrix.os }}-${{ matrix.arch }}
           path: ./wheelhouse/*.whl
           retention-days: 5
+          compression-level: 0
+
+  nightly_upload:
+    name: Upload nightly wheels
+    needs: [build_sdist, build_wheels_linux, build_wheels_mac_win]
+    runs-on: ubuntu-latest
+    if: github.repository == 'shapely/shapely' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: dist
+      - name: Upload wheels to Anaconda Cloud
+        uses: scientific-python/upload-nightly-action@82396a2ed4269ba06c6b2988bb4fd568ef3c3d6b # 0.6.1
+        with:
+          artifacts_path: dist
+          anaconda_nightly_upload_token: ${{secrets.ANACONDA_ORG_UPLOAD_TOKEN}}
 
   publish:
     name: Publish on GitHub and PyPI
-    needs: [build_wheels, build_sdist]
+    needs: [build_sdist, build_wheels_linux, build_wheels_mac_win]
     runs-on: ubuntu-latest
     # release on every tag
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
-          name: artifact
+          pattern: release-*
+          merge-multiple: true
           path: dist
 
       - name: Create GitHub Release
@@ -170,7 +272,7 @@ jobs:
           echo "name=$1" >> $GITHUB_ENV
 
       - name: Upload Release Asset (sdist) to GitHub
-        id: upload-release-asset 
+        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -178,11 +280,12 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: dist/${{ env.name }}
           asset_name: ${{ env.name }}
-          asset_content_type: application/zip      
+          asset_content_type: application/zip
 
       - name: Upload Release Assets to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.4.2
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
           password: ${{ secrets.pypi_password }}
+          skip-existing: true
           # To test: repository_url: https://test.pypi.org/legacy/

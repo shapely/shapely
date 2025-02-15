@@ -20,6 +20,28 @@ from shapely._geos cimport GEOSContextHandle_t, GEOSCoordSequence, GEOSGeometry
 
 
 cdef extern from "c_api.h":
+    cdef enum ShapelyErrorCode:
+        PGERR_SUCCESS,
+        PGERR_NOT_A_GEOMETRY,
+        PGERR_GEOS_EXCEPTION,
+        PGERR_NO_MALLOC,
+        PGERR_GEOMETRY_TYPE,
+        PGERR_MULTIPOINT_WITH_POINT_EMPTY,
+        PGERR_COORD_OUT_OF_BOUNDS,
+        PGERR_EMPTY_GEOMETRY,
+        PGERR_GEOJSON_EMPTY_POINT,
+        PGERR_LINEARRING_NCOORDS,
+        PGERR_NAN_COORD,
+        PGWARN_INVALID_WKB,
+        PGWARN_INVALID_WKT,
+        PGWARN_INVALID_GEOJSON,
+        PGERR_PYSIGNAL
+
+    cpdef enum ShapelyHandleNan:
+        SHAPELY_HANDLE_NAN_ALLOW,
+        SHAPELY_HANDLE_NAN_SKIP,
+        SHAPELY_HANDLE_NANS_ERROR
+
     # shapely.lib C API loader; returns -1 on error
     # MUST be called before calling other C API functions
     int import_shapely_c_api() except -1
@@ -30,6 +52,7 @@ cdef extern from "c_api.h":
     # they are declared that way in the header file).
     object PyGEOS_CreateGeometry(GEOSGeometry *ptr, GEOSContextHandle_t ctx)
     char PyGEOS_GetGEOSGeometry(PyObject *obj, GEOSGeometry **out) nogil
-    GEOSCoordSequence* PyGEOS_CoordSeq_FromBuffer(GEOSContextHandle_t ctx, const double* buf,
-                                                 unsigned int size, unsigned int dims,
-                                                 char ring_closure) nogil
+    int PyGEOS_CoordSeq_FromBuffer(
+        GEOSContextHandle_t ctx, const double* buf, unsigned int size,
+        unsigned int dims, char is_ring, int handle_nan,
+        GEOSCoordSequence** coord_seq) nogil

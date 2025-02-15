@@ -1,10 +1,11 @@
+"""Methods for measuring (between) geometries."""
+
 import warnings
 
 import numpy as np
 
-from . import Geometry  # NOQA
-from . import lib
-from .decorators import multithreading_enabled, requires_geos
+from shapely import lib
+from shapely.decorators import multithreading_enabled
 
 __all__ = [
     "area",
@@ -21,115 +22,124 @@ __all__ = [
 
 @multithreading_enabled
 def area(geometry, **kwargs):
-    """Computes the area of a (multi)polygon.
+    """Compute the area of a (multi)polygon.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the area.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
-    >>> area(Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))"))
+    >>> from shapely import MultiPolygon, Polygon
+    >>> polygon = Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
+    >>> area(polygon)
     100.0
-    >>> area(Geometry("MULTIPOLYGON (((0 0, 0 10, 10 10, 0 0)), ((0 0, 0 10, 10 10, 0 0)))"))
-    100.0
-    >>> area(Geometry("POLYGON EMPTY"))
+    >>> area(MultiPolygon([polygon, Polygon([(10, 10), (10, 20), (20, 20), (20, 10), (10, 10)])]))
+    200.0
+    >>> area(Polygon())
     0.0
     >>> area(None)
     nan
-    """
+
+    """  # noqa: E501
     return lib.area(geometry, **kwargs)
 
 
 @multithreading_enabled
 def distance(a, b, **kwargs):
-    """Computes the Cartesian distance between two geometries.
+    """Compute the Cartesian distance between two geometries.
 
     Parameters
     ----------
     a, b : Geometry or array_like
+        Geometry or geometries to compute the distance between.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
-    >>> point = Geometry("POINT (0 0)")
-    >>> distance(Geometry("POINT (10 0)"), point)
+    >>> from shapely import LineString, Point, Polygon
+    >>> point = Point(0, 0)
+    >>> distance(Point(10, 0), point)
     10.0
-    >>> distance(Geometry("LINESTRING (1 1, 1 -1)"), point)
+    >>> distance(LineString([(1, 1), (1, -1)]), point)
     1.0
-    >>> distance(Geometry("POLYGON ((3 0, 5 0, 5 5, 3 5, 3 0))"), point)
+    >>> distance(Polygon([(3, 0), (5, 0), (5, 5), (3, 5), (3, 0)]), point)
     3.0
-    >>> distance(Geometry("POINT EMPTY"), point)
+    >>> distance(Point(), point)
     nan
     >>> distance(None, point)
     nan
+
     """
     return lib.distance(a, b, **kwargs)
 
 
 @multithreading_enabled
 def bounds(geometry, **kwargs):
-    """Computes the bounds (extent) of a geometry.
+    """Compute the bounds (extent) of a geometry.
 
     For each geometry these 4 numbers are returned: min x, min y, max x, max y.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the bounds.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
-    >>> bounds(Geometry("POINT (2 3)")).tolist()
+    >>> from shapely import LineString, Point, Polygon
+    >>> bounds(Point(2, 3)).tolist()
     [2.0, 3.0, 2.0, 3.0]
-    >>> bounds(Geometry("LINESTRING (0 0, 0 2, 3 2)")).tolist()
+    >>> bounds(LineString([(0, 0), (0, 2), (3, 2)])).tolist()
     [0.0, 0.0, 3.0, 2.0]
-    >>> bounds(Geometry("POLYGON EMPTY")).tolist()
+    >>> bounds(Polygon()).tolist()
     [nan, nan, nan, nan]
     >>> bounds(None).tolist()
     [nan, nan, nan, nan]
+
     """
-    # We need to provide the `out` argument here for compatibility with
-    # numpy < 1.16. See https://github.com/numpy/numpy/issues/14949
-    geometry_arr = np.asarray(geometry, dtype=np.object_)
-    out = np.empty(geometry_arr.shape + (4,), dtype="float64")
-    return lib.bounds(geometry_arr, out=out, **kwargs)
+    return lib.bounds(geometry, **kwargs)
 
 
 def total_bounds(geometry, **kwargs):
-    """Computes the total bounds (extent) of the geometry.
+    """Compute the total bounds (extent) of the geometry.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the total bounds.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Returns
     -------
     numpy ndarray of [xmin, ymin, xmax, ymax]
 
-
-    >>> total_bounds(Geometry("POINT (2 3)")).tolist()
+    Examples
+    --------
+    >>> from shapely import LineString, Point, Polygon
+    >>> total_bounds(Point(2, 3)).tolist()
     [2.0, 3.0, 2.0, 3.0]
-    >>> total_bounds([Geometry("POINT (2 3)"), Geometry("POINT (4 5)")]).tolist()
+    >>> total_bounds([Point(2, 3), Point(4, 5)]).tolist()
     [2.0, 3.0, 4.0, 5.0]
-    >>> total_bounds([Geometry("LINESTRING (0 1, 0 2, 3 2)"),Geometry("LINESTRING (4 4, 4 6, 6 7)")]).tolist()
+    >>> total_bounds([
+    ...     LineString([(0, 1), (0, 2), (3, 2)]),
+    ...     LineString([(4, 4), (4, 6), (6, 7)])
+    ... ]).tolist()
     [0.0, 1.0, 6.0, 7.0]
-    >>> total_bounds(Geometry("POLYGON EMPTY")).tolist()
+    >>> total_bounds(Polygon()).tolist()
     [nan, nan, nan, nan]
-    >>> total_bounds([Geometry("POLYGON EMPTY"), Geometry("POINT (2 3)")]).tolist()
+    >>> total_bounds([Polygon(), Point(2, 3)]).tolist()
     [2.0, 3.0, 2.0, 3.0]
     >>> total_bounds(None).tolist()
     [nan, nan, nan, nan]
+
     """
     b = bounds(geometry, **kwargs)
     if b.ndim == 1:
@@ -150,27 +160,32 @@ def total_bounds(geometry, **kwargs):
 
 @multithreading_enabled
 def length(geometry, **kwargs):
-    """Computes the length of a (multi)linestring or polygon perimeter.
+    """Compute the length of a (multi)linestring or polygon perimeter.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the length.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
-    >>> length(Geometry("LINESTRING (0 0, 0 2, 3 2)"))
+    >>> from shapely import LineString, MultiLineString, Polygon
+    >>> length(LineString([(0, 0), (0, 2), (3, 2)]))
     5.0
-    >>> length(Geometry("MULTILINESTRING ((0 0, 1 0), (0 0, 1 0))"))
+    >>> length(MultiLineString([
+    ...     LineString([(0, 0), (1, 0)]),
+    ...     LineString([(1, 0), (2, 0)])
+    ... ]))
     2.0
-    >>> length(Geometry("POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))"))
+    >>> length(Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]))
     40.0
-    >>> length(Geometry("LINESTRING EMPTY"))
+    >>> length(LineString())
     0.0
     >>> length(None)
     nan
+
     """
     return lib.length(geometry, **kwargs)
 
@@ -188,24 +203,26 @@ def hausdorff_distance(a, b, densify=None, **kwargs):
     Parameters
     ----------
     a, b : Geometry or array_like
+        Geometry or geometries to compute the distance between.
     densify : float or array_like, optional
         The value of densify is required to be between 0 and 1.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
-    >>> line_1 = Geometry("LINESTRING (130 0, 0 0, 0 150)")
-    >>> line_2 = Geometry("LINESTRING (10 10, 10 150, 130 10)")
-    >>> hausdorff_distance(line_1, line_2)  # doctest: +ELLIPSIS
+    >>> from shapely import LineString
+    >>> line1 = LineString([(130, 0), (0, 0), (0, 150)])
+    >>> line2 = LineString([(10, 10), (10, 150), (130, 10)])
+    >>> hausdorff_distance(line1, line2)  # doctest: +ELLIPSIS
     14.14...
-    >>> hausdorff_distance(line_1, line_2, densify=0.5)
+    >>> hausdorff_distance(line1, line2, densify=0.5)
     70.0
-    >>> hausdorff_distance(line_1, Geometry("LINESTRING EMPTY"))
+    >>> hausdorff_distance(line1, LineString())
     nan
-    >>> hausdorff_distance(line_1, None)
+    >>> hausdorff_distance(line1, None)
     nan
+
     """
     if densify is None:
         return lib.hausdorff_distance(a, b, **kwargs)
@@ -213,7 +230,6 @@ def hausdorff_distance(a, b, densify=None, **kwargs):
         return lib.hausdorff_distance_densify(a, b, densify, **kwargs)
 
 
-@requires_geos("3.7.0")
 @multithreading_enabled
 def frechet_distance(a, b, densify=None, **kwargs):
     """Compute the discrete Fréchet distance between two geometries.
@@ -231,34 +247,35 @@ def frechet_distance(a, b, densify=None, **kwargs):
     Parameters
     ----------
     a, b : Geometry or array_like
+        Geometry or geometries to compute the distance between.
     densify : float or array_like, optional
         The value of densify is required to be between 0 and 1.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
-    >>> line_1 = Geometry("LINESTRING (0 0, 100 0)")
-    >>> line_2 = Geometry("LINESTRING (0 0, 50 50, 100 0)")
-    >>> frechet_distance(line_1, line_2)  # doctest: +ELLIPSIS
+    >>> from shapely import LineString
+    >>> line1 = LineString([(0, 0), (100, 0)])
+    >>> line2 = LineString([(0, 0), (50, 50), (100, 0)])
+    >>> frechet_distance(line1, line2)  # doctest: +ELLIPSIS
     70.71...
-    >>> frechet_distance(line_1, line_2, densify=0.5)
+    >>> frechet_distance(line1, line2, densify=0.5)
     50.0
-    >>> frechet_distance(line_1, Geometry("LINESTRING EMPTY"))
+    >>> frechet_distance(line1, LineString())
     nan
-    >>> frechet_distance(line_1, None)
+    >>> frechet_distance(line1, None)
     nan
+
     """
     if densify is None:
         return lib.frechet_distance(a, b, **kwargs)
     return lib.frechet_distance_densify(a, b, densify, **kwargs)
 
 
-@requires_geos("3.6.0")
 @multithreading_enabled
 def minimum_clearance(geometry, **kwargs):
-    """Computes the Minimum Clearance distance.
+    """Compute the Minimum Clearance distance.
 
     A geometry's "minimum clearance" is the smallest distance by which
     a vertex of the geometry could be moved to produce an invalid geometry.
@@ -269,50 +286,58 @@ def minimum_clearance(geometry, **kwargs):
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the minimum clearance.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
-    >>> minimum_clearance(Geometry("POLYGON((0 0, 0 10, 5 6, 10 10, 10 0, 5 4, 0 0))"))
+    >>> from shapely import Polygon
+    >>> polygon = Polygon([(0, 0), (0, 10), (5, 6), (10, 10), (10, 0), (5, 4), (0, 0)])
+    >>> minimum_clearance(polygon)
     2.0
-    >>> minimum_clearance(Geometry("POLYGON EMPTY"))
+    >>> minimum_clearance(Polygon())
     inf
     >>> minimum_clearance(None)
     nan
+
+    See Also
+    --------
+    minimum_clearance_line
+
     """
     return lib.minimum_clearance(geometry, **kwargs)
 
 
-@requires_geos("3.8.0")
 @multithreading_enabled
 def minimum_bounding_radius(geometry, **kwargs):
-    """Computes the radius of the minimum bounding circle that encloses an input geometry.
+    """Compute the radius of the minimum bounding circle of an input geometry.
 
     Parameters
     ----------
     geometry : Geometry or array_like
+        Geometry or geometries for which to compute the minimum bounding radius.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
 
     Examples
     --------
-    >>> minimum_bounding_radius(Geometry("POLYGON ((0 5, 5 10, 10 5, 5 0, 0 5))"))
+    >>> from shapely import GeometryCollection, LineString, MultiPoint, Point, Polygon
+    >>> minimum_bounding_radius(Polygon([(0, 5), (5, 10), (10, 5), (5, 0), (0, 5)]))
     5.0
-    >>> minimum_bounding_radius(Geometry("LINESTRING (1 1, 1 10)"))
+    >>> minimum_bounding_radius(LineString([(1, 1), (1, 10)]))
     4.5
-    >>> minimum_bounding_radius(Geometry("MULTIPOINT (2 2, 4 2)"))
+    >>> minimum_bounding_radius(MultiPoint([(2, 2), (4, 2)]))
     1.0
-    >>> minimum_bounding_radius(Geometry("POINT (0 1)"))
+    >>> minimum_bounding_radius(Point(0, 1))
     0.0
-    >>> minimum_bounding_radius(Geometry("GEOMETRYCOLLECTION EMPTY"))
+    >>> minimum_bounding_radius(GeometryCollection())
     0.0
 
-    See also
+    See Also
     --------
     minimum_bounding_circle
+
     """
     return lib.minimum_bounding_radius(geometry, **kwargs)

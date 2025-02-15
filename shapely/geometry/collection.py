@@ -1,42 +1,38 @@
-"""Multi-part collections of geometries
-"""
+"""Multi-part collections of geometries."""
 
 import shapely
-from shapely.geometry.base import (
-    BaseGeometry,
-    BaseMultipartGeometry,
-    HeterogeneousGeometrySequence,
-)
+from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
 
 
 class GeometryCollection(BaseMultipartGeometry):
+    """Collection of one or more geometries that can be of different types.
 
-    """A heterogeneous collection of geometries
+    Parameters
+    ----------
+    geoms : list
+        A list of shapely geometry instances, which may be of varying geometry
+        types.
 
     Attributes
     ----------
     geoms : sequence
         A sequence of Shapely geometry instances
+
+    Examples
+    --------
+    Create a GeometryCollection with a Point and a LineString
+
+    >>> from shapely import GeometryCollection, LineString, Point
+    >>> p = Point(51, -1)
+    >>> l = LineString([(52, -1), (49, 2)])
+    >>> gc = GeometryCollection([p, l])
+
     """
 
     __slots__ = []
 
     def __new__(self, geoms=None):
-        """
-        Parameters
-        ----------
-        geoms : list
-            A list of shapely geometry instances, which may be heterogeneous.
-
-        Example
-        -------
-        Create a GeometryCollection with a Point and a LineString
-
-          >>> from shapely.geometry import LineString, Point
-          >>> p = Point(51, -1)
-          >>> l = LineString([(52, -1), (49, 2)])
-          >>> gc = GeometryCollection([p, l])
-        """
+        """Create a new GeometryCollection."""
         if not geoms:
             # TODO better empty constructor
             return shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")
@@ -52,16 +48,11 @@ class GeometryCollection(BaseMultipartGeometry):
 
     @property
     def __geo_interface__(self):
+        """Return a GeoJSON-like mapping of the geometry collection."""
         geometries = []
         for geom in self.geoms:
             geometries.append(geom.__geo_interface__)
         return dict(type="GeometryCollection", geometries=geometries)
-
-    @property
-    def geoms(self):
-        if self.is_empty:
-            return []
-        return HeterogeneousGeometrySequence(self)
 
 
 shapely.lib.registry[7] = GeometryCollection

@@ -1,15 +1,9 @@
-prune manual
-prune debian
 prune docs
 exclude *.txt
 exclude MANIFEST.in
-include CHANGES.txt CREDITS.txt LICENSE.txt README.rst
+include CITATION.cff CHANGES.txt CREDITS.txt LICENSE.txt README.rst
 include pyproject.toml versioneer.py
-recursive-include _vendor *.py
 recursive-include src *.c *.h
-recursive-include tests *.py *.txt
-recursive-include shapely/examples *.py
-recursive-include shapely *.pxi *.pxd *.pyx
+recursive-include shapely *.pxd *.pyx
 recursive-exclude shapely *.c
-recursive-include shapely/DLLs *.dll *.rst *.txt
 include docs/*.rst

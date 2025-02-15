@@ -2,13 +2,40 @@
 Shapely
 =======
 
-|github-actions| |coveralls|
+.. Documentation at RTD — https://readthedocs.org
+
+.. image:: https://readthedocs.org/projects/shapely/badge/?version=stable
+   :alt: Documentation Status
+   :target: https://shapely.readthedocs.io/en/stable/
+
+.. Github Actions status — https://github.com/shapely/shapely/actions
 
 .. |github-actions| image:: https://github.com/shapely/shapely/workflows/Tests/badge.svg?branch=main
+   :alt: Github Actions status
    :target: https://github.com/shapely/shapely/actions?query=branch%3Amain
+
+.. PyPI
+
+.. image:: https://img.shields.io/pypi/v/shapely.svg
+   :alt: PyPI
+   :target: https://pypi.org/project/shapely/
+
+.. Anaconda
+
+.. image:: https://img.shields.io/conda/vn/conda-forge/shapely
+   :alt: Anaconda
+   :target: https://anaconda.org/conda-forge/shapely
+
+.. Coverage
 
 .. |coveralls| image:: https://coveralls.io/repos/github/shapely/shapely/badge.svg?branch=main
    :target: https://coveralls.io/github/shapely/shapely?branch=main
+
+.. Zenodo
+
+.. .. image:: https://zenodo.org/badge/191151963.svg
+..   :alt: Zenodo
+..   :target: https://zenodo.org/badge/latestdoi/191151963
 
 Manipulation and analysis of geometric objects in the Cartesian plane.
 
@@ -17,90 +44,85 @@ Manipulation and analysis of geometric objects in the Cartesian plane.
    :height: 378
 
 Shapely is a BSD-licensed Python package for manipulation and analysis of
-planar geometric objects. It is based on the widely deployed `GEOS
-<https://libgeos.org/>`__ (the engine of `PostGIS
-<https://postgis.net/>`__) and `JTS
-<https://locationtech.github.io/jts/>`__ (from which GEOS is ported)
-libraries. Shapely is not concerned with data formats or coordinate systems,
-but can be readily integrated with packages that are. For more details, see:
+planar geometric objects. It is using the widely deployed open-source
+geometry library `GEOS <https://libgeos.org/>`__ (the engine of `PostGIS
+<https://postgis.net/>`__, and a port of `JTS <https://locationtech.github.io/jts/>`__).
+Shapely wraps GEOS geometries and operations to provide both a feature rich
+`Geometry` interface for singular (scalar) geometries and higher-performance
+NumPy ufuncs for operations using arrays of geometries.
+Shapely is not primarily focused on data serialization formats or coordinate
+systems, but can be readily integrated with packages that are.
 
-* `Shapely GitHub repository <https://github.com/shapely/shapely>`__
-* `Shapely documentation and manual <https://shapely.readthedocs.io/en/latest/>`__
+What is a ufunc?
+----------------
+
+A universal function (or ufunc for short) is a function that operates on
+*n*-dimensional arrays on an element-by-element fashion and supports array
+broadcasting. The underlying ``for`` loops are implemented in C to reduce the
+overhead of the Python interpreter.
+
+Multithreading
+--------------
+
+Shapely functions generally support multithreading by releasing the Global
+Interpreter Lock (GIL) during execution. Normally in Python, the GIL prevents
+multiple threads from computing at the same time. Shapely functions
+internally release this constraint so that the heavy lifting done by GEOS can
+be done in parallel, from a single Python process.
 
 Usage
 =====
 
 Here is the canonical example of building an approximately circular patch by
-buffering a point.
+buffering a point, using the scalar Geometry interface:
 
 .. code-block:: pycon
 
-    >>> from shapely.geometry import Point
+    >>> from shapely import Point
     >>> patch = Point(0.0, 0.0).buffer(10.0)
     >>> patch
-    <shapely.geometry.polygon.Polygon object at 0x...>
+    <POLYGON ((10 0, 9.952 -0.98, 9.808 -1.951, 9.569 -2.903, 9.239 -3.827, 8.81...>
     >>> patch.area
-    313.65484905459385
+    313.6548490545941
 
-See the manual for more examples and guidance.
+Using the vectorized ufunc interface (instead of using a manual for loop),
+compare an array of points with a polygon:
+
+.. code:: python
+
+    >>> import shapely
+    >>> import numpy as np
+    >>> geoms = np.array([Point(0, 0), Point(1, 1), Point(2, 2)])
+    >>> polygon = shapely.box(0, 0, 2, 2)
+
+    >>> shapely.contains(polygon, geoms)
+    array([False,  True, False])
+
+See the documentation for more examples and guidance: https://shapely.readthedocs.io
 
 Requirements
 ============
 
-Shapely 1.8 requires
+Shapely 2.1 requires
 
-* Python >=3.6
-* GEOS >=3.3
+* Python >=3.9
+* GEOS >=3.9
+* NumPy >=1.20
 
 Installing Shapely
 ==================
 
-Shapely may be installed from a source distribution or one of several kinds
-of built distribution.
-
-Built distributions
--------------------
-
-Built distributions are the only option for users who do not have or do not
-know how to use their platform's compiler and Python SDK, and a good option for
-users who would rather not bother.
-
-Linux, OS X, and Windows users can get Shapely wheels with GEOS included from the
-Python Package Index with a recent version of pip (8+):
+We recommend installing Shapely using one of the available built
+distributions, for example using ``pip`` or ``conda``:
 
 .. code-block:: console
 
     $ pip install shapely
+    # or using conda
+    $ conda install shapely --channel conda-forge
 
-Shapely is available via system package management tools like apt, yum, and
-Homebrew, and is also provided by popular Python distributions like Canopy and
-Anaconda. If you use the Conda package manager to install Shapely, be sure to
-use the conda-forge channel.
-
-Windows users have another good installation options: the wheels published at
-https://www.lfd.uci.edu/~gohlke/pythonlibs/#shapely. These can be installed
-using pip by specifying the entire URL.
-
-Source distributions
---------------------
-
-If you want to build Shapely from source for compatibility with other modules
-that depend on GEOS (such as cartopy or osgeo.ogr) or want to use a different
-version of GEOS than the one included in the project wheels you should first
-install the GEOS library, Cython, and Numpy on your system (using apt, yum,
-brew, or other means) and then direct pip to ignore the binary wheels.
-
-.. code-block:: console
-
-    $ pip install shapely --no-binary shapely
-
-If you've installed GEOS to a standard location, the geos-config program will
-be used to get compiler and linker options. If geos-config is not on your
-executable, it can be specified with a GEOS_CONFIG environment variable, e.g.:
-
-.. code-block:: console
-
-    $ GEOS_CONFIG=/path/to/geos-config pip install shapely
+See the `installation documentation <https://shapely.readthedocs.io/en/latest/installation.html>`__
+for more details and advanced installation instructions.
 
 Integration
 ===========
@@ -124,29 +146,9 @@ dicts.
     >>> from shapely.geometry import mapping, shape
     >>> s = shape(json.loads('{"type": "Point", "coordinates": [0.0, 0.0]}'))
     >>> s
-    <shapely.geometry.point.Point object at 0x...>
+    <POINT (0 0)>
     >>> print(json.dumps(mapping(s)))
     {"type": "Point", "coordinates": [0.0, 0.0]}
-
-Development and Testing
-=======================
-
-Dependencies for developing Shapely are listed in requirements-dev.txt. Cython
-and Numpy are not required for production installations, only for development.
-Use of a virtual environment is strongly recommended.
-
-.. code-block:: console
-
-    $ virtualenv .
-    $ source bin/activate
-    (env)$ pip install -r requirements-dev.txt
-    (env)$ pip install -e .
-
-The project uses pytest to run Shapely's suite of unittests and doctests.
-
-.. code-block:: console
-
-    (env)$ python -m pytest
 
 Support
 =======
@@ -156,3 +158,9 @@ Questions about using Shapely may be asked on the `GIS StackExchange
 tag.
 
 Bugs may be reported at https://github.com/shapely/shapely/issues.
+
+Copyright & License
+===================
+
+Shapely is licensed under BSD 3-Clause license.
+GEOS is available under the terms of GNU Lesser General Public License (LGPL) 2.1 at https://libgeos.org.

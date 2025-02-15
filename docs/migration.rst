@@ -19,10 +19,6 @@ you can update your code to be future-proof.
 For more background, see
 `RFC 1: Roadmap for Shapely 2.0 <https://github.com/shapely/shapely-rfc/pull/1>`__.
 
-.. contents:: Table of Contents
-  :backlinks: none
-  :local:
-
 
 Geometry objects will become immutable
 ======================================
@@ -72,9 +68,9 @@ In Shapely 1.8, this will start raising a warning, and will raise an
 AttributeError in Shapely 2.0.
 
 **How do I update my code?** There is no direct alternative for adding custom
-attributes to geometry objects. You can use other Python data structures such as
-(GeoJSON-like) dictionaries or GeoPandas' GeoDataFrames to store attributes
-alongside geometry features. 
+attributes to geometry objects. You can use other Python data structures such
+as (GeoJSON-like) dictionaries or GeoPandas' GeoDataFrames to store attributes
+alongside geometry features.
 
 Multi-part geometries will no longer be "sequences" (length, iterable, indexable)
 =================================================================================
@@ -143,8 +139,8 @@ support those features, and for those classes there is no change in behaviour
 for this aspect.
 
 
-Interopability with NumPy and the array interface
-=================================================
+Interoperability with NumPy and the array interface
+===================================================
 
 Conversion of the coordinates to (NumPy) arrays
 -----------------------------------------------
@@ -172,10 +168,11 @@ In addition, there are also the explicit ``array_interface()`` method and
      'data': <shapely.geometry.linestring.c_double_Array_6 at 0x7f752664ae40>,
      'shape': (3, 2)}
 
-This functionality is available for Point, LineString, LinearRing and MultiPoint.
+This functionality is available for Point, LineString, LinearRing and
+MultiPoint.
 
-For more robust interoperability with NumPy, this array interface will be removed
-from those geometry classes, and limited to the ``coords``. 
+For more robust interoperability with NumPy, this array interface will be
+removed from those geometry classes, and limited to the ``coords``.
 
 Starting with Shapely 1.8, converting a geometry object to a NumPy array
 directly will start raising a warning::
@@ -229,7 +226,7 @@ way (first creating an empty array and then filling it)::
     arr[:] = geoms
 
 This code snippet results in the same array as the example above, and works
-for all geometry types and Shapely/NumPy versions. 
+for all geometry types and Shapely/NumPy versions.
 
 However, starting with Shapely 1.8, the above code will show deprecation
 warnings that cannot be avoided (depending on the geometry type, NumPy tries
@@ -261,9 +258,9 @@ manager that can be copied into your project::
     import contextlib
     import shapely
     import warnings
-    from distutils.version import LooseVersion
+    from packaging import version  # https://packaging.pypa.io/
 
-    SHAPELY_GE_20 = str(shapely.__version__) >= LooseVersion("2.0")
+    SHAPELY_GE_20 = version.parse(shapely.__version__) >= version.parse("2.0a1")
 
     try:
         from shapely.errors import ShapelyDeprecationWarning as shapely_warning
@@ -296,7 +293,7 @@ Consistent creation of empty geometries
 Shapely 1.x is inconsistent in creating empty geometries between various
 creation methods. A small example for an empty Polygon geometry:
 
-.. code-block:: python
+.. code-block:: pycon
 
     # Using an empty constructor results in a GeometryCollection
     >>> from shapely.geometry import Polygon
@@ -345,4 +342,5 @@ as well:
 - The ``empty()`` method on a geometry object is deprecated.
 
 - The ``shapely.ops.cascaded_union`` function is deprecated. Use
-  ``shapely.ops.unary_union`` instead, which internally already uses a cascaded union operation for better performance.
+  ``shapely.ops.unary_union`` instead, which internally already uses a cascaded
+  union operation for better performance.

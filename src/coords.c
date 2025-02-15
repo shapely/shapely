@@ -1,5 +1,4 @@
 #define PY_SSIZE_T_CLEAN
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 #include <Python.h>
 #include <math.h>
@@ -25,8 +24,8 @@ position `cursor` in the array `out`. Increases the cursor correspondingly.
 Returns 0 on error, 1 on success */
 static char get_coordinates_simple(GEOSContextHandle_t ctx, GEOSGeometry* geom, int type,
                                    PyArrayObject* out, npy_intp* cursor, int include_z) {
-  unsigned int n, i;
-  double *x, *y, *z;
+  unsigned int n;
+  double *buf;
   const GEOSCoordSequence* seq;
   char is_empty;
 
@@ -49,24 +48,13 @@ static char get_coordinates_simple(GEOSContextHandle_t ctx, GEOSGeometry* geom, 
   if (GEOSCoordSeq_getSize_r(ctx, seq, &n) == 0) {
     return 0;
   }
-  for (i = 0; i < n; i++, *cursor += 1) {
-    x = PyArray_GETPTR2(out, *cursor, 0);
-    y = PyArray_GETPTR2(out, *cursor, 1);
-    if (include_z) {
-      z = PyArray_GETPTR2(out, *cursor, 2);
-    }
-    if (!GEOSCoordSeq_getX_r(ctx, seq, i, x)) {
-      return 0;
-    }
-    if (!GEOSCoordSeq_getY_r(ctx, seq, i, y)) {
-      return 0;
-    }
-    if (include_z) {
-      if (!GEOSCoordSeq_getZ_r(ctx, seq, i, z)) {
-        return 0;
-      }
-    }
+
+  buf = PyArray_GETPTR2(out, *cursor, 0);
+  if (!coordseq_to_buffer(ctx, seq, buf, n, include_z, 0)) {
+    return 0;
   }
+  *cursor += n;
+
   return 1;
 }
 
@@ -381,7 +369,7 @@ npy_intp CountCoords(PyArrayObject* arr) {
       result = -1;
       goto finish;
     }
-    /* skip incase obj was None */
+    /* skip in case obj was None */
     if (geom == NULL) {
       continue;
     }
@@ -529,7 +517,7 @@ PyObject* SetCoords(PyArrayObject* geoms, PyArrayObject* coords) {
   PyObject* new_obj;
   GEOSGeometry *geom, *new_geom;
 
-  /* SetCoords acts implace: if the array is zero-sized, just return the
+  /* SetCoords acts in-place: if the array is zero-sized, just return the
   same object */
   if (PyArray_SIZE(geoms) == 0) {
     Py_INCREF((PyObject*)geoms);

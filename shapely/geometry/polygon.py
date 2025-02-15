@@ -1,60 +1,69 @@
-"""Polygons and their linear ring components
-"""
+"""Polygons and their linear ring components."""
 
 import numpy as np
 
 import shapely
-from shapely.algorithms.cga import is_ccw_impl, signed_area
+from shapely.algorithms.cga import signed_area
 from shapely.errors import TopologicalError
 from shapely.geometry.base import BaseGeometry
 from shapely.geometry.linestring import LineString
 from shapely.geometry.point import Point
 
-__all__ = ["Polygon", "LinearRing"]
+__all__ = ["orient", "Polygon", "LinearRing"]
 
 
 def _unpickle_linearring(wkb):
     linestring = shapely.from_wkb(wkb)
-    return shapely.linearrings(shapely.get_coordinates(linestring))
+    srid = shapely.get_srid(linestring)
+    linearring = shapely.linearrings(shapely.get_coordinates(linestring))
+    if srid:
+        linearring = shapely.set_srid(linearring, srid)
+    return linearring
 
 
 class LinearRing(LineString):
-    """
-    A closed one-dimensional feature comprising one or more line segments
+    """Geometry type composed of one or more line segments that forms a closed loop.
 
+    A LinearRing is a closed, one-dimensional feature.
     A LinearRing that crosses itself or touches itself at a single point is
     invalid and operations on it may fail.
+
+    Parameters
+    ----------
+    coordinates : sequence
+        A sequence of (x, y [,z]) numeric coordinate pairs or triples, or
+        an array-like with shape (N, 2) or (N, 3).
+        Also can be a sequence of Point objects.
+
+    Notes
+    -----
+    Rings are automatically closed. There is no need to specify a final
+    coordinate pair identical to the first.
+
+    Examples
+    --------
+    Construct a square ring.
+
+    >>> ring = LinearRing( ((0, 0), (0, 1), (1 ,1 ), (1 , 0)) )
+    >>> ring.is_closed
+    True
+    >>> list(ring.coords)
+    [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)]
+    >>> ring.length
+    4.0
+
     """
 
     __slots__ = []
 
     def __new__(self, coordinates=None):
-        """
-        Parameters
-        ----------
-        coordinates : sequence
-            A sequence of (x, y [,z]) numeric coordinate pairs or triples.
-            Also can be a sequence of Point objects.
-
-        Rings are implicitly closed. There is no need to specific a final
-        coordinate pair identical to the first.
-
-        Example
-        -------
-        Construct a square ring.
-
-          >>> ring = LinearRing( ((0, 0), (0, 1), (1 ,1 ), (1 , 0)) )
-          >>> ring.is_closed
-          True
-          >>> ring.length
-          4.0
-        """
+        """Create a new LinearRing geometry."""
         if coordinates is None:
             # empty geometry
             # TODO better way?
             return shapely.from_wkt("LINEARRING EMPTY")
         elif isinstance(coordinates, LineString):
-            if type(coordinates) == LinearRing:
+            if type(coordinates) is LinearRing:
                 # return original objects since geometries are immutable
                 return coordinates
             elif not coordinates.is_valid:
@@ -65,14 +74,25 @@ class LinearRing(LineString):
                 coordinates = coordinates.coords
 
         else:
-            # check coordinates on points
-            def _coords(o):
-                if isinstance(o, Point):
-                    return o.coords[0]
-                else:
-                    return o
+            if hasattr(coordinates, "__array__"):
+                coordinates = np.asarray(coordinates)
+            if isinstance(coordinates, np.ndarray) and np.issubdtype(
+                coordinates.dtype, np.number
+            ):
+                pass
+            else:
+                # check coordinates on points
+                def _coords(o):
+                    if isinstance(o, Point):
+                        return o.coords[0]
+                    else:
+                        return [float(c) for c in o]
 
-            coordinates = [_coords(o) for o in coordinates]
+                coordinates = np.array([_coords(o) for o in coordinates])
+                if not np.issubdtype(coordinates.dtype, np.number):
+                    # conversion of coords to 2D array failed, this might be due
+                    # to inconsistent coordinate dimensionality
+                    raise ValueError("Inconsistent coordinate dimensionality")
 
         if len(coordinates) == 0:
             # empty geometry
@@ -86,42 +106,42 @@ class LinearRing(LineString):
 
     @property
     def __geo_interface__(self):
+        """Return a GeoJSON-like mapping of the LinearRing geometry."""
         return {"type": "LinearRing", "coordinates": tuple(self.coords)}
 
     def __reduce__(self):
-        """WKB doesn't differentiate between LineString and LinearRing so we
-        need to move the coordinate sequence into the correct geometry type"""
-        return (_unpickle_linearring, (self.wkb,))
+        """Pickle support.
+
+        WKB doesn't differentiate between LineString and LinearRing so we
+        need to move the coordinate sequence into the correct geometry type
+        """
+        return (_unpickle_linearring, (shapely.to_wkb(self, include_srid=True),))
 
     @property
     def is_ccw(self):
-        """True is the ring is oriented counter clock-wise"""
-        return bool(is_ccw_impl()(self))
+        """True if the ring is oriented counter clock-wise."""
+        return bool(shapely.is_ccw(self))
 
     @property
     def is_simple(self):
-        """True if the geometry is simple, meaning that any self-intersections
-        are only at boundary points, else False"""
-        return shapely.is_simple(self)
+        """True if the geometry is simple.
+
+        Simple means that any self-intersections are only at boundary points.
+        """
+        return bool(shapely.is_simple(self))
 
 
 shapely.lib.registry[2] = LinearRing
 
 
 class InteriorRingSequence:
-
-    _factory = None
-    _geom = None
-    __p__ = None
+    _parent = None
     _ndim = None
     _index = 0
     _length = 0
-    __rings__ = None
-    _gtag = None
 
     def __init__(self, parent):
-        self.__p__ = parent
-        self._geom = parent._geom
+        self._parent = parent
         self._ndim = parent._ndim
 
     def __iter__(self):
@@ -138,7 +158,7 @@ class InteriorRingSequence:
             raise StopIteration
 
     def __len__(self):
-        return shapely.get_num_interior_rings(self.__p__)
+        return shapely.get_num_interior_rings(self._parent)
 
     def __getitem__(self, key):
         m = self.__len__()
@@ -159,20 +179,27 @@ class InteriorRingSequence:
         else:
             raise TypeError("key must be an index or slice")
 
-    def gtag(self):
-        return hash(repr(self.__p__))
-
     def _get_ring(self, i):
-        return shapely.get_interior_ring(self.__p__, i)
+        return shapely.get_interior_ring(self._parent, i)
 
 
 class Polygon(BaseGeometry):
-    """
-    A two-dimensional figure bounded by a linear ring
+    """A geometry type representing an area that is enclosed by a linear ring.
 
-    A polygon has a non-zero area. It may have one or more negative-space
-    "holes" which are also bounded by linear rings. If any rings cross each
-    other, the feature is invalid and operations on it may fail.
+    A polygon is a two-dimensional feature and has a non-zero area. It may
+    have one or more negative-space "holes" which are also bounded by linear
+    rings. If any rings cross each other, the feature is invalid and
+    operations on it may fail.
+
+    Parameters
+    ----------
+    shell : sequence
+        A sequence of (x, y [,z]) numeric coordinate pairs or triples, or
+        an array-like with shape (N, 2) or (N, 3).
+        Also can be a sequence of Point objects.
+    holes : sequence
+        A sequence of objects which satisfy the same requirements as the
+        shell parameters above
 
     Attributes
     ----------
@@ -180,30 +207,22 @@ class Polygon(BaseGeometry):
         The ring which bounds the positive space of the polygon.
     interiors : sequence
         A sequence of rings which bound all existing holes.
+
+    Examples
+    --------
+    Create a square polygon with no holes
+
+    >>> coords = ((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.))
+    >>> polygon = Polygon(coords)
+    >>> polygon.area
+    1.0
+
     """
 
     __slots__ = []
 
     def __new__(self, shell=None, holes=None):
-        """
-        Parameters
-        ----------
-        shell : sequence
-            A sequence of (x, y [,z]) numeric coordinate pairs or triples.
-            Also can be a sequence of Point objects.
-        holes : sequence
-            A sequence of objects which satisfy the same requirements as the
-            shell parameters above
-
-        Example
-        -------
-        Create a square polygon with no holes
-
-          >>> coords = ((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.))
-          >>> polygon = Polygon(coords)
-          >>> polygon.area
-          1.0
-        """
+        """Create a new Polygon geometry."""
         if shell is None:
             # empty geometry
             # TODO better way?
@@ -211,10 +230,8 @@ class Polygon(BaseGeometry):
         elif isinstance(shell, Polygon):
             # return original objects since geometries are immutable
             return shell
-        # else:
-        #     geom_shell = LinearRing(shell)
-        #     if holes is not None:
-        #         geom_holes = [LinearRing(h) for h in holes]
+        else:
+            shell = LinearRing(shell)
 
         if holes is not None:
             if len(holes) == 0:
@@ -223,24 +240,6 @@ class Polygon(BaseGeometry):
             else:
                 holes = [LinearRing(ring) for ring in holes]
 
-        if not isinstance(shell, BaseGeometry):
-            if not isinstance(shell, (list, np.ndarray)):
-                # eg emtpy generator not handled well by np.asarray
-                shell = list(shell)
-            shell = np.asarray(shell)
-
-            if len(shell) == 0:
-                # empty geometry
-                # TODO better constructor + should shapely.polygons handle this?
-                return shapely.from_wkt("POLYGON EMPTY")
-
-            if not np.issubdtype(shell.dtype, np.number):
-                # conversion of coords to 2D array failed, this might be due
-                # to inconsistent coordinate dimensionality
-                raise ValueError("Inconsistent coordinate dimensionality")
-        elif not isinstance(shell, LinearRing):
-            shell = LinearRing(shell)
-
         geom = shapely.polygons(shell, holes=holes)
         if not isinstance(geom, Polygon):
             raise ValueError("Invalid values passed to Polygon constructor")
@@ -248,22 +247,26 @@ class Polygon(BaseGeometry):
 
     @property
     def exterior(self):
+        """Return the exterior ring of the polygon."""
         return shapely.get_exterior_ring(self)
 
     @property
     def interiors(self):
+        """Return the sequence of interior rings of the polygon."""
         if self.is_empty:
             return []
         return InteriorRingSequence(self)
 
     @property
     def coords(self):
+        """Not implemented for polygons."""
         raise NotImplementedError(
             "Component rings have coordinate sequences, but the polygon does not"
         )
 
     @property
     def __geo_interface__(self):
+        """Return a GeoJSON-like mapping of the Polygon geometry."""
         if self.exterior == LinearRing():
             coords = []
         else:
@@ -273,10 +276,10 @@ class Polygon(BaseGeometry):
         return {"type": "Polygon", "coordinates": tuple(coords)}
 
     def svg(self, scale_factor=1.0, fill_color=None, opacity=None):
-        """Returns SVG path element for the Polygon geometry.
+        """Return SVG path element for the Polygon geometry.
 
         Parameters
-        ==========
+        ----------
         scale_factor : float
             Multiplication factor for the SVG stroke-width.  Default is 1.
         fill_color : str, optional
@@ -284,6 +287,7 @@ class Polygon(BaseGeometry):
             geometry is valid, and "#ff3333" if invalid.
         opacity : float
             Float number between 0 and 1 for color opacity. Default value is 0.6
+
         """
         if self.is_empty:
             return "<g />"
@@ -302,9 +306,9 @@ class Polygon(BaseGeometry):
             ]
         )
         return (
-            '<path fill-rule="evenodd" fill="{2}" stroke="#555555" '
-            'stroke-width="{0}" opacity="{3}" d="{1}" />'
-        ).format(2.0 * scale_factor, path, fill_color, opacity)
+            f'<path fill-rule="evenodd" fill="{fill_color}" stroke="#555555" '
+            f'stroke-width="{2.0 * scale_factor}" opacity="{opacity}" d="{path}" />'
+        )
 
     @classmethod
     def from_bounds(cls, xmin, ymin, xmax, ymax):
@@ -316,6 +320,10 @@ shapely.lib.registry[3] = Polygon
 
 
 def orient(polygon, sign=1.0):
+    """Return an oriented polygon."""
+    if polygon.is_empty:
+        return polygon
+
     s = float(sign)
     rings = []
     ring = polygon.exterior

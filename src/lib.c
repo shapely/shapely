@@ -1,5 +1,4 @@
 #define PY_SSIZE_T_CLEAN
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 #include <Python.h>
 
@@ -26,6 +25,8 @@ static PyMethodDef GeosModule[] = {
      "Gets the coordinates as an (N, 2) shaped ndarray of floats"},
     {"set_coordinates", PySetCoords, METH_VARARGS,
      "Sets coordinates to a geometry array"},
+    {"_setup_signal_checks", PySetupSignalChecks, METH_VARARGS,
+     "Sets the thread id and interval for signal checks"},
     {NULL, NULL, 0, NULL}};
 
 static struct PyModuleDef moduledef = {
@@ -41,6 +42,11 @@ PyMODINIT_FUNC PyInit_lib(void) {
   if (!m) {
     return NULL;
   }
+
+  /* Work with freethreaded Python */
+  #ifdef Py_GIL_DISABLED
+    PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED);
+  #endif
 
   if (init_geos(m) < 0) {
     return NULL;

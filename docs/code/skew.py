@@ -1,11 +1,11 @@
-from matplotlib import pyplot
+import matplotlib.pyplot as plt
 from shapely.wkt import loads as load_wkt
 from shapely import affinity
-from descartes.patch import PolygonPatch
+from shapely.plotting import plot_polygon
 
 from figures import SIZE, BLUE, GRAY, set_limits, add_origin
 
-fig = pyplot.figure(1, figsize=SIZE, dpi=90)
+fig = plt.figure(1, figsize=SIZE, dpi=90)
 
 # Geometry from JTS TestBuilder with fixed precision model of 100.0
 # Using CreateShape > FontGlyphSanSerif and A = triangle.wkt from scale.py
@@ -25,13 +25,9 @@ POLYGON((2.218 2.204, 2.273 2.18, 2.328 2.144, 2.435 2.042, 2.541 1.895,
 # 1
 ax = fig.add_subplot(121)
 
-patch1a = PolygonPatch(R, facecolor=GRAY, edgecolor=GRAY,
-                       alpha=0.5, zorder=1)
+plot_polygon(R, ax=ax, add_points=False, color=GRAY, alpha=0.5)
 skewR = affinity.skew(R, xs=20, origin=(1, 1))
-patch1b = PolygonPatch(skewR, facecolor=BLUE, edgecolor=BLUE,
-                       alpha=0.5, zorder=2)
-ax.add_patch(patch1a)
-ax.add_patch(patch1b)
+plot_polygon(skewR, ax=ax, add_points=False, color=BLUE, alpha=0.5)
 
 add_origin(ax, R, (1, 1))
 
@@ -42,13 +38,9 @@ set_limits(ax, 0, 5, 0, 4)
 # 2
 ax = fig.add_subplot(122)
 
-patch2a = PolygonPatch(R, facecolor=GRAY, edgecolor=GRAY,
-                       alpha=0.5, zorder=1)
+plot_polygon(R, ax=ax, add_points=False, color=GRAY, alpha=0.5)
 skewR = affinity.skew(R, ys=30)
-patch2b = PolygonPatch(skewR, facecolor=BLUE, edgecolor=BLUE,
-                       alpha=0.5, zorder=2)
-ax.add_patch(patch2a)
-ax.add_patch(patch2b)
+plot_polygon(skewR, ax=ax, add_points=False, color=BLUE, alpha=0.5)
 
 add_origin(ax, R, 'center')
 
@@ -56,4 +48,4 @@ ax.set_title("b) ys=30")
 
 set_limits(ax, 0, 5, 0, 4)
 
-pyplot.show()
+plt.show()

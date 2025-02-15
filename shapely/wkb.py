@@ -2,17 +2,20 @@
 
 Also provides pickle-like convenience functions.
 """
+
 import shapely
 
 
 def loads(data, hex=False):
-    """Load a geometry from a WKB byte string, or hex-encoded string if
-    ``hex=True``.
+    """Load a geometry from a WKB byte string.
+
+    If ``hex=True``, the string will be hex-encoded.
 
     Raises
     ------
-    WKBReadingError, UnicodeDecodeError
+    GEOSException, UnicodeDecodeError
         If ``data`` contains an invalid geometry.
+
     """
     return shapely.from_wkb(data)
 
@@ -22,29 +25,32 @@ def load(fp, hex=False):
 
     Raises
     ------
-    WKBReadingError, UnicodeDecodeError
+    GEOSException, UnicodeDecodeError
         If the given file contains an invalid geometry.
+
     """
     data = fp.read()
     return loads(data, hex=hex)
 
 
 def dumps(ob, hex=False, srid=None, **kw):
-    """Dump a WKB representation of a geometry to a byte string, or a
-    hex-encoded string if ``hex=True``.
+    """Dump a WKB representation of a geometry to a byte string.
+
+    If ``hex=True``, the string will be hex-encoded.
 
     Parameters
     ----------
     ob : geometry
-        The geometry to export to well-known binary (WKB) representation
+        The geometry to export to well-known binary (WKB) representation.
     hex : bool
         If true, export the WKB as a hexadecimal string. The default is to
         return a binary string/bytes object.
     srid : int
         Spatial reference system ID to include in the output. The default value
         means no SRID is included.
-    **kw : kwargs
-        See available keyword output settings in ``shapely.geos.WKBWriter``.
+    **kw : kwargs, optional
+        Keyword output options passed to :func:`~shapely.to_wkb`.
+
     """
     if srid is not None:
         # clone the object and set the SRID before dumping

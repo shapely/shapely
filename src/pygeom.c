@@ -1,5 +1,4 @@
 #define PY_SSIZE_T_CLEAN
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 #include "pygeom.h"
 
@@ -7,6 +6,7 @@
 #include <structmember.h>
 
 #include "geos.h"
+#include "pygeos.h"
 
 /* This initializes a global geometry type registry */
 PyObject* geom_registry[1] = {NULL};
@@ -23,6 +23,16 @@ PyObject* GeometryObject_FromGEOS(GEOSGeometry* ptr, GEOSContextHandle_t ctx) {
   if (type_id == -1) {
     return NULL;
   }
+
+  // Nonlinear types (CircularString, CompoundCurve, MultiCurve, CurvePolygon,
+  // MultiSurface are not currently supported
+  // TODO: this can be removed once these types are added to the type registry
+  if (type_id >= 8) {
+    PyErr_Format(PyExc_NotImplementedError,
+                 "Nonlinear geometry types are not currently supported");
+    return NULL;
+  }
+
   PyObject* type_obj = PyList_GET_ITEM(geom_registry[0], type_id);
   if (type_obj == NULL) {
     return NULL;
@@ -38,26 +48,30 @@ PyObject* GeometryObject_FromGEOS(GEOSGeometry* ptr, GEOSContextHandle_t ctx) {
   } else {
     self->ptr = ptr;
     self->ptr_prepared = NULL;
+    self->weakreflist = (PyObject*)NULL;
     return (PyObject*)self;
   }
 }
 
 static void GeometryObject_dealloc(GeometryObject* self) {
+  if (self->weakreflist != NULL) {
+    PyObject_ClearWeakRefs((PyObject*)self);
+  }
   if (self->ptr != NULL) {
-    GEOS_INIT;
+    // not using GEOS_INIT, but using global context instead
+    GEOSContextHandle_t ctx = geos_context[0];
     GEOSGeom_destroy_r(ctx, self->ptr);
     if (self->ptr_prepared != NULL) {
       GEOSPreparedGeom_destroy_r(ctx, self->ptr_prepared);
     }
-    GEOS_FINISH;
   }
   Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static PyMemberDef GeometryObject_members[] = {
-    {"_ptr", T_PYSSIZET, offsetof(GeometryObject, ptr), READONLY,
+    {"_geom", T_PYSSIZET, offsetof(GeometryObject, ptr), READONLY,
      "pointer to GEOSGeometry"},
-    {"_ptr_prepared", T_PYSSIZET, offsetof(GeometryObject, ptr_prepared), READONLY,
+    {"_geom_prepared", T_PYSSIZET, offsetof(GeometryObject, ptr_prepared), READONLY,
      "pointer to PreparedGEOSGeometry"},
     {NULL} /* Sentinel */
 };
@@ -66,6 +80,14 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
   char* wkt;
   PyObject* result;
   GEOSGeometry* geom = obj->ptr;
+  char trim = 1;
+  int precision = 3;
+#if GEOS_SINCE_3_12_0
+  int dimension = 4;
+#else
+  int dimension = 3;
+#endif
+  // int use_old_3d = 0;  // default is false
 
   if (geom == NULL) {
     Py_INCREF(Py_None);
@@ -73,8 +95,17 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
   }
 
   GEOS_INIT;
+#if !GEOS_SINCE_3_13_0
+  if (trim) {
+    errstate = check_to_wkt_trim_compatible(ctx, geom, dimension);
+  }
+  if (errstate != PGERR_SUCCESS) {
+    goto finish;
+  }
+#endif  // !GEOS_SINCE_3_13_0
 
-#if GEOS_SINCE_3_9_0
+#if !GEOS_SINCE_3_12_0
+  // Since GEOS 3.9.0 and before 3.12.0 further handling required
   errstate = wkt_empty_3d_geometry(ctx, geom, &wkt);
   if (errstate != PGERR_SUCCESS) {
     goto finish;
@@ -83,13 +114,7 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
     result = PyUnicode_FromString(wkt);
     goto finish;
   }
-#else
-  // Before GEOS 3.9.0, there was as segfault on e.g. MULTIPOINT (1 1, EMPTY)
-  errstate = check_to_wkt_compatible(ctx, geom);
-  if (errstate != PGERR_SUCCESS) {
-    goto finish;
-  }
-#endif
+#endif // !GEOS_SINCE_3_12_0
 
   GEOSWKTWriter* writer = GEOSWKTWriter_create_r(ctx);
   if (writer == NULL) {
@@ -97,14 +122,14 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
     goto finish;
   }
 
-  char trim = 1;
-  int precision = 3;
-  int dimension = 3;
-  int use_old_3d = 0;
   GEOSWKTWriter_setRoundingPrecision_r(ctx, writer, precision);
+#if !GEOS_SINCE_3_12_0
+  // Override defaults only for older versions
+  // See https://github.com/libgeos/geos/pull/915
   GEOSWKTWriter_setTrim_r(ctx, writer, trim);
   GEOSWKTWriter_setOutputDimension_r(ctx, writer, dimension);
-  GEOSWKTWriter_setOld3D_r(ctx, writer, use_old_3d);
+  // GEOSWKTWriter_setOld3D_r(ctx, writer, use_old_3d);
+#endif  // !GEOS_SINCE_3_12_0
 
   // Check if the above functions caused a GEOS exception
   if (last_error[0] != 0) {
@@ -139,23 +164,7 @@ static PyObject* GeometryObject_ToWKB(GeometryObject* obj) {
   }
 
   GEOS_INIT;
-
-#if !GEOS_SINCE_3_9_0
-  // WKB Does not allow empty points in GEOS < 3.9.
-  // We check for that and patch the POINT EMPTY if necessary
-  has_empty = has_point_empty(ctx, obj->ptr);
-  if (has_empty == 2) {
-    errstate = PGERR_GEOS_EXCEPTION;
-    goto finish;
-  }
-  if (has_empty == 1) {
-    geom = point_empty_to_nan_all_geoms(ctx, obj->ptr);
-  } else {
-    geom = obj->ptr;
-  }
-#else
   geom = obj->ptr;
-#endif  // !GEOS_SINCE_3_9_0
 
   /* Create the WKB writer */
   writer = GEOSWKBWriter_create_r(ctx);
@@ -163,8 +172,12 @@ static PyObject* GeometryObject_ToWKB(GeometryObject* obj) {
     errstate = PGERR_GEOS_EXCEPTION;
     goto finish;
   }
-  // Allow 3D output and include SRID
+#if !GEOS_SINCE_3_12_0
+  // Allow 3D output for GEOS<3.12 (it is default 4 afterwards)
+  // See https://github.com/libgeos/geos/pull/908
   GEOSWKBWriter_setOutputDimension_r(ctx, writer, 3);
+#endif  // !GEOS_SINCE_3_12_0
+  // include SRID
   GEOSWKBWriter_setIncludeSRID_r(ctx, writer, 1);
   // Check if the above functions caused a GEOS exception
   if (last_error[0] != 0) {
@@ -222,15 +235,6 @@ static PyObject* GeometryObject_str(GeometryObject* self) {
   return GeometryObject_ToWKT(self);
 }
 
-/* For pickling. To be used in GeometryObject->tp_reduce.
- * reduce should return a a tuple of (callable, args).
- * On unpickling, callable(*args) is called */
-static PyObject* GeometryObject_reduce(PyObject* self) {
-  Py_INCREF(self->ob_type);
-  return PyTuple_Pack(2, self->ob_type,
-                      PyTuple_Pack(1, GeometryObject_ToWKB((GeometryObject*)self)));
-}
-
 /* For lookups in sets / dicts.
  * Python should be told how to generate a hash from the Geometry object. */
 static Py_hash_t GeometryObject_hash(GeometryObject* self) {
@@ -277,11 +281,11 @@ static PyObject* GeometryObject_richcompare(GeometryObject* self, PyObject* othe
         break;
       case Py_EQ:
         result =
-            GEOSEqualsExact_r(ctx, self->ptr, other_geom->ptr, 0) ? Py_True : Py_False;
+            PyGEOSEqualsIdentical(ctx, self->ptr, other_geom->ptr) ? Py_True : Py_False;
         break;
       case Py_NE:
         result =
-            GEOSEqualsExact_r(ctx, self->ptr, other_geom->ptr, 0) ? Py_False : Py_True;
+            PyGEOSEqualsIdentical(ctx, self->ptr, other_geom->ptr) ? Py_False : Py_True;
         break;
       case Py_GT:
         result = Py_NotImplemented;
@@ -296,59 +300,18 @@ static PyObject* GeometryObject_richcompare(GeometryObject* self, PyObject* othe
   return result;
 }
 
-static PyObject* GeometryObject_FromWKT(PyObject* value) {
-  PyObject* result = NULL;
-  const char* wkt;
-  GEOSGeometry* geom;
-  GEOSWKTReader* reader;
 
-  /* Cast the PyObject str to char* */
-  if (PyUnicode_Check(value)) {
-    wkt = PyUnicode_AsUTF8(value);
-    if (wkt == NULL) {
-      return NULL;
-    }
-  } else {
-    PyErr_Format(PyExc_TypeError, "Expected bytes, found %s", value->ob_type->tp_name);
-    return NULL;
-  }
-
-  GEOS_INIT;
-
-  reader = GEOSWKTReader_create_r(ctx);
-  if (reader == NULL) {
-    errstate = PGERR_GEOS_EXCEPTION;
-    goto finish;
-  }
-  geom = GEOSWKTReader_read_r(ctx, reader, wkt);
-  GEOSWKTReader_destroy_r(ctx, reader);
-  if (geom == NULL) {
-    errstate = PGERR_GEOS_EXCEPTION;
-    goto finish;
-  }
-  result = GeometryObject_FromGEOS(geom, ctx);
-  if (result == NULL) {
-    GEOSGeom_destroy_r(ctx, geom);
-    PyErr_Format(PyExc_RuntimeError, "Could not instantiate a new Geometry object");
-  }
-
-finish:
-  GEOS_FINISH;
-  if (errstate == PGERR_SUCCESS) {
-    return result;
-  } else {
-    return NULL;
-  }
-}
-
-static PyObject* GeometryObject_FromWKB(PyObject* value) {
-  PyObject* result = NULL;
+static PyObject* GeometryObject_SetState(PyObject* self, PyObject* value) {
   unsigned char* wkb = NULL;
   Py_ssize_t size;
   GEOSGeometry* geom = NULL;
   GEOSWKBReader* reader = NULL;
 
-  /* Cast the PyObject bytes to char* */
+  PyErr_WarnFormat(PyExc_UserWarning, 0,
+                   "Unpickling a shapely <2.0 geometry object. Please save the pickle "
+                   "again; shapely 2.1 will not have this compatibility.");
+
+  /* Cast the PyObject bytes to char */
   if (!PyBytes_Check(value)) {
     PyErr_Format(PyExc_TypeError, "Expected bytes, found %s", value->ob_type->tp_name);
     return NULL;
@@ -358,6 +321,16 @@ static PyObject* GeometryObject_FromWKB(PyObject* value) {
   if (wkb == NULL) {
     return NULL;
   }
+
+  PyObject* linearring_type_obj = PyList_GET_ITEM(geom_registry[0], 2);
+  if (linearring_type_obj == NULL) {
+    return NULL;
+  }
+  if (!PyType_Check(linearring_type_obj)) {
+    PyErr_Format(PyExc_RuntimeError, "Invalid registry value");
+    return NULL;
+  }
+  PyTypeObject* linearring_type = (PyTypeObject*)linearring_type_obj;
 
   GEOS_INIT;
 
@@ -371,12 +344,23 @@ static PyObject* GeometryObject_FromWKB(PyObject* value) {
     errstate = PGERR_GEOS_EXCEPTION;
     goto finish;
   }
-
-  result = GeometryObject_FromGEOS(geom, ctx);
-  if (result == NULL) {
-    GEOSGeom_destroy_r(ctx, geom);
-    PyErr_Format(PyExc_RuntimeError, "Could not instantiate a new Geometry object");
+  if (Py_TYPE(self) == linearring_type) {
+    const GEOSCoordSequence* coord_seq = GEOSGeom_getCoordSeq_r(ctx, geom);
+    if (coord_seq == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
+    geom = GEOSGeom_createLinearRing_r(ctx, (GEOSCoordSequence*)coord_seq);
+    if (geom == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
   }
+
+  if (((GeometryObject*)self)->ptr != NULL) {
+    GEOSGeom_destroy_r(ctx, ((GeometryObject*)self)->ptr);
+  }
+  ((GeometryObject*)self)->ptr = geom;
 
 finish:
 
@@ -386,26 +370,17 @@ finish:
 
   GEOS_FINISH;
 
-  return result;
-}
-
-static PyObject* GeometryObject_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
-  PyObject* value;
-
-  if (!PyArg_ParseTuple(args, "O", &value)) {
-    return NULL;
-  } else if (PyUnicode_Check(value)) {
-    return GeometryObject_FromWKT(value);
-  } else if (PyBytes_Check(value)) {
-    return GeometryObject_FromWKB(value);
-  } else {
-    PyErr_Format(PyExc_TypeError, "Expected string, got %s", value->ob_type->tp_name);
-    return NULL;
+  if (errstate == PGERR_SUCCESS) {
+    Py_INCREF(Py_None);
+    return Py_None;
   }
+  return NULL;
 }
+
 
 static PyMethodDef GeometryObject_methods[] = {
-    {"__reduce__", (PyCFunction)GeometryObject_reduce, METH_NOARGS, "For pickling."},
+    {"__setstate__", (PyCFunction)GeometryObject_SetState, METH_O,
+     "For unpickling pre-shapely 2.0 pickles"},
     {NULL} /* Sentinel */
 };
 
@@ -415,13 +390,13 @@ PyTypeObject GeometryType = {
     .tp_basicsize = sizeof(GeometryObject),
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    .tp_new = GeometryObject_new,
     .tp_dealloc = (destructor)GeometryObject_dealloc,
     .tp_members = GeometryObject_members,
     .tp_methods = GeometryObject_methods,
     .tp_repr = (reprfunc)GeometryObject_repr,
     .tp_hash = (hashfunc)GeometryObject_hash,
     .tp_richcompare = (richcmpfunc)GeometryObject_richcompare,
+    .tp_weaklistoffset = offsetof(GeometryObject, weakreflist),
     .tp_str = (reprfunc)GeometryObject_str,
 };
 

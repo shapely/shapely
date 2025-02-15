@@ -1,6 +1,8 @@
-from . import Geometry  # NOQA
-from . import lib
-from .decorators import multithreading_enabled
+"""Linear geometry functions."""
+
+from shapely import lib
+from shapely.decorators import multithreading_enabled
+from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
     "line_interpolate_point",
@@ -13,7 +15,7 @@ __all__ = [
 
 @multithreading_enabled
 def line_interpolate_point(line, distance, normalized=False, **kwargs):
-    """Returns a point interpolated at given distance on a line.
+    """Return a point interpolated at given distance on a line.
 
     Parameters
     ----------
@@ -28,22 +30,23 @@ def line_interpolate_point(line, distance, normalized=False, **kwargs):
         If True, the distance is a fraction of the total
         line length instead of the absolute distance.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
-    >>> line = Geometry("LINESTRING(0 2, 0 10)")
+    >>> from shapely import LineString, Point
+    >>> line = LineString([(0, 2), (0, 10)])
     >>> line_interpolate_point(line, 2)
-    <pygeos.Geometry POINT (0 4)>
+    <POINT (0 4)>
     >>> line_interpolate_point(line, 100)
-    <pygeos.Geometry POINT (0 10)>
+    <POINT (0 10)>
     >>> line_interpolate_point(line, -2)
-    <pygeos.Geometry POINT (0 8)>
+    <POINT (0 8)>
     >>> line_interpolate_point(line, [0.25, -0.25], normalized=True).tolist()
-    [<pygeos.Geometry POINT (0 4)>, <pygeos.Geometry POINT (0 8)>]
-    >>> line_interpolate_point(Geometry("LINESTRING EMPTY"), 1)
-    <pygeos.Geometry POINT EMPTY>
+    [<POINT (0 4)>, <POINT (0 8)>]
+    >>> line_interpolate_point(LineString(), 1)
+    <POINT EMPTY>
+
     """
     if normalized:
         return lib.line_interpolate_point_normalized(line, distance)
@@ -53,7 +56,7 @@ def line_interpolate_point(line, distance, normalized=False, **kwargs):
 
 @multithreading_enabled
 def line_locate_point(line, other, normalized=False, **kwargs):
-    """Returns the distance to the line origin of given point.
+    """Return the distance to the line origin of given point.
 
     If given point does not intersect with the line, the point will first be
     projected onto the line after which the distance is taken.
@@ -61,25 +64,29 @@ def line_locate_point(line, other, normalized=False, **kwargs):
     Parameters
     ----------
     line : Geometry or array_like
-    point : Geometry or array_like
+        Line or lines to calculate the distance to.
+    other : Geometry or array_like
+        Point or points to calculate the distance from.
     normalized : bool, default False
-        If True, the distance is a fraction of the total
-        line length instead of the absolute distance.
+        If True, the distance is a fraction of the total line length instead of
+        the absolute distance.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
-    >>> line = Geometry("LINESTRING(0 2, 0 10)")
-    >>> line_locate_point(line, Geometry("POINT(4 4)"))
+    >>> from shapely import LineString, Point
+    >>> line = LineString([(0, 2), (0, 10)])
+    >>> point = Point(4, 4)
+    >>> line_locate_point(line, point)
     2.0
-    >>> line_locate_point(line, Geometry("POINT(4 4)"), normalized=True)
+    >>> line_locate_point(line, point, normalized=True)
     0.25
-    >>> line_locate_point(line, Geometry("POINT(0 18)"))
+    >>> line_locate_point(line, Point(0, 18))
     8.0
-    >>> line_locate_point(Geometry("LINESTRING EMPTY"), Geometry("POINT(4 4)"))
+    >>> line_locate_point(LineString(), point)
     nan
+
     """
     if normalized:
         return lib.line_locate_point_normalized(line, other)
@@ -88,32 +95,59 @@ def line_locate_point(line, other, normalized=False, **kwargs):
 
 
 @multithreading_enabled
-def line_merge(line, **kwargs):
-    """Returns (multi)linestrings formed by combining the lines in a
-    multilinestrings.
+def line_merge(line, directed=False, **kwargs):
+    """Return (Multi)LineStrings formed by combining the lines in a MultiLineString.
+
+    Lines are joined together at their endpoints in case two lines are
+    intersecting. Lines are not joined when 3 or more lines are intersecting at
+    the endpoints. Line elements that cannot be joined are kept as is in the
+    resulting MultiLineString.
+
+    The direction of each merged LineString will be that of the majority of the
+    LineStrings from which it was derived. Except if ``directed=True`` is
+    specified, then the operation will not change the order of points within
+    lines and so only lines which can be joined with no change in direction
+    are merged.
 
     Parameters
     ----------
     line : Geometry or array_like
+        Linear geometry or geometries to merge.
+    directed : bool, default False
+        Only combine lines if possible without changing point order.
+        Requires GEOS >= 3.11.0
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
-    >>> line_merge(Geometry("MULTILINESTRING((0 2, 0 10), (0 10, 5 10))"))
-    <pygeos.Geometry LINESTRING (0 2, 0 10, 5 10)>
-    >>> line_merge(Geometry("MULTILINESTRING((0 2, 0 10), (0 11, 5 10))"))
-    <pygeos.Geometry MULTILINESTRING ((0 2, 0 10), (0 11, 5 10))>
-    >>> line_merge(Geometry("LINESTRING EMPTY"))
-    <pygeos.Geometry GEOMETRYCOLLECTION EMPTY>
+    >>> from shapely import MultiLineString
+    >>> line_merge(MultiLineString([[(0, 2), (0, 10)], [(0, 10), (5, 10)]]))
+    <LINESTRING (0 2, 0 10, 5 10)>
+    >>> line_merge(MultiLineString([[(0, 2), (0, 10)], [(0, 11), (5, 10)]]))
+    <MULTILINESTRING ((0 2, 0 10), (0 11, 5 10))>
+    >>> line_merge(MultiLineString())
+    <GEOMETRYCOLLECTION EMPTY>
+    >>> line_merge(MultiLineString([[(0, 0), (1, 0)], [(0, 0), (3, 0)]]))
+    <LINESTRING (1 0, 0 0, 3 0)>
+    >>> line_merge(MultiLineString([[(0, 0), (1, 0)], [(0, 0), (3, 0)]]), directed=True)
+    <MULTILINESTRING ((0 0, 1 0), (0 0, 3 0))>
+
     """
+    if directed:
+        if lib.geos_version < (3, 11, 0):
+            raise UnsupportedGEOSVersionError(
+                "'{}' requires at least GEOS {}.{}.{}.".format(
+                    "line_merge", *(3, 11, 0)
+                )
+            )
+        return lib.line_merge_directed(line, **kwargs)
     return lib.line_merge(line, **kwargs)
 
 
 @multithreading_enabled
 def shared_paths(a, b, **kwargs):
-    """Returns the shared paths between geom1 and geom2.
+    """Return the shared paths between a and b.
 
     Both geometries should be linestrings or arrays of linestrings.
     A geometrycollection or array of geometrycollections is returned
@@ -124,50 +158,54 @@ def shared_paths(a, b, **kwargs):
 
     Parameters
     ----------
-    a : Geometry or array_like
-    b : Geometry or array_like
+    a, b : Geometry or array_like
+        Linestring or linestrings to compare.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
-    >>> geom1 = Geometry("LINESTRING (0 0, 1 0, 1 1, 0 1, 0 0)")
-    >>> geom2 = Geometry("LINESTRING (1 0, 2 0, 2 1, 1 1, 1 0)")
-    >>> shared_paths(geom1, geom2)
-    <pygeos.Geometry GEOMETRYCOLLECTION (MULTILINESTRING EMPTY, MULTILINESTRING ...>
+    >>> from shapely import LineString
+    >>> line1 = LineString([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
+    >>> line2 = LineString([(1, 0), (2, 0), (2, 1), (1, 1), (1, 0)])
+    >>> shared_paths(line1, line2).wkt
+    'GEOMETRYCOLLECTION (MULTILINESTRING EMPTY, MULTILINESTRING ((1 0, 1 1)))'
+    >>> line3 = LineString([(1, 1), (0, 1)])
+    >>> shared_paths(line1, line3).wkt
+    'GEOMETRYCOLLECTION (MULTILINESTRING ((1 1, 0 1)), MULTILINESTRING EMPTY)'
+
     """
     return lib.shared_paths(a, b, **kwargs)
 
 
 @multithreading_enabled
 def shortest_line(a, b, **kwargs):
-    """
-    Returns the shortest line between two geometries.
+    """Return the shortest line between two geometries.
 
     The resulting line consists of two points, representing the nearest
     points between the geometry pair. The line always starts in the first
-    geometry `a` and ends in he second geometry `b`. The endpoints of the
+    geometry `a` and ends in the second geometry `b`. The endpoints of the
     line will not necessarily be existing vertices of the input geometries
     `a` and `b`, but can also be a point along a line segment.
 
     Parameters
     ----------
-    a : Geometry or array_like
-    b : Geometry or array_like
+    a, b : Geometry or array_like
+        Geometry or geometries to compare.
     **kwargs
-        For other keyword-only arguments, see the
-        `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
-    See also
+    See Also
     --------
-    prepare : improve performance by preparing ``a`` (the first argument) (for GEOS>=3.9)
+    prepare : improve performance by preparing ``a`` (the first argument)
 
     Examples
     --------
-    >>> geom1 = Geometry("LINESTRING (0 0, 1 0, 1 1, 0 1, 0 0)")
-    >>> geom2 = Geometry("LINESTRING (0 3, 3 0, 5 3)")
-    >>> shortest_line(geom1, geom2)
-    <pygeos.Geometry LINESTRING (1 1, 1.5 1.5)>
+    >>> from shapely import LineString
+    >>> line1 = LineString([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
+    >>> line2 = LineString([(0, 3), (3, 0), (5, 3)])
+    >>> shortest_line(line1, line2)
+    <LINESTRING (1 1, 1.5 1.5)>
+
     """
     return lib.shortest_line(a, b, **kwargs)

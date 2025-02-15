@@ -1,5 +1,6 @@
 import os
 import sys
+from inspect import cleandoc
 from itertools import chain
 from string import ascii_letters, digits
 from unittest import mock
@@ -13,8 +14,8 @@ from shapely.decorators import multithreading_enabled, requires_geos
 
 @pytest.fixture
 def mocked_geos_version():
-    with mock.patch.object(shapely.lib, "geos_version", new=(3, 7, 1)):
-        yield "3.7.1"
+    with mock.patch.object(shapely.lib, "geos_version", new=(3, 10, 1)):
+        yield "3.10.1"
 
 
 @pytest.fixture
@@ -29,7 +30,7 @@ def test_version():
 
 
 def test_geos_version():
-    expected = "{0:d}.{1:d}.{2:d}".format(*shapely.geos_version)
+    expected = "{}.{}.{}".format(*shapely.geos_version)
     actual = shapely.geos_version_string
 
     # strip any beta / dev qualifiers
@@ -41,12 +42,8 @@ def test_geos_version():
     assert actual == expected
 
 
-@pytest.mark.skipif(
-    sys.platform.startswith("win") and shapely.geos_version[:2] == (3, 7),
-    reason="GEOS_C_API_VERSION broken for GEOS 3.7.x on Windows",
-)
 def test_geos_capi_version():
-    expected = "{0:d}.{1:d}.{2:d}-CAPI-{3:d}.{4:d}.{5:d}".format(
+    expected = "{}.{}.{}-CAPI-{}.{}.{}".format(
         *(shapely.geos_version + shapely.geos_capi_version)
     )
 
@@ -62,9 +59,7 @@ def test_geos_capi_version():
         actual_geos_version = actual_geos_version.rstrip(ascii_letters)
     actual_geos_version = actual_geos_version.rstrip(ascii_letters)
 
-    assert (
-        "{0}-CAPI-{1}".format(actual_geos_version, actual_geos_api_version) == expected
-    )
+    assert f"{actual_geos_version}-CAPI-{actual_geos_api_version}" == expected
 
 
 def func():
@@ -84,44 +79,52 @@ class SomeClass:
         """
 
 
-expected_docstring = """Docstring that will be mocked.
+def expected_docstring(**kwds):
+    doc = """Docstring that will be mocked.
 {indent}A multiline.
 
 {indent}.. note:: 'func' requires at least GEOS {version}.
 
 {indent}Some description.
-{indent}"""
+{indent}""".format(**kwds)
+    if sys.version_info[:2] >= (3, 13):
+        # There are subtle differences between inspect.cleandoc() and
+        # _PyCompile_CleanDoc(). Most significantly, the latter does not remove
+        # leading or trailing blank lines.
+        return cleandoc(doc) + "\n"
+    return doc
 
 
-@pytest.mark.parametrize("version", ["3.7.0", "3.7.1", "3.6.2"])
+@pytest.mark.parametrize("version", ["3.10.0", "3.10.1", "3.9.2"])
 def test_requires_geos_ok(version, mocked_geos_version):
     wrapped = requires_geos(version)(func)
+    wrapped()
     assert wrapped is func
 
 
-@pytest.mark.parametrize("version", ["3.7.2", "3.8.0", "3.8.1"])
+@pytest.mark.parametrize("version", ["3.10.2", "3.11.0", "3.11.1"])
 def test_requires_geos_not_ok(version, mocked_geos_version):
     wrapped = requires_geos(version)(func)
-    with pytest.raises(shapely.UnsupportedGEOSOperation):
+    with pytest.raises(shapely.errors.UnsupportedGEOSVersionError):
         wrapped()
 
-    assert wrapped.__doc__ == expected_docstring.format(version=version, indent=" " * 4)
+    assert wrapped.__doc__ == expected_docstring(version=version, indent=" " * 4)
 
 
-@pytest.mark.parametrize("version", ["3.6.0", "3.8.0"])
+@pytest.mark.parametrize("version", ["3.9.0", "3.10.0"])
 def test_requires_geos_doc_build(version, mocked_geos_version, sphinx_doc_build):
     """The requires_geos decorator always adapts the docstring."""
     wrapped = requires_geos(version)(func)
 
-    assert wrapped.__doc__ == expected_docstring.format(version=version, indent=" " * 4)
+    assert wrapped.__doc__ == expected_docstring(version=version, indent=" " * 4)
 
 
-@pytest.mark.parametrize("version", ["3.6.0", "3.8.0"])
+@pytest.mark.parametrize("version", ["3.9.0", "3.10.0"])
 def test_requires_geos_method(version, mocked_geos_version, sphinx_doc_build):
     """The requires_geos decorator adjusts methods docstrings correctly"""
     wrapped = requires_geos(version)(SomeClass.func)
 
-    assert wrapped.__doc__ == expected_docstring.format(version=version, indent=" " * 8)
+    assert wrapped.__doc__ == expected_docstring(version=version, indent=" " * 8)
 
 
 @multithreading_enabled

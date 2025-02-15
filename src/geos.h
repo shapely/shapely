@@ -10,10 +10,16 @@
 #endif
 
 // wrap geos.h import to silence geos gcc warnings
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-prototypes"
+#endif
+
 #include <geos_c.h>
+
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 
 /* Macros to setup GEOS Context and error handlers
 
@@ -45,19 +51,22 @@ finish:
 */
 
 // Define the error states
-enum {
+enum ShapelyErrorCode {
   PGERR_SUCCESS,
   PGERR_NOT_A_GEOMETRY,
   PGERR_GEOS_EXCEPTION,
   PGERR_NO_MALLOC,
   PGERR_GEOMETRY_TYPE,
   PGERR_MULTIPOINT_WITH_POINT_EMPTY,
+  PGERR_COORD_OUT_OF_BOUNDS,
   PGERR_EMPTY_GEOMETRY,
   PGERR_GEOJSON_EMPTY_POINT,
   PGERR_LINEARRING_NCOORDS,
+  PGERR_NAN_COORD,
   PGWARN_INVALID_WKB,  // raise the GEOS WKB error as a warning instead of exception
   PGWARN_INVALID_WKT,  // raise the GEOS WKT error as a warning instead of exception
-  PGWARN_INVALID_GEOJSON
+  PGWARN_INVALID_GEOJSON,
+  PGERR_PYSIGNAL
 };
 
 // Define how the states are handled by CPython
@@ -88,6 +97,11 @@ enum {
                       "WKT output of multipoints with an empty point is unsupported on " \
                       "this version of GEOS.");                                          \
       break;                                                                             \
+    case PGERR_COORD_OUT_OF_BOUNDS:  /* applies to GEOS <3.13.0 with trim enabled  */    \
+      PyErr_SetString(PyExc_ValueError,                                                  \
+                      "WKT output of coordinates greater than 1E+100 is unsupported on " \
+                      "this version of GEOS.");                                          \
+      break;                                                                             \
     case PGERR_EMPTY_GEOMETRY:                                                           \
       PyErr_SetString(PyExc_ValueError, "One of the Geometry inputs is empty.");         \
       break;                                                                             \
@@ -98,6 +112,11 @@ enum {
     case PGERR_LINEARRING_NCOORDS:                                                       \
       PyErr_SetString(PyExc_ValueError,                                                  \
                       "A linearring requires at least 4 coordinates.");                  \
+      break;                                                                             \
+    case PGERR_NAN_COORD:                                                                \
+      PyErr_SetString(PyExc_ValueError,                                                  \
+                      "A NaN, Inf or -Inf coordinate was supplied. Remove the "          \
+                      "coordinate or adapt the 'handle_nan' parameter.");               \
       break;                                                                             \
     case PGWARN_INVALID_WKB:                                                             \
       PyErr_WarnFormat(PyExc_Warning, 0,                                                 \
@@ -110,6 +129,8 @@ enum {
     case PGWARN_INVALID_GEOJSON:                                                         \
       PyErr_WarnFormat(PyExc_Warning, 0,                                                 \
                        "Invalid GeoJSON: geometry is returned as None. %s", last_error); \
+      break;                                                                             \
+    case PGERR_PYSIGNAL:                                                                 \
       break;                                                                             \
     default:                                                                             \
       PyErr_Format(PyExc_RuntimeError,                                                   \
@@ -124,10 +145,9 @@ enum {
   char last_warning[1024] = "";  \
   GEOSContextHandle_t ctx
 
-#define _GEOS_INIT                                                           \
-  ctx = GEOS_init_r();                                                       \
-  GEOSContext_setErrorMessageHandler_r(ctx, geos_error_handler, last_error); \
-  GEOSContext_setNoticeMessageHandler_r(ctx, geos_notice_handler, last_warning)
+#define _GEOS_INIT     \
+  ctx = GEOS_init_r(); \
+  GEOSContext_setErrorMessageHandler_r(ctx, geos_error_handler, last_error)
 
 #define GEOS_INIT \
   _GEOS_INIT_DEF; \
@@ -145,26 +165,26 @@ enum {
   GEOS_finish_r(ctx);       \
   Py_END_ALLOW_THREADS GEOS_HANDLE_ERR
 
-#define GEOS_SINCE_3_5_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 5))
-#define GEOS_SINCE_3_6_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 6))
-#define GEOS_SINCE_3_7_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 7))
-#define GEOS_SINCE_3_8_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 8))
-#define GEOS_SINCE_3_9_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 9))
 #define GEOS_SINCE_3_10_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 10))
+#define GEOS_SINCE_3_11_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 11))
+#define GEOS_SINCE_3_12_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 12))
+#define GEOS_SINCE_3_13_0 ((GEOS_VERSION_MAJOR >= 3) && (GEOS_VERSION_MINOR >= 13))
 
+extern void* geos_context[1];
 extern PyObject* geos_exception[1];
 
 extern void geos_error_handler(const char* message, void* userdata);
-extern void geos_notice_handler(const char* message, void* userdata);
 extern void destroy_geom_arr(void* context, GEOSGeometry** array, int length);
 extern char has_point_empty(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 extern GEOSGeometry* point_empty_to_nan_all_geoms(GEOSContextHandle_t ctx,
                                                   GEOSGeometry* geom);
-extern char check_to_wkt_compatible(GEOSContextHandle_t ctx, GEOSGeometry* geom);
-#if GEOS_SINCE_3_9_0
+#if !GEOS_SINCE_3_13_0
+extern char check_to_wkt_trim_compatible(GEOSContextHandle_t ctx, const GEOSGeometry* geom, int dimension);
+#endif  // !GEOS_SINCE_3_13_0
+#if !GEOS_SINCE_3_12_0
 extern char wkt_empty_3d_geometry(GEOSContextHandle_t ctx, GEOSGeometry* geom,
                                   char** wkt);
-#endif  // GEOS_SINCE_3_9_0
+#endif  // !GEOS_SINCE_3_12_0
 extern char geos_interpolate_checker(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 
 extern int init_geos(PyObject* m);
@@ -173,12 +193,20 @@ int get_bounds(GEOSContextHandle_t ctx, GEOSGeometry* geom, double* xmin, double
                double* xmax, double* ymax);
 GEOSGeometry* create_box(GEOSContextHandle_t ctx, double xmin, double ymin, double xmax,
                          double ymax, char ccw);
-GEOSGeometry* create_point(GEOSContextHandle_t ctx, double x, double y);
+extern enum ShapelyErrorCode create_point(GEOSContextHandle_t ctx, double x, double y,
+                                          double* z, int handle_nan, GEOSGeometry** out);
 GEOSGeometry* PyGEOSForce2D(GEOSContextHandle_t ctx, GEOSGeometry* geom);
 GEOSGeometry* PyGEOSForce3D(GEOSContextHandle_t ctx, GEOSGeometry* geom, double z);
 
-GEOSCoordSequence* coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
-                                        unsigned int size, unsigned int dims, char ring_closure,
-                                        npy_intp cs1, npy_intp cs2);
+enum ShapelyHandleNan { SHAPELY_HANDLE_NAN_ALLOW, SHAPELY_HANDLE_NAN_SKIP, SHAPELY_HANDLE_NANS_ERROR };
+
+extern enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx,
+                                                  const double* buf, unsigned int size,
+                                                  unsigned int dims, char is_ring,
+                                                  int handle_nan, npy_intp cs1,
+                                                  npy_intp cs2,
+                                GEOSCoordSequence** coord_seq);
+extern int coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq,
+                              double* buf, unsigned int size, int has_z, int has_m);
 
 #endif  // _GEOS_H

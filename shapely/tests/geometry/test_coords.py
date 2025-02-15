@@ -1,7 +1,8 @@
 import numpy as np
 import pytest
 
-from shapely.geometry import LineString
+from shapely import LineString
+from shapely.tests.common import line_string, line_string_z, point, point_z
 
 
 class TestCoords:
@@ -27,7 +28,7 @@ class TestCoords:
 
 
 class TestCoordsGetItem:
-    def test_index_2d_coords(self):
+    def test_index_coords(self):
         c = [(float(x), float(-x)) for x in range(4)]
         g = LineString(c)
         for i in range(-4, 4):
@@ -37,7 +38,7 @@ class TestCoordsGetItem:
         with pytest.raises(IndexError):
             g.coords[-5]
 
-    def test_index_3d_coords(self):
+    def test_index_coords_z(self):
         c = [(float(x), float(-x), float(x * 2)) for x in range(4)]
         g = LineString(c)
         for i in range(-4, 4):
@@ -54,7 +55,7 @@ class TestCoordsGetItem:
         with pytest.raises(TypeError):
             g.coords[0.0]
 
-    def test_slice_2d_coords(self):
+    def test_slice_coords(self):
         c = [(float(x), float(-x)) for x in range(4)]
         g = LineString(c)
         assert g.coords[1:] == c[1:]
@@ -64,7 +65,7 @@ class TestCoordsGetItem:
         assert g.coords[:4] == c[:4]
         assert g.coords[4:] == c[4:] == []
 
-    def test_slice_3d_coords(self):
+    def test_slice_coords_z(self):
         c = [(float(x), float(-x), float(x * 2)) for x in range(4)]
         g = LineString(c)
         assert g.coords[1:] == c[1:]
@@ -79,8 +80,23 @@ class TestXY:
     """New geometry/coordseq method 'xy' makes numpy interop easier"""
 
     def test_arrays(self):
-        x, y = LineString(((0, 0), (1, 1))).xy
+        x, y = LineString([(0, 0), (1, 1)]).xy
         assert len(x) == 2
         assert list(x) == [0.0, 1.0]
         assert len(y) == 2
         assert list(y) == [0.0, 1.0]
+
+
+@pytest.mark.parametrize("geom", [point, point_z, line_string, line_string_z])
+def test_coords_array_copy(geom):
+    """Test CoordinateSequence.__array__ method."""
+    coord_seq = geom.coords
+    assert np.array(coord_seq) is not np.array(coord_seq)
+    assert np.array(coord_seq, copy=True) is not np.array(coord_seq, copy=True)
+
+    # Behaviour of copy=False is different between NumPy 1.x and 2.x
+    if int(np.version.short_version.split(".", 1)[0]) >= 2:
+        with pytest.raises(ValueError, match="A copy is always created"):
+            np.array(coord_seq, copy=False)
+    else:
+        assert np.array(coord_seq, copy=False) is np.array(coord_seq, copy=False)

@@ -3,8 +3,8 @@ import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
 import shapely
-
-from .common import (
+from shapely import GeometryCollection, LineString, MultiPoint, Point, Polygon
+from shapely.tests.common import (
     empty,
     geometry_collection,
     ignore_invalid,
@@ -42,13 +42,23 @@ def test_area():
 
 def test_distance():
     actual = shapely.distance(*point_polygon_testdata)
-    expected = [2 * 2 ** 0.5, 2 ** 0.5, 0, 0, 0, 2 ** 0.5]
+    expected = [2 * 2**0.5, 2**0.5, 0, 0, 0, 2**0.5]
     np.testing.assert_allclose(actual, expected)
 
 
 def test_distance_missing():
     actual = shapely.distance(point, None)
     assert np.isnan(actual)
+
+
+def test_distance_duplicated():
+    a = Point(1, 2)
+    b = LineString([(0, 0), (0, 0), (1, 1)])
+    with ignore_invalid(shapely.geos_version < (3, 12, 0)):
+        # https://github.com/shapely/shapely/issues/1552
+        # GEOS < 3.12 raises "invalid" floating point errors
+        actual = shapely.distance(a, b)
+    assert actual == 1.0
 
 
 @pytest.mark.parametrize(
@@ -144,7 +154,7 @@ def test_hausdorff_distance():
     # example from GEOS docs
     a = shapely.linestrings([[0, 0], [100, 0], [10, 100], [10, 100]])
     b = shapely.linestrings([[0, 100], [0, 10], [80, 10]])
-    with ignore_invalid():
+    with ignore_invalid(shapely.geos_version < (3, 12, 0)):
         # Hausdorff distance emits "invalid value encountered"
         # (see https://github.com/libgeos/geos/issues/515)
         actual = shapely.hausdorff_distance(a, b)
@@ -155,7 +165,7 @@ def test_hausdorff_distance_densify():
     # example from GEOS docs
     a = shapely.linestrings([[0, 0], [100, 0], [10, 100], [10, 100]])
     b = shapely.linestrings([[0, 100], [0, 10], [80, 10]])
-    with ignore_invalid():
+    with ignore_invalid(shapely.geos_version < (3, 12, 0)):
         # Hausdorff distance emits "invalid value encountered"
         # (see https://github.com/libgeos/geos/issues/515)
         actual = shapely.hausdorff_distance(a, b, densify=0.001)
@@ -189,7 +199,6 @@ def test_hausdorff_distance_densify_empty():
     assert np.isnan(actual)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 @pytest.mark.parametrize(
     "geom1, geom2, expected",
     [
@@ -231,7 +240,6 @@ def test_frechet_distance(geom1, geom2, expected):
     assert actual == pytest.approx(expected, abs=1e-12)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 @pytest.mark.parametrize(
     "geom1, geom2, densify, expected",
     [
@@ -249,7 +257,6 @@ def test_frechet_distance_densify(geom1, geom2, densify, expected):
     assert actual == pytest.approx(expected, abs=1e-12)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 @pytest.mark.parametrize(
     "geom1, geom2",
     [
@@ -266,7 +273,6 @@ def test_frechet_distance_nan_for_invalid_geometry_inputs(geom1, geom2):
     assert np.isnan(actual)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 def test_frechet_densify_ndarray():
     actual = shapely.frechet_distance(
         shapely.linestrings([[0, 0], [100, 0]]),
@@ -277,65 +283,58 @@ def test_frechet_densify_ndarray():
     np.testing.assert_array_almost_equal(actual, expected)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 def test_frechet_densify_nan():
     actual = shapely.frechet_distance(line_string, line_string, densify=np.nan)
     assert np.isnan(actual)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 @pytest.mark.parametrize("densify", [0, -1, 2])
 def test_frechet_densify_invalid_values(densify):
     with pytest.raises(shapely.GEOSException, match="Fraction is not in range"):
         shapely.frechet_distance(line_string, line_string, densify=densify)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 def test_frechet_distance_densify_empty():
     actual = shapely.frechet_distance(line_string, empty, densify=0.2)
     assert np.isnan(actual)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_minimum_clearance():
     actual = shapely.minimum_clearance([polygon, polygon_with_hole, multi_polygon])
     assert_allclose(actual, [2.0, 2.0, 0.1])
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_minimum_clearance_nonexistent():
     actual = shapely.minimum_clearance([point, empty])
     assert np.isinf(actual).all()
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 6, 0), reason="GEOS < 3.6")
 def test_minimum_clearance_missing():
     actual = shapely.minimum_clearance(None)
     assert np.isnan(actual)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 8, 0), reason="GEOS < 3.8")
 @pytest.mark.parametrize(
     "geometry, expected",
     [
         (
-            shapely.Geometry("POLYGON ((0 5, 5 10, 10 5, 5 0, 0 5))"),
+            Polygon([(0, 5), (5, 10), (10, 5), (5, 0), (0, 5)]),
             5,
         ),
         (
-            shapely.Geometry("LINESTRING (1 0, 1 10)"),
+            LineString([(1, 0), (1, 10)]),
             5,
         ),
         (
-            shapely.Geometry("MULTIPOINT (2 2, 4 2)"),
+            MultiPoint([(2, 2), (4, 2)]),
             1,
         ),
         (
-            shapely.Geometry("POINT (2 2)"),
+            Point(2, 2),
             0,
         ),
         (
-            shapely.Geometry("GEOMETRYCOLLECTION EMPTY"),
+            GeometryCollection(),
             0,
         ),
     ],

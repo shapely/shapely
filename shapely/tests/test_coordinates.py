@@ -3,9 +3,8 @@ import pytest
 from numpy.testing import assert_allclose, assert_equal
 
 import shapely
-from shapely import apply, count_coordinates, get_coordinates, set_coordinates
-
-from .common import (
+from shapely import count_coordinates, get_coordinates, set_coordinates, transform
+from shapely.tests.common import (
     empty,
     empty_line_string_z,
     empty_point,
@@ -67,11 +66,23 @@ def test_count_coords(geoms, count):
         ([point, None], [2], [3]),
         ([None, point, None], [2], [3]),
         ([point, point], [2, 2], [3, 3]),
-        ([line_string, linear_ring], [0, 1, 1, 0, 1, 1, 0, 0], [0, 0, 1, 0, 0, 1, 1, 0]),
+        (
+            [line_string, linear_ring],
+            [0, 1, 1, 0, 1, 1, 0, 0],
+            [0, 0, 1, 0, 0, 1, 1, 0],
+        ),
         ([polygon], [0, 2, 2, 0, 0], [0, 0, 2, 2, 0]),
-        ([polygon_with_hole], [0, 0, 10, 10, 0, 2, 2, 4, 4, 2], [0, 10, 10, 0, 0, 2, 4, 4, 2, 2]),
+        (
+            [polygon_with_hole],
+            [0, 0, 10, 10, 0, 2, 2, 4, 4, 2],
+            [0, 10, 10, 0, 0, 2, 4, 4, 2, 2],
+        ),
         ([multi_point, multi_line_string], [0, 1, 0, 1], [0, 2, 0, 2]),
-        ([multi_polygon], [0, 1, 1, 0, 0, 2.1, 2.2, 2.2, 2.1, 2.1], [0, 0, 1, 1, 0, 2.1, 2.1, 2.2, 2.2, 2.1]),
+        (
+            [multi_polygon],
+            [0, 1, 1, 0, 0, 2.1, 2.2, 2.2, 2.1, 2.1],
+            [0, 0, 1, 1, 0, 2.1, 2.1, 2.2, 2.2, 2.1],
+        ),
         ([geometry_collection], [51, 52, 49], [-1, -1, 2]),
         ([nested_2], [51, 52, 49, 2], [-1, -1, 2, 3]),
         ([nested_3], [51, 52, 49, 2, 2], [-1, -1, 2, 3, 3]),
@@ -128,7 +139,7 @@ def test_get_coords_index_multidim(order):
         ([point, empty_point], [2], [3], [np.nan]),
     ],
 )  # fmt: on
-def test_get_coords_3d(geoms, x, y, z, include_z):
+def test_get_coords_z(geoms, x, y, z, include_z):
     actual = get_coordinates(np.array(geoms, np.object_), include_z=include_z)
     if include_z:
         expected = np.array([x, y, z], np.float64).T
@@ -212,56 +223,118 @@ def test_set_coords_mixed_dimension(include_z):
     "geoms",
     [[], [empty], [None, point, None], [nested_3], [point, point_z], [line_string_z]],
 )
-def test_apply(geoms, include_z):
+@pytest.mark.parametrize("interleaved", [True, False])
+def test_transform(geoms, include_z, interleaved):
     geoms = np.array(geoms, np.object_)
     coordinates_before = get_coordinates(geoms, include_z=include_z)
-    new_geoms = apply(geoms, lambda x: x + 1, include_z=include_z)
+    if interleaved:
+        transformation = lambda coords: coords + 1
+    elif not include_z:
+        transformation = lambda x, y: (x + 1, y + 1)
+    else:
+        transformation = lambda x, y, z: (x + 1, y + 1, z + 1)
+    new_geoms = transform(
+        geoms, transformation, include_z=include_z, interleaved=interleaved
+    )
     assert new_geoms is not geoms
     coordinates_after = get_coordinates(new_geoms, include_z=include_z)
     assert_allclose(coordinates_before + 1, coordinates_after, equal_nan=True)
 
 
-def test_apply_0dim():
+def test_transform_0dim():
     # a geometry input returns a geometry
-    actual = apply(point, lambda x: x + 1)
+    actual = transform(point, lambda x: x + 1)
     assert isinstance(actual, shapely.Geometry)
     # a 0-dim array input returns a 0-dim array
-    actual = apply(np.asarray(point), lambda x: x + 1)
+    actual = transform(np.asarray(point), lambda x: x + 1)
     assert isinstance(actual, np.ndarray)
     assert actual.ndim == 0
 
 
-def test_apply_check_shape():
+def test_transform_no_geoms():
+    # a geometry input returns a geometry
+    actual = transform([], lambda x: x + 1)
+    assert actual.shape == (0,)
+
+
+def test_transform_check_shape():
     def remove_coord(arr):
         return arr[:-1]
 
     with pytest.raises(ValueError):
-        apply(linear_ring, remove_coord)
+        transform(linear_ring, remove_coord)
 
 
-def test_apply_correct_coordinate_dimension():
+def test_transform_correct_coordinate_dimension():
     # ensure that new geometry is 2D with include_z=False
     geom = line_string_z
     assert shapely.get_coordinate_dimension(geom) == 3
-    new_geom = apply(geom, lambda x: x + 1, include_z=False)
+    new_geom = transform(geom, lambda x: x + 1, include_z=False)
     assert shapely.get_coordinate_dimension(new_geom) == 2
 
 
 @pytest.mark.parametrize("geom", [
-    pytest.param(empty_point_z, marks=pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="Empty points don't have a dimensionality before GEOS 3.9")),
+    empty_point_z,
     empty_line_string_z,
 ])
-def test_apply_empty_preserve_z(geom):
+def test_transform_empty_preserve_z(geom):
     assert shapely.get_coordinate_dimension(geom) == 3
-    new_geom = apply(geom, lambda x: x + 1, include_z=True)
+    new_geom = transform(geom, lambda x: x + 1, include_z=True)
     assert shapely.get_coordinate_dimension(new_geom) == 3
 
 
 @pytest.mark.parametrize("geom", [
-    pytest.param(empty_point_z, marks=pytest.mark.skipif(shapely.geos_version < (3, 9, 0), reason="Empty points don't have a dimensionality before GEOS 3.9")),
+    empty_point_z,
     empty_line_string_z,
 ])
-def test_apply_remove_z(geom):
+def test_transform_remove_z(geom):
     assert shapely.get_coordinate_dimension(geom) == 3
-    new_geom = apply(geom, lambda x: x + 1, include_z=False)
+    new_geom = transform(geom, lambda x: x + 1, include_z=False)
     assert shapely.get_coordinate_dimension(new_geom) == 2
+
+
+@pytest.mark.parametrize("geom,expected", [
+    (line_string, 2),
+    (line_string_z, 3),
+])
+def test_transform_auto_coordinate_dimension(geom, expected):
+    new_geom = transform(geom, lambda x: x + 1, include_z=None)
+    assert (shapely.get_coordinate_dimension(new_geom) == expected).all()
+
+
+def test_transform_auto_coordinate_dimension_mixed():
+    new_geom = transform([line_string, line_string_z], lambda x: x + 1, include_z=None)
+    assert_equal(shapely.get_coordinate_dimension(new_geom), [2, 3])
+    assert_equal(
+        shapely.get_coordinates(line_string, include_z=False) + 1,
+        shapely.get_coordinates(new_geom[0], include_z=False),
+    )
+    assert_equal(
+        shapely.get_coordinates(line_string_z, include_z=True) + 1,
+        shapely.get_coordinates(new_geom[1], include_z=True),
+    )
+
+
+def transform_non_interleaved(x, y, z=None):
+    if z is None:
+        return [x + 1, y + 2]
+    else:
+        return [x + 1, y + 2, z + 3]
+
+
+def test_transform_auto_coordinate_dimension_mixed_interleaved():
+    new_geom = transform(
+        [line_string, line_string_z],
+        transform_non_interleaved,
+        include_z=None,
+        interleaved=False,
+    )
+    assert_equal(shapely.get_coordinate_dimension(new_geom), [2, 3])
+    assert_equal(
+        shapely.get_coordinates(line_string, include_z=False) + [1, 2],
+        shapely.get_coordinates(new_geom[0], include_z=False)
+    )
+    assert_equal(
+        shapely.get_coordinates(line_string_z, include_z=True) + [1, 2, 3],
+        shapely.get_coordinates(new_geom[1], include_z=True)
+    )

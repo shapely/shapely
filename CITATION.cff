@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+message: "Please cite this software using these metadata."
+type: software
+title: Shapely
+version: "2.0.7"
+date-released: "2025-01-30"
+doi: 10.5281/zenodo.5597138
+abstract: "Manipulation and analysis of geometric objects in the Cartesian plane."
+repository-artifact: https://pypi.org/project/Shapely
+repository-code: https://github.com/shapely/shapely
+license: "BSD-3-Clause"
+authors:
+  - given-names: Sean
+    family-names: Gillies
+    orcid: https://orcid.org/0000-0002-8401-9184
+  - given-names: Casper
+    family-names: "van der Wel"
+    orcid: https://orcid.org/0000-0002-0488-2237
+  - given-names: Joris
+    family-names: "Van den Bossche"
+    orcid: https://orcid.org/0000-0003-3284-2977
+  - given-names: "Mike W."
+    family-names: Taves
+    orcid: https://orcid.org/0000-0003-3657-7963
+  - given-names: Joshua
+    family-names: Arnott
+  - given-names: "Brendan C."
+    family-names: Ward
+    orcid: https://orcid.org/0000-0002-0813-9774
+  - name: others
+keywords:
+  - cartography
+  - geometry
+  - GEOS
+  - GIS
+  - topology

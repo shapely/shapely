@@ -10,7 +10,7 @@ __all__ = ["affine_transform", "rotate", "scale", "skew", "translate"]
 
 
 def affine_transform(geom, matrix):
-    r"""Returns a transformed geometry using an affine transformation matrix.
+    r"""Return a transformed geometry using an affine transformation matrix.
 
     The coefficient matrix is provided as a list or tuple with 6 or 12 items
     for 2D or 3D transformations, respectively.
@@ -54,39 +54,44 @@ def affine_transform(geom, matrix):
             ndim = 3
             i = 1.0
             c = f = g = h = zoff = 0.0
-            matrix = a, b, c, d, e, f, g, h, i, xoff, yoff, zoff
     elif len(matrix) == 12:
         ndim = 3
         a, b, c, d, e, f, g, h, i, xoff, yoff, zoff = matrix
         if not geom.has_z:
             ndim = 2
-            matrix = a, b, d, e, xoff, yoff
     else:
         raise ValueError("'matrix' expects either 6 or 12 coefficients")
 
-    def _affine_coords(coords):
-        """Internal function to yield affine transform of coordinate tuples"""
-        x = coords[:, 0]
-        y = coords[:, 1]
+    # if ndim == 2:
+    #     A = np.array([[a, b], [d, e]], dtype=float)
+    #     off = np.array([xoff, yoff], dtype=float)
+    # else:
+    #     A = np.array([[a, b, c], [d, e, f], [g, h, i]], dtype=float)
+    #     off = np.array([xoff, yoff, zoff], dtype=float)
 
+    def _affine_coords(coords):
+        # These are equivalent, but unfortunately not robust
+        #   result = np.matmul(coords, A.T) + off
+        #   result = np.matmul(A, coords.T).T + off
+        # Therefore, manual matrix multiplication is needed
         if ndim == 2:
+            x, y = coords.T
             xp = a * x + b * y + xoff
             yp = d * x + e * y + yoff
-            return np.hstack((np.atleast_2d(xp).T, np.atleast_2d(yp).T))
+            result = np.stack([xp, yp]).T
         elif ndim == 3:
-            z = coords[:, 2]
+            x, y, z = coords.T
             xp = a * x + b * y + c * z + xoff
             yp = d * x + e * y + f * z + yoff
             zp = g * x + h * y + i * z + zoff
-            return np.hstack(
-                (np.atleast_2d(xp).T, np.atleast_2d(yp).T, np.atleast_2d(zp).T)
-            )
+            result = np.stack([xp, yp, zp]).T
+        return result
 
-    return shapely.apply(geom, _affine_coords, include_z=ndim == 3)
+    return shapely.transform(geom, _affine_coords, include_z=ndim == 3)
 
 
 def interpret_origin(geom, origin, ndim):
-    """Returns interpreted coordinate tuple for origin parameter.
+    """Return interpreted coordinate tuple for origin parameter.
 
     This is a helper function for other transform functions.
 
@@ -102,13 +107,13 @@ def interpret_origin(geom, origin, ndim):
     elif origin == "centroid":
         origin = geom.centroid.coords[0]
     elif isinstance(origin, str):
-        raise ValueError("'origin' keyword %r is not recognized" % origin)
-    elif hasattr(origin, "type") and origin.type == "Point":
+        raise ValueError(f"'origin' keyword {origin!r} is not recognized")
+    elif getattr(origin, "geom_type", None) == "Point":
         origin = origin.coords[0]
 
     # origin should now be tuple-like
     if len(origin) not in (2, 3):
-        raise ValueError("Expected number of items in 'origin' to be " "either 2 or 3")
+        raise ValueError("Expected number of items in 'origin' to be either 2 or 3")
     if ndim == 2:
         return origin[0:2]
     else:  # 3D coordinate
@@ -119,7 +124,7 @@ def interpret_origin(geom, origin, ndim):
 
 
 def rotate(geom, angle, origin="center", use_radians=False):
-    r"""Returns a rotated geometry on a 2D plane.
+    r"""Return a rotated geometry on a 2D plane.
 
     The angle of rotation can be specified in either degrees (default) or
     radians by setting ``use_radians=True``. Positive angles are
@@ -162,7 +167,7 @@ def rotate(geom, angle, origin="center", use_radians=False):
 
 
 def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin="center"):
-    r"""Returns a scaled geometry, scaled by factors along each dimension.
+    r"""Return a scaled geometry, scaled by factors along each dimension.
 
     The point of origin can be a keyword 'center' for the 2D bounding box
     center (default), 'centroid' for the geometry's 2D centroid, a Point
@@ -197,7 +202,7 @@ def scale(geom, xfact=1.0, yfact=1.0, zfact=1.0, origin="center"):
 
 
 def skew(geom, xs=0.0, ys=0.0, origin="center", use_radians=False):
-    r"""Returns a skewed geometry, sheared by angles along x and y dimensions.
+    r"""Return a skewed geometry, sheared by angles along x and y dimensions.
 
     The shear angle can be specified in either degrees (default) or radians
     by setting ``use_radians=True``.
@@ -240,7 +245,7 @@ def skew(geom, xs=0.0, ys=0.0, origin="center", use_radians=False):
 
 
 def translate(geom, xoff=0.0, yoff=0.0, zoff=0.0):
-    r"""Returns a translated geometry shifted by offsets along each dimension.
+    r"""Return a translated geometry shifted by offsets along each dimension.
 
     The general 3D affine transformation matrix for translation is:
 

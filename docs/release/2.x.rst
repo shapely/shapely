@@ -1,0 +1,633 @@
+Version 2.x
+===========
+
+.. _version-2-1-0:
+
+Version 2.1.0 (unreleased)
+--------------------------
+
+API changes:
+
+- Equality of geometries (``geom1 == geom2``) now considers NaN coordinate
+  values in the same location to be equal (#1775). It is recommended however to
+  ensure geometries don't have NaN values in the first place, for which you can
+  now use the ``handle_nan`` parameter in construction functions.
+
+Improvements:
+
+- Require GEOS >= 3.9, NumPy >= 1.20, and Python >= 3.9 (#1802, #1885, #2124)
+- Add a ``handle_nan`` parameter to ``shapely.linestrings()`` and
+  ``shapely.linearrings()`` to allow, skip, or error on nonfinite (NaN / Inf)
+  coordinates. The default behaviour (allow) is backwards compatible (#1594).
+
+.. _version-2-0-7:
+
+Version 2.0.7 (2025-01-30)
+--------------------------
+
+Bug fixes:
+
+- Fix compilation error on certain Linux platforms, such as Alpine (#1945).
+- Fixes crash when reading nonlinear geometry types (CircularString,
+  CompoundCurve, MultiCurve, CurvePolygon, MultiSurface) from WKB/WKT with
+  GEOS >= 3.13; these types are not yet supported in Shapely and now raise a
+  ``NotImplementedError`` (#2160)
+- Fix the ``project`` method to return a Python float (#2093).
+
+.. _version-2-0-6:
+
+Version 2.0.6 (2024-08-19)
+--------------------------
+
+Bug fixes:
+
+- Fix compatibility with NumPy 2.1.0 (#2099).
+
+Wheels are available for Python 3.13 (and still include GEOS 3.11.4).
+
+.. _version-2-0-5:
+
+Version 2.0.5 (2024-07-13)
+--------------------------
+
+Bug fixes:
+
+- Fix Point x/y/z attributes to return Python floats (#2074).
+- Fix affinity for Apple silicon with NumPy 2.0 by reverting matmul, and
+  use direct matrix multiplication instead (#2085).
+
+Packaging related:
+
+- Binary wheels on PyPI include GEOS 3.11.4 from 2024-06-05 (#2086).
+- universal2 wheels are removed for macOS since both x86_64 and arm64 wheels
+  are provided (#1990).
+- Replace pkg_resources, prepend numpy include dirs (#2071).
+
+.. _version-2-0-4:
+
+Version 2.0.4 (2024-04-16)
+--------------------------
+
+Bug fixes:
+
+- Fix bug in ``to_wkt`` with multiple empty Z geometries (#2012).
+- Fix bug in ``to_ragged_array`` for an array of Points with missing values
+  (#2034).
+
+Wheels for Python versions >= 3.9 will be compatible with the upcoming
+NumPy 2.0 release (as well as with supported NumPy 1.x versions).
+
+.. _version-2-0-3:
+
+Version 2.0.3 (2024-02-16)
+--------------------------
+
+Bug fixes:
+
+- Fix regression in the ``oriented_envelope`` ufunc to accept array-like input
+  in case of GEOS<3.12 (#1929).
+
+Packaging related:
+
+- The binary wheels are not yet compatible with a future NumPy 2.0 release,
+  therefore a ``numpy<2`` upper pin was added to the requirements (#1972).
+- Upgraded the GEOS version in the binary wheel distributions to 3.11.3.
+
+.. _version-2-0-2:
+
+Version 2.0.2 (2023-10-12)
+--------------------------
+
+Bug fixes:
+
+- Fix regression in the (in)equality comparison (``geom1 == geom2``) using
+  ``__eq__`` to not ignore the z-coordinates (#1732).
+- Fix ``MultiPolygon()`` constructor to accept polygons without holes (#1850).
+- Fix :func:`.minimum_rotated_rectangle` (:func:`.oriented_envelope`) to always
+  return the minimum area solution (instead of minimum width). In practice, it
+  will use the GEOS implementation only for GEOS 3.12+, and for older GEOS
+  versions fall back to the implementation that was included in Shapely < 2
+  (#1670).
+- Fix :func:`.from_ragged_array` to work with read-only array input (#1744).
+- Fix the handling of z coordinates :func:`shapely.ops.substring` (#1699).
+
+Wheels are available for Python 3.12 (and still include GEOS 3.11.2). Building
+from source is now compatible with Cython 3.
+
+Acknowledgments
+^^^^^^^^^^^^^^^
+
+Thanks to everyone who contributed to this release!
+People with a "+" by their names contributed a patch for the first time.
+
+* Casper van der Wel
+* Gareth Simons +
+* Idan Miara
+* Joris Van den Bossche
+* Kyle Barron
+* Marek Czaplicki +
+* Mike Taves
+
+.. _version-2-0-1:
+
+Version 2.0.1 (2023-01-30)
+--------------------------
+
+Bug fixes:
+
+- Fix regression in the ``Polygon()`` constructor taking a sequence of Points
+  (#1662).
+- Fix regression in the geometry constructors when passing ``decimal.Decimal``
+  coordinate values (#1707).
+- Fix ``STRtree()`` to not make the passed geometry array immutable as
+  side-effect of the constructor (#1714).
+- Fix the ``directed`` keyword in ``shapely.ops.linemerge()`` (#1695).
+
+Improvements:
+
+- Expose the function to get a matplotlib Patch object from a (Multi)Polygon
+  (without already plotting it) publicly as
+  :func:`shapely.plotting.patch_from_polygon` (#1704).
+
+Acknowledgments
+^^^^^^^^^^^^^^^
+
+Thanks to everyone who contributed to this release!
+People with a "+" by their names contributed a patch for the first time.
+
+* Brendan Ward
+* Erik Pettersson +
+* Hood Chatham +
+* Idan Miara +
+* Joris Van den Bossche
+* Martin Fleischmann
+* Michał Górny +
+* Sebastian Castro +
+
+
+.. _version-2-0-0:
+
+Version 2.0.0 (2022-12-12)
+--------------------------
+
+Shapely 2.0 version is a major release featuring a complete refactor of the
+internals and new vectorized (element-wise) array operations, providing
+considerable performance improvements (based on the developments in the
+`PyGEOS <https://github.com/pygeos/pygeos>`__ package), along with several
+breaking API changes and many feature improvements.
+
+For more background, see
+`RFC 1: Roadmap for Shapely 2.0 <https://github.com/shapely/shapely-rfc/pull/1>`__.
+
+
+Refactor of the internals
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Shapely wraps the GEOS C++ library for use in Python. Before 2.0, Shapely
+used ``ctypes`` to link to GEOS at runtime, but doing so resulted in extra
+overhead and installation challenges. With 2.0, the internals of Shapely have
+been refactored to expose GEOS functionality through a Python C extension
+module that is compiled in advance.
+
+The pointer to the actual GEOS Geometry object is stored in a lightweight
+`Python extension type <https://docs.python.org/3/extending/newtypes_tutorial.html>`__.
+A single `Geometry` Python extension type is defined in C wrapping a
+`GEOSGeometry` pointer. This extension type is further subclassed in Python
+to provide the geometry type-specific classes from Shapely (Point,
+LineString, Polygon, etc).
+The GEOS pointer is accessible from C as a static attribute of the Python
+object (an attribute of the C struct that makes up a Python object), which
+enables using vectorized functions within C and thus avoiding Python overhead
+while looping over an array of geometries (see next section).
+
+
+Vectorized (element-wise) geometry operations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Before the 2.0 release, Shapely only provided an interface for scalar
+(individual) geometry objects. Users had to loop over individual geometries
+within an array of geometries and call scalar methods or properties, which is
+both more verbose to use and has a large performance overhead.
+
+Shapely 2.0 exposes GEOS operations as vectorized functions that operate
+on arrays of geometries using a familiar NumPy interface. Those functions are
+implemented as :ref:`NumPy universal functions <ufuncs>`
+(or ufunc for short). A universal function is a function that operates on
+n-dimensional arrays in an element-by-element fashion and supports array
+broadcasting. All loops over geometries are implemented in C, which results
+in substantial performance improvements when performing operations using many
+geometries. This also allows operations to be less verbose.
+
+NumPy is now a required dependency.
+
+An example of this functionality using a small array of points and a single
+polygon::
+
+  >>> import shapely
+  >>> from shapely import Point, box
+  >>> import numpy as np
+  >>> geoms = np.array([Point(0, 0), Point(1, 1), Point(2, 2)])
+  >>> polygon = box(0, 0, 2, 2)
+
+Before Shapely 2.0, a ``for`` loop was required to operate over an array of
+geometries::
+
+  >>> [polygon.contains(point) for point in geoms]
+  [False,  True, False]
+
+In Shapely 2.0, we can now compute whether the points are contained in the
+polygon directly with one function call::
+
+  >>> shapely.contains(polygon, geoms)
+  array([False,  True, False])
+
+This results in a considerable speedup, especially for larger arrays of
+geometries, as well as a nicer user interface that avoids the need to write
+``for`` loops. Depending on the operation, this can give a performance
+increase with factors of 4x to 100x. In general, the greatest speedups are
+for lightweight GEOS operations, such as ``contains``, which would previously
+have been dominated by the high overhead of ``for`` loops in Python. See
+https://caspervdw.github.io/Introducing-Pygeos/ for more detailed examples.
+
+The new vectorized functions are available in the top-level ``shapely``
+namespace. All the familiar geospatial methods and attributes from the
+geometry classes now have an equivalent as top-level function (with some
+small name deviations, such as the ``.wkt`` attribute being available as a
+``to_wkt()`` function). Some methods from submodules (for example, several
+functions from the ``shapely.ops`` submodule such as ``polygonize()``) are
+also made available in a vectorized version as top-level function.
+
+A full list of functions can be found in the API docs (see the pages listed
+under "API REFERENCE" in the left sidebar).
+
+* Vectorized constructor functions
+* Optionally output to a user-specified array (``out`` keyword argument) when
+  constructing geometries from ``indices``.
+* Enable bulk construction of geometries with different number of coordinates
+  by optionally taking index arrays in all creation functions.
+
+
+Shapely 2.0 API changes (deprecated in 1.8)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The Shapely 1.8 release included several deprecation warnings about API
+changes that would happen in Shapely 2.0 and that can be fixed in your code
+(making it compatible with both <=1.8 and >=2.0). See :ref:`migration` for
+more details on how to update your code.
+
+It is highly recommended to first upgrade to Shapely 1.8 and resolve all
+deprecation warnings before upgrading to Shapely 2.0.
+
+Summary of changes:
+
+* Geometries are now immutable and hashable.
+* Multi-part geometries such as MultiPolygon no longer behave as "sequences".
+  This means that they no longer have a length, are not iterable, and are not
+  indexable anymore. Use the ``.geoms`` attribute instead to access
+  individual parts of a multi-part geometry.
+* Geometry objects no longer directly implement the numpy array interface to
+  expose their coordinates. To convert to an array of coordinates, use the
+  ``.coords`` attribute instead (``np.asarray(geom.coords)``).
+* The following attributes and methods on the Geometry classes were
+  previously deprecated and are now removed from Shapely 2.0:
+
+  * ``array_interface()`` and ``ctypes``
+  * ``asShape()``, and the adapters classes to create geometry-like proxy
+    objects (use ``shape()`` instead).
+  * ``empty()`` method
+
+Some new deprecations have been introduced in Shapely 2.0:
+
+* Directly calling the base class ``BaseGeometry()`` constructor or the
+  ``EmptyGeometry()`` constructor is deprecated and will raise an error in
+  the future. To create an empty geometry, use one of the subclasses instead,
+  for example ``GeometryCollection()`` (#1022).
+* The ``shapely.speedups`` module (the ``enable`` and ``disable`` functions)
+  is deprecated and will be removed in the future. The module no longer has
+  any affect in Shapely >=2.0.
+
+
+Breaking API changes
+^^^^^^^^^^^^^^^^^^^^
+
+Some additional backwards incompatible API changes were included in Shapely
+2.0 that were not deprecated in Shapely 1.8:
+
+* Consistent creation of empty geometries (for example ``Polygon()`` now
+  actually creates an empty Polygon instead of an empty geometry collection).
+* The ``.bounds`` attribute of an empty geometry now returns a tuple of NaNs
+  instead of an empty tuple (#1023).
+* The ``preserve_topology`` keyword of ``simplify()`` now defaults to
+  ``True`` (#1392).
+* A ``GeometryCollection`` that consists of all empty sub-geometries now
+  returns those empty geometries from its ``.geoms`` attribute instead of
+  returning an empty list (#1420).
+* The ``Point(..)`` constructor no longer accepts a sequence of coordinates
+  consisting of more than one coordinate pair (previously, subsequent
+  coordinates were ignored) (#1600).
+* The unused ``shape_factory()`` method and ``HeterogeneousGeometrySequence``
+  class are removed (#1421).
+* The undocumented ``__geom__`` attribute has been removed. If necessary
+  (although not recommended for use beyond experimentation), use the
+  ``_geom`` attribute to access the raw GEOS pointer (#1417).
+* The ``logging`` functionality has been removed. All error messages from
+  GEOS are now raised as Python exceptions (#998).
+* Several custom exception classes defined in ``shapely.errors`` that are no
+  longer used internally have been removed. Errors from GEOS are now raised
+  as ``GEOSException`` (#1306).
+
+The ``STRtree`` interface has been substantially changed. See the section
+:ref:`below <changelog-2-strtree>` for more details.
+
+Additionally, starting with GEOS 3.11 (which is included in the binary wheels
+on PyPI), the behaviour of the ``parallel_offset`` (``offset_curve``) method
+changed regarding the orientation of the resulting line. With GEOS < 3.11,
+the line retains the same direction for a left offset (positive distance) or
+has opposite direction for a right offset (negative distance), and this
+behaviour was documented as such in previous Shapely versions. Starting with
+GEOS 3.11, the function tries to preserve the orientation of the original
+line.
+
+New features
+^^^^^^^^^^^^
+
+Geometry subclasses are now available in the top-level namespace
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Following the new vectorized functions in the top-level ``shapely``
+namespace, the Geometry subclasses (``Point``, ``LineString``, ``Polygon``,
+etc) are now available in the top-level namespace as well. Thus it is no
+longer needed to import those from the ``shapely.geometry`` submodule.
+
+The following::
+
+  from shapely.geometry import Point
+
+can be replaced with::
+
+  from shapely import Point
+
+or::
+
+  import shapely
+  shapely.Point(...)
+
+Note: for backwards compatibility (and being able to write code that works
+for both <=1.8 and >2.0), those classes still remain accessible from the
+``shapely.geometry`` submodule as well.
+
+
+More informative repr with truncated WKT
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The repr (``__repr__``) of Geometry objects has been simplified and improved
+to include a descriptive Well-Known-Text (WKT) formatting. Instead of showing
+the class name and id::
+
+  >>> Point(0, 0)
+  <shapely.geometry.point.Point at 0x7f0b711f1310>
+
+we now get::
+
+  >>> Point(0, 0)
+  <POINT (0 0)>
+
+For large geometries with many coordinates, the output gets truncated to 80
+characters.
+
+
+Support for fixed precision model for geometries and in overlay functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+GEOS 3.9.0 overhauled the overlay operations (union, intersection,
+(symmetric) difference).  A complete rewrite, dubbed "OverlayNG", provides a
+more robust implementation (no more TopologyExceptions even on valid input),
+the ability to specify the output precision model, and significant
+performance optimizations. When installing Shapely with GEOS >= 3.9 (which is
+the case for PyPI wheels and conda-forge packages), you automatically get
+these improvements (also for previous versions of Shapely) when using
+the overlay operations.
+
+Shapely 2.0 also includes the ability to specify the precision model
+directly:
+
+* The :func:`.set_precision` function can be used to conform a geometry to a
+  certain grid size (may round and reduce coordinates), and this will then
+  also be used by subsequent overlay methods. A :func:`.get_precision`
+  function is also available to inspect the precision model of geometries.
+* The ``grid_size`` keyword in the overlay methods can also be used to
+  specify the precision model of the output geometry (without first
+  conforming the input geometries).
+
+
+Releasing the GIL for multithreaded applications
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Shapely itself is not multithreaded, but its functions generally allow for
+multithreading by releasing the Global Interpreter Lock (GIL) during
+execution. Normally in Python, the GIL prevents multiple threads from
+computing at the same time. Shapely functions internally release this
+constraint so that the heavy lifting done by GEOS can be done in parallel,
+from a single Python process.
+
+
+.. _changelog-2-strtree:
+
+STRtree API changes and improvements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The biggest change in the :class:`.STRtree` interface is that all operations
+now return indices of the input tree or query geometries, instead of the
+geometries itself. These indices can be used to index into anything
+associated with the input geometries, including the input geometries
+themselves, or custom items stored in another object of the same length and
+order as the geometries.
+
+In addition, Shapely 2.0 includes several improvements to ``STRtree``:
+
+* Directly include predicate evaluation in :meth:`.STRtree.query` by
+  specifying the ``predicate`` keyword. If a predicate is provided, tree
+  geometries with bounding boxes that overlap the bounding boxes of the input
+  geometries are further filtered to those that meet the predicate (using
+  prepared geometries under the hood for efficiency).
+* Query multiple input geometries (spatial join style) with
+  :meth:`.STRtree.query` by passing an array of geometries. In this case, the
+  return value is a 2D array with shape (2, n) where the subarrays correspond
+  to the indices of the input geometries and indices of the tree geometries
+  associated with each.
+* A new :meth:`.STRtree.query_nearest` method was added, returning the index
+  of the nearest geometries in the tree for each input geometry. Compared to
+  :meth:`.STRtree.nearest`, which only returns the index of a single nearest
+  geometry for each input geometry, this new methods allows for:
+
+  * returning all equidistant nearest geometries,
+  * excluding nearest geometries that are equal to the input,
+  * specifying an ``max_distance`` to limit the search radius, potentially
+    increasing the performance,
+  * optionally returning the distance.
+
+* Fixed ``STRtree`` creation to allow querying the tree in a multi-threaded
+  context.
+
+Bindings for new GEOS functionalities
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Several (new) functions from GEOS are now exposed in Shapely:
+
+* :func:`.hausdorff_distance` and :func:`.frechet_distance`
+* :func:`.contains_properly`
+* :func:`.extract_unique_points`
+* :func:`.reverse`
+* :func:`.node`
+* :func:`.contains_xy` and :func:`.intersects_xy`
+* :func:`.build_area` (GEOS >= 3.8)
+* :func:`.minimum_bounding_circle` and :func:`.minimum_bounding_radius`
+  (GEOS >= 3.8)
+* :func:`.coverage_union` and :func:`.coverage_union_all` (GEOS >= 3.8)
+* :func:`.segmentize` (GEOS >= 3.10)
+* :func:`.dwithin` (GEOS >= 3.10)
+* :func:`.remove_repeated_points` (GEOS >= 3.11)
+* :func:`.line_merge` added `directed` parameter (GEOS > 3.11)
+* :func:`.concave_hull` (GEOS >= 3.11)
+
+In addition some aliases for existing methods have been added to provide a
+method name consistent with GEOS or PostGIS:
+
+* :func:`.line_interpolate_point` (``interpolate``)
+* :func:`.line_locate_point` (``project``)
+* :func:`.offset_curve` (``parallel_offset``)
+* :func:`.point_on_surface` (``representative_point``)
+* :func:`.oriented_envelope` (``minimum_rotated_rectangle``)
+* :func:`.delaunay_triangles` (``ops.triangulate``)
+* :func:`.voronoi_polygons` (``ops.voronoi_diagram``)
+* :func:`.shortest_line` (``ops.nearest_points``)
+* :func:`.is_valid_reason` (``validation.explain_validity``)
+
+
+Getting information / parts / coordinates from geometries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A set of GEOS getter functions are now also exposed to inspect geometries:
+
+* :func:`.get_dimensions`
+* :func:`.get_coordinate_dimension`
+* :func:`.get_srid`
+* :func:`.get_num_points`
+* :func:`.get_num_interior_rings`
+* :func:`.get_num_geometries`
+* :func:`.get_num_coordinates`
+* :func:`.get_precision`
+
+Several functions are added to extract parts:
+
+* :func:`.get_geometry` to get a geometry from a GeometryCollection or
+  Multi-part geometry.
+* :func:`.get_exterior_ring` and :func:`.get_interior_ring` to get one of the
+  rings of a Polygon.
+* :func:`.get_point` to get a point (vertex) of a linestring or linearring.
+* :func:`.get_x`, :func:`.get_y` and :func:`.get_z` to get the x/y/z
+  coordinate of a Point.
+
+Methods to extract all parts or coordinates at once have been added:
+
+* The :func:`.get_parts` function can be used to get individual parts of an
+  array of multi-part geometries.
+* The :func:`.get_rings` function, similar as ``get_parts`` but specifically
+  to extract the rings of Polygon geometries.
+* The :func:`.get_coordinates` function to get all coordinates from a
+  geometry or array of geometries as an array of floats.
+
+Each of those three functions has an optional ``return_index`` keyword, which
+allows to also return the indexes of the original geometries in the source
+array.
+
+
+Prepared geometries
+~~~~~~~~~~~~~~~~~~~
+
+Prepared geometries are now no longer separate objects, but geometry objects
+themselves can be prepared (this makes the ``shapely.prepared`` module
+superfluous).
+
+The :func:`.prepare()` function generates a GEOS prepared geometry which is
+stored on the Geometry object itself. All binary predicates (except
+``equals``) will make use of this if the input geometry has already been
+prepared. Helper functions :func:`.destroy_prepared` and :func:`.is_prepared`
+are also available.
+
+
+New IO methods (GeoJSON, ragged arrays)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Added GeoJSON input/output capabilities :func:`.from_geojson` and
+  :func:`.to_geojson` for GEOS >= 3.10.
+* Added conversion to/from ragged array representation using a contiguous array
+  of coordinates and offset arrays: :func:`.to_ragged_array` and
+  :func:`.from_ragged_array`.
+
+Other improvements
+~~~~~~~~~~~~~~~~~~
+
+* Added :func:`.force_2d` and :func:`.force_3d` to change the
+  dimensionality of the coordinates in a geometry.
+* Addition of a :func:`.total_bounds` function to return the outer bounds of an
+  array of geometries.
+* Added :func:`.empty` to create a geometry array pre-filled with None
+  or with empty geometries.
+* Performance improvement in constructing LineStrings or LinearRings from
+  numpy arrays for GEOS >= 3.10.
+* Updated the :func:`~shapely.box` ufunc to use internal C
+  function for creating polygon (about 2x faster) and added ``ccw`` parameter
+  to create polygon in counterclockwise (default) or clockwise direction.
+* Start of a benchmarking suite using ASV.
+* Added ``shapely.testing.assert_geometries_equal``.
+
+
+Bug fixes
+~~~~~~~~~
+
+* Fixed several corner cases in WKT and WKB serialization for varying GEOS
+  versions, including:
+
+  * Fixed the WKT serialization of single part 3D empty geometries to
+    correctly include "Z" (for GEOS >= 3.9.0).
+  * Handle empty points in WKB serialization by conversion to
+    ``POINT (nan, nan)`` consistently for all GEOS versions (GEOS started
+    doing this for >= 3.9.0).
+
+
+Acknowledgments
+^^^^^^^^^^^^^^^
+
+Thanks to everyone who contributed to this release!
+People with a "+" by their names contributed a patch for the first time.
+
+* Adam J. Stewart +
+* Alan D. Snow +
+* Ariel Kadouri
+* Bas Couwenberg
+* Ben Beasley
+* Brendan Ward +
+* Casper van der Wel +
+* Ewout ter Hoeven +
+* Geir Arne Hjelle +
+* James Gaboardi
+* James Myatt +
+* Joris Van den Bossche
+* Keith Jenkins +
+* Kian Meng Ang +
+* Krishna Chaitanya +
+* Kyle Barron
+* Martin Fleischmann +
+* Martin Lackner +
+* Mike Taves
+* Phil Chiu +
+* Tanguy Ophoff +
+* Tom Clancy
+* Sean Gillies
+* Giorgos Papadokostakis +
+* Mattijn van Hoek +
+* enrico ferreguti +
+* gpapadok +
+* mattijn +
+* odidev +

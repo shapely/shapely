@@ -5,8 +5,10 @@
 !/*.py
 !/*LICENSE*
 !/setup.cfg
-!/pygeos/**
+!/pyproject.toml
+!/shapely/**
 !/src/**
+!/tests/**
 
 # Ignore unnecessary files inside allowed directories
 # This should go after the allowed directories

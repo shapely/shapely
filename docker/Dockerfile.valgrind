@@ -1,7 +1,7 @@
-# This docker is used for memory leak testing of pygeos. To use it, first build:
-# docker build . -f ./docker/Dockerfile.valgrind -t pygeos/valgrind
+# This docker is used for memory leak testing of shapely. To use it, first build:
+# docker build . -f ./docker/Dockerfile.valgrind -t shapely/valgrind
 # Then run the pytest suite with valgrind enabled:
-# docker run --rm pygeos/valgrind:latest valgrind --show-leak-kinds=definite --log-file=/tmp/valgrind-output python -m pytest -vv --valgrind --valgrind-log=/tmp/valgrind-output > valgrind.log
+# docker run --rm shapely/valgrind:latest valgrind --show-leak-kinds=definite --log-file=/tmp/valgrind-output python -m pytest -vv --valgrind --valgrind-log=/tmp/valgrind-output > valgrind.log
 
 
 FROM python:3.9-slim-buster
@@ -17,7 +17,7 @@ ENV PYTHONMALLOC malloc
 ENV LD_LIBRARY_PATH /usr/local/lib
 
 # Build GEOS
-RUN export GEOS_VERSION=3.10.1 && \
+RUN export GEOS_VERSION=3.10.3 && \
     mkdir /code/geos && cd /code/geos && \
     curl -OL http://download.osgeo.org/geos/geos-$GEOS_VERSION.tar.bz2 && \
     tar xfj geos-$GEOS_VERSION.tar.bz2 && \
@@ -29,5 +29,5 @@ RUN export GEOS_VERSION=3.10.1 && \
 
 COPY . /code
 
-# Build pygeos
+# Build shapely
 RUN python setup.py build_ext --inplace && python setup.py install

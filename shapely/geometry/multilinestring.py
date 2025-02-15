@@ -1,5 +1,4 @@
-"""Collections of linestrings and related utilities
-"""
+"""Collections of linestrings and related utilities."""
 
 import shapely
 from shapely.errors import EmptyPartError
@@ -10,34 +9,33 @@ __all__ = ["MultiLineString"]
 
 
 class MultiLineString(BaseMultipartGeometry):
-    """
-    A collection of one or more line strings
+    """A collection of one or more LineStrings.
 
     A MultiLineString has non-zero length and zero area.
+
+    Parameters
+    ----------
+    lines : sequence
+        A sequence LineStrings, or a sequence of line-like coordinate
+        sequences or array-likes (see accepted input for LineString).
 
     Attributes
     ----------
     geoms : sequence
         A sequence of LineStrings
+
+    Examples
+    --------
+    Construct a MultiLineString containing two LineStrings.
+
+    >>> lines = MultiLineString([[[0, 0], [1, 2]], [[4, 4], [5, 6]]])
+
     """
 
     __slots__ = []
 
     def __new__(self, lines=None):
-        """
-        Parameters
-        ----------
-        lines : sequence
-            A sequence of line-like coordinate sequences or objects that
-            provide the numpy array interface, including instances of
-            LineString.
-
-        Example
-        -------
-        Construct a collection containing one line string.
-
-          >>> lines = MultiLineString( [[[0.0, 0.0], [1.0, 2.0]]] )
-        """
+        """Create a new MultiLineString geometry."""
         if not lines:
             # allow creation of empty multilinestrings, to support unpickling
             # TODO better empty constructor
@@ -46,10 +44,9 @@ class MultiLineString(BaseMultipartGeometry):
             return lines
 
         lines = getattr(lines, "geoms", lines)
-        m = len(lines)
         subs = []
-        for i in range(m):
-            line = linestring.LineString(lines[i])
+        for item in lines:
+            line = linestring.LineString(item)
             if line.is_empty:
                 raise EmptyPartError(
                     "Can't create MultiLineString with empty component"
@@ -61,21 +58,19 @@ class MultiLineString(BaseMultipartGeometry):
 
         return shapely.multilinestrings(subs)
 
-    def shape_factory(self, *args):
-        return linestring.LineString(*args)
-
     @property
     def __geo_interface__(self):
+        """Return a GeoJSON-like mapping interface for this MultiLineString."""
         return {
             "type": "MultiLineString",
             "coordinates": tuple(tuple(c for c in g.coords) for g in self.geoms),
         }
 
     def svg(self, scale_factor=1.0, stroke_color=None, opacity=None):
-        """Returns a group of SVG polyline elements for the LineString geometry.
+        """Return a group of SVG polyline elements for the LineString geometry.
 
         Parameters
-        ==========
+        ----------
         scale_factor : float
             Multiplication factor for the SVG stroke-width.  Default is 1.
         stroke_color : str, optional
@@ -83,6 +78,7 @@ class MultiLineString(BaseMultipartGeometry):
             geometry is valid, and "#ff3333" if invalid.
         opacity : float
             Float number between 0 and 1 for color opacity. Default value is 0.8
+
         """
         if self.is_empty:
             return "<g />"

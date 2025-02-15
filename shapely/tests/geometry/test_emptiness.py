@@ -1,18 +1,19 @@
+import math
+
 import numpy as np
 import pytest
 
-from shapely.geometry import (
+from shapely import (
     GeometryCollection,
     LinearRing,
     LineString,
-    mapping,
     MultiLineString,
     MultiPoint,
     MultiPolygon,
     Point,
     Polygon,
-    shape,
 )
+from shapely.geometry import mapping, shape
 from shapely.geometry.base import BaseGeometry, EmptyGeometry
 
 
@@ -22,11 +23,13 @@ def empty_generator():
 
 class TestEmptiness:
     def test_empty_class(self):
-        g = EmptyGeometry()
+        with pytest.warns(FutureWarning):
+            g = EmptyGeometry()
         assert g.is_empty
 
     def test_empty_base(self):
-        g = BaseGeometry()
+        with pytest.warns(FutureWarning):
+            g = BaseGeometry()
         assert g.is_empty
 
     def test_empty_point(self):
@@ -63,9 +66,8 @@ class TestEmptiness:
         assert LinearRing(empty_generator()).is_empty
 
 
-@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
-    geoms = [BaseGeometry(), EmptyGeometry()]
+    geoms = [Point(), GeometryCollection()]
     arr = np.empty(2, object)
     arr[:] = geoms
 
@@ -75,3 +77,22 @@ def test_shape_empty():
     empty_json = mapping(empty_mp)
     empty_shape = shape(empty_json)
     assert empty_shape.is_empty
+
+
+@pytest.mark.parametrize(
+    "geom",
+    [
+        Point(),
+        LineString(),
+        Polygon(),
+        MultiPoint(),
+        MultiLineString(),
+        MultiPolygon(),
+        GeometryCollection(),
+        LinearRing(),
+    ],
+)
+def test_empty_geometry_bounds(geom):
+    """The bounds of an empty geometry is a tuple of NaNs"""
+    assert len(geom.bounds) == 4
+    assert all(math.isnan(v) for v in geom.bounds)

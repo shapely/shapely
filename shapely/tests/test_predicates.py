@@ -4,10 +4,12 @@ import numpy as np
 import pytest
 
 import shapely
-from shapely import Geometry
-
-from .common import (
+from shapely import LinearRing, LineString, Point
+from shapely.tests.common import (
     all_types,
+    all_types_m,
+    all_types_z,
+    all_types_zm,
     empty,
     geometry_collection,
     ignore_invalid,
@@ -18,6 +20,13 @@ from .common import (
 )
 
 UNARY_PREDICATES = (
+    shapely.has_z,
+    pytest.param(
+        shapely.has_m,
+        marks=pytest.mark.skipif(
+            shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12"
+        ),
+    ),
     shapely.is_empty,
     shapely.is_simple,
     shapely.is_ring,
@@ -27,10 +36,7 @@ UNARY_PREDICATES = (
     shapely.is_geometry,
     shapely.is_valid_input,
     shapely.is_prepared,
-    pytest.param(
-        shapely.is_ccw,
-        marks=pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7"),
-    ),
+    shapely.is_ccw,
 )
 
 BINARY_PREDICATES = (
@@ -52,12 +58,18 @@ BINARY_PREDICATES = (
     ),
     shapely.equals,
     shapely.equals_exact,
+    shapely.equals_identical,
 )
 
 BINARY_PREPARED_PREDICATES = BINARY_PREDICATES[:-2]
 
+XY_PREDICATES = (
+    (shapely.contains_xy, shapely.contains),
+    (shapely.intersects_xy, shapely.intersects),
+)
 
-@pytest.mark.parametrize("geometry", all_types)
+
+@pytest.mark.parametrize("geometry", all_types + all_types_z)
 @pytest.mark.parametrize("func", UNARY_PREDICATES)
 def test_unary_array(geometry, func):
     actual = func([geometry, geometry])
@@ -84,7 +96,7 @@ def test_unary_missing(func):
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func", BINARY_PREDICATES)
 def test_binary_array(a, func):
-    with ignore_invalid(shapely.is_empty(a)):
+    with ignore_invalid(shapely.is_empty(a) and shapely.geos_version < (3, 12, 0)):
         # Empty geometries give 'invalid value encountered' in all predicates
         # (see https://github.com/libgeos/geos/issues/515)
         actual = func([a, a], point)
@@ -104,6 +116,74 @@ def test_binary_with_kwargs(func):
 def test_binary_missing(func):
     actual = func(np.array([point, None, None]), np.array([None, point, None]))
     assert (~actual).all()
+
+
+def test_binary_empty_result():
+    a = LineString([(0, 0), (3, 0), (3, 3), (0, 3)])
+    b = LineString([(5, 1), (6, 1)])
+    with ignore_invalid(shapely.geos_version < (3, 12, 0)):
+        # Intersection resulting in empty geometries give 'invalid value encountered'
+        # (https://github.com/shapely/shapely/issues/1345)
+        assert shapely.intersection(a, b).is_empty
+
+
+@pytest.mark.parametrize("a", all_types)
+@pytest.mark.parametrize("func, func_bin", XY_PREDICATES)
+def test_xy_array(a, func, func_bin):
+    with ignore_invalid(shapely.is_empty(a) and shapely.geos_version < (3, 12, 0)):
+        # Empty geometries give 'invalid value encountered' in all predicates
+        # (see https://github.com/libgeos/geos/issues/515)
+        actual = func([a, a], 2, 3)
+        expected = func_bin([a, a], Point(2, 3))
+    assert actual.shape == (2,)
+    assert actual.dtype == np.bool_
+    np.testing.assert_allclose(actual, expected)
+
+
+@pytest.mark.parametrize("a", all_types)
+@pytest.mark.parametrize("func, func_bin", XY_PREDICATES)
+def test_xy_array_broadcast(a, func, func_bin):
+    a2 = shapely.transform(a, lambda x: x)  # makes a copy
+    with ignore_invalid(shapely.is_empty(a) and shapely.geos_version < (3, 12, 0)):
+        # Empty geometries give 'invalid value encountered' in all predicates
+        # (see https://github.com/libgeos/geos/issues/515)
+        actual = func(a2, [0, 1, 2], [1, 2, 3])
+        expected = func_bin(a, [Point(0, 1), Point(1, 2), Point(2, 3)])
+    np.testing.assert_allclose(actual, expected)
+
+
+@pytest.mark.parametrize("func", [funcs[0] for funcs in XY_PREDICATES])
+def test_xy_array_2D(func):
+    polygon2 = shapely.transform(polygon, lambda x: x)  # makes a copy
+    actual = func(polygon2, [0, 1, 2], [1, 2, 3])
+    expected = func(polygon2, [[0, 1], [1, 2], [2, 3]])
+    np.testing.assert_allclose(actual, expected)
+
+
+@pytest.mark.parametrize("func, func_bin", XY_PREDICATES)
+def test_xy_prepared(func, func_bin):
+    actual = func(_prepare_with_copy([polygon, line_string]), 2, 3)
+    expected = func_bin([polygon, line_string], Point(2, 3))
+    np.testing.assert_allclose(actual, expected)
+
+
+@pytest.mark.parametrize("func", [funcs[0] for funcs in XY_PREDICATES])
+def test_xy_with_kwargs(func):
+    out = np.empty((), dtype=np.uint8)
+    point2 = shapely.transform(point, lambda x: x)  # makes a copy
+    actual = func(point2, point2.x, point2.y, out=out)
+    assert actual is out
+    assert actual.dtype == np.uint8
+
+
+@pytest.mark.parametrize("func", [funcs[0] for funcs in XY_PREDICATES])
+def test_xy_missing(func):
+    actual = func(
+        np.array([point, point, point, None]),
+        np.array([point.x, np.nan, point.x, point.x]),
+        np.array([point.y, point.y, np.nan, point.y]),
+    )
+    np.testing.assert_allclose(actual, [True, False, False, False])
 
 
 def test_equals_exact_tolerance():
@@ -126,6 +206,35 @@ def test_equals_exact_tolerance():
     np.testing.assert_allclose(actual, [False, True, False])
 
 
+def test_equals_exact_normalize():
+    l1 = LineString([(0, 0), (1, 1)])
+    l2 = LineString([(1, 1), (0, 0)])
+    # default requires same order of coordinates
+    assert not shapely.equals_exact(l1, l2)
+    assert shapely.equals_exact(l1, l2, normalize=True)
+
+
+def test_equals_identical():
+    # more elaborate tests are done at the Geometry.__eq__ level
+    # requires same order of coordinates
+    l1 = LineString([(0, 0), (1, 1)])
+    l2 = LineString([(1, 1), (0, 0)])
+    assert not shapely.equals_identical(l1, l2)
+
+    # checks z-dimension (in contrast to equals_exact)
+    l1 = LineString([(0, 0, 0), (1, 1, 0)])
+    l2 = LineString([(0, 0, 1), (1, 1, 1)])
+    assert not shapely.equals_identical(l1, l2)
+    assert shapely.equals_exact(l1, l2)
+
+    # NaNs in same place are equal (in contrast to equals_exact)
+    with ignore_invalid():
+        l1 = LineString([(0, np.nan), (1, 1)])
+        l2 = LineString([(0, np.nan), (1, 1)])
+    assert shapely.equals_identical(l1, l2)
+    assert not shapely.equals_exact(l1, l2)
+
+
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 def test_dwithin():
     p1 = shapely.points(50, 4)
@@ -140,6 +249,50 @@ def test_dwithin():
     # an array of distances
     actual = shapely.dwithin(p1, p2, distance=[0.05, 0.2, np.nan])
     np.testing.assert_allclose(actual, [False, True, False])
+
+
+@pytest.mark.parametrize("geometry", all_types)
+def test_has_z_has_m_all_types(geometry):
+    assert not shapely.has_z(geometry)
+    if shapely.geos_version >= (3, 12, 0):
+        assert not shapely.has_m(geometry)
+
+
+# The next few tests skip has_z/has_m with empty geometries
+# See https://github.com/libgeos/geos/issues/888
+
+
+@pytest.mark.parametrize("geometry", all_types_z)
+def test_has_z_has_m_all_types_z(geometry):
+    if shapely.is_empty(geometry):
+        pytest.skip("GEOSHasZ with EMPTY geometries is inconsistent")
+    assert shapely.has_z(geometry)
+    if shapely.geos_version >= (3, 12, 0):
+        assert not shapely.has_m(geometry)
+
+
+@pytest.mark.skipif(
+    shapely.geos_version < (3, 12, 0),
+    reason="M coordinates not supported with GEOS < 3.12",
+)
+@pytest.mark.parametrize("geometry", all_types_m)
+def test_has_m_all_types_m(geometry):
+    if shapely.is_empty(geometry):
+        pytest.skip("GEOSHasM with EMPTY geometries is inconsistent")
+    assert not shapely.has_z(geometry)
+    assert shapely.has_m(geometry)
+
+
+@pytest.mark.skipif(
+    shapely.geos_version < (3, 12, 0),
+    reason="M coordinates not supported with GEOS < 3.12",
+)
+@pytest.mark.parametrize("geometry", all_types_zm)
+def test_has_z_has_m_all_types_zm(geometry):
+    if shapely.is_empty(geometry):
+        pytest.skip("GEOSHasZ with EMPTY geometries is inconsistent")
+    assert shapely.has_z(geometry)
+    assert shapely.has_m(geometry)
 
 
 @pytest.mark.parametrize(
@@ -178,7 +331,7 @@ def test_relate_pattern():
 
 
 def test_relate_pattern_empty():
-    with ignore_invalid():
+    with ignore_invalid(shapely.geos_version < (3, 12, 0)):
         # Empty geometries give 'invalid value encountered' in all predicates
         # (see https://github.com/libgeos/geos/issues/515)
         assert shapely.relate_pattern(empty, empty, "*" * 9).item() is True
@@ -208,16 +361,15 @@ def test_relate_pattern_non_scalar():
         shapely.relate_pattern([point] * 2, polygon, ["*********"] * 2)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 7, 0), reason="GEOS < 3.7")
 @pytest.mark.parametrize(
     "geom, expected",
     [
-        (Geometry("LINEARRING (0 0, 0 1, 1 1, 0 0)"), False),
-        (Geometry("LINEARRING (0 0, 1 1, 0 1, 0 0)"), True),
-        (Geometry("LINESTRING (0 0, 0 1, 1 1, 0 0)"), False),
-        (Geometry("LINESTRING (0 0, 1 1, 0 1, 0 0)"), True),
-        (Geometry("LINESTRING (0 0, 1 1, 0 1)"), False),
-        (Geometry("LINESTRING (0 0, 0 1, 1 1)"), False),
+        (LinearRing([(0, 0), (0, 1), (1, 1), (0, 0)]), False),
+        (LinearRing([(0, 0), (1, 1), (0, 1), (0, 0)]), True),
+        (LineString([(0, 0), (0, 1), (1, 1), (0, 0)]), False),
+        (LineString([(0, 0), (1, 1), (0, 1), (0, 0)]), True),
+        (LineString([(0, 0), (1, 1), (0, 1)]), False),
+        (LineString([(0, 0), (0, 1), (1, 1)]), False),
         (point, False),
         (polygon, False),
         (geometry_collection, False),
@@ -229,8 +381,8 @@ def test_is_ccw(geom, expected):
 
 
 def _prepare_with_copy(geometry):
-    """Prepare without modifying inplace"""
-    geometry = shapely.apply(geometry, lambda x: x)  # makes a copy
+    """Prepare without modifying in-place"""
+    geometry = shapely.transform(geometry, lambda x: x)  # makes a copy
     shapely.prepare(geometry)
     return geometry
 
@@ -238,7 +390,7 @@ def _prepare_with_copy(geometry):
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func", BINARY_PREPARED_PREDICATES)
 def test_binary_prepared(a, func):
-    with ignore_invalid(shapely.is_empty(a)):
+    with ignore_invalid(shapely.is_empty(a) and shapely.geos_version < (3, 12, 0)):
         # Empty geometries give 'invalid value encountered' in all predicates
         # (see https://github.com/libgeos/geos/issues/515)
         actual = func(a, point)
@@ -246,12 +398,12 @@ def test_binary_prepared(a, func):
     assert actual == result
 
 
-@pytest.mark.parametrize("geometry", all_types + (empty,))
+@pytest.mark.parametrize("geometry", all_types)
 def test_is_prepared_true(geometry):
     assert shapely.is_prepared(_prepare_with_copy(geometry))
 
 
-@pytest.mark.parametrize("geometry", all_types + (empty, None))
+@pytest.mark.parametrize("geometry", all_types + (None,))
 def test_is_prepared_false(geometry):
     assert not shapely.is_prepared(geometry)
 

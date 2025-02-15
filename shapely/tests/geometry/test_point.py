@@ -1,18 +1,18 @@
 import numpy as np
 import pytest
 
+from shapely import Point, geos_version
 from shapely.coords import CoordinateSequence
-from shapely.errors import DimensionError
-from shapely.geometry import Point
+from shapely.errors import DimensionError, UnsupportedGEOSVersionError
 
 
 def test_from_coordinates():
-    # 2D points
+    # Point
     p = Point(1.0, 2.0)
     assert p.coords[:] == [(1.0, 2.0)]
     assert p.has_z is False
 
-    # 3D Point
+    # PointZ
     p = Point(1.0, 2.0, 3.0)
     assert p.coords[:] == [(1.0, 2.0, 3.0)]
     assert p.has_z
@@ -34,8 +34,10 @@ def test_from_sequence():
     # From coordinate sequence
     p = Point([(3.0, 4.0)])
     assert p.coords[:] == [(3.0, 4.0)]
+    p = Point([[3.0, 4.0]])
+    assert p.coords[:] == [(3.0, 4.0)]
 
-    # 3D
+    # PointZ
     p = Point((3.0, 4.0, 5.0))
     assert p.coords[:] == [(3.0, 4.0, 5.0)]
     p = Point([3.0, 4.0, 5.0])
@@ -50,6 +52,17 @@ def test_from_numpy():
     assert p.coords[:] == [(1.0, 2.0)]
 
     p = Point(np.array([1.0, 2.0, 3.0]))
+    assert p.coords[:] == [(1.0, 2.0, 3.0)]
+
+
+def test_from_numpy_xy():
+    # Construct from separate x, y numpy arrays - if those are length 1,
+    # this is allowed for compat with shapely 1.8
+    # (https://github.com/shapely/shapely/issues/1587)
+    p = Point(np.array([1.0]), np.array([2.0]))
+    assert p.coords[:] == [(1.0, 2.0)]
+
+    p = Point(np.array([1.0]), np.array([2.0]), np.array([3.0]))
     assert p.coords[:] == [(1.0, 2.0, 3.0)]
 
 
@@ -71,30 +84,50 @@ def test_from_generator():
 
 
 def test_from_invalid():
-
     with pytest.raises(TypeError, match="takes at most 3 arguments"):
         Point(1, 2, 3, 4)
+
+    # this worked in shapely 1.x, just ignoring the other coords
+    with pytest.raises(
+        ValueError, match="takes only scalar or 1-size vector arguments"
+    ):
+        Point([(2, 3), (11, 4)])
 
 
 class TestPoint:
     def test_point(self):
-
-        # Test 2D points
+        # Test XY point
         p = Point(1.0, 2.0)
         assert p.x == 1.0
+        assert type(p.x) is float
         assert p.y == 2.0
+        assert type(p.y) is float
         assert p.coords[:] == [(1.0, 2.0)]
         assert str(p) == p.wkt
         assert p.has_z is False
         with pytest.raises(DimensionError):
             p.z
+        if geos_version >= (3, 12, 0):
+            assert p.has_m is False
+            with pytest.raises(DimensionError):
+                p.m
+        else:
+            with pytest.raises(UnsupportedGEOSVersionError):
+                p.m
 
-        # Check 3D
+        # Check XYZ point
         p = Point(1.0, 2.0, 3.0)
         assert p.coords[:] == [(1.0, 2.0, 3.0)]
         assert str(p) == p.wkt
         assert p.has_z is True
         assert p.z == 3.0
+        assert type(p.z) is float
+        if geos_version >= (3, 12, 0):
+            assert p.has_m is False
+            with pytest.raises(DimensionError):
+                p.m
+
+            # TODO: Check XYM and XYZM points
 
         # Coordinate access
         p = Point((3.0, 4.0))
@@ -118,6 +151,8 @@ class TestPoint:
         assert p_null.coords[:] == []
         assert p_null.area == 0.0
 
+        assert p_null.__geo_interface__ == {"type": "Point", "coordinates": ()}
+
     def test_coords(self):
         # From Array.txt
         p = Point(0.0, 0.0, 1.0)
@@ -129,15 +164,6 @@ class TestPoint:
         assert a.ndim == 1
         assert a.size == 3
         assert a.shape == (3,)
-
-
-def test_empty_point_bounds():
-    """The bounds of an empty point is an empty tuple"""
-    p = Point()
-    # TODO keep this empty tuple or change to (nan, nan, nan, nan)?
-    assert p.bounds == ()
-    # assert len(p.bounds) == 4
-    # assert all(math.isnan(v) for v in p.bounds)
 
 
 def test_point_immutable():
@@ -160,7 +186,6 @@ def test_point_array_coercion():
     assert arr.item() == p
 
 
-@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_empty_point_coords():
     pe = Point()
 
@@ -169,7 +194,6 @@ def test_numpy_empty_point_coords():
     assert a.shape == (0, 2)
 
 
-@pytest.mark.filterwarnings("error:An exception was ignored")  # NumPy 1.21
 def test_numpy_object_array():
     geom = Point(3.0, 4.0)
     ar = np.empty(1, object)

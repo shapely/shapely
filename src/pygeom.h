@@ -6,8 +6,11 @@
 #include "geos.h"
 
 typedef struct {
-  PyObject_HEAD void* ptr;
+  PyObject_HEAD
+  void* ptr;
   void* ptr_prepared;
+  /* For weak references */
+  PyObject *weakreflist;
 } GeometryObject;
 
 extern PyTypeObject GeometryType;
