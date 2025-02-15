@@ -182,11 +182,13 @@ def to_ragged_array(geometries, include_z=None):
             Contiguous array of shape (n, 2) or (n, 3) of all coordinates
             of all input geometries.
         offsets: tuple of np.ndarray
-            Offset arrays (int32 dtype) that make it possible to reconstruct
-            the geometries from the flat coordinates array. The number of
+            Offset arrays that make it possible to reconstruct the
+            geometries from the flat coordinates array. The number of
             offset arrays depends on the geometry type. See
             https://github.com/geoarrow/geoarrow/blob/main/format.md
             for details.
+            Uses int32 dtype offsets if possible, otherwise int64 for
+            large inputs (coordinates > 32GB).
 
     Notes
     -----
