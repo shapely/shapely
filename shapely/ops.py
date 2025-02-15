@@ -719,6 +719,8 @@ def orient(geom, sign=1.0):
     1.0 means that the coordinates of the product's exterior rings will
     be oriented counter-clockwise.
 
+    It is recommended to use :func:`shapely.orient_polygons` instead.
+
     Parameters
     ----------
     geom : Geometry

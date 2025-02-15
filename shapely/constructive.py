@@ -1433,4 +1433,4 @@ def orient_polygons(geometry, exterior_cw=False, **kwargs):
         f = _orient_polygons_vectorized
     else:
         f = _orient_polygons_geos
-    return f(geometry, exterior_cw=exterior_cw, **kwargs)
+    return f(geometry, exterior_cw, **kwargs)

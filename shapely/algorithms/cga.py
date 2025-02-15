@@ -27,15 +27,19 @@ def _reverse_conditioned(rings, condition):
 
 
 def _orient_polygon(geometry, exterior_cw=False):
+    if geometry is None:
+        return None
     if geometry.geom_type in ["MultiPolygon", "GeometryCollection"]:
-        return geometry.__class__(list(_orient_polygon(geometry.geoms, exterior_cw)))
+        return geometry.__class__(
+            [_orient_polygon(geom, exterior_cw) for geom in geometry.geoms]
+        )
     # elif geometry.geom_type in ["LinearRing"]:
     #     return reverse_conditioned(geometry, is_ccw(geometry) != ccw)
     elif geometry.geom_type == "Polygon":
         rings = np.array([geometry.exterior, *geometry.interiors])
         reverse_condition = shapely.is_ccw(rings)
         reverse_condition[0] = not reverse_condition[0]
-        if not exterior_cw:
+        if exterior_cw:
             reverse_condition = np.logical_not(reverse_condition)
         if np.any(reverse_condition):
             rings = _reverse_conditioned(rings, reverse_condition)

@@ -322,10 +322,11 @@ shapely.lib.registry[3] = Polygon
 def orient(polygon, sign=1.0):
     """Return an oriented polygon.
 
+    It is recommended to use :func:`shapely.orient_polygons` instead.
+
     Parameters
     ----------
-    geom : Geometry or array_like
-        The original geometry. Either a Polygon, MultiPolygon, or GeometryCollection.
+    polygon : shapely.Polygon
     sign : float, default 1.
         The sign of the result's signed area.
         A non-negative sign means that the coordinates of the geometry's exterior
@@ -334,7 +335,8 @@ def orient(polygon, sign=1.0):
     Returns
     -------
     Geometry or array_like
-    Refer to `shapely.force_ccw` for full documentation.
+
+    Refer to :func:`shapely.orient_polygons` for full documentation.
 
     """
     return shapely.orient_polygons(polygon, sign < 0.0)
