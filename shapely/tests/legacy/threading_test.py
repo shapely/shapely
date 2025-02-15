@@ -21,23 +21,23 @@ def main():
 
 
 def runShapelyBuilding(num):
-    print("%s: Running shapely tests on wkb" % num)
+    print(f"{num}: Running shapely tests on wkb")
     import shapely.geos
 
-    print("%s GEOS Handle: %s" % (num, shapely.geos.lgeos.geos_handle))
+    print(f"{num} GEOS Handle: {shapely.geos.lgeos.geos_handle}")
     import shapely.wkb
     import shapely.wkt
 
     p = shapely.wkt.loads("POINT (0 0)")
-    print("%s WKT: %s" % (num, shapely.wkt.dumps(p)))
+    print(f"{num} WKT: {shapely.wkt.dumps(p)}")
     wkb = shapely.wkb.dumps(p)
-    print("%s WKB: %s" % (num, b2a_hex(wkb)))
+    print(f"{num} WKB: {b2a_hex(wkb)}")
 
     for i in range(10):
         shapely.wkb.loads(wkb)
 
-    print("%s GEOS Handle: %s" % (num, shapely.geos.lgeos.geos_handle))
-    print("Done %s" % num)
+    print(f"{num} GEOS Handle: {shapely.geos.lgeos.geos_handle}")
+    print(f"Done {num}")
 
 
 if __name__ == "__main__":

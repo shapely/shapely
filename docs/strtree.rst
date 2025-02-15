@@ -1,4 +1,4 @@
-STRTree
+STRtree
 =======
 
 .. autoclass:: shapely.STRtree

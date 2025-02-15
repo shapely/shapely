@@ -12,53 +12,62 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-2019]
+        os: [ubuntu-latest, macos-13, windows-2019]
         architecture: [x64]
-        geos: [3.7.5, 3.8.3, 3.9.4, 3.10.5, 3.11.2, main]
+        geos: [3.9.5, 3.10.6, 3.11.4, 3.12.2, 3.13.0, main]
         include:
-          # 2018
-          - python: 3.8  # 3.7 is dropped
-            geos: 3.7.5
-            numpy: 1.16.2
-          # 2019
-          - python: 3.8
-            geos: 3.8.3
-            numpy: 1.16.2
           # 2020
           - python: 3.9
-            geos: 3.9.4
-            numpy: 1.19.5
+            geos: 3.9.5
+            numpy: 1.20.3
           # 2021
           - python: "3.10"
-            geos: 3.10.5
+            geos: 3.10.6
             numpy: 1.21.3
           # 2022
           - python: "3.11"
-            geos: 3.11.2
+            geos: 3.11.4
             numpy: 1.23.4
+          # 2023
+          - python: "3.12"
+            geos: 3.12.2
+            numpy: 1.26.2
             matplotlib: true
             doctest: true
             extra_pytest_args: "-W error"  # error on warnings
+          # 2024
+          - python: "3.13"
+            geos: 3.13.0
+            numpy: 2.1.1
+          # free threaded Python (no numpy version to indicate installing nightly cython and numpy)
+          - os: ubuntu-22.04
+            python: "3.13t"
+            geos: 3.13.0
+          # apple silicon
+          - os: macos-14
+            python: "3.12"
+            geos: 3.12.2
+            numpy: 2.0.0
           # dev
-          - python: "3.11"
+          - python: "3.12"
             geos: main
-            extra_pytest_args: "-W error" # error on warnings
+            extra_pytest_args: "-W error"  # error on warnings
           # enable two 32-bit windows builds:
           - os: windows-2019
             architecture: x86
-            python: 3.8
-            geos: 3.7.5
-            numpy: 1.16.2
+            python: 3.9
+            geos: 3.9.5
+            numpy: 1.20.3
           - os: windows-2019
             architecture: x86
-            python: 3.9
-            geos: 3.10.3
-            numpy: 1.19.5
+            python: "3.11"
+            geos: 3.12.2
+            numpy: 1.24.4
           # pypy (use explicit ubuntu version to not overwrite existing ubuntu-latest + geos 3.11.0 build)
-          - os: ubuntu-20.04
-            python: "pypy3.8"
-            geos: 3.11.2
-            numpy: 1.23.4
+          - os: ubuntu-22.04
+            python: "pypy3.10"
+            geos: 3.12.2
+            numpy: 1.24.4
 
     env:
       GEOS_VERSION: ${{ matrix.geos }}
@@ -74,10 +83,10 @@ jobs:
         if: ${{ matrix.os == 'windows-2019' }}
 
       - name: Checkout Shapely
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Checkout GEOS (main)
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: libgeos/geos
           ref: main
@@ -91,13 +100,14 @@ jobs:
         if: ${{ matrix.geos == 'main' }}
 
       - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v4
+        uses: Quansight-Labs/setup-python@869aeafb7eeb9dc48ba68acc0479e6fc3fd7ce5e  # v5.4.0
         with:
           python-version: ${{ matrix.python }}
           architecture: ${{ matrix.architecture }}
+          allow-prereleases: true
 
       - name: Cache GEOS and pip packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           key: ${{ matrix.os }}-${{ matrix.architecture }}-geos-${{ env.GEOS_VERSION_SPEC }}-${{ hashFiles('ci/install_geos.sh') }}
           path: |
@@ -117,14 +127,19 @@ jobs:
       - name: Install python dependencies
         run: |
           python -m pip install --disable-pip-version-check --upgrade pip
+          pip config set global.progress_bar off
           pip install --upgrade wheel setuptools
           if [ -z "${{ matrix.numpy }}" ]; then
-            pip install --upgrade --pre Cython numpy pytest pytest-cov coveralls;
+            pip install --upgrade --pre pytest pytest-cov coveralls;
+            pip install --upgrade --pre --only-binary :all: -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple cython numpy
           else
             pip install --upgrade Cython numpy==${{ matrix.numpy }} pytest pytest-cov coveralls;
           fi
           if [ -n "${{ matrix.matplotlib }}" ]; then
             pip install matplotlib
+          fi
+          if [ -n "${{ matrix.doctest }}" ]; then
+            pip install pyproj
           fi
           pip list
 
@@ -134,25 +149,32 @@ jobs:
           echo "LD_LIBRARY_PATH=${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
 
-      - name: Set environment variables (OSX)
+      - name: Set environment variables (macOS)
         run: |
           echo "${{ env.GEOS_INSTALL }}/bin" >> $GITHUB_PATH
           echo "LDFLAGS=-Wl,-rpath,${{ env.GEOS_INSTALL }}/lib" >> $GITHUB_ENV
-        if: ${{ matrix.os == 'macos-latest' }}
+        if: ${{ startsWith(matrix.os, 'macos') }}
 
       # Windows requires special treatment:
       # - geos-config does not exist, so we specify include and library paths
-      # - Python >=3.8 ignores the PATH for finding DLLs, so we copy them into the package
+      # - Python ignores the PATH for finding DLLs, so we copy them into the package
       - name: Set environment variables + copy DLLs (Windows)
         run: |
           cp geosinstall/geos-${{ matrix.geos }}/bin/*.dll shapely
           echo 'GEOS_LIBRARY_PATH=${{ env.GEOS_INSTALL }}\lib' >> $GITHUB_ENV
           echo 'GEOS_INCLUDE_PATH=${{ env.GEOS_INSTALL }}\include' >> $GITHUB_ENV
-        if: ${{ matrix.os == 'windows-2019' }}
+        if: ${{ startsWith(matrix.os, 'windows') }}
 
       - name: Build and install Shapely
+        # for the numpy nightly build, we temporarily need to build without
+        # the standard build isolation based on build-system.requires, to
+        # ensure we build against numpy nightly (numpy 2.0 compat)
         run: |
-          pip install -e .
+          if [ -z "${{ matrix.numpy }}" ]; then
+            pip install -v -e . --no-build-isolation
+          else
+            pip install -v -e .
+          fi
 
       - name: Overview of the Python environment (pip list)
         run: pip list

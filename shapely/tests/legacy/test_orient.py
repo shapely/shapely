@@ -45,6 +45,10 @@ class OrientTestCase(unittest.TestCase):
         assert orient(linearring, 1) == linearring_reversed
         assert orient(linearring, -1) == linearring
 
+    def test_empty_polygon(self):
+        polygon = Polygon()
+        assert orient(polygon) == polygon
+
     def test_polygon(self):
         polygon = Polygon([(0, 0), (0, 1), (1, 0)])
         polygon_reversed = Polygon(polygon.exterior.coords[::-1])

@@ -1,5 +1,4 @@
 #define PY_SSIZE_T_CLEAN
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 #include <Python.h>
 #include <float.h>
@@ -128,7 +127,7 @@ static PyObject* STRtree_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
     /* get the geometry */
     ptr = PyArray_GETPTR1((PyArrayObject*)arr, i);
     obj = *(GeometryObject**)ptr;
-    /* fail and cleanup incase obj was no geometry */
+    /* fail and cleanup in case obj was no geometry */
     if (!get_geom(obj, &geom)) {
       errstate = PGERR_NOT_A_GEOMETRY;
       GEOSSTRtree_destroy_r(ctx, tree);
@@ -164,8 +163,9 @@ static PyObject* STRtree_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 
   // A dummy query to trigger the build of the tree (only if the tree is not empty)
   if (count_indexed > 0) {
-    GEOSGeometry* dummy = create_point(ctx, 0.0, 0.0, NULL);
-    if (dummy == NULL) {
+    GEOSGeometry* dummy = NULL;
+    errstate = create_point(ctx, 0.0, 0.0, NULL, SHAPELY_HANDLE_NAN_ALLOW, &dummy);
+    if (errstate != PGERR_SUCCESS) {
       GEOSSTRtree_destroy_r(ctx, tree);
       GEOS_FINISH;
       return NULL;
@@ -973,7 +973,7 @@ static PyObject* STRtree_dwithin(STRtreeObject* self, PyObject* args) {
   index_vec_t src_indexes;
 
   // Addresses in tree geometries (_geoms) that overlap with expanded bboxes around
-  // intput geometries
+  // input geometries
   tree_geom_vec_t query_geoms;
 
   // Addresses in tree geometries (_geoms) that meet DistanceWithin predicate

@@ -1,6 +1,6 @@
 import pytest
 
-from shapely.geometry import MultiLineString, Polygon, shape
+from shapely.geometry import MultiLineString, Point, Polygon, shape
 from shapely.geometry.geo import _is_coordinates_empty
 
 
@@ -46,3 +46,18 @@ def test_multilinestring_empty(geom):
 @pytest.mark.parametrize("coords", [[], [[]], [[], []], None, [[[]]]])
 def test_is_coordinates_empty(coords):
     assert _is_coordinates_empty(coords)
+
+
+def test_feature_from_geo_interface():
+    # https://github.com/shapely/shapely/issues/1814
+    class Feature:
+        @property
+        def __geo_interface__(self):
+            return {
+                "type": "Feature",
+                "geometry": {"type": "Point", "coordinates": [0, 0]},
+            }
+
+    expected = Point([0, 0])
+    result = shape(Feature())
+    assert result == expected

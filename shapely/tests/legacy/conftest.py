@@ -1,12 +1,6 @@
 import numpy
 import pytest
 
-from shapely.geos import geos_version
-
-requires_geos_38 = pytest.mark.skipif(
-    geos_version < (3, 8, 0), reason="GEOS >= 3.8.0 is required."
-)
-
 shapely20_todo = pytest.mark.xfail(
     strict=True, reason="Not yet implemented for Shapely 2.0"
 )

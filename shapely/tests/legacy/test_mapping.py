@@ -1,6 +1,6 @@
 import unittest
 
-from shapely.geometry import mapping, Point, Polygon
+from shapely.geometry import Point, Polygon, mapping
 
 
 class MappingTestCase(unittest.TestCase):

@@ -1,5 +1,4 @@
-"""Test recovery from operation on invalid geometries
-"""
+"""Test recovery from operation on invalid geometries"""
 
 import unittest
 
@@ -25,4 +24,3 @@ class InvalidGeometriesTestCase(unittest.TestCase):
             polygon_invalid.intersection(polygon)
         with pytest.raises((TopologicalError, shapely.GEOSException)):
             polygon.intersection(polygon_invalid)
-        return

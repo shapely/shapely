@@ -53,8 +53,8 @@ or WKB (Well-Known Binary) representation:
   >>> from_wkb(b"\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?")
   <POINT (1 1)>
 
-A more efficient way of constructing geometries is by making use of the (vectorized)
-functions described in :ref:`ref-creation`.
+A more efficient way of constructing geometries is by making use of the
+(vectorized) functions described in :ref:`ref-creation`.
 
 Pickling
 ~~~~~~~~
@@ -173,3 +173,38 @@ specified, rounding precision will be disabled showing full precision.
 Format types ``'x'`` and ``'X'`` show a hex-encoded string representation of
 WKB or Well-Known Binary, with the case of the output matched the
 case of the format type character.
+
+.. _canonical-form:
+
+Canonical form
+--------------
+When operations are applied on geometries the result is returned according to
+some conventions.
+
+In most cases, geometries will be returned in "mild" canonical form. There is
+no goal to keep this form stable, so it is expected to change in future
+versions of GEOS:
+
+- the coordinates of exterior rings follow a clockwise orientation and interior
+  rings have a counter-clockwise orientation. This is the opposite of the OGC
+  specifications because the choice was made before this was included in the
+  standard.
+- the starting point of rings can be changed in the output, but the exact order
+  is undefined and should not be relied upon
+- the order of geometry types in a collection can be changed, but the order is
+  undefined
+
+When :func:`~shapely.normalize` is used, the "strict" canonical form is
+applied. This type of normalization is meant to be stable, so changes to it
+will be avoided if possible:
+
+- the coordinates of exterior rings follow a clockwise orientation and interior
+  rings have a counter-clockwise orientation
+- the starting point of rings is lower left
+- elements in collections are ordered by geometry type: by descending dimension
+  and multi-types first (MultiPolygon, Polygon, MultiLineString, LineString,
+  MultiPoint, Point). Multiple elements from the same type are ordered from
+  right to left and from top to bottom.
+
+It is important to note that input geometries do not have to follow these
+conventions.

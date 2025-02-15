@@ -1,5 +1,5 @@
-"""Test locale independence of WKT
-"""
+"""Test locale independence of WKT"""
+
 import locale
 import sys
 import unittest
@@ -42,11 +42,9 @@ def tearDownModule():
 
 
 class LocaleTestCase(unittest.TestCase):
-
     # @unittest.skipIf(not do_test_locale, 'test locale not found')
 
     def test_wkt_locale(self):
-
         # Test reading and writing
         p = loads("POINT (0.0 0.0)")
         assert p.x == 0.0

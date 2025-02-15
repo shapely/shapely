@@ -4,13 +4,139 @@ Changes
 2.1.0 (unreleased)
 ------------------
 
+Bug fixes:
+
+- Prevent crash when serializing a number > 1e100 to WKT with GEOS < 3.13. (#1907)
+- Fixes GeoJSON serialization of empty points (#2118)
+- Fixes `__geo_interface__` handling of empty points (#2120)
+
 Improvements:
 
-- Require GEOS >= 3.7, NumPy >= 1.16, and Python >= 3.8 (#1802)
+- Require GEOS >= 3.9, NumPy >= 1.20, and Python >= 3.9 (#1802, #1885, #2124)
+- Handle ``Feature`` type in ``shapely.geometry.shape`` (#1815)
 - Add a ``handle_nan`` parameter to ``shapely.linestrings()`` and ``shapely.linearrings()``
   to allow, skip, or error on nonfinite (NaN / Inf) coordinates. The default
   behaviour (allow) is backwards compatible (#1594).
+- Add an ``interleaved`` parameter to ``shapely.transform()`` allowing a transposed call
+  signature in the ``transformation`` function.
+- The ``include_z`` in ``shapely.transform()`` now also allows ``None``, which
+  lets it automatically detect the dimensionality of each input geometry.
+- Add parameters ``method`` and ``keep_collapsed`` to ``shapely.make_valid()`` (#1941)
+- Upgraded the GEOS version in the binary wheel distributions to 3.12.1.
+- Add ``disjoint_subset_union`` and ``disjoint_subset_union_all`` as an optimized
+  version of union and union_all, assuming inputs can be divided into subsets that do
+  not intersect. Requires at least GEOS 3.12.
+- The ``voronoi_polygons`` now accepts the ``ordered`` keyword, optionally forcing the
+  order of polygons within the GeometryCollection to follow the order of input
+  coordinates. Requires at least GEOS 3.12. (#1968)
+- Add option on ``invalid="fix"`` to ``from_wkb`` and ``from_wkt`` (#2094)
+- Add function ``minimum_clearance_line`` (#2106)
+- Add function ``maximum_inscribed_circle`` (#1307)
+- Add function ``orient_polygons`` (#2147)
+- Add function ``coverage_simplify`` to allow topological simplification of polygonal
+  coverages (#1969)
 
+Breaking changes in GEOS 3.12:
+
+- ``oriented_envelope`` / ``minimum_rotated_rectangle`` changed its implementation
+  in GEOS 3.12. Be aware that results will change when updating GEOS. Coincidentally
+  the implementation is similar to the shapely 1.x approach. (#1885)
+- ``get_coordinate_dimension`` / ``has_z`` now considers geometries three dimensional if
+  they have a NaN z coordinate. (#1885)
+- ``voronoi_polygons`` changed its output from a LINESTRING to a MULTILINESTRING in case
+  ``only_edges=True``. (#1885)
+- The WKT representation of a MULTIPOINT changed from for example "MULTIPOINT (0 0, 1 1)"
+  to "MULTIPOINT ((0 0), (1 1))". (#1885)
+
+Deprecations:
+
+- The ``shapely.geos`` module is deprecated. All GEOS-version related attributes are
+  available directly from the top-level ``shapely`` namespace as well (already since
+  shapely 2.0) (#2145).
+- The ``shapely.vectorized`` module is deprecated. The two functions (``contains and
+  ``touches``) can be replaced by the top-level vectorized functions ``contains_xy``
+  and ``intersects_xy`` (#1630).
+
+Packaging:
+
+- Binary wheels are now built for musllinux (Alpine) x86_64 platforms (#1996).
+
+2.0.7 (2025-01-30)
+------------------
+
+Bug fixes:
+
+- Fix compilation error on certain Linux platforms, such as Alpine (#1945).
+- Fixes crash when reading nonlinear geometry types (CircularString,
+  CompoundCurve, MultiCurve, CurvePolygon, MultiSurface) from WKB/WKT with
+  GEOS >= 3.13; these types are not yet supported in Shapely and now raise a
+  ``NotImplementedError`` (#2160)
+- Fix the ``project`` method to return a Python float (#2093).
+
+2.0.6 (2024-08-19)
+------------------
+
+Bug fixes:
+
+- Fix compatibility with NumPy 2.1.0 (#2099).
+
+Wheels are available for Python 3.13 (and still include GEOS 3.11.4).
+
+2.0.5 (2024-07-13)
+------------------
+
+Binary wheels on PyPI include GEOS 3.11.4 from 2024-06-05. Furthermore,
+universal2 wheels are removed for macOS since both x86_64 and arm64 wheels are
+provided.
+
+Bug fixes:
+
+- Fix Point x/y/z attributes to return Python floats (#2074).
+- Fix affinity for Apple silicon with NumPy 2.0 by reverting matmul, and
+  use direct matrix multiplication instead (#2085).
+
+2.0.4 (2024-04-16)
+------------------
+
+Wheels for Python versions >= 3.9 will be compatible with the upcoming NumPy 2.0
+release (as well as with supported NumPy 1.x versions).
+
+Bug fixes:
+
+- Fix bug in ``to_wkt`` with multiple empty Z geometries (#2012).
+- Fix bug in ``to_ragged_array`` for an array of Points with missing values (#2034).
+
+
+2.0.3 (2024-02-16)
+------------------
+
+- Fix regression in the ``oriented_envelope`` ufunc to accept array-like input
+  in case of GEOS<3.12 (#1929).
+- The binary wheels are not yet compatible with a future NumPy 2.0 release,
+  therefore a ``numpy<2`` upper pin was added to the requirements (#1972).
+- Upgraded the GEOS version in the binary wheel distributions to 3.11.3.
+
+
+2.0.2 (2023-10-12)
+------------------
+
+Bug fixes:
+
+- Fix regression in the (in)equality comparison (``geom1 == geom2``) using ``__eq__`` to
+  not ignore the z-coordinates (#1732).
+- Fix ``MultiPolygon()`` constructor to accept polygons without holes (#1850).
+- Fix ``minimum_rotated_rectangle`` (``oriented_envelope``) to always return
+  the minimum area solution (instead of minimum width). In practice, it will use the
+  GEOS implementation only for GEOS 3.12+, and for older GEOS versions fall back to the
+  implementation that was included in Shapely < 2 (#1670).
+- Fix ``from_ragged_array`` to work with read-only array input (#1744).
+- Fix the handling of z coordinates ``shapely.ops.substring`` (#1699).
+
+Wheels are available for Python 3.12 (and still include GEOS 3.11.2). Building
+from source is now compatible with Cython 3.
+
+For a full changelog, see
+https://shapely.readthedocs.io/en/latest/release/2.x.html#version-2-0-2
 
 2.0.1 (2023-01-30)
 ------------------
@@ -38,7 +164,7 @@ https://shapely.readthedocs.io/en/latest/release/2.x.html#version-2-0-1
 
 Shapely version 2.0.0 is a major release featuring a complete refactor of the
 internals and new vectorized (element-wise) array operations providing
-considerable performance improvements. 
+considerable performance improvements.
 
 For a full changelog, see
 https://shapely.readthedocs.io/en/latest/release/2.x.html#version-2-0-0

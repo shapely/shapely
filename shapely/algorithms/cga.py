@@ -1,27 +1,26 @@
+"""Shapely CGA algorithms."""
+
 import numpy as np
 
 import shapely
 from shapely import is_ccw
-from shapely.decorators import vectorize_geom
 
 
 def signed_area(ring):
-    """Return the signed area enclosed by a ring in linear time using the
-    algorithm at: https://web.archive.org/web/20080209143651/http://cgafaq.info:80/wiki/Polygon_Area
+    """Return the signed area enclosed by a ring in linear time.
+
+    Algorithm used: https://web.archive.org/web/20080209143651/http://cgafaq.info:80/wiki/Polygon_Area
     """
     coords = np.array(ring.coords)[:, :2]
     xs, ys = np.vstack([coords, coords[1]]).T
     return np.sum(xs[1:-1] * (ys[2:] - ys[:-2])) / 2.0
 
 
-def is_ccw_impl(name=None):
-    """Predicate implementation"""
-    return shapely.is_ccw
-
-
 def reverse_conditioned(geometry, condition=True, **kwargs):
-    """Returns a copy of a Geometry with the order of coordinates reversed (`condition=True`)
-    or returnes the geometry as is (`condition=False`).
+    """Return a copy of Geometry with order of coordinates potentially reversed.
+
+    Returns a copy of a Geometry with the order of coordinates reversed
+    (`condition=True`) or returnes the geometry as is (`condition=False`).
 
     If a Geometry is a polygon with interior rings, the interior rings are also
     reversed.
@@ -38,7 +37,7 @@ def reverse_conditioned(geometry, condition=True, **kwargs):
         For other keyword-only arguments, see the
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
-    See also
+    See Also
     --------
     is_ccw : Checks if a Geometry is clockwise.
     reverse : Returns a copy of a Geometry with the order of coordinates reversed.
@@ -55,7 +54,8 @@ def reverse_conditioned(geometry, condition=True, **kwargs):
     [<LINESTRING (1 2, 0 0)>, <LINESTRING (0 0, 1 2)>]
     >>> polygon = Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
     >>> list(reverse_conditioned([polygon, ls, polygon], [True, True, False]))
-    [<POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>, <LINESTRING (1 2, 0 0)>, <POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))>]
+    [<POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>, <LINESTRING (1 2, 0 0)>, \
+<POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))>]
     >>> reverse_conditioned(None) is None
     True
     """
@@ -72,20 +72,40 @@ def reverse_conditioned(geometry, condition=True, **kwargs):
     return geometry
 
 
+def vectorize_geom(func, dtype=shapely.Geometry, dtype_arg: int = 0, nout: int = 1):
+    """Decorate a function to vectorize geometry input.
+
+    Decorator that vectorize a function that gets a ``dtype`` or array_like as
+    its first parameter
+    """
+
+    def vectorize_wrapper(*args, **kwargs):
+        if isinstance(args[dtype_arg], dtype):
+            # eliminate the vectorization overhead if not needed
+            return func(*args, **kwargs)
+        else:
+            nin = len(args) + len(kwargs)
+            return np.frompyfunc(func, nin, nout)(*args, **kwargs)
+
+    return vectorize_wrapper
+
+
 @vectorize_geom
 def force_ccw(geometry, ccw: bool = True):
-    """A properly oriented copy of the given geometry.
+    """Return a properly oriented copy of the given geometry.
 
-    Forces (Multi)Polygons to use a counter-clockwise orientation for their exterior ring,
-    and a clockwise orientation for their interior rings (if ccw=True).
-    Forces LinearRings to use a counter-clockwise/clockwise orientation (according to ccw).
+    Forces (Multi)Polygons to use a counter-clockwise orientation for their
+    exterior ring, and a clockwise orientation for their interior rings (if ccw=True).
+    Forces LinearRings to use a counter-clockwise/clockwise orientation
+    (according to ccw).
     Also processes geometries inside a GeometryCollection in the same way.
     Other geometries are returned unchanged.
 
     Parameters
     ----------
     geometry : Geometry or array_like
-        The original geometry. Either a LinearRing, Polygon, MultiPolygon, or GeometryCollection.
+        The original geometry. Either a LinearRing, Polygon, MultiPolygon,
+        or GeometryCollection.
     ccw : bool or array_like, default True
         If True, force counter-clockwise of outer rings, and clockwise inner-rings.
         Otherwise, force clockwise of outer rings, and counter-clockwise inner-rings.
@@ -111,7 +131,7 @@ def force_ccw(geometry, ccw: bool = True):
 
 
 def orient(geom, sign=1.0):
-    """A properly oriented copy of the given geometry.
+    """Return a properly oriented copy of the given geometry.
 
     Parameters
     ----------
