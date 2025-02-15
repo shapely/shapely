@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+import shapely
 from shapely import MultiPoint, Point
 from shapely.errors import EmptyPartError
 from shapely.geometry.base import dump_coords
@@ -54,11 +55,20 @@ class TestMultiPoint(MultiGeometryTestCase):
         with pytest.raises(EmptyPartError, match=msg):
             MultiPoint([Point(0, 0), Point()])
 
-        with pytest.raises(EmptyPartError, match=msg):
-            MultiPoint([(0, 0), (np.nan, np.nan)])
+        if shapely.geos_version < (3, 13, 0):
+            # for older GEOS, Point(NaN, NaN) is considered empty
+            with pytest.raises(EmptyPartError, match=msg):
+                MultiPoint([(0, 0), (np.nan, np.nan)])
 
-        with pytest.raises(EmptyPartError, match=msg):
-            MultiPoint(np.array([(0, 0), (np.nan, np.nan)]))
+            with pytest.raises(EmptyPartError, match=msg):
+                MultiPoint(np.array([(0, 0), (np.nan, np.nan)]))
+
+        else:
+            result = MultiPoint([(0, 0), (np.nan, np.nan)])
+            expected = shapely.multipoints(
+                shapely.points([(0, 0), (np.nan, np.nan)], handle_nan="allow")
+            )
+            assert result == expected
 
 
 def test_multipoint_array_coercion():
