@@ -105,9 +105,9 @@ Requirements
 
 Shapely 2.1 requires
 
-* Python >=3.9
+* Python >=3.10
 * GEOS >=3.9
-* NumPy >=1.20
+* NumPy >=1.21
 
 Installing Shapely
 ==================
