@@ -157,6 +157,8 @@ ignore = [
     "PLW0603",
     # compare-to-empty-string
     "PLC1901",
+    # requiring | in isinstance
+    "UP038",
 
     ### Additional checks that don't pass yet
     # Useless statement

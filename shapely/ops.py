@@ -666,7 +666,7 @@ def substring(geom, start_dist, end_dist, normalized=False):
 
     coords = list(geom.coords)
     current_distance = 0
-    for p1, p2 in zip(coords, coords[1:]):
+    for p1, p2 in zip(coords, coords[1:]):  # noqa
         if start_dist < current_distance < end_dist:
             vertex_list.append(p1)
         elif current_distance >= end_dist:

@@ -1,7 +1,5 @@
 """Methods that operate on the coordinates of geometries."""
 
-from typing import Optional
-
 import numpy as np
 
 import shapely
@@ -13,7 +11,7 @@ __all__ = ["transform", "count_coordinates", "get_coordinates", "set_coordinates
 def transform(
     geometry,
     transformation,
-    include_z: Optional[bool] = False,
+    include_z: bool | None = False,
     interleaved: bool = True,
 ):
     """Apply a function to the coordinates of a geometry.
