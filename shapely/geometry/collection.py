@@ -33,9 +33,6 @@ class GeometryCollection(BaseMultipartGeometry):
 
     def __new__(self, geoms=None):
         """Create a new GeometryCollection."""
-        if not geoms:
-            # TODO better empty constructor
-            return shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")
         if isinstance(geoms, BaseGeometry):
             # TODO(shapely-2.0) do we actually want to split Multi-part geometries?
             # this is needed for the split() tests
@@ -43,6 +40,9 @@ class GeometryCollection(BaseMultipartGeometry):
                 geoms = geoms.geoms
             else:
                 geoms = [geoms]
+        elif geoms is None or len(geoms) == 0:
+            # TODO better empty constructor
+            return shapely.from_wkt("GEOMETRYCOLLECTION EMPTY")
 
         return shapely.geometrycollections(geoms)
 
