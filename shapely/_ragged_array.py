@@ -35,9 +35,8 @@ from shapely._geometry import (
     get_type_id,
 )
 from shapely._geometry_helpers import (
-    _from_ragged_array_multilinestring,
+    _from_ragged_array_multi_linear,
     _from_ragged_array_multipolygon,
-    _from_ragged_array_polygon,
 )
 from shapely.coordinates import get_coordinates
 from shapely.predicates import is_empty, is_missing
@@ -349,7 +348,9 @@ def _multilinestrings_from_flatcoords(coords, offsets1, offsets2):
     offsets2 = np.asarray(offsets2, dtype="int64")
 
     # recreate multilinestrings
-    result = _from_ragged_array_multilinestring(coords, offsets1, offsets2)
+    result = _from_ragged_array_multi_linear(
+        coords, offsets1, offsets2, geometry_type=GeometryType.MULTILINESTRING
+    )
     return result
 
 
@@ -359,7 +360,9 @@ def _polygon_from_flatcoords(coords, offsets1, offsets2):
     offsets2 = np.asarray(offsets2, dtype="int64")
 
     # recreate polygons
-    result = _from_ragged_array_polygon(coords, offsets1, offsets2)
+    result = _from_ragged_array_multi_linear(
+        coords, offsets1, offsets2, geometry_type=GeometryType.POLYGON
+    )
     return result
 
 
