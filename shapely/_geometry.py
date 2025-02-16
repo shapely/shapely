@@ -7,6 +7,7 @@ from shapely import _geometry_helpers, geos_version, lib
 from shapely._enum import ParamEnum
 from shapely.decorators import multithreading_enabled, requires_geos
 
+
 __all__ = [
     "GeometryType",
     "get_type_id",
@@ -27,6 +28,7 @@ __all__ = [
     "get_interior_ring",
     "get_geometry",
     "get_parts",
+    "get_segments",
     "get_rings",
     "get_precision",
     "set_precision",
@@ -663,6 +665,40 @@ return_index=True)
         return _geometry_helpers.get_parts(geometry)
 
     return _geometry_helpers.get_parts(geometry)[0]
+
+
+def get_segments(geometry):
+    """Get the individual segments constituting a linestring.
+
+    Note: This functions handles multilinestring objects unreliably.
+    See usage notes in *Examples*.
+
+    Parameters
+    ----------
+    line : Geometry
+        A single linestring geometry.
+
+    Returns
+    -------
+    ndarray of constituent pairwise segments
+
+    See Also
+    --------
+    get_parts
+
+    Examples
+    --------
+    >>> from shapely import get_segments, LineString, MultiLineString
+    >>> get_segments(LineString(([0, 0], [1, 1], [2, 2])))
+    
+
+
+    """
+
+    xys = get_coordinates(geometry)
+    return linestrings(
+        np.column_stack((xys[:-1], xys[1:])).reshape(xys.shape[0] - 1, 2, 2)
+    )
 
 
 def get_rings(geometry, return_index=False):
