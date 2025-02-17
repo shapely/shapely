@@ -10,6 +10,7 @@ Bug fixes:
 - Ensure ``plot_polygon`` does not color the interiors of polygons (#1933).
 - Fixes GeoJSON serialization of empty points (#2118)
 - Fixes `__geo_interface__` handling of empty points (#2120)
+- Fixes ``GeometryCollection()`` constructor accepting an array of geometries (#2017).
 
 Improvements:
 
