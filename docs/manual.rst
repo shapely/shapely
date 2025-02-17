@@ -264,11 +264,11 @@ General Attributes and Methods
 
 .. code-block:: pycon
 
-  >>> donut = Point(0, 0).buffer(2.0).difference(Point(0, 0).buffer(1.0))
-  >>> donut.centroid
+  >>> diamond = Point(0, 0).buffer(2.0, 1).difference(Point(0, 0).buffer(1.0, 1))
+  >>> diamond.centroid
   <POINT (0 0)>
-  >>> donut.representative_point()
-  <POINT (1.498 0.049)>
+  >>> diamond.representative_point()
+  <POINT (-1 0.5)>
 
 .. _points:
 

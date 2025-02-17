@@ -34,17 +34,18 @@ def line_interpolate_point(line, distance, normalized=False, **kwargs):
 
     Examples
     --------
-    >>> from shapely import LineString, Point
+    >>> import shapely
+    >>> from shapely import LineString
     >>> line = LineString([(0, 2), (0, 10)])
-    >>> line_interpolate_point(line, 2)
+    >>> shapely.line_interpolate_point(line, 2)
     <POINT (0 4)>
-    >>> line_interpolate_point(line, 100)
+    >>> shapely.line_interpolate_point(line, 100)
     <POINT (0 10)>
-    >>> line_interpolate_point(line, -2)
+    >>> shapely.line_interpolate_point(line, -2)
     <POINT (0 8)>
-    >>> line_interpolate_point(line, [0.25, -0.25], normalized=True).tolist()
+    >>> shapely.line_interpolate_point(line, [0.25, -0.25], normalized=True).tolist()
     [<POINT (0 4)>, <POINT (0 8)>]
-    >>> line_interpolate_point(LineString(), 1)
+    >>> shapely.line_interpolate_point(LineString(), 1)
     <POINT EMPTY>
 
     """
@@ -75,16 +76,17 @@ def line_locate_point(line, other, normalized=False, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point
     >>> line = LineString([(0, 2), (0, 10)])
     >>> point = Point(4, 4)
-    >>> line_locate_point(line, point)
+    >>> shapely.line_locate_point(line, point)
     2.0
-    >>> line_locate_point(line, point, normalized=True)
+    >>> shapely.line_locate_point(line, point, normalized=True)
     0.25
-    >>> line_locate_point(line, Point(0, 18))
+    >>> shapely.line_locate_point(line, Point(0, 18))
     8.0
-    >>> line_locate_point(LineString(), point)
+    >>> shapely.line_locate_point(LineString(), point)
     nan
 
     """
@@ -121,16 +123,18 @@ def line_merge(line, directed=False, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import MultiLineString
-    >>> line_merge(MultiLineString([[(0, 2), (0, 10)], [(0, 10), (5, 10)]]))
+    >>> shapely.line_merge(MultiLineString([[(0, 2), (0, 10)], [(0, 10), (5, 10)]]))
     <LINESTRING (0 2, 0 10, 5 10)>
-    >>> line_merge(MultiLineString([[(0, 2), (0, 10)], [(0, 11), (5, 10)]]))
+    >>> shapely.line_merge(MultiLineString([[(0, 2), (0, 10)], [(0, 11), (5, 10)]]))
     <MULTILINESTRING ((0 2, 0 10), (0 11, 5 10))>
-    >>> line_merge(MultiLineString())
+    >>> shapely.line_merge(MultiLineString())
     <GEOMETRYCOLLECTION EMPTY>
-    >>> line_merge(MultiLineString([[(0, 0), (1, 0)], [(0, 0), (3, 0)]]))
+    >>> shapely.line_merge(MultiLineString([[(0, 0), (1, 0)], [(0, 0), (3, 0)]]))
     <LINESTRING (1 0, 0 0, 3 0)>
-    >>> line_merge(MultiLineString([[(0, 0), (1, 0)], [(0, 0), (3, 0)]]), directed=True)
+    >>> shapely.line_merge(MultiLineString([[(0, 0), (1, 0)], [(0, 0), (3, 0)]]), \
+directed=True)
     <MULTILINESTRING ((0 0, 1 0), (0 0, 3 0))>
 
     """
@@ -165,13 +169,14 @@ def shared_paths(a, b, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString
     >>> line1 = LineString([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
     >>> line2 = LineString([(1, 0), (2, 0), (2, 1), (1, 1), (1, 0)])
-    >>> shared_paths(line1, line2).wkt
+    >>> shapely.shared_paths(line1, line2).wkt
     'GEOMETRYCOLLECTION (MULTILINESTRING EMPTY, MULTILINESTRING ((1 0, 1 1)))'
     >>> line3 = LineString([(1, 1), (0, 1)])
-    >>> shared_paths(line1, line3).wkt
+    >>> shapely.shared_paths(line1, line3).wkt
     'GEOMETRYCOLLECTION (MULTILINESTRING ((1 1, 0 1)), MULTILINESTRING EMPTY)'
 
     """
@@ -201,10 +206,11 @@ def shortest_line(a, b, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString
     >>> line1 = LineString([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
     >>> line2 = LineString([(0, 3), (3, 0), (5, 3)])
-    >>> shortest_line(line1, line2)
+    >>> shapely.shortest_line(line1, line2)
     <LINESTRING (1 1, 1.5 1.5)>
 
     """

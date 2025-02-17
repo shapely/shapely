@@ -506,11 +506,13 @@ class SplitOp:
         splitter : geometry
             The geometry that will split the input geom
 
-        Example
-        -------
+        Examples
+        --------
+        >>> import shapely.ops
+        >>> from shapely.geometry import Point, LineString
         >>> pt = Point((1, 1))
         >>> line = LineString([(0,0), (2,2)])
-        >>> result = split(line, pt)
+        >>> result = shapely.ops.split(line, pt)
         >>> result.wkt
         'GEOMETRYCOLLECTION (LINESTRING (0 0, 1 1), LINESTRING (1 1, 2 2))'
 

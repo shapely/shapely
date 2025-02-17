@@ -163,7 +163,7 @@ class STRtree:
 
         Examples
         --------
-        >>> from shapely import box, Point
+        >>> from shapely import box, Point, STRtree
         >>> import numpy as np
         >>> points = [Point(0, 0), Point(1, 1), Point(2,2), Point(3, 3)]
         >>> tree = STRtree(points)
@@ -311,7 +311,7 @@ and optional distances
 
         Examples
         --------
-        >>> from shapely.geometry import Point
+        >>> from shapely import Point, STRtree
         >>> tree = STRtree([Point(i, i) for i in range(10)])
 
         Query the tree for nearest using a scalar geometry:
@@ -430,7 +430,7 @@ and optional distances
         Examples
         --------
         >>> import numpy as np
-        >>> from shapely import box, Point
+        >>> from shapely import box, Point, STRtree
         >>> points = [Point(0, 0), Point(1, 1), Point(2,2), Point(3, 3)]
         >>> tree = STRtree(points)
 

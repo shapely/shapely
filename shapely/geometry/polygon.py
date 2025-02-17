@@ -44,6 +44,7 @@ class LinearRing(LineString):
     --------
     Construct a square ring.
 
+    >>> from shapely.geometry import LinearRing
     >>> ring = LinearRing( ((0, 0), (0, 1), (1 ,1 ), (1 , 0)) )
     >>> ring.is_closed
     True
@@ -212,6 +213,7 @@ class Polygon(BaseGeometry):
     --------
     Create a square polygon with no holes
 
+    >>> from shapely.geometry import Polygon
     >>> coords = ((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.))
     >>> polygon = Polygon(coords)
     >>> polygon.area

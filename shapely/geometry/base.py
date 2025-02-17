@@ -507,18 +507,19 @@ class BaseGeometry(shapely.Geometry):
 
         Examples
         --------
+        >>> from shapely import BufferCapStyle
         >>> from shapely.wkt import loads
         >>> g = loads('POINT (0.0 0.0)')
 
         16-gon approx of a unit radius circle:
 
-        >>> g.buffer(1.0).area  # doctest: +ELLIPSIS
-        3.1365484905459...
+        >>> g.buffer(1.0).area
+        3.1365484905459398
 
         128-gon approximation:
 
-        >>> g.buffer(1.0, 128).area  # doctest: +ELLIPSIS
-        3.141513801144...
+        >>> g.buffer(1.0, 128).area
+        3.1415138011443013
 
         triangle approximation:
 
@@ -714,6 +715,7 @@ class BaseGeometry(shapely.Geometry):
 
         Examples
         --------
+        >>> from shapely import LineString
         >>> LineString(
         ...     [(0, 0), (2, 2)]
         ... ).equals(
@@ -770,6 +772,7 @@ class BaseGeometry(shapely.Geometry):
 
         Examples
         --------
+        >>> from shapely import LineString
         >>> LineString(
         ...     [(0, 0), (2, 2)]
         ... ).equals_exact(
@@ -803,6 +806,7 @@ class BaseGeometry(shapely.Geometry):
 
         Examples
         --------
+        >>> from shapely import LineString
         >>> LineString(
         ...     [(0, 0), (2, 2)]
         ... ).equals_exact(

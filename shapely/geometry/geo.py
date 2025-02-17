@@ -72,6 +72,7 @@ def shape(context):
     --------
     Create a Point from GeoJSON, and then create a copy using __geo_interface__.
 
+    >>> from shapely.geometry import shape
     >>> context = {'type': 'Point', 'coordinates': [0, 1]}
     >>> geom = shape(context)
     >>> geom.geom_type == 'Point'
@@ -133,6 +134,7 @@ def mapping(ob):
 
     Examples
     --------
+    >>> from shapely.geometry import mapping, Point
     >>> pt = Point(0, 0)
     >>> mapping(pt)
     {'type': 'Point', 'coordinates': (0.0, 0.0)}

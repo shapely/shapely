@@ -47,6 +47,7 @@ dependencies = [
 test = [
     "pytest",
     "pytest-cov",
+    "scipy-doctest",
 ]
 docs = [
     "numpydoc==1.1.*",

@@ -139,7 +139,7 @@ jobs:
             pip install matplotlib
           fi
           if [ -n "${{ matrix.doctest }}" ]; then
-            pip install pyproj
+            pip install pyproj scipy-doctest
           fi
           pip list
 
@@ -187,12 +187,12 @@ jobs:
           pytest shapely/tests -r a --cov --cov-report term-missing ${{ matrix.extra_pytest_args }}
 
       # Only run doctests on 1 runner (because of typographic differences in doctest results)
-      - name: Run doctests
+      - name: Run doctests on manual
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.doctest }}
         run: |
           python -m pytest --doctest-modules docs/manual.rst
 
-      - name: Run doctests (part 2)
+      - name: Run doctests on shapely module
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.doctest }}
         run: |
           pytest --doctest-modules shapely --ignore=shapely/tests
