@@ -7,21 +7,38 @@ from shapely import MultiLineString, MultiPoint, MultiPolygon
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
     empty_line_string,
+    empty_line_string_m,
     empty_line_string_z,
+    empty_line_string_zm,
+    empty_multi_polygon_m,
+    empty_multi_polygon_z,
+    empty_multi_polygon_zm,
     geometry_collection,
     line_string,
+    line_string_m,
     line_string_z,
+    line_string_zm,
     linear_ring,
     multi_line_string,
+    multi_line_string_m,
     multi_line_string_z,
+    multi_line_string_zm,
     multi_point,
+    multi_point_m,
     multi_point_z,
+    multi_point_zm,
     multi_polygon,
+    multi_polygon_m,
     multi_polygon_z,
+    multi_polygon_zm,
     point,
+    point_m,
     point_z,
+    point_zm,
     polygon,
+    polygon_m,
     polygon_z,
+    polygon_zm,
 )
 
 all_types = (
@@ -42,6 +59,28 @@ all_types_z = (
     multi_polygon_z,
 )
 
+all_types_m = (
+    point_m,
+    line_string_m,
+    polygon_m,
+    multi_point_m,
+    multi_line_string_m,
+    multi_polygon_m,
+)
+
+all_types_zm = (
+    point_zm,
+    line_string_zm,
+    polygon_zm,
+    multi_point_zm,
+    multi_line_string_zm,
+    multi_polygon_zm,
+)
+
+all_types_dims_combos = all_types + all_types_z
+if shapely.geos_version >= (3, 12, 0):
+    all_types_dims_combos = all_types_dims_combos + all_types_m + all_types_zm
+
 all_types_not_supported = (
     linear_ring,
     geometry_collection,
@@ -54,24 +93,31 @@ def test_roundtrip(geom):
     assert_geometries_equal(actual, [geom, geom])
 
 
-@pytest.mark.parametrize("geom", all_types)
-def test_include_z(geom):
-    _, coords, _ = shapely.to_ragged_array([geom, geom], include_z=True)
-    # For 2D geoms, z coords are filled in with NaN
-    assert np.isnan(coords[:, 2]).all()
-
-
-@pytest.mark.parametrize("geom", all_types_z)
-def test_include_z_false(geom):
-    _, coords, _ = shapely.to_ragged_array([geom, geom], include_z=False)
-    # For 3D geoms, z coords are dropped
-    assert coords.shape[1] == 2
+@pytest.mark.parametrize("include_m", [None, True, False])
+@pytest.mark.parametrize("include_z", [None, True, False])
+@pytest.mark.parametrize("geom", all_types_dims_combos)
+def test_to_ragged_array(geom, include_z, include_m):
+    _, coords, _ = shapely.to_ragged_array(
+        [geom, geom], include_z=include_z, include_m=include_m
+    )
+    nan_dims = np.all(np.isnan(coords), axis=0).tolist()
+    expected = [False, False]  # XY
+    has_z = geom.has_z
+    if include_z or (include_z is None and has_z):
+        expected.append(not has_z)  # XYZ or XYZM
+    if shapely.geos_version >= (3, 12, 0):
+        has_m = geom.has_m
+    else:
+        has_m = False
+    if include_m or (include_m is None and has_m):
+        expected.append(not has_m)  # XYM or XYZM
+    assert nan_dims == expected
 
 
 def test_include_z_default():
     # corner cases for inferring dimensionality
 
-    # mixed 2D and 3D -> 3D
+    # mixed XY and XYZ -> XYZ
     _, coords, _ = shapely.to_ragged_array([line_string, line_string_z])
     assert coords.shape[1] == 3
 
@@ -81,7 +127,31 @@ def test_include_z_default():
     _, coords, _ = shapely.to_ragged_array([empty_line_string_z])
     assert coords.shape[1] == 2
     # empty collection -> GEOS indicates 2D
-    _, coords, _ = shapely.to_ragged_array(shapely.from_wkt(["MULTIPOLYGON Z EMPTY"]))
+    _, coords, _ = shapely.to_ragged_array([empty_multi_polygon_z])
+    assert coords.shape[1] == 2
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+def test_include_m_default():
+    # a few other corner cases for inferring dimensionality
+
+    # mixed XY and XYM -> XYM
+    _, coords, _ = shapely.to_ragged_array([line_string, line_string_m])
+    assert coords.shape[1] == 3
+
+    # mixed XY, XYM, and XYZM -> XYZM
+    _, coords, _ = shapely.to_ragged_array([line_string, line_string_m, line_string_zm])
+    assert coords.shape[1] == 4
+
+    # only empties -> always 2D
+    _, coords, _ = shapely.to_ragged_array([empty_line_string_m])
+    assert coords.shape[1] == 2
+    _, coords, _ = shapely.to_ragged_array([empty_line_string_zm])
+    assert coords.shape[1] == 2
+    # empty collection -> GEOS indicates 2D
+    _, coords, _ = shapely.to_ragged_array([empty_multi_polygon_m])
+    assert coords.shape[1] == 2
+    _, coords, _ = shapely.to_ragged_array([empty_multi_polygon_zm])
     assert coords.shape[1] == 2
 
 
