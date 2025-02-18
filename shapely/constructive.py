@@ -1260,6 +1260,10 @@ def oriented_envelope(geometry, **kwargs):
     coordinate axes. If the convex hull of the object is a degenerate (line
     or point) this degenerate is returned.
 
+    The starting point of the Polygon returned is not fixed. You can use
+    :func:`~shapely.normalize` to reorganize it to
+    :ref:`strict canonical form <canonical-form>`.
+
     ``minimum_rotated_rectangle`` is an alias for ``oriented_envelope``.
 
     Parameters
