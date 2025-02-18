@@ -1190,8 +1190,8 @@ def snap(geometry, reference, tolerance, **kwargs):
 
     Snapping to an empty geometry has no effect:
 
-    >>> shapely.snap(line1, LineString([]), 0.25).wkt  # TODO: why is '.wkt' needed?
-    'LINESTRING (0.1 0.1, 0.49 0.51, 1.01 0.89)'
+    >>> shapely.snap(line1, LineString([]), 0.25)
+    <LINESTRING (0.1 0.1, 0.49 0.51, 1.01 0.89)>
 
     Snapping to a non-geometry (None) will always return None:
 
