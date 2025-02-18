@@ -18,6 +18,11 @@ class GeometryCollection(BaseMultipartGeometry):
     geoms : sequence
         A sequence of Shapely geometry instances
 
+    See Also
+    --------
+    geometrycollections
+    empty
+
     Examples
     --------
     Create a GeometryCollection with a Point and a LineString

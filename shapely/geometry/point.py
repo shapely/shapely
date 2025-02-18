@@ -30,6 +30,11 @@ class Point(BaseGeometry):
     x, y, z, m : float
         Coordinate values
 
+    See Also
+    --------
+    points
+    empty
+
     Examples
     --------
     Constructing the Point using separate parameters for x and y:

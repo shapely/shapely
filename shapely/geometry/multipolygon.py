@@ -25,6 +25,11 @@ class MultiPolygon(BaseMultipartGeometry):
     geoms : sequence
         A sequence of `Polygon` instances
 
+    See Also
+    --------
+    multipolygons
+    empty
+
     Examples
     --------
     Construct a MultiPolygon from a sequence of coordinate tuples

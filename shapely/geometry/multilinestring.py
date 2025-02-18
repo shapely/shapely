@@ -24,6 +24,11 @@ class MultiLineString(BaseMultipartGeometry):
     geoms : sequence
         A sequence of LineStrings
 
+    See Also
+    --------
+    multilinestrings
+    empty
+
     Examples
     --------
     Construct a MultiLineString containing two LineStrings.
