@@ -33,18 +33,20 @@ def area(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import MultiPolygon, Polygon
     >>> polygon = Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
-    >>> area(polygon)
+    >>> shapely.area(polygon)
     100.0
-    >>> area(MultiPolygon([polygon, Polygon([(10, 10), (10, 20), (20, 20), (20, 10), (10, 10)])]))
+    >>> polygon2 = Polygon([(10, 10), (10, 20), (20, 20), (20, 10), (10, 10)])
+    >>> shapely.area(MultiPolygon([polygon, polygon2]))
     200.0
-    >>> area(Polygon())
+    >>> shapely.area(Polygon())
     0.0
-    >>> area(None)
+    >>> shapely.area(None)
     nan
 
-    """  # noqa: E501
+    """
     return lib.area(geometry, **kwargs)
 
 
@@ -61,17 +63,18 @@ def distance(a, b, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point, Polygon
     >>> point = Point(0, 0)
-    >>> distance(Point(10, 0), point)
+    >>> shapely.distance(Point(10, 0), point)
     10.0
-    >>> distance(LineString([(1, 1), (1, -1)]), point)
+    >>> shapely.distance(LineString([(1, 1), (1, -1)]), point)
     1.0
-    >>> distance(Polygon([(3, 0), (5, 0), (5, 5), (3, 5), (3, 0)]), point)
+    >>> shapely.distance(Polygon([(3, 0), (5, 0), (5, 5), (3, 5), (3, 0)]), point)
     3.0
-    >>> distance(Point(), point)
+    >>> shapely.distance(Point(), point)
     nan
-    >>> distance(None, point)
+    >>> shapely.distance(None, point)
     nan
 
     """
@@ -93,14 +96,15 @@ def bounds(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point, Polygon
-    >>> bounds(Point(2, 3)).tolist()
+    >>> shapely.bounds(Point(2, 3)).tolist()
     [2.0, 3.0, 2.0, 3.0]
-    >>> bounds(LineString([(0, 0), (0, 2), (3, 2)])).tolist()
+    >>> shapely.bounds(LineString([(0, 0), (0, 2), (3, 2)])).tolist()
     [0.0, 0.0, 3.0, 2.0]
-    >>> bounds(Polygon()).tolist()
+    >>> shapely.bounds(Polygon()).tolist()
     [nan, nan, nan, nan]
-    >>> bounds(None).tolist()
+    >>> shapely.bounds(None).tolist()
     [nan, nan, nan, nan]
 
     """
@@ -123,21 +127,22 @@ def total_bounds(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point, Polygon
-    >>> total_bounds(Point(2, 3)).tolist()
+    >>> shapely.total_bounds(Point(2, 3)).tolist()
     [2.0, 3.0, 2.0, 3.0]
-    >>> total_bounds([Point(2, 3), Point(4, 5)]).tolist()
+    >>> shapely.total_bounds([Point(2, 3), Point(4, 5)]).tolist()
     [2.0, 3.0, 4.0, 5.0]
-    >>> total_bounds([
+    >>> shapely.total_bounds([
     ...     LineString([(0, 1), (0, 2), (3, 2)]),
     ...     LineString([(4, 4), (4, 6), (6, 7)])
     ... ]).tolist()
     [0.0, 1.0, 6.0, 7.0]
-    >>> total_bounds(Polygon()).tolist()
+    >>> shapely.total_bounds(Polygon()).tolist()
     [nan, nan, nan, nan]
-    >>> total_bounds([Polygon(), Point(2, 3)]).tolist()
+    >>> shapely.total_bounds([Polygon(), Point(2, 3)]).tolist()
     [2.0, 3.0, 2.0, 3.0]
-    >>> total_bounds(None).tolist()
+    >>> shapely.total_bounds(None).tolist()
     [nan, nan, nan, nan]
 
     """
@@ -171,19 +176,20 @@ def length(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, MultiLineString, Polygon
-    >>> length(LineString([(0, 0), (0, 2), (3, 2)]))
+    >>> shapely.length(LineString([(0, 0), (0, 2), (3, 2)]))
     5.0
-    >>> length(MultiLineString([
+    >>> shapely.length(MultiLineString([
     ...     LineString([(0, 0), (1, 0)]),
     ...     LineString([(1, 0), (2, 0)])
     ... ]))
     2.0
-    >>> length(Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]))
+    >>> shapely.length(Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]))
     40.0
-    >>> length(LineString())
+    >>> shapely.length(LineString())
     0.0
-    >>> length(None)
+    >>> shapely.length(None)
     nan
 
     """
@@ -211,16 +217,17 @@ def hausdorff_distance(a, b, densify=None, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString
     >>> line1 = LineString([(130, 0), (0, 0), (0, 150)])
     >>> line2 = LineString([(10, 10), (10, 150), (130, 10)])
-    >>> hausdorff_distance(line1, line2)  # doctest: +ELLIPSIS
-    14.14...
-    >>> hausdorff_distance(line1, line2, densify=0.5)
+    >>> shapely.hausdorff_distance(line1, line2)
+    14.142135623730951
+    >>> shapely.hausdorff_distance(line1, line2, densify=0.5)
     70.0
-    >>> hausdorff_distance(line1, LineString())
+    >>> shapely.hausdorff_distance(line1, LineString())
     nan
-    >>> hausdorff_distance(line1, None)
+    >>> shapely.hausdorff_distance(line1, None)
     nan
 
     """
@@ -255,16 +262,17 @@ def frechet_distance(a, b, densify=None, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString
     >>> line1 = LineString([(0, 0), (100, 0)])
     >>> line2 = LineString([(0, 0), (50, 50), (100, 0)])
-    >>> frechet_distance(line1, line2)  # doctest: +ELLIPSIS
-    70.71...
-    >>> frechet_distance(line1, line2, densify=0.5)
+    >>> shapely.frechet_distance(line1, line2)
+    70.71067811865476
+    >>> shapely.frechet_distance(line1, line2, densify=0.5)
     50.0
-    >>> frechet_distance(line1, LineString())
+    >>> shapely.frechet_distance(line1, LineString())
     nan
-    >>> frechet_distance(line1, None)
+    >>> shapely.frechet_distance(line1, None)
     nan
 
     """
@@ -292,13 +300,14 @@ def minimum_clearance(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Polygon
     >>> polygon = Polygon([(0, 0), (0, 10), (5, 6), (10, 10), (10, 0), (5, 4), (0, 0)])
-    >>> minimum_clearance(polygon)
+    >>> shapely.minimum_clearance(polygon)
     2.0
-    >>> minimum_clearance(Polygon())
+    >>> shapely.minimum_clearance(Polygon())
     inf
-    >>> minimum_clearance(None)
+    >>> shapely.minimum_clearance(None)
     nan
 
     See Also
@@ -323,16 +332,19 @@ def minimum_bounding_radius(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import GeometryCollection, LineString, MultiPoint, Point, Polygon
-    >>> minimum_bounding_radius(Polygon([(0, 5), (5, 10), (10, 5), (5, 0), (0, 5)]))
+    >>> shapely.minimum_bounding_radius(
+    ...     Polygon([(0, 5), (5, 10), (10, 5), (5, 0), (0, 5)])
+    ... )
     5.0
-    >>> minimum_bounding_radius(LineString([(1, 1), (1, 10)]))
+    >>> shapely.minimum_bounding_radius(LineString([(1, 1), (1, 10)]))
     4.5
-    >>> minimum_bounding_radius(MultiPoint([(2, 2), (4, 2)]))
+    >>> shapely.minimum_bounding_radius(MultiPoint([(2, 2), (4, 2)]))
     1.0
-    >>> minimum_bounding_radius(Point(0, 1))
+    >>> shapely.minimum_bounding_radius(Point(0, 1))
     0.0
-    >>> minimum_bounding_radius(GeometryCollection())
+    >>> shapely.minimum_bounding_radius(GeometryCollection())
     0.0
 
     See Also

@@ -367,8 +367,8 @@ class SplitOp:
         """Split a Polygon with a LineString."""
         if not isinstance(poly, Polygon):
             raise GeometryTypeError("First argument must be a Polygon")
-        if not isinstance(splitter, LineString):
-            raise GeometryTypeError("Second argument must be a LineString")
+        if not isinstance(splitter, (LineString, MultiLineString)):
+            raise GeometryTypeError("Second argument must be a (Multi)LineString")
 
         union = poly.boundary.union(splitter)
 
@@ -506,11 +506,13 @@ class SplitOp:
         splitter : geometry
             The geometry that will split the input geom
 
-        Example
-        -------
+        Examples
+        --------
+        >>> import shapely.ops
+        >>> from shapely import Point, LineString
         >>> pt = Point((1, 1))
         >>> line = LineString([(0,0), (2,2)])
-        >>> result = split(line, pt)
+        >>> result = shapely.ops.split(line, pt)
         >>> result.wkt
         'GEOMETRYCOLLECTION (LINESTRING (0 0, 1 1), LINESTRING (1 1, 2 2))'
 
@@ -539,7 +541,7 @@ class SplitOp:
                 )
 
         elif geom.geom_type == "Polygon":
-            if splitter.geom_type == "LineString":
+            if splitter.geom_type in ("LineString", "MultiLineString"):
                 split_func = SplitOp._split_polygon_with_line
             else:
                 raise GeometryTypeError(
@@ -666,7 +668,7 @@ def substring(geom, start_dist, end_dist, normalized=False):
 
     coords = list(geom.coords)
     current_distance = 0
-    for p1, p2 in zip(coords, coords[1:]):
+    for p1, p2 in zip(coords, coords[1:]):  # noqa
         if start_dist < current_distance < end_dist:
             vertex_list.append(p1)
         elif current_distance >= end_dist:

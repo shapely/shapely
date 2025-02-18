@@ -28,6 +28,7 @@ class MultiLineString(BaseMultipartGeometry):
     --------
     Construct a MultiLineString containing two LineStrings.
 
+    >>> from shapely import MultiLineString
     >>> lines = MultiLineString([[[0, 0], [1, 2]], [[4, 4], [5, 6]]])
 
     """
