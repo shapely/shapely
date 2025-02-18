@@ -509,7 +509,7 @@ class SplitOp:
         Examples
         --------
         >>> import shapely.ops
-        >>> from shapely.geometry import Point, LineString
+        >>> from shapely import Point, LineString
         >>> pt = Point((1, 1))
         >>> line = LineString([(0,0), (2,2)])
         >>> result = shapely.ops.split(line, pt)

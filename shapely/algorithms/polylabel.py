@@ -31,7 +31,7 @@ def polylabel(polygon, tolerance=1.0):
 
     Examples
     --------
-    >>> from shapely.algorithms.polylabel import polylabel
+    >>> from shapely.ops import polylabel
     >>> from shapely import LineString
     >>> polygon = LineString([(0, 0), (50, 200), (100, 100), (20, 50),
     ... (-100, -20), (-150, -200)]).buffer(100)
