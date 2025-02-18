@@ -34,6 +34,7 @@ class Point(BaseGeometry):
     --------
     Constructing the Point using separate parameters for x and y:
 
+    >>> from shapely import Point
     >>> p = Point(1.0, -1.0)
 
     Constructing the Point using a list of x, y coordinates:
@@ -151,11 +152,12 @@ class Point(BaseGeometry):
 
         Examples
         --------
-          >>> x, y = Point(0, 0).xy
-          >>> list(x)
-          [0.0]
-          >>> list(y)
-          [0.0]
+        >>> from shapely import Point
+        >>> x, y = Point(0, 0).xy
+        >>> list(x)
+        [0.0]
+        >>> list(y)
+        [0.0]
 
         """
         return self.coords.xy

@@ -196,7 +196,8 @@ def to_ragged_array(geometries, include_z=None):
     Consider a Polygon with one hole (interior ring):
 
     >>> import shapely
-    >>> polygon = shapely.Polygon(
+    >>> from shapely import Polygon
+    >>> polygon = Polygon(
     ...     [(0, 0), (10, 0), (10, 10), (0, 10)],
     ...     holes=[[(2, 2), (3, 2), (2, 3)]]
     ... )

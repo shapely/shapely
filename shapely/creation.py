@@ -85,9 +85,10 @@ def points(
 
     Examples
     --------
-    >>> points([[0, 1], [4, 5]]).tolist()
+    >>> import shapely
+    >>> shapely.points([[0, 1], [4, 5]]).tolist()
     [<POINT (0 1)>, <POINT (4 5)>]
-    >>> points([0, 1, 2])
+    >>> shapely.points([0, 1, 2])
     <POINT Z (0 1 2)>
 
     Notes
@@ -160,9 +161,13 @@ def linestrings(
 
     Examples
     --------
-    >>> linestrings([[[0, 1], [4, 5]], [[2, 3], [5, 6]]]).tolist()
+    >>> import shapely
+    >>> shapely.linestrings([[[0, 1], [4, 5]], [[2, 3], [5, 6]]]).tolist()
     [<LINESTRING (0 1, 4 5)>, <LINESTRING (2 3, 5 6)>]
-    >>> linestrings([[0, 1], [4, 5], [2, 3], [5, 6], [7, 8]], indices=[0, 0, 1, 1, 1]).tolist()
+    >>> shapely.linestrings(
+    ...     [[0, 1], [4, 5], [2, 3], [5, 6], [7, 8]],
+    ...     indices=[0, 0, 1, 1, 1]
+    ... ).tolist()
     [<LINESTRING (0 1, 4 5)>, <LINESTRING (2 3, 5 6, 7 8)>]
 
     Notes
@@ -171,7 +176,7 @@ def linestrings(
       ``dask``. Instead provide the coordinates as a ``(..., 2)`` or
       ``(..., 3)`` array using only ``coords``.
 
-    """  # noqa: E501
+    """
     coords = _xyz_to_coords(coords, y, z)
     if isinstance(handle_nan, str):
         handle_nan = HandleNaN.get_value(handle_nan)
@@ -240,9 +245,10 @@ def linearrings(
 
     Examples
     --------
-    >>> linearrings([[0, 0], [0, 1], [1, 1], [0, 0]])
+    >>> import shapely
+    >>> shapely.linearrings([[0, 0], [0, 1], [1, 1], [0, 0]])
     <LINEARRING (0 0, 0 1, 1 1, 0 0)>
-    >>> linearrings([[0, 0], [0, 1], [1, 1]])
+    >>> shapely.linearrings([[0, 0], [0, 1], [1, 1]])
     <LINEARRING (0 0, 0 1, 1 1, 0 0)>
 
     Notes
@@ -294,42 +300,44 @@ def polygons(geometries, holes=None, indices=None, out=None, **kwargs):
 
     Examples
     --------
+    >>> import shapely
+
     Polygons are constructed from rings:
 
-    >>> ring_1 = linearrings([[0, 0], [0, 10], [10, 10], [10, 0]])
-    >>> ring_2 = linearrings([[2, 6], [2, 7], [3, 7], [3, 6]])
-    >>> polygons([ring_1, ring_2])[0]
+    >>> ring_1 = shapely.linearrings([[0, 0], [0, 10], [10, 10], [10, 0]])
+    >>> ring_2 = shapely.linearrings([[2, 6], [2, 7], [3, 7], [3, 6]])
+    >>> shapely.polygons([ring_1, ring_2])[0]
     <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
-    >>> polygons([ring_1, ring_2])[1]
+    >>> shapely.polygons([ring_1, ring_2])[1]
     <POLYGON ((2 6, 2 7, 3 7, 3 6, 2 6))>
 
     Or from coordinates directly:
 
-    >>> polygons([[0, 0], [0, 10], [10, 10], [10, 0]])
+    >>> shapely.polygons([[0, 0], [0, 10], [10, 10], [10, 0]])
     <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
 
     Adding holes can be done using the ``holes`` keyword argument:
 
-    >>> polygons(ring_1, holes=[ring_2])
+    >>> shapely.polygons(ring_1, holes=[ring_2])
     <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 6, 2 7, 3 7, 3 6, 2 6))>
 
     Or using the ``indices`` argument:
 
-    >>> polygons([ring_1, ring_2], indices=[0, 1])[0]
+    >>> shapely.polygons([ring_1, ring_2], indices=[0, 1])[0]
     <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
-    >>> polygons([ring_1, ring_2], indices=[0, 1])[1]
+    >>> shapely.polygons([ring_1, ring_2], indices=[0, 1])[1]
     <POLYGON ((2 6, 2 7, 3 7, 3 6, 2 6))>
-    >>> polygons([ring_1, ring_2], indices=[0, 0])[0]
+    >>> shapely.polygons([ring_1, ring_2], indices=[0, 0])[0]
     <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 6, 2 7, 3 7, 3 6, 2 6))>
 
     Missing input values (``None``) are skipped and may result in an
     empty polygon:
 
-    >>> polygons(None)
+    >>> shapely.polygons(None)
     <POLYGON EMPTY>
-    >>> polygons(ring_1, holes=[None])
+    >>> shapely.polygons(ring_1, holes=[None])
     <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
-    >>> polygons([ring_1, None], indices=[0, 0])[0]
+    >>> shapely.polygons([ring_1, None], indices=[0, 0])[0]
     <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
 
     """
@@ -381,9 +389,10 @@ def box(xmin, ymin, xmax, ymax, ccw=True, **kwargs):
 
     Examples
     --------
-    >>> box(0, 0, 1, 1)
+    >>> import shapely
+    >>> shapely.box(0, 0, 1, 1)
     <POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))>
-    >>> box(0, 0, 1, 1, ccw=False)
+    >>> shapely.box(0, 0, 1, 1, ccw=False)
     <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
 
     """
@@ -412,34 +421,36 @@ def multipoints(geometries, indices=None, out=None, **kwargs):
 
     Examples
     --------
+    >>> import shapely
+
     Multipoints are constructed from points:
 
-    >>> point_1 = points([1, 1])
-    >>> point_2 = points([2, 2])
-    >>> multipoints([point_1, point_2])
+    >>> point_1 = shapely.points([1, 1])
+    >>> point_2 = shapely.points([2, 2])
+    >>> shapely.multipoints([point_1, point_2])
     <MULTIPOINT ((1 1), (2 2))>
-    >>> multipoints([[point_1, point_2], [point_2, None]]).tolist()
+    >>> shapely.multipoints([[point_1, point_2], [point_2, None]]).tolist()
     [<MULTIPOINT ((1 1), (2 2))>, <MULTIPOINT ((2 2))>]
 
     Or from coordinates directly:
 
-    >>> multipoints([[0, 0], [2, 2], [3, 3]])
+    >>> shapely.multipoints([[0, 0], [2, 2], [3, 3]])
     <MULTIPOINT ((0 0), (2 2), (3 3))>
 
     Multiple multipoints of different sizes can be constructed efficiently using the
     ``indices`` keyword argument:
 
-    >>> multipoints([point_1, point_2, point_2], indices=[0, 0, 1]).tolist()
+    >>> shapely.multipoints([point_1, point_2, point_2], indices=[0, 0, 1]).tolist()
     [<MULTIPOINT ((1 1), (2 2))>, <MULTIPOINT ((2 2))>]
 
     Missing input values (``None``) are skipped and may result in an
     empty multipoint:
 
-    >>> multipoints([None])
+    >>> shapely.multipoints([None])
     <MULTIPOINT EMPTY>
-    >>> multipoints([point_1, None], indices=[0, 0]).tolist()
+    >>> shapely.multipoints([point_1, None], indices=[0, 0]).tolist()
     [<MULTIPOINT ((1 1))>]
-    >>> multipoints([point_1, None], indices=[0, 1]).tolist()
+    >>> shapely.multipoints([point_1, None], indices=[0, 1]).tolist()
     [<MULTIPOINT ((1 1))>, <MULTIPOINT EMPTY>]
 
     """
@@ -593,10 +604,11 @@ def prepare(geometry, **kwargs):
 
     Examples
     --------
-    >>> from shapely import Point, buffer, prepare, contains_properly
-    >>> poly = buffer(Point(1.0, 1.0), 1)
-    >>> prepare(poly)
-    >>> contains_properly(poly, [Point(0.0, 0.0), Point(0.5, 0.5)]).tolist()
+    >>> import shapely
+    >>> from shapely import Point
+    >>> poly = shapely.buffer(Point(1.0, 1.0), 1)
+    >>> shapely.prepare(poly)
+    >>> shapely.contains_properly(poly, [Point(0.0, 0.0), Point(0.5, 0.5)]).tolist()
     [False, True]
 
     """
@@ -642,9 +654,10 @@ def empty(shape, geom_type=None, order="C"):
 
     Examples
     --------
-    >>> empty((2, 3)).tolist()
+    >>> import shapely
+    >>> shapely.empty((2, 3)).tolist()
     [[None, None, None], [None, None, None]]
-    >>> empty(2, geom_type=GeometryType.POINT).tolist()
+    >>> shapely.empty(2, geom_type=shapely.GeometryType.POINT).tolist()
     [<POINT EMPTY>, <POINT EMPTY>]
 
     """
