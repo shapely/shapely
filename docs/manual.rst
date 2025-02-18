@@ -484,7 +484,8 @@ Polygons
 
 Rings of a `valid` `Polygon` may not cross each other, but may touch at a
 single point only.  Again, Shapely will not prevent the creation of invalid
-features, but exceptions will be raised when they are operated on.
+features, but when they are operated on the results might be wrong or
+exceptions might be raised.
 
 .. plot:: code/polygon.py
 
@@ -498,8 +499,6 @@ points that describe the rings are shown in grey.
 Figure 4. On the left, a `Polygon` that is `invalid` because its exterior and
 interior rings touch along a line, and on the right, a `Polygon` that is
 `invalid` because its interior rings touch along a line.
-
-A `Polygon` has non-zero area and non-zero length.
 
 .. code-block:: pycon
 
