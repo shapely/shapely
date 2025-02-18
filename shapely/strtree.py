@@ -1,7 +1,7 @@
 """STRtree spatial index for efficient spatial queries."""
 
 from collections.abc import Iterable
-from typing import Any, Union
+from typing import Any
 
 import numpy as np
 
@@ -273,7 +273,7 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
         indices = self._tree.query(geometry, predicate)
         return indices[1] if is_scalar else indices
 
-    def nearest(self, geometry) -> Union[Any, None]:
+    def nearest(self, geometry) -> Any | None:
         """Return the index of the nearest geometry in the tree.
 
         This is determined for each input geometry based on distance within
