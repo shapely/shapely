@@ -1262,8 +1262,8 @@ def oriented_envelope(geometry, **kwargs):
 
     The starting point of the Polygon returned is not fixed. You can use
     :func:`~shapely.normalize` to reorganize the Polygon to
-    :ref:`strict canonical form <canonical-form>` so the starting point is the
-    lower left point.
+    :ref:`strict canonical form <canonical-form>` so the starting point is
+    always the lower left point.
 
     ``minimum_rotated_rectangle`` is an alias for ``oriented_envelope``.
 
