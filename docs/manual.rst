@@ -152,10 +152,13 @@ plane.
 Geometric Objects
 =================
 
-Geometric objects are created in the typical Python fashion, using the classes
-themselves as instance factories. A few of their intrinsic properties will be
-discussed in this sections, others in the following sections on operations and
-serializations.
+Single geometric objects can be created in the typical Python fashion, using
+the classes themselves as instance factories. To create multiple geometric
+objects it is significantly faster to use the
+:ref:`Geometry creation <ref-creation>` functions.
+
+A few of their intrinsic properties will be discussed in this sections, others
+in the following sections on operations and serializations.
 
 Instances of ``Point``, ``LineString``, and ``LinearRing`` have as their most
 important attribute a finite sequence of coordinates that determines their
