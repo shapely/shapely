@@ -37,8 +37,8 @@ class LinearRing(LineString):
 
     See Also
     --------
-    linearrings
-    empty
+    linearrings : Create an array of linearrings.
+    empty : Create a geometry array prefilled with None or with empty geometries.
 
     Notes
     -----
@@ -216,9 +216,9 @@ class Polygon(BaseGeometry):
 
     See Also
     --------
-    polygons
-    box
-    empty
+    polygons : Create an array of polygons.
+    box : Create box polygons.
+    empty : Create a geometry array prefilled with None or with empty geometries.
 
     Examples
     --------

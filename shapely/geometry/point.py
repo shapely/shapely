@@ -32,8 +32,8 @@ class Point(BaseGeometry):
 
     See Also
     --------
-    points
-    empty
+    points : Create an array of points.
+    empty : Create a geometry array prefilled with None or with empty geometries.
 
     Examples
     --------

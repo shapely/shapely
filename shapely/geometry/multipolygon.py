@@ -27,8 +27,8 @@ class MultiPolygon(BaseMultipartGeometry):
 
     See Also
     --------
-    multipolygons
-    empty
+    multipolygons : Create multipolygons from arrays of polygons.
+    empty : Create a geometry array prefilled with None or with empty geometries.
 
     Examples
     --------
