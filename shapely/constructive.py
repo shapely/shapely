@@ -458,14 +458,14 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Returns
-    ----------
+    -------
     The output is a geometrycollection containing polygons (default)
     or linestrings (see only_edges). Returns an None if an input geometry
     contains less than 3 vertices.
 
 
     See Also
-    ----------
+    --------
     constrained_delaunay_triangles
 
     Examples
@@ -498,13 +498,12 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
 @requires_geos("3.10.0")
 @multithreading_enabled
 def constrained_delaunay_triangles(geometry, **kwargs):
-    """Computes a constrained Delaunay triangulation around the vertices of an input
-    Polygon or MultiPolygon.
+    """Compute the constrained Delaunay triangulation of polygons.
 
-    A constrained Delaunay triangulation requires the edges of the input polygon(s) to
-    be in the set of resulting triangle edges. An unconstrained delaunay triangulation only
-    triangulates based on the vertices, hence triangle edges could cross polygon
-    boundaries.
+    A constrained Delaunay triangulation requires the edges of the input
+    polygon(s) to be in the set of resulting triangle edges. An unconstrained
+    delaunay triangulation only triangulates based on the vertices, hence
+    triangle edges could cross polygon boundaries.
 
     Parameters
     ----------
@@ -514,12 +513,12 @@ def constrained_delaunay_triangles(geometry, **kwargs):
         `NumPy ufunc docs <https://numpy.org/doc/stable/reference/ufuncs.html#ufuncs-kwargs>`_.
 
     Returns
-    ----------
+    -------
     * GeometryCollection of polygons, given polygonal input
     * GeometryCollection() (empty), given non-polygonal input
 
     See Also
-    ----------
+    --------
     delaunay_triangles
 
     Examples
@@ -535,7 +534,7 @@ def constrained_delaunay_triangles(geometry, **kwargs):
     <GEOMETRYCOLLECTION EMPTY>
     >>> constrained_delaunay_triangles(MultiPoint([(50, 30), (51, 30), (60, 30), (100, 100)]))
     <GEOMETRYCOLLECTION EMPTY>
-    """
+    """  # noqa: E501
     return lib.constrained_delaunay_triangles(geometry, **kwargs)
 
 
