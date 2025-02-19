@@ -460,9 +460,8 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     Returns
     -------
     The output is a geometrycollection containing polygons (default)
-    or linestrings (see only_edges). Returns an None if an input geometry
-    contains less than 3 vertices.
-
+    or linestrings (see ``only_edges``). Returns an empty geometry for input
+    geometries that contain less than 3 vertices.
 
     See Also
     --------
