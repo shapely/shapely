@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+import shapely
 from shapely import GeometryCollection, LineString, Point, wkt
 from shapely.geometry import shape
 
@@ -20,6 +21,7 @@ def geometrycollection_geojson():
     "geom",
     [
         GeometryCollection(),
+        GeometryCollection([]),
         shape({"type": "GeometryCollection", "geometries": []}),
         wkt.loads("GEOMETRYCOLLECTION EMPTY"),
     ],
@@ -36,7 +38,11 @@ def test_empty_subgeoms():
     assert geom.geom_type == "GeometryCollection"
     assert geom.is_empty
     assert len(geom.geoms) == 2
-    assert list(geom.geoms) == [Point(), LineString()]
+    parts = list(geom.geoms)
+    if shapely.geos_version < (3, 9, 0):
+        # the accessed empty 2D point has a 3D coordseq on GEOS 3.8
+        parts[0] = shapely.force_2d(parts[0])
+    assert parts == [Point(), LineString()]
 
 
 def test_child_with_deleted_parent():
@@ -52,6 +58,13 @@ def test_child_with_deleted_parent():
 
     # access geometry, this should not seg fault as 1.2.15 did
     assert child.wkt is not None
+
+
+def test_from_numpy_array():
+    geoms = np.array([Point(0, 0), LineString([(1, 1), (2, 2)])])
+    geom = GeometryCollection(geoms)
+    assert len(geom.geoms) == 2
+    np.testing.assert_array_equal(geoms, geom.geoms)
 
 
 def test_from_geojson(geometrycollection_geojson):

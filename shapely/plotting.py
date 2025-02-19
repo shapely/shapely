@@ -1,10 +1,10 @@
-"""
-Plot single geometries using Matplotlib.
+"""Plot single geometries using Matplotlib.
 
-Note: this module is experimental, and mainly targetting (interactive)
+Note: this module is experimental, and mainly targeting (interactive)
 exploration, debugging and illustration purposes.
 
 """
+
 import numpy as np
 
 import shapely
@@ -22,11 +22,41 @@ def _default_ax():
 def _path_from_polygon(polygon):
     from matplotlib.path import Path
 
-    path = Path.make_compound_path(
-        Path(np.asarray(polygon.exterior.coords)[:, :2]),
-        *[Path(np.asarray(ring.coords)[:, :2]) for ring in polygon.interiors],
-    )
-    return path
+    from shapely.ops import orient
+
+    if isinstance(polygon, shapely.MultiPolygon):
+        return Path.make_compound_path(
+            *[_path_from_polygon(poly) for poly in polygon.geoms]
+        )
+    else:
+        polygon = orient(polygon)
+        return Path.make_compound_path(
+            Path(np.asarray(polygon.exterior.coords)[:, :2]),
+            *[Path(np.asarray(ring.coords)[:, :2]) for ring in polygon.interiors],
+        )
+
+
+def patch_from_polygon(polygon, **kwargs):
+    """Get a Matplotlib patch from a (Multi)Polygon.
+
+    Note: this function is experimental, and mainly targeting (interactive)
+    exploration, debugging and illustration purposes.
+
+    Parameters
+    ----------
+    polygon : shapely.Polygon or shapely.MultiPolygon
+        The polygon to convert to a Matplotlib Patch.
+    **kwargs
+        Additional keyword arguments passed to the matplotlib Patch.
+
+    Returns
+    -------
+    Matplotlib artist (PathPatch)
+
+    """
+    from matplotlib.patches import PathPatch
+
+    return PathPatch(_path_from_polygon(polygon), **kwargs)
 
 
 def plot_polygon(
@@ -37,17 +67,17 @@ def plot_polygon(
     facecolor=None,
     edgecolor=None,
     linewidth=None,
-    **kwargs
+    **kwargs,
 ):
-    """
-    Plot a (Multi)Polygon.
+    """Plot a (Multi)Polygon.
 
-    Note: this function is experimental, and mainly targetting (interactive)
+    Note: this function is experimental, and mainly targeting (interactive)
     exploration, debugging and illustration purposes.
 
     Parameters
     ----------
     polygon : shapely.Polygon or shapely.MultiPolygon
+        The polygon to plot.
     ax : matplotlib Axes, default None
         The axes on which to draw the plot. If not specified, will get the
         current active axes or create a new figure.
@@ -68,14 +98,14 @@ def plot_polygon(
 
     Returns
     -------
-    Matplotlib artist (PathPatch)
+    Matplotlib artist (PathPatch), if `add_points` is false.
+    A tuple of Matplotlib artists (PathPatch, Line2D), if `add_points` is true.
+
     """
+    from matplotlib import colors
+
     if ax is None:
         ax = _default_ax()
-
-    from matplotlib import colors
-    from matplotlib.patches import PathPatch
-    from matplotlib.path import Path
 
     if color is None:
         color = "C0"
@@ -89,14 +119,8 @@ def plot_polygon(
     if edgecolor is None:
         edgecolor = color
 
-    if isinstance(polygon, shapely.MultiPolygon):
-        path = Path.make_compound_path(
-            *[_path_from_polygon(poly) for poly in polygon.geoms]
-        )
-    else:
-        path = _path_from_polygon(polygon)
-    patch = PathPatch(
-        path, facecolor=facecolor, edgecolor=edgecolor, linewidth=linewidth, **kwargs
+    patch = patch_from_polygon(
+        polygon, facecolor=facecolor, edgecolor=edgecolor, linewidth=linewidth, **kwargs
     )
     ax.add_patch(patch)
     ax.autoscale_view()
@@ -109,22 +133,22 @@ def plot_polygon(
 
 
 def plot_line(line, ax=None, add_points=True, color=None, linewidth=2, **kwargs):
-    """
-    Plot a (Multi)LineString/LinearRing.
+    """Plot a (Multi)LineString/LinearRing.
 
-    Note: this function is experimental, and mainly targetting (interactive)
+    Note: this function is experimental, and mainly targeting (interactive)
     exploration, debugging and illustration purposes.
 
     Parameters
     ----------
     line : shapely.LineString or shapely.LinearRing
+        The line to plot.
     ax : matplotlib Axes, default None
         The axes on which to draw the plot. If not specified, will get the
         current active axes or create a new figure.
     add_points : bool, default True
         If True, also plot the coordinates (vertices) as points.
     color : matplotlib color specification
-        Color for the line (edgecolor under the hood) and pointes.
+        Color for the line (edgecolor under the hood) and points.
     linewidth : float, default 2
         The line width for the polygon boundary.
     **kwargs
@@ -133,12 +157,13 @@ def plot_line(line, ax=None, add_points=True, color=None, linewidth=2, **kwargs)
     Returns
     -------
     Matplotlib artist (PathPatch)
-    """
-    if ax is None:
-        ax = _default_ax()
 
+    """
     from matplotlib.patches import PathPatch
     from matplotlib.path import Path
+
+    if ax is None:
+        ax = _default_ax()
 
     if color is None:
         color = "C0"
@@ -164,8 +189,7 @@ def plot_line(line, ax=None, add_points=True, color=None, linewidth=2, **kwargs)
 
 
 def plot_points(geom, ax=None, color=None, marker="o", **kwargs):
-    """
-    Plot a Point/MultiPoint or the vertices of any other geometry type.
+    """Plot a Point/MultiPoint or the vertices of any other geometry type.
 
     Parameters
     ----------
@@ -177,7 +201,7 @@ def plot_points(geom, ax=None, color=None, marker="o", **kwargs):
         current active axes or create a new figure.
     color : matplotlib color specification
         Color for the filled points. You can use `markeredgecolor` and
-        `markeredgecolor` to have different edge and fill colors.
+        `markerfacecolor` to have different edge and fill colors.
     marker : str, default "o"
         The matplotlib marker for the points.
     **kwargs
@@ -186,6 +210,7 @@ def plot_points(geom, ax=None, color=None, marker="o", **kwargs):
     Returns
     -------
     Matplotlib artist (Line2D)
+
     """
     if ax is None:
         ax = _default_ax()

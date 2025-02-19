@@ -55,7 +55,7 @@ class IOSuite:
 
 class ConstructorsSuite:
     """Microbenchmarks for the Geometry class constructors"""
-    
+
     def setup(self):
         self.coords = np.random.random((1000, 2))
 
@@ -67,6 +67,12 @@ class ConstructorsSuite:
 
     def time_linearring_from_numpy(self):
         shapely.LinearRing(self.coords)
+
+    def test_polygon_from_numpy(self):
+        shapely.Polygon(self.coords)
+
+    def test_multipoint_from_numpy(self):
+        shapely.MultiPoint(self.coords)
 
 
 class ConstructiveSuite:

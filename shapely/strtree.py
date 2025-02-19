@@ -1,18 +1,21 @@
-from typing import Any, Iterable, Union
+"""STRtree spatial index for efficient spatial queries."""
+
+from collections.abc import Iterable
+from typing import Any
 
 import numpy as np
 
-from . import lib
-from .decorators import requires_geos, UnsupportedGEOSVersionError
-from .enum import ParamEnum
-from .geometry.base import BaseGeometry
-from .predicates import is_empty, is_missing
+from shapely import lib
+from shapely._enum import ParamEnum
+from shapely.decorators import UnsupportedGEOSVersionError
+from shapely.geometry.base import BaseGeometry
+from shapely.predicates import is_empty, is_missing
 
 __all__ = ["STRtree"]
 
 
 class BinaryPredicate(ParamEnum):
-    """The enumeration of GEOS binary predicates types"""
+    """The enumeration of GEOS binary predicates types."""
 
     intersects = 1
     within = 2
@@ -26,9 +29,9 @@ class BinaryPredicate(ParamEnum):
 
 
 class STRtree:
-    """
-    A query-only R-tree spatial index created using the
-    Sort-Tile-Recursive (STR) [1]_ algorithm.
+    """A query-only R-tree spatial index.
+
+    It is created using the Sort-Tile-Recursive (STR) [1]_ algorithm.
 
     The tree indexes the bounding boxes of each geometry.  The tree is
     constructed directly at initialization and nodes cannot be added or
@@ -67,31 +70,29 @@ class STRtree:
        (February 1997). "STR: A Simple and Efficient Algorithm for
        R-Tree Packing".
        https://ia600900.us.archive.org/27/items/nasa_techdoc_19970016975/19970016975.pdf
+
     """
 
-    def __init__(
-        self,
-        geoms: Iterable[BaseGeometry],
-        node_capacity: int = 10,
-    ):
-        # Keep references to geoms
-        self._geometries = np.asarray(geoms, dtype=np.object_)
-        # prevent modification
-        self._geometries.flags.writeable = False
+    def __init__(self, geoms: Iterable[BaseGeometry], node_capacity: int = 10):
+        """Create a new STRtree spatial index."""
+        # Keep references to geoms in a copied array so that this array is not
+        # modified while the tree depends on it remaining the same
+        self._geometries = np.array(geoms, dtype=np.object_, copy=True)
 
         # initialize GEOS STRtree
         self._tree = lib.STRtree(self.geometries, node_capacity)
 
     def __len__(self):
+        """Return the number of geometries in the tree."""
         return self._tree.count
 
     def __reduce__(self):
+        """Pickle support."""
         return (STRtree, (self.geometries,))
 
     @property
     def geometries(self):
-        """
-        Geometries stored in the tree in the order used to construct the tree.
+        """Geometries stored in the tree in the order used to construct the tree.
 
         The order of this array corresponds to the tree indices returned by
         other STRtree methods.
@@ -101,12 +102,14 @@ class STRtree:
         Returns
         -------
         ndarray of Geometry objects
+
         """
         return self._geometries
 
     def query(self, geometry, predicate=None, distance=None):
-        """
-        Return the integer indices of all combinations of each input geometry
+        """Get the index combinations of all possibly intersecting geometries.
+
+        Returns the integer indices of all combinations of each input geometry
         and tree geometries where the bounding box of each input geometry
         intersects the bounding box of a tree geometry.
 
@@ -160,7 +163,7 @@ class STRtree:
 
         Examples
         --------
-        >>> from shapely import box, Point
+        >>> from shapely import box, Point, STRtree
         >>> import numpy as np
         >>> points = [Point(0, 0), Point(1, 1), Point(2,2), Point(3, 3)]
         >>> tree = STRtree(points)
@@ -232,8 +235,8 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
         effectively performs an inner join, where only those combinations of
         geometries that can be joined based on overlapping bounding boxes or
         optional predicate are returned.
-        """
 
+        """
         geometry = np.asarray(geometry)
         is_scalar = False
         if geometry.ndim == 0:
@@ -270,11 +273,11 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
         indices = self._tree.query(geometry, predicate)
         return indices[1] if is_scalar else indices
 
-    @requires_geos("3.6.0")
-    def nearest(self, geometry) -> Union[Any, None]:
-        """
-        Return the index of the nearest geometry in the tree for each input
-        geometry based on distance within two-dimensional Cartesian space.
+    def nearest(self, geometry) -> Any | None:
+        """Return the index of the nearest geometry in the tree.
+
+        This is determined for each input geometry based on distance within
+        two-dimensional Cartesian space.
 
         This distance will be 0 when input geometries intersect tree geometries.
 
@@ -301,14 +304,14 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
             None is returned if this index is empty. This may change in
             version 2.0.
 
-        See also
+        See Also
         --------
         query_nearest: returns all equidistant geometries, exclusive geometries, \
 and optional distances
 
         Examples
         --------
-        >>> from shapely.geometry import Point
+        >>> from shapely import Point, STRtree
         >>> tree = STRtree([Point(i, i) for i in range(10)])
 
         Query the tree for nearest using a scalar geometry:
@@ -332,6 +335,7 @@ and optional distances
         >>> tree = STRtree ([Point(0, 0), Point(0, 0)])
         >>> tree.nearest(Point(0, 0))
         0
+
         """
         if self._tree.count == 0:
             return None
@@ -351,7 +355,6 @@ and optional distances
         else:
             return indices
 
-    @requires_geos("3.6.0")
     def query_nearest(
         self,
         geometry,
@@ -360,8 +363,10 @@ and optional distances
         exclusive=False,
         all_matches=True,
     ):
-        """Return the index of the nearest geometries in the tree for each input
-        geometry based on distance within two-dimensional Cartesian space.
+        """Return the index of the nearest geometries in the tree.
+
+        This is determined for each input geometry based on distance within
+        two-dimensional Cartesian space.
 
         This distance will be 0 when input geometries intersect tree geometries.
 
@@ -418,14 +423,14 @@ and optional distances
             The first subarray of indices contains input geometry indices.
             The second subarray of indices contains tree geometry indices.
 
-        See also
+        See Also
         --------
         nearest: returns singular nearest geometry for each input
 
         Examples
         --------
         >>> import numpy as np
-        >>> from shapely import box, Point
+        >>> from shapely import box, Point, STRtree
         >>> points = [Point(0, 0), Point(1, 1), Point(2,2), Point(3, 3)]
         >>> tree = STRtree(points)
 
@@ -496,8 +501,8 @@ and optional distances
         >>> items = np.array([record["value"] for record in records])
         >>> items.take(tree.query_nearest(Point(0.5, 0.5))).tolist()
         ['A']
-        """
 
+        """  # noqa: E501
         geometry = np.asarray(geometry, dtype=object)
         is_scalar = False
         if geometry.ndim == 0:

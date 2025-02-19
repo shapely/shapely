@@ -1,5 +1,4 @@
 #define PY_SSIZE_T_CLEAN
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 #include <Python.h>
 #include <float.h>
@@ -128,7 +127,7 @@ static PyObject* STRtree_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
     /* get the geometry */
     ptr = PyArray_GETPTR1((PyArrayObject*)arr, i);
     obj = *(GeometryObject**)ptr;
-    /* fail and cleanup incase obj was no geometry */
+    /* fail and cleanup in case obj was no geometry */
     if (!get_geom(obj, &geom)) {
       errstate = PGERR_NOT_A_GEOMETRY;
       GEOSSTRtree_destroy_r(ctx, tree);
@@ -164,8 +163,9 @@ static PyObject* STRtree_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 
   // A dummy query to trigger the build of the tree (only if the tree is not empty)
   if (count_indexed > 0) {
-    GEOSGeometry* dummy = create_point(ctx, 0.0, 0.0);
-    if (dummy == NULL) {
+    GEOSGeometry* dummy = NULL;
+    errstate = create_point(ctx, 0.0, 0.0, NULL, SHAPELY_HANDLE_NAN_ALLOW, &dummy);
+    if (errstate != PGERR_SUCCESS) {
       GEOSSTRtree_destroy_r(ctx, tree);
       GEOS_FINISH;
       return NULL;
@@ -574,8 +574,6 @@ int query_nearest_distance_callback(const void* item1, const void* item2,
   return 1;
 }
 
-#if GEOS_SINCE_3_6_0
-
 /* Find the nearest singular item in the tree to each input geometry.
  * Returns indices of source array and tree items.
  *
@@ -950,8 +948,6 @@ static PyObject* STRtree_query_nearest(STRtreeObject* self, PyObject* args) {
   return (PyObject*)result;
 }
 
-#endif  // GEOS_SINCE_3_6_0
-
 #if GEOS_SINCE_3_10_0
 
 static PyObject* STRtree_dwithin(STRtreeObject* self, PyObject* args) {
@@ -977,7 +973,7 @@ static PyObject* STRtree_dwithin(STRtreeObject* self, PyObject* args) {
   index_vec_t src_indexes;
 
   // Addresses in tree geometries (_geoms) that overlap with expanded bboxes around
-  // intput geometries
+  // input geometries
   tree_geom_vec_t query_geoms;
 
   // Addresses in tree geometries (_geoms) that meet DistanceWithin predicate
@@ -1185,12 +1181,10 @@ static PyMethodDef STRtree_methods[] = {
      "Queries the index for all items whose extents intersect the given search "
      "geometries, and optionally tests them "
      "against predicate function if provided. "},
-#if GEOS_SINCE_3_6_0
     {"nearest", (PyCFunction)STRtree_nearest, METH_O,
      "Queries the index for the nearest item to each of the given search geometries"},
     {"query_nearest", (PyCFunction)STRtree_query_nearest, METH_VARARGS,
      "Queries the index for all nearest item(s) to each of the given search geometries"},
-#endif  // GEOS_SINCE_3_6_0
 #if GEOS_SINCE_3_10_0
     {"dwithin", (PyCFunction)STRtree_dwithin, METH_VARARGS,
      "Queries the index for all item(s) in the tree within given distance of search "

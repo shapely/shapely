@@ -53,8 +53,8 @@ or WKB (Well-Known Binary) representation:
   >>> from_wkb(b"\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?")
   <POINT (1 1)>
 
-A more efficient way of constructing geometries is by making use of the (vectorized)
-functions described in :mod:`shapely.creation`.
+A more efficient way of constructing geometries is by making use of the
+(vectorized) functions described in :ref:`ref-creation`.
 
 Pickling
 ~~~~~~~~
@@ -91,7 +91,7 @@ Therefore, geometries are equal if and only if their WKB representations are equ
              See :func:`shapely.to_wkb`.
 
 Comparing two geometries directly is also supported.
-This is the same as using :func:`shapely.predicates.equals_exact` with a ``tolerance`` value of zero.
+This is the same as using :func:`shapely.equals_exact` with a ``tolerance`` value of zero.
 
   >>> point_1 == point_2
   False
@@ -145,8 +145,7 @@ A format specification may also be used to control the format and precision.
     or hex-encoded as 0101000000cf6a813d263d65c0bdaab35a60ff32c0
 
 Shapely has a format specification inspired from Python's
-`Format Specification Mini-Language
-<https://docs.python.org/3/library/string.html#formatspec>`_ described next.
+:ref:`python:formatspec`, described next.
 
 Semantic for format specification
 ---------------------------------
@@ -154,6 +153,7 @@ Semantic for format specification
 .. productionlist:: format-spec
   format_spec: [0][.`precision`][`type`]
   precision: `digit`+
+  digit: "0"..."9"
   type: "f" | "F" | "g" | "G" | "x" | "X"
 
 Format types ``'f'`` and ``'F'`` are to use a fixed-point notation, which is
@@ -173,3 +173,38 @@ specified, rounding precision will be disabled showing full precision.
 Format types ``'x'`` and ``'X'`` show a hex-encoded string representation of
 WKB or Well-Known Binary, with the case of the output matched the
 case of the format type character.
+
+.. _canonical-form:
+
+Canonical form
+--------------
+When operations are applied on geometries the result is returned according to
+some conventions.
+
+In most cases, geometries will be returned in "mild" canonical form. There is
+no goal to keep this form stable, so it is expected to change in future
+versions of GEOS:
+
+- the coordinates of exterior rings follow a clockwise orientation and interior
+  rings have a counter-clockwise orientation. This is the opposite of the OGC
+  specifications because the choice was made before this was included in the
+  standard.
+- the starting point of rings can be changed in the output, but the exact order
+  is undefined and should not be relied upon
+- the order of geometry types in a collection can be changed, but the order is
+  undefined
+
+When :func:`~shapely.normalize` is used, the "strict" canonical form is
+applied. This type of normalization is meant to be stable, so changes to it
+will be avoided if possible:
+
+- the coordinates of exterior rings follow a clockwise orientation and interior
+  rings have a counter-clockwise orientation
+- the starting point of rings is lower left
+- elements in collections are ordered by geometry type: by descending dimension
+  and multi-types first (MultiPolygon, Polygon, MultiLineString, LineString,
+  MultiPoint, Point). Multiple elements from the same type are ordered from
+  right to left and from top to bottom.
+
+It is important to note that input geometries do not have to follow these
+conventions.

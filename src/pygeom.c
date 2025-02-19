@@ -1,5 +1,4 @@
 #define PY_SSIZE_T_CLEAN
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 #include "pygeom.h"
 
@@ -7,6 +6,7 @@
 #include <structmember.h>
 
 #include "geos.h"
+#include "pygeos.h"
 
 /* This initializes a global geometry type registry */
 PyObject* geom_registry[1] = {NULL};
@@ -23,6 +23,16 @@ PyObject* GeometryObject_FromGEOS(GEOSGeometry* ptr, GEOSContextHandle_t ctx) {
   if (type_id == -1) {
     return NULL;
   }
+
+  // Nonlinear types (CircularString, CompoundCurve, MultiCurve, CurvePolygon,
+  // MultiSurface are not currently supported
+  // TODO: this can be removed once these types are added to the type registry
+  if (type_id >= 8) {
+    PyErr_Format(PyExc_NotImplementedError,
+                 "Nonlinear geometry types are not currently supported");
+    return NULL;
+  }
+
   PyObject* type_obj = PyList_GET_ITEM(geom_registry[0], type_id);
   if (type_obj == NULL) {
     return NULL;
@@ -70,6 +80,14 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
   char* wkt;
   PyObject* result;
   GEOSGeometry* geom = obj->ptr;
+  char trim = 1;
+  int precision = 3;
+#if GEOS_SINCE_3_12_0
+  int dimension = 4;
+#else
+  int dimension = 3;
+#endif
+  // int use_old_3d = 0;  // default is false
 
   if (geom == NULL) {
     Py_INCREF(Py_None);
@@ -77,8 +95,17 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
   }
 
   GEOS_INIT;
+#if !GEOS_SINCE_3_13_0
+  if (trim) {
+    errstate = check_to_wkt_trim_compatible(ctx, geom, dimension);
+  }
+  if (errstate != PGERR_SUCCESS) {
+    goto finish;
+  }
+#endif  // !GEOS_SINCE_3_13_0
 
-#if GEOS_SINCE_3_9_0
+#if !GEOS_SINCE_3_12_0
+  // Since GEOS 3.9.0 and before 3.12.0 further handling required
   errstate = wkt_empty_3d_geometry(ctx, geom, &wkt);
   if (errstate != PGERR_SUCCESS) {
     goto finish;
@@ -87,13 +114,7 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
     result = PyUnicode_FromString(wkt);
     goto finish;
   }
-#else
-  // Before GEOS 3.9.0, there was as segfault on e.g. MULTIPOINT (1 1, EMPTY)
-  errstate = check_to_wkt_compatible(ctx, geom);
-  if (errstate != PGERR_SUCCESS) {
-    goto finish;
-  }
-#endif
+#endif // !GEOS_SINCE_3_12_0
 
   GEOSWKTWriter* writer = GEOSWKTWriter_create_r(ctx);
   if (writer == NULL) {
@@ -101,14 +122,14 @@ static PyObject* GeometryObject_ToWKT(GeometryObject* obj) {
     goto finish;
   }
 
-  char trim = 1;
-  int precision = 3;
-  int dimension = 3;
-  int use_old_3d = 0;
   GEOSWKTWriter_setRoundingPrecision_r(ctx, writer, precision);
+#if !GEOS_SINCE_3_12_0
+  // Override defaults only for older versions
+  // See https://github.com/libgeos/geos/pull/915
   GEOSWKTWriter_setTrim_r(ctx, writer, trim);
   GEOSWKTWriter_setOutputDimension_r(ctx, writer, dimension);
-  GEOSWKTWriter_setOld3D_r(ctx, writer, use_old_3d);
+  // GEOSWKTWriter_setOld3D_r(ctx, writer, use_old_3d);
+#endif  // !GEOS_SINCE_3_12_0
 
   // Check if the above functions caused a GEOS exception
   if (last_error[0] != 0) {
@@ -143,23 +164,7 @@ static PyObject* GeometryObject_ToWKB(GeometryObject* obj) {
   }
 
   GEOS_INIT;
-
-#if !GEOS_SINCE_3_9_0
-  // WKB Does not allow empty points in GEOS < 3.9.
-  // We check for that and patch the POINT EMPTY if necessary
-  has_empty = has_point_empty(ctx, obj->ptr);
-  if (has_empty == 2) {
-    errstate = PGERR_GEOS_EXCEPTION;
-    goto finish;
-  }
-  if (has_empty == 1) {
-    geom = point_empty_to_nan_all_geoms(ctx, obj->ptr);
-  } else {
-    geom = obj->ptr;
-  }
-#else
   geom = obj->ptr;
-#endif  // !GEOS_SINCE_3_9_0
 
   /* Create the WKB writer */
   writer = GEOSWKBWriter_create_r(ctx);
@@ -167,8 +172,12 @@ static PyObject* GeometryObject_ToWKB(GeometryObject* obj) {
     errstate = PGERR_GEOS_EXCEPTION;
     goto finish;
   }
-  // Allow 3D output and include SRID
+#if !GEOS_SINCE_3_12_0
+  // Allow 3D output for GEOS<3.12 (it is default 4 afterwards)
+  // See https://github.com/libgeos/geos/pull/908
   GEOSWKBWriter_setOutputDimension_r(ctx, writer, 3);
+#endif  // !GEOS_SINCE_3_12_0
+  // include SRID
   GEOSWKBWriter_setIncludeSRID_r(ctx, writer, 1);
   // Check if the above functions caused a GEOS exception
   if (last_error[0] != 0) {
@@ -272,11 +281,11 @@ static PyObject* GeometryObject_richcompare(GeometryObject* self, PyObject* othe
         break;
       case Py_EQ:
         result =
-            GEOSEqualsExact_r(ctx, self->ptr, other_geom->ptr, 0) ? Py_True : Py_False;
+            PyGEOSEqualsIdentical(ctx, self->ptr, other_geom->ptr) ? Py_True : Py_False;
         break;
       case Py_NE:
         result =
-            GEOSEqualsExact_r(ctx, self->ptr, other_geom->ptr, 0) ? Py_False : Py_True;
+            PyGEOSEqualsIdentical(ctx, self->ptr, other_geom->ptr) ? Py_False : Py_True;
         break;
       case Py_GT:
         result = Py_NotImplemented;
@@ -351,7 +360,7 @@ static PyObject* GeometryObject_SetState(PyObject* self, PyObject* value) {
   if (((GeometryObject*)self)->ptr != NULL) {
     GEOSGeom_destroy_r(ctx, ((GeometryObject*)self)->ptr);
   }
-  ((GeometryObject*)self)->ptr = geom; 
+  ((GeometryObject*)self)->ptr = geom;
 
 finish:
 

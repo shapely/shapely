@@ -1,5 +1,5 @@
-"""Polygons and Linear Rings
-"""
+"""Polygons and Linear Rings"""
+
 import numpy as np
 import pytest
 
@@ -64,6 +64,12 @@ def test_linearring_from_too_short_linestring():
     line = LineString(coords)
     with pytest.raises(ValueError, match="requires at least 4 coordinates"):
         LinearRing(line)
+
+
+def test_linearring_from_linearring():
+    coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)]
+    ring = LinearRing(coords)
+    assert ring.coords[:] == coords
 
 
 def test_linearring_from_generator():
@@ -183,6 +189,12 @@ def test_polygon_from_linestring():
     assert polygon.exterior.coords[:] == coords
 
 
+def test_polygon_from_points():
+    polygon = Polygon([Point(0.0, 0.0), Point(0.0, 1.0), Point(1.0, 1.0)])
+    expected_coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)]
+    assert polygon.exterior.coords[:] == expected_coords
+
+
 def test_polygon_from_polygon():
     coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)]
     polygon = Polygon(coords, [[(0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25)]])
@@ -225,9 +237,15 @@ def test_polygon_from_numpy():
     assert len(polygon.interiors) == 0
 
 
+def test_polygon_from_generator():
+    coords = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 0.0)]
+    gen = (coord for coord in coords)
+    polygon = Polygon(gen)
+    assert polygon.exterior.coords[:] == coords
+
+
 class TestPolygon:
     def test_linearring(self):
-
         # Initialization
         # Linear rings won't usually be created by users, but by polygons
         coords = ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0))
@@ -294,7 +312,6 @@ class TestPolygon:
         assert r_null.length == 0.0
 
     def test_dimensions(self):
-
         # Background: see http://trac.gispython.org/lab/ticket/168
         # http://lists.gispython.org/pipermail/community/2008-August/001859.html
 
@@ -324,7 +341,6 @@ class TestPolygon:
         )
 
     def test_attribute_chains(self):
-
         # Attribute Chaining
         # See also ticket #151.
         p = Polygon([(0.0, 0.0), (0.0, 1.0), (-1.0, 1.0), (-1.0, 0.0)])
@@ -357,7 +373,7 @@ class TestPolygon:
             (-0.75, 0.25),
             (-0.25, 0.25),
         ]
-        xy = list(p.interiors[0].buffer(1).exterior.coords)[0]
+        xy = next(iter(p.interiors[0].buffer(1).exterior.coords))
         assert len(xy) == 2
 
         # Test multiple operators, boundary of a buffer

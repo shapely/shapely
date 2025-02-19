@@ -25,9 +25,18 @@ Shapely is available on the conda-forge channel. Install as follows::
 
     $ conda install shapely --channel conda-forge
 
+Installation of the development version using nightly wheels
+------------------------------------------------------------
 
-Installation from source with custom GEOS libary
-------------------------------------------------
+If you want to test the latest development version of Shapely, the easiest way
+to get this version is by installing it from the Scientific Python index of
+nightly wheel packages::
+
+    python -m pip install --pre --upgrade --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple shapely
+
+
+Installation from source with custom GEOS library
+-------------------------------------------------
 
 You may want to use a specific GEOS version or a GEOS distribution that is
 already present on your system (for compatibility with other modules that
@@ -45,16 +54,17 @@ On macOS::
     $ brew install geos  # skip this if you already have GEOS
     $ pip install shapely --no-binary shapely
 
-If you've installed GEOS to a standard location on Linux or macOS, the installation will automatically
-find it using ``geos-config``. See the notes below on GEOS discovery at compile time
-to configure this.
+If you've installed GEOS to a standard location on Linux or macOS, the
+installation will automatically find it using ``geos-config``. See the notes
+below on GEOS discovery at compile time to configure this.
 
-We do not have a recipe for Windows platforms. The following steps should enable you
-to build Shapely yourself:
+We do not have a recipe for Windows platforms. The following steps should
+enable you to build Shapely yourself:
 
 - Get a C compiler applicable to your Python version (https://wiki.python.org/moin/WindowsCompilers)
 - Download and install a GEOS binary (https://trac.osgeo.org/osgeo4w/)
-- Set GEOS_INCLUDE_PATH and GEOS_LIBRARY_PATH environment variables (see below for notes on GEOS discovery)
+- Set GEOS_INCLUDE_PATH and GEOS_LIBRARY_PATH environment variables (see below
+  for notes on GEOS discovery)
 - Run ``pip install shapely --no-binary``
 - Make sure the GEOS .dll files are available on the PATH
 
@@ -62,8 +72,8 @@ to build Shapely yourself:
 Installation for local development
 -----------------------------------
 
-This is similar to installing with a custom GEOS binary, but then instead of installing
-Shapely with pip from PyPI, you clone the package from Github::
+This is similar to installing with a custom GEOS binary, but then instead of
+installing Shapely with pip from PyPI, you clone the package from Github::
 
     $ git clone git@github.com:shapely/shapely.git
     $ cd shapely/
@@ -72,8 +82,8 @@ Install it in development mode using ``pip``::
 
     $ pip install -e .[test]
 
-For development, use of a virtual environment is strongly recommended. For example
-using ``venv``:
+For development, use of a virtual environment is strongly recommended. For
+example using ``venv``:
 
 .. code-block:: console
 
@@ -101,9 +111,10 @@ Shapely can be tested using ``pytest``::
 GEOS discovery (compile time)
 -----------------------------
 
-If GEOS is installed on Linux or macOS, the ``geos-config`` command line utility
-should be available and ``pip`` will find GEOS automatically.
-If the correct ``geos-config`` is not on the PATH, you can add it as follows (on Linux/macOS)::
+If GEOS is installed on Linux or macOS, the ``geos-config`` command line
+utility should be available and ``pip`` will find GEOS automatically.
+If the correct ``geos-config`` is not on the PATH, you can add it as follows
+(on Linux/macOS)::
 
     $ export PATH=/path/to/geos/bin:$PATH
 
@@ -113,8 +124,8 @@ header files using environment variables (on Linux/macOS)::
     $ export GEOS_INCLUDE_PATH=/path/to/geos/include
     $ export GEOS_LIBRARY_PATH=/path/to/geos/lib
 
-On Windows, there is no ``geos-config`` and the include and lib folders need to be
-specified manually in any case::
+On Windows, there is no ``geos-config`` and the include and lib folders need to
+be specified manually in any case::
 
     $ set GEOS_INCLUDE_PATH=C:\path\to\geos\include
     $ set GEOS_LIBRARY_PATH=C:\path\to\geos\lib
@@ -129,13 +140,15 @@ Common locations of GEOS (to be suffixed by ``lib``, ``include`` or ``bin``):
 GEOS discovery (runtime)
 ------------------------
 
-Shapely is dynamically linked to GEOS. This means that the same GEOS library that was used
-during Shapely compilation is required on your system at runtime. When using Shapely that was distributed
-as a binary wheel or through conda, this is automatically the case and you can stop reading.
+Shapely is dynamically linked to GEOS. This means that the same GEOS library
+that was used during Shapely compilation is required on your system at runtime.
+When using Shapely that was distributed as a binary wheel or through conda,
+this is automatically the case and you can stop reading.
 
-In other cases this can be tricky, especially if you have multiple GEOS installations next
-to each other. We only include some guidelines here to address this issue as this document is
-not intended as a general guide of shared library discovery.
+In other cases this can be tricky, especially if you have multiple GEOS
+installations next to each other. We only include some guidelines here to
+address this issue as this document is not intended as a general guide of
+shared library discovery.
 
 If you encounter exceptions like:
 
@@ -143,17 +156,21 @@ If you encounter exceptions like:
 
    ImportError: libgeos_c.so.1: cannot open shared object file: No such file or directory
 
-You will have to make the shared library file available to the Python interpreter. There are in
-general four ways of making Python aware of the location of shared library:
+You will have to make the shared library file available to the Python
+interpreter. There are in general four ways of making Python aware of the
+location of shared library:
 
-1. Copy the shared libraries into the ``shapely`` module directory (this is how Windows binary wheels work:
-   they are distributed with the correct dlls in the ``shapely`` module directory)
-2. Copy the shared libraries into the library directory of the Python interpreter (this is how
-   Anaconda environments work)
-3. Copy the shared libraries into some system location (``C:\Windows\System32``; ``/usr/local/lib``,
-   this happens if you installed GEOS through ``apt`` or ``brew``)
-4. Add the shared library location to a the dynamic linker path variable at runtime.
-   (Advanced usage; Linux and macOS only; on Windows this method was deprecated in Python 3.8)
+1. Copy the shared libraries into the ``shapely`` module directory (this is how
+   Windows binary wheels work: they are distributed with the correct dlls in
+   the ``shapely`` module directory)
+2. Copy the shared libraries into the library directory of the Python
+   interpreter (this is how Anaconda environments work)
+3. Copy the shared libraries into some system location
+   (``C:\Windows\System32``; ``/usr/local/lib``, this happens if you installed
+   GEOS through ``apt`` or ``brew``)
+4. Add the shared library location to a the dynamic linker path variable at
+   runtime. (Advanced usage; Linux and macOS only; on Windows this method was
+   deprecated in Python 3.8)
 
 The filenames of the GEOS shared libraries are:
 
