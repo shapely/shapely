@@ -523,16 +523,17 @@ def constrained_delaunay_triangles(geometry, **kwargs):
     Examples
     --------
     >>> from shapely import MultiPoint, MultiPolygon, Polygon
-    >>> constrained_delaunay_triangles(Polygon([(10, 10), (20, 40), (90, 90), (90, 10), (10, 10)]))
+    >>> shapely.constrained_delaunay_triangles(Polygon([(10, 10), (20, 40), (90, 90), (90, 10), (10, 10)]))
     <GEOMETRYCOLLECTION (POLYGON ((90 10, 20 40, 90 90, 90 10)), POLYGON ((20 40...>
-    >>> constrained_delaunay_triangles(Polygon())
+    >>> shapely.constrained_delaunay_triangles(Polygon())
     <GEOMETRYCOLLECTION EMPTY>
-    >>> constrained_delaunay_triangles(MultiPolygon([Polygon(((50, 30), (60, 30), (100, 100), (50, 30))), Polygon(((10, 10), (20, 40), (90, 90), (90, 10), (10, 10)))]))
+    >>> shapely.constrained_delaunay_triangles(MultiPolygon([Polygon(((50, 30), (60, 30), (100, 100), (50, 30))), Polygon(((10, 10), (20, 40), (90, 90), (90, 10), (10, 10)))]))
     <GEOMETRYCOLLECTION (POLYGON ((50 30, 100 100, 60 30, 50 30)), POLYGON ((90 ...>
-    >>> constrained_delaunay_triangles(MultiPolygon())
+    >>> shapely.constrained_delaunay_triangles(MultiPolygon())
     <GEOMETRYCOLLECTION EMPTY>
-    >>> constrained_delaunay_triangles(MultiPoint([(50, 30), (51, 30), (60, 30), (100, 100)]))
+    >>> shapely.constrained_delaunay_triangles(MultiPoint([(50, 30), (51, 30), (60, 30), (100, 100)]))
     <GEOMETRYCOLLECTION EMPTY>
+
     """  # noqa: E501
     return lib.constrained_delaunay_triangles(geometry, **kwargs)
 
