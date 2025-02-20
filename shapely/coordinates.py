@@ -5,7 +5,7 @@ import numpy as np
 import shapely
 from shapely import lib
 
-__all__ = ["transform", "count_coordinates", "get_coordinates", "set_coordinates"]
+__all__ = ["count_coordinates", "get_coordinates", "set_coordinates", "transform"]
 
 
 def transform(
@@ -264,8 +264,7 @@ def set_coordinates(geometry, coordinates):
     coordinates = np.atleast_2d(np.asarray(coordinates)).astype(np.float64)
     if coordinates.ndim != 2:
         raise ValueError(
-            "The coordinate array should have dimension of 2 "
-            f"(has {coordinates.ndim})"
+            f"The coordinate array should have dimension of 2 (has {coordinates.ndim})"
         )
     n_coords = lib.count_coordinates(geometry_arr)
     if (coordinates.shape[0] != n_coords) or (coordinates.shape[1] not in {2, 3}):
