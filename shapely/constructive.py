@@ -522,6 +522,7 @@ def constrained_delaunay_triangles(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import MultiPoint, MultiPolygon, Polygon
     >>> shapely.constrained_delaunay_triangles(Polygon([(10, 10), (20, 40), (90, 90), (90, 10), (10, 10)]))
     <GEOMETRYCOLLECTION (POLYGON ((90 10, 20 40, 90 90, 90 10)), POLYGON ((20 40...>
