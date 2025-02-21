@@ -8,17 +8,24 @@ from shapely.tests.common import (
     empty,
     empty_line_string_z,
     empty_point,
+    empty_point_m,
     empty_point_z,
+    empty_point_zm,
     geometry_collection,
     geometry_collection_z,
+    geometry_collection_zm,
     line_string,
+    line_string_m,
     line_string_z,
+    line_string_zm,
     linear_ring,
     multi_line_string,
     multi_point,
     multi_polygon,
     point,
+    point_m,
     point_z,
+    point_zm,
     polygon,
     polygon_with_hole,
     polygon_z,
@@ -54,6 +61,7 @@ def test_count_coords(geoms, count):
     assert actual == count
 
 
+@pytest.mark.parametrize("include_m", [True, False])
 @pytest.mark.parametrize("include_z", [True, False])
 @pytest.mark.parametrize(
     "geoms,x,y",
@@ -87,13 +95,14 @@ def test_count_coords(geoms, count):
         ([nested_3], [51, 52, 49, 2, 2], [-1, -1, 2, 3, 3]),
     ],
 )
-def test_get_coords(geoms, x, y, include_z):
-    actual = get_coordinates(np.array(geoms, np.object_), include_z=include_z)
-    if not include_z:
-        expected = np.array([x, y], np.float64).T
-    else:
-        expected = np.array([x, y, [np.nan] * len(x)], np.float64).T
-    assert_equal(actual, expected)
+def test_get_coords(geoms, x, y, include_z, include_m):
+    actual = get_coordinates(geoms, include_z=include_z, include_m=include_m)
+    expected = [x, y]
+    if include_z:
+        expected.append([np.nan] * len(x))
+    if include_m:
+        expected.append([np.nan] * len(x))
+    assert_equal(actual, np.array(expected, np.float64).T)
 
 
 @pytest.mark.parametrize(
@@ -125,6 +134,7 @@ def test_get_coords_index_multidim(order):
     assert_equal(actual, expected)
 
 
+@pytest.mark.parametrize("include_m", [True, False])
 @pytest.mark.parametrize("include_z", [True, False])
 @pytest.mark.parametrize(
     "geoms,x,y,z",
@@ -136,13 +146,72 @@ def test_get_coords_index_multidim(order):
         ([point, empty_point], [2], [3], [np.nan]),
     ],
 )
-def test_get_coords_z(geoms, x, y, z, include_z):
-    actual = get_coordinates(np.array(geoms, np.object_), include_z=include_z)
+def test_get_coords_z(geoms, x, y, z, include_z, include_m):
+    actual = get_coordinates(geoms, include_z=include_z, include_m=include_m)
+    expected = [x, y]
     if include_z:
-        expected = np.array([x, y, z], np.float64).T
-    else:
-        expected = np.array([x, y], np.float64).T
-    assert_equal(actual, expected)
+        expected.append(z)
+    if include_m:
+        expected.append([np.nan] * len(x))
+    assert_equal(actual, np.array(expected, np.float64).T)
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+@pytest.mark.parametrize("include_m", [True, False])
+@pytest.mark.parametrize("include_z", [True, False])
+@pytest.mark.parametrize(
+    "geoms,x,y,z,m",
+    [
+        (
+            [point, point_z, point_m, point_zm],
+            [2, 2, 2, 2],
+            [3, 3, 3, 3],
+            [np.nan, 4, np.nan, 4],
+            [np.nan, np.nan, 5, 5],
+        ),
+        (
+            [line_string, line_string_z, line_string_m, line_string_zm],
+            [0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1],
+            [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
+            [np.nan, np.nan, np.nan, 4, 4, 4] * 2,
+            [np.nan] * 6 + [1, 2, 3, 1, 2, 3],
+        ),
+        (
+            [geometry_collection_zm],
+            [2, 0, 1, 1],
+            [3, 0, 0, 1],
+            [4, 4, 4, 4],
+            [5, 1, 2, 3],
+        ),
+        (
+            [point, empty_point, empty_point_z, empty_point_m, empty_point_zm],
+            [2],
+            [3],
+            [np.nan],
+            [np.nan],
+        ),
+    ],
+)
+def test_get_coords_zm(geoms, x, y, z, m, include_z, include_m):
+    actual = get_coordinates(geoms, include_z=include_z, include_m=include_m)
+    expected = [x, y]
+    if include_z:
+        expected.append(z)
+    if include_m:
+        expected.append(m)
+    assert_equal(actual, np.array(expected, np.float64).T)
+
+
+def test_get_coords_pos_args_deprecation_warning():
+    with pytest.deprecated_call(
+        match="positional argument `include_z` for `get_coordinates` is deprecated"
+    ):
+        get_coordinates(point, False)
+    with pytest.deprecated_call(
+        match="positional arguments `include_z` and `return_index` "
+        "for `get_coordinates` are deprecated"
+    ):
+        get_coordinates(point, False, False)
 
 
 @pytest.mark.parametrize("include_z", [True, False])
