@@ -54,7 +54,6 @@ def test_count_coords(geoms, count):
     assert actual == count
 
 
-# fmt: off
 @pytest.mark.parametrize("include_z", [True, False])
 @pytest.mark.parametrize(
     "geoms,x,y",
@@ -87,7 +86,7 @@ def test_count_coords(geoms, count):
         ([nested_2], [51, 52, 49, 2], [-1, -1, 2, 3]),
         ([nested_3], [51, 52, 49, 2, 2], [-1, -1, 2, 3, 3]),
     ],
-)  # fmt: on
+)
 def test_get_coords(geoms, x, y, include_z):
     actual = get_coordinates(np.array(geoms, np.object_), include_z=include_z)
     if not include_z:
@@ -97,7 +96,6 @@ def test_get_coords(geoms, x, y, include_z):
     assert_equal(actual, expected)
 
 
-# fmt: off
 @pytest.mark.parametrize(
     "geoms,index",
     [
@@ -112,7 +110,7 @@ def test_get_coords(geoms, x, y, include_z):
         ([line_string, point], [0, 0, 0, 1]),
         ([line_string, linear_ring], [0, 0, 0, 1, 1, 1, 1, 1]),
     ],
-)  # fmt: on
+)
 def test_get_coords_index(geoms, index):
     _, actual = get_coordinates(np.array(geoms, np.object_), return_index=True)
     expected = np.array(index, dtype=np.intp)
@@ -127,7 +125,6 @@ def test_get_coords_index_multidim(order):
     assert_equal(actual, expected)
 
 
-# fmt: off
 @pytest.mark.parametrize("include_z", [True, False])
 @pytest.mark.parametrize(
     "geoms,x,y,z",
@@ -138,7 +135,7 @@ def test_get_coords_index_multidim(order):
         ([geometry_collection_z], [2, 0, 1, 1], [3, 0, 0, 1], [4, 4, 4, 4]),
         ([point, empty_point], [2], [3], [np.nan]),
     ],
-)  # fmt: on
+)
 def test_get_coords_z(geoms, x, y, z, include_z):
     actual = get_coordinates(np.array(geoms, np.object_), include_z=include_z)
     if include_z:
@@ -273,30 +270,39 @@ def test_transform_correct_coordinate_dimension():
     assert shapely.get_coordinate_dimension(new_geom) == 2
 
 
-@pytest.mark.parametrize("geom", [
-    empty_point_z,
-    empty_line_string_z,
-])
+@pytest.mark.parametrize(
+    "geom",
+    [
+        empty_point_z,
+        empty_line_string_z,
+    ],
+)
 def test_transform_empty_preserve_z(geom):
     assert shapely.get_coordinate_dimension(geom) == 3
     new_geom = transform(geom, lambda x: x + 1, include_z=True)
     assert shapely.get_coordinate_dimension(new_geom) == 3
 
 
-@pytest.mark.parametrize("geom", [
-    empty_point_z,
-    empty_line_string_z,
-])
+@pytest.mark.parametrize(
+    "geom",
+    [
+        empty_point_z,
+        empty_line_string_z,
+    ],
+)
 def test_transform_remove_z(geom):
     assert shapely.get_coordinate_dimension(geom) == 3
     new_geom = transform(geom, lambda x: x + 1, include_z=False)
     assert shapely.get_coordinate_dimension(new_geom) == 2
 
 
-@pytest.mark.parametrize("geom,expected", [
-    (line_string, 2),
-    (line_string_z, 3),
-])
+@pytest.mark.parametrize(
+    "geom,expected",
+    [
+        (line_string, 2),
+        (line_string_z, 3),
+    ],
+)
 def test_transform_auto_coordinate_dimension(geom, expected):
     new_geom = transform(geom, lambda x: x + 1, include_z=None)
     assert (shapely.get_coordinate_dimension(new_geom) == expected).all()
@@ -332,9 +338,9 @@ def test_transform_auto_coordinate_dimension_mixed_interleaved():
     assert_equal(shapely.get_coordinate_dimension(new_geom), [2, 3])
     assert_equal(
         shapely.get_coordinates(line_string, include_z=False) + [1, 2],
-        shapely.get_coordinates(new_geom[0], include_z=False)
+        shapely.get_coordinates(new_geom[0], include_z=False),
     )
     assert_equal(
         shapely.get_coordinates(line_string_z, include_z=True) + [1, 2, 3],
-        shapely.get_coordinates(new_geom[1], include_z=True)
+        shapely.get_coordinates(new_geom[1], include_z=True),
     )

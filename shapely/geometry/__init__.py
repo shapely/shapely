@@ -11,17 +11,17 @@ from shapely.geometry.point import Point
 from shapely.geometry.polygon import LinearRing, Polygon
 
 __all__ = [
-    "box",
-    "shape",
-    "mapping",
-    "Point",
-    "LineString",
-    "Polygon",
-    "MultiPoint",
-    "MultiLineString",
-    "MultiPolygon",
-    "GeometryCollection",
-    "LinearRing",
     "CAP_STYLE",
     "JOIN_STYLE",
+    "GeometryCollection",
+    "LineString",
+    "LinearRing",
+    "MultiLineString",
+    "MultiPoint",
+    "MultiPolygon",
+    "Point",
+    "Polygon",
+    "box",
+    "mapping",
+    "shape",
 ]

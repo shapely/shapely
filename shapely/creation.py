@@ -9,18 +9,18 @@ from shapely.decorators import multithreading_enabled
 from shapely.io import from_wkt
 
 __all__ = [
-    "points",
-    "linestrings",
-    "linearrings",
-    "polygons",
-    "multipoints",
-    "multilinestrings",
-    "multipolygons",
-    "geometrycollections",
     "box",
-    "prepare",
     "destroy_prepared",
     "empty",
+    "geometrycollections",
+    "linearrings",
+    "linestrings",
+    "multilinestrings",
+    "multipoints",
+    "multipolygons",
+    "points",
+    "polygons",
+    "prepare",
 ]
 
 
