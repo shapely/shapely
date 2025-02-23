@@ -72,7 +72,8 @@ static char get_coordinates_polygon(GEOSContextHandle_t ctx, GEOSGeometry* geom,
   if (ring == NULL) {
     return 0;
   }
-  if (!get_coordinates_simple(ctx, ring, GEOS_LINEARRING, out, cursor, include_z, include_m)) {
+  if (!get_coordinates_simple(ctx, ring, GEOS_LINEARRING, out, cursor,
+                              include_z, include_m)) {
     return 0;
   }
 
@@ -85,7 +86,8 @@ static char get_coordinates_polygon(GEOSContextHandle_t ctx, GEOSGeometry* geom,
     if (ring == NULL) {
       return 0;
     }
-    if (!get_coordinates_simple(ctx, ring, GEOS_LINEARRING, out, cursor, include_z, include_m)) {
+    if (!get_coordinates_simple(ctx, ring, GEOS_LINEARRING, out, cursor,
+                                include_z, include_m)) {
       return 0;
     }
   }
