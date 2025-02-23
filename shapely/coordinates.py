@@ -200,6 +200,9 @@ def get_coordinates(geometry, include_z=False, return_index=False, *, include_m=
         ndarray of integers. For multidimensional arrays, this indexes into the
         flattened array (in C contiguous order).
 
+    Notes
+    -----
+
     .. deprecated:: 2.1.0
         A deprecation warning is shown if ``include_z`` or ``return_index`` are
         specified as positional arguments. In a future release, these will
@@ -231,7 +234,7 @@ def get_coordinates(geometry, include_z=False, return_index=False, *, include_m=
     >>> shapely.get_coordinates(pt, include_z=True, include_m=True).tolist()
     [[1.0, 2.0, nan, nan]]
 
-    When return_index=True, indexes are returned also:
+    When ``return_index=True``, indexes are returned also:
 
     >>> geometries = [LineString([(2, 2), (4, 4)]), Point(0, 0)]
     >>> coordinates, index = shapely.get_coordinates(geometries, return_index=True)
