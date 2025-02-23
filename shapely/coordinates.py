@@ -4,6 +4,7 @@ import numpy as np
 
 import shapely
 from shapely import lib
+from shapely.decorators import deprecate_positional
 
 __all__ = ["count_coordinates", "get_coordinates", "set_coordinates", "transform"]
 
@@ -105,7 +106,9 @@ interleaved=False, include_z=True)
             geometry_arr[~has_z], transformation, False, interleaved
         )
     else:
-        coordinates = lib.get_coordinates(geometry_arr, include_z, False)
+        # TODO: expose include_m
+        include_m = False
+        coordinates = lib.get_coordinates(geometry_arr, include_z, include_m, False)
         if interleaved:
             new_coordinates = transformation(coordinates)
         else:
@@ -160,32 +163,57 @@ def count_coordinates(geometry):
     return lib.count_coordinates(np.asarray(geometry, dtype=np.object_))
 
 
-def get_coordinates(geometry, include_z=False, return_index=False):
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0: only supported XY and XYZ geometries
+#   get_coordinates(geometry, include_z=False, return_index=False)
+# shapely 2.1: adds include_m at end, shows deprecation warning about position keywords
+#   get_coordinates(geometry, include_z=False, return_index=False, *, include_m=False)
+# shapely 2.2(?): enforces keyword position arguments after geometry
+#   get_coordinates(geometry, *, include_z=False, include_m=False, return_index=False)
+
+
+@deprecate_positional(["include_z", "return_index"], category=DeprecationWarning)
+def get_coordinates(geometry, include_z=False, return_index=False, *, include_m=False):
     """Get coordinates from a geometry array as an array of floats.
 
     The shape of the returned array is (N, 2), with N being the number of
-    coordinate pairs. With the default of ``include_z=False``, three-dimensional
-    data is ignored. When specifying ``include_z=True``, the shape of the
-    returned array is (N, 3).
+    coordinate pairs. The shape of the data may also be (N, 3) or (N, 4),
+    depending on ``include_z`` and ``include_m`` options.
 
     Parameters
     ----------
     geometry : Geometry or array_like
         Geometry or geometries to get the coordinates of.
-    include_z : bool, default False
-        If, True include the third dimension in the output. If a geometry
-        has no third dimension, the z-coordinates will be NaN.
+    include_z, include_m : bool, default False
+        If both are False, return XY (2D) geometries.
+        If both are True, return XYZM (4D) geometries.
+        If either are True, return XYZ or XYM (3D) geometries.
+        If a geometry has no Z or M dimension, extra coordinate data will be NaN.
+
+        .. versionadded:: 2.1.0
+            The ``include_m`` parameter was added to support XYM (3D) and
+            XYZM (4D) geometries available with GEOS 3.12.0 or later.
+            With older GEOS versions, M dimension coordinates will be NaN.
+
     return_index : bool, default False
         If True, also return the index of each returned geometry as a separate
         ndarray of integers. For multidimensional arrays, this indexes into the
         flattened array (in C contiguous order).
 
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``include_z`` or ``return_index`` are
+        specified as positional arguments. In a future release, these will
+        need to be specified as keyword arguments.
+
     Examples
     --------
     >>> import shapely
     >>> from shapely import LineString, Point
-    >>> shapely.get_coordinates(Point(0, 0)).tolist()
-    [[0.0, 0.0]]
+    >>> shapely.get_coordinates(Point(1, 2)).tolist()
+    [[1.0, 2.0]]
     >>> shapely.get_coordinates(LineString([(2, 2), (4, 4)])).tolist()
     [[2.0, 2.0], [4.0, 4.0]]
     >>> shapely.get_coordinates(None)
@@ -193,12 +221,20 @@ def get_coordinates(geometry, include_z=False, return_index=False):
 
     By default the third dimension is ignored:
 
-    >>> shapely.get_coordinates(Point(0, 0, 0)).tolist()
-    [[0.0, 0.0]]
-    >>> shapely.get_coordinates(Point(0, 0, 0), include_z=True).tolist()
-    [[0.0, 0.0, 0.0]]
+    >>> shapely.get_coordinates(Point(1, 2, 3)).tolist()
+    [[1.0, 2.0]]
+    >>> shapely.get_coordinates(Point(1, 2, 3), include_z=True).tolist()
+    [[1.0, 2.0, 3.0]]
 
-    When return_index=True, indexes are returned also:
+    If geometries don't have Z or M dimension, these values will be NaN:
+
+    >>> pt = Point(1, 2)
+    >>> shapely.get_coordinates(pt, include_z=True).tolist()
+    [[1.0, 2.0, nan]]
+    >>> shapely.get_coordinates(pt, include_z=True, include_m=True).tolist()
+    [[1.0, 2.0, nan, nan]]
+
+    When ``return_index=True``, indexes are returned also:
 
     >>> geometries = [LineString([(2, 2), (4, 4)]), Point(0, 0)]
     >>> coordinates, index = shapely.get_coordinates(geometries, return_index=True)
@@ -207,7 +243,7 @@ def get_coordinates(geometry, include_z=False, return_index=False):
 
     """
     return lib.get_coordinates(
-        np.asarray(geometry, dtype=np.object_), include_z, return_index
+        np.asarray(geometry, dtype=np.object_), include_z, include_m, return_index
     )
 
 
