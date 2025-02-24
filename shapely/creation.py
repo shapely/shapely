@@ -5,7 +5,7 @@ import numpy as np
 from shapely import Geometry, GeometryType, lib
 from shapely._enum import ParamEnum
 from shapely._geometry_helpers import collections_1d, simple_geometries_1d
-from shapely.decorators import multithreading_enabled
+from shapely.decorators import deprecate_positional, multithreading_enabled
 from shapely.io import from_wkt
 
 __all__ = [
@@ -40,9 +40,26 @@ def _xyz_to_coords(x, y, z):
     return np.stack(coords, axis=-1)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0: only supported XY and XYZ geometries
+#   points(coords, y=None, z=None, indices=None, out=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'indices' arg
+#   points(coords, y=None, z=None, indices=None, *, handle_nan=HandleNaN.allow, out=None, **kwargs)  # noqa: E501
+# shapely 2.2(?): enforce keyword-only arguments after 'z'
+#   points(coords, y=None, z=None, *, indices=None, handle_nan=HandleNaN.allow, out=None, **kwargs)  # noqa: E501
+
+
 @multithreading_enabled
+@deprecate_positional(["indices"], category=DeprecationWarning)
 def points(
-    coords, y=None, z=None, indices=None, handle_nan=HandleNaN.allow, out=None, **kwargs
+    coords,
+    y=None,
+    z=None,
+    indices=None,
+    *,
+    handle_nan=HandleNaN.allow,
+    out=None,
+    **kwargs,
 ):
     """Create an array of points.
 
@@ -111,9 +128,26 @@ def points(
         )
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0: only supported XY and XYZ geometries
+#   linestrings(coords, y=None, z=None, indices=None, out=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'indices' arg
+#   linestrings(coords, y=None, z=None, indices=None, *, handle_nan=HandleNaN.allow, out=None, **kwargs)  # noqa: E501
+# shapely 2.2(?): enforce keyword-only arguments after 'z'
+#   linestrings(coords, y=None, z=None, *, indices=None, handle_nan=HandleNaN.allow, out=None, **kwargs)  # noqa: E501
+
+
 @multithreading_enabled
+@deprecate_positional(["indices"], category=DeprecationWarning)
 def linestrings(
-    coords, y=None, z=None, indices=None, handle_nan=HandleNaN.allow, out=None, **kwargs
+    coords,
+    y=None,
+    z=None,
+    indices=None,
+    *,
+    handle_nan=HandleNaN.allow,
+    out=None,
+    **kwargs,
 ):
     """Create an array of linestrings.
 
@@ -188,9 +222,26 @@ def linestrings(
         )
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0: only supported XY and XYZ geometries
+#   linearrings(coords, y=None, z=None, indices=None, out=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'indices' arg
+#   linearrings(coords, y=None, z=None, indices=None, *, handle_nan=HandleNaN.allow, out=None, **kwargs)  # noqa: E501
+# shapely 2.2(?): enforce keyword-only arguments after 'z'
+#   linearrings(coords, y=None, z=None, *, indices=None, handle_nan=HandleNaN.allow, out=None, **kwargs)  # noqa: E501
+
+
 @multithreading_enabled
+@deprecate_positional(["indices"], category=DeprecationWarning)
 def linearrings(
-    coords, y=None, z=None, indices=None, handle_nan=HandleNaN.allow, out=None, **kwargs
+    coords,
+    y=None,
+    z=None,
+    indices=None,
+    *,
+    handle_nan=HandleNaN.allow,
+    out=None,
+    **kwargs,
 ):
     """Create an array of linearrings.
 
