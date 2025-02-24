@@ -350,7 +350,8 @@ Figure 1. A simple `LineString` on the left, a complex `LineString` on the
 right. The (`MultiPoint`) boundary of each is shown in black, the other points
 that describe the lines are shown in grey.
 
-A `LineString` has zero area and non-zero length if it isn't :ref:`empty <empties>`.
+A `LineString` has zero area and non-zero length if it isn't
+:ref:`empty <empties>`.
 
 .. code-block:: pycon
 
