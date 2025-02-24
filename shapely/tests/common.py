@@ -37,7 +37,7 @@ empty_multi_point = shapely.from_wkt("MULTIPOINT EMPTY")
 empty_multi_line_string = shapely.from_wkt("MULTILINESTRING EMPTY")
 empty_multi_polygon = shapely.from_wkt("MULTIPOLYGON EMPTY")
 multi_point_empty = shapely.multipoints([empty_point])
-multi_line_stringt_empty = shapely.multilinestrings([empty_line_string])
+multi_line_string_empty = shapely.multilinestrings([empty_line_string])
 multi_polygon_empty = shapely.multipolygons([empty_polygon])
 geometry_collection_empty = shapely.geometrycollections([empty_line_string])
 # XYZ
@@ -68,7 +68,7 @@ empty_multi_point_z = shapely.from_wkt("MULTIPOINT Z EMPTY")
 empty_multi_line_string_z = shapely.from_wkt("MULTILINESTRING Z EMPTY")
 empty_multi_polygon_z = shapely.from_wkt("MULTIPOLYGON Z EMPTY")
 multi_point_empty_z = shapely.multipoints([empty_point_z])
-multi_line_stringt_empty_z = shapely.multilinestrings([empty_line_string_z])
+multi_line_string_empty_z = shapely.multilinestrings([empty_line_string_z])
 multi_polygon_empty_z = shapely.multipolygons([empty_polygon_z])
 geometry_collection_empty_z = shapely.geometrycollections([empty_line_string_z])
 # XYM
@@ -95,7 +95,7 @@ empty_multi_point_m = shapely.from_wkt("MULTIPOINT M EMPTY")
 empty_multi_line_string_m = shapely.from_wkt("MULTILINESTRING M EMPTY")
 empty_multi_polygon_m = shapely.from_wkt("MULTIPOLYGON M EMPTY")
 multi_point_empty_m = shapely.multipoints([empty_point_m])
-multi_line_stringt_empty_m = shapely.multilinestrings([empty_line_string_m])
+multi_line_string_empty_m = shapely.multilinestrings([empty_line_string_m])
 multi_polygon_empty_m = shapely.multipolygons([empty_polygon_m])
 geometry_collection_empty_m = shapely.geometrycollections([empty_line_string_m])
 # XYZM
@@ -126,7 +126,7 @@ empty_multi_point_zm = shapely.from_wkt("MULTIPOINT ZM EMPTY")
 empty_multi_line_string_zm = shapely.from_wkt("MULTILINESTRING ZM EMPTY")
 empty_multi_polygon_zm = shapely.from_wkt("MULTIPOLYGON ZM EMPTY")
 multi_point_empty_zm = shapely.multipoints([empty_point_zm])
-multi_line_stringt_empty_zm = shapely.multilinestrings([empty_line_string_zm])
+multi_line_string_empty_zm = shapely.multilinestrings([empty_line_string_zm])
 multi_polygon_empty_zm = shapely.multipolygons([empty_polygon_zm])
 geometry_collection_empty_zm = shapely.geometrycollections([empty_line_string_zm])
 
@@ -148,7 +148,7 @@ all_types = (
     empty_multi_line_string,
     empty_multi_polygon,
     multi_point_empty,
-    multi_line_stringt_empty,
+    multi_line_string_empty,
     multi_polygon_empty,
     geometry_collection_empty,
 )
@@ -171,7 +171,7 @@ all_types_z = (
     empty_multi_line_string_z,
     empty_multi_polygon_z,
     multi_point_empty_z,
-    multi_line_stringt_empty_z,
+    multi_line_string_empty_z,
     multi_polygon_empty_z,
     geometry_collection_empty_z,
 )
@@ -193,7 +193,7 @@ all_types_m = (
     empty_multi_line_string_m,
     empty_multi_polygon_m,
     multi_point_empty_m,
-    multi_line_stringt_empty_m,
+    multi_line_string_empty_m,
     multi_polygon_empty_m,
     geometry_collection_empty_m,
 )
@@ -215,7 +215,7 @@ all_types_zm = (
     empty_multi_line_string_zm,
     empty_multi_polygon_zm,
     multi_point_empty_zm,
-    multi_line_stringt_empty_zm,
+    multi_line_string_empty_zm,
     multi_polygon_empty_zm,
     geometry_collection_empty_zm,
 )
