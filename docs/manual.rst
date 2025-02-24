@@ -468,7 +468,7 @@ instance, respectively.
   >>> LinearRing(ring)
   <LINEARRING (0 0, 1 1, 1 0, 0 0)>
 
-As with `LineString`, a sequence of `Point` instances is not a valid
+As with `LineString`, a sequence of `Point` instances is a valid
 constructor parameter.
 
 .. _polygons:

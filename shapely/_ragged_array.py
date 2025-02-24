@@ -41,7 +41,7 @@ from shapely._geometry_helpers import (
 from shapely.coordinates import get_coordinates
 from shapely.predicates import is_empty, is_missing
 
-__all__ = ["to_ragged_array", "from_ragged_array"]
+__all__ = ["from_ragged_array", "to_ragged_array"]
 
 
 # # GEOS -> coords/offset arrays (to_ragged_array)

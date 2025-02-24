@@ -63,8 +63,7 @@ class AffineTestCase(unittest.TestCase):
         )
         test_geom(
             load_wkt(
-                "MULTILINESTRING((0 0, -0.7 -0.7, 0.6 -1), "
-                "(-0.5 0.5, 0.7 0.6, 0 -0.6))"
+                "MULTILINESTRING((0 0, -0.7 -0.7, 0.6 -1), (-0.5 0.5, 0.7 0.6, 0 -0.6))"
             )
         )
         test_geom(

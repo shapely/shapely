@@ -21,22 +21,22 @@ from shapely.prepared import prep
 
 __all__ = [
     "cascaded_union",
+    "clip_by_rect",
     "linemerge",
+    "nearest_points",
     "operator",
+    "orient",
     "polygonize",
     "polygonize_full",
-    "transform",
-    "unary_union",
-    "triangulate",
-    "voronoi_diagram",
-    "split",
-    "nearest_points",
-    "validate",
-    "snap",
     "shared_paths",
-    "clip_by_rect",
-    "orient",
+    "snap",
+    "split",
     "substring",
+    "transform",
+    "triangulate",
+    "unary_union",
+    "validate",
+    "voronoi_diagram",
 ]
 
 
@@ -658,8 +658,7 @@ def substring(geom, start_dist, end_dist, normalized=False):
     if reverse:
         start_dist, end_dist = end_dist, start_dist
 
-    if start_dist < 0:
-        start_dist = 0  # to avoid duplicating the first vertex
+    start_dist = max(start_dist, 0)  # to avoid duplicating the first vertex
 
     if reverse:
         vertex_list = [tuple(*end_point.coords)]

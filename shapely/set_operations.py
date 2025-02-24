@@ -6,7 +6,11 @@ from shapely import Geometry, GeometryType, lib
 from shapely.decorators import multithreading_enabled, requires_geos
 
 __all__ = [
+    "coverage_union",
+    "coverage_union_all",
     "difference",
+    "disjoint_subset_union",
+    "disjoint_subset_union_all",
     "intersection",
     "intersection_all",
     "symmetric_difference",
@@ -14,10 +18,6 @@ __all__ = [
     "unary_union",
     "union",
     "union_all",
-    "coverage_union",
-    "coverage_union_all",
-    "disjoint_subset_union",
-    "disjoint_subset_union_all",
 ]
 
 
