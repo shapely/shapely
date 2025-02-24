@@ -350,7 +350,7 @@ Figure 1. A simple `LineString` on the left, a complex `LineString` on the
 right. The (`MultiPoint`) boundary of each is shown in black, the other points
 that describe the lines are shown in grey.
 
-A `LineString` has zero area and non-zero length.
+A `LineString` has zero area and non-zero length if it isn't :ref:`empty <empties>`.
 
 .. code-block:: pycon
 
@@ -430,7 +430,8 @@ grey. A ring's boundary is `empty`.
    Shapely will not prevent the creation of such rings, but exceptions will be
    raised when they are operated on.
 
-A `LinearRing` has zero area and non-zero length.
+A `LinearRing` has zero area and non-zero length if it isn't
+:ref:`empty <empties>`.
 
 .. code-block:: pycon
 
@@ -499,6 +500,9 @@ points that describe the rings are shown in grey.
 Figure 4. On the left, a `Polygon` that is `invalid` because its exterior and
 interior rings touch along a line, and on the right, a `Polygon` that is
 `invalid` because its interior rings touch along a line.
+
+A `Polygon` has non-zero area and non-zero length if it isn't
+:ref:`empty <empties>`.
 
 .. code-block:: pycon
 
@@ -675,7 +679,8 @@ Figure 6. On the left, a `simple`, disconnected `MultiLineString`, and on the
 right, a non-simple `MultiLineString`. The points defining the objects are
 shown in gray, the boundaries of the objects in black.
 
-A `MultiLineString` has zero area and non-zero length.
+A `MultiLineString` has zero area and non-zero length if it isn't
+:ref:`empty <empties>`.
 
 .. code-block:: pycon
 
@@ -1027,7 +1032,8 @@ Operations on non-simple `LineStrings` are fully supported by Shapely.
 
 A valid `Polygon` may not possess any overlapping exterior or interior rings. A
 valid `MultiPolygon` may not collect any overlapping polygons. A valid `LineString`
-must have non-zero length. Operations on invalid features may fail.
+must have non-zero length if it isn't :ref:`empty <empties>`. Operations on invalid
+features may fail.
 
 .. code-block:: pycon
 
