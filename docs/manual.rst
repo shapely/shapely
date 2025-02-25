@@ -152,10 +152,13 @@ plane.
 Geometric Objects
 =================
 
-Geometric objects are created in the typical Python fashion, using the classes
-themselves as instance factories. A few of their intrinsic properties will be
-discussed in this sections, others in the following sections on operations and
-serializations.
+Single geometric objects can be created in the typical Python fashion, using
+the classes themselves as instance factories. To create multiple geometric
+objects it is significantly faster to use the
+:ref:`Geometry creation <ref-creation>` functions.
+
+A few of their intrinsic properties will be discussed in this sections, others
+in the following sections on operations and serializations.
 
 Instances of ``Point``, ``LineString``, and ``LinearRing`` have as their most
 important attribute a finite sequence of coordinates that determines their
@@ -286,6 +289,9 @@ Points
   >>> point = Point(0.0, 0.0)
   >>> q = Point((0.0, 0.0))
 
+An array of `Point` instances can be created efficiently with
+:func:`~shapely.points`.
+
 A `Point` has zero area and zero length.
 
 .. code-block:: pycon
@@ -338,6 +344,9 @@ LineStrings
 
   The `LineString` constructor takes an ordered sequence of 2 or more
   ``(x, y[, z])`` point tuples.
+
+An array of `LineString` instances can be created efficiently with
+:func:`~shapely.linestrings`.
 
 The constructed `LineString` object represents one or more connected linear
 splines between the points. Repeated points in the ordered sequence are
@@ -414,6 +423,9 @@ LinearRings
   The `LinearRing` constructor takes an ordered sequence of ``(x, y[, z])``
   point tuples.
 
+An array of `LinearRing` instances can be created efficiently with
+:func:`~shapely.linearrings`.
+
 The sequence may be explicitly closed by passing identical values in the first
 and last indices. Otherwise, the sequence will be implicitly closed by copying
 the first tuple to the last index. As with a `LineString`, repeated points in
@@ -483,6 +495,9 @@ Polygons
   the `LinearRing` case. The second is an optional unordered sequence of
   ring-like sequences specifying the interior boundaries or "holes" of the
   feature.
+
+An array of `Polygon` instances can be created efficiently with
+:func:`~shapely.polygons`.
 
 Rings of a `valid` `Polygon` may not cross each other, but may touch at a
 single point only.  Again, Shapely will not prevent the creation of invalid
@@ -631,6 +646,9 @@ Collections of Points
   The `MultiPoint` constructor takes a sequence of ``(x, y[, z ])`` point
   tuples.
 
+An array of `MultiPoint` instances can be created efficiently with
+:func:`~shapely.multipoints`.
+
 A `MultiPoint` has zero area and zero length.
 
 .. code-block:: pycon
@@ -673,6 +691,9 @@ Collections of Lines
 
   The `MultiLineString` constructor takes a sequence of line-like sequences or
   objects.
+
+An array of `MultiLineString` instances can be created efficiently with
+:func:`~shapely.multilinestrings`.
 
 .. plot:: code/multilinestring.py
 
@@ -733,6 +754,9 @@ Collections of Polygons
 More clearly, the constructor also accepts an unordered sequence of `Polygon`
 instances, thereby making copies.
 
+An array of `MultiPolygon` instances can be created efficiently with
+:func:`~shapely.multipolygons`.
+
 .. code-block:: pycon
 
   >>> from shapely import MultiPolygon
@@ -770,6 +794,9 @@ An "empty" feature is one with a point set that coincides with the empty set;
 not ``None``, but like ``set([])``. Empty features can be created by calling
 the various constructors with no arguments. Almost no operations are supported
 by empty features.
+
+An array of empty feature instances can be created efficiently with
+:func:`~shapely.empty`.
 
 .. code-block:: pycon
 
