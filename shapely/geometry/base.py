@@ -28,6 +28,8 @@ GEOMETRY_TYPES = [
     "GeometryCollection",
 ]
 
+_geos_ge_312 = shapely.geos_version >= (3, 12, 0)
+
 
 def geom_factory(g, parent=None):
     """Create a Shapely geometry instance from a pointer to a GEOS geometry.
@@ -216,7 +218,9 @@ class BaseGeometry(shapely.Geometry):
     @property
     def coords(self):
         """Access to geometry's coordinates (CoordinateSequence)."""
-        coords_array = shapely.get_coordinates(self, include_z=self.has_z)
+        has_z = self.has_z
+        has_m = self.has_m if _geos_ge_312 else False
+        coords_array = shapely.get_coordinates(self, include_z=has_z, include_m=has_m)
         return CoordinateSequence(coords_array)
 
     @property
