@@ -12,6 +12,6 @@ have discussion on an issue before sinking a lot of time into a pull request.
 
 Shapely is a mature project and its primary needs are bug fixes and
 documentation. New features and major refactoring will be welcomed cautiously
-and slowly. Please open a discussion about such work before starting.
-
-TODO: more about contributing.
+and slowly because the work of maintaining a new feature over the lifetime of
+the project can be several times larger than the work of the initial
+contribution. Please open a discussion about such work before starting.
