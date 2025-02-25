@@ -1,3 +1,5 @@
+"""See test_creation_indices.py for tests with 'indices' parameter."""
+
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
@@ -37,18 +39,6 @@ def box_tpl(x1, y1, x2, y2):
 def test_points_from_coords():
     actual = shapely.points([[0, 0], [2, 2]])
     assert_geometries_equal(actual, [shapely.Point(0, 0), shapely.Point(2, 2)])
-
-
-def test_points_from_coords_indices():
-    actual = shapely.points([[0, 1], [2, 3]], indices=[0, 1])
-    assert_geometries_equal(actual, [shapely.Point(0, 1), shapely.Point(2, 3)])
-
-
-def test_points_pos_args_deprecation_warning():
-    with pytest.deprecated_call(
-        match="positional argument `indices` for `points` is deprecated"
-    ):
-        shapely.points([[0, 1], [2, 3]], None, None, [0, 1])
 
 
 def test_points_from_xy():
@@ -163,24 +153,6 @@ def test_linestrings_from_coords():
             LineString([(0, 0), (2, 2)]),
         ],
     )
-
-
-def test_linestrings_from_coords_indices():
-    actual = shapely.linestrings([[0, 1], [2, 3], [4, 5], [6, 7]], indices=[0, 0, 1, 1])
-    assert_geometries_equal(
-        actual,
-        [
-            LineString([(0, 1), (2, 3)]),
-            LineString([(4, 5), (6, 7)]),
-        ],
-    )
-
-
-def test_linestrings_pos_args_deprecation_warning():
-    with pytest.deprecated_call(
-        match="positional argument `indices` for `linestrings` is deprecated"
-    ):
-        shapely.linestrings([[0, 1], [2, 3], [4, 5], [6, 7]], None, None, [0, 0, 1, 1])
 
 
 def test_linestrings_from_xy():
@@ -330,23 +302,6 @@ def test_linearrings_empty():
 def test_linearrings_from_xy():
     actual = shapely.linearrings([0, 1, 2, 0], [3, 4, 5, 3])
     assert_geometries_equal(actual, LinearRing([(0, 3), (1, 4), (2, 5), (0, 3)]))
-
-
-def test_linearrings_from_coords():
-    actual = shapely.linearrings([[0, 1], [1, 1], [1, 0]])
-    assert_geometries_equal(actual, LinearRing([(0, 1), (1, 1), (1, 0), (0, 1)]))
-
-
-def test_linearrings_from_coords_indices():
-    actual = shapely.linearrings([[0, 1], [1, 1], [1, 0]], indices=[0, 0, 0])
-    assert_geometries_equal(actual, LinearRing([(0, 1), (1, 1), (1, 0), (0, 1)]))
-
-
-def test_linearrings_pos_args_deprecation_warning():
-    with pytest.deprecated_call(
-        match="positional argument `indices` for `linearrings` is deprecated"
-    ):
-        shapely.linearrings([[0, 1], [1, 1], [1, 0]], None, None, [0, 0, 0])
 
 
 def test_linearrings_unclosed():

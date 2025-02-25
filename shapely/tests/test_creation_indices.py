@@ -527,3 +527,24 @@ def test_multipolygons():
 def test_incompatible_types(geometries, func):
     with pytest.raises(TypeError):
         func(geometries, indices=[0])
+
+
+def test_points_pos_args_deprecation_warning():
+    with pytest.deprecated_call(
+        match="positional argument `indices` for `points` is deprecated"
+    ):
+        shapely.points([[0, 1], [2, 3]], None, None, [0, 1])
+
+
+def test_linestrings_pos_args_deprecation_warning():
+    with pytest.deprecated_call(
+        match="positional argument `indices` for `linestrings` is deprecated"
+    ):
+        shapely.linestrings([[0, 1], [2, 3], [4, 5], [6, 7]], None, None, [0, 0, 1, 1])
+
+
+def test_linearrings_pos_args_deprecation_warning():
+    with pytest.deprecated_call(
+        match="positional argument `indices` for `linearrings` is deprecated"
+    ):
+        shapely.linearrings([[0, 1], [1, 1], [1, 0]], None, None, [0, 0, 0])
