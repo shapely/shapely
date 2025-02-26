@@ -694,6 +694,13 @@ def test_box_nan(coords):
     assert shapely.box(*coords) is None
 
 
+def test_box_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `ccw` for `box` is deprecated"
+    ):
+        shapely.box(0, 0, 1, 1, True)
+
+
 def test_prepare():
     arr = np.array([shapely.points(1, 1), None, shapely.box(0, 0, 1, 1)])
     assert arr[0]._geom_prepared == 0

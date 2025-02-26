@@ -529,22 +529,57 @@ def test_incompatible_types(geometries, func):
         func(geometries, indices=[0])
 
 
-def test_points_pos_args_deprecation_warning():
+def test_points_deprecate_positional():
     with pytest.deprecated_call(
         match="positional argument `indices` for `points` is deprecated"
     ):
         shapely.points([[0, 1], [2, 3]], None, None, [0, 1])
 
 
-def test_linestrings_pos_args_deprecation_warning():
+def test_linestrings_deprecate_positional():
     with pytest.deprecated_call(
         match="positional argument `indices` for `linestrings` is deprecated"
     ):
         shapely.linestrings([[0, 1], [2, 3], [4, 5], [6, 7]], None, None, [0, 0, 1, 1])
 
 
-def test_linearrings_pos_args_deprecation_warning():
+def test_linearrings_deprecate_positional():
     with pytest.deprecated_call(
         match="positional argument `indices` for `linearrings` is deprecated"
     ):
         shapely.linearrings([[0, 1], [1, 1], [1, 0]], None, None, [0, 0, 0])
+
+
+def test_polygons_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `indices` for `polygons` is deprecated"
+    ):
+        shapely.polygons([linear_ring, linear_ring], None, [0, 1])
+
+
+def test_multipoints_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `indices` for `multipoints` is deprecated"
+    ):
+        shapely.multipoints([point, point], [0, 1])
+
+
+def test_multilinestrings_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `indices` for `multilinestrings` is deprecated"
+    ):
+        shapely.multilinestrings([line_string, line_string], [0, 1])
+
+
+def test_multipolygons_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `indices` for `multipolygons` is deprecated"
+    ):
+        shapely.multipolygons([polygon, polygon], [0, 1])
+
+
+def test_geometrycollections_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `indices` for `geometrycollections` is deprecated"
+    ):
+        shapely.geometrycollections([point, polygon], [0, 1])
