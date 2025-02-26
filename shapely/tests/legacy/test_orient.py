@@ -1,5 +1,7 @@
 import unittest
 
+from numpy.testing import assert_array_equal
+
 from shapely.geometry import (
     GeometryCollection,
     LinearRing,
@@ -66,3 +68,25 @@ class OrientTestCase(unittest.TestCase):
         collection = GeometryCollection([polygon])
         assert orient(collection, 1) == GeometryCollection([polygon_reversed])
         assert orient(collection, -1) == GeometryCollection([polygon])
+
+    def test_polygon_with_holes(self):
+        ring_cw = LinearRing([(0, 0), (0, 1), (1, 1), (0, 0)])
+        ring_cw2 = LinearRing([(0, 0), (0, 3), (3, 3), (0, 0)])
+        ring_ccw = LinearRing([(0, 0), (1, 1), (0, 1), (0, 0)])
+        ring_ccw2 = LinearRing([(0, 0), (2, 2), (0, 2), (0, 0)])
+
+        polygon_with_holes_mixed = Polygon(
+            ring_ccw, [ring_cw, ring_ccw2, ring_cw2, ring_ccw]
+        )
+        polygon_with_holes_ccw = Polygon(
+            ring_ccw, [ring_cw, ring_ccw2.reverse(), ring_cw2, ring_ccw.reverse()]
+        )
+
+        assert_array_equal(orient(polygon_with_holes_ccw, 1), polygon_with_holes_ccw)
+        assert_array_equal(
+            orient(polygon_with_holes_ccw, -1), polygon_with_holes_ccw.reverse()
+        )
+        assert_array_equal(orient(polygon_with_holes_mixed, 1), polygon_with_holes_ccw)
+        assert_array_equal(
+            orient(polygon_with_holes_mixed, -1), polygon_with_holes_ccw.reverse()
+        )
