@@ -162,7 +162,13 @@ class LineString(BaseGeometry):
             raise ValueError("Cannot compute offset from zero-length line segment")
         elif not np.isfinite(distance):
             raise ValueError("offset_curve distance must be finite")
-        return shapely.offset_curve(self, distance, quad_segs, join_style, mitre_limit)
+        return shapely.offset_curve(
+            self,
+            distance,
+            quad_segs=quad_segs,
+            join_style=join_style,
+            mitre_limit=mitre_limit,
+        )
 
     def parallel_offset(
         self,

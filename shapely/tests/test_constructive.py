@@ -1301,3 +1301,65 @@ def test_orient_polygons_non_polygonal_input():
     arr = np.array([Point(0, 0), LineString([(0, 0), (1, 1)]), None])
     result = shapely.orient_polygons(arr)
     assert_geometries_equal(result, arr)
+
+
+def test_buffer_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `quad_segs` for `buffer` is deprecated"
+    ):
+        shapely.buffer(point, 1.0, 8)
+    with pytest.deprecated_call(
+        match="positional arguments `quad_segs` and `cap_style` "
+        "for `buffer` are deprecated"
+    ):
+        shapely.buffer(point, 1.0, 8, "round")
+    with pytest.deprecated_call(
+        match="positional arguments `quad_segs`, `cap_style`, and `join_style` "
+        "for `buffer` are deprecated"
+    ):
+        shapely.buffer(point, 1.0, 8, "round", "round")
+    with pytest.deprecated_call():
+        shapely.buffer(point, 1.0, 8, "round", "round", 5.0)
+    with pytest.deprecated_call():
+        shapely.buffer(point, 1.0, 8, "round", "round", 5.0, False)
+
+
+def test_offset_curve_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `quad_segs` for `offset_curve` is deprecated"
+    ):
+        shapely.offset_curve(line_string, 1.0, 8)
+    with pytest.deprecated_call(
+        match="positional arguments `quad_segs` and `join_style` "
+        "for `offset_curve` are deprecated"
+    ):
+        shapely.offset_curve(line_string, 1.0, 8, "round")
+    with pytest.deprecated_call(
+        match="positional arguments `quad_segs`, `join_style`, and `mitre_limit` "
+        "for `offset_curve` are deprecated"
+    ):
+        shapely.offset_curve(line_string, 1.0, 8, "round", 5.0)
+
+
+def test_simplify_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `preserve_topology` for `simplify` is deprecated"
+    ):
+        shapely.simplify(line_string, 1.0, True)
+
+
+def test_voronoi_polygons_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `extend_to` for `voronoi_polygons` is deprecated"
+    ):
+        shapely.voronoi_polygons(multi_point, 0.0, None)
+    with pytest.deprecated_call(
+        match="positional arguments `extend_to` and `only_edges` "
+        "for `voronoi_polygons` are deprecated"
+    ):
+        shapely.voronoi_polygons(multi_point, 0.0, None, False)
+    with pytest.deprecated_call(
+        match="positional arguments `extend_to`, `only_edges`, and `ordered` "
+        "for `voronoi_polygons` are deprecated"
+    ):
+        shapely.voronoi_polygons(multi_point, 0.0, None, False, False)
