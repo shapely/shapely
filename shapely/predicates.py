@@ -1035,7 +1035,7 @@ def within(a, b, **kwargs):
 
 
 @multithreading_enabled
-def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
+def equals_exact(a, b, tolerance=0.0, *, normalize=False, **kwargs):
     """Return True if the geometries are structurally equivalent within a given
     tolerance.
 

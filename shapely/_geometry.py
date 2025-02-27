@@ -5,7 +5,11 @@ import numpy as np
 
 from shapely import _geometry_helpers, geos_version, lib
 from shapely._enum import ParamEnum
-from shapely.decorators import multithreading_enabled, requires_geos
+from shapely.decorators import (
+    deprecate_positional,
+    multithreading_enabled,
+    requires_geos,
+)
 
 __all__ = [
     "GeometryType",
@@ -629,6 +633,16 @@ def get_geometry(geometry, index, **kwargs):
     return lib.get_geometry(geometry, np.intc(index), **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   get_parts(geometry, return_index=False)
+# shapely 2.1: shows deprecation warning about positional 'return_index'
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'geometry'
+#   get_parts(geometry, *, return_index=False)
+
+
+@deprecate_positional(["return_index"])
 def get_parts(geometry, return_index=False):
     """Get parts of each GeometryCollection or Multi* geometry object.
 
@@ -647,6 +661,14 @@ def get_parts(geometry, return_index=False):
     return_index : bool, default False
         If True, will return a tuple of ndarrays of (parts, indexes), where
         indexes are the indexes of the original geometries in the source array.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``return_index`` is specified as
+        a positional argument. This will need to be specified as a keyword
+        argument in a future release.
 
     Returns
     -------
@@ -682,6 +704,16 @@ MultiPoint([(4, 5), (6, 7)])], return_index=True)
     return _geometry_helpers.get_parts(geometry)[0]
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   get_rings(geometry, return_index=False)
+# shapely 2.1: shows deprecation warning about positional 'return_index'
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'geometry'
+#   get_rings(geometry, *, return_index=False)
+
+
+@deprecate_positional(["return_index"])
 def get_rings(geometry, return_index=False):
     """Get rings of Polygon geometry object.
 
@@ -698,6 +730,14 @@ def get_rings(geometry, return_index=False):
     return_index : bool, default False
         If True, will return a tuple of ndarrays of (rings, indexes), where
         indexes are the indexes of the original geometries in the source array.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``return_index`` is specified as
+        a positional argument. This will need to be specified as a keyword
+        argument in a future release.
 
     Returns
     -------

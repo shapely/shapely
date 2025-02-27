@@ -90,6 +90,14 @@ def test_line_interpolate_point_nan():
     assert shapely.line_interpolate_point(line_string, np.nan) is None
 
 
+def test_line_interpolate_point_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `normalized` for `line_interpolate_point` "
+        "is deprecated"
+    ):
+        shapely.line_interpolate_point(line_string, 0, False)
+
+
 def test_line_locate_point_geom_array():
     point = shapely.points(0, 1)
     actual = shapely.line_locate_point([line_string, linear_ring], point)
@@ -125,6 +133,13 @@ def test_line_locate_point_invalid_geometry(normalized):
 
     with pytest.raises(shapely.GEOSException):
         shapely.line_locate_point(polygon, point, normalized=normalized)
+
+
+def test_line_locate_point_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `normalized` for `line_locate_point` is deprecated"
+    ):
+        shapely.line_locate_point(line_string, point, False)
 
 
 def test_line_merge_geom_array():

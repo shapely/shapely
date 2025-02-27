@@ -9,10 +9,21 @@ from shapely.decorators import deprecate_positional
 __all__ = ["count_coordinates", "get_coordinates", "set_coordinates", "transform"]
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0: only supported XY and XYZ geometries
+#   transform(geometry, transformation, include_z=False)
+# shapely 2.1: shows deprecation warning about positional 'include_z' arg
+#   transform(geometry, transformation, include_z=False, *, interleaved=True)
+# shapely 2.2(?): enforce keyword-only arguments after 'transformation'
+#   transform(geometry, transformation, *, include_z=False, interleaved=True)
+
+
+@deprecate_positional(["include_z"], category=DeprecationWarning)
 def transform(
     geometry,
     transformation,
     include_z: bool | None = False,
+    *,
     interleaved: bool = True,
 ):
     """Apply a function to the coordinates of a geometry.
@@ -46,6 +57,14 @@ def transform(
         two-dimensional array.
 
         .. versionadded:: 2.1.0
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``include_z`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
 
     See Also
     --------
@@ -100,10 +119,13 @@ interleaved=False, include_z=True)
         has_z = shapely.has_z(geometry_arr)
         result = np.empty_like(geometry_arr)
         result[has_z] = transform(
-            geometry_arr[has_z], transformation, True, interleaved
+            geometry_arr[has_z], transformation, include_z=True, interleaved=interleaved
         )
         result[~has_z] = transform(
-            geometry_arr[~has_z], transformation, False, interleaved
+            geometry_arr[~has_z],
+            transformation,
+            include_z=False,
+            interleaved=interleaved,
         )
     else:
         # TODO: expose include_m
@@ -166,9 +188,9 @@ def count_coordinates(geometry):
 # Note: future plan is to change this signature over a few releases:
 # shapely 2.0: only supported XY and XYZ geometries
 #   get_coordinates(geometry, include_z=False, return_index=False)
-# shapely 2.1: adds include_m at end, shows deprecation warning about position keywords
+# shapely 2.1: shows deprecation warning about positional 'include_z' and 'return_index'
 #   get_coordinates(geometry, include_z=False, return_index=False, *, include_m=False)
-# shapely 2.2(?): enforces keyword position arguments after geometry
+# shapely 2.2(?): enforce keyword-only arguments after 'geometry'
 #   get_coordinates(geometry, *, include_z=False, include_m=False, return_index=False)
 
 

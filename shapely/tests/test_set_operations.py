@@ -409,3 +409,65 @@ def test_uary_union_alias():
     actual = shapely.unary_union(geoms, grid_size=1)
     expected = shapely.union_all(geoms, grid_size=1)
     assert shapely.equals(actual, expected)
+
+
+def test_difference_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `grid_size` for `difference` is deprecated"
+    ):
+        shapely.difference(point, point, None)
+
+
+def test_intersection_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `grid_size` for `intersection` is deprecated"
+    ):
+        shapely.intersection(point, point, None)
+
+
+def test_intersection_all_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `axis` for `intersection_all` is deprecated"
+    ):
+        shapely.intersection_all([point, point], None)
+
+
+def test_symmetric_difference_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `grid_size` for `symmetric_difference` is deprecated"
+    ):
+        shapely.symmetric_difference(point, point, None)
+
+
+def test_symmetric_difference_all_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `axis` for `symmetric_difference_all` is deprecated"
+    ):
+        shapely.symmetric_difference_all([point, point], None)
+
+
+def test_union_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `grid_size` for `union` is deprecated"
+    ):
+        shapely.union(point, point, None)
+
+
+def test_union_all_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `grid_size` for `union_all` is deprecated"
+    ):
+        shapely.union_all([point, point], None)
+    with pytest.deprecated_call(
+        match="positional arguments `grid_size` and `axis` for `union_all` "
+        "are deprecated"
+    ):
+        shapely.union_all([point, point], None, None)
+
+
+def test_coverage_union_all_deprecate_positional():
+    data = [shapely.box(0, 0, 1, 1), shapely.box(1, 0, 2, 1)]
+    with pytest.deprecated_call(
+        match="positional argument `axis` for `coverage_union_all` is deprecated"
+    ):
+        shapely.coverage_union_all(data, None)

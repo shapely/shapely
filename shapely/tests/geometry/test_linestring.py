@@ -212,3 +212,21 @@ def test_linestring_array_coercion():
     assert arr.size == 1
     assert arr.dtype == np.dtype("object")
     assert arr.item() == line
+
+
+def test_offset_curve_deprecate_positional():
+    line_string = LineString([(1.0, 2.0), (3.0, 4.0)])
+    with pytest.deprecated_call(
+        match="positional argument `quad_segs` for `offset_curve` is deprecated"
+    ):
+        line_string.offset_curve(1.0, 8)
+    with pytest.deprecated_call(
+        match="positional arguments `quad_segs` and `join_style` "
+        "for `offset_curve` are deprecated"
+    ):
+        line_string.offset_curve(1.0, 8, "round")
+    with pytest.deprecated_call(
+        match="positional arguments `quad_segs`, `join_style`, and `mitre_limit` "
+        "for `offset_curve` are deprecated"
+    ):
+        line_string.offset_curve(1.0, 8, "round", 5.0)

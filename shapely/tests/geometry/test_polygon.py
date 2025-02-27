@@ -352,7 +352,7 @@ class TestPolygon:
             (0.0, 0.0),
         ]
 
-        ec = list(Point(0.0, 0.0).buffer(1.0, 1).exterior.coords)
+        ec = list(Point(0.0, 0.0).buffer(1.0, quad_segs=1).exterior.coords)
         assert isinstance(ec, list)  # TODO: this is a poor test
 
         # Test chained access to interiors

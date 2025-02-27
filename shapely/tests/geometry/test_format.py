@@ -79,7 +79,7 @@ def test_format_point(format_spec, coords, expt_wkt, same_python_float):
 
 def test_format_polygon():
     # check basic cases
-    poly = Point(0, 0).buffer(10, 2)
+    poly = Point(0, 0).buffer(10, quad_segs=2)
     assert f"{poly}" == poly.wkt
     assert format(poly, "") == poly.wkt
     assert format(poly, "x") == poly.wkb_hex.lower()

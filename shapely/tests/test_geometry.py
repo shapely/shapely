@@ -369,6 +369,13 @@ def test_get_parts_invalid_geometry(geom):
         shapely.get_parts(geom)
 
 
+def test_get_parts_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `return_index` for `get_parts` is deprecated"
+    ):
+        shapely.get_parts(multi_point, False)
+
+
 @pytest.mark.parametrize(
     "geom",
     [
@@ -429,6 +436,13 @@ def test_get_rings_invalid_dimensions(geom):
     """Only 1D inputs are supported"""
     with pytest.raises(ValueError, match="Array should be one dimensional"):
         shapely.get_parts(geom)
+
+
+def test_get_rings_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `return_index` for `get_rings` is deprecated"
+    ):
+        shapely.get_rings(polygon, False)
 
 
 def test_get_precision():

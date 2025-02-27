@@ -202,7 +202,7 @@ def test_get_coords_zm(geoms, x, y, z, m, include_z, include_m):
     assert_equal(actual, np.array(expected, np.float64).T)
 
 
-def test_get_coords_pos_args_deprecation_warning():
+def test_get_coords_deprecate_positional():
     with pytest.deprecated_call(
         match="positional argument `include_z` for `get_coordinates` is deprecated"
     ):
@@ -413,3 +413,10 @@ def test_transform_auto_coordinate_dimension_mixed_interleaved():
         shapely.get_coordinates(line_string_z, include_z=True) + [1, 2, 3],
         shapely.get_coordinates(new_geom[1], include_z=True),
     )
+
+
+def test_transform_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `include_z` for `transform` is deprecated"
+    ):
+        transform(line_string_z, lambda x: x + 1, False)
