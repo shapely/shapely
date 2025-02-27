@@ -626,15 +626,15 @@ def substring(geom, start_dist, end_dist, normalized=False):
 
     # Filter out cases in which to return a point
     if start_dist == end_dist:
-        return geom.interpolate(start_dist, normalized)
+        return geom.interpolate(start_dist, normalized=normalized)
     elif not normalized and start_dist >= geom.length and end_dist >= geom.length:
-        return geom.interpolate(geom.length, normalized)
+        return geom.interpolate(geom.length, normalized=normalized)
     elif not normalized and -start_dist >= geom.length and -end_dist >= geom.length:
-        return geom.interpolate(0, normalized)
+        return geom.interpolate(0, normalized=normalized)
     elif normalized and start_dist >= 1 and end_dist >= 1:
-        return geom.interpolate(1, normalized)
+        return geom.interpolate(1, normalized=normalized)
     elif normalized and -start_dist >= 1 and -end_dist >= 1:
-        return geom.interpolate(0, normalized)
+        return geom.interpolate(0, normalized=normalized)
 
     if normalized:
         start_dist *= geom.length

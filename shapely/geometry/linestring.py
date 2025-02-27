@@ -3,6 +3,7 @@
 import numpy as np
 
 import shapely
+from shapely.decorators import deprecate_positional
 from shapely.geometry.base import JOIN_STYLE, BaseGeometry
 from shapely.geometry.point import Point
 
@@ -125,6 +126,17 @@ class LineString(BaseGeometry):
         """
         return self.coords.xy
 
+    # Note: future plan is to change this signature over a few releases:
+    # shapely 2.0:
+    #   offset_curve(self, distance, quad_segs=16, ...)
+    # shapely 2.1: shows deprecation warning about positional 'quad_segs', etc.
+    #   same signature as 2.0
+    # shapely 2.2(?): enforce keyword-only arguments after 'distance'
+    #   offset_curve(self, distance, *, quad_segs=16, ...)
+
+    @deprecate_positional(
+        ["quad_segs", "join_style", "mitre_limit"], category=DeprecationWarning
+    )
     def offset_curve(
         self,
         distance,

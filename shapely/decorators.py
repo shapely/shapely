@@ -122,7 +122,7 @@ def deprecate_positional(should_be_kwargs, category=DeprecationWarning):
                     else:
                         args = ", ".join(warn_args[:-1]) + ", and " + warn_args[-1]
                 msg = (
-                    f"positional argument{plr} {args} for `{func.__qualname__}` "
+                    f"positional argument{plr} {args} for `{func.__name__}` "
                     f"{isare} deprecated.  Please use keyword argument{plr} instead."
                 )
                 warnings.warn(msg, category=category, stacklevel=2)
