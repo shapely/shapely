@@ -769,7 +769,7 @@ class BaseGeometry(shapely.Geometry):
         """
         return _maybe_unpack(shapely.dwithin(self, other, distance))
 
-    def equals_exact(self, other, tolerance=0.0, normalize=False):
+    def equals_exact(self, other, tolerance=0.0, *, normalize=False):
         """Return True if the geometries are equivalent within the tolerance.
 
         Refer to :func:`~shapely.equals_exact` for full documentation.
@@ -802,7 +802,9 @@ class BaseGeometry(shapely.Geometry):
         bool
 
         """
-        return _maybe_unpack(shapely.equals_exact(self, other, tolerance, normalize))
+        return _maybe_unpack(
+            shapely.equals_exact(self, other, tolerance, normalize=normalize)
+        )
 
     def almost_equals(self, other, decimal=6):
         """Return True if all coordinates are equal to a specified decimal place.
