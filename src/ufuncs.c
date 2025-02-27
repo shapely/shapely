@@ -3642,28 +3642,13 @@ static void coverage_simplify_func(char** args, const npy_intp* dimensions, cons
     double in2 = *(double*)ip2;
     npy_bool in3 = !(*(npy_bool*)ip3);
 
-    int isValid = 1;
-    int numGeoms = GEOSGetNumGeometries_r(ctx, in1);
-    for (int j = 0; j < numGeoms; j++) {
-      GEOSGeometry* geom = GEOSGetGeometryN_r(ctx, in1, j);
-      if (GEOSGeomTypeId_r(ctx, geom) != GEOS_POLYGON && GEOSGeomTypeId_r(ctx, geom) != GEOS_MULTIPOLYGON) {
-          isValid = 0;
-          break;
-      }
+    geom_arr[i] = GEOSCoverageSimplifyVW_r(ctx, in1, in2, (int)in3);
+    if (geom_arr[i] == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      break;
     }
-    if (isValid) {
-      geom_arr[i] = GEOSCoverageSimplifyVW_r(ctx, in1, in2, (int)in3);
-      if (geom_arr[i] == NULL) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        destroy_geom_arr(ctx, geom_arr, i - 1);
-        break;
-      }
-    } else {
-      geom_arr[i] = GEOSGeom_clone_r(ctx, in1);
-    }
-
   }
-
 
   GEOS_FINISH_THREADS;
 
