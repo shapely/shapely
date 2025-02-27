@@ -103,7 +103,7 @@ def deprecate_positional(should_be_kwargs, category=DeprecationWarning):
 
             # check signature to see which positional args were used
             sig = inspect.signature(func)
-            args_bind = sig.bind(*args)
+            args_bind = sig.bind_partial(*args)
             warn_args = [
                 f"`{arg}`"
                 for arg in args_bind.arguments.keys()
