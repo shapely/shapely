@@ -282,16 +282,11 @@ def test_array_argument_buffer():
 def test_buffer_deprecate_positional():
     point = Point(1, 1)
     with pytest.deprecated_call(
-        match="positional argument `quad_segs` for `buffer` is deprecated"
-    ):
-        point.buffer(1.0, 8)
-    with pytest.deprecated_call(
-        match="positional arguments `quad_segs` and `cap_style` "
-        "for `buffer` are deprecated"
+        match="positional argument `cap_style` for `buffer` is deprecated"
     ):
         point.buffer(1.0, 8, "round")
     with pytest.deprecated_call(
-        match="positional arguments `quad_segs`, `cap_style`, and `join_style` "
+        match="positional arguments `cap_style` and `join_style` "
         "for `buffer` are deprecated"
     ):
         point.buffer(1.0, 8, "round", "round")

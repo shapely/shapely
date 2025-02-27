@@ -450,13 +450,13 @@ class BaseGeometry(shapely.Geometry):
 
     # Note: future plan is to change this signature over a few releases:
     # shapely 2.0:
-    #   buffer(self, geometry, distance, quad_segs=16, ...)
-    # shapely 2.1: shows deprecation warning about positional 'quad_segs', etc.
+    #   buffer(self, geometry, distance, quad_segs=16, cap_style="round", ...)
+    # shapely 2.1: shows deprecation warning about positional 'cap_style', etc.
     #   same signature as 2.0
-    # shapely 2.2(?): enforce keyword-only arguments after 'distance'
-    #   buffer(self, geometry, distance, *, quad_segs=16, ...)
+    # shapely 2.2(?): enforce keyword-only arguments after 'quad_segs'
+    #   buffer(self, geometry, distance, quad_segs=16, *, cap_style="round", ...)
     @deprecate_positional(
-        ["quad_segs", "cap_style", "join_style", "mitre_limit", "single_sided"],
+        ["cap_style", "join_style", "mitre_limit", "single_sided"],
         category=DeprecationWarning,
     )
     def buffer(
