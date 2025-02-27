@@ -51,12 +51,17 @@ class TestSplitPolygon(TestSplitGeometry):
     )
 
     def test_split_poly_with_line(self):
-        # crossing at 2 points --> return 2 segments
+        # crossing at 2 points --> return 2 polygons
         splitter = LineString([(1, 3), (1, -3)])
         self.helper(self.poly_simple, splitter, 2)
         self.helper(self.poly_hole, splitter, 2)
 
-        # touching the boundary--> return equal
+        # crossing twice with one linestring --> return 3 polygons
+        splitter = LineString([(1, 3), (1, -3), (1.7, -3), (1.7, 3)])
+        self.helper(self.poly_simple, splitter, 3)
+        self.helper(self.poly_hole, splitter, 3)
+
+        # touching the boundary --> return equal
         splitter = LineString([(0, 2), (5, 2)])
         self.helper(self.poly_simple, splitter, 1)
         self.helper(self.poly_hole, splitter, 1)
@@ -70,6 +75,34 @@ class TestSplitPolygon(TestSplitGeometry):
         splitter = LineString([(0, 3), (3, 3), (3, 0)])
         self.helper(self.poly_simple, splitter, 1)
         self.helper(self.poly_hole, splitter, 1)
+
+    def test_split_poly_with_multiline(self):
+        # crossing twice with a multilinestring --> return 3 polygons
+        splitter = MultiLineString([[(0.2, 3), (0.2, -3)], [(1.7, -3), (1.7, 3)]])
+        self.helper(self.poly_simple, splitter, 3)
+        self.helper(self.poly_hole, splitter, 3)
+
+        # crossing twice with a cross multilinestring --> return 4 polygons
+        splitter = MultiLineString([[(0.2, 3), (0.2, -3)], [(-3, 1), (3, 1)]])
+        self.helper(self.poly_simple, splitter, 4)
+        self.helper(self.poly_hole, splitter, 4)
+
+        # cross once, touch the boundary once --> return 2 polygons
+        splitter = MultiLineString([[(0.2, 3), (0.2, -3)], [(0, 2), (5, 2)]])
+        self.helper(self.poly_simple, splitter, 2)
+        self.helper(self.poly_hole, splitter, 2)
+
+        # cross once, inside the polygon once --> return 2 polygons
+        splitter = MultiLineString(
+            [[(0.2, 3), (0.2, -3)], [(1.2, 1.2), (1.7, 1.7), (3, 2)]]
+        )
+        self.helper(self.poly_simple, splitter, 2)
+        self.helper(self.poly_hole, splitter, 2)
+
+        # cross once, outside the polygon once --> return 2 polygons
+        splitter = MultiLineString([[(0.2, 3), (0.2, -3)], [(0, 3), (3, 3), (3, 0)]])
+        self.helper(self.poly_simple, splitter, 2)
+        self.helper(self.poly_hole, splitter, 2)
 
     def test_split_poly_with_other(self):
         with pytest.raises(GeometryTypeError):

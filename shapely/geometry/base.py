@@ -28,6 +28,8 @@ GEOMETRY_TYPES = [
     "GeometryCollection",
 ]
 
+_geos_ge_312 = shapely.geos_version >= (3, 12, 0)
+
 
 def geom_factory(g, parent=None):
     """Create a Shapely geometry instance from a pointer to a GEOS geometry.
@@ -216,7 +218,9 @@ class BaseGeometry(shapely.Geometry):
     @property
     def coords(self):
         """Access to geometry's coordinates (CoordinateSequence)."""
-        coords_array = shapely.get_coordinates(self, include_z=self.has_z)
+        has_z = self.has_z
+        has_m = self.has_m if _geos_ge_312 else False
+        coords_array = shapely.get_coordinates(self, include_z=has_z, include_m=has_m)
         return CoordinateSequence(coords_array)
 
     @property
@@ -411,9 +415,17 @@ class BaseGeometry(shapely.Geometry):
     def oriented_envelope(self):
         """Return the oriented envelope (minimum rotated rectangle) of a geometry.
 
+        The oriented envelope encloses an input geometry, such that the resulting
+        rectangle has minimum area.
+
         Unlike envelope this rectangle is not constrained to be parallel to the
         coordinate axes. If the convex hull of the object is a degenerate (line
         or point) this degenerate is returned.
+
+        The starting point of the rectangle is not fixed. You can use
+        :func:`~shapely.normalize` to reorganize the rectangle to
+        :ref:`strict canonical form <canonical-form>` so the starting point is
+        always the lower left point.
 
         Alias of `minimum_rotated_rectangle`.
         """
@@ -423,9 +435,17 @@ class BaseGeometry(shapely.Geometry):
     def minimum_rotated_rectangle(self):
         """Return the oriented envelope (minimum rotated rectangle) of the geometry.
 
+        The oriented envelope encloses an input geometry, such that the resulting
+        rectangle has minimum area.
+
         Unlike `envelope` this rectangle is not constrained to be parallel to the
         coordinate axes. If the convex hull of the object is a degenerate (line
         or point) this degenerate is returned.
+
+        The starting point of the rectangle is not fixed. You can use
+        :func:`~shapely.normalize` to reorganize the rectangle to
+        :ref:`strict canonical form <canonical-form>` so the starting point is
+        always the lower left point.
 
         Alias of `oriented_envelope`.
         """
@@ -507,18 +527,19 @@ class BaseGeometry(shapely.Geometry):
 
         Examples
         --------
+        >>> from shapely import BufferCapStyle
         >>> from shapely.wkt import loads
         >>> g = loads('POINT (0.0 0.0)')
 
         16-gon approx of a unit radius circle:
 
-        >>> g.buffer(1.0).area  # doctest: +ELLIPSIS
-        3.1365484905459...
+        >>> g.buffer(1.0).area
+        3.1365484905459398
 
         128-gon approximation:
 
-        >>> g.buffer(1.0, 128).area  # doctest: +ELLIPSIS
-        3.141513801144...
+        >>> g.buffer(1.0, 128).area
+        3.1415138011443013
 
         triangle approximation:
 
@@ -714,6 +735,7 @@ class BaseGeometry(shapely.Geometry):
 
         Examples
         --------
+        >>> from shapely import LineString
         >>> LineString(
         ...     [(0, 0), (2, 2)]
         ... ).equals(
@@ -770,6 +792,7 @@ class BaseGeometry(shapely.Geometry):
 
         Examples
         --------
+        >>> from shapely import LineString
         >>> LineString(
         ...     [(0, 0), (2, 2)]
         ... ).equals_exact(
@@ -803,6 +826,7 @@ class BaseGeometry(shapely.Geometry):
 
         Examples
         --------
+        >>> from shapely import LineString
         >>> LineString(
         ...     [(0, 0), (2, 2)]
         ... ).equals_exact(

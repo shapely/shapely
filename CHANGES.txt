@@ -7,12 +7,14 @@ Changes
 Bug fixes:
 
 - Prevent crash when serializing a number > 1e100 to WKT with GEOS < 3.13. (#1907)
+- Ensure ``plot_polygon`` does not color the interiors of polygons (#1933).
 - Fixes GeoJSON serialization of empty points (#2118)
 - Fixes `__geo_interface__` handling of empty points (#2120)
+- Fixes ``GeometryCollection()`` constructor accepting an array of geometries (#2017).
 
 Improvements:
 
-- Require GEOS >= 3.9, NumPy >= 1.20, and Python >= 3.9 (#1802, #1885, #2124)
+- Require GEOS >= 3.9, NumPy >= 1.21, and Python >= 3.10 (#1802, #1885, #2124)
 - Handle ``Feature`` type in ``shapely.geometry.shape`` (#1815)
 - Add a ``handle_nan`` parameter to ``shapely.linestrings()`` and ``shapely.linearrings()``
   to allow, skip, or error on nonfinite (NaN / Inf) coordinates. The default
@@ -32,6 +34,7 @@ Improvements:
 - Add option on ``invalid="fix"`` to ``from_wkb`` and ``from_wkt`` (#2094)
 - Add function ``minimum_clearance_line`` (#2106)
 - Add function ``maximum_inscribed_circle`` (#1307)
+- Add support to split polygons by multilinestrings (#2206)
 - Add function ``orient_polygons`` (#2147)
 - Add function ``coverage_simplify`` to allow topological simplification of polygonal
   coverages (#1969)

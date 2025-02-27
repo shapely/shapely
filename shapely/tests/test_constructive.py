@@ -13,6 +13,7 @@ from shapely import (
     MultiPolygon,
     Point,
     Polygon,
+    geos_version,
 )
 from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
@@ -29,6 +30,10 @@ from shapely.tests.common import (
     point,
     point_z,
 )
+
+geos39 = geos_version[0:2] == (3, 9)
+geos310 = geos_version[0:2] == (3, 10)
+geos311 = geos_version[0:2] == (3, 11)
 
 CONSTRUCTIVE_NO_ARGS = (
     shapely.boundary,
@@ -64,9 +69,12 @@ def test_no_args_array(geometry, func):
         geometry.is_empty
         and shapely.get_num_geometries(geometry) > 0
         and func is shapely.node
-        and shapely.geos_version < (3, 9, 3)
-    ):
-        pytest.xfail("GEOS < 3.9.3 crashes with empty geometries")  # GEOS GH-601
+        and (
+            (geos39 and geos_version < (3, 9, 3))
+            or (geos310 and geos_version < (3, 10, 3))
+        )
+    ):  # GEOS GH-601
+        pytest.xfail("GEOS < 3.9.3 or GEOS < 3.10.3 crashes with empty geometries")
     actual = func([geometry, geometry])
     assert actual.shape == (2,)
     assert actual[0] is None or isinstance(actual[0], Geometry)
@@ -630,8 +638,12 @@ def test_clip_by_rect_polygon(geom, rect, expected):
 def test_clip_by_rect_array(geometry):
     if (
         geometry.is_empty
-        and shapely.get_type_id(geometry) == 0
-        and shapely.geos_version < (3, 9, 5)
+        and shapely.get_type_id(geometry) == shapely.GeometryType.POINT
+        and (
+            (geos39 and geos_version < (3, 9, 5))
+            or (geos310 and geos_version < (3, 10, 6))
+            or (geos311 and geos_version < (3, 11, 3))
+        )
     ):
         # GEOS GH-913
         with pytest.raises(GEOSException):
@@ -1207,6 +1219,7 @@ def test_maximum_inscribed_circle_all_types(geometry):
         with pytest.raises(
             GEOSException,
             match=(
+                "Argument must be Polygonal or LinearRing|"  # GEOS < 3.10.4
                 "Input geometry must be a Polygon or MultiPolygon|"
                 "Operation not supported by GeometryCollection"
             ),
@@ -1247,7 +1260,11 @@ def test_maximum_inscribed_circle(geometry, expected):
 def test_maximum_inscribed_circle_empty():
     geometry = shapely.from_wkt("POINT EMPTY")
     with pytest.raises(
-        GEOSException, match="Input geometry must be a Polygon or MultiPolygon"
+        GEOSException,
+        match=(
+            "Argument must be Polygonal or LinearRing|"  # GEOS < 3.10.4
+            "Input geometry must be a Polygon or MultiPolygon"
+        ),
     ):
         shapely.maximum_inscribed_circle(geometry)
 

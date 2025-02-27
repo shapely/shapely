@@ -68,6 +68,12 @@ class ConstructorsSuite:
     def time_linearring_from_numpy(self):
         shapely.LinearRing(self.coords)
 
+    def test_polygon_from_numpy(self):
+        shapely.Polygon(self.coords)
+
+    def test_multipoint_from_numpy(self):
+        shapely.MultiPoint(self.coords)
+
 
 class ConstructiveSuite:
     """Benchmarks constructive functions on a set of 10,000 points"""

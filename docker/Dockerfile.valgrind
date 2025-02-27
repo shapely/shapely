@@ -4,17 +4,17 @@
 # docker run --rm shapely/valgrind:latest valgrind --show-leak-kinds=definite --log-file=/tmp/valgrind-output python -m pytest -vv --valgrind --valgrind-log=/tmp/valgrind-output > valgrind.log
 
 
-FROM python:3.9-slim-buster
+FROM python:3.12-slim-bullseye
 
 RUN apt-get update && apt-get install -y build-essential valgrind curl --no-install-recommends
 
-RUN pip install cmake numpy Cython pytest pytest-valgrind
+RUN pip install cmake numpy setuptools Cython pytest pytest-valgrind
 
 WORKDIR /code
 
-ENV PYTHONMALLOC malloc
+ENV PYTHONMALLOC=malloc
 
-ENV LD_LIBRARY_PATH /usr/local/lib
+ENV LD_LIBRARY_PATH=/usr/local/lib
 
 # Build GEOS
 RUN export GEOS_VERSION=3.10.3 && \

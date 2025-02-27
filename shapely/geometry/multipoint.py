@@ -1,5 +1,7 @@
 """Collections of points and related utilities."""
 
+import numpy as np
+
 import shapely
 from shapely.errors import EmptyPartError
 from shapely.geometry import point
@@ -47,16 +49,22 @@ class MultiPoint(BaseMultipartGeometry):
             return shapely.from_wkt("MULTIPOINT EMPTY")
         elif isinstance(points, MultiPoint):
             return points
-
-        subs = []
-        for item in points:
-            p = point.Point(item)
-            if p.is_empty:
-                raise EmptyPartError("Can't create MultiPoint with empty component")
-            subs.append(p)
-
-        if len(points) == 0:
+        elif len(points) == 0:
             return shapely.from_wkt("MULTIPOINT EMPTY")
+
+        if isinstance(points, np.ndarray) and np.issubdtype(points.dtype, np.number):
+            subs = shapely.points(points)
+            if not subs.ndim == 1:
+                raise ValueError("Invalid values passed to MultiPoint constructor")
+            if shapely.is_empty(subs).any():
+                raise EmptyPartError("Can't create MultiPoint with empty component")
+        else:
+            subs = []
+            for item in points:
+                p = point.Point(item)
+                if p.is_empty:
+                    raise EmptyPartError("Can't create MultiPoint with empty component")
+                subs.append(p)
 
         return shapely.multipoints(subs)
 

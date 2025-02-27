@@ -27,6 +27,7 @@ class LineString(BaseGeometry):
     --------
     Create a LineString with two segments
 
+    >>> from shapely import LineString
     >>> a = LineString([[0, 0], [1, 0], [1, 1]])
     >>> a.length
     2.0
@@ -114,11 +115,12 @@ class LineString(BaseGeometry):
 
         Examples
         --------
-          >>> x, y = LineString([(0, 0), (1, 1)]).xy
-          >>> list(x)
-          [0.0, 1.0]
-          >>> list(y)
-          [0.0, 1.0]
+        >>> from shapely import LineString
+        >>> x, y = LineString([(0, 0), (1, 1)]).xy
+        >>> list(x)
+        [0.0, 1.0]
+        >>> list(y)
+        [0.0, 1.0]
 
         """
         return self.coords.xy

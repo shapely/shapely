@@ -1,7 +1,7 @@
 """STRtree spatial index for efficient spatial queries."""
 
 from collections.abc import Iterable
-from typing import Any, Union
+from typing import Any
 
 import numpy as np
 
@@ -163,7 +163,7 @@ class STRtree:
 
         Examples
         --------
-        >>> from shapely import box, Point
+        >>> from shapely import box, Point, STRtree
         >>> import numpy as np
         >>> points = [Point(0, 0), Point(1, 1), Point(2,2), Point(3, 3)]
         >>> tree = STRtree(points)
@@ -273,7 +273,7 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
         indices = self._tree.query(geometry, predicate)
         return indices[1] if is_scalar else indices
 
-    def nearest(self, geometry) -> Union[Any, None]:
+    def nearest(self, geometry) -> Any | None:
         """Return the index of the nearest geometry in the tree.
 
         This is determined for each input geometry based on distance within
@@ -311,7 +311,7 @@ and optional distances
 
         Examples
         --------
-        >>> from shapely.geometry import Point
+        >>> from shapely import Point, STRtree
         >>> tree = STRtree([Point(i, i) for i in range(10)])
 
         Query the tree for nearest using a scalar geometry:
@@ -430,7 +430,7 @@ and optional distances
         Examples
         --------
         >>> import numpy as np
-        >>> from shapely import box, Point
+        >>> from shapely import box, Point, STRtree
         >>> points = [Point(0, 0), Point(1, 1), Point(2,2), Point(3, 3)]
         >>> tree = STRtree(points)
 
