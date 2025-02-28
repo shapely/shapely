@@ -3618,6 +3618,7 @@ static void coverage_simplify_func(char** args, const npy_intp* dimensions, cons
                                     void* data) {
   GEOSGeometry* in1 = NULL;
   GEOSGeometry** geom_arr;
+  int geom_type;
 
   CHECK_NO_INPLACE_OUTPUT(3);
 
@@ -3642,6 +3643,18 @@ static void coverage_simplify_func(char** args, const npy_intp* dimensions, cons
     double in2 = *(double*)ip2;
     npy_bool in3 = !(*(npy_bool*)ip3);
 
+    // Validate the geometries in the collection
+    int num_geoms = GEOSGetNumGeometries_r(ctx, in1);
+    for (int j = 0; j < num_geoms; j++) {
+      GEOSGeometry* geom = GEOSGetGeometryN_r(ctx, in1, j);
+      geom_type = GEOSGeomTypeId_r(ctx, geom);
+      if (geom_type != GEOS_POLYGON && geom_type != GEOS_MULTIPOLYGON) {
+        errstate = PGERR_GEOMETRY_TYPE;
+        destroy_geom_arr(ctx, geom_arr, i - 1);
+        goto finish;
+      }
+    }
+
     geom_arr[i] = GEOSCoverageSimplifyVW_r(ctx, in1, in2, (int)in3);
     if (geom_arr[i] == NULL) {
       errstate = PGERR_GEOS_EXCEPTION;
@@ -3650,6 +3663,7 @@ static void coverage_simplify_func(char** args, const npy_intp* dimensions, cons
     }
   }
 
+finish:
   GEOS_FINISH_THREADS;
 
   // fill the numpy array with PyObjects while holding the GIL
