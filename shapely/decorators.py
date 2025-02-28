@@ -103,7 +103,7 @@ def deprecate_positional(should_be_kwargs, category=DeprecationWarning):
 
             # check signature to see which positional args were used
             sig = inspect.signature(func)
-            args_bind = sig.bind(*args)
+            args_bind = sig.bind_partial(*args)
             warn_args = [
                 f"`{arg}`"
                 for arg in args_bind.arguments.keys()
@@ -122,7 +122,7 @@ def deprecate_positional(should_be_kwargs, category=DeprecationWarning):
                     else:
                         args = ", ".join(warn_args[:-1]) + ", and " + warn_args[-1]
                 msg = (
-                    f"positional argument{plr} {args} for `{func.__qualname__}` "
+                    f"positional argument{plr} {args} for `{func.__name__}` "
                     f"{isare} deprecated.  Please use keyword argument{plr} instead."
                 )
                 warnings.warn(msg, category=category, stacklevel=2)
