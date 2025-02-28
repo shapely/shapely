@@ -34,8 +34,8 @@ from shapely._geometry import (
     get_type_id,
 )
 from shapely._geometry_helpers import (
+    _from_ragged_array_multi_linear,
     _from_ragged_array_multipolygon,
-    _from_ragged_array_polygon,
 )
 from shapely.coordinates import get_coordinates
 from shapely.predicates import is_empty, is_missing
@@ -376,23 +376,14 @@ def _linestring_from_flatcoords(coords, offsets):
 
 
 def _multilinestrings_from_flatcoords(coords, offsets1, offsets2):
-    # recreate linestrings
-    linestrings = _linestring_from_flatcoords(coords, offsets1)
+    # ensure correct dtypes
+    offsets1 = np.asarray(offsets1, dtype="int64")
+    offsets2 = np.asarray(offsets2, dtype="int64")
 
     # recreate multilinestrings
-    multilinestring_parts = np.diff(offsets2)
-    multilinestring_indices = np.repeat(
-        np.arange(len(multilinestring_parts)), multilinestring_parts
+    result = _from_ragged_array_multi_linear(
+        coords, offsets1, offsets2, geometry_type=GeometryType.MULTILINESTRING
     )
-
-    result = np.empty(len(offsets2) - 1, dtype=object)
-    result = creation.multilinestrings(
-        linestrings, indices=multilinestring_indices, out=result
-    )
-    result[multilinestring_parts == 0] = creation.empty(
-        1, geom_type=GeometryType.MULTILINESTRING
-    ).item()
-
     return result
 
 
@@ -402,7 +393,9 @@ def _polygon_from_flatcoords(coords, offsets1, offsets2):
     offsets2 = np.asarray(offsets2, dtype="int64")
 
     # recreate polygons
-    result = _from_ragged_array_polygon(coords, offsets1, offsets2)
+    result = _from_ragged_array_multi_linear(
+        coords, offsets1, offsets2, geometry_type=GeometryType.POLYGON
+    )
     return result
 
 
