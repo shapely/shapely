@@ -483,9 +483,6 @@ class BaseGeometry(shapely.Geometry):
         ----------
         distance : float
             The distance to buffer around the object.
-        resolution : int, optional
-            The resolution of the buffer around each vertex of the
-            object.
         quad_segs : int, optional
             Sets the number of line segments used to approximate an
             angle fillet.
@@ -522,8 +519,8 @@ class BaseGeometry(shapely.Geometry):
             the regular buffer.  The End Cap Style for single-sided
             buffers is always ignored, and forced to the equivalent of
             CAP_FLAT.
-        quadsegs : int, optional
-            Deprecated alias for `quad_segs`.
+        quadsegs, resolution : int, optional
+            Deprecated aliases for `quad_segs`.
         **kwargs : dict, optional
             For backwards compatibility of renamed parameters. If an unsupported
             kwarg is passed, a `ValueError` will be raised.
@@ -578,9 +575,13 @@ class BaseGeometry(shapely.Geometry):
             )
             quad_segs = quadsegs
 
-        # TODO deprecate `resolution` keyword for shapely 2.1
         resolution = kwargs.pop("resolution", None)
         if resolution is not None:
+            warn(
+                "The 'resolution' argument is deprecated. Use 'quad_segs' instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             quad_segs = resolution
         if kwargs:
             kwarg = list(kwargs.keys())[0]  # noqa
