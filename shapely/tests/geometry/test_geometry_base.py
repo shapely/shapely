@@ -233,12 +233,11 @@ def test_array_argument_float(op):
     assert type(result) is float
 
 
-@pytest.mark.parametrize("op", ["line_interpolate_point", "interpolate"])
-def test_array_argument_linear_point(op):
+def test_array_argument_linear_point():
     line = LineString([(0, 0), (0, 1), (1, 1)])
     distances = np.array([0, 0.5, 1])
 
-    result = getattr(line, op)(distances)
+    result = line.line_interpolate_point(distances)
     assert isinstance(result, np.ndarray)
     expected = np.array(
         [line.line_interpolate_point(d) for d in distances], dtype=object
@@ -246,22 +245,21 @@ def test_array_argument_linear_point(op):
     assert_geometries_equal(result, expected)
 
     # check scalar
-    result = getattr(line, op)(distances[0])
+    result = line.line_interpolate_point(distances[0])
     assert isinstance(result, Point)
 
 
-@pytest.mark.parametrize("op", ["line_locate_point", "project"])
-def test_array_argument_linear_float(op):
+def test_array_argument_linear_float():
     line = LineString([(0, 0), (0, 1), (1, 1)])
     points = shapely.points([(0, 0), (0.5, 0.5), (1, 1)])
 
-    result = getattr(line, op)(points)
+    result = line.line_locate_point(points)
     assert isinstance(result, np.ndarray)
     expected = np.array([line.line_locate_point(p) for p in points], dtype="float64")
     np.testing.assert_array_equal(result, expected)
 
     # check scalar
-    result = getattr(line, op)(points[0])
+    result = line.line_locate_point(points[0])
     assert type(result) is float
 
 
@@ -344,11 +342,9 @@ def test_line_locate_point_deprecate_positional():
         line_string.line_locate_point(Point(1, 1), False)
 
 
-def test_project_deprecate_positional():
+def test_deprecate_project():
     line_string = LineString([(1.0, 2.0), (3.0, 4.0)])
-    with pytest.deprecated_call(
-        match="positional argument `normalized` for `project` is deprecated"
-    ):
+    with pytest.deprecated_call():
         line_string.project(Point(1, 1), False)
 
 
@@ -361,9 +357,7 @@ def test_line_interpolate_point_deprecate_positional():
         line_string.line_interpolate_point(0, False)
 
 
-def test_interpolate_deprecate_positional():
+def test_deprecate_interpolate():
     line_string = LineString([(1.0, 2.0), (3.0, 4.0)])
-    with pytest.deprecated_call(
-        match="positional argument `normalized` for `interpolate` is deprecated"
-    ):
+    with pytest.deprecated_call():
         line_string.interpolate(0, False)

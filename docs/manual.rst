@@ -840,7 +840,7 @@ Shapely supports linear referencing based on length or distance, evaluating the
 distance along a geometric object to the projection of a given point, or the
 point at a given distance along the object.
 
-.. method:: object.interpolate(distance[, normalized=False])
+.. method:: object.line_interpolate_point(distance[, normalized=False])
 
   Return a point at the specified distance along a linear geometric object.
 
@@ -849,26 +849,27 @@ fraction of the geometric object's length.
 
 .. code-block:: pycon
 
-  >>> ip = LineString([(0, 0), (0, 1), (1, 1)]).interpolate(1.5)
+  >>> line_string = LineString([(0, 0), (0, 1), (1, 1)])
+  >>> ip = line_string.line_interpolate_point(1.5)
   >>> ip
   <POINT (0.5 1)>
-  >>> LineString([(0, 0), (0, 1), (1, 1)]).interpolate(0.75, normalized=True)
+  >>> line_string.line_interpolate_point(0.75, normalized=True)
   <POINT (0.5 1)>
 
-.. method:: object.project(other[, normalized=False])
+.. method:: object.line_locate_point(other[, normalized=False])
 
   Returns the distance along this geometric object to a point nearest the
   `other` object.
 
 If the `normalized` arg is ``True``, return the distance normalized to the
-length of the object. The :meth:`~object.project` method is the inverse of
-:meth:`~object.interpolate`.
+length of the object. The :meth:`~object.line_locate_point` method is the
+inverse of :meth:`~object.line_interpolate_point`.
 
 .. code-block:: pycon
 
-  >>> LineString([(0, 0), (0, 1), (1, 1)]).project(ip)
+  >>> line_string.line_locate_point(ip)
   1.5
-  >>> LineString([(0, 0), (0, 1), (1, 1)]).project(ip, normalized=True)
+  >>> line_string.line_locate_point(ip, normalized=True)
   0.75
 
 For example, the linear referencing methods might be used to cut lines at a
@@ -882,13 +883,13 @@ specified distance.
           return [LineString(line)]
       coords = list(line.coords)
       for i, p in enumerate(coords):
-          pd = line.project(Point(p))
+          pd = line.line_locate_point(Point(p))
           if pd == distance:
               return [
                   LineString(coords[:i+1]),
                   LineString(coords[i:])]
           if pd > distance:
-              cp = line.interpolate(distance)
+              cp = line.line_interpolate_point(distance)
               return [
                   LineString(coords[:i] + [(cp.x, cp.y)]),
                   LineString([(cp.x, cp.y)] + coords[i:])]
