@@ -873,46 +873,6 @@ class BaseGeometry(shapely.Geometry):
             shapely.equals_exact(self, other, tolerance, normalize=normalize)
         )
 
-    def almost_equals(self, other, decimal=6):
-        """Return True if all coordinates are equal to a specified decimal place.
-
-        .. deprecated:: 1.8.0
-            The 'almost_equals()' method is deprecated
-            and will be removed in Shapely 2.1 because the name is
-            confusing. The 'equals_exact()' method should be used
-            instead.
-
-        Refers to approximate coordinate equality, which requires
-        coordinates to be approximately equal and in the same order for
-        all components of a geometry.
-
-        Because of this it is possible for "equals()" to be True for two
-        geometries and "almost_equals()" to be False.
-
-        Examples
-        --------
-        >>> from shapely import LineString
-        >>> LineString(
-        ...     [(0, 0), (2, 2)]
-        ... ).equals_exact(
-        ...     LineString([(0, 0), (1, 1), (2, 2)]),
-        ...     1e-6
-        ... )
-        False
-
-        Returns
-        -------
-        bool
-
-        """
-        warn(
-            "The 'almost_equals()' method is deprecated and will be "
-            "removed in Shapely 2.1; use 'equals_exact()' instead",
-            ShapelyDeprecationWarning,
-            stacklevel=2,
-        )
-        return self.equals_exact(other, 0.5 * 10 ** (-decimal))
-
     def relate_pattern(self, other, pattern):
         """Return True if the DE-9IM relationship code satisfies the pattern."""
         return _maybe_unpack(shapely.relate_pattern(self, other, pattern))
