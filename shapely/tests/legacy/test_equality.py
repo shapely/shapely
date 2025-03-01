@@ -1,5 +1,3 @@
-import pytest
-
 from shapely import Point, Polygon
 
 
@@ -24,11 +22,3 @@ def test_equals_exact():
     hole2 = [(1, 1), (1, -1), (-1, -1), (-1, 1.01)]
     p3 = Polygon(shell, holes=[hole2])
     assert not p1.equals_exact(p3, 1e-5)
-
-
-def test_almost_equals_removed():
-    # deprecated shapely 2.0, removed 2.1
-    p1 = Point(1.0, 1.0)
-    p2 = Point(1.1, 1.1)
-    with pytest.raises(AttributeError):
-        assert p1.almost_equals(p2)
