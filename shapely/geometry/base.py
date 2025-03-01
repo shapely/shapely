@@ -561,7 +561,7 @@ class BaseGeometry(shapely.Geometry):
         if resolution is not None:
             warn(
                 "The 'resolution' argument is deprecated. Use 'quad_segs' instead",
-                FutureWarning,
+                DeprecationWarning,
                 stacklevel=2,
             )
             quad_segs = resolution
