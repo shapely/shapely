@@ -15,6 +15,7 @@ from shapely.linear import *
 from shapely.coordinates import *
 from shapely.strtree import *
 from shapely.io import *
+from shapely._coverage import *
 
 # Submodule always needs to be imported to ensure Geometry subclasses are registered
 from shapely.geometry import (

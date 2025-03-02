@@ -29,6 +29,7 @@
    set_operations
    constructive
    linear
+   coverage
    coordinates
    strtree
    testing

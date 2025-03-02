@@ -1,0 +1,100 @@
+import numpy as np
+
+from shapely import Geometry, GeometryType, lib
+from shapely._geometry import get_parts
+from shapely.decorators import multithreading_enabled, requires_geos
+
+__all__ = ["coverage_is_valid", "coverage_simplify"]
+
+
+@requires_geos("3.12.0")
+def coverage_is_valid(geometry, **kwargs):
+    """Verify if a coverage is valid.
+
+    The coverage is represented by an array of polygonal geometries with
+    exactly matching edges and no overlap.
+
+    Geometries that are not Polygon or MultiPolygon are ignored.
+
+    Parameters
+    ----------
+    geometry : array_like
+        Array of geometries to verify.
+    **kwargs
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Returns
+    -------
+    bool
+
+    """
+    geometries = np.asarray(geometry)
+    # we always consider the full array as a single coverage -> ravel the input
+    # to pass a 1D array
+    return lib.coverage_is_valid(geometries.ravel(order="K"), **kwargs)
+
+
+@requires_geos("3.12.0")
+@multithreading_enabled
+def coverage_simplify(geometry, tolerance, *, simplify_boundary=True):
+    """Return a simplified version of an input geometry using coverage simplification.
+
+    Assumes that the geometry forms a polygonal coverage. Under this assumption, the
+    function simplifies the edges using the Visvalingam-Whyatt algorithm, while
+    preserving a valid coverage. In the most simplified case, polygons are reduced to
+    triangles.
+
+    A collection of valid polygons is considered a coverage if the polygons are:
+
+    * **Non-overlapping** - polygons do not overlap (their interiors do not intersect)
+    * **Edge-Matched** - vertices along shared edges are identical
+
+    The function allows simplification of all edges including the outer boundaries of
+    the coverage or simplification of only the inner (shared) edges.
+
+    If there are other geometry types than Polygons or MultiPolygons present, the
+    array will not undergo simplification and geometries are returned unchanged.
+
+    If the geometry is polygonal but does not form a valid coverage due to overlaps,
+    it will be simplified but it may result in invalid topology.
+
+    Parameters
+    ----------
+    geometry : Geometry or array_like
+    tolerance : float or array_like
+        The degree of simplification roughly equal to the square root of the area
+        of triangles that will be removed.
+    simplify_boundary : bool, optional
+        By default (True), simplifies both internal edges of the coverage as well
+        as its boundary. If set to False, only simplifies internal edges.
+
+    Returns
+    -------
+    numpy.ndarray | shapely.Geometry
+
+    Examples
+    --------
+    >>> import shapely
+    >>> from shapely import Polygon
+    >>> poly = Polygon([(0, 0), (20, 0), (20, 10), (10, 5), (0, 10), (0, 0)])
+    >>> shapely.coverage_simplify(poly, tolerance=2)
+    <POLYGON ((0 0, 20 0, 20 10, 10 5, 0 10, 0 0))>
+    """
+    scalar = False
+    if isinstance(geometry, Geometry):
+        scalar = True
+
+    geometries = np.asarray(geometry)
+    shape = geometries.shape
+    geometries = geometries.ravel()
+
+    # create_collection acts on the inner axis
+    collections = lib.create_collection(
+        geometries, np.intc(GeometryType.GEOMETRYCOLLECTION)
+    )
+
+    simplified = lib.coverage_simplify(collections, tolerance, simplify_boundary)
+    parts = get_parts(simplified).reshape(shape)
+    if scalar:
+        return parts.item()
+    return parts
