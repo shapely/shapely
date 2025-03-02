@@ -4,11 +4,12 @@ from shapely import Geometry, GeometryType, lib
 from shapely._geometry import get_parts
 from shapely.decorators import multithreading_enabled, requires_geos
 
-__all__ = ["coverage_is_valid", "coverage_simplify"]
+__all__ = ["coverage_invalid_edges", "coverage_is_valid", "coverage_simplify"]
 
 
 @requires_geos("3.12.0")
-def coverage_is_valid(geometry, **kwargs):
+@multithreading_enabled
+def coverage_is_valid(geometry, gap_width=0.0, **kwargs):
     """Verify if a coverage is valid.
 
     The coverage is represented by an array of polygonal geometries with
@@ -31,7 +32,16 @@ def coverage_is_valid(geometry, **kwargs):
     geometries = np.asarray(geometry)
     # we always consider the full array as a single coverage -> ravel the input
     # to pass a 1D array
-    return lib.coverage_is_valid(geometries.ravel(order="K"), **kwargs)
+    return lib.coverage_is_valid(geometries.ravel(order="K"), gap_width, **kwargs)
+
+
+@requires_geos("3.12.0")
+@multithreading_enabled
+def coverage_invalid_edges(geometry, gap_width=0.0, **kwargs):
+    geometries = np.asarray(geometry)
+    # we always consider the full array as a single coverage -> ravel the input
+    # to pass a 1D array
+    return lib.coverage_invalid_edges(geometries.ravel(order="K"), gap_width, **kwargs)
 
 
 @requires_geos("3.12.0")

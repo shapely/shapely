@@ -9,6 +9,7 @@ from shapely import (
     Polygon,
 )
 from shapely.errors import UnsupportedGEOSVersionError
+from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
     all_types,
     all_types_z,
@@ -38,27 +39,75 @@ def test_coverage_is_valid_non_polygonal():
 
 @pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="requires >= 3.12")
 def test_coverage_is_valid_polygonal():
-    geoms = [
-        Polygon([(0, 0), (1, 1), (1, 0), (0, 0)]),
-        Polygon([(0, 0), (1, 1), (0, 1), (0, 0)]),
-    ]
-    assert shapely.coverage_is_valid(geoms)
+    # adjacent triangles
+    poly1 = Polygon([(0, 0), (1, 1), (1, 0), (0, 0)])
+    poly2 = Polygon([(0, 0), (1, 1), (0, 1), (0, 0)])
+    assert shapely.coverage_is_valid([poly1, poly2])
 
-    geoms = [
-        Polygon([(0, 0), (1, 1), (1, 0), (0, 0)]),
-        Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]),
-    ]
-    assert not shapely.coverage_is_valid(geoms)
+    # shared egde but without identical vertices
+    poly2b = Polygon([(0, 0), (0.5, 0.5), (1, 1), (0, 1), (0, 0)])
+    assert not shapely.coverage_is_valid([poly1, poly2b])
+
+    # overlap
+    poly3 = Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
+    assert not shapely.coverage_is_valid([poly1, poly3])
 
 
-@pytest.mark.skipif(shapely.geos_version >= (3, 12, 0), reason="requires >= 3.12")
-def test_coverage_is_valid_unsupported_geos():
-    geoms = [
-        Polygon([(0, 0), (1, 1), (1, 0), (0, 0)]),
-        Polygon([(0, 0), (1, 1), (0, 1), (0, 0)]),
-    ]
-    with pytest.raises(UnsupportedGEOSVersionError):
-        shapely.coverage_is_valid(geoms)
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="requires >= 3.12")
+def test_coverage_is_valid_gap_width():
+    # shared edge of boxes with multiple vertices
+    poly1 = shapely.from_wkt("POLYGON ((0 10, 10 10, 10 7, 10 3, 10 0, 0 0, 0 10))")
+    poly2 = shapely.from_wkt("POLYGON ((10 10, 20 10, 20 0, 10 0, 10 3, 10 7, 10 10))")
+
+    # extra vertex in middle of shared edge
+    poly2_extra = shapely.from_wkt(
+        "POLYGON ((10 10, 20 10, 20 0, 10 0, 10 3, 10 5, 10 7, 10 10))"
+    )
+    # extra vertex shifted -> gap of max 1 wide
+    poly2_shift = shapely.from_wkt(
+        "POLYGON ((10 10, 20 10, 20 0, 10 0, 10 3, 11 5, 10 7, 10 10))"
+    )
+    # poly3 = shapely.from_wkt("POLYGON ((20 10, 30 10, 30 0, 20 0, 20 10))")
+
+    # valid coverage -> gap_width value does not matter
+    assert shapely.coverage_is_valid([poly1, poly2], gap_width=0.0)
+    assert shapely.coverage_is_valid([poly1, poly2], gap_width=2.0)
+
+    expected_valid = shapely.from_wkt(["LINESTRING EMPTY"] * 2)
+    result = shapely.coverage_invalid_edges([poly1, poly2], gap_width=0.0)
+    assert_geometries_equal(result, expected_valid)
+    result = shapely.coverage_invalid_edges([poly1, poly2], gap_width=2.0)
+    assert_geometries_equal(result, expected_valid)
+
+    # invalid coverage -> gap_width value does not matter
+    assert not shapely.coverage_is_valid([poly1, poly2_extra], gap_width=0.0)
+    assert not shapely.coverage_is_valid([poly1, poly2_extra], gap_width=2.0)
+
+    expected = shapely.from_wkt(
+        ["LINESTRING (10 7, 10 3)", "LINESTRING (10 3, 10 5, 10 7)"]
+    )
+    result = shapely.coverage_invalid_edges([poly1, poly2_extra], gap_width=0.0)
+    assert_geometries_equal(result, expected)
+    result = shapely.coverage_invalid_edges([poly1, poly2_extra], gap_width=2.0)
+    assert_geometries_equal(result, expected)
+
+    # coverage with gap of 1 unit wide
+    assert shapely.coverage_is_valid([poly1, poly2_shift], gap_width=0.0)
+    assert shapely.coverage_is_valid([poly1, poly2_shift], gap_width=0.5)
+    assert not shapely.coverage_is_valid([poly1, poly2_shift], gap_width=1.0)
+    assert not shapely.coverage_is_valid([poly1, poly2_shift], gap_width=1.5)
+    # TODO why this behaviour?
+    assert shapely.coverage_is_valid([poly1, poly2_shift], gap_width=2.0)
+
+    assert_geometries_equal(
+        shapely.coverage_invalid_edges([poly1, poly2_shift], gap_width=0.0),
+        expected_valid,
+    )
+    expected = shapely.from_wkt(
+        ["LINESTRING (10 7, 10 3)", "LINESTRING (10 3, 11 5, 10 7)"]
+    )
+    result = shapely.coverage_invalid_edges([poly1, poly2_shift], gap_width=1.0)
+    assert_geometries_equal(result, expected)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
@@ -139,3 +188,19 @@ def test_coverage_simplify_array():
             ]
         ),
     ).all()
+
+
+@pytest.mark.skipif(shapely.geos_version >= (3, 12, 0), reason="requires >= 3.12")
+def test_coverage_unsupported_geos():
+    geoms = [
+        Polygon([(0, 0), (1, 1), (1, 0), (0, 0)]),
+        Polygon([(0, 0), (1, 1), (0, 1), (0, 0)]),
+    ]
+    with pytest.raises(UnsupportedGEOSVersionError):
+        shapely.coverage_is_valid(geoms)
+
+    with pytest.raises(UnsupportedGEOSVersionError):
+        shapely.coverage_invalid_edges(geoms)
+
+    with pytest.raises(UnsupportedGEOSVersionError):
+        shapely.coverage_simplify(geoms, 1.0)
