@@ -2,6 +2,7 @@
 
 #include <Python.h>
 #include <math.h>
+#include <stdio.h>
 
 #define NO_IMPORT_ARRAY
 #define NO_IMPORT_UFUNC
@@ -103,6 +104,20 @@ static void geom_arr_to_npy(GEOSGeometry** array, char* ptr, npy_intp stride,
   }
 
   GEOS_FINISH;
+}
+
+static void null_arr_to_npy(char* ptr, npy_intp stride, npy_intp count) {
+  npy_intp i;
+  PyObject* ret;
+  PyObject** out;
+
+  for (i = 0; i < count; i++, ptr += stride) {
+    Py_INCREF(Py_None);
+    ret = Py_None;
+    out = (PyObject**)ptr;
+    Py_XDECREF(*out);
+    *out = ret;
+  }
 }
 
 /* Define the geom -> bool functions (Y_b) */
@@ -2445,7 +2460,7 @@ static PyUFuncGenericFunction polygonize_full_funcs[1] = {&polygonize_full_func}
 
 #if GEOS_SINCE_3_12_0
 
-static char coverage_is_valid_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
+static char coverage_is_valid_dtypes[3] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL};
 static void coverage_is_valid_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                                    void* data) {
   GEOSGeometry* geom = NULL;
@@ -2455,6 +2470,13 @@ static void coverage_is_valid_func(char** args, const npy_intp* dimensions, cons
   unsigned int n_geoms;
   int ret;
 
+  if (steps[1] != 0) {
+    PyErr_Format(PyExc_ValueError, "coverage_is_valid function called with non-scalar gap_width");
+    return;
+  }
+  // char *ip2 = args[1];
+  double gap_width = *(double*)args[1];
+
   GEOS_INIT_THREADS;
 
   GEOSGeometry** geoms = malloc(sizeof(void*) * dimensions[1]);
@@ -2463,13 +2485,14 @@ static void coverage_is_valid_func(char** args, const npy_intp* dimensions, cons
     goto finish;
   }
 
-  SINGLE_COREDIM_LOOP_OUTER {
+  BINARY_SINGLE_COREDIM_LOOP_OUTER {
     CHECK_SIGNALS(i);
     if (errstate == PGERR_PYSIGNAL) {
       goto finish;
     }
+    cp1 = ip1;
     n_geoms = 0;
-    SINGLE_COREDIM_LOOP_INNER {
+    BINARY_SINGLE_COREDIM_LOOP_INNER {
       if (!get_geom(*(GeometryObject**)cp1, &geom)) {
         errstate = PGERR_NOT_A_GEOMETRY;
         goto finish;
@@ -2488,7 +2511,7 @@ static void coverage_is_valid_func(char** args, const npy_intp* dimensions, cons
       goto finish;
     }
 
-    ret = GEOSCoverageIsValid_r(ctx, collection, 0, NULL);
+    ret = GEOSCoverageIsValid_r(ctx, collection, gap_width, NULL);
     if (ret == 2) {
       errstate = PGERR_GEOS_EXCEPTION;
       goto finish;
@@ -2512,6 +2535,115 @@ finish:
   GEOS_FINISH_THREADS;
 }
 static PyUFuncGenericFunction coverage_is_valid_funcs[1] = {&coverage_is_valid_func};
+
+
+static char coverage_invalid_edges_dtypes[3] = {NPY_OBJECT, NPY_DOUBLE, NPY_OBJECT};
+static void coverage_invalid_edges_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                                   void* data) {
+  GEOSGeometry* geom = NULL;
+  GEOSGeometry* collection = NULL;
+  GEOSGeometry** collection_parts;
+  GEOSGeometry* result_collection = NULL;
+  GEOSGeometry** result_collection_parts;
+  unsigned int n_parts, n_parts_result;
+  unsigned int n_geoms;
+  int ret;
+
+  if (steps[1] != 0) {
+    PyErr_Format(PyExc_ValueError, "coverage_invalid_edges function called with non-scalar gap_width");
+    return;
+  }
+  // char *ip2 = args[1];
+  double gap_width = *(double*)args[1];
+
+  // allocate a temporary array to store input GEOSGeometry objects
+  GEOSGeometry** geoms = malloc(sizeof(void*) * dimensions[1]);
+  CHECK_ALLOC(geoms);
+
+  GEOS_INIT;
+
+// #define SINGLE_COREDIM_LOOP_OUTER                          \
+//   char *ip1 = args[0], *op1 = args[1], *cp1;               \
+//   npy_intp is1 = steps[0], os1 = steps[1], cs1 = steps[2]; \
+//   npy_intp n = dimensions[0], n_c1 = dimensions[1];        \
+//   npy_intp i, i_c1;                                        \
+//   for (i = 0; i < n; i++, ip1 += is1, op1 += os1)
+
+// #define BINARY_SINGLE_COREDIM_LOOP_OUTER                                   \
+//   char *ip1 = args[0], *ip2 = args[1], *op1 = args[2], *cp1;               \
+//   npy_intp is1 = steps[0], is2 = steps[1], os1 = steps[2], cs1 = steps[3]; \
+//   npy_intp n = dimensions[0], n_c1 = dimensions[1];                        \
+//   npy_intp i, i_c1;                                                        \
+//   for (i = 0; i < n; i++, ip1 += is1, ip2 += is2, op1 += os1)
+
+
+  BINARY_SINGLE_COREDIM_LOOP_OUTER {
+    Py_BEGIN_ALLOW_THREADS;
+    CHECK_SIGNALS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      goto finish;
+    }
+    cp1 = ip1;
+    n_geoms = 0;
+    BINARY_SINGLE_COREDIM_LOOP_INNER {
+      if (!get_geom(*(GeometryObject**)cp1, &geom)) {
+        errstate = PGERR_NOT_A_GEOMETRY;
+        goto finish;
+      }
+      if (geom == NULL) {
+        continue;
+      }
+      // we do not clone the geometries, so have to release the collection later
+      geoms[n_geoms] = geom;
+      n_geoms++;
+    }
+    collection =
+        GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, geoms, n_geoms);
+    if (collection == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
+
+    ret = GEOSCoverageIsValid_r(ctx, collection, gap_width, &result_collection);
+    if (ret == 2) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
+    // *(npy_bool*)op1 = ret;
+    Py_END_ALLOW_THREADS;
+    if (result_collection != NULL) {
+      printf("result_collection is not NULL\n");
+      collection_parts = GEOSGeom_releaseCollection_r(ctx, result_collection, &n_parts_result);
+      // geom_arr_to_npy(collection_parts, op1, os1, n_c1);
+      geom_arr_to_npy(collection_parts, op1, cs1, n_parts_result);
+    }
+    else {
+      printf("result_collection is NULL, filling with None\n");
+      null_arr_to_npy(op1, cs1, n_c1);
+    }
+    collection_parts = GEOSGeom_releaseCollection_r(ctx, collection, &n_parts);
+    GEOSFree_r(ctx, collection_parts);
+    GEOSGeom_destroy_r(ctx, collection);
+    collection = NULL;
+  }
+
+finish:
+  if (collection != NULL) {
+    collection_parts = GEOSGeom_releaseCollection_r(ctx, collection, &n_parts);
+    GEOSFree_r(ctx, collection_parts);
+    GEOSGeom_destroy_r(ctx, collection);
+  }
+  if (result_collection != NULL) {
+    result_collection = GEOSGeom_releaseCollection_r(ctx, result_collection, &n_parts_result);
+    GEOSFree_r(ctx, result_collection_parts);
+    GEOSGeom_destroy_r(ctx, result_collection);
+  }
+  if (geoms != NULL) {
+    free(geoms);
+  }
+  GEOS_FINISH;
+}
+static PyUFuncGenericFunction coverage_invalid_edges_funcs[1] = {&coverage_invalid_edges_func};
 
 static char coverage_simplify_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
 static void coverage_simplify_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
@@ -2564,7 +2696,6 @@ static void coverage_simplify_func(char** args, const npy_intp* dimensions, cons
 
   }
 
-
   GEOS_FINISH_THREADS;
 
   // fill the numpy array with PyObjects while holding the GIL
@@ -2575,7 +2706,7 @@ static void coverage_simplify_func(char** args, const npy_intp* dimensions, cons
 }
 static PyUFuncGenericFunction coverage_simplify_funcs[1] = {&coverage_simplify_func};
 
-#endif
+#endif  // GEOS_SINCE_3_12_0
 
 static char shortest_line_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
 static void shortest_line_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
@@ -4002,7 +4133,8 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 #endif
 
 #if GEOS_SINCE_3_12_0
-  DEFINE_GENERALIZED(coverage_is_valid, 1, "(d)->()");
+  DEFINE_GENERALIZED(coverage_is_valid, 2, "(d),()->()");
+  DEFINE_GENERALIZED(coverage_invalid_edges, 2, "(d),()->(d)");
   DEFINE_CUSTOM(coverage_simplify, 3);
   DEFINE_Y_Y(disjoint_subset_union);
   DEFINE_Y_b(has_m);
