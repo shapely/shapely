@@ -1,5 +1,5 @@
-Constructive operations
-=======================
+Coverage operations
+===================
 
 .. currentmodule:: shapely
 
