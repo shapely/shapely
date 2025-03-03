@@ -656,7 +656,7 @@ GEOSGeometry* create_box(GEOSContextHandle_t ctx, double xmin, double ymin, doub
   return geom;
 }
 
-/* Create a 3D empty Point
+/* Create an empty Point with (or without) z and/or m coordinates.
  *
  * Works around a limitation of the GEOS < 3.8 C API by constructing the point
  * from its WKT representation (POINT Z EMPTY).
@@ -666,71 +666,102 @@ GEOSGeometry* create_box(GEOSContextHandle_t ctx, double xmin, double ymin, doub
  * -------
  * GEOSGeometry* on success (owned by caller) or NULL on failure
  */
-GEOSGeometry* PyGEOS_create3DEmptyPoint(GEOSContextHandle_t ctx) {
+GEOSGeometry* PyGEOS_createEmptyPoint(GEOSContextHandle_t ctx, char has_z, char has_m) {
   GEOSGeometry* geom;
-  GEOSCoordSequence* coord_seq = GEOSCoordSeq_create_r(ctx, 0, 3);
-  if (coord_seq == NULL) {
-    return NULL;
+  GEOSCoordSequence* coord_seq = NULL;
+  if (!has_z && !has_m) {
+    /* POINT EMPTY */
+    geom = GEOSGeom_createEmptyPoint_r(ctx);
+  } else {
+    if (!has_z && has_m) {
+      /* POINT M EMPTY */
+#if GEOS_SINCE_3_10_0
+      coord_seq = GEOSCoordSeq_copyFromBuffer_r(ctx, NULL, 0, has_z, has_m);
+#endif
+    } else {
+      /* POINT Z EMPTY or POINT ZM EMPTY */
+      coord_seq = GEOSCoordSeq_create_r(ctx, 0, 3 + has_m);
+    }
+    if (coord_seq == NULL) {
+      return NULL;
+    }
+    geom = GEOSGeom_createPoint_r(ctx, coord_seq);
   }
-  geom = GEOSGeom_createPoint_r(ctx, coord_seq);
   return geom;
 }
 
-/* Create a non-empty Point from x, y and optionally z coordinates.
+/* Create a non-empty Point from x, y and optionally z/m coordinates.
  *
  * Parameters
  * ----------
  * ctx: GEOS context handle
  * x: X value
  * y: Y value
- * z: Z value pointer (point will be 2D if this is NULL)
+ * z: Z value pointer (for XYZ or XYZM, otherwise set this with NULL)
+ * m: M value pointer (for XYM or XYZM, otherwise set this with NULL)
  *
  * Returns
  * -------
  * GEOSGeometry* on success (owned by caller) or NULL on failure
  */
-GEOSGeometry* PyGEOS_createPoint(GEOSContextHandle_t ctx, double x, double y, double* z) {
-  if (z == NULL) {
-    // There is no 3D equivalent for GEOSGeom_createPointFromXY_r
-    // instead, it is constructed from a coord seq.
+GEOSGeometry* PyGEOS_createPoint(GEOSContextHandle_t ctx, double x, double y,
+                                 double* z, double* m) {
+  char has_z = z != NULL;
+  char has_m = m != NULL;
+#if !GEOS_SINCE_3_12_0
+  has_m = 0;  /* GEOS<3.12 does not support M coordinates. */
+#endif
+  if (!has_z && !has_m) {
+    /* Create 2D point */
     return GEOSGeom_createPointFromXY_r(ctx, x, y);
   }
 
-  // Fallback point construction (3D)
+  /* Construct higher-dimension point with a coordinate sequence */
   GEOSCoordSequence* coord_seq = NULL;
 
-  coord_seq = GEOSCoordSeq_create_r(ctx, 1, z == NULL ? 2 : 3);
-  if (coord_seq == NULL) {
-    return NULL;
-  }
-  if (!GEOSCoordSeq_setX_r(ctx, coord_seq, 0, x)) {
-    GEOSCoordSeq_destroy_r(ctx, coord_seq);
-    return NULL;
-  }
-  if (!GEOSCoordSeq_setY_r(ctx, coord_seq, 0, y)) {
-    GEOSCoordSeq_destroy_r(ctx, coord_seq);
-    return NULL;
-  }
-
-  if (z != NULL) {
-    if (!GEOSCoordSeq_setZ_r(ctx, coord_seq, 0, *z)) {
+  if (has_z) {
+    /* Construct XYZ or XYZM coordinate sequence */
+    coord_seq = GEOSCoordSeq_create_r(ctx, 1, 3 + has_m);
+    if (coord_seq == NULL) {
+      return NULL;
+    }
+    /* Set XYZ coordinates */
+    if (!GEOSCoordSeq_setXYZ_r(ctx, coord_seq, 0, x, y, *z)) {
       GEOSCoordSeq_destroy_r(ctx, coord_seq);
       return NULL;
     }
+#if GEOS_SINCE_3_12_0
+    if (has_m) {
+      /* Set M coordinate */
+      if (!GEOSCoordSeq_setOrdinate_r(ctx, coord_seq, 0, 3, *m)) {
+        GEOSCoordSeq_destroy_r(ctx, coord_seq);
+        return NULL;
+      }
+    }
+  } else {
+    /* Construct XYM coordinate sequence */
+    double buffer[3] = {x, y, *m};
+    coord_seq = GEOSCoordSeq_copyFromBuffer_r(ctx, buffer, 1, 0, 1);
+    if (coord_seq == NULL) {
+      return NULL;
+    }
+#endif // GEOS_SINCE_3_12_0
   }
+
   // Note: coordinate sequence is owned by point; if point fails to construct, it will
   // automatically clean up the coordinate sequence
   return GEOSGeom_createPoint_r(ctx, coord_seq);
 }
 
-/* Create a Point from x, y and optionally z coordinates, optionally handling NaN.
+/* Create a Point from x, y and optionally z/m coordinates, optionally handling NaN.
  *
  * Parameters
  * ----------
  * ctx: GEOS context handle
  * x: X value
  * y: Y value
- * z: Z value pointer (point will be 2D if this is NULL)
+ * z: Z value pointer (for XYZ or XYZM, otherwise set this with NULL)
+ * m: M value pointer (for XYM or XYZM, otherwise set this with NULL)
  * handle_nan: 0 means 'allow', 1 means 'skip', 2 means 'error'
  * out: pointer to the resulting point geometry
  *
@@ -738,18 +769,18 @@ GEOSGeometry* PyGEOS_createPoint(GEOSContextHandle_t ctx, double x, double y, do
  * -------
  * Returns an error state (PGERR_SUCCESS / PGERR_GEOS_EXCEPTION / PGERR_NAN_COORD)
  */
-enum ShapelyErrorCode create_point(GEOSContextHandle_t ctx, double x, double y, double* z,
+enum ShapelyErrorCode create_point(GEOSContextHandle_t ctx, double x, double y,
+                                   double* z, double* m,
                                    int handle_nan, GEOSGeometry** out) {
   if (handle_nan != SHAPELY_HANDLE_NAN_ALLOW) {
-    // Check here whether any of (x, y, z) is nonfinite
-    if ((!npy_isfinite(x)) || (!npy_isfinite(y)) || (z != NULL ? !npy_isfinite(*z) : 0)) {
+    char has_z = z != NULL;
+    char has_m = m != NULL;
+    // Check here whether any of (x, y, z, m) is non-finite
+    if ((!npy_isfinite(x)) || (!npy_isfinite(y)) ||
+        (has_z ? !npy_isfinite(*z) : 0) || (has_m ? !npy_isfinite(*m) : 0)) {
       if (handle_nan == SHAPELY_HANDLE_NAN_SKIP) {
         // Construct an empty point
-        if (z == NULL) {
-          *out = GEOSGeom_createEmptyPoint_r(ctx);
-        } else {
-          *out = PyGEOS_create3DEmptyPoint(ctx);
-        }
+        *out = PyGEOS_createEmptyPoint(ctx, has_z, has_m);
         return (*out != NULL) ? PGERR_SUCCESS : PGERR_GEOS_EXCEPTION;
       } else {
         // Raise exception
@@ -757,7 +788,7 @@ enum ShapelyErrorCode create_point(GEOSContextHandle_t ctx, double x, double y, 
       }
     }
   }
-  *out = PyGEOS_createPoint(ctx, x, y, z);
+  *out = PyGEOS_createPoint(ctx, x, y, z, m);
   return (*out != NULL) ? PGERR_SUCCESS : PGERR_GEOS_EXCEPTION;
 }
 
@@ -946,7 +977,7 @@ GEOSGeometry* PyGEOSForce3D(GEOSContextHandle_t ctx, GEOSGeometry* geom, double 
 
 /* Count the number of finite coordinates in a buffer
  *
- * A coordinate is finite if x, y and optionally z are all not NaN or Inf.
+ * A coordinate is finite if x, y and optionally z/m are all not NaN or Inf.
  *
  * The first and last finite coordinate indices are stored in the 'first_i'
  * and 'last_i' arguments.
@@ -1046,22 +1077,19 @@ char fill_coord_seq_skip_nan(GEOSContextHandle_t ctx, GEOSCoordSequence* coord_s
 
 /* Create a GEOSCoordSequence from an array
  *
- * Note: this function assumes that the dimension of the buffer is already
- * checked before calling this function, so the buffer and the dims argument
- * is only 2D or 3D.
- *
  * handle_nan: 0 means 'allow', 1 means 'skip', 2 means 'error'
  *
  * Returns an error state (PGERR_SUCCESS / PGERR_GEOS_EXCEPTION / PGERR_NAN_COORD).
  */
 enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx, const double* buf,
-                                           unsigned int size, unsigned int dims,
+                                           unsigned int size, char has_z, char has_m,
                                            char is_ring, int handle_nan, npy_intp cs1,
                                            npy_intp cs2, GEOSCoordSequence** coord_seq) {
   unsigned int first_i, last_i, actual_size;
   double coord;
   char errstate;
   char ring_closure = 0;
+  unsigned dims = 2 + has_z + has_m;
 
   switch (handle_nan) {
     case SHAPELY_HANDLE_NAN_ALLOW:
@@ -1103,15 +1131,15 @@ enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx, const double
     char* cp1 = (char*)buf + cs1 * first_i;
     if ((cs1 == dims * 8) && (cs2 == 8)) {
       /* C-contiguous memory */
-      int hasZ = dims == 3;
-      *coord_seq = GEOSCoordSeq_copyFromBuffer_r(ctx, (double*)cp1, actual_size, hasZ, 0);
+      *coord_seq = GEOSCoordSeq_copyFromBuffer_r(ctx, (double*)cp1, actual_size, has_z, has_m);
       return (*coord_seq != NULL) ? PGERR_SUCCESS : PGERR_GEOS_EXCEPTION;
     } else if ((cs1 == 8) && (cs2 == size * 8)) {
       /* F-contiguous memory (note: this for the subset, so we don't necessarily
       end up here if the full array is F-contiguous) */
       const double* x = (double*)cp1;
       const double* y = (double*)(cp1 + cs2);
-      const double* z = (dims == 3) ? (double*)(cp1 + 2 * cs2) : NULL;
+      const double* z = has_z ? (double*)(cp1 + 2 * cs2) : NULL;
+      /* TODO: handle m*/
       *coord_seq = GEOSCoordSeq_copyFromArrays_r(ctx, x, y, z, NULL, actual_size);
       return (*coord_seq != NULL) ? PGERR_SUCCESS : PGERR_GEOS_EXCEPTION;
     }
