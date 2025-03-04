@@ -19,7 +19,7 @@ on:
   workflow_dispatch:
 
 env:
-  GEOS_VERSION: "3.13.0"
+  GEOS_VERSION: "3.13.1"
 
 jobs:
   build_sdist:
