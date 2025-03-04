@@ -2,11 +2,14 @@
 
 import numpy as np
 
-from shapely import Geometry, GeometryType, lib
+from shapely import lib
 from shapely._enum import ParamEnum
-from shapely._geometry import get_parts
 from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area_vectorized
-from shapely.decorators import multithreading_enabled, requires_geos
+from shapely.decorators import (
+    deprecate_positional,
+    multithreading_enabled,
+    requires_geos,
+)
 from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
@@ -19,7 +22,6 @@ __all__ = [
     "clip_by_rect",
     "concave_hull",
     "convex_hull",
-    "coverage_simplify",
     "delaunay_triangles",
     "envelope",
     "extract_unique_points",
@@ -120,6 +122,19 @@ MultiLineString, MultiPoint, Point, Polygon
     return lib.boundary(geometry, **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   buffer(geometry, distance, quad_segs=8, ...)
+# shapely 2.1: shows deprecation warning about positional 'quad_segs', etc.
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'distance'
+#   buffer(geometry, distance, *, quad_segs=8, ...)
+
+
+@deprecate_positional(
+    ["quad_segs", "cap_style", "join_style", "mitre_limit", "single_sided"],
+    category=DeprecationWarning,
+)
 @multithreading_enabled
 def buffer(
     geometry,
@@ -167,6 +182,15 @@ def buffer(
         Only buffer at one side of the geometry.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``quad_segs``,  ``cap_style``,
+        ``join_style``, ``mitre_limit`` or ``single_sided`` are
+        specified as positional arguments. In a future release, these will
+        need to be specified as keyword arguments.
 
     Examples
     --------
@@ -229,6 +253,18 @@ def buffer(
     )
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   offset_curve(geometry, distance, quad_segs=8, ...)
+# shapely 2.1: shows deprecation warning about positional 'quad_segs', etc.
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'distance'
+#   offset_curve(geometry, distance, *, quad_segs=8, ...)
+
+
+@deprecate_positional(
+    ["quad_segs", "join_style", "mitre_limit"], category=DeprecationWarning
+)
 @multithreading_enabled
 def offset_curve(
     geometry, distance, quad_segs=8, join_style="round", mitre_limit=5.0, **kwargs
@@ -266,6 +302,14 @@ def offset_curve(
         buffered vertex by more than this limit.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``quad_segs``, ``join_style`` or
+        ``mitre_limit`` are specified as positional arguments. In a future
+        release, these will need to be specified as keyword arguments.
 
     Examples
     --------
@@ -575,7 +619,7 @@ def build_area(geometry, **kwargs):
 
 
 @multithreading_enabled
-def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
+def make_valid(geometry, *, method="linework", keep_collapsed=True, **kwargs):
     """Repair invalid geometries.
 
     Two ``methods`` are available:
@@ -1014,6 +1058,16 @@ def segmentize(geometry, max_segment_length, **kwargs):
     return lib.segmentize(geometry, max_segment_length, **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   simplify(geometry, tolerance, preserve_topology=True, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'preserve_topology'
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'tolerance'
+#   simplify(geometry, tolerance, *, preserve_topology=True, **kwargs)
+
+
+@deprecate_positional(["preserve_topology"], category=DeprecationWarning)
 @multithreading_enabled
 def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
     """Return a simplified version of an input geometry.
@@ -1033,6 +1087,14 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
         this is computationally more expensive.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``preserve_topology`` is specified as
+        a positional argument. This will need to be specified as a keyword
+        argument in a future release.
 
     Examples
     --------
@@ -1057,72 +1119,6 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
         return lib.simplify_preserve_topology(geometry, tolerance, **kwargs)
     else:
         return lib.simplify(geometry, tolerance, **kwargs)
-
-
-@requires_geos("3.12.0")
-@multithreading_enabled
-def coverage_simplify(geometry, tolerance, simplify_boundary=True):
-    """Return a simplified version of an input geometry using coverage simplification.
-
-    Assumes that the geometry forms a polygonal coverage. Under this assumption, the
-    function simplifies the edges using the Visvalingam-Whyatt algorithm, while
-    preserving a valid coverage. In the most simplified case, polygons are reduced to
-    triangles.
-
-    A collection of valid polygons is considered a coverage if the polygons are:
-
-    * **Non-overlapping** - polygons do not overlap (their interiors do not intersect)
-    * **Edge-Matched** - vertices along shared edges are identical
-
-    The function allows simplification of all edges including the outer boundaries of
-    the coverage or simplification of only the inner (shared) edges.
-
-    If there are other geometry types than Polygons or MultiPolygons present,
-    the function will raise an error.
-
-    If the geometry is polygonal but does not form a valid coverage due to overlaps,
-    it will be simplified but it may result in invalid topology.
-
-    Parameters
-    ----------
-    geometry : Geometry or array_like
-    tolerance : float or array_like
-        The degree of simplification roughly equal to the square root of the area
-        of triangles that will be removed.
-    simplify_boundary : bool, optional
-        By default (True), simplifies both internal edges of the coverage as well
-        as its boundary. If set to False, only simplifies internal edges.
-
-    Returns
-    -------
-    numpy.ndarray | shapely.Geometry
-
-    Examples
-    --------
-    >>> import shapely
-    >>> from shapely import Polygon
-    >>> poly = Polygon([(0, 0), (20, 0), (20, 10), (10, 5), (0, 10), (0, 0)])
-    >>> shapely.coverage_simplify(poly, tolerance=2)
-    <POLYGON ((0 0, 20 0, 20 10, 10 5, 0 10, 0 0))>
-    """
-    scalar = False
-    if isinstance(geometry, Geometry):
-        scalar = True
-
-    geometries = np.asarray(geometry)
-    shape = geometries.shape
-    geometries = geometries.ravel()
-
-    # create_collection acts on the inner axis
-    collections = lib.create_collection(
-        geometries, np.intc(GeometryType.GEOMETRYCOLLECTION)
-    )
-
-    simplified = lib.coverage_simplify(collections, tolerance, simplify_boundary)
-    parts = get_parts(simplified).reshape(shape)
-    if scalar:
-        return parts.item()
-    return parts
 
 
 @multithreading_enabled
@@ -1212,6 +1208,18 @@ def snap(geometry, reference, tolerance, **kwargs):
     return lib.snap(geometry, reference, tolerance, **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   voronoi_polygons(geometry, tolerance=0.0, extend_to=None, ...)
+# shapely 2.1: shows deprecation warning about positional 'extend_to'
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'tolerance'
+#   voronoi_polygons(geometry, tolerance=0.0, extend_to=None, ...)
+
+
+@deprecate_positional(
+    ["extend_to", "only_edges", "ordered"], category=DeprecationWarning
+)
 @multithreading_enabled
 def voronoi_polygons(
     geometry, tolerance=0.0, extend_to=None, only_edges=False, ordered=False, **kwargs
@@ -1242,6 +1250,14 @@ def voronoi_polygons(
         .. versionadded:: 2.1.0
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``extend_to``, ``only_edges`` or
+        ``ordered`` are specified as positional arguments. In a future
+        release, these will need to be specified as keyword arguments.
 
     Examples
     --------

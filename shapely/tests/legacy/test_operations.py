@@ -28,7 +28,7 @@ class OperationsTestCase(unittest.TestCase):
 
         # Buffer
         assert isinstance(point.buffer(10.0), Polygon)
-        assert isinstance(point.buffer(10.0, 32), Polygon)
+        assert isinstance(point.buffer(10.0, quad_segs=32), Polygon)
 
         # Simplify
         p = loads(

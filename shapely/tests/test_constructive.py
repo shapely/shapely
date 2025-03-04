@@ -1110,92 +1110,6 @@ def test_concave_hull_kwargs():
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
-@pytest.mark.parametrize("geometry", all_types)
-def test_coverage_simplify_scalars(geometry):
-    if geometry.geom_type in ("Polygon", "MultiPolygon"):
-        actual = shapely.coverage_simplify(geometry, 0.0)
-        assert isinstance(actual, Geometry)
-        assert shapely.get_type_id(actual) == shapely.get_type_id(geometry)
-        assert actual.equals(geometry)
-    else:
-        with pytest.raises(TypeError, match="incorrect geometry type"):
-            shapely.coverage_simplify(geometry, 0.0)
-
-
-@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
-@pytest.mark.parametrize("geometry", all_types)
-def test_coverage_simplify_geom_types(geometry):
-    if geometry.geom_type in ("Polygon", "MultiPolygon"):
-        actual = shapely.coverage_simplify([geometry, geometry], 0.0)
-        assert isinstance(actual, np.ndarray)
-        assert actual.shape == (2,)
-        assert (shapely.get_type_id(actual) == shapely.get_type_id(geometry)).all()
-    else:
-        with pytest.raises(TypeError, match="incorrect geometry type"):
-            shapely.coverage_simplify([geometry, geometry], 0.0)
-
-
-@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
-def test_coverage_simplify_multipolygon():
-    mp = MultiPolygon(
-        [
-            Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)]),
-            Polygon([(2, 2), (2, 3), (3, 3), (3, 2), (2, 2)]),
-        ]
-    )
-    actual = shapely.coverage_simplify(mp, 1)
-    assert actual.equals(
-        shapely.from_wkt(
-            "MULTIPOLYGON (((0 1, 1 1, 1 0, 0 1)), ((2 3, 3 3, 3 2, 2 3)))"
-        )
-    )
-
-
-@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
-def test_coverage_simplify_array():
-    polygons = np.array(
-        [
-            shapely.Polygon([(0, 0), (20, 0), (20, 10), (10, 5), (0, 10), (0, 0)]),
-            shapely.Polygon([(0, 10), (10, 5), (20, 10), (20, 20), (0, 20), (0, 10)]),
-        ]
-    )
-    low_tolerance = shapely.coverage_simplify(polygons, 1)
-    mid_tolerance = shapely.coverage_simplify(polygons, 8)
-    high_tolerance = shapely.coverage_simplify(polygons, 10)
-
-    assert shapely.equals(low_tolerance, shapely.normalize(polygons)).all()
-    assert shapely.equals(
-        mid_tolerance,
-        shapely.from_wkt(
-            [
-                "POLYGON ((20 10, 0 10, 0 0, 20 0, 20 10))",
-                "POLYGON ((20 10, 0 10, 0 20, 20 20, 20 10))",
-            ]
-        ),
-    ).all()
-    assert shapely.equals(
-        high_tolerance,
-        shapely.from_wkt(
-            [
-                "POLYGON ((20 10, 0 10, 20 0, 20 10))",
-                "POLYGON ((20 10, 0 10, 0 20, 20 10))",
-            ]
-        ),
-    ).all()
-
-    no_boundary = shapely.coverage_simplify(polygons, 10, simplify_boundary=False)
-    assert shapely.equals(
-        no_boundary,
-        shapely.from_wkt(
-            [
-                "POLYGON ((20 10, 0 10, 0 0, 20 0, 20 10))",
-                "POLYGON ((20 10, 0 10, 0 20, 20 20, 20 10))",
-            ]
-        ),
-    ).all()
-
-
-@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
 def test_voronoi_polygons_ordered():
     mp = MultiPoint([(3.0, 1.0), (3.0, 2.0), (1.0, 2.0), (1.0, 1.0)])
     result = shapely.voronoi_polygons(mp, ordered=False)
@@ -1307,3 +1221,65 @@ def test_orient_polygons_non_polygonal_input():
     arr = np.array([Point(0, 0), LineString([(0, 0), (1, 1)]), None])
     result = shapely.orient_polygons(arr)
     assert_geometries_equal(result, arr)
+
+
+def test_buffer_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `quad_segs` for `buffer` is deprecated"
+    ):
+        shapely.buffer(point, 1.0, 8)
+    with pytest.deprecated_call(
+        match="positional arguments `quad_segs` and `cap_style` "
+        "for `buffer` are deprecated"
+    ):
+        shapely.buffer(point, 1.0, 8, "round")
+    with pytest.deprecated_call(
+        match="positional arguments `quad_segs`, `cap_style`, and `join_style` "
+        "for `buffer` are deprecated"
+    ):
+        shapely.buffer(point, 1.0, 8, "round", "round")
+    with pytest.deprecated_call():
+        shapely.buffer(point, 1.0, 8, "round", "round", 5.0)
+    with pytest.deprecated_call():
+        shapely.buffer(point, 1.0, 8, "round", "round", 5.0, False)
+
+
+def test_offset_curve_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `quad_segs` for `offset_curve` is deprecated"
+    ):
+        shapely.offset_curve(line_string, 1.0, 8)
+    with pytest.deprecated_call(
+        match="positional arguments `quad_segs` and `join_style` "
+        "for `offset_curve` are deprecated"
+    ):
+        shapely.offset_curve(line_string, 1.0, 8, "round")
+    with pytest.deprecated_call(
+        match="positional arguments `quad_segs`, `join_style`, and `mitre_limit` "
+        "for `offset_curve` are deprecated"
+    ):
+        shapely.offset_curve(line_string, 1.0, 8, "round", 5.0)
+
+
+def test_simplify_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `preserve_topology` for `simplify` is deprecated"
+    ):
+        shapely.simplify(line_string, 1.0, True)
+
+
+def test_voronoi_polygons_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `extend_to` for `voronoi_polygons` is deprecated"
+    ):
+        shapely.voronoi_polygons(multi_point, 0.0, None)
+    with pytest.deprecated_call(
+        match="positional arguments `extend_to` and `only_edges` "
+        "for `voronoi_polygons` are deprecated"
+    ):
+        shapely.voronoi_polygons(multi_point, 0.0, None, False)
+    with pytest.deprecated_call(
+        match="positional arguments `extend_to`, `only_edges`, and `ordered` "
+        "for `voronoi_polygons` are deprecated"
+    ):
+        shapely.voronoi_polygons(multi_point, 0.0, None, False, False)

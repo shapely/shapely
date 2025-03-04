@@ -1,11 +1,9 @@
 """Support for various GEOS geometry operations."""
 
-from warnings import warn
-
 import shapely
 from shapely import lib
 from shapely.algorithms.polylabel import polylabel  # noqa
-from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
+from shapely.errors import GeometryTypeError
 from shapely.geometry import (
     GeometryCollection,
     LineString,
@@ -20,7 +18,6 @@ from shapely.geometry.polygon import orient as orient_
 from shapely.prepared import prep
 
 __all__ = [
-    "cascaded_union",
     "clip_by_rect",
     "linemerge",
     "nearest_points",
@@ -113,20 +110,6 @@ class CollectionOperator:
             raise ValueError(f"Cannot linemerge {lines}")
         return shapely.line_merge(source, directed=directed)
 
-    def cascaded_union(self, geoms):
-        """Return the union of a sequence of geometries.
-
-        .. deprecated:: 1.8
-            This function was superseded by :meth:`unary_union`.
-        """
-        warn(
-            "The 'cascaded_union()' function is deprecated. "
-            "Use 'unary_union()' instead.",
-            ShapelyDeprecationWarning,
-            stacklevel=2,
-        )
-        return shapely.union_all(geoms, axis=None)
-
     def unary_union(self, geoms):
         """Return the union of a sequence of geometries.
 
@@ -140,7 +123,6 @@ operator = CollectionOperator()
 polygonize = operator.polygonize
 polygonize_full = operator.polygonize_full
 linemerge = operator.linemerge
-cascaded_union = operator.cascaded_union
 unary_union = operator.unary_union
 
 
@@ -626,15 +608,15 @@ def substring(geom, start_dist, end_dist, normalized=False):
 
     # Filter out cases in which to return a point
     if start_dist == end_dist:
-        return geom.interpolate(start_dist, normalized)
+        return geom.interpolate(start_dist, normalized=normalized)
     elif not normalized and start_dist >= geom.length and end_dist >= geom.length:
-        return geom.interpolate(geom.length, normalized)
+        return geom.interpolate(geom.length, normalized=normalized)
     elif not normalized and -start_dist >= geom.length and -end_dist >= geom.length:
-        return geom.interpolate(0, normalized)
+        return geom.interpolate(0, normalized=normalized)
     elif normalized and start_dist >= 1 and end_dist >= 1:
-        return geom.interpolate(1, normalized)
+        return geom.interpolate(1, normalized=normalized)
     elif normalized and -start_dist >= 1 and -end_dist >= 1:
-        return geom.interpolate(0, normalized)
+        return geom.interpolate(0, normalized=normalized)
 
     if normalized:
         start_dist *= geom.length

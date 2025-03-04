@@ -38,6 +38,8 @@ Improvements:
 - Add function ``orient_polygons`` (#2147)
 - Add function ``coverage_simplify`` to allow topological simplification of polygonal
   coverages (#1969)
+- Add function ``coverage_is_valid`` to validate an array of geometries as valid
+  topological coverage (#2156)
 
 Breaking changes in GEOS 3.12:
 
