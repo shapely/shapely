@@ -9,7 +9,7 @@ from shapely.geometry.base import BaseGeometry
 from shapely.geometry.linestring import LineString
 from shapely.geometry.point import Point
 
-__all__ = ["orient", "Polygon", "LinearRing"]
+__all__ = ["LinearRing", "Polygon", "orient"]
 
 
 def _unpickle_linearring(wkb):
@@ -44,6 +44,7 @@ class LinearRing(LineString):
     --------
     Construct a square ring.
 
+    >>> from shapely import LinearRing
     >>> ring = LinearRing( ((0, 0), (0, 1), (1 ,1 ), (1 , 0)) )
     >>> ring.is_closed
     True
@@ -212,6 +213,7 @@ class Polygon(BaseGeometry):
     --------
     Create a square polygon with no holes
 
+    >>> from shapely import Polygon
     >>> coords = ((0., 0.), (0., 1.), (1., 1.), (1., 0.), (0., 0.))
     >>> polygon = Polygon(coords)
     >>> polygon.area

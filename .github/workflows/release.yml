@@ -19,7 +19,7 @@ on:
   workflow_dispatch:
 
 env:
-  GEOS_VERSION: "3.13.0"
+  GEOS_VERSION: "3.13.1"
 
 jobs:
   build_sdist:
@@ -113,7 +113,7 @@ jobs:
         shell: bash
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.22.0
+        uses: pypa/cibuildwheel@v2.23.0
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           # TEMP don't use automated/isolated build environment, but manually
@@ -186,7 +186,7 @@ jobs:
         if: ${{ matrix.msvc_arch }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.22.0
+        uses: pypa/cibuildwheel@v2.23.0
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_ENVIRONMENT_MACOS:

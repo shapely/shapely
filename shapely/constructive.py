@@ -2,12 +2,15 @@
 
 import numpy as np
 
-from shapely import Geometry, GeometryType, lib
+from shapely import lib
 from shapely._enum import ParamEnum
-from shapely._geometry import get_parts
 from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area_vectorized
 from shapely.algorithms.cga import _orient_polygons_vectorized
-from shapely.decorators import multithreading_enabled, requires_geos
+from shapely.decorators import (
+    deprecate_positional,
+    multithreading_enabled,
+    requires_geos,
+)
 from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
@@ -15,34 +18,33 @@ __all__ = [
     "BufferJoinStyle",
     "boundary",
     "buffer",
-    "offset_curve",
+    "build_area",
     "centroid",
     "clip_by_rect",
     "concave_hull",
     "convex_hull",
-    "coverage_simplify",
     "delaunay_triangles",
-    "segmentize",
     "envelope",
     "extract_unique_points",
-    "build_area",
     "make_valid",
-    "normalize",
+    "maximum_inscribed_circle",
+    "minimum_bounding_circle",
     "minimum_clearance_line",
+    "minimum_rotated_rectangle",
     "node",
+    "normalize",
+    "offset_curve",
+    "orient_polygons",
+    "oriented_envelope",
     "point_on_surface",
     "polygonize",
     "polygonize_full",
     "remove_repeated_points",
     "reverse",
+    "segmentize",
     "simplify",
     "snap",
     "voronoi_polygons",
-    "oriented_envelope",
-    "minimum_rotated_rectangle",
-    "minimum_bounding_circle",
-    "maximum_inscribed_circle",
-    "orient_polygons",
 ]
 
 
@@ -99,27 +101,41 @@ def boundary(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import GeometryCollection, LinearRing, LineString, \
 MultiLineString, MultiPoint, Point, Polygon
-    >>> boundary(Point(0, 0))
+    >>> shapely.boundary(Point(0, 0))
     <GEOMETRYCOLLECTION EMPTY>
-    >>> boundary(LineString([(0, 0), (1, 1), (1, 2)]))
+    >>> shapely.boundary(LineString([(0, 0), (1, 1), (1, 2)]))
     <MULTIPOINT ((0 0), (1 2))>
-    >>> boundary(LinearRing([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]))
+    >>> shapely.boundary(LinearRing([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]))
     <MULTIPOINT EMPTY>
-    >>> boundary(Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]))
+    >>> shapely.boundary(Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]))
     <LINESTRING (0 0, 1 0, 1 1, 0 1, 0 0)>
-    >>> boundary(MultiPoint([(0, 0), (1, 2)]))
+    >>> shapely.boundary(MultiPoint([(0, 0), (1, 2)]))
     <GEOMETRYCOLLECTION EMPTY>
-    >>> boundary(MultiLineString([[(0, 0), (1, 1)], [(0, 1), (1, 0)]]))
+    >>> shapely.boundary(MultiLineString([[(0, 0), (1, 1)], [(0, 1), (1, 0)]]))
     <MULTIPOINT ((0 0), (0 1), (1 0), (1 1))>
-    >>> boundary(GeometryCollection([Point(0, 0)])) is None
+    >>> shapely.boundary(GeometryCollection([Point(0, 0)])) is None
     True
 
     """
     return lib.boundary(geometry, **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   buffer(geometry, distance, quad_segs=8, ...)
+# shapely 2.1: shows deprecation warning about positional 'quad_segs', etc.
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'distance'
+#   buffer(geometry, distance, *, quad_segs=8, ...)
+
+
+@deprecate_positional(
+    ["quad_segs", "cap_style", "join_style", "mitre_limit", "single_sided"],
+    category=DeprecationWarning,
+)
 @multithreading_enabled
 def buffer(
     geometry,
@@ -168,37 +184,47 @@ def buffer(
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``quad_segs``,  ``cap_style``,
+        ``join_style``, ``mitre_limit`` or ``single_sided`` are
+        specified as positional arguments. In a future release, these will
+        need to be specified as keyword arguments.
+
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point, Polygon, BufferCapStyle, BufferJoinStyle
-    >>> buffer(Point(10, 10), 2, quad_segs=1)
+    >>> shapely.buffer(Point(10, 10), 2, quad_segs=1)
     <POLYGON ((12 10, 10 8, 8 10, 10 12, 12 10))>
-    >>> buffer(Point(10, 10), 2, quad_segs=2)
+    >>> shapely.buffer(Point(10, 10), 2, quad_segs=2)
     <POLYGON ((12 10, 11.414 8.586, 10 8, 8.586 8.586, 8 10, 8.5...>
-    >>> buffer(Point(10, 10), -2, quad_segs=1)
+    >>> shapely.buffer(Point(10, 10), -2, quad_segs=1)
     <POLYGON EMPTY>
     >>> line = LineString([(10, 10), (20, 10)])
-    >>> buffer(line, 2, cap_style="square")
+    >>> shapely.buffer(line, 2, cap_style="square")
     <POLYGON ((20 12, 22 12, 22 8, 10 8, 8 8, 8 12, 20 12))>
-    >>> buffer(line, 2, cap_style="flat")
+    >>> shapely.buffer(line, 2, cap_style="flat")
     <POLYGON ((20 12, 20 8, 10 8, 10 12, 20 12))>
-    >>> buffer(line, 2, single_sided=True, cap_style="flat")
+    >>> shapely.buffer(line, 2, single_sided=True, cap_style="flat")
     <POLYGON ((20 10, 10 10, 10 12, 20 12, 20 10))>
     >>> line2 = LineString([(10, 10), (20, 10), (20, 20)])
-    >>> buffer(line2, 2, cap_style="flat", join_style="bevel")
+    >>> shapely.buffer(line2, 2, cap_style="flat", join_style="bevel")
     <POLYGON ((18 12, 18 20, 22 20, 22 10, 20 8, 10 8, 10 12, 18 12))>
-    >>> buffer(line2, 2, cap_style="flat", join_style="mitre")
+    >>> shapely.buffer(line2, 2, cap_style="flat", join_style="mitre")
     <POLYGON ((18 12, 18 20, 22 20, 22 8, 10 8, 10 12, 18 12))>
-    >>> buffer(line2, 2, cap_style="flat", join_style="mitre", mitre_limit=1)
+    >>> shapely.buffer(line2, 2, cap_style="flat", join_style="mitre", mitre_limit=1)
     <POLYGON ((18 12, 18 20, 22 20, 22 9.172, 20.828 8, 10 8, 10 12, 18 12))>
     >>> square = Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)])
-    >>> buffer(square, 2, join_style="mitre")
+    >>> shapely.buffer(square, 2, join_style="mitre")
     <POLYGON ((-2 -2, -2 12, 12 12, 12 -2, -2 -2))>
-    >>> buffer(square, -2, join_style="mitre")
+    >>> shapely.buffer(square, -2, join_style="mitre")
     <POLYGON ((2 2, 2 8, 8 8, 8 2, 2 2))>
-    >>> buffer(square, -5, join_style="mitre")
+    >>> shapely.buffer(square, -5, join_style="mitre")
     <POLYGON EMPTY>
-    >>> buffer(line, float("nan")) is None
+    >>> shapely.buffer(line, float("nan")) is None
     True
 
     """
@@ -228,6 +254,18 @@ def buffer(
     )
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   offset_curve(geometry, distance, quad_segs=8, ...)
+# shapely 2.1: shows deprecation warning about positional 'quad_segs', etc.
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'distance'
+#   offset_curve(geometry, distance, *, quad_segs=8, ...)
+
+
+@deprecate_positional(
+    ["quad_segs", "join_style", "mitre_limit"], category=DeprecationWarning
+)
 @multithreading_enabled
 def offset_curve(
     geometry, distance, quad_segs=8, join_style="round", mitre_limit=5.0, **kwargs
@@ -266,13 +304,22 @@ def offset_curve(
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``quad_segs``, ``join_style`` or
+        ``mitre_limit`` are specified as positional arguments. In a future
+        release, these will need to be specified as keyword arguments.
+
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString
     >>> line = LineString([(0, 0), (0, 2)])
-    >>> offset_curve(line, 2)
+    >>> shapely.offset_curve(line, 2)
     <LINESTRING (-2 0, -2 2)>
-    >>> offset_curve(line, -2)
+    >>> shapely.offset_curve(line, -2)
     <LINESTRING (2 0, 2 2)>
 
     """
@@ -312,14 +359,15 @@ def centroid(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, MultiPoint, Polygon
-    >>> centroid(Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]))
+    >>> shapely.centroid(Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]))
     <POINT (5 5)>
-    >>> centroid(LineString([(0, 0), (2, 2), (10, 10)]))
+    >>> shapely.centroid(LineString([(0, 0), (2, 2), (10, 10)]))
     <POINT (5 5)>
-    >>> centroid(MultiPoint([(0, 0), (10, 10)]))
+    >>> shapely.centroid(MultiPoint([(0, 0), (10, 10)]))
     <POINT (5 5)>
-    >>> centroid(Polygon())
+    >>> shapely.centroid(Polygon())
     <POINT EMPTY>
 
     """
@@ -354,12 +402,13 @@ def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Polygon
     >>> line = LineString([(0, 0), (10, 10)])
-    >>> clip_by_rect(line, 0., 0., 1., 1.)
+    >>> shapely.clip_by_rect(line, 0., 0., 1., 1.)
     <LINESTRING (0 0, 1 1)>
     >>> polygon = Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)])
-    >>> clip_by_rect(polygon, 0., 0., 1., 1.)
+    >>> shapely.clip_by_rect(polygon, 0., 0., 1., 1.)
     <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
 
     """
@@ -394,12 +443,14 @@ def concave_hull(geometry, ratio=0.0, allow_holes=False, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import MultiPoint, Polygon
-    >>> concave_hull(MultiPoint([(0, 0), (0, 3), (1, 1), (3, 0), (3, 3)]), ratio=0.1)
+    >>> multi_point = MultiPoint([(0, 0), (0, 3), (1, 1), (3, 0), (3, 3)])
+    >>> shapely.concave_hull(multi_point, ratio=0.1)
     <POLYGON ((0 0, 0 3, 1 1, 3 3, 3 0, 0 0))>
-    >>> concave_hull(MultiPoint([(0, 0), (0, 3), (1, 1), (3, 0), (3, 3)]), ratio=1.0)
+    >>> shapely.concave_hull(multi_point, ratio=1.0)
     <POLYGON ((0 0, 0 3, 3 3, 3 0, 0 0))>
-    >>> concave_hull(Polygon())
+    >>> shapely.concave_hull(Polygon())
     <POLYGON EMPTY>
 
     """
@@ -423,10 +474,11 @@ def convex_hull(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import MultiPoint, Polygon
-    >>> convex_hull(MultiPoint([(0, 0), (10, 0), (10, 10)]))
+    >>> shapely.convex_hull(MultiPoint([(0, 0), (10, 0), (10, 10)]))
     <POLYGON ((0 0, 10 10, 10 0, 0 0))>
-    >>> convex_hull(Polygon())
+    >>> shapely.convex_hull(Polygon())
     <GEOMETRYCOLLECTION EMPTY>
 
     """
@@ -455,21 +507,25 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import GeometryCollection, LineString, MultiPoint, Polygon
     >>> points = MultiPoint([(50, 30), (60, 30), (100, 100)])
-    >>> delaunay_triangles(points).normalize()
+    >>> shapely.delaunay_triangles(points).normalize()
     <GEOMETRYCOLLECTION (POLYGON ((50 30, 100 100, 60 30, 50 30)))>
-    >>> delaunay_triangles(points, only_edges=True)
+    >>> shapely.delaunay_triangles(points, only_edges=True)
     <MULTILINESTRING ((50 30, 100 100), (50 30, 60 30), ...>
-    >>> delaunay_triangles(MultiPoint([(50, 30), (51, 30), (60, 30), (100, 100)]), \
-tolerance=2).normalize()
+    >>> shapely.delaunay_triangles(
+    ...     MultiPoint([(50, 30), (51, 30), (60, 30), (100, 100)]),
+    ...     tolerance=2
+    ... ).normalize()
     <GEOMETRYCOLLECTION (POLYGON ((50 30, 100 100, 60 30, 50 30)))>
-    >>> delaunay_triangles(Polygon([(50, 30), (60, 30), (100, 100), (50, 30)]))\
+    >>> shapely.delaunay_triangles(Polygon([(50, 30), (60, 30), (100, 100), (50, 30)]))\
 .normalize()
     <GEOMETRYCOLLECTION (POLYGON ((50 30, 100 100, 60 30, 50 30)))>
-    >>> delaunay_triangles(LineString([(50, 30), (60, 30), (100, 100)])).normalize()
+    >>> shapely.delaunay_triangles(LineString([(50, 30), (60, 30), (100, 100)]))\
+.normalize()
     <GEOMETRYCOLLECTION (POLYGON ((50 30, 100 100, 60 30, 50 30)))>
-    >>> delaunay_triangles(GeometryCollection([]))
+    >>> shapely.delaunay_triangles(GeometryCollection([]))
     <GEOMETRYCOLLECTION EMPTY>
 
     """
@@ -489,14 +545,15 @@ def envelope(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import GeometryCollection, LineString, MultiPoint, Point
-    >>> envelope(LineString([(0, 0), (10, 10)]))
+    >>> shapely.envelope(LineString([(0, 0), (10, 10)]))
     <POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))>
-    >>> envelope(MultiPoint([(0, 0), (10, 10)]))
+    >>> shapely.envelope(MultiPoint([(0, 0), (10, 10)]))
     <POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))>
-    >>> envelope(Point(0, 0))
+    >>> shapely.envelope(Point(0, 0))
     <POINT (0 0)>
-    >>> envelope(GeometryCollection([]))
+    >>> shapely.envelope(GeometryCollection([]))
     <POINT EMPTY>
 
     """
@@ -519,16 +576,17 @@ def extract_unique_points(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, MultiPoint, Point, Polygon
-    >>> extract_unique_points(Point(0, 0))
+    >>> shapely.extract_unique_points(Point(0, 0))
     <MULTIPOINT ((0 0))>
-    >>> extract_unique_points(LineString([(0, 0), (1, 1), (1, 1)]))
+    >>> shapely.extract_unique_points(LineString([(0, 0), (1, 1), (1, 1)]))
     <MULTIPOINT ((0 0), (1 1))>
-    >>> extract_unique_points(Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]))
+    >>> shapely.extract_unique_points(Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]))
     <MULTIPOINT ((0 0), (1 0), (1 1), (0 1))>
-    >>> extract_unique_points(MultiPoint([(0, 0), (1, 1), (0, 0)]))
+    >>> shapely.extract_unique_points(MultiPoint([(0, 0), (1, 1), (0, 0)]))
     <MULTIPOINT ((0 0), (1 1))>
-    >>> extract_unique_points(LineString())
+    >>> shapely.extract_unique_points(LineString())
     <MULTIPOINT EMPTY>
 
     """
@@ -550,10 +608,11 @@ def build_area(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import GeometryCollection, Polygon
     >>> polygon1 = Polygon([(0, 0), (3, 0), (3, 3), (0, 3), (0, 0)])
     >>> polygon2 = Polygon([(1, 1), (1, 2), (2, 2), (1, 1)])
-    >>> build_area(GeometryCollection([polygon1, polygon2]))
+    >>> shapely.build_area(GeometryCollection([polygon1, polygon2]))
     <POLYGON ((0 0, 0 3, 3 3, 3 0, 0 0), (1 1, 2 2, 1 2, 1 1))>
 
     """
@@ -561,7 +620,7 @@ def build_area(geometry, **kwargs):
 
 
 @multithreading_enabled
-def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
+def make_valid(geometry, *, method="linework", keep_collapsed=True, **kwargs):
     """Repair invalid geometries.
 
     Two ``methods`` are available:
@@ -605,15 +664,16 @@ def make_valid(geometry, method="linework", keep_collapsed=True, **kwargs):
 
     Examples
     --------
-    >>> from shapely import is_valid, Polygon
+    >>> import shapely
+    >>> from shapely import Polygon
     >>> polygon = Polygon([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)])
-    >>> is_valid(polygon)
+    >>> shapely.is_valid(polygon)
     False
-    >>> make_valid(polygon)
+    >>> shapely.make_valid(polygon)
     <MULTILINESTRING ((0 0, 1 1), (1 1, 1 2))>
-    >>> make_valid(polygon, method="structure", keep_collapsed=True)
+    >>> shapely.make_valid(polygon, method="structure", keep_collapsed=True)
     <LINESTRING (0 0, 1 1, 1 2, 1 1, 0 0)>
-    >>> make_valid(polygon, method="structure", keep_collapsed=False)
+    >>> shapely.make_valid(polygon, method="structure", keep_collapsed=False)
     <POLYGON EMPTY>
 
     """
@@ -670,9 +730,10 @@ def minimum_clearance_line(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Polygon
     >>> poly = Polygon([(0, 0), (10, 0), (10, 10), (5, 5), (0, 10), (0, 0)])
-    >>> minimum_clearance_line(poly)
+    >>> shapely.minimum_clearance_line(poly)
     <LINESTRING (5 5, 5 0)>
 
     See Also
@@ -701,9 +762,10 @@ def normalize(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import MultiLineString
     >>> line = MultiLineString([[(0, 0), (1, 1)], [(2, 2), (3, 3)]])
-    >>> normalize(line)
+    >>> shapely.normalize(line)
     <MULTILINESTRING ((2 2, 3 3), (0 0, 1 1))>
 
     """
@@ -723,14 +785,15 @@ def point_on_surface(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, MultiPoint, Polygon
-    >>> point_on_surface(Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]))
+    >>> shapely.point_on_surface(Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]))
     <POINT (5 5)>
-    >>> point_on_surface(LineString([(0, 0), (2, 2), (10, 10)]))
+    >>> shapely.point_on_surface(LineString([(0, 0), (2, 2), (10, 10)]))
     <POINT (2 2)>
-    >>> point_on_surface(MultiPoint([(0, 0), (10, 10)]))
+    >>> shapely.point_on_surface(MultiPoint([(0, 0), (10, 10)]))
     <POINT (0 0)>
-    >>> point_on_surface(Polygon())
+    >>> shapely.point_on_surface(Polygon())
     <POINT EMPTY>
 
     """
@@ -760,11 +823,12 @@ def node(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point
     >>> line = LineString([(0, 0), (1,1), (0, 1), (1, 0)])
-    >>> node(line)
+    >>> shapely.node(line)
     <MULTILINESTRING ((0 0, 0.5 0.5), (0.5 0.5, 1 1, 0 1, 0.5 0.5), (0.5 0.5, 1 0))>
-    >>> node(Point(1, 1))
+    >>> shapely.node(Point(1, 1))
     <MULTILINESTRING EMPTY>
 
     """
@@ -812,13 +876,14 @@ def polygonize(geometries, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString
     >>> lines = [
     ...     LineString([(0, 0), (1, 1)]),
     ...     LineString([(0, 0), (0, 1)]),
     ...     LineString([(0, 1), (1, 1)])
     ... ]
-    >>> polygonize(lines)
+    >>> shapely.polygonize(lines)
     <GEOMETRYCOLLECTION (POLYGON ((1 1, 0 0, 0 1, 1 1)))>
 
     """
@@ -870,13 +935,14 @@ def polygonize_full(geometries, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString
     >>> lines = [
     ...     LineString([(0, 0), (1, 1)]),
     ...     LineString([(0, 0), (0, 1), (1, 1)]),
     ...     LineString([(0, 1), (1, 1)])
     ... ]
-    >>> polygonize_full(lines)  # doctest: +NORMALIZE_WHITESPACE
+    >>> shapely.polygonize_full(lines)
     (<GEOMETRYCOLLECTION (POLYGON ((1 1, 0 0, 0 1, 1 1)))>,
      <GEOMETRYCOLLECTION EMPTY>,
      <GEOMETRYCOLLECTION (LINESTRING (0 1, 1 1))>,
@@ -908,10 +974,11 @@ def remove_repeated_points(geometry, tolerance=0.0, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Polygon
-    >>> remove_repeated_points(LineString([(0,0), (0,0), (1,0)]), tolerance=0)
+    >>> shapely.remove_repeated_points(LineString([(0,0), (0,0), (1,0)]), tolerance=0)
     <LINESTRING (0 0, 1 0)>
-    >>> remove_repeated_points(Polygon([(0, 0), (0, .5), (0, 1), (.5, 1), (0,0)]), tolerance=.5)
+    >>> shapely.remove_repeated_points(Polygon([(0, 0), (0, .5), (0, 1), (.5, 1), (0,0)]), tolerance=.5)
     <POLYGON ((0 0, 0 1, 0 0))>
 
     """  # noqa: E501
@@ -940,12 +1007,13 @@ def reverse(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Polygon
-    >>> reverse(LineString([(0, 0), (1, 2)]))
+    >>> shapely.reverse(LineString([(0, 0), (1, 2)]))
     <LINESTRING (1 2, 0 0)>
-    >>> reverse(Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]))
+    >>> shapely.reverse(Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]))
     <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
-    >>> reverse(None) is None
+    >>> shapely.reverse(None) is None
     True
 
     """
@@ -976,20 +1044,31 @@ def segmentize(geometry, max_segment_length, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Polygon
     >>> line = LineString([(0, 0), (0, 10)])
-    >>> segmentize(line, max_segment_length=5)
+    >>> shapely.segmentize(line, max_segment_length=5)
     <LINESTRING (0 0, 0 5, 0 10)>
     >>> polygon = Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)])
-    >>> segmentize(polygon, max_segment_length=5)
+    >>> shapely.segmentize(polygon, max_segment_length=5)
     <POLYGON ((0 0, 5 0, 10 0, 10 5, 10 10, 5 10, 0 10, 0 5, 0 0))>
-    >>> segmentize(None, max_segment_length=5) is None
+    >>> shapely.segmentize(None, max_segment_length=5) is None
     True
 
     """
     return lib.segmentize(geometry, max_segment_length, **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   simplify(geometry, tolerance, preserve_topology=True, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'preserve_topology'
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'tolerance'
+#   simplify(geometry, tolerance, *, preserve_topology=True, **kwargs)
+
+
+@deprecate_positional(["preserve_topology"], category=DeprecationWarning)
 @multithreading_enabled
 def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
     """Return a simplified version of an input geometry.
@@ -1010,21 +1089,30 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``preserve_topology`` is specified as
+        a positional argument. This will need to be specified as a keyword
+        argument in a future release.
+
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Polygon
     >>> line = LineString([(0, 0), (1, 10), (0, 20)])
-    >>> simplify(line, tolerance=0.9)
+    >>> shapely.simplify(line, tolerance=0.9)
     <LINESTRING (0 0, 1 10, 0 20)>
-    >>> simplify(line, tolerance=1)
+    >>> shapely.simplify(line, tolerance=1)
     <LINESTRING (0 0, 0 20)>
     >>> polygon_with_hole = Polygon(
     ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
     ...     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]]
     ... )
-    >>> simplify(polygon_with_hole, tolerance=4, preserve_topology=True)
+    >>> shapely.simplify(polygon_with_hole, tolerance=4, preserve_topology=True)
     <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (4 2, 2 4, 4 4, 4 2))>
-    >>> simplify(polygon_with_hole, tolerance=4, preserve_topology=False)
+    >>> shapely.simplify(polygon_with_hole, tolerance=4, preserve_topology=False)
     <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
 
     """
@@ -1032,71 +1120,6 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
         return lib.simplify_preserve_topology(geometry, tolerance, **kwargs)
     else:
         return lib.simplify(geometry, tolerance, **kwargs)
-
-
-@requires_geos("3.12.0")
-@multithreading_enabled
-def coverage_simplify(geometry, tolerance, simplify_boundary=True):
-    """Return a simplified version of an input geometry using coverage simplification.
-
-    Assumes that the geometry forms a polygonal coverage. Under this assumption, the
-    function simplifies the edges using the Visvalingam-Whyatt algorithm, while
-    preserving a valid coverage. In the most simplified case, polygons are reduced to
-    triangles.
-
-    A collection of valid polygons is considered a coverage if the polygons are:
-
-    * **Non-overlapping** - polygons do not overlap (their interiors do not intersect)
-    * **Edge-Matched** - vertices along shared edges are identical
-
-    The function allows simplification of all edges including the outer boundaries of
-    the coverage or simplification of only the inner (shared) edges.
-
-    If there are other geometry types than Polygons or MultiPolygons present, the
-    array will not undergo simplification and geometries are returned unchanged.
-
-    If the geometry is polygonal but does not form a valid coverage due to overlaps,
-    it will be simplified but it may result in invalid topology.
-
-    Parameters
-    ----------
-    geometry : Geometry or array_like
-    tolerance : float or array_like
-        The degree of simplification roughly equal to the square root of the area
-        of triangles that will be removed.
-    simplify_boundary : bool, optional
-        By default (True), simplifies both internal edges of the coverage as well
-        as its boundary. If set to False, only simplifies internal edges.
-
-    Returns
-    -------
-    numpy.ndarray | shapely.Geometry
-
-    Examples
-    --------
-    >>> from shapely import Polygon, MultiPolygon
-    >>> poly = Polygon([(0, 0), (20, 0), (20, 10), (10, 5), (0, 10), (0, 0)])
-    >>> coverage_simplify(poly, tolerance=2)
-    <POLYGON ((0 0, 20 0, 20 10, 10 5, 0 10, 0 0))>
-    """
-    scalar = False
-    if isinstance(geometry, Geometry):
-        scalar = True
-
-    geometries = np.asarray(geometry)
-    shape = geometries.shape
-    geometries = geometries.ravel()
-
-    # create_collection acts on the inner axis
-    collections = lib.create_collection(
-        geometries, np.intc(GeometryType.GEOMETRYCOLLECTION)
-    )
-
-    simplified = lib.coverage_simplify(collections, tolerance, simplify_boundary)
-    parts = get_parts(simplified).reshape(shape)
-    if scalar:
-        return parts.item()
-    return parts
 
 
 @multithreading_enabled
@@ -1132,59 +1155,72 @@ def snap(geometry, reference, tolerance, **kwargs):
 
     Examples
     --------
-    >>> from shapely import snap, distance, LineString, Point, Polygon, MultiPoint, box
+    >>> import shapely
+    >>> from shapely import LineString, Point, Polygon, MultiPoint
 
     >>> point = Point(0.5, 2.5)
     >>> target_point = Point(0, 2)
-    >>> snap(point, target_point, tolerance=1)
+    >>> shapely.snap(point, target_point, tolerance=1)
     <POINT (0 2)>
-    >>> snap(point, target_point, tolerance=0.49)
+    >>> shapely.snap(point, target_point, tolerance=0.49)
     <POINT (0.5 2.5)>
 
     >>> polygon = Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
-    >>> snap(polygon, Point(8, 10), tolerance=5)
+    >>> shapely.snap(polygon, Point(8, 10), tolerance=5)
     <POLYGON ((0 0, 0 10, 8 10, 10 0, 0 0))>
-    >>> snap(polygon, LineString([(8, 10), (8, 0)]), tolerance=5)
+    >>> shapely.snap(polygon, LineString([(8, 10), (8, 0)]), tolerance=5)
     <POLYGON ((0 0, 0 10, 8 10, 8 0, 0 0))>
 
     You can snap one line to another, for example to clean imprecise coordinates:
 
     >>> line1 = LineString([(0.1, 0.1), (0.49, 0.51), (1.01, 0.89)])
     >>> line2 = LineString([(0, 0), (0.5, 0.5), (1.0, 1.0)])
-    >>> snap(line1, line2, 0.25)
+    >>> shapely.snap(line1, line2, 0.25)
     <LINESTRING (0 0, 0.5 0.5, 1 1)>
 
     Snapping also supports Z coordinates:
 
     >>> point1 = Point(0.1, 0.1, 0.5)
     >>> multipoint = MultiPoint([(0, 0, 1), (0, 0, 0)])
-    >>> snap(point1, multipoint, 1)
+    >>> shapely.snap(point1, multipoint, 1)
     <POINT Z (0 0 1)>
 
     Snapping to an empty geometry has no effect:
 
-    >>> snap(line1, LineString([]), 0.25)
+    >>> shapely.snap(line1, LineString([]), 0.25)
     <LINESTRING (0.1 0.1, 0.49 0.51, 1.01 0.89)>
 
     Snapping to a non-geometry (None) will always return None:
 
-    >>> snap(line1, None, 0.25) is None
+    >>> shapely.snap(line1, None, 0.25) is None
     True
 
     Only one vertex of a polygon is snapped to a target point,
     even if all vertices are equidistant to it,
     in order to prevent collapse of the polygon:
 
-    >>> poly = box(0, 0, 1, 1)
+    >>> poly = shapely.box(0, 0, 1, 1)
     >>> poly
     <POLYGON ((1 0, 1 1, 0 1, 0 0, 1 0))>
-    >>> snap(poly, Point(0.5, 0.5), 1)
+    >>> shapely.snap(poly, Point(0.5, 0.5), 1)
     <POLYGON ((0.5 0.5, 1 1, 0 1, 0 0, 0.5 0.5))>
 
     """
     return lib.snap(geometry, reference, tolerance, **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   voronoi_polygons(geometry, tolerance=0.0, extend_to=None, ...)
+# shapely 2.1: shows deprecation warning about positional 'extend_to'
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'tolerance'
+#   voronoi_polygons(geometry, tolerance=0.0, extend_to=None, ...)
+
+
+@deprecate_positional(
+    ["extend_to", "only_edges", "ordered"], category=DeprecationWarning
+)
 @multithreading_enabled
 def voronoi_polygons(
     geometry, tolerance=0.0, extend_to=None, only_edges=False, ordered=False, **kwargs
@@ -1216,23 +1252,32 @@ def voronoi_polygons(
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``extend_to``, ``only_edges`` or
+        ``ordered`` are specified as positional arguments. In a future
+        release, these will need to be specified as keyword arguments.
+
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, MultiPoint, Point
     >>> points = MultiPoint([(2, 2), (4, 2)])
-    >>> voronoi_polygons(points).normalize()
+    >>> shapely.voronoi_polygons(points).normalize()
     <GEOMETRYCOLLECTION (POLYGON ((3 0, 3 4, 6 4, 6 0, 3 0)), POLYGON ((0 0, 0 4...>
-    >>> voronoi_polygons(points, only_edges=True)
+    >>> shapely.voronoi_polygons(points, only_edges=True)
     <MULTILINESTRING ((3 4, 3 0))>
-    >>> voronoi_polygons(MultiPoint([(2, 2), (4, 2), (4.2, 2)]), 0.5, only_edges=True)
+    >>> shapely.voronoi_polygons(MultiPoint([(2, 2), (4, 2), (4.2, 2)]), 0.5, only_edges=True)
     <MULTILINESTRING ((3 4.2, 3 -0.2))>
-    >>> voronoi_polygons(points, extend_to=LineString([(0, 0), (10, 10)]), only_edges=True)
+    >>> shapely.voronoi_polygons(points, extend_to=LineString([(0, 0), (10, 10)]), only_edges=True)
     <MULTILINESTRING ((3 10, 3 0))>
-    >>> voronoi_polygons(LineString([(2, 2), (4, 2)]), only_edges=True)
+    >>> shapely.voronoi_polygons(LineString([(2, 2), (4, 2)]), only_edges=True)
     <MULTILINESTRING ((3 4, 3 0))>
-    >>> voronoi_polygons(Point(2, 2))
+    >>> shapely.voronoi_polygons(Point(2, 2))
     <GEOMETRYCOLLECTION EMPTY>
-    >>> voronoi_polygons(points, ordered=True)
+    >>> shapely.voronoi_polygons(points, ordered=True)
     <GEOMETRYCOLLECTION (POLYGON ((0 0, 0 4, 3 4, 3 0, 0 0)), POLYGON ((6 4, 6 0...>
 
     """  # noqa: E501
@@ -1261,6 +1306,11 @@ def oriented_envelope(geometry, **kwargs):
     coordinate axes. If the convex hull of the object is a degenerate (line
     or point) this degenerate is returned.
 
+    The starting point of the rectangle is not fixed. You can use
+    :func:`~shapely.normalize` to reorganize the rectangle to
+    :ref:`strict canonical form <canonical-form>` so the starting point is
+    always the lower left point.
+
     ``minimum_rotated_rectangle`` is an alias for ``oriented_envelope``.
 
     Parameters
@@ -1272,18 +1322,20 @@ def oriented_envelope(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import GeometryCollection, LineString, MultiPoint, Point, Polygon
-    >>> oriented_envelope(MultiPoint([(0, 0), (10, 0), (10, 10)])).normalize()
+    >>> shapely.oriented_envelope(MultiPoint([(0, 0), (10, 0), (10, 10)])).normalize()
     <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))>
-    >>> oriented_envelope(LineString([(1, 1), (5, 1), (10, 10)])).normalize()
+    >>> shapely.oriented_envelope(LineString([(1, 1), (5, 1), (10, 10)])).normalize()
     <POLYGON ((1 1, 10 10, 12 8, 3 -1, 1 1))>
-    >>> oriented_envelope(Polygon([(1, 1), (15, 1), (5, 10), (1, 1)])).normalize()
+    >>> shapely.oriented_envelope(Polygon([(1, 1), (15, 1), (5, 10), (1, 1)]))\
+.normalize()
     <POLYGON ((1 1, 5 10, 16.691 4.804, 12.691 -4.196, 1 1))>
-    >>> oriented_envelope(LineString([(1, 1), (10, 1)])).normalize()
+    >>> shapely.oriented_envelope(LineString([(1, 1), (10, 1)])).normalize()
     <LINESTRING (1 1, 10 1)>
-    >>> oriented_envelope(Point(2, 2))
+    >>> shapely.oriented_envelope(Point(2, 2))
     <POINT (2 2)>
-    >>> oriented_envelope(GeometryCollection([]))
+    >>> shapely.oriented_envelope(GeometryCollection([]))
     <POLYGON EMPTY>
 
     """
@@ -1310,16 +1362,19 @@ def minimum_bounding_circle(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import GeometryCollection, LineString, MultiPoint, Point, Polygon
-    >>> minimum_bounding_circle(Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]))
+    >>> shapely.minimum_bounding_circle(
+    ...     Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
+    ... )
     <POLYGON ((12.071 5, 11.935 3.621, 11.533 2.294, 10.879 1.07...>
-    >>> minimum_bounding_circle(LineString([(1, 1), (10, 10)]))
+    >>> shapely.minimum_bounding_circle(LineString([(1, 1), (10, 10)]))
     <POLYGON ((11.864 5.5, 11.742 4.258, 11.38 3.065, 10.791 1.9...>
-    >>> minimum_bounding_circle(MultiPoint([(2, 2), (4, 2)]))
+    >>> shapely.minimum_bounding_circle(MultiPoint([(2, 2), (4, 2)]))
     <POLYGON ((4 2, 3.981 1.805, 3.924 1.617, 3.831 1.444, 3.707...>
-    >>> minimum_bounding_circle(Point(0, 1))
+    >>> shapely.minimum_bounding_circle(Point(0, 1))
     <POINT (0 1)>
-    >>> minimum_bounding_circle(GeometryCollection([]))
+    >>> shapely.minimum_bounding_circle(GeometryCollection([]))
     <POLYGON EMPTY>
 
     See Also
@@ -1364,8 +1419,10 @@ def maximum_inscribed_circle(geometry, tolerance=None, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Polygon
-    >>> maximum_inscribed_circle(Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]))
+    >>> poly = Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
+    >>> shapely.maximum_inscribed_circle(poly)
     <LINESTRING (5 5, 0 5)>
 
     See Also

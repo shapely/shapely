@@ -7,7 +7,7 @@
 
 import warnings
 
-__all__ = ["available", "enable", "disable", "enabled"]
+__all__ = ["available", "disable", "enable", "enabled"]
 
 
 available = True

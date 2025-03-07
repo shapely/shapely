@@ -165,8 +165,9 @@ def test_deprecated_quadsegs():
     assert result.equals(expected)
 
 
-def test_resolution_alias():
+def test_deprecated_resolution():
     point = geometry.Point(0, 0)
-    result = point.buffer(1, resolution=1)
+    with pytest.deprecated_call(match="Use 'quad_segs' instead"):
+        result = point.buffer(1, resolution=1)
     expected = point.buffer(1, quad_segs=1)
     assert result.equals(expected)

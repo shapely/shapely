@@ -3,10 +3,18 @@
 import numpy as np
 
 from shapely import Geometry, GeometryType, lib
-from shapely.decorators import multithreading_enabled, requires_geos
+from shapely.decorators import (
+    deprecate_positional,
+    multithreading_enabled,
+    requires_geos,
+)
 
 __all__ = [
+    "coverage_union",
+    "coverage_union_all",
     "difference",
+    "disjoint_subset_union",
+    "disjoint_subset_union_all",
     "intersection",
     "intersection_all",
     "symmetric_difference",
@@ -14,13 +22,19 @@ __all__ = [
     "unary_union",
     "union",
     "union_all",
-    "coverage_union",
-    "coverage_union_all",
-    "disjoint_subset_union",
-    "disjoint_subset_union_all",
 ]
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   difference(a, b, grid_size=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'grid_size' arg
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'b'
+#   difference(a, b, *, grid_size=None, **kwargs)
+
+
+@deprecate_positional(["grid_size"], category=DeprecationWarning)
 @multithreading_enabled
 def difference(a, b, grid_size=None, **kwargs):
     """Return the part of geometry A that does not intersect with geometry B.
@@ -43,26 +57,35 @@ def difference(a, b, grid_size=None, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``grid_size`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
+
     See Also
     --------
     set_precision
 
     Examples
     --------
-    >>> from shapely import box, difference, LineString, normalize, Polygon
+    >>> import shapely
+    >>> from shapely import LineString
     >>> line = LineString([(0, 0), (2, 2)])
-    >>> difference(line, LineString([(1, 1), (3, 3)]))
+    >>> shapely.difference(line, LineString([(1, 1), (3, 3)]))
     <LINESTRING (0 0, 1 1)>
-    >>> difference(line, LineString())
+    >>> shapely.difference(line, LineString())
     <LINESTRING (0 0, 2 2)>
-    >>> difference(line, None) is None
+    >>> shapely.difference(line, None) is None
     True
-    >>> box1 = box(0, 0, 2, 2)
-    >>> box2 = box(1, 1, 3, 3)
-    >>> normalize(difference(box1, box2))
+    >>> box1 = shapely.box(0, 0, 2, 2)
+    >>> box2 = shapely.box(1, 1, 3, 3)
+    >>> shapely.difference(box1, box2).normalize()
     <POLYGON ((0 0, 0 2, 1 2, 1 1, 2 1, 2 0, 0 0))>
-    >>> box1 = box(0.1, 0.2, 2.1, 2.1)
-    >>> difference(box1, box2, grid_size=1)
+    >>> box1 = shapely.box(0.1, 0.2, 2.1, 2.1)
+    >>> shapely.difference(box1, box2, grid_size=1)
     <POLYGON ((2 0, 0 0, 0 2, 1 2, 1 1, 2 1, 2 0))>
 
     """
@@ -75,6 +98,16 @@ def difference(a, b, grid_size=None, **kwargs):
     return lib.difference(a, b, **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   intersection(a, b, grid_size=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'grid_size' arg
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'b'
+#   intersection(a, b, *, grid_size=None, **kwargs)
+
+
+@deprecate_positional(["grid_size"], category=DeprecationWarning)
 @multithreading_enabled
 def intersection(a, b, grid_size=None, **kwargs):
     """Return the geometry that is shared between input geometries.
@@ -95,6 +128,14 @@ def intersection(a, b, grid_size=None, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``grid_size`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
+
     See Also
     --------
     intersection_all
@@ -102,16 +143,17 @@ def intersection(a, b, grid_size=None, **kwargs):
 
     Examples
     --------
-    >>> from shapely import box, intersection, LineString, normalize, Polygon
+    >>> import shapely
+    >>> from shapely import LineString
     >>> line = LineString([(0, 0), (2, 2)])
-    >>> intersection(line, LineString([(1, 1), (3, 3)]))
+    >>> shapely.intersection(line, LineString([(1, 1), (3, 3)]))
     <LINESTRING (1 1, 2 2)>
-    >>> box1 = box(0, 0, 2, 2)
-    >>> box2 = box(1, 1, 3, 3)
-    >>> normalize(intersection(box1, box2))
+    >>> box1 = shapely.box(0, 0, 2, 2)
+    >>> box2 = shapely.box(1, 1, 3, 3)
+    >>> shapely.intersection(box1, box2).normalize()
     <POLYGON ((1 1, 1 2, 2 2, 2 1, 1 1))>
-    >>> box1 = box(0.1, 0.2, 2.1, 2.1)
-    >>> intersection(box1, box2, grid_size=1)
+    >>> box1 = shapely.box(0.1, 0.2, 2.1, 2.1)
+    >>> shapely.intersection(box1, box2, grid_size=1)
     <POLYGON ((2 2, 2 1, 1 1, 1 2, 2 2))>
 
     """
@@ -124,6 +166,16 @@ def intersection(a, b, grid_size=None, **kwargs):
     return lib.intersection(a, b, **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   intersection_all(geometries, axis=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'axis' arg
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'geometries'
+#   intersection_all(geometries, *, axis=None, **kwargs)
+
+
+@deprecate_positional(["axis"], category=DeprecationWarning)
 @multithreading_enabled
 def intersection_all(geometries, axis=None, **kwargs):
     """Return the intersection of multiple geometries.
@@ -144,20 +196,29 @@ def intersection_all(geometries, axis=None, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``axis`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
+
     See Also
     --------
     intersection
 
     Examples
     --------
-    >>> from shapely import intersection_all, LineString
+    >>> import shapely
+    >>> from shapely import LineString
     >>> line1 = LineString([(0, 0), (2, 2)])
     >>> line2 = LineString([(1, 1), (3, 3)])
-    >>> intersection_all([line1, line2])
+    >>> shapely.intersection_all([line1, line2])
     <LINESTRING (1 1, 2 2)>
-    >>> intersection_all([[line1, line2, None]], axis=1).tolist()
+    >>> shapely.intersection_all([[line1, line2, None]], axis=1).tolist()
     [<LINESTRING (1 1, 2 2)>]
-    >>> intersection_all([line1, None])
+    >>> shapely.intersection_all([line1, None])
     <LINESTRING (0 0, 2 2)>
 
     """
@@ -170,6 +231,16 @@ def intersection_all(geometries, axis=None, **kwargs):
     return lib.intersection_all(geometries, **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   symmetric_difference(a, b, grid_size=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'grid_size' arg
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'b'
+#   symmetric_difference(a, b, *, grid_size=None, **kwargs)
+
+
+@deprecate_positional(["grid_size"], category=DeprecationWarning)
 @multithreading_enabled
 def symmetric_difference(a, b, grid_size=None, **kwargs):
     """Return the geometry with the portions of input geometries that do not intersect.
@@ -190,6 +261,14 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``grid_size`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
+
     See Also
     --------
     symmetric_difference_all
@@ -197,16 +276,17 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
 
     Examples
     --------
-    >>> from shapely import box, LineString, normalize, symmetric_difference
+    >>> import shapely
+    >>> from shapely import LineString
     >>> line = LineString([(0, 0), (2, 2)])
-    >>> symmetric_difference(line, LineString([(1, 1), (3, 3)]))
+    >>> shapely.symmetric_difference(line, LineString([(1, 1), (3, 3)]))
     <MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>
-    >>> box1 = box(0, 0, 2, 2)
-    >>> box2 = box(1, 1, 3, 3)
-    >>> normalize(symmetric_difference(box1, box2))
+    >>> box1 = shapely.box(0, 0, 2, 2)
+    >>> box2 = shapely.box(1, 1, 3, 3)
+    >>> shapely.symmetric_difference(box1, box2).normalize()
     <MULTIPOLYGON (((1 2, 1 3, 3 3, 3 1, 2 1, 2 2, 1 2)), ((0 0, 0 2, 1 2, 1 1, ...>
-    >>> box1 = box(0.1, 0.2, 2.1, 2.1)
-    >>> symmetric_difference(box1, box2, grid_size=1)
+    >>> box1 = shapely.box(0.1, 0.2, 2.1, 2.1)
+    >>> shapely.symmetric_difference(box1, box2, grid_size=1)
     <MULTIPOLYGON (((2 0, 0 0, 0 2, 1 2, 1 1, 2 1, 2 0)), ((2 2, 1 2, 1 3, 3 3, ...>
 
     """
@@ -219,6 +299,16 @@ def symmetric_difference(a, b, grid_size=None, **kwargs):
     return lib.symmetric_difference(a, b, **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   symmetric_difference_all(geometries, axis=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'axis' arg
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'geometries'
+#   symmetric_difference_all(geometries, *, axis=None, **kwargs)
+
+
+@deprecate_positional(["axis"], category=DeprecationWarning)
 @multithreading_enabled
 def symmetric_difference_all(geometries, axis=None, **kwargs):
     """Return the symmetric difference of multiple geometries.
@@ -239,22 +329,31 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``axis`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
+
     See Also
     --------
     symmetric_difference
 
     Examples
     --------
-    >>> from shapely import LineString, symmetric_difference_all
+    >>> import shapely
+    >>> from shapely import LineString
     >>> line1 = LineString([(0, 0), (2, 2)])
     >>> line2 = LineString([(1, 1), (3, 3)])
-    >>> symmetric_difference_all([line1, line2])
+    >>> shapely.symmetric_difference_all([line1, line2])
     <MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>
-    >>> symmetric_difference_all([[line1, line2, None]], axis=1).tolist()
+    >>> shapely.symmetric_difference_all([[line1, line2, None]], axis=1).tolist()
     [<MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))>]
-    >>> symmetric_difference_all([line1, None])
+    >>> shapely.symmetric_difference_all([line1, None])
     <LINESTRING (0 0, 2 2)>
-    >>> symmetric_difference_all([None, None])
+    >>> shapely.symmetric_difference_all([None, None])
     <GEOMETRYCOLLECTION EMPTY>
 
     """
@@ -267,6 +366,16 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
     return lib.symmetric_difference_all(geometries, **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   union(a, b, grid_size=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'grid_size' arg
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'b'
+#   union(a, b, *, grid_size=None, **kwargs)
+
+
+@deprecate_positional(["grid_size"], category=DeprecationWarning)
 @multithreading_enabled
 def union(a, b, grid_size=None, **kwargs):
     """Merge geometries into one.
@@ -287,6 +396,14 @@ def union(a, b, grid_size=None, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``grid_size`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
+
     See Also
     --------
     union_all
@@ -294,18 +411,19 @@ def union(a, b, grid_size=None, **kwargs):
 
     Examples
     --------
-    >>> from shapely import box, LineString, normalize, union
+    >>> import shapely
+    >>> from shapely import LineString
     >>> line = LineString([(0, 0), (2, 2)])
-    >>> union(line, LineString([(2, 2), (3, 3)]))
+    >>> shapely.union(line, LineString([(2, 2), (3, 3)]))
     <MULTILINESTRING ((0 0, 2 2), (2 2, 3 3))>
-    >>> union(line, None) is None
+    >>> shapely.union(line, None) is None
     True
-    >>> box1 = box(0, 0, 2, 2)
-    >>> box2 = box(1, 1, 3, 3)
-    >>> normalize(union(box1, box2))
+    >>> box1 = shapely.box(0, 0, 2, 2)
+    >>> box2 = shapely.box(1, 1, 3, 3)
+    >>> shapely.union(box1, box2).normalize()
     <POLYGON ((0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0, 0 0))>
-    >>> box1 = box(0.1, 0.2, 2.1, 2.1)
-    >>> union(box1, box2, grid_size=1)
+    >>> box1 = shapely.box(0.1, 0.2, 2.1, 2.1)
+    >>> shapely.union(box1, box2, grid_size=1)
     <POLYGON ((2 0, 0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0))>
 
     """
@@ -318,6 +436,16 @@ def union(a, b, grid_size=None, **kwargs):
     return lib.union(a, b, **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   union_all(geometries, grid_size=None, axis=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'grid_size' arg
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'geometries'
+#   union_all(geometries, *, grid_size=None, axis=None, **kwargs)
+
+
+@deprecate_positional(["grid_size", "axis"], category=DeprecationWarning)
 @multithreading_enabled
 def union_all(geometries, grid_size=None, axis=None, **kwargs):
     """Return the union of multiple geometries.
@@ -349,6 +477,14 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``grid_size`` or ``axis`` are
+        specified as positional arguments. In a future release, these will
+        need to be specified as keyword arguments.
+
     See Also
     --------
     union
@@ -356,25 +492,26 @@ def union_all(geometries, grid_size=None, axis=None, **kwargs):
 
     Examples
     --------
-    >>> from shapely import box, LineString, normalize, Point, union_all
+    >>> import shapely
+    >>> from shapely import LineString, Point
     >>> line1 = LineString([(0, 0), (2, 2)])
     >>> line2 = LineString([(2, 2), (3, 3)])
-    >>> union_all([line1, line2])
+    >>> shapely.union_all([line1, line2])
     <MULTILINESTRING ((0 0, 2 2), (2 2, 3 3))>
-    >>> union_all([[line1, line2, None]], axis=1).tolist()
+    >>> shapely.union_all([[line1, line2, None]], axis=1).tolist()
     [<MULTILINESTRING ((0 0, 2 2), (2 2, 3 3))>]
-    >>> box1 = box(0, 0, 2, 2)
-    >>> box2 = box(1, 1, 3, 3)
-    >>> normalize(union_all([box1, box2]))
+    >>> box1 = shapely.box(0, 0, 2, 2)
+    >>> box2 = shapely.box(1, 1, 3, 3)
+    >>> shapely.union_all([box1, box2]).normalize()
     <POLYGON ((0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0, 0 0))>
-    >>> box1 = box(0.1, 0.2, 2.1, 2.1)
-    >>> union_all([box1, box2], grid_size=1)
+    >>> box1 = shapely.box(0.1, 0.2, 2.1, 2.1)
+    >>> shapely.union_all([box1, box2], grid_size=1)
     <POLYGON ((2 0, 0 0, 0 2, 1 2, 1 3, 3 3, 3 1, 2 1, 2 0))>
-    >>> union_all([None, Point(0, 1)])
+    >>> shapely.union_all([None, Point(0, 1)])
     <POINT (0 1)>
-    >>> union_all([None, None])
+    >>> shapely.union_all([None, None])
     <GEOMETRYCOLLECTION EMPTY>
-    >>> union_all([])
+    >>> shapely.union_all([])
     <GEOMETRYCOLLECTION EMPTY>
 
     """
@@ -424,20 +561,32 @@ def coverage_union(a, b, **kwargs):
 
     Examples
     --------
-    >>> from shapely import coverage_union, normalize, Polygon
-    >>> polygon = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
-    >>> normalize(coverage_union(polygon, Polygon([(1, 0), (1, 1), (2, 1), (2, 0), (1, 0)])))
+    >>> import shapely
+    >>> from shapely import Polygon
+    >>> polygon_1 = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
+    >>> polygon_2 = Polygon([(1, 0), (1, 1), (2, 1), (2, 0), (1, 0)])
+    >>> shapely.coverage_union(polygon_1, polygon_2).normalize()
     <POLYGON ((0 0, 0 1, 1 1, 2 1, 2 0, 1 0, 0 0))>
 
     Union with None returns same polygon
 
-    >>> normalize(coverage_union(polygon, None))
+    >>> shapely.coverage_union(polygon_1, None).normalize()
     <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
 
-    """  # noqa: E501
+    """
     return coverage_union_all([a, b], **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   coverage_union_all(geometries, axis=None, **kwargs)
+# shapely 2.1: shows deprecation warning about positional 'axis' arg
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'geometries'
+#   coverage_union_all(geometries, *, axis=None, **kwargs)
+
+
+@deprecate_positional(["axis"], category=DeprecationWarning)
 @multithreading_enabled
 def coverage_union_all(geometries, axis=None, **kwargs):
     """Return the union of multiple polygons of a geometry collection.
@@ -461,20 +610,29 @@ def coverage_union_all(geometries, axis=None, **kwargs):
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``axis`` is specified as a
+        positional argument. This will need to be specified as a keyword
+        argument in a future release.
+
     See Also
     --------
     coverage_union
 
     Examples
     --------
-    >>> from shapely import coverage_union_all, normalize, Polygon
+    >>> import shapely
+    >>> from shapely import Polygon
     >>> polygon_1 = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
     >>> polygon_2 = Polygon([(1, 0), (1, 1), (2, 1), (2, 0), (1, 0)])
-    >>> normalize(coverage_union_all([polygon_1, polygon_2]))
+    >>> shapely.coverage_union_all([polygon_1, polygon_2]).normalize()
     <POLYGON ((0 0, 0 1, 1 1, 2 1, 2 0, 1 0, 0 0))>
-    >>> normalize(coverage_union_all([polygon_1, None]))
+    >>> shapely.coverage_union_all([polygon_1, None]).normalize()
     <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
-    >>> normalize(coverage_union_all([None, None]))
+    >>> shapely.coverage_union_all([None, None]).normalize()
     <GEOMETRYCOLLECTION EMPTY>
 
     """
@@ -523,15 +681,16 @@ def disjoint_subset_union(a, b, **kwargs):
 
     Examples
     --------
-    >>> from shapely import disjoint_subset_union, normalize, Polygon
+    >>> import shapely
+    >>> from shapely import Polygon
     >>> polygon_1 = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
     >>> polygon_2 = Polygon([(1, 0), (1, 1), (2, 1), (2, 0), (1, 0)])
-    >>> normalize(disjoint_subset_union(polygon_1, polygon_2))
+    >>> shapely.disjoint_subset_union(polygon_1, polygon_2).normalize()
     <POLYGON ((0 0, 0 1, 1 1, 2 1, 2 0, 1 0, 0 0))>
 
     Union with None returns same polygon:
 
-    >>> normalize(disjoint_subset_union(polygon_1, None))
+    >>> shapely.disjoint_subset_union(polygon_1, None).normalize()
     <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
     """
     if (isinstance(a, Geometry) or a is None) and (
@@ -549,7 +708,7 @@ def disjoint_subset_union(a, b, **kwargs):
 
 @requires_geos("3.12.0")
 @multithreading_enabled
-def disjoint_subset_union_all(geometries, axis=None, **kwargs):
+def disjoint_subset_union_all(geometries, *, axis=None, **kwargs):
     """Return the union of multiple polygons.
 
     This is an optimized version of union which assumes inputs can be divided into
@@ -584,14 +743,15 @@ def disjoint_subset_union_all(geometries, axis=None, **kwargs):
 
     Examples
     --------
-    >>> from shapely import disjoint_subset_union_all, normalize, Polygon
+    >>> import shapely
+    >>> from shapely import Polygon
     >>> polygon_1 = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
     >>> polygon_2 = Polygon([(1, 0), (1, 1), (2, 1), (2, 0), (1, 0)])
-    >>> normalize(disjoint_subset_union_all([polygon_1, polygon_2]))
+    >>> shapely.disjoint_subset_union_all([polygon_1, polygon_2]).normalize()
     <POLYGON ((0 0, 0 1, 1 1, 2 1, 2 0, 1 0, 0 0))>
-    >>> normalize(disjoint_subset_union_all([polygon_1, None]))
+    >>> shapely.disjoint_subset_union_all([polygon_1, None]).normalize()
     <POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))>
-    >>> normalize(disjoint_subset_union_all([None, None]))
+    >>> shapely.disjoint_subset_union_all([None, None]).normalize()
     <GEOMETRYCOLLECTION EMPTY>
     """
     geometries = np.asarray(geometries)

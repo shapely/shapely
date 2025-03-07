@@ -5,33 +5,37 @@ import numpy as np
 
 from shapely import _geometry_helpers, geos_version, lib
 from shapely._enum import ParamEnum
-from shapely.decorators import multithreading_enabled, requires_geos
+from shapely.decorators import (
+    deprecate_positional,
+    multithreading_enabled,
+    requires_geos,
+)
 
 __all__ = [
     "GeometryType",
-    "get_type_id",
-    "get_dimensions",
+    "force_2d",
+    "force_3d",
     "get_coordinate_dimension",
+    "get_dimensions",
+    "get_exterior_ring",
+    "get_geometry",
+    "get_interior_ring",
+    "get_m",
     "get_num_coordinates",
+    "get_num_geometries",
+    "get_num_interior_rings",
+    "get_num_points",
+    "get_parts",
+    "get_point",
+    "get_precision",
+    "get_rings",
     "get_srid",
-    "set_srid",
+    "get_type_id",
     "get_x",
     "get_y",
     "get_z",
-    "get_m",
-    "get_exterior_ring",
-    "get_num_points",
-    "get_num_interior_rings",
-    "get_num_geometries",
-    "get_point",
-    "get_interior_ring",
-    "get_geometry",
-    "get_parts",
-    "get_rings",
-    "get_precision",
     "set_precision",
-    "force_2d",
-    "force_3d",
+    "set_srid",
 ]
 
 
@@ -81,10 +85,11 @@ def get_type_id(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point
-    >>> get_type_id(LineString([(0, 0), (1, 1), (2, 2), (3, 3)]))
+    >>> shapely.get_type_id(LineString([(0, 0), (1, 1), (2, 2), (3, 3)]))
     1
-    >>> get_type_id([Point(1, 2), Point(2, 3)]).tolist()
+    >>> shapely.get_type_id([Point(1, 2), Point(2, 3)]).tolist()
     [0, 0]
 
     """
@@ -108,18 +113,19 @@ def get_dimensions(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import GeometryCollection, Point, Polygon
     >>> point = Point(0, 0)
-    >>> get_dimensions(point)
+    >>> shapely.get_dimensions(point)
     0
     >>> polygon = Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
-    >>> get_dimensions(polygon)
+    >>> shapely.get_dimensions(polygon)
     2
-    >>> get_dimensions(GeometryCollection([point, polygon]))
+    >>> shapely.get_dimensions(GeometryCollection([point, polygon]))
     2
-    >>> get_dimensions(GeometryCollection([]))
+    >>> shapely.get_dimensions(GeometryCollection([]))
     -1
-    >>> get_dimensions(None)
+    >>> shapely.get_dimensions(None)
     -1
 
     """
@@ -150,12 +156,13 @@ def get_coordinate_dimension(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Point
-    >>> get_coordinate_dimension(Point(0, 0))
+    >>> shapely.get_coordinate_dimension(Point(0, 0))
     2
-    >>> get_coordinate_dimension(Point(0, 0, 1))
+    >>> shapely.get_coordinate_dimension(Point(0, 0, 1))
     3
-    >>> get_coordinate_dimension(None)
+    >>> shapely.get_coordinate_dimension(None)
     -1
 
     """
@@ -177,18 +184,19 @@ def get_num_coordinates(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import GeometryCollection, LineString, Point
     >>> point = Point(0, 0)
-    >>> get_num_coordinates(point)
+    >>> shapely.get_num_coordinates(point)
     1
-    >>> get_num_coordinates(Point(0, 0, 0))
+    >>> shapely.get_num_coordinates(Point(0, 0, 0))
     1
     >>> line = LineString([(0, 0), (1, 1)])
-    >>> get_num_coordinates(line)
+    >>> shapely.get_num_coordinates(line)
     2
-    >>> get_num_coordinates(GeometryCollection([point, line]))
+    >>> shapely.get_num_coordinates(GeometryCollection([point, line]))
     3
-    >>> get_num_coordinates(None)
+    >>> shapely.get_num_coordinates(None)
     0
 
     """
@@ -214,12 +222,13 @@ def get_srid(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Point
     >>> point = Point(0, 0)
-    >>> get_srid(point)
+    >>> shapely.get_srid(point)
     0
-    >>> with_srid = set_srid(point, 4326)
-    >>> get_srid(with_srid)
+    >>> with_srid = shapely.set_srid(point, 4326)
+    >>> shapely.get_srid(with_srid)
     4326
 
     """
@@ -245,12 +254,13 @@ def set_srid(geometry, srid, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Point
     >>> point = Point(0, 0)
-    >>> get_srid(point)
+    >>> shapely.get_srid(point)
     0
-    >>> with_srid = set_srid(point, 4326)
-    >>> get_srid(with_srid)
+    >>> with_srid = shapely.set_srid(point, 4326)
+    >>> shapely.get_srid(with_srid)
     4326
 
     """
@@ -277,10 +287,11 @@ def get_x(point, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import MultiPoint, Point
-    >>> get_x(Point(1, 2))
+    >>> shapely.get_x(Point(1, 2))
     1.0
-    >>> get_x(MultiPoint([(1, 1), (1, 2)]))
+    >>> shapely.get_x(MultiPoint([(1, 1), (1, 2)]))
     nan
 
     """
@@ -304,10 +315,11 @@ def get_y(point, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import MultiPoint, Point
-    >>> get_y(Point(1, 2))
+    >>> shapely.get_y(Point(1, 2))
     2.0
-    >>> get_y(MultiPoint([(1, 1), (1, 2)]))
+    >>> shapely.get_y(MultiPoint([(1, 1), (1, 2)]))
     nan
 
     """
@@ -332,12 +344,13 @@ def get_z(point, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import MultiPoint, Point
-    >>> get_z(Point(1, 2, 3))
+    >>> shapely.get_z(Point(1, 2, 3))
     3.0
-    >>> get_z(Point(1, 2))
+    >>> shapely.get_z(Point(1, 2))
     nan
-    >>> get_z(MultiPoint([(1, 1, 1), (2, 2, 2)]))
+    >>> shapely.get_z(MultiPoint([(1, 1, 1), (2, 2, 2)]))
     nan
 
     """
@@ -365,14 +378,15 @@ def get_m(point, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Point, from_wkt
-    >>> get_m(from_wkt("POINT ZM (1 2 3 4)"))
+    >>> shapely.get_m(from_wkt("POINT ZM (1 2 3 4)"))
     4.0
-    >>> get_m(from_wkt("POINT M (1 2 4)"))
+    >>> shapely.get_m(from_wkt("POINT M (1 2 4)"))
     4.0
-    >>> get_m(Point(1, 2, 3))
+    >>> shapely.get_m(Point(1, 2, 3))
     nan
-    >>> get_m(from_wkt("MULTIPOINT M ((1 1 1), (2 2 2))"))
+    >>> shapely.get_m(from_wkt("MULTIPOINT M ((1 1 1), (2 2 2))"))
     nan
 
     """
@@ -401,25 +415,26 @@ def get_point(geometry, index, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LinearRing, LineString, MultiPoint, Point
     >>> line = LineString([(0, 0), (1, 1), (2, 2), (3, 3)])
-    >>> get_point(line, 1)
+    >>> shapely.get_point(line, 1)
     <POINT (1 1)>
-    >>> get_point(line, -2)
+    >>> shapely.get_point(line, -2)
     <POINT (2 2)>
-    >>> get_point(line, [0, 3]).tolist()
+    >>> shapely.get_point(line, [0, 3]).tolist()
     [<POINT (0 0)>, <POINT (3 3)>]
 
     The function works the same for LinearRing input:
 
-    >>> get_point(LinearRing([(0, 0), (1, 1), (2, 2), (0, 0)]), 1)
+    >>> shapely.get_point(LinearRing([(0, 0), (1, 1), (2, 2), (0, 0)]), 1)
     <POINT (1 1)>
 
     For non-linear geometries it returns None:
 
-    >>> get_point(MultiPoint([(0, 0), (1, 1), (2, 2), (3, 3)]), 1) is None
+    >>> shapely.get_point(MultiPoint([(0, 0), (1, 1), (2, 2), (3, 3)]), 1) is None
     True
-    >>> get_point(Point(1, 1), 0) is None
+    >>> shapely.get_point(Point(1, 1), 0) is None
     True
 
     """
@@ -447,12 +462,13 @@ def get_num_points(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, MultiPoint
-    >>> get_num_points(LineString([(0, 0), (1, 1), (2, 2), (3, 3)]))
+    >>> shapely.get_num_points(LineString([(0, 0), (1, 1), (2, 2), (3, 3)]))
     4
-    >>> get_num_points(MultiPoint([(0, 0), (1, 1), (2, 2), (3, 3)]))
+    >>> shapely.get_num_points(MultiPoint([(0, 0), (1, 1), (2, 2), (3, 3)]))
     0
-    >>> get_num_points(None)
+    >>> shapely.get_num_points(None)
     0
 
     """
@@ -479,10 +495,11 @@ def get_exterior_ring(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Point, Polygon
-    >>> get_exterior_ring(Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]))
+    >>> shapely.get_exterior_ring(Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]))
     <LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>
-    >>> get_exterior_ring(Point(1, 1)) is None
+    >>> shapely.get_exterior_ring(Point(1, 1)) is None
     True
 
     """
@@ -511,19 +528,20 @@ def get_interior_ring(geometry, index, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Point, Polygon
     >>> polygon_with_hole = Polygon(
     ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
     ...     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]]
     ... )
-    >>> get_interior_ring(polygon_with_hole, 0)
+    >>> shapely.get_interior_ring(polygon_with_hole, 0)
     <LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>
-    >>> get_interior_ring(polygon_with_hole, 1) is None
+    >>> shapely.get_interior_ring(polygon_with_hole, 1) is None
     True
     >>> polygon = Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
-    >>> get_interior_ring(polygon, 0) is None
+    >>> shapely.get_interior_ring(polygon, 0) is None
     True
-    >>> get_interior_ring(Point(0, 0), 0) is None
+    >>> shapely.get_interior_ring(Point(0, 0), 0) is None
     True
 
     """
@@ -550,19 +568,20 @@ def get_num_interior_rings(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Point, Polygon
     >>> polygon = Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])
-    >>> get_num_interior_rings(polygon)
+    >>> shapely.get_num_interior_rings(polygon)
     0
     >>> polygon_with_hole = Polygon(
     ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
     ...     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]]
     ... )
-    >>> get_num_interior_rings(polygon_with_hole)
+    >>> shapely.get_num_interior_rings(polygon_with_hole)
     1
-    >>> get_num_interior_rings(Point(0, 0))
+    >>> shapely.get_num_interior_rings(Point(0, 0))
     0
-    >>> get_num_interior_rings(None)
+    >>> shapely.get_num_interior_rings(None)
     0
 
     """
@@ -596,23 +615,34 @@ def get_geometry(geometry, index, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Point, MultiPoint
     >>> multipoint = MultiPoint([(0, 0), (1, 1), (2, 2), (3, 3)])
-    >>> get_geometry(multipoint, 1)
+    >>> shapely.get_geometry(multipoint, 1)
     <POINT (1 1)>
-    >>> get_geometry(multipoint, -1)
+    >>> shapely.get_geometry(multipoint, -1)
     <POINT (3 3)>
-    >>> get_geometry(multipoint, 5) is None
+    >>> shapely.get_geometry(multipoint, 5) is None
     True
-    >>> get_geometry(Point(1, 1), 0)
+    >>> shapely.get_geometry(Point(1, 1), 0)
     <POINT (1 1)>
-    >>> get_geometry(Point(1, 1), 1) is None
+    >>> shapely.get_geometry(Point(1, 1), 1) is None
     True
 
     """
     return lib.get_geometry(geometry, np.intc(index), **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   get_parts(geometry, return_index=False)
+# shapely 2.1: shows deprecation warning about positional 'return_index'
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'geometry'
+#   get_parts(geometry, *, return_index=False)
+
+
+@deprecate_positional(["return_index"])
 def get_parts(geometry, return_index=False):
     """Get parts of each GeometryCollection or Multi* geometry object.
 
@@ -632,6 +662,14 @@ def get_parts(geometry, return_index=False):
         If True, will return a tuple of ndarrays of (parts, indexes), where
         indexes are the indexes of the original geometries in the source array.
 
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``return_index`` is specified as
+        a positional argument. This will need to be specified as a keyword
+        argument in a future release.
+
     Returns
     -------
     ndarray of parts or tuple of (parts, indexes)
@@ -642,11 +680,12 @@ def get_parts(geometry, return_index=False):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import MultiPoint
-    >>> get_parts(MultiPoint([(0, 1), (2, 3)])).tolist()
+    >>> shapely.get_parts(MultiPoint([(0, 1), (2, 3)])).tolist()
     [<POINT (0 1)>, <POINT (2 3)>]
-    >>> parts, index = get_parts([MultiPoint([(0, 1)]), MultiPoint([(4, 5), (6, 7)])], \
-return_index=True)
+    >>> parts, index = shapely.get_parts([MultiPoint([(0, 1)]), \
+MultiPoint([(4, 5), (6, 7)])], return_index=True)
     >>> parts.tolist()
     [<POINT (0 1)>, <POINT (4 5)>, <POINT (6 7)>]
     >>> index.tolist()
@@ -665,6 +704,16 @@ return_index=True)
     return _geometry_helpers.get_parts(geometry)[0]
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   get_rings(geometry, return_index=False)
+# shapely 2.1: shows deprecation warning about positional 'return_index'
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'geometry'
+#   get_rings(geometry, *, return_index=False)
+
+
+@deprecate_positional(["return_index"])
 def get_rings(geometry, return_index=False):
     """Get rings of Polygon geometry object.
 
@@ -682,6 +731,14 @@ def get_rings(geometry, return_index=False):
         If True, will return a tuple of ndarrays of (rings, indexes), where
         indexes are the indexes of the original geometries in the source array.
 
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``return_index`` is specified as
+        a positional argument. This will need to be specified as a keyword
+        argument in a future release.
+
     Returns
     -------
     ndarray of rings or tuple of (rings, indexes)
@@ -692,19 +749,23 @@ def get_rings(geometry, return_index=False):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Polygon
     >>> polygon_with_hole = Polygon(
     ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
     ...     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]]
     ... )
-    >>> get_rings(polygon_with_hole).tolist()
+    >>> shapely.get_rings(polygon_with_hole).tolist()
     [<LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>,
      <LINEARRING (2 2, 2 4, 4 4, 4 2, 2 2)>]
 
     With ``return_index=True``:
 
     >>> polygon = Polygon([(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)])
-    >>> rings, index = get_rings([polygon, polygon_with_hole], return_index=True)
+    >>> rings, index = shapely.get_rings(
+    ...     [polygon, polygon_with_hole],
+    ...     return_index=True
+    ... )
     >>> rings.tolist()
     [<LINEARRING (0 0, 2 0, 2 2, 0 2, 0 0)>,
      <LINEARRING (0 0, 0 10, 10 10, 10 0, 0 0)>,
@@ -746,12 +807,13 @@ def get_num_geometries(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import MultiPoint, Point
-    >>> get_num_geometries(MultiPoint([(0, 0), (1, 1), (2, 2), (3, 3)]))
+    >>> shapely.get_num_geometries(MultiPoint([(0, 0), (1, 1), (2, 2), (3, 3)]))
     4
-    >>> get_num_geometries(Point(1, 1))
+    >>> shapely.get_num_geometries(Point(1, 1))
     1
-    >>> get_num_geometries(None)
+    >>> shapely.get_num_geometries(None)
     0
 
     """
@@ -781,14 +843,15 @@ def get_precision(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Point
     >>> point = Point(1, 1)
-    >>> get_precision(point)
+    >>> shapely.get_precision(point)
     0.0
-    >>> geometry = set_precision(point, 1.0)
-    >>> get_precision(geometry)
+    >>> geometry = shapely.set_precision(point, 1.0)
+    >>> shapely.get_precision(geometry)
     1.0
-    >>> get_precision(None)
+    >>> shapely.get_precision(None)
     nan
 
     """
@@ -865,20 +928,21 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point
-    >>> set_precision(Point(0.9, 0.9), 1.0)
+    >>> shapely.set_precision(Point(0.9, 0.9), 1.0)
     <POINT (1 1)>
-    >>> set_precision(Point(0.9, 0.9, 0.9), 1.0)
+    >>> shapely.set_precision(Point(0.9, 0.9, 0.9), 1.0)
     <POINT Z (1 1 0.9)>
-    >>> set_precision(LineString([(0, 0), (0, 0.1), (0, 1), (1, 1)]), 1.0)
+    >>> shapely.set_precision(LineString([(0, 0), (0, 0.1), (0, 1), (1, 1)]), 1.0)
     <LINESTRING (0 0, 0 1, 1 1)>
-    >>> set_precision(LineString([(0, 0), (0, 0.1), (0.1, 0.1)]), 1.0, mode="valid_output")
+    >>> shapely.set_precision(LineString([(0, 0), (0, 0.1), (0.1, 0.1)]), 1.0, mode="valid_output")
     <LINESTRING EMPTY>
-    >>> set_precision(LineString([(0, 0), (0, 0.1), (0.1, 0.1)]), 1.0, mode="pointwise")
+    >>> shapely.set_precision(LineString([(0, 0), (0, 0.1), (0.1, 0.1)]), 1.0, mode="pointwise")
     <LINESTRING (0 0, 0 0, 0 0)>
-    >>> set_precision(LineString([(0, 0), (0, 0.1), (0.1, 0.1)]), 1.0, mode="keep_collapsed")
+    >>> shapely.set_precision(LineString([(0, 0), (0, 0.1), (0.1, 0.1)]), 1.0, mode="keep_collapsed")
     <LINESTRING (0 0, 0 0)>
-    >>> set_precision(None, 1.0) is None
+    >>> shapely.set_precision(None, 1.0) is None
     True
 
     """  # noqa: E501
@@ -908,16 +972,17 @@ def force_2d(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point, Polygon, from_wkt
-    >>> force_2d(Point(0, 0, 1))
+    >>> shapely.force_2d(Point(0, 0, 1))
     <POINT (0 0)>
-    >>> force_2d(Point(0, 0))
+    >>> shapely.force_2d(Point(0, 0))
     <POINT (0 0)>
-    >>> force_2d(LineString([(0, 0, 0), (0, 1, 1), (1, 1, 2)]))
+    >>> shapely.force_2d(LineString([(0, 0, 0), (0, 1, 1), (1, 1, 2)]))
     <LINESTRING (0 0, 0 1, 1 1)>
-    >>> force_2d(from_wkt("POLYGON Z EMPTY"))
+    >>> shapely.force_2d(from_wkt("POLYGON Z EMPTY"))
     <POLYGON EMPTY>
-    >>> force_2d(None) is None
+    >>> shapely.force_2d(None) is None
     True
 
     """
@@ -945,14 +1010,15 @@ def force_3d(geometry, z=0.0, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point
-    >>> force_3d(Point(0, 0), z=3)
+    >>> shapely.force_3d(Point(0, 0), z=3)
     <POINT Z (0 0 3)>
-    >>> force_3d(Point(0, 0, 0), z=3)
+    >>> shapely.force_3d(Point(0, 0, 0), z=3)
     <POINT Z (0 0 0)>
-    >>> force_3d(LineString([(0, 0), (0, 1), (1, 1)]))
+    >>> shapely.force_3d(LineString([(0, 0), (0, 1), (1, 1)]))
     <LINESTRING Z (0 0 0, 0 1 0, 1 1 0)>
-    >>> force_3d(None) is None
+    >>> shapely.force_3d(None) is None
     True
 
     """

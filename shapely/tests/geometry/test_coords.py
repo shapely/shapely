@@ -1,8 +1,17 @@
 import numpy as np
 import pytest
 
-from shapely import LineString
-from shapely.tests.common import line_string, line_string_z, point, point_z
+from shapely import LineString, geos_version
+from shapely.tests.common import (
+    line_string,
+    line_string_m,
+    line_string_z,
+    line_string_zm,
+    point,
+    point_m,
+    point_z,
+    point_zm,
+)
 
 
 class TestCoords:
@@ -100,3 +109,19 @@ def test_coords_array_copy(geom):
             np.array(coord_seq, copy=False)
     else:
         assert np.array(coord_seq, copy=False) is np.array(coord_seq, copy=False)
+
+
+@pytest.mark.skipif(geos_version < (3, 12, 0), reason="GEOS < 3.12")
+def test_coords_with_m():
+    assert point_m.coords[:] == [(2.0, 3.0, 5.0)]
+    assert point_zm.coords[:] == [(2.0, 3.0, 4.0, 5.0)]
+    assert line_string_m.coords[:] == [
+        (0.0, 0.0, 1.0),
+        (1.0, 0.0, 2.0),
+        (1.0, 1.0, 3.0),
+    ]
+    assert line_string_zm.coords[:] == [
+        (0.0, 0.0, 4.0, 1.0),
+        (1.0, 0.0, 4.0, 2.0),
+        (1.0, 1.0, 4.0, 3.0),
+    ]

@@ -1149,7 +1149,7 @@ enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx, const double
 /* Copy coordinates of a GEOSCoordSequence to an array
  *
  * Note: this function assumes that the buffer is from a C-contiguous array,
- * and that the dimension of the buffer is only 2D or 3D.
+ * and that the dimension of the buffer can be 2, 3 or 4.
  *
  * Returns 0 on error, 1 on success.
  */
@@ -1170,6 +1170,7 @@ int coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_s
   for (i = 0; i < size; i++, cp1 += 8 * dims) {
     cp2 = cp1;
     for (j = 0; j < dims; j++, cp2 += 8) {
+      if (j == 2 && !has_z && has_m) j = 3;  /* jump to last ordinate, fill with Nan */
       if (!GEOSCoordSeq_getOrdinate_r(ctx, coord_seq, i, j, (double*)cp2)) {
         return 0;
       }

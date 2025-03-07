@@ -3,6 +3,7 @@
 import numpy as np
 
 import shapely
+from shapely.decorators import deprecate_positional
 from shapely.geometry.base import JOIN_STYLE, BaseGeometry
 from shapely.geometry.point import Point
 
@@ -27,6 +28,7 @@ class LineString(BaseGeometry):
     --------
     Create a LineString with two segments
 
+    >>> from shapely import LineString
     >>> a = LineString([[0, 0], [1, 0], [1, 1]])
     >>> a.length
     2.0
@@ -114,15 +116,27 @@ class LineString(BaseGeometry):
 
         Examples
         --------
-          >>> x, y = LineString([(0, 0), (1, 1)]).xy
-          >>> list(x)
-          [0.0, 1.0]
-          >>> list(y)
-          [0.0, 1.0]
+        >>> from shapely import LineString
+        >>> x, y = LineString([(0, 0), (1, 1)]).xy
+        >>> list(x)
+        [0.0, 1.0]
+        >>> list(y)
+        [0.0, 1.0]
 
         """
         return self.coords.xy
 
+    # Note: future plan is to change this signature over a few releases:
+    # shapely 2.0:
+    #   offset_curve(self, distance, quad_segs=16, ...)
+    # shapely 2.1: shows deprecation warning about positional 'quad_segs', etc.
+    #   same signature as 2.0
+    # shapely 2.2(?): enforce keyword-only arguments after 'distance'
+    #   offset_curve(self, distance, *, quad_segs=16, ...)
+
+    @deprecate_positional(
+        ["quad_segs", "join_style", "mitre_limit"], category=DeprecationWarning
+    )
     def offset_curve(
         self,
         distance,
@@ -160,7 +174,13 @@ class LineString(BaseGeometry):
             raise ValueError("Cannot compute offset from zero-length line segment")
         elif not np.isfinite(distance):
             raise ValueError("offset_curve distance must be finite")
-        return shapely.offset_curve(self, distance, quad_segs, join_style, mitre_limit)
+        return shapely.offset_curve(
+            self,
+            distance,
+            quad_segs=quad_segs,
+            join_style=join_style,
+            mitre_limit=mitre_limit,
+        )
 
     def parallel_offset(
         self,

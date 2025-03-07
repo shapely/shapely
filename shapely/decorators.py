@@ -1,6 +1,8 @@
 """Decorators for Shapely functions."""
 
+import inspect
 import os
+import warnings
 from functools import wraps
 
 import numpy as np
@@ -88,3 +90,44 @@ def multithreading_enabled(func):
                 arr.flags.writeable = old_flag
 
     return wrapped
+
+
+def deprecate_positional(should_be_kwargs, category=DeprecationWarning):
+    """Show warning if positional arguments are used that should be keyword."""
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            # call the function first, to make sure the signature matches
+            ret_value = func(*args, **kwargs)
+
+            # check signature to see which positional args were used
+            sig = inspect.signature(func)
+            args_bind = sig.bind_partial(*args)
+            warn_args = [
+                f"`{arg}`"
+                for arg in args_bind.arguments.keys()
+                if arg in should_be_kwargs
+            ]
+            if warn_args:
+                if len(warn_args) == 1:
+                    plr = ""
+                    isare = "is"
+                    args = warn_args[0]
+                else:
+                    plr = "s"
+                    isare = "are"
+                    if len(warn_args) < 3:
+                        args = " and ".join(warn_args)
+                    else:
+                        args = ", ".join(warn_args[:-1]) + ", and " + warn_args[-1]
+                msg = (
+                    f"positional argument{plr} {args} for `{func.__name__}` "
+                    f"{isare} deprecated.  Please use keyword argument{plr} instead."
+                )
+                warnings.warn(msg, category=category, stacklevel=2)
+            return ret_value
+
+        return wrapper
+
+    return decorator

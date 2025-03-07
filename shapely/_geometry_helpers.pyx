@@ -439,31 +439,35 @@ def collections_1d(object geometries, object indices, int geometry_type = 7, obj
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _from_ragged_array_polygon(
+def _from_ragged_array_multi_linear(
     const double[:, ::1] coordinates,
     const np.int64_t[:] offsets1,
     const np.int64_t[:] offsets2,
+    int geometry_type,
 ):
     """
-    Create Polygons from coordinate and offset arrays.
+    Create Polygons or MultiLineStrings from coordinate and offset arrays.
+
+    Polygon (geometry_type 3): linear_type is a LinearRing (2)
+    MultiLineString (geometry_type 5): linear_type is a LineString (1)
     """
     cdef:
         Py_ssize_t n_geoms
         Py_ssize_t i, k
         Py_ssize_t i1, i2, k1, k2
-        Py_ssize_t n_coords, rings_idx
+        Py_ssize_t n_coords, linear_idx
         int errstate
         GEOSContextHandle_t geos_handle
-        GEOSGeometry *ring = NULL
+        GEOSGeometry *linear = NULL
         GEOSGeometry *geom = NULL
 
     n_geoms = offsets2.shape[0] - 1
 
-    # A temporary array for the geometries that will be given to CreatePolygon.
+    # A temporary array for the geometries that will be given to CreatePolygon/Collection.
     # For simplicity, we use n_geoms instead of calculating
     # the max needed size (trading performance for a bit more memory usage)
-    temp_rings = np.empty(shape=(n_geoms, ), dtype=np.intp)
-    cdef np.intp_t[:] temp_rings_view = temp_rings
+    temp_linear = np.empty(shape=(n_geoms, ), dtype=np.intp)
+    cdef np.intp_t[:] temp_linear_view = temp_linear
     # A temporary array for resulting geometries
     temp_geoms = np.empty(shape=(n_geoms, ), dtype=np.intp)
     cdef np.intp_t[:] temp_geoms_view = temp_geoms
@@ -476,52 +480,70 @@ def _from_ragged_array_polygon(
     if dims not in {2, 3}:
         raise ValueError("coordinates should be N by 2 or N by 3.")
 
-    cdef int ring_type = 2
-    cdef char is_ring = 1
+    cdef int linear_type
+    cdef char is_ring
+    if geometry_type == 3:
+        # Polygon
+        linear_type = 2
+        is_ring = 1
+    else:
+        # MultiLineString
+        linear_type = 1
+        is_ring = 0
     cdef int handle_nan = 0
 
     with get_geos_handle() as geos_handle:
         with nogil:
-            # iterating through the Polygons
+            # iterating through the Polygons/MultiLineStrings
             for i in range(n_geoms):
 
-                # each part (polygon) can consist of multiple rings
-                # (exterior ring + potentially interior rings(s))
+                # each geometry can consist of multiple rings/lines
+                # (for polygon: exterior ring + potentially interior rings(s))
                 i1 = offsets2[i]
                 i2 = offsets2[i + 1]
 
-                # iterating through the rings
-                rings_idx = 0
+                # iterating through the linear elements
+                linear_idx = 0
                 for k in range(i1, i2):
 
-                    # each ring consists of certain number of coords
+                    # each ring/line consists of certain number of coords
                     k1 = offsets1[k]
                     k2 = offsets1[k + 1]
                     n_coords = k2 - k1
                     errstate = _create_simple_geometry(
-                        geos_handle, coordinates, k1, n_coords, dims, ring_type,
-                        is_ring, handle_nan, &ring
+                        geos_handle, coordinates, k1, n_coords, dims, linear_type,
+                        is_ring, handle_nan, &linear
                     )
                     if errstate != PGERR_SUCCESS:
-                        _deallocate_arr(geos_handle, temp_rings_view, rings_idx)
+                        _deallocate_arr(geos_handle, temp_linear_view, linear_idx)
                         _deallocate_arr(geos_handle, temp_geoms_view, i - 1)
                         with gil:
                             return _create_simple_geometry_raise_error(errstate)
 
-                    temp_rings_view[rings_idx] = <np.intp_t>ring
-                    rings_idx += 1
+                    temp_linear_view[linear_idx] = <np.intp_t>linear
+                    linear_idx += 1
 
-                if rings_idx > 0:
-                    geom = GEOSGeom_createPolygon_r(
-                        geos_handle,
-                        <GEOSGeometry*> temp_rings_view[0],
-                        <GEOSGeometry**> &temp_rings_view[1 if rings_idx > 1 else 0],
-                        rings_idx - 1
-                    )
+                if geometry_type == 3:
+                    # create Polygon
+                    if linear_idx > 0:
+                        geom = GEOSGeom_createPolygon_r(
+                            geos_handle,
+                            <GEOSGeometry*> temp_linear_view[0],
+                            <GEOSGeometry**> &temp_linear_view[1 if linear_idx > 1 else 0],
+                            linear_idx - 1
+                        )
+                    else:
+                        geom = GEOSGeom_createEmptyPolygon_r(geos_handle)
                 else:
-                    geom = GEOSGeom_createEmptyPolygon_r(geos_handle)
+                    # create MultiLineString collection
+                    geom = GEOSGeom_createCollection_r(
+                        geos_handle,
+                        geometry_type,
+                        <GEOSGeometry**> &temp_linear_view[0],
+                        linear_idx
+                    )
                 if geom == NULL:
-                    _deallocate_arr(geos_handle, temp_rings_view, rings_idx - 1)
+                    _deallocate_arr(geos_handle, temp_linear_view, linear_idx - 1)
                     _deallocate_arr(geos_handle, temp_geoms_view, i - 1)
                     with gil:
                         return  # GEOSException is raised by get_geos_handle
