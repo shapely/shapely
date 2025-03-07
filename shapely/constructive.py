@@ -1442,7 +1442,7 @@ def _orient_polygons_geos(geometry, exterior_cw=False, **kwargs):
 
 
 @multithreading_enabled
-def orient_polygons(geometry, exterior_cw=False, **kwargs):
+def orient_polygons(geometry, *, exterior_cw=False, **kwargs):
     """Enforce a ring orientation on all polygonal elements in the input geometry.
 
     Forces (Multi)Polygons to use a counter-clockwise orientation for their
