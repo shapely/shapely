@@ -106,20 +106,6 @@ static void geom_arr_to_npy(GEOSGeometry** array, char* ptr, npy_intp stride,
   GEOS_FINISH;
 }
 
-static void null_arr_to_npy(char* ptr, npy_intp stride, npy_intp count) {
-  npy_intp i;
-  PyObject* ret;
-  PyObject** out;
-
-  for (i = 0; i < count; i++, ptr += stride) {
-    Py_INCREF(Py_None);
-    ret = Py_None;
-    out = (PyObject**)ptr;
-    Py_XDECREF(*out);
-    *out = ret;
-  }
-}
-
 /* Define the geom -> bool functions (Y_b) */
 static void* is_empty_data[1] = {GEOSisEmpty_r};
 /* the GEOSisSimple_r function fails on geometrycollections */
@@ -2562,22 +2548,12 @@ static void coverage_invalid_edges_func(char** args, const npy_intp* dimensions,
 
   GEOS_INIT;
 
-// #define SINGLE_COREDIM_LOOP_OUTER                          \
-//   char *ip1 = args[0], *op1 = args[1], *cp1;               \
-//   npy_intp is1 = steps[0], os1 = steps[1], cs1 = steps[2]; \
-//   npy_intp n = dimensions[0], n_c1 = dimensions[1];        \
-//   npy_intp i, i_c1;                                        \
-//   for (i = 0; i < n; i++, ip1 += is1, op1 += os1)
-
-// #define BINARY_SINGLE_COREDIM_LOOP_OUTER                                   \
-//   char *ip1 = args[0], *ip2 = args[1], *op1 = args[2], *cp1;               \
-//   npy_intp is1 = steps[0], is2 = steps[1], os1 = steps[2], cs1 = steps[3]; \
-//   npy_intp n = dimensions[0], n_c1 = dimensions[1];                        \
-//   npy_intp i, i_c1;                                                        \
-//   for (i = 0; i < n; i++, ip1 += is1, ip2 += is2, op1 += os1)
-
-
-  BINARY_SINGLE_COREDIM_LOOP_OUTER {
+  // BINARY_SINGLE_COREDIM_LOOP_OUTER but with additional steps[4] for the output core dimension
+  char *ip1 = args[0], *ip2 = args[1], *op1 = args[2], *cp1;
+  npy_intp is1 = steps[0], is2 = steps[1], os1 = steps[2], cs1 = steps[3], ocs1 = steps[4];
+  npy_intp n = dimensions[0], n_c1 = dimensions[1];
+  npy_intp i, i_c1;
+  for (i = 0; i < n; i++, ip1 += is1, ip2 += is2, op1 += os1) {
     Py_BEGIN_ALLOW_THREADS;
     CHECK_SIGNALS(i);
     if (errstate == PGERR_PYSIGNAL) {
@@ -2605,22 +2581,19 @@ static void coverage_invalid_edges_func(char** args, const npy_intp* dimensions,
     }
 
     ret = GEOSCoverageIsValid_r(ctx, collection, gap_width, &result_collection);
-    if (ret == 2) {
+    if ((ret == 2) || (result_collection == NULL)) {
       errstate = PGERR_GEOS_EXCEPTION;
       goto finish;
     }
-    // *(npy_bool*)op1 = ret;
+
     Py_END_ALLOW_THREADS;
-    if (result_collection != NULL) {
-      printf("result_collection is not NULL\n");
-      result_collection_parts = GEOSGeom_releaseCollection_r(ctx, result_collection, &n_parts_result);
-      // geom_arr_to_npy(collection_parts, op1, os1, n_c1);
-      geom_arr_to_npy(result_collection_parts, op1, cs1, n_parts_result);
-    }
-    else {
-      printf("result_collection is NULL, filling with None\n");
-      null_arr_to_npy(op1, cs1, n_c1);
-    }
+    result_collection_parts = GEOSGeom_releaseCollection_r(ctx, result_collection, &n_parts_result);
+    // geom_arr_to_npy(collection_parts, op1, os1, n_c1);
+    geom_arr_to_npy(result_collection_parts, op1, ocs1, n_parts_result);
+    GEOSFree_r(ctx, result_collection_parts);
+    GEOSGeom_destroy_r(ctx, result_collection);
+    result_collection = NULL;
+
     collection_parts = GEOSGeom_releaseCollection_r(ctx, collection, &n_parts);
     GEOSFree_r(ctx, collection_parts);
     GEOSGeom_destroy_r(ctx, collection);
@@ -2678,7 +2651,7 @@ static void coverage_simplify_func(char** args, const npy_intp* dimensions, cons
     // Validate the geometries in the collection
     int num_geoms = GEOSGetNumGeometries_r(ctx, in1);
     for (int j = 0; j < num_geoms; j++) {
-      GEOSGeometry* geom = GEOSGetGeometryN_r(ctx, in1, j);
+      const GEOSGeometry* geom = GEOSGetGeometryN_r(ctx, in1, j);
       geom_type = GEOSGeomTypeId_r(ctx, geom);
       if (geom_type != GEOS_POLYGON && geom_type != GEOS_MULTIPOLYGON) {
         errstate = PGERR_GEOMETRY_TYPE;

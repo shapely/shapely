@@ -13,6 +13,7 @@ from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
     all_types,
     all_types_z,
+    empty_line_string,
 )
 
 
@@ -23,6 +24,10 @@ def test_coverage_is_valid(geometry):
     assert actual.ndim == 0
     assert actual.dtype == np.bool_
     assert actual.item() is True
+
+    actual = shapely.coverage_invalid_edges([geometry])
+    expected = np.array([empty_line_string], dtype=object)
+    assert_geometries_equal(actual, expected)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="requires >= 3.12")
@@ -35,6 +40,7 @@ def test_coverage_is_valid_non_polygonal():
         Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)]),
     ]
     assert shapely.coverage_is_valid(geoms)
+    assert (shapely.coverage_invalid_edges(geoms) == empty_line_string).all()
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="requires >= 3.12")
@@ -43,14 +49,20 @@ def test_coverage_is_valid_polygonal():
     poly1 = Polygon([(0, 0), (1, 1), (1, 0), (0, 0)])
     poly2 = Polygon([(0, 0), (1, 1), (0, 1), (0, 0)])
     assert shapely.coverage_is_valid([poly1, poly2])
+    assert shapely.is_empty(shapely.coverage_invalid_edges([poly1, poly2])).all()
 
     # shared egde but without identical vertices
     poly2b = Polygon([(0, 0), (0.5, 0.5), (1, 1), (0, 1), (0, 0)])
     assert not shapely.coverage_is_valid([poly1, poly2b])
+    result = shapely.coverage_invalid_edges([poly1, poly2b])
+    expected = [LineString([(0, 0), (1, 1)]), LineString([(0, 0), (0.5, 0.5), (1, 1)])]
+    assert_geometries_equal(result, expected)
 
     # overlap
     poly3 = Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
     assert not shapely.coverage_is_valid([poly1, poly3])
+    result = shapely.coverage_invalid_edges([poly1, poly3])
+    assert not shapely.is_empty(result).any()
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="requires >= 3.12")
@@ -67,17 +79,15 @@ def test_coverage_is_valid_gap_width():
     poly2_shift = shapely.from_wkt(
         "POLYGON ((10 10, 20 10, 20 0, 10 0, 10 3, 11 5, 10 7, 10 10))"
     )
-    # poly3 = shapely.from_wkt("POLYGON ((20 10, 30 10, 30 0, 20 0, 20 10))")
 
     # valid coverage -> gap_width value does not matter
     assert shapely.coverage_is_valid([poly1, poly2], gap_width=0.0)
     assert shapely.coverage_is_valid([poly1, poly2], gap_width=2.0)
 
-    expected_valid = shapely.from_wkt(["LINESTRING EMPTY"] * 2)
     result = shapely.coverage_invalid_edges([poly1, poly2], gap_width=0.0)
-    assert_geometries_equal(result, expected_valid)
+    assert_geometries_equal(result, [empty_line_string] * 2)
     result = shapely.coverage_invalid_edges([poly1, poly2], gap_width=2.0)
-    assert_geometries_equal(result, expected_valid)
+    assert_geometries_equal(result, [empty_line_string] * 2)
 
     # invalid coverage -> gap_width value does not matter
     assert not shapely.coverage_is_valid([poly1, poly2_extra], gap_width=0.0)
@@ -101,12 +111,38 @@ def test_coverage_is_valid_gap_width():
 
     assert_geometries_equal(
         shapely.coverage_invalid_edges([poly1, poly2_shift], gap_width=0.0),
-        expected_valid,
+        [empty_line_string] * 2,
     )
+    assert_geometries_equal(
+        shapely.coverage_invalid_edges([poly1, poly2_shift], gap_width=1.0),
+        shapely.from_wkt(["LINESTRING (10 7, 10 3)", "LINESTRING (10 3, 11 5, 10 7)"]),
+    )
+
+
+def test_coverage_invalid_edges_gufunc():
+    poly1 = shapely.from_wkt("POLYGON ((0 10, 10 10, 10 7, 10 3, 10 0, 0 0, 0 10))")
+    poly2 = shapely.from_wkt("POLYGON ((10 10, 20 10, 20 0, 10 0, 10 3, 10 7, 10 10))")
+    poly2_extra = shapely.from_wkt(
+        "POLYGON ((10 10, 20 10, 20 0, 10 0, 10 3, 10 5, 10 7, 10 10))"
+    )
+    poly3 = shapely.from_wkt("POLYGON ((20 10, 30 10, 30 7, 30 3, 30 0, 20 0, 20 10))")
+
+    arr = np.array([[poly1, poly2, poly3], [poly1, poly2_extra, poly3]])
+    result = shapely.lib.coverage_invalid_edges(arr, 0.0)
     expected = shapely.from_wkt(
-        ["LINESTRING (10 7, 10 3)", "LINESTRING (10 3, 11 5, 10 7)"]
+        [
+            ["LINESTRING EMPTY"] * 3,
+            [
+                "LINESTRING (10 7, 10 3)",
+                "LINESTRING (10 3, 10 5, 10 7)",
+                "LINESTRING EMPTY",
+            ],
+        ]
     )
-    result = shapely.coverage_invalid_edges([poly1, poly2_shift], gap_width=1.0)
+    assert_geometries_equal(result, expected)
+
+    arr2 = np.array(arr, order="F")
+    result = shapely.lib.coverage_invalid_edges(arr2, 0.0)
     assert_geometries_equal(result, expected)
 
 
