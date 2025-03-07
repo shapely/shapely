@@ -113,21 +113,27 @@ def test_coverage_is_valid_gap_width():
 @pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
 @pytest.mark.parametrize("geometry", all_types)
 def test_coverage_simplify_scalars(geometry):
-    actual = shapely.coverage_simplify(geometry, 0.0)
-    assert isinstance(actual, Geometry)
-    assert shapely.get_type_id(actual) == shapely.get_type_id(geometry)
-    # Anything other than MultiPolygon or a GeometryCollection is returned as-is
-    if shapely.get_type_id(geometry) not in (3, 6):
+    if geometry.geom_type in ("Polygon", "MultiPolygon"):
+        actual = shapely.coverage_simplify(geometry, 0.0)
+        assert isinstance(actual, Geometry)
+        assert shapely.get_type_id(actual) == shapely.get_type_id(geometry)
         assert actual.equals(geometry)
+    else:
+        with pytest.raises(TypeError, match="incorrect geometry type"):
+            shapely.coverage_simplify(geometry, 0.0)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
 @pytest.mark.parametrize("geometry", all_types)
 def test_coverage_simplify_geom_types(geometry):
-    actual = shapely.coverage_simplify([geometry, geometry], 0.0)
-    assert isinstance(actual, np.ndarray)
-    assert actual.shape == (2,)
-    assert (shapely.get_type_id(actual) == shapely.get_type_id(geometry)).all()
+    if geometry.geom_type in ("Polygon", "MultiPolygon"):
+        actual = shapely.coverage_simplify([geometry, geometry], 0.0)
+        assert isinstance(actual, np.ndarray)
+        assert actual.shape == (2,)
+        assert (shapely.get_type_id(actual) == shapely.get_type_id(geometry)).all()
+    else:
+        with pytest.raises(TypeError, match="incorrect geometry type"):
+            shapely.coverage_simplify([geometry, geometry], 0.0)
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")

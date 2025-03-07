@@ -3,7 +3,7 @@
 import numpy as np
 
 import shapely
-from shapely.algorithms.cga import signed_area
+from shapely.algorithms.cga import signed_area  # noqa
 from shapely.errors import TopologicalError
 from shapely.geometry.base import BaseGeometry
 from shapely.geometry.linestring import LineString
@@ -322,20 +322,23 @@ shapely.lib.registry[3] = Polygon
 
 
 def orient(polygon, sign=1.0):
-    """Return an oriented polygon."""
-    if polygon.is_empty:
-        return polygon
+    """Return an oriented polygon.
 
-    s = float(sign)
-    rings = []
-    ring = polygon.exterior
-    if signed_area(ring) / s >= 0.0:
-        rings.append(ring)
-    else:
-        rings.append(list(ring.coords)[::-1])
-    for ring in polygon.interiors:
-        if signed_area(ring) / s <= 0.0:
-            rings.append(ring)
-        else:
-            rings.append(list(ring.coords)[::-1])
-    return Polygon(rings[0], rings[1:])
+    It is recommended to use :func:`shapely.orient_polygons` instead.
+
+    Parameters
+    ----------
+    polygon : shapely.Polygon
+    sign : float, default 1.
+        The sign of the result's signed area.
+        A non-negative sign means that the coordinates of the geometry's exterior
+        rings will be oriented counter-clockwise.
+
+    Returns
+    -------
+    Geometry or array_like
+
+    Refer to :func:`shapely.orient_polygons` for full documentation.
+
+    """
+    return shapely.orient_polygons(polygon, exterior_cw=sign < 0.0)

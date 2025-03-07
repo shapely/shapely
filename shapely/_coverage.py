@@ -62,8 +62,8 @@ def coverage_simplify(geometry, tolerance, *, simplify_boundary=True):
     The function allows simplification of all edges including the outer boundaries of
     the coverage or simplification of only the inner (shared) edges.
 
-    If there are other geometry types than Polygons or MultiPolygons present, the
-    array will not undergo simplification and geometries are returned unchanged.
+    If there are other geometry types than Polygons or MultiPolygons present,
+    the function will raise an error.
 
     If the geometry is polygonal but does not form a valid coverage due to overlaps,
     it will be simplified but it may result in invalid topology.
