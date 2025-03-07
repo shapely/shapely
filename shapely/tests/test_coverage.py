@@ -119,6 +119,7 @@ def test_coverage_is_valid_gap_width():
     )
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="requires >= 3.12")
 def test_coverage_invalid_edges_gufunc():
     poly1 = shapely.from_wkt("POLYGON ((0 10, 10 10, 10 7, 10 3, 10 0, 0 0, 0 10))")
     poly2 = shapely.from_wkt("POLYGON ((10 10, 20 10, 20 0, 10 0, 10 3, 10 7, 10 10))")
