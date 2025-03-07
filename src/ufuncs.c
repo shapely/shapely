@@ -2613,9 +2613,9 @@ static void coverage_invalid_edges_func(char** args, const npy_intp* dimensions,
     Py_END_ALLOW_THREADS;
     if (result_collection != NULL) {
       printf("result_collection is not NULL\n");
-      collection_parts = GEOSGeom_releaseCollection_r(ctx, result_collection, &n_parts_result);
+      result_collection_parts = GEOSGeom_releaseCollection_r(ctx, result_collection, &n_parts_result);
       // geom_arr_to_npy(collection_parts, op1, os1, n_c1);
-      geom_arr_to_npy(collection_parts, op1, cs1, n_parts_result);
+      geom_arr_to_npy(result_collection_parts, op1, cs1, n_parts_result);
     }
     else {
       printf("result_collection is NULL, filling with None\n");
@@ -2634,7 +2634,7 @@ finish:
     GEOSGeom_destroy_r(ctx, collection);
   }
   if (result_collection != NULL) {
-    result_collection = GEOSGeom_releaseCollection_r(ctx, result_collection, &n_parts_result);
+    result_collection_parts = GEOSGeom_releaseCollection_r(ctx, result_collection, &n_parts_result);
     GEOSFree_r(ctx, result_collection_parts);
     GEOSGeom_destroy_r(ctx, result_collection);
   }
