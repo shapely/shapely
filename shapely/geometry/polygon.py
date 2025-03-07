@@ -341,4 +341,4 @@ def orient(polygon, sign=1.0):
     Refer to :func:`shapely.orient_polygons` for full documentation.
 
     """
-    return shapely.orient_polygons(polygon, sign < 0.0)
+    return shapely.orient_polygons(polygon, exterior_cw=sign < 0.0)
