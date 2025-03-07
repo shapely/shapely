@@ -504,6 +504,8 @@ def constrained_delaunay_triangles(geometry, **kwargs):
     delaunay triangulation only triangulates based on the vertices, hence
     triangle edges could cross polygon boundaries.
 
+    .. versionadded:: 2.1.0
+
     Parameters
     ----------
     geometry : Geometry or array_like
