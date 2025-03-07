@@ -1452,6 +1452,8 @@ def orient_polygons(geometry, *, exterior_cw=False, **kwargs):
     Also processes geometries inside a GeometryCollection in the same way.
     Other geometries are returned unchanged.
 
+    .. versionadded:: 2.1.0
+
     Parameters
     ----------
     geometry : Geometry or array_like
