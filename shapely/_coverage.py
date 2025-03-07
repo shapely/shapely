@@ -21,12 +21,18 @@ def coverage_is_valid(geometry, gap_width=0.0, **kwargs):
     ----------
     geometry : array_like
         Array of geometries to verify.
+    gap_width : float, default 0.0
+        The maximum width of gaps to detect.
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Returns
     -------
     bool
+
+    See Also
+    --------
+    coverage_invalid_edges, coverage_simplify
 
     """
     geometries = np.asarray(geometry)
@@ -38,6 +44,36 @@ def coverage_is_valid(geometry, gap_width=0.0, **kwargs):
 @requires_geos("3.12.0")
 @multithreading_enabled
 def coverage_invalid_edges(geometry, gap_width=0.0, **kwargs):
+    """Verify if a coverage is valid and return invalid edges.
+
+    This functions returns linear indicators showing the location of invalid
+    edges (if any) in each polygon in the input array.
+
+    The coverage is represented by an array of polygonal geometries with
+    exactly matching edges and no overlap.
+
+    Geometries that are not Polygon or MultiPolygon are ignored.
+
+    .. versionadded:: 2.1.0
+
+    Parameters
+    ----------
+    geometry : array_like
+        Array of geometries to verify.
+    gap_width : float, default 0.0
+        The maximum width of gaps to detect.
+    **kwargs
+        See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
+
+    Returns
+    -------
+    numpy.ndarray | shapely.Geometry
+
+    See Also
+    --------
+    coverage_is_valid, coverage_simplify
+
+    """
     geometries = np.asarray(geometry)
     # we always consider the full array as a single coverage -> ravel the input
     # to pass a 1D array
@@ -81,6 +117,10 @@ def coverage_simplify(geometry, tolerance, *, simplify_boundary=True):
     Returns
     -------
     numpy.ndarray | shapely.Geometry
+
+    See Also
+    --------
+    coverage_is_valid, coverage_invalid_edges
 
     Examples
     --------
