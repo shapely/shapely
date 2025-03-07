@@ -16,6 +16,8 @@ def coverage_is_valid(geometry, **kwargs):
 
     Geometries that are not Polygon or MultiPolygon are ignored.
 
+    .. versionadded:: 2.1.0
+
     Parameters
     ----------
     geometry : array_like
@@ -57,6 +59,8 @@ def coverage_simplify(geometry, tolerance, *, simplify_boundary=True):
 
     If the geometry is polygonal but does not form a valid coverage due to overlaps,
     it will be simplified but it may result in invalid topology.
+
+    .. versionadded:: 2.1.0
 
     Parameters
     ----------
