@@ -1,7 +1,6 @@
 """Support for various GEOS geometry operations."""
 
 import shapely
-from shapely import lib
 from shapely.algorithms.polylabel import polylabel  # noqa
 from shapely.errors import GeometryTypeError
 from shapely.geometry import (
@@ -13,8 +12,7 @@ from shapely.geometry import (
     Polygon,
     shape,
 )
-from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
-from shapely.geometry.polygon import orient as orient_
+from shapely.geometry.base import BaseGeometry
 from shapely.prepared import prep
 
 __all__ = [
@@ -704,6 +702,8 @@ def orient(geom, sign=1.0):
     1.0 means that the coordinates of the product's exterior rings will
     be oriented counter-clockwise.
 
+    It is recommended to use :func:`shapely.orient_polygons` instead.
+
     Parameters
     ----------
     geom : Geometry
@@ -717,10 +717,4 @@ def orient(geom, sign=1.0):
     Geometry
 
     """
-    if lib.geos_version >= (3, 12, 0):
-        return shapely.orient_polygons(geom, exterior_cw=sign < 0)
-    if isinstance(geom, BaseMultipartGeometry):
-        return geom.__class__([orient(geom, sign) for geom in geom.geoms])
-    if isinstance(geom, (Polygon,)):
-        return orient_(geom, sign)
-    return geom
+    return shapely.orient_polygons(geom, exterior_cw=sign < 0)

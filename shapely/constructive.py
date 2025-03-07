@@ -5,6 +5,7 @@ import numpy as np
 from shapely import lib
 from shapely._enum import ParamEnum
 from shapely.algorithms._oriented_envelope import _oriented_envelope_min_area_vectorized
+from shapely.algorithms.cga import _orient_polygons_vectorized
 from shapely.decorators import (
     deprecate_positional,
     multithreading_enabled,
@@ -1435,12 +1436,23 @@ def maximum_inscribed_circle(geometry, tolerance=None, **kwargs):
     return lib.maximum_inscribed_circle(geometry, tolerance, **kwargs)
 
 
-@requires_geos("3.12.0")
 @multithreading_enabled
-def orient_polygons(geometry, exterior_cw=False, **kwargs):
+def _orient_polygons_geos(geometry, exterior_cw=False, **kwargs):
+    return lib.orient_polygons(geometry, exterior_cw, **kwargs)
+
+
+@multithreading_enabled
+def orient_polygons(geometry, *, exterior_cw=False, **kwargs):
     """Enforce a ring orientation on all polygonal elements in the input geometry.
 
-    Non-polygonal geometries will not be modified.
+    Forces (Multi)Polygons to use a counter-clockwise orientation for their
+    exterior ring, and a clockwise orientation for their interior rings (or
+    the oppposite if ``exterior_cw=True``).
+
+    Also processes geometries inside a GeometryCollection in the same way.
+    Other geometries are returned unchanged.
+
+    .. versionadded:: 2.1.0
 
     Parameters
     ----------
@@ -1476,4 +1488,8 @@ def orient_polygons(geometry, exterior_cw=False, **kwargs):
     <POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0), (2 2, 4 2, 4 4, 2 4, 2 2))>
 
     """
-    return lib.orient_polygons(geometry, exterior_cw, **kwargs)
+    if lib.geos_version < (3, 12, 0):
+        f = _orient_polygons_vectorized
+    else:
+        f = _orient_polygons_geos
+    return f(geometry, exterior_cw, **kwargs)
