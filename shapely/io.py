@@ -285,6 +285,7 @@ def from_wkt(geometry, on_invalid="raise", **kwargs):
           unclosed rings). If this is not possible, they are returned as
           ``None`` without a warning. Requires GEOS >= 3.11.
 
+          .. versionadded:: 2.1.0
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
@@ -328,6 +329,7 @@ def from_wkb(geometry, on_invalid="raise", **kwargs):
           unclosed rings). If this is not possible, they are returned as
           ``None`` without a warning. Requires GEOS >= 3.11.
 
+          .. versionadded:: 2.1.0
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
