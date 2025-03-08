@@ -3,6 +3,7 @@
 import numpy as np
 
 import shapely
+from shapely import _geometry_helpers
 from shapely.algorithms.cga import signed_area  # noqa
 from shapely.errors import TopologicalError
 from shapely.geometry.base import BaseGeometry
@@ -15,7 +16,7 @@ __all__ = ["LinearRing", "Polygon", "orient"]
 def _unpickle_linearring(wkb):
     linestring = shapely.from_wkb(wkb)
     srid = shapely.get_srid(linestring)
-    linearring = shapely.linearrings(shapely.get_coordinates(linestring))
+    linearring = _geometry_helpers.linestring_to_linearring(linestring)
     if srid:
         linearring = shapely.set_srid(linearring, srid)
     return linearring
