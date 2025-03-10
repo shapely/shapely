@@ -1124,13 +1124,13 @@ def simplify(geometry, tolerance, preserve_topology=True, **kwargs):
 
 @multithreading_enabled
 def snap(geometry, reference, tolerance, **kwargs):
-    """Snap an input geometry to reference geometry's vertices.
+    """Snap the vertices and segments of the geometry to vertices of the reference.
 
-    Vertices of the first geometry are snapped to vertices of the second.
-    geometry, returning a new geometry; the input geometries are not modified.
-    The result geometry is the input geometry with the vertices snapped.
-    If no snapping occurs then the input geometry is returned unchanged.
-    The tolerance is used to control where snapping is performed.
+    Vertices and segments of the input geometry are snapped to vertices of the
+    reference geometry, returning a new geometry; the input geometries are not
+    modified. The result geometry is the input geometry with the vertices and
+    segments snapped. If no snapping occurs then the input geometry is returned
+    unchanged. The tolerance is used to control where snapping is performed.
 
     Where possible, this operation tries to avoid creating invalid geometries;
     however, it does not guarantee that output geometries will be valid. It is
