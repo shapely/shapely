@@ -418,7 +418,7 @@ class SplitOp:
             return [line]
 
         # point is on line, get the distance from the first point on line
-        distance_on_line = line.project(splitter)
+        distance_on_line = line.line_locate_point(splitter)
         coords = list(line.coords)
         # split the line at the point and create two new lines
         current_position = 0.0
@@ -606,15 +606,15 @@ def substring(geom, start_dist, end_dist, normalized=False):
 
     # Filter out cases in which to return a point
     if start_dist == end_dist:
-        return geom.interpolate(start_dist, normalized=normalized)
+        return geom.line_interpolate_point(start_dist, normalized=normalized)
     elif not normalized and start_dist >= geom.length and end_dist >= geom.length:
-        return geom.interpolate(geom.length, normalized=normalized)
+        return geom.line_interpolate_point(geom.length, normalized=normalized)
     elif not normalized and -start_dist >= geom.length and -end_dist >= geom.length:
-        return geom.interpolate(0, normalized=normalized)
+        return geom.line_interpolate_point(0, normalized=normalized)
     elif normalized and start_dist >= 1 and end_dist >= 1:
-        return geom.interpolate(1, normalized=normalized)
+        return geom.line_interpolate_point(1, normalized=normalized)
     elif normalized and -start_dist >= 1 and -end_dist >= 1:
-        return geom.interpolate(0, normalized=normalized)
+        return geom.line_interpolate_point(0, normalized=normalized)
 
     if normalized:
         start_dist *= geom.length
@@ -622,12 +622,12 @@ def substring(geom, start_dist, end_dist, normalized=False):
 
     # Filter out cases where distances meet at a middle point from opposite ends.
     if start_dist < 0 < end_dist and abs(start_dist) + end_dist == geom.length:
-        return geom.interpolate(end_dist)
+        return geom.line_interpolate_point(end_dist)
     elif end_dist < 0 < start_dist and abs(end_dist) + start_dist == geom.length:
-        return geom.interpolate(start_dist)
+        return geom.line_interpolate_point(start_dist)
 
-    start_point = geom.interpolate(start_dist)
-    end_point = geom.interpolate(end_dist)
+    start_point = geom.line_interpolate_point(start_dist)
+    end_point = geom.line_interpolate_point(end_dist)
 
     if start_dist < 0:
         start_dist = geom.length + start_dist  # Values may still be negative,
