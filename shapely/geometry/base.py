@@ -46,7 +46,7 @@ def geom_factory(g, parent=None):
     warn(
         "The 'geom_factory' function is deprecated in Shapely 2.0, and will be "
         "removed in a future version",
-        DeprecationWarning,
+        FutureWarning,
         stacklevel=2,
     )
     return _geom_factory(g)

@@ -71,7 +71,7 @@ def __getattr__(name):
             f"{name} is deprecated and will be removed in a future version. "
             "Use ShapelyError instead (functions previously raising {name} "
             "will now raise a ShapelyError instead).",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
         return ShapelyError
