@@ -15,6 +15,13 @@ def coverage_is_valid(geometry, gap_width=0.0, **kwargs):
     The coverage is represented by an array of polygonal geometries with
     exactly matching edges and no overlap.
 
+    A valid coverage may contain holes (regions of no coverage). However,
+    sometimes it might be desirable to detect narrow gaps as invalidities in
+    the coverage. The `gap_width` parameter allows to specify the maximum
+    width of gaps to detect. When gaps are detected, this function will
+    return False and the `coverage_invalid_edges` function can be used to
+    find the edges of those gaps.
+
     Geometries that are not Polygon or MultiPolygon are ignored.
 
     Parameters
@@ -51,6 +58,13 @@ def coverage_invalid_edges(geometry, gap_width=0.0, **kwargs):
 
     The coverage is represented by an array of polygonal geometries with
     exactly matching edges and no overlap.
+
+    A valid coverage may contain holes (regions of no coverage). However,
+    sometimes it might be desirable to detect narrow gaps as invalidities in
+    the coverage. The `gap_width` parameter allows to specify the maximum
+    width of gaps to detect. When gaps are detected, the `coverage_is_valid`
+    function will return False and this function can be used to find the
+    edges of those gaps.
 
     Geometries that are not Polygon or MultiPolygon are ignored.
 
