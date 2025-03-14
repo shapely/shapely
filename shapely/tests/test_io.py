@@ -1153,9 +1153,6 @@ def test_pickle(geom):
 
 @pytest.mark.parametrize("geom", all_types_z)
 def test_pickle_z(geom):
-    if shapely.get_type_id(geom) == shapely.GeometryType.LINEARRING:
-        # https://github.com/shapely/shapely/pull/1808#discussion_r1182174077
-        pytest.xfail("TODO: Z gets dropped for LinearRing")
     pickled = pickle.dumps(geom)
     actual = pickle.loads(pickled)
     assert_geometries_equal(actual, geom, tolerance=0)
@@ -1171,8 +1168,6 @@ def test_pickle_z(geom):
 )
 @pytest.mark.parametrize("geom", all_types_m)
 def test_pickle_m(geom):
-    if shapely.get_type_id(geom) == shapely.GeometryType.LINEARRING:
-        pytest.xfail("TODO: M gets dropped for LinearRing types; see GH-2005")
     pickled = pickle.dumps(geom)
     actual = pickle.loads(pickled)
     assert_geometries_equal(actual, geom, tolerance=0)
@@ -1187,8 +1182,6 @@ def test_pickle_m(geom):
 )
 @pytest.mark.parametrize("geom", all_types_zm)
 def test_pickle_zm(geom):
-    if shapely.get_type_id(geom) == shapely.GeometryType.LINEARRING:
-        pytest.xfail("TODO: ZM gets dropped for LinearRing types; see GH-2005")
     pickled = pickle.dumps(geom)
     actual = pickle.loads(pickled)
     assert_geometries_equal(actual, geom, tolerance=0)

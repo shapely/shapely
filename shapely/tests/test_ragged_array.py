@@ -246,6 +246,15 @@ def test_linestrings():
     arr[-2] = shapely.from_wkt("LINESTRING EMPTY")
     assert_geometries_equal(result, arr)
 
+    # sliced
+    offsets_sliced = (offsets[0][1:],)
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[1:])
+
+    offsets_sliced = (offsets[0][:-1],)
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[:-1])
+
 
 def test_polygons():
     arr = shapely.from_wkt(
@@ -299,6 +308,17 @@ def test_polygons():
     arr[-2] = shapely.from_wkt("POLYGON EMPTY")
     assert_geometries_equal(result, arr)
 
+    # sliced:
+    # - indices into the coordinate array for the whole buffer
+    # - indices into the ring array for *just* the sliced part
+    offsets_sliced = (offsets[0], offsets[1][1:])
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[1:])
+
+    offsets_sliced = (offsets[0], offsets[1][:-1])
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[:-1])
+
 
 def test_multipoints():
     arr = shapely.from_wkt(
@@ -337,6 +357,15 @@ def test_multipoints():
     # in a roundtrip, missing geometries come back as empty
     arr[-2] = shapely.from_wkt("MULTIPOINT EMPTY")
     assert_geometries_equal(result, arr)
+
+    # sliced:
+    offsets_sliced = (offsets[0][1:],)
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[1:])
+
+    offsets_sliced = (offsets[0][:-1],)
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[:-1])
 
 
 def test_multilinestrings():
@@ -388,6 +417,17 @@ def test_multilinestrings():
     # in a roundtrip, missing geometries come back as empty
     arr[-2] = shapely.from_wkt("MULTILINESTRING EMPTY")
     assert_geometries_equal(result, arr)
+
+    # sliced:
+    # - indices into the coordinate array for the whole buffer
+    # - indices into the line parts for *just* the sliced part
+    offsets_sliced = (offsets[0], offsets[1][1:])
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[1:])
+
+    offsets_sliced = (offsets[0], offsets[1][:-1])
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[:-1])
 
 
 def test_multipolygons():
@@ -452,6 +492,16 @@ def test_multipolygons():
     # in a roundtrip, missing geometries come back as empty
     arr[-2] = shapely.from_wkt("MULTIPOLYGON EMPTY")
     assert_geometries_equal(result, arr)
+
+    # sliced:
+    offsets_sliced = (offsets[0], offsets[1], offsets[2][1:])
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[1:])
+
+    offsets_sliced = (offsets[0], offsets[1], offsets[2][:-3])
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[:-3])
+    print(result)
 
 
 def test_mixture_point_multipoint():

@@ -11,6 +11,7 @@ import shapely
 
 from shapely._geos cimport (
     GEOSContextHandle_t,
+    GEOSCoordSeq_clone_r,
     GEOSCoordSeq_getSize_r,
     GEOSCoordSequence,
     GEOSGeom_clone_r,
@@ -21,6 +22,7 @@ from shapely._geos cimport (
     GEOSGeom_createPoint_r,
     GEOSGeom_createPolygon_r,
     GEOSGeom_destroy_r,
+    GEOSGeom_getCoordSeq_r,
     GEOSGeometry,
     GEOSGeomTypeId_r,
     GEOSGetExteriorRing_r,
@@ -686,3 +688,43 @@ def _geom_factory(uintptr_t g):
         geom = PyGEOS_CreateGeometry(<GEOSGeometry *>g, geos_handle)
 
     return geom
+
+
+def linestring_to_linearring(object line):
+    cdef GEOSGeometry *geom = NULL
+    cdef const GEOSCoordSequence *seq = NULL
+    cdef GEOSCoordSequence *seq_cloned = NULL
+    cdef GEOSGeometry *ring = NULL
+    cdef int geom_type
+
+    with get_geos_handle() as geos_handle:
+        if PyGEOS_GetGEOSGeometry(<PyObject*> line, &geom) == 0:
+            raise TypeError(
+                "The argument is of incorrect type. Please provide a Geometry object."
+            )
+        if geom == NULL:
+            raise TypeError(
+                "The argument is of incorrect type. Please provide a Geometry object."
+            )
+
+        geom_type = GEOSGeomTypeId_r(geos_handle, geom)
+        if geom_type != 1:
+            raise TypeError(
+                "The argument is of incorrect type. Please provide a LineString object."
+            )
+
+        seq = GEOSGeom_getCoordSeq_r(geos_handle, geom)
+        if seq == NULL:
+            return
+
+        seq_cloned = GEOSCoordSeq_clone_r(geos_handle, seq)
+        if seq_cloned == NULL:
+            return
+
+        ring = GEOSGeom_createLinearRing_r(geos_handle, seq_cloned)
+        if ring == NULL:
+            return
+
+        result = PyGEOS_CreateGeometry(ring, geos_handle)
+
+    return result
