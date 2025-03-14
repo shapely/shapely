@@ -1,5 +1,7 @@
 """Set-theoretic operations on geometry objects."""
 
+import warnings
+
 import numpy as np
 
 from shapely import Geometry, GeometryType, lib
@@ -317,6 +319,12 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
     If all elements of the given axis are None an empty GeometryCollection is
     returned.
 
+    .. deprecated:: 2.1.0
+
+        This function behaves incorrectlly and will be removed in a future
+        version. See https://github.com/shapely/shapely/issues/2027 for more
+        details.
+
     Parameters
     ----------
     geometries : array_like
@@ -357,6 +365,13 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
     <GEOMETRYCOLLECTION EMPTY>
 
     """
+    warnings.warn(
+        "The symmetric_difference_all function behaves incorrectlly and will be "
+        "removed in a future version. "
+        "See https://github.com/shapely/shapely/issues/2027 for more details.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     geometries = np.asarray(geometries)
     if axis is None:
         geometries = geometries.ravel()
