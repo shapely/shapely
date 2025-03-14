@@ -159,7 +159,48 @@ Acknowledgments
 Thanks to everyone who contributed to this release!
 People with a "+" by their names contributed a patch for the first time.
 
-
+* Adam J. Stewart
+* Ali Hamdan +
+* Andrea Giudiceandrea +
+* Antoni Gołoś +
+* Ben Beasley
+* Bill Mill +
+* Brendan Ward
+* Casper van der Wel
+* David Hoese +
+* Erik Pettersson +
+* Frédéric Junod
+* Gabriel Homsi +
+* Gareth Simons +
+* Greg Lucas +
+* Hood Chatham +
+* Ian Williamson +
+* Idan Miara +
+* Joris Van den Bossche
+* JuriaanSioux +
+* Kyle Barron
+* Luke Lashley +
+* Lyle Cheatham +
+* Marek Czaplicki +
+* Martin Fleischmann
+* Mathew Topper +
+* Mathias Hauser +
+* Michał Górny +
+* Mike Taves
+* Nicolas Hammje +
+* Oreille +
+* Paul Jurczak +
+* Pieter Roggemans +
+* Raja Gangopadhya
+* Sean Gillies
+* Sebastian Castro +
+* Tetsuo Koyama +
+* Tom Augspurger +
+* Wentao Li +
+* nobkd +
+* quassy +
+* tfardet +
+* void-rooster +
 
 .. _version-2-0-7:
 
