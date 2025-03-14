@@ -51,7 +51,12 @@ CONSTRUCTIVE_NO_ARGS = (
     shapely.node,
     shapely.normalize,
     shapely.point_on_surface,
-    shapely.constrained_delaunay_triangles,
+    pytest.param(
+        shapely.constrained_delaunay_triangles,
+        marks=pytest.mark.skipif(
+            shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10"
+        ),
+    ),
 )
 
 CONSTRUCTIVE_FLOAT_ARG = (
