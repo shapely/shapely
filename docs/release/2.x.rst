@@ -17,17 +17,18 @@ New functions:
 
 - :func:`.disjoint_subset_union` and :func:`.disjoint_subset_union_all` as an
   optimized version of :func:`.union` and :func:`.union_all`, assuming inputs
-  can be divided into subsets that do not intersect. (requires GEOS > 3.12)
+  can be divided into subsets that do not intersect. (requires GEOS >= 3.12)
 - :func:`.minimum_clearance_line` (#2106)
-- :func:`.maximum_inscribed_circle` (#1307)
+- :func:`.maximum_inscribed_circle` (polylabel) (#1307)
 - :func:`.orient_polygons` (#2147)
+- :func:`.constrained_delaunay_triangles` (#1685) (requires GEOS >= 3.10)
 - :func:`.coverage_simplify` to allow topological simplification of polygonal
-  coverages (#1969) (requires GEOS > 3.12)
+  coverages (#1969) (requires GEOS >= 3.12)
 - :func:`.coverage_is_valid` to validate an array of geometries as valid
-  topological coverage (#2156) (requires GEOS > 3.12)
-- :func:`.equals_identical`` (#1760)
-- :func:`.has_m`` (#2008) (requires GEOS > 3.12)
-- :func:`.get_m`` (#2019) (requires GEOS > 3.12)
+  topological coverage (#2156) (requires GEOS >= 3.12)
+- :func:`.equals_identical` (#1760)
+- :func:`.has_m` (#2008) (requires GEOS >= 3.12)
+- :func:`.get_m` (#2019) (requires GEOS >= 3.12)
 
 Improvements:
 
@@ -36,9 +37,10 @@ Improvements:
   error on nonfinite (NaN / Inf) coordinates. The default behaviour (allow) is
   backwards compatible (#1594, #1811).
 - Add an ``interleaved`` parameter to ``shapely.transform()`` allowing a
-  transposed call signature in the ``transformation`` function.
+  transposed call signature in the ``transformation`` function (#1849).
 - The ``include_z`` in ``shapely.transform()`` now also allows ``None``, which
-  lets it automatically detect the dimensionality of each input geometry.
+  lets it automatically detect the dimensionality of each input geometry
+  (#1849).
 - Add an ``include_m`` keyword in ``to_ragged_array`` and ``get_coordinates``
   (#2234, #2235)
 - Add parameters ``method`` and ``keep_collapsed`` to ``shapely.make_valid()``
@@ -46,12 +48,22 @@ Improvements:
 - The ``voronoi_polygons`` now accepts the ``ordered`` keyword, optionally
   forcing the order of polygons within the GeometryCollection to follow the
   order of input coordinates. Requires at least GEOS 3.12. (#1968)
-- Add option on ``invalid="fix"`` to ``from_wkb`` and ``from_wkt`` (#2094)
-- Add a ``normalize`` keyword to ``equals_exact`` (#1231)
+- Add option ``on_invalid="fix"`` to ``from_wkb`` and ``from_wkt`` (#2094)
+- Add a ``normalize`` keyword to ``equals_exact`` to normalize the input
+  geometries (#1231)
 - Handle ``Feature`` type in ``shapely.geometry.shape`` (#1815)
 - Add support to split polygons by multilinestrings (#2206)
 - Add an ``m`` attribute on the Point class and an ``has_m`` attribute on the
   base Geometry class.
+
+Performance improvements:
+
+- Single geometry input to ``contains_xy`` and ``intersects_xy`` now gets
+  prepared automatically, providing a considerable speedup (#2146).
+- Improved ``from_ragged_array`` performance (#2142, #2225).
+- Improved ``MultiPoint(..)`` constructor from a numpy array of coordinates
+  (#1961).
+
 
 Bug fixes:
 
@@ -62,6 +74,11 @@ Bug fixes:
 - Fixes `__geo_interface__` handling of empty points (#2120)
 - Fixes ``GeometryCollection()`` constructor accepting an array of geometries
   (#2017).
+- Fixes the ``MultiPolygon()`` constructor from a numpy array of Polygons
+  (#1880).
+- Raise proper error message when trying to construct a MultiPolygon from a
+  sequence of MultiPolygons (#1786).
+- Fixes ``shapely.ops.orient()`` for empty polygons (#2214).
 
 Breaking changes in GEOS 3.12:
 
@@ -84,6 +101,20 @@ Deprecations:
 - The ``shapely.vectorized`` module is deprecated. The two functions
   (``contains`` and ``touches``) can be replaced by the top-level vectorized
   functions ``contains_xy`` and ``intersects_xy`` (#1630).
+- Various parameters will be required to be passed as a keyword argument in the
+  future, and specifying it as a positional argument is deprecated and raises a
+  warning (for example, the ``grid_size`` keyword in set operations, boolean
+  flags such as the ``normalized`` or ``include_z`` keywords, the ``indices``
+  keyword in geometry constructor functions, etc) (#2237)
+- The ``resolution`` keyword in ``Geometry.buffer()`` is deprecated, use
+  ``quad_segs`` instead (alraedy available since shapely 2.0) (#2243)
+
+Removals from previous deprecations:
+
+- The ``almost_equals`` method on the Geometry class. Use :func:`.equals_exact`
+  instead (#2244)
+- The ``shapely.ops.cascaded_union()`` function has been removed. Use
+  :func:`.unary_union` instead (#2246).
 
 Packaging:
 
