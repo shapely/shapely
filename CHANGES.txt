@@ -51,8 +51,8 @@ New functions:
 - Add function ``constrained_delaunay_triangles`` (#1685)
 - Add function ``coverage_simplify`` to allow topological simplification of polygonal
   coverages (#1969)
-- Add function ``coverage_is_valid`` to validate an array of geometries as valid
-  topological coverage (#2156)
+- Add function ``coverage_is_valid`` and ``coverage_invalid_edges`` to validate
+  an array of geometries as valid topological coverage (#2156)
 - Add function ``equals_identical`` (#1760)
 - Add function ``has_m`` (#2008)
 - Add function ``get_m`` (#2019)

@@ -43,8 +43,9 @@ vectorized functions:
   can be divided into subsets that do not intersect. (requires GEOS >= 3.12)
 - :func:`.coverage_simplify` to allow topological simplification of polygonal
   coverages (#1969) (requires GEOS >= 3.12)
-- :func:`.coverage_is_valid` to validate an array of geometries as valid
-  topological coverage (#2156) (requires GEOS >= 3.12)
+- :func:`.coverage_is_valid` and :func:`.coverage_invalid_edges` to validate an
+  array of geometries as valid topological coverage (#2156) (requires
+  GEOS >= 3.12)
 - :func:`.has_m` (#2008) (requires GEOS >= 3.12)
 - :func:`.get_m` (#2019) (requires GEOS >= 3.12)
 
