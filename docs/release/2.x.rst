@@ -14,6 +14,7 @@ Initial support for geometries with M or ZM values
 
 Shapely geometries can now represent coordinates with M values (measure) in
 addition to X, Y, and Z (requires GEOS >= 3.12).
+The initial support includes:
 
 - Creating geometries from WKT or WKB with M values will now preserve the M
   values.
@@ -152,6 +153,9 @@ Packaging
   #1885, #2124)
 - Binary wheels are now built for musllinux (Alpine) x86_64 platforms (#1996).
 - Upgraded the GEOS version in the binary wheel distributions to 3.13.1.
+- Initial support for free-threaded Python builds, with the extension module
+  declaring free-threaded support and wheels for Python 3.13t being built
+  (#2138).
 
 Acknowledgments
 ^^^^^^^^^^^^^^^
