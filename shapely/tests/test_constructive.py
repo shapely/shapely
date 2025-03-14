@@ -51,6 +51,12 @@ CONSTRUCTIVE_NO_ARGS = (
     shapely.node,
     shapely.normalize,
     shapely.point_on_surface,
+    pytest.param(
+        shapely.constrained_delaunay_triangles,
+        marks=pytest.mark.skipif(
+            shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10"
+        ),
+    ),
 )
 
 CONSTRUCTIVE_FLOAT_ARG = (
@@ -1107,6 +1113,44 @@ def test_concave_hull_kwargs():
     result3 = shapely.concave_hull(mp, ratio=0)
     result4 = shapely.concave_hull(mp, ratio=1)
     assert shapely.get_num_coordinates(result4) < shapely.get_num_coordinates(result3)
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
+class TestConstrainedDelaunayTriangulation:
+    """
+    Only testing the number of triangles and their type here.
+    This doesn't actually test the points in the resulting geometries.
+
+    """
+
+    def test_poly(self):
+        polys = shapely.constrained_delaunay_triangles(
+            Polygon([(10, 10), (20, 40), (90, 90), (90, 10), (10, 10)])
+        )
+        assert len(polys.geoms) == 2
+        for p in polys.geoms:
+            assert isinstance(p, Polygon)
+
+    def test_multi_polygon(self):
+        multipoly = MultiPolygon(
+            [
+                Polygon(((50, 30), (60, 30), (100, 100), (50, 30))),
+                Polygon(((10, 10), (20, 40), (90, 90), (90, 10), (10, 10))),
+            ]
+        )
+        polys = shapely.constrained_delaunay_triangles(multipoly)
+        assert len(polys.geoms) == 3
+        for p in polys.geoms:
+            assert isinstance(p, Polygon)
+
+    def test_point(self):
+        p = Point(1, 1)
+        polys = shapely.constrained_delaunay_triangles(p)
+        assert len(polys.geoms) == 0
+
+    def test_empty_poly(self):
+        polys = shapely.constrained_delaunay_triangles(Polygon())
+        assert len(polys.geoms) == 0
 
 
 @pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")

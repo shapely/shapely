@@ -737,6 +737,7 @@ static void* maximum_inscribed_circle_data[1] = {GEOSMaximumInscribedCircleWithD
 
 #if GEOS_SINCE_3_10_0
 static void* segmentize_data[1] = {GEOSDensify_r};
+static void* constrained_delaunay_triangles_data[1] = {GEOSConstrainedDelaunayTriangulation_r};
 #endif
 
 #if GEOS_SINCE_3_11_0
@@ -3992,6 +3993,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_CUSTOM(dwithin, 3);
   DEFINE_CUSTOM(from_geojson, 2);
   DEFINE_CUSTOM(to_geojson, 2);
+  DEFINE_Y_Y(constrained_delaunay_triangles);
 #endif
 
 #if GEOS_SINCE_3_11_0
