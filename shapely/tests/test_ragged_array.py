@@ -246,10 +246,14 @@ def test_linestrings():
     arr[-2] = shapely.from_wkt("LINESTRING EMPTY")
     assert_geometries_equal(result, arr)
 
-    # # sliced
-    # offsets_sliced = (offsets[0][1:],)
-    # result = shapely.from_ragged_array(typ, coords, offsets_sliced)
-    # assert_geometries_equal(result, arr[1:])
+    # sliced
+    offsets_sliced = (offsets[0][1:],)
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[1:])
+
+    offsets_sliced = (offsets[0][:-1],)
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[:-1])
 
 
 def test_polygons():
@@ -311,6 +315,10 @@ def test_polygons():
     result = shapely.from_ragged_array(typ, coords, offsets_sliced)
     assert_geometries_equal(result, arr[1:])
 
+    offsets_sliced = (offsets[0], offsets[1][:-1])
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[:-1])
+
 
 def test_multipoints():
     arr = shapely.from_wkt(
@@ -350,10 +358,14 @@ def test_multipoints():
     arr[-2] = shapely.from_wkt("MULTIPOINT EMPTY")
     assert_geometries_equal(result, arr)
 
-    # # sliced:
-    # offsets_sliced = (offsets[0][1:],)
-    # result = shapely.from_ragged_array(typ, coords, offsets_sliced)
-    # assert_geometries_equal(result, arr[1:])
+    # sliced:
+    offsets_sliced = (offsets[0][1:],)
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[1:])
+
+    offsets_sliced = (offsets[0][:-1],)
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[:-1])
 
 
 def test_multilinestrings():
@@ -412,6 +424,10 @@ def test_multilinestrings():
     offsets_sliced = (offsets[0], offsets[1][1:])
     result = shapely.from_ragged_array(typ, coords, offsets_sliced)
     assert_geometries_equal(result, arr[1:])
+
+    offsets_sliced = (offsets[0], offsets[1][:-1])
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[:-1])
 
 
 def test_multipolygons():
@@ -481,6 +497,11 @@ def test_multipolygons():
     offsets_sliced = (offsets[0], offsets[1], offsets[2][1:])
     result = shapely.from_ragged_array(typ, coords, offsets_sliced)
     assert_geometries_equal(result, arr[1:])
+
+    offsets_sliced = (offsets[0], offsets[1], offsets[2][:-3])
+    result = shapely.from_ragged_array(typ, coords, offsets_sliced)
+    assert_geometries_equal(result, arr[:-3])
+    print(result)
 
 
 def test_mixture_point_multipoint():
