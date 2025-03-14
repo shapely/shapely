@@ -51,6 +51,7 @@ CONSTRUCTIVE_NO_ARGS = (
     shapely.node,
     shapely.normalize,
     shapely.point_on_surface,
+    shapely.constrained_delaunay_triangles,
 )
 
 CONSTRUCTIVE_FLOAT_ARG = (

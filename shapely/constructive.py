@@ -490,6 +490,10 @@ def convex_hull(geometry, **kwargs):
 def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     """Compute a Delaunay triangulation around the vertices of an input geometry.
 
+    The output is a geometrycollection containing polygons (default)
+    or linestrings (see ``only_edges``). Returns an empty geometry for input
+    geometries that contain less than 3 vertices.
+
     Parameters
     ----------
     geometry : Geometry or array_like
@@ -504,9 +508,7 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
 
     Returns
     -------
-    The output is a geometrycollection containing polygons (default)
-    or linestrings (see ``only_edges``). Returns an empty geometry for input
-    geometries that contain less than 3 vertices.
+    GeometryCollection or array of GeometryCollections
 
     See Also
     --------
@@ -560,8 +562,9 @@ def constrained_delaunay_triangles(geometry, **kwargs):
 
     Returns
     -------
-    * GeometryCollection of polygons, given polygonal input
-    * GeometryCollection() (empty), given non-polygonal input
+    GeometryCollection or array of GeometryCollections
+        * GeometryCollection of polygons, given polygonal input
+        * Empty GeometryCollection, given non-polygonal input
 
     See Also
     --------
