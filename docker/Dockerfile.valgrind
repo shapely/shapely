@@ -17,7 +17,7 @@ ENV PYTHONMALLOC=malloc
 ENV LD_LIBRARY_PATH=/usr/local/lib
 
 # Build GEOS
-RUN export GEOS_VERSION=3.10.3 && \
+RUN export GEOS_VERSION=3.13.1 && \
     mkdir /code/geos && cd /code/geos && \
     curl -OL http://download.osgeo.org/geos/geos-$GEOS_VERSION.tar.bz2 && \
     tar xfj geos-$GEOS_VERSION.tar.bz2 && \

@@ -129,7 +129,7 @@ template = """
 """
 
 modules = [
-    "_geometry", "creation", "constructive", "coordinates", "io", "linear",
+    "_coverage", "_geometry", "creation", "constructive", "coordinates", "io", "linear",
     "measurement", "predicates", "set_operations"]
 functions = [func for mod in modules for func in get_module_functions(mod)]
 

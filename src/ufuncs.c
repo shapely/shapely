@@ -2444,6 +2444,139 @@ finish:
 }
 static PyUFuncGenericFunction polygonize_full_funcs[1] = {&polygonize_full_func};
 
+#if GEOS_SINCE_3_12_0
+
+static char coverage_is_valid_dtypes[2] = {NPY_OBJECT, NPY_BOOL};
+static void coverage_is_valid_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                                   void* data) {
+  GEOSGeometry* geom = NULL;
+  GEOSGeometry* collection = NULL;
+  GEOSGeometry** collection_parts;
+  unsigned int n_parts;
+  unsigned int n_geoms;
+  int ret;
+
+  GEOS_INIT_THREADS;
+
+  GEOSGeometry** geoms = malloc(sizeof(void*) * dimensions[1]);
+  if (geoms == NULL) {
+    errstate = PGERR_NO_MALLOC;
+    goto finish;
+  }
+
+  SINGLE_COREDIM_LOOP_OUTER {
+    CHECK_SIGNALS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      goto finish;
+    }
+    n_geoms = 0;
+    SINGLE_COREDIM_LOOP_INNER {
+      if (!get_geom(*(GeometryObject**)cp1, &geom)) {
+        errstate = PGERR_NOT_A_GEOMETRY;
+        goto finish;
+      }
+      if (geom == NULL) {
+        continue;
+      }
+      // we do not clone the geometries, so have to release the collection later
+      geoms[n_geoms] = geom;
+      n_geoms++;
+    }
+    collection =
+        GEOSGeom_createCollection_r(ctx, GEOS_GEOMETRYCOLLECTION, geoms, n_geoms);
+    if (collection == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
+
+    ret = GEOSCoverageIsValid_r(ctx, collection, 0, NULL);
+    if (ret == 2) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      goto finish;
+    }
+    *(npy_bool*)op1 = ret;
+    collection_parts = GEOSGeom_releaseCollection_r(ctx, collection, &n_parts);
+    GEOSFree_r(ctx, collection_parts);
+    GEOSGeom_destroy_r(ctx, collection);
+    collection = NULL;
+  }
+
+finish:
+  if (collection != NULL) {
+    collection_parts = GEOSGeom_releaseCollection_r(ctx, collection, &n_parts);
+    GEOSFree_r(ctx, collection_parts);
+    GEOSGeom_destroy_r(ctx, collection);
+  }
+  if (geoms != NULL) {
+    free(geoms);
+  }
+  GEOS_FINISH_THREADS;
+}
+static PyUFuncGenericFunction coverage_is_valid_funcs[1] = {&coverage_is_valid_func};
+
+static char coverage_simplify_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
+static void coverage_simplify_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
+                                    void* data) {
+  GEOSGeometry* in1 = NULL;
+  GEOSGeometry** geom_arr;
+  int geom_type;
+
+  CHECK_NO_INPLACE_OUTPUT(3);
+
+  // allocate a temporary array to store output GEOSGeometry objects
+  geom_arr = malloc(sizeof(void*) * dimensions[0]);
+  CHECK_ALLOC(geom_arr);
+
+  GEOS_INIT_THREADS;
+
+  TERNARY_LOOP {
+    CHECK_SIGNALS_THREADS(i);
+    if (errstate == PGERR_PYSIGNAL) {
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      break;
+    }
+    // get the geometry: return on error
+    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
+      errstate = PGERR_NOT_A_GEOMETRY;
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      break;
+    }
+    double in2 = *(double*)ip2;
+    npy_bool in3 = !(*(npy_bool*)ip3);
+
+    // Validate the geometries in the collection
+    int num_geoms = GEOSGetNumGeometries_r(ctx, in1);
+    for (int j = 0; j < num_geoms; j++) {
+      GEOSGeometry* geom = GEOSGetGeometryN_r(ctx, in1, j);
+      geom_type = GEOSGeomTypeId_r(ctx, geom);
+      if (geom_type != GEOS_POLYGON && geom_type != GEOS_MULTIPOLYGON) {
+        errstate = PGERR_GEOMETRY_TYPE;
+        destroy_geom_arr(ctx, geom_arr, i - 1);
+        goto finish;
+      }
+    }
+
+    geom_arr[i] = GEOSCoverageSimplifyVW_r(ctx, in1, in2, (int)in3);
+    if (geom_arr[i] == NULL) {
+      errstate = PGERR_GEOS_EXCEPTION;
+      destroy_geom_arr(ctx, geom_arr, i - 1);
+      break;
+    }
+  }
+
+finish:
+  GEOS_FINISH_THREADS;
+
+  // fill the numpy array with PyObjects while holding the GIL
+  if (errstate == PGERR_SUCCESS) {
+    geom_arr_to_npy(geom_arr, args[3], steps[3], dimensions[0]);
+  }
+  free(geom_arr);
+}
+static PyUFuncGenericFunction coverage_simplify_funcs[1] = {&coverage_simplify_func};
+
+#endif
+
 static char shortest_line_dtypes[3] = {NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
 static void shortest_line_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                                void* data) {
@@ -3613,76 +3746,6 @@ static PyUFuncGenericFunction to_geojson_funcs[1] = {&to_geojson_func};
 
 #endif  // GEOS_SINCE_3_10_0
 
-#if GEOS_SINCE_3_12_0
-static char coverage_simplify_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
-static void coverage_simplify_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
-                                    void* data) {
-  GEOSGeometry* in1 = NULL;
-  GEOSGeometry** geom_arr;
-
-  CHECK_NO_INPLACE_OUTPUT(3);
-
-  // allocate a temporary array to store output GEOSGeometry objects
-  geom_arr = malloc(sizeof(void*) * dimensions[0]);
-  CHECK_ALLOC(geom_arr);
-
-  GEOS_INIT_THREADS;
-
-  TERNARY_LOOP {
-    CHECK_SIGNALS_THREADS(i);
-    if (errstate == PGERR_PYSIGNAL) {
-      destroy_geom_arr(ctx, geom_arr, i - 1);
-      break;
-    }
-    // get the geometry: return on error
-    if (!get_geom(*(GeometryObject**)ip1, &in1)) {
-      errstate = PGERR_NOT_A_GEOMETRY;
-      destroy_geom_arr(ctx, geom_arr, i - 1);
-      break;
-    }
-    double in2 = *(double*)ip2;
-    npy_bool in3 = !(*(npy_bool*)ip3);
-
-    int isValid = 1;
-    int numGeoms = GEOSGetNumGeometries_r(ctx, in1);
-    for (int j = 0; j < numGeoms; j++) {
-      GEOSGeometry* geom = GEOSGetGeometryN_r(ctx, in1, j);
-      if (GEOSGeomTypeId_r(ctx, geom) != GEOS_POLYGON && GEOSGeomTypeId_r(ctx, geom) != GEOS_MULTIPOLYGON) {
-          isValid = 0;
-          break;
-      }
-    }
-    if (isValid) {
-      geom_arr[i] = GEOSCoverageSimplifyVW_r(ctx, in1, in2, (int)in3);
-      if (geom_arr[i] == NULL) {
-        errstate = PGERR_GEOS_EXCEPTION;
-        destroy_geom_arr(ctx, geom_arr, i - 1);
-        break;
-      }
-    } else {
-      geom_arr[i] = GEOSGeom_clone_r(ctx, in1);
-    }
-
-  }
-
-
-  GEOS_FINISH_THREADS;
-
-  // fill the numpy array with PyObjects while holding the GIL
-  if (errstate == PGERR_SUCCESS) {
-    geom_arr_to_npy(geom_arr, args[3], steps[3], dimensions[0]);
-  }
-  free(geom_arr);
-}
-static PyUFuncGenericFunction coverage_simplify_funcs[1] = {&coverage_simplify_func};
-
-#endif  // GEOS_SINCE_3_12_0
-/*
-TODO polygonizer functions
-TODO prepared geometry predicate functions
-TODO relate functions
-*/
-
 #define DEFINE_Y_b(NAME)                                                       \
   ufunc = PyUFunc_FromFuncAndData(Y_b_funcs, NAME##_data, Y_b_dtypes, 1, 1, 1, \
                                   PyUFunc_None, #NAME, NULL, 0);               \
@@ -3940,6 +4003,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 #endif
 
 #if GEOS_SINCE_3_12_0
+  DEFINE_GENERALIZED(coverage_is_valid, 1, "(d)->()");
   DEFINE_CUSTOM(coverage_simplify, 3);
   DEFINE_Y_Y(disjoint_subset_union);
   DEFINE_Y_b(has_m);

@@ -1,3 +1,5 @@
+"""See test_creation_indices.py for tests with 'indices' parameter."""
+
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
@@ -690,6 +692,13 @@ def test_box_array(coords, ccw, expected):
 )
 def test_box_nan(coords):
     assert shapely.box(*coords) is None
+
+
+def test_box_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `ccw` for `box` is deprecated"
+    ):
+        shapely.box(0, 0, 1, 1, True)
 
 
 def test_prepare():

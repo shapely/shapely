@@ -5,33 +5,37 @@ import numpy as np
 
 from shapely import _geometry_helpers, geos_version, lib
 from shapely._enum import ParamEnum
-from shapely.decorators import multithreading_enabled, requires_geos
+from shapely.decorators import (
+    deprecate_positional,
+    multithreading_enabled,
+    requires_geos,
+)
 
 __all__ = [
     "GeometryType",
-    "get_type_id",
-    "get_dimensions",
+    "force_2d",
+    "force_3d",
     "get_coordinate_dimension",
+    "get_dimensions",
+    "get_exterior_ring",
+    "get_geometry",
+    "get_interior_ring",
+    "get_m",
     "get_num_coordinates",
+    "get_num_geometries",
+    "get_num_interior_rings",
+    "get_num_points",
+    "get_parts",
+    "get_point",
+    "get_precision",
+    "get_rings",
     "get_srid",
-    "set_srid",
+    "get_type_id",
     "get_x",
     "get_y",
     "get_z",
-    "get_m",
-    "get_exterior_ring",
-    "get_num_points",
-    "get_num_interior_rings",
-    "get_num_geometries",
-    "get_point",
-    "get_interior_ring",
-    "get_geometry",
-    "get_parts",
-    "get_rings",
-    "get_precision",
     "set_precision",
-    "force_2d",
-    "force_3d",
+    "set_srid",
 ]
 
 
@@ -629,6 +633,16 @@ def get_geometry(geometry, index, **kwargs):
     return lib.get_geometry(geometry, np.intc(index), **kwargs)
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   get_parts(geometry, return_index=False)
+# shapely 2.1: shows deprecation warning about positional 'return_index'
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'geometry'
+#   get_parts(geometry, *, return_index=False)
+
+
+@deprecate_positional(["return_index"])
 def get_parts(geometry, return_index=False):
     """Get parts of each GeometryCollection or Multi* geometry object.
 
@@ -647,6 +661,14 @@ def get_parts(geometry, return_index=False):
     return_index : bool, default False
         If True, will return a tuple of ndarrays of (parts, indexes), where
         indexes are the indexes of the original geometries in the source array.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``return_index`` is specified as
+        a positional argument. This will need to be specified as a keyword
+        argument in a future release.
 
     Returns
     -------
@@ -682,6 +704,16 @@ MultiPoint([(4, 5), (6, 7)])], return_index=True)
     return _geometry_helpers.get_parts(geometry)[0]
 
 
+# Note: future plan is to change this signature over a few releases:
+# shapely 2.0:
+#   get_rings(geometry, return_index=False)
+# shapely 2.1: shows deprecation warning about positional 'return_index'
+#   same signature as 2.0
+# shapely 2.2(?): enforce keyword-only arguments after 'geometry'
+#   get_rings(geometry, *, return_index=False)
+
+
+@deprecate_positional(["return_index"])
 def get_rings(geometry, return_index=False):
     """Get rings of Polygon geometry object.
 
@@ -698,6 +730,14 @@ def get_rings(geometry, return_index=False):
     return_index : bool, default False
         If True, will return a tuple of ndarrays of (rings, indexes), where
         indexes are the indexes of the original geometries in the source array.
+
+    Notes
+    -----
+
+    .. deprecated:: 2.1.0
+        A deprecation warning is shown if ``return_index`` is specified as
+        a positional argument. This will need to be specified as a keyword
+        argument in a future release.
 
     Returns
     -------
