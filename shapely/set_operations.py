@@ -321,7 +321,7 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
 
     .. deprecated:: 2.1.0
 
-        This function behaves incorrectlly and will be removed in a future
+        This function behaves incorrectly and will be removed in a future
         version. See https://github.com/shapely/shapely/issues/2027 for more
         details.
 
