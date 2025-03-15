@@ -389,7 +389,7 @@ static void* intersects_xy_data[1] = {GEOSPreparedIntersectsXY_r};
 static void* contains_xy_data[1] = {GEOSPreparedContains_r};
 static void* intersects_xy_data[1] = {GEOSPreparedIntersects_r};
 #endif
-typedef char FuncGEOS_Ydd_b(void* context, void* pg, double x, double y);
+typedef char FuncGEOS_Ydd_b(void* context, const void* pg, double x, double y);
 static char Ydd_b_p_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_DOUBLE, NPY_BOOL};
 static void Ydd_b_p_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
 #if GEOS_SINCE_3_12_0
@@ -3791,7 +3791,6 @@ static void to_geojson_func(char** args, const npy_intp* dimensions, const npy_i
   int indent;
   GEOSGeoJSONWriter* writer;
   char* geojson;
-  char point_empty_error;
 
   if (is2 != 0) {
     PyErr_Format(PyExc_ValueError, "to_geojson indent parameter must be a scalar");
