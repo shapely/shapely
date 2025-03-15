@@ -122,6 +122,9 @@ Deprecations:
   keyword in geometry constructor functions, etc) (#2237)
 - The ``resolution`` keyword in ``Geometry.buffer()`` is deprecated, use
   ``quad_segs`` instead (alraedy available since shapely 2.0) (#2243)
+- The ``symmetric_difference_all`` function behaves incorrectly and will be
+  removed in a future version. See
+  https://github.com/shapely/shapely/issues/2027 for more details.
 
 Removals from previous deprecations:
 
