@@ -4,6 +4,13 @@ Changes
 2.1.0 (unreleased)
 ------------------
 
+API changes:
+
+- Equality of geometries (``geom1 == geom2``) now considers NaN coordinate
+  values in the same location to be equal (#1775). It is recommended however to
+  ensure geometries don't have NaN values in the first place, for which you can
+  now use the ``handle_nan`` parameter in construction functions.
+
 Bug fixes:
 
 - Prevent crash when serializing a number > 1e100 to WKT with GEOS < 3.13. (#1907)
@@ -14,32 +21,41 @@ Bug fixes:
 
 Improvements:
 
-- Require GEOS >= 3.9, NumPy >= 1.21, and Python >= 3.10 (#1802, #1885, #2124)
-- Handle ``Feature`` type in ``shapely.geometry.shape`` (#1815)
-- Add a ``handle_nan`` parameter to ``shapely.linestrings()`` and ``shapely.linearrings()``
-  to allow, skip, or error on nonfinite (NaN / Inf) coordinates. The default
-  behaviour (allow) is backwards compatible (#1594).
+- Add a ``handle_nan`` parameter to ``shapely.points()``,
+  ``shapely.linestrings()`` and ``shapely.linearrings()`` to allow, skip, or
+  error on nonfinite (NaN / Inf) coordinates. The default behaviour (allow) is
+  backwards compatible (#1594, #1811).
 - Add an ``interleaved`` parameter to ``shapely.transform()`` allowing a transposed call
   signature in the ``transformation`` function.
 - The ``include_z`` in ``shapely.transform()`` now also allows ``None``, which
   lets it automatically detect the dimensionality of each input geometry.
+- Add an ``include_m`` keyword in ``to_ragged_array`` and ``get_coordinates`` (#2234, #2235)
 - Add parameters ``method`` and ``keep_collapsed`` to ``shapely.make_valid()`` (#1941)
-- Upgraded the GEOS version in the binary wheel distributions to 3.12.1.
-- Add ``disjoint_subset_union`` and ``disjoint_subset_union_all`` as an optimized
-  version of union and union_all, assuming inputs can be divided into subsets that do
-  not intersect. Requires at least GEOS 3.12.
 - The ``voronoi_polygons`` now accepts the ``ordered`` keyword, optionally forcing the
   order of polygons within the GeometryCollection to follow the order of input
   coordinates. Requires at least GEOS 3.12. (#1968)
 - Add option on ``invalid="fix"`` to ``from_wkb`` and ``from_wkt`` (#2094)
+- Add a ``normalize`` keyword to ``equals_exact`` (#1231)
+- Handle ``Feature`` type in ``shapely.geometry.shape`` (#1815)
+- Add support to split polygons by multilinestrings (#2206)
+- Add an ``m`` attribute on the Point class and an ``has_m`` attribute on the base Geometry class.
+
+New functions:
+
+- Add ``disjoint_subset_union`` and ``disjoint_subset_union_all`` as an optimized
+  version of union and union_all, assuming inputs can be divided into subsets that do
+  not intersect. Requires at least GEOS 3.12.
 - Add function ``minimum_clearance_line`` (#2106)
 - Add function ``maximum_inscribed_circle`` (#1307)
-- Add support to split polygons by multilinestrings (#2206)
 - Add function ``orient_polygons`` (#2147)
+- Add function ``constrained_delaunay_triangles`` (#1685)
 - Add function ``coverage_simplify`` to allow topological simplification of polygonal
   coverages (#1969)
-- Add function ``coverage_is_valid`` to validate an array of geometries as valid
-  topological coverage (#2156)
+- Add function ``coverage_is_valid`` and ``coverage_invalid_edges`` to validate
+  an array of geometries as valid topological coverage (#2156)
+- Add function ``equals_identical`` (#1760)
+- Add function ``has_m`` (#2008)
+- Add function ``get_m`` (#2019)
 
 Breaking changes in GEOS 3.12:
 
@@ -64,7 +80,9 @@ Deprecations:
 
 Packaging:
 
+- Require GEOS >= 3.9, NumPy >= 1.21, and Python >= 3.10 (#1802, #1885, #2124)
 - Binary wheels are now built for musllinux (Alpine) x86_64 platforms (#1996).
+- Upgraded the GEOS version in the binary wheel distributions to 3.13.1.
 
 2.0.7 (2025-01-30)
 ------------------
