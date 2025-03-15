@@ -308,8 +308,9 @@ static PyObject* GeometryObject_SetState(PyObject* self, PyObject* value) {
   GEOSWKBReader* reader = NULL;
 
   PyErr_WarnFormat(PyExc_UserWarning, 0,
-                   "Unpickling a shapely <2.0 geometry object. Please save the pickle "
-                   "again; shapely 2.1 will not have this compatibility.");
+                   "Unpickling a shapely <2.0 geometry object. "
+                   "Please save the pickle again as this compatibility may be "
+                   "removed in a future version of shapely.");
 
   /* Cast the PyObject bytes to char */
   if (!PyBytes_Check(value)) {
