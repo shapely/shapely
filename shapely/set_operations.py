@@ -366,7 +366,7 @@ def symmetric_difference_all(geometries, axis=None, **kwargs):
 
     """
     warnings.warn(
-        "The symmetric_difference_all function behaves incorrectlly and will be "
+        "The symmetric_difference_all function behaves incorrectly and will be "
         "removed in a future version. "
         "See https://github.com/shapely/shapely/issues/2027 for more details.",
         DeprecationWarning,
