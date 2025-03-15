@@ -6,6 +6,10 @@ from shapely import Geometry, GeometryCollection, Polygon
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import all_types, empty, ignore_invalid, point, polygon
 
+pytestmark = pytest.mark.filterwarnings(
+    "ignore:The symmetric_difference_all function:DeprecationWarning"
+)
+
 # fixed-precision operations raise GEOS exceptions on mixed dimension geometry
 # collections
 all_single_types = np.array(all_types)[
