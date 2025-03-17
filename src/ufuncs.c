@@ -1830,27 +1830,28 @@ static PyUFuncGenericFunction snap_funcs[1] = {&snap_func};
 
 #if GEOS_SINCE_3_11_0
 
-static char concave_hull_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
+static char concave_hull_dtypes[5] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_BOOL, NPY_OBJECT};
 
 static void concave_hull_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                               void* data) {
-  char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2];
-  npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2];
+  char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2], *ip4=args[3];
+  npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2], is4 = steps[3];
   npy_intp n = dimensions[0];
   npy_intp i;
   GEOSGeometry** geom_arr;
   GEOSGeometry* in1 = NULL;
 
-  CHECK_NO_INPLACE_OUTPUT(3);
+  CHECK_NO_INPLACE_OUTPUT(4);
 
-  if ((is2 != 0) || (is3 != 0)) {
+  if ((is2 != 0) || (is3 != 0) || (is4 != 0)) {
     PyErr_Format(PyExc_ValueError,
                  "concave_hull function called with non-scalar parameters");
     return;
   }
 
-  double ratio = *(double*)ip2;
+  double value = *(double*)ip2;
   unsigned int allowHoles = (unsigned int)(*(npy_bool*)ip3);
+  unsigned int useLength = (unsigned int)(*(npy_bool*)ip4);
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * n);
@@ -1870,7 +1871,11 @@ static void concave_hull_func(char** args, const npy_intp* dimensions, const npy
       // in case of a missing value: return NULL (None)
       geom_arr[i] = NULL;
     } else {
-      geom_arr[i] = GEOSConcaveHull_r(ctx, in1, ratio, allowHoles);
+      if (useLength) {
+        geom_arr[i] = GEOSConcaveHullByLength_r(ctx, in1, value, allowHoles);
+      } else {
+        geom_arr[i] = GEOSConcaveHull_r(ctx, in1, value, allowHoles);
+      }
       if (geom_arr[i] == NULL) {
         errstate = PGERR_GEOS_EXCEPTION;
         destroy_geom_arr(ctx, geom_arr, i - 1);
@@ -1883,7 +1888,7 @@ static void concave_hull_func(char** args, const npy_intp* dimensions, const npy
 
   // fill the numpy array with PyObjects while holding the GIL
   if (errstate == PGERR_SUCCESS) {
-    geom_arr_to_npy(geom_arr, args[3], steps[3], dimensions[0]);
+    geom_arr_to_npy(geom_arr, args[4], steps[4], dimensions[0]);
   }
   free(geom_arr);
 }
@@ -4095,7 +4100,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
 #if GEOS_SINCE_3_11_0
   DEFINE_Yd_Y(remove_repeated_points);
   DEFINE_Y_Y(line_merge_directed);
-  DEFINE_CUSTOM(concave_hull, 3);
+  DEFINE_CUSTOM(concave_hull, 4);
 #endif
 
 #if GEOS_SINCE_3_12_0
