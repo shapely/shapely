@@ -455,7 +455,7 @@ def concave_hull(geometry, ratio=0.0, min_length=None, allow_holes=False, **kwar
     >>> shapely.concave_hull(multi_point, ratio=1.0)
     <POLYGON ((0 0, 0 3, 3 3, 3 0, 0 0))>
     >>> shapely.concave_hull(multi_point, ratio=None, min_length=2.9)
-    POLYGON ((0 0, 0 3, 1 1, 3 3, 3 0, 0 0))
+    <POLYGON ((0 0, 0 3, 1 1, 3 3, 3 0, 0 0))>
     >>> shapely.concave_hull(multi_point, ratio=None, min_length=3.1)
     <POLYGON ((0 0, 0 3, 3 3, 3 0, 0 0))>
     >>> shapely.concave_hull(Polygon())
