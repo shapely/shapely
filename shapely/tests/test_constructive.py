@@ -1114,6 +1114,37 @@ def test_concave_hull_kwargs():
     result4 = shapely.concave_hull(mp, ratio=1)
     assert shapely.get_num_coordinates(result4) < shapely.get_num_coordinates(result3)
 
+    with pytest.raises(
+        ValueError, match="only one of ratio or min_length must be specified"
+    ):
+        shapely.concave_hull(mp, ratio=0.5, min_length=2)
+
+
+@pytest.mark.skipif(shapely.geos_version < (3, 12, 0), reason="GEOS < 3.12")
+def test_concave_hull_by_length_kwargs():
+    triangle = [Point(0, 0), Point(0, 10), Point(10, 0)]
+    pt_inside = Point(3, 3)
+
+    triangle_with_pt_inside = MultiPoint([*triangle, pt_inside])
+    triangle_with_hole = MultiPoint(
+        Polygon(triangle).segmentize(1).exterior.coords[:]
+        + pt_inside.buffer(2).exterior.coords[:]
+    )
+
+    result = shapely.concave_hull(triangle_with_hole, ratio=None, min_length=2)
+    assert len(result.interiors) == 0
+    result = shapely.concave_hull(
+        triangle_with_hole, ratio=None, min_length=2, allow_holes=True
+    )
+    assert len(result.interiors) == 1
+
+    # the hypotenuse is sqrt(10**2 + 10**2) ~ 14,1421
+    result = shapely.concave_hull(triangle_with_pt_inside, ratio=None, min_length=14.15)
+    assert len(result.exterior.coords) == 4  ## closed triangle
+
+    result = shapely.concave_hull(triangle_with_pt_inside, ratio=None, min_length=14.14)
+    assert len(result.exterior.coords) == 5  ## closed triangle + point inside
+
 
 @pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 class TestConstrainedDelaunayTriangulation:
