@@ -485,7 +485,14 @@ def concave_hull(geometry, ratio=0.0, min_length=None, allow_holes=False, **kwar
         _use_length = True
         _value = min_length
 
-    return lib.concave_hull(geometry, np.double(_value), np.bool_(allow_holes), np.bool_(_use_length), **kwargs)
+    return lib.concave_hull(
+        geometry,
+        np.double(_value),
+        np.bool_(allow_holes),
+        np.bool_(_use_length),
+        **kwargs,
+    )
+
 
 @multithreading_enabled
 def convex_hull(geometry, **kwargs):
