@@ -427,7 +427,7 @@ def clip_by_rect(geometry, xmin, ymin, xmax, ymax, **kwargs):
 
 @requires_geos("3.11.0")
 @multithreading_enabled
-def concave_hull(geometry, ratio=0.0, allow_holes=False, **kwargs):
+def concave_hull(geometry, ratio=0.0, min_length=None, allow_holes=False, **kwargs):
     """Compute a concave geometry that encloses an input geometry.
 
     Parameters
@@ -437,6 +437,9 @@ def concave_hull(geometry, ratio=0.0, allow_holes=False, **kwargs):
     ratio : float, default 0.0
         Number in the range [0, 1]. Higher numbers will include fewer vertices
         in the hull.
+    min_length : float, default None
+        The maximum edge length.
+        Ratio must be set to None when using this criteria.
     allow_holes : bool, default False
         If set to True, the concave hull may have holes.
     **kwargs
@@ -451,15 +454,44 @@ def concave_hull(geometry, ratio=0.0, allow_holes=False, **kwargs):
     <POLYGON ((0 0, 0 3, 1 1, 3 3, 3 0, 0 0))>
     >>> shapely.concave_hull(multi_point, ratio=1.0)
     <POLYGON ((0 0, 0 3, 3 3, 3 0, 0 0))>
+    >>> shapely.concave_hull(multi_point, ratio=None, min_length=2.9)
+    <POLYGON ((0 0, 0 3, 1 1, 3 3, 3 0, 0 0))>
+    >>> shapely.concave_hull(multi_point, ratio=None, min_length=3.1)
+    <POLYGON ((0 0, 0 3, 3 3, 3 0, 0 0))>
     >>> shapely.concave_hull(Polygon())
     <POLYGON EMPTY>
 
     """
-    if not np.isscalar(ratio):
-        raise TypeError("ratio must be scalar")
+    if ratio is not None:
+        if min_length is not None:
+            raise ValueError("only one of ratio or min_length must be specified")
+        if not np.isscalar(ratio):
+            raise TypeError("ratio must be scalar")
+    if min_length is not None:
+        if lib.geos_version < (3, 12, 0):
+            raise UnsupportedGEOSVersionError(
+                "Concave hull by length requires GEOS >= 3.12.0, "
+                f"found {lib.geos_version_string}"
+            )
+        if not np.isscalar(min_length):
+            raise TypeError("min_length must be scalar")
     if not np.isscalar(allow_holes):
         raise TypeError("allow_holes must be scalar")
-    return lib.concave_hull(geometry, np.double(ratio), np.bool_(allow_holes), **kwargs)
+
+    if ratio is not None:
+        _use_length = False
+        _value = ratio
+    else:
+        _use_length = True
+        _value = min_length
+
+    return lib.concave_hull(
+        geometry,
+        np.double(_value),
+        np.bool_(allow_holes),
+        np.bool_(_use_length),
+        **kwargs,
+    )
 
 
 @multithreading_enabled
