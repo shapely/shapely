@@ -138,10 +138,10 @@ class Point(BaseGeometry):
         if self.is_empty:
             return "<g />"
         style = svg_style(apply_svg_defaults(style_args,
-                                             opacity=0.6,
-                                             fill_color="#66cc99" if self.is_valid else "#ff3333",
-                                             stroke="#555555",
-                                             stroke-width=scale_factor))
+                                             dict(opacity=0.6,
+                                                  fill_color="#66cc99" if self.is_valid else "#ff3333",
+                                                  stroke="#555555",
+                                                  stroke_width=scale_factor)))
         return (
             f'<circle cx="{self.x}" cy="{self.y}" r="{3.0 * scale_factor}" {style} />'
         )

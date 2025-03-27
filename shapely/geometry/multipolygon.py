@@ -115,7 +115,7 @@ class MultiPolygon(BaseMultipartGeometry):
         if self.is_empty:
             return "<g />"
         style = apply_svg_defaults(style_args,
-                                   fill_color="#66cc99" if self.is_valid else "#ff3333")
+                                   dict(fill_color="#66cc99" if self.is_valid else "#ff3333"))
         return (
             "<g>"
             + "".join(p.svg(scale_factor=scale_factor, **style) for p in self.geoms)

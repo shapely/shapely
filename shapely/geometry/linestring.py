@@ -102,10 +102,10 @@ class LineString(BaseGeometry):
             return "<g />"
         pnt_format = " ".join(["{},{}".format(*c) for c in self.coords])
         style = svg_style(apply_svg_defaults(style_args,
-                                             opacity=0.8,
-                                             fill="none",
-                                             stroke_color="#66cc99" if self.is_valid else "#ff3333",
-                                             stroke_width=2.0 * scale_factor))
+                                             dict(opacity=0.8,
+                                                  fill="none",
+                                                  stroke_color="#66cc99" if self.is_valid else "#ff3333",
+                                                  stroke_width=2.0 * scale_factor)))
         return (
             f'<polyline {style} points="{pnt_format}" />'
         )

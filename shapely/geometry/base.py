@@ -78,7 +78,7 @@ def _maybe_unpack(result):
         return result
 
 
-def apply_svg_defaults(supplied, **defaults):
+def apply_svg_defaults(supplied, defaults):
     """Return a dictionary of SVG style attributes with defaults filled in.
     Args:
        supplied:   a dictionary of SVG style attributes, typically given as

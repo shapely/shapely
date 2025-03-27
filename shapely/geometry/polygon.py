@@ -305,12 +305,12 @@ class Polygon(BaseGeometry):
                 for coords in exterior_coords + interior_coords
             ]
         )
-        style = svg_style(apply_svg_defaults(**style_args,
-                                             fill_color="#66cc99" if self.is_valid else "#ff3333",
-                                             fill-rule="evenodd",
-                                             stroke_color="#555555",
-                                             stroke-width=2.0 * scale_factor,
-                                             opacity=0.6)
+        style = svg_style(apply_svg_defaults(style_args,
+                                             dict(fill_color="#66cc99" if self.is_valid else "#ff3333",
+                                                  fill_rule="evenodd",
+                                                  stroke_color="#555555",
+                                                  stroke_width=2.0 * scale_factor,
+                                                  opacity=0.6)))
         return (
             f'<path {style} d="{path}" />'
         )
