@@ -81,10 +81,10 @@ def _maybe_unpack(result):
 def apply_svg_defaults(supplied, defaults):
     """Return a dictionary of SVG style attributes with defaults filled in.
     Args:
-       supplied:   a dictionary of SVG style attributes, typically given as
-                   **kwargs to a .svg() method
-       other args: if any of these are missing from the supplied args, they
-                   are filled in from here.
+       supplied: a dictionary of SVG style attributes, typically given as
+                 **kwargs to a .svg() method
+       defaults: if any of these are missing from the supplied args, they
+                 are filled in from here.
     """
     return defaults | supplied
 
