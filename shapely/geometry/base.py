@@ -91,15 +91,13 @@ def apply_svg_defaults(supplied, defaults):
 
 SVG_ATTRIBUTE_NAMES = {
     'fill_color': 'fill',
-    'fill_rule': 'fill-rule',
     'stroke_color': 'stroke',
-    'stroke_width': 'stroke-width',
 }
 
 
 def svg_style(style_elements):
     """Return the style text for a dictionary of style elements."""
-    return " ".join('%s="%s"' % (SVG_ATTRIBUTE_NAMES.get(k, k), v)
+    return " ".join('%s="%s"' % (SVG_ATTRIBUTE_NAMES.get(k, k).replace("_", "-"), v)
                     for k, v in style_elements.items())
 
 
