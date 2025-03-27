@@ -2,7 +2,7 @@
 
 import shapely
 from shapely.geometry import polygon
-from shapely.geometry.base import BaseMultipartGeometry
+from shapely.geometry.base import BaseMultipartGeometry, apply_svg_defaults
 
 __all__ = ["MultiPolygon"]
 
@@ -97,7 +97,7 @@ class MultiPolygon(BaseMultipartGeometry):
             allcoords.append(tuple(coords))
         return {"type": "MultiPolygon", "coordinates": allcoords}
 
-    def svg(self, scale_factor=1.0, fill_color=None, opacity=None):
+    def svg(self, scale_factor=1.0, **style_args):
         """Return group of SVG path elements for the MultiPolygon geometry.
 
         Parameters
@@ -109,15 +109,16 @@ class MultiPolygon(BaseMultipartGeometry):
             geometry is valid, and "#ff3333" if invalid.
         opacity : float
             Float number between 0 and 1 for color opacity. Default value is 0.6
+        Other SVG style parameters may also be given.
 
         """
         if self.is_empty:
             return "<g />"
-        if fill_color is None:
-            fill_color = "#66cc99" if self.is_valid else "#ff3333"
+        style = apply_svg_defaults(style_args,
+                                   fill_color="#66cc99" if self.is_valid else "#ff3333")
         return (
             "<g>"
-            + "".join(p.svg(scale_factor, fill_color, opacity) for p in self.geoms)
+            + "".join(p.svg(scale_factor=scale_factor, **style) for p in self.geoms)
             + "</g>"
         )
 

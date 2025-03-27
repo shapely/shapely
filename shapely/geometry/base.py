@@ -78,6 +78,31 @@ def _maybe_unpack(result):
         return result
 
 
+def apply_svg_defaults(supplied, **defaults):
+    """Return a dictionary of SVG style attributes with defaults filled in.
+    Args:
+       supplied:   a dictionary of SVG style attributes, typically given as
+                   **kwargs to a .svg() method
+       other args: if any of these are missing from the supplied args, they
+                   are filled in from here.
+    """
+    return defaults | supplied
+
+
+SVG_ATTRIBUTE_NAMES = {
+    'fill_color': 'fill',
+    'fill_rule': 'fill-rule',
+    'stroke_color': 'stroke',
+    'stroke_width': 'stroke-width',
+}
+
+
+def svg_style(style_elements):
+    """Return the style text for a dictionary of style elements."""
+    return " ".join('%s="%s"' % (SVG_ATTRIBUTE_NAMES.get(k, k), v)
+                    for k, v in style_elements.items())
+
+
 class CAP_STYLE:
     """Buffer cap styles."""
 

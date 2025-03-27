@@ -6,7 +6,7 @@ import shapely
 from shapely import _geometry_helpers
 from shapely.algorithms.cga import signed_area  # noqa
 from shapely.errors import TopologicalError
-from shapely.geometry.base import BaseGeometry
+from shapely.geometry.base import BaseGeometry, apply_svg_defaults, svg_style
 from shapely.geometry.linestring import LineString
 from shapely.geometry.point import Point
 
@@ -278,7 +278,7 @@ class Polygon(BaseGeometry):
                 coords.append(tuple(hole.coords))
         return {"type": "Polygon", "coordinates": tuple(coords)}
 
-    def svg(self, scale_factor=1.0, fill_color=None, opacity=None):
+    def svg(self, scale_factor=1.0, **style_args):
         """Return SVG path element for the Polygon geometry.
 
         Parameters
@@ -290,14 +290,11 @@ class Polygon(BaseGeometry):
             geometry is valid, and "#ff3333" if invalid.
         opacity : float
             Float number between 0 and 1 for color opacity. Default value is 0.6
+        Other SVG style parameters may also be given.
 
         """
         if self.is_empty:
             return "<g />"
-        if fill_color is None:
-            fill_color = "#66cc99" if self.is_valid else "#ff3333"
-        if opacity is None:
-            opacity = 0.6
         exterior_coords = [["{},{}".format(*c) for c in self.exterior.coords]]
         interior_coords = [
             ["{},{}".format(*c) for c in interior.coords] for interior in self.interiors
@@ -308,9 +305,14 @@ class Polygon(BaseGeometry):
                 for coords in exterior_coords + interior_coords
             ]
         )
+        style = svg_style(apply_svg_defaults(**style_args,
+                                             fill_color="#66cc99" if self.is_valid else "#ff3333",
+                                             fill-rule="evenodd",
+                                             stroke_color="#555555",
+                                             stroke-width=2.0 * scale_factor,
+                                             opacity=0.6)
         return (
-            f'<path fill-rule="evenodd" fill="{fill_color}" stroke="#555555" '
-            f'stroke-width="{2.0 * scale_factor}" opacity="{opacity}" d="{path}" />'
+            f'<path {style} d="{path}" />'
         )
 
     @classmethod

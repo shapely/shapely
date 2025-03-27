@@ -3,7 +3,7 @@
 import shapely
 from shapely.errors import EmptyPartError
 from shapely.geometry import linestring
-from shapely.geometry.base import BaseMultipartGeometry
+from shapely.geometry.base import BaseMultipartGeometry, apply_svg_defaults
 
 __all__ = ["MultiLineString"]
 
@@ -67,7 +67,7 @@ class MultiLineString(BaseMultipartGeometry):
             "coordinates": tuple(tuple(c for c in g.coords) for g in self.geoms),
         }
 
-    def svg(self, scale_factor=1.0, stroke_color=None, opacity=None):
+    def svg(self, scale_factor=1.0, **style_args):
         """Return a group of SVG polyline elements for the LineString geometry.
 
         Parameters
@@ -79,15 +79,17 @@ class MultiLineString(BaseMultipartGeometry):
             geometry is valid, and "#ff3333" if invalid.
         opacity : float
             Float number between 0 and 1 for color opacity. Default value is 0.8
+        Other SVG style parameters may also be given.
 
         """
         if self.is_empty:
             return "<g />"
-        if stroke_color is None:
-            stroke_color = "#66cc99" if self.is_valid else "#ff3333"
+        style = apply_svg_defaults(style_args,
+                                   stroke_color=("#66cc99" if self.is_valid else "#ff3333"))
         return (
             "<g>"
-            + "".join(p.svg(scale_factor, stroke_color, opacity) for p in self.geoms)
+            + "".join(p.svg(scale_factor=scale_factor,
+                            **style) for p in self.geoms)
             + "</g>"
         )
 
