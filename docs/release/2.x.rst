@@ -14,6 +14,18 @@ Initial support for geometries with M or ZM values
 
 Shapely geometries can now represent coordinates with M values (measure) in
 addition to X, Y, and Z (requires GEOS >= 3.12).
+
+.. code:: python
+
+  >>> import shapely
+  >>> point_m = shapely.from_wkt("POINT M (5.2 52.1 15.3)")
+  >>> point_m
+  <POINT M (5.2 52.1 15.3)>
+  >>> point_m.has_m
+  True
+  >>> point_m.m
+  15.3
+
 The initial support includes:
 
 - Creating geometries from WKT or WKB with M values will now preserve the M
@@ -26,6 +38,22 @@ The initial support includes:
   the M value, if present (#2238).
 - Add an ``include_m`` keyword in ``to_ragged_array`` and ``get_coordinates``
   (#2234, #2235).
+
+Coverage validation and simplification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Several functions have been added to work with coverages (requires GEOS >=
+3.12), where a coverage is made up of a collection of valid (multi)polygons that
+do not overlap and are edge-matched (vertices along shared edges are identical).
+
+The :func:`.coverage_is_valid` and :func:`.coverage_invalid_edges` functions
+help to validate an array of geometries as a topological coverage and
+inspect invalid edges. The :func:`.coverage_simplify` function then allows
+topological simplification of the coverage (in contrast to the existing
+:func:`.simplify` function, which simplifies an array of geometries one by one,
+independently).
+
+.. plot:: code/coverage_simplify.py
 
 New functions
 ~~~~~~~~~~~~~
