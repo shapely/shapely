@@ -3,7 +3,7 @@ Version 2.x
 
 .. _version-2-1-0:
 
-Version 2.1.0 (2025-04-02)
+Version 2.1.0 (2025-04-03)
 --------------------------
 
 New features

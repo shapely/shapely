@@ -3,7 +3,7 @@ message: "Please cite this software using these metadata."
 type: software
 title: Shapely
 version: "2.1.0"
-date-released: "2025-04-02"
+date-released: "2025-04-03"
 doi: 10.5281/zenodo.5597138
 abstract: "Manipulation and analysis of geometric objects in the Cartesian plane."
 repository-artifact: https://pypi.org/project/Shapely
