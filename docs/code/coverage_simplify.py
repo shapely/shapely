@@ -41,11 +41,13 @@ for geom in geoms_africa2:
 
 ax1.set_title('a) original data')
 ax1.axis("off")
+ax1.set_aspect("equal")
 
 for geom in geoms_africa_simplified:
     plot_polygon(geom, ax=ax2, add_points=False, color=BLUE)
 
 ax2.set_title('b) coverage simplified')
 ax2.axis("off")
+ax2.set_aspect("equal")
 
 plt.show()
