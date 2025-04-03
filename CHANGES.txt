@@ -1,7 +1,7 @@
 Changes
 =======
 
-2.1.0 (unreleased)
+2.1.0 (2025-04-03)
 ------------------
 
 Shapely 2.1.0 is a feature release with various new functions,
