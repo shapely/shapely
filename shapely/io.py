@@ -56,7 +56,8 @@ def to_wkt(
         The rounding precision when writing the WKT string. Set to a value of
         -1 to indicate the full precision.
     trim : bool, default True
-        If True, trim unnecessary decimals (trailing zeros).
+        If True, trim unnecessary decimals (trailing zeros). If False,
+        use fixed-precision number formatting.
     output_dimension : int, default None
         The output dimension for the WKT string. Supported values are 2, 3 and
         4 for GEOS 3.12+. Default None will automatically choose 3 or 4,

@@ -1285,34 +1285,7 @@ and that copies of these are collected into a list
   >>> features = [c, a, d, b, c]
 
 that we'd prefer to have ordered as ``[d, c, c, b, a]`` in reverse containment
-order. As explained in the Python `Sorting HowTo`_, we can define a key
-function that operates on each list element and returns a value for comparison.
-Our key function will be a wrapper class that implements ``__lt__()`` using
-Shapely's binary :meth:`~object.within` predicate.
-
-.. code-block:: python
-
-  >>> class Within:
-  ...     def __init__(self, o):
-  ...         self.o = o
-  ...     def __lt__(self, other):
-  ...         return self.o.within(other.o)
-
-As the howto says, the `less than` comparison is guaranteed to be used in
-sorting. That's what we'll rely on to spatially sort. Trying it out on features
-`d` and `c`, we see that it works.
-
-.. code-block:: pycon
-
-  >>> Within(d) < Within(c)
-  False
-
-It also works on the list of features, producing the order we want.
-
-.. code-block:: pycon
-
-  >>> [d, c, c, b, a] == sorted(features, key=Within, reverse=True)
-  True
+order.
 
 DE-9IM Relationships
 --------------------
