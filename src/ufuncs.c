@@ -437,7 +437,7 @@ static void Ydd_b_p_func(char** args, const npy_intp* dimensions, const npy_intp
       ret = func(ctx, prepared_geom_tmp, in2, in3);
 #else
       GEOSGeometry *geom = NULL;
-      errstate = create_point(ctx, in2, in3, NULL, SHAPELY_HANDLE_NAN_ALLOW, &geom);
+      errstate = create_point(ctx, in2, in3, NULL, NULL, SHAPELY_HANDLE_NAN_ALLOW, &geom);
       if (errstate != PGERR_SUCCESS) {
         if (destroy_prepared) {
           GEOSPreparedGeom_destroy_r(ctx, prepared_geom_tmp);
@@ -2825,9 +2825,9 @@ static void points_func(char** args, const npy_intp* dimensions, const npy_intp*
   GEOSGeometry** geom_arr;
 
   // check the ordinate dimension before calling GEOSCoordSeq_create_r
-  if (dimensions[1] < 2 || dimensions[1] > 3) {
+  if (dimensions[1] < 2 || dimensions[1] > 4) {
     PyErr_Format(PyExc_ValueError,
-                 "The ordinate (last) dimension should be 2 or 3, got %ld",
+                 "The ordinate (last) dimension should be 2, 3 or 4, got %ld",
                  dimensions[1]);
     return;
   }
@@ -2837,7 +2837,19 @@ static void points_func(char** args, const npy_intp* dimensions, const npy_intp*
                  "points function called with non-scalar parameters");
     return;
   }
-  int handle_nan = *(int*)args[1];
+  int options = *(int*)args[1];
+  /* unpack options from integer made by creation.py */
+  int geom_type = options & 0b1111;
+  char has_z = options >> 5 & 0b1;
+  char has_m = options >> 6 & 0b1;
+  int handle_nan = options >> 7;
+  // printf("options 0b%b: geom_type %i, has_z %i, has_m %i, handle_nan %i\n", options, geom_type, has_z, has_m, handle_nan);
+
+  if (geom_type != GEOS_POINT) {
+    PyErr_Format(PyExc_ValueError, "invalid geometry type: %i", geom_type);
+    return;
+  }
+
 
   // allocate a temporary array to store output GEOSGeometry objects
   geom_arr = malloc(sizeof(void*) * dimensions[0]);
@@ -2858,7 +2870,8 @@ static void points_func(char** args, const npy_intp* dimensions, const npy_intp*
     // the per-point coordinates are retrieved by looping 2 or 3 (=n_c1) times
     // over "ip1" with a stride of "cs1"
     errstate = create_point(ctx, *(double*)ip1, *(double*)(ip1 + cs1),
-                            n_c1 == 3 ? (double*)(ip1 + 2 * cs1) : NULL,
+                            has_z ? (double*)(ip1 + 2 * cs1) : NULL,
+                            has_m ? (double*)(ip1 + (2 + has_z) * cs1) : NULL,
                             handle_nan, &(geom_arr[i]));
     if (errstate != PGERR_SUCCESS) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
@@ -2895,6 +2908,9 @@ static void linestrings_func(char** args, const npy_intp* dimensions, const npy_
                  "Linestrings function called with non-scalar parameters");
     return;
   }
+  /* TODO: complete has_z and has_m */
+  char has_z = dimensions[2] == 3;
+  char has_m = 0;
   int handle_nan = *(int*)args[1];
 
   // allocate a temporary array to store output GEOSGeometry objects
@@ -2909,8 +2925,8 @@ static void linestrings_func(char** args, const npy_intp* dimensions, const npy_
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
     }
-    errstate = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, 0, handle_nan, cs1,
-                                    cs2, &coord_seq);
+    errstate = coordseq_from_buffer(ctx, (double*)ip1, n_c1, has_z, has_m,
+                                    0, handle_nan, cs1, cs2, &coord_seq);
     if (errstate != PGERR_SUCCESS) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;
@@ -2956,6 +2972,9 @@ static void linearrings_func(char** args, const npy_intp* dimensions, const npy_
                  "Linearrings function called with non-scalar parameters");
     return;
   }
+  /* TODO: complete has_z and has_m */
+  char has_z = dimensions[2] == 3;
+  char has_m = 0;
   int handle_nan = *(int*)args[1];
 
   // allocate a temporary array to store output GEOSGeometry objects
@@ -2971,8 +2990,8 @@ static void linearrings_func(char** args, const npy_intp* dimensions, const npy_
       goto finish;
     }
     /* fill the coordinate sequence */
-    errstate = coordseq_from_buffer(ctx, (double*)ip1, n_c1, n_c2, 1, handle_nan, cs1,
-                                    cs2, &coord_seq);
+    errstate = coordseq_from_buffer(ctx, (double*)ip1, n_c1, has_z, has_m,
+                                    1, handle_nan, cs1, cs2, &coord_seq);
     if (errstate != PGERR_SUCCESS) {
       destroy_geom_arr(ctx, geom_arr, i - 1);
       goto finish;

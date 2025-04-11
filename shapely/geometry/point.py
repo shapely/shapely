@@ -22,8 +22,8 @@ class Point(BaseGeometry):
         The coordinates can either be passed as a single parameter, or as
         individual float values using multiple parameters:
 
-        1) 1 parameter: a sequence or array-like of with 2 or 3 values.
-        2) 2 or 3 parameters (float): x, y, and possibly z.
+        1) 1 parameter: a sequence or array-like of with 2, 3 or 4 values.
+        2) 2, 3 or 4 parameters (float): x, y, and possibly z and/or m.
 
     Attributes
     ----------
@@ -53,13 +53,14 @@ class Point(BaseGeometry):
 
     def __new__(self, *args):
         """Create a new Point geometry."""
-        if len(args) == 0:
+        num_args = len(args)
+        if num_args == 0:
             # empty geometry
             # TODO better constructor
             return shapely.from_wkt("POINT EMPTY")
-        elif len(args) > 3:
-            raise TypeError(f"Point() takes at most 3 arguments ({len(args)} given)")
-        elif len(args) == 1:
+        elif num_args > 4:
+            raise TypeError(f"Point() takes at most 4 arguments {num_args} given)")
+        elif num_args == 1:
             coords = args[0]
             if isinstance(coords, Point):
                 return coords
@@ -68,20 +69,28 @@ class Point(BaseGeometry):
             if not hasattr(coords, "__getitem__"):  # generators
                 coords = list(coords)
             coords = np.asarray(coords).squeeze()
-        else:
-            # 2 or 3 args
-            coords = np.array(args).squeeze()
-
-        if coords.ndim > 1:
-            raise ValueError(
-                f"Point() takes only scalar or 1-size vector arguments, got {args}"
-            )
-        if not np.issubdtype(coords.dtype, np.number):
-            coords = [float(c) for c in coords]
-        geom = shapely.points(coords)
-        if not isinstance(geom, Point):
-            raise ValueError("Invalid values passed to Point constructor")
-        return geom
+            if coords.ndim > 1:
+                raise ValueError(
+                    f"Point() takes only scalar or 1-size vector arguments, got {args}"
+                )
+            if not np.issubdtype(coords.dtype, np.number):
+                coords = [float(c) for c in coords]
+            geom = shapely.points(coords)
+            if not isinstance(geom, Point):
+                raise ValueError("Invalid values passed to Point constructor")
+            return geom
+        # else 2, 3 or 4 args to describe a Point's coordinate
+        args = (None if arg is None else np.squeeze(arg) for arg in args)
+        match num_args:
+            case 2:
+                x, y = args
+                z = m = None
+            case 3:
+                x, y, z = args
+                m = None
+            case 4:
+                x, y, z, m = args
+        return shapely.points(x, y, z, m=m)
 
     # Coordinate getters and setters
 

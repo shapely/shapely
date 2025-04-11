@@ -69,7 +69,8 @@ cdef int _create_simple_geometry(
     const double[:, :] coord_view,
     Py_ssize_t idx,
     unsigned int n_coords,
-    unsigned int dims,
+    char has_z,
+    char has_m,
     int geometry_type,
     char is_ring,
     int handle_nan,
@@ -84,7 +85,7 @@ cdef int _create_simple_geometry(
     cdef unsigned int actual_n_coords = 0
 
     errstate = PyGEOS_CoordSeq_FromBuffer(
-        geos_handle, &coord_view[idx, 0], n_coords, dims,
+        geos_handle, &coord_view[idx, 0], n_coords, has_z, has_m,
         is_ring, handle_nan, &seq
     )
     if errstate != PGERR_SUCCESS:
@@ -128,14 +129,25 @@ def _create_simple_geometry_raise_error(int errstate):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def simple_geometries_1d(object coordinates, object indices, int geometry_type, int handle_nan, object out = None):
+def simple_geometries_1d(object coordinates, object indices, int options, object out = None):
     cdef Py_ssize_t idx = 0
     cdef unsigned int coord_idx = 0
     cdef Py_ssize_t geom_idx = 0
     cdef unsigned int n_coords = 0
+    cdef int geometry_type = 0
+    cdef char has_z = 0
+    cdef char has_m = 0
+    cdef int handle_nan = 0
     cdef unsigned int ring_closure = 0
     cdef GEOSGeometry *geom = NULL
     cdef GEOSCoordSequence *seq = NULL
+
+    # unpack options from integer made by creation.py
+    geometry_type = options & 0b1111
+    has_z = options >> 5 & 0b1
+    has_m = options >> 6 & 0b1
+    handle_nan = options >> 7
+    # print(f"{geometry_type=}, {has_z=}, {has_m=}, {handle_nan=}")
 
     # Cast input arrays and define memoryviews for later usage
     coordinates = np.asarray(coordinates, dtype=np.float64, order="C")
@@ -150,8 +162,8 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type, 
         raise ValueError("geometries and indices do not have equal size.")
 
     cdef unsigned int dims = coordinates.shape[1]
-    if dims not in {2, 3}:
-        raise ValueError("coordinates should be N by 2 or N by 3.")
+    if dims not in {2, 3, 4}:
+        raise ValueError("coordinates should be (N, 2), (N, 3) or (N, 4).")
 
     if geometry_type not in {0, 1, 2}:
         raise ValueError(f"Invalid geometry_type: {geometry_type}.")
@@ -190,8 +202,8 @@ def simple_geometries_1d(object coordinates, object indices, int geometry_type, 
                         f"Index {geom_idx} is missing from the input indices."
                     )
             errstate = _create_simple_geometry(
-                geos_handle, coord_view, idx, n_coords, dims, geometry_type,
-                is_ring, handle_nan, &geom
+                geos_handle, coord_view, idx, n_coords, has_z, has_m,
+                geometry_type, is_ring, handle_nan, &geom
             )
             if errstate != PGERR_SUCCESS:
                 return _create_simple_geometry_raise_error(errstate)
@@ -481,6 +493,9 @@ def _from_ragged_array_multi_linear(
     cdef unsigned int dims = coordinates.shape[1]
     if dims not in {2, 3}:
         raise ValueError("coordinates should be N by 2 or N by 3.")
+    # TODO: update better handling of has_z and has_m
+    cdef char has_z = dims == 3
+    cdef char has_m = 0
 
     cdef int linear_type
     cdef char is_ring
@@ -513,8 +528,8 @@ def _from_ragged_array_multi_linear(
                     k2 = offsets1[k + 1]
                     n_coords = k2 - k1
                     errstate = _create_simple_geometry(
-                        geos_handle, coordinates, k1, n_coords, dims, linear_type,
-                        is_ring, handle_nan, &linear
+                        geos_handle, coordinates, k1, n_coords, has_z, has_m,
+                        linear_type, is_ring, handle_nan, &linear
                     )
                     if errstate != PGERR_SUCCESS:
                         _deallocate_arr(geos_handle, temp_linear_view, linear_idx)
@@ -600,6 +615,9 @@ def _from_ragged_array_multipolygon(
     cdef unsigned int dims = coordinates.shape[1]
     if dims not in {2, 3}:
         raise ValueError("coordinates should be N by 2 or N by 3.")
+    # TODO: update better handling of has_z and has_m
+    cdef char has_z = dims == 3
+    cdef char has_m = 0
 
     cdef int ring_type = 2
     cdef int geometry_type = 6  # MultiPolygon
@@ -633,8 +651,8 @@ def _from_ragged_array_multipolygon(
                         k2 = offsets1[k + 1]
                         n_coords = k2 - k1
                         errstate = _create_simple_geometry(
-                            geos_handle, coordinates, k1, n_coords, dims, ring_type,
-                            is_ring, handle_nan, &ring
+                            geos_handle, coordinates, k1, n_coords, has_z, has_m,
+                            ring_type, is_ring, handle_nan, &ring
                         )
                         if errstate != PGERR_SUCCESS:
                             _deallocate_arr(geos_handle, temp_rings_view, rings_idx)
