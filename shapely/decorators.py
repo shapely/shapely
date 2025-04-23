@@ -145,10 +145,8 @@ def deprecate_positional(
         warn_from = min(idx for idx, _ in deprecate_positions)
 
         @lru_cache(10)
-        def make_msg(n_args: int) -> str | None:
+        def make_msg(n_args: int):
             used = [name for idx, name in deprecate_positions if idx < n_args]
-            if not used:
-                return None
 
             if len(used) == 1:
                 args_txt = f"`{used[0]}`"
@@ -174,9 +172,7 @@ def deprecate_positional(
 
             n = len(args)
             if n > warn_from:
-                msg = make_msg(n)
-                if msg is not None:
-                    warnings.warn(msg, category=category, stacklevel=2)
+                warnings.warn(make_msg(n), category=category, stacklevel=2)
 
             return result
 
