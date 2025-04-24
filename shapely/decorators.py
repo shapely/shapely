@@ -117,7 +117,7 @@ def deprecate_positional(
     ...     return a, b, c
     ...
     >>> example(1, 2)  # Warning for b
-    DeprecationWarning: Positional argument `b` for `example` is deprecated. ...
+    DeprecationWarning: positional argument `b` for `example` is deprecated. ...
     (1, 2, None)
     >>> example(1, b=2)  # No warnings
     (1, 2, None)
@@ -162,7 +162,7 @@ def deprecate_positional(
                     args_txt += f", and `{used[-1]}`"
 
             return (
-                f"Positional argument{plr} {args_txt} for `{func.__name__}` "
+                f"positional argument{plr} {args_txt} for `{func.__name__}` "
                 f"{isare} deprecated. Please use keyword argument{plr} instead."
             )
 

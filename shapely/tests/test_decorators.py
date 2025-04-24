@@ -53,7 +53,7 @@ def test_single_positional_warning():
         assert out == (1, 4, 3)
         assert len(caught) == 1
         msg = str(caught[0].message)
-        assert "Positional argument `b` for `func_two` is deprecated." in msg
+        assert "positional argument `b` for `func_two` is deprecated." in msg
 
 
 def test_multiple_positional_warning():
@@ -62,7 +62,7 @@ def test_multiple_positional_warning():
         assert out == (1, 4, 5)
         assert len(caught) == 1
         msg = str(caught[0].message)
-        assert "Positional arguments `b` and `c` for `func_two` are deprecated." in msg
+        assert "positional arguments `b` and `c` for `func_two` are deprecated." in msg
 
 
 def test_three_positional_warning_oxford_comma():
@@ -72,7 +72,7 @@ def test_three_positional_warning_oxford_comma():
         assert len(caught) == 1
         msg = str(caught[0].message)
         assert (
-            "Positional arguments `b`, `c`, and `d` for `func_three` are deprecated."
+            "positional arguments `b`, `c`, and `d` for `func_three` are deprecated."
             in msg
         )
 
@@ -83,7 +83,7 @@ def test_noncontiguous_partial_warning():
         assert out == (1, 2, 3, 3)
         assert len(caught) == 1
         msg = str(caught[0].message)
-        assert "Positional argument `b` for `func_noncontig` is deprecated." in msg
+        assert "positional argument `b` for `func_noncontig` is deprecated." in msg
 
 
 def test_noncontiguous_full_warning():
@@ -93,14 +93,13 @@ def test_noncontiguous_full_warning():
         assert len(caught) == 1
         msg = str(caught[0].message)
         assert (
-            "Positional arguments `b` and `d` for `func_noncontig` are deprecated."
+            "positional arguments `b` and `d` for `func_noncontig` are deprecated."
             in msg
         )
 
 
 def test_custom_warning_category():
     with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always", UserWarning)
         out = func_custom_category(1, 2)
         assert out == (1, 2)
         assert len(caught) == 1
@@ -116,7 +115,6 @@ def test_func_no_deprecations_never_warns():
 
 def test_missing_required_arg_no_warning():
     with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always", DeprecationWarning)
         with pytest.raises(TypeError):
             func_two()  # missing required 'a'
         assert not caught
@@ -124,7 +122,6 @@ def test_missing_required_arg_no_warning():
 
 def test_unknown_keyword_no_warning():
     with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always", DeprecationWarning)
         with pytest.raises(TypeError):
             func_two(1, 4, d=5)  # unknown keyword 'd'
         assert not caught
@@ -136,7 +133,7 @@ def test_varargs_behavior_and_deprecation():
         assert out == (1, 2, (3, 4))
         assert len(caught) == 1
         msg = str(caught[0].message)
-        assert "Positional argument `b` for `func_varargs` is deprecated." in msg
+        assert "positional argument `b` for `func_varargs` is deprecated." in msg
 
     with warnings.catch_warnings(record=True) as caught:
         out = func_varargs(1)
