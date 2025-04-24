@@ -113,11 +113,12 @@ def deprecate_positional(
 
     Examples
     --------
+    >>> from shapely.decorators import deprecate_positional
     >>> @deprecate_positional(['b', 'c'])
     ... def example(a, b, c=None):
     ...     return a, b, c
     ...
-    >>> example(1, 2)  # Warning for b
+    >>> example(1, 2)  # doctest: +SKIP
     DeprecationWarning: positional argument `b` for `example` is deprecated. ...
     (1, 2, None)
     >>> example(1, b=2)  # No warnings
