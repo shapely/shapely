@@ -4,6 +4,7 @@ import os
 import warnings
 from collections.abc import Callable, Iterable
 from functools import lru_cache, wraps
+from inspect import unwrap
 
 import numpy as np
 
@@ -124,7 +125,7 @@ def deprecate_positional(
     """
 
     def decorator(func: Callable):
-        code = func.__code__
+        code = unwrap(func).__code__
 
         # positional parameters are the first co_argcount names
         pos_names = code.co_varnames[: code.co_argcount]
