@@ -142,7 +142,7 @@ def deprecate_positional(
             return func
 
         # earliest position where a warning could occur
-        warn_from = min(idx for idx, _ in deprecate_positions)
+        warn_from = min(deprecate_positions)[0]
 
         @lru_cache(10)
         def make_msg(n_args: int):
