@@ -36,12 +36,12 @@ def func_no_deprecations(a, b=1):
 
 def test_all_kwargs_no_warning(recwarn: WarningsRecorder) -> None:
     assert func_two(a=10, b=20, c=30) == (10, 20, 30)
-    assert not list(recwarn)
+    assert not recwarn.list
 
 
 def test_only_required_arg_no_warning(recwarn: WarningsRecorder) -> None:
     assert func_two(1) == (1, 2, 3)
-    assert not list(recwarn)
+    assert not recwarn.list
 
 
 def test_single_positional_warning() -> None:
@@ -100,19 +100,19 @@ def test_custom_warning_category() -> None:
 def test_func_no_deprecations_never_warns(recwarn: WarningsRecorder) -> None:
     out = func_no_deprecations(7, 8)
     assert out == (7, 8)
-    assert not list(recwarn)
+    assert not recwarn.list
 
 
 def test_missing_required_arg_no_warning(recwarn: WarningsRecorder) -> None:
     with pytest.raises(TypeError):
         func_two()  # missing required 'a'  # type: ignore
-    assert not list(recwarn)
+    assert not recwarn.list
 
 
 def test_unknown_keyword_no_warning(recwarn: WarningsRecorder) -> None:
     with pytest.raises(TypeError):
         func_two(1, 4, d=5)  # unknown keyword 'd'  # type: ignore
-    assert not list(recwarn)
+    assert not recwarn.list
 
 
 def test_varargs_behavior_and_deprecation() -> None:
@@ -127,7 +127,7 @@ def test_varargs_behavior_and_deprecation() -> None:
 def test_varargs_no_warning(recwarn: WarningsRecorder) -> None:
     out = func_varargs(1)
     assert out == (1, 1, ())
-    assert not list(recwarn)
+    assert not recwarn.list
 
 
 def test_repeated_warnings() -> None:
