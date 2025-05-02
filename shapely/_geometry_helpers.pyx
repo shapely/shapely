@@ -468,7 +468,7 @@ def _from_ragged_array_multi_linear(
 
     # A temporary array for the geometries that will be given to CreatePolygon/Collection.
     # For simplicity, we use n_rings instead of calculating the max needed size
-    # as max(diff(offsets1)) (trading performance for a bit more memory usage)
+    # as max(diff(offsets2)) (trading performance for a bit more memory usage)
     temp_linear = np.empty(shape=(n_rings, ), dtype=np.intp)
     cdef np.intp_t[:] temp_linear_view = temp_linear
     # A temporary array for resulting geometries
