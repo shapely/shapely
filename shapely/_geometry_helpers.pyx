@@ -292,7 +292,7 @@ cdef void _deallocate_arr(void* handle, np.intp_t[:] arr, Py_ssize_t last_geom_i
     for i in range(last_geom_i):
         g = <GEOSGeometry *>arr[i]
         if g != NULL:
-            GEOSGeom_destroy_r(handle, <GEOSGeometry *>arr[i])
+            GEOSGeom_destroy_r(<GEOSContextHandle_t> handle, <GEOSGeometry *>arr[i])
 
 
 @cython.boundscheck(False)
@@ -421,7 +421,7 @@ def collections_1d(object geometries, object indices, int geometry_type = 7, obj
                 coll = GEOSGeom_createPolygon_r(
                     geos_handle,
                     <GEOSGeometry*> temp_geoms_view[0],
-                    NULL if coll_size <= 1 else <GEOSGeometry**> &temp_geoms_view[1],
+                    <GEOSGeometry**> NULL if coll_size <= 1 else <GEOSGeometry**> &temp_geoms_view[1],
                     coll_size - 1
                 )
             else:  # Polygon, empty
