@@ -468,7 +468,7 @@ def _from_ragged_array_multi_linear(
 
     # A temporary array for the geometries that will be given to CreatePolygon/Collection.
     # For simplicity, we use n_rings instead of calculating the max needed size
-    # as max(offsets1) (trading performance for a bit more memory usage)
+    # as max(diff(offsets1)) (trading performance for a bit more memory usage)
     temp_linear = np.empty(shape=(n_rings, ), dtype=np.intp)
     cdef np.intp_t[:] temp_linear_view = temp_linear
     # A temporary array for resulting geometries
@@ -571,7 +571,7 @@ def _from_ragged_array_multipolygon(
     Create MultiPolygons from coordinate and offset arrays.
     """
     cdef:
-        Py_ssize_t n_geoms
+        Py_ssize_t n_rings, n_parts, n_geoms
         Py_ssize_t i, j, k
         Py_ssize_t i1, i2, j1, j2, k1, k2
         Py_ssize_t n_coords, rings_idx, parts_idx
@@ -581,14 +581,16 @@ def _from_ragged_array_multipolygon(
         GEOSGeometry *part = NULL
         GEOSGeometry *geom = NULL
 
+    n_rings = offsets1.shape[0] - 1
+    n_parts = offsets2.shape[0] - 1
     n_geoms = offsets3.shape[0] - 1
 
     # A temporary array for the geometries that will be given to CreatePolygon
-    # and CreateCollection. For simplicity, we use n_geoms instead of calculating
-    # the max needed size (trading performance for a bit more memory usage)
-    temp_rings = np.empty(shape=(n_geoms, ), dtype=np.intp)
+    # and CreateCollection. For simplicity, we use n_rings/n_parts instead of
+    # calculating the max needed size (trading performance for a bit more memory usage)
+    temp_rings = np.empty(shape=(n_rings, ), dtype=np.intp)
     cdef np.intp_t[:] temp_rings_view = temp_rings
-    temp_parts = np.empty(shape=(n_geoms, ), dtype=np.intp)
+    temp_parts = np.empty(shape=(n_parts, ), dtype=np.intp)
     cdef np.intp_t[:] temp_parts_view = temp_parts
     # A temporary array for resulting geometries
     temp_geoms = np.empty(shape=(n_geoms, ), dtype=np.intp)

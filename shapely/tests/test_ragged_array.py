@@ -594,8 +594,8 @@ def test_from_ragged_crash_2284():
 
     # one of the geometries has more rings than the total number of geometries
     coords = np.random.randn(60, 2)
-    offsets1 = np.array([0, 10, 20, 30, 40, 50, 60], dtype=np.uint32)
-    offsets2 = np.array([0, 1, 5, 6], dtype=np.uint32)
+    offsets1 = np.array([0, 10, 20, 30, 40, 50, 60])
+    offsets2 = np.array([0, 1, 5, 6])
 
     for _ in range(10):
         polygons = shapely.from_ragged_array(
@@ -603,3 +603,11 @@ def test_from_ragged_crash_2284():
         )
         # just ensure it didn't crash
         assert len(polygons) == 3
+
+    offsets3 = np.array([0, 3])
+    for _ in range(10):
+        polygons = shapely.from_ragged_array(
+            shapely.GeometryType.MULTIPOLYGON, coords, (offsets1, offsets2, offsets3)
+        )
+        # just ensure it didn't crash
+        assert len(polygons) == 1
