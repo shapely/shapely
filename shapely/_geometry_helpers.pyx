@@ -454,7 +454,7 @@ def _from_ragged_array_multi_linear(
     MultiLineString (geometry_type 5): linear_type is a LineString (1)
     """
     cdef:
-        Py_ssize_t n_geoms
+        Py_ssize_t n_total_coords, n_rings, n_geoms
         Py_ssize_t i, k
         Py_ssize_t i1, i2, k1, k2
         Py_ssize_t n_coords, linear_idx
@@ -463,7 +463,21 @@ def _from_ragged_array_multi_linear(
         GEOSGeometry *linear = NULL
         GEOSGeometry *geom = NULL
 
+    n_total_coords = coordinates.shape[0]
+    n_rings = offsets1.shape[0] - 1
     n_geoms = offsets2.shape[0] - 1
+
+    if offsets2[n_geoms] > n_rings:
+        raise ValueError(
+            f"Number of rings indicated by the geometry offsets ({offsets2[n_geoms]}) "
+            f"larger than indicated by the shape of linear offsets ({n_rings})"
+        )
+
+    if offsets1[n_rings] > n_total_coords:
+        raise ValueError(
+            f"Number of coordinates indicated by the linear offsets ({offsets1[n_rings]}) "
+            f"larger than the shape of the coordinates array ({n_total_coords})"
+        )
 
     # A temporary array for the geometries that will be given to CreatePolygon/Collection.
     # For simplicity, we use n_geoms instead of calculating
