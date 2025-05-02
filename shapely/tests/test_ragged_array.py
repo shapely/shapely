@@ -586,3 +586,20 @@ def test_from_ragged_wrong_offsets():
             np.array([[0, 0], [0, 1]]),
             offsets=(np.array([0, 1]),),
         )
+
+
+def test_from_ragged_crash_2284():
+    # caused segfault in shapely 2.1.0
+    # https://github.com/shapely/shapely/discussions/2284
+
+    # one of the geometries has more rings than the total number of geometries
+    coords = np.random.randn(60, 2)
+    offsets1 = np.array([0, 10, 20, 30, 40, 50, 60], dtype=np.uint32)
+    offsets2 = np.array([0, 1, 5, 6], dtype=np.uint32)
+
+    for _ in range(10):
+        polygons = shapely.from_ragged_array(
+            shapely.GeometryType.POLYGON, coords, (offsets1, offsets2)
+        )
+        # just ensure it didn't crash
+        assert len(polygons) == 3
