@@ -1184,7 +1184,7 @@ def test_maximum_inscribed_circle_all_types(geometry):
             GEOSException,
             match=(
                 "Argument must be Polygonal or LinearRing|"  # GEOS < 3.10.4
-                "Input geometry must be a Polygon or MultiPolygon|"
+                "must be a Polygon or MultiPolygon|"
                 "Operation not supported by GeometryCollection"
             ),
         ):
