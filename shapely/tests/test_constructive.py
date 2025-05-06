@@ -1233,7 +1233,9 @@ def test_maximum_inscribed_circle_empty():
         shapely.maximum_inscribed_circle(geometry)
 
     geometry = shapely.from_wkt("POLYGON EMPTY")
-    with pytest.raises(GEOSException, match="Empty input geometry is not supported"):
+    with pytest.raises(
+        GEOSException, match="Empty input(?: geometry)? is not supported"
+    ):
         shapely.maximum_inscribed_circle(geometry)
 
 
