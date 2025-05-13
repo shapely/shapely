@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from shapely import MultiPolygon, Polygon
+from shapely.geometry import mapping
 from shapely.geometry.base import dump_coords
 from shapely.tests.geometry.test_multi import MultiGeometryTestCase
 
@@ -52,7 +53,7 @@ class TestMultiPolygon(MultiGeometryTestCase):
         # Or from polygons
         p = Polygon(
             ((0, 0), (0, 1), (1, 1), (1, 0)),
-            [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))],
+            [((0.25, 0.25), (0.5, 0.25), (0.5, 0.5), (0.25, 0.5))],
         )
         geom = MultiPolygon([p])
         assert len(geom.geoms) == 1
@@ -63,7 +64,7 @@ class TestMultiPolygon(MultiGeometryTestCase):
                 (1.0, 1.0),
                 (1.0, 0.0),
                 (0.0, 0.0),
-                [(0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25), (0.25, 0.25)],
+                [(0.25, 0.25), (0.5, 0.25), (0.5, 0.5), (0.25, 0.5), (0.25, 0.25)],
             ]
         ]
 
@@ -90,7 +91,7 @@ class TestMultiPolygon(MultiGeometryTestCase):
                 (1.0, 1.0),
                 (1.0, 0.0),
                 (0.0, 0.0),
-                [(0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25), (0.25, 0.25)],
+                [(0.25, 0.25), (0.5, 0.25), (0.5, 0.5), (0.25, 0.5), (0.25, 0.25)],
             ]
         ]
 
@@ -102,7 +103,7 @@ class TestMultiPolygon(MultiGeometryTestCase):
             (1.0, 1.0),
             (1.0, 0.0),
             (0.0, 0.0),
-            [(0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25), (0.25, 0.25)],
+            [(0.25, 0.25), (0.5, 0.25), (0.5, 0.5), (0.25, 0.5), (0.25, 0.25)],
         ]
         with pytest.raises(IndexError):  # index out of range
             geom.geoms[1]
@@ -113,6 +114,17 @@ class TestMultiPolygon(MultiGeometryTestCase):
             "coordinates": [
                 (
                     ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)),
+                    ((0.25, 0.25), (0.5, 0.25), (0.5, 0.5), (0.25, 0.5), (0.25, 0.25)),
+                )
+            ],
+        }
+
+        # mapping, force_ccw=True
+        assert mapping(geom, force_ccw=True) == {
+            "type": "MultiPolygon",
+            "coordinates": [
+                (
+                    ((0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0), (0.0, 0.0)),
                     ((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25), (0.25, 0.25)),
                 )
             ],

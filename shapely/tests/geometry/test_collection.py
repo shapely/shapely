@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 
 import shapely
-from shapely import GeometryCollection, LineString, Point, wkt
-from shapely.geometry import shape
+from shapely import GeometryCollection, LineString, Point, Polygon, wkt
+from shapely.geometry import mapping, shape
 
 
 @pytest.fixture()
@@ -80,6 +80,32 @@ def test_from_geojson(geometrycollection_geojson):
 def test_geointerface(geometrycollection_geojson):
     geom = shape(geometrycollection_geojson)
     assert geom.__geo_interface__ == geometrycollection_geojson
+
+
+def test_mapping():
+    geom = GeometryCollection([
+        Polygon(((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)))
+    ])
+    # force_ccw=False
+    assert mapping(geom, force_ccw=False) == {
+        "type": "GeometryCollection",
+        "geometries": [{
+            "type": "Polygon",
+            "coordinates": (
+                ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)),
+            )
+        }]
+    }
+    # force_ccw=True
+    assert mapping(geom, force_ccw=True) == {
+        "type": "GeometryCollection",
+        "geometries": [{
+            "type": "Polygon",
+            "coordinates": (
+                ((0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0), (0.0, 0.0)),
+            )
+        }]
+    }
 
 
 def test_len_raises(geometrycollection_geojson):
