@@ -10,6 +10,7 @@ from shapely.geometry.multipoint import MultiPoint
 from shapely.geometry.multipolygon import MultiPolygon
 from shapely.geometry.point import Point
 from shapely.geometry.polygon import LinearRing, Polygon
+from shapely import orient_polygons
 
 
 def _is_coordinates_empty(coordinates):
@@ -118,7 +119,7 @@ def shape(context):
         raise GeometryTypeError(f"Unknown geometry type: {geom_type!r}")
 
 
-def mapping(ob):
+def mapping(ob, force_ccw=False):
     """Return a GeoJSON-like mapping.
 
     Input should be a Geometry or an object which implements __geo_interface__.
@@ -140,4 +141,6 @@ def mapping(ob):
     {'type': 'Point', 'coordinates': (0.0, 0.0)}
 
     """
+    if force_ccw:
+        ob = orient_polygons(ob)
     return ob.__geo_interface__

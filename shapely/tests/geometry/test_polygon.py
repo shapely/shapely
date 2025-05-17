@@ -6,6 +6,7 @@ import pytest
 from shapely import LinearRing, LineString, Point, Polygon
 from shapely.coords import CoordinateSequence
 from shapely.errors import TopologicalError
+from shapely.geometry import mapping
 from shapely.wkb import loads as load_wkb
 
 
@@ -285,7 +286,7 @@ class TestPolygon:
 
         # Interior rings (holes)
         polygon = Polygon(
-            coords, [((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25))]
+            coords, [((0.25, 0.25), (0.5, 0.25), (0.5, 0.5), (0.25, 0.5))]
         )
         assert len(polygon.exterior.coords) == 5
         assert len(polygon.interiors[0].coords) == 5
@@ -301,7 +302,16 @@ class TestPolygon:
             "type": "Polygon",
             "coordinates": (
                 ((0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)),
-                ((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25), (0.25, 0.25)),
+                ((0.25, 0.25), (0.5, 0.25), (0.5, 0.5), (0.25, 0.5), (0.25, 0.25)),
+            ),
+        }
+
+        # mapping, force_ccw=True
+        assert mapping(polygon, force_ccw=True) == {
+            "type": "Polygon",
+            "coordinates": (
+                ((0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0), (0.0, 0.0)),
+                ((0.25, 0.25), (0.25, 0.5), (0.5, 0.5), (0.5, 0.25), (0.25, 0.25))
             ),
         }
 
