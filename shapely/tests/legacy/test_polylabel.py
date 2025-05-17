@@ -48,7 +48,10 @@ class PolylabelTestCase(unittest.TestCase):
             ]
         )
         label = polylabel(polygon)
-        if shapely.geos_version >= (3, 12, 0):
+        if shapely.geos_version >= (3, 14, 0):
+            # https://github.com/libgeos/geos/issues/1265
+            assert label.coords[:] == [(32.722025, -117.195155)]
+        elif shapely.geos_version >= (3, 12, 0):
             # recent GEOS corrects for this
             assert label.coords[:] == [(32.722025, -117.201875)]
         else:
