@@ -588,11 +588,36 @@ def test_from_ragged_wrong_offsets():
         )
 
 
+def test_from_ragged_crash_2284():
+    # caused segfault in shapely 2.1.0
+    # https://github.com/shapely/shapely/discussions/2284
+
+    # one of the geometries has more rings than the total number of geometries
+    coords = np.random.default_rng().random(120).reshape((60, 2))
+    offsets1 = np.array([0, 10, 20, 30, 40, 50, 60])
+    offsets2 = np.array([0, 1, 5, 6])
+
+    for _ in range(10):
+        polygons = shapely.from_ragged_array(
+            shapely.GeometryType.POLYGON, coords, (offsets1, offsets2)
+        )
+        # just ensure it didn't crash
+        assert len(polygons) == 3
+
+    offsets3 = np.array([0, 3])
+    for _ in range(10):
+        polygons = shapely.from_ragged_array(
+            shapely.GeometryType.MULTIPOLYGON, coords, (offsets1, offsets2, offsets3)
+        )
+        # just ensure it didn't crash
+        assert len(polygons) == 1
+
+
 def test_from_ragged_wrong_offsets_values():
     # caused segfault in shapely 2.1.0
 
     # outer offsets indicates more rings than the shape of the ring offsets
-    coords = np.random.randn(35, 2)
+    coords = np.random.default_rng().random(70).reshape((35, 2))
     offsets1 = np.array([0, 10, 20], dtype=np.uint32)
     offsets2 = np.array([0, 1, 5], dtype=np.uint32)
     offsets3 = np.array([0, 2])
@@ -612,7 +637,7 @@ def test_from_ragged_wrong_offsets_values():
         )
 
     # inner offsets indicating more coordinats that the shape of the coordinates
-    coords = np.random.randn(35, 2)
+    coords = np.random.default_rng().random(70).reshape((35, 2))
     offsets1 = np.array([0, 10, 40], dtype=np.uint32)
     offsets2 = np.array([0, 1, 2], dtype=np.uint32)
 
