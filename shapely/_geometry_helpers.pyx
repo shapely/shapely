@@ -284,7 +284,7 @@ def get_parts(object[:] array, bint extract_rings=0):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef void _deallocate_arr(void* handle, np.intp_t[:] arr, Py_ssize_t last_geom_i) noexcept nogil:
+cdef void _deallocate_arr(GEOSContextHandle_t handle, np.intp_t[:] arr, Py_ssize_t last_geom_i) noexcept nogil:
     """Deallocate a temporary geometry array to prevent memory leaks"""
     cdef Py_ssize_t i = 0
     cdef GEOSGeometry *g
@@ -292,7 +292,7 @@ cdef void _deallocate_arr(void* handle, np.intp_t[:] arr, Py_ssize_t last_geom_i
     for i in range(last_geom_i):
         g = <GEOSGeometry *>arr[i]
         if g != NULL:
-            GEOSGeom_destroy_r(<GEOSContextHandle_t> handle, <GEOSGeometry *>arr[i])
+            GEOSGeom_destroy_r(handle, <GEOSGeometry *>arr[i])
 
 
 @cython.boundscheck(False)
