@@ -284,7 +284,7 @@ def get_parts(object[:] array, bint extract_rings=0):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef void _deallocate_arr(void* handle, np.intp_t[:] arr, Py_ssize_t last_geom_i) noexcept nogil:
+cdef void _deallocate_arr(GEOSContextHandle_t handle, np.intp_t[:] arr, Py_ssize_t last_geom_i) noexcept nogil:
     """Deallocate a temporary geometry array to prevent memory leaks"""
     cdef Py_ssize_t i = 0
     cdef GEOSGeometry *g
@@ -421,7 +421,7 @@ def collections_1d(object geometries, object indices, int geometry_type = 7, obj
                 coll = GEOSGeom_createPolygon_r(
                     geos_handle,
                     <GEOSGeometry*> temp_geoms_view[0],
-                    NULL if coll_size <= 1 else <GEOSGeometry**> &temp_geoms_view[1],
+                    <GEOSGeometry**> NULL if coll_size <= 1 else <GEOSGeometry**> &temp_geoms_view[1],
                     coll_size - 1
                 )
             else:  # Polygon, empty
@@ -454,7 +454,7 @@ def _from_ragged_array_multi_linear(
     MultiLineString (geometry_type 5): linear_type is a LineString (1)
     """
     cdef:
-        Py_ssize_t n_geoms
+        Py_ssize_t n_total_coords, n_rings, n_geoms
         Py_ssize_t i, k
         Py_ssize_t i1, i2, k1, k2
         Py_ssize_t n_coords, linear_idx
@@ -463,7 +463,21 @@ def _from_ragged_array_multi_linear(
         GEOSGeometry *linear = NULL
         GEOSGeometry *geom = NULL
 
+    n_total_coords = coordinates.shape[0]
+    n_rings = offsets1.shape[0] - 1
     n_geoms = offsets2.shape[0] - 1
+
+    if offsets2[n_geoms] > n_rings:
+        raise ValueError(
+            f"Number of rings indicated by the geometry offsets ({offsets2[n_geoms]}) "
+            f"larger than indicated by the shape of the linear offsets array ({n_rings})"
+        )
+
+    if offsets1[n_rings] > n_total_coords:
+        raise ValueError(
+            f"Number of coordinates indicated by the linear offsets ({offsets1[n_rings]}) "
+            f"larger than the shape of the coordinates array ({n_total_coords})"
+        )
 
     # A temporary array for the geometries that will be given to CreatePolygon/Collection.
     # For simplicity, we use n_geoms instead of calculating
@@ -570,7 +584,7 @@ def _from_ragged_array_multipolygon(
     Create MultiPolygons from coordinate and offset arrays.
     """
     cdef:
-        Py_ssize_t n_geoms
+        Py_ssize_t n_total_coords, n_rings, n_parts, n_geoms
         Py_ssize_t i, j, k
         Py_ssize_t i1, i2, j1, j2, k1, k2
         Py_ssize_t n_coords, rings_idx, parts_idx
@@ -580,7 +594,28 @@ def _from_ragged_array_multipolygon(
         GEOSGeometry *part = NULL
         GEOSGeometry *geom = NULL
 
+    n_total_coords = coordinates.shape[0]
+    n_rings = offsets1.shape[0] - 1
+    n_parts = offsets2.shape[0] - 1
     n_geoms = offsets3.shape[0] - 1
+
+    if offsets3[n_geoms] > n_parts:
+        raise ValueError(
+            f"Number of geometry parts indicated by the geometry offsets ({offsets3[n_geoms]}) "
+            f"larger than indicated by the shape of the part offsets array ({n_parts})"
+        )
+
+    if offsets2[n_parts] > n_rings:
+        raise ValueError(
+            f"Number of rings indicated by the part offsets ({offsets2[n_parts]}) "
+            f"larger than indicated by the shape of the linear offsets array ({n_rings})"
+        )
+
+    if offsets1[n_rings] > n_total_coords:
+        raise ValueError(
+            f"Number of coordinates indicated by the linear offsets ({offsets1[n_rings]}) "
+            f"larger than the shape of the coordinates array ({n_total_coords})"
+        )
 
     # A temporary array for the geometries that will be given to CreatePolygon
     # and CreateCollection. For simplicity, we use n_geoms instead of calculating

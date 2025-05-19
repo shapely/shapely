@@ -586,3 +586,55 @@ def test_from_ragged_wrong_offsets():
             np.array([[0, 0], [0, 1]]),
             offsets=(np.array([0, 1]),),
         )
+
+
+def test_from_ragged_wrong_offsets_values():
+    # caused segfault in shapely 2.1.0
+
+    # outer offsets indicates more rings than the shape of the ring offsets
+    coords = np.random.randn(35, 2)
+    offsets1 = np.array([0, 10, 20], dtype=np.uint32)
+    offsets2 = np.array([0, 1, 5], dtype=np.uint32)
+    offsets3 = np.array([0, 2])
+
+    with pytest.raises(
+        ValueError, match="Number of rings indicated by the geometry offsets"
+    ):
+        shapely.from_ragged_array(
+            shapely.GeometryType.POLYGON, coords, (offsets1, offsets2)
+        )
+
+    with pytest.raises(
+        ValueError, match="Number of rings indicated by the part offsets"
+    ):
+        shapely.from_ragged_array(
+            shapely.GeometryType.MULTIPOLYGON, coords, (offsets1, offsets2, offsets3)
+        )
+
+    # inner offsets indicating more coordinats that the shape of the coordinates
+    coords = np.random.randn(35, 2)
+    offsets1 = np.array([0, 10, 40], dtype=np.uint32)
+    offsets2 = np.array([0, 1, 2], dtype=np.uint32)
+
+    with pytest.raises(
+        ValueError, match="Number of coordinates indicated by the linear offsets"
+    ):
+        shapely.from_ragged_array(
+            shapely.GeometryType.POLYGON, coords, (offsets1, offsets2)
+        )
+
+    with pytest.raises(
+        ValueError, match="Number of coordinates indicated by the linear offsets"
+    ):
+        shapely.from_ragged_array(
+            shapely.GeometryType.MULTIPOLYGON, coords, (offsets1, offsets2, offsets3)
+        )
+
+    # outer multipolygon offsets indicating too many parts
+    offsets3 = np.array([0, 3])
+    with pytest.raises(
+        ValueError, match="Number of geometry parts indicated by the geometry offsets"
+    ):
+        shapely.from_ragged_array(
+            shapely.GeometryType.MULTIPOLYGON, coords, (offsets1, offsets2, offsets3)
+        )

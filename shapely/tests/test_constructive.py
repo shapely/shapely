@@ -1184,7 +1184,7 @@ def test_maximum_inscribed_circle_all_types(geometry):
             GEOSException,
             match=(
                 "Argument must be Polygonal or LinearRing|"  # GEOS < 3.10.4
-                "Input geometry must be a Polygon or MultiPolygon|"
+                "must be a Polygon or MultiPolygon|"
                 "Operation not supported by GeometryCollection"
             ),
         ):
@@ -1193,7 +1193,7 @@ def test_maximum_inscribed_circle_all_types(geometry):
 
     if geometry.is_empty:
         with pytest.raises(
-            GEOSException, match="Empty input geometry is not supported"
+            GEOSException, match="Empty input(?: geometry)? is not supported"
         ):
             shapely.maximum_inscribed_circle(geometry)
         return
@@ -1227,13 +1227,15 @@ def test_maximum_inscribed_circle_empty():
         GEOSException,
         match=(
             "Argument must be Polygonal or LinearRing|"  # GEOS < 3.10.4
-            "Input geometry must be a Polygon or MultiPolygon"
+            "must be a Polygon or MultiPolygon"
         ),
     ):
         shapely.maximum_inscribed_circle(geometry)
 
     geometry = shapely.from_wkt("POLYGON EMPTY")
-    with pytest.raises(GEOSException, match="Empty input geometry is not supported"):
+    with pytest.raises(
+        GEOSException, match="Empty input(?: geometry)? is not supported"
+    ):
         shapely.maximum_inscribed_circle(geometry)
 
 
