@@ -1,6 +1,17 @@
 Changes
 =======
 
+2.1.1 (2025-05-19)
+------------------
+
+Bug fixes:
+
+- Fix performance degradation calling shapely functions (caused by deprecation
+  of certain positional arguments) (#2283).
+- Fix crash caused by `from_ragged_array()` (#2291).
+- Fix compilation error building with recent LLVM toolchain (#2293).
+
+
 2.1.0 (2025-04-03)
 ------------------
 
