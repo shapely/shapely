@@ -480,9 +480,9 @@ def _from_ragged_array_multi_linear(
         )
 
     # A temporary array for the geometries that will be given to CreatePolygon/Collection.
-    # For simplicity, we use n_geoms instead of calculating
-    # the max needed size (trading performance for a bit more memory usage)
-    temp_linear = np.empty(shape=(n_geoms, ), dtype=np.intp)
+    # For simplicity, we use n_rings instead of calculating the max needed size
+    # as max(diff(offsets2)) (trading performance for a bit more memory usage)
+    temp_linear = np.empty(shape=(n_rings, ), dtype=np.intp)
     cdef np.intp_t[:] temp_linear_view = temp_linear
     # A temporary array for resulting geometries
     temp_geoms = np.empty(shape=(n_geoms, ), dtype=np.intp)
@@ -618,11 +618,11 @@ def _from_ragged_array_multipolygon(
         )
 
     # A temporary array for the geometries that will be given to CreatePolygon
-    # and CreateCollection. For simplicity, we use n_geoms instead of calculating
-    # the max needed size (trading performance for a bit more memory usage)
-    temp_rings = np.empty(shape=(n_geoms, ), dtype=np.intp)
+    # and CreateCollection. For simplicity, we use n_rings/n_parts instead of
+    # calculating the max needed size (trading performance for a bit more memory usage)
+    temp_rings = np.empty(shape=(n_rings, ), dtype=np.intp)
     cdef np.intp_t[:] temp_rings_view = temp_rings
-    temp_parts = np.empty(shape=(n_geoms, ), dtype=np.intp)
+    temp_parts = np.empty(shape=(n_parts, ), dtype=np.intp)
     cdef np.intp_t[:] temp_parts_view = temp_parts
     # A temporary array for resulting geometries
     temp_geoms = np.empty(shape=(n_geoms, ), dtype=np.intp)
