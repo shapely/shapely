@@ -35,7 +35,7 @@ class MultiLineString(BaseMultipartGeometry):
 
     __slots__ = []
 
-    def __new__(self, lines=None):
+    def __new__(cls, lines=None):
         """Create a new MultiLineString geometry."""
         if not lines:
             # allow creation of empty multilinestrings, to support unpickling

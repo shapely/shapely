@@ -20,7 +20,7 @@ do_test_locale = False
 
 
 def setUpModule():
-    global do_test_locale
+    global do_test_locale  # noqa: PLW0603
     for name in test_locales:
         try:
             test_locale = test_locales[name]

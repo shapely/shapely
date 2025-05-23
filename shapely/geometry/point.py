@@ -51,7 +51,7 @@ class Point(BaseGeometry):
 
     __slots__ = []
 
-    def __new__(self, *args):
+    def __new__(cls, *args):
         """Create a new Point geometry."""
         if len(args) == 0:
             # empty geometry

@@ -31,7 +31,7 @@ class GeometryCollection(BaseMultipartGeometry):
 
     __slots__ = []
 
-    def __new__(self, geoms=None):
+    def __new__(cls, geoms=None):
         """Create a new GeometryCollection."""
         if isinstance(geoms, BaseGeometry):
             # TODO(shapely-2.0) do we actually want to split Multi-part geometries?

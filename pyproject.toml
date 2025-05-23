@@ -115,7 +115,7 @@ select = [
     # implicit string concatenation
     "ISC",
     # type-checking imports
-    "TCH",
+    "TC",
     # comprehensions
     "C4",
     # Ruff-specific rules
@@ -148,16 +148,8 @@ ignore = [
     "PLR0911",
     # Too many branches
     "PLR0912",
-    # Too many statements
-    "PLR0915",
     # Magic number
     "PLR2004",
-    # Redefined loop name
-    "PLW2901",
-    # Global statements are discouraged
-    "PLW0603",
-    # compare-to-empty-string
-    "PLC1901",
     # requiring | in isinstance
     "UP038",
 
