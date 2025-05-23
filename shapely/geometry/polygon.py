@@ -58,7 +58,7 @@ class LinearRing(LineString):
 
     __slots__ = []
 
-    def __new__(self, coordinates=None):
+    def __new__(cls, coordinates=None):
         """Create a new LinearRing geometry."""
         if coordinates is None:
             # empty geometry
@@ -224,7 +224,7 @@ class Polygon(BaseGeometry):
 
     __slots__ = []
 
-    def __new__(self, shell=None, holes=None):
+    def __new__(cls, shell=None, holes=None):
         """Create a new Polygon geometry."""
         if shell is None:
             # empty geometry
