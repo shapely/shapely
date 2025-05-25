@@ -99,7 +99,7 @@ class BaseGeometry(shapely.Geometry):
 
     __slots__ = []
 
-    def __new__(self):
+    def __new__(cls):
         """Directly calling the base class 'BaseGeometry()' is deprecated.
 
         This will raise an error in the future. To create an empty geometry,
@@ -1126,7 +1126,7 @@ class GeometrySequence:
 class EmptyGeometry(BaseGeometry):
     """An empty geometry."""
 
-    def __new__(self):
+    def __new__(cls):
         """Create an empty geometry."""
         warn(
             "The 'EmptyGeometry()' constructor to create an empty geometry is "
