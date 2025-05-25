@@ -17,11 +17,11 @@ jobs:
         geos: [3.9.6, 3.10.7, 3.11.5, 3.12.3, 3.13.1, main]
         include:
           # 2020
-          - python: "3.10"
+          - python: "3.11"
             geos: 3.9.6
             numpy: 1.21.6
           # 2021
-          - python: "3.10"
+          - python: "3.11"
             geos: 3.10.7
             numpy: 1.21.6
           # 2022
@@ -55,7 +55,7 @@ jobs:
           # enable two 32-bit windows builds:
           - os: windows-2019
             architecture: x86
-            python: "3.10"
+            python: "3.11"
             geos: 3.9.6
             numpy: 1.21.6
           - os: windows-2019
@@ -65,7 +65,7 @@ jobs:
             numpy: 1.24.4
           # pypy (use explicit ubuntu version to not overwrite existing ubuntu-latest + geos 3.11.0 build)
           - os: ubuntu-22.04
-            python: "pypy3.10"
+            python: "pypy3.11"
             geos: 3.12.3
             numpy: 1.24.4
 

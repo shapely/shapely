@@ -103,9 +103,9 @@ See the documentation for more examples and guidance: https://shapely.readthedoc
 Requirements
 ============
 
-Shapely 2.1 requires
+Shapely 2.2 requires
 
-* Python >=3.10
+* Python >=3.11
 * GEOS >=3.9
 * NumPy >=1.21
 
