@@ -45,7 +45,7 @@ class MultiPolygon(BaseMultipartGeometry):
 
     __slots__ = []
 
-    def __new__(self, polygons=None):
+    def __new__(cls, polygons=None):
         """Create a new MultiPolygon geometry."""
         if polygons is None:
             # allow creation of empty multipolygons, to support unpickling

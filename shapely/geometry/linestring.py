@@ -37,7 +37,7 @@ class LineString(BaseGeometry):
 
     __slots__ = []
 
-    def __new__(self, coordinates=None):
+    def __new__(cls, coordinates=None):
         """Create a new LineString geometry."""
         if coordinates is None:
             # empty geometry
