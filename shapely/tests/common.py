@@ -247,8 +247,6 @@ def ignore_warnings(geos_version, category):
 def equal_geometries_abnormally_yield_unequal(geom):
     """Older GEOS versions have various issues with "equals"."""
     if geom.is_empty and shapely.get_num_geometries(geom) > 0:
-        if shapely.geos_version < (3, 10, 0) and geom.geom_type == "GeometryCollection":
-            return True
         if shapely.geos_version < (3, 13, 0) and geom.geom_type.startswith("Multi"):
             return True
     return False

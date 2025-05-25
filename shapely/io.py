@@ -8,7 +8,6 @@ from shapely._enum import ParamEnum
 # include ragged array functions here for reference documentation purpose
 from shapely._ragged_array import from_ragged_array, to_ragged_array
 from shapely.decorators import requires_geos
-from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
     "from_geojson",
@@ -189,10 +188,6 @@ def to_wkb(
         raise TypeError("include_srid only accepts scalar values")
     if not np.isscalar(flavor):
         raise TypeError("flavor only accepts scalar values")
-    if lib.geos_version < (3, 10, 0) and flavor == "iso":
-        raise UnsupportedGEOSVersionError(
-            'The "iso" option requires at least GEOS 3.10.0'
-        )
     if flavor == "iso" and include_srid:
         raise ValueError('flavor="iso" and include_srid=True cannot be used together')
     flavor = WKBFlavorOptions.get_value(flavor)
@@ -208,7 +203,6 @@ def to_wkb(
     )
 
 
-@requires_geos("3.10.0")
 def to_geojson(geometry, indent=None, **kwargs):
     """Convert to the GeoJSON representation of a Geometry.
 

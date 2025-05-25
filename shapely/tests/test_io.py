@@ -19,7 +19,6 @@ from shapely import (
     Point,
     Polygon,
 )
-from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
     all_types,
@@ -791,7 +790,6 @@ def test_to_wkb_srid():
     assert np.frombuffer(result[5:9], "<u4").item() == 4326
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10.0")
 def test_to_wkb_flavor():
     # http://libgeos.org/specifications/wkb/#extended-wkb
     actual = shapely.to_wkb(point_z, byte_order=1)  # default "extended"
@@ -820,16 +818,9 @@ def test_to_wkb_m_flavor():
     assert actual.hex()[2:10] == struct.pack("<I", 1 | ISOWKBZM).hex()
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10.0")
 def test_to_wkb_flavor_srid():
     with pytest.raises(ValueError, match="cannot be used together"):
         shapely.to_wkb(point_z, include_srid=True, flavor="iso")
-
-
-@pytest.mark.skipif(shapely.geos_version >= (3, 10, 0), reason="GEOS < 3.10.0")
-def test_to_wkb_flavor_unsupported_geos():
-    with pytest.raises(UnsupportedGEOSVersionError):
-        shapely.to_wkb(point_z, flavor="iso")
 
 
 @pytest.mark.parametrize(
@@ -1197,7 +1188,6 @@ def test_pickle_with_srid(geom):
     assert shapely.get_srid(pickle.loads(pickled)) == 4326
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 @pytest.mark.parametrize(
     "geojson,expected",
     [
@@ -1243,7 +1233,7 @@ def test_from_geojson_exceptions():
         shapely.from_geojson('{"type": "LineString", "coordinates": null}')
 
     # Note: The two below tests are the reason that from_geojson is disabled for
-    # GEOS 3.10.0 See https://trac.osgeo.org/geos/ticket/1138
+    # GEOS 3.10.1 See https://trac.osgeo.org/geos/ticket/1138
     with pytest.raises(shapely.GEOSException, match="key 'type' not found"):
         shapely.from_geojson('{"geometry": null, "properties": []}')
 
@@ -1270,7 +1260,6 @@ def test_from_geojson_on_invalid_unsupported_option():
         shapely.from_geojson(GEOJSON_GEOMETRY, on_invalid="unsupported_option")
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize(
     "expected,geometry",
     [
@@ -1295,7 +1284,6 @@ def test_to_geojson(geometry, expected):
     assert np.all(actual == np.asarray(expected))
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize("indent", [None, 0, 4])
 def test_to_geojson_indent(indent):
     separators = (",", ":") if indent is None else (",", ": ")
@@ -1306,7 +1294,6 @@ def test_to_geojson_indent(indent):
     assert actual == expected
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 def test_to_geojson_exceptions():
     with pytest.raises(TypeError):
         shapely.to_geojson(1)

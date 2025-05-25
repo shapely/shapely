@@ -85,7 +85,6 @@ def test_type_deprecated():
     assert geom_type == geom.geom_type
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 def test_segmentize():
     line = LineString([(0, 0), (0, 10)])
     result = line.segmentize(max_segment_length=5)
@@ -112,7 +111,6 @@ def test_binary_op_grid_size(op, grid_size):
     assert result == expected
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 def test_dwithin():
     point = Point(1, 1)
     line = LineString([(0, 0), (0, 10)])
@@ -170,13 +168,7 @@ def test_array_argument_binary_predicates(op):
 @pytest.mark.parametrize(
     "op, kwargs",
     [
-        pytest.param(
-            "dwithin",
-            dict(distance=0.5),
-            marks=pytest.mark.skipif(
-                shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10"
-            ),
-        ),
+        ("dwithin", dict(distance=0.5)),
         ("equals_exact", dict(tolerance=0.01)),
         ("relate_pattern", dict(pattern="T*F**F***")),
     ],

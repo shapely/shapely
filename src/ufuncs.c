@@ -734,11 +734,8 @@ static void* GEOSMaximumInscribedCircleWithDefaultTolerance(void* context, void*
   return GEOSMaximumInscribedCircle_r(context, a, tolerance);
 }
 static void* maximum_inscribed_circle_data[1] = {GEOSMaximumInscribedCircleWithDefaultTolerance};
-
-#if GEOS_SINCE_3_10_0
 static void* segmentize_data[1] = {GEOSDensify_r};
 static void* constrained_delaunay_triangles_data[1] = {GEOSConstrainedDelaunayTriangulation_r};
-#endif
 
 #if GEOS_SINCE_3_11_0
 static void* remove_repeated_points_data[1] = {GEOSRemoveRepeatedPoints_r};
@@ -1621,8 +1618,6 @@ static void buffer_func(char** args, const npy_intp* dimensions, const npy_intp*
 }
 static PyUFuncGenericFunction buffer_funcs[1] = {&buffer_func};
 
-#if GEOS_SINCE_3_10_0
-
 static char make_valid_with_params_inner(void* ctx, GEOSMakeValidParams* params,
                                          void* ip1, GEOSGeometry** geom_arr,
                                          npy_intp i) {
@@ -1708,8 +1703,6 @@ static void make_valid_with_params_func(char** args, const npy_intp* dimensions,
   free(geom_arr);
 }
 static PyUFuncGenericFunction make_valid_with_params_funcs[1] = {&make_valid_with_params_func};
-
-#endif  // GEOS_SINCE_3_10_0
 
 static char offset_curve_dtypes[6] = {NPY_OBJECT, NPY_DOUBLE, NPY_INT,
                                       NPY_INT,    NPY_DOUBLE, NPY_OBJECT};
@@ -1999,8 +1992,6 @@ finish:
 }
 static PyUFuncGenericFunction equals_exact_funcs[1] = {&equals_exact_func};
 
-#if GEOS_SINCE_3_10_0
-
 static char dwithin_dtypes[4] = {NPY_OBJECT, NPY_OBJECT, NPY_DOUBLE, NPY_BOOL};
 static void dwithin_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   GEOSGeometry *in1 = NULL, *in2 = NULL;
@@ -2050,8 +2041,6 @@ finish:
   GEOS_FINISH_THREADS;
 }
 static PyUFuncGenericFunction dwithin_funcs[1] = {&dwithin_func};
-
-#endif  // GEOS_SINCE_3_10_0
 
 static char delaunay_triangles_dtypes[4] = {NPY_OBJECT, NPY_DOUBLE, NPY_BOOL, NPY_OBJECT};
 static void delaunay_triangles_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
@@ -2758,7 +2747,7 @@ static void set_precision_func(char** args, const npy_intp* dimensions, const np
 
   /* preserve topology flag
    * flags:
-   * - 0: default (from GEOS 3.10 this is named GEOS_PREC_VALID_OUTPUT)
+   * - 0: GEOS_PREC_VALID_OUTPUT (default)
    * - 1: GEOS_PREC_NO_TOPO
    * - 2: GEOS_PREC_KEEP_COLLAPSED
    */
@@ -2767,7 +2756,8 @@ static void set_precision_func(char** args, const npy_intp* dimensions, const np
     return;
   }
   flags = *(int*)args[2];
-  if (!((flags == 0) || (flags == GEOS_PREC_NO_TOPO) ||
+  if (!((flags == GEOS_PREC_VALID_OUTPUT) ||
+        (flags == GEOS_PREC_NO_TOPO) ||
         (flags == GEOS_PREC_KEEP_COLLAPSED))) {
     PyErr_Format(PyExc_ValueError, "set_precision function called with illegal mode");
     return;
@@ -3511,9 +3501,7 @@ static char to_wkb_dtypes[7] = {NPY_OBJECT, NPY_BOOL, NPY_INT,
                                 NPY_OBJECT};
 static void to_wkb_func(char** args, const npy_intp* dimensions, const npy_intp* steps, void* data) {
   char *ip1 = args[0], *ip2 = args[1], *ip3 = args[2], *ip4 = args[3], *ip5 = args[4], *op1 = args[6];
-#if GEOS_SINCE_3_10_0
   char *ip6 = args[5];
-#endif
   npy_intp is1 = steps[0], is2 = steps[1], is3 = steps[2], is4 = steps[3], is5 = steps[4],
            is6 = steps[5], os1 = steps[6];
   npy_intp n = dimensions[0];
@@ -3545,10 +3533,7 @@ static void to_wkb_func(char** args, const npy_intp* dimensions, const npy_intp*
     GEOSWKBWriter_setByteOrder_r(ctx, writer, *(int*)ip4);
   }
   GEOSWKBWriter_setIncludeSRID_r(ctx, writer, *(npy_bool*)ip5);
-
-#if GEOS_SINCE_3_10_0
   GEOSWKBWriter_setFlavor_r(ctx, writer, *(int*)ip6);
-#endif
 
   // Check if the above functions caused a GEOS exception
   if (last_error[0] != 0) {
@@ -3695,8 +3680,6 @@ finish:
 }
 static PyUFuncGenericFunction to_wkt_funcs[1] = {&to_wkt_func};
 
-#if GEOS_SINCE_3_10_0
-
 static char from_geojson_dtypes[3] = {NPY_OBJECT, NPY_UINT8, NPY_OBJECT};
 static void from_geojson_func(char** args, const npy_intp* dimensions, const npy_intp* steps,
                               void* data) {
@@ -3839,8 +3822,6 @@ finish:
   GEOS_FINISH;
 }
 static PyUFuncGenericFunction to_geojson_funcs[1] = {&to_geojson_func};
-
-#endif  // GEOS_SINCE_3_10_0
 
 #define DEFINE_Y_b(NAME)                                                       \
   ufunc = PyUFunc_FromFuncAndData(Y_b_funcs, NAME##_data, Y_b_dtypes, 1, 1, 1, \
@@ -4083,14 +4064,12 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_YYd_Y(symmetric_difference_prec);
   DEFINE_YYd_Y(union_prec);
 
-#if GEOS_SINCE_3_10_0
   DEFINE_CUSTOM(make_valid_with_params, 3);
   DEFINE_Yd_Y(segmentize);
   DEFINE_CUSTOM(dwithin, 3);
   DEFINE_CUSTOM(from_geojson, 2);
   DEFINE_CUSTOM(to_geojson, 2);
   DEFINE_Y_Y(constrained_delaunay_triangles);
-#endif
 
 #if GEOS_SINCE_3_11_0
   DEFINE_Yd_Y(remove_repeated_points);
