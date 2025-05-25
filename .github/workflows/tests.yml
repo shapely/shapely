@@ -19,11 +19,11 @@ jobs:
           # 2020
           - python: "3.11"
             geos: 3.9.6
-            numpy: 1.21.6
+            numpy: 1.23.5
           # 2021
           - python: "3.11"
             geos: 3.10.7
-            numpy: 1.21.6
+            numpy: 1.23.5
           # 2022
           - python: "3.11"
             geos: 3.11.5
@@ -57,7 +57,7 @@ jobs:
             architecture: x86
             python: "3.11"
             geos: 3.9.6
-            numpy: 1.21.6
+            numpy: 1.23.5
           - os: windows-2019
             architecture: x86
             python: "3.11"

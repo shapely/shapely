@@ -74,7 +74,7 @@ def get_ext_options():
             # silence warnings
             ("NPY_NO_DEPRECATED_API", "0"),
             # minimum numpy version
-            ("NPY_TARGET_VERSION", "NPY_1_20_API_VERSION"),
+            ("NPY_TARGET_VERSION", "NPY_1_23_API_VERSION"),
         ],
         "include_dirs": ["./src"],
         "library_dirs": [],
