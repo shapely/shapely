@@ -5,7 +5,7 @@ import sys
 
 import pytest
 
-from shapely import wkt
+from shapely import geos_version, wkt
 from shapely.geometry import Point
 from shapely.tests.legacy.conftest import shapely20_todo
 from shapely.wkb import dump, dumps, load, loads
@@ -53,6 +53,7 @@ def hostorder(fmt, value):
     )
 
 
+@pytest.mark.skipif(geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_dumps_srid(some_point):
     result = dumps(some_point)
     assert bin2hex(result) == hostorder(
@@ -80,6 +81,7 @@ def test_dumps_hex(some_point):
     assert result == hostorder("BIdd", "0101000000333333333333F33F3333333333330B40")
 
 
+@pytest.mark.skipif(geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_loads_srid():
     # load a geometry which includes an srid
     geom = loads(hex2bin("0101000020E6100000333333333333F33F3333333333330B40"))
@@ -169,6 +171,7 @@ def test_point_empty():
     assert all(math.isnan(val) for val in coords)
 
 
+@pytest.mark.skipif(geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_point_z_empty():
     g = wkt.loads("POINT Z EMPTY")
     assert g.wkb_hex == hostorder(

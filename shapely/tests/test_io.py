@@ -694,6 +694,7 @@ def test_to_wkb_hex():
     assert actual == le + point_type + 2 * coord
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_to_wkb_z():
     point = shapely.points(1, 2, 3)
 
@@ -707,6 +708,7 @@ def test_to_wkb_z():
         assert shapely.to_wkb(point, output_dimension=4, byte_order=1) == expected_wkb_z
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_to_wkb_m():
     # POINT M (1 2 4)
     point = shapely.from_wkb(struct.pack("<BI3d", 1, 1 | EWKBM, 1.0, 2.0, 4.0))
@@ -724,6 +726,7 @@ def test_to_wkb_m():
         assert shapely.to_wkb(point, output_dimension=4, byte_order=1) == expected_wkb_m
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_to_wkb_zm():
     # POINT ZM (1 2 3 4)
     point = shapely.from_wkb(struct.pack("<BI4d", 1, 1 | EWKBZM, 1.0, 2.0, 3.0, 4.0))
@@ -773,6 +776,7 @@ def test_to_wkb_byte_order():
     )
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_to_wkb_srid():
     # hex representation of POINT (0 0) with SRID=4
     ewkb = "01010000200400000000000000000000000000000000000000"
@@ -790,6 +794,7 @@ def test_to_wkb_srid():
     assert np.frombuffer(result[5:9], "<u4").item() == 4326
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_to_wkb_flavor():
     # http://libgeos.org/specifications/wkb/#extended-wkb
     actual = shapely.to_wkb(point_z, byte_order=1)  # default "extended"
@@ -906,6 +911,7 @@ def test_to_wkb_point_empty_2d(geom, expected):
     assert np.isnan(struct.unpack("<2d", actual[header_length:])).all()
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 @pytest.mark.parametrize(
     "geom,expected",
     [
@@ -1129,6 +1135,7 @@ def test_from_wkb_point_empty_zm(wkb, expected_type):
     assert shapely.has_m(geom)
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 def test_to_wkb_point_empty_srid():
     expected = shapely.set_srid(empty_point, 4236)
     wkb = shapely.to_wkb(expected, include_srid=True)
@@ -1181,6 +1188,7 @@ def test_pickle_zm(geom):
         assert actual.has_m
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 @pytest.mark.parametrize("geom", all_types + (point_z, empty_point))
 def test_pickle_with_srid(geom):
     geom = shapely.set_srid(geom, 4326)
@@ -1188,6 +1196,7 @@ def test_pickle_with_srid(geom):
     assert shapely.get_srid(pickle.loads(pickled)) == 4326
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 @pytest.mark.parametrize(
     "geojson,expected",
     [

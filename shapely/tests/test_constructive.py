@@ -622,7 +622,7 @@ def test_clip_by_rect_array(geometry):
     if (
         geometry.is_empty
         and shapely.get_type_id(geometry) == shapely.GeometryType.POINT
-        and (geos_version < (3, 10, 6) or ((3, 11, 0) < geos_version < (3, 11, 3)))
+        and (geos_version < (3, 10, 6) or ((3, 11, 0) <= geos_version < (3, 11, 3)))
     ):
         # GEOS GH-913
         with pytest.raises(GEOSException):
@@ -1319,17 +1319,17 @@ def test_offset_curve_deprecate_positional():
     with pytest.deprecated_call(
         match="positional argument `quad_segs` for `offset_curve` is deprecated"
     ):
-        shapely.offset_curve(line_string, 1.0, 8)
+        shapely.offset_curve(line_string, 2.0, 8)
     with pytest.deprecated_call(
         match="positional arguments `quad_segs` and `join_style` "
         "for `offset_curve` are deprecated"
     ):
-        shapely.offset_curve(line_string, 1.0, 8, "round")
+        shapely.offset_curve(line_string, 2.0, 8, "round")
     with pytest.deprecated_call(
         match="positional arguments `quad_segs`, `join_style`, and `mitre_limit` "
         "for `offset_curve` are deprecated"
     ):
-        shapely.offset_curve(line_string, 1.0, 8, "round", 5.0)
+        shapely.offset_curve(line_string, 2.0, 8, "round", 5.0)
 
 
 def test_simplify_deprecate_positional():

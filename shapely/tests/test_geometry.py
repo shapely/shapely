@@ -508,6 +508,7 @@ def test_set_precision_grid_size_nan():
     assert shapely.set_precision(Point(0.9, 0.9), np.nan) is None
 
 
+@pytest.mark.skipif(shapely.geos_version < (3, 10, 1), reason="GEOS < 3.10.1")
 @pytest.mark.parametrize(
     "geometry,mode,expected",
     [
