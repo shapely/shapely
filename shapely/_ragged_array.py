@@ -336,7 +336,7 @@ def to_ragged_array(geometries, include_z=None, include_m=None):
 def _point_from_flatcoords(coords):
     result = creation.points(coords)
 
-    # Older versions of GEOS (<= 3.9) don't automatically convert NaNs
+    # Some versions of GEOS (<= 3.9, >= 3.13) don't automatically convert NaNs
     # to empty points -> do manually
     empties = np.isnan(coords).all(axis=1)
     if empties.any():
