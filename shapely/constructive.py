@@ -738,24 +738,19 @@ def make_valid(geometry, *, method="linework", keep_collapsed=True, **kwargs):
         raise TypeError("keep_collapsed only accepts scalar values")
 
     if method == "linework":
-        if keep_collapsed is False:
+        if not keep_collapsed:
             raise ValueError(
                 "The 'linework' method does not support 'keep_collapsed=False'"
             )
-
-        # The make_valid code can be removed once support for GEOS < 3.10 is dropped.
-        # In GEOS >= 3.10, make_valid just calls make_valid_with_params with
-        # method="linework" and keep_collapsed=True, so there is no advantage to keep
-        # both code paths in shapely on long term.
-        return lib.make_valid(geometry, **kwargs)
-
+        method_int = 0
     elif method == "structure":
-        return lib.make_valid_with_params(
-            geometry, np.intc(1), np.bool_(keep_collapsed), **kwargs
-        )
-
+        method_int = 1
     else:
         raise ValueError(f"Unknown method: {method}")
+
+    return lib.make_valid_with_params(
+        geometry, np.intc(method_int), np.bool_(keep_collapsed), **kwargs
+    )
 
 
 @multithreading_enabled

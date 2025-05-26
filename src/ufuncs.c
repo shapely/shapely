@@ -541,7 +541,6 @@ static void* GEOSNormalize_r_with_clone(void* context, void* geom) {
 static void* normalize_data[1] = {GEOSNormalize_r_with_clone};
 static void* force_2d_data[1] = {PyGEOSForce2D};
 static void* build_area_data[1] = {GEOSBuildArea_r};
-static void* make_valid_data[1] = {GEOSMakeValid_r};
 static void* coverage_union_data[1] = {GEOSCoverageUnion_r};
 static void* GEOSMinimumBoundingCircleWithReturn(void* context, void* geom) {
   GEOSGeometry* center = NULL;
@@ -3973,7 +3972,6 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Y_Y(force_2d);
   DEFINE_Y_Y(oriented_envelope);
   DEFINE_Y_Y(reverse);
-  DEFINE_Y_Y(make_valid);
   DEFINE_Y_Y(build_area);
   DEFINE_Y_Y(coverage_union);
   DEFINE_Y_Y(minimum_bounding_circle);
