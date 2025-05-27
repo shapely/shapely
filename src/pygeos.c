@@ -65,12 +65,6 @@ char equals_identical_simple(GEOSContextHandle_t ctx, const GEOSGeometry* geom1,
     return 0;
   }
 
-#if !GEOS_SINCE_3_10_0
-  // Correction to hasZ for GEOS<3.10 to avoid false detection of hasM
-  hasZ1 = dims1 == 3;
-  hasZ2 = dims2 == 3;
-#endif // !GEOS_SINCE_3_10_0
-
   int hasM = 0;
   if ((dims1 == 3) & (hasZ1 == 0)) {
     hasM = 1;

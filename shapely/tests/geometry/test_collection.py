@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 
-import shapely
 from shapely import GeometryCollection, LineString, Point, wkt
 from shapely.geometry import shape
 
@@ -38,11 +37,7 @@ def test_empty_subgeoms():
     assert geom.geom_type == "GeometryCollection"
     assert geom.is_empty
     assert len(geom.geoms) == 2
-    parts = list(geom.geoms)
-    if shapely.geos_version < (3, 9, 0):
-        # the accessed empty 2D point has a 3D coordseq on GEOS 3.8
-        parts[0] = shapely.force_2d(parts[0])
-    assert parts == [Point(), LineString()]
+    assert list(geom.geoms) == [Point(), LineString()]
 
 
 def test_child_with_deleted_parent():

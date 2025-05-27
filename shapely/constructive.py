@@ -541,7 +541,6 @@ def delaunay_triangles(geometry, tolerance=0.0, only_edges=False, **kwargs):
     return lib.delaunay_triangles(geometry, tolerance, only_edges, **kwargs)
 
 
-@requires_geos("3.10.0")
 @multithreading_enabled
 def constrained_delaunay_triangles(geometry, **kwargs):
     """Compute the constrained Delaunay triangulation of polygons.
@@ -706,8 +705,7 @@ def make_valid(geometry, *, method="linework", keep_collapsed=True, **kwargs):
     geometry : Geometry or array_like
         Geometry or geometries to repair.
     method : {'linework', 'structure'}, default 'linework'
-        Algorithm to use when repairing geometry. 'structure'
-        requires GEOS >= 3.10.
+        Algorithm to use when repairing geometry.
 
         .. versionadded:: 2.1.0
     keep_collapsed : bool, default True
@@ -740,29 +738,19 @@ def make_valid(geometry, *, method="linework", keep_collapsed=True, **kwargs):
         raise TypeError("keep_collapsed only accepts scalar values")
 
     if method == "linework":
-        if keep_collapsed is False:
+        if not keep_collapsed:
             raise ValueError(
                 "The 'linework' method does not support 'keep_collapsed=False'"
             )
-
-        # The make_valid code can be removed once support for GEOS < 3.10 is dropped.
-        # In GEOS >= 3.10, make_valid just calls make_valid_with_params with
-        # method="linework" and keep_collapsed=True, so there is no advantage to keep
-        # both code paths in shapely on long term.
-        return lib.make_valid(geometry, **kwargs)
-
+        method_int = 0
     elif method == "structure":
-        if lib.geos_version < (3, 10, 0):
-            raise ValueError(
-                "The 'structure' method is only available in GEOS >= 3.10.0"
-            )
-
-        return lib.make_valid_with_params(
-            geometry, np.intc(1), np.bool_(keep_collapsed), **kwargs
-        )
-
+        method_int = 1
     else:
         raise ValueError(f"Unknown method: {method}")
+
+    return lib.make_valid_with_params(
+        geometry, np.intc(method_int), np.bool_(keep_collapsed), **kwargs
+    )
 
 
 @multithreading_enabled
@@ -1077,7 +1065,6 @@ def reverse(geometry, **kwargs):
     return lib.reverse(geometry, **kwargs)
 
 
-@requires_geos("3.10.0")
 @multithreading_enabled
 def segmentize(geometry, max_segment_length, **kwargs):
     """Add vertices to line segments based on maximum segment length.
