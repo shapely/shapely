@@ -1,9 +1,8 @@
-import warnings
 from enum import IntEnum
 
 import numpy as np
 
-from shapely import _geometry_helpers, geos_version, lib
+from shapely import _geometry_helpers, lib
 from shapely._enum import ParamEnum
 from shapely.decorators import (
     deprecate_positional,
@@ -911,11 +910,6 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
            geometry may be invalid due to collapse or self-intersection.
            Duplicate vertices are not removed. In GEOS this option is called
            NO_TOPO.
-
-           .. note::
-
-             'pointwise' mode requires at least GEOS 3.10. It is accepted in
-             earlier versions, but the results may be unexpected.
         3. `'keep_collapsed'`: Like the default mode, except that collapsed
            linear geometry elements are preserved. Collapsed polygonal input
            elements are removed. Duplicate vertices are removed.
@@ -950,12 +944,6 @@ def set_precision(geometry, grid_size, mode="valid_output", **kwargs):
         mode = SetPrecisionMode.get_value(mode)
     elif not np.isscalar(mode):
         raise TypeError("mode only accepts scalar values")
-    if mode == SetPrecisionMode.pointwise and geos_version < (3, 10, 0):
-        warnings.warn(
-            "'pointwise' is only supported for GEOS 3.10",
-            UserWarning,
-            stacklevel=2,
-        )
     return lib.set_precision(geometry, grid_size, np.intc(mode), **kwargs)
 
 
@@ -996,8 +984,8 @@ def force_3d(geometry, z=0.0, **kwargs):
     2D geometries will get the provided Z coordinate; Z coordinates of 3D geometries
     are unchanged (unless they are nan).
 
-    Note that for empty geometries, 3D is only supported since GEOS 3.9 and then
-    still only for simple geometries (non-collections).
+    Note that for empty geometries, 3D is only supported for simple geometries
+    (non-collections).
 
     Parameters
     ----------

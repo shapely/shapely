@@ -31,10 +31,6 @@ from shapely.tests.common import (
     point_z,
 )
 
-geos39 = geos_version[0:2] == (3, 9)
-geos310 = geos_version[0:2] == (3, 10)
-geos311 = geos_version[0:2] == (3, 11)
-
 CONSTRUCTIVE_NO_ARGS = (
     shapely.boundary,
     shapely.centroid,
@@ -51,12 +47,7 @@ CONSTRUCTIVE_NO_ARGS = (
     shapely.node,
     shapely.normalize,
     shapely.point_on_surface,
-    pytest.param(
-        shapely.constrained_delaunay_triangles,
-        marks=pytest.mark.skipif(
-            shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10"
-        ),
-    ),
+    shapely.constrained_delaunay_triangles,
 )
 
 CONSTRUCTIVE_FLOAT_ARG = (
@@ -75,12 +66,9 @@ def test_no_args_array(geometry, func):
         geometry.is_empty
         and shapely.get_num_geometries(geometry) > 0
         and func is shapely.node
-        and (
-            (geos39 and geos_version < (3, 9, 3))
-            or (geos310 and geos_version < (3, 10, 3))
-        )
+        and geos_version < (3, 10, 3)
     ):  # GEOS GH-601
-        pytest.xfail("GEOS < 3.9.3 or GEOS < 3.10.3 crashes with empty geometries")
+        pytest.xfail("GEOS < 3.10.3 crashes with empty geometries")
     actual = func([geometry, geometry])
     assert actual.shape == (2,)
     assert actual[0] is None or isinstance(actual[0], Geometry)
@@ -254,7 +242,6 @@ def test_make_valid_1d(geom, expected):
     assert np.all(shapely.normalize(actual) == shapely.normalize(expected))
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize(
     "geom,expected",
     [
@@ -285,7 +272,6 @@ def test_make_valid_structure(geom, expected):
     assert shapely.normalize(actual) == expected
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize(
     "geom,expected",
     [
@@ -316,15 +302,6 @@ def test_make_valid_structure_keep_collapsed_false(geom, expected):
     assert shapely.normalize(actual) == expected
 
 
-@pytest.mark.skipif(shapely.geos_version >= (3, 10, 0), reason="GEOS >= 3.10")
-def test_make_valid_structure_unsupported_geos():
-    with pytest.raises(
-        ValueError, match="The 'structure' method is only available in GEOS >= 3.10.0"
-    ):
-        _ = shapely.make_valid(Point(), method="structure")
-
-
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize(
     "method, keep_collapsed, error_type, error",
     [
@@ -645,11 +622,7 @@ def test_clip_by_rect_array(geometry):
     if (
         geometry.is_empty
         and shapely.get_type_id(geometry) == shapely.GeometryType.POINT
-        and (
-            (geos39 and geos_version < (3, 9, 5))
-            or (geos310 and geos_version < (3, 10, 6))
-            or (geos311 and geos_version < (3, 11, 3))
-        )
+        and (geos_version < (3, 10, 6) or ((3, 11, 0) <= geos_version < (3, 11, 3)))
     ):
         # GEOS GH-913
         with pytest.raises(GEOSException):
@@ -850,7 +823,6 @@ def test_polygonize_full_missing():
     assert all(geom == GeometryCollection() for geom in result)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize("geometry", all_types)
 @pytest.mark.parametrize("max_segment_length", [-1, 0])
 def test_segmentize_invalid_max_segment_length(geometry, max_segment_length):
@@ -858,14 +830,12 @@ def test_segmentize_invalid_max_segment_length(geometry, max_segment_length):
         shapely.segmentize(geometry, max_segment_length=max_segment_length)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize("geometry", all_types)
 def test_segmentize_max_segment_length_nan(geometry):
     actual = shapely.segmentize(geometry, max_segment_length=np.nan)
     assert actual is None
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize(
     "geometry", [empty, empty_point, empty_line_string, empty_polygon]
 )
@@ -874,19 +844,16 @@ def test_segmentize_empty(geometry):
     assert_geometries_equal(actual, geometry)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize("geometry", [point, point_z, multi_point])
 def test_segmentize_no_change(geometry):
     actual = shapely.segmentize(geometry, max_segment_length=5)
     assert_geometries_equal(actual, geometry)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 def test_segmentize_none():
     assert shapely.segmentize(None, max_segment_length=5) is None
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize(
     "geometry,tolerance, expected",
     [
@@ -1115,7 +1082,6 @@ def test_concave_hull_kwargs():
     assert shapely.get_num_coordinates(result4) < shapely.get_num_coordinates(result3)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 class TestConstrainedDelaunayTriangulation:
     """
     Only testing the number of triangles and their type here.
@@ -1353,17 +1319,17 @@ def test_offset_curve_deprecate_positional():
     with pytest.deprecated_call(
         match="positional argument `quad_segs` for `offset_curve` is deprecated"
     ):
-        shapely.offset_curve(line_string, 1.0, 8)
+        shapely.offset_curve(line_string, 2.0, 8)
     with pytest.deprecated_call(
         match="positional arguments `quad_segs` and `join_style` "
         "for `offset_curve` are deprecated"
     ):
-        shapely.offset_curve(line_string, 1.0, 8, "round")
+        shapely.offset_curve(line_string, 2.0, 8, "round")
     with pytest.deprecated_call(
         match="positional arguments `quad_segs`, `join_style`, and `mitre_limit` "
         "for `offset_curve` are deprecated"
     ):
-        shapely.offset_curve(line_string, 1.0, 8, "round", 5.0)
+        shapely.offset_curve(line_string, 2.0, 8, "round", 5.0)
 
 
 def test_simplify_deprecate_positional():

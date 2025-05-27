@@ -103,10 +103,10 @@ See the documentation for more examples and guidance: https://shapely.readthedoc
 Requirements
 ============
 
-Shapely 2.1 requires
+Shapely 2.2 requires
 
 * Python >=3.10
-* GEOS >=3.9
+* GEOS >=3.10
 * NumPy >=1.21
 
 Installing Shapely

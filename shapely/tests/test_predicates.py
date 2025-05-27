@@ -52,9 +52,6 @@ BINARY_PREDICATES = (
     shapely.covered_by,
     pytest.param(
         partial(shapely.dwithin, distance=1.0),
-        marks=pytest.mark.skipif(
-            shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10"
-        ),
     ),
     shapely.equals,
     shapely.equals_exact,
@@ -235,7 +232,6 @@ def test_equals_identical():
     assert not shapely.equals_exact(l1, l2)
 
 
-@pytest.mark.skipif(shapely.geos_version < (3, 10, 0), reason="GEOS < 3.10")
 def test_dwithin():
     p1 = shapely.points(50, 4)
     p2 = shapely.points(50.1, 4.1)
