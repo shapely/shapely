@@ -1207,7 +1207,6 @@ def relate_pattern(a, b, pattern, **kwargs):
 
 
 @multithreading_enabled
-@requires_geos("3.10.0")
 def dwithin(a, b, distance, **kwargs):
     """Return True if the geometries are within a given distance.
 

@@ -7,7 +7,6 @@ import numpy as np
 
 from shapely import lib
 from shapely._enum import ParamEnum
-from shapely.decorators import UnsupportedGEOSVersionError
 from shapely.geometry.base import BaseGeometry
 from shapely.predicates import is_empty, is_missing
 
@@ -127,8 +126,6 @@ class STRtree:
         the tree geometry:
         predicate(geometry, tree_geometry)
 
-        The 'dwithin' predicate requires GEOS >= 3.10.
-
         Bounding boxes are limited to two dimensions and are axis-aligned
         (equivalent to the ``bounds`` property of a geometry); any Z values
         present in input geometries are ignored when querying the tree.
@@ -247,12 +244,7 @@ tree.geometries.take(arr_indices[1])]).T.tolist()
             indices = self._tree.query(geometry, 0)
             return indices[1] if is_scalar else indices
 
-        # Requires GEOS >= 3.10
         elif predicate == "dwithin":
-            if lib.geos_version < (3, 10, 0):
-                raise UnsupportedGEOSVersionError(
-                    "dwithin predicate requires GEOS >= 3.10"
-                )
             if distance is None:
                 raise ValueError(
                     "distance parameter must be provided for dwithin predicate"
