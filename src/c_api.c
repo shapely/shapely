@@ -24,8 +24,8 @@ extern char PyGEOS_GetGEOSGeometry(PyObject* obj, GEOSGeometry** out) {
 }
 
 extern int PyGEOS_CoordSeq_FromBuffer(GEOSContextHandle_t ctx, const double* buf,
-                                      unsigned int size, unsigned int dims, char is_ring,
+                                      unsigned int size, char has_z, char has_m, char is_ring,
                                       int handle_nan, GEOSCoordSequence** coord_seq) {
-  return coordseq_from_buffer(ctx, buf, size, dims, is_ring, handle_nan, dims * 8, 8,
-                              coord_seq);
+  return coordseq_from_buffer(ctx, buf, size, has_z, has_m, is_ring, handle_nan,
+                              (2 + has_z + has_m) * 8, 8, coord_seq);
 }
