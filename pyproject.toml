@@ -31,15 +31,14 @@ classifiers = [
     "Operating System :: MacOS",
     "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
-    "numpy>=1.21",
+    "numpy>=1.23",
 ]
 
 [project.optional-dependencies]
@@ -138,8 +137,6 @@ ignore = [
     "B007",
     # get-attr-with-constant
     "B009",
-    # Only works with python >=3.10
-    "B905",
     # dict literals
     "C408",
     # Too many arguments to function call

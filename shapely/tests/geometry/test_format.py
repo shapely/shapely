@@ -54,7 +54,7 @@ def test_format_point(format_spec, coords, expt_wkt, same_python_float):
     # check Python's format consistency
     text_coords = expt_wkt[expt_wkt.index("(") + 1 : expt_wkt.index(")")]
     is_same = []
-    for coord, expt_coord in zip(coords, text_coords.split()):
+    for coord, expt_coord in zip(coords, text_coords.split(), strict=True):
         py_fmt_float = format(float(coord), format_spec)
         if same_python_float:
             assert py_fmt_float == expt_coord, format_spec
