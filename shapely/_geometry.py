@@ -10,7 +10,6 @@ from shapely.decorators import (
     requires_geos,
 )
 
-
 __all__ = [
     "GeometryType",
     "force_2d",

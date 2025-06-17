@@ -1,6 +1,7 @@
 """Support for various GEOS geometry operations."""
 
 import numpy
+
 import shapely
 from shapely.algorithms.polylabel import polylabel  # noqa
 from shapely.coordinates import get_coordinates
@@ -725,8 +726,10 @@ def orient(geom, sign=1.0):
 
 
 def get_segments(geometry):
-    """Return the individual constituent segments of pairwise
-    coordinates comprising a (non-multi) linear feature.
+    """Return the constituent segments a line.
+
+    Here 'segments' is defined as the individual pairwise coordinates
+    comprising a (non-multi) linear feature.
 
     Parameters
     ----------
@@ -756,8 +759,8 @@ def get_segments(geometry):
     >>> get_segments(LinearRing(([0, 0], [1, 1], [2, 2], [0,0])))
     array([<LINESTRING (0 0, 1 1)>, <LINESTRING (1 1, 2 2)>,
        <LINESTRING (2 2, 0 0)>], dtype=object)
-    """
 
+    """
     if geometry.geom_type not in ["LineString", "LinearRing"]:
         raise GeometryTypeError(
             f"Getting segments from a {geometry.geom_type} is not supported"

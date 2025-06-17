@@ -1,6 +1,5 @@
-import pytest
-
 import numpy
+import pytest
 
 from shapely.errors import GeometryTypeError
 from shapely.geometry import LinearRing, LineString, Polygon
@@ -14,7 +13,7 @@ class TestGetSegments:
         self.p3 = (0, 1)
         self.line = LineString([self.p1, self.p2, self.p3])
         self.ring = LinearRing([self.p1, self.p2, self.p3, self.p1])
-        self.polygon = Polygon((self.ring))
+        self.polygon = Polygon(self.ring)
 
     def test_line(self):
         known = numpy.array(
