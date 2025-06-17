@@ -704,40 +704,6 @@ MultiPoint([(4, 5), (6, 7)])], return_index=True)
     return _geometry_helpers.get_parts(geometry)[0]
 
 
-def get_segments(geometry):
-    """Get the individual segments constituting a linestring.
-
-    Note: This functions handles multilinestring objects unreliably.
-    See usage notes in *Examples*.
-
-    Parameters
-    ----------
-    line : Geometry
-        A single linestring geometry.
-
-    Returns
-    -------
-    ndarray of constituent pairwise segments
-
-    See Also
-    --------
-    get_parts
-
-    Examples
-    --------
-    >>> from shapely import get_segments, LineString, MultiLineString
-    >>> get_segments(LineString(([0, 0], [1, 1], [2, 2])))
-    
-
-
-    """
-
-    xys = get_coordinates(geometry)
-    return linestrings(
-        np.column_stack((xys[:-1], xys[1:])).reshape(xys.shape[0] - 1, 2, 2)
-    )
-
-
 # Note: future plan is to change this signature over a few releases:
 # shapely 2.0:
 #   get_rings(geometry, return_index=False)
