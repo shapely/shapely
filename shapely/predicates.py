@@ -8,8 +8,21 @@ from shapely import lib
 from shapely.decorators import multithreading_enabled, requires_geos
 
 __all__ = [
-    "has_z",
+    "contains",
+    "contains_properly",
+    "contains_xy",
+    "covered_by",
+    "covers",
+    "crosses",
+    "disjoint",
+    "dwithin",
+    "equals",
+    "equals_exact",
+    "equals_identical",
     "has_m",
+    "has_z",
+    "intersects",
+    "intersects_xy",
     "is_ccw",
     "is_closed",
     "is_empty",
@@ -21,24 +34,11 @@ __all__ = [
     "is_valid",
     "is_valid_input",
     "is_valid_reason",
-    "crosses",
-    "contains",
-    "contains_xy",
-    "contains_properly",
-    "covered_by",
-    "covers",
-    "disjoint",
-    "dwithin",
-    "equals",
-    "intersects",
-    "intersects_xy",
     "overlaps",
-    "touches",
-    "within",
-    "equals_exact",
-    "equals_identical",
     "relate",
     "relate_pattern",
+    "touches",
+    "within",
 ]
 
 
@@ -62,12 +62,13 @@ def has_z(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Point
-    >>> has_z(Point(0, 0))
+    >>> shapely.has_z(Point(0, 0))
     False
-    >>> has_z(Point(0, 0, 0))
+    >>> shapely.has_z(Point(0, 0, 0))
     True
-    >>> has_z(Point())
+    >>> shapely.has_z(Point())
     False
 
     """
@@ -94,14 +95,14 @@ def has_m(geometry, **kwargs):
 
     Examples
     --------
-    >>> from shapely import from_wkt
-    >>> has_m(from_wkt("POINT (0 0)"))
+    >>> import shapely
+    >>> shapely.has_m(shapely.from_wkt("POINT (0 0)"))
     False
-    >>> has_m(from_wkt("POINT Z (0 0 0)"))
+    >>> shapely.has_m(shapely.from_wkt("POINT Z (0 0 0)"))
     False
-    >>> has_m(from_wkt("POINT M (0 0 0)"))
+    >>> shapely.has_m(shapely.from_wkt("POINT M (0 0 0)"))
     True
-    >>> has_m(from_wkt("POINT ZM (0 0 0 0)"))
+    >>> shapely.has_m(shapely.from_wkt("POINT ZM (0 0 0 0)"))
     True
 
     """
@@ -132,14 +133,15 @@ def is_ccw(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LinearRing, LineString, Point
-    >>> is_ccw(LinearRing([(0, 0), (0, 1), (1, 1), (0, 0)]))
+    >>> shapely.is_ccw(LinearRing([(0, 0), (0, 1), (1, 1), (0, 0)]))
     False
-    >>> is_ccw(LinearRing([(0, 0), (1, 1), (0, 1), (0, 0)]))
+    >>> shapely.is_ccw(LinearRing([(0, 0), (1, 1), (0, 1), (0, 0)]))
     True
-    >>> is_ccw(LineString([(0, 0), (1, 1), (0, 1)]))
+    >>> shapely.is_ccw(LineString([(0, 0), (1, 1), (0, 1)]))
     False
-    >>> is_ccw(Point(0, 0))
+    >>> shapely.is_ccw(Point(0, 0))
     False
 
     """
@@ -163,12 +165,13 @@ def is_closed(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point
-    >>> is_closed(LineString([(0, 0), (1, 1)]))
+    >>> shapely.is_closed(LineString([(0, 0), (1, 1)]))
     False
-    >>> is_closed(LineString([(0, 0), (0, 1), (1, 1), (0, 0)]))
+    >>> shapely.is_closed(LineString([(0, 0), (0, 1), (1, 1), (0, 0)]))
     True
-    >>> is_closed(Point(0, 0))
+    >>> shapely.is_closed(Point(0, 0))
     False
 
     """
@@ -192,12 +195,13 @@ def is_empty(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Point
-    >>> is_empty(Point())
+    >>> shapely.is_empty(Point())
     True
-    >>> is_empty(Point(0, 0))
+    >>> shapely.is_empty(Point(0, 0))
     False
-    >>> is_empty(None)
+    >>> shapely.is_empty(None)
     False
 
     """
@@ -222,14 +226,15 @@ def is_geometry(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import GeometryCollection, Point
-    >>> is_geometry(Point(0, 0))
+    >>> shapely.is_geometry(Point(0, 0))
     True
-    >>> is_geometry(GeometryCollection())
+    >>> shapely.is_geometry(GeometryCollection())
     True
-    >>> is_geometry(None)
+    >>> shapely.is_geometry(None)
     False
-    >>> is_geometry("text")
+    >>> shapely.is_geometry("text")
     False
 
     """
@@ -255,14 +260,15 @@ def is_missing(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import GeometryCollection, Point
-    >>> is_missing(Point(0, 0))
+    >>> shapely.is_missing(Point(0, 0))
     False
-    >>> is_missing(GeometryCollection())
+    >>> shapely.is_missing(GeometryCollection())
     False
-    >>> is_missing(None)
+    >>> shapely.is_missing(None)
     True
-    >>> is_missing("text")
+    >>> shapely.is_missing("text")
     False
 
     """
@@ -293,14 +299,15 @@ def is_prepared(geometry, **kwargs):
 
     Examples
     --------
-    >>> from shapely import Point, prepare
+    >>> import shapely
+    >>> from shapely import Point
     >>> geometry = Point(0, 0)
-    >>> is_prepared(Point(0, 0))
+    >>> shapely.is_prepared(Point(0, 0))
     False
-    >>> prepare(geometry)
-    >>> is_prepared(geometry)
+    >>> shapely.prepare(geometry)
+    >>> shapely.is_prepared(geometry)
     True
-    >>> is_prepared(None)
+    >>> shapely.is_prepared(None)
     False
 
     """
@@ -325,16 +332,17 @@ def is_valid_input(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import GeometryCollection, Point
-    >>> is_valid_input(Point(0, 0))
+    >>> shapely.is_valid_input(Point(0, 0))
     True
-    >>> is_valid_input(GeometryCollection())
+    >>> shapely.is_valid_input(GeometryCollection())
     True
-    >>> is_valid_input(None)
+    >>> shapely.is_valid_input(None)
     True
-    >>> is_valid_input(1.0)
+    >>> shapely.is_valid_input(1.0)
     False
-    >>> is_valid_input("text")
+    >>> shapely.is_valid_input("text")
     False
 
     """
@@ -361,17 +369,18 @@ def is_ring(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point
-    >>> is_ring(Point(0, 0))
+    >>> shapely.is_ring(Point(0, 0))
     False
     >>> geom = LineString([(0, 0), (1, 1)])
-    >>> is_closed(geom), is_simple(geom), is_ring(geom)
+    >>> shapely.is_closed(geom), shapely.is_simple(geom), shapely.is_ring(geom)
     (False, True, False)
     >>> geom = LineString([(0, 0), (0, 1), (1, 1), (0, 0)])
-    >>> is_closed(geom), is_simple(geom), is_ring(geom)
+    >>> shapely.is_closed(geom), shapely.is_simple(geom), shapely.is_ring(geom)
     (True, True, True)
     >>> geom = LineString([(0, 0), (1, 1), (0, 1), (1, 0), (0, 0)])
-    >>> is_closed(geom), is_simple(geom), is_ring(geom)
+    >>> shapely.is_closed(geom), shapely.is_simple(geom), shapely.is_ring(geom)
     (True, False, False)
 
     """
@@ -404,12 +413,13 @@ def is_simple(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Polygon
-    >>> is_simple(Polygon([(1, 1), (2, 1), (2, 2), (1, 1)]))
+    >>> shapely.is_simple(Polygon([(1, 1), (2, 1), (2, 2), (1, 1)]))
     True
-    >>> is_simple(LineString([(0, 0), (1, 1), (0, 1), (1, 0), (0, 0)]))
+    >>> shapely.is_simple(LineString([(0, 0), (1, 1), (0, 1), (1, 0), (0, 0)]))
     False
-    >>> is_simple(None)
+    >>> shapely.is_simple(None)
     False
 
     """
@@ -435,14 +445,15 @@ def is_valid(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import GeometryCollection, LineString, Polygon
-    >>> is_valid(LineString([(0, 0), (1, 1)]))
+    >>> shapely.is_valid(LineString([(0, 0), (1, 1)]))
     True
-    >>> is_valid(Polygon([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)]))
+    >>> shapely.is_valid(Polygon([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)]))
     False
-    >>> is_valid(GeometryCollection())
+    >>> shapely.is_valid(GeometryCollection())
     True
-    >>> is_valid(None)
+    >>> shapely.is_valid(None)
     False
 
     """
@@ -471,12 +482,13 @@ def is_valid_reason(geometry, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Polygon
-    >>> is_valid_reason(LineString([(0, 0), (1, 1)]))
+    >>> shapely.is_valid_reason(LineString([(0, 0), (1, 1)]))
     'Valid Geometry'
-    >>> is_valid_reason(Polygon([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)]))
+    >>> shapely.is_valid_reason(Polygon([(0, 0), (1, 1), (1, 2), (1, 1), (0, 0)]))
     'Self-intersection[1 2]'
-    >>> is_valid_reason(None) is None
+    >>> shapely.is_valid_reason(None) is None
     True
 
     """
@@ -504,31 +516,32 @@ def crosses(a, b, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, MultiPoint, Point, Polygon
     >>> line = LineString([(0, 0), (1, 1)])
     >>> # A contains B:
-    >>> crosses(line, Point(0.5, 0.5))
+    >>> shapely.crosses(line, Point(0.5, 0.5))
     False
     >>> # A and B intersect at a point but do not share all points:
-    >>> crosses(line, MultiPoint([(0, 1), (0.5, 0.5)]))
+    >>> shapely.crosses(line, MultiPoint([(0, 1), (0.5, 0.5)]))
     True
-    >>> crosses(line, LineString([(0, 1), (1, 0)]))
+    >>> shapely.crosses(line, LineString([(0, 1), (1, 0)]))
     True
     >>> # A is contained by B; their intersection is a line (same dimension):
-    >>> crosses(line, LineString([(0, 0), (2, 2)]))
+    >>> shapely.crosses(line, LineString([(0, 0), (2, 2)]))
     False
     >>> area = Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
     >>> # A contains B:
-    >>> crosses(area, line)
+    >>> shapely.crosses(area, line)
     False
     >>> # A and B intersect with a line (lower dimension) but do not share all points:
-    >>> crosses(area, LineString([(0, 0), (2, 2)]))
+    >>> shapely.crosses(area, LineString([(0, 0), (2, 2)]))
     True
     >>> # A contains B:
-    >>> crosses(area, Point(0.5, 0.5))
+    >>> shapely.crosses(area, Point(0.5, 0.5))
     False
     >>> # A contains some but not all points of B; they intersect at a point:
-    >>> crosses(area, MultiPoint([(2, 2), (0.5, 0.5)]))
+    >>> shapely.crosses(area, MultiPoint([(2, 2), (0.5, 0.5)]))
     True
 
     """
@@ -562,32 +575,33 @@ def contains(a, b, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point, Polygon
     >>> line = LineString([(0, 0), (1, 1)])
-    >>> contains(line, Point(0, 0))
+    >>> shapely.contains(line, Point(0, 0))
     False
-    >>> contains(line, Point(0.5, 0.5))
+    >>> shapely.contains(line, Point(0.5, 0.5))
     True
     >>> area = Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
-    >>> contains(area, Point(0, 0))
+    >>> shapely.contains(area, Point(0, 0))
     False
-    >>> contains(area, line)
+    >>> shapely.contains(area, line)
     True
-    >>> contains(area, LineString([(0, 0), (2, 2)]))
+    >>> shapely.contains(area, LineString([(0, 0), (2, 2)]))
     False
     >>> polygon_with_hole = Polygon(
     ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
     ...     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]]
     ... )
-    >>> contains(polygon_with_hole, Point(1, 1))
+    >>> shapely.contains(polygon_with_hole, Point(1, 1))
     True
-    >>> contains(polygon_with_hole, Point(2, 2))
+    >>> shapely.contains(polygon_with_hole, Point(2, 2))
     False
-    >>> contains(polygon_with_hole, LineString([(1, 1), (5, 5)]))
+    >>> shapely.contains(polygon_with_hole, LineString([(1, 1), (5, 5)]))
     False
-    >>> contains(area, area)
+    >>> shapely.contains(area, area)
     True
-    >>> contains(area, None)
+    >>> shapely.contains(area, None)
     False
 
     """
@@ -622,6 +636,7 @@ def contains_properly(a, b, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Polygon
     >>> area1 = Polygon([(0, 0), (3, 0), (3, 3), (0, 3), (0, 0)])
     >>> area2 = Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
@@ -629,16 +644,16 @@ def contains_properly(a, b, **kwargs):
 
     ``area1`` and ``area2`` have a common border:
 
-    >>> contains(area1, area2)
+    >>> shapely.contains(area1, area2)
     True
-    >>> contains_properly(area1, area2)
+    >>> shapely.contains_properly(area1, area2)
     False
 
     ``area3`` is completely inside ``area1`` with no common border:
 
-    >>> contains(area1, area3)
+    >>> shapely.contains(area1, area3)
     True
-    >>> contains_properly(area1, area3)
+    >>> shapely.contains_properly(area1, area3)
     True
 
     """  # noqa: D205
@@ -663,32 +678,33 @@ def covered_by(a, b, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point, Polygon
     >>> line = LineString([(0, 0), (1, 1)])
-    >>> covered_by(Point(0, 0), line)
+    >>> shapely.covered_by(Point(0, 0), line)
     True
-    >>> covered_by(Point(0.5, 0.5), line)
+    >>> shapely.covered_by(Point(0.5, 0.5), line)
     True
     >>> area = Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
-    >>> covered_by(Point(0, 0), area)
+    >>> shapely.covered_by(Point(0, 0), area)
     True
-    >>> covered_by(line, area)
+    >>> shapely.covered_by(line, area)
     True
-    >>> covered_by(LineString([(0, 0), (2, 2)]), area)
+    >>> shapely.covered_by(LineString([(0, 0), (2, 2)]), area)
     False
     >>> polygon_with_hole = Polygon(
     ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
     ...     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]]
     ... )
-    >>> covered_by(Point(1, 1), polygon_with_hole)
+    >>> shapely.covered_by(Point(1, 1), polygon_with_hole)
     True
-    >>> covered_by(Point(2, 2), polygon_with_hole)
+    >>> shapely.covered_by(Point(2, 2), polygon_with_hole)
     True
-    >>> covered_by(LineString([(1, 1), (5, 5)]), polygon_with_hole)
+    >>> shapely.covered_by(LineString([(1, 1), (5, 5)]), polygon_with_hole)
     False
-    >>> covered_by(area, area)
+    >>> shapely.covered_by(area, area)
     True
-    >>> covered_by(None, area)
+    >>> shapely.covered_by(None, area)
     False
 
     """
@@ -713,32 +729,33 @@ def covers(a, b, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point, Polygon
     >>> line = LineString([(0, 0), (1, 1)])
-    >>> covers(line, Point(0, 0))
+    >>> shapely.covers(line, Point(0, 0))
     True
-    >>> covers(line, Point(0.5, 0.5))
+    >>> shapely.covers(line, Point(0.5, 0.5))
     True
     >>> area = Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
-    >>> covers(area, Point(0, 0))
+    >>> shapely.covers(area, Point(0, 0))
     True
-    >>> covers(area, line)
+    >>> shapely.covers(area, line)
     True
-    >>> covers(area, LineString([(0, 0), (2, 2)]))
+    >>> shapely.covers(area, LineString([(0, 0), (2, 2)]))
     False
     >>> polygon_with_hole = Polygon(
     ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
     ...     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]]
     ... )
-    >>> covers(polygon_with_hole, Point(1, 1))
+    >>> shapely.covers(polygon_with_hole, Point(1, 1))
     True
-    >>> covers(polygon_with_hole, Point(2, 2))
+    >>> shapely.covers(polygon_with_hole, Point(2, 2))
     True
-    >>> covers(polygon_with_hole, LineString([(1, 1), (5, 5)]))
+    >>> shapely.covers(polygon_with_hole, LineString([(1, 1), (5, 5)]))
     False
-    >>> covers(area, area)
+    >>> shapely.covers(area, area)
     True
-    >>> covers(area, None)
+    >>> shapely.covers(area, None)
     False
 
     """
@@ -766,22 +783,23 @@ def disjoint(a, b, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import GeometryCollection, LineString, Point
     >>> line = LineString([(0, 0), (1, 1)])
-    >>> disjoint(line, Point(0, 0))
+    >>> shapely.disjoint(line, Point(0, 0))
     False
-    >>> disjoint(line, Point(0, 1))
+    >>> shapely.disjoint(line, Point(0, 1))
     True
-    >>> disjoint(line, LineString([(0, 2), (2, 0)]))
+    >>> shapely.disjoint(line, LineString([(0, 2), (2, 0)]))
     False
     >>> empty = GeometryCollection()
-    >>> disjoint(line, empty)
+    >>> shapely.disjoint(line, empty)
     True
-    >>> disjoint(empty, empty)
+    >>> shapely.disjoint(empty, empty)
     True
-    >>> disjoint(empty, None)
+    >>> shapely.disjoint(empty, None)
     False
-    >>> disjoint(None, None)
+    >>> shapely.disjoint(None, None)
     False
 
     """
@@ -809,13 +827,14 @@ def equals(a, b, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import GeometryCollection, LineString, Polygon
     >>> line = LineString([(0, 0), (5, 5), (10, 10)])
-    >>> equals(line, LineString([(0, 0), (10, 10)]))
+    >>> shapely.equals(line, LineString([(0, 0), (10, 10)]))
     True
-    >>> equals(Polygon(), GeometryCollection())
+    >>> shapely.equals(Polygon(), GeometryCollection())
     True
-    >>> equals(None, None)
+    >>> shapely.equals(None, None)
     False
 
     """
@@ -843,15 +862,16 @@ def intersects(a, b, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point
     >>> line = LineString([(0, 0), (1, 1)])
-    >>> intersects(line, Point(0, 0))
+    >>> shapely.intersects(line, Point(0, 0))
     True
-    >>> intersects(line, Point(0, 1))
+    >>> shapely.intersects(line, Point(0, 1))
     False
-    >>> intersects(line, LineString([(0, 2), (2, 0)]))
+    >>> shapely.intersects(line, LineString([(0, 2), (2, 0)]))
     True
-    >>> intersects(None, None)
+    >>> shapely.intersects(None, None)
     False
 
     """
@@ -885,32 +905,33 @@ def overlaps(a, b, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point, Polygon
     >>> poly = Polygon([(0, 0), (0, 4), (4, 4), (4, 0), (0, 0)])
     >>> # A and B share all points (are spatially equal):
-    >>> overlaps(poly, poly)
+    >>> shapely.overlaps(poly, poly)
     False
     >>> # A contains B; all points of B are within A:
-    >>> overlaps(poly, Polygon([(0, 0), (0, 2), (2, 2), (2, 0), (0, 0)]))
+    >>> shapely.overlaps(poly, Polygon([(0, 0), (0, 2), (2, 2), (2, 0), (0, 0)]))
     False
     >>> # A partially overlaps with B:
-    >>> overlaps(poly, Polygon([(2, 2), (2, 6), (6, 6), (6, 2), (2, 2)]))
+    >>> shapely.overlaps(poly, Polygon([(2, 2), (2, 6), (6, 6), (6, 2), (2, 2)]))
     True
     >>> line = LineString([(2, 2), (6, 6)])
     >>> # A and B are different dimensions; they cannot overlap:
-    >>> overlaps(poly, line)
+    >>> shapely.overlaps(poly, line)
     False
-    >>> overlaps(poly, Point(2, 2))
+    >>> shapely.overlaps(poly, Point(2, 2))
     False
     >>> # A and B share some but not all points:
-    >>> overlaps(line, LineString([(0, 0), (4, 4)]))
+    >>> shapely.overlaps(line, LineString([(0, 0), (4, 4)]))
     True
     >>> # A and B intersect only at a point (lower dimension); they do not overlap
-    >>> overlaps(line, LineString([(6, 0), (0, 6)]))
+    >>> shapely.overlaps(line, LineString([(6, 0), (0, 6)]))
     False
-    >>> overlaps(poly, None)
+    >>> shapely.overlaps(poly, None)
     False
-    >>> overlaps(None, None)
+    >>> shapely.overlaps(None, None)
     False
 
     """
@@ -934,24 +955,25 @@ def touches(a, b, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point, Polygon
     >>> line = LineString([(0, 2), (2, 0)])
-    >>> touches(line, Point(0, 2))
+    >>> shapely.touches(line, Point(0, 2))
     True
-    >>> touches(line, Point(1, 1))
+    >>> shapely.touches(line, Point(1, 1))
     False
-    >>> touches(line, LineString([(0, 0), (1, 1)]))
+    >>> shapely.touches(line, LineString([(0, 0), (1, 1)]))
     True
-    >>> touches(line, LineString([(0, 0), (2, 2)]))
+    >>> shapely.touches(line, LineString([(0, 0), (2, 2)]))
     False
     >>> area = Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
-    >>> touches(area, Point(0.5, 0))
+    >>> shapely.touches(area, Point(0.5, 0))
     True
-    >>> touches(area, Point(0.5, 0.5))
+    >>> shapely.touches(area, Point(0.5, 0.5))
     False
-    >>> touches(area, line)
+    >>> shapely.touches(area, line)
     True
-    >>> touches(area, Polygon([(0, 1), (1, 1), (1, 2), (0, 2), (0, 1)]))
+    >>> shapely.touches(area, Polygon([(0, 1), (1, 1), (1, 2), (0, 2), (0, 1)]))
     True
 
     """
@@ -979,32 +1001,33 @@ def within(a, b, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point, Polygon
     >>> line = LineString([(0, 0), (1, 1)])
-    >>> within(Point(0, 0), line)
+    >>> shapely.within(Point(0, 0), line)
     False
-    >>> within(Point(0.5, 0.5), line)
+    >>> shapely.within(Point(0.5, 0.5), line)
     True
     >>> area = Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
-    >>> within(Point(0, 0), area)
+    >>> shapely.within(Point(0, 0), area)
     False
-    >>> within(line, area)
+    >>> shapely.within(line, area)
     True
-    >>> within(LineString([(0, 0), (2, 2)]), area)
+    >>> shapely.within(LineString([(0, 0), (2, 2)]), area)
     False
     >>> polygon_with_hole = Polygon(
     ...     [(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)],
     ...     holes=[[(2, 2), (2, 4), (4, 4), (4, 2), (2, 2)]]
     ... )
-    >>> within(Point(1, 1), polygon_with_hole)
+    >>> shapely.within(Point(1, 1), polygon_with_hole)
     True
-    >>> within(Point(2, 2), polygon_with_hole)
+    >>> shapely.within(Point(2, 2), polygon_with_hole)
     False
-    >>> within(LineString([(1, 1), (5, 5)]), polygon_with_hole)
+    >>> shapely.within(LineString([(1, 1), (5, 5)]), polygon_with_hole)
     False
-    >>> within(area, area)
+    >>> shapely.within(area, area)
     True
-    >>> within(None, area)
+    >>> shapely.within(None, area)
     False
 
     """
@@ -1012,7 +1035,7 @@ def within(a, b, **kwargs):
 
 
 @multithreading_enabled
-def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
+def equals_exact(a, b, tolerance=0.0, *, normalize=False, **kwargs):
     """Return True if the geometries are structurally equivalent within a given
     tolerance.
 
@@ -1051,23 +1074,24 @@ def equals_exact(a, b, tolerance=0.0, normalize=False, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Point, Polygon
     >>> point1 = Point(50, 50)
     >>> point2 = Point(50.1, 50.1)
-    >>> equals_exact(point1, point2)
+    >>> shapely.equals_exact(point1, point2)
     False
-    >>> equals_exact(point1, point2, tolerance=0.2)
+    >>> shapely.equals_exact(point1, point2, tolerance=0.2)
     True
-    >>> equals_exact(point1, None, tolerance=0.2)
+    >>> shapely.equals_exact(point1, None, tolerance=0.2)
     False
 
     Difference between structural and spatial equality:
 
     >>> polygon1 = Polygon([(0, 0), (1, 1), (0, 1), (0, 0)])
     >>> polygon2 = Polygon([(0, 0), (0, 1), (1, 1), (0, 0)])
-    >>> equals_exact(polygon1, polygon2)
+    >>> shapely.equals_exact(polygon1, polygon2)
     False
-    >>> equals(polygon1, polygon2)
+    >>> shapely.equals(polygon1, polygon2)
     True
 
     """  # noqa: D205
@@ -1097,7 +1121,7 @@ def equals_identical(a, b, **kwargs):
     This function is the vectorized equivalent of scalar equality of
     geometry objects (``a == b``, i.e. ``__eq__``).
 
-    .. versionadded:: 2.1
+    .. versionadded:: 2.1.0
 
     Parameters
     ----------
@@ -1114,10 +1138,11 @@ def equals_identical(a, b, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Point
-    >>> equals_identical(Point(1, 2, 3), Point(1, 2, 3))
+    >>> shapely.equals_identical(Point(1, 2, 3), Point(1, 2, 3))
     True
-    >>> equals_identical(Point(1, 2, 3), Point(1, 2, 0))
+    >>> shapely.equals_identical(Point(1, 2, 3), Point(1, 2, 0))
     False
     """
     return lib.equals_identical(a, b, **kwargs)
@@ -1135,10 +1160,11 @@ def relate(a, b, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point
     >>> point = Point(0, 0)
     >>> line = LineString([(0, 0), (1, 1)])
-    >>> relate(point, line)
+    >>> shapely.relate(point, line)
     'F0FFFF102'
 
     """
@@ -1167,12 +1193,13 @@ def relate_pattern(a, b, pattern, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Point, Polygon
     >>> point = Point(0.5, 0.5)
     >>> square = Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)])
-    >>> relate(point, square)
+    >>> shapely.relate(point, square)
     '0FFFFF212'
-    >>> relate_pattern(point, square, "T*F**F***")
+    >>> shapely.relate_pattern(point, square, "T*F**F***")
     True
 
     """
@@ -1180,7 +1207,6 @@ def relate_pattern(a, b, pattern, **kwargs):
 
 
 @multithreading_enabled
-@requires_geos("3.10.0")
 def dwithin(a, b, distance, **kwargs):
     """Return True if the geometries are within a given distance.
 
@@ -1203,15 +1229,16 @@ def dwithin(a, b, distance, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Point
     >>> point = Point(0.5, 0.5)
-    >>> dwithin(point, Point(2, 0.5), 2)
+    >>> shapely.dwithin(point, Point(2, 0.5), 2)
     True
-    >>> dwithin(point, Point(2, 0.5), [2, 1.5, 1]).tolist()
+    >>> shapely.dwithin(point, Point(2, 0.5), [2, 1.5, 1]).tolist()
     [True, True, False]
-    >>> dwithin(point, Point(0.5, 0.5), 0)
+    >>> shapely.dwithin(point, Point(0.5, 0.5), 0)
     True
-    >>> dwithin(point, None, 100)
+    >>> shapely.dwithin(point, None, 100)
     False
 
     """
@@ -1253,11 +1280,12 @@ def contains_xy(geom, x, y=None, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Point, Polygon
     >>> area = Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
-    >>> contains(area, Point(0.5, 0.5))
+    >>> shapely.contains(area, Point(0.5, 0.5))
     True
-    >>> contains_xy(area, 0.5, 0.5)
+    >>> shapely.contains_xy(area, 0.5, 0.5)
     True
 
     """
@@ -1304,11 +1332,12 @@ def intersects_xy(geom, x, y=None, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point
     >>> line = LineString([(0, 0), (1, 1)])
-    >>> intersects(line, Point(0, 0))
+    >>> shapely.intersects(line, Point(0, 0))
     True
-    >>> intersects_xy(line, 0, 0)
+    >>> shapely.intersects_xy(line, 0, 0)
     True
 
     """

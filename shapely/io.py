@@ -8,7 +8,6 @@ from shapely._enum import ParamEnum
 # include ragged array functions here for reference documentation purpose
 from shapely._ragged_array import from_ragged_array, to_ragged_array
 from shapely.decorators import requires_geos
-from shapely.errors import UnsupportedGEOSVersionError
 
 __all__ = [
     "from_geojson",
@@ -56,7 +55,8 @@ def to_wkt(
         The rounding precision when writing the WKT string. Set to a value of
         -1 to indicate the full precision.
     trim : bool, default True
-        If True, trim unnecessary decimals (trailing zeros).
+        If True, trim unnecessary decimals (trailing zeros). If False,
+        use fixed-precision number formatting.
     output_dimension : int, default None
         The output dimension for the WKT string. Supported values are 2, 3 and
         4 for GEOS 3.12+. Default None will automatically choose 3 or 4,
@@ -72,26 +72,27 @@ def to_wkt(
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Point
-    >>> to_wkt(Point(0, 0))
+    >>> shapely.to_wkt(Point(0, 0))
     'POINT (0 0)'
-    >>> to_wkt(Point(0, 0), rounding_precision=3, trim=False)
+    >>> shapely.to_wkt(Point(0, 0), rounding_precision=3, trim=False)
     'POINT (0.000 0.000)'
-    >>> to_wkt(Point(0, 0), rounding_precision=-1, trim=False)
+    >>> shapely.to_wkt(Point(0, 0), rounding_precision=-1, trim=False)
     'POINT (0.0000000000000000 0.0000000000000000)'
-    >>> to_wkt(Point(1, 2, 3), trim=True)
+    >>> shapely.to_wkt(Point(1, 2, 3), trim=True)
     'POINT Z (1 2 3)'
-    >>> to_wkt(Point(1, 2, 3), trim=True, output_dimension=2)
+    >>> shapely.to_wkt(Point(1, 2, 3), trim=True, output_dimension=2)
     'POINT (1 2)'
-    >>> to_wkt(Point(1, 2, 3), trim=True, old_3d=True)
+    >>> shapely.to_wkt(Point(1, 2, 3), trim=True, old_3d=True)
     'POINT (1 2 3)'
 
     Notes
     -----
-    The defaults differ from the default of the GEOS library. To mimic this,
-    use::
+    The defaults differ from the default of some GEOS versions. To mimic this for
+    versions before GEOS 3.12, use::
 
-        to_wkt(geometry, rounding_precision=-1, trim=False, output_dimension=2)
+        shapely.to_wkt(geometry, rounding_precision=-1, trim=False, output_dimension=2)
 
     """
     if not np.isscalar(rounding_precision):
@@ -166,11 +167,12 @@ def to_wkb(
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Point
     >>> point = Point(1, 1)
-    >>> to_wkb(point, byte_order=1)
+    >>> shapely.to_wkb(point, byte_order=1)
     b'\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?'
-    >>> to_wkb(point, hex=True, byte_order=1)
+    >>> shapely.to_wkb(point, hex=True, byte_order=1)
     '0101000000000000000000F03F000000000000F03F'
 
     """
@@ -186,10 +188,6 @@ def to_wkb(
         raise TypeError("include_srid only accepts scalar values")
     if not np.isscalar(flavor):
         raise TypeError("flavor only accepts scalar values")
-    if lib.geos_version < (3, 10, 0) and flavor == "iso":
-        raise UnsupportedGEOSVersionError(
-            'The "iso" option requires at least GEOS 3.10.0'
-        )
     if flavor == "iso" and include_srid:
         raise ValueError('flavor="iso" and include_srid=True cannot be used together')
     flavor = WKBFlavorOptions.get_value(flavor)
@@ -205,7 +203,6 @@ def to_wkb(
     )
 
 
-@requires_geos("3.10.0")
 def to_geojson(geometry, indent=None, **kwargs):
     """Convert to the GeoJSON representation of a Geometry.
 
@@ -230,11 +227,12 @@ def to_geojson(geometry, indent=None, **kwargs):
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import Point
     >>> point = Point(1, 1)
-    >>> to_geojson(point)
+    >>> shapely.to_geojson(point)
     '{"type":"Point","coordinates":[1.0,1.0]}'
-    >>> print(to_geojson(point, indent=2))
+    >>> print(shapely.to_geojson(point, indent=2))
     {
       "type": "Point",
       "coordinates": [
@@ -282,12 +280,14 @@ def from_wkt(geometry, on_invalid="raise", **kwargs):
           unclosed rings). If this is not possible, they are returned as
           ``None`` without a warning. Requires GEOS >= 3.11.
 
+          .. versionadded:: 2.1.0
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
-    >>> from_wkt('POINT (0 0)')
+    >>> import shapely
+    >>> shapely.from_wkt('POINT (0 0)')
     <POINT (0 0)>
 
     """
@@ -324,12 +324,14 @@ def from_wkb(geometry, on_invalid="raise", **kwargs):
           unclosed rings). If this is not possible, they are returned as
           ``None`` without a warning. Requires GEOS >= 3.11.
 
+          .. versionadded:: 2.1.0
     **kwargs
         See :ref:`NumPy ufunc docs <ufuncs.kwargs>` for other keyword arguments.
 
     Examples
     --------
-    >>> from_wkb(b'\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?')
+    >>> import shapely
+    >>> shapely.from_wkb(b'\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?')
     <POINT (1 1)>
 
     """  # noqa: E501
@@ -379,7 +381,8 @@ def from_geojson(geometry, on_invalid="raise", **kwargs):
 
     Examples
     --------
-    >>> from_geojson('{"type": "Point","coordinates": [1, 2]}')
+    >>> import shapely
+    >>> shapely.from_geojson('{"type": "Point","coordinates": [1, 2]}')
     <POINT (1 2)>
 
     """

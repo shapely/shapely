@@ -6,6 +6,10 @@ from shapely import Geometry, GeometryCollection, Polygon
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import all_types, empty, ignore_invalid, point, polygon
 
+pytestmark = pytest.mark.filterwarnings(
+    "ignore:The symmetric_difference_all function:DeprecationWarning"
+)
+
 # fixed-precision operations raise GEOS exceptions on mixed dimension geometry
 # collections
 all_single_types = np.array(all_types)[
@@ -52,13 +56,6 @@ non_polygon_types = np.array(all_types)[
 @pytest.mark.parametrize("a", all_types)
 @pytest.mark.parametrize("func", SET_OPERATIONS)
 def test_set_operation_array(a, func):
-    if (
-        func is shapely.difference
-        and a.geom_type == "GeometryCollection"
-        and shapely.get_num_geometries(a) == 2
-        and shapely.geos_version == (3, 9, 5)
-    ):
-        pytest.xfail("GEOS 3.9.5 crashes with mixed collection")
     actual = func(a, point)
     assert isinstance(actual, Geometry)
 
@@ -409,3 +406,65 @@ def test_uary_union_alias():
     actual = shapely.unary_union(geoms, grid_size=1)
     expected = shapely.union_all(geoms, grid_size=1)
     assert shapely.equals(actual, expected)
+
+
+def test_difference_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `grid_size` for `difference` is deprecated"
+    ):
+        shapely.difference(point, point, None)
+
+
+def test_intersection_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `grid_size` for `intersection` is deprecated"
+    ):
+        shapely.intersection(point, point, None)
+
+
+def test_intersection_all_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `axis` for `intersection_all` is deprecated"
+    ):
+        shapely.intersection_all([point, point], None)
+
+
+def test_symmetric_difference_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `grid_size` for `symmetric_difference` is deprecated"
+    ):
+        shapely.symmetric_difference(point, point, None)
+
+
+def test_symmetric_difference_all_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `axis` for `symmetric_difference_all` is deprecated"
+    ):
+        shapely.symmetric_difference_all([point, point], None)
+
+
+def test_union_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `grid_size` for `union` is deprecated"
+    ):
+        shapely.union(point, point, None)
+
+
+def test_union_all_deprecate_positional():
+    with pytest.deprecated_call(
+        match="positional argument `grid_size` for `union_all` is deprecated"
+    ):
+        shapely.union_all([point, point], None)
+    with pytest.deprecated_call(
+        match="positional arguments `grid_size` and `axis` for `union_all` "
+        "are deprecated"
+    ):
+        shapely.union_all([point, point], None, None)
+
+
+def test_coverage_union_all_deprecate_positional():
+    data = [shapely.box(0, 0, 1, 1), shapely.box(1, 0, 2, 1)]
+    with pytest.deprecated_call(
+        match="positional argument `axis` for `coverage_union_all` is deprecated"
+    ):
+        shapely.coverage_union_all(data, None)

@@ -1097,7 +1097,6 @@ enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx, const double
     }
   }
 
-#if GEOS_SINCE_3_10_0
   if ((!ring_closure) && ((last_i - first_i + 1) == actual_size)) {
     /* Initialize cp1 so that it points to the first coordinate (possibly skipping NaN)*/
     char* cp1 = (char*)buf + cs1 * first_i;
@@ -1116,8 +1115,6 @@ enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx, const double
       return (*coord_seq != NULL) ? PGERR_SUCCESS : PGERR_GEOS_EXCEPTION;
     }
   }
-
-#endif
 
   *coord_seq = GEOSCoordSeq_create_r(ctx, actual_size + ring_closure, dims);
   if (*coord_seq == NULL) {
@@ -1149,33 +1146,13 @@ enum ShapelyErrorCode coordseq_from_buffer(GEOSContextHandle_t ctx, const double
 /* Copy coordinates of a GEOSCoordSequence to an array
  *
  * Note: this function assumes that the buffer is from a C-contiguous array,
- * and that the dimension of the buffer is only 2D or 3D.
+ * and that the dimension of the buffer can be 2, 3 or 4.
  *
  * Returns 0 on error, 1 on success.
  */
 int coordseq_to_buffer(GEOSContextHandle_t ctx, const GEOSCoordSequence* coord_seq,
                        double* buf, unsigned int size, int has_z, int has_m) {
 
-#if GEOS_SINCE_3_10_0
-
   return GEOSCoordSeq_copyToBuffer_r(ctx, coord_seq, buf, has_z, has_m);
 
-#else
-
-  char *cp1, *cp2;
-  unsigned int i, j;
-  unsigned int dims = 2 + has_z + has_m;
-
-  cp1 = (char*)buf;
-  for (i = 0; i < size; i++, cp1 += 8 * dims) {
-    cp2 = cp1;
-    for (j = 0; j < dims; j++, cp2 += 8) {
-      if (!GEOSCoordSeq_getOrdinate_r(ctx, coord_seq, i, j, (double*)cp2)) {
-        return 0;
-      }
-    }
-  }
-  return 1;
-
-#endif
 }

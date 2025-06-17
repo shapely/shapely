@@ -264,11 +264,11 @@ General Attributes and Methods
 
 .. code-block:: pycon
 
-  >>> donut = Point(0, 0).buffer(2.0).difference(Point(0, 0).buffer(1.0))
-  >>> donut.centroid
+  >>> diamond = Point(0, 0).buffer(2.0, 1).difference(Point(0, 0).buffer(1.0, 1))
+  >>> diamond.centroid
   <POINT (0 0)>
-  >>> donut.representative_point()
-  <POINT (1.498 0.049)>
+  >>> diamond.representative_point()
+  <POINT (-1 0.5)>
 
 .. _points:
 
@@ -350,7 +350,8 @@ Figure 1. A simple `LineString` on the left, a complex `LineString` on the
 right. The (`MultiPoint`) boundary of each is shown in black, the other points
 that describe the lines are shown in grey.
 
-A `LineString` has zero area and non-zero length.
+A `LineString` has zero area and non-zero length if it isn't
+:ref:`empty <empties>`.
 
 .. code-block:: pycon
 
@@ -430,7 +431,8 @@ grey. A ring's boundary is `empty`.
    Shapely will not prevent the creation of such rings, but exceptions will be
    raised when they are operated on.
 
-A `LinearRing` has zero area and non-zero length.
+A `LinearRing` has zero area and non-zero length if it isn't
+:ref:`empty <empties>`.
 
 .. code-block:: pycon
 
@@ -466,7 +468,7 @@ instance, respectively.
   >>> LinearRing(ring)
   <LINEARRING (0 0, 1 1, 1 0, 0 0)>
 
-As with `LineString`, a sequence of `Point` instances is not a valid
+As with `LineString`, a sequence of `Point` instances is a valid
 constructor parameter.
 
 .. _polygons:
@@ -484,7 +486,8 @@ Polygons
 
 Rings of a `valid` `Polygon` may not cross each other, but may touch at a
 single point only.  Again, Shapely will not prevent the creation of invalid
-features, but exceptions will be raised when they are operated on.
+features, but when they are operated on the results might be wrong or
+exceptions might be raised.
 
 .. plot:: code/polygon.py
 
@@ -499,7 +502,8 @@ Figure 4. On the left, a `Polygon` that is `invalid` because its exterior and
 interior rings touch along a line, and on the right, a `Polygon` that is
 `invalid` because its interior rings touch along a line.
 
-A `Polygon` has non-zero area and non-zero length.
+A `Polygon` has non-zero area and non-zero length if it isn't
+:ref:`empty <empties>`.
 
 .. code-block:: pycon
 
@@ -676,7 +680,8 @@ Figure 6. On the left, a `simple`, disconnected `MultiLineString`, and on the
 right, a non-simple `MultiLineString`. The points defining the objects are
 shown in gray, the boundaries of the objects in black.
 
-A `MultiLineString` has zero area and non-zero length.
+A `MultiLineString` has zero area and non-zero length if it isn't
+:ref:`empty <empties>`.
 
 .. code-block:: pycon
 
@@ -1028,7 +1033,8 @@ Operations on non-simple `LineStrings` are fully supported by Shapely.
 
 A valid `Polygon` may not possess any overlapping exterior or interior rings. A
 valid `MultiPolygon` may not collect any overlapping polygons. A valid `LineString`
-must have non-zero length. Operations on invalid features may fail.
+must have non-zero length if it isn't :ref:`empty <empties>`. Operations on invalid
+features may fail.
 
 .. code-block:: pycon
 
@@ -1279,34 +1285,7 @@ and that copies of these are collected into a list
   >>> features = [c, a, d, b, c]
 
 that we'd prefer to have ordered as ``[d, c, c, b, a]`` in reverse containment
-order. As explained in the Python `Sorting HowTo`_, we can define a key
-function that operates on each list element and returns a value for comparison.
-Our key function will be a wrapper class that implements ``__lt__()`` using
-Shapely's binary :meth:`~object.within` predicate.
-
-.. code-block:: python
-
-  >>> class Within:
-  ...     def __init__(self, o):
-  ...         self.o = o
-  ...     def __lt__(self, other):
-  ...         return self.o.within(other.o)
-
-As the howto says, the `less than` comparison is guaranteed to be used in
-sorting. That's what we'll rely on to spatially sort. Trying it out on features
-`d` and `c`, we see that it works.
-
-.. code-block:: pycon
-
-  >>> Within(d) < Within(c)
-  False
-
-It also works on the list of features, producing the order we want.
-
-.. code-block:: pycon
-
-  >>> [d, c, c, b, a] == sorted(features, key=Within, reverse=True)
-  True
+order.
 
 DE-9IM Relationships
 --------------------

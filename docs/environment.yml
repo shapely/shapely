@@ -2,8 +2,8 @@ name: shapely_docs
 channels:
   - conda-forge
 dependencies:
-  - python=3.10
-  - geos=3.11
+  - python=3.12
+  - geos=3.13
   - numpy
   - cython
   - sphinx-book-theme

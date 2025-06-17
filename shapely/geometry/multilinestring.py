@@ -28,13 +28,14 @@ class MultiLineString(BaseMultipartGeometry):
     --------
     Construct a MultiLineString containing two LineStrings.
 
+    >>> from shapely import MultiLineString
     >>> lines = MultiLineString([[[0, 0], [1, 2]], [[4, 4], [5, 6]]])
 
     """
 
     __slots__ = []
 
-    def __new__(self, lines=None):
+    def __new__(cls, lines=None):
         """Create a new MultiLineString geometry."""
         if not lines:
             # allow creation of empty multilinestrings, to support unpickling

@@ -31,22 +31,22 @@ classifiers = [
     "Operating System :: MacOS",
     "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
-    "numpy>=1.20",
+    "numpy>=1.21",
 ]
 
 [project.optional-dependencies]
 test = [
     "pytest",
     "pytest-cov",
+    "scipy-doctest",
 ]
 docs = [
     "numpydoc==1.1.*",
@@ -115,7 +115,7 @@ select = [
     # implicit string concatenation
     "ISC",
     # type-checking imports
-    "TCH",
+    "TC",
     # comprehensions
     "C4",
     # Ruff-specific rules
@@ -148,16 +148,10 @@ ignore = [
     "PLR0911",
     # Too many branches
     "PLR0912",
-    # Too many statements
-    "PLR0915",
     # Magic number
     "PLR2004",
-    # Redefined loop name
-    "PLW2901",
-    # Global statements are discouraged
-    "PLW0603",
-    # compare-to-empty-string
-    "PLC1901",
+    # requiring | in isinstance
+    "UP038",
 
     ### Additional checks that don't pass yet
     # Useless statement

@@ -1,11 +1,8 @@
 """Support for various GEOS geometry operations."""
 
-from warnings import warn
-
 import shapely
-from shapely import lib
 from shapely.algorithms.polylabel import polylabel  # noqa
-from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
+from shapely.errors import GeometryTypeError
 from shapely.geometry import (
     GeometryCollection,
     LineString,
@@ -15,28 +12,26 @@ from shapely.geometry import (
     Polygon,
     shape,
 )
-from shapely.geometry.base import BaseGeometry, BaseMultipartGeometry
-from shapely.geometry.polygon import orient as orient_
+from shapely.geometry.base import BaseGeometry
 from shapely.prepared import prep
 
 __all__ = [
-    "cascaded_union",
+    "clip_by_rect",
     "linemerge",
+    "nearest_points",
     "operator",
+    "orient",
     "polygonize",
     "polygonize_full",
-    "transform",
-    "unary_union",
-    "triangulate",
-    "voronoi_diagram",
-    "split",
-    "nearest_points",
-    "validate",
-    "snap",
     "shared_paths",
-    "clip_by_rect",
-    "orient",
+    "snap",
+    "split",
     "substring",
+    "transform",
+    "triangulate",
+    "unary_union",
+    "validate",
+    "voronoi_diagram",
 ]
 
 
@@ -113,20 +108,6 @@ class CollectionOperator:
             raise ValueError(f"Cannot linemerge {lines}")
         return shapely.line_merge(source, directed=directed)
 
-    def cascaded_union(self, geoms):
-        """Return the union of a sequence of geometries.
-
-        .. deprecated:: 1.8
-            This function was superseded by :meth:`unary_union`.
-        """
-        warn(
-            "The 'cascaded_union()' function is deprecated. "
-            "Use 'unary_union()' instead.",
-            ShapelyDeprecationWarning,
-            stacklevel=2,
-        )
-        return shapely.union_all(geoms, axis=None)
-
     def unary_union(self, geoms):
         """Return the union of a sequence of geometries.
 
@@ -140,7 +121,6 @@ operator = CollectionOperator()
 polygonize = operator.polygonize
 polygonize_full = operator.polygonize_full
 linemerge = operator.linemerge
-cascaded_union = operator.cascaded_union
 unary_union = operator.unary_union
 
 
@@ -506,11 +486,13 @@ class SplitOp:
         splitter : geometry
             The geometry that will split the input geom
 
-        Example
-        -------
+        Examples
+        --------
+        >>> import shapely.ops
+        >>> from shapely import Point, LineString
         >>> pt = Point((1, 1))
         >>> line = LineString([(0,0), (2,2)])
-        >>> result = split(line, pt)
+        >>> result = shapely.ops.split(line, pt)
         >>> result.wkt
         'GEOMETRYCOLLECTION (LINESTRING (0 0, 1 1), LINESTRING (1 1, 2 2))'
 
@@ -624,15 +606,15 @@ def substring(geom, start_dist, end_dist, normalized=False):
 
     # Filter out cases in which to return a point
     if start_dist == end_dist:
-        return geom.interpolate(start_dist, normalized)
+        return geom.interpolate(start_dist, normalized=normalized)
     elif not normalized and start_dist >= geom.length and end_dist >= geom.length:
-        return geom.interpolate(geom.length, normalized)
+        return geom.interpolate(geom.length, normalized=normalized)
     elif not normalized and -start_dist >= geom.length and -end_dist >= geom.length:
-        return geom.interpolate(0, normalized)
+        return geom.interpolate(0, normalized=normalized)
     elif normalized and start_dist >= 1 and end_dist >= 1:
-        return geom.interpolate(1, normalized)
+        return geom.interpolate(1, normalized=normalized)
     elif normalized and -start_dist >= 1 and -end_dist >= 1:
-        return geom.interpolate(0, normalized)
+        return geom.interpolate(0, normalized=normalized)
 
     if normalized:
         start_dist *= geom.length
@@ -656,8 +638,7 @@ def substring(geom, start_dist, end_dist, normalized=False):
     if reverse:
         start_dist, end_dist = end_dist, start_dist
 
-    if start_dist < 0:
-        start_dist = 0  # to avoid duplicating the first vertex
+    start_dist = max(start_dist, 0)  # to avoid duplicating the first vertex
 
     if reverse:
         vertex_list = [tuple(*end_point.coords)]
@@ -666,7 +647,7 @@ def substring(geom, start_dist, end_dist, normalized=False):
 
     coords = list(geom.coords)
     current_distance = 0
-    for p1, p2 in zip(coords, coords[1:]):
+    for p1, p2 in zip(coords, coords[1:]):  # noqa
         if start_dist < current_distance < end_dist:
             vertex_list.append(p1)
         elif current_distance >= end_dist:
@@ -721,6 +702,8 @@ def orient(geom, sign=1.0):
     1.0 means that the coordinates of the product's exterior rings will
     be oriented counter-clockwise.
 
+    It is recommended to use :func:`shapely.orient_polygons` instead.
+
     Parameters
     ----------
     geom : Geometry
@@ -734,10 +717,4 @@ def orient(geom, sign=1.0):
     Geometry
 
     """
-    if lib.geos_version >= (3, 12, 0):
-        return shapely.orient_polygons(geom, exterior_cw=sign < 0)
-    if isinstance(geom, BaseMultipartGeometry):
-        return geom.__class__([orient(geom, sign) for geom in geom.geoms])
-    if isinstance(geom, (Polygon,)):
-        return orient_(geom, sign)
-    return geom
+    return shapely.orient_polygons(geom, exterior_cw=sign < 0)

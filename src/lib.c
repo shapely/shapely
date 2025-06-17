@@ -22,7 +22,7 @@ static PyMethodDef GeosModule[] = {
     {"count_coordinates", PyCountCoords, METH_VARARGS,
      "Counts the total amount of coordinates in a array with geometry objects"},
     {"get_coordinates", PyGetCoords, METH_VARARGS,
-     "Gets the coordinates as an (N, 2) shaped ndarray of floats"},
+     "Gets the coordinates as an (N, 2), (N, 3), or (N, 4) shaped ndarray of floats"},
     {"set_coordinates", PySetCoords, METH_VARARGS,
      "Sets coordinates to a geometry array"},
     {"_setup_signal_checks", PySetupSignalChecks, METH_VARARGS,

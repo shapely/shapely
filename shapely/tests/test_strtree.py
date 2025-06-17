@@ -11,7 +11,6 @@ from numpy.testing import assert_array_equal
 
 import shapely
 from shapely import LineString, MultiPoint, Point, STRtree, box, geos_version
-from shapely.errors import UnsupportedGEOSVersionError
 from shapely.testing import assert_geometries_equal
 from shapely.tests.common import (
     empty,
@@ -1328,16 +1327,6 @@ def test_query_contains_properly_polygons(poly_tree, geometry, expected):
 ### predicate = 'dwithin'
 
 
-@pytest.mark.skipif(geos_version >= (3, 10, 0), reason="GEOS >= 3.10")
-@pytest.mark.parametrize(
-    "geometry", [Point(0, 0), [Point(0, 0)], None, [None], empty, [empty]]
-)
-def test_query_dwithin_geos_version(tree, geometry):
-    with pytest.raises(UnsupportedGEOSVersionError, match="requires GEOS >= 3.10"):
-        tree.query(geometry, predicate="dwithin", distance=1)
-
-
-@pytest.mark.skipif(geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize(
     "geometry,distance,match",
     [
@@ -1357,7 +1346,6 @@ def test_query_dwithin_invalid_distance(tree, geometry, distance, match):
         tree.query(geometry, predicate="dwithin", distance=distance)
 
 
-@pytest.mark.skipif(geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize(
     "geometry,distance,expected",
     [
@@ -1431,7 +1419,6 @@ def test_query_dwithin_points(tree, geometry, distance, expected):
     )
 
 
-@pytest.mark.skipif(geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize(
     "geometry,distance,expected",
     [
@@ -1462,7 +1449,6 @@ def test_query_dwithin_lines(line_tree, geometry, distance, expected):
     )
 
 
-@pytest.mark.skipif(geos_version < (3, 10, 0), reason="GEOS < 3.10")
 @pytest.mark.parametrize(
     "geometry,distance,expected",
     [
