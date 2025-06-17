@@ -1,7 +1,10 @@
 """Support for various GEOS geometry operations."""
 
+import numpy
 import shapely
 from shapely.algorithms.polylabel import polylabel  # noqa
+from shapely.coordinates import get_coordinates
+from shapely.creation import linestrings
 from shapely.errors import GeometryTypeError
 from shapely.geometry import (
     GeometryCollection,
@@ -17,6 +20,7 @@ from shapely.prepared import prep
 
 __all__ = [
     "clip_by_rect",
+    "get_segments",
     "linemerge",
     "nearest_points",
     "operator",
@@ -718,3 +722,48 @@ def orient(geom, sign=1.0):
 
     """
     return shapely.orient_polygons(geom, exterior_cw=sign < 0)
+
+
+def get_segments(geometry):
+    """Return the individual constituent segments of pairwise
+    coordinates comprising a (non-multi) linear feature.
+
+    Parameters
+    ----------
+    geometry : Geometry
+        A single linear object.
+
+    Returns
+    -------
+    ndarray of constituent pairwise segments.
+
+    See Also
+    --------
+    get_parts
+
+    Examples
+    --------
+    >>> from shapely.ops import get_segments
+    >>> from shapely import LineString, LinearRing
+
+    Return the 2 constituent pairwise segments of a 3-coordinate linestring.
+
+    >>> get_segments(LineString(([0, 0], [1, 1], [2, 2])))
+    array([<LINESTRING (0 0, 1 1)>, <LINESTRING (1 1, 2 2)>], dtype=object)
+
+    Return the 3 constituent pairwise segments of a 4-coordinate linearring.
+
+    >>> get_segments(LinearRing(([0, 0], [1, 1], [2, 2], [0,0])))
+    array([<LINESTRING (0 0, 1 1)>, <LINESTRING (1 1, 2 2)>,
+       <LINESTRING (2 2, 0 0)>], dtype=object)
+    """
+
+    if geometry.geom_type not in ["LineString", "LinearRing"]:
+        raise GeometryTypeError(
+            f"Getting segments from a {geometry.geom_type} is not supported"
+        )
+
+    xys = get_coordinates(geometry)
+    return linestrings(
+        numpy.column_stack((xys[:-1], xys[1:])).reshape(xys.shape[0] - 1, 2, 2)
+    )
