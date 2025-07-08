@@ -113,7 +113,7 @@ jobs:
         shell: bash
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.23.3
+        uses: pypa/cibuildwheel@v3.0.1
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           # TEMP don't use automated/isolated build environment, but manually
@@ -145,10 +145,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2019
+          - os: windows-2022
             arch: x86
             msvc_arch: x86
-          - os: windows-2019
+          - os: windows-2022
             arch: AMD64
             msvc_arch: x64
           - os: macos-13
@@ -186,7 +186,7 @@ jobs:
         if: ${{ matrix.msvc_arch }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.23.3
+        uses: pypa/cibuildwheel@v3.0.1
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_ENVIRONMENT_MACOS:
