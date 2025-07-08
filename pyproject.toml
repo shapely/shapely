@@ -74,7 +74,7 @@ skip = ["pp*", "*_i686", "*_ppc64le", "*_s390x"]
 build-verbosity = 1
 test-requires = "pytest"
 test-command = "pytest --pyargs shapely.tests"
-free-threaded-support = true
+enable = ["cpython-freethreading"]
 
 [tool.coverage.run]
 source = ["shapely"]
