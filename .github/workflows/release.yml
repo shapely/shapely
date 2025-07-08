@@ -151,6 +151,9 @@ jobs:
           - os: windows-2022
             arch: AMD64
             msvc_arch: x64
+          - os: windows-11-arm
+            arch: ARM64
+            msvc_arch: ARM64
           - os: macos-13
             arch: x86_64
             cmake_osx_architectures: x86_64
@@ -215,6 +218,7 @@ jobs:
             pip install numpy setuptools wheel &&
             pip install delvewheel
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path ${{ runner.temp }}\geos-${{ env.GEOS_VERSION }}\bin -w {dest_dir} {wheel}
+          CIBW_SKIP: ${{ runner.os == 'Windows' && runner.arch == 'ARM64' && '*pp3* *cp310*' || '*pp3*' }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
