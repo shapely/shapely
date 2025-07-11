@@ -553,6 +553,7 @@ static void* GEOSMinimumBoundingCircleWithReturn(void* context, void* geom) {
   return ret;
 }
 static void* minimum_bounding_circle_data[1] = {GEOSMinimumBoundingCircleWithReturn};
+static void* minimum_width_data[1] = {GEOSMinimumWidth_r};
 static void* reverse_data[1] = {GEOSReverse_r};
 static void* oriented_envelope_data[1] = {GEOSMinimumRotatedRectangle_r};
 #if GEOS_SINCE_3_11_0
@@ -3975,6 +3976,7 @@ int init_ufuncs(PyObject* m, PyObject* d) {
   DEFINE_Y_Y(build_area);
   DEFINE_Y_Y(coverage_union);
   DEFINE_Y_Y(minimum_bounding_circle);
+  DEFINE_Y_Y(minimum_width);
 
   DEFINE_Y(prepare);
   DEFINE_Y(destroy_prepared);

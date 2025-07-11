@@ -973,6 +973,34 @@ def test_minimum_bounding_circle(geometry, expected):
 
 
 @pytest.mark.parametrize("geometry", all_types)
+def test_minimum_width_all_types(geometry):
+    actual = shapely.minimum_width([geometry, geometry])
+    assert actual.shape == (2,)
+    assert actual[0] is None or isinstance(actual[0], Geometry)
+
+    actual = shapely.minimum_width(None)
+    assert actual is None
+
+
+@pytest.mark.parametrize(
+    "geometry, expected_type",
+    [
+        (Point(0, 0), LineString),
+        (LineString([(0, 0), (1, 1)]), LineString),
+        (Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]), LineString),
+        (empty_point, LineString),
+        (empty_line_string, LineString),
+        (empty_polygon, LineString),
+    ],
+)
+def test_minimum_width(geometry, expected_type):
+    actual = shapely.minimum_width(geometry)
+    assert isinstance(actual, expected_type)
+    # Minimum width should always be a geometry
+    assert actual is not None
+
+
+@pytest.mark.parametrize("geometry", all_types)
 def test_oriented_envelope_all_types(geometry):
     actual = shapely.oriented_envelope([geometry, geometry])
     assert actual.shape == (2,)
