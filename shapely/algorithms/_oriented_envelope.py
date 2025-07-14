@@ -27,7 +27,7 @@ def _oriented_envelope_min_area(geometry, **kwargs):
     # generate the edge vectors between the convex hull's coords
     edges = (
         (pt2[0] - pt1[0], pt2[1] - pt1[1])
-        for pt1, pt2 in zip(coords, islice(coords, 1, None))
+        for pt1, pt2 in zip(coords, islice(coords, 1, None), strict=False)
     )
 
     def _transformed_rects():
