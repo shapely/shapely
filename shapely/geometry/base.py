@@ -896,29 +896,27 @@ class BaseGeometry(shapely.Geometry):
         If the normalized arg is True, return the distance normalized to the
         length of the linear geometry.
 
-        Alias of `project`.
+        Alias of deprecated `project`.
         """
         return _maybe_unpack(
             shapely.line_locate_point(self, other, normalized=normalized)
         )
 
-    # Note: future plan is to change this signature over a few releases:
-    # shapely 2.0:
-    #   project(self, other, normalized=False)
-    # shapely 2.1: shows deprecation warning about positional 'normalized'
-    #   same signature as 2.0
-    # shapely 2.2(?): enforce keyword-only arguments after 'other'
-    #   project(self, other, *, normalized=False)
-
-    @deprecate_positional(["normalized"], category=DeprecationWarning)
     def project(self, other, normalized=False):
         """Return the distance of geometry to a point nearest the specified point.
 
         If the normalized arg is True, return the distance normalized to the
         length of the linear geometry.
 
-        Alias of `line_locate_point`.
+        .. deprecated:: 2.1
+            Use :meth:`line_locate_point` instead.
         """
+        warn(
+            "The 'project()' method is deprecated and will be "
+            "removed in a future version; use 'line_locate_point()' instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return _maybe_unpack(
             shapely.line_locate_point(self, other, normalized=normalized)
         )
@@ -941,19 +939,10 @@ class BaseGeometry(shapely.Geometry):
         If the normalized arg is True, the distance will be interpreted as a
         fraction of the geometry's length.
 
-        Alias of `interpolate`.
+        Alias of deprecated `interpolate`.
         """
         return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
-    # Note: future plan is to change this signature over a few releases:
-    # shapely 2.0:
-    #   interpolate(self, distance, normalized=False)
-    # shapely 2.1: shows deprecation warning about positional 'normalized'
-    #   same signature as 2.0
-    # shapely 2.2(?): enforce keyword-only arguments after 'distance'
-    #   interpolate(self, distance, *, normalized=False)
-
-    @deprecate_positional(["normalized"], category=DeprecationWarning)
     def interpolate(self, distance, normalized=False):
         """Return a point at the specified distance along a linear geometry.
 
@@ -963,8 +952,15 @@ class BaseGeometry(shapely.Geometry):
         If the normalized arg is True, the distance will be interpreted as a
         fraction of the geometry's length.
 
-        Alias of `line_interpolate_point`.
+        .. deprecated:: 2.1
+            Use :meth:`line_interpolate_point` instead.
         """
+        warn(
+            "The 'interpolate()' method is deprecated and will be "
+            "removed in a future version; use 'line_interpolate_point()' instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return shapely.line_interpolate_point(self, distance, normalized=normalized)
 
     def segmentize(self, max_segment_length):
