@@ -177,7 +177,7 @@ jobs:
       - name: Add MSVC LICENSE
         run: cp ci/wheelbuilder/LICENSE_win32 .
         shell: bash
-        if: ${{ matrix.os == 'windows-2019' }}
+        if: ${{ startsWith(matrix.os, 'windows') }}
 
       - name: Activate MSVC
         uses: ilammy/msvc-dev-cmd@v1
