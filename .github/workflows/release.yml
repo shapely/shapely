@@ -75,7 +75,7 @@ jobs:
             cibw_build: "*musllinux_aarch64"
             arch: aarch64
     env:
-      basetag: 2024.08.12-1
+      basetag: 2025.08.02-1
 
     steps:
       - name: Checkout source
