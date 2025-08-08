@@ -63,7 +63,7 @@ jobs:
           - os: ubuntu-22.04
             python: "pypy3.11"
             geos: 3.12.3
-            numpy: 2.3.0
+            numpy: 2.3.2
 
     env:
       GEOS_VERSION: ${{ matrix.geos }}
