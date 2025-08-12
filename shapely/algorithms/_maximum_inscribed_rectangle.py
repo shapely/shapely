@@ -1,8 +1,8 @@
-import numpy as np
-from shapely.geometry import Polygon, box, LineString
-from shapely import contains_xy
-
 def _compute_mask_fast_vectorized(polygon, grid_x, grid_y):
+
+    import numpy as np
+    from shapely import contains_xy
+
     xx, yy = np.meshgrid(grid_x, grid_y)
     mask_flat = contains_xy(polygon, xx.ravel(), yy.ravel())
     return mask_flat.reshape((len(grid_y), len(grid_x)))
@@ -26,6 +26,9 @@ def _max_histogram_area(heights):
     return max_area, left, right, height
  
 def _binary_search(polygon, x1, x2, coord_start, step, max_up=True, vertical=False):
+
+    from shapely.geometry import LineString
+
     """
     Binary search to find maximum shift so the entire edge lies inside polygon.
     If vertical=False: checks horizontal edge (y constant).
@@ -58,6 +61,9 @@ def _binary_search(polygon, x1, x2, coord_start, step, max_up=True, vertical=Fal
     return best_shift
 
 def adjust_rectangle(polygon, x1, x2, y1_start, y2_start, step):
+
+    from shapely.geometry import box
+
     # Shift vertically
     shift_up = _binary_search(polygon, x1, x2, y2_start, step, max_up=True, vertical=False)
     y2_shift = y2_start + shift_up
@@ -81,7 +87,13 @@ def adjust_rectangle(polygon, x1, x2, y1_start, y2_start, step):
 
     return None, 0
 
-def maximum_inscribed_rectangle(polygon: Polygon, resolution=20):
+def maximum_inscribed_rectangle(polygon, resolution=20):
+
+    if polygon.is_empty:
+        return polygon
+
+    import numpy as np
+
     minx, miny, maxx, maxy = polygon.bounds
 
     grid_x = np.linspace(minx, maxx, resolution)
@@ -117,5 +129,8 @@ def maximum_inscribed_rectangle(polygon: Polygon, resolution=20):
             if area > max_area:
                 max_area = area
                 best_rect = candidate_rect
+
+    if best_rect.is_empty:
+        return polygon
 
     return best_rect
