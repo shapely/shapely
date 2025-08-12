@@ -563,7 +563,7 @@ def coverage_union(a, b, **kwargs):
     This is an optimized version of union which assumes the polygons to be
     non-overlapping.
     If this assumption is not met, the exact result is not guaranteed
-    (depending on the GEOS version, it may return the input unchanges or raise
+    (depending on the GEOS version, it may return the input unchanged or raise
     an error).
 
     Parameters
