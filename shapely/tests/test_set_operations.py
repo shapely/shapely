@@ -287,7 +287,11 @@ def test_coverage_union_overlapping_inputs():
     polygon = Polygon([(1, 1), (1, 0), (0, 0), (0, 1), (1, 1)])
     other = Polygon([(1, 0), (0.9, 1), (2, 1), (2, 0), (1, 0)])
 
-    if shapely.geos_version >= (3, 12, 0):
+    if shapely.geos_version >= (3, 14, 0):
+        # Overlapping polygons raise an error again
+        with pytest.raises(shapely.GEOSException, match="TopologyException"):
+            shapely.coverage_union(polygon, other)
+    elif shapely.geos_version >= (3, 12, 0):
         # Return mostly unchanged output
         result = shapely.coverage_union(polygon, other)
         expected = shapely.multipolygons([polygon, other])
