@@ -16,6 +16,7 @@ from shapely.coordinates import *
 from shapely.strtree import *
 from shapely.io import *
 from shapely._coverage import *
+from shapely.algorithms._maximum_inscribed_rectangle import maximum_inscribed_rectangle
 
 # Submodule always needs to be imported to ensure Geometry subclasses are registered
 from shapely.geometry import (
