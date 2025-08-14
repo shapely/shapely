@@ -1,5 +1,7 @@
 """Support for various GEOS geometry operations."""
 
+from itertools import pairwise
+
 import shapely
 from shapely.algorithms.polylabel import polylabel  # noqa
 from shapely.errors import GeometryTypeError
@@ -254,11 +256,15 @@ def transform(func, geom):
         # extra cost.
         try:
             if geom.geom_type in ("Point", "LineString", "LinearRing"):
-                return type(geom)(zip(*func(*zip(*geom.coords))))
+                return type(geom)(
+                    zip(*func(*zip(*geom.coords, strict=True)), strict=True)
+                )
             elif geom.geom_type == "Polygon":
-                shell = type(geom.exterior)(zip(*func(*zip(*geom.exterior.coords))))
+                shell = type(geom.exterior)(
+                    zip(*func(*zip(*geom.exterior.coords, strict=True)), strict=True)
+                )
                 holes = [
-                    type(ring)(zip(*func(*zip(*ring.coords))))
+                    type(ring)(zip(*func(*zip(*ring.coords, strict=True)), strict=True))
                     for ring in geom.interiors
                 ]
                 return type(geom)(shell, holes)
@@ -645,9 +651,8 @@ def substring(geom, start_dist, end_dist, normalized=False):
     else:
         vertex_list = [tuple(*start_point.coords)]
 
-    coords = list(geom.coords)
     current_distance = 0
-    for p1, p2 in zip(coords, coords[1:]):  # noqa
+    for p1, p2 in pairwise(geom.coords):
         if start_dist < current_distance < end_dist:
             vertex_list.append(p1)
         elif current_distance >= end_dist:
