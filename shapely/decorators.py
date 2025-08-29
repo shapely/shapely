@@ -87,7 +87,7 @@ def multithreading_enabled(func):
                 arr.flags.writeable = False
             return func(*args, **kwargs)
         finally:
-            for arr, old_flag in zip(array_args, old_flags):
+            for arr, old_flag in zip(array_args, old_flags, strict=False):
                 arr.flags.writeable = old_flag
 
     return wrapped

@@ -50,6 +50,7 @@ class UnionTestCase(unittest.TestCase):
         self.coords = zip(
             list(islice(halton(5), 20, 120)),
             list(islice(halton(7), 20, 120)),
+            strict=True,
         )
 
     def test_unary_union(self):
