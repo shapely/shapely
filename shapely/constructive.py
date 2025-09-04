@@ -1438,9 +1438,10 @@ def minimum_width(geometry, **kwargs):
     contains the geometry, where a band is a strip of the plane defined
     by two parallel lines. This is also known as the minimum diameter.
 
-    For most geometry types, this function returns a LineString representing
-    the minimum width line segment. For degenerate cases (points), it may
-    return the point itself.
+    This function always returns a LineString representing the minimum
+    width line segment, including for degenerate cases, such as
+    LineStrings or Points. (In these cases, the minimum width is a
+    zero-length LineString).
 
     Parameters
     ----------
@@ -1454,11 +1455,11 @@ def minimum_width(geometry, **kwargs):
     >>> import shapely
     >>> from shapely import Point, LineString, Polygon
     >>> polygon = Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)])
-    >>> shapely.minimum_width(polygon)  # doctest: +SKIP
+    >>> shapely.minimum_width(polygon)
     <LINESTRING (0 0, 1 0)>
     >>> line = LineString([(0, 0), (3, 4)])
-    >>> shapely.minimum_width(line)  # doctest: +SKIP
-    <POINT (1.5 2)>
+    >>> shapely.minimum_width(line)
+    <LINESTRING (0 0, 0 0)>
 
     See Also
     --------
