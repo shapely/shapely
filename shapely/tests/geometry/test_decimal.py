@@ -111,7 +111,7 @@ all_geoms = [
 ]
 
 
-@pytest.mark.parametrize("geoms", list(zip(*all_geoms)))
+@pytest.mark.parametrize("geoms", list(zip(*all_geoms, strict=True)))
 def test_decimal(geoms):
     assert geoms[0] == geoms[1] == geoms[2]
     assert geoms[3] == geoms[4] == geoms[5]
