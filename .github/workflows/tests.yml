@@ -14,7 +14,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-13, windows-2022]
         architecture: [x64]
-        geos: [3.9.6, 3.10.7, 3.11.5, 3.12.3, 3.13.1, main]
+        geos: [3.9.6, 3.10.7, 3.11.5, 3.12.3, 3.13.1, 3.14.0, main]
         include:
           # 2020
           - python: "3.10"
@@ -39,6 +39,10 @@ jobs:
             matplotlib: true
             doctest: true
             extra_pytest_args: "-W error"  # error on warnings
+          # 2025
+          - python: "3.14"
+            geos: 3.14.0
+            numpy: 2.3.3
           # free threaded Python (no numpy version to indicate installing nightly cython and numpy)
           - os: ubuntu-22.04
             python: "3.13t"
@@ -100,7 +104,7 @@ jobs:
         if: ${{ matrix.geos == 'main' }}
 
       - name: Set up Python ${{ matrix.python }}
-        uses: Quansight-Labs/setup-python@869aeafb7eeb9dc48ba68acc0479e6fc3fd7ce5e  # v5.4.0
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
           architecture: ${{ matrix.architecture }}
