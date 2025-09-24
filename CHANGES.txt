@@ -1,7 +1,7 @@
 Changes
 =======
 
-2.1.1 (2025-09-??)
+2.1.2 (2025-09-??)
 ------------------
 
 Wheels are available for Python 3.14 (and still include GEOS 3.13.1).
