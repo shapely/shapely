@@ -11,7 +11,7 @@ __all__ = [
     "get_coordinates",
     "set_coordinates",
     "transform",
-    "transform_resize",
+    "transform_coordseq",
 ]
 
 
@@ -39,7 +39,7 @@ def transform(
     When specifying ``include_z=True``, the returned geometries preserve
     the dimensionality of the respective input geometries.
 
-    This function differs with `transform_resize` in the following ways:
+    This function differs with `transform_coordseq` in the following ways:
 
     - It accepts arrays of Geometry objects.
     - The number of coordinates per Geometry is not allowed to change.
@@ -82,7 +82,7 @@ def transform(
     --------
     has_z : Returns a copy of a geometry array with a function applied to its
         coordinates.
-    transform_resize : Transform single Geometry objects, optionally resizing them.
+    transform_coordseq : Transform single Geometry objects, optionally resizing them.
 
     Examples
     --------
@@ -174,14 +174,14 @@ interleaved=False, include_z=True)
     return result
 
 
-def transform_resize(
+def transform_coordseq(
     geom: shapely.Geometry | None,
     transformation,
     *,
     include_z: bool | None = False,
     interleaved: bool = True,
 ):
-    """Apply a transformation a geometry that changes the number of coordinates.
+    """Apply a transformation to the coordinate sequences of a single geometry.
 
     The transformation function is applied per coordinate sequence. For polygons this
     means: per ring. For collections this means: per element.
@@ -199,7 +199,7 @@ def transform_resize(
     geom : Geometry or None
     transformation : function
         A function that transforms a (N, 2) or (N, 3) ndarray of float64 to
-        atransform_resizenother (N, 2) or (N, 3) ndarray of float64.
+        atransform_coordseqnother (N, 2) or (N, 3) ndarray of float64.
         The function may change the value of N.
     include_z : bool, optional, default False
         If False, always return 2D geometries.
@@ -228,13 +228,13 @@ def transform_resize(
 
     Reduce a linestring to only its first 2 points:
 
-    >>> shapely.transform_resize(LineString([(2, 2), (4, 4), (6, 6)]), \
+    >>> shapely.transform_coordseq(LineString([(2, 2), (4, 4), (6, 6)]), \
     lambda coords: coords[:2])
     <LINESTRING (2 2, 4 4)>
 
     The same with a function that accepts separate x, y arrays:
 
-    >>> shapely.transform_resize(LineString([(2, 2), (4, 4), (6, 6)]), \
+    >>> shapely.transform_coordseq(LineString([(2, 2), (4, 4), (6, 6)]), \
     lambda x, y: (x[:2], y[:2]), interleaved=False)
     <LINESTRING (2 2, 4 4)>
     """
@@ -276,7 +276,7 @@ def transform_resize(
     ):
         return type(geom)(
             [
-                transform_resize(
+                transform_coordseq(
                     part, transformation, include_z=include_z, interleaved=interleaved
                 )
                 for part in geom.geoms

@@ -7,7 +7,7 @@ import numpy as np
 
 import shapely
 from shapely.algorithms.polylabel import polylabel  # noqa
-from shapely.coordinates import transform_resize
+from shapely.coordinates import transform_coordseq
 from shapely.errors import GeometryTypeError, ShapelyDeprecationWarning
 from shapely.geometry import (
     GeometryCollection,
@@ -220,11 +220,11 @@ def transform(func, geom):
 
     .. deprecated:: 2.2.0
       This function was superseded by :meth:`shapely.transform` and
-      :meth:`shapely.transform_resize`.
+      :meth:`shapely.transform_coordseq`.
     """
     warn(
         "The 'ops.transform()' function is deprecated. "
-        "Use 'transform()' or 'transform_resize()' instead.",
+        "Use 'transform()' or 'transform_coordseq()' instead.",
         ShapelyDeprecationWarning,
         stacklevel=2,
     )
@@ -242,7 +242,9 @@ def transform(func, geom):
             return zip(*[func(*c) for c in zip(*coords, strict=False)], strict=False)
 
     try:
-        return transform_resize(geom, _func_wrapped, include_z=None, interleaved=False)
+        return transform_coordseq(
+            geom, _func_wrapped, include_z=None, interleaved=False
+        )
     except TypeError as e:
         raise GeometryTypeError(str(e))
 
