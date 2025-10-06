@@ -177,6 +177,7 @@ interleaved=False, include_z=True)
 def transform_resize(
     geom: shapely.Geometry | None,
     transformation,
+    *,
     include_z: bool | None = False,
     interleaved: bool = True,
 ):
