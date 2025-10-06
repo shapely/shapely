@@ -28,12 +28,12 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.x"
 
@@ -75,11 +75,11 @@ jobs:
             cibw_build: "*musllinux_aarch64"
             arch: aarch64
     env:
-      basetag: 2024.08.12-1
+      basetag: 2025.08.02-1
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -113,7 +113,7 @@ jobs:
         shell: bash
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.23.3
+        uses: pypa/cibuildwheel@v3.2.0
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           # TEMP don't use automated/isolated build environment, but manually
@@ -163,7 +163,7 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -180,7 +180,7 @@ jobs:
       - name: Add MSVC LICENSE
         run: cp ci/wheelbuilder/LICENSE_win32 .
         shell: bash
-        if: ${{ matrix.os == 'windows-2019' }}
+        if: ${{ startsWith(matrix.os, 'windows') }}
 
       - name: Activate MSVC
         uses: ilammy/msvc-dev-cmd@v1
@@ -189,7 +189,7 @@ jobs:
         if: ${{ matrix.msvc_arch }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.23.3
+        uses: pypa/cibuildwheel@v3.2.0
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_ENVIRONMENT_MACOS:
@@ -234,7 +234,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository == 'shapely/shapely' && github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           pattern: release-*
           merge-multiple: true
@@ -252,7 +252,7 @@ jobs:
     # release on every tag
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           pattern: release-*
           merge-multiple: true

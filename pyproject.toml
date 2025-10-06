@@ -31,15 +31,15 @@ classifiers = [
     "Operating System :: MacOS",
     "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
-    "numpy>=1.21",
+    "numpy>=1.23",
 ]
 
 [project.optional-dependencies]
@@ -74,7 +74,7 @@ skip = ["pp*", "*_i686", "*_ppc64le", "*_s390x"]
 build-verbosity = 1
 test-requires = "pytest"
 test-command = "pytest --pyargs shapely.tests"
-free-threaded-support = true
+enable = ["cpython-freethreading"]
 
 [tool.coverage.run]
 source = ["shapely"]
@@ -138,8 +138,6 @@ ignore = [
     "B007",
     # get-attr-with-constant
     "B009",
-    # Only works with python >=3.10
-    "B905",
     # dict literals
     "C408",
     # Too many arguments to function call

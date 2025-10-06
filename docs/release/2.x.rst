@@ -1,6 +1,13 @@
 Version 2.x
 ===========
 
+.. _version-2-1-2:
+
+Version 2.1.2 (2025-09-24)
+--------------------------
+
+Wheels are available for Python 3.14 (and still include GEOS 3.13.1).
+
 .. _version-2-1-1:
 
 Version 2.1.1 (2025-05-19)
