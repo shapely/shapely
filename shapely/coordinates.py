@@ -199,7 +199,7 @@ def transform_resize(
     geom : Geometry or None
     transformation : function
         A function that transforms a (N, 2) or (N, 3) ndarray of float64 to
-        another (N, 2) or (N, 3) ndarray of float64.
+        atransform_resizenother (N, 2) or (N, 3) ndarray of float64.
         The function may change the value of N.
     include_z : bool, optional, default False
         If False, always return 2D geometries.
@@ -223,17 +223,18 @@ def transform_resize(
 
     Examples
     --------
+    >>> import shapely
     >>> from shapely import LineString, Point
 
     Reduce a linestring to only its first 2 points:
 
-    >>> transform_resize(LineString([(2, 2), (4, 4), (6, 6)]),
+    >>> shapely.transform_resize(LineString([(2, 2), (4, 4), (6, 6)]), \
     lambda coords: coords[:2])
     <LINESTRING (2 2, 4 4)>
 
     The same with a function that accepts separate x, y arrays:
 
-    >>> transform_resize(LineString([(2, 2), (4, 4), (6, 6)]),
+    >>> shapely.transform_resize(LineString([(2, 2), (4, 4), (6, 6)]), \
     lambda x, y: (x[:2], y[:2]), interleaved=False)
     <LINESTRING (2 2, 4 4)>
     """
